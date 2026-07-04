@@ -25,6 +25,7 @@ Chaque ninja généré procéduralement par le serveur doit posséder les champs
 *   `medecine` : Maîtrise des soins, de la régénération et du support vital.
 *   `vitesse` : Capacité de mouvement (Détermine l'Initiative de l'escouade).
 *   `intelligence` : QI Tactique (Détermine la pertinence des choix d'action).
+*   `language` : Énumération (fr, en). Définit la langue utilisée pour l'interface et la génération de la chronique textuelle des matchs.
 
 ### C. Les Jauges Dynamiques
 *   `weekly_forme` : Énumération (Lamentable, Passable, Excellent, Divin). Applique un modificateur global sur toutes les stats pour le match.
