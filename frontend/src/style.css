@@ -104,11 +104,13 @@
     width: 100%;
     height: 100%;
     transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
   }
 
-  .flip-inner.is-flipped {
-    transform: rotateY(180deg);
+  .flip-inner.is-selected .ninja-card-face {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 45%, transparent),
+      0 12px 40px -12px rgba(0, 0, 0, 0.55);
   }
 
   .flip-face {
@@ -122,11 +124,20 @@
     transform: rotateY(180deg);
   }
 
+  /* Octogone : côtés verticaux ~85 % de la hauteur */
   .ninja-card-face {
-    @apply flex h-full flex-col overflow-hidden rounded-md border border-line bg-gradient-to-b from-bg-card to-bg-soft shadow-lg;
-    box-shadow:
-      0 1px 0 color-mix(in srgb, var(--color-accent-soft) 20%, transparent) inset,
-      0 12px 40px -12px rgba(0, 0, 0, 0.55);
+    @apply flex h-full flex-col overflow-hidden bg-gradient-to-b from-bg-card to-bg-soft;
+    clip-path: polygon(
+      10% 0%,
+      90% 0%,
+      100% 7.5%,
+      100% 92.5%,
+      90% 100%,
+      10% 100%,
+      0% 92.5%,
+      0% 7.5%
+    );
+    box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.55);
   }
 
   .ninja-card-face::before {
@@ -134,8 +145,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    border-radius: inherit;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 6%, transparent) 0%, transparent 45%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 5%, transparent) 0%, transparent 50%);
   }
 }
 

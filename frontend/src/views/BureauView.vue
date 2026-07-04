@@ -77,7 +77,7 @@ onMounted(async () => {
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
           <p class="section-label">{{ t('bureau.activeSquad') }}</p>
           <p class="mt-2 max-w-md text-sm text-ink-muted">
-            Cliquez sur une carte pour la retourner et voir la fiche détaillée.
+            Survolez une carte pour l'apercevoir, cliquez pour voir la fiche au verso.
           </p>
 
           <div class="mt-8 flex flex-wrap justify-center gap-6 sm:justify-start lg:gap-8">
