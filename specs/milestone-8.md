@@ -34,7 +34,7 @@ Pour permettre à des amis de s'affronter directement sans attendre les mécanis
 ## 🧮 3. Le Classement de Ligue et le Tableau de Renommée
 
 ### A. Le Classement de la Pool
-À la fin de chaque match de cycle (Heure 72), la table `Classement_Pool` attribue les points :
+À la fin de chaque match de cycle (**H72**, après l'heure live narrative), la table `Classement_Pool` attribue les points :
 * 🟢 **Victoire (par K.O. ou aux Points) :** 3 Points
 * 🟡 **Match Nul :** 1 Point
 * 🔴 **Défaite :** 0 Point

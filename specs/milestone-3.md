@@ -7,9 +7,28 @@ Ce document spécifie la gestion du temps partagé (cycles de 72h), les scripts 
 ## 📅 1. Le Rythme du Serveur (Horloge Synchrone)
 
 Le jeu fonctionne sur un rythme global fixe de 72 heures réelles pour simuler une "Semaine Ninja". Tous les joueurs du serveur vivent les mêmes échéances au même moment :
-* **Heure 0 :** Début du cycle (Rapport du match précédent disponible, Marché Noir réapprovisionné, entraînement actif).
+* **Heure 0 :** Début du cycle (Rapport du match précédent disponible, Marché Noir réapprovisionné, entraînement actif, tactiques modifiables).
 * **Heure 36 (Milieu de cycle) :** Calcul automatique des Épreuves de Promotion (Examens Chunin) et génération des Rapports d'Espionnage pour le prochain match.
-* **Heure 72 :** Gel des tactiques, simulation de l'Opération de Frontière, traitement des gains/pertes, et réinitialisation de l'horloge pour le cycle suivant.
+* **Heure 71 (Début de l'Opération live) :** Gel des tactiques. Simulation intégrale de l'Opération de Frontière (Milestone 5). Génération de la chronique narrative et début de sa révélation progressive (Milestone 6). Les deux joueurs d'un duel découvrent l'histoire au même rythme.
+* **Heure 71 → 72 (Heure live) :** Révélation irrégulière des segments narratifs sur la vue `/operation`. Les résultats mécaniques ne sont **pas encore appliqués**.
+* **Heure 72 (Fin de cycle) :** Application des résultats (points ligue, forme, salaires, Vol d'Oiseau, entraînement), puis réinitialisation de l'horloge pour le cycle suivant.
+
+---
+
+## 📡 1bis. L'Heure Live de l'Opération (H71 → H72)
+
+La dernière heure du cycle est dédiée au **spectacle narratif** de l'Opération de Frontière :
+
+| Instant | Action serveur |
+| :--- | :--- |
+| **H71:00** | Gel des tactiques. Simulation complète de tous les matchs de la pool. Génération du script de révélation (segments + timeline aléatoire). |
+| **H71 → H72** | Les clients ne reçoivent que les segments narratifs dont l'heure de déverrouillage est passée (voir Milestone 6). |
+| **H72:00** | Application en batch : entraînement, économie, ligue, Vol d'Oiseau, débriefing pédagogique, nouveau cycle (H0). |
+
+**Règles importantes :**
+* Le joueur peut modifier sa composition et ses consignes jusqu'à **H71:00** exclusivement.
+* Le résultat du match est **pré-calculé à H71** mais **appliqué à H72** (sauf affichage narratif du dénouement avant H72 via la chronique).
+* Un joueur absent pendant l'heure live retrouve, à la reconnexion, tous les segments déjà débloqués selon l'horloge serveur.
 
 ---
 
@@ -57,6 +76,8 @@ Avant d'enregistrer le gain, le script fait un test sur le trait `character_trai
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
 * [ ] Implémente un système de gestion du temps côté Backend (ex: tâches planifiées via des *Cron Jobs* ou la bibliothèque `node-schedule`).
-* [ ] Rédige le script de fin de cycle qui applique la formule mathématique d'entraînement à l'ensemble des ninjas de la BDD.
+* [ ] Expose la position actuelle dans le cycle (H0–H72) via l'API pour le Front-End (Bureau, vue Opération).
+* [ ] Implémente le job **H71** : gel des tactiques, lancement de la simulation des matchs et de la génération chronique (coordination avec Milestones 5 et 6).
+* [ ] Rédige le script de fin de cycle (**H72**) qui applique la formule mathématique d'entraînement à l'ensemble des ninjas de la BDD.
 * [ ] Intègre la condition aléatoire du trait "Fainéant" lors du calcul des gains d'entraînement.
 * [ ] Code la fonction de milieu de cycle (Heure 36) qui traite les promotions de grade selon les paliers de statistiques (Combat $\ge 10$ et QI $\ge 8$) et applique les conséquences sur le salaire ou le moral.
