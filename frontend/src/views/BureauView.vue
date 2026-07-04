@@ -1,11 +1,15 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
+const trainingFocus = ref('Genjutsu')
+const focusSaving = ref(false)
+
+const FOCUS_KEYS = ['Taijutsu', 'Ninjutsu', 'Genjutsu', 'Medecine', 'Vitesse', 'Intelligence']
 
 const squadRating = computed(() => {
   if (!store.activeSquad.length) return '—'
@@ -15,9 +19,19 @@ const squadRating = computed(() => {
   return Math.round(avg)
 })
 
+async function onTrainingFocusChange() {
+  focusSaving.value = true
+  try {
+    await store.saveTrainingFocus(trainingFocus.value)
+  } finally {
+    focusSaving.value = false
+  }
+}
+
 onMounted(async () => {
   await store.fetchSquad()
   if (store.sensei?.language) locale.value = store.sensei.language
+  if (store.sensei?.trainingFocus) trainingFocus.value = store.sensei.trainingFocus
 })
 </script>
 
@@ -72,6 +86,22 @@ onMounted(async () => {
             Spécialité <span class="text-ink">{{ store.sensei.specialty }}</span>
             — bonus <span class="text-accent">+15%</span> sur l'entraînement ciblé.
           </p>
+
+          <div class="mt-8">
+            <label class="section-label" for="training-focus">{{ t('bureau.trainingFocus') }}</label>
+            <select
+              id="training-focus"
+              v-model="trainingFocus"
+              class="strategy-select mt-3 max-w-xs"
+              :disabled="focusSaving"
+              @change="onTrainingFocusChange"
+            >
+              <option v-for="key in FOCUS_KEYS" :key="key" :value="key">
+                {{ t(`ninja.stats.${key.toLowerCase()}`) }}
+              </option>
+            </select>
+            <p class="mt-2 text-xs text-ink-faint">{{ t('bureau.trainingHint') }}</p>
+          </div>
         </div>
 
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">

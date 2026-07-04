@@ -125,9 +125,15 @@ function gradeColor(grade) {
       <div class="flip-face flip-back ninja-card-face relative p-3 sm:p-4" :class="faceGradeClass">
         <div class="relative z-10 flex h-full flex-col text-[10px]">
           <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
-          <p class="mt-2 italic leading-snug text-ink-muted">
-            {{ t(`traits.${ninja.character_trait}.label`) }}
-          </p>
+          <div class="trait-tooltip mt-2">
+            <p class="italic leading-snug text-ink-muted">
+              {{ t(`traits.${ninja.character_trait}.label`) }}
+            </p>
+            <div class="trait-tooltip__panel" role="tooltip">
+              <p class="text-accent-soft">{{ t(`traits.${ninja.character_trait}.bonus`) }}</p>
+              <p class="mt-1.5 text-ink-faint">{{ t(`traits.${ninja.character_trait}.malus`) }}</p>
+            </div>
+          </div>
 
           <dl class="mt-3 flex-1 space-y-1.5">
             <div v-for="key in statKeys" :key="key" class="flex justify-between gap-2">

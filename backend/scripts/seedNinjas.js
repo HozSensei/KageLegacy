@@ -51,7 +51,8 @@ async function seed() {
   for (let i = 0; i < totalNinjas; i += 1) {
     const clanName = clanRotation[i % clanRotation.length];
     const clan = clanByName[clanName];
-    const grade = i < 10 ? 'Genin' : i < 13 ? 'Chunin' : 'Genin';
+    const grade =
+      i === 1 ? 'Chunin' : i < 10 ? 'Genin' : i < 13 ? 'Chunin' : 'Genin';
     const profile = generateNinjaProfile({
       clan,
       grade,

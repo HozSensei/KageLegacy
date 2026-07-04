@@ -59,7 +59,9 @@
     "title": "Bureau du Sensei",
     "cycle": "Cycle ninja",
     "activeSquad": "Escouade active",
-    "operationLive": "Opération en cours"
+    "operationLive": "Opération en cours",
+    "trainingFocus": "Focus d'entraînement",
+    "trainingHint": "Reconduit automatiquement chaque cycle tant que vous ne le modifiez pas."
   },
   "squad": {
     "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",
@@ -68,6 +70,8 @@
     "activeSquad": "Escouade active",
     "bench": "Remplaçants",
     "benchHint": "Survolez une carte pour la dégager du tas et la consulter.",
+    "tacticsLocked": "Les consignes sont gelées pour l'Opération (à partir de H71).",
+    "saving": "Enregistrement…",
     "tacticalSpeed": "Vitesse tactique",
     "activeCount": "Actifs",
     "benchCount": "Banc",

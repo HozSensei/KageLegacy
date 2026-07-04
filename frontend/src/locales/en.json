@@ -59,7 +59,9 @@
     "title": "Sensei Office",
     "cycle": "Ninja cycle",
     "activeSquad": "Active squad",
-    "operationLive": "Operation in progress"
+    "operationLive": "Operation in progress",
+    "trainingFocus": "Training focus",
+    "trainingHint": "Carried over each cycle until you change it."
   },
   "squad": {
     "lead": "Manage your combat trio and bench before tactics lock.",
@@ -68,6 +70,8 @@
     "activeSquad": "Active squad",
     "bench": "Bench",
     "benchHint": "Hover a card to bring it forward from the stack.",
+    "tacticsLocked": "Orders are locked for the Operation (from H71 onward).",
+    "saving": "Saving…",
     "tacticalSpeed": "Tactical speed",
     "activeCount": "Active",
     "benchCount": "Bench",
