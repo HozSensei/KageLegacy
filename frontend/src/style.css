@@ -124,10 +124,9 @@
     transform: rotateY(180deg);
   }
 
-  /* Octogone aux angles adoucis, côtés verticaux ~85 % */
+  /* Rectangle classique aux coins arrondis */
   .ninja-card-face {
-    @apply flex h-full flex-col overflow-hidden bg-gradient-to-b from-bg-card to-bg-soft;
-    clip-path: url(#ninja-card-clip);
+    @apply flex h-full flex-col overflow-hidden rounded-[20px] bg-gradient-to-b from-bg-card to-bg-soft;
     box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.55);
   }
 
@@ -151,10 +150,21 @@
     z-index: 2;
   }
 
-  /* Banc : chevauchement qui se libère au survol */
+  /* Banc : chevauchement qui se libère au survol (scroll horizontal uniquement) */
   .bench-stack {
-    @apply flex items-end overflow-x-auto pb-6 pt-4;
+    @apply flex items-end overflow-x-auto overflow-y-hidden pb-6 pt-5;
     padding-left: 0.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-ink-faint) 40%, transparent) transparent;
+  }
+
+  .bench-stack::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .bench-stack::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-ink-faint) 35%, transparent);
   }
 
   .bench-stack__item {
