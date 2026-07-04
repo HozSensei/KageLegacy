@@ -48,6 +48,7 @@ Création d'un store Pinia `src/stores/squad.js` pour centraliser les données r
 // Structure cible du store pour le Front-End
 export const useSquadStore = defineStore('squad', {
   state: () => ({
+    is_bot: true,
     sensei: {
       name: 'Kakashi',
       specialty: 'Genjutsu',
