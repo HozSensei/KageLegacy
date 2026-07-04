@@ -64,7 +64,8 @@ export const useSquadStore = defineStore('squad', {
   })
 })
 
-```
+---
+
 ## 🗄️ 4. Spécifications du Script de Seeding (Données de Test)
 Pour tester l'interface sans attendre d'avoir codé tout le système de recrutement, le développeur a besoin d'un script server/scripts/seedNinjas.js.
 ### Logique algorithmique du générateur procédural :
@@ -79,4 +80,10 @@ Pour tester l'interface sans attendre d'avoir codé tout le système de recrutem
  * [ ] Intègre Tailwind CSS pour créer un rendu "Dashboard sombre de commandement" propre et responsive.
  * [ ] Ajoute les infobulles (tooltips) interactives en utilisant les classes utilitaires de Tailwind pour expliciter les traits de caractère au survol de la souris.
  * [ ] Rédige le script de Seeding Node.js pour injecter en base de données ou générer un fichier JSON de test d'une quinzaine de ninjas cohérents avec les règles des Clans et des Caractères.
-```
+
+---
+
+## 🌐 5. Internationalisation (i18n)
+*   **Outil :** Intégration de `vue-i18n` dans le projet Vue 3.
+*   **Fichiers de traduction :** Création d'un dossier `src/locales/` contenant `fr.json` et `en.json`.
+*   **Composant sélecteur :** Ajouter un bouton discret dans la `SenseiCard` ou la barre de navigation pour basculer la langue du site à la volée, mettant à jour le store Pinia et la préférence en base de données.
