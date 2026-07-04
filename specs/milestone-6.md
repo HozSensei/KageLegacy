@@ -45,6 +45,5 @@ Le script de débriefing applique des vérifications logiques à la fin des 12 t
  * [ ] Crée la structure du dictionnaire de phrases textuelles en backend (Node.js), classée par types d'actions et de compétences.
  * [ ] Développe la fonction de parsing (traduction) qui prend le tableau de logs JSON bruts du match et génère la chronique textuelle finale en remplaçant les variables dynamiques ({name}, {degats}).
  * [ ] Code les algorithmes d'analyse post-match pour générer les 3 alertes de débriefing pédagogique (Initiative, Faille élémentaire, Épuisement de Chakra) afin de guider les choix d'entraînement du joueur.
-```
 
 ---
