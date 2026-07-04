@@ -86,8 +86,26 @@ Pour tester l'interface sans attendre d'avoir codé tout le système de recrutem
 
 ---
 
+## 🗺️ 6. Architecture des Vues (Vue Router)
+
+Le Front-End est organisé autour d'un layout commun (`AppLayout.vue`) et de routes dédiées :
+
+| Route | Vue | Rôle |
+| :--- | :--- | :--- |
+| `/` | `BureauView.vue` | Hub : résumé passé / présent / futur, timer du cycle, notifications |
+| `/squad` | `SquadView.vue` | Composition des 3 actifs, banc, tactiques et consignes |
+| `/market` | `MarketView.vue` | Marché Noir du cycle (3 objets) |
+| `/inventory` | `InventoryView.vue` | Assignation ninja ↔ objet (2 colonnes) |
+| `/operation` | `OperationView.vue` | Chronique shinobi live (H71→H72), voir Milestone 6 |
+| `/league` | `LeagueView.vue` | Classement pool et calendrier (Milestone 8) |
+
+Pendant l'heure live (H71→H72), le Bureau affiche un bandeau *« Opération en cours »* avec lien vers `/operation`.
+
+---
+
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
  * [ ] Configure la structure des composants Vue 3 (BureauView, SenseiCard, NinjaCard) en utilisant la syntaxe <script setup>.
+ * [ ] Mets en place Vue Router avec `AppLayout` et les routes listées en section 6.
  * [ ] Intègre Tailwind CSS pour créer un rendu "Dashboard sombre de commandement" propre et responsive.
  * [ ] Ajoute les infobulles (tooltips) interactives en utilisant les classes utilitaires de Tailwind pour expliciter les traits de caractère au survol de la souris.
  * [ ] Rédige le script de Seeding Node.js pour injecter en base de données ou générer un fichier JSON de test d'une quinzaine de ninjas cohérents avec les règles des Clans et des Caractères.

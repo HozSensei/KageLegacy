@@ -4,6 +4,20 @@ Ce document spécifie l'impact exact des variables (Intelligence, Forme, Caract�
 
 ---
 
+## ⏱️ Moment d'Exécution (H71 → H72)
+
+La simulation mécanique s'exécute **intégralement à H71** (voir Milestone 3). Le moteur produit les logs JSON bruts et le résultat final ; il ne génère **aucun texte littéraire** (délégué au Moteur de Chronique, Milestone 6).
+
+| Phase | Instant | Action |
+| :--- | :--- | :--- |
+| **Simulation** | H71:00 | Calcul des 12 tours max, stockage des logs, détermination de `ending_tour` et du vainqueur. |
+| **Révélation narrative** | H71 → H72 | La chronique romancée se dévoile par segments (rythme irrégulier). Les deux joueurs lisent la même histoire au même rythme. |
+| **Application des résultats** | H72:00 | Points ligue, forme post-match, salaires, Vol d'Oiseau, entraînement (Milestones 3, 4, 7, 8). |
+
+Le résultat d'un match peut être **révélé narrativement avant H72** (K.O. anticipé), mais les conséquences mécaniques sur le compte du joueur ne sont appliquées qu'à **H72**.
+
+---
+
 ## 🩸 Étape 0 : Initialisation et Calcul de la Forme (Avant le Match)
 
 Avant même le premier tour de combat, le serveur charge les ninjas et applique les modificateurs de la **Forme Hebdomadaire** (`weekly_forme`). La forme agit comme un coefficient multiplicateur sur **toutes** les statistiques du ninja pour la durée du match :
@@ -79,7 +93,7 @@ Si le défenseur va subir un coup fatal (PV tombant à 0) :
 
 ### 🏥 Équilibrage Post-Match & Gestion de la Récupération
 
-Pour éviter de bloquer le joueur en début de jeu lorsqu'il possède peu de remplaçants, les règles de récupération après le match (Heure 72) sont adoucies :
+Pour éviter de bloquer le joueur en début de jeu lorsqu'il possède peu de remplaçants, les règles de récupération après le match (appliquées à **H72**) sont adoucies :
 
 1. **Restauration des PV :** À la fin de l'Opération de Frontière, les PV et le Chakra de match de TOUS les ninjas sont **entièrement remis à 100%**. Ils récupèrent de leurs blessures superficielles.
 2. **Malus de Forme Linéaire (Pas d'effondrement) :** Un ninja qui a terminé le match **K.O.** ne passe pas directement à "Lamentable". Il descend simplement d'**un seul palier** sur l'échelle de sa Forme hebdomadaire pour le cycle suivant (ex: de *Excellent* à *Passable*, ou de *Passable* à *Lamentable*). Un ninja qui a survécu au match conserve son palier de Forme.
@@ -96,6 +110,7 @@ Si un joueur n'a pas de remplaçant et doit absolument faire jouer un ninja tomb
 
 ## 🛠️ Résumé de la Todo-List pour l'IA (Mise à jour)
 
+* [ ] **Orchestration H71 :** Déclencher la simulation pour tous les matchs de la pool à H71 et transmettre les logs JSON au Moteur de Chronique (Milestone 6).
 * [ ] **Étape 0 :** Créer la fonction de pré-calcul qui applique les multiplicateurs de la `weekly_forme` (`+15%`, `+5%`, `0%`, `-25%`) sur les stats brutes avant de générer les PV/Chakra du match.
 * [ ] **Étape 1 :** Ajouter la condition du trait `Temeraire` au Tour 1 (`+4 Vitesse`).
 * [ ] **Étape 2 :** Coder l'arbre de décision IA basé sur l' `intelligence` (QI) pour le choix de la technique offensive, et ajouter le déclencheur de fierté de l' `Egoiste` (`+2 combat`).
