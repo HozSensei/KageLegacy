@@ -1,34 +1,44 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
-const selectedNinja = ref(null)
+const editingStrategy = ref(false)
 
-const formationSlots = computed(() => {
-  const byPos = Object.fromEntries(store.activeSquad.map((n) => [n.squad_position, n]))
-  return [
-    { pos: 1, label: 'Avant', ninja: byPos[1] },
-    { pos: 2, label: 'Gauche', ninja: byPos[2] },
-    { pos: 3, label: 'Droite', ninja: byPos[3] },
-  ]
-})
+const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
+const strategies = reactive({})
 
 const teamSpeed = computed(() =>
   store.activeSquad.reduce((acc, n) => acc + n.vitesse + n.intelligence, 0)
 )
 
-function selectNinja(ninja) {
-  selectedNinja.value = ninja
+/** Chunin au centre pour mettre en valeur le vétéran */
+const displaySquad = computed(() => {
+  const squad = [...store.activeSquad]
+  const chunin = squad.find((n) => n.grade === 'Chunin')
+  const others = squad.filter((n) => n.grade !== 'Chunin')
+  if (chunin && others.length === 2) return [others[0], chunin, others[1]]
+  return squad
+})
+
+function initStrategies() {
+  for (const n of store.activeSquad) {
+    if (!strategies[n.id]) strategies[n.id] = 'Normal'
+  }
+}
+
+function toggleStrategyEdit() {
+  editingStrategy.value = !editingStrategy.value
 }
 
 onMounted(async () => {
   if (!store.sensei) await store.fetchSquad()
-  if (store.activeSquad[0]) selectedNinja.value = store.activeSquad[0]
 })
+
+watch(() => store.activeSquad, initStrategies, { immediate: true })
 </script>
 
 <template>
@@ -36,99 +46,68 @@ onMounted(async () => {
     <header>
       <p class="page-kicker">Composition</p>
       <h1 class="page-title mt-3">{{ t('nav.squad') }}</h1>
-      <p class="page-lead">Disposition tactique et remplaçants. Retournez les cartes pour les détails.</p>
+      <p class="page-lead">{{ t('squad.lead') }}</p>
     </header>
 
-    <dl v-if="store.sensei" class="metric-row mt-12">
-      <div class="metric-item">
-        <dd class="metric-value">{{ teamSpeed }}</dd>
-        <dt class="metric-label">Vitesse tactique</dt>
+    <template v-if="store.sensei">
+      <div class="mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <dl class="metric-row flex-1 border-0 py-0">
+          <div class="metric-item">
+            <dd class="metric-value">{{ teamSpeed }}</dd>
+            <dt class="metric-label">{{ t('squad.tacticalSpeed') }}</dt>
+          </div>
+          <div class="metric-item">
+            <dd class="metric-value">{{ store.activeSquad.length }}</dd>
+            <dt class="metric-label">{{ t('squad.activeCount') }}</dt>
+          </div>
+          <div class="metric-item">
+            <dd class="metric-value">{{ store.bench.length }}</dd>
+            <dt class="metric-label">{{ t('squad.benchCount') }}</dt>
+          </div>
+        </dl>
+
+        <button type="button" class="btn-ghost shrink-0" @click="toggleStrategyEdit">
+          {{ editingStrategy ? t('squad.doneStrategy') : t('squad.editStrategy') }}
+        </button>
       </div>
-      <div class="metric-item">
-        <dd class="metric-value">{{ store.activeSquad.length }}</dd>
-        <dt class="metric-label">Actifs</dt>
-      </div>
-      <div class="metric-item">
-        <dd class="metric-value">{{ store.bench.length }}</dd>
-        <dt class="metric-label">Banc</dt>
-      </div>
-    </dl>
 
-    <div class="mt-14 lg:grid lg:grid-cols-12 lg:gap-12">
-      <aside class="lg:col-span-3">
-        <p class="section-label">Sélection</p>
-        <template v-if="selectedNinja">
-          <h2 class="mt-3 font-display text-2xl text-ink">{{ selectedNinja.name }}</h2>
-          <p class="mt-2 text-sm text-ink-muted">{{ selectedNinja.element_affinity }} · {{ t(`grades.${selectedNinja.grade}`) }}</p>
-          <p class="mt-4 text-sm italic text-ink-faint">{{ t(`traits.${selectedNinja.character_trait}.label`) }}</p>
-        </template>
-        <p v-else class="mt-3 text-sm text-ink-faint">Sélectionnez une carte.</p>
-      </aside>
-
-      <!-- Terrain -->
-      <div class="mt-12 lg:col-span-6 lg:mt-0">
-        <p class="section-label">Formation 1 · 2</p>
-        <div class="relative mt-8 min-h-[400px] border border-line/50 bg-bg-soft/30">
-          <div class="absolute left-1/2 top-10 bottom-10 w-px -translate-x-1/2 bg-accent-soft/15" />
-
-          <div class="relative flex min-h-[400px] flex-col items-center justify-between py-10">
-            <NinjaFlipCard
-              v-if="formationSlots[0].ninja"
-              :ninja="formationSlots[0].ninja"
-              size="sm"
-              :slot-label="formationSlots[0].label"
-              :selected="selectedNinja?.id === formationSlots[0].ninja.id"
-              @select="selectNinja"
-            />
-            <div v-else class="text-xs uppercase tracking-widest text-ink-faint">Avant</div>
-
-            <div class="flex w-full max-w-sm justify-between px-4">
-              <template v-for="slot in formationSlots.slice(1)" :key="slot.pos">
-                <NinjaFlipCard
-                  v-if="slot.ninja"
-                  :ninja="slot.ninja"
-                  size="sm"
-                  :slot-label="slot.label"
-                  :selected="selectedNinja?.id === slot.ninja.id"
-                  @select="selectNinja"
-                />
-                <span v-else class="self-center text-xs uppercase tracking-widest text-ink-faint">{{ slot.label }}</span>
-              </template>
-            </div>
+      <!-- Escouade active : 3 cartes comme le Bureau -->
+      <section class="mt-14">
+        <p class="section-label">{{ t('squad.activeSquad') }}</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-10 lg:justify-start lg:gap-12">
+          <div
+            v-for="ninja in displaySquad"
+            :key="ninja.id"
+            class="flex flex-col items-center"
+          >
+            <NinjaFlipCard :ninja="ninja" size="md" />
+            <select
+              v-if="editingStrategy"
+              v-model="strategies[ninja.id]"
+              class="strategy-select max-w-[11.5rem]"
+            >
+              <option v-for="key in STRATEGY_KEYS" :key="key" :value="key">
+                {{ t(`squad.strategies.${key}`) }}
+              </option>
+            </select>
           </div>
         </div>
-      </div>
+      </section>
 
-      <aside class="hidden lg:col-span-3 lg:block">
-        <p class="section-label">Remplaçants</p>
-        <ul class="mt-4 divide-y divide-line border-t border-line">
-          <li
+      <!-- Banc : chevauchement horizontal -->
+      <section class="mt-16 border-t border-line pt-10">
+        <p class="section-label">{{ t('squad.bench') }}</p>
+        <p class="mt-2 text-sm text-ink-muted">{{ t('squad.benchHint') }}</p>
+        <div class="bench-stack mt-2">
+          <div
             v-for="ninja in store.bench"
             :key="ninja.id"
-            class="cursor-pointer py-3 transition hover:text-accent"
-            :class="selectedNinja?.id === ninja.id ? 'text-accent' : 'text-ink-muted'"
-            @click="selectNinja(ninja)"
+            class="bench-stack__item"
           >
-            <span class="font-display text-lg text-ink">{{ ninja.name }}</span>
-          </li>
-        </ul>
-      </aside>
-    </div>
-
-    <!-- Banc : cartes compactes retournables -->
-    <section class="mt-16 border-t border-line pt-10">
-      <p class="section-label">Banc</p>
-      <p class="mt-1 text-xs text-ink-faint">Cartes compactes — clic pour retourner</p>
-      <div class="mt-6 flex gap-4 overflow-x-auto pb-4">
-        <NinjaFlipCard
-          v-for="ninja in store.bench"
-          :key="ninja.id"
-          :ninja="ninja"
-          size="xs"
-          :selected="selectedNinja?.id === ninja.id"
-          @select="selectNinja"
-        />
-      </div>
-    </section>
+            <NinjaFlipCard :ninja="ninja" size="xs" />
+          </div>
+        </div>
+      </section>
+    </template>
   </div>
 </template>

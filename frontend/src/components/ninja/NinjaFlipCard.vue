@@ -58,15 +58,23 @@ function toggleFlip() {
   emit('flip', { ninja: props.ninja, flipped: flipped.value })
 }
 
+const isChunin = computed(() => props.ninja.grade === 'Chunin')
+const isGenin = computed(() => props.ninja.grade === 'Genin')
+
+const faceGradeClass = computed(() => ({
+  'ninja-card-face--chunin': isChunin.value,
+  'ninja-card-face--genin': isGenin.value,
+}))
+
 function gradeColor(grade) {
-  return { Genin: 'text-accent-soft', Chunin: 'text-water', Jonin: 'text-accent' }[grade] || 'text-ink-muted'
+  return { Genin: 'text-ink-faint', Chunin: 'text-accent', Jonin: 'text-accent' }[grade] || 'text-ink-muted'
 }
 </script>
 
 <template>
   <div
     class="flip-scene shrink-0 cursor-pointer"
-    :class="sizeClass"
+    :class="[sizeClass, { 'flip-scene--chunin': isChunin }]"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
     @click="toggleFlip"
@@ -77,11 +85,17 @@ function gradeColor(grade) {
       :class="{ 'is-selected': selected }"
     >
       <!-- RECTO -->
-      <div class="flip-face ninja-card-face relative p-3 sm:p-4">
+      <div class="flip-face ninja-card-face relative p-3 sm:p-4" :class="faceGradeClass">
         <div class="relative z-10 flex h-full flex-col">
           <div class="flex items-start justify-between gap-2">
             <span class="font-display leading-none text-ink" :class="ratingSize">{{ overall }}</span>
-            <span class="text-[9px] uppercase tracking-[0.16em]" :class="gradeColor(ninja.grade)">
+            <span
+              class="uppercase tracking-[0.16em]"
+              :class="[
+                gradeColor(ninja.grade),
+                isChunin ? 'text-[11px] font-medium' : 'text-[9px]',
+              ]"
+            >
               {{ t(`grades.${ninja.grade}`) }}
             </span>
           </div>
@@ -108,7 +122,7 @@ function gradeColor(grade) {
       </div>
 
       <!-- VERSO -->
-      <div class="flip-face flip-back ninja-card-face relative p-3 sm:p-4">
+      <div class="flip-face flip-back ninja-card-face relative p-3 sm:p-4" :class="faceGradeClass">
         <div class="relative z-10 flex h-full flex-col text-[10px]">
           <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
           <p class="mt-2 italic leading-snug text-ink-muted">

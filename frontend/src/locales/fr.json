@@ -61,6 +61,23 @@
     "activeSquad": "Escouade active",
     "operationLive": "Opération en cours"
   },
+  "squad": {
+    "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",
+    "editStrategy": "Modifier la stratégie",
+    "doneStrategy": "Terminer",
+    "activeSquad": "Escouade active",
+    "bench": "Remplaçants",
+    "benchHint": "Survolez une carte pour la dégager du tas et la consulter.",
+    "tacticalSpeed": "Vitesse tactique",
+    "activeCount": "Actifs",
+    "benchCount": "Banc",
+    "strategies": {
+      "Normal": "Normal",
+      "Tank": "Tank — Provocation",
+      "Protect": "Protéger un allié",
+      "Offensive": "Offensif"
+    }
+  },
   "grades": {
     "Genin": "Genin",
     "Chunin": "Chunin",

@@ -61,6 +61,23 @@
     "activeSquad": "Active squad",
     "operationLive": "Operation in progress"
   },
+  "squad": {
+    "lead": "Manage your combat trio and bench before tactics lock.",
+    "editStrategy": "Edit strategy",
+    "doneStrategy": "Done",
+    "activeSquad": "Active squad",
+    "bench": "Bench",
+    "benchHint": "Hover a card to bring it forward from the stack.",
+    "tacticalSpeed": "Tactical speed",
+    "activeCount": "Active",
+    "benchCount": "Bench",
+    "strategies": {
+      "Normal": "Normal",
+      "Tank": "Tank — Provocation",
+      "Protect": "Protect ally",
+      "Offensive": "Offensive"
+    }
+  },
   "grades": {
     "Genin": "Genin",
     "Chunin": "Chunin",
