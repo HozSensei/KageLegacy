@@ -76,11 +76,6 @@ Pour tester l'interface sans attendre d'avoir codé tout le système de recrutem
    * Si le ninja appartient au clan **Uchiwa** \rightarrow Genjutsu et Ninjutsu boostés (+3), mais son Moral de départ subit une plus grande variance aléatoire.
  * **Distribution des Compétences :** Attribution de points de base (entre 2 et 8 pour un Genin) répartis aléatoirement sur les 6 compétences pour créer des profils uniques (ex: un soigneur pur, un guerrier physique).
  * **Distribution des Caractères :** Attribution équitable d'un des 5 traits (Egoiste, Altruiste, Faineant, Temeraire, Discipline) avec une probabilité égale de 20% pour chacun.
-## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
- * [ ] Configure la structure des composants Vue 3 (BureauView, SenseiCard, NinjaCard) en utilisant la syntaxe <script setup>.
- * [ ] Intègre Tailwind CSS pour créer un rendu "Dashboard sombre de commandement" propre et responsive.
- * [ ] Ajoute les infobulles (tooltips) interactives en utilisant les classes utilitaires de Tailwind pour expliciter les traits de caractère au survol de la souris.
- * [ ] Rédige le script de Seeding Node.js pour injecter en base de données ou générer un fichier JSON de test d'une quinzaine de ninjas cohérents avec les règles des Clans et des Caractères.
 
 ---
 
@@ -88,3 +83,11 @@ Pour tester l'interface sans attendre d'avoir codé tout le système de recrutem
 *   **Outil :** Intégration de `vue-i18n` dans le projet Vue 3.
 *   **Fichiers de traduction :** Création d'un dossier `src/locales/` contenant `fr.json` et `en.json`.
 *   **Composant sélecteur :** Ajouter un bouton discret dans la `SenseiCard` ou la barre de navigation pour basculer la langue du site à la volée, mettant à jour le store Pinia et la préférence en base de données.
+
+---
+
+## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
+ * [ ] Configure la structure des composants Vue 3 (BureauView, SenseiCard, NinjaCard) en utilisant la syntaxe <script setup>.
+ * [ ] Intègre Tailwind CSS pour créer un rendu "Dashboard sombre de commandement" propre et responsive.
+ * [ ] Ajoute les infobulles (tooltips) interactives en utilisant les classes utilitaires de Tailwind pour expliciter les traits de caractère au survol de la souris.
+ * [ ] Rédige le script de Seeding Node.js pour injecter en base de données ou générer un fichier JSON de test d'une quinzaine de ninjas cohérents avec les règles des Clans et des Caractères.
