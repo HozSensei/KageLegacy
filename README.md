@@ -80,6 +80,22 @@ Gestion de la fin de vie des ninjas pour assurer le roulement et éviter le Pay-
 * **Calcul des Gains :** Le joueur reçoit un montant massif de Ryos et de Réputation indexé sur les statistiques finales du ninja sortant.
 * **Injection de la Relève :** Reset d'un slot d'escouade et proposition automatique d'un nouvel Aspirant de 15 ans à recruter.
 
+### 🏆 Milestone 8 : Système de Ligues, Classement & Scoutisme
+Mise en place de la structure compétitive (les Pools) et des fonctionnalités d'espionnage.
+
+* **Modèles de Données (BDD) :**
+  * **Modèle `Pool` :** `id`, `name` (ex: "Division IV - Pool B"), `division_level` (Int : 1 pour l'élite, 2, 3, 4...).
+  * **Modèle `Match_Calendrier` :** `id`, `pool_id`, `cycle_number` (de 1 à 10), `home_team_id`, `away_team_id`, `status` (En attente / Terminé), `winner_id` (null si match nul), `victory_type` (KO ou PV).
+  * **Modèle `Classement_Pool` :** Table de jointure calculant pour chaque cycle : `pool_id`, `user_id`, `points` (3 pour Victoire, 1 pour Nul, 0 pour Défaite), `victories_ko`, `pv_ratio`.
+* **Générateur de Saison (Le Calendrier) :** 
+  * [ ] Coder un script d'initialisation qui s'exécute en début de saison (tous les 10 cycles). Il répartit 6 joueurs par `Pool` (idéalement de villages différents) et génère automatiquement le calendrier des 10 matchs aller-retour.
+* **Le "Tableau de Renommée" (Classement Général) :**
+  * [ ] Créer une vue globale triant tous les joueurs du serveur selon deux priorités : d'abord leur `division_level` actuel, puis leurs `reputation_points` historiques accumulés grâce au "Vol d'Oiseau".
+* **Le Système de Scoutisme (Espionnage) :**
+  * [ ] Développer l'API de profil adverse : lorsqu'un joueur clique sur son prochain opposant, le backend renvoie l'historique de ses 3 derniers matchs et un résumé de ses statistiques globales moyennes lors du dernier cycle (ex: *"Tendance : Ninjutsu élevé, Vitesse moyenne"*).
+* **Script de Fin de Saison (Promotions / Relégations) :**
+  * [ ] Au cycle 10, le script fige le classement. Le 1er de la Pool voit son équipe affectée à une `Pool` de `division_level - 1`. Le dernier de la Pool descend à `division_level + 1`.
+ 
 ---
 
 ## 🚀 Installation & Développement
