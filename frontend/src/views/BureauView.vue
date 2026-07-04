@@ -2,21 +2,17 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
-import PageHeader from '../components/ui/PageHeader.vue'
-import StatCard from '../components/ui/StatCard.vue'
-import Alert from '../components/ui/Alert.vue'
-import SenseiCard from '../components/sensei/SenseiCard.vue'
 import NinjaCard from '../components/ninja/NinjaCard.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
 
-const squadPower = computed(() => {
-  if (!store.activeSquad.length) return 0
-  const sum = store.activeSquad.reduce((acc, n) => {
-    return acc + n.taijutsu + n.ninjutsu + n.genjutsu + n.medecine + n.vitesse + n.intelligence
-  }, 0)
-  return Math.round(sum / store.activeSquad.length)
+const squadRating = computed(() => {
+  if (!store.activeSquad.length) return '—'
+  const avg = store.activeSquad.reduce((acc, n) =>
+    acc + n.taijutsu + n.ninjutsu + n.genjutsu + n.medecine + n.vitesse + n.intelligence, 0
+  ) / store.activeSquad.length
+  return Math.round(avg)
 })
 
 onMounted(async () => {
@@ -26,47 +22,71 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    <PageHeader
-      class="mb-8"
-      :title="t('bureau.title')"
-      description="Résumé de votre dojo, de l'escouade active et de l'état du cycle."
-    />
+  <div class="page-shell">
+    <header class="lg:grid lg:grid-cols-12 lg:gap-10">
+      <div class="lg:col-span-7">
+        <p class="page-kicker">{{ t('bureau.cycle') }}</p>
+        <h1 class="page-title mt-3">{{ t('bureau.title') }}</h1>
+        <p class="page-lead">
+          Résumé du dojo, de l'escouade en lice et de l'état du cycle en cours.
+        </p>
+      </div>
+    </header>
 
-    <div v-if="store.loading" class="text-sm text-gray-400">Chargement...</div>
-    <p v-else-if="store.error" class="text-sm text-red-400">{{ store.error }}</p>
+    <p v-if="store.loading" class="mt-12 text-sm text-ink-muted">Chargement…</p>
+    <p v-else-if="store.error" class="mt-12 text-sm text-fire">{{ store.error }}</p>
 
     <template v-else-if="store.sensei">
-      <Alert v-if="store.gameClock?.phase === 'operation_live'" variant="info" class="mb-8">
-        <p class="text-sm text-orange-200">
-          {{ t('bureau.operationLive') }} —
-          <router-link to="/operation" class="font-semibold underline">voir le rapport</router-link>
-        </p>
-      </Alert>
+      <div
+        v-if="store.gameClock?.phase === 'operation_live'"
+        class="mt-10 border-l-2 border-accent pl-4 text-sm text-ink-muted"
+      >
+        {{ t('bureau.operationLive') }} —
+        <router-link to="/operation" class="text-accent underline-offset-4 hover:underline">voir le rapport</router-link>
+      </div>
 
-      <!-- Stats row (Tailwind UI: Stats) -->
-      <dl class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard :label="t('sensei.ryos')" :value="store.sensei.ryos.toLocaleString()" accent="text-amber-400" />
-        <StatCard :label="t('sensei.reputation')" :value="store.sensei.reputation" />
-        <StatCard :label="t('sensei.chakra')" :value="`${store.sensei.chakraPool}/100`" accent="text-cyan-400" />
-        <StatCard :label="t('bureau.activeSquad')" :value="squadPower" hint="Note moyenne de l'escouade" accent="text-indigo-400" />
+      <!-- Métriques en ligne — pas de boîtes -->
+      <dl class="metric-row mt-12">
+        <div class="metric-item">
+          <dd class="metric-value text-accent">{{ store.sensei.ryos.toLocaleString() }}</dd>
+          <dt class="metric-label">{{ t('sensei.ryos') }}</dt>
+        </div>
+        <div class="metric-item">
+          <dd class="metric-value">{{ store.sensei.reputation }}</dd>
+          <dt class="metric-label">{{ t('sensei.reputation') }}</dt>
+        </div>
+        <div class="metric-item">
+          <dd class="metric-value">{{ store.sensei.chakraPool }}</dd>
+          <dt class="metric-label">{{ t('sensei.chakra') }}</dt>
+        </div>
+        <div class="metric-item">
+          <dd class="metric-value">{{ squadRating }}</dd>
+          <dt class="metric-label">Note escouade</dt>
+        </div>
       </dl>
 
-      <div class="grid grid-cols-1 gap-8 xl:grid-cols-3">
-        <div class="xl:col-span-1">
-          <SenseiCard :sensei="store.sensei" />
+      <!-- Sensei — prose block -->
+      <section class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
+        <div class="lg:col-span-4">
+          <p class="section-label">Jonin-Sensei</p>
+          <h2 class="mt-3 font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
+          <p class="mt-4 text-sm leading-7 text-ink-muted">
+            Spécialité <span class="text-ink">{{ store.sensei.specialty }}</span>
+            — bonus de progression <span class="text-accent">+15%</span> sur l'entraînement ciblé.
+          </p>
         </div>
 
-        <div class="xl:col-span-2">
-          <div class="mb-4 border-b border-white/10 pb-3">
-            <h3 class="text-base font-semibold text-white">{{ t('bureau.activeSquad') }}</h3>
-            <p class="mt-1 text-sm text-gray-400">Les trois ninjas sélectionnés pour la prochaine Opération.</p>
-          </div>
-          <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-2">
+        <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
+          <p class="section-label">{{ t('bureau.activeSquad') }}</p>
+          <p class="mt-2 max-w-md text-sm text-ink-muted">
+            Trois genins sélectionnés pour la prochaine Opération de Frontière.
+          </p>
+
+          <div class="mt-10 grid gap-12 sm:grid-cols-2 xl:grid-cols-3">
             <NinjaCard v-for="ninja in store.activeSquad" :key="ninja.id" :ninja="ninja" />
           </div>
         </div>
-      </div>
+      </section>
     </template>
   </div>
 </template>

@@ -2,20 +2,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
-import PageHeader from '../components/ui/PageHeader.vue'
-import StatCard from '../components/ui/StatCard.vue'
-import Badge from '../components/ui/Badge.vue'
-import SenseiCard from '../components/sensei/SenseiCard.vue'
 import NinjaCard from '../components/ninja/NinjaCard.vue'
+import { useNinjaDisplay } from '../composables/useNinjaDisplay.js'
 
 const { t } = useI18n()
 const store = useSquadStore()
 const selectedNinja = ref(null)
 
 const formationSlots = computed(() => {
-  const byPos = Object.fromEntries(
-    store.activeSquad.map((n) => [n.squad_position, n])
-  )
+  const byPos = Object.fromEntries(store.activeSquad.map((n) => [n.squad_position, n]))
   return [
     { pos: 1, label: 'Avant', ninja: byPos[1] },
     { pos: 2, label: 'Gauche', ninja: byPos[2] },
@@ -27,13 +22,8 @@ const teamSpeed = computed(() =>
   store.activeSquad.reduce((acc, n) => acc + n.vitesse + n.intelligence, 0)
 )
 
-const teamElements = computed(() => {
-  const counts = {}
-  for (const n of store.activeSquad) {
-    counts[n.element_affinity] = (counts[n.element_affinity] || 0) + 1
-  }
-  return counts
-})
+const selectedDisplay = computed(() => selectedNinja.value)
+const { overall: selOverall, elementTone: selElement, statKeys } = useNinjaDisplay(selectedDisplay)
 
 function selectNinja(ninja) {
   selectedNinja.value = ninja
@@ -46,139 +36,102 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    <PageHeader
-      class="mb-8"
-      :title="t('nav.squad')"
-      description="Composition tactique et gestion des remplaçants."
-    />
+  <div class="page-shell">
+    <header>
+      <p class="page-kicker">Composition</p>
+      <h1 class="page-title mt-3">{{ t('nav.squad') }}</h1>
+      <p class="page-lead">Disposition tactique et remplaçants disponibles avant le gel des consignes.</p>
+    </header>
 
-    <dl v-if="store.sensei" class="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-      <StatCard label="Vitesse tactique" :value="teamSpeed" accent="text-sky-400" />
-      <StatCard label="Effectif" :value="store.activeSquad.length + store.bench.length" />
-      <StatCard label="Actifs" :value="store.activeSquad.length" accent="text-green-400" />
-      <StatCard label="Banc" :value="store.bench.length" />
+    <dl v-if="store.sensei" class="metric-row mt-12">
+      <div class="metric-item">
+        <dd class="metric-value">{{ teamSpeed }}</dd>
+        <dt class="metric-label">Vitesse tactique</dt>
+      </div>
+      <div class="metric-item">
+        <dd class="metric-value">{{ store.activeSquad.length }}</dd>
+        <dt class="metric-label">Actifs</dt>
+      </div>
+      <div class="metric-item">
+        <dd class="metric-value">{{ store.bench.length }}</dd>
+        <dt class="metric-label">Banc</dt>
+      </div>
     </dl>
 
-    <!-- FIFA-inspired layout: sidebar + pitch + detail -->
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
-      <!-- Left: Sensei + selected ninja detail -->
-      <div class="space-y-6 xl:col-span-3">
-        <SenseiCard v-if="store.sensei" :sensei="store.sensei" compact />
-
-        <div v-if="selectedNinja" class="overflow-hidden rounded-lg bg-gray-800/50 ring-1 ring-white/10">
-          <div class="border-b border-white/10 px-4 py-3">
-            <h3 class="text-sm font-semibold text-white">Fiche sélectionnée</h3>
-          </div>
-          <div class="px-4 py-4">
-            <p class="font-semibold text-white">{{ selectedNinja.name }}</p>
-            <div class="mt-2 flex flex-wrap gap-1">
-              <Badge color="blue">{{ t(`grades.${selectedNinja.grade}`) }}</Badge>
-              <Badge color="orange">{{ selectedNinja.element_affinity }}</Badge>
+    <div class="mt-14 lg:grid lg:grid-cols-12 lg:gap-12">
+      <!-- Fiche sélectionnée -->
+      <aside class="lg:col-span-3">
+        <p class="section-label">Sélection</p>
+        <template v-if="selectedNinja">
+          <h2 class="mt-3 font-display text-2xl text-ink">{{ selectedNinja.name }}</h2>
+          <p class="mt-2 text-sm" :class="selElement">{{ selectedNinja.element_affinity }}</p>
+          <p class="mt-1 font-display text-4xl text-ink">{{ selOverall }}</p>
+          <dl class="mt-6 space-y-2 border-t border-line pt-5">
+            <div v-for="key in statKeys" :key="key" class="flex justify-between text-sm">
+              <dt class="text-ink-faint">{{ t(`ninja.stats.${key}`) }}</dt>
+              <dd class="tabular-nums text-ink">{{ selectedNinja[key] }}</dd>
             </div>
-            <dl class="mt-4 space-y-2 text-sm">
-              <div v-for="key in ['taijutsu','ninjutsu','genjutsu','medecine','vitesse','intelligence']" :key="key" class="flex justify-between">
-                <dt class="text-gray-400">{{ t(`ninja.stats.${key}`) }}</dt>
-                <dd class="font-medium text-white">{{ selectedNinja[key] }}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </div>
+          </dl>
+        </template>
+      </aside>
 
-      <!-- Center: tactical pitch -->
-      <div class="xl:col-span-6">
-        <div class="overflow-hidden rounded-xl bg-gradient-to-b from-emerald-950/40 via-gray-900 to-gray-950 ring-1 ring-white/10">
-          <div class="border-b border-white/10 px-4 py-3 sm:px-6">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-semibold text-white">Formation 1-2</h3>
-              <Badge color="gray">3 ninjas</Badge>
-            </div>
-          </div>
+      <!-- Terrain -->
+      <div class="mt-12 lg:col-span-6 lg:mt-0">
+        <p class="section-label">Formation 1 · 2</p>
+        <div class="relative mt-8 min-h-[380px]">
+          <div class="absolute inset-0 border border-line/60" />
+          <div class="absolute left-1/2 top-8 bottom-8 w-px -translate-x-1/2 bg-line/40" />
 
-          <!-- Pitch -->
-          <div class="relative min-h-[420px] bg-[radial-gradient(ellipse_at_center,_rgba(16,185,129,0.08)_0%,_transparent_70%)] p-6 sm:p-10">
-            <div class="pointer-events-none absolute inset-6 rounded-lg border border-emerald-500/20 sm:inset-10" />
-            <div class="pointer-events-none absolute left-1/2 top-6 bottom-6 w-px -translate-x-1/2 bg-emerald-500/10 sm:top-10 sm:bottom-10" />
+          <div class="relative flex h-full min-h-[380px] flex-col items-center justify-between py-12">
+            <NinjaCard
+              v-if="formationSlots[0].ninja"
+              :ninja="formationSlots[0].ninja"
+              variant="pitch"
+              :slot-label="formationSlots[0].label"
+              :selected="selectedNinja?.id === formationSlots[0].ninja.id"
+              @select="selectNinja"
+            />
+            <div v-else class="text-xs uppercase tracking-widest text-ink-faint">Avant</div>
 
-            <div class="relative flex h-full min-h-[360px] flex-col items-center justify-between py-4">
-              <!-- Slot 1 - Avant -->
-              <div class="flex justify-center">
+            <div class="flex w-full max-w-xs justify-between px-6">
+              <template v-for="slot in formationSlots.slice(1)" :key="slot.pos">
                 <NinjaCard
-                  v-if="formationSlots[0].ninja"
-                  :ninja="formationSlots[0].ninja"
+                  v-if="slot.ninja"
+                  :ninja="slot.ninja"
                   variant="pitch"
-                  :slot-label="formationSlots[0].label"
-                  :selected="selectedNinja?.id === formationSlots[0].ninja.id"
+                  :slot-label="slot.label"
+                  :selected="selectedNinja?.id === slot.ninja.id"
                   @select="selectNinja"
                 />
-                <div v-else class="flex size-36 items-center justify-center rounded-lg border-2 border-dashed border-white/20 text-xs text-gray-500">
-                  Slot avant
-                </div>
-              </div>
-
-              <!-- Slots 2 & 3 -->
-              <div class="flex w-full max-w-md justify-between gap-8 px-4">
-                <template v-for="slot in formationSlots.slice(1)" :key="slot.pos">
-                  <NinjaCard
-                    v-if="slot.ninja"
-                    :ninja="slot.ninja"
-                    variant="pitch"
-                    :slot-label="slot.label"
-                    :selected="selectedNinja?.id === slot.ninja.id"
-                    @select="selectNinja"
-                  />
-                  <div v-else class="flex size-36 items-center justify-center rounded-lg border-2 border-dashed border-white/20 text-xs text-gray-500">
-                    {{ slot.label }}
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
-
-          <!-- Element synergy row -->
-          <div class="border-t border-white/10 px-4 py-3 sm:px-6">
-            <p class="text-xs text-gray-500">Affinités de l'escouade</p>
-            <div class="mt-1 flex flex-wrap gap-2">
-              <Badge v-for="(count, el) in teamElements" :key="el" color="cyan">{{ count }}× {{ el }}</Badge>
+                <span v-else class="text-xs uppercase tracking-widest text-ink-faint">{{ slot.label }}</span>
+              </template>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right: quick bench preview on large screens -->
-      <div class="hidden xl:col-span-3 xl:block">
-        <div class="overflow-hidden rounded-lg bg-gray-800/50 ring-1 ring-white/10">
-          <div class="border-b border-white/10 px-4 py-3">
-            <h3 class="text-sm font-semibold text-white">Remplaçants</h3>
-            <p class="text-xs text-gray-500">{{ store.bench.length }} disponibles</p>
-          </div>
-          <ul class="max-h-[480px] divide-y divide-white/5 overflow-y-auto">
-            <li
-              v-for="ninja in store.bench"
-              :key="ninja.id"
-              class="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-white/5"
-              :class="selectedNinja?.id === ninja.id ? 'bg-white/5' : ''"
-              @click="selectNinja(ninja)"
-            >
-              <span class="text-lg font-bold text-white">{{ Math.round((ninja.taijutsu + ninja.ninjutsu + ninja.genjutsu + ninja.medecine + ninja.vitesse + ninja.intelligence) / 6) }}</span>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-white">{{ ninja.name }}</p>
-                <p class="text-xs text-gray-500">{{ ninja.clan_name }} · {{ ninja.element_affinity }}</p>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
+      <!-- Liste banc (desktop) -->
+      <aside class="hidden lg:col-span-3 lg:block">
+        <p class="section-label">Remplaçants</p>
+        <ul class="mt-4 divide-y divide-line border-t border-line">
+          <li
+            v-for="ninja in store.bench"
+            :key="ninja.id"
+            class="cursor-pointer py-3 transition hover:text-accent"
+            :class="selectedNinja?.id === ninja.id ? 'text-accent' : 'text-ink-muted'"
+            @click="selectNinja(ninja)"
+          >
+            <span class="font-display text-lg text-ink">{{ ninja.name }}</span>
+            <span class="ml-2 text-xs text-ink-faint">{{ ninja.element_affinity }}</span>
+          </li>
+        </ul>
+      </aside>
     </div>
 
-    <!-- Bench tray (FIFA-style horizontal scroll) -->
-    <div class="mt-8 overflow-hidden rounded-lg bg-gray-800/50 ring-1 ring-white/10">
-      <div class="border-b border-white/10 px-4 py-3 sm:px-6">
-        <h3 class="text-sm font-semibold text-white">Banc / Remplaçants</h3>
-        <p class="text-xs text-gray-500">Sélectionnez un ninja pour voir sa fiche détaillée.</p>
-      </div>
-      <div class="flex gap-3 overflow-x-auto p-4 sm:p-6">
+    <!-- Banc horizontal -->
+    <section class="mt-16 border-t border-line pt-10">
+      <p class="section-label">Banc</p>
+      <div class="mt-4 flex gap-0 overflow-x-auto divide-x divide-line border-t border-line">
         <NinjaCard
           v-for="ninja in store.bench"
           :key="ninja.id"
@@ -188,6 +141,6 @@ onMounted(async () => {
           @select="selectNinja"
         />
       </div>
-    </div>
+    </section>
   </div>
 </template>
