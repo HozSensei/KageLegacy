@@ -63,6 +63,7 @@ export const useSquadStore = defineStore('squad', {
     ]
   })
 })
+```
 
 ---
 
