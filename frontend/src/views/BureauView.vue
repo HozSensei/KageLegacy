@@ -1,12 +1,23 @@
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
+import PageHeader from '../components/ui/PageHeader.vue'
+import StatCard from '../components/ui/StatCard.vue'
+import Alert from '../components/ui/Alert.vue'
 import SenseiCard from '../components/sensei/SenseiCard.vue'
 import NinjaCard from '../components/ninja/NinjaCard.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
+
+const squadPower = computed(() => {
+  if (!store.activeSquad.length) return 0
+  const sum = store.activeSquad.reduce((acc, n) => {
+    return acc + n.taijutsu + n.ninjutsu + n.genjutsu + n.medecine + n.vitesse + n.intelligence
+  }, 0)
+  return Math.round(sum / store.activeSquad.length)
+})
 
 onMounted(async () => {
   await store.fetchSquad()
@@ -16,30 +27,42 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h2 class="mb-6 text-xl font-semibold text-slate-100">{{ t('bureau.title') }}</h2>
+    <PageHeader
+      class="mb-8"
+      :title="t('bureau.title')"
+      description="Résumé de votre dojo, de l'escouade active et de l'état du cycle."
+    />
 
-    <p v-if="store.loading" class="text-slate-400">Chargement...</p>
-    <p v-else-if="store.error" class="text-red-400">{{ store.error }}</p>
+    <div v-if="store.loading" class="text-sm text-gray-400">Chargement...</div>
+    <p v-else-if="store.error" class="text-sm text-red-400">{{ store.error }}</p>
 
     <template v-else-if="store.sensei">
-      <div
-        v-if="store.gameClock?.phase === 'operation_live'"
-        class="mb-6 rounded-lg border border-orange-800/50 bg-orange-950/30 px-4 py-3 text-sm text-orange-200"
-      >
-        {{ t('bureau.operationLive') }} —
-        <router-link to="/operation" class="underline hover:text-orange-100">voir le rapport</router-link>
-      </div>
+      <Alert v-if="store.gameClock?.phase === 'operation_live'" variant="info" class="mb-8">
+        <p class="text-sm text-orange-200">
+          {{ t('bureau.operationLive') }} —
+          <router-link to="/operation" class="font-semibold underline">voir le rapport</router-link>
+        </p>
+      </Alert>
 
-      <div class="grid gap-6 lg:grid-cols-4">
-        <div class="lg:col-span-1">
+      <!-- Stats row (Tailwind UI: Stats) -->
+      <dl class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard :label="t('sensei.ryos')" :value="store.sensei.ryos.toLocaleString()" accent="text-amber-400" />
+        <StatCard :label="t('sensei.reputation')" :value="store.sensei.reputation" />
+        <StatCard :label="t('sensei.chakra')" :value="`${store.sensei.chakraPool}/100`" accent="text-cyan-400" />
+        <StatCard :label="t('bureau.activeSquad')" :value="squadPower" hint="Note moyenne de l'escouade" accent="text-indigo-400" />
+      </dl>
+
+      <div class="grid grid-cols-1 gap-8 xl:grid-cols-3">
+        <div class="xl:col-span-1">
           <SenseiCard :sensei="store.sensei" />
         </div>
 
-        <div class="lg:col-span-3">
-          <h3 class="mb-4 text-sm font-medium uppercase tracking-wide text-slate-500">
-            {{ t('bureau.activeSquad') }}
-          </h3>
-          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="xl:col-span-2">
+          <div class="mb-4 border-b border-white/10 pb-3">
+            <h3 class="text-base font-semibold text-white">{{ t('bureau.activeSquad') }}</h3>
+            <p class="mt-1 text-sm text-gray-400">Les trois ninjas sélectionnés pour la prochaine Opération.</p>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-2">
             <NinjaCard v-for="ninja in store.activeSquad" :key="ninja.id" :ninja="ninja" />
           </div>
         </div>

@@ -1,36 +1,57 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import Badge from '../ui/Badge.vue'
 
 defineProps({
   sensei: { type: Object, required: true },
+  compact: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['change-language'])
 const { t } = useI18n()
 </script>
 
 <template>
-  <aside class="rounded-lg border border-slate-700 bg-gradient-to-br from-slate-900 to-zinc-950 p-5 shadow-xl">
-    <p class="mb-1 text-xs uppercase tracking-widest text-slate-500">{{ t('sensei.title') }}</p>
-    <h2 class="mb-4 text-2xl font-bold text-slate-100">{{ sensei.name }}</h2>
+  <div class="overflow-hidden rounded-lg bg-gray-800/50 shadow-sm ring-1 ring-white/10">
+    <div class="px-4 py-5 sm:px-6" :class="compact ? 'py-4' : ''">
+      <div class="flex items-center gap-3">
+        <div class="flex size-12 items-center justify-center rounded-full bg-indigo-500/20 text-lg font-bold text-indigo-300 ring-2 ring-indigo-500/30">
+          {{ sensei.name.charAt(0) }}
+        </div>
+        <div>
+          <p class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ t('sensei.title') }}</p>
+          <h2 class="text-lg font-bold text-white">{{ sensei.name }}</h2>
+        </div>
+      </div>
 
-    <dl class="space-y-3 text-sm">
-      <div class="flex justify-between border-b border-slate-800 pb-2">
-        <dt class="text-slate-400">{{ t('sensei.specialty') }}</dt>
-        <dd class="font-medium text-violet-300">+15% {{ sensei.specialty }}</dd>
-      </div>
-      <div class="flex justify-between border-b border-slate-800 pb-2">
-        <dt class="text-slate-400">{{ t('sensei.ryos') }}</dt>
-        <dd class="font-mono text-amber-300">{{ sensei.ryos.toLocaleString() }}</dd>
-      </div>
-      <div class="flex justify-between border-b border-slate-800 pb-2">
-        <dt class="text-slate-400">{{ t('sensei.reputation') }}</dt>
-        <dd class="font-mono text-slate-200">{{ sensei.reputation }}</dd>
-      </div>
-      <div class="flex justify-between">
-        <dt class="text-slate-400">{{ t('sensei.chakra') }}</dt>
-        <dd class="font-mono text-cyan-300">{{ sensei.chakraPool }}/100</dd>
-      </div>
-    </dl>
-  </aside>
+      <dl class="mt-5 grid grid-cols-1 gap-4" :class="compact ? '' : 'sm:grid-cols-2'">
+        <div class="overflow-hidden rounded-lg bg-gray-900/50 px-3 py-3 ring-1 ring-white/5">
+          <dt class="truncate text-xs font-medium text-gray-500">{{ t('sensei.specialty') }}</dt>
+          <dd class="mt-1 flex items-center gap-2">
+            <Badge color="purple">+15%</Badge>
+            <span class="text-sm font-medium text-white">{{ sensei.specialty }}</span>
+          </dd>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-gray-900/50 px-3 py-3 ring-1 ring-white/5">
+          <dt class="truncate text-xs font-medium text-gray-500">{{ t('sensei.ryos') }}</dt>
+          <dd class="mt-1 text-lg font-semibold text-amber-400">{{ sensei.ryos.toLocaleString() }}</dd>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-gray-900/50 px-3 py-3 ring-1 ring-white/5">
+          <dt class="truncate text-xs font-medium text-gray-500">{{ t('sensei.reputation') }}</dt>
+          <dd class="mt-1 text-lg font-semibold text-white">{{ sensei.reputation }}</dd>
+        </div>
+        <div class="overflow-hidden rounded-lg bg-gray-900/50 px-3 py-3 ring-1 ring-white/5">
+          <dt class="truncate text-xs font-medium text-gray-500">{{ t('sensei.chakra') }}</dt>
+          <dd class="mt-1">
+            <div class="flex items-center justify-between text-sm">
+              <span class="font-semibold text-cyan-400">{{ sensei.chakraPool }}</span>
+              <span class="text-gray-500">/ 100</span>
+            </div>
+            <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-700">
+              <div class="h-full rounded-full bg-cyan-500" :style="{ width: `${sensei.chakraPool}%` }" />
+            </div>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
 </template>
