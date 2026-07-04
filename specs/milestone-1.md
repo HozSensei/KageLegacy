@@ -17,6 +17,7 @@ Chaque ninja généré procéduralement par le serveur doit posséder les champs
 *   `element_affinity` : Énumération (`Katon`, `Suiton`, `Raiton`, `Doton`, `Futon`).
 *   `character_trait` : Énumération (`Egoiste`, `Altruiste`, `Faineant`, `Temeraire`, `Discipline`). *Détermine les comportements bonus/malus en match et en gestion.*
 *   `salary_cost` : Entier. Calculé dynamiquement selon son grade et le niveau de ses compétences.
+*   `language` : Énumération (fr, en). Définit la langue utilisée pour l'interface et la génération de la chronique textuelle des matchs.
 
 ### B. Les Caractéristiques Majeures (Notes de 1 à 20)
 *   `taijutsu` : Force physique et combat au corps-à-corps.
@@ -25,7 +26,6 @@ Chaque ninja généré procéduralement par le serveur doit posséder les champs
 *   `medecine` : Maîtrise des soins, de la régénération et du support vital.
 *   `vitesse` : Capacité de mouvement (Détermine l'Initiative de l'escouade).
 *   `intelligence` : QI Tactique (Détermine la pertinence des choix d'action).
-*   `language` : Énumération (fr, en). Définit la langue utilisée pour l'interface et la génération de la chronique textuelle des matchs.
 
 ### C. Les Jauges Dynamiques
 *   `weekly_forme` : Énumération (Lamentable, Passable, Excellent, Divin). Applique un modificateur global sur toutes les stats pour le match.
