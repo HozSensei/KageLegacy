@@ -62,6 +62,8 @@ export const useSquadStore = defineStore('squad', {
     ]
   })
 })
+```
+
 🗄️ 4. Spécifications du Script de Seeding (Backend Match)
 Pour tester l'interface sans attendre d'avoir codé le système de recrutement, le développeur a besoin d'un script server/scripts/seedNinjas.js.
 Logique algorithmique du générateur procédural :
