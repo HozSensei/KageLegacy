@@ -1,0 +1,78 @@
+{
+  "sensei": {
+    "title": "Jonin-Sensei",
+    "ryos": "Ryos",
+    "reputation": "Reputation",
+    "chakra": "Match Chakra",
+    "specialty": "Specialty"
+  },
+  "ninja": {
+    "age": "yrs",
+    "trait": "Trait",
+    "forme": "Form",
+    "moral": "Morale",
+    "joninProgress": "Jonin progress",
+    "stats": {
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medecine": "Medicine",
+      "vitesse": "Speed",
+      "intelligence": "Intelligence"
+    }
+  },
+  "traits": {
+    "Egoiste": {
+      "label": "Selfish",
+      "bonus": "Solitary pride: +2 Taijutsu/Ninjutsu when teammates have less HP.",
+      "malus": "Defiant: ignores protect orders (will never be Tank)."
+    },
+    "Altruiste": {
+      "label": "Altruistic",
+      "bonus": "Bodyguard: 50% chance to take a fatal blow for an ally.",
+      "malus": "Sensitive: morale drops twice as fast after a defeat."
+    },
+    "Faineant": {
+      "label": "Lazy",
+      "bonus": "Olympian calm: immune to the first Genjutsu of the match.",
+      "malus": "Slacker: 15% chance to skip training."
+    },
+    "Temeraire": {
+      "label": "Reckless",
+      "bonus": "Heroic charge: +4 Speed on turn 1.",
+      "malus": "Raw consumption: +20% Chakra cost on techniques."
+    },
+    "Discipline": {
+      "label": "Disciplined",
+      "bonus": "Total reliability: follows all orders to the letter.",
+      "malus": "No special unpredictable effects."
+    }
+  },
+  "nav": {
+    "bureau": "Office",
+    "squad": "Squad",
+    "market": "Market",
+    "inventory": "Inventory",
+    "operation": "Operation"
+  },
+  "bureau": {
+    "title": "Sensei Office",
+    "cycle": "Ninja cycle",
+    "activeSquad": "Active squad",
+    "operationLive": "Operation in progress"
+  },
+  "grades": {
+    "Genin": "Genin",
+    "Chunin": "Chunin",
+    "Jonin": "Jonin"
+  },
+  "formes": {
+    "Lamentable": "Awful",
+    "Passable": "Fair",
+    "Excellent": "Excellent",
+    "Divin": "Divine"
+  },
+  "placeholders": {
+    "comingSoon": "Coming soon"
+  }
+}
