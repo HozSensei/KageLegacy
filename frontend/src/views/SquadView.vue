@@ -2,8 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
-import NinjaCard from '../components/ninja/NinjaCard.vue'
-import { useNinjaDisplay } from '../composables/useNinjaDisplay.js'
+import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -22,9 +21,6 @@ const teamSpeed = computed(() =>
   store.activeSquad.reduce((acc, n) => acc + n.vitesse + n.intelligence, 0)
 )
 
-const selectedDisplay = computed(() => selectedNinja.value)
-const { overall: selOverall, elementTone: selElement, statKeys } = useNinjaDisplay(selectedDisplay)
-
 function selectNinja(ninja) {
   selectedNinja.value = ninja
 }
@@ -40,7 +36,7 @@ onMounted(async () => {
     <header>
       <p class="page-kicker">Composition</p>
       <h1 class="page-title mt-3">{{ t('nav.squad') }}</h1>
-      <p class="page-lead">Disposition tactique et remplaçants disponibles avant le gel des consignes.</p>
+      <p class="page-lead">Disposition tactique et remplaçants. Retournez les cartes pour les détails.</p>
     </header>
 
     <dl v-if="store.sensei" class="metric-row mt-12">
@@ -59,58 +55,50 @@ onMounted(async () => {
     </dl>
 
     <div class="mt-14 lg:grid lg:grid-cols-12 lg:gap-12">
-      <!-- Fiche sélectionnée -->
       <aside class="lg:col-span-3">
         <p class="section-label">Sélection</p>
         <template v-if="selectedNinja">
           <h2 class="mt-3 font-display text-2xl text-ink">{{ selectedNinja.name }}</h2>
-          <p class="mt-2 text-sm" :class="selElement">{{ selectedNinja.element_affinity }}</p>
-          <p class="mt-1 font-display text-4xl text-ink">{{ selOverall }}</p>
-          <dl class="mt-6 space-y-2 border-t border-line pt-5">
-            <div v-for="key in statKeys" :key="key" class="flex justify-between text-sm">
-              <dt class="text-ink-faint">{{ t(`ninja.stats.${key}`) }}</dt>
-              <dd class="tabular-nums text-ink">{{ selectedNinja[key] }}</dd>
-            </div>
-          </dl>
+          <p class="mt-2 text-sm text-ink-muted">{{ selectedNinja.element_affinity }} · {{ t(`grades.${selectedNinja.grade}`) }}</p>
+          <p class="mt-4 text-sm italic text-ink-faint">{{ t(`traits.${selectedNinja.character_trait}.label`) }}</p>
         </template>
+        <p v-else class="mt-3 text-sm text-ink-faint">Sélectionnez une carte.</p>
       </aside>
 
       <!-- Terrain -->
       <div class="mt-12 lg:col-span-6 lg:mt-0">
         <p class="section-label">Formation 1 · 2</p>
-        <div class="relative mt-8 min-h-[380px]">
-          <div class="absolute inset-0 border border-line/60" />
-          <div class="absolute left-1/2 top-8 bottom-8 w-px -translate-x-1/2 bg-line/40" />
+        <div class="relative mt-8 min-h-[400px] border border-line/50 bg-bg-soft/30">
+          <div class="absolute left-1/2 top-10 bottom-10 w-px -translate-x-1/2 bg-accent-soft/15" />
 
-          <div class="relative flex h-full min-h-[380px] flex-col items-center justify-between py-12">
-            <NinjaCard
+          <div class="relative flex min-h-[400px] flex-col items-center justify-between py-10">
+            <NinjaFlipCard
               v-if="formationSlots[0].ninja"
               :ninja="formationSlots[0].ninja"
-              variant="pitch"
+              size="sm"
               :slot-label="formationSlots[0].label"
               :selected="selectedNinja?.id === formationSlots[0].ninja.id"
               @select="selectNinja"
             />
             <div v-else class="text-xs uppercase tracking-widest text-ink-faint">Avant</div>
 
-            <div class="flex w-full max-w-xs justify-between px-6">
+            <div class="flex w-full max-w-sm justify-between px-4">
               <template v-for="slot in formationSlots.slice(1)" :key="slot.pos">
-                <NinjaCard
+                <NinjaFlipCard
                   v-if="slot.ninja"
                   :ninja="slot.ninja"
-                  variant="pitch"
+                  size="sm"
                   :slot-label="slot.label"
                   :selected="selectedNinja?.id === slot.ninja.id"
                   @select="selectNinja"
                 />
-                <span v-else class="text-xs uppercase tracking-widest text-ink-faint">{{ slot.label }}</span>
+                <span v-else class="self-center text-xs uppercase tracking-widest text-ink-faint">{{ slot.label }}</span>
               </template>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Liste banc (desktop) -->
       <aside class="hidden lg:col-span-3 lg:block">
         <p class="section-label">Remplaçants</p>
         <ul class="mt-4 divide-y divide-line border-t border-line">
@@ -122,21 +110,21 @@ onMounted(async () => {
             @click="selectNinja(ninja)"
           >
             <span class="font-display text-lg text-ink">{{ ninja.name }}</span>
-            <span class="ml-2 text-xs text-ink-faint">{{ ninja.element_affinity }}</span>
           </li>
         </ul>
       </aside>
     </div>
 
-    <!-- Banc horizontal -->
+    <!-- Banc : cartes compactes retournables -->
     <section class="mt-16 border-t border-line pt-10">
       <p class="section-label">Banc</p>
-      <div class="mt-4 flex gap-0 overflow-x-auto divide-x divide-line border-t border-line">
-        <NinjaCard
+      <p class="mt-1 text-xs text-ink-faint">Cartes compactes — clic pour retourner</p>
+      <div class="mt-6 flex gap-4 overflow-x-auto pb-4">
+        <NinjaFlipCard
           v-for="ninja in store.bench"
           :key="ninja.id"
           :ninja="ninja"
-          variant="bench"
+          size="xs"
           :selected="selectedNinja?.id === ninja.id"
           @select="selectNinja"
         />

@@ -93,6 +93,50 @@
   .hairline {
     @apply border-line;
   }
+
+  /* Carte retournable */
+  .flip-scene {
+    perspective: 1100px;
+  }
+
+  .flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+  }
+
+  .flip-inner.is-flipped {
+    transform: rotateY(180deg);
+  }
+
+  .flip-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .flip-back {
+    transform: rotateY(180deg);
+  }
+
+  .ninja-card-face {
+    @apply flex h-full flex-col overflow-hidden rounded-md border border-line bg-gradient-to-b from-bg-card to-bg-soft shadow-lg;
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--color-accent-soft) 20%, transparent) inset,
+      0 12px 40px -12px rgba(0, 0, 0, 0.55);
+  }
+
+  .ninja-card-face::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 6%, transparent) 0%, transparent 45%);
+  }
 }
 
 /* Subtle grain */

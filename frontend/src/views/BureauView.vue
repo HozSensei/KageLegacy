@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
-import NinjaCard from '../components/ninja/NinjaCard.vue'
+import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
@@ -45,7 +45,6 @@ onMounted(async () => {
         <router-link to="/operation" class="text-accent underline-offset-4 hover:underline">voir le rapport</router-link>
       </div>
 
-      <!-- Métriques en ligne — pas de boîtes -->
       <dl class="metric-row mt-12">
         <div class="metric-item">
           <dd class="metric-value text-accent">{{ store.sensei.ryos.toLocaleString() }}</dd>
@@ -65,25 +64,29 @@ onMounted(async () => {
         </div>
       </dl>
 
-      <!-- Sensei — prose block -->
       <section class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
         <div class="lg:col-span-4">
           <p class="section-label">Jonin-Sensei</p>
           <h2 class="mt-3 font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
           <p class="mt-4 text-sm leading-7 text-ink-muted">
             Spécialité <span class="text-ink">{{ store.sensei.specialty }}</span>
-            — bonus de progression <span class="text-accent">+15%</span> sur l'entraînement ciblé.
+            — bonus <span class="text-accent">+15%</span> sur l'entraînement ciblé.
           </p>
         </div>
 
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
           <p class="section-label">{{ t('bureau.activeSquad') }}</p>
           <p class="mt-2 max-w-md text-sm text-ink-muted">
-            Trois genins sélectionnés pour la prochaine Opération de Frontière.
+            Cliquez sur une carte pour la retourner et voir la fiche détaillée.
           </p>
 
-          <div class="mt-10 grid gap-12 sm:grid-cols-2 xl:grid-cols-3">
-            <NinjaCard v-for="ninja in store.activeSquad" :key="ninja.id" :ninja="ninja" />
+          <div class="mt-8 flex flex-wrap justify-center gap-6 sm:justify-start lg:gap-8">
+            <NinjaFlipCard
+              v-for="ninja in store.activeSquad"
+              :key="ninja.id"
+              :ninja="ninja"
+              size="md"
+            />
           </div>
         </div>
       </section>
