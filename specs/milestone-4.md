@@ -37,23 +37,23 @@ Pour réussir une mission et ramener le magot de Ryos à l'Heure 72, le ninja do
 
 ## 🥷 3. Le Marché Noir de Cycle
 
-Le Marché Noir est l'unique moyen de dépenser ses Ryos pour optimiser les statistiques de ses ninjas grâce à de l'équipement.
+Le Marché Noir vend des **utilitaires** — pas de bonus de stats permanents en combat. La valeur principale des Ryos reste la **gestion du club** (dispensaire, salaires, examens, dojo). Voir le catalogue détaillé : [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md).
 
 ### A. Génération du Catalogue (Heure 0)
 Au début de chaque cycle, le serveur génère procéduralement **3 objets aléatoires** disponibles à l'achat pour le joueur. Ce catalogue est unique et expire après 72h.
 
-### B. Types d'Objets et Modificateurs
-Les objets se divisent en trois catégories et modifient directement les variables de la Milestone 1 :
+### B. Types d'Objets (pivot utilitaire)
+Les objets se divisent en **trois catégories** — aucune arme ni armure :
 
-1.  **Les Armes (Focus Attaque) :** Ajoutent un bonus fixe lors des phases offensives (ex: *Lame de Chakra* : `+2 Ninjutsu` en attaque).
-2.  **Les Armures / Gilets (Focus Défense) :** Ajoutent des PV de match ou de la défense fixe (ex: *Gilet Tactique en Mailles* : `+30 PV de match`, `+1 Taijutsu` en défense).
-3.  **Les Consommables (Focus Survie) :** Objets à usage unique qui s'activent automatiquement dans le simulateur de match sous conditions (ex: *Pilule du Soldat* : Restaure 20 points de Chakra si la jauge tombe sous les 15% en plein match).
+1.  **Bureau (`bureau`) :** Consommables utilisés depuis l'inventaire (ex: *Pilule de récupération* remonte la Forme d'un palier ; *Livre de stratégie* booste le prochain entraînement).
+2.  **Match (`match`) :** Consommable équipé sur un ninja actif, **1 usage / match** — mécaniques de rupture (ex: *Fumigène de secours* réduit de 50 % un coup fatal ; *Parchemin de rupture* contre Genjutsu).
+3.  **Cycle (`cycle`) :** Investissement sur 72 h (ex: *Poids d'entraînement* : −2 Vitesse en match, +20 % gains d'entraînement à la fin du cycle).
 
 ---
 
-## 🎒 4. Gestion des Équipements dans la BDD
+## 🎒 4. Gestion des Objets dans la BDD
 
-Chaque ninja dispose de **2 emplacements d'équipement maximaux** : 1 emplacement d'arme/armure permanent, et 1 emplacement de consommable à usage unique.
+Chaque ninja dispose au maximum de **1 emplacement match** (consommable de combat) **ou** **1 emplacement cycle** (investissement hors match). Les objets bureau ne s'équipent pas : ils se consomment depuis le Bureau.
 
 ### Les Règles d'impact financier (Les Salaires)
 À l'Heure 72, le script de maintenance de l'économie calcule le coût de l'escouade :

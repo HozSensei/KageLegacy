@@ -13,10 +13,10 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | Principe | Implication |
 | :--- | :--- |
 | **Équilibrer avant d'empiler** | Le moteur M5 a été calibré avant M4 (objets). Ne pas ajouter de bonus plats par-dessus. |
-| **Objets = leviers tactiques** | Bonus **situationnels** (consigne, tempo, leurre), pas de +X % partout. |
-| **Objets utilitaires, pas offensifs** | Fumigènes, parchemins, tempo, initiative — **pas** de lames / +Ninjutsu permanents. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
-| **Limites d'utilisation** | Outils (slot gear) : 2–3 activations / match. Consommables : **1 usage / match**, puis détruits. |
-| **1–2 dimensions par objet** | Pas de stack PV + défense + attaque sur le même item. |
+| **Ryos = gestion du club** | Dispensaire, salaires, examens, dojo — le Marché est un **complément**, pas la seule sink. |
+| **Objets = utilitaires uniquement** | Pas d'armes/armures +stats. Catégories **bureau / match / cycle**. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
+| **Match = mécaniques, pas power creep** | Fumigène (−50 % fatal), rupture genjutsu, leurres — pas de +2 Taijutsu. |
+| **1 slot par ninja** | Match **ou** cycle ; objets bureau = bouton « Utiliser » sans équipement. |
 | **3–4 leviers actifs / cycle** | Entraînement, tactique, 1 achat ciblé, compo — au-delà, fatigue cognitive. |
 | **Chronique découplée** | M6 lit les `combat_log` JSON ; le traducteur narratif s'enrichit sans toucher `combatEngine.js`. |
 | **La variance doit raconter** | Upsets mémorables oui ; frustration RNG pure non. |
@@ -40,7 +40,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 ## 🎯 Priorités suggérées (ordre actuel)
 
-1. **Refonte catalogue M4 utilitaire** — Valider [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md), migration 009, hooks moteur (`speed_window`, leurre)
+1. **Refonte M4 simplifiée** — Supprimer gear/weapon/armor ; catalogue bureau+match+cycle ; migration 009 ; `POST /inventory/use`
 2. **Fin M8** — Promotions / relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
 2. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
 3. **M6 enrichi** — Mention des objets dans le dictionnaire narratif + débriefing (faille élémentaire → marché)
@@ -116,8 +116,8 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 | :--- | :--- |
 | **Spécialisations Taijutsu / Ninjutsu / Genjutsu** | Multiplie la complexité ; préférer des **postures** légères ou nouvelles consignes |
 | **Limite de stock inventaire** | Non retenu : la bonne limite est l'**usage par match**, pas le hoarding |
-| **Full build 3 slots** | Spec M4 = 1 gear + 1 consommable ; ne pas ouvrir 3 slots d'un coup |
-| **Objets comme power creep** | Rejeté par design ; garder plafonds `equipmentConstants.js` |
+| **Armes / armures permanentes** | Remplacées par utilitaires ; voir pivot M4 |
+| **Bonus stats objets en combat** | Rejeté ; Ryos → infrastructure + cycle |
 
 ---
 
