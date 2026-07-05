@@ -8,6 +8,8 @@ import {
   TEMERAIRE_CHAKRA_COST,
 } from './constants.js';
 import { elementDamageMultiplier } from './element.js';
+import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
+import { POINTS_WIN_MARGIN } from './constants.js';
 
 function roll(max) {
   return randomInt(max);
@@ -152,7 +154,8 @@ function resolveDuel(attacker, defender, technique, allies) {
   if (technique.type === 'genjutsu') {
     const chakraCost =
       attacker.character_trait === 'Temeraire' ? TEMERAIRE_CHAKRA_COST : BASE_CHAKRA_COST;
-    if (atk + roll(6) > def + roll(6)) {
+    const genjutsu = resolveGenjutsuDuel(atk, def);
+    if (genjutsu.success) {
       let status = roll(2) === 0 ? 'paralysis' : 'confusion';
       if (defender.character_trait === 'Faineant' && !defender.genjutsuReceived) {
         defender.genjutsuReceived = true;
@@ -160,18 +163,42 @@ function resolveDuel(attacker, defender, technique, allies) {
       } else {
         defender.status = status;
       }
-      const chip = Math.max(2, Math.floor(atk * 0.3));
-      return { pvDamage: chip, chakraCost, status, chakraDrain: 0 };
+      return {
+        pvDamage: genjutsu.chip,
+        chakraCost,
+        status,
+        chakraDrain: 0,
+        duelEdge: genjutsu.atkContest - genjutsu.defContest,
+        crit: false,
+        fumble: false,
+        missed: false,
+      };
     }
-    return { pvDamage: 0, chakraCost, status: null, chakraDrain: 0 };
+    return {
+      pvDamage: 0,
+      chakraCost,
+      status: null,
+      chakraDrain: 0,
+      duelEdge: genjutsu.atkContest - genjutsu.defContest,
+      crit: false,
+      fumble: false,
+      missed: true,
+    };
   }
 
   const chakraCost =
     attacker.character_trait === 'Temeraire' ? TEMERAIRE_CHAKRA_COST : BASE_CHAKRA_COST;
-  const raw = Math.max(3, Math.floor(atk * 2.2 - def * 0.8));
-  const pvDamage = Math.max(1, Math.floor(raw * elementMult));
-  const chakraDrain = technique.type === 'taijutsu' ? Math.floor(atk * 0.3) : 0;
-  return { pvDamage, chakraCost, status: null, chakraDrain };
+  const physical = resolvePhysicalDuel(atk, def, elementMult, technique.type);
+  return {
+    pvDamage: physical.pvDamage,
+    chakraCost,
+    status: null,
+    chakraDrain: physical.chakraDrain,
+    duelEdge: physical.duelEdge,
+    crit: physical.crit,
+    fumble: physical.fumble,
+    missed: physical.missed,
+  };
 }
 
 function trySenseiSave(defTeam, defender, damage) {
@@ -294,6 +321,10 @@ export function simulateCombat(homeTeam, awayTeam) {
         sacrificial_name: save.sacrificialName || null,
         initiative_chance_home: initiative.homeChance,
         initiative_roll: initiative.roll,
+        duel_edge: outcome.duelEdge ?? null,
+        critique: Boolean(outcome.crit),
+        rate: Boolean(outcome.fumble),
+        esquive: Boolean(outcome.missed),
       });
     } else {
       logs.push({
@@ -324,8 +355,8 @@ export function simulateCombat(homeTeam, awayTeam) {
   else {
     const homeScore = teamRemainingScore(homeTeam);
     const awayScore = teamRemainingScore(awayTeam);
-    if (homeScore > awayScore + 0.02) winner = 'home';
-    else if (awayScore > homeScore + 0.02) winner = 'away';
+    if (homeScore > awayScore + POINTS_WIN_MARGIN) winner = 'home';
+    else if (awayScore > homeScore + POINTS_WIN_MARGIN) winner = 'away';
     else winner = 'draw';
   }
 
