@@ -105,7 +105,7 @@ export function createBalancedSquad(prefix, idOffset = 0, statScale = 1) {
   ];
 }
 
-function teamDataFromNinjas(userId, ninjas, sensei = { name: 'Sensei', chakra_pool: 100, specialty: 'Ninjutsu' }) {
+function teamDataFromNinjas(userId, ninjas, sensei = { name: 'Sensei', chakra_pool: 100, training_focus: 'Ninjutsu' }) {
   return {
     userId,
     sensei,
@@ -225,8 +225,8 @@ function squadSnapshot(ninjas) {
  */
 export function runMonteCarlo({ slotANinjas, slotBNinjas, runs = 500, favoriteSide = 'slotA' }) {
   const counter = initOutcomeCounter();
-  const slotASensei = { name: 'Sensei A', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' };
-  const slotBSensei = { name: 'Sensei B', chakra_pool: 100, specialty: 'Taijutsu', training_focus: 'Taijutsu' };
+  const slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' };
+  const slotBSensei = { name: 'Sensei B', chakra_pool: 100, training_focus: 'Taijutsu' };
 
   for (let i = 0; i < runs; i += 1) {
     const result = runSingleMatch(
@@ -249,8 +249,8 @@ export function runMultiCycle({
   slotBNinjas: initialSlotB,
   cycles = 10,
   favoriteSide = 'slotA',
-  slotASensei = { name: 'Sensei A', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' },
-  slotBSensei = { name: 'Sensei B', chakra_pool: 100, specialty: 'Genjutsu', training_focus: 'Genjutsu' },
+  slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' },
+  slotBSensei = { name: 'Sensei B', chakra_pool: 100, training_focus: 'Genjutsu' },
 }) {
   const slotA = initialSlotA.map(cloneNinja);
   const slotB = initialSlotB.map(cloneNinja);
@@ -326,7 +326,6 @@ function squadForComposition(comp, prefix, idOffset, scale = 1) {
 const NEUTRAL_SENSEI = {
   name: 'Sensei',
   chakra_pool: 100,
-  specialty: 'Ninjutsu',
   training_focus: 'Ninjutsu',
 };
 

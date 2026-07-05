@@ -47,11 +47,11 @@ Pour ne pas pénaliser un joueur occupé IRL, le serveur applique la logique de 
 
 ### A. La Formule de Progression
 La progression n'est pas linéaire. Un jeune ninja progresse vite, mais un ninja proche de son plein potentiel stagne.
-$$\text{Gain} = \text{Gain de Base} \times \text{Coeff Âge} \times \text{Bonus Sensei} \times \text{Modificateur Caractère}$$
+$$\text{Gain} = \text{Gain de Base} \times \text{Coeff Âge} \times \text{Modificateur Caractère}$$
 
-* `Gain de Base` : Fixé à `+0.2` dans la statistique sélectionnée pour le cycle.
+* `Gain de Base` : Fixé à `+0.2` dans la statistique sélectionnée pour le cycle (focus d'entraînement du dojo).
 * `Coeff Âge` : `1.5` à 15 ans, `1.0` à 16 ans, `0.7` à 17 ans, `0.4` à 18 ans. (Pousse au renouvellement).
-* `Bonus Sensei` : Si la statistique entraînée correspond à la spécialité du Jonin-Sensei, appliquer un bonus de `+15%` (`1.15`).
+* ~~`Bonus Sensei` (+15 % spécialité)~~ **Supprimé** — le Jonin n'a plus de spécialité fixe ; seul le **focus d'entraînement** (choix de cycle) oriente la progression.
 
 ### B. L'Impact du Caractère (Le Fainéant)
 Avant d'enregistrer le gain, le script fait un test sur le trait `character_trait` du ninja :

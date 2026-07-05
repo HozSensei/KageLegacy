@@ -36,7 +36,6 @@ async function seed() {
     user = await createDemoUser({
       username: 'demo_sensei',
       senseiName: 'Kakashi',
-      specialty: 'Genjutsu',
       language: 'fr',
     });
     console.log('✅ Utilisateur démo créé');

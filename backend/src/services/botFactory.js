@@ -2,13 +2,7 @@ import { query } from '../config/database.js';
 import { createNinja } from '../models/ninja.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
 
-const BOT_SENSEI = [
-  { name: 'Gennai', specialty: 'Taijutsu' },
-  { name: 'Baki', specialty: 'Ninjutsu' },
-  { name: 'Ibiki', specialty: 'Genjutsu' },
-  { name: 'Shizune', specialty: 'Medecine' },
-  { name: 'Might', specialty: 'Vitesse' },
-];
+const BOT_SENSEI_NAMES = ['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might'];
 
 const BOT_FIRST = ['Ren', 'Koji', 'Taro', 'Yui', 'Hana', 'Jin', 'Mei', 'Ryo'];
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
@@ -47,7 +41,7 @@ async function createBotSquad(userId, slotIndex, clans) {
 }
 
 export async function createBotUser(poolId, slotIndex) {
-  const senseiProfile = BOT_SENSEI[slotIndex % BOT_SENSEI.length];
+  const senseiName = BOT_SENSEI_NAMES[slotIndex % BOT_SENSEI_NAMES.length];
   const username = `bot_pool${poolId}_slot${slotIndex}`;
 
   const userResult = await query(
@@ -57,13 +51,13 @@ export async function createBotUser(poolId, slotIndex) {
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, specialty, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, ?, ?, 8000, 40, 80, 'fr')`,
-    [userId, senseiProfile.name, senseiProfile.specialty, senseiProfile.specialty]
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
+     VALUES (?, ?, 'Ninjutsu', 8000, 40, 80, 'fr')`,
+    [userId, senseiName]
   );
 
   const clans = await findAllClanTraits();
   await createBotSquad(userId, slotIndex, clans);
 
-  return { userId, senseiName: senseiProfile.name };
+  return { userId, senseiName };
 }

@@ -47,9 +47,6 @@ export function computeTrainingGain(ninja, sensei) {
   }
 
   let gain = BASE_GAIN * ageCoefficient(ninja.age);
-  if (sensei.training_focus === sensei.specialty) {
-    gain *= 1.15;
-  }
 
   return { column, gain, skipped: false };
 }

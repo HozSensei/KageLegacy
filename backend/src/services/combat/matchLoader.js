@@ -66,9 +66,8 @@ export function buildCombatTeam(teamData, sideLabel) {
       ? {
           name: teamData.sensei.name,
           chakraPool: teamData.sensei.chakra_pool,
-          intelligence: teamData.sensei.specialty === 'Intelligence' ? 14 : 10,
         }
-      : { name: 'Sensei', chakraPool: 0, intelligence: 8 },
+      : { name: 'Sensei', chakraPool: 0 },
     fighters,
   };
 }

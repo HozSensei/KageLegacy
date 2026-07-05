@@ -83,7 +83,7 @@ Labels dérivés (pas besoin de deviner les chiffres) :
 ## ⚖️ Impact gameplay
 
 - **Compo** : un genjutsu + un taijutsu + un support médecine = identité d'escouade
-- **Entraînement** : focus Sensei synergie avec la voie du ninja prometteur
+- **Entraînement** : focus dojo (choix de cycle) oriente la stat progressée — pas de spécialité fixe du Jonin
 - **Marché** : parchemin rupture sur le spécialiste genjutsu, pas sur le tank
 - **Examens** : un prodige atteint les plafonds Genin plus vite → pression Ryos plus tôt (coût examen dynamique)
 - **Vol d'Oiseau** : partir un prodige à 20 = grosse prime ; garder un ordinaire = moins de regret économique mais moins de puissance

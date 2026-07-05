@@ -4,7 +4,8 @@
     "ryos": "Ryos",
     "reputation": "Reputation",
     "chakra": "Match Chakra",
-    "specialty": "Specialty"
+    "interception": "Interception",
+    "interceptionHint": "Passive reserve: can save a student from a fatal blow (Substitution, 25 chakra)."
   },
   "ninja": {
     "age": "yrs",

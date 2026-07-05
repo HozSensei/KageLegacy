@@ -36,7 +36,7 @@ export async function findDemoUser() {
   return rows[0] || null;
 }
 
-export async function createDemoUser({ username, senseiName, specialty = 'Genjutsu', language = 'fr' }) {
+export async function createDemoUser({ username, senseiName, language = 'fr', trainingFocus = 'Genjutsu' }) {
   const userResult = await query(
     'INSERT INTO users (username, is_bot) VALUES (?, FALSE)',
     [username]
@@ -44,9 +44,9 @@ export async function createDemoUser({ username, senseiName, specialty = 'Genjut
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, specialty, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, ?, ?, 15400, 120, 100, ?)`,
-    [userId, senseiName, specialty, specialty, language]
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
+     VALUES (?, ?, ?, 15400, 120, 100, ?)`,
+    [userId, senseiName, trainingFocus, language]
   );
 
   return findDemoUser();
@@ -74,7 +74,6 @@ export async function getSquadPayload(userId) {
     is_bot: Boolean(userRows[0]?.is_bot),
     sensei: {
       name: sensei.name,
-      specialty: sensei.specialty,
       trainingFocus: sensei.training_focus,
       ryos: sensei.ryos,
       reputation: sensei.reputation,
