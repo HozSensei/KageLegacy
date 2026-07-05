@@ -1,5 +1,12 @@
 import { clampStat } from './ninjaStats.js';
 import { COMBAT_REQUIRED, IQ_REQUIRED, combatStat, meetsChuninRequirements } from './chuninExam.js';
+import {
+  BIRD_FLIGHT_COMBAT_REQUIRED,
+  BIRD_FLIGHT_IQ_REQUIRED,
+  meetsBirdFlightRequirements,
+} from './birdFlightExam.js';
+
+export { meetsBirdFlightRequirements, hasReachedTeachingPeak } from './birdFlightExam.js';
 
 /** Plafonds d'entraînement par grade (inclusif). */
 export const GRADE_STAT_CAPS = {
@@ -29,8 +36,8 @@ export const GRADE_STAT_CAPS = {
   },
 };
 
-/** Seuil combat au-delà duquel un Chunin doit préparer le Vol d'Oiseau. */
-export const CHUNIN_STAGNATION_COMBAT = 17;
+/** @deprecated Utiliser BIRD_FLIGHT_COMBAT_REQUIRED — conservé pour docs legacy. */
+export const CHUNIN_STAGNATION_COMBAT = BIRD_FLIGHT_COMBAT_REQUIRED;
 
 const CHUNIN_EXAM_BASE_COST = 300;
 const CHUNIN_EXAM_COMBAT_STEP = 40;
@@ -73,7 +80,8 @@ export function isGeninStagnant(ninja) {
 
 export function isChuninStagnant(ninja) {
   if (ninja.grade !== 'Chunin') return false;
-  return combatStat(ninja) >= CHUNIN_STAGNATION_COMBAT;
+  if (ninja.bird_flight_requested) return false;
+  return meetsBirdFlightRequirements(ninja);
 }
 
 export function isStagnant(ninja) {

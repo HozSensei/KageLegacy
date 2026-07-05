@@ -8,7 +8,7 @@ Ce document spécifie le système de retraite des ninjas d'élite (le passage au
 
 Dans **Kage Legacy**, vous n'êtes pas un collectionneur : vous êtes un formateur. Les ninjas ne peuvent pas rester éternellement dans votre escouade.
 
-* **Le Déclencheur :** Dès qu'un ninja au grade de *Chunin* atteint une note de **20** (le maximum) dans n'importe quelle statistique majeure (`taijutsu`, `ninjutsu`, `genjutsu` ou `medecine`), il est considéré comme ayant atteint le sommet de votre enseignement.
+* **Le Déclencheur :** Un *Chunin* prêt au départ remplit les mêmes critères que l'examen Genin, transposés au grade supérieur : **meilleure stat combat ≥ 16** et **intelligence ≥ 14** (plafonds Chunin − 2). Inscription **gratuite** ; la prime Ryos/réputation est versée à H72.
 * **L'Échéance (Fin de Cycle) :** À l'**Heure 72**, après la fin de l'heure live narrative (H71→H72) et l'application des résultats de match, le serveur exécute le script du "Vol d'Oiseau". Le ninja reçoit officiellement son diplôme, est promu au rang de **Jonin**, et quitte définitivement l'escouade active. Son enregistrement est retiré de la table des ninjas jouables.
 
 ---
@@ -48,7 +48,7 @@ Voir [`recruitment-market.md`](./recruitment-market.md) pour le marché aspirant
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
-* [ ] Rédige le script de maintenance post-match (Cron **H72**, après application des résultats mécaniques) qui scanne la base de données à la recherche de Chunins ayant atteint une statistique majeure à 20.
-* [ ] Implémente les formules de calcul mathématique pour l'attribution des Ryos et des Points de Réputation lors du départ du ninja.
-* [ ] Code la fonction de suppression/archivage du ninja promu et l'appel automatique au générateur procédural pour injecter le nouvel Aspirant de 15 ans dans l'escouade.
-* [ ] Développe le système de notification Backend $\rightarrow$ Front-End pour afficher le message de félicitations et le profil du nouveau venu sur l'interface Vue 3.
+* [x] Rédige le script de maintenance post-match (Cron **H72**, après application des résultats mécaniques) qui scanne la base de données à la recherche de Chunins inscrits au Vol d'Oiseau (`birdFlightService.js`).
+* [x] Implémente les formules de calcul mathématique pour l'attribution des Ryos et des Points de Réputation lors du départ du ninja.
+* [x] Code la fonction de suppression du ninja promu et l'appel automatique au générateur procédural pour injecter le nouvel Aspirant de 15 ans dans l'escouade (roturier gratuit).
+* [x] Développe le système de notification Backend → Front-End (`dojo_notifications`, `BirdFlightNotification.vue`).

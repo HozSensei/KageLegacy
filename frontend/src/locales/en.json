@@ -73,19 +73,33 @@
       "title": "Stagnation risk",
       "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",
       "geninExam": "ready for Chunin exam — register before H36",
-      "chuninJonin": "Chunin peak reached — prepare the Vol d'Oiseau (coming soon)"
+      "chuninJonin": "Chunin peak reached — register for the Vol d'Oiseau"
+    },
+    "birdFlight": {
+      "title": "Vol d'Oiseau",
+      "lead": "Free registration before H72 · combat ≥ 16 and intelligence ≥ 14 · Ryos bonus and Genin replacement at cycle end.",
+      "combat": "Combat",
+      "peak": "Peak reached",
+      "submit": "Register for Vol d'Oiseau",
+      "sending": "Registering…",
+      "registered": "Registered · H72",
+      "closed": "Registration closed for this cycle.",
+      "stagnationWarning": "Ready to graduate but not registered — form and morale will drop at H72.",
+      "graduationTitle": "Vol d'Oiseau complete",
+      "graduationBody": "{name} is now a Jonin. Bonus: +{ryos} Ryos, +{reputation} reputation.",
+      "arrivalBody": "A new recruit joined the dojo: {name} ({profile}).",
+      "dismiss": "Got it"
     },
     "chuninStagnation": {
       "title": "Chunin at the peak",
-      "lead": "Combat ≥ 17: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
+      "lead": "Combat ≥ 16 and intelligence ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
       "warning": "Form and morale will drop at H72 while they remain Chunin.",
       "combatPeak": "Combat peak: {value}/20"
     },
     "chuninExam": {
       "title": "Chunin exams",
-      "lead": "Register before H36 · combat ≥ 10 and IQ ≥ 8 · results at mid-cycle.",
+      "lead": "Register before H36 · combat ≥ 10 and intelligence ≥ 8 · results at mid-cycle.",
       "combat": "Combat",
-      "iq": "IQ",
       "submit": "Send to exam ({cost} Ryos)",
       "sending": "Registering…",
       "registered": "Registered · H36",

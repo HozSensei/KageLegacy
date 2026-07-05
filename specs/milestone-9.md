@@ -45,7 +45,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 3. ~~**Fin M8**~~ — ✅ promotions/relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
 4. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
 5. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
-6. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
+6. ~~**M7 — Vol d'Oiseau**~~ — ✅ inscription cérémonie, prime H72, relève Genin roturier, notifications Bureau
 7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
 8. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
 
@@ -123,7 +123,41 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
 | **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | Missions résolues à H72 ; design global à revoir |
-| **Focus d'entraînement** | Le focus Sensei s'applique-t-il à **tous** les ninjas du roster, ou seulement à l'escouade active / hors mission / hors opération ? | `applyTrainingForUser` entraîne **tous** les `ninjas` du `user_id` sans filtre mission/opération |
+| **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | Focus **dojo** unique (`sensei.training_focus`) ; entraînement **gratuit** ; `applyTrainingForUser` touche **tous** les ninjas sans filtre |
+
+### Entraînement payant — principes validés (session design)
+
+| Principe | Détail |
+| :--- | :--- |
+| **Périmètre** | Opt-in **par ninja** : pas d'entraînement ni de coût sans choix explicite pour ce cycle |
+| **Facturation** | Prélèvement Ryos à **H72** (après calcul des gains, ou avant — à trancher à l'implémentation) |
+| **Transparence Bureau** | Panneau « Budget du cycle » : ligne par ninja entraîné, coût unitaire, sous-total entraînement, salaires, examens, **solde projeté** |
+| **Sink Ryos** | Rendre l'entraînement massif coûteux ; laisser un ninja sans plan = 0 Ryos (choix tactique) |
+
+### Sanctions déficit — options à arbitrer (inspiré Hattrick, adapté manager 72 h)
+
+**Référence [Hattrick](https://wiki.hattrick.org/wiki/Bankruptcy) :** pas de frais d'entraînement direct par joueur — le coût est **indirect** via les **salaires** qui montent avec le niveau. Déficit autorisé jusqu'à une **ligne de crédit** (~500 k€), **intérêts hebdomadaires** (~3,33 % sur la dette), **restrictions** avant faillite (achats joueurs / staff gelés), **avertissement** puis **faillite** (perte de l'équipe) si non résorbé en 2 semaines. Page **Finances** très détaillée (revenus / dépenses ligne par ligne).
+
+**Pistes Kage Legacy** (moins brutal qu'une faillite — cycle 72 h, club plus petit) :
+
+| Niveau | Piste | Effet gameplay |
+| :--- | :--- | :--- |
+| **A — Strict** | Pas de déficit : Ryos ≥ 0 toujours | Ninjas non payés **ne gagnent pas** leur session d'entraînement ce cycle (comme l'examen Chunin sans Ryos) |
+| **B — Souple** | Petit découvert autorisé (ex. −5 000 Ryos max) | Intérêts à H72 : `3 % × dette` (sink, pression sans game over) |
+| **C — Gel administratif** | Dette &gt; 0 après H72 | Bloquer : marché, examen Chunin, missions payantes — jusqu'à retour positif |
+| **D — Pénalité club** | Dette non résorbée 2 cycles | Tous les ninjas : forme −1 palier + moral −3 (dojo en difficulté) |
+| **E — Alerte seule** | Première version minimaliste | Bandeau rouge Bureau + pas d'entraînement des ninjas non couverts |
+
+**Recommandation indicative :** **A + B léger** (pas de gain sans paiement ; petit découvert avec intérêts) + **transparence Bureau obligatoire** — proche de l'esprit Hattrick sans supprimer le compte.
+
+**Décision PO (session juil. 2026) :**
+
+| Point | Choix retenu |
+| :--- | :--- |
+| **Ordre H72** | **1. Salaires** → **2. Entraînement** (puis reste du batch : ligue, Vol d'Oiseau, stagnation, etc.) |
+| **Modèle déficit** | **Souple** : petit découvert autorisé ; intérêts sur dette à H72 ; ninjas non couverts = pas de gain |
+| **Plafond découvert** | À calibrer (indicatif **−5 000 Ryos** — à valider en playtest) |
+| **Taux intérêt** | À calibrer (indicatif **3 % × dette** par cycle — miroir Hattrick à l'échelle 72 h) |
 
 ---
 
@@ -146,7 +180,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [ ] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
 - [ ] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
 - [ ] Marché : rappel « expire à H72 » plus visible
-- [ ] Missions idle : afficher prérequis Rang C/B sur le Bureau
+- [ ] **Budget du cycle (Bureau)** — détail dépenses prévues H72 : entraînement par ninja, salaires, examens, solde projeté
 
 ---
 
@@ -156,6 +190,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
+- [ ] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit (voir revue design)
 - [ ] Dispensaire (forme, coût Ryos ?)
 - [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)

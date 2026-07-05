@@ -68,7 +68,7 @@ async function register(ninjaId) {
             {{ progress.combat }}/{{ progress.combatRequired }}
           </span>
           ·
-          {{ t('bureau.chuninExam.iq') }}
+          {{ t('ninja.stats.intelligence') }}
           <span :class="progress.intelligence >= progress.intelligenceRequired ? 'text-accent-soft' : 'text-ink-muted'">
             {{ progress.intelligence }}/{{ progress.intelligenceRequired }}
           </span>

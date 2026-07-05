@@ -73,19 +73,33 @@
       "title": "Stagnation imminente",
       "lead": "À H72, forme et moral baissent si ces ninjas restent bloqués au grade actuel.",
       "geninExam": "prêt pour l'examen Chunin — inscrivez-le avant H36",
-      "chuninJonin": "sommet Chunin atteint — préparez le Vol d'Oiseau (bientôt)"
+      "chuninJonin": "sommet Chunin atteint — inscrivez-le au Vol d'Oiseau"
+    },
+    "birdFlight": {
+      "title": "Vol d'Oiseau",
+      "lead": "Inscription gratuite avant H72 · combat ≥ 16 et intelligence ≥ 14 · prime Ryos et relève Genin à la fin du cycle.",
+      "combat": "Combat",
+      "peak": "Sommet atteint",
+      "submit": "Inscrire au Vol d'Oiseau",
+      "sending": "Inscription…",
+      "registered": "Inscrit · H72",
+      "closed": "Inscriptions closes pour ce cycle.",
+      "stagnationWarning": "Prêt au départ mais non inscrit — forme et moral baisseront à H72.",
+      "graduationTitle": "Vol d'Oiseau réussi",
+      "graduationBody": "{name} est devenu Jonin. Prime : +{ryos} Ryos, +{reputation} réputation.",
+      "arrivalBody": "Un aspirant a rejoint le dojo : {name} ({profile}).",
+      "dismiss": "Compris"
     },
     "chuninStagnation": {
       "title": "Chunin au sommet",
-      "lead": "Combat ≥ 17 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
+      "lead": "Combat ≥ 16 et intelligence ≥ 14 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
       "warning": "Forme et moral chuteront à H72 tant qu'il reste Chunin.",
       "combatPeak": "Pic combat : {value}/20"
     },
     "chuninExam": {
       "title": "Examens Chunin",
-      "lead": "Inscription avant H36 · combat ≥ 10 et QI ≥ 8 · résultat au milieu du cycle.",
+      "lead": "Inscription avant H36 · combat ≥ 10 et intelligence ≥ 8 · résultat au milieu du cycle.",
       "combat": "Combat",
-      "iq": "QI",
       "submit": "Envoyer à l'examen ({cost} Ryos)",
       "sending": "Inscription…",
       "registered": "Inscrit · H36",

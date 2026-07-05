@@ -11,6 +11,7 @@ export const useSquadStore = defineStore('squad', () => {
   const activeSquad = ref([])
   const bench = ref([])
   const gameClock = ref(null)
+  const notifications = ref([])
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -18,6 +19,7 @@ export const useSquadStore = defineStore('squad', () => {
     activeSquad.value = data.activeSquad
     bench.value = data.bench
     gameClock.value = data.gameClock
+    notifications.value = data.notifications || []
   }
 
   async function fetchSquad() {
@@ -105,6 +107,34 @@ export const useSquadStore = defineStore('squad', () => {
     applyPayload(await res.json())
   }
 
+  async function requestBirdFlight(ninjaId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/bird-flight`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
+  async function dismissNotification(notificationId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/notifications/dismiss`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationId }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
 
   function setLanguage(lang) {
@@ -119,11 +149,14 @@ export const useSquadStore = defineStore('squad', () => {
     activeSquad,
     bench,
     gameClock,
+    notifications,
     fetchSquad,
     saveComposition,
     saveStrategies,
     saveTrainingFocus,
     requestChuninExam,
+    requestBirdFlight,
+    dismissNotification,
     tacticsLocked,
     setLanguage,
   }

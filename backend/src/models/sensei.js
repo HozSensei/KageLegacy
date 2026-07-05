@@ -3,10 +3,14 @@ import { getGameClock } from '../services/gameClock.js';
 import {
   GRADE_STAT_CAPS,
   computeChuninExamCost,
+  hasReachedTeachingPeak,
   isChuninStagnant,
   isGeninStagnant,
+  meetsBirdFlightRequirements,
 } from '../services/gradeProgression.js';
+import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
+import { getUnreadNotifications } from '../services/birdFlightService.js';
 
 export { getGameClock };
 
@@ -15,6 +19,9 @@ function enrichNinja(ninja) {
   return {
     ...ninja,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
+    birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
+    birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
+    birdFlightPeak: ninja.grade === 'Chunin' ? hasReachedTeachingPeak(ninja) : false,
     gradeStatCaps: GRADE_STAT_CAPS[ninja.grade] || GRADE_STAT_CAPS.Genin,
     stagnationRisk:
       ninja.grade === 'Genin'
@@ -75,6 +82,7 @@ export async function getSquadPayload(userId) {
 
   const activeSquad = ninjas.filter((n) => n.squad_position !== null).map(enrichNinja);
   const bench = ninjas.filter((n) => n.squad_position === null).map(enrichNinja);
+  const notifications = await getUnreadNotifications(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -88,5 +96,6 @@ export async function getSquadPayload(userId) {
     },
     activeSquad,
     bench,
+    notifications,
   };
 }
