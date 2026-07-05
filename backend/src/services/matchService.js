@@ -59,6 +59,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
           homeScorePct: combat.homeScorePct,
           awayScorePct: combat.awayScorePct,
           koNinjaIds: combat.koNinjaIds,
+          possession: combat.possession,
         }),
         now,
         endingReveal,

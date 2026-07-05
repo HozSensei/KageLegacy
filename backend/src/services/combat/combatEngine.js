@@ -26,6 +26,37 @@ function teamTacticalSpeed(team, tour) {
   }, 0);
 }
 
+/**
+ * Initiative probabiliste (M1) : la vitesse tactique donne un % de chances,
+ * pas une victoire automatique. Formule M5 : Σ(vitesse + intelligence).
+ */
+function resolveInitiative(homeTeam, awayTeam, tour) {
+  const homeSpeed = teamTacticalSpeed(homeTeam, tour);
+  const awaySpeed = teamTacticalSpeed(awayTeam, tour);
+  const total = homeSpeed + awaySpeed;
+
+  if (total === 0) {
+    const homeWins = roll(2) === 0;
+    return {
+      attackerTeam: homeWins ? homeTeam : awayTeam,
+      defenderTeam: homeWins ? awayTeam : homeTeam,
+      homeChance: 50,
+      roll: roll(100),
+    };
+  }
+
+  const homeChance = Math.round((homeSpeed / total) * 100);
+  const rollValue = roll(100);
+  const homeWins = rollValue < homeChance;
+
+  return {
+    attackerTeam: homeWins ? homeTeam : awayTeam,
+    defenderTeam: homeWins ? awayTeam : homeTeam,
+    homeChance,
+    roll: rollValue,
+  };
+}
+
 function pickAttacker(team) {
   const pool = activeFighters(team).filter((f) => {
     if (f.battle_strategy === 'Tank') return false;
@@ -191,16 +222,16 @@ export function simulateCombat(homeTeam, awayTeam) {
   const logs = [];
   let endingTour = MAX_TOURS;
   let endReason = 'points';
+  let homePossession = 0;
+  let awayPossession = 0;
 
   for (let tour = 1; tour <= MAX_TOURS; tour += 1) {
-    const homeSpeed = teamTacticalSpeed(homeTeam, tour);
-    const awaySpeed = teamTacticalSpeed(awayTeam, tour);
-    let attackerTeam = homeSpeed >= awaySpeed ? homeTeam : awayTeam;
-    let defenderTeam = attackerTeam === homeTeam ? awayTeam : homeTeam;
-    if (homeSpeed === awaySpeed) {
-      attackerTeam = roll(2) === 0 ? homeTeam : awayTeam;
-      defenderTeam = attackerTeam === homeTeam ? awayTeam : homeTeam;
-    }
+    const initiative = resolveInitiative(homeTeam, awayTeam, tour);
+    const attackerTeam = initiative.attackerTeam;
+    const defenderTeam = initiative.defenderTeam;
+
+    if (attackerTeam === homeTeam) homePossession += 1;
+    else awayPossession += 1;
 
     const attacker = pickAttacker(attackerTeam);
     if (!attacker) break;
@@ -261,6 +292,8 @@ export function simulateCombat(homeTeam, awayTeam) {
         sensei_interception: Boolean(save.senseiInterception),
         altruiste_sacrifice: Boolean(save.altruisteSacrifice),
         sacrificial_name: save.sacrificialName || null,
+        initiative_chance_home: initiative.homeChance,
+        initiative_roll: initiative.roll,
       });
     } else {
       logs.push({
@@ -273,6 +306,8 @@ export function simulateCombat(homeTeam, awayTeam) {
         statut_consequence: null,
         sensei_interception: false,
         altruiste_sacrifice: false,
+        initiative_chance_home: initiative.homeChance,
+        initiative_roll: initiative.roll,
       });
     }
 
@@ -298,6 +333,8 @@ export function simulateCombat(homeTeam, awayTeam) {
     .filter((f) => f.ko)
     .map((f) => ({ id: f.id, name: f.name, side: f.side }));
 
+  const totalPossession = homePossession + awayPossession || 1;
+
   return {
     logs,
     endingTour,
@@ -308,5 +345,11 @@ export function simulateCombat(homeTeam, awayTeam) {
     koNinjaIds,
     homeScorePct: Math.round(teamRemainingScore(homeTeam) * 100),
     awayScorePct: Math.round(teamRemainingScore(awayTeam) * 100),
+    possession: {
+      home: homePossession,
+      away: awayPossession,
+      homePct: Math.round((homePossession / totalPossession) * 100),
+      awayPct: Math.round((awayPossession / totalPossession) * 100),
+    },
   };
 }
