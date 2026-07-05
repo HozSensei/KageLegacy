@@ -8,7 +8,7 @@ Ce document spécifie le système de retraite des ninjas d'élite (le passage au
 
 Dans **Kage Legacy**, vous n'êtes pas un collectionneur : vous êtes un formateur. Les ninjas ne peuvent pas rester éternellement dans votre escouade.
 
-* **Le Déclencheur :** Un *Chunin* prêt au départ remplit les mêmes critères que l'examen Genin, transposés au grade supérieur : **meilleure stat combat ≥ 16** et **QI ≥ 14** (plafonds Chunin − 2, miroir de 10/8 pour les Genin). Le sommet d'enseignement correspond aux plafonds Chunin (**18 / 16**).
+* **Le Déclencheur :** Un *Chunin* prêt au départ remplit les mêmes critères que l'examen Genin, transposés au grade supérieur : **meilleure stat combat ≥ 16** et **intelligence ≥ 14** (plafonds Chunin − 2). Inscription **gratuite** ; la prime Ryos/réputation est versée à H72.
 * **L'Échéance (Fin de Cycle) :** À l'**Heure 72**, après la fin de l'heure live narrative (H71→H72) et l'application des résultats de match, le serveur exécute le script du "Vol d'Oiseau". Le ninja reçoit officiellement son diplôme, est promu au rang de **Jonin**, et quitte définitivement l'escouade active. Son enregistrement est retiré de la table des ninjas jouables.
 
 ---

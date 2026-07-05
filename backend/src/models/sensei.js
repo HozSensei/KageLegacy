@@ -2,7 +2,6 @@ import { query } from '../config/database.js';
 import { getGameClock } from '../services/gameClock.js';
 import {
   GRADE_STAT_CAPS,
-  computeBirdFlightCost,
   computeChuninExamCost,
   hasReachedTeachingPeak,
   isChuninStagnant,
@@ -20,7 +19,6 @@ function enrichNinja(ninja) {
   return {
     ...ninja,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
-    birdFlightCost: ninja.grade === 'Chunin' ? computeBirdFlightCost(ninja) : null,
     birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
     birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
     birdFlightPeak: ninja.grade === 'Chunin' ? hasReachedTeachingPeak(ninja) : false,

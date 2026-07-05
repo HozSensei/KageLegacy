@@ -1,10 +1,6 @@
 import { query } from '../config/database.js';
 import { meetsChuninRequirements } from '../services/chuninExam.js';
-import {
-  computeBirdFlightCost,
-  computeChuninExamCost,
-  meetsBirdFlightRequirements,
-} from '../services/gradeProgression.js';
+import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/gradeProgression.js';
 import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
 
 export async function updateBattleStrategies(userId, strategies) {
@@ -73,7 +69,7 @@ export async function requestChuninExam(userId, ninjaId) {
   }
 
   if (!meetsChuninRequirements(ninja)) {
-    const error = new Error('Prérequis non atteints (combat ≥ 10 et QI ≥ 8).');
+    const error = new Error('Prérequis non atteints (combat ≥ 10 et intelligence ≥ 8).');
     error.statusCode = 400;
     throw error;
   }
@@ -121,21 +117,12 @@ export async function requestBirdFlight(userId, ninjaId) {
   }
 
   if (!meetsBirdFlightRequirements(ninja)) {
-    const error = new Error('Prérequis non atteints (combat ≥ 16 et QI ≥ 14).');
+    const error = new Error('Prérequis non atteints (combat ≥ 16 et intelligence ≥ 14).');
     error.statusCode = 400;
     throw error;
   }
 
-  const ceremonyCost = computeBirdFlightCost(ninja);
-
-  if (ninja.ryos < ceremonyCost) {
-    const error = new Error(`Ryos insuffisants (${ceremonyCost} requis).`);
-    error.statusCode = 402;
-    throw error;
-  }
-
-  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [ceremonyCost, userId]);
   await query('UPDATE ninjas SET bird_flight_requested = TRUE WHERE id = ?', [ninjaId]);
 
-  return { ninjaId, cost: ceremonyCost };
+  return { ninjaId };
 }

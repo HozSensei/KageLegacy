@@ -3,17 +3,6 @@ import {
   BIRD_FLIGHT_IQ_REQUIRED,
 } from '../src/services/birdFlightExam.js'
 
-export function computeBirdFlightCost(ninja) {
-  if (ninja.birdFlightCost != null) return ninja.birdFlightCost
-  const combat = Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)
-  const iq = ninja.intelligence
-  return (
-    800
-    + Math.max(0, combat - BIRD_FLIGHT_COMBAT_REQUIRED) * 50
-    + Math.max(0, iq - BIRD_FLIGHT_IQ_REQUIRED) * 40
-  )
-}
-
 export function getBirdFlightProgress(ninja) {
   if (ninja.birdFlightProgress) return ninja.birdFlightProgress
   const combat = Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)

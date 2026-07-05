@@ -8,7 +8,6 @@ import {
   BIRD_FLIGHT_COMBAT_REQUIRED,
   BIRD_FLIGHT_IQ_REQUIRED,
 } from '../src/services/birdFlightExam.js';
-import { computeBirdFlightCost } from '../src/services/gradeProgression.js';
 import { computeBirdFlightRewards } from '../src/services/birdFlightService.js';
 
 const chuninEligible = {
@@ -34,13 +33,10 @@ const chuninAtCap = {
   intelligence: 16,
 };
 
-console.assert(meetsBirdFlightRequirements(chuninEligible), 'eligible combat + QI');
+console.assert(meetsBirdFlightRequirements(chuninEligible), 'eligible combat + intelligence');
 console.assert(!meetsBirdFlightRequirements(chuninOneDimensional), 'reject combat-only spike');
 console.assert(hasReachedTeachingPeak(chuninAtCap), 'peak at caps 18/16');
 console.assert(!hasReachedTeachingPeak(chuninEligible), 'eligible but not at cap');
-
-const costAtCap = 800 + (18 - BIRD_FLIGHT_COMBAT_REQUIRED) * 50 + (16 - BIRD_FLIGHT_IQ_REQUIRED) * 40;
-console.assert(computeBirdFlightCost(chuninAtCap) === costAtCap, 'cost mirrors chunin exam formula');
 
 const rewards = computeBirdFlightRewards(chuninAtCap, { clanIsNoble: true });
 const statSum = 18 + 12 + 10 + 10 + 14 + 16;

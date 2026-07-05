@@ -25,11 +25,21 @@
 
 ---
 
+## 🧠 Stat « intelligence »
+
+Dans le jeu, c'est la colonne `intelligence` (affichée **Intelligence** dans l'UI — pas un QI abstrait).
+
+- **Génération** : tirage à la création + bonus de clan (ex. Nara +4).
+- **Entraînement** : progresse à H72 **uniquement** si le focus Sensei du cycle est `Intelligence` (comme les autres stats via leur focus). Sinon elle reste figée sauf effets futurs (objets cycle, etc.).
+- **Plafonds** : Genin 10, Chunin 16, Jonin 20.
+
+---
+
 ## 💰 Coût Ryos — Examen Chunin (H0–H36)
 
 Frais d'inscription **dynamiques** (prélevés à l'inscription) :
 
-$$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{QI} - 8) \times 30$$
+$$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{intelligence} - 8) \times 30$$
 
 | Profil | Exemple | Coût |
 | :--- | :--- | :--- |
@@ -37,13 +47,12 @@ $$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{QI}
 | Solide (12 / 10) | Genin mûr | **440** Ryos |
 | Plafond (12 / 10) | Avant examen | **440** Ryos |
 
-*Vol d'Oiseau (M7) : frais de cérémonie `800 + max(0, combat − 16) × 50 + max(0, QI − 14) × 40` Ryos — prélevés à l'inscription, départ traité à H72.*
+*Vol d'Oiseau (M7) : **inscription gratuite** — aucun coût Ryos. La prime est versée à H72 (`3000 + Σstats × 150` Ryos, +10 réputation).*
 
-| Profil | Exemple | Coût |
+| Profil | Exemple | Prime Ryos (indicative) |
 | :--- | :--- | :--- |
-| Minimum (16 / 14) | Chunin prêt | **800** Ryos |
-| Solide (17 / 15) | Chunin mûr | **910** Ryos |
-| Plafond (18 / 16) | Avant départ | **980** Ryos |
+| Minimum (16 / 14) | Chunin prêt | selon profil |
+| Plafond (18 / 16) | Départ complet | **3000 + 80×150 = 15 000** |
 
 ---
 
@@ -55,7 +64,7 @@ $$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{QI}
 
 Conditions **toutes** vraies :
 - Grade `Genin`
-- Prérequis examen atteints (combat ≥ 10, QI ≥ 8)
+- Prérequis examen atteints (combat ≥ 10, **intelligence** ≥ 8)
 - **Pas** inscrit à l'examen ce cycle (`chunin_exam_requested = FALSE` à H72)
 
 **Pénalité :**
@@ -66,7 +75,7 @@ Conditions **toutes** vraies :
 
 Conditions **toutes** vraies :
 - Grade `Chunin`
-- Prérequis Vol d'Oiseau atteints (combat ≥ 16, QI ≥ 14)
+- Prérequis Vol d'Oiseau atteints (combat ≥ 16, **intelligence** ≥ 14)
 - **Pas** inscrit à la cérémonie ce cycle (`bird_flight_requested = FALSE` à H72)
 
 **Pénalité :** identique (forme −1 palier, moral −3).
@@ -86,9 +95,9 @@ Genin s'entraîne → plafond 12 → doit payer l'examen Chunin
   → refuse / pas de Ryos → forme & moral chutent chaque cycle
   → paie + réussit H36 → Chunin, plafonds relevés
 
-Chunin s'entraîne → plafond 18/16 → doit organiser le Vol d'Oiseau (combat ≥ 16, QI ≥ 14)
-  → refuse / pas de Ryos → forme & moral chutent chaque cycle
-  → paie + cérémonie H72 → départ Jonin, relève Genin
+Chunin s'entraîne → plafond 18/16 → inscrire au Vol d'Oiseau (gratuit, combat ≥ 16, intelligence ≥ 14)
+  → reste trop longtemps sans s'inscrire → stagnation
+  → inscription H72 → départ Jonin, prime Ryos, relève Genin
 ```
 
 ---

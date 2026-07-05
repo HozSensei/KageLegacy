@@ -43,10 +43,6 @@ const CHUNIN_EXAM_BASE_COST = 300;
 const CHUNIN_EXAM_COMBAT_STEP = 40;
 const CHUNIN_EXAM_IQ_STEP = 30;
 
-const BIRD_FLIGHT_BASE_COST = 800;
-const BIRD_FLIGHT_COMBAT_STEP = 50;
-const BIRD_FLIGHT_IQ_STEP = 40;
-
 const FORME_DOWNGRADE = {
   Divin: 'Excellent',
   Excellent: 'Passable',
@@ -73,14 +69,6 @@ export function computeChuninExamCost(ninja) {
   const extraCombat = Math.max(0, combat - COMBAT_REQUIRED) * CHUNIN_EXAM_COMBAT_STEP;
   const extraIq = Math.max(0, iq - IQ_REQUIRED) * CHUNIN_EXAM_IQ_STEP;
   return CHUNIN_EXAM_BASE_COST + extraCombat + extraIq;
-}
-
-export function computeBirdFlightCost(ninja) {
-  const combat = combatStat(ninja);
-  const iq = ninja.intelligence;
-  const extraCombat = Math.max(0, combat - BIRD_FLIGHT_COMBAT_REQUIRED) * BIRD_FLIGHT_COMBAT_STEP;
-  const extraIq = Math.max(0, iq - BIRD_FLIGHT_IQ_REQUIRED) * BIRD_FLIGHT_IQ_STEP;
-  return BIRD_FLIGHT_BASE_COST + extraCombat + extraIq;
 }
 
 export function isGeninStagnant(ninja) {

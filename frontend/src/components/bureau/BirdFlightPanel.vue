@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import {
   canRegisterBirdFlight,
-  computeBirdFlightCost,
   getBirdFlightProgress,
 } from '../../composables/useBirdFlight.js'
 
@@ -76,7 +75,7 @@ async function register(ninjaId) {
             {{ progress.combat }}/{{ progress.combatRequired }}
           </span>
           ·
-          {{ t('bureau.birdFlight.iq') }}
+          {{ t('ninja.stats.intelligence') }}
           <span :class="progress.intelligence >= progress.intelligenceRequired ? 'text-accent-soft' : 'text-ink-muted'">
             {{ progress.intelligence }}/{{ progress.intelligenceRequired }}
           </span>
@@ -108,7 +107,7 @@ async function register(ninjaId) {
           {{
             registeringId === ninja.id
               ? t('bureau.birdFlight.sending')
-              : t('bureau.birdFlight.submit', { cost: computeBirdFlightCost(ninja) })
+              : t('bureau.birdFlight.submit')
           }}
         </button>
       </li>

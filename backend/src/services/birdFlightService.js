@@ -6,7 +6,6 @@ import { query } from '../config/database.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
 import { createNinja } from '../models/ninja.js';
 import { combatStat } from './chuninExam.js';
-import { computeBirdFlightCost } from './gradeProgression.js';
 import { meetsBirdFlightRequirements } from './birdFlightExam.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
 import { describeNinjaProfile } from './ninjaProfile.js';

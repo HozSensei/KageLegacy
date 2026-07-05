@@ -77,11 +77,10 @@
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",
-      "lead": "Register before H72 · combat ≥ 16 and IQ ≥ 14 · ceremony at cycle end, Ryos bonus and Genin replacement.",
+      "lead": "Free registration before H72 · combat ≥ 16 and intelligence ≥ 14 · Ryos bonus and Genin replacement at cycle end.",
       "combat": "Combat",
-      "iq": "IQ",
       "peak": "Peak reached",
-      "submit": "Hold the ceremony ({cost} Ryos)",
+      "submit": "Register for Vol d'Oiseau",
       "sending": "Registering…",
       "registered": "Registered · H72",
       "closed": "Registration closed for this cycle.",
@@ -93,15 +92,14 @@
     },
     "chuninStagnation": {
       "title": "Chunin at the peak",
-      "lead": "Combat ≥ 16 and IQ ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
+      "lead": "Combat ≥ 16 and intelligence ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
       "warning": "Form and morale will drop at H72 while they remain Chunin.",
       "combatPeak": "Combat peak: {value}/20"
     },
     "chuninExam": {
       "title": "Chunin exams",
-      "lead": "Register before H36 · combat ≥ 10 and IQ ≥ 8 · results at mid-cycle.",
+      "lead": "Register before H36 · combat ≥ 10 and intelligence ≥ 8 · results at mid-cycle.",
       "combat": "Combat",
-      "iq": "IQ",
       "submit": "Send to exam ({cost} Ryos)",
       "sending": "Registering…",
       "registered": "Registered · H36",
