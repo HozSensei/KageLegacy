@@ -1,26 +1,21 @@
 import { query } from '../config/database.js';
+import { simulateMatchCombat } from './combat/matchLoader.js';
+import {
+  applyPostMatchForMatch,
+  persistSenseiChakra,
+} from './combat/postMatch.js';
 
-async function getTeamPower(userId) {
-  const ninjas = await query(
-    `SELECT taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence
-     FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL`,
-    [userId]
-  );
-  return ninjas.reduce(
-    (sum, n) => sum + n.taijutsu + n.ninjutsu + n.genjutsu + n.vitesse + n.intelligence,
-    0
-  );
+function mapWinnerToDb(winner, homeUserId, awayUserId) {
+  if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
+  if (winner === 'away') return { result: 'away_win', winnerUserId: awayUserId };
+  return { result: 'draw', winnerUserId: null };
 }
 
-function decideResult(homePower, awayPower) {
-  const diff = homePower - awayPower;
-  if (Math.abs(diff) < 8) {
-    return { result: 'draw', homeScore: 1, awayScore: 1, winnerUserId: null };
-  }
-  if (diff > 0) {
-    return { result: 'home_win', homeScore: 2, awayScore: 0, winnerUserId: 'home' };
-  }
-  return { result: 'away_win', homeScore: 0, awayScore: 2, winnerUserId: 'away' };
+function mapScores(winner, endReason) {
+  if (winner === 'draw') return { homeScore: 1, awayScore: 1 };
+  const koBonus = endReason === 'ko' ? 2 : 1;
+  if (winner === 'home') return { homeScore: koBonus, awayScore: 0 };
+  return { homeScore: 0, awayScore: koBonus };
 }
 
 export async function simulateMatchesForCycle(poolId, seasonCycle) {
@@ -32,31 +27,52 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
 
   const results = [];
   for (const match of matches) {
-    const homePower = await getTeamPower(match.home_user_id);
-    const awayPower = await getTeamPower(match.away_user_id);
-    const outcome = decideResult(homePower, awayPower);
-    const winnerUserId =
-      outcome.winnerUserId === 'home'
-        ? match.home_user_id
-        : outcome.winnerUserId === 'away'
-          ? match.away_user_id
-          : null;
+    const combat = await simulateMatchCombat(match.home_user_id, match.away_user_id);
+    const { result, winnerUserId } = mapWinnerToDb(
+      combat.winner,
+      match.home_user_id,
+      match.away_user_id
+    );
+    const scores = mapScores(combat.winner, combat.endReason);
+
+    await persistSenseiChakra(match.home_user_id, combat.homeTeam.sensei.chakraPool);
+    await persistSenseiChakra(match.away_user_id, combat.awayTeam.sensei.chakraPool);
+
+    const now = new Date();
+    const endingReveal = new Date(now.getTime() + 45 * 60 * 1000);
 
     await query(
       `UPDATE matches
-       SET status = 'simulated', result = ?, home_score = ?, away_score = ?,
-           winner_user_id = ?, ending_tour = ?, simulated_at = UTC_TIMESTAMP()
+       SET status = 'revealing', result = ?, home_score = ?, away_score = ?,
+           winner_user_id = ?, ending_tour = ?, combat_log = ?,
+           simulated_at = UTC_TIMESTAMP(), reveal_start_at = ?, ending_reveal_at = ?
        WHERE id = ?`,
       [
-        outcome.result,
-        outcome.homeScore,
-        outcome.awayScore,
+        result,
+        scores.homeScore,
+        scores.awayScore,
         winnerUserId,
-        7 + Math.floor(Math.random() * 4),
+        combat.endingTour,
+        JSON.stringify({
+          logs: combat.logs,
+          endReason: combat.endReason,
+          homeScorePct: combat.homeScorePct,
+          awayScorePct: combat.awayScorePct,
+          koNinjaIds: combat.koNinjaIds,
+        }),
+        now,
+        endingReveal,
         match.id,
       ]
     );
-    results.push({ matchId: match.id, ...outcome, winnerUserId });
+
+    results.push({
+      matchId: match.id,
+      result,
+      winnerUserId,
+      endingTour: combat.endingTour,
+      tours: combat.logs.length,
+    });
   }
   return results;
 }
@@ -100,6 +116,13 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
       await applyStanding(poolId, match.home_user_id, 'draw');
       await applyStanding(poolId, match.away_user_id, 'draw');
     }
+
+    let koNinjaIds = [];
+    if (match.combat_log) {
+      const parsed = typeof match.combat_log === 'string' ? JSON.parse(match.combat_log) : match.combat_log;
+      koNinjaIds = parsed.koNinjaIds || [];
+    }
+    await applyPostMatchForMatch(match.home_user_id, match.away_user_id, koNinjaIds);
 
     await query(
       `UPDATE matches SET status = 'applied', results_applied_at = UTC_TIMESTAMP() WHERE id = ?`,
