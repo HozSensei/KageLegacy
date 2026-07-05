@@ -7,37 +7,57 @@ import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 const { t } = useI18n()
 const store = useSquadStore()
 const editingStrategy = ref(false)
-const editingComposition = ref(false)
 const saving = ref(false)
 const saveError = ref(null)
-const dragNinjaId = ref(null)
-const selectedNinjaId = ref(null)
+const swapPending = ref(null)
 
 const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
 const strategies = reactive({})
-const draftSlots = ref([null, null, null])
-const draftBench = ref([])
 
-const teamSpeed = computed(() => {
-  const squad = editingComposition.value
-    ? draftSlots.value.filter(Boolean)
-    : store.activeSquad
-  return squad.reduce((acc, n) => acc + n.vitesse + n.intelligence, 0)
-})
+const canCompose = computed(() => !store.tacticsLocked())
 
-const displaySquad = computed(() => {
-  const squad = editingComposition.value
-    ? draftSlots.value.filter(Boolean)
-    : [...store.activeSquad]
-  const chunin = squad.find((n) => n.grade === 'Chunin')
-  const others = squad.filter((n) => n.grade !== 'Chunin')
-  if (chunin && others.length === 2) return [others[0], chunin, others[1]]
-  return squad
-})
+const slots = ref([null, null, null])
+const localBench = ref([])
 
-const benchList = computed(() =>
-  editingComposition.value ? draftBench.value : store.bench
+const teamSpeed = computed(() =>
+  slots.value.filter(Boolean).reduce((acc, n) => acc + n.vitesse + n.intelligence, 0)
 )
+
+const benchNinjas = computed(() => {
+  const activeIds = new Set(slots.value.filter(Boolean).map((n) => n.id))
+  const merged = [...store.bench, ...localBench.value]
+  const seen = new Set()
+  return merged.filter((n) => {
+    if (activeIds.has(n.id) || seen.has(n.id)) return false
+    seen.add(n.id)
+    return true
+  })
+})
+
+const displayEntries = computed(() => {
+  const entries = slots.value.map((ninja, index) => ({
+    ninja,
+    position: index + 1,
+  }))
+
+  const filled = entries.filter((e) => e.ninja)
+  if (filled.length !== 3) return entries
+
+  const chunin = filled.find((e) => e.ninja.grade === 'Chunin')
+  const others = filled.filter((e) => e.ninja.grade !== 'Chunin')
+  if (chunin && others.length === 2) {
+    return [others[0], chunin, others[1]]
+  }
+  return entries
+})
+
+function syncSlotsFromStore() {
+  const ordered = [1, 2, 3].map(
+    (pos) => store.activeSquad.find((n) => n.squad_position === pos) || null
+  )
+  slots.value = ordered
+  localBench.value = []
+}
 
 function initStrategies() {
   for (const n of store.activeSquad) {
@@ -45,115 +65,103 @@ function initStrategies() {
   }
 }
 
-function initCompositionDraft() {
-  const active = [...store.activeSquad].sort((a, b) => a.squad_position - b.squad_position)
-  draftSlots.value = [active[0] || null, active[1] || null, active[2] || null]
-  draftBench.value = [...store.bench]
-}
+async function persistSlots() {
+  const ordered = slots.value.filter(Boolean)
+  if (ordered.length !== 3) return
 
-function takeNinja(ninjaId) {
-  for (let i = 0; i < 3; i += 1) {
-    if (draftSlots.value[i]?.id === ninjaId) {
-      const ninja = draftSlots.value[i]
-      draftSlots.value[i] = null
-      return ninja
-    }
-  }
-  const benchIdx = draftBench.value.findIndex((n) => n.id === ninjaId)
-  if (benchIdx >= 0) {
-    const [ninja] = draftBench.value.splice(benchIdx, 1)
-    return ninja
-  }
-  return null
-}
-
-function placeInSlot(slotIndex, ninja) {
-  const outgoing = draftSlots.value[slotIndex]
-  draftSlots.value[slotIndex] = ninja
-  if (outgoing && outgoing.id !== ninja.id) {
-    draftBench.value.push(outgoing)
+  saving.value = true
+  saveError.value = null
+  try {
+    await store.saveComposition(ordered)
+    swapPending.value = null
+    localBench.value = []
+  } catch (e) {
+    saveError.value = e.message
+  } finally {
+    saving.value = false
   }
 }
 
-function onDragStart(ninjaId) {
-  dragNinjaId.value = ninjaId
+function slotIndexFor(position) {
+  return position - 1
 }
 
-function onDragEnd() {
-  dragNinjaId.value = null
+async function swapActiveWithBench(position, benchNinja) {
+  const idx = slotIndexFor(position)
+  const next = [...slots.value]
+  next[idx] = benchNinja
+  slots.value = next
+  localBench.value = localBench.value.filter((n) => n.id !== benchNinja.id)
+
+  swapPending.value = null
+  await persistSlots()
 }
 
-function onDropSlot(slotIndex) {
-  if (!dragNinjaId.value) return
-  const ninja = takeNinja(dragNinjaId.value)
-  if (ninja) placeInSlot(slotIndex, ninja)
-  dragNinjaId.value = null
+async function removeFromActive(position) {
+  const idx = slotIndexFor(position)
+  const outgoing = slots.value[idx]
+  if (!outgoing) return
+
+  const next = [...slots.value]
+  next[idx] = null
+  slots.value = next
+  swapPending.value = null
+
+  if (!localBench.value.some((n) => n.id === outgoing.id)) {
+    localBench.value.push(outgoing)
+  }
 }
 
-function onDropBench() {
-  if (!dragNinjaId.value) return
-  const ninja = takeNinja(dragNinjaId.value)
-  if (ninja) draftBench.value.push(ninja)
-  dragNinjaId.value = null
-}
+function onActiveSwap(position) {
+  if (!canCompose.value || saving.value) return
 
-function onCardClick(ninjaId) {
-  if (!editingComposition.value) return
-
-  if (!selectedNinjaId.value) {
-    selectedNinjaId.value = ninjaId
+  if (swapPending.value?.kind === 'bench') {
+    const benchNinja = benchNinjas.value.find((n) => n.id === swapPending.value.ninjaId)
+    if (benchNinja) swapActiveWithBench(position, benchNinja)
     return
   }
 
-  if (selectedNinjaId.value === ninjaId) {
-    selectedNinjaId.value = null
-    return
-  }
-
-  const fromSlot = draftSlots.value.findIndex((n) => n?.id === selectedNinjaId.value)
-  const toSlot = draftSlots.value.findIndex((n) => n?.id === ninjaId)
-  const fromBench = draftBench.value.some((n) => n.id === selectedNinjaId.value)
-  const toBench = draftBench.value.some((n) => n.id === ninjaId)
-
-  if (fromSlot >= 0 && toSlot >= 0) {
-    const tmp = draftSlots.value[fromSlot]
-    draftSlots.value[fromSlot] = draftSlots.value[toSlot]
-    draftSlots.value[toSlot] = tmp
-  } else if (fromSlot >= 0 && toBench) {
-    const benchNinja = takeNinja(ninjaId)
-    placeInSlot(fromSlot, benchNinja)
-  } else if (fromBench && toSlot >= 0) {
-    const activeNinja = takeNinja(selectedNinjaId.value)
-    if (activeNinja) placeInSlot(toSlot, activeNinja)
-  }
-
-  selectedNinjaId.value = null
+  swapPending.value = { kind: 'active', position }
 }
 
-async function toggleCompositionEdit() {
-  if (editingComposition.value) {
-    saving.value = true
-    saveError.value = null
-    try {
-      const ordered = draftSlots.value.filter(Boolean)
-      if (ordered.length !== 3) {
-        throw new Error(t('squad.compositionIncomplete'))
-      }
-      await store.saveComposition(ordered)
-      editingComposition.value = false
-      selectedNinjaId.value = null
-    } catch (e) {
-      saveError.value = e.message
-    } finally {
-      saving.value = false
-    }
+function onActiveRemove(position) {
+  if (!canCompose.value || saving.value) return
+  removeFromActive(position)
+}
+
+function onBenchSwap(ninjaId) {
+  if (!canCompose.value || saving.value) return
+
+  if (swapPending.value?.kind === 'active') {
+    const benchNinja = benchNinjas.value.find((n) => n.id === ninjaId)
+    if (benchNinja) swapActiveWithBench(swapPending.value.position, benchNinja)
     return
   }
-  if (!store.tacticsLocked()) {
-    editingStrategy.value = false
-    initCompositionDraft()
-    editingComposition.value = true
+
+  const emptyIdx = slots.value.findIndex((n) => !n)
+  if (emptyIdx >= 0) {
+    const benchNinja = benchNinjas.value.find((n) => n.id === ninjaId)
+    if (benchNinja) swapActiveWithBench(emptyIdx + 1, benchNinja)
+    return
   }
+
+  swapPending.value = { kind: 'bench', ninjaId }
+}
+
+function isSwapSource(position) {
+  return swapPending.value?.kind === 'active' && swapPending.value.position === position
+}
+
+function isBenchSwapSource(ninjaId) {
+  return swapPending.value?.kind === 'bench' && swapPending.value.ninjaId === ninjaId
+}
+
+function isSwapTarget(position) {
+  return swapPending.value?.kind === 'bench' && slots.value[slotIndexFor(position)]
+}
+
+function isBenchSwapTarget(ninjaId) {
+  return swapPending.value?.kind === 'active'
 }
 
 async function toggleStrategyEdit() {
@@ -171,16 +179,20 @@ async function toggleStrategyEdit() {
     return
   }
   if (!store.tacticsLocked()) {
-    editingComposition.value = false
+    swapPending.value = null
     editingStrategy.value = true
   }
 }
 
 onMounted(async () => {
   if (!store.sensei) await store.fetchSquad()
+  syncSlotsFromStore()
 })
 
-watch(() => store.activeSquad, initStrategies, { immediate: true, deep: true })
+watch(() => store.activeSquad, () => {
+  syncSlotsFromStore()
+  initStrategies()
+}, { immediate: true, deep: true })
 </script>
 
 <template>
@@ -206,7 +218,7 @@ watch(() => store.activeSquad, initStrategies, { immediate: true, deep: true })
             <dt class="metric-label">{{ t('squad.tacticalSpeed') }}</dt>
           </div>
           <div class="metric-item">
-            <dd class="metric-value">{{ store.activeSquad.length }}</dd>
+            <dd class="metric-value">{{ slots.filter(Boolean).length }}</dd>
             <dt class="metric-label">{{ t('squad.activeCount') }}</dt>
           </div>
           <div class="metric-item">
@@ -215,91 +227,109 @@ watch(() => store.activeSquad, initStrategies, { immediate: true, deep: true })
           </div>
         </dl>
 
-        <div class="flex shrink-0 flex-wrap gap-3">
-          <button
-            type="button"
-            class="btn-ghost disabled:opacity-40"
-            :disabled="(!editingComposition && store.tacticsLocked()) || saving"
-            @click="toggleCompositionEdit"
-          >
-            {{
-              saving && editingComposition
-                ? t('squad.saving')
-                : editingComposition
-                  ? t('squad.doneComposition')
-                  : t('squad.editComposition')
-            }}
-          </button>
-          <button
-            type="button"
-            class="btn-ghost disabled:opacity-40"
-            :disabled="(!editingStrategy && store.tacticsLocked()) || saving"
-            @click="toggleStrategyEdit"
-          >
-            {{
-              saving && editingStrategy
-                ? t('squad.saving')
-                : editingStrategy
-                  ? t('squad.doneStrategy')
-                  : t('squad.editStrategy')
-            }}
-          </button>
-        </div>
+        <button
+          type="button"
+          class="btn-ghost shrink-0 disabled:opacity-40"
+          :disabled="(!editingStrategy && store.tacticsLocked()) || saving"
+          @click="toggleStrategyEdit"
+        >
+          {{
+            saving && editingStrategy
+              ? t('squad.saving')
+              : editingStrategy
+                ? t('squad.doneStrategy')
+                : t('squad.editStrategy')
+          }}
+        </button>
       </div>
 
-      <p v-if="editingComposition" class="mt-4 text-sm text-ink-muted">
-        {{ t('squad.compositionHint') }}
+      <p v-if="swapPending" class="mt-4 text-sm text-accent">
+        {{ t('squad.swapPending') }}
+      </p>
+
+      <p v-if="slots.some((s) => !s)" class="mt-4 text-sm text-fire">
+        {{ t('squad.slotEmpty') }}
       </p>
 
       <p v-if="saveError" class="mt-4 text-sm text-fire">{{ saveError }}</p>
 
       <section class="mt-14">
         <p class="section-label">{{ t('squad.activeSquad') }}</p>
-
-        <div
-          v-if="editingComposition"
-          class="mt-8 grid grid-cols-1 gap-10 sm:grid-cols-3"
-        >
+        <div class="mt-8 flex flex-wrap justify-center gap-10 lg:justify-start lg:gap-12">
           <div
-            v-for="slotIndex in 3"
-            :key="slotIndex"
-            class="composition-slot flex flex-col items-center"
-            :class="{ 'composition-slot--empty': !draftSlots[slotIndex - 1] }"
-            @dragover.prevent
-            @drop.prevent="onDropSlot(slotIndex - 1)"
+            v-for="entry in displayEntries"
+            :key="entry.position"
+            class="squad-card-slot flex flex-col items-center"
+            :class="{
+              'squad-card-slot--pending': isSwapSource(entry.position),
+              'squad-card-slot--target': isSwapTarget(entry.position),
+            }"
           >
             <div
-              v-if="draftSlots[slotIndex - 1]"
-              :draggable="true"
-              :class="{
-                'composition-slot--drag': dragNinjaId === draftSlots[slotIndex - 1].id,
-                'composition-slot--selected': selectedNinjaId === draftSlots[slotIndex - 1].id,
-              }"
-              @dragstart="onDragStart(draftSlots[slotIndex - 1].id)"
-              @dragend="onDragEnd"
-              @click="onCardClick(draftSlots[slotIndex - 1].id)"
+              v-if="entry.ninja"
+              class="squad-card-wrap group relative"
             >
-              <NinjaFlipCard :ninja="draftSlots[slotIndex - 1]" size="md" />
+              <div
+                v-if="canCompose"
+                class="squad-card-actions"
+              >
+                <button
+                  type="button"
+                  class="squad-card-action"
+                  :title="t('squad.swapAction')"
+                  :disabled="saving"
+                  @click.stop="onActiveSwap(entry.position)"
+                >
+                  <svg
+                    class="squad-card-action__icon squad-card-action__icon--swap"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M20 4v5h-5M4 20v-5h5M20 4a8 8 0 0 0-13.5 3M4 20a8 8 0 0 0 13.5-3"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="squad-card-action squad-card-action--remove"
+                  :title="t('squad.removeAction')"
+                  :disabled="saving"
+                  @click.stop="onActiveRemove(entry.position)"
+                >
+                  <svg
+                    class="squad-card-action__icon squad-card-action__icon--swap"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="1.75"
+                      d="M6 6l12 12M18 6L6 18"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <NinjaFlipCard :ninja="entry.ninja" size="md" />
             </div>
-            <p v-else class="composition-slot__placeholder text-sm text-ink-faint">
-              {{ t('squad.dropHere') }}
-            </p>
-          </div>
-        </div>
 
-        <div
-          v-else
-          class="mt-8 flex flex-wrap justify-center gap-10 lg:justify-start lg:gap-12"
-        >
-          <div
-            v-for="ninja in displaySquad"
-            :key="ninja.id"
-            class="flex flex-col items-center"
-          >
-            <NinjaFlipCard :ninja="ninja" size="md" />
+            <div
+              v-else
+              class="squad-card-empty flex h-[17.5rem] w-[11.5rem] items-center justify-center rounded-[20px] border border-dashed border-line/60 text-sm text-ink-faint"
+            >
+              {{ t('squad.emptySlot') }}
+            </div>
+
             <select
-              v-if="editingStrategy"
-              v-model="strategies[ninja.id]"
+              v-if="editingStrategy && entry.ninja"
+              v-model="strategies[entry.ninja.id]"
               class="strategy-select max-w-[11.5rem]"
             >
               <option v-for="key in STRATEGY_KEYS" :key="key" :value="key">
@@ -312,30 +342,45 @@ watch(() => store.activeSquad, initStrategies, { immediate: true, deep: true })
 
       <section class="mt-16 border-t border-line pt-10">
         <p class="section-label">{{ t('squad.bench') }}</p>
-        <p class="mt-2 text-sm text-ink-muted">
-          {{ editingComposition ? t('squad.benchSwapHint') : t('squad.benchHint') }}
-        </p>
-        <div
-          class="bench-stack mt-2"
-          :class="{ 'composition-bench--drop': editingComposition }"
-          @dragover.prevent="editingComposition"
-          @drop.prevent="onDropBench"
-        >
+        <p class="mt-2 text-sm text-ink-muted">{{ t('squad.benchHint') }}</p>
+        <div class="bench-stack mt-2">
           <div
-            v-for="ninja in benchList"
+            v-for="ninja in benchNinjas"
             :key="ninja.id"
-            class="bench-stack__item"
+            class="bench-stack__item squad-card-slot"
             :class="{
-              'composition-slot--drag': editingComposition && dragNinjaId === ninja.id,
-              'composition-slot--selected': editingComposition && selectedNinjaId === ninja.id,
+              'squad-card-slot--pending': isBenchSwapSource(ninja.id),
+              'squad-card-slot--target': isBenchSwapTarget(ninja.id),
             }"
           >
-            <div
-              :draggable="editingComposition"
-              @dragstart="onDragStart(ninja.id)"
-              @dragend="onDragEnd"
-              @click="onCardClick(ninja.id)"
-            >
+            <div class="squad-card-wrap group relative">
+              <div
+                v-if="canCompose"
+                class="squad-card-actions squad-card-actions--bench"
+              >
+                <button
+                  type="button"
+                  class="squad-card-action"
+                  :title="t('squad.swapAction')"
+                  :disabled="saving"
+                  @click.stop="onBenchSwap(ninja.id)"
+                >
+                  <svg
+                    class="squad-card-action__icon squad-card-action__icon--swap"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M20 4v5h-5M4 20v-5h5M20 4a8 8 0 0 0-13.5 3M4 20a8 8 0 0 0 13.5-3"
+                    />
+                  </svg>
+                </button>
+              </div>
               <NinjaFlipCard :ninja="ninja" size="xs" />
             </div>
           </div>
