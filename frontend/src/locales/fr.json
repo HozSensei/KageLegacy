@@ -1,0 +1,95 @@
+{
+  "sensei": {
+    "title": "Jonin-Sensei",
+    "ryos": "Ryos",
+    "reputation": "Réputation",
+    "chakra": "Chakra de match",
+    "specialty": "Spécialité"
+  },
+  "ninja": {
+    "age": "ans",
+    "trait": "Trait",
+    "forme": "Forme",
+    "moral": "Moral",
+    "joninProgress": "Progression Jonin",
+    "stats": {
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medecine": "Médecine",
+      "vitesse": "Vitesse",
+      "intelligence": "Intelligence"
+    }
+  },
+  "traits": {
+    "Egoiste": {
+      "label": "Égoïste",
+      "bonus": "Fierté solitaire : +2 Taijutsu/Ninjutsu si ses coéquipiers ont moins de PV.",
+      "malus": "Insoumis : ignore les consignes de protection (ne sera jamais Tank)."
+    },
+    "Altruiste": {
+      "label": "Altruiste",
+      "bonus": "Garde du corps : 50% de chances d'encaisser un coup fatal à la place d'un allié.",
+      "malus": "Sensible : moral qui chute deux fois plus vite après une défaite."
+    },
+    "Faineant": {
+      "label": "Fainéant",
+      "bonus": "Détachement olympien : immunisé contre le premier Genjutsu du match.",
+      "malus": "Poil dans la main : 15% de chances de sécher l'entraînement."
+    },
+    "Temeraire": {
+      "label": "Téméraire",
+      "bonus": "Charge héroïque : +4 Vitesse au premier tour.",
+      "malus": "Consommation brute : +20% de coût en Chakra sur ses techniques."
+    },
+    "Discipline": {
+      "label": "Discipliné",
+      "bonus": "Fiabilité totale : suit toutes les consignes à la lettre.",
+      "malus": "Aucun effet spécial imprévisible."
+    }
+  },
+  "nav": {
+    "bureau": "Bureau",
+    "squad": "Escouade",
+    "market": "Marché",
+    "inventory": "Inventaire",
+    "operation": "Opération"
+  },
+  "bureau": {
+    "title": "Bureau du Sensei",
+    "cycle": "Cycle ninja",
+    "activeSquad": "Escouade active",
+    "operationLive": "Opération en cours"
+  },
+  "squad": {
+    "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",
+    "editStrategy": "Modifier la stratégie",
+    "doneStrategy": "Terminer",
+    "activeSquad": "Escouade active",
+    "bench": "Remplaçants",
+    "benchHint": "Survolez une carte pour la dégager du tas et la consulter.",
+    "tacticalSpeed": "Vitesse tactique",
+    "activeCount": "Actifs",
+    "benchCount": "Banc",
+    "strategies": {
+      "Normal": "Normal",
+      "Tank": "Tank — Provocation",
+      "Protect": "Protéger un allié",
+      "Offensive": "Offensif"
+    }
+  },
+  "grades": {
+    "Genin": "Genin",
+    "Chunin": "Chunin",
+    "Jonin": "Jonin"
+  },
+  "formes": {
+    "Lamentable": "Lamentable",
+    "Passable": "Passable",
+    "Excellent": "Excellent",
+    "Divin": "Divin"
+  },
+  "placeholders": {
+    "comingSoon": "Bientôt disponible"
+  }
+}
