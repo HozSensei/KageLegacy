@@ -8,6 +8,12 @@ import {
   TEMERAIRE_CHAKRA_COST,
 } from './constants.js';
 import { elementDamageMultiplier } from './element.js';
+import {
+  detectSquadComposition,
+  getCompositionMatchupMultipliers,
+  getCompositionProfile,
+  getEffectiveTankTargetChance,
+} from './compositionMeta.js';
 import { getFirstTourSpeedBonus, getSituationalAttackBonus, getSituationalDefenseBonus, tryConsumables, collectConsumedItemIds } from './equipment.js';
 import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
 import { POINTS_WIN_MARGIN } from './constants.js';
@@ -101,7 +107,7 @@ function pickDefender(defTeam, attacker) {
 
   if (attacker.character_trait !== 'Egoiste') {
     const tanks = defenders.filter((d) => d.battle_strategy === 'Tank');
-    if (tanks.length && roll(100) < TANK_TARGET_CHANCE * 100) {
+    if (tanks.length && roll(100) < getEffectiveTankTargetChance(TANK_TARGET_CHANCE, detectSquadComposition(defenders)) * 100) {
       return tanks[roll(tanks.length)];
     }
   }
@@ -109,9 +115,14 @@ function pickDefender(defTeam, attacker) {
   return defenders[roll(defenders.length)];
 }
 
-function chooseTechnique(attacker, defender) {
+function chooseTechnique(attacker, defender, attackerComp = 'equilibre') {
   if (attacker.healIntent) {
     return { type: 'medecine', stat: 'medecine' };
+  }
+
+  const profile = getCompositionProfile(attackerComp);
+  if (profile.genjutsuBias > 0 && attacker.stats.genjutsu >= 5 && roll(100) < profile.genjutsuBias * 100) {
+    return { type: 'genjutsu', stat: 'genjutsu' };
   }
 
   if (attacker.stats.intelligence >= 12) {
@@ -143,11 +154,22 @@ function tryConsumablesFromEquipment(fighter) {
   return tryConsumables(fighter);
 }
 
-function resolveDuel(attacker, defender, technique, allies) {
-  const atk = attackValue(attacker, technique, allies);
-  const def =
-    defender.stats[technique.stat] +
-    getSituationalDefenseBonus(defender, technique, attacker);
+function resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam) {
+  const atkComp = detectSquadComposition(attackerTeam.fighters);
+  const defComp = detectSquadComposition(defenderTeam.fighters);
+  const matchup = getCompositionMatchupMultipliers(atkComp, defComp);
+
+  const atkProfile = getCompositionProfile(atkComp);
+  const defProfile = getCompositionProfile(defComp);
+
+  let atk = attackValue(attacker, technique, allies) * matchup.atkMult * atkProfile.damageDealt;
+  if (atkComp === 'flux' && defComp === 'assaut') atk *= 1.2;
+  if (atkComp === 'assaut' && defComp === 'flux') atk *= 0.68;
+  if (atkComp === 'assaut' && defComp === 'mur') atk *= 0.98;
+  let def =
+    (defender.stats[technique.stat] +
+      getSituationalDefenseBonus(defender, technique, attacker)) *
+    matchup.defMult;
   const elementMult = elementDamageMultiplier(attacker.element_affinity, defender.element_affinity);
 
   if (technique.type === 'medecine') {
@@ -155,7 +177,7 @@ function resolveDuel(attacker, defender, technique, allies) {
       .filter((a) => a.id !== attacker.id && !a.ko)
       .sort((a, b) => a.pv / a.maxPv - b.pv / b.maxPv)[0];
     if (!ally) return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: 0, status: null };
-    const heal = Math.max(4, Math.floor(attacker.stats.medecine * 1.5));
+    const heal = Math.max(4, Math.floor(attacker.stats.medecine * 1.5 * (getCompositionProfile(atkComp).healBonus || 1)));
     ally.pv = Math.min(ally.maxPv, ally.pv + heal);
     return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: heal, targetName: ally.name, status: null };
   }
@@ -163,7 +185,9 @@ function resolveDuel(attacker, defender, technique, allies) {
   if (technique.type === 'genjutsu') {
     const chakraCost =
       attacker.character_trait === 'Temeraire' ? TEMERAIRE_CHAKRA_COST : BASE_CHAKRA_COST;
-    const genjutsu = resolveGenjutsuDuel(atk, def);
+    let genAtk = atk;
+    if (atkComp === 'flux' && defComp === 'assaut') genAtk += 2;
+    const genjutsu = resolveGenjutsuDuel(genAtk, def);
     if (genjutsu.success) {
       let status = roll(2) === 0 ? 'paralysis' : 'confusion';
       if (defender.character_trait === 'Faineant' && !defender.genjutsuReceived) {
@@ -299,15 +323,22 @@ export function simulateCombat(homeTeam, awayTeam) {
       continue;
     }
 
-    const technique = chooseTechnique(attacker, defender);
+    const technique = chooseTechnique(attacker, defender, detectSquadComposition(attackerTeam.fighters));
     const allies = activeFighters(attackerTeam);
     attacker.healIntent = false;
-    const outcome = resolveDuel(attacker, defender, technique, allies);
+    const outcome = resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam);
 
     attacker.chakra = Math.max(0, attacker.chakra - outcome.chakraCost);
 
     if (technique.type !== 'medecine') {
       let damage = outcome.pvDamage;
+      const defComp = detectSquadComposition(defenderTeam.fighters);
+      const atkComp = detectSquadComposition(attackerTeam.fighters);
+      const defProfile = getCompositionProfile(defComp);
+      damage = Math.max(0, Math.floor(damage * defProfile.damageTaken));
+      if (defComp === 'flux' && atkComp === 'assaut') {
+        damage = Math.max(0, Math.floor(damage * 0.82));
+      }
       const save = trySenseiSave(defenderTeam, defender, damage);
       damage = save.damage;
       defender.pv = Math.max(0, defender.pv - damage);

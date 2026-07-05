@@ -17,7 +17,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | **Objets = utilitaires uniquement** | Pas d'armes/armures +stats. Catégories **bureau / match / cycle**. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
 | **Match = mécaniques, pas power creep** | Fumigène (−50 % fatal), rupture genjutsu, leurres — pas de +2 Taijutsu. |
 | **1 slot par ninja** | Match **ou** cycle ; objets bureau = bouton « Utiliser » sans équipement. |
-| **3–4 leviers actifs / cycle** | Entraînement, tactique, 1 achat ciblé, compo — au-delà, fatigue cognitive. |
+| **Pas de compo dominante** | Cercle Assaut → Mur → Flux → Assaut (~60 % win par matchup). Équilibre (mixte) ≈ neutre. Voir [`composition-triangle.md`](./composition-triangle.md). |
 | **Chronique découplée** | M6 lit les `combat_log` JSON ; le traducteur narratif s'enrichit sans toucher `combatEngine.js`. |
 | **La variance doit raconter** | Upsets mémorables oui ; frustration RNG pure non. |
 
@@ -84,10 +84,11 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 
 *Ancien catalogue armes/armures : sims ~0–2 pts sans consigne — conservé comme référence jusqu’à migration 009.*
 
-### Tactiques vs objets
+**Tactiques vs objets**
 
-- Changer les consignes (ex. Normal → Off/Tank/Off) peut **bouger le win rate de ±30 pts** selon la compo et l'adversaire — **bien plus** que les objets seuls.
-- **À surveiller :** le tutoriel / débriefing doit expliquer que l'objet sans la bonne consigne ne sert à rien.
+- Changer les consignes peut **bouger le win rate de ±20–30 pts** selon le matchup de composition — la tactique compte, mais **aucune compo ne doit gagner > 70 %** contre une autre.
+- Le trio Off/Tank/Protect est une escouade **équilibrée** (hors cercle), pas une meta dominante.
+- **À surveiller :** matchups Flux vs Assaut génèrent beaucoup de nuls (~45 %) — acceptable pour du manager, à valider en playtest.
 
 ### Métriques `combat:benchmark` (implémenté)
 

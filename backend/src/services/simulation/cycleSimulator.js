@@ -277,6 +277,90 @@ export function runMultiCycle({
   };
 }
 
+const COMPOSITION_STRATEGY = {
+  assaut: 'Offensive',
+  mur: 'Tank',
+  flux: 'Protect',
+};
+
+/** Escouade pure (2+ même consigne) pour le cercle Assaut/Flux/Mur. */
+export function createPureCompositionSquad(prefix, composition, idOffset = 0, statScale = 1) {
+  const strategy = COMPOSITION_STRATEGY[composition] || 'Normal';
+  return createBalancedSquad(prefix, idOffset, statScale).map((n) => ({
+    ...cloneNinja(n),
+    battle_strategy: strategy,
+  }));
+}
+
+/** Escouade équilibrée Off/Tank/Protect — hors cercle, ~neutre. */
+export function createEquilibreSquad(prefix, idOffset = 0, statScale = 1) {
+  const squad = createBalancedSquad(prefix, idOffset, statScale).map(cloneNinja);
+  squad[0].battle_strategy = 'Offensive';
+  squad[1].battle_strategy = 'Tank';
+  squad[2].battle_strategy = 'Protect';
+  return squad;
+}
+
+/**
+ * Matrice du cercle de compositions (mêmes stats, comps pures).
+ * Cible : ~60 % win pour le côté avec avantage matchup (+20 pts).
+ */
+export function runCompositionMatrix({ runs = 600 } = {}) {
+  const matchups = [
+    { home: 'assaut', away: 'mur', expect: 'home', label: 'Assaut → Mur' },
+    { home: 'mur', away: 'flux', expect: 'home', label: 'Mur → Flux' },
+    { home: 'flux', away: 'assaut', expect: 'home', label: 'Flux → Assaut' },
+    { home: 'mur', away: 'assaut', expect: 'away', label: 'Mur vs Assaut (désavantage)' },
+    { home: 'assaut', away: 'flux', expect: 'away', label: 'Assaut vs Flux (désavantage)' },
+    { home: 'flux', away: 'mur', expect: 'away', label: 'Flux vs Mur (désavantage)' },
+    { home: 'assaut', away: 'assaut', expect: 'even', label: 'Miroir Assaut' },
+    { home: 'equilibre', away: 'assaut', expect: 'even', label: 'Équilibre vs Assaut' },
+    { home: 'equilibre', away: 'flux', expect: 'even', label: 'Équilibre vs Flux' },
+  ];
+
+  const results = {};
+
+  for (const m of matchups) {
+    const homeNinjas =
+      m.home === 'equilibre'
+        ? createEquilibreSquad('H', 0, 1)
+        : createPureCompositionSquad('H', m.home, 0, 1);
+    const awayNinjas =
+      m.away === 'equilibre'
+        ? createEquilibreSquad('A', 10, 1)
+        : createPureCompositionSquad('A', m.away, 10, 1);
+
+    const counter = initOutcomeCounter();
+    for (let i = 0; i < runs; i += 1) {
+      const result = runSingleMatch(
+        homeNinjas.map(cloneNinja),
+        awayNinjas.map(cloneNinja),
+        { name: 'H', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' },
+        { name: 'A', chakra_pool: 100, specialty: 'Taijutsu', training_focus: 'Taijutsu' }
+      );
+      recordOutcome(counter, result, 'home');
+    }
+
+    const s = summarize(counter, 'home');
+    results[m.label] = {
+      ...s,
+      expect: m.expect,
+      onTarget:
+        m.expect === 'even'
+          ? s.homeWinPct >= 42 && s.homeWinPct <= 58
+          : m.expect === 'home'
+            ? s.homeWinPct >= 54 && s.homeWinPct <= 70
+            : s.awayWinPct >= 54 && s.awayWinPct <= 70,
+      fluxStyle:
+        m.home === 'flux' || m.away === 'flux'
+          ? { assautWinCap: Math.min(s.homeWinPct, s.awayWinPct) <= 12 }
+          : null,
+    };
+  }
+
+  return results;
+}
+
 const TACTIC_PRESETS = {
   normal: ['Normal', 'Normal', 'Normal'],
   balanced: ['Offensive', 'Tank', 'Protect'],
@@ -352,6 +436,8 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
     favoriteSide: 'away',
   });
 
+  const compositionMatrix = runCompositionMatrix({ runs: Math.max(400, Math.floor(runs * 0.75)) });
+
   return {
     meta: { runs, cycles, generatedAt: new Date().toISOString() },
     scenarios: {
@@ -365,7 +451,7 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
         ...demoVsBot,
       },
       underdogTacticsVsBot: {
-        label: 'Underdog standard + Off/Tank/Protect vs Bot +40 % Normal',
+        label: 'Underdog équilibre (Off/Tank/Protect) vs Bot +40 % Normal',
         ...tacticsImpact,
       },
       underdogBadTactics: {
@@ -377,6 +463,7 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
       equalTeams: multiCycle,
       botFavored: multiCycleGrowth,
     },
+    compositionMatrix,
   };
 }
 

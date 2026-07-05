@@ -45,6 +45,15 @@ for (const [key, scenario] of Object.entries(bench.scenarios)) {
 printMultiCycle('équipes égales', bench.multiCycle.equalTeams);
 printMultiCycle('bot +40 % favori', bench.multiCycle.botFavored);
 
+console.log('\n── Cercle des compositions (mêmes stats) ──');
+console.log('  Cible : avantage matchup ~58–65 % win (+20 pts vs 50/50)');
+for (const [label, row] of Object.entries(bench.compositionMatrix)) {
+  const mark = row.onTarget ? '✓' : '⚠';
+  console.log(
+    `  ${mark} ${label}: home ${row.homeWinPct}% · away ${row.awayWinPct}% · nuls ${row.drawPct}%`
+  );
+}
+
 console.log('\n── Cibles indicatives (milestone-9) ──');
 console.log('  Favori équilibré vs underdog fort: 63–65 % win (si home = favori démo)');
 console.log('  Nuls: ~30–33 % · Upsets: ~4–5 % · KO: ~0 %');
