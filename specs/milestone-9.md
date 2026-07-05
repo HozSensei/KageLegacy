@@ -55,6 +55,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 10. **Revue missions idle** — règles, coûts, blocages
 11. **Marché aspirants** — [`recruitment-market.md`](./recruitment-market.md)
 12. **Budget du cycle (Bureau)** — détail dépenses prévues H72
+13. **Environnement de match** — météo / topologie, scout flou H36, objets anti-environnement (après économie de base stabilisée)
 
 ---
 
@@ -166,6 +167,76 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 | **Plafond découvert** | À calibrer (indicatif **−5 000 Ryos** — à valider en playtest) |
 | **Taux intérêt** | À calibrer (indicatif **3 % × dette** par cycle — miroir Hattrick à l'échelle 72 h) |
 
+### Environnement de match — principes validés (session design juil. 2026)
+
+**Objectif :** donner au rapport d'espionnage H36 une dimension **terrain / conditions**, révélée de façon **volontairement floue**, avec une fenêtre H36→H71 pour s'adapter (compo, objets cycle, marché). Le même tirage alimente le scout, le moteur de combat et la chronique M6 — **pas** de terrain narratif aléatoire séparé à H71.
+
+| Principe | Détail |
+| :--- | :--- |
+| **Un modificateur par match** | **Soit** météo **soit** topologie par cycle — pas les deux, pour éviter l'empilement avec consignes (±30 pts) et consommables |
+| **Effets modérés** | Même enveloppe que M4 : ~**5–10 %** win rate si bien préparé ; **0–2 %** si ignoré ou mal équipé — ne doit pas écraser la tactique |
+| **Tirage unique** | Colonnes sur `matches` (ex. `environment_type`, `environment_slug`) tirées à la création du match / début de cycle ; consommé par `scouting.js`, `combatEngine`, `narrativeAssembler` |
+| **Symétrie** | Les deux camps subissent les mêmes modificateurs ; les bots n'achètent pas d'objets mais ne bénéficient pas d'un terrain truqué |
+| **Unification M6** | Remplacer le `pick(TERRAINS)` cosmétique actuel par la lecture du modificateur match — chronique et mécanique racontent la même chose |
+
+**Pool V1 indicatif (6 entrées max) :**
+
+| Type | Slug (piste) | Effet léger (à calibrer) | Ligne scout floue (ex.) |
+| :--- | :--- | :--- | :--- |
+| Météo | `pluie` | Ninjutsu légèrement pénalisé ; Genjutsu un peu favorisé | « Des averses sont **probables** sur le secteur — les techniques à distance paraissent moins fiables. » |
+| Météo | `brouillard` | Initiative / vitesse tactique −2 à −4 | « Brume épaisse signalée — **difficile** d'anticiper les ouvertures. » |
+| Météo | `ciel-degage` | Bonus mineur affinité Feu (ou neutre narratif) | « Ciel dégagé ; les éclairs élémentaires **pourraient** être plus visibles. » |
+| Topo | `foret-dense` | Taijutsu / embuscade légèrement favorisés | « Secteur **boisé**, passages étroits — combat rapproché probable. » |
+| Topo | `terrain-ouvert` | Ninjutsu / portée légèrement favorisés | « Zone **dégagée** — peu de couvert, lignes de tir longues. » |
+| Topo | `falaises` | Tank / défense légèrement favorisés | « Relief **accidenté**, positions hautes — tenir le terrain semble avantageux. » |
+
+**Scoutisme flou (validé PO) :**
+
+- Le rapport H36 ne donne **pas** de valeurs exactes ni de slugs techniques — uniquement des **tendances** en prose (« probable », « signalé », « pourrait »).
+- L'adversaire reste décrit comme aujourd'hui (postures, vitesse, élément) ; **une ligne environnement** s'ajoute au bloc scout.
+- **Pas d'oracle par défaut** : accepter le risque ou investir (objet bureau / marché) pour réduire l'incertitude — voir § Modèle économique ci-dessous.
+- Option future : objet bureau « carte du secteur » qui **affine** la formulation (ex. « pluie **confirmée** » au lieu de « probable ») sans révéler les chiffres du moteur.
+
+**Objets anti-environnement (pistes — catégorie `cycle` privilégiée) :**
+
+Préparation **avant H71**, pas improvisation en combat. Pas de +stats ; annulation ou atténuation du malus environnement sur le ninja équipé.
+
+| Slug (piste) | Contre | Catégorie |
+| :--- | :--- | :--- |
+| `cape-impermeable` | Malus `pluie` | `cycle` |
+| `torche-signalisation` | Malus `brouillard` (initiative) | `cycle` |
+| `sandales-canyon` | Malus `falaises` | `cycle` |
+| `carte-secteur` | Réduit le flou du scout (bureau, usage unique) | `bureau` |
+
+**Règle :** tout le monde ne peut pas tout contrer — le marché (3 offres / cycle) ne propose pas systématiquement l'antidote ; certains environnements restent partiellement ou totalement incontrôlables.
+
+**Implémentation — ordre suggéré :**
+
+1. Colonnes + tirage à la création du match
+2. Ligne scout dans `scouting.js`
+3. Hooks légers dans `combatEngine` (+ logs `environment_modifier` pour M6)
+4. Unification terrain M6
+5. 2–3 objets cycle + 1 bureau carte (quand le modèle économique global est en place)
+
+**État actuel :** non implémenté. L'espionnage ne couvre que l'adversaire ; le terrain M6 est procédural narratif sans effet combat.
+
+### Modèle économique environnement — à définir en fin de roadmap
+
+**Constat :** le jeu n'a pas encore de **modèle économique unifié** pour ce type de dépense (entraînement payant, budget cycle, marché aspirants encore en cours). Les objets anti-environnement ne doivent **pas** être chiffrés ni codés avant que les sinks Ryos principaux soient stabilisés.
+
+**Questions à trancher quand l'économie de base sera livrée (post #9 entraînement + budget Bureau) :**
+
+| Question | Pistes |
+| :--- | :--- |
+| **Prix des antidotes cycle** | Fourchette **750–950 Ryos** (miroir `poids-entrainement` / `ration-combat`) — valeur sur **un** match, pas power creep permanent |
+| **Carte secteur (bureau)** | **300–450 Ryos**, usage unique, 1× par cycle max — sink « information » sans casser le flou total |
+| **Disponibilité marché** | Les antidotes ne sont **pas** garantis dans les 3 slots ; probabilité d'apparition liée à l'environnement du pool (à éviter si trop prévisible — sinon rotation aléatoire pure) |
+| **Coût d'opportunité** | Équiper un ninja en cape cycle = **pas** de slot match (fumigène, etc.) sur ce ninja — arbitrage tactique |
+| **Bots & équité** | Pas d'achat bot ; pas de handicap mécanique compensatoire en V1 |
+| **Impact benchmark** | Ajouter à `combat:benchmark` : scénarios avec / sans antidote sur environnement défavorable |
+
+**Recommandation :** traiter la spec économique dans un **addendum** à [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) ou une fiche `environment-match.md` **après** livraison entraînement payant + budget cycle — pour calibrer les prix par rapport au revenu Ryos moyen d'un cycle (missions, ligue, Vol d'Oiseau).
+
 ---
 
 ## 💤 Mis en attente (volontairement)
@@ -178,6 +249,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 | **Limite de stock inventaire** | Non retenu : la bonne limite est l'**usage par match**, pas le hoarding |
 | **Armes / armures permanentes** | Remplacées par utilitaires ; voir pivot M4 |
 | **Bonus stats objets en combat** | Rejeté ; Ryos → infrastructure + cycle |
+| **Environnement match + objets anti-env** | Principes validés ; **implémentation après** économie de base (entraînement, budget Bureau) — voir § Environnement de match |
 
 ---
 
@@ -203,6 +275,9 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
 - [x] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
 - [x] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)
+- [ ] **Environnement de match** — tirage unique, scout flou H36, hooks combat, unification M6
+- [ ] **Objets anti-environnement** — catalogue + prix (après modèle économique global)
+- [ ] **Fiche `environment-match.md`** ou addendum M4 — chiffrage, dispo marché, scénarios benchmark
 
 ---
 
