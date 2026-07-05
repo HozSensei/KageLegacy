@@ -127,7 +127,7 @@ export async function unequipItem(userId, ninjaId, slot) {
 
 export async function getEquipmentForNinjas(userId) {
   return query(
-    `SELECT ne.ninja_id, ne.slot, idf.effects, idf.category, ui.id AS user_item_id
+    `SELECT ne.ninja_id, ne.slot, idf.slug, idf.effects, idf.category, ui.id AS user_item_id
      FROM ninja_equipment ne
      JOIN user_items ui ON ui.id = ne.user_item_id
      JOIN item_definitions idf ON idf.id = ui.item_definition_id

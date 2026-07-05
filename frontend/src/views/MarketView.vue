@@ -79,6 +79,9 @@ const canBuy = computed(() => (offer) => !offer.purchased && (market.value?.ryos
           </p>
           <h2 class="mt-3 font-display text-xl text-ink">{{ itemName(offer) }}</h2>
           <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ itemDesc(offer) }}</p>
+          <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+            {{ t('market.situational') }}
+          </p>
           <p class="mt-6 text-sm text-ink">{{ offer.price.toLocaleString() }} Ryos</p>
 
           <button

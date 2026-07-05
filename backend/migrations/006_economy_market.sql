@@ -70,88 +70,122 @@ INSERT INTO item_definitions (slug, category, name_fr, name_en, description_fr, 
   'weapon',
   'Lame de Chakra',
   'Chakra Blade',
-  'Affûtée pour canaliser le ninjutsu en mêlée.',
-  'Honed to channel ninjutsu in close strikes.',
-  1200,
-  JSON_OBJECT('attackStat', 'ninjutsu', 'attackBonus', 2)
+  'Consigne Offensive uniquement : +2 Ninjutsu quand ce ninja attaque en ninjutsu.',
+  'Offensive orders only: +2 Ninjutsu when this ninja attacks with ninjutsu.',
+  1100,
+  JSON_OBJECT(
+    'modifiers', JSON_ARRAY(
+      JSON_OBJECT('kind', 'attack', 'stat', 'ninjutsu', 'bonus', 2, 'when', JSON_OBJECT('strategy', 'Offensive', 'technique', 'ninjutsu'))
+    )
+  )
 ),
 (
   'kunai-renforcee',
   'weapon',
   'Kunai renforcée',
   'Reinforced Kunai',
-  'Lames lourdes qui renforcent les frappes de taijutsu.',
-  'Heavy blades that empower taijutsu strikes.',
-  900,
-  JSON_OBJECT('attackStat', 'taijutsu', 'attackBonus', 2)
+  'Consigne Offensive uniquement : +2 Taijutsu sur les frappes corps à corps.',
+  'Offensive orders only: +2 Taijutsu on taijutsu strikes.',
+  850,
+  JSON_OBJECT(
+    'modifiers', JSON_ARRAY(
+      JSON_OBJECT('kind', 'attack', 'stat', 'taijutsu', 'bonus', 2, 'when', JSON_OBJECT('strategy', 'Offensive', 'technique', 'taijutsu'))
+    )
+  )
 ),
 (
   'masque-illusion',
   'weapon',
   'Masque d''illusion',
   'Illusion Mask',
-  'Amplifie la projection genjutsu au moment de l''assaut.',
-  'Amplifies genjutsu projection during assault.',
-  1100,
-  JSON_OBJECT('attackStat', 'genjutsu', 'attackBonus', 2)
+  'Techniques Genjutsu uniquement : +1 Genjutsu à l''assaut.',
+  'Genjutsu techniques only: +1 Genjutsu on assault.',
+  950,
+  JSON_OBJECT(
+    'modifiers', JSON_ARRAY(
+      JSON_OBJECT('kind', 'attack', 'stat', 'genjutsu', 'bonus', 1, 'when', JSON_OBJECT('technique', 'genjutsu'))
+    )
+  )
 ),
 (
   'gilet-mailles',
   'armor',
   'Gilet tactique en mailles',
   'Tactical Mesh Vest',
-  'Renforce la constitution au combat (+30 PV de match).',
-  'Bolsters constitution in combat (+30 match HP).',
-  1400,
-  JSON_OBJECT('matchPvBonus', 30, 'defenseStat', 'taijutsu', 'defenseBonus', 1)
+  'Consigne Tank uniquement : +15 PV de match.',
+  'Tank orders only: +15 match HP.',
+  1200,
+  JSON_OBJECT(
+    'modifiers', JSON_ARRAY(
+      JSON_OBJECT('kind', 'pv', 'bonus', 15, 'when', JSON_OBJECT('strategy', 'Tank'))
+    )
+  )
 ),
 (
-  'brassards-doton',
+  'gants-pare-feu',
   'armor',
-  'Brassards de Doton',
-  'Doton Bracers',
-  'Ancrage défensif : +1 ninjutsu en parade.',
-  'Defensive anchor: +1 ninjutsu when defending.',
-  1000,
-  JSON_OBJECT('matchPvBonus', 15, 'defenseStat', 'ninjutsu', 'defenseBonus', 1)
+  'Gants pare-feu',
+  'Fireproof Gloves',
+  'Réduit les dégâts subis via Ninjutsu Katon adverse (+2 en défense élémentaire).',
+  'Reduces damage taken from enemy Katon ninjutsu (+2 elemental defense).',
+  1050,
+  JSON_OBJECT(
+    'modifiers', JSON_ARRAY(
+      JSON_OBJECT('kind', 'element_resist', 'element', 'Katon', 'bonus', 2)
+    )
+  )
 ),
 (
   'bandeau-focus',
   'armor',
   'Bandeau de focus',
   'Focus Headband',
-  'Stabilise l''esprit : +20 PV et +1 genjutsu en défense.',
-  'Steadies the mind: +20 HP and +1 genjutsu on defense.',
-  950,
-  JSON_OBJECT('matchPvBonus', 20, 'defenseStat', 'genjutsu', 'defenseBonus', 1)
+  'Consigne Protect uniquement : +1 Genjutsu en défense.',
+  'Protect orders only: +1 Genjutsu when defending.',
+  900,
+  JSON_OBJECT(
+    'modifiers', JSON_ARRAY(
+      JSON_OBJECT('kind', 'defense', 'stat', 'genjutsu', 'bonus', 1, 'when', JSON_OBJECT('strategy', 'Protect'))
+    )
+  )
 ),
 (
   'pilule-soldat',
   'consumable',
   'Pilule du Soldat',
   'Soldier Pill',
-  'Usage unique : restaure 20 chakra si la réserve tombe sous 15 % en match.',
-  'Single use: restores 20 chakra if reserves drop below 15% in a match.',
-  600,
-  JSON_OBJECT('consumable', JSON_OBJECT('trigger', 'chakra_below_pct', 'threshold', 15, 'chakraRestore', 20))
+  'Usage unique : +15 Chakra si la réserve tombe sous 12 % en match.',
+  'Single use: +15 Chakra if reserves drop below 12% in a match.',
+  550,
+  JSON_OBJECT(
+    'consumable', JSON_OBJECT('trigger', 'chakra_below_pct', 'threshold', 12, 'chakraRestore', 15)
+  )
 ),
 (
   'herbes-soin',
   'consumable',
   'Herbes de soin',
   'Healing Herbs',
-  'Usage unique : regagne 25 PV si les PV tombent sous 20 % en match.',
-  'Single use: recovers 25 HP if health drops below 20% in a match.',
-  550,
-  JSON_OBJECT('consumable', JSON_OBJECT('trigger', 'pv_below_pct', 'threshold', 20, 'pvRestore', 25))
+  'Usage unique : +18 PV si les PV tombent sous 15 % en match.',
+  'Single use: +18 HP if health drops below 15% in a match.',
+  500,
+  JSON_OBJECT(
+    'consumable', JSON_OBJECT('trigger', 'pv_below_pct', 'threshold', 15, 'pvRestore', 18)
+  )
 ),
 (
   'parchemin-fumee',
   'consumable',
   'Parchemin de fumée',
   'Smoke Scroll',
-  'Usage unique : +1 vitesse tactique au premier tour du match.',
-  'Single use: +1 tactical speed on the first round of a match.',
-  500,
-  JSON_OBJECT('consumable', JSON_OBJECT('trigger', 'match_start', 'firstTourSpeedBonus', 1))
+  'Usage unique : +2 Vitesse au tour 1 (inefficace en consigne Tank).',
+  'Single use: +2 Speed on round 1 (no effect under Tank orders).',
+  450,
+  JSON_OBJECT(
+    'consumable', JSON_OBJECT(
+      'trigger', 'match_start',
+      'firstTourSpeedBonus', 2,
+      'when', JSON_OBJECT('strategyNot', 'Tank')
+    )
+  )
 );
