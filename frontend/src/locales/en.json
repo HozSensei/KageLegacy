@@ -61,7 +61,17 @@
     "activeSquad": "Active squad",
     "operationLive": "Operation in progress",
     "trainingFocus": "Training focus",
-    "trainingHint": "Carried over each cycle until you change it."
+    "trainingHint": "Carried over each cycle until you change it.",
+    "chuninExam": {
+      "title": "Chunin exams",
+      "lead": "Register before H36 · combat ≥ 10 and IQ ≥ 8 · results at mid-cycle.",
+      "combat": "Combat",
+      "iq": "IQ",
+      "submit": "Send to exam ({cost} Ryos)",
+      "sending": "Registering…",
+      "registered": "Registered · H36",
+      "closed": "Registration closed this cycle — next window at H0."
+    }
   },
   "squad": {
     "lead": "Manage your combat trio and bench before tactics lock.",

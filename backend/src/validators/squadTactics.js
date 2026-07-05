@@ -23,3 +23,7 @@ export const updateTrainingFocusSchema = z.object({
 export const setHourSchema = z.object({
   hour: z.number().int().min(0).max(72),
 });
+
+export const requestChuninExamSchema = z.object({
+  ninjaId: z.number().int().positive(),
+});

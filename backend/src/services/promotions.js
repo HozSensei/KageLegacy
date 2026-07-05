@@ -1,10 +1,6 @@
 import { query } from '../config/database.js';
 import { computeMatchChakraMax, computeSalaryCost, clampStat } from './ninjaStats.js';
-
-function meetsChuninRequirements(ninja) {
-  const combat = Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine);
-  return combat >= 10 && ninja.intelligence >= 8;
-}
+import { meetsChuninRequirements } from './chuninExam.js';
 
 export async function processChuninExamsForUser(userId) {
   const candidates = await query(

@@ -1,5 +1,9 @@
 import { query } from '../config/database.js';
-import { isTacticsLocked } from '../services/gameClock.js';
+import {
+  CHUNIN_EXAM_COST,
+  meetsChuninRequirements,
+} from '../services/chuninExam.js';
+import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
 
 export async function updateBattleStrategies(userId, strategies) {
   if (await isTacticsLocked()) {
@@ -38,16 +42,48 @@ export async function updateTrainingFocus(userId, trainingFocus) {
   return trainingFocus;
 }
 
-export async function setChuninExamRequest(userId, ninjaId, requested) {
+export async function requestChuninExam(userId, ninjaId) {
+  const clock = await getGameClock();
+  if (clock.hour >= 36) {
+    const error = new Error('Les inscriptions sont closes jusqu\'au prochain cycle (après H36).');
+    error.statusCode = 423;
+    throw error;
+  }
+
   const rows = await query(
-    `SELECT id FROM ninjas WHERE id = ? AND user_id = ? AND grade = 'Genin'`,
+    `SELECT n.*, s.ryos
+     FROM ninjas n
+     JOIN sensei s ON s.user_id = n.user_id
+     WHERE n.id = ? AND n.user_id = ? AND n.grade = 'Genin'`,
     [ninjaId, userId]
   );
-  if (!rows[0]) {
+  const ninja = rows[0];
+  if (!ninja) {
     const error = new Error('Genin introuvable.');
     error.statusCode = 404;
     throw error;
   }
-  await query('UPDATE ninjas SET chunin_exam_requested = ? WHERE id = ?', [requested, ninjaId]);
-  return requested;
+
+  if (ninja.chunin_exam_requested) {
+    const error = new Error('Ce Genin est déjà inscrit à l\'examen.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  if (!meetsChuninRequirements(ninja)) {
+    const error = new Error('Prérequis non atteints (combat ≥ 10 et QI ≥ 8).');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (ninja.ryos < CHUNIN_EXAM_COST) {
+    const error = new Error(`Ryos insuffisants (${CHUNIN_EXAM_COST} requis).`);
+    error.statusCode = 402;
+    throw error;
+  }
+
+  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [CHUNIN_EXAM_COST, userId]);
+  await query('UPDATE ninjas SET chunin_exam_requested = TRUE WHERE id = ?', [ninjaId]);
+
+  return { ninjaId, cost: CHUNIN_EXAM_COST };
 }

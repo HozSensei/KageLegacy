@@ -61,7 +61,17 @@
     "activeSquad": "Escouade active",
     "operationLive": "Opération en cours",
     "trainingFocus": "Focus d'entraînement",
-    "trainingHint": "Reconduit automatiquement chaque cycle tant que vous ne le modifiez pas."
+    "trainingHint": "Reconduit automatiquement chaque cycle tant que vous ne le modifiez pas.",
+    "chuninExam": {
+      "title": "Examens Chunin",
+      "lead": "Inscription avant H36 · combat ≥ 10 et QI ≥ 8 · résultat au milieu du cycle.",
+      "combat": "Combat",
+      "iq": "QI",
+      "submit": "Envoyer à l'examen ({cost} Ryos)",
+      "sending": "Inscription…",
+      "registered": "Inscrit · H36",
+      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0."
+    }
   },
   "squad": {
     "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
+import ChuninExamList from '../components/bureau/ChuninExamList.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
@@ -102,6 +103,8 @@ onMounted(async () => {
             </select>
             <p class="mt-2 text-xs text-ink-faint">{{ t('bureau.trainingHint') }}</p>
           </div>
+
+          <ChuninExamList />
         </div>
 
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">

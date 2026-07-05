@@ -204,6 +204,22 @@
     @apply opacity-100;
   }
 
+  .exam-list__row {
+    @apply border-b border-line/60 pb-5 last:border-0 last:pb-0;
+  }
+
+  .exam-bar {
+    @apply h-px bg-line;
+  }
+
+  .exam-bar__fill {
+    @apply h-px bg-accent/70 transition-all duration-300;
+  }
+
+  .exam-bar__fill--iq {
+    @apply bg-accent-soft/80;
+  }
+
   .ninja-card-face::before {
     content: "";
     position: absolute;

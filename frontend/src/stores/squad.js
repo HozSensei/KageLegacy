@@ -71,6 +71,20 @@ export const useSquadStore = defineStore('squad', () => {
     applyPayload(await res.json())
   }
 
+  async function requestChuninExam(ninjaId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/chunin-exam`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
 
   function setLanguage(lang) {
@@ -88,6 +102,7 @@ export const useSquadStore = defineStore('squad', () => {
     fetchSquad,
     saveStrategies,
     saveTrainingFocus,
+    requestChuninExam,
     tacticsLocked,
     setLanguage,
   }
