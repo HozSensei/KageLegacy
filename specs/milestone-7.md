@@ -28,14 +28,21 @@ C'est la donnée la plus importante, celle qui fait grimper le joueur dans le **
 
 ---
 
-## 🐣 3. Injection Automatique de la Relève (L'Aspirant)
+## 🐣 3. Injection de la Relève (L'Aspirant)
 
-Pour éviter qu'un joueur ne se retrouve avec seulement 2 ninjas sur le terrain (ce qui violerait les règles du simulateur de combat de la Milestone 5), le départ d'un Jonin déclenche immédiatement le recrutement de sa relève.
+Quand un Chunin part en Jonin, un slot se libère. **Par défaut**, un aspirant **roturier gratuit** comble le vide (tirage standard, sans garantie de lignée).
 
-1. **Libération du Slot :** Le slot d'escouade précédemment occupé par le Jonin est marqué comme `null` (Vide).
-2. **Génération de l'Aspirant :** Le serveur appelle instantanément le module de génération procédurale (conçu dans la Milestone 2).
-3. **Le Profil de départ :** Un nouvel apprenti **Genin de 15 ans** est créé. Ses statistiques de combat sont basses (comprises entre 2 et 5). Son Moral est au maximum (`20/20`), impatient d'apprendre.
-4. **Attribution automatique :** Ce ninja est injecté directement dans l'escouade du joueur pour combler le vide. Le joueur reçoit une notification sur son Bureau Vue 3 : *« Un nouvel Aspirant a rejoint votre Dojo pour remplacer votre glorieux Jonin. Au travail, Sensei ! »*
+| Mode | Coût | Profil |
+| :--- | :--- | :--- |
+| **Relève gratuite** | 0 Ryos | Roturier, Genin 15 ans (tirage `pickClanForRecruitment`) |
+| **Recrutement payant** *(backlog)* | Ryos, 1× / cycle | 2–3 candidats au choix (voie, potentiel, noble possible) |
+
+Voir [`recruitment-market.md`](./recruitment-market.md) pour le marché aspirants futur (vente/licenciement inclus).
+
+1. **Libération du Slot :** le poste du Jonin partant est vacant.
+2. **Génération :** module procédural avec rareté clan.
+3. **Profil :** Genin 15 ans, moral max ; nom seul si roturier.
+4. **Notification Bureau :** « Un aspirant a rejoint le Dojo » (+ détail lignée si clan).
 
 ---
 

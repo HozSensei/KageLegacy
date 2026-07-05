@@ -6,9 +6,10 @@ import {
   computeMoralWithClanVariance,
   computeSalaryCost,
 } from './ninjaStats.js';
+import { pickClanForRecruitment } from './clanRecruitment.js';
 
 const FIRST_NAMES = ['Haru', 'Sora', 'Rei', 'Kenji', 'Yuki', 'Akira', 'Hana', 'Rin', 'Takeshi', 'Mio'];
-const CLAN_NAMES = ['Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
+const CLAN_NAMES = ['Roturier', 'Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
 
 const FORMES = ['Passable', 'Excellent', 'Divin'];
 
@@ -134,16 +135,29 @@ export function generateBaseStats(grade = 'Genin') {
   return generateSpecializedStats(grade, pickRandom(PRIMARY_ARTS), 'ordinaire');
 }
 
-export function generateNinjaProfile({ clan, grade = 'Genin', characterTrait, language = 'fr' }) {
+export function generateNinjaProfile({
+  clan,
+  clans,
+  grade = 'Genin',
+  characterTrait,
+  language = 'fr',
+  recruitmentOptions,
+}) {
+  const resolvedClan = clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
+  if (!resolvedClan) {
+    throw new Error('generateNinjaProfile: clan ou liste clans requis.');
+  }
+
   const firstName = pickRandom(FIRST_NAMES);
-  const name = `${firstName} ${clan.name}`;
+  const name =
+    resolvedClan.name === 'Roturier' ? firstName : `${firstName} ${resolvedClan.name}`;
 
-  const primaryArt = pickPrimaryArt(clan);
-  const potential = rollPotential(clan);
+  const primaryArt = pickPrimaryArt(resolvedClan);
+  const potential = rollPotential(resolvedClan);
   let stats = generateSpecializedStats(grade, primaryArt, potential);
-  stats = applyClanBonuses(stats, clan);
+  stats = applyClanBonuses(stats, resolvedClan);
 
-  const moral = computeMoralWithClanVariance(12 + Math.floor(Math.random() * 6), clan);
+  const moral = computeMoralWithClanVariance(12 + Math.floor(Math.random() * 6), resolvedClan);
   const weeklyForme = pickRandom(FORMES);
 
   const salary_cost = computeSalaryCost(grade, stats);
@@ -154,7 +168,7 @@ export function generateNinjaProfile({ clan, grade = 'Genin', characterTrait, la
     name,
     age: grade === 'Genin' ? 15 : 16,
     grade,
-    clan_trait_id: clan.id,
+    clan_trait_id: resolvedClan.id,
     element_affinity: pickRandom(ELEMENTS),
     character_trait: characterTrait || pickRandom(CHARACTER_TRAITS),
     language,

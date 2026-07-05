@@ -136,7 +136,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [ ] Protect : cible désignée (`protect_target_ninja_id`)
 - [ ] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [ ] M8 : `join_or_create_pool` + inscription par invitation
-- [ ] M7 : Vol d'Oiseau (H72 post-résultats)
+- [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
 - [ ] Dispensaire (forme, coût Ryos ?)
 - [ ] UI alerte stagnation Chunin (combat ≥ 17)
 - [ ] `npm run combat:benchmark` — script de régression d'équilibre

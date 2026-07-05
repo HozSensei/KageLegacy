@@ -16,6 +16,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const DEFAULT_CLANS = [
+  { name: 'Roturier', intelligence_bonus: 0, speed_bonus: 0, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: false },
   { name: 'Nara', intelligence_bonus: 4, speed_bonus: -2, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: true },
   { name: 'Uchiwa', intelligence_bonus: 0, speed_bonus: 0, genjutsu_bonus: 3, ninjutsu_bonus: 3, moral_variance: 4, is_noble: true },
   { name: 'Hyuga', intelligence_bonus: 2, speed_bonus: 2, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: true },
@@ -29,7 +30,6 @@ async function seed() {
 
   await upsertClanTraits(DEFAULT_CLANS);
   const clans = await findAllClanTraits();
-  const clanByName = Object.fromEntries(clans.map((c) => [c.name, c]));
 
   let user = await findDemoUser();
   if (!user) {
@@ -47,15 +47,12 @@ async function seed() {
 
   const totalNinjas = 15;
   const traits = distributeCharacterTraits(totalNinjas);
-  const clanRotation = ['Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
 
   for (let i = 0; i < totalNinjas; i += 1) {
-    const clanName = clanRotation[i % clanRotation.length];
-    const clan = clanByName[clanName];
     const grade =
       i === 1 ? 'Chunin' : i < 10 ? 'Genin' : i < 13 ? 'Chunin' : 'Genin';
     const profile = generateNinjaProfile({
-      clan,
+      clans,
       grade,
       characterTrait: traits[i],
       language: 'fr',

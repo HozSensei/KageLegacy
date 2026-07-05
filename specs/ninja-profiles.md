@@ -20,7 +20,7 @@ Le manager ne peut pas vraiment choisir « mon spécialiste genjutsu » vs « mo
 
 | Axe | Rôle | Exemple |
 | :--- | :--- | :--- |
-| **Clan** | ADN fixe, bonus plats | Uchiwa → feu/illusion ; Nara → QI |
+| **Clan** | ADN fixe, bonus plats — **rare** (noble ~10 %) | Uchiwa → feu/illusion ; roturier = majorité |
 | **Voie (art principal)** | Spécialisation de combat | Genjutsu, Taijutsu, Ninjutsu, Médecine |
 | **Potentiel** | Talent brut + vitesse de progression | Ordinaire / Prometteur / Prodige |
 
@@ -53,7 +53,15 @@ Le clan **biaise** le tirage de la voie (ex. Yamanaka → 50 % Genjutsu, Uchiwa 
 
 À la création, un **Prodige Taijutsu** peut arriver à 9–10 taijutsu avec 3–4 ailleurs ; un **Ordinaire** est plus plat (6–7 partout).
 
-**Noblesse clan** (`is_noble`) : +10 % de chance Prometteur/Prodige.
+**Noblesse clan** (`is_noble`) : +10 % de chance Prometteur/Prodige — mais le tirage noble lui-même est déjà à ~10 % seulement. Voir [`recruitment-market.md`](./recruitment-market.md).
+
+### Rareté des lignées (recrutement)
+
+| Tier | Clans | Fréquence tirage |
+| :--- | :--- | :--- |
+| Roturier | Sans lignée | ~65 % |
+| Clan village | Sarutobi, Akimichi, Yamanaka | ~25 % |
+| Lignée noble | Nara, Uchiwa, Hyuga | ~10 % |
 
 ---
 

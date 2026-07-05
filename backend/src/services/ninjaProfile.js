@@ -1,5 +1,7 @@
 /** Labels et inférence de profil ninja (voie + potentiel). */
 
+import { clanTierLabel, getClanTier } from './clanRecruitment.js';
+
 const COMBAT_STATS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
 
 const ART_LABELS_FR = {
@@ -69,12 +71,20 @@ export function describeNinjaProfile(ninja, language = 'fr') {
   const potFr = POTENTIAL_LABELS_FR;
   const potEn = POTENTIAL_LABELS_EN;
 
+  const clanTier = getClanTier({
+    name: ninja.clan_name,
+    is_noble: ninja.clan_is_noble,
+  });
+
   return {
     primaryArt,
     potential,
+    clanTier,
+    clanTierLabel: clanTierLabel(clanTier, language),
     artLabel: language === 'en' ? labelsEn[primaryArt] : labelsFr[primaryArt],
     potentialLabel: language === 'en' ? potEn[potential] : potFr[potential],
     combatPeak: Math.max(...COMBAT_STATS.map((s) => stats[s])),
+    isNobleBloodline: clanTier === 'noble',
   };
 }
 

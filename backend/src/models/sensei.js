@@ -59,7 +59,7 @@ export async function getSquadPayload(userId) {
 
   const userRows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
   const ninjas = await query(
-    `SELECT n.*, c.name AS clan_name
+    `SELECT n.*, c.name AS clan_name, c.is_noble AS clan_is_noble
      FROM ninjas n
      JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.user_id = ?
