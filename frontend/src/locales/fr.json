@@ -51,6 +51,7 @@
   "nav": {
     "bureau": "Bureau",
     "squad": "Escouade",
+    "league": "Ligue",
     "market": "Marché",
     "inventory": "Inventaire",
     "operation": "Opération"
@@ -105,5 +106,25 @@
   },
   "placeholders": {
     "comingSoon": "Bientôt disponible"
+  },
+  "league": {
+    "kicker": "Pool de frontière",
+    "lead": "Six escouades, dix cycles — montez en Division ou chutez au classement.",
+    "loading": "Chargement…",
+    "division": "Division",
+    "season": "Saison",
+    "cycle": "Journée",
+    "standings": "Classement",
+    "sensei": "Sensei",
+    "played": "J",
+    "points": "Pts",
+    "nextMatch": "Prochain match",
+    "matchday": "Journée",
+    "vsHint": "Votre adversaire : {opponent}",
+    "scoutTitle": "Rapport d'espionnage",
+    "matchScheduled": "À venir",
+    "matchSimulated": "Simulé — chronique à H71",
+    "matchLive": "Opération en cours",
+    "matchDone": "Terminé"
   }
 }

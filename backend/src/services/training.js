@@ -81,7 +81,7 @@ export async function applyTrainingForUser(userId) {
 }
 
 export async function applyTrainingForAllUsers() {
-  const users = await query('SELECT id FROM users');
+  const users = await query('SELECT id FROM users WHERE is_bot = FALSE');
   const allLogs = [];
   for (const user of users) {
     const { logs } = await applyTrainingForUser(user.id);

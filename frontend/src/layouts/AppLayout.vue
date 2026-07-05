@@ -11,6 +11,7 @@ const store = useSquadStore()
 const navItems = [
   { name: 'bureau', path: '/', label: 'nav.bureau' },
   { name: 'squad', path: '/squad', label: 'nav.squad' },
+  { name: 'league', path: '/league', label: 'nav.league' },
   { name: 'market', path: '/market', label: 'nav.market' },
   { name: 'inventory', path: '/inventory', label: 'nav.inventory' },
   { name: 'operation', path: '/operation', label: 'nav.operation' },

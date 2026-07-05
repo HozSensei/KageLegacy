@@ -51,6 +51,7 @@
   "nav": {
     "bureau": "Office",
     "squad": "Squad",
+    "league": "League",
     "market": "Market",
     "inventory": "Inventory",
     "operation": "Operation"
@@ -105,5 +106,25 @@
   },
   "placeholders": {
     "comingSoon": "Coming soon"
+  },
+  "league": {
+    "kicker": "Border pool",
+    "lead": "Six squads, ten cycles — climb the division or fall in the standings.",
+    "loading": "Loading…",
+    "division": "Division",
+    "season": "Season",
+    "cycle": "Matchday",
+    "standings": "Standings",
+    "sensei": "Sensei",
+    "played": "P",
+    "points": "Pts",
+    "nextMatch": "Next match",
+    "matchday": "MD",
+    "vsHint": "Your opponent: {opponent}",
+    "scoutTitle": "Scout report",
+    "matchScheduled": "Upcoming",
+    "matchSimulated": "Simulated — chronicle at H71",
+    "matchLive": "Operation live",
+    "matchDone": "Finished"
   }
 }

@@ -80,7 +80,7 @@ Les spécifications détaillées sont dans le dossier [`/specs`](specs/).
 | 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | 📋 À faire |
 | 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | 📋 À faire |
 | 7 — Vol d'Oiseau | [milestone-7.md](specs/milestone-7.md) | 📋 À faire |
-| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 📋 À faire |
+| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 🟡 En cours |
 
 ---
 

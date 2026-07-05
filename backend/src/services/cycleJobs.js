@@ -1,7 +1,14 @@
 import { query } from '../config/database.js';
+import { query } from '../config/database.js';
 import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gameClock.js';
 import { applyTrainingForAllUsers } from './training.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
+import { generateScoutReportsForAllUsers } from './scouting.js';
+import {
+  applyAllPoolsMatchResults,
+  simulateAllPoolsCurrentCycle,
+} from './matchService.js';
+import { incrementPoolCycle } from './poolService.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -21,26 +28,37 @@ async function markJobRun(cycleStartAt, jobName) {
 export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
   const promotions = await processChuninExamsForAllUsers();
+  const scoutReports = await generateScoutReportsForAllUsers();
   await markJobRun(cycleStartAt, 'h36');
-  console.log(`[H36] Examens Chunin : ${promotions.length} candidat(s) traité(s)`);
-  return { promotions };
+  console.log(
+    `[H36] Examens Chunin : ${promotions.length} candidat(s) · Rapports espionnage : ${scoutReports.length}`
+  );
+  return { promotions, scoutReports };
 }
 
 export async function runH71(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h71')) return { skipped: true };
+  const simulations = await simulateAllPoolsCurrentCycle();
   await markJobRun(cycleStartAt, 'h71');
-  // TODO Milestone 5/6 : simulation combat + génération chronique
-  console.log('[H71] Gel des tactiques — simulation & chronique (à brancher M5/M6)');
-  return { frozen: true };
+  console.log(`[H71] Simulation stub — ${simulations.length} pool(s)`);
+  return { simulations };
 }
 
 export async function runH72(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h72')) return { skipped: true };
+  const matchResults = await applyAllPoolsMatchResults();
+  const poolCycles = [];
+  const pools = await query(`SELECT id FROM pools WHERE status = 'active'`);
+  for (const pool of pools) {
+    poolCycles.push(await incrementPoolCycle(pool.id));
+  }
   const trainingLogs = await applyTrainingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
   await resetCycle();
-  console.log(`[H72] Fin de cycle — entraînement appliqué (${trainingLogs.length} log(s)), nouveau cycle`);
-  return { trainingLogs };
+  console.log(
+    `[H72] Résultats ligue appliqués · entraînement (${trainingLogs.length} log(s)) · nouveau cycle`
+  );
+  return { matchResults, poolCycles, trainingLogs };
 }
 
 export async function processCycleTick() {

@@ -220,6 +220,10 @@
     @apply bg-accent-soft/80;
   }
 
+  .league-table tbody tr.text-accent td {
+    @apply text-accent;
+  }
+
   .ninja-card-face::before {
     content: "";
     position: absolute;
