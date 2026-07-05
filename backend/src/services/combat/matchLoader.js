@@ -39,6 +39,7 @@ export function buildCombatTeam(teamData, sideLabel) {
       character_trait: ninja.character_trait,
       element_affinity: ninja.element_affinity,
       battle_strategy: ninja.battle_strategy || 'Normal',
+      protect_target_ninja_id: ninja.protect_target_ninja_id ?? null,
       grade: ninja.grade,
       weekly_forme: ninja.weekly_forme,
       stats,

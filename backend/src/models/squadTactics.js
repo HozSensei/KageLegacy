@@ -24,12 +24,29 @@ export async function updateBattleStrategies(userId, strategies) {
     throw error;
   }
 
-  for (const { ninjaId, strategy } of strategies) {
-    await query('UPDATE ninjas SET battle_strategy = ? WHERE id = ? AND user_id = ?', [
-      strategy,
-      ninjaId,
-      userId,
-    ]);
+  const activeIds = new Set(owned.map((r) => r.id));
+
+  for (const { ninjaId, strategy, protectTargetNinjaId } of strategies) {
+    if (strategy === 'Protect') {
+      if (!protectTargetNinjaId) {
+        const error = new Error('La consigne Protect exige un allié à couvrir.');
+        error.statusCode = 400;
+        throw error;
+      }
+      if (protectTargetNinjaId === ninjaId || !activeIds.has(protectTargetNinjaId)) {
+        const error = new Error('Cible Protect invalide : choisissez un autre ninja actif.');
+        error.statusCode = 400;
+        throw error;
+      }
+    }
+  }
+
+  for (const { ninjaId, strategy, protectTargetNinjaId } of strategies) {
+    const targetId = strategy === 'Protect' ? protectTargetNinjaId : null;
+    await query(
+      'UPDATE ninjas SET battle_strategy = ?, protect_target_ninja_id = ? WHERE id = ? AND user_id = ?',
+      [strategy, targetId, ninjaId, userId]
+    );
   }
 
   return strategies;

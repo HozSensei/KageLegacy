@@ -62,6 +62,26 @@ export const SENSEI_INTERCEPTION = [
   'Le coup de grâce allait s\'abattre sur {cible_name} ! Dans un nuage de fumée soudain, le Jonin-Sensei apparaît et permute son élève avec une bûche de bois. La réserve de Chakra du Sensei s\'épuise, mais l\'apprenti est sauf !',
 ];
 
+export const ITEM_SMOKE_SAVE = [
+  '{ninja_name} lâche un fumigène — le coup fatal se dissipe dans la brume.',
+];
+
+export const ITEM_RUPTURE_SCROLL = [
+  '{ninja_name} brise l\'illusion d\'un geste sec, parchemin de rupture en main.',
+];
+
+export const ITEM_DECOY = [
+  'Leurre ! L\'assaillant se trompe de cible face à {ninja_name}.',
+];
+
+export const ITEM_HEAL = [
+  '{ninja_name} avale une poignée d\'herbes médicinales et retrouve un second souffle.',
+];
+
+export const ITEM_CHAKRA = [
+  '{ninja_name} croque un cachet de chakra ; l\'énergie revient en vagues.',
+];
+
 export const ALTRUISTE_SACRIFICE = [
   'Alors que {cible_name} vacillait, {sacrificial_name} s\'interpose de son corps et encaisse le coup à sa place, sauvant son camarade au prix d\'une blessure grave.',
 ];

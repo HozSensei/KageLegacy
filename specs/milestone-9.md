@@ -43,11 +43,18 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 1. ~~**Refonte M4 simplifiée**~~ — ✅ migration 011, catalogue utilitaires, hooks match, `POST /inventory/use`
 2. ~~**Polish UI profils**~~ — ✅ cartes ninja (voie, potentiel, lignée) · alertes stagnation Bureau
 3. ~~**Fin M8**~~ — ✅ promotions/relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
-4. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
-5. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
+4. ~~**Polish swap compo**~~ — ✅ boutons 50 % carte, mobile tap, styles validés
+5. ~~**Protect avec cible explicite**~~ — ✅ `protect_target_ninja_id`, UI escouade, moteur soin ciblé
 6. ~~**M7 — Vol d'Oiseau**~~ — ✅ inscription cérémonie, prime H72, relève Genin roturier, notifications Bureau
-7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
-8. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
+7. ~~**Dispensaire**~~ — ✅ Lamentable → Passable, coût par grade, panneau Bureau
+8. ~~**M6 enrichi**~~ — ✅ phrases objets match, debrief objet inutilisé (interception déjà livrée)
+
+**Prochaines priorités :**
+
+9. **Entraînement payant opt-in** — plan par ninja, facturation H72 (salaires → entraînement), déficit souple
+10. **Revue missions idle** — règles, coûts, blocages
+11. **Marché aspirants** — [`recruitment-market.md`](./recruitment-market.md)
+12. **Budget du cycle (Bureau)** — détail dépenses prévues H72
 
 ---
 
@@ -176,7 +183,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 
 ## 📋 Backlog UI / UX (hors moteur)
 
-- [ ] Valider styles swap : boutons 50 % sur carte, rotation icône, mobile (tap-to-swap)
+- [x] Valider styles swap : boutons 50 % sur carte, rotation icône, mobile (tap-to-swap)
 - [ ] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
 - [ ] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
 - [ ] Marché : rappel « expire à H72 » plus visible
@@ -186,16 +193,16 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 
 ## 📋 Backlog gameplay (moteur & API)
 
-- [ ] Protect : cible désignée (`protect_target_ninja_id`)
+- [x] Protect : cible désignée (`protect_target_ninja_id`)
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
 - [ ] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit (voir revue design)
-- [ ] Dispensaire (forme, coût Ryos ?)
+- [x] Dispensaire (forme Lamentable, coût Ryos par grade)
 - [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
-- [ ] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
-- [ ] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)
+- [x] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
+- [x] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)
 
 ---
 

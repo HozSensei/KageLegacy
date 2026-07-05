@@ -90,6 +90,13 @@
       "arrivalBody": "Un aspirant a rejoint le dojo : {name} ({profile}).",
       "dismiss": "Compris"
     },
+    "dispensary": {
+      "title": "Dispensaire",
+      "lead": "Soigne les ninjas en forme Lamentable : Lamentable → Passable avant le prochain match.",
+      "forme": "Forme actuelle",
+      "submit": "Soigner ({cost} Ryos)",
+      "sending": "Soins…"
+    },
     "chuninStagnation": {
       "title": "Chunin au sommet",
       "lead": "Combat ≥ 16 et intelligence ≥ 14 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
@@ -124,6 +131,7 @@
     "tacticalSpeed": "Vitesse tactique",
     "activeCount": "Actifs",
     "benchCount": "Banc",
+    "protectTarget": "Couvrir…",
     "strategies": {
       "Normal": "Normal",
       "Tank": "Tank — Provocation",

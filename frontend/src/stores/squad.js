@@ -12,6 +12,7 @@ export const useSquadStore = defineStore('squad', () => {
   const bench = ref([])
   const gameClock = ref(null)
   const notifications = ref([])
+  const dispensaryCandidates = ref([])
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -20,6 +21,7 @@ export const useSquadStore = defineStore('squad', () => {
     bench.value = data.bench
     gameClock.value = data.gameClock
     notifications.value = data.notifications || []
+    dispensaryCandidates.value = data.dispensaryCandidates || []
   }
 
   async function fetchSquad() {
@@ -59,12 +61,14 @@ export const useSquadStore = defineStore('squad', () => {
     applyPayload(await res.json())
   }
 
-  async function saveStrategies(strategies) {
+  async function saveStrategies(strategyMap, protectTargetMap = {}) {
     error.value = null
     const payload = {
-      strategies: Object.entries(strategies).map(([ninjaId, strategy]) => ({
+      strategies: Object.entries(strategyMap).map(([ninjaId, strategy]) => ({
         ninjaId: Number(ninjaId),
         strategy,
+        protectTargetNinjaId:
+          strategy === 'Protect' ? Number(protectTargetMap[ninjaId]) || null : null,
       })),
     }
     const res = await fetch(`${API_BASE}/api/squad/strategies`, {
@@ -135,6 +139,20 @@ export const useSquadStore = defineStore('squad', () => {
     applyPayload(await res.json())
   }
 
+  async function treatAtDispensary(ninjaId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/dispensary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
 
   function setLanguage(lang) {
@@ -150,6 +168,7 @@ export const useSquadStore = defineStore('squad', () => {
     bench,
     gameClock,
     notifications,
+    dispensaryCandidates,
     fetchSquad,
     saveComposition,
     saveStrategies,
@@ -157,6 +176,7 @@ export const useSquadStore = defineStore('squad', () => {
     requestChuninExam,
     requestBirdFlight,
     dismissNotification,
+    treatAtDispensary,
     tacticsLocked,
     setLanguage,
   }

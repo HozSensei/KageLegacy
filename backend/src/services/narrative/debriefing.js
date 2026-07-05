@@ -60,6 +60,26 @@ export function buildDebriefing(match, userId, combatLog) {
     });
   }
 
+  const summary = combatLog.equipmentSummary || [];
+  const slugLabels = {
+    'fumigene': 'fumigène',
+    'parchemin-rupture': 'parchemin de rupture',
+    'leurre': 'leurre',
+    'herbes-medicinales': 'herbes médicinales',
+    'cachet-chakra': 'cachet de chakra',
+  };
+
+  for (const entry of summary) {
+    if (entry.side !== side) continue;
+    const unused = entry.equippedSlugs.filter((s) => !entry.consumedSlugs.includes(s));
+    if (!unused.length) continue;
+    const labels = unused.map((s) => slugLabels[s] || s).join(', ');
+    alerts.push({
+      code: 'item_unused',
+      text: `🚩 ${entry.ninjaName} avait équipé ${labels} mais ne l'a jamais déclenché — vérifiez la consigne ou le matchup.`,
+    });
+  }
+
   return alerts.slice(0, 3);
 }
 

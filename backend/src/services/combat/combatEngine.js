@@ -16,6 +16,7 @@ import {
 } from './compositionMeta.js';
 import {
   collectConsumedItemIds,
+  collectEquipmentSummary,
   getCycleSpeedPenalty,
   getGenjutsuDefenseBonus,
   tryConsumables,
@@ -73,6 +74,18 @@ function resolveInitiative(homeTeam, awayTeam, tour) {
   };
 }
 
+function findHealTarget(attacker, allies) {
+  const designated = attacker.protect_target_ninja_id
+    ? allies.find((a) => a.id === attacker.protect_target_ninja_id && !a.ko)
+    : null;
+  if (designated && designated.pv < designated.maxPv * 0.5) {
+    return designated;
+  }
+  return allies
+    .filter((a) => a.id !== attacker.id && !a.ko)
+    .sort((a, b) => a.pv / a.maxPv - b.pv / b.maxPv)[0];
+}
+
 function pickAttacker(team) {
   const pool = activeFighters(team).filter((f) => {
     if (f.battle_strategy === 'Tank') return false;
@@ -89,12 +102,12 @@ function pickAttacker(team) {
     )[0];
   }
 
-  const healer = candidates.find(
-    (f) =>
-      f.battle_strategy === 'Protect' &&
-      f.stats.medecine >= 6 &&
-      activeFighters(team).some((ally) => ally.id !== f.id && ally.pv < ally.maxPv * 0.5)
-  );
+  const healer = candidates.find((f) => {
+    if (f.battle_strategy !== 'Protect' || f.stats.medecine < 6) return false;
+    const allies = activeFighters(team);
+    const target = findHealTarget(f, allies);
+    return target && target.pv < target.maxPv * 0.5;
+  });
   if (healer) {
     healer.healIntent = true;
     return healer;
@@ -185,10 +198,10 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
   const elementMult = elementDamageMultiplier(attacker.element_affinity, defender.element_affinity);
 
   if (technique.type === 'medecine') {
-    const ally = allies
-      .filter((a) => a.id !== attacker.id && !a.ko)
-      .sort((a, b) => a.pv / a.maxPv - b.pv / b.maxPv)[0];
-    if (!ally) return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: 0, status: null };
+    const ally = findHealTarget(attacker, allies.filter((a) => !a.ko));
+    if (!ally || ally.id === attacker.id) {
+      return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: 0, status: null };
+    }
     const heal = Math.max(4, Math.floor(attacker.stats.medecine * 1.5 * (getCompositionProfile(atkComp).healBonus || 1)));
     ally.pv = Math.min(ally.maxPv, ally.pv + heal);
     return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: heal, targetName: ally.name, status: null };
@@ -427,6 +440,24 @@ export function simulateCombat(homeTeam, awayTeam) {
     ...collectConsumedItemIds([...homeTeam.fighters, ...awayTeam.fighters]),
   ];
 
+  const equipmentSummary = collectEquipmentSummary([
+    ...homeTeam.fighters,
+    ...awayTeam.fighters,
+  ]);
+
+  for (const fighter of [...homeTeam.fighters, ...awayTeam.fighters]) {
+    for (const event of fighter.equipmentUsage?.eventLog || []) {
+      if (event.type === 'item_smoke_save') continue;
+      logs.push({
+        tour: endingTour,
+        type: 'item_event',
+        item_event: event.type,
+        ninja_name: fighter.name,
+        equipe_attaque: fighter.side,
+      });
+    }
+  }
+
   return {
     logs,
     endingTour,
@@ -436,6 +467,7 @@ export function simulateCombat(homeTeam, awayTeam) {
     awayTeam,
     koNinjaIds,
     consumedItemIds: [...new Set(allConsumed)],
+    equipmentSummary,
     homeScorePct: Math.round(teamRemainingScore(homeTeam) * 100),
     awayScorePct: Math.round(teamRemainingScore(awayTeam) * 100),
     possession: {

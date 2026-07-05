@@ -6,6 +6,11 @@ import {
   GENJUTSU_FAIL,
   GENJUTSU_FAINEANT,
   GENJUTSU_SUCCESS,
+  ITEM_CHAKRA,
+  ITEM_DECOY,
+  ITEM_HEAL,
+  ITEM_RUPTURE_SCROLL,
+  ITEM_SMOKE_SAVE,
   MEDECINE_TEMPLATES,
   NINJUTSU_TEMPLATES,
   pick,
@@ -39,6 +44,22 @@ function logToSentence(log) {
 
   if (log.sensei_interception) {
     return fillTemplate(pick(SENSEI_INTERCEPTION), vars);
+  }
+
+  if (log.item_smoke_save) {
+    return fillTemplate(pick(ITEM_SMOKE_SAVE), { ninja_name: log.cible_name });
+  }
+
+  if (log.type === 'item_event') {
+    const itemVars = { ninja_name: log.ninja_name };
+    const map = {
+      item_rupture_scroll: ITEM_RUPTURE_SCROLL,
+      item_decoy: ITEM_DECOY,
+      item_heal: ITEM_HEAL,
+      item_chakra: ITEM_CHAKRA,
+    };
+    const templates = map[log.item_event];
+    if (templates) return fillTemplate(pick(templates), itemVars);
   }
 
   if (log.altruiste_sacrifice && log.sacrificial_name) {
