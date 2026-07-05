@@ -21,6 +21,18 @@ export const updateTrainingFocusSchema = z.object({
   trainingFocus: z.enum(FOCUS_VALUES),
 });
 
+export const updateTrainingPlansSchema = z.object({
+  plans: z
+    .array(
+      z.object({
+        ninjaId: z.number().int().positive(),
+        trainingFocus: z.enum(FOCUS_VALUES).nullable(),
+      })
+    )
+    .min(1)
+    .max(20),
+});
+
 export const setHourSchema = z.object({
   hour: z.number().int().min(0).max(72),
 });

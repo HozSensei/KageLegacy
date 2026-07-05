@@ -20,6 +20,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | **Pas de compo dominante** | Cercle Assaut → Mur → Flux → Assaut (~60 % win par matchup). Équilibre (mixte) ≈ neutre. Voir [`composition-triangle.md`](./composition-triangle.md). |
 | **Chronique découplée** | M6 lit les `combat_log` JSON ; le traducteur narratif s'enrichit sans toucher `combatEngine.js`. |
 | **La variance doit raconter** | Upsets mémorables oui ; frustration RNG pure non. |
+| **Chronique neutre** | Un texte par match, 3ᵉ personne, « équipe de {Sensei} » — pas de « votre » dans M6. Voir [`milestone-6.md`](./milestone-6.md) § conventions. |
 
 ---
 
@@ -51,10 +52,11 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 **Prochaines priorités :**
 
-9. **Entraînement payant opt-in** — plan par ninja, facturation H72 (salaires → entraînement), déficit souple
+9. ~~**Entraînement payant opt-in**~~ — ✅ plan par ninja, facturation H72, déficit souple
 10. **Revue missions idle** — règles, coûts, blocages
 11. **Marché aspirants** — [`recruitment-market.md`](./recruitment-market.md)
-12. **Budget du cycle (Bureau)** — détail dépenses prévues H72
+12. ~~**Budget du cycle (Bureau)**~~ — ✅ panneau projection H72
+13. **Environnement de match** — météo / topologie, scout flou H36 (spec sur branche design)
 
 ---
 
@@ -130,7 +132,7 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
 | **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | Missions résolues à H72 ; design global à revoir |
-| **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | Focus **dojo** unique (`sensei.training_focus`) ; entraînement **gratuit** ; `applyTrainingForUser` touche **tous** les ninjas sans filtre |
+| **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | ✅ `ninjas.training_focus`, `trainingBilling.js`, panneaux Bureau |
 
 ### Entraînement payant — principes validés (session design)
 
@@ -187,7 +189,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [ ] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
 - [ ] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
 - [ ] Marché : rappel « expire à H72 » plus visible
-- [ ] **Budget du cycle (Bureau)** — détail dépenses prévues H72 : entraînement par ninja, salaires, examens, solde projeté
+- [x] **Budget du cycle (Bureau)** — détail dépenses prévues H72 : entraînement par ninja, salaires, solde projeté
 
 ---
 
@@ -197,7 +199,8 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
-- [ ] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit (voir revue design)
+- [x] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit
+- [x] **Budget du cycle (Bureau)** — projection salaires + entraînement + intérêts
 - [x] Dispensaire (forme Lamentable, coût Ryos par grade)
 - [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)

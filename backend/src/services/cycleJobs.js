@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
 import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gameClock.js';
-import { applyTrainingForAllUsers } from './training.js';
+import { processTrainingBillingForAllUsers } from './trainingBilling.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
 import { generateScoutReportsForAllUsers } from './scouting.js';
 import {
@@ -62,12 +62,12 @@ export async function runH72(cycleStartAt) {
   const seasonTransitions = await processAllCompletedSeasons(poolCycles);
   const birdFlights = await processBirdFlightsForAllUsers();
   const stagnation = await applyStagnationForAllUsers();
-  const trainingLogs = await applyTrainingForAllUsers();
+  const training = await processTrainingBillingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
   const newClock = await resetCycle();
   const market = await ensureMarketForAllUsers(newClock.cycleStartAt);
   console.log(
-    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement · marché (${market.length} joueur(s))`
+    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · marché (${market.length} joueur(s))`
   );
   return {
     missionResults,
@@ -77,7 +77,7 @@ export async function runH72(cycleStartAt) {
     seasonTransitions,
     birdFlights,
     stagnation,
-    trainingLogs,
+    training,
     market,
   };
 }

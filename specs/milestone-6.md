@@ -40,6 +40,15 @@ Les **résultats mécaniques** (points ligue, forme, salaires, Vol d'Oiseau) ne 
 
 Le rapport ne doit **pas** afficher d'horodatage brut (`[H71:08]`, numéro de tour, valeurs PV/Chakra/RNG). Il est généré sous forme de **texte littéraire continu**, découpé en segments. Le Front-End (Vue 3, vue `/operation`) débloque l'affichage de ces segments au fil de l'heure de combat (**H71:00 → H72:00**). L'horloge serveur sert uniquement de **verrou de lecture** ; le joueur lit un chapitre de manga, pas des logs techniques.
 
+### Conventions rédactionnelles (validées PO)
+
+| Règle | Détail |
+| :--- | :--- |
+| **Un seul texte par match** | La chronique est générée **une fois** à H71 et stockée dans `match_narrative_segments` — les deux joueurs lisent le **même** récit. |
+| **Troisième personne neutre** | Pas de « votre », « vos », « vous » dans la chronique. Ex. : *« Kakashi intervient au bon moment… »* et non *« votre timing était parfait »*. |
+| **Libellés d'équipe** | Pas de noms de dojo fictifs (« Dojo des Corbeaux »). Utiliser **« l'équipe de {nom du Sensei} »** (ex. *l'équipe de Kakashi*). |
+| **Débriefing séparé** | Le ton analytique « conseil du Sensei » à H72 reste **personnalisé par joueur** (possession, stats) — ce n'est pas la chronique romancée. |
+
 ### Les 4 blocs narratifs
 
 | Bloc | Fenêtre de déverrouillage (interne) | Contenu |
@@ -57,13 +66,13 @@ Si le joueur se connecte à **H71:45** (le match n'est pas encore terminé narra
 >
 > L'Opération se déroule cette semaine dans les gorges brumeuses de Shi no Kuni. Alors que le vent porte l'odeur de la pluie sur le terrain accidenté, personne ne bouge encore. Dans ce silence lourd, Rei Uchiwa ajuste son bandeau avec un sourire arrogant tandis qu'à ses côtés, le jeune Haru se place à l'avant, déterminé à protéger le groupe face au Dojo des Corbeaux.
 >
-> Le combat s'engage soudainement dans le fracas des armes. Profitant de la brume, Rei prend l'initiative et fond sur le flanc adverse avec une lame de chakra, coupant net l'élan de leur premier Genin. Les répliques sont immédiates. Un éclair fend le ciel alors que les techniques élémentaires se croisent, et l'escouade adverse tente de saturer le terrain sous un déluge de feu. Heureusement, votre intervention au timing parfait via une permutation permet de sauver Haru d'une brûlure critique, au prix d'une bonne partie de votre réserve de Chakra.
+> Le combat s'engage soudainement dans le fracas des armes. Profitant de la brume, Rei prend l'initiative et fond sur le flanc adverse avec une lame de chakra, coupant net l'élan de leur premier Genin. Les répliques sont immédiates. Un éclair fend le ciel alors que les techniques élémentaires se croisent, et l'équipe adverse tente de saturer le terrain sous un déluge de feu. Kakashi intervient au bon moment via une permutation et sauve Haru d'une brûlure critique, au prix d'une bonne partie de sa réserve de Chakra.
 >
 > *(Indicateur visuel discret : « Le combat fait rage… la suite des rapports arrive dans quelques minutes »)*
 
 Puis, à partir de **`ending_reveal_at`** (ex. H71:48), le paragraphe de conclusion se débloque et s'ajoute fluidement en dessous :
 
-> La pression constante de votre escouade finit par payer. Épuisés et acculés au fond de la gorge, les ninjas du Dojo des Corbeaux finissent par plier et sonnent une retraite précipitée sous la pluie battante. Vos hommes pansent leurs blessures sur le chemin du retour ; si Rei marche en tête, fier de sa performance, Haru doit être soutenu par ses camarades et aura besoin d'un passage immédiat au Dispensaire pour le prochain cycle.
+> La pression constante de l'équipe de Kakashi finit par payer. Épuisés et acculés au fond de la gorge, les ninjas de l'équipe adverse finissent par plier et sonnent une retraite précipitée sous la pluie battante. Le retour au camp sera difficile ; Rei marche en tête, Haru doit être soutenu par ses camarades.
 
 ---
 

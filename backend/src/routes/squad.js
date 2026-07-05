@@ -6,6 +6,7 @@ import {
   requestChuninExam,
   updateBattleStrategies,
   updateTrainingFocus,
+  updateTrainingPlans,
 } from '../models/squadTactics.js';
 import {
   dispensaryTreatSchema,
@@ -14,6 +15,7 @@ import {
   requestChuninExamSchema,
   updateStrategiesSchema,
   updateTrainingFocusSchema,
+  updateTrainingPlansSchema,
 } from '../validators/squadTactics.js';
 import { dismissNotification } from '../services/birdFlightService.js';
 import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
@@ -134,6 +136,22 @@ router.post('/dispensary', async (req, res, next) => {
 
     const parsed = dispensaryTreatSchema.parse(req.body);
     await treatNinjaAtDispensary(user.id, parsed.ninjaId);
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
+    res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/training-plans', async (req, res, next) => {
+  try {
+    const user = await requireDemoUser(res);
+    if (!user) return;
+
+    const parsed = updateTrainingPlansSchema.parse(req.body);
+    await updateTrainingPlans(user.id, parsed.plans);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();
