@@ -13,8 +13,9 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | Principe | Implication |
 | :--- | :--- |
 | **Équilibrer avant d'empiler** | Le moteur M5 a été calibré avant M4 (objets). Ne pas ajouter de bonus plats par-dessus. |
-| **Objets = leviers tactiques** | Bonus **situationnels** (consigne, technique, élément), pas de +X % partout. |
-| **Limites d'utilisation** | Armes/armures : 2–3 activations / match. Consommables : **1 usage / match**, puis détruits. |
+| **Objets = leviers tactiques** | Bonus **situationnels** (consigne, tempo, leurre), pas de +X % partout. |
+| **Objets utilitaires, pas offensifs** | Fumigènes, parchemins, tempo, initiative — **pas** de lames / +Ninjutsu permanents. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
+| **Limites d'utilisation** | Outils (slot gear) : 2–3 activations / match. Consommables : **1 usage / match**, puis détruits. |
 | **1–2 dimensions par objet** | Pas de stack PV + défense + attaque sur le même item. |
 | **3–4 leviers actifs / cycle** | Entraînement, tactique, 1 achat ciblé, compo — au-delà, fatigue cognitive. |
 | **Chronique découplée** | M6 lit les `combat_log` JSON ; le traducteur narratif s'enrichit sans toucher `combatEngine.js`. |
@@ -33,13 +34,14 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | M6 — Chronique `/operation` | 🟡 | Pipeline narratif ; **à réviser** quand objets enrichis |
 | M8 — Pools, classement, calendrier | 🟡 | Bots, ligue UI ; **promotions/relégations manquantes** |
 | Swap actifs ↔ banc | 🟡 | API + UI survol ; **styles à valider** |
-| M4 — Marché, missions, équipement | 🟡 | PR en cours ; objets situationnels + limites d'usage |
+| M4 — Marché, missions, équipement | 🟡 | PR en cours ; **pivot catalogue utilitaire** à implémenter (spec catalogue prête) |
 
 ---
 
 ## 🎯 Priorités suggérées (ordre actuel)
 
-1. **Fin M8** — Promotions / relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
+1. **Refonte catalogue M4 utilitaire** — Valider [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md), migration 009, hooks moteur (`speed_window`, leurre)
+2. **Fin M8** — Promotions / relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
 2. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
 3. **M6 enrichi** — Mention des objets dans le dictionnaire narratif + débriefing (faille élémentaire → marché)
 4. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
@@ -65,13 +67,15 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) :
 | K.O. | ~**0 %** | Sur 12 tours ; surveiller si objets augmentent |
 | Tours moyens | **12** | Matchs souvent aux points |
 
-### Impact des objets (après M4 situationnel)
+### Impact des objets (cible après pivot utilitaire)
 
 | Scénario | Impact win rate | Interprétation |
 | :--- | :--- | :--- |
-| Objets sans consigne adaptée | **≈ 0 à +2 pts** | ✅ Comportement voulu |
-| Objets + consignes cohérentes | **+modeste** | Le gain vient du **couple tactique + achat** |
-| Mauvais achat (ex. Lame sur Normal) | **≈ 0** | Le manager doit préparer son cycle |
+| Objet sans plan (ex. fumée en Tank) | **≈ 0 à +2 pts** | ✅ Comportement voulu |
+| Objet + consigne cohérente | **+4 à +8 pts** | Ouverture / leurre / tempo préparés |
+| Double utilitaire optimisé | **≤ +12 pts** plafond | Ne doit pas écraser la tactique pure |
+
+*Ancien catalogue armes/armures : sims ~0–2 pts sans consigne — conservé comme référence jusqu’à migration 009.*
 
 ### Tactiques vs objets
 
@@ -144,7 +148,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 
 ```mermaid
 flowchart TD
-  M5[M5 Combat équilibré] --> M4[M4 Objets situationnels]
+  M5[M5 Combat équilibré] --> M4[M4 Objets utilitaires]
   M5 --> M6[M6 Chronique]
   M4 --> M6
   M4 --> M5

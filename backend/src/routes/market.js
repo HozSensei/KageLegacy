@@ -69,7 +69,13 @@ router.post('/buy', async (req, res, next) => {
     const clock = await getGameClock();
     const offers = await getMarketOffers(user.id, clock.cycleStartAt);
 
-    res.json({ purchase, offers, gameClock: clock });
+    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
+    res.json({
+      purchase,
+      offers: mapOffers(offers),
+      ryos: senseiRows[0]?.ryos ?? 0,
+      gameClock: clock,
+    });
   } catch (error) {
     next(error);
   }
