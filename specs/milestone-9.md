@@ -41,13 +41,13 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 ## 🎯 Priorités suggérées (ordre actuel)
 
 1. ~~**Refonte M4 simplifiée**~~ — ✅ migration 011, catalogue utilitaires, hooks match, `POST /inventory/use`
-2. ~~**Fin M8**~~ — ✅ promotions/relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId` (PR en cours)
-3. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
-4. **M6 enrichi** — Mention des objets dans le dictionnaire narratif + débriefing (faille élémentaire → marché)
+2. ~~**Polish UI profils**~~ — ✅ cartes ninja (voie, potentiel, lignée) · alertes stagnation Bureau
+3. ~~**Fin M8**~~ — ✅ promotions/relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
+4. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
 5. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
-6. **Script `combat:benchmark`** — ✅ `npm run combat:benchmark` (Monte Carlo + multi-cycles)
-7. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
-8. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
+6. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
+7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
+8. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
 
 ---
 
@@ -157,7 +157,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
 - [ ] Dispensaire (forme, coût Ryos ?)
-- [ ] UI alerte stagnation Chunin (combat ≥ 17)
+- [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
 - [ ] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
 - [ ] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)

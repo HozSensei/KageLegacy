@@ -13,6 +13,11 @@
     "forme": "Form",
     "moral": "Morale",
     "joninProgress": "Jonin progress",
+    "profile": {
+      "voie": "Path",
+      "potentiel": "Potential",
+      "lignee": "Bloodline"
+    },
     "stats": {
       "taijutsu": "Taijutsu",
       "ninjutsu": "Ninjutsu",
@@ -64,6 +69,18 @@
     "operationLive": "Operation in progress",
     "trainingFocus": "Training focus",
     "trainingHint": "Carried over each cycle until you change it.",
+    "stagnation": {
+      "title": "Stagnation risk",
+      "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",
+      "geninExam": "ready for Chunin exam — register before H36",
+      "chuninJonin": "Chunin peak reached — prepare the Vol d'Oiseau (coming soon)"
+    },
+    "chuninStagnation": {
+      "title": "Chunin at the peak",
+      "lead": "Combat ≥ 17: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
+      "warning": "Form and morale will drop at H72 while they remain Chunin.",
+      "combatPeak": "Combat peak: {value}/20"
+    },
     "chuninExam": {
       "title": "Chunin exams",
       "lead": "Register before H36 · combat ≥ 10 and IQ ≥ 8 · results at mid-cycle.",

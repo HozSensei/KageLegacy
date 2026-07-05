@@ -2,6 +2,7 @@
 import { computed, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
+import NinjaProfileBadges from './NinjaProfileBadges.vue'
 
 const props = defineProps({
   ninja: { type: Object, required: true },
@@ -19,7 +20,7 @@ const emit = defineEmits(['select', 'flip'])
 const { t } = useI18n()
 const flipped = ref(false)
 const hovered = ref(false)
-const { overall, elementTone, joninProgress, statKeys } = useNinjaDisplay(toRef(props, 'ninja'))
+const { overall, elementTone, joninProgress, statKeys, isNobleBloodline } = useNinjaDisplay(toRef(props, 'ninja'))
 
 const TILT = 16
 
@@ -74,7 +75,7 @@ function gradeColor(grade) {
 <template>
   <div
     class="flip-scene shrink-0 cursor-pointer"
-    :class="[sizeClass, { 'flip-scene--chunin': isChunin }]"
+    :class="[sizeClass, { 'flip-scene--chunin': isChunin, 'flip-scene--noble': isNobleBloodline }]"
     @mouseenter="hovered = true"
     @mouseleave="hovered = false"
     @click="toggleFlip"
@@ -105,6 +106,7 @@ function gradeColor(grade) {
               {{ firstName }}
             </p>
             <p class="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
+            <NinjaProfileBadges class="mt-2" :ninja="ninja" compact />
             <p class="mt-2 text-[10px] uppercase tracking-[0.12em]" :class="elementTone">{{ ninja.element_affinity }}</p>
             <p v-if="slotLabel" class="mt-1 text-[9px] text-ink-faint/80">{{ slotLabel }}</p>
           </div>
@@ -125,7 +127,9 @@ function gradeColor(grade) {
       <div class="flip-face flip-back ninja-card-face relative p-3 sm:p-4" :class="faceGradeClass">
         <div class="relative z-10 flex h-full flex-col text-[10px]">
           <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
-          <div class="trait-tooltip mt-2">
+          <NinjaProfileBadges class="mt-2" :ninja="ninja" />
+
+          <div class="trait-tooltip mt-3">
             <p class="italic leading-snug text-ink-muted">
               {{ t(`traits.${ninja.character_trait}.label`) }}
             </p>
