@@ -11,23 +11,43 @@ const league = ref(null)
 const gameClock = ref(null)
 
 const showScout = computed(() => (gameClock.value?.hour ?? 0) >= 36)
+const invite = ref(null)
+const inviteCopied = ref(false)
 
 onMounted(async () => {
   try {
-    const res = await fetch(`${API_BASE}/api/league`)
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
+    const [leagueRes, inviteRes] = await Promise.all([
+      fetch(`${API_BASE}/api/league`),
+      fetch(`${API_BASE}/api/league/invite`).catch(() => null),
+    ])
+    if (!leagueRes.ok) {
+      const body = await leagueRes.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${leagueRes.status}`)
     }
-    const data = await res.json()
+    const data = await leagueRes.json()
     league.value = data
     gameClock.value = data.gameClock
+
+    if (inviteRes?.ok) {
+      invite.value = await inviteRes.json()
+    }
   } catch (e) {
     error.value = e.message
   } finally {
     loading.value = false
   }
 })
+
+async function copyInvite() {
+  if (!invite.value?.inviteUrl) return
+  try {
+    await navigator.clipboard.writeText(invite.value.inviteUrl)
+    inviteCopied.value = true
+    setTimeout(() => { inviteCopied.value = false }, 2000)
+  } catch {
+    inviteCopied.value = false
+  }
+}
 
 function matchStatusLabel(status) {
   const map = {
@@ -99,6 +119,15 @@ function matchStatusLabel(status) {
         </section>
 
         <aside class="mt-12 lg:col-span-5 lg:mt-0">
+          <section v-if="invite" class="mb-10">
+            <p class="section-label">{{ t('league.inviteTitle') }}</p>
+            <p class="mt-2 text-xs text-ink-faint">{{ t('league.inviteLead') }}</p>
+            <p class="mt-3 break-all font-mono text-[11px] text-ink-muted">{{ invite.inviteUrl }}</p>
+            <button type="button" class="btn-ghost mt-3 text-[10px]" @click="copyInvite">
+              {{ inviteCopied ? t('league.inviteCopied') : t('league.inviteCopy') }}
+            </button>
+          </section>
+
           <section v-if="league.nextMatch">
             <p class="section-label">{{ t('league.nextMatch') }}</p>
             <div class="mt-4 border border-line p-5">

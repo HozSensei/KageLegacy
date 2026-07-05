@@ -32,7 +32,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | M3 — Horloge 72h, jobs H36/H71/H72 | 🟡 | Scheduler 60s, outils `clock:advance` |
 | M5 — Moteur combat 12 tours | 🟡 | Initiative probabiliste, lissage duels |
 | M6 — Chronique `/operation` | 🟡 | Pipeline narratif ; **à réviser** quand objets enrichis |
-| M8 — Pools, classement, calendrier | 🟡 | Bots, ligue UI ; **promotions/relégations manquantes** |
+| M8 — Pools, classement, calendrier | 🟡 | Bots, ligue UI, fin de saison cycle 10, `join_or_create_pool`, invite `invitePoolId` |
 | Swap actifs ↔ banc | 🟡 | API + UI survol ; **styles à valider** |
 | M4 — Marché, missions, équipement | 🟡 | PR en cours ; pivot utilitaire ; **progression grades** (plafonds + stagnation) |
 
@@ -42,10 +42,12 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 1. ~~**Refonte M4 simplifiée**~~ — ✅ migration 011, catalogue utilitaires, hooks match, `POST /inventory/use`
 2. ~~**Polish UI profils**~~ — ✅ cartes ninja (voie, potentiel, lignée) · alertes stagnation Bureau
-3. **Fin M8** — Promotions / relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
-4. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos
-5. **Dispensaire** — Forme `Lamentable`, sink Ryos entre cycles
-6. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
+3. ~~**Fin M8**~~ — ✅ promotions/relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
+4. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
+5. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
+6. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
+7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
+8. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
 
 ---
 
@@ -114,6 +116,17 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 
 ---
 
+## 🔍 Revue design à planifier (décision PO requise)
+
+Points soulevés en session — **ne pas implémenter sans arbitrage** :
+
+| Sujet | Question ouverte | État actuel |
+| :--- | :--- | :--- |
+| **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | Missions résolues à H72 ; design global à revoir |
+| **Focus d'entraînement** | Le focus Sensei s'applique-t-il à **tous** les ninjas du roster, ou seulement à l'escouade active / hors mission / hors opération ? | `applyTrainingForUser` entraîne **tous** les `ninjas` du `user_id` sans filtre mission/opération |
+
+---
+
 ## 💤 Mis en attente (volontairement)
 
 Idées discutées mais **reportées** pour ne pas diluer le gameplay :
@@ -140,11 +153,11 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 ## 📋 Backlog gameplay (moteur & API)
 
 - [ ] Protect : cible désignée (`protect_target_ninja_id`)
-- [ ] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
-- [ ] M8 : `join_or_create_pool` + inscription par invitation
+- [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
+- [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
 - [ ] Dispensaire (forme, coût Ryos ?)
-- [ ] UI alerte stagnation Chunin (combat ≥ 17)
+- [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
 - [ ] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
 - [ ] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)

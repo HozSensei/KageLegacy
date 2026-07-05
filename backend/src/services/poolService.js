@@ -32,11 +32,14 @@ async function insertSchedule(poolId, memberIds) {
   }
 }
 
-async function createPoolWithBots(humanUserId) {
+async function createPoolWithBots(
+  humanUserId,
+  { divisionLevel = LOWEST_DIVISION, seasonNumber = 1 } = {}
+) {
   const poolResult = await query(
     `INSERT INTO pools (division_level, season_number, current_cycle, status)
-     VALUES (?, 1, 1, 'active')`,
-    [LOWEST_DIVISION]
+     VALUES (?, ?, 1, 'active')`,
+    [divisionLevel, seasonNumber]
   );
   const poolId = poolResult.insertId;
 
@@ -64,8 +67,14 @@ async function replaceBotInPool(poolId, botUserId, humanUserId) {
     poolId,
     botUserId,
   ]);
-  await query('UPDATE matches SET home_user_id = ? WHERE home_user_id = ?', [humanUserId, botUserId]);
-  await query('UPDATE matches SET away_user_id = ? WHERE away_user_id = ?', [humanUserId, botUserId]);
+  await query(
+    `UPDATE matches SET home_user_id = ? WHERE home_user_id = ? AND status = 'scheduled'`,
+    [humanUserId, botUserId]
+  );
+  await query(
+    `UPDATE matches SET away_user_id = ? WHERE away_user_id = ? AND status = 'scheduled'`,
+    [humanUserId, botUserId]
+  );
   await query('DELETE FROM ninjas WHERE user_id = ?', [botUserId]);
   await query('DELETE FROM sensei WHERE user_id = ?', [botUserId]);
   await query('DELETE FROM users WHERE id = ? AND is_bot = TRUE', [botUserId]);
@@ -87,6 +96,56 @@ async function findPoolWithBotSlot(divisionLevel = LOWEST_DIVISION) {
   return rows[0] || null;
 }
 
+async function findBotInPool(poolId) {
+  const rows = await query(
+    `SELECT u.id AS bot_user_id
+     FROM pool_members pm
+     JOIN users u ON u.id = pm.user_id
+     WHERE pm.pool_id = ? AND u.is_bot = TRUE
+     LIMIT 1`,
+    [poolId]
+  );
+  return rows[0] || null;
+}
+
+export async function removeMemberFromPool(poolId, userId) {
+  await query('DELETE FROM pool_members WHERE pool_id = ? AND user_id = ?', [poolId, userId]);
+}
+
+export async function deleteBotsFromPool(poolId) {
+  const bots = await query(
+    `SELECT u.id
+     FROM pool_members pm
+     JOIN users u ON u.id = pm.user_id
+     WHERE pm.pool_id = ? AND u.is_bot = TRUE`,
+    [poolId]
+  );
+
+  for (const bot of bots) {
+    await query('DELETE FROM pool_members WHERE pool_id = ? AND user_id = ?', [poolId, bot.id]);
+    await query('DELETE FROM pool_standings WHERE pool_id = ? AND user_id = ?', [poolId, bot.id]);
+    await query('DELETE FROM ninjas WHERE user_id = ?', [bot.id]);
+    await query('DELETE FROM sensei WHERE user_id = ?', [bot.id]);
+    await query('DELETE FROM users WHERE id = ?', [bot.id]);
+  }
+
+  return bots.length;
+}
+
+/** Place un joueur dans une division (remplace un bot ou crée une pool). */
+export async function assignUserToDivision(userId, divisionLevel, { seasonNumber = 1 } = {}) {
+  const existing = await findUserPool(userId);
+  if (existing) return existing;
+
+  const slot = await findPoolWithBotSlot(divisionLevel);
+  if (slot) {
+    await replaceBotInPool(slot.pool_id, slot.bot_user_id, userId);
+    return findUserPool(userId);
+  }
+
+  return createPoolWithBots(userId, { divisionLevel, seasonNumber });
+}
+
 /** Algorithme join_or_create_pool (M8) */
 export async function joinOrCreatePool(humanUserId) {
   const existing = await findUserPool(humanUserId);
@@ -99,6 +158,41 @@ export async function joinOrCreatePool(humanUserId) {
   }
 
   return createPoolWithBots(humanUserId);
+}
+
+/**
+ * Inscription via lien d'invitation (?invitePoolId=).
+ * Si la pool est pleine, bascule sur join_or_create_pool.
+ */
+export async function joinPoolByInvite(humanUserId, invitePoolId) {
+  const existing = await findUserPool(humanUserId);
+  if (existing) {
+    return { pool: existing, fallback: false, reason: 'already_in_pool' };
+  }
+
+  const poolId = Number(invitePoolId);
+  if (!poolId) {
+    const pool = await joinOrCreatePool(humanUserId);
+    return { pool, fallback: true, reason: 'invalid_invite' };
+  }
+
+  const poolRows = await query('SELECT * FROM pools WHERE id = ? AND status = ?', [
+    poolId,
+    'active',
+  ]);
+  if (!poolRows[0]) {
+    const pool = await joinOrCreatePool(humanUserId);
+    return { pool, fallback: true, reason: 'pool_not_found' };
+  }
+
+  const slot = await findBotInPool(poolId);
+  if (slot) {
+    await replaceBotInPool(poolId, slot.bot_user_id, humanUserId);
+    return { pool: await findUserPool(humanUserId), fallback: false, reason: 'invited' };
+  }
+
+  const pool = await joinOrCreatePool(humanUserId);
+  return { pool, fallback: true, reason: 'pool_full' };
 }
 
 export async function getPoolMemberIds(poolId) {
@@ -122,10 +216,10 @@ export async function incrementPoolCycle(poolId) {
       SEASON_CYCLES,
       poolId,
     ]);
-    return { seasonEnded: true, cycle };
+    return { poolId, seasonEnded: true, cycle };
   }
   await query('UPDATE pools SET current_cycle = current_cycle + 1 WHERE id = ?', [poolId]);
-  return { seasonEnded: false, cycle: cycle + 1 };
+  return { poolId, seasonEnded: false, cycle: cycle + 1 };
 }
 
 export { POOL_SIZE, SEASON_CYCLES, LOWEST_DIVISION };
