@@ -163,15 +163,17 @@
     "situational": "Situationnel",
     "usesPerMatch": "{count} utilisation(s) / match",
     "consumableOnce": "Usage unique — détruit après le match",
+    "bureauOnce": "Usage unique — depuis le Bureau",
+    "cycleItem": "Actif tout le cycle (72 h)",
     "categories": {
-      "weapon": "Arme",
-      "armor": "Armure",
-      "consumable": "Consommable"
+      "bureau": "Bureau",
+      "match": "Match",
+      "cycle": "Cycle"
     }
   },
   "inventory": {
     "kicker": "Équipement",
-    "lead": "Assignez armes, armures et consommables à vos ninjas (2 slots max).",
+    "lead": "Objets de bureau (utiliser), match ou cycle — 1 objet par ninja.",
     "loading": "Chargement…",
     "items": "Inventaire",
     "ninjas": "Effectif",
@@ -180,10 +182,11 @@
     "unequipped": "Non assigné",
     "empty": "Aucun objet — visitez le Marché Noir.",
     "equip": "Équiper",
+    "use": "Utiliser",
     "active": "Actif",
     "bench": "Banc",
-    "slotGear": "Arme / armure",
-    "slotConsumable": "Consommable"
+    "slotMatch": "Consommable match",
+    "slotCycle": "Investissement cycle"
   },
   "missions": {
     "title": "Missions de routine",

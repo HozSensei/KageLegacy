@@ -14,7 +14,14 @@ import {
   getCompositionProfile,
   getEffectiveTankTargetChance,
 } from './compositionMeta.js';
-import { getFirstTourSpeedBonus, getSituationalAttackBonus, getSituationalDefenseBonus, tryConsumables, collectConsumedItemIds } from './equipment.js';
+import {
+  collectConsumedItemIds,
+  getCycleSpeedPenalty,
+  getGenjutsuDefenseBonus,
+  tryConsumables,
+  tryDecoyRedirect,
+  tryLethalMitigation,
+} from './equipment.js';
 import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
 import { POINTS_WIN_MARGIN } from './constants.js';
 
@@ -28,11 +35,10 @@ function activeFighters(team) {
 
 function teamTacticalSpeed(team, tour) {
   return activeFighters(team).reduce((sum, f) => {
-    let vitesse = f.stats.vitesse;
+    let vitesse = f.stats.vitesse - getCycleSpeedPenalty(f);
     if (tour === 1 && f.character_trait === 'Temeraire') vitesse += 4;
-    if (tour === 1) vitesse += getFirstTourSpeedBonus(f, tour);
     if (f.status === 'paralysis') vitesse = 0;
-    return sum + vitesse + f.stats.intelligence;
+    return sum + Math.max(0, vitesse) + f.stats.intelligence;
   }, 0);
 }
 
@@ -105,14 +111,21 @@ function pickDefender(defTeam, attacker) {
   const defenders = activeFighters(defTeam);
   if (!defenders.length) return null;
 
+  let defender = null;
+
   if (attacker.character_trait !== 'Egoiste') {
     const tanks = defenders.filter((d) => d.battle_strategy === 'Tank');
     if (tanks.length && roll(100) < getEffectiveTankTargetChance(TANK_TARGET_CHANCE, detectSquadComposition(defenders)) * 100) {
-      return tanks[roll(tanks.length)];
+      defender = tanks[roll(tanks.length)];
     }
   }
 
-  return defenders[roll(defenders.length)];
+  if (!defender) {
+    defender = defenders[roll(defenders.length)];
+  }
+
+  const redirected = tryDecoyRedirect(defender, defenders, attacker);
+  return redirected || defender;
 }
 
 function chooseTechnique(attacker, defender, attackerComp = 'equilibre') {
@@ -139,8 +152,7 @@ function chooseTechnique(attacker, defender, attackerComp = 'equilibre') {
 }
 
 function attackValue(attacker, technique, allies) {
-  let value =
-    attacker.stats[technique.stat] + getSituationalAttackBonus(attacker, technique);
+  let value = attacker.stats[technique.stat];
   if (
     attacker.character_trait === 'Egoiste' &&
     allies.every((a) => a.id === attacker.id || a.pv < attacker.pv)
@@ -166,10 +178,10 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
   if (atkComp === 'flux' && defComp === 'assaut') atk *= 1.2;
   if (atkComp === 'assaut' && defComp === 'flux') atk *= 0.68;
   if (atkComp === 'assaut' && defComp === 'mur') atk *= 0.98;
-  let def =
-    (defender.stats[technique.stat] +
-      getSituationalDefenseBonus(defender, technique, attacker)) *
-    matchup.defMult;
+  let def = defender.stats[technique.stat] * matchup.defMult;
+  if (technique.type === 'genjutsu') {
+    def += getGenjutsuDefenseBonus(defender);
+  }
   const elementMult = elementDamageMultiplier(attacker.element_affinity, defender.element_affinity);
 
   if (technique.type === 'medecine') {
@@ -341,6 +353,8 @@ export function simulateCombat(homeTeam, awayTeam) {
       }
       const save = trySenseiSave(defenderTeam, defender, damage);
       damage = save.damage;
+      const mitigation = tryLethalMitigation(defender, damage);
+      damage = mitigation.damage;
       defender.pv = Math.max(0, defender.pv - damage);
       if (outcome.chakraDrain) {
         defender.chakra = Math.max(0, defender.chakra - outcome.chakraDrain);
@@ -359,6 +373,7 @@ export function simulateCombat(homeTeam, awayTeam) {
         chakra_perdu_cible: outcome.chakraDrain || 0,
         statut_consequence: outcome.status,
         sensei_interception: Boolean(save.senseiInterception),
+        item_smoke_save: mitigation.mitigated,
         altruiste_sacrifice: Boolean(save.altruisteSacrifice),
         sacrificial_name: save.sacrificialName || null,
         initiative_chance_home: initiative.homeChance,

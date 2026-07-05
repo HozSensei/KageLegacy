@@ -1,89 +1,70 @@
-import { applyEquipmentToFighter, getSituationalAttackBonus, getSituationalDefenseBonus } from '../src/services/combat/equipment.js';
+import {
+  applyEquipmentToFighter,
+  getCycleSpeedPenalty,
+  getGenjutsuDefenseBonus,
+  tryConsumables,
+  tryLethalMitigation,
+} from '../src/services/combat/equipment.js';
 
 function fighter(overrides = {}) {
   return {
     battle_strategy: 'Normal',
-    stats: { taijutsu: 10, ninjutsu: 10, genjutsu: 8 },
+    stats: { taijutsu: 10, ninjutsu: 10, genjutsu: 8, vitesse: 8 },
     maxPv: 100,
     pv: 100,
-    equipment: { modifiers: [], consumables: [] },
+    maxChakra: 50,
+    chakra: 50,
     ...overrides,
   };
 }
 
-const offensiveNinjutsuWeapon = [
+const herbes = [
   {
-    slug: 'lame-chakra',
-    effects: {
-      modifiers: [
-        {
-          kind: 'attack',
-          stat: 'ninjutsu',
-          bonus: 2,
-          when: { strategy: 'Offensive', technique: 'ninjutsu' },
-        },
-      ],
-    },
+    slug: 'herbes-apaisantes',
+    user_item_id: 1,
+    effects: { match: { trigger: 'pv_below_pct', threshold: 20, pvRestore: 15, usesPerMatch: 1 } },
   },
 ];
 
-let f = fighter({ battle_strategy: 'Normal' });
-applyEquipmentToFighter(f, offensiveNinjutsuWeapon);
-console.assert(
-  getSituationalAttackBonus(f, { type: 'ninjutsu', stat: 'ninjutsu' }) === 0,
-  'Pas de bonus sans consigne Offensive'
-);
+let f = fighter({ pv: 15, maxPv: 100 });
+applyEquipmentToFighter(f, herbes);
+const used = tryConsumables(f);
+console.assert(used.length === 1, 'Herbes proc sous 20 % PV');
+console.assert(f.pv === 30, 'Herbes restaurent 15 PV');
 
-f = fighter({ battle_strategy: 'Offensive' });
-applyEquipmentToFighter(f, offensiveNinjutsuWeapon);
-console.assert(
-  getSituationalAttackBonus(f, { type: 'ninjutsu', stat: 'ninjutsu' }) === 2,
-  'Bonus Offensive + ninjutsu'
-);
-console.assert(
-  getSituationalAttackBonus(f, { type: 'taijutsu', stat: 'taijutsu' }) === 0,
-  'Pas de bonus sur autre technique'
-);
-
-const tankVest = [
+const fumigene = [
   {
-    slug: 'gilet-mailles',
-    effects: { modifiers: [{ kind: 'pv', bonus: 15, when: { strategy: 'Tank' } }] },
+    slug: 'fumigene-secours',
+    user_item_id: 2,
+    effects: { match: { trigger: 'lethal_mitigation', damageReduction: 0.5, usesPerMatch: 1 } },
   },
 ];
-f = fighter({ battle_strategy: 'Tank', maxPv: 100, pv: 100 });
-applyEquipmentToFighter(f, tankVest);
-console.assert(f.maxPv === 115, 'PV Tank +15');
+f = fighter({ pv: 10, maxPv: 100 });
+applyEquipmentToFighter(f, fumigene);
+const mit = tryLethalMitigation(f, 20);
+console.assert(mit.mitigated && mit.damage === 10, 'Fumigène −50 % fatal');
 
-f = fighter({ battle_strategy: 'Normal', maxPv: 100, pv: 100 });
-applyEquipmentToFighter(f, tankVest);
-console.assert(f.maxPv === 100, 'Pas de PV hors Tank');
-
-const katonGloves = [
+const poids = [
   {
-    slug: 'gants-pare-feu',
-    effects: { modifiers: [{ kind: 'element_resist', element: 'Katon', bonus: 2 }] },
+    slug: 'poids-entrainement',
+    user_item_id: 3,
+    effects: { cycle: { trigger: 'training_boost', multiplier: 1.2, speedPenalty: 2 } },
   },
 ];
 f = fighter();
-applyEquipmentToFighter(f, katonGloves);
-const atk = { element_affinity: 'Katon' };
-console.assert(
-  getSituationalDefenseBonus(f, { type: 'ninjutsu', stat: 'ninjutsu' }, atk) === 2,
-  'Résistance Katon ninjutsu'
-);
-console.assert(
-  getSituationalDefenseBonus(f, { type: 'taijutsu', stat: 'taijutsu' }, atk) === 0,
-  'Pas de résistance taijutsu'
-);
+applyEquipmentToFighter(f, poids);
+console.assert(getCycleSpeedPenalty(f) === 2, 'Poids −2 vitesse');
 
-// Limite d'utilisation : 3 procs attaque max
-f = fighter({ battle_strategy: 'Offensive' });
-applyEquipmentToFighter(f, offensiveNinjutsuWeapon);
-const tech = { type: 'ninjutsu', stat: 'ninjutsu' };
-console.assert(getSituationalAttackBonus(f, tech) === 2, 'Proc 1');
-console.assert(getSituationalAttackBonus(f, tech) === 2, 'Proc 2');
-console.assert(getSituationalAttackBonus(f, tech) === 2, 'Proc 3');
-console.assert(getSituationalAttackBonus(f, tech) === 0, 'Proc 4 bloquée');
+const rupture = [
+  {
+    slug: 'parchemin-rupture',
+    user_item_id: 4,
+    effects: { match: { trigger: 'genjutsu_defense', bonus: 4, usesPerMatch: 1 } },
+  },
+];
+f = fighter();
+applyEquipmentToFighter(f, rupture);
+console.assert(getGenjutsuDefenseBonus(f) === 4, 'Parchemin rupture +4');
+console.assert(getGenjutsuDefenseBonus(f) === 0, 'Parchemin rupture 1× seulement');
 
-console.log('equipment balance tests OK');
+console.log('utility equipment tests OK');

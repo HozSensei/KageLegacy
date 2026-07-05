@@ -1,5 +1,7 @@
 import { query } from '../config/database.js';
 import { clampStatToGradeCap, isStatAtGradeCap } from './gradeProgression.js';
+import { getCycleEquipmentByUser } from './equipmentService.js';
+import { getTrainingBoostMultiplier } from './combat/equipment.js';
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
@@ -22,7 +24,7 @@ function statColumnForFocus(focus) {
   return map[focus];
 }
 
-export function computeTrainingGain(ninja, sensei) {
+export function computeTrainingGain(ninja, sensei, { cycleMultiplier = 1 } = {}) {
   const column = statColumnForFocus(sensei.training_focus);
   if (!column) return { column: null, gain: 0, skipped: true, reason: 'invalid_focus' };
 
@@ -36,7 +38,8 @@ export function computeTrainingGain(ninja, sensei) {
     };
   }
 
-  if (ninja.character_trait === 'Faineant' && Math.floor(Math.random() * 100) < 15) {
+  const lazyChance = ninja.training_buff === 'strategy_book' ? 5 : 15;
+  if (ninja.character_trait === 'Faineant' && Math.floor(Math.random() * 100) < lazyChance) {
     return {
       column,
       gain: 0,
@@ -46,9 +49,12 @@ export function computeTrainingGain(ninja, sensei) {
     };
   }
 
-  let gain = BASE_GAIN * ageCoefficient(ninja.age);
+  let gain = BASE_GAIN * ageCoefficient(ninja.age) * cycleMultiplier;
+  if (ninja.training_buff === 'strategy_book') {
+    gain *= 1.15;
+  }
 
-  return { column, gain, skipped: false };
+  return { column, gain, skipped: false, clearStrategyBook: ninja.training_buff === 'strategy_book' };
 }
 
 export async function applyTrainingForUser(userId) {
@@ -57,10 +63,17 @@ export async function applyTrainingForUser(userId) {
   if (!sensei) return { logs: [] };
 
   const ninjas = await query('SELECT * FROM ninjas WHERE user_id = ?', [userId]);
+  const cycleGear = await getCycleEquipmentByUser(userId);
+  const cycleByNinja = cycleGear.reduce((acc, row) => {
+    if (!acc[row.ninja_id]) acc[row.ninja_id] = [];
+    acc[row.ninja_id].push(row);
+    return acc;
+  }, {});
   const logs = [];
 
   for (const ninja of ninjas) {
-    const result = computeTrainingGain(ninja, sensei);
+    const cycleMultiplier = getTrainingBoostMultiplier(ninja, cycleByNinja[ninja.id] || []);
+    const result = computeTrainingGain(ninja, sensei, { cycleMultiplier });
     if (result.skipped) {
       if (result.log) logs.push(result.log);
       continue;
@@ -73,14 +86,17 @@ export async function applyTrainingForUser(userId) {
     if (wholePoints > 0) {
       const column = result.column;
       const newValue = clampStatToGradeCap(ninja, column, ninja[column] + wholePoints);
-      await query(`UPDATE ninjas SET ${column} = ?, training_residual = ? WHERE id = ?`, [
-        newValue,
-        newResidual,
-        ninja.id,
-      ]);
+      await query(
+        `UPDATE ninjas SET ${column} = ?, training_residual = ?, training_buff = ? WHERE id = ?`,
+        [newValue, newResidual, result.clearStrategyBook ? null : ninja.training_buff, ninja.id]
+      );
       logs.push(`${ninja.name} : +${wholePoints} ${column} (focus ${sensei.training_focus})`);
     } else {
-      await query('UPDATE ninjas SET training_residual = ? WHERE id = ?', [newResidual, ninja.id]);
+      await query('UPDATE ninjas SET training_residual = ?, training_buff = ? WHERE id = ?', [
+        newResidual,
+        result.clearStrategyBook ? null : ninja.training_buff,
+        ninja.id,
+      ]);
     }
   }
 

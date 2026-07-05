@@ -16,7 +16,9 @@ const itemDesc = (item) => (locale.value === 'en' ? item.descriptionEn : item.de
 const categoryLabel = (cat) => t(`market.categories.${cat}`)
 
 function usageLabel(offer) {
-  if (offer.category === 'consumable') return t('market.consumableOnce')
+  if (offer.category === 'bureau') return t('market.bureauOnce')
+  if (offer.category === 'cycle') return t('market.cycleItem')
+  if (offer.category === 'match') return t('market.consumableOnce')
   const limit = offer.usageLimits?.[0]
   if (!limit) return ''
   return t('market.usesPerMatch', { count: limit.uses })

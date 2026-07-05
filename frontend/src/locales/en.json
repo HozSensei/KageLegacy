@@ -163,15 +163,17 @@
     "situational": "Situational",
     "usesPerMatch": "{count} use(s) per match",
     "consumableOnce": "Single use — destroyed after the match",
+    "bureauOnce": "Single use — from Bureau",
+    "cycleItem": "Active for the full cycle (72 h)",
     "categories": {
-      "weapon": "Weapon",
-      "armor": "Armor",
-      "consumable": "Consumable"
+      "bureau": "Bureau",
+      "match": "Match",
+      "cycle": "Cycle"
     }
   },
   "inventory": {
     "kicker": "Equipment",
-    "lead": "Assign weapons, armor and consumables to your ninjas (2 slots max).",
+    "lead": "Bureau items (use), match or cycle gear — one item per ninja.",
     "loading": "Loading…",
     "items": "Inventory",
     "ninjas": "Roster",
@@ -180,10 +182,11 @@
     "unequipped": "Unassigned",
     "empty": "No items — visit the Black Market.",
     "equip": "Equip",
+    "use": "Use",
     "active": "Active",
     "bench": "Bench",
-    "slotGear": "Weapon / armor",
-    "slotConsumable": "Consumable"
+    "slotMatch": "Match consumable",
+    "slotCycle": "Cycle investment"
   },
   "missions": {
     "title": "Routine missions",

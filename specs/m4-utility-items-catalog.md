@@ -1,6 +1,6 @@
 # 🧰 M4 — Objets utilitaires & économie des Ryos
 
-**Statut :** direction validée en discussion — à implémenter (remplace armes/armures + catalogue précédent).
+**Statut :** direction validée — **implémenté** (migration 011, catalogue, hooks match, POST /inventory/use).
 
 **Décision clé :** les Ryos ne doivent pas reposer sur des bonus de stats en combat. Ils financent la **survie du club** ; le Marché Noir vend des **utilitaires** qui modifient le comportement du simulateur ou la gestion hors-match — pas la puissance brute des ninjas.
 

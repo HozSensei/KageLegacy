@@ -14,10 +14,19 @@ const saving = ref(false)
 const itemName = (item) => (locale.value === 'en' ? item.name_en : item.name_fr)
 
 function usageLabel(item) {
-  if (item.category === 'consumable') return t('market.consumableOnce')
+  if (item.category === 'bureau') return t('market.bureauOnce')
+  if (item.category === 'cycle') return t('market.cycleItem')
   const limit = item.usageLimits?.[0]
-  if (!limit) return ''
+  if (!limit) return t('market.consumableOnce')
   return t('market.usesPerMatch', { count: limit.uses })
+}
+
+function isBureauItem(item) {
+  return item?.category === 'bureau'
+}
+
+function canEquipItem(item) {
+  return item?.category === 'match' || item?.category === 'cycle'
 }
 
 onMounted(fetchInventory)
@@ -42,6 +51,26 @@ async function equip(ninjaId) {
   error.value = null
   try {
     const res = await fetch(`${API_BASE}/api/inventory/equip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    inventory.value = await res.json()
+    selectedItemId.value = null
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
+
+async function useOnNinja(ninjaId) {
+  if (!selectedItemId.value) return
+  saving.value = true
+  error.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/inventory/use`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
@@ -103,7 +132,9 @@ async function unequip(ninjaId, slot) {
             @click="selectedItemId = item.id"
           >
             <p class="text-sm text-ink">{{ itemName(item) }}</p>
-            <p class="mt-1 text-xs text-ink-faint">{{ usageLabel(item) }}</p>
+            <p class="mt-1 text-xs text-ink-faint">
+              {{ t(`market.categories.${item.category}`) }} · {{ usageLabel(item) }}
+            </p>
             <p class="mt-1 text-xs text-ink-faint">
               {{ item.equipped_ninja_name ? t('inventory.equippedOn', { name: item.equipped_ninja_name }) : t('inventory.unequipped') }}
             </p>
@@ -130,7 +161,7 @@ async function unequip(ninjaId, slot) {
                 </p>
               </div>
               <button
-                v-if="selectedItemId"
+                v-if="selectedItemId && canEquipItem(inventory.items.find((i) => i.id === selectedItemId))"
                 type="button"
                 class="btn-ghost"
                 :disabled="saving"
@@ -138,29 +169,38 @@ async function unequip(ninjaId, slot) {
               >
                 {{ t('inventory.equip') }}
               </button>
+              <button
+                v-else-if="selectedItemId && isBureauItem(inventory.items.find((i) => i.id === selectedItemId))"
+                type="button"
+                class="btn-ghost"
+                :disabled="saving"
+                @click="useOnNinja(ninja.id)"
+              >
+                {{ t('inventory.use') }}
+              </button>
             </div>
             <dl class="mt-4 grid gap-2 text-xs text-ink-muted sm:grid-cols-2">
               <div>
-                <dt>{{ t('inventory.slotGear') }}</dt>
+                <dt>{{ t('inventory.slotMatch') }}</dt>
                 <dd class="mt-1 text-ink">
-                  {{ ninja.gear_name_fr ? (locale === 'en' ? ninja.gear_name_en : ninja.gear_name_fr) : '—' }}
+                  {{ ninja.match_name_fr ? (locale === 'en' ? ninja.match_name_en : ninja.match_name_fr) : '—' }}
                   <button
-                    v-if="ninja.gear_item_id"
+                    v-if="ninja.match_item_id"
                     type="button"
                     class="ml-2 text-fire"
-                    @click="unequip(ninja.id, 'gear')"
+                    @click="unequip(ninja.id, 'match')"
                   >×</button>
                 </dd>
               </div>
               <div>
-                <dt>{{ t('inventory.slotConsumable') }}</dt>
+                <dt>{{ t('inventory.slotCycle') }}</dt>
                 <dd class="mt-1 text-ink">
-                  {{ ninja.cons_name_fr ? (locale === 'en' ? ninja.cons_name_en : ninja.cons_name_fr) : '—' }}
+                  {{ ninja.cycle_name_fr ? (locale === 'en' ? ninja.cycle_name_en : ninja.cycle_name_fr) : '—' }}
                   <button
-                    v-if="ninja.cons_item_id"
+                    v-if="ninja.cycle_item_id"
                     type="button"
                     class="ml-2 text-fire"
-                    @click="unequip(ninja.id, 'consumable')"
+                    @click="unequip(ninja.id, 'cycle')"
                   >×</button>
                 </dd>
               </div>
