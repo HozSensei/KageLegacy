@@ -45,7 +45,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 2. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
 3. **M6 enrichi** — Mention des objets dans le dictionnaire narratif + débriefing (faille élémentaire → marché)
 4. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
-5. **Script `combat:benchmark`** — Rejouer les courbes win%/nul%/upset après chaque changement d'équilibre
+5. **Script `combat:benchmark`** — ✅ `npm run combat:benchmark` (Monte Carlo + multi-cycles)
 6. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
 7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
 
@@ -57,15 +57,22 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 ### Profil de référence (sans équipement)
 
-Simulation démo vs bot (~**+40 %** puissance brute côté démo) :
+Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run combat:benchmark` (800 runs, juil. 2026) :
 
 | Métrique | Valeur observée | Cible indicative |
 | :--- | :--- | :--- |
-| Victoire favori | ~**63–65 %** | Compétence compte, pas scripté |
-| Nuls | ~**30–33 %** | Acceptable pour du manager |
-| Upsets (défaite favori) | ~**4–5 %** | Mémorables sans frustrer |
+| Victoire favori (+40 % stats) | ~**60 %** | Compétence compte, pas scripté |
+| Nuls (favori vs standard) | ~**29–32 %** | Acceptable pour du manager |
+| Upsets (underdog sans tactique) | ~**8–11 %** | Mémorables sans frustrer |
+| Upsets (underdog + Off/Tank/Protect) | ~**29 %** | La tactique compense le gap |
 | K.O. | ~**0 %** | Sur 12 tours ; surveiller si objets augmentent |
 | Tours moyens | **12** | Matchs souvent aux points |
+
+**Équipes symétriques :** home ~43 % / away ~46 % / nuls ~12 % — proche du 50/50.
+
+**Multi-cycle (20 cycles, entraînement actif) :** combat total passe ~81 → ~99 (Genin) ; progression lente mais visible. Underdog vs bot +40 % : home ~15 % win, ~35 % nuls sur 20 cycles.
+
+**Tactiques vs stats :** underdog standard vs bot +40 % → **8 %** win ; avec Off/Tank/Protect → **29 %** win (−30 pts de gap stats largement comblés).
 
 ### Impact des objets (cible après pivot utilitaire)
 
@@ -82,7 +89,7 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) :
 - Changer les consignes (ex. Normal → Off/Tank/Off) peut **bouger le win rate de ±30 pts** selon la compo et l'adversaire — **bien plus** que les objets seuls.
 - **À surveiller :** le tutoriel / débriefing doit expliquer que l'objet sans la bonne consigne ne sert à rien.
 
-### Métriques à intégrer dans `combat:benchmark` (à créer)
+### Métriques `combat:benchmark` (implémenté)
 
 ```
 - win% / draw% / loss% (favori vs underdog)
@@ -139,7 +146,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
 - [ ] Dispensaire (forme, coût Ryos ?)
 - [ ] UI alerte stagnation Chunin (combat ≥ 17)
-- [ ] `npm run combat:benchmark` — script de régression d'équilibre
+- [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
 - [ ] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
 - [ ] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)
 
@@ -167,6 +174,6 @@ flowchart TD
 ## 🛠️ Instructions pour le dev
 
 * [ ] Consulter ce fichier **avant** d'ouvrir une PR qui touche combat, économie, tactiques ou chronique.
-* [ ] Après un changement d'équilibre : lancer (ou créer) `combat:benchmark` et noter les résultats dans ce document.
+* [x] Après un changement d'équilibre : lancer `npm run combat:benchmark` et noter les résultats dans ce document.
 * [ ] Cocher / déplacer les items vers « Livré » quand mergés.
 * [ ] Ne pas traiter ce fichier comme une spec figée : c'est la **mémoire du projet**.

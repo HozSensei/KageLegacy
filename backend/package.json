@@ -10,7 +10,8 @@
     "db:seed": "node scripts/seedNinjas.js",
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
-    "combat:simulate": "node scripts/simulateMatch.js"
+    "combat:simulate": "node scripts/simulateMatch.js",
+    "combat:benchmark": "node scripts/simulateCycles.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
