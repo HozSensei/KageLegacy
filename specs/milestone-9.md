@@ -123,7 +123,7 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
 | **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | Missions résolues à H72 ; design global à revoir |
-| **Focus d'entraînement** | Le focus Sensei s'applique-t-il à **tous** les ninjas du roster, ou seulement à l'escouade active / hors mission / hors opération ? | `applyTrainingForUser` entraîne **tous** les `ninjas` du `user_id` sans filtre mission/opération |
+| **Entraînement par ninja (Ryos)** | Remplacer le focus Sensei global par un **plan par ninja** (stat ciblée) ; **coût Ryos prélevé à H72** après application des gains — sink économique, choix tactiques (qui monter, qui laisser). Périmètre : tous les ninjas, escouade seule, hors mission/opération ? | Focus **dojo** unique (`sensei.training_focus`) ; entraînement **gratuit** ; `applyTrainingForUser` touche **tous** les ninjas sans filtre |
 
 ---
 
@@ -156,6 +156,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
+- [ ] **Entraînement par ninja + coût Ryos (H72)** — focus individuel, facturation fin de cycle ; voir revue design ci-dessus
 - [ ] Dispensaire (forme, coût Ryos ?)
 - [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
