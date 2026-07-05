@@ -48,4 +48,6 @@
 npm run combat:benchmark
 ```
 
-Section « Cercle des compositions » — chaque flèche du cercle doit afficher **✓** (~54–68 % win).
+- **Pas de bonus de slot** : le moteur n'avantage pas le slot A (`home` en interne). Le benchmark joue chaque paire **50 % A→B / 50 % B→A** et affiche les win % **par composition**.
+- Cercle : compo favorisée ~54–70 % · Neutre (vs Équilibre) : pas d'écrasement.
+

@@ -114,29 +114,39 @@ function teamDataFromNinjas(userId, ninjas, sensei = { name: 'Sensei', chakra_po
   };
 }
 
-function runSingleMatch(homeNinjas, awayNinjas, homeSensei, awaySensei) {
-  const home = buildCombatTeam(teamDataFromNinjas(1, homeNinjas, homeSensei), 'home');
-  const away = buildCombatTeam(teamDataFromNinjas(2, awayNinjas, awaySensei), 'away');
-  return simulateCombat(home, away);
+/** Le moteur de combat utilise encore home/away en interne — slot A = home, slot B = away. */
+const COMBAT_SLOT_A = 'home';
+const COMBAT_SLOT_B = 'away';
+
+function combatWinnerToSlot(winner) {
+  if (winner === 'draw') return 'draw';
+  return winner === COMBAT_SLOT_A ? 'slotA' : 'slotB';
+}
+
+function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei) {
+  const slotA = buildCombatTeam(teamDataFromNinjas(1, slotANinjas, slotASensei), COMBAT_SLOT_A);
+  const slotB = buildCombatTeam(teamDataFromNinjas(2, slotBNinjas, slotBSensei), COMBAT_SLOT_B);
+  return simulateCombat(slotA, slotB);
 }
 
 function initOutcomeCounter() {
-  return { home: 0, away: 0, draw: 0, ko: 0, totalTours: 0, upsets: 0, matches: 0 };
+  return { slotA: 0, slotB: 0, draw: 0, ko: 0, totalTours: 0, upsets: 0, matches: 0 };
 }
 
-function recordOutcome(counter, result, favoriteSide = 'home') {
+function recordOutcome(counter, result, favoriteSide = 'slotA') {
   counter.matches += 1;
   counter.totalTours += result.endingTour;
   if (result.endReason === 'ko') counter.ko += 1;
 
-  if (result.winner === 'draw') counter.draw += 1;
-  else if (result.winner === 'home') counter.home += 1;
-  else counter.away += 1;
+  const winnerSlot = combatWinnerToSlot(result.winner);
+  if (winnerSlot === 'draw') counter.draw += 1;
+  else if (winnerSlot === 'slotA') counter.slotA += 1;
+  else counter.slotB += 1;
 
-  if (result.winner !== 'draw') {
+  if (winnerSlot !== 'draw') {
     const underdogWon =
-      (favoriteSide === 'home' && result.winner === 'away') ||
-      (favoriteSide === 'away' && result.winner === 'home');
+      (favoriteSide === 'slotA' && winnerSlot === 'slotB') ||
+      (favoriteSide === 'slotB' && winnerSlot === 'slotA');
     if (underdogWon) counter.upsets += 1;
   }
 
@@ -147,10 +157,10 @@ function pct(n, total) {
   return total ? Math.round((n / total) * 1000) / 10 : 0;
 }
 
-function summarize(counter, favoriteSide = 'home') {
+function summarize(counter, favoriteSide = 'slotA') {
   const m = counter.matches;
-  const favWins = favoriteSide === 'home' ? counter.home : counter.away;
-  const favLoss = favoriteSide === 'home' ? counter.away : counter.home;
+  const favWins = favoriteSide === 'slotA' ? counter.slotA : counter.slotB;
+  const favLoss = favoriteSide === 'slotA' ? counter.slotB : counter.slotA;
   return {
     matches: m,
     winPctFavorite: pct(favWins, m),
@@ -159,8 +169,8 @@ function summarize(counter, favoriteSide = 'home') {
     upsetPct: pct(counter.upsets, m),
     koPct: pct(counter.ko, m),
     avgTours: m ? Math.round((counter.totalTours / m) * 10) / 10 : 0,
-    homeWinPct: pct(counter.home, m),
-    awayWinPct: pct(counter.away, m),
+    slotAWinPct: pct(counter.slotA, m),
+    slotBWinPct: pct(counter.slotB, m),
   };
 }
 
@@ -213,17 +223,17 @@ function squadSnapshot(ninjas) {
 /**
  * Monte Carlo : mêmes rosters, N matchs.
  */
-export function runMonteCarlo({ homeNinjas, awayNinjas, runs = 500, favoriteSide = 'home' }) {
+export function runMonteCarlo({ slotANinjas, slotBNinjas, runs = 500, favoriteSide = 'slotA' }) {
   const counter = initOutcomeCounter();
-  const homeSensei = { name: 'Home', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' };
-  const awaySensei = { name: 'Away', chakra_pool: 100, specialty: 'Taijutsu', training_focus: 'Taijutsu' };
+  const slotASensei = { name: 'Sensei A', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' };
+  const slotBSensei = { name: 'Sensei B', chakra_pool: 100, specialty: 'Taijutsu', training_focus: 'Taijutsu' };
 
   for (let i = 0; i < runs; i += 1) {
     const result = runSingleMatch(
-      homeNinjas.map(cloneNinja),
-      awayNinjas.map(cloneNinja),
-      homeSensei,
-      awaySensei
+      slotANinjas.map(cloneNinja),
+      slotBNinjas.map(cloneNinja),
+      slotASensei,
+      slotBSensei
     );
     recordOutcome(counter, result, favoriteSide);
   }
@@ -235,44 +245,44 @@ export function runMonteCarlo({ homeNinjas, awayNinjas, runs = 500, favoriteSide
  * Plusieurs cycles : entraînement + 1 match/cycle, rosters évoluent.
  */
 export function runMultiCycle({
-  homeNinjas: initialHome,
-  awayNinjas: initialAway,
+  slotANinjas: initialSlotA,
+  slotBNinjas: initialSlotB,
   cycles = 10,
-  favoriteSide = 'home',
-  homeSensei = { name: 'Home', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' },
-  awaySensei = { name: 'Away', chakra_pool: 100, specialty: 'Genjutsu', training_focus: 'Genjutsu' },
+  favoriteSide = 'slotA',
+  slotASensei = { name: 'Sensei A', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' },
+  slotBSensei = { name: 'Sensei B', chakra_pool: 100, specialty: 'Genjutsu', training_focus: 'Genjutsu' },
 }) {
-  const home = initialHome.map(cloneNinja);
-  const away = initialAway.map(cloneNinja);
+  const slotA = initialSlotA.map(cloneNinja);
+  const slotB = initialSlotB.map(cloneNinja);
   const counter = initOutcomeCounter();
   const timeline = [];
 
   for (let cycle = 1; cycle <= cycles; cycle += 1) {
-    const result = runSingleMatch(home, away, homeSensei, awaySensei);
+    const result = runSingleMatch(slotA, slotB, slotASensei, slotBSensei);
     recordOutcome(counter, result, favoriteSide);
 
-    const koHome = result.koNinjaIds.filter((k) => k.side === 'home');
-    const koAway = result.koNinjaIds.filter((k) => k.side === 'away');
-    applyPostMatchToSquad(home, koHome);
-    applyPostMatchToSquad(away, koAway);
+    const koSlotA = result.koNinjaIds.filter((k) => k.side === COMBAT_SLOT_A);
+    const koSlotB = result.koNinjaIds.filter((k) => k.side === COMBAT_SLOT_B);
+    applyPostMatchToSquad(slotA, koSlotA);
+    applyPostMatchToSquad(slotB, koSlotB);
 
-    applyTrainingToSquad(home, homeSensei);
-    applyTrainingToSquad(away, awaySensei);
+    applyTrainingToSquad(slotA, slotASensei);
+    applyTrainingToSquad(slotB, slotBSensei);
 
     timeline.push({
       cycle,
-      winner: result.winner,
+      winner: combatWinnerToSlot(result.winner),
       endReason: result.endReason,
       tours: result.endingTour,
-      homeCombatSum: home.reduce((s, n) => s + sumCombat(n), 0),
-      awayCombatSum: away.reduce((s, n) => s + sumCombat(n), 0),
+      slotACombatSum: slotA.reduce((s, n) => s + sumCombat(n), 0),
+      slotBCombatSum: slotB.reduce((s, n) => s + sumCombat(n), 0),
     });
   }
 
   return {
     summary: summarize(counter, favoriteSide),
-    finalHome: squadSnapshot(home),
-    finalAway: squadSnapshot(away),
+    finalSlotA: squadSnapshot(slotA),
+    finalSlotB: squadSnapshot(slotB),
     timeline,
   };
 }
@@ -301,64 +311,149 @@ export function createEquilibreSquad(prefix, idOffset = 0, statScale = 1) {
   return squad;
 }
 
+const COMPOSITION_NAMES = {
+  assaut: 'Assaut',
+  mur: 'Mur',
+  flux: 'Flux',
+  equilibre: 'Équilibre',
+};
+
+function squadForComposition(comp, prefix, idOffset, scale = 1) {
+  if (comp === 'equilibre') return createEquilibreSquad(prefix, idOffset, scale);
+  return createPureCompositionSquad(prefix, comp, idOffset, scale);
+}
+
+const NEUTRAL_SENSEI = {
+  name: 'Sensei',
+  chakra_pool: 100,
+  specialty: 'Ninjutsu',
+  training_focus: 'Ninjutsu',
+};
+
 /**
- * Matrice du cercle de compositions (mêmes stats, comps pures).
- * Cible : ~60 % win pour le côté avec avantage matchup (+20 pts).
+ * Un matchup symétrique : chaque compo passe une fois en « slot A » et une fois en « slot B ».
+ * Pas de bonus domicile dans le moteur — on moyenne pour annuler le bruit RNG.
+ */
+export function runSymmetricCompositionMatchup(compA, compB, runs = 600) {
+  const half = Math.floor(runs / 2);
+
+  if (compA === compB) {
+    let slotAWins = 0;
+    let slotBWins = 0;
+    let draws = 0;
+    const squad = squadForComposition(compA, 'T', 0, 1);
+
+    const runMirror = (count) => {
+      for (let i = 0; i < count; i += 1) {
+        const result = runSingleMatch(
+          squad.map(cloneNinja),
+          squad.map((n) => cloneNinja({ ...n, id: n.id + 100 })),
+          NEUTRAL_SENSEI,
+          NEUTRAL_SENSEI
+        );
+        if (result.winner === 'draw') draws += 1;
+        else if (result.winner === COMBAT_SLOT_A) slotAWins += 1;
+        else slotBWins += 1;
+      }
+    };
+
+    runMirror(half);
+    const swapped = squad.map((n) => cloneNinja({ ...n, id: n.id + 200 }));
+    for (let i = 0; i < runs - half; i += 1) {
+      const result = runSingleMatch(
+        swapped.map((n) => cloneNinja({ ...n, id: n.id + 100 })),
+        swapped.map(cloneNinja),
+        NEUTRAL_SENSEI,
+        NEUTRAL_SENSEI
+      );
+      if (result.winner === 'draw') draws += 1;
+      else if (result.winner === COMBAT_SLOT_A) slotBWins += 1;
+      else slotAWins += 1;
+    }
+
+    return {
+      matches: runs,
+      mirror: true,
+      compA,
+      compB,
+      compAName: COMPOSITION_NAMES[compA],
+      compBName: COMPOSITION_NAMES[compB],
+      slotAWinPct: pct(slotAWins, runs),
+      slotBWinPct: pct(slotBWins, runs),
+      drawPct: pct(draws, runs),
+    };
+  }
+
+  const wins = { [compA]: 0, [compB]: 0, draw: 0 };
+
+  const runBatch = (firstComp, secondComp, count) => {
+    const first = squadForComposition(firstComp, 'T1', 0, 1);
+    const second = squadForComposition(secondComp, 'T2', 10, 1);
+    for (let i = 0; i < count; i += 1) {
+      const result = runSingleMatch(
+        first.map(cloneNinja),
+        second.map(cloneNinja),
+        NEUTRAL_SENSEI,
+        NEUTRAL_SENSEI
+      );
+      if (result.winner === 'draw') wins.draw += 1;
+      else if (result.winner === COMBAT_SLOT_A) wins[firstComp] += 1;
+      else wins[secondComp] += 1;
+    }
+  };
+
+  runBatch(compA, compB, half);
+  runBatch(compB, compA, runs - half);
+
+  const total = runs;
+  return {
+    matches: total,
+    [`${compA}WinPct`]: pct(wins[compA], total),
+    [`${compB}WinPct`]: pct(wins[compB], total),
+    compA,
+    compB,
+    compAName: COMPOSITION_NAMES[compA],
+    compBName: COMPOSITION_NAMES[compB],
+    drawPct: pct(wins.draw, total),
+    wins,
+  };
+}
+
+/**
+ * Matrice du cercle de compositions — résultats par compo, pas slot A/B.
  */
 export function runCompositionMatrix({ runs = 600 } = {}) {
   const matchups = [
-    { home: 'assaut', away: 'mur', expect: 'home', label: 'Assaut → Mur' },
-    { home: 'mur', away: 'flux', expect: 'home', label: 'Mur → Flux' },
-    { home: 'flux', away: 'assaut', expect: 'home', label: 'Flux → Assaut' },
-    { home: 'mur', away: 'assaut', expect: 'away', label: 'Mur vs Assaut (désavantage)' },
-    { home: 'assaut', away: 'flux', expect: 'away', label: 'Assaut vs Flux (désavantage)' },
-    { home: 'flux', away: 'mur', expect: 'away', label: 'Flux vs Mur (désavantage)' },
-    { home: 'assaut', away: 'assaut', expect: 'even', label: 'Miroir Assaut' },
-    { home: 'mur', away: 'equilibre', expect: 'even', label: 'Mur vs Équilibre' },
-    { home: 'equilibre', away: 'mur', expect: 'even', label: 'Équilibre vs Mur' },
-    { home: 'assaut', away: 'equilibre', expect: 'even', label: 'Assaut vs Équilibre' },
-    { home: 'equilibre', away: 'assaut', expect: 'even', label: 'Équilibre vs Assaut' },
-    { home: 'flux', away: 'equilibre', expect: 'even', label: 'Flux vs Équilibre' },
-    { home: 'equilibre', away: 'flux', expect: 'even', label: 'Équilibre vs Flux' },
+    { a: 'assaut', b: 'mur', favored: 'assaut', kind: 'circle' },
+    { a: 'mur', b: 'flux', favored: 'mur', kind: 'circle' },
+    { a: 'flux', b: 'assaut', favored: 'flux', kind: 'circle' },
+    { a: 'assaut', b: 'assaut', favored: null, kind: 'mirror' },
+    { a: 'mur', b: 'equilibre', favored: null, kind: 'neutral' },
+    { a: 'assaut', b: 'equilibre', favored: null, kind: 'neutral' },
+    { a: 'flux', b: 'equilibre', favored: null, kind: 'neutral' },
   ];
 
   const results = {};
 
   for (const m of matchups) {
-    const homeNinjas =
-      m.home === 'equilibre'
-        ? createEquilibreSquad('H', 0, 1)
-        : createPureCompositionSquad('H', m.home, 0, 1);
-    const awayNinjas =
-      m.away === 'equilibre'
-        ? createEquilibreSquad('A', 10, 1)
-        : createPureCompositionSquad('A', m.away, 10, 1);
+    const row = runSymmetricCompositionMatchup(m.a, m.b, runs);
+    const label = `${COMPOSITION_NAMES[m.a]} vs ${COMPOSITION_NAMES[m.b]}`;
+    const favoredWin =
+      m.favored === m.a ? row[`${m.a}WinPct`] : m.favored === m.b ? row[`${m.b}WinPct`] : null;
 
-    const counter = initOutcomeCounter();
-    for (let i = 0; i < runs; i += 1) {
-      const result = runSingleMatch(
-        homeNinjas.map(cloneNinja),
-        awayNinjas.map(cloneNinja),
-        { name: 'H', chakra_pool: 100, specialty: 'Ninjutsu', training_focus: 'Ninjutsu' },
-        { name: 'A', chakra_pool: 100, specialty: 'Taijutsu', training_focus: 'Taijutsu' }
-      );
-      recordOutcome(counter, result, 'home');
-    }
-
-    const s = summarize(counter, 'home');
-    results[m.label] = {
-      ...s,
-      expect: m.expect,
+    results[label] = {
+      ...row,
+      label,
+      favored: m.favored,
+      kind: m.kind,
       onTarget:
-        m.expect === 'even'
-          ? s.homeWinPct >= 42 && s.homeWinPct <= 58
-          : m.expect === 'home'
-            ? s.homeWinPct >= 54 && s.homeWinPct <= 70
-            : s.awayWinPct >= 54 && s.awayWinPct <= 70,
-      fluxStyle:
-        m.home === 'flux' || m.away === 'flux'
-          ? { assautWinCap: Math.min(s.homeWinPct, s.awayWinPct) <= 12 }
-          : null,
+        m.kind === 'circle'
+          ? favoredWin >= 54 && favoredWin <= 70
+          : m.kind === 'mirror'
+            ? row.slotAWinPct >= 38 && row.slotAWinPct <= 62
+            : m.kind === 'neutral'
+              ? row[`${m.a}WinPct`] >= 30 && row[`${m.b}WinPct`] >= 15
+              : false,
     };
   }
 
@@ -382,62 +477,62 @@ export function applyTactics(ninjas, preset) {
  * Benchmark complet — plusieurs scénarios.
  */
 export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
-  const homeBase = createBalancedSquad('Home', 0, 1);
-  const awayBase = createBalancedSquad('Away', 10, 1);
-  const awayBuffed = createBalancedSquad('Bot', 20, 1.4);
-  const homeBuffed = createBalancedSquad('Demo', 30, 1.4);
+  const slotABase = createBalancedSquad('EscA', 0, 1);
+  const slotBBase = createBalancedSquad('EscB', 10, 1);
+  const slotBBuffed = createBalancedSquad('Bot', 20, 1.4);
+  const demoBuffed = createBalancedSquad('Demo', 30, 1.4);
 
-  const equal = runMonteCarlo({ homeNinjas: homeBase, awayNinjas: awayBase, runs, favoriteSide: 'home' });
+  const equal = runMonteCarlo({ slotANinjas: slotABase, slotBNinjas: slotBBase, runs, favoriteSide: 'slotA' });
 
   const demoFavoredVsBot = runMonteCarlo({
-    homeNinjas: homeBuffed,
-    awayNinjas: awayBase,
+    slotANinjas: demoBuffed,
+    slotBNinjas: slotBBase,
     runs,
-    favoriteSide: 'home',
+    favoriteSide: 'slotA',
   });
 
   const demoVsBot = runMonteCarlo({
-    homeNinjas: homeBase,
-    awayNinjas: awayBuffed,
+    slotANinjas: slotABase,
+    slotBNinjas: slotBBuffed,
     runs,
-    favoriteSide: 'away',
+    favoriteSide: 'slotB',
   });
 
-  const homeTactical = homeBase.map(cloneNinja);
-  const awayTactical = awayBuffed.map(cloneNinja);
-  homeTactical[0].battle_strategy = 'Offensive';
-  homeTactical[1].battle_strategy = 'Tank';
-  homeTactical[2].battle_strategy = 'Protect';
+  const slotATactical = slotABase.map(cloneNinja);
+  const slotBTactical = slotBBuffed.map(cloneNinja);
+  slotATactical[0].battle_strategy = 'Offensive';
+  slotATactical[1].battle_strategy = 'Tank';
+  slotATactical[2].battle_strategy = 'Protect';
   const tacticsImpact = runMonteCarlo({
-    homeNinjas: homeTactical,
-    awayNinjas: awayTactical,
+    slotANinjas: slotATactical,
+    slotBNinjas: slotBTactical,
     runs,
-    favoriteSide: 'away',
+    favoriteSide: 'slotB',
   });
 
-  const homeAgg = homeBase.map(cloneNinja);
-  const awayAgg = awayBuffed.map(cloneNinja);
-  applyTactics(homeAgg, 'aggressive');
-  applyTactics(awayAgg, 'normal');
+  const slotAAgg = slotABase.map(cloneNinja);
+  const slotBAgg = slotBBuffed.map(cloneNinja);
+  applyTactics(slotAAgg, 'aggressive');
+  applyTactics(slotBAgg, 'normal');
   const badTactics = runMonteCarlo({
-    homeNinjas: homeAgg,
-    awayNinjas: awayAgg,
+    slotANinjas: slotAAgg,
+    slotBNinjas: slotBAgg,
     runs,
-    favoriteSide: 'away',
+    favoriteSide: 'slotB',
   });
 
   const multiCycle = runMultiCycle({
-    homeNinjas: homeBase,
-    awayNinjas: awayBase,
+    slotANinjas: slotABase,
+    slotBNinjas: slotBBase,
     cycles,
-    favoriteSide: 'home',
+    favoriteSide: 'slotA',
   });
 
   const multiCycleGrowth = runMultiCycle({
-    homeNinjas: homeBase.map(cloneNinja),
-    awayNinjas: awayBuffed.map(cloneNinja),
+    slotANinjas: slotABase.map(cloneNinja),
+    slotBNinjas: slotBBuffed.map(cloneNinja),
     cycles,
-    favoriteSide: 'away',
+    favoriteSide: 'slotB',
   });
 
   const compositionMatrix = runCompositionMatrix({ runs: Math.max(400, Math.floor(runs * 0.75)) });
