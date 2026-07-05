@@ -188,22 +188,29 @@
   }
 
   .squad-card-wrap {
-    @apply pt-4;
+    @apply relative;
   }
 
   .squad-card-actions {
-    @apply pointer-events-none absolute left-1/2 z-40 flex -translate-x-1/2 gap-2 opacity-0 transition-opacity duration-200;
-    top: 0;
+    @apply pointer-events-none absolute right-0 z-40 flex -translate-y-1/2 flex-col gap-2 opacity-0 transition-opacity duration-200;
+    top: 50%;
   }
 
   .squad-card-actions--bench {
-    @apply gap-0;
+    @apply right-1 gap-1;
   }
 
   .group:hover .squad-card-actions,
   .group:focus-within .squad-card-actions,
-  .squad-card-slot--pending .squad-card-actions {
+  .squad-card-slot--pending .squad-card-actions,
+  .squad-card-slot--target .squad-card-actions {
     @apply pointer-events-auto opacity-100;
+  }
+
+  @media (hover: none) {
+    .squad-card-actions {
+      @apply pointer-events-auto opacity-100;
+    }
   }
 
   .squad-card-action {

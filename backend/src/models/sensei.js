@@ -11,6 +11,7 @@ import {
 import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import { getUnreadNotifications } from '../services/birdFlightService.js';
+import { listDispensaryCandidates } from '../services/dispensaryService.js';
 
 export { getGameClock };
 
@@ -83,6 +84,7 @@ export async function getSquadPayload(userId) {
   const activeSquad = ninjas.filter((n) => n.squad_position !== null).map(enrichNinja);
   const bench = ninjas.filter((n) => n.squad_position === null).map(enrichNinja);
   const notifications = await getUnreadNotifications(userId);
+  const dispensaryCandidates = await listDispensaryCandidates(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -97,5 +99,6 @@ export async function getSquadPayload(userId) {
     activeSquad,
     bench,
     notifications,
+    dispensaryCandidates,
   };
 }

@@ -175,6 +175,26 @@ export function collectConsumedItemIds(fighters) {
   return [...new Set(ids)];
 }
 
+export function collectEquipmentSummary(fighters) {
+  return fighters.map((fighter) => {
+    const equippedSlugs = fighter.equipment?.match?.map((e) => e.slug) || [];
+    const consumedSlugs = [];
+    for (const effect of fighter.equipment?.match || []) {
+      const key = String(effect.userItemId);
+      if ((fighter.equipmentUsage?.matchUses?.[key] || 0) > 0) {
+        consumedSlugs.push(effect.slug);
+      }
+    }
+    return {
+      ninjaId: fighter.id,
+      ninjaName: fighter.name,
+      side: fighter.side,
+      equippedSlugs,
+      consumedSlugs,
+    };
+  });
+}
+
 export function getTrainingBoostMultiplier(ninja, cycleItems = []) {
   let mult = 1;
   for (const item of cycleItems) {

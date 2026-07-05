@@ -90,6 +90,13 @@
       "arrivalBody": "A new recruit joined the dojo: {name} ({profile}).",
       "dismiss": "Got it"
     },
+    "dispensary": {
+      "title": "Dispensary",
+      "lead": "Heal ninjas in Lamentable form: Lamentable → Passable before the next match.",
+      "forme": "Current form",
+      "submit": "Treat ({cost} Ryos)",
+      "sending": "Treating…"
+    },
     "chuninStagnation": {
       "title": "Chunin at the peak",
       "lead": "Combat ≥ 16 and intelligence ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
@@ -124,6 +131,7 @@
     "tacticalSpeed": "Tactical speed",
     "activeCount": "Active",
     "benchCount": "Bench",
+    "protectTarget": "Cover…",
     "strategies": {
       "Normal": "Normal",
       "Tank": "Tank — Provocation",

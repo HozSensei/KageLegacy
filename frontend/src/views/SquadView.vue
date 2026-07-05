@@ -13,6 +13,7 @@ const swapPending = ref(null)
 
 const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
 const strategies = reactive({})
+const protectTargets = reactive({})
 
 const canCompose = computed(() => !store.tacticsLocked())
 
@@ -62,7 +63,12 @@ function syncSlotsFromStore() {
 function initStrategies() {
   for (const n of store.activeSquad) {
     strategies[n.id] = n.battle_strategy || 'Normal'
+    protectTargets[n.id] = n.protect_target_ninja_id || null
   }
+}
+
+function protectAlliesFor(ninjaId) {
+  return slots.value.filter((n) => n && n.id !== ninjaId)
 }
 
 async function persistSlots() {
@@ -169,7 +175,13 @@ async function toggleStrategyEdit() {
     saving.value = true
     saveError.value = null
     try {
-      await store.saveStrategies({ ...strategies })
+      for (const n of store.activeSquad) {
+        if (strategies[n.id] === 'Protect' && !protectTargets[n.id]) {
+          const ally = protectAlliesFor(n.id)[0]
+          if (ally) protectTargets[n.id] = ally.id
+        }
+      }
+      await store.saveStrategies({ ...strategies }, { ...protectTargets })
       editingStrategy.value = false
     } catch (e) {
       saveError.value = e.message
@@ -334,6 +346,20 @@ watch(() => store.activeSquad, () => {
             >
               <option v-for="key in STRATEGY_KEYS" :key="key" :value="key">
                 {{ t(`squad.strategies.${key}`) }}
+              </option>
+            </select>
+            <select
+              v-if="editingStrategy && entry.ninja && strategies[entry.ninja.id] === 'Protect'"
+              v-model="protectTargets[entry.ninja.id]"
+              class="strategy-select mt-2 max-w-[11.5rem]"
+            >
+              <option :value="null" disabled>{{ t('squad.protectTarget') }}</option>
+              <option
+                v-for="ally in protectAlliesFor(entry.ninja.id)"
+                :key="ally.id"
+                :value="ally.id"
+              >
+                {{ ally.name.split(' ')[0] }}
               </option>
             </select>
           </div>

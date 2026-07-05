@@ -10,6 +10,7 @@ export const updateStrategiesSchema = z.object({
       z.object({
         ninjaId: z.number().int().positive(),
         strategy: z.enum(STRATEGY_VALUES),
+        protectTargetNinjaId: z.number().int().positive().nullable().optional(),
       })
     )
     .min(1)
@@ -29,6 +30,10 @@ export const requestChuninExamSchema = z.object({
 });
 
 export const requestBirdFlightSchema = z.object({
+  ninjaId: z.number().int().positive(),
+});
+
+export const dispensaryTreatSchema = z.object({
   ninjaId: z.number().int().positive(),
 });
 

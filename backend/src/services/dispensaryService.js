@@ -1,0 +1,72 @@
+import { query } from '../config/database.js';
+import { isTacticsLocked } from './gameClock.js';
+
+const DISPENSARY_COST = {
+  Genin: 500,
+  Chunin: 1500,
+};
+
+export function getDispensaryCost(grade) {
+  return DISPENSARY_COST[grade] ?? null;
+}
+
+export async function treatNinjaAtDispensary(userId, ninjaId) {
+  if (await isTacticsLocked()) {
+    const error = new Error('Le dispensaire est fermé pendant l\'opération (à partir de H71).');
+    error.statusCode = 423;
+    throw error;
+  }
+
+  const rows = await query(
+    `SELECT n.*, s.ryos
+     FROM ninjas n
+     JOIN sensei s ON s.user_id = n.user_id
+     WHERE n.id = ? AND n.user_id = ?`,
+    [ninjaId, userId]
+  );
+  const ninja = rows[0];
+  if (!ninja) {
+    const error = new Error('Ninja introuvable.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (ninja.weekly_forme !== 'Lamentable') {
+    const error = new Error('Seuls les ninjas en forme Lamentable peuvent être soignés au dispensaire.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const cost = getDispensaryCost(ninja.grade);
+  if (!cost) {
+    const error = new Error('Ce grade ne peut pas être traité au dispensaire.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (ninja.ryos < cost) {
+    const error = new Error(`Ryos insuffisants (${cost} requis).`);
+    error.statusCode = 402;
+    throw error;
+  }
+
+  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [cost, userId]);
+  await query('UPDATE ninjas SET weekly_forme = ? WHERE id = ?', ['Passable', ninjaId]);
+
+  return { ninjaId, cost, previousForme: 'Lamentable', newForme: 'Passable' };
+}
+
+export async function listDispensaryCandidates(userId) {
+  const ninjas = await query(
+    `SELECT id, name, grade, weekly_forme FROM ninjas
+     WHERE user_id = ? AND weekly_forme = 'Lamentable'
+     ORDER BY squad_position IS NULL, squad_position, id`,
+    [userId]
+  );
+  return ninjas
+    .map((n) => ({
+      ...n,
+      cost: getDispensaryCost(n.grade),
+    }))
+    .filter((n) => n.cost != null);
+}

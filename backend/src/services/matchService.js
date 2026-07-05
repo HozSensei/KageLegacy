@@ -61,6 +61,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       awayScorePct: combat.awayScorePct,
       koNinjaIds: combat.koNinjaIds,
       possession: combat.possession,
+      equipmentSummary: combat.equipmentSummary,
     };
 
     const [homeCtx, awayCtx] = await Promise.all([

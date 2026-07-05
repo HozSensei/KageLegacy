@@ -8,6 +8,7 @@ import {
   updateTrainingFocus,
 } from '../models/squadTactics.js';
 import {
+  dispensaryTreatSchema,
   dismissNotificationSchema,
   requestBirdFlightSchema,
   requestChuninExamSchema,
@@ -15,6 +16,7 @@ import {
   updateTrainingFocusSchema,
 } from '../validators/squadTactics.js';
 import { dismissNotification } from '../services/birdFlightService.js';
+import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
 
 const router = Router();
@@ -116,6 +118,22 @@ router.post('/notifications/dismiss', async (req, res, next) => {
     if (!dismissed) {
       return res.status(404).json({ error: 'Notification introuvable.' });
     }
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
+    res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/dispensary', async (req, res, next) => {
+  try {
+    const user = await requireDemoUser(res);
+    if (!user) return;
+
+    const parsed = dispensaryTreatSchema.parse(req.body);
+    await treatNinjaAtDispensary(user.id, parsed.ninjaId);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();
