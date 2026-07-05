@@ -1,0 +1,105 @@
+# 🎓 Progression des grades, plafonds & Ryos
+
+**Statut :** règles validées en discussion — implémenté côté entraînement / H72 ; examen Jonin (M7) en attente.
+
+---
+
+## 🎯 Intention
+
+1. **Les Ryos pèsent sur le passage de grade** — frais d'examen indexés sur le niveau du candidat.
+2. **Un Genin (puis un Chunin) ne progresse pas indéfiniment** — plafonds de stats par grade ; l'entraînement s'arrête au plafond.
+3. **Ne pas faire évoluer coûte cher** — forme et moral se dégradent chaque cycle si le ninja est **prêt** à monter mais reste bloqué.
+
+---
+
+## 📊 Plafonds de stats par grade
+
+| Grade | Stats combat (tai / nin / gen / med) | Vitesse / Intelligence |
+| :--- | :--- | :--- |
+| **Genin** | 12 | 10 |
+| **Chunin** | 18 | 16 |
+| **Jonin** | 20 | 20 |
+
+- L'entraînement **n'ajoute plus de points** sur une stat déjà au plafond du grade.
+- Pour dépasser le plafond : **passer l'examen** (Genin → Chunin) ou **Vol d'Oiseau** (Chunin → départ, M7).
+
+---
+
+## 💰 Coût Ryos — Examen Chunin (H0–H36)
+
+Frais d'inscription **dynamiques** (prélevés à l'inscription) :
+
+$$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{QI} - 8) \times 30$$
+
+| Profil | Exemple | Coût |
+| :--- | :--- | :--- |
+| Minimum (10 / 8) | Débutant prêt | **300** Ryos |
+| Solide (12 / 10) | Genin mûr | **440** Ryos |
+| Plafond (12 / 10) | Avant examen | **440** Ryos |
+
+*Vol d'Oiseau (M7) : frais de cérémonie prévus (~800 + bonus stats) — à implémenter avec M7.*
+
+---
+
+## ⚠️ Stagnation (pénalité H72)
+
+À chaque **H72**, avant l'entraînement du nouveau cycle :
+
+### Genin stagnant
+
+Conditions **toutes** vraies :
+- Grade `Genin`
+- Prérequis examen atteints (combat ≥ 10, QI ≥ 8)
+- **Pas** inscrit à l'examen ce cycle (`chunin_exam_requested = FALSE` à H72)
+
+**Pénalité :**
+- `weekly_forme` : descend d'un palier (Divin → Excellent → Passable → Lamentable)
+- `moral` : **−3**
+
+### Chunin stagnant
+
+Conditions **toutes** vraies :
+- Grade `Chunin`
+- Meilleure stat combat ≥ **17** (préparation au sommet / Vol d'Oiseau)
+- Toujours Chunin en fin de cycle
+
+**Pénalité :** identique (forme −1 palier, moral −3).
+
+### Pas de pénalité si
+
+- Encore en montée (stats sous les seuils)
+- Inscrit à l'examen Chunin (même en attente de H36)
+- Bot (`is_bot`)
+
+---
+
+## 🔄 Boucle joueur
+
+```text
+Genin s'entraîne → plafond 12 → doit payer l'examen Chunin
+  → refuse / pas de Ryos → forme & moral chutent chaque cycle
+  → paie + réussit H36 → Chunin, plafonds relevés
+
+Chunin s'entraîne → approche 17+ → préparer Vol d'Oiseau (M7)
+  → reste trop longtemps → stagnation
+```
+
+---
+
+## 🛠️ Fichiers moteur
+
+| Fichier | Rôle |
+| :--- | :--- |
+| `gradeProgression.js` | Plafonds, coût examen, détection stagnation |
+| `training.js` | Respect des plafonds à l'entraînement |
+| `stagnation.js` | Application pénalités H72 |
+| `chuninExam.js` / `squadTactics.js` | Coût dynamique à l'inscription |
+| `cycleJobs.js` | Appel stagnation avant entraînement H72 |
+
+---
+
+## 📋 Backlog
+
+- [ ] Examen Jonin / inscription Vol d'Oiseau avec coût Ryos (M7)
+- [ ] UI Bureau : alerte « Stagnation imminente » si plafond ou prérequis atteints
+- [ ] Chronique / notification : « X s'impatiente — forme en baisse »

@@ -4,6 +4,7 @@ import {
   applyPostMatchForMatch,
   persistSenseiChakra,
 } from './combat/postMatch.js';
+import { consumeUserItem } from './equipmentService.js';
 import { assembleNarrative } from './narrative/narrativeAssembler.js';
 import { persistNarrativeSegments } from './narrative/narrativeStore.js';
 
@@ -39,6 +40,9 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
   const results = [];
   for (const match of matches) {
     const combat = await simulateMatchCombat(match.home_user_id, match.away_user_id);
+    for (const itemId of combat.consumedItemIds || []) {
+      await consumeUserItem(itemId);
+    }
     const { result, winnerUserId } = mapWinnerToDb(
       combat.winner,
       match.home_user_id,

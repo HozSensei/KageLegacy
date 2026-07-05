@@ -1,4 +1,7 @@
-export const CHUNIN_EXAM_COST = 300;
+export const CHUNIN_EXAM_BASE_COST = 300;
+
+/** @deprecated Utiliser computeChuninExamCost(ninja) — conservé pour affichage minimum. */
+export const CHUNIN_EXAM_COST = CHUNIN_EXAM_BASE_COST;
 export const COMBAT_REQUIRED = 10;
 export const IQ_REQUIRED = 8;
 

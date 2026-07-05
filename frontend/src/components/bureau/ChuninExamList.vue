@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import {
-  CHUNIN_EXAM_COST,
+  computeChuninExamCost,
   canRegisterForExam,
   getChuninExamProgress,
 } from '../../composables/useChuninExam.js'
@@ -83,6 +83,10 @@ async function register(ninjaId) {
           </div>
         </div>
 
+        <p v-if="ninja.stagnationRisk && !ninja.chunin_exam_requested" class="mt-2 text-[11px] text-fire">
+          {{ t('bureau.chuninExam.stagnationWarning') }}
+        </p>
+
         <button
           v-if="canRegisterForExam(ninja, store.gameClock)"
           type="button"
@@ -93,7 +97,7 @@ async function register(ninjaId) {
           {{
             registeringId === ninja.id
               ? t('bureau.chuninExam.sending')
-              : t('bureau.chuninExam.submit', { cost: CHUNIN_EXAM_COST })
+              : t('bureau.chuninExam.submit', { cost: computeChuninExamCost(ninja) })
           }}
         </button>
       </li>

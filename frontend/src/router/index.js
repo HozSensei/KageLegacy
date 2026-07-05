@@ -3,6 +3,8 @@ import AppLayout from '../layouts/AppLayout.vue'
 import BureauView from '../views/BureauView.vue'
 import SquadView from '../views/SquadView.vue'
 import LeagueView from '../views/LeagueView.vue'
+import MarketView from '../views/MarketView.vue'
+import InventoryView from '../views/InventoryView.vue'
 import OperationView from '../views/OperationView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 
@@ -19,14 +21,12 @@ const router = createRouter({
         {
           path: 'market',
           name: 'market',
-          component: PlaceholderView,
-          props: { titleKey: 'nav.market' },
+          component: MarketView,
         },
         {
           path: 'inventory',
           name: 'inventory',
-          component: PlaceholderView,
-          props: { titleKey: 'nav.inventory' },
+          component: InventoryView,
         },
         {
           path: 'operation',

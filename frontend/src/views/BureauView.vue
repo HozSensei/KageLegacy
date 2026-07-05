@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import ChuninExamList from '../components/bureau/ChuninExamList.vue'
+import IdleMissionPanel from '../components/bureau/IdleMissionPanel.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
@@ -84,8 +85,11 @@ onMounted(async () => {
           <p class="section-label">Jonin-Sensei</p>
           <h2 class="mt-3 font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
           <p class="mt-4 text-sm leading-7 text-ink-muted">
-            Spécialité <span class="text-ink">{{ store.sensei.specialty }}</span>
-            — bonus <span class="text-accent">+15%</span> sur l'entraînement ciblé.
+            {{ t('sensei.interceptionHint') }}
+          </p>
+          <p class="mt-2 text-sm text-ink-faint">
+            {{ t('sensei.chakra') }} :
+            <span class="text-ink">{{ store.sensei.chakraPool }}</span> / 100
           </p>
 
           <div class="mt-8">
@@ -105,6 +109,7 @@ onMounted(async () => {
           </div>
 
           <ChuninExamList />
+          <IdleMissionPanel />
         </div>
 
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">

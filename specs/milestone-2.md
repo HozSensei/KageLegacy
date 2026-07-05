@@ -23,7 +23,7 @@ L'écran principal est découpé en composants autonomes et réutilisables dans 
     *   À droite (3/4 de l'écran) : L'affichage de la composition active (les 3 ninjas).
 
 ### B. `SenseiCard.vue` (Le Profil du Joueur)
-*   **Données affichées :** Nom du Jonin-Sensei, sa spécialité d'entraînement (ex: `+15% progression Genjutsu`), son solde de **Ryos**, ses points de **Réputation** globaux, et sa jauge de **Chakra de Match** (utilisée pour les interceptions).
+*   **Données affichées :** Nom du Jonin-Sensei, son rôle d'**interception** (chakra de match), son solde de **Ryos**, ses points de **Réputation** globaux, et le **focus d'entraînement** du dojo (choix de cycle, pas spécialité fixe).
 *   **Style :** Un encadré premium qui pose l'identité du joueur en tant que chef d'escouade.
 
 ### C. `NinjaCard.vue` (Composant Réutilisable pour l'Escouade)
@@ -51,7 +51,7 @@ export const useSquadStore = defineStore('squad', {
     is_bot: true,
     sensei: {
       name: 'Kakashi',
-      specialty: 'Genjutsu',
+      trainingFocus: 'Genjutsu',
       ryos: 15400,
       reputation: 120,
       chakraPool: 100

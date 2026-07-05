@@ -1,5 +1,4 @@
 import { query } from '../config/database.js';
-import { query } from '../config/database.js';
 import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gameClock.js';
 import { applyTrainingForAllUsers } from './training.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
@@ -9,6 +8,10 @@ import {
   simulateAllPoolsCurrentCycle,
 } from './matchService.js';
 import { incrementPoolCycle } from './poolService.js';
+import { deductSalariesForAllUsers } from './economyService.js';
+import { ensureMarketForAllUsers } from './marketService.js';
+import { resolveMissionsForCycle } from './missionService.js';
+import { applyStagnationForAllUsers } from './stagnation.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -40,25 +43,29 @@ export async function runH71(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h71')) return { skipped: true };
   const simulations = await simulateAllPoolsCurrentCycle();
   await markJobRun(cycleStartAt, 'h71');
-  console.log(`[H71] Simulation stub — ${simulations.length} pool(s)`);
+  console.log(`[H71] Simulation — ${simulations.length} pool(s)`);
   return { simulations };
 }
 
 export async function runH72(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h72')) return { skipped: true };
+  const missionResults = await resolveMissionsForCycle(cycleStartAt);
   const matchResults = await applyAllPoolsMatchResults();
+  const salaries = await deductSalariesForAllUsers();
   const poolCycles = [];
   const pools = await query(`SELECT id FROM pools WHERE status = 'active'`);
   for (const pool of pools) {
     poolCycles.push(await incrementPoolCycle(pool.id));
   }
+  const stagnation = await applyStagnationForAllUsers();
   const trainingLogs = await applyTrainingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
-  await resetCycle();
+  const newClock = await resetCycle();
+  const market = await ensureMarketForAllUsers(newClock.cycleStartAt);
   console.log(
-    `[H72] Résultats ligue appliqués · entraînement (${trainingLogs.length} log(s)) · nouveau cycle`
+    `[H72] Missions ${missionResults.length} · stagnation ${stagnation.length} · salaires · entraînement · marché (${market.length} joueur(s))`
   );
-  return { matchResults, poolCycles, trainingLogs };
+  return { missionResults, matchResults, salaries, poolCycles, stagnation, trainingLogs, market };
 }
 
 export async function processCycleTick() {

@@ -4,7 +4,8 @@
     "ryos": "Ryos",
     "reputation": "Réputation",
     "chakra": "Chakra de match",
-    "specialty": "Spécialité"
+    "interception": "Interception",
+    "interceptionHint": "Réserve passive : peut sauver un élève d'un coup fatal (Substitution, 25 chakra)."
   },
   "ninja": {
     "age": "ans",
@@ -71,7 +72,8 @@
       "submit": "Envoyer à l'examen ({cost} Ryos)",
       "sending": "Inscription…",
       "registered": "Inscrit · H36",
-      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0."
+      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0.",
+      "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72."
     }
   },
   "squad": {
@@ -149,5 +151,58 @@
     "victory": "Victoire",
     "defeat": "Défaite",
     "draw": "Match nul"
+  },
+  "market": {
+    "kicker": "Cycle en cours",
+    "lead": "Trois offres uniques ce cycle — le catalogue expire à H72.",
+    "loading": "Chargement du marché…",
+    "balance": "Solde : {ryos} Ryos",
+    "buy": "Acheter",
+    "buying": "Achat…",
+    "purchased": "Acheté",
+    "situational": "Situationnel",
+    "usesPerMatch": "{count} utilisation(s) / match",
+    "consumableOnce": "Usage unique — détruit après le match",
+    "bureauOnce": "Usage unique — depuis le Bureau",
+    "cycleItem": "Actif tout le cycle (72 h)",
+    "categories": {
+      "bureau": "Bureau",
+      "match": "Match",
+      "cycle": "Cycle"
+    }
+  },
+  "inventory": {
+    "kicker": "Équipement",
+    "lead": "Objets de bureau (utiliser), match ou cycle — 1 objet par ninja.",
+    "loading": "Chargement…",
+    "items": "Inventaire",
+    "ninjas": "Effectif",
+    "selectNinja": "Sélectionnez un ninja à équiper.",
+    "equippedOn": "Équipé sur {name}",
+    "unequipped": "Non assigné",
+    "empty": "Aucun objet — visitez le Marché Noir.",
+    "equip": "Équiper",
+    "use": "Utiliser",
+    "active": "Actif",
+    "bench": "Banc",
+    "slotMatch": "Consommable match",
+    "slotCycle": "Investissement cycle"
+  },
+  "missions": {
+    "title": "Missions de routine",
+    "lead": "Envoyez vos remplaçants en contrat pour gagner des Ryos à la fin du cycle.",
+    "loading": "Chargement…",
+    "pickNinja": "Choisir un remplaçant",
+    "pickRank": "Rang du contrat",
+    "send": "Envoyer en mission",
+    "sending": "Envoi…",
+    "pending": "Récompenses prêtes à collecter.",
+    "collect": "Collecter les Ryos",
+    "collecting": "Collecte…",
+    "ranks": {
+      "D": "Rang D — 500 Ryos",
+      "C": "Rang C — 1 200 Ryos",
+      "B": "Rang B — 2 800 Ryos"
+    }
   }
 }

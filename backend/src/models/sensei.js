@@ -1,7 +1,30 @@
 import { query } from '../config/database.js';
 import { getGameClock } from '../services/gameClock.js';
+import {
+  GRADE_STAT_CAPS,
+  computeChuninExamCost,
+  isChuninStagnant,
+  isGeninStagnant,
+} from '../services/gradeProgression.js';
+import { describeNinjaProfile } from '../services/ninjaProfile.js';
 
 export { getGameClock };
+
+function enrichNinja(ninja) {
+  const language = ninja.language || 'fr';
+  return {
+    ...ninja,
+    chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
+    gradeStatCaps: GRADE_STAT_CAPS[ninja.grade] || GRADE_STAT_CAPS.Genin,
+    stagnationRisk:
+      ninja.grade === 'Genin'
+        ? isGeninStagnant(ninja)
+        : ninja.grade === 'Chunin'
+          ? isChuninStagnant(ninja)
+          : false,
+    profile: describeNinjaProfile(ninja, language),
+  };
+}
 
 export async function findSenseiByUserId(userId) {
   const rows = await query('SELECT * FROM sensei WHERE user_id = ?', [userId]);
@@ -13,7 +36,7 @@ export async function findDemoUser() {
   return rows[0] || null;
 }
 
-export async function createDemoUser({ username, senseiName, specialty = 'Genjutsu', language = 'fr' }) {
+export async function createDemoUser({ username, senseiName, language = 'fr', trainingFocus = 'Genjutsu' }) {
   const userResult = await query(
     'INSERT INTO users (username, is_bot) VALUES (?, FALSE)',
     [username]
@@ -21,9 +44,9 @@ export async function createDemoUser({ username, senseiName, specialty = 'Genjut
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, specialty, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, ?, ?, 15400, 120, 100, ?)`,
-    [userId, senseiName, specialty, specialty, language]
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
+     VALUES (?, ?, ?, 15400, 120, 100, ?)`,
+    [userId, senseiName, trainingFocus, language]
   );
 
   return findDemoUser();
@@ -36,7 +59,7 @@ export async function getSquadPayload(userId) {
 
   const userRows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
   const ninjas = await query(
-    `SELECT n.*, c.name AS clan_name
+    `SELECT n.*, c.name AS clan_name, c.is_noble AS clan_is_noble
      FROM ninjas n
      JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.user_id = ?
@@ -44,14 +67,13 @@ export async function getSquadPayload(userId) {
     [userId]
   );
 
-  const activeSquad = ninjas.filter((n) => n.squad_position !== null);
-  const bench = ninjas.filter((n) => n.squad_position === null);
+  const activeSquad = ninjas.filter((n) => n.squad_position !== null).map(enrichNinja);
+  const bench = ninjas.filter((n) => n.squad_position === null).map(enrichNinja);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
     sensei: {
       name: sensei.name,
-      specialty: sensei.specialty,
       trainingFocus: sensei.training_focus,
       ryos: sensei.ryos,
       reputation: sensei.reputation,

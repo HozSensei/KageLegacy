@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
-import { isTacticsLocked } from '../services/gameClock.js';
+import { getClockRow, isTacticsLocked } from '../services/gameClock.js';
+import { isNinjaOnMission } from '../services/missionService.js';
 
 export async function updateSquadComposition(userId, slots) {
   if (await isTacticsLocked()) {
@@ -19,6 +20,17 @@ export async function updateSquadComposition(userId, slots) {
     const error = new Error('Composition invalide : ninjas introuvables.');
     error.statusCode = 400;
     throw error;
+  }
+
+  const cycleRow = await getClockRow();
+  const cycleStartAt = cycleRow?.cycle_start_at;
+
+  for (const { ninjaId } of slots) {
+    if (cycleStartAt && (await isNinjaOnMission(ninjaId, cycleStartAt))) {
+      const error = new Error('Un ninja en mission ne peut pas rejoindre l\'escouade active.');
+      error.statusCode = 423;
+      throw error;
+    }
   }
 
   await query('UPDATE ninjas SET squad_position = NULL WHERE user_id = ?', [userId]);

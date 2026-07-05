@@ -1,0 +1,170 @@
+# 🧰 M4 — Objets utilitaires & économie des Ryos
+
+**Statut :** direction validée — **implémenté** (migration 011, catalogue, hooks match, POST /inventory/use).
+
+**Décision clé :** les Ryos ne doivent pas reposer sur des bonus de stats en combat. Ils financent la **survie du club** ; le Marché Noir vend des **utilitaires** qui modifient le comportement du simulateur ou la gestion hors-match — pas la puissance brute des ninjas.
+
+---
+
+## 🏛️ Où vont les Ryos (3 piliers)
+
+| Pilier | Rôle | Priorité |
+| :--- | :--- | :--- |
+| **Infrastructure & survie** | Dispensaire, salaires, examens Chunin/Jonin | Gouffre principal — *obligatoire* pour continuer à jouer |
+| **Optimisation du cycle** | Entraînement, objets cycle (poids d'entraînement, livre de stratégie) | Investissement sur l'avenir |
+| **Match (filet tactique)** | 1 consommable par ninja max — secours, contre, rupture légère | Impact **ressenti** mais pas décisif seul (~5–10 % win rate ciblé) |
+
+Si les objets de match sont faibles, **ce n'est pas un bug** tant que les Ryos servent avant tout à soigner, payer l'escouade et monter en grade.
+
+---
+
+## 📦 Simplification BDD & UI (vs M4 actuel)
+
+### On supprime
+
+- Catégories `weapon` et `armor`
+- Slot `gear` permanent et toute la pile `modifiers` (attack/defense/pv/element_resist)
+- Équilibrage « +2 Taijutsu si Offensive + ninjutsu » (usine à gaz pour ~0–2 % d'impact)
+
+### On garde
+
+| Élément | Détail |
+| :--- | :--- |
+| `item_definitions` | ENUM `category` → **`bureau`**, **`match`**, **`cycle`** |
+| `user_items` + inventaire | Inchangé |
+| `ninja_equipment` | **1 slot max** : `match` **ou** `cycle` (pas les deux sur le même ninja en V1) |
+| Marché | 3 offres / cycle, utilitaires uniquement |
+| `equipment.js` | Réduit à **handlers d'événements** match (pas de bonus stats permanents) |
+
+### UI inventaire
+
+- **Bureau** : bouton « Utiliser » sur objets `bureau` (pilule de forme, etc.)
+- **Escouade** : 1 emplacement « Consommable de match » par ninja actif
+- **Effectif** : emplacement « Investissement cycle » (ex. poids d'entraînement) sur remplaçants / ninjas non en mission
+
+---
+
+## 🎒 Catalogue Marché Noir (proposition V1 — ~9 objets)
+
+### A. Consommables Bureau (`category: bureau`)
+
+Usage depuis l'inventaire / Bureau. **Pas de slot combat.**
+
+| Slug | Nom | Effet | Prix |
+| :--- | :--- | :--- | :--- |
+| `pilule-recuperation` | Pilule de récupération | Remonte la **Forme** d'un ninja d'**un palier** (ex. Lamentable → Passable). Moins cher que le Dispensaire, usage unique. | 400 |
+| `livre-strategie` | Livre de stratégie | Prochain entraînement : **+3 Intelligence** pour le jet ; réduit le risque que le trait **Fainéant** annule la session. | 350 |
+| `bandage-rapide` | Bandage rapide | Soigne **15 % des PV max** hors match (entre deux cycles, ninja non KO). | 300 |
+
+*API : `POST /api/inventory/use` avec `userItemId` + `ninjaId`.*
+
+### B. Consommables Match (`category: match`)
+
+Équipés sur un ninja actif. **1 usage / match**, détruits après. Effets = **mécaniques**, pas +stats.
+
+| Slug | Nom | Effet | Prix |
+| :--- | :--- | :--- | :--- |
+| `fumigene-secours` | Fumigène de secours | Si le ninja **subirait un coup mettant PV à 0** (après interception Sensei) : dégâts **−50 %**, objet détruit. | 550 |
+| `parchemin-rupture` | Parchemin de rupture | Si l'adversaire attaque en **Genjutsu** contre ce ninja : **+4** au jet de dissipation (tour de la riposte mentale). 1× / match. | 600 |
+| `herbes-apaisantes` | Herbes apaisantes | Si PV **< 20 %** en cours de match : **+15 PV**. Auto. | 500 |
+| `cachet-chakra` | Cachet de chakra | Si Chakra **< 15 %** : **+12 Chakra**. Auto. | 500 |
+| `parchemin-leurre` | Parchemin de leurre | **1×** : si ciblé, **30 %** de chance de rediriger vers un autre allié. | 550 |
+
+*Moteur : hooks dans `trySenseiSave` / `resolveGenjutsuDuel` / `pickDefender` / `tryConsumables` — logs explicites pour M6.*
+
+### C. Objets Cycle (`category: cycle`)
+
+Assignés pour **tout le cycle** (72 h). Effet principal **hors combat** ; malus/bonus match léger et prévisible.
+
+| Slug | Nom | Effet match | Effet cycle | Prix |
+| :--- | :--- | :--- | :--- | :--- |
+| `poids-entrainement` | Poids d'entraînement | **−2 Vitesse** en match | **+20 %** gains d'entraînement à la fin du cycle | 900 |
+| `ration-combat` | Ration de combat | Aucun | **−10 %** coût salaire de ce ninja au prélèvement H72 | 750 |
+
+*Retiré automatiquement si ninja envoyé en mission idle (ou bloqué à l'envoi — à trancher).*
+
+---
+
+## 🏥 Leviers économiques hors Marché (M4+ / M7 / backlog)
+
+Ces dépenses donnent la **vraie** valeur aux Ryos ; le Marché est un complément.
+
+| Système | Milestone | Effet |
+| :--- | :--- | :--- |
+| **Dispensaire** | M6/M7 backlog | Soigner Forme / KO entre cycles — coût croissant |
+| **Examens Chunin / Jonin** | M4+ | Frais **dynamiques** (base 300 + bonus stats) ; stagnation H72 si pas d'évolution |
+| **Dojo — Terrain gravitationnel** | Backlog | Amélioration permanente : +5 % XP entraînement / cycle |
+| **Salaires H72** | M4 ✅ | Pression économique récurrente |
+| **Missions idle** | M4 ✅ | Entrée / sortie de Ryos |
+
+---
+
+## ⚙️ Moteur combat — surface minimale
+
+```text
+match consumables (effects JSON)
+├── trigger: lethal_mitigation   → fumigène (−50 % dégâts fatals)
+├── trigger: genjutsu_defense    → parchemin rupture
+├── trigger: pv_below_pct        → herbes (existant)
+├── trigger: chakra_below_pct    → cachet (existant)
+└── trigger: on_targeted         → leurre (nouveau, pickDefender)
+```
+
+**Supprimé du moteur :** `getSituationalAttackBonus`, `getSituationalDefenseBonus`, modificateurs PV gear, `firstTourSpeedBonus` lié aux objets (l'initiative redevient 100 % stats + traits).
+
+**Cycle :** malus vitesse du poids appliqué dans `teamTacticalSpeed` ; bonus entraînement dans le job H72 / service entraînement.
+
+---
+
+## 📖 Chronique M6
+
+| Événement log | Phrase type |
+| :--- | :--- |
+| `item_smoke_save` | « {ninja} lâche un fumigène — le coup fatal se dissipe dans la brume. » |
+| `item_rupture_scroll` | « {ninja} brise l'illusion d'un geste du parchemin de rupture. » |
+| `item_decoy` | « Leurre ! L'assaillant se trompe de cible. » |
+| `item_unused` | Débriefing : objet équipé mais jamais déclenché |
+
+---
+
+## 🎲 Équilibrage cible
+
+| Scénario | Δ win rate |
+| :--- | :--- |
+| Aucun objet de match | baseline |
+| Objet mal choisi / jamais proc | **0 à +2 pts** |
+| Fumigène sur Tank fragile ou rupture vs équipe genjutsu | **+5 à +10 pts** |
+| Poids d'entraînement | **0 % combat** ; valeur sur **2–3 cycles** (stats réelles) |
+
+Le couple **consignes ±30 pts** reste dominant.
+
+---
+
+## 🔄 Migration depuis l'existant
+
+1. `009_utility_simplify.sql` — nouvel ENUM category, DELETE seeds weapon/armor, INSERT catalogue ci-dessus
+2. `ninja_equipment.slot` → `ENUM('match','cycle')` ; migrer `gear`/`consumable` → `match` ou supprimer
+3. Réécrire `equipment.js` (~150 lignes → ~80)
+4. `InventoryView` : 1 slot match + section cycle + bouton Utiliser (bureau)
+5. Retirer `describeUsageLimits` complexe pour armes
+
+---
+
+## ✅ Réponse à la question produit
+
+**Oui — on simplifie vers des utilitaires / consommables uniquement.**
+
+- Pas de slot arme/armure permanent en combat.
+- Ryos = club (dispensaire, salaires, examens, dojo) + optimisation cycle.
+- Marché = filets tactiques et confort, pas power creep.
+- Code plus simple, chronique plus lisible, économie plus saine.
+
+Les idées « tempo / initiative / +1 atk » du catalogue précédent passent en **backlog optionnel** si les 5 consommables match + 3 bureau + 2 cycle suffisent en playtest.
+
+---
+
+## 💤 Backlog (si besoin plus tard)
+
+- Parchemin d'éclair (+initiative T1) — seulement si les match consumables manquent de variété
+- Kit dojo (améliorations permanentes multi-niveaux)
+- Poudre révélatrice (contre leurre ennemi)

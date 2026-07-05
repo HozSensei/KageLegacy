@@ -1,6 +1,5 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
-import Badge from '../ui/Badge.vue'
 
 defineProps({
   sensei: { type: Object, required: true },
@@ -25,10 +24,9 @@ const { t } = useI18n()
 
       <dl class="mt-5 grid grid-cols-1 gap-4" :class="compact ? '' : 'sm:grid-cols-2'">
         <div class="overflow-hidden rounded-lg bg-gray-900/50 px-3 py-3 ring-1 ring-white/5">
-          <dt class="truncate text-xs font-medium text-gray-500">{{ t('sensei.specialty') }}</dt>
-          <dd class="mt-1 flex items-center gap-2">
-            <Badge color="purple">+15%</Badge>
-            <span class="text-sm font-medium text-white">{{ sensei.specialty }}</span>
+          <dt class="truncate text-xs font-medium text-gray-500">{{ t('sensei.interception') }}</dt>
+          <dd class="mt-1 text-sm leading-6 text-gray-300">
+            {{ t('sensei.interceptionHint') }}
           </dd>
         </div>
         <div class="overflow-hidden rounded-lg bg-gray-900/50 px-3 py-3 ring-1 ring-white/5">
