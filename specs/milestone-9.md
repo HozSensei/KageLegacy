@@ -34,7 +34,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | M6 — Chronique `/operation` | 🟡 | Pipeline narratif ; **à réviser** quand objets enrichis |
 | M8 — Pools, classement, calendrier | 🟡 | Bots, ligue UI ; **promotions/relégations manquantes** |
 | Swap actifs ↔ banc | 🟡 | API + UI survol ; **styles à valider** |
-| M4 — Marché, missions, équipement | 🟡 | PR en cours ; **pivot catalogue utilitaire** à implémenter (spec catalogue prête) |
+| M4 — Marché, missions, équipement | 🟡 | PR en cours ; pivot utilitaire ; **progression grades** (plafonds + stagnation) |
 
 ---
 
@@ -138,6 +138,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [ ] M8 : `join_or_create_pool` + inscription par invitation
 - [ ] M7 : Vol d'Oiseau (H72 post-résultats)
 - [ ] Dispensaire (forme, coût Ryos ?)
+- [ ] UI alerte stagnation Chunin (combat ≥ 17)
 - [ ] `npm run combat:benchmark` — script de régression d'équilibre
 - [ ] Narration : phrases pour `sensei_interception`, objet consommé, proc arme épuisée
 - [ ] Débriefing M6 : alerte si objets équipés mais 0 proc (mauvaise consigne)

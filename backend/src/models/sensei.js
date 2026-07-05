@@ -1,7 +1,27 @@
 import { query } from '../config/database.js';
 import { getGameClock } from '../services/gameClock.js';
+import {
+  GRADE_STAT_CAPS,
+  computeChuninExamCost,
+  isChuninStagnant,
+  isGeninStagnant,
+} from '../services/gradeProgression.js';
 
 export { getGameClock };
+
+function enrichNinja(ninja) {
+  return {
+    ...ninja,
+    chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
+    gradeStatCaps: GRADE_STAT_CAPS[ninja.grade] || GRADE_STAT_CAPS.Genin,
+    stagnationRisk:
+      ninja.grade === 'Genin'
+        ? isGeninStagnant(ninja)
+        : ninja.grade === 'Chunin'
+          ? isChuninStagnant(ninja)
+          : false,
+  };
+}
 
 export async function findSenseiByUserId(userId) {
   const rows = await query('SELECT * FROM sensei WHERE user_id = ?', [userId]);
@@ -44,8 +64,8 @@ export async function getSquadPayload(userId) {
     [userId]
   );
 
-  const activeSquad = ninjas.filter((n) => n.squad_position !== null);
-  const bench = ninjas.filter((n) => n.squad_position === null);
+  const activeSquad = ninjas.filter((n) => n.squad_position !== null).map(enrichNinja);
+  const bench = ninjas.filter((n) => n.squad_position === null).map(enrichNinja);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),

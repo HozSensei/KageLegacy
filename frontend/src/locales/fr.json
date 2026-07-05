@@ -71,7 +71,8 @@
       "submit": "Envoyer à l'examen ({cost} Ryos)",
       "sending": "Inscription…",
       "registered": "Inscrit · H36",
-      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0."
+      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0.",
+      "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72."
     }
   },
   "squad": {

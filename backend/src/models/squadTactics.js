@@ -1,8 +1,6 @@
 import { query } from '../config/database.js';
-import {
-  CHUNIN_EXAM_COST,
-  meetsChuninRequirements,
-} from '../services/chuninExam.js';
+import { meetsChuninRequirements } from '../services/chuninExam.js';
+import { computeChuninExamCost } from '../services/gradeProgression.js';
 import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
 
 export async function updateBattleStrategies(userId, strategies) {
@@ -76,14 +74,16 @@ export async function requestChuninExam(userId, ninjaId) {
     throw error;
   }
 
-  if (ninja.ryos < CHUNIN_EXAM_COST) {
-    const error = new Error(`Ryos insuffisants (${CHUNIN_EXAM_COST} requis).`);
+  const examCost = computeChuninExamCost(ninja);
+
+  if (ninja.ryos < examCost) {
+    const error = new Error(`Ryos insuffisants (${examCost} requis).`);
     error.statusCode = 402;
     throw error;
   }
 
-  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [CHUNIN_EXAM_COST, userId]);
+  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [examCost, userId]);
   await query('UPDATE ninjas SET chunin_exam_requested = TRUE WHERE id = ?', [ninjaId]);
 
-  return { ninjaId, cost: CHUNIN_EXAM_COST };
+  return { ninjaId, cost: examCost };
 }

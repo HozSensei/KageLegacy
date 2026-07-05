@@ -1,5 +1,5 @@
 import { query } from '../config/database.js';
-import { clampStat } from './ninjaStats.js';
+import { clampStatToGradeCap, isStatAtGradeCap } from './gradeProgression.js';
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
@@ -25,6 +25,16 @@ function statColumnForFocus(focus) {
 export function computeTrainingGain(ninja, sensei) {
   const column = statColumnForFocus(sensei.training_focus);
   if (!column) return { column: null, gain: 0, skipped: true, reason: 'invalid_focus' };
+
+  if (isStatAtGradeCap(ninja, column)) {
+    return {
+      column,
+      gain: 0,
+      skipped: true,
+      reason: 'grade_cap',
+      log: `${ninja.name} a atteint le plafond ${ninja.grade} en ${column} — passage de grade requis.`,
+    };
+  }
 
   if (ninja.character_trait === 'Faineant' && Math.floor(Math.random() * 100) < 15) {
     return {
@@ -65,7 +75,7 @@ export async function applyTrainingForUser(userId) {
 
     if (wholePoints > 0) {
       const column = result.column;
-      const newValue = clampStat(ninja[column] + wholePoints);
+      const newValue = clampStatToGradeCap(ninja, column, ninja[column] + wholePoints);
       await query(`UPDATE ninjas SET ${column} = ?, training_residual = ? WHERE id = ?`, [
         newValue,
         newResidual,

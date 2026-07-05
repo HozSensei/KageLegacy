@@ -11,6 +11,7 @@ import { incrementPoolCycle } from './poolService.js';
 import { deductSalariesForAllUsers } from './economyService.js';
 import { ensureMarketForAllUsers } from './marketService.js';
 import { resolveMissionsForCycle } from './missionService.js';
+import { applyStagnationForAllUsers } from './stagnation.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -56,14 +57,15 @@ export async function runH72(cycleStartAt) {
   for (const pool of pools) {
     poolCycles.push(await incrementPoolCycle(pool.id));
   }
+  const stagnation = await applyStagnationForAllUsers();
   const trainingLogs = await applyTrainingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
   const newClock = await resetCycle();
   const market = await ensureMarketForAllUsers(newClock.cycleStartAt);
   console.log(
-    `[H72] Missions ${missionResults.length} · ligue · salaires · entraînement · marché (${market.length} joueur(s))`
+    `[H72] Missions ${missionResults.length} · stagnation ${stagnation.length} · salaires · entraînement · marché (${market.length} joueur(s))`
   );
-  return { missionResults, matchResults, salaries, poolCycles, trainingLogs, market };
+  return { missionResults, matchResults, salaries, poolCycles, stagnation, trainingLogs, market };
 }
 
 export async function processCycleTick() {

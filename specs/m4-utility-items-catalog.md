@@ -92,7 +92,7 @@ Ces dépenses donnent la **vraie** valeur aux Ryos ; le Marché est un compléme
 | Système | Milestone | Effet |
 | :--- | :--- | :--- |
 | **Dispensaire** | M6/M7 backlog | Soigner Forme / KO entre cycles — coût croissant |
-| **Examens Chunin / Jonin** | M8+ | Frais d'inscription obligatoires pour monter en grade |
+| **Examens Chunin / Jonin** | M4+ | Frais **dynamiques** (base 300 + bonus stats) ; stagnation H72 si pas d'évolution |
 | **Dojo — Terrain gravitationnel** | Backlog | Amélioration permanente : +5 % XP entraînement / cycle |
 | **Salaires H72** | M4 ✅ | Pression économique récurrente |
 | **Missions idle** | M4 ✅ | Entrée / sortie de Ryos |

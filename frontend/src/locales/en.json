@@ -71,7 +71,8 @@
       "submit": "Send to exam ({cost} Ryos)",
       "sending": "Registering…",
       "registered": "Registered · H36",
-      "closed": "Registration closed this cycle — next window at H0."
+      "closed": "Registration closed this cycle — next window at H0.",
+      "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72."
     }
   },
   "squad": {
