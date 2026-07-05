@@ -81,6 +81,11 @@
     "activeSquad": "Escouade active",
     "bench": "Remplaçants",
     "benchHint": "Survolez une carte pour la dégager du tas et la consulter.",
+    "swapAction": "Remplacer",
+    "removeAction": "Retirer de l'équipe",
+    "swapPending": "Choisissez le ninja à échanger.",
+    "slotEmpty": "Complétez l'escouade en remplaçant le poste vacant.",
+    "emptySlot": "Poste vacant",
     "tacticsLocked": "Les consignes sont gelées pour l'Opération (à partir de H71).",
     "saving": "Enregistrement…",
     "tacticalSpeed": "Vitesse tactique",
@@ -126,5 +131,23 @@
     "matchSimulated": "Simulé — chronique à H71",
     "matchLive": "Opération en cours",
     "matchDone": "Terminé"
+  },
+  "operation": {
+    "kicker": "Frontière",
+    "lead": "Chronique romancée de votre opération hebdomadaire — révélée progressivement à H71.",
+    "loading": "Chargement du rapport…",
+    "scheduled": "Prochain adversaire : {opponent}. La chronique s'ouvrira à H71.",
+    "waiting": "En attente du début de l'opération ou de la simulation du match.",
+    "reportTitle": "Rapport de l'opération",
+    "noChronicle": "Aucun segment débloqué pour le moment.",
+    "debriefTitle": "Conseils du Sensei",
+    "showMechanical": "Détails tactiques",
+    "hideMechanical": "Masquer les détails",
+    "possession": "Possession",
+    "remainingPower": "Puissance restante",
+    "endingTour": "Tours joués",
+    "victory": "Victoire",
+    "defeat": "Défaite",
+    "draw": "Match nul"
   }
 }

@@ -81,6 +81,11 @@
     "activeSquad": "Active squad",
     "bench": "Bench",
     "benchHint": "Hover a card to bring it forward from the stack.",
+    "swapAction": "Replace",
+    "removeAction": "Remove from squad",
+    "swapPending": "Pick the ninja to swap with.",
+    "slotEmpty": "Fill the open slot to complete your squad.",
+    "emptySlot": "Open slot",
     "tacticsLocked": "Orders are locked for the Operation (from H71 onward).",
     "saving": "Saving…",
     "tacticalSpeed": "Tactical speed",
@@ -126,5 +131,23 @@
     "matchSimulated": "Simulated — chronicle at H71",
     "matchLive": "Operation live",
     "matchDone": "Finished"
+  },
+  "operation": {
+    "kicker": "Border",
+    "lead": "Romanced chronicle of your weekly operation — revealed progressively at H71.",
+    "loading": "Loading report…",
+    "scheduled": "Next opponent: {opponent}. The chronicle opens at H71.",
+    "waiting": "Waiting for the operation to begin or for the match simulation.",
+    "reportTitle": "Operation report",
+    "noChronicle": "No segment unlocked yet.",
+    "debriefTitle": "Sensei advice",
+    "showMechanical": "Tactical details",
+    "hideMechanical": "Hide details",
+    "possession": "Possession",
+    "remainingPower": "Remaining power",
+    "endingTour": "Rounds played",
+    "victory": "Victory",
+    "defeat": "Defeat",
+    "draw": "Draw"
   }
 }

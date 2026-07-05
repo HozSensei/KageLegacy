@@ -183,6 +183,63 @@
     transform: translateY(-12px);
   }
 
+  .squad-card-wrap {
+    @apply pt-4;
+  }
+
+  .squad-card-actions {
+    @apply pointer-events-none absolute left-1/2 z-40 flex -translate-x-1/2 gap-2 opacity-0 transition-opacity duration-200;
+    top: 0;
+  }
+
+  .squad-card-actions--bench {
+    @apply gap-0;
+  }
+
+  .group:hover .squad-card-actions,
+  .group:focus-within .squad-card-actions,
+  .squad-card-slot--pending .squad-card-actions {
+    @apply pointer-events-auto opacity-100;
+  }
+
+  .squad-card-action {
+    @apply flex h-9 w-9 items-center justify-center rounded-full border border-line bg-bg-soft text-ink-muted shadow-md transition hover:border-accent/50 hover:text-accent;
+  }
+
+  .squad-card-action--remove:hover {
+    @apply border-fire/50 text-fire;
+  }
+
+  .squad-card-action__icon {
+    @apply h-4 w-4;
+  }
+
+  .group:hover .squad-card-action__icon--swap,
+  .squad-card-slot--pending .squad-card-action__icon--swap {
+    animation: squad-swap-spin 2s linear infinite;
+  }
+
+  @keyframes squad-swap-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .squad-card-slot--pending .squad-card-wrap {
+    @apply ring-2 ring-accent/50 rounded-[20px];
+  }
+
+  .squad-card-slot--target .squad-card-wrap {
+    @apply ring-2 ring-accent/30 rounded-[20px];
+  }
+
+  .chronicle {
+    font-family: var(--font-display, 'Cormorant Garamond', serif);
+  }
+
   .btn-ghost {
     @apply border border-line px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-ink-muted transition hover:border-ink-faint hover:text-ink;
   }

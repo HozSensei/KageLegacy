@@ -4,6 +4,8 @@ import {
   applyPostMatchForMatch,
   persistSenseiChakra,
 } from './combat/postMatch.js';
+import { assembleNarrative } from './narrative/narrativeAssembler.js';
+import { persistNarrativeSegments } from './narrative/narrativeStore.js';
 
 function mapWinnerToDb(winner, homeUserId, awayUserId) {
   if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
@@ -16,6 +18,15 @@ function mapScores(winner, endReason) {
   const koBonus = endReason === 'ko' ? 2 : 1;
   if (winner === 'home') return { homeScore: koBonus, awayScore: 0 };
   return { homeScore: 0, awayScore: koBonus };
+}
+
+async function loadNarrativeContext(userId) {
+  const senseiRows = await query('SELECT name FROM sensei WHERE user_id = ?', [userId]);
+  const ninjas = await query(
+    `SELECT name FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+    [userId]
+  );
+  return { senseiName: senseiRows[0]?.name || 'Sensei', ninjas };
 }
 
 export async function simulateMatchesForCycle(poolId, seasonCycle) {
@@ -39,7 +50,36 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
     await persistSenseiChakra(match.away_user_id, combat.awayTeam.sensei.chakraPool);
 
     const now = new Date();
-    const endingReveal = new Date(now.getTime() + 45 * 60 * 1000);
+    const combatLogPayload = {
+      logs: combat.logs,
+      endReason: combat.endReason,
+      homeScorePct: combat.homeScorePct,
+      awayScorePct: combat.awayScorePct,
+      koNinjaIds: combat.koNinjaIds,
+      possession: combat.possession,
+    };
+
+    const [homeCtx, awayCtx] = await Promise.all([
+      loadNarrativeContext(match.home_user_id),
+      loadNarrativeContext(match.away_user_id),
+    ]);
+
+    const narrative = assembleNarrative({
+      homeSensei: homeCtx.senseiName,
+      awaySensei: awayCtx.senseiName,
+      homeNinjas: homeCtx.ninjas,
+      awayNinjas: awayCtx.ninjas,
+      combatLog: combatLogPayload,
+      winner: combat.winner,
+      endReason: combat.endReason,
+      endingTour: combat.endingTour,
+    });
+
+    await persistNarrativeSegments(match.id, narrative.segments);
+
+    const endingReveal = new Date(
+      now.getTime() + narrative.endingRevealMinutes * 60 * 1000
+    );
 
     await query(
       `UPDATE matches
@@ -53,14 +93,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
         scores.awayScore,
         winnerUserId,
         combat.endingTour,
-        JSON.stringify({
-          logs: combat.logs,
-          endReason: combat.endReason,
-          homeScorePct: combat.homeScorePct,
-          awayScorePct: combat.awayScorePct,
-          koNinjaIds: combat.koNinjaIds,
-          possession: combat.possession,
-        }),
+        JSON.stringify(combatLogPayload),
         now,
         endingReveal,
         match.id,

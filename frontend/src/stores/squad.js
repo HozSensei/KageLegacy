@@ -37,6 +37,26 @@ export const useSquadStore = defineStore('squad', () => {
     }
   }
 
+  async function saveComposition(activeOrdered) {
+    error.value = null
+    const payload = {
+      slots: activeOrdered.map((ninja, index) => ({
+        position: index + 1,
+        ninjaId: ninja.id,
+      })),
+    }
+    const res = await fetch(`${API_BASE}/api/squad/composition`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
   async function saveStrategies(strategies) {
     error.value = null
     const payload = {
@@ -100,6 +120,7 @@ export const useSquadStore = defineStore('squad', () => {
     bench,
     gameClock,
     fetchSquad,
+    saveComposition,
     saveStrategies,
     saveTrainingFocus,
     requestChuninExam,
