@@ -159,6 +159,8 @@
     "buying": "Achat…",
     "purchased": "Acheté",
     "situational": "Situationnel",
+    "usesPerMatch": "{count} utilisation(s) / match",
+    "consumableOnce": "Usage unique — détruit après le match",
     "categories": {
       "weapon": "Arme",
       "armor": "Armure",

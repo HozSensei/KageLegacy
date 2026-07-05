@@ -15,6 +15,13 @@ const itemDesc = (item) => (locale.value === 'en' ? item.descriptionEn : item.de
 
 const categoryLabel = (cat) => t(`market.categories.${cat}`)
 
+function usageLabel(offer) {
+  if (offer.category === 'consumable') return t('market.consumableOnce')
+  const limit = offer.usageLimits?.[0]
+  if (!limit) return ''
+  return t('market.usesPerMatch', { count: limit.uses })
+}
+
 onMounted(fetchMarket)
 
 async function fetchMarket() {
@@ -80,7 +87,7 @@ const canBuy = computed(() => (offer) => !offer.purchased && (market.value?.ryos
           <h2 class="mt-3 font-display text-xl text-ink">{{ itemName(offer) }}</h2>
           <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ itemDesc(offer) }}</p>
           <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-            {{ t('market.situational') }}
+            {{ t('market.situational') }} · {{ usageLabel(offer) }}
           </p>
           <p class="mt-6 text-sm text-ink">{{ offer.price.toLocaleString() }} Ryos</p>
 

@@ -13,6 +13,13 @@ const saving = ref(false)
 
 const itemName = (item) => (locale.value === 'en' ? item.name_en : item.name_fr)
 
+function usageLabel(item) {
+  if (item.category === 'consumable') return t('market.consumableOnce')
+  const limit = item.usageLimits?.[0]
+  if (!limit) return ''
+  return t('market.usesPerMatch', { count: limit.uses })
+}
+
 onMounted(fetchInventory)
 
 async function fetchInventory() {
@@ -96,6 +103,7 @@ async function unequip(ninjaId, slot) {
             @click="selectedItemId = item.id"
           >
             <p class="text-sm text-ink">{{ itemName(item) }}</p>
+            <p class="mt-1 text-xs text-ink-faint">{{ usageLabel(item) }}</p>
             <p class="mt-1 text-xs text-ink-faint">
               {{ item.equipped_ninja_name ? t('inventory.equippedOn', { name: item.equipped_ninja_name }) : t('inventory.unequipped') }}
             </p>

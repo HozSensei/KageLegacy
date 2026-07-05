@@ -77,4 +77,13 @@ console.assert(
   'Pas de résistance taijutsu'
 );
 
+// Limite d'utilisation : 3 procs attaque max
+f = fighter({ battle_strategy: 'Offensive' });
+applyEquipmentToFighter(f, offensiveNinjutsuWeapon);
+const tech = { type: 'ninjutsu', stat: 'ninjutsu' };
+console.assert(getSituationalAttackBonus(f, tech) === 2, 'Proc 1');
+console.assert(getSituationalAttackBonus(f, tech) === 2, 'Proc 2');
+console.assert(getSituationalAttackBonus(f, tech) === 2, 'Proc 3');
+console.assert(getSituationalAttackBonus(f, tech) === 0, 'Proc 4 bloquée');
+
 console.log('equipment balance tests OK');

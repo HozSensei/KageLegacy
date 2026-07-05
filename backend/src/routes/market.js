@@ -2,8 +2,26 @@ import { Router } from 'express';
 import { query } from '../config/database.js';
 import { findDemoUser, getGameClock } from '../models/sensei.js';
 import { ensureMarketForUser, getMarketOffers, purchaseOffer } from '../services/marketService.js';
+import { describeUsageLimits } from '../services/combat/equipmentConstants.js';
 
 const router = Router();
+
+function mapOffers(offers) {
+  return offers.map((o) => ({
+    id: o.id,
+    slotIndex: o.slot_index,
+    purchased: Boolean(o.purchased),
+    slug: o.slug,
+    category: o.category,
+    nameFr: o.name_fr,
+    nameEn: o.name_en,
+    descriptionFr: o.description_fr,
+    descriptionEn: o.description_en,
+    price: o.price,
+    effects: typeof o.effects === 'string' ? JSON.parse(o.effects) : o.effects,
+    usageLimits: describeUsageLimits(o.effects, o.category),
+  }));
+}
 
 router.get('/', async (_req, res, next) => {
   try {
@@ -24,19 +42,7 @@ router.get('/', async (_req, res, next) => {
     const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
 
     res.json({
-      offers: offers.map((o) => ({
-        id: o.id,
-        slotIndex: o.slot_index,
-        purchased: Boolean(o.purchased),
-        slug: o.slug,
-        category: o.category,
-        nameFr: o.name_fr,
-        nameEn: o.name_en,
-        descriptionFr: o.description_fr,
-        descriptionEn: o.description_en,
-        price: o.price,
-        effects: typeof o.effects === 'string' ? JSON.parse(o.effects) : o.effects,
-      })),
+      offers: mapOffers(offers),
       ryos: senseiRows[0]?.ryos ?? 0,
       gameClock: clock,
     });

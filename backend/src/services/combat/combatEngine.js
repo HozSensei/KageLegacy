@@ -8,7 +8,7 @@ import {
   TEMERAIRE_CHAKRA_COST,
 } from './constants.js';
 import { elementDamageMultiplier } from './element.js';
-import { getFirstTourSpeedBonus, getSituationalAttackBonus, getSituationalDefenseBonus, tryConsumables } from './equipment.js';
+import { getFirstTourSpeedBonus, getSituationalAttackBonus, getSituationalDefenseBonus, tryConsumables, collectConsumedItemIds } from './equipment.js';
 import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
 import { POINTS_WIN_MARGIN } from './constants.js';
 
@@ -376,6 +376,10 @@ export function simulateCombat(homeTeam, awayTeam) {
     .map((f) => ({ id: f.id, name: f.name, side: f.side }));
 
   const totalPossession = homePossession + awayPossession || 1;
+  const allConsumed = [
+    ...consumedItemIds,
+    ...collectConsumedItemIds([...homeTeam.fighters, ...awayTeam.fighters]),
+  ];
 
   return {
     logs,
@@ -385,7 +389,7 @@ export function simulateCombat(homeTeam, awayTeam) {
     homeTeam,
     awayTeam,
     koNinjaIds,
-    consumedItemIds: [...new Set(consumedItemIds)],
+    consumedItemIds: [...new Set(allConsumed)],
     homeScorePct: Math.round(teamRemainingScore(homeTeam) * 100),
     awayScorePct: Math.round(teamRemainingScore(awayTeam) * 100),
     possession: {

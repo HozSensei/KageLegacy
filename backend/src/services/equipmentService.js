@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { getClockRow } from './gameClock.js';
+import { describeUsageLimits } from './combat/equipmentConstants.js';
 
 export async function getInventoryForUser(userId) {
   const items = await query(
@@ -32,7 +33,13 @@ export async function getInventoryForUser(userId) {
     [userId]
   );
 
-  return { items, ninjas };
+  return {
+    items: items.map((item) => ({
+      ...item,
+      usageLimits: describeUsageLimits(item.effects, item.category),
+    })),
+    ninjas,
+  };
 }
 
 function slotForCategory(category) {
