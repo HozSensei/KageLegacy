@@ -2,15 +2,19 @@ import { Router } from 'express';
 import { findDemoUser, getGameClock, getSquadPayload } from '../models/sensei.js';
 import { updateSquadComposition } from '../models/squadComposition.js';
 import {
+  requestBirdFlight,
   requestChuninExam,
   updateBattleStrategies,
   updateTrainingFocus,
 } from '../models/squadTactics.js';
 import {
+  dismissNotificationSchema,
+  requestBirdFlightSchema,
   requestChuninExamSchema,
   updateStrategiesSchema,
   updateTrainingFocusSchema,
 } from '../validators/squadTactics.js';
+import { dismissNotification } from '../services/birdFlightService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
 
 const router = Router();
@@ -77,6 +81,41 @@ router.post('/chunin-exam', async (req, res, next) => {
 
     const parsed = requestChuninExamSchema.parse(req.body);
     await requestChuninExam(user.id, parsed.ninjaId);
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
+    res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/bird-flight', async (req, res, next) => {
+  try {
+    const user = await requireDemoUser(res);
+    if (!user) return;
+
+    const parsed = requestBirdFlightSchema.parse(req.body);
+    await requestBirdFlight(user.id, parsed.ninjaId);
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
+    res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/notifications/dismiss', async (req, res, next) => {
+  try {
+    const user = await requireDemoUser(res);
+    if (!user) return;
+
+    const parsed = dismissNotificationSchema.parse(req.body);
+    const dismissed = await dismissNotification(user.id, parsed.notificationId);
+    if (!dismissed) {
+      return res.status(404).json({ error: 'Notification introuvable.' });
+    }
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

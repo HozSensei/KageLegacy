@@ -27,3 +27,11 @@ export const setHourSchema = z.object({
 export const requestChuninExamSchema = z.object({
   ninjaId: z.number().int().positive(),
 });
+
+export const requestBirdFlightSchema = z.object({
+  ninjaId: z.number().int().positive(),
+});
+
+export const dismissNotificationSchema = z.object({
+  notificationId: z.number().int().positive(),
+});

@@ -13,6 +13,7 @@ import { ensureMarketForAllUsers } from './marketService.js';
 import { resolveMissionsForCycle } from './missionService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
+import { processBirdFlightsForAllUsers } from './birdFlightService.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -59,13 +60,14 @@ export async function runH72(cycleStartAt) {
     poolCycles.push(await incrementPoolCycle(pool.id));
   }
   const seasonTransitions = await processAllCompletedSeasons(poolCycles);
+  const birdFlights = await processBirdFlightsForAllUsers();
   const stagnation = await applyStagnationForAllUsers();
   const trainingLogs = await applyTrainingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
   const newClock = await resetCycle();
   const market = await ensureMarketForAllUsers(newClock.cycleStartAt);
   console.log(
-    `[H72] Missions ${missionResults.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement · marché (${market.length} joueur(s))`
+    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement · marché (${market.length} joueur(s))`
   );
   return {
     missionResults,
@@ -73,6 +75,7 @@ export async function runH72(cycleStartAt) {
     salaries,
     poolCycles,
     seasonTransitions,
+    birdFlights,
     stagnation,
     trainingLogs,
     market,

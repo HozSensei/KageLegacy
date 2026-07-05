@@ -5,6 +5,8 @@ import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import ChuninExamList from '../components/bureau/ChuninExamList.vue'
 import ChuninStagnationPanel from '../components/bureau/ChuninStagnationPanel.vue'
+import BirdFlightPanel from '../components/bureau/BirdFlightPanel.vue'
+import BirdFlightNotification from '../components/bureau/BirdFlightNotification.vue'
 import IdleMissionPanel from '../components/bureau/IdleMissionPanel.vue'
 import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 
@@ -64,6 +66,7 @@ onMounted(async () => {
       </div>
 
       <StagnationAlert />
+      <BirdFlightNotification />
 
       <dl class="metric-row mt-12">
         <div class="metric-item">
@@ -113,6 +116,7 @@ onMounted(async () => {
           </div>
 
           <ChuninExamList />
+          <BirdFlightPanel />
           <ChuninStagnationPanel />
           <IdleMissionPanel />
         </div>

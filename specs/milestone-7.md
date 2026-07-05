@@ -48,7 +48,7 @@ Voir [`recruitment-market.md`](./recruitment-market.md) pour le marché aspirant
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
-* [ ] Rédige le script de maintenance post-match (Cron **H72**, après application des résultats mécaniques) qui scanne la base de données à la recherche de Chunins ayant atteint une statistique majeure à 20.
-* [ ] Implémente les formules de calcul mathématique pour l'attribution des Ryos et des Points de Réputation lors du départ du ninja.
-* [ ] Code la fonction de suppression/archivage du ninja promu et l'appel automatique au générateur procédural pour injecter le nouvel Aspirant de 15 ans dans l'escouade.
-* [ ] Développe le système de notification Backend $\rightarrow$ Front-End pour afficher le message de félicitations et le profil du nouveau venu sur l'interface Vue 3.
+* [x] Rédige le script de maintenance post-match (Cron **H72**, après application des résultats mécaniques) qui scanne la base de données à la recherche de Chunins inscrits au Vol d'Oiseau (`birdFlightService.js`).
+* [x] Implémente les formules de calcul mathématique pour l'attribution des Ryos et des Points de Réputation lors du départ du ninja.
+* [x] Code la fonction de suppression du ninja promu et l'appel automatique au générateur procédural pour injecter le nouvel Aspirant de 15 ans dans l'escouade (roturier gratuit).
+* [x] Développe le système de notification Backend → Front-End (`dojo_notifications`, `BirdFlightNotification.vue`).

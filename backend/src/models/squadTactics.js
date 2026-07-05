@@ -1,6 +1,10 @@
 import { query } from '../config/database.js';
 import { meetsChuninRequirements } from '../services/chuninExam.js';
-import { computeChuninExamCost } from '../services/gradeProgression.js';
+import {
+  computeBirdFlightCost,
+  computeChuninExamCost,
+  meetsBirdFlightRequirements,
+} from '../services/gradeProgression.js';
 import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
 
 export async function updateBattleStrategies(userId, strategies) {
@@ -86,4 +90,52 @@ export async function requestChuninExam(userId, ninjaId) {
   await query('UPDATE ninjas SET chunin_exam_requested = TRUE WHERE id = ?', [ninjaId]);
 
   return { ninjaId, cost: examCost };
+}
+
+export async function requestBirdFlight(userId, ninjaId) {
+  const clock = await getGameClock();
+  if (clock.hour >= 72 || clock.cycleComplete) {
+    const error = new Error('Les inscriptions au Vol d\'Oiseau sont closes pour ce cycle.');
+    error.statusCode = 423;
+    throw error;
+  }
+
+  const rows = await query(
+    `SELECT n.*, s.ryos
+     FROM ninjas n
+     JOIN sensei s ON s.user_id = n.user_id
+     WHERE n.id = ? AND n.user_id = ? AND n.grade = 'Chunin'`,
+    [ninjaId, userId]
+  );
+  const ninja = rows[0];
+  if (!ninja) {
+    const error = new Error('Chunin introuvable.');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (ninja.bird_flight_requested) {
+    const error = new Error('Ce Chunin est déjà inscrit au Vol d\'Oiseau.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  if (!meetsBirdFlightRequirements(ninja)) {
+    const error = new Error('Prérequis non atteints (meilleure stat combat ≥ 17).');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const ceremonyCost = computeBirdFlightCost(ninja);
+
+  if (ninja.ryos < ceremonyCost) {
+    const error = new Error(`Ryos insuffisants (${ceremonyCost} requis).`);
+    error.statusCode = 402;
+    throw error;
+  }
+
+  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [ceremonyCost, userId]);
+  await query('UPDATE ninjas SET bird_flight_requested = TRUE WHERE id = ?', [ninjaId]);
+
+  return { ninjaId, cost: ceremonyCost };
 }

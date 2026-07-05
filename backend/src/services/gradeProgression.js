@@ -36,6 +36,11 @@ const CHUNIN_EXAM_BASE_COST = 300;
 const CHUNIN_EXAM_COMBAT_STEP = 40;
 const CHUNIN_EXAM_IQ_STEP = 30;
 
+const BIRD_FLIGHT_BASE_COST = 800;
+const BIRD_FLIGHT_COMBAT_STEP = 50;
+
+const MAJOR_COMBAT_STATS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
+
 const FORME_DOWNGRADE = {
   Divin: 'Excellent',
   Excellent: 'Passable',
@@ -64,6 +69,24 @@ export function computeChuninExamCost(ninja) {
   return CHUNIN_EXAM_BASE_COST + extraCombat + extraIq;
 }
 
+export function computeBirdFlightCost(ninja) {
+  const combat = combatStat(ninja);
+  const extraCombat = Math.max(0, combat - CHUNIN_STAGNATION_COMBAT) * BIRD_FLIGHT_COMBAT_STEP;
+  return BIRD_FLIGHT_BASE_COST + extraCombat;
+}
+
+/** Chunin prêt à s'inscrire au Vol d'Oiseau (combat ≥ 17). */
+export function meetsBirdFlightRequirements(ninja) {
+  if (ninja.grade !== 'Chunin') return false;
+  return combatStat(ninja) >= CHUNIN_STAGNATION_COMBAT;
+}
+
+/** Sommet d'enseignement : une stat combat majeure au plafond Chunin (18). */
+export function hasReachedTeachingPeak(ninja) {
+  if (ninja.grade !== 'Chunin') return false;
+  return MAJOR_COMBAT_STATS.some((stat) => ninja[stat] >= getGradeCap('Chunin', stat));
+}
+
 export function isGeninStagnant(ninja) {
   if (ninja.grade !== 'Genin') return false;
   if (!meetsChuninRequirements(ninja)) return false;
@@ -73,6 +96,7 @@ export function isGeninStagnant(ninja) {
 
 export function isChuninStagnant(ninja) {
   if (ninja.grade !== 'Chunin') return false;
+  if (ninja.bird_flight_requested) return false;
   return combatStat(ninja) >= CHUNIN_STAGNATION_COMBAT;
 }
 

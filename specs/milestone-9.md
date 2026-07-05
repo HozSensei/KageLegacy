@@ -45,7 +45,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 3. ~~**Fin M8**~~ — ✅ promotions/relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
 4. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
 5. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
-6. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
+6. ~~**M7 — Vol d'Oiseau**~~ — ✅ inscription cérémonie, prime H72, relève Genin roturier, notifications Bureau
 7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
 8. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
 

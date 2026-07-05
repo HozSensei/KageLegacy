@@ -1,6 +1,6 @@
 # 🎓 Progression des grades, plafonds & Ryos
 
-**Statut :** règles validées en discussion — implémenté côté entraînement / H72 ; examen Jonin (M7) en attente.
+**Statut :** règles validées en discussion — implémenté côté entraînement / H72 ; Vol d'Oiseau (M7) livré.
 
 ---
 
@@ -37,7 +37,7 @@ $$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{QI}
 | Solide (12 / 10) | Genin mûr | **440** Ryos |
 | Plafond (12 / 10) | Avant examen | **440** Ryos |
 
-*Vol d'Oiseau (M7) : frais de cérémonie prévus (~800 + bonus stats) — à implémenter avec M7.*
+*Vol d'Oiseau (M7) : frais de cérémonie `800 + max(0, combat − 17) × 50` Ryos — prélevés à l'inscription, départ traité à H72.*
 
 ---
 
@@ -100,7 +100,7 @@ Chunin s'entraîne → approche 17+ → préparer Vol d'Oiseau (M7)
 
 ## 📋 Backlog
 
-- [ ] Examen Jonin / inscription Vol d'Oiseau avec coût Ryos (M7)
+- [x] Examen Jonin / inscription Vol d'Oiseau avec coût Ryos (M7) — `bird_flight_requested`, `POST /api/squad/bird-flight`
 - [x] UI Bureau : alerte stagnation Genin + Chunin (`StagnationAlert`, `ChuninStagnationPanel`)
 - [x] UI cartes ninja : voie, potentiel, lignée (`NinjaProfileBadges`)
 - [ ] Chronique / notification : « X s'impatiente — forme en baisse »
