@@ -7,6 +7,8 @@ import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 const { t } = useI18n()
 const store = useSquadStore()
 const editingStrategy = ref(false)
+const saving = ref(false)
+const saveError = ref(null)
 
 const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
 const strategies = reactive({})
@@ -15,7 +17,6 @@ const teamSpeed = computed(() =>
   store.activeSquad.reduce((acc, n) => acc + n.vitesse + n.intelligence, 0)
 )
 
-/** Chunin au centre pour mettre en valeur le vétéran */
 const displaySquad = computed(() => {
   const squad = [...store.activeSquad]
   const chunin = squad.find((n) => n.grade === 'Chunin')
@@ -26,19 +27,34 @@ const displaySquad = computed(() => {
 
 function initStrategies() {
   for (const n of store.activeSquad) {
-    if (!strategies[n.id]) strategies[n.id] = 'Normal'
+    strategies[n.id] = n.battle_strategy || 'Normal'
   }
 }
 
-function toggleStrategyEdit() {
-  editingStrategy.value = !editingStrategy.value
+async function toggleStrategyEdit() {
+  if (editingStrategy.value) {
+    saving.value = true
+    saveError.value = null
+    try {
+      await store.saveStrategies({ ...strategies })
+      editingStrategy.value = false
+    } catch (e) {
+      saveError.value = e.message
+    } finally {
+      saving.value = false
+    }
+    return
+  }
+  if (!store.tacticsLocked()) {
+    editingStrategy.value = true
+  }
 }
 
 onMounted(async () => {
   if (!store.sensei) await store.fetchSquad()
 })
 
-watch(() => store.activeSquad, initStrategies, { immediate: true })
+watch(() => store.activeSquad, initStrategies, { immediate: true, deep: true })
 </script>
 
 <template>
@@ -50,6 +66,13 @@ watch(() => store.activeSquad, initStrategies, { immediate: true })
     </header>
 
     <template v-if="store.sensei">
+      <p
+        v-if="store.tacticsLocked()"
+        class="mt-8 border-l-2 border-accent pl-4 text-sm text-ink-muted"
+      >
+        {{ t('squad.tacticsLocked') }}
+      </p>
+
       <div class="mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <dl class="metric-row flex-1 border-0 py-0">
           <div class="metric-item">
@@ -66,12 +89,24 @@ watch(() => store.activeSquad, initStrategies, { immediate: true })
           </div>
         </dl>
 
-        <button type="button" class="btn-ghost shrink-0" @click="toggleStrategyEdit">
-          {{ editingStrategy ? t('squad.doneStrategy') : t('squad.editStrategy') }}
+        <button
+          type="button"
+          class="btn-ghost shrink-0 disabled:opacity-40"
+          :disabled="!editingStrategy && store.tacticsLocked()"
+          @click="toggleStrategyEdit"
+        >
+          {{
+            saving
+              ? t('squad.saving')
+              : editingStrategy
+                ? t('squad.doneStrategy')
+                : t('squad.editStrategy')
+          }}
         </button>
       </div>
 
-      <!-- Escouade active : 3 cartes comme le Bureau -->
+      <p v-if="saveError" class="mt-4 text-sm text-fire">{{ saveError }}</p>
+
       <section class="mt-14">
         <p class="section-label">{{ t('squad.activeSquad') }}</p>
         <div class="mt-8 flex flex-wrap justify-center gap-10 lg:justify-start lg:gap-12">
@@ -94,7 +129,6 @@ watch(() => store.activeSquad, initStrategies, { immediate: true })
         </div>
       </section>
 
-      <!-- Banc : chevauchement horizontal -->
       <section class="mt-16 border-t border-line pt-10">
         <p class="section-label">{{ t('squad.bench') }}</p>
         <p class="mt-2 text-sm text-ink-muted">{{ t('squad.benchHint') }}</p>

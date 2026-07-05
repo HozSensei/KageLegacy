@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pool from '../src/config/database.js';
+import mysqlPool from '../src/config/database.js';
 import { upsertClanTraits, findAllClanTraits } from '../src/models/clanTrait.js';
 import { createNinja, deleteNinjasByUserId } from '../src/models/ninja.js';
 import { createDemoUser, findDemoUser } from '../src/models/sensei.js';
@@ -9,6 +9,7 @@ import {
   distributeCharacterTraits,
   generateNinjaProfile,
 } from '../src/services/ninjaGenerator.js';
+import { joinOrCreatePool } from '../src/services/poolService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -51,7 +52,8 @@ async function seed() {
   for (let i = 0; i < totalNinjas; i += 1) {
     const clanName = clanRotation[i % clanRotation.length];
     const clan = clanByName[clanName];
-    const grade = i < 10 ? 'Genin' : i < 13 ? 'Chunin' : 'Genin';
+    const grade =
+      i === 1 ? 'Chunin' : i < 10 ? 'Genin' : i < 13 ? 'Chunin' : 'Genin';
     const profile = generateNinjaProfile({
       clan,
       grade,
@@ -69,8 +71,12 @@ async function seed() {
   }
 
   console.log(`✅ ${totalNinjas} ninjas générés (3 actifs, ${totalNinjas - 3} remplaçants)`);
+
+  const userPool = await joinOrCreatePool(user.id);
+  console.log(`🏆 Pool Division ${userPool.division_level} — cycle ${userPool.current_cycle}/10`);
+
   console.log('🦅 Seed terminé.');
-  await pool.end();
+  await mysqlPool.end();
 }
 
 seed().catch((err) => {

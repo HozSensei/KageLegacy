@@ -51,6 +51,7 @@
   "nav": {
     "bureau": "Office",
     "squad": "Squad",
+    "league": "League",
     "market": "Market",
     "inventory": "Inventory",
     "operation": "Operation"
@@ -59,7 +60,19 @@
     "title": "Sensei Office",
     "cycle": "Ninja cycle",
     "activeSquad": "Active squad",
-    "operationLive": "Operation in progress"
+    "operationLive": "Operation in progress",
+    "trainingFocus": "Training focus",
+    "trainingHint": "Carried over each cycle until you change it.",
+    "chuninExam": {
+      "title": "Chunin exams",
+      "lead": "Register before H36 · combat ≥ 10 and IQ ≥ 8 · results at mid-cycle.",
+      "combat": "Combat",
+      "iq": "IQ",
+      "submit": "Send to exam ({cost} Ryos)",
+      "sending": "Registering…",
+      "registered": "Registered · H36",
+      "closed": "Registration closed this cycle — next window at H0."
+    }
   },
   "squad": {
     "lead": "Manage your combat trio and bench before tactics lock.",
@@ -68,6 +81,8 @@
     "activeSquad": "Active squad",
     "bench": "Bench",
     "benchHint": "Hover a card to bring it forward from the stack.",
+    "tacticsLocked": "Orders are locked for the Operation (from H71 onward).",
+    "saving": "Saving…",
     "tacticalSpeed": "Tactical speed",
     "activeCount": "Active",
     "benchCount": "Bench",
@@ -91,5 +106,25 @@
   },
   "placeholders": {
     "comingSoon": "Coming soon"
+  },
+  "league": {
+    "kicker": "Border pool",
+    "lead": "Six squads, ten cycles — climb the division or fall in the standings.",
+    "loading": "Loading…",
+    "division": "Division",
+    "season": "Season",
+    "cycle": "Matchday",
+    "standings": "Standings",
+    "sensei": "Sensei",
+    "played": "P",
+    "points": "Pts",
+    "nextMatch": "Next match",
+    "matchday": "MD",
+    "vsHint": "Your opponent: {opponent}",
+    "scoutTitle": "Scout report",
+    "matchScheduled": "Upcoming",
+    "matchSimulated": "Simulated — chronicle at H71",
+    "matchLive": "Operation live",
+    "matchDone": "Finished"
   }
 }

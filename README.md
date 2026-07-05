@@ -60,6 +60,7 @@ npm run dev
 npm run db:up       # Démarre MySQL (Docker)
 npm run db:migrate  # Applique les migrations SQL
 npm run db:seed     # Génère le joueur démo + 15 ninjas
+npm run clock:advance  # Avance l'horloge d'1h (dev)
 npm run dev:api     # API seule
 npm run dev:web     # Front seul
 ```
@@ -72,14 +73,14 @@ Les spécifications détaillées sont dans le dossier [`/specs`](specs/).
 
 | Milestone | Fichier | Statut |
 |-----------|---------|--------|
-| 1 — Structure des Ninjas | [milestone-1.md](specs/milestone-1.md) | ✅ En cours |
-| 2 — Bureau du Sensei | [milestone-2.md](specs/milestone-2.md) | ✅ En cours |
-| 3 — Horloge & Entraînement | [milestone-3.md](specs/milestone-3.md) | 📋 À faire |
+| 1 — Structure des Ninjas | [milestone-1.md](specs/milestone-1.md) | ✅ Fait |
+| 2 — Bureau du Sensei | [milestone-2.md](specs/milestone-2.md) | ✅ Fait |
+| 3 — Horloge & Entraînement | [milestone-3.md](specs/milestone-3.md) | 🟡 En cours |
 | 4 — Économie & Marché | [milestone-4.md](specs/milestone-4.md) | 📋 À faire |
-| 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | 📋 À faire |
+| 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | 🟡 En cours |
 | 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | 📋 À faire |
 | 7 — Vol d'Oiseau | [milestone-7.md](specs/milestone-7.md) | 📋 À faire |
-| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 📋 À faire |
+| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 🟡 En cours |
 
 ---
 

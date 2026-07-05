@@ -11,6 +11,7 @@
     "db:down": "docker compose down",
     "db:migrate": "npm run db:migrate --prefix backend",
     "db:seed": "npm run db:seed --prefix backend",
+    "clock:advance": "npm run clock:advance --prefix backend",
     "setup": "npm install && npm install --prefix backend && npm install --prefix frontend && npm run db:up && sleep 8 && npm run db:migrate && npm run db:seed"
   },
   "devDependencies": {

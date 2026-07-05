@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '../layouts/AppLayout.vue'
 import BureauView from '../views/BureauView.vue'
 import SquadView from '../views/SquadView.vue'
+import LeagueView from '../views/LeagueView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 
 const router = createRouter({
@@ -13,6 +14,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'bureau', component: BureauView },
         { path: 'squad', name: 'squad', component: SquadView },
+        { path: 'league', name: 'league', component: LeagueView },
         {
           path: 'market',
           name: 'market',

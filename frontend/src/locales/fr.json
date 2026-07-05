@@ -51,6 +51,7 @@
   "nav": {
     "bureau": "Bureau",
     "squad": "Escouade",
+    "league": "Ligue",
     "market": "Marché",
     "inventory": "Inventaire",
     "operation": "Opération"
@@ -59,7 +60,19 @@
     "title": "Bureau du Sensei",
     "cycle": "Cycle ninja",
     "activeSquad": "Escouade active",
-    "operationLive": "Opération en cours"
+    "operationLive": "Opération en cours",
+    "trainingFocus": "Focus d'entraînement",
+    "trainingHint": "Reconduit automatiquement chaque cycle tant que vous ne le modifiez pas.",
+    "chuninExam": {
+      "title": "Examens Chunin",
+      "lead": "Inscription avant H36 · combat ≥ 10 et QI ≥ 8 · résultat au milieu du cycle.",
+      "combat": "Combat",
+      "iq": "QI",
+      "submit": "Envoyer à l'examen ({cost} Ryos)",
+      "sending": "Inscription…",
+      "registered": "Inscrit · H36",
+      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0."
+    }
   },
   "squad": {
     "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",
@@ -68,6 +81,8 @@
     "activeSquad": "Escouade active",
     "bench": "Remplaçants",
     "benchHint": "Survolez une carte pour la dégager du tas et la consulter.",
+    "tacticsLocked": "Les consignes sont gelées pour l'Opération (à partir de H71).",
+    "saving": "Enregistrement…",
     "tacticalSpeed": "Vitesse tactique",
     "activeCount": "Actifs",
     "benchCount": "Banc",
@@ -91,5 +106,25 @@
   },
   "placeholders": {
     "comingSoon": "Bientôt disponible"
+  },
+  "league": {
+    "kicker": "Pool de frontière",
+    "lead": "Six escouades, dix cycles — montez en Division ou chutez au classement.",
+    "loading": "Chargement…",
+    "division": "Division",
+    "season": "Saison",
+    "cycle": "Journée",
+    "standings": "Classement",
+    "sensei": "Sensei",
+    "played": "J",
+    "points": "Pts",
+    "nextMatch": "Prochain match",
+    "matchday": "Journée",
+    "vsHint": "Votre adversaire : {opponent}",
+    "scoutTitle": "Rapport d'espionnage",
+    "matchScheduled": "À venir",
+    "matchSimulated": "Simulé — chronique à H71",
+    "matchLive": "Opération en cours",
+    "matchDone": "Terminé"
   }
 }

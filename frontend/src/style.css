@@ -191,6 +191,39 @@
     @apply mt-4 w-full border border-line bg-bg-soft px-2 py-2 text-[11px] uppercase tracking-wider text-ink-muted focus:border-accent/50 focus:outline-none;
   }
 
+  .trait-tooltip {
+    @apply relative inline-block max-w-full;
+  }
+
+  .trait-tooltip__panel {
+    @apply pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-52 border border-line bg-bg-soft p-3 text-[10px] leading-relaxed opacity-0 shadow-lg transition-opacity duration-200;
+  }
+
+  .trait-tooltip:hover .trait-tooltip__panel,
+  .trait-tooltip:focus-within .trait-tooltip__panel {
+    @apply opacity-100;
+  }
+
+  .exam-list__row {
+    @apply border-b border-line/60 pb-5 last:border-0 last:pb-0;
+  }
+
+  .exam-bar {
+    @apply h-px bg-line;
+  }
+
+  .exam-bar__fill {
+    @apply h-px bg-accent/70 transition-all duration-300;
+  }
+
+  .exam-bar__fill--iq {
+    @apply bg-accent-soft/80;
+  }
+
+  .league-table tbody tr.text-accent td {
+    @apply text-accent;
+  }
+
   .ninja-card-face::before {
     content: "";
     position: absolute;
