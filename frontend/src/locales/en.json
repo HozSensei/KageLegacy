@@ -149,5 +149,52 @@
     "victory": "Victory",
     "defeat": "Defeat",
     "draw": "Draw"
+  },
+  "market": {
+    "kicker": "Current cycle",
+    "lead": "Three unique offers this cycle — catalog expires at H72.",
+    "loading": "Loading market…",
+    "balance": "Balance: {ryos} Ryos",
+    "buy": "Buy",
+    "buying": "Buying…",
+    "purchased": "Purchased",
+    "categories": {
+      "weapon": "Weapon",
+      "armor": "Armor",
+      "consumable": "Consumable"
+    }
+  },
+  "inventory": {
+    "kicker": "Equipment",
+    "lead": "Assign weapons, armor and consumables to your ninjas (2 slots max).",
+    "loading": "Loading…",
+    "items": "Inventory",
+    "ninjas": "Roster",
+    "selectNinja": "Select a ninja to equip.",
+    "equippedOn": "Equipped on {name}",
+    "unequipped": "Unassigned",
+    "empty": "No items — visit the Black Market.",
+    "equip": "Equip",
+    "active": "Active",
+    "bench": "Bench",
+    "slotGear": "Weapon / armor",
+    "slotConsumable": "Consumable"
+  },
+  "missions": {
+    "title": "Routine missions",
+    "lead": "Send bench ninjas on contracts to earn Ryos at cycle end.",
+    "loading": "Loading…",
+    "pickNinja": "Pick a bench ninja",
+    "pickRank": "Contract rank",
+    "send": "Send on mission",
+    "sending": "Sending…",
+    "pending": "Rewards ready to collect.",
+    "collect": "Collect Ryos",
+    "collecting": "Collecting…",
+    "ranks": {
+      "D": "Rank D — 500 Ryos",
+      "C": "Rank C — 1,200 Ryos",
+      "B": "Rank B — 2,800 Ryos"
+    }
   }
 }

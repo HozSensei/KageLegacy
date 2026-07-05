@@ -1,5 +1,7 @@
 import { query } from '../../config/database.js';
 import { computeMatchChakraMax } from '../ninjaStats.js';
+import { getEquipmentForNinjas } from '../equipmentService.js';
+import { applyEquipmentToFighter } from './equipment.js';
 import { applyFormeToStats } from './forme.js';
 import { simulateCombat } from './combatEngine.js';
 
@@ -10,10 +12,18 @@ export async function loadTeamForCombat(userId) {
      ORDER BY squad_position`,
     [userId]
   );
+  const equipmentRows = await getEquipmentForNinjas(userId);
+  const equipmentByNinja = {};
+  for (const row of equipmentRows) {
+    if (!equipmentByNinja[row.ninja_id]) equipmentByNinja[row.ninja_id] = [];
+    equipmentByNinja[row.ninja_id].push(row);
+  }
+
   return {
     userId,
     sensei: senseiRows[0] || null,
     ninjas,
+    equipmentByNinja,
   };
 }
 
@@ -22,7 +32,7 @@ export function buildCombatTeam(teamData, sideLabel) {
     const stats = applyFormeToStats(ninja);
     const maxPv = stats.taijutsu * 10;
     const maxChakra = computeMatchChakraMax(ninja.grade, stats.ninjutsu);
-    return {
+    let fighter = {
       id: ninja.id,
       name: ninja.name,
       side: sideLabel,
@@ -38,9 +48,15 @@ export function buildCombatTeam(teamData, sideLabel) {
       maxChakra,
       ko: false,
       genjutsuReceived: false,
+      consumableUsed: false,
       status: null,
       slot: index + 1,
     };
+    fighter = applyEquipmentToFighter(
+      fighter,
+      teamData.equipmentByNinja?.[ninja.id] || []
+    );
+    return fighter;
   });
 
   return {

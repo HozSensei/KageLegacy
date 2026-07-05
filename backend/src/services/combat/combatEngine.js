@@ -8,6 +8,7 @@ import {
   TEMERAIRE_CHAKRA_COST,
 } from './constants.js';
 import { elementDamageMultiplier } from './element.js';
+import { getAttackStatBonus, getDefenseStatBonus } from './equipment.js';
 import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
 import { POINTS_WIN_MARGIN } from './constants.js';
 
@@ -23,6 +24,9 @@ function teamTacticalSpeed(team, tour) {
   return activeFighters(team).reduce((sum, f) => {
     let vitesse = f.stats.vitesse;
     if (tour === 1 && f.character_trait === 'Temeraire') vitesse += 4;
+    if (tour === 1 && f.equipment?.firstTourSpeedBonus) {
+      vitesse += f.equipment.firstTourSpeedBonus;
+    }
     if (f.status === 'paralysis') vitesse = 0;
     return sum + vitesse + f.stats.intelligence;
   }, 0);
@@ -126,7 +130,7 @@ function chooseTechnique(attacker, defender) {
 }
 
 function attackValue(attacker, technique, allies) {
-  let value = attacker.stats[technique.stat];
+  let value = attacker.stats[technique.stat] + getAttackStatBonus(attacker, technique.stat);
   if (
     attacker.character_trait === 'Egoiste' &&
     allies.every((a) => a.id === attacker.id || a.pv < attacker.pv)
@@ -136,9 +140,31 @@ function attackValue(attacker, technique, allies) {
   return value;
 }
 
+function tryConsumables(fighter) {
+  const used = [];
+  if (!fighter.equipment?.consumables?.length || fighter.consumableUsed) return used;
+
+  for (const consumable of fighter.equipment.consumables) {
+    if (fighter.consumableUsed) break;
+    const pvPct = fighter.maxPv ? (fighter.pv / fighter.maxPv) * 100 : 100;
+    const chakraPct = fighter.maxChakra ? (fighter.chakra / fighter.maxChakra) * 100 : 100;
+
+    if (consumable.trigger === 'pv_below_pct' && pvPct <= consumable.threshold) {
+      fighter.pv = Math.min(fighter.maxPv, fighter.pv + (consumable.pvRestore || 0));
+      fighter.consumableUsed = true;
+      used.push(consumable.userItemId);
+    } else if (consumable.trigger === 'chakra_below_pct' && chakraPct <= consumable.threshold) {
+      fighter.chakra = Math.min(fighter.maxChakra, fighter.chakra + (consumable.chakraRestore || 0));
+      fighter.consumableUsed = true;
+      used.push(consumable.userItemId);
+    }
+  }
+  return used;
+}
+
 function resolveDuel(attacker, defender, technique, allies) {
   const atk = attackValue(attacker, technique, allies);
-  const def = defender.stats[technique.stat];
+  const def = defender.stats[technique.stat] + getDefenseStatBonus(defender, technique.stat);
   const elementMult = elementDamageMultiplier(attacker.element_affinity, defender.element_affinity);
 
   if (technique.type === 'medecine') {
@@ -247,6 +273,7 @@ function allKo(team) {
 
 export function simulateCombat(homeTeam, awayTeam) {
   const logs = [];
+  const consumedItemIds = [];
   let endingTour = MAX_TOURS;
   let endReason = 'points';
   let homePossession = 0;
@@ -306,6 +333,7 @@ export function simulateCombat(homeTeam, awayTeam) {
       }
       applyKo(defender);
       applyKo(attacker);
+      consumedItemIds.push(...tryConsumables(defender));
 
       logs.push({
         tour,
@@ -374,6 +402,7 @@ export function simulateCombat(homeTeam, awayTeam) {
     homeTeam,
     awayTeam,
     koNinjaIds,
+    consumedItemIds: [...new Set(consumedItemIds)],
     homeScorePct: Math.round(teamRemainingScore(homeTeam) * 100),
     awayScorePct: Math.round(teamRemainingScore(awayTeam) * 100),
     possession: {

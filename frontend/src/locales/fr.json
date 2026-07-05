@@ -149,5 +149,52 @@
     "victory": "Victoire",
     "defeat": "Défaite",
     "draw": "Match nul"
+  },
+  "market": {
+    "kicker": "Cycle en cours",
+    "lead": "Trois offres uniques ce cycle — le catalogue expire à H72.",
+    "loading": "Chargement du marché…",
+    "balance": "Solde : {ryos} Ryos",
+    "buy": "Acheter",
+    "buying": "Achat…",
+    "purchased": "Acheté",
+    "categories": {
+      "weapon": "Arme",
+      "armor": "Armure",
+      "consumable": "Consommable"
+    }
+  },
+  "inventory": {
+    "kicker": "Équipement",
+    "lead": "Assignez armes, armures et consommables à vos ninjas (2 slots max).",
+    "loading": "Chargement…",
+    "items": "Inventaire",
+    "ninjas": "Effectif",
+    "selectNinja": "Sélectionnez un ninja à équiper.",
+    "equippedOn": "Équipé sur {name}",
+    "unequipped": "Non assigné",
+    "empty": "Aucun objet — visitez le Marché Noir.",
+    "equip": "Équiper",
+    "active": "Actif",
+    "bench": "Banc",
+    "slotGear": "Arme / armure",
+    "slotConsumable": "Consommable"
+  },
+  "missions": {
+    "title": "Missions de routine",
+    "lead": "Envoyez vos remplaçants en contrat pour gagner des Ryos à la fin du cycle.",
+    "loading": "Chargement…",
+    "pickNinja": "Choisir un remplaçant",
+    "pickRank": "Rang du contrat",
+    "send": "Envoyer en mission",
+    "sending": "Envoi…",
+    "pending": "Récompenses prêtes à collecter.",
+    "collect": "Collecter les Ryos",
+    "collecting": "Collecte…",
+    "ranks": {
+      "D": "Rang D — 500 Ryos",
+      "C": "Rang C — 1 200 Ryos",
+      "B": "Rang B — 2 800 Ryos"
+    }
   }
 }

@@ -6,6 +6,9 @@ import clockRouter from './routes/clock.js';
 import devRouter from './routes/dev.js';
 import leagueRouter from './routes/league.js';
 import operationRouter from './routes/operation.js';
+import marketRouter from './routes/market.js';
+import inventoryRouter from './routes/inventory.js';
+import missionsRouter from './routes/missions.js';
 
 const app = express();
 
@@ -18,6 +21,9 @@ app.use('/api/clock', clockRouter);
 app.use('/api/dev', devRouter);
 app.use('/api/league', leagueRouter);
 app.use('/api/operation', operationRouter);
+app.use('/api/market', marketRouter);
+app.use('/api/inventory', inventoryRouter);
+app.use('/api/missions', missionsRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

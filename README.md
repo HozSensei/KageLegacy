@@ -61,6 +61,7 @@ npm run db:up       # Démarre MySQL (Docker)
 npm run db:migrate  # Applique les migrations SQL
 npm run db:seed     # Génère le joueur démo + 15 ninjas
 npm run clock:advance  # Avance l'horloge d'1h (dev)
+npm run combat:simulate --prefix backend  # Test moteur combat local
 npm run dev:api     # API seule
 npm run dev:web     # Front seul
 ```
