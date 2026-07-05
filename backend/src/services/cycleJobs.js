@@ -14,6 +14,7 @@ import { resolveMissionsForCycle } from './missionService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
+import { ensureRecruitmentForAllUsers } from './recruitmentService.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -65,9 +66,11 @@ export async function runH72(cycleStartAt) {
   const training = await processTrainingBillingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
   const newClock = await resetCycle();
+  await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureMarketForAllUsers(newClock.cycleStartAt);
+  const recruitment = await ensureRecruitmentForAllUsers(newClock.cycleStartAt);
   console.log(
-    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · marché (${market.length} joueur(s))`
+    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · marché (${market.length}) · recrutement (${recruitment.length})`
   );
   return {
     missionResults,
@@ -79,6 +82,7 @@ export async function runH72(cycleStartAt) {
     stagnation,
     training,
     market,
+    recruitment,
   };
 }
 

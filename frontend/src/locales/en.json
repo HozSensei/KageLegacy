@@ -78,6 +78,12 @@
     "budgetProjected": "Projected balance",
     "budgetOverdraftWarning": "Some training may be cancelled (overdraft cap {limit} Ryos).",
     "budgetDebtHint": "Debt outstanding — interest charged at H72.",
+    "recruitmentTitle": "Recruitment",
+    "recruitmentHint": "Window H0–H12 · 1 purchase max per cycle · recruits join the bench.",
+    "recruitmentClosed": "Window closed (after H12).",
+    "recruitmentDone": "Recruitment completed this cycle.",
+    "recruitmentBuy": "Recruit",
+    "recruitmentHired": "Hired",
     "stagnation": {
       "title": "Stagnation risk",
       "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",

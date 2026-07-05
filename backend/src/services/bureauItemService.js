@@ -2,6 +2,7 @@ import { query } from '../config/database.js';
 import { FORME_DOWNGRADE } from './combat/constants.js';
 import { computeMatchPv } from './ninjaStats.js';
 import { consumeUserItem } from './equipmentService.js';
+import { getClockRow } from './gameClock.js';
 
 const FORME_UPGRADE = {
   Lamentable: 'Passable',
@@ -10,7 +11,7 @@ const FORME_UPGRADE = {
   Divin: 'Divin',
 };
 
-export async function useBureauItem(userId, userItemId, ninjaId) {
+export async function useBureauItem(userId, userItemId, ninjaId = null) {
   const itemRows = await query(
     `SELECT ui.*, idf.category, idf.slug, idf.effects
      FROM user_items ui
@@ -30,17 +31,6 @@ export async function useBureauItem(userId, userItemId, ninjaId) {
     throw error;
   }
 
-  const ninjaRows = await query('SELECT * FROM ninjas WHERE id = ? AND user_id = ?', [
-    ninjaId,
-    userId,
-  ]);
-  const ninja = ninjaRows[0];
-  if (!ninja) {
-    const error = new Error('Ninja introuvable.');
-    error.statusCode = 404;
-    throw error;
-  }
-
   const effects = typeof item.effects === 'string' ? JSON.parse(item.effects) : item.effects;
   const bureau = effects.bureau;
   if (!bureau?.trigger) {
@@ -49,9 +39,37 @@ export async function useBureauItem(userId, userItemId, ninjaId) {
     throw error;
   }
 
+  let ninja = null;
+  if (bureau.trigger !== 'scout_map') {
+    const ninjaRows = await query('SELECT * FROM ninjas WHERE id = ? AND user_id = ?', [
+      ninjaId,
+      userId,
+    ]);
+    ninja = ninjaRows[0];
+    if (!ninja) {
+      const error = new Error('Ninja introuvable.');
+      error.statusCode = 404;
+      throw error;
+    }
+  }
+
   let result = {};
 
   switch (bureau.trigger) {
+    case 'scout_map': {
+      const clockRow = await getClockRow();
+      if (!clockRow?.cycle_start_at) {
+        const error = new Error('Cycle introuvable.');
+        error.statusCode = 400;
+        throw error;
+      }
+      await query('UPDATE sensei SET scout_env_confirmed_cycle = ? WHERE user_id = ?', [
+        clockRow.cycle_start_at,
+        userId,
+      ]);
+      result = { effect: 'scout_map' };
+      break;
+    }
     case 'forme_upgrade': {
       const next = FORME_UPGRADE[ninja.weekly_forme] || ninja.weekly_forme;
       if (next === ninja.weekly_forme) {

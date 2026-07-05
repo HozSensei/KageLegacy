@@ -12,6 +12,7 @@ import IdleMissionPanel from '../components/bureau/IdleMissionPanel.vue'
 import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 import TrainingPlansPanel from '../components/bureau/TrainingPlansPanel.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
+import RecruitmentPanel from '../components/bureau/RecruitmentPanel.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
@@ -90,6 +91,7 @@ onMounted(async () => {
 
           <CycleBudgetPanel />
           <TrainingPlansPanel />
+          <RecruitmentPanel />
 
           <ChuninExamList />
           <BirdFlightPanel />

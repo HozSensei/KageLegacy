@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import { createBotUser } from './botFactory.js';
 import { buildRoundRobinSchedule, LOWEST_DIVISION, POOL_SIZE, SEASON_CYCLES } from './poolSchedule.js';
+import { pickEnvironmentModifier } from './matchEnvironment.js';
 
 export async function findUserPool(userId) {
   const rows = await query(
@@ -24,10 +25,11 @@ async function addMemberToPool(poolId, userId) {
 async function insertSchedule(poolId, memberIds) {
   const schedule = buildRoundRobinSchedule(memberIds, SEASON_CYCLES);
   for (const entry of schedule) {
+    const env = pickEnvironmentModifier();
     await query(
-      `INSERT INTO matches (pool_id, season_cycle, home_user_id, away_user_id)
-       VALUES (?, ?, ?, ?)`,
-      [poolId, entry.seasonCycle, entry.homeUserId, entry.awayUserId]
+      `INSERT INTO matches (pool_id, season_cycle, home_user_id, away_user_id, environment_slug, environment_type)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [poolId, entry.seasonCycle, entry.homeUserId, entry.awayUserId, env.slug, env.type]
     );
   }
 }

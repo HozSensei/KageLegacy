@@ -7,6 +7,7 @@ import {
 import { consumeUserItem } from './equipmentService.js';
 import { assembleNarrative } from './narrative/narrativeAssembler.js';
 import { persistNarrativeSegments } from './narrative/narrativeStore.js';
+import { pickEnvironmentModifier } from './matchEnvironment.js';
 
 function mapWinnerToDb(winner, homeUserId, awayUserId) {
   if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
@@ -39,7 +40,23 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
 
   const results = [];
   for (const match of matches) {
-    const combat = await simulateMatchCombat(match.home_user_id, match.away_user_id);
+    let environmentSlug = match.environment_slug;
+    let environmentType = match.environment_type;
+    if (!environmentSlug) {
+      const env = pickEnvironmentModifier();
+      environmentSlug = env.slug;
+      environmentType = env.type;
+      await query(
+        'UPDATE matches SET environment_slug = ?, environment_type = ? WHERE id = ?',
+        [environmentSlug, environmentType, match.id]
+      );
+    }
+
+    const combat = await simulateMatchCombat(
+      match.home_user_id,
+      match.away_user_id,
+      environmentSlug
+    );
     for (const itemId of combat.consumedItemIds || []) {
       await consumeUserItem(itemId);
     }
@@ -62,6 +79,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       koNinjaIds: combat.koNinjaIds,
       possession: combat.possession,
       equipmentSummary: combat.equipmentSummary,
+      environment: combat.environment,
     };
 
     const [homeCtx, awayCtx] = await Promise.all([
@@ -78,6 +96,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       winner: combat.winner,
       endReason: combat.endReason,
       endingTour: combat.endingTour,
+      environmentSlug,
     });
 
     await persistNarrativeSegments(match.id, narrative.segments);

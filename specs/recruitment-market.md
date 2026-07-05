@@ -1,6 +1,6 @@
 # 🏪 Recrutement & marché des ninjas (vision)
 
-**Statut :** règles de rareté implémentées à la génération ; marché aspirants = backlog.
+**Statut :** règles de rareté implémentées à la génération ; **marché aspirants livré** (migration 017, API `/api/recruitment`).
 
 ---
 
@@ -92,7 +92,7 @@ Les Ryos servent à **choisir** sa relève, pas seulement à survivre.
 | Migration `Roturier` + tirage pondéré | ✅ 009 + `clanRecruitment.js` |
 | Seed démo avec rareté | ✅ |
 | `profile.clanTier` dans API | ✅ |
-| Table `recruitment_offers` + UI | Backlog |
+| Table `recruitment_offers` + UI | ✅ Bureau · `RecruitmentPanel` · H0–H12 |
 | Licenciement / revente | Backlog M7+ |
 
 ---

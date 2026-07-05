@@ -73,12 +73,12 @@ export function buildCombatTeam(teamData, sideLabel) {
   };
 }
 
-export async function simulateMatchCombat(homeUserId, awayUserId) {
+export async function simulateMatchCombat(homeUserId, awayUserId, environmentSlug = null) {
   const homeData = await loadTeamForCombat(homeUserId);
   const awayData = await loadTeamForCombat(awayUserId);
 
   const home = buildCombatTeam(homeData, 'home');
   const away = buildCombatTeam(awayData, 'away');
 
-  return simulateCombat(home, away);
+  return simulateCombat(home, away, { environmentSlug });
 }

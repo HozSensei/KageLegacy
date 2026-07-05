@@ -21,6 +21,10 @@ function usageLabel(item) {
   return t('market.usesPerMatch', { count: limit.uses })
 }
 
+function isGlobalBureauItem(item) {
+  return item?.slug === 'carte-secteur'
+}
+
 function isBureauItem(item) {
   return item?.category === 'bureau'
 }
@@ -74,6 +78,26 @@ async function useOnNinja(ninjaId) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    inventory.value = await res.json()
+    selectedItemId.value = null
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
+
+async function useGlobalBureau() {
+  if (!selectedItemId.value) return
+  saving.value = true
+  error.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/inventory/use`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userItemId: selectedItemId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     inventory.value = await res.json()
@@ -143,6 +167,15 @@ async function unequip(ninjaId, slot) {
             {{ t('inventory.empty') }}
           </li>
         </ul>
+        <button
+          v-if="selectedItemId && isGlobalBureauItem(inventory.items.find((i) => i.id === selectedItemId))"
+          type="button"
+          class="btn-primary mt-6"
+          :disabled="saving"
+          @click="useGlobalBureau"
+        >
+          {{ t('inventory.use') }}
+        </button>
       </section>
 
       <section class="mt-10 border-t border-line pt-10 lg:col-span-7 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
@@ -170,7 +203,11 @@ async function unequip(ninjaId, slot) {
                 {{ t('inventory.equip') }}
               </button>
               <button
-                v-else-if="selectedItemId && isBureauItem(inventory.items.find((i) => i.id === selectedItemId))"
+                v-else-if="
+                  selectedItemId &&
+                  isBureauItem(inventory.items.find((i) => i.id === selectedItemId)) &&
+                  !isGlobalBureauItem(inventory.items.find((i) => i.id === selectedItemId))
+                "
                 type="button"
                 class="btn-ghost"
                 :disabled="saving"

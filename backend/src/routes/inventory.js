@@ -66,10 +66,10 @@ router.post('/use', async (req, res, next) => {
     const user = await findDemoUser();
     if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
 
-    const ninjaId = Number(req.body?.ninjaId);
+    const ninjaId = req.body?.ninjaId != null ? Number(req.body.ninjaId) : null;
     const userItemId = Number(req.body?.userItemId);
-    if (!ninjaId || !userItemId) {
-      return res.status(400).json({ error: 'ninjaId et userItemId requis.' });
+    if (!userItemId) {
+      return res.status(400).json({ error: 'userItemId requis.' });
     }
 
     const result = await useBureauItem(user.id, userItemId, ninjaId);

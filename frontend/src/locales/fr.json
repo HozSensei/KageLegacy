@@ -78,6 +78,12 @@
     "budgetProjected": "Solde projeté",
     "budgetOverdraftWarning": "Certains entraînements pourraient être annulés (découvert max {limit} Ryos).",
     "budgetDebtHint": "Dette en cours — intérêts prélevés à H72.",
+    "recruitmentTitle": "Recrutement",
+    "recruitmentHint": "Fenêtre H0–H12 · 1 achat max par cycle · candidats sur le banc.",
+    "recruitmentClosed": "Fenêtre fermée (après H12).",
+    "recruitmentDone": "Recrutement effectué ce cycle.",
+    "recruitmentBuy": "Recruter",
+    "recruitmentHired": "Recruté",
     "stagnation": {
       "title": "Stagnation imminente",
       "lead": "À H72, forme et moral baissent si ces ninjas restent bloqués au grade actuel.",
