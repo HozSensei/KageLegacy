@@ -9,7 +9,7 @@ import {
   distributeCharacterTraits,
   generateNinjaProfile,
 } from '../src/services/ninjaGenerator.js';
-import { joinOrCreatePool } from '../src/services/poolService.js';
+import { joinOrCreatePool, joinPoolByInvite } from '../src/services/poolService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -68,7 +68,15 @@ async function seed() {
 
   console.log(`✅ ${totalNinjas} ninjas générés (3 actifs, ${totalNinjas - 3} remplaçants)`);
 
-  const userPool = await joinOrCreatePool(user.id);
+  const invitePoolId = process.env.INVITE_POOL_ID;
+  const joinResult = invitePoolId
+    ? await joinPoolByInvite(user.id, invitePoolId)
+    : { pool: await joinOrCreatePool(user.id), fallback: false };
+
+  const userPool = joinResult.pool;
+  if (joinResult.fallback) {
+    console.log(`⚠️  Invitation pool ${invitePoolId} indisponible (${joinResult.reason}) — placement standard.`);
+  }
   console.log(`🏆 Pool Division ${userPool.division_level} — cycle ${userPool.current_cycle}/10`);
 
   console.log('🦅 Seed terminé.');

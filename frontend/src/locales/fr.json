@@ -132,7 +132,11 @@
     "matchScheduled": "À venir",
     "matchSimulated": "Simulé — chronique à H71",
     "matchLive": "Opération en cours",
-    "matchDone": "Terminé"
+    "matchDone": "Terminé",
+    "inviteTitle": "Inviter un ami",
+    "inviteLead": "Partagez ce lien pour qu'un nouvel inscrit rejoigne votre pool (remplace un bot si une place est libre).",
+    "inviteCopy": "Copier le lien",
+    "inviteCopied": "Lien copié"
   },
   "operation": {
     "kicker": "Frontière",

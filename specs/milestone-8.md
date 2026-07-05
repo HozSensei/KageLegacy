@@ -64,7 +64,7 @@ Au terme du 10ème match (Cycle 10), le script fige le classement de la Pool :
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
-* [ ] Crée les structures de tables SQL pour `Pool`, `Match_Calendrier` et `Classement_Pool` en incluant le flag boolean `is_bot`.
-* [ ] Implémente l'algorithme de routage à l'inscription `join_or_create_pool` gérant le remplacement prioritaire des bots dans la division la plus basse.
-* [ ] Code la route d'inscription par invitation gérant l'argument optionnel `invitePoolId` pour forcer l'éjection d'un bot dans une ligue précise.
-* [ ] Rédige le script de fin de saison (Cycle 10) qui applique les montées/descentes et nettoie les Pools composées à 100% de bots inactifs.
+* [x] Crée les structures de tables SQL pour `Pool`, `Match_Calendrier` et `Classement_Pool` en incluant le flag boolean `is_bot`.
+* [x] Implémente l'algorithme de routage à l'inscription `join_or_create_pool` gérant le remplacement prioritaire des bots dans la division la plus basse.
+* [x] Code la route d'inscription par invitation gérant l'argument optionnel `invitePoolId` pour forcer l'éjection d'un bot dans une ligue précise (`joinPoolByInvite`, `GET /api/league/invite`, seed `INVITE_POOL_ID`).
+* [x] Rédige le script de fin de saison (Cycle 10) qui applique les montées/descentes et nettoie les Pools composées à 100% de bots inactifs (`seasonService.js`, hook H72).
