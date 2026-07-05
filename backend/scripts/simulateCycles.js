@@ -46,7 +46,8 @@ printMultiCycle('équipes égales', bench.multiCycle.equalTeams);
 printMultiCycle('bot +40 % favori', bench.multiCycle.botFavored);
 
 console.log('\n── Cercle des compositions (mêmes stats) ──');
-console.log('  Cible : avantage matchup ~58–65 % win (+20 pts vs 50/50)');
+console.log('  Cible avantage matchup : ~58–65 % win (+20 pts vs 50/50)');
+console.log('  Cible équilibre vs pure : ~42–58 % (neutre)');
 for (const [label, row] of Object.entries(bench.compositionMatrix)) {
   const mark = row.onTarget ? '✓' : '⚠';
   console.log(

@@ -12,7 +12,7 @@
 | **Mur** | 2+ Tank | Absorption, ciblage tank |
 | **Flux** | 2+ Protect | Genjutsu, soins, usure |
 
-**Escouade équilibrée** (Off + Tank + Protect) : **hors du cercle** — ~50 % vs les comps pures, jamais optimal.
+**Escouade équilibrée** (Off + Tank + Protect) : **hors du cercle** — ~50 % vs les comps pures (benchmark : Mur/Assaut/Flux vs Équilibre dans les deux sens).
 
 ---
 

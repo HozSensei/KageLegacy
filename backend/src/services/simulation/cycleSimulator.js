@@ -314,7 +314,11 @@ export function runCompositionMatrix({ runs = 600 } = {}) {
     { home: 'assaut', away: 'flux', expect: 'away', label: 'Assaut vs Flux (désavantage)' },
     { home: 'flux', away: 'mur', expect: 'away', label: 'Flux vs Mur (désavantage)' },
     { home: 'assaut', away: 'assaut', expect: 'even', label: 'Miroir Assaut' },
+    { home: 'mur', away: 'equilibre', expect: 'even', label: 'Mur vs Équilibre' },
+    { home: 'equilibre', away: 'mur', expect: 'even', label: 'Équilibre vs Mur' },
+    { home: 'assaut', away: 'equilibre', expect: 'even', label: 'Assaut vs Équilibre' },
     { home: 'equilibre', away: 'assaut', expect: 'even', label: 'Équilibre vs Assaut' },
+    { home: 'flux', away: 'equilibre', expect: 'even', label: 'Flux vs Équilibre' },
     { home: 'equilibre', away: 'flux', expect: 'even', label: 'Équilibre vs Flux' },
   ];
 
