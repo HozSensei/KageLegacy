@@ -3,6 +3,7 @@ import AppLayout from '../layouts/AppLayout.vue'
 import BureauView from '../views/BureauView.vue'
 import SquadView from '../views/SquadView.vue'
 import LeagueView from '../views/LeagueView.vue'
+import OperationView from '../views/OperationView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 
 const router = createRouter({
@@ -30,8 +31,7 @@ const router = createRouter({
         {
           path: 'operation',
           name: 'operation',
-          component: PlaceholderView,
-          props: { titleKey: 'nav.operation' },
+          component: OperationView,
         },
       ],
     },

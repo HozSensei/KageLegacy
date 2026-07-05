@@ -5,6 +5,7 @@ import squadRouter from './routes/squad.js';
 import clockRouter from './routes/clock.js';
 import devRouter from './routes/dev.js';
 import leagueRouter from './routes/league.js';
+import operationRouter from './routes/operation.js';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use('/api/squad', squadRouter);
 app.use('/api/clock', clockRouter);
 app.use('/api/dev', devRouter);
 app.use('/api/league', leagueRouter);
+app.use('/api/operation', operationRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

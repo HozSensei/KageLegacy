@@ -183,6 +183,34 @@
     transform: translateY(-12px);
   }
 
+  .composition-slot {
+    @apply rounded-[20px] ring-2 ring-transparent transition;
+  }
+
+  .composition-slot--drag {
+    @apply opacity-60;
+  }
+
+  .composition-slot--selected {
+    @apply ring-accent/60;
+  }
+
+  .composition-slot--empty {
+    @apply min-h-[14rem] min-w-[10rem] justify-center border border-dashed border-line/50;
+  }
+
+  .composition-slot__placeholder {
+    @apply flex flex-1 items-center justify-center px-4 py-16;
+  }
+
+  .composition-bench--drop {
+    @apply min-h-[8rem] rounded border border-dashed border-line/60;
+  }
+
+  .chronicle {
+    font-family: var(--font-display, 'Cormorant Garamond', serif);
+  }
+
   .btn-ghost {
     @apply border border-line px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-ink-muted transition hover:border-ink-faint hover:text-ink;
   }

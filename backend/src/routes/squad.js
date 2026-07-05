@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { findDemoUser, getGameClock, getSquadPayload } from '../models/sensei.js';
+import { updateSquadComposition } from '../models/squadComposition.js';
 import {
   requestChuninExam,
   updateBattleStrategies,
@@ -10,6 +11,7 @@ import {
   updateStrategiesSchema,
   updateTrainingFocusSchema,
 } from '../validators/squadTactics.js';
+import { updateCompositionSchema } from '../validators/squadComposition.js';
 
 const router = Router();
 
@@ -30,6 +32,22 @@ router.get('/', async (_req, res, next) => {
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();
 
+    res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/composition', async (req, res, next) => {
+  try {
+    const user = await requireDemoUser(res);
+    if (!user) return;
+
+    const parsed = updateCompositionSchema.parse(req.body);
+    await updateSquadComposition(user.id, parsed.slots);
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
     res.json({ ...squad, gameClock: clock });
   } catch (error) {
     next(error);
