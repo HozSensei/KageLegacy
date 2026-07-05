@@ -77,8 +77,9 @@
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",
-      "lead": "Register before H72 · combat ≥ 17 · ceremony at cycle end, Ryos bonus and Genin replacement.",
+      "lead": "Register before H72 · combat ≥ 16 and IQ ≥ 14 · ceremony at cycle end, Ryos bonus and Genin replacement.",
       "combat": "Combat",
+      "iq": "IQ",
       "peak": "Peak reached",
       "submit": "Hold the ceremony ({cost} Ryos)",
       "sending": "Registering…",
@@ -92,7 +93,7 @@
     },
     "chuninStagnation": {
       "title": "Chunin at the peak",
-      "lead": "Combat ≥ 17: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
+      "lead": "Combat ≥ 16 and IQ ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
       "warning": "Form and morale will drop at H72 while they remain Chunin.",
       "combatPeak": "Combat peak: {value}/20"
     },

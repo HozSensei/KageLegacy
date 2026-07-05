@@ -77,8 +77,9 @@
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",
-      "lead": "Inscription avant H72 · combat ≥ 17 · cérémonie à la fin du cycle, prime Ryos et relève Genin.",
+      "lead": "Inscription avant H72 · combat ≥ 16 et QI ≥ 14 · cérémonie à la fin du cycle, prime Ryos et relève Genin.",
       "combat": "Combat",
+      "iq": "QI",
       "peak": "Sommet atteint",
       "submit": "Organiser la cérémonie ({cost} Ryos)",
       "sending": "Inscription…",
@@ -92,7 +93,7 @@
     },
     "chuninStagnation": {
       "title": "Chunin au sommet",
-      "lead": "Combat ≥ 17 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
+      "lead": "Combat ≥ 16 et QI ≥ 14 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
       "warning": "Forme et moral chuteront à H72 tant qu'il reste Chunin.",
       "combatPeak": "Pic combat : {value}/20"
     },

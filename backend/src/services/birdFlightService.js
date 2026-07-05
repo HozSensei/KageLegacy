@@ -6,11 +6,8 @@ import { query } from '../config/database.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
 import { createNinja } from '../models/ninja.js';
 import { combatStat } from './chuninExam.js';
-import {
-  CHUNIN_STAGNATION_COMBAT,
-  computeBirdFlightCost,
-  meetsBirdFlightRequirements,
-} from './gradeProgression.js';
+import { computeBirdFlightCost } from './gradeProgression.js';
+import { meetsBirdFlightRequirements } from './birdFlightExam.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 
@@ -176,4 +173,5 @@ export async function processBirdFlightsForAllUsers() {
   return all;
 }
 
-export { CHUNIN_STAGNATION_COMBAT, MAJOR_STATS };
+export { BIRD_FLIGHT_COMBAT_REQUIRED, BIRD_FLIGHT_IQ_REQUIRED } from './birdFlightExam.js';
+export { MAJOR_STATS };

@@ -37,7 +37,13 @@ $$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{QI}
 | Solide (12 / 10) | Genin mûr | **440** Ryos |
 | Plafond (12 / 10) | Avant examen | **440** Ryos |
 
-*Vol d'Oiseau (M7) : frais de cérémonie `800 + max(0, combat − 17) × 50` Ryos — prélevés à l'inscription, départ traité à H72.*
+*Vol d'Oiseau (M7) : frais de cérémonie `800 + max(0, combat − 16) × 50 + max(0, QI − 14) × 40` Ryos — prélevés à l'inscription, départ traité à H72.*
+
+| Profil | Exemple | Coût |
+| :--- | :--- | :--- |
+| Minimum (16 / 14) | Chunin prêt | **800** Ryos |
+| Solide (17 / 15) | Chunin mûr | **910** Ryos |
+| Plafond (18 / 16) | Avant départ | **980** Ryos |
 
 ---
 
@@ -60,8 +66,8 @@ Conditions **toutes** vraies :
 
 Conditions **toutes** vraies :
 - Grade `Chunin`
-- Meilleure stat combat ≥ **17** (préparation au sommet / Vol d'Oiseau)
-- Toujours Chunin en fin de cycle
+- Prérequis Vol d'Oiseau atteints (combat ≥ 16, QI ≥ 14)
+- **Pas** inscrit à la cérémonie ce cycle (`bird_flight_requested = FALSE` à H72)
 
 **Pénalité :** identique (forme −1 palier, moral −3).
 
@@ -80,8 +86,9 @@ Genin s'entraîne → plafond 12 → doit payer l'examen Chunin
   → refuse / pas de Ryos → forme & moral chutent chaque cycle
   → paie + réussit H36 → Chunin, plafonds relevés
 
-Chunin s'entraîne → approche 17+ → préparer Vol d'Oiseau (M7)
-  → reste trop longtemps → stagnation
+Chunin s'entraîne → plafond 18/16 → doit organiser le Vol d'Oiseau (combat ≥ 16, QI ≥ 14)
+  → refuse / pas de Ryos → forme & moral chutent chaque cycle
+  → paie + cérémonie H72 → départ Jonin, relève Genin
 ```
 
 ---

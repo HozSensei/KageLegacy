@@ -9,6 +9,7 @@ import {
   isGeninStagnant,
   meetsBirdFlightRequirements,
 } from '../services/gradeProgression.js';
+import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import { getUnreadNotifications } from '../services/birdFlightService.js';
 
@@ -20,6 +21,7 @@ function enrichNinja(ninja) {
     ...ninja,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
     birdFlightCost: ninja.grade === 'Chunin' ? computeBirdFlightCost(ninja) : null,
+    birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
     birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
     birdFlightPeak: ninja.grade === 'Chunin' ? hasReachedTeachingPeak(ninja) : false,
     gradeStatCaps: GRADE_STAT_CAPS[ninja.grade] || GRADE_STAT_CAPS.Genin,

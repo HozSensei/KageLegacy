@@ -121,7 +121,7 @@ export async function requestBirdFlight(userId, ninjaId) {
   }
 
   if (!meetsBirdFlightRequirements(ninja)) {
-    const error = new Error('Prérequis non atteints (meilleure stat combat ≥ 17).');
+    const error = new Error('Prérequis non atteints (combat ≥ 16 et QI ≥ 14).');
     error.statusCode = 400;
     throw error;
   }

@@ -31,5 +31,6 @@ const chuninVeteran = {
   intelligence: 14,
 };
 console.assert(isChuninStagnant(chuninVeteran));
+console.assert(!isChuninStagnant({ ...chuninVeteran, intelligence: 12 }));
 
 console.log('gradeProgression: OK');

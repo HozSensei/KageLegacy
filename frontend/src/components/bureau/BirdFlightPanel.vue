@@ -5,7 +5,7 @@ import { useSquadStore } from '../../stores/squad'
 import {
   canRegisterBirdFlight,
   computeBirdFlightCost,
-  getBirdFlightCombat,
+  getBirdFlightProgress,
 } from '../../composables/useBirdFlight.js'
 
 const { t } = useI18n()
@@ -17,8 +17,11 @@ const chuninList = computed(() => {
   const all = [...store.activeSquad, ...store.bench]
   return all
     .filter((n) => n.grade === 'Chunin')
-    .map((n) => ({ ninja: n, combat: getBirdFlightCombat(n) }))
-    .sort((a, b) => b.combat - a.combat)
+    .map((n) => ({ ninja: n, progress: getBirdFlightProgress(n) }))
+    .sort((a, b) => {
+      if (a.progress.ready !== b.progress.ready) return a.progress.ready ? -1 : 1
+      return b.progress.combat - a.progress.combat
+    })
 })
 
 const registrationOpen = computed(() => {
@@ -52,7 +55,7 @@ async function register(ninjaId) {
 
     <ul class="mt-6 space-y-5">
       <li
-        v-for="{ ninja, combat } in chuninList"
+        v-for="{ ninja, progress } in chuninList"
         :key="ninja.id"
         class="border border-line/80 p-4"
         :class="{ 'border-accent/40 bg-accent/5': ninja.birdFlightPeak }"
@@ -69,13 +72,27 @@ async function register(ninjaId) {
 
         <p class="mt-1 text-[11px] text-ink-faint">
           {{ t('bureau.birdFlight.combat') }}
-          <span :class="ninja.birdFlightReady ? 'text-accent-soft' : 'text-ink-muted'">
-            {{ combat }}/17
+          <span :class="progress.combat >= progress.combatRequired ? 'text-accent-soft' : 'text-ink-muted'">
+            {{ progress.combat }}/{{ progress.combatRequired }}
+          </span>
+          ·
+          {{ t('bureau.birdFlight.iq') }}
+          <span :class="progress.intelligence >= progress.intelligenceRequired ? 'text-accent-soft' : 'text-ink-muted'">
+            {{ progress.intelligence }}/{{ progress.intelligenceRequired }}
           </span>
           <span v-if="ninja.birdFlightPeak" class="ml-2 text-accent">
             · {{ t('bureau.birdFlight.peak') }}
           </span>
         </p>
+
+        <div class="mt-2 flex gap-3">
+          <div class="exam-bar flex-1">
+            <div class="exam-bar__fill" :style="{ width: `${progress.combatRatio * 100}%` }" />
+          </div>
+          <div class="exam-bar flex-1">
+            <div class="exam-bar__fill exam-bar__fill--iq" :style="{ width: `${progress.intelligenceRatio * 100}%` }" />
+          </div>
+        </div>
 
         <p v-if="ninja.stagnationRisk && !ninja.bird_flight_requested" class="mt-2 text-[11px] text-fire">
           {{ t('bureau.birdFlight.stagnationWarning') }}
