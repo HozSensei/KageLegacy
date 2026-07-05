@@ -123,7 +123,32 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
 | **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | Missions résolues à H72 ; design global à revoir |
-| **Entraînement par ninja (Ryos)** | Remplacer le focus Sensei global par un **plan par ninja** (stat ciblée) ; **coût Ryos prélevé à H72** après application des gains — sink économique, choix tactiques (qui monter, qui laisser). Périmètre : tous les ninjas, escouade seule, hors mission/opération ? | Focus **dojo** unique (`sensei.training_focus`) ; entraînement **gratuit** ; `applyTrainingForUser` touche **tous** les ninjas sans filtre |
+| **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | Focus **dojo** unique (`sensei.training_focus`) ; entraînement **gratuit** ; `applyTrainingForUser` touche **tous** les ninjas sans filtre |
+
+### Entraînement payant — principes validés (session design)
+
+| Principe | Détail |
+| :--- | :--- |
+| **Périmètre** | Opt-in **par ninja** : pas d'entraînement ni de coût sans choix explicite pour ce cycle |
+| **Facturation** | Prélèvement Ryos à **H72** (après calcul des gains, ou avant — à trancher à l'implémentation) |
+| **Transparence Bureau** | Panneau « Budget du cycle » : ligne par ninja entraîné, coût unitaire, sous-total entraînement, salaires, examens, **solde projeté** |
+| **Sink Ryos** | Rendre l'entraînement massif coûteux ; laisser un ninja sans plan = 0 Ryos (choix tactique) |
+
+### Sanctions déficit — options à arbitrer (inspiré Hattrick, adapté manager 72 h)
+
+**Référence [Hattrick](https://wiki.hattrick.org/wiki/Bankruptcy) :** pas de frais d'entraînement direct par joueur — le coût est **indirect** via les **salaires** qui montent avec le niveau. Déficit autorisé jusqu'à une **ligne de crédit** (~500 k€), **intérêts hebdomadaires** (~3,33 % sur la dette), **restrictions** avant faillite (achats joueurs / staff gelés), **avertissement** puis **faillite** (perte de l'équipe) si non résorbé en 2 semaines. Page **Finances** très détaillée (revenus / dépenses ligne par ligne).
+
+**Pistes Kage Legacy** (moins brutal qu'une faillite — cycle 72 h, club plus petit) :
+
+| Niveau | Piste | Effet gameplay |
+| :--- | :--- | :--- |
+| **A — Strict** | Pas de déficit : Ryos ≥ 0 toujours | Ninjas non payés **ne gagnent pas** leur session d'entraînement ce cycle (comme l'examen Chunin sans Ryos) |
+| **B — Souple** | Petit découvert autorisé (ex. −5 000 Ryos max) | Intérêts à H72 : `3 % × dette` (sink, pression sans game over) |
+| **C — Gel administratif** | Dette &gt; 0 après H72 | Bloquer : marché, examen Chunin, missions payantes — jusqu'à retour positif |
+| **D — Pénalité club** | Dette non résorbée 2 cycles | Tous les ninjas : forme −1 palier + moral −3 (dojo en difficulté) |
+| **E — Alerte seule** | Première version minimaliste | Bandeau rouge Bureau + pas d'entraînement des ninjas non couverts |
+
+**Recommandation indicative :** **A + B léger** (pas de gain sans paiement ; petit découvert avec intérêts) + **transparence Bureau obligatoire** — proche de l'esprit Hattrick sans supprimer le compte.
 
 ---
 
