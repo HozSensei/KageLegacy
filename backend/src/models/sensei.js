@@ -6,10 +6,12 @@ import {
   isChuninStagnant,
   isGeninStagnant,
 } from '../services/gradeProgression.js';
+import { describeNinjaProfile } from '../services/ninjaProfile.js';
 
 export { getGameClock };
 
 function enrichNinja(ninja) {
+  const language = ninja.language || 'fr';
   return {
     ...ninja,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
@@ -20,6 +22,7 @@ function enrichNinja(ninja) {
         : ninja.grade === 'Chunin'
           ? isChuninStagnant(ninja)
           : false,
+    profile: describeNinjaProfile(ninja, language),
   };
 }
 

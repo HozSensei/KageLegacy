@@ -27,7 +27,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 | Zone | Statut | Notes |
 | :--- | :--- | :--- |
-| M1 — Stats, clans, traits | ✅ | Socle identité procédurale |
+| M1 — Stats, clans, traits | ✅ | **Profils voie + potentiel** — spec [`ninja-profiles.md`](./ninja-profiles.md) |
 | M2 — Bureau, escouade, router | ✅ | |
 | M3 — Horloge 72h, jobs H36/H71/H72 | 🟡 | Scheduler 60s, outils `clock:advance` |
 | M5 — Moteur combat 12 tours | 🟡 | Initiative probabiliste, lissage duels |
