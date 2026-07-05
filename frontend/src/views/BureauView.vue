@@ -4,7 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import ChuninExamList from '../components/bureau/ChuninExamList.vue'
+import ChuninStagnationPanel from '../components/bureau/ChuninStagnationPanel.vue'
 import IdleMissionPanel from '../components/bureau/IdleMissionPanel.vue'
+import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 
 const { t, locale } = useI18n()
 const store = useSquadStore()
@@ -61,6 +63,8 @@ onMounted(async () => {
         <router-link to="/operation" class="text-accent underline-offset-4 hover:underline">voir le rapport</router-link>
       </div>
 
+      <StagnationAlert />
+
       <dl class="metric-row mt-12">
         <div class="metric-item">
           <dd class="metric-value text-accent">{{ store.sensei.ryos.toLocaleString() }}</dd>
@@ -109,6 +113,7 @@ onMounted(async () => {
           </div>
 
           <ChuninExamList />
+          <ChuninStagnationPanel />
           <IdleMissionPanel />
         </div>
 

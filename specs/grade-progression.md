@@ -101,5 +101,6 @@ Chunin s'entraîne → approche 17+ → préparer Vol d'Oiseau (M7)
 ## 📋 Backlog
 
 - [ ] Examen Jonin / inscription Vol d'Oiseau avec coût Ryos (M7)
-- [ ] UI Bureau : alerte « Stagnation imminente » si plafond ou prérequis atteints
+- [x] UI Bureau : alerte stagnation Genin + Chunin (`StagnationAlert`, `ChuninStagnationPanel`)
+- [x] UI cartes ninja : voie, potentiel, lignée (`NinjaProfileBadges`)
 - [ ] Chronique / notification : « X s'impatiente — forme en baisse »

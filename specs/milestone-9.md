@@ -41,13 +41,11 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 ## 🎯 Priorités suggérées (ordre actuel)
 
 1. ~~**Refonte M4 simplifiée**~~ — ✅ migration 011, catalogue utilitaires, hooks match, `POST /inventory/use`
-2. **Fin M8** — Promotions / relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
-2. **Polish swap compo** — Validation UX des boutons au survol (position 50 %, icônes)
-3. **M6 enrichi** — Mention des objets dans le dictionnaire narratif + débriefing (faille élémentaire → marché)
-4. **Protect avec cible explicite** — Consigne Protect : désigner l'allié à couvrir (UI + moteur)
-5. **Script `combat:benchmark`** — ✅ `npm run combat:benchmark` (Monte Carlo + multi-cycles)
-6. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos / réputation
-7. **Dispensaire** — Forme `Lamentable` : récupération entre cycles (mentionné M6 dénouement)
+2. ~~**Polish UI profils**~~ — ✅ cartes ninja (voie, potentiel, lignée) · alertes stagnation Bureau
+3. **Fin M8** — Promotions / relégations cycle 10, `join_or_create_pool`, invitations `invitePoolId`
+4. **M7 — Vol d'Oiseau** — Retraite Chunin 20/20, relève Genin, prime Ryos
+5. **Dispensaire** — Forme `Lamentable`, sink Ryos entre cycles
+6. **M6 enrichi** — Phrases objets match, interception Sensei dans la chronique
 
 ---
 
