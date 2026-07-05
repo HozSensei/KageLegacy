@@ -150,6 +150,15 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 
 **Recommandation indicative :** **A + B léger** (pas de gain sans paiement ; petit découvert avec intérêts) + **transparence Bureau obligatoire** — proche de l'esprit Hattrick sans supprimer le compte.
 
+**Décision PO (session juil. 2026) :**
+
+| Point | Choix retenu |
+| :--- | :--- |
+| **Ordre H72** | **1. Salaires** → **2. Entraînement** (puis reste du batch : ligue, Vol d'Oiseau, stagnation, etc.) |
+| **Modèle déficit** | **Souple** : petit découvert autorisé ; intérêts sur dette à H72 ; ninjas non couverts = pas de gain |
+| **Plafond découvert** | À calibrer (indicatif **−5 000 Ryos** — à valider en playtest) |
+| **Taux intérêt** | À calibrer (indicatif **3 % × dette** par cycle — miroir Hattrick à l'échelle 72 h) |
+
 ---
 
 ## 💤 Mis en attente (volontairement)
@@ -171,7 +180,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [ ] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
 - [ ] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
 - [ ] Marché : rappel « expire à H72 » plus visible
-- [ ] Missions idle : afficher prérequis Rang C/B sur le Bureau
+- [ ] **Budget du cycle (Bureau)** — détail dépenses prévues H72 : entraînement par ninja, salaires, examens, solde projeté
 
 ---
 
@@ -181,7 +190,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
-- [ ] **Entraînement par ninja + coût Ryos (H72)** — focus individuel, facturation fin de cycle ; voir revue design ci-dessus
+- [ ] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit (voir revue design)
 - [ ] Dispensaire (forme, coût Ryos ?)
 - [x] UI alerte stagnation Chunin (combat ≥ 17)
 - [x] `npm run combat:benchmark` — `backend/scripts/simulateCycles.js` ✅ (voir résultats ci-dessus)
