@@ -22,6 +22,12 @@ function enrichNinja(ninja) {
         : ninja.grade === 'Chunin'
           ? isChuninStagnant(ninja)
           : false,
+    stagnationKind:
+      ninja.grade === 'Genin' && isGeninStagnant(ninja)
+        ? 'genin_exam'
+        : ninja.grade === 'Chunin' && isChuninStagnant(ninja)
+          ? 'chunin_jonin'
+          : null,
     profile: describeNinjaProfile(ninja, language),
   };
 }

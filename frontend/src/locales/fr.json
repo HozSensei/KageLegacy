@@ -13,6 +13,11 @@
     "forme": "Forme",
     "moral": "Moral",
     "joninProgress": "Progression Jonin",
+    "profile": {
+      "voie": "Voie",
+      "potentiel": "Potentiel",
+      "lignee": "Lignée"
+    },
     "stats": {
       "taijutsu": "Taijutsu",
       "ninjutsu": "Ninjutsu",
@@ -64,6 +69,18 @@
     "operationLive": "Opération en cours",
     "trainingFocus": "Focus d'entraînement",
     "trainingHint": "Reconduit automatiquement chaque cycle tant que vous ne le modifiez pas.",
+    "stagnation": {
+      "title": "Stagnation imminente",
+      "lead": "À H72, forme et moral baissent si ces ninjas restent bloqués au grade actuel.",
+      "geninExam": "prêt pour l'examen Chunin — inscrivez-le avant H36",
+      "chuninJonin": "sommet Chunin atteint — préparez le Vol d'Oiseau (bientôt)"
+    },
+    "chuninStagnation": {
+      "title": "Chunin au sommet",
+      "lead": "Combat ≥ 17 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
+      "warning": "Forme et moral chuteront à H72 tant qu'il reste Chunin.",
+      "combatPeak": "Pic combat : {value}/20"
+    },
     "chuninExam": {
       "title": "Examens Chunin",
       "lead": "Inscription avant H36 · combat ≥ 10 et QI ≥ 8 · résultat au milieu du cycle.",

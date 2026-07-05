@@ -2,6 +2,7 @@
 import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
+import NinjaProfileBadges from './NinjaProfileBadges.vue'
 
 const props = defineProps({
   ninja: { type: Object, required: true },
@@ -69,6 +70,7 @@ const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') |
             <span class="mx-1.5 text-ink-faint">·</span>
             {{ t(`grades.${ninja.grade}`) }}
           </p>
+          <NinjaProfileBadges class="mt-3" :ninja="ninja" />
         </div>
       </div>
 
