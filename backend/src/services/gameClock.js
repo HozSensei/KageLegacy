@@ -75,8 +75,10 @@ export async function setHourDev(targetHour) {
 }
 
 /** Réinitialise le cycle (après job H72) */
-export async function resetCycle(now = new Date()) {
-  await query('UPDATE game_clock SET cycle_start_at = ?, last_tick_hour = 0 WHERE id = 1', [now]);
+export async function resetCycle() {
+  await query(
+    'UPDATE game_clock SET cycle_start_at = UTC_TIMESTAMP(), last_tick_hour = 0 WHERE id = 1'
+  );
   return getGameClock();
 }
 

@@ -11,6 +11,7 @@ import {
   ITEM_HEAL,
   ITEM_RUPTURE_SCROLL,
   ITEM_SMOKE_SAVE,
+  EGOISTE_INSUBORDINATION,
   MEDECINE_TEMPLATES,
   NINJUTSU_TEMPLATES,
   pick,
@@ -48,6 +49,13 @@ function logToSentence(log) {
 
   if (log.item_smoke_save) {
     return fillTemplate(pick(ITEM_SMOKE_SAVE), { ninja_name: log.cible_name });
+  }
+
+  if (log.egoiste_insubordination && log.technique_type) {
+    return fillTemplate(pick(EGOISTE_INSUBORDINATION), {
+      attaquant_name: log.attaquant_name,
+      cible_name: log.cible_name,
+    });
   }
 
   if (log.type === 'item_event') {
