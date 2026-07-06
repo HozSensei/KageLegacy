@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 
 const { t } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -9,6 +10,7 @@ const loading = ref(true)
 const error = ref(null)
 const league = ref(null)
 const gameClock = ref(null)
+const fixtures = ref(null)
 
 const showScout = computed(() => (gameClock.value?.hour ?? 0) >= 36)
 const invite = ref(null)
@@ -27,6 +29,13 @@ onMounted(async () => {
     const data = await leagueRes.json()
     league.value = data
     gameClock.value = data.gameClock
+
+    if (data.pool?.id) {
+      const fixRes = await fetch(
+        `${API_BASE}/api/matches/pools/${data.pool.id}/fixtures?cycle=${data.pool.currentCycle}`
+      )
+      if (fixRes.ok) fixtures.value = await fixRes.json()
+    }
 
     if (inviteRes?.ok) {
       invite.value = await inviteRes.json()
@@ -130,7 +139,14 @@ function matchStatusLabel(status) {
 
           <section v-if="league.nextMatch">
             <p class="section-label">{{ t('league.nextMatch') }}</p>
-            <div class="mt-4 border border-line p-5">
+            <RouterLink
+              :to="{
+                name: 'operation-match',
+                params: { matchId: league.nextMatch.id },
+                query: { poolId: league.pool.id, cycle: league.nextMatch.cycle },
+              }"
+              class="mt-4 block border border-line p-5 transition hover:border-accent"
+            >
               <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                 {{ t('league.matchday') }} {{ league.nextMatch.cycle }}
                 · {{ matchStatusLabel(league.nextMatch.status) }}
@@ -146,10 +162,49 @@ function matchStatusLabel(status) {
               >
                 {{ league.nextMatch.homeScore }} : {{ league.nextMatch.awayScore }}
               </p>
-              <p class="mt-3 text-xs text-ink-faint">
-                {{ t('league.vsHint', { opponent: league.nextMatch.opponentName }) }}
-              </p>
-            </div>
+              <p class="mt-3 text-xs text-accent">{{ t('league.viewChronicle') }}</p>
+            </RouterLink>
+          </section>
+
+          <section v-if="fixtures?.matches?.length" class="mt-10">
+            <p class="section-label">{{ t('league.fixtures') }}</p>
+            <ul class="mt-4 space-y-2">
+              <li v-for="match in fixtures.matches" :key="match.id">
+                <RouterLink
+                  :to="{
+                    name: 'operation-match',
+                    params: { matchId: match.id },
+                    query: { poolId: league.pool.id, cycle: match.cycle },
+                  }"
+                  class="block border border-line px-4 py-3 text-sm transition hover:border-accent"
+                  :class="{ 'border-accent/60': match.isParticipant }"
+                >
+                  <span class="text-ink">{{ match.home.name }} vs {{ match.away.name }}</span>
+                  <span v-if="match.isParticipant" class="ml-2 text-[10px] uppercase text-accent">
+                    {{ t('matches.yourMatch') }}
+                  </span>
+                </RouterLink>
+              </li>
+            </ul>
+          </section>
+
+          <section v-if="league.recentMatches?.length" class="mt-10">
+            <p class="section-label">{{ t('league.recentMatches') }}</p>
+            <ul class="mt-4 space-y-2">
+              <li v-for="match in league.recentMatches" :key="match.id">
+                <RouterLink
+                  :to="{
+                    name: 'operation-match',
+                    params: { matchId: match.id },
+                    query: { poolId: league.pool.id, cycle: match.cycle },
+                  }"
+                  class="block border border-line px-4 py-3 text-sm text-ink-muted transition hover:border-accent hover:text-ink"
+                >
+                  J{{ match.cycle }} · {{ match.home }} vs {{ match.away }}
+                  <span class="ml-2 text-ink-faint">{{ match.score }}</span>
+                </RouterLink>
+              </li>
+            </ul>
           </section>
 
           <section v-if="showScout && league.scoutReport" class="mt-10">

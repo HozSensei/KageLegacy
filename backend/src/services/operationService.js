@@ -1,8 +1,16 @@
-import { query } from '../config/database.js';
 import { getGameClock } from './gameClock.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { buildDebriefing, pickSuspenseLine } from './narrative/debriefing.js';
 import { getNarrativeSegments } from './narrative/narrativeStore.js';
+import {
+  assertViewerCanAccessMatch,
+  browsePools,
+  getPoolMatches,
+  getViewerPoolId,
+  isMatchParticipant,
+  loadMatchRow,
+} from './matchSpectatorService.js';
+import { findUserPool } from './poolService.js';
 
 function parseCombatLog(raw) {
   if (!raw) return null;
@@ -24,43 +32,10 @@ function userPerspective(match, userId) {
   };
 }
 
-export async function getOperationLivePayload(userId) {
+export async function buildMatchOperationPayload(match, viewerUserId, access) {
   const clock = await getGameClock();
-  const poolRows = await query(
-    `SELECT p.id, p.current_cycle FROM pools p
-     JOIN pool_members pm ON pm.pool_id = p.id
-     WHERE pm.user_id = ? AND p.status = 'active' LIMIT 1`,
-    [userId]
-  );
-
-  if (!poolRows.length) {
-    return {
-      gameClock: clock,
-      state: 'no_pool',
-      chronicle: [],
-      suspense: null,
-      debriefing: [],
-      match: null,
-      mechanical: null,
-    };
-  }
-
-  const pool = poolRows[0];
-  const match = await getUserMatchForCycle(userId, pool.current_cycle);
-
-  if (!match) {
-    return {
-      gameClock: clock,
-      state: 'no_match',
-      chronicle: [],
-      suspense: null,
-      debriefing: [],
-      match: null,
-      mechanical: null,
-    };
-  }
-
-  const perspective = userPerspective(match, userId);
+  const isParticipant = access.isParticipant;
+  const perspective = isParticipant ? userPerspective(match, viewerUserId) : null;
   const combatLog = parseCombatLog(match.combat_log);
   const allSegments = await getNarrativeSegments(match.id);
 
@@ -84,11 +59,13 @@ export async function getOperationLivePayload(userId) {
   let state = 'waiting';
   if (match.status === 'scheduled' && clock.hour < 71) state = 'scheduled';
   else if (match.status === 'scheduled' && clock.hour >= 71) state = 'simulating';
-  else if (match.status === 'revealing') state = 'live';
+  else if (match.status === 'revealing' || match.status === 'simulated') state = 'live';
   else if (match.status === 'applied') state = 'finished';
 
   const debriefing =
-    revealComplete || clock.hour >= 72 ? buildDebriefing(match, userId, combatLog) : [];
+    isParticipant && (revealComplete || clock.hour >= 72)
+      ? buildDebriefing(match, viewerUserId, combatLog)
+      : [];
 
   const mechanical =
     combatLog && chronicle.length
@@ -99,7 +76,7 @@ export async function getOperationLivePayload(userId) {
           endingTour: match.ending_tour,
           result: match.result,
           winnerUserId: match.winner_user_id,
-          isHome: perspective.isHome,
+          isHome: perspective?.isHome ?? null,
         }
       : null;
 
@@ -110,17 +87,122 @@ export async function getOperationLivePayload(userId) {
     chronicle,
     suspense: morePending && !hasDenouement ? pickSuspenseLine() : null,
     debriefing,
+    viewerRole: isParticipant ? 'participant' : 'spectator',
+    pool: {
+      id: match.pool_id,
+      divisionLevel: match.division_level,
+      season: match.season_number,
+      currentCycle: match.pool_current_cycle,
+      isViewerPool: access.samePool,
+    },
     match: {
       id: match.id,
       status: match.status,
       result: match.result,
       homeScore: match.home_score,
       awayScore: match.away_score,
-      opponentSensei: perspective.opponentSensei,
-      isHome: perspective.isHome,
+      homeSensei: match.home_sensei,
+      awaySensei: match.away_sensei,
+      homeIsBot: Boolean(match.home_is_bot),
+      awayIsBot: Boolean(match.away_is_bot),
+      opponentSensei: perspective?.opponentSensei ?? null,
+      isHome: perspective?.isHome ?? null,
       endingTour: match.ending_tour,
       seasonCycle: match.season_cycle,
+      environmentSlug: match.environment_slug,
+      environmentType: match.environment_type,
     },
     mechanical,
+  };
+}
+
+export async function getMatchOperationPayload(matchId, viewerUserId) {
+  const match = await loadMatchRow(matchId);
+  if (!match) {
+    const error = new Error('Match introuvable.');
+    error.statusCode = 404;
+    throw error;
+  }
+  const access = await assertViewerCanAccessMatch(viewerUserId, match);
+  return buildMatchOperationPayload(match, viewerUserId, access);
+}
+
+export async function getOperationLivePayload(userId) {
+  const clock = await getGameClock();
+  const pool = await findUserPool(userId);
+
+  if (!pool) {
+    return {
+      gameClock: clock,
+      state: 'no_pool',
+      chronicle: [],
+      suspense: null,
+      debriefing: [],
+      viewerRole: 'spectator',
+      pool: null,
+      match: null,
+      mechanical: null,
+    };
+  }
+
+  const match = await getUserMatchForCycle(userId, pool.current_cycle);
+
+  if (!match) {
+    return {
+      gameClock: clock,
+      state: 'no_match',
+      chronicle: [],
+      suspense: null,
+      debriefing: [],
+      viewerRole: 'participant',
+      pool: {
+        id: pool.id,
+        divisionLevel: pool.division_level,
+        season: pool.season_number,
+        currentCycle: pool.current_cycle,
+        isViewerPool: true,
+      },
+      match: null,
+      mechanical: null,
+    };
+  }
+
+  const access = { samePool: true, isParticipant: true };
+  return buildMatchOperationPayload(match, userId, access);
+}
+
+export async function getOperationNavigation(userId, { poolId, cycle, matchId } = {}) {
+  const viewerPoolId = await getViewerPoolId(userId);
+  const activePoolId = poolId != null ? Number(poolId) : viewerPoolId;
+
+  if (!activePoolId) {
+    return { viewerPoolId: null, poolId: null, cycle: null, matchId: null, matches: [], pools: [] };
+  }
+
+  const pools = await browsePools(userId);
+  const resolvedCycle = cycle != null ? Number(cycle) : pools.find((p) => p.id === activePoolId)?.currentCycle;
+  const fixture = await getPoolMatches(userId, activePoolId, { cycle: resolvedCycle });
+
+  let activeMatchId = matchId != null ? Number(matchId) : null;
+  if (!activeMatchId && fixture.matches.length) {
+    const own = fixture.matches.find((m) => m.isParticipant);
+    activeMatchId = own?.id ?? fixture.matches[0].id;
+  }
+
+  const matchIndex = fixture.matches.findIndex((m) => m.id === activeMatchId);
+
+  return {
+    viewerPoolId,
+    poolId: activePoolId,
+    cycle: resolvedCycle,
+    matchId: activeMatchId,
+    pools,
+    matches: fixture.matches,
+    pool: fixture.pool,
+    prevMatchId: matchIndex > 0 ? fixture.matches[matchIndex - 1].id : null,
+    nextMatchId:
+      matchIndex >= 0 && matchIndex < fixture.matches.length - 1
+        ? fixture.matches[matchIndex + 1].id
+        : null,
   };
 }

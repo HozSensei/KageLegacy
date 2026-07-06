@@ -192,13 +192,39 @@
     "inviteTitle": "Inviter un ami",
     "inviteLead": "Partagez ce lien pour qu'un nouvel inscrit rejoigne votre pool (remplace un bot si une place est libre).",
     "inviteCopy": "Copier le lien",
-    "inviteCopied": "Lien copié"
+    "inviteCopied": "Lien copié",
+    "viewChronicle": "Voir la chronique →",
+    "fixtures": "Matchs de la journée",
+    "recentMatches": "Résultats récents"
+  },
+  "matches": {
+    "navTitle": "Parcourir les combats",
+    "pool": "Ligue",
+    "cycle": "Journée",
+    "division": "Div.",
+    "yourPool": "votre ligue",
+    "yourMatch": "Votre match",
+    "spectator": "Mode spectateur",
+    "prev": "Préc.",
+    "next": "Suiv.",
+    "noFixtures": "Aucun match visible pour cette journée.",
+    "pickMatch": "Sélectionnez un match dans la liste.",
+    "resultHomeWin": "Victoire de {home}",
+    "resultAwayWin": "Victoire de {away}",
+    "status": {
+      "scheduled": "À venir",
+      "simulated": "Simulé",
+      "revealing": "En cours",
+      "applied": "Terminé"
+    }
   },
   "operation": {
     "kicker": "Frontière",
     "lead": "Chronique romancée de votre opération hebdomadaire — révélée progressivement à H71.",
+    "leadBrowse": "Consultez votre opération ou les combats des autres Sensei — votre ligue ou une autre.",
     "loading": "Chargement du rapport…",
     "scheduled": "Prochain adversaire : {opponent}. La chronique s'ouvrira à H71.",
+    "scheduledSpectator": "{home} vs {away} — la chronique s'ouvrira à H71.",
     "waiting": "En attente du début de l'opération ou de la simulation du match.",
     "reportTitle": "Rapport de l'opération",
     "noChronicle": "Aucun segment débloqué pour le moment.",
