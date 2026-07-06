@@ -39,6 +39,13 @@ Pour permettre à des amis de s'affronter directement sans attendre les mécanis
 * 🟡 **Match Nul :** 1 Point
 * 🔴 **Défaite :** 0 Point
 
+**Primes Ryos (H72, humains uniquement)** — `matchEconomy.js` :
+* 🟢 **Victoire :** 1 500 Ryos
+* 🟡 **Nul :** 500 Ryos
+* 🔴 **Défaite :** 0 Ryos
+
+L'idée : le match hebdomadaire est la principale source de revenus pour couvrir salaires et dépenses club ; sans victoire ni activité (missions, marché), la trésorerie se tend.
+
 ### B. Le Tableau de Renommée (Classement Global)
 Classement mondial de tous les serveurs trié par : 1) `division_level` (Le niveau de division, la Division I étant le sommet), puis par 2) `reputation_points` historiques (accumulés via le "Vol d'Oiseau").
 

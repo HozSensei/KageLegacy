@@ -18,7 +18,7 @@ import {
   updateTrainingFocusSchema,
   updateTrainingPlansSchema,
 } from '../validators/squadTactics.js';
-import { dismissNotification } from '../services/birdFlightService.js';
+import { dismissNotification } from '../services/dojoNotifications.js';
 import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
 

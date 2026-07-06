@@ -63,7 +63,14 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 **Prochaines priorités :**
 
 27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
-28. **Extraire `dojoNotifications.js`** — service dédié hors `birdFlightService`
+28. ~~**Extraire `dojoNotifications.js`**~~ — ✅ service dédié hors `birdFlightService`
+29. ~~**Sim économie multi-cycles**~~ — ✅ `npm run economy:simulate` · achats, match, `--chunin`, `--bird-flight`
+30. ~~**Ryos SIGNED + primes match**~~ — ✅ migration 024 · victoire 1 500 / nul 500 Ryos à H72
+
+**Prochaines priorités :**
+
+27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
+31. **Calibrage économie en playtest** — ajuster primes match si bilan trop tendu ou trop confortable
 
 ---
 
@@ -127,6 +134,8 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 | **M6 ↔ futur** | Spécialisations, dispensaire, Protect ciblé changeront les logs | Garder M6 comme couche traduction, pas de texte dans M5 |
 | **Équipement en BDD** | Seed démo sans objets équipés → sims = sans M4 en pratique | Seed optionnel ou scénario benchmark avec loadout |
 | **README roadmap** | Statuts milestones pas à jour | ✅ Aligné juil. 2026 |
+| **Ryos UNSIGNED** | `sensei.ryos INT UNSIGNED` bloque le découvert −5 000 | ✅ Migration 024 `SIGNED` |
+| **Revenus match** | Aucune prime Ryos à la victoire/nul | ✅ `matchEconomy.js` — 1 500 / 500 Ryos (H72) |
 | **WebSocket `/operation`** | Optionnel dans spec M6 | Polling 30s suffit pour l'instant |
 | **Bots** | `is_bot` : pas d'entraînement, pas de marché | Cohérent ; ne pas leur donner d'objets sans réfléchir |
 

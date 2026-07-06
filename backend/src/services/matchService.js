@@ -8,6 +8,7 @@ import { consumeUserItem } from './equipmentService.js';
 import { assembleNarrative } from './narrative/narrativeAssembler.js';
 import { persistNarrativeSegments } from './narrative/narrativeStore.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
+import { creditMatchOutcome } from './matchEconomy.js';
 
 function mapWinnerToDb(winner, homeUserId, awayUserId) {
   if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
@@ -167,12 +168,18 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
     if (match.result === 'home_win') {
       await applyStanding(poolId, match.home_user_id, 'win');
       await applyStanding(poolId, match.away_user_id, 'loss');
+      await creditMatchOutcome(match.home_user_id, 'win');
+      await creditMatchOutcome(match.away_user_id, 'loss');
     } else if (match.result === 'away_win') {
       await applyStanding(poolId, match.away_user_id, 'win');
       await applyStanding(poolId, match.home_user_id, 'loss');
+      await creditMatchOutcome(match.away_user_id, 'win');
+      await creditMatchOutcome(match.home_user_id, 'loss');
     } else if (match.result === 'draw') {
       await applyStanding(poolId, match.home_user_id, 'draw');
       await applyStanding(poolId, match.away_user_id, 'draw');
+      await creditMatchOutcome(match.home_user_id, 'draw');
+      await creditMatchOutcome(match.away_user_id, 'draw');
     }
 
     let koNinjaIds = [];

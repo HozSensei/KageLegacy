@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
 import { assertSpendingAllowed } from './economyDebt.js';
-import { createDojoNotification } from './birdFlightService.js';
+import { createDojoNotification } from './dojoNotifications.js';
 import { getGameClock, getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 

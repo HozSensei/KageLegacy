@@ -10,7 +10,7 @@ import {
 } from '../services/gradeProgression.js';
 import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
-import { getUnreadNotifications } from '../services/birdFlightService.js';
+import { getUnreadNotifications } from '../services/dojoNotifications.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
 import { getAcademyPayload } from '../services/academyService.js';
 import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
