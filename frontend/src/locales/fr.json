@@ -54,6 +54,22 @@
       "malus": "Aucun effet spécial imprévisible."
     }
   },
+  "auth": {
+    "loginTitle": "Connexion",
+    "registerTitle": "Créer un compte",
+    "username": "Nom d'utilisateur",
+    "senseiName": "Nom du Sensei",
+    "password": "Mot de passe",
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "loading": "Chargement…",
+    "noAccount": "Pas encore de compte ?",
+    "createAccount": "Créer un compte",
+    "hasAccount": "Déjà un compte ?",
+    "signIn": "Se connecter",
+    "demoHint": "Démo locale : demo_sensei / demo (après npm run db:seed)"
+  },
   "nav": {
     "bureau": "Bureau",
     "squad": "Escouade",

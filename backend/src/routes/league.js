@@ -1,17 +1,15 @@
 import { Router } from 'express';
-import { findDemoUser } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
 import { getLeaguePayload } from '../models/league.js';
 import { getGameClock } from '../services/gameClock.js';
 import { findUserPool } from '../services/poolService.js';
 
 const router = Router();
 
-router.get('/invite', async (_req, res, next) => {
+router.get('/invite', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const pool = await findUserPool(user.id);
     if (!pool) {
@@ -30,19 +28,17 @@ router.get('/invite', async (_req, res, next) => {
   }
 });
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration. Exécutez npm run db:seed.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const league = await getLeaguePayload(user.id);
     const gameClock = await getGameClock();
 
     if (!league) {
       return res.status(404).json({
-        error: 'Aucune pool assignée. Relancez npm run db:seed.',
+        error: 'Aucune pool assignée.',
         gameClock,
       });
     }

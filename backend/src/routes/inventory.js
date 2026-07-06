@@ -1,17 +1,15 @@
 import { Router } from 'express';
-import { findDemoUser, getGameClock } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
+import { getGameClock } from '../models/sensei.js';
 import { equipItem, getInventoryForUser, unequipItem } from '../services/equipmentService.js';
 import { useBureauItem } from '../services/bureauItemService.js';
 
 const router = Router();
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-      return;
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const inventory = await getInventoryForUser(user.id);
     const clock = await getGameClock();
@@ -23,8 +21,8 @@ router.get('/', async (_req, res, next) => {
 
 router.post('/equip', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const ninjaId = Number(req.body?.ninjaId);
     const userItemId = Number(req.body?.userItemId);
@@ -43,8 +41,8 @@ router.post('/equip', async (req, res, next) => {
 
 router.post('/unequip', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const ninjaId = Number(req.body?.ninjaId);
     const slot = req.body?.slot;
@@ -63,8 +61,8 @@ router.post('/unequip', async (req, res, next) => {
 
 router.post('/use', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const ninjaId = req.body?.ninjaId != null ? Number(req.body.ninjaId) : null;
     const userItemId = Number(req.body?.userItemId);

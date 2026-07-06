@@ -1,16 +1,13 @@
 import { Router } from 'express';
-import { findDemoUser } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
 import { getOperationLivePayload } from '../services/operationService.js';
 
 const router = Router();
 
-router.get('/live', async (_req, res, next) => {
+router.get('/live', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      res.status(404).json({ error: 'Aucun joueur de démonstration. Exécutez npm run db:seed.' });
-      return;
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const payload = await getOperationLivePayload(user.id);
     res.json(payload);

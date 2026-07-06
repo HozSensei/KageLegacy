@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { findDemoUser, getGameClock, getSquadPayload } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
+import { getGameClock, getSquadPayload } from '../models/sensei.js';
 import { updateSquadComposition } from '../models/squadComposition.js';
 import {
   requestBirdFlight,
@@ -23,18 +24,13 @@ import { updateCompositionSchema } from '../validators/squadComposition.js';
 
 const router = Router();
 
-async function requireDemoUser(res) {
-  const user = await findDemoUser();
-  if (!user) {
-    res.status(404).json({ error: 'Aucun joueur de démonstration. Exécutez npm run db:seed.' });
-    return null;
-  }
-  return user;
+async function resolveUser(req, res) {
+  return requireUser(req, res);
 }
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const squad = await getSquadPayload(user.id);
@@ -48,7 +44,7 @@ router.get('/', async (_req, res, next) => {
 
 router.patch('/composition', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = updateCompositionSchema.parse(req.body);
@@ -64,7 +60,7 @@ router.patch('/composition', async (req, res, next) => {
 
 router.patch('/strategies', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = updateStrategiesSchema.parse(req.body);
@@ -80,7 +76,7 @@ router.patch('/strategies', async (req, res, next) => {
 
 router.post('/chunin-exam', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = requestChuninExamSchema.parse(req.body);
@@ -96,7 +92,7 @@ router.post('/chunin-exam', async (req, res, next) => {
 
 router.post('/bird-flight', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = requestBirdFlightSchema.parse(req.body);
@@ -112,7 +108,7 @@ router.post('/bird-flight', async (req, res, next) => {
 
 router.post('/notifications/dismiss', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = dismissNotificationSchema.parse(req.body);
@@ -131,7 +127,7 @@ router.post('/notifications/dismiss', async (req, res, next) => {
 
 router.post('/dispensary', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = dispensaryTreatSchema.parse(req.body);
@@ -147,7 +143,7 @@ router.post('/dispensary', async (req, res, next) => {
 
 router.patch('/training-plans', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = updateTrainingPlansSchema.parse(req.body);
@@ -163,7 +159,7 @@ router.patch('/training-plans', async (req, res, next) => {
 
 router.patch('/training-focus', async (req, res, next) => {
   try {
-    const user = await requireDemoUser(res);
+    const user = await resolveUser(req, res);
     if (!user) return;
 
     const parsed = updateTrainingFocusSchema.parse(req.body);

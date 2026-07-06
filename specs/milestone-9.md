@@ -51,12 +51,14 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 8. ~~**M6 enrichi**~~ — ✅ phrases objets match, debrief objet inutilisé (interception déjà livrée)
 17. ~~**Gel administratif dette + polish M6/Bureau**~~ — ✅ PR #15
 18. ~~**Playtest cycle + Égoïste M6**~~ — ✅ `npm run playtest:cycle` · `npm run test:egoiste` · phrase insoumission
+19. ~~**Auth multi-joueurs**~~ — ✅ sessions cookie, register/login, `requireUser` (repli démo via `AUTH_DEMO_FALLBACK`)
 
 **Prochaines priorités :**
 
-19. **Auth multi-joueurs** — remplacer `findDemoUser()` par session réelle
-20. **Marché P2P V2** — ninjas banc (arbitrage PO)
-21. **Scheduler prod** — cron H36/H71/H72 hors `dev/tick`
+20. ~~**Marché P2P V2 — ninjas banc**~~ — ✅ annonces ninja, prix libre vendeur, garde-fous
+21. ~~**Scheduler prod**~~ — ✅ `npm run cycle:tick`, `ENABLE_SCHEDULER`, arrêt gracieux
+22. **Historique P2P + notifications** — ventes, « annonce achetée »
+23. **Extension inter-pools** — hors scope V1
 
 ---
 

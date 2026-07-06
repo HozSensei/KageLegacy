@@ -54,6 +54,22 @@
       "malus": "No special unpredictable effects."
     }
   },
+  "auth": {
+    "loginTitle": "Sign in",
+    "registerTitle": "Create account",
+    "username": "Username",
+    "senseiName": "Sensei name",
+    "password": "Password",
+    "login": "Sign in",
+    "register": "Register",
+    "logout": "Sign out",
+    "loading": "Loading…",
+    "noAccount": "No account yet?",
+    "createAccount": "Create one",
+    "hasAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "demoHint": "Local demo: demo_sensei / demo (after npm run db:seed)"
+  },
   "nav": {
     "bureau": "Office",
     "squad": "Squad",

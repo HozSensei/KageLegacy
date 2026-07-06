@@ -1,12 +1,15 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
+import { useAuthStore } from '../stores/auth'
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const store = useSquadStore()
+const auth = useAuthStore()
 
 const navItems = [
   { name: 'bureau', path: '/', label: 'nav.bureau' },
@@ -40,7 +43,14 @@ function isActive(path) {
   return path === '/' ? route.path === '/' : route.path.startsWith(path)
 }
 
-onMounted(() => {
+async function logout() {
+  await auth.logout()
+  store.sensei = null
+  router.push('/login')
+}
+
+onMounted(async () => {
+  if (!auth.checked) await auth.fetchMe()
   if (!store.sensei) store.fetchSquad()
 })
 </script>
@@ -68,6 +78,24 @@ onMounted(() => {
         </nav>
 
         <div class="flex shrink-0 items-center gap-4">
+          <span v-if="auth.user" class="hidden text-[11px] text-ink-muted sm:inline">
+            {{ auth.sensei?.name || auth.user.username }}
+          </span>
+          <router-link
+            v-if="!auth.user"
+            to="/login"
+            class="text-[11px] uppercase tracking-[0.14em] text-accent hover:underline"
+          >
+            {{ t('auth.login') }}
+          </router-link>
+          <button
+            v-else
+            type="button"
+            class="text-[11px] uppercase tracking-[0.14em] text-ink-faint hover:text-ink-muted"
+            @click="logout"
+          >
+            {{ t('auth.logout') }}
+          </button>
           <span v-if="store.gameClock" class="hidden text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline">
             {{ cycleLabel }}
           </span>
