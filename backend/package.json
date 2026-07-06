@@ -13,6 +13,7 @@
     "combat:simulate": "node scripts/simulateMatch.js",
     "combat:benchmark": "node scripts/simulateCycles.js",
     "playtest:cycle": "node scripts/playtestCycle.js",
+    "playtest:multiplayer": "node scripts/playtestMultiplayer.js",
     "test:egoiste": "node scripts/testEgoisteInsubordination.js",
     "cycle:tick": "node scripts/cycleTick.js"
   },
