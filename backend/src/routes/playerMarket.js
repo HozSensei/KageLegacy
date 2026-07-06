@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { query } from '../config/database.js';
 import { findDemoUser, getGameClock } from '../models/sensei.js';
+import { getDebtStatus } from '../services/economyDebt.js';
 import {
   buyListing,
   cancelListing,
@@ -10,23 +10,26 @@ import {
 
 const router = Router();
 
+async function marketResponse(userId, extra = {}) {
+  const market = await getPlayerMarketPayload(userId);
+  const debt = await getDebtStatus(userId);
+  const clock = await getGameClock();
+  return {
+    ...extra,
+    ...market,
+    ryos: debt.ryos,
+    debtBlocksSpending: debt.debtBlocksSpending,
+    gameClock: clock,
+  };
+}
+
 router.get('/', async (_req, res, next) => {
   try {
     const user = await findDemoUser();
     if (!user) {
-      res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-      return;
+      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
     }
-
-    const market = await getPlayerMarketPayload(user.id);
-    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
-    const clock = await getGameClock();
-
-    res.json({
-      ...market,
-      ryos: senseiRows[0]?.ryos ?? 0,
-      gameClock: clock,
-    });
+    res.json(await marketResponse(user.id));
   } catch (error) {
     next(error);
   }
@@ -44,16 +47,7 @@ router.post('/list', async (req, res, next) => {
     }
 
     const result = await createItemListing(user.id, userItemId, price);
-    const market = await getPlayerMarketPayload(user.id);
-    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
-    const clock = await getGameClock();
-
-    res.json({
-      result,
-      ...market,
-      ryos: senseiRows[0]?.ryos ?? 0,
-      gameClock: clock,
-    });
+    res.json(await marketResponse(user.id, { result }));
   } catch (error) {
     next(error);
   }
@@ -70,16 +64,7 @@ router.post('/buy', async (req, res, next) => {
     }
 
     const purchase = await buyListing(user.id, listingId);
-    const market = await getPlayerMarketPayload(user.id);
-    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
-    const clock = await getGameClock();
-
-    res.json({
-      purchase,
-      ...market,
-      ryos: senseiRows[0]?.ryos ?? 0,
-      gameClock: clock,
-    });
+    res.json(await marketResponse(user.id, { purchase }));
   } catch (error) {
     next(error);
   }
@@ -96,16 +81,7 @@ router.post('/cancel', async (req, res, next) => {
     }
 
     const result = await cancelListing(user.id, listingId);
-    const market = await getPlayerMarketPayload(user.id);
-    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
-    const clock = await getGameClock();
-
-    res.json({
-      result,
-      ...market,
-      ryos: senseiRows[0]?.ryos ?? 0,
-      gameClock: clock,
-    });
+    res.json(await marketResponse(user.id, { result }));
   } catch (error) {
     next(error);
   }

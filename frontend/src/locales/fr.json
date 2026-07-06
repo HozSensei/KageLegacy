@@ -68,6 +68,8 @@
     "cycle": "Cycle ninja",
     "activeSquad": "Escouade active",
     "operationLive": "Opération en cours",
+    "operationLink": "Voir le rapport",
+    "debtFreeze": "Gel administratif — remboursez votre dette avant tout achat, examen ou soin payant.",
     "trainingPlansTitle": "Plans d'entraînement",
     "trainingPlansHint": "Choisissez une stat par ninja. Facturation à H72 — sans plan, pas de coût ni de gain.",
     "trainingNone": "Aucun",
@@ -112,7 +114,8 @@
       "lead": "Soigne les ninjas en forme Lamentable : Lamentable → Passable avant le prochain match.",
       "forme": "Forme actuelle",
       "submit": "Soigner ({cost} Ryos)",
-      "sending": "Soins…"
+      "sending": "Soins…",
+      "debtBlocked": "Dette en cours — dispensaire indisponible."
     },
     "chuninStagnation": {
       "title": "Chunin au sommet",
@@ -128,6 +131,7 @@
       "sending": "Inscription…",
       "registered": "Inscrit · H36",
       "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0.",
+      "debtBlocked": "Dette en cours — inscriptions suspendues.",
       "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72."
     }
   },
@@ -236,7 +240,22 @@
     "endingTour": "Tours joués",
     "victory": "Victoire",
     "defeat": "Défaite",
-    "draw": "Match nul"
+    "draw": "Match nul",
+    "equipmentTitle": "Objets match",
+    "itemUsed": "utilisé : {items}",
+    "itemUnused": "non déclenché : {items}",
+    "items": {
+      "fumigene": "Fumigène de secours",
+      "parchemin-rupture": "Parchemin de rupture",
+      "leurre": "Leurre",
+      "herbes-soin": "Herbes de soin",
+      "cachet-chakra": "Cachet de chakra",
+      "poids-entrainement": "Poids d'entraînement",
+      "cape-impermeable": "Cape imperméable",
+      "torche-signalisation": "Torche de signalisation",
+      "sandales-canyon": "Sandales de canyon",
+      "carte-secteur": "Carte du secteur"
+    }
   },
   "market": {
     "kicker": "Magasin du village",
@@ -250,6 +269,7 @@
     "restock": "Prochain réassort dans {cycles} cycle(s) (tous les {every})",
     "promo": "−{pct} %",
     "promoActive": "{count} promo(s) ce cycle",
+    "debtBlocked": "Gel administratif — achats suspendus tant que la dette n'est pas remboursée.",
     "stock": "Stock : {remaining} / {initial}",
     "situational": "Situationnel",
     "usesPerMatch": "{count} utilisation(s) / match",
@@ -293,6 +313,7 @@
     "loading": "Chargement du marché…",
     "commission": "Commission vendeur : {pct} %",
     "closed": "Marché fermé (H71+)",
+    "debtBlocked": "Gel administratif — achats suspendus tant que la dette n'est pas remboursée.",
     "myListings": "Mes annonces",
     "listingLimit": "{current} / {max} annonces actives",
     "noMyListings": "Aucune annonce — mettez un objet en vente depuis l'inventaire.",

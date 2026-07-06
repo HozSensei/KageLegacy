@@ -25,6 +25,9 @@ const geninList = computed(() => {
 })
 
 const registrationOpen = computed(() => (store.gameClock?.hour ?? 0) < 36)
+const debtBlocked = computed(
+  () => (store.sensei?.ryos ?? 0) < 0 || store.sensei?.salaryDebt
+)
 
 async function register(ninjaId) {
   registeringId.value = ninjaId
@@ -46,6 +49,9 @@ async function register(ninjaId) {
 
     <p v-if="!registrationOpen" class="mt-4 text-xs text-ink-muted">
       {{ t('bureau.chuninExam.closed') }}
+    </p>
+    <p v-else-if="debtBlocked" class="mt-4 text-xs text-fire">
+      {{ t('bureau.chuninExam.debtBlocked') }}
     </p>
 
     <p v-if="localError" class="mt-4 text-xs text-fire">{{ localError }}</p>
@@ -88,7 +94,7 @@ async function register(ninjaId) {
         </p>
 
         <button
-          v-if="canRegisterForExam(ninja, store.gameClock)"
+          v-if="canRegisterForExam(ninja, store.gameClock, store.sensei)"
           type="button"
           class="btn-ghost mt-3 text-[10px]"
           :disabled="registeringId === ninja.id"

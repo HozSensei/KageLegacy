@@ -64,7 +64,11 @@ async function cancel(listingId) {
 }
 
 function canBuy(listing) {
-  return market.value?.windowOpen && (market.value?.ryos ?? 0) >= listing.price
+  return (
+    market.value?.windowOpen &&
+    !market.value?.debtBlocksSpending &&
+    (market.value?.ryos ?? 0) >= listing.price
+  )
 }
 </script>
 
@@ -84,6 +88,7 @@ function canBuy(listing) {
         <p>{{ t('market.balance', { ryos: market.ryos.toLocaleString() }) }}</p>
         <p>{{ t('exchanges.commission', { pct: market.commissionPct }) }}</p>
         <p v-if="!market.windowOpen" class="text-fire">{{ t('exchanges.closed') }}</p>
+        <p v-else-if="market.debtBlocksSpending" class="text-fire">{{ t('exchanges.debtBlocked') }}</p>
       </div>
 
       <section class="mt-14">

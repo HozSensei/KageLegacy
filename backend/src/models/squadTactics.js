@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import { meetsChuninRequirements } from '../services/chuninExam.js';
 import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/gradeProgression.js';
+import { assertSpendingAllowed } from '../services/economyDebt.js';
 import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
 
 export async function updateBattleStrategies(userId, strategies) {
@@ -125,6 +126,11 @@ export async function requestChuninExam(userId, ninjaId) {
   }
 
   const examCost = computeChuninExamCost(ninja);
+
+  await assertSpendingAllowed(
+    userId,
+    'Gel administratif — remboursez votre dette avant d\'inscrire un Genin à l\'examen Chunin.'
+  );
 
   if (ninja.ryos < examCost) {
     const error = new Error(`Ryos insuffisants (${examCost} requis).`);

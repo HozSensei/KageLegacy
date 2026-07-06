@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { assertSpendingAllowed, getDebtStatus } from './economyDebt.js';
 import { getGameClock } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 
@@ -151,6 +152,11 @@ export async function cancelListing(userId, listingId) {
 export async function buyListing(userId, listingId) {
   const clock = await getGameClock();
   assertMarketOpen(clock);
+
+  await assertSpendingAllowed(
+    userId,
+    'Gel administratif — remboursez votre dette avant d\'acheter sur le marché entre joueurs.'
+  );
 
   const rows = await query(
     `SELECT pl.*, s_buyer.ryos AS buyer_ryos

@@ -1,6 +1,5 @@
-import { Router } from 'express';
-import { query } from '../config/database.js';
 import { findDemoUser, getGameClock } from '../models/sensei.js';
+import { getDebtStatus } from '../services/economyDebt.js';
 import {
   getVillageShopForUser,
   purchaseVillageShopItem,
@@ -25,7 +24,7 @@ router.get('/', async (_req, res, next) => {
     }
 
     const shop = await getVillageShopForUser(user.id);
-    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
+    const debt = await getDebtStatus(user.id);
     const clock = await getGameClock();
 
     res.json({
@@ -35,7 +34,8 @@ router.get('/', async (_req, res, next) => {
       cyclesUntilRestock: shop.cyclesUntilRestock,
       restockEveryCycles: shop.restockEveryCycles,
       promoCount: shop.promoCount,
-      ryos: senseiRows[0]?.ryos ?? 0,
+      ryos: debt.ryos,
+      debtBlocksSpending: debt.debtBlocksSpending,
       gameClock: clock,
     });
   } catch (error) {
@@ -59,8 +59,8 @@ router.post('/buy', async (req, res, next) => {
 
     const purchase = await purchaseVillageShopItem(user.id, stockId);
     const shop = await getVillageShopForUser(user.id);
+    const debt = await getDebtStatus(user.id);
     const clock = await getGameClock();
-    const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
 
     res.json({
       purchase,
@@ -70,7 +70,8 @@ router.post('/buy', async (req, res, next) => {
       cyclesUntilRestock: shop.cyclesUntilRestock,
       restockEveryCycles: shop.restockEveryCycles,
       promoCount: shop.promoCount,
-      ryos: senseiRows[0]?.ryos ?? 0,
+      ryos: debt.ryos,
+      debtBlocksSpending: debt.debtBlocksSpending,
       gameClock: clock,
     });
   } catch (error) {

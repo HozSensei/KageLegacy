@@ -9,6 +9,9 @@ const treatingId = ref(null)
 const localError = ref(null)
 
 const candidates = computed(() => store.dispensaryCandidates || [])
+const debtBlocked = computed(
+  () => (store.sensei?.ryos ?? 0) < 0 || store.sensei?.salaryDebt
+)
 
 async function treat(ninjaId) {
   treatingId.value = ninjaId
@@ -28,6 +31,8 @@ async function treat(ninjaId) {
     <p class="section-label">{{ t('bureau.dispensary.title') }}</p>
     <p class="mt-2 text-xs leading-relaxed text-ink-faint">{{ t('bureau.dispensary.lead') }}</p>
 
+    <p v-if="debtBlocked" class="mt-4 text-xs text-fire">{{ t('bureau.dispensary.debtBlocked') }}</p>
+
     <p v-if="localError" class="mt-4 text-xs text-fire">{{ localError }}</p>
 
     <ul class="mt-6 space-y-4">
@@ -45,7 +50,7 @@ async function treat(ninjaId) {
         <button
           type="button"
           class="btn-ghost text-[10px]"
-          :disabled="treatingId === ninja.id"
+          :disabled="treatingId === ninja.id || debtBlocked"
           @click="treat(ninja.id)"
         >
           {{

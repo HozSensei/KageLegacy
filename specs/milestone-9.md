@@ -119,7 +119,7 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 
 | Sujet | Détail | Action |
 | :--- | :--- | :--- |
-| **M6 ↔ M4** | La chronique ne mentionne pas encore les objets utilisés en match | Enrichir `phraseDictionary` + templates interception/objet |
+| **M6 ↔ M4** | La chronique ne mentionne pas encore les objets utilisés en match | ✅ Panneau tactique objets utilisés/non déclenchés ; phrases item dans `narrativeAssembler` |
 | **M6 ↔ futur** | Spécialisations, dispensaire, Protect ciblé changeront les logs | Garder M6 comme couche traduction, pas de texte dans M5 |
 | **Équipement en BDD** | Seed démo sans objets équipés → sims = sans M4 en pratique | Seed optionnel ou scénario benchmark avec loadout |
 | **README roadmap** | Statuts milestones pas à jour | Aligner avec l'état réel des PR |
@@ -189,10 +189,10 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 ## 📋 Backlog UI / UX (hors moteur)
 
 - [x] Valider styles swap : boutons 50 % sur carte, rotation icône, mobile (tap-to-swap)
-- [ ] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
-- [ ] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
-- [ ] **Magasin du village V2** — stocks + réassort + promos (remplace 3 slots aléatoires)
-- [ ] Marché : rappel réassort / promos jusqu'à H72
+- [x] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
+- [x] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
+- [x] **Magasin du village V2** — stocks + réassort + promos (remplace 3 slots aléatoires)
+- [x] Marché : rappel réassort / promos jusqu'à H72
 - [x] **Budget du cycle (Bureau)** — détail dépenses prévues H72 : entraînement par ninja, salaires, solde projeté
 
 ---
@@ -203,7 +203,7 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
 - [x] **Académie** — 1 aspirant aléatoire / cycle, H0–H12 — [`academy.md`](./academy.md)
-- [ ] **Marché entre joueurs** — ventes P2P pool — [`player-market.md`](./player-market.md)
+- [x] **Marché entre joueurs** — ventes P2P pool — [`player-market.md`](./player-market.md)
 - [x] **Environnement de match** — tirage unique, scout flou H36, hooks combat, unification M6
 - [x] **Objets anti-environnement** — cape, torche, sandales, carte secteur (migration 016)
 - [x] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit

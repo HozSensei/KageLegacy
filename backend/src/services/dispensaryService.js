@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { assertSpendingAllowed } from './economyDebt.js';
 import { isTacticsLocked } from './gameClock.js';
 
 const DISPENSARY_COST = {
@@ -43,6 +44,11 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
     error.statusCode = 400;
     throw error;
   }
+
+  await assertSpendingAllowed(
+    userId,
+    'Gel administratif — remboursez votre dette avant d\'utiliser le dispensaire.'
+  );
 
   if (ninja.ryos < cost) {
     const error = new Error(`Ryos insuffisants (${cost} requis).`);

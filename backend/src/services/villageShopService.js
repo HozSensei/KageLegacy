@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
+import { assertSpendingAllowed, getDebtStatus } from './economyDebt.js';
 import { getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 
@@ -151,6 +152,11 @@ export async function getVillageShopForUser(userId) {
 }
 
 export async function purchaseVillageShopItem(userId, stockId) {
+  await assertSpendingAllowed(
+    userId,
+    'Gel administratif — remboursez votre dette avant d\'acheter au magasin du village.'
+  );
+
   const rows = await query(
     `SELECT vss.*, idf.price, idf.slug, idf.category, s.ryos,
             vsp.discount_pct
