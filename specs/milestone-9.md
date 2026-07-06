@@ -59,6 +59,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 13. ~~**Environnement de match**~~ — ✅ tirage unique, scout flou H36, combat + M6 + objets anti-env
 14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
 15. **Marché entre joueurs** — annonces P2P dans le pool — voir [`player-market.md`](./player-market.md)
+16. **Magasin du village V2** — catalogue complet, stocks limités, réassort / 3 cycles, promos / cycle — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
 
 ---
 
