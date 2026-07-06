@@ -15,6 +15,7 @@ import { processCycleTick } from '../src/services/cycleJobs.js';
 import { getDebtStatus } from '../src/services/economyDebt.js';
 import { getClockRow, setHourDev } from '../src/services/gameClock.js';
 import { getCycleBudgetPreview, OVERDRAFT_LIMIT } from '../src/services/trainingBilling.js';
+import { MATCH_DRAW_RYOS, MATCH_WIN_RYOS } from '../src/services/matchEconomy.js';
 import {
   getVillageShopForUser,
   purchaseVillageShopItem,
@@ -78,6 +79,21 @@ async function resetSimState(userId) {
   await query('DELETE FROM village_shop_promos WHERE user_id = ?', [userId]);
 }
 
+async function lastMatchReward(userId) {
+  const rows = await query(
+    `SELECT result, home_user_id, away_user_id FROM matches
+     WHERE (home_user_id = ? OR away_user_id = ?) AND status = 'applied'
+     ORDER BY results_applied_at DESC LIMIT 1`,
+    [userId, userId]
+  );
+  const m = rows[0];
+  if (!m) return 0;
+  if (m.result === 'draw') return MATCH_DRAW_RYOS;
+  if (m.result === 'home_win' && m.home_user_id === userId) return MATCH_WIN_RYOS;
+  if (m.result === 'away_win' && m.away_user_id === userId) return MATCH_WIN_RYOS;
+  return 0;
+}
+
 async function countInventory(userId) {
   const rows = await query(
     `SELECT COUNT(*) AS c FROM user_items WHERE user_id = ? AND consumed = FALSE`,
@@ -100,12 +116,12 @@ function printVerdict(timeline) {
   console.log(`  Ryos final : ${formatRyos(last.ryosEnd)} (départ ${formatRyos(timeline[0].ryosStart)})`);
   console.log(`  Minimum atteint : ${formatRyos(minRyos)} · plafond découvert ${formatRyos(OVERDRAFT_LIMIT)}`);
   console.log(`  Cycles en dette : ${debtCycles}/${timeline.length}`);
-  console.log(`  Achats totaux : ${timeline.reduce((s, t) => s + t.spentShop, 0)} Ryos · inventaire ${last.inventory} objets`);
+  console.log(`  Achats totaux : ${timeline.reduce((s, t) => s + t.spentShop, 0)} Ryos · primes match +${timeline.reduce((s, t) => s + t.matchReward, 0)} · inventaire ${last.inventory} objets`);
 
   if (minRyos < OVERDRAFT_LIMIT) {
     console.log('  ⚠️  Dépassement du découvert autorisé — revoir sinks ou revenus.');
   } else if (minRyos < 2000) {
-    console.log('  ⚠️  Trésorerie tendue — 2 achats/cycle non soutenables ~13+ cycles sans revenus (missions, ligue…).');
+    console.log('  🟡 Trésorerie tendue — normal si achats agressifs sans victoires régulières.');
   } else if (debtCycles > timeline.length * 0.3) {
     console.log('  🟡 Dette fréquente mais récupérable — calibrage à affiner en playtest.');
   } else {
@@ -163,11 +179,13 @@ async function main() {
 
       const after = await getDebtStatus(user.id);
       const inventory = await countInventory(user.id);
+      const matchReward = await lastMatchReward(user.id);
 
       timeline.push({
         cycle,
         ryosStart: before.ryos,
         spentShop,
+        matchReward,
         purchases,
         salaries: budget.salariesTotal,
         training: budget.trainingTotal,
@@ -183,7 +201,7 @@ async function main() {
         : '—';
 
       console.log(
-        `  Cycle ${String(cycle).padStart(2)} │ ${formatRyos(before.ryos).padStart(7)} → ${formatRyos(after.ryos).padStart(7)} Ryos │ shop −${spentShop} │ sal. −${budget.salariesTotal}${withTraining ? ` │ train −${budget.trainingTotal}` : ''} │ ${purchaseLabel}`
+        `  Cycle ${String(cycle).padStart(2)} │ ${formatRyos(before.ryos).padStart(7)} → ${formatRyos(after.ryos).padStart(7)} Ryos │ shop −${spentShop} │ sal. −${budget.salariesTotal}${matchReward ? ` │ match +${matchReward}` : ''}${withTraining ? ` │ train −${budget.trainingTotal}` : ''} │ ${purchaseLabel}`
       );
     } catch (err) {
       console.log(`  Cycle ${String(cycle).padStart(2)} │ ❌ ${err.message}`);
