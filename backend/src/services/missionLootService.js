@@ -171,7 +171,7 @@ async function recruitMissionProdige(userId) {
 
 export function rollBaseRyos(tier) {
   const config = MISSION_TIERS[tier];
-  if (tier === 'routine') {
+  if (tier === 'routine' || tier === 'infiltration') {
     return randomInt(config.baseRewardMin, config.baseRewardMax + 1);
   }
   return config.baseReward;

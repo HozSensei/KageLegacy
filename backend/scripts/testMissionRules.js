@@ -30,7 +30,7 @@ console.assert(
 );
 
 console.assert(missionNetProfit('routine') === 500, 'routine max net');
-console.assert(missionNetProfit('infiltration') === 100, 'infiltration net');
+console.assert(missionNetProfit('infiltration') === 700, 'infiltration max net');
 console.assert(missionNetProfit('cyclone') === 700, 'cyclone net');
 
 const rolls = Array.from({ length: 1000 }, () => rollPercent());

@@ -372,7 +372,7 @@
   },
   "missions": {
     "title": "Contrats de mission",
-    "lead": "Jusqu'à 3 contrats par cycle (un par palier de danger). Butin garanti en Ryos + tirage de loot à H36 ou H72 — jamais de stats garanties.",
+    "lead": "Jusqu'à 3 contrats par cycle (un par palier de danger). Butin garanti en Ryos + tirage de loot à H72 — jamais de stats garanties.",
     "loading": "Chargement…",
     "pickNinja": "Choisir un remplaçant",
     "pickTier": "Palier du contrat",

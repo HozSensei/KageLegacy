@@ -372,7 +372,7 @@
   },
   "missions": {
     "title": "Mission contracts",
-    "lead": "Up to 3 contracts per cycle (one per danger tier). Guaranteed Ryos + loot roll at H36 or H72 — never guaranteed stat gains.",
+    "lead": "Up to 3 contracts per cycle (one per danger tier). Guaranteed Ryos + loot roll at H72 — never guaranteed stat gains.",
     "loading": "Loading…",
     "pickNinja": "Pick a bench ninja",
     "pickTier": "Contract tier",

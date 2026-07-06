@@ -18,8 +18,9 @@ export const MISSION_TIERS = {
     label: 'Infiltration tactique',
     sendCost: 100,
     paid: true,
-    resolvesAtHour: 36,
-    baseReward: 200,
+    resolvesAtHour: 72,
+    baseRewardMin: 600,
+    baseRewardMax: 800,
     lightInjuryChance: 0.2,
     graveInjuryChance: 0,
     deathChance: 0,
@@ -68,7 +69,7 @@ export function missionRequirementText(tier) {
 export function missionGuaranteedRyos(tier) {
   const config = MISSION_TIERS[tier];
   if (!config) return 0;
-  if (tier === 'routine') {
+  if (tier === 'routine' || tier === 'infiltration') {
     return { min: config.baseRewardMin, max: config.baseRewardMax };
   }
   return { min: config.baseReward, max: config.baseReward };

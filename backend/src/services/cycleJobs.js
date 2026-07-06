@@ -36,12 +36,11 @@ export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
   const promotions = await processChuninExamsForAllUsers();
   const scoutReports = await generateScoutReportsForAllUsers();
-  const missionResults = await resolveMissionsForCycle(cycleStartAt, 36);
   await markJobRun(cycleStartAt, 'h36');
   console.log(
-    `[H36] Examens Chunin : ${promotions.length} candidat(s) · Rapports espionnage : ${scoutReports.length} · Missions infiltration : ${missionResults.length}`
+    `[H36] Examens Chunin : ${promotions.length} candidat(s) · Rapports espionnage : ${scoutReports.length}`
   );
-  return { promotions, scoutReports, missionResults };
+  return { promotions, scoutReports };
 }
 
 export async function runH71(cycleStartAt) {

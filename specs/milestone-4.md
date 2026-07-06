@@ -15,19 +15,19 @@ Toutes les actions financières et logistiques s'alignent sur le cycle commun de
 
 ## 🗺️ 2. Les Missions Idle & Tables de Butin (Loot Tables)
 
-Les joueurs peuvent lancer **jusqu'à 3 missions par cycle** — **une par palier de danger**. Les missions secondaires ne donnent **jamais** de statistiques garanties. Le serveur calcule le résultat au moment du traitement du cycle (**H36** pour l'infiltration, **H72** pour routine et cyclone) via un jet de dé en pourcentage.
+Les joueurs peuvent lancer **jusqu'à 3 missions par cycle** — **une par palier de danger**. Les missions secondaires ne donnent **jamais** de statistiques garanties. Le serveur calcule le résultat au moment du traitement du cycle (**H72**) via un jet de dé en pourcentage.
 
 ### A. Fonctionnement de l'envoi
 * Le joueur sélectionne un ninja *hors escouade active*.
 * Il choisit un **palier** parmi les 3 disponibles (max 1 contrat par palier et par cycle).
-* Le ninja est verrouillé jusqu'au retour (H36 ou H72 selon le contrat).
+* Le ninja est verrouillé jusqu'au retour à **H72**.
 
 ### B. Les 3 Paliers de Contrats
 
 | Palier | Risque | Retour | Butin garanti | Loot bonus (tirage) |
 | :--- | :--- | :--- | :--- | :--- |
 | **Contrat de Routine** | 0 % | H72 | 300–500 Ryos | 10 % pansement de terrain |
-| **Infiltration tactique** | 20 % blessure légère | H36 | 200 Ryos | 60 % rien · 30 % kit médical · 10 % fumigène |
+| **Infiltration tactique** | 20 % blessure légère | H72 | 600–800 Ryos | 60 % rien · 30 % kit médical · 10 % fumigène |
 | **Opération Cyclone** | 40 % blessure grave · 5 % mort | H72 | 1 000 Ryos | 50 % rien · 35 % 2× matériel médical · 12 % consommable · **3 % gros lot** |
 
 ### C. Calcul du Risque et du Loot
