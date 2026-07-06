@@ -53,7 +53,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 **Prochaines priorités :**
 
 9. ~~**Entraînement payant opt-in**~~ — ✅ plan par ninja, facturation H72, déficit souple
-10. **Revue missions idle** — règles, coûts, blocages
+10. ~~**Revue missions idle**~~ — ✅ prérequis à l'envoi, fenêtre H0–H70, gel dette (Rang D seul), blocages examen/objet cycle
 11. ~~**Académie**~~ — ✅ tirage aléatoire — [`academy.md`](./academy.md)
 12. ~~**Budget du cycle (Bureau)**~~ — ✅ panneau projection H72
 13. ~~**Environnement de match**~~ — ✅ tirage unique, scout flou H36, combat + M6 + objets anti-env
@@ -134,7 +134,7 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
-| **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | Missions résolues à H72 ; design global à revoir |
+| **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | ✅ Voir `missionRules.js` + panneau Bureau enrichi |
 | **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | ✅ `ninjas.training_focus`, `trainingBilling.js`, panneaux Bureau |
 
 ### Entraînement payant — principes validés (session design)
