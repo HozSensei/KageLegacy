@@ -1,25 +1,18 @@
 import { Router } from 'express';
 import { query } from '../config/database.js';
 import { findDemoUser, getGameClock } from '../models/sensei.js';
-import { ensureMarketForUser, getMarketOffers, purchaseOffer } from '../services/marketService.js';
+import {
+  getVillageShopForUser,
+  purchaseVillageShopItem,
+} from '../services/villageShopService.js';
 import { describeUsageLimits } from '../services/combat/equipmentConstants.js';
 
 const router = Router();
 
-function mapOffers(offers) {
-  return offers.map((o) => ({
-    id: o.id,
-    slotIndex: o.slot_index,
-    purchased: Boolean(o.purchased),
-    slug: o.slug,
-    category: o.category,
-    nameFr: o.name_fr,
-    nameEn: o.name_en,
-    descriptionFr: o.description_fr,
-    descriptionEn: o.description_en,
-    price: o.price,
-    effects: typeof o.effects === 'string' ? JSON.parse(o.effects) : o.effects,
-    usageLimits: describeUsageLimits(o.effects, o.category),
+function mapShopItems(items) {
+  return items.map((item) => ({
+    ...item,
+    usageLimits: describeUsageLimits(item.effects, item.category),
   }));
 }
 
@@ -31,18 +24,17 @@ router.get('/', async (_req, res, next) => {
       return;
     }
 
-    const clock = await getGameClock();
-    const cycleStartAt = clock.cycleStartAt;
-    if (!cycleStartAt) {
-      res.status(400).json({ error: 'Horloge non initialisée.' });
-      return;
-    }
-
-    const offers = await ensureMarketForUser(user.id, cycleStartAt);
+    const shop = await getVillageShopForUser(user.id);
     const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
+    const clock = await getGameClock();
 
     res.json({
-      offers: mapOffers(offers),
+      items: mapShopItems(shop.items),
+      restockPeriod: shop.restockPeriod,
+      poolCycle: shop.poolCycle,
+      cyclesUntilRestock: shop.cyclesUntilRestock,
+      restockEveryCycles: shop.restockEveryCycles,
+      promoCount: shop.promoCount,
       ryos: senseiRows[0]?.ryos ?? 0,
       gameClock: clock,
     });
@@ -59,20 +51,25 @@ router.post('/buy', async (req, res, next) => {
       return;
     }
 
-    const offerId = Number(req.body?.offerId);
-    if (!offerId) {
-      res.status(400).json({ error: 'offerId requis.' });
+    const stockId = Number(req.body?.stockId);
+    if (!stockId) {
+      res.status(400).json({ error: 'stockId requis.' });
       return;
     }
 
-    const purchase = await purchaseOffer(user.id, offerId);
+    const purchase = await purchaseVillageShopItem(user.id, stockId);
+    const shop = await getVillageShopForUser(user.id);
     const clock = await getGameClock();
-    const offers = await getMarketOffers(user.id, clock.cycleStartAt);
-
     const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [user.id]);
+
     res.json({
       purchase,
-      offers: mapOffers(offers),
+      items: mapShopItems(shop.items),
+      restockPeriod: shop.restockPeriod,
+      poolCycle: shop.poolCycle,
+      cyclesUntilRestock: shop.cyclesUntilRestock,
+      restockEveryCycles: shop.restockEveryCycles,
+      promoCount: shop.promoCount,
       ryos: senseiRows[0]?.ryos ?? 0,
       gameClock: clock,
     });

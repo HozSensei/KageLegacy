@@ -10,6 +10,7 @@ import marketRouter from './routes/market.js';
 import inventoryRouter from './routes/inventory.js';
 import missionsRouter from './routes/missions.js';
 import academyRouter from './routes/academy.js';
+import playerMarketRouter from './routes/playerMarket.js';
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use('/api/market', marketRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/missions', missionsRouter);
 app.use('/api/academy', academyRouter);
+app.use('/api/player-market', playerMarketRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

@@ -13,6 +13,7 @@ const navItems = [
   { name: 'squad', path: '/squad', label: 'nav.squad' },
   { name: 'league', path: '/league', label: 'nav.league' },
   { name: 'market', path: '/market', label: 'nav.market' },
+  { name: 'exchanges', path: '/exchanges', label: 'nav.exchanges' },
   { name: 'inventory', path: '/inventory', label: 'nav.inventory' },
   { name: 'operation', path: '/operation', label: 'nav.operation' },
 ]

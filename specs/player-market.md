@@ -1,6 +1,6 @@
 # 🤝 Marché entre joueurs (vision)
 
-**Statut :** **backlog** — design PO validé en session juil. 2026. Pas d'implémentation V1.
+**Statut :** **V1 livrée** (objets uniquement) — juil. 2026.
 
 **Besoin :** un lieu où les Sensei **vendent et achètent** entre eux — distinct de l'**Académie** (tirage PNJ) et du **Magasin du village** (catalogue serveur).
 

@@ -58,8 +58,8 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 12. ~~**Budget du cycle (Bureau)**~~ — ✅ panneau projection H72
 13. ~~**Environnement de match**~~ — ✅ tirage unique, scout flou H36, combat + M6 + objets anti-env
 14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
-15. **Marché entre joueurs** — annonces P2P dans le pool — voir [`player-market.md`](./player-market.md)
-16. **Magasin du village V2** — catalogue complet, stocks limités, réassort / 3 cycles, promos / cycle — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
+15. ~~**Marché entre joueurs**~~ — ✅ annonces P2P objets dans le pool — [`player-market.md`](./player-market.md)
+16. ~~**Magasin du village V2**~~ — ✅ catalogue complet, stocks, réassort / 3 cycles, promos — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
 
 ---
 
@@ -191,7 +191,8 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] Valider styles swap : boutons 50 % sur carte, rotation icône, mobile (tap-to-swap)
 - [ ] Bandeau Bureau « Opération en cours » → lien `/operation` (spec M2)
 - [ ] Afficher les **utilisations restantes** en match dans le rapport M6 (panneau tactique optionnel)
-- [ ] Marché : rappel « expire à H72 » plus visible
+- [ ] **Magasin du village V2** — stocks + réassort + promos (remplace 3 slots aléatoires)
+- [ ] Marché : rappel réassort / promos jusqu'à H72
 - [x] **Budget du cycle (Bureau)** — détail dépenses prévues H72 : entraînement par ninja, salaires, solde projeté
 
 ---
