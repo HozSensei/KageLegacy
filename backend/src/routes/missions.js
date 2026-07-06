@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { findDemoUser, getGameClock, getSquadPayload } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
+import { getGameClock, getSquadPayload } from '../models/sensei.js';
 import {
   assignMission,
   collectMissionRewards,
@@ -8,13 +9,10 @@ import {
 
 const router = Router();
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-      return;
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const missions = await getMissionsForUser(user.id);
     const clock = await getGameClock();
@@ -26,8 +24,8 @@ router.get('/', async (_req, res, next) => {
 
 router.post('/assign', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const ninjaId = Number(req.body?.ninjaId);
     const rank = req.body?.rank;
@@ -45,10 +43,10 @@ router.post('/assign', async (req, res, next) => {
   }
 });
 
-router.post('/collect', async (_req, res, next) => {
+router.post('/collect', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const collection = await collectMissionRewards(user.id);
     const missions = await getMissionsForUser(user.id);

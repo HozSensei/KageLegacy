@@ -3,6 +3,7 @@ import { meetsChuninRequirements } from '../services/chuninExam.js';
 import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/gradeProgression.js';
 import { assertSpendingAllowed } from '../services/economyDebt.js';
 import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
+import { isNinjaListed } from '../services/playerMarketService.js';
 
 export async function updateBattleStrategies(userId, strategies) {
   if (await isTacticsLocked()) {
@@ -118,6 +119,11 @@ export async function requestChuninExam(userId, ninjaId) {
     error.statusCode = 409;
     throw error;
   }
+  if (await isNinjaListed(ninjaId)) {
+    const error = new Error('Ce ninja est en vente et ne peut pas s\'inscrire à l\'examen.');
+    error.statusCode = 409;
+    throw error;
+  }
 
   if (!meetsChuninRequirements(ninja)) {
     const error = new Error('Prérequis non atteints (combat ≥ 10 et intelligence ≥ 8).');
@@ -168,6 +174,11 @@ export async function requestBirdFlight(userId, ninjaId) {
 
   if (ninja.bird_flight_requested) {
     const error = new Error('Ce Chunin est déjà inscrit au Vol d\'Oiseau.');
+    error.statusCode = 409;
+    throw error;
+  }
+  if (await isNinjaListed(ninjaId)) {
+    const error = new Error('Ce ninja est en vente et ne peut pas s\'inscrire au Vol d\'Oiseau.');
     error.statusCode = 409;
     throw error;
   }

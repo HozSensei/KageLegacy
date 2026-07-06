@@ -1,4 +1,6 @@
-import { findDemoUser, getGameClock } from '../models/sensei.js';
+import { Router } from 'express';
+import { requireUser } from '../middleware/auth.js';
+import { getGameClock } from '../models/sensei.js';
 import { getDebtStatus } from '../services/economyDebt.js';
 import {
   getVillageShopForUser,
@@ -15,13 +17,10 @@ function mapShopItems(items) {
   }));
 }
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      res.status(404).json({ error: 'Aucun joueur de démonstration. Exécutez npm run db:seed.' });
-      return;
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const shop = await getVillageShopForUser(user.id);
     const debt = await getDebtStatus(user.id);
@@ -45,11 +44,8 @@ router.get('/', async (_req, res, next) => {
 
 router.post('/buy', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-      return;
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const stockId = Number(req.body?.stockId);
     if (!stockId) {

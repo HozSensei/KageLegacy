@@ -5,6 +5,7 @@ import mysqlPool from '../src/config/database.js';
 import { upsertClanTraits, findAllClanTraits } from '../src/models/clanTrait.js';
 import { createNinja, deleteNinjasByUserId } from '../src/models/ninja.js';
 import { createDemoUser, findDemoUser } from '../src/models/sensei.js';
+import { setUserPassword } from '../src/services/authService.js';
 import {
   distributeCharacterTraits,
   generateNinjaProfile,
@@ -43,6 +44,9 @@ async function seed() {
     await deleteNinjasByUserId(user.id);
     console.log('♻️  Ninjas existants réinitialisés');
   }
+
+  await setUserPassword(user.id, 'demo');
+  console.log('🔑 Compte démo : demo_sensei / demo');
 
   const totalNinjas = 15;
   const traits = distributeCharacterTraits(totalNinjas);

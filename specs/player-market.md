@@ -1,6 +1,6 @@
 # 🤝 Marché entre joueurs (vision)
 
-**Statut :** **V1 livrée** (objets uniquement) — juil. 2026.
+**Statut :** **V2 livrée** (objets + ninjas banc) — juil. 2026.
 
 **Besoin :** un lieu où les Sensei **vendent et achètent** entre eux — distinct de l'**Académie** (tirage PNJ) et du **Magasin du village** (catalogue serveur).
 
@@ -74,7 +74,7 @@ player_listings (
 | :--- | :--- |
 | **Commission** | 5 % vendeur + 0 % acheteur (ou 2 % des deux) |
 | **Plafond annonces** | 3 annonces actives / Sensei / cycle |
-| **Prix plancher / plafond** | Objet : 50 %–200 % prix catalogue ; ninja : formule stats + âge |
+| **Prix plancher / plafond** | Objet : 50 %–200 % prix catalogue ; **ninja : prix libre** (choix du vendeur) |
 | **Cooldown** | Ninja revendu : moral −3 premier cycle chez le nouvel employeur |
 | **Bots** | N'achètent pas ; peuvent **vendre** des objets génériques si pool 100 % bots remplacé — basse priorité |
 

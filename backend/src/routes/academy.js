@@ -1,15 +1,14 @@
 import { Router } from 'express';
-import { findDemoUser, getGameClock, getSquadPayload } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
+import { getGameClock, getSquadPayload } from '../models/sensei.js';
 import { getAcademyPayload, recruitAcademyAspirant } from '../services/academyService.js';
 
 const router = Router();
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const academy = await getAcademyPayload(user.id);
     const clock = await getGameClock();
@@ -21,8 +20,8 @@ router.get('/', async (_req, res, next) => {
 
 router.post('/recruit', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const result = await recruitAcademyAspirant(user.id);
     const squad = await getSquadPayload(user.id);

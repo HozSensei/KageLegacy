@@ -11,6 +11,7 @@ import {
   missionRequirementText,
   ninjaStatsFromRow,
 } from './missionRules.js';
+import { isNinjaListed } from './playerMarketService.js';
 
 async function getCycleStartAt() {
   const row = await getClockRow();
@@ -133,6 +134,11 @@ export async function assignMission(userId, ninjaId, rank) {
   if (ninja.cycle_item_id) {
     const error = new Error('Retirez l\'objet cycle avant d\'envoyer ce ninja en mission.');
     error.statusCode = 400;
+    throw error;
+  }
+  if (await isNinjaListed(ninjaId)) {
+    const error = new Error('Ce ninja est en vente et ne peut pas partir en mission.');
+    error.statusCode = 409;
     throw error;
   }
 
