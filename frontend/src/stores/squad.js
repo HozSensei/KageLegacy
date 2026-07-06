@@ -14,7 +14,7 @@ export const useSquadStore = defineStore('squad', () => {
   const notifications = ref([])
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
-  const recruitment = ref(null)
+  const academy = ref(null)
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -25,7 +25,7 @@ export const useSquadStore = defineStore('squad', () => {
     notifications.value = data.notifications || []
     dispensaryCandidates.value = data.dispensaryCandidates || []
     cycleBudget.value = data.cycleBudget || null
-    recruitment.value = data.recruitment || null
+    academy.value = data.academy || null
   }
 
   async function fetchSquad() {
@@ -87,20 +87,17 @@ export const useSquadStore = defineStore('squad', () => {
     applyPayload(await res.json())
   }
 
-  async function purchaseRecruitment(offerId) {
+  async function recruitFromAcademy() {
     error.value = null
-    const res = await fetch(`${API_BASE}/api/recruitment/purchase`, {
+    const res = await fetch(`${API_BASE}/api/academy/recruit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ offerId }),
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    const data = await res.json()
-    if (data.recruitment) recruitment.value = data.recruitment
-    await fetchSquad()
+    applyPayload(await res.json())
   }
 
   async function saveTrainingPlans(plans) {
@@ -204,12 +201,12 @@ export const useSquadStore = defineStore('squad', () => {
     notifications,
     dispensaryCandidates,
     cycleBudget,
-    recruitment,
+    academy,
     fetchSquad,
     saveComposition,
     saveStrategies,
     saveTrainingPlans,
-    purchaseRecruitment,
+    recruitFromAcademy,
     saveTrainingFocus,
     requestChuninExam,
     requestBirdFlight,

@@ -54,10 +54,11 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 9. ~~**Entraînement payant opt-in**~~ — ✅ plan par ninja, facturation H72, déficit souple
 10. **Revue missions idle** — règles, coûts, blocages
-11. ~~**Marché aspirants**~~ — ✅ voir [`recruitment-market.md`](./recruitment-market.md)
+11. ~~**Académie**~~ — ✅ tirage aléatoire — [`academy.md`](./academy.md)
 12. ~~**Budget du cycle (Bureau)**~~ — ✅ panneau projection H72
 13. ~~**Environnement de match**~~ — ✅ tirage unique, scout flou H36, combat + M6 + objets anti-env
-14. ~~**Marché aspirants**~~ — ✅ recrutement H0–H12, 1 achat/cycle, panneau Bureau
+14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
+15. **Marché entre joueurs** — annonces P2P dans le pool — voir [`player-market.md`](./player-market.md)
 
 ---
 
@@ -199,7 +200,8 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] Protect : cible désignée (`protect_target_ninja_id`)
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
-- [x] **Marché aspirants** — 1 recrutement payant / cycle, fenêtre H0–H12 — [`recruitment-market.md`](./recruitment-market.md)
+- [x] **Académie** — 1 aspirant aléatoire / cycle, H0–H12 — [`academy.md`](./academy.md)
+- [ ] **Marché entre joueurs** — ventes P2P pool — [`player-market.md`](./player-market.md)
 - [x] **Environnement de match** — tirage unique, scout flou H36, hooks combat, unification M6
 - [x] **Objets anti-environnement** — cape, torche, sandales, carte secteur (migration 016)
 - [x] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit
