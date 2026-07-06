@@ -192,13 +192,39 @@
     "inviteTitle": "Invite a friend",
     "inviteLead": "Share this link so a new player can join your pool (replaces a bot if a slot is open).",
     "inviteCopy": "Copy link",
-    "inviteCopied": "Link copied"
+    "inviteCopied": "Link copied",
+    "viewChronicle": "View chronicle →",
+    "fixtures": "Matchday fixtures",
+    "recentMatches": "Recent results"
+  },
+  "matches": {
+    "navTitle": "Browse matches",
+    "pool": "League",
+    "cycle": "Matchday",
+    "division": "Div.",
+    "yourPool": "your league",
+    "yourMatch": "Your match",
+    "spectator": "Spectator mode",
+    "prev": "Prev",
+    "next": "Next",
+    "noFixtures": "No visible matches for this matchday.",
+    "pickMatch": "Select a match from the list.",
+    "resultHomeWin": "{home} wins",
+    "resultAwayWin": "{away} wins",
+    "status": {
+      "scheduled": "Upcoming",
+      "simulated": "Simulated",
+      "revealing": "Live",
+      "applied": "Finished"
+    }
   },
   "operation": {
     "kicker": "Border",
     "lead": "Romanced chronicle of your weekly operation — revealed progressively at H71.",
+    "leadBrowse": "Watch your operation or other Sensei matches — your league or another pool.",
     "loading": "Loading report…",
     "scheduled": "Next opponent: {opponent}. The chronicle opens at H71.",
+    "scheduledSpectator": "{home} vs {away} — chronicle opens at H71.",
     "waiting": "Waiting for the operation to begin or for the match simulation.",
     "reportTitle": "Operation report",
     "noChronicle": "No segment unlocked yet.",

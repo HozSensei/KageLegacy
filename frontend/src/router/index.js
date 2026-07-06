@@ -39,6 +39,12 @@ const router = createRouter({
           name: 'operation',
           component: OperationView,
         },
+        {
+          path: 'operation/match/:matchId',
+          name: 'operation-match',
+          component: OperationView,
+          props: true,
+        },
       ],
     },
   ],

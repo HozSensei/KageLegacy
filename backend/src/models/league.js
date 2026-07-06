@@ -75,11 +75,13 @@ export async function getLeaguePayload(userId) {
         }
       : null,
     recentMatches: recentMatches.map((m) => ({
+      id: m.id,
       cycle: m.season_cycle,
       home: m.home_sensei,
       away: m.away_sensei,
       score: `${m.home_score ?? '–'}:${m.away_score ?? '–'}`,
       result: m.result,
+      status: m.status,
     })),
     scoutReport,
   };
