@@ -54,12 +54,16 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 19. ~~**Auth multi-joueurs**~~ — ✅ sessions cookie, register/login, `requireUser` (repli démo via `AUTH_DEMO_FALLBACK`)
 20. ~~**Marché P2P V2 — ninjas banc**~~ — ✅ annonces ninja, **prix libre vendeur**, garde-fous
 21. ~~**Scheduler prod**~~ — ✅ `npm run cycle:tick`, `ENABLE_SCHEDULER`, arrêt gracieux
-22. ~~**Marché global + historique P2P**~~ — ✅ annonces serveur entier, historique, notification Bureau `market_sale`
+22. ~~**Marché global + historique P2P**~~ — ✅ annonces serveur entier, historique, cloche `market_sale`
+23. ~~**Playtest multi-joueurs**~~ — ✅ `npm run playtest:multiplayer` · 2 comptes, auth, P2P, cycle H0→H72
+24. ~~**README / roadmap**~~ — ✅ statuts milestones alignés
+25. ~~**Playtest ligue**~~ — ✅ `npm run playtest:league` · 2 humains même pool, match H71
+26. ~~**Invitations à l'inscription**~~ — ✅ `invitePoolId` register API + UI `/register?invitePoolId=`
 
 **Prochaines priorités :**
 
-23. **Playtest multi-joueurs** — 2 comptes, cycle complet avec auth
-24. **README / roadmap** — aligner statuts milestones
+27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
+28. **Extraire `dojoNotifications.js`** — service dédié hors `birdFlightService`
 
 ---
 
@@ -122,7 +126,7 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 | **M6 ↔ M4** | La chronique ne mentionne pas encore les objets utilisés en match | ✅ Panneau tactique objets utilisés/non déclenchés ; phrases item dans `narrativeAssembler` |
 | **M6 ↔ futur** | Spécialisations, dispensaire, Protect ciblé changeront les logs | Garder M6 comme couche traduction, pas de texte dans M5 |
 | **Équipement en BDD** | Seed démo sans objets équipés → sims = sans M4 en pratique | Seed optionnel ou scénario benchmark avec loadout |
-| **README roadmap** | Statuts milestones pas à jour | Aligner avec l'état réel des PR |
+| **README roadmap** | Statuts milestones pas à jour | ✅ Aligné juil. 2026 |
 | **WebSocket `/operation`** | Optionnel dans spec M6 | Polling 30s suffit pour l'instant |
 | **Bots** | `is_bot` : pas d'entraînement, pas de marché | Cohérent ; ne pas leur donner d'objets sans réfléchir |
 

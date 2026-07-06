@@ -10,6 +10,7 @@ export const registerSchema = z.object({
   password: z.string().min(6, 'Minimum 6 caractères.').max(128),
   senseiName: z.string().trim().min(2).max(100),
   language: z.enum(['fr', 'en']).optional(),
+  invitePoolId: z.coerce.number().int().positive().optional(),
 });
 
 export const loginSchema = z.object({

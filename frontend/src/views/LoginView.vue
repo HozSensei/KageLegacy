@@ -10,6 +10,7 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const mode = ref(route.path.includes('register') ? 'register' : 'login')
+const invitePoolId = ref(route.query.invitePoolId ? Number(route.query.invitePoolId) : null)
 const username = ref('')
 const password = ref('')
 const senseiName = ref('')
@@ -35,6 +36,7 @@ async function submit() {
       password: password.value,
       senseiName: senseiName.value.trim(),
       language: language.value,
+      invitePoolId: invitePoolId.value || undefined,
     })
   }
   if (ok) router.push('/')
@@ -42,6 +44,10 @@ async function submit() {
 
 onMounted(() => {
   if (route.path.includes('register')) mode.value = 'register'
+  if (route.query.invitePoolId) {
+    mode.value = 'register'
+    invitePoolId.value = Number(route.query.invitePoolId)
+  }
 })
 </script>
 
@@ -50,6 +56,10 @@ onMounted(() => {
     <div class="w-full max-w-md border border-line bg-bg-card p-8 sm:p-10">
       <p class="page-kicker text-center">Kage Legacy</p>
       <h1 class="page-title mt-3 text-center">{{ title }}</h1>
+
+      <p v-if="mode === 'register' && invitePoolId" class="mt-6 border-l-2 border-accent pl-4 text-sm text-ink-muted">
+        {{ t('auth.inviteLead', { poolId: invitePoolId }) }}
+      </p>
 
       <p v-if="auth.error" class="mt-6 text-sm text-fire">{{ auth.error }}</p>
 

@@ -52,7 +52,7 @@ npm run dev
 | Front-End | http://localhost:5173 |
 | API | http://localhost:3000 |
 | Health check | http://localhost:3000/api/health |
-| Escouade démo | http://localhost:3000/api/squad |
+| Connexion | http://localhost:5173/login — ou compte démo `demo_sensei` / `demo` après seed |
 
 ### Scripts utiles
 
@@ -61,7 +61,11 @@ npm run db:up       # Démarre MySQL (Docker)
 npm run db:migrate  # Applique les migrations SQL
 npm run db:seed     # Génère le joueur démo + 15 ninjas
 npm run clock:advance  # Avance l'horloge d'1h (dev)
-npm run combat:simulate --prefix backend  # Test moteur combat local
+npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
+npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
+npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
+npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
+npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
 npm run dev:api     # API seule
 npm run dev:web     # Front seul
 ```
@@ -76,13 +80,15 @@ Les spécifications détaillées sont dans le dossier [`/specs`](specs/).
 |-----------|---------|--------|
 | 1 — Structure des Ninjas | [milestone-1.md](specs/milestone-1.md) | ✅ Fait |
 | 2 — Bureau du Sensei | [milestone-2.md](specs/milestone-2.md) | ✅ Fait |
-| 3 — Horloge & Entraînement | [milestone-3.md](specs/milestone-3.md) | 🟡 En cours |
-| 4 — Économie & Marché | [milestone-4.md](specs/milestone-4.md) | 🟡 En cours |
-| 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | 🟡 En cours |
-| 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | 🟡 En cours |
-| 7 — Vol d'Oiseau | [milestone-7.md](specs/milestone-7.md) | 📋 À faire |
-| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 🟡 En cours |
-| 9 — Feuille de route & vigilance | [milestone-9.md](specs/milestone-9.md) | 📝 Vivant |
+| 3 — Horloge & Entraînement | [milestone-3.md](specs/milestone-3.md) | 🟡 Scheduler + jobs H36/H71/H72 |
+| 4 — Économie & Marché | [milestone-4.md](specs/milestone-4.md) | 🟡 Utilitaires, P2P global, magasin village |
+| 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | 🟡 Moteur 12 tours, benchmark |
+| 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | 🟡 Pipeline narratif, objets match |
+| 7 — Vol d'Oiseau | [milestone-7.md](specs/milestone-7.md) | ✅ Cérémonie, prime H72, relève |
+| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 🟡 Pools, bots, invitations |
+| 9 — Feuille de route & vigilance | [milestone-9.md](specs/milestone-9.md) | 📝 Vivant — priorités & playtests |
+
+**Auth multi-joueurs** (register/login, sessions cookie) et **cloche notifications** (header) sont livrés — voir [milestone-9.md](specs/milestone-9.md) pour le détail à jour.
 
 ---
 

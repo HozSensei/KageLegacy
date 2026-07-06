@@ -18,7 +18,7 @@ const router = Router();
 router.post('/register', async (req, res, next) => {
   try {
     const parsed = registerSchema.parse(req.body);
-    const user = await registerUser(parsed);
+    const { user, poolJoin } = await registerUser(parsed);
     const { token, expiresAt } = await createSession(user.id);
 
     res.setHeader('Set-Cookie', buildSessionCookie(token, expiresAt));
@@ -26,6 +26,13 @@ router.post('/register', async (req, res, next) => {
     res.status(201).json({
       user: { id: user.id, username: user.username },
       sensei: sensei ? { name: sensei.name, language: sensei.language } : null,
+      pool: poolJoin.pool
+        ? {
+            id: poolJoin.pool.id,
+            inviteFallback: poolJoin.fallback,
+            inviteReason: poolJoin.reason,
+          }
+        : null,
     });
   } catch (error) {
     next(error);

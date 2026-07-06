@@ -68,7 +68,8 @@
     "createAccount": "Create one",
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
-    "demoHint": "Local demo: demo_sensei / demo (after npm run db:seed)"
+    "demoHint": "Local demo: demo_sensei / demo (after npm run db:seed)",
+    "inviteLead": "League invite — you will join pool #{poolId} on registration."
   },
   "nav": {
     "bureau": "Office",
