@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { findDemoUser, getGameClock } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
+import { getGameClock } from '../models/sensei.js';
 import { getDebtStatus } from '../services/economyDebt.js';
 import {
   buyListing,
@@ -23,12 +24,10 @@ async function marketResponse(userId, extra = {}) {
   };
 }
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
     res.json(await marketResponse(user.id));
   } catch (error) {
     next(error);
@@ -37,8 +36,8 @@ router.get('/', async (_req, res, next) => {
 
 router.post('/list', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const userItemId = Number(req.body?.userItemId);
     const price = Number(req.body?.price);
@@ -55,8 +54,8 @@ router.post('/list', async (req, res, next) => {
 
 router.post('/buy', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const listingId = Number(req.body?.listingId);
     if (!listingId) {
@@ -72,8 +71,8 @@ router.post('/buy', async (req, res, next) => {
 
 router.post('/cancel', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) return res.status(404).json({ error: 'Joueur introuvable.' });
+    const user = await requireUser(req, res);
+    if (!user) return;
 
     const listingId = Number(req.body?.listingId);
     if (!listingId) {

@@ -60,6 +60,12 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
 15. ~~**Marché entre joueurs**~~ — ✅ annonces P2P objets dans le pool — [`player-market.md`](./player-market.md)
 16. ~~**Magasin du village V2**~~ — ✅ catalogue complet, stocks, réassort / 3 cycles, promos — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
+17. ~~**Auth multi-joueurs**~~ — ✅ sessions cookie, register/login, `requireUser` sur les routes API (repli démo via `AUTH_DEMO_FALLBACK`)
+
+**Prochaines priorités :**
+
+18. **Marché P2P V2** — ninjas banc (arbitrage PO)
+19. **Scheduler prod** — cron H36/H71/H72 hors `dev/tick`
 
 ---
 

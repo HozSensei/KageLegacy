@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { findDemoUser } from '../models/sensei.js';
+import { requireUser } from '../middleware/auth.js';
 import {
   getMatchOperationPayload,
   getOperationLivePayload,
@@ -9,12 +9,10 @@ import { browsePools, getPoolMatches } from '../services/matchSpectatorService.j
 
 const router = Router();
 
-router.get('/pools', async (_req, res, next) => {
+router.get('/pools', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
     const pools = await browsePools(user.id);
     res.json({ pools });
   } catch (error) {
@@ -24,10 +22,8 @@ router.get('/pools', async (_req, res, next) => {
 
 router.get('/pools/:poolId/fixtures', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
     const poolId = Number(req.params.poolId);
     const cycle = req.query.cycle != null ? Number(req.query.cycle) : undefined;
     const payload = await getPoolMatches(user.id, poolId, { cycle });
@@ -39,10 +35,8 @@ router.get('/pools/:poolId/fixtures', async (req, res, next) => {
 
 router.get('/navigation', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
     const nav = await getOperationNavigation(user.id, {
       poolId: req.query.poolId,
       cycle: req.query.cycle,
@@ -54,12 +48,10 @@ router.get('/navigation', async (req, res, next) => {
   }
 });
 
-router.get('/live', async (_req, res, next) => {
+router.get('/live', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
     const payload = await getOperationLivePayload(user.id);
     res.json(payload);
   } catch (error) {
@@ -69,10 +61,8 @@ router.get('/live', async (_req, res, next) => {
 
 router.get('/:matchId', async (req, res, next) => {
   try {
-    const user = await findDemoUser();
-    if (!user) {
-      return res.status(404).json({ error: 'Aucun joueur de démonstration.' });
-    }
+    const user = await requireUser(req, res);
+    if (!user) return;
     const matchId = Number(req.params.matchId);
     if (!matchId) {
       return res.status(400).json({ error: 'matchId invalide.' });

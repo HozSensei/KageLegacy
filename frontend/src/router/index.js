@@ -7,11 +7,14 @@ import MarketView from '../views/MarketView.vue'
 import PlayerMarketView from '../views/PlayerMarketView.vue'
 import InventoryView from '../views/InventoryView.vue'
 import OperationView from '../views/OperationView.vue'
-import PlaceholderView from '../views/PlaceholderView.vue'
+import LoginView from '../views/LoginView.vue'
+import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    { path: '/login', name: 'login', component: LoginView },
+    { path: '/register', name: 'register', component: LoginView },
     {
       path: '/',
       component: AppLayout,
@@ -48,6 +51,13 @@ const router = createRouter({
       ],
     },
   ],
+})
+
+router.beforeEach(async (to) => {
+  if (to.path === '/login' || to.path === '/register') return true
+  const auth = useAuthStore()
+  if (!auth.checked) await auth.fetchMe()
+  return true
 })
 
 export default router

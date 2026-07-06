@@ -70,11 +70,11 @@ async function replaceBotInPool(poolId, botUserId, humanUserId) {
     botUserId,
   ]);
   await query(
-    `UPDATE matches SET home_user_id = ? WHERE home_user_id = ? AND status = 'scheduled'`,
+    `UPDATE matches SET home_user_id = ? WHERE home_user_id = ?`,
     [humanUserId, botUserId]
   );
   await query(
-    `UPDATE matches SET away_user_id = ? WHERE away_user_id = ? AND status = 'scheduled'`,
+    `UPDATE matches SET away_user_id = ? WHERE away_user_id = ?`,
     [humanUserId, botUserId]
   );
   await query('DELETE FROM ninjas WHERE user_id = ?', [botUserId]);
