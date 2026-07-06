@@ -64,6 +64,7 @@ npm run clock:advance  # Avance l'horloge d'1h (dev)
 npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
 npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
 npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
+npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
 npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
 npm run dev:api     # API seule
 npm run dev:web     # Front seul

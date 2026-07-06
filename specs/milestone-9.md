@@ -57,11 +57,13 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 22. ~~**Marché global + historique P2P**~~ — ✅ annonces serveur entier, historique, cloche `market_sale`
 23. ~~**Playtest multi-joueurs**~~ — ✅ `npm run playtest:multiplayer` · 2 comptes, auth, P2P, cycle H0→H72
 24. ~~**README / roadmap**~~ — ✅ statuts milestones alignés
+25. ~~**Playtest ligue**~~ — ✅ `npm run playtest:league` · 2 humains même pool, match H71
+26. ~~**Invitations à l'inscription**~~ — ✅ `invitePoolId` register API + UI `/register?invitePoolId=`
 
 **Prochaines priorités :**
 
-25. **Playtest ligue** — 2 humains même pool, match H71 réel
-26. **Invitations à l'inscription** — `invitePoolId` côté register API
+27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
+28. **Extraire `dojoNotifications.js`** — service dédié hors `birdFlightService`
 
 ---
 

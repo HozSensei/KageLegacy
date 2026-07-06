@@ -1,6 +1,6 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { query } from '../config/database.js';
-import { joinOrCreatePool } from './poolService.js';
+import { joinOrCreatePool, joinPoolByInvite } from './poolService.js';
 
 const SESSION_DAYS = 30;
 const SCRYPT_KEYLEN = 64;
@@ -46,7 +46,13 @@ export async function findUserById(userId) {
   return rows[0] || null;
 }
 
-export async function registerUser({ username, password, senseiName, language = 'fr' }) {
+export async function registerUser({
+  username,
+  password,
+  senseiName,
+  language = 'fr',
+  invitePoolId,
+}) {
   const existing = await findUserByUsername(username);
   if (existing) {
     const err = new Error('Ce nom d\'utilisateur est déjà pris.');
@@ -67,9 +73,16 @@ export async function registerUser({ username, password, senseiName, language = 
     [userId, senseiName, language]
   );
 
-  await joinOrCreatePool(userId);
+  const numericInvite =
+    invitePoolId != null && invitePoolId !== '' ? Number(invitePoolId) : null;
+  const poolJoin = numericInvite
+    ? await joinPoolByInvite(userId, numericInvite)
+    : { pool: await joinOrCreatePool(userId), fallback: false, reason: 'standard' };
 
-  return findUserById(userId);
+  return {
+    user: await findUserById(userId),
+    poolJoin,
+  };
 }
 
 export async function authenticateUser(username, password) {

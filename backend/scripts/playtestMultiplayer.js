@@ -154,13 +154,13 @@ async function main() {
   await cleanupPlaytestUsers();
   const clans = await ensureClans();
 
-  const userA = await registerUser({
+  const { user: userA } = await registerUser({
     username: usernameA,
     password: PASSWORD,
     senseiName: 'Sensei Alpha',
     language: 'fr',
   });
-  const userB = await registerUser({
+  const { user: userB } = await registerUser({
     username: usernameB,
     password: PASSWORD,
     senseiName: 'Sensei Beta',
