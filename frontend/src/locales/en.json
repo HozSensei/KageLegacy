@@ -79,6 +79,14 @@
     "inventory": "Inventory",
     "operation": "Operation"
   },
+  "notifications": {
+    "bell": "Notifications",
+    "panelTitle": "Notifications",
+    "empty": "No notifications yet.",
+    "dismiss": "Mark as read",
+    "genericTitle": "Notification",
+    "genericBody": "New activity on your dojo."
+  },
   "bureau": {
     "title": "Sensei Office",
     "cycle": "Ninja cycle",
