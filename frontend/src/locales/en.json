@@ -371,37 +371,77 @@
     "empty": "No listings on the market yet."
   },
   "missions": {
-    "title": "Routine missions",
-    "lead": "Send bench ninjas on contracts (H0–H70) — locked until H72. Cost on send, payout if requirements met.",
+    "title": "Mission contracts",
+    "lead": "Up to 3 free contracts per cycle (one per tier). Guaranteed Ryos + loot roll at H72 — the risk is what your ninja brings back.",
     "loading": "Loading…",
     "pickNinja": "Pick a bench ninja",
-    "pickRank": "Contract rank",
+    "pickTier": "Contract tier",
+    "pickRank": "Contract tier",
     "send": "Send on mission",
     "sending": "Sending…",
-    "pending": "{count} reward(s) ready to collect.",
-    "collect": "Collect Ryos",
+    "pending": "{count} mission report(s) ready.",
+    "collect": "Collect rewards",
     "collecting": "Collecting…",
     "active": "On mission",
     "failed": "Failures this cycle",
-    "failedHint": "requirements not met at H72",
-    "closed": "Missions closed (H71+) — collect pending rewards.",
-    "debtHint": "Debt outstanding: only free Rank D missions allowed.",
+    "failedHint": "mission compromised",
+    "deathReport": "killed in action",
+    "closed": "Missions closed (H71+) — collect pending reports.",
+    "debtHint": "Debt outstanding: only Routine Contract allowed.",
     "debtBlocked": "Blocked (debt)",
+    "tierUsed": "Contract already taken this cycle",
+    "underQualified": "Higher risk ({req})",
     "examBlocked": "exam / Vol d'Oiseau",
     "cycleGearBlocked": "cycle item equipped",
     "cost": "Cost",
-    "reward": "Reward",
+    "reward": "Guaranteed loot",
     "net": "Net",
-    "eligible": "Possible ranks for this ninja: {ranks}",
+    "resolve": "Return",
+    "risk": "Risk",
+    "riskNone": "0% injury",
+    "riskLight": "20% light injury",
+    "riskCyclone": "40% grave injury · 5% death",
+    "lootHint": "Bonus loot is rolled on return — empty chests, items, or jackpot (3% on Cyclone).",
+    "eligible": "Possible tiers for this ninja: {ranks}",
+    "tiersShort": {
+      "routine": "Routine",
+      "infiltration": "Infiltration",
+      "cyclone": "Cyclone"
+    },
+    "tiers": {
+      "routine": "Routine Contract",
+      "infiltration": "Tactical Infiltration",
+      "cyclone": "Operation Cyclone"
+    },
+    "injuries": {
+      "light": "Light injury — Lamentable form",
+      "grave": "Grave injury — form locked 2 cycles",
+      "death": "Clinical death"
+    },
+    "loot": {
+      "empty": "No bonus (Ryos only)",
+      "items": "{count} item(s) recovered",
+      "scroll": "Scroll: +{gain} {stat}",
+      "prodige": "Prodigy recruit: {name}",
+      "pansement": "Field dressing",
+      "empty_chests": "Empty chests",
+      "medical_kit": "Medical kit",
+      "smoke_bomb": "Emergency smoke bomb",
+      "search_failed": "Search failed",
+      "double_medical": "Double medical supplies",
+      "tactical_consumable": "Tactical consumable",
+      "forbidden_scroll": "Forbidden Jutsu scroll",
+      "prodigy_location": "Prodigy located"
+    },
     "ranksShort": {
-      "D": "D",
-      "C": "C",
-      "B": "B"
+      "routine": "Routine",
+      "infiltration": "Infiltration",
+      "cyclone": "Cyclone"
     },
     "ranks": {
-      "D": "Rank D",
-      "C": "Rank C",
-      "B": "Rank B"
+      "routine": "Routine Contract",
+      "infiltration": "Tactical Infiltration",
+      "cyclone": "Operation Cyclone"
     }
   }
 }

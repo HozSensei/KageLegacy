@@ -142,6 +142,7 @@ export function generateNinjaProfile({
   characterTrait,
   language = 'fr',
   recruitmentOptions,
+  forcedPotential = null,
 }) {
   const resolvedClan = clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
   if (!resolvedClan) {
@@ -153,7 +154,7 @@ export function generateNinjaProfile({
     resolvedClan.name === 'Roturier' ? firstName : `${firstName} ${resolvedClan.name}`;
 
   const primaryArt = pickPrimaryArt(resolvedClan);
-  const potential = rollPotential(resolvedClan);
+  const potential = forcedPotential || rollPotential(resolvedClan);
   let stats = generateSpecializedStats(grade, primaryArt, potential);
   stats = applyClanBonuses(stats, resolvedClan);
 

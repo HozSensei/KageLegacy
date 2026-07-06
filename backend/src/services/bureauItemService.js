@@ -1,6 +1,5 @@
-import { query } from '../config/database.js';
 import { FORME_DOWNGRADE } from './combat/constants.js';
-import { computeMatchPv } from './ninjaStats.js';
+import { clampStatToGradeCap } from './gradeProgression.js';
 import { consumeUserItem } from './equipmentService.js';
 import { getClockRow } from './gameClock.js';
 
@@ -71,6 +70,11 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
       break;
     }
     case 'forme_upgrade': {
+      if (ninja.forme_lock_cycles > 0) {
+        const error = new Error('Ce ninja ne peut pas être soigné tant que sa blessure grave n\'est pas cicatrisée.');
+        error.statusCode = 400;
+        throw error;
+      }
       const next = FORME_UPGRADE[ninja.weekly_forme] || ninja.weekly_forme;
       if (next === ninja.weekly_forme) {
         const error = new Error('La forme de ce ninja est déjà au maximum.');
@@ -92,6 +96,25 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
       const newPv = Math.min(maxPv, ninja.current_pv_match + heal);
       await query('UPDATE ninjas SET current_pv_match = ? WHERE id = ?', [newPv, ninjaId]);
       result = { effect: 'pv_heal', healed: newPv - ninja.current_pv_match, currentPv: newPv, maxPv };
+      break;
+    }
+    case 'injury_discount': {
+      const amount = bureau.amount || 50;
+      await query('UPDATE ninjas SET injury_discount_ryos = injury_discount_ryos + ? WHERE id = ?', [
+        amount,
+        ninjaId,
+      ]);
+      result = { effect: 'injury_discount', amount, ninjaId };
+      break;
+    }
+    case 'jutsu_scroll': {
+      const stats = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
+      const stat = stats[Math.floor(Math.random() * stats.length)];
+      const gain = Math.random() < 0.5 ? 0.5 : 1.0;
+      const current = Number(ninja[stat]);
+      const next = clampStatToGradeCap(ninja, stat, current + gain);
+      await query(`UPDATE ninjas SET ${stat} = ? WHERE id = ?`, [next, ninjaId]);
+      result = { effect: 'jutsu_scroll', stat, gain: next - current, ninjaId };
       break;
     }
     default: {

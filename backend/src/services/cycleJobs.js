@@ -11,6 +11,7 @@ import { incrementPoolCycle } from './poolService.js';
 import { deductSalariesForAllUsers } from './economyService.js';
 import { ensureVillageShopForAllUsers } from './villageShopService.js';
 import { resolveMissionsForCycle } from './missionService.js';
+import { decrementFormeLocksForAllUsers } from './missionLootService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
@@ -52,9 +53,10 @@ export async function runH71(cycleStartAt) {
 
 export async function runH72(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h72')) return { skipped: true };
-  const missionResults = await resolveMissionsForCycle(cycleStartAt);
+  const missionResults = await resolveMissionsForCycle(cycleStartAt, 72);
   const matchResults = await applyAllPoolsMatchResults();
   const salaries = await deductSalariesForAllUsers();
+  await decrementFormeLocksForAllUsers();
   const poolCycles = [];
   const pools = await query(`SELECT id FROM pools WHERE status = 'active'`);
   for (const pool of pools) {

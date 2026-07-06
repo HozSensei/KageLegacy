@@ -38,7 +38,13 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
     throw error;
   }
 
-  const cost = getDispensaryCost(ninja.grade);
+  if (ninja.forme_lock_cycles > 0) {
+    const error = new Error('Ce ninja est sous surveillance médicale prolongée (blessure grave de mission).');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const cost = Math.max(0, getDispensaryCost(ninja.grade) - (ninja.injury_discount_ryos || 0));
   if (!cost) {
     const error = new Error('Ce grade ne peut pas être traité au dispensaire.');
     error.statusCode = 400;
@@ -57,7 +63,10 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
   }
 
   await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [cost, userId]);
-  await query('UPDATE ninjas SET weekly_forme = ? WHERE id = ?', ['Passable', ninjaId]);
+  await query(
+    'UPDATE ninjas SET weekly_forme = ?, injury_discount_ryos = 0 WHERE id = ?',
+    ['Passable', ninjaId]
+  );
 
   return { ninjaId, cost, previousForme: 'Lamentable', newForme: 'Passable' };
 }
