@@ -129,15 +129,18 @@ function maxCombatStat(stats) {
 
 function pickDefender(defTeam, attacker) {
   const defenders = activeFighters(defTeam);
-  if (!defenders.length) return null;
+  if (!defenders.length) return { defender: null, egoisteInsubordination: false };
 
   let defender = null;
+  const tanks = defenders.filter((d) => d.battle_strategy === 'Tank');
+  let egoisteInsubordination = false;
 
   if (attacker.character_trait !== 'Egoiste') {
-    const tanks = defenders.filter((d) => d.battle_strategy === 'Tank');
     if (tanks.length && roll(100) < getEffectiveTankTargetChance(TANK_TARGET_CHANCE, detectSquadComposition(defenders)) * 100) {
       defender = tanks[roll(tanks.length)];
     }
+  } else if (tanks.length) {
+    egoisteInsubordination = true;
   }
 
   if (!defender) {
@@ -145,7 +148,7 @@ function pickDefender(defTeam, attacker) {
   }
 
   const redirected = tryDecoyRedirect(defender, defenders, attacker);
-  return redirected || defender;
+  return { defender: redirected || defender, egoisteInsubordination };
 }
 
 function chooseTechnique(attacker, defender, attackerComp = 'equilibre') {
@@ -349,7 +352,7 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
       continue;
     }
 
-    const defender = pickDefender(defenderTeam, attacker);
+    const { defender, egoisteInsubordination } = pickDefender(defenderTeam, attacker);
     if (!defender) break;
 
     if (attacker.status === 'paralysis') {
@@ -405,6 +408,7 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
         critique: Boolean(outcome.crit),
         rate: Boolean(outcome.fumble),
         esquive: Boolean(outcome.missed),
+        egoiste_insubordination: egoisteInsubordination,
       });
     } else {
       logs.push({
@@ -489,3 +493,6 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
     },
   };
 }
+
+/** Exposé pour tests statistiques (ciblage Tank vs Égoïste). */
+export { pickDefender as pickDefenderForTest };

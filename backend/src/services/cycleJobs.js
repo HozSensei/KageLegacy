@@ -65,10 +65,11 @@ export async function runH72(cycleStartAt) {
   const stagnation = await applyStagnationForAllUsers();
   const training = await processTrainingBillingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
-  const newClock = await resetCycle();
+  await resetCycle();
+  const newRow = await getClockRow();
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureVillageShopForAllUsers();
-  const academy = await ensureAcademyForAllUsers(newClock.cycleStartAt);
+  const academy = await ensureAcademyForAllUsers(newRow.cycle_start_at);
   console.log(
     `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s)) · académie (${academy.length})`
   );

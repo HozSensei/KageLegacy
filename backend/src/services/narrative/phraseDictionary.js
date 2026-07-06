@@ -66,6 +66,11 @@ export const ITEM_SMOKE_SAVE = [
   '{ninja_name} lâche un fumigène — le coup fatal se dissipe dans la brume.',
 ];
 
+export const EGOISTE_INSUBORDINATION = [
+  '{attaquant_name} ignore le garde du corps adverse et fonce sur {cible_name}, brisant la formation défensive.',
+  'Sans regarder le Tank, {attaquant_name} choisit {cible_name} comme cible — insoumission pure.',
+];
+
 export const ITEM_RUPTURE_SCROLL = [
   '{ninja_name} brise l\'illusion d\'un geste sec, parchemin de rupture en main.',
 ];

@@ -49,17 +49,14 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 6. ~~**M7 — Vol d'Oiseau**~~ — ✅ inscription cérémonie, prime H72, relève Genin roturier, notifications Bureau
 7. ~~**Dispensaire**~~ — ✅ Lamentable → Passable, coût par grade, panneau Bureau
 8. ~~**M6 enrichi**~~ — ✅ phrases objets match, debrief objet inutilisé (interception déjà livrée)
+17. ~~**Gel administratif dette + polish M6/Bureau**~~ — ✅ PR #15
+18. ~~**Playtest cycle + Égoïste M6**~~ — ✅ `npm run playtest:cycle` · `npm run test:egoiste` · phrase insoumission
 
 **Prochaines priorités :**
 
-9. ~~**Entraînement payant opt-in**~~ — ✅ plan par ninja, facturation H72, déficit souple
-10. ~~**Revue missions idle**~~ — ✅ prérequis à l'envoi, fenêtre H0–H70, gel dette (Rang D seul), blocages examen/objet cycle
-11. ~~**Académie**~~ — ✅ tirage aléatoire — [`academy.md`](./academy.md)
-12. ~~**Budget du cycle (Bureau)**~~ — ✅ panneau projection H72
-13. ~~**Environnement de match**~~ — ✅ tirage unique, scout flou H36, combat + M6 + objets anti-env
-14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
-15. ~~**Marché entre joueurs**~~ — ✅ annonces P2P objets dans le pool — [`player-market.md`](./player-market.md)
-16. ~~**Magasin du village V2**~~ — ✅ catalogue complet, stocks, réassort / 3 cycles, promos — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
+19. **Auth multi-joueurs** — remplacer `findDemoUser()` par session réelle
+20. **Marché P2P V2** — ninjas banc (arbitrage PO)
+21. **Scheduler prod** — cron H36/H71/H72 hors `dev/tick`
 
 ---
 

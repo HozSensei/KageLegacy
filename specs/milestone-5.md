@@ -113,7 +113,7 @@ Si un joueur n'a pas de remplaçant et doit absolument faire jouer un ninja tomb
 * [ ] **Orchestration H71 :** Déclencher la simulation pour tous les matchs de la pool à H71 et transmettre les logs JSON au Moteur de Chronique (Milestone 6).
 * [ ] **Étape 0 :** Créer la fonction de pré-calcul qui applique les multiplicateurs de la `weekly_forme` (`+15%`, `+5%`, `0%`, `-25%`) sur les stats brutes avant de générer les PV/Chakra du match.
 * [ ] **Étape 1 :** Ajouter la condition du trait `Temeraire` au Tour 1 (`+4 Vitesse`).
-* [ ] **Étape 2 :** Coder l'arbre de décision IA basé sur l' `intelligence` (QI) pour le choix de la technique offensive, et ajouter le déclencheur de fierté de l' `Egoiste` (`+2 combat`).
-* [ ] **Étape 3 :** Coder l'insoumission de l' `Egoiste` qui bypass les probabilités de redirection du Tank adverse.
-* [ ] **Étape 4 :** Coder la surconsommation de chakra du `Temeraire` (12 au lieu de 10) et l'immunité passive du `Faineant` au premier Genjutsu.
-* [ ] **Étape 5 :** Coder la fonction de sacrifice à 50% du coéquipier `Altruiste` en cas d'échec de la substitution du Sensei.
+* [x] **Étape 2 :** Coder l'arbre de décision IA basé sur l' `intelligence` (QI) pour le choix de la technique offensive, et ajouter le déclencheur de fierté de l' `Egoiste` (`+2 combat`).
+* [x] **Étape 3 :** Coder l'insoumission de l' `Egoiste` qui bypass les probabilités de redirection du Tank adverse — log `egoiste_insubordination` + phrase M6.
+* [x] **Étape 4 :** Coder la surconsommation de chakra du `Temeraire` (12 au lieu de 10) et l'immunité passive du `Faineant` au premier Genjutsu.
+* [x] **Étape 5 :** Coder la fonction de sacrifice à 50% du coéquipier `Altruiste` en cas d'échec de la substitution du Sensei.
