@@ -15,6 +15,7 @@
     "playtest:cycle": "node scripts/playtestCycle.js",
     "playtest:multiplayer": "node scripts/playtestMultiplayer.js",
     "playtest:league": "node scripts/playtestLeague.js",
+    "playtest:missions": "node scripts/playtestMissionsCycle.js",
     "economy:simulate": "node scripts/simulateEconomyCycles.js",
     "test:egoiste": "node scripts/testEgoisteInsubordination.js",
     "cycle:tick": "node scripts/cycleTick.js"

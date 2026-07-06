@@ -8,7 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from '../src/config/database.js';
 import pool from '../src/config/database.js';
-import { setHourDev, getGameClock } from '../src/services/gameClock.js';
+import { setHourDev, getGameClock, advanceToHourDev } from '../src/services/gameClock.js';
 import { processCycleTick } from '../src/services/cycleJobs.js';
 import { getDebtStatus } from '../src/services/economyDebt.js';
 import { getMissionsForUser } from '../src/services/missionService.js';
@@ -63,7 +63,7 @@ async function snapshot(label, userId) {
 }
 
 async function jumpAndTick(hour) {
-  await setHourDev(hour);
+  await advanceToHourDev(hour);
   return processCycleTick();
 }
 

@@ -9,6 +9,8 @@ import {
   meetsTierRequirement,
   rollPercent,
 } from './missionRules.js';
+import { createDojoNotification } from './dojoNotifications.js';
+import { buildMissionReportPayload } from './missionNarrative.js';
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
@@ -209,6 +211,15 @@ export async function resolveMissionOutcome(mission, ninja) {
      WHERE id = ?`,
     [status, baseRyos, JSON.stringify(lootResult), injuryType, mission.id]
   );
+
+  const reportPayload = buildMissionReportPayload({
+    tier,
+    ninjaName: mission.ninja_name || ninja.name || ninja.ninja_name,
+    status,
+    lootResult: { ...lootResult, missionId: mission.id },
+    injuryType,
+  });
+  await createDojoNotification(mission.user_id, 'mission_report', reportPayload);
 
   return { missionId: mission.id, status, lootResult };
 }

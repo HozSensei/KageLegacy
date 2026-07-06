@@ -10,15 +10,19 @@ export function computePhase(hour) {
   return 'cycle_end';
 }
 
-export function computeClockState(cycleStartAt, now = new Date()) {
+export function computeClockState(cycleStartAt, now = new Date(), lastTickHour = null) {
   const start = new Date(cycleStartAt);
   const elapsedMs = now - start;
   const elapsedHours = Math.floor(elapsedMs / HOUR_MS);
+  const hour = Math.min(
+    CYCLE_HOURS,
+    Math.max(elapsedHours, lastTickHour == null ? 0 : Number(lastTickHour))
+  );
 
-  if (elapsedHours >= CYCLE_HOURS) {
+  if (hour >= CYCLE_HOURS) {
     return {
       hour: CYCLE_HOURS,
-      elapsedHours,
+      elapsedHours: hour,
       cycleStartAt: start.toISOString(),
       phase: 'cycle_end',
       tacticsLocked: true,
@@ -26,10 +30,9 @@ export function computeClockState(cycleStartAt, now = new Date()) {
     };
   }
 
-  const hour = elapsedHours;
   return {
     hour,
-    elapsedHours,
+    elapsedHours: hour,
     cycleStartAt: start.toISOString(),
     phase: computePhase(hour),
     tacticsLocked: hour >= 71,
@@ -45,7 +48,7 @@ export async function getGameClock() {
   if (!cycleStart) {
     return { hour: 0, cycleStartAt: null, phase: 'training', tacticsLocked: false, cycleComplete: false };
   }
-  return computeClockState(cycleStart);
+  return computeClockState(cycleStart, new Date(), rows[0]?.last_tick_hour);
 }
 
 export async function isTacticsLocked() {
@@ -53,10 +56,13 @@ export async function isTacticsLocked() {
   return clock.tacticsLocked;
 }
 
-/** Avance d'une heure (outil dev) */
+/** Avance d'une heure (outil dev) — conserve cycle_start_at, incrémente last_tick_hour */
 export async function advanceHourDev() {
   await query(
-    'UPDATE game_clock SET cycle_start_at = DATE_SUB(cycle_start_at, INTERVAL 1 HOUR), last_tick_hour = 0 WHERE id = 1'
+    `UPDATE game_clock
+     SET last_tick_hour = LEAST(?, last_tick_hour + 1)
+     WHERE id = 1`,
+    [CYCLE_HOURS]
   );
   return getGameClock();
 }
@@ -72,6 +78,17 @@ export async function setHourDev(targetHour) {
     [hour, hour]
   );
   return getGameClock();
+}
+
+/** Avance l'horloge jusqu'à l'heure cible du cycle en cours (sans réancrer le cycle). */
+export async function advanceToHourDev(targetHour) {
+  const goal = Math.max(0, Math.min(CYCLE_HOURS, Number(targetHour)));
+  let clock = await getGameClock();
+  while (clock.hour < goal) {
+    await advanceHourDev();
+    clock = await getGameClock();
+  }
+  return clock;
 }
 
 /** Réinitialise le cycle (après job H72) */

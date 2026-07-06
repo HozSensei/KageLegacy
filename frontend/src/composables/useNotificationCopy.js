@@ -9,6 +9,8 @@ export function useNotificationCopy() {
         return t('bureau.birdFlight.graduationTitle')
       case 'market_sale':
         return t('bureau.market.saleTitle')
+      case 'mission_report':
+        return t('missions.notificationTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -36,6 +38,12 @@ export function useNotificationCopy() {
           price: (p.price ?? 0).toLocaleString(),
           proceeds: (p.sellerProceeds ?? 0).toLocaleString(),
         })
+      case 'mission_report':
+        return p.reportText || t('missions.notificationIntro', {
+          ninja: p.ninjaName || '—',
+          tier: p.tierLabel || p.tier || '—',
+          ryos: (p.ryos ?? 0).toLocaleString(),
+        })
       default:
         return t('notifications.genericBody')
     }
@@ -43,11 +51,13 @@ export function useNotificationCopy() {
 
   function linkPath(note) {
     if (note.kind === 'market_sale') return '/exchanges'
+    if (note.kind === 'mission_report') return '/bureau'
     return null
   }
 
   function linkLabel(note) {
     if (note.kind === 'market_sale') return t('bureau.market.viewExchanges')
+    if (note.kind === 'mission_report') return t('missions.notificationLink')
     return null
   }
 
