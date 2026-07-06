@@ -89,13 +89,17 @@ function logToSentence(log) {
   return fillTemplate(pick(TAIJUTSU_TEMPLATES), vars);
 }
 
+function teamLabel(senseiName) {
+  return `l'équipe de ${senseiName}`;
+}
+
 function buildIntro(homeSensei, awaySensei, homeNinjas, awayNinjas, terrain) {
   const homeNames = homeNinjas.map((n) => n.name).join(', ');
   const awayNames = awayNinjas.map((n) => n.name).join(', ');
   return (
     `L'Opération se déroule cette semaine dans ${terrain}. ` +
-    `Du côté de ${homeSensei}, ${homeNames} se préparent au contact tandis que ` +
-    `l'escouade de ${awaySensei} — ${awayNames} — attend le signal dans une posture tendue.`
+    `${teamLabel(homeSensei)} — ${homeNames} — se prépare au contact tandis que ` +
+    `${teamLabel(awaySensei)}, avec ${awayNames}, attend le signal dans une posture tendue.`
   );
 }
 
@@ -109,25 +113,25 @@ function buildTension() {
 function buildDenouement(winnerSide, endReason, homeSensei, awaySensei) {
   if (winnerSide === 'draw') {
     return (
-      `Ni ${homeSensei} ni ${awaySensei} ne parvient à faire plier l'adversaire. ` +
+      `Ni ${teamLabel(homeSensei)} ni ${teamLabel(awaySensei)} ne parvient à faire plier l'adversaire. ` +
       `Épuisés, les deux camps se retirent sous un cessez-le-feu tacite, ` +
       `chacun pansant ses blessures sur le chemin du retour.`
     );
   }
 
-  const winner = winnerSide === 'home' ? homeSensei : awaySensei;
-  const loser = winnerSide === 'home' ? awaySensei : homeSensei;
+  const winner = winnerSide === 'home' ? teamLabel(homeSensei) : teamLabel(awaySensei);
+  const loser = winnerSide === 'home' ? teamLabel(awaySensei) : teamLabel(homeSensei);
 
   if (endReason === 'ko') {
     return (
-      `La pression constante de l'escouade de ${winner} finit par faire plier l'adversaire. ` +
+      `La pression constante de ${winner} finit par faire plier l'adversaire. ` +
       `Acculés, les ninjas de ${loser} ne peuvent plus tenir la ligne et s'effondrent un à un. ` +
-      `Vos hommes rentrent au camp, certains fièrement, d'autres à peine debout.`
+      `Le retour au camp sera difficile pour les survivants, certains à peine debout.`
     );
   }
 
   return (
-    `Au terme d'un échange acharné, l'escouade de ${winner} conserve l'avantage décisif. ` +
+    `Au terme d'un échange acharné, ${winner} conserve l'avantage décisif. ` +
     `Les ninjas de ${loser} sonnent une retraite organisée. ` +
     `Le retour au camp sera l'occasion de soigner les blessures et de tirer les leçons de cette opération.`
   );

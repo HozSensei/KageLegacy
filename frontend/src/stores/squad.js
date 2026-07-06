@@ -13,6 +13,7 @@ export const useSquadStore = defineStore('squad', () => {
   const gameClock = ref(null)
   const notifications = ref([])
   const dispensaryCandidates = ref([])
+  const cycleBudget = ref(null)
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -22,6 +23,7 @@ export const useSquadStore = defineStore('squad', () => {
     gameClock.value = data.gameClock
     notifications.value = data.notifications || []
     dispensaryCandidates.value = data.dispensaryCandidates || []
+    cycleBudget.value = data.cycleBudget || null
   }
 
   async function fetchSquad() {
@@ -75,6 +77,20 @@ export const useSquadStore = defineStore('squad', () => {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
+  async function saveTrainingPlans(plans) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/training-plans`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plans }),
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
@@ -169,9 +185,11 @@ export const useSquadStore = defineStore('squad', () => {
     gameClock,
     notifications,
     dispensaryCandidates,
+    cycleBudget,
     fetchSquad,
     saveComposition,
     saveStrategies,
+    saveTrainingPlans,
     saveTrainingFocus,
     requestChuninExam,
     requestBirdFlight,

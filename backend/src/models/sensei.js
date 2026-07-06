@@ -12,13 +12,18 @@ import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import { getUnreadNotifications } from '../services/birdFlightService.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
+import { computeTrainingCost } from '../services/training.js';
+import { getCycleBudgetPreview } from '../services/trainingBilling.js';
 
 export { getGameClock };
 
 function enrichNinja(ninja) {
   const language = ninja.language || 'fr';
+  const trainingCost = ninja.training_focus ? computeTrainingCost(ninja) : null;
   return {
     ...ninja,
+    trainingFocus: ninja.training_focus ?? null,
+    trainingCost,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
     birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
     birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
@@ -85,20 +90,22 @@ export async function getSquadPayload(userId) {
   const bench = ninjas.filter((n) => n.squad_position === null).map(enrichNinja);
   const notifications = await getUnreadNotifications(userId);
   const dispensaryCandidates = await listDispensaryCandidates(userId);
+  const cycleBudget = await getCycleBudgetPreview(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
     sensei: {
       name: sensei.name,
-      trainingFocus: sensei.training_focus,
       ryos: sensei.ryos,
       reputation: sensei.reputation,
       chakraPool: sensei.chakra_pool,
       language: sensei.language,
+      salaryDebt: Boolean(sensei.salary_debt),
     },
     activeSquad,
     bench,
     notifications,
     dispensaryCandidates,
+    cycleBudget,
   };
 }

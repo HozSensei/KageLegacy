@@ -52,9 +52,42 @@ export async function updateBattleStrategies(userId, strategies) {
   return strategies;
 }
 
+export async function updateTrainingPlans(userId, plans) {
+  if (await isTacticsLocked()) {
+    const error = new Error('Les plans d\'entraînement sont gelés jusqu\'à la fin du cycle (H71).');
+    error.statusCode = 423;
+    throw error;
+  }
+
+  const ninjaIds = plans.map((p) => p.ninjaId);
+  const placeholders = ninjaIds.map(() => '?').join(',');
+  const owned = await query(
+    `SELECT id FROM ninjas WHERE user_id = ? AND id IN (${placeholders})`,
+    [userId, ...ninjaIds]
+  );
+
+  if (owned.length !== plans.length) {
+    const error = new Error('Plans invalides : ninjas introuvables.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  for (const { ninjaId, trainingFocus } of plans) {
+    await query('UPDATE ninjas SET training_focus = ? WHERE id = ? AND user_id = ?', [
+      trainingFocus,
+      ninjaId,
+      userId,
+    ]);
+  }
+
+  return plans;
+}
+
+/** @deprecated Utiliser updateTrainingPlans — conservé pour compat API */
 export async function updateTrainingFocus(userId, trainingFocus) {
-  await query('UPDATE sensei SET training_focus = ? WHERE user_id = ?', [trainingFocus, userId]);
-  return trainingFocus;
+  const ninjas = await query('SELECT id FROM ninjas WHERE user_id = ?', [userId]);
+  const plans = ninjas.map((n) => ({ ninjaId: n.id, trainingFocus }));
+  return updateTrainingPlans(userId, plans);
 }
 
 export async function requestChuninExam(userId, ninjaId) {

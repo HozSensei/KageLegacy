@@ -183,10 +183,11 @@ export function applyPostMatchToSquad(ninjas, koNinjaIds) {
   }
 }
 
-export function applyTrainingToSquad(ninjas, sensei) {
+export function applyTrainingToSquad(ninjas) {
   const logs = [];
   for (const ninja of ninjas) {
-    const result = computeTrainingGain(ninja, sensei);
+    if (!ninja.training_focus) continue;
+    const result = computeTrainingGain(ninja);
     if (result.skipped) continue;
 
     const column = result.column;
@@ -266,8 +267,10 @@ export function runMultiCycle({
     applyPostMatchToSquad(slotA, koSlotA);
     applyPostMatchToSquad(slotB, koSlotB);
 
-    applyTrainingToSquad(slotA, slotASensei);
-    applyTrainingToSquad(slotB, slotBSensei);
+    for (const n of slotA) n.training_focus = slotASensei.training_focus;
+    for (const n of slotB) n.training_focus = slotBSensei.training_focus;
+    applyTrainingToSquad(slotA);
+    applyTrainingToSquad(slotB);
 
     timeline.push({
       cycle,
