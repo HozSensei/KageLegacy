@@ -13,6 +13,23 @@ const actingId = ref(null)
 const itemName = (item) => (locale.value === 'en' ? item.nameEn : item.nameFr)
 const categoryLabel = (cat) => t(`market.categories.${cat}`)
 
+function listingTitle(listing) {
+  if (listing.listingType === 'ninja') return listing.ninjaName
+  return itemName(listing)
+}
+
+function listingSubtitle(listing) {
+  if (listing.listingType === 'ninja') {
+    return `${listing.grade} · ${listing.age} ${t('ninja.age')} · ${listing.clanName}`
+  }
+  return categoryLabel(listing.category)
+}
+
+function priceRef(listing) {
+  if (listing.listingType === 'ninja') return null
+  return t('exchanges.catalogRef', { price: listing.catalogPrice.toLocaleString() })
+}
+
 onMounted(fetchMarket)
 
 async function fetchMarket() {
@@ -87,6 +104,7 @@ function canBuy(listing) {
       <div class="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-2 text-sm text-ink-muted">
         <p>{{ t('market.balance', { ryos: market.ryos.toLocaleString() }) }}</p>
         <p>{{ t('exchanges.commission', { pct: market.commissionPct }) }}</p>
+        <p>{{ t('exchanges.nobleCommission', { pct: market.nobleCommissionPct }) }}</p>
         <p v-if="!market.windowOpen" class="text-fire">{{ t('exchanges.closed') }}</p>
         <p v-else-if="market.debtBlocksSpending" class="text-fire">{{ t('exchanges.debtBlocked') }}</p>
       </div>
@@ -103,9 +121,12 @@ function canBuy(listing) {
             class="flex flex-wrap items-center justify-between gap-4 border border-line p-4"
           >
             <div>
-              <p class="text-sm text-ink">{{ itemName(listing) }}</p>
+              <p class="text-sm text-ink">
+                <span v-if="listing.listingType === 'ninja'" class="text-accent">{{ t('exchanges.ninja') }} · </span>
+                {{ listingTitle(listing) }}
+              </p>
               <p class="mt-1 text-xs text-ink-faint">
-                {{ categoryLabel(listing.category) }} · {{ listing.price.toLocaleString() }} Ryos
+                {{ listingSubtitle(listing) }} · {{ listing.price.toLocaleString() }} Ryos
               </p>
             </div>
             <button
@@ -132,15 +153,20 @@ function canBuy(listing) {
             class="border border-line bg-bg-soft p-6"
           >
             <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
-              {{ categoryLabel(listing.category) }}
+              {{ listing.listingType === 'ninja' ? t('exchanges.ninja') : categoryLabel(listing.category) }}
             </p>
-            <h2 class="mt-3 font-display text-xl text-ink">{{ itemName(listing) }}</h2>
+            <h2 class="mt-3 font-display text-xl text-ink">{{ listingTitle(listing) }}</h2>
             <p class="mt-3 text-xs text-ink-faint">
               {{ t('exchanges.seller', { name: listing.sellerName }) }}
             </p>
+            <p v-if="listing.listingType === 'ninja'" class="mt-2 text-xs text-ink-muted">
+              {{ listingSubtitle(listing) }}
+              <span v-if="listing.isNoble"> · {{ t('exchanges.noble') }}</span>
+            </p>
             <p class="mt-4 text-sm text-ink">{{ listing.price.toLocaleString() }} Ryos</p>
-            <p class="mt-1 text-xs text-ink-faint">
-              {{ t('exchanges.catalogRef', { price: listing.catalogPrice.toLocaleString() }) }}
+            <p v-if="priceRef(listing)" class="mt-1 text-xs text-ink-faint">{{ priceRef(listing) }}</p>
+            <p v-if="listing.listingType === 'ninja' && listing.isNoble" class="mt-2 text-xs text-ink-faint">
+              {{ t('exchanges.nobleTaxHint') }}
             </p>
             <button
               type="button"

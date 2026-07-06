@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import app from './app.js';
-import { startScheduler } from './services/scheduler.js';
+import { isSchedulerEnabled, startScheduler, stopScheduler } from './services/scheduler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -10,7 +10,18 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const PORT = Number(process.env.PORT || 3000);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🦅 Kage Legacy API — http://localhost:${PORT}`);
-  startScheduler();
+  if (isSchedulerEnabled()) {
+    startScheduler();
+  }
 });
+
+function shutdown(signal) {
+  console.log(`\n${signal} — arrêt en cours…`);
+  stopScheduler();
+  server.close(() => process.exit(0));
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
