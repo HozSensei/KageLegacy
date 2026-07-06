@@ -39,7 +39,7 @@ Si les objets de match sont faibles, **ce n'est pas un bug** tant que les Ryos s
 | `item_definitions` | ENUM `category` → **`bureau`**, **`match`**, **`cycle`** |
 | `user_items` + inventaire | Inchangé |
 | `ninja_equipment` | **1 slot max** : `match` **ou** `cycle` (pas les deux sur le même ninja en V1) |
-| Marché | 3 offres / cycle, utilitaires uniquement |
+| Magasin | **V2 :** catalogue complet + stocks limités + promos (§ ci-dessous) · *V1 actuelle :* 3 offres aléatoires / cycle |
 | `equipment.js` | Réduit à **handlers d'événements** match (pas de bonus stats permanents) |
 
 ### UI inventaire
@@ -169,7 +169,101 @@ Les idées « tempo / initiative / +1 atk » du catalogue précédent passent en
 
 ---
 
-## 💤 Backlog (si besoin plus tard)
+---
+
+## 🏪 Magasin du village — V2 (direction PO validée, à implémenter)
+
+**Pourquoi changer :** le tirage de 3 articles au hasard frustre (cape introuvable quand il pleut, pas de plan d'achat). Un vrai magasin de village = **visibilité**, **rareté par le stock**, **rythme par le réassort**, **incitation par les promos**.
+
+### Principes
+
+| Principe | Détail |
+| :--- | :--- |
+| **Catalogue complet visible** | Tous les `item_definitions` utilitaires listés — le joueur voit ce qui existe |
+| **Stock limité par article** | Chaque ligne a un `stock_remaining` ; achat → −1 ; à 0 = « épuisé » jusqu'au prochain réassort |
+| **Réassort complet tous les X cycles** | Ex. **X = 3** (≈ 1 semaine jeu) : toutes les quantités reviennent aux valeurs par défaut |
+| **Promos chaque cycle** | **2 articles** en promo (−15 % à −25 %) tirés ou rotatifs — change à **chaque H0** |
+| **Périmètre stock** | **Par joueur** (chaque Sensei a son étal du village) — pas de guerre d'enchères async entre membres du pool |
+| **Pas d'expiration H72** | Le stock **persiste** dans le cycle ; seules les **promos** changent à H0 |
+
+### Stocks par défaut (indicatif)
+
+| Catégorie | Stock / période de réassort | Logique |
+| :--- | :--- | :--- |
+| `bureau` | 2 | Consommables confort — usage répété possible sur 3 cycles |
+| `match` | 1–2 | Filet tactique — pas de spam fumigène ×6 |
+| `cycle` | 1 | Cape / poids = choix d'investissement par période |
+| Anti-environnement | 1 | Aligné scout H36 — rareté volontaire |
+
+### Promos
+
+- **2 slugs** en promo par cycle (ex. `−20 %`)
+- Rotation : éviter 2× le même article deux cycles de suite
+- Option : **promo « flash »** liée à l'environnement du match (*pluie* → cape −25 %) — **1 cycle max**, en plus des 2 promos standard — à valider en playtest
+
+### Boucle avec l'environnement (H36)
+
+```
+H36 scout : pluie probable
+H0–H71 : magasin affiche cape (stock 0 ou 1) + promo éventuelle
+→ le joueur **planifie** sans RNG sur la présence de l'article
+→ la **rareté** vient du stock, pas de l'absence du catalogue
+```
+
+### Schéma BDD (ébauche)
+
+Remplacer ou compléter `market_offers` (3 slots) par :
+
+```sql
+village_shop_stock (
+  user_id, period_start_at,   -- début de période de réassort (cycle 1, 4, 7…)
+  item_definition_id,
+  stock_initial, stock_remaining,
+  UNIQUE (user_id, period_start_at, item_definition_id)
+)
+
+village_shop_promos (
+  user_id, cycle_start_at,
+  item_definition_id,
+  discount_pct,               -- ex. 20
+  UNIQUE (user_id, cycle_start_at, item_definition_id)
+)
+```
+
+`item_definitions` : ajouter `default_stock TINYINT`, `promo_eligible BOOLEAN DEFAULT TRUE`.
+
+### Jobs horloge
+
+| Moment | Action |
+| :--- | :--- |
+| **H0** | Nouvelles promos (2 articles) |
+| **H0 si `cycle % X === 1`** | Réassort complet (`stock_remaining = default_stock`) |
+| **Achat** | `stock_remaining − 1`, prix = `base × (1 − promo)` |
+
+### UI Magasin
+
+- Grille **tous les articles** : prix barré si promo, badge « Épuisé », compteur « Reste : 1 »
+- Bandeau : « Prochain réassort : cycle {n} » · « Promos jusqu'à H72 »
+- Filtres optionnels : bureau / match / cycle
+
+### Équilibrage Ryos
+
+- Stocks bas + réassort tous les 3 cycles ≈ **dépense lissée** sans hoarding infini
+- Promos = raison d'ouvrir le magasin **chaque cycle** sans FOMO sur tout le catalogue
+- Le **marché P2P** reste l'option « je n'ai pas attendu le réassort »
+
+### Migration depuis V1 (3 slots)
+
+1. Migration `019_village_shop_stock.sql`
+2. Réécrire `marketService.js` → `villageShopService.js`
+3. `MarketView` : grille catalogue + état stock/promo
+4. Conserver `POST /api/market/purchase` (ou renommer `/api/shop`)
+
+**Statut :** spec validée PO — **non implémentée** (code actuel = 3 offres aléatoires).
+
+---
+
+## 💤 Backlog catalogue (nouveaux objets)
 
 - Parchemin d'éclair (+initiative T1) — seulement si les match consumables manquent de variété
 - Kit dojo (améliorations permanentes multi-niveaux)

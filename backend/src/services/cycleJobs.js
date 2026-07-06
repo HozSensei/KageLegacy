@@ -9,7 +9,7 @@ import {
 } from './matchService.js';
 import { incrementPoolCycle } from './poolService.js';
 import { deductSalariesForAllUsers } from './economyService.js';
-import { ensureMarketForAllUsers } from './marketService.js';
+import { ensureVillageShopForAllUsers } from './villageShopService.js';
 import { resolveMissionsForCycle } from './missionService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
@@ -67,10 +67,10 @@ export async function runH72(cycleStartAt) {
   await markJobRun(cycleStartAt, 'h72');
   const newClock = await resetCycle();
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
-  const market = await ensureMarketForAllUsers(newClock.cycleStartAt);
+  const market = await ensureVillageShopForAllUsers();
   const academy = await ensureAcademyForAllUsers(newClock.cycleStartAt);
   console.log(
-    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · marché (${market.length}) · académie (${academy.length})`
+    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s)) · académie (${academy.length})`
   );
   return {
     missionResults,

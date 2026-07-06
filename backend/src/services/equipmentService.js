@@ -6,12 +6,14 @@ export async function getInventoryForUser(userId) {
   const items = await query(
     `SELECT ui.id, ui.consumed, ui.acquired_at,
             idf.slug, idf.category, idf.name_fr, idf.name_en,
-            idf.description_fr, idf.description_en, idf.effects,
-            ne.ninja_id, ne.slot AS equipped_slot, n.name AS equipped_ninja_name
+            idf.description_fr, idf.description_en, idf.effects, idf.price AS catalog_price,
+            ne.ninja_id, ne.slot AS equipped_slot, n.name AS equipped_ninja_name,
+            pl.id AS listing_id
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
      LEFT JOIN ninja_equipment ne ON ne.user_item_id = ui.id
      LEFT JOIN ninjas n ON n.id = ne.ninja_id
+     LEFT JOIN player_listings pl ON pl.user_item_id = ui.id AND pl.status = 'active'
      WHERE ui.user_id = ? AND ui.consumed = FALSE
      ORDER BY ui.acquired_at DESC`,
     [userId]
@@ -37,6 +39,8 @@ export async function getInventoryForUser(userId) {
     items: items.map((item) => ({
       ...item,
       usageLimits: describeUsageLimits(item.effects, item.category),
+      isListed: Boolean(item.listing_id),
+      listingId: item.listing_id || null,
     })),
     ninjas,
   };
@@ -60,6 +64,16 @@ export async function equipItem(userId, ninjaId, userItemId) {
   if (!item) {
     const error = new Error('Objet introuvable dans l\'inventaire.');
     error.statusCode = 404;
+    throw error;
+  }
+
+  const listed = await query(
+    `SELECT id FROM player_listings WHERE user_item_id = ? AND status = 'active'`,
+    [userItemId]
+  );
+  if (listed.length) {
+    const error = new Error('Retirez l\'objet de la vente avant de l\'équiper.');
+    error.statusCode = 400;
     throw error;
   }
 

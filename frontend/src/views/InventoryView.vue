@@ -10,6 +10,9 @@ const error = ref(null)
 const inventory = ref(null)
 const selectedItemId = ref(null)
 const saving = ref(false)
+const sellItemId = ref(null)
+const sellPrice = ref('')
+const selling = ref(false)
 
 const itemName = (item) => (locale.value === 'en' ? item.name_en : item.name_fr)
 
@@ -31,6 +34,54 @@ function isBureauItem(item) {
 
 function canEquipItem(item) {
   return item?.category === 'match' || item?.category === 'cycle'
+}
+
+function canSellItem(item) {
+  return item && !item.equipped_ninja_name && !item.isListed
+}
+
+function sellPriceBounds(item) {
+  const catalog = item?.catalog_price ?? 0
+  return {
+    floor: Math.floor((catalog * 50) / 100),
+    ceiling: Math.ceil((catalog * 200) / 100),
+  }
+}
+
+function openSell(item) {
+  sellItemId.value = item.id
+  const { floor } = sellPriceBounds(item)
+  sellPrice.value = String(floor || 1)
+  selectedItemId.value = null
+}
+
+function closeSell() {
+  sellItemId.value = null
+  sellPrice.value = ''
+}
+
+async function submitSell() {
+  if (!sellItemId.value) return
+  selling.value = true
+  error.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/player-market/list`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userItemId: sellItemId.value, price: Number(sellPrice.value) }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    closeSell()
+    await fetchInventory()
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    selling.value = false
+  }
+}
+
+function sellItem() {
+  return inventory.value?.items.find((i) => i.id === sellItemId.value)
 }
 
 onMounted(fetchInventory)
@@ -160,8 +211,18 @@ async function unequip(ninjaId, slot) {
               {{ t(`market.categories.${item.category}`) }} · {{ usageLabel(item) }}
             </p>
             <p class="mt-1 text-xs text-ink-faint">
-              {{ item.equipped_ninja_name ? t('inventory.equippedOn', { name: item.equipped_ninja_name }) : t('inventory.unequipped') }}
+              <template v-if="item.isListed">{{ t('inventory.listed') }}</template>
+              <template v-else-if="item.equipped_ninja_name">{{ t('inventory.equippedOn', { name: item.equipped_ninja_name }) }}</template>
+              <template v-else>{{ t('inventory.unequipped') }}</template>
             </p>
+            <button
+              v-if="canSellItem(item)"
+              type="button"
+              class="btn-ghost mt-3 text-xs"
+              @click.stop="openSell(item)"
+            >
+              {{ t('inventory.sell') }}
+            </button>
           </li>
           <li v-if="!inventory.items.length" class="text-sm text-ink-muted">
             {{ t('inventory.empty') }}
@@ -245,6 +306,38 @@ async function unequip(ninjaId, slot) {
           </li>
         </ul>
       </section>
+    </div>
+
+    <div
+      v-if="sellItemId && sellItem()"
+      class="fixed inset-0 z-40 flex items-center justify-center bg-bg/80 p-6 backdrop-blur-sm"
+      @click.self="closeSell"
+    >
+      <div class="w-full max-w-md border border-line bg-bg p-6 shadow-lg">
+        <p class="section-label">{{ t('inventory.sellTitle') }}</p>
+        <p class="mt-3 text-sm text-ink">{{ itemName(sellItem()) }}</p>
+        <p class="mt-2 text-xs text-ink-faint">
+          {{ t('inventory.sellHint', sellPriceBounds(sellItem())) }}
+        </p>
+        <label class="mt-6 block text-xs uppercase tracking-[0.12em] text-ink-faint">
+          {{ t('inventory.sellPrice') }}
+          <input
+            v-model="sellPrice"
+            type="number"
+            class="mt-2 w-full border border-line bg-bg-soft px-3 py-2 text-sm text-ink"
+            :min="sellPriceBounds(sellItem()).floor"
+            :max="sellPriceBounds(sellItem()).ceiling"
+          />
+        </label>
+        <div class="mt-6 flex gap-3">
+          <button type="button" class="btn-ghost flex-1" :disabled="selling" @click="closeSell">
+            {{ t('inventory.sellCancel') }}
+          </button>
+          <button type="button" class="btn-primary flex-1" :disabled="selling" @click="submitSell">
+            {{ selling ? t('inventory.selling') : t('inventory.sellConfirm') }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
