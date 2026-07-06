@@ -1,62 +1,98 @@
-export const MISSION_RANKS = {
-  D: { sendCost: 0, reward: 500, label: 'Rang D', paid: false },
-  C: {
-    sendCost: 100,
-    reward: 1200,
-    label: 'Rang C',
-    paid: true,
-    requirement: (stats) => stats.intelligence >= 8 || stats.vitesse >= 8,
+export const MISSION_TIERS = {
+  routine: {
+    tier: 'routine',
+    label: 'Contrat de Routine',
+    sendCost: 0,
+    paid: false,
+    resolvesAtHour: 72,
+    baseRewardMin: 300,
+    baseRewardMax: 500,
+    lightInjuryChance: 0,
+    graveInjuryChance: 0,
+    deathChance: 0,
+    requirement: null,
+    requirementText: 'Ouvert à tous',
   },
-  B: {
-    sendCost: 300,
-    reward: 2800,
-    label: 'Rang B',
+  infiltration: {
+    tier: 'infiltration',
+    label: 'Infiltration tactique',
+    sendCost: 100,
     paid: true,
+    resolvesAtHour: 36,
+    baseReward: 200,
+    lightInjuryChance: 0.2,
+    graveInjuryChance: 0,
+    deathChance: 0,
+    requirement: (stats) => stats.intelligence >= 8 || stats.vitesse >= 8,
+    requirementText: 'Intelligence ≥ 8 ou Vitesse ≥ 8',
+  },
+  cyclone: {
+    tier: 'cyclone',
+    label: 'Opération Cyclone',
+    sendCost: 300,
+    paid: true,
+    resolvesAtHour: 72,
+    baseReward: 1000,
+    lightInjuryChance: 0,
+    graveInjuryChance: 0.4,
+    deathChance: 0.05,
     requirement: (stats) =>
       stats.taijutsu >= 12 ||
       stats.ninjutsu >= 12 ||
       stats.genjutsu >= 12 ||
       stats.medecine >= 12,
+    requirementText: 'Une stat de combat ≥ 12',
   },
 };
 
+const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
+
 export function ninjaStatsFromRow(ninja) {
-  return {
-    taijutsu: ninja.taijutsu,
-    ninjutsu: ninja.ninjutsu,
-    genjutsu: ninja.genjutsu,
-    medecine: ninja.medecine,
-    vitesse: ninja.vitesse,
-    intelligence: ninja.intelligence,
-  };
+  return Object.fromEntries(STAT_COLUMNS.map((key) => [key, ninja[key]]));
 }
 
-export function evaluateMissionSuccess(rank, ninja) {
-  if (rank === 'D') return true;
-  const config = MISSION_RANKS[rank];
+export function meetsTierRequirement(tier, ninja) {
+  const config = MISSION_TIERS[tier];
   if (!config?.requirement) return true;
   return config.requirement(ninjaStatsFromRow(ninja));
 }
 
-export function meetsRankRequirement(rank, ninja) {
-  return evaluateMissionSuccess(rank, ninja);
+export function getEligibleTiersForNinja(ninja) {
+  return Object.keys(MISSION_TIERS).filter((tier) => meetsTierRequirement(tier, ninja));
 }
 
-export function getEligibleRanksForNinja(ninja) {
-  return Object.keys(MISSION_RANKS).filter((rank) => meetsRankRequirement(rank, ninja));
+export function missionRequirementText(tier) {
+  return MISSION_TIERS[tier]?.requirementText ?? '';
 }
 
-export function missionRequirementText(rank) {
-  if (rank === 'D') return 'Ouvert à tous';
-  if (rank === 'C') return 'Intelligence ≥ 8 ou Vitesse ≥ 8';
-  return 'Une stat de combat ≥ 12';
+export function missionGuaranteedRyos(tier) {
+  const config = MISSION_TIERS[tier];
+  if (!config) return 0;
+  if (tier === 'routine') {
+    return { min: config.baseRewardMin, max: config.baseRewardMax };
+  }
+  return { min: config.baseReward, max: config.baseReward };
 }
 
-export function missionNetProfit(rank) {
-  const config = MISSION_RANKS[rank];
-  return config.reward - config.sendCost;
+export function missionNetProfit(tier) {
+  const config = MISSION_TIERS[tier];
+  if (!config) return 0;
+  const guaranteed = missionGuaranteedRyos(tier);
+  return guaranteed.max - config.sendCost;
 }
 
-export function isPaidMissionRank(rank) {
-  return Boolean(MISSION_RANKS[rank]?.paid);
+export function isPaidMissionTier(tier) {
+  return Boolean(MISSION_TIERS[tier]?.paid);
+}
+
+export function getRiskPenalties(tier, ninja) {
+  const underQualified = !meetsTierRequirement(tier, ninja);
+  if (!underQualified || tier !== 'cyclone') {
+    return { graveBonus: 0, deathChance: 0 };
+  }
+  return { graveBonus: 0.2, deathChance: 0.05 };
+}
+
+export function rollPercent() {
+  return Math.floor(Math.random() * 100) + 1;
 }

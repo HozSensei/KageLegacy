@@ -371,37 +371,77 @@
     "empty": "Aucune annonce sur le marché pour l'instant."
   },
   "missions": {
-    "title": "Missions de routine",
-    "lead": "Envoyez vos remplaçants en contrat (H0–H70) — verrouillés jusqu'à H72. Coût prélevé à l'envoi, gain si les prérequis sont remplis.",
+    "title": "Contrats de mission",
+    "lead": "Jusqu'à 3 contrats par cycle (un par palier de danger). Butin garanti en Ryos + tirage de loot à H36 ou H72 — jamais de stats garanties.",
     "loading": "Chargement…",
     "pickNinja": "Choisir un remplaçant",
-    "pickRank": "Rang du contrat",
+    "pickTier": "Palier du contrat",
+    "pickRank": "Palier du contrat",
     "send": "Envoyer en mission",
     "sending": "Envoi…",
-    "pending": "{count} récompense(s) prête(s) à collecter.",
-    "collect": "Collecter les Ryos",
+    "pending": "{count} rapport(s) de mission prêt(s).",
+    "collect": "Collecter les gains",
     "collecting": "Collecte…",
     "active": "En mission",
     "failed": "Échecs ce cycle",
-    "failedHint": "prérequis non remplis à H72",
-    "closed": "Missions fermées (H71+) — collectez les gains en attente.",
-    "debtHint": "Dette en cours : seules les missions Rang D (gratuites) sont autorisées.",
+    "failedHint": "mission compromise",
+    "deathReport": "mort au combat",
+    "closed": "Missions fermées (H71+) — collectez les rapports en attente.",
+    "debtHint": "Dette en cours : seul le Contrat de Routine est autorisé.",
     "debtBlocked": "Bloqué (dette)",
+    "tierUsed": "Contrat déjà pris ce cycle",
+    "underQualified": "Risque accru ({req})",
     "examBlocked": "examen / Vol d'Oiseau",
     "cycleGearBlocked": "objet cycle équipé",
     "cost": "Coût",
-    "reward": "Gain",
+    "reward": "Butin garanti",
     "net": "Net",
-    "eligible": "Rangs possibles pour ce ninja : {ranks}",
+    "resolve": "Retour",
+    "risk": "Risque",
+    "riskNone": "0 % blessure",
+    "riskLight": "20 % blessure légère",
+    "riskCyclone": "40 % blessure grave · 5 % mort",
+    "lootHint": "Le loot bonus est tiré au sort au retour — coffres vides, objets ou gros lot (3 % sur Cyclone).",
+    "eligible": "Paliers possibles pour ce ninja : {ranks}",
+    "tiersShort": {
+      "routine": "Routine",
+      "infiltration": "Infiltration",
+      "cyclone": "Cyclone"
+    },
+    "tiers": {
+      "routine": "Contrat de Routine",
+      "infiltration": "Infiltration tactique",
+      "cyclone": "Opération Cyclone"
+    },
+    "injuries": {
+      "light": "Blessure légère — forme Lamentable",
+      "grave": "Blessure grave — forme bloquée 2 cycles",
+      "death": "Mort clinique"
+    },
+    "loot": {
+      "empty": "Aucun bonus (Ryos uniquement)",
+      "items": "{count} objet(s) récupéré(s)",
+      "scroll": "Parchemin : +{gain} {stat}",
+      "prodige": "Aspirant prodige recruté : {name}",
+      "pansement": "Pansement de terrain",
+      "empty_chests": "Coffres vides",
+      "medical_kit": "Kit médical",
+      "smoke_bomb": "Fumigène de secours",
+      "search_failed": "Échec de fouille",
+      "double_medical": "Double matériel médical",
+      "tactical_consumable": "Consommable tactique",
+      "forbidden_scroll": "Parchemin de Jutsu interdit",
+      "prodigy_location": "Localisation d'un prodige"
+    },
     "ranksShort": {
-      "D": "D",
-      "C": "C",
-      "B": "B"
+      "routine": "Routine",
+      "infiltration": "Infiltration",
+      "cyclone": "Cyclone"
     },
     "ranks": {
-      "D": "Rang D",
-      "C": "Rang C",
-      "B": "Rang B"
+      "routine": "Contrat de Routine",
+      "infiltration": "Infiltration tactique",
+      "cyclone": "Opération Cyclone"
     }
   }
 }

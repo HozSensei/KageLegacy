@@ -13,25 +13,33 @@ Toutes les actions financières et logistiques s'alignent sur le cycle commun de
 
 ---
 
-## 🗺️ 2. Les Missions de Routine (Système Idle)
+## 🗺️ 2. Les Missions Idle & Tables de Butin (Loot Tables)
 
-Les joueurs possèdent souvent plus de 3 ninjas dans leur effectif (les remplaçants). Pour éviter qu'ils ne servent à rien, le bureau propose des contrats de missions.
+Les joueurs peuvent lancer **jusqu'à 3 missions par cycle** — **une par palier de danger**. Les missions secondaires ne donnent **jamais** de statistiques garanties. Le serveur calcule le résultat au moment du traitement du cycle (**H36** pour l'infiltration, **H72** pour routine et cyclone) via un jet de dé en pourcentage.
 
-### A. Fonctionnement de l'envoi en mission
-* Le joueur sélectionne un ninja *qui ne fait pas partie de l'escouade active de combat*.
-* Il l'assigne à un contrat de mission disponible (Rang D, C ou B) depuis l'interface Vue 3.
-* Le ninja est verrouillé ("En mission") jusqu'à la fin du cycle de 72h. Il ne peut pas être équipé ni transféré dans l'escouade de combat durant cette période.
+### A. Fonctionnement de l'envoi
+* Le joueur sélectionne un ninja *hors escouade active*.
+* Il choisit un **palier** parmi les 3 disponibles (max 1 contrat par palier et par cycle).
+* Le ninja est verrouillé jusqu'au retour (H36 ou H72 selon le contrat).
 
-### B. Les Rangs de Mission & Exigences
-Pour réussir une mission et ramener le magot de Ryos à l'Heure 72, le ninja doit passer un test de statistiques fixes (sans RNG) calculé par le serveur :
+### B. Les 3 Paliers de Contrats
 
-| Rang | Coût d'envoi | Statistique Requise | Gain à la fin du cycle |
-| :--- | :--- | :--- | :--- |
-| **Rang D** | 0 Ryos | Aucune (Ouvert à tous) | `+500 Ryos` |
-| **Rang C** | 100 Ryos | `intelligence` $\ge 8$ OR `vitesse` $\ge 8$ | `+1 200 Ryos` |
-| **Rang B** | 300 Ryos | Une stat de combat (`taijutsu`, etc.) $\ge 12$ | `+2 800 Ryos` |
+| Palier | Risque | Retour | Butin garanti | Loot bonus (tirage) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Contrat de Routine** | 0 % | H72 | 300–500 Ryos | 10 % pansement de terrain |
+| **Infiltration tactique** | 20 % blessure légère | H36 | 200 Ryos | 60 % rien · 30 % kit médical · 10 % fumigène |
+| **Opération Cyclone** | 40 % blessure grave · 5 % mort | H72 | 1 000 Ryos | 50 % rien · 35 % 2× matériel médical · 12 % consommable · **3 % gros lot** |
 
-*Note sur l'absence :* Si le joueur ne se connecte pas à la fin des 72h, le ninja reste "En attente de débriefing". Les Ryos sont sécurisés et le joueur les touchera lors de sa prochaine connexion.
+### C. Calcul du Risque et du Loot
+* **Prérequis insuffisants :** si les stats du ninja ne remplissent pas le palier, **+20 %** de blessure grave (Cyclone) et risque de mort clinique à **5 %**.
+* **Jamais de +1.0 garanti** — le Parchemin de Jutsu interdit (+0,5 ou +1,0) ou l'Aspirant Prodige ne tombent que dans le **3 %** légendaire du Cyclone.
+* **Exemple Opération Cyclone (jet pur) :**
+    * `[01-50]` : Ryos de base uniquement.
+    * `[51-85]` : Lot commun (2× matériel médical).
+    * `[86-97]` : Lot rare (consommable tactique).
+    * `[98-100]` : Lot légendaire (Parchemin de Jutsu **ou** recrutement Prodige).
+
+*Note :* Les rapports attendent d'être collectés à la connexion. Une blessure grave bloque la forme à Lamentable pendant **2 cycles**.
 
 ---
 

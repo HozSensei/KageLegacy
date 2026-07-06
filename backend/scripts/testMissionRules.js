@@ -1,7 +1,9 @@
 import {
-  getEligibleRanksForNinja,
-  meetsRankRequirement,
+  getEligibleTiersForNinja,
+  meetsTierRequirement,
   missionNetProfit,
+  MISSION_TIERS,
+  rollPercent,
 } from '../src/services/missionRules.js';
 
 const weakGenin = {
@@ -16,16 +18,23 @@ const weakGenin = {
 const scout = { ...weakGenin, intelligence: 9 };
 const fighter = { ...weakGenin, taijutsu: 13 };
 
-console.assert(meetsRankRequirement('D', weakGenin), 'D open to all');
-console.assert(!meetsRankRequirement('C', weakGenin), 'C blocked for weak');
-console.assert(meetsRankRequirement('C', scout), 'C via intelligence');
-console.assert(meetsRankRequirement('B', fighter), 'B via taijutsu');
+console.assert(meetsTierRequirement('routine', weakGenin), 'routine open to all');
+console.assert(!meetsTierRequirement('infiltration', weakGenin), 'infiltration blocked for weak');
+console.assert(meetsTierRequirement('infiltration', scout), 'infiltration via intelligence');
+console.assert(meetsTierRequirement('cyclone', fighter), 'cyclone via taijutsu');
 
-const eligible = getEligibleRanksForNinja(scout);
-console.assert(eligible.includes('D') && eligible.includes('C') && !eligible.includes('B'), 'scout ranks');
+const eligible = getEligibleTiersForNinja(scout);
+console.assert(
+  eligible.includes('routine') && eligible.includes('infiltration') && !eligible.includes('cyclone'),
+  'scout tiers'
+);
 
-console.assert(missionNetProfit('D') === 500, 'D net');
-console.assert(missionNetProfit('C') === 1100, 'C net');
-console.assert(missionNetProfit('B') === 2500, 'B net');
+console.assert(missionNetProfit('routine') === 500, 'routine max net');
+console.assert(missionNetProfit('infiltration') === 100, 'infiltration net');
+console.assert(missionNetProfit('cyclone') === 700, 'cyclone net');
+
+const rolls = Array.from({ length: 1000 }, () => rollPercent());
+console.assert(rolls.every((r) => r >= 1 && r <= 100), 'rollPercent range');
+console.assert(MISSION_TIERS.cyclone.deathChance === 0.05, 'cyclone death rate');
 
 console.log('missionRules OK');

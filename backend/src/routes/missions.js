@@ -28,12 +28,12 @@ router.post('/assign', async (req, res, next) => {
     if (!user) return;
 
     const ninjaId = Number(req.body?.ninjaId);
-    const rank = req.body?.rank;
-    if (!ninjaId || !rank) {
-      return res.status(400).json({ error: 'ninjaId et rank requis.' });
+    const tier = req.body?.tier || req.body?.rank;
+    if (!ninjaId || !tier) {
+      return res.status(400).json({ error: 'ninjaId et tier requis.' });
     }
 
-    const result = await assignMission(user.id, ninjaId, rank);
+    const result = await assignMission(user.id, ninjaId, tier);
     const missions = await getMissionsForUser(user.id);
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();
