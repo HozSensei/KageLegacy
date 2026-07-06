@@ -125,6 +125,12 @@
       "arrivalBody": "Un aspirant a rejoint le dojo : {name} ({profile}).",
       "dismiss": "Compris"
     },
+    "market": {
+      "saleTitle": "Vente sur le marché",
+      "saleBody": "{asset} vendu à {buyer} pour {price} Ryos (vous recevez {proceeds} Ryos).",
+      "viewExchanges": "Voir l'historique",
+      "dismiss": "Compris"
+    },
     "dispensary": {
       "title": "Dispensaire",
       "lead": "Soigne les ninjas en forme Lamentable : Lamentable → Passable avant le prochain match.",
@@ -328,7 +334,7 @@
   },
   "exchanges": {
     "kicker": "Marché entre joueurs",
-    "lead": "Achetez et vendez objets et ninjas banc avec les Sensei de votre ligue — fenêtre H0–H71.",
+    "lead": "Achetez et vendez objets et ninjas banc avec tous les Sensei du serveur — fenêtre H0–H71.",
     "loading": "Chargement du marché…",
     "commission": "Commission vendeur : {pct} %",
     "nobleCommission": "Nobles (ninjas) : {pct} %",
@@ -341,14 +347,19 @@
     "myListings": "Mes annonces",
     "listingLimit": "{current} / {max} annonces actives",
     "noMyListings": "Aucune annonce — vendez un objet (inventaire) ou un remplaçant (escouade).",
-    "poolListings": "Annonces de la ligue",
+    "poolListings": "Annonces du serveur",
+    "globalListings": "Annonces du serveur",
+    "division": "Division {level}",
+    "historyTitle": "Historique récent",
+    "historySold": "Vendu : {asset} à {buyer} — {price} Ryos (net {proceeds})",
+    "historyBought": "Acheté : {asset} à {seller} — {price} Ryos",
     "seller": "Vendeur : {name}",
     "catalogRef": "Catalogue : {price} Ryos",
     "buy": "Acheter",
     "buying": "Achat…",
     "cancel": "Retirer",
     "cancelling": "Retrait…",
-    "empty": "Aucune annonce dans votre ligue pour l'instant."
+    "empty": "Aucune annonce sur le marché pour l'instant."
   },
   "missions": {
     "title": "Missions de routine",

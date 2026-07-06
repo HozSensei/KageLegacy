@@ -125,6 +125,12 @@
       "arrivalBody": "A new recruit joined the dojo: {name} ({profile}).",
       "dismiss": "Got it"
     },
+    "market": {
+      "saleTitle": "Market sale",
+      "saleBody": "{asset} sold to {buyer} for {price} Ryos (you receive {proceeds} Ryos).",
+      "viewExchanges": "View history",
+      "dismiss": "Got it"
+    },
     "dispensary": {
       "title": "Dispensary",
       "lead": "Heal ninjas in Lamentable form: Lamentable → Passable before the next match.",
@@ -328,7 +334,7 @@
   },
   "exchanges": {
     "kicker": "Player market",
-    "lead": "Buy and sell items and bench ninjas with Sensei in your league — window H0–H71.",
+    "lead": "Buy and sell items and bench ninjas with any Sensei on the server — window H0–H71.",
     "loading": "Loading market…",
     "commission": "Seller commission: {pct}%",
     "nobleCommission": "Nobles (ninjas): {pct}%",
@@ -341,14 +347,19 @@
     "myListings": "My listings",
     "listingLimit": "{current} / {max} active listings",
     "noMyListings": "No listings — sell from inventory or bench squad.",
-    "poolListings": "League listings",
+    "poolListings": "Server listings",
+    "globalListings": "Server listings",
+    "division": "Division {level}",
+    "historyTitle": "Recent history",
+    "historySold": "Sold: {asset} to {buyer} — {price} Ryos (net {proceeds})",
+    "historyBought": "Bought: {asset} from {seller} — {price} Ryos",
     "seller": "Seller: {name}",
     "catalogRef": "Catalog: {price} Ryos",
     "buy": "Buy",
     "buying": "Buying…",
     "cancel": "Remove",
     "cancelling": "Removing…",
-    "empty": "No listings in your league yet."
+    "empty": "No listings on the market yet."
   },
   "missions": {
     "title": "Routine missions",

@@ -25,6 +25,40 @@ function listingSubtitle(listing) {
   return categoryLabel(listing.category)
 }
 
+function sellerLine(listing) {
+  const base = t('exchanges.seller', { name: listing.sellerName })
+  if (listing.sellerDivision != null) {
+    return `${base} · ${t('exchanges.division', { level: listing.sellerDivision })}`
+  }
+  return base
+}
+
+function historyLine(entry) {
+  if (entry.role === 'seller') {
+    return t('exchanges.historySold', {
+      asset: entry.assetLabel,
+      buyer: entry.counterpartyName,
+      price: entry.price.toLocaleString(),
+      proceeds: entry.sellerProceeds?.toLocaleString() ?? '—',
+    })
+  }
+  return t('exchanges.historyBought', {
+    asset: entry.assetLabel,
+    seller: entry.counterpartyName,
+    price: entry.price.toLocaleString(),
+  })
+}
+
+function formatSoldAt(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString(locale.value === 'en' ? 'en-GB' : 'fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 function priceRef(listing) {
   if (listing.listingType === 'ninja') return null
   return t('exchanges.catalogRef', { price: listing.catalogPrice.toLocaleString() })
@@ -145,7 +179,7 @@ function canBuy(listing) {
       </section>
 
       <section class="mt-14">
-        <p class="section-label">{{ t('exchanges.poolListings') }}</p>
+        <p class="section-label">{{ t('exchanges.globalListings') }}</p>
         <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <article
             v-for="listing in market.listings"
@@ -156,9 +190,7 @@ function canBuy(listing) {
               {{ listing.listingType === 'ninja' ? t('exchanges.ninja') : categoryLabel(listing.category) }}
             </p>
             <h2 class="mt-3 font-display text-xl text-ink">{{ listingTitle(listing) }}</h2>
-            <p class="mt-3 text-xs text-ink-faint">
-              {{ t('exchanges.seller', { name: listing.sellerName }) }}
-            </p>
+            <p class="mt-3 text-xs text-ink-faint">{{ sellerLine(listing) }}</p>
             <p v-if="listing.listingType === 'ninja'" class="mt-2 text-xs text-ink-muted">
               {{ listingSubtitle(listing) }}
               <span v-if="listing.isNoble"> · {{ t('exchanges.noble') }}</span>
@@ -187,6 +219,20 @@ function canBuy(listing) {
             {{ t('exchanges.empty') }}
           </p>
         </div>
+      </section>
+
+      <section v-if="market.history?.length" class="mt-14 border-t border-line pt-10">
+        <p class="section-label">{{ t('exchanges.historyTitle') }}</p>
+        <ul class="mt-6 space-y-3">
+          <li
+            v-for="entry in market.history"
+            :key="entry.id"
+            class="border border-line p-4 text-sm"
+          >
+            <p class="text-ink">{{ historyLine(entry) }}</p>
+            <p class="mt-1 text-xs text-ink-faint">{{ formatSoldAt(entry.soldAt) }}</p>
+          </li>
+        </ul>
       </section>
     </template>
   </div>

@@ -54,11 +54,12 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 19. ~~**Auth multi-joueurs**~~ — ✅ sessions cookie, register/login, `requireUser` (repli démo via `AUTH_DEMO_FALLBACK`)
 20. ~~**Marché P2P V2 — ninjas banc**~~ — ✅ annonces ninja, **prix libre vendeur**, garde-fous
 21. ~~**Scheduler prod**~~ — ✅ `npm run cycle:tick`, `ENABLE_SCHEDULER`, arrêt gracieux
+22. ~~**Marché global + historique P2P**~~ — ✅ annonces serveur entier, historique, notification Bureau `market_sale`
 
 **Prochaines priorités :**
 
-22. **Historique P2P + notifications** — ventes, « annonce achetée »
-23. **Extension inter-pools** — hors scope V1
+23. **Playtest multi-joueurs** — 2 comptes, cycle complet avec auth
+24. **README / roadmap** — aligner statuts milestones
 
 ---
 

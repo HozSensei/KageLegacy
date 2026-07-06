@@ -12,7 +12,7 @@
 | :--- | :--- |
 | **Joueur ↔ joueur** | Les annonces sont créées par un Sensei ; un autre Sensei achète |
 | **Asynchrone 72 h** | Pas d'enchères temps réel obligatoires — annonces valables tout le cycle (ou jusqu'à vente) |
-| **Périmètre pool** | V1 suggérée : **même pool / ligue** uniquement (6 joueurs) — confiance + équilibre |
+| **Périmètre** | **Marché global** — tous les joueurs humains du serveur ; la **ligue** reste le cadre compétitif (matchs, classement) |
 | **Pas de pay-to-win sauvage** | Limiter ce qui est vendable (voir § Périmètre des biens) |
 | **Commission sink** | Prélèvement Ryos à la vente (ex. 5–10 %) — sink économique + anti-flip |
 
@@ -35,12 +35,12 @@
 ```mermaid
 flowchart LR
   A[Sensei vendeur] -->|crée annonce| L[(player_listings)]
-  L -->|visible pool| B[Sensei acheteur]
+  L -->|visible serveur| B[Sensei acheteur]
   B -->|achète H0-H71| T[Transfert + commission]
 ```
 
 1. **Créer une annonce** — objet ou ninja banc, prix fixe en Ryos
-2. **Voir les annonces** — onglet « Marché » (pool), tri par prix / type
+2. **Voir les annonces** — onglet « Échanges » (marché global), tri par prix / type
 3. **Acheter** — vérification Ryos, transfert immédiat, commission prélevée au vendeur
 4. **Annuler** — vendeur retire son annonce (objet / ninja revient disponible)
 
@@ -84,7 +84,7 @@ player_listings (
 
 | Écran | Contenu |
 | :--- | :--- |
-| **Marché** (nouvel onglet nav) | Annonces P2P du pool + « Mes annonces » |
+| **Marché** (nav `/exchanges`) | Annonces P2P globales + « Mes annonces » + historique |
 | **Magasin** (nav actuelle `/market`) | Catalogue village — 3 articles / cycle (M4) |
 | **Bureau** | Lien rapide vers le marché joueurs ; **pas** l'Académie |
 | **Inventaire / fiche ninja** | Bouton « Mettre en vente » si éligible |
@@ -95,8 +95,8 @@ player_listings (
 
 1. Objets seuls (plus simple — pas de transfert de ninja)
 2. Ninjas banc + garde-fous (examen, mission idle)
-3. Historique + notifications (« votre annonce a été achetée »)
-4. Extension inter-pools (saison suivante) — **hors scope V1**
+3. Historique + notifications (« votre annonce a été achetée ») — ✅
+4. ~~Extension inter-pools~~ — **non retenu** : marché global par défaut (ligue = compétitif uniquement)
 
 ---
 

@@ -7,6 +7,7 @@ import ChuninExamList from '../components/bureau/ChuninExamList.vue'
 import ChuninStagnationPanel from '../components/bureau/ChuninStagnationPanel.vue'
 import BirdFlightPanel from '../components/bureau/BirdFlightPanel.vue'
 import BirdFlightNotification from '../components/bureau/BirdFlightNotification.vue'
+import MarketNotification from '../components/bureau/MarketNotification.vue'
 import DispensaryPanel from '../components/bureau/DispensaryPanel.vue'
 import IdleMissionPanel from '../components/bureau/IdleMissionPanel.vue'
 import StagnationAlert from '../components/bureau/StagnationAlert.vue'
@@ -76,6 +77,7 @@ onMounted(async () => {
 
       <StagnationAlert />
       <BirdFlightNotification />
+      <MarketNotification />
 
       <dl class="metric-row mt-12">
         <div class="metric-item">
