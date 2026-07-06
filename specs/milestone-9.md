@@ -13,7 +13,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | Principe | Implication |
 | :--- | :--- |
 | **Équilibrer avant d'empiler** | Le moteur M5 a été calibré avant M4 (objets). Ne pas ajouter de bonus plats par-dessus. |
-| **Ryos = gestion du club** | Dispensaire, salaires, examens, dojo — le Marché est un **complément**, pas la seule sink. |
+| **Ryos = gestion du club** | Dispensaire, salaires, examens, dojo — le **magasin du village** est un **complément**, pas la seule sink. |
 | **Objets = utilitaires uniquement** | Pas d'armes/armures +stats. Catégories **bureau / match / cycle**. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
 | **Match = mécaniques, pas power creep** | Fumigène (−50 % fatal), rupture genjutsu, leurres — pas de +2 Taijutsu. |
 | **1 slot par ninja** | Match **ou** cycle ; objets bureau = bouton « Utiliser » sans équipement. |

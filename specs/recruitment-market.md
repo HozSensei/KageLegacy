@@ -2,7 +2,7 @@
 
 > **Renommé :** la feature s'appelle **L'Académie** — voir [`academy.md`](./academy.md) pour la spec à jour.
 >
-> **Marché entre joueurs** (vente P2P) : voir [`player-market.md`](./player-market.md) — distinct de l'Académie et du Marché Noir objets.
+> **Magasin du village** (ex-M4) : catalogue serveur objets utilitaires — voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md).
 
 ---
 

@@ -7,7 +7,7 @@
 | Lieu | Rôle |
 | :--- | :--- |
 | **L'Académie** | Recruter un **aspirant tiré au hasard** (PNJ / génération serveur) |
-| **Marché Noir** (M4) | Acheter des **objets utilitaires** au catalogue serveur (3 offres / cycle) |
+| **Magasin du village** (M4) | Acheter des **objets utilitaires** au catalogue serveur (3 articles / cycle) |
 | **Marché entre joueurs** (futur) | **Vendre / acheter** entre Sensei — voir [`player-market.md`](./player-market.md) |
 
 ---
@@ -68,5 +68,5 @@ H0 (ou premier accès Bureau du cycle)
 
 ## ⚠️ Ne pas confondre
 
-- **L'Académie** ≠ Marché Noir objets
+- **L'Académie** ≠ Magasin du village
 - **L'Académie** ≠ Marché entre joueurs ([`player-market.md`](./player-market.md))

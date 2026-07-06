@@ -58,7 +58,7 @@
     "bureau": "Office",
     "squad": "Squad",
     "league": "League",
-    "market": "Market",
+    "market": "Shop",
     "inventory": "Inventory",
     "operation": "Operation"
   },
@@ -212,9 +212,9 @@
     "draw": "Draw"
   },
   "market": {
-    "kicker": "Current cycle",
-    "lead": "Three unique offers this cycle — catalog expires at H72.",
-    "loading": "Loading market…",
+    "kicker": "Village shop",
+    "lead": "Three items available this cycle — stock refreshes at H72.",
+    "loading": "Loading shop…",
     "balance": "Balance: {ryos} Ryos",
     "buy": "Buy",
     "buying": "Buying…",
@@ -239,7 +239,7 @@
     "selectNinja": "Select a ninja to equip.",
     "equippedOn": "Equipped on {name}",
     "unequipped": "Unassigned",
-    "empty": "No items — visit the Black Market.",
+    "empty": "No items — visit the village shop.",
     "equip": "Equip",
     "use": "Use",
     "active": "Active",

@@ -58,7 +58,7 @@
     "bureau": "Bureau",
     "squad": "Escouade",
     "league": "Ligue",
-    "market": "Marché",
+    "market": "Magasin",
     "inventory": "Inventaire",
     "operation": "Opération"
   },
@@ -212,9 +212,9 @@
     "draw": "Match nul"
   },
   "market": {
-    "kicker": "Cycle en cours",
-    "lead": "Trois offres uniques ce cycle — le catalogue expire à H72.",
-    "loading": "Chargement du marché…",
+    "kicker": "Magasin du village",
+    "lead": "Trois articles disponibles ce cycle — le stock est renouvelé à H72.",
+    "loading": "Chargement du magasin…",
     "balance": "Solde : {ryos} Ryos",
     "buy": "Acheter",
     "buying": "Achat…",
@@ -239,7 +239,7 @@
     "selectNinja": "Sélectionnez un ninja à équiper.",
     "equippedOn": "Équipé sur {name}",
     "unequipped": "Non assigné",
-    "empty": "Aucun objet — visitez le Marché Noir.",
+    "empty": "Aucun objet — passez au magasin du village.",
     "equip": "Équiper",
     "use": "Utiliser",
     "active": "Actif",

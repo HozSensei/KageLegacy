@@ -2,7 +2,7 @@
 
 **Statut :** **backlog** — design PO validé en session juil. 2026. Pas d'implémentation V1.
 
-**Besoin :** un lieu où les Sensei **vendent et achètent** entre eux — distinct de l'Académie (tirage PNJ) et du Marché Noir (catalogue serveur).
+**Besoin :** un lieu où les Sensei **vendent et achètent** entre eux — distinct de l'**Académie** (tirage PNJ) et du **Magasin du village** (catalogue serveur).
 
 ---
 
@@ -84,11 +84,10 @@ player_listings (
 
 | Écran | Contenu |
 | :--- | :--- |
-| **Marché** (nouvel onglet nav) | Annonces du pool + « Mes annonces » + créer |
-| **Bureau** | Lien rapide vers Marché ; **pas** l'Académie |
+| **Marché** (nouvel onglet nav) | Annonces P2P du pool + « Mes annonces » |
+| **Magasin** (nav actuelle `/market`) | Catalogue village — 3 articles / cycle (M4) |
+| **Bureau** | Lien rapide vers le marché joueurs ; **pas** l'Académie |
 | **Inventaire / fiche ninja** | Bouton « Mettre en vente » si éligible |
-
-Renommer si besoin le Marché Noir actuel en **« Marché Noir »** ou **« Contrebande »** dans la nav pour éviter la confusion avec le marché joueurs.
 
 ---
 
@@ -105,4 +104,4 @@ Renommer si besoin le Marché Noir actuel en **« Marché Noir »** ou **« Cont
 
 - Pools / ligue actifs (M8) ✅
 - Économie Ryos stable (salaires, entraînement) 🟡
-- Académie et Marché Noir nommés distinctement — voir [`academy.md`](./academy.md), [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md)
+- Académie et **Magasin du village** nommés distinctement — voir [`academy.md`](./academy.md), [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md)
