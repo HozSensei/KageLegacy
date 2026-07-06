@@ -13,7 +13,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | Principe | Implication |
 | :--- | :--- |
 | **Équilibrer avant d'empiler** | Le moteur M5 a été calibré avant M4 (objets). Ne pas ajouter de bonus plats par-dessus. |
-| **Ryos = gestion du club** | Dispensaire, salaires, examens, dojo — le Marché est un **complément**, pas la seule sink. |
+| **Ryos = gestion du club** | Dispensaire, salaires, examens, dojo — le **magasin du village** est un **complément**, pas la seule sink. |
 | **Objets = utilitaires uniquement** | Pas d'armes/armures +stats. Catégories **bureau / match / cycle**. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
 | **Match = mécaniques, pas power creep** | Fumigène (−50 % fatal), rupture genjutsu, leurres — pas de +2 Taijutsu. |
 | **1 slot par ninja** | Match **ou** cycle ; objets bureau = bouton « Utiliser » sans équipement. |
@@ -54,9 +54,12 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 9. ~~**Entraînement payant opt-in**~~ — ✅ plan par ninja, facturation H72, déficit souple
 10. **Revue missions idle** — règles, coûts, blocages
-11. **Marché aspirants** — [`recruitment-market.md`](./recruitment-market.md)
+11. ~~**Académie**~~ — ✅ tirage aléatoire — [`academy.md`](./academy.md)
 12. ~~**Budget du cycle (Bureau)**~~ — ✅ panneau projection H72
-13. **Environnement de match** — météo / topologie, scout flou H36 (spec sur branche design)
+13. ~~**Environnement de match**~~ — ✅ tirage unique, scout flou H36, combat + M6 + objets anti-env
+14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
+15. **Marché entre joueurs** — annonces P2P dans le pool — voir [`player-market.md`](./player-market.md)
+16. **Magasin du village V2** — catalogue complet, stocks limités, réassort / 3 cycles, promos / cycle — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
 
 ---
 
@@ -198,7 +201,10 @@ Idées discutées mais **reportées** pour ne pas diluer le gameplay :
 - [x] Protect : cible désignée (`protect_target_ninja_id`)
 - [x] M8 : script fin de saison (cycles 10, promotions, relégations, archivage pools 100 % bots)
 - [x] M8 : `join_or_create_pool` + inscription par invitation (`invitePoolId`, `GET /api/league/invite`)
-- [ ] **Marché aspirants** — 1 recrutement payant / cycle, rareté noble — [`recruitment-market.md`](./recruitment-market.md)
+- [x] **Académie** — 1 aspirant aléatoire / cycle, H0–H12 — [`academy.md`](./academy.md)
+- [ ] **Marché entre joueurs** — ventes P2P pool — [`player-market.md`](./player-market.md)
+- [x] **Environnement de match** — tirage unique, scout flou H36, hooks combat, unification M6
+- [x] **Objets anti-environnement** — cape, torche, sandales, carte secteur (migration 016)
 - [x] **Entraînement par ninja + coût Ryos (H72)** — opt-in par ninja, budget détaillé Bureau, sanctions déficit
 - [x] **Budget du cycle (Bureau)** — projection salaires + entraînement + intérêts
 - [x] Dispensaire (forme Lamentable, coût Ryos par grade)

@@ -1,5 +1,7 @@
 import { query } from '../config/database.js';
 import { getUserMatchForCycle } from './matchService.js';
+import { getScoutEnvironmentLine } from './matchEnvironment.js';
+import { getClockRow } from './gameClock.js';
 
 function analyzeStrategies(ninjas) {
   const counts = { Tank: 0, Offensive: 0, Protect: 0, Normal: 0 };
@@ -54,6 +56,21 @@ export async function generateScoutReport(userId, seasonCycle) {
   else if (speed <= 40) lines.push('Vitesse tactique modeste, match probablement lent.');
 
   if (element) lines.push(`Affinité ${element} dominante dans le trio.`);
+
+  if (match.environment_slug) {
+    const clockRow = await getClockRow();
+    const senseiRows = await query(
+      'SELECT scout_env_confirmed_cycle FROM sensei WHERE user_id = ?',
+      [userId]
+    );
+    const confirmed =
+      senseiRows[0]?.scout_env_confirmed_cycle &&
+      clockRow?.cycle_start_at &&
+      new Date(senseiRows[0].scout_env_confirmed_cycle).getTime() ===
+        new Date(clockRow.cycle_start_at).getTime();
+    const envLine = getScoutEnvironmentLine(match.environment_slug, { confirmed });
+    if (envLine) lines.push(envLine);
+  }
 
   return {
     opponentName,

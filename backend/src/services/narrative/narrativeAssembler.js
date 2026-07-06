@@ -17,9 +17,9 @@ import {
   randomGapMinutes,
   SENSEI_INTERCEPTION,
   TAIJUTSU_TEMPLATES,
-  TERRAINS,
   TRANSITIONS,
 } from './phraseDictionary.js';
+import { buildEnvironmentTerrainPhrase } from '../matchEnvironment.js';
 
 function groupLogsByTour(logs, endingTour) {
   const byTour = new Map();
@@ -93,11 +93,12 @@ function teamLabel(senseiName) {
   return `l'équipe de ${senseiName}`;
 }
 
-function buildIntro(homeSensei, awaySensei, homeNinjas, awayNinjas, terrain) {
+function buildIntro(homeSensei, awaySensei, homeNinjas, awayNinjas, environmentSlug) {
   const homeNames = homeNinjas.map((n) => n.name).join(', ');
   const awayNames = awayNinjas.map((n) => n.name).join(', ');
+  const terrain = buildEnvironmentTerrainPhrase(environmentSlug);
   return (
-    `L'Opération se déroule cette semaine dans ${terrain}. ` +
+    `L'Opération se déroule cette semaine ${terrain}. ` +
     `${teamLabel(homeSensei)} — ${homeNames} — se prépare au contact tandis que ` +
     `${teamLabel(awaySensei)}, avec ${awayNames}, attend le signal dans une posture tendue.`
   );
@@ -158,8 +159,8 @@ export function assembleNarrative({
   winner,
   endReason,
   endingTour,
+  environmentSlug,
 }) {
-  const terrain = pick(TERRAINS);
   const logs = combatLog.logs || [];
   const byTour = groupLogsByTour(logs, endingTour);
 
@@ -171,7 +172,7 @@ export function assembleNarrative({
     segment_order: order++,
     block_type: 'intro',
     unlock_minutes: unlockAt,
-    text: buildIntro(homeSensei, awaySensei, homeNinjas, awayNinjas, terrain),
+    text: buildIntro(homeSensei, awaySensei, homeNinjas, awayNinjas, environmentSlug),
   });
 
   unlockAt = 2;

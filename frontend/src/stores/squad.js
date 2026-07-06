@@ -14,6 +14,7 @@ export const useSquadStore = defineStore('squad', () => {
   const notifications = ref([])
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
+  const academy = ref(null)
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -24,6 +25,7 @@ export const useSquadStore = defineStore('squad', () => {
     notifications.value = data.notifications || []
     dispensaryCandidates.value = data.dispensaryCandidates || []
     cycleBudget.value = data.cycleBudget || null
+    academy.value = data.academy || null
   }
 
   async function fetchSquad() {
@@ -77,6 +79,19 @@ export const useSquadStore = defineStore('squad', () => {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || `Erreur ${res.status}`)
+    }
+    applyPayload(await res.json())
+  }
+
+  async function recruitFromAcademy() {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/academy/recruit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
     })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
@@ -186,10 +201,12 @@ export const useSquadStore = defineStore('squad', () => {
     notifications,
     dispensaryCandidates,
     cycleBudget,
+    academy,
     fetchSquad,
     saveComposition,
     saveStrategies,
     saveTrainingPlans,
+    recruitFromAcademy,
     saveTrainingFocus,
     requestChuninExam,
     requestBirdFlight,

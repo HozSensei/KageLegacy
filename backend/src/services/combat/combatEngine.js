@@ -25,6 +25,12 @@ import {
 } from './equipment.js';
 import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
 import { POINTS_WIN_MARGIN } from './constants.js';
+import {
+  applyEnvironmentAttackMod,
+  applyEnvironmentDefenseMod,
+  getEnvironmentModifier,
+  getFighterInitiativePenalty,
+} from '../matchEnvironment.js';
 
 function roll(max) {
   return randomInt(max);
@@ -34,9 +40,10 @@ function activeFighters(team) {
   return team.fighters.filter((f) => !f.ko && f.pv > 0 && f.chakra > 0);
 }
 
-function teamTacticalSpeed(team, tour) {
+function teamTacticalSpeed(team, tour, env) {
   return activeFighters(team).reduce((sum, f) => {
     let vitesse = f.stats.vitesse - getCycleSpeedPenalty(f);
+    if (env) vitesse -= getFighterInitiativePenalty(f, env);
     if (tour === 1 && f.character_trait === 'Temeraire') vitesse += 4;
     if (f.status === 'paralysis') vitesse = 0;
     return sum + Math.max(0, vitesse) + f.stats.intelligence;
@@ -47,9 +54,9 @@ function teamTacticalSpeed(team, tour) {
  * Initiative probabiliste (M1) : la vitesse tactique donne un % de chances,
  * pas une victoire automatique. Formule M5 : Σ(vitesse + intelligence).
  */
-function resolveInitiative(homeTeam, awayTeam, tour) {
-  const homeSpeed = teamTacticalSpeed(homeTeam, tour);
-  const awaySpeed = teamTacticalSpeed(awayTeam, tour);
+function resolveInitiative(homeTeam, awayTeam, tour, env) {
+  const homeSpeed = teamTacticalSpeed(homeTeam, tour, env);
+  const awaySpeed = teamTacticalSpeed(awayTeam, tour, env);
   const total = homeSpeed + awaySpeed;
 
   if (total === 0) {
@@ -179,7 +186,7 @@ function tryConsumablesFromEquipment(fighter) {
   return tryConsumables(fighter);
 }
 
-function resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam) {
+function resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam, env) {
   const atkComp = detectSquadComposition(attackerTeam.fighters);
   const defComp = detectSquadComposition(defenderTeam.fighters);
   const matchup = getCompositionMatchupMultipliers(atkComp, defComp);
@@ -188,10 +195,12 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
   const defProfile = getCompositionProfile(defComp);
 
   let atk = attackValue(attacker, technique, allies) * matchup.atkMult * atkProfile.damageDealt;
+  if (env) atk += applyEnvironmentAttackMod(attacker, technique, env);
   if (atkComp === 'flux' && defComp === 'assaut') atk *= 1.2;
   if (atkComp === 'assaut' && defComp === 'flux') atk *= 0.68;
   if (atkComp === 'assaut' && defComp === 'mur') atk *= 0.98;
   let def = defender.stats[technique.stat] * matchup.defMult;
+  if (env) def += applyEnvironmentDefenseMod(defender, env);
   if (technique.type === 'genjutsu') {
     def += getGenjutsuDefenseBonus(defender);
   }
@@ -303,7 +312,8 @@ function allKo(team) {
   return activeFighters(team).length === 0;
 }
 
-export function simulateCombat(homeTeam, awayTeam) {
+export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = {}) {
+  const env = environmentSlug ? getEnvironmentModifier(environmentSlug) : null;
   const logs = [];
   const consumedItemIds = [];
   let endingTour = MAX_TOURS;
@@ -312,7 +322,7 @@ export function simulateCombat(homeTeam, awayTeam) {
   let awayPossession = 0;
 
   for (let tour = 1; tour <= MAX_TOURS; tour += 1) {
-    const initiative = resolveInitiative(homeTeam, awayTeam, tour);
+    const initiative = resolveInitiative(homeTeam, awayTeam, tour, env);
     const attackerTeam = initiative.attackerTeam;
     const defenderTeam = initiative.defenderTeam;
 
@@ -351,7 +361,7 @@ export function simulateCombat(homeTeam, awayTeam) {
     const technique = chooseTechnique(attacker, defender, detectSquadComposition(attackerTeam.fighters));
     const allies = activeFighters(attackerTeam);
     attacker.healIntent = false;
-    const outcome = resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam);
+    const outcome = resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam, env);
 
     attacker.chakra = Math.max(0, attacker.chakra - outcome.chakraCost);
 
@@ -468,6 +478,7 @@ export function simulateCombat(homeTeam, awayTeam) {
     koNinjaIds,
     consumedItemIds: [...new Set(allConsumed)],
     equipmentSummary,
+    environment: env ? { slug: env.slug, type: env.type } : null,
     homeScorePct: Math.round(teamRemainingScore(homeTeam) * 100),
     awayScorePct: Math.round(teamRemainingScore(awayTeam) * 100),
     possession: {

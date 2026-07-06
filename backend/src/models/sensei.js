@@ -12,6 +12,7 @@ import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import { getUnreadNotifications } from '../services/birdFlightService.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
+import { getAcademyPayload } from '../services/academyService.js';
 import { computeTrainingCost } from '../services/training.js';
 import { getCycleBudgetPreview } from '../services/trainingBilling.js';
 
@@ -91,6 +92,7 @@ export async function getSquadPayload(userId) {
   const notifications = await getUnreadNotifications(userId);
   const dispensaryCandidates = await listDispensaryCandidates(userId);
   const cycleBudget = await getCycleBudgetPreview(userId);
+  const academy = await getAcademyPayload(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -107,5 +109,6 @@ export async function getSquadPayload(userId) {
     notifications,
     dispensaryCandidates,
     cycleBudget,
+    academy,
   };
 }

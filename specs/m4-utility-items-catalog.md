@@ -2,7 +2,13 @@
 
 **Statut :** direction validée — **implémenté** (migration 011, catalogue, hooks match, POST /inventory/use).
 
-**Décision clé :** les Ryos ne doivent pas reposer sur des bonus de stats en combat. Ils financent la **survie du club** ; le Marché Noir vend des **utilitaires** qui modifient le comportement du simulateur ou la gestion hors-match — pas la puissance brute des ninjas.
+**Nom UI (juil. 2026) :** le catalogue serveur s'appelle **Magasin du village** — plus « Marché Noir ».
+
+**Implémenté aujourd'hui :** 3 articles tirés au hasard / cycle (legacy M4).
+
+**Cible PO (juil. 2026) :** **tout le catalogue visible**, stocks **limités**, **réassort complet tous les X cycles**, **promos chaque cycle** — voir § Magasin du village V2 ci-dessous.
+
+**Décision clé :** les Ryos ne doivent pas reposer sur des bonus de stats en combat. Ils financent la **survie du club** ; le **magasin du village** vend des **utilitaires** qui modifient le comportement du simulateur ou la gestion hors-match — pas la puissance brute des ninjas.
 
 ---
 
@@ -44,7 +50,7 @@ Si les objets de match sont faibles, **ce n'est pas un bug** tant que les Ryos s
 
 ---
 
-## 🎒 Catalogue Marché Noir (proposition V1 — ~9 objets)
+## 🎒 Catalogue Magasin du village (proposition V1 — ~9 objets)
 
 ### A. Consommables Bureau (`category: bureau`)
 
