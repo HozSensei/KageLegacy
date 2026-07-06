@@ -1,3 +1,4 @@
+import { Router } from 'express';
 import { findDemoUser, getGameClock } from '../models/sensei.js';
 import { getDebtStatus } from '../services/economyDebt.js';
 import {

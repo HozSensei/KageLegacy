@@ -1,6 +1,6 @@
 # 🤝 Marché entre joueurs (vision)
 
-**Statut :** **V1 livrée** (objets uniquement) — juil. 2026.
+**Statut :** **V2 livrée** (objets + ninjas banc) — juil. 2026.
 
 **Besoin :** un lieu où les Sensei **vendent et achètent** entre eux — distinct de l'**Académie** (tirage PNJ) et du **Magasin du village** (catalogue serveur).
 

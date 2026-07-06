@@ -11,7 +11,8 @@
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
     "combat:simulate": "node scripts/simulateMatch.js",
-    "combat:benchmark": "node scripts/simulateCycles.js"
+    "combat:benchmark": "node scripts/simulateCycles.js",
+    "cycle:tick": "node scripts/cycleTick.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

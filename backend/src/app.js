@@ -9,6 +9,7 @@ import operationRouter from './routes/operation.js';
 import marketRouter from './routes/market.js';
 import inventoryRouter from './routes/inventory.js';
 import missionsRouter from './routes/missions.js';
+import academyRouter from './routes/academy.js';
 import matchesRouter from './routes/matches.js';
 import playerMarketRouter from './routes/playerMarket.js';
 

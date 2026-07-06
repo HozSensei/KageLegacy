@@ -6,10 +6,15 @@ import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
+const API_BASE = import.meta.env.VITE_API_URL || ''
 const editingStrategy = ref(false)
 const saving = ref(false)
 const saveError = ref(null)
 const swapPending = ref(null)
+const sellNinjaId = ref(null)
+const sellPrice = ref('')
+const selling = ref(false)
+const sellError = ref(null)
 
 const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
 const strategies = reactive({})
@@ -69,6 +74,76 @@ function initStrategies() {
 
 function protectAlliesFor(ninjaId) {
   return slots.value.filter((n) => n && n.id !== ninjaId)
+}
+
+function ninjaReferencePrice(ninja) {
+  const statSum =
+    ninja.taijutsu +
+    ninja.ninjutsu +
+    ninja.genjutsu +
+    ninja.medecine +
+    ninja.vitesse +
+    ninja.intelligence
+  const ageFactor = Math.max(0.75, 1.15 - (ninja.age - 15) * 0.05)
+  const gradeMult = { Genin: 1, Chunin: 2.5, Jonin: 5 }[ninja.grade] || 1
+  let base = Math.round(statSum * 35 * ageFactor * gradeMult)
+  if (ninja.clan_is_noble) base = Math.round(base * 1.35)
+  return Math.max(200, base)
+}
+
+function sellPriceBounds(ninja) {
+  const ref = ninjaReferencePrice(ninja)
+  return {
+    floor: Math.floor(ref * 0.5),
+    ceiling: Math.ceil(ref * 2),
+    reference: ref,
+  }
+}
+
+function canSellNinja(ninja) {
+  return (
+    canCompose.value &&
+    !ninja.isListed &&
+    !ninja.chunin_exam_requested &&
+    !ninja.bird_flight_requested
+  )
+}
+
+function openSell(ninja) {
+  sellNinjaId.value = ninja.id
+  const { floor } = sellPriceBounds(ninja)
+  sellPrice.value = String(floor)
+  sellError.value = null
+}
+
+function closeSell() {
+  sellNinjaId.value = null
+  sellPrice.value = ''
+  sellError.value = null
+}
+
+const sellNinja = computed(() =>
+  benchNinjas.value.find((n) => n.id === sellNinjaId.value) || null
+)
+
+async function submitSell() {
+  if (!sellNinjaId.value) return
+  selling.value = true
+  sellError.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/player-market/list-ninja`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId: sellNinjaId.value, price: Number(sellPrice.value) }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    closeSell()
+    await store.fetchSquad()
+  } catch (e) {
+    sellError.value = e.message
+  } finally {
+    selling.value = false
+  }
 }
 
 async function persistSlots() {
@@ -380,10 +455,26 @@ watch(() => store.activeSquad, () => {
             }"
           >
             <div class="squad-card-wrap group relative">
+              <p
+                v-if="ninja.isListed"
+                class="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-bg px-2 text-[10px] uppercase tracking-wider text-accent"
+              >
+                {{ t('squad.listed') }}
+              </p>
               <div
                 v-if="canCompose"
                 class="squad-card-actions squad-card-actions--bench"
               >
+                <button
+                  v-if="canSellNinja(ninja)"
+                  type="button"
+                  class="squad-card-action"
+                  :title="t('squad.sellNinja')"
+                  :disabled="saving"
+                  @click.stop="openSell(ninja)"
+                >
+                  <span class="text-[10px] font-medium uppercase tracking-wider text-accent">¥</span>
+                </button>
                 <button
                   type="button"
                   class="squad-card-action"
@@ -412,6 +503,50 @@ watch(() => store.activeSquad, () => {
           </div>
         </div>
       </section>
+
+      <div
+        v-if="sellNinja"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-6"
+        @click.self="closeSell"
+      >
+        <div class="w-full max-w-md border border-line bg-bg-card p-8">
+          <p class="section-label">{{ t('squad.sellNinja') }}</p>
+          <p class="mt-3 font-display text-xl text-ink">{{ sellNinja.name }}</p>
+          <p class="mt-2 text-xs text-ink-faint">
+            {{
+              t('squad.sellBounds', {
+                reference: sellPriceBounds(sellNinja).reference.toLocaleString(),
+                floor: sellPriceBounds(sellNinja).floor.toLocaleString(),
+                ceiling: sellPriceBounds(sellNinja).ceiling.toLocaleString(),
+              })
+            }}
+          </p>
+          <label class="mt-6 block text-sm">
+            <span class="text-ink-muted">{{ t('inventory.sellPrice') }}</span>
+            <input
+              v-model="sellPrice"
+              type="number"
+              :min="sellPriceBounds(sellNinja).floor"
+              :max="sellPriceBounds(sellNinja).ceiling"
+              class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-accent"
+            />
+          </label>
+          <p v-if="sellError" class="mt-4 text-sm text-fire">{{ sellError }}</p>
+          <div class="mt-6 flex gap-3">
+            <button type="button" class="btn-ghost flex-1" @click="closeSell">
+              {{ t('inventory.sellCancel') }}
+            </button>
+            <button
+              type="button"
+              class="btn-ghost flex-1 border-accent text-accent"
+              :disabled="selling"
+              @click="submitSell"
+            >
+              {{ selling ? t('inventory.selling') : t('inventory.sellConfirm') }}
+            </button>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>

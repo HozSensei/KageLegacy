@@ -60,6 +60,14 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 14. ~~**Académie** (ex-marché aspirants)~~ — ✅ tirage aléatoire unique H0–H12, 1 recrutement/cycle
 15. ~~**Marché entre joueurs**~~ — ✅ annonces P2P objets dans le pool — [`player-market.md`](./player-market.md)
 16. ~~**Magasin du village V2**~~ — ✅ catalogue complet, stocks, réassort / 3 cycles, promos — [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md) § V2
+17. ~~**Marché P2P V2 — ninjas banc**~~ — ✅ annonces ninja, garde-fous, UI escouade + échanges
+18. ~~**Scheduler prod**~~ — ✅ `npm run cycle:tick`, `ENABLE_SCHEDULER`, arrêt gracieux
+
+**Prochaines priorités :**
+
+19. **Auth multi-joueurs** — remplacer `findDemoUser()` par session réelle
+20. **Historique P2P + notifications** — ventes, « annonce achetée »
+21. **Extension inter-pools** — hors scope V1
 
 ---
 

@@ -13,6 +13,7 @@ import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import { getUnreadNotifications } from '../services/birdFlightService.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
 import { getAcademyPayload } from '../services/academyService.js';
+import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
 import { computeTrainingCost } from '../services/training.js';
 import { getCycleBudgetPreview } from '../services/trainingBilling.js';
 
@@ -23,6 +24,7 @@ function enrichNinja(ninja) {
   const trainingCost = ninja.training_focus ? computeTrainingCost(ninja) : null;
   return {
     ...ninja,
+    isListed: Boolean(ninja.is_listed),
     trainingFocus: ninja.training_focus ?? null,
     trainingCost,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
@@ -78,6 +80,7 @@ export async function getSquadPayload(userId) {
   if (!sensei) return null;
 
   const userRows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
+  const listedNinjaIds = await getListedNinjaIdsForUser(userId);
   const ninjas = await query(
     `SELECT n.*, c.name AS clan_name, c.is_noble AS clan_is_noble
      FROM ninjas n
@@ -87,8 +90,12 @@ export async function getSquadPayload(userId) {
     [userId]
   );
 
-  const activeSquad = ninjas.filter((n) => n.squad_position !== null).map(enrichNinja);
-  const bench = ninjas.filter((n) => n.squad_position === null).map(enrichNinja);
+  const activeSquad = ninjas
+    .filter((n) => n.squad_position !== null)
+    .map((n) => enrichNinja({ ...n, is_listed: listedNinjaIds.has(n.id) }));
+  const bench = ninjas
+    .filter((n) => n.squad_position === null)
+    .map((n) => enrichNinja({ ...n, is_listed: listedNinjaIds.has(n.id) }));
   const notifications = await getUnreadNotifications(userId);
   const dispensaryCandidates = await listDispensaryCandidates(userId);
   const cycleBudget = await getCycleBudgetPreview(userId);
