@@ -29,12 +29,14 @@ export function getChuninExamProgress(ninja) {
   }
 }
 
-export function canRegisterForExam(ninja, gameClock) {
+export function canRegisterForExam(ninja, gameClock, sensei) {
   const hour = gameClock?.hour ?? 0
+  const debtBlocked = (sensei?.ryos ?? 0) < 0 || sensei?.salaryDebt
   return (
     ninja.grade === 'Genin' &&
     !ninja.chunin_exam_requested &&
     getChuninExamProgress(ninja).ready &&
-    hour < 36
+    hour < 36 &&
+    !debtBlocked
   )
 }

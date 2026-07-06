@@ -25,6 +25,15 @@ const squadRating = computed(() => {
   return Math.round(avg)
 })
 
+const showOperationBanner = computed(() => {
+  const phase = store.gameClock?.phase
+  return phase === 'operation_live' || phase === 'cycle_end'
+})
+
+const debtFrozen = computed(
+  () => (store.sensei?.ryos ?? 0) < 0 || store.sensei?.salaryDebt
+)
+
 onMounted(async () => {
   await store.fetchSquad()
   if (store.sensei?.language) locale.value = store.sensei.language
@@ -48,11 +57,21 @@ onMounted(async () => {
 
     <template v-else-if="store.sensei">
       <div
-        v-if="store.gameClock?.phase === 'operation_live'"
+        v-if="debtFrozen"
+        class="mt-10 border-l-2 border-fire pl-4 text-sm text-fire"
+      >
+        {{ t('bureau.debtFreeze') }}
+      </div>
+
+      <div
+        v-if="showOperationBanner"
         class="mt-10 border-l-2 border-accent pl-4 text-sm text-ink-muted"
+        :class="{ 'mt-6': debtFrozen }"
       >
         {{ t('bureau.operationLive') }} —
-        <router-link to="/operation" class="text-accent underline-offset-4 hover:underline">voir le rapport</router-link>
+        <router-link to="/operation" class="text-accent underline-offset-4 hover:underline">
+          {{ t('bureau.operationLink') }}
+        </router-link>
       </div>
 
       <StagnationAlert />

@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { getClockRow, getGameClock, isTacticsLocked } from './gameClock.js';
+import { getDebtStatus } from './economyDebt.js';
 import {
   evaluateMissionSuccess,
   getEligibleRanksForNinja,
@@ -44,13 +45,7 @@ function mapNinjaForMissions(ninja) {
 export async function getMissionsForUser(userId) {
   const cycleStartAt = await getCycleStartAt();
   const clock = await getGameClock();
-  const senseiRows = await query(
-    'SELECT ryos, salary_debt FROM sensei WHERE user_id = ?',
-    [userId]
-  );
-  const ryos = senseiRows[0]?.ryos ?? 0;
-  const salaryDebt = Boolean(senseiRows[0]?.salary_debt);
-  const debtBlocksPaid = ryos < 0 || salaryDebt;
+  const { ryos, salaryDebt, debtBlocksSpending } = await getDebtStatus(userId);
 
   const missions = cycleStartAt
     ? await query(
@@ -87,7 +82,7 @@ export async function getMissionsForUser(userId) {
     pendingCollection,
     availableNinjas: bench.map(mapNinjaForMissions),
     windowOpen: !clock.tacticsLocked,
-    debtBlocksPaid,
+    debtBlocksPaid: debtBlocksSpending,
     ryos,
     gameClock: clock,
   };
@@ -147,6 +142,8 @@ export async function assignMission(userId, ninjaId, rank) {
     throw error;
   }
 
+  const { debtBlocksSpending } = await getDebtStatus(userId);
+
   const existing = await query(
     `SELECT id FROM idle_missions WHERE ninja_id = ? AND cycle_start_at = ?`,
     [ninjaId, cycleStartAt]
@@ -157,7 +154,7 @@ export async function assignMission(userId, ninjaId, rank) {
     throw error;
   }
 
-  if (isPaidMissionRank(rank) && (ninja.ryos < 0 || ninja.salary_debt)) {
+  if (isPaidMissionRank(rank) && debtBlocksSpending) {
     const error = new Error('Dette en cours — seules les missions Rang D sont autorisées.');
     error.statusCode = 402;
     throw error;

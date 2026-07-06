@@ -77,6 +77,8 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
           result: match.result,
           winnerUserId: match.winner_user_id,
           isHome: perspective?.isHome ?? null,
+          equipmentSummary: combatLog.equipmentSummary || [],
+          environment: combatLog.environment || null,
         }
       : null;
 

@@ -68,7 +68,11 @@ async function buy(stockId) {
   }
 }
 
-const canBuy = computed(() => (item) => !item.soldOut && (market.value?.ryos ?? 0) >= item.finalPrice)
+const canBuy = computed(() => (item) =>
+  !item.soldOut &&
+  !market.value?.debtBlocksSpending &&
+  (market.value?.ryos ?? 0) >= item.finalPrice
+)
 </script>
 
 <template>
@@ -90,6 +94,7 @@ const canBuy = computed(() => (item) => !item.soldOut && (market.value?.ryos ?? 
         </p>
         <p v-if="market.promoCount">{{ t('market.promoActive', { count: market.promoCount }) }}</p>
       </div>
+      <p v-if="market.debtBlocksSpending" class="mt-4 text-sm text-fire">{{ t('market.debtBlocked') }}</p>
 
       <section
         v-for="cat in categoryOrder"

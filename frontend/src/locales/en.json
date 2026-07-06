@@ -68,6 +68,8 @@
     "cycle": "Ninja cycle",
     "activeSquad": "Active squad",
     "operationLive": "Operation in progress",
+    "operationLink": "View report",
+    "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",
     "trainingPlansHint": "Pick one stat per ninja. Billed at H72 — no plan means no cost or gain.",
     "trainingNone": "None",
@@ -112,7 +114,8 @@
       "lead": "Heal ninjas in Lamentable form: Lamentable → Passable before the next match.",
       "forme": "Current form",
       "submit": "Treat ({cost} Ryos)",
-      "sending": "Treating…"
+      "sending": "Treating…",
+      "debtBlocked": "Debt outstanding — dispensary unavailable."
     },
     "chuninStagnation": {
       "title": "Chunin at the peak",
@@ -128,6 +131,7 @@
       "sending": "Registering…",
       "registered": "Registered · H36",
       "closed": "Registration closed this cycle — next window at H0.",
+      "debtBlocked": "Debt outstanding — registrations suspended.",
       "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72."
     }
   },
@@ -236,7 +240,22 @@
     "endingTour": "Rounds played",
     "victory": "Victory",
     "defeat": "Defeat",
-    "draw": "Draw"
+    "draw": "Draw",
+    "equipmentTitle": "Match items",
+    "itemUsed": "used: {items}",
+    "itemUnused": "not triggered: {items}",
+    "items": {
+      "fumigene": "Emergency smoke bomb",
+      "parchemin-rupture": "Rupture scroll",
+      "leurre": "Decoy",
+      "herbes-soin": "Healing herbs",
+      "cachet-chakra": "Chakra tablet",
+      "poids-entrainement": "Training weights",
+      "cape-impermeable": "Rain cape",
+      "torche-signalisation": "Signal torch",
+      "sandales-canyon": "Canyon sandals",
+      "carte-secteur": "Sector map"
+    }
   },
   "market": {
     "kicker": "Village shop",
@@ -250,6 +269,7 @@
     "restock": "Next restock in {cycles} cycle(s) (every {every})",
     "promo": "−{pct}%",
     "promoActive": "{count} promo(s) this cycle",
+    "debtBlocked": "Administrative freeze — purchases suspended until debt is repaid.",
     "stock": "Stock: {remaining} / {initial}",
     "situational": "Situational",
     "usesPerMatch": "{count} use(s) per match",
@@ -293,6 +313,7 @@
     "loading": "Loading market…",
     "commission": "Seller commission: {pct}%",
     "closed": "Market closed (H71+)",
+    "debtBlocked": "Administrative freeze — purchases suspended until debt is repaid.",
     "myListings": "My listings",
     "listingLimit": "{current} / {max} active listings",
     "noMyListings": "No listings — list an item from inventory.",

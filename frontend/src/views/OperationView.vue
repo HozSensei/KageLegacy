@@ -133,6 +133,17 @@ const resultLabel = computed(() => {
 
 const spectatorBadge = computed(() => operation.value?.viewerRole === 'spectator')
 
+const equipmentRows = computed(() => {
+  const summary = operation.value?.mechanical?.equipmentSummary || []
+  return summary.filter((row) => row.equippedSlugs?.length || row.consumedSlugs?.length)
+})
+
+function slugLabel(slug) {
+  const key = `operation.items.${slug}`
+  const translated = t(key)
+  return translated === key ? slug : translated
+}
+
 onMounted(async () => {
   await refreshAll()
   schedulePoll()
@@ -262,6 +273,26 @@ onUnmounted(() => clearInterval(pollTimer))
                       {{ t('operation.endingTour') }}
                     </dt>
                     <dd class="mt-1 text-ink-muted">{{ operation.mechanical.endingTour }} / 12</dd>
+                  </div>
+                  <div v-if="equipmentRows.length">
+                    <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+                      {{ t('operation.equipmentTitle') }}
+                    </dt>
+                    <dd class="mt-2 space-y-2">
+                      <div
+                        v-for="row in equipmentRows"
+                        :key="`${row.side}-${row.ninjaId}`"
+                        class="text-xs text-ink-muted"
+                      >
+                        <span class="text-ink">{{ row.ninjaName }}</span>
+                        <span v-if="row.consumedSlugs?.length" class="text-accent">
+                          · {{ t('operation.itemUsed', { items: row.consumedSlugs.map(slugLabel).join(', ') }) }}
+                        </span>
+                        <span v-else-if="row.equippedSlugs?.length" class="text-ink-faint">
+                          · {{ t('operation.itemUnused', { items: row.equippedSlugs.map(slugLabel).join(', ') }) }}
+                        </span>
+                      </div>
+                    </dd>
                   </div>
                 </dl>
               </div>
