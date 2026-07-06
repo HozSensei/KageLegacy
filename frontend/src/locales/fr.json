@@ -307,19 +307,36 @@
   },
   "missions": {
     "title": "Missions de routine",
-    "lead": "Envoyez vos remplaçants en contrat pour gagner des Ryos à la fin du cycle.",
+    "lead": "Envoyez vos remplaçants en contrat (H0–H70) — verrouillés jusqu'à H72. Coût prélevé à l'envoi, gain si les prérequis sont remplis.",
     "loading": "Chargement…",
     "pickNinja": "Choisir un remplaçant",
     "pickRank": "Rang du contrat",
     "send": "Envoyer en mission",
     "sending": "Envoi…",
-    "pending": "Récompenses prêtes à collecter.",
+    "pending": "{count} récompense(s) prête(s) à collecter.",
     "collect": "Collecter les Ryos",
     "collecting": "Collecte…",
+    "active": "En mission",
+    "failed": "Échecs ce cycle",
+    "failedHint": "prérequis non remplis à H72",
+    "closed": "Missions fermées (H71+) — collectez les gains en attente.",
+    "debtHint": "Dette en cours : seules les missions Rang D (gratuites) sont autorisées.",
+    "debtBlocked": "Bloqué (dette)",
+    "examBlocked": "examen / Vol d'Oiseau",
+    "cycleGearBlocked": "objet cycle équipé",
+    "cost": "Coût",
+    "reward": "Gain",
+    "net": "Net",
+    "eligible": "Rangs possibles pour ce ninja : {ranks}",
+    "ranksShort": {
+      "D": "D",
+      "C": "C",
+      "B": "B"
+    },
     "ranks": {
-      "D": "Rang D — 500 Ryos",
-      "C": "Rang C — 1 200 Ryos",
-      "B": "Rang B — 2 800 Ryos"
+      "D": "Rang D",
+      "C": "Rang C",
+      "B": "Rang B"
     }
   }
 }

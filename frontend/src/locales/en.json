@@ -307,19 +307,36 @@
   },
   "missions": {
     "title": "Routine missions",
-    "lead": "Send bench ninjas on contracts to earn Ryos at cycle end.",
+    "lead": "Send bench ninjas on contracts (H0–H70) — locked until H72. Cost on send, payout if requirements met.",
     "loading": "Loading…",
     "pickNinja": "Pick a bench ninja",
     "pickRank": "Contract rank",
     "send": "Send on mission",
     "sending": "Sending…",
-    "pending": "Rewards ready to collect.",
+    "pending": "{count} reward(s) ready to collect.",
     "collect": "Collect Ryos",
     "collecting": "Collecting…",
+    "active": "On mission",
+    "failed": "Failures this cycle",
+    "failedHint": "requirements not met at H72",
+    "closed": "Missions closed (H71+) — collect pending rewards.",
+    "debtHint": "Debt outstanding: only free Rank D missions allowed.",
+    "debtBlocked": "Blocked (debt)",
+    "examBlocked": "exam / Vol d'Oiseau",
+    "cycleGearBlocked": "cycle item equipped",
+    "cost": "Cost",
+    "reward": "Reward",
+    "net": "Net",
+    "eligible": "Possible ranks for this ninja: {ranks}",
+    "ranksShort": {
+      "D": "D",
+      "C": "C",
+      "B": "B"
+    },
     "ranks": {
-      "D": "Rank D — 500 Ryos",
-      "C": "Rank C — 1,200 Ryos",
-      "B": "Rank B — 2,800 Ryos"
+      "D": "Rank D",
+      "C": "Rank C",
+      "B": "Rank B"
     }
   }
 }
