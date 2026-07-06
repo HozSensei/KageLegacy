@@ -66,6 +66,7 @@ npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
 npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
 npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
 npm run economy:simulate --prefix backend      # Simule ~20 cycles + achats magasin (équilibre Ryos)
+# Options : --progression (Chunin + Vol d'Oiseau), --chunin, --bird-flight, --items=1, --training
 npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
 npm run dev:api     # API seule
 npm run dev:web     # Front seul

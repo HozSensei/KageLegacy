@@ -64,7 +64,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
 28. ~~**Extraire `dojoNotifications.js`**~~ — ✅ service dédié hors `birdFlightService`
-29. ~~**Sim économie multi-cycles**~~ — ✅ `npm run economy:simulate` · achats magasin, bilan Ryos
+29. ~~**Sim économie multi-cycles**~~ — ✅ `npm run economy:simulate` · achats, match, `--chunin`, `--bird-flight`
 30. ~~**Ryos SIGNED + primes match**~~ — ✅ migration 024 · victoire 1 500 / nul 500 Ryos à H72
 
 **Prochaines priorités :**
