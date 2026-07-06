@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
+import NotificationBell from '../components/notifications/NotificationBell.vue'
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -78,6 +79,7 @@ onMounted(async () => {
         </nav>
 
         <div class="flex shrink-0 items-center gap-4">
+          <NotificationBell v-if="auth.user || store.sensei" />
           <span v-if="auth.user" class="hidden text-[11px] text-ink-muted sm:inline">
             {{ auth.sensei?.name || auth.user.username }}
           </span>

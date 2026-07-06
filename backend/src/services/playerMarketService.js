@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
-import { assertSpendingAllowed, getDebtStatus } from './economyDebt.js';
+import { assertSpendingAllowed } from './economyDebt.js';
+import { createDojoNotification } from './birdFlightService.js';
 import { getGameClock, getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 
@@ -9,6 +10,37 @@ export const NOBLE_SELLER_COMMISSION_PCT = 10;
 export const PRICE_FLOOR_PCT = 50;
 export const PRICE_CEILING_PCT = 200;
 export const NINJA_RESALE_MORAL_PENALTY = 3;
+export const MARKET_HISTORY_LIMIT = 20;
+
+const MIN_NINJA_LISTING_PRICE = 1;
+
+const LISTING_SELECT = `
+  pl.*,
+  idf.slug, idf.name_fr, idf.name_en, idf.category, idf.price AS catalog_price,
+  n.name AS ninja_name, n.grade, n.age, n.character_trait,
+  n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence,
+  c.name AS clan_name, c.is_noble AS clan_is_noble,
+  ss.name AS seller_name,
+  sb.name AS buyer_name,
+  (
+    SELECT p.division_level
+    FROM pool_members pm
+    JOIN pools p ON p.id = pm.pool_id AND p.status = 'active'
+    WHERE pm.user_id = pl.seller_user_id
+    LIMIT 1
+  ) AS seller_division_level
+`;
+
+const LISTING_JOINS = `
+  FROM player_listings pl
+  JOIN users u_seller ON u_seller.id = pl.seller_user_id
+  JOIN sensei ss ON ss.user_id = pl.seller_user_id
+  LEFT JOIN sensei sb ON sb.user_id = pl.buyer_user_id
+  LEFT JOIN user_items ui ON ui.id = pl.user_item_id
+  LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
+  LEFT JOIN ninjas n ON n.id = pl.ninja_id
+  LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
+`;
 
 function assertMarketOpen(clock) {
   if (clock.hour >= 71 || clock.tacticsLocked) {
@@ -18,11 +50,28 @@ function assertMarketOpen(clock) {
   }
 }
 
-const MIN_NINJA_LISTING_PRICE = 1;
-
 function sellerCommissionPct(listingType, isNoble) {
   if (listingType === 'ninja' && isNoble) return NOBLE_SELLER_COMMISSION_PCT;
   return SELLER_COMMISSION_PCT;
+}
+
+async function assertHumanPlayer(userId) {
+  const rows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
+  if (rows[0]?.is_bot) {
+    const error = new Error('Action non disponible pour les comptes bots.');
+    error.statusCode = 403;
+    throw error;
+  }
+}
+
+async function optionalSellerPoolId(userId) {
+  const pool = await findUserPool(userId);
+  return pool?.id ?? null;
+}
+
+function assetLabelFromRow(row) {
+  if (row.listing_type === 'ninja') return row.ninja_name || 'Ninja';
+  return row.name_fr || row.slug || 'Objet';
 }
 
 export async function isNinjaListed(ninjaId) {
@@ -55,60 +104,20 @@ async function assertListingCapacity(userId) {
   }
 }
 
-export async function getPlayerMarketPayload(userId) {
-  const pool = await findUserPool(userId);
-  if (!pool) {
-    return {
-      listings: [],
-      myListings: [],
-      maxListings: MAX_ACTIVE_LISTINGS,
-      windowOpen: true,
-      commissionPct: SELLER_COMMISSION_PCT,
-      nobleCommissionPct: NOBLE_SELLER_COMMISSION_PCT,
-    };
-  }
-
-  const clock = await getGameClock();
-  const listings = await query(
-    `SELECT pl.*,
-            idf.slug, idf.name_fr, idf.name_en, idf.category, idf.price AS catalog_price,
-            n.name AS ninja_name, n.grade, n.age, n.character_trait,
-            n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence,
-            c.name AS clan_name, c.is_noble AS clan_is_noble,
-            ss.name AS seller_name
-     FROM player_listings pl
-     JOIN sensei ss ON ss.user_id = pl.seller_user_id
-     LEFT JOIN user_items ui ON ui.id = pl.user_item_id
-     LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
-     LEFT JOIN ninjas n ON n.id = pl.ninja_id
-     LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
-     WHERE pl.pool_id = ? AND pl.status = 'active'
-     ORDER BY pl.price ASC, pl.id ASC`,
-    [pool.id]
-  );
-
-  const myListings = listings.filter((l) => l.seller_user_id === userId);
-
-  return {
-    listings: listings
-      .filter((l) => l.seller_user_id !== userId)
-      .map(mapListing),
-    myListings: myListings.map(mapListing),
-    maxListings: MAX_ACTIVE_LISTINGS,
-    windowOpen: clock.hour < 71,
-    commissionPct: SELLER_COMMISSION_PCT,
-    nobleCommissionPct: NOBLE_SELLER_COMMISSION_PCT,
-  };
-}
-
 function mapListing(row) {
+  const base = {
+    id: row.id,
+    listingType: row.listing_type,
+    sellerUserId: row.seller_user_id,
+    sellerName: row.seller_name,
+    sellerDivision: row.seller_division_level ?? null,
+    price: row.price,
+    createdAt: row.created_at,
+  };
+
   if (row.listing_type === 'ninja') {
     return {
-      id: row.id,
-      listingType: 'ninja',
-      sellerUserId: row.seller_user_id,
-      sellerName: row.seller_name,
-      price: row.price,
+      ...base,
       ninjaId: row.ninja_id,
       ninjaName: row.ninja_name,
       grade: row.grade,
@@ -124,41 +133,89 @@ function mapListing(row) {
         vitesse: row.vitesse,
         intelligence: row.intelligence,
       },
-      createdAt: row.created_at,
     };
   }
 
   return {
-    id: row.id,
-    listingType: 'item',
-    sellerUserId: row.seller_user_id,
-    sellerName: row.seller_name,
-    price: row.price,
+    ...base,
     slug: row.slug,
     category: row.category,
     nameFr: row.name_fr,
     nameEn: row.name_en,
     catalogPrice: row.catalog_price,
     userItemId: row.user_item_id,
-    createdAt: row.created_at,
+  };
+}
+
+function mapHistoryEntry(row, userId) {
+  const asSeller = row.seller_user_id === userId;
+  const commissionPct = sellerCommissionPct(row.listing_type, Boolean(row.clan_is_noble));
+  const sellerProceeds = Math.floor(row.price * (1 - commissionPct / 100));
+  return {
+    id: row.id,
+    role: asSeller ? 'seller' : 'buyer',
+    listingType: row.listing_type,
+    assetLabel: assetLabelFromRow(row),
+    price: row.price,
+    sellerProceeds: asSeller ? sellerProceeds : null,
+    commission: asSeller ? row.price - sellerProceeds : null,
+    counterpartyName: asSeller ? row.buyer_name : row.seller_name,
+    soldAt: row.sold_at,
+  };
+}
+
+export async function getMarketHistory(userId, limit = MARKET_HISTORY_LIMIT) {
+  const safeLimit = Math.max(1, Math.min(100, Number(limit) || MARKET_HISTORY_LIMIT));
+  const rows = await query(
+    `SELECT ${LISTING_SELECT}
+     ${LISTING_JOINS}
+     WHERE pl.status = 'sold'
+       AND (pl.seller_user_id = ? OR pl.buyer_user_id = ?)
+     ORDER BY pl.sold_at DESC
+     LIMIT ${safeLimit}`,
+    [userId, userId]
+  );
+  return rows.map((row) => mapHistoryEntry(row, userId));
+}
+
+export async function getPlayerMarketPayload(userId) {
+  await assertHumanPlayer(userId);
+  const clock = await getGameClock();
+
+  const listings = await query(
+    `SELECT ${LISTING_SELECT}
+     ${LISTING_JOINS}
+     WHERE pl.status = 'active' AND u_seller.is_bot = FALSE
+     ORDER BY pl.price ASC, pl.id ASC`
+  );
+
+  const myListings = listings.filter((l) => l.seller_user_id === userId);
+  const history = await getMarketHistory(userId);
+
+  return {
+    listings: listings
+      .filter((l) => l.seller_user_id !== userId)
+      .map(mapListing),
+    myListings: myListings.map(mapListing),
+    history,
+    maxListings: MAX_ACTIVE_LISTINGS,
+    windowOpen: clock.hour < 71,
+    commissionPct: SELLER_COMMISSION_PCT,
+    nobleCommissionPct: NOBLE_SELLER_COMMISSION_PCT,
+    globalMarket: true,
   };
 }
 
 export async function createItemListing(userId, userItemId, price) {
   const clock = await getGameClock();
   assertMarketOpen(clock);
-
-  const pool = await findUserPool(userId);
-  if (!pool) {
-    const error = new Error('Aucune ligue active.');
-    error.statusCode = 400;
-    throw error;
-  }
-
+  await assertHumanPlayer(userId);
   await assertListingCapacity(userId);
 
+  const poolId = await optionalSellerPoolId(userId);
+
   const itemRows = await query(
-    `SELECT ui.*, idf.price AS catalog_price, idf.slug,
+    `SELECT ui.*, idf.price AS catalog_price, idf.slug, idf.name_fr,
             ne.ninja_id AS equipped_ninja_id
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
@@ -200,7 +257,7 @@ export async function createItemListing(userId, userItemId, price) {
   const result = await query(
     `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, user_item_id, price)
      VALUES (?, ?, 'item', ?, ?)`,
-    [pool.id, userId, userItemId, numericPrice]
+    [poolId, userId, userItemId, numericPrice]
   );
 
   return { listingId: result.insertId, price: numericPrice };
@@ -209,16 +266,10 @@ export async function createItemListing(userId, userItemId, price) {
 export async function createNinjaListing(userId, ninjaId, price) {
   const clock = await getGameClock();
   assertMarketOpen(clock);
-
-  const pool = await findUserPool(userId);
-  if (!pool) {
-    const error = new Error('Aucune ligue active.');
-    error.statusCode = 400;
-    throw error;
-  }
-
+  await assertHumanPlayer(userId);
   await assertListingCapacity(userId);
 
+  const poolId = await optionalSellerPoolId(userId);
   const cycleRow = await getClockRow();
   const cycleStartAt = cycleRow?.cycle_start_at;
 
@@ -284,13 +335,14 @@ export async function createNinjaListing(userId, ninjaId, price) {
   const result = await query(
     `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, ninja_id, price)
      VALUES (?, ?, 'ninja', ?, ?)`,
-    [pool.id, userId, ninjaId, numericPrice]
+    [poolId, userId, ninjaId, numericPrice]
   );
 
   return { listingId: result.insertId, price: numericPrice };
 }
 
 export async function cancelListing(userId, listingId) {
+  await assertHumanPlayer(userId);
   const rows = await query(
     `SELECT * FROM player_listings WHERE id = ? AND seller_user_id = ? AND status = 'active'`,
     [listingId, userId]
@@ -304,9 +356,33 @@ export async function cancelListing(userId, listingId) {
   return { listingId };
 }
 
+async function notifySellerOfSale(listing, buyerUserId, sellerProceeds, commissionPct) {
+  const buyerRows = await query('SELECT name FROM sensei WHERE user_id = ?', [buyerUserId]);
+  const assetRows = await query(
+    `SELECT pl.listing_type, n.name AS ninja_name, idf.name_fr, idf.slug
+     FROM player_listings pl
+     LEFT JOIN ninjas n ON n.id = pl.ninja_id
+     LEFT JOIN user_items ui ON ui.id = pl.user_item_id
+     LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
+     WHERE pl.id = ?`,
+    [listing.id]
+  );
+  const asset = assetRows[0];
+  await createDojoNotification(listing.seller_user_id, 'market_sale', {
+    listingId: listing.id,
+    listingType: listing.listing_type,
+    assetLabel: assetLabelFromRow(asset || listing),
+    price: listing.price,
+    sellerProceeds,
+    commissionPct,
+    buyerName: buyerRows[0]?.name || 'Sensei',
+  });
+}
+
 export async function buyListing(userId, listingId) {
   const clock = await getGameClock();
   assertMarketOpen(clock);
+  await assertHumanPlayer(userId);
 
   await assertSpendingAllowed(
     userId,
@@ -314,12 +390,16 @@ export async function buyListing(userId, listingId) {
   );
 
   const rows = await query(
-    `SELECT pl.*, s_buyer.ryos AS buyer_ryos,
-            c.is_noble AS ninja_is_noble
+    `SELECT pl.*, s_buyer.ryos AS buyer_ryos, u_seller.is_bot AS seller_is_bot,
+            c.is_noble AS ninja_is_noble, n.name AS ninja_name,
+            idf.name_fr AS item_name_fr, idf.slug AS item_slug
      FROM player_listings pl
+     JOIN users u_seller ON u_seller.id = pl.seller_user_id
      JOIN sensei s_buyer ON s_buyer.user_id = ?
      LEFT JOIN ninjas n ON n.id = pl.ninja_id
      LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
+     LEFT JOIN user_items ui ON ui.id = pl.user_item_id
+     LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
      WHERE pl.id = ? AND pl.status = 'active'`,
     [userId, listingId]
   );
@@ -334,11 +414,9 @@ export async function buyListing(userId, listingId) {
     error.statusCode = 400;
     throw error;
   }
-
-  const pool = await findUserPool(userId);
-  if (!pool || pool.id !== listing.pool_id) {
-    const error = new Error('Annonce hors de votre ligue.');
-    error.statusCode = 403;
+  if (listing.seller_is_bot) {
+    const error = new Error('Annonce indisponible.');
+    error.statusCode = 400;
     throw error;
   }
 
@@ -375,6 +453,8 @@ export async function buyListing(userId, listingId) {
      WHERE id = ?`,
     [userId, listingId]
   );
+
+  await notifySellerOfSale(listing, userId, sellerProceeds, commissionPct);
 
   return {
     listingId,

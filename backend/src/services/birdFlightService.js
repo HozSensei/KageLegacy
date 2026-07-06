@@ -34,7 +34,7 @@ export function getBirdFlightPeakStat(ninja) {
   return Math.max(...MAJOR_STATS.map((s) => ninja[s]));
 }
 
-async function createDojoNotification(userId, kind, payload) {
+export async function createDojoNotification(userId, kind, payload) {
   const result = await query(
     'INSERT INTO dojo_notifications (user_id, kind, payload) VALUES (?, ?, ?)',
     [userId, kind, JSON.stringify(payload)]
