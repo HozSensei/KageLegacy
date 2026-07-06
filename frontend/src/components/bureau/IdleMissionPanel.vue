@@ -30,13 +30,11 @@ const tierOptions = computed(() => {
   return missions.value.tiers.map((tier) => {
     const recommended = eligibleTiersForSelection.value.includes(tier.tier)
     const alreadyUsed = used.has(tier.tier)
-    const debtBlocked = missions.value.debtBlocksPaid && tier.paid
-    const disabled = debtBlocked || !missions.value.windowOpen || alreadyUsed
+    const disabled = !missions.value.windowOpen || alreadyUsed
     let disabledReason = null
     let warning = null
     if (!missions.value.windowOpen) disabledReason = t('missions.closed')
     else if (alreadyUsed) disabledReason = t('missions.tierUsed')
-    else if (debtBlocked) disabledReason = t('missions.debtBlocked')
     else if (!recommended) warning = t('missions.underQualified', { req: tier.requirement })
     return { ...tier, disabled, disabledReason, warning, recommended }
   })
@@ -149,9 +147,6 @@ function lootSummary(mission) {
 
     <template v-else-if="missions">
       <p v-if="!missions.windowOpen" class="mt-4 text-sm text-fire">{{ t('missions.closed') }}</p>
-      <p v-else-if="missions.debtBlocksPaid" class="mt-4 text-sm text-ink-muted">
-        {{ t('missions.debtHint') }}
-      </p>
 
       <div
         v-if="missions.pendingCollection?.length"
@@ -202,7 +197,6 @@ function lootSummary(mission) {
           <thead>
             <tr class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
               <th class="pb-2 pr-4">{{ t('missions.pickTier') }}</th>
-              <th class="pb-2 pr-4">{{ t('missions.cost') }}</th>
               <th class="pb-2 pr-4">{{ t('missions.reward') }}</th>
               <th class="pb-2 pr-4">{{ t('missions.resolve') }}</th>
               <th class="pb-2">{{ t('missions.risk') }}</th>
@@ -214,7 +208,6 @@ function lootSummary(mission) {
                 <span class="text-ink">{{ t(`missions.tiers.${tier.tier}`) }}</span>
                 <p class="mt-0.5 text-[10px] text-ink-faint">{{ tier.requirement }}</p>
               </td>
-              <td class="py-2 pr-4 tabular-nums">{{ tier.sendCost }} Ryos</td>
               <td class="py-2 pr-4 tabular-nums">{{ tierRewardLabel(tier) }}</td>
               <td class="py-2 pr-4 tabular-nums">H{{ tier.resolvesAtHour }}</td>
               <td class="py-2 text-[10px] text-ink-faint">

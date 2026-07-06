@@ -1,9 +1,7 @@
 import { query } from '../config/database.js';
 import { getClockRow, getGameClock, isTacticsLocked } from './gameClock.js';
-import { getDebtStatus } from './economyDebt.js';
 import {
   getEligibleTiersForNinja,
-  isPaidMissionTier,
   MISSION_TIERS,
   missionGuaranteedRyos,
   missionNetProfit,
@@ -22,12 +20,10 @@ function mapTierConfig() {
     const guaranteed = missionGuaranteedRyos(cfg.tier);
     return {
       tier: cfg.tier,
-      sendCost: cfg.sendCost,
       rewardMin: guaranteed.min,
       rewardMax: guaranteed.max,
       netProfit: missionNetProfit(cfg.tier),
       requirement: cfg.requirementText,
-      paid: Boolean(cfg.paid),
       label: cfg.label,
       resolvesAtHour: cfg.resolvesAtHour,
       risk: {
@@ -68,7 +64,6 @@ function mapMissionRow(row) {
 export async function getMissionsForUser(userId) {
   const cycleStartAt = await getCycleStartAt();
   const clock = await getGameClock();
-  const { ryos, salaryDebt, debtBlocksSpending } = await getDebtStatus(userId);
 
   const missions = cycleStartAt
     ? await query(
@@ -108,8 +103,6 @@ export async function getMissionsForUser(userId) {
     pendingCollection,
     availableNinjas: bench.map(mapNinjaForMissions),
     windowOpen: !clock.tacticsLocked,
-    debtBlocksPaid: debtBlocksSpending,
-    ryos,
     gameClock: clock,
   };
 }
@@ -167,8 +160,6 @@ export async function assignMission(userId, ninjaId, tier) {
     throw error;
   }
 
-  const { debtBlocksSpending } = await getDebtStatus(userId);
-
   const existingNinja = await query(
     `SELECT id FROM idle_missions WHERE ninja_id = ? AND cycle_start_at = ?`,
     [ninjaId, cycleStartAt]
@@ -190,42 +181,17 @@ export async function assignMission(userId, ninjaId, tier) {
     throw error;
   }
 
-  if (isPaidMissionTier(tier) && debtBlocksSpending) {
-    const error = new Error('Dette en cours — seul le Contrat de Routine est autorisé.');
-    error.statusCode = 402;
-    throw error;
-  }
-
-  if (ninja.ryos < config.sendCost) {
-    const error = new Error('Ryos insuffisants pour envoyer cette mission.');
-    error.statusCode = 402;
-    throw error;
-  }
-
-  if (config.sendCost > 0) {
-    await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [config.sendCost, userId]);
-  }
-
   const guaranteed = missionGuaranteedRyos(tier);
   const result = await query(
     `INSERT INTO idle_missions
      (user_id, ninja_id, cycle_start_at, mission_tier, send_cost, reward_amount, resolves_at_hour)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [
-      userId,
-      ninjaId,
-      cycleStartAt,
-      tier,
-      config.sendCost,
-      guaranteed.max,
-      config.resolvesAtHour,
-    ]
+     VALUES (?, ?, ?, ?, 0, ?, ?)`,
+    [userId, ninjaId, cycleStartAt, tier, guaranteed.max, config.resolvesAtHour]
   );
 
   return {
     missionId: result.insertId,
     tier,
-    sendCost: config.sendCost,
     resolvesAtHour: config.resolvesAtHour,
     netProfit: missionNetProfit(tier),
   };

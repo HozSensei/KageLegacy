@@ -2,8 +2,6 @@ export const MISSION_TIERS = {
   routine: {
     tier: 'routine',
     label: 'Contrat de Routine',
-    sendCost: 0,
-    paid: false,
     resolvesAtHour: 72,
     baseRewardMin: 300,
     baseRewardMax: 500,
@@ -16,8 +14,6 @@ export const MISSION_TIERS = {
   infiltration: {
     tier: 'infiltration',
     label: 'Infiltration tactique',
-    sendCost: 100,
-    paid: true,
     resolvesAtHour: 72,
     baseRewardMin: 600,
     baseRewardMax: 800,
@@ -30,8 +26,6 @@ export const MISSION_TIERS = {
   cyclone: {
     tier: 'cyclone',
     label: 'Opération Cyclone',
-    sendCost: 300,
-    paid: true,
     resolvesAtHour: 72,
     baseReward: 1000,
     lightInjuryChance: 0,
@@ -76,14 +70,8 @@ export function missionGuaranteedRyos(tier) {
 }
 
 export function missionNetProfit(tier) {
-  const config = MISSION_TIERS[tier];
-  if (!config) return 0;
   const guaranteed = missionGuaranteedRyos(tier);
-  return guaranteed.max - config.sendCost;
-}
-
-export function isPaidMissionTier(tier) {
-  return Boolean(MISSION_TIERS[tier]?.paid);
+  return guaranteed.max;
 }
 
 export function getRiskPenalties(tier, ninja) {
