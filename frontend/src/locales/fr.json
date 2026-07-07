@@ -86,11 +86,12 @@
     "empty": "Aucune notification pour le moment.",
     "dismiss": "Marquer comme lu",
     "genericTitle": "Notification",
-    "genericBody": "Nouvelle activité sur votre dojo."
+    "genericBody": "Nouvelle activité concernant votre équipe."
   },
   "bureau": {
     "title": "Bureau du Sensei",
     "cycle": "Cycle ninja",
+    "lead": "Résumé de votre équipe, de l'escouade en lice et de l'état du cycle en cours.",
     "activeSquad": "Escouade active",
     "operationLive": "Opération en cours",
     "operationLink": "Voir le rapport",
@@ -131,7 +132,7 @@
       "stagnationWarning": "Prêt au départ mais non inscrit — forme et moral baisseront à H72.",
       "graduationTitle": "Vol d'Oiseau réussi",
       "graduationBody": "{name} est devenu Jonin. Prime : +{ryos} Ryos, +{reputation} réputation.",
-      "arrivalBody": "Un aspirant a rejoint le dojo : {name} ({profile}).",
+      "arrivalBody": "Un aspirant a rejoint l'équipe : {name} ({profile}).",
       "dismiss": "Compris"
     },
     "market": {

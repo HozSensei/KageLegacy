@@ -86,11 +86,12 @@
     "empty": "No notifications yet.",
     "dismiss": "Mark as read",
     "genericTitle": "Notification",
-    "genericBody": "New activity on your dojo."
+    "genericBody": "New activity regarding your squad."
   },
   "bureau": {
     "title": "Sensei Office",
     "cycle": "Ninja cycle",
+    "lead": "Overview of your squad, active lineup, and the current cycle.",
     "activeSquad": "Active squad",
     "operationLive": "Operation in progress",
     "operationLink": "View report",
@@ -131,7 +132,7 @@
       "stagnationWarning": "Ready to graduate but not registered — form and morale will drop at H72.",
       "graduationTitle": "Vol d'Oiseau complete",
       "graduationBody": "{name} is now a Jonin. Bonus: +{ryos} Ryos, +{reputation} reputation.",
-      "arrivalBody": "A new recruit joined the dojo: {name} ({profile}).",
+      "arrivalBody": "A new recruit joined the squad: {name} ({profile}).",
       "dismiss": "Got it"
     },
     "market": {
