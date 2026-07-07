@@ -24,7 +24,8 @@ export const LOADOUT_SMOKE_TANK = {
       [tank.id]: [
         itemRow('fumigene-secours', {
           trigger: 'lethal_mitigation',
-          damageReduction: 0.5,
+          damageReduction: 0.32,
+          requiresStrategy: 'Tank',
           usesPerMatch: 1,
         }),
       ],
@@ -63,7 +64,7 @@ export const LOADOUT_SUSTAIN_SUPPORT = {
         itemRow('herbes-apaisantes', {
           trigger: 'pv_below_pct',
           threshold: 20,
-          pvRestore: 15,
+          pvRestore: 12,
           usesPerMatch: 1,
         }),
         itemRow('cachet-chakra', {
@@ -127,7 +128,8 @@ export const LOADOUT_OPTIMIZED_UNDERDOG = {
       [tank.id]: [
         itemRow('fumigene-secours', {
           trigger: 'lethal_mitigation',
-          damageReduction: 0.5,
+          damageReduction: 0.32,
+          requiresStrategy: 'Tank',
           usesPerMatch: 1,
         }),
       ],
@@ -135,7 +137,7 @@ export const LOADOUT_OPTIMIZED_UNDERDOG = {
         itemRow('herbes-apaisantes', {
           trigger: 'pv_below_pct',
           threshold: 20,
-          pvRestore: 15,
+          pvRestore: 12,
           usesPerMatch: 1,
         }),
       ],
@@ -154,7 +156,8 @@ export const LOADOUT_MISPLACED_SMOKE = {
       [wrong.id]: [
         itemRow('fumigene-secours', {
           trigger: 'lethal_mitigation',
-          damageReduction: 0.5,
+          damageReduction: 0.32,
+          requiresStrategy: 'Tank',
           usesPerMatch: 1,
         }),
       ],

@@ -22,7 +22,7 @@ const emit = defineEmits({
 })
 
 const { t } = useI18n()
-const { overall, elementTone, joninProgress, statKeys, formeBarWidth } = useNinjaDisplay(toRef(props, 'ninja'))
+const { overall, elementTone, elementLabel, joninProgress, statKeys, formeBarWidth } = useNinjaDisplay(toRef(props, 'ninja'))
 
 const firstName = computed(() => props.ninja.name.split(' ')[0])
 const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') || props.ninja.clan_name)
@@ -44,7 +44,7 @@ const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') |
       <p class="font-display text-3xl leading-none text-ink">{{ overall }}</p>
       <p class="mt-2 font-display text-lg leading-tight text-ink">{{ firstName }}</p>
       <p class="text-[11px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
-      <p class="mt-2 text-[11px] uppercase tracking-[0.12em]" :class="elementTone">{{ ninja.element_affinity }}</p>
+      <p class="mt-2 text-[11px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
       <p v-if="slotLabel" class="mt-1 text-[10px] text-ink-faint/70">{{ slotLabel }}</p>
     </div>
   </button>
@@ -71,7 +71,7 @@ const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') |
           <p class="mt-1 text-sm text-ink-muted">
             {{ ninja.age }} {{ t('ninja.age') }}
             <span class="mx-1.5 text-ink-faint">·</span>
-            <span :class="elementTone">{{ ninja.element_affinity }}</span>
+            <span :class="elementTone">{{ t(elementLabel) }}</span>
             <span class="mx-1.5 text-ink-faint">·</span>
             {{ t(`grades.${ninja.grade}`) }}
           </p>

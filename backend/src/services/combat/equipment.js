@@ -110,7 +110,16 @@ export function tryLethalMitigation(defender, damage) {
   for (const effect of defender.equipment?.match || []) {
     if (effect.trigger !== 'lethal_mitigation') continue;
     if (!canUseMatchEffect(defender, effect)) continue;
-    const reduction = effect.damageReduction ?? 0.5;
+
+    const baseReduction = effect.damageReduction ?? 0.4;
+    const requiresStrategy = effect.requiresStrategy;
+    if (requiresStrategy && defender.battle_strategy !== requiresStrategy) {
+      continue;
+    }
+    const reduction = baseReduction;
+
+    if (reduction <= 0) continue;
+
     const mitigatedDamage = Math.max(0, Math.floor(damage * (1 - reduction)));
     recordMatchUse(defender, effect.userItemId, 'item_smoke_save');
     return { damage: mitigatedDamage, mitigated: true };

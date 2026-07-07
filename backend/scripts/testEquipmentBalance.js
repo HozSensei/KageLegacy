@@ -22,7 +22,7 @@ const herbes = [
   {
     slug: 'herbes-apaisantes',
     user_item_id: 1,
-    effects: { match: { trigger: 'pv_below_pct', threshold: 20, pvRestore: 15, usesPerMatch: 1 } },
+    effects: { match: { trigger: 'pv_below_pct', threshold: 20, pvRestore: 12, usesPerMatch: 1 } },
   },
 ];
 
@@ -30,19 +30,24 @@ let f = fighter({ pv: 15, maxPv: 100 });
 applyEquipmentToFighter(f, herbes);
 const used = tryConsumables(f);
 console.assert(used.length === 1, 'Herbes proc sous 20 % PV');
-console.assert(f.pv === 30, 'Herbes restaurent 15 PV');
+console.assert(f.pv === 27, 'Herbes restaurent 12 PV');
 
 const fumigene = [
   {
     slug: 'fumigene-secours',
     user_item_id: 2,
-    effects: { match: { trigger: 'lethal_mitigation', damageReduction: 0.5, usesPerMatch: 1 } },
+    effects: { match: { trigger: 'lethal_mitigation', damageReduction: 0.32, requiresStrategy: 'Tank', usesPerMatch: 1 } },
   },
 ];
-f = fighter({ pv: 10, maxPv: 100 });
+f = fighter({ pv: 10, maxPv: 100, battle_strategy: 'Tank' });
 applyEquipmentToFighter(f, fumigene);
-const mit = tryLethalMitigation(f, 20);
-console.assert(mit.mitigated && mit.damage === 10, 'Fumigène −50 % fatal');
+const mitTank = tryLethalMitigation(f, 20);
+console.assert(mitTank.mitigated && mitTank.damage === 13, 'Fumigène Tank −32 % fatal');
+
+f = fighter({ pv: 10, maxPv: 100, battle_strategy: 'Offensive' });
+applyEquipmentToFighter(f, fumigene);
+const mitOff = tryLethalMitigation(f, 20);
+console.assert(!mitOff.mitigated && mitOff.damage === 20, 'Fumigène ignoré hors consigne Tank');
 
 const poids = [
   {

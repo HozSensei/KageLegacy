@@ -62,9 +62,15 @@ export function useNinjaDisplay(ninjaRef) {
     return FORME_BAR_WIDTH[forme] ?? 50
   })
 
+  const elementLabel = computed(() => {
+    const affinity = ninja.value?.element_affinity
+    return affinity ? `elements.${affinity}` : ''
+  })
+
   return {
     overall,
     elementTone,
+    elementLabel,
     joninProgress,
     statKeys,
     formeBarWidth,
