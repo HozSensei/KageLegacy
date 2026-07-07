@@ -153,7 +153,7 @@ onUnmounted(() => clearInterval(pollTimer))
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="operation-page">
     <header>
       <p class="page-kicker">{{ t('operation.kicker') }}</p>
       <h1 class="page-title mt-3">{{ t('nav.operation') }}</h1>
@@ -211,7 +211,7 @@ onUnmounted(() => clearInterval(pollTimer))
                 </span>
               </div>
 
-              <div class="chronicle mt-8 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
+              <div class="chronicle mt-8 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted" data-testid="operation-chronicle">
                 {{ chronicleText || t('operation.noChronicle') }}
               </div>
 

@@ -14,6 +14,7 @@ const assigning = ref(false)
 const collecting = ref(false)
 const selectedNinjaId = ref(null)
 const selectedTier = ref('routine')
+let fetchSeq = 0
 
 const selectedNinja = computed(() =>
   missions.value?.availableNinjas?.find((n) => n.id === selectedNinjaId.value)
@@ -56,17 +57,34 @@ watch(selectedNinjaId, (id) => {
 
 onMounted(fetchMissions)
 
-async function fetchMissions() {
-  loading.value = true
+function applyMissionsState(next) {
+  missions.value = next
+  loading.value = false
   error.value = null
+}
+
+async function syncMissionsFromServer() {
+  const res = await fetch(`${API_BASE}/api/missions`)
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+  applyMissionsState(await res.json())
+}
+
+async function fetchMissions() {
+  const isInitial = !missions.value
+  if (isInitial) loading.value = true
+  error.value = null
+  const seq = ++fetchSeq
   try {
     const res = await fetch(`${API_BASE}/api/missions`)
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    missions.value = await res.json()
+    const data = await res.json()
+    if (seq !== fetchSeq) return
+    applyMissionsState(data)
   } catch (e) {
+    if (seq !== fetchSeq) return
     error.value = e.message
   } finally {
-    loading.value = false
+    if (isInitial) loading.value = false
   }
 }
 
@@ -74,6 +92,7 @@ async function assign() {
   if (!canAssign.value) return
   assigning.value = true
   error.value = null
+  const seq = ++fetchSeq
   try {
     const res = await fetch(`${API_BASE}/api/missions/assign`, {
       method: 'POST',
@@ -82,29 +101,34 @@ async function assign() {
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
-    missions.value = data.missions
-    if (data.squad) store.applyPayload({ ...data.squad, gameClock: data.gameClock })
+    if (seq !== fetchSeq) return
+    applyMissionsState(data.missions)
     selectedNinjaId.value = null
+    store.applySquadMutation({ ...data.squad, gameClock: data.gameClock })
+    await syncMissionsFromServer()
   } catch (e) {
-    error.value = e.message
+    if (seq === fetchSeq) error.value = e.message
   } finally {
-    assigning.value = false
+    if (seq === fetchSeq) assigning.value = false
   }
 }
 
 async function collect() {
   collecting.value = true
   error.value = null
+  const seq = ++fetchSeq
   try {
     const res = await fetch(`${API_BASE}/api/missions/collect`, { method: 'POST' })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
-    missions.value = data.missions
-    if (data.squad) store.applyPayload({ ...data.squad, gameClock: data.gameClock })
+    if (seq !== fetchSeq) return
+    store.applySquadMutation({ ...data.squad, gameClock: data.gameClock })
+    applyMissionsState(data.missions)
+    await syncMissionsFromServer()
   } catch (e) {
-    error.value = e.message
+    if (seq === fetchSeq) error.value = e.message
   } finally {
-    collecting.value = false
+    if (seq === fetchSeq) collecting.value = false
   }
 }
 
@@ -138,7 +162,7 @@ function lootSummary(mission) {
 </script>
 
 <template>
-  <section class="mt-10 border-t border-line pt-10">
+  <section class="mt-10 border-t border-line pt-10" data-testid="missions-panel">
     <p class="section-label">{{ t('missions.title') }}</p>
     <p class="mt-2 text-sm text-ink-muted">{{ t('missions.lead') }}</p>
 
@@ -163,12 +187,12 @@ function lootSummary(mission) {
             <span v-if="injuryLabel(m.injury_type)" class="block text-xs text-fire">{{ injuryLabel(m.injury_type) }}</span>
           </li>
         </ul>
-        <button type="button" class="btn-ghost mt-3" :disabled="collecting" @click="collect">
+        <button type="button" class="btn-ghost mt-3" data-testid="missions-collect" :disabled="collecting" @click="collect">
           {{ collecting ? t('missions.collecting') : t('missions.collect') }}
         </button>
       </div>
 
-      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-2">
+      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-2" data-testid="missions-active">
         <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
         <p
           v-for="m in missions.activeMissions"
@@ -225,7 +249,12 @@ function lootSummary(mission) {
       <div class="mt-8 grid gap-4 sm:grid-cols-2">
         <label class="block text-xs uppercase tracking-[0.14em] text-ink-faint">
           {{ t('missions.pickNinja') }}
-          <select v-model="selectedNinjaId" class="strategy-select mt-2 w-full" :disabled="!missions.windowOpen">
+          <select
+            v-model="selectedNinjaId"
+            class="strategy-select mt-2 w-full"
+            data-testid="missions-ninja-select"
+            :disabled="!missions.windowOpen"
+          >
             <option :value="null" disabled>{{ t('missions.pickNinja') }}</option>
             <option
               v-for="n in missions.availableNinjas"
@@ -243,6 +272,7 @@ function lootSummary(mission) {
           <select
             v-model="selectedTier"
             class="strategy-select mt-2 w-full"
+            data-testid="missions-tier-select"
             :disabled="!selectedNinjaId || !missions.windowOpen"
           >
             <option
@@ -266,6 +296,7 @@ function lootSummary(mission) {
       <button
         type="button"
         class="btn-ghost mt-6"
+        data-testid="missions-send"
         :disabled="!canAssign || assigning"
         @click="assign"
       >

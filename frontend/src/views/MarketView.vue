@@ -76,7 +76,7 @@ const canBuy = computed(() => (item) =>
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="market-page">
     <header>
       <p class="page-kicker">{{ t('market.kicker') }}</p>
       <h1 class="page-title mt-3">{{ t('nav.market') }}</h1>
@@ -86,7 +86,7 @@ const canBuy = computed(() => (item) =>
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('market.loading') }}</p>
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
 
-    <template v-else-if="market">
+    <div v-else-if="market" data-testid="market-catalog">
       <div class="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-2 text-sm text-ink-muted">
         <p>{{ t('market.balance', { ryos: market.ryos.toLocaleString() }) }}</p>
         <p>
@@ -157,6 +157,6 @@ const canBuy = computed(() => (item) =>
           </article>
         </div>
       </section>
-    </template>
+    </div>
   </div>
 </template>

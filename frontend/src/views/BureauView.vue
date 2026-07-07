@@ -41,7 +41,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="bureau-page">
     <header class="lg:grid lg:grid-cols-12 lg:gap-10">
       <div class="lg:col-span-7">
         <p class="page-kicker">{{ t('bureau.cycle') }}</p>

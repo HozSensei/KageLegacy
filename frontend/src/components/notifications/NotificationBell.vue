@@ -68,6 +68,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       class="relative flex h-9 w-9 items-center justify-center rounded-full border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent"
       :aria-label="t('notifications.bell')"
       :aria-expanded="open"
+      data-testid="notification-bell"
       @click.stop="toggle"
     >
       <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -92,6 +93,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       class="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-3rem))] border border-line bg-bg-card shadow-lg"
       role="dialog"
       :aria-label="t('notifications.panelTitle')"
+      data-testid="notification-panel"
       @click.stop
     >
       <div class="border-b border-line px-4 py-3">
@@ -115,6 +117,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
               v-if="linkPath(note)"
               type="button"
               class="btn-ghost text-[10px]"
+              data-testid="notification-follow"
               @click="followLink(note, $event)"
             >
               {{ linkLabel(note) }}
@@ -122,6 +125,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
             <button
               type="button"
               class="btn-ghost text-[10px]"
+              data-testid="notification-dismiss"
               :disabled="dismissingId === note.id"
               @click="dismiss(note.id, $event)"
             >

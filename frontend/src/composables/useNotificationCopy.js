@@ -51,7 +51,7 @@ export function useNotificationCopy() {
 
   function linkPath(note) {
     if (note.kind === 'market_sale') return '/exchanges'
-    if (note.kind === 'mission_report') return '/bureau'
+    if (note.kind === 'mission_report') return '/'
     return null
   }
 

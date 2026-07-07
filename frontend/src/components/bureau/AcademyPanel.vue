@@ -21,7 +21,7 @@ async function recruit() {
 </script>
 
 <template>
-  <div v-if="academy" class="mt-10 border-t border-line pt-8">
+  <div v-if="academy" class="mt-10 border-t border-line pt-8" data-testid="bureau-academy-panel">
     <p class="section-label">{{ t('bureau.academyTitle') }}</p>
     <p class="mt-2 text-xs leading-relaxed text-ink-muted">
       {{ t('bureau.academyHint') }}

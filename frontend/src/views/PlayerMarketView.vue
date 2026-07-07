@@ -124,7 +124,7 @@ function canBuy(listing) {
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="exchanges-page">
     <header>
       <p class="page-kicker">{{ t('exchanges.kicker') }}</p>
       <h1 class="page-title mt-3">{{ t('nav.exchanges') }}</h1>
@@ -134,7 +134,7 @@ function canBuy(listing) {
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('exchanges.loading') }}</p>
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
 
-    <template v-else-if="market">
+    <div v-else-if="market" data-testid="exchanges-content">
       <div class="mt-10 flex flex-wrap items-baseline gap-x-8 gap-y-2 text-sm text-ink-muted">
         <p>{{ t('market.balance', { ryos: market.ryos.toLocaleString() }) }}</p>
         <p>{{ t('exchanges.commission', { pct: market.commissionPct }) }}</p>
@@ -234,6 +234,6 @@ function canBuy(listing) {
           </li>
         </ul>
       </section>
-    </template>
+    </div>
   </div>
 </template>
