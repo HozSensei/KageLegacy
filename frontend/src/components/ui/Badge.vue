@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 
+defineOptions({ name: 'BaseBadge' })
+
 const props = defineProps({
   label: { type: String, default: '' },
   color: {

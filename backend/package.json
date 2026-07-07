@@ -19,6 +19,7 @@
     "economy:simulate": "node scripts/simulateEconomyCycles.js",
     "economy:calibrate": "node scripts/calibrateEconomy.js",
     "test:egoiste": "node scripts/testEgoisteInsubordination.js",
+    "test:narrative": "node scripts/testNarrativeEngine.js",
     "cycle:tick": "node scripts/cycleTick.js"
   },
   "dependencies": {

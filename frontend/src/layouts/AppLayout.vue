@@ -1,10 +1,13 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
+import { useGameClockLabel } from '../composables/useGameClockLabel.js'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
+
+defineOptions({ name: 'AppLayout' })
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -22,16 +25,7 @@ const navItems = [
   { name: 'operation', path: '/operation', label: 'nav.operation' },
 ]
 
-const cycleLabel = computed(() => {
-  const hour = store.gameClock?.hour ?? 0
-  const phases = {
-    training: 'Entraînement',
-    mid_cycle: 'Milieu de cycle',
-    operation_live: 'Opération',
-    cycle_end: 'Fin de cycle',
-  }
-  return `H${hour} · ${phases[store.gameClock?.phase] || '…'}`
-})
+const cycleLabel = useGameClockLabel(toRef(store, 'gameClock'))
 
 const activeLabel = computed(() => {
   const item = navItems.find((n) =>
@@ -62,7 +56,7 @@ onMounted(async () => {
       <div class="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4 sm:px-10">
         <div class="min-w-0">
           <p class="page-kicker truncate">
-            Kage Legacy <span class="text-ink-faint/60">/</span> {{ activeLabel }}
+            {{ t('app.name') }} <span class="text-ink-faint/60">/</span> {{ activeLabel }}
           </p>
         </div>
 
@@ -109,14 +103,14 @@ onMounted(async () => {
               data-testid="locale-fr"
               :class="locale === 'fr' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
               @click="locale = 'fr'"
-            >Fr</button>
+            >{{ t('locale.fr') }}</button>
             <span class="text-ink-faint/40">/</span>
             <button
               class="px-1.5 py-0.5 transition"
               data-testid="locale-en"
               :class="locale === 'en' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
               @click="locale = 'en'"
-            >En</button>
+            >{{ t('locale.en') }}</button>
           </div>
         </div>
       </div>

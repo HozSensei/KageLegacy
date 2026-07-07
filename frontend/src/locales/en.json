@@ -1,9 +1,30 @@
 {
+  "app": {
+    "name": "Kage Legacy"
+  },
+  "common": {
+    "loading": "Loading…",
+    "vs": "vs"
+  },
+  "gameClock": {
+    "label": "H{hour} · {phase}",
+    "phases": {
+      "training": "Training",
+      "mid_cycle": "Mid-cycle",
+      "operation_live": "Operation",
+      "cycle_end": "Cycle end"
+    }
+  },
+  "locale": {
+    "fr": "Fr",
+    "en": "En"
+  },
   "sensei": {
     "title": "Jonin-Sensei",
     "ryos": "Ryos",
     "reputation": "Reputation",
     "chakra": "Match Chakra",
+    "chakraMax": "{current} / {max}",
     "interception": "Interception",
     "interceptionHint": "Passive reserve: can save a student from a fatal blow (Substitution, 25 chakra)."
   },
@@ -92,6 +113,8 @@
     "title": "Sensei Office",
     "cycle": "Ninja cycle",
     "lead": "Overview of your squad, active lineup, and the current cycle.",
+    "squadRating": "Squad rating",
+    "activeSquadHint": "Hover a card to preview it, click to flip and view details.",
     "activeSquad": "Active squad",
     "operationLive": "Operation in progress",
     "operationLink": "View report",
@@ -168,6 +191,7 @@
     }
   },
   "squad": {
+    "kicker": "Lineup",
     "lead": "Manage your combat trio and bench before tactics lock.",
     "editStrategy": "Edit strategy",
     "doneStrategy": "Done",
@@ -207,9 +231,14 @@
     "Divin": "Divine"
   },
   "placeholders": {
-    "comingSoon": "Coming soon"
+    "kicker": "Coming soon",
+    "comingSoon": "Coming soon",
+    "devMilestone": "This section will be available in a future development milestone."
   },
   "league": {
+    "bot": "bot",
+    "botParen": "(bot)",
+    "matchdayShort": "MD{cycle}",
     "kicker": "Border pool",
     "lead": "Six squads, ten cycles — climb the division or fall in the standings.",
     "loading": "Loading…",

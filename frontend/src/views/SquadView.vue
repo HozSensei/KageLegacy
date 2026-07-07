@@ -216,7 +216,7 @@ function isSwapTarget(position) {
   return swapPending.value?.kind === 'bench' && slots.value[slotIndexFor(position)]
 }
 
-function isBenchSwapTarget(ninjaId) {
+function isBenchSwapTarget(_ninjaId) {
   return swapPending.value?.kind === 'active'
 }
 
@@ -260,7 +260,7 @@ watch(() => store.activeSquad, () => {
 <template>
   <div class="page-shell" data-testid="squad-page">
     <header>
-      <p class="page-kicker">Composition</p>
+      <p class="page-kicker">{{ t('squad.kicker') }}</p>
       <h1 class="page-title mt-3">{{ t('nav.squad') }}</h1>
       <p class="page-lead">{{ t('squad.lead') }}</p>
     </header>

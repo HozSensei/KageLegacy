@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
 import NinjaProfileBadges from './NinjaProfileBadges.vue'
 
+defineOptions({ name: 'NinjaCard' })
+
 const props = defineProps({
   ninja: { type: Object, required: true },
   variant: {
@@ -15,9 +17,12 @@ const props = defineProps({
   slotLabel: { type: String, default: '' },
 })
 
-const emit = defineEmits(['select'])
+const emit = defineEmits({
+  select: (ninja) => ninja != null,
+})
+
 const { t } = useI18n()
-const { overall, elementTone, joninProgress, statKeys } = useNinjaDisplay(toRef(props, 'ninja'))
+const { overall, elementTone, joninProgress, statKeys, formeBarWidth } = useNinjaDisplay(toRef(props, 'ninja'))
 
 const firstName = computed(() => props.ninja.name.split(' ')[0])
 const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') || props.ninja.clan_name)
@@ -94,9 +99,7 @@ const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') |
           <div class="mt-2 h-px bg-line">
             <div
               class="h-px bg-accent-soft transition-all"
-              :style="{
-                width: `${({ Lamentable: 25, Passable: 50, Excellent: 75, Divin: 100 })[ninja.weekly_forme] || 50}%`,
-              }"
+              :style="{ width: `${formeBarWidth}%` }"
             />
           </div>
         </div>
