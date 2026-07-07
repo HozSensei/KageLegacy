@@ -65,13 +65,13 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 27. ~~**Playtest missions idle**~~ — ✅ `npm run playtest:missions` · 3 paliers, notifications `mission_report`, collecte
 28. ~~**Extraire `dojoNotifications.js`**~~ — ✅ service dédié hors `birdFlightService`
 29. ~~**Sim économie multi-cycles**~~ — ✅ `npm run economy:simulate` · achats, match, `--chunin`, `--bird-flight`
-30. ~~**Ryos SIGNED + primes match**~~ — ✅ migration 024 · victoire 1 500 / nul 500 Ryos à H72
+30. ~~**Ryos SIGNED + primes match**~~ — ✅ migration 024 · victoire 1 600 / nul 800 Ryos à H72 (calibré `economy:calibrate`)
 
 **Prochaines priorités :**
 
 31. ~~**Playtest navigateur (Cypress)**~~ — ✅ `npm run test:e2e` · login, missions, notifications, collecte
-32. **Calibrage économie en playtest** — ajuster primes match si bilan trop tendu ou trop confortable
-33. **Benchmark utilitaires** — `combat:benchmark` avec loadouts match/cycle documentés
+32. ~~**Calibrage économie en playtest**~~ — ✅ `npm run economy:calibrate` · profils casual/modéré/engagé · primes 1 600 / 800 Ryos
+33. ~~**Benchmark utilitaires**~~ — ✅ `combat:benchmark` · loadouts `utilityLoadouts.js` · Δ win% documenté
 
 ---
 
@@ -116,14 +116,24 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 
 ### Métriques `combat:benchmark` (implémenté)
 
+Loadouts documentés : `backend/src/services/simulation/utilityLoadouts.js`
+
 ```
 - win% / draw% / loss% (favori vs underdog)
 - upset rate (underdog win)
 - KO rate, ending_tour moyen
 - consommables déclenchés / match
-- procs armes épuisés avant fin de match (%)
-- écart win% avec vs sans équipement (même compo)
+- Δ win% underdog avec vs sans loadout (fumigène cohérent, double utilitaire, hors plan)
+- scénarios multi-cycle (progression stats)
 ```
+
+**Observations juil. 2026 (400 runs, underdog Off/Tank/Protect vs bot +40 %) :**
+
+| Scénario | Δ win% underdog | Cible |
+| :--- | :--- | :--- |
+| Fumigène hors plan (Offensive) | ~+2 pts | ≤ +2 pts ✅ |
+| Fumigène Tank cohérent | ~+11 pts | +4–8 pts ⚠️ (fort mais ressenti) |
+| Double (fumigène + herbes) | ~+13 pts | ≤ +12 pts ⚠️ |
 
 ---
 
@@ -136,7 +146,7 @@ Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run c
 | **Équipement en BDD** | Seed démo sans objets équipés → sims = sans M4 en pratique | Seed optionnel ou scénario benchmark avec loadout |
 | **README roadmap** | Statuts milestones pas à jour | ✅ Aligné juil. 2026 |
 | **Ryos UNSIGNED** | `sensei.ryos INT UNSIGNED` bloque le découvert −5 000 | ✅ Migration 024 `SIGNED` |
-| **Revenus match** | Aucune prime Ryos à la victoire/nul | ✅ `matchEconomy.js` — 1 500 / 500 Ryos (H72) |
+| **Revenus match** | Aucune prime Ryos à la victoire/nul | ✅ `matchEconomy.js` — 1 600 / 800 Ryos (H72) · `economy:calibrate` |
 | **WebSocket `/operation`** | Optionnel dans spec M6 | Polling 30s suffit pour l'instant |
 | **Bots** | `is_bot` : pas d'entraînement, pas de marché | Cohérent ; ne pas leur donner d'objets sans réfléchir |
 

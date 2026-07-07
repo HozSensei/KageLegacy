@@ -9,6 +9,13 @@ import { FORME_DOWNGRADE } from '../combat/constants.js';
 import { computeTrainingGain } from '../training.js';
 import { clampStatToGradeCap, isStatAtGradeCap } from '../gradeProgression.js';
 import { clampStat } from '../ninjaStats.js';
+import { collectEquipmentSummary } from '../combat/equipment.js';
+import {
+  LOADOUT_MISPLACED_SMOKE,
+  LOADOUT_OPTIMIZED_UNDERDOG,
+  LOADOUT_SMOKE_TANK,
+  UTILITY_LOADOUTS,
+} from './utilityLoadouts.js';
 
 const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
@@ -105,12 +112,17 @@ export function createBalancedSquad(prefix, idOffset = 0, statScale = 1) {
   ];
 }
 
-function teamDataFromNinjas(userId, ninjas, sensei = { name: 'Sensei', chakra_pool: 100, training_focus: 'Ninjutsu' }) {
+function teamDataFromNinjas(
+  userId,
+  ninjas,
+  sensei = { name: 'Sensei', chakra_pool: 100, training_focus: 'Ninjutsu' },
+  equipmentByNinja = {}
+) {
   return {
     userId,
     sensei,
     ninjas: ninjas.map(cloneNinja),
-    equipmentByNinja: {},
+    equipmentByNinja,
   };
 }
 
@@ -123,9 +135,22 @@ function combatWinnerToSlot(winner) {
   return winner === COMBAT_SLOT_A ? 'slotA' : 'slotB';
 }
 
-function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei) {
-  const slotA = buildCombatTeam(teamDataFromNinjas(1, slotANinjas, slotASensei), COMBAT_SLOT_A);
-  const slotB = buildCombatTeam(teamDataFromNinjas(2, slotBNinjas, slotBSensei), COMBAT_SLOT_B);
+function runSingleMatch(
+  slotANinjas,
+  slotBNinjas,
+  slotASensei,
+  slotBSensei,
+  slotAEquipment = {},
+  slotBEquipment = {}
+) {
+  const slotA = buildCombatTeam(
+    teamDataFromNinjas(1, slotANinjas, slotASensei, slotAEquipment),
+    COMBAT_SLOT_A
+  );
+  const slotB = buildCombatTeam(
+    teamDataFromNinjas(2, slotBNinjas, slotBSensei, slotBEquipment),
+    COMBAT_SLOT_B
+  );
   return simulateCombat(slotA, slotB);
 }
 
@@ -224,22 +249,40 @@ function squadSnapshot(ninjas) {
 /**
  * Monte Carlo : mêmes rosters, N matchs.
  */
-export function runMonteCarlo({ slotANinjas, slotBNinjas, runs = 500, favoriteSide = 'slotA' }) {
+export function runMonteCarlo({
+  slotANinjas,
+  slotBNinjas,
+  runs = 500,
+  favoriteSide = 'slotA',
+  slotAEquipment = {},
+  slotBEquipment = {},
+}) {
   const counter = initOutcomeCounter();
   const slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' };
   const slotBSensei = { name: 'Sensei B', chakra_pool: 100, training_focus: 'Taijutsu' };
+  let consumablesTriggered = 0;
 
   for (let i = 0; i < runs; i += 1) {
     const result = runSingleMatch(
       slotANinjas.map(cloneNinja),
       slotBNinjas.map(cloneNinja),
       slotASensei,
-      slotBSensei
+      slotBSensei,
+      slotAEquipment,
+      slotBEquipment
     );
     recordOutcome(counter, result, favoriteSide);
+    const summary = collectEquipmentSummary([
+      ...result.homeTeam.fighters,
+      ...result.awayTeam.fighters,
+    ]);
+    consumablesTriggered += summary.reduce((s, row) => s + row.consumedSlugs.length, 0);
   }
 
-  return summarize(counter, favoriteSide);
+  return {
+    ...summarize(counter, favoriteSide),
+    consumablesPerMatch: runs ? Math.round((consumablesTriggered / runs) * 100) / 100 : 0,
+  };
 }
 
 /**
@@ -538,9 +581,11 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
   });
 
   const compositionMatrix = runCompositionMatrix({ runs: Math.max(400, Math.floor(runs * 0.75)) });
+  const utilityBenchmark = runUtilityBenchmark({ runs });
 
   return {
     meta: { runs, cycles, generatedAt: new Date().toISOString() },
+    utilityBenchmark,
     scenarios: {
       equalTeams: { label: 'Équipes symétriques', ...equal },
       demoPlus40VsStandard: {
@@ -565,6 +610,86 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
       botFavored: multiCycleGrowth,
     },
     compositionMatrix,
+  };
+}
+
+/**
+ * Benchmark objets utilitaires — loadouts documentés dans utilityLoadouts.js
+ */
+export function runUtilityBenchmark({ runs = 400 } = {}) {
+  const botSquad = createBalancedSquad('Bot', 20, 1.4).map(cloneNinja);
+  const underdogTactical = createBalancedSquad('Under', 0, 1).map(cloneNinja);
+  underdogTactical[0].battle_strategy = 'Offensive';
+  underdogTactical[1].battle_strategy = 'Tank';
+  underdogTactical[2].battle_strategy = 'Protect';
+
+  const baseline = runMonteCarlo({
+    slotANinjas: underdogTactical,
+    slotBNinjas: botSquad,
+    runs,
+    favoriteSide: 'slotB',
+  });
+
+  const withSmokeTank = runMonteCarlo({
+    slotANinjas: underdogTactical,
+    slotBNinjas: botSquad,
+    runs,
+    favoriteSide: 'slotB',
+    slotAEquipment: LOADOUT_SMOKE_TANK.attach(underdogTactical),
+  });
+
+  const withOptimized = runMonteCarlo({
+    slotANinjas: underdogTactical,
+    slotBNinjas: botSquad,
+    runs,
+    favoriteSide: 'slotB',
+    slotAEquipment: LOADOUT_OPTIMIZED_UNDERDOG.attach(underdogTactical),
+  });
+
+  const withMisplaced = runMonteCarlo({
+    slotANinjas: underdogTactical,
+    slotBNinjas: botSquad,
+    runs,
+    favoriteSide: 'slotB',
+    slotAEquipment: LOADOUT_MISPLACED_SMOKE.attach(underdogTactical),
+  });
+
+  const deltaWinA = (withItems, base) =>
+    Math.round((withItems.slotAWinPct - base.slotAWinPct) * 10) / 10;
+
+  return {
+    loadouts: UTILITY_LOADOUTS.map((l) => ({
+      id: l.id,
+      label: l.label,
+      description: l.description,
+    })),
+    scenarios: {
+      underdogBaseline: {
+        label: 'Underdog Off/Tank/Protect vs Bot +40 % (sans objet)',
+        ...baseline,
+      },
+      smokeTankCoherent: {
+        label: 'Underdog + fumigène Tank (plan cohérent)',
+        ...withSmokeTank,
+        winDeltaPts: deltaWinA(withSmokeTank, baseline),
+      },
+      optimizedDouble: {
+        label: 'Underdog + fumigène Tank + herbes support',
+        ...withOptimized,
+        winDeltaPts: deltaWinA(withOptimized, baseline),
+      },
+      smokeMisplaced: {
+        label: 'Underdog + fumigène sur Offensive (hors plan)',
+        ...withMisplaced,
+        winDeltaPts: deltaWinA(withMisplaced, baseline),
+      },
+    },
+    targets: {
+      misplacedMaxPts: 2,
+      coherentMinPts: 4,
+      coherentMaxPts: 8,
+      doubleMaxPts: 12,
+    },
   };
 }
 

@@ -72,7 +72,7 @@ Si le solde de Ryos du joueur tombe en négatif à cause des salaires, l'équipe
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
-* [ ] Crée les tables de base de données pour les objets (`Item`) et la table d'association avec les ninjas (`Ninja_Items`).
-* [ ] Développe le script de génération du Marché Noir (Cron à l'Heure 0) capable de créer un catalogue de 3 objets aléatoires par utilisateur.
-* [ ] Code la logique de vérification et de verrouillage des "Missions Idle" (Vérifier les prérequis de stats à l'envoi, bloquer le ninja, attribuer les Ryos à la fin).
-* [ ] Implémente le script de prélèvement automatique des salaires à la fin du cycle de 72h, incluant la gestion du cas de faillite (malus de moral).
+* [x] Crée les tables de base de données pour les objets (`Item`) et la table d'association avec les ninjas (`Ninja_Items`).
+* [x] Développe le script de génération du Marché Noir (Cron à l'Heure 0) capable de créer un catalogue de 3 objets aléatoires par utilisateur.
+* [x] Code la logique de vérification et de verrouillage des "Missions Idle" (Vérifier les prérequis de stats à l'envoi, bloquer le ninja, attribuer les Ryos à la fin).
+* [x] Implémente le script de prélèvement automatique des salaires à la fin du cycle de 72h, incluant la gestion du cas de faillite (malus de moral).

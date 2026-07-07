@@ -40,8 +40,8 @@ Pour permettre à des amis de s'affronter directement sans attendre les mécanis
 * 🔴 **Défaite :** 0 Point
 
 **Primes Ryos (H72, humains uniquement)** — `matchEconomy.js` :
-* 🟢 **Victoire :** 1 500 Ryos
-* 🟡 **Nul :** 500 Ryos
+* 🟢 **Victoire :** 1 600 Ryos
+* 🟡 **Nul :** 800 Ryos
 * 🔴 **Défaite :** 0 Ryos
 
 L'idée : le match hebdomadaire est la principale source de revenus pour couvrir salaires et dépenses club ; sans victoire ni activité (missions, marché), la trésorerie se tend.

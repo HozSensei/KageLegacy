@@ -1,8 +1,9 @@
 import { query } from '../config/database.js';
 
 /** Prime ligue — versée à H72 lors de l'application des résultats (humains uniquement). */
-export const MATCH_WIN_RYOS = 1500;
-export const MATCH_DRAW_RYOS = 500;
+/** Calibré juil. 2026 — economy:calibrate profil modéré 20 cycles (missions + match). */
+export const MATCH_WIN_RYOS = 1600;
+export const MATCH_DRAW_RYOS = 800;
 
 async function isHumanUser(userId) {
   const rows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);

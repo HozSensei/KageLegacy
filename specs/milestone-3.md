@@ -75,9 +75,9 @@ Avant d'enregistrer le gain, le script fait un test sur le trait `character_trai
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
-* [ ] Implémente un système de gestion du temps côté Backend (ex: tâches planifiées via des *Cron Jobs* ou la bibliothèque `node-schedule`).
-* [ ] Expose la position actuelle dans le cycle (H0–H72) via l'API pour le Front-End (Bureau, vue Opération).
-* [ ] Implémente le job **H71** : gel des tactiques, lancement de la simulation des matchs et de la génération chronique (coordination avec Milestones 5 et 6).
-* [ ] Rédige le script de fin de cycle (**H72**) qui applique la formule mathématique d'entraînement à l'ensemble des ninjas de la BDD.
-* [ ] Intègre la condition aléatoire du trait "Fainéant" lors du calcul des gains d'entraînement.
-* [ ] Code la fonction de milieu de cycle (Heure 36) qui traite les promotions de grade selon les paliers de statistiques (Combat $\ge 10$ et QI $\ge 8$) et applique les conséquences sur le salaire ou le moral.
+* [x] Implémente un système de gestion du temps côté Backend (ex: tâches planifiées via des *Cron Jobs* ou la bibliothèque `node-schedule`).
+* [x] Expose la position actuelle dans le cycle (H0–H72) via l'API pour le Front-End (Bureau, vue Opération).
+* [x] Implémente le job **H71** : gel des tactiques, lancement de la simulation des matchs et de la génération chronique (coordination avec Milestones 5 et 6).
+* [x] Rédige le script de fin de cycle (**H72**) qui applique la formule mathématique d'entraînement à l'ensemble des ninjas de la BDD.
+* [x] Intègre la condition aléatoire du trait "Fainéant" lors du calcul des gains d'entraînement.
+* [x] Code la fonction de milieu de cycle (Heure 36) qui traite les promotions de grade selon les paliers de statistiques (Combat $\ge 10$ et QI $\ge 8$) et applique les conséquences sur le salaire ou le moral.

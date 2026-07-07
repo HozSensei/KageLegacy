@@ -281,6 +281,7 @@ function printVerdict(timeline, opts) {
   } else {
     console.log('  ✅ Équilibre Ryos soutenable sur la période simulée.');
   }
+  console.log(`  💡 Calibrage analytique : npm run economy:calibrate (primes actuelles ${MATCH_WIN_RYOS} / ${MATCH_DRAW_RYOS})`);
   if (blockedCycles > 0) {
     console.log(`  Gel administratif détecté sur ${blockedCycles} cycle(s).`);
   }

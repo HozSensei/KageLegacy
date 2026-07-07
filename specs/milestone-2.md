@@ -104,8 +104,8 @@ Pendant l'heure live (H71→H72), le Bureau affiche un bandeau *« Opération en
 ---
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
- * [ ] Configure la structure des composants Vue 3 (BureauView, SenseiCard, NinjaCard) en utilisant la syntaxe <script setup>.
- * [ ] Mets en place Vue Router avec `AppLayout` et les routes listées en section 6.
- * [ ] Intègre Tailwind CSS pour créer un rendu "Dashboard sombre de commandement" propre et responsive.
- * [ ] Ajoute les infobulles (tooltips) interactives en utilisant les classes utilitaires de Tailwind pour expliciter les traits de caractère au survol de la souris.
- * [ ] Rédige le script de Seeding Node.js pour injecter en base de données ou générer un fichier JSON de test d'une quinzaine de ninjas cohérents avec les règles des Clans et des Caractères.
+ * [x] Configure la structure des composants Vue 3 (BureauView, SenseiCard, NinjaCard) en utilisant la syntaxe <script setup>.
+ * [x] Mets en place Vue Router avec `AppLayout` et les routes listées en section 6.
+ * [x] Intègre Tailwind CSS pour créer un rendu "Dashboard sombre de commandement" propre et responsive.
+ * [x] Ajoute les infobulles (tooltips) interactives en utilisant les classes utilitaires de Tailwind pour expliciter les traits de caractère au survol de la souris.
+ * [x] Rédige le script de Seeding Node.js pour injecter en base de données ou générer un fichier JSON de test d'une quinzaine de ninjas cohérents avec les règles des Clans et des Caractères.

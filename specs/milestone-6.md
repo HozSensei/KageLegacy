@@ -193,9 +193,9 @@ Le script de débriefing analyse les statistiques du match et génère jusqu'à 
 
 ## 🛠️ Instructions pour le dev (À donner à l'IA pour cette étape)
 
-* [ ] Crée la structure du dictionnaire de phrases textuelles en backend (Node.js), classée par types d'actions, transitions et indicateurs de suspense.
-* [ ] Développe la fonction d'assemblage qui convertit les logs JSON bruts (M5) en segments narratifs littéraires (sans jargon mécanique).
-* [ ] Implémente le générateur de timeline de révélation (intervalles aléatoires sur 60 min, gestion du K.O. anticipé).
-* [ ] Expose l'API `GET /api/operation/live` et, optionnellement, le canal WebSocket de déverrouillage.
-* [ ] Développe la vue Vue 3 `/operation` : article continu, indicateur de suspense, panneau mécanique latéral optionnel.
-* [ ] Code les algorithmes d'analyse post-match pour générer les 3 alertes de débriefing pédagogique, affichées à H72 sous la chronique.
+* [x] Crée la structure du dictionnaire de phrases textuelles en backend (Node.js), classée par types d'actions, transitions et indicateurs de suspense.
+* [x] Développe la fonction d'assemblage qui convertit les logs JSON bruts (M5) en segments narratifs littéraires (sans jargon mécanique).
+* [x] Implémente le générateur de timeline de révélation (intervalles aléatoires sur 60 min, gestion du K.O. anticipé).
+* [x] Expose l'API `GET /api/operation/live` et, optionnellement, le canal WebSocket de déverrouillage. *(WebSocket non livré — polling 30s)*
+* [x] Développe la vue Vue 3 `/operation` : article continu, indicateur de suspense, panneau mécanique latéral optionnel.
+* [x] Code les algorithmes d'analyse post-match pour générer les 3 alertes de débriefing pédagogique, affichées à H72 sous la chronique.
