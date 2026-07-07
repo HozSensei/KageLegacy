@@ -15,6 +15,7 @@ export const useSquadStore = defineStore('squad', () => {
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
   const academy = ref(null)
+  let fetchPromise = null
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -29,19 +30,27 @@ export const useSquadStore = defineStore('squad', () => {
   }
 
   async function fetchSquad() {
-    loading.value = true
-    error.value = null
-    try {
-      const res = await fetch(`${API_BASE}/api/squad`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || `Erreur ${res.status}`)
+    if (fetchPromise) return fetchPromise
+    fetchPromise = (async () => {
+      loading.value = true
+      error.value = null
+      try {
+        const res = await fetch(`${API_BASE}/api/squad`)
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error || `Erreur ${res.status}`)
+        }
+        applyPayload(await res.json())
+      } catch (e) {
+        error.value = e.message
+      } finally {
+        loading.value = false
       }
-      applyPayload(await res.json())
-    } catch (e) {
-      error.value = e.message
+    })()
+    try {
+      await fetchPromise
     } finally {
-      loading.value = false
+      fetchPromise = null
     }
   }
 

@@ -76,7 +76,7 @@ const canBuy = computed(() => (item) =>
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="market-page">
     <header>
       <p class="page-kicker">{{ t('market.kicker') }}</p>
       <h1 class="page-title mt-3">{{ t('nav.market') }}</h1>

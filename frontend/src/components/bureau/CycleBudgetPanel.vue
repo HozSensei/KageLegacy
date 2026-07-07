@@ -10,7 +10,7 @@ const budget = computed(() => store.cycleBudget)
 </script>
 
 <template>
-  <div v-if="budget" class="mt-10 border-t border-line pt-8">
+  <div v-if="budget" class="mt-10 border-t border-line pt-8" data-testid="bureau-budget-panel">
     <p class="section-label">{{ t('bureau.budgetTitle') }}</p>
     <p class="mt-2 text-xs text-ink-muted">{{ t('bureau.budgetHint') }}</p>
 

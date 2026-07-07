@@ -73,6 +73,7 @@ onMounted(async () => {
             :to="item.path"
             class="nav-link"
             :class="{ 'nav-link-active': isActive(item.path) }"
+            :data-testid="`nav-${item.name}`"
           >
             {{ t(item.label) }}
           </router-link>
@@ -125,6 +126,7 @@ onMounted(async () => {
           :to="item.path"
           class="shrink-0 nav-link"
           :class="{ 'nav-link-active': isActive(item.path) }"
+          :data-testid="`nav-${item.name}`"
         >
           {{ t(item.label) }}
         </router-link>

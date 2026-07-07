@@ -14,6 +14,7 @@ const assigning = ref(false)
 const collecting = ref(false)
 const selectedNinjaId = ref(null)
 const selectedTier = ref('routine')
+let fetchSeq = 0
 
 const selectedNinja = computed(() =>
   missions.value?.availableNinjas?.find((n) => n.id === selectedNinjaId.value)
@@ -59,14 +60,18 @@ onMounted(fetchMissions)
 async function fetchMissions() {
   loading.value = true
   error.value = null
+  const seq = ++fetchSeq
   try {
     const res = await fetch(`${API_BASE}/api/missions`)
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    missions.value = await res.json()
+    const data = await res.json()
+    if (seq !== fetchSeq) return
+    missions.value = data
   } catch (e) {
+    if (seq !== fetchSeq) return
     error.value = e.message
   } finally {
-    loading.value = false
+    if (seq === fetchSeq) loading.value = false
   }
 }
 
@@ -82,6 +87,7 @@ async function assign() {
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
+    fetchSeq += 1
     missions.value = data.missions
     if (data.squad) store.applyPayload({ ...data.squad, gameClock: data.gameClock })
     selectedNinjaId.value = null
@@ -99,6 +105,7 @@ async function collect() {
     const res = await fetch(`${API_BASE}/api/missions/collect`, { method: 'POST' })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
+    fetchSeq += 1
     missions.value = data.missions
     if (data.squad) store.applyPayload({ ...data.squad, gameClock: data.gameClock })
   } catch (e) {
@@ -168,7 +175,7 @@ function lootSummary(mission) {
         </button>
       </div>
 
-      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-2">
+      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-2" data-testid="missions-active">
         <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
         <p
           v-for="m in missions.activeMissions"
@@ -225,7 +232,12 @@ function lootSummary(mission) {
       <div class="mt-8 grid gap-4 sm:grid-cols-2">
         <label class="block text-xs uppercase tracking-[0.14em] text-ink-faint">
           {{ t('missions.pickNinja') }}
-          <select v-model="selectedNinjaId" class="strategy-select mt-2 w-full" :disabled="!missions.windowOpen">
+          <select
+            v-model="selectedNinjaId"
+            class="strategy-select mt-2 w-full"
+            data-testid="missions-ninja-select"
+            :disabled="!missions.windowOpen"
+          >
             <option :value="null" disabled>{{ t('missions.pickNinja') }}</option>
             <option
               v-for="n in missions.availableNinjas"
@@ -243,6 +255,7 @@ function lootSummary(mission) {
           <select
             v-model="selectedTier"
             class="strategy-select mt-2 w-full"
+            data-testid="missions-tier-select"
             :disabled="!selectedNinjaId || !missions.windowOpen"
           >
             <option
@@ -266,6 +279,7 @@ function lootSummary(mission) {
       <button
         type="button"
         class="btn-ghost mt-6"
+        data-testid="missions-send"
         :disabled="!canAssign || assigning"
         @click="assign"
       >
