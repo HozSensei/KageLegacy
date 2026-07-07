@@ -22,7 +22,8 @@ import {
 import { getUnreadNotifications } from '../src/services/dojoNotifications.js';
 import { processCycleTick } from '../src/services/cycleJobs.js';
 import { getDebtStatus } from '../src/services/economyDebt.js';
-import { setHourDev, getGameClock } from '../src/services/gameClock.js';
+import { setHourDev, getGameClock, advanceToHourDev } from '../src/services/gameClock.js';
+import { assignMission } from '../src/services/missionService.js';
 import {
   buyListing,
   createNinjaListing,
@@ -78,6 +79,34 @@ async function createBenchNinja(userId, clans) {
   return createNinja({ user_id: userId, ...profile, squad_position: null });
 }
 
+async function boostNinja(ninjaId, patch) {
+  const cols = Object.keys(patch);
+  const sets = cols.map((c) => `${c} = ?`).join(', ');
+  await query(`UPDATE ninjas SET ${sets} WHERE id = ?`, [...cols.map((c) => patch[c]), ninjaId]);
+}
+
+async function assignThreeMissions(userId, clans) {
+  const bench = await query(
+    `SELECT id FROM ninjas WHERE user_id = ? AND squad_position IS NULL ORDER BY id LIMIT 4`,
+    [userId]
+  );
+  if (bench.length < 3) {
+    for (let i = bench.length; i < 3; i += 1) {
+      await createBenchNinja(userId, clans);
+    }
+  }
+  const ninjas = await query(
+    `SELECT id, intelligence, taijutsu FROM ninjas WHERE user_id = ? AND squad_position IS NULL ORDER BY id LIMIT 3`,
+    [userId]
+  );
+  await boostNinja(ninjas[0].id, { intelligence: 5 });
+  await boostNinja(ninjas[1].id, { intelligence: 9 });
+  await boostNinja(ninjas[2].id, { taijutsu: 13 });
+  await assignMission(userId, ninjas[0].id, 'routine');
+  await assignMission(userId, ninjas[1].id, 'infiltration');
+  await assignMission(userId, ninjas[2].id, 'cyclone');
+}
+
 async function snapshot(label, userId, senseiName) {
   const clock = await getGameClock();
   const debt = await getDebtStatus(userId);
@@ -99,7 +128,7 @@ async function snapshot(label, userId, senseiName) {
 }
 
 async function jumpAndTick(hour) {
-  await setHourDev(hour);
+  await advanceToHourDev(hour);
   return processCycleTick();
 }
 
@@ -178,10 +207,13 @@ async function main() {
 
   console.log(`✅ Comptes créés : ${usernameA} / ${usernameB}`);
 
+  await setHourDev(0);
+  await assignThreeMissions(userA.id, clans);
+  await assignThreeMissions(userB.id, clans);
+  console.log('✅ 3 contrats idle / joueur (routine, infiltration, cyclone)');
+
   const benchNinja = await createBenchNinja(userA.id, clans);
   console.log(`✅ Ninja banc créé pour A : ${benchNinja.name} (#${benchNinja.id})`);
-
-  await setHourDev(0);
 
   const { listingId } = await createNinjaListing(userA.id, benchNinja.id, LISTING_PRICE);
   const marketBefore = await getPlayerMarketPayload(userB.id);
@@ -236,6 +268,14 @@ async function main() {
 
   const h72 = await jumpAndTick(72);
   console.log('\n  Tick H72:', h72?.action === 'cycle_reset' ? 'fin de cycle' : JSON.stringify(h72));
+
+  const missionNotesA = (await getUnreadNotifications(userA.id)).filter((n) => n.kind === 'mission_report');
+  const missionNotesB = (await getUnreadNotifications(userB.id)).filter((n) => n.kind === 'mission_report');
+  assert(missionNotesA.length >= 1, 'Notifications mission_report manquantes pour A');
+  assert(missionNotesB.length >= 1, 'Notifications mission_report manquantes pour B');
+  assert(missionNotesA[0].payload?.reportText, 'Rapport narratif mission manquant');
+  console.log(`✅ Missions : ${missionNotesA.length} notif(s) A · ${missionNotesB.length} notif(s) B`);
+
   await snapshot('H72 — après reset', userA.id, 'Sensei Alpha');
   await snapshot('H72 — après reset', userB.id, 'Sensei Beta');
 

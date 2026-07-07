@@ -402,6 +402,9 @@
     "riskLight": "20 % blessure légère",
     "riskCyclone": "40 % blessure grave · 5 % mort",
     "lootHint": "Le loot bonus est tiré au sort au retour — coffres vides, objets ou gros lot (3 % sur Cyclone).",
+    "notificationTitle": "Rapport de mission",
+    "notificationIntro": "{ninja} — {tier} : {ryos} Ryos à collecter au Bureau.",
+    "notificationLink": "Voir le Bureau",
     "eligible": "Paliers possibles pour ce ninja : {ranks}",
     "tiersShort": {
       "routine": "Routine",

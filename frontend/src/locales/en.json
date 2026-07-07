@@ -402,6 +402,9 @@
     "riskLight": "20% light injury",
     "riskCyclone": "40% grave injury · 5% death",
     "lootHint": "Bonus loot is rolled on return — empty chests, items, or jackpot (3% on Cyclone).",
+    "notificationTitle": "Mission report",
+    "notificationIntro": "{ninja} — {tier}: {ryos} Ryos to collect at the Bureau.",
+    "notificationLink": "Open Bureau",
     "eligible": "Possible tiers for this ninja: {ranks}",
     "tiersShort": {
       "routine": "Routine",

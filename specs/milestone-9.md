@@ -62,15 +62,16 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 **Prochaines priorités :**
 
-27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
+27. ~~**Playtest missions idle**~~ — ✅ `npm run playtest:missions` · 3 paliers, notifications `mission_report`, collecte
 28. ~~**Extraire `dojoNotifications.js`**~~ — ✅ service dédié hors `birdFlightService`
 29. ~~**Sim économie multi-cycles**~~ — ✅ `npm run economy:simulate` · achats, match, `--chunin`, `--bird-flight`
 30. ~~**Ryos SIGNED + primes match**~~ — ✅ migration 024 · victoire 1 500 / nul 500 Ryos à H72
 
 **Prochaines priorités :**
 
-27. **Playtest manuel multi-joueurs** — 2 navigateurs, cycle complet avec UI
-31. **Calibrage économie en playtest** — ajuster primes match si bilan trop tendu ou trop confortable
+31. **Playtest navigateur** — 2 sessions réelles, cloche notifications + collecte missions Bureau
+32. **Calibrage économie en playtest** — ajuster primes match si bilan trop tendu ou trop confortable
+33. **Benchmark utilitaires** — `combat:benchmark` avec loadouts match/cycle documentés
 
 ---
 
@@ -147,7 +148,7 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
-| **Missions idle** | Règles, coûts Ryos, blocages équipement, durée vs récompense, affichage Bureau | ✅ Voir `missionRules.js` + panneau Bureau enrichi |
+| **Missions idle** | Règles, loot tables, notifications H72, narratif rapport | ✅ `missionRules.js` · `missionNarrative.js` · `playtest:missions` |
 | **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | ✅ `ninjas.training_focus`, `trainingBilling.js`, panneaux Bureau |
 
 ### Entraînement payant — principes validés (session design)

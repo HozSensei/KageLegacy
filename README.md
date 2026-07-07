@@ -63,6 +63,7 @@ npm run db:seed     # Génère le joueur démo + 15 ninjas
 npm run clock:advance  # Avance l'horloge d'1h (dev)
 npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
 npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
+npm run playtest:missions --prefix backend # Playtest 3 paliers idle + notifications
 npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
 npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
 npm run economy:simulate --prefix backend      # Simule ~20 cycles + achats magasin (équilibre Ryos)
