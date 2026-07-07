@@ -35,7 +35,7 @@ async function onPlanChange(ninjaId) {
 </script>
 
 <template>
-  <div class="mt-10 border-t border-line pt-8">
+  <div class="mt-10 border-t border-line pt-8" data-testid="bureau-training-panel">
     <p class="section-label">{{ t('bureau.trainingPlansTitle') }}</p>
     <p class="mt-2 text-xs leading-relaxed text-ink-muted">
       {{ t('bureau.trainingPlansHint') }}
@@ -55,6 +55,7 @@ async function onPlanChange(ninjaId) {
           <select
             :value="localPlans[ninja.id] ?? ''"
             class="strategy-select max-w-[10rem] text-xs"
+            data-testid="training-plan-select"
             :disabled="saving || store.tacticsLocked()"
             @change="localPlans[ninja.id] = $event.target.value; onPlanChange(ninja.id)"
           >

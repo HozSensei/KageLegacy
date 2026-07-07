@@ -73,6 +73,7 @@ onMounted(async () => {
             :to="item.path"
             class="nav-link"
             :class="{ 'nav-link-active': isActive(item.path) }"
+            :data-testid="`nav-${item.name}`"
           >
             {{ t(item.label) }}
           </router-link>
@@ -94,22 +95,25 @@ onMounted(async () => {
             v-else
             type="button"
             class="text-[11px] uppercase tracking-[0.14em] text-ink-faint hover:text-ink-muted"
+            data-testid="logout-button"
             @click="logout"
           >
             {{ t('auth.logout') }}
           </button>
-          <span v-if="store.gameClock" class="hidden text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline">
+          <span v-if="store.gameClock" class="hidden text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline" data-testid="header-game-clock">
             {{ cycleLabel }}
           </span>
           <div class="flex gap-1 text-[11px] uppercase tracking-[0.14em]">
             <button
               class="px-1.5 py-0.5 transition"
+              data-testid="locale-fr"
               :class="locale === 'fr' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
               @click="locale = 'fr'"
             >Fr</button>
             <span class="text-ink-faint/40">/</span>
             <button
               class="px-1.5 py-0.5 transition"
+              data-testid="locale-en"
               :class="locale === 'en' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
               @click="locale = 'en'"
             >En</button>
@@ -125,6 +129,7 @@ onMounted(async () => {
           :to="item.path"
           class="shrink-0 nav-link"
           :class="{ 'nav-link-active': isActive(item.path) }"
+          :data-testid="`nav-${item.name}`"
         >
           {{ t(item.label) }}
         </router-link>

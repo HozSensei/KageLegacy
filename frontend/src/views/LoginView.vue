@@ -61,9 +61,9 @@ onMounted(() => {
         {{ t('auth.inviteLead', { poolId: invitePoolId }) }}
       </p>
 
-      <p v-if="auth.error" class="mt-6 text-sm text-fire">{{ auth.error }}</p>
+      <p v-if="auth.error" class="mt-6 text-sm text-fire" data-testid="login-error">{{ auth.error }}</p>
 
-      <form class="mt-8 space-y-5" @submit.prevent="submit">
+      <form class="mt-8 space-y-5" data-testid="login-form" @submit.prevent="submit">
         <label class="block text-sm">
           <span class="text-ink-muted">{{ t('auth.username') }}</span>
           <input
@@ -71,6 +71,7 @@ onMounted(() => {
             type="text"
             autocomplete="username"
             required
+            data-testid="login-username"
             class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-accent"
           />
         </label>
@@ -93,12 +94,14 @@ onMounted(() => {
             :autocomplete="mode === 'register' ? 'new-password' : 'current-password'"
             required
             minlength="6"
+            data-testid="login-password"
             class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-accent"
           />
         </label>
 
         <button
           type="submit"
+          data-testid="login-submit"
           class="w-full border border-accent bg-accent/10 py-2.5 text-sm text-accent transition hover:bg-accent/20 disabled:opacity-50"
           :disabled="auth.loading"
         >

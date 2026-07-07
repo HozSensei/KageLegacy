@@ -70,7 +70,7 @@ function matchStatusLabel(status) {
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="league-page">
     <header>
       <p class="page-kicker">{{ t('league.kicker') }}</p>
       <h1 class="page-title mt-3">{{ t('nav.league') }}</h1>
@@ -97,7 +97,7 @@ function matchStatusLabel(status) {
       </dl>
 
       <div class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
-        <section class="lg:col-span-7">
+        <section class="lg:col-span-7" data-testid="league-standings">
           <p class="section-label">{{ t('league.standings') }}</p>
           <table class="league-table mt-6 w-full text-sm">
             <thead>
@@ -166,7 +166,7 @@ function matchStatusLabel(status) {
             </RouterLink>
           </section>
 
-          <section v-if="fixtures?.matches?.length" class="mt-10">
+          <section v-if="fixtures?.matches?.length" class="mt-10" data-testid="league-fixtures">
             <p class="section-label">{{ t('league.fixtures') }}</p>
             <ul class="mt-4 space-y-2">
               <li v-for="match in fixtures.matches" :key="match.id">

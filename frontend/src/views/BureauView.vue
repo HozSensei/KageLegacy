@@ -34,13 +34,12 @@ const debtFrozen = computed(
 )
 
 onMounted(async () => {
-  await store.fetchSquad()
-  if (store.sensei?.language) locale.value = store.sensei.language
+  if (!store.sensei) await store.fetchSquad()
 })
 </script>
 
 <template>
-  <div class="page-shell">
+  <div class="page-shell" data-testid="bureau-page">
     <header class="lg:grid lg:grid-cols-12 lg:gap-10">
       <div class="lg:col-span-7">
         <p class="page-kicker">{{ t('bureau.cycle') }}</p>
@@ -51,7 +50,7 @@ onMounted(async () => {
       </div>
     </header>
 
-    <p v-if="store.loading" class="mt-12 text-sm text-ink-muted">Chargement…</p>
+    <p v-if="store.loading && !store.sensei" class="mt-12 text-sm text-ink-muted">Chargement…</p>
     <p v-else-if="store.error" class="mt-12 text-sm text-fire">{{ store.error }}</p>
 
     <template v-else-if="store.sensei">

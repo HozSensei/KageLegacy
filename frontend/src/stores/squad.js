@@ -15,6 +15,7 @@ export const useSquadStore = defineStore('squad', () => {
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
   const academy = ref(null)
+  let fetchPromise = null
 
   function applyPayload(data) {
     is_bot.value = data.is_bot
@@ -28,20 +29,45 @@ export const useSquadStore = defineStore('squad', () => {
     academy.value = data.academy || null
   }
 
+  /** Mise à jour partielle après mutation — préserve notifs/académie si absentes */
+  function applySquadMutation(data) {
+    if (!data) return
+    if (data.is_bot != null) is_bot.value = data.is_bot
+    if (data.sensei) sensei.value = data.sensei
+    if (data.activeSquad) activeSquad.value = data.activeSquad
+    if (data.bench) bench.value = data.bench
+    if (data.gameClock) gameClock.value = data.gameClock
+    if (data.cycleBudget !== undefined) cycleBudget.value = data.cycleBudget
+    if (data.dispensaryCandidates) dispensaryCandidates.value = data.dispensaryCandidates
+    if (data.academy !== undefined) academy.value = data.academy
+    if (data.notifications) notifications.value = data.notifications
+  }
+
   async function fetchSquad() {
-    loading.value = true
-    error.value = null
-    try {
-      const res = await fetch(`${API_BASE}/api/squad`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || `Erreur ${res.status}`)
+    if (fetchPromise) return fetchPromise
+    const isInitial = !sensei.value
+    fetchPromise = (async () => {
+      if (isInitial) {
+        loading.value = true
+        error.value = null
       }
-      applyPayload(await res.json())
-    } catch (e) {
-      error.value = e.message
+      try {
+        const res = await fetch(`${API_BASE}/api/squad`)
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error || `Erreur ${res.status}`)
+        }
+        applyPayload(await res.json())
+      } catch (e) {
+        error.value = e.message
+      } finally {
+        if (isInitial) loading.value = false
+      }
+    })()
+    try {
+      await fetchPromise
     } finally {
-      loading.value = false
+      fetchPromise = null
     }
   }
 
@@ -62,7 +88,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function saveStrategies(strategyMap, protectTargetMap = {}) {
@@ -84,7 +110,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function recruitFromAcademy() {
@@ -97,7 +123,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function saveTrainingPlans(plans) {
@@ -111,7 +137,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function saveTrainingFocus(trainingFocus) {
@@ -125,7 +151,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function requestChuninExam(ninjaId) {
@@ -139,7 +165,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function requestBirdFlight(ninjaId) {
@@ -153,7 +179,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function dismissNotification(notificationId) {
@@ -167,7 +193,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   async function treatAtDispensary(ninjaId) {
@@ -181,7 +207,7 @@ export const useSquadStore = defineStore('squad', () => {
       const body = await res.json().catch(() => ({}))
       throw new Error(body.error || `Erreur ${res.status}`)
     }
-    applyPayload(await res.json())
+    applySquadMutation(await res.json())
   }
 
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
@@ -214,5 +240,6 @@ export const useSquadStore = defineStore('squad', () => {
     treatAtDispensary,
     tacticsLocked,
     setLanguage,
+    applySquadMutation,
   }
 })
