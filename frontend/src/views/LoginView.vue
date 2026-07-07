@@ -19,6 +19,7 @@ const language = ref('fr')
 const title = computed(() =>
   mode.value === 'register' ? t('auth.registerTitle') : t('auth.loginTitle')
 )
+const showDemoHint = !import.meta.env.PROD
 
 function switchMode(next) {
   mode.value = next
@@ -37,7 +38,7 @@ async function submit() {
           language: language.value,
           invitePoolId: invitePoolId.value || undefined,
         })
-  if (ok) router.push('/')
+  if (ok) router.push('/bureau')
 }
 
 onMounted(() => {
@@ -122,7 +123,7 @@ onMounted(() => {
         </template>
       </p>
 
-      <p class="mt-6 text-center text-xs text-ink-faint">
+      <p v-if="showDemoHint" class="mt-6 text-center text-xs text-ink-faint">
         {{ t('auth.demoHint') }}
       </p>
     </div>

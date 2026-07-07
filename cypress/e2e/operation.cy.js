@@ -10,7 +10,7 @@ describe('Opération — navigation et chronique', () => {
 
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
   });
 
   it('affiche le bandeau latéral des matchs', () => {

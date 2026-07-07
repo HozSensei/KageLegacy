@@ -119,6 +119,39 @@ Au démarrage, le container **attend MySQL**, applique les **migrations** (donn�
 
 **Mise à jour** : `pull` + `up -d` — ne jamais lancer `db:seed` en prod sur une base existante.
 
+### Ancre du cycle (horloge H0)
+
+À la **première migration**, `game_clock.cycle_start_at` est fixé à `UTC_TIMESTAMP()` — donc au premier `db:migrate` de votre déploiement (≈ 20h12 si c'est à ce moment-là que le container a migré).
+
+Pour reculer le début du cycle (ex. « hier à midi ») :
+
+**Option A — une fois via Docker** (après mise à jour image) :
+
+```bash
+docker exec kage_app node scripts/setCycleStart.js --at=2026-07-06T12:00:00+02:00
+```
+
+**Option B — via `.env.prod`** (redémarrage unique, puis retirer `CYCLE_START_AT_APPLY`) :
+
+```env
+CYCLE_START_AT=2026-07-06T12:00:00+02:00
+CYCLE_START_AT_APPLY=true
+```
+
+**Option C — SQL direct** sur MySQL :
+
+```sql
+UPDATE game_clock
+SET
+  cycle_start_at = '2026-07-06 10:00:00',
+  last_tick_hour = LEAST(72, GREATEST(0, TIMESTAMPDIFF(HOUR, '2026-07-06 10:00:00', UTC_TIMESTAMP())))
+WHERE id = 1;
+```
+
+*(midi heure de Bruxelles en été = 10:00 UTC)*
+
+Le redémarrage du container **ne modifie pas** l'ancre — seul `cycle_start_at` en base compte.
+
 Build local : `docker build -t kage-legacy:local .`
 
 ---

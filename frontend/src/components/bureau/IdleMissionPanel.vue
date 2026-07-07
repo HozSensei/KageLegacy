@@ -3,6 +3,10 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad.js'
 
+defineProps({
+  standalone: { type: Boolean, default: false },
+})
+
 const { t } = useI18n()
 const store = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -159,12 +163,24 @@ function lootSummary(mission) {
   if (loot.lootTier === 'none') return t('missions.loot.empty')
   return t(`missions.loot.${loot.narrative}`, {}, loot.narrative)
 }
+
+function hoursUntilResolve(mission) {
+  const currentHour = missions.value?.gameClock?.hour ?? 0
+  const left = mission.resolves_at_hour - currentHour
+  if (left <= 0) return t('missions.resolvesSoon')
+  return t('missions.hoursLeft', { count: left })
+}
 </script>
 
 <template>
-  <section class="mt-10 border-t border-line pt-10" data-testid="missions-panel">
-    <p class="section-label">{{ t('missions.title') }}</p>
-    <p class="mt-2 text-sm text-ink-muted">{{ t('missions.lead') }}</p>
+  <section
+    :class="standalone ? 'mt-10' : 'mt-10 border-t border-line pt-10'"
+    data-testid="missions-panel"
+  >
+    <template v-if="!standalone">
+      <p class="section-label">{{ t('missions.title') }}</p>
+      <p class="mt-2 text-sm text-ink-muted">{{ t('missions.lead') }}</p>
+    </template>
 
     <p v-if="loading" class="mt-4 text-sm text-ink-muted">{{ t('missions.loading') }}</p>
     <p v-else-if="error" class="mt-4 text-sm text-fire">{{ error }}</p>
@@ -192,16 +208,17 @@ function lootSummary(mission) {
         </button>
       </div>
 
-      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-2" data-testid="missions-active">
+      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-3" data-testid="missions-active">
         <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
-        <p
+        <div
           v-for="m in missions.activeMissions"
           :key="m.id"
-          class="text-sm text-ink-muted"
+          class="flex flex-wrap items-baseline justify-between gap-2 border border-line/60 px-4 py-3 text-sm"
         >
-          {{ m.ninja_name }} — {{ t(`missions.tiers.${m.mission_tier}`) }}
-          <span class="text-ink-faint">(H{{ m.resolves_at_hour }})</span>
-        </p>
+          <span class="text-ink">{{ m.ninja_name }}</span>
+          <span class="text-ink-muted">{{ t(`missions.tiers.${m.mission_tier}`) }}</span>
+          <span class="text-xs text-accent">{{ hoursUntilResolve(m) }}</span>
+        </div>
       </div>
 
       <div v-if="missions.failedMissions?.length" class="mt-6 space-y-2">

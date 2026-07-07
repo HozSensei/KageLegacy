@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
+import SyncIcon from '../components/icons/SyncIcon.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -222,6 +223,10 @@ function isBenchSwapTarget(_ninjaId) {
 
 async function toggleStrategyEdit() {
   if (editingStrategy.value) {
+    if (!store.activeSquad.length) {
+      saveError.value = t('squad.noActiveForStrategy')
+      return
+    }
     saving.value = true
     saveError.value = null
     try {
@@ -258,10 +263,8 @@ watch(() => store.activeSquad, () => {
 </script>
 
 <template>
-  <div class="page-shell" data-testid="squad-page">
+  <div class="page-shell page-shell--hero" data-testid="squad-page">
     <header>
-      <p class="page-kicker">{{ t('squad.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.squad') }}</h1>
       <p class="page-lead">{{ t('squad.lead') }}</p>
     </header>
 
@@ -293,7 +296,7 @@ watch(() => store.activeSquad, () => {
           type="button"
           class="btn-ghost shrink-0 disabled:opacity-40"
           data-testid="squad-edit-strategy"
-          :disabled="(!editingStrategy && store.tacticsLocked()) || saving"
+          :disabled="(!editingStrategy && store.tacticsLocked()) || saving || (!editingStrategy && !store.activeSquad.length)"
           @click="toggleStrategyEdit"
         >
           {{
@@ -343,20 +346,7 @@ watch(() => store.activeSquad, () => {
                   :disabled="saving"
                   @click.stop="onActiveSwap(entry.position)"
                 >
-                  <svg
-                    class="squad-card-action__icon squad-card-action__icon--swap"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M20 4v5h-5M4 20v-5h5M20 4a8 8 0 0 0-13.5 3M4 20a8 8 0 0 0 13.5-3"
-                    />
-                  </svg>
+                  <SyncIcon />
                 </button>
                 <button
                   type="button"
@@ -366,7 +356,7 @@ watch(() => store.activeSquad, () => {
                   @click.stop="onActiveRemove(entry.position)"
                 >
                   <svg
-                    class="squad-card-action__icon squad-card-action__icon--swap"
+                    class="squad-card-action__icon squad-card-action__icon--remove"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                   >
@@ -458,20 +448,7 @@ watch(() => store.activeSquad, () => {
                   :disabled="saving"
                   @click.stop="onBenchSwap(ninja.id)"
                 >
-                  <svg
-                    class="squad-card-action__icon squad-card-action__icon--swap"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.75"
-                      d="M20 4v5h-5M4 20v-5h5M20 4a8 8 0 0 0-13.5 3M4 20a8 8 0 0 0 13.5-3"
-                    />
-                  </svg>
+                  <SyncIcon />
                 </button>
               </div>
               <NinjaFlipCard :ninja="ninja" size="xs" />

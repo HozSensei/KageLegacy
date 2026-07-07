@@ -1,7 +1,7 @@
 describe('Magasin du village', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
     cy.visitNav('market');
   });
 

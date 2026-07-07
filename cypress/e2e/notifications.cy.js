@@ -8,7 +8,7 @@ describe('Notifications — cloche Bureau', () => {
 
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
   });
 
   it('ignore une notification mission_report', () => {

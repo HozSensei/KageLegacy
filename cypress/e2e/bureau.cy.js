@@ -1,7 +1,7 @@
 describe('Bureau — panneaux clés', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
   });
 
   it('affiche le Bureau et les panneaux budget / académie', () => {

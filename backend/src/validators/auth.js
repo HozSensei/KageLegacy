@@ -17,3 +17,33 @@ export const loginSchema = z.object({
   username: z.string().trim().min(1),
   password: z.string().min(1),
 });
+
+export const guestRegisterSchema = z.object({
+  senseiName: z.string().trim().min(2).max(100).optional(),
+  language: z.enum(['fr', 'en']).optional(),
+});
+
+export const convertGuestSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(3, 'Minimum 3 caractères.')
+    .max(50)
+    .regex(/^[a-zA-Z0-9_]+$/, 'Lettres, chiffres et underscore uniquement.'),
+  password: z.string().min(6, 'Minimum 6 caractères.').max(128),
+  email: z.string().trim().email('Adresse e-mail invalide.').optional().or(z.literal('')),
+  senseiName: z.string().trim().min(2).max(100).optional(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Mot de passe actuel requis.'),
+  newPassword: z.string().min(6, 'Minimum 6 caractères.').max(128),
+});
+
+export const updateEmailSchema = z.object({
+  email: z.string().trim().email('Adresse e-mail invalide.').optional().or(z.literal('')),
+});
+
+export const updateLanguageSchema = z.object({
+  language: z.enum(['fr', 'en']),
+});

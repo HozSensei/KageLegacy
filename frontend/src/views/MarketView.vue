@@ -78,10 +78,8 @@ const canBuy = computed(() => (item) =>
 </script>
 
 <template>
-  <div class="page-shell" data-testid="market-page">
+  <div class="page-shell page-shell--hero" data-testid="market-page">
     <header>
-      <p class="page-kicker">{{ t('market.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.market') }}</h1>
       <p class="page-lead">{{ t('market.lead') }}</p>
     </header>
 

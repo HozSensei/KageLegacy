@@ -4,6 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import { useFormatRyos } from '../../composables/useFormatRyos'
 
+defineProps({
+  standalone: { type: Boolean, default: false },
+})
+
 const { t } = useI18n()
 const { formatRyos } = useFormatRyos()
 const store = useSquadStore()
@@ -37,11 +41,16 @@ async function onPlanChange(ninjaId) {
 </script>
 
 <template>
-  <div class="mt-10 border-t border-line pt-8" data-testid="bureau-training-panel">
-    <p class="section-label">{{ t('bureau.trainingPlansTitle') }}</p>
-    <p class="mt-2 text-xs leading-relaxed text-ink-muted">
-      {{ t('bureau.trainingPlansHint') }}
-    </p>
+  <div
+    :class="standalone ? 'mt-10' : 'mt-10 border-t border-line pt-8'"
+    data-testid="bureau-training-panel"
+  >
+    <template v-if="!standalone">
+      <p class="section-label">{{ t('bureau.trainingPlansTitle') }}</p>
+      <p class="mt-2 text-xs leading-relaxed text-ink-muted">
+        {{ t('bureau.trainingPlansHint') }}
+      </p>
+    </template>
 
     <ul class="mt-4 space-y-3">
       <li

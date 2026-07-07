@@ -70,10 +70,8 @@ function matchStatusLabel(status) {
 </script>
 
 <template>
-  <div class="page-shell" data-testid="league-page">
+  <div class="page-shell page-shell--hero" data-testid="league-page">
     <header>
-      <p class="page-kicker">{{ t('league.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.league') }}</h1>
       <p class="page-lead">{{ t('league.lead') }}</p>
     </header>
 

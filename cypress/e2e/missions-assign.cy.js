@@ -1,4 +1,4 @@
-describe('Bureau — envoi de contrat (UI)', () => {
+describe('Missions — envoi de contrat (UI)', () => {
   before(() => {
     cy.task('resetDemoCycle').then((result) => {
       expect(result.ok).to.eq(true);
@@ -10,7 +10,7 @@ describe('Bureau — envoi de contrat (UI)', () => {
   beforeEach(() => {
     cy.intercept('GET', '/api/missions').as('getMissions');
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/missions');
     cy.wait('@getMissions');
     cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
   });
@@ -31,7 +31,7 @@ describe('Bureau — envoi de contrat (UI)', () => {
       expect(response.body.missions.activeMissions).to.have.length.gte(1);
     });
 
-    cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
+    cy.url().should('include', '/missions');
     cy.get('[data-testid="missions-panel"]').should('not.contain.text', 'Chargement');
     cy.get('[data-testid="missions-active"]', { timeout: 10000 }).should('exist').and('be.visible');
     cy.get('[data-testid="missions-active"]').contains(/En mission|On mission/);

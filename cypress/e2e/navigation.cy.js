@@ -1,7 +1,7 @@
 describe('Navigation — routes principales', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
   });
 
   const routes = ['bureau', 'squad', 'league', 'market', 'exchanges', 'inventory', 'operation'];

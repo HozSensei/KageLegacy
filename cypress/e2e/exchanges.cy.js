@@ -1,7 +1,7 @@
 describe('Échanges entre joueurs', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
     cy.visitNav('exchanges');
   });
 

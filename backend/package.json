@@ -10,6 +10,7 @@
     "db:seed": "node scripts/seedNinjas.js",
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
+    "clock:set-start": "node scripts/setCycleStart.js",
     "combat:simulate": "node scripts/simulateMatch.js",
     "combat:benchmark": "node scripts/simulateCycles.js",
     "playtest:cycle": "node scripts/playtestCycle.js",

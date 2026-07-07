@@ -100,6 +100,120 @@ export const useAuthStore = defineStore('auth', () => {
     checked.value = true
   }
 
+  async function loginAsGuest(senseiName) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/guest`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senseiName, language: 'fr' }),
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      user.value = body.user
+      sensei.value = body.sensei
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+      checked.value = true
+    }
+  }
+
+  async function convertGuest({ username, password, email, senseiName }) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/convert`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, email, senseiName }),
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      user.value = body.user
+      sensei.value = body.sensei
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function changePassword(currentPassword, newPassword) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/profile/password`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateEmail(email) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/profile/email`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email?.trim() || '' }),
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      user.value = body.user
+      sensei.value = body.sensei
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function updateLanguage(language) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/profile/language`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language }),
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      user.value = body.user
+      sensei.value = body.sensei
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     user,
     sensei,
@@ -110,6 +224,11 @@ export const useAuthStore = defineStore('auth', () => {
     fetchMe,
     login,
     register,
+    loginAsGuest,
+    convertGuest,
+    changePassword,
+    updateEmail,
+    updateLanguage,
     logout,
   }
 })

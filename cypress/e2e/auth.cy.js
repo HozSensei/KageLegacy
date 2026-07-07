@@ -1,7 +1,7 @@
 describe('Auth — connexion démo', () => {
   it('redirige vers le Bureau après login', () => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
     cy.contains('Bureau du Sensei').should('exist');
   });
 
@@ -17,10 +17,11 @@ describe('Auth — connexion démo', () => {
 
   it('déconnecte et retourne au login', () => {
     cy.loginDemo();
-    cy.visit('/');
-    cy.get('[data-testid="logout-button"]').click();
-    cy.url().should('include', '/login');
-    cy.get('[data-testid="login-form"]').should('be.visible');
+    cy.visit('/bureau');
+    cy.get('[data-testid="profile-menu-button"]').click();
+    cy.get('[data-testid="profile-logout"]').click();
+    cy.url().should('include', '/');
+    cy.get('[data-testid="landing-page"]').should('be.visible');
     Cypress.session.clearAllSavedSessions();
   });
 });
