@@ -224,6 +224,13 @@
       "Offensive": "Offensif"
     }
   },
+  "elements": {
+    "Katon": "Katon",
+    "Suiton": "Suiton",
+    "Raiton": "Raiton",
+    "Doton": "Doton",
+    "Futon": "Futon"
+  },
   "grades": {
     "Genin": "Genin",
     "Chunin": "Chunin",

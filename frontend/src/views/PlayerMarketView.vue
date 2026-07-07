@@ -22,7 +22,7 @@ function listingTitle(listing) {
 
 function listingSubtitle(listing) {
   if (listing.listingType === 'ninja') {
-    return `${listing.grade} · ${listing.age} ${t('ninja.age')} · ${listing.clanName}`
+    return `${t(`grades.${listing.grade}`)} · ${listing.age} ${t('ninja.age')} · ${listing.clanName}`
   }
   return categoryLabel(listing.category)
 }

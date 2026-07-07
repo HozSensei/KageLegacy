@@ -70,9 +70,9 @@ Usage depuis l'inventaire / Bureau. **Pas de slot combat.**
 
 | Slug | Nom | Effet | Prix |
 | :--- | :--- | :--- | :--- |
-| `fumigene-secours` | Fumigène de secours | Si le ninja **subirait un coup mettant PV à 0** (après interception Sensei) : dégâts **−50 %**, objet détruit. | 550 |
+| `fumigene-secours` | Fumigène de secours | Si le ninja **Tank** subirait un coup fatal (après interception Sensei) : dégâts **−32 %**, objet détruit. **Hors consigne Tank : aucun effet.** | 550 |
 | `parchemin-rupture` | Parchemin de rupture | Si l'adversaire attaque en **Genjutsu** contre ce ninja : **+4** au jet de dissipation (tour de la riposte mentale). 1× / match. | 600 |
-| `herbes-apaisantes` | Herbes apaisantes | Si PV **< 20 %** en cours de match : **+15 PV**. Auto. | 500 |
+| `herbes-apaisantes` | Herbes apaisantes | Si PV **< 20 %** en cours de match : **+12 PV**. Auto. | 500 |
 | `cachet-chakra` | Cachet de chakra | Si Chakra **< 15 %** : **+12 Chakra**. Auto. | 500 |
 | `parchemin-leurre` | Parchemin de leurre | **1×** : si ciblé, **30 %** de chance de rediriger vers un autre allié. | 550 |
 
@@ -109,7 +109,7 @@ Ces dépenses donnent la **vraie** valeur aux Ryos ; le Marché est un compléme
 
 ```text
 match consumables (effects JSON)
-├── trigger: lethal_mitigation   → fumigène (−50 % dégâts fatals)
+├── trigger: lethal_mitigation   → fumigène (−32 % fatals, Tank uniquement)
 ├── trigger: genjutsu_defense    → parchemin rupture
 ├── trigger: pv_below_pct        → herbes (existant)
 ├── trigger: chakra_below_pct    → cachet (existant)

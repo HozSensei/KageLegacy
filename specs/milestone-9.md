@@ -80,6 +80,13 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 36. ~~**CI lint + smoke tests**~~ — ✅ `.github/workflows/ci.yml` · `npm run lint` · `test:narrative` · `economy:calibrate`
 37. ~~**E2E locale EN chronique**~~ — ✅ `locale.cy.js` · `/operation` en anglais
 
+**Prochaines priorités :**
+
+38. ~~**Équilibrage fumigène / herbes**~~ — ✅ migration 029 · Tank −32 % · herbes +12 PV · benchmark ~+4 pts
+39. ~~**Polish i18n éléments / grades**~~ — ✅ `elements.*` · `useNinjaDisplay` · marché P2P
+40. ~~**Chroniques legacy i18n**~~ — ✅ `npm run narrative:backfill` · segments `template_key`
+41. ~~**Rename Badge → BaseBadge**~~ — ✅ `BaseBadge.vue`
+
 ---
 
 ## 👁️ Points de vigilance (équilibrage & simulations)
@@ -134,13 +141,15 @@ Loadouts documentés : `backend/src/services/simulation/utilityLoadouts.js`
 - scénarios multi-cycle (progression stats)
 ```
 
-**Observations juil. 2026 (400 runs, underdog Off/Tank/Protect vs bot +40 %) :**
+**Observations juil. 2026 (500 runs, underdog Off/Tank/Protect vs bot +40 %) — après migration 029 :**
 
 | Scénario | Δ win% underdog | Cible |
 | :--- | :--- | :--- |
-| Fumigène hors plan (Offensive) | ~+2 pts | ≤ +2 pts ✅ |
-| Fumigène Tank cohérent | ~+11 pts | +4–8 pts ⚠️ (fort mais ressenti) |
-| Double (fumigène + herbes) | ~+13 pts | ≤ +12 pts ⚠️ |
+| Fumigène hors plan (Offensive) | ~−2 à +2 pts | ≤ +2 pts ✅ |
+| Fumigène Tank cohérent | ~+4 pts | +4–8 pts ✅ |
+| Double (fumigène + herbes) | ~+4 pts | ≤ +12 pts ✅ |
+
+*Règle : `lethal_mitigation` ne proc que si `battle_strategy === Tank` ; réduction 32 %.*
 
 ---
 

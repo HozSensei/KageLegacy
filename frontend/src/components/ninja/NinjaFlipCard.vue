@@ -20,7 +20,7 @@ const emit = defineEmits(['select', 'flip'])
 const { t } = useI18n()
 const flipped = ref(false)
 const hovered = ref(false)
-const { overall, elementTone, joninProgress, statKeys, isNobleBloodline } = useNinjaDisplay(toRef(props, 'ninja'))
+const { overall, elementTone, elementLabel, joninProgress, statKeys, isNobleBloodline } = useNinjaDisplay(toRef(props, 'ninja'))
 
 const TILT = 16
 
@@ -107,7 +107,7 @@ function gradeColor(grade) {
             </p>
             <p class="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
             <NinjaProfileBadges class="mt-2" :ninja="ninja" compact />
-            <p class="mt-2 text-[10px] uppercase tracking-[0.12em]" :class="elementTone">{{ ninja.element_affinity }}</p>
+            <p class="mt-2 text-[10px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
             <p v-if="slotLabel" class="mt-1 text-[9px] text-ink-faint/80">{{ slotLabel }}</p>
           </div>
 
