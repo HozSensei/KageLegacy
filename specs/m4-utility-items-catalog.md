@@ -259,7 +259,7 @@ village_shop_promos (
 3. `MarketView` : grille catalogue + état stock/promo
 4. Conserver `POST /api/market/purchase` (ou renommer `/api/shop`)
 
-**Statut :** spec validée PO — **non implémentée** (code actuel = 3 offres aléatoires).
+**Statut :** ✅ livré (juil. 2026) — `villageShopService.js`, migration 019+, grille catalogue stocks/promos/réassort.
 
 ---
 

@@ -1,8 +1,12 @@
 # 🔭 Milestone 9 : Feuille de Route Vivante & Points de Vigilance
 
-Ce document **n'est pas une feature à livrer en un bloc**. Il centralise tout ce qui a émergé des discussions de design et d'implémentation : priorités restantes, sujets à surveiller, dettes connues, et idées volontairement mises en attente.
+Ce document **n'est pas une feature à livrer en un bloc**. Il centralise la mémoire du projet : priorités livrées (M1–M9), sujets à surveiller, dettes connues, et idées volontairement mises en attente.
 
-**Mise à jour :** à enrichir à chaque session de design ou PR significative.
+**Mise à jour :** juil. 2026 — priorités #1–#41 clôturées. À enrichir à chaque nouvelle session de design ou PR significative.
+
+### ✅ Clôture milestone 9 (juil. 2026)
+
+Le socle jouable est **complet** : auth, bureau, ligue, marché P2P global, missions idle, chronique `/operation`, économie calibrée, CI verte. Les prochains chantiers (WebSocket, ETag, spécialisations…) partent d'une base stable — voir § Mis en attente.
 
 ---
 
@@ -15,7 +19,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | **Équilibrer avant d'empiler** | Le moteur M5 a été calibré avant M4 (objets). Ne pas ajouter de bonus plats par-dessus. |
 | **Ryos = gestion du club** | Dispensaire, salaires, examens, dojo — le **magasin du village** est un **complément**, pas la seule sink. |
 | **Objets = utilitaires uniquement** | Pas d'armes/armures +stats. Catégories **bureau / match / cycle**. Voir [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md). |
-| **Match = mécaniques, pas power creep** | Fumigène (−50 % fatal), rupture genjutsu, leurres — pas de +2 Taijutsu. |
+| **Match = mécaniques, pas power creep** | Fumigène (−32 % fatal en Tank), rupture genjutsu, leurres — pas de +2 Taijutsu. |
 | **1 slot par ninja** | Match **ou** cycle ; objets bureau = bouton « Utiliser » sans équipement. |
 | **Pas de compo dominante** | Cercle Assaut → Mur → Flux → Assaut (~60 % win par matchup). Équilibre (mixte) ≈ neutre. Voir [`composition-triangle.md`](./composition-triangle.md). |
 | **Chronique découplée** | M6 lit les `combat_log` JSON ; le traducteur narratif s'enrichit sans toucher `combatEngine.js`. |
@@ -87,6 +91,8 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 40. ~~**Chroniques legacy i18n**~~ — ✅ `npm run narrative:backfill` · segments `template_key`
 41. ~~**Rename Badge → BaseBadge**~~ — ✅ `BaseBadge.vue`
 
+*Aucune priorité ouverte dans ce milestone — les prochaines idées passent par une nouvelle feuille de route ou le backlog « Mis en attente ».*
+
 ---
 
 ## 👁️ Points de vigilance (équilibrage & simulations)
@@ -157,7 +163,7 @@ Loadouts documentés : `backend/src/services/simulation/utilityLoadouts.js`
 
 | Sujet | Détail | Action |
 | :--- | :--- | :--- |
-| **M6 ↔ M4** | La chronique ne mentionne pas encore les objets utilisés en match | ✅ Panneau tactique objets utilisés/non déclenchés ; phrases item dans `narrativeAssembler` |
+| **M6 ↔ M4** | Objets utilisés en match dans la chronique | ✅ Panneau tactique objets utilisés/non déclenchés ; phrases item dans `narrativeAssembler` |
 | **M6 ↔ futur** | Spécialisations, dispensaire, Protect ciblé changeront les logs | Garder M6 comme couche traduction, pas de texte dans M5 |
 | **Équipement en BDD** | Seed démo sans objets équipés → sims = sans M4 en pratique | Seed optionnel ou scénario benchmark avec loadout |
 | **README roadmap** | Statuts milestones pas à jour | ✅ Aligné juil. 2026 |
@@ -165,6 +171,8 @@ Loadouts documentés : `backend/src/services/simulation/utilityLoadouts.js`
 | **Revenus match** | Aucune prime Ryos à la victoire/nul | ✅ `matchEconomy.js` — 1 600 / 800 Ryos (H72) · `economy:calibrate` |
 | **WebSocket `/operation`** | Optionnel dans spec M6 | Polling 30s suffit pour l'instant |
 | **CI GitHub Actions** | Lint + smoke tests backend ; pas d'E2E ni MySQL en CI | ✅ `ci.yml` : lint, narratif, Égoïste, `economy:calibrate`, `combat:benchmark` (100 runs) |
+| **Bots** | `is_bot` : pas d'entraînement, pas de marché | Cohérent ; ne pas leur donner d'objets sans réfléchir |
+| **i18n grades / éléments** | Clés `grades.*` / `elements.*` souvent identiques FR/EN | Acceptable pour l'instant (Futon → Wind en EN) ; traduire si besoin PO |
 
 ---
 
@@ -277,7 +285,18 @@ flowchart TD
 
 ## 🛠️ Instructions pour le dev
 
-* [ ] Consulter ce fichier **avant** d'ouvrir une PR qui touche combat, économie, tactiques ou chronique.
-* [x] Après un changement d'équilibre : lancer `npm run combat:benchmark` et noter les résultats dans ce document.
-* [ ] Cocher / déplacer les items vers « Livré » quand mergés.
-* [ ] Ne pas traiter ce fichier comme une spec figée : c'est la **mémoire du projet**.
+1. Consulter ce fichier **avant** toute PR qui touche combat, économie, tactiques ou chronique.
+2. Après un changement d'équilibre : lancer `npm run combat:benchmark` et noter les résultats dans ce document.
+3. Cocher / déplacer les items vers « Livré » quand mergés.
+4. Ne pas traiter ce fichier comme une spec figée : c'est la **mémoire du projet**.
+
+### Validation locale (avant merge)
+
+```bash
+npm ci && npm ci --prefix backend && npm ci --prefix frontend
+npm run lint && npm run test:unit
+npm run economy:calibrate && npm run combat:benchmark
+npm run test:e2e          # optionnel — nécessite MySQL + seed
+```
+
+En prod / staging après migration : `npm run db:migrate` · chroniques legacy : `npm run narrative:backfill --prefix backend` (one-shot).
