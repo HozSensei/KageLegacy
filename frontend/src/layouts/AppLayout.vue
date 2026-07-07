@@ -6,6 +6,7 @@ import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
 import { useGameClockLabel } from '../composables/useGameClockLabel.js'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
+import ProfileMenu from '../components/layout/ProfileMenu.vue'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
 
 defineOptions({ name: 'AppLayout' })
@@ -50,6 +51,9 @@ async function logout() {
 
 onMounted(async () => {
   if (!auth.checked) await auth.fetchMe()
+  if (auth.sensei?.language && ['fr', 'en'].includes(auth.sensei.language)) {
+    locale.value = auth.sensei.language
+  }
   if (!store.sensei) store.fetchSquad()
 })
 </script>
@@ -57,75 +61,54 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen bg-bg">
     <header class="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur-md">
-      <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-4 sm:px-10 sm:py-4">
-        <p class="shrink-0 font-display text-lg text-ink sm:text-xl">
+      <!-- Barre 1 : identité + notifications + profil -->
+      <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-10 sm:py-3.5">
+        <router-link to="/bureau" class="shrink-0 font-display text-lg text-ink transition hover:text-accent sm:text-xl">
           {{ t('app.name') }}
-        </p>
-
-        <nav class="hidden min-w-0 flex-1 items-center justify-center gap-6 overflow-x-auto md:flex lg:gap-8">
-          <router-link
-            v-for="item in navItems"
-            :key="item.name"
-            :to="item.path"
-            class="nav-link shrink-0"
-            :class="{ 'nav-link-active': isActive(item.path) }"
-            :data-testid="`nav-${item.name}`"
-          >
-            {{ t(item.label) }}
-          </router-link>
-        </nav>
+        </router-link>
 
         <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          <span v-if="auth.user" class="hidden max-w-[8rem] truncate text-[11px] text-ink-muted lg:inline">
-            {{ auth.sensei?.name || auth.user.username }}
-          </span>
-          <button
+          <NotificationBell v-if="auth.user" />
+          <ProfileMenu
             v-if="auth.user"
-            type="button"
-            class="hidden text-[11px] uppercase tracking-[0.14em] text-ink-faint hover:text-ink-muted sm:inline"
-            data-testid="logout-button"
-            @click="logout"
+            @logout="logout"
+            @convert="showConvert = true"
+          />
+          <router-link
+            v-else
+            to="/register"
+            class="border border-accent bg-accent/10 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-accent transition hover:bg-accent/20"
+            data-testid="header-register-cta"
           >
-            {{ t('auth.logout') }}
-          </button>
+            {{ t('auth.register') }}
+          </router-link>
+        </div>
+      </div>
+
+      <!-- Barre 2 : navigation jeu + horloge -->
+      <div class="border-t border-line">
+        <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5 sm:px-10">
+          <nav class="flex min-w-0 flex-1 gap-5 overflow-x-auto lg:gap-8">
+            <router-link
+              v-for="item in navItems"
+              :key="item.name"
+              :to="item.path"
+              class="nav-link shrink-0"
+              :class="{ 'nav-link-active': isActive(item.path) }"
+              :data-testid="`nav-${item.name}`"
+            >
+              {{ t(item.label) }}
+            </router-link>
+          </nav>
           <span
             v-if="store.gameClock"
-            class="hidden text-[11px] uppercase tracking-[0.14em] text-ink-faint md:inline"
+            class="hidden shrink-0 text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline"
             data-testid="header-game-clock"
           >
             {{ cycleLabel }}
           </span>
-          <div class="flex gap-1 text-[11px] uppercase tracking-[0.14em]">
-            <button
-              class="px-1.5 py-0.5 transition"
-              data-testid="locale-fr"
-              :class="locale === 'fr' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
-              @click="locale = 'fr'"
-            >{{ t('locale.fr') }}</button>
-            <span class="text-ink-faint/40">/</span>
-            <button
-              class="px-1.5 py-0.5 transition"
-              data-testid="locale-en"
-              :class="locale === 'en' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
-              @click="locale = 'en'"
-            >{{ t('locale.en') }}</button>
-          </div>
-          <NotificationBell v-if="auth.user || store.sensei" />
         </div>
       </div>
-
-      <nav class="flex gap-5 overflow-x-auto border-t border-line px-4 py-2.5 md:hidden">
-        <router-link
-          v-for="item in navItems"
-          :key="item.name"
-          :to="item.path"
-          class="shrink-0 nav-link"
-          :class="{ 'nav-link-active': isActive(item.path) }"
-          :data-testid="`nav-${item.name}`"
-        >
-          {{ t(item.label) }}
-        </router-link>
-      </nav>
     </header>
 
     <div

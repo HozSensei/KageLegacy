@@ -19,6 +19,7 @@ const language = ref('fr')
 const title = computed(() =>
   mode.value === 'register' ? t('auth.registerTitle') : t('auth.loginTitle')
 )
+const showDemoHint = !import.meta.env.PROD
 
 function switchMode(next) {
   mode.value = next
@@ -122,7 +123,7 @@ onMounted(() => {
         </template>
       </p>
 
-      <p v-if="!import.meta.env.PROD" class="mt-6 text-center text-xs text-ink-faint">
+      <p v-if="showDemoHint" class="mt-6 text-center text-xs text-ink-faint">
         {{ t('auth.demoHint') }}
       </p>
     </div>

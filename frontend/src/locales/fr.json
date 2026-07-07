@@ -121,6 +121,16 @@
     "convert": "Convertir",
     "later": "Plus tard"
   },
+  "profile": {
+    "menu": "Mon profil",
+    "language": "Langue",
+    "changeEmail": "Changer l'e-mail",
+    "changePassword": "Changer le mot de passe",
+    "email": "Adresse e-mail",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "save": "Enregistrer"
+  },
   "training": {
     "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi."
   },

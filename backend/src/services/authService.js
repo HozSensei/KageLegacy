@@ -238,6 +238,51 @@ export async function setUserPassword(userId, password) {
   await query('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId]);
 }
 
+export async function changeUserPassword(userId, currentPassword, newPassword) {
+  const rows = await query(
+    'SELECT password_hash, is_guest FROM users WHERE id = ? LIMIT 1',
+    [userId]
+  );
+  const row = rows[0];
+  if (!row) {
+    const err = new Error('Utilisateur introuvable.');
+    err.statusCode = 404;
+    throw err;
+  }
+  if (row.is_guest) {
+    const err = new Error('Compte invité : convertissez d\'abord votre essai.');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (!row.password_hash || !verifyPassword(currentPassword, row.password_hash)) {
+    const err = new Error('Mot de passe actuel incorrect.');
+    err.statusCode = 401;
+    throw err;
+  }
+  await setUserPassword(userId, newPassword);
+}
+
+export async function updateUserEmail(userId, email) {
+  const user = await findUserById(userId);
+  if (!user) {
+    const err = new Error('Utilisateur introuvable.');
+    err.statusCode = 404;
+    throw err;
+  }
+  await query('UPDATE users SET email = ? WHERE id = ?', [email || null, userId]);
+  return findUserById(userId);
+}
+
+export async function updateSenseiLanguage(userId, language) {
+  const result = await query('UPDATE sensei SET language = ? WHERE user_id = ?', [language, userId]);
+  if (!result.affectedRows) {
+    const err = new Error('Sensei introuvable.');
+    err.statusCode = 404;
+    throw err;
+  }
+  return language;
+}
+
 export function buildSessionCookie(token, expiresAt) {
   const maxAge = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
   const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';

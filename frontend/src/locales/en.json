@@ -121,6 +121,16 @@
     "convert": "Convert",
     "later": "Later"
   },
+  "profile": {
+    "menu": "My profile",
+    "language": "Language",
+    "changeEmail": "Change email",
+    "changePassword": "Change password",
+    "email": "Email address",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "save": "Save"
+  },
   "training": {
     "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set."
   },

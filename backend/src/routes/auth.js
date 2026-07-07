@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   authenticateUser,
   buildSessionCookie,
+  changeUserPassword,
   clearSessionCookie,
   convertGuestToAccount,
   createSession,
@@ -10,14 +11,19 @@ import {
   registerGuestUser,
   registerUser,
   revokeSession,
+  updateSenseiLanguage,
+  updateUserEmail,
 } from '../services/authService.js';
 import { findSenseiByUserId } from '../models/sensei.js';
 import { getSessionToken } from '../middleware/auth.js';
 import {
+  changePasswordSchema,
   convertGuestSchema,
   guestRegisterSchema,
   loginSchema,
   registerSchema,
+  updateEmailSchema,
+  updateLanguageSchema,
 } from '../validators/auth.js';
 
 const router = Router();
@@ -125,6 +131,64 @@ router.post('/logout', async (req, res, next) => {
     await revokeSession(token);
     res.setHeader('Set-Cookie', clearSessionCookie());
     res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+async function requireSessionUser(req, res) {
+  const token = getSessionToken(req);
+  const user = token ? await getUserBySessionToken(token) : null;
+  if (!user) {
+    res.status(401).json({ error: 'Non authentifié.' });
+    return null;
+  }
+  return user;
+}
+
+router.patch('/profile/password', async (req, res, next) => {
+  try {
+    const user = await requireSessionUser(req, res);
+    if (!user) return;
+
+    const parsed = changePasswordSchema.parse(req.body);
+    await changeUserPassword(user.id, parsed.currentPassword, parsed.newPassword);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/profile/email', async (req, res, next) => {
+  try {
+    const user = await requireSessionUser(req, res);
+    if (!user) return;
+
+    const parsed = updateEmailSchema.parse(req.body);
+    const email = parsed.email?.trim() || null;
+    const updated = await updateUserEmail(user.id, email);
+    const sensei = await findSenseiByUserId(user.id);
+    res.json({
+      user: serializeUser(updated),
+      sensei: serializeSensei(sensei),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/profile/language', async (req, res, next) => {
+  try {
+    const user = await requireSessionUser(req, res);
+    if (!user) return;
+
+    const parsed = updateLanguageSchema.parse(req.body);
+    await updateSenseiLanguage(user.id, parsed.language);
+    const sensei = await findSenseiByUserId(user.id);
+    res.json({
+      user: serializeUser(user),
+      sensei: serializeSensei(sensei),
+    });
   } catch (error) {
     next(error);
   }

@@ -18,7 +18,8 @@ describe('Auth — connexion démo', () => {
   it('déconnecte et retourne au login', () => {
     cy.loginDemo();
     cy.visit('/bureau');
-    cy.get('[data-testid="logout-button"]').click();
+    cy.get('[data-testid="profile-menu-button"]').click();
+    cy.get('[data-testid="profile-logout"]').click();
     cy.url().should('include', '/');
     cy.get('[data-testid="landing-page"]').should('be.visible');
     Cypress.session.clearAllSavedSessions();

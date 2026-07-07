@@ -34,3 +34,16 @@ export const convertGuestSchema = z.object({
   email: z.string().trim().email('Adresse e-mail invalide.').optional().or(z.literal('')),
   senseiName: z.string().trim().min(2).max(100).optional(),
 });
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Mot de passe actuel requis.'),
+  newPassword: z.string().min(6, 'Minimum 6 caractères.').max(128),
+});
+
+export const updateEmailSchema = z.object({
+  email: z.string().trim().email('Adresse e-mail invalide.').optional().or(z.literal('')),
+});
+
+export const updateLanguageSchema = z.object({
+  language: z.enum(['fr', 'en']),
+});
