@@ -1,6 +1,6 @@
 # 🏫 L'Académie — recrutement aléatoire
 
-**Statut :** direction validée PO — **à aligner** sur tirage unique (pas de choix entre candidats).
+**Statut :** ✅ livré (juil. 2026) — tirage unique, fenêtre H0–H12.
 
 **Distinction importante :**
 
@@ -59,10 +59,10 @@ H0 (ou premier accès Bureau du cycle)
 | Étape | Statut |
 | :--- | :--- |
 | Tirage pondéré clans | ✅ `clanRecruitment.js` |
-| Table `academy_draws` (1 ligne / user / cycle) | 🟡 refactor depuis `recruitment_offers` |
-| API `GET/POST /api/academy` | 🟡 |
-| UI `AcademyPanel` Bureau | 🟡 |
-| Renommage « marché aspirants » → Académie | 🟡 |
+| Table `academy_draws` (1 ligne / user / cycle) | ✅ migration 018 |
+| API `GET/POST /api/academy` | ✅ `routes/academy.js` |
+| UI `AcademyPanel` Bureau | ✅ panneau Bureau |
+| Renommage « marché aspirants » → Académie | ✅ i18n + spec |
 
 ---
 

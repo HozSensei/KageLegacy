@@ -41,7 +41,9 @@ console.log(
 
 const currentMod = report.currentConstants?.results?.moderate;
 if (currentMod) {
-  console.log('\n── Bilan constantes actuelles (1 500 / 500) ──');
+  console.log(
+    `\n── Bilan constantes actuelles (${formatRyos(MATCH_WIN_RYOS)} / ${formatRyos(MATCH_DRAW_RYOS)}) ──`
+  );
   console.log(
     `  Modéré : min ${formatRyos(currentMod.minRyos)} · fin ${formatRyos(currentMod.ryosEnd)} · ${currentMod.netPerCycle >= 0 ? '+' : ''}${formatRyos(currentMod.netPerCycle)}/cycle`
   );

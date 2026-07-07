@@ -69,11 +69,16 @@ npm run test:e2e:open                      # Cypress interactif (navigateur)
 npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
 npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
 npm run economy:simulate --prefix backend      # Simule ~20 cycles + achats magasin (équilibre Ryos)
+npm run economy:calibrate --prefix backend     # Calibrage analytique des primes match
 # Options : --progression (Chunin + Vol d'Oiseau), --chunin, --bird-flight, --items=1, --training
 npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
 npm run dev:api     # API seule
 npm run dev:web     # Front seul
 ```
+
+### CI (GitHub Actions)
+
+Sur chaque push/PR vers `main` : `npm ci` (racine + backend + frontend), ESLint, smoke tests narratif/Égoïste, `economy:calibrate`, `combat:benchmark` (100 runs). Les E2E Cypress restent à lancer en local via `npm run test:e2e` (nécessite MySQL + seed).
 
 ---
 
@@ -85,12 +90,12 @@ Les spécifications détaillées sont dans le dossier [`/specs`](specs/).
 |-----------|---------|--------|
 | 1 — Structure des Ninjas | [milestone-1.md](specs/milestone-1.md) | ✅ Fait |
 | 2 — Bureau du Sensei | [milestone-2.md](specs/milestone-2.md) | ✅ Fait |
-| 3 — Horloge & Entraînement | [milestone-3.md](specs/milestone-3.md) | 🟡 Scheduler + jobs H36/H71/H72 |
-| 4 — Économie & Marché | [milestone-4.md](specs/milestone-4.md) | 🟡 Utilitaires, P2P global, magasin village |
-| 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | 🟡 Moteur 12 tours, benchmark |
-| 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | 🟡 Pipeline narratif, objets match |
+| 3 — Horloge & Entraînement | [milestone-3.md](specs/milestone-3.md) | ✅ Scheduler, jobs H36/H71/H72 |
+| 4 — Économie & Marché | [milestone-4.md](specs/milestone-4.md) | ✅ Utilitaires, P2P global, magasin village |
+| 5 — Moteur de Combat | [milestone-5.md](specs/milestone-5.md) | ✅ Moteur 12 tours, benchmark |
+| 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | ✅ Pipeline narratif, objets match, i18n |
 | 7 — Vol d'Oiseau | [milestone-7.md](specs/milestone-7.md) | ✅ Cérémonie, prime H72, relève |
-| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | 🟡 Pools, bots, invitations |
+| 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | ✅ Pools, bots, invitations, fin de saison |
 | 9 — Feuille de route & vigilance | [milestone-9.md](specs/milestone-9.md) | 📝 Vivant — priorités & playtests |
 
 **Auth multi-joueurs** (register/login, sessions cookie) et **cloche notifications** (header) sont livrés — voir [milestone-9.md](specs/milestone-9.md) pour le détail à jour.

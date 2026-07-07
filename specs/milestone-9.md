@@ -30,12 +30,12 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 | :--- | :--- | :--- |
 | M1 — Stats, clans, traits | ✅ | **Profils voie + potentiel** — spec [`ninja-profiles.md`](./ninja-profiles.md) |
 | M2 — Bureau, escouade, router | ✅ | |
-| M3 — Horloge 72h, jobs H36/H71/H72 | 🟡 | Scheduler 60s, outils `clock:advance` |
-| M5 — Moteur combat 12 tours | 🟡 | Initiative probabiliste, lissage duels |
-| M6 — Chronique `/operation` | 🟡 | Pipeline narratif ; **à réviser** quand objets enrichis |
-| M8 — Pools, classement, calendrier | 🟡 | Bots, ligue UI, fin de saison cycle 10, `join_or_create_pool`, invite `invitePoolId` |
-| Swap actifs ↔ banc | 🟡 | API + UI survol ; **styles à valider** |
-| M4 — Marché, missions, équipement | 🟡 | PR en cours ; pivot utilitaire ; **progression grades** (plafonds + stagnation) |
+| M3 — Horloge 72h, jobs H36/H71/H72 | ✅ | Scheduler 60s, `cycle:tick`, outils `clock:advance` |
+| M5 — Moteur combat 12 tours | ✅ | Initiative probabiliste, `combat:benchmark` |
+| M6 — Chronique `/operation` | ✅ | Pipeline narratif procédural, i18n FR/EN, objets match |
+| M8 — Pools, classement, calendrier | ✅ | Bots, ligue UI, fin de saison cycle 10, `join_or_create_pool`, `invitePoolId` |
+| Swap actifs ↔ banc | ✅ | API + UI survol, mobile tap-to-swap |
+| M4 — Marché, missions, équipement | ✅ | Utilitaires, P2P global, magasin village, grades + stagnation |
 
 ---
 
@@ -164,7 +164,7 @@ Loadouts documentés : `backend/src/services/simulation/utilityLoadouts.js`
 | **Ryos UNSIGNED** | `sensei.ryos INT UNSIGNED` bloque le découvert −5 000 | ✅ Migration 024 `SIGNED` |
 | **Revenus match** | Aucune prime Ryos à la victoire/nul | ✅ `matchEconomy.js` — 1 600 / 800 Ryos (H72) · `economy:calibrate` |
 | **WebSocket `/operation`** | Optionnel dans spec M6 | Polling 30s suffit pour l'instant |
-| **Bots** | `is_bot` : pas d'entraînement, pas de marché | Cohérent ; ne pas leur donner d'objets sans réfléchir |
+| **CI GitHub Actions** | Lint + smoke tests backend ; pas d'E2E ni MySQL en CI | ✅ `ci.yml` : lint, narratif, Égoïste, `economy:calibrate`, `combat:benchmark` (100 runs) |
 
 ---
 
