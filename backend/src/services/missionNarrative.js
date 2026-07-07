@@ -8,7 +8,7 @@ const MISSION_OPENING = {
   ],
   infiltration: [
     '{ninja_name} a infiltré un avant-poste ennemi et en est revenu sous le couvert de la nuit.',
-    'L\'infiltration menée par {ninja_name} s\'est terminée — le messager attend au portail du dojo.',
+    'L\'infiltration menée par {ninja_name} s\'est terminée — le messager attend votre rapport au campement.',
   ],
   cyclone: [
     '{ninja_name} revient de l\'Opération Cyclone, le haillon en lambeaux mais debout.',
