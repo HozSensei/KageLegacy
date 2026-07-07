@@ -4,7 +4,8 @@
   },
   "common": {
     "loading": "Loading…",
-    "vs": "vs"
+    "vs": "vs",
+    "ryosAmount": "{amount} Ryos"
   },
   "gameClock": {
     "label": "H{hour} · {phase}",
@@ -141,7 +142,11 @@
       "title": "Stagnation risk",
       "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",
       "geninExam": "ready for Chunin exam — register before H36",
-      "chuninJonin": "Chunin peak reached — register for the Vol d'Oiseau"
+      "chuninJonin": "Chunin peak reached — register for the Vol d'Oiseau",
+      "notificationTitle": "Squad stagnation",
+      "notificationBody": "{name} is growing restless — form {forme}, morale {moral}. Consider the exam or the Vol d'Oiseau.",
+      "notificationBodyMultiple": "{names} are growing restless — form and morale dropped this cycle.",
+      "notificationLink": "Open Bureau"
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",

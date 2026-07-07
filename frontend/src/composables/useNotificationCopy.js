@@ -11,6 +11,8 @@ export function useNotificationCopy() {
         return t('bureau.market.saleTitle')
       case 'mission_report':
         return t('missions.notificationTitle')
+      case 'stagnation':
+        return t('bureau.stagnation.notificationTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -44,6 +46,19 @@ export function useNotificationCopy() {
           tier: p.tierLabel || p.tier || '—',
           ryos: (p.ryos ?? 0).toLocaleString(),
         })
+      case 'stagnation': {
+        const list = p.ninjas || []
+        if (list.length === 1) {
+          const n = list[0]
+          return t('bureau.stagnation.notificationBody', {
+            name: n.name?.split(' ')[0] || '—',
+            forme: n.weeklyForme || '—',
+            moral: n.moral ?? '—',
+          })
+        }
+        const names = list.map((n) => n.name?.split(' ')[0]).filter(Boolean).join(', ')
+        return t('bureau.stagnation.notificationBodyMultiple', { names: names || '—' })
+      }
       default:
         return t('notifications.genericBody')
     }
@@ -51,13 +66,14 @@ export function useNotificationCopy() {
 
   function linkPath(note) {
     if (note.kind === 'market_sale') return '/exchanges'
-    if (note.kind === 'mission_report') return '/'
+    if (note.kind === 'mission_report' || note.kind === 'stagnation') return '/'
     return null
   }
 
   function linkLabel(note) {
     if (note.kind === 'market_sale') return t('bureau.market.viewExchanges')
     if (note.kind === 'mission_report') return t('missions.notificationLink')
+    if (note.kind === 'stagnation') return t('bureau.stagnation.notificationLink')
     return null
   }
 

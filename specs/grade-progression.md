@@ -119,4 +119,4 @@ Chunin s'entraîne → plafond 18/16 → inscrire au Vol d'Oiseau (gratuit, comb
 - [x] Examen Jonin / inscription Vol d'Oiseau avec coût Ryos (M7) — `bird_flight_requested`, `POST /api/squad/bird-flight`
 - [x] UI Bureau : alerte stagnation Genin + Chunin (`StagnationAlert`, `ChuninStagnationPanel`)
 - [x] UI cartes ninja : voie, potentiel, lignée (`NinjaProfileBadges`)
-- [ ] Chronique / notification : « X s'impatiente — forme en baisse »
+- [x] Chronique / notification : « X s'impatiente — forme en baisse » (`kind: stagnation` à H72)

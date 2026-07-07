@@ -2,8 +2,10 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import { useFormatRyos } from '../../composables/useFormatRyos'
 
 const { t } = useI18n()
+const { formatRyos } = useFormatRyos()
 const store = useSquadStore()
 
 const FOCUS_KEYS = ['Taijutsu', 'Ninjutsu', 'Genjutsu', 'Medecine', 'Vitesse', 'Intelligence']
@@ -50,7 +52,7 @@ async function onPlanChange(ninjaId) {
         <span class="text-ink">{{ ninja.name }}</span>
         <div class="flex items-center gap-3">
           <span v-if="ninja.trainingCost" class="text-xs text-ink-faint">
-            {{ ninja.trainingCost.toLocaleString() }} Ryos
+            {{ formatRyos(ninja.trainingCost) }}
           </span>
           <select
             :value="localPlans[ninja.id] ?? ''"

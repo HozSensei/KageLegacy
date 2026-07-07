@@ -1,8 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useFormatRyos } from '../composables/useFormatRyos'
 
 const { t, locale } = useI18n()
+const { formatRyos } = useFormatRyos()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -133,10 +135,10 @@ const canBuy = computed(() => (item) =>
                 class="text-sm text-ink"
                 :class="{ 'line-through text-ink-faint': item.onPromo }"
               >
-                {{ item.basePrice.toLocaleString() }} Ryos
+                {{ formatRyos(item.basePrice) }}
               </p>
               <p v-if="item.onPromo" class="text-sm font-medium text-fire">
-                {{ item.finalPrice.toLocaleString() }} Ryos
+                {{ formatRyos(item.finalPrice) }}
               </p>
             </div>
 
