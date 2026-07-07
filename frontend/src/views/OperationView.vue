@@ -155,8 +155,7 @@ onUnmounted(() => clearInterval(pollTimer))
 <template>
   <div class="page-shell" data-testid="operation-page">
     <header>
-      <p class="page-kicker">{{ t('operation.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.operation') }}</h1>
+      <h1 class="page-title">{{ t('nav.operation') }}</h1>
       <p class="page-lead">{{ t('operation.leadBrowse') }}</p>
     </header>
 

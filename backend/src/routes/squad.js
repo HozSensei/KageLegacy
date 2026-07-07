@@ -21,6 +21,7 @@ import {
 import { dismissNotification } from '../services/dojoNotifications.js';
 import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
+import { ensureStarterSquad } from '../services/starterSquadService.js';
 
 const router = Router();
 
@@ -32,6 +33,10 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await resolveUser(req, res);
     if (!user) return;
+
+    if (!user.is_bot) {
+      await ensureStarterSquad(user.id);
+    }
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

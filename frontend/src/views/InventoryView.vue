@@ -182,9 +182,8 @@ async function unequip(ninjaId, slot) {
 <template>
   <div class="page-shell" data-testid="inventory-page">
     <header>
-      <p class="page-kicker">{{ t('inventory.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.inventory') }}</h1>
-      <p class="page-lead">{{ t('inventory.lead') }}</p>
+      <h1 class="page-title">{{ t('nav.inventory') }}</h1>
+      <p class="page-lead mt-4">{{ t('inventory.lead') }}</p>
     </header>
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('inventory.loading') }}</p>

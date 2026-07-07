@@ -1,6 +1,7 @@
 const NAV_PAGES = {
-  bureau: { testId: 'bureau-page', path: '/' },
+  bureau: { testId: 'bureau-page', path: '/bureau' },
   squad: { testId: 'squad-page', path: '/squad' },
+  missions: { testId: 'missions-page', path: '/missions' },
   league: { testId: 'league-page', path: '/league' },
   market: { testId: 'market-page', path: '/market' },
   exchanges: { testId: 'exchanges-page', path: '/exchanges' },
@@ -26,10 +27,10 @@ Cypress.Commands.add('visitNav', (name) => {
   const page = NAV_PAGES[name];
   if (!page) throw new Error(`visitNav: page inconnue « ${name} »`);
   if (name === 'bureau') {
-    cy.visit('/');
+    cy.visit('/bureau');
   } else {
     cy.get(`[data-testid="nav-${name}"]`).first().click();
   }
-  cy.url().should('include', page.path === '/' ? '/' : page.path);
+  cy.url().should('include', page.path === '/bureau' ? '/bureau' : page.path);
   cy.get(`[data-testid="${page.testId}"]`, { timeout: 15000 }).should('be.visible');
 });

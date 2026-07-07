@@ -93,9 +93,42 @@
     "demoHint": "Démo locale : demo_sensei / demo (après npm run db:seed)",
     "inviteLead": "Invitation ligue — vous rejoindrez la pool #{poolId} à l'inscription."
   },
+  "landing": {
+    "title": "Forgez votre escouade. Dominez le cycle.",
+    "lead": "Kage Legacy est un manager shinobi asynchrone : entraînez vos ninjas, composez votre escouade, affrontez une ligue de six Sensei et suivez la chronique de vos opérations de frontière.",
+    "features": {
+      "cycle": "Cycles de 72 h — entraînement, examens H36, match H71→H72, économie Ryos.",
+      "squad": "Tactiques Tank / Protect / Offensive, composition active et marché entre joueurs.",
+      "league": "Ligues fermées de 6 escouades, promotions et relégations.",
+      "chronicle": "Chronique narrative révélée heure par heure pendant l'opération live."
+    },
+    "playGuest": "Essayer en invité (7 jours)",
+    "createAccount": "Créer un compte",
+    "guestHint": "Aucun mot de passe requis — convertissez votre essai en compte permanent quand vous le souhaitez.",
+    "asideTitle": "Le pitch",
+    "asideBody": "Inspiré des managers légendaires, Kage Legacy mise sur la préparation et la gestion humaine plutôt que sur la puissance brute.",
+    "cycleTitle": "La boucle",
+    "cycleBody": "Chaque cycle : focus d'entraînement, missions idle, achats au magasin, puis le match de ligue qui rapporte des Ryos.",
+    "clockTitle": "Horloge serveur",
+    "clockBody": "Le cycle avance en temps réel (1 h réelle = 1 h de jeu). L'heure de démarrage est fixée à la première migration ou au reset H72 — pas au redémarrage du container."
+  },
+  "guest": {
+    "banner": "Essai invité — {days} jour(s) restant(s).",
+    "convertCta": "Sauvegarder mon compte",
+    "convertTitle": "Convertir l'essai",
+    "convertLead": "Choisissez un identifiant et un mot de passe pour conserver votre escouade au-delà de 7 jours.",
+    "email": "E-mail (optionnel)",
+    "convert": "Convertir",
+    "later": "Plus tard"
+  },
+  "training": {
+    "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi."
+  },
   "nav": {
     "bureau": "Bureau",
     "squad": "Escouade",
+    "missions": "Missions",
+    "training": "Entraînement",
     "league": "Ligue",
     "market": "Magasin",
     "exchanges": "Échanges",
@@ -207,6 +240,7 @@
     "removeAction": "Retirer de l'équipe",
     "swapPending": "Choisissez le ninja à échanger.",
     "slotEmpty": "Complétez l'escouade en remplaçant le poste vacant.",
+    "noActiveForStrategy": "Aucun ninja en escouade active — complétez votre composition d'abord.",
     "emptySlot": "Poste vacant",
     "tacticsLocked": "Les consignes sont gelées pour l'Opération (à partir de H71).",
     "saving": "Enregistrement…",
@@ -425,6 +459,8 @@
     "collect": "Collecter les gains",
     "collecting": "Collecte…",
     "active": "En mission",
+    "hoursLeft": "dans {count} h",
+    "resolvesSoon": "retour imminent",
     "failed": "Échecs ce cycle",
     "failedHint": "mission compromise",
     "deathReport": "mort au combat",

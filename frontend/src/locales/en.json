@@ -93,9 +93,42 @@
     "demoHint": "Local demo: demo_sensei / demo (after npm run db:seed)",
     "inviteLead": "League invite — you will join pool #{poolId} on registration."
   },
+  "landing": {
+    "title": "Forge your squad. Own the cycle.",
+    "lead": "Kage Legacy is an async shinobi manager: train ninjas, set tactics, compete in a six-Sensei league, and follow the border operation chronicle.",
+    "features": {
+      "cycle": "72-hour cycles — training, H36 exams, H71→H72 match, Ryos economy.",
+      "squad": "Tank / Protect / Offensive tactics, active lineup and player market.",
+      "league": "Closed leagues of six squads, promotions and relegations.",
+      "chronicle": "Narrative chronicle revealed hour by hour during the live operation."
+    },
+    "playGuest": "Try as guest (7 days)",
+    "createAccount": "Create account",
+    "guestHint": "No password required — convert your trial to a permanent account anytime.",
+    "asideTitle": "The pitch",
+    "asideBody": "Inspired by legendary managers, Kage Legacy rewards preparation and human management over raw power.",
+    "cycleTitle": "The loop",
+    "cycleBody": "Each cycle: training focus, idle missions, village shop, then the league match for Ryos income.",
+    "clockTitle": "Server clock",
+    "clockBody": "The cycle advances in real time (1 real hour = 1 game hour). The anchor is set at first DB migration or H72 reset — not on container restart."
+  },
+  "guest": {
+    "banner": "Guest trial — {days} day(s) left.",
+    "convertCta": "Save my account",
+    "convertTitle": "Convert trial",
+    "convertLead": "Pick a username and password to keep your squad beyond 7 days.",
+    "email": "Email (optional)",
+    "convert": "Convert",
+    "later": "Later"
+  },
+  "training": {
+    "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set."
+  },
   "nav": {
     "bureau": "Office",
     "squad": "Squad",
+    "missions": "Missions",
+    "training": "Training",
     "league": "League",
     "market": "Shop",
     "exchanges": "Exchanges",
@@ -207,6 +240,7 @@
     "removeAction": "Remove from squad",
     "swapPending": "Pick the ninja to swap with.",
     "slotEmpty": "Fill the open slot to complete your squad.",
+    "noActiveForStrategy": "No ninja in the active squad — complete your lineup first.",
     "emptySlot": "Open slot",
     "tacticsLocked": "Orders are locked for the Operation (from H71 onward).",
     "saving": "Saving…",
@@ -425,6 +459,8 @@
     "collect": "Collect rewards",
     "collecting": "Collecting…",
     "active": "On mission",
+    "hoursLeft": "in {count} h",
+    "resolvesSoon": "returning soon",
     "failed": "Failures this cycle",
     "failedHint": "mission compromised",
     "deathReport": "killed in action",

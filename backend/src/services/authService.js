@@ -1,8 +1,10 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { query } from '../config/database.js';
 import { joinOrCreatePool, joinPoolByInvite } from './poolService.js';
+import { provisionStarterSquad } from './starterSquadService.js';
 
 const SESSION_DAYS = 30;
+const GUEST_DAYS = 7;
 const SCRYPT_KEYLEN = 64;
 
 function hashPassword(password) {
@@ -33,6 +35,29 @@ function sessionExpiry() {
   return d;
 }
 
+function guestExpiry() {
+  const d = new Date();
+  d.setDate(d.getDate() + GUEST_DAYS);
+  return d;
+}
+
+function guestUsername() {
+  return `invite_${randomBytes(4).toString('hex')}`;
+}
+
+function mapUserRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    is_bot: Boolean(row.is_bot),
+    is_guest: Boolean(row.is_guest),
+    guest_expires_at: row.guest_expires_at,
+    email: row.email || null,
+    created_at: row.created_at,
+  };
+}
+
 export async function findUserByUsername(username) {
   const rows = await query('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
   return rows[0] || null;
@@ -40,10 +65,11 @@ export async function findUserByUsername(username) {
 
 export async function findUserById(userId) {
   const rows = await query(
-    'SELECT id, username, is_bot, created_at FROM users WHERE id = ? LIMIT 1',
+    `SELECT id, username, is_bot, is_guest, guest_expires_at, email, created_at
+     FROM users WHERE id = ? LIMIT 1`,
     [userId]
   );
-  return rows[0] || null;
+  return mapUserRow(rows[0]);
 }
 
 export async function registerUser({
@@ -79,10 +105,81 @@ export async function registerUser({
     ? await joinPoolByInvite(userId, numericInvite)
     : { pool: await joinOrCreatePool(userId), fallback: false, reason: 'standard' };
 
+  await provisionStarterSquad(userId, language);
+
   return {
     user: await findUserById(userId),
     poolJoin,
   };
+}
+
+export async function registerGuestUser({ senseiName, language = 'fr' }) {
+  let username = guestUsername();
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const existing = await findUserByUsername(username);
+    if (!existing) break;
+    username = guestUsername();
+  }
+
+  const expiresAt = guestExpiry();
+  const displayName = senseiName?.trim() || 'Sensei invité';
+
+  const userResult = await query(
+    `INSERT INTO users (username, is_bot, is_guest, guest_expires_at)
+     VALUES (?, FALSE, TRUE, ?)`,
+    [username, expiresAt]
+  );
+  const userId = userResult.insertId;
+
+  await query(
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
+     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?)`,
+    [userId, displayName, language]
+  );
+
+  const poolJoin = { pool: await joinOrCreatePool(userId), fallback: false, reason: 'guest' };
+  await provisionStarterSquad(userId, language);
+
+  return {
+    user: await findUserById(userId),
+    poolJoin,
+    guestExpiresAt: expiresAt,
+  };
+}
+
+export async function convertGuestToAccount(userId, { username, password, email, senseiName }) {
+  const user = await findUserById(userId);
+  if (!user?.is_guest) {
+    const err = new Error('Ce compte n\'est pas un essai invité.');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (user.guest_expires_at && new Date(user.guest_expires_at) < new Date()) {
+    const err = new Error('L\'essai invité a expiré — créez un nouveau compte.');
+    err.statusCode = 410;
+    throw err;
+  }
+
+  const existing = await findUserByUsername(username);
+  if (existing && existing.id !== userId) {
+    const err = new Error('Ce nom d\'utilisateur est déjà pris.');
+    err.statusCode = 409;
+    throw err;
+  }
+
+  const passwordHash = hashPassword(password);
+  await query(
+    `UPDATE users
+     SET username = ?, password_hash = ?, email = ?, is_guest = FALSE, guest_expires_at = NULL
+     WHERE id = ?`,
+    [username, passwordHash, email || null, userId]
+  );
+
+  if (senseiName?.trim()) {
+    await query('UPDATE sensei SET name = ? WHERE user_id = ?', [senseiName.trim(), userId]);
+  }
+
+  return findUserById(userId);
 }
 
 export async function authenticateUser(username, password) {
@@ -112,14 +209,22 @@ export async function getUserBySessionToken(token) {
   if (!token) return null;
   const tokenHash = sessionTokenHash(token);
   const rows = await query(
-    `SELECT u.id, u.username, u.is_bot, u.created_at
+    `SELECT u.id, u.username, u.is_bot, u.is_guest, u.guest_expires_at, u.email, u.created_at
      FROM user_sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > UTC_TIMESTAMP()
      LIMIT 1`,
     [tokenHash]
   );
-  return rows[0] || null;
+  const user = mapUserRow(rows[0]);
+  if (!user) return null;
+
+  if (user.is_guest && user.guest_expires_at && new Date(user.guest_expires_at) < new Date()) {
+    await revokeSession(token);
+    return null;
+  }
+
+  return user;
 }
 
 export async function revokeSession(token) {

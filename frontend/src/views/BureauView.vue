@@ -7,9 +7,7 @@ import ChuninExamList from '../components/bureau/ChuninExamList.vue'
 import ChuninStagnationPanel from '../components/bureau/ChuninStagnationPanel.vue'
 import BirdFlightPanel from '../components/bureau/BirdFlightPanel.vue'
 import DispensaryPanel from '../components/bureau/DispensaryPanel.vue'
-import IdleMissionPanel from '../components/bureau/IdleMissionPanel.vue'
 import StagnationAlert from '../components/bureau/StagnationAlert.vue'
-import TrainingPlansPanel from '../components/bureau/TrainingPlansPanel.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
 
@@ -44,9 +42,8 @@ onMounted(async () => {
   <div class="page-shell" data-testid="bureau-page">
     <header class="lg:grid lg:grid-cols-12 lg:gap-10">
       <div class="lg:col-span-7">
-        <p class="page-kicker">{{ t('bureau.cycle') }}</p>
-        <h1 class="page-title mt-3">{{ t('bureau.title') }}</h1>
-        <p class="page-lead">
+        <h1 class="page-title">{{ t('bureau.title') }}</h1>
+        <p class="page-lead mt-4">
           {{ t('bureau.lead') }}
         </p>
       </div>
@@ -97,8 +94,7 @@ onMounted(async () => {
 
       <section class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
         <div class="lg:col-span-4">
-          <p class="section-label">{{ t('sensei.title') }}</p>
-          <h2 class="mt-3 font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
+          <h2 class="font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
           <p class="mt-4 text-sm leading-7 text-ink-muted">
             {{ t('sensei.interceptionHint') }}
           </p>
@@ -108,14 +104,12 @@ onMounted(async () => {
           </p>
 
           <CycleBudgetPanel />
-          <TrainingPlansPanel />
           <AcademyPanel />
 
           <ChuninExamList />
           <BirdFlightPanel />
           <DispensaryPanel />
           <ChuninStagnationPanel />
-          <IdleMissionPanel />
         </div>
 
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">

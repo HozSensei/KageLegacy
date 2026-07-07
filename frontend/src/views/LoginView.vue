@@ -37,7 +37,7 @@ async function submit() {
           language: language.value,
           invitePoolId: invitePoolId.value || undefined,
         })
-  if (ok) router.push('/')
+  if (ok) router.push('/bureau')
 }
 
 onMounted(() => {
@@ -122,7 +122,7 @@ onMounted(() => {
         </template>
       </p>
 
-      <p class="mt-6 text-center text-xs text-ink-faint">
+      <p v-if="!import.meta.env.PROD" class="mt-6 text-center text-xs text-ink-faint">
         {{ t('auth.demoHint') }}
       </p>
     </div>

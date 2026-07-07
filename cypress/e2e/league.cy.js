@@ -1,7 +1,7 @@
 describe('Ligue — classement', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
     cy.visitNav('league');
   });
 

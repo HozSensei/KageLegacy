@@ -1,7 +1,7 @@
 describe('Inventaire', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
     cy.visitNav('inventory');
   });
 

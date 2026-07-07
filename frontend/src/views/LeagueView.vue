@@ -72,9 +72,8 @@ function matchStatusLabel(status) {
 <template>
   <div class="page-shell" data-testid="league-page">
     <header>
-      <p class="page-kicker">{{ t('league.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.league') }}</h1>
-      <p class="page-lead">{{ t('league.lead') }}</p>
+      <h1 class="page-title">{{ t('nav.league') }}</h1>
+      <p class="page-lead mt-4">{{ t('league.lead') }}</p>
     </header>
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('league.loading') }}</p>

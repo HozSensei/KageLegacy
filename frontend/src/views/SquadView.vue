@@ -222,6 +222,10 @@ function isBenchSwapTarget(_ninjaId) {
 
 async function toggleStrategyEdit() {
   if (editingStrategy.value) {
+    if (!store.activeSquad.length) {
+      saveError.value = t('squad.noActiveForStrategy')
+      return
+    }
     saving.value = true
     saveError.value = null
     try {
@@ -260,9 +264,8 @@ watch(() => store.activeSquad, () => {
 <template>
   <div class="page-shell" data-testid="squad-page">
     <header>
-      <p class="page-kicker">{{ t('squad.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.squad') }}</h1>
-      <p class="page-lead">{{ t('squad.lead') }}</p>
+      <h1 class="page-title">{{ t('nav.squad') }}</h1>
+      <p class="page-lead mt-4">{{ t('squad.lead') }}</p>
     </header>
 
     <template v-if="store.sensei">
@@ -293,7 +296,7 @@ watch(() => store.activeSquad, () => {
           type="button"
           class="btn-ghost shrink-0 disabled:opacity-40"
           data-testid="squad-edit-strategy"
-          :disabled="(!editingStrategy && store.tacticsLocked()) || saving"
+          :disabled="(!editingStrategy && store.tacticsLocked()) || saving || (!editingStrategy && !store.activeSquad.length)"
           @click="toggleStrategyEdit"
         >
           {{

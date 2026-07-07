@@ -15,7 +15,18 @@ export async function readApiJson(res) {
  */
 export async function readApiError(res, body) {
   const payload = body ?? (await readApiJson(res))
-  return payload.error || `Erreur ${res.status}`
+  let message = payload.error || `Erreur ${res.status}`
+  if (typeof message === 'string' && message.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(message)
+      if (Array.isArray(parsed) && parsed[0]?.message) {
+        message = parsed[0].message
+      }
+    } catch {
+      /* corps non JSON */
+    }
+  }
+  return message
 }
 
 /**

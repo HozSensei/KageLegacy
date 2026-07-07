@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { formatZodError } from '../utils/zodErrors.js';
 import healthRouter from './routes/health.js';
 import authRouter from './routes/auth.js';
 import squadRouter from './routes/squad.js';
@@ -47,9 +48,10 @@ app.use('/api/player-market', playerMarketRouter);
 app.use((err, _req, res, _next) => {
   console.error(err);
   const status = err.statusCode || (err.name === 'ZodError' ? 400 : 500);
+  const message =
+    err.name === 'ZodError' ? formatZodError(err) : err.message || 'Erreur interne du serveur';
   res.status(status).json({
-    error: err.message || 'Erreur interne du serveur',
-    details: err.errors || undefined,
+    error: message,
   });
 });
 

@@ -80,9 +80,8 @@ const canBuy = computed(() => (item) =>
 <template>
   <div class="page-shell" data-testid="market-page">
     <header>
-      <p class="page-kicker">{{ t('market.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.market') }}</h1>
-      <p class="page-lead">{{ t('market.lead') }}</p>
+      <h1 class="page-title">{{ t('nav.market') }}</h1>
+      <p class="page-lead mt-4">{{ t('market.lead') }}</p>
     </header>
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('market.loading') }}</p>

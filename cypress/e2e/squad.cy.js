@@ -1,7 +1,7 @@
 describe('Escouade — composition', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
     cy.visitNav('squad');
   });
 

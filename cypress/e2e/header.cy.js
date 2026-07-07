@@ -1,7 +1,7 @@
 describe('En-tête — horloge et navigation', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/');
+    cy.visit('/bureau');
   });
 
   it('affiche l\'horloge du cycle', () => {

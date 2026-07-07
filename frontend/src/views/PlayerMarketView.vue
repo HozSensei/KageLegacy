@@ -128,9 +128,8 @@ function canBuy(listing) {
 <template>
   <div class="page-shell" data-testid="exchanges-page">
     <header>
-      <p class="page-kicker">{{ t('exchanges.kicker') }}</p>
-      <h1 class="page-title mt-3">{{ t('nav.exchanges') }}</h1>
-      <p class="page-lead">{{ t('exchanges.lead') }}</p>
+      <h1 class="page-title">{{ t('nav.exchanges') }}</h1>
+      <p class="page-lead mt-4">{{ t('exchanges.lead') }}</p>
     </header>
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('exchanges.loading') }}</p>
