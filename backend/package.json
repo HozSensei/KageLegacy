@@ -17,7 +17,7 @@
     "playtest:league": "node scripts/playtestLeague.js",
     "playtest:missions": "node scripts/playtestMissionsCycle.js",
     "economy:simulate": "node scripts/simulateEconomyCycles.js",
-    "test:egoiste": "node scripts/testEgoisteInsubordination.js",
+    "test:narrative": "node scripts/testNarrativeEngine.js",
     "cycle:tick": "node scripts/cycleTick.js"
   },
   "dependencies": {

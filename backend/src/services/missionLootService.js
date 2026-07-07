@@ -11,6 +11,7 @@ import {
 } from './missionRules.js';
 import { createDojoNotification } from './dojoNotifications.js';
 import { buildMissionReportPayload } from './missionNarrative.js';
+import { getUserLanguage } from './narrative/viewerLocale.js';
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
@@ -212,7 +213,10 @@ export async function resolveMissionOutcome(mission, ninja) {
     [status, baseRyos, JSON.stringify(lootResult), injuryType, mission.id]
   );
 
+  const locale = await getUserLanguage(mission.user_id);
   const reportPayload = buildMissionReportPayload({
+    missionId: mission.id,
+    locale,
     tier,
     ninjaName: mission.ninja_name || ninja.name || ninja.ninja_name,
     status,
