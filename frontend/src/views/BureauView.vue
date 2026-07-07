@@ -35,7 +35,6 @@ const debtFrozen = computed(
 
 onMounted(async () => {
   if (!store.sensei) await store.fetchSquad()
-  if (store.sensei?.language) locale.value = store.sensei.language
 })
 </script>
 

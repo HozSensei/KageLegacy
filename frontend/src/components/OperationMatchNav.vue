@@ -61,7 +61,7 @@ function matchStatusClass(status) {
 </script>
 
 <template>
-  <nav class="border border-line bg-bg-soft p-5" aria-label="Match navigation">
+  <nav class="border border-line bg-bg-soft p-5" aria-label="Match navigation" data-testid="operation-match-nav">
     <p class="section-label">{{ t('matches.navTitle') }}</p>
 
     <label class="mt-4 block text-[10px] uppercase tracking-[0.12em] text-ink-faint">

@@ -211,7 +211,7 @@ onUnmounted(() => clearInterval(pollTimer))
                 </span>
               </div>
 
-              <div class="chronicle mt-8 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted">
+              <div class="chronicle mt-8 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted" data-testid="operation-chronicle">
                 {{ chronicleText || t('operation.noChronicle') }}
               </div>
 

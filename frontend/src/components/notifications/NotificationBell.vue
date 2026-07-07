@@ -117,6 +117,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
               v-if="linkPath(note)"
               type="button"
               class="btn-ghost text-[10px]"
+              data-testid="notification-follow"
               @click="followLink(note, $event)"
             >
               {{ linkLabel(note) }}

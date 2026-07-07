@@ -24,4 +24,11 @@ describe('Notifications — cloche Bureau', () => {
       }
     });
   });
+
+  it('suit le lien vers le Bureau depuis une notif mission', () => {
+    cy.get('[data-testid="notification-bell"]').click();
+    cy.get('[data-testid="notification-follow"]').first().click();
+    cy.get('[data-testid="bureau-page"]', { timeout: 15000 }).should('be.visible');
+    cy.get('[data-testid="missions-panel"]').should('be.visible');
+  });
 });

@@ -104,7 +104,7 @@ async function assign() {
     if (seq !== fetchSeq) return
     applyMissionsState(data.missions)
     selectedNinjaId.value = null
-    store.applyMissionSquadPatch(data.squad, data.gameClock)
+    store.applySquadMutation({ ...data.squad, gameClock: data.gameClock })
     await syncMissionsFromServer()
   } catch (e) {
     if (seq === fetchSeq) error.value = e.message
@@ -122,7 +122,7 @@ async function collect() {
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
     if (seq !== fetchSeq) return
-    store.applyMissionSquadPatch(data.squad, data.gameClock)
+    store.applySquadMutation({ ...data.squad, gameClock: data.gameClock })
     applyMissionsState(data.missions)
     await syncMissionsFromServer()
   } catch (e) {

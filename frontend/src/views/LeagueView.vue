@@ -166,7 +166,7 @@ function matchStatusLabel(status) {
             </RouterLink>
           </section>
 
-          <section v-if="fixtures?.matches?.length" class="mt-10">
+          <section v-if="fixtures?.matches?.length" class="mt-10" data-testid="league-fixtures">
             <p class="section-label">{{ t('league.fixtures') }}</p>
             <ul class="mt-4 space-y-2">
               <li v-for="match in fixtures.matches" :key="match.id">

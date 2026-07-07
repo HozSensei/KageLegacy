@@ -292,6 +292,7 @@ watch(() => store.activeSquad, () => {
         <button
           type="button"
           class="btn-ghost shrink-0 disabled:opacity-40"
+          data-testid="squad-edit-strategy"
           :disabled="(!editingStrategy && store.tacticsLocked()) || saving"
           @click="toggleStrategyEdit"
         >

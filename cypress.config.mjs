@@ -35,6 +35,14 @@ export default defineConfig({
           });
           return parseE2EResult(stdout);
         },
+        getAppliedMatchE2E() {
+          const stdout = execSync('node scripts/e2eGetAppliedMatch.js', {
+            cwd: path.join(__dirname, 'backend'),
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe'],
+          });
+          return parseE2EResult(stdout);
+        },
       });
     },
   },

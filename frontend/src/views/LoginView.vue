@@ -61,7 +61,7 @@ onMounted(() => {
         {{ t('auth.inviteLead', { poolId: invitePoolId }) }}
       </p>
 
-      <p v-if="auth.error" class="mt-6 text-sm text-fire">{{ auth.error }}</p>
+      <p v-if="auth.error" class="mt-6 text-sm text-fire" data-testid="login-error">{{ auth.error }}</p>
 
       <form class="mt-8 space-y-5" data-testid="login-form" @submit.prevent="submit">
         <label class="block text-sm">
