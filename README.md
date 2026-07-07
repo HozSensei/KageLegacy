@@ -83,12 +83,43 @@ npm run dev:web     # Front seul
 
 Sur chaque push/PR vers `main` : `npm ci` (racine + backend + frontend), ESLint, smoke tests narratif/Égoïste, `economy:calibrate`, `combat:benchmark` (100 runs). Les E2E Cypress restent à lancer en local via `npm run test:e2e` (nécessite MySQL + seed).
 
-### Déploiement / mise à jour
+### Déploiement Docker (NAS / prod)
+
+Image publiée sur chaque push vers `main` :
+
+```
+ghcr.io/hozsensei/kage-legacy:main
+```
+
+**Prérequis MySQL** (base dédiée, même serveur que vos autres apps) :
+
+```sql
+CREATE DATABASE kage_legacy CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'kage'@'%' IDENTIFIED BY 'mot_de_passe_fort';
+GRANT ALL PRIVILEGES ON kage_legacy.* TO 'kage'@'%';
+FLUSH PRIVILEGES;
+```
+
+**Sur le NAS** (après avoir copié `.env.prod.example` → `.env.prod`) :
 
 ```bash
-npm run db:migrate                    # Appliquer les migrations SQL
-npm run narrative:backfill --prefix backend  # Optionnel : chroniques sans template_key
+docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
+
+Au démarrage, le container **attend MySQL**, applique les **migrations** (données joueurs conservées), puis lance l'API + Nginx.
+
+| Variable | Rôle |
+|----------|------|
+| `DB_HOST` | IP/host MySQL (ex. `192.168.4.39`) |
+| `DB_NAME` | `kage_legacy` (séparé des autres jeux) |
+| `CORS_ORIGIN` | URL publique HTTPS du front |
+| `ENABLE_SCHEDULER` | `true` — horloge 72h |
+| `AUTH_DEMO_FALLBACK` | `false` en prod |
+
+**Mise à jour** : `pull` + `up -d` — ne jamais lancer `db:seed` en prod sur une base existante.
+
+Build local : `docker build -t kage-legacy:local .`
 
 ---
 
