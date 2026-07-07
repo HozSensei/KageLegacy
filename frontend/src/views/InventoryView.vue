@@ -190,7 +190,7 @@ async function unequip(ninjaId, slot) {
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('inventory.loading') }}</p>
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
 
-    <div v-else-if="inventory" class="mt-12 lg:grid lg:grid-cols-12 lg:gap-10">
+    <div v-else-if="inventory" class="mt-12 lg:grid lg:grid-cols-12 lg:gap-10" data-testid="inventory-content">
       <section class="lg:col-span-5">
         <p class="section-label">{{ t('inventory.items') }}</p>
         <p v-if="selectedItemId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinja') }}</p>

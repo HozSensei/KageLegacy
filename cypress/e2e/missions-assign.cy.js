@@ -15,7 +15,7 @@ describe('Bureau — envoi de contrat (UI)', () => {
     cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
   });
 
-  it('envoie un contrat Routine via le formulaire', () => {
+  it('envoie un contrat Routine et affiche la mission active sans rechargement', () => {
     cy.get('[data-testid="missions-ninja-select"] option:not([disabled])')
       .not('[value="null"]')
       .first()
@@ -32,10 +32,17 @@ describe('Bureau — envoi de contrat (UI)', () => {
     });
 
     cy.url().should('eq', `${Cypress.config('baseUrl')}/`);
-    cy.reload();
-    cy.wait('@getMissions');
-    cy.get('[data-testid="missions-active"]', { timeout: 10000 }).should('be.visible');
+    cy.get('[data-testid="missions-panel"]').should('not.contain.text', 'Chargement');
+    cy.get('[data-testid="missions-active"]', { timeout: 10000 }).should('exist').and('be.visible');
     cy.get('[data-testid="missions-active"]').contains(/En mission|On mission/);
-    cy.get('[data-testid="missions-active"]').contains(/Contrat de Routine|Routine contract|Routine/);
+    cy.get('[data-testid="missions-active"]').contains(/Contrat de Routine|Routine [Cc]ontract|Routine/);
+
+    cy.get('[data-testid="missions-ninja-select"] option:not([disabled])')
+      .not('[value="null"]')
+      .eq(1)
+      .then(($option) => {
+        cy.get('[data-testid="missions-ninja-select"]').select($option.val());
+      });
+    cy.get('[data-testid="missions-tier-select"] option[value="routine"]').should('be.disabled');
   });
 });

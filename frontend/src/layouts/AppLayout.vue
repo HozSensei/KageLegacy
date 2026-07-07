@@ -95,6 +95,7 @@ onMounted(async () => {
             v-else
             type="button"
             class="text-[11px] uppercase tracking-[0.14em] text-ink-faint hover:text-ink-muted"
+            data-testid="logout-button"
             @click="logout"
           >
             {{ t('auth.logout') }}

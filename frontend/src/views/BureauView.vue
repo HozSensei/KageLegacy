@@ -51,7 +51,7 @@ onMounted(async () => {
       </div>
     </header>
 
-    <p v-if="store.loading" class="mt-12 text-sm text-ink-muted">Chargement…</p>
+    <p v-if="store.loading && !store.sensei" class="mt-12 text-sm text-ink-muted">Chargement…</p>
     <p v-else-if="store.error" class="mt-12 text-sm text-fire">{{ store.error }}</p>
 
     <template v-else-if="store.sensei">

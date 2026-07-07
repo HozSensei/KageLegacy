@@ -29,11 +29,24 @@ export const useSquadStore = defineStore('squad', () => {
     academy.value = data.academy || null
   }
 
+  /** Mise à jour légère après assign/collect — évite de remonter tout le Bureau */
+  function applyMissionSquadPatch(squad, clock) {
+    if (clock) gameClock.value = clock
+    if (!squad) return
+    if (squad.sensei) sensei.value = squad.sensei
+    if (squad.activeSquad) activeSquad.value = squad.activeSquad
+    if (squad.bench) bench.value = squad.bench
+    if (squad.cycleBudget) cycleBudget.value = squad.cycleBudget
+  }
+
   async function fetchSquad() {
     if (fetchPromise) return fetchPromise
+    const isInitial = !sensei.value
     fetchPromise = (async () => {
-      loading.value = true
-      error.value = null
+      if (isInitial) {
+        loading.value = true
+        error.value = null
+      }
       try {
         const res = await fetch(`${API_BASE}/api/squad`)
         if (!res.ok) {
@@ -44,7 +57,7 @@ export const useSquadStore = defineStore('squad', () => {
       } catch (e) {
         error.value = e.message
       } finally {
-        loading.value = false
+        if (isInitial) loading.value = false
       }
     })()
     try {
@@ -223,5 +236,6 @@ export const useSquadStore = defineStore('squad', () => {
     treatAtDispensary,
     tacticsLocked,
     setLanguage,
+    applyMissionSquadPatch,
   }
 })

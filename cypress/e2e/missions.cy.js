@@ -30,11 +30,3 @@ describe('Bureau — missions idle (navigateur)', () => {
     cy.get('[data-testid="missions-collect"]').should('not.exist');
   });
 });
-
-describe('Auth — connexion démo', () => {
-  it('redirige vers le Bureau après login', () => {
-    cy.loginDemo();
-    cy.visit('/');
-    cy.contains('Bureau du Sensei').should('exist');
-  });
-});

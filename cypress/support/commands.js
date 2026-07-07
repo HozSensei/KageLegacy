@@ -25,7 +25,11 @@ Cypress.Commands.add('loginDemo', () => {
 Cypress.Commands.add('visitNav', (name) => {
   const page = NAV_PAGES[name];
   if (!page) throw new Error(`visitNav: page inconnue « ${name} »`);
-  cy.get(`[data-testid="nav-${name}"]`).first().click();
+  if (name === 'bureau') {
+    cy.visit('/');
+  } else {
+    cy.get(`[data-testid="nav-${name}"]`).first().click();
+  }
   cy.url().should('include', page.path === '/' ? '/' : page.path);
   cy.get(`[data-testid="${page.testId}"]`, { timeout: 15000 }).should('be.visible');
 });

@@ -315,7 +315,7 @@ watch(() => store.activeSquad, () => {
 
       <p v-if="saveError" class="mt-4 text-sm text-fire">{{ saveError }}</p>
 
-      <section class="mt-14">
+      <section class="mt-14" data-testid="squad-composition">
         <p class="section-label">{{ t('squad.activeSquad') }}</p>
         <div class="mt-8 flex flex-wrap justify-center gap-10 lg:justify-start lg:gap-12">
           <div

@@ -57,8 +57,21 @@ watch(selectedNinjaId, (id) => {
 
 onMounted(fetchMissions)
 
+function applyMissionsState(next) {
+  missions.value = next
+  loading.value = false
+  error.value = null
+}
+
+async function syncMissionsFromServer() {
+  const res = await fetch(`${API_BASE}/api/missions`)
+  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+  applyMissionsState(await res.json())
+}
+
 async function fetchMissions() {
-  loading.value = true
+  const isInitial = !missions.value
+  if (isInitial) loading.value = true
   error.value = null
   const seq = ++fetchSeq
   try {
@@ -66,12 +79,12 @@ async function fetchMissions() {
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
     if (seq !== fetchSeq) return
-    missions.value = data
+    applyMissionsState(data)
   } catch (e) {
     if (seq !== fetchSeq) return
     error.value = e.message
   } finally {
-    if (seq === fetchSeq) loading.value = false
+    if (isInitial) loading.value = false
   }
 }
 
@@ -79,6 +92,7 @@ async function assign() {
   if (!canAssign.value) return
   assigning.value = true
   error.value = null
+  const seq = ++fetchSeq
   try {
     const res = await fetch(`${API_BASE}/api/missions/assign`, {
       method: 'POST',
@@ -87,31 +101,34 @@ async function assign() {
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
-    fetchSeq += 1
-    missions.value = data.missions
-    if (data.squad) store.applyPayload({ ...data.squad, gameClock: data.gameClock })
+    if (seq !== fetchSeq) return
+    applyMissionsState(data.missions)
     selectedNinjaId.value = null
+    store.applyMissionSquadPatch(data.squad, data.gameClock)
+    await syncMissionsFromServer()
   } catch (e) {
-    error.value = e.message
+    if (seq === fetchSeq) error.value = e.message
   } finally {
-    assigning.value = false
+    if (seq === fetchSeq) assigning.value = false
   }
 }
 
 async function collect() {
   collecting.value = true
   error.value = null
+  const seq = ++fetchSeq
   try {
     const res = await fetch(`${API_BASE}/api/missions/collect`, { method: 'POST' })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     const data = await res.json()
-    fetchSeq += 1
-    missions.value = data.missions
-    if (data.squad) store.applyPayload({ ...data.squad, gameClock: data.gameClock })
+    if (seq !== fetchSeq) return
+    store.applyMissionSquadPatch(data.squad, data.gameClock)
+    applyMissionsState(data.missions)
+    await syncMissionsFromServer()
   } catch (e) {
-    error.value = e.message
+    if (seq === fetchSeq) error.value = e.message
   } finally {
-    collecting.value = false
+    if (seq === fetchSeq) collecting.value = false
   }
 }
 

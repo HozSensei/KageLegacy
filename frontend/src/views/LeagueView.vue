@@ -97,7 +97,7 @@ function matchStatusLabel(status) {
       </dl>
 
       <div class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
-        <section class="lg:col-span-7">
+        <section class="lg:col-span-7" data-testid="league-standings">
           <p class="section-label">{{ t('league.standings') }}</p>
           <table class="league-table mt-6 w-full text-sm">
             <thead>

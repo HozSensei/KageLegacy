@@ -124,6 +124,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
             <button
               type="button"
               class="btn-ghost text-[10px]"
+              data-testid="notification-dismiss"
               :disabled="dismissingId === note.id"
               @click="dismiss(note.id, $event)"
             >
