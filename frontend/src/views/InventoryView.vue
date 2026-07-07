@@ -180,10 +180,9 @@ async function unequip(ninjaId, slot) {
 </script>
 
 <template>
-  <div class="page-shell" data-testid="inventory-page">
+  <div class="page-shell page-shell--hero" data-testid="inventory-page">
     <header>
-      <h1 class="page-title">{{ t('nav.inventory') }}</h1>
-      <p class="page-lead mt-4">{{ t('inventory.lead') }}</p>
+      <p class="page-lead">{{ t('inventory.lead') }}</p>
     </header>
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('inventory.loading') }}</p>

@@ -15,9 +15,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page-shell" data-testid="training-page">
+  <div class="page-shell page-shell--hero" data-testid="training-page">
     <header>
-      <h1 class="page-title">{{ t('nav.training') }}</h1>
       <p class="page-lead">{{ t('training.lead') }}</p>
     </header>
 

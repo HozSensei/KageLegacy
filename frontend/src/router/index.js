@@ -13,6 +13,9 @@ import TrainingView from '../views/TrainingView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/auth'
 
+const HERO_VILLAGE = '/images/hero-village.png'
+const HERO_BUREAU = '/images/hero-bureau.png'
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -24,20 +27,21 @@ const router = createRouter({
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
-        { path: 'bureau', name: 'bureau', component: BureauView },
-        { path: 'squad', name: 'squad', component: SquadView },
-        { path: 'missions', name: 'missions', component: MissionsView },
-        { path: 'training', name: 'training', component: TrainingView },
-        { path: 'league', name: 'league', component: LeagueView },
-        { path: 'market', name: 'market', component: MarketView },
-        { path: 'exchanges', name: 'exchanges', component: PlayerMarketView },
-        { path: 'inventory', name: 'inventory', component: InventoryView },
-        { path: 'operation', name: 'operation', component: OperationView },
+        { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_BUREAU, titleKey: 'bureau.title' } } },
+        { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
+        { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
+        { path: 'training', name: 'training', component: TrainingView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.training' } } },
+        { path: 'league', name: 'league', component: LeagueView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.league' } } },
+        { path: 'market', name: 'market', component: MarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.market' } } },
+        { path: 'exchanges', name: 'exchanges', component: PlayerMarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.exchanges' } } },
+        { path: 'inventory', name: 'inventory', component: InventoryView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.inventory' } } },
+        { path: 'operation', name: 'operation', component: OperationView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } } },
         {
           path: 'operation/match/:matchId',
           name: 'operation-match',
           component: OperationView,
           props: true,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } },
         },
       ],
     },

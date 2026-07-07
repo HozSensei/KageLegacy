@@ -7,6 +7,7 @@ import { useAuthStore } from '../stores/auth'
 import { useGameClockLabel } from '../composables/useGameClockLabel.js'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
+import PageHero from '../components/layout/PageHero.vue'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
 
 defineOptions({ name: 'AppLayout' })
@@ -41,6 +42,11 @@ const guestDaysLeft = computed(() => {
   const ms = new Date(auth.user.guestExpiresAt) - Date.now()
   if (ms <= 0) return 0
   return Math.ceil(ms / (1000 * 60 * 60 * 24))
+})
+
+const pageHero = computed(() => {
+  const record = [...route.matched].reverse().find((r) => r.meta?.hero)
+  return record?.meta.hero ?? null
 })
 
 async function logout() {
@@ -110,6 +116,12 @@ onMounted(async () => {
         </div>
       </div>
     </header>
+
+    <PageHero
+      v-if="pageHero"
+      :image="pageHero.image"
+      :title="t(pageHero.titleKey)"
+    />
 
     <div
       v-if="auth.user?.isGuest"

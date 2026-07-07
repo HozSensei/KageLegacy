@@ -39,11 +39,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page-shell" data-testid="bureau-page">
+  <div class="page-shell page-shell--hero" data-testid="bureau-page">
     <header class="lg:grid lg:grid-cols-12 lg:gap-10">
       <div class="lg:col-span-7">
-        <h1 class="page-title">{{ t('bureau.title') }}</h1>
-        <p class="page-lead mt-4">
+        <p class="page-lead">
           {{ t('bureau.lead') }}
         </p>
       </div>
