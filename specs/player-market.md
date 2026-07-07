@@ -103,5 +103,5 @@ player_listings (
 ## Dépendances
 
 - Pools / ligue actifs (M8) ✅
-- Économie Ryos stable (salaires, entraînement) 🟡
+- Économie Ryos stable (salaires, entraînement, primes match 1 600 / 800) ✅ — `economy:calibrate`
 - Académie et **Magasin du village** nommés distinctement — voir [`academy.md`](./academy.md), [`m4-utility-items-catalog.md`](./m4-utility-items-catalog.md)

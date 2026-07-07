@@ -61,6 +61,8 @@ npm run db:up       # Démarre MySQL (Docker)
 npm run db:migrate  # Applique les migrations SQL
 npm run db:seed     # Génère le joueur démo + 15 ninjas
 npm run clock:advance  # Avance l'horloge d'1h (dev)
+npm run lint           # ESLint frontend
+npm run test:unit      # Smoke tests narratif + Égoïste
 npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
 npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
 npm run playtest:missions --prefix backend # Playtest 3 paliers idle + notifications
@@ -70,6 +72,7 @@ npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycl
 npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
 npm run economy:simulate --prefix backend      # Simule ~20 cycles + achats magasin (équilibre Ryos)
 npm run economy:calibrate --prefix backend     # Calibrage analytique des primes match
+npm run narrative:backfill --prefix backend  # One-shot : segments i18n sur chroniques legacy
 # Options : --progression (Chunin + Vol d'Oiseau), --chunin, --bird-flight, --items=1, --training
 npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
 npm run dev:api     # API seule
@@ -79,6 +82,13 @@ npm run dev:web     # Front seul
 ### CI (GitHub Actions)
 
 Sur chaque push/PR vers `main` : `npm ci` (racine + backend + frontend), ESLint, smoke tests narratif/Égoïste, `economy:calibrate`, `combat:benchmark` (100 runs). Les E2E Cypress restent à lancer en local via `npm run test:e2e` (nécessite MySQL + seed).
+
+### Déploiement / mise à jour
+
+```bash
+npm run db:migrate                    # Appliquer les migrations SQL
+npm run narrative:backfill --prefix backend  # Optionnel : chroniques sans template_key
+```
 
 ---
 
@@ -96,7 +106,7 @@ Les spécifications détaillées sont dans le dossier [`/specs`](specs/).
 | 6 — Moteur de Chronique | [milestone-6.md](specs/milestone-6.md) | ✅ Pipeline narratif, objets match, i18n |
 | 7 — Vol d'Oiseau | [milestone-7.md](specs/milestone-7.md) | ✅ Cérémonie, prime H72, relève |
 | 8 — Ligues & Matchmaking | [milestone-8.md](specs/milestone-8.md) | ✅ Pools, bots, invitations, fin de saison |
-| 9 — Feuille de route & vigilance | [milestone-9.md](specs/milestone-9.md) | 📝 Vivant — priorités & playtests |
+| 9 — Feuille de route & vigilance | [milestone-9.md](specs/milestone-9.md) | ✅ Clôturé juil. 2026 — vivant pour vigilance |
 
 **Auth multi-joueurs** (register/login, sessions cookie) et **cloche notifications** (header) sont livrés — voir [milestone-9.md](specs/milestone-9.md) pour le détail à jour.
 
