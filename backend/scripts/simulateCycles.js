@@ -81,5 +81,25 @@ console.log('\n── Cibles indicatives (milestone-9) ──');
 console.log('  Favori équilibré vs underdog fort: 63–65 % win (favori en slot A dans le scénario démo)');
 console.log('  Nuls: ~30–33 % · Upsets: ~4–5 % · KO: ~0 %');
 
+console.log('\n── Objets utilitaires (loadouts documentés) ──');
+console.log('  Référence : backend/src/services/simulation/utilityLoadouts.js');
+for (const loadout of bench.utilityBenchmark.loadouts) {
+  console.log(`  · ${loadout.id} — ${loadout.label}`);
+}
+const util = bench.utilityBenchmark.scenarios;
+const utilKeys = ['underdogBaseline', 'smokeTankCoherent', 'optimizedDouble', 'smokeMisplaced'];
+for (const key of utilKeys) {
+  const row = util[key];
+  const delta =
+    row.winDeltaPts != null ? ` · Δ underdog ${row.winDeltaPts >= 0 ? '+' : ''}${row.winDeltaPts} pts` : '';
+  console.log(
+    `  ${row.label}: slot A ${row.slotAWinPct}% · nuls ${row.drawPct}%${delta} · consommables/match ${row.consumablesPerMatch ?? 0}`
+  );
+}
+const targets = bench.utilityBenchmark.targets;
+console.log(
+  `  Cibles : hors plan ≤ +${targets.misplacedMaxPts} pts · cohérent +${targets.coherentMinPts}–${targets.coherentMaxPts} pts · double ≤ +${targets.doubleMaxPts} pts`
+);
+
 console.log('\n📋 JSON complet (copier dans milestone-9 si besoin):');
 console.log(JSON.stringify(bench, null, 2));
