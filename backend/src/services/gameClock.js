@@ -91,6 +91,27 @@ export async function advanceToHourDev(targetHour) {
   return clock;
 }
 
+/** Définit l'ancre du cycle (H0) à une date/heure précise. Recalcule l'heure courante. */
+export async function setCycleStartAt(startAt) {
+  const start = new Date(startAt);
+  if (Number.isNaN(start.getTime())) {
+    const err = new Error('Date de début de cycle invalide.');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const now = new Date();
+  const elapsedHours = Math.floor((now - start) / HOUR_MS);
+  const hour = Math.min(CYCLE_HOURS, Math.max(0, elapsedHours));
+
+  await query(
+    'UPDATE game_clock SET cycle_start_at = ?, last_tick_hour = ? WHERE id = 1',
+    [start, hour]
+  );
+
+  return getGameClock();
+}
+
 /** Réinitialise le cycle (après job H72) */
 export async function resetCycle() {
   await query(

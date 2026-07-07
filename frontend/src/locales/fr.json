@@ -110,7 +110,7 @@
     "cycleTitle": "La boucle",
     "cycleBody": "Chaque cycle : focus d'entraînement, missions idle, achats au magasin, puis le match de ligue qui rapporte des Ryos.",
     "clockTitle": "Horloge serveur",
-    "clockBody": "Le cycle avance en temps réel (1 h réelle = 1 h de jeu). L'heure de démarrage est fixée à la première migration ou au reset H72 — pas au redémarrage du container."
+    "clockBody": "Le cycle avance en temps réel (1 h réelle = 1 h de jeu). L'ancre H0 est fixée à la première migration — configurable via CYCLE_START_AT ou npm run clock:set-start."
   },
   "guest": {
     "banner": "Essai invité — {days} jour(s) restant(s).",

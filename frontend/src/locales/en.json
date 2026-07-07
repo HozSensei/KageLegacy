@@ -110,7 +110,7 @@
     "cycleTitle": "The loop",
     "cycleBody": "Each cycle: training focus, idle missions, village shop, then the league match for Ryos income.",
     "clockTitle": "Server clock",
-    "clockBody": "The cycle advances in real time (1 real hour = 1 game hour). The anchor is set at first DB migration or H72 reset — not on container restart."
+    "clockBody": "The cycle advances in real time (1 real hour = 1 game hour). H0 is set at first migration — adjustable via CYCLE_START_AT or npm run clock:set-start."
   },
   "guest": {
     "banner": "Guest trial — {days} day(s) left.",
