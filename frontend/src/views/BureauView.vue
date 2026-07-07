@@ -45,7 +45,7 @@ onMounted(async () => {
         <p class="page-kicker">{{ t('bureau.cycle') }}</p>
         <h1 class="page-title mt-3">{{ t('bureau.title') }}</h1>
         <p class="page-lead">
-          Résumé du dojo, de l'escouade en lice et de l'état du cycle en cours.
+          {{ t('bureau.lead') }}
         </p>
       </div>
     </header>

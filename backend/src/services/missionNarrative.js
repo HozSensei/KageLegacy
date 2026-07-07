@@ -3,7 +3,6 @@ import {
   createNarrativeRng,
   normalizeLocale,
   pickFromPool,
-  pickTemplateEntry,
 } from './narrative/narrativeI18n.js';
 
 export function buildMissionReportPayload({
