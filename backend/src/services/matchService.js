@@ -89,6 +89,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
     ]);
 
     const narrative = assembleNarrative({
+      matchId: match.id,
       homeSensei: homeCtx.senseiName,
       awaySensei: awayCtx.senseiName,
       homeNinjas: homeCtx.ninjas,

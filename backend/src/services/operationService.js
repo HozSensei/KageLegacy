@@ -1,7 +1,9 @@
 import { getGameClock } from './gameClock.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { buildDebriefing, pickSuspenseLine } from './narrative/debriefing.js';
+import { resolveSegmentText } from './narrative/narrativeI18n.js';
 import { getNarrativeSegments } from './narrative/narrativeStore.js';
+import { getUserLanguage } from './narrative/viewerLocale.js';
 import {
   assertViewerCanAccessMatch,
   browsePools,
@@ -34,6 +36,7 @@ function userPerspective(match, userId) {
 
 export async function buildMatchOperationPayload(match, viewerUserId, access) {
   const clock = await getGameClock();
+  const viewerLocale = await getUserLanguage(viewerUserId);
   const isParticipant = access.isParticipant;
   const perspective = isParticipant ? userPerspective(match, viewerUserId) : null;
   const combatLog = parseCombatLog(match.combat_log);
@@ -50,7 +53,11 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
 
   const chronicle = allSegments
     .filter((s) => revealComplete || Number(s.unlock_minutes) <= unlockedMinutes)
-    .map((s) => ({ order: s.segment_order, blockType: s.block_type, text: s.text }));
+    .map((s) => ({
+      order: s.segment_order,
+      blockType: s.block_type,
+      text: resolveSegmentText(viewerLocale, s),
+    }));
 
   const hasDenouement = chronicle.some((s) => s.blockType === 'denouement');
   const morePending =
@@ -64,7 +71,7 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
 
   const debriefing =
     isParticipant && (revealComplete || clock.hour >= 72)
-      ? buildDebriefing(match, viewerUserId, combatLog)
+      ? buildDebriefing(match, viewerUserId, combatLog, viewerLocale)
       : [];
 
   const mechanical =
@@ -87,7 +94,7 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
     state,
     liveWindow,
     chronicle,
-    suspense: morePending && !hasDenouement ? pickSuspenseLine() : null,
+    suspense: morePending && !hasDenouement ? pickSuspenseLine(viewerLocale, match.id) : null,
     debriefing,
     viewerRole: isParticipant ? 'participant' : 'spectator',
     pool: {
