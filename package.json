@@ -2,6 +2,7 @@
   "name": "kage-legacy",
   "private": true,
   "version": "0.1.0",
+"type": "module",
   "description": "Kage Legacy — Manager d'escouade shinobi asynchrone",
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
@@ -13,9 +14,13 @@
     "db:seed": "npm run db:seed --prefix backend",
     "clock:advance": "npm run clock:advance --prefix backend",
     "combat:benchmark": "npm run combat:benchmark --prefix backend",
+    "test:e2e": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress run\"",
+    "test:e2e:open": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress open\"",
     "setup": "npm install && npm install --prefix backend && npm install --prefix frontend && npm run db:up && sleep 8 && npm run db:migrate && npm run db:seed"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "cypress": "^14.5.4",
+    "start-server-and-test": "^2.1.3"
   }
 }

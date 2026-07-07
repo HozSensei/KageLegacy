@@ -138,7 +138,7 @@ function lootSummary(mission) {
 </script>
 
 <template>
-  <section class="mt-10 border-t border-line pt-10">
+  <section class="mt-10 border-t border-line pt-10" data-testid="missions-panel">
     <p class="section-label">{{ t('missions.title') }}</p>
     <p class="mt-2 text-sm text-ink-muted">{{ t('missions.lead') }}</p>
 
@@ -163,7 +163,7 @@ function lootSummary(mission) {
             <span v-if="injuryLabel(m.injury_type)" class="block text-xs text-fire">{{ injuryLabel(m.injury_type) }}</span>
           </li>
         </ul>
-        <button type="button" class="btn-ghost mt-3" :disabled="collecting" @click="collect">
+        <button type="button" class="btn-ghost mt-3" data-testid="missions-collect" :disabled="collecting" @click="collect">
           {{ collecting ? t('missions.collecting') : t('missions.collect') }}
         </button>
       </div>

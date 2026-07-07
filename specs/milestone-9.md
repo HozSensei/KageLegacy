@@ -69,7 +69,7 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 **Prochaines priorités :**
 
-31. **Playtest navigateur** — 2 sessions réelles, cloche notifications + collecte missions Bureau
+31. ~~**Playtest navigateur (Cypress)**~~ — ✅ `npm run test:e2e` · login, missions, notifications, collecte
 32. **Calibrage économie en playtest** — ajuster primes match si bilan trop tendu ou trop confortable
 33. **Benchmark utilitaires** — `combat:benchmark` avec loadouts match/cycle documentés
 

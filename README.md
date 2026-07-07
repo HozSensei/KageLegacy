@@ -64,6 +64,8 @@ npm run clock:advance  # Avance l'horloge d'1h (dev)
 npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
 npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
 npm run playtest:missions --prefix backend # Playtest 3 paliers idle + notifications
+npm run test:e2e                           # Cypress : login, missions, cloche, collecte
+npm run test:e2e:open                      # Cypress interactif (navigateur)
 npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
 npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
 npm run economy:simulate --prefix backend      # Simule ~20 cycles + achats magasin (équilibre Ryos)
