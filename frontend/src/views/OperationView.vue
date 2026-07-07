@@ -227,7 +227,7 @@ onUnmounted(() => clearInterval(pollTimer))
                 <ul class="mt-6 space-y-4">
                   <li
                     v-for="(alert, idx) in operation.debriefing"
-                    :key="idx"
+                    :key="alert.code || idx"
                     class="text-sm leading-relaxed text-ink-muted"
                   >
                     {{ alert.text }}

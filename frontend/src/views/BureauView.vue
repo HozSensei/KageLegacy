@@ -13,7 +13,9 @@ import TrainingPlansPanel from '../components/bureau/TrainingPlansPanel.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
 
-const { t, locale } = useI18n()
+defineOptions({ name: 'BureauView' })
+
+const { t } = useI18n()
 const store = useSquadStore()
 
 const squadRating = computed(() => {
@@ -34,8 +36,7 @@ const debtFrozen = computed(
 )
 
 onMounted(async () => {
-  await store.fetchSquad()
-  if (store.sensei?.language) locale.value = store.sensei.language
+  if (!store.sensei) await store.fetchSquad()
 })
 </script>
 
@@ -51,7 +52,7 @@ onMounted(async () => {
       </div>
     </header>
 
-    <p v-if="store.loading" class="mt-12 text-sm text-ink-muted">Chargement…</p>
+    <p v-if="store.loading && !store.sensei" class="mt-12 text-sm text-ink-muted">{{ t('common.loading') }}</p>
     <p v-else-if="store.error" class="mt-12 text-sm text-fire">{{ store.error }}</p>
 
     <template v-else-if="store.sensei">
@@ -90,20 +91,20 @@ onMounted(async () => {
         </div>
         <div class="metric-item">
           <dd class="metric-value">{{ squadRating }}</dd>
-          <dt class="metric-label">Note escouade</dt>
+          <dt class="metric-label">{{ t('bureau.squadRating') }}</dt>
         </div>
       </dl>
 
       <section class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
         <div class="lg:col-span-4">
-          <p class="section-label">Jonin-Sensei</p>
+          <p class="section-label">{{ t('sensei.title') }}</p>
           <h2 class="mt-3 font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
           <p class="mt-4 text-sm leading-7 text-ink-muted">
             {{ t('sensei.interceptionHint') }}
           </p>
           <p class="mt-2 text-sm text-ink-faint">
             {{ t('sensei.chakra') }} :
-            <span class="text-ink">{{ store.sensei.chakraPool }}</span> / 100
+            {{ t('sensei.chakraMax', { current: store.sensei.chakraPool, max: 100 }) }}
           </p>
 
           <CycleBudgetPanel />
@@ -120,7 +121,7 @@ onMounted(async () => {
         <div class="mt-10 border-t border-line pt-10 lg:col-span-8 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
           <p class="section-label">{{ t('bureau.activeSquad') }}</p>
           <p class="mt-2 max-w-md text-sm text-ink-muted">
-            Survolez une carte pour l'apercevoir, cliquez pour voir la fiche au verso.
+            {{ t('bureau.activeSquadHint') }}
           </p>
 
           <div class="mt-8 flex flex-wrap justify-center gap-6 sm:justify-start lg:gap-8">

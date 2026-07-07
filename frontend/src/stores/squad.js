@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { readApiError } from '../utils/http.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -33,10 +34,7 @@ export const useSquadStore = defineStore('squad', () => {
     error.value = null
     try {
       const res = await fetch(`${API_BASE}/api/squad`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || `Erreur ${res.status}`)
-      }
+      if (!res.ok) throw new Error(await readApiError(res))
       applyPayload(await res.json())
     } catch (e) {
       error.value = e.message
@@ -58,10 +56,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -80,10 +75,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -93,10 +85,7 @@ export const useSquadStore = defineStore('squad', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -107,10 +96,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plans }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -121,10 +107,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trainingFocus }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -135,10 +118,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ninjaId }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -149,10 +129,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ninjaId }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -163,10 +140,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notificationId }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 
@@ -177,10 +151,7 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ninjaId }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      throw new Error(body.error || `Erreur ${res.status}`)
-    }
+    if (!res.ok) throw new Error(await readApiError(res))
     applyPayload(await res.json())
   }
 

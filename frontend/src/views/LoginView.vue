@@ -27,18 +27,16 @@ function switchMode(next) {
 }
 
 async function submit() {
-  let ok = false
-  if (mode.value === 'login') {
-    ok = await auth.login(username.value.trim(), password.value)
-  } else {
-    ok = await auth.register({
-      username: username.value.trim(),
-      password: password.value,
-      senseiName: senseiName.value.trim(),
-      language: language.value,
-      invitePoolId: invitePoolId.value || undefined,
-    })
-  }
+  const ok =
+    mode.value === 'login'
+      ? await auth.login(username.value.trim(), password.value)
+      : await auth.register({
+          username: username.value.trim(),
+          password: password.value,
+          senseiName: senseiName.value.trim(),
+          language: language.value,
+          invitePoolId: invitePoolId.value || undefined,
+        })
   if (ok) router.push('/')
 }
 
@@ -54,7 +52,7 @@ onMounted(() => {
 <template>
   <div class="flex min-h-screen items-center justify-center bg-bg px-6 py-12">
     <div class="w-full max-w-md border border-line bg-bg-card p-8 sm:p-10">
-      <p class="page-kicker text-center">Kage Legacy</p>
+      <p class="page-kicker text-center">{{ t('app.name') }}</p>
       <h1 class="page-title mt-3 text-center">{{ title }}</h1>
 
       <p v-if="mode === 'register' && invitePoolId" class="mt-6 border-l-2 border-accent pl-4 text-sm text-ink-muted">

@@ -1,11 +1,12 @@
-import {
-  BIRD_FLIGHT_COMBAT_REQUIRED,
-  BIRD_FLIGHT_IQ_REQUIRED,
-} from '../src/services/birdFlightExam.js'
+import { combatStat } from './useChuninExam.js'
+
+/** Miroir backend — birdFlightExam.js */
+export const BIRD_FLIGHT_COMBAT_REQUIRED = 16
+export const BIRD_FLIGHT_IQ_REQUIRED = 14
 
 export function getBirdFlightProgress(ninja) {
   if (ninja.birdFlightProgress) return ninja.birdFlightProgress
-  const combat = Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)
+  const combat = combatStat(ninja)
   const intelligence = ninja.intelligence
   const ready = combat >= BIRD_FLIGHT_COMBAT_REQUIRED && intelligence >= BIRD_FLIGHT_IQ_REQUIRED
   return {

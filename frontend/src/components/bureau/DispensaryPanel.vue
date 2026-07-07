@@ -44,7 +44,7 @@ async function treat(ninjaId) {
         <div>
           <p class="font-display text-lg text-ink">{{ ninja.name.split(' ')[0] }}</p>
           <p class="mt-1 text-[11px] text-ink-faint">
-            {{ t('bureau.dispensary.forme') }} · {{ ninja.grade }}
+            {{ t('bureau.dispensary.forme') }} · {{ t(`grades.${ninja.grade}`) }}
           </p>
         </div>
         <button

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { readApiError, parseApiResponse } from '../utils/http.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -22,10 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
         sensei.value = null
         return false
       }
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || `Erreur ${res.status}`)
-      }
+      if (!res.ok) throw new Error(await readApiError(res))
       const data = await res.json()
       user.value = data.user
       sensei.value = data.sensei
@@ -51,8 +49,8 @@ export const useAuthStore = defineStore('auth', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(body.error || `Erreur ${res.status}`)
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
       user.value = body.user
       sensei.value = body.sensei
       return true
@@ -69,19 +67,19 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     error.value = null
     try {
-      const body = { username, password, senseiName, language }
-      if (invitePoolId) body.invitePoolId = invitePoolId
+      const payload = { username, password, senseiName, language }
+      if (invitePoolId) payload.invitePoolId = invitePoolId
 
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`)
-      user.value = data.user
-      sensei.value = data.sensei
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      user.value = body.user
+      sensei.value = body.sensei
       return true
     } catch (e) {
       error.value = e.message
