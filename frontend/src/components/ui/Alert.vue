@@ -1,4 +1,6 @@
 <script setup>
+defineOptions({ name: 'BaseAlert' })
+
 defineProps({
   variant: {
     type: String,

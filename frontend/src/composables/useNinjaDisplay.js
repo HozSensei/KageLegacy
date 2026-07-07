@@ -1,5 +1,12 @@
 import { computed } from 'vue'
 
+const FORME_BAR_WIDTH = {
+  Lamentable: 25,
+  Passable: 50,
+  Excellent: 75,
+  Divin: 100,
+}
+
 export function useNinjaDisplay(ninjaRef) {
   const ninja = computed(() => ninjaRef.value ?? ninjaRef)
 
@@ -50,11 +57,17 @@ export function useNinjaDisplay(ninjaRef) {
 
   const statKeys = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence']
 
+  const formeBarWidth = computed(() => {
+    const forme = ninja.value?.weekly_forme
+    return FORME_BAR_WIDTH[forme] ?? 50
+  })
+
   return {
     overall,
     elementTone,
     joninProgress,
     statKeys,
+    formeBarWidth,
     profile,
     artLabel,
     potentialLabel,

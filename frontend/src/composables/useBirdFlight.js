@@ -1,3 +1,4 @@
+import { combatStat } from './useChuninExam.js'
 import {
   BIRD_FLIGHT_COMBAT_REQUIRED,
   BIRD_FLIGHT_IQ_REQUIRED,
@@ -5,7 +6,7 @@ import {
 
 export function getBirdFlightProgress(ninja) {
   if (ninja.birdFlightProgress) return ninja.birdFlightProgress
-  const combat = Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)
+  const combat = combatStat(ninja)
   const intelligence = ninja.intelligence
   const ready = combat >= BIRD_FLIGHT_COMBAT_REQUIRED && intelligence >= BIRD_FLIGHT_IQ_REQUIRED
   return {

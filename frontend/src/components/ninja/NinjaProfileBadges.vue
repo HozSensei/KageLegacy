@@ -1,14 +1,14 @@
 <script setup>
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
+
+defineOptions({ name: 'NinjaProfileBadges' })
 
 const props = defineProps({
   ninja: { type: Object, required: true },
   compact: { type: Boolean, default: false },
 })
 
-const { t } = useI18n()
 const {
   artLabel,
   potentialLabel,

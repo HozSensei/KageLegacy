@@ -118,7 +118,7 @@ function matchStatusLabel(status) {
                 <td class="py-3 pr-4 tabular-nums text-ink-muted">{{ row.rank }}</td>
                 <td class="py-3">
                   {{ row.senseiName }}
-                  <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">bot</span>
+                  <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
                 </td>
                 <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
                 <td class="py-3 text-right font-display text-lg tabular-nums">{{ row.points }}</td>
@@ -153,7 +153,7 @@ function matchStatusLabel(status) {
               </p>
               <p class="mt-4 font-display text-2xl text-ink">
                 {{ league.nextMatch.home.name }}
-                <span class="text-ink-faint">vs</span>
+                <span class="text-ink-faint">{{ t('common.vs') }}</span>
                 {{ league.nextMatch.away.name }}
               </p>
               <p
@@ -212,7 +212,7 @@ function matchStatusLabel(status) {
             <div class="mt-4 border-l-2 border-accent-soft pl-4">
               <p class="text-sm text-ink">
                 {{ league.scoutReport.opponentName }}
-                <span v-if="league.scoutReport.opponentIsBot" class="text-ink-faint">(bot)</span>
+                <span v-if="league.scoutReport.opponentIsBot" class="text-ink-faint">{{ t('league.botParen') }}</span>
               </p>
               <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink-muted">
                 <li v-for="(line, i) in league.scoutReport.lines" :key="i">{{ line }}</li>

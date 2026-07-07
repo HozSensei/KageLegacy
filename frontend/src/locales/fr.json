@@ -1,9 +1,30 @@
 {
+  "app": {
+    "name": "Kage Legacy"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "vs": "vs"
+  },
+  "gameClock": {
+    "label": "H{hour} · {phase}",
+    "phases": {
+      "training": "Entraînement",
+      "mid_cycle": "Milieu de cycle",
+      "operation_live": "Opération",
+      "cycle_end": "Fin de cycle"
+    }
+  },
+  "locale": {
+    "fr": "Fr",
+    "en": "En"
+  },
   "sensei": {
     "title": "Jonin-Sensei",
     "ryos": "Ryos",
     "reputation": "Réputation",
     "chakra": "Chakra de match",
+    "chakraMax": "{current} / {max}",
     "interception": "Interception",
     "interceptionHint": "Réserve passive : peut sauver un élève d'un coup fatal (Substitution, 25 chakra)."
   },
@@ -92,6 +113,8 @@
     "title": "Bureau du Sensei",
     "cycle": "Cycle ninja",
     "lead": "Résumé de votre équipe, de l'escouade en lice et de l'état du cycle en cours.",
+    "squadRating": "Note escouade",
+    "activeSquadHint": "Survolez une carte pour l'apercevoir, cliquez pour voir la fiche au verso.",
     "activeSquad": "Escouade active",
     "operationLive": "Opération en cours",
     "operationLink": "Voir le rapport",
@@ -168,6 +191,7 @@
     }
   },
   "squad": {
+    "kicker": "Composition",
     "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",
     "editStrategy": "Modifier la stratégie",
     "doneStrategy": "Terminer",
@@ -207,9 +231,14 @@
     "Divin": "Divin"
   },
   "placeholders": {
-    "comingSoon": "Bientôt disponible"
+    "kicker": "À venir",
+    "comingSoon": "Bientôt disponible",
+    "devMilestone": "Cette section sera disponible dans un prochain jalon de développement."
   },
   "league": {
+    "bot": "bot",
+    "botParen": "(bot)",
+    "matchdayShort": "J{cycle}",
     "kicker": "Pool de frontière",
     "lead": "Six escouades, dix cycles — montez en Division ou chutez au classement.",
     "loading": "Chargement…",
