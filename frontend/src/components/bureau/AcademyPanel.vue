@@ -2,8 +2,10 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import { useFormatRyos } from '../../composables/useFormatRyos'
 
 const { t } = useI18n()
+const { formatRyos } = useFormatRyos()
 const store = useSquadStore()
 const recruiting = ref(false)
 
@@ -44,7 +46,7 @@ async function recruit() {
         {{ draw.candidate.profile.artLabel }} · {{ draw.candidate.profile.potentialLabel }}
       </p>
       <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p class="text-ink">{{ draw.price.toLocaleString() }} Ryos</p>
+        <p class="text-ink">{{ formatRyos(draw.price) }}</p>
         <button
           v-if="academy.windowOpen && !academy.recruitedThisCycle && !draw.recruited"
           type="button"

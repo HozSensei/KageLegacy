@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install --prefix backend
+          npm install --prefix frontend
+
+      - name: ESLint frontend
+        run: npm run lint --prefix frontend
+
+      - name: Smoke test moteur narratif
+        run: npm run test:narrative --prefix backend
+
+      - name: Calibrage économie (analytique)
+        run: npm run economy:calibrate --prefix backend

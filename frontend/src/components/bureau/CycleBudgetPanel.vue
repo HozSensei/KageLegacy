@@ -2,8 +2,10 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import { useFormatRyos } from '../../composables/useFormatRyos'
 
 const { t } = useI18n()
+const { formatRyos } = useFormatRyos()
 const store = useSquadStore()
 
 const budget = computed(() => store.cycleBudget)
@@ -17,11 +19,11 @@ const budget = computed(() => store.cycleBudget)
     <dl class="mt-4 space-y-2 text-sm">
       <div class="flex justify-between gap-4">
         <dt class="text-ink-muted">{{ t('bureau.budgetCurrent') }}</dt>
-        <dd class="text-ink">{{ budget.ryos.toLocaleString() }} Ryos</dd>
+        <dd class="text-ink">{{ formatRyos(budget.ryos) }}</dd>
       </div>
       <div class="flex justify-between gap-4">
         <dt class="text-ink-muted">{{ t('bureau.budgetSalaries') }}</dt>
-        <dd class="text-fire">−{{ budget.salariesTotal.toLocaleString() }} Ryos</dd>
+        <dd class="text-fire">−{{ formatRyos(budget.salariesTotal) }}</dd>
       </div>
       <template v-if="budget.trainingLines?.length">
         <div
@@ -32,17 +34,17 @@ const budget = computed(() => store.cycleBudget)
           <dt class="text-ink-faint pl-2">
             {{ line.ninjaName }} — {{ t(`ninja.stats.${line.focus.toLowerCase()}`) }}
           </dt>
-          <dd class="text-fire">−{{ line.amount.toLocaleString() }}</dd>
+          <dd class="text-fire">−{{ formatRyos(line.amount) }}</dd>
         </div>
       </template>
       <div v-if="budget.interestProjected > 0" class="flex justify-between gap-4 text-xs">
         <dt class="text-ink-faint">{{ t('bureau.budgetInterest') }}</dt>
-        <dd class="text-fire">−{{ budget.interestProjected.toLocaleString() }}</dd>
+        <dd class="text-fire">−{{ formatRyos(budget.interestProjected) }}</dd>
       </div>
       <div class="flex justify-between gap-4 border-t border-line pt-2 font-medium">
         <dt class="text-ink">{{ t('bureau.budgetProjected') }}</dt>
         <dd :class="budget.projectedBalance < 0 ? 'text-fire' : 'text-accent'">
-          {{ budget.projectedBalance.toLocaleString() }} Ryos
+          {{ formatRyos(budget.projectedBalance) }}
         </dd>
       </div>
     </dl>

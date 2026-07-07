@@ -73,6 +73,13 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 32. ~~**Calibrage économie en playtest**~~ — ✅ `npm run economy:calibrate` · profils casual/modéré/engagé · primes 1 600 / 800 Ryos
 33. ~~**Benchmark utilitaires**~~ — ✅ `combat:benchmark` · loadouts `utilityLoadouts.js` · Δ win% documenté
 
+**Prochaines priorités :**
+
+34. ~~**Notification stagnation H72**~~ — ✅ `kind: stagnation` · cloche Bureau · i18n FR/EN
+35. ~~**Polish i18n Ryos UI**~~ — ✅ `useFormatRyos` · magasin / échanges / budget Bureau
+36. ~~**CI lint + smoke tests**~~ — ✅ `.github/workflows/ci.yml` · `npm run lint` · `test:narrative` · `economy:calibrate`
+37. ~~**E2E locale EN chronique**~~ — ✅ `locale.cy.js` · `/operation` en anglais
+
 ---
 
 ## 👁️ Points de vigilance (équilibrage & simulations)

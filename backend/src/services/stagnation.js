@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { applyStagnationPenalty, isStagnant } from './gradeProgression.js';
+import { createDojoNotification } from './dojoNotifications.js';
 
 export async function applyStagnationForUser(userId) {
   const ninjas = await query('SELECT * FROM ninjas WHERE user_id = ?', [userId]);
@@ -23,6 +24,10 @@ export async function applyStagnationForUser(userId) {
       moral,
       reason: ninja.grade === 'Genin' ? 'genin_exam_pending' : 'chunin_departure_pending',
     });
+  }
+
+  if (results.length) {
+    await createDojoNotification(userId, 'stagnation', { ninjas: results });
   }
 
   return results;

@@ -4,7 +4,8 @@
   },
   "common": {
     "loading": "Chargement…",
-    "vs": "vs"
+    "vs": "vs",
+    "ryosAmount": "{amount} Ryos"
   },
   "gameClock": {
     "label": "H{hour} · {phase}",
@@ -141,7 +142,11 @@
       "title": "Stagnation imminente",
       "lead": "À H72, forme et moral baissent si ces ninjas restent bloqués au grade actuel.",
       "geninExam": "prêt pour l'examen Chunin — inscrivez-le avant H36",
-      "chuninJonin": "sommet Chunin atteint — inscrivez-le au Vol d'Oiseau"
+      "chuninJonin": "sommet Chunin atteint — inscrivez-le au Vol d'Oiseau",
+      "notificationTitle": "Stagnation d'escouade",
+      "notificationBody": "{name} s'impatiente — forme {forme}, moral {moral}. Pensez à l'examen ou au Vol d'Oiseau.",
+      "notificationBodyMultiple": "{names} s'impatientent — forme et moral en baisse ce cycle.",
+      "notificationLink": "Voir le Bureau"
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",

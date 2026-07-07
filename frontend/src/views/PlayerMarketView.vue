@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useFormatRyos } from '../composables/useFormatRyos'
 
 const { t, locale } = useI18n()
+const { formatRyos } = useFormatRyos()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -160,7 +162,7 @@ function canBuy(listing) {
                 {{ listingTitle(listing) }}
               </p>
               <p class="mt-1 text-xs text-ink-faint">
-                {{ listingSubtitle(listing) }} · {{ listing.price.toLocaleString() }} Ryos
+                {{ listingSubtitle(listing) }} · {{ formatRyos(listing.price) }}
               </p>
             </div>
             <button
@@ -195,7 +197,7 @@ function canBuy(listing) {
               {{ listingSubtitle(listing) }}
               <span v-if="listing.isNoble"> · {{ t('exchanges.noble') }}</span>
             </p>
-            <p class="mt-4 text-sm text-ink">{{ listing.price.toLocaleString() }} Ryos</p>
+            <p class="mt-4 text-sm text-ink">{{ formatRyos(listing.price) }}</p>
             <p v-if="priceRef(listing)" class="mt-1 text-xs text-ink-faint">{{ priceRef(listing) }}</p>
             <p v-if="listing.listingType === 'ninja' && listing.isNoble" class="mt-2 text-xs text-ink-faint">
               {{ t('exchanges.nobleTaxHint') }}

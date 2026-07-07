@@ -15,6 +15,8 @@
     "clock:advance": "npm run clock:advance --prefix backend",
     "combat:benchmark": "npm run combat:benchmark --prefix backend",
     "economy:calibrate": "npm run economy:calibrate --prefix backend",
+    "lint": "npm run lint --prefix frontend",
+    "test:unit": "npm run test:narrative --prefix backend && npm run test:egoiste --prefix backend",
     "test:e2e": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress run\"",
     "test:e2e:open": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress open\"",
     "setup": "npm install && npm install --prefix backend && npm install --prefix frontend && npm run db:up && sleep 8 && npm run db:migrate && npm run db:seed"
