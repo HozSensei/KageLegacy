@@ -25,7 +25,7 @@ const { t } = useI18n()
 const { overall, elementTone, elementLabel, gradeProgress, statKeys, formeBarWidth } = useNinjaDisplay(toRef(props, 'ninja'))
 
 const firstName = computed(() => props.ninja.name.split(' ')[0])
-const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') || props.ninja.clan_name)
+const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' '))
 </script>
 
 <template>
@@ -43,7 +43,7 @@ const clanName = computed(() => props.ninja.name.split(' ').slice(1).join(' ') |
     >
       <p class="font-display text-3xl leading-none text-ink">{{ overall }}</p>
       <p class="mt-2 font-display text-lg leading-tight text-ink">{{ firstName }}</p>
-      <p class="text-[11px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
+      <p class="text-[11px] uppercase tracking-[0.14em] text-ink-faint">{{ familyName }}</p>
       <p class="mt-2 text-[11px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
       <p v-if="slotLabel" class="mt-1 text-[10px] text-ink-faint/70">{{ slotLabel }}</p>
     </div>

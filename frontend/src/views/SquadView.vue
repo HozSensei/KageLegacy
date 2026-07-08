@@ -473,7 +473,7 @@ watch(() => store.activeSquad, () => {
                 :key="ally.id"
                 :value="ally.id"
               >
-                {{ formatNinjaDisplayName(ally.name, ally.clan_name) }}
+                {{ formatNinjaDisplayName(ally.name) }}
               </option>
             </select>
           </div>

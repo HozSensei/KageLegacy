@@ -26,7 +26,7 @@ function priceForCandidate(clanTier, potential) {
 
 async function buildRandomAspirant(clans, userId) {
   const existing = userId ? await findNinjasByUserId(userId) : [];
-  const profile = generateNinjaProfile({
+  const profile = await generateNinjaProfile({
     clans,
     grade: 'Genin',
     forbiddenIdentityKeys: collectIdentityKeys(existing),

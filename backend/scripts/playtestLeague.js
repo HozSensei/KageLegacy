@@ -87,7 +87,7 @@ async function resetCycleJobs() {
 async function createActiveSquad(userId, clans) {
   const traits = distributeCharacterTraits(3);
   for (let i = 0; i < 3; i += 1) {
-    const profile = generateNinjaProfile({
+    const profile = await generateNinjaProfile({
       clans,
       grade: 'Genin',
       characterTrait: traits[i],

@@ -1,10 +1,10 @@
 import { query } from '../config/database.js';
 import { createNinja } from '../models/ninja.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
-
+import { pickUniqueCivName } from './ninjaNameGenerator.js';
+import { ninjaIdentityKey } from './ninjaNaming.js';
 const BOT_SENSEI_NAMES = ['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might'];
 
-const BOT_FIRST = ['Ren', 'Koji', 'Taro', 'Yui', 'Hana', 'Jin', 'Mei', 'Ryo'];
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 const TRAITS = ['Discipline', 'Discipline', 'Temeraire', 'Altruiste', 'Discipline'];
 
@@ -21,11 +21,14 @@ async function createBotSquad(userId, slotIndex, clans) {
     { taijutsu: base - 1, ninjutsu: base, genjutsu: base, medecine: base + 1, vitesse: base + 2, intelligence: base },
   ];
 
+  const forbidden = new Set();
   for (let i = 0; i < 3; i += 1) {
     const stats = profiles[i];
+    const name = await pickUniqueCivName({ forbiddenIdentityKeys: forbidden });
+    forbidden.add(ninjaIdentityKey(name));
     await createNinja({
       user_id: userId,
-      name: `${pick(BOT_FIRST, slotIndex + i)} ${clan.name}`,
+      name,
       age: 15 + (i % 2),
       grade: i === 1 ? 'Chunin' : 'Genin',
       clan_trait_id: clan.id,

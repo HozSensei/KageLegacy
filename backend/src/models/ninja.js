@@ -28,8 +28,7 @@ export async function findNinjaById(id) {
 export async function createNinja(data) {
   const validated = validateNinjaInput(data);
   const existing = await findNinjasByUserId(validated.user_id);
-  const clanRows = await query('SELECT name FROM clan_traits WHERE id = ?', [validated.clan_trait_id]);
-  assertUniqueAmongRoster(validated.name, clanRows[0]?.name, existing);
+  assertUniqueAmongRoster(validated.name, existing);
 
   const salary_cost = computeSalaryCost(validated.grade, validated);
   const current_pv_match = computeMatchPv(validated.taijutsu);

@@ -29,15 +29,14 @@ export async function provisionStarterSquad(userId, language = 'fr') {
 
   for (let i = 0; i < layout.length; i += 1) {
     const { grade, squad_position } = layout[i];
-    const profile = generateNinjaProfile({
+    const profile = await generateNinjaProfile({
       clans,
       grade,
       characterTrait: traits[i],
       language,
       forbiddenIdentityKeys: forbiddenKeys,
     });
-    const clan = clans.find((c) => c.id === profile.clan_trait_id);
-    forbiddenKeys.add(ninjaIdentityKey(profile.name, clan?.name));
+    forbiddenKeys.add(ninjaIdentityKey(profile.name));
     await createNinja({
       user_id: userId,
       ...profile,

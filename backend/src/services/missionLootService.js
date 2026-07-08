@@ -151,7 +151,7 @@ async function applyInjury(ninjaId, injuryType) {
 async function recruitMissionProdige(userId) {
   const clans = await query('SELECT * FROM clan_traits ORDER BY id');
   const existing = await findNinjasByUserId(userId);
-  const profile = generateNinjaProfile({
+  const profile = await generateNinjaProfile({
     clans,
     grade: 'Genin',
     forcedPotential: 'prodige',

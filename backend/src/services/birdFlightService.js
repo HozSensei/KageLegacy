@@ -39,7 +39,7 @@ export function getBirdFlightPeakStat(ninja) {
 async function spawnReplacementGenin(userId, squadPosition, language) {
   const clans = await findAllClanTraits();
   const existing = await findNinjasByUserId(userId);
-  const profile = generateNinjaProfile({
+  const profile = await generateNinjaProfile({
     clans,
     grade: 'Genin',
     language,

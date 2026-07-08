@@ -7,9 +7,8 @@ import {
   computeSalaryCost,
 } from './ninjaStats.js';
 import { pickClanForRecruitment } from './clanRecruitment.js';
-import { ninjaIdentityKey } from './ninjaNaming.js';
+import { pickUniqueCivName } from './ninjaNameGenerator.js';
 
-const FIRST_NAMES = ['Haru', 'Sora', 'Rei', 'Kenji', 'Yuki', 'Akira', 'Hana', 'Rin', 'Takeshi', 'Mio'];
 const CLAN_NAMES = ['Roturier', 'Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
 
 const FORMES = ['Passable', 'Excellent', 'Divin'];
@@ -136,7 +135,7 @@ export function generateBaseStats(grade = 'Genin') {
   return generateSpecializedStats(grade, pickRandom(PRIMARY_ARTS), 'ordinaire');
 }
 
-export function generateNinjaProfile({
+export async function generateNinjaProfile({
   clan,
   clans,
   grade = 'Genin',
@@ -147,55 +146,43 @@ export function generateNinjaProfile({
   forbiddenIdentityKeys = null,
 }) {
   const forbidden = forbiddenIdentityKeys || new Set();
-  const maxAttempts = 80;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const resolvedClan =
-      clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
-    if (!resolvedClan) {
-      throw new Error('generateNinjaProfile: clan ou liste clans requis.');
-    }
-
-    const firstName = pickRandom(FIRST_NAMES);
-    const name =
-      resolvedClan.name === 'Roturier' ? firstName : `${firstName} ${resolvedClan.name}`;
-
-    if (forbidden.has(ninjaIdentityKey(name, resolvedClan.name))) {
-      continue;
-    }
-
-    const primaryArt = pickPrimaryArt(resolvedClan);
-    const potential = forcedPotential || rollPotential(resolvedClan);
-    let stats = generateSpecializedStats(grade, primaryArt, potential);
-    stats = applyClanBonuses(stats, resolvedClan);
-
-    const moral = computeMoralWithClanVariance(12 + Math.floor(Math.random() * 6), resolvedClan);
-    const weeklyForme = pickRandom(FORMES);
-
-    const salary_cost = computeSalaryCost(grade, stats);
-    const current_pv_match = computeMatchPv(stats.taijutsu);
-    const current_chakra_match = computeMatchChakraMax(grade, stats.ninjutsu);
-
-    return {
-      name,
-      age: grade === 'Genin' ? 15 : 16,
-      grade,
-      clan_trait_id: resolvedClan.id,
-      element_affinity: pickRandom(ELEMENTS),
-      character_trait: characterTrait || pickRandom(CHARACTER_TRAITS),
-      language,
-      salary_cost,
-      weekly_forme: weeklyForme,
-      moral,
-      current_pv_match,
-      current_chakra_match,
-      primary_art: primaryArt,
-      potential,
-      ...stats,
-    };
+  const resolvedClan =
+    clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
+  if (!resolvedClan) {
+    throw new Error('generateNinjaProfile: clan ou liste clans requis.');
   }
 
-  throw new Error('Impossible de générer un prénom et une lignée uniques pour ce ninja.');
+  const name = await pickUniqueCivName({ forbiddenIdentityKeys: forbidden });
+
+  const primaryArt = pickPrimaryArt(resolvedClan);
+  const potential = forcedPotential || rollPotential(resolvedClan);
+  let stats = generateSpecializedStats(grade, primaryArt, potential);
+  stats = applyClanBonuses(stats, resolvedClan);
+
+  const moral = computeMoralWithClanVariance(12 + Math.floor(Math.random() * 6), resolvedClan);
+  const weeklyForme = pickRandom(FORMES);
+
+  const salary_cost = computeSalaryCost(grade, stats);
+  const current_pv_match = computeMatchPv(stats.taijutsu);
+  const current_chakra_match = computeMatchChakraMax(grade, stats.ninjutsu);
+
+  return {
+    name,
+    age: grade === 'Genin' ? 15 : 16,
+    grade,
+    clan_trait_id: resolvedClan.id,
+    element_affinity: pickRandom(ELEMENTS),
+    character_trait: characterTrait || pickRandom(CHARACTER_TRAITS),
+    language,
+    salary_cost,
+    weekly_forme: weeklyForme,
+    moral,
+    current_pv_match,
+    current_chakra_match,
+    primary_art: primaryArt,
+    potential,
+    ...stats,
+  };
 }
 
 export function distributeCharacterTraits(count) {
@@ -211,4 +198,4 @@ export function distributeCharacterTraits(count) {
   return shuffle([...traits, ...extra]);
 }
 
-export { CLAN_NAMES, FIRST_NAMES, PRIMARY_ARTS };
+export { CLAN_NAMES, PRIMARY_ARTS };
