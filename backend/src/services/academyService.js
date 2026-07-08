@@ -5,6 +5,8 @@ import { createNinja } from '../models/ninja.js';
 import { clanTierLabel, getClanTier } from './clanRecruitment.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
+import { collectIdentityKeys } from './ninjaNaming.js';
+import { findNinjasByUserId } from '../models/ninja.js';
 
 export const ACADEMY_WINDOW_END_HOUR = 12;
 
@@ -22,8 +24,13 @@ function priceForCandidate(clanTier, potential) {
   return 400;
 }
 
-function buildRandomAspirant(clans) {
-  const profile = generateNinjaProfile({ clans, grade: 'Genin' });
+async function buildRandomAspirant(clans, userId) {
+  const existing = userId ? await findNinjasByUserId(userId) : [];
+  const profile = generateNinjaProfile({
+    clans,
+    grade: 'Genin',
+    forbiddenIdentityKeys: collectIdentityKeys(existing),
+  });
   const clan = clans.find((c) => c.id === profile.clan_trait_id);
   const clanTier = getClanTier(clan);
   const price = priceForCandidate(clanTier, profile.potential);
@@ -79,7 +86,7 @@ export async function ensureAcademyDrawForUser(userId) {
   if (!clockRow?.cycle_start_at) return null;
 
   const clans = await query('SELECT * FROM clan_traits ORDER BY id');
-  const aspirant = buildRandomAspirant(clans);
+  const aspirant = await buildRandomAspirant(clans, userId);
   const { displayProfile, clanTier, clanName, price, ...profile } = aspirant;
 
   await query(

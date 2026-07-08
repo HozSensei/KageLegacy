@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import { validateNinjaInput } from '../validators/ninja.js';
 import { computeMatchChakraMax, computeMatchPv, computeSalaryCost } from '../services/ninjaStats.js';
+import { assertUniqueAmongRoster } from '../services/ninjaNaming.js';
 
 export async function findNinjasByUserId(userId) {
   return query(
@@ -26,6 +27,10 @@ export async function findNinjaById(id) {
 
 export async function createNinja(data) {
   const validated = validateNinjaInput(data);
+  const existing = await findNinjasByUserId(validated.user_id);
+  const clanRows = await query('SELECT name FROM clan_traits WHERE id = ?', [validated.clan_trait_id]);
+  assertUniqueAmongRoster(validated.name, clanRows[0]?.name, existing);
+
   const salary_cost = computeSalaryCost(validated.grade, validated);
   const current_pv_match = computeMatchPv(validated.taijutsu);
   const current_chakra_match = computeMatchChakraMax(validated.grade, validated.ninjutsu);

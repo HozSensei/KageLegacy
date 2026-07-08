@@ -4,10 +4,11 @@
 
 import { query } from '../config/database.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
-import { createNinja } from '../models/ninja.js';
+import { createNinja, findNinjasByUserId } from '../models/ninja.js';
 import { combatStat } from './chuninExam.js';
 import { meetsBirdFlightRequirements } from './birdFlightExam.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
+import { collectIdentityKeys } from './ninjaNaming.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { createDojoNotification } from './dojoNotifications.js';
 
@@ -37,11 +38,13 @@ export function getBirdFlightPeakStat(ninja) {
 
 async function spawnReplacementGenin(userId, squadPosition, language) {
   const clans = await findAllClanTraits();
+  const existing = await findNinjasByUserId(userId);
   const profile = generateNinjaProfile({
     clans,
     grade: 'Genin',
     language,
     recruitmentOptions: { forceRoturier: true },
+    forbiddenIdentityKeys: collectIdentityKeys(existing),
   });
 
   const moral = 20;

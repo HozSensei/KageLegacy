@@ -5,6 +5,7 @@ import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import SyncIcon from '../components/icons/SyncIcon.vue'
 import StoreIcon from '../components/icons/StoreIcon.vue'
+import { formatNinjaDisplayName } from '../utils/ninjaName.js'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -472,7 +473,7 @@ watch(() => store.activeSquad, () => {
                 :key="ally.id"
                 :value="ally.id"
               >
-                {{ ally.name.split(' ')[0] }}
+                {{ formatNinjaDisplayName(ally.name, ally.clan_name) }}
               </option>
             </select>
           </div>

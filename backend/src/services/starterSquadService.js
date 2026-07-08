@@ -5,6 +5,7 @@ import {
   distributeCharacterTraits,
   generateNinjaProfile,
 } from './ninjaGenerator.js';
+import { ninjaIdentityKey } from './ninjaNaming.js';
 
 /**
  * Escouade de départ : 1 Chunin (poste actif central) + 5 Genin (2 actifs, 3 banc).
@@ -16,6 +17,7 @@ export async function provisionStarterSquad(userId, language = 'fr') {
   }
 
   const traits = distributeCharacterTraits(6);
+  const forbiddenKeys = new Set();
   const layout = [
     { grade: 'Genin', squad_position: 1 },
     { grade: 'Chunin', squad_position: 2 },
@@ -32,7 +34,10 @@ export async function provisionStarterSquad(userId, language = 'fr') {
       grade,
       characterTrait: traits[i],
       language,
+      forbiddenIdentityKeys: forbiddenKeys,
     });
+    const clan = clans.find((c) => c.id === profile.clan_trait_id);
+    forbiddenKeys.add(ninjaIdentityKey(profile.name, clan?.name));
     await createNinja({
       user_id: userId,
       ...profile,
