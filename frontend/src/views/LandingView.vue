@@ -16,6 +16,13 @@ const features = [
   'landing.features.chronicle',
 ]
 
+const timeline = [
+  'landing.timeline.start',
+  'landing.timeline.mid',
+  'landing.timeline.operation',
+  'landing.timeline.end',
+]
+
 async function playAsGuest() {
   const ok = await auth.loginAsGuest()
   if (ok) router.push('/bureau')
@@ -75,12 +82,15 @@ async function playAsGuest() {
           <p class="mt-4 text-sm leading-7 text-ink-muted">{{ t('landing.asideBody') }}</p>
           <dl class="mt-8 space-y-4 text-sm">
             <div>
-              <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('landing.cycleTitle') }}</dt>
-              <dd class="mt-1 text-ink-muted">{{ t('landing.cycleBody') }}</dd>
+              <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('landing.timelineTitle') }}</dt>
+              <dd class="mt-1 text-ink-muted">{{ t('landing.timelineRealtime') }}</dd>
             </div>
-            <div>
-              <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('landing.clockTitle') }}</dt>
-              <dd class="mt-1 text-ink-muted">{{ t('landing.clockBody') }}</dd>
+            <div
+              v-for="key in timeline"
+              :key="key"
+              class="border-l border-line/80 pl-4"
+            >
+              <dd class="text-ink-muted leading-relaxed">{{ t(key) }}</dd>
             </div>
           </dl>
         </aside>

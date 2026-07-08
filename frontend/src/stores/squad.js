@@ -112,7 +112,10 @@ export const useSquadStore = defineStore('squad', () => {
       headers: { 'Content-Type': 'application/json' },
     })
     if (!res.ok) throw new Error(await readApiError(res))
-    applySquadMutation(await res.json())
+    const data = await res.json()
+    applySquadMutation(data)
+    if (data.academy) academy.value = data.academy
+    return data
   }
 
   async function saveTrainingPlans(plans) {

@@ -8,6 +8,12 @@ import { generateNinjaProfile } from './ninjaGenerator.js';
 
 export const ACADEMY_WINDOW_END_HOUR = 12;
 
+const CURRENT_CYCLE_SQL = '(SELECT cycle_start_at FROM game_clock WHERE id = 1 LIMIT 1)';
+
+function isPurchased(row) {
+  return row?.purchased === true || row?.purchased === 1;
+}
+
 function priceForCandidate(clanTier, potential) {
   if (clanTier === 'noble') return 2500 + randomInt(1501);
   if (clanTier === 'common') return 1200;
@@ -42,7 +48,7 @@ function mapDrawRow(row) {
   return {
     id: row.id,
     price: row.price,
-    recruited: Boolean(row.purchased),
+    recruited: isPurchased(row),
     candidate: {
       name: candidate.name,
       clanTier: candidate.clanTier,
@@ -56,17 +62,21 @@ function mapDrawRow(row) {
   };
 }
 
-export async function getAcademyDraw(userId, cycleStartAt) {
+export async function getAcademyDrawForCurrentCycle(userId) {
   const rows = await query(
-    `SELECT * FROM academy_draws WHERE user_id = ? AND cycle_start_at = ?`,
-    [userId, cycleStartAt]
+    `SELECT * FROM academy_draws
+     WHERE user_id = ? AND cycle_start_at = ${CURRENT_CYCLE_SQL}`,
+    [userId]
   );
   return rows[0] || null;
 }
 
-export async function ensureAcademyDrawForUser(userId, cycleStartAt) {
-  const existing = await getAcademyDraw(userId, cycleStartAt);
+export async function ensureAcademyDrawForUser(userId) {
+  const existing = await getAcademyDrawForCurrentCycle(userId);
   if (existing) return existing;
+
+  const clockRow = await getClockRow();
+  if (!clockRow?.cycle_start_at) return null;
 
   const clans = await query('SELECT * FROM clan_traits ORDER BY id');
   const aspirant = buildRandomAspirant(clans);
@@ -74,37 +84,36 @@ export async function ensureAcademyDrawForUser(userId, cycleStartAt) {
 
   await query(
     `INSERT INTO academy_draws (user_id, cycle_start_at, candidate_json, price)
-     VALUES (?, ?, ?, ?)`,
-    [userId, cycleStartAt, JSON.stringify({ ...profile, clanTier, clanName, displayProfile }), price]
+     VALUES (?, ${CURRENT_CYCLE_SQL}, ?, ?)`,
+    [userId, JSON.stringify({ ...profile, clanTier, clanName, displayProfile }), price]
   );
 
-  return getAcademyDraw(userId, cycleStartAt);
+  return getAcademyDrawForCurrentCycle(userId);
 }
 
 export async function ensureAcademyForAllUsers(cycleStartAt) {
   const users = await query('SELECT id FROM users WHERE is_bot = FALSE');
   const results = [];
   for (const user of users) {
-    await ensureAcademyDrawForUser(user.id, cycleStartAt);
-    results.push({ userId: user.id });
+    await ensureAcademyDrawForUser(user.id);
+    results.push({ userId: user.id, cycleStartAt });
   }
   return results;
 }
 
 export async function getAcademyPayload(userId) {
   const clockRow = await getClockRow();
-  const cycleStartAt = clockRow?.cycle_start_at;
-  if (!cycleStartAt) {
+  if (!clockRow?.cycle_start_at) {
     return { draw: null, windowOpen: false, recruitedThisCycle: false };
   }
 
-  const row = await ensureAcademyDrawForUser(userId, cycleStartAt);
+  const row = await ensureAcademyDrawForUser(userId);
   const clock = await getGameClock();
 
   return {
     draw: mapDrawRow(row),
     windowOpen: clock.hour < ACADEMY_WINDOW_END_HOUR,
-    recruitedThisCycle: Boolean(row?.purchased),
+    recruitedThisCycle: isPurchased(row),
     windowEndsAtHour: ACADEMY_WINDOW_END_HOUR,
   };
 }
@@ -117,27 +126,34 @@ export async function recruitAcademyAspirant(userId) {
     throw error;
   }
 
-  const clockRow = await getClockRow();
-  const rows = await query(
-    `SELECT ad.*, s.ryos
-     FROM academy_draws ad
-     JOIN sensei s ON s.user_id = ad.user_id
-     WHERE ad.user_id = ? AND ad.cycle_start_at = ?`,
-    [userId, clockRow.cycle_start_at]
-  );
-  const draw = rows[0];
+  const draw = await getAcademyDrawForCurrentCycle(userId);
   if (!draw) {
     const error = new Error('Aucun aspirant à l\'Académie ce cycle.');
     error.statusCode = 404;
     throw error;
   }
-  if (draw.purchased) {
+  if (isPurchased(draw)) {
     const error = new Error('Cet aspirant a déjà rejoint votre effectif.');
     error.statusCode = 409;
     throw error;
   }
 
-  if (draw.ryos < draw.price) {
+  const claim = await query(
+    `UPDATE academy_draws
+     SET purchased = TRUE
+     WHERE id = ? AND purchased = FALSE AND cycle_start_at = ${CURRENT_CYCLE_SQL}`,
+    [draw.id]
+  );
+  if (!claim.affectedRows) {
+    const error = new Error('Cet aspirant a déjà rejoint votre effectif.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ? LIMIT 1', [userId]);
+  const ryos = senseiRows[0]?.ryos ?? 0;
+  if (ryos < draw.price) {
+    await query('UPDATE academy_draws SET purchased = FALSE WHERE id = ?', [draw.id]);
     const error = new Error('Ryos insuffisants.');
     error.statusCode = 402;
     throw error;
@@ -148,28 +164,31 @@ export async function recruitAcademyAspirant(userId) {
       ? JSON.parse(draw.candidate_json)
       : draw.candidate_json;
 
-  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [draw.price, userId]);
-  const ninja = await createNinja({
-    user_id: userId,
-    name: candidate.name,
-    age: candidate.age,
-    grade: candidate.grade,
-    clan_trait_id: candidate.clan_trait_id,
-    element_affinity: candidate.element_affinity,
-    character_trait: candidate.character_trait,
-    language: candidate.language || 'fr',
-    taijutsu: candidate.taijutsu,
-    ninjutsu: candidate.ninjutsu,
-    genjutsu: candidate.genjutsu,
-    medecine: candidate.medecine,
-    vitesse: candidate.vitesse,
-    intelligence: candidate.intelligence,
-    weekly_forme: candidate.weekly_forme,
-    moral: candidate.moral,
-    squad_position: null,
-  });
+  try {
+    await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [draw.price, userId]);
+    const ninja = await createNinja({
+      user_id: userId,
+      name: candidate.name,
+      age: candidate.age,
+      grade: candidate.grade,
+      clan_trait_id: candidate.clan_trait_id,
+      element_affinity: candidate.element_affinity,
+      character_trait: candidate.character_trait,
+      language: candidate.language || 'fr',
+      taijutsu: candidate.taijutsu,
+      ninjutsu: candidate.ninjutsu,
+      genjutsu: candidate.genjutsu,
+      medecine: candidate.medecine,
+      vitesse: candidate.vitesse,
+      intelligence: candidate.intelligence,
+      weekly_forme: candidate.weekly_forme,
+      moral: candidate.moral,
+      squad_position: null,
+    });
 
-  await query('UPDATE academy_draws SET purchased = TRUE WHERE id = ?', [draw.id]);
-
-  return { ninjaId: ninja.id, name: ninja.name, price: draw.price };
+    return { ninjaId: ninja.id, name: ninja.name, price: draw.price };
+  } catch (error) {
+    await query('UPDATE academy_draws SET purchased = FALSE WHERE id = ?', [draw.id]);
+    throw error;
+  }
 }
