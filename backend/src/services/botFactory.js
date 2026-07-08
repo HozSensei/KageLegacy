@@ -51,6 +51,17 @@ async function createBotSquad(userId, slotIndex, clans) {
   }
 }
 
+export async function findAvailableBotSlotIndex(poolId) {
+  for (let slotIndex = 0; slotIndex < 100; slotIndex += 1) {
+    const username = `bot_pool${poolId}_slot${slotIndex}`;
+    const rows = await query('SELECT id FROM users WHERE username = ? LIMIT 1', [username]);
+    if (!rows.length) return slotIndex;
+  }
+  const error = new Error('Impossible de créer un bot de remplacement pour cette ligue.');
+  error.statusCode = 500;
+  throw error;
+}
+
 export async function createBotUser(poolId, slotIndex) {
   const senseiName = BOT_SENSEI_NAMES[slotIndex % BOT_SENSEI_NAMES.length];
   const username = `bot_pool${poolId}_slot${slotIndex}`;

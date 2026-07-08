@@ -1,5 +1,5 @@
 import { query } from '../config/database.js';
-import { createBotUser } from './botFactory.js';
+import { createBotUser, findAvailableBotSlotIndex } from './botFactory.js';
 import { findUserByUsername, verifyPassword } from './authService.js';
 import { handleClanOnAccountDeletion } from './playerClanService.js';
 
@@ -19,38 +19,22 @@ async function verifyDeletePassword(user, password) {
 }
 
 async function replaceHumanWithBotInPool(poolId, humanUserId) {
-  const standings = await query(
-    'SELECT points, played, wins, draws, losses FROM pool_standings WHERE pool_id = ? AND user_id = ? LIMIT 1',
-    [poolId, humanUserId]
-  );
-  const standing = standings[0] || {
-    points: 0,
-    played: 0,
-    wins: 0,
-    draws: 0,
-    losses: 0,
-  };
-
-  const memberCount = await query(
-    'SELECT COUNT(*) AS total FROM pool_members WHERE pool_id = ?',
-    [poolId]
-  );
-  const slotIndex = Number(memberCount[0]?.total || 0);
+  const slotIndex = await findAvailableBotSlotIndex(poolId);
   const { userId: botId } = await createBotUser(poolId, slotIndex);
 
+  await query('UPDATE pool_members SET user_id = ? WHERE pool_id = ? AND user_id = ?', [
+    botId,
+    poolId,
+    humanUserId,
+  ]);
+  await query('UPDATE pool_standings SET user_id = ? WHERE pool_id = ? AND user_id = ?', [
+    botId,
+    poolId,
+    humanUserId,
+  ]);
   await query('UPDATE matches SET home_user_id = ? WHERE home_user_id = ?', [botId, humanUserId]);
   await query('UPDATE matches SET away_user_id = ? WHERE away_user_id = ?', [botId, humanUserId]);
   await query('UPDATE matches SET winner_user_id = NULL WHERE winner_user_id = ?', [humanUserId]);
-
-  await query('DELETE FROM pool_members WHERE pool_id = ? AND user_id = ?', [poolId, humanUserId]);
-  await query('INSERT INTO pool_members (pool_id, user_id) VALUES (?, ?)', [poolId, botId]);
-
-  await query('DELETE FROM pool_standings WHERE pool_id = ? AND user_id = ?', [poolId, humanUserId]);
-  await query(
-    `INSERT INTO pool_standings (pool_id, user_id, points, played, wins, draws, losses)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [poolId, botId, standing.points, standing.played, standing.wins, standing.draws, standing.losses]
-  );
 }
 
 export async function deleteUserAccount(user, { password } = {}) {
