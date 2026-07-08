@@ -133,7 +133,13 @@
     "email": "Email address",
     "currentPassword": "Current password",
     "newPassword": "New password",
-    "save": "Save"
+    "save": "Save",
+    "deleteAccount": "Delete my account",
+    "deleteWarning": "This action is permanent. Your account, squad, inventory and all your data will be erased. There is no way to undo this.",
+    "deletePassword": "Confirm with your password",
+    "deleteConfirmLabel": "I understand this action is irreversible",
+    "deleteSubmit": "Delete permanently",
+    "deleteCancel": "Cancel"
   },
   "training": {
     "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set."

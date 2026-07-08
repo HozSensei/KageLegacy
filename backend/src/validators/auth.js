@@ -47,3 +47,8 @@ export const updateEmailSchema = z.object({
 export const updateLanguageSchema = z.object({
   language: z.enum(['fr', 'en']),
 });
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1).optional(),
+  confirm: z.literal(true, { errorMap: () => ({ message: 'Confirmation requise.' }) }),
+});

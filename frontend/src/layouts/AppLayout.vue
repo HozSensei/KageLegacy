@@ -49,6 +49,13 @@ const pageHero = computed(() => {
   return record?.meta.hero ?? null
 })
 
+async function onAccountDeleted() {
+  store.sensei = null
+  store.activeSquad = []
+  store.bench = []
+  router.push('/')
+}
+
 async function logout() {
   await auth.logout()
   store.sensei = null
@@ -79,6 +86,7 @@ onMounted(async () => {
             v-if="auth.user"
             @logout="logout"
             @convert="showConvert = true"
+            @deleted="onAccountDeleted"
           />
           <router-link
             v-else

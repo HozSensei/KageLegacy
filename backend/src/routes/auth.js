@@ -14,11 +14,13 @@ import {
   updateSenseiLanguage,
   updateUserEmail,
 } from '../services/authService.js';
+import { deleteUserAccount } from '../services/accountDeletionService.js';
 import { findSenseiByUserId } from '../models/sensei.js';
 import { getSessionToken } from '../middleware/auth.js';
 import {
   changePasswordSchema,
   convertGuestSchema,
+  deleteAccountSchema,
   guestRegisterSchema,
   loginSchema,
   registerSchema,
@@ -189,6 +191,24 @@ router.patch('/profile/language', async (req, res, next) => {
       user: serializeUser(user),
       sensei: serializeSensei(sensei),
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/profile', async (req, res, next) => {
+  try {
+    const token = getSessionToken(req);
+    const user = token ? await getUserBySessionToken(token) : null;
+    if (!user) {
+      return res.status(401).json({ error: 'Non authentifié.' });
+    }
+
+    const parsed = deleteAccountSchema.parse(req.body);
+    await deleteUserAccount(user, { password: parsed.password });
+
+    res.setHeader('Set-Cookie', clearSessionCookie());
+    res.json({ ok: true });
   } catch (error) {
     next(error);
   }

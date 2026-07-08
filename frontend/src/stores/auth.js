@@ -214,6 +214,33 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function deleteAccount(password) {
+    loading.value = true
+    error.value = null
+    try {
+      const payload = { confirm: true }
+      if (password) payload.password = password
+
+      const res = await fetch(`${API_BASE}/api/auth/profile`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      user.value = null
+      sensei.value = null
+      checked.value = true
+      return true
+    } catch (e) {
+      error.value = e.message
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     user,
     sensei,
@@ -229,6 +256,7 @@ export const useAuthStore = defineStore('auth', () => {
     changePassword,
     updateEmail,
     updateLanguage,
+    deleteAccount,
     logout,
   }
 })
