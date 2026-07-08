@@ -8,6 +8,7 @@ import {
 } from './ninjaStats.js';
 import { pickClanForRecruitment } from './clanRecruitment.js';
 import { pickUniqueCivName } from './ninjaNameGenerator.js';
+import { loadGlobalIdentityKeySet } from '../models/ninja.js';
 
 const CLAN_NAMES = ['Roturier', 'Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
 
@@ -144,15 +145,21 @@ export async function generateNinjaProfile({
   recruitmentOptions,
   forcedPotential = null,
   forbiddenIdentityKeys = null,
+  forbiddenGlobalKeys = null,
 }) {
   const forbidden = forbiddenIdentityKeys || new Set();
+  const globalForbidden = forbiddenGlobalKeys ?? (await loadGlobalIdentityKeySet());
   const resolvedClan =
     clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
   if (!resolvedClan) {
     throw new Error('generateNinjaProfile: clan ou liste clans requis.');
   }
 
-  const name = pickUniqueCivName({ forbiddenIdentityKeys: forbidden, clan: resolvedClan });
+  const name = pickUniqueCivName({
+    forbiddenIdentityKeys: forbidden,
+    globalForbiddenKeys: globalForbidden,
+    clan: resolvedClan,
+  });
 
   const primaryArt = pickPrimaryArt(resolvedClan);
   const potential = forcedPotential || rollPotential(resolvedClan);

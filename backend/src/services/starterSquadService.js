@@ -1,5 +1,5 @@
 import { findAllClanTraits } from '../models/clanTrait.js';
-import { createNinja } from '../models/ninja.js';
+import { createNinja, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { query } from '../config/database.js';
 import {
   distributeCharacterTraits,
@@ -18,6 +18,7 @@ export async function provisionStarterSquad(userId, language = 'fr') {
 
   const traits = distributeCharacterTraits(6);
   const forbiddenKeys = new Set();
+  const globalKeys = await loadGlobalIdentityKeySet();
   const layout = [
     { grade: 'Genin', squad_position: 1 },
     { grade: 'Chunin', squad_position: 2 },
@@ -35,8 +36,11 @@ export async function provisionStarterSquad(userId, language = 'fr') {
       characterTrait: traits[i],
       language,
       forbiddenIdentityKeys: forbiddenKeys,
+      forbiddenGlobalKeys: globalKeys,
     });
-    forbiddenKeys.add(ninjaIdentityKey(profile.name));
+    const key = ninjaIdentityKey(profile.name);
+    forbiddenKeys.add(key);
+    globalKeys.add(key);
     await createNinja({
       user_id: userId,
       ...profile,

@@ -1,5 +1,5 @@
 import { query } from '../config/database.js';
-import { createNinja } from '../models/ninja.js';
+import { createNinja, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
 import { pickUniqueCivName } from './ninjaNameGenerator.js';
 import { ninjaIdentityKey } from './ninjaNaming.js';
@@ -22,9 +22,17 @@ async function createBotSquad(userId, slotIndex, clans) {
   ];
 
   const forbidden = new Set();
+  const globalKeys = await loadGlobalIdentityKeySet();
   for (let i = 0; i < 3; i += 1) {
     const stats = profiles[i];
-    const name = pickUniqueCivName({ forbiddenIdentityKeys: forbidden, clan });
+    const name = pickUniqueCivName({
+      forbiddenIdentityKeys: forbidden,
+      globalForbiddenKeys: globalKeys,
+      clan,
+    });
+    const key = ninjaIdentityKey(name);
+    forbidden.add(key);
+    globalKeys.add(key);
     forbidden.add(ninjaIdentityKey(name));
     await createNinja({
       user_id: userId,
