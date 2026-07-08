@@ -174,3 +174,51 @@ export async function listClanMemberUserIds(clanId) {
   const rows = await query('SELECT user_id FROM player_clan_members WHERE clan_id = ?', [clanId]);
   return rows.map((r) => r.user_id);
 }
+
+/**
+ * Prépare le clan avant suppression de compte : retrait membre, dissolution solo,
+ * ou transfert automatique du leadership si le chef a des alliés.
+ */
+export async function handleClanOnAccountDeletion(userId) {
+  const membership = await getClanMembership(userId);
+  if (!membership) {
+    return { action: 'none' };
+  }
+
+  const members = await listClanMembers(membership.clanId);
+  const otherMembers = members.filter((member) => member.userId !== userId);
+
+  if (!membership.isLeader) {
+    await query('DELETE FROM player_clan_members WHERE clan_id = ? AND user_id = ?', [
+      membership.clanId,
+      userId,
+    ]);
+    return { action: 'member_left', clanId: membership.clanId, remainingCount: otherMembers.length };
+  }
+
+  if (otherMembers.length === 0) {
+    await query('DELETE FROM player_clan_members WHERE clan_id = ? AND user_id = ?', [
+      membership.clanId,
+      userId,
+    ]);
+    await query('DELETE FROM player_clans WHERE id = ?', [membership.clanId]);
+    return { action: 'clan_dissolved', clanId: membership.clanId };
+  }
+
+  const successor = otherMembers[0];
+  await query('UPDATE player_clans SET leader_user_id = ? WHERE id = ?', [
+    successor.userId,
+    membership.clanId,
+  ]);
+  await query('DELETE FROM player_clan_members WHERE clan_id = ? AND user_id = ?', [
+    membership.clanId,
+    userId,
+  ]);
+
+  return {
+    action: 'leadership_transferred',
+    clanId: membership.clanId,
+    newLeaderUserId: successor.userId,
+    remainingCount: otherMembers.length,
+  };
+}
