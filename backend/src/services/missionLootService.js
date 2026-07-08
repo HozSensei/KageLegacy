@@ -13,27 +13,9 @@ import {
 import { createDojoNotification } from './dojoNotifications.js';
 import { buildMissionReportPayload } from './missionNarrative.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
+import { grantItemToUser } from './itemGrantService.js';
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
-
-async function findItemIdBySlug(slug) {
-  const rows = await query('SELECT id FROM item_definitions WHERE slug = ?', [slug]);
-  return rows[0]?.id ?? null;
-}
-
-async function grantItemToUser(userId, slug, quantity = 1) {
-  const itemId = await findItemIdBySlug(slug);
-  if (!itemId) return [];
-  const granted = [];
-  for (let i = 0; i < quantity; i += 1) {
-    const result = await query(
-      'INSERT INTO user_items (user_id, item_definition_id) VALUES (?, ?)',
-      [userId, itemId]
-    );
-    granted.push({ userItemId: result.insertId, slug, quantity: 1 });
-  }
-  return granted;
-}
 
 function rollRoutineLoot() {
   const roll = rollPercent();

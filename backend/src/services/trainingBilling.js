@@ -3,6 +3,7 @@ import { computeSalaryCost } from './ninjaStats.js';
 import { getCycleEquipmentByUser } from './equipmentService.js';
 import { getSalaryDiscountPercent } from './combat/equipment.js';
 import { applyTrainingForUser, computeTrainingCost, FOCUS_VALUES } from './training.js';
+import { getHeritageBonuses, applyPercentDiscount } from './heritageService.js';
 
 export const OVERDRAFT_LIMIT = -5000;
 export const DEBT_INTEREST_RATE = 0.03;
@@ -57,12 +58,16 @@ export async function getCycleBudgetPreview(userId) {
   );
 
   const { total: salariesTotal, lines: salaryLines } = await computeSalaryTotalForUser(userId);
+  const heritage = await getHeritageBonuses(userId);
 
   const trainingLines = [];
   let trainingTotal = 0;
   for (const ninja of ninjas) {
     if (!ninja.training_focus) continue;
-    const amount = computeTrainingCost(ninja);
+    const amount = applyPercentDiscount(
+      computeTrainingCost(ninja),
+      heritage.trainingDiscountPct
+    );
     trainingTotal += amount;
     trainingLines.push({
       ninjaId: ninja.id,
@@ -117,11 +122,12 @@ export async function processTrainingBillingForUser(userId) {
     [userId]
   );
 
+  const heritage = await getHeritageBonuses(userId);
   const paidNinjaIds = [];
   const billingLogs = [];
 
   for (const ninja of planned) {
-    const cost = computeTrainingCost(ninja);
+    const cost = applyPercentDiscount(computeTrainingCost(ninja), heritage.trainingDiscountPct);
     const after = balance - cost;
     if (after < OVERDRAFT_LIMIT) {
       billingLogs.push(

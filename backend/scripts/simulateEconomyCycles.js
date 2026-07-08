@@ -84,7 +84,7 @@ async function resetSimState(userId) {
   await query('DELETE FROM user_items WHERE user_id = ?', [userId]);
   await query('DELETE FROM village_shop_stock WHERE user_id = ?', [userId]);
   await query('DELETE FROM village_shop_promos WHERE user_id = ?', [userId]);
-  await query('DELETE FROM dojo_notifications WHERE user_id = ?', [userId]);
+  await query('DELETE FROM sensei_notifications WHERE user_id = ?', [userId]);
   await query(
     `UPDATE ninjas SET chunin_exam_requested = FALSE, bird_flight_requested = FALSE WHERE user_id = ?`,
     [userId]
@@ -205,7 +205,7 @@ async function countGrade(userId, grade) {
 
 async function lastBirdFlightReward(userId) {
   const rows = await query(
-    `SELECT payload, created_at FROM dojo_notifications
+    `SELECT payload, created_at FROM sensei_notifications
      WHERE user_id = ? AND kind = 'bird_flight'
      ORDER BY created_at DESC LIMIT 1`,
     [userId]
@@ -359,7 +359,7 @@ async function main() {
       const geninBeforeH36 = await countGrade(user.id, 'Genin');
 
       const notifBefore = await query(
-        `SELECT COUNT(*) AS c FROM dojo_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
+        `SELECT COUNT(*) AS c FROM sensei_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
         [user.id]
       );
 
@@ -372,7 +372,7 @@ async function main() {
       await jumpAndTick(72);
 
       const notifAfter = await query(
-        `SELECT COUNT(*) AS c FROM dojo_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
+        `SELECT COUNT(*) AS c FROM sensei_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
         [user.id]
       );
       const birdFlightReward =

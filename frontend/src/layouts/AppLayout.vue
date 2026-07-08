@@ -22,6 +22,7 @@ const showConvert = ref(false)
 const navItems = [
   { name: 'bureau', path: '/bureau', label: 'nav.bureau' },
   { name: 'squad', path: '/squad', label: 'nav.squad' },
+  { name: 'clan', path: '/clan', label: 'nav.clan' },
   { name: 'missions', path: '/missions', label: 'nav.missions' },
   { name: 'training', path: '/training', label: 'nav.training' },
   { name: 'league', path: '/league', label: 'nav.league' },

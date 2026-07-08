@@ -13,6 +13,8 @@ export function useNotificationCopy() {
         return t('missions.notificationTitle')
       case 'stagnation':
         return t('bureau.stagnation.notificationTitle')
+      case 'clan_well_fusion':
+        return t('notifications.clanWellTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -59,6 +61,8 @@ export function useNotificationCopy() {
         const names = list.map((n) => n.name?.split(' ')[0]).filter(Boolean).join(', ')
         return t('bureau.stagnation.notificationBodyMultiple', { names: names || '—' })
       }
+      case 'clan_well_fusion':
+        return t('notifications.clanWellBody', { clanName: p.clanName || '—' })
       default:
         return t('notifications.genericBody')
     }
@@ -66,7 +70,8 @@ export function useNotificationCopy() {
 
   function linkPath(note) {
     if (note.kind === 'market_sale') return '/exchanges'
-    if (note.kind === 'mission_report' || note.kind === 'stagnation') return '/'
+    if (note.kind === 'mission_report' || note.kind === 'stagnation') return '/bureau'
+    if (note.kind === 'clan_well_fusion') return '/bureau'
     return null
   }
 
@@ -74,6 +79,7 @@ export function useNotificationCopy() {
     if (note.kind === 'market_sale') return t('bureau.market.viewExchanges')
     if (note.kind === 'mission_report') return t('missions.notificationLink')
     if (note.kind === 'stagnation') return t('bureau.stagnation.notificationLink')
+    if (note.kind === 'clan_well_fusion') return t('bureau.dailySealOpen')
     return null
   }
 

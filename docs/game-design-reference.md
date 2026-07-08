@@ -151,6 +151,7 @@ Détectée sur les **3 actifs encore debout** :
 - Prérequis : combat ≥ 16, QI ≥ 14
 - Prime : 3000 + (somme des 6 stats) × 150 Ryos + réputation
 - Le Chunin part ; un **Genin roturier** de remplacement arrive (forme Excellent, moral 20)
+- Laisse un **Parchemin mural d'héritage** (bonus permanent selon stat dominante, cumulable avec plafond)
 
 ### Stagnation (H72)
 
@@ -210,9 +211,26 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 
 ## 8. Académie et magasin
 
-**Académie** : 1 aspirant Genin par cycle, achat H0–H11, prix 400–4000+ Ryos selon lignée/potentiel, **1 recrutement max/cycle**.
+**Académie rotative** : **3 aspirants Genin** visibles en permanence au Bureau. Toutes les **24 h (UTC)**, l'aspirant le plus ancien expire ; les deux autres glissent ; un nouveau apparaît. Recrutement possible tant que l'opération n'est pas gelée (H71+). Le **Sceau d'Or** (jackpot du Sceau de Chakra quotidien) force le prochain aspirant en **Prodige** ou **lignée Noble**.
+
+**Sceau de Chakra (rituel quotidien)** : 1 sceau gratuit/jour (minuit UTC), stock max **3**. Ouverture au Bureau — loot 70 % commun / 20 % rare / 9 % épique / 1 % jackpot.
 
 **Magasin** : stock personnel, réassort tous les 3 cycles de ligue, 2 promos −20 % par cycle.
+
+---
+
+## 8bis. Clans joueurs (coopération)
+
+Hub **sans bonus de combat** — max **12 Senseis** par clan.
+
+### Tableau d'affichage Académie
+- **1 recommandation / cycle** : copier un aspirant de votre vitrine sur le tableau du clan
+- Visible jusqu'à expiration (rotation 24 h)
+- Les alliés recrutent avec **leurs propres Ryos**
+
+### Puits de Chakra collectif
+- Chaque **Sceau quotidien** brisé = **+1 goutte** dans le puits du clan
+- À **50 gouttes** : fusion → **Sceau de Chakra bonus** pour tous les membres (respecte le stock max 3)
 
 ---
 
@@ -373,7 +391,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Narration** : choix du joueur influençant le débrief (sans changer le résultat simulé)
 - **Économie** : contrats sponsors, paris spectateurs
 - **Progression** : voies Jonin, maîtrises d’élément, techniques nommées
-- **Social** : alliances de pools, chat de ligue
+- **Social** : clans joueurs (max 12 Senseis), tableau Académie partagé, Puits de Chakra collectif — sans bonus de combat
 
 ---
 
@@ -382,3 +400,4 @@ Quelques angles ouverts pour de nouvelles features :
 | Date | Note |
 |------|------|
 | 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
+| 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |

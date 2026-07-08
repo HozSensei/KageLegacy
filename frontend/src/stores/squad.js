@@ -16,6 +16,10 @@ export const useSquadStore = defineStore('squad', () => {
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
   const academy = ref(null)
+  const dailySeal = ref(null)
+  const heritage = ref(null)
+  const clan = ref(null)
+  const clanBoard = ref(null)
   let fetchPromise = null
 
   function applyPayload(data) {
@@ -28,6 +32,10 @@ export const useSquadStore = defineStore('squad', () => {
     dispensaryCandidates.value = data.dispensaryCandidates || []
     cycleBudget.value = data.cycleBudget || null
     academy.value = data.academy || null
+    dailySeal.value = data.dailySeal || null
+    heritage.value = data.heritage || null
+    clan.value = data.clan || null
+    clanBoard.value = data.clanBoard || null
   }
 
   /** Mise à jour partielle après mutation — préserve notifs/académie si absentes */
@@ -41,6 +49,10 @@ export const useSquadStore = defineStore('squad', () => {
     if (data.cycleBudget !== undefined) cycleBudget.value = data.cycleBudget
     if (data.dispensaryCandidates) dispensaryCandidates.value = data.dispensaryCandidates
     if (data.academy !== undefined) academy.value = data.academy
+    if (data.dailySeal !== undefined) dailySeal.value = data.dailySeal
+    if (data.heritage !== undefined) heritage.value = data.heritage
+    if (data.clan !== undefined) clan.value = data.clan
+    if (data.clanBoard !== undefined) clanBoard.value = data.clanBoard
     if (data.notifications) notifications.value = data.notifications
   }
 
@@ -105,11 +117,12 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
-  async function recruitFromAcademy() {
+  async function recruitFromAcademy(drawId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/academy/recruit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drawId }),
     })
     if (!res.ok) throw new Error(await readApiError(res))
     const data = await res.json()
@@ -184,6 +197,59 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
+  async function recommendToClan(drawId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/clan/board/recommend`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drawId }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    const data = await res.json()
+    applySquadMutation(data)
+    return data
+  }
+
+  async function createClan(name) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/clan/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    applySquadMutation(await res.json())
+  }
+
+  async function joinClan(inviteCode) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/clan/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inviteCode }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    applySquadMutation(await res.json())
+  }
+
+  async function leaveClan() {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/clan/leave`, { method: 'POST' })
+    if (!res.ok) throw new Error(await readApiError(res))
+    applySquadMutation(await res.json())
+  }
+
+  async function recruitFromClanBoard(postId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/clan/board/recruit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    applySquadMutation(await res.json())
+  }
+
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
 
   function setLanguage(lang) {
@@ -202,11 +268,20 @@ export const useSquadStore = defineStore('squad', () => {
     dispensaryCandidates,
     cycleBudget,
     academy,
+    dailySeal,
+    heritage,
+    clan,
+    clanBoard,
     fetchSquad,
     saveComposition,
     saveStrategies,
     saveTrainingPlans,
     recruitFromAcademy,
+    recommendToClan,
+    createClan,
+    joinClan,
+    leaveClan,
+    recruitFromClanBoard,
     saveTrainingFocus,
     requestChuninExam,
     requestBirdFlight,

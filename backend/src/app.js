@@ -12,6 +12,8 @@ import marketRouter from './routes/market.js';
 import inventoryRouter from './routes/inventory.js';
 import missionsRouter from './routes/missions.js';
 import academyRouter from './routes/academy.js';
+import bureauRouter from './routes/bureau.js';
+import clanRouter from './routes/clan.js';
 import matchesRouter from './routes/matches.js';
 import playerMarketRouter from './routes/playerMarket.js';
 import { attachUser } from './middleware/auth.js';
@@ -42,6 +44,8 @@ app.use('/api/market', marketRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/missions', missionsRouter);
 app.use('/api/academy', academyRouter);
+app.use('/api/bureau', bureauRouter);
+app.use('/api/clan', clanRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/player-market', playerMarketRouter);
 

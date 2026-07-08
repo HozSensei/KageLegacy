@@ -1,16 +1,18 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
-import { getClockRow, getGameClock } from './gameClock.js';
-import { createNinja, findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
+import { findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { clanTierLabel, getClanTier } from './clanRecruitment.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
-import { collectIdentityKeys, ninjaIdentityKey } from './ninjaNaming.js';
-import { pickUniqueCivName, hasRemainingGlobalNames } from './ninjaNameGenerator.js';
+import { collectIdentityKeys } from './ninjaNaming.js';
+import { createNinjaFromAcademyCandidate, parseCandidateJson } from './academyRecruit.js';
+import { isTacticsLocked } from './gameClock.js';
+import { utcDateString } from './dailySealService.js';
 
-export const ACADEMY_WINDOW_END_HOUR = 12;
-
-const CURRENT_CYCLE_SQL = '(SELECT cycle_start_at FROM game_clock WHERE id = 1 LIMIT 1)';
+export const ACADEMY_SLOT_COUNT = 3;
+/** slot 0 = plus récent, slot 2 = expire en premier à la rotation */
+export const ACADEMY_NEWEST_SLOT = 0;
+export const ACADEMY_OLDEST_SLOT = ACADEMY_SLOT_COUNT - 1;
 
 function isPurchased(row) {
   return row?.purchased === true || row?.purchased === 1;
@@ -24,22 +26,58 @@ function priceForCandidate(clanTier, potential) {
   return 400;
 }
 
-async function buildRandomAspirant(clans, userId) {
+function nextRotationUtcDate() {
+  const now = new Date();
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+  return next.toISOString();
+}
+
+async function hasJackpotToken(userId) {
+  const rows = await query(
+    'SELECT academy_jackpot_token FROM sensei WHERE user_id = ? LIMIT 1',
+    [userId]
+  );
+  return Boolean(rows[0]?.academy_jackpot_token);
+}
+
+async function consumeJackpotToken(userId) {
+  await query('UPDATE sensei SET academy_jackpot_token = 0 WHERE user_id = ?', [userId]);
+}
+
+async function buildRandomAspirant(clans, userId, { forceJackpot = false } = {}) {
   const existing = userId ? await findNinjasByUserId(userId) : [];
   const globalKeys = await loadGlobalIdentityKeySet();
+
+  let recruitmentOptions = {};
+  let forcedPotential = null;
+
+  if (forceJackpot) {
+    const noble = clans.filter((c) => c.is_noble && c.name !== 'Roturier');
+    if (noble.length && randomInt(2) === 0) {
+      recruitmentOptions = { forceNoble: true };
+    } else {
+      forcedPotential = 'prodige';
+    }
+  }
+
   const profile = await generateNinjaProfile({
     clans,
     grade: 'Genin',
     forbiddenIdentityKeys: collectIdentityKeys(existing),
     forbiddenGlobalKeys: globalKeys,
+    recruitmentOptions,
+    forcedPotential,
   });
+
   const clan = clans.find((c) => c.id === profile.clan_trait_id);
   const clanTier = getClanTier(clan);
   const price = priceForCandidate(clanTier, profile.potential);
+
   return {
     ...profile,
     clanTier,
     clanName: clan?.name,
+    jackpotForced: forceJackpot,
     price,
     displayProfile: describeNinjaProfile(
       { ...profile, clan_name: clan?.name, clan_is_noble: clan?.is_noble },
@@ -56,8 +94,11 @@ function mapDrawRow(row) {
       : row.candidate_json;
   return {
     id: row.id,
+    slotIndex: row.slot_index,
     price: row.price,
     recruited: isPurchased(row),
+    spawnedAt: row.spawned_at,
+    expiresSoon: row.slot_index === ACADEMY_OLDEST_SLOT,
     candidate: {
       name: candidate.name,
       clanTier: candidate.clanTier,
@@ -67,77 +108,143 @@ function mapDrawRow(row) {
       profile: candidate.displayProfile,
       element: candidate.element_affinity,
       characterTrait: candidate.character_trait,
+      jackpotForced: Boolean(candidate.jackpotForced),
     },
   };
 }
 
-export async function getAcademyDrawForCurrentCycle(userId) {
+export async function listAcademyDraws(userId) {
   const rows = await query(
     `SELECT * FROM academy_draws
-     WHERE user_id = ? AND cycle_start_at = ${CURRENT_CYCLE_SQL}`,
+     WHERE user_id = ? AND purchased = FALSE
+     ORDER BY slot_index ASC`,
     [userId]
   );
-  return rows[0] || null;
+  return rows;
+}
+
+async function insertAspirant(userId, slotIndex, aspirant) {
+  const { displayProfile, clanTier, clanName, price, ...profile } = aspirant;
+  await query(
+    `INSERT INTO academy_draws (user_id, slot_index, candidate_json, price, spawned_at)
+     VALUES (?, ?, ?, ?, UTC_TIMESTAMP())`,
+    [
+      userId,
+      slotIndex,
+      JSON.stringify({ ...profile, clanTier, clanName, displayProfile, jackpotForced: aspirant.jackpotForced }),
+      price,
+    ]
+  );
+}
+
+async function seedMissingSlots(userId, clans) {
+  const rows = await listAcademyDraws(userId);
+  const occupied = new Set(rows.map((r) => r.slot_index));
+  const hasToken = await hasJackpotToken(userId);
+
+  for (let slot = ACADEMY_NEWEST_SLOT; slot < ACADEMY_SLOT_COUNT; slot += 1) {
+    if (occupied.has(slot)) continue;
+    const useJackpot = hasToken && slot === ACADEMY_NEWEST_SLOT;
+    const aspirant = await buildRandomAspirant(clans, userId, { forceJackpot: useJackpot });
+    if (useJackpot) await consumeJackpotToken(userId);
+    await insertAspirant(userId, slot, aspirant);
+  }
+}
+
+export async function rotateAcademyForUser(userId) {
+  const today = utcDateString();
+  const senseiRows = await query(
+    'SELECT academy_last_rotation_date FROM sensei WHERE user_id = ? LIMIT 1',
+    [userId]
+  );
+  const lastRotation = senseiRows[0]?.academy_last_rotation_date
+    ? utcDateString(new Date(senseiRows[0].academy_last_rotation_date))
+    : null;
+
+  const clans = await query('SELECT * FROM clan_traits ORDER BY id');
+
+  if (!lastRotation) {
+    await query('UPDATE sensei SET academy_last_rotation_date = ? WHERE user_id = ?', [today, userId]);
+    await seedMissingSlots(userId, clans);
+    return { rotated: false, seeded: true };
+  }
+
+  if (lastRotation === today) {
+    await seedMissingSlots(userId, clans);
+    return { rotated: false };
+  }
+  const rows = await listAcademyDraws(userId);
+  const bySlot = Object.fromEntries(rows.map((r) => [r.slot_index, r]));
+
+  await query('DELETE FROM academy_draws WHERE user_id = ? AND slot_index = ?', [
+    userId,
+    ACADEMY_OLDEST_SLOT,
+  ]);
+
+  const slot1 = bySlot[1];
+  const slot0 = bySlot[0];
+
+  if (slot1) {
+    await query('UPDATE academy_draws SET slot_index = ? WHERE id = ?', [ACADEMY_OLDEST_SLOT, slot1.id]);
+  }
+  if (slot0) {
+    await query('UPDATE academy_draws SET slot_index = ? WHERE id = ?', [1, slot0.id]);
+  }
+
+  const hasToken = await hasJackpotToken(userId);
+  const aspirant = await buildRandomAspirant(clans, userId, { forceJackpot: hasToken });
+  if (hasToken) await consumeJackpotToken(userId);
+  await insertAspirant(userId, ACADEMY_NEWEST_SLOT, aspirant);
+
+  await query('UPDATE sensei SET academy_last_rotation_date = ? WHERE user_id = ?', [today, userId]);
+  await seedMissingSlots(userId, clans);
+
+  return { rotated: true };
 }
 
 export async function ensureAcademyDrawForUser(userId) {
-  const existing = await getAcademyDrawForCurrentCycle(userId);
-  if (existing) return existing;
-
-  const clockRow = await getClockRow();
-  if (!clockRow?.cycle_start_at) return null;
-
-  const clans = await query('SELECT * FROM clan_traits ORDER BY id');
-  const aspirant = await buildRandomAspirant(clans, userId);
-  const { displayProfile, clanTier, clanName, price, ...profile } = aspirant;
-
-  await query(
-    `INSERT INTO academy_draws (user_id, cycle_start_at, candidate_json, price)
-     VALUES (?, ${CURRENT_CYCLE_SQL}, ?, ?)`,
-    [userId, JSON.stringify({ ...profile, clanTier, clanName, displayProfile }), price]
-  );
-
-  return getAcademyDrawForCurrentCycle(userId);
+  await rotateAcademyForUser(userId);
+  return listAcademyDraws(userId);
 }
 
-export async function ensureAcademyForAllUsers(cycleStartAt) {
+export async function ensureAcademyForAllUsers() {
   const users = await query('SELECT id FROM users WHERE is_bot = FALSE');
   const results = [];
   for (const user of users) {
-    await ensureAcademyDrawForUser(user.id);
-    results.push({ userId: user.id, cycleStartAt });
+    await rotateAcademyForUser(user.id);
+    results.push({ userId: user.id });
   }
   return results;
 }
 
 export async function getAcademyPayload(userId) {
-  const clockRow = await getClockRow();
-  if (!clockRow?.cycle_start_at) {
-    return { draw: null, windowOpen: false, recruitedThisCycle: false };
-  }
-
-  const row = await ensureAcademyDrawForUser(userId);
-  const clock = await getGameClock();
+  const rows = await ensureAcademyDrawForUser(userId);
+  const draws = rows.map(mapDrawRow).filter(Boolean);
+  const tacticsLocked = await isTacticsLocked();
 
   return {
-    draw: mapDrawRow(row),
-    windowOpen: clock.hour < ACADEMY_WINDOW_END_HOUR,
-    recruitedThisCycle: isPurchased(row),
-    windowEndsAtHour: ACADEMY_WINDOW_END_HOUR,
+    draws,
+    aspirantCount: draws.length,
+    rotationOpen: !tacticsLocked,
+    nextRotationAt: nextRotationUtcDate(),
+    recruitedCount: draws.filter((d) => d.recruited).length,
   };
 }
 
-export async function recruitAcademyAspirant(userId) {
-  const clock = await getGameClock();
-  if (clock.hour >= ACADEMY_WINDOW_END_HOUR) {
-    const error = new Error('L\'Académie est fermée pour ce cycle (après H12).');
+export async function recruitAcademyAspirant(userId, drawId) {
+  if (await isTacticsLocked()) {
+    const error = new Error('L\'Académie est fermée pendant l\'opération (à partir de H71).');
     error.statusCode = 423;
     throw error;
   }
 
-  const draw = await getAcademyDrawForCurrentCycle(userId);
+  const drawRows = await query(
+    'SELECT * FROM academy_draws WHERE id = ? AND user_id = ? LIMIT 1',
+    [drawId, userId]
+  );
+  const draw = drawRows[0];
   if (!draw) {
-    const error = new Error('Aucun aspirant à l\'Académie ce cycle.');
+    const error = new Error('Aspirant introuvable à l\'Académie.');
     error.statusCode = 404;
     throw error;
   }
@@ -148,9 +255,7 @@ export async function recruitAcademyAspirant(userId) {
   }
 
   const claim = await query(
-    `UPDATE academy_draws
-     SET purchased = TRUE
-     WHERE id = ? AND purchased = FALSE AND cycle_start_at = ${CURRENT_CYCLE_SQL}`,
+    'UPDATE academy_draws SET purchased = TRUE WHERE id = ? AND purchased = FALSE',
     [draw.id]
   );
   if (!claim.affectedRows) {
@@ -168,44 +273,14 @@ export async function recruitAcademyAspirant(userId) {
     throw error;
   }
 
-  const candidate =
-    typeof draw.candidate_json === 'string'
-      ? JSON.parse(draw.candidate_json)
-      : draw.candidate_json;
+  const candidate = parseCandidateJson(draw.candidate_json);
 
   try {
     await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [draw.price, userId]);
-    const globalKeys = await loadGlobalIdentityKeySet();
-    const localKeys = collectIdentityKeys(await findNinjasByUserId(userId));
-    const clan = { name: candidate.clanName || 'Roturier' };
-    let recruitName = candidate.name;
-    if (globalKeys.has(ninjaIdentityKey(recruitName)) && hasRemainingGlobalNames(globalKeys, clan)) {
-      recruitName = pickUniqueCivName({
-        forbiddenIdentityKeys: localKeys,
-        globalForbiddenKeys: globalKeys,
-        clan,
-      });
-    }
+    const ninja = await createNinjaFromAcademyCandidate(userId, candidate);
 
-    const ninja = await createNinja({
-      user_id: userId,
-      name: recruitName,
-      age: candidate.age,
-      grade: candidate.grade,
-      clan_trait_id: candidate.clan_trait_id,
-      element_affinity: candidate.element_affinity,
-      character_trait: candidate.character_trait,
-      language: candidate.language || 'fr',
-      taijutsu: candidate.taijutsu,
-      ninjutsu: candidate.ninjutsu,
-      genjutsu: candidate.genjutsu,
-      medecine: candidate.medecine,
-      vitesse: candidate.vitesse,
-      intelligence: candidate.intelligence,
-      weekly_forme: candidate.weekly_forme,
-      moral: candidate.moral,
-      squad_position: null,
-    });
+    await query('DELETE FROM academy_draws WHERE id = ?', [draw.id]);
+    await seedMissingSlots(userId, await query('SELECT * FROM clan_traits ORDER BY id'));
 
     return { ninjaId: ninja.id, name: ninja.name, price: draw.price };
   } catch (error) {
