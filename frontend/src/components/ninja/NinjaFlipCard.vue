@@ -20,7 +20,7 @@ const emit = defineEmits(['select', 'flip'])
 const { t } = useI18n()
 const flipped = ref(false)
 const use3dFlip = ref(true)
-const { overall, elementTone, elementLabel, joninProgress, statKeys, isNobleBloodline } = useNinjaDisplay(toRef(props, 'ninja'))
+const { overall, elementTone, elementLabel, gradeProgress, statKeys, isNobleBloodline } = useNinjaDisplay(toRef(props, 'ninja'))
 
 let hoverMedia
 
@@ -149,11 +149,14 @@ function onHoverMediaChange(event) {
           class="flip-face flip-back ninja-card-face"
           :class="[faceGradeClass, { 'flip-face--hidden': !flipped && !use3dFlip }]"
         >
-          <div class="flip-face__content flip-face__content--back">
+          <div
+            class="flip-face__content flip-face__content--back"
+            :class="{ 'flip-face__content--back-compact': size === 'sm' || size === 'xs' }"
+          >
             <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
-            <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
+            <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size !== 'md'" />
 
-            <div class="trait-tooltip mt-2">
+            <div v-if="size === 'md'" class="trait-tooltip mt-2">
               <p class="italic leading-snug text-ink-muted">
                 {{ t(`traits.${ninja.character_trait}.label`) }}
               </p>
@@ -162,15 +165,18 @@ function onHoverMediaChange(event) {
                 <p class="mt-1.5 text-ink-faint">{{ t(`traits.${ninja.character_trait}.malus`) }}</p>
               </div>
             </div>
+            <p v-else class="mt-2 truncate italic leading-snug text-ink-muted">
+              {{ t(`traits.${ninja.character_trait}.label`) }}
+            </p>
 
-            <dl class="mt-2 flex-1 space-y-1 text-[10px]">
+            <dl class="mt-2 min-h-0 flex-1 space-y-0.5 text-[10px]">
               <div v-for="key in statKeys" :key="key" class="flex justify-between gap-2">
                 <dt class="text-ink-faint">{{ t(`ninja.stats.${key}`) }}</dt>
                 <dd class="tabular-nums font-medium text-ink">{{ ninja[key] }}</dd>
               </div>
             </dl>
 
-            <div class="mt-2 space-y-1.5 border-t border-line/80 pt-2">
+            <div class="mt-2 shrink-0 space-y-1.5 border-t border-line/80 pt-2">
               <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
                 <span>{{ t('ninja.moral') }}</span>
                 <span class="text-ink-muted">{{ ninja.moral }}/20</span>
@@ -178,13 +184,15 @@ function onHoverMediaChange(event) {
               <div class="h-px bg-line">
                 <div class="h-px bg-ink-muted/50" :style="{ width: `${(ninja.moral / 20) * 100}%` }" />
               </div>
-              <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
-                <span>{{ t('ninja.joninProgress') }}</span>
-                <span class="text-ink-muted">{{ joninProgress }}%</span>
-              </div>
-              <div class="h-px bg-line">
-                <div class="h-px bg-accent/70" :style="{ width: `${joninProgress}%` }" />
-              </div>
+              <template v-if="gradeProgress.show">
+                <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
+                  <span>{{ t(gradeProgress.labelKey) }}</span>
+                  <span class="text-ink-muted">{{ gradeProgress.percent }}%</span>
+                </div>
+                <div class="h-px bg-line">
+                  <div class="h-px bg-accent/70" :style="{ width: `${gradeProgress.percent}%` }" />
+                </div>
+              </template>
             </div>
           </div>
         </div>

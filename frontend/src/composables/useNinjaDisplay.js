@@ -1,10 +1,18 @@
 import { computed } from 'vue'
+import { getChuninExamProgress } from './useChuninExam.js'
 
 const FORME_BAR_WIDTH = {
   Lamentable: 25,
   Passable: 50,
   Excellent: 75,
   Divin: 100,
+}
+
+const BIRD_FLIGHT_COMBAT_REQUIRED = 16
+const BIRD_FLIGHT_IQ_REQUIRED = 14
+
+function combatStat(ninja) {
+  return Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)
 }
 
 export function useNinjaDisplay(ninjaRef) {
@@ -29,9 +37,39 @@ export function useNinjaDisplay(ninjaRef) {
 
   const joninProgress = computed(() => {
     const n = ninja.value
-    if (!n) return 0
-    const combat = [n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine]
-    return Math.min(100, Math.round((Math.max(...combat) / 20) * 100))
+    if (!n || n.grade !== 'Chunin') return 0
+    const progress = n.birdFlightProgress
+    if (progress) {
+      return Math.round(((progress.combatRatio + progress.intelligenceRatio) / 2) * 100)
+    }
+    const combat = combatStat(n)
+    const combatRatio = Math.min(1, combat / BIRD_FLIGHT_COMBAT_REQUIRED)
+    const intelligenceRatio = Math.min(1, n.intelligence / BIRD_FLIGHT_IQ_REQUIRED)
+    return Math.round(((combatRatio + intelligenceRatio) / 2) * 100)
+  })
+
+  const gradeProgress = computed(() => {
+    const n = ninja.value
+    if (!n) return { show: false, labelKey: '', percent: 0 }
+
+    if (n.grade === 'Genin') {
+      const exam = getChuninExamProgress(n)
+      return {
+        show: true,
+        labelKey: 'ninja.chuninProgress',
+        percent: Math.round(((exam.combatRatio + exam.intelligenceRatio) / 2) * 100),
+      }
+    }
+
+    if (n.grade === 'Chunin') {
+      return {
+        show: true,
+        labelKey: 'ninja.joninProgress',
+        percent: joninProgress.value,
+      }
+    }
+
+    return { show: false, labelKey: '', percent: 0 }
   })
 
   const profile = computed(() => ninja.value?.profile ?? null)
@@ -72,6 +110,7 @@ export function useNinjaDisplay(ninjaRef) {
     elementTone,
     elementLabel,
     joninProgress,
+    gradeProgress,
     statKeys,
     formeBarWidth,
     profile,

@@ -242,7 +242,13 @@
   }
 
   .flip-face__content--back {
-    @apply text-[10px];
+    @apply min-h-0 overflow-y-auto text-[10px];
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-ink-faint) 35%, transparent) transparent;
+  }
+
+  .flip-face__content--back-compact {
+    @apply p-2.5 sm:p-3;
   }
 
   /* Rectangle classique aux coins arrondis */
@@ -366,7 +372,11 @@
   }
 
   .squad-card-action {
-    @apply flex h-9 w-9 items-center justify-center rounded-full border border-line bg-bg-soft text-ink-muted shadow-md transition hover:border-accent/50 hover:text-accent;
+    @apply flex h-9 w-9 items-center justify-center rounded-full border border-line bg-bg-soft p-0 text-ink-muted shadow-md transition hover:border-accent/50 hover:text-accent;
+  }
+
+  .squad-card-action__spin {
+    @apply flex h-full w-full items-center justify-center;
   }
 
   .squad-card-action--remove:hover {
@@ -374,19 +384,15 @@
   }
 
   .squad-card-action__icon {
-    @apply h-4 w-4;
-  }
-
-  .squad-card-action__icon.material-symbols-outlined {
-    @apply flex h-4 w-4 items-center justify-center text-base;
+    @apply block h-4 w-4 shrink-0;
   }
 
   .squad-card-action__icon--remove {
     @apply h-4 w-4;
   }
 
-  .group:hover .squad-card-action__icon--swap,
-  .squad-card-slot--pending .squad-card-action__icon--swap {
+  .group:hover .squad-card-action__spin,
+  .squad-card-slot--pending .squad-card-action__spin {
     animation: squad-swap-spin 2s linear infinite;
   }
 

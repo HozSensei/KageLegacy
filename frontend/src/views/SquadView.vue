@@ -12,6 +12,7 @@ const editingStrategy = ref(false)
 const saving = ref(false)
 const saveError = ref(null)
 const swapPending = ref(null)
+const composing = ref(false)
 const sellNinjaId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
@@ -41,21 +42,18 @@ const benchNinjas = computed(() => {
   })
 })
 
-const displayEntries = computed(() => {
-  const entries = slots.value.map((ninja, index) => ({
+const displayEntries = computed(() =>
+  slots.value.map((ninja, index) => ({
     ninja,
+    slotIndex: index,
     position: index + 1,
   }))
+)
 
-  const filled = entries.filter((e) => e.ninja)
-  if (filled.length !== 3) return entries
-
-  const chunin = filled.find((e) => e.ninja.grade === 'Chunin')
-  const others = filled.filter((e) => e.ninja.grade !== 'Chunin')
-  if (chunin && others.length === 2) {
-    return [others[0], chunin, others[1]]
-  }
-  return entries
+const swapHint = computed(() => {
+  if (!swapPending.value) return ''
+  if (swapPending.value.kind === 'bench') return t('squad.swapPickActive')
+  return t('squad.swapPickBench')
 })
 
 function syncSlotsFromStore() {
@@ -124,18 +122,22 @@ async function submitSell() {
 
 async function persistSlots() {
   const ordered = slots.value.filter(Boolean)
-  if (ordered.length !== 3) return
+  if (ordered.length !== 3) return false
 
   saving.value = true
   saveError.value = null
+  composing.value = true
   try {
     await store.saveComposition(ordered)
     swapPending.value = null
     localBench.value = []
+    return true
   } catch (e) {
     saveError.value = e.message
+    return false
   } finally {
     saving.value = false
+    composing.value = false
   }
 }
 
@@ -143,15 +145,38 @@ function slotIndexFor(position) {
   return position - 1
 }
 
+function clearSwapPending() {
+  swapPending.value = null
+  saveError.value = null
+}
+
+function addToLocalBench(ninja) {
+  if (!ninja || localBench.value.some((n) => n.id === ninja.id)) return
+  localBench.value.push(ninja)
+}
+
+function removeFromLocalBench(ninjaId) {
+  localBench.value = localBench.value.filter((n) => n.id !== ninjaId)
+}
+
 async function swapActiveWithBench(position, benchNinja) {
   const idx = slotIndexFor(position)
+  const outgoing = slots.value[idx]
+  if (!benchNinja || (outgoing && outgoing.id === benchNinja.id)) {
+    clearSwapPending()
+    return
+  }
+
   const next = [...slots.value]
   next[idx] = benchNinja
   slots.value = next
-  localBench.value = localBench.value.filter((n) => n.id !== benchNinja.id)
 
-  swapPending.value = null
-  await persistSlots()
+  removeFromLocalBench(benchNinja.id)
+  if (outgoing) addToLocalBench(outgoing)
+
+  clearSwapPending()
+  const saved = await persistSlots()
+  if (!saved) syncSlotsFromStore()
 }
 
 async function removeFromActive(position) {
@@ -162,23 +187,33 @@ async function removeFromActive(position) {
   const next = [...slots.value]
   next[idx] = null
   slots.value = next
-  swapPending.value = null
-
-  if (!localBench.value.some((n) => n.id === outgoing.id)) {
-    localBench.value.push(outgoing)
-  }
+  clearSwapPending()
+  addToLocalBench(outgoing)
 }
 
 function onActiveSwap(position) {
   if (!canCompose.value || saving.value) return
 
-  if (swapPending.value?.kind === 'bench') {
-    const benchNinja = benchNinjas.value.find((n) => n.id === swapPending.value.ninjaId)
-    if (benchNinja) swapActiveWithBench(position, benchNinja)
+  if (swapPending.value?.kind === 'active' && swapPending.value.position === position) {
+    clearSwapPending()
     return
   }
 
+  if (swapPending.value?.kind === 'bench') {
+    const benchNinja = benchNinjas.value.find((n) => n.id === swapPending.value.ninjaId)
+    if (!benchNinja) {
+      saveError.value = t('squad.swapFailed')
+      clearSwapPending()
+      return
+    }
+    if (!slots.value[slotIndexFor(position)]) return
+    swapActiveWithBench(position, benchNinja)
+    return
+  }
+
+  if (!slots.value[slotIndexFor(position)]) return
   swapPending.value = { kind: 'active', position }
+  saveError.value = null
 }
 
 function onActiveRemove(position) {
@@ -189,9 +224,19 @@ function onActiveRemove(position) {
 function onBenchSwap(ninjaId) {
   if (!canCompose.value || saving.value) return
 
+  if (swapPending.value?.kind === 'bench' && swapPending.value.ninjaId === ninjaId) {
+    clearSwapPending()
+    return
+  }
+
   if (swapPending.value?.kind === 'active') {
     const benchNinja = benchNinjas.value.find((n) => n.id === ninjaId)
-    if (benchNinja) swapActiveWithBench(swapPending.value.position, benchNinja)
+    if (!benchNinja) {
+      saveError.value = t('squad.swapFailed')
+      clearSwapPending()
+      return
+    }
+    swapActiveWithBench(swapPending.value.position, benchNinja)
     return
   }
 
@@ -203,6 +248,7 @@ function onBenchSwap(ninjaId) {
   }
 
   swapPending.value = { kind: 'bench', ninjaId }
+  saveError.value = null
 }
 
 function isSwapSource(position) {
@@ -257,6 +303,7 @@ onMounted(async () => {
 })
 
 watch(() => store.activeSquad, () => {
+  if (composing.value || swapPending.value) return
   syncSlotsFromStore()
   initStrategies()
 }, { immediate: true, deep: true })
@@ -310,7 +357,7 @@ watch(() => store.activeSquad, () => {
       </div>
 
       <p v-if="swapPending" class="mt-4 text-sm text-accent">
-        {{ t('squad.swapPending') }}
+        {{ swapHint }}
       </p>
 
       <p v-if="slots.some((s) => !s)" class="mt-4 text-sm text-fire">
@@ -346,7 +393,9 @@ watch(() => store.activeSquad, () => {
                   :disabled="saving"
                   @click.stop="onActiveSwap(entry.position)"
                 >
-                  <SyncIcon />
+                  <span class="squad-card-action__spin">
+                    <SyncIcon />
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -448,7 +497,9 @@ watch(() => store.activeSquad, () => {
                   :disabled="saving"
                   @click.stop="onBenchSwap(ninja.id)"
                 >
-                  <SyncIcon />
+                  <span class="squad-card-action__spin">
+                    <SyncIcon />
+                  </span>
                 </button>
               </div>
               <NinjaFlipCard :ninja="ninja" size="sm" />
