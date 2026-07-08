@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import { createBotUser } from './botFactory.js';
 import { findUserByUsername, verifyPassword } from './authService.js';
+import { handleClanOnAccountDeletion } from './playerClanService.js';
 
 async function verifyDeletePassword(user, password) {
   if (user.is_guest) return;
@@ -88,6 +89,8 @@ export async function deleteUserAccount(user, { password } = {}) {
   } else {
     await query('DELETE FROM matches WHERE home_user_id = ? OR away_user_id = ?', [user.id, user.id]);
   }
+
+  await handleClanOnAccountDeletion(user.id);
 
   await query('DELETE FROM user_sessions WHERE user_id = ?', [user.id]);
   await query('DELETE FROM users WHERE id = ?', [user.id]);
