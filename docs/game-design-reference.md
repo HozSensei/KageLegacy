@@ -1,0 +1,384 @@
+# Kage Legacy — Référence fonctionnelle (brainstorm)
+
+Document orienté **joueur / game design**, sans architecture technique. Base pour brainstormer de nouvelles fonctionnalités. À mettre à jour au fil de l’évolution du jeu.
+
+---
+
+## Vision en une phrase
+
+Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une escouade de jeunes ninjas sur des **cycles de 72 h** (temps réel), avec économie, progression, missions idle et **match de ligue** simulé chaque cycle.
+
+---
+
+## 1. Le cycle de 72 heures
+
+| Phase | Heures | Ce que fait le joueur |
+|--------|--------|------------------------|
+| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12) |
+| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d’espionnage adversaire, gestion continue |
+| **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
+| **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d’Oiseau, facturation entraînement, nouveau cycle |
+
+**À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
+
+**Jalons automatiques :** examens Chunin + espionnage à H36 ; simulation ligue à H71 ; clôture économique à H72.
+
+---
+
+## 2. Votre identité : le Sensei
+
+- Monnaie : **Ryos**
+- **Réputation** (Vol d’Oiseau, prestige)
+- **Pool de chakra de match** (~100) : permet d’intercepter des coups fatals (−25 chakra par sauvetage)
+- **Spécialité** choisie à la création (profil / cosmétique)
+- **Dette** (Ryos < 0) : bloque magasin, marché, examen, dispensaire
+
+**Compte invité** : essai 7 jours, conversion possible en compte permanent.
+
+---
+
+## 3. Les ninjas
+
+### Grades et plafonds
+
+| Grade | Plafond stats combat | Vitesse / QI max |
+|-------|----------------------|------------------|
+| Genin | 12 | 10 |
+| Chunin | 18 | 16 |
+| Jonin | 20 | 20 |
+
+### Six stats
+
+- **Combat** : Taijutsu, Ninjutsu, Genjutsu, Médecine
+- **Support** : Vitesse, Intelligence (QI)
+
+**En match :** PV max = Taijutsu × 10 (après Forme) ; Chakra max = base du grade + Ninjutsu × 2.
+
+### Forme hebdomadaire
+
+| Forme | Effet sur toutes les stats |
+|-------|----------------------------|
+| Divin | +15 % |
+| Excellent | +5 % |
+| Passable | neutre |
+| Lamentable | −25 % |
+
+Après un match : les K.O. descendent d’un palier. À H72, PV et chakra sont restaurés à 100 %.
+
+### Traits de caractère
+
+| Trait | Comportement |
+|-------|--------------|
+| **Égoïste** | +2 attaque si alliés ont moins de PV ; ignore le ciblage Tank |
+| **Altruiste** | 50 % de chances d’encaisser un coup fatal à la place d’un allié |
+| **Fainéant** | Immunisé au 1er Genjutsu ; 15 % de rater l’entraînement |
+| **Téméraire** | +4 Vitesse tour 1 ; coût chakra 12 au lieu de 10 |
+| **Discipliné** | Standard, sans surprise |
+
+### Éléments
+
+Cercle : **Katon > Futon > Doton > Raiton > Suiton > Katon**
+
+- Avantage : dégâts ×1,25
+- Désavantage : ×0,85
+
+### Clans / lignées
+
+7 lignées : Roturier, Nara, Uchiwa, Hyuga, Sarutobi, Akimichi, Yamanaka.
+
+Recrutement pondéré : roturier 65 %, clan commun 25 %, noble 10 %.
+
+Chaque clan oriente stats et voie dominante (ex. Hyuga → Taijutsu).
+
+### Potentiel à la génération
+
+Ordinaire (+6 pts) 55 % · Prometteur (+9) 35 % · Prodige (+12) 10 %.
+
+### Âge (15–18 ans)
+
+Coefficient d’entraînement : 15 ans ×1,5 · 16 ×1,0 · 17 ×0,7 · 18 ×0,4.
+
+### Moral (1–20)
+
+Pénalités : échec examen Chunin (−5), faillite salariale (moral escouade active ×0,8), stagnation (−3), achat ninja sur marché (−3).
+
+---
+
+## 4. Escouade
+
+- **3 actifs** (postes 1–3) + **banc** (remplaçants)
+- Modifiable jusqu’à H71
+- Bloqué si ninja en mission, en vente P2P, ou fenêtre fermée
+
+### Consignes individuelles
+
+| Consigne | Rôle |
+|----------|------|
+| **Normal** | Attaquant tiré au sort |
+| **Offensive** | Priorité attaque (meilleure stat combat) |
+| **Tank** | ~70 % de chances d’être ciblé en défense |
+| **Protect** | Peut soigner un allié désigné sous 50 % PV |
+
+### Composition d’équipe (meta)
+
+Détectée sur les **3 actifs encore debout** :
+
+| Composition | Condition | Style |
+|-------------|-----------|-------|
+| **Assaut** | 2+ Offensive | Burst |
+| **Mur** | 2+ Tank | Absorption |
+| **Flux** | 2+ Protect | Genjutsu, soins |
+| **Équilibrée** | Sinon | Hors cercle, pas de bonus matchup |
+
+**Cercle :** Assaut bat Mur · Mur bat Flux · Flux bat Assaut.
+
+---
+
+## 5. Progression des grades
+
+### Départ
+
+6 ninjas : 1 Chunin actif (poste central) + 5 Genin (2 actifs, 3 au banc). Chaque trait représenté une fois.
+
+### Examen Chunin (inscription avant H36, résolution H36)
+
+- Prérequis : meilleure stat combat ≥ 10 **et** QI ≥ 8
+- Coût : 300 + bonus selon stats au-delà des seuils
+- Succès → Chunin ; échec → moral −5
+
+### Vol d’Oiseau (Chunin → départ, H72)
+
+- Prérequis : combat ≥ 16, QI ≥ 14
+- Prime : 3000 + (somme des 6 stats) × 150 Ryos + réputation
+- Le Chunin part ; un **Genin roturier** de remplacement arrive (forme Excellent, moral 20)
+
+### Stagnation (H72)
+
+Genin éligible Chunin non inscrit, ou Chunin éligible Vol d’Oiseau non inscrit → forme −1 palier, moral −3.
+
+---
+
+## 6. Missions idle (contrats)
+
+- Réservées aux ninjas **au banc**
+- **1 contrat par palier de danger par cycle**
+- Résolution H72, collecte manuelle des récompenses
+
+| Palier | Ryos | Risques | Prérequis |
+|--------|------|---------|-----------|
+| **Routine** | 300–500 | Aucun | Tous |
+| **Infiltration** | 600–800 | 20 % blessure légère | QI ≥ 8 ou Vitesse ≥ 8 |
+| **Cyclone** | 1000 | 40 % grave, 5 % mort | Une stat combat ≥ 12 |
+
+Blessure **grave** : Lamentable + 2 cycles sans soin dispensaire. **Mort** : ninja supprimé.
+
+Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou scroll de stat.
+
+---
+
+## 7. Économie
+
+### Revenus principaux
+
+| Source | Montant |
+|--------|---------|
+| Victoire ligue | 1600 Ryos |
+| Nul ligue | 800 Ryos |
+| Missions | 300–1000 |
+| Vol d’Oiseau | 3000 + stats×150 |
+
+### Dépenses principales
+
+- **Salaires H72** (escouade active uniquement)
+- **Entraînement H72** (opt-in par ninja, facturé si Ryos suffisants)
+- Examen Chunin, dispensaire, Académie, magasin, marché P2P
+
+### Objets (3 types)
+
+- **Bureau** : usage immédiat (soins forme, carte secteur, scroll…)
+- **Match** : 1 slot/ninja, consommé en match si déclenché (fumigène, herbes, cachet chakra…)
+- **Cycle** : effet sur tout le cycle (cape anti-pluie, ration salaire…)
+
+### Marché P2P
+
+- Vente ninjas au banc ou objets non équipés
+- Max 3 annonces actives
+- Commission 5 % (10 % pour nobles)
+- Fermé H71+
+
+---
+
+## 8. Académie et magasin
+
+**Académie** : 1 aspirant Genin par cycle, achat H0–H11, prix 400–4000+ Ryos selon lignée/potentiel, **1 recrutement max/cycle**.
+
+**Magasin** : stock personnel, réassort tous les 3 cycles de ligue, 2 promos −20 % par cycle.
+
+---
+
+## 9. Ligue
+
+- Pool de **6 Sensei** (humains + bots remplacés à l’arrivée de joueurs)
+- **Saison = 10 cycles** (round-robin)
+- **5 divisions** (1 = élite, 5 = la plus basse)
+
+### Points
+
+- Victoire : **3 pts** · Nul : **1 pt** · Défaite : **0 pt**
+- Classement : points ↓, victoires ↓, matchs joués ↑
+
+### Fin de saison (cycle 10)
+
+- 1er → promotion · 6e → relégation · nouvelle pool
+
+### Espionnage (H36+)
+
+Rapport sur l’adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice environnement.
+
+---
+
+## 10. Opération de frontière (match de ligue)
+
+### Ce que voit le joueur
+
+- **Chronique narrative** débloquée progressivement après H71
+- **Débrief mécanique** : possession, scores %, environnement, équipement
+- Spectateur possible sur d’autres pools
+
+### Structure d’un match
+
+- **12 tours maximum**
+- Chaque tour : initiative → attaquant → cible → duel
+- Environnement aléatoire (météo/topologie) avec modificateurs ; certains objets cycle compensent
+
+---
+
+## 11. Calcul de victoire des opérations (détail)
+
+C’est le cœur de la résolution. **La possession n’est pas un critère de victoire** — elle sert à l’affichage et au débrief narratif uniquement.
+
+### Étape 1 — K.O. immédiat
+
+Un ninja est K.O. si **PV ≤ 0** ou **chakra ≤ 0**.
+
+Si **tous les actifs** d’une équipe sont K.O. → **fin immédiate**, victoire de l’adversaire.
+
+- Score affiché typique : **2–0** (victoire par K.O.)
+- Raison de fin : `ko`
+
+### Étape 2 — Fin des 12 tours sans K.O. total
+
+Si personne n’a mis toute l’équipe adverse à terre, on calcule un **score de force restante** pour chaque camp.
+
+**Formule par équipe :**
+
+```
+score = (PV_restants / PV_max_total) × 60 %
+      + (chakra_restants / chakra_max_total) × 40 %
+```
+
+- Somme sur **tous les combattants** de l’équipe (actifs + K.O. partiels gardent leur état actuel)
+- Affiché en % arrondi : `round(score × 100)`
+- Raison de fin : `points`
+
+**Exemple :** équipe à 70 % PV restants et 50 % chakra →  
+`0,70 × 0,6 + 0,50 × 0,4 = 0,42 + 0,20 = 62 %`
+
+### Étape 3 — Seuil de victoire aux points
+
+Il faut un écart **strictement supérieur à 4,5 points de pourcentage** sur ce score composite :
+
+```
+POINTS_WIN_MARGIN = 0,045  (soit 4,5 %)
+```
+
+| Condition | Résultat |
+|-----------|----------|
+| `score_home > score_away + 0,045` | Victoire domicile |
+| `score_away > score_home + 0,045` | Victoire extérieur |
+| Sinon | **Match nul** |
+
+**Exemple nul :** home 52 %, away 48 % → écart 4 % < 4,5 % → **nul**.
+
+**Exemple victoire :** home 55 %, away 48 % → écart 7 % > 4,5 % → **victoire home**.
+
+### Conséquences du résultat
+
+| Résultat | Points ligue | Prime Ryos (H72) | Score affiché |
+|----------|--------------|------------------|---------------|
+| Victoire | 3 | 1600 | 1–0 (aux points) ou 2–0 (K.O.) |
+| Nul | 1 chacun | 800 chacun | 1–1 |
+| Défaite | 0 | 0 | 0–1 ou 0–2 |
+
+### Ce qui influence le score (sans décider directement)
+
+Ces mécaniques façonnent PV/chakra restants à la fin :
+
+- **Initiative** : Vitesse + QI (paralysie = 0 ce tour) → détermine qui attaque (→ possession)
+- **Compositions** : Assaut/Mur/Flux avec bonus matchup (+5 % atk, etc.)
+- **Duels** : dés + stats, critiques (8 %), ratés (7 %), éléments ±15/25 %
+- **Genjutsu** : paralysie ou confusion
+- **Soins Protect** : Médecine × 1,5 (bonus Flux)
+- **Sensei** : interception coup fatal (jet d20 + QI escouade/3 ≥ 14, −25 chakra)
+- **Altruiste** : sacrifice 50 %
+- **Équipement match** : fumigène, herbes, cachet chakra, parchemin rupture…
+
+### Schéma décisionnel
+
+```mermaid
+flowchart TD
+    A[Fin du match] --> B{Toute une équipe K.O.?}
+    B -->|Oui| C[Victoire adverse immédiate]
+    B -->|Non| D[Calcul score PV 60% + chakra 40%]
+    D --> E{Écart > 4,5%?}
+    E -->|Home > Away + 4,5%| F[Victoire domicile]
+    E -->|Away > Home + 4,5%| G[Victoire extérieur]
+    E -->|Sinon| H[Match nul]
+```
+
+### Références code
+
+- `backend/src/services/combat/combatEngine.js` — `teamRemainingScore()`, résolution du vainqueur
+- `backend/src/services/combat/constants.js` — `POINTS_WIN_MARGIN = 0.045`
+- `backend/src/services/combat/compositionMeta.js` — cercle Assaut / Mur / Flux
+
+---
+
+## 12. Autres écrans joueur
+
+| Écran | Fonction |
+|-------|----------|
+| **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie |
+| **Escouade** | Composition, consignes, swap actif/banc |
+| **Entraînement** | Focus par stat, facturé à H72 |
+| **Missions** | Contrats idle |
+| **Ligue** | Classement, calendrier, espionnage |
+| **Magasin** | Achats objets |
+| **Échanges** | Marché P2P |
+| **Inventaire** | Objets et équipement |
+| **Opération** | Chronique + débrief du match |
+
+---
+
+## 13. Pistes de brainstorm (non implémentées)
+
+Quelques angles ouverts pour de nouvelles features :
+
+- **Méta post-match** : récompenses ou malus selon marge de victoire (K.O. vs points serrés)
+- **Objectifs de saison** : missions ligue, badges, quêtes de division
+- **Rivalités** : historique head-to-head, revanche
+- **Événements cycle** : environnement imposé, tournoi inter-pools
+- **Spécialisation Sensei** : bonus mécaniques réels (aujourd’hui surtout profil)
+- **Coopération** : entraînement croisé, prêts temporaires
+- **Narration** : choix du joueur influençant le débrief (sans changer le résultat simulé)
+- **Économie** : contrats sponsors, paris spectateurs
+- **Progression** : voies Jonin, maîtrises d’élément, techniques nommées
+- **Social** : alliances de pools, chat de ligue
+
+---
+
+## Historique du document
+
+| Date | Note |
+|------|------|
+| 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
