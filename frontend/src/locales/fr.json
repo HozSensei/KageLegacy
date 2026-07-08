@@ -114,7 +114,8 @@
       "mid": "Après 36 heures : examens de Chunin et milieu de cycle — bilans, forme et stagnation.",
       "operation": "Vers la soixante-et-onzième heure : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
       "end": "À la soixante-douzième heure : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
-    },
+    }
+  },
   "guest": {
     "banner": "Essai invité — {days} jour(s) restant(s).",
     "convertCta": "Sauvegarder mon compte",
