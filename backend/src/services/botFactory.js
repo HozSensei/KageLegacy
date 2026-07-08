@@ -24,7 +24,7 @@ async function createBotSquad(userId, slotIndex, clans) {
   const forbidden = new Set();
   for (let i = 0; i < 3; i += 1) {
     const stats = profiles[i];
-    const name = await pickUniqueCivName({ forbiddenIdentityKeys: forbidden });
+    const name = pickUniqueCivName({ forbiddenIdentityKeys: forbidden, clan });
     forbidden.add(ninjaIdentityKey(name));
     await createNinja({
       user_id: userId,

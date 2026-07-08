@@ -1,6 +1,7 @@
 /**
- * Identité civile d'un ninja : prénom + nom de famille (indépendant de la lignée de sang).
- * Ex. « Haruki Tanaka » → affiché « Haruki — Tanaka »
+ * Identité civile : prénom + nom de famille.
+ * Pour un ninja de clan (Nara, Uchiwa…), le nom de famille reprend le clan — la lignée de sang
+ * reste portée par clan_trait_id et les badges (noble, roturier…).
  */
 
 export function parseNinjaNameParts(name) {

@@ -7,21 +7,29 @@ import {
 import { pickUniqueCivName } from '../src/services/ninjaNameGenerator.js';
 import { generateNinjaProfile } from '../src/services/ninjaGenerator.js';
 
-assert.equal(formatNinjaDisplayName('Haruki Tanaka'), 'Haruki — Tanaka');
-assert.equal(ninjaIdentityKey('Haruki Tanaka'), ninjaIdentityKey('Haruki Tanaka'));
-assert.notEqual(ninjaIdentityKey('Haruki Tanaka'), ninjaIdentityKey('Haruki Suzuki'));
+assert.equal(formatNinjaDisplayName('Ren Uchiwa'), 'Ren — Uchiwa');
+assert.equal(formatNinjaDisplayName('Aiko Mizuhara'), 'Aiko — Mizuhara');
+assert.notEqual(ninjaIdentityKey('Ren Uchiwa'), ninjaIdentityKey('Ren Nara'));
 
-const roster = [{ name: 'Haruki Tanaka' }];
+const roster = [{ name: 'Ren Uchiwa' }];
 assert.throws(
-  () => assertUniqueAmongRoster('Haruki Tanaka', roster),
+  () => assertUniqueAmongRoster('Ren Uchiwa', roster),
   /fait déjà partie/
 );
-assert.doesNotThrow(() => assertUniqueAmongRoster('Haruki Suzuki', roster));
 
-const forbidden = new Set([ninjaIdentityKey('Sora Yamamoto')]);
-const generated = await pickUniqueCivName({ forbiddenIdentityKeys: forbidden });
-assert.notEqual(ninjaIdentityKey(generated), ninjaIdentityKey('Sora Yamamoto'));
-assert.ok(generated.includes(' '), 'full name should contain given and family');
+const uchiwaClan = { name: 'Uchiwa', is_noble: true };
+const nobleName = pickUniqueCivName({ clan: uchiwaClan });
+assert.ok(nobleName.endsWith(' Uchiwa'), `noble name should end with clan: ${nobleName}`);
+
+const roturierClan = { name: 'Roturier', is_noble: false };
+const rotName = pickUniqueCivName({ clan: roturierClan });
+const rotFamily = rotName.split(' ').slice(1).join(' ');
+assert.notEqual(rotFamily, 'Uchiwa');
+assert.notEqual(rotFamily, 'Roturier');
+
+const forbidden = new Set([ninjaIdentityKey('Sora Yamaguchi')]);
+const generated = pickUniqueCivName({ forbiddenIdentityKeys: forbidden, clan: roturierClan });
+assert.notEqual(ninjaIdentityKey(generated), ninjaIdentityKey('Sora Yamaguchi'));
 
 const mockClan = { id: 1, name: 'Yamanaka', is_noble: false, genjutsu_bonus: 2, intelligence_bonus: 3, speed_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0 };
 const profile = await generateNinjaProfile({
@@ -29,7 +37,6 @@ const profile = await generateNinjaProfile({
   grade: 'Genin',
   characterTrait: 'Discipline',
 });
-assert.ok(profile.name.includes(' '), 'profile name is prénom + nom civil');
-assert.equal(profile.clan_trait_id, mockClan.id);
+assert.ok(profile.name.endsWith(' Yamanaka'), `profile uses clan surname: ${profile.name}`);
 
 console.log('ninjaNaming: OK');

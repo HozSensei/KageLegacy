@@ -152,7 +152,7 @@ export async function generateNinjaProfile({
     throw new Error('generateNinjaProfile: clan ou liste clans requis.');
   }
 
-  const name = await pickUniqueCivName({ forbiddenIdentityKeys: forbidden });
+  const name = pickUniqueCivName({ forbiddenIdentityKeys: forbidden, clan: resolvedClan });
 
   const primaryArt = pickPrimaryArt(resolvedClan);
   const potential = forcedPotential || rollPotential(resolvedClan);

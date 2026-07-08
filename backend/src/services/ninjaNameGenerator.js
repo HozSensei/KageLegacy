@@ -1,97 +1,82 @@
-import { ninjaIdentityKey, buildFullName } from './ninjaNaming.js';
+import { buildFullName, ninjaIdentityKey } from './ninjaNaming.js';
 
-const NAMEY_API = 'https://namey.muffinlabs.com/name.json';
+/**
+ * Générateur de noms style Naruto (inspiré des générateurs type FantasyNameGenerators / wikiHow).
+ * Les sites cités n'exposent pas d'API REST : on reproduit la logique ici.
+ *
+ * - Lignée noble / clan du village → nom de famille = nom du clan (ex. « Ren Uchiwa »)
+ * - Roturier (sans lignée de sang) → prénom + nom civil inventé
+ */
 
-/** Prénoms et noms de famille romaji (repli si l'API est indisponible). */
-const GIVEN_NAMES = [
-  'Haruki', 'Yuki', 'Sora', 'Ren', 'Akira', 'Hana', 'Rin', 'Kenji', 'Mio', 'Takeshi',
-  'Aoi', 'Kaito', 'Naoki', 'Emi', 'Shin', 'Mei', 'Daichi', 'Yui', 'Koji', 'Nana',
-  'Hayato', 'Saki', 'Ryo', 'Mika', 'Taro', 'Asuka', 'Jun', 'Kaori', 'Iori', 'Noa',
-  'Hinata', 'Sota', 'Ayame', 'Kenta', 'Mari', 'Sho', 'Yuna', 'Tsubasa', 'Rei', 'Kana',
+const SHINOBI_GIVEN = [
+  'Aiko', 'Akio', 'Asuka', 'Ayame', 'Daichi', 'Emi', 'Gen', 'Hana', 'Haruki', 'Hayato',
+  'Hikaru', 'Hinata', 'Hotaru', 'Isamu', 'Izumi', 'Jiro', 'Jun', 'Kaede', 'Kaito', 'Kana',
+  'Kazuki', 'Kenji', 'Kenta', 'Kiyoshi', 'Koji', 'Makoto', 'Mari', 'Mei', 'Mio', 'Mizuki',
+  'Naoki', 'Natsu', 'Noa', 'Noriko', 'Ren', 'Rei', 'Rin', 'Ryo', 'Saki', 'Satoshi',
+  'Shin', 'Shiori', 'Sora', 'Sota', 'Takeshi', 'Taro', 'Tsubasa', 'Yui', 'Yuki', 'Yuna',
+  'Aoi', 'Chikara', 'Eiji', 'Fumiko', 'Gaku', 'Haruna', 'Itsuki', 'Kazuma', 'Koharu', 'Masaru',
+  'Nagi', 'Raiden', 'Riku', 'Sayuri', 'Shinji', 'Takumi', 'Toru', 'Yamato', 'Yoshiko', 'Zen',
 ];
 
-const FAMILY_NAMES = [
-  'Yamamoto', 'Tanaka', 'Suzuki', 'Saito', 'Kobayashi', 'Takahashi', 'Ito', 'Watanabe',
-  'Nakamura', 'Yoshida', 'Matsumoto', 'Inoue', 'Kimura', 'Hayashi', 'Shimizu', 'Yamada',
-  'Mori', 'Abe', 'Ikeda', 'Hashimoto', 'Yamaguchi', 'Ishikawa', 'Maeda', 'Fujita', 'Ogawa',
-  'Goto', 'Okada', 'Hasegawa', 'Murakami', 'Kondo', 'Ishii', 'Sakamoto', 'Endo', 'Aoki', 'Fukuda',
-  'Nishimura', 'Fujii', 'Ota', 'Miura', 'Okamoto', 'Matsuda', 'Nakajima', 'Harada', 'Ono', 'Tamura',
+/** Noms civils pour roturiers — pas les grands clans du jeu. */
+const ROTURIER_SURNAMES = [
+  'Aoki', 'Endo', 'Fujii', 'Goto', 'Hara', 'Ikeda', 'Inoue', 'Ishii', 'Kawai', 'Kondo',
+  'Maeda', 'Miura', 'Mori', 'Nakano', 'Okada', 'Ono', 'Saito', 'Sakai', 'Sato', 'Shibata',
+  'Sugimoto', 'Takagi', 'Tamura', 'Watanabe', 'Yamaguchi', 'Yoshida', 'Kawano', 'Matsui', 'Oshiro', 'Tachibana',
+  'Hanabira', 'Kawaguchi', 'Mizuhara', 'Senbayashi', 'Takahara', 'Uzuhara', 'Kazehana', 'Shirogane', 'Amagiri', 'Tsukimori',
 ];
+
+const GIVEN_PREFIX = ['Ka', 'Na', 'Ra', 'Sa', 'Shi', 'Yu', 'Hi', 'Ko', 'Mi', 'Ta', 'Ha', 'Ke', 'Ri', 'So'];
+const GIVEN_SUFFIX = ['ki', 'to', 'ru', 'ko', 'ta', 'ma', 'ji', 'ro', 'su', 'mi', 'na', 'haru', 'kaze', 'ren'];
 
 function pickRandom(array) {
   return array[Math.floor(Math.random() * array.length)];
 }
 
-function parseWesternFullName(raw) {
-  const trimmed = (raw || '').trim().replace(/\s+/g, ' ');
-  const parts = trimmed.split(' ');
-  if (parts.length < 2) return null;
-  const firstName = parts[0];
-  const familyName = parts.slice(1).join(' ');
-  if (!firstName || !familyName) return null;
-  return { firstName, familyName, fullName: buildFullName(firstName, familyName) };
-}
-
-async function fetchNamesFromApi(count) {
-  const url = `${NAMEY_API}?count=${Math.min(Math.max(count, 1), 20)}&with_surname=true`;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 4000);
-
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return data
-      .map(parseWesternFullName)
-      .filter(Boolean);
-  } catch {
-    return [];
-  } finally {
-    clearTimeout(timeout);
+function randomGivenName() {
+  if (Math.random() < 0.75) {
+    return pickRandom(SHINOBI_GIVEN);
   }
+  const name = pickRandom(GIVEN_PREFIX) + pickRandom(GIVEN_SUFFIX);
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 }
 
-function pickLocalCandidate() {
-  const firstName = pickRandom(GIVEN_NAMES);
-  const familyName = pickRandom(FAMILY_NAMES);
+function randomRoturierSurname() {
+  if (Math.random() < 0.85) {
+    return pickRandom(ROTURIER_SURNAMES);
+  }
+  const name = pickRandom(GIVEN_PREFIX) + pickRandom(GIVEN_SUFFIX);
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+}
+
+/**
+ * @param {{ name: string, is_noble?: boolean } | null} clan — lignée de sang tirée en amont
+ */
+function buildCandidateForClan(clan) {
+  const givenName = randomGivenName();
+  const familyName =
+    clan?.name && clan.name !== 'Roturier' ? clan.name : randomRoturierSurname();
   return {
-    firstName,
+    givenName,
     familyName,
-    fullName: buildFullName(firstName, familyName),
+    fullName: buildFullName(givenName, familyName),
   };
 }
 
 /**
- * Tire un prénom + nom civil unique (hors lignée de sang).
- * Essaie d'abord l'API publique namey.muffinlabs.com, puis repli local.
+ * Tire un prénom + nom uniques pour l'effectif.
+ * Le nom de clan noble est réutilisé comme nom de famille (comme les générateurs Naruto avec clan).
  */
-export async function pickUniqueCivName({ forbiddenIdentityKeys = new Set() } = {}) {
-  const maxAttempts = 100;
+export function pickUniqueCivName({ forbiddenIdentityKeys = new Set(), clan = null } = {}) {
+  const maxAttempts = 120;
 
-  for (let round = 0; round < 5; round += 1) {
-    const localBatch = Array.from({ length: 12 }, () => pickLocalCandidate());
-    const fromApi = round === 0 ? await fetchNamesFromApi(8) : [];
-    const candidates = [...localBatch, ...fromApi];
-
-    for (const candidate of candidates) {
-      const key = ninjaIdentityKey(candidate.fullName);
-      if (!forbiddenIdentityKeys.has(key)) {
-        return candidate.fullName;
-      }
-    }
-
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      const candidate = pickLocalCandidate();
-      const key = ninjaIdentityKey(candidate.fullName);
-      if (!forbiddenIdentityKeys.has(key)) {
-        return candidate.fullName;
-      }
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const candidate = buildCandidateForClan(clan);
+    const key = ninjaIdentityKey(candidate.fullName);
+    if (!forbiddenIdentityKeys.has(key)) {
+      return candidate.fullName;
     }
   }
 
-  throw new Error('Impossible de générer un prénom et un nom civils uniques.');
+  throw new Error('Impossible de générer un prénom et un nom uniques pour ce ninja.');
 }
