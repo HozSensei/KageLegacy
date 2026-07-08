@@ -62,7 +62,7 @@ export async function deleteUserAccount(user, { password } = {}) {
   await verifyDeletePassword(user, password);
 
   await query(
-    `UPDATE player_listings SET status = 'cancelled', updated_at = UTC_TIMESTAMP()
+    `UPDATE player_listings SET status = 'cancelled'
      WHERE seller_user_id = ? AND status = 'active'`,
     [user.id]
   );
