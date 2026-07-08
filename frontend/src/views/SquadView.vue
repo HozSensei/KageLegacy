@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import SyncIcon from '../components/icons/SyncIcon.vue'
+import StoreIcon from '../components/icons/StoreIcon.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -424,7 +425,7 @@ watch(() => store.activeSquad, () => {
 
             <div
               v-else
-              class="squad-card-empty flex h-[17.5rem] w-[11.5rem] items-center justify-center rounded-[20px] border border-dashed border-line/60 text-sm text-ink-faint"
+              class="squad-card-empty flex h-[19.5rem] w-[12rem] items-center justify-center rounded-[20px] border border-dashed border-line/60 text-sm text-ink-faint"
             >
               {{ t('squad.emptySlot') }}
             </div>
@@ -432,7 +433,7 @@ watch(() => store.activeSquad, () => {
             <select
               v-if="editingStrategy && entry.ninja"
               v-model="strategies[entry.ninja.id]"
-              class="strategy-select max-w-[11.5rem]"
+              class="strategy-select max-w-[12rem]"
             >
               <option v-for="key in STRATEGY_KEYS" :key="key" :value="key">
                 {{ t(`squad.strategies.${key}`) }}
@@ -441,7 +442,7 @@ watch(() => store.activeSquad, () => {
             <select
               v-if="editingStrategy && entry.ninja && strategies[entry.ninja.id] === 'Protect'"
               v-model="protectTargets[entry.ninja.id]"
-              class="strategy-select mt-2 max-w-[11.5rem]"
+              class="strategy-select mt-2 max-w-[12rem]"
             >
               <option :value="null" disabled>{{ t('squad.protectTarget') }}</option>
               <option
@@ -488,7 +489,7 @@ watch(() => store.activeSquad, () => {
                   :disabled="saving"
                   @click.stop="openSell(ninja)"
                 >
-                  <span class="text-[10px] font-medium uppercase tracking-wider text-accent">¥</span>
+                  <StoreIcon />
                 </button>
                 <button
                   type="button"

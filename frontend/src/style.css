@@ -102,6 +102,14 @@
     user-select: none;
   }
 
+  .material-symbols-filled {
+    font-variation-settings:
+      'FILL' 1,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24;
+  }
+
   .page-kicker {
     @apply text-[11px] font-medium uppercase tracking-[0.22em] text-ink-faint;
   }
@@ -163,18 +171,18 @@
   }
 
   .flip-scene-wrap--md {
-    width: 11.5rem;
-    height: 17.5rem;
+    width: 12rem;
+    height: 19.5rem;
   }
 
   .flip-scene-wrap--sm {
-    width: 10rem;
-    height: 15rem;
+    width: 11.5rem;
+    height: 18.5rem;
   }
 
   .flip-scene-wrap--xs {
-    width: 9rem;
-    height: 13.5rem;
+    width: 9.5rem;
+    height: 15.5rem;
   }
 
   .flip-scene-wrap--chunin {
@@ -182,8 +190,8 @@
   }
 
   .flip-scene-wrap--chunin.flip-scene-wrap--md {
-    width: 12rem;
-    height: 18.25rem;
+    width: 12.5rem;
+    height: 20.25rem;
   }
 
   .flip-scene {
@@ -242,13 +250,7 @@
   }
 
   .flip-face__content--back {
-    @apply min-h-0 overflow-y-auto text-[10px];
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--color-ink-faint) 35%, transparent) transparent;
-  }
-
-  .flip-face__content--back-compact {
-    @apply p-2.5 sm:p-3;
+    @apply text-[10px];
   }
 
   /* Rectangle classique aux coins arrondis */
@@ -384,7 +386,11 @@
   }
 
   .squad-card-action__icon {
-    @apply block h-4 w-4 shrink-0;
+    @apply flex h-5 w-5 shrink-0 items-center justify-center text-[20px] leading-none;
+  }
+
+  .squad-card-action__icon.material-symbols-outlined {
+    font-size: 20px;
   }
 
   .squad-card-action__icon--remove {

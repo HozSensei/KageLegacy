@@ -149,14 +149,11 @@ function onHoverMediaChange(event) {
           class="flip-face flip-back ninja-card-face"
           :class="[faceGradeClass, { 'flip-face--hidden': !flipped && !use3dFlip }]"
         >
-          <div
-            class="flip-face__content flip-face__content--back"
-            :class="{ 'flip-face__content--back-compact': size === 'sm' || size === 'xs' }"
-          >
+          <div class="flip-face__content flip-face__content--back">
             <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
-            <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size !== 'md'" />
+            <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
 
-            <div v-if="size === 'md'" class="trait-tooltip mt-2">
+            <div v-if="size !== 'xs'" class="trait-tooltip mt-2">
               <p class="italic leading-snug text-ink-muted">
                 {{ t(`traits.${ninja.character_trait}.label`) }}
               </p>
@@ -169,14 +166,14 @@ function onHoverMediaChange(event) {
               {{ t(`traits.${ninja.character_trait}.label`) }}
             </p>
 
-            <dl class="mt-2 min-h-0 flex-1 space-y-0.5 text-[10px]">
+            <dl class="mt-2 flex-1 space-y-1 text-[10px]">
               <div v-for="key in statKeys" :key="key" class="flex justify-between gap-2">
                 <dt class="text-ink-faint">{{ t(`ninja.stats.${key}`) }}</dt>
                 <dd class="tabular-nums font-medium text-ink">{{ ninja[key] }}</dd>
               </div>
             </dl>
 
-            <div class="mt-2 shrink-0 space-y-1.5 border-t border-line/80 pt-2">
+            <div class="mt-2 space-y-1.5 border-t border-line/80 pt-2">
               <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
                 <span>{{ t('ninja.moral') }}</span>
                 <span class="text-ink-muted">{{ ninja.moral }}/20</span>
