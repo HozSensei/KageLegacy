@@ -110,10 +110,10 @@
     "timelineTitle": "A 72-hour cycle",
     "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
     "timeline": {
-      "start": "Cycle start: training, missions, shop and Academy recruitment (through hour twelve).",
+      "start": "Cycle start: training, missions, shop and Academy recruitment (through 12 hours).",
       "mid": "After 36 hours: Chunin exams and mid-cycle — form, morale and stagnation checks.",
-      "operation": "Around hour seventy-one: league match and border operation. The chronicle unfolds step by step.",
-      "end": "At hour seventy-two: cycle closes — salaries, Ryos economy, then a new cycle begins."
+      "operation": "At 71 hours: league match and border operation. The chronicle unfolds step by step.",
+      "end": "At 72 hours: cycle closes — salaries, Ryos economy, then a new cycle begins."
     }
   },
   "guest": {

@@ -110,10 +110,10 @@
     "timelineTitle": "Un cycle de 72 heures",
     "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
     "timeline": {
-      "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à la douzième heure).",
+      "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à 12 heures).",
       "mid": "Après 36 heures : examens de Chunin et milieu de cycle — bilans, forme et stagnation.",
-      "operation": "Vers la soixante-et-onzième heure : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
-      "end": "À la soixante-douzième heure : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
+      "operation": "À 71 heures : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
+      "end": "À 72 heures : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
     }
   },
   "guest": {
