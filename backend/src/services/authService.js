@@ -13,7 +13,7 @@ function hashPassword(password) {
   return `scrypt:${salt}:${derived}`;
 }
 
-function verifyPassword(password, stored) {
+export function verifyPassword(password, stored) {
   if (!stored?.startsWith('scrypt:')) return false;
   const [, salt, hash] = stored.split(':');
   if (!salt || !hash) return false;

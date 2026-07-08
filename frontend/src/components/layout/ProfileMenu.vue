@@ -6,7 +6,7 @@ import { useSquadStore } from '../../stores/squad'
 
 defineOptions({ name: 'ProfileMenu' })
 
-const emit = defineEmits(['logout', 'convert'])
+const emit = defineEmits(['logout', 'convert', 'deleted'])
 
 const { t, locale } = useI18n()
 const auth = useAuthStore()
@@ -19,6 +19,8 @@ const section = ref(null)
 const currentPassword = ref('')
 const newPassword = ref('')
 const email = ref('')
+const deletePassword = ref('')
+const deleteConfirmed = ref(false)
 const formError = ref(null)
 const saving = ref(false)
 
@@ -32,6 +34,8 @@ watch(open, (isOpen) => {
     formError.value = null
     currentPassword.value = ''
     newPassword.value = ''
+    deletePassword.value = ''
+    deleteConfirmed.value = false
   }
 })
 
@@ -51,6 +55,11 @@ function onDocumentClick(event) {
 }
 
 function toggleSection(name) {
+  if (name == null) {
+    section.value = null
+    formError.value = null
+    return
+  }
   section.value = section.value === name ? null : name
   formError.value = null
 }
@@ -84,6 +93,23 @@ async function submitPassword() {
     currentPassword.value = ''
     newPassword.value = ''
     section.value = null
+  } else {
+    formError.value = auth.error
+  }
+}
+
+async function submitDelete() {
+  if (!deleteConfirmed.value) {
+    formError.value = t('profile.deleteConfirmLabel')
+    return
+  }
+  saving.value = true
+  formError.value = null
+  const ok = await auth.deleteAccount(isGuest.value ? undefined : deletePassword.value)
+  saving.value = false
+  if (ok) {
+    close()
+    emit('deleted')
   } else {
     formError.value = auth.error
   }
@@ -254,6 +280,59 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         >
           {{ t('guest.convertCta') }}
         </button>
+
+        <button
+          type="button"
+          class="flex w-full px-4 py-3 text-left text-sm text-fire transition hover:bg-bg-soft"
+          data-testid="profile-delete-account"
+          @click="toggleSection('delete')"
+        >
+          {{ t('profile.deleteAccount') }}
+        </button>
+
+        <div
+          v-if="section === 'delete'"
+          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-4 py-3"
+        >
+          <p class="text-xs leading-relaxed text-ink-muted">{{ t('profile.deleteWarning') }}</p>
+          <label v-if="!isGuest" class="block text-xs">
+            <span class="text-ink-muted">{{ t('profile.deletePassword') }}</span>
+            <input
+              v-model="deletePassword"
+              type="password"
+              required
+              class="mt-1 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
+              data-testid="profile-delete-password"
+            />
+          </label>
+          <label class="flex items-start gap-2 text-xs text-ink-muted">
+            <input
+              v-model="deleteConfirmed"
+              type="checkbox"
+              class="mt-0.5"
+              data-testid="profile-delete-confirm"
+            />
+            <span>{{ t('profile.deleteConfirmLabel') }}</span>
+          </label>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              class="btn-ghost flex-1 text-xs"
+              @click="toggleSection(null)"
+            >
+              {{ t('profile.deleteCancel') }}
+            </button>
+            <button
+              type="button"
+              class="btn-ghost flex-1 border-fire text-fire text-xs"
+              :disabled="saving || !deleteConfirmed"
+              data-testid="profile-delete-submit"
+              @click="submitDelete"
+            >
+              {{ saving ? t('auth.loading') : t('profile.deleteSubmit') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <p v-if="formError" class="border-t border-line px-4 py-2 text-xs text-fire">{{ formError }}</p>
