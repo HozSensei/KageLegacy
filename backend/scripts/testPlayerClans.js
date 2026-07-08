@@ -8,8 +8,7 @@ import { query } from '../src/config/database.js';
 import { createPlayerClan, getClanPayload, joinPlayerClan } from '../src/services/playerClanService.js';
 import { recommendAspirantToClan, listClanAcademyBoard } from '../src/services/clanAcademyBoardService.js';
 import { addChakraDropForSealOpen } from '../src/services/clanChakraWellService.js';
-import { getAcademyPayload } from '../src/services/academyService.js';
-import { getClockRow } from '../src/services/gameClock.js';
+import { listAcademyDraws } from '../src/services/academyService.js';
 
 async function ensureDemoUsers() {
   const demo = await query('SELECT id FROM users WHERE username = ? LIMIT 1', ['demo_sensei']);
@@ -31,13 +30,8 @@ async function main() {
   const well = await addChakraDropForSealOpen(leaderId);
   assert.ok(well.contributed, 'well drop on seal');
 
-  await getAcademyPayload(leaderId);
-  const draws = await query(
-    'SELECT id FROM academy_draws WHERE user_id = ? AND purchased = FALSE LIMIT 1',
-    [leaderId]
-  );
+  const draws = await listAcademyDraws(leaderId);
   if (draws[0]) {
-    const clock = await getClockRow();
     await query('UPDATE sensei SET clan_board_recommended_cycle = NULL WHERE user_id = ?', [leaderId]);
     await recommendAspirantToClan(leaderId, draws[0].id);
     const board = await listClanAcademyBoard(leaderId);

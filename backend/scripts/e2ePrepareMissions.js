@@ -41,7 +41,7 @@ async function main() {
 
   await query('DELETE FROM idle_missions WHERE user_id = ?', [userId]);
   await query(
-    `UPDATE dojo_notifications SET dismissed_at = UTC_TIMESTAMP()
+    `UPDATE sensei_notifications SET dismissed_at = UTC_TIMESTAMP()
      WHERE user_id = ? AND kind = 'mission_report' AND dismissed_at IS NULL`,
     [userId]
   );
@@ -73,7 +73,7 @@ async function main() {
     [userId]
   );
   const notes = await query(
-    `SELECT COUNT(*) AS c FROM dojo_notifications
+    `SELECT COUNT(*) AS c FROM sensei_notifications
      WHERE user_id = ? AND kind = 'mission_report' AND dismissed_at IS NULL`,
     [userId]
   );

@@ -67,7 +67,7 @@ async function main() {
 
   await clearUserMissions(userId);
   await query(
-    `UPDATE dojo_notifications SET dismissed_at = UTC_TIMESTAMP()
+    `UPDATE sensei_notifications SET dismissed_at = UTC_TIMESTAMP()
      WHERE user_id = ? AND kind = 'mission_report' AND dismissed_at IS NULL`,
     [userId]
   );
