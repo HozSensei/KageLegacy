@@ -66,10 +66,29 @@ function syncSlotsFromStore() {
 }
 
 function initStrategies() {
+  const activeIds = new Set(store.activeSquad.map((n) => n.id))
+
+  for (const id of Object.keys(strategies)) {
+    if (!activeIds.has(Number(id))) {
+      delete strategies[id]
+      delete protectTargets[id]
+    }
+  }
+
   for (const n of store.activeSquad) {
     strategies[n.id] = n.battle_strategy || 'Normal'
     protectTargets[n.id] = n.protect_target_ninja_id || null
   }
+}
+
+function activeStrategyPayload() {
+  const payload = {}
+  const protectPayload = {}
+  for (const n of store.activeSquad) {
+    payload[n.id] = strategies[n.id] || n.battle_strategy || 'Normal'
+    protectPayload[n.id] = protectTargets[n.id] ?? n.protect_target_ninja_id ?? null
+  }
+  return { payload, protectPayload }
 }
 
 function protectAlliesFor(ninjaId) {
@@ -132,6 +151,7 @@ async function persistSlots() {
     await store.saveComposition(ordered)
     swapPending.value = null
     localBench.value = []
+    initStrategies()
     return true
   } catch (e) {
     saveError.value = e.message
@@ -277,13 +297,14 @@ async function toggleStrategyEdit() {
     saving.value = true
     saveError.value = null
     try {
+      const { payload, protectPayload } = activeStrategyPayload()
       for (const n of store.activeSquad) {
-        if (strategies[n.id] === 'Protect' && !protectTargets[n.id]) {
+        if (payload[n.id] === 'Protect' && !protectPayload[n.id]) {
           const ally = protectAlliesFor(n.id)[0]
-          if (ally) protectTargets[n.id] = ally.id
+          if (ally) protectPayload[n.id] = ally.id
         }
       }
-      await store.saveStrategies({ ...strategies }, { ...protectTargets })
+      await store.saveStrategies(payload, protectPayload)
       editingStrategy.value = false
     } catch (e) {
       saveError.value = e.message
@@ -294,6 +315,7 @@ async function toggleStrategyEdit() {
   }
   if (!store.tacticsLocked()) {
     swapPending.value = null
+    initStrategies()
     editingStrategy.value = true
   }
 }
