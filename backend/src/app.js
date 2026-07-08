@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { formatZodError } from '../utils/zodErrors.js';
+import { formatZodError } from './utils/zodErrors.js';
 import healthRouter from './routes/health.js';
 import authRouter from './routes/auth.js';
 import squadRouter from './routes/squad.js';
