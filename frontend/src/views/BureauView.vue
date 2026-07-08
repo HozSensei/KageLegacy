@@ -9,7 +9,9 @@ import BirdFlightPanel from '../components/bureau/BirdFlightPanel.vue'
 import DispensaryPanel from '../components/bureau/DispensaryPanel.vue'
 import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
+import DailySealPanel from '../components/bureau/DailySealPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
+import HeritageWallPanel from '../components/bureau/HeritageWallPanel.vue'
 
 defineOptions({ name: 'BureauView' })
 
@@ -103,7 +105,9 @@ onMounted(async () => {
           </p>
 
           <CycleBudgetPanel />
+          <DailySealPanel />
           <AcademyPanel />
+          <HeritageWallPanel />
 
           <ChuninExamList />
           <BirdFlightPanel />

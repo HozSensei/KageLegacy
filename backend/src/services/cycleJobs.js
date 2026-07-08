@@ -16,6 +16,8 @@ import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
 import { ensureAcademyForAllUsers } from './academyService.js';
+import { applyHeritageMoralBonusForAllUsers } from './heritageService.js';
+import { processDailyRetentionTick } from './dailyRetentionJobs.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -64,6 +66,7 @@ export async function runH72(cycleStartAt) {
   }
   const seasonTransitions = await processAllCompletedSeasons(poolCycles);
   const birdFlights = await processBirdFlightsForAllUsers();
+  const heritageMoral = await applyHeritageMoralBonusForAllUsers();
   const stagnation = await applyStagnationForAllUsers();
   const training = await processTrainingBillingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');
@@ -92,6 +95,8 @@ export async function runH72(cycleStartAt) {
 export async function processCycleTick() {
   const row = await getClockRow();
   if (!row?.cycle_start_at) return null;
+
+  await processDailyRetentionTick();
 
   const clock = await getGameClock();
   const cycleStartAt = row.cycle_start_at;

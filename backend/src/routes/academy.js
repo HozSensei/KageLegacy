@@ -23,7 +23,14 @@ router.post('/recruit', async (req, res, next) => {
     const user = await requireUser(req, res);
     if (!user) return;
 
-    const result = await recruitAcademyAspirant(user.id);
+    const drawId = Number(req.body?.drawId);
+    if (!drawId) {
+      const error = new Error('drawId requis.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const result = await recruitAcademyAspirant(user.id, drawId);
     const squad = await getSquadPayload(user.id);
     const academy = await getAcademyPayload(user.id);
     const clock = await getGameClock();

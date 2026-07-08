@@ -16,6 +16,8 @@ export const useSquadStore = defineStore('squad', () => {
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
   const academy = ref(null)
+  const dailySeal = ref(null)
+  const heritage = ref(null)
   let fetchPromise = null
 
   function applyPayload(data) {
@@ -28,6 +30,8 @@ export const useSquadStore = defineStore('squad', () => {
     dispensaryCandidates.value = data.dispensaryCandidates || []
     cycleBudget.value = data.cycleBudget || null
     academy.value = data.academy || null
+    dailySeal.value = data.dailySeal || null
+    heritage.value = data.heritage || null
   }
 
   /** Mise à jour partielle après mutation — préserve notifs/académie si absentes */
@@ -41,6 +45,8 @@ export const useSquadStore = defineStore('squad', () => {
     if (data.cycleBudget !== undefined) cycleBudget.value = data.cycleBudget
     if (data.dispensaryCandidates) dispensaryCandidates.value = data.dispensaryCandidates
     if (data.academy !== undefined) academy.value = data.academy
+    if (data.dailySeal !== undefined) dailySeal.value = data.dailySeal
+    if (data.heritage !== undefined) heritage.value = data.heritage
     if (data.notifications) notifications.value = data.notifications
   }
 
@@ -105,11 +111,12 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
-  async function recruitFromAcademy() {
+  async function recruitFromAcademy(drawId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/academy/recruit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drawId }),
     })
     if (!res.ok) throw new Error(await readApiError(res))
     const data = await res.json()
@@ -202,6 +209,8 @@ export const useSquadStore = defineStore('squad', () => {
     dispensaryCandidates,
     cycleBudget,
     academy,
+    dailySeal,
+    heritage,
     fetchSquad,
     saveComposition,
     saveStrategies,

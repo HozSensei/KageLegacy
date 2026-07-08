@@ -13,6 +13,8 @@ import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import { getUnreadNotifications } from '../services/dojoNotifications.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
 import { getAcademyPayload } from '../services/academyService.js';
+import { getDailySealPayload } from '../services/dailySealService.js';
+import { getHeritagePayload } from '../services/heritageService.js';
 import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
 import { computeTrainingCost } from '../services/training.js';
 import { getCycleBudgetPreview } from '../services/trainingBilling.js';
@@ -100,6 +102,8 @@ export async function getSquadPayload(userId) {
   const dispensaryCandidates = await listDispensaryCandidates(userId);
   const cycleBudget = await getCycleBudgetPreview(userId);
   const academy = await getAcademyPayload(userId);
+  const dailySeal = await getDailySealPayload(userId);
+  const heritage = await getHeritagePayload(userId, sensei.language || 'fr');
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -110,6 +114,7 @@ export async function getSquadPayload(userId) {
       chakraPool: sensei.chakra_pool,
       language: sensei.language,
       salaryDebt: Boolean(sensei.salary_debt),
+      academyJackpotToken: Boolean(sensei.academy_jackpot_token),
     },
     activeSquad,
     bench,
@@ -117,5 +122,7 @@ export async function getSquadPayload(userId) {
     dispensaryCandidates,
     cycleBudget,
     academy,
+    dailySeal,
+    heritage,
   };
 }

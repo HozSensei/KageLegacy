@@ -1,6 +1,7 @@
 import { query } from '../config/database.js';
 import { assertSpendingAllowed } from './economyDebt.js';
 import { isTacticsLocked } from './gameClock.js';
+import { getHeritageBonuses, applyPercentDiscount } from './heritageService.js';
 
 const DISPENSARY_COST = {
   Genin: 500,
@@ -44,7 +45,10 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
     throw error;
   }
 
-  const cost = Math.max(0, getDispensaryCost(ninja.grade) - (ninja.injury_discount_ryos || 0));
+  const heritage = await getHeritageBonuses(userId);
+  const baseCost = getDispensaryCost(ninja.grade);
+  const discounted = applyPercentDiscount(baseCost, heritage.dispensaryDiscountPct);
+  const cost = Math.max(0, discounted - (ninja.injury_discount_ryos || 0));
   if (!cost) {
     const error = new Error('Ce grade ne peut pas être traité au dispensaire.');
     error.statusCode = 400;

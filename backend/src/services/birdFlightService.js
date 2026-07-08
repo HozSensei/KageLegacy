@@ -11,6 +11,7 @@ import { generateNinjaProfile } from './ninjaGenerator.js';
 import { collectIdentityKeys } from './ninjaNaming.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { createDojoNotification } from './dojoNotifications.js';
+import { createHeritageScroll, getDominantStat } from './heritageService.js';
 
 const MAJOR_STATS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
 
@@ -91,12 +92,15 @@ export async function processBirdFlightsForUser(userId) {
     const rewards = computeBirdFlightRewards(ninja, { clanIsNoble: Boolean(ninja.clan_is_noble) });
     const squadPosition = ninja.squad_position;
     const peakStat = getBirdFlightPeakStat(ninja);
+    const dominantStat = getDominantStat(ninja);
 
     await query('UPDATE sensei SET ryos = ryos + ?, reputation = reputation + ? WHERE user_id = ?', [
       rewards.ryos,
       rewards.reputation,
       userId,
     ]);
+
+    await createHeritageScroll(userId, ninja);
 
     await query('DELETE FROM ninjas WHERE id = ?', [ninja.id]);
 
@@ -107,7 +111,9 @@ export async function processBirdFlightsForUser(userId) {
         name: ninja.name,
         grade: 'Chunin',
         peakStat,
+        dominantStat,
         combatStat: combatStat(ninja),
+        heritageGranted: true,
         ryosReward: rewards.ryos,
         reputationReward: rewards.reputation,
         clanNoble: Boolean(ninja.clan_is_noble),
