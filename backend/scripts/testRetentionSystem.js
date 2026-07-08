@@ -6,13 +6,22 @@
 import assert from 'node:assert/strict';
 import { query } from '../src/config/database.js';
 import { getDailySealPayload, openChakraSeal, MAX_SEAL_STACK } from '../src/services/dailySealService.js';
-import { getAcademyPayload, ACADEMY_SLOT_COUNT } from '../src/services/academyService.js';
+import {
+  getAcademyPayload,
+  recruitAcademyAspirant,
+  ACADEMY_SLOT_COUNT,
+} from '../src/services/academyService.js';
 import { getHeritagePayload, getDominantStat } from '../src/services/heritageService.js';
 import { resetDailyRetentionCacheForTests } from '../src/services/dailyRetentionJobs.js';
 
 async function getDemoUserId() {
   const rows = await query('SELECT id FROM users WHERE username = ? LIMIT 1', ['demo_sensei']);
   return rows[0]?.id;
+}
+
+async function resetAcademyForTest(userId) {
+  await query('DELETE FROM academy_draws WHERE user_id = ?', [userId]);
+  await query('UPDATE sensei SET academy_last_rotation_date = NULL WHERE user_id = ?', [userId]);
 }
 
 async function main() {
@@ -40,9 +49,29 @@ async function main() {
   assert.ok(opened.reward?.tier, 'seal opens with a tier');
   assert.ok(['common', 'rare', 'epic', 'jackpot'].includes(opened.reward.tier));
 
+  await resetAcademyForTest(userId);
+  await query('UPDATE sensei SET ryos = 50000 WHERE user_id = ?', [userId]);
+
   const academy = await getAcademyPayload(userId);
-  assert.equal(academy.draws.length, ACADEMY_SLOT_COUNT, '3 academy aspirants');
+  assert.equal(academy.draws.length, ACADEMY_SLOT_COUNT, '3 academy aspirants on first visit');
   assert.ok(academy.nextRotationAt, 'rotation timestamp');
+
+  const drawId = academy.draws[0].id;
+  await recruitAcademyAspirant(userId, drawId);
+
+  const afterRecruit = await getAcademyPayload(userId);
+  assert.equal(
+    afterRecruit.draws.length,
+    ACADEMY_SLOT_COUNT - 1,
+    'recruit removes aspirant without immediate refill'
+  );
+
+  const afterReload = await getAcademyPayload(userId);
+  assert.equal(
+    afterReload.draws.length,
+    ACADEMY_SLOT_COUNT - 1,
+    'same-day reload does not refill empty slots'
+  );
 
   const heritage = await getHeritagePayload(userId, 'fr');
   assert.ok(heritage.bonuses, 'heritage bonuses object');

@@ -137,17 +137,36 @@ async function insertAspirant(userId, slotIndex, aspirant) {
   );
 }
 
-async function seedMissingSlots(userId, clans) {
+/** Première visite uniquement : remplit les 3 emplacements vides. */
+async function seedInitialRoster(userId, clans) {
   const rows = await listAcademyDraws(userId);
-  const occupied = new Set(rows.map((r) => r.slot_index));
-  const hasToken = await hasJackpotToken(userId);
+  if (rows.length > 0) return;
 
+  const hasToken = await hasJackpotToken(userId);
   for (let slot = ACADEMY_NEWEST_SLOT; slot < ACADEMY_SLOT_COUNT; slot += 1) {
-    if (occupied.has(slot)) continue;
     const useJackpot = hasToken && slot === ACADEMY_NEWEST_SLOT;
     const aspirant = await buildRandomAspirant(clans, userId, { forceJackpot: useJackpot });
     if (useJackpot) await consumeJackpotToken(userId);
     await insertAspirant(userId, slot, aspirant);
+  }
+}
+
+async function shiftSlotsForDailyRotation(userId, rows) {
+  const bySlot = Object.fromEntries(rows.map((r) => [r.slot_index, r]));
+
+  await query('DELETE FROM academy_draws WHERE user_id = ? AND slot_index = ?', [
+    userId,
+    ACADEMY_OLDEST_SLOT,
+  ]);
+
+  const slot1 = bySlot[1];
+  const slot0 = bySlot[0];
+
+  if (slot1) {
+    await query('UPDATE academy_draws SET slot_index = ? WHERE id = ?', [ACADEMY_OLDEST_SLOT, slot1.id]);
+  }
+  if (slot0) {
+    await query('UPDATE academy_draws SET slot_index = ? WHERE id = ?', [1, slot0.id]);
   }
 }
 
@@ -165,31 +184,16 @@ export async function rotateAcademyForUser(userId) {
 
   if (!lastRotation) {
     await query('UPDATE sensei SET academy_last_rotation_date = ? WHERE user_id = ?', [today, userId]);
-    await seedMissingSlots(userId, clans);
+    await seedInitialRoster(userId, clans);
     return { rotated: false, seeded: true };
   }
 
   if (lastRotation === today) {
-    await seedMissingSlots(userId, clans);
     return { rotated: false };
   }
+
   const rows = await listAcademyDraws(userId);
-  const bySlot = Object.fromEntries(rows.map((r) => [r.slot_index, r]));
-
-  await query('DELETE FROM academy_draws WHERE user_id = ? AND slot_index = ?', [
-    userId,
-    ACADEMY_OLDEST_SLOT,
-  ]);
-
-  const slot1 = bySlot[1];
-  const slot0 = bySlot[0];
-
-  if (slot1) {
-    await query('UPDATE academy_draws SET slot_index = ? WHERE id = ?', [ACADEMY_OLDEST_SLOT, slot1.id]);
-  }
-  if (slot0) {
-    await query('UPDATE academy_draws SET slot_index = ? WHERE id = ?', [1, slot0.id]);
-  }
+  await shiftSlotsForDailyRotation(userId, rows);
 
   const hasToken = await hasJackpotToken(userId);
   const aspirant = await buildRandomAspirant(clans, userId, { forceJackpot: hasToken });
@@ -197,7 +201,6 @@ export async function rotateAcademyForUser(userId) {
   await insertAspirant(userId, ACADEMY_NEWEST_SLOT, aspirant);
 
   await query('UPDATE sensei SET academy_last_rotation_date = ? WHERE user_id = ?', [today, userId]);
-  await seedMissingSlots(userId, clans);
 
   return { rotated: true };
 }
@@ -280,7 +283,6 @@ export async function recruitAcademyAspirant(userId, drawId) {
     const ninja = await createNinjaFromAcademyCandidate(userId, candidate);
 
     await query('DELETE FROM academy_draws WHERE id = ?', [draw.id]);
-    await seedMissingSlots(userId, await query('SELECT * FROM clan_traits ORDER BY id'));
 
     return { ninjaId: ninja.id, name: ninja.name, price: draw.price };
   } catch (error) {
