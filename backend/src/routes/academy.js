@@ -25,8 +25,9 @@ router.post('/recruit', async (req, res, next) => {
 
     const result = await recruitAcademyAspirant(user.id);
     const squad = await getSquadPayload(user.id);
+    const academy = await getAcademyPayload(user.id);
     const clock = await getGameClock();
-    res.json({ result, ...squad, gameClock: clock });
+    res.json({ result, academy, ...squad, gameClock: clock });
   } catch (error) {
     next(error);
   }

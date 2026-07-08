@@ -451,7 +451,7 @@ watch(() => store.activeSquad, () => {
                   <SyncIcon />
                 </button>
               </div>
-              <NinjaFlipCard :ninja="ninja" size="xs" />
+              <NinjaFlipCard :ninja="ninja" size="sm" />
             </div>
           </div>
         </div>

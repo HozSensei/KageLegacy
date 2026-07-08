@@ -8,11 +8,8 @@ defineProps({
 </script>
 
 <template>
-  <section
-    class="page-hero"
-    :style="{ backgroundImage: `url(${image})` }"
-    data-testid="page-hero"
-  >
+  <section class="page-hero" data-testid="page-hero">
+    <img :src="image" alt="" class="page-hero__image" decoding="async" />
     <div class="page-hero__overlay" aria-hidden="true" />
     <div class="page-hero__inner">
       <h1 class="page-hero__title">{{ title }}</h1>

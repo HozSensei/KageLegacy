@@ -19,20 +19,18 @@ const emit = defineEmits(['select', 'flip'])
 
 const { t } = useI18n()
 const flipped = ref(false)
-const hovered = ref(false)
-const canHover = ref(false)
+const use3dFlip = ref(true)
 const { overall, elementTone, elementLabel, joninProgress, statKeys, isNobleBloodline } = useNinjaDisplay(toRef(props, 'ninja'))
 
-const TILT = 16
 let hoverMedia
 
 const firstName = computed(() => props.ninja.name.split(' ')[0])
 const clanName = computed(() => props.ninja.clan_name || props.ninja.name.split(' ').slice(1).join(' '))
 
 const sizeClass = computed(() => ({
-  md: 'h-[17.5rem] w-[11.5rem]',
-  sm: 'h-[14rem] w-[9.5rem]',
-  xs: 'h-[11rem] w-[7.5rem]',
+  md: 'flip-scene-wrap--md',
+  sm: 'flip-scene-wrap--sm',
+  xs: 'flip-scene-wrap--xs',
 }[props.size]))
 
 const ratingSize = computed(() => ({
@@ -49,14 +47,12 @@ const formePercent = computed(() => ({
 }[props.ninja.weekly_forme] || 50))
 
 const innerTransform = computed(() => {
-  const angle = flipped.value ? 180 : 0
-  const tilt = canHover.value && hovered.value && !flipped.value ? TILT : 0
-  return `rotateY(${angle + tilt}deg)`
+  if (!use3dFlip.value) return 'none'
+  return flipped.value ? 'rotateY(180deg)' : 'rotateY(0deg)'
 })
 
 function toggleFlip() {
   flipped.value = !flipped.value
-  hovered.value = false
   emit('select', props.ninja)
   emit('flip', { ninja: props.ninja, flipped: flipped.value })
 }
@@ -74,8 +70,8 @@ function gradeColor(grade) {
 }
 
 onMounted(() => {
-  hoverMedia = window.matchMedia('(hover: hover)')
-  canHover.value = hoverMedia.matches
+  hoverMedia = window.matchMedia('(hover: hover) and (pointer: fine)')
+  use3dFlip.value = hoverMedia.matches
   hoverMedia.addEventListener('change', onHoverMediaChange)
 })
 
@@ -84,31 +80,35 @@ onUnmounted(() => {
 })
 
 function onHoverMediaChange(event) {
-  canHover.value = event.matches
-  if (!event.matches) hovered.value = false
+  use3dFlip.value = event.matches
 }
 </script>
 
 <template>
   <div
     class="flip-scene-wrap"
-    :class="[sizeClass, { 'flip-scene-wrap--chunin': isChunin }]"
+    :class="[sizeClass, { 'flip-scene-wrap--chunin': isChunin, 'flip-scene-wrap--flat': !use3dFlip }]"
   >
     <div
-      class="flip-scene h-full w-full cursor-pointer"
+      class="flip-scene"
       :class="{ 'flip-scene--noble': isNobleBloodline }"
-      @mouseenter="hovered = true"
-      @mouseleave="hovered = false"
+      role="button"
+      tabindex="0"
       @click="toggleFlip"
+      @keydown.enter.prevent="toggleFlip"
+      @keydown.space.prevent="toggleFlip"
     >
       <div
-        class="flip-inner h-full w-full"
-        :style="{ transform: innerTransform }"
-        :class="{ 'is-selected': selected }"
+        class="flip-inner"
+        :style="use3dFlip ? { transform: innerTransform } : undefined"
+        :class="{ 'is-selected': selected, 'is-flipped': flipped && !use3dFlip }"
       >
         <!-- RECTO -->
-        <div class="flip-face ninja-card-face relative p-3 sm:p-4" :class="faceGradeClass">
-          <div class="relative z-10 flex h-full flex-col">
+        <div
+          class="flip-face ninja-card-face"
+          :class="[faceGradeClass, { 'flip-face--hidden': flipped && !use3dFlip }]"
+        >
+          <div class="flip-face__content">
             <div class="flex items-start justify-between gap-2">
               <span class="font-display leading-none text-ink" :class="ratingSize">{{ overall }}</span>
               <span
@@ -122,12 +122,12 @@ function onHoverMediaChange(event) {
               </span>
             </div>
 
-            <div class="mt-auto">
+            <div class="mt-auto min-w-0">
               <p class="font-display leading-tight text-ink" :class="size === 'xs' ? 'text-lg' : 'text-xl'">
                 {{ firstName }}
               </p>
-              <p class="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
-              <NinjaProfileBadges class="mt-2" :ninja="ninja" compact />
+              <p class="mt-0.5 truncate text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
+              <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
               <p class="mt-2 text-[10px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
               <p v-if="slotLabel" class="mt-1 text-[9px] text-ink-faint/80">{{ slotLabel }}</p>
             </div>
@@ -145,12 +145,15 @@ function onHoverMediaChange(event) {
         </div>
 
         <!-- VERSO -->
-        <div class="flip-face flip-back ninja-card-face relative p-3 sm:p-4" :class="faceGradeClass">
-          <div class="relative z-10 flex h-full flex-col text-[10px]">
+        <div
+          class="flip-face flip-back ninja-card-face"
+          :class="[faceGradeClass, { 'flip-face--hidden': !flipped && !use3dFlip }]"
+        >
+          <div class="flip-face__content flip-face__content--back">
             <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
-            <NinjaProfileBadges class="mt-2" :ninja="ninja" />
+            <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
 
-            <div class="trait-tooltip mt-3">
+            <div class="trait-tooltip mt-2">
               <p class="italic leading-snug text-ink-muted">
                 {{ t(`traits.${ninja.character_trait}.label`) }}
               </p>
@@ -160,14 +163,14 @@ function onHoverMediaChange(event) {
               </div>
             </div>
 
-            <dl class="mt-3 flex-1 space-y-1.5">
+            <dl class="mt-2 flex-1 space-y-1 text-[10px]">
               <div v-for="key in statKeys" :key="key" class="flex justify-between gap-2">
                 <dt class="text-ink-faint">{{ t(`ninja.stats.${key}`) }}</dt>
                 <dd class="tabular-nums font-medium text-ink">{{ ninja[key] }}</dd>
               </div>
             </dl>
 
-            <div class="mt-2 space-y-2 border-t border-line/80 pt-2">
+            <div class="mt-2 space-y-1.5 border-t border-line/80 pt-2">
               <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
                 <span>{{ t('ninja.moral') }}</span>
                 <span class="text-ink-muted">{{ ninja.moral }}/20</span>
