@@ -97,21 +97,24 @@
     "title": "Forge your squad. Own the cycle.",
     "lead": "Kage Legacy is an async shinobi manager: train ninjas, set tactics, compete in a six-Sensei league, and follow the border operation chronicle.",
     "features": {
-      "cycle": "72-hour cycles — training, H36 exams, H71→H72 match, Ryos economy.",
+      "cycle": "Three-day cycles: training, mid-cycle exams, league match and Ryos economy.",
       "squad": "Tank / Protect / Offensive tactics, active lineup and player market.",
       "league": "Closed leagues of six squads, promotions and relegations.",
-      "chronicle": "Narrative chronicle revealed hour by hour during the live operation."
+      "chronicle": "Narrative chronicle revealed hour by hour during the operation."
     },
     "playGuest": "Try as guest (7 days)",
     "createAccount": "Create account",
     "guestHint": "No password required — convert your trial to a permanent account anytime.",
     "asideTitle": "The pitch",
     "asideBody": "Inspired by legendary managers, Kage Legacy rewards preparation and human management over raw power.",
-    "cycleTitle": "The loop",
-    "cycleBody": "Each cycle: training focus, idle missions, village shop, then the league match for Ryos income.",
-    "clockTitle": "Server clock",
-    "clockBody": "The cycle advances in real time (1 real hour = 1 game hour). H0 is set at first migration — adjustable via CYCLE_START_AT or npm run clock:set-start."
-  },
+    "timelineTitle": "A 72-hour cycle",
+    "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
+    "timeline": {
+      "start": "Cycle start: training, missions, shop and Academy recruitment (through hour twelve).",
+      "mid": "After 36 hours: Chunin exams and mid-cycle — form, morale and stagnation checks.",
+      "operation": "Around hour seventy-one: league match and border operation. The chronicle unfolds step by step.",
+      "end": "At hour seventy-two: cycle closes — salaries, Ryos economy, then a new cycle begins."
+    },
   "guest": {
     "banner": "Guest trial — {days} day(s) left.",
     "convertCta": "Save my account",

@@ -97,21 +97,24 @@
     "title": "Forgez votre escouade. Dominez le cycle.",
     "lead": "Kage Legacy est un manager shinobi asynchrone : entraînez vos ninjas, composez votre escouade, affrontez une ligue de six Sensei et suivez la chronique de vos opérations de frontière.",
     "features": {
-      "cycle": "Cycles de 72 h — entraînement, examens H36, match H71→H72, économie Ryos.",
+      "cycle": "Cycles de trois jours : entraînement, examens à mi-parcours, match de ligue et économie Ryos.",
       "squad": "Tactiques Tank / Protect / Offensive, composition active et marché entre joueurs.",
       "league": "Ligues fermées de 6 escouades, promotions et relégations.",
-      "chronicle": "Chronique narrative révélée heure par heure pendant l'opération live."
+      "chronicle": "Chronique narrative révélée heure par heure pendant l'opération."
     },
     "playGuest": "Essayer en invité (7 jours)",
     "createAccount": "Créer un compte",
     "guestHint": "Aucun mot de passe requis — convertissez votre essai en compte permanent quand vous le souhaitez.",
     "asideTitle": "Le pitch",
     "asideBody": "Inspiré des managers légendaires, Kage Legacy mise sur la préparation et la gestion humaine plutôt que sur la puissance brute.",
-    "cycleTitle": "La boucle",
-    "cycleBody": "Chaque cycle : focus d'entraînement, missions idle, achats au magasin, puis le match de ligue qui rapporte des Ryos.",
-    "clockTitle": "Horloge serveur",
-    "clockBody": "Le cycle avance en temps réel (1 h réelle = 1 h de jeu). L'ancre H0 est fixée à la première migration — configurable via CYCLE_START_AT ou npm run clock:set-start."
-  },
+    "timelineTitle": "Un cycle de 72 heures",
+    "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
+    "timeline": {
+      "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à la douzième heure).",
+      "mid": "Après 36 heures : examens de Chunin et milieu de cycle — bilans, forme et stagnation.",
+      "operation": "Vers la soixante-et-onzième heure : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
+      "end": "À la soixante-douzième heure : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
+    },
   "guest": {
     "banner": "Essai invité — {days} jour(s) restant(s).",
     "convertCta": "Sauvegarder mon compte",
