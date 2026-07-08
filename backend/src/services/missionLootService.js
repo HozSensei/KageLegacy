@@ -1,8 +1,9 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
-import { createNinja } from '../models/ninja.js';
+import { createNinja, findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { clampStatToGradeCap } from './gradeProgression.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
+import { collectIdentityKeys } from './ninjaNaming.js';
 import {
   MISSION_TIERS,
   getRiskPenalties,
@@ -149,7 +150,15 @@ async function applyInjury(ninjaId, injuryType) {
 
 async function recruitMissionProdige(userId) {
   const clans = await query('SELECT * FROM clan_traits ORDER BY id');
-  const profile = generateNinjaProfile({ clans, grade: 'Genin', forcedPotential: 'prodige' });
+  const existing = await findNinjasByUserId(userId);
+  const globalKeys = await loadGlobalIdentityKeySet();
+  const profile = await generateNinjaProfile({
+    clans,
+    grade: 'Genin',
+    forcedPotential: 'prodige',
+    forbiddenIdentityKeys: collectIdentityKeys(existing),
+    forbiddenGlobalKeys: globalKeys,
+  });
   const ninja = await createNinja({
     user_id: userId,
     name: profile.name,

@@ -10,6 +10,7 @@ import {
   distributeCharacterTraits,
   generateNinjaProfile,
 } from '../src/services/ninjaGenerator.js';
+import { ninjaIdentityKey } from '../src/services/ninjaNaming.js';
 import { joinOrCreatePool, joinPoolByInvite } from '../src/services/poolService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -50,16 +51,19 @@ async function seed() {
 
   const totalNinjas = 15;
   const traits = distributeCharacterTraits(totalNinjas);
+  const forbiddenKeys = new Set();
 
   for (let i = 0; i < totalNinjas; i += 1) {
     const grade =
       i === 1 ? 'Chunin' : i < 10 ? 'Genin' : i < 13 ? 'Chunin' : 'Genin';
-    const profile = generateNinjaProfile({
+    const profile = await generateNinjaProfile({
       clans,
       grade,
       characterTrait: traits[i],
       language: 'fr',
+      forbiddenIdentityKeys: forbiddenKeys,
     });
+    forbiddenKeys.add(ninjaIdentityKey(profile.name));
 
     const squad_position = i < 3 ? i + 1 : null;
 

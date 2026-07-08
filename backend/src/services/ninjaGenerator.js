@@ -7,8 +7,9 @@ import {
   computeSalaryCost,
 } from './ninjaStats.js';
 import { pickClanForRecruitment } from './clanRecruitment.js';
+import { pickUniqueCivName } from './ninjaNameGenerator.js';
+import { loadGlobalIdentityKeySet } from '../models/ninja.js';
 
-const FIRST_NAMES = ['Haru', 'Sora', 'Rei', 'Kenji', 'Yuki', 'Akira', 'Hana', 'Rin', 'Takeshi', 'Mio'];
 const CLAN_NAMES = ['Roturier', 'Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
 
 const FORMES = ['Passable', 'Excellent', 'Divin'];
@@ -135,7 +136,7 @@ export function generateBaseStats(grade = 'Genin') {
   return generateSpecializedStats(grade, pickRandom(PRIMARY_ARTS), 'ordinaire');
 }
 
-export function generateNinjaProfile({
+export async function generateNinjaProfile({
   clan,
   clans,
   grade = 'Genin',
@@ -143,15 +144,22 @@ export function generateNinjaProfile({
   language = 'fr',
   recruitmentOptions,
   forcedPotential = null,
+  forbiddenIdentityKeys = null,
+  forbiddenGlobalKeys = null,
 }) {
-  const resolvedClan = clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
+  const forbidden = forbiddenIdentityKeys || new Set();
+  const globalForbidden = forbiddenGlobalKeys ?? (await loadGlobalIdentityKeySet());
+  const resolvedClan =
+    clan || (clans?.length ? pickClanForRecruitment(clans, recruitmentOptions) : null);
   if (!resolvedClan) {
     throw new Error('generateNinjaProfile: clan ou liste clans requis.');
   }
 
-  const firstName = pickRandom(FIRST_NAMES);
-  const name =
-    resolvedClan.name === 'Roturier' ? firstName : `${firstName} ${resolvedClan.name}`;
+  const name = pickUniqueCivName({
+    forbiddenIdentityKeys: forbidden,
+    globalForbiddenKeys: globalForbidden,
+    clan: resolvedClan,
+  });
 
   const primaryArt = pickPrimaryArt(resolvedClan);
   const potential = forcedPotential || rollPotential(resolvedClan);
@@ -197,4 +205,4 @@ export function distributeCharacterTraits(count) {
   return shuffle([...traits, ...extra]);
 }
 
-export { CLAN_NAMES, FIRST_NAMES, PRIMARY_ARTS };
+export { CLAN_NAMES, PRIMARY_ARTS };

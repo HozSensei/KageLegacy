@@ -1,10 +1,12 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { getClockRow, getGameClock } from './gameClock.js';
-import { createNinja } from '../models/ninja.js';
+import { createNinja, findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { clanTierLabel, getClanTier } from './clanRecruitment.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
+import { collectIdentityKeys, ninjaIdentityKey } from './ninjaNaming.js';
+import { pickUniqueCivName, hasRemainingGlobalNames } from './ninjaNameGenerator.js';
 
 export const ACADEMY_WINDOW_END_HOUR = 12;
 
@@ -22,8 +24,15 @@ function priceForCandidate(clanTier, potential) {
   return 400;
 }
 
-function buildRandomAspirant(clans) {
-  const profile = generateNinjaProfile({ clans, grade: 'Genin' });
+async function buildRandomAspirant(clans, userId) {
+  const existing = userId ? await findNinjasByUserId(userId) : [];
+  const globalKeys = await loadGlobalIdentityKeySet();
+  const profile = await generateNinjaProfile({
+    clans,
+    grade: 'Genin',
+    forbiddenIdentityKeys: collectIdentityKeys(existing),
+    forbiddenGlobalKeys: globalKeys,
+  });
   const clan = clans.find((c) => c.id === profile.clan_trait_id);
   const clanTier = getClanTier(clan);
   const price = priceForCandidate(clanTier, profile.potential);
@@ -79,7 +88,7 @@ export async function ensureAcademyDrawForUser(userId) {
   if (!clockRow?.cycle_start_at) return null;
 
   const clans = await query('SELECT * FROM clan_traits ORDER BY id');
-  const aspirant = buildRandomAspirant(clans);
+  const aspirant = await buildRandomAspirant(clans, userId);
   const { displayProfile, clanTier, clanName, price, ...profile } = aspirant;
 
   await query(
@@ -166,9 +175,21 @@ export async function recruitAcademyAspirant(userId) {
 
   try {
     await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [draw.price, userId]);
+    const globalKeys = await loadGlobalIdentityKeySet();
+    const localKeys = collectIdentityKeys(await findNinjasByUserId(userId));
+    const clan = { name: candidate.clanName || 'Roturier' };
+    let recruitName = candidate.name;
+    if (globalKeys.has(ninjaIdentityKey(recruitName)) && hasRemainingGlobalNames(globalKeys, clan)) {
+      recruitName = pickUniqueCivName({
+        forbiddenIdentityKeys: localKeys,
+        globalForbiddenKeys: globalKeys,
+        clan,
+      });
+    }
+
     const ninja = await createNinja({
       user_id: userId,
-      name: candidate.name,
+      name: recruitName,
       age: candidate.age,
       grade: candidate.grade,
       clan_trait_id: candidate.clan_trait_id,

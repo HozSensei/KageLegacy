@@ -70,7 +70,7 @@ async function cleanupPlaytestUsers() {
 
 async function createBenchNinja(userId, clans) {
   const [trait] = distributeCharacterTraits(1);
-  const profile = generateNinjaProfile({
+  const profile = await generateNinjaProfile({
     clans,
     grade: 'Genin',
     characterTrait: trait,

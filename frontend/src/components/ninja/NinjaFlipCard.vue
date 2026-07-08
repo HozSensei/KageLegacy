@@ -25,7 +25,7 @@ const { overall, elementTone, elementLabel, gradeProgress, statKeys, isNobleBloo
 let hoverMedia
 
 const firstName = computed(() => props.ninja.name.split(' ')[0])
-const clanName = computed(() => props.ninja.clan_name || props.ninja.name.split(' ').slice(1).join(' '))
+const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' '))
 
 const sizeClass = computed(() => ({
   md: 'flip-scene-wrap--md',
@@ -126,7 +126,7 @@ function onHoverMediaChange(event) {
               <p class="font-display leading-tight text-ink" :class="size === 'xs' ? 'text-lg' : 'text-xl'">
                 {{ firstName }}
               </p>
-              <p class="mt-0.5 truncate text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ clanName }}</p>
+              <p class="mt-0.5 truncate text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ familyName }}</p>
               <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
               <p class="mt-2 text-[10px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
               <p v-if="slotLabel" class="mt-1 text-[9px] text-ink-faint/80">{{ slotLabel }}</p>
