@@ -8,6 +8,7 @@ const { t } = useI18n()
 const store = useSquadStore()
 const opening = ref(false)
 const lastReward = ref(null)
+const lastWell = ref(null)
 const showReveal = ref(false)
 
 const seal = computed(() => store.dailySeal)
@@ -28,6 +29,7 @@ async function openSeal() {
     const data = await res.json()
     store.applySquadMutation(data)
     lastReward.value = data.reward
+    lastWell.value = data.well
     showReveal.value = true
     window.setTimeout(() => {
       showReveal.value = false
@@ -105,6 +107,10 @@ const rewardMessage = computed(() => {
           {{ t(`bureau.sealTier.${lastReward.tier}`) }}
         </p>
         <p class="mt-1 font-medium">{{ rewardMessage }}</p>
+        <p v-if="lastWell?.contributed && store.clan?.member" class="mt-2 text-xs text-ink-muted">
+          <template v-if="lastWell.fused">{{ t('bureau.dailySealWellFusion') }}</template>
+          <template v-else>{{ t('bureau.dailySealWellDrop') }}</template>
+        </p>
       </div>
     </Transition>
   </div>

@@ -5,7 +5,7 @@ describe('Inventaire', () => {
     cy.visitNav('inventory');
   });
 
-  it('affiche les objets et ninjas du dojo', () => {
+  it('affiche les objets et ninjas de l\'inventaire', () => {
     cy.get('[data-testid="inventory-content"]', { timeout: 15000 }).should('be.visible');
   });
 });

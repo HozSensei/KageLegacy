@@ -219,6 +219,21 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 
 ---
 
+## 8bis. Clans joueurs (coopération)
+
+Hub **sans bonus de combat** — max **12 Senseis** par clan.
+
+### Tableau d'affichage Académie
+- **1 recommandation / cycle** : copier un aspirant de votre vitrine sur le tableau du clan
+- Visible jusqu'à expiration (rotation 24 h)
+- Les alliés recrutent avec **leurs propres Ryos**
+
+### Puits de Chakra collectif
+- Chaque **Sceau quotidien** brisé = **+1 goutte** dans le puits du clan
+- À **50 gouttes** : fusion → **Sceau de Chakra bonus** pour tous les membres (respecte le stock max 3)
+
+---
+
 ## 9. Ligue
 
 - Pool de **6 Sensei** (humains + bots remplacés à l’arrivée de joueurs)
@@ -376,7 +391,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Narration** : choix du joueur influençant le débrief (sans changer le résultat simulé)
 - **Économie** : contrats sponsors, paris spectateurs
 - **Progression** : voies Jonin, maîtrises d’élément, techniques nommées
-- **Social** : alliances de pools, chat de ligue
+- **Social** : clans joueurs (max 12 Senseis), tableau Académie partagé, Puits de Chakra collectif — sans bonus de combat
 
 ---
 
@@ -385,4 +400,4 @@ Quelques angles ouverts pour de nouvelles features :
 | Date | Note |
 |------|------|
 | 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
-| 2026-07-08 | Rétention : Sceau de Chakra quotidien, Académie rotative 3 aspirants, Mur d'héritage |
+| 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |

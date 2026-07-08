@@ -1,11 +1,11 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
-import { createNinja, findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
+import { findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { clanTierLabel, getClanTier } from './clanRecruitment.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
-import { collectIdentityKeys, ninjaIdentityKey } from './ninjaNaming.js';
-import { pickUniqueCivName, hasRemainingGlobalNames } from './ninjaNameGenerator.js';
+import { collectIdentityKeys } from './ninjaNaming.js';
+import { createNinjaFromAcademyCandidate, parseCandidateJson } from './academyRecruit.js';
 import { isTacticsLocked } from './gameClock.js';
 import { utcDateString } from './dailySealService.js';
 
@@ -273,44 +273,11 @@ export async function recruitAcademyAspirant(userId, drawId) {
     throw error;
   }
 
-  const candidate =
-    typeof draw.candidate_json === 'string'
-      ? JSON.parse(draw.candidate_json)
-      : draw.candidate_json;
+  const candidate = parseCandidateJson(draw.candidate_json);
 
   try {
     await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [draw.price, userId]);
-    const globalKeys = await loadGlobalIdentityKeySet();
-    const localKeys = collectIdentityKeys(await findNinjasByUserId(userId));
-    const clan = { name: candidate.clanName || 'Roturier' };
-    let recruitName = candidate.name;
-    if (globalKeys.has(ninjaIdentityKey(recruitName)) && hasRemainingGlobalNames(globalKeys, clan)) {
-      recruitName = pickUniqueCivName({
-        forbiddenIdentityKeys: localKeys,
-        globalForbiddenKeys: globalKeys,
-        clan,
-      });
-    }
-
-    const ninja = await createNinja({
-      user_id: userId,
-      name: recruitName,
-      age: candidate.age,
-      grade: candidate.grade,
-      clan_trait_id: candidate.clan_trait_id,
-      element_affinity: candidate.element_affinity,
-      character_trait: candidate.character_trait,
-      language: candidate.language || 'fr',
-      taijutsu: candidate.taijutsu,
-      ninjutsu: candidate.ninjutsu,
-      genjutsu: candidate.genjutsu,
-      medecine: candidate.medecine,
-      vitesse: candidate.vitesse,
-      intelligence: candidate.intelligence,
-      weekly_forme: candidate.weekly_forme,
-      moral: candidate.moral,
-      squad_position: null,
-    });
+    const ninja = await createNinjaFromAcademyCandidate(userId, candidate);
 
     await query('DELETE FROM academy_draws WHERE id = ?', [draw.id]);
     await seedMissingSlots(userId, await query('SELECT * FROM clan_traits ORDER BY id'));

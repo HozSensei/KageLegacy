@@ -8,9 +8,13 @@ const { t } = useI18n()
 const { formatRyos } = useFormatRyos()
 const store = useSquadStore()
 const recruitingId = ref(null)
+const recommendingId = ref(null)
 
 const academy = computed(() => store.academy)
 const draws = computed(() => academy.value?.draws || [])
+const canRecommend = computed(
+  () => store.clan?.member && store.clanBoard?.recommendation?.canRecommend
+)
 
 function rotationCountdown() {
   const target = academy.value?.nextRotationAt
@@ -30,6 +34,15 @@ async function recruit(drawId) {
     recruitingId.value = null
   }
 }
+
+async function recommend(drawId) {
+  recommendingId.value = drawId
+  try {
+    await store.recommendToClan(drawId)
+  } finally {
+    recommendingId.value = null
+  }
+}
 </script>
 
 <template>
@@ -46,6 +59,10 @@ async function recruit(drawId) {
 
     <p v-if="!academy.rotationOpen" class="mt-2 text-xs text-fire">
       {{ t('bureau.academyClosedOperation') }}
+    </p>
+
+    <p v-if="store.clanBoard?.recommendation?.usedThisCycle" class="mt-2 text-xs text-ink-faint">
+      {{ t('bureau.academyRecommendUsed') }}
     </p>
 
     <p v-if="store.sensei?.academyJackpotToken" class="mt-2 text-xs text-accent">
@@ -83,17 +100,29 @@ async function recruit(drawId) {
           {{ draw.candidate.profile.artLabel }} · {{ draw.candidate.profile.potentialLabel }}
         </p>
 
-        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
           <p class="text-ink">{{ formatRyos(draw.price) }}</p>
-          <button
-            v-if="academy.rotationOpen && !draw.recruited"
-            type="button"
-            class="btn-ghost"
-            :disabled="recruitingId === draw.id"
-            @click="recruit(draw.id)"
-          >
-            {{ t('bureau.academyRecruit') }}
-          </button>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-if="canRecommend && academy.rotationOpen"
+              type="button"
+              class="btn-ghost text-[11px]"
+              :disabled="recommendingId === draw.id"
+              data-testid="recommend-to-clan"
+              @click="recommend(draw.id)"
+            >
+              {{ t('bureau.academyRecommendClan') }}
+            </button>
+            <button
+              v-if="academy.rotationOpen && !draw.recruited"
+              type="button"
+              class="btn-ghost"
+              :disabled="recruitingId === draw.id"
+              @click="recruit(draw.id)"
+            >
+              {{ t('bureau.academyRecruit') }}
+            </button>
+          </div>
         </div>
       </article>
     </div>

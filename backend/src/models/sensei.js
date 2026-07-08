@@ -10,11 +10,13 @@ import {
 } from '../services/gradeProgression.js';
 import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
-import { getUnreadNotifications } from '../services/dojoNotifications.js';
+import { getUnreadNotifications } from '../services/senseiNotifications.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
 import { getAcademyPayload } from '../services/academyService.js';
 import { getDailySealPayload } from '../services/dailySealService.js';
 import { getHeritagePayload } from '../services/heritageService.js';
+import { getClanPayload } from '../services/playerClanService.js';
+import { listClanAcademyBoard } from '../services/clanAcademyBoardService.js';
 import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
 import { computeTrainingCost } from '../services/training.js';
 import { getCycleBudgetPreview } from '../services/trainingBilling.js';
@@ -104,6 +106,8 @@ export async function getSquadPayload(userId) {
   const academy = await getAcademyPayload(userId);
   const dailySeal = await getDailySealPayload(userId);
   const heritage = await getHeritagePayload(userId, sensei.language || 'fr');
+  const clan = await getClanPayload(userId);
+  const clanBoard = await listClanAcademyBoard(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -124,5 +128,7 @@ export async function getSquadPayload(userId) {
     academy,
     dailySeal,
     heritage,
+    clan,
+    clanBoard,
   };
 }

@@ -6,6 +6,7 @@ import {
   grantItemToUser,
 } from './itemGrantService.js';
 import { rollPercent } from './missionRules.js';
+import { addChakraDropForSealOpen } from './clanChakraWellService.js';
 
 export const SEAL_ITEM_SLUG = 'sceau-chakra';
 export const MAX_SEAL_STACK = 3;
@@ -153,10 +154,12 @@ export async function openChakraSeal(userId, { ninjaId = null } = {}) {
 
   const seal = await getDailySealPayload(userId);
   const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [userId]);
+  const well = await addChakraDropForSealOpen(userId);
   return {
     reward,
     seal,
     ryos: senseiRows[0]?.ryos ?? 0,
+    well,
   };
 }
 
