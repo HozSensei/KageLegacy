@@ -191,6 +191,17 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         </div>
       </div>
 
+      <div class="border-b border-line px-4 py-3">
+        <router-link
+          to="/rules"
+          class="flex w-full px-0 py-0 text-left text-sm text-ink-muted transition hover:text-accent"
+          data-testid="profile-rules-link"
+          @click="close"
+        >
+          {{ t('rules.link') }}
+        </router-link>
+      </div>
+
       <div class="divide-y divide-line/60">
         <button
           type="button"

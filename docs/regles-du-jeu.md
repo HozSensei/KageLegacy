@@ -25,7 +25,7 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 
 ### Gel tactique (à partir de H71)
 
-Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jusqu'au cycle suivant : composition d'escouade, consignes de combat, entraînement, missions, dispensaire, marché entre joueurs.
+Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jusqu'au cycle suivant : composition d'escouade, consignes de combat, entraînement, missions, hôpital, marché entre joueurs.
 
 ### Jalons automatiques
 
@@ -49,7 +49,7 @@ Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jus
 
 ### Dette et gel administratif
 
-Si votre solde de Ryos devient **négatif** (salaires impayés, dépenses excessives), un **gel administratif** bloque les nouvelles dépenses : magasin, marché entre joueurs, examen Chunin, dispensaire, etc. Remettez votre trésorerie à l'équilibre pour reprendre vos achats.
+Si votre solde de Ryos devient **négatif** (salaires impayés, dépenses excessives), un **gel administratif** bloque les nouvelles dépenses : magasin, marché entre joueurs, examen Chunin, hôpital, etc. Remettez votre trésorerie à l'équilibre pour reprendre vos achats.
 
 Un léger découvert peut exister ; la dette persistante entraîne des **intérêts** à la clôture du cycle, ce qui augmente la pression économique sans game over immédiat.
 
@@ -179,7 +179,7 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 - **Coût d'inscription** : gratuit.
 - **Prime** : importante, calculée à partir du niveau global du Chunin partant (+ réputation).
 - **Relève** : un **Genin roturier** de remplacement arrive (bonne forme et moral élevé).
-- **Héritage** : le Chunin laisse un **Parchemin mural d'héritage** — bonus permanent et cumulable selon sa stat dominante (réduction sur magasin, entraînement, dispensaire ou objets de match, selon le profil du départ).
+- **Héritage** : le Chunin laisse un **Parchemin mural d'héritage** — bonus permanent et cumulable selon sa stat dominante (réduction sur magasin, entraînement, hôpital ou objets de match, selon le profil du départ).
 
 ### Stagnation
 
@@ -219,7 +219,7 @@ Les missions sont réservées aux ninjas **au banc** (hors escouade active).
 ### Conséquences des blessures
 
 - **Légère** : impact sur la forme.
-- **Grave** : forme au plus bas + plusieurs cycles de convalescence sans soin dispensaire.
+- **Grave** : forme au plus bas + plusieurs cycles de convalescence sans soin à l'hôpital.
 - **Mort** : le ninja est définitivement perdu.
 
 ### Butin
@@ -245,7 +245,7 @@ Les missions peuvent rapporter des **objets utilitaires** (pansements, kits, fum
 | **Salaires** | H72 — escouade active uniquement |
 | **Entraînement** | H72 — ninjas avec focus actif |
 | **Examen Chunin** | À l'inscription |
-| **Dispensaire** | À la demande |
+| **Hôpital** | À la demande |
 | **Académie** | À l'achat d'un aspirant |
 | **Magasin du village** | Pendant le cycle |
 | **Marché entre joueurs** | À l'achat (commission au vendeur) |
@@ -294,7 +294,7 @@ Les salaires augmentent avec le **niveau global** du ninja : une escouade expér
 
 ---
 
-## 10. Dispensaire
+## 10. Hôpital
 
 - Soigne les ninjas en forme **Lamentable** (hors convalescence prolongée après blessure grave).
 - Coût en Ryos selon le **grade** du ninja.
@@ -407,7 +407,7 @@ La **possession** (temps d'initiative) sert à la narration et au débrief — e
 
 | Écran | Rôle |
 |-------|------|
-| **Bureau** | Hub : budget, examens, Vol d'Oiseau, dispensaire, Académie, Sceau de Chakra |
+| **Bureau** | Hub : budget, examens, Vol d'Oiseau, hôpital, Académie, Sceau de Chakra |
 | **Escouade** | Composition, consignes, échanges actif/banc |
 | **Entraînement** | Focus par stat, prévision de coût |
 | **Missions** | Contrats idle |
@@ -431,7 +431,4 @@ Une cloche dans l'interface signale les événements importants : fin de mission
 | Date | Changement |
 |------|------------|
 | 2026-07-09 | Création du document (règles joueur, sans formules exactes) |
-
----
-
-*Pour les détails techniques et l'équilibrage interne, voir la documentation développeur dans `/specs` et `docs/game-design-reference.md`.*
+| 2026-07-09 | Renommage dispensaire → hôpital ; intégration dans l'interface joueur |

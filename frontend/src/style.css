@@ -518,3 +518,53 @@ body::before {
   position: relative;
   z-index: 1;
 }
+
+/* Player rules document (markdown) */
+.rules-doc {
+  @apply text-sm leading-7 text-ink-muted;
+}
+
+.rules-doc h1 {
+  @apply mb-2 text-2xl text-ink sm:text-3xl;
+}
+
+.rules-doc h2 {
+  @apply mt-10 mb-4 border-b border-line pb-2 text-xl text-ink;
+}
+
+.rules-doc h3 {
+  @apply mt-6 mb-2 text-base text-ink;
+}
+
+.rules-doc p {
+  @apply my-3;
+}
+
+.rules-doc strong {
+  @apply font-medium text-ink;
+}
+
+.rules-doc hr {
+  @apply my-8 border-line;
+}
+
+.rules-doc ul {
+  @apply my-3 list-disc space-y-1 pl-5;
+}
+
+.rules-doc table {
+  @apply my-4 w-full border-collapse text-left text-xs sm:text-sm;
+}
+
+.rules-doc th,
+.rules-doc td {
+  @apply border border-line px-3 py-2 align-top;
+}
+
+.rules-doc th {
+  @apply bg-bg-soft font-medium text-ink;
+}
+
+.rules-doc a {
+  @apply text-accent underline-offset-4 hover:underline;
+}

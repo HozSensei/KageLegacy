@@ -157,6 +157,12 @@
     "inventory": "Inventaire",
     "operation": "Opération"
   },
+  "rules": {
+    "pageTitle": "Règles du jeu",
+    "link": "Règles du jeu",
+    "backToGame": "Retour au Bureau",
+    "backHome": "Accueil"
+  },
   "notifications": {
     "bell": "Notifications",
     "panelTitle": "Notifications",
@@ -253,7 +259,7 @@
     "heritageHint": "Chaque Chunin parti au Vol d'Oiseau laisse un parchemin mural et un micro-bonus permanent.",
     "heritageEmpty": "Aucun héritier pour l'instant — menez un Chunin jusqu'au sommet.",
     "heritageBonusTraining": "−{pct}% entraînement",
-    "heritageBonusDispensary": "−{pct}% dispensaire",
+    "heritageBonusDispensary": "−{pct}% hôpital",
     "heritageBonusBureauShop": "−{pct}% objets Bureau (magasin)",
     "heritageBonusMatchShop": "−{pct}% objets Match (magasin)",
     "stagnation": {

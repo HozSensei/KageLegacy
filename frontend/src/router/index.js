@@ -11,6 +11,7 @@ import OperationView from '../views/OperationView.vue'
 import MissionsView from '../views/MissionsView.vue'
 import TrainingView from '../views/TrainingView.vue'
 import ClanView from '../views/ClanView.vue'
+import RulesView from '../views/RulesView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/auth'
 
@@ -20,6 +21,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', name: 'home', component: LandingView },
+    { path: '/rules', name: 'rules', component: RulesView },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: LoginView },
     {
@@ -49,7 +51,7 @@ const router = createRouter({
   ],
 })
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/register'])
+const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules'])
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()

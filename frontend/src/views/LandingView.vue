@@ -34,6 +34,9 @@ async function playAsGuest() {
     <header class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 sm:px-10">
       <p class="font-display text-xl text-ink">{{ t('app.name') }}</p>
       <div class="flex items-center gap-4 text-[11px] uppercase tracking-[0.14em]">
+        <router-link to="/rules" class="text-ink-muted hover:text-ink" data-testid="landing-rules-link">
+          {{ t('rules.link') }}
+        </router-link>
         <router-link to="/login" class="text-ink-muted hover:text-ink">{{ t('auth.login') }}</router-link>
         <router-link to="/register" class="text-accent hover:underline">{{ t('auth.register') }}</router-link>
       </div>
