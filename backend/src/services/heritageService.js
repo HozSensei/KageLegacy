@@ -3,8 +3,6 @@ import { getBirdFlightPeakStat, MAJOR_STATS } from './birdFlightService.js';
 
 export const HERITAGE_BONUS_PER_SCROLL = 3;
 export const HERITAGE_BONUS_CAP = 15;
-export const HERITAGE_MORAL_PER_SCROLL = 1;
-export const HERITAGE_MORAL_CAP = 5;
 
 const DOMINANT_STAT_LABELS = {
   fr: {
@@ -22,7 +20,7 @@ const DOMINANT_STAT_LABELS = {
 };
 
 const BONUS_BY_STAT = {
-  taijutsu: { bonusType: 'moral_recovery', labelKey: 'bureau.heritageBonusMoral' },
+  taijutsu: { bonusType: 'bureau_shop_discount', labelKey: 'bureau.heritageBonusBureauShop' },
   ninjutsu: { bonusType: 'training_discount', labelKey: 'bureau.heritageBonusTraining' },
   genjutsu: { bonusType: 'match_shop_discount', labelKey: 'bureau.heritageBonusMatchShop' },
   medecine: { bonusType: 'dispensary_discount', labelKey: 'bureau.heritageBonusDispensary' },
@@ -92,22 +90,13 @@ export async function getHeritageBonuses(userId) {
   ]);
   const scrollCount = Number(countRows[0]?.cnt ?? 0);
 
-  const moralScrolls = await query(
-    `SELECT COUNT(*) AS cnt FROM heritage_scrolls WHERE user_id = ? AND dominant_stat = 'taijutsu'`,
-    [userId]
-  );
-  const moralBenchBonus = Math.min(
-    HERITAGE_MORAL_CAP,
-    Number(moralScrolls[0]?.cnt ?? 0) * HERITAGE_MORAL_PER_SCROLL
-  );
-
   return {
     trainingDiscountPct: clampBonusPercent(totals.training_discount || 0),
     dispensaryDiscountPct: clampBonusPercent(totals.dispensary_discount || 0),
+    bureauShopDiscountPct: clampBonusPercent(totals.bureau_shop_discount || 0),
     matchShopDiscountPct: clampBonusPercent(
       (totals.match_shop_discount || 0) + (totals.scout_insight || 0)
     ),
-    moralBenchBonus,
     scrollCount,
   };
 }
@@ -125,29 +114,6 @@ export async function getHeritagePayload(userId, language = 'fr') {
     })),
     bonuses,
   };
-}
-
-/** Applique le bonus moral de fin de cycle aux ninjas au banc. */
-export async function applyHeritageMoralBonusForUser(userId) {
-  const { moralBenchBonus } = await getHeritageBonuses(userId);
-  if (moralBenchBonus <= 0) return 0;
-
-  const result = await query(
-    `UPDATE ninjas
-     SET moral = LEAST(20, moral + ?)
-     WHERE user_id = ? AND squad_position IS NULL`,
-    [moralBenchBonus, userId]
-  );
-  return result.affectedRows || 0;
-}
-
-export async function applyHeritageMoralBonusForAllUsers() {
-  const users = await query('SELECT id FROM users WHERE is_bot = FALSE');
-  let total = 0;
-  for (const user of users) {
-    total += await applyHeritageMoralBonusForUser(user.id);
-  }
-  return total;
 }
 
 export function applyPercentDiscount(amount, discountPct) {

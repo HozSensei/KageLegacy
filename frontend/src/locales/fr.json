@@ -254,8 +254,7 @@
     "heritageEmpty": "Aucun héritier pour l'instant — menez un Chunin jusqu'au sommet.",
     "heritageBonusTraining": "−{pct}% entraînement",
     "heritageBonusDispensary": "−{pct}% dispensaire",
-    "heritageBonusMoral": "Récupération moral banc",
-    "heritageBonusMoralActive": "+{bonus} moral banc / cycle",
+    "heritageBonusBureauShop": "−{pct}% objets Bureau (magasin)",
     "heritageBonusMatchShop": "−{pct}% objets Match (magasin)",
     "stagnation": {
       "title": "Stagnation imminente",

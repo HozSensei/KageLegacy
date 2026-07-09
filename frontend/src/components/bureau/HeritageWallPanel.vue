@@ -32,8 +32,8 @@ const bonuses = computed(() => heritage.value?.bonuses)
       <span v-if="bonuses.matchShopDiscountPct">
         {{ t('bureau.heritageBonusMatchShop', { pct: bonuses.matchShopDiscountPct }) }}
       </span>
-      <span v-if="bonuses.moralBenchBonus">
-        {{ t('bureau.heritageBonusMoralActive', { bonus: bonuses.moralBenchBonus }) }}
+      <span v-if="bonuses.bureauShopDiscountPct">
+        {{ t('bureau.heritageBonusBureauShop', { pct: bonuses.bureauShopDiscountPct }) }}
       </span>
     </div>
 
