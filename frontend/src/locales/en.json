@@ -255,7 +255,7 @@
     "heritageBonusDispensary": "−{pct}% dispensary",
     "heritageBonusMoral": "Bench morale recovery",
     "heritageBonusMoralActive": "+{bonus} bench morale / cycle",
-    "heritageBonusScout": "+{pct}% scout clarity",
+    "heritageBonusMatchShop": "−{pct}% Match items (shop)",
     "stagnation": {
       "title": "Stagnation risk",
       "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",
@@ -471,6 +471,7 @@
     "promoSectionHint": "{count} discounted item(s) this cycle — strikethrough = regular price.",
     "priceOriginal": "Price",
     "pricePromo": "Sale",
+    "heritageDiscount": "Heritage −{pct}%",
     "debtBlocked": "Administrative freeze — purchases suspended until debt is repaid.",
     "stock": "Stock: {remaining} / {initial}",
     "situational": "Situational",

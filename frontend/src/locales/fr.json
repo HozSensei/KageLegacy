@@ -255,7 +255,7 @@
     "heritageBonusDispensary": "−{pct}% dispensaire",
     "heritageBonusMoral": "Récupération moral banc",
     "heritageBonusMoralActive": "+{bonus} moral banc / cycle",
-    "heritageBonusScout": "+{pct}% clarté espionnage",
+    "heritageBonusMatchShop": "−{pct}% objets Match (magasin)",
     "stagnation": {
       "title": "Stagnation imminente",
       "lead": "À H72, forme et moral baissent si ces ninjas restent bloqués au grade actuel.",
@@ -471,6 +471,7 @@
     "promoSectionHint": "{count} article(s) en réduction ce cycle — prix barré = tarif normal.",
     "priceOriginal": "Prix",
     "pricePromo": "Promo",
+    "heritageDiscount": "Héritage −{pct}%",
     "debtBlocked": "Gel administratif — achats suspendus tant que la dette n'est pas remboursée.",
     "stock": "Stock : {remaining} / {initial}",
     "situational": "Situationnel",

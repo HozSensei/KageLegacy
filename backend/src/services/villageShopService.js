@@ -1,12 +1,37 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
-import { assertSpendingAllowed, getDebtStatus } from './economyDebt.js';
+import { assertSpendingAllowed } from './economyDebt.js';
 import { getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
+import { applyPercentDiscount, getHeritageBonuses } from './heritageService.js';
 
 export const RESTOCK_EVERY_CYCLES = 3;
 export const PROMOS_PER_CYCLE = 2;
 export const PROMO_DISCOUNT_PCT = 20;
+
+/** Prix catalogue → promo cycle → réduction héritage Genjutsu (objets match uniquement). */
+export function computeShopItemPrice({
+  basePrice,
+  category,
+  promoDiscountPct = 0,
+  heritageMatchDiscountPct = 0,
+}) {
+  const promoPrice = Math.max(
+    1,
+    Math.floor(basePrice * (1 - Number(promoDiscountPct || 0) / 100))
+  );
+  let finalPrice = promoPrice;
+  if (category === 'match' && heritageMatchDiscountPct > 0) {
+    finalPrice = Math.max(1, applyPercentDiscount(promoPrice, heritageMatchDiscountPct));
+  }
+  return {
+    basePrice,
+    promoPrice,
+    finalPrice,
+    promoDiscountPct: Number(promoDiscountPct || 0),
+    heritageDiscountPct: category === 'match' ? Number(heritageMatchDiscountPct || 0) : 0,
+  };
+}
 
 export function computeRestockPeriod(poolCycle) {
   const cycle = Number(poolCycle) || 1;
@@ -86,10 +111,14 @@ async function ensurePromosForCycle(userId, cycleStartAt) {
   }
 }
 
-function mapShopRow(row, promoByItem) {
-  const discountPct = promoByItem.get(row.item_definition_id) || 0;
-  const basePrice = row.price;
-  const finalPrice = Math.max(1, Math.floor(basePrice * (1 - discountPct / 100)));
+function mapShopRow(row, promoByItem, heritageMatchDiscountPct) {
+  const promoDiscountPct = promoByItem.get(row.item_definition_id) || 0;
+  const pricing = computeShopItemPrice({
+    basePrice: row.price,
+    category: row.category,
+    promoDiscountPct,
+    heritageMatchDiscountPct,
+  });
   return {
     stockId: row.stock_id,
     itemDefinitionId: row.item_definition_id,
@@ -100,13 +129,16 @@ function mapShopRow(row, promoByItem) {
     descriptionFr: row.description_fr,
     descriptionEn: row.description_en,
     effects: typeof row.effects === 'string' ? JSON.parse(row.effects) : row.effects,
-    basePrice,
-    discountPct,
-    finalPrice,
+    basePrice: pricing.basePrice,
+    promoPrice: pricing.promoPrice,
+    discountPct: pricing.promoDiscountPct,
+    heritageDiscountPct: pricing.heritageDiscountPct,
+    finalPrice: pricing.finalPrice,
     stockInitial: row.stock_initial,
     stockRemaining: row.stock_remaining,
     soldOut: row.stock_remaining <= 0,
-    onPromo: discountPct > 0,
+    onPromo: pricing.promoDiscountPct > 0,
+    onHeritageDiscount: pricing.heritageDiscountPct > 0,
   };
 }
 
@@ -130,6 +162,7 @@ export async function getVillageShopForUser(userId) {
       )
     : [];
   const promoByItem = new Map(promoRows.map((p) => [p.item_definition_id, p.discount_pct]));
+  const heritage = await getHeritageBonuses(userId);
 
   const stockRows = await query(
     `SELECT vss.id AS stock_id, vss.stock_initial, vss.stock_remaining,
@@ -142,7 +175,9 @@ export async function getVillageShopForUser(userId) {
   );
 
   return {
-    items: stockRows.map((row) => mapShopRow(row, promoByItem)),
+    items: stockRows.map((row) =>
+      mapShopRow(row, promoByItem, heritage.matchShopDiscountPct)
+    ),
     restockPeriod,
     poolCycle,
     cyclesUntilRestock: cyclesUntilRestock(poolCycle),
@@ -182,8 +217,15 @@ export async function purchaseVillageShopItem(userId, stockId) {
     throw error;
   }
 
-  const discountPct = row.discount_pct || 0;
-  const finalPrice = Math.max(1, Math.floor(row.price * (1 - discountPct / 100)));
+  const heritage = await getHeritageBonuses(userId);
+  const pricing = computeShopItemPrice({
+    basePrice: row.price,
+    category: row.category,
+    promoDiscountPct: row.discount_pct || 0,
+    heritageMatchDiscountPct: heritage.matchShopDiscountPct,
+  });
+  const finalPrice = pricing.finalPrice;
+
   if (row.ryos < finalPrice) {
     const error = new Error('Ryos insuffisants.');
     error.statusCode = 402;
@@ -205,7 +247,8 @@ export async function purchaseVillageShopItem(userId, stockId) {
     itemDefinitionId: row.item_definition_id,
     slug: row.slug,
     pricePaid: finalPrice,
-    discountPct,
+    discountPct: pricing.promoDiscountPct,
+    heritageDiscountPct: pricing.heritageDiscountPct,
   };
 }
 

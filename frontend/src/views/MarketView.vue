@@ -155,6 +155,12 @@ const canBuy = computed(() => (item) =>
                   {{ itemElement(item) }}
                 </span>
                 <span
+                  v-if="item.onHeritageDiscount"
+                  class="rounded-sm bg-accent/15 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-accent"
+                >
+                  {{ t('market.heritageDiscount', { pct: item.heritageDiscountPct }) }}
+                </span>
+                <span
                   v-if="item.onPromo"
                   class="rounded-sm bg-fire/15 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-fire"
                 >
