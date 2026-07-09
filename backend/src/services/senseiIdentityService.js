@@ -163,17 +163,17 @@ export async function getCosmeticsCatalog(userId, locale = 'fr') {
   );
 
   const titleUnlocked = (row) => {
-    if (unlocked.titles.has(row.slug)) return true;
     if (!isElite) return false;
+    if (unlocked.titles.has(row.slug)) return true;
     if (row.unlock_rule === 'elite_default') return true;
     if (row.unlock_rule === 'reputation' && reputation >= (row.unlock_threshold ?? 0)) return true;
     return false;
   };
 
   const bannerUnlocked = (row) => {
+    if (!isElite) return false;
     if (row.slug === 'none') return true;
     if (unlocked.banners.has(row.slug)) return true;
-    if (!isElite) return false;
     return row.unlock_rule === 'elite_default';
   };
 

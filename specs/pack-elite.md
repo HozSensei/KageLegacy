@@ -359,7 +359,8 @@ Couche analytique distincte de la chronique narrative :
 - Possession, fin de match, KO
 - 3 « moments décisifs » auto-détectés (dégâts, interception sensei, critique…)
 - Répartition des dégâts par technique (Tai / Nin / Gen)
-- Données source : `matches.combat_log`
+- **Heatmap élémentaire** (dégâts infligés/reçus par élément, cercle avantage/désavantage)
+- Données source : `matches.combat_log` (+ champs `attaquant_element`, `cible_element` depuis les nouveaux combats)
 
 Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
 
@@ -382,7 +383,21 @@ Endpoints :
 
 UI : `EliteToolsPanel.vue` dans le Bureau (visible si abonnement actif).
 
-**V2 (hors scope immédiat) :** heatmap élémentaire dans le rapport si données disponibles.
+**V2 (hors scope immédiat) :** comparaison head-to-head adversaire récurrent.
+
+### Contrôle d'accès premium (audit)
+
+| Feature | Free | Élite actif | Enforcement |
+| :--- | :---: | :---: | :--- |
+| Cosmétiques **visibles** (autres joueurs) | ✅ voir | ✅ voir + porter | `buildSenseiIdentities` |
+| Éditeur cosmétiques / catalog | ❌ | ✅ | `updateEquippedCosmetics`, `/api/elite/me` |
+| Season pass (quêtes, déblocages) | ❌ | ✅ | `getSeasonPassPayload`, `recordEliteQuestEvent` |
+| Outils bureau + simulateur | ❌ | ✅ | `assertEliteToolsAccess` |
+| Rapport Élite + heatmap | ❌ | ✅ | `buildEliteMatchReport` |
+| Stats mécaniques opération + debriefing | ❌ | ✅ | `operationService` (`hasActiveEliteSubscription`) |
+| Chronique narrative | ✅ | ✅ | Public (spectacle H72) |
+
+Checkout sans Stripe : grant auto **uniquement** en dev (`NODE_ENV !== production` ou `ENABLE_DEV_TOOLS`).
 
 ---
 
@@ -409,7 +424,7 @@ UI : `EliteToolsPanel.vue` dans le Bureau (visible si abonnement actif).
 | **D** | Intégrer composant dans les vues | ✅ ligue, opération, clan, marché |
 | **E** | Page profil publique + éditeur cosmétiques UI | ✅ |
 | **F** | Stripe + webhook | ✅ stub dev (`POST /checkout`, grant auto sans clé) |
-| **G** | Rapport Élite + Outils Élite (bureau) | ✅ |
+| **G** | Rapport Élite + Outils Élite (bureau) + audit accès | ✅ |
 
 ---
 

@@ -3,8 +3,19 @@ import { grantEliteSubscription } from './eliteSubscriptionService.js';
 /**
  * Stripe checkout — stub V1 : active le pack en dev si STRIPE_SECRET_KEY absent.
  */
+function isDevEliteGrantAllowed() {
+  return (
+    process.env.NODE_ENV !== 'production' || process.env.ENABLE_DEV_TOOLS === 'true'
+  );
+}
+
 export async function createEliteCheckoutSession(userId) {
   if (!process.env.STRIPE_SECRET_KEY) {
+    if (!isDevEliteGrantAllowed()) {
+      const error = new Error('Paiement Pack Élite indisponible — Stripe non configuré.');
+      error.statusCode = 503;
+      throw error;
+    }
     const subscription = await grantEliteSubscription(userId);
     return {
       mode: 'dev_grant',

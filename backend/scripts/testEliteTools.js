@@ -3,7 +3,7 @@
  * Usage: node scripts/testEliteTools.js
  */
 import { query } from '../src/config/database.js';
-import { grantEliteSubscription } from '../src/services/eliteSubscriptionService.js';
+import { grantEliteSubscription, getEliteMePayload } from '../src/services/eliteSubscriptionService.js';
 import {
   buildEliteMatchReport,
   buildCompositionAdvice,
@@ -28,6 +28,9 @@ const MINIMAL_COMBAT_LOG = {
       equipe_attaque: 'home',
       attaquant_name: 'Ninja A',
       cible_name: 'Ninja B',
+      attaquant_element: 'Katon',
+      cible_element: 'Suiton',
+      element_effect: 'advantage',
       technique_type: 'Taijutsu',
       degats_pv: 18,
       initiative_chance_home: 55,
@@ -37,6 +40,9 @@ const MINIMAL_COMBAT_LOG = {
       equipe_attaque: 'away',
       attaquant_name: 'Ninja C',
       cible_name: 'Ninja A',
+      attaquant_element: 'Raiton',
+      cible_element: 'Doton',
+      element_effect: 'neutral',
       technique_type: 'Ninjutsu',
       degats_pv: 32,
       critique: true,
@@ -47,6 +53,9 @@ const MINIMAL_COMBAT_LOG = {
       equipe_attaque: 'home',
       attaquant_name: 'Ninja A',
       cible_name: 'Ninja C',
+      attaquant_element: 'Futon',
+      cible_element: 'Katon',
+      element_effect: 'disadvantage',
       technique_type: 'Genjutsu',
       degats_pv: 24,
       sensei_interception: true,
@@ -127,6 +136,10 @@ async function main() {
   }
   console.assert(rejected, 'rapport refusé sans Pack Élite');
 
+  const freePayload = await getEliteMePayload(homeId, 'fr');
+  console.assert(!freePayload.subscription.isActive, 'payload inactif avant grant');
+  console.assert(freePayload.equipped === null, 'equipped masqué sans abonnement');
+
   await grantEliteSubscription(homeId, { poolId: pool.id, seasonNumber: pool.season_number });
 
   const report = await buildEliteMatchReport(matchId, homeId, 'fr');
@@ -135,6 +148,12 @@ async function main() {
   console.assert(report.decisiveMoments.length >= 1, 'moments décisifs');
   console.assert(report.timeline.length >= 1, 'timeline');
   console.assert(report.techniqueBreakdown.mine.Taijutsu === 18, 'breakdown tai');
+  console.assert(report.elementHeatmap?.mine.dealt.Katon === 18, 'heatmap katon dealt');
+  console.assert(report.elementHeatmap?.circle.mineAdvantage === 1, 'heatmap avantage');
+
+  const activePayload = await getEliteMePayload(homeId, 'fr');
+  console.assert(activePayload.subscription.isActive, 'payload actif après grant');
+  console.assert(activePayload.equipped !== null, 'equipped visible avec abonnement');
 
   const tools = await getEliteToolsPayload(homeId, 'fr');
   console.assert(tools.seasonStats.played >= 1, 'stats saison joués');

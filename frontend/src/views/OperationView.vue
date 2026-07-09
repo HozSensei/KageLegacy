@@ -143,6 +143,7 @@ const reportReady = computed(() => {
 })
 
 const spectatorBadge = computed(() => operation.value?.viewerRole === 'spectator')
+const canUseEliteAnalytics = computed(() => Boolean(elite.subscription?.isActive))
 
 const equipmentRows = computed(() => {
   const summary = operation.value?.mechanical?.equipmentSummary || []
@@ -265,7 +266,7 @@ onUnmounted(() => clearInterval(pollTimer))
               />
             </article>
 
-            <aside class="mt-12 lg:col-span-4 lg:mt-0">
+            <aside v-if="canUseEliteAnalytics" class="mt-12 lg:col-span-4 lg:mt-0">
               <button
                 type="button"
                 class="btn-ghost w-full"

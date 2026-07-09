@@ -10,7 +10,6 @@ import {
 } from '../services/senseiIdentityService.js';
 import { findUserPool } from '../services/poolService.js';
 import { createEliteCheckoutSession } from '../services/eliteStripeService.js';
-import { buildEliteMatchReport } from '../services/eliteReportService.js';
 import {
   getEliteToolsPayloadForUser,
   simulateEliteMatchup,
@@ -25,10 +24,20 @@ router.get('/me', async (req, res, next) => {
 
     const locale = await getUserLanguage(user.id);
     const elite = await getEliteMePayload(user.id, locale);
-    const seasonPass = await getSeasonPassPayload(user.id, locale);
-    const catalog = await getCosmeticsCatalog(user.id, locale);
     const pool = await findUserPool(user.id);
     const identity = await buildSenseiIdentity(user.id, locale, pool);
+
+    if (!elite.subscription.isActive) {
+      return res.json({
+        ...elite,
+        seasonPass: { active: false, quests: [], summary: { completed: 0, total: 0 } },
+        catalog: null,
+        identity,
+      });
+    }
+
+    const seasonPass = await getSeasonPassPayload(user.id, locale);
+    const catalog = await getCosmeticsCatalog(user.id, locale);
 
     res.json({ ...elite, seasonPass, catalog, identity });
   } catch (error) {

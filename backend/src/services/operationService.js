@@ -14,6 +14,7 @@ import {
 } from './matchSpectatorService.js';
 import { findUserPool } from './poolService.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
+import { hasActiveEliteSubscription } from './eliteSubscriptionService.js';
 
 function parseCombatLog(raw) {
   if (!raw) return null;
@@ -70,13 +71,15 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
   else if (match.status === 'revealing' || match.status === 'simulated') state = 'live';
   else if (match.status === 'applied') state = 'finished';
 
+  const viewerIsElite = await hasActiveEliteSubscription(viewerUserId);
+
   const debriefing =
-    isParticipant && (revealComplete || clock.hour >= 72)
+    viewerIsElite && isParticipant && (revealComplete || clock.hour >= 72)
       ? buildDebriefing(match, viewerUserId, combatLog, viewerLocale)
       : [];
 
   const mechanical =
-    combatLog && chronicle.length
+    viewerIsElite && combatLog && chronicle.length
       ? {
           possession: combatLog.possession,
           homeScorePct: combatLog.homeScorePct,

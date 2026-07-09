@@ -28,9 +28,14 @@ watch(
 
 async function toggle() {
   open.value = !open.value
-  if (open.value && props.matchId && !report.value) {
+  if (open.value && props.matchId && elite.subscription?.isActive && !report.value) {
     await elite.fetchMatchReport(props.matchId)
   }
+}
+
+function heatmapBarWidth(value, bucket) {
+  const max = Math.max(...Object.values(bucket || {}), 1)
+  return Math.round(((value || 0) / max) * 100)
 }
 </script>
 
@@ -127,6 +132,69 @@ async function toggle() {
               </p>
             </div>
           </div>
+        </div>
+
+        <div v-if="report.elementHeatmap">
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ t('eliteReport.heatmapTitle') }}
+          </p>
+          <div class="mt-3 grid gap-4 sm:grid-cols-2">
+            <div class="border border-line/60 p-3 text-xs">
+              <p class="text-ink">{{ t('eliteReport.heatmapDealt') }}</p>
+              <ul class="mt-2 space-y-1 text-ink-muted">
+                <li
+                  v-for="element in report.elementHeatmap.elements"
+                  :key="`dealt-${element}`"
+                  class="flex items-center gap-2"
+                >
+                  <span class="w-14 shrink-0 text-ink-faint">{{ element }}</span>
+                  <span class="w-8 tabular-nums">{{ report.elementHeatmap.mine.dealt[element] }}</span>
+                  <span
+                    class="h-1.5 flex-1 rounded-full bg-bg-soft"
+                  >
+                    <span
+                      class="block h-full rounded-full bg-accent/70"
+                      :style="{
+                        width: `${heatmapBarWidth(report.elementHeatmap.mine.dealt[element], report.elementHeatmap.mine.dealt)}%`,
+                      }"
+                    />
+                  </span>
+                </li>
+              </ul>
+            </div>
+            <div class="border border-line/60 p-3 text-xs">
+              <p class="text-ink">{{ t('eliteReport.heatmapTaken') }}</p>
+              <ul class="mt-2 space-y-1 text-ink-muted">
+                <li
+                  v-for="element in report.elementHeatmap.elements"
+                  :key="`taken-${element}`"
+                  class="flex items-center gap-2"
+                >
+                  <span class="w-14 shrink-0 text-ink-faint">{{ element }}</span>
+                  <span class="w-8 tabular-nums">{{ report.elementHeatmap.mine.taken[element] }}</span>
+                  <span class="h-1.5 flex-1 rounded-full bg-bg-soft">
+                    <span
+                      class="block h-full rounded-full bg-fire/60"
+                      :style="{
+                        width: `${heatmapBarWidth(report.elementHeatmap.mine.taken[element], report.elementHeatmap.mine.taken)}%`,
+                      }"
+                    />
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <p
+            v-if="report.elementHeatmap.circle"
+            class="mt-3 text-[11px] text-ink-faint"
+          >
+            {{
+              t('eliteReport.heatmapCircle', {
+                adv: report.elementHeatmap.circle.mineAdvantage,
+                dis: report.elementHeatmap.circle.mineDisadvantage,
+              })
+            }}
+          </p>
         </div>
 
         <div v-if="report.timeline?.length">
