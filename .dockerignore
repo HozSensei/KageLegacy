@@ -7,6 +7,8 @@ cypress
 cypress.config.js
 *.md
 !README.md
+!frontend/src/content/rules.fr.md
+!frontend/src/content/rules.en.md
 .env
 .env.*
 !.env.example
