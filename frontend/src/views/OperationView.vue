@@ -181,45 +181,56 @@ onUnmounted(() => clearInterval(pollTimer))
 
       <div class="mt-10 lg:col-span-8 lg:mt-0 xl:col-span-9">
         <template v-if="operation">
-          <div v-if="matchTitle" class="mb-8 flex flex-wrap items-start gap-4">
-            <template v-if="matchIdentities?.homeIdentity && matchIdentities?.awayIdentity">
+          <div v-if="matchTitle" class="operation-match-header mb-8">
+            <div
+              v-if="spectatorBadge || operation.match?.seasonCycle"
+              class="operation-match-header__meta"
+            >
+              <span
+                v-if="spectatorBadge"
+                class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
+              >
+                {{ t('matches.spectator') }}
+              </span>
+              <span
+                v-if="operation.match?.seasonCycle"
+                class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
+              >
+                {{ t('league.matchday') }} {{ operation.match.seasonCycle }}
+              </span>
+            </div>
+
+            <div
+              v-if="matchIdentities?.homeIdentity && matchIdentities?.awayIdentity"
+              class="operation-match-header__versus"
+            >
               <SenseiIdentity
+                class="operation-match-header__card"
                 :identity="matchIdentities.homeIdentity"
                 variant="match"
                 :subtitle="t('league.homeSide')"
               />
-              <span class="self-center text-sm text-ink-faint">{{ t('common.vs') }}</span>
+              <span class="operation-match-header__vs">{{ t('common.vs') }}</span>
               <SenseiIdentity
+                class="operation-match-header__card"
                 :identity="matchIdentities.awayIdentity"
                 variant="match"
                 :subtitle="t('league.awaySide')"
               />
-            </template>
+            </div>
             <h2 v-else class="font-display text-2xl text-ink">{{ matchTitle }}</h2>
-            <span
-              v-if="spectatorBadge"
-              class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
-            >
-              {{ t('matches.spectator') }}
-            </span>
-            <span
-              v-if="operation.match?.seasonCycle"
-              class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
-            >
-              {{ t('league.matchday') }} {{ operation.match.seasonCycle }}
-            </span>
           </div>
 
           <p
             v-if="operation.state === 'scheduled'"
-            class="border-l-2 border-line pl-4 text-sm text-ink-muted"
+            class="operation-match-header__status"
           >
             {{ t('operation.scheduledSpectator', { home: operation.match?.homeSensei, away: operation.match?.awaySensei }) }}
           </p>
 
           <p
             v-else-if="operation.state === 'waiting' || operation.state === 'simulating'"
-            class="border-l-2 border-line pl-4 text-sm text-ink-muted"
+            class="operation-match-header__status"
           >
             {{ t('operation.waiting') }}
           </p>
