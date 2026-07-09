@@ -691,6 +691,35 @@
       "banner": "Récompense : bannière « {slug} »"
     }
   },
+  "eliteReport": {
+    "title": "Rapport Élite",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "possession": "Possession",
+    "endReason": "Fin de match",
+    "ko": "KO (dom. / ext.)",
+    "decisiveTitle": "Moments décisifs",
+    "techniqueTitle": "Répartition des dégâts",
+    "myDamage": "Vos dégâts",
+    "oppDamage": "Dégâts adverses",
+    "received": "Reçus :",
+    "timelineTitle": "Timeline tour par tour",
+    "tour": "Tour {n}"
+  },
+  "eliteTools": {
+    "title": "Outils Élite",
+    "lead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
+    "seasonTitle": "Saison en cours",
+    "compTitle": "Composition active",
+    "trainingTitle": "ROI entraînement",
+    "atCap": "cap atteint",
+    "matchupTitle": "Simulateur de matchup",
+    "matchupHint": "Monte Carlo contre une compo pure adverse (100 tirages par défaut).",
+    "opponentComp": "Compo adverse",
+    "runSim": "Lancer la simulation",
+    "simResult": "Victoire {win}% · Nul {draw}% · Défaite {loss}%",
+    "simMeta": "{runs} simulations · {tours} tours en moyenne · {ko}% KO"
+  },
   "senseiProfile": {
     "title": "Profil Sensei",
     "statsLine": "Division {division} · Saison {season} · {points} pts · {reputation} réputation",

@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import OperationMatchNav from '../components/OperationMatchNav.vue'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
+import OperationEliteReport from '../components/operation/OperationEliteReport.vue'
+import { useEliteStore } from '../stores/elite'
 
 const props = defineProps({
   matchId: { type: [String, Number], default: null },
@@ -12,6 +14,7 @@ const props = defineProps({
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const elite = useEliteStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -134,6 +137,11 @@ const resultLabel = computed(() => {
   return map[m.result]
 })
 
+const reportReady = computed(() => {
+  const state = operation.value?.state
+  return state === 'live' || state === 'finished'
+})
+
 const spectatorBadge = computed(() => operation.value?.viewerRole === 'spectator')
 
 const equipmentRows = computed(() => {
@@ -150,6 +158,7 @@ function slugLabel(slug) {
 onMounted(async () => {
   await refreshAll()
   schedulePoll()
+  elite.fetchElite()
 })
 
 onUnmounted(() => clearInterval(pollTimer))
@@ -248,6 +257,12 @@ onUnmounted(() => clearInterval(pollTimer))
                   </li>
                 </ul>
               </section>
+
+              <OperationEliteReport
+                v-if="activeMatchId"
+                :match-id="activeMatchId"
+                :can-load="reportReady"
+              />
             </article>
 
             <aside class="mt-12 lg:col-span-4 lg:mt-0">

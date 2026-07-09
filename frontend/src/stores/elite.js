@@ -12,6 +12,12 @@ export const useEliteStore = defineStore('elite', () => {
   const catalog = ref(null)
   const identity = ref(null)
   const equipped = ref(null)
+  const tools = ref(null)
+  const toolsLoading = ref(false)
+  const matchReport = ref(null)
+  const reportLoading = ref(false)
+  const reportError = ref(null)
+  const lastMatchup = ref(null)
 
   function applyPayload(data) {
     subscription.value = data.subscription ?? null
@@ -72,6 +78,44 @@ export const useEliteStore = defineStore('elite', () => {
     return data
   }
 
+  async function fetchTools() {
+    if (!subscription.value?.isActive) return
+    toolsLoading.value = true
+    try {
+      const res = await fetch(`${API_BASE}/api/elite/tools`)
+      if (!res.ok) throw new Error(await readApiError(res))
+      tools.value = await res.json()
+    } finally {
+      toolsLoading.value = false
+    }
+  }
+
+  async function fetchMatchReport(matchId) {
+    reportLoading.value = true
+    reportError.value = null
+    try {
+      const res = await fetch(`${API_BASE}/api/matches/${matchId}/elite-report`)
+      if (!res.ok) throw new Error(await readApiError(res))
+      matchReport.value = await res.json()
+    } catch (e) {
+      reportError.value = e.message
+      matchReport.value = null
+    } finally {
+      reportLoading.value = false
+    }
+  }
+
+  async function simulateMatchup(opponentComposition, runs = 100) {
+    const res = await fetch(`${API_BASE}/api/elite/tools/matchup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ opponentComposition, runs }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    lastMatchup.value = await res.json()
+    return lastMatchup.value
+  }
+
   return {
     loading,
     error,
@@ -84,5 +128,14 @@ export const useEliteStore = defineStore('elite', () => {
     saveCosmetics,
     activateDevPack,
     startCheckout,
+    fetchTools,
+    fetchMatchReport,
+    simulateMatchup,
+    tools,
+    toolsLoading,
+    matchReport,
+    reportLoading,
+    reportError,
+    lastMatchup,
   }
 })

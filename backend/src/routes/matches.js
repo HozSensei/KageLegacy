@@ -6,6 +6,8 @@ import {
   getOperationNavigation,
 } from '../services/operationService.js';
 import { browsePools, getPoolMatches } from '../services/matchSpectatorService.js';
+import { buildEliteMatchReport } from '../services/eliteReportService.js';
+import { getUserLanguage } from '../services/narrative/viewerLocale.js';
 
 const router = Router();
 
@@ -54,6 +56,24 @@ router.get('/live', async (req, res, next) => {
     if (!user) return;
     const payload = await getOperationLivePayload(user.id);
     res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:matchId/elite-report', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const matchId = Number(req.params.matchId);
+    if (!matchId) {
+      return res.status(400).json({ error: 'matchId invalide.' });
+    }
+
+    const locale = await getUserLanguage(user.id);
+    const report = await buildEliteMatchReport(matchId, user.id, locale);
+    res.json(report);
   } catch (error) {
     next(error);
   }

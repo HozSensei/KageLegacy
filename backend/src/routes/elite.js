@@ -10,6 +10,11 @@ import {
 } from '../services/senseiIdentityService.js';
 import { findUserPool } from '../services/poolService.js';
 import { createEliteCheckoutSession } from '../services/eliteStripeService.js';
+import { buildEliteMatchReport } from '../services/eliteReportService.js';
+import {
+  getEliteToolsPayloadForUser,
+  simulateEliteMatchup,
+} from '../services/eliteToolsService.js';
 
 const router = Router();
 
@@ -72,6 +77,31 @@ router.post('/checkout', async (req, res, next) => {
 
     const session = await createEliteCheckoutSession(user.id);
     res.json(session);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/tools', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const tools = await getEliteToolsPayloadForUser(user.id);
+    res.json(tools);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/tools/matchup', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const { opponentComposition, runs } = req.body ?? {};
+    const result = await simulateEliteMatchup(user.id, { opponentComposition, runs });
+    res.json(result);
   } catch (error) {
     next(error);
   }

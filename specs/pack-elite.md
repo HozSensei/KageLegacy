@@ -349,17 +349,40 @@ Le **Pack Élite** couvre **une saison de ligue** (10 cycles). L'abonnement et l
 
 ---
 
-## 7. Rapport Élite (phase 2 — rappel)
+## 7. Rapport Élite + Outils Élite (phase G — livré)
 
-Couche **privée** post-H72, distincte de la chronique :
+### Rapport Élite (privé, post-match)
+
+Couche analytique distincte de la chronique narrative :
 
 - Timeline tour par tour (icônes technique)
-- Graphique possession
-- Heatmap élémentaire
-- 3 « moments décisifs » auto-détectés
-- Données source : `matches.combat_log` (déjà stocké)
+- Possession, fin de match, KO
+- 3 « moments décisifs » auto-détectés (dégâts, interception sensei, critique…)
+- Répartition des dégâts par technique (Tai / Nin / Gen)
+- Données source : `matches.combat_log`
 
 Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
+
+UI : panneau repliable dans `OperationView` (`OperationEliteReport.vue`).
+
+### Outils Élite (privés, bureau)
+
+| Outil | Description |
+| :--- | :--- |
+| **Stats saison** | V/D/N, possession moyenne, historique des matchs |
+| **Conseil composition** | Triangle Assaut / Mur / Flux + tips |
+| **ROI entraînement** | Coût net (héritage) vs gain attendu par ninja |
+| **Héritage** | Résumé parchemins + remises actives |
+| **Simulateur matchup** | Monte Carlo escouade active vs compo pure adverse |
+
+Endpoints :
+
+- `GET /api/elite/tools`
+- `POST /api/elite/tools/matchup` — body `{ opponentComposition, runs }`
+
+UI : `EliteToolsPanel.vue` dans le Bureau (visible si abonnement actif).
+
+**V2 (hors scope immédiat) :** heatmap élémentaire dans le rapport si données disponibles.
 
 ---
 
@@ -382,11 +405,11 @@ Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
 | :--- | :--- | :--- |
 | **A** | Spec + maquette `SenseiIdentity` + showcase | ✅ |
 | **B** | Migration 037, `buildSenseiIdentity`, season pass | ✅ |
-| **C** | API ligue avec `identity` | ✅ ligue · ⏳ match/clan/marché |
+| **C** | API ligue avec `identity` | ✅ |
 | **D** | Intégrer composant dans les vues | ✅ ligue, opération, clan, marché |
 | **E** | Page profil publique + éditeur cosmétiques UI | ✅ |
 | **F** | Stripe + webhook | ✅ stub dev (`POST /checkout`, grant auto sans clé) |
-| **G** | Rapport Élite | À faire |
+| **G** | Rapport Élite + Outils Élite (bureau) | ✅ |
 
 ---
 
@@ -395,6 +418,7 @@ Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
 | Test | Cible |
 | :--- | :--- |
 | `testSenseiIdentity.js` | Helper `buildSenseiIdentity`, batch, abonnement expiré |
+| `testEliteTools.js` | Rapport match, outils bureau, simulateur matchup, 403 sans abonnement |
 | `testEliteCosmeticsApi.js` | PATCH validations, 403 sans abonnement |
 | Cypress `elite-identity.cy.js` | Showcase rend les 4 variantes ; ligue affiche badge élite (mock API) |
 
