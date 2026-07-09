@@ -1,7 +1,10 @@
+import { query } from '../config/database.js';
 import { FORME_DOWNGRADE } from './combat/constants.js';
 import { clampStatToGradeCap } from './gradeProgression.js';
 import { consumeUserItem } from './equipmentService.js';
 import { getClockRow } from './gameClock.js';
+import { computeMatchPv } from './ninjaStats.js';
+import { clampStat } from './ninjaStats.js';
 
 const FORME_UPGRADE = {
   Lamentable: 'Passable',
@@ -115,6 +118,18 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
       const next = clampStatToGradeCap(ninja, stat, current + gain);
       await query(`UPDATE ninjas SET ${stat} = ? WHERE id = ?`, [next, ninjaId]);
       result = { effect: 'jutsu_scroll', stat, gain: next - current, ninjaId };
+      break;
+    }
+    case 'moral_boost': {
+      const amount = bureau.amount || 3;
+      const next = clampStat(Math.min(20, Number(ninja.moral) + amount));
+      if (next === ninja.moral) {
+        const error = new Error('Le moral de ce ninja est déjà au maximum.');
+        error.statusCode = 400;
+        throw error;
+      }
+      await query('UPDATE ninjas SET moral = ? WHERE id = ?', [next, ninjaId]);
+      result = { effect: 'moral_boost', from: ninja.moral, to: next, ninjaId };
       break;
     }
     default: {

@@ -7,6 +7,10 @@ export function useNotificationCopy() {
     switch (note.kind) {
       case 'bird_flight':
         return t('bureau.birdFlight.graduationTitle')
+      case 'chunin_exam_success':
+        return t('bureau.chuninExam.successTitle')
+      case 'chunin_exam_failure':
+        return t('bureau.chuninExam.failureTitle')
       case 'market_sale':
         return t('bureau.market.saleTitle')
       case 'mission_report':
@@ -35,6 +39,19 @@ export function useNotificationCopy() {
             profile: p.arrival?.potential || p.arrival?.primaryArt || '',
           }),
         ].join(' ')
+      case 'chunin_exam_success':
+        return t('bureau.chuninExam.successBody', {
+          name: p.name?.split(' ')[0] || '—',
+          combat: p.combatStat ?? '—',
+          intelligence: p.intelligence ?? '—',
+        })
+      case 'chunin_exam_failure':
+        return t('bureau.chuninExam.failureBody', {
+          name: p.name?.split(' ')[0] || '—',
+          combat: p.combatStat ?? '—',
+          intelligence: p.intelligence ?? '—',
+          moral: p.moral ?? '—',
+        })
       case 'market_sale':
         return t('bureau.market.saleBody', {
           asset: p.assetLabel || '—',
@@ -70,7 +87,14 @@ export function useNotificationCopy() {
 
   function linkPath(note) {
     if (note.kind === 'market_sale') return '/exchanges'
-    if (note.kind === 'mission_report' || note.kind === 'stagnation') return '/bureau'
+    if (
+      note.kind === 'mission_report' ||
+      note.kind === 'stagnation' ||
+      note.kind === 'chunin_exam_success' ||
+      note.kind === 'chunin_exam_failure'
+    ) {
+      return '/bureau'
+    }
     if (note.kind === 'clan_well_fusion') return '/bureau'
     return null
   }
@@ -78,8 +102,9 @@ export function useNotificationCopy() {
   function linkLabel(note) {
     if (note.kind === 'market_sale') return t('bureau.market.viewExchanges')
     if (note.kind === 'mission_report') return t('missions.notificationLink')
-    if (note.kind === 'stagnation') return t('bureau.stagnation.notificationLink')
-    if (note.kind === 'clan_well_fusion') return t('bureau.dailySealOpen')
+    if (note.kind === 'chunin_exam_success' || note.kind === 'chunin_exam_failure') {
+      return t('notifications.viewBureau')
+    }
     return null
   }
 

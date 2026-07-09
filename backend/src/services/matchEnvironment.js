@@ -29,7 +29,43 @@ export const ENVIRONMENT_MODIFIERS = [
       'Ciel dégagé signalé — les éclairs élémentaires pourraient être plus visibles.',
     scoutConfirmed: 'Ciel dégagé confirmé — léger avantage aux techniques de Feu.',
     introPhrase: 'sous un ciel dégagé où les éclairs élémentaires percent l\'air',
-    effects: { fireAffinityBonus: 1 },
+    effects: { elementAffinityBonus: 1, affinityElement: 'Katon' },
+    counterSlug: null,
+  },
+  {
+    slug: 'orage-lointain',
+    type: 'weather',
+    scoutFuzzy: 'Orages signalés — la foudre pourrait favoriser le Raiton.',
+    scoutConfirmed: 'Orage confirmé — léger avantage aux techniques Foudre.',
+    introPhrase: 'sous un orage lointain où la foudre gronde',
+    effects: { elementAffinityBonus: 1, affinityElement: 'Raiton' },
+    counterSlug: null,
+  },
+  {
+    slug: 'brume-humide',
+    type: 'weather',
+    scoutFuzzy: 'Humidité élevée — les flux Suiton semblent renforcés.',
+    scoutConfirmed: 'Brume humide confirmée — léger avantage aux techniques d\'Eau.',
+    introPhrase: 'dans une brume humide qui alourdit l\'air',
+    effects: { elementAffinityBonus: 1, affinityElement: 'Suiton' },
+    counterSlug: null,
+  },
+  {
+    slug: 'roche-plate',
+    type: 'weather',
+    scoutFuzzy: 'Sols pierreux — les techniques Doton pourraient mieux mordre.',
+    scoutConfirmed: 'Roche plate confirmée — léger avantage aux techniques Terre.',
+    introPhrase: 'sur une roche plate craquelée par la sécheresse',
+    effects: { elementAffinityBonus: 1, affinityElement: 'Doton' },
+    counterSlug: null,
+  },
+  {
+    slug: 'courant-aerien',
+    type: 'weather',
+    scoutFuzzy: 'Vents violents — les rafales Futon semblent amplifiées.',
+    scoutConfirmed: 'Courant aérien confirmé — léger avantage aux techniques Vent.',
+    introPhrase: 'dans un courant aérien qui dévie les projectiles',
+    effects: { elementAffinityBonus: 1, affinityElement: 'Futon' },
     counterSlug: null,
   },
   {
@@ -115,6 +151,14 @@ export function applyEnvironmentAttackMod(attacker, technique, env) {
   }
   if (technique.type === 'taijutsu' && effects.taijutsuBonus) {
     mod += effects.taijutsuBonus;
+  }
+  if (
+    technique.type === 'ninjutsu' &&
+    effects.elementAffinityBonus &&
+    effects.affinityElement &&
+    attacker.element_affinity === effects.affinityElement
+  ) {
+    mod += effects.elementAffinityBonus;
   }
   if (
     technique.type === 'ninjutsu' &&

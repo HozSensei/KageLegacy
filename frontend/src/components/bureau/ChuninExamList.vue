@@ -46,6 +46,7 @@ async function register(ninjaId) {
   <section v-if="geninList.length" class="mt-10 border-t border-line pt-8">
     <p class="section-label">{{ t('bureau.chuninExam.title') }}</p>
     <p class="mt-2 text-xs leading-relaxed text-ink-faint">{{ t('bureau.chuninExam.lead') }}</p>
+    <p class="mt-2 text-xs text-ink-muted">{{ t('bureau.chuninExam.ceremony') }}</p>
 
     <p v-if="!registrationOpen" class="mt-4 text-xs text-ink-muted">
       {{ t('bureau.chuninExam.closed') }}

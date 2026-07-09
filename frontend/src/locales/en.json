@@ -165,7 +165,8 @@
     "genericTitle": "Notification",
     "genericBody": "New activity regarding your squad.",
     "clanWellTitle": "Great Invocation",
-    "clanWellBody": "Clan Well {clanName} has fused — a bonus Chakra Seal awaits you!"
+    "clanWellBody": "Clan Well {clanName} has fused — a bonus Chakra Seal awaits you!",
+    "viewBureau": "View bureau"
   },
   "clan": {
     "lead": "Co-op hub: share recruits and fill the Chakra Well — no combat bonuses.",
@@ -287,13 +288,23 @@
       "viewExchanges": "View history",
       "dismiss": "Got it"
     },
+    "hospital": {
+      "title": "Hospital",
+      "lead": "Heal ninjas in Lamentable form (→ Passable). Always visible when care is needed.",
+      "forme": "Current form",
+      "submit": "Admit ({cost} Ryos)",
+      "sending": "Treating…",
+      "debtBlocked": "Debt outstanding — hospital unavailable.",
+      "empty": "No eligible ninja in Lamentable form.",
+      "medLock": "extended medical watch (grave injury)"
+    },
     "dispensary": {
-      "title": "Dispensary",
+      "title": "Hospital",
       "lead": "Heal ninjas in Lamentable form: Lamentable → Passable before the next match.",
       "forme": "Current form",
       "submit": "Treat ({cost} Ryos)",
       "sending": "Treating…",
-      "debtBlocked": "Debt outstanding — dispensary unavailable."
+      "debtBlocked": "Debt outstanding — hospital unavailable."
     },
     "chuninStagnation": {
       "title": "Chunin at the peak",
@@ -303,14 +314,19 @@
     },
     "chuninExam": {
       "title": "Chunin exams",
-      "lead": "Register before H36 · combat ≥ 10 and intelligence ≥ 8 · results at mid-cycle.",
+      "lead": "Village ceremony: register a ready Genin before H36. The council rules at mid-cycle — not a mere stat check.",
+      "ceremony": "The ninja presents their progress to the council. Pass: Chunin rank. Fail: village shame (morale −5).",
       "combat": "Combat",
-      "submit": "Send to exam ({cost} Ryos)",
+      "submit": "Present to council ({cost} Ryos)",
       "sending": "Registering…",
-      "registered": "Registered · H36",
+      "registered": "Presented · verdict H36",
       "closed": "Registration closed this cycle — next window at H0.",
       "debtBlocked": "Debt outstanding — registrations suspended.",
-      "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72."
+      "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72.",
+      "successTitle": "Chunin promotion",
+      "successBody": "{name} is promoted to Chunin after the council exam (combat {combat}, intelligence {intelligence}).",
+      "failureTitle": "Chunin exam failure",
+      "failureBody": "{name} failed to convince the council (combat {combat}/10, intelligence {intelligence}/8). Morale: {moral}."
     }
   },
   "squad": {

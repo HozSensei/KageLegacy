@@ -15,7 +15,6 @@ import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
-const HERO_BUREAU = '/images/hero-bureau.png'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -28,7 +27,7 @@ const router = createRouter({
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
-        { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_BUREAU, titleKey: 'bureau.title' } } },
+        { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' } } },
         { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
         { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
         { path: 'clan', name: 'clan', component: ClanView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.clan' } } },
