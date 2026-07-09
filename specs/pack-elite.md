@@ -1,0 +1,366 @@
+# 🎖️ Pack Élite — Identité Sensei & monétisation cosmétique
+
+**Statut :** 📐 spec + maquette UI (juil. 2026) — backend paiement non livré.
+
+**Objectif :** offrir un abonnement **Pack Élite** qui transforme l'identité publique du joueur (cosmétiques visibles par tous) et débloque des outils d'analyse privés — **sans aucun avantage compétitif**.
+
+---
+
+## Terminologie validée
+
+| Terme produit | Usage |
+| :--- | :--- |
+| **Pack Élite** | Nom commercial de l'abonnement mensuel |
+| **Jonin Élite** | Grade d'identité affiché à la place de « Jonin-Sensei » pour les abonnés actifs |
+| **Titre** | Sous-titre personnalisable sous le pseudo (ex. « Architecte des Ombres ») |
+| **Bannière** | Fond animé derrière l'identité (style Discord Nitro) |
+| **Rapport Élite** | Couche analytique post-match premium (hors scope immédiat de cette spec UI) |
+
+---
+
+## Principes de design (ne pas régresser)
+
+| Principe | Implication |
+| :--- | :--- |
+| **Zéro P2W** | Aucun Ryos, loot, stats ou objet match offert par le Pack Élite |
+| **Visibilité sociale** | Les cosmétiques doivent apparaître là où les autres joueurs voient déjà un `sensei.name` |
+| **Chronique inchangée** | Le texte romancé partagé reste identique pour tous ; le premium ajoute une vue analytique **privée** |
+| **Titres = expression** | Le titre est cosmétique ; pas de bonus mécanique lié au libellé |
+| **Rétrocompatibilité** | Sans abonnement → rendu actuel (texte brut, grade Jonin-Sensei) |
+
+---
+
+## 1. Modèle de données
+
+### Migration `037_pack_elite.sql`
+
+```sql
+-- Abonnement & cosmétiques Sensei
+CREATE TABLE IF NOT EXISTS sensei_elite_subscriptions (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  status ENUM('active', 'past_due', 'canceled', 'expired') NOT NULL DEFAULT 'active',
+  stripe_customer_id VARCHAR(64) NULL,
+  stripe_subscription_id VARCHAR(64) NULL,
+  current_period_start TIMESTAMP NULL,
+  current_period_end TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_elite_sub_user (user_id),
+  CONSTRAINT fk_elite_sub_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Cosmétiques équipés (1 ligne par sensei)
+CREATE TABLE IF NOT EXISTS sensei_cosmetics (
+  user_id INT UNSIGNED NOT NULL PRIMARY KEY,
+  title_slug VARCHAR(50) NULL,
+  banner_slug VARCHAR(50) NOT NULL DEFAULT 'none',
+  name_color VARCHAR(7) NOT NULL DEFAULT '#e8ece9',
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_cosmetics_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Catalogue des titres débloquables (seed)
+CREATE TABLE IF NOT EXISTS elite_title_catalog (
+  slug VARCHAR(50) NOT NULL PRIMARY KEY,
+  label_fr VARCHAR(80) NOT NULL,
+  label_en VARCHAR(80) NOT NULL,
+  unlock_rule ENUM('elite_default', 'season_reward', 'reputation') NOT NULL DEFAULT 'elite_default',
+  unlock_threshold INT UNSIGNED NULL,
+  sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Catalogue des bannières (seed)
+CREATE TABLE IF NOT EXISTS elite_banner_catalog (
+  slug VARCHAR(50) NOT NULL PRIMARY KEY,
+  label_fr VARCHAR(80) NOT NULL,
+  label_en VARCHAR(80) NOT NULL,
+  css_class VARCHAR(80) NOT NULL,
+  unlock_rule ENUM('elite_default', 'season_reward') NOT NULL DEFAULT 'elite_default',
+  sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+### Objet `SenseiIdentity` (contrat API partagé)
+
+Tous les endpoints qui exposent un nom de Sensei **doivent** inclure ce bloc (ou `null` si bot sans cosmétiques) :
+
+```ts
+type SenseiIdentity = {
+  userId: number;
+  senseiName: string;
+  isBot: boolean;
+  isElite: boolean;           // abonnement actif
+  gradeLabel: 'jonin' | 'jonin_elite';
+  title: string | null;       // libellé résolu selon locale
+  titleSlug: string | null;
+  bannerSlug: string;         // 'none' | 'mist' | 'embers' | ...
+  nameColor: string;          // hex #RRGGBB
+  profileUrl: string;         // '/sensei/:userId'
+};
+```
+
+### Helper backend `buildSenseiIdentity(userId, locale)`
+
+```
+1. JOIN sensei + users + sensei_elite_subscriptions + sensei_cosmetics
+2. isElite = subscription.status === 'active' && period_end > NOW()
+3. gradeLabel = isElite ? 'jonin_elite' : 'jonin'
+4. title = résolution via elite_title_catalog si title_slug et droits OK
+5. banner = cosmétique si isElite, sinon 'none'
+6. nameColor = cosmétique si isElite, sinon couleur par défaut ink
+```
+
+**Batch :** pour les listes (classement ligue, clan), une requête `WHERE user_id IN (...)` évite le N+1.
+
+---
+
+## 2. API
+
+### `GET /api/sensei/:userId/profile` (public, auth optionnelle)
+
+Retourne le profil public visible par les autres joueurs.
+
+```json
+{
+  "identity": { /* SenseiIdentity */ },
+  "publicStats": {
+    "reputation": 42,
+    "division": "III",
+    "seasonPoints": 18,
+    "played": 7,
+    "wins": 4,
+    "draws": 1,
+    "losses": 2,
+    "promotions": 1
+  },
+  "recentMatch": {
+    "id": 123,
+    "result": "home_win",
+    "opponentName": "Orochimaru",
+    "cycle": 4
+  }
+}
+```
+
+**Ne pas exposer :** stats exactes des ninjas, Ryos, inventaire, héritage détaillé.
+
+### `GET /api/me/elite` (auth requise)
+
+État de l'abonnement + cosmétiques équipés + catalogues débloqués.
+
+```json
+{
+  "subscription": {
+    "isActive": true,
+    "status": "active",
+    "currentPeriodEnd": "2026-08-09T12:00:00.000Z"
+  },
+  "equipped": {
+    "titleSlug": "shadow_architect",
+    "bannerSlug": "mist",
+    "nameColor": "#c9a66b"
+  },
+  "catalog": {
+    "titles": [{ "slug": "...", "label": "...", "unlocked": true }],
+    "banners": [{ "slug": "...", "label": "...", "unlocked": true }],
+    "nameColors": ["#e8ece9", "#c9a66b", "#8fad9a", "#6d9eb8", "#c97d5d"]
+  }
+}
+```
+
+### `PATCH /api/me/elite/cosmetics` (auth + abonnement actif)
+
+```json
+{
+  "titleSlug": "veteran_league",
+  "bannerSlug": "embers",
+  "nameColor": "#c9a66b"
+}
+```
+
+Validations :
+- `titleSlug` doit exister dans le catalogue **et** être débloqué pour ce user
+- `bannerSlug` idem
+- `nameColor` dans la palette autorisée Pack Élite
+- 403 si abonnement inactif (les cosmétiques restent en BDD mais ne s'affichent pas)
+
+### Enrichissement des endpoints existants
+
+| Endpoint | Changement |
+| :--- | :--- |
+| `GET /api/league` | `standings[].identity` au lieu de `senseiName` seul |
+| `GET /api/matches/pools/:id/fixtures` | `home.identity`, `away.identity` |
+| `GET /api/matches/:id` (operation) | `match.homeIdentity`, `match.awayIdentity` |
+| `GET /api/player-market` | `listings[].sellerIdentity` |
+| `GET /api/clan` | `members[].identity` |
+
+**Rétrocompat :** conserver `senseiName` / `sellerName` en alias deprecated pendant 1 milestone, puis retirer.
+
+---
+
+## 3. Composant `SenseiIdentity.vue`
+
+**Chemin :** `frontend/src/components/sensei/SenseiIdentity.vue`
+
+### Props
+
+| Prop | Type | Défaut | Description |
+| :--- | :--- | :--- | :--- |
+| `identity` | `Object` | requis | Bloc `SenseiIdentity` API |
+| `variant` | `'inline' \| 'row' \| 'card' \| 'match'` | `'inline'` | Densité d'affichage |
+| `subtitle` | `String` | `null` | Ligne contextuelle (division, score…) |
+| `linkable` | `Boolean` | `true` | Lien vers `/sensei/:userId` |
+| `highlight` | `Boolean` | `false` | Accentuer (joueur courant) |
+
+### Variantes visuelles
+
+```
+inline   — classement ligue, marché P2P (1 ligne)
+row      — liste clan, fixture (nom + titre + badge)
+card     — page profil publique, showcase
+match    — en-tête opération (deux identités face à face)
+```
+
+### Structure DOM (variante `card`)
+
+```
+.sensei-identity.sensei-identity--card
+  .sensei-identity__banner[data-banner="mist"]     ← fond animé CSS
+  .sensei-identity__content
+    .sensei-identity__grade      "Jonin Élite"
+    .sensei-identity__name       couleur nameColor + badge élite
+    .sensei-identity__title      titre personnalisable
+    .sensei-identity__subtitle   slot / prop
+```
+
+### Maquette interactive
+
+Route de preview (auth requise) : **`/design/elite-identity`**
+
+Fichiers livrés :
+- `frontend/src/components/sensei/SenseiIdentity.vue`
+- `frontend/src/data/eliteCosmeticCatalog.js` — données mock + catalogues
+- `frontend/src/views/EliteIdentityShowcase.vue` — toutes les variantes
+
+---
+
+## 4. Page profil publique `/sensei/:userId`
+
+**Vue :** `frontend/src/views/SenseiProfileView.vue`
+
+| Zone | Contenu |
+| :--- | :--- |
+| **Hero** | `SenseiIdentity` variant `card` + bannière animée |
+| **Palmarès** | W/D/L, points saison, division, réputation |
+| **Dernier match** | Lien vers `/operation/match/:id` |
+| **Grades ninjas** | Silhouettes : 3 icônes Genin/Chunin **sans stats** |
+
+Le propriétaire du profil voit un bandeau « Personnaliser mon identité » → panneau édition titres/bannière/couleur (Pack Élite requis).
+
+---
+
+## 5. Points d'intégration UI (ordre de livraison)
+
+| Priorité | Fichier | Remplacement |
+| :---: | :--- | :--- |
+| 1 | `LeagueView.vue` | `row.senseiName` → `<SenseiIdentity variant="inline" />` |
+| 2 | `OperationView.vue` | `matchTitle` → deux `<SenseiIdentity variant="match" />` |
+| 3 | `ClanView.vue` | membres → `variant="row"` |
+| 4 | `PlayerMarketView.vue` | vendeur → `variant="inline"` |
+| 5 | `LeagueView.vue` (fixtures) | paires de match → `variant="row"` |
+| 6 | `SenseiProfileView.vue` | nouvelle page |
+
+---
+
+## 6. Catalogue cosmétiques (seed V1)
+
+### Titres (`elite_title_catalog`)
+
+| slug | FR | Règle |
+| :--- | :--- | :--- |
+| `shadow_architect` | Architecte des Ombres | elite_default |
+| `veteran_league` | Vétéran de la Ligue | elite_default |
+| `chronicle_keeper` | Gardien des Chroniques | elite_default |
+| `dojo_founder` | Fondateur de Dojo | reputation ≥ 50 |
+| `promoted_ii` | Promu Division II | season_reward |
+| `flawless_cycle` | Cycle sans défaite | season_reward |
+
+### Bannières (`elite_banner_catalog`)
+
+| slug | FR | CSS class |
+| :--- | :--- | :--- |
+| `none` | Aucune | — |
+| `mist` | Brume du crépuscule | `sensei-banner--mist` |
+| `embers` | Braises du forgeur | `sensei-banner--embers` |
+| `moonlight` | Clair de lune | `sensei-banner--moonlight` |
+| `scroll` | Parchemin ancestral | `sensei-banner--scroll` |
+
+### Couleurs de pseudo (palette Pack Élite)
+
+`#e8ece9` (défaut), `#c9a66b` (or), `#8fad9a` (jade), `#6d9eb8` (eau), `#c97d5d` (feu)
+
+---
+
+## 7. Rapport Élite (phase 2 — rappel)
+
+Couche **privée** post-H72, distincte de la chronique :
+
+- Timeline tour par tour (icônes technique)
+- Graphique possession
+- Heatmap élémentaire
+- 3 « moments décisifs » auto-détectés
+- Données source : `matches.combat_log` (déjà stocké)
+
+Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
+
+---
+
+## 8. Paiement (phase 3 — outline)
+
+| Étape | Détail |
+| :--- | :--- |
+| Stripe Checkout | Produit « Pack Élite » récurrent mensuel |
+| Webhook | `customer.subscription.updated` → `sensei_elite_subscriptions` |
+| Portail client | Lien annulation / factures Stripe |
+| Grace period | 3 jours `past_due` avant masquage cosmétiques |
+
+**Prix indicatif PO :** 3,99 €/mois — ajustable sans impact technique.
+
+---
+
+## 9. Plan d'implémentation
+
+| Phase | Livrable | Effort |
+| :--- | :--- | :--- |
+| **A** ✅ | Spec + maquette `SenseiIdentity` + showcase | Cette PR |
+| **B** | Migration 037, seed catalogues, `buildSenseiIdentity` | Backend |
+| **C** | Enrichir API ligue/match/clan/marché | Backend |
+| **D** | Intégrer composant dans les 5 vues | Frontend |
+| **E** | Page profil publique + éditeur cosmétiques | Full-stack |
+| **F** | Stripe + webhook | Backend + ops |
+| **G** | Rapport Élite | Full-stack |
+
+---
+
+## 10. Tests
+
+| Test | Cible |
+| :--- | :--- |
+| `testSenseiIdentity.js` | Helper `buildSenseiIdentity`, batch, abonnement expiré |
+| `testEliteCosmeticsApi.js` | PATCH validations, 403 sans abonnement |
+| Cypress `elite-identity.cy.js` | Showcase rend les 4 variantes ; ligue affiche badge élite (mock API) |
+
+---
+
+## Fichiers de référence
+
+| Fichier | Rôle |
+| :--- | :--- |
+| `frontend/src/components/sensei/SenseiIdentity.vue` | Composant identity |
+| `frontend/src/data/eliteCosmeticCatalog.js` | Catalogue mock V1 |
+| `frontend/src/views/EliteIdentityShowcase.vue` | Maquette interactive |
+| `specs/milestone-6.md` | Chronique (inchangée pour tous) |
+| `specs/milestone-9.md` | Principes anti-P2W |

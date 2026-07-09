@@ -645,5 +645,27 @@
       "infiltration": "Tactical Infiltration",
       "cyclone": "Operation Cyclone"
     }
+  },
+  "eliteIdentity": {
+    "grade": {
+      "jonin": "Jonin Sensei",
+      "joninElite": "Elite Jonin",
+      "bot": "Automated sensei"
+    },
+    "eliteBadge": "Elite Pack active",
+    "eliteShort": "Elite"
+  },
+  "eliteShowcase": {
+    "title": "Elite Pack — identity",
+    "lead": "SenseiIdentity component mockup: cosmetics visible to other players.",
+    "hint": "Elite Pack subscribers become Elite Jonin — colored name, customizable title, and animated banner.",
+    "editorTitle": "Identity editor (preview)",
+    "editorHint": "Preview of what players will configure in their profile once Elite Pack is active.",
+    "fieldTitle": "Displayed title",
+    "fieldBanner": "Background banner",
+    "fieldColor": "Name color",
+    "previewSubtitle": "Division III · Season 3 · 42 reputation",
+    "variantsTitle": "Display variants",
+    "specRef": "Technical spec:"
   }
 }

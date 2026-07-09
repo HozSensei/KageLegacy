@@ -644,3 +644,157 @@ body::before {
 .rules-doc > h1 + p + p em {
   @apply block text-xs uppercase tracking-[0.12em] text-ink-faint;
 }
+
+/* —— Pack Élite : SenseiIdentity —— */
+.sensei-identity {
+  @apply relative block text-inherit no-underline;
+}
+
+.sensei-identity--inline {
+  @apply inline-flex max-w-full items-center gap-2;
+}
+
+.sensei-identity--row {
+  @apply rounded-sm border border-transparent px-2 py-1.5 transition;
+}
+
+.sensei-identity--row:hover {
+  @apply border-line/60 bg-bg-card/40;
+}
+
+.sensei-identity--card {
+  @apply overflow-hidden rounded-sm border border-line bg-bg-card;
+  min-height: 7.5rem;
+}
+
+.sensei-identity--match {
+  @apply overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-3;
+  min-width: 10rem;
+}
+
+.sensei-identity--highlight .sensei-identity__name {
+  @apply text-accent;
+}
+
+.sensei-identity__banner {
+  @apply pointer-events-none absolute inset-0 opacity-80;
+}
+
+.sensei-identity--card .sensei-identity__banner {
+  @apply opacity-90;
+}
+
+.sensei-identity__content {
+  @apply relative z-[1];
+}
+
+.sensei-identity--inline .sensei-identity__content {
+  @apply inline-flex min-w-0 items-center gap-2;
+}
+
+.sensei-identity--row .sensei-identity__content,
+.sensei-identity--card .sensei-identity__content,
+.sensei-identity--match .sensei-identity__content {
+  @apply px-4 py-3;
+}
+
+.sensei-identity--card .sensei-identity__content {
+  @apply py-5;
+}
+
+.sensei-identity__grade {
+  @apply mb-1 text-[10px] uppercase tracking-[0.16em] text-ink-faint;
+}
+
+.sensei-identity--elite .sensei-identity__grade {
+  @apply text-accent/80;
+}
+
+.sensei-identity__elite-mark {
+  @apply ml-1 text-[9px] text-accent;
+}
+
+.sensei-identity__name-row {
+  @apply flex min-w-0 flex-wrap items-center gap-2;
+}
+
+.sensei-identity__name {
+  @apply truncate font-display text-base leading-tight text-ink;
+}
+
+.sensei-identity--card .sensei-identity__name,
+.sensei-identity--match .sensei-identity__name {
+  @apply text-xl;
+}
+
+.sensei-identity--elite .sensei-identity__name {
+  font-weight: 500;
+}
+
+.sensei-identity__elite-pill {
+  @apply shrink-0 rounded-sm border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-accent;
+}
+
+.sensei-identity__bot {
+  @apply shrink-0 text-[10px] text-ink-faint;
+}
+
+.sensei-identity__title {
+  @apply mt-0.5 truncate text-xs italic text-ink-muted;
+}
+
+.sensei-identity__subtitle {
+  @apply mt-1 text-[11px] text-ink-faint;
+}
+
+.sensei-identity--inline .sensei-identity__title {
+  @apply hidden;
+}
+
+/* Bannières animées (Pack Élite) */
+@keyframes sensei-banner-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(2%, -1%) scale(1.03); }
+}
+
+@keyframes sensei-banner-ember {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.85; }
+}
+
+.sensei-banner--mist {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 40%, color-mix(in srgb, var(--color-water) 35%, transparent), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 80% 60%, color-mix(in srgb, var(--color-accent-soft) 25%, transparent), transparent 65%),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-bg-soft) 90%, transparent), var(--color-bg-card));
+  animation: sensei-banner-drift 12s ease-in-out infinite;
+}
+
+.sensei-banner--embers {
+  background:
+    radial-gradient(circle at 15% 85%, color-mix(in srgb, var(--color-fire) 45%, transparent), transparent 40%),
+    radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--color-accent) 30%, transparent), transparent 35%),
+    linear-gradient(160deg, var(--color-bg-card), color-mix(in srgb, var(--color-bg) 80%, #2a1810));
+  animation: sensei-banner-ember 4s ease-in-out infinite;
+}
+
+.sensei-banner--moonlight {
+  background:
+    radial-gradient(circle at 75% 25%, color-mix(in srgb, var(--color-water) 40%, transparent), transparent 45%),
+    radial-gradient(ellipse 100% 80% at 50% 100%, color-mix(in srgb, var(--color-accent-soft) 15%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-soft) 70%, #1a2230), var(--color-bg-card));
+  animation: sensei-banner-drift 16s ease-in-out infinite reverse;
+}
+
+.sensei-banner--scroll {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 24px,
+      color-mix(in srgb, var(--color-earth) 8%, transparent) 24px,
+      color-mix(in srgb, var(--color-earth) 8%, transparent) 25px
+    ),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-earth) 12%, var(--color-bg-card)), var(--color-bg-soft));
+}
+

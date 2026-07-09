@@ -13,6 +13,7 @@ import TrainingView from '../views/TrainingView.vue'
 import ClanView from '../views/ClanView.vue'
 import RulesView from '../views/RulesView.vue'
 import LoginView from '../views/LoginView.vue'
+import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -45,6 +46,12 @@ const router = createRouter({
           component: OperationView,
           props: true,
           meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } },
+        },
+        {
+          path: 'design/elite-identity',
+          name: 'elite-identity-showcase',
+          component: EliteIdentityShowcase,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'eliteShowcase.title' } },
         },
       ],
     },
