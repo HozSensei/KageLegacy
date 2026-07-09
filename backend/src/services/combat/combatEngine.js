@@ -19,6 +19,7 @@ import {
   collectEquipmentSummary,
   getCycleSpeedPenalty,
   getGenjutsuDefenseBonus,
+  getElementResistBonus,
   tryConsumables,
   tryDecoyRedirect,
   tryLethalMitigation,
@@ -206,6 +207,9 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
   if (env) def += applyEnvironmentDefenseMod(defender, env);
   if (technique.type === 'genjutsu') {
     def += getGenjutsuDefenseBonus(defender);
+  }
+  if (technique.type === 'ninjutsu') {
+    def += getElementResistBonus(defender, attacker.element_affinity, technique.type);
   }
   const elementMult = elementDamageMultiplier(attacker.element_affinity, defender.element_affinity);
 

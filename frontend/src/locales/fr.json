@@ -165,7 +165,8 @@
     "genericTitle": "Notification",
     "genericBody": "Nouvelle activité concernant votre équipe.",
     "clanWellTitle": "Grande Invocation",
-    "clanWellBody": "Le Puits du clan {clanName} est en fusion — un Sceau de Chakra bonus vous attend !"
+    "clanWellBody": "Le Puits du clan {clanName} est en fusion — un Sceau de Chakra bonus vous attend !",
+    "viewBureau": "Voir le bureau"
   },
   "clan": {
     "lead": "Hub coopératif : partagez des recrues et remplissez le Puits de Chakra — sans bonus de combat.",
@@ -287,13 +288,23 @@
       "viewExchanges": "Voir l'historique",
       "dismiss": "Compris"
     },
+    "hospital": {
+      "title": "Hôpital",
+      "lead": "Soigne les ninjas en forme Lamentable (→ Passable). Visible dès qu'un ninja a besoin de soins.",
+      "forme": "Forme actuelle",
+      "submit": "Hospitaliser ({cost} Ryos)",
+      "sending": "Soins…",
+      "debtBlocked": "Dette en cours — hôpital indisponible.",
+      "empty": "Aucun ninja en forme Lamentable éligible aux soins.",
+      "medLock": "surveillance médicale prolongée (blessure grave)"
+    },
     "dispensary": {
-      "title": "Dispensaire",
+      "title": "Hôpital",
       "lead": "Soigne les ninjas en forme Lamentable : Lamentable → Passable avant le prochain match.",
       "forme": "Forme actuelle",
       "submit": "Soigner ({cost} Ryos)",
       "sending": "Soins…",
-      "debtBlocked": "Dette en cours — dispensaire indisponible."
+      "debtBlocked": "Dette en cours — hôpital indisponible."
     },
     "chuninStagnation": {
       "title": "Chunin au sommet",
@@ -303,14 +314,19 @@
     },
     "chuninExam": {
       "title": "Examens Chunin",
-      "lead": "Inscription avant H36 · combat ≥ 10 et intelligence ≥ 8 · résultat au milieu du cycle.",
+      "lead": "Cérémonie du village : inscrivez un Genin prêt avant H36. Le conseil statue à mi-cycle — pas un simple test de stats.",
+      "ceremony": "Le ninja présente sa progression devant le conseil. Réussite : grade Chunin. Échec : honte du village (moral −5).",
       "combat": "Combat",
-      "submit": "Envoyer à l'examen ({cost} Ryos)",
+      "submit": "Présenter au conseil ({cost} Ryos)",
       "sending": "Inscription…",
-      "registered": "Inscrit · H36",
+      "registered": "Présenté · verdict H36",
       "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0.",
       "debtBlocked": "Dette en cours — inscriptions suspendues.",
-      "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72."
+      "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72.",
+      "successTitle": "Promotion Chunin",
+      "successBody": "{name} est promu Chunin après l'examen du conseil (combat {combat}, intelligence {intelligence}).",
+      "failureTitle": "Échec à l'examen Chunin",
+      "failureBody": "{name} n'a pas convaincu le conseil (combat {combat}/10, intelligence {intelligence}/8). Moral : {moral}."
     }
   },
   "squad": {

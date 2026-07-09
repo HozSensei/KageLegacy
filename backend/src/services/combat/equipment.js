@@ -102,6 +102,19 @@ export function getGenjutsuDefenseBonus(defender) {
   return 0;
 }
 
+export function getElementResistBonus(defender, attackerElement, techniqueType) {
+  if (techniqueType !== 'ninjutsu' || !attackerElement) return 0;
+
+  for (const effect of defender.equipment?.match || []) {
+    if (effect.trigger !== 'element_resist') continue;
+    if (effect.element !== attackerElement) continue;
+    if (!canUseMatchEffect(defender, effect)) continue;
+    recordMatchUse(defender, effect.userItemId, 'element_resist');
+    return effect.defenseBonus || 2;
+  }
+  return 0;
+}
+
 export function tryLethalMitigation(defender, damage) {
   if (damage <= 0 || defender.pv - damage > 0) {
     return { damage, mitigated: false };

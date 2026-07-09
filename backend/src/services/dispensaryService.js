@@ -3,18 +3,28 @@ import { assertSpendingAllowed } from './economyDebt.js';
 import { isTacticsLocked } from './gameClock.js';
 import { getHeritageBonuses, applyPercentDiscount } from './heritageService.js';
 
-const DISPENSARY_COST = {
+const HOSPITAL_COST = {
   Genin: 500,
   Chunin: 1500,
 };
 
+const MISSION_MORAL_GAIN = {
+  routine: 1,
+  infiltration: 2,
+  cyclone: 1,
+};
+
 export function getDispensaryCost(grade) {
-  return DISPENSARY_COST[grade] ?? null;
+  return HOSPITAL_COST[grade] ?? null;
+}
+
+export function getMissionMoralGain(tier) {
+  return MISSION_MORAL_GAIN[tier] ?? 0;
 }
 
 export async function treatNinjaAtDispensary(userId, ninjaId) {
   if (await isTacticsLocked()) {
-    const error = new Error('Le dispensaire est fermé pendant l\'opération (à partir de H71).');
+    const error = new Error('L\'hôpital est fermé pendant l\'opération (à partir de H71).');
     error.statusCode = 423;
     throw error;
   }
@@ -34,7 +44,7 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
   }
 
   if (ninja.weekly_forme !== 'Lamentable') {
-    const error = new Error('Seuls les ninjas en forme Lamentable peuvent être soignés au dispensaire.');
+    const error = new Error('Seuls les ninjas en forme Lamentable peuvent être soignés à l\'hôpital.');
     error.statusCode = 400;
     throw error;
   }
@@ -50,14 +60,14 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
   const discounted = applyPercentDiscount(baseCost, heritage.dispensaryDiscountPct);
   const cost = Math.max(0, discounted - (ninja.injury_discount_ryos || 0));
   if (!cost) {
-    const error = new Error('Ce grade ne peut pas être traité au dispensaire.');
+    const error = new Error('Ce grade ne peut pas être traité à l\'hôpital.');
     error.statusCode = 400;
     throw error;
   }
 
   await assertSpendingAllowed(
     userId,
-    'Gel administratif — remboursez votre dette avant d\'utiliser le dispensaire.'
+    'Gel administratif — remboursez votre dette avant d\'utiliser l\'hôpital.'
   );
 
   if (ninja.ryos < cost) {
@@ -72,20 +82,31 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
     ['Passable', ninjaId]
   );
 
-  return { ninjaId, cost, previousForme: 'Lamentable', newForme: 'Passable' };
+  return { ninjaId, cost, baseCost, previousForme: 'Lamentable', newForme: 'Passable' };
 }
 
 export async function listDispensaryCandidates(userId) {
+  const heritage = await getHeritageBonuses(userId);
   const ninjas = await query(
-    `SELECT id, name, grade, weekly_forme FROM ninjas
+    `SELECT id, name, grade, weekly_forme, forme_lock_cycles, injury_discount_ryos
+     FROM ninjas
      WHERE user_id = ? AND weekly_forme = 'Lamentable'
      ORDER BY squad_position IS NULL, squad_position, id`,
     [userId]
   );
+
   return ninjas
-    .map((n) => ({
-      ...n,
-      cost: getDispensaryCost(n.grade),
-    }))
-    .filter((n) => n.cost != null);
+    .map((ninja) => {
+      const baseCost = getDispensaryCost(ninja.grade);
+      if (!baseCost) return null;
+      const afterHeritage = applyPercentDiscount(baseCost, heritage.dispensaryDiscountPct);
+      const cost = Math.max(0, afterHeritage - (ninja.injury_discount_ryos || 0));
+      return {
+        ...ninja,
+        baseCost,
+        cost,
+        treatable: ninja.forme_lock_cycles <= 0,
+      };
+    })
+    .filter(Boolean);
 }

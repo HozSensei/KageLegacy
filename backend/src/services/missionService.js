@@ -8,6 +8,7 @@ import {
   ninjaStatsFromRow,
 } from './missionRules.js';
 import { grantLootOnCollect, resolveMissionOutcome } from './missionLootService.js';
+import { getMissionMoralGain } from './dispensaryService.js';
 import { isNinjaListed } from './playerMarketService.js';
 
 async function getCycleStartAt() {
@@ -215,7 +216,7 @@ export async function resolveMissionsForCycle(cycleStartAt, resolvesAtHour) {
 
 export async function collectMissionRewards(userId) {
   const missions = await query(
-    `SELECT im.*, n.id AS ninja_still_exists
+    `SELECT im.*, n.id AS ninja_still_exists, im.ninja_id
      FROM idle_missions im
      LEFT JOIN ninjas n ON n.id = im.ninja_id
      WHERE im.user_id = ? AND im.status = 'completed'`,
@@ -229,6 +230,15 @@ export async function collectMissionRewards(userId) {
   for (const mission of missions) {
     total += mission.reward_amount;
     const granted = await grantLootOnCollect(userId, mission);
+    if (mission.ninja_still_exists && mission.ninja_id) {
+      const moralGain = getMissionMoralGain(mission.mission_tier);
+      if (moralGain > 0) {
+        await query('UPDATE ninjas SET moral = LEAST(20, moral + ?) WHERE id = ?', [
+          moralGain,
+          mission.ninja_id,
+        ]);
+      }
+    }
     lootReports.push({
       missionId: mission.id,
       tier: mission.mission_tier,

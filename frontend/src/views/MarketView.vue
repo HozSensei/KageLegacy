@@ -39,6 +39,9 @@ const promoItems = computed(() => market.value?.items?.filter((item) => item.onP
 
 function itemElement(item) {
   const effects = item.effects || {}
+  if (effects.match?.trigger === 'element_resist' && effects.match?.element) {
+    return effects.match.element
+  }
   const modifiers = effects.modifiers || effects.match?.modifiers || []
   const list = Array.isArray(modifiers) ? modifiers : []
   const resist = list.find((mod) => mod?.kind === 'element_resist')
