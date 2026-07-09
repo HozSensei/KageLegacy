@@ -704,7 +704,11 @@
     "oppDamage": "Dégâts adverses",
     "received": "Reçus :",
     "timelineTitle": "Timeline tour par tour",
-    "tour": "Tour {n}"
+    "tour": "Tour {n}",
+    "heatmapTitle": "Heatmap élémentaire",
+    "heatmapDealt": "Dégâts infligés par élément",
+    "heatmapTaken": "Dégâts reçus par élément",
+    "heatmapCircle": "Cercle élémentaire : {adv} avantages · {dis} désavantages"
   },
   "eliteTools": {
     "title": "Outils Élite",

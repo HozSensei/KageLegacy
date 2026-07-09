@@ -69,27 +69,53 @@ export async function expireEliteSubscriptionsForSeason(seasonNumber) {
   );
 }
 
+export async function assertActiveEliteSubscription(userId) {
+  const pool = await findUserPool(userId);
+  if (!pool) {
+    const error = new Error('Aucune ligue active.');
+    error.statusCode = 404;
+    throw error;
+  }
+  const subscription = await getActiveEliteSubscription(userId, pool);
+  if (!subscription) {
+    const error = new Error('Pack Élite requis.');
+    error.statusCode = 403;
+    throw error;
+  }
+  return { pool, subscription };
+}
+
+export async function hasActiveEliteSubscription(userId) {
+  const pool = await findUserPool(userId);
+  if (!pool) return false;
+  const subscription = await getActiveEliteSubscription(userId, pool);
+  return Boolean(subscription);
+}
+
 export async function getEliteMePayload(userId, locale = 'fr') {
   const pool = await findUserPool(userId);
   const subscription = pool ? await getActiveEliteSubscription(userId, pool) : null;
+  const isActive = Boolean(subscription);
 
-  const equippedRows = await query('SELECT * FROM sensei_cosmetics WHERE user_id = ? LIMIT 1', [
-    userId,
-  ]);
+  const equippedRows = isActive
+    ? await query('SELECT * FROM sensei_cosmetics WHERE user_id = ? LIMIT 1', [userId])
+    : [];
 
   return {
     subscription: {
-      isActive: Boolean(subscription),
+      isActive,
       status: subscription?.status ?? null,
       seasonNumber: subscription?.season_number ?? pool?.season_number ?? null,
       poolId: subscription?.pool_id ?? pool?.id ?? null,
       currentPeriodEnd: subscription?.current_period_end ?? null,
     },
-    equipped: {
-      titleSlug: equippedRows[0]?.title_slug ?? null,
-      bannerSlug: equippedRows[0]?.banner_slug ?? 'none',
-      nameColor: equippedRows[0]?.name_color ?? '#e8ece9',
-    },
+    equipped: isActive
+      ? {
+          titleSlug: equippedRows[0]?.title_slug ?? null,
+          bannerSlug: equippedRows[0]?.banner_slug ?? 'none',
+          nameColor: equippedRows[0]?.name_color ?? '#e8ece9',
+        }
+      : null,
     locale,
   };
 }

@@ -704,7 +704,11 @@
     "oppDamage": "Opponent damage",
     "received": "Received:",
     "timelineTitle": "Turn-by-turn timeline",
-    "tour": "Turn {n}"
+    "tour": "Turn {n}",
+    "heatmapTitle": "Elemental heatmap",
+    "heatmapDealt": "Damage dealt by element",
+    "heatmapTaken": "Damage taken by element",
+    "heatmapCircle": "Element circle: {adv} advantages · {dis} disadvantages"
   },
   "eliteTools": {
     "title": "Elite Tools",

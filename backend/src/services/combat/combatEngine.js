@@ -397,6 +397,10 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
         tour,
         equipe_attaque: attackerTeam.label,
         attaquant_name: attacker.name,
+        attaquant_element: attacker.element_affinity,
+        cible_element: defender.element_affinity,
+        element_effect:
+          elementMult > 1 ? 'advantage' : elementMult < 1 ? 'disadvantage' : 'neutral',
         technique_type: technique.type.charAt(0).toUpperCase() + technique.type.slice(1),
         cible_name: defender.name,
         degats_pv: damage,

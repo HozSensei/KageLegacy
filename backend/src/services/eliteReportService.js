@@ -6,9 +6,10 @@ import {
   hasCompositionDisadvantage,
 } from './combat/compositionMeta.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
-import { findUserPool } from './poolService.js';
-import { getActiveEliteSubscription } from './eliteSubscriptionService.js';
+import { assertActiveEliteSubscription } from './eliteSubscriptionService.js';
 import { loadMatchRow, assertViewerCanAccessMatch, isMatchParticipant } from './matchSpectatorService.js';
+
+const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 
 const TECHNIQUE_ICONS = {
   Taijutsu: 'tai',
@@ -156,19 +157,47 @@ function buildDecisiveMoments(logs, mySide, match, locale) {
 }
 
 export async function assertEliteToolsAccess(userId) {
-  const pool = await findUserPool(userId);
-  if (!pool) {
-    const error = new Error('Aucune ligue active.');
-    error.statusCode = 404;
-    throw error;
+  return assertActiveEliteSubscription(userId);
+}
+
+function emptyElementMap() {
+  return Object.fromEntries(ELEMENTS.map((element) => [element, 0]));
+}
+
+function buildElementHeatmap(logs, mySide, match) {
+  if (!mySide) return null;
+
+  const mine = { dealt: emptyElementMap(), taken: emptyElementMap() };
+  const opponent = { dealt: emptyElementMap(), taken: emptyElementMap() };
+  const circle = { mineAdvantage: 0, mineDisadvantage: 0, opponentAdvantage: 0, opponentDisadvantage: 0 };
+  let hasElementData = false;
+
+  for (const log of logs) {
+    const dmg = log.degats_pv ?? 0;
+    if (!dmg || !log.attaquant_element) continue;
+
+    hasElementData = true;
+    const mineAtk = isMyAction(log, mySide, match);
+    const atkEl = log.attaquant_element;
+    const defEl = log.cible_element;
+    const bucket = mineAtk ? mine : opponent;
+    const recv = mineAtk ? opponent : mine;
+
+    bucket.dealt[atkEl] = (bucket.dealt[atkEl] || 0) + dmg;
+    if (defEl) recv.taken[defEl] = (recv.taken[defEl] || 0) + dmg;
+
+    if (log.element_effect === 'advantage') {
+      if (mineAtk) circle.mineAdvantage += 1;
+      else circle.opponentAdvantage += 1;
+    } else if (log.element_effect === 'disadvantage') {
+      if (mineAtk) circle.mineDisadvantage += 1;
+      else circle.opponentDisadvantage += 1;
+    }
   }
-  const subscription = await getActiveEliteSubscription(userId, pool);
-  if (!subscription) {
-    const error = new Error('Pack Élite requis.');
-    error.statusCode = 403;
-    throw error;
-  }
-  return { pool, subscription };
+
+  if (!hasElementData) return null;
+
+  return { elements: ELEMENTS, mine, opponent, circle };
 }
 
 /**
@@ -230,6 +259,7 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
     timeline: mySide ? buildTimeline(logs, mySide, match, lang) : [],
     techniqueBreakdown,
     decisiveMoments: mySide ? buildDecisiveMoments(logs, mySide, match, lang) : [],
+    elementHeatmap: buildElementHeatmap(logs, mySide, match),
     equipment: combatLog.equipmentSummary || [],
   };
 

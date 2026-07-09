@@ -42,6 +42,9 @@ export const useEliteStore = defineStore('elite', () => {
   }
 
   async function saveCosmetics(payload) {
+    if (!subscription.value?.isActive) {
+      throw new Error('Pack Élite requis.');
+    }
     const res = await fetch(`${API_BASE}/api/elite/cosmetics`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -91,6 +94,7 @@ export const useEliteStore = defineStore('elite', () => {
   }
 
   async function fetchMatchReport(matchId) {
+    if (!subscription.value?.isActive) return
     reportLoading.value = true
     reportError.value = null
     try {
@@ -106,6 +110,9 @@ export const useEliteStore = defineStore('elite', () => {
   }
 
   async function simulateMatchup(opponentComposition, runs = 100) {
+    if (!subscription.value?.isActive) {
+      throw new Error('Pack Élite requis.')
+    }
     const res = await fetch(`${API_BASE}/api/elite/tools/matchup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
