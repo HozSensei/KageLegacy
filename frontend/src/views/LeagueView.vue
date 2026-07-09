@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
+import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 
 const { t } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -115,8 +116,16 @@ function matchStatusLabel(status) {
               >
                 <td class="py-3 pr-4 tabular-nums text-ink-muted">{{ row.rank }}</td>
                 <td class="py-3">
-                  {{ row.senseiName }}
-                  <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
+                  <SenseiIdentity
+                    v-if="row.identity"
+                    :identity="row.identity"
+                    variant="inline"
+                    :highlight="row.isPlayer"
+                  />
+                  <template v-else>
+                    {{ row.senseiName }}
+                    <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
+                  </template>
                 </td>
                 <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
                 <td class="py-3 text-right font-display text-lg tabular-nums">{{ row.points }}</td>

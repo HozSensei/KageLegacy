@@ -285,8 +285,8 @@ Le propriétaire du profil voit un bandeau « Personnaliser mon identité » →
 | `veteran_league` | Vétéran de la Ligue | elite_default |
 | `chronicle_keeper` | Gardien des Chroniques | elite_default |
 | `dojo_founder` | Fondateur de Dojo | reputation ≥ 50 |
-| `promoted_ii` | Promu Division II | season_reward |
-| `flawless_cycle` | Cycle sans défaite | season_reward |
+| `promoted_ii` | Promu Division II | season_quest |
+| `flawless_cycle` | Cycle sans défaite | season_quest |
 
 ### Bannières (`elite_banner_catalog`)
 
@@ -301,6 +301,51 @@ Le propriétaire du profil voit un bandeau « Personnaliser mon identité » →
 ### Couleurs de pseudo (palette Pack Élite)
 
 `#e8ece9` (défaut), `#c9a66b` (or), `#8fad9a` (jade), `#6d9eb8` (eau), `#c97d5d` (feu)
+
+---
+
+## 6 bis. Season Pass (inclus dans le Pack Élite)
+
+Le **Pack Élite** couvre **une saison de ligue** (10 cycles). L'abonnement et le season pass partagent la même fenêtre : `sensei_elite_subscriptions.season_number` = `pools.season_number`.
+
+### Principes
+
+| Règle | Détail |
+| :--- | :--- |
+| **Alignement saison** | Cosmétiques élite visibles uniquement si abonnement actif sur la saison courante |
+| **Fin de saison** | À la clôture (cycle 10), `expireEliteSubscriptionsForSeason` passe les abonnements en `expired` |
+| **Quêtes saison** | Débloquent titres/bannières `season_quest` — récompenses **conservées** dans `elite_unlocked_rewards` |
+| **Défaut élite** | Titres/bannières `elite_default` disponibles dès l'activation, sans quête |
+| **Zéro gameplay** | Les quêtes mesurent l'engagement (victoires, sceaux, missions, points) — pas de bonus combat |
+
+### Quêtes V1 (seed migration 037)
+
+| slug | Objectif | Récompense |
+| :--- | :--- | :--- |
+| `wins_2` | 2 victoires ligue | Titre `promoted_ii` |
+| `seals_5` | 5 sceaux chakra ouverts | Bannière `scroll` |
+| `missions_3` | 3 missions collectées | Titre `flawless_cycle` |
+| `points_9` | 9 points ligue | Bannière `moonlight` |
+
+### Hooks événements
+
+| `event_type` | Déclenché par |
+| :--- | :--- |
+| `league_win` | `matchService.applyMatchResultsForPool` |
+| `league_match_played` | idem (tous les participants) |
+| `league_points` | sync à la lecture du pass + après match |
+| `daily_seal_opened` | `dailySealService.openChakraSeal` |
+| `mission_collected` | `missionService.collectMissionRewards` |
+
+### API
+
+- `GET /api/elite/me` — abonnement + season pass + catalogues + identity
+- `GET /api/elite/season-pass` — progression quêtes uniquement
+- `PATCH /api/elite/cosmetics` — équipement (titres/bannières débloqués seulement)
+
+### Dev
+
+`POST /api/dev/grant-elite` — active le Pack Élite sur la saison courante (compte connecté).
 
 ---
 
@@ -333,15 +378,15 @@ Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
 
 ## 9. Plan d'implémentation
 
-| Phase | Livrable | Effort |
+| Phase | Livrable | Statut |
 | :--- | :--- | :--- |
-| **A** ✅ | Spec + maquette `SenseiIdentity` + showcase | Cette PR |
-| **B** | Migration 037, seed catalogues, `buildSenseiIdentity` | Backend |
-| **C** | Enrichir API ligue/match/clan/marché | Backend |
-| **D** | Intégrer composant dans les 5 vues | Frontend |
-| **E** | Page profil publique + éditeur cosmétiques | Full-stack |
-| **F** | Stripe + webhook | Backend + ops |
-| **G** | Rapport Élite | Full-stack |
+| **A** | Spec + maquette `SenseiIdentity` + showcase | ✅ |
+| **B** | Migration 037, `buildSenseiIdentity`, season pass | ✅ |
+| **C** | API ligue avec `identity` | ✅ ligue · ⏳ match/clan/marché |
+| **D** | Intégrer composant dans les vues | ✅ ligue · ⏳ autres |
+| **E** | Page profil publique + éditeur cosmétiques UI | À faire |
+| **F** | Stripe + webhook | À faire |
+| **G** | Rapport Élite | À faire |
 
 ---
 
@@ -359,6 +404,11 @@ Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
 
 | Fichier | Rôle |
 | :--- | :--- |
+| `backend/migrations/037_pack_elite.sql` | Schéma BDD |
+| `backend/src/services/senseiIdentityService.js` | Builder identity |
+| `backend/src/services/eliteSubscriptionService.js` | Abonnement saison |
+| `backend/src/services/eliteSeasonPassService.js` | Quêtes & déblocages |
+| `backend/src/routes/elite.js` | API `/api/elite/*` |
 | `frontend/src/components/sensei/SenseiIdentity.vue` | Composant identity |
 | `frontend/src/data/eliteCosmeticCatalog.js` | Catalogue mock V1 |
 | `frontend/src/views/EliteIdentityShowcase.vue` | Maquette interactive |

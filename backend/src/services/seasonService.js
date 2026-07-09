@@ -9,6 +9,7 @@ import {
   deleteBotsFromPool,
   removeMemberFromPool,
 } from './poolService.js';
+import { expireEliteSubscriptionsForSeason } from './eliteSubscriptionService.js';
 
 const ELITE_DIVISION = 1;
 
@@ -72,6 +73,8 @@ export async function processSeasonEnd(poolId) {
     humanCount === 0 ? 'archived' : 'completed',
     poolId,
   ]);
+
+  await expireEliteSubscriptionsForSeason(pool.season_number);
 
   return {
     poolId,

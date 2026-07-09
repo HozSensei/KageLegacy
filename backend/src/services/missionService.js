@@ -10,6 +10,7 @@ import {
 import { grantLootOnCollect, resolveMissionOutcome } from './missionLootService.js';
 import { getMissionMoralGain } from './dispensaryService.js';
 import { isNinjaListed } from './playerMarketService.js';
+import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
 
 async function getCycleStartAt() {
   const row = await getClockRow();
@@ -252,6 +253,10 @@ export async function collectMissionRewards(userId) {
 
   if (total > 0) {
     await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [total, userId]);
+  }
+
+  if (missions.length > 0) {
+    await recordEliteQuestEvent(userId, 'mission_collected', missions.length);
   }
 
   return { collected: missions.length, totalRyos: total, loot: lootReports };

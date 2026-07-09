@@ -2,6 +2,8 @@ import { Router } from 'express';
 import { advanceHourDev, getGameClock, setHourDev } from '../services/gameClock.js';
 import { processCycleTick } from '../services/cycleJobs.js';
 import { setHourSchema } from '../validators/squadTactics.js';
+import { grantEliteSubscription } from '../services/eliteSubscriptionService.js';
+import { requireUser } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -40,6 +42,18 @@ router.post('/tick', async (_req, res, next) => {
     const tick = await processCycleTick();
     const clock = await getGameClock();
     res.json({ clock, tick });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/grant-elite', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const subscription = await grantEliteSubscription(user.id);
+    res.json({ ok: true, subscription });
   } catch (error) {
     next(error);
   }
