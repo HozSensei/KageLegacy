@@ -254,8 +254,7 @@
     "heritageEmpty": "No heirs yet — guide a Chunin to the peak.",
     "heritageBonusTraining": "−{pct}% training",
     "heritageBonusDispensary": "−{pct}% dispensary",
-    "heritageBonusMoral": "Bench morale recovery",
-    "heritageBonusMoralActive": "+{bonus} bench morale / cycle",
+    "heritageBonusBureauShop": "−{pct}% Bureau items (shop)",
     "heritageBonusMatchShop": "−{pct}% Match items (shop)",
     "stagnation": {
       "title": "Stagnation risk",

@@ -15,7 +15,6 @@ import { decrementFormeLocksForAllUsers } from './missionLootService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
-import { applyHeritageMoralBonusForAllUsers } from './heritageService.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -64,7 +63,6 @@ export async function runH72(cycleStartAt) {
   }
   const seasonTransitions = await processAllCompletedSeasons(poolCycles);
   const birdFlights = await processBirdFlightsForAllUsers();
-  const heritageMoral = await applyHeritageMoralBonusForAllUsers();
   const stagnation = await applyStagnationForAllUsers();
   const training = await processTrainingBillingForAllUsers();
   await markJobRun(cycleStartAt, 'h72');

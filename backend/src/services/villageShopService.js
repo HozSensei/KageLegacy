@@ -9,27 +9,33 @@ export const RESTOCK_EVERY_CYCLES = 3;
 export const PROMOS_PER_CYCLE = 2;
 export const PROMO_DISCOUNT_PCT = 20;
 
-/** Prix catalogue → promo cycle → réduction héritage Genjutsu (objets match uniquement). */
+/** Prix catalogue → promo cycle → réduction héritage (Match Genjutsu / Bureau Taijutsu). */
 export function computeShopItemPrice({
   basePrice,
   category,
   promoDiscountPct = 0,
   heritageMatchDiscountPct = 0,
+  heritageBureauDiscountPct = 0,
 }) {
   const promoPrice = Math.max(
     1,
     Math.floor(basePrice * (1 - Number(promoDiscountPct || 0) / 100))
   );
   let finalPrice = promoPrice;
+  let heritageDiscountPct = 0;
   if (category === 'match' && heritageMatchDiscountPct > 0) {
-    finalPrice = Math.max(1, applyPercentDiscount(promoPrice, heritageMatchDiscountPct));
+    heritageDiscountPct = Number(heritageMatchDiscountPct);
+    finalPrice = Math.max(1, applyPercentDiscount(promoPrice, heritageDiscountPct));
+  } else if (category === 'bureau' && heritageBureauDiscountPct > 0) {
+    heritageDiscountPct = Number(heritageBureauDiscountPct);
+    finalPrice = Math.max(1, applyPercentDiscount(promoPrice, heritageDiscountPct));
   }
   return {
     basePrice,
     promoPrice,
     finalPrice,
     promoDiscountPct: Number(promoDiscountPct || 0),
-    heritageDiscountPct: category === 'match' ? Number(heritageMatchDiscountPct || 0) : 0,
+    heritageDiscountPct,
   };
 }
 
@@ -111,13 +117,14 @@ async function ensurePromosForCycle(userId, cycleStartAt) {
   }
 }
 
-function mapShopRow(row, promoByItem, heritageMatchDiscountPct) {
+function mapShopRow(row, promoByItem, heritageMatchDiscountPct, heritageBureauDiscountPct) {
   const promoDiscountPct = promoByItem.get(row.item_definition_id) || 0;
   const pricing = computeShopItemPrice({
     basePrice: row.price,
     category: row.category,
     promoDiscountPct,
     heritageMatchDiscountPct,
+    heritageBureauDiscountPct,
   });
   return {
     stockId: row.stock_id,
@@ -176,7 +183,12 @@ export async function getVillageShopForUser(userId) {
 
   return {
     items: stockRows.map((row) =>
-      mapShopRow(row, promoByItem, heritage.matchShopDiscountPct)
+      mapShopRow(
+        row,
+        promoByItem,
+        heritage.matchShopDiscountPct,
+        heritage.bureauShopDiscountPct
+      )
     ),
     restockPeriod,
     poolCycle,
@@ -223,6 +235,7 @@ export async function purchaseVillageShopItem(userId, stockId) {
     category: row.category,
     promoDiscountPct: row.discount_pct || 0,
     heritageMatchDiscountPct: heritage.matchShopDiscountPct,
+    heritageBureauDiscountPct: heritage.bureauShopDiscountPct,
   });
   const finalPrice = pricing.finalPrice;
 
