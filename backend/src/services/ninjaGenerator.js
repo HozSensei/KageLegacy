@@ -35,6 +35,10 @@ const POTENTIAL_WEIGHTS = [
   { tier: 'prodige', weight: 10 },
 ];
 
+/** Genin : chaque stat démarre entre baseMin et baseMin + spread (ex. 2–4). */
+const GENIN_BASE_SPREAD = 2;
+const CHUNIN_BASE_SPREAD = 1;
+
 /** Biais de voie par nom de clan (poids relatifs). */
 const CLAN_ART_BIAS = {
   Nara: { genjutsu: 3, intelligence: 2 },
@@ -87,15 +91,24 @@ export function pickPrimaryArt(clan) {
   return rollWeighted(weighted.map((w) => ({ tier: w.art, weight: w.weight })));
 }
 
+const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
+
+/** Plancher aléatoire par stat — évite que tous les Genin aient le même profil chiffré. */
+export function rollStatBases(grade = 'Genin') {
+  const baseMin = grade === 'Genin' ? 2 : 4;
+  const spread = grade === 'Genin' ? GENIN_BASE_SPREAD : CHUNIN_BASE_SPREAD;
+  return Object.fromEntries(
+    STAT_KEYS.map((key) => [key, baseMin + Math.floor(Math.random() * (spread + 1))])
+  );
+}
+
 /**
  * Génère des stats avec une voie dominante et un écart de niveau selon le potentiel.
- * Tous les Genin ne se ressemblent plus : prodige tai 9 / gen 3 vs ordinaire 6 / 5 / 5…
+ * Chaque stat a un plancher variable (Genin : 2–4) avant répartition du budget voie/potentiel.
  */
 export function generateSpecializedStats(grade = 'Genin', primaryArt, potential) {
-  const baseMin = grade === 'Genin' ? 2 : 4;
   const statCap = grade === 'Genin' ? 10 : 14;
-  const keys = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
-  const stats = Object.fromEntries(keys.map((k) => [k, baseMin]));
+  const stats = rollStatBases(grade);
 
   const budget = POTENTIAL_BUDGET[potential] || POTENTIAL_BUDGET.ordinaire;
   const secondary = SECONDARY_STAT[primaryArt];
@@ -122,7 +135,7 @@ export function generateSpecializedStats(grade = 'Genin', primaryArt, potential)
     else break;
   }
 
-  const others = keys.filter((k) => k !== primaryArt && k !== secondary);
+  const others = STAT_KEYS.filter((k) => k !== primaryArt && k !== secondary);
   while (remaining > 0) {
     const key = pickRandom(others);
     if (!addPoint(key)) break;
