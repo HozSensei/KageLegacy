@@ -76,6 +76,7 @@ npm run economy:calibrate --prefix backend     # Calibrage analytique des primes
 npm run narrative:backfill --prefix backend  # One-shot : segments i18n sur chroniques legacy
 # Options : --progression (Chunin + Vol d'Oiseau), --chunin, --bird-flight, --items=1, --training
 npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
+npm run guest:purge --prefix backend       # Purge invités expirés + sessions orphelines (cron optionnel)
 npm run dev:api     # API seule
 npm run dev:web     # Front seul
 ```
