@@ -100,13 +100,19 @@ const rewardMessage = computed(() => {
     <Transition name="seal-reveal">
       <div
         v-if="showReveal && lastReward"
-        class="seal-reveal mt-4 border border-accent/40 bg-ink/60 px-4 py-3 text-sm text-accent"
+        class="seal-reveal mt-4 border px-4 py-3 text-sm shadow-lg"
+        :class="{
+          'border-line bg-bg-card text-ink': lastReward.tier === 'common',
+          'border-water/50 bg-bg-card text-ink': lastReward.tier === 'rare',
+          'border-accent/60 bg-bg-soft text-ink': lastReward.tier === 'epic',
+          'border-accent bg-accent/15 text-ink': lastReward.tier === 'jackpot',
+        }"
         :data-tier="lastReward.tier"
       >
-        <p class="text-xs uppercase tracking-widest text-ink-faint">
+        <p class="text-xs uppercase tracking-widest text-ink-muted">
           {{ t(`bureau.sealTier.${lastReward.tier}`) }}
         </p>
-        <p class="mt-1 font-medium">{{ rewardMessage }}</p>
+        <p class="mt-1 text-base font-semibold text-ink">{{ rewardMessage }}</p>
         <p v-if="lastWell?.contributed && store.clan?.member" class="mt-2 text-xs text-ink-muted">
           <template v-if="lastWell.fused">{{ t('bureau.dailySealWellFusion') }}</template>
           <template v-else>{{ t('bureau.dailySealWellDrop') }}</template>

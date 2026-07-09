@@ -7,7 +7,7 @@ import { generateNinjaProfile } from './ninjaGenerator.js';
 import { collectIdentityKeys } from './ninjaNaming.js';
 import { createNinjaFromAcademyCandidate, parseCandidateJson } from './academyRecruit.js';
 import { isTacticsLocked } from './gameClock.js';
-import { utcDateString } from './dailySealService.js';
+import { utcDateString, nextUtcMidnightIso } from './dailyUtc.js';
 
 export const ACADEMY_SLOT_COUNT = 3;
 /** slot 0 = plus récent, slot 2 = expire en premier à la rotation */
@@ -24,12 +24,6 @@ function priceForCandidate(clanTier, potential) {
   if (potential === 'prodige') return 900;
   if (potential === 'prometteur') return 650;
   return 400;
-}
-
-function nextRotationUtcDate() {
-  const now = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-  return next.toISOString();
 }
 
 async function hasJackpotToken(userId) {
@@ -229,7 +223,7 @@ export async function getAcademyPayload(userId) {
     draws,
     aspirantCount: draws.length,
     rotationOpen: !tacticsLocked,
-    nextRotationAt: nextRotationUtcDate(),
+    nextRotationAt: nextUtcMidnightIso(),
     recruitedCount: draws.filter((d) => d.recruited).length,
   };
 }
