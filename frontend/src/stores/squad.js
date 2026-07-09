@@ -197,6 +197,17 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
+  async function releaseNinja(ninjaId) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/release`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    applySquadMutation(await res.json())
+  }
+
   async function recommendToClan(drawId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/clan/board/recommend`, {
@@ -306,6 +317,7 @@ export const useSquadStore = defineStore('squad', () => {
     requestBirdFlight,
     dismissNotification,
     treatAtDispensary,
+    releaseNinja,
     tacticsLocked,
     setLanguage,
     applySquadMutation,

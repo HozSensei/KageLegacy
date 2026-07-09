@@ -12,6 +12,7 @@ import {
 import {
   dispensaryTreatSchema,
   dismissNotificationSchema,
+  releaseNinjaSchema,
   requestBirdFlightSchema,
   requestChuninExamSchema,
   updateStrategiesSchema,
@@ -20,6 +21,7 @@ import {
 } from '../validators/squadTactics.js';
 import { dismissNotification } from '../services/dojoNotifications.js';
 import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
+import { releaseNinja } from '../services/ninjaReleaseService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
 import { ensureStarterSquad } from '../services/starterSquadService.js';
 
@@ -137,6 +139,22 @@ router.post('/dispensary', async (req, res, next) => {
 
     const parsed = dispensaryTreatSchema.parse(req.body);
     await treatNinjaAtDispensary(user.id, parsed.ninjaId);
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
+    res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/release', async (req, res, next) => {
+  try {
+    const user = await resolveUser(req, res);
+    if (!user) return;
+
+    const parsed = releaseNinjaSchema.parse(req.body);
+    await releaseNinja(user.id, parsed.ninjaId);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

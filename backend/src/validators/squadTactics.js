@@ -49,6 +49,10 @@ export const dispensaryTreatSchema = z.object({
   ninjaId: z.number().int().positive(),
 });
 
+export const releaseNinjaSchema = z.object({
+  ninjaId: z.number().int().positive(),
+});
+
 export const dismissNotificationSchema = z.object({
   notificationId: z.number().int().positive(),
 });

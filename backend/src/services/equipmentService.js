@@ -7,6 +7,7 @@ export async function getInventoryForUser(userId) {
     `SELECT ui.id, ui.consumed, ui.acquired_at,
             idf.slug, idf.category, idf.name_fr, idf.name_en,
             idf.description_fr, idf.description_en, idf.effects, idf.price AS catalog_price,
+            idf.non_vendable,
             ne.ninja_id, ne.slot AS equipped_slot, n.name AS equipped_ninja_name,
             pl.id AS listing_id
      FROM user_items ui
@@ -41,6 +42,7 @@ export async function getInventoryForUser(userId) {
       usageLimits: describeUsageLimits(item.effects, item.category),
       isListed: Boolean(item.listing_id),
       listingId: item.listing_id || null,
+      nonVendable: Boolean(item.non_vendable),
     })),
     ninjas,
   };

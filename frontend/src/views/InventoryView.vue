@@ -37,7 +37,7 @@ function canEquipItem(item) {
 }
 
 function canSellItem(item) {
-  return item && !item.equipped_ninja_name && !item.isListed
+  return item && !item.equipped_ninja_name && !item.isListed && !item.nonVendable
 }
 
 function sellPriceBounds(item) {
@@ -210,6 +210,7 @@ async function unequip(ninjaId, slot) {
             </p>
             <p class="mt-1 text-xs text-ink-faint">
               <template v-if="item.isListed">{{ t('inventory.listed') }}</template>
+              <template v-else-if="item.nonVendable">{{ t('inventory.nonVendable') }}</template>
               <template v-else-if="item.equipped_ninja_name">{{ t('inventory.equippedOn', { name: item.equipped_ninja_name }) }}</template>
               <template v-else>{{ t('inventory.unequipped') }}</template>
             </p>
