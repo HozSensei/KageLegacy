@@ -24,7 +24,7 @@ const DOMINANT_STAT_LABELS = {
 const BONUS_BY_STAT = {
   taijutsu: { bonusType: 'moral_recovery', labelKey: 'bureau.heritageBonusMoral' },
   ninjutsu: { bonusType: 'training_discount', labelKey: 'bureau.heritageBonusTraining' },
-  genjutsu: { bonusType: 'scout_insight', labelKey: 'bureau.heritageBonusScout' },
+  genjutsu: { bonusType: 'match_shop_discount', labelKey: 'bureau.heritageBonusMatchShop' },
   medecine: { bonusType: 'dispensary_discount', labelKey: 'bureau.heritageBonusDispensary' },
 };
 
@@ -104,7 +104,9 @@ export async function getHeritageBonuses(userId) {
   return {
     trainingDiscountPct: clampBonusPercent(totals.training_discount || 0),
     dispensaryDiscountPct: clampBonusPercent(totals.dispensary_discount || 0),
-    scoutInsightPct: clampBonusPercent(totals.scout_insight || 0),
+    matchShopDiscountPct: clampBonusPercent(
+      (totals.match_shop_discount || 0) + (totals.scout_insight || 0)
+    ),
     moralBenchBonus,
     scrollCount,
   };

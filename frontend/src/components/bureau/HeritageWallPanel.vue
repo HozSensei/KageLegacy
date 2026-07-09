@@ -29,6 +29,9 @@ const bonuses = computed(() => heritage.value?.bonuses)
       <span v-if="bonuses.dispensaryDiscountPct">
         {{ t('bureau.heritageBonusDispensary', { pct: bonuses.dispensaryDiscountPct }) }}
       </span>
+      <span v-if="bonuses.matchShopDiscountPct">
+        {{ t('bureau.heritageBonusMatchShop', { pct: bonuses.matchShopDiscountPct }) }}
+      </span>
       <span v-if="bonuses.moralBenchBonus">
         {{ t('bureau.heritageBonusMoralActive', { bonus: bonuses.moralBenchBonus }) }}
       </span>

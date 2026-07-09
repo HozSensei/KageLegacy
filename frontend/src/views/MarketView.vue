@@ -35,6 +35,16 @@ const groupedItems = computed(() => {
   }, {})
 })
 
+const promoItems = computed(() => market.value?.items?.filter((item) => item.onPromo) || [])
+
+function itemElement(item) {
+  const effects = item.effects || {}
+  const modifiers = effects.modifiers || effects.match?.modifiers || []
+  const list = Array.isArray(modifiers) ? modifiers : []
+  const resist = list.find((mod) => mod?.kind === 'element_resist')
+  return resist?.element || null
+}
+
 const categoryOrder = ['bureau', 'match', 'cycle']
 
 onMounted(fetchMarket)
@@ -96,6 +106,27 @@ const canBuy = computed(() => (item) =>
       </div>
       <p v-if="market.debtBlocksSpending" class="mt-4 text-sm text-fire">{{ t('market.debtBlocked') }}</p>
 
+      <section v-if="promoItems.length" class="mt-10 border border-fire/30 bg-fire/5 p-5" data-testid="market-promos">
+        <p class="section-label text-fire">{{ t('market.promoSectionTitle') }}</p>
+        <p class="mt-2 text-xs text-ink-muted">{{ t('market.promoSectionHint', { count: promoItems.length }) }}</p>
+        <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+          <li
+            v-for="item in promoItems"
+            :key="`promo-${item.stockId}`"
+            class="flex flex-wrap items-baseline justify-between gap-2 border border-line/60 bg-bg-card px-4 py-3 text-sm"
+          >
+            <span class="font-medium text-ink">{{ itemName(item) }}</span>
+            <span class="flex items-baseline gap-2">
+              <span class="text-ink-faint line-through">{{ formatRyos(item.basePrice) }}</span>
+              <span class="font-semibold text-fire">{{ formatRyos(item.finalPrice) }}</span>
+              <span class="text-[10px] uppercase tracking-wider text-fire">
+                {{ t('market.promo', { pct: item.discountPct }) }}
+              </span>
+            </span>
+          </li>
+        </ul>
+      </section>
+
       <section
         v-for="cat in categoryOrder"
         :key="cat"
@@ -106,19 +137,36 @@ const canBuy = computed(() => (item) =>
           <article
             v-for="item in groupedItems[cat] || []"
             :key="item.stockId"
-            class="border border-line bg-bg-soft p-6"
-            :class="{ 'opacity-60': item.soldOut }"
+            class="border bg-bg-soft p-6"
+            :class="[
+              item.soldOut ? 'border-line opacity-60' : 'border-line',
+              item.onPromo && !item.soldOut ? 'ring-1 ring-fire/35' : '',
+            ]"
           >
             <div class="flex flex-wrap items-start justify-between gap-2">
               <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
                 {{ categoryLabel(item.category) }}
               </p>
-              <span
-                v-if="item.onPromo"
-                class="text-[10px] uppercase tracking-[0.12em] text-fire"
-              >
-                {{ t('market.promo', { pct: item.discountPct }) }}
-              </span>
+              <div class="flex flex-wrap items-center gap-2">
+                <span
+                  v-if="itemElement(item)"
+                  class="text-[10px] uppercase tracking-[0.12em] text-ink-muted"
+                >
+                  {{ itemElement(item) }}
+                </span>
+                <span
+                  v-if="item.onHeritageDiscount"
+                  class="rounded-sm bg-accent/15 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-accent"
+                >
+                  {{ t('market.heritageDiscount', { pct: item.heritageDiscountPct }) }}
+                </span>
+                <span
+                  v-if="item.onPromo"
+                  class="rounded-sm bg-fire/15 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-fire"
+                >
+                  {{ t('market.promo', { pct: item.discountPct }) }}
+                </span>
+              </div>
             </div>
             <h2 class="mt-3 font-display text-xl text-ink">{{ itemName(item) }}</h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ itemDesc(item) }}</p>
@@ -128,16 +176,26 @@ const canBuy = computed(() => (item) =>
             <p class="mt-4 text-xs text-ink-faint">
               {{ t('market.stock', { remaining: item.stockRemaining, initial: item.stockInitial }) }}
             </p>
-            <div class="mt-4 flex flex-wrap items-baseline gap-2">
-              <p
-                class="text-sm text-ink"
-                :class="{ 'line-through text-ink-faint': item.onPromo }"
-              >
-                {{ formatRyos(item.basePrice) }}
-              </p>
-              <p v-if="item.onPromo" class="text-sm font-medium text-fire">
-                {{ formatRyos(item.finalPrice) }}
-              </p>
+            <div class="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <template v-if="item.onPromo && item.finalPrice < item.basePrice">
+                <span class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+                  {{ t('market.priceOriginal') }}
+                </span>
+                <span class="text-sm text-ink-faint line-through">
+                  {{ formatRyos(item.basePrice) }}
+                </span>
+                <span class="text-[10px] uppercase tracking-[0.12em] text-fire">
+                  {{ t('market.pricePromo') }}
+                </span>
+                <span class="text-base font-semibold text-fire">
+                  {{ formatRyos(item.finalPrice) }}
+                </span>
+              </template>
+              <template v-else>
+                <span class="text-base font-medium text-ink">
+                  {{ formatRyos(item.finalPrice) }}
+                </span>
+              </template>
             </div>
 
             <button
