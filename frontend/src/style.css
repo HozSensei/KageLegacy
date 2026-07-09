@@ -698,6 +698,10 @@ body::before {
   @apply px-4 py-3;
 }
 
+.sensei-identity--match .sensei-identity__content {
+  @apply px-0 py-0;
+}
+
 .sensei-identity--card .sensei-identity__content {
   @apply py-5;
 }
@@ -749,6 +753,41 @@ body::before {
 
 .sensei-identity--inline .sensei-identity__title {
   @apply hidden;
+}
+
+/* En-tête match opération / ligue */
+.operation-match-header {
+  @apply flex flex-col items-center text-center;
+}
+
+.operation-match-header__meta {
+  @apply mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1;
+}
+
+.operation-match-header__versus {
+  @apply flex w-full max-w-sm flex-col items-stretch gap-3;
+}
+
+.operation-match-header__card {
+  @apply w-full;
+}
+
+.operation-match-header__vs {
+  @apply shrink-0 self-center text-sm uppercase tracking-[0.14em] text-ink-faint;
+}
+
+.operation-match-header__status {
+  @apply mx-auto max-w-md text-center text-sm leading-relaxed text-ink-muted;
+}
+
+@media (min-width: 640px) {
+  .operation-match-header__versus {
+    @apply max-w-2xl flex-row items-center justify-center gap-5;
+  }
+
+  .operation-match-header__card {
+    @apply w-auto min-w-[10rem] max-w-[14rem] flex-1;
+  }
 }
 
 /* Bannières animées (Pack Élite) */
