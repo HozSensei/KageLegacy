@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
+import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 
 const { t } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -115,8 +116,16 @@ function matchStatusLabel(status) {
               >
                 <td class="py-3 pr-4 tabular-nums text-ink-muted">{{ row.rank }}</td>
                 <td class="py-3">
-                  {{ row.senseiName }}
-                  <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
+                  <SenseiIdentity
+                    v-if="row.identity"
+                    :identity="row.identity"
+                    variant="inline"
+                    :highlight="row.isPlayer"
+                  />
+                  <template v-else>
+                    {{ row.senseiName }}
+                    <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
+                  </template>
                 </td>
                 <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
                 <td class="py-3 text-right font-display text-lg tabular-nums">{{ row.points }}</td>
@@ -149,10 +158,22 @@ function matchStatusLabel(status) {
                 {{ t('league.matchday') }} {{ league.nextMatch.cycle }}
                 · {{ matchStatusLabel(league.nextMatch.status) }}
               </p>
-              <p class="mt-4 font-display text-2xl text-ink">
-                {{ league.nextMatch.home.name }}
+              <p class="mt-4 flex flex-wrap items-center gap-3 font-display text-2xl text-ink">
+                <SenseiIdentity
+                  v-if="league.nextMatch.home.identity"
+                  :identity="league.nextMatch.home.identity"
+                  variant="match"
+                  :subtitle="t('league.homeSide')"
+                />
+                <span v-else>{{ league.nextMatch.home.name }}</span>
                 <span class="text-ink-faint">{{ t('common.vs') }}</span>
-                {{ league.nextMatch.away.name }}
+                <SenseiIdentity
+                  v-if="league.nextMatch.away.identity"
+                  :identity="league.nextMatch.away.identity"
+                  variant="match"
+                  :subtitle="t('league.awaySide')"
+                />
+                <span v-else>{{ league.nextMatch.away.name }}</span>
               </p>
               <p
                 v-if="league.nextMatch.status !== 'scheduled'"
@@ -177,7 +198,21 @@ function matchStatusLabel(status) {
                   class="block border border-line px-4 py-3 text-sm transition hover:border-accent"
                   :class="{ 'border-accent/60': match.isParticipant }"
                 >
-                  <span class="text-ink">{{ match.home.name }} vs {{ match.away.name }}</span>
+                  <span class="inline-flex flex-wrap items-center gap-2">
+                    <SenseiIdentity
+                      v-if="match.home.identity"
+                      :identity="match.home.identity"
+                      variant="inline"
+                    />
+                    <template v-else>{{ match.home.name }}</template>
+                    <span class="text-ink-faint">{{ t('common.vs') }}</span>
+                    <SenseiIdentity
+                      v-if="match.away.identity"
+                      :identity="match.away.identity"
+                      variant="inline"
+                    />
+                    <template v-else>{{ match.away.name }}</template>
+                  </span>
                   <span v-if="match.isParticipant" class="ml-2 text-[10px] uppercase text-accent">
                     {{ t('matches.yourMatch') }}
                   </span>

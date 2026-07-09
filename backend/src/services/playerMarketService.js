@@ -3,6 +3,8 @@ import { assertSpendingAllowed } from './economyDebt.js';
 import { createDojoNotification } from './dojoNotifications.js';
 import { getGameClock, getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
+import { buildSenseiIdentities } from './senseiIdentityService.js';
+import { getUserLanguage } from './narrative/viewerLocale.js';
 
 export const MAX_ACTIVE_LISTINGS = 3;
 export const SELLER_COMMISSION_PCT = 5;
@@ -104,12 +106,13 @@ async function assertListingCapacity(userId) {
   }
 }
 
-function mapListing(row) {
+function mapListing(row, identityMap = null) {
   const base = {
     id: row.id,
     listingType: row.listing_type,
     sellerUserId: row.seller_user_id,
     sellerName: row.seller_name,
+    sellerIdentity: identityMap?.get(row.seller_user_id) ?? null,
     sellerDivision: row.seller_division_level ?? null,
     price: row.price,
     createdAt: row.created_at,
@@ -192,11 +195,15 @@ export async function getPlayerMarketPayload(userId) {
   const myListings = listings.filter((l) => l.seller_user_id === userId);
   const history = await getMarketHistory(userId);
 
+  const locale = await getUserLanguage(userId);
+  const sellerIds = [...new Set(listings.map((l) => l.seller_user_id))];
+  const identityMap = await buildSenseiIdentities(sellerIds, locale);
+
   return {
     listings: listings
       .filter((l) => l.seller_user_id !== userId)
-      .map(mapListing),
-    myListings: myListings.map(mapListing),
+      .map((row) => mapListing(row, identityMap)),
+    myListings: myListings.map((row) => mapListing(row, identityMap)),
     history,
     maxListings: MAX_ACTIVE_LISTINGS,
     windowOpen: clock.hour < 71,

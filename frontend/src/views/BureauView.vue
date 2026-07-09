@@ -12,6 +12,8 @@ import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import DailySealPanel from '../components/bureau/DailySealPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
 import HeritageWallPanel from '../components/bureau/HeritageWallPanel.vue'
+import ElitePackPanel from '../components/bureau/ElitePackPanel.vue'
+import EliteToolsPanel from '../components/bureau/EliteToolsPanel.vue'
 
 defineOptions({ name: 'BureauView' })
 
@@ -105,6 +107,8 @@ onMounted(async () => {
           </p>
 
           <CycleBudgetPanel />
+          <ElitePackPanel />
+          <EliteToolsPanel />
           <DailySealPanel />
           <AcademyPanel />
           <HeritageWallPanel />

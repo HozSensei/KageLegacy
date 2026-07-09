@@ -13,6 +13,7 @@ import {
   loadMatchRow,
 } from './matchSpectatorService.js';
 import { findUserPool } from './poolService.js';
+import { buildSenseiIdentities } from './senseiIdentityService.js';
 
 function parseCombatLog(raw) {
   if (!raw) return null;
@@ -89,6 +90,21 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
         }
       : null;
 
+  const poolContext = {
+    id: match.pool_id,
+    season_number: match.season_number,
+    division_level: match.division_level,
+    current_cycle: match.pool_current_cycle,
+    status: match.pool_status,
+  };
+  const identityMap = await buildSenseiIdentities(
+    [match.home_user_id, match.away_user_id],
+    viewerLocale,
+    poolContext
+  );
+  const homeIdentity = identityMap.get(match.home_user_id) ?? null;
+  const awayIdentity = identityMap.get(match.away_user_id) ?? null;
+
   return {
     gameClock: clock,
     state,
@@ -112,6 +128,8 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
       awayScore: match.away_score,
       homeSensei: match.home_sensei,
       awaySensei: match.away_sensei,
+      homeIdentity,
+      awayIdentity,
       homeIsBot: Boolean(match.home_is_bot),
       awayIsBot: Boolean(match.away_is_bot),
       opponentSensei: perspective?.opponentSensei ?? null,

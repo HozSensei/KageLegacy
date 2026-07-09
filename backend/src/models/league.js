@@ -2,6 +2,8 @@ import { query } from '../config/database.js';
 import { findUserPool } from '../services/poolService.js';
 import { getUserMatchForCycle } from '../services/matchService.js';
 import { generateScoutReport } from '../services/scouting.js';
+import { buildSenseiIdentities } from '../services/senseiIdentityService.js';
+import { getUserLanguage } from '../services/narrative/viewerLocale.js';
 
 const DIVISION_ROMAN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
 
@@ -35,6 +37,45 @@ export async function getLeaguePayload(userId) {
   const scoutReport =
     pool.current_cycle >= 1 ? await generateScoutReport(userId, pool.current_cycle) : null;
 
+  const locale = await getUserLanguage(userId);
+  const identityMap = await buildSenseiIdentities(
+    standings.map((row) => row.user_id),
+    locale,
+    pool
+  );
+
+  let nextMatchPayload = null;
+  if (nextMatch) {
+    const matchIdentityMap = await buildSenseiIdentities(
+      [nextMatch.home_user_id, nextMatch.away_user_id],
+      locale,
+      pool
+    );
+    nextMatchPayload = {
+      id: nextMatch.id,
+      cycle: nextMatch.season_cycle,
+      status: nextMatch.status,
+      result: nextMatch.result,
+      home: {
+        name: nextMatch.home_sensei,
+        isBot: Boolean(nextMatch.home_is_bot),
+        identity: matchIdentityMap.get(nextMatch.home_user_id) ?? null,
+      },
+      away: {
+        name: nextMatch.away_sensei,
+        isBot: Boolean(nextMatch.away_is_bot),
+        identity: matchIdentityMap.get(nextMatch.away_user_id) ?? null,
+      },
+      isHome: nextMatch.home_user_id === userId,
+      opponentName:
+        nextMatch.home_user_id === userId
+          ? nextMatch.away_sensei
+          : nextMatch.home_sensei,
+      homeScore: nextMatch.home_score,
+      awayScore: nextMatch.away_score,
+    };
+  }
+
   return {
     pool: {
       id: pool.id,
@@ -49,6 +90,18 @@ export async function getLeaguePayload(userId) {
       rank: index + 1,
       userId: row.user_id,
       senseiName: row.sensei_name,
+      identity: identityMap.get(row.user_id) ?? {
+        userId: row.user_id,
+        senseiName: row.sensei_name,
+        isBot: Boolean(row.is_bot),
+        isElite: false,
+        gradeLabel: row.is_bot ? 'bot' : 'jonin',
+        title: null,
+        titleSlug: null,
+        bannerSlug: 'none',
+        nameColor: '#e8ece9',
+        profileUrl: `/sensei/${row.user_id}`,
+      },
       isBot: Boolean(row.is_bot),
       points: row.points,
       played: row.played,
@@ -57,23 +110,7 @@ export async function getLeaguePayload(userId) {
       losses: row.losses,
       isPlayer: row.user_id === userId,
     })),
-    nextMatch: nextMatch
-      ? {
-          id: nextMatch.id,
-          cycle: nextMatch.season_cycle,
-          status: nextMatch.status,
-          result: nextMatch.result,
-          home: { name: nextMatch.home_sensei, isBot: Boolean(nextMatch.home_is_bot) },
-          away: { name: nextMatch.away_sensei, isBot: Boolean(nextMatch.away_is_bot) },
-          isHome: nextMatch.home_user_id === userId,
-          opponentName:
-            nextMatch.home_user_id === userId
-              ? nextMatch.away_sensei
-              : nextMatch.home_sensei,
-          homeScore: nextMatch.home_score,
-          awayScore: nextMatch.away_score,
-        }
-      : null,
+    nextMatch: nextMatchPayload,
     recentMatches: recentMatches.map((m) => ({
       id: m.id,
       cycle: m.season_cycle,

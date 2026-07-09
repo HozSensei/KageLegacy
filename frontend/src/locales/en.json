@@ -423,6 +423,8 @@
     "inviteCopy": "Copy link",
     "inviteCopied": "Link copied",
     "viewChronicle": "View chronicle →",
+    "homeSide": "Home",
+    "awaySide": "Away",
     "fixtures": "Matchday fixtures",
     "recentMatches": "Recent results"
   },
@@ -645,5 +647,86 @@
       "infiltration": "Tactical Infiltration",
       "cyclone": "Operation Cyclone"
     }
+  },
+  "eliteIdentity": {
+    "grade": {
+      "jonin": "Jonin Sensei",
+      "joninElite": "Elite Jonin",
+      "bot": "Automated sensei"
+    },
+    "eliteBadge": "Elite Pack active",
+    "eliteShort": "Elite"
+  },
+  "eliteShowcase": {
+    "title": "Elite Pack — identity",
+    "lead": "SenseiIdentity component mockup: cosmetics visible to other players.",
+    "hint": "Elite Pack subscribers become Elite Jonin — colored name, customizable title, and animated banner.",
+    "editorTitle": "Identity editor (preview)",
+    "editorHint": "Preview of what players will configure in their profile once Elite Pack is active.",
+    "fieldTitle": "Displayed title",
+    "fieldBanner": "Background banner",
+    "fieldColor": "Name color",
+    "previewSubtitle": "Division III · Season 3 · 42 reputation",
+    "variantsTitle": "Display variants",
+    "specRef": "Technical spec:"
+  },
+  "elitePack": {
+    "title": "Elite Pack",
+    "inactiveLead": "Become an Elite Jonin for the current season: public identity everywhere and a season pass with exclusive quests.",
+    "perkIdentity": "Colored name, title and animated banner visible in league",
+    "perkSeasonPass": "Season quests to unlock rare titles and banners",
+    "perkSeasonAlign": "Subscription aligned with the league season (10 cycles)",
+    "activateCta": "Activate Elite Pack",
+    "activeBadge": "Elite Jonin · Active season",
+    "seasonLabel": "Season {season} · Matchday {cycle}/{max}",
+    "seasonPassTitle": "Season pass",
+    "questDone": "Done",
+    "identityTitle": "Your public identity",
+    "identityHint": "Visible in standings, matches, clan and market.",
+    "identityPreview": "Public profile preview",
+    "noTitle": "No title",
+    "saveIdentity": "Save identity",
+    "reward": {
+      "title": "Reward: title « {slug} »",
+      "banner": "Reward: banner « {slug} »"
+    }
+  },
+  "eliteReport": {
+    "title": "Elite Report",
+    "show": "Show",
+    "hide": "Hide",
+    "possession": "Possession",
+    "endReason": "Match end",
+    "ko": "KO (home / away)",
+    "decisiveTitle": "Decisive moments",
+    "techniqueTitle": "Damage breakdown",
+    "myDamage": "Your damage",
+    "oppDamage": "Opponent damage",
+    "received": "Received:",
+    "timelineTitle": "Turn-by-turn timeline",
+    "tour": "Turn {n}"
+  },
+  "eliteTools": {
+    "title": "Elite Tools",
+    "lead": "Private analytics to refine your strategy — no in-match advantage.",
+    "seasonTitle": "Current season",
+    "compTitle": "Active composition",
+    "trainingTitle": "Training ROI",
+    "atCap": "at cap",
+    "matchupTitle": "Matchup simulator",
+    "matchupHint": "Monte Carlo vs a pure opponent comp (100 runs by default).",
+    "opponentComp": "Opponent comp",
+    "runSim": "Run simulation",
+    "simResult": "Win {win}% · Draw {draw}% · Loss {loss}%",
+    "simMeta": "{runs} runs · {tours} avg turns · {ko}% KO"
+  },
+  "senseiProfile": {
+    "title": "Sensei profile",
+    "statsLine": "Division {division} · Season {season} · {points} pts · {reputation} reputation",
+    "wins": "Wins",
+    "draws": "Draws",
+    "losses": "Losses",
+    "lastMatch": "Last match",
+    "ownHint": "Customize your identity from the"
   }
 }

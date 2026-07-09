@@ -3,6 +3,9 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import OperationMatchNav from '../components/OperationMatchNav.vue'
+import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
+import OperationEliteReport from '../components/operation/OperationEliteReport.vue'
+import { useEliteStore } from '../stores/elite'
 
 const props = defineProps({
   matchId: { type: [String, Number], default: null },
@@ -11,6 +14,7 @@ const props = defineProps({
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
+const elite = useEliteStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -110,6 +114,8 @@ const matchTitle = computed(() => {
   return `${m.homeSensei} vs ${m.awaySensei}`
 })
 
+const matchIdentities = computed(() => operation.value?.match ?? null)
+
 const resultLabel = computed(() => {
   const m = operation.value?.match
   if (!m || m.result === 'pending') return null
@@ -131,6 +137,11 @@ const resultLabel = computed(() => {
   return map[m.result]
 })
 
+const reportReady = computed(() => {
+  const state = operation.value?.state
+  return state === 'live' || state === 'finished'
+})
+
 const spectatorBadge = computed(() => operation.value?.viewerRole === 'spectator')
 
 const equipmentRows = computed(() => {
@@ -147,6 +158,7 @@ function slugLabel(slug) {
 onMounted(async () => {
   await refreshAll()
   schedulePoll()
+  elite.fetchElite()
 })
 
 onUnmounted(() => clearInterval(pollTimer))
@@ -168,8 +180,21 @@ onUnmounted(() => clearInterval(pollTimer))
 
       <div class="mt-10 lg:col-span-8 lg:mt-0 xl:col-span-9">
         <template v-if="operation">
-          <div v-if="matchTitle" class="mb-8 flex flex-wrap items-baseline gap-3">
-            <h2 class="font-display text-2xl text-ink">{{ matchTitle }}</h2>
+          <div v-if="matchTitle" class="mb-8 flex flex-wrap items-start gap-4">
+            <template v-if="matchIdentities?.homeIdentity && matchIdentities?.awayIdentity">
+              <SenseiIdentity
+                :identity="matchIdentities.homeIdentity"
+                variant="match"
+                :subtitle="t('league.homeSide')"
+              />
+              <span class="self-center text-sm text-ink-faint">{{ t('common.vs') }}</span>
+              <SenseiIdentity
+                :identity="matchIdentities.awayIdentity"
+                variant="match"
+                :subtitle="t('league.awaySide')"
+              />
+            </template>
+            <h2 v-else class="font-display text-2xl text-ink">{{ matchTitle }}</h2>
             <span
               v-if="spectatorBadge"
               class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
@@ -232,6 +257,12 @@ onUnmounted(() => clearInterval(pollTimer))
                   </li>
                 </ul>
               </section>
+
+              <OperationEliteReport
+                v-if="activeMatchId"
+                :match-id="activeMatchId"
+                :can-load="reportReady"
+              />
             </article>
 
             <aside class="mt-12 lg:col-span-4 lg:mt-0">

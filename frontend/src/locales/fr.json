@@ -423,6 +423,8 @@
     "inviteCopy": "Copier le lien",
     "inviteCopied": "Lien copié",
     "viewChronicle": "Voir la chronique →",
+    "homeSide": "Domicile",
+    "awaySide": "Extérieur",
     "fixtures": "Matchs de la journée",
     "recentMatches": "Résultats récents"
   },
@@ -645,5 +647,86 @@
       "infiltration": "Infiltration tactique",
       "cyclone": "Opération Cyclone"
     }
+  },
+  "eliteIdentity": {
+    "grade": {
+      "jonin": "Jonin-Sensei",
+      "joninElite": "Jonin Élite",
+      "bot": "Sensei automatisé"
+    },
+    "eliteBadge": "Pack Élite actif",
+    "eliteShort": "Élite"
+  },
+  "eliteShowcase": {
+    "title": "Pack Élite — identité",
+    "lead": "Maquette du composant SenseiIdentity : cosmétiques visibles par les autres joueurs.",
+    "hint": "Les abonnés Pack Élite deviennent Jonin Élite — pseudo coloré, titre personnalisable et bannière animée.",
+    "editorTitle": "Éditeur d'identité (preview)",
+    "editorHint": "Simulation de ce que le joueur configurera dans son profil une fois le Pack Élite actif.",
+    "fieldTitle": "Titre affiché",
+    "fieldBanner": "Bannière de fond",
+    "fieldColor": "Couleur du pseudo",
+    "previewSubtitle": "Division III · Saison 3 · 42 réputation",
+    "variantsTitle": "Variantes d'affichage",
+    "specRef": "Spec technique :"
+  },
+  "elitePack": {
+    "title": "Pack Élite",
+    "inactiveLead": "Devenez Jonin Élite pour la saison en cours : identité visible partout et season pass avec quêtes exclusives.",
+    "perkIdentity": "Pseudo coloré, titre et bannière animée visibles en ligue",
+    "perkSeasonPass": "Quêtes saison pour débloquer titres et bannières rares",
+    "perkSeasonAlign": "Abonnement calé sur la saison de ligue (10 cycles)",
+    "activateCta": "Activer le Pack Élite",
+    "activeBadge": "Jonin Élite · Saison active",
+    "seasonLabel": "Saison {season} · Journée {cycle}/{max}",
+    "seasonPassTitle": "Season pass",
+    "questDone": "Terminé",
+    "identityTitle": "Votre identité publique",
+    "identityHint": "Visible dans le classement, les matchs, le clan et le marché.",
+    "identityPreview": "Aperçu de votre profil public",
+    "noTitle": "Sans titre",
+    "saveIdentity": "Enregistrer l'identité",
+    "reward": {
+      "title": "Récompense : titre « {slug} »",
+      "banner": "Récompense : bannière « {slug} »"
+    }
+  },
+  "eliteReport": {
+    "title": "Rapport Élite",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "possession": "Possession",
+    "endReason": "Fin de match",
+    "ko": "KO (dom. / ext.)",
+    "decisiveTitle": "Moments décisifs",
+    "techniqueTitle": "Répartition des dégâts",
+    "myDamage": "Vos dégâts",
+    "oppDamage": "Dégâts adverses",
+    "received": "Reçus :",
+    "timelineTitle": "Timeline tour par tour",
+    "tour": "Tour {n}"
+  },
+  "eliteTools": {
+    "title": "Outils Élite",
+    "lead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
+    "seasonTitle": "Saison en cours",
+    "compTitle": "Composition active",
+    "trainingTitle": "ROI entraînement",
+    "atCap": "cap atteint",
+    "matchupTitle": "Simulateur de matchup",
+    "matchupHint": "Monte Carlo contre une compo pure adverse (100 tirages par défaut).",
+    "opponentComp": "Compo adverse",
+    "runSim": "Lancer la simulation",
+    "simResult": "Victoire {win}% · Nul {draw}% · Défaite {loss}%",
+    "simMeta": "{runs} simulations · {tours} tours en moyenne · {ko}% KO"
+  },
+  "senseiProfile": {
+    "title": "Profil Sensei",
+    "statsLine": "Division {division} · Saison {season} · {points} pts · {reputation} réputation",
+    "wins": "Victoires",
+    "draws": "Nuls",
+    "losses": "Défaites",
+    "lastMatch": "Dernier match",
+    "ownHint": "Personnalisez votre identité depuis le"
   }
 }

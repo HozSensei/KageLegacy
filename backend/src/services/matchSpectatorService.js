@@ -1,6 +1,8 @@
 import { query } from '../config/database.js';
 import { findUserPool } from './poolService.js';
 import { DIVISION_ROMAN } from '../models/league.js';
+import { buildSenseiIdentities } from './senseiIdentityService.js';
+import { getUserLanguage } from './narrative/viewerLocale.js';
 
 const SPECTATOR_STATUSES = new Set(['revealing', 'applied', 'simulated']);
 
@@ -46,14 +48,26 @@ export async function assertViewerCanAccessMatch(userId, match) {
   return { samePool: false, isParticipant: false };
 }
 
-function mapMatchSummary(row, viewerUserId) {
+function mapMatchSummary(row, viewerUserId, identityMap = null) {
+  const homeIdentity = identityMap?.get(row.home_user_id) ?? null;
+  const awayIdentity = identityMap?.get(row.away_user_id) ?? null;
   return {
     id: row.id,
     cycle: row.season_cycle,
     status: row.status,
     result: row.result,
-    home: { name: row.home_sensei, isBot: Boolean(row.home_is_bot) },
-    away: { name: row.away_sensei, isBot: Boolean(row.away_is_bot) },
+    homeUserId: row.home_user_id,
+    awayUserId: row.away_user_id,
+    home: {
+      name: row.home_sensei,
+      isBot: Boolean(row.home_is_bot),
+      identity: homeIdentity,
+    },
+    away: {
+      name: row.away_sensei,
+      isBot: Boolean(row.away_is_bot),
+      identity: awayIdentity,
+    },
     homeScore: row.home_score,
     awayScore: row.away_score,
     isParticipant: isMatchParticipant(row, viewerUserId),
@@ -117,9 +131,13 @@ export async function getPoolMatches(userId, poolId, { cycle } = {}) {
 
   const rows = await query(sql, params);
 
+  const locale = await getUserLanguage(userId);
+  const userIds = rows.flatMap((row) => [row.home_user_id, row.away_user_id]);
+  const identityMap = await buildSenseiIdentities(userIds, locale, pool);
+
   const matches = rows
     .filter((row) => samePool || SPECTATOR_STATUSES.has(row.status))
-    .map((row) => mapMatchSummary(row, userId));
+    .map((row) => mapMatchSummary(row, userId, identityMap));
 
   const cycles = [...new Set(matches.map((m) => m.cycle))].sort((a, b) => a - b);
 

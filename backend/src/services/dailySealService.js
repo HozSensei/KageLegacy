@@ -8,6 +8,7 @@ import {
 } from './itemGrantService.js';
 import { rollPercent } from './missionRules.js';
 import { addChakraDropForSealOpen } from './clanChakraWellService.js';
+import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
 
 export const SEAL_ITEM_SLUG = 'sceau-chakra';
 export { utcDateString } from './dailyUtc.js';
@@ -153,6 +154,7 @@ export async function openChakraSeal(userId, { ninjaId = null } = {}) {
   const seal = await getDailySealPayload(userId);
   const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [userId]);
   const well = await addChakraDropForSealOpen(userId);
+  await recordEliteQuestEvent(userId, 'daily_seal_opened');
   return {
     reward,
     seal,
