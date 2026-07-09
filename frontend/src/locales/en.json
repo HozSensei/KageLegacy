@@ -157,6 +157,12 @@
     "inventory": "Inventory",
     "operation": "Operation"
   },
+  "rules": {
+    "pageTitle": "Game rules",
+    "link": "Game rules",
+    "backToGame": "Back to Office",
+    "backHome": "Home"
+  },
   "notifications": {
     "bell": "Notifications",
     "panelTitle": "Notifications",
@@ -253,7 +259,7 @@
     "heritageHint": "Each Chunin who leaves on the Vol d'Oiseau leaves a wall scroll and a small permanent bonus.",
     "heritageEmpty": "No heirs yet — guide a Chunin to the peak.",
     "heritageBonusTraining": "−{pct}% training",
-    "heritageBonusDispensary": "−{pct}% dispensary",
+    "heritageBonusDispensary": "−{pct}% hospital",
     "heritageBonusBureauShop": "−{pct}% Bureau items (shop)",
     "heritageBonusMatchShop": "−{pct}% Match items (shop)",
     "stagnation": {

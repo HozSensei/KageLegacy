@@ -51,6 +51,7 @@ npm run dev
 |---------|-----|
 | Front-End | http://localhost:5173 |
 | API | http://localhost:3000 |
+| Règles du jeu (joueur) | http://localhost:5173/rules |
 | Health check | http://localhost:3000/api/health |
 | Connexion | http://localhost:5173/login — ou compte démo `demo_sensei` / `demo` après seed |
 
