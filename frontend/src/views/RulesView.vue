@@ -4,8 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { renderMarkdown } from '../utils/renderMarkdown.js'
-import rulesFr from '@docs/regles-du-jeu.md?raw'
-import rulesEn from '@docs/game-rules.en.md?raw'
+import rulesFr from '../content/rules.fr.md?raw'
+import rulesEn from '../content/rules.en.md?raw'
 
 defineOptions({ name: 'RulesView' })
 
