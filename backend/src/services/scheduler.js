@@ -32,7 +32,9 @@ export function startScheduler() {
 
   scheduleUtcMidnightRetention();
 
-  console.log(`⏱  Scheduler cycle 72h démarré (tick ${TICK_MS / 1000}s) · rétention quotidienne à minuit UTC`);
+  console.log(
+    `⏱  Scheduler cycle 72h démarré (tick ${TICK_MS / 1000}s) · rétention + purge invités à minuit UTC`
+  );
 }
 
 function scheduleUtcMidnightRetention() {
