@@ -215,7 +215,7 @@ export async function createItemListing(userId, userItemId, price) {
   const poolId = await optionalSellerPoolId(userId);
 
   const itemRows = await query(
-    `SELECT ui.*, idf.price AS catalog_price, idf.slug, idf.name_fr,
+    `SELECT ui.*, idf.price AS catalog_price, idf.slug, idf.name_fr, idf.non_vendable,
             ne.ninja_id AS equipped_ninja_id
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
@@ -227,6 +227,11 @@ export async function createItemListing(userId, userItemId, price) {
   if (!item) {
     const error = new Error('Objet introuvable.');
     error.statusCode = 404;
+    throw error;
+  }
+  if (item.non_vendable) {
+    const error = new Error('Cet objet ne peut pas être vendé sur le marché.');
+    error.statusCode = 400;
     throw error;
   }
   if (item.equipped_ninja_id) {

@@ -19,6 +19,11 @@ const sellNinjaId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
 const sellError = ref(null)
+const releaseNinjaId = ref(null)
+const releasing = ref(false)
+const releaseError = ref(null)
+
+const totalRoster = computed(() => store.activeSquad.length + store.bench.length)
 
 const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
 const strategies = reactive({})
@@ -105,6 +110,10 @@ function canSellNinja(ninja) {
   )
 }
 
+function canReleaseNinja(ninja) {
+  return canSellNinja(ninja) && totalRoster.value > 3
+}
+
 function openSell(ninja) {
   sellNinjaId.value = ninja.id
   sellPrice.value = ''
@@ -119,6 +128,10 @@ function closeSell() {
 
 const sellNinja = computed(() =>
   benchNinjas.value.find((n) => n.id === sellNinjaId.value) || null
+)
+
+const releaseNinja = computed(() =>
+  benchNinjas.value.find((n) => n.id === releaseNinjaId.value) || null
 )
 
 async function submitSell() {
@@ -138,6 +151,30 @@ async function submitSell() {
     sellError.value = e.message
   } finally {
     selling.value = false
+  }
+}
+
+function openRelease(ninja) {
+  releaseNinjaId.value = ninja.id
+  releaseError.value = null
+}
+
+function closeRelease() {
+  releaseNinjaId.value = null
+  releaseError.value = null
+}
+
+async function submitRelease() {
+  if (!releaseNinjaId.value) return
+  releasing.value = true
+  releaseError.value = null
+  try {
+    await store.releaseNinja(releaseNinjaId.value)
+    closeRelease()
+  } catch (e) {
+    releaseError.value = e.message
+  } finally {
+    releasing.value = false
   }
 }
 
@@ -505,6 +542,28 @@ watch(() => store.activeSquad, () => {
                 class="squad-card-actions squad-card-actions--bench"
               >
                 <button
+                  v-if="canReleaseNinja(ninja)"
+                  type="button"
+                  class="squad-card-action squad-card-action--remove"
+                  :title="t('squad.releaseNinja')"
+                  :disabled="saving || releasing"
+                  @click.stop="openRelease(ninja)"
+                >
+                  <svg
+                    class="squad-card-action__icon squad-card-action__icon--remove"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="1.75"
+                      d="M6 6l12 12M18 6L6 18"
+                    />
+                  </svg>
+                </button>
+                <button
                   v-if="canSellNinja(ninja)"
                   type="button"
                   class="squad-card-action"
@@ -531,6 +590,32 @@ watch(() => store.activeSquad, () => {
           </div>
         </div>
       </section>
+
+      <div
+        v-if="releaseNinja"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-6"
+        @click.self="closeRelease"
+      >
+        <div class="w-full max-w-md border border-line bg-bg-card p-8">
+          <p class="section-label">{{ t('squad.releaseNinja') }}</p>
+          <p class="mt-3 font-display text-xl text-ink">{{ releaseNinja.name }}</p>
+          <p class="mt-2 text-xs leading-relaxed text-ink-faint">{{ t('squad.releaseHint') }}</p>
+          <p v-if="releaseError" class="mt-4 text-sm text-fire">{{ releaseError }}</p>
+          <div class="mt-6 flex gap-3">
+            <button type="button" class="btn-ghost flex-1" @click="closeRelease">
+              {{ t('inventory.sellCancel') }}
+            </button>
+            <button
+              type="button"
+              class="btn-ghost flex-1 border-fire text-fire"
+              :disabled="releasing"
+              @click="submitRelease"
+            >
+              {{ releasing ? t('squad.releasing') : t('squad.releaseConfirm') }}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div
         v-if="sellNinja"

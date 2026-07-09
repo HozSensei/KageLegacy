@@ -352,6 +352,10 @@
     "benchCount": "Banc",
     "protectTarget": "Couvrir…",
     "sellNinja": "Mettre en vente",
+    "releaseNinja": "Libérer",
+    "releaseHint": "Le ninja quitte définitivement votre équipe. Seuls les remplaçants peuvent être libérés — l'escouade active doit garder 3 membres. Aucun salaire n'est dû pour les remplaçants.",
+    "releaseConfirm": "Confirmer la libération",
+    "releasing": "Libération…",
     "listed": "En vente",
     "sellFreePrice": "Fixez le prix en Ryos — libre, selon votre stratégie.",
     "strategies": {
@@ -523,7 +527,8 @@
     "sellCancel": "Annuler",
     "sellConfirm": "Publier",
     "selling": "Publication…",
-    "listed": "En vente sur le marché"
+    "listed": "En vente sur le marché",
+    "nonVendable": "Non revendable"
   },
   "exchanges": {
     "kicker": "Marché entre joueurs",

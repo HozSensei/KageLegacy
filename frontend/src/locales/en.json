@@ -352,6 +352,10 @@
     "benchCount": "Bench",
     "protectTarget": "Cover…",
     "sellNinja": "List for sale",
+    "releaseNinja": "Release",
+    "releaseHint": "The ninja permanently leaves your roster. Only substitutes can be released — the active squad must keep 3 members. Bench ninjas do not incur salary.",
+    "releaseConfirm": "Confirm release",
+    "releasing": "Releasing…",
     "listed": "Listed",
     "sellFreePrice": "Set the price in Ryos — your call, no system cap.",
     "strategies": {
@@ -523,7 +527,8 @@
     "sellCancel": "Cancel",
     "sellConfirm": "Publish",
     "selling": "Publishing…",
-    "listed": "Listed on player market"
+    "listed": "Listed on player market",
+    "nonVendable": "Not for resale"
   },
   "exchanges": {
     "kicker": "Player market",
