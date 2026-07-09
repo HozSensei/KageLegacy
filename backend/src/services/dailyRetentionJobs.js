@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
-import { utcDateString, grantDailySealsForAllUsers } from './dailySealService.js';
+import { utcDateString } from './dailyUtc.js';
+import { grantDailySealsForAllUsers } from './dailySealService.js';
 import { ensureAcademyForAllUsers } from './academyService.js';
 
 let lastDailyRetentionDate = null;

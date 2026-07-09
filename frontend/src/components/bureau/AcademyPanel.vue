@@ -26,6 +26,8 @@ function rotationCountdown() {
   return t('bureau.academyRotationIn', { hours, minutes })
 }
 
+const rotationLabel = computed(() => rotationCountdown())
+
 async function recruit(drawId) {
   recruitingId.value = drawId
   try {
@@ -54,7 +56,9 @@ async function recommend(drawId) {
           {{ t('bureau.academyHintRotating') }}
         </p>
       </div>
-      <p class="text-xs text-ink-faint">{{ rotationCountdown() }}</p>
+      <p class="text-xs text-ink-faint">
+        {{ t('bureau.academyRotationMidnight') }} · {{ rotationLabel }}
+      </p>
     </div>
 
     <p v-if="!academy.rotationOpen" class="mt-2 text-xs text-fire">

@@ -51,10 +51,14 @@ const pageHero = computed(() => {
 })
 
 async function onAccountDeleted() {
-  store.sensei = null
-  store.activeSquad = []
-  store.bench = []
-  router.push('/')
+  auth.user = null
+  auth.sensei = null
+  auth.checked = true
+  store.clearSquad()
+  await router.replace({ name: 'home' })
+  if (router.currentRoute.value.name !== 'home') {
+    window.location.assign('/')
+  }
 }
 
 async function logout() {

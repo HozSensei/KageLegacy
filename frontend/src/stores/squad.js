@@ -256,6 +256,25 @@ export const useSquadStore = defineStore('squad', () => {
     if (sensei.value) sensei.value.language = lang
   }
 
+  function clearSquad() {
+    loading.value = false
+    error.value = null
+    is_bot.value = false
+    sensei.value = null
+    activeSquad.value = []
+    bench.value = []
+    gameClock.value = null
+    notifications.value = []
+    dispensaryCandidates.value = []
+    cycleBudget.value = null
+    academy.value = null
+    dailySeal.value = null
+    heritage.value = null
+    clan.value = null
+    clanBoard.value = null
+    fetchPromise = null
+  }
+
   return {
     loading,
     error,
@@ -290,5 +309,6 @@ export const useSquadStore = defineStore('squad', () => {
     tacticsLocked,
     setLanguage,
     applySquadMutation,
+    clearSquad,
   }
 })

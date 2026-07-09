@@ -15,9 +15,7 @@ import { decrementFormeLocksForAllUsers } from './missionLootService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
-import { ensureAcademyForAllUsers } from './academyService.js';
 import { applyHeritageMoralBonusForAllUsers } from './heritageService.js';
-import { processDailyRetentionTick } from './dailyRetentionJobs.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -74,9 +72,8 @@ export async function runH72(cycleStartAt) {
   const newRow = await getClockRow();
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureVillageShopForAllUsers();
-  const academy = await ensureAcademyForAllUsers(newRow.cycle_start_at);
   console.log(
-    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s)) · académie (${academy.length})`
+    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s))`
   );
   return {
     missionResults,
@@ -88,15 +85,12 @@ export async function runH72(cycleStartAt) {
     stagnation,
     training,
     market,
-    academy,
   };
 }
 
 export async function processCycleTick() {
   const row = await getClockRow();
   if (!row?.cycle_start_at) return null;
-
-  await processDailyRetentionTick();
 
   const clock = await getGameClock();
   const cycleStartAt = row.cycle_start_at;

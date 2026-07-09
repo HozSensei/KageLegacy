@@ -5,11 +5,7 @@ import { createNinjaFromAcademyCandidate, parseCandidateJson } from './academyRe
 import { getClanMembership } from './playerClanService.js';
 import { isTacticsLocked } from './gameClock.js';
 
-function nextRotationUtcDate() {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-}
-
+import { nextUtcMidnightIso } from './dailyUtc.js';
 function mapBoardRow(row, viewerUserId) {
   const candidate = parseCandidateJson(row.candidate_json);
   return {
@@ -129,7 +125,7 @@ export async function recommendAspirantToClan(userId, drawId) {
     throw error;
   }
 
-  const expiresAt = nextRotationUtcDate();
+  const expiresAt = nextUtcMidnightIso();
 
   await query(
     `INSERT INTO clan_academy_board

@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
+import { utcDateString } from './dailyUtc.js';
 import {
   consumeOldestItemBySlug,
   countUnconsumedItemsBySlug,
@@ -9,11 +10,8 @@ import { rollPercent } from './missionRules.js';
 import { addChakraDropForSealOpen } from './clanChakraWellService.js';
 
 export const SEAL_ITEM_SLUG = 'sceau-chakra';
+export { utcDateString } from './dailyUtc.js';
 export const MAX_SEAL_STACK = 3;
-
-export function utcDateString(date = new Date()) {
-  return date.toISOString().slice(0, 10);
-}
 
 function daysBetweenUtcDates(fromDate, toDate) {
   const from = new Date(`${fromDate}T00:00:00.000Z`);
