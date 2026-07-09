@@ -44,6 +44,38 @@ export async function getLeaguePayload(userId) {
     pool
   );
 
+  let nextMatchPayload = null;
+  if (nextMatch) {
+    const matchIdentityMap = await buildSenseiIdentities(
+      [nextMatch.home_user_id, nextMatch.away_user_id],
+      locale,
+      pool
+    );
+    nextMatchPayload = {
+      id: nextMatch.id,
+      cycle: nextMatch.season_cycle,
+      status: nextMatch.status,
+      result: nextMatch.result,
+      home: {
+        name: nextMatch.home_sensei,
+        isBot: Boolean(nextMatch.home_is_bot),
+        identity: matchIdentityMap.get(nextMatch.home_user_id) ?? null,
+      },
+      away: {
+        name: nextMatch.away_sensei,
+        isBot: Boolean(nextMatch.away_is_bot),
+        identity: matchIdentityMap.get(nextMatch.away_user_id) ?? null,
+      },
+      isHome: nextMatch.home_user_id === userId,
+      opponentName:
+        nextMatch.home_user_id === userId
+          ? nextMatch.away_sensei
+          : nextMatch.home_sensei,
+      homeScore: nextMatch.home_score,
+      awayScore: nextMatch.away_score,
+    };
+  }
+
   return {
     pool: {
       id: pool.id,
@@ -78,23 +110,7 @@ export async function getLeaguePayload(userId) {
       losses: row.losses,
       isPlayer: row.user_id === userId,
     })),
-    nextMatch: nextMatch
-      ? {
-          id: nextMatch.id,
-          cycle: nextMatch.season_cycle,
-          status: nextMatch.status,
-          result: nextMatch.result,
-          home: { name: nextMatch.home_sensei, isBot: Boolean(nextMatch.home_is_bot) },
-          away: { name: nextMatch.away_sensei, isBot: Boolean(nextMatch.away_is_bot) },
-          isHome: nextMatch.home_user_id === userId,
-          opponentName:
-            nextMatch.home_user_id === userId
-              ? nextMatch.away_sensei
-              : nextMatch.home_sensei,
-          homeScore: nextMatch.home_score,
-          awayScore: nextMatch.away_score,
-        }
-      : null,
+    nextMatch: nextMatchPayload,
     recentMatches: recentMatches.map((m) => ({
       id: m.id,
       cycle: m.season_cycle,

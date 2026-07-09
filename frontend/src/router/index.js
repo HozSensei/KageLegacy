@@ -14,6 +14,7 @@ import ClanView from '../views/ClanView.vue'
 import RulesView from '../views/RulesView.vue'
 import LoginView from '../views/LoginView.vue'
 import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
+import SenseiProfileView from '../views/SenseiProfileView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -52,6 +53,13 @@ const router = createRouter({
           name: 'elite-identity-showcase',
           component: EliteIdentityShowcase,
           meta: { hero: { image: HERO_VILLAGE, titleKey: 'eliteShowcase.title' } },
+        },
+        {
+          path: 'sensei/:userId',
+          name: 'sensei-profile',
+          component: SenseiProfileView,
+          props: true,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'senseiProfile.title' } },
         },
       ],
     },

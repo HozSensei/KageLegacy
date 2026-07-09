@@ -423,6 +423,8 @@
     "inviteCopy": "Copier le lien",
     "inviteCopied": "Lien copié",
     "viewChronicle": "Voir la chronique →",
+    "homeSide": "Domicile",
+    "awaySide": "Extérieur",
     "fixtures": "Matchs de la journée",
     "recentMatches": "Résultats récents"
   },
@@ -667,5 +669,35 @@
     "previewSubtitle": "Division III · Saison 3 · 42 réputation",
     "variantsTitle": "Variantes d'affichage",
     "specRef": "Spec technique :"
+  },
+  "elitePack": {
+    "title": "Pack Élite",
+    "inactiveLead": "Devenez Jonin Élite pour la saison en cours : identité visible partout et season pass avec quêtes exclusives.",
+    "perkIdentity": "Pseudo coloré, titre et bannière animée visibles en ligue",
+    "perkSeasonPass": "Quêtes saison pour débloquer titres et bannières rares",
+    "perkSeasonAlign": "Abonnement calé sur la saison de ligue (10 cycles)",
+    "activateCta": "Activer le Pack Élite",
+    "activeBadge": "Jonin Élite · Saison active",
+    "seasonLabel": "Saison {season} · Journée {cycle}/{max}",
+    "seasonPassTitle": "Season pass",
+    "questDone": "Terminé",
+    "identityTitle": "Votre identité publique",
+    "identityHint": "Visible dans le classement, les matchs, le clan et le marché.",
+    "identityPreview": "Aperçu de votre profil public",
+    "noTitle": "Sans titre",
+    "saveIdentity": "Enregistrer l'identité",
+    "reward": {
+      "title": "Récompense : titre « {slug} »",
+      "banner": "Récompense : bannière « {slug} »"
+    }
+  },
+  "senseiProfile": {
+    "title": "Profil Sensei",
+    "statsLine": "Division {division} · Saison {season} · {points} pts · {reputation} réputation",
+    "wins": "Victoires",
+    "draws": "Nuls",
+    "losses": "Défaites",
+    "lastMatch": "Dernier match",
+    "ownHint": "Personnalisez votre identité depuis le"
   }
 }

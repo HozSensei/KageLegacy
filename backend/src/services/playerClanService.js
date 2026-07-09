@@ -1,5 +1,7 @@
 import { query } from '../config/database.js';
 import { generateInviteCode } from './academyRecruit.js';
+import { buildSenseiIdentities } from './senseiIdentityService.js';
+import { getUserLanguage } from './narrative/viewerLocale.js';
 
 export const MAX_CLAN_MEMBERS = 12;
 export const WELL_CAPACITY_DEFAULT = 50;
@@ -150,6 +152,12 @@ export async function getClanPayload(userId) {
   }
 
   const members = await listClanMembers(membership.clanId);
+  const locale = await getUserLanguage(userId);
+  const identityMap = await buildSenseiIdentities(
+    members.map((member) => member.userId),
+    locale
+  );
+
   return {
     member: true,
     clan: {
@@ -161,7 +169,10 @@ export async function getClanPayload(userId) {
       memberCount: members.length,
       maxMembers: MAX_CLAN_MEMBERS,
     },
-    members,
+    members: members.map((member) => ({
+      ...member,
+      identity: identityMap.get(member.userId) ?? null,
+    })),
     well: {
       drops: membership.wellDrops,
       capacity: membership.wellCapacity,

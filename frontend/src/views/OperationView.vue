@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import OperationMatchNav from '../components/OperationMatchNav.vue'
+import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 
 const props = defineProps({
   matchId: { type: [String, Number], default: null },
@@ -110,6 +111,8 @@ const matchTitle = computed(() => {
   return `${m.homeSensei} vs ${m.awaySensei}`
 })
 
+const matchIdentities = computed(() => operation.value?.match ?? null)
+
 const resultLabel = computed(() => {
   const m = operation.value?.match
   if (!m || m.result === 'pending') return null
@@ -168,8 +171,21 @@ onUnmounted(() => clearInterval(pollTimer))
 
       <div class="mt-10 lg:col-span-8 lg:mt-0 xl:col-span-9">
         <template v-if="operation">
-          <div v-if="matchTitle" class="mb-8 flex flex-wrap items-baseline gap-3">
-            <h2 class="font-display text-2xl text-ink">{{ matchTitle }}</h2>
+          <div v-if="matchTitle" class="mb-8 flex flex-wrap items-start gap-4">
+            <template v-if="matchIdentities?.homeIdentity && matchIdentities?.awayIdentity">
+              <SenseiIdentity
+                :identity="matchIdentities.homeIdentity"
+                variant="match"
+                :subtitle="t('league.homeSide')"
+              />
+              <span class="self-center text-sm text-ink-faint">{{ t('common.vs') }}</span>
+              <SenseiIdentity
+                :identity="matchIdentities.awayIdentity"
+                variant="match"
+                :subtitle="t('league.awaySide')"
+              />
+            </template>
+            <h2 v-else class="font-display text-2xl text-ink">{{ matchTitle }}</h2>
             <span
               v-if="spectatorBadge"
               class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"

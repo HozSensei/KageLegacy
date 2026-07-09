@@ -9,6 +9,7 @@ import {
   updateEquippedCosmetics,
 } from '../services/senseiIdentityService.js';
 import { findUserPool } from '../services/poolService.js';
+import { createEliteCheckoutSession } from '../services/eliteStripeService.js';
 
 const router = Router();
 
@@ -59,6 +60,18 @@ router.patch('/cosmetics', async (req, res, next) => {
     const identity = await buildSenseiIdentity(user.id, locale, pool);
 
     res.json({ equipped, identity });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/checkout', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const session = await createEliteCheckoutSession(user.id);
+    res.json(session);
   } catch (error) {
     next(error);
   }

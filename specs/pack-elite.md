@@ -383,9 +383,9 @@ Endpoint : `GET /api/matches/:id/elite-report` — 403 si pas Pack Élite actif.
 | **A** | Spec + maquette `SenseiIdentity` + showcase | ✅ |
 | **B** | Migration 037, `buildSenseiIdentity`, season pass | ✅ |
 | **C** | API ligue avec `identity` | ✅ ligue · ⏳ match/clan/marché |
-| **D** | Intégrer composant dans les vues | ✅ ligue · ⏳ autres |
-| **E** | Page profil publique + éditeur cosmétiques UI | À faire |
-| **F** | Stripe + webhook | À faire |
+| **D** | Intégrer composant dans les vues | ✅ ligue, opération, clan, marché |
+| **E** | Page profil publique + éditeur cosmétiques UI | ✅ |
+| **F** | Stripe + webhook | ✅ stub dev (`POST /checkout`, grant auto sans clé) |
 | **G** | Rapport Élite | À faire |
 
 ---

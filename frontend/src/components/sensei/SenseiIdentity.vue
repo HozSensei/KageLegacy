@@ -106,7 +106,7 @@ const profileTo = computed(() =>
         {{ identity.title }}
       </p>
 
-      <p v-if="subtitle" class="sensei-identity__subtitle">
+      <p v-if="subtitle && variant !== 'inline'" class="sensei-identity__subtitle">
         {{ subtitle }}
       </p>
 

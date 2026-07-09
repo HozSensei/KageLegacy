@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFormatRyos } from '../composables/useFormatRyos'
+import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
+import { resolveIdentity } from '../utils/senseiIdentity.js'
 
 const { t, locale } = useI18n()
 const { formatRyos } = useFormatRyos()
@@ -190,7 +192,18 @@ function canBuy(listing) {
               {{ listing.listingType === 'ninja' ? t('exchanges.ninja') : categoryLabel(listing.category) }}
             </p>
             <h2 class="mt-3 font-display text-xl text-ink">{{ listingTitle(listing) }}</h2>
-            <p class="mt-3 text-xs text-ink-faint">{{ sellerLine(listing) }}</p>
+            <div class="mt-3">
+              <SenseiIdentity
+                :identity="resolveIdentity(listing.sellerIdentity, {
+                  userId: listing.sellerUserId,
+                  senseiName: listing.sellerName,
+                })"
+                variant="inline"
+              />
+              <p v-if="listing.sellerDivision != null" class="mt-1 text-xs text-ink-faint">
+                {{ t('exchanges.division', { level: listing.sellerDivision }) }}
+              </p>
+            </div>
             <p v-if="listing.listingType === 'ninja'" class="mt-2 text-xs text-ink-muted">
               {{ listingSubtitle(listing) }}
               <span v-if="listing.isNoble"> · {{ t('exchanges.noble') }}</span>

@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import { useFormatRyos } from '../composables/useFormatRyos'
 
-defineOptions({ name: 'ClanView' })
+import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
+import { resolveIdentity } from '../utils/senseiIdentity.js'
 
 const { t } = useI18n()
 const { formatRyos } = useFormatRyos()
@@ -199,11 +200,12 @@ function expiresLabel(expiresAt) {
         <section class="mt-14 border-t border-line pt-10">
           <p class="section-label">{{ t('clan.membersTitle') }}</p>
           <ul class="mt-4 space-y-2 text-sm">
-            <li v-for="member in clan.members" :key="member.userId" class="text-ink-muted">
-              {{ member.senseiName }}
-              <span v-if="member.userId === clan.clan.leaderUserId" class="text-accent">
-                · {{ t('clan.leaderBadge') }}
-              </span>
+            <li v-for="member in clan.members" :key="member.userId">
+              <SenseiIdentity
+                :identity="resolveIdentity(member.identity, member)"
+                variant="row"
+                :subtitle="member.userId === clan.clan.leaderUserId ? t('clan.leaderBadge') : null"
+              />
             </li>
           </ul>
         </section>
