@@ -29,14 +29,6 @@ function listingSubtitle(listing) {
   return categoryLabel(listing.category)
 }
 
-function sellerLine(listing) {
-  const base = t('exchanges.seller', { name: listing.sellerName })
-  if (listing.sellerDivision != null) {
-    return `${base} · ${t('exchanges.division', { level: listing.sellerDivision })}`
-  }
-  return base
-}
-
 function historyLine(entry) {
   if (entry.role === 'seller') {
     return t('exchanges.historySold', {

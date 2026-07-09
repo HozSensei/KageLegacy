@@ -393,6 +393,11 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
       applyKo(attacker);
       consumedItemIds.push(...tryConsumablesFromEquipment(defender));
 
+      const elementMult = elementDamageMultiplier(
+        attacker.element_affinity,
+        defender.element_affinity
+      );
+
       logs.push({
         tour,
         equipe_attaque: attackerTeam.label,
