@@ -1,14 +1,8 @@
 # Kage Legacy — Game Rules
 
-**Player document:** describes how the game works without exposing exact server formulas. Updated when notable mechanics change.
-
-**Last updated:** July 2026
-
----
-
-## At a glance
-
 **Kage Legacy** is an asynchronous browser-based shinobi manager. You play a **Jonin-Sensei**: you manage a squad of young ninjas, your **Ryos** budget, and face other Sensei in **league pools** over **72-hour cycles** (real time).
+
+*Last updated: July 2026*
 
 ---
 

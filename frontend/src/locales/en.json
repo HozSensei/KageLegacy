@@ -160,6 +160,8 @@
   "rules": {
     "pageTitle": "Game rules",
     "link": "Game rules",
+    "menu": "Contents",
+    "sidebarLead": "Browse game mechanics, section by section.",
     "backToGame": "Back to Office",
     "backHome": "Home"
   },
