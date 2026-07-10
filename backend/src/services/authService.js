@@ -124,7 +124,7 @@ export async function registerGuestUser({ senseiName, language = 'fr' }) {
   }
 
   const expiresAt = guestExpiry();
-  const displayName = senseiName?.trim() || 'Sensei invité';
+  const displayName = senseiName?.trim() || `Invité ${username.slice(-6)}`;
 
   const userResult = await query(
     `INSERT INTO users (username, is_bot, is_guest, guest_expires_at)

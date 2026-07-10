@@ -22,11 +22,13 @@ const { t } = useI18n()
 
 const isElite = computed(() => Boolean(props.identity?.isElite))
 const isBot = computed(() => Boolean(props.identity?.isBot))
+const isGuest = computed(() => Boolean(props.identity?.isGuest))
 const bannerClass = computed(() => resolveBannerClass(props.identity?.bannerSlug))
 const hasBanner = computed(() => bannerClass.value.length > 0 && props.variant !== 'inline')
 
 const gradeLabel = computed(() => {
   if (isBot.value) return t('eliteIdentity.grade.bot')
+  if (isGuest.value) return t('eliteIdentity.grade.guest')
   if (props.identity?.gradeLabel === 'jonin_elite' || isElite.value) {
     return t('eliteIdentity.grade.joninElite')
   }
@@ -44,6 +46,7 @@ const rootClasses = computed(() => [
   {
     'sensei-identity--elite': isElite.value,
     'sensei-identity--bot': isBot.value,
+    'sensei-identity--guest': isGuest.value,
     'sensei-identity--highlight': props.highlight,
     'sensei-identity--banner': hasBanner.value,
   },
@@ -96,6 +99,10 @@ const profileTo = computed(() =>
 
         <span v-if="isBot" class="sensei-identity__bot">
           {{ t('league.bot') }}
+        </span>
+
+        <span v-else-if="isGuest" class="sensei-identity__guest">
+          {{ t('guest.badge') }}
         </span>
       </div>
 

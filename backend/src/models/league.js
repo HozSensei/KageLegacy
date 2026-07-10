@@ -56,14 +56,18 @@ export async function getLeaguePayload(userId) {
       cycle: nextMatch.season_cycle,
       status: nextMatch.status,
       result: nextMatch.result,
+      homeUserId: nextMatch.home_user_id,
+      awayUserId: nextMatch.away_user_id,
       home: {
         name: nextMatch.home_sensei,
         isBot: Boolean(nextMatch.home_is_bot),
+        isGuest: Boolean(nextMatch.home_is_guest),
         identity: matchIdentityMap.get(nextMatch.home_user_id) ?? null,
       },
       away: {
         name: nextMatch.away_sensei,
         isBot: Boolean(nextMatch.away_is_bot),
+        isGuest: Boolean(nextMatch.away_is_guest),
         identity: matchIdentityMap.get(nextMatch.away_user_id) ?? null,
       },
       isHome: nextMatch.home_user_id === userId,

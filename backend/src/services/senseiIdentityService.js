@@ -81,7 +81,7 @@ export async function buildSenseiIdentities(userIds, locale = 'fr', poolContext 
   const placeholders = uniqueIds.map(() => '?').join(', ');
   const [rows, poolByUser, subByUser] = await Promise.all([
     query(
-      `SELECT s.user_id, s.name AS sensei_name, u.is_bot,
+      `SELECT s.user_id, s.name AS sensei_name, u.is_bot, u.is_guest,
               sc.title_slug, sc.banner_slug, sc.name_color,
               tc.label_fr AS title_label_fr, tc.label_en AS title_label_en
        FROM sensei s
@@ -107,8 +107,15 @@ export async function buildSenseiIdentities(userIds, locale = 'fr', poolContext 
       userId: row.user_id,
       senseiName: row.sensei_name,
       isBot: Boolean(row.is_bot),
+      isGuest: Boolean(row.is_guest),
       isElite,
-      gradeLabel: row.is_bot ? 'bot' : isElite ? 'jonin_elite' : 'jonin',
+      gradeLabel: row.is_bot
+        ? 'bot'
+        : row.is_guest
+          ? 'guest'
+          : isElite
+            ? 'jonin_elite'
+            : 'jonin',
       titleSlug,
       title: isElite ? resolveTitleLabel({ ...row, title_slug: titleSlug }, locale) : null,
       bannerSlug,

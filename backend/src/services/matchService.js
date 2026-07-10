@@ -224,7 +224,8 @@ export async function getUserMatchForCycle(userId, seasonCycle) {
   const rows = await query(
     `SELECT m.*,
             hs.name AS home_sensei, aws.name AS away_sensei,
-            hu.is_bot AS home_is_bot, au.is_bot AS away_is_bot
+            hu.is_bot AS home_is_bot, au.is_bot AS away_is_bot,
+            hu.is_guest AS home_is_guest, au.is_guest AS away_is_guest
      FROM matches m
      JOIN sensei hs ON hs.user_id = m.home_user_id
      JOIN sensei aws ON aws.user_id = m.away_user_id

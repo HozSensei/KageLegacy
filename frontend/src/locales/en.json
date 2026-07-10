@@ -125,7 +125,8 @@
     "convertLead": "Pick a username and password to keep your squad beyond 7 days.",
     "email": "Email (optional)",
     "convert": "Convert",
-    "later": "Later"
+    "later": "Later",
+    "badge": "Trial"
   },
   "profile": {
     "menu": "My profile",
@@ -454,6 +455,7 @@
     "homeSide": "Home",
     "awaySide": "Away",
     "fixtures": "Matchday fixtures",
+    "fixturesHint": "Matchday {cycle} — 3 bouts in your 6-sensei pool (home & away over 10 matchdays). You only play one of these three.",
     "recentMatches": "Recent results"
   },
   "matches": {
@@ -694,7 +696,8 @@
     "grade": {
       "jonin": "Jonin",
       "joninElite": "Elite Jonin",
-      "bot": "Automated sensei"
+      "bot": "Automated sensei",
+      "guest": "Guest trial"
     },
     "eliteBadge": "Elite Pack active",
     "eliteShort": "Elite"
@@ -743,7 +746,12 @@
     "show": "Show",
     "hide": "Hide",
     "possession": "Possession",
+    "possessionSplit": "Possession (home / away)",
     "endReason": "Match end",
+    "endReasons": {
+      "points": "On points",
+      "ko": "By K.O."
+    },
     "ko": "KO (home / away)",
     "decisiveTitle": "Decisive moments",
     "techniqueTitle": "Damage breakdown",

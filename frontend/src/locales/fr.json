@@ -125,7 +125,8 @@
     "convertLead": "Choisissez un identifiant et un mot de passe pour conserver votre escouade au-delà de 7 jours.",
     "email": "E-mail (optionnel)",
     "convert": "Convertir",
-    "later": "Plus tard"
+    "later": "Plus tard",
+    "badge": "Essai"
   },
   "profile": {
     "menu": "Mon profil",
@@ -454,6 +455,7 @@
     "homeSide": "Domicile",
     "awaySide": "Extérieur",
     "fixtures": "Matchs de la journée",
+    "fixturesHint": "Journée {cycle} — 3 affrontements dans votre pool de 6 Sensei (aller-retour sur 10 journées). Vous ne jouez qu'un seul de ces trois matchs.",
     "recentMatches": "Résultats récents"
   },
   "matches": {
@@ -694,7 +696,8 @@
     "grade": {
       "jonin": "Jonin",
       "joninElite": "Jonin Élite",
-      "bot": "Sensei automatisé"
+      "bot": "Sensei automatisé",
+      "guest": "Essai invité"
     },
     "eliteBadge": "Pack Élite actif",
     "eliteShort": "Élite"
@@ -743,7 +746,12 @@
     "show": "Afficher",
     "hide": "Masquer",
     "possession": "Possession",
+    "possessionSplit": "Possession (dom. / ext.)",
     "endReason": "Fin de match",
+    "endReasons": {
+      "points": "Aux points",
+      "ko": "Par K.O."
+    },
     "ko": "KO (dom. / ext.)",
     "decisiveTitle": "Moments décisifs",
     "techniqueTitle": "Répartition des dégâts",

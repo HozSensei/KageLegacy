@@ -793,6 +793,15 @@ body::before {
   @apply shrink-0 text-[10px] text-ink-faint;
 }
 
+.sensei-identity__guest {
+  @apply shrink-0 rounded-sm border border-accent/30 bg-accent/5 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em] text-accent;
+}
+
+.sensei-identity--guest.sensei-identity--card,
+.sensei-identity--guest.sensei-identity--match {
+  @apply border-accent/25;
+}
+
 .sensei-identity__title {
   @apply mt-0.5 truncate text-xs italic text-ink-muted;
 }
@@ -817,6 +826,14 @@ body::before {
 /* En-tête match opération / ligue */
 .operation-match-header {
   @apply flex flex-col items-center text-center;
+}
+
+.operation-match-header--compact {
+  @apply mb-0;
+}
+
+.operation-match-header--compact .operation-match-header__versus {
+  @apply max-w-none;
 }
 
 .operation-match-header__meta {
