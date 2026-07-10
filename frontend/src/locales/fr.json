@@ -679,6 +679,7 @@
     "activateCta": "Activer le Pack Élite",
     "checkoutConfirming": "Confirmation du paiement en cours…",
     "checkoutSuccess": "Pack Élite activé pour la saison en cours. Bienvenue, Jonin Élite !",
+    "checkoutThanks": "Merci pour votre soutien au projet — c'est grâce à vous que Kage Legacy peut continuer à évoluer.",
     "checkoutCanceled": "Paiement annulé — aucun montant n'a été débité.",
     "activeBadge": "Jonin Élite · Saison active",
     "seasonLabel": "Saison {season} · Journée {cycle}/{max}",

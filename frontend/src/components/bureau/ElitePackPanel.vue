@@ -86,10 +86,11 @@ function questProgress(quest) {
     </p>
     <p
       v-else-if="checkoutNotice === 'success'"
-      class="mt-4 border-l-2 border-accent pl-4 text-sm text-accent"
+      class="mt-4 border-l-2 border-accent pl-4 text-sm"
       data-testid="elite-checkout-success"
     >
-      {{ t('elitePack.checkoutSuccess') }}
+      <span class="text-accent">{{ t('elitePack.checkoutSuccess') }}</span>
+      <span class="mt-2 block text-ink-muted">{{ t('elitePack.checkoutThanks') }}</span>
     </p>
     <p
       v-else-if="checkoutNotice === 'canceled'"
