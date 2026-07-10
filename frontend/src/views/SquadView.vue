@@ -5,11 +5,14 @@ import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import SyncIcon from '../components/icons/SyncIcon.vue'
 import StoreIcon from '../components/icons/StoreIcon.vue'
+import OperationDossierPanel from '../components/squad/OperationDossierPanel.vue'
 import { formatNinjaDisplayName } from '../utils/ninjaName.js'
 
 const { t } = useI18n()
 const store = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
+const dossier = ref(null)
+const dossierLoading = ref(false)
 const editingStrategy = ref(false)
 const saving = ref(false)
 const saveError = ref(null)
@@ -361,7 +364,35 @@ async function toggleStrategyEdit() {
 onMounted(async () => {
   if (!store.sensei) await store.fetchSquad()
   syncSlotsFromStore()
+  await fetchDossier()
 })
+
+async function fetchDossier() {
+  dossierLoading.value = true
+  try {
+    const res = await fetch(`${API_BASE}/api/operation/dossier`)
+    if (res.ok) {
+      const data = await res.json()
+      dossier.value = data.dossier
+    }
+  } catch {
+    dossier.value = null
+  } finally {
+    dossierLoading.value = false
+  }
+}
+
+async function updateDossierPosture(operationPosture) {
+  const res = await fetch(`${API_BASE}/api/operation/dossier`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operationPosture }),
+  })
+  if (res.ok) {
+    const data = await res.json()
+    dossier.value = data.dossier
+  }
+}
 
 watch(() => store.activeSquad, () => {
   if (composing.value || swapPending.value) return
@@ -426,6 +457,12 @@ watch(() => store.activeSquad, () => {
       </p>
 
       <p v-if="saveError" class="mt-4 text-sm text-fire">{{ saveError }}</p>
+
+      <OperationDossierPanel
+        :dossier="dossier"
+        :loading="dossierLoading"
+        @update-posture="updateDossierPosture"
+      />
 
       <section class="mt-14" data-testid="squad-composition">
         <p class="section-label">{{ t('squad.activeSquad') }}</p>

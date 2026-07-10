@@ -55,7 +55,7 @@
     "Egoiste": {
       "label": "Selfish",
       "bonus": "Solitary pride: +2 Taijutsu/Ninjutsu when teammates have less HP.",
-      "malus": "Defiant: ignores protect orders (will never be Tank)."
+      "malus": "Defiant: ignores protection orders (will never take the Defensive order)."
     },
     "Altruiste": {
       "label": "Altruistic",
@@ -100,7 +100,7 @@
     "lead": "Kage Legacy is an async shinobi manager: train ninjas, set tactics, compete in a six-Sensei league, and follow the border operation chronicle.",
     "features": {
       "cycle": "Three-day cycles: training, mid-cycle exams, league match and Ryos economy.",
-      "squad": "Tank / Protect / Offensive tactics, active lineup and player market.",
+      "squad": "Defensive / Protection / Offensive orders, active lineup and player market.",
       "league": "Closed leagues of six squads, promotions and relegations.",
       "chronicle": "Narrative chronicle revealed hour by hour during the operation."
     },
@@ -339,6 +339,31 @@
       "failureBody": "{name} failed to convince the council (combat {combat}/10, intelligence {intelligence}/8). Morale: {moral}."
     }
   },
+  "dossier": {
+    "title": "Operation dossier",
+    "lead": "Plan before H71: scouting (H36+), enemy profiles, orders and cards. Posture shapes advice — it does not grant a hidden combat bonus.",
+    "opponent": "Opponent",
+    "cycle": "Cycle {cycle}",
+    "envFuzzy": "estimated terrain",
+    "ownSquad": "Your squad",
+    "teamSpeed": "Tactical speed {speed}",
+    "cardsEquipped": "{count} card(s) equipped",
+    "cardEquipped": "card equipped",
+    "scoutTitle": "Scouting",
+    "scoutLocked": "Report available from H36.",
+    "potential": "potential {level}",
+    "postureLabel": "Operation posture",
+    "postureHelp": "Set your squad's intent for this cycle. Align it with orders (Offensive, Defensive, Protection) and tactic cards.",
+    "postures": {
+      "balanced": "No strong bet — mixed squad or fuzzy opponent read.",
+      "offensive": "Press and finish fast — fits Offensive orders and attack cards.",
+      "tank": "Hold the line under pressure — fits Defensive orders and parry cards.",
+      "protect": "Survive and heal — fits Protection orders and support cards."
+    },
+    "rulesLink": "Full guide: orders, postures and cards",
+    "locked": "Dossier locked — operation in progress.",
+    "adviceTitle": "Tactical advice"
+  },
   "squad": {
     "kicker": "Lineup",
     "lead": "Manage your combat trio and bench before tactics lock.",
@@ -370,10 +395,10 @@
     "listed": "Listed",
     "sellFreePrice": "Set the price in Ryos — your call, no system cap.",
     "strategies": {
-      "Normal": "Normal",
-      "Tank": "Tank — Provocation",
-      "Protect": "Protect ally",
-      "Offensive": "Offensive"
+      "Normal": "Normal — balanced",
+      "Tank": "Defensive — provocation",
+      "Protect": "Protection — ally support",
+      "Offensive": "Offensive — attack priority"
     }
   },
   "elements": {

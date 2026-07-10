@@ -289,22 +289,22 @@ export function buildOrdersAdvice(orderCounts, locale = 'fr') {
   if (off + tank + prot === 0) {
     tips.push(
       lang === 'en'
-        ? 'All Normal orders — attackers are picked at random. Set Offensive / Tank / Protect roles.'
-        : 'Toutes consignes Normal — les attaquants sont tirés au sort. Définissez Offensive / Tank / Protect.'
+        ? 'All Normal orders — attackers are picked at random. Set Offensive / Defensive / Protection roles.'
+        : 'Toutes consignes Normal — les attaquants sont tirés au sort. Définissez Offensive / Défensive / Protection.'
     );
   } else {
     if (tank === 0) {
       tips.push(
         lang === 'en'
-          ? 'No Tank — your line may crumble under focused assault.'
-          : 'Aucun Tank — votre ligne peut céder sous une pression ciblée.'
+          ? 'No Defensive order — your line may crumble under focused assault.'
+          : 'Aucune consigne Défensive — votre ligne peut céder sous une pression ciblée.'
       );
     }
     if (prot === 0) {
       tips.push(
         lang === 'en'
-          ? 'No Protect — no dedicated healer behavior under 50% HP.'
-          : 'Aucun Protect — pas de soin dédié sous 50 % PV.'
+          ? 'No Protection order — no dedicated healer behavior under 50% HP.'
+          : 'Aucune consigne Protection — pas de soin dédié sous 50 % PV.'
       );
     }
     if (off === 0) {
@@ -325,8 +325,8 @@ export function buildOrdersAdvice(orderCounts, locale = 'fr') {
     orderCounts: { Offensive: off, Tank: tank, Protect: prot, Normal: normal },
     label:
       lang === 'en'
-        ? `${off} Off · ${tank} Tank · ${prot} Protect · ${normal} Normal`
-        : `${off} Off · ${tank} Tank · ${prot} Protect · ${normal} Normal`,
+        ? `${off} Off · ${tank} Def · ${prot} Prot · ${normal} Normal`
+        : `${off} Offensive · ${tank} Défensive · ${prot} Protection · ${normal} Normal`,
     tips,
   };
 }
@@ -352,8 +352,8 @@ export function buildSimulationVerdict({
 }) {
   const lang = normalizeLocale(locale);
   const styleLabels = {
-    fr: { offensive: 'Offensive', tank: 'Tank', protect: 'Protect', mixed: 'Mixte' },
-    en: { offensive: 'Offensive', tank: 'Tank', protect: 'Protect', mixed: 'Mixed' },
+    fr: { offensive: 'Offensive', tank: 'Défensive', protect: 'Protection', mixed: 'Mixte' },
+    en: { offensive: 'Offensive', tank: 'Defensive', protect: 'Protection', mixed: 'Mixed' },
   };
   const oppLabel = styleLabels[lang][opponentStyle] || opponentStyle;
   const factors = [];
@@ -440,8 +440,8 @@ export function buildSimulationVerdict({
   if (winPct <= 42) {
     advice.push(
       lang === 'en'
-        ? 'Equip tactic cards on key ninjas and align Tank/Protect roles to survive this reference style.'
-        : 'Équipez des cartes tactiques sur vos ninjas clés et alignez Tank/Protect pour tenir face à ce style de référence.'
+        ? 'Equip tactic cards on key ninjas and align Defensive/Protection orders to survive this reference style.'
+        : 'Équipez des cartes tactiques sur vos ninjas clés et alignez Défensive/Protection pour tenir face à ce style de référence.'
     );
   }
 

@@ -30,7 +30,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 - Monnaie : **Ryos**
 - **Réputation** (Vol d’Oiseau, prestige)
 - **Pool de chakra de match** (~100) : permet d’intercepter des coups fatals (−25 chakra par sauvetage)
-- **Spécialité** choisie à la création (profil / cosmétique)
+- **Identité** (nom Sensei, cosmétiques Pack Élite) — pas de spécialité à choisir à la création
 - **Dette** (Ryos < 0) : bloque magasin, marché, examen, dispensaire
 
 **Compte invité** : essai 7 jours, conversion possible en compte permanent.
@@ -116,21 +116,16 @@ Pénalités : échec examen Chunin (−5), faillite salariale (moral escouade ac
 |----------|------|
 | **Normal** | Attaquant tiré au sort |
 | **Offensive** | Priorité attaque (meilleure stat combat) |
-| **Tank** | ~70 % de chances d’être ciblé en défense |
-| **Protect** | Peut soigner un allié désigné sous 50 % PV |
+| **Défensive** | ~70 % de chances d’être ciblé en défense (ex-Tank) |
+| **Protection** | Peut soigner un allié désigné sous 50 % PV (ex-Protect) |
 
-### Composition d’équipe (meta)
+### Dossier d'opération
 
-Détectée sur les **3 actifs encore debout** :
+Postures **Équilibrée / Offensive / Défensive / Protection** : plan de cycle + conseils (pas de bonus combat). Voir règles joueur §4.
 
-| Composition | Condition | Style |
-|-------------|-----------|-------|
-| **Assaut** | 2+ Offensive | Burst |
-| **Mur** | 2+ Tank | Absorption |
-| **Flux** | 2+ Protect | Genjutsu, soins |
-| **Équilibrée** | Sinon | Hors cercle, pas de bonus matchup |
+### Cartes tactiques
 
-**Cercle :** Assaut bat Mur · Mur bat Flux · Flux bat Assaut.
+Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie avec consignes.
 
 ---
 
@@ -386,7 +381,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Objectifs de saison** : missions ligue, badges, quêtes de division
 - **Rivalités** : historique head-to-head, revanche
 - **Événements cycle** : environnement imposé, tournoi inter-pools
-- **Spécialisation Sensei** : bonus mécaniques réels (aujourd’hui surtout profil)
+- **Identité Sensei** : cosmétique et profil public (Pack Élite)
 - **Coopération** : entraînement croisé, prêts temporaires
 - **Narration** : choix du joueur influençant le débrief (sans changer le résultat simulé)
 - **Économie** : contrats sponsors, paris spectateurs
