@@ -13,6 +13,7 @@
     "clock:set-start": "node scripts/setCycleStart.js",
     "combat:simulate": "node scripts/simulateMatch.js",
     "combat:benchmark": "node scripts/simulateCycles.js",
+    "combat:tactic-cards": "node scripts/benchmarkTacticCards.js",
     "playtest:cycle": "node scripts/playtestCycle.js",
     "playtest:multiplayer": "node scripts/playtestMultiplayer.js",
     "playtest:league": "node scripts/playtestLeague.js",
