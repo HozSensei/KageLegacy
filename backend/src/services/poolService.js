@@ -155,7 +155,7 @@ export async function assignUserToDivision(userId, divisionLevel, { seasonNumber
 }
 
 /** Algorithme join_or_create_pool (M8) */
-export async function joinOrCreatePool(humanUserId) {
+export async function joinOrCreatePool(humanUserId, { seasonNumber = 1 } = {}) {
   const existing = await findUserPool(humanUserId);
   if (existing) return existing;
 
@@ -165,7 +165,7 @@ export async function joinOrCreatePool(humanUserId) {
     return findUserPool(humanUserId);
   }
 
-  return createPoolWithBots(humanUserId);
+  return createPoolWithBots(humanUserId, { seasonNumber });
 }
 
 /**
