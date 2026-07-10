@@ -156,7 +156,9 @@
     "market": "Magasin",
     "exchanges": "Échanges",
     "inventory": "Inventaire",
-    "operation": "Opération"
+    "operation": "Opération",
+    "profile": "Profil",
+    "eliteTools": "Outils Élite"
   },
   "rules": {
     "pageTitle": "Règles du jeu",
@@ -686,6 +688,7 @@
     "seasonLabel": "Saison {season} · Journée {cycle}/{max}",
     "seasonPassTitle": "Season pass",
     "questDone": "Terminé",
+    "openTools": "Ouvrir les outils d'analyse Élite",
     "identityTitle": "Votre identité publique",
     "identityHint": "Visible dans le classement, les matchs, le clan et le marché.",
     "identityPreview": "Aperçu de votre profil public",
@@ -717,6 +720,10 @@
   },
   "eliteTools": {
     "title": "Outils Élite",
+    "pageTitle": "Outils Élite",
+    "pageLead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
+    "subscribersOnly": "Cette page est réservée aux abonnés Pack Élite.",
+    "goProfile": "Voir mon profil et activer le Pack Élite",
     "lead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
     "seasonTitle": "Saison en cours",
     "compTitle": "Composition active",
@@ -743,6 +750,10 @@
     "draws": "Nuls",
     "losses": "Défaites",
     "lastMatch": "Dernier match",
-    "ownHint": "Personnalisez votre identité depuis le"
+    "ownHint": "Personnalisez votre identité et gérez le Pack Élite ci-dessous.",
+    "ownBadge": "Votre profil public",
+    "eliteSectionTitle": "Pack Élite",
+    "eliteSectionLead": "Identité personnalisée, season pass et récompenses cosmétiques.",
+    "heritageSectionTitle": "Mur de l'héritage"
   }
 }
