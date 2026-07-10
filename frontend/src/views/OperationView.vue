@@ -200,25 +200,29 @@ onUnmounted(() => clearInterval(pollTimer))
               </span>
             </div>
 
-            <div
-              v-if="matchIdentities?.homeIdentity && matchIdentities?.awayIdentity"
-              class="operation-match-header__versus"
-            >
+            <div class="operation-match-header__versus">
               <SenseiIdentity
+                v-if="matchIdentities.homeIdentity"
                 class="operation-match-header__card"
                 :identity="matchIdentities.homeIdentity"
                 variant="match"
                 :subtitle="t('league.homeSide')"
               />
+              <span v-else class="operation-match-header__card font-display text-xl text-ink">
+                {{ matchIdentities.homeSensei }}
+              </span>
               <span class="operation-match-header__vs">{{ t('common.vs') }}</span>
               <SenseiIdentity
+                v-if="matchIdentities.awayIdentity"
                 class="operation-match-header__card"
                 :identity="matchIdentities.awayIdentity"
                 variant="match"
                 :subtitle="t('league.awaySide')"
               />
+              <span v-else class="operation-match-header__card font-display text-xl text-ink">
+                {{ matchIdentities.awaySensei }}
+              </span>
             </div>
-            <h2 v-else class="font-display text-2xl text-ink">{{ matchTitle }}</h2>
           </div>
 
           <p

@@ -202,14 +202,16 @@ function matchStatusLabel(status) {
                     <SenseiIdentity
                       v-if="match.home.identity"
                       :identity="match.home.identity"
-                      variant="inline"
+                      variant="card"
+                      :linkable="false"
                     />
                     <template v-else>{{ match.home.name }}</template>
                     <span class="text-ink-faint">{{ t('common.vs') }}</span>
                     <SenseiIdentity
                       v-if="match.away.identity"
                       :identity="match.away.identity"
-                      variant="inline"
+                      variant="card"
+                      :linkable="false"
                     />
                     <template v-else>{{ match.away.name }}</template>
                   </span>
