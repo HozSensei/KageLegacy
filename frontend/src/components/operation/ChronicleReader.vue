@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   chronicleSegmentClass,
   highlightChronicleText,
@@ -7,14 +8,24 @@ import {
 
 const props = defineProps({
   segments: { type: Array, default: () => [] },
-  cast: { type: Object, default: () => ({ senseis: [], ninjas: [] }) },
+  cast: {
+    type: Object,
+    default: () => ({ senseiIdentities: [], ninjas: [] }),
+  },
   emptyText: { type: String, default: '' },
 })
+
+const { t } = useI18n()
 
 const renderedSegments = computed(() =>
   (props.segments || []).map((segment) => ({
     ...segment,
-    html: highlightChronicleText(segment.text, props.cast),
+    html: highlightChronicleText(segment.text, {
+      senseiIdentities: props.cast.senseiIdentities,
+      ninjas: props.cast.ninjas,
+      eliteBadgeLabel: t('eliteIdentity.eliteShort'),
+      eliteBadgeTitle: t('eliteIdentity.eliteBadge'),
+    }),
   }))
 )
 </script>

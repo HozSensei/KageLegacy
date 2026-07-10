@@ -474,6 +474,19 @@
     @apply font-semibold text-ink;
   }
 
+  .chronicle-sensei-wrap {
+    @apply inline;
+    white-space: nowrap;
+  }
+
+  .chronicle-sensei--elite {
+    font-weight: 600;
+  }
+
+  .chronicle-elite-badge {
+    @apply ml-1 inline-flex align-middle rounded-sm border border-accent/30 bg-accent/10 px-1 py-px text-[8px] uppercase leading-none tracking-[0.14em] text-accent;
+  }
+
   .chronicle-ninja {
     @apply font-semibold text-ink-soft;
   }

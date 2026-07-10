@@ -105,7 +105,14 @@ watch(
   }
 )
 
-const chronicleCast = computed(() => operation.value?.chronicleCast ?? { senseis: [], ninjas: [] })
+const chronicleCast = computed(() => {
+  const match = operation.value?.match
+  const roster = operation.value?.chronicleCast ?? { ninjas: [] }
+  return {
+    ninjas: roster.ninjas || [],
+    senseiIdentities: [match?.homeIdentity, match?.awayIdentity].filter(Boolean),
+  }
+})
 
 const matchTitle = computed(() => {
   const m = operation.value?.match
