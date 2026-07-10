@@ -16,6 +16,28 @@ const report = computed(() => elite.matchReport)
 const loading = computed(() => elite.reportLoading)
 const error = computed(() => elite.reportError)
 
+const possessionLabel = computed(() => {
+  const p = report.value?.summary?.possession
+  if (!p) return '—'
+  if (p.home != null && p.away != null) return `${p.home}% / ${p.away}%`
+  if (p.mine != null) return `${p.mine}%`
+  return '—'
+})
+
+const possessionCaption = computed(() => {
+  const p = report.value?.summary?.possession
+  if (p?.home != null && p?.away != null) return t('eliteReport.possessionSplit')
+  return t('eliteReport.possession')
+})
+
+const endReasonLabel = computed(() => {
+  const key = report.value?.summary?.endReason
+  if (!key) return '—'
+  const i18nKey = `eliteReport.endReasons.${key}`
+  const translated = t(i18nKey)
+  return translated === i18nKey ? key : translated
+})
+
 watch(
   () => [props.matchId, props.canLoad, elite.subscription?.isActive],
   async ([id, canLoad, isActive]) => {
@@ -60,17 +82,17 @@ function heatmapBarWidth(value, bucket) {
         <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="border border-line/60 bg-bg-card/40 p-3">
             <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-              {{ t('eliteReport.possession') }}
+              {{ possessionCaption }}
             </dt>
             <dd class="mt-1 text-lg text-ink">
-              {{ report.summary.possession.mine ?? '—' }}%
+              {{ possessionLabel }}
             </dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
             <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
               {{ t('eliteReport.endReason') }}
             </dt>
-            <dd class="mt-1 text-sm text-ink-muted">{{ report.summary.endReason || '—' }}</dd>
+            <dd class="mt-1 text-sm text-ink-muted">{{ endReasonLabel }}</dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
             <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">

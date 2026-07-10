@@ -254,6 +254,8 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
     viewerRole: isMatchParticipant(match, viewerUserId) ? 'participant' : 'spectator',
     summary: {
       possession: {
+        home: possession.homePct ?? null,
+        away: possession.awayPct ?? null,
         mine: myPossessionPct,
         opponent: myPossessionPct != null ? 100 - myPossessionPct : null,
       },
