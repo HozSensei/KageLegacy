@@ -37,9 +37,9 @@ Once the operation starts, strategic choices are **locked** until the next cycle
 - **Reputation**: prestige, notably from Bird Flight.
 - **Match chakra**: limited reserve to intercept fatal blows during the operation. Each interception consumes a substantial share of this reserve.
 
-### Specialty
+### Sensei identity
 
-At account creation, you choose a **specialty** (Sensei profile / identity). It mainly affects narrative role and cosmetics; mechanical effects remain modest.
+Your **Sensei name** and visual identity (Elite Pack) define your league presence. There is no specialty to pick at account creation: preparation comes from your squad, combat orders, and tactic cards.
 
 ### Debt and administrative freeze
 

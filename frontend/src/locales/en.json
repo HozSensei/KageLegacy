@@ -339,6 +339,23 @@
       "failureBody": "{name} failed to convince the council (combat {combat}/10, intelligence {intelligence}/8). Morale: {moral}."
     }
   },
+  "dossier": {
+    "title": "Operation dossier",
+    "lead": "Set your posture before H71: scouting (H36+), enemy profiles, and orders.",
+    "opponent": "Opponent",
+    "cycle": "Cycle {cycle}",
+    "envFuzzy": "estimated terrain",
+    "ownSquad": "Your squad",
+    "teamSpeed": "Tactical speed {speed}",
+    "cardsEquipped": "{count} card(s) equipped",
+    "cardEquipped": "card equipped",
+    "scoutTitle": "Scouting",
+    "scoutLocked": "Report available from H36.",
+    "potential": "potential {level}",
+    "postureLabel": "Operation posture",
+    "locked": "Dossier locked — operation in progress.",
+    "adviceTitle": "Tactical advice"
+  },
   "squad": {
     "kicker": "Lineup",
     "lead": "Manage your combat trio and bench before tactics lock.",

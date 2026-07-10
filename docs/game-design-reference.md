@@ -30,7 +30,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 - Monnaie : **Ryos**
 - **Réputation** (Vol d’Oiseau, prestige)
 - **Pool de chakra de match** (~100) : permet d’intercepter des coups fatals (−25 chakra par sauvetage)
-- **Spécialité** choisie à la création (profil / cosmétique)
+- **Identité** (nom Sensei, cosmétiques Pack Élite) — pas de spécialité à choisir à la création
 - **Dette** (Ryos < 0) : bloque magasin, marché, examen, dispensaire
 
 **Compte invité** : essai 7 jours, conversion possible en compte permanent.
@@ -386,7 +386,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Objectifs de saison** : missions ligue, badges, quêtes de division
 - **Rivalités** : historique head-to-head, revanche
 - **Événements cycle** : environnement imposé, tournoi inter-pools
-- **Spécialisation Sensei** : bonus mécaniques réels (aujourd’hui surtout profil)
+- **Identité Sensei** : cosmétique et profil public (Pack Élite)
 - **Coopération** : entraînement croisé, prêts temporaires
 - **Narration** : choix du joueur influençant le débrief (sans changer le résultat simulé)
 - **Économie** : contrats sponsors, paris spectateurs

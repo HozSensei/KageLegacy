@@ -339,6 +339,23 @@
       "failureBody": "{name} n'a pas convaincu le conseil (combat {combat}/10, intelligence {intelligence}/8). Moral : {moral}."
     }
   },
+  "dossier": {
+    "title": "Dossier d'opération",
+    "lead": "Préparez votre posture avant H71 : espionnage (H36+), profils adverses et consignes.",
+    "opponent": "Adversaire",
+    "cycle": "Cycle {cycle}",
+    "envFuzzy": "terrain estimé",
+    "ownSquad": "Votre escouade",
+    "teamSpeed": "Vitesse tactique {speed}",
+    "cardsEquipped": "{count} carte(s) équipée(s)",
+    "cardEquipped": "carte équipée",
+    "scoutTitle": "Espionnage",
+    "scoutLocked": "Rapport disponible à partir de H36.",
+    "potential": "potentiel {level}",
+    "postureLabel": "Posture d'opération",
+    "locked": "Dossier verrouillé — opération en cours.",
+    "adviceTitle": "Conseils tactiques"
+  },
   "squad": {
     "kicker": "Composition",
     "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",

@@ -37,9 +37,9 @@ Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jus
 - **Réputation** : prestige lié notamment au Vol d'Oiseau.
 - **Chakra de match** : réserve limitée permettant d'intercepter des coups fatals pendant l'opération. Chaque interception consomme une part substantielle de cette réserve.
 
-### Spécialité
+### Identité du Sensei
 
-À la création du compte, vous choisissez une **spécialité** (profil / identité du Sensei). Elle influence surtout le rôle narratif et cosmétique ; les effets mécaniques restent modestes.
+Votre **nom de Sensei** et votre identité visuelle (Pack Élite) définissent votre présence en ligue. Il n'y a pas de spécialité à choisir à la création du compte : la préparation passe par l'escouade, les consignes et les cartes tactiques.
 
 ### Dette et gel administratif
 

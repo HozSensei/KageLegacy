@@ -93,7 +93,72 @@ async function persistNinjaStats(ninja) {
 }
 
 /**
+ * Puissance moyenne des escouades actives de tous les humains d'une ligue.
+ */
+export async function computePoolHumansAveragePower(poolId) {
+  const humans = await query(
+    `SELECT u.id AS user_id
+     FROM pool_members pm
+     JOIN users u ON u.id = pm.user_id
+     WHERE pm.pool_id = ? AND u.is_bot = FALSE`,
+    [poolId]
+  );
+  if (!humans.length) return 0;
+
+  let sum = 0;
+  let count = 0;
+  for (const human of humans) {
+    const ninjas = await query(
+      `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+      [human.user_id]
+    );
+    if (ninjas.length < 3) continue;
+    sum += squadAveragePower(ninjas);
+    count += 1;
+  }
+  return count ? sum / count : 0;
+}
+
+/**
+ * Aligne les bots d'une ligue sur la puissance moyenne des humains de la pool.
+ */
+export async function alignPoolBotsToPoolAverage(poolId) {
+  const targetPower = await computePoolHumansAveragePower(poolId);
+  if (!targetPower) return { aligned: 0, targetPower: 0 };
+
+  const bots = await query(
+    `SELECT u.id AS user_id
+     FROM pool_members pm
+     JOIN users u ON u.id = pm.user_id
+     WHERE pm.pool_id = ? AND u.is_bot = TRUE`,
+    [poolId]
+  );
+
+  let aligned = 0;
+  for (const bot of bots) {
+    const botNinjas = await query(
+      `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+      [bot.user_id]
+    );
+    if (botNinjas.length < 3) continue;
+
+    const scaled = alignBotNinjasToPower(botNinjas, targetPower);
+    for (let i = 0; i < botNinjas.length; i += 1) {
+      const next = { ...botNinjas[i], ...scaled[i] };
+      const changed = STAT_KEYS.some((key) => next[key] !== botNinjas[i][key]);
+      if (changed) {
+        await persistNinjaStats(next);
+        aligned += 1;
+      }
+    }
+  }
+
+  return { aligned, targetPower };
+}
+
+/**
  * Aligne les bots d'une ligue sur la puissance moyenne de l'escouade active du joueur.
+ * @deprecated Préférer alignPoolBotsToPoolAverage pour un calibrage ligue entière.
  */
 export async function alignPoolBotsToHuman(poolId, humanUserId) {
   const humanNinjas = await query(

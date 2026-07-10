@@ -6,7 +6,7 @@ import {
   generateNinjaProfile,
 } from './ninjaGenerator.js';
 import { ninjaIdentityKey } from './ninjaNaming.js';
-import { alignPoolBotsToHuman } from './botFactory.js';
+import { alignPoolBotsToPoolAverage } from './botFactory.js';
 import { findUserPool } from './poolService.js';
 import { ensureStarterTacticCards } from './tacticCards/tacticCardService.js';
 
@@ -53,7 +53,7 @@ export async function provisionStarterSquad(userId, language = 'fr') {
 
   const pool = await findUserPool(userId);
   if (pool) {
-    await alignPoolBotsToHuman(pool.id, userId);
+    await alignPoolBotsToPoolAverage(pool.id);
   }
 }
 
