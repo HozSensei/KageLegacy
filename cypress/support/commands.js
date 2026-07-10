@@ -19,7 +19,12 @@ Cypress.Commands.add('loginDemo', () => {
       cy.get('[data-testid="login-submit"]').click();
       cy.url({ timeout: 15000 }).should('not.include', '/login');
     },
-    { cacheAcrossSpecs: true }
+    {
+      cacheAcrossSpecs: true,
+      validate() {
+        cy.request({ url: '/api/auth/me', failOnStatusCode: false }).its('status').should('eq', 200);
+      },
+    }
   );
 });
 

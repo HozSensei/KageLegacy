@@ -488,7 +488,7 @@
   }
 
   .chronicle-ninja {
-    @apply font-semibold text-ink-soft;
+    @apply font-semibold text-ink-muted;
   }
 
   .chronicle-impact {
