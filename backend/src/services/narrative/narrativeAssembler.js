@@ -19,9 +19,82 @@ function groupLogsByTour(logs, endingTour) {
   return byTour;
 }
 
+function impactLabel(degats, esquive) {
+  if (esquive) return 'esquivé';
+  const d = Number(degats) || 0;
+  if (d <= 0) return 'sans effet notable';
+  if (d <= 4) return 'coups légers';
+  if (d <= 9) return 'frappe nette';
+  return 'impact violent';
+}
+
+function sortLogsForNarrative(logs) {
+  const rank = (log) => {
+    if (log.technique_type || log.type === 'confusion' || log.type === 'skip') return 1;
+    if (log.sensei_interception || log.item_smoke_save || log.type === 'item_event') return 2;
+    if (log.type === 'tactic_card' && log.card_type === 'defense') return 3;
+    if (log.type === 'tactic_card' && log.card_type === 'attack') return 4;
+    if (log.type === 'tactic_card') return 5;
+    return 6;
+  };
+  return [...logs].sort((a, b) => rank(a) - rank(b));
+}
+
+function tourDamageBySide(tourLogs) {
+  let home = 0;
+  let away = 0;
+  for (const log of tourLogs) {
+    const dmg = Number(log.degats_pv) || Number(log.card_damage) || 0;
+    if (!dmg) continue;
+    if (log.equipe_attaque === 'home') home += dmg;
+    else if (log.equipe_attaque === 'away') away += dmg;
+  }
+  return { home, away };
+}
+
+function pickTourBridge(tour, endingTour, advantage, rng, avoidIndex) {
+  const phase =
+    tour <= Math.max(2, Math.floor(endingTour * 0.35))
+      ? 'early'
+      : tour >= Math.ceil(endingTour * 0.75)
+        ? 'late'
+        : 'mid';
+  const poolKey =
+    advantage === 'home'
+      ? 'chronicle.tourBridge.home_push'
+      : advantage === 'away'
+        ? 'chronicle.tourBridge.away_push'
+        : `chronicle.tourBridge.${phase}`;
+  const pool = getPath(getCatalog('fr'), poolKey);
+  if (!Array.isArray(pool) || !pool.length) {
+    return { connector_key: 'chronicle.combatOpen', connector_index: 0, text: '' };
+  }
+  let index = rng.nextInt(pool.length);
+  if (pool.length > 1 && index === avoidIndex) {
+    index = (index + 1) % pool.length;
+  }
+  return { connector_key: poolKey, connector_index: index, text: pool[index] };
+}
+
+function buildTourMomentum(tourLogs, homeSensei, awaySensei, rng) {
+  const { home, away } = tourDamageBySide(tourLogs);
+  const margin = 3;
+  let poolKey = 'chronicle.tourMomentum.even';
+  const vars = { home_sensei: homeSensei, away_sensei: awaySensei, sensei: homeSensei };
+  if (home > away + margin) {
+    poolKey = 'chronicle.tourMomentum.home';
+    vars.sensei = homeSensei;
+  } else if (away > home + margin) {
+    poolKey = 'chronicle.tourMomentum.away';
+    vars.sensei = awaySensei;
+  }
+  const pick = pickFromPool('fr', poolKey, rng, vars);
+  return { ...pick, key: poolKey, sensei: vars.sensei };
+}
+
 function actionSpecForLog(log) {
   if (log.type === 'confusion') {
-    return { actionKey: 'combat.actions.confusion', reactionKey: 'combat.reactions.confusion' };
+    return { actionKey: 'combat.actions.confusion', reactionKey: null };
   }
   if (log.type === 'tactic_card') {
     const key = log.card_narrative_key || 'card_generic';
@@ -53,25 +126,39 @@ function actionSpecForLog(log) {
   }
 
   const technique = (log.technique_type || '').toLowerCase();
+  const damage = Number(log.degats_pv) || 0;
+
   if (technique === 'medecine') {
-    return { actionKey: 'combat.actions.medecine', reactionKey: 'combat.reactions.medecine' };
+    return { actionKey: 'combat.actions.strike.medecine', reactionKey: null };
   }
   if (technique === 'genjutsu') {
     if (log.esquive) {
       return { actionKey: 'combat.actions.genjutsu_faineant', reactionKey: null };
     }
     if (log.statut_consequence) {
-      return { actionKey: 'combat.actions.genjutsu_success', reactionKey: 'combat.reactions.genjutsu_hit' };
+      return { actionKey: 'combat.actions.strike.genjutsu_success', reactionKey: null };
     }
-    return { actionKey: 'combat.actions.genjutsu_fail', reactionKey: null };
+    return { actionKey: 'combat.actions.strike.genjutsu_fail', reactionKey: null };
   }
   if (technique === 'ninjutsu') {
-    return { actionKey: 'combat.actions.ninjutsu', reactionKey: 'combat.reactions.ninjutsu' };
+    return {
+      actionKey: 'combat.actions.strike.ninjutsu',
+      reactionKey: damage >= 6 ? 'combat.reactions.ninjutsu_short' : null,
+    };
   }
-  return { actionKey: 'combat.actions.taijutsu', reactionKey: 'combat.reactions.taijutsu' };
+  if (technique === 'taijutsu') {
+    return {
+      actionKey: 'combat.actions.strike.taijutsu',
+      reactionKey: damage >= 6 ? 'combat.reactions.taijutsu_short' : null,
+    };
+  }
+  return { actionKey: 'combat.actions.strike.taijutsu', reactionKey: null };
 }
 
 function logToPart(log, rng) {
+  if (log.type === 'skip') {
+    return null;
+  }
   const vars = {
     attaquant_name: log.attaquant_name,
     cible_name: log.cible_name || log.ninja,
@@ -80,6 +167,9 @@ function logToPart(log, rng) {
     card_targets: (log.card_targets || []).join(', '),
     card_healed: log.card_healed || 0,
     card_damage: log.card_damage || 0,
+    degats_pv: Number(log.degats_pv) || 0,
+    soins_pv: Number(log.soins_pv) || 0,
+    impact_label: impactLabel(log.degats_pv, log.esquive),
   };
   const spec = actionSpecForLog(log);
   const action = pickFromPool('fr', spec.actionKey, rng, vars);
@@ -89,7 +179,7 @@ function logToPart(log, rng) {
     vars,
   };
 
-  const canReact = Number(log.degats_pv) > 0 && spec.reactionKey;
+  const canReact = Number(log.degats_pv) >= 6 && spec.reactionKey;
   if (canReact) {
     const reaction = pickFromPool('fr', spec.reactionKey, rng, vars);
     part.reaction_key = reaction.key;
@@ -101,6 +191,44 @@ function logToPart(log, rng) {
 
 function randomGapMinutes(rng) {
   return 2 + rng.nextInt(7);
+}
+
+function buildKoSentence(koNinjaIds, homeSensei, awaySensei) {
+  if (!koNinjaIds?.length) {
+    return 'Aucun ninja n\'a été mis hors combat.';
+  }
+  const names = koNinjaIds.map((k) => k.name).join(', ');
+  const homeKo = koNinjaIds.filter((k) => k.side === 'home').length;
+  const awayKo = koNinjaIds.filter((k) => k.side === 'away').length;
+  if (homeKo && !awayKo) {
+    return `Mis hors combat du côté de ${homeSensei} : ${names}.`;
+  }
+  if (awayKo && !homeKo) {
+    return `Mis hors combat du côté de ${awaySensei} : ${names}.`;
+  }
+  return `Mis hors combat : ${names}.`;
+}
+
+function buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei) {
+  const homeScore = Number(combatLog.homeScorePct ?? 0);
+  const awayScore = Number(combatLog.awayScorePct ?? 0);
+  const homePoss = Number(combatLog.possession?.homePct ?? 0);
+  const awayPoss = Number(combatLog.possession?.awayPct ?? 0);
+  const winnerScore = winnerSide === 'home' ? homeScore : awayScore;
+  const loserScore = winnerSide === 'home' ? awayScore : homeScore;
+  const winnerPoss = winnerSide === 'home' ? homePoss : awayPoss;
+  const loserPoss = winnerSide === 'home' ? awayPoss : homePoss;
+  return {
+    home_score_pct: homeScore,
+    away_score_pct: awayScore,
+    home_possession_pct: homePoss,
+    away_possession_pct: awayPoss,
+    winner_score_pct: winnerScore,
+    loser_score_pct: loserScore,
+    winner_possession_pct: winnerPoss,
+    loser_possession_pct: loserPoss,
+    ko_sentence: buildKoSentence(combatLog.koNinjaIds, homeSensei, awaySensei),
+  };
 }
 
 /**
@@ -171,25 +299,51 @@ export function assembleNarrative({
     text: pickTemplateEntry('fr', 'chronicle.tension', 0, { transition: tensionTransition.text }),
   });
 
+  let lastBridgeIndex = -1;
+
   for (let tour = 1; tour <= endingTour; tour += 1) {
-    const tourLogs = byTour.get(tour) || [];
+    const tourLogs = sortLogsForNarrative(byTour.get(tour) || []);
     if (!tourLogs.length) continue;
 
     const tourRng = rng.fork(10 + tour);
-    const parts = tourLogs.map((log) => logToPart(log, tourRng.fork(log.tour * 100)));
+    const parts = tourLogs
+      .map((log, index) => logToPart(log, tourRng.fork(index + 1)))
+      .filter(Boolean);
+    const tourDamage = tourDamageBySide(tourLogs);
+
+    let advantage = 'even';
+    if (tourDamage.home > tourDamage.away + 3) advantage = 'home';
+    else if (tourDamage.away > tourDamage.home + 3) advantage = 'away';
+
     const connector =
       tour === 1
         ? { connector_key: 'chronicle.combatOpen', connector_index: 0 }
-        : (() => {
-            const t = pickFromPool('fr', 'transitions', tourRng.fork(1));
-            return { connector_key: t.key, connector_index: t.index };
-          })();
+        : pickTourBridge(tour, endingTour, advantage, tourRng.fork(1), lastBridgeIndex);
 
-    const tourVars = { ...connector, parts };
+    if (connector.connector_index != null) {
+      lastBridgeIndex = connector.connector_index;
+    }
+
+    const momentum = buildTourMomentum(tourLogs, homeSensei, awaySensei, tourRng.fork(2));
+    const tourVars = {
+      home_sensei: homeSensei,
+      away_sensei: awaySensei,
+      connector_key: connector.connector_key,
+      connector_index: connector.connector_index,
+      momentum_key: momentum.key,
+      momentum_index: momentum.index,
+      momentum_sensei: momentum.sensei,
+      parts,
+    };
+
     const connectorText =
       connector.connector_key === 'chronicle.combatOpen'
         ? pickTemplateEntry('fr', 'chronicle.combatOpen', 0)
-        : pickTemplateEntry('fr', connector.connector_key, connector.connector_index);
+        : pickTemplateEntry('fr', connector.connector_key, connector.connector_index, {
+            home_sensei: homeSensei,
+            away_sensei: awaySensei,
+          });
+
     const body = parts
       .map((part) => {
         const action = pickTemplateEntry('fr', part.action_key, part.action_index, part.vars);
@@ -198,6 +352,12 @@ export function assembleNarrative({
         return `${action} ${reaction}`;
       })
       .join(' ');
+
+    const momentumText = pickTemplateEntry('fr', momentum.key, momentum.index, {
+      sensei: momentum.sensei,
+      home_sensei: homeSensei,
+      away_sensei: awaySensei,
+    });
 
     unlockAt += randomGapMinutes(tourRng);
     if (unlockAt > 55) unlockAt = 55;
@@ -209,19 +369,37 @@ export function assembleNarrative({
       template_key: 'chronicle.tour',
       template_index: tour,
       template_vars: tourVars,
-      text: `${connectorText} ${body}`.trim(),
+      text: `${connectorText} ${body} ${momentumText}`.trim(),
     });
   }
 
   const winnerSide = winner === 'home' || winner === 'away' ? winner : 'draw';
   const denouementKey =
-    winnerSide === 'draw' ? 'chronicle.denouement.draw' : endReason === 'ko' ? 'chronicle.denouement.ko' : 'chronicle.denouement.points';
+    winnerSide === 'draw'
+      ? 'chronicle.denouement.draw'
+      : endReason === 'ko'
+        ? 'chronicle.denouement.ko'
+        : 'chronicle.denouement.points';
+
+  const scoreSummary =
+    winnerSide === 'draw'
+      ? {
+          home_score_pct: Number(combatLog.homeScorePct ?? 0),
+          away_score_pct: Number(combatLog.awayScorePct ?? 0),
+          home_possession_pct: Number(combatLog.possession?.homePct ?? 0),
+          away_possession_pct: Number(combatLog.possession?.awayPct ?? 0),
+          ko_sentence: buildKoSentence(combatLog.koNinjaIds, homeSensei, awaySensei),
+        }
+      : buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei);
+
   const denouementVars =
     winnerSide === 'draw'
-      ? { home_sensei: homeSensei, away_sensei: awaySensei }
+      ? { home_sensei: homeSensei, away_sensei: awaySensei, ...scoreSummary, ending_tour: endingTour }
       : {
           winner_sensei: winnerSide === 'home' ? homeSensei : awaySensei,
           loser_sensei: winnerSide === 'home' ? awaySensei : homeSensei,
+          ending_tour: endingTour,
+          ...scoreSummary,
         };
 
   const denouementText =
@@ -229,10 +407,14 @@ export function assembleNarrative({
       ? pickTemplateEntry('fr', denouementKey, 0, {
           home_team: teamLabel('fr', homeSensei),
           away_team: teamLabel('fr', awaySensei),
+          ...scoreSummary,
+          ending_tour: endingTour,
         })
       : pickTemplateEntry('fr', denouementKey, 0, {
           winner_team: teamLabel('fr', winnerSide === 'home' ? homeSensei : awaySensei),
           loser_team: teamLabel('fr', winnerSide === 'home' ? awaySensei : homeSensei),
+          ending_tour: endingTour,
+          ...scoreSummary,
         });
 
   unlockAt = Math.min(60, unlockAt + randomInt(4));

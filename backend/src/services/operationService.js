@@ -1,3 +1,4 @@
+import { query } from '../config/database.js';
 import { getGameClock } from './gameClock.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { buildDebriefing, pickSuspenseLine } from './narrative/debriefing.js';
@@ -19,6 +20,19 @@ import { hasActiveEliteSubscription } from './eliteSubscriptionService.js';
 function parseCombatLog(raw) {
   if (!raw) return null;
   return typeof raw === 'string' ? JSON.parse(raw) : raw;
+}
+
+async function loadChronicleCast(match) {
+  const rows = await query(
+    `SELECT name FROM ninjas
+     WHERE user_id IN (?, ?) AND squad_position IS NOT NULL
+     ORDER BY user_id, squad_position`,
+    [match.home_user_id, match.away_user_id]
+  );
+  return {
+    senseis: [match.home_sensei, match.away_sensei].filter(Boolean),
+    ninjas: rows.map((row) => row.name).filter(Boolean),
+  };
 }
 
 function minutesSinceReveal(revealStartAt, now = new Date()) {
@@ -107,12 +121,14 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
   );
   const homeIdentity = identityMap.get(match.home_user_id) ?? null;
   const awayIdentity = identityMap.get(match.away_user_id) ?? null;
+  const chronicleCast = await loadChronicleCast(match);
 
   return {
     gameClock: clock,
     state,
     liveWindow,
     chronicle,
+    chronicleCast,
     suspense: morePending && !hasDenouement ? pickSuspenseLine(viewerLocale, match.id) : null,
     debriefing,
     viewerRole: isParticipant ? 'participant' : 'spectator',
@@ -166,6 +182,7 @@ export async function getOperationLivePayload(userId) {
       gameClock: clock,
       state: 'no_pool',
       chronicle: [],
+      chronicleCast: { senseis: [], ninjas: [] },
       suspense: null,
       debriefing: [],
       viewerRole: 'spectator',
@@ -182,6 +199,7 @@ export async function getOperationLivePayload(userId) {
       gameClock: clock,
       state: 'no_match',
       chronicle: [],
+      chronicleCast: { senseis: [], ninjas: [] },
       suspense: null,
       debriefing: [],
       viewerRole: 'participant',

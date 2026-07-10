@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import OperationMatchNav from '../components/OperationMatchNav.vue'
+import ChronicleReader from '../components/operation/ChronicleReader.vue'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 import OperationEliteReport from '../components/operation/OperationEliteReport.vue'
 import { useEliteStore } from '../stores/elite'
@@ -104,9 +105,14 @@ watch(
   }
 )
 
-const chronicleText = computed(() =>
-  (operation.value?.chronicle || []).map((s) => s.text).join('\n\n')
-)
+const chronicleCast = computed(() => {
+  const match = operation.value?.match
+  const roster = operation.value?.chronicleCast ?? { ninjas: [] }
+  return {
+    ninjas: roster.ninjas || [],
+    senseiIdentities: [match?.homeIdentity, match?.awayIdentity].filter(Boolean),
+  }
+})
 
 const matchTitle = computed(() => {
   const m = operation.value?.match
@@ -250,9 +256,12 @@ onUnmounted(() => clearInterval(pollTimer))
                 </span>
               </div>
 
-              <div class="chronicle mt-8 whitespace-pre-line text-[15px] leading-relaxed text-ink-muted" data-testid="operation-chronicle">
-                {{ chronicleText || t('operation.noChronicle') }}
-              </div>
+              <ChronicleReader
+                class="mt-8 text-[15px] leading-relaxed text-ink-muted"
+                :segments="operation.chronicle"
+                :cast="chronicleCast"
+                :empty-text="t('operation.noChronicle')"
+              />
 
               <p
                 v-if="operation.suspense"
