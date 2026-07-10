@@ -423,7 +423,7 @@ Checkout sans Stripe : grant auto **uniquement** en dev (`NODE_ENV !== productio
 | **C** | API ligue avec `identity` | ✅ |
 | **D** | Intégrer composant dans les vues | ✅ ligue, opération, clan, marché |
 | **E** | Page profil publique + éditeur cosmétiques UI | ✅ |
-| **F** | Stripe + webhook | ✅ stub dev (`POST /checkout`, grant auto sans clé) |
+| **F** | Stripe Checkout + webhook | ✅ |
 | **G** | Rapport Élite + Outils Élite (bureau) + audit accès | ✅ |
 
 ---

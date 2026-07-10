@@ -650,7 +650,7 @@
   },
   "eliteIdentity": {
     "grade": {
-      "jonin": "Jonin-Sensei",
+      "jonin": "Jonin",
       "joninElite": "Jonin Élite",
       "bot": "Sensei automatisé"
     },
@@ -677,6 +677,9 @@
     "perkSeasonPass": "Quêtes saison pour débloquer titres et bannières rares",
     "perkSeasonAlign": "Abonnement calé sur la saison de ligue (10 cycles)",
     "activateCta": "Activer le Pack Élite",
+    "checkoutConfirming": "Confirmation du paiement en cours…",
+    "checkoutSuccess": "Pack Élite activé pour la saison en cours. Bienvenue, Jonin Élite !",
+    "checkoutCanceled": "Paiement annulé — aucun montant n'a été débité.",
     "activeBadge": "Jonin Élite · Saison active",
     "seasonLabel": "Saison {season} · Journée {cycle}/{max}",
     "seasonPassTitle": "Season pass",

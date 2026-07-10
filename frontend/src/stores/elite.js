@@ -81,6 +81,19 @@ export const useEliteStore = defineStore('elite', () => {
     return data
   }
 
+  async function confirmCheckout(sessionId) {
+    const res = await fetch(
+      `${API_BASE}/api/elite/checkout/confirm?session_id=${encodeURIComponent(sessionId)}`
+    )
+    if (!res.ok) throw new Error(await readApiError(res))
+    const data = await res.json()
+    await fetchElite()
+    if (data.subscription?.isActive) {
+      await fetchTools()
+    }
+    return data
+  }
+
   async function fetchTools() {
     if (!subscription.value?.isActive) return
     toolsLoading.value = true
@@ -135,6 +148,7 @@ export const useEliteStore = defineStore('elite', () => {
     saveCosmetics,
     activateDevPack,
     startCheckout,
+    confirmCheckout,
     fetchTools,
     fetchMatchReport,
     simulateMatchup,
