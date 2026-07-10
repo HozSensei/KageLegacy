@@ -449,4 +449,4 @@ A bell in the interface signals important events: mission completion, exam resul
 | Date | Change |
 |------|--------|
 | 2026-07-09 | Initial document (player rules, no exact formulas) |
-| 2026-07-09 | Dispensary renamed to hospital; integrated in player UI |
+| 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
