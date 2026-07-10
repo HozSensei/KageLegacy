@@ -67,6 +67,7 @@ npm run test:unit      # Smoke tests narratif + Égoïste
 npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
 npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
 npm run playtest:missions --prefix backend # Playtest 3 paliers idle + notifications
+npm run e2e:prepare                        # MySQL : migrate + seed + cycle H0→H72 (prérequis E2E)
 npm run test:e2e                           # Cypress : login, missions, cloche, collecte
 npm run test:e2e:open                      # Cypress interactif (navigateur)
 npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
@@ -83,7 +84,12 @@ npm run dev:web     # Front seul
 
 ### CI (GitHub Actions)
 
-Sur chaque push/PR vers `main` : `npm ci` (racine + backend + frontend), ESLint, smoke tests narratif/Égoïste, `economy:calibrate`, `combat:benchmark` (100 runs). Les E2E Cypress restent à lancer en local via `npm run test:e2e` (nécessite MySQL + seed).
+Sur chaque push/PR vers `main` :
+
+- **Job `quality`** : `npm ci`, ESLint, smoke tests narratif/Égoïste, `economy:calibrate`, benchmarks combat et cartes tactiques (100 runs chacun).
+- **Job `e2e`** : MySQL 8 (service container), `npm run e2e:prepare` (migrate + seed + playtest cycle), puis `npm run test:e2e` (15 specs Cypress).
+
+En local : `npm run db:up`, puis `npm run e2e:prepare`, puis `npm run test:e2e`.
 
 ### Déploiement Docker (NAS / prod)
 
