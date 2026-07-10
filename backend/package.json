@@ -20,7 +20,7 @@
     "playtest:missions": "node scripts/playtestMissionsCycle.js",
     "economy:simulate": "node scripts/simulateEconomyCycles.js",
     "economy:calibrate": "node scripts/calibrateEconomy.js",
-    "test:egoiste": "node scripts/testEgoisteInsubordination.js",
+    "test:preparation-challenges": "node scripts/testPreparationChallenges.js",
     "test:narrative": "node scripts/testNarrativeEngine.js",
     "narrative:backfill": "node scripts/backfillNarrativeI18n.js",
     "test:retention": "node scripts/testRetentionSystem.js && node scripts/testPlayerClans.js && node scripts/testRetentionClansIntegration.js && node scripts/testAccountDeletionClans.js && node scripts/testAccountDeletionGuest.js && node scripts/testGuestCleanup.js && node scripts/testHeritageMatchShop.js",

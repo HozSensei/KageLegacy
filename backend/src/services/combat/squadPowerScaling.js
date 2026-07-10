@@ -13,12 +13,26 @@ export const OPPONENT_LEVEL_TIERS = {
 
 export const OPPONENT_LEVEL_IDS = Object.keys(OPPONENT_LEVEL_TIERS);
 
-const COMPOSITION_STRATEGIES = {
-  assaut: ['Offensive', 'Offensive', 'Offensive'],
-  mur: ['Tank', 'Tank', 'Tank'],
-  flux: ['Protect', 'Protect', 'Protect'],
-  equilibre: ['Offensive', 'Tank', 'Protect'],
+/** Styles de consignes purs (outil Élite + benchmarks). */
+export const ORDER_STYLE_STRATEGIES = {
+  offensive: ['Offensive', 'Offensive', 'Offensive'],
+  tank: ['Tank', 'Tank', 'Tank'],
+  protect: ['Protect', 'Protect', 'Protect'],
+  mixed: ['Offensive', 'Tank', 'Protect'],
 };
+
+/** @deprecated Alias historiques Assaut/Mur/Flux */
+const LEGACY_STYLE_ALIASES = {
+  assaut: 'offensive',
+  mur: 'tank',
+  flux: 'protect',
+  equilibre: 'mixed',
+};
+
+export function normalizeOrderStyle(style) {
+  if (ORDER_STYLE_STRATEGIES[style]) return style;
+  return LEGACY_STYLE_ALIASES[style] || 'mixed';
+}
 
 export function normalizeOpponentLevel(level) {
   return OPPONENT_LEVEL_IDS.includes(level) ? level : 'similar';
@@ -50,11 +64,12 @@ export function scaleNinjaStats(ninja, multiplier) {
 }
 
 export function getStrategiesForComposition(composition) {
-  return COMPOSITION_STRATEGIES[composition] || COMPOSITION_STRATEGIES.equilibre;
+  const style = normalizeOrderStyle(composition);
+  return ORDER_STYLE_STRATEGIES[style];
 }
 
 /**
- * Escouade adverse alignée sur le profil chiffré du joueur, avec rôles de composition purs.
+ * Escouade adverse alignée sur le profil chiffré du joueur, avec consignes pures.
  */
 export function buildOpponentSquadFromPlayer(playerNinjas, composition, level = 'similar') {
   const ordered = [...playerNinjas]

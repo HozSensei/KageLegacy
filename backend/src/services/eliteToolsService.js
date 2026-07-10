@@ -1,5 +1,4 @@
 import { query } from '../config/database.js';
-import { buildCombatTeam } from './combat/matchLoader.js';
 import { getHeritageBonuses, listHeritageScrolls, applyPercentDiscount } from './heritageService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { computeTrainingCost, computeTrainingGain } from './training.js';
@@ -10,10 +9,14 @@ import {
   buildOrdersAdvice,
   buildSimulationVerdict,
 } from './eliteReportService.js';
+import { buildPreparationChallenges } from './elitePreparationChallenges.js';
+import { getTacticCardsForNinjas } from './tacticCards/tacticCardService.js';
+import { makeEquippedCard } from './tacticCards/tacticCardFixtures.js';
 import {
   buildOpponentSquadFromPlayer,
   getOpponentLevelMultiplier,
   normalizeOpponentLevel,
+  normalizeOrderStyle,
   OPPONENT_LEVEL_IDS,
 } from './combat/squadPowerScaling.js';
 
@@ -22,16 +25,23 @@ const OPPONENT_STYLE_OPTIONS = ['offensive', 'tank', 'protect', 'mixed'];
 const OPPONENT_STYLE_LABELS = {
   fr: {
     offensive: 'Offensive pure',
-    tank: 'Tank pure',
-    protect: 'Protect pure',
-    mixed: 'Mixte Off/Tank/Protect',
+    tank: 'Défensive pure',
+    protect: 'Protection pure',
+    mixed: 'Mixte Off/Déf/Prot',
   },
   en: {
     offensive: 'Pure Offensive',
-    tank: 'Pure Tank',
-    protect: 'Pure Protect',
-    mixed: 'Mixed Off/Tank/Protect',
+    tank: 'Pure Defensive',
+    protect: 'Pure Protection',
+    mixed: 'Mixed Off/Def/Prot',
   },
+};
+
+const OPPONENT_STYLE_CARD_LOADOUTS = {
+  offensive: ['nin-eclair-discret', 'raiton-surcharge', 'futon-lame-retour'],
+  tank: ['tai-parade-ecole', 'gen-kage-bunshin', 'doton-racines'],
+  protect: ['med-pansement-rapide', 'med-soin-zone', 'med-pansement-rapide'],
+  mixed: ['nin-eclair-discret', 'tai-parade-ecole', 'med-pansement-rapide'],
 };
 
 const OPPONENT_LEVEL_LABELS = {
@@ -86,6 +96,26 @@ function dbNinjaToSim(ninja) {
     intelligence: ninja.intelligence,
     training_residual: 0,
   });
+}
+
+function cardRowsToMap(cardRows) {
+  const map = {};
+  for (const row of cardRows) {
+    map[row.ninja_id] = row;
+  }
+  return map;
+}
+
+function buildOpponentCardMap(oppSquad, style) {
+  const slugs = OPPONENT_STYLE_CARD_LOADOUTS[style] || OPPONENT_STYLE_CARD_LOADOUTS.mixed;
+  const map = {};
+  oppSquad.forEach((ninja, index) => {
+    const slug = slugs[index];
+    if (slug) {
+      map[ninja.id] = makeEquippedCard(slug, { userTacticCardId: 9000 + ninja.id });
+    }
+  });
+  return map;
 }
 
 async function loadActiveSquad(userId) {
@@ -190,9 +220,10 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
   const { pool } = await assertEliteToolsAccess(userId);
   const lang = locale === 'en' ? 'en' : 'fr';
 
-  const [{ ninjas, orderCounts }, heritageBonuses, heritageScrolls, seasonStats] =
+  const [{ ninjas, orderCounts }, cardRows, heritageBonuses, heritageScrolls, seasonStats] =
     await Promise.all([
       loadActiveSquad(userId),
+      getTacticCardsForNinjas(userId).catch(() => []),
       getHeritageBonuses(userId),
       listHeritageScrolls(userId),
       getSeasonMatchStats(userId, pool),
@@ -200,6 +231,11 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
 
   const ordersAdvice = buildOrdersAdvice(orderCounts, lang);
   const trainingRoi = buildTrainingRoi(ninjas, heritageBonuses);
+  const preparationChallenges = buildPreparationChallenges({
+    ninjas,
+    cardRows,
+    locale: lang,
+  });
 
   const heritageSummary = {
     trainingDiscountPct: heritageBonuses.trainingDiscountPct,
@@ -210,15 +246,20 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     scrolls: heritageScrolls.slice(0, 6),
   };
 
+  const opponentStyleOptions = OPPONENT_STYLE_OPTIONS.map((value) => ({
+    value,
+    label: OPPONENT_STYLE_LABELS[lang][value],
+  }));
+
   return {
     seasonStats,
+    orders: ordersAdvice,
     composition: ordersAdvice,
     heritage: heritageSummary,
     trainingRoi,
-    compositionOptions: OPPONENT_STYLE_OPTIONS.map((value) => ({
-      value,
-      label: OPPONENT_STYLE_LABELS[lang][value],
-    })),
+    preparationChallenges,
+    opponentStyleOptions,
+    compositionOptions: opponentStyleOptions,
     levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
       value,
       label: OPPONENT_LEVEL_LABELS[lang][value],
@@ -229,14 +270,15 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
 
 export async function simulateEliteMatchup(
   userId,
-  { opponentComposition, opponentLevel, runs = 100, locale = 'fr' } = {}
+  { opponentComposition, opponentStyle, opponentLevel, runs = 100, locale = 'fr' } = {}
 ) {
   await assertEliteToolsAccess(userId);
 
   const lang = locale === 'en' ? 'en' : 'fr';
-  const opponentStyle = OPPONENT_STYLE_OPTIONS.includes(opponentComposition)
-    ? opponentComposition
-    : 'mixed';
+  const styleInput = opponentStyle ?? opponentComposition;
+  const opponentStyleId = OPPONENT_STYLE_OPTIONS.includes(styleInput)
+    ? styleInput
+    : normalizeOrderStyle(styleInput);
   const level = normalizeOpponentLevel(opponentLevel);
 
   const { ninjas, orderCounts } = await loadActiveSquad(userId);
@@ -246,8 +288,9 @@ export async function simulateEliteMatchup(
     throw error;
   }
 
+  const cardRows = await getTacticCardsForNinjas(userId).catch(() => []);
   const mySquad = ninjas.map(dbNinjaToSim);
-  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentStyle, level).map(dbNinjaToSim);
+  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentStyleId, level).map(dbNinjaToSim);
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
 
   const result = runMonteCarlo({
@@ -255,6 +298,8 @@ export async function simulateEliteMatchup(
     slotBNinjas: oppSquad,
     runs: runCount,
     favoriteSide: 'slotA',
+    slotATacticCards: cardRowsToMap(cardRows),
+    slotBTacticCards: buildOpponentCardMap(oppSquad, opponentStyleId),
   });
 
   const winPct = result.slotAWinPct;
@@ -262,12 +307,13 @@ export async function simulateEliteMatchup(
 
   return {
     myComposition: 'orders',
-    opponentComposition: opponentStyle,
+    opponentComposition: opponentStyleId,
+    opponentStyle: opponentStyleId,
     opponentLevel: level,
     opponentLevelLabel: levelLabel,
     opponentLevelMultiplier: getOpponentLevelMultiplier(level),
     myCompositionLabel: buildOrdersAdvice(orderCounts, lang).label,
-    opponentCompositionLabel: OPPONENT_STYLE_LABELS[lang][opponentStyle],
+    opponentCompositionLabel: OPPONENT_STYLE_LABELS[lang][opponentStyleId],
     runs: runCount,
     winPct,
     drawPct: result.drawPct,
@@ -275,15 +321,17 @@ export async function simulateEliteMatchup(
     koPct: result.koPct,
     avgTours: result.avgTours,
     upsetPct: result.upsetPct,
-    matchup: { myAdvantage: false, myDisadvantage: false, neutral: true },
+    cardProcsPerMatch: result.cardProcsPerMatch,
+    matchProcPct: result.matchProcPct,
     verdict: buildSimulationVerdict({
       winPct,
-      opponentStyle,
+      opponentStyle: opponentStyleId,
       opponentLevel: level,
       locale: lang,
       squadContext: {
         orderCounts,
         avgMoral: summarizeSquadMoral(ninjas),
+        cardsEquipped: cardRows.length,
       },
     }),
   };

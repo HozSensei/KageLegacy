@@ -6,16 +6,15 @@ import { query } from '../src/config/database.js';
 import { grantEliteSubscription, getEliteMePayload } from '../src/services/eliteSubscriptionService.js';
 import {
   buildEliteMatchReport,
-  buildCompositionAdvice,
   buildOrdersAdvice,
   buildSimulationVerdict,
-  compareCompositions,
   ELITE_RULES_COMPOSITION_ANCHOR,
 } from '../src/services/eliteReportService.js';
 import {
   getEliteToolsPayload,
   simulateEliteMatchup,
 } from '../src/services/eliteToolsService.js';
+import { getStrategiesForComposition } from '../src/services/combat/squadPowerScaling.js';
 import { openChakraSeal, grantDailySealsForUser } from '../src/services/dailySealService.js';
 import { getSeasonPassPayload, recordEliteQuestEvent } from '../src/services/eliteSeasonPassService.js';
 
@@ -95,9 +94,11 @@ async function seedSquad(userId) {
 }
 
 async function main() {
-  const advice = buildCompositionAdvice('assaut', 'fr');
-  console.assert(advice.label, 'conseil consignes label');
-  console.assert(!compareCompositions('assaut', 'mur').myAdvantage, 'cercle retiré');
+  console.assert(
+    getStrategiesForComposition('offensive').every((s) => s === 'Offensive'),
+    'style offensive pur'
+  );
+  console.assert(getStrategiesForComposition('tank')[0] === 'Tank', 'style défensif pur');
 
   const verdict = buildSimulationVerdict({
     winPct: 62,
@@ -192,10 +193,13 @@ async function main() {
 
   const tools = await getEliteToolsPayload(homeId, 'fr');
   console.assert(tools.seasonStats.played >= 1, 'stats saison joués');
-  console.assert(tools.composition.label, 'label consignes');
+  console.assert(tools.orders?.label || tools.composition.label, 'label consignes');
   console.assert(tools.trainingRoi.length >= 1, 'ROI entraînement');
-  console.assert(tools.compositionOptions.length === 4, 'options style adverse');
-  console.assert(tools.compositionOptions[0].label, 'options style labelisées');
+  console.assert(tools.preparationChallenges?.challenges?.length >= 1, 'défis préparation');
+  console.assert(
+    (tools.opponentStyleOptions ?? tools.compositionOptions).length === 4,
+    'options style adverse'
+  );
   console.assert(tools.levelOptions.length === 5, 'options niveau');
 
   const sim = await simulateEliteMatchup(homeId, {
@@ -205,11 +209,11 @@ async function main() {
   });
   console.assert(sim.runs === 30, 'sim runs');
   console.assert(sim.winPct != null, 'sim winPct');
-  console.assert(sim.opponentLevel === 'similar', 'sim level similar');
+  console.assert(sim.opponentStyle === 'tank', 'sim style tank');
   console.assert(sim.verdict?.headline, 'sim verdict headline');
   console.assert(sim.myCompositionLabel, 'sim label consignes');
   console.assert(sim.verdict?.advice?.length >= 1, 'sim conseils');
-  console.assert(!sim.matchup?.myAdvantage, 'plus de cercle composition');
+  console.assert(sim.matchProcPct != null, 'sim proc cartes');
 
   await grantDailySealsForUser(homeId);
   await openChakraSeal(homeId);

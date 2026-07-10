@@ -331,15 +331,6 @@ export function buildOrdersAdvice(orderCounts, locale = 'fr') {
   };
 }
 
-/** @deprecated Cercle retiré — alias vers buildOrdersAdvice. */
-export function buildCompositionAdvice(_myComposition, locale = 'fr') {
-  return buildOrdersAdvice({}, locale);
-}
-
-export function compareCompositions() {
-  return { myAdvantage: false, myDisadvantage: false, neutral: true };
-}
-
 /**
  * Synthèse lisible d'une simulation de matchup (outils Élite).
  */
@@ -375,6 +366,14 @@ export function buildSimulationVerdict({
     advice.push(...orders.tips.slice(0, 2));
   }
 
+  if (squadContext?.cardsEquipped != null && squadContext.cardsEquipped < 3) {
+    factors.push(
+      lang === 'en'
+        ? `Only ${squadContext.cardsEquipped}/3 actives have tactic cards equipped.`
+        : `Seulement ${squadContext.cardsEquipped}/3 actifs ont une carte tactique équipée.`
+    );
+  }
+
   const levelDescriptions = {
     fr: {
       weaker: 'adversaire calibré ~15 % en dessous de votre escouade',
@@ -398,8 +397,8 @@ export function buildSimulationVerdict({
 
   factors.push(
     lang === 'en'
-      ? `Reference opponent: pure ${oppLabel} roles, ${levelDescriptions.en[levelKey]} — not a real player roster.`
-      : `Adversaire de référence : rôles purs ${oppLabel}, ${levelDescriptions.fr[levelKey]} — pas un vrai roster adverse.`
+      ? `Reference opponent: pure ${oppLabel} orders with matching reference cards, ${levelDescriptions[lang][levelKey]} — not a real player roster.`
+      : `Adversaire de référence : consignes pures ${oppLabel} avec cartes de référence, ${levelDescriptions.fr[levelKey]} — pas un vrai roster adverse.`
   );
 
   if (squadContext?.avgMoral != null && squadContext.avgMoral < 12 && winPct < 50) {
