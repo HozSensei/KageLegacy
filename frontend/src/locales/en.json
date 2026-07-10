@@ -650,7 +650,7 @@
   },
   "eliteIdentity": {
     "grade": {
-      "jonin": "Jonin Sensei",
+      "jonin": "Jonin",
       "joninElite": "Elite Jonin",
       "bot": "Automated sensei"
     },
@@ -677,6 +677,10 @@
     "perkSeasonPass": "Season quests to unlock rare titles and banners",
     "perkSeasonAlign": "Subscription aligned with the league season (10 cycles)",
     "activateCta": "Activate Elite Pack",
+    "checkoutConfirming": "Confirming payment…",
+    "checkoutSuccess": "Elite Pack activated for the current season. Welcome, Elite Jonin!",
+    "checkoutThanks": "Thank you for supporting the project — you're helping Kage Legacy keep growing.",
+    "checkoutCanceled": "Payment canceled — you were not charged.",
     "activeBadge": "Elite Jonin · Active season",
     "seasonLabel": "Season {season} · Matchday {cycle}/{max}",
     "seasonPassTitle": "Season pass",

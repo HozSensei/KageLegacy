@@ -18,6 +18,7 @@ import matchesRouter from './routes/matches.js';
 import playerMarketRouter from './routes/playerMarket.js';
 import eliteRouter from './routes/elite.js';
 import senseiRouter from './routes/sensei.js';
+import stripeRouter from './routes/stripe.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -32,6 +33,13 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(
+  '/api/stripe',
+  express.raw({ type: 'application/json' }),
+  stripeRouter
+);
+
 app.use(express.json());
 app.use(attachUser);
 

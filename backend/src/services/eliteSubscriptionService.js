@@ -26,7 +26,7 @@ export async function ensureSeasonPass(userId, pool) {
 }
 
 /**
- * Active le Pack Élite pour la saison de ligue en cours (tests / admin / futur Stripe).
+ * Active le Pack Élite pour la saison de ligue en cours (tests / admin / Stripe).
  */
 export async function grantEliteSubscription(userId, { poolId, seasonNumber } = {}) {
   const pool = poolId
@@ -39,24 +39,67 @@ export async function grantEliteSubscription(userId, { poolId, seasonNumber } = 
 
   const season = seasonNumber ?? pool.season_number;
 
+  return activateEliteFromStripe({
+    userId,
+    poolId: pool.id,
+    seasonNumber: season,
+    stripeCustomerId: null,
+    stripeSubscriptionId: null,
+    stripeCheckoutSessionId: null,
+  });
+}
+
+export async function activateEliteFromStripe({
+  userId,
+  poolId,
+  seasonNumber,
+  stripeCustomerId = null,
+  stripeSubscriptionId = null,
+  stripeCheckoutSessionId = null,
+}) {
+  if (stripeCheckoutSessionId) {
+    const dup = await query(
+      `SELECT id FROM sensei_elite_subscriptions
+       WHERE stripe_checkout_session_id = ? LIMIT 1`,
+      [stripeCheckoutSessionId]
+    );
+    if (dup[0]) {
+      const poolRows = await query('SELECT * FROM pools WHERE id = ? LIMIT 1', [poolId]);
+      return getActiveEliteSubscription(userId, poolRows[0]);
+    }
+  }
+
   await query(
     `INSERT INTO sensei_elite_subscriptions
-       (user_id, pool_id, season_number, status, current_period_start, current_period_end)
-     VALUES (?, ?, ?, 'active', UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 70 DAY))
+       (user_id, pool_id, season_number, status,
+        stripe_customer_id, stripe_subscription_id, stripe_checkout_session_id,
+        current_period_start, current_period_end)
+     VALUES (?, ?, ?, 'active', ?, ?, ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 70 DAY))
      ON DUPLICATE KEY UPDATE
        pool_id = VALUES(pool_id),
        status = 'active',
+       stripe_customer_id = COALESCE(VALUES(stripe_customer_id), stripe_customer_id),
+       stripe_subscription_id = COALESCE(VALUES(stripe_subscription_id), stripe_subscription_id),
+       stripe_checkout_session_id = COALESCE(VALUES(stripe_checkout_session_id), stripe_checkout_session_id),
        current_period_start = UTC_TIMESTAMP(),
        current_period_end = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 70 DAY)`,
-    [userId, pool.id, season]
+    [
+      userId,
+      poolId,
+      seasonNumber,
+      stripeCustomerId,
+      stripeSubscriptionId,
+      stripeCheckoutSessionId,
+    ]
   );
 
   await query(
     `INSERT IGNORE INTO elite_season_passes (user_id, pool_id, season_number)
      VALUES (?, ?, ?)`,
-    [userId, pool.id, season]
+    [userId, poolId, seasonNumber]
   );
 
+  const pool = (await query('SELECT * FROM pools WHERE id = ? LIMIT 1', [poolId]))[0];
   return getActiveEliteSubscription(userId, pool);
 }
 

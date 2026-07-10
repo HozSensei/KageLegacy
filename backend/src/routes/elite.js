@@ -9,7 +9,7 @@ import {
   updateEquippedCosmetics,
 } from '../services/senseiIdentityService.js';
 import { findUserPool } from '../services/poolService.js';
-import { createEliteCheckoutSession } from '../services/eliteStripeService.js';
+import { createEliteCheckoutSession, confirmEliteCheckoutSession } from '../services/eliteStripeService.js';
 import {
   getEliteToolsPayloadForUser,
   simulateEliteMatchup,
@@ -86,6 +86,19 @@ router.post('/checkout', async (req, res, next) => {
 
     const session = await createEliteCheckoutSession(user.id);
     res.json(session);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/checkout/confirm', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const sessionId = req.query.session_id;
+    const result = await confirmEliteCheckoutSession(user.id, sessionId);
+    res.json(result);
   } catch (error) {
     next(error);
   }

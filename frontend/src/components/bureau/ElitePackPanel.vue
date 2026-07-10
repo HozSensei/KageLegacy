@@ -1,15 +1,19 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import { useEliteStore } from '../../stores/elite'
 import EliteIdentityEditor from './EliteIdentityEditor.vue'
 
 defineOptions({ name: 'ElitePackPanel' })
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const elite = useEliteStore()
 const activating = ref(false)
 const activateError = ref(null)
+const checkoutNotice = ref(null)
 
 const isActive = computed(() => Boolean(elite.subscription?.isActive))
 const pass = computed(() => elite.seasonPass)
@@ -19,11 +23,41 @@ const progressPct = computed(() => {
   return Math.round((s.completed / s.total) * 100)
 })
 
-onMounted(() => elite.fetchElite())
+onMounted(() => handleCheckoutReturn())
+
+async function handleCheckoutReturn() {
+  const sessionId = typeof route.query.session_id === 'string' ? route.query.session_id : null
+  const eliteStatus = route.query.elite
+
+  if (sessionId) {
+    checkoutNotice.value = 'confirming'
+    activateError.value = null
+    try {
+      await elite.confirmCheckout(sessionId)
+      checkoutNotice.value = 'success'
+    } catch (e) {
+      activateError.value = e.message
+      checkoutNotice.value = 'error'
+    }
+  } else if (eliteStatus === 'canceled') {
+    checkoutNotice.value = 'canceled'
+    await elite.fetchElite()
+  } else {
+    await elite.fetchElite()
+  }
+
+  if (sessionId || eliteStatus) {
+    const nextQuery = { ...route.query }
+    delete nextQuery.session_id
+    delete nextQuery.elite
+    router.replace({ path: route.path, query: nextQuery })
+  }
+}
 
 async function activatePack() {
   activating.value = true
   activateError.value = null
+  checkoutNotice.value = null
   try {
     await elite.startCheckout()
   } catch (e) {
@@ -43,7 +77,32 @@ function questProgress(quest) {
   <div class="mt-10 border-t border-line pt-8" data-testid="elite-pack-panel">
     <p class="section-label">{{ t('elitePack.title') }}</p>
 
-    <p v-if="elite.loading && !pass" class="mt-4 text-sm text-ink-muted">{{ t('common.loading') }}</p>
+    <p
+      v-if="checkoutNotice === 'confirming'"
+      class="mt-4 border-l-2 border-accent pl-4 text-sm text-ink-muted"
+      data-testid="elite-checkout-confirming"
+    >
+      {{ t('elitePack.checkoutConfirming') }}
+    </p>
+    <p
+      v-else-if="checkoutNotice === 'success'"
+      class="mt-4 border-l-2 border-accent pl-4 text-sm"
+      data-testid="elite-checkout-success"
+    >
+      <span class="text-accent">{{ t('elitePack.checkoutSuccess') }}</span>
+      <span class="mt-2 block text-ink-muted">{{ t('elitePack.checkoutThanks') }}</span>
+    </p>
+    <p
+      v-else-if="checkoutNotice === 'canceled'"
+      class="mt-4 border-l-2 border-line pl-4 text-sm text-ink-muted"
+      data-testid="elite-checkout-canceled"
+    >
+      {{ t('elitePack.checkoutCanceled') }}
+    </p>
+
+    <p v-if="elite.loading && !pass && !checkoutNotice" class="mt-4 text-sm text-ink-muted">
+      {{ t('common.loading') }}
+    </p>
 
     <template v-else-if="!isActive">
       <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ t('elitePack.inactiveLead') }}</p>
