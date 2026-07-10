@@ -18,6 +18,46 @@ export const useEliteStore = defineStore('elite', () => {
   const reportLoading = ref(false)
   const reportError = ref(null)
   const lastMatchup = ref(null)
+  const checkoutNotice = ref(null)
+  const checkoutError = ref(null)
+
+  function clearCheckoutNotice() {
+    checkoutNotice.value = null
+    checkoutError.value = null
+  }
+
+  async function handleCheckoutReturn(route, router) {
+    const sessionId = typeof route.query.session_id === 'string' ? route.query.session_id : null
+    const eliteStatus = route.query.elite
+
+    clearCheckoutNotice()
+
+    if (sessionId) {
+      checkoutNotice.value = 'confirming'
+      try {
+        await confirmCheckout(sessionId)
+        checkoutNotice.value = 'success'
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } catch (e) {
+        checkoutError.value = e.message
+        checkoutNotice.value = 'error'
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    } else if (eliteStatus === 'canceled') {
+      checkoutNotice.value = 'canceled'
+      await fetchElite()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      await fetchElite()
+    }
+
+    if (sessionId || eliteStatus) {
+      const nextQuery = { ...route.query }
+      delete nextQuery.session_id
+      delete nextQuery.elite
+      router.replace({ path: route.path, query: nextQuery })
+    }
+  }
 
   function applyPayload(data) {
     subscription.value = data.subscription ?? null
@@ -68,11 +108,13 @@ export const useEliteStore = defineStore('elite', () => {
   }
 
   async function startCheckout() {
+    clearCheckoutNotice()
     const res = await fetch(`${API_BASE}/api/elite/checkout`, { method: 'POST' })
     if (!res.ok) throw new Error(await readApiError(res))
     const data = await res.json()
     if (data.mode === 'dev_grant') {
       await fetchElite()
+      checkoutNotice.value = 'success'
       return data
     }
     if (data.url) {
@@ -158,5 +200,9 @@ export const useEliteStore = defineStore('elite', () => {
     reportLoading,
     reportError,
     lastMatchup,
+    checkoutNotice,
+    checkoutError,
+    clearCheckoutNotice,
+    handleCheckoutReturn,
   }
 })

@@ -5,7 +5,8 @@
   "common": {
     "loading": "Chargement…",
     "vs": "vs",
-    "ryosAmount": "{amount} Ryos"
+    "ryosAmount": "{amount} Ryos",
+    "dismiss": "Fermer"
   },
   "gameClock": {
     "label": "H{hour} · {phase}",
