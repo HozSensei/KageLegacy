@@ -1,11 +1,13 @@
+import { query } from '../config/database.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
 import { createNinja, loadGlobalIdentityKeySet } from '../models/ninja.js';
-import { query } from '../config/database.js';
 import {
   distributeCharacterTraits,
   generateNinjaProfile,
 } from './ninjaGenerator.js';
 import { ninjaIdentityKey } from './ninjaNaming.js';
+import { alignPoolBotsToHuman } from './botFactory.js';
+import { findUserPool } from './poolService.js';
 
 /**
  * Escouade de départ : 1 Chunin (poste actif central) + 5 Genin (2 actifs, 3 banc).
@@ -46,6 +48,11 @@ export async function provisionStarterSquad(userId, language = 'fr') {
       ...profile,
       squad_position,
     });
+  }
+
+  const pool = await findUserPool(userId);
+  if (pool) {
+    await alignPoolBotsToHuman(pool.id, userId);
   }
 }
 

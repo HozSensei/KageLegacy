@@ -14,6 +14,7 @@ const { t } = useI18n()
 const elite = useEliteStore()
 
 const opponentComp = ref('assaut')
+const opponentLevel = ref('similar')
 const simulating = ref(false)
 const simError = ref(null)
 
@@ -46,7 +47,7 @@ async function runMatchup() {
   simulating.value = true
   simError.value = null
   try {
-    await elite.simulateMatchup(opponentComp.value)
+    await elite.simulateMatchup(opponentComp.value, opponentLevel.value)
   } catch (e) {
     simError.value = e.message
   } finally {
@@ -143,6 +144,22 @@ async function runMatchup() {
               </option>
             </select>
           </label>
+          <label class="text-xs">
+            <span class="text-ink-muted">{{ t('eliteTools.opponentLevel') }}</span>
+            <select
+              v-model="opponentLevel"
+              class="mt-1 block border border-line bg-bg px-3 py-2 text-sm text-ink"
+              data-testid="elite-matchup-level-select"
+            >
+              <option
+                v-for="lvl in tools.levelOptions"
+                :key="lvl.value"
+                :value="lvl.value"
+              >
+                {{ lvl.label }}
+              </option>
+            </select>
+          </label>
           <button
             type="button"
             class="btn-ghost text-xs"
@@ -158,6 +175,9 @@ async function runMatchup() {
         <div v-if="matchup" class="mt-4 border border-accent/30 bg-bg-card/40 p-4 text-sm" data-testid="elite-matchup-result">
           <p class="text-xs text-ink-muted">
             {{ t('eliteTools.simDuel', { mine: matchup.myCompositionLabel, opp: matchup.opponentCompositionLabel }) }}
+            <span v-if="matchup.opponentLevelLabel" class="text-ink-faint">
+              · {{ t('eliteTools.simLevel', { level: matchup.opponentLevelLabel }) }}
+            </span>
           </p>
 
           <p class="mt-3 text-base font-semibold" :class="verdictToneClass">

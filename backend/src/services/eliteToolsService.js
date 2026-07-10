@@ -4,11 +4,7 @@ import { buildCombatTeam } from './combat/matchLoader.js';
 import { getHeritageBonuses, listHeritageScrolls, applyPercentDiscount } from './heritageService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { computeTrainingCost, computeTrainingGain } from './training.js';
-import {
-  cloneNinja,
-  createPureCompositionSquad,
-  runMonteCarlo,
-} from './simulation/cycleSimulator.js';
+import { cloneNinja, runMonteCarlo } from './simulation/cycleSimulator.js';
 import { DIVISION_ROMAN } from '../models/league.js';
 import {
   assertEliteToolsAccess,
@@ -16,8 +12,31 @@ import {
   buildSimulationVerdict,
   compareCompositions,
 } from './eliteReportService.js';
+import {
+  buildOpponentSquadFromPlayer,
+  getOpponentLevelMultiplier,
+  normalizeOpponentLevel,
+  OPPONENT_LEVEL_IDS,
+} from './combat/squadPowerScaling.js';
 
 const COMPOSITION_OPTIONS = ['assaut', 'mur', 'flux', 'equilibre'];
+
+const OPPONENT_LEVEL_LABELS = {
+  fr: {
+    weaker: 'Plus faible',
+    slightly_weaker: 'Légèrement plus faible',
+    similar: 'Similaire',
+    slightly_stronger: 'Légèrement plus fort',
+    stronger: 'Plus fort',
+  },
+  en: {
+    weaker: 'Weaker',
+    slightly_weaker: 'Slightly weaker',
+    similar: 'Similar',
+    slightly_stronger: 'Slightly stronger',
+    stronger: 'Stronger',
+  },
+};
 
 function summarizeSquadOrders(ninjas) {
   const counts = { Offensive: 0, Tank: 0, Protect: 0, Normal: 0 };
@@ -198,12 +217,17 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
       value,
       label: compositionLabel(value, lang),
     })),
+    levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
+      value,
+      label: OPPONENT_LEVEL_LABELS[lang][value],
+      multiplier: getOpponentLevelMultiplier(value),
+    })),
   };
 }
 
 export async function simulateEliteMatchup(
   userId,
-  { opponentComposition, runs = 100, locale = 'fr' } = {}
+  { opponentComposition, opponentLevel, runs = 100, locale = 'fr' } = {}
 ) {
   await assertEliteToolsAccess(userId);
 
@@ -211,6 +235,7 @@ export async function simulateEliteMatchup(
   const opponent = COMPOSITION_OPTIONS.includes(opponentComposition)
     ? opponentComposition
     : 'assaut';
+  const level = normalizeOpponentLevel(opponentLevel);
 
   const { ninjas, composition } = await loadActiveSquadComposition(userId);
   if (ninjas.length < 3) {
@@ -220,7 +245,7 @@ export async function simulateEliteMatchup(
   }
 
   const mySquad = ninjas.map(dbNinjaToSim);
-  const oppSquad = createPureCompositionSquad('Opp', opponent, 100, 1);
+  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponent, level).map(dbNinjaToSim);
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
 
   const result = runMonteCarlo({
@@ -232,10 +257,14 @@ export async function simulateEliteMatchup(
 
   const matchup = compareCompositions(composition, opponent);
   const winPct = result.slotAWinPct;
+  const levelLabel = OPPONENT_LEVEL_LABELS[lang][level];
 
   return {
     myComposition: composition,
     opponentComposition: opponent,
+    opponentLevel: level,
+    opponentLevelLabel: levelLabel,
+    opponentLevelMultiplier: getOpponentLevelMultiplier(level),
     myCompositionLabel: compositionLabel(composition, lang),
     opponentCompositionLabel: compositionLabel(opponent, lang),
     runs: runCount,
@@ -251,6 +280,7 @@ export async function simulateEliteMatchup(
       matchup,
       myComposition: composition,
       opponentComposition: opponent,
+      opponentLevel: level,
       locale: lang,
       squadContext: {
         orderCounts: summarizeSquadOrders(ninjas),

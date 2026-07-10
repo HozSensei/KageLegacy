@@ -3,10 +3,18 @@ import { createNinja, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { findAllClanTraits } from '../models/clanTrait.js';
 import { pickUniqueCivName } from './ninjaNameGenerator.js';
 import { ninjaIdentityKey } from './ninjaNaming.js';
+import { computeMatchChakraMax, computeMatchPv, computeSalaryCost } from './ninjaStats.js';
+import {
+  alignBotNinjasToPower,
+  squadAveragePower,
+} from './combat/squadPowerScaling.js';
+
 const BOT_SENSEI_NAMES = ['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might'];
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 const TRAITS = ['Discipline', 'Discipline', 'Temeraire', 'Altruiste', 'Discipline'];
+
+const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
 function pick(arr, index) {
   return arr[index % arr.length];
@@ -14,7 +22,7 @@ function pick(arr, index) {
 
 async function createBotSquad(userId, slotIndex, clans) {
   const clan = clans[slotIndex % clans.length];
-  const base = 6 + (slotIndex % 4);
+  const base = 4 + (slotIndex % 3);
   const profiles = [
     { taijutsu: base + 2, ninjutsu: base, genjutsu: base - 1, medecine: base - 2, vitesse: base, intelligence: base + 1 },
     { taijutsu: base, ninjutsu: base + 2, genjutsu: base + 1, medecine: base - 1, vitesse: base, intelligence: base },
@@ -49,6 +57,82 @@ async function createBotSquad(userId, slotIndex, clans) {
       squad_position: i + 1,
     });
   }
+}
+
+async function persistNinjaStats(ninja) {
+  const stats = {
+    taijutsu: ninja.taijutsu,
+    ninjutsu: ninja.ninjutsu,
+    genjutsu: ninja.genjutsu,
+    medecine: ninja.medecine,
+    vitesse: ninja.vitesse,
+    intelligence: ninja.intelligence,
+  };
+  const salary_cost = computeSalaryCost(ninja.grade, stats);
+  const current_pv_match = computeMatchPv(stats.taijutsu);
+  const current_chakra_match = computeMatchChakraMax(ninja.grade, stats.ninjutsu);
+
+  await query(
+    `UPDATE ninjas
+     SET taijutsu = ?, ninjutsu = ?, genjutsu = ?, medecine = ?, vitesse = ?, intelligence = ?,
+         salary_cost = ?, current_pv_match = ?, current_chakra_match = ?
+     WHERE id = ?`,
+    [
+      stats.taijutsu,
+      stats.ninjutsu,
+      stats.genjutsu,
+      stats.medecine,
+      stats.vitesse,
+      stats.intelligence,
+      salary_cost,
+      current_pv_match,
+      current_chakra_match,
+      ninja.id,
+    ]
+  );
+}
+
+/**
+ * Aligne les bots d'une ligue sur la puissance moyenne de l'escouade active du joueur.
+ */
+export async function alignPoolBotsToHuman(poolId, humanUserId) {
+  const humanNinjas = await query(
+    `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+    [humanUserId]
+  );
+  if (humanNinjas.length < 3) return { aligned: 0 };
+
+  const targetPower = squadAveragePower(humanNinjas);
+  if (!targetPower) return { aligned: 0 };
+
+  const bots = await query(
+    `SELECT u.id AS user_id
+     FROM pool_members pm
+     JOIN users u ON u.id = pm.user_id
+     WHERE pm.pool_id = ? AND u.is_bot = TRUE`,
+    [poolId]
+  );
+
+  let aligned = 0;
+  for (const bot of bots) {
+    const botNinjas = await query(
+      `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+      [bot.user_id]
+    );
+    if (botNinjas.length < 3) continue;
+
+    const scaled = alignBotNinjasToPower(botNinjas, targetPower);
+    for (let i = 0; i < botNinjas.length; i += 1) {
+      const next = { ...botNinjas[i], ...scaled[i] };
+      const changed = STAT_KEYS.some((key) => next[key] !== botNinjas[i][key]);
+      if (changed) {
+        await persistNinjaStats(next);
+        aligned += 1;
+      }
+    }
+  }
+
+  return { aligned, targetPower };
 }
 
 export async function findAvailableBotSlotIndex(poolId) {
