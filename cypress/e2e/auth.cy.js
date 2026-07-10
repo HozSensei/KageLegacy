@@ -22,6 +22,5 @@ describe('Auth — connexion démo', () => {
     cy.get('[data-testid="profile-logout"]').click();
     cy.url().should('include', '/');
     cy.get('[data-testid="landing-page"]').should('be.visible');
-    Cypress.session.clearAllSavedSessions();
   });
 });

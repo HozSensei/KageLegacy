@@ -22,6 +22,7 @@
     "economy:calibrate": "node scripts/calibrateEconomy.js",
     "test:daily-seal": "node scripts/testDailySealImport.js",
     "test:narrative": "node scripts/testNarrativeEngine.js",
+    "test:egoiste": "node scripts/testEgoisteInsubordination.js",
     "narrative:backfill": "node scripts/backfillNarrativeI18n.js",
     "test:retention": "node scripts/testRetentionSystem.js && node scripts/testPlayerClans.js && node scripts/testRetentionClansIntegration.js && node scripts/testAccountDeletionClans.js && node scripts/testAccountDeletionGuest.js && node scripts/testGuestCleanup.js && node scripts/testHeritageMatchShop.js",
     "cycle:tick": "node scripts/cycleTick.js",

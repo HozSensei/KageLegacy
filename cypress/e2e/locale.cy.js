@@ -1,7 +1,7 @@
 describe('Interface — locale', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/bureau');
+    cy.visit('/missions');
     cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
   });
 
