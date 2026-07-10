@@ -126,27 +126,51 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 
 ### Consignes individuelles
 
-Chaque actif reçoit une consigne de combat :
+Chaque ninja actif reçoit **une consigne de combat**. C'est le levier principal en match : elle modifie le ciblage, les soins et la priorité d'attaque.
 
-| Consigne | Rôle tactique |
-|----------|---------------|
-| **Normal** | Comportement équilibré ; l'attaquant est tiré au sort |
-| **Offensive** | Priorité à l'attaque (meilleure stat de combat) |
-| **Tank** | Forte probabilité d'être ciblé en défense |
-| **Protect** | Peut soigner un allié désigné lorsqu'il est gravement blessé |
+| Consigne | Rôle en match | Quand l'utiliser |
+|----------|---------------|----------------|
+| **Normal** | Comportement équilibré ; l'attaquant adverse vous cible selon les règles standard. | Ninja polyvalent, ou lorsque vous ne voulez pas forcer un rôle. |
+| **Offensive** | Priorité à l'attaque : le ninja choisit sa meilleure stat de combat pour frapper. | Spécialiste de dégâts, burst, pression rapide ; escouade qui veut finir tôt. |
+| **Défensive** | Forte probabilité d'**être ciblé** quand l'adversaire attaque — le ninja sert de bouclier. | Absorber la pression pour protéger un allié fragile ; cartes de parade ou de réduction de dégâts. |
+| **Protection** | Peut **soigner un allié désigné** lorsqu'il est gravement blessé. | Soutien, médecin, maintien de la ligne ; cartes de soin. |
 
-### Compositions d'équipe (meta)
+> **Vocabulaire :** en interface et dans ce guide, **Défensive** remplace l'ancien terme « Tank » (provocation) et **Protection** remplace « Protect » (soutien allié). Les valeurs techniques du serveur restent inchangées.
 
-Le moteur détecte un **archétype** selon les consignes des trois actifs encore debout :
+### Quand composer votre escouade
 
-| Composition | Condition | Style |
-|-------------|-----------|-------|
-| **Assaut** | Majorité Offensive | Burst, pression directe |
-| **Mur** | Majorité Tank | Absorption des dégâts |
-| **Flux** | Majorité Protect | Genjutsu, soins, usure |
-| **Équilibrée** | Mélange sans majorité | Hors du cercle, pas de bonus de matchup |
+- **2 Offensive + 1 Défensive** : pression directe avec un bouclier.
+- **1 Offensive + 1 Défensive + 1 Protection** : équilibre classique — burst, absorption, soin.
+- **2 Protection + 1 Défensive** : match lent, survie et usure (genjutsu, soins).
+- **3 Normal** : pas de rôle assumé — viable mais sans synergie de ciblage.
 
-**Cercle tactique :** Assaut bat Mur · Mur bat Flux · Flux bat Assaut. L'archétype favorisé dans un duel reçoit un **léger bonus** offensif et défensif ; l'escouade équilibrée reste neutre face aux trois pures.
+Les **traits** modifient ce tableau : un **Égoïste** ignore parfois le ciblage défensif et ne se mettra jamais en consigne Défensive.
+
+### Dossier d'opération (postures)
+
+À partir de **H36**, l'**espionnage** révèle des indices sur l'adversaire (voies, consignes repérées, vitesse, élément). Dans l'écran **Escouade**, le **dossier d'opération** vous permet de choisir une **posture** avant le gel tactique (**H71**).
+
+| Posture | Intention | Quand la choisir |
+|---------|-----------|------------------|
+| **Équilibrée** | Pas de pari marqué sur le cycle. | Adversaire peu lisible, escouade mixte, ou vous affinez encore consignes et cartes. |
+| **Offensive** | Gagner l'initiative et finir vite. | Votre escouade est montée Offensive ; l'espionnage signale aussi une disposition offensive adverse (miroir) ou une escouade lente. |
+| **Défensive** | Tenir la ligne sous la pression. | Vous avez au moins un ninja en consigne Défensive ; l'adversaire montre **2 consignes Offensive** ou plus. |
+| **Protection** | Survivre au tempo, soigner, protéger. | Vous avez des consignes Protection et des cartes de soin ; l'adversaire est **rapide** ou à **fort potentiel** (échanges longs risqués). |
+
+**Important :** la posture **ne donne pas de bonus caché** en match. Elle enregistre votre **plan de cycle** et adapte les **conseils** du dossier (croisement avec l'espionnage). Pour que le plan soit réel, alignez **posture + consignes + cartes tactiques** sur chaque ninja.
+
+### Cartes tactiques
+
+Chaque ninja actif peut équiper **une carte tactique** (inventaire → équipement). Les cartes remplacent l'ancien « cercle de composition » (Assaut / Mur / Flux) : elles apportent des effets situationnels en combat.
+
+| Règle | Détail |
+|-------|--------|
+| **Charges** | 3 charges par carte ; une charge est consommée **uniquement si la carte se déclenche**. |
+| **Proc** | **1 déclenchement maximum par ninja et par match.** |
+| **Épuisement** | À 0 charge, la carte disparaît de l'inventaire (à re-looter). |
+| **Synergie** | Cartes d'**attaque** → consigne Offensive ; cartes de **défense** → Défensive ; cartes de **soutien** → Protection. |
+
+Exemples : parade si ciblé deux fois au même tour (Défensive), chip de dégâts à l'attaque (Offensive), soin d'allié blessé (Protection).
 
 ---
 
@@ -375,7 +399,7 @@ Chaque échange oppose attaquant et défenseur. Le serveur combine :
 - les stats pertinentes (combat, vitesse, intelligence) ;
 - un **facteur aléatoire** (dés) pour éviter l'issue purement déterministe ;
 - des modificateurs : éléments, forme, composition d'équipe, traits, équipement ;
-- des événements spéciaux : **critiques**, **ratés**, **Genjutsu** (paralysie ou confusion), **soins** des Protect.
+- des événements spéciaux : **critiques**, **ratés**, **Genjutsu** (paralysie ou confusion), **soins** des ninjas en consigne Protection.
 
 Le **Sensei** peut tenter d'**intercepter un coup fatal** sur un de ses ninjas : cela consomme du chakra de match et dépend de l'Intelligence moyenne de l'escouade.
 
@@ -402,7 +426,7 @@ La **possession** (temps d'initiative) sert à la narration et au débrief — e
 | Écran | Rôle |
 |-------|------|
 | **Bureau** | Hub : budget, examens, Vol d'Oiseau, hôpital, Académie, Sceau de Chakra |
-| **Escouade** | Composition, consignes, échanges actif/banc |
+| **Escouade** | Composition, consignes, dossier d'opération (postures), échanges actif/banc |
 | **Entraînement** | Focus par stat, prévision de coût |
 | **Missions** | Contrats idle |
 | **Ligue** | Classement, calendrier, espionnage |
@@ -425,4 +449,4 @@ Une cloche dans l'interface signale les événements importants : fin de mission
 | Date | Changement |
 |------|------------|
 | 2026-07-09 | Création du document (règles joueur, sans formules exactes) |
-| 2026-07-09 | Renommage dispensaire → hôpital ; intégration dans l'interface joueur |
+| 2026-07-10 | Consignes renommées (Défensive / Protection), guide postures & cartes tactiques ; retrait du cercle Assaut/Mur/Flux |

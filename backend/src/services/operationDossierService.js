@@ -14,15 +14,20 @@ const POSTURE_LABELS = {
   fr: {
     balanced: 'Équilibrée',
     offensive: 'Offensive',
-    tank: 'Tank',
-    protect: 'Protect',
+    tank: 'Défensive',
+    protect: 'Protection',
   },
   en: {
     balanced: 'Balanced',
     offensive: 'Offensive',
-    tank: 'Tank',
-    protect: 'Protect',
+    tank: 'Defensive',
+    protect: 'Protection',
   },
+};
+
+const ORDER_LABELS = {
+  fr: { Offensive: 'Offensive', Tank: 'Défensive', Protect: 'Protection', Normal: 'Normal' },
+  en: { Offensive: 'Offensive', Tank: 'Defensive', Protect: 'Protection', Normal: 'Normal' },
 };
 
 function normalizeLocale(locale) {
@@ -52,6 +57,7 @@ function summarizeOrders(ninjas) {
 
 function buildOwnSquadSummary(ninjas, cardByNinjaId, lang) {
   const orderCounts = summarizeOrders(ninjas);
+  const L = ORDER_LABELS[lang] || ORDER_LABELS.fr;
   const speed = ninjas.reduce((s, n) => s + Number(n.vitesse) + Number(n.intelligence), 0);
   const members = ninjas.map((n) => {
     const profile = describeNinjaProfile(n, lang);
@@ -75,7 +81,7 @@ function buildOwnSquadSummary(ninjas, cardByNinjaId, lang) {
 
   return {
     orderCounts,
-    ordersLabel: `${orderCounts.Offensive} Off · ${orderCounts.Tank} Tank · ${orderCounts.Protect} Protect · ${orderCounts.Normal} Normal`,
+    ordersLabel: `${orderCounts.Offensive} ${L.Offensive} · ${orderCounts.Tank} ${L.Tank} · ${orderCounts.Protect} ${L.Protect} · ${orderCounts.Normal} ${L.Normal}`,
     teamSpeed: speed,
     members,
     cardsEquipped: members.filter((m) => m.tacticCard).length,
@@ -97,15 +103,15 @@ function buildAdvice({ posture, ownSquad, scout, environmentSlug, lang }) {
   if (posture === 'tank' && tendencies.offensive >= 2) {
     tips.push(
       lang === 'en'
-        ? 'Your Tank posture counters their offensive spread — keep a durable front line.'
-        : 'Votre posture Tank contre leur disposition offensive — tenez une ligne solide.'
+        ? 'Your Defensive posture counters their offensive spread — keep a durable front line.'
+        : 'Votre posture Défensive contre leur disposition offensive — tenez une ligne solide.'
     );
   }
   if (posture === 'protect' && tendencies.speedBand === 'fast') {
     tips.push(
       lang === 'en'
-        ? 'Fast opponent — Protect orders and healing cards help survive the tempo.'
-        : 'Adversaire rapide — consignes Protect et cartes de soin pour tenir le tempo.'
+        ? 'Fast opponent — Protection orders and healing cards help survive the tempo.'
+        : 'Adversaire rapide — consignes Protection et cartes de soin pour tenir le tempo.'
     );
   }
   if (ownSquad.cardsEquipped < ninjasMinCards(ownSquad) && lang === 'fr') {

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 
 const props = defineProps({
   dossier: { type: Object, default: null },
@@ -22,6 +23,17 @@ watch(
 )
 
 const canEdit = computed(() => props.dossier && !props.dossier.tacticsLocked)
+
+const postureDescription = computed(() => {
+  const key = posture.value || 'balanced'
+  return t(`dossier.postures.${key}`)
+})
+
+const rulesTacticsLink = { path: '/rules', hash: '#cartes-tactiques' }
+
+function strategyLabel(strategy) {
+  return t(`squad.strategies.${strategy}`, strategy)
+}
 
 async function savePosture() {
   if (!canEdit.value || posture.value === props.dossier?.operationPosture) return
@@ -68,7 +80,7 @@ async function savePosture() {
         <ul class="mt-4 space-y-2 text-xs text-ink-muted">
           <li v-for="member in dossier.ownSquad.members" :key="member.name">
             <span class="text-ink">{{ member.name }}</span>
-            · {{ member.battleStrategy }}
+            · {{ strategyLabel(member.battleStrategy) }}
             · {{ member.artLabel }}
             <template v-if="member.tacticCard">
               · {{ t('dossier.cardEquipped') }}
@@ -111,6 +123,18 @@ async function savePosture() {
           </option>
         </select>
       </label>
+      <p class="mt-2 max-w-xl text-xs leading-relaxed text-ink-muted">
+        {{ t('dossier.postureHelp') }}
+      </p>
+      <p class="mt-2 max-w-xl text-xs leading-relaxed text-ink">
+        {{ postureDescription }}
+      </p>
+      <RouterLink
+        :to="rulesTacticsLink"
+        class="mt-3 inline-block text-xs text-accent underline-offset-2 hover:underline"
+      >
+        {{ t('dossier.rulesLink') }}
+      </RouterLink>
       <p v-if="dossier.tacticsLocked" class="mt-2 text-xs text-fire">{{ t('dossier.locked') }}</p>
     </div>
 

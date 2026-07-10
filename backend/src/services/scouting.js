@@ -100,15 +100,15 @@ function buildTendencyLines(strategies, speed, element, lang) {
   if (strategies.Tank >= 1) {
     lines.push(
       lang === 'en'
-        ? 'At least one Tank order detected.'
-        : 'Au moins une consigne Tank repérée.'
+        ? 'At least one Defensive order detected.'
+        : 'Au moins une consigne Défensive repérée.'
     );
   }
   if (strategies.Protect >= 1) {
     lines.push(
       lang === 'en'
-        ? 'Protect orders spotted — expect targeted heals under pressure.'
-        : 'Consignes Protect repérées — soins ciblés probables sous pression.'
+        ? 'Protection orders spotted — expect targeted heals under pressure.'
+        : 'Consignes Protection repérées — soins ciblés probables sous pression.'
     );
   }
   if (speedBand(speed, lang) === 'fast') {

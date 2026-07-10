@@ -126,27 +126,51 @@ Morale (internal scale) affects squad stability. It drops notably on Chunin exam
 
 ### Individual orders
 
-Each active receives a combat order:
+Each active ninja receives **one combat order**. This is the main in-match lever: it changes targeting, healing, and attack priority.
 
-| Order | Tactical role |
-|-------|---------------|
-| **Normal** | Balanced behavior; attacker chosen at random |
-| **Offensive** | Attack priority (best combat stat) |
-| **Tank** | High chance of being targeted on defense |
-| **Protect** | Can heal a designated ally when critically wounded |
+| Order | Role in match | When to use |
+|-------|---------------|-------------|
+| **Normal** | Balanced behavior; enemies target you by standard rules. | Versatile ninja, or when you don't want to force a role. |
+| **Offensive** | Attack priority: the ninja uses their best combat stat to strike. | Damage specialist, burst, fast pressure; squads that want to end early. |
+| **Defensive** | High chance of **being targeted** when the enemy attacks — acts as a shield. | Absorb pressure to protect a fragile ally; parry or damage-reduction cards. |
+| **Protection** | Can **heal a designated ally** when critically wounded. | Support, medic, holding the line; healing cards. |
 
-### Team compositions (meta)
+> **Terminology:** in the UI and this guide, **Defensive** replaces the old “Tank” label (provocation) and **Protection** replaces “Protect” (ally support). Server values are unchanged.
 
-The engine detects an **archetype** from orders of the three actives still standing:
+### How to compose your squad
 
-| Composition | Condition | Style |
-|-------------|-----------|-------|
-| **Assault** | Majority Offensive | Burst, direct pressure |
-| **Wall** | Majority Tank | Damage absorption |
-| **Flow** | Majority Protect | Genjutsu, heals, attrition |
-| **Balanced** | Mixed, no majority | Outside the circle, no matchup bonus |
+- **2 Offensive + 1 Defensive**: direct pressure with a shield.
+- **1 Offensive + 1 Defensive + 1 Protection**: classic balance — burst, absorption, heal.
+- **2 Protection + 1 Defensive**: slow match, survival and attrition (genjutsu, heals).
+- **3 Normal**: no assumed role — viable but no targeting synergy.
 
-**Tactical circle:** Assault beats Wall · Wall beats Flow · Flow beats Assault. The favored archetype in a duel gets a **slight** offensive and defensive bonus; a balanced squad stays neutral against pure compositions.
+**Traits** change this: **Selfish** ninjas may ignore defensive targeting and will never take the Defensive order.
+
+### Operation dossier (postures)
+
+From **H36**, **scouting** reveals hints about the opponent (arts, spotted orders, speed, element). On the **Squad** screen, the **operation dossier** lets you pick a **posture** before the tactical lock (**H71**).
+
+| Posture | Intent | When to pick |
+|---------|--------|--------------|
+| **Balanced** | No strong bet this cycle. | Fuzzy opponent read, mixed squad, or still tuning orders and cards. |
+| **Offensive** | Win initiative and finish fast. | Your squad runs Offensive orders; scout shows an offensive spread or a slow enemy. |
+| **Defensive** | Hold the line under pressure. | You have at least one Defensive order; enemy shows **2+ Offensive** orders. |
+| **Protection** | Survive tempo, heal, protect. | You run Protection orders and healing cards; enemy is **fast** or **high potential** (long trades risky). |
+
+**Important:** posture grants **no hidden combat bonus**. It records your **cycle plan** and shapes **dossier advice** (cross-checked with scouting). For the plan to matter, align **posture + orders + tactic cards** on each ninja.
+
+### Tactic cards
+
+Each active ninja can equip **one tactic card** (inventory → equip). Cards replaced the old composition circle (Assault / Wall / Flow): they add situational effects in combat.
+
+| Rule | Detail |
+|------|--------|
+| **Charges** | 3 charges per card; a charge is spent **only when the card triggers**. |
+| **Proc** | **At most one trigger per ninja per match.** |
+| **Depletion** | At 0 charges, the card leaves inventory (re-loot). |
+| **Synergy** | **Attack** cards → Offensive; **defense** cards → Defensive; **support** cards → Protection. |
+
+Examples: parry when targeted twice same turn (Defensive), chip damage on attack (Offensive), heal wounded ally (Protection).
 
 ---
 
@@ -375,7 +399,7 @@ Each exchange pits attacker vs defender. The server combines:
 - relevant stats (combat, speed, intelligence);
 - a **random factor** (dice) to avoid purely deterministic outcomes;
 - modifiers: elements, form, team composition, traits, equipment;
-- special events: **crits**, **misses**, **Genjutsu** (paralysis or confusion), **Protect** heals.
+- special events: **crits**, **misses**, **Genjutsu** (paralysis or confusion), **Protection** order heals.
 
 The **Sensei** may try to **intercept a fatal blow** on a ninja: this spends match chakra and depends on squad average Intelligence.
 
@@ -402,7 +426,7 @@ The **Sensei** may try to **intercept a fatal blow** on a ninja: this spends mat
 | Screen | Role |
 |--------|------|
 | **Office** | Hub: budget, exams, Bird Flight, hospital, Academy, Chakra Seal |
-| **Squad** | Composition, orders, active/bench swaps |
+| **Squad** | Composition, orders, operation dossier (postures), active/bench swaps |
 | **Training** | Stat focus, cost forecast |
 | **Missions** | Idle contracts |
 | **League** | Standings, schedule, scouting |

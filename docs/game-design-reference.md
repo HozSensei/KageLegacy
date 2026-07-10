@@ -116,21 +116,16 @@ Pénalités : échec examen Chunin (−5), faillite salariale (moral escouade ac
 |----------|------|
 | **Normal** | Attaquant tiré au sort |
 | **Offensive** | Priorité attaque (meilleure stat combat) |
-| **Tank** | ~70 % de chances d’être ciblé en défense |
-| **Protect** | Peut soigner un allié désigné sous 50 % PV |
+| **Défensive** | ~70 % de chances d’être ciblé en défense (ex-Tank) |
+| **Protection** | Peut soigner un allié désigné sous 50 % PV (ex-Protect) |
 
-### Composition d’équipe (meta)
+### Dossier d'opération
 
-Détectée sur les **3 actifs encore debout** :
+Postures **Équilibrée / Offensive / Défensive / Protection** : plan de cycle + conseils (pas de bonus combat). Voir règles joueur §4.
 
-| Composition | Condition | Style |
-|-------------|-----------|-------|
-| **Assaut** | 2+ Offensive | Burst |
-| **Mur** | 2+ Tank | Absorption |
-| **Flux** | 2+ Protect | Genjutsu, soins |
-| **Équilibrée** | Sinon | Hors cercle, pas de bonus matchup |
+### Cartes tactiques
 
-**Cercle :** Assaut bat Mur · Mur bat Flux · Flux bat Assaut.
+Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie avec consignes.
 
 ---
 
