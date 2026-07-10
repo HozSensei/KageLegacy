@@ -23,7 +23,10 @@ export async function getInventoryForUser(userId) {
   const ninjas = await query(
     `SELECT n.id, n.name, n.squad_position, n.grade,
             match_ui.id AS match_item_id, match_idf.name_fr AS match_name_fr, match_idf.name_en AS match_name_en,
-            cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en
+            cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en,
+            ntc.user_tactic_card_id AS tactic_card_id,
+            tcd.name_fr AS tactic_card_name_fr, tcd.name_en AS tactic_card_name_en,
+            tcd.slug AS tactic_card_slug, utc.charges_remaining AS tactic_card_charges
      FROM ninjas n
      LEFT JOIN ninja_equipment ne_match ON ne_match.ninja_id = n.id AND ne_match.slot = 'match'
      LEFT JOIN user_items match_ui ON match_ui.id = ne_match.user_item_id
@@ -31,6 +34,9 @@ export async function getInventoryForUser(userId) {
      LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
      LEFT JOIN user_items cycle_ui ON cycle_ui.id = ne_cycle.user_item_id
      LEFT JOIN item_definitions cycle_idf ON cycle_idf.id = cycle_ui.item_definition_id
+     LEFT JOIN ninja_tactic_cards ntc ON ntc.ninja_id = n.id
+     LEFT JOIN user_tactic_cards utc ON utc.id = ntc.user_tactic_card_id
+     LEFT JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE n.user_id = ?
      ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
     [userId]
@@ -110,7 +116,7 @@ export async function equipItem(userId, ninjaId, userItemId) {
     }
   }
 
-  await query('DELETE FROM ninja_equipment WHERE ninja_id = ?', [ninjaId]);
+  await query('DELETE FROM ninja_equipment WHERE ninja_id = ? AND slot = ?', [ninjaId, slot]);
   await query('DELETE FROM ninja_equipment WHERE user_item_id = ?', [userItemId]);
   await query(
     'INSERT INTO ninja_equipment (ninja_id, slot, user_item_id) VALUES (?, ?, ?)',

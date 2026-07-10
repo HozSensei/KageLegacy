@@ -54,9 +54,8 @@ for (const [key, scenario] of Object.entries(bench.scenarios)) {
 printMultiCycle('équipes égales', bench.multiCycle.equalTeams);
 printMultiCycle('bot +40 % favori', bench.multiCycle.botFavored);
 
-console.log('\n── Compositions (matchups symétriques) ──');
-console.log('  Chaque paire jouée 50 % en slot A / 50 % en slot B · même sensei des deux côtés');
-console.log('  Cercle : compo favorisée ~54–70 % · Neutre : ~38–62 % chaque côté');
+console.log('\n── Styles de consignes (matchups symétriques — legacy benchmark) ──');
+console.log('  Chaque paire jouée 50 % en slot A / 50 % en slot B · référence historique cercle retiré du moteur');
 for (const [label, row] of Object.entries(bench.compositionMatrix)) {
   const mark = row.onTarget ? '✓' : '⚠';
   if (row.mirror) {

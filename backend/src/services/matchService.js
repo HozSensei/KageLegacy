@@ -5,6 +5,7 @@ import {
   persistSenseiChakra,
 } from './combat/postMatch.js';
 import { consumeUserItem } from './equipmentService.js';
+import { persistTacticCardCombatUsage } from './tacticCards/tacticCardPersistence.js';
 import { assembleNarrative } from './narrative/narrativeAssembler.js';
 import { persistNarrativeSegments } from './narrative/narrativeStore.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
@@ -62,6 +63,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
     for (const itemId of combat.consumedItemIds || []) {
       await consumeUserItem(itemId);
     }
+    await persistTacticCardCombatUsage([combat.homeTeam, combat.awayTeam]);
     const { result, winnerUserId } = mapWinnerToDb(
       combat.winner,
       match.home_user_id,

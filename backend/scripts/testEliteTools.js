@@ -7,8 +7,10 @@ import { grantEliteSubscription, getEliteMePayload } from '../src/services/elite
 import {
   buildEliteMatchReport,
   buildCompositionAdvice,
+  buildOrdersAdvice,
   buildSimulationVerdict,
   compareCompositions,
+  ELITE_RULES_COMPOSITION_ANCHOR,
 } from '../src/services/eliteReportService.js';
 import {
   getEliteToolsPayload,
@@ -86,7 +88,7 @@ async function seedSquad(userId) {
          user_id, name, grade, age, squad_position, training_focus,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
          moral, weekly_forme, battle_strategy, character_trait, element_affinity
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Taijutsu', 40, 35, 30, 20, 45, 30, 15, 'Passable', 'Normal', 'Discipline', 'Feu')`,
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Taijutsu', 40, 35, 30, 20, 45, 30, 15, 'Passable', 'Offensive', 'Discipline', 'Katon')`,
       [userId, `${PREFIX}_n${pos}`, pos]
     );
   }
@@ -94,34 +96,38 @@ async function seedSquad(userId) {
 
 async function main() {
   const advice = buildCompositionAdvice('assaut', 'fr');
-  console.assert(advice.myComposition === 'assaut', 'conseil compo assaut');
-  console.assert(compareCompositions('assaut', 'mur').myAdvantage, 'assaut > mur');
+  console.assert(advice.label, 'conseil consignes label');
+  console.assert(!compareCompositions('assaut', 'mur').myAdvantage, 'cercle retiré');
 
   const verdict = buildSimulationVerdict({
     winPct: 62,
-    matchup: compareCompositions('assaut', 'mur'),
-    myComposition: 'assaut',
-    opponentComposition: 'mur',
+    opponentStyle: 'tank',
+    opponentLevel: 'similar',
     locale: 'fr',
+    squadContext: {
+      orderCounts: { Offensive: 2, Tank: 1, Protect: 0, Normal: 0 },
+      avgMoral: 15,
+    },
   });
   console.assert(verdict.tone === 'favorable', 'verdict favorable');
   console.assert(verdict.factors.length >= 2, 'verdict facteurs');
   console.assert(verdict.advice.length >= 1, 'verdict conseils');
 
-  const equilibreVerdict = buildSimulationVerdict({
+  const hardVerdict = buildSimulationVerdict({
     winPct: 35,
-    matchup: compareCompositions('equilibre', 'assaut'),
-    myComposition: 'equilibre',
-    opponentComposition: 'assaut',
+    opponentStyle: 'offensive',
+    opponentLevel: 'similar',
     locale: 'fr',
     squadContext: {
       orderCounts: { Offensive: 1, Tank: 1, Protect: 1, Normal: 0 },
       avgMoral: 14,
     },
   });
-  console.assert(equilibreVerdict.tone === 'unfavorable', 'equilibre vs assaut défavorable');
-  console.assert(equilibreVerdict.advice.length >= 2, 'conseils equilibre vs spécialisé');
-  console.assert(equilibreVerdict.rulesAnchor === 'compositions-d-equipe-meta', 'ancre règles');
+  console.assert(hardVerdict.tone === 'unfavorable', 'matchup difficile');
+  console.assert(hardVerdict.rulesAnchor === ELITE_RULES_COMPOSITION_ANCHOR, 'ancre règles');
+
+  const orders = buildOrdersAdvice({ Offensive: 0, Tank: 0, Protect: 0, Normal: 3 }, 'fr');
+  console.assert(orders.tips.some((t) => t.includes('cartes') || t.includes('cards') || t.includes('Normal')), 'conseil consignes');
 
   const poolRows = await query(`SELECT p.* FROM pools p LIMIT 1`);
   if (!poolRows[0]) {
@@ -178,7 +184,7 @@ async function main() {
   console.assert(report.timeline.length >= 1, 'timeline');
   console.assert(report.techniqueBreakdown.mine.Taijutsu === 18, 'breakdown tai');
   console.assert(report.elementHeatmap?.mine.dealt.Katon === 18, 'heatmap katon dealt');
-  console.assert(report.elementHeatmap?.circle.mineAdvantage === 1, 'heatmap avantage');
+  console.assert(report.elementHeatmap?.circle.mineAdvantage === 1, 'heatmap avantage élémentaire');
 
   const activePayload = await getEliteMePayload(homeId, 'fr');
   console.assert(activePayload.subscription.isActive, 'payload actif après grant');
@@ -186,14 +192,14 @@ async function main() {
 
   const tools = await getEliteToolsPayload(homeId, 'fr');
   console.assert(tools.seasonStats.played >= 1, 'stats saison joués');
-  console.assert(tools.composition.label, 'label composition');
+  console.assert(tools.composition.label, 'label consignes');
   console.assert(tools.trainingRoi.length >= 1, 'ROI entraînement');
-  console.assert(tools.matchupMatrix.length === 4, 'matrice matchup');
-  console.assert(tools.compositionOptions[0].label, 'options compo labelisées');
+  console.assert(tools.compositionOptions.length === 4, 'options style adverse');
+  console.assert(tools.compositionOptions[0].label, 'options style labelisées');
   console.assert(tools.levelOptions.length === 5, 'options niveau');
 
   const sim = await simulateEliteMatchup(homeId, {
-    opponentComposition: 'mur',
+    opponentComposition: 'tank',
     opponentLevel: 'similar',
     runs: 30,
   });
@@ -201,8 +207,9 @@ async function main() {
   console.assert(sim.winPct != null, 'sim winPct');
   console.assert(sim.opponentLevel === 'similar', 'sim level similar');
   console.assert(sim.verdict?.headline, 'sim verdict headline');
-  console.assert(sim.myCompositionLabel, 'sim label compo');
+  console.assert(sim.myCompositionLabel, 'sim label consignes');
   console.assert(sim.verdict?.advice?.length >= 1, 'sim conseils');
+  console.assert(!sim.matchup?.myAdvantage, 'plus de cercle composition');
 
   await grantDailySealsForUser(homeId);
   await openChakraSeal(homeId);

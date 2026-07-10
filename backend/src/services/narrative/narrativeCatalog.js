@@ -304,6 +304,73 @@ export const NARRATIVE_CATALOG = {
           'Le cachet de chakra de {ninja_name} le remet sur pied pour un dernier effort.',
           '{ninja_name} sent le pouls du chakra revenir — la bataille n\'est pas finie.',
         ],
+        tactic_card: {
+          card_generic: [
+            '{ninja_name} déclenche une carte tactique — le rythme du combat bascule.',
+            'Une carte tactique s\'active : {ninja_name} retourne la situation en un instant.',
+            '{ninja_name} joue sa carte au moment critique.',
+          ],
+          card_parry: [
+            '{ninja_name} déploie sa Parade de l\'École et absorbe la pression adverse.',
+            'La carte tactique de {ninja_name} amortit les coups répétés du même tour.',
+            '{ninja_name} encaisse l\'assaut grâce à sa parade entraînée.',
+          ],
+          card_field_heal: [
+            '{ninja_name} sort un pansement de terrain et stabilise {card_targets} (+{card_healed} PV).',
+            'La carte de soin de {ninja_name} remet {card_targets} sur pied (+{card_healed} PV).',
+            '{ninja_name} applique un soin d\'urgence via sa carte tactique (+{card_healed} PV).',
+          ],
+          card_chip: [
+            '{ninja_name} ajoute un éclair discret — {card_targets} subit {card_damage} dégâts bonus.',
+            'La carte de {ninja_name} complète l\'attaque avec {card_damage} dégâts supplémentaires.',
+            '{ninja_name} enchaîne avec sa carte tactique pour {card_damage} dégâts de chip.',
+          ],
+          card_bunshin: [
+            '{ninja_name} invoque des clones d\'ombre qui encaissent l\'assaut.',
+            'Kage Bunshin ! Les doubles de {ninja_name} absorbent la rafale adverse.',
+            '{ninja_name} se dédouble — la carte tactique détourne les coups.',
+          ],
+          card_water_cage: [
+            '{ninja_name} emprisonne l\'attaquant dans une cage aqueuse.',
+            'Suiton ! {ninja_name} immobilise l\'adversaire avec sa carte tactique.',
+            'Une prison d\'eau se referme sur la cible de {ninja_name}.',
+          ],
+          card_ember_wall: [
+            '{ninja_name} dresse un mur de braises — les dégâts s\'évaporent.',
+            'Katon ! {ninja_name} se protège derrière un rideau de flammes tièdes.',
+            'La carte de {ninja_name} réduit l\'impact des coups reçus.',
+          ],
+          card_zone_heal: [
+            '{ninja_name} répand des herbes de regroupement — toute l\'escouade respire (+{card_healed} PV).',
+            'Soin de zone : {ninja_name} ranime ses camarades (+{card_healed} PV).',
+            '{ninja_name} soigne l\'équipe acculée grâce à sa carte tactique.',
+          ],
+          card_lightning: [
+            '{ninja_name} surcharge sa frappe d\'un éclair Raiton (+{card_damage} dégâts).',
+            'Raiton ! La carte de {ninja_name} décharge {card_damage} dégâts sur {card_targets}.',
+            '{ninja_name} amplifie l\'impact avec une surcharge électrique.',
+          ],
+          card_mind_haze: [
+            '{ninja_name} brouille l\'esprit adverse après son genjutsu.',
+            'Brume mentale : {ninja_name} plonge l\'ennemi dans la confusion.',
+            'La carte de {ninja_name} perturbe {card_targets} au moment critique.',
+          ],
+          card_earth_roots: [
+            '{ninja_name} ancre ses racines Doton et tient la ligne.',
+            'Doton ! {ninja_name} se stabilise sous la pression.',
+            'Les racines d\'ancrage de {ninja_name} amortissent l\'assaut.',
+          ],
+          card_wind_blade: [
+            '{ninja_name} riposte avec une lame Futon (+{card_damage} dégâts).',
+            'Futon ! {ninja_name} renvoie la frappe avec {card_damage} dégâts.',
+            'La lame de retour de {ninja_name} touche {card_targets}.',
+          ],
+          card_water_dragon: [
+            '{ninja_name} invoque un dragon aqueux légendaire (+{card_damage} dégâts sur tous).',
+            'Suiton légendaire ! {ninja_name} déchaîne un déferlement sur l\'adversaire.',
+            'La carte légendaire de {ninja_name} balaie le champ de bataille.',
+          ],
+        },
       },
     },
 
@@ -432,6 +499,24 @@ export const NARRATIVE_CATALOG = {
           '{ninja_name} a croisé un jeune talent sur le terrain — il rejoint l\'équipe.',
           'Un prodige a été repéré pendant la mission et recruté au campement.',
           'L\'opération a révélé un aspirant exceptionnel ; il intègre l\'équipe.',
+        ],
+        tactic_card: [
+          '{ninja_name} rapporte une carte tactique trouvée sur le terrain.',
+          'Butin tactique : une carte de combat rejoint la collection de l\'équipe.',
+          'Une carte tactique a été récupérée dans une cache — 3 charges prêtes à l\'emploi.',
+          '{ninja_name} glisse une carte tactique dans sa besace avant le retour au camp.',
+        ],
+        tactic_card_rare: [
+          'Découverte rare : une carte tactique de qualité supérieure rejoint l\'inventaire.',
+          '{ninja_name} déniche une carte tactique rare dans les décombres.',
+          'Une carte tactique rare a été extraite de la mission — précieuse au marché.',
+          'Trouvaille exceptionnelle : carte tactique rare rapportée au campement.',
+        ],
+        tactic_card_legendary: [
+          'Une carte tactique légendaire a été déchiffrée dans les ruines.',
+          '{ninja_name} rapporte une carte légendaire — le camp retient son souffle.',
+          'Butin légendaire : une carte tactique d\'exception rejoint la collection.',
+          'La mission a révélé une carte tactique légendaire, gardée comme un trésor.',
         ],
       },
     },
@@ -789,6 +874,73 @@ export const NARRATIVE_CATALOG = {
           '{ninja_name}\'s chakra tablet puts them back on their feet for one last push.',
           '{ninja_name} feels the pulse of chakra return — the battle is not over yet.',
         ],
+        tactic_card: {
+          card_generic: [
+            '{ninja_name} triggers a tactic card — the rhythm of the fight shifts.',
+            'A tactic card activates: {ninja_name} turns the tide in an instant.',
+            '{ninja_name} plays their card at the critical moment.',
+          ],
+          card_parry: [
+            '{ninja_name} deploys Academy Parry and absorbs the incoming pressure.',
+            '{ninja_name}\'s tactic card softens repeated hits in the same turn.',
+            '{ninja_name} holds the line thanks to a trained parry.',
+          ],
+          card_field_heal: [
+            '{ninja_name} applies field dressing and stabilizes {card_targets} (+{card_healed} HP).',
+            '{ninja_name}\'s healing card gets {card_targets} back on their feet (+{card_healed} HP).',
+            '{ninja_name} delivers emergency care via tactic card (+{card_healed} HP).',
+          ],
+          card_chip: [
+            '{ninja_name} adds a subtle bolt — {card_targets} takes {card_damage} bonus damage.',
+            '{ninja_name}\'s card completes the attack with {card_damage} extra damage.',
+            '{ninja_name} chains a tactic card for {card_damage} chip damage.',
+          ],
+          card_bunshin: [
+            '{ninja_name} summons shadow clones that absorb the assault.',
+            'Kage Bunshin! {ninja_name}\'s doubles take the incoming barrage.',
+            '{ninja_name} splits up — the tactic card diverts the blows.',
+          ],
+          card_water_cage: [
+            '{ninja_name} traps the attacker in an aqua prison.',
+            'Water Style! {ninja_name} immobilizes the foe with a tactic card.',
+            'A water cage closes on {ninja_name}\'s target.',
+          ],
+          card_ember_wall: [
+            '{ninja_name} raises an ember wall — incoming damage fades.',
+            'Fire Style! {ninja_name} shields behind a curtain of warm flames.',
+            '{ninja_name}\'s card reduces the impact of received hits.',
+          ],
+          card_zone_heal: [
+            '{ninja_name} spreads squad recovery herbs — the whole line breathes (+{card_healed} HP).',
+            'Zone heal: {ninja_name} revives teammates (+{card_healed} HP).',
+            '{ninja_name} heals the cornered squad with a tactic card.',
+          ],
+          card_lightning: [
+            '{ninja_name} overloads the strike with lightning (+{card_damage} damage).',
+            'Lightning Style! {ninja_name} discharges {card_damage} damage on {card_targets}.',
+            '{ninja_name} amplifies impact with an electric surge.',
+          ],
+          card_mind_haze: [
+            '{ninja_name} clouds the enemy mind after a successful genjutsu.',
+            'Mind haze: {ninja_name} plunges the foe into confusion.',
+            '{ninja_name}\'s card disrupts {card_targets} at the critical moment.',
+          ],
+          card_earth_roots: [
+            '{ninja_name} anchors with earth roots and holds the line.',
+            'Earth Style! {ninja_name} stabilizes under pressure.',
+            '{ninja_name}\'s anchoring roots soften the assault.',
+          ],
+          card_wind_blade: [
+            '{ninja_name} ripostes with a wind blade (+{card_damage} damage).',
+            'Wind Style! {ninja_name} returns the blow for {card_damage} damage.',
+            '{ninja_name}\'s returning blade hits {card_targets}.',
+          ],
+          card_water_dragon: [
+            '{ninja_name} summons a legendary aqua dragon (+{card_damage} damage to all).',
+            'Legendary Water Style! {ninja_name} unleashes a surge on the enemy.',
+            '{ninja_name}\'s legendary card sweeps the battlefield.',
+          ],
+        },
       },
     },
 
@@ -917,6 +1069,24 @@ export const NARRATIVE_CATALOG = {
           '{ninja_name} crossed a young talent on the field — they join the squad.',
           'A prodigy was spotted during the mission and recruited at camp.',
           'The operation revealed an exceptional aspirant; they join the team.',
+        ],
+        tactic_card: [
+          '{ninja_name} brings back a tactic card found on the field.',
+          'Tactical loot: a combat card joins the squad collection.',
+          'A tactic card was recovered from a cache — 3 charges ready to use.',
+          '{ninja_name} slips a tactic card into their pack before returning to camp.',
+        ],
+        tactic_card_rare: [
+          'Rare find: a higher-quality tactic card joins the inventory.',
+          '{ninja_name} uncovers a rare tactic card in the rubble.',
+          'A rare tactic card was extracted from the mission — valuable on the market.',
+          'Exceptional haul: rare tactic card brought back to camp.',
+        ],
+        tactic_card_legendary: [
+          'A legendary tactic card was deciphered in the ruins.',
+          '{ninja_name} returns with a legendary card — camp holds its breath.',
+          'Legendary loot: an exceptional tactic card joins the collection.',
+          'The mission revealed a legendary tactic card, kept like a treasure.',
         ],
       },
     },

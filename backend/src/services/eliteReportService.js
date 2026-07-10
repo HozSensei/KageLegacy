@@ -1,11 +1,3 @@
-import {
-  COMPOSITION_BEATS,
-  compositionLabel,
-  detectSquadComposition,
-  getCompositionProfile,
-  hasCompositionAdvantage,
-  hasCompositionDisadvantage,
-} from './combat/compositionMeta.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { assertActiveEliteSubscription } from './eliteSubscriptionService.js';
 import { loadMatchRow, assertViewerCanAccessMatch, isMatchParticipant } from './matchSpectatorService.js';
@@ -22,65 +14,11 @@ const TECHNIQUE_ICONS = {
   item_event: 'item',
 };
 
-/**
- * Ancre dans /rules pour le cercle Assaut / Mur / Flux.
- */
-export const ELITE_RULES_COMPOSITION_ANCHOR = 'compositions-d-equipe-meta';
+/** Ancre dans /rules pour les cartes tactiques et consignes. */
+export const ELITE_RULES_COMPOSITION_ANCHOR = 'cartes-tactiques';
 
 function normalizeLocale(locale) {
   return locale === 'en' ? 'en' : 'fr';
-}
-
-function findCircleCounter(comp) {
-  return Object.entries(COMPOSITION_BEATS).find(([, beaten]) => beaten === comp)?.[0] ?? null;
-}
-
-function describeSpecializedArchetype(comp, lang) {
-  const profile = getCompositionProfile(comp);
-  if (comp === 'assaut') {
-    return lang === 'en'
-      ? 'Pure Assault runs three Offensive orders — burst damage and constant pressure.'
-      : 'L\'Assaut pur aligne trois consignes Offensive — burst et pression continue.';
-  }
-  if (comp === 'mur') {
-    const reduction = Math.round((1 - profile.damageTaken) * 100);
-    return lang === 'en'
-      ? `Pure Wall runs three Tank orders — about ${reduction}% less damage taken and stronger defensive targeting.`
-      : `Le Mur pur aligne trois consignes Tank — environ ${reduction} % de dégâts en moins et ciblage défensif renforcé.`;
-  }
-  if (comp === 'flux') {
-    return lang === 'en'
-      ? 'Pure Flow runs three Protect orders — healing, genjutsu bias, and gradual wear-down.'
-      : 'Le Flux pur aligne trois consignes Protect — soins, genjutsu et usure progressive.';
-  }
-  return null;
-}
-
-function describeEquilibrePenalty(lang) {
-  return lang === 'en'
-    ? 'Your balanced squad stays outside the tactical circle: no matchup bonus, while a pure opponent unlocks its archetype passives.'
-    : 'Votre escouade équilibrée reste hors du cercle tactique : aucun bonus de matchup, alors qu\'une compo pure active ses passifs d\'archétype.';
-}
-
-function buildOrderAlignmentAdvice(myComposition, orderCounts, lang) {
-  if (!orderCounts || myComposition !== 'equilibre') return null;
-
-  const { Offensive = 0, Tank = 0, Protect = 0, Normal = 0 } = orderCounts;
-  const mixed = [Offensive, Tank, Protect, Normal].filter((n) => n > 0).length;
-  if (mixed < 2) return null;
-
-  return lang === 'en'
-    ? `Your orders are split (${Offensive} Off · ${Tank} Tank · ${Protect} Protect${Normal ? ` · ${Normal} Normal` : ''}) — the engine reads this as balanced. To enter the circle, set two or more ninjas to the same consigne before locking the operation.`
-    : `Vos consignes sont réparties (${Offensive} Off · ${Tank} Tank · ${Protect} Protect${Normal ? ` · ${Normal} Normal` : ''}) — le moteur lit cela comme équilibré. Pour entrer dans le cercle, alignez au moins deux ninjas sur la même consigne avant de verrouiller l'opération.`;
-}
-
-function buildCircleCommitAdvice(opponentComposition, lang) {
-  const counter = findCircleCounter(opponentComposition);
-  if (!counter) return null;
-
-  return lang === 'en'
-    ? `In the tactical circle, ${compositionLabel(counter, lang)} beats ${compositionLabel(opponentComposition, lang)}. Try aligning ${counter === 'assaut' ? 'two Offensive orders' : counter === 'mur' ? 'two Tank orders' : 'two Protect orders'} before the next operation.`
-    : `Dans le cercle tactique, ${compositionLabel(counter, lang)} bat ${compositionLabel(opponentComposition, lang)}. Essayez d'aligner ${counter === 'assaut' ? 'deux consignes Offensive' : counter === 'mur' ? 'deux consignes Tank' : 'deux consignes Protect'} avant la prochaine opération.`;
 }
 
 function parseCombatLog(raw) {
@@ -120,6 +58,22 @@ function summarizeLogAction(log, locale) {
   }
   if (log.type === 'item_event') {
     return lang === 'en' ? `${log.ninja_name} — item` : `${log.ninja_name} — objet`;
+  }
+  if (log.type === 'tactic_card') {
+    const targets = (log.card_targets || []).join(', ');
+    if (log.card_healed > 0) {
+      return lang === 'en'
+        ? `${log.ninja_name} — tactic card (+${log.card_healed} HP)`
+        : `${log.ninja_name} — carte tactique (+${log.card_healed} PV)`;
+    }
+    if (log.card_damage > 0) {
+      return lang === 'en'
+        ? `${log.ninja_name} — tactic card → ${targets} (${log.card_damage} dmg)`
+        : `${log.ninja_name} — carte tactique → ${targets} (${log.card_damage} dégâts)`;
+    }
+    return lang === 'en'
+      ? `${log.ninja_name} — tactic card`
+      : `${log.ninja_name} — carte tactique`;
   }
   if (log.technique_type === 'Medecine' || log.soins_pv) {
     return lang === 'en'
@@ -324,50 +278,66 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
   return report;
 }
 
-export function buildCompositionAdvice(myComposition, locale = 'fr') {
+export function buildOrdersAdvice(orderCounts, locale = 'fr') {
   const lang = normalizeLocale(locale);
-  const beats = COMPOSITION_BEATS[myComposition];
-  const beatenBy = Object.entries(COMPOSITION_BEATS).find(([, v]) => v === myComposition)?.[0];
-
   const tips = [];
-  if (myComposition === 'equilibre') {
+  const off = orderCounts?.Offensive ?? 0;
+  const tank = orderCounts?.Tank ?? 0;
+  const prot = orderCounts?.Protect ?? 0;
+  const normal = orderCounts?.Normal ?? 0;
+
+  if (off + tank + prot === 0) {
     tips.push(
       lang === 'en'
-        ? 'Balanced squad — no triangle bonus, but flexible against all comps.'
-        : 'Escouade équilibrée — pas de bonus triangle, mais polyvalente.'
+        ? 'All Normal orders — attackers are picked at random. Set Offensive / Tank / Protect roles.'
+        : 'Toutes consignes Normal — les attaquants sont tirés au sort. Définissez Offensive / Tank / Protect.'
     );
   } else {
-    if (beats) {
+    if (tank === 0) {
       tips.push(
         lang === 'en'
-          ? `Your comp pressures ${compositionLabel(beats, lang)}.`
-          : `Votre compo fait pression sur ${compositionLabel(beats, lang)}.`
+          ? 'No Tank — your line may crumble under focused assault.'
+          : 'Aucun Tank — votre ligne peut céder sous une pression ciblée.'
       );
     }
-    if (beatenBy) {
+    if (prot === 0) {
       tips.push(
         lang === 'en'
-          ? `Watch out vs ${compositionLabel(beatenBy, lang)} — disadvantage in the circle.`
-          : `Attention face à ${compositionLabel(beatenBy, lang)} — désavantage dans le cercle.`
+          ? 'No Protect — no dedicated healer behavior under 50% HP.'
+          : 'Aucun Protect — pas de soin dédié sous 50 % PV.'
       );
     }
+    if (off === 0) {
+      tips.push(
+        lang === 'en'
+          ? 'No Offensive — burst damage may be inconsistent.'
+          : 'Aucun Offensive — le burst peut manquer de régularité.'
+      );
+    }
+    tips.push(
+      lang === 'en'
+        ? 'Equip tactic cards on each ninja — they proc when their built-in condition is met.'
+        : 'Équipez des cartes tactiques sur chaque ninja — elles se déclenchent selon leur condition.'
+    );
   }
 
   return {
-    myComposition,
-    label: compositionLabel(myComposition, lang),
-    beats: beats ? compositionLabel(beats, lang) : null,
-    weakAgainst: beatenBy ? compositionLabel(beatenBy, lang) : null,
+    orderCounts: { Offensive: off, Tank: tank, Protect: prot, Normal: normal },
+    label:
+      lang === 'en'
+        ? `${off} Off · ${tank} Tank · ${prot} Protect · ${normal} Normal`
+        : `${off} Off · ${tank} Tank · ${prot} Protect · ${normal} Normal`,
     tips,
   };
 }
 
-export function compareCompositions(myComp, opponentComp) {
-  return {
-    myAdvantage: hasCompositionAdvantage(myComp, opponentComp),
-    myDisadvantage: hasCompositionDisadvantage(myComp, opponentComp),
-    neutral: myComp === 'equilibre' || opponentComp === 'equilibre',
-  };
+/** @deprecated Cercle retiré — alias vers buildOrdersAdvice. */
+export function buildCompositionAdvice(_myComposition, locale = 'fr') {
+  return buildOrdersAdvice({}, locale);
+}
+
+export function compareCompositions() {
+  return { myAdvantage: false, myDisadvantage: false, neutral: true };
 }
 
 /**
@@ -375,66 +345,34 @@ export function compareCompositions(myComp, opponentComp) {
  */
 export function buildSimulationVerdict({
   winPct,
-  matchup,
-  myComposition,
-  opponentComposition,
+  opponentStyle = 'mixed',
   opponentLevel = 'similar',
   locale = 'fr',
   squadContext = null,
 }) {
   const lang = normalizeLocale(locale);
-  const myLabel = compositionLabel(myComposition, lang);
-  const oppLabel = compositionLabel(opponentComposition, lang);
+  const styleLabels = {
+    fr: { offensive: 'Offensive', tank: 'Tank', protect: 'Protect', mixed: 'Mixte' },
+    en: { offensive: 'Offensive', tank: 'Tank', protect: 'Protect', mixed: 'Mixed' },
+  };
+  const oppLabel = styleLabels[lang][opponentStyle] || opponentStyle;
   const factors = [];
   const advice = [];
 
-  if (matchup.myAdvantage) {
+  factors.push(
+    lang === 'en'
+      ? `Reference opponent uses ${oppLabel} orders at your power level (${opponentLevel}).`
+      : `Adversaire de référence en consignes ${oppLabel}, calibré sur votre puissance (${opponentLevel}).`
+  );
+
+  if (squadContext?.orderCounts) {
+    const orders = buildOrdersAdvice(squadContext.orderCounts, lang);
     factors.push(
       lang === 'en'
-        ? `Your ${myLabel} has circle advantage over ${oppLabel} (+damage / less damage taken).`
-        : `Votre ${myLabel} a l'avantage du cercle face à ${oppLabel} (+dégâts / moins de dégâts subis).`
+        ? `Your orders: ${orders.label}.`
+        : `Vos consignes : ${orders.label}.`
     );
-  } else if (matchup.myDisadvantage) {
-    factors.push(
-      lang === 'en'
-        ? `${oppLabel} counters your ${myLabel} in the composition circle.`
-        : `${oppLabel} contrecarre votre ${myLabel} dans le cercle des compositions.`
-    );
-    const counter = findCircleCounter(opponentComposition);
-    if (counter === myComposition) {
-      advice.push(
-        lang === 'en'
-          ? `You already play ${myLabel}, which is the circle answer — if you still lose, raise combat stats, morale, or form before the operation lock.`
-          : `Vous jouez déjà ${myLabel}, la réponse du cercle — si vous perdez quand même, renforcez stats de combat, moral ou forme avant le verrouillage.`
-      );
-    } else {
-      const circleTip = buildCircleCommitAdvice(opponentComposition, lang);
-      if (circleTip) advice.push(circleTip);
-    }
-  } else if (myComposition === 'equilibre' && opponentComposition !== 'equilibre') {
-    factors.push(describeEquilibrePenalty(lang));
-    const archetype = describeSpecializedArchetype(opponentComposition, lang);
-    if (archetype) factors.push(archetype);
-
-    const alignTip = buildOrderAlignmentAdvice(myComposition, squadContext?.orderCounts, lang);
-    if (alignTip) advice.push(alignTip);
-
-    const circleTip = buildCircleCommitAdvice(opponentComposition, lang);
-    if (circleTip) advice.push(circleTip);
-
-    if (winPct <= 42) {
-      advice.push(
-        lang === 'en'
-          ? 'Staying balanced trades matchup power for flexibility — against pure comps at equal stats, the specialist usually edges out.'
-          : 'Rester équilibré échange la puissance de matchup contre la polyvalence — à stats égales, la compo spécialisée prend souvent l\'avantage.'
-      );
-    }
-  } else {
-    factors.push(
-      lang === 'en'
-        ? 'No composition circle bonus (balanced squad or neutral pairing).'
-        : 'Pas de bonus de cercle (escouade équilibrée ou duel neutre).'
-    );
+    advice.push(...orders.tips.slice(0, 2));
   }
 
   const levelDescriptions = {
@@ -499,22 +437,11 @@ export function buildSimulationVerdict({
     );
   }
 
-  if (matchup.myAdvantage && winPct < 45) {
-    factors.push(
-      lang === 'en'
-        ? 'Despite circle advantage, your squad stats or morale trail this reference opponent.'
-        : "Malgré l'avantage de cercle, vos stats ou le moral restent en retrait face à cette référence."
-    );
+  if (winPct <= 42) {
     advice.push(
       lang === 'en'
-        ? 'The circle helps, but raw power still matters — prioritize training on your weakest combat stat.'
-        : 'Le cercle aide, mais la puissance brute compte — priorisez l\'entraînement sur votre stat de combat la plus faible.'
-    );
-  } else if (matchup.myDisadvantage && winPct > 55) {
-    factors.push(
-      lang === 'en'
-        ? 'Your raw stats compensate for the composition disadvantage.'
-        : 'Vos stats brutes compensent le désavantage de composition.'
+        ? 'Equip tactic cards on key ninjas and align Tank/Protect roles to survive this reference style.'
+        : 'Équipez des cartes tactiques sur vos ninjas clés et alignez Tank/Protect pour tenir face à ce style de référence.'
     );
   }
 
@@ -531,7 +458,6 @@ export function buildSimulationVerdict({
     headline,
     factors,
     advice,
-    myLabel,
     oppLabel,
     rulesAnchor: ELITE_RULES_COMPOSITION_ANCHOR,
   };

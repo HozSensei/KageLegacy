@@ -13,7 +13,7 @@ defineProps({
 const { t } = useI18n()
 const elite = useEliteStore()
 
-const opponentComp = ref('assaut')
+const opponentComp = ref('mixed')
 const opponentLevel = ref('similar')
 const simulating = ref(false)
 const simError = ref(null)
@@ -29,7 +29,7 @@ const verdictToneClass = computed(() => {
   return 'border-accent/40 text-accent'
 })
 
-const rulesCompLink = { path: '/rules', hash: '#compositions-d-equipe-meta' }
+const rulesCompLink = { path: '/rules', hash: '#cartes-tactiques' }
 
 onMounted(async () => {
   if (!elite.subscription) await elite.fetchElite()
@@ -93,7 +93,7 @@ async function runMatchup() {
       </section>
 
       <section class="mt-8">
-        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.compTitle') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.ordersTitle') }}</p>
         <p class="mt-2 text-sm text-ink">{{ tools.composition.label }}</p>
         <ul class="mt-2 space-y-1 text-xs text-ink-muted">
           <li v-for="(tip, i) in tools.composition.tips" :key="i">{{ tip }}</li>
@@ -129,7 +129,7 @@ async function runMatchup() {
         </RouterLink>
         <div class="mt-3 flex flex-wrap items-end gap-3">
           <label class="text-xs">
-            <span class="text-ink-muted">{{ t('eliteTools.opponentComp') }}</span>
+            <span class="text-ink-muted">{{ t('eliteTools.opponentStyle') }}</span>
             <select
               v-model="opponentComp"
               class="mt-1 block border border-line bg-bg px-3 py-2 text-sm text-ink"
@@ -211,24 +211,6 @@ async function runMatchup() {
           <p class="mt-3 text-xs text-ink-faint">
             {{ t('eliteTools.simMeta', { runs: matchup.runs, tours: matchup.avgTours, ko: matchup.koPct }) }}
           </p>
-
-          <div v-if="matchup.matchup" class="mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-wider">
-            <span
-              v-if="matchup.matchup.myAdvantage"
-              class="border border-water/40 px-2 py-0.5 text-water"
-            >
-              {{ t('eliteTools.circleAdvantage') }}
-            </span>
-            <span
-              v-else-if="matchup.matchup.myDisadvantage"
-              class="border border-fire/40 px-2 py-0.5 text-fire"
-            >
-              {{ t('eliteTools.circleDisadvantage') }}
-            </span>
-            <span v-else class="border border-line px-2 py-0.5 text-ink-faint">
-              {{ t('eliteTools.circleNeutral') }}
-            </span>
-          </div>
 
           <ul v-if="matchup.verdict?.factors?.length" class="mt-4 space-y-2 border-t border-line/50 pt-3 text-xs leading-relaxed text-ink-muted">
             <li class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.whyTitle') }}</li>

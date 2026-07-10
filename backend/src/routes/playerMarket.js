@@ -7,6 +7,7 @@ import {
   cancelListing,
   createItemListing,
   createNinjaListing,
+  createTacticCardListing,
   getPlayerMarketPayload,
 } from '../services/playerMarketService.js';
 
@@ -47,6 +48,24 @@ router.post('/list-ninja', async (req, res, next) => {
     }
 
     const result = await createNinjaListing(user.id, ninjaId, price);
+    res.json(await marketResponse(user.id, { result }));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/list-card', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const userTacticCardId = Number(req.body?.userTacticCardId);
+    const price = Number(req.body?.price);
+    if (!userTacticCardId || !price) {
+      return res.status(400).json({ error: 'userTacticCardId et price requis.' });
+    }
+
+    const result = await createTacticCardListing(user.id, userTacticCardId, price);
     res.json(await marketResponse(user.id, { result }));
   } catch (error) {
     next(error);

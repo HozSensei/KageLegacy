@@ -23,6 +23,10 @@ function actionSpecForLog(log) {
   if (log.type === 'confusion') {
     return { actionKey: 'combat.actions.confusion', reactionKey: 'combat.reactions.confusion' };
   }
+  if (log.type === 'tactic_card') {
+    const key = log.card_narrative_key || 'card_generic';
+    return { actionKey: `combat.actions.tactic_card.${key}`, reactionKey: null };
+  }
   if (log.sensei_interception) {
     return { actionKey: 'combat.actions.sensei_interception', reactionKey: null };
   }
@@ -73,6 +77,9 @@ function logToPart(log, rng) {
     cible_name: log.cible_name || log.ninja,
     ninja_name: log.ninja_name || log.cible_name || log.ninja,
     sacrificial_name: log.sacrificial_name,
+    card_targets: (log.card_targets || []).join(', '),
+    card_healed: log.card_healed || 0,
+    card_damage: log.card_damage || 0,
   };
   const spec = actionSpecForLog(log);
   const action = pickFromPool('fr', spec.actionKey, rng, vars);

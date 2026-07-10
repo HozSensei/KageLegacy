@@ -2,6 +2,7 @@ import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypt
 import { query } from '../config/database.js';
 import { joinOrCreatePool, joinPoolByInvite } from './poolService.js';
 import { provisionStarterSquad } from './starterSquadService.js';
+import { grantStarterTacticCards } from './tacticCards/tacticCardService.js';
 
 const SESSION_DAYS = 30;
 const GUEST_DAYS = 7;
@@ -106,6 +107,7 @@ export async function registerUser({
     : { pool: await joinOrCreatePool(userId), fallback: false, reason: 'standard' };
 
   await provisionStarterSquad(userId, language);
+  await grantStarterTacticCards(userId);
 
   return {
     user: await findUserById(userId),
@@ -139,6 +141,7 @@ export async function registerGuestUser({ senseiName, language = 'fr' }) {
 
   const poolJoin = { pool: await joinOrCreatePool(userId), fallback: false, reason: 'guest' };
   await provisionStarterSquad(userId, language);
+  await grantStarterTacticCards(userId);
 
   return {
     user: await findUserById(userId),

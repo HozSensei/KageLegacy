@@ -6,7 +6,7 @@ import { findUserPool } from './poolService.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 
-export const MAX_ACTIVE_LISTINGS = 3;
+export const MAX_ACTIVE_LISTINGS = 5;
 export const SELLER_COMMISSION_PCT = 5;
 export const NOBLE_SELLER_COMMISSION_PCT = 10;
 export const PRICE_FLOOR_PCT = 50;
@@ -18,7 +18,10 @@ const MIN_NINJA_LISTING_PRICE = 1;
 
 const LISTING_SELECT = `
   pl.*,
+  utc.charges_remaining,
   idf.slug, idf.name_fr, idf.name_en, idf.category, idf.price AS catalog_price,
+  tcd.slug AS card_slug, tcd.name_fr AS card_name_fr, tcd.name_en AS card_name_en,
+  tcd.rarity AS card_rarity, tcd.card_type AS card_type, tcd.catalog_price AS card_catalog_price,
   n.name AS ninja_name, n.grade, n.age, n.character_trait,
   n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence,
   c.name AS clan_name, c.is_noble AS clan_is_noble,
@@ -40,6 +43,8 @@ const LISTING_JOINS = `
   LEFT JOIN sensei sb ON sb.user_id = pl.buyer_user_id
   LEFT JOIN user_items ui ON ui.id = pl.user_item_id
   LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
+  LEFT JOIN user_tactic_cards utc ON utc.id = pl.user_tactic_card_id
+  LEFT JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
   LEFT JOIN ninjas n ON n.id = pl.ninja_id
   LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
 `;
@@ -73,6 +78,7 @@ async function optionalSellerPoolId(userId) {
 
 function assetLabelFromRow(row) {
   if (row.listing_type === 'ninja') return row.ninja_name || 'Ninja';
+  if (row.listing_type === 'tactic_card') return row.card_name_fr || row.card_slug || 'Carte';
   return row.name_fr || row.slug || 'Objet';
 }
 
@@ -136,6 +142,20 @@ function mapListing(row, identityMap = null) {
         vitesse: row.vitesse,
         intelligence: row.intelligence,
       },
+    };
+  }
+
+  if (row.listing_type === 'tactic_card') {
+    return {
+      ...base,
+      userTacticCardId: row.user_tactic_card_id,
+      slug: row.card_slug,
+      nameFr: row.card_name_fr,
+      nameEn: row.card_name_en,
+      rarity: row.card_rarity,
+      cardType: row.card_type,
+      catalogPrice: row.card_catalog_price,
+      chargesRemaining: row.charges_remaining,
     };
   }
 
@@ -270,6 +290,63 @@ export async function createItemListing(userId, userItemId, price) {
     `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, user_item_id, price)
      VALUES (?, ?, 'item', ?, ?)`,
     [poolId, userId, userItemId, numericPrice]
+  );
+
+  return { listingId: result.insertId, price: numericPrice };
+}
+
+export async function createTacticCardListing(userId, userTacticCardId, price) {
+  const clock = await getGameClock();
+  assertMarketOpen(clock);
+  await assertHumanPlayer(userId);
+  await assertListingCapacity(userId);
+
+  const poolId = await optionalSellerPoolId(userId);
+
+  const cardRows = await query(
+    `SELECT utc.*, tcd.catalog_price, tcd.slug, tcd.name_fr,
+            ntc.ninja_id AS equipped_ninja_id
+     FROM user_tactic_cards utc
+     JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
+     LEFT JOIN ninja_tactic_cards ntc ON ntc.user_tactic_card_id = utc.id
+     WHERE utc.id = ? AND utc.user_id = ? AND utc.charges_remaining > 0`,
+    [userTacticCardId, userId]
+  );
+  const card = cardRows[0];
+  if (!card) {
+    const error = new Error('Carte introuvable ou épuisée.');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (card.equipped_ninja_id) {
+    const error = new Error('Retirez la carte de l\'équipement avant de la vendre.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const listed = await query(
+    `SELECT id FROM player_listings WHERE user_tactic_card_id = ? AND status = 'active'`,
+    [userTacticCardId]
+  );
+  if (listed.length) {
+    const error = new Error('Cette carte est déjà en vente.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const numericPrice = Number(price);
+  const floor = Math.floor((card.catalog_price * PRICE_FLOOR_PCT) / 100);
+  const ceiling = Math.ceil((card.catalog_price * PRICE_CEILING_PCT) / 100);
+  if (!numericPrice || numericPrice < floor || numericPrice > ceiling) {
+    const error = new Error(`Prix invalide (${floor}–${ceiling} Ryos).`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const result = await query(
+    `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, user_tactic_card_id, price)
+     VALUES (?, ?, 'tactic_card', ?, ?)`,
+    [poolId, userId, userTacticCardId, numericPrice]
   );
 
   return { listingId: result.insertId, price: numericPrice };
@@ -412,6 +489,8 @@ export async function buyListing(userId, listingId) {
      LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
      LEFT JOIN user_items ui ON ui.id = pl.user_item_id
      LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
+     LEFT JOIN user_tactic_cards utc ON utc.id = pl.user_tactic_card_id
+     LEFT JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE pl.id = ? AND pl.status = 'active'`,
     [userId, listingId]
   );
@@ -455,6 +534,11 @@ export async function buyListing(userId, listingId) {
        WHERE id = ?`,
       [userId, NINJA_RESALE_MORAL_PENALTY, listing.ninja_id]
     );
+  } else if (listing.listing_type === 'tactic_card') {
+    await query('UPDATE user_tactic_cards SET user_id = ? WHERE id = ?', [
+      userId,
+      listing.user_tactic_card_id,
+    ]);
   } else {
     await query('UPDATE user_items SET user_id = ? WHERE id = ?', [userId, listing.user_item_id]);
   }

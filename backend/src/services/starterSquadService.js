@@ -8,6 +8,7 @@ import {
 import { ninjaIdentityKey } from './ninjaNaming.js';
 import { alignPoolBotsToHuman } from './botFactory.js';
 import { findUserPool } from './poolService.js';
+import { ensureStarterTacticCards } from './tacticCards/tacticCardService.js';
 
 /**
  * Escouade de départ : 1 Chunin (poste actif central) + 5 Genin (2 actifs, 3 banc).
@@ -64,5 +65,6 @@ export async function ensureStarterSquad(userId, language = 'fr') {
   );
   if (Number(rows[0]?.count) > 0) return false;
   await provisionStarterSquad(userId, language);
+  await ensureStarterTacticCards(userId);
   return true;
 }
