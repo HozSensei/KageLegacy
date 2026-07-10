@@ -11,12 +11,39 @@ function isDevEliteGrantAllowed() {
   return process.env.NODE_ENV !== 'production' || process.env.ENABLE_DEV_TOOLS === 'true';
 }
 
+function normalizePublicUrl(raw) {
+  if (raw == null || raw === '') return null;
+  const trimmed = String(raw).split(',')[0].trim().replace(/\/$/, '');
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^localhost(?::\d+)?$/i.test(trimmed) || /^127\.0\.0\.1(?::\d+)?$/.test(trimmed)) {
+    return `http://${trimmed}`;
+  }
+  return `https://${trimmed}`;
+}
+
 function getPublicAppUrl() {
-  return (
-    process.env.APP_PUBLIC_URL ||
-    process.env.CORS_ORIGIN ||
-    'http://localhost:5173'
-  ).replace(/\/$/, '');
+  const candidates = [
+    process.env.APP_PUBLIC_URL,
+    process.env.CORS_ORIGIN,
+    'http://localhost:5173',
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizePublicUrl(candidate);
+    if (normalized) {
+      try {
+        const parsed = new URL(normalized);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          return normalized;
+        }
+      } catch {
+        // try next candidate
+      }
+    }
+  }
+
+  return 'http://localhost:5173';
 }
 
 function getStripeClient() {
@@ -72,6 +99,12 @@ export async function createEliteCheckoutSession(userId) {
   const stripe = getStripeClient();
   const user = await findUserById(userId);
   const baseUrl = getPublicAppUrl();
+  if (!/^https?:\/\//i.test(baseUrl)) {
+    throw stripeHttpError(
+      'APP_PUBLIC_URL invalide — utilisez une URL complète (ex. https://kagelegacy.jeromedessy.be).',
+      503
+    );
+  }
   const checkoutMode = await resolveCheckoutMode(stripe, priceId);
 
   const sessionParams = {
