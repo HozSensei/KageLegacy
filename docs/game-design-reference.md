@@ -353,7 +353,8 @@ flowchart TD
 
 - `backend/src/services/combat/combatEngine.js` — `teamRemainingScore()`, résolution du vainqueur
 - `backend/src/services/combat/constants.js` — `POINTS_WIN_MARGIN = 0.045`
-- `backend/src/services/combat/compositionMeta.js` — cercle Assaut / Mur / Flux
+- `backend/src/services/combat/battleRoleMeta.js` — consignes Défensive / Protection
+- `backend/src/services/tacticCards/` — cartes tactiques en match
 
 ---
 
