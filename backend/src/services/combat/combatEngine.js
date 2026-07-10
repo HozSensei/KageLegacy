@@ -200,8 +200,8 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
 
   let atk = attackValue(attacker, technique, allies) * matchup.atkMult * atkProfile.damageDealt;
   if (env) atk += applyEnvironmentAttackMod(attacker, technique, env);
-  if (atkComp === 'flux' && defComp === 'assaut') atk *= 1.2;
-  if (atkComp === 'assaut' && defComp === 'flux') atk *= 0.68;
+  if (atkComp === 'flux' && defComp === 'assaut') atk *= 1.26;
+  if (atkComp === 'assaut' && defComp === 'flux') atk *= 0.72;
   if (atkComp === 'assaut' && defComp === 'mur') atk *= 0.98;
   let def = defender.stats[technique.stat] * matchup.defMult;
   if (env) def += applyEnvironmentDefenseMod(defender, env);
@@ -379,7 +379,7 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
       const defProfile = getCompositionProfile(defComp);
       damage = Math.max(0, Math.floor(damage * defProfile.damageTaken));
       if (defComp === 'flux' && atkComp === 'assaut') {
-        damage = Math.max(0, Math.floor(damage * 0.82));
+        damage = Math.max(0, Math.floor(damage * 0.86));
       }
       const save = trySenseiSave(defenderTeam, defender, damage);
       damage = save.damage;

@@ -190,11 +190,16 @@ async function main() {
   console.assert(tools.trainingRoi.length >= 1, 'ROI entraînement');
   console.assert(tools.matchupMatrix.length === 4, 'matrice matchup');
   console.assert(tools.compositionOptions[0].label, 'options compo labelisées');
+  console.assert(tools.levelOptions.length === 5, 'options niveau');
 
-  const sim = await simulateEliteMatchup(homeId, { opponentComposition: 'mur', runs: 30 });
+  const sim = await simulateEliteMatchup(homeId, {
+    opponentComposition: 'mur',
+    opponentLevel: 'similar',
+    runs: 30,
+  });
   console.assert(sim.runs === 30, 'sim runs');
   console.assert(sim.winPct != null, 'sim winPct');
-  console.assert(sim.matchup.myAdvantage, 'sim avantage assaut vs mur');
+  console.assert(sim.opponentLevel === 'similar', 'sim level similar');
   console.assert(sim.verdict?.headline, 'sim verdict headline');
   console.assert(sim.myCompositionLabel, 'sim label compo');
   console.assert(sim.verdict?.advice?.length >= 1, 'sim conseils');

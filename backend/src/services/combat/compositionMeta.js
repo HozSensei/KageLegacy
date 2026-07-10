@@ -25,7 +25,7 @@ export const COMPOSITION_DEF_DISADVANTAGE = 0.97;
 const PAIR_TUNING = {
   'assaut>mur': { attackMult: 1.02, defendMult: 0.96 },
   'mur>flux': { attackMult: 1.07, defendMult: 0.95 },
-  'flux>assaut': { attackMult: 1.18, defendMult: 0.84 },
+  'flux>assaut': { attackMult: 1.24, defendMult: 0.9 },
 };
 
 export const COMPOSITION_PROFILE = {

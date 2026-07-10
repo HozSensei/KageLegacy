@@ -378,6 +378,7 @@ export function buildSimulationVerdict({
   matchup,
   myComposition,
   opponentComposition,
+  opponentLevel = 'similar',
   locale = 'fr',
   squadContext = null,
 }) {
@@ -436,10 +437,31 @@ export function buildSimulationVerdict({
     );
   }
 
+  const levelDescriptions = {
+    fr: {
+      weaker: 'adversaire calibré ~15 % en dessous de votre escouade',
+      slightly_weaker: 'adversaire légèrement en dessous de votre puissance',
+      similar: 'adversaire calibré sur la puissance de votre escouade',
+      slightly_stronger: 'adversaire légèrement au-dessus de votre puissance',
+      stronger: 'adversaire calibré ~15 % au-dessus de votre escouade',
+    },
+    en: {
+      weaker: 'opponent tuned ~15% below your squad',
+      slightly_weaker: 'opponent slightly below your power',
+      similar: 'opponent tuned to your squad power',
+      slightly_stronger: 'opponent slightly above your power',
+      stronger: 'opponent tuned ~15% above your squad',
+    },
+  };
+
+  const levelKey = levelDescriptions[lang][opponentLevel]
+    ? opponentLevel
+    : 'similar';
+
   factors.push(
     lang === 'en'
-      ? `Reference opponent: same level, pure ${oppLabel} roles — not a real player roster.`
-      : `Adversaire de référence : même niveau, rôles purs ${oppLabel} — pas un vrai roster adverse.`
+      ? `Reference opponent: pure ${oppLabel} roles, ${levelDescriptions.en[levelKey]} — not a real player roster.`
+      : `Adversaire de référence : rôles purs ${oppLabel}, ${levelDescriptions.fr[levelKey]} — pas un vrai roster adverse.`
   );
 
   if (squadContext?.avgMoral != null && squadContext.avgMoral < 12 && winPct < 50) {
