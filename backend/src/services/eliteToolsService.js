@@ -19,6 +19,22 @@ import {
 
 const COMPOSITION_OPTIONS = ['assaut', 'mur', 'flux', 'equilibre'];
 
+function summarizeSquadOrders(ninjas) {
+  const counts = { Offensive: 0, Tank: 0, Protect: 0, Normal: 0 };
+  for (const ninja of ninjas) {
+    const key = ninja.battle_strategy || 'Normal';
+    if (counts[key] != null) counts[key] += 1;
+    else counts.Normal += 1;
+  }
+  return counts;
+}
+
+function summarizeSquadMoral(ninjas) {
+  if (!ninjas.length) return null;
+  const sum = ninjas.reduce((acc, n) => acc + Number(n.moral ?? 15), 0);
+  return sum / ninjas.length;
+}
+
 function dbNinjaToSim(ninja) {
   return cloneNinja({
     id: ninja.id,
@@ -236,6 +252,10 @@ export async function simulateEliteMatchup(
       myComposition: composition,
       opponentComposition: opponent,
       locale: lang,
+      squadContext: {
+        orderCounts: summarizeSquadOrders(ninjas),
+        avgMoral: summarizeSquadMoral(ninjas),
+      },
     }),
   };
 }

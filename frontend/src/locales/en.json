@@ -731,7 +731,10 @@
     "simMeta": "{runs} simulated fights · {tours} avg turns · {ko}% end by KO",
     "circleAdvantage": "Circle advantage",
     "circleDisadvantage": "Circle disadvantage",
-    "circleNeutral": "Neutral circle"
+    "circleNeutral": "Neutral circle",
+    "whyTitle": "Why this trend",
+    "adviceTitle": "Advice",
+    "rulesCompLink": "Team compositions & tactical circle (game rules)"
   },
   "senseiProfile": {
     "title": "Sensei profile",

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import { useEliteStore } from '../../stores/elite'
 
 defineOptions({ name: 'EliteToolsPanel' })
@@ -22,6 +23,8 @@ const verdictToneClass = computed(() => {
   if (tone === 'unfavorable') return 'border-fire/40 text-fire'
   return 'border-accent/40 text-accent'
 })
+
+const rulesCompLink = { path: '/rules', hash: '#compositions-d-equipe-meta' }
 
 onMounted(async () => {
   if (!elite.subscription) await elite.fetchElite()
@@ -106,6 +109,13 @@ async function runMatchup() {
       <section class="mt-8">
         <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.matchupTitle') }}</p>
         <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('eliteTools.matchupHint') }}</p>
+        <RouterLink
+          :to="rulesCompLink"
+          class="mt-2 inline-block text-xs text-accent underline-offset-2 hover:underline"
+          data-testid="elite-tools-rules-link"
+        >
+          {{ t('eliteTools.rulesCompLink') }}
+        </RouterLink>
         <div class="mt-3 flex flex-wrap items-end gap-3">
           <label class="text-xs">
             <span class="text-ink-muted">{{ t('eliteTools.opponentComp') }}</span>
@@ -191,8 +201,22 @@ async function runMatchup() {
           </div>
 
           <ul v-if="matchup.verdict?.factors?.length" class="mt-4 space-y-2 border-t border-line/50 pt-3 text-xs leading-relaxed text-ink-muted">
-            <li v-for="(factor, i) in matchup.verdict.factors" :key="i">· {{ factor }}</li>
+            <li class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.whyTitle') }}</li>
+            <li v-for="(factor, i) in matchup.verdict.factors" :key="`f-${i}`">· {{ factor }}</li>
           </ul>
+
+          <div v-if="matchup.verdict?.advice?.length" class="mt-4 border-t border-line/50 pt-3">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.adviceTitle') }}</p>
+            <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink">
+              <li v-for="(tip, i) in matchup.verdict.advice" :key="`a-${i}`">→ {{ tip }}</li>
+            </ul>
+            <RouterLink
+              :to="rulesCompLink"
+              class="mt-3 inline-block text-xs text-accent underline-offset-2 hover:underline"
+            >
+              {{ t('eliteTools.rulesCompLink') }}
+            </RouterLink>
+          </div>
         </div>
       </section>
     </template>

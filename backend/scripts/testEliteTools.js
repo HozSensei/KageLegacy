@@ -106,6 +106,22 @@ async function main() {
   });
   console.assert(verdict.tone === 'favorable', 'verdict favorable');
   console.assert(verdict.factors.length >= 2, 'verdict facteurs');
+  console.assert(verdict.advice.length >= 1, 'verdict conseils');
+
+  const equilibreVerdict = buildSimulationVerdict({
+    winPct: 35,
+    matchup: compareCompositions('equilibre', 'assaut'),
+    myComposition: 'equilibre',
+    opponentComposition: 'assaut',
+    locale: 'fr',
+    squadContext: {
+      orderCounts: { Offensive: 1, Tank: 1, Protect: 1, Normal: 0 },
+      avgMoral: 14,
+    },
+  });
+  console.assert(equilibreVerdict.tone === 'unfavorable', 'equilibre vs assaut défavorable');
+  console.assert(equilibreVerdict.advice.length >= 2, 'conseils equilibre vs spécialisé');
+  console.assert(equilibreVerdict.rulesAnchor === 'compositions-d-equipe-meta', 'ancre règles');
 
   const poolRows = await query(`SELECT p.* FROM pools p LIMIT 1`);
   if (!poolRows[0]) {
@@ -181,6 +197,7 @@ async function main() {
   console.assert(sim.matchup.myAdvantage, 'sim avantage assaut vs mur');
   console.assert(sim.verdict?.headline, 'sim verdict headline');
   console.assert(sim.myCompositionLabel, 'sim label compo');
+  console.assert(sim.verdict?.advice?.length >= 1, 'sim conseils');
 
   await grantDailySealsForUser(homeId);
   await openChakraSeal(homeId);

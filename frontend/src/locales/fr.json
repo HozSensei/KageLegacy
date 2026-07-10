@@ -731,7 +731,10 @@
     "simMeta": "{runs} combats simulés · {tours} tours en moyenne · {ko}% finissent par KO",
     "circleAdvantage": "Avantage cercle",
     "circleDisadvantage": "Désavantage cercle",
-    "circleNeutral": "Cercle neutre"
+    "circleNeutral": "Cercle neutre",
+    "whyTitle": "Pourquoi cette tendance",
+    "adviceTitle": "Conseils",
+    "rulesCompLink": "Compositions & cercle tactique (règles du jeu)"
   },
   "senseiProfile": {
     "title": "Profil Sensei",
