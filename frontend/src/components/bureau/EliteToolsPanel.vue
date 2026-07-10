@@ -94,9 +94,33 @@ async function runMatchup() {
 
       <section class="mt-8">
         <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.ordersTitle') }}</p>
-        <p class="mt-2 text-sm text-ink">{{ tools.composition.label }}</p>
+        <p class="mt-2 text-sm text-ink">{{ tools.orders?.label ?? tools.composition?.label }}</p>
         <ul class="mt-2 space-y-1 text-xs text-ink-muted">
-          <li v-for="(tip, i) in tools.composition.tips" :key="i">{{ tip }}</li>
+          <li v-for="(tip, i) in (tools.orders?.tips ?? tools.composition?.tips)" :key="i">{{ tip }}</li>
+        </ul>
+      </section>
+
+      <section v-if="tools.preparationChallenges?.challenges?.length" class="mt-8">
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.challengesTitle') }}</p>
+        <p class="mt-2 text-xs text-ink-muted">{{ t('eliteTools.challengesLead') }}</p>
+        <p class="mt-2 text-xs text-ink-faint">
+          {{ t('eliteTools.challengesSummary', tools.preparationChallenges.summary) }}
+        </p>
+        <ul class="mt-4 space-y-2">
+          <li
+            v-for="item in tools.preparationChallenges.challenges"
+            :key="item.id"
+            class="border px-3 py-2 text-xs"
+            :class="{
+              'border-water/40 text-water': item.status === 'done',
+              'border-fire/40 text-fire': item.status === 'pending',
+              'border-accent/40 text-accent': item.status === 'warning',
+            }"
+            :data-testid="`elite-challenge-${item.id}`"
+          >
+            <span class="font-medium text-ink">{{ item.title }}</span>
+            <span class="mt-1 block leading-relaxed text-ink-muted">{{ item.detail }}</span>
+          </li>
         </ul>
       </section>
 
@@ -136,7 +160,7 @@ async function runMatchup() {
               data-testid="elite-matchup-select"
             >
               <option
-                v-for="c in tools.compositionOptions"
+                v-for="c in (tools.opponentStyleOptions ?? tools.compositionOptions)"
                 :key="c.value ?? c"
                 :value="c.value ?? c"
               >
@@ -210,6 +234,9 @@ async function runMatchup() {
 
           <p class="mt-3 text-xs text-ink-faint">
             {{ t('eliteTools.simMeta', { runs: matchup.runs, tours: matchup.avgTours, ko: matchup.koPct }) }}
+            <template v-if="matchup.matchProcPct != null">
+              · {{ t('eliteTools.simCardProcs', { pct: matchup.matchProcPct, rate: matchup.cardProcsPerMatch }) }}
+            </template>
           </p>
 
           <ul v-if="matchup.verdict?.factors?.length" class="mt-4 space-y-2 border-t border-line/50 pt-3 text-xs leading-relaxed text-ink-muted">

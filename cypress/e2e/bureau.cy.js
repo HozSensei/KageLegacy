@@ -11,8 +11,10 @@ describe('Bureau — panneaux clés', () => {
     cy.get('[data-testid="bureau-academy-panel"]').should('be.visible');
   });
 
-  it('affiche le panneau missions', () => {
-    cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
-    cy.contains('Contrats de mission').should('exist');
+  it('affiche le panneau missions sur /missions', () => {
+    cy.visit('/missions');
+    cy.get('[data-testid="missions-page"]', { timeout: 15000 }).should('be.visible');
+    cy.get('[data-testid="missions-panel"]').should('be.visible');
+    cy.get('[data-testid="missions-panel"]').contains('Palier du contrat');
   });
 });

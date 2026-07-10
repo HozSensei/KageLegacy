@@ -55,7 +55,7 @@
     "Egoiste": {
       "label": "Égoïste",
       "bonus": "Fierté solitaire : +2 Taijutsu/Ninjutsu si ses coéquipiers ont moins de PV.",
-      "malus": "Insoumis : ignore les consignes de protection (ne sera jamais Tank)."
+      "malus": "Insoumis : ignore les consignes de protection (ne prendra jamais la consigne Défensive)."
     },
     "Altruiste": {
       "label": "Altruiste",
@@ -100,7 +100,7 @@
     "lead": "Kage Legacy est un manager shinobi asynchrone : entraînez vos ninjas, composez votre escouade, affrontez une ligue de six Sensei et suivez la chronique de vos opérations de frontière.",
     "features": {
       "cycle": "Cycles de trois jours : entraînement, examens à mi-parcours, match de ligue et économie Ryos.",
-      "squad": "Tactiques Tank / Protect / Offensive, composition active et marché entre joueurs.",
+      "squad": "Consignes Défensive / Protection / Offensive, composition active et marché entre joueurs.",
       "league": "Ligues fermées de 6 escouades, promotions et relégations.",
       "chronicle": "Chronique narrative révélée heure par heure pendant l'opération."
     },
@@ -339,6 +339,31 @@
       "failureBody": "{name} n'a pas convaincu le conseil (combat {combat}/10, intelligence {intelligence}/8). Moral : {moral}."
     }
   },
+  "dossier": {
+    "title": "Dossier d'opération",
+    "lead": "Préparez votre plan avant H71 : espionnage (H36+), profils adverses, consignes et cartes. La posture adapte les conseils — elle ne donne pas de bonus caché en match.",
+    "opponent": "Adversaire",
+    "cycle": "Cycle {cycle}",
+    "envFuzzy": "terrain estimé",
+    "ownSquad": "Votre escouade",
+    "teamSpeed": "Vitesse tactique {speed}",
+    "cardsEquipped": "{count} carte(s) équipée(s)",
+    "cardEquipped": "carte équipée",
+    "scoutTitle": "Espionnage",
+    "scoutLocked": "Rapport disponible à partir de H36.",
+    "potential": "potentiel {level}",
+    "postureLabel": "Posture d'opération",
+    "postureHelp": "Choisissez l'intention de votre escouade pour ce cycle. Alignez-la avec vos consignes (Offensive, Défensive, Protection) et vos cartes tactiques.",
+    "postures": {
+      "balanced": "Pas de pari marqué — escouade mixte ou adversaire peu lisible.",
+      "offensive": "Presser et finir vite — cohérent avec des consignes Offensive et des cartes d'attaque.",
+      "tank": "Tenir la ligne sous pression — cohérent avec une consigne Défensive et des cartes de parade.",
+      "protect": "Survivre et soigner — cohérent avec des consignes Protection et des cartes de soutien."
+    },
+    "rulesLink": "Guide complet : consignes, postures et cartes",
+    "locked": "Dossier verrouillé — opération en cours.",
+    "adviceTitle": "Conseils tactiques"
+  },
   "squad": {
     "kicker": "Composition",
     "lead": "Gérez votre trio de combat et vos remplaçants avant le gel des consignes.",
@@ -370,10 +395,10 @@
     "listed": "En vente",
     "sellFreePrice": "Fixez le prix en Ryos — libre, selon votre stratégie.",
     "strategies": {
-      "Normal": "Normal",
-      "Tank": "Tank — Provocation",
-      "Protect": "Protéger un allié",
-      "Offensive": "Offensif"
+      "Normal": "Normal — équilibré",
+      "Tank": "Défensive — provocation",
+      "Protect": "Protection — soutien allié",
+      "Offensive": "Offensive — priorité attaque"
     }
   },
   "elements": {
@@ -741,11 +766,13 @@
     "lead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
     "seasonTitle": "Saison en cours",
     "ordersTitle": "Consignes actives",
-    "compTitle": "Consignes actives",
+    "challengesTitle": "Défis de préparation",
+    "challengesLead": "Checklist avant H71 — cartes, consignes et voies. Aucun bonus en match, uniquement de la lecture.",
+    "challengesSummary": "{done} validés · {pending} à faire · {warning} attention",
     "trainingTitle": "ROI entraînement",
     "atCap": "cap atteint",
     "matchupTitle": "Simulateur de matchup",
-    "matchupHint": "Enchaîne 100 combats fictifs entre votre escouade actuelle et un adversaire de référence calibré sur vos stats (consignes pures). Les pourcentages indiquent la tendance, pas un résultat garanti.",
+    "matchupHint": "100 combats fictifs entre votre escouade (consignes + cartes équipées) et un adversaire de référence calibré sur vos stats. Tendance indicative, pas un résultat garanti.",
     "opponentStyle": "Style adverse",
     "opponentComp": "Style adverse",
     "opponentLevel": "Niveau adverse",
@@ -754,9 +781,7 @@
     "simDuel": "{mine} vs {opp}",
     "simResult": "Victoire {win}% · Nul {draw}% · Défaite {loss}%",
     "simMeta": "{runs} combats simulés · {tours} tours en moyenne · {ko}% finissent par KO",
-    "circleAdvantage": "Avantage cercle",
-    "circleDisadvantage": "Désavantage cercle",
-    "circleNeutral": "Cercle neutre",
+    "simCardProcs": "{pct}% des matchs avec proc carte ({rate}/match)",
     "whyTitle": "Pourquoi cette tendance",
     "adviceTitle": "Conseils",
     "rulesCompLink": "Cartes tactiques & consignes (règles du jeu)"

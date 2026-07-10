@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import SenseiIdentity from './sensei/SenseiIdentity.vue'
 
 const props = defineProps({
   nav: { type: Object, default: null },
@@ -114,9 +115,23 @@ function matchStatusClass(status) {
           @click="goMatch(match.id)"
         >
           <span class="block font-display text-ink">
-            {{ match.home.name }}
-            <span class="text-ink-faint">vs</span>
-            {{ match.away.name }}
+            <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+              <SenseiIdentity
+                v-if="match.home.identity"
+                :identity="match.home.identity"
+                variant="inline"
+                :linkable="false"
+              />
+              <template v-else>{{ match.home.name }}</template>
+              <span class="text-ink-faint">vs</span>
+              <SenseiIdentity
+                v-if="match.away.identity"
+                :identity="match.away.identity"
+                variant="inline"
+                :linkable="false"
+              />
+              <template v-else>{{ match.away.name }}</template>
+            </span>
           </span>
           <span class="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.1em]">
             <span :class="matchStatusClass(match.status)">{{ t(`matches.status.${match.status}`, match.status) }}</span>

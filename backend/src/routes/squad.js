@@ -25,8 +25,15 @@ import { releaseNinja } from '../services/ninjaReleaseService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
 import { ensureStarterSquad } from '../services/starterSquadService.js';
 import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
+import { alignPoolBotsToPoolAverage } from '../services/botFactory.js';
+import { findUserPool } from '../services/poolService.js';
 
 const router = Router();
+
+async function maybeRealignPoolBots(userId) {
+  const pool = await findUserPool(userId);
+  if (pool) await alignPoolBotsToPoolAverage(pool.id);
+}
 
 async function resolveUser(req, res) {
   return requireUser(req, res);
@@ -58,6 +65,7 @@ router.patch('/composition', async (req, res, next) => {
 
     const parsed = updateCompositionSchema.parse(req.body);
     await updateSquadComposition(user.id, parsed.slots);
+    await maybeRealignPoolBots(user.id);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

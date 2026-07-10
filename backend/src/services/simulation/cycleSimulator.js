@@ -116,13 +116,15 @@ function teamDataFromNinjas(
   userId,
   ninjas,
   sensei = { name: 'Sensei', chakra_pool: 100, training_focus: 'Ninjutsu' },
-  equipmentByNinja = {}
+  equipmentByNinja = {},
+  tacticCardByNinja = {}
 ) {
   return {
     userId,
     sensei,
     ninjas: ninjas.map(cloneNinja),
     equipmentByNinja,
+    tacticCardByNinja,
   };
 }
 
@@ -141,14 +143,16 @@ function runSingleMatch(
   slotASensei,
   slotBSensei,
   slotAEquipment = {},
-  slotBEquipment = {}
+  slotBEquipment = {},
+  slotATacticCards = {},
+  slotBTacticCards = {}
 ) {
   const slotA = buildCombatTeam(
-    teamDataFromNinjas(1, slotANinjas, slotASensei, slotAEquipment),
+    teamDataFromNinjas(1, slotANinjas, slotASensei, slotAEquipment, slotATacticCards),
     COMBAT_SLOT_A
   );
   const slotB = buildCombatTeam(
-    teamDataFromNinjas(2, slotBNinjas, slotBSensei, slotBEquipment),
+    teamDataFromNinjas(2, slotBNinjas, slotBSensei, slotBEquipment, slotBTacticCards),
     COMBAT_SLOT_B
   );
   return simulateCombat(slotA, slotB);
@@ -256,32 +260,53 @@ export function runMonteCarlo({
   favoriteSide = 'slotA',
   slotAEquipment = {},
   slotBEquipment = {},
+  slotATacticCards = {},
+  slotBTacticCards = {},
 }) {
   const counter = initOutcomeCounter();
   const slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' };
   const slotBSensei = { name: 'Sensei B', chakra_pool: 100, training_focus: 'Taijutsu' };
   let consumablesTriggered = 0;
+  let cardProcs = 0;
+  let matchesWithCardProc = 0;
+  let errors = 0;
 
   for (let i = 0; i < runs; i += 1) {
-    const result = runSingleMatch(
-      slotANinjas.map(cloneNinja),
-      slotBNinjas.map(cloneNinja),
-      slotASensei,
-      slotBSensei,
-      slotAEquipment,
-      slotBEquipment
-    );
-    recordOutcome(counter, result, favoriteSide);
-    const summary = collectEquipmentSummary([
-      ...result.homeTeam.fighters,
-      ...result.awayTeam.fighters,
-    ]);
-    consumablesTriggered += summary.reduce((s, row) => s + row.consumedSlugs.length, 0);
+    try {
+      const result = runSingleMatch(
+        slotANinjas.map(cloneNinja),
+        slotBNinjas.map(cloneNinja),
+        slotASensei,
+        slotBSensei,
+        slotAEquipment,
+        slotBEquipment,
+        slotATacticCards,
+        slotBTacticCards
+      );
+      recordOutcome(counter, result, favoriteSide);
+      const summary = collectEquipmentSummary([
+        ...result.homeTeam.fighters,
+        ...result.awayTeam.fighters,
+      ]);
+      consumablesTriggered += summary.reduce((s, row) => s + row.consumedSlugs.length, 0);
+      const procs = result.logs.filter((l) => l.type === 'tactic_card').length;
+      cardProcs += procs;
+      if (procs > 0) matchesWithCardProc += 1;
+    } catch (err) {
+      errors += 1;
+      if (errors === 1) console.error('runMonteCarlo error:', err);
+    }
   }
 
+  const effectiveRuns = runs - errors;
   return {
     ...summarize(counter, favoriteSide),
-    consumablesPerMatch: runs ? Math.round((consumablesTriggered / runs) * 100) / 100 : 0,
+    consumablesPerMatch: effectiveRuns
+      ? Math.round((consumablesTriggered / effectiveRuns) * 100) / 100
+      : 0,
+    cardProcsPerMatch: effectiveRuns ? Math.round((cardProcs / effectiveRuns) * 1000) / 1000 : 0,
+    matchProcPct: pct(matchesWithCardProc, effectiveRuns),
+    errors,
   };
 }
 

@@ -202,14 +202,16 @@ function matchStatusLabel(status) {
                     <SenseiIdentity
                       v-if="match.home.identity"
                       :identity="match.home.identity"
-                      variant="inline"
+                      variant="card"
+                      :linkable="false"
                     />
                     <template v-else>{{ match.home.name }}</template>
                     <span class="text-ink-faint">{{ t('common.vs') }}</span>
                     <SenseiIdentity
                       v-if="match.away.identity"
                       :identity="match.away.identity"
-                      variant="inline"
+                      variant="card"
+                      :linkable="false"
                     />
                     <template v-else>{{ match.away.name }}</template>
                   </span>
@@ -249,6 +251,14 @@ function matchStatusLabel(status) {
               </p>
               <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink-muted">
                 <li v-for="(line, i) in league.scoutReport.lines" :key="i">{{ line }}</li>
+              </ul>
+              <ul
+                v-if="league.scoutReport.profiles?.length"
+                class="mt-4 space-y-1 border-t border-line/40 pt-3 text-xs text-ink-faint"
+              >
+                <li v-for="(profile, j) in league.scoutReport.profiles" :key="`sp-${j}`">
+                  {{ profile.artLabel }} · {{ t('dossier.potential', { level: profile.potentialHint }) }}
+                </li>
               </ul>
             </div>
           </section>

@@ -1,7 +1,7 @@
 describe('Interface — locale', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/bureau');
+    cy.visit('/missions');
     cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
   });
 
@@ -9,16 +9,17 @@ describe('Interface — locale', () => {
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-locale-en"]').click();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
-    cy.get('[data-testid="missions-panel"]').contains('Mission contracts');
+    cy.get('[data-testid="missions-panel"]').contains('Contract tier');
   });
 
   it('revient en français', () => {
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-locale-en"]').click();
-    cy.get('[data-testid="profile-menu-button"]').click();
+    cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
+    cy.get('[data-testid="profile-menu-panel"]').should('be.visible');
     cy.get('[data-testid="profile-locale-fr"]').click();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Escouade');
-    cy.get('[data-testid="missions-panel"]').contains('Contrats de mission');
+    cy.get('[data-testid="missions-panel"]').contains('Palier du contrat');
   });
 
   it('affiche la chronique en anglais sur /operation', () => {

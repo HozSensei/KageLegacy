@@ -41,3 +41,64 @@ jobs:
 
       - name: Benchmark combat (smoke)
         run: npm run combat:benchmark --prefix backend -- --runs=100
+
+      - name: Benchmark cartes tactiques (smoke)
+        run: npm run combat:tactic-cards --prefix backend -- --runs=100
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: kage_legacy
+          MYSQL_USER: kage
+          MYSQL_PASSWORD: kage
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -ukage -pkage"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: kage
+      DB_PASSWORD: kage
+      DB_NAME: kage_legacy
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix backend
+          npm ci --prefix frontend
+
+      - name: Install Cypress binary
+        run: npx cypress install
+
+      - name: Prepare database (migrate, seed, cycle H0→H72)
+        run: npm run e2e:prepare
+
+      - name: Run Cypress E2E
+        run: npm run test:e2e
+
+      - name: Upload Cypress screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
