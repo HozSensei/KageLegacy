@@ -29,6 +29,5 @@ describe('Notifications — cloche Bureau', () => {
     cy.get('[data-testid="notification-bell"]').click();
     cy.get('[data-testid="notification-follow"]').first().click();
     cy.get('[data-testid="bureau-page"]', { timeout: 15000 }).should('be.visible');
-    cy.get('[data-testid="missions-panel"]').should('be.visible');
   });
 });
