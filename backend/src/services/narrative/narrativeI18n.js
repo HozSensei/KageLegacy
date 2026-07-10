@@ -73,9 +73,19 @@ export function resolveSegmentText(locale, segment) {
     const connector =
       vars.connector_key === 'chronicle.combatOpen'
         ? pickTemplateEntry(code, 'chronicle.combatOpen', 0)
-        : pickTemplateEntry(code, vars.connector_key, vars.connector_index);
+        : pickTemplateEntry(code, vars.connector_key, vars.connector_index, {
+            home_sensei: vars.home_sensei,
+            away_sensei: vars.away_sensei,
+          });
     const body = (vars.parts || []).map((part) => resolveTourPart(code, part)).join(' ');
-    return `${connector} ${body}`.trim();
+    const momentum = vars.momentum_key
+      ? pickTemplateEntry(code, vars.momentum_key, vars.momentum_index, {
+          sensei: vars.momentum_sensei,
+          home_sensei: vars.home_sensei,
+          away_sensei: vars.away_sensei,
+        })
+      : '';
+    return `${connector} ${body} ${momentum}`.trim();
   }
 
   if (segment.template_key === 'chronicle.tension') {
@@ -102,17 +112,28 @@ export function resolveSegmentText(locale, segment) {
   if (segment.template_key.startsWith('chronicle.denouement.')) {
     const suffix = segment.template_key.split('.').pop();
     const vars = segment.template_vars || {};
-    const resolved =
-      suffix === 'draw'
-        ? {
-            home_team: teamLabel(code, vars.home_sensei),
-            away_team: teamLabel(code, vars.away_sensei),
-          }
-        : {
-            winner_team: teamLabel(code, vars.winner_sensei),
-            loser_team: teamLabel(code, vars.loser_sensei),
-          };
-    return pickTemplateEntry(code, `chronicle.denouement.${suffix}`, 0, resolved);
+    if (suffix === 'draw') {
+      return pickTemplateEntry(code, `chronicle.denouement.${suffix}`, 0, {
+        home_team: teamLabel(code, vars.home_sensei),
+        away_team: teamLabel(code, vars.away_sensei),
+        ending_tour: vars.ending_tour,
+        home_score_pct: vars.home_score_pct,
+        away_score_pct: vars.away_score_pct,
+        home_possession_pct: vars.home_possession_pct,
+        away_possession_pct: vars.away_possession_pct,
+        ko_sentence: vars.ko_sentence,
+      });
+    }
+    return pickTemplateEntry(code, `chronicle.denouement.${suffix}`, 0, {
+      winner_team: teamLabel(code, vars.winner_sensei),
+      loser_team: teamLabel(code, vars.loser_sensei),
+      ending_tour: vars.ending_tour,
+      winner_score_pct: vars.winner_score_pct,
+      loser_score_pct: vars.loser_score_pct,
+      winner_possession_pct: vars.winner_possession_pct,
+      loser_possession_pct: vars.loser_possession_pct,
+      ko_sentence: vars.ko_sentence,
+    });
   }
 
   if (segment.template_key === 'chronicle.epilogue') {

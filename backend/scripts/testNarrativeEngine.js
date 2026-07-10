@@ -15,7 +15,7 @@ const combatLog = {
       attaquant_name: 'Rei',
       cible_name: 'Haru',
       technique_type: 'Taijutsu',
-      degats_pv: 3,
+      degats_pv: 8,
       equipe_attaque: 'away',
     },
     {
@@ -28,6 +28,8 @@ const combatLog = {
     },
   ],
   possession: { homePct: 28, awayPct: 72 },
+  homeScorePct: 41,
+  awayScorePct: 58,
   environment: { slug: 'brouillard' },
   koNinjaIds: [],
   equipmentSummary: [],
@@ -78,6 +80,15 @@ const debrief = buildDebriefing(
   'fr'
 );
 if (!debrief.some((d) => d.code === 'initiative')) throw new Error('debrief initiative');
+
+const denouement = narrative.segments.find((s) => s.block_type === 'denouement');
+const denouementFr = resolveSegmentText('fr', denouement);
+if (!denouementFr.includes('58%')) throw new Error('denouement score manquant');
+if (!denouementFr.includes('possession')) throw new Error('denouement possession manquant');
+
+const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_index === 1);
+const actionFr = resolveSegmentText('fr', actionSeg);
+if (!actionFr.includes('→')) throw new Error('momentum tour manquant');
 
 console.log('NARRATIVE_TEST_OK');
 console.log('Intro FR:', introFr.slice(0, 120) + '…');

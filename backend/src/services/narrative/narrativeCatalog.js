@@ -42,6 +42,47 @@ export const NARRATIVE_CATALOG = {
 
     chronicle: {
       combatOpen: 'Le combat s\'engage soudainement.',
+      tourBridge: {
+        early: [
+          'Premiers échanges :',
+          'Le duel s\'ouvre —',
+          'Au signal, les deux camps se heurtent.',
+        ],
+        mid: [
+          'Le rythme s\'intensifie.',
+          'À mi-parcours du combat,',
+          'La pression monte d\'un cran.',
+        ],
+        late: [
+          'Dans l\'ultime ligne droite,',
+          'Les dernières minutes du duel,',
+          'Chaque geste compte désormais :',
+        ],
+        home_push: [
+          'L\'équipe de {home_sensei} impose son tempo.',
+          'Côté {home_sensei}, l\'initiative est nette.',
+          '{home_sensei} mène la danse ce tour.',
+        ],
+        away_push: [
+          'L\'équipe de {away_sensei} reprend le contrôle.',
+          'Côté {away_sensei}, la réplique est immédiate.',
+          '{away_sensei} dicte le rythme de l\'échange.',
+        ],
+      },
+      tourMomentum: {
+        home: [
+          '→ Avantage net pour l\'équipe de {sensei} sur cet échange.',
+          '→ {sensei} prend le dessus sur ce tour.',
+        ],
+        away: [
+          '→ Avantage net pour l\'équipe de {sensei} sur cet échange.',
+          '→ {sensei} prend le dessus sur ce tour.',
+        ],
+        even: [
+          '→ Échange équilibré : aucun camp ne prend clairement l\'ascendant.',
+          '→ Le tour se conclut sans vainqueur évident.',
+        ],
+      },
       tension:
         '{transition} Dans ce silence lourd, chaque ninja ajuste son équipement et jauge l\'adversaire du coin de l\'œil, conscient que la moindre erreur coûtera cher au campement.',
       intro:
@@ -49,11 +90,11 @@ export const NARRATIVE_CATALOG = {
       teamLabel: 'l\'équipe de {sensei_name}',
       denouement: {
         draw:
-          'Ni {home_team} ni {away_team} ne parvient à faire plier l\'adversaire. Épuisés, les deux camps se retirent sous un cessez-le-feu tacite, chacun pansant ses blessures sur le chemin du retour au camp.',
+          'Après {ending_tour} tours, ni {home_team} ni {away_team} ne l\'emporte clairement (réserves : {home_score_pct}% vs {away_score_pct}% · possession {home_possession_pct}% / {away_possession_pct}%). {ko_sentence}',
         ko:
-          'La pression constante de {winner_team} finit par faire plier l\'adversaire. Acculés, les ninjas de {loser_team} ne peuvent plus tenir la ligne et s\'effondrent un à un. Le retour au campement sera difficile pour les survivants, certains à peine debout.',
+          'La pression constante de {winner_team} finit par faire plier l\'adversaire. Acculés, les ninjas de {loser_team} ne peuvent plus tenir la ligne ({ko_sentence}). Réserves finales : {winner_score_pct}% contre {loser_score_pct}% · possession {winner_possession_pct}% / {loser_possession_pct}%.',
         points:
-          'Au terme d\'un échange acharné, {winner_team} conserve l\'avantage décisif. Les ninjas de {loser_team} sonnent une retraite organisée. Le retour au camp sera l\'occasion de soigner les blessures et de tirer les leçons de cette opération.',
+          'Au terme de {ending_tour} tours, {winner_team} l\'emporte aux points face à {loser_team} : réserves restantes {winner_score_pct}% contre {loser_score_pct}%, possession du tempo {winner_possession_pct}% contre {loser_possession_pct}%. {ko_sentence}',
       },
       epilogue: [
         'Les éclaireurs continuent de surveiller les environs pendant que les blessés sont évacués vers le campement.',
@@ -65,6 +106,14 @@ export const NARRATIVE_CATALOG = {
 
     combat: {
       reactions: {
+        taijutsu_short: [
+          '{cible_name} vacille sous l\'impact.',
+          '{cible_name} perd du terrain.',
+        ],
+        ninjutsu_short: [
+          '{cible_name} est secoué par la technique.',
+          '{cible_name} peine à se remettre du choc.',
+        ],
         taijutsu: [
           '{cible_name} recule en chancelant, le souffle court.',
           'Le choc résonne dans les os de {cible_name}, qui peine à garder l\'équilibre.',
@@ -154,6 +203,25 @@ export const NARRATIVE_CATALOG = {
       },
 
       actions: {
+        strike: {
+          taijutsu: [
+            '{attaquant_name} porte une série taijutsu sur {cible_name} ({impact_label}).',
+            '{attaquant_name} enchaîne au corps à corps contre {cible_name} ({impact_label}).',
+          ],
+          ninjutsu: [
+            '{attaquant_name} lance un ninjutsu sur {cible_name} ({impact_label}).',
+            '{attaquant_name} déchaîne une technique sur {cible_name} ({impact_label}).',
+          ],
+          genjutsu_success: [
+            '{attaquant_name} piège {cible_name} dans un genjutsu — la cible est momentanément hors combat.',
+          ],
+          genjutsu_fail: [
+            '{attaquant_name} tente un genjutsu sur {cible_name}, mais la cible résiste.',
+          ],
+          medecine: [
+            '{attaquant_name} soigne {cible_name} sur le terrain (+{soins_pv} PV).',
+          ],
+        },
         taijutsu: [
           '{attaquant_name} fond sur sa cible et enchaîne une série de coups dévastateurs. {cible_name} encaisse le choc et peine à retrouver son souffle.',
           'Un sifflement fend l\'air. {attaquant_name} prend de vitesse {cible_name} avec un balayage lourd qui perturbe toute défense.',
@@ -331,9 +399,9 @@ export const NARRATIVE_CATALOG = {
             '{ninja_name} se dédouble — la carte tactique détourne les coups.',
           ],
           card_water_cage: [
-            '{ninja_name} emprisonne l\'attaquant dans une cage aqueuse.',
-            'Suiton ! {ninja_name} immobilise l\'adversaire avec sa carte tactique.',
-            'Une prison d\'eau se referme sur la cible de {ninja_name}.',
+            'En riposte, {ninja_name} emprisonne {card_targets} dans une cage aqueuse — l\'assaillant devra temporiser au prochain échange.',
+            'Suiton ! {ninja_name} immobilise {card_targets} avec sa carte tactique, mais l\'échange en cours se poursuit.',
+            '{ninja_name} referme une prison d\'eau sur {card_targets} ; l\'effet se fera sentir au tour suivant.',
           ],
           card_ember_wall: [
             '{ninja_name} dresse un mur de braises — les dégâts s\'évaporent.',
@@ -612,6 +680,47 @@ export const NARRATIVE_CATALOG = {
 
     chronicle: {
       combatOpen: 'The fight erupts without warning.',
+      tourBridge: {
+        early: [
+          'First exchanges:',
+          'The duel opens —',
+          'On the signal, both sides collide.',
+        ],
+        mid: [
+          'The pace intensifies.',
+          'Midway through the fight,',
+          'Pressure rises another notch.',
+        ],
+        late: [
+          'In the final stretch,',
+          'The last minutes of the duel,',
+          'Every move counts now:',
+        ],
+        home_push: [
+          '{home_sensei}\'s team dictates the tempo.',
+          'On {home_sensei}\'s side, initiative is clear.',
+          '{home_sensei} leads this exchange.',
+        ],
+        away_push: [
+          '{away_sensei}\'s team seizes control.',
+          'On {away_sensei}\'s side, the answer is immediate.',
+          '{away_sensei} sets the rhythm this turn.',
+        ],
+      },
+      tourMomentum: {
+        home: [
+          '→ Clear edge for {sensei}\'s team this exchange.',
+          '→ {sensei} wins this turn.',
+        ],
+        away: [
+          '→ Clear edge for {sensei}\'s team this exchange.',
+          '→ {sensei} wins this turn.',
+        ],
+        even: [
+          '→ Even exchange: neither side takes a clear lead.',
+          '→ The turn ends with no obvious winner.',
+        ],
+      },
       tension:
         '{transition} In that heavy silence, every ninja checks their gear and sizes up the enemy from the corner of their eye, knowing the smallest mistake will cost the camp dearly.',
       intro:
@@ -619,11 +728,11 @@ export const NARRATIVE_CATALOG = {
       teamLabel: '{sensei_name}\'s team',
       denouement: {
         draw:
-          'Neither {home_team} nor {away_team} can break the other. Exhausted, both sides withdraw under an unspoken ceasefire, each tending their wounds on the march back to camp.',
+          'After {ending_tour} turns, neither {home_team} nor {away_team} breaks clear ({home_score_pct}% vs {away_score_pct}% reserves · {home_possession_pct}% / {away_possession_pct}% possession). {ko_sentence}',
         ko:
-          'The relentless pressure from {winner_team} finally breaks the opposition. Cornered, the ninjas of {loser_team} can no longer hold the line and fall one by one. The march back to camp will be brutal for the survivors — some barely on their feet.',
+          'Relentless pressure from {winner_team} finally breaks the line. Cornered, {loser_team}\'s ninjas can no longer hold ({ko_sentence}). Final reserves: {winner_score_pct}% vs {loser_score_pct}% · possession {winner_possession_pct}% / {loser_possession_pct}%.',
         points:
-          'After a fierce exchange, {winner_team} holds the decisive edge. The ninjas of {loser_team} sound an organized retreat. Back at camp, there will be wounds to treat and hard lessons to learn from this operation.',
+          'After {ending_tour} turns, {winner_team} wins on points over {loser_team}: {winner_score_pct}% reserves left vs {loser_score_pct}%, tempo possession {winner_possession_pct}% vs {loser_possession_pct}%. {ko_sentence}',
       },
       epilogue: [
         'Scouts keep watch on the surroundings while the wounded are evacuated to camp.',
@@ -635,6 +744,14 @@ export const NARRATIVE_CATALOG = {
 
     combat: {
       reactions: {
+        taijutsu_short: [
+          '{cible_name} wavers under the hit.',
+          '{cible_name} loses ground.',
+        ],
+        ninjutsu_short: [
+          '{cible_name} is shaken by the technique.',
+          '{cible_name} struggles to recover from the blow.',
+        ],
         taijutsu: [
           '{cible_name} staggers back, breathing hard.',
           'The impact rattles {cible_name}\'s bones; balance is hard to keep.',
@@ -724,6 +841,25 @@ export const NARRATIVE_CATALOG = {
       },
 
       actions: {
+        strike: {
+          taijutsu: [
+            '{attaquant_name} lands a taijutsu combo on {cible_name} ({impact_label}).',
+            '{attaquant_name} presses {cible_name} in close combat ({impact_label}).',
+          ],
+          ninjutsu: [
+            '{attaquant_name} casts ninjutsu on {cible_name} ({impact_label}).',
+            '{attaquant_name} unleashes a technique on {cible_name} ({impact_label}).',
+          ],
+          genjutsu_success: [
+            '{attaquant_name} traps {cible_name} in genjutsu — the target is briefly out of the fight.',
+          ],
+          genjutsu_fail: [
+            '{attaquant_name} attempts genjutsu on {cible_name}, but the target resists.',
+          ],
+          medecine: [
+            '{attaquant_name} heals {cible_name} on the field (+{soins_pv} HP).',
+          ],
+        },
         taijutsu: [
           '{attaquant_name} rushes their target and chains a series of devastating blows. {cible_name} absorbs the impact and struggles to catch their breath.',
           'A whistle cuts the air. {attaquant_name} outpaces {cible_name} with a heavy sweep that shatters their guard.',
@@ -901,9 +1037,9 @@ export const NARRATIVE_CATALOG = {
             '{ninja_name} splits up — the tactic card diverts the blows.',
           ],
           card_water_cage: [
-            '{ninja_name} traps the attacker in an aqua prison.',
-            'Water Style! {ninja_name} immobilizes the foe with a tactic card.',
-            'A water cage closes on {ninja_name}\'s target.',
+            'In riposte, {ninja_name} traps {card_targets} in an aqua cage — the attacker will lose initiative next turn.',
+            'Water Style! {ninja_name} binds {card_targets} with a tactic card, but this exchange still plays out.',
+            '{ninja_name} seals a water prison on {card_targets}; the full effect lands on the next turn.',
           ],
           card_ember_wall: [
             '{ninja_name} raises an ember wall — incoming damage fades.',
