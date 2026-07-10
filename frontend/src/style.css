@@ -453,6 +453,43 @@
     font-family: var(--font-display, 'Cormorant Garamond', serif);
   }
 
+  .chronicle-reader {
+    font-family: var(--font-display, 'Cormorant Garamond', serif);
+  }
+
+  .chronicle-segment {
+    @apply mb-5 last:mb-0;
+  }
+
+  .chronicle-segment--intro,
+  .chronicle-segment--tension {
+    @apply text-ink;
+  }
+
+  .chronicle-segment--denouement {
+    @apply border-l-2 border-accent/50 pl-4 text-ink;
+  }
+
+  .chronicle-sensei {
+    @apply font-semibold text-ink;
+  }
+
+  .chronicle-ninja {
+    @apply font-semibold text-ink-soft;
+  }
+
+  .chronicle-impact {
+    @apply text-[13px] uppercase tracking-[0.12em] text-ink-faint;
+  }
+
+  .chronicle-momentum {
+    @apply mt-2 block text-sm font-medium not-italic text-accent;
+  }
+
+  .chronicle-stat {
+    @apply font-semibold tabular-nums text-ink;
+  }
+
   .btn-ghost {
     @apply border border-line px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-ink-muted transition hover:border-ink-faint hover:text-ink;
   }
