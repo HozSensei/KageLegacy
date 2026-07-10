@@ -5,7 +5,8 @@
   "common": {
     "loading": "Chargement…",
     "vs": "vs",
-    "ryosAmount": "{amount} Ryos"
+    "ryosAmount": "{amount} Ryos",
+    "dismiss": "Fermer"
   },
   "gameClock": {
     "label": "H{hour} · {phase}",
@@ -722,11 +723,18 @@
     "trainingTitle": "ROI entraînement",
     "atCap": "cap atteint",
     "matchupTitle": "Simulateur de matchup",
-    "matchupHint": "Monte Carlo contre une compo pure adverse (100 tirages par défaut).",
+    "matchupHint": "Enchaîne 100 combats fictifs entre votre escouade actuelle et une compo adverse de référence (même niveau, rôles purs). Les pourcentages indiquent la tendance, pas un résultat garanti.",
     "opponentComp": "Compo adverse",
     "runSim": "Lancer la simulation",
+    "simDuel": "{mine} vs {opp}",
     "simResult": "Victoire {win}% · Nul {draw}% · Défaite {loss}%",
-    "simMeta": "{runs} simulations · {tours} tours en moyenne · {ko}% KO"
+    "simMeta": "{runs} combats simulés · {tours} tours en moyenne · {ko}% finissent par KO",
+    "circleAdvantage": "Avantage cercle",
+    "circleDisadvantage": "Désavantage cercle",
+    "circleNeutral": "Cercle neutre",
+    "whyTitle": "Pourquoi cette tendance",
+    "adviceTitle": "Conseils",
+    "rulesCompLink": "Compositions & cercle tactique (règles du jeu)"
   },
   "senseiProfile": {
     "title": "Profil Sensei",

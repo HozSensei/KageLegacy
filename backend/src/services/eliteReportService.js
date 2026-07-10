@@ -2,6 +2,7 @@ import {
   COMPOSITION_BEATS,
   compositionLabel,
   detectSquadComposition,
+  getCompositionProfile,
   hasCompositionAdvantage,
   hasCompositionDisadvantage,
 } from './combat/compositionMeta.js';
@@ -21,8 +22,65 @@ const TECHNIQUE_ICONS = {
   item_event: 'item',
 };
 
+/**
+ * Ancre dans /rules pour le cercle Assaut / Mur / Flux.
+ */
+export const ELITE_RULES_COMPOSITION_ANCHOR = 'compositions-d-equipe-meta';
+
 function normalizeLocale(locale) {
   return locale === 'en' ? 'en' : 'fr';
+}
+
+function findCircleCounter(comp) {
+  return Object.entries(COMPOSITION_BEATS).find(([, beaten]) => beaten === comp)?.[0] ?? null;
+}
+
+function describeSpecializedArchetype(comp, lang) {
+  const profile = getCompositionProfile(comp);
+  if (comp === 'assaut') {
+    return lang === 'en'
+      ? 'Pure Assault runs three Offensive orders — burst damage and constant pressure.'
+      : 'L\'Assaut pur aligne trois consignes Offensive — burst et pression continue.';
+  }
+  if (comp === 'mur') {
+    const reduction = Math.round((1 - profile.damageTaken) * 100);
+    return lang === 'en'
+      ? `Pure Wall runs three Tank orders — about ${reduction}% less damage taken and stronger defensive targeting.`
+      : `Le Mur pur aligne trois consignes Tank — environ ${reduction} % de dégâts en moins et ciblage défensif renforcé.`;
+  }
+  if (comp === 'flux') {
+    return lang === 'en'
+      ? 'Pure Flow runs three Protect orders — healing, genjutsu bias, and gradual wear-down.'
+      : 'Le Flux pur aligne trois consignes Protect — soins, genjutsu et usure progressive.';
+  }
+  return null;
+}
+
+function describeEquilibrePenalty(lang) {
+  return lang === 'en'
+    ? 'Your balanced squad stays outside the tactical circle: no matchup bonus, while a pure opponent unlocks its archetype passives.'
+    : 'Votre escouade équilibrée reste hors du cercle tactique : aucun bonus de matchup, alors qu\'une compo pure active ses passifs d\'archétype.';
+}
+
+function buildOrderAlignmentAdvice(myComposition, orderCounts, lang) {
+  if (!orderCounts || myComposition !== 'equilibre') return null;
+
+  const { Offensive = 0, Tank = 0, Protect = 0, Normal = 0 } = orderCounts;
+  const mixed = [Offensive, Tank, Protect, Normal].filter((n) => n > 0).length;
+  if (mixed < 2) return null;
+
+  return lang === 'en'
+    ? `Your orders are split (${Offensive} Off · ${Tank} Tank · ${Protect} Protect${Normal ? ` · ${Normal} Normal` : ''}) — the engine reads this as balanced. To enter the circle, set two or more ninjas to the same consigne before locking the operation.`
+    : `Vos consignes sont réparties (${Offensive} Off · ${Tank} Tank · ${Protect} Protect${Normal ? ` · ${Normal} Normal` : ''}) — le moteur lit cela comme équilibré. Pour entrer dans le cercle, alignez au moins deux ninjas sur la même consigne avant de verrouiller l'opération.`;
+}
+
+function buildCircleCommitAdvice(opponentComposition, lang) {
+  const counter = findCircleCounter(opponentComposition);
+  if (!counter) return null;
+
+  return lang === 'en'
+    ? `In the tactical circle, ${compositionLabel(counter, lang)} beats ${compositionLabel(opponentComposition, lang)}. Try aligning ${counter === 'assaut' ? 'two Offensive orders' : counter === 'mur' ? 'two Tank orders' : 'two Protect orders'} before the next operation.`
+    : `Dans le cercle tactique, ${compositionLabel(counter, lang)} bat ${compositionLabel(opponentComposition, lang)}. Essayez d'aligner ${counter === 'assaut' ? 'deux consignes Offensive' : counter === 'mur' ? 'deux consignes Tank' : 'deux consignes Protect'} avant la prochaine opération.`;
 }
 
 function parseCombatLog(raw) {
@@ -309,5 +367,150 @@ export function compareCompositions(myComp, opponentComp) {
     myAdvantage: hasCompositionAdvantage(myComp, opponentComp),
     myDisadvantage: hasCompositionDisadvantage(myComp, opponentComp),
     neutral: myComp === 'equilibre' || opponentComp === 'equilibre',
+  };
+}
+
+/**
+ * Synthèse lisible d'une simulation de matchup (outils Élite).
+ */
+export function buildSimulationVerdict({
+  winPct,
+  matchup,
+  myComposition,
+  opponentComposition,
+  locale = 'fr',
+  squadContext = null,
+}) {
+  const lang = normalizeLocale(locale);
+  const myLabel = compositionLabel(myComposition, lang);
+  const oppLabel = compositionLabel(opponentComposition, lang);
+  const factors = [];
+  const advice = [];
+
+  if (matchup.myAdvantage) {
+    factors.push(
+      lang === 'en'
+        ? `Your ${myLabel} has circle advantage over ${oppLabel} (+damage / less damage taken).`
+        : `Votre ${myLabel} a l'avantage du cercle face à ${oppLabel} (+dégâts / moins de dégâts subis).`
+    );
+  } else if (matchup.myDisadvantage) {
+    factors.push(
+      lang === 'en'
+        ? `${oppLabel} counters your ${myLabel} in the composition circle.`
+        : `${oppLabel} contrecarre votre ${myLabel} dans le cercle des compositions.`
+    );
+    const counter = findCircleCounter(opponentComposition);
+    if (counter === myComposition) {
+      advice.push(
+        lang === 'en'
+          ? `You already play ${myLabel}, which is the circle answer — if you still lose, raise combat stats, morale, or form before the operation lock.`
+          : `Vous jouez déjà ${myLabel}, la réponse du cercle — si vous perdez quand même, renforcez stats de combat, moral ou forme avant le verrouillage.`
+      );
+    } else {
+      const circleTip = buildCircleCommitAdvice(opponentComposition, lang);
+      if (circleTip) advice.push(circleTip);
+    }
+  } else if (myComposition === 'equilibre' && opponentComposition !== 'equilibre') {
+    factors.push(describeEquilibrePenalty(lang));
+    const archetype = describeSpecializedArchetype(opponentComposition, lang);
+    if (archetype) factors.push(archetype);
+
+    const alignTip = buildOrderAlignmentAdvice(myComposition, squadContext?.orderCounts, lang);
+    if (alignTip) advice.push(alignTip);
+
+    const circleTip = buildCircleCommitAdvice(opponentComposition, lang);
+    if (circleTip) advice.push(circleTip);
+
+    if (winPct <= 42) {
+      advice.push(
+        lang === 'en'
+          ? 'Staying balanced trades matchup power for flexibility — against pure comps at equal stats, the specialist usually edges out.'
+          : 'Rester équilibré échange la puissance de matchup contre la polyvalence — à stats égales, la compo spécialisée prend souvent l\'avantage.'
+      );
+    }
+  } else {
+    factors.push(
+      lang === 'en'
+        ? 'No composition circle bonus (balanced squad or neutral pairing).'
+        : 'Pas de bonus de cercle (escouade équilibrée ou duel neutre).'
+    );
+  }
+
+  factors.push(
+    lang === 'en'
+      ? `Reference opponent: same level, pure ${oppLabel} roles — not a real player roster.`
+      : `Adversaire de référence : même niveau, rôles purs ${oppLabel} — pas un vrai roster adverse.`
+  );
+
+  if (squadContext?.avgMoral != null && squadContext.avgMoral < 12 && winPct < 50) {
+    factors.push(
+      lang === 'en'
+        ? `Low squad morale (avg ${squadContext.avgMoral.toFixed(1)}/20) drags performance in long fights.`
+        : `Moral d'escouade bas (moy. ${squadContext.avgMoral.toFixed(1)}/20) pénalise les combats longs.`
+    );
+    advice.push(
+      lang === 'en'
+        ? 'Raise morale via Chakra Seals, dispensary, or bench rotation before committing to the operation.'
+        : 'Remontez le moral via sceaux chakra, dispensaire ou rotation du banc avant de verrouiller l\'opération.'
+    );
+  }
+
+  let tone = 'even';
+  let headline;
+  if (winPct >= 58) {
+    tone = 'favorable';
+    headline = lang === 'en' ? 'Favorable outlook' : 'Tendance favorable';
+    advice.push(
+      lang === 'en'
+        ? 'Trend is positive — keep training your focus stat and lock orders that preserve this matchup.'
+        : 'La tendance est bonne — continuez l\'entraînement sur votre stat focus et verrouillez des consignes qui préservent ce matchup.'
+    );
+  } else if (winPct <= 42) {
+    tone = 'unfavorable';
+    headline = lang === 'en' ? 'Tough matchup' : 'Matchup difficile';
+  } else {
+    headline = lang === 'en' ? 'Close matchup' : 'Match serré';
+    advice.push(
+      lang === 'en'
+        ? 'Small changes (one consigne swap, one training cycle, or morale recovery) can flip this trend.'
+        : 'De petits ajustements (une consigne, un cycle d\'entraînement ou du moral) peuvent renverser la tendance.'
+    );
+  }
+
+  if (matchup.myAdvantage && winPct < 45) {
+    factors.push(
+      lang === 'en'
+        ? 'Despite circle advantage, your squad stats or morale trail this reference opponent.'
+        : "Malgré l'avantage de cercle, vos stats ou le moral restent en retrait face à cette référence."
+    );
+    advice.push(
+      lang === 'en'
+        ? 'The circle helps, but raw power still matters — prioritize training on your weakest combat stat.'
+        : 'Le cercle aide, mais la puissance brute compte — priorisez l\'entraînement sur votre stat de combat la plus faible.'
+    );
+  } else if (matchup.myDisadvantage && winPct > 55) {
+    factors.push(
+      lang === 'en'
+        ? 'Your raw stats compensate for the composition disadvantage.'
+        : 'Vos stats brutes compensent le désavantage de composition.'
+    );
+  }
+
+  if (!advice.length && tone === 'unfavorable') {
+    advice.push(
+      lang === 'en'
+        ? 'Review combat orders and training ROI in the panel above, then re-run the simulator.'
+        : 'Revoyez les consignes de combat et le ROI entraînement ci-dessus, puis relancez la simulation.'
+    );
+  }
+
+  return {
+    tone,
+    headline,
+    factors,
+    advice,
+    myLabel,
+    oppLabel,
+    rulesAnchor: ELITE_RULES_COMPOSITION_ANCHOR,
   };
 }

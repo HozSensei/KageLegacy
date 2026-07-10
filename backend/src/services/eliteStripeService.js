@@ -5,18 +5,46 @@ import { findUserPool } from './poolService.js';
 import {
   activateEliteFromStripe,
   getActiveEliteSubscription,
+  revokeEliteSubscription,
 } from './eliteSubscriptionService.js';
 
 function isDevEliteGrantAllowed() {
   return process.env.NODE_ENV !== 'production' || process.env.ENABLE_DEV_TOOLS === 'true';
 }
 
+function normalizePublicUrl(raw) {
+  if (raw == null || raw === '') return null;
+  const trimmed = String(raw).split(',')[0].trim().replace(/\/$/, '');
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^localhost(?::\d+)?$/i.test(trimmed) || /^127\.0\.0\.1(?::\d+)?$/.test(trimmed)) {
+    return `http://${trimmed}`;
+  }
+  return `https://${trimmed}`;
+}
+
 function getPublicAppUrl() {
-  return (
-    process.env.APP_PUBLIC_URL ||
-    process.env.CORS_ORIGIN ||
-    'http://localhost:5173'
-  ).replace(/\/$/, '');
+  const candidates = [
+    process.env.APP_PUBLIC_URL,
+    process.env.CORS_ORIGIN,
+    'http://localhost:5173',
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizePublicUrl(candidate);
+    if (normalized) {
+      try {
+        const parsed = new URL(normalized);
+        if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+          return normalized;
+        }
+      } catch {
+        // try next candidate
+      }
+    }
+  }
+
+  return 'http://localhost:5173';
 }
 
 function getStripeClient() {
@@ -72,6 +100,12 @@ export async function createEliteCheckoutSession(userId) {
   const stripe = getStripeClient();
   const user = await findUserById(userId);
   const baseUrl = getPublicAppUrl();
+  if (!/^https?:\/\//i.test(baseUrl)) {
+    throw stripeHttpError(
+      'APP_PUBLIC_URL invalide — utilisez une URL complète (ex. https://kagelegacy.jeromedessy.be).',
+      503
+    );
+  }
   const checkoutMode = await resolveCheckoutMode(stripe, priceId);
 
   const sessionParams = {
@@ -267,6 +301,81 @@ async function handleInvoicePaymentFailed(invoice) {
   await setEliteSubscriptionStatus(row, 'past_due');
 }
 
+function isChargeFullyRefunded(charge) {
+  if (!charge) return false;
+  if (charge.refunded === true) return true;
+  const amount = charge.amount ?? 0;
+  const refunded = charge.amount_refunded ?? 0;
+  return amount > 0 && refunded >= amount;
+}
+
+/**
+ * Révoque le Pack Élite après remboursement Stripe (charge.refunded).
+ * Exporté pour les tests unitaires sans appel API.
+ */
+export async function revokeEliteForChargeRefund(charge, { stripe = null } = {}) {
+  if (!isChargeFullyRefunded(charge)) {
+    return { revoked: false, reason: 'not_fully_refunded' };
+  }
+
+  const customerId =
+    typeof charge.customer === 'string' ? charge.customer : charge.customer?.id ?? null;
+  const paymentIntent =
+    typeof charge.payment_intent === 'string'
+      ? charge.payment_intent
+      : charge.payment_intent?.id ?? null;
+
+  let row = null;
+
+  if (paymentIntent && stripe) {
+    try {
+      const sessions = await stripe.checkout.sessions.list({
+        payment_intent: paymentIntent,
+        limit: 1,
+      });
+      const sessionId = sessions.data[0]?.id;
+      if (sessionId) {
+        const rows = await query(
+          `SELECT * FROM sensei_elite_subscriptions
+           WHERE stripe_checkout_session_id = ?
+           ORDER BY id DESC LIMIT 1`,
+          [sessionId]
+        );
+        row = rows[0] ?? null;
+      }
+    } catch (error) {
+      console.error('Stripe checkout.sessions.list:', error.message);
+    }
+  }
+
+  if (!row && customerId) {
+    const rows = await query(
+      `SELECT * FROM sensei_elite_subscriptions
+       WHERE stripe_customer_id = ? AND status IN ('active', 'past_due')
+       ORDER BY updated_at DESC, id DESC
+       LIMIT 1`,
+      [customerId]
+    );
+    row = rows[0] ?? null;
+  }
+
+  if (!row) {
+    return { revoked: false, reason: 'subscription_not_found' };
+  }
+
+  if (row.status === 'canceled' || row.status === 'expired') {
+    return { revoked: false, reason: 'already_revoked', userId: row.user_id };
+  }
+
+  await revokeEliteSubscription(row.id, 'canceled');
+  return { revoked: true, userId: row.user_id, subscriptionId: row.id };
+}
+
+async function handleChargeRefunded(charge) {
+  const stripe = getStripeClient();
+  return revokeEliteForChargeRefund(charge, { stripe });
+}
+
 export async function handleStripeWebhook(rawBody, signature) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
@@ -299,6 +408,9 @@ export async function handleStripeWebhook(rawBody, signature) {
       await handleInvoicePaymentFailed(event.data.object);
       break;
     case 'invoice.paid':
+      break;
+    case 'charge.refunded':
+      await handleChargeRefunded(event.data.object);
       break;
     default:
       break;

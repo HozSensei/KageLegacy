@@ -1,5 +1,5 @@
 import { query } from '../config/database.js';
-import { detectSquadComposition } from './combat/compositionMeta.js';
+import { detectSquadComposition, compositionLabel } from './combat/compositionMeta.js';
 import { buildCombatTeam } from './combat/matchLoader.js';
 import { getHeritageBonuses, listHeritageScrolls, applyPercentDiscount } from './heritageService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
@@ -13,10 +13,27 @@ import { DIVISION_ROMAN } from '../models/league.js';
 import {
   assertEliteToolsAccess,
   buildCompositionAdvice,
+  buildSimulationVerdict,
   compareCompositions,
 } from './eliteReportService.js';
 
 const COMPOSITION_OPTIONS = ['assaut', 'mur', 'flux', 'equilibre'];
+
+function summarizeSquadOrders(ninjas) {
+  const counts = { Offensive: 0, Tank: 0, Protect: 0, Normal: 0 };
+  for (const ninja of ninjas) {
+    const key = ninja.battle_strategy || 'Normal';
+    if (counts[key] != null) counts[key] += 1;
+    else counts.Normal += 1;
+  }
+  return counts;
+}
+
+function summarizeSquadMoral(ninjas) {
+  if (!ninjas.length) return null;
+  const sum = ninjas.reduce((acc, n) => acc + Number(n.moral ?? 15), 0);
+  return sum / ninjas.length;
+}
 
 function dbNinjaToSim(ninja) {
   return cloneNinja({
@@ -167,7 +184,7 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
 
   const matchupMatrix = COMPOSITION_OPTIONS.map((opponentComp) => ({
     opponent: opponentComp,
-    label: compositionAdvice.label,
+    label: compositionLabel(opponentComp, lang),
     ...compareCompositions(composition, opponentComp),
   }));
 
@@ -177,13 +194,20 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     heritage: heritageSummary,
     trainingRoi,
     matchupMatrix,
-    compositionOptions: COMPOSITION_OPTIONS,
+    compositionOptions: COMPOSITION_OPTIONS.map((value) => ({
+      value,
+      label: compositionLabel(value, lang),
+    })),
   };
 }
 
-export async function simulateEliteMatchup(userId, { opponentComposition, runs = 100 } = {}) {
+export async function simulateEliteMatchup(
+  userId,
+  { opponentComposition, runs = 100, locale = 'fr' } = {}
+) {
   await assertEliteToolsAccess(userId);
 
+  const lang = locale === 'en' ? 'en' : 'fr';
   const opponent = COMPOSITION_OPTIONS.includes(opponentComposition)
     ? opponentComposition
     : 'assaut';
@@ -197,24 +221,42 @@ export async function simulateEliteMatchup(userId, { opponentComposition, runs =
 
   const mySquad = ninjas.map(dbNinjaToSim);
   const oppSquad = createPureCompositionSquad('Opp', opponent, 100, 1);
+  const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
 
   const result = runMonteCarlo({
     slotANinjas: mySquad,
     slotBNinjas: oppSquad,
-    runs: Math.min(200, Math.max(20, Number(runs) || 100)),
+    runs: runCount,
     favoriteSide: 'slotA',
   });
+
+  const matchup = compareCompositions(composition, opponent);
+  const winPct = result.slotAWinPct;
 
   return {
     myComposition: composition,
     opponentComposition: opponent,
-    runs: Math.min(200, Math.max(20, Number(runs) || 100)),
-    winPct: result.slotAWinPct,
+    myCompositionLabel: compositionLabel(composition, lang),
+    opponentCompositionLabel: compositionLabel(opponent, lang),
+    runs: runCount,
+    winPct,
     drawPct: result.drawPct,
     lossPct: result.slotBWinPct,
     koPct: result.koPct,
     avgTours: result.avgTours,
-    matchup: compareCompositions(composition, opponent),
+    upsetPct: result.upsetPct,
+    matchup,
+    verdict: buildSimulationVerdict({
+      winPct,
+      matchup,
+      myComposition: composition,
+      opponentComposition: opponent,
+      locale: lang,
+      squadContext: {
+        orderCounts: summarizeSquadOrders(ninjas),
+        avgMoral: summarizeSquadMoral(ninjas),
+      },
+    }),
   };
 }
 

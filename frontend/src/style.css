@@ -755,6 +755,15 @@ body::before {
   @apply hidden;
 }
 
+/* Bannière retour Stripe (haut du Bureau) */
+.elite-checkout-banner {
+  @apply relative border border-accent/40 bg-bg-card/80 px-5 py-5 pr-12;
+}
+
+.elite-checkout-banner__dismiss {
+  @apply absolute right-3 top-3 text-xl leading-none text-ink-faint transition hover:text-ink;
+}
+
 /* En-tête match opération / ligue */
 .operation-match-header {
   @apply flex flex-col items-center text-center;
