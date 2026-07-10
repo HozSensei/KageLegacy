@@ -7,12 +7,15 @@ import { grantEliteSubscription, getEliteMePayload } from '../src/services/elite
 import {
   buildEliteMatchReport,
   buildCompositionAdvice,
+  buildSimulationVerdict,
   compareCompositions,
 } from '../src/services/eliteReportService.js';
 import {
   getEliteToolsPayload,
   simulateEliteMatchup,
 } from '../src/services/eliteToolsService.js';
+import { openChakraSeal, grantDailySealsForUser } from '../src/services/dailySealService.js';
+import { getSeasonPassPayload, recordEliteQuestEvent } from '../src/services/eliteSeasonPassService.js';
 
 const PREFIX = `elite_tools_${Date.now()}`;
 
@@ -94,6 +97,16 @@ async function main() {
   console.assert(advice.myComposition === 'assaut', 'conseil compo assaut');
   console.assert(compareCompositions('assaut', 'mur').myAdvantage, 'assaut > mur');
 
+  const verdict = buildSimulationVerdict({
+    winPct: 62,
+    matchup: compareCompositions('assaut', 'mur'),
+    myComposition: 'assaut',
+    opponentComposition: 'mur',
+    locale: 'fr',
+  });
+  console.assert(verdict.tone === 'favorable', 'verdict favorable');
+  console.assert(verdict.factors.length >= 2, 'verdict facteurs');
+
   const poolRows = await query(`SELECT p.* FROM pools p LIMIT 1`);
   if (!poolRows[0]) {
     console.error('SKIP: aucune pool en base — lancez seed/playtest d\'abord.');
@@ -160,14 +173,30 @@ async function main() {
   console.assert(tools.composition.label, 'label composition');
   console.assert(tools.trainingRoi.length >= 1, 'ROI entraînement');
   console.assert(tools.matchupMatrix.length === 4, 'matrice matchup');
+  console.assert(tools.compositionOptions[0].label, 'options compo labelisées');
 
   const sim = await simulateEliteMatchup(homeId, { opponentComposition: 'mur', runs: 30 });
   console.assert(sim.runs === 30, 'sim runs');
   console.assert(sim.winPct != null, 'sim winPct');
   console.assert(sim.matchup.myAdvantage, 'sim avantage assaut vs mur');
+  console.assert(sim.verdict?.headline, 'sim verdict headline');
+  console.assert(sim.myCompositionLabel, 'sim label compo');
+
+  await grantDailySealsForUser(homeId);
+  await openChakraSeal(homeId);
+  let passAfterSeal = await getSeasonPassPayload(homeId, 'fr');
+  const sealQuest = passAfterSeal.quests.find((q) => q.slug === 'seals_5');
+  console.assert(sealQuest?.currentProgress === 1, 'quête sceaux +1 après ouverture');
+
+  await recordEliteQuestEvent(homeId, 'daily_seal_opened', 4);
+  passAfterSeal = await getSeasonPassPayload(homeId, 'fr');
+  const sealQuestDone = passAfterSeal.quests.find((q) => q.slug === 'seals_5');
+  console.assert(sealQuestDone?.completed, 'quête sceaux complétée à 5');
 
   await query('DELETE FROM matches WHERE id = ?', [matchId]);
   for (const uid of [homeId, awayId]) {
+    await query('DELETE FROM elite_quest_progress WHERE user_id = ?', [uid]);
+    await query('DELETE FROM elite_unlocked_rewards WHERE user_id = ?', [uid]);
     await query('DELETE FROM ninjas WHERE user_id = ?', [uid]);
     await query('DELETE FROM pool_standings WHERE user_id = ?', [uid]);
     await query('DELETE FROM pool_members WHERE user_id = ?', [uid]);

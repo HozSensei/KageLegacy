@@ -723,11 +723,15 @@
     "trainingTitle": "Training ROI",
     "atCap": "at cap",
     "matchupTitle": "Matchup simulator",
-    "matchupHint": "Monte Carlo vs a pure opponent comp (100 runs by default).",
+    "matchupHint": "Runs 100 fictional fights between your current squad and a reference opponent comp (same level, pure roles). Percentages show trends, not guaranteed outcomes.",
     "opponentComp": "Opponent comp",
     "runSim": "Run simulation",
+    "simDuel": "{mine} vs {opp}",
     "simResult": "Win {win}% · Draw {draw}% · Loss {loss}%",
-    "simMeta": "{runs} runs · {tours} avg turns · {ko}% KO"
+    "simMeta": "{runs} simulated fights · {tours} avg turns · {ko}% end by KO",
+    "circleAdvantage": "Circle advantage",
+    "circleDisadvantage": "Circle disadvantage",
+    "circleNeutral": "Neutral circle"
   },
   "senseiProfile": {
     "title": "Sensei profile",

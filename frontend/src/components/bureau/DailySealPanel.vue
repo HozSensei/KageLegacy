@@ -2,10 +2,12 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import { useEliteStore } from '../../stores/elite'
 import { readApiError } from '../../utils/http.js'
 
 const { t } = useI18n()
 const store = useSquadStore()
+const elite = useEliteStore()
 const opening = ref(false)
 const lastReward = ref(null)
 const lastWell = ref(null)
@@ -30,6 +32,7 @@ async function openSeal() {
     store.applySquadMutation(data)
     lastReward.value = data.reward
     lastWell.value = data.well
+    void elite.fetchElite()
     showReveal.value = true
     window.setTimeout(() => {
       showReveal.value = false

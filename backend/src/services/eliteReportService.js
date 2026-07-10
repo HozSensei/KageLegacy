@@ -311,3 +311,73 @@ export function compareCompositions(myComp, opponentComp) {
     neutral: myComp === 'equilibre' || opponentComp === 'equilibre',
   };
 }
+
+/**
+ * Synthèse lisible d'une simulation de matchup (outils Élite).
+ */
+export function buildSimulationVerdict({
+  winPct,
+  matchup,
+  myComposition,
+  opponentComposition,
+  locale = 'fr',
+}) {
+  const lang = normalizeLocale(locale);
+  const myLabel = compositionLabel(myComposition, lang);
+  const oppLabel = compositionLabel(opponentComposition, lang);
+  const factors = [];
+
+  if (matchup.myAdvantage) {
+    factors.push(
+      lang === 'en'
+        ? `Your ${myLabel} has circle advantage over ${oppLabel} (bonus damage / reduced damage taken).`
+        : `Votre ${myLabel} a l'avantage du cercle face à ${oppLabel} (bonus dégâts / moins de dégâts subis).`
+    );
+  } else if (matchup.myDisadvantage) {
+    factors.push(
+      lang === 'en'
+        ? `${oppLabel} counters your ${myLabel} in the composition circle.`
+        : `${oppLabel} contrecarre votre ${myLabel} dans le cercle des compositions.`
+    );
+  } else {
+    factors.push(
+      lang === 'en'
+        ? 'No composition circle bonus (balanced squad or neutral pairing).'
+        : 'Pas de bonus de cercle (escouade équilibrée ou duel neutre).'
+    );
+  }
+
+  factors.push(
+    lang === 'en'
+      ? `Your current squad stats are tested against a reference ${oppLabel} (same level, pure roles).`
+      : `Vos stats actuelles sont confrontées à une ${oppLabel} de référence (niveau équivalent, rôles purs).`
+  );
+
+  let tone = 'even';
+  let headline;
+  if (winPct >= 58) {
+    tone = 'favorable';
+    headline = lang === 'en' ? 'Favorable outlook' : 'Tendance favorable';
+  } else if (winPct <= 42) {
+    tone = 'unfavorable';
+    headline = lang === 'en' ? 'Tough matchup' : 'Matchup difficile';
+  } else {
+    headline = lang === 'en' ? 'Close matchup' : 'Match serré';
+  }
+
+  if (matchup.myAdvantage && winPct < 45) {
+    factors.push(
+      lang === 'en'
+        ? 'Despite circle advantage, your squad stats or morale may be lagging behind this reference opponent.'
+        : "Malgré l'avantage de cercle, vos stats ou le moral de l'escouade peuvent être en retrait face à cette référence."
+    );
+  } else if (matchup.myDisadvantage && winPct > 55) {
+    factors.push(
+      lang === 'en'
+        ? 'Your raw stats compensate for the composition disadvantage.'
+        : 'Vos stats brutes compensent le désavantage de composition.'
+    );
+  }
+
+  return { tone, headline, factors, myLabel, oppLabel };
+}
