@@ -19,7 +19,6 @@ const props = defineProps({
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const auth = useAuthStore()
 const elite = useEliteStore()
 const squad = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
