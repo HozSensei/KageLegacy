@@ -4,11 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
+import { useEliteStore } from '../stores/elite'
 import { useGameClockLabel } from '../composables/useGameClockLabel.js'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
 import PageHero from '../components/layout/PageHero.vue'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
+import VerifiedIcon from '../components/icons/VerifiedIcon.vue'
 
 defineOptions({ name: 'AppLayout' })
 
@@ -17,10 +19,12 @@ const route = useRoute()
 const router = useRouter()
 const store = useSquadStore()
 const auth = useAuthStore()
+const elite = useEliteStore()
 const showConvert = ref(false)
 
-const navItems = [
+const baseNavItems = [
   { name: 'bureau', path: '/bureau', label: 'nav.bureau' },
+  { name: 'profile', path: '/profil', label: 'nav.profile' },
   { name: 'squad', path: '/squad', label: 'nav.squad' },
   { name: 'clan', path: '/clan', label: 'nav.clan' },
   { name: 'missions', path: '/missions', label: 'nav.missions' },
@@ -32,9 +36,24 @@ const navItems = [
   { name: 'operation', path: '/operation', label: 'nav.operation' },
 ]
 
+const eliteToolsNavItem = {
+  name: 'elite-tools',
+  path: '/elite/outils',
+  label: 'nav.eliteTools',
+  elite: true,
+}
+
+const navItems = computed(() => {
+  if (!elite.subscription?.isActive) return baseNavItems
+  return [...baseNavItems, eliteToolsNavItem]
+})
+
 const cycleLabel = useGameClockLabel(toRef(store, 'gameClock'))
 
 function isActive(path) {
+  if (path === '/profil') {
+    return route.path === '/profil' || (route.name === 'sensei-profile' && auth.user && String(route.params.userId) === String(auth.user.id))
+  }
   return route.path === path || route.path.startsWith(`${path}/`)
 }
 
@@ -73,6 +92,7 @@ onMounted(async () => {
     locale.value = auth.sensei.language
   }
   if (!store.sensei) store.fetchSquad()
+  if (auth.user && !elite.subscription) elite.fetchElite()
 })
 </script>
 
@@ -112,11 +132,12 @@ onMounted(async () => {
               v-for="item in navItems"
               :key="item.name"
               :to="item.path"
-              class="nav-link shrink-0"
+              class="nav-link shrink-0 inline-flex items-center gap-1"
               :class="{ 'nav-link-active': isActive(item.path) }"
               :data-testid="`nav-${item.name}`"
             >
               {{ t(item.label) }}
+              <VerifiedIcon v-if="item.elite" size="0.875rem" />
             </router-link>
           </nav>
           <span

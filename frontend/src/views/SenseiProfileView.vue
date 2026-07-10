@@ -1,8 +1,14 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useEliteStore } from '../stores/elite'
+import { useSquadStore } from '../stores/squad'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
+import ElitePackPanel from '../components/bureau/ElitePackPanel.vue'
+import HeritageWallPanel from '../components/bureau/HeritageWallPanel.vue'
+import EliteCheckoutBanner from '../components/bureau/EliteCheckoutBanner.vue'
+import VerifiedIcon from '../components/icons/VerifiedIcon.vue'
 
 defineOptions({ name: 'SenseiProfileView' })
 
@@ -12,6 +18,9 @@ const props = defineProps({
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
+const elite = useEliteStore()
+const squad = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -19,6 +28,8 @@ const error = ref(null)
 const profile = ref(null)
 
 const targetId = computed(() => props.userId || route.params.userId)
+const isOwnProfile = computed(() => profile.value?.isOwnProfile)
+const isEliteActive = computed(() => Boolean(elite.subscription?.isActive))
 
 const statsLine = computed(() => {
   const s = profile.value?.publicStats
@@ -31,7 +42,21 @@ const statsLine = computed(() => {
   })
 })
 
-onMounted(fetchProfile)
+onMounted(async () => {
+  await fetchProfile()
+  if (profile.value?.isOwnProfile) {
+    await elite.handleCheckoutReturn(route, router)
+    if (!elite.subscription) await elite.fetchElite()
+    if (!squad.sensei) await squad.fetchSquad()
+  }
+})
+
+watch(
+  () => route.params.userId,
+  async () => {
+    await fetchProfile()
+  }
+)
 
 async function fetchProfile() {
   loading.value = true
@@ -54,6 +79,21 @@ async function fetchProfile() {
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
 
     <template v-else-if="profile">
+      <EliteCheckoutBanner v-if="isOwnProfile" class="mb-8" />
+
+      <div v-if="isOwnProfile" class="mb-6 flex flex-wrap items-center gap-3">
+        <span class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('senseiProfile.ownBadge') }}</span>
+        <RouterLink
+          v-if="isEliteActive"
+          to="/elite/outils"
+          class="inline-flex items-center gap-1.5 text-xs text-accent underline-offset-2 hover:underline"
+          data-testid="profile-elite-tools-link"
+        >
+          <VerifiedIcon size="1rem" />
+          {{ t('nav.eliteTools') }}
+        </RouterLink>
+      </div>
+
       <SenseiIdentity
         :identity="profile.identity"
         variant="card"
@@ -97,10 +137,29 @@ async function fetchProfile() {
         </RouterLink>
       </section>
 
-      <p v-if="profile.isOwnProfile" class="mt-10 text-xs text-ink-faint">
-        {{ t('senseiProfile.ownHint') }}
-        <RouterLink to="/bureau" class="text-accent hover:underline">{{ t('nav.bureau') }}</RouterLink>
-      </p>
+      <template v-if="isOwnProfile">
+        <section class="mt-14 border-t border-line pt-10" data-testid="profile-elite-section">
+          <div class="flex flex-wrap items-center gap-2">
+            <VerifiedIcon v-if="isEliteActive" size="1.25rem" />
+            <p class="section-label">{{ t('senseiProfile.eliteSectionTitle') }}</p>
+          </div>
+          <p class="mt-2 text-sm text-ink-muted">{{ t('senseiProfile.eliteSectionLead') }}</p>
+          <ElitePackPanel class="profile-panel" />
+        </section>
+
+        <section class="mt-14 border-t border-line pt-10" data-testid="profile-heritage-section">
+          <p class="section-label">{{ t('senseiProfile.heritageSectionTitle') }}</p>
+          <HeritageWallPanel class="profile-panel" />
+        </section>
+      </template>
     </template>
   </div>
 </template>
+
+<style scoped>
+:deep(.profile-panel) {
+  margin-top: 1.5rem;
+  border-top: none;
+  padding-top: 0;
+}
+</style>

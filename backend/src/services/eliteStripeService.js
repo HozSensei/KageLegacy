@@ -111,8 +111,8 @@ export async function createEliteCheckoutSession(userId) {
   const sessionParams = {
     mode: checkoutMode,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${baseUrl}/bureau?elite=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/bureau?elite=canceled`,
+    success_url: `${baseUrl}/profil?elite=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${baseUrl}/profil?elite=canceled`,
     client_reference_id: String(userId),
     metadata: {
       user_id: String(userId),

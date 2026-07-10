@@ -156,7 +156,9 @@
     "market": "Shop",
     "exchanges": "Exchanges",
     "inventory": "Inventory",
-    "operation": "Operation"
+    "operation": "Operation",
+    "profile": "Profile",
+    "eliteTools": "Elite tools"
   },
   "rules": {
     "pageTitle": "Game rules",
@@ -686,6 +688,7 @@
     "seasonLabel": "Season {season} · Matchday {cycle}/{max}",
     "seasonPassTitle": "Season pass",
     "questDone": "Done",
+    "openTools": "Open Elite analysis tools",
     "identityTitle": "Your public identity",
     "identityHint": "Visible in standings, matches, clan and market.",
     "identityPreview": "Public profile preview",
@@ -717,6 +720,10 @@
   },
   "eliteTools": {
     "title": "Elite Tools",
+    "pageTitle": "Elite Tools",
+    "pageLead": "Private analytics to refine your strategy — no in-match advantage.",
+    "subscribersOnly": "This page is for Elite Pack subscribers only.",
+    "goProfile": "View my profile and activate the Elite Pack",
     "lead": "Private analytics to refine your strategy — no in-match advantage.",
     "seasonTitle": "Current season",
     "compTitle": "Active composition",
@@ -743,6 +750,10 @@
     "draws": "Draws",
     "losses": "Losses",
     "lastMatch": "Last match",
-    "ownHint": "Customize your identity from the"
+    "ownHint": "Customize your identity and manage the Elite Pack below.",
+    "ownBadge": "Your public profile",
+    "eliteSectionTitle": "Elite Pack",
+    "eliteSectionLead": "Custom identity, season pass, and cosmetic rewards.",
+    "heritageSectionTitle": "Heritage wall"
   }
 }

@@ -1,9 +1,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
-import { useEliteStore } from '../stores/elite'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import ChuninExamList from '../components/bureau/ChuninExamList.vue'
 import ChuninStagnationPanel from '../components/bureau/ChuninStagnationPanel.vue'
@@ -13,18 +11,11 @@ import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import DailySealPanel from '../components/bureau/DailySealPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
-import HeritageWallPanel from '../components/bureau/HeritageWallPanel.vue'
-import ElitePackPanel from '../components/bureau/ElitePackPanel.vue'
-import EliteToolsPanel from '../components/bureau/EliteToolsPanel.vue'
-import EliteCheckoutBanner from '../components/bureau/EliteCheckoutBanner.vue'
 
 defineOptions({ name: 'BureauView' })
 
 const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
 const store = useSquadStore()
-const elite = useEliteStore()
 
 const squadRating = computed(() => {
   if (!store.activeSquad.length) return '—'
@@ -44,7 +35,6 @@ const debtFrozen = computed(
 )
 
 onMounted(async () => {
-  await elite.handleCheckoutReturn(route, router)
   if (!store.sensei) await store.fetchSquad()
 })
 </script>
@@ -58,8 +48,6 @@ onMounted(async () => {
         </p>
       </div>
     </header>
-
-    <EliteCheckoutBanner class="mt-8" />
 
     <p v-if="store.loading && !store.sensei" class="mt-12 text-sm text-ink-muted">{{ t('common.loading') }}</p>
     <p v-else-if="store.error" class="mt-12 text-sm text-fire">{{ store.error }}</p>
@@ -116,11 +104,8 @@ onMounted(async () => {
           </p>
 
           <CycleBudgetPanel />
-          <ElitePackPanel />
-          <EliteToolsPanel />
           <DailySealPanel />
           <AcademyPanel />
-          <HeritageWallPanel />
 
           <ChuninExamList />
           <BirdFlightPanel />

@@ -1,7 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import { useEliteStore } from '../../stores/elite'
+import VerifiedIcon from '../icons/VerifiedIcon.vue'
 import EliteIdentityEditor from './EliteIdentityEditor.vue'
 
 defineOptions({ name: 'ElitePackPanel' })
@@ -118,6 +120,15 @@ function questProgress(quest) {
           </p>
         </li>
       </ul>
+
+      <RouterLink
+        to="/elite/outils"
+        class="mt-6 inline-flex items-center gap-1.5 text-xs text-accent underline-offset-2 hover:underline"
+        data-testid="elite-pack-tools-link"
+      >
+        <VerifiedIcon size="1rem" />
+        {{ t('elitePack.openTools') }}
+      </RouterLink>
 
       <EliteIdentityEditor />
     </template>

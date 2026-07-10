@@ -3,6 +3,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useSquadStore } from '../../stores/squad'
+import { useEliteStore } from '../../stores/elite'
+import VerifiedIcon from '../icons/VerifiedIcon.vue'
 
 defineOptions({ name: 'ProfileMenu' })
 
@@ -11,6 +13,7 @@ const emit = defineEmits(['logout', 'convert', 'deleted'])
 const { t, locale } = useI18n()
 const auth = useAuthStore()
 const squad = useSquadStore()
+const elite = useEliteStore()
 
 const open = ref(false)
 const root = ref(null)
@@ -125,7 +128,10 @@ function handleConvert() {
   emit('convert')
 }
 
-onMounted(() => document.addEventListener('click', onDocumentClick))
+onMounted(() => {
+  document.addEventListener('click', onDocumentClick)
+  if (auth.user && !elite.subscription) void elite.fetchElite()
+})
 onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 </script>
 
@@ -189,6 +195,27 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
             {{ t('locale.en') }}
           </button>
         </div>
+      </div>
+
+      <div class="border-b border-line px-4 py-3">
+        <router-link
+          to="/profil"
+          class="flex w-full px-0 py-0 text-left text-sm text-ink-muted transition hover:text-accent"
+          data-testid="profile-sensei-link"
+          @click="close"
+        >
+          {{ t('nav.profile') }}
+        </router-link>
+        <router-link
+          v-if="elite.subscription?.isActive"
+          to="/elite/outils"
+          class="mt-2 flex items-center gap-1.5 text-sm text-accent transition hover:underline"
+          data-testid="profile-elite-tools-link"
+          @click="close"
+        >
+          <VerifiedIcon size="1rem" />
+          {{ t('nav.eliteTools') }}
+        </router-link>
       </div>
 
       <div class="border-b border-line px-4 py-3">

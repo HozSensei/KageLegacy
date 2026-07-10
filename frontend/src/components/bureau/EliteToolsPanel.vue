@@ -6,6 +6,10 @@ import { useEliteStore } from '../../stores/elite'
 
 defineOptions({ name: 'EliteToolsPanel' })
 
+defineProps({
+  embedded: { type: Boolean, default: false },
+})
+
 const { t } = useI18n()
 const elite = useEliteStore()
 
@@ -52,9 +56,15 @@ async function runMatchup() {
 </script>
 
 <template>
-  <div v-if="isActive" class="mt-10 border-t border-line pt-8" data-testid="elite-tools-panel">
-    <p class="section-label">{{ t('eliteTools.title') }}</p>
-    <p class="mt-2 text-xs text-ink-muted">{{ t('eliteTools.lead') }}</p>
+  <div
+    v-if="isActive"
+    :class="embedded ? 'mt-10' : 'mt-10 border-t border-line pt-8'"
+    data-testid="elite-tools-panel"
+  >
+    <template v-if="!embedded">
+      <p class="section-label">{{ t('eliteTools.title') }}</p>
+      <p class="mt-2 text-xs text-ink-muted">{{ t('eliteTools.lead') }}</p>
+    </template>
 
     <p v-if="elite.toolsLoading && !tools" class="mt-4 text-sm text-ink-muted">{{ t('common.loading') }}</p>
 
