@@ -103,6 +103,20 @@ export async function activateEliteFromStripe({
   return getActiveEliteSubscription(userId, pool);
 }
 
+/**
+ * Révoque le Pack Élite (remboursement, annulation admin, etc.).
+ */
+export async function revokeEliteSubscription(subscriptionId, status = 'canceled') {
+  const allowed = ['canceled', 'expired'];
+  const nextStatus = allowed.includes(status) ? status : 'canceled';
+  await query(
+    `UPDATE sensei_elite_subscriptions
+     SET status = ?, updated_at = UTC_TIMESTAMP()
+     WHERE id = ?`,
+    [nextStatus, subscriptionId]
+  );
+}
+
 export async function expireEliteSubscriptionsForSeason(seasonNumber) {
   await query(
     `UPDATE sensei_elite_subscriptions

@@ -3,7 +3,7 @@
  * Usage: node scripts/testEliteStripe.js
  */
 import { query } from '../src/config/database.js';
-import { fulfillCheckoutSession } from '../src/services/eliteStripeService.js';
+import { fulfillCheckoutSession, revokeEliteForChargeRefund } from '../src/services/eliteStripeService.js';
 import { getActiveEliteSubscription } from '../src/services/eliteSubscriptionService.js';
 
 const PREFIX = `elite_stripe_${Date.now()}`;
@@ -55,6 +55,24 @@ async function main() {
 
   const second = await fulfillCheckoutSession(session);
   console.assert(second.fulfilled, 'idempotence session checkout');
+
+  const refund = await revokeEliteForChargeRefund({
+    customer: 'cus_test_123',
+    refunded: true,
+    amount: 399,
+    amount_refunded: 399,
+  });
+  console.assert(refund.revoked, 'remboursement révoque le pack');
+  sub = await getActiveEliteSubscription(userId, pool);
+  console.assert(!sub, 'plus actif après remboursement');
+
+  const partial = await revokeEliteForChargeRefund({
+    customer: 'cus_test_123',
+    refunded: false,
+    amount: 399,
+    amount_refunded: 100,
+  });
+  console.assert(!partial.revoked && partial.reason === 'not_fully_refunded', 'remboursement partiel ignoré');
 
   await query('DELETE FROM sensei_elite_subscriptions WHERE user_id = ?', [userId]);
   await query('DELETE FROM elite_season_passes WHERE user_id = ?', [userId]);
