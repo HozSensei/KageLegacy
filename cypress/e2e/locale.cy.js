@@ -16,8 +16,8 @@ describe('Interface — locale', () => {
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-locale-en"]').click();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
-    cy.get('[data-testid="profile-menu-button"]').click();
-    cy.get('[data-testid="profile-locale-fr"]').should('be.visible').click();
+    cy.get('[data-testid="profile-menu-panel"]').should('be.visible');
+    cy.get('[data-testid="profile-locale-fr"]').click();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Escouade');
     cy.get('[data-testid="missions-panel"]').contains('Palier du contrat');
   });
