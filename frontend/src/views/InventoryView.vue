@@ -9,12 +9,16 @@ const loading = ref(true)
 const error = ref(null)
 const inventory = ref(null)
 const selectedItemId = ref(null)
+const selectedCardId = ref(null)
 const saving = ref(false)
 const sellItemId = ref(null)
+const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
 
 const itemName = (item) => (locale.value === 'en' ? item.name_en : item.name_fr)
+const cardName = (card) => (locale.value === 'en' ? card.nameEn : card.nameFr)
+const cardDesc = (card) => (locale.value === 'en' ? card.descriptionEn : card.descriptionFr)
 
 function usageLabel(item) {
   if (item.category === 'bureau') return t('market.bureauOnce')
@@ -22,6 +26,10 @@ function usageLabel(item) {
   const limit = item.usageLimits?.[0]
   if (!limit) return t('market.consumableOnce')
   return t('market.usesPerMatch', { count: limit.uses })
+}
+
+function cardChargesLabel(card) {
+  return t('inventory.cardCharges', { count: card.chargesRemaining })
 }
 
 function isGlobalBureauItem(item) {
@@ -40,8 +48,12 @@ function canSellItem(item) {
   return item && !item.equipped_ninja_name && !item.isListed && !item.nonVendable
 }
 
-function sellPriceBounds(item) {
-  const catalog = item?.catalog_price ?? 0
+function canSellCard(card) {
+  return card && !card.equippedNinjaId && !card.isListed
+}
+
+function sellPriceBounds(catalogPrice) {
+  const catalog = catalogPrice ?? 0
   return {
     floor: Math.floor((catalog * 50) / 100),
     ceiling: Math.ceil((catalog * 200) / 100),
@@ -50,26 +62,45 @@ function sellPriceBounds(item) {
 
 function openSell(item) {
   sellItemId.value = item.id
-  const { floor } = sellPriceBounds(item)
+  sellCardId.value = null
+  const { floor } = sellPriceBounds(item.catalog_price)
   sellPrice.value = String(floor || 1)
   selectedItemId.value = null
+  selectedCardId.value = null
+}
+
+function openSellCard(card) {
+  sellCardId.value = card.id
+  sellItemId.value = null
+  const { floor } = sellPriceBounds(card.catalogPrice)
+  sellPrice.value = String(floor || 1)
+  selectedItemId.value = null
+  selectedCardId.value = null
 }
 
 function closeSell() {
   sellItemId.value = null
+  sellCardId.value = null
   sellPrice.value = ''
 }
 
 async function submitSell() {
-  if (!sellItemId.value) return
   selling.value = true
   error.value = null
   try {
-    const res = await fetch(`${API_BASE}/api/player-market/list`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userItemId: sellItemId.value, price: Number(sellPrice.value) }),
-    })
+    const isCard = Boolean(sellCardId.value)
+    const res = await fetch(
+      `${API_BASE}/api/player-market/${isCard ? 'list-card' : 'list'}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          isCard
+            ? { userTacticCardId: sellCardId.value, price: Number(sellPrice.value) }
+            : { userItemId: sellItemId.value, price: Number(sellPrice.value) }
+        ),
+      }
+    )
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     closeSell()
     await fetchInventory()
@@ -82,6 +113,10 @@ async function submitSell() {
 
 function sellItem() {
   return inventory.value?.items.find((i) => i.id === sellItemId.value)
+}
+
+function sellCard() {
+  return inventory.value?.tacticCards?.find((c) => c.id === sellCardId.value)
 }
 
 onMounted(fetchInventory)
@@ -113,6 +148,26 @@ async function equip(ninjaId) {
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
     inventory.value = await res.json()
     selectedItemId.value = null
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
+
+async function equipCard(ninjaId) {
+  if (!selectedCardId.value) return
+  saving.value = true
+  error.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/inventory/equip-card`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId, userTacticCardId: selectedCardId.value }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    inventory.value = await res.json()
+    selectedCardId.value = null
   } catch (e) {
     error.value = e.message
   } finally {
@@ -177,6 +232,24 @@ async function unequip(ninjaId, slot) {
     saving.value = false
   }
 }
+
+async function unequipCard(ninjaId) {
+  saving.value = true
+  error.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/inventory/unequip-card`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ninjaId }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    inventory.value = await res.json()
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 
 <template>
@@ -202,7 +275,7 @@ async function unequip(ninjaId, slot) {
                 ? 'border-accent bg-bg-soft'
                 : 'border-line hover:border-ink-faint'
             "
-            @click="selectedItemId = item.id"
+            @click="selectedItemId = item.id; selectedCardId = null"
           >
             <p class="text-sm text-ink">{{ itemName(item) }}</p>
             <p class="mt-1 text-xs text-ink-faint">
@@ -227,6 +300,45 @@ async function unequip(ninjaId, slot) {
             {{ t('inventory.empty') }}
           </li>
         </ul>
+
+        <p class="section-label mt-10">{{ t('inventory.tacticCards') }}</p>
+        <p v-if="selectedCardId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinjaCard') }}</p>
+        <ul class="mt-6 space-y-3">
+          <li
+            v-for="card in inventory.tacticCards"
+            :key="card.id"
+            class="cursor-pointer border p-4 transition"
+            :class="
+              selectedCardId === card.id
+                ? 'border-accent bg-bg-soft'
+                : 'border-line hover:border-ink-faint'
+            "
+            @click="selectedCardId = card.id; selectedItemId = null"
+          >
+            <p class="text-sm text-ink">{{ cardName(card) }}</p>
+            <p class="mt-1 text-xs text-ink-faint">
+              {{ t(`inventory.cardRarity.${card.rarity}`) }} · {{ cardChargesLabel(card) }}
+            </p>
+            <p class="mt-2 text-xs text-ink-muted">{{ cardDesc(card) }}</p>
+            <p class="mt-1 text-xs text-ink-faint">
+              <template v-if="card.isListed">{{ t('inventory.listed') }}</template>
+              <template v-else-if="card.equippedNinjaName">{{ t('inventory.equippedOn', { name: card.equippedNinjaName }) }}</template>
+              <template v-else>{{ t('inventory.unequipped') }}</template>
+            </p>
+            <button
+              v-if="canSellCard(card)"
+              type="button"
+              class="btn-ghost mt-3 text-xs"
+              @click.stop="openSellCard(card)"
+            >
+              {{ t('inventory.sell') }}
+            </button>
+          </li>
+          <li v-if="!inventory.tacticCards?.length" class="text-sm text-ink-muted">
+            {{ t('inventory.emptyCards') }}
+          </li>
+        </ul>
+
         <button
           v-if="selectedItemId && isGlobalBureauItem(inventory.items.find((i) => i.id === selectedItemId))"
           type="button"
@@ -261,6 +373,15 @@ async function unequip(ninjaId, slot) {
                 @click="equip(ninja.id)"
               >
                 {{ t('inventory.equip') }}
+              </button>
+              <button
+                v-else-if="selectedCardId"
+                type="button"
+                class="btn-ghost"
+                :disabled="saving"
+                @click="equipCard(ninja.id)"
+              >
+                {{ t('inventory.equipCard') }}
               </button>
               <button
                 v-else-if="
@@ -301,6 +422,21 @@ async function unequip(ninjaId, slot) {
                   >×</button>
                 </dd>
               </div>
+              <div class="sm:col-span-2">
+                <dt>{{ t('inventory.slotCard') }}</dt>
+                <dd class="mt-1 text-ink">
+                  <template v-if="ninja.tactic_card_name_fr">
+                    {{ locale === 'en' ? ninja.tactic_card_name_en : ninja.tactic_card_name_fr }}
+                    <span class="text-ink-faint">({{ t('inventory.cardCharges', { count: ninja.tactic_card_charges }) }})</span>
+                    <button
+                      type="button"
+                      class="ml-2 text-fire"
+                      @click="unequipCard(ninja.id)"
+                    >×</button>
+                  </template>
+                  <template v-else>—</template>
+                </dd>
+              </div>
             </dl>
           </li>
         </ul>
@@ -308,15 +444,22 @@ async function unequip(ninjaId, slot) {
     </div>
 
     <div
-      v-if="sellItemId && sellItem()"
+      v-if="(sellItemId && sellItem()) || (sellCardId && sellCard())"
       class="fixed inset-0 z-40 flex items-center justify-center bg-bg/80 p-6 backdrop-blur-sm"
       @click.self="closeSell"
     >
       <div class="w-full max-w-md border border-line bg-bg p-6 shadow-lg">
         <p class="section-label">{{ t('inventory.sellTitle') }}</p>
-        <p class="mt-3 text-sm text-ink">{{ itemName(sellItem()) }}</p>
+        <p class="mt-3 text-sm text-ink">
+          {{ sellCard() ? cardName(sellCard()) : itemName(sellItem()) }}
+        </p>
         <p class="mt-2 text-xs text-ink-faint">
-          {{ t('inventory.sellHint', sellPriceBounds(sellItem())) }}
+          {{
+            t(
+              'inventory.sellHint',
+              sellPriceBounds(sellCard()?.catalogPrice ?? sellItem()?.catalog_price)
+            )
+          }}
         </p>
         <label class="mt-6 block text-xs uppercase tracking-[0.12em] text-ink-faint">
           {{ t('inventory.sellPrice') }}
@@ -324,8 +467,8 @@ async function unequip(ninjaId, slot) {
             v-model="sellPrice"
             type="number"
             class="mt-2 w-full border border-line bg-bg-soft px-3 py-2 text-sm text-ink"
-            :min="sellPriceBounds(sellItem()).floor"
-            :max="sellPriceBounds(sellItem()).ceiling"
+            :min="sellPriceBounds(sellCard()?.catalogPrice ?? sellItem()?.catalog_price).floor"
+            :max="sellPriceBounds(sellCard()?.catalogPrice ?? sellItem()?.catalog_price).ceiling"
           />
         </label>
         <div class="mt-6 flex gap-3">

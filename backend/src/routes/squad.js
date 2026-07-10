@@ -24,6 +24,7 @@ import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
 import { releaseNinja } from '../services/ninjaReleaseService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
 import { ensureStarterSquad } from '../services/starterSquadService.js';
+import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
 
 const router = Router();
 
@@ -38,6 +39,7 @@ router.get('/', async (req, res, next) => {
 
     if (!user.is_bot) {
       await ensureStarterSquad(user.id);
+      await ensureStarterTacticCards(user.id);
     }
 
     const squad = await getSquadPayload(user.id);

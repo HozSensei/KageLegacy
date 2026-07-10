@@ -1,5 +1,4 @@
 import { query } from '../config/database.js';
-import { detectSquadComposition, compositionLabel } from './combat/compositionMeta.js';
 import { buildCombatTeam } from './combat/matchLoader.js';
 import { getHeritageBonuses, listHeritageScrolls, applyPercentDiscount } from './heritageService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
@@ -8,9 +7,8 @@ import { cloneNinja, runMonteCarlo } from './simulation/cycleSimulator.js';
 import { DIVISION_ROMAN } from '../models/league.js';
 import {
   assertEliteToolsAccess,
-  buildCompositionAdvice,
+  buildOrdersAdvice,
   buildSimulationVerdict,
-  compareCompositions,
 } from './eliteReportService.js';
 import {
   buildOpponentSquadFromPlayer,
@@ -19,7 +17,22 @@ import {
   OPPONENT_LEVEL_IDS,
 } from './combat/squadPowerScaling.js';
 
-const COMPOSITION_OPTIONS = ['assaut', 'mur', 'flux', 'equilibre'];
+const OPPONENT_STYLE_OPTIONS = ['offensive', 'tank', 'protect', 'mixed'];
+
+const OPPONENT_STYLE_LABELS = {
+  fr: {
+    offensive: 'Offensive pure',
+    tank: 'Tank pure',
+    protect: 'Protect pure',
+    mixed: 'Mixte Off/Tank/Protect',
+  },
+  en: {
+    offensive: 'Pure Offensive',
+    tank: 'Pure Tank',
+    protect: 'Pure Protect',
+    mixed: 'Mixed Off/Tank/Protect',
+  },
+};
 
 const OPPONENT_LEVEL_LABELS = {
   fr: {
@@ -75,16 +88,12 @@ function dbNinjaToSim(ninja) {
   });
 }
 
-async function loadActiveSquadComposition(userId) {
+async function loadActiveSquad(userId) {
   const ninjas = await query(
     `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
     [userId]
   );
-  if (!ninjas.length) return { ninjas: [], composition: 'equilibre' };
-
-  const team = buildCombatTeam({ userId, ninjas, sensei: null, equipmentByNinja: {} }, 'home');
-  const composition = detectSquadComposition(team.fighters);
-  return { ninjas, composition };
+  return { ninjas, orderCounts: summarizeSquadOrders(ninjas) };
 }
 
 async function getSeasonMatchStats(userId, pool) {
@@ -181,15 +190,15 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
   const { pool } = await assertEliteToolsAccess(userId);
   const lang = locale === 'en' ? 'en' : 'fr';
 
-  const [{ ninjas, composition }, heritageBonuses, heritageScrolls, seasonStats] =
+  const [{ ninjas, orderCounts }, heritageBonuses, heritageScrolls, seasonStats] =
     await Promise.all([
-      loadActiveSquadComposition(userId),
+      loadActiveSquad(userId),
       getHeritageBonuses(userId),
       listHeritageScrolls(userId),
       getSeasonMatchStats(userId, pool),
     ]);
 
-  const compositionAdvice = buildCompositionAdvice(composition, lang);
+  const ordersAdvice = buildOrdersAdvice(orderCounts, lang);
   const trainingRoi = buildTrainingRoi(ninjas, heritageBonuses);
 
   const heritageSummary = {
@@ -201,21 +210,14 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     scrolls: heritageScrolls.slice(0, 6),
   };
 
-  const matchupMatrix = COMPOSITION_OPTIONS.map((opponentComp) => ({
-    opponent: opponentComp,
-    label: compositionLabel(opponentComp, lang),
-    ...compareCompositions(composition, opponentComp),
-  }));
-
   return {
     seasonStats,
-    composition: compositionAdvice,
+    composition: ordersAdvice,
     heritage: heritageSummary,
     trainingRoi,
-    matchupMatrix,
-    compositionOptions: COMPOSITION_OPTIONS.map((value) => ({
+    compositionOptions: OPPONENT_STYLE_OPTIONS.map((value) => ({
       value,
-      label: compositionLabel(value, lang),
+      label: OPPONENT_STYLE_LABELS[lang][value],
     })),
     levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
       value,
@@ -232,12 +234,12 @@ export async function simulateEliteMatchup(
   await assertEliteToolsAccess(userId);
 
   const lang = locale === 'en' ? 'en' : 'fr';
-  const opponent = COMPOSITION_OPTIONS.includes(opponentComposition)
+  const opponentStyle = OPPONENT_STYLE_OPTIONS.includes(opponentComposition)
     ? opponentComposition
-    : 'assaut';
+    : 'mixed';
   const level = normalizeOpponentLevel(opponentLevel);
 
-  const { ninjas, composition } = await loadActiveSquadComposition(userId);
+  const { ninjas, orderCounts } = await loadActiveSquad(userId);
   if (ninjas.length < 3) {
     const error = new Error('Escouade active incomplète pour la simulation.');
     error.statusCode = 400;
@@ -245,7 +247,7 @@ export async function simulateEliteMatchup(
   }
 
   const mySquad = ninjas.map(dbNinjaToSim);
-  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponent, level).map(dbNinjaToSim);
+  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentStyle, level).map(dbNinjaToSim);
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
 
   const result = runMonteCarlo({
@@ -255,18 +257,17 @@ export async function simulateEliteMatchup(
     favoriteSide: 'slotA',
   });
 
-  const matchup = compareCompositions(composition, opponent);
   const winPct = result.slotAWinPct;
   const levelLabel = OPPONENT_LEVEL_LABELS[lang][level];
 
   return {
-    myComposition: composition,
-    opponentComposition: opponent,
+    myComposition: 'orders',
+    opponentComposition: opponentStyle,
     opponentLevel: level,
     opponentLevelLabel: levelLabel,
     opponentLevelMultiplier: getOpponentLevelMultiplier(level),
-    myCompositionLabel: compositionLabel(composition, lang),
-    opponentCompositionLabel: compositionLabel(opponent, lang),
+    myCompositionLabel: buildOrdersAdvice(orderCounts, lang).label,
+    opponentCompositionLabel: OPPONENT_STYLE_LABELS[lang][opponentStyle],
     runs: runCount,
     winPct,
     drawPct: result.drawPct,
@@ -274,16 +275,14 @@ export async function simulateEliteMatchup(
     koPct: result.koPct,
     avgTours: result.avgTours,
     upsetPct: result.upsetPct,
-    matchup,
+    matchup: { myAdvantage: false, myDisadvantage: false, neutral: true },
     verdict: buildSimulationVerdict({
       winPct,
-      matchup,
-      myComposition: composition,
-      opponentComposition: opponent,
+      opponentStyle,
       opponentLevel: level,
       locale: lang,
       squadContext: {
-        orderCounts: summarizeSquadOrders(ninjas),
+        orderCounts,
         avgMoral: summarizeSquadMoral(ninjas),
       },
     }),

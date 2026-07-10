@@ -1,7 +1,9 @@
 import { query } from '../../config/database.js';
 import { computeMatchChakraMax } from '../ninjaStats.js';
 import { getEquipmentForNinjas } from '../equipmentService.js';
+import { getTacticCardsForNinjas } from '../tacticCards/tacticCardService.js';
 import { applyEquipmentToFighter } from './equipment.js';
+import { initTacticCardOnFighter } from '../tacticCards/tacticCardCombat.js';
 import { applyFormeToStats } from './forme.js';
 import { simulateCombat } from './combatEngine.js';
 
@@ -13,10 +15,15 @@ export async function loadTeamForCombat(userId) {
     [userId]
   );
   const equipmentRows = await getEquipmentForNinjas(userId);
+  const tacticCardRows = await getTacticCardsForNinjas(userId);
   const equipmentByNinja = {};
+  const tacticCardByNinja = {};
   for (const row of equipmentRows) {
     if (!equipmentByNinja[row.ninja_id]) equipmentByNinja[row.ninja_id] = [];
     equipmentByNinja[row.ninja_id].push(row);
+  }
+  for (const row of tacticCardRows) {
+    tacticCardByNinja[row.ninja_id] = row;
   }
 
   return {
@@ -24,6 +31,7 @@ export async function loadTeamForCombat(userId) {
     sensei: senseiRows[0] || null,
     ninjas,
     equipmentByNinja,
+    tacticCardByNinja,
   };
 }
 
@@ -57,6 +65,7 @@ export function buildCombatTeam(teamData, sideLabel) {
       fighter,
       teamData.equipmentByNinja?.[ninja.id] || []
     );
+    fighter = initTacticCardOnFighter(fighter, teamData.tacticCardByNinja?.[ninja.id]);
     return fighter;
   });
 

@@ -1,11 +1,8 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { utcDateString } from './dailyUtc.js';
-import {
-  consumeOldestItemBySlug,
-  countUnconsumedItemsBySlug,
-  grantItemToUser,
-} from './itemGrantService.js';
+import { grantItemToUser } from './itemGrantService.js';
+import { grantRandomTacticCard } from './tacticCards/tacticCardService.js';
 import { rollPercent } from './missionRules.js';
 import { addChakraDropForSealOpen } from './clanChakraWellService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
@@ -120,10 +117,17 @@ export async function openChakraSeal(userId, { ninjaId = null } = {}) {
       reward.details = { slug: 'pansement-terrain', userItemId: item?.userItemId };
     }
   } else if (tier === 'rare') {
-    const [item] = await grantItemToUser(userId, 'fumigene-secours', 1);
-    reward.type = 'item';
-    reward.labelKey = 'bureau.sealRewardFumigene';
-    reward.details = { slug: 'fumigene-secours', userItemId: item?.userItemId };
+    if (rollPercent() <= 12) {
+      const card = await grantRandomTacticCard(userId, { rarity: 'common' });
+      reward.type = 'tactic_card';
+      reward.labelKey = 'bureau.sealRewardTacticCard';
+      reward.details = { slug: card?.slug, userTacticCardId: card?.userTacticCardId };
+    } else {
+      const [item] = await grantItemToUser(userId, 'fumigene-secours', 1);
+      reward.type = 'item';
+      reward.labelKey = 'bureau.sealRewardFumigene';
+      reward.details = { slug: 'fumigene-secours', userItemId: item?.userItemId };
+    }
   } else if (tier === 'epic') {
     const ninja = await pickBenchNinja(userId, ninjaId);
     if (!ninja) {

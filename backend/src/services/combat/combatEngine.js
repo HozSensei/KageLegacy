@@ -3,17 +3,18 @@ import {
   BASE_CHAKRA_COST,
   COMBAT_STATS,
   MAX_TOURS,
+  POINTS_WIN_MARGIN,
   SENSEI_SUB_COST,
   TANK_TARGET_CHANCE,
   TEMERAIRE_CHAKRA_COST,
 } from './constants.js';
 import { elementDamageMultiplier } from './element.js';
 import {
-  detectSquadComposition,
-  getCompositionMatchupMultipliers,
-  getCompositionProfile,
   getEffectiveTankTargetChance,
-} from './compositionMeta.js';
+  healMultiplierFor,
+  shouldBiasGenjutsu,
+  PROTECT_GENJUTSU_BIAS,
+} from './battleRoleMeta.js';
 import {
   collectConsumedItemIds,
   collectEquipmentSummary,
@@ -25,13 +26,16 @@ import {
   tryLethalMitigation,
 } from './equipment.js';
 import { resolveGenjutsuDuel, resolvePhysicalDuel } from './duelResolution.js';
-import { POINTS_WIN_MARGIN } from './constants.js';
 import {
   applyEnvironmentAttackMod,
   applyEnvironmentDefenseMod,
   getEnvironmentModifier,
   getFighterInitiativePenalty,
 } from '../matchEnvironment.js';
+import {
+  tryTriggerTacticCard,
+  recordTacticCardEvent,
+} from '../tacticCards/tacticCardCombat.js';
 
 function roll(max) {
   return randomInt(max);
@@ -51,10 +55,6 @@ function teamTacticalSpeed(team, tour, env) {
   }, 0);
 }
 
-/**
- * Initiative probabiliste (M1) : la vitesse tactique donne un % de chances,
- * pas une victoire automatique. Formule M5 : Σ(vitesse + intelligence).
- */
 function resolveInitiative(homeTeam, awayTeam, tour, env) {
   const homeSpeed = teamTacticalSpeed(homeTeam, tour, env);
   const awaySpeed = teamTacticalSpeed(awayTeam, tour, env);
@@ -105,9 +105,7 @@ function pickAttacker(team) {
 
   const offensive = candidates.filter((f) => f.battle_strategy === 'Offensive');
   if (offensive.length) {
-    return offensive.sort(
-      (a, b) => maxCombatStat(b.stats) - maxCombatStat(a.stats)
-    )[0];
+    return offensive.sort((a, b) => maxCombatStat(b.stats) - maxCombatStat(a.stats))[0];
   }
 
   const healer = candidates.find((f) => {
@@ -137,7 +135,10 @@ function pickDefender(defTeam, attacker) {
   let egoisteInsubordination = false;
 
   if (attacker.character_trait !== 'Egoiste') {
-    if (tanks.length && roll(100) < getEffectiveTankTargetChance(TANK_TARGET_CHANCE, detectSquadComposition(defenders)) * 100) {
+    if (
+      tanks.length &&
+      roll(100) < getEffectiveTankTargetChance(TANK_TARGET_CHANCE, defenders) * 100
+    ) {
       defender = tanks[roll(tanks.length)];
     }
   } else if (tanks.length) {
@@ -152,13 +153,12 @@ function pickDefender(defTeam, attacker) {
   return { defender: redirected || defender, egoisteInsubordination };
 }
 
-function chooseTechnique(attacker, defender, attackerComp = 'equilibre') {
+function chooseTechnique(attacker, defender) {
   if (attacker.healIntent) {
     return { type: 'medecine', stat: 'medecine' };
   }
 
-  const profile = getCompositionProfile(attackerComp);
-  if (profile.genjutsuBias > 0 && attacker.stats.genjutsu >= 5 && roll(100) < profile.genjutsuBias * 100) {
+  if (shouldBiasGenjutsu(attacker) && roll(100) < PROTECT_GENJUTSU_BIAS * 100) {
     return { type: 'genjutsu', stat: 'genjutsu' };
   }
 
@@ -186,24 +186,10 @@ function attackValue(attacker, technique, allies) {
   return value;
 }
 
-function tryConsumablesFromEquipment(fighter) {
-  return tryConsumables(fighter);
-}
-
-function resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam, env) {
-  const atkComp = detectSquadComposition(attackerTeam.fighters);
-  const defComp = detectSquadComposition(defenderTeam.fighters);
-  const matchup = getCompositionMatchupMultipliers(atkComp, defComp);
-
-  const atkProfile = getCompositionProfile(atkComp);
-  const defProfile = getCompositionProfile(defComp);
-
-  let atk = attackValue(attacker, technique, allies) * matchup.atkMult * atkProfile.damageDealt;
+function resolveDuel(attacker, defender, technique, allies, env) {
+  let atk = attackValue(attacker, technique, allies);
   if (env) atk += applyEnvironmentAttackMod(attacker, technique, env);
-  if (atkComp === 'flux' && defComp === 'assaut') atk *= 1.26;
-  if (atkComp === 'assaut' && defComp === 'flux') atk *= 0.72;
-  if (atkComp === 'assaut' && defComp === 'mur') atk *= 0.98;
-  let def = defender.stats[technique.stat] * matchup.defMult;
+  let def = defender.stats[technique.stat];
   if (env) def += applyEnvironmentDefenseMod(defender, env);
   if (technique.type === 'genjutsu') {
     def += getGenjutsuDefenseBonus(defender);
@@ -218,7 +204,10 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
     if (!ally || ally.id === attacker.id) {
       return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: 0, status: null };
     }
-    const heal = Math.max(4, Math.floor(attacker.stats.medecine * 1.5 * (getCompositionProfile(atkComp).healBonus || 1)));
+    const heal = Math.max(
+      4,
+      Math.floor(attacker.stats.medecine * 1.5 * healMultiplierFor(attacker))
+    );
     ally.pv = Math.min(ally.maxPv, ally.pv + heal);
     return { pvDamage: 0, chakraCost: BASE_CHAKRA_COST, healed: heal, targetName: ally.name, status: null };
   }
@@ -226,9 +215,7 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
   if (technique.type === 'genjutsu') {
     const chakraCost =
       attacker.character_trait === 'Temeraire' ? TEMERAIRE_CHAKRA_COST : BASE_CHAKRA_COST;
-    let genAtk = atk;
-    if (atkComp === 'flux' && defComp === 'assaut') genAtk += 2;
-    const genjutsu = resolveGenjutsuDuel(genAtk, def);
+    const genjutsu = resolveGenjutsuDuel(atk, def);
     if (genjutsu.success) {
       let status = roll(2) === 0 ? 'paralysis' : 'confusion';
       if (defender.character_trait === 'Faineant' && !defender.genjutsuReceived) {
@@ -246,6 +233,7 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
         crit: false,
         fumble: false,
         missed: false,
+        genjutsuSucceeded: true,
       };
     }
     return {
@@ -257,6 +245,7 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
       crit: false,
       fumble: false,
       missed: true,
+      genjutsuSucceeded: false,
     };
   }
 
@@ -272,6 +261,7 @@ function resolveDuel(attacker, defender, technique, allies, attackerTeam, defend
     crit: physical.crit,
     fumble: physical.fumble,
     missed: physical.missed,
+    genjutsuSucceeded: false,
   };
 }
 
@@ -319,6 +309,45 @@ function allKo(team) {
   return activeFighters(team).length === 0;
 }
 
+function buildCardCtx(attackerTeam, defenderTeam, attacker, defender, technique, tourTargetCounts, genjutsuSucceeded) {
+  return {
+    attackerTeam,
+    defenderTeam,
+    attacker,
+    defender,
+    technique,
+    tourTargetCounts,
+    genjutsuSucceeded,
+  };
+}
+
+function maybeProcCard(bearer, ctx, logs, tour) {
+  const event = tryTriggerTacticCard(bearer, ctx);
+  if (!event) return null;
+  recordTacticCardEvent(bearer, event);
+  logs.push({
+    tour,
+    type: 'tactic_card',
+    card_slug: event.slug,
+    card_narrative_key: event.narrativeKey,
+    ninja_name: bearer.name,
+    equipe_attaque: bearer.side,
+    card_efficacy: event.efficacy,
+    card_healed: event.healed || 0,
+    card_damage: event.pvDamage || 0,
+    card_status: event.status,
+    card_targets: event.targets,
+  });
+  return event;
+}
+
+function procSupportCards(team, ctx, logs, tour) {
+  for (const fighter of activeFighters(team)) {
+    if (!fighter.tacticCard || fighter.tacticCard.card_type !== 'support') continue;
+    maybeProcCard(fighter, { ...ctx, attackerTeam: team }, logs, tour);
+  }
+}
+
 export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = {}) {
   const env = environmentSlug ? getEnvironmentModifier(environmentSlug) : null;
   const logs = [];
@@ -329,6 +358,7 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
   let awayPossession = 0;
 
   for (let tour = 1; tour <= MAX_TOURS; tour += 1) {
+    const tourTargetCounts = {};
     const initiative = resolveInitiative(homeTeam, awayTeam, tour, env);
     const attackerTeam = initiative.attackerTeam;
     const defenderTeam = initiative.defenderTeam;
@@ -365,22 +395,32 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
       continue;
     }
 
-    const technique = chooseTechnique(attacker, defender, detectSquadComposition(attackerTeam.fighters));
+    tourTargetCounts[defender.id] = (tourTargetCounts[defender.id] || 0) + 1;
+
+    const technique = chooseTechnique(attacker, defender);
     const allies = activeFighters(attackerTeam);
     attacker.healIntent = false;
-    const outcome = resolveDuel(attacker, defender, technique, allies, attackerTeam, defenderTeam, env);
 
+    const baseCtx = buildCardCtx(attackerTeam, defenderTeam, attacker, defender, technique, tourTargetCounts, false);
+    procSupportCards(attackerTeam, baseCtx, logs, tour);
+    procSupportCards(defenderTeam, { ...baseCtx, attackerTeam: defenderTeam }, logs, tour);
+
+    const outcome = resolveDuel(attacker, defender, technique, allies, env);
     attacker.chakra = Math.max(0, attacker.chakra - outcome.chakraCost);
 
     if (technique.type !== 'medecine') {
       let damage = outcome.pvDamage;
-      const defComp = detectSquadComposition(defenderTeam.fighters);
-      const atkComp = detectSquadComposition(attackerTeam.fighters);
-      const defProfile = getCompositionProfile(defComp);
-      damage = Math.max(0, Math.floor(damage * defProfile.damageTaken));
-      if (defComp === 'flux' && atkComp === 'assaut') {
-        damage = Math.max(0, Math.floor(damage * 0.86));
+
+      const defCard = maybeProcCard(
+        defender,
+        buildCardCtx(attackerTeam, defenderTeam, attacker, defender, technique, tourTargetCounts, outcome.genjutsuSucceeded),
+        logs,
+        tour
+      );
+      if (defCard?.damageReductionPct) {
+        damage = Math.max(0, Math.floor(damage * (1 - defCard.damageReductionPct)));
       }
+
       const save = trySenseiSave(defenderTeam, defender, damage);
       damage = save.damage;
       const mitigation = tryLethalMitigation(defender, damage);
@@ -391,12 +431,27 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
       }
       applyKo(defender);
       applyKo(attacker);
-      consumedItemIds.push(...tryConsumablesFromEquipment(defender));
+      consumedItemIds.push(...tryConsumables(defender));
 
-      const elementMult = elementDamageMultiplier(
-        attacker.element_affinity,
-        defender.element_affinity
-      );
+      if (!outcome.missed && technique.type !== 'medecine') {
+        maybeProcCard(
+          attacker,
+          buildCardCtx(attackerTeam, defenderTeam, attacker, defender, technique, tourTargetCounts, outcome.genjutsuSucceeded),
+          logs,
+          tour
+        );
+      }
+
+      if (outcome.genjutsuSucceeded) {
+        maybeProcCard(
+          attacker,
+          buildCardCtx(attackerTeam, defenderTeam, attacker, defender, technique, tourTargetCounts, true),
+          logs,
+          tour
+        );
+      }
+
+      const elementMult = elementDamageMultiplier(attacker.element_affinity, defender.element_affinity);
 
       logs.push({
         tour,
@@ -467,10 +522,7 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
     ...collectConsumedItemIds([...homeTeam.fighters, ...awayTeam.fighters]),
   ];
 
-  const equipmentSummary = collectEquipmentSummary([
-    ...homeTeam.fighters,
-    ...awayTeam.fighters,
-  ]);
+  const equipmentSummary = collectEquipmentSummary([...homeTeam.fighters, ...awayTeam.fighters]);
 
   for (const fighter of [...homeTeam.fighters, ...awayTeam.fighters]) {
     for (const event of fighter.equipmentUsage?.eventLog || []) {
@@ -507,5 +559,4 @@ export function simulateCombat(homeTeam, awayTeam, { environmentSlug = null } = 
   };
 }
 
-/** Exposé pour tests statistiques (ciblage Tank vs Égoïste). */
 export { pickDefender as pickDefenderForTest };

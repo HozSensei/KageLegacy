@@ -19,12 +19,16 @@ const categoryLabel = (cat) => t(`market.categories.${cat}`)
 
 function listingTitle(listing) {
   if (listing.listingType === 'ninja') return listing.ninjaName
+  if (listing.listingType === 'tactic_card') return itemName(listing)
   return itemName(listing)
 }
 
 function listingSubtitle(listing) {
   if (listing.listingType === 'ninja') {
     return `${t(`grades.${listing.grade}`)} · ${listing.age} ${t('ninja.age')} · ${listing.clanName}`
+  }
+  if (listing.listingType === 'tactic_card') {
+    return `${t(`inventory.cardRarity.${listing.rarity}`)} · ${t('inventory.cardCharges', { count: listing.chargesRemaining })}`
   }
   return categoryLabel(listing.category)
 }
@@ -151,6 +155,7 @@ function canBuy(listing) {
             <div>
               <p class="text-sm text-ink">
                 <span v-if="listing.listingType === 'ninja'" class="text-accent">{{ t('exchanges.ninja') }} · </span>
+                <span v-else-if="listing.listingType === 'tactic_card'" class="text-accent">{{ t('inventory.tacticCards') }} · </span>
                 {{ listingTitle(listing) }}
               </p>
               <p class="mt-1 text-xs text-ink-faint">
@@ -181,7 +186,13 @@ function canBuy(listing) {
             class="border border-line bg-bg-soft p-6"
           >
             <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
-              {{ listing.listingType === 'ninja' ? t('exchanges.ninja') : categoryLabel(listing.category) }}
+              {{
+                listing.listingType === 'ninja'
+                  ? t('exchanges.ninja')
+                  : listing.listingType === 'tactic_card'
+                    ? t('inventory.tacticCards')
+                    : categoryLabel(listing.category)
+              }}
             </p>
             <h2 class="mt-3 font-display text-xl text-ink">{{ listingTitle(listing) }}</h2>
             <div class="mt-3">

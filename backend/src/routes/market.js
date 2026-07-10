@@ -6,6 +6,10 @@ import {
   getVillageShopForUser,
   purchaseVillageShopItem,
 } from '../services/villageShopService.js';
+import {
+  getVillageTacticCardOffers,
+  purchaseVillageTacticCard,
+} from '../services/tacticCards/villageTacticCardShop.js';
 import { describeUsageLimits } from '../services/combat/equipmentConstants.js';
 
 const router = Router();
@@ -23,11 +27,18 @@ router.get('/', async (req, res, next) => {
     if (!user) return;
 
     const shop = await getVillageShopForUser(user.id);
+    const tacticCards = await getVillageTacticCardOffers(user.id);
     const debt = await getDebtStatus(user.id);
     const clock = await getGameClock();
 
     res.json({
       items: mapShopItems(shop.items),
+      tacticCards: tacticCards.cards,
+      tacticCardsMeta: {
+        restockPeriod: tacticCards.restockPeriod,
+        cyclesUntilRestock: tacticCards.cyclesUntilRestock,
+        restockEveryCycles: tacticCards.restockEveryCycles,
+      },
       restockPeriod: shop.restockPeriod,
       poolCycle: shop.poolCycle,
       cyclesUntilRestock: shop.cyclesUntilRestock,
@@ -61,6 +72,46 @@ router.post('/buy', async (req, res, next) => {
     res.json({
       purchase,
       items: mapShopItems(shop.items),
+      restockPeriod: shop.restockPeriod,
+      poolCycle: shop.poolCycle,
+      cyclesUntilRestock: shop.cyclesUntilRestock,
+      restockEveryCycles: shop.restockEveryCycles,
+      promoCount: shop.promoCount,
+      ryos: debt.ryos,
+      debtBlocksSpending: debt.debtBlocksSpending,
+      gameClock: clock,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/buy-card', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const stockId = Number(req.body?.stockId);
+    if (!stockId) {
+      res.status(400).json({ error: 'stockId requis.' });
+      return;
+    }
+
+    const purchase = await purchaseVillageTacticCard(user.id, stockId);
+    const shop = await getVillageShopForUser(user.id);
+    const tacticCards = await getVillageTacticCardOffers(user.id);
+    const debt = await getDebtStatus(user.id);
+    const clock = await getGameClock();
+
+    res.json({
+      purchase,
+      items: mapShopItems(shop.items),
+      tacticCards: tacticCards.cards,
+      tacticCardsMeta: {
+        restockPeriod: tacticCards.restockPeriod,
+        cyclesUntilRestock: tacticCards.cyclesUntilRestock,
+        restockEveryCycles: tacticCards.restockEveryCycles,
+      },
       restockPeriod: shop.restockPeriod,
       poolCycle: shop.poolCycle,
       cyclesUntilRestock: shop.cyclesUntilRestock,

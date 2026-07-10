@@ -14,6 +14,7 @@ import { createDojoNotification } from './dojoNotifications.js';
 import { buildMissionReportPayload } from './missionNarrative.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { grantItemToUser } from './itemGrantService.js';
+import { grantRandomTacticCard } from './tacticCards/tacticCardService.js';
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
@@ -24,6 +25,13 @@ function rollRoutineLoot() {
       lootTier: 'bonus',
       items: [{ slug: 'pansement-terrain', quantity: 1 }],
       narrative: 'pansement',
+    };
+  }
+  if (roll <= 14) {
+    return {
+      lootTier: 'common',
+      tacticCard: { rarity: 'common' },
+      narrative: 'tactic_card',
     };
   }
   return { lootTier: 'none', items: [], narrative: 'empty' };
@@ -43,6 +51,13 @@ function rollInfiltrationLoot(ninja) {
       lootTier: 'common',
       items: [{ slug: 'kit-materiel-medical', quantity: 1 }],
       narrative: 'medical_kit',
+    };
+  }
+  if (roll <= 95) {
+    return {
+      lootTier: 'rare',
+      tacticCard: { rarity: 'common' },
+      narrative: 'tactic_card',
     };
   }
   return {
@@ -68,6 +83,13 @@ function rollCycloneLoot() {
       narrative: 'double_medical',
     };
   }
+  if (roll <= 92) {
+    return {
+      lootTier: 'rare',
+      tacticCard: { rarity: 'rare' },
+      narrative: 'tactic_card_rare',
+    };
+  }
   if (roll <= 97) {
     return {
       lootTier: 'rare',
@@ -75,7 +97,7 @@ function rollCycloneLoot() {
       narrative: 'tactical_consumable',
     };
   }
-  if (rollPercent() <= 50) {
+  if (rollPercent() <= 40) {
     const stat = STAT_COLUMNS[randomInt(STAT_COLUMNS.length)];
     const gain = rollPercent() <= 50 ? 0.5 : 1.0;
     return {
@@ -83,6 +105,13 @@ function rollCycloneLoot() {
       items: [],
       scroll: { stat, gain },
       narrative: 'forbidden_scroll',
+    };
+  }
+  if (rollPercent() <= 70) {
+    return {
+      lootTier: 'legendary',
+      tacticCard: { rarity: 'legendary' },
+      narrative: 'tactic_card_legendary',
     };
   }
   return {
@@ -194,6 +223,10 @@ export async function resolveMissionOutcome(mission, ninja) {
     lootResult.prodige = await recruitMissionProdige(mission.user_id);
   }
 
+  if (injuryType !== 'death' && loot.tacticCard) {
+    lootResult.tacticCard = await grantRandomTacticCard(mission.user_id, loot.tacticCard);
+  }
+
   await applyInjury(mission.ninja_id, injuryType);
 
   const status = injuryType === 'death' ? 'failed' : 'completed';
@@ -246,7 +279,7 @@ export async function grantLootOnCollect(userId, mission) {
     }
   }
 
-  return { items: grantedItems, scroll: loot.scrollApplied ?? null, prodige: loot.prodige ?? null };
+  return { items: grantedItems, scroll: loot.scrollApplied ?? null, prodige: loot.prodige ?? null, tacticCard: loot.tacticCard ?? null };
 }
 
 export async function decrementFormeLocksForAllUsers() {

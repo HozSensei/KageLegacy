@@ -14,6 +14,8 @@ const buyingId = ref(null)
 
 const itemName = (item) => (locale.value === 'en' ? item.nameEn : item.nameFr)
 const itemDesc = (item) => (locale.value === 'en' ? item.descriptionEn : item.descriptionFr)
+const cardName = (card) => (locale.value === 'en' ? card.nameEn : card.nameFr)
+const cardDesc = (card) => (locale.value === 'en' ? card.descriptionEn : card.descriptionFr)
 
 const categoryLabel = (cat) => t(`market.categories.${cat}`)
 
@@ -83,10 +85,33 @@ async function buy(stockId) {
   }
 }
 
+async function buyCard(stockId) {
+  buyingId.value = stockId
+  try {
+    const res = await fetch(`${API_BASE}/api/market/buy-card`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stockId }),
+    })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
+    market.value = await res.json()
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    buyingId.value = null
+  }
+}
+
 const canBuy = computed(() => (item) =>
   !item.soldOut &&
   !market.value?.debtBlocksSpending &&
   (market.value?.ryos ?? 0) >= item.finalPrice
+)
+
+const canBuyCard = computed(() => (card) =>
+  !card.soldOut &&
+  !market.value?.debtBlocksSpending &&
+  (market.value?.ryos ?? 0) >= card.finalPrice
 )
 </script>
 
@@ -211,6 +236,46 @@ const canBuy = computed(() => (item) =>
                 item.soldOut
                   ? t('market.soldOut')
                   : buyingId === item.stockId
+                    ? t('market.buying')
+                    : t('market.buy')
+              }}
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="market.tacticCards?.length" class="mt-14" data-testid="market-tactic-cards">
+        <p class="section-label">{{ t('market.tacticCardsTitle') }}</p>
+        <p class="mt-2 text-xs text-ink-muted">{{ t('market.tacticCardsHint') }}</p>
+        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <article
+            v-for="card in market.tacticCards"
+            :key="card.stockId"
+            class="border bg-bg-soft p-6"
+            :class="card.soldOut ? 'border-line opacity-60' : 'border-line'"
+          >
+            <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
+              {{ t(`inventory.cardRarity.${card.rarity}`) }}
+            </p>
+            <h2 class="mt-3 font-display text-xl text-ink">{{ cardName(card) }}</h2>
+            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
+            <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+              {{ t('market.cardChargesShop', { count: 3 }) }}
+            </p>
+            <p class="mt-4 text-xs text-ink-faint">
+              {{ t('market.stock', { remaining: card.stockRemaining, initial: 1 }) }}
+            </p>
+            <p class="mt-4 text-base font-medium text-ink">{{ formatRyos(card.finalPrice) }}</p>
+            <button
+              type="button"
+              class="btn-ghost mt-6 w-full disabled:opacity-40"
+              :disabled="card.soldOut || !canBuyCard(card) || buyingId === card.stockId"
+              @click="buyCard(card.stockId)"
+            >
+              {{
+                card.soldOut
+                  ? t('market.soldOut')
+                  : buyingId === card.stockId
                     ? t('market.buying')
                     : t('market.buy')
               }}
