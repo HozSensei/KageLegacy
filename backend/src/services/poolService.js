@@ -1,6 +1,12 @@
 import { query } from '../config/database.js';
 import { createBotUser } from './botFactory.js';
-import { buildRoundRobinSchedule, LOWEST_DIVISION, POOL_SIZE, SEASON_CYCLES } from './poolSchedule.js';
+import {
+  buildRoundRobinSchedule,
+  LOWEST_DIVISION,
+  POOL_SIZE,
+  SEASON_CYCLES,
+  validateRoundRobinSchedule,
+} from './poolSchedule.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
 
 export async function findUserPool(userId) {
@@ -70,12 +76,12 @@ async function replaceBotInPool(poolId, botUserId, humanUserId) {
     botUserId,
   ]);
   await query(
-    `UPDATE matches SET home_user_id = ? WHERE home_user_id = ?`,
-    [humanUserId, botUserId]
+    `UPDATE matches SET home_user_id = ? WHERE pool_id = ? AND home_user_id = ?`,
+    [humanUserId, poolId, botUserId]
   );
   await query(
-    `UPDATE matches SET away_user_id = ? WHERE away_user_id = ?`,
-    [humanUserId, botUserId]
+    `UPDATE matches SET away_user_id = ? WHERE pool_id = ? AND away_user_id = ?`,
+    [humanUserId, poolId, botUserId]
   );
   await query('DELETE FROM ninjas WHERE user_id = ?', [botUserId]);
   await query('DELETE FROM sensei WHERE user_id = ?', [botUserId]);
@@ -224,4 +230,105 @@ export async function incrementPoolCycle(poolId) {
   return { poolId, seasonEnded: false, cycle: cycle + 1 };
 }
 
-export { POOL_SIZE, SEASON_CYCLES, LOWEST_DIVISION };
+/**
+ * Réaligne les confrontations d'une ligue sur un round-robin valide
+ * (même ordre de membres qu'à la création, via pool_members.id).
+ */
+export async function repairPoolSchedule(poolId, { onlyScheduled = true } = {}) {
+  const members = await getPoolMemberIds(poolId);
+  if (members.length < 2 || members.length % 2 !== 0) {
+    const error = new Error('Nombre de membres invalide pour un round-robin.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const memberIds = members.map((member) => member.user_id);
+  const expected = buildRoundRobinSchedule(memberIds, SEASON_CYCLES);
+  if (!validateRoundRobinSchedule(expected, memberIds.length)) {
+    const error = new Error('Calendrier round-robin généré invalide.');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const rows = await query(
+    `SELECT id, season_cycle, home_user_id, away_user_id, status
+     FROM matches
+     WHERE pool_id = ?
+     ORDER BY season_cycle ASC, id ASC`,
+    [poolId]
+  );
+
+  const expectedByCycle = new Map();
+  for (const entry of expected) {
+    if (!expectedByCycle.has(entry.seasonCycle)) {
+      expectedByCycle.set(entry.seasonCycle, []);
+    }
+    expectedByCycle.get(entry.seasonCycle).push(entry);
+  }
+
+  const existingByCycle = new Map();
+  for (const row of rows) {
+    if (!existingByCycle.has(row.season_cycle)) {
+      existingByCycle.set(row.season_cycle, []);
+    }
+    existingByCycle.get(row.season_cycle).push(row);
+  }
+
+  let updated = 0;
+  let skipped = 0;
+
+  for (const [cycle, cycleExpected] of expectedByCycle) {
+    const cycleExisting = existingByCycle.get(cycle) || [];
+    if (cycleExisting.length !== cycleExpected.length) {
+      const error = new Error(
+        `Journée ${cycle} : ${cycleExisting.length} match(s) en base, ${cycleExpected.length} attendu(s).`
+      );
+      error.statusCode = 409;
+      throw error;
+    }
+
+    for (let i = 0; i < cycleExpected.length; i += 1) {
+      const target = cycleExpected[i];
+      const row = cycleExisting[i];
+      const samePairing =
+        row.home_user_id === target.homeUserId && row.away_user_id === target.awayUserId;
+
+      if (samePairing) continue;
+
+      if (onlyScheduled && row.status !== 'scheduled') {
+        skipped += 1;
+        continue;
+      }
+
+      await query('UPDATE matches SET home_user_id = ?, away_user_id = ? WHERE id = ?', [
+        target.homeUserId,
+        target.awayUserId,
+        row.id,
+      ]);
+      updated += 1;
+    }
+  }
+
+  return { poolId, updated, skipped, memberCount: memberIds.length };
+}
+
+export async function repairAllActivePoolSchedules(options = {}) {
+  const pools = await query(`SELECT id FROM pools WHERE status = 'active' ORDER BY id ASC`);
+  const results = [];
+
+  for (const pool of pools) {
+    try {
+      results.push({ ...(await repairPoolSchedule(pool.id, options)), ok: true });
+    } catch (error) {
+      results.push({
+        poolId: pool.id,
+        ok: false,
+        error: error.message,
+      });
+    }
+  }
+
+  return results;
+}
+
+export { POOL_SIZE, SEASON_CYCLES, LOWEST_DIVISION, validateRoundRobinSchedule };

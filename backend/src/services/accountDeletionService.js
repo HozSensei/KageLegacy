@@ -32,8 +32,16 @@ async function replaceHumanWithBotInPool(poolId, humanUserId) {
     poolId,
     humanUserId,
   ]);
-  await query('UPDATE matches SET home_user_id = ? WHERE home_user_id = ?', [botId, humanUserId]);
-  await query('UPDATE matches SET away_user_id = ? WHERE away_user_id = ?', [botId, humanUserId]);
+  await query('UPDATE matches SET home_user_id = ? WHERE pool_id = ? AND home_user_id = ?', [
+    botId,
+    poolId,
+    humanUserId,
+  ]);
+  await query('UPDATE matches SET away_user_id = ? WHERE pool_id = ? AND away_user_id = ?', [
+    botId,
+    poolId,
+    humanUserId,
+  ]);
   await query('UPDATE matches SET winner_user_id = NULL WHERE winner_user_id = ?', [humanUserId]);
 }
 
