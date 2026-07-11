@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from '../src/config/database.js';
+import pool from '../src/config/database.js';
 import {
   getOperationDossier,
   setOperationPosture,
@@ -115,9 +116,15 @@ async function main() {
 
   await cleanupPool(poolId, [userA, userB]);
   console.log('testOperationDossier: OK');
+  await pool.end();
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error(err);
+  try {
+    await pool.end();
+  } catch {
+    /* ignore */
+  }
   process.exit(1);
 });
