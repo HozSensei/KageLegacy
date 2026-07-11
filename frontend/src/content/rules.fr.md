@@ -13,7 +13,7 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 | Phase | Période | Activités principales |
 |-------|---------|------------------------|
 | **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d'espionnage, gestion continue |
+| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), espionnage, mission de reconnaissance (combat d'entraînement), gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
 
@@ -24,6 +24,7 @@ Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jus
 ### Jalons automatiques
 
 - **H36** : résolution des examens Chunin inscrits ; rapport d'espionnage sur l'adversaire du cycle.
+- **H36 → H70** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
 - **H71** : simulation du match de ligue ; début de la chronique narrative.
 - **H72** : clôture économique et début du cycle suivant.
 
@@ -372,6 +373,17 @@ En cas d'égalité de points : victoires, puis matchs joués.
 
 Rapport sur l'adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice sur l'environnement probable. Les informations restent **partielles** — pas de lecture exacte des stats adverses.
 
+### Mission de reconnaissance (H36 → H70)
+
+Combat d'entraînement pour **tester votre composition** avant le match de ligue, sans attendre H71. **Une mission par cycle** par Sensei.
+
+| Mode | Fonctionnement |
+|------|----------------|
+| **Matchmaking** | Adversaire humain de division et puissance proches ; sinon un **bot** de la ligue. |
+| **Défi direct** | Depuis le menu Ligue : défier un membre de votre pool ou d'une autre ligue (division proche). Le défenseur doit **accepter**. |
+
+**Conséquences** : moteur de combat réel (objets, cartes tactiques, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte tactique (y compris en défaite). N'affecte **pas** le classement de ligue.
+
 ### Invitation
 
 Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des alliés dans sa ligue.
@@ -413,11 +425,11 @@ La **possession** (temps d'initiative) sert à la narration et au débrief — e
 
 ### Conséquences (à H72)
 
-| Résultat | Points ligue | Prime Ryos |
-|----------|--------------|------------|
-| Victoire | 3 | Élevée |
-| Nul | 1 chacun | Modérée |
-| Défaite | 0 | Aucune |
+| Résultat | Points ligue | Prime Ryos (base) | Butin bonus |
+|----------|--------------|-------------------|-------------|
+| Victoire | 3 | 1 600 | Ryos supplémentaires + objet aléatoire + chance de carte |
+| Nul | 1 chacun | 800 | Idem (probabilités réduites) |
+| Défaite | 0 | 100 (consolation) | Idem (probabilités réduites) |
 
 ---
 
@@ -429,7 +441,7 @@ La **possession** (temps d'initiative) sert à la narration et au débrief — e
 | **Escouade** | Composition, consignes, dossier d'opération (postures), échanges actif/banc |
 | **Entraînement** | Focus par stat, prévision de coût |
 | **Missions** | Contrats idle |
-| **Ligue** | Classement, calendrier, espionnage |
+| **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
 | **Magasin** | Achats d'objets du village |
 | **Échanges** | Marché entre joueurs |
 | **Inventaire** | Objets et équipement match/cycle |

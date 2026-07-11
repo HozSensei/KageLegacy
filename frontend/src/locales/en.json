@@ -55,6 +55,7 @@
       "mid": {
         "chunin": "Chunin exam verdicts",
         "scout": "Scout reports and opponent dossiers",
+        "reconnaissance": "Reconnaissance mission (H36–H70): sparring combat, matchmaking or challenge",
         "management": "Squad management, training and trades",
         "birdFlight": "Bird Flight registrations still open"
       },
@@ -170,7 +171,7 @@
     "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
     "timeline": {
       "start": "Cycle start: training, missions, shop and Academy recruitment (through 12 hours).",
-      "mid": "After 36 hours: Chunin exams and mid-cycle — form, morale and stagnation checks.",
+      "mid": "After 36 hours: Chunin exams, scouting and reconnaissance mission (sparring combat through H70).",
       "operation": "At 71 hours: league match and border operation. The chronicle unfolds step by step.",
       "end": "At 72 hours: cycle closes — salaries, Ryos economy, then a new cycle begins."
     }
@@ -303,7 +304,7 @@
     "dailySealWellDrop": "+1 drop to the clan Well",
     "dailySealWellFusion": "Well fusion! Bonus seal for the alliance.",
     "dailySealTitle": "Chakra Seal",
-    "dailySealHint": "One free seal each day (UTC midnight), stackable up to {max}. Break it for a surprise reward.",
+    "dailySealHint": "One free seal each day (UTC midnight), stackable up to {max}. Break it for Ryos, a random item, and a tactic card chance.",
     "dailySealStock": "{count} / {max} seal(s) waiting",
     "dailySealOpen": "Break the seal",
     "dailySealOpening": "Opening…",
@@ -319,6 +320,8 @@
     "sealRewardFumigene": "Emergency smoke bomb obtained",
     "sealRewardMoral": "+5 morale for {name} (total {moral})",
     "sealRewardJackpot": "Golden Seal! Next Academy aspirant: Prodigy or Noble bloodline.",
+    "lootRewardItem": "Item: {slug}",
+    "lootRewardTacticCard": "Tactic card: {slug}",
     "heritageTitle": "Heritage wall",
     "heritageHint": "Each Chunin who leaves on the Vol d'Oiseau leaves a wall scroll and a small permanent bonus.",
     "heritageEmpty": "No heirs yet — guide a Chunin to the peak.",
@@ -514,7 +517,27 @@
     "awaySide": "Away",
     "fixtures": "Matchday fixtures",
     "fixturesHint": "Matchday {cycle} — 3 bouts in your 6-sensei pool (home & away over 10 matchdays). You only play one of these three.",
-    "recentMatches": "Recent results"
+    "recentMatches": "Recent results",
+    "reconTitle": "Reconnaissance mission",
+    "reconLead": "Test your squad in live combat (H36–H70): matchmaking, direct challenge, or fallback bot. K.O.s can lower form, like league matches.",
+    "reconRewards": "Loot: Ryos + random consumable + tactic card chance — even on a loss.",
+    "reconMatchmake": "Start matchmaking",
+    "reconBusy": "Fighting…",
+    "reconChallenge": "Challenge",
+    "reconChallengeCol": "Recon.",
+    "reconIncoming": "Incoming challenges",
+    "reconChallengeFrom": "{name} challenges you to reconnaissance",
+    "reconAccept": "Accept",
+    "reconDecline": "Decline",
+    "reconPendingOutgoing": "Challenge sent to {name} — waiting for acceptance.",
+    "reconOtherPools": "Other leagues (nearby division)",
+    "reconOutcomeWin": "Victory",
+    "reconOutcomeDraw": "Draw",
+    "reconOutcomeLoss": "Defeat",
+    "reconNotifChallengeTitle": "Reconnaissance challenge",
+    "reconNotifChallengeBody": "{name} challenged you to a reconnaissance mission. Accept from the League screen.",
+    "reconNotifResultTitle": "Reconnaissance complete",
+    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos."
   },
   "matches": {
     "navTitle": "Browse matches",

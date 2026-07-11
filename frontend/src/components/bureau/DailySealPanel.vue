@@ -47,6 +47,12 @@ async function openSeal() {
 const rewardMessage = computed(() => {
   const reward = lastReward.value
   if (!reward) return ''
+  if (reward.details?.lines?.length) {
+    return reward.details.lines
+      .map((line) => formatLootLine(line))
+      .filter(Boolean)
+      .join(' · ')
+  }
   if (reward.type === 'ryos' || reward.type === 'ryos_fallback') {
     return t('bureau.sealRewardRyos', { amount: reward.details.ryos })
   }
@@ -62,6 +68,26 @@ const rewardMessage = computed(() => {
   if (reward.labelKey) return t(reward.labelKey)
   return t(`bureau.sealTier.${reward.tier}`)
 })
+
+function formatLootLine(line) {
+  if (!line) return ''
+  if (line.type === 'ryos' || line.type === 'ryos_fallback') {
+    return t('bureau.sealRewardRyos', { amount: line.ryos })
+  }
+  if (line.type === 'item') {
+    return t('bureau.lootRewardItem', { slug: line.slug })
+  }
+  if (line.type === 'tactic_card') {
+    return t('bureau.lootRewardTacticCard', { slug: line.slug })
+  }
+  if (line.type === 'moral_boost') {
+    return t('bureau.sealRewardMoral', { name: line.ninjaName, moral: line.to })
+  }
+  if (line.type === 'academy_jackpot') {
+    return t('bureau.sealRewardJackpot')
+  }
+  return ''
+}
 </script>
 
 <template>

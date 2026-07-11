@@ -25,6 +25,7 @@ export const CYCLE_MILESTONES = [
     eventKeys: [
       'cycleProgress.events.mid.chunin',
       'cycleProgress.events.mid.scout',
+      'cycleProgress.events.mid.reconnaissance',
       'cycleProgress.events.mid.management',
       'cycleProgress.events.mid.birdFlight',
     ],

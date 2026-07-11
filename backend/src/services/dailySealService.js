@@ -2,10 +2,10 @@ import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { utcDateString } from './dailyUtc.js';
 import { grantItemToUser, countUnconsumedItemsBySlug, consumeOldestItemBySlug } from './itemGrantService.js';
-import { grantRandomTacticCard } from './tacticCards/tacticCardService.js';
 import { rollPercent } from './missionRules.js';
 import { addChakraDropForSealOpen } from './clanChakraWellService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
+import { grantSealBaseLoot } from './combatLootService.js';
 
 export const SEAL_ITEM_SLUG = 'sceau-chakra';
 export { utcDateString } from './dailyUtc.js';
@@ -92,6 +92,21 @@ async function pickBenchNinja(userId, ninjaId = null) {
   return rows[0] || null;
 }
 
+function buildSealRewardLines(baseLoot, bonus = null) {
+  const lines = [];
+  if (baseLoot.ryos > 0) {
+    lines.push({ type: 'ryos', ryos: baseLoot.ryos });
+  }
+  for (const item of baseLoot.items || []) {
+    lines.push({ type: 'item', slug: item.slug });
+  }
+  if (baseLoot.tacticCard?.slug) {
+    lines.push({ type: 'tactic_card', slug: baseLoot.tacticCard.slug });
+  }
+  if (bonus) lines.push(bonus);
+  return lines;
+}
+
 export async function openChakraSeal(userId, { ninjaId = null } = {}) {
   const consumed = await consumeOldestItemBySlug(userId, SEAL_ITEM_SLUG);
   if (!consumed) {
@@ -101,59 +116,50 @@ export async function openChakraSeal(userId, { ninjaId = null } = {}) {
   }
 
   const tier = rollSealLootTier();
-  const reward = { tier, type: null, labelKey: null, details: {} };
+  const baseLoot =
+    tier === 'epic' || tier === 'jackpot'
+      ? await grantSealBaseLoot(userId, 'rare')
+      : await grantSealBaseLoot(userId, tier);
 
-  if (tier === 'common') {
-    if (rollPercent() <= 55) {
-      const ryos = 50 + randomInt(101);
-      await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [ryos, userId]);
-      reward.type = 'ryos';
-      reward.labelKey = 'bureau.sealRewardRyos';
-      reward.details = { ryos };
-    } else {
-      const [item] = await grantItemToUser(userId, 'pansement-terrain', 1);
-      reward.type = 'item';
-      reward.labelKey = 'bureau.sealRewardPansement';
-      reward.details = { slug: 'pansement-terrain', userItemId: item?.userItemId };
-    }
-  } else if (tier === 'rare') {
-    if (rollPercent() <= 12) {
-      const card = await grantRandomTacticCard(userId, { rarity: 'common' });
-      reward.type = 'tactic_card';
-      reward.labelKey = 'bureau.sealRewardTacticCard';
-      reward.details = { slug: card?.slug, userTacticCardId: card?.userTacticCardId };
-    } else {
-      const [item] = await grantItemToUser(userId, 'fumigene-secours', 1);
-      reward.type = 'item';
-      reward.labelKey = 'bureau.sealRewardFumigene';
-      reward.details = { slug: 'fumigene-secours', userItemId: item?.userItemId };
-    }
-  } else if (tier === 'epic') {
+  let bonus = null;
+  let type = 'bundle';
+
+  if (tier === 'epic') {
     const ninja = await pickBenchNinja(userId, ninjaId);
     if (!ninja) {
       const ryos = 200;
       await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [ryos, userId]);
-      reward.type = 'ryos_fallback';
-      reward.labelKey = 'bureau.sealRewardRyosFallback';
-      reward.details = { ryos, reason: 'no_bench_ninja' };
+      baseLoot.ryos += ryos;
+      bonus = { type: 'ryos_fallback', ryos, reason: 'no_bench_ninja' };
     } else {
       const nextMoral = Math.min(20, Number(ninja.moral) + 5);
       await query('UPDATE ninjas SET moral = ? WHERE id = ?', [nextMoral, ninja.id]);
-      reward.type = 'moral_boost';
-      reward.labelKey = 'bureau.sealRewardMoral';
-      reward.details = {
+      bonus = {
+        type: 'moral_boost',
         ninjaId: ninja.id,
         ninjaName: ninja.name,
         from: ninja.moral,
         to: nextMoral,
       };
     }
-  } else {
+    type = 'bundle_epic';
+  } else if (tier === 'jackpot') {
     await query('UPDATE sensei SET academy_jackpot_token = 1 WHERE user_id = ?', [userId]);
-    reward.type = 'academy_jackpot';
-    reward.labelKey = 'bureau.sealRewardJackpot';
-    reward.details = {};
+    bonus = { type: 'academy_jackpot' };
+    type = 'bundle_jackpot';
   }
+
+  const lines = buildSealRewardLines(baseLoot, bonus);
+  const reward = {
+    tier,
+    type,
+    labelKey: null,
+    details: {
+      loot: baseLoot,
+      bonus,
+      lines,
+    },
+  };
 
   const seal = await getDailySealPayload(userId);
   const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [userId]);

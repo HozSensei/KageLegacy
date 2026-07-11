@@ -55,6 +55,7 @@
       "mid": {
         "chunin": "Verdict des examens de Chunin",
         "scout": "Bilans éclaireurs et dossiers adverses",
+        "reconnaissance": "Mission de reconnaissance (H36–H70) : combat d'entraînement, matchmaking ou défi",
         "management": "Gestion d'escouade, entraînement et échanges",
         "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
       },
@@ -170,7 +171,7 @@
     "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
     "timeline": {
       "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à 12 heures).",
-      "mid": "Après 36 heures : examens de Chunin et milieu de cycle — bilans, forme et stagnation.",
+      "mid": "Après 36 heures : examens de Chunin, espionnage et mission de reconnaissance (combat d'entraînement jusqu'à H70).",
       "operation": "À 71 heures : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
       "end": "À 72 heures : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
     }
@@ -303,7 +304,7 @@
     "dailySealWellDrop": "+1 goutte vers le Puits du clan",
     "dailySealWellFusion": "Fusion du Puits ! Sceau bonus pour l'alliance.",
     "dailySealTitle": "Sceau de Chakra",
-    "dailySealHint": "Un sceau gratuit chaque jour (minuit UTC), stockable jusqu'à {max}. Brisez-le pour une récompense surprise.",
+    "dailySealHint": "Un sceau gratuit chaque jour (minuit UTC), stockable jusqu'à {max}. Brisez-le pour Ryos, un objet aléatoire et une chance de carte tactique.",
     "dailySealStock": "{count} / {max} sceau(x) en attente",
     "dailySealOpen": "Briser le sceau",
     "dailySealOpening": "Ouverture…",
@@ -319,6 +320,8 @@
     "sealRewardFumigene": "Fumigène de secours obtenu",
     "sealRewardMoral": "+5 moral pour {name} (total {moral})",
     "sealRewardJackpot": "Sceau d'Or ! Prochain aspirant Académie : Prodige ou lignée Noble.",
+    "lootRewardItem": "Objet : {slug}",
+    "lootRewardTacticCard": "Carte tactique : {slug}",
     "heritageTitle": "Mur d'héritage",
     "heritageHint": "Chaque Chunin parti au Vol d'Oiseau laisse un parchemin mural et un micro-bonus permanent.",
     "heritageEmpty": "Aucun héritier pour l'instant — menez un Chunin jusqu'au sommet.",
@@ -514,7 +517,27 @@
     "awaySide": "Extérieur",
     "fixtures": "Matchs de la journée",
     "fixturesHint": "Journée {cycle} — 3 affrontements dans votre pool de 6 Sensei (aller-retour sur 10 journées). Vous ne jouez qu'un seul de ces trois matchs.",
-    "recentMatches": "Résultats récents"
+    "recentMatches": "Résultats récents",
+    "reconTitle": "Mission de reconnaissance",
+    "reconLead": "Testez votre composition en combat (H36–H70) : matchmaking, défi direct ou bot de secours. Les K.O. peuvent faire baisser la forme, comme en match de ligue.",
+    "reconRewards": "Butin : Ryos + objet aléatoire (consommable) + chance de carte tactique — même en défaite.",
+    "reconMatchmake": "Lancer le matchmaking",
+    "reconBusy": "Combat en cours…",
+    "reconChallenge": "Défier",
+    "reconChallengeCol": "Recon.",
+    "reconIncoming": "Défis reçus",
+    "reconChallengeFrom": "{name} vous défie en reconnaissance",
+    "reconAccept": "Accepter",
+    "reconDecline": "Refuser",
+    "reconPendingOutgoing": "Défi envoyé à {name} — en attente d'acceptation.",
+    "reconOtherPools": "Autres ligues (division proche)",
+    "reconOutcomeWin": "Victoire",
+    "reconOutcomeDraw": "Match nul",
+    "reconOutcomeLoss": "Défaite",
+    "reconNotifChallengeTitle": "Défi de reconnaissance",
+    "reconNotifChallengeBody": "{name} vous défie pour une mission de reconnaissance. Acceptez depuis la Ligue.",
+    "reconNotifResultTitle": "Reconnaissance terminée",
+    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos."
   },
   "matches": {
     "navTitle": "Parcourir les combats",
