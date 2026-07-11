@@ -24,7 +24,7 @@ Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jus
 ### Jalons automatiques
 
 - **H0 → H36** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
-- **H36** : résolution des examens Chunin inscrits ; rapport d'espionnage sur l'adversaire du cycle.
+- **H36** : résolution des examens Chunin inscrits ; rapport d'espionnage sur l'adversaire du cycle (si une mission de reconnaissance a été effectuée).
 - **H71** : simulation du match de ligue ; début de la chronique narrative.
 - **H72** : clôture économique et début du cycle suivant.
 
@@ -371,7 +371,15 @@ En cas d'égalité de points : victoires, puis matchs joués.
 
 ### Espionnage (à partir de H36)
 
-Rapport sur l'adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice sur l'environnement probable. Les informations restent **partielles** — pas de lecture exacte des stats adverses.
+Le rapport sur l'adversaire du cycle **dépend de la mission de reconnaissance** (H0–H36) :
+
+| Situation | Rapport |
+|-----------|---------|
+| Pas de reconnaissance | Aucun renseignement sur l'adversaire de ligue |
+| Reconnaissance + défaite ou nul | Rapport **partiel** (indices limités) |
+| Reconnaissance + victoire | Votre **% de dominance** au combat = **% de chance** d'obtenir un rapport **complet** ; sinon rapport partiel |
+
+Un rapport complet révèle tendances offensives, tanks, vitesse, élément dominant et indice sur l'environnement probable. Les informations restent **floues** — pas de lecture exacte des stats adverses.
 
 ### Mission de reconnaissance (H0 → H36)
 

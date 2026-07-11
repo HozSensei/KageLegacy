@@ -1,8 +1,10 @@
+import { createHash } from 'node:crypto';
 import { query } from '../config/database.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { getScoutEnvironmentLine } from './matchEnvironment.js';
 import { getClockRow } from './gameClock.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
+import { getUserReconMissionForCycle } from './reconnaissanceService.js';
 
 function analyzeStrategies(ninjas) {
   const counts = { Tank: 0, Offensive: 0, Protect: 0, Normal: 0 };
@@ -134,16 +136,59 @@ function buildTendencyLines(strategies, speed, element, lang) {
   return lines;
 }
 
-export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
-  const lang = locale === 'en' ? 'en' : 'fr';
-  const match = await getUserMatchForCycle(userId, seasonCycle);
-  if (!match) return null;
+function scoutQualityRoll(missionId, userId) {
+  const hash = createHash('sha256').update(`scout:${missionId}:${userId}`).digest();
+  return hash.readUInt32BE(0) % 100;
+}
 
-  const opponentId =
-    match.home_user_id === userId ? match.away_user_id : match.home_user_id;
-  const opponentName =
-    match.home_user_id === userId ? match.away_sensei : match.home_sensei;
+function resolveScoutTier(mission, userId) {
+  const { outcome, scorePct, missionId } = mission;
+  if (outcome === 'loss' || outcome === 'draw') {
+    return {
+      tier: 'partial',
+      reconOutcome: outcome,
+      reconScorePct: scorePct,
+      fullReportChance: null,
+      fullReportRoll: null,
+    };
+  }
+  const chance = Math.max(0, Math.min(100, Math.round(scorePct ?? 50)));
+  const roll = scoutQualityRoll(missionId, userId);
+  return {
+    tier: roll < chance ? 'full' : 'partial',
+    reconOutcome: 'win',
+    reconScorePct: scorePct,
+    fullReportChance: chance,
+    fullReportRoll: roll,
+  };
+}
 
+function buildPartialReport(fullReport, lang) {
+  const unknownPotential = lang === 'en' ? 'unknown' : 'inconnu';
+  const lines = fullReport.lines.slice(0, Math.min(2, fullReport.lines.length));
+  if (!lines.length) {
+    lines.push(
+      lang === 'en'
+        ? 'Fragmentary intel — the recon mission did not yield a clear picture.'
+        : 'Renseignements fragmentaires — la reconnaissance n\'a pas donné une image nette.'
+    );
+  }
+  const profiles = fullReport.profiles
+    .slice(0, 2)
+    .map((profile) => ({
+      ...profile,
+      potentialHint: unknownPotential,
+      strategy: null,
+    }));
+  return {
+    ...fullReport,
+    tier: 'partial',
+    lines,
+    profiles,
+  };
+}
+
+async function buildFullScoutData(userId, opponentId, opponentName, opponentIsBot, match, lang) {
   const ninjas = await query(
     `SELECT n.battle_strategy, n.element_affinity, n.taijutsu, n.ninjutsu, n.genjutsu,
             n.medecine, n.vitesse, n.intelligence, n.grade,
@@ -182,7 +227,7 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
 
   return {
     opponentName,
-    opponentIsBot: Boolean(match.home_user_id === userId ? match.away_is_bot : match.home_is_bot),
+    opponentIsBot,
     lines,
     profiles,
     tendencies: {
@@ -192,6 +237,61 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
       dominantElement: element || null,
       offensive: strategies.Offensive,
     },
+  };
+}
+
+export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
+  const lang = locale === 'en' ? 'en' : 'fr';
+  const match = await getUserMatchForCycle(userId, seasonCycle);
+  if (!match) return null;
+
+  const opponentId =
+    match.home_user_id === userId ? match.away_user_id : match.home_user_id;
+  const opponentName =
+    match.home_user_id === userId ? match.away_sensei : match.home_sensei;
+  const opponentIsBot = Boolean(
+    match.home_user_id === userId ? match.away_is_bot : match.home_is_bot
+  );
+
+  const clockRow = await getClockRow();
+  const reconMission = await getUserReconMissionForCycle(userId, clockRow?.cycle_start_at);
+
+  if (!reconMission) {
+    return {
+      tier: 'none',
+      lockReason: 'no_recon',
+      opponentName,
+      opponentIsBot,
+      reconOutcome: null,
+      reconScorePct: null,
+      fullReportChance: null,
+      fullReportRoll: null,
+      lines: [],
+      profiles: [],
+      tendencies: null,
+    };
+  }
+
+  const tierMeta = resolveScoutTier(reconMission, userId);
+  const fullData = await buildFullScoutData(
+    userId,
+    opponentId,
+    opponentName,
+    opponentIsBot,
+    match,
+    lang
+  );
+
+  if (tierMeta.tier === 'full') {
+    return {
+      ...fullData,
+      ...tierMeta,
+    };
+  }
+
+  return {
+    ...buildPartialReport(fullData, lang),
+    ...tierMeta,
   };
 }
 
@@ -211,7 +311,7 @@ export async function generateScoutReportsForAllUsers() {
     );
     const cycle = pool[0]?.current_cycle ?? 1;
     const report = await generateScoutReport(user.id, cycle);
-    if (report) reports.push({ userId: user.id, report });
+    if (report && report.tier !== 'none') reports.push({ userId: user.id, report });
   }
   return reports;
 }

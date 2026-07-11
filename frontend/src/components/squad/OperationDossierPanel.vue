@@ -94,7 +94,28 @@ async function savePosture() {
         <p v-if="!dossier.scoutAvailable" class="mt-2 text-xs text-ink-faint">
           {{ t('dossier.scoutLocked') }}
         </p>
+        <p
+          v-else-if="dossier.scout?.tier === 'none'"
+          class="mt-2 text-xs leading-relaxed text-ink-muted"
+        >
+          {{ t('dossier.scoutNoRecon', { opponent: dossier.nextMatch?.opponentName ?? '—' }) }}
+        </p>
         <template v-else-if="dossier.scout">
+          <p
+            v-if="dossier.scout.tier === 'full'"
+            class="mt-2 text-[10px] uppercase tracking-[0.14em] text-accent"
+          >
+            {{ t('dossier.scoutFull', { pct: dossier.scout.reconScorePct ?? '—' }) }}
+          </p>
+          <p
+            v-else-if="dossier.scout.reconOutcome === 'win'"
+            class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint"
+          >
+            {{ t('dossier.scoutPartialWin', { pct: dossier.scout.reconScorePct ?? '—' }) }}
+          </p>
+          <p v-else class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ t('dossier.scoutPartial') }}
+          </p>
           <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink-muted">
             <li v-for="(line, i) in dossier.scout.lines" :key="`scout-${i}`">{{ line }}</li>
           </ul>

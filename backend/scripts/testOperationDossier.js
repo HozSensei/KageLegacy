@@ -84,9 +84,8 @@ async function main() {
 
   const scout = await generateScoutReport(userA, 1, 'fr');
   if (scout) {
-    console.assert(scout.profiles?.length >= 1, 'scout profiles');
-    console.assert(scout.tendencies, 'scout tendencies');
-    console.assert(!scout.profiles[0].name, 'profiles anonymized');
+    console.assert(scout.tier === 'none', 'sans recon → pas de rapport');
+    console.assert(scout.lockReason === 'no_recon', 'lockReason no_recon');
   }
 
   await cleanupPool(poolId, [userA, userB]);

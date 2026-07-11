@@ -24,7 +24,7 @@ Once the operation starts, strategic choices are **locked** until the next cycle
 ### Automatic milestones
 
 - **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
-- **H36**: registered Chunin exams resolved; spy report on the cycle's opponent.
+- **H36**: registered Chunin exams resolved; spy report on the cycle's opponent (if a reconnaissance mission was completed).
 - **H71**: league match simulation; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
 
@@ -371,7 +371,15 @@ Tie-breakers: wins, then matches played.
 
 ### Scouting (from H36)
 
-Report on the cycle's opponent: offensive tendencies, tanks, speed, dominant element, likely environment hint. Information stays **partial** — no exact enemy stat readout.
+The report on the cycle's opponent **depends on the reconnaissance mission** (H0–H36):
+
+| Situation | Report |
+|-----------|--------|
+| No reconnaissance | No intel on the league opponent |
+| Recon + loss or draw | **Partial** report (limited hints) |
+| Recon + win | Your combat **dominance %** = **% chance** of a **full** report; otherwise partial |
+
+A full report reveals offensive tendencies, tanks, speed, dominant element, and likely environment hint. Information stays **fuzzy** — no exact enemy stat readout.
 
 ### Reconnaissance mission (H0 → H36)
 

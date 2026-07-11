@@ -111,6 +111,9 @@ jobs:
       - name: Test mission de reconnaissance
         run: npm run test:reconnaissance --prefix backend
 
+      - name: Test scout ↔ reconnaissance link
+        run: npm run test:scout-recon --prefix backend
+
       - name: Upload Cypress screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4

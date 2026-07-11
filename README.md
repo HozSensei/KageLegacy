@@ -12,7 +12,7 @@ Dans **Kage Legacy**, vous incarnez un **Jonin-Sensei**, mentor de votre propre 
 
 * **L'Entraînement** — progression automatique selon le focus choisi (appliquée à H72).
 * **La Préparation (H0–H36)** — entraînement, missions, magasin, Académie et **mission de reconnaissance** (combat d'entraînement).
-* **Les Épreuves (H36)** — examens Chunin et rapport d'espionnage.
+* **Les Épreuves (H36)** — examens Chunin et rapport d'espionnage (conditionné par la mission de reconnaissance).
 * **L'Opération de Frontière (H71→H72)** — chronique shinobi révélée progressivement.
 * **Le Vol d'Oiseau** — vos Chunins d'élite partent en Jonin, la relève arrive.
 

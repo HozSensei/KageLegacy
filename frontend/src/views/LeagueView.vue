@@ -522,8 +522,29 @@ const externalOpponents = computed(() =>
 
           <section v-if="showScout && league.scoutReport" class="mt-10">
             <p class="section-label">{{ t('league.scoutTitle') }}</p>
-            <div class="mt-4 border-l-2 border-accent-soft pl-4">
-              <p class="text-sm text-ink">
+            <p
+              v-if="league.scoutReport.tier === 'none'"
+              class="mt-4 text-xs leading-relaxed text-ink-muted"
+            >
+              {{ t('league.scoutNoRecon', { opponent: league.scoutReport.opponentName }) }}
+            </p>
+            <div v-else class="mt-4 border-l-2 border-accent-soft pl-4">
+              <p
+                v-if="league.scoutReport.tier === 'full'"
+                class="text-[10px] uppercase tracking-[0.14em] text-accent"
+              >
+                {{ t('league.scoutFull', { pct: league.scoutReport.reconScorePct ?? '—' }) }}
+              </p>
+              <p
+                v-else-if="league.scoutReport.reconOutcome === 'win'"
+                class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
+              >
+                {{ t('league.scoutPartialWin', { pct: league.scoutReport.reconScorePct ?? '—' }) }}
+              </p>
+              <p v-else class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+                {{ t('league.scoutPartial') }}
+              </p>
+              <p class="mt-2 text-sm text-ink">
                 {{ league.scoutReport.opponentName }}
                 <span v-if="league.scoutReport.opponentIsBot" class="text-ink-faint">{{ t('league.botParen') }}</span>
               </p>
