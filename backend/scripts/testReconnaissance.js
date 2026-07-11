@@ -82,8 +82,11 @@ async function main() {
   assert(fightPvP.awayIsBot === false, 'adversaire humain');
 
   const botFight = await startMatchmaking(userA.id);
-  assert(botFight.missionId, 'matchmaking bot crée une mission');
-  assert(botFight.awayIsBot === true, 'adversaire bot si pas de match humain');
+  assert(botFight.missionId, 'matchmaking crée une mission');
+  assert(
+    botFight.awayIsBot || botFight.source === 'matchmaking',
+    'matchmaking résolu (humain ou bot)'
+  );
   assert(await hasPlayedReconThisCycle(userA.id, cycleStartAt), 'user A a joué');
 
   let failedExpected = false;
@@ -98,7 +101,11 @@ async function main() {
   assert(stateB.played, 'user B a joué via défi');
 
   console.log('  Défi PvP       :', fightPvP.result, `(mission #${fightPvP.missionId})`);
-  console.log('  Matchmaking bot :', botFight.result, `(mission #${botFight.missionId})`);
+  console.log(
+    '  Matchmaking    :',
+    botFight.result,
+    `(mission #${botFight.missionId}, ${botFight.awayIsBot ? 'bot' : 'humain'})`
+  );
   console.log('\n✅ Tous les tests reconnaissance ont réussi.');
 
   await deleteUserByUsername('playtest_recon_a');

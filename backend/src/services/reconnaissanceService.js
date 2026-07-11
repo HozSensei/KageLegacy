@@ -77,7 +77,7 @@ export async function hasPlayedReconThisCycle(userId, cycleStartAt) {
   return rows.length > 0;
 }
 
-async function assertEligibleParticipant(userId, cycleStartAt) {
+async function assertBasicReconEligibility(userId, cycleStartAt) {
   const rows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
   if (!rows[0] || rows[0].is_bot) {
     const error = new Error('Les bots ne participent pas aux missions de reconnaissance.');
@@ -89,18 +89,29 @@ async function assertEligibleParticipant(userId, cycleStartAt) {
     error.statusCode = 409;
     throw error;
   }
-  const pending = await query(
-    `SELECT id FROM reconnaissance_challenges
+}
+
+async function assertNoPendingReconChallenge(userId, cycleStartAt, { exceptChallengeId = null } = {}) {
+  const params = [cycleStartAt, userId, userId];
+  let sql = `SELECT id FROM reconnaissance_challenges
      WHERE cycle_start_at = ? AND status = 'pending'
-       AND (challenger_user_id = ? OR defender_user_id = ?)
-     LIMIT 1`,
-    [cycleStartAt, userId, userId]
-  );
+       AND (challenger_user_id = ? OR defender_user_id = ?)`;
+  if (exceptChallengeId) {
+    sql += ' AND id != ?';
+    params.push(exceptChallengeId);
+  }
+  sql += ' LIMIT 1';
+  const pending = await query(sql, params);
   if (pending.length) {
     const error = new Error('Un défi de reconnaissance est en attente — réglez-le avant de lancer un combat.');
     error.statusCode = 409;
     throw error;
   }
+}
+
+async function assertEligibleParticipant(userId, cycleStartAt) {
+  await assertBasicReconEligibility(userId, cycleStartAt);
+  await assertNoPendingReconChallenge(userId, cycleStartAt);
 }
 
 async function loadSenseiName(userId) {
@@ -446,8 +457,12 @@ export async function acceptChallenge(challengeId, defenderId) {
     throw error;
   }
 
-  await assertEligibleParticipant(challenge.challenger_user_id, cycleStartAt);
-  await assertEligibleParticipant(defenderId, cycleStartAt);
+  await assertBasicReconEligibility(challenge.challenger_user_id, cycleStartAt);
+  await assertBasicReconEligibility(defenderId, cycleStartAt);
+  await assertNoPendingReconChallenge(challenge.challenger_user_id, cycleStartAt, {
+    exceptChallengeId: challengeId,
+  });
+  await assertNoPendingReconChallenge(defenderId, cycleStartAt, { exceptChallengeId: challengeId });
 
   const fight = await executeReconnaissanceFight({
     homeUserId: challenge.challenger_user_id,
