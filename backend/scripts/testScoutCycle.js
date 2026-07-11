@@ -181,6 +181,17 @@ async function main() {
   assert(['partial', 'full'].includes(scoutH55.tier), `tier partial ou full (got ${scoutH55.tier})`);
   assert(scoutH55.rosterFrozen, 'snapshot figé');
   assert(await getUserMatchForCycle(user.id, userPool.current_cycle), 'match ligue');
+
+  await query(
+    `UPDATE ninjas SET battle_strategy = 'Tank' WHERE user_id = ? AND squad_position IS NOT NULL`,
+    [opponentId]
+  );
+  const scoutAfterOpponentChange = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
+  assert(
+    JSON.stringify(scoutAfterOpponentChange.rosterReport) === JSON.stringify(scoutH55.rosterReport),
+    'rapport roster inchangé après modification adverse post-H54'
+  );
+
   const scoutH60 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(
     JSON.stringify(scoutH60.rosterReport) === JSON.stringify(scoutH55.rosterReport),

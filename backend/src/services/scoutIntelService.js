@@ -215,6 +215,21 @@ async function upsertIntelRow({
   tendenciesGeneratedAt = undefined,
 }) {
   const existing = await loadIntelRow(viewerUserId, poolId, seasonCycle, cycleStartAt);
+  const rosterAlreadyFrozen = Boolean(existing?.roster_frozen_at);
+
+  if (existing) {
+    if (rosterAlreadyFrozen) {
+      rosterReport = undefined;
+      rosterFrozenAt = undefined;
+    }
+    if (existing.tendencies_generated_at && tendencies !== undefined) {
+      tendencies = undefined;
+      tendenciesSampleSize = undefined;
+      tendenciesReliability = undefined;
+      tendenciesGeneratedAt = undefined;
+    }
+  }
+
   if (!existing) {
     await query(
       `INSERT INTO cycle_scout_intel
@@ -272,6 +287,11 @@ export async function generateTendenciesIntelForUser(userId, seasonCycle, locale
   const clockRow = await getClockRow();
   const cycleStartAt = clockRow?.cycle_start_at;
   if (!cycleStartAt) return null;
+
+  const existing = await loadIntelRow(userId, pool.id, seasonCycle, cycleStartAt);
+  if (existing?.tendencies_generated_at) {
+    return parseJson(existing.tendencies_json);
+  }
 
   const opponentId =
     match.home_user_id === userId ? match.away_user_id : match.home_user_id;

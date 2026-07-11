@@ -65,6 +65,7 @@
       },
       "freeze": {
         "composition": "Active trio locked",
+        "training": "Training plans locked",
         "scoutRoster": "Full scout report (frozen lineup)",
         "tactics": "Orders, cards and items adjustable until H71"
       },
@@ -288,6 +289,7 @@
     "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",
     "trainingPlansHint": "Pick one stat per ninja. Billed at H72 — no plan means no cost or gain.",
+    "trainingLocked": "Training plans locked from H54 until the operation.",
     "trainingNone": "None",
     "budgetTitle": "Cycle budget (H72)",
     "budgetHint": "Projection: active salaries, then opt-in training.",

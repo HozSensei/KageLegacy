@@ -127,7 +127,7 @@ Morale (internal scale) affects squad stability. It drops notably on Chunin exam
 ### Composition
 
 - **3 active ninjas** (field positions) + a **bench** of reserves.
-- Composition can be changed until H71.
+- Composition can be changed until **H54** (active trio locked).
 - A ninja is **unavailable** if on a mission, listed on the P2P market, or when the tactical window is closed.
 
 ### Individual orders

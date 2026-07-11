@@ -17,10 +17,6 @@ export const updateStrategiesSchema = z.object({
     .max(3),
 });
 
-export const updateTrainingFocusSchema = z.object({
-  trainingFocus: z.enum(FOCUS_VALUES),
-});
-
 export const updateTrainingPlansSchema = z.object({
   plans: z
     .array(

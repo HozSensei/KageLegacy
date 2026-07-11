@@ -37,6 +37,7 @@ export const CYCLE_MILESTONES = [
     titleKey: 'cycleProgress.milestones.freeze.title',
     eventKeys: [
       'cycleProgress.events.freeze.composition',
+      'cycleProgress.events.freeze.training',
       'cycleProgress.events.freeze.scoutRoster',
       'cycleProgress.events.freeze.tactics',
     ],

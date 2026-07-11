@@ -90,13 +90,6 @@ export async function updateTrainingPlans(userId, plans) {
   return plans;
 }
 
-/** @deprecated Utiliser updateTrainingPlans — conservé pour compat API */
-export async function updateTrainingFocus(userId, trainingFocus) {
-  const ninjas = await query('SELECT id FROM ninjas WHERE user_id = ?', [userId]);
-  const plans = ninjas.map((n) => ({ ninjaId: n.id, trainingFocus }));
-  return updateTrainingPlans(userId, plans);
-}
-
 export async function requestChuninExam(userId, ninjaId) {
   const clock = await getGameClock();
   if (clock.hour >= 36) {

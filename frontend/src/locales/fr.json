@@ -65,6 +65,7 @@
       },
       "freeze": {
         "composition": "Gel des 3 ninjas actifs",
+        "training": "Gel des plans d'entraînement",
         "scoutRoster": "Rapport d'espionnage complet (composition figée)",
         "tactics": "Ajustement consignes, cartes et objets jusqu'à H71"
       },
@@ -288,6 +289,7 @@
     "debtFreeze": "Gel administratif — remboursez votre dette avant tout achat, examen ou soin payant.",
     "trainingPlansTitle": "Plans d'entraînement",
     "trainingPlansHint": "Choisissez une stat par ninja. Facturation à H72 — sans plan, pas de coût ni de gain.",
+    "trainingLocked": "Plans d'entraînement gelés depuis H54 jusqu'à l'opération.",
     "trainingNone": "Aucun",
     "budgetTitle": "Budget du cycle (H72)",
     "budgetHint": "Projection : salaires des actifs, puis entraînement opt-in.",

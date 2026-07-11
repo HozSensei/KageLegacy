@@ -139,7 +139,7 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 ### Composition
 
 - **3 ninjas actifs** (postes de terrain) + un **banc** de remplaçants.
-- La composition est modifiable jusqu'à H71.
+- La composition est modifiable jusqu'à **H54** (gel des 3 ninjas actifs).
 - Un ninja est **indisponible** s'il est en mission, en vente sur le marché P2P, ou si la fenêtre tactique est fermée.
 
 ### Consignes individuelles

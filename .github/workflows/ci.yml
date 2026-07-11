@@ -114,6 +114,9 @@ jobs:
       - name: Test scout cycle H36/H54
         run: npm run test:scout-cycle --prefix backend
 
+      - name: Test gels de cycle H54/H71
+        run: npm run test:cycle-freezes --prefix backend
+
       - name: Test dossier d'opération
         run: npm run test:operation-dossier --prefix backend
 

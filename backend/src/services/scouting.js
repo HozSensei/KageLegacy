@@ -254,6 +254,11 @@ export async function buildAndPersistRosterIntel(userId, seasonCycle, locale = '
   const cycleStartAt = clockRow?.cycle_start_at;
   if (!cycleStartAt) return null;
 
+  const existingIntel = await getIntelForUser(userId, seasonCycle, lang);
+  if (existingIntel?.rosterFrozenAt) {
+    return existingIntel.rosterReport ?? null;
+  }
+
   const opponentId =
     match.home_user_id === userId ? match.away_user_id : match.home_user_id;
   const opponentName =
@@ -420,9 +425,10 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
 
   let rosterReport = intel?.rosterReport ?? null;
 
-  if (!rosterReport) {
+  if (!rosterReport && !intel?.rosterFrozenAt) {
     rosterReport = await buildAndPersistRosterIntel(userId, seasonCycle, lang);
     intel = await getIntelForUser(userId, seasonCycle, lang);
+    rosterReport = intel?.rosterReport ?? rosterReport;
   }
 
   const anomalyFlags = compareRosterToHistory(rosterReport, historicalTendencies, lang);
