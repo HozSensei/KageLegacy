@@ -1,8 +1,8 @@
 <script setup>
-import { onMounted, onUnmounted, ref, toRef } from 'vue'
+import { onMounted, onUnmounted, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
-import { useGameClockLabel } from '../../composables/useGameClockLabel.js'
+import { useGameClockLive } from '../../composables/useGameClockLive.js'
 import { useCycleProgress } from '../../composables/useCycleProgress.js'
 
 defineOptions({ name: 'CycleProgressBar' })
@@ -12,14 +12,18 @@ const store = useSquadStore()
 const expanded = ref(false)
 
 const gameClockRef = toRef(store, 'gameClock')
-const cycleLabel = useGameClockLabel(gameClockRef)
-const { hour, percent, milestones } = useCycleProgress(gameClockRef)
+const { liveLabel, hour } = useGameClockLive(gameClockRef)
+const { percent, milestones } = useCycleProgress(gameClockRef)
 
 let pollTimer = null
 
 function toggleExpanded() {
   expanded.value = !expanded.value
 }
+
+watch(expanded, (isOpen) => {
+  document.body.style.overflow = isOpen ? 'hidden' : ''
+})
 
 onMounted(() => {
   pollTimer = window.setInterval(() => {
@@ -29,23 +33,25 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (pollTimer) window.clearInterval(pollTimer)
+  document.body.style.overflow = ''
 })
 </script>
 
 <template>
   <div class="border-t border-line" data-testid="cycle-progress-bar">
-    <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:gap-4 sm:px-10">
+    <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2 sm:gap-4 sm:px-10">
       <span
-        class="shrink-0 text-[10px] uppercase tracking-[0.14em] text-ink-faint sm:text-[11px]"
+        class="cycle-progress__clock shrink-0 tabular-nums"
         data-testid="header-game-clock"
       >
-        <span class="sm:hidden">H{{ hour }}</span>
-        <span class="hidden sm:inline">{{ cycleLabel }}</span>
+        {{ liveLabel }}
       </span>
 
       <div class="min-w-0 flex-1">
-        <div class="cycle-progress__track" aria-hidden="true">
-          <div class="cycle-progress__fill" :style="{ width: `${percent}%` }" />
+        <div class="cycle-progress__track-wrap" aria-hidden="true">
+          <div class="cycle-progress__track">
+            <div class="cycle-progress__fill" :style="{ width: `${percent}%` }" />
+          </div>
           <div
             v-for="milestone in milestones"
             :key="milestone.id"
@@ -104,7 +110,7 @@ onUnmounted(() => {
       class="cycle-progress__detail border-t border-line bg-bg-soft/50"
       data-testid="cycle-progress-detail"
     >
-      <div class="mx-auto max-w-6xl px-4 py-4 sm:px-10">
+      <div class="cycle-progress__detail-inner mx-auto max-w-6xl px-4 py-4 sm:px-10">
         <ol class="cycle-progress__timeline">
           <li
             v-for="milestone in milestones"
@@ -129,8 +135,8 @@ onUnmounted(() => {
             </ul>
           </li>
         </ol>
-        <p class="mt-3 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-          {{ t('cycleProgress.currentHour', { hour }) }}
+        <p class="mt-3 text-[10px] uppercase tracking-[0.12em] text-ink-faint tabular-nums">
+          {{ t('cycleProgress.currentHour', { hour }) }} · {{ liveLabel }}
         </p>
       </div>
     </div>
