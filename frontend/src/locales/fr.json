@@ -35,6 +35,10 @@
         "short": "H36",
         "title": "Milieu de cycle"
       },
+      "freeze": {
+        "short": "H54",
+        "title": "Gel opérationnel"
+      },
       "operation": {
         "short": "H71",
         "title": "Opération"
@@ -50,17 +54,23 @@
         "missions": "Contrats de mission gratuits (3 paliers)",
         "shop": "Magasin du village, promos et stocks limités",
         "academy": "Recrutement à l'Académie (rotation des aspirants)",
-        "chunin": "Inscription à l'examen de Chunin (avant H36)"
+        "chunin": "Inscription à l'examen de Chunin (avant H36)",
+        "reconnaissance": "Mission de reconnaissance (H0–H36) : combat d'entraînement, matchmaking ou défi"
       },
       "mid": {
         "chunin": "Verdict des examens de Chunin",
-        "scout": "Bilans éclaireurs et dossiers adverses",
-        "reconnaissance": "Mission de reconnaissance (H36–H70) : combat d'entraînement, matchmaking ou défi",
-        "management": "Gestion d'escouade, entraînement et échanges",
+        "scoutTendencies": "Tendances adverses (derniers matchs de ligue)",
+        "management": "Ajuster la composition selon les tendances",
         "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
       },
+      "freeze": {
+        "composition": "Gel des 3 ninjas actifs",
+        "training": "Gel des plans d'entraînement",
+        "scoutRoster": "Rapport d'espionnage complet (composition figée)",
+        "tactics": "Ajustement consignes, cartes et objets jusqu'à H71"
+      },
       "operation": {
-        "lock": "Verrouillage des compositions et tactiques",
+        "lock": "Verrouillage final des consignes et tactiques",
         "simulation": "Simulation du match de ligue",
         "chronicle": "Révélation progressive de la chronique"
       },
@@ -170,8 +180,8 @@
     "timelineTitle": "Un cycle de 72 heures",
     "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
     "timeline": {
-      "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à 12 heures).",
-      "mid": "Après 36 heures : examens de Chunin, espionnage et mission de reconnaissance (combat d'entraînement jusqu'à H70).",
+      "start": "Début du cycle : entraînement, missions, magasin, recrutement à l'Académie et mission de reconnaissance (jusqu'à H36).",
+      "mid": "Après 36 heures : examens de Chunin et espionnage.",
       "operation": "À 71 heures : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
       "end": "À 72 heures : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
     }
@@ -279,6 +289,7 @@
     "debtFreeze": "Gel administratif — remboursez votre dette avant tout achat, examen ou soin payant.",
     "trainingPlansTitle": "Plans d'entraînement",
     "trainingPlansHint": "Choisissez une stat par ninja. Facturation à H72 — sans plan, pas de coût ni de gain.",
+    "trainingLocked": "Plans d'entraînement gelés depuis H54 jusqu'à l'opération.",
     "trainingNone": "Aucun",
     "budgetTitle": "Budget du cycle (H72)",
     "budgetHint": "Projection : salaires des actifs, puis entraînement opt-in.",
@@ -403,7 +414,7 @@
   },
   "dossier": {
     "title": "Dossier d'opération",
-    "lead": "Préparez votre plan avant H71 : espionnage (H36+), profils adverses, consignes et cartes. La posture adapte les conseils — elle ne donne pas de bonus caché en match.",
+    "lead": "Préparez votre plan avant H71 : espionnage (H36+, conditionné par la reconnaissance H0–H36), profils adverses, consignes et cartes. La posture adapte les conseils — elle ne donne pas de bonus caché en match.",
     "opponent": "Adversaire",
     "cycle": "Cycle {cycle}",
     "envFuzzy": "terrain estimé",
@@ -413,6 +424,14 @@
     "cardEquipped": "carte équipée",
     "scoutTitle": "Espionnage",
     "scoutLocked": "Rapport disponible à partir de H36.",
+    "scoutNoRecon": "Aucun renseignement sur {opponent}. Effectuez une mission de reconnaissance (H0–H36) pour débloquer l'espionnage.",
+    "scoutPartial": "Rapport partiel — renseignements limités.",
+    "scoutPartialWin": "Rapport partiel — victoire en reconnaissance ({pct} % de dominance), insuffisant pour un dossier complet.",
+    "scoutFull": "Rapport complet — reconnaissance victorieuse ({pct} % de dominance).",
+    "scoutTendenciesTitle": "Tendances (sur {count} match(s))",
+    "scoutRosterTitle": "Unité repérée (H54)",
+    "scoutRosterPending": "Rapport complet sur la composition adverse à H54 — ajustez vos ninjas d'ici là.",
+    "compositionLocked": "Composition figée depuis H54 — consignes, cartes et objets modifiables jusqu'à H71.",
     "potential": "potentiel {level}",
     "postureLabel": "Posture d'opération",
     "postureHelp": "Choisissez l'intention de votre escouade pour ce cycle. Alignez-la avec vos consignes (Offensive, Défensive, Protection) et vos cartes tactiques.",
@@ -444,6 +463,7 @@
     "noActiveForStrategy": "Aucun ninja en escouade active — complétez votre composition d'abord.",
     "emptySlot": "Poste vacant",
     "tacticsLocked": "Les consignes sont gelées pour l'Opération (à partir de H71).",
+    "compositionLocked": "La composition est figée depuis H54 — seules les consignes, cartes et objets restent modifiables jusqu'à H71.",
     "saving": "Enregistrement…",
     "tacticalSpeed": "Vitesse tactique",
     "activeCount": "Actifs",
@@ -504,6 +524,13 @@
     "matchday": "Journée",
     "vsHint": "Votre adversaire : {opponent}",
     "scoutTitle": "Rapport d'espionnage",
+    "scoutNoRecon": "Aucun renseignement sur {opponent}. Effectuez une mission de reconnaissance (H0–H36) pour espionner votre adversaire de ligue.",
+    "scoutPartial": "Rapport partiel — renseignements limités.",
+    "scoutPartialWin": "Rapport partiel — victoire en reconnaissance ({pct} % de dominance), insuffisant pour un dossier complet.",
+    "scoutFull": "Rapport complet — reconnaissance victorieuse ({pct} % de dominance).",
+    "scoutTendenciesTitle": "Tendances (sur {count} match(s))",
+    "scoutRosterTitle": "Unité repérée (H54)",
+    "scoutRosterPending": "Rapport complet sur la composition adverse à H54 — ajustez vos ninjas d'ici là.",
     "matchScheduled": "À venir",
     "matchSimulated": "Simulé — chronique à H71",
     "matchLive": "Opération en cours",
@@ -519,7 +546,7 @@
     "fixturesHint": "Journée {cycle} — 3 affrontements dans votre pool de 6 Sensei (aller-retour sur 10 journées). Vous ne jouez qu'un seul de ces trois matchs.",
     "recentMatches": "Résultats récents",
     "reconTitle": "Mission de reconnaissance",
-    "reconLead": "Testez votre composition en combat (H36–H70) : matchmaking, défi direct ou bot de secours. Les K.O. peuvent faire baisser la forme, comme en match de ligue.",
+    "reconLead": "Testez votre composition en combat (H0–H36) : matchmaking, défi direct ou bot de secours. Les K.O. peuvent faire baisser la forme, comme en match de ligue.",
     "reconRewards": "Butin : Ryos + objet aléatoire (consommable) + chance de carte tactique — même en défaite.",
     "reconMatchmake": "Lancer le matchmaking",
     "reconBusy": "Combat en cours…",

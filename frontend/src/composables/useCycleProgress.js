@@ -15,6 +15,7 @@ export const CYCLE_MILESTONES = [
       'cycleProgress.events.start.shop',
       'cycleProgress.events.start.academy',
       'cycleProgress.events.start.chunin',
+      'cycleProgress.events.start.reconnaissance',
     ],
   },
   {
@@ -24,10 +25,21 @@ export const CYCLE_MILESTONES = [
     titleKey: 'cycleProgress.milestones.mid.title',
     eventKeys: [
       'cycleProgress.events.mid.chunin',
-      'cycleProgress.events.mid.scout',
-      'cycleProgress.events.mid.reconnaissance',
+      'cycleProgress.events.mid.scoutTendencies',
       'cycleProgress.events.mid.management',
       'cycleProgress.events.mid.birdFlight',
+    ],
+  },
+  {
+    id: 'freeze',
+    hour: 54,
+    shortKey: 'cycleProgress.milestones.freeze.short',
+    titleKey: 'cycleProgress.milestones.freeze.title',
+    eventKeys: [
+      'cycleProgress.events.freeze.composition',
+      'cycleProgress.events.freeze.training',
+      'cycleProgress.events.freeze.scoutRoster',
+      'cycleProgress.events.freeze.tactics',
     ],
   },
   {

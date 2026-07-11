@@ -32,7 +32,7 @@ const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
 const strategies = reactive({})
 const protectTargets = reactive({})
 
-const canCompose = computed(() => !store.tacticsLocked())
+const canCompose = computed(() => store.canChangeComposition())
 
 const slots = ref([null, null, null])
 const localBench = ref([])
@@ -408,6 +408,12 @@ watch(() => store.activeSquad, () => {
     </header>
 
     <template v-if="store.sensei">
+      <p
+        v-if="store.compositionLocked() && !store.tacticsLocked()"
+        class="mt-8 border-l-2 border-accent-soft pl-4 text-sm text-ink-muted"
+      >
+        {{ t('squad.compositionLocked') }}
+      </p>
       <p
         v-if="store.tacticsLocked()"
         class="mt-8 border-l-2 border-accent pl-4 text-sm text-ink-muted"

@@ -6,7 +6,7 @@
 
 ## 🎯 Problème actuel
 
-La génération (`generateBaseStats`) distribue les points **au hasard** sur les 6 stats. Résultat :
+La génération (`generateSpecializedStats`) distribue les points **au hasard** sur les 6 stats. Résultat :
 - Tous les Genin ont le même « budget » total (~36–48 pts)
 - Les clans ajoutent +0 à +3 plats — peu lisible
 - Pas de notion de **prometteur** vs **ordinaire**

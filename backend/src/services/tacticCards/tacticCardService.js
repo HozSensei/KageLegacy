@@ -1,5 +1,5 @@
 import { query } from '../../config/database.js';
-import { getClockRow } from '../gameClock.js';
+import { getClockRow, isTacticsLocked } from '../gameClock.js';
 import { STARTER_CARD_SLUGS, TACTIC_CARD_MAX_CHARGES } from './tacticCardCatalog.js';
 
 export async function findCardDefinitionBySlug(slug) {
@@ -204,6 +204,12 @@ async function assertNinjaAvailableForEquip(userId, ninjaId) {
 }
 
 export async function equipTacticCard(userId, ninjaId, userTacticCardId) {
+  if (await isTacticsLocked()) {
+    const error = new Error('Les cartes tactiques sont gelées pendant l\'opération (à partir de H71).');
+    error.statusCode = 423;
+    throw error;
+  }
+
   const ninja = await assertNinjaAvailableForEquip(userId, ninjaId);
 
   const cardRows = await query(
@@ -243,6 +249,12 @@ export async function equipTacticCard(userId, ninjaId, userTacticCardId) {
 }
 
 export async function unequipTacticCard(userId, ninjaId) {
+  if (await isTacticsLocked()) {
+    const error = new Error('Les cartes tactiques sont gelées pendant l\'opération (à partir de H71).');
+    error.statusCode = 423;
+    throw error;
+  }
+
   const rows = await query(
     `SELECT ntc.user_tactic_card_id
      FROM ninja_tactic_cards ntc
@@ -278,12 +290,4 @@ export async function consumeTacticCardCharge(userTacticCardId) {
     userTacticCardId,
   ]);
   return { deleted: false, chargesRemaining: next };
-}
-
-export async function isTacticCardListed(userTacticCardId) {
-  const rows = await query(
-    `SELECT id FROM player_listings WHERE user_tactic_card_id = ? AND status = 'active'`,
-    [userTacticCardId]
-  );
-  return rows.length > 0;
 }

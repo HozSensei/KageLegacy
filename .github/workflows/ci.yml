@@ -111,6 +111,15 @@ jobs:
       - name: Test mission de reconnaissance
         run: npm run test:reconnaissance --prefix backend
 
+      - name: Test scout cycle H36/H54
+        run: npm run test:scout-cycle --prefix backend
+
+      - name: Test gels de cycle H54/H71
+        run: npm run test:cycle-freezes --prefix backend
+
+      - name: Test dossier d'opération
+        run: npm run test:operation-dossier --prefix backend
+
       - name: Upload Cypress screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4

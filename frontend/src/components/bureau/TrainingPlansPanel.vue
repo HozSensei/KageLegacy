@@ -51,6 +51,9 @@ async function onPlanChange(ninjaId) {
       <p class="mt-2 text-xs leading-relaxed text-ink-muted">
         {{ t('bureau.trainingPlansHint') }}
       </p>
+      <p v-if="store.trainingLocked()" class="mt-2 text-xs text-ink-muted">
+        {{ t('bureau.trainingLocked') }}
+      </p>
     </template>
 
     <ul class="mt-4 space-y-3">
@@ -68,7 +71,7 @@ async function onPlanChange(ninjaId) {
             :value="localPlans[ninja.id] ?? ''"
             class="strategy-select max-w-[10rem] text-xs"
             data-testid="training-plan-select"
-            :disabled="saving || store.tacticsLocked()"
+            :disabled="saving || store.trainingLocked()"
             @change="localPlans[ninja.id] = $event.target.value; onPlanChange(ninja.id)"
           >
             <option value="">{{ t('bureau.trainingNone') }}</option>

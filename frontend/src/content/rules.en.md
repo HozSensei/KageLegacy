@@ -12,20 +12,25 @@ Each cycle is a synchronized "game week" for all players on the server.
 
 | Phase | Period | Main activities |
 |-------|--------|-----------------|
-| **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy |
-| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, reconnaissance mission (sparring combat), ongoing management |
+| **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy, **reconnaissance mission (H0–H36)** |
+| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
-### Tactical lock (from H71)
+### Tactical lock
 
-Once the operation starts, strategic choices are **locked** until the next cycle: squad composition, combat orders, training, missions, hospital, player market.
+| Milestone | Effect |
+|-----------|--------|
+| **H54** | **Lineup locked** (active trio) ; training locked ; **full scout report** on spotted enemy unit |
+| **H54 → H70** | Orders, tactic cards and items still editable |
+| **H71** | Full lock until next cycle |
 
 ### Automatic milestones
 
-- **H36**: registered Chunin exams resolved; spy report on the cycle's opponent.
-- **H36 → H70**: reconnaissance mission (one sparring fight per cycle, see § League).
-- **H71**: league match simulation; narrative chronicle begins.
+- **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
+- **H36**: Chunin exams resolved ; **opponent tendencies** (if reconnaissance completed).
+- **H54**: lineup freeze + **frozen full scout report**.
+- **H71**: league match simulation ; final orders lock ; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
 
 ---
@@ -122,7 +127,7 @@ Morale (internal scale) affects squad stability. It drops notably on Chunin exam
 ### Composition
 
 - **3 active ninjas** (field positions) + a **bench** of reserves.
-- Composition can be changed until H71.
+- Composition can be changed until **H54** (active trio locked).
 - A ninja is **unavailable** if on a mission, listed on the P2P market, or when the tactical window is closed.
 
 ### Individual orders
@@ -371,11 +376,16 @@ Tie-breakers: wins, then matches played.
 
 ### Scouting (from H36)
 
-Report on the cycle's opponent: offensive tendencies, tanks, speed, dominant element, likely environment hint. Information stays **partial** — no exact enemy stat readout.
+Intel unfolds in **two stages**:
 
-### Reconnaissance mission (H36 → H70)
+1. **H36 — Tendencies**: habits from recent league matches (sample size shown ; unreliable on 1st or 2nd match).
+2. **H54 — Spotted unit**: frozen report on the enemy trio (partial or full depending on your reconnaissance).
 
-Sparring combat to **test your squad** before the league match, without waiting for H71. **One mission per cycle** per Sensei.
+Between H36 and H54, adjust your lineup from tendencies. After H54, only orders, cards and items remain editable.
+
+### Reconnaissance mission (H0 → H36)
+
+Sparring combat to **test your squad** during the preparation phase, before the operation tactical lock. **One mission per cycle** per Sensei.
 
 | Mode | How it works |
 |------|----------------|

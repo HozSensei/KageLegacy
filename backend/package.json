@@ -34,6 +34,9 @@
     "season:hard-reset": "node scripts/seasonHardReset.js",
     "test:season-hard-reset": "node scripts/testSeasonHardReset.js",
     "test:reconnaissance": "node scripts/testReconnaissance.js",
+    "test:scout-cycle": "node scripts/testScoutCycle.js",
+    "test:cycle-freezes": "node scripts/testCycleFreezes.js",
+    "test:operation-dossier": "node scripts/testOperationDossier.js",
     "test:combat-loot": "node scripts/testCombatLoot.js"
   },
   "dependencies": {

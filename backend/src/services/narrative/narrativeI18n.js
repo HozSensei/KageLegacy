@@ -159,10 +159,6 @@ export function resolveSegments(locale, segments) {
   }));
 }
 
-export function pickSuspenseLine(locale, rng) {
-  return pickFromPool(normalizeLocale(locale), 'suspense', rng).text;
-}
-
 export function createSegmentFromPick({ block_type, unlock_minutes, segment_order, pickResult, template_vars }) {
   return {
     segment_order,

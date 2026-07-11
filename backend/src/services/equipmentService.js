@@ -1,5 +1,5 @@
 import { query } from '../config/database.js';
-import { getClockRow } from './gameClock.js';
+import { getClockRow, isTacticsLocked } from './gameClock.js';
 import { describeUsageLimits } from './combat/equipmentConstants.js';
 
 export async function getInventoryForUser(userId) {
@@ -61,6 +61,12 @@ function slotForCategory(category) {
 }
 
 export async function equipItem(userId, ninjaId, userItemId) {
+  if (await isTacticsLocked()) {
+    const error = new Error('L\'équipement est gelé pendant l\'opération (à partir de H71).');
+    error.statusCode = 423;
+    throw error;
+  }
+
   const itemRows = await query(
     `SELECT ui.*, idf.category
      FROM user_items ui
@@ -127,6 +133,12 @@ export async function equipItem(userId, ninjaId, userItemId) {
 }
 
 export async function unequipItem(userId, ninjaId, slot) {
+  if (await isTacticsLocked()) {
+    const error = new Error('L\'équipement est gelé pendant l\'opération (à partir de H71).');
+    error.statusCode = 423;
+    throw error;
+  }
+
   if (!['match', 'cycle'].includes(slot)) {
     const error = new Error('Slot invalide.');
     error.statusCode = 400;

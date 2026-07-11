@@ -14,14 +14,14 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 
 | Phase | Heures | Ce que fait le joueur |
 |--------|--------|------------------------|
-| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12) |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), espionnage, mission de reconnaissance (combat d'entraînement), gestion continue |
+| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12), **mission de reconnaissance (H0–H36)** |
+| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d’espionnage adversaire, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d’Oiseau, facturation entraînement, nouveau cycle |
 
 **À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
 
-**Jalons automatiques :** examens Chunin + espionnage à H36 ; mission de reconnaissance jouable H36→H70 ; simulation ligue à H71 ; clôture économique à H72.
+**Jalons automatiques :** mission de reconnaissance H0→H36 ; examens Chunin + tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72.
 
 ---
 
@@ -245,13 +245,19 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 
 - 1er → promotion · 6e → relégation · nouvelle pool
 
-### Espionnage (H36+)
+### Espionnage
 
-Rapport sur l’adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice environnement.
+| Jalon | Contenu |
+|-------|---------|
+| **H36** | Tendances sur les derniers matchs de ligue (échantillon + fiabilité ; faible au 1er/2e match) — requiert reconnaissance |
+| **H54** | Gel composition + rapport figé sur l'unité adverse (qualité selon recon) |
+| **H54–H71** | Consignes, cartes, objets modifiables |
 
-### Mission de reconnaissance (H36 → H70)
+Snapshots de composition enregistrés dans les `combat_log` des matchs appliqués pour alimenter les tendances futures.
 
-Combat d’entraînement pour tester sa composition avant le match de ligue — **1 mission par cycle**.
+### Mission de reconnaissance (H0 → H36)
+
+Combat d’entraînement pendant la **préparation** pour tester sa composition — **1 mission par cycle**.
 
 - **Matchmaking** : adversaire humain de niveau proche, sinon bot de la ligue.
 - **Défi direct** : depuis le menu Ligue (pool ou autre ligue proche) ; le défenseur accepte.

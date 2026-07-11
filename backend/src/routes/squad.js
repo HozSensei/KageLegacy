@@ -6,7 +6,6 @@ import {
   requestBirdFlight,
   requestChuninExam,
   updateBattleStrategies,
-  updateTrainingFocus,
   updateTrainingPlans,
 } from '../models/squadTactics.js';
 import {
@@ -16,10 +15,9 @@ import {
   requestBirdFlightSchema,
   requestChuninExamSchema,
   updateStrategiesSchema,
-  updateTrainingFocusSchema,
   updateTrainingPlansSchema,
 } from '../validators/squadTactics.js';
-import { dismissNotification } from '../services/dojoNotifications.js';
+import { dismissNotification } from '../services/senseiNotifications.js';
 import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
 import { releaseNinja } from '../services/ninjaReleaseService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';
@@ -181,22 +179,6 @@ router.patch('/training-plans', async (req, res, next) => {
 
     const parsed = updateTrainingPlansSchema.parse(req.body);
     await updateTrainingPlans(user.id, parsed.plans);
-
-    const squad = await getSquadPayload(user.id);
-    const clock = await getGameClock();
-    res.json({ ...squad, gameClock: clock });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.patch('/training-focus', async (req, res, next) => {
-  try {
-    const user = await resolveUser(req, res);
-    if (!user) return;
-
-    const parsed = updateTrainingFocusSchema.parse(req.body);
-    await updateTrainingFocus(user.id, parsed.trainingFocus);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

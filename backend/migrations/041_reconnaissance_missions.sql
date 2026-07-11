@@ -1,4 +1,4 @@
--- Mission de reconnaissance : combat d'entraînement H36–H70 (matchmaking, défis, bot)
+-- Mission de reconnaissance : combat d'entraînement H0–H36 (matchmaking, défis, bot)
 
 CREATE TABLE IF NOT EXISTS reconnaissance_challenges (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

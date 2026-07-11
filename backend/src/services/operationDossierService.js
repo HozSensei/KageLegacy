@@ -2,10 +2,11 @@ import { query } from '../config/database.js';
 import { findUserPool } from './poolService.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { getScoutEnvironmentLine } from './matchEnvironment.js';
-import { getClockRow, isTacticsLocked } from './gameClock.js';
+import { getClockRow, getGameClock, isTacticsLocked } from './gameClock.js';
 import { generateScoutReport } from './scouting.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
+import { analyzeStrategies } from './scoutSquadAnalysis.js';
 import { getTacticCardsForNinjas } from './tacticCards/tacticCardService.js';
 
 export const OPERATION_POSTURES = ['balanced', 'offensive', 'tank', 'protect'];
@@ -45,18 +46,8 @@ async function loadOwnActiveSquad(userId) {
   );
 }
 
-function summarizeOrders(ninjas) {
-  const counts = { Offensive: 0, Tank: 0, Protect: 0, Normal: 0 };
-  for (const n of ninjas) {
-    const key = n.battle_strategy || 'Normal';
-    if (counts[key] != null) counts[key] += 1;
-    else counts.Normal += 1;
-  }
-  return counts;
-}
-
 function buildOwnSquadSummary(ninjas, cardByNinjaId, lang) {
-  const orderCounts = summarizeOrders(ninjas);
+  const orderCounts = analyzeStrategies(ninjas);
   const L = ORDER_LABELS[lang] || ORDER_LABELS.fr;
   const speed = ninjas.reduce((s, n) => s + Number(n.vitesse) + Number(n.intelligence), 0);
   const members = ninjas.map((n) => {
@@ -90,9 +81,13 @@ function buildOwnSquadSummary(ninjas, cardByNinjaId, lang) {
 
 function buildAdvice({ posture, ownSquad, scout, environmentSlug, lang }) {
   const tips = [];
-  const tendencies = scout?.tendencies;
+  const tendencies = scout?.rosterReport?.tendencies ?? scout?.tendencies;
+  const profiles = scout?.rosterReport?.profiles ?? scout?.profiles ?? [];
   if (!tendencies) return tips;
 
+  if (scout?.anomalyFlags?.length) {
+    tips.push(scout.anomalyFlags[0]);
+  }
   if (posture === 'offensive' && tendencies.offensive >= 2) {
     tips.push(
       lang === 'en'
@@ -126,7 +121,7 @@ function buildAdvice({ posture, ownSquad, scout, environmentSlug, lang }) {
         : `Élément dominant adverse : ${tendencies.dominantElement} — vérifiez objets cycle et affinités cartes.`
     );
   }
-  if (scout?.profiles?.some((p) => p.potentialHint === 'very_high' || p.potentialHint === 'high')) {
+  if (profiles.some((p) => p.potentialHint === 'very_high' || p.potentialHint === 'high' || p.potentialHint === 'très élevé' || p.potentialHint === 'élevé')) {
     tips.push(
       lang === 'en'
         ? 'Scout reports high potential profiles — avoid prolonged trades without healing.'
@@ -200,7 +195,9 @@ export async function getOperationDossier(userId, locale = 'fr') {
   const operationPosture = await getSavedPosture(userId, pool.id, pool.current_cycle);
   const ownSquad = buildOwnSquadSummary(ownNinjas, cardByNinjaId, lang);
   const clockRow = await getClockRow();
-  const tacticsLocked = await isTacticsLocked();
+  const clock = await getGameClock();
+  const tacticsLocked = clock.tacticsLocked;
+  const compositionLocked = clock.compositionLocked;
 
   let environment = null;
   if (match?.environment_slug) {
@@ -229,9 +226,10 @@ export async function getOperationDossier(userId, locale = 'fr') {
   return {
     poolId: pool.id,
     seasonCycle: pool.current_cycle,
-    hour: clockRow?.hour ?? 0,
+    hour: clock.hour ?? 0,
     tacticsLocked,
-    scoutAvailable: (clockRow?.hour ?? 0) >= 36,
+    compositionLocked,
+    scoutAvailable: (clock.hour ?? 0) >= 36,
     operationPosture,
     postureLabel: POSTURE_LABELS[lang][operationPosture],
     postureOptions: OPERATION_POSTURES.map((value) => ({

@@ -19,7 +19,7 @@ import {
   getUserBySessionToken,
   registerUser,
 } from '../src/services/authService.js';
-import { getUnreadNotifications } from '../src/services/dojoNotifications.js';
+import { getUnreadNotifications } from '../src/services/senseiNotifications.js';
 import { processCycleTick } from '../src/services/cycleJobs.js';
 import { getDebtStatus } from '../src/services/economyDebt.js';
 import { setHourDev, getGameClock, advanceToHourDev } from '../src/services/gameClock.js';

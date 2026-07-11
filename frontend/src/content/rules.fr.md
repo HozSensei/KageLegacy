@@ -12,20 +12,37 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 
 | Phase | Période | Activités principales |
 |-------|---------|------------------------|
-| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), espionnage, mission de reconnaissance (combat d'entraînement), gestion continue |
+| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie, **mission de reconnaissance (H0–H36)** |
+| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d'espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
 
-### Gel tactique (à partir de H71)
+### Gel tactique
 
-Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jusqu'au cycle suivant : composition d'escouade, consignes de combat, entraînement, missions, hôpital, marché entre joueurs.
+| Jalon | Effet |
+|-------|--------|
+| **H54** | **Composition figée** (3 ninjas actifs) ; entraînement gelé ; tendances H36 déjà disponibles ; **rapport complet** sur l'unité adverse |
+| **H54 → H70** | Consignes, cartes tactiques et objets encore modifiables |
+| **H71** | Gel total jusqu'au cycle suivant |
+
+### Espionnage
+
+| Jalon | Contenu |
+|-------|---------|
+| **H36** | **Tendances** sur les derniers matchs de ligue de l'adversaire (nombre de matchs indiqué ; peu fiable au 1er ou 2e match) — nécessite une **reconnaissance** réussie ce cycle |
+| **H54** | **Rapport complet** figé sur la composition adverse (qualité partielle/complet selon votre reconnaissance) |
+| **H54 → H71** | Le rapport ne change plus ; comparez tendances vs unité repérée pour détecter une formation atypique |
+
+La mission de **reconnaissance** (H0–H36) conditionne l'accès et la qualité de l'intel — ce n'est pas un combat contre l'adversaire de ligue, mais une mission sur le terrain pour récolter des renseignements.
+
+Examens Chunin, soins et missions doivent être **réglés avant H54** pour éviter un trou dans la composition figée.
 
 ### Jalons automatiques
 
-- **H36** : résolution des examens Chunin inscrits ; rapport d'espionnage sur l'adversaire du cycle.
-- **H36 → H70** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
-- **H71** : simulation du match de ligue ; début de la chronique narrative.
+- **H0 → H36** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
+- **H36** : résolution des examens Chunin inscrits ; **tendances adverses** (si reconnaissance effectuée).
+- **H54** : gel de la composition + **rapport d'espionnage complet** figé.
+- **H71** : simulation du match de ligue ; gel final des consignes ; début de la chronique narrative.
 - **H72** : clôture économique et début du cycle suivant.
 
 ---
@@ -122,7 +139,7 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 ### Composition
 
 - **3 ninjas actifs** (postes de terrain) + un **banc** de remplaçants.
-- La composition est modifiable jusqu'à H71.
+- La composition est modifiable jusqu'à **H54** (gel des 3 ninjas actifs).
 - Un ninja est **indisponible** s'il est en mission, en vente sur le marché P2P, ou si la fenêtre tactique est fermée.
 
 ### Consignes individuelles
@@ -371,11 +388,16 @@ En cas d'égalité de points : victoires, puis matchs joués.
 
 ### Espionnage (à partir de H36)
 
-Rapport sur l'adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice sur l'environnement probable. Les informations restent **partielles** — pas de lecture exacte des stats adverses.
+Le rapport se déroule en **deux temps** :
 
-### Mission de reconnaissance (H36 → H70)
+1. **H36 — Tendances** : habitudes sur les derniers matchs de ligue (échantillon indiqué ; fiabilité faible au 1er ou 2e match).
+2. **H54 — Unité repérée** : rapport figé sur les 3 ninjas adverses (partiel ou complet selon votre reconnaissance).
 
-Combat d'entraînement pour **tester votre composition** avant le match de ligue, sans attendre H71. **Une mission par cycle** par Sensei.
+Entre H36 et H54, ajustez votre composition selon les tendances. Après H54, seules consignes, cartes et objets restent modifiables.
+
+### Mission de reconnaissance (H0 → H36)
+
+Combat d'entraînement pour **tester votre composition** pendant la phase de préparation, avant le gel tactique de l'opération. **Une mission par cycle** par Sensei.
 
 | Mode | Fonctionnement |
 |------|----------------|

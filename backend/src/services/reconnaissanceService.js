@@ -14,8 +14,8 @@ import { createSenseiNotification } from './senseiNotifications.js';
 import { squadAveragePower } from './combat/squadPowerScaling.js';
 import { grantReconnaissanceLoot } from './combatLootService.js';
 
-export const RECON_MIN_HOUR = 36;
-export const RECON_MAX_HOUR = 70;
+export const RECON_MIN_HOUR = 0;
+export const RECON_MAX_HOUR = 36;
 /** Fourchettes indicatives — le tirage réel est dans combatLootService. */
 export const RECON_WIN_RYOS = 500;
 export const RECON_DRAW_RYOS = 250;
@@ -29,7 +29,7 @@ function mapWinnerToResult(winner) {
   return 'draw';
 }
 
-function outcomeForUser(result, userId, homeUserId) {
+export function outcomeForUser(result, userId, homeUserId) {
   if (result === 'draw') return 'draw';
   const homeWon = result === 'home_win';
   const isHome = userId === homeUserId;
@@ -75,6 +75,30 @@ export async function hasPlayedReconThisCycle(userId, cycleStartAt) {
     [cycleStartAt, userId, userId]
   );
   return rows.length > 0;
+}
+
+/** Mission de recon du cycle — utilisée pour déterminer la qualité du rapport d'espionnage. */
+export async function getUserReconMissionForCycle(userId, cycleStartAt) {
+  if (!cycleStartAt) return null;
+  const rows = await query(
+    `SELECT id, home_user_id, result, combat_log
+     FROM reconnaissance_missions
+     WHERE cycle_start_at = ? AND (home_user_id = ? OR away_user_id = ?)
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [cycleStartAt, userId, userId]
+  );
+  if (!rows[0]) return null;
+
+  const row = rows[0];
+  const combatLog = parseJsonField(row.combat_log);
+  const isHome = row.home_user_id === userId;
+  const scorePct = isHome ? combatLog?.homeScorePct : combatLog?.awayScorePct;
+  return {
+    missionId: row.id,
+    outcome: outcomeForUser(row.result, userId, row.home_user_id),
+    scorePct: typeof scorePct === 'number' ? scorePct : null,
+  };
 }
 
 async function assertBasicReconEligibility(userId, cycleStartAt) {

@@ -1,9 +1,14 @@
 import { query } from '../config/database.js';
-import { getClockRow, isTacticsLocked } from '../services/gameClock.js';
+import { getClockRow, isCompositionLocked, isTacticsLocked } from '../services/gameClock.js';
 import { isNinjaOnMission } from '../services/missionService.js';
 import { isNinjaListed } from '../services/playerMarketService.js';
 
 export async function updateSquadComposition(userId, slots) {
+  if (await isCompositionLocked()) {
+    const error = new Error('La composition est gelée depuis H54 jusqu\'au match (H71).');
+    error.statusCode = 423;
+    throw error;
+  }
   if (await isTacticsLocked()) {
     const error = new Error('La composition est gelée jusqu\'à la fin du cycle (H71).');
     error.statusCode = 423;

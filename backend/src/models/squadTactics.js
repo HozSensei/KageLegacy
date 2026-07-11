@@ -2,7 +2,7 @@ import { query } from '../config/database.js';
 import { meetsChuninRequirements } from '../services/chuninExam.js';
 import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/gradeProgression.js';
 import { assertSpendingAllowed } from '../services/economyDebt.js';
-import { getGameClock, isTacticsLocked } from '../services/gameClock.js';
+import { getGameClock, isTacticsLocked, isTrainingLocked } from '../services/gameClock.js';
 import { isNinjaListed } from '../services/playerMarketService.js';
 
 export async function updateBattleStrategies(userId, strategies) {
@@ -55,6 +55,11 @@ export async function updateBattleStrategies(userId, strategies) {
 }
 
 export async function updateTrainingPlans(userId, plans) {
+  if (await isTrainingLocked()) {
+    const error = new Error('Les plans d\'entraînement sont gelés depuis H54 jusqu\'au match (H71).');
+    error.statusCode = 423;
+    throw error;
+  }
   if (await isTacticsLocked()) {
     const error = new Error('Les plans d\'entraînement sont gelés jusqu\'à la fin du cycle (H71).');
     error.statusCode = 423;
@@ -83,13 +88,6 @@ export async function updateTrainingPlans(userId, plans) {
   }
 
   return plans;
-}
-
-/** @deprecated Utiliser updateTrainingPlans — conservé pour compat API */
-export async function updateTrainingFocus(userId, trainingFocus) {
-  const ninjas = await query('SELECT id FROM ninjas WHERE user_id = ?', [userId]);
-  const plans = ninjas.map((n) => ({ ninjaId: n.id, trainingFocus }));
-  return updateTrainingPlans(userId, plans);
 }
 
 export async function requestChuninExam(userId, ninjaId) {

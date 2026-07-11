@@ -142,17 +142,6 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
-  async function saveTrainingFocus(trainingFocus) {
-    error.value = null
-    const res = await fetch(`${API_BASE}/api/squad/training-focus`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ trainingFocus }),
-    })
-    if (!res.ok) throw new Error(await readApiError(res))
-    applySquadMutation(await res.json())
-  }
-
   async function requestChuninExam(ninjaId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/squad/chunin-exam`, {
@@ -262,6 +251,12 @@ export const useSquadStore = defineStore('squad', () => {
   }
 
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
+  const compositionLocked = () => Boolean(gameClock.value?.compositionLocked)
+  const trainingLocked = () => Boolean(gameClock.value?.trainingLocked)
+
+  function canChangeComposition() {
+    return !compositionLocked() && !tacticsLocked()
+  }
 
   function setLanguage(lang) {
     if (sensei.value) sensei.value.language = lang
@@ -312,13 +307,15 @@ export const useSquadStore = defineStore('squad', () => {
     joinClan,
     leaveClan,
     recruitFromClanBoard,
-    saveTrainingFocus,
     requestChuninExam,
     requestBirdFlight,
     dismissNotification,
     treatAtDispensary,
     releaseNinja,
     tacticsLocked,
+    compositionLocked,
+    trainingLocked,
+    canChangeComposition,
     setLanguage,
     applySquadMutation,
     clearSquad,

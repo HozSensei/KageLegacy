@@ -36,9 +36,6 @@ export const GRADE_STAT_CAPS = {
   },
 };
 
-/** @deprecated Utiliser BIRD_FLIGHT_COMBAT_REQUIRED — conservé pour docs legacy. */
-export const CHUNIN_STAGNATION_COMBAT = BIRD_FLIGHT_COMBAT_REQUIRED;
-
 const CHUNIN_EXAM_BASE_COST = 300;
 const CHUNIN_EXAM_COMBAT_STEP = 40;
 const CHUNIN_EXAM_IQ_STEP = 30;

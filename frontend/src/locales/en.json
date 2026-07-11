@@ -35,6 +35,10 @@
         "short": "H36",
         "title": "Mid-cycle"
       },
+      "freeze": {
+        "short": "H54",
+        "title": "Operational freeze"
+      },
       "operation": {
         "short": "H71",
         "title": "Operation"
@@ -50,17 +54,23 @@
         "missions": "Free mission contracts (3 tiers)",
         "shop": "Village shop, promos and limited stock",
         "academy": "Academy recruitment (rotating aspirants)",
-        "chunin": "Chunin exam registration (before H36)"
+        "chunin": "Chunin exam registration (before H36)",
+        "reconnaissance": "Reconnaissance mission (H0–H36): sparring combat, matchmaking or challenge"
       },
       "mid": {
         "chunin": "Chunin exam verdicts",
-        "scout": "Scout reports and opponent dossiers",
-        "reconnaissance": "Reconnaissance mission (H36–H70): sparring combat, matchmaking or challenge",
-        "management": "Squad management, training and trades",
+        "scoutTendencies": "Opponent tendencies (recent league matches)",
+        "management": "Adjust lineup based on tendencies",
         "birdFlight": "Bird Flight registrations still open"
       },
+      "freeze": {
+        "composition": "Active trio locked",
+        "training": "Training plans locked",
+        "scoutRoster": "Full scout report (frozen lineup)",
+        "tactics": "Orders, cards and items adjustable until H71"
+      },
       "operation": {
-        "lock": "Lineup and tactics lock",
+        "lock": "Final orders and tactics lock",
         "simulation": "League match simulation",
         "chronicle": "Progressive chronicle reveal"
       },
@@ -170,8 +180,8 @@
     "timelineTitle": "A 72-hour cycle",
     "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
     "timeline": {
-      "start": "Cycle start: training, missions, shop and Academy recruitment (through 12 hours).",
-      "mid": "After 36 hours: Chunin exams, scouting and reconnaissance mission (sparring combat through H70).",
+      "start": "Cycle start: training, missions, shop, Academy recruitment and reconnaissance mission (through H36).",
+      "mid": "After 36 hours: Chunin exams and scouting.",
       "operation": "At 71 hours: league match and border operation. The chronicle unfolds step by step.",
       "end": "At 72 hours: cycle closes — salaries, Ryos economy, then a new cycle begins."
     }
@@ -279,6 +289,7 @@
     "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",
     "trainingPlansHint": "Pick one stat per ninja. Billed at H72 — no plan means no cost or gain.",
+    "trainingLocked": "Training plans locked from H54 until the operation.",
     "trainingNone": "None",
     "budgetTitle": "Cycle budget (H72)",
     "budgetHint": "Projection: active salaries, then opt-in training.",
@@ -403,7 +414,7 @@
   },
   "dossier": {
     "title": "Operation dossier",
-    "lead": "Plan before H71: scouting (H36+), enemy profiles, orders and cards. Posture shapes advice — it does not grant a hidden combat bonus.",
+    "lead": "Plan before H71: scouting (H36+, requires reconnaissance H0–H36), enemy profiles, orders and cards. Posture shapes advice — it does not grant a hidden combat bonus.",
     "opponent": "Opponent",
     "cycle": "Cycle {cycle}",
     "envFuzzy": "estimated terrain",
@@ -413,6 +424,14 @@
     "cardEquipped": "card equipped",
     "scoutTitle": "Scouting",
     "scoutLocked": "Report available from H36.",
+    "scoutNoRecon": "No intel on {opponent}. Complete a reconnaissance mission (H0–H36) to unlock scouting.",
+    "scoutPartial": "Partial report — limited intel.",
+    "scoutPartialWin": "Partial report — recon win ({pct}% dominance) was not enough for a full dossier.",
+    "scoutFull": "Full report — decisive recon win ({pct}% dominance).",
+    "scoutTendenciesTitle": "Tendencies (from {count} match(es))",
+    "scoutRosterTitle": "Spotted unit (H54)",
+    "scoutRosterPending": "Full report on enemy lineup at H54 — adjust your ninjas until then.",
+    "compositionLocked": "Lineup locked since H54 — orders, cards and items still editable until H71.",
     "potential": "potential {level}",
     "postureLabel": "Operation posture",
     "postureHelp": "Set your squad's intent for this cycle. Align it with orders (Offensive, Defensive, Protection) and tactic cards.",
@@ -444,6 +463,7 @@
     "noActiveForStrategy": "No ninja in the active squad — complete your lineup first.",
     "emptySlot": "Open slot",
     "tacticsLocked": "Orders are locked for the Operation (from H71 onward).",
+    "compositionLocked": "Lineup is locked since H54 — only orders, cards and items remain editable until H71.",
     "saving": "Saving…",
     "tacticalSpeed": "Tactical speed",
     "activeCount": "Active",
@@ -504,6 +524,13 @@
     "matchday": "MD",
     "vsHint": "Your opponent: {opponent}",
     "scoutTitle": "Scout report",
+    "scoutNoRecon": "No intel on {opponent}. Complete a reconnaissance mission (H0–H36) to scout your league opponent.",
+    "scoutPartial": "Partial report — limited intel.",
+    "scoutPartialWin": "Partial report — recon win ({pct}% dominance) was not enough for a full dossier.",
+    "scoutFull": "Full report — decisive recon win ({pct}% dominance).",
+    "scoutTendenciesTitle": "Tendencies (from {count} match(es))",
+    "scoutRosterTitle": "Spotted unit (H54)",
+    "scoutRosterPending": "Full report on enemy lineup at H54 — adjust your ninjas until then.",
     "matchScheduled": "Upcoming",
     "matchSimulated": "Simulated — chronicle at H71",
     "matchLive": "Operation live",
@@ -519,7 +546,7 @@
     "fixturesHint": "Matchday {cycle} — 3 bouts in your 6-sensei pool (home & away over 10 matchdays). You only play one of these three.",
     "recentMatches": "Recent results",
     "reconTitle": "Reconnaissance mission",
-    "reconLead": "Test your squad in live combat (H36–H70): matchmaking, direct challenge, or fallback bot. K.O.s can lower form, like league matches.",
+    "reconLead": "Test your squad in live combat (H0–H36): matchmaking, direct challenge, or fallback bot. K.O.s can lower form, like league matches.",
     "reconRewards": "Loot: Ryos + random consumable + tactic card chance — even on a loss.",
     "reconMatchmake": "Start matchmaking",
     "reconBusy": "Fighting…",
