@@ -28,8 +28,37 @@ function usageLabel(item) {
   return t('market.usesPerMatch', { count: limit.uses })
 }
 
+function cardInstanceId(card) {
+  const raw = card?.userTacticCardId ?? card?.id
+  return raw == null ? null : Number(raw)
+}
+
+function isCardSelected(card) {
+  return selectedCardId.value != null && cardInstanceId(card) === selectedCardId.value
+}
+
+function selectCard(card) {
+  selectedCardId.value = cardInstanceId(card)
+  selectedItemId.value = null
+}
+
 function cardChargesLabel(card) {
   return t('inventory.cardCharges', { count: card.chargesRemaining })
+}
+
+function normalizeInventory(payload) {
+  if (!payload) return payload
+  return {
+    ...payload,
+    tacticCards: (payload.tacticCards || []).map((card) => {
+      const userTacticCardId = cardInstanceId(card)
+      return { ...card, id: userTacticCardId, userTacticCardId }
+    }),
+  }
+}
+
+function applyInventory(payload) {
+  inventory.value = normalizeInventory(payload)
 }
 
 function isGlobalBureauItem(item) {
@@ -70,7 +99,7 @@ function openSell(item) {
 }
 
 function openSellCard(card) {
-  sellCardId.value = card.id
+  sellCardId.value = cardInstanceId(card)
   sellItemId.value = null
   const { floor } = sellPriceBounds(card.catalogPrice)
   sellPrice.value = String(floor || 1)
@@ -116,7 +145,7 @@ function sellItem() {
 }
 
 function sellCard() {
-  return inventory.value?.tacticCards?.find((c) => c.id === sellCardId.value)
+  return inventory.value?.tacticCards?.find((c) => cardInstanceId(c) === sellCardId.value)
 }
 
 onMounted(fetchInventory)
@@ -127,7 +156,7 @@ async function fetchInventory() {
   try {
     const res = await fetch(`${API_BASE}/api/inventory`)
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
   } catch (e) {
     error.value = e.message
   } finally {
@@ -146,7 +175,7 @@ async function equip(ninjaId) {
       body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
     selectedItemId.value = null
   } catch (e) {
     error.value = e.message
@@ -166,7 +195,7 @@ async function equipCard(ninjaId) {
       body: JSON.stringify({ ninjaId, userTacticCardId: selectedCardId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
     selectedCardId.value = null
   } catch (e) {
     error.value = e.message
@@ -186,7 +215,7 @@ async function useOnNinja(ninjaId) {
       body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
     selectedItemId.value = null
   } catch (e) {
     error.value = e.message
@@ -206,7 +235,7 @@ async function useGlobalBureau() {
       body: JSON.stringify({ userItemId: selectedItemId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
     selectedItemId.value = null
   } catch (e) {
     error.value = e.message
@@ -225,7 +254,7 @@ async function unequip(ninjaId, slot) {
       body: JSON.stringify({ ninjaId, slot }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
   } catch (e) {
     error.value = e.message
   } finally {
@@ -243,7 +272,7 @@ async function unequipCard(ninjaId) {
       body: JSON.stringify({ ninjaId }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    inventory.value = await res.json()
+    applyInventory(await res.json())
   } catch (e) {
     error.value = e.message
   } finally {
@@ -306,14 +335,14 @@ async function unequipCard(ninjaId) {
         <ul class="mt-6 space-y-3">
           <li
             v-for="card in inventory.tacticCards"
-            :key="card.id"
+            :key="`card-${cardInstanceId(card)}`"
             class="cursor-pointer border p-4 transition"
             :class="
-              selectedCardId === card.id
+              isCardSelected(card)
                 ? 'border-accent bg-bg-soft'
                 : 'border-line hover:border-ink-faint'
             "
-            @click="selectedCardId = card.id; selectedItemId = null"
+            @click="selectCard(card)"
           >
             <p class="text-sm text-ink">{{ cardName(card) }}</p>
             <p class="mt-1 text-xs text-ink-faint">

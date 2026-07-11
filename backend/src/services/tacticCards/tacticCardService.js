@@ -70,8 +70,11 @@ function parseJsonField(value) {
 
 function mapUserCard(row) {
   if (!row) return null;
+  const userTacticCardId = Number(row.user_tactic_card_id);
   return {
-    id: row.id,
+    id: userTacticCardId,
+    userTacticCardId,
+    definitionId: Number(row.tactic_card_definition_id),
     userId: row.user_id,
     chargesRemaining: row.charges_remaining,
     acquiredAt: row.acquired_at,
@@ -99,10 +102,19 @@ function mapUserCard(row) {
   };
 }
 
+function dedupeUserCards(cards) {
+  const seen = new Set();
+  return cards.filter((card) => {
+    if (!card?.userTacticCardId || seen.has(card.userTacticCardId)) return false;
+    seen.add(card.userTacticCardId);
+    return true;
+  });
+}
+
 export async function getTacticCardsForUser(userId) {
   const rows = await query(
     `SELECT
-       utc.id,
+       utc.id AS user_tactic_card_id,
        utc.user_id,
        utc.tactic_card_definition_id,
        utc.charges_remaining,
@@ -136,7 +148,7 @@ export async function getTacticCardsForUser(userId) {
      ORDER BY utc.acquired_at DESC, utc.id DESC`,
     [userId]
   );
-  return rows.map(mapUserCard);
+  return dedupeUserCards(rows.map(mapUserCard).filter(Boolean));
 }
 
 export async function getTacticCardsForNinjas(userId) {

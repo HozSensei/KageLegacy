@@ -79,6 +79,7 @@ async function main() {
     'starter slugs present'
   );
   console.assert(cards.every((c) => c.chargesRemaining === TACTIC_CARD_MAX_CHARGES), '3 charges each');
+  console.assert(cards.every((c) => c.userTacticCardId === c.id), 'userTacticCardId exposed');
 
   const dup = await ensureStarterTacticCards(userId);
   console.assert(!dup, 'no duplicate starter grant');
