@@ -55,6 +55,7 @@
       "mid": {
         "chunin": "Verdict des examens de Chunin",
         "scout": "Bilans éclaireurs et dossiers adverses",
+        "reconnaissance": "Mission de reconnaissance (H36–H70) : combat d'entraînement, matchmaking ou défi",
         "management": "Gestion d'escouade, entraînement et échanges",
         "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
       },
@@ -170,7 +171,7 @@
     "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
     "timeline": {
       "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à 12 heures).",
-      "mid": "Après 36 heures : examens de Chunin et milieu de cycle — bilans, forme et stagnation.",
+      "mid": "Après 36 heures : examens de Chunin, espionnage et mission de reconnaissance (combat d'entraînement jusqu'à H70).",
       "operation": "À 71 heures : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
       "end": "À 72 heures : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
     }

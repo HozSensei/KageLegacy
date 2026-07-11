@@ -13,7 +13,7 @@ Each cycle is a synchronized "game week" for all players on the server.
 | Phase | Period | Main activities |
 |-------|--------|-----------------|
 | **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy |
-| **Mid-cycle** | H36 → H70 | Chunin exams (H36), spy report, ongoing management |
+| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, reconnaissance mission (sparring combat), ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
@@ -24,6 +24,7 @@ Once the operation starts, strategic choices are **locked** until the next cycle
 ### Automatic milestones
 
 - **H36**: registered Chunin exams resolved; spy report on the cycle's opponent.
+- **H36 → H70**: reconnaissance mission (one sparring fight per cycle, see § League).
 - **H71**: league match simulation; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
 
@@ -372,6 +373,17 @@ Tie-breakers: wins, then matches played.
 
 Report on the cycle's opponent: offensive tendencies, tanks, speed, dominant element, likely environment hint. Information stays **partial** — no exact enemy stat readout.
 
+### Reconnaissance mission (H36 → H70)
+
+Sparring combat to **test your squad** before the league match, without waiting for H71. **One mission per cycle** per Sensei.
+
+| Mode | How it works |
+|------|----------------|
+| **Matchmaking** | Human opponent of similar division and power; otherwise a **league bot**. |
+| **Direct challenge** | From the League screen: challenge a pool member or a nearby-division player from another league. Defender must **accept**. |
+
+**Consequences**: real combat engine (gear, tactic cards, environment); K.O.s can **lower form** like league matches. **Payouts** are modest (500 Ryos win, 250 draw, 0 loss) with a small bonus loot chance. Does **not** affect league standings.
+
 ### Invitation
 
 A Sensei can generate an **invitation link** to their pool to recruit allies in their league.
@@ -429,7 +441,7 @@ The **Sensei** may try to **intercept a fatal blow** on a ninja: this spends mat
 | **Squad** | Composition, orders, operation dossier (postures), active/bench swaps |
 | **Training** | Stat focus, cost forecast |
 | **Missions** | Idle contracts |
-| **League** | Standings, schedule, scouting |
+| **League** | Standings, schedule, scouting, reconnaissance mission |
 | **Shop** | Village item purchases |
 | **Exchanges** | Player market |
 | **Inventory** | Items and match/cycle equipment |
