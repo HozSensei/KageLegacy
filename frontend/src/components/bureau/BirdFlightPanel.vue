@@ -6,6 +6,7 @@ import {
   canRegisterBirdFlight,
   getBirdFlightProgress,
 } from '../../composables/useBirdFlight.js'
+import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -60,7 +61,7 @@ async function register(ninjaId) {
         :class="{ 'border-accent/40 bg-accent/5': ninja.birdFlightPeak }"
       >
         <div class="flex items-baseline justify-between gap-3">
-          <p class="font-display text-lg text-ink">{{ ninja.name.split(' ')[0] }}</p>
+          <NinjaListIdentity :ninja="ninja" compact first-name-only />
           <span
             v-if="ninja.bird_flight_requested"
             class="text-[10px] uppercase tracking-[0.14em] text-accent"

@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import { useFormatRyos } from '../../composables/useFormatRyos'
+import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 defineProps({
   standalone: { type: Boolean, default: false },
@@ -56,9 +57,9 @@ async function onPlanChange(ninjaId) {
       <li
         v-for="ninja in allNinjas"
         :key="ninja.id"
-        class="flex flex-wrap items-center justify-between gap-2 text-sm"
+        class="flex flex-wrap items-center justify-between gap-3 border border-line/60 p-3 text-sm"
       >
-        <span class="text-ink">{{ ninja.name }}</span>
+        <NinjaListIdentity :ninja="ninja" compact />
         <div class="flex items-center gap-3">
           <span v-if="ninja.trainingCost" class="text-xs text-ink-faint">
             {{ formatRyos(ninja.trainingCost) }}

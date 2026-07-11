@@ -557,7 +557,21 @@
     "selectNinja": "Select a ninja to equip.",
     "selectNinjaCard": "Select a ninja to equip the card.",
     "equippedOn": "Equipped on {name}",
+    "equippedBadge": "Equipped · {name}",
     "unequipped": "Unassigned",
+    "emptyFilter": "No items match these filters.",
+    "filterCategory": {
+      "all": "All",
+      "bureau": "Office",
+      "match": "Match",
+      "cycle": "Cycle"
+    },
+    "filterStatus": {
+      "all": "All",
+      "equipped": "Equipped",
+      "available": "Available",
+      "listed": "Listed"
+    },
     "empty": "No items — visit the village shop.",
     "emptyCards": "No cards — missions, chakra seals, or village shop.",
     "equip": "Equip",

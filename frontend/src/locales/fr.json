@@ -557,7 +557,21 @@
     "selectNinja": "Sélectionnez un ninja à équiper.",
     "selectNinjaCard": "Sélectionnez un ninja pour équiper la carte.",
     "equippedOn": "Équipé sur {name}",
+    "equippedBadge": "Équipé · {name}",
     "unequipped": "Non assigné",
+    "emptyFilter": "Aucun objet ne correspond à ces filtres.",
+    "filterCategory": {
+      "all": "Tous",
+      "bureau": "Bureau",
+      "match": "Match",
+      "cycle": "Cycle"
+    },
+    "filterStatus": {
+      "all": "Tous",
+      "equipped": "Équipés",
+      "available": "Disponibles",
+      "listed": "En vente"
+    },
     "empty": "Aucun objet — passez au magasin du village.",
     "emptyCards": "Aucune carte — missions, sceaux chakra ou magasin du village.",
     "equip": "Équiper",
