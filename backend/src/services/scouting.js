@@ -2,9 +2,15 @@ import { createHash } from 'node:crypto';
 import { query } from '../config/database.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { getScoutEnvironmentLine } from './matchEnvironment.js';
-import { getClockRow } from './gameClock.js';
+import { getClockRow, getGameClock } from './gameClock.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { getUserReconMissionForCycle } from './reconnaissanceService.js';
+import {
+  ensureIntelForHour,
+  getIntelForUser,
+  upsertIntelRow,
+} from './scoutIntelService.js';
+import { findUserPool } from './poolService.js';
 
 function analyzeStrategies(ninjas) {
   const counts = { Tank: 0, Offensive: 0, Protect: 0, Normal: 0 };
@@ -91,8 +97,7 @@ function buildProfileSummaryLines(profiles, lang) {
 
 function buildTendencyLines(strategies, speed, element, lang) {
   const lines = [];
-  const ninjutsuHeavy = strategies.Offensive >= 2;
-  if (ninjutsuHeavy) {
+  if (strategies.Offensive >= 2) {
     lines.push(
       lang === 'en'
         ? 'Marked offensive disposition on several members.'
@@ -141,7 +146,7 @@ function scoutQualityRoll(missionId, userId) {
   return hash.readUInt32BE(0) % 100;
 }
 
-function resolveScoutTier(mission, userId) {
+export function resolveScoutTier(mission, userId) {
   const { outcome, scorePct, missionId } = mission;
   if (outcome === 'loss' || outcome === 'draw') {
     return {
@@ -163,7 +168,7 @@ function resolveScoutTier(mission, userId) {
   };
 }
 
-function buildPartialReport(fullReport, lang) {
+function buildPartialRosterReport(fullReport, lang) {
   const unknownPotential = lang === 'en' ? 'unknown' : 'inconnu';
   const lines = fullReport.lines.slice(0, Math.min(2, fullReport.lines.length));
   if (!lines.length) {
@@ -180,26 +185,10 @@ function buildPartialReport(fullReport, lang) {
       potentialHint: unknownPotential,
       strategy: null,
     }));
-  return {
-    ...fullReport,
-    tier: 'partial',
-    lines,
-    profiles,
-  };
+  return { ...fullReport, tier: 'partial', lines, profiles };
 }
 
-async function buildFullScoutData(userId, opponentId, opponentName, opponentIsBot, match, lang) {
-  const ninjas = await query(
-    `SELECT n.battle_strategy, n.element_affinity, n.taijutsu, n.ninjutsu, n.genjutsu,
-            n.medecine, n.vitesse, n.intelligence, n.grade,
-            c.name AS clan_name, c.is_noble AS clan_is_noble
-     FROM ninjas n
-     LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
-     WHERE n.user_id = ? AND n.squad_position IS NOT NULL
-     ORDER BY n.squad_position`,
-    [opponentId]
-  );
-
+export async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opponentIsBot, match, ninjas, lang) {
   const strategies = analyzeStrategies(ninjas);
   const speed = ninjas.reduce((s, n) => s + n.vitesse + n.intelligence, 0);
   const element = dominantElement(ninjas);
@@ -240,10 +229,30 @@ async function buildFullScoutData(userId, opponentId, opponentName, opponentIsBo
   };
 }
 
-export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
+async function loadOpponentNinjas(opponentId) {
+  return query(
+    `SELECT n.battle_strategy, n.element_affinity, n.taijutsu, n.ninjutsu, n.genjutsu,
+            n.medecine, n.vitesse, n.intelligence, n.grade,
+            c.name AS clan_name, c.is_noble AS clan_is_noble
+     FROM ninjas n
+     LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
+     WHERE n.user_id = ? AND n.squad_position IS NOT NULL
+     ORDER BY n.squad_position`,
+    [opponentId]
+  );
+}
+
+export async function buildAndPersistRosterIntel(userId, seasonCycle, locale = 'fr') {
   const lang = locale === 'en' ? 'en' : 'fr';
+  const pool = await findUserPool(userId);
+  if (!pool) return null;
+
   const match = await getUserMatchForCycle(userId, seasonCycle);
   if (!match) return null;
+
+  const clockRow = await getClockRow();
+  const cycleStartAt = clockRow?.cycle_start_at;
+  if (!cycleStartAt) return null;
 
   const opponentId =
     match.home_user_id === userId ? match.away_user_id : match.home_user_id;
@@ -253,65 +262,199 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
     match.home_user_id === userId ? match.away_is_bot : match.home_is_bot
   );
 
-  const clockRow = await getClockRow();
-  const reconMission = await getUserReconMissionForCycle(userId, clockRow?.cycle_start_at);
+  const reconMission = await getUserReconMissionForCycle(userId, cycleStartAt);
+  const reconMeta = reconMission ? resolveScoutTier(reconMission, userId) : null;
 
-  if (!reconMission) {
-    return {
-      tier: 'none',
-      lockReason: 'no_recon',
-      opponentName,
-      opponentIsBot,
-      reconOutcome: null,
-      reconScorePct: null,
-      fullReportChance: null,
-      fullReportRoll: null,
-      lines: [],
-      profiles: [],
-      tendencies: null,
-    };
-  }
-
-  const tierMeta = resolveScoutTier(reconMission, userId);
-  const fullData = await buildFullScoutData(
+  const ninjas = await loadOpponentNinjas(opponentId);
+  const fullRoster = await buildRosterReportFromNinjas(
     userId,
     opponentId,
     opponentName,
     opponentIsBot,
     match,
+    ninjas,
     lang
   );
 
-  if (tierMeta.tier === 'full') {
-    return {
-      ...fullData,
-      ...tierMeta,
-    };
+  const rosterReport =
+    reconMeta?.tier === 'full'
+      ? { ...fullRoster, ...reconMeta }
+      : reconMeta
+        ? { ...buildPartialRosterReport(fullRoster, lang), ...reconMeta }
+        : null;
+
+  if (rosterReport) {
+    await upsertIntelRow({
+      cycleStartAt,
+      poolId: pool.id,
+      viewerUserId: userId,
+      opponentUserId: opponentId,
+      seasonCycle,
+      rosterReport,
+      reconMeta,
+      rosterFrozenAt: new Date(),
+    });
   }
 
-  return {
-    ...buildPartialReport(fullData, lang),
-    ...tierMeta,
-  };
+  return rosterReport;
 }
 
-export async function generateScoutReportsForAllUsers() {
+export async function generateRosterIntelForAllUsers() {
   const users = await query(
     `SELECT u.id FROM users u
      JOIN pool_members pm ON pm.user_id = u.id
      JOIN pools p ON p.id = pm.pool_id
      WHERE u.is_bot = FALSE AND p.status = 'active'`
   );
-  const reports = [];
+  const results = [];
   for (const user of users) {
-    const pool = await query(
-      `SELECT p.current_cycle FROM pools p
-       JOIN pool_members pm ON pm.pool_id = p.id WHERE pm.user_id = ?`,
-      [user.id]
-    );
-    const cycle = pool[0]?.current_cycle ?? 1;
-    const report = await generateScoutReport(user.id, cycle);
-    if (report && report.tier !== 'none') reports.push({ userId: user.id, report });
+    const pool = await findUserPool(user.id);
+    if (!pool) continue;
+    const report = await buildAndPersistRosterIntel(user.id, pool.current_cycle, 'fr');
+    if (report) results.push({ userId: user.id, report });
   }
-  return reports;
+  return results;
+}
+
+function compareRosterToHistory(rosterReport, historicalTendencies, lang) {
+  if (!rosterReport?.tendencies || !historicalTendencies?.summary) return null;
+  const current = rosterReport.tendencies;
+  const hist = historicalTendencies.summary;
+  const flags = [];
+
+  if (hist.avgOffensive >= 1.2 && current.offensive === 0) {
+    flags.push(
+      lang === 'en'
+        ? 'Current lineup looks less offensive than recent habits.'
+        : 'La composition actuelle paraît moins offensive que les habitudes récentes.'
+    );
+  }
+  if (hist.avgOffensive < 0.8 && current.offensive >= 2) {
+    flags.push(
+      lang === 'en'
+        ? 'Sudden offensive spread — atypical vs recent league matches.'
+        : 'Disposition offensive soudaine — atypique par rapport aux derniers matchs de ligue.'
+    );
+  }
+  if (hist.dominantElement && current.dominantElement && hist.dominantElement !== current.dominantElement) {
+    flags.push(
+      lang === 'en'
+        ? `Element shift: usually ${hist.dominantElement}, now ${current.dominantElement}.`
+        : `Changement d'élément : habituellement ${hist.dominantElement}, désormais ${current.dominantElement}.`
+    );
+  }
+
+  return flags.length ? flags : null;
+}
+
+export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
+  const lang = locale === 'en' ? 'en' : 'fr';
+  const match = await getUserMatchForCycle(userId, seasonCycle);
+  if (!match) return null;
+
+  const opponentName =
+    match.home_user_id === userId ? match.away_sensei : match.home_sensei;
+  const opponentIsBot = Boolean(
+    match.home_user_id === userId ? match.away_is_bot : match.home_is_bot
+  );
+
+  const clock = await getGameClock();
+  const clockRow = await getClockRow();
+  const hour = clock.hour ?? 0;
+
+  if (hour < 36) {
+    return {
+      phase: 'locked',
+      hour,
+      opponentName,
+      opponentIsBot,
+      lockReason: 'before_h36',
+    };
+  }
+
+  const reconMission = await getUserReconMissionForCycle(userId, clockRow?.cycle_start_at);
+  if (!reconMission) {
+    return {
+      phase: 'none',
+      hour,
+      tier: 'none',
+      lockReason: 'no_recon',
+      opponentName,
+      opponentIsBot,
+      historicalTendencies: null,
+      rosterReport: null,
+      anomalyFlags: null,
+      lines: [],
+      profiles: [],
+    };
+  }
+
+  await ensureIntelForHour(userId, seasonCycle, hour, lang);
+  const intel = await getIntelForUser(userId, seasonCycle, lang);
+
+  const historicalTendencies = intel?.tendencies ?? null;
+
+  const tendenciesPayload = historicalTendencies
+    ? {
+        lines: historicalTendencies.lines ?? [],
+        sampleSize: intel?.tendenciesSampleSize ?? historicalTendencies.sampleSize ?? 0,
+        reliability: intel?.tendenciesReliability ?? historicalTendencies.reliability ?? 'none',
+        summary: historicalTendencies.summary ?? null,
+      }
+    : null;
+
+  if (hour < 54) {
+    return {
+      phase: 'tendencies',
+      hour,
+      tier: 'none',
+      lockReason: null,
+      opponentName,
+      opponentIsBot,
+      reconOutcome: resolveScoutTier(reconMission, userId).reconOutcome,
+      historicalTendencies: tendenciesPayload,
+      rosterReport: null,
+      rosterPending: true,
+      anomalyFlags: null,
+      lines: tendenciesPayload?.lines ?? [],
+      profiles: [],
+    };
+  }
+
+  let rosterReport = intel?.rosterReport ?? null;
+
+  if (!rosterReport) {
+    rosterReport = await buildAndPersistRosterIntel(userId, seasonCycle, lang);
+  }
+
+  const anomalyFlags = compareRosterToHistory(rosterReport, historicalTendencies, lang);
+
+  return {
+    phase: 'roster',
+    hour,
+    opponentName,
+    opponentIsBot,
+    historicalTendencies: tendenciesPayload,
+    rosterReport,
+    anomalyFlags,
+    tier: rosterReport?.tier ?? 'partial',
+    reconOutcome: rosterReport?.reconOutcome ?? null,
+    reconScorePct: rosterReport?.reconScorePct ?? null,
+    fullReportChance: rosterReport?.fullReportChance ?? null,
+    fullReportRoll: rosterReport?.fullReportRoll ?? null,
+    lines: [
+      ...(tendenciesPayload?.lines ?? []),
+      ...(rosterReport?.lines ?? []),
+    ],
+    profiles: rosterReport?.profiles ?? [],
+    tendencies: rosterReport?.tendencies ?? null,
+    rosterFrozen: Boolean(intel?.rosterFrozenAt),
+  };
+}
+
+export async function generateScoutReportsForAllUsers() {
+  const tendencies = await import('./scoutIntelService.js').then((m) =>
+    m.generateTendenciesIntelForAllUsers()
+  );
+  return { tendencies };
 }

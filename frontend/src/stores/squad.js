@@ -262,6 +262,11 @@ export const useSquadStore = defineStore('squad', () => {
   }
 
   const tacticsLocked = () => Boolean(gameClock.value?.tacticsLocked)
+  const compositionLocked = () => Boolean(gameClock.value?.compositionLocked)
+
+  function canChangeComposition() {
+    return !compositionLocked() && !tacticsLocked()
+  }
 
   function setLanguage(lang) {
     if (sensei.value) sensei.value.language = lang
@@ -319,6 +324,8 @@ export const useSquadStore = defineStore('squad', () => {
     treatAtDispensary,
     releaseNinja,
     tacticsLocked,
+    compositionLocked,
+    canChangeComposition,
     setLanguage,
     applySquadMutation,
     clearSquad,

@@ -17,15 +17,20 @@ Each cycle is a synchronized "game week" for all players on the server.
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
-### Tactical lock (from H71)
+### Tactical lock
 
-Once the operation starts, strategic choices are **locked** until the next cycle: squad composition, combat orders, training, missions, hospital, player market.
+| Milestone | Effect |
+|-----------|--------|
+| **H54** | **Lineup locked** (active trio) ; training locked ; **full scout report** on spotted enemy unit |
+| **H54 → H70** | Orders, tactic cards and items still editable |
+| **H71** | Full lock until next cycle |
 
 ### Automatic milestones
 
 - **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
-- **H36**: registered Chunin exams resolved; spy report on the cycle's opponent (if a reconnaissance mission was completed).
-- **H71**: league match simulation; narrative chronicle begins.
+- **H36**: Chunin exams resolved ; **opponent tendencies** (if reconnaissance completed).
+- **H54**: lineup freeze + **frozen full scout report**.
+- **H71**: league match simulation ; final orders lock ; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
 
 ---
@@ -371,15 +376,12 @@ Tie-breakers: wins, then matches played.
 
 ### Scouting (from H36)
 
-The report on the cycle's opponent **depends on the reconnaissance mission** (H0–H36):
+Intel unfolds in **two stages**:
 
-| Situation | Report |
-|-----------|--------|
-| No reconnaissance | No intel on the league opponent |
-| Recon + loss or draw | **Partial** report (limited hints) |
-| Recon + win | Your combat **dominance %** = **% chance** of a **full** report; otherwise partial |
+1. **H36 — Tendencies**: habits from recent league matches (sample size shown ; unreliable on 1st or 2nd match).
+2. **H54 — Spotted unit**: frozen report on the enemy trio (partial or full depending on your reconnaissance).
 
-A full report reveals offensive tendencies, tanks, speed, dominant element, and likely environment hint. Information stays **fuzzy** — no exact enemy stat readout.
+Between H36 and H54, adjust your lineup from tendencies. After H54, only orders, cards and items remain editable.
 
 ### Reconnaissance mission (H0 → H36)
 

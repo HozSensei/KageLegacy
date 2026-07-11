@@ -21,7 +21,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 
 **À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
 
-**Jalons automatiques :** mission de reconnaissance jouable H0→H36 ; examens Chunin + espionnage (conditionné par la recon) à H36 ; simulation ligue à H71 ; clôture économique à H72.
+**Jalons automatiques :** mission de reconnaissance H0→H36 ; examens Chunin + tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72.
 
 ---
 
@@ -245,17 +245,15 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 
 - 1er → promotion · 6e → relégation · nouvelle pool
 
-### Espionnage (H36+)
+### Espionnage
 
-Le rapport sur l’adversaire du cycle **dépend de la mission de reconnaissance** (H0–H36) :
+| Jalon | Contenu |
+|-------|---------|
+| **H36** | Tendances sur les derniers matchs de ligue (échantillon + fiabilité ; faible au 1er/2e match) — requiert reconnaissance |
+| **H54** | Gel composition + rapport figé sur l'unité adverse (qualité selon recon) |
+| **H54–H71** | Consignes, cartes, objets modifiables |
 
-| Situation | Rapport |
-|-----------|---------|
-| Pas de reconnaissance | Aucun renseignement |
-| Recon + défaite/nul | Rapport **partiel** |
-| Recon + victoire | **% de dominance** = **% de chance** de rapport **complet** ; sinon partiel |
-
-Un rapport complet couvre tendances offensives, tanks, vitesse, élément dominant et indice environnement.
+Snapshots de composition enregistrés dans les `combat_log` des matchs appliqués pour alimenter les tendances futures.
 
 ### Mission de reconnaissance (H0 → H36)
 

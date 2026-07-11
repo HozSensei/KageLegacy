@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
-import { simulateMatchCombat } from './combat/matchLoader.js';
+import { simulateMatchCombat, loadTeamForCombat } from './combat/matchLoader.js';
+import { buildSquadSnapshotFromNinjas } from './scoutIntelService.js';
 import {
   applyPostMatchForMatch,
   persistSenseiChakra,
@@ -60,6 +61,10 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       match.away_user_id,
       environmentSlug
     );
+    const [homeTeamData, awayTeamData] = await Promise.all([
+      loadTeamForCombat(match.home_user_id),
+      loadTeamForCombat(match.away_user_id),
+    ]);
     for (const itemId of combat.consumedItemIds || []) {
       await consumeUserItem(itemId);
     }
@@ -84,6 +89,10 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       possession: combat.possession,
       equipmentSummary: combat.equipmentSummary,
       environment: combat.environment,
+      squadSnapshots: {
+        home: buildSquadSnapshotFromNinjas(homeTeamData.ninjas, 'fr'),
+        away: buildSquadSnapshotFromNinjas(awayTeamData.ninjas, 'fr'),
+      },
     };
 
     const [homeCtx, awayCtx] = await Promise.all([

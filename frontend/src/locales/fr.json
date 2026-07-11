@@ -35,6 +35,10 @@
         "short": "H36",
         "title": "Milieu de cycle"
       },
+      "freeze": {
+        "short": "H54",
+        "title": "Gel opérationnel"
+      },
       "operation": {
         "short": "H71",
         "title": "Opération"
@@ -55,12 +59,17 @@
       },
       "mid": {
         "chunin": "Verdict des examens de Chunin",
-        "scout": "Bilans éclaireurs et dossiers adverses",
-        "management": "Gestion d'escouade, entraînement et échanges",
+        "scoutTendencies": "Tendances adverses (derniers matchs de ligue)",
+        "management": "Ajuster la composition selon les tendances",
         "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
       },
+      "freeze": {
+        "composition": "Gel des 3 ninjas actifs",
+        "scoutRoster": "Rapport d'espionnage complet (composition figée)",
+        "tactics": "Ajustement consignes, cartes et objets jusqu'à H71"
+      },
       "operation": {
-        "lock": "Verrouillage des compositions et tactiques",
+        "lock": "Verrouillage final des consignes et tactiques",
         "simulation": "Simulation du match de ligue",
         "chronicle": "Révélation progressive de la chronique"
       },
@@ -417,6 +426,10 @@
     "scoutPartial": "Rapport partiel — renseignements limités.",
     "scoutPartialWin": "Rapport partiel — victoire en reconnaissance ({pct} % de dominance), insuffisant pour un dossier complet.",
     "scoutFull": "Rapport complet — reconnaissance victorieuse ({pct} % de dominance).",
+    "scoutTendenciesTitle": "Tendances (sur {count} match(s))",
+    "scoutRosterTitle": "Unité repérée (H54)",
+    "scoutRosterPending": "Rapport complet sur la composition adverse à H54 — ajustez vos ninjas d'ici là.",
+    "compositionLocked": "Composition figée depuis H54 — consignes, cartes et objets modifiables jusqu'à H71.",
     "potential": "potentiel {level}",
     "postureLabel": "Posture d'opération",
     "postureHelp": "Choisissez l'intention de votre escouade pour ce cycle. Alignez-la avec vos consignes (Offensive, Défensive, Protection) et vos cartes tactiques.",
@@ -448,6 +461,7 @@
     "noActiveForStrategy": "Aucun ninja en escouade active — complétez votre composition d'abord.",
     "emptySlot": "Poste vacant",
     "tacticsLocked": "Les consignes sont gelées pour l'Opération (à partir de H71).",
+    "compositionLocked": "La composition est figée depuis H54 — seules les consignes, cartes et objets restent modifiables jusqu'à H71.",
     "saving": "Enregistrement…",
     "tacticalSpeed": "Vitesse tactique",
     "activeCount": "Actifs",
@@ -512,6 +526,9 @@
     "scoutPartial": "Rapport partiel — renseignements limités.",
     "scoutPartialWin": "Rapport partiel — victoire en reconnaissance ({pct} % de dominance), insuffisant pour un dossier complet.",
     "scoutFull": "Rapport complet — reconnaissance victorieuse ({pct} % de dominance).",
+    "scoutTendenciesTitle": "Tendances (sur {count} match(s))",
+    "scoutRosterTitle": "Unité repérée (H54)",
+    "scoutRosterPending": "Rapport complet sur la composition adverse à H54 — ajustez vos ninjas d'ici là.",
     "matchScheduled": "À venir",
     "matchSimulated": "Simulé — chronique à H71",
     "matchLive": "Opération en cours",

@@ -2,7 +2,7 @@ import { query } from '../config/database.js';
 import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gameClock.js';
 import { processTrainingBillingForAllUsers } from './trainingBilling.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
-import { generateScoutReportsForAllUsers } from './scouting.js';
+import { generateScoutReportsForAllUsers, generateRosterIntelForAllUsers } from './scouting.js';
 import {
   applyAllPoolsMatchResults,
   simulateAllPoolsCurrentCycle,
@@ -34,12 +34,20 @@ async function markJobRun(cycleStartAt, jobName) {
 export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
   const promotions = await processChuninExamsForAllUsers();
-  const scoutReports = await generateScoutReportsForAllUsers();
+  const { tendencies } = await generateScoutReportsForAllUsers();
   await markJobRun(cycleStartAt, 'h36');
   console.log(
-    `[H36] Examens Chunin : ${promotions.length} candidat(s) · Rapports espionnage : ${scoutReports.length}`
+    `[H36] Examens Chunin : ${promotions.length} candidat(s) · Tendances espionnage : ${tendencies.length}`
   );
-  return { promotions, scoutReports };
+  return { promotions, tendencies };
+}
+
+export async function runH54(cycleStartAt) {
+  if (await hasJobRun(cycleStartAt, 'h54')) return { skipped: true };
+  const rosterReports = await generateRosterIntelForAllUsers();
+  await markJobRun(cycleStartAt, 'h54');
+  console.log(`[H54] Gel compo · Rapports espionnage figés : ${rosterReports.length}`);
+  return { rosterReports };
 }
 
 export async function runH71(cycleStartAt) {
@@ -97,6 +105,10 @@ export async function processCycleTick() {
 
   if (hour >= 36 && !(await hasJobRun(cycleStartAt, 'h36'))) {
     actions.push(await runH36(cycleStartAt));
+  }
+
+  if (hour >= 54 && !(await hasJobRun(cycleStartAt, 'h54'))) {
+    actions.push(await runH54(cycleStartAt));
   }
 
   if (hour >= 71 && !(await hasJobRun(cycleStartAt, 'h71'))) {

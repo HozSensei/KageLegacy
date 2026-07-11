@@ -35,6 +35,10 @@
         "short": "H36",
         "title": "Mid-cycle"
       },
+      "freeze": {
+        "short": "H54",
+        "title": "Operational freeze"
+      },
       "operation": {
         "short": "H71",
         "title": "Operation"
@@ -55,12 +59,17 @@
       },
       "mid": {
         "chunin": "Chunin exam verdicts",
-        "scout": "Scout reports and opponent dossiers",
-        "management": "Squad management, training and trades",
+        "scoutTendencies": "Opponent tendencies (recent league matches)",
+        "management": "Adjust lineup based on tendencies",
         "birdFlight": "Bird Flight registrations still open"
       },
+      "freeze": {
+        "composition": "Active trio locked",
+        "scoutRoster": "Full scout report (frozen lineup)",
+        "tactics": "Orders, cards and items adjustable until H71"
+      },
       "operation": {
-        "lock": "Lineup and tactics lock",
+        "lock": "Final orders and tactics lock",
         "simulation": "League match simulation",
         "chronicle": "Progressive chronicle reveal"
       },
@@ -417,6 +426,10 @@
     "scoutPartial": "Partial report — limited intel.",
     "scoutPartialWin": "Partial report — recon win ({pct}% dominance) was not enough for a full dossier.",
     "scoutFull": "Full report — decisive recon win ({pct}% dominance).",
+    "scoutTendenciesTitle": "Tendencies (from {count} match(es))",
+    "scoutRosterTitle": "Spotted unit (H54)",
+    "scoutRosterPending": "Full report on enemy lineup at H54 — adjust your ninjas until then.",
+    "compositionLocked": "Lineup locked since H54 — orders, cards and items still editable until H71.",
     "potential": "potential {level}",
     "postureLabel": "Operation posture",
     "postureHelp": "Set your squad's intent for this cycle. Align it with orders (Offensive, Defensive, Protection) and tactic cards.",
@@ -448,6 +461,7 @@
     "noActiveForStrategy": "No ninja in the active squad — complete your lineup first.",
     "emptySlot": "Open slot",
     "tacticsLocked": "Orders are locked for the Operation (from H71 onward).",
+    "compositionLocked": "Lineup is locked since H54 — only orders, cards and items remain editable until H71.",
     "saving": "Saving…",
     "tacticalSpeed": "Tactical speed",
     "activeCount": "Active",
@@ -512,6 +526,9 @@
     "scoutPartial": "Partial report — limited intel.",
     "scoutPartialWin": "Partial report — recon win ({pct}% dominance) was not enough for a full dossier.",
     "scoutFull": "Full report — decisive recon win ({pct}% dominance).",
+    "scoutTendenciesTitle": "Tendencies (from {count} match(es))",
+    "scoutRosterTitle": "Spotted unit (H54)",
+    "scoutRosterPending": "Full report on enemy lineup at H54 — adjust your ninjas until then.",
     "matchScheduled": "Upcoming",
     "matchSimulated": "Simulated — chronicle at H71",
     "matchLive": "Operation live",

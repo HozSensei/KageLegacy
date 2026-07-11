@@ -5,7 +5,8 @@ const CYCLE_HOURS = 72;
 
 export function computePhase(hour) {
   if (hour < 36) return 'training';
-  if (hour < 71) return 'mid_cycle';
+  if (hour < 54) return 'mid_cycle';
+  if (hour < 71) return 'operation_prep';
   if (hour === 71) return 'operation_live';
   return 'cycle_end';
 }
@@ -25,6 +26,8 @@ export function computeClockState(cycleStartAt, now = new Date(), lastTickHour =
       elapsedHours: hour,
       cycleStartAt: start.toISOString(),
       phase: 'cycle_end',
+      compositionLocked: true,
+      trainingLocked: true,
       tacticsLocked: true,
       cycleComplete: true,
     };
@@ -35,6 +38,8 @@ export function computeClockState(cycleStartAt, now = new Date(), lastTickHour =
     elapsedHours: hour,
     cycleStartAt: start.toISOString(),
     phase: computePhase(hour),
+    compositionLocked: hour >= 54,
+    trainingLocked: hour >= 54,
     tacticsLocked: hour >= 71,
     cycleComplete: false,
   };
@@ -46,7 +51,15 @@ export async function getGameClock() {
   );
   const cycleStart = rows[0]?.cycle_start_at;
   if (!cycleStart) {
-    return { hour: 0, cycleStartAt: null, phase: 'training', tacticsLocked: false, cycleComplete: false };
+    return {
+      hour: 0,
+      cycleStartAt: null,
+      phase: 'training',
+      compositionLocked: false,
+      trainingLocked: false,
+      tacticsLocked: false,
+      cycleComplete: false,
+    };
   }
   return computeClockState(cycleStart, new Date(), rows[0]?.last_tick_hour);
 }
@@ -54,6 +67,16 @@ export async function getGameClock() {
 export async function isTacticsLocked() {
   const clock = await getGameClock();
   return clock.tacticsLocked;
+}
+
+export async function isCompositionLocked() {
+  const clock = await getGameClock();
+  return clock.compositionLocked;
+}
+
+export async function isTrainingLocked() {
+  const clock = await getGameClock();
+  return clock.trainingLocked;
 }
 
 /** Avance d'une heure (outil dev) — conserve cycle_start_at, incrémente last_tick_hour */

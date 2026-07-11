@@ -95,36 +95,55 @@ async function savePosture() {
           {{ t('dossier.scoutLocked') }}
         </p>
         <p
-          v-else-if="dossier.scout?.tier === 'none'"
+          v-else-if="dossier.scout?.lockReason === 'no_recon'"
           class="mt-2 text-xs leading-relaxed text-ink-muted"
         >
           {{ t('dossier.scoutNoRecon', { opponent: dossier.nextMatch?.opponentName ?? '—' }) }}
         </p>
         <template v-else-if="dossier.scout">
-          <p
-            v-if="dossier.scout.tier === 'full'"
-            class="mt-2 text-[10px] uppercase tracking-[0.14em] text-accent"
-          >
-            {{ t('dossier.scoutFull', { pct: dossier.scout.reconScorePct ?? '—' }) }}
+          <div v-if="dossier.scout.historicalTendencies?.lines?.length" class="mt-2">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              {{ t('dossier.scoutTendenciesTitle', { count: dossier.scout.historicalTendencies.sampleSize }) }}
+            </p>
+            <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
+              <li v-for="(line, i) in dossier.scout.historicalTendencies.lines" :key="`tend-${i}`">{{ line }}</li>
+            </ul>
+          </div>
+          <p v-if="dossier.scout.rosterPending" class="mt-3 text-xs text-ink-faint">
+            {{ t('dossier.scoutRosterPending') }}
           </p>
-          <p
-            v-else-if="dossier.scout.reconOutcome === 'win'"
-            class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint"
-          >
-            {{ t('dossier.scoutPartialWin', { pct: dossier.scout.reconScorePct ?? '—' }) }}
-          </p>
-          <p v-else class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-            {{ t('dossier.scoutPartial') }}
-          </p>
-          <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink-muted">
-            <li v-for="(line, i) in dossier.scout.lines" :key="`scout-${i}`">{{ line }}</li>
-          </ul>
-          <ul v-if="dossier.scout.profiles?.length" class="mt-4 space-y-1 border-t border-line/50 pt-3 text-xs text-ink-faint">
-            <li v-for="(profile, i) in dossier.scout.profiles" :key="`prof-${i}`">
-              {{ profile.artLabel }} · {{ t('dossier.potential', { level: profile.potentialHint }) }}
-              <span v-if="profile.element"> · {{ profile.element }}</span>
-            </li>
-          </ul>
+          <template v-else-if="dossier.scout.phase === 'roster'">
+            <p
+              v-if="dossier.scout.tier === 'full'"
+              class="mt-3 text-[10px] uppercase tracking-[0.14em] text-accent"
+            >
+              {{ t('dossier.scoutFull', { pct: dossier.scout.reconScorePct ?? '—' }) }}
+            </p>
+            <p
+              v-else-if="dossier.scout.reconOutcome === 'win'"
+              class="mt-3 text-[10px] uppercase tracking-[0.14em] text-ink-faint"
+            >
+              {{ t('dossier.scoutPartialWin', { pct: dossier.scout.reconScorePct ?? '—' }) }}
+            </p>
+            <p v-else class="mt-3 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              {{ t('dossier.scoutPartial') }}
+            </p>
+            <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              {{ t('dossier.scoutRosterTitle') }}
+            </p>
+            <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
+              <li v-for="(line, i) in dossier.scout.rosterReport?.lines ?? []" :key="`scout-${i}`">{{ line }}</li>
+            </ul>
+            <ul v-if="dossier.scout.anomalyFlags?.length" class="mt-2 space-y-1 text-xs text-amber-700/90">
+              <li v-for="(flag, k) in dossier.scout.anomalyFlags" :key="`flag-${k}`">{{ flag }}</li>
+            </ul>
+            <ul v-if="dossier.scout.profiles?.length" class="mt-4 space-y-1 border-t border-line/50 pt-3 text-xs text-ink-faint">
+              <li v-for="(profile, i) in dossier.scout.profiles" :key="`prof-${i}`">
+                {{ profile.artLabel }} · {{ t('dossier.potential', { level: profile.potentialHint }) }}
+                <span v-if="profile.element"> · {{ profile.element }}</span>
+              </li>
+            </ul>
+          </template>
         </template>
       </div>
     </div>
@@ -156,6 +175,9 @@ async function savePosture() {
       >
         {{ t('dossier.rulesLink') }}
       </RouterLink>
+      <p v-if="dossier.compositionLocked && !dossier.tacticsLocked" class="mt-2 text-xs text-ink-muted">
+        {{ t('dossier.compositionLocked') }}
+      </p>
       <p v-if="dossier.tacticsLocked" class="mt-2 text-xs text-fire">{{ t('dossier.locked') }}</p>
     </div>
 
