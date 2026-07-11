@@ -8,7 +8,8 @@ describe('Interface — locale', () => {
   it('bascule en anglais sur le Bureau', () => {
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-locale-en"]').click();
-    cy.get('[data-testid="nav-menu-button"]').click();
+    cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
+    cy.openNavMenu();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
     cy.get('[data-testid="missions-panel"]').contains('Contract tier');
   });
@@ -16,12 +17,15 @@ describe('Interface — locale', () => {
   it('revient en français', () => {
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-locale-en"]').click();
-    cy.get('[data-testid="nav-menu-button"]').click();
+    cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
+    cy.openNavMenu();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
+    cy.closeSlidePanel();
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-menu-panel"]').should('be.visible');
     cy.get('[data-testid="profile-locale-fr"]').click();
-    cy.get('[data-testid="nav-menu-button"]').click();
+    cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
+    cy.openNavMenu();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Escouade');
     cy.get('[data-testid="missions-panel"]').contains('Palier du contrat');
   });
@@ -31,12 +35,13 @@ describe('Interface — locale', () => {
       expect(result.ok).to.eq(true);
       cy.get('[data-testid="profile-menu-button"]').click();
       cy.get('[data-testid="profile-locale-en"]').click();
+      cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
       cy.visit(
         `/operation/match/${result.matchId}?poolId=${result.poolId}&cycle=${result.cycle}`
       );
       cy.get('[data-testid="operation-chronicle"]', { timeout: 15000 }).should('be.visible');
       cy.get('[data-testid="operation-chronicle"]').invoke('text').should('have.length.gte', 20);
-      cy.get('[data-testid="nav-menu-button"]').click();
+      cy.openNavMenu();
       cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
     });
   });
