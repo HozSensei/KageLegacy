@@ -66,6 +66,7 @@ async function setLanguage(lang) {
   if (ok) {
     locale.value = lang
     if (squad.sensei) squad.sensei.language = lang
+    close()
   } else {
     formError.value = auth.error
   }
