@@ -33,6 +33,7 @@ async function deleteUserByUsername(username) {
   const rows = await query('SELECT id FROM users WHERE username = ? LIMIT 1', [username]);
   if (!rows[0]) return;
   const userId = rows[0].id;
+
   await query(
     'DELETE FROM reconnaissance_challenges WHERE challenger_user_id = ? OR defender_user_id = ?',
     [userId, userId]
@@ -41,6 +42,9 @@ async function deleteUserByUsername(username) {
     'DELETE FROM reconnaissance_missions WHERE home_user_id = ? OR away_user_id = ?',
     [userId, userId]
   );
+  await query('DELETE FROM matches WHERE home_user_id = ? OR away_user_id = ?', [userId, userId]);
+  await query('DELETE FROM pool_standings WHERE user_id = ?', [userId]);
+  await query('DELETE FROM pool_members WHERE user_id = ?', [userId]);
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 
@@ -108,9 +112,13 @@ async function main() {
   );
   console.log('\n✅ Tous les tests reconnaissance ont réussi.');
 
-  await deleteUserByUsername('playtest_recon_a');
-  await deleteUserByUsername('playtest_recon_b');
-  await deleteUserByUsername('playtest_recon_c');
+  try {
+    await deleteUserByUsername('playtest_recon_a');
+    await deleteUserByUsername('playtest_recon_b');
+    await deleteUserByUsername('playtest_recon_c');
+  } catch (cleanupError) {
+    console.warn('⚠ Nettoyage partiel:', cleanupError.message);
+  }
 }
 
 main()
