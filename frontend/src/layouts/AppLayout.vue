@@ -6,12 +6,11 @@ import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
 import { useEliteStore } from '../stores/elite'
 import { useGameClockLabel } from '../composables/useGameClockLabel.js'
+import AppNavDrawer from '../components/layout/AppNavDrawer.vue'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
 import PageHero from '../components/layout/PageHero.vue'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
-import VerifiedIcon from '../components/icons/VerifiedIcon.vue'
-
 defineOptions({ name: 'AppLayout' })
 
 const { t, locale } = useI18n()
@@ -99,11 +98,20 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen bg-bg">
     <header class="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur-md">
-      <!-- Barre 1 : identité + notifications + profil -->
       <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-10 sm:py-3.5">
+        <AppNavDrawer v-if="auth.user" :nav-items="navItems" :is-active="isActive" />
+
         <router-link to="/bureau" class="shrink-0 font-display text-lg text-ink transition hover:text-accent sm:text-xl">
           {{ t('app.name') }}
         </router-link>
+
+        <span
+          v-if="auth.user && store.gameClock"
+          class="hidden shrink-0 text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline"
+          data-testid="header-game-clock"
+        >
+          {{ cycleLabel }}
+        </span>
 
         <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationBell v-if="auth.user" />
@@ -121,32 +129,6 @@ onMounted(async () => {
           >
             {{ t('auth.register') }}
           </router-link>
-        </div>
-      </div>
-
-      <!-- Barre 2 : navigation jeu + horloge -->
-      <div class="border-t border-line">
-        <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2.5 sm:px-10">
-          <nav class="flex min-w-0 flex-1 gap-5 overflow-x-auto lg:gap-8">
-            <router-link
-              v-for="item in navItems"
-              :key="item.name"
-              :to="item.path"
-              class="nav-link shrink-0 inline-flex items-center gap-1"
-              :class="{ 'nav-link-active': isActive(item.path) }"
-              :data-testid="`nav-${item.name}`"
-            >
-              {{ t(item.label) }}
-              <VerifiedIcon v-if="item.elite" size="0.875rem" />
-            </router-link>
-          </nav>
-          <span
-            v-if="store.gameClock"
-            class="hidden shrink-0 text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline"
-            data-testid="header-game-clock"
-          >
-            {{ cycleLabel }}
-          </span>
         </div>
       </div>
     </header>

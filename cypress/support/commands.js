@@ -34,6 +34,7 @@ Cypress.Commands.add('visitNav', (name) => {
   if (name === 'bureau') {
     cy.visit('/bureau');
   } else {
+    cy.get('[data-testid="nav-menu-button"]').click();
     cy.get(`[data-testid="nav-${name}"]`).first().click();
   }
   cy.url().should('include', page.path === '/bureau' ? '/bureau' : page.path);
