@@ -101,8 +101,32 @@ function mapUserCard(row) {
 
 export async function getTacticCardsForUser(userId) {
   const rows = await query(
-    `SELECT utc.*, tcd.*, ntc.ninja_id AS equipped_ninja_id, n.name AS equipped_ninja_name,
-            pl.id AS listing_id
+    `SELECT
+       utc.id,
+       utc.user_id,
+       utc.tactic_card_definition_id,
+       utc.charges_remaining,
+       utc.acquired_at,
+       tcd.slug,
+       tcd.name_fr,
+       tcd.name_en,
+       tcd.description_fr,
+       tcd.description_en,
+       tcd.rarity,
+       tcd.card_type,
+       tcd.stat_type,
+       tcd.element_affinity,
+       tcd.trigger_kind,
+       tcd.trigger_params,
+       tcd.target_kind,
+       tcd.target_params,
+       tcd.effect_kind,
+       tcd.effect_params,
+       tcd.catalog_price,
+       tcd.narrative_key,
+       ntc.ninja_id AS equipped_ninja_id,
+       n.name AS equipped_ninja_name,
+       pl.id AS listing_id
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      LEFT JOIN ninja_tactic_cards ntc ON ntc.user_tactic_card_id = utc.id

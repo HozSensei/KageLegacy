@@ -85,6 +85,16 @@ async function main() {
   const cardsAfter = await getTacticCardsForUser(userId);
   console.assert(cardsAfter.length === 3, 'still 3 cards after second ensure');
 
+  const duplicateSlug = 'tai-parade-ecole';
+  await grantTacticCard(userId, duplicateSlug);
+  await grantTacticCard(userId, duplicateSlug);
+  const duplicates = (await getTacticCardsForUser(userId)).filter((c) => c.slug === duplicateSlug);
+  console.assert(duplicates.length >= 2, 'duplicate card copies listed');
+  console.assert(
+    new Set(duplicates.map((c) => c.id)).size === duplicates.length,
+    'each card copy has a distinct user_tactic_card id'
+  );
+
   const cardId = cards[0].id;
   await equipTacticCard(userId, ninjaId, cardId);
   const equipped = await getTacticCardsForUser(userId);

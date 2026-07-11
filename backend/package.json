@@ -21,6 +21,7 @@
     "economy:simulate": "node scripts/simulateEconomyCycles.js",
     "economy:calibrate": "node scripts/calibrateEconomy.js",
     "test:daily-seal": "node scripts/testDailySealImport.js",
+    "test:tactic-cards": "node scripts/testTacticCards.js",
     "audit:imports": "node scripts/auditCrossImports.js",
     "test:narrative": "node scripts/testNarrativeEngine.js",
     "test:egoiste": "node scripts/testEgoisteInsubordination.js",
