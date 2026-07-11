@@ -211,7 +211,6 @@ async function upsertIntelRow({
   tendenciesSampleSize = undefined,
   tendenciesReliability = undefined,
   rosterReport = undefined,
-  reconMeta = undefined,
   rosterFrozenAt = undefined,
   tendenciesGeneratedAt = undefined,
 }) {
@@ -221,8 +220,8 @@ async function upsertIntelRow({
       `INSERT INTO cycle_scout_intel
          (cycle_start_at, pool_id, viewer_user_id, opponent_user_id, season_cycle,
           tendencies_json, tendencies_sample_size, tendencies_reliability,
-          roster_report_json, recon_meta_json, roster_frozen_at, tendencies_generated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          roster_report_json, roster_frozen_at, tendencies_generated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         cycleStartAt,
         poolId,
@@ -233,7 +232,6 @@ async function upsertIntelRow({
         tendenciesSampleSize ?? 0,
         tendenciesReliability ?? 'none',
         rosterReport ? JSON.stringify(rosterReport) : null,
-        reconMeta ? JSON.stringify(reconMeta) : null,
         rosterFrozenAt ?? null,
         tendenciesGeneratedAt ?? null,
       ]
@@ -255,7 +253,6 @@ async function upsertIntelRow({
   set('tendencies_sample_size', tendenciesSampleSize);
   set('tendencies_reliability', tendenciesReliability);
   set('roster_report_json', rosterReport ? JSON.stringify(rosterReport) : undefined);
-  set('recon_meta_json', reconMeta ? JSON.stringify(reconMeta) : undefined);
   set('roster_frozen_at', rosterFrozenAt);
   set('tendencies_generated_at', tendenciesGeneratedAt);
 
@@ -326,7 +323,6 @@ export async function getIntelForUser(userId, seasonCycle, locale = 'fr') {
     tendenciesSampleSize: row.tendencies_sample_size,
     tendenciesReliability: row.tendencies_reliability,
     rosterReport: parseJson(row.roster_report_json),
-    reconMeta: parseJson(row.recon_meta_json),
     rosterFrozenAt: row.roster_frozen_at,
     tendenciesGeneratedAt: row.tendencies_generated_at,
   };
@@ -342,4 +338,4 @@ export async function ensureIntelForHour(userId, seasonCycle, hour, locale = 'fr
   return intel;
 }
 
-export { upsertIntelRow, loadIntelRow };
+export { upsertIntelRow };

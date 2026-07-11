@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Test cycle espionnage : tendances H36, gel H54, snapshot figé.
+ * Test cycle espionnage : tendances H36, gel H54, lien reconnaissance, snapshot figé.
  * Usage: npm run test:scout-cycle
  */
 import dotenv from 'dotenv';
@@ -14,6 +14,7 @@ import { joinOrCreatePool, findUserPool } from '../src/services/poolService.js';
 import { startMatchmaking } from '../src/services/reconnaissanceService.js';
 import {
   buildHistoricalTendencies,
+  buildSquadSnapshotFromNinjas,
   computeReliability,
   generateTendenciesIntelForUser,
 } from '../src/services/scoutIntelService.js';
@@ -21,7 +22,7 @@ import {
   buildAndPersistRosterIntel,
   generateScoutReport,
 } from '../src/services/scouting.js';
-import { buildSquadSnapshotFromNinjas } from '../src/services/scoutIntelService.js';
+import { getUserMatchForCycle } from '../src/services/matchService.js';
 import { isCompositionLocked } from '../src/services/gameClock.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -151,7 +152,14 @@ async function main() {
   });
 
   await setHourDev(18);
-  await startMatchmaking(user.id);
+  await advanceToHourDev(40);
+  const scoutBeforeRecon = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
+  assert(scoutBeforeRecon?.lockReason === 'no_recon', 'sans recon → no_recon');
+  assert(scoutBeforeRecon.phase === 'none', 'phase none sans recon');
+
+  await setHourDev(18);
+  const reconFight = await startMatchmaking(user.id);
+  assert(reconFight.missionId, 'mission de reconnaissance jouée');
 
   await advanceToHourDev(40);
   const tendenciesIntel = await generateTendenciesIntelForUser(user.id, userPool.current_cycle, 'fr');
@@ -170,7 +178,9 @@ async function main() {
 
   const scoutH55 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(scoutH55.phase === 'roster', 'phase roster à H55');
+  assert(['partial', 'full'].includes(scoutH55.tier), `tier partial ou full (got ${scoutH55.tier})`);
   assert(scoutH55.rosterFrozen, 'snapshot figé');
+  assert(await getUserMatchForCycle(user.id, userPool.current_cycle), 'match ligue');
   const scoutH60 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(
     JSON.stringify(scoutH60.rosterReport) === JSON.stringify(scoutH55.rosterReport),

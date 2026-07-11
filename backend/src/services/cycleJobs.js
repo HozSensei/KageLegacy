@@ -2,7 +2,8 @@ import { query } from '../config/database.js';
 import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gameClock.js';
 import { processTrainingBillingForAllUsers } from './trainingBilling.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
-import { generateScoutReportsForAllUsers, generateRosterIntelForAllUsers } from './scouting.js';
+import { generateTendenciesIntelForAllUsers } from './scoutIntelService.js';
+import { generateRosterIntelForAllUsers } from './scouting.js';
 import {
   applyAllPoolsMatchResults,
   simulateAllPoolsCurrentCycle,
@@ -34,7 +35,7 @@ async function markJobRun(cycleStartAt, jobName) {
 export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
   const promotions = await processChuninExamsForAllUsers();
-  const { tendencies } = await generateScoutReportsForAllUsers();
+  const tendencies = await generateTendenciesIntelForAllUsers();
   await markJobRun(cycleStartAt, 'h36');
   console.log(
     `[H36] Examens Chunin : ${promotions.length} candidat(s) · Tendances espionnage : ${tendencies.length}`

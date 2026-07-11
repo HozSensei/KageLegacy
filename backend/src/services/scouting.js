@@ -146,7 +146,7 @@ function scoutQualityRoll(missionId, userId) {
   return hash.readUInt32BE(0) % 100;
 }
 
-export function resolveScoutTier(mission, userId) {
+function resolveScoutTier(mission, userId) {
   const { outcome, scorePct, missionId } = mission;
   if (outcome === 'loss' || outcome === 'draw') {
     return {
@@ -188,7 +188,7 @@ function buildPartialRosterReport(fullReport, lang) {
   return { ...fullReport, tier: 'partial', lines, profiles };
 }
 
-export async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opponentIsBot, match, ninjas, lang) {
+async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opponentIsBot, match, ninjas, lang) {
   const strategies = analyzeStrategies(ninjas);
   const speed = ninjas.reduce((s, n) => s + n.vitesse + n.intelligence, 0);
   const element = dominantElement(ninjas);
@@ -291,7 +291,6 @@ export async function buildAndPersistRosterIntel(userId, seasonCycle, locale = '
       opponentUserId: opponentId,
       seasonCycle,
       rosterReport,
-      reconMeta,
       rosterFrozenAt: new Date(),
     });
   }
@@ -384,10 +383,10 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
       historicalTendencies: null,
       rosterReport: null,
       anomalyFlags: null,
-      lines: [],
-      profiles: [],
     };
   }
+
+  const reconMeta = resolveScoutTier(reconMission, userId);
 
   await ensureIntelForHour(userId, seasonCycle, hour, lang);
   let intel = await getIntelForUser(userId, seasonCycle, lang);
@@ -411,13 +410,11 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
       lockReason: null,
       opponentName,
       opponentIsBot,
-      reconOutcome: resolveScoutTier(reconMission, userId).reconOutcome,
+      reconOutcome: reconMeta.reconOutcome,
       historicalTendencies: tendenciesPayload,
       rosterReport: null,
       rosterPending: true,
       anomalyFlags: null,
-      lines: tendenciesPayload?.lines ?? [],
-      profiles: [],
     };
   }
 
@@ -441,21 +438,8 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
     tier: rosterReport?.tier ?? 'partial',
     reconOutcome: rosterReport?.reconOutcome ?? null,
     reconScorePct: rosterReport?.reconScorePct ?? null,
-    fullReportChance: rosterReport?.fullReportChance ?? null,
-    fullReportRoll: rosterReport?.fullReportRoll ?? null,
-    lines: [
-      ...(tendenciesPayload?.lines ?? []),
-      ...(rosterReport?.lines ?? []),
-    ],
     profiles: rosterReport?.profiles ?? [],
     tendencies: rosterReport?.tendencies ?? null,
     rosterFrozen: Boolean(intel?.rosterFrozenAt),
   };
-}
-
-export async function generateScoutReportsForAllUsers() {
-  const tendencies = await import('./scoutIntelService.js').then((m) =>
-    m.generateTendenciesIntelForAllUsers()
-  );
-  return { tendencies };
 }
