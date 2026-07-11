@@ -37,12 +37,12 @@ Pour permettre à des amis de s'affronter directement sans attendre les mécanis
 À la fin de chaque match de cycle (**H72**, après l'heure live narrative), la table `Classement_Pool` attribue les points :
 * 🟢 **Victoire (par K.O. ou aux Points) :** 3 Points
 * 🟡 **Match Nul :** 1 Point
-* 🔴 **Défaite :** 0 Point
+* 🔴 **Défaite :** 0 Point · **100 Ryos** consolation + butin bonus (objet / carte)
 
 **Primes Ryos (H72, humains uniquement)** — `matchEconomy.js` :
-* 🟢 **Victoire :** 1 600 Ryos
-* 🟡 **Nul :** 800 Ryos
-* 🔴 **Défaite :** 0 Ryos
+* 🟢 **Victoire :** 1 600 Ryos + butin bonus (Ryos, objet aléatoire, chance de carte)
+* 🟡 **Nul :** 800 Ryos + butin bonus
+* 🔴 **Défaite :** 100 Ryos consolation + butin bonus
 
 L'idée : le match hebdomadaire est la principale source de revenus pour couvrir salaires et dépenses club ; sans victoire ni activité (missions, marché), la trésorerie se tend.
 

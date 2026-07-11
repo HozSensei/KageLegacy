@@ -275,10 +275,7 @@ const externalOpponents = computed(() =>
             <p class="section-label">{{ t('league.reconTitle') }}</p>
             <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('league.reconLead') }}</p>
             <p class="mt-2 text-[10px] text-ink-faint">
-              {{ t('league.reconRewards', {
-                win: recon?.rewards?.winRyos ?? 500,
-                draw: recon?.rewards?.drawRyos ?? 250,
-              }) }}
+              {{ t('league.reconRewards') }}
             </p>
 
             <p v-if="reconError" class="mt-3 text-xs text-fire">{{ reconError }}</p>
@@ -332,6 +329,12 @@ const externalOpponents = computed(() =>
               <span class="text-ink-muted"> · {{ recon.lastMission.opponentName }}</span>
               <span v-if="recon.lastMission.awayIsBot" class="text-ink-faint">{{ t('league.botParen') }}</span>
               <span v-if="recon.lastMission.ryos" class="ml-2 text-accent">+{{ recon.lastMission.ryos }} Ryos</span>
+              <span v-if="recon.lastMission.loot?.items?.length" class="ml-2 text-ink-muted">
+                · {{ recon.lastMission.loot.items.map((i) => i.slug).join(', ') }}
+              </span>
+              <span v-if="recon.lastMission.loot?.tacticCard?.slug" class="ml-2 text-accent">
+                · {{ recon.lastMission.loot.tacticCard.slug }}
+              </span>
             </p>
 
             <div v-if="externalOpponents.length && canReconAct" class="mt-6">

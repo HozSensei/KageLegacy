@@ -33,7 +33,8 @@
     "pool:repair-schedules": "node scripts/repairPoolSchedules.js",
     "season:hard-reset": "node scripts/seasonHardReset.js",
     "test:season-hard-reset": "node scripts/testSeasonHardReset.js",
-    "test:reconnaissance": "node scripts/testReconnaissance.js"
+    "test:reconnaissance": "node scripts/testReconnaissance.js",
+    "test:combat-loot": "node scripts/testCombatLoot.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

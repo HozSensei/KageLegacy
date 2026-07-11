@@ -178,8 +178,9 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 
 | Source | Montant |
 |--------|---------|
-| Victoire ligue | 1600 Ryos |
-| Nul ligue | 800 Ryos |
+| Victoire ligue | 1 600 Ryos (+ butin bonus : Ryos, objet, carte) |
+| Nul ligue | 800 Ryos (+ butin bonus) |
+| Défaite ligue | 100 Ryos consolation (+ butin bonus) |
 | Missions | 300–1000 |
 | Vol d’Oiseau | 3000 + stats×150 |
 
@@ -208,7 +209,7 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 
 **Académie rotative** : **3 aspirants Genin** visibles en permanence au Bureau. Toutes les **24 h (UTC)**, l'aspirant le plus ancien expire ; les deux autres glissent ; un nouveau apparaît. Recrutement possible tant que l'opération n'est pas gelée (H71+). Le **Sceau d'Or** (jackpot du Sceau de Chakra quotidien) force le prochain aspirant en **Prodige** ou **lignée Noble**.
 
-**Sceau de Chakra (rituel quotidien)** : 1 sceau gratuit/jour (minuit UTC), stock max **3**. Ouverture au Bureau — loot 70 % commun / 20 % rare / 9 % épique / 1 % jackpot.
+**Sceau de Chakra (rituel quotidien)** : 1 sceau gratuit/jour (minuit UTC), stock max **3**. Ouverture au Bureau — butin de base (Ryos + objet aléatoire + chance de carte) puis palier 70 % commun / 20 % rare / 9 % épique (moral) / 1 % jackpot (Sceau d'Or Académie).
 
 **Magasin** : stock personnel, réassort tous les 3 cycles de ligue, 2 promos −20 % par cycle.
 
@@ -254,7 +255,7 @@ Combat d’entraînement pour tester sa composition avant le match de ligue — 
 
 - **Matchmaking** : adversaire humain de niveau proche, sinon bot de la ligue.
 - **Défi direct** : depuis le menu Ligue (pool ou autre ligue proche) ; le défenseur accepte.
-- **Conséquences** : combat réel, perte de forme possible sur K.O., primes modérées (500/250/0 Ryos), pas d’impact au classement.
+- **Conséquences** : combat réel, perte de forme possible sur K.O. ; butin Ryos + objet aléatoire + chance de carte (y compris en défaite) ; pas d’impact au classement.
 
 ---
 
@@ -325,11 +326,11 @@ POINTS_WIN_MARGIN = 0,045  (soit 4,5 %)
 
 ### Conséquences du résultat
 
-| Résultat | Points ligue | Prime Ryos (H72) | Score affiché |
-|----------|--------------|------------------|---------------|
-| Victoire | 3 | 1600 | 1–0 (aux points) ou 2–0 (K.O.) |
-| Nul | 1 chacun | 800 chacun | 1–1 |
-| Défaite | 0 | 0 | 0–1 ou 0–2 |
+| Résultat | Points ligue | Prime Ryos (H72) | Butin bonus | Score affiché |
+|----------|--------------|------------------|-------------|---------------|
+| Victoire | 3 | 1 600 | Ryos + objet + carte | 1–0 (aux points) ou 2–0 (K.O.) |
+| Nul | 1 chacun | 800 chacun | idem (odds réduites) | 1–1 |
+| Défaite | 0 | 100 consolation | idem (odds réduites) | 0–1 ou 0–2 |
 
 ### Ce qui influence le score (sans décider directement)
 

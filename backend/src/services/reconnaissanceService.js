@@ -10,16 +10,16 @@ import {
 import { consumeUserItem } from './equipmentService.js';
 import { persistTacticCardCombatUsage } from './tacticCards/tacticCardPersistence.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
-import { grantItemToUser } from './itemGrantService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 import { squadAveragePower } from './combat/squadPowerScaling.js';
-import { rollPercent } from './missionRules.js';
+import { grantReconnaissanceLoot } from './combatLootService.js';
 
 export const RECON_MIN_HOUR = 36;
 export const RECON_MAX_HOUR = 70;
+/** Fourchettes indicatives — le tirage réel est dans combatLootService. */
 export const RECON_WIN_RYOS = 500;
 export const RECON_DRAW_RYOS = 250;
-export const RECON_LOSS_RYOS = 0;
+export const RECON_LOSS_RYOS = 80;
 const POWER_TOLERANCE = 0.22;
 const DIVISION_TOLERANCE = 1;
 
@@ -36,23 +36,15 @@ function outcomeForUser(result, userId, homeUserId) {
   return homeWon === isHome ? 'win' : 'loss';
 }
 
-function ryosForOutcome(outcome) {
-  if (outcome === 'win') return RECON_WIN_RYOS;
-  if (outcome === 'draw') return RECON_DRAW_RYOS;
-  return RECON_LOSS_RYOS;
-}
-
-function rollBonusLoot() {
-  if (rollPercent() > 15) return [];
-  return [{ slug: 'pansement-terrain', quantity: 1 }];
-}
-
-async function creditRyos(userId, amount) {
-  if (!amount) return 0;
-  const rows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
-  if (!rows[0] || rows[0].is_bot) return 0;
-  await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [amount, userId]);
-  return amount;
+function serializeLootGrant(grant) {
+  if (!grant) return null;
+  return {
+    ryos: grant.ryos ?? 0,
+    items: grant.items ?? [],
+    tacticCard: grant.tacticCard
+      ? { slug: grant.tacticCard.slug, userTacticCardId: grant.tacticCard.userTacticCardId }
+      : null,
+  };
 }
 
 async function getUserSquadPower(userId) {
@@ -228,25 +220,13 @@ async function executeReconnaissanceFight({
 
   const homeOutcome = outcomeForUser(result, homeUserId, homeUserId);
   const awayOutcome = outcomeForUser(result, awayUserId, homeUserId);
-  const homeRyos = ryosForOutcome(homeOutcome);
-  const awayRyos = awayIsBot ? 0 : ryosForOutcome(awayOutcome);
 
-  const homeLoot = homeOutcome === 'win' ? rollBonusLoot() : [];
-  const awayLoot = !awayIsBot && awayOutcome === 'win' ? rollBonusLoot() : [];
-
-  if (homeLoot?.length) {
-    for (const entry of homeLoot) {
-      await grantItemToUser(homeUserId, entry.slug, entry.quantity);
-    }
-  }
-  if (awayLoot?.length) {
-    for (const entry of awayLoot) {
-      await grantItemToUser(awayUserId, entry.slug, entry.quantity);
-    }
-  }
-
-  await creditRyos(homeUserId, homeRyos);
-  if (!awayIsBot) await creditRyos(awayUserId, awayRyos);
+  const homeGrant = await grantReconnaissanceLoot(homeUserId, homeOutcome);
+  const awayGrant = awayIsBot ? null : await grantReconnaissanceLoot(awayUserId, awayOutcome);
+  const homeRyos = homeGrant.ryos;
+  const awayRyos = awayGrant?.ryos ?? 0;
+  const homeLoot = serializeLootGrant(homeGrant);
+  const awayLoot = awayGrant ? serializeLootGrant(awayGrant) : null;
 
   const combatLogPayload = {
     logs: combat.logs,
@@ -280,8 +260,8 @@ async function executeReconnaissanceFight({
       JSON.stringify(combatLogPayload),
       homeRyos,
       awayRyos,
-      homeLoot.length ? JSON.stringify(homeLoot) : null,
-      awayLoot.length ? JSON.stringify(awayLoot) : null,
+      homeLoot ? JSON.stringify(homeLoot) : null,
+      awayLoot ? JSON.stringify(awayLoot) : null,
     ]
   );
 
@@ -669,6 +649,8 @@ export async function getReconnaissanceState(userId) {
       winRyos: RECON_WIN_RYOS,
       drawRyos: RECON_DRAW_RYOS,
       lossRyos: RECON_LOSS_RYOS,
+      includesItem: true,
+      includesTacticCardChance: true,
     },
   };
 }

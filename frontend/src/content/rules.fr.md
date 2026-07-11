@@ -382,7 +382,7 @@ Combat d'entraînement pour **tester votre composition** avant le match de ligue
 | **Matchmaking** | Adversaire humain de division et puissance proches ; sinon un **bot** de la ligue. |
 | **Défi direct** | Depuis le menu Ligue : défier un membre de votre pool ou d'une autre ligue (division proche). Le défenseur doit **accepter**. |
 
-**Conséquences** : moteur de combat réel (objets, cartes tactiques, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Primes** modérées (500 Ryos victoire, 250 nul, 0 défaite) et petit butin bonus possible. N'affecte **pas** le classement de ligue.
+**Conséquences** : moteur de combat réel (objets, cartes tactiques, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte tactique (y compris en défaite). N'affecte **pas** le classement de ligue.
 
 ### Invitation
 
@@ -425,11 +425,11 @@ La **possession** (temps d'initiative) sert à la narration et au débrief — e
 
 ### Conséquences (à H72)
 
-| Résultat | Points ligue | Prime Ryos |
-|----------|--------------|------------|
-| Victoire | 3 | Élevée |
-| Nul | 1 chacun | Modérée |
-| Défaite | 0 | Aucune |
+| Résultat | Points ligue | Prime Ryos (base) | Butin bonus |
+|----------|--------------|-------------------|-------------|
+| Victoire | 3 | 1 600 | Ryos supplémentaires + objet aléatoire + chance de carte |
+| Nul | 1 chacun | 800 | Idem (probabilités réduites) |
+| Défaite | 0 | 100 (consolation) | Idem (probabilités réduites) |
 
 ---
 

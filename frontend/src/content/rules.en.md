@@ -382,7 +382,7 @@ Sparring combat to **test your squad** before the league match, without waiting 
 | **Matchmaking** | Human opponent of similar division and power; otherwise a **league bot**. |
 | **Direct challenge** | From the League screen: challenge a pool member or a nearby-division player from another league. Defender must **accept**. |
 
-**Consequences**: real combat engine (gear, tactic cards, environment); K.O.s can **lower form** like league matches. **Payouts** are modest (500 Ryos win, 250 draw, 0 loss) with a small bonus loot chance. Does **not** affect league standings.
+**Consequences**: real combat engine (gear, tactic cards, environment); K.O.s can **lower form** like league matches. **Loot**: Ryos + random consumable + tactic card chance (even on a loss). Does **not** affect league standings.
 
 ### Invitation
 
@@ -425,11 +425,11 @@ The **Sensei** may try to **intercept a fatal blow** on a ninja: this spends mat
 
 ### Consequences (at H72)
 
-| Result | League points | Ryos payout |
-|--------|---------------|-------------|
-| Win | 3 | High |
-| Draw | 1 each | Moderate |
-| Loss | 0 | None |
+| Result | League points | Base Ryos (H72) | Bonus loot |
+|--------|---------------|-----------------|------------|
+| Win | 3 | 1,600 | Extra Ryos + random consumable + tactic card chance |
+| Draw | 1 each | 800 each | Same (lower odds) |
+| Loss | 0 | 100 (consolation) | Same (lower odds) |
 
 ---
 
