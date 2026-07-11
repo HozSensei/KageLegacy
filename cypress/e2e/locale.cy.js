@@ -20,6 +20,7 @@ describe('Interface — locale', () => {
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
+    cy.closeSlidePanel();
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-menu-panel"]').should('be.visible');
     cy.get('[data-testid="profile-locale-fr"]').click();
