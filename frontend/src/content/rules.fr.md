@@ -12,8 +12,8 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 
 | Phase | Période | Activités principales |
 |-------|---------|------------------------|
-| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), espionnage, mission de reconnaissance (combat d'entraînement), gestion continue |
+| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie, **mission de reconnaissance (H0–H36)** |
+| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d'espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
 
@@ -23,8 +23,8 @@ Une fois l'opération lancée, les choix stratégiques sont **verrouillés** jus
 
 ### Jalons automatiques
 
+- **H0 → H36** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
 - **H36** : résolution des examens Chunin inscrits ; rapport d'espionnage sur l'adversaire du cycle.
-- **H36 → H70** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
 - **H71** : simulation du match de ligue ; début de la chronique narrative.
 - **H72** : clôture économique et début du cycle suivant.
 
@@ -373,9 +373,9 @@ En cas d'égalité de points : victoires, puis matchs joués.
 
 Rapport sur l'adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice sur l'environnement probable. Les informations restent **partielles** — pas de lecture exacte des stats adverses.
 
-### Mission de reconnaissance (H36 → H70)
+### Mission de reconnaissance (H0 → H36)
 
-Combat d'entraînement pour **tester votre composition** avant le match de ligue, sans attendre H71. **Une mission par cycle** par Sensei.
+Combat d'entraînement pour **tester votre composition** pendant la phase de préparation, avant le gel tactique de l'opération. **Une mission par cycle** par Sensei.
 
 | Mode | Fonctionnement |
 |------|----------------|

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Test mission de reconnaissance : matchmaking bot, défi PvP, fenêtre H36–H70.
+ * Test mission de reconnaissance : matchmaking bot, défi PvP, fenêtre H0–H36.
  * Usage: npm run test:reconnaissance
  */
 import dotenv from 'dotenv';
@@ -63,9 +63,9 @@ async function createPlaytestUser(username) {
 async function main() {
   console.log('=== Test mission de reconnaissance ===\n');
 
-  await setHourDev(36);
+  await setHourDev(18);
   const clock = await getGameClock();
-  assert(clock.hour === 36, `horloge H36 (actuel H${clock.hour})`);
+  assert(clock.hour === 18, `horloge H18 (actuel H${clock.hour})`);
 
   const userA = await createPlaytestUser('playtest_recon_a');
   const userB = await createPlaytestUser('playtest_recon_b');
@@ -75,7 +75,7 @@ async function main() {
   const cycleStartAt = (await getClockRow()).cycle_start_at;
 
   const stateA = await getReconnaissanceState(userA.id);
-  assert(stateA.available, 'fenêtre recon ouverte à H36');
+  assert(stateA.available, 'fenêtre recon ouverte à H18');
   assert(!stateA.played, 'pas encore joué');
 
   const challenge = await createChallenge(userB.id, userC.id);

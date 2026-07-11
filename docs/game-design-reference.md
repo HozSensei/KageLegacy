@@ -14,14 +14,14 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 
 | Phase | Heures | Ce que fait le joueur |
 |--------|--------|------------------------|
-| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12) |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), espionnage, mission de reconnaissance (combat d'entraînement), gestion continue |
+| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12), **mission de reconnaissance (H0–H36)** |
+| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d’espionnage adversaire, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d’Oiseau, facturation entraînement, nouveau cycle |
 
 **À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
 
-**Jalons automatiques :** examens Chunin + espionnage à H36 ; mission de reconnaissance jouable H36→H70 ; simulation ligue à H71 ; clôture économique à H72.
+**Jalons automatiques :** mission de reconnaissance jouable H0→H36 ; examens Chunin + espionnage à H36 ; simulation ligue à H71 ; clôture économique à H72.
 
 ---
 
@@ -249,9 +249,9 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 
 Rapport sur l’adversaire du cycle : tendances offensives, tanks, vitesse, élément dominant, indice environnement.
 
-### Mission de reconnaissance (H36 → H70)
+### Mission de reconnaissance (H0 → H36)
 
-Combat d’entraînement pour tester sa composition avant le match de ligue — **1 mission par cycle**.
+Combat d’entraînement pendant la **préparation** pour tester sa composition — **1 mission par cycle**.
 
 - **Matchmaking** : adversaire humain de niveau proche, sinon bot de la ligue.
 - **Défi direct** : depuis le menu Ligue (pool ou autre ligue proche) ; le défenseur accepte.

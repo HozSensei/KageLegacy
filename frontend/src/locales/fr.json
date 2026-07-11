@@ -50,12 +50,12 @@
         "missions": "Contrats de mission gratuits (3 paliers)",
         "shop": "Magasin du village, promos et stocks limités",
         "academy": "Recrutement à l'Académie (rotation des aspirants)",
-        "chunin": "Inscription à l'examen de Chunin (avant H36)"
+        "chunin": "Inscription à l'examen de Chunin (avant H36)",
+        "reconnaissance": "Mission de reconnaissance (H0–H36) : combat d'entraînement, matchmaking ou défi"
       },
       "mid": {
         "chunin": "Verdict des examens de Chunin",
         "scout": "Bilans éclaireurs et dossiers adverses",
-        "reconnaissance": "Mission de reconnaissance (H36–H70) : combat d'entraînement, matchmaking ou défi",
         "management": "Gestion d'escouade, entraînement et échanges",
         "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
       },
@@ -170,8 +170,8 @@
     "timelineTitle": "Un cycle de 72 heures",
     "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
     "timeline": {
-      "start": "Début du cycle : entraînement, missions, magasin et recrutement à l'Académie (jusqu'à 12 heures).",
-      "mid": "Après 36 heures : examens de Chunin, espionnage et mission de reconnaissance (combat d'entraînement jusqu'à H70).",
+      "start": "Début du cycle : entraînement, missions, magasin, recrutement à l'Académie et mission de reconnaissance (jusqu'à H36).",
+      "mid": "Après 36 heures : examens de Chunin et espionnage.",
       "operation": "À 71 heures : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
       "end": "À 72 heures : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
     }
@@ -519,7 +519,7 @@
     "fixturesHint": "Journée {cycle} — 3 affrontements dans votre pool de 6 Sensei (aller-retour sur 10 journées). Vous ne jouez qu'un seul de ces trois matchs.",
     "recentMatches": "Résultats récents",
     "reconTitle": "Mission de reconnaissance",
-    "reconLead": "Testez votre composition en combat (H36–H70) : matchmaking, défi direct ou bot de secours. Les K.O. peuvent faire baisser la forme, comme en match de ligue.",
+    "reconLead": "Testez votre composition en combat (H0–H36) : matchmaking, défi direct ou bot de secours. Les K.O. peuvent faire baisser la forme, comme en match de ligue.",
     "reconRewards": "Butin : Ryos + objet aléatoire (consommable) + chance de carte tactique — même en défaite.",
     "reconMatchmake": "Lancer le matchmaking",
     "reconBusy": "Combat en cours…",

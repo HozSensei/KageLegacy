@@ -11,7 +11,8 @@ Dans **Kage Legacy**, vous incarnez un **Jonin-Sensei**, mentor de votre propre 
 ### 🔄 La Boucle de Jeu (Cycle de 72h)
 
 * **L'Entraînement** — progression automatique selon le focus choisi (appliquée à H72).
-* **Les Épreuves (H36)** — examens Chunin, rapport d'espionnage et mission de reconnaissance (combat d'entraînement H36–H70).
+* **La Préparation (H0–H36)** — entraînement, missions, magasin, Académie et **mission de reconnaissance** (combat d'entraînement).
+* **Les Épreuves (H36)** — examens Chunin et rapport d'espionnage.
 * **L'Opération de Frontière (H71→H72)** — chronique shinobi révélée progressivement.
 * **Le Vol d'Oiseau** — vos Chunins d'élite partent en Jonin, la relève arrive.
 

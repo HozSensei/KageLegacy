@@ -50,12 +50,12 @@
         "missions": "Free mission contracts (3 tiers)",
         "shop": "Village shop, promos and limited stock",
         "academy": "Academy recruitment (rotating aspirants)",
-        "chunin": "Chunin exam registration (before H36)"
+        "chunin": "Chunin exam registration (before H36)",
+        "reconnaissance": "Reconnaissance mission (H0–H36): sparring combat, matchmaking or challenge"
       },
       "mid": {
         "chunin": "Chunin exam verdicts",
         "scout": "Scout reports and opponent dossiers",
-        "reconnaissance": "Reconnaissance mission (H36–H70): sparring combat, matchmaking or challenge",
         "management": "Squad management, training and trades",
         "birdFlight": "Bird Flight registrations still open"
       },
@@ -170,8 +170,8 @@
     "timelineTitle": "A 72-hour cycle",
     "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
     "timeline": {
-      "start": "Cycle start: training, missions, shop and Academy recruitment (through 12 hours).",
-      "mid": "After 36 hours: Chunin exams, scouting and reconnaissance mission (sparring combat through H70).",
+      "start": "Cycle start: training, missions, shop, Academy recruitment and reconnaissance mission (through H36).",
+      "mid": "After 36 hours: Chunin exams and scouting.",
       "operation": "At 71 hours: league match and border operation. The chronicle unfolds step by step.",
       "end": "At 72 hours: cycle closes — salaries, Ryos economy, then a new cycle begins."
     }
@@ -519,7 +519,7 @@
     "fixturesHint": "Matchday {cycle} — 3 bouts in your 6-sensei pool (home & away over 10 matchdays). You only play one of these three.",
     "recentMatches": "Recent results",
     "reconTitle": "Reconnaissance mission",
-    "reconLead": "Test your squad in live combat (H36–H70): matchmaking, direct challenge, or fallback bot. K.O.s can lower form, like league matches.",
+    "reconLead": "Test your squad in live combat (H0–H36): matchmaking, direct challenge, or fallback bot. K.O.s can lower form, like league matches.",
     "reconRewards": "Loot: Ryos + random consumable + tactic card chance — even on a loss.",
     "reconMatchmake": "Start matchmaking",
     "reconBusy": "Fighting…",

@@ -14,8 +14,8 @@ import { createSenseiNotification } from './senseiNotifications.js';
 import { squadAveragePower } from './combat/squadPowerScaling.js';
 import { grantReconnaissanceLoot } from './combatLootService.js';
 
-export const RECON_MIN_HOUR = 36;
-export const RECON_MAX_HOUR = 70;
+export const RECON_MIN_HOUR = 0;
+export const RECON_MAX_HOUR = 36;
 /** Fourchettes indicatives — le tirage réel est dans combatLootService. */
 export const RECON_WIN_RYOS = 500;
 export const RECON_DRAW_RYOS = 250;

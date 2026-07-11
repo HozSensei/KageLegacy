@@ -12,8 +12,8 @@ Each cycle is a synchronized "game week" for all players on the server.
 
 | Phase | Period | Main activities |
 |-------|--------|-----------------|
-| **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy |
-| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, reconnaissance mission (sparring combat), ongoing management |
+| **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy, **reconnaissance mission (H0–H36)** |
+| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
@@ -23,8 +23,8 @@ Once the operation starts, strategic choices are **locked** until the next cycle
 
 ### Automatic milestones
 
+- **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
 - **H36**: registered Chunin exams resolved; spy report on the cycle's opponent.
-- **H36 → H70**: reconnaissance mission (one sparring fight per cycle, see § League).
 - **H71**: league match simulation; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
 
@@ -373,9 +373,9 @@ Tie-breakers: wins, then matches played.
 
 Report on the cycle's opponent: offensive tendencies, tanks, speed, dominant element, likely environment hint. Information stays **partial** — no exact enemy stat readout.
 
-### Reconnaissance mission (H36 → H70)
+### Reconnaissance mission (H0 → H36)
 
-Sparring combat to **test your squad** before the league match, without waiting for H71. **One mission per cycle** per Sensei.
+Sparring combat to **test your squad** during the preparation phase, before the operation tactical lock. **One mission per cycle** per Sensei.
 
 | Mode | How it works |
 |------|----------------|
