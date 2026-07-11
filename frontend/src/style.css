@@ -301,6 +301,18 @@
     @apply mr-1.5 text-ink-faint/60;
   }
 
+  .notification-panel {
+    @apply flex flex-col overflow-hidden border border-line bg-bg-card shadow-lg;
+  }
+
+  .notification-panel__header {
+    @apply shrink-0;
+  }
+
+  .notification-panel__list {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain;
+  }
+
   .surface-soft {
     @apply rounded-sm bg-bg-soft/80;
   }
