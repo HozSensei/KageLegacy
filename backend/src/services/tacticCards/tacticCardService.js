@@ -291,11 +291,3 @@ export async function consumeTacticCardCharge(userTacticCardId) {
   ]);
   return { deleted: false, chargesRemaining: next };
 }
-
-export async function isTacticCardListed(userTacticCardId) {
-  const rows = await query(
-    `SELECT id FROM player_listings WHERE user_tactic_card_id = ? AND status = 'active'`,
-    [userTacticCardId]
-  );
-  return rows.length > 0;
-}

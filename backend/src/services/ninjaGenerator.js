@@ -144,11 +144,6 @@ export function generateSpecializedStats(grade = 'Genin', primaryArt, potential)
   return stats;
 }
 
-/** @deprecated Utiliser generateSpecializedStats — conservé pour tests de régression. */
-export function generateBaseStats(grade = 'Genin') {
-  return generateSpecializedStats(grade, pickRandom(PRIMARY_ARTS), 'ordinaire');
-}
-
 export async function generateNinjaProfile({
   clan,
   clans,

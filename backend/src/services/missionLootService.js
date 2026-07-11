@@ -10,7 +10,7 @@ import {
   meetsTierRequirement,
   rollPercent,
 } from './missionRules.js';
-import { createDojoNotification } from './dojoNotifications.js';
+import { createSenseiNotification } from './senseiNotifications.js';
 import { buildMissionReportPayload } from './missionNarrative.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { grantItemToUser } from './itemGrantService.js';
@@ -247,7 +247,7 @@ export async function resolveMissionOutcome(mission, ninja) {
     lootResult: { ...lootResult, missionId: mission.id },
     injuryType,
   });
-  await createDojoNotification(mission.user_id, 'mission_report', reportPayload);
+  await createSenseiNotification(mission.user_id, 'mission_report', reportPayload);
 
   return { missionId: mission.id, status, lootResult };
 }

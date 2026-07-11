@@ -8,9 +8,6 @@ export async function createSenseiNotification(userId, kind, payload) {
   return result.insertId;
 }
 
-/** @deprecated Utiliser createSenseiNotification */
-export const createDojoNotification = createSenseiNotification;
-
 export async function getUnreadNotifications(userId) {
   const rows = await query(
     `SELECT id, kind, payload, created_at

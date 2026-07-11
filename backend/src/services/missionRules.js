@@ -56,10 +56,6 @@ export function getEligibleTiersForNinja(ninja) {
   return Object.keys(MISSION_TIERS).filter((tier) => meetsTierRequirement(tier, ninja));
 }
 
-export function missionRequirementText(tier) {
-  return MISSION_TIERS[tier]?.requirementText ?? '';
-}
-
 export function missionGuaranteedRyos(tier) {
   const config = MISSION_TIERS[tier];
   if (!config) return 0;

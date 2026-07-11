@@ -6,6 +6,7 @@ import { getClockRow, getGameClock, isTacticsLocked } from './gameClock.js';
 import { generateScoutReport } from './scouting.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
+import { analyzeStrategies } from './scoutSquadAnalysis.js';
 import { getTacticCardsForNinjas } from './tacticCards/tacticCardService.js';
 
 export const OPERATION_POSTURES = ['balanced', 'offensive', 'tank', 'protect'];
@@ -45,18 +46,8 @@ async function loadOwnActiveSquad(userId) {
   );
 }
 
-function summarizeOrders(ninjas) {
-  const counts = { Offensive: 0, Tank: 0, Protect: 0, Normal: 0 };
-  for (const n of ninjas) {
-    const key = n.battle_strategy || 'Normal';
-    if (counts[key] != null) counts[key] += 1;
-    else counts.Normal += 1;
-  }
-  return counts;
-}
-
 function buildOwnSquadSummary(ninjas, cardByNinjaId, lang) {
-  const orderCounts = summarizeOrders(ninjas);
+  const orderCounts = analyzeStrategies(ninjas);
   const L = ORDER_LABELS[lang] || ORDER_LABELS.fr;
   const speed = ninjas.reduce((s, n) => s + Number(n.vitesse) + Number(n.intelligence), 0);
   const members = ninjas.map((n) => {

@@ -12,22 +12,7 @@ import {
 } from './scoutIntelService.js';
 import { findUserPool } from './poolService.js';
 
-function analyzeStrategies(ninjas) {
-  const counts = { Tank: 0, Offensive: 0, Protect: 0, Normal: 0 };
-  for (const n of ninjas) {
-    const key = n.battle_strategy || 'Normal';
-    counts[key] = (counts[key] || 0) + 1;
-  }
-  return counts;
-}
-
-function dominantElement(ninjas) {
-  const freq = {};
-  for (const n of ninjas) {
-    freq[n.element_affinity] = (freq[n.element_affinity] || 0) + 1;
-  }
-  return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0];
-}
+import { analyzeStrategies, dominantElement } from './scoutSquadAnalysis.js';
 
 function fuzzyPotentialHint(potential, lang) {
   const map = {

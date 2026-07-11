@@ -113,12 +113,6 @@ export function getScoutEnvironmentLine(slug, { confirmed = false } = {}) {
   return confirmed ? env.scoutConfirmed : env.scoutFuzzy;
 }
 
-export function buildEnvironmentTerrainPhrase(slug) {
-  const env = getEnvironmentModifier(slug);
-  if (!env) return 'un secteur d\'opération non cartographié';
-  return env.introPhrase;
-}
-
 export function hasEnvironmentCounter(fighter, envSlug) {
   const env = getEnvironmentModifier(envSlug);
   if (!env?.counterSlug) return false;

@@ -10,7 +10,7 @@ import { meetsBirdFlightRequirements } from './birdFlightExam.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
 import { collectIdentityKeys } from './ninjaNaming.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
-import { createDojoNotification } from './dojoNotifications.js';
+import { createSenseiNotification } from './senseiNotifications.js';
 import { createHeritageScroll, getDominantStat } from './heritageService.js';
 
 const MAJOR_STATS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
@@ -128,7 +128,7 @@ export async function processBirdFlightsForUser(userId) {
       },
     };
 
-    await createDojoNotification(userId, 'bird_flight', payload);
+    await createSenseiNotification(userId, 'bird_flight', payload);
 
     results.push({
       ninjaId: ninja.id,

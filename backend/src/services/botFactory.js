@@ -156,50 +156,6 @@ export async function alignPoolBotsToPoolAverage(poolId) {
   return { aligned, targetPower };
 }
 
-/**
- * Aligne les bots d'une ligue sur la puissance moyenne de l'escouade active du joueur.
- * @deprecated Préférer alignPoolBotsToPoolAverage pour un calibrage ligue entière.
- */
-export async function alignPoolBotsToHuman(poolId, humanUserId) {
-  const humanNinjas = await query(
-    `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-    [humanUserId]
-  );
-  if (humanNinjas.length < 3) return { aligned: 0 };
-
-  const targetPower = squadAveragePower(humanNinjas);
-  if (!targetPower) return { aligned: 0 };
-
-  const bots = await query(
-    `SELECT u.id AS user_id
-     FROM pool_members pm
-     JOIN users u ON u.id = pm.user_id
-     WHERE pm.pool_id = ? AND u.is_bot = TRUE`,
-    [poolId]
-  );
-
-  let aligned = 0;
-  for (const bot of bots) {
-    const botNinjas = await query(
-      `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-      [bot.user_id]
-    );
-    if (botNinjas.length < 3) continue;
-
-    const scaled = alignBotNinjasToPower(botNinjas, targetPower);
-    for (let i = 0; i < botNinjas.length; i += 1) {
-      const next = { ...botNinjas[i], ...scaled[i] };
-      const changed = STAT_KEYS.some((key) => next[key] !== botNinjas[i][key]);
-      if (changed) {
-        await persistNinjaStats(next);
-        aligned += 1;
-      }
-    }
-  }
-
-  return { aligned, targetPower };
-}
-
 export async function findAvailableBotSlotIndex(poolId) {
   for (let slotIndex = 0; slotIndex < 100; slotIndex += 1) {
     const username = `bot_pool${poolId}_slot${slotIndex}`;

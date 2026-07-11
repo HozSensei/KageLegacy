@@ -17,7 +17,7 @@ import {
   updateStrategiesSchema,
   updateTrainingPlansSchema,
 } from '../validators/squadTactics.js';
-import { dismissNotification } from '../services/dojoNotifications.js';
+import { dismissNotification } from '../services/senseiNotifications.js';
 import { treatNinjaAtDispensary } from '../services/dispensaryService.js';
 import { releaseNinja } from '../services/ninjaReleaseService.js';
 import { updateCompositionSchema } from '../validators/squadComposition.js';

@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
 import { assertSpendingAllowed } from './economyDebt.js';
-import { createDojoNotification } from './dojoNotifications.js';
+import { createSenseiNotification } from './senseiNotifications.js';
 import { getGameClock, getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
@@ -457,7 +457,7 @@ async function notifySellerOfSale(listing, buyerUserId, sellerProceeds, commissi
     [listing.id]
   );
   const asset = assetRows[0];
-  await createDojoNotification(listing.seller_user_id, 'market_sale', {
+  await createSenseiNotification(listing.seller_user_id, 'market_sale', {
     listingId: listing.id,
     listingType: listing.listing_type,
     assetLabel: assetLabelFromRow(asset || listing),
