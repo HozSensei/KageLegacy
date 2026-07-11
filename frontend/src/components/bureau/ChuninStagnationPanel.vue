@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -23,7 +24,7 @@ const chuninStagnant = computed(() => {
         :key="ninja.id"
         class="border border-fire/30 bg-fire/5 p-4"
       >
-        <p class="font-display text-lg text-ink">{{ ninja.name.split(' ')[0] }}</p>
+        <NinjaListIdentity :ninja="ninja" compact first-name-only />
         <p class="mt-2 text-[11px] text-fire">{{ t('bureau.chuninStagnation.warning') }}</p>
         <p v-if="ninja.profile?.combatPeak" class="mt-2 text-[11px] text-ink-faint">
           {{ t('bureau.chuninStagnation.combatPeak', { value: ninja.profile.combatPeak }) }}

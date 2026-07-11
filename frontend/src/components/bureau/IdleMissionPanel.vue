@@ -142,6 +142,16 @@ function ninjaBlockedReason(ninja) {
   return null
 }
 
+function ninjaOptionLabel(ninja) {
+  const parts = [ninja.name]
+  if (ninja.grade) parts.push(t(`grades.${ninja.grade}`))
+  if (ninja.element_affinity) parts.push(t(`elements.${ninja.element_affinity}`))
+  if (ninja.training_focus) parts.push(t(`ninja.stats.${ninja.training_focus.toLowerCase()}`))
+  const blocked = ninjaBlockedReason(ninja)
+  if (blocked) parts.push(`(${blocked})`)
+  return parts.join(' · ')
+}
+
 function tierRewardLabel(tier) {
   if (tier.rewardMin === tier.rewardMax) return `${tier.rewardMax} Ryos`
   return `${tier.rewardMin}–${tier.rewardMax} Ryos`
@@ -279,7 +289,7 @@ function hoursUntilResolve(mission) {
               :value="n.id"
               :disabled="n.examBlocked || n.hasCycleGear"
             >
-              {{ n.name }}{{ ninjaBlockedReason(n) ? ` (${ninjaBlockedReason(n)})` : '' }}
+              {{ ninjaOptionLabel(n) }}
             </option>
           </select>
         </label>

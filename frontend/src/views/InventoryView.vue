@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
 
 const { t, locale } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -15,8 +16,16 @@ const sellItemId = ref(null)
 const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
+const itemCategoryFilter = ref('all')
+const itemStatusFilter = ref('all')
+const cardStatusFilter = ref('all')
+
+const ITEM_CATEGORY_FILTERS = ['all', 'bureau', 'match', 'cycle']
+const ITEM_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
+const CARD_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
 
 const itemName = (item) => (locale.value === 'en' ? item.name_en : item.name_fr)
+const itemDesc = (item) => (locale.value === 'en' ? item.description_en : item.description_fr)
 const cardName = (card) => (locale.value === 'en' ? card.nameEn : card.nameFr)
 const cardDesc = (card) => (locale.value === 'en' ? card.descriptionEn : card.descriptionFr)
 
@@ -79,6 +88,57 @@ function canSellItem(item) {
 
 function canSellCard(card) {
   return card && !card.equippedNinjaId && !card.isListed
+}
+
+function isItemEquipped(item) {
+  return Boolean(item?.equipped_ninja_name)
+}
+
+function isCardEquipped(card) {
+  return Boolean(card?.equippedNinjaName)
+}
+
+function matchesItemStatus(item, status) {
+  if (status === 'equipped') return isItemEquipped(item)
+  if (status === 'available') return !isItemEquipped(item) && !item.isListed
+  if (status === 'listed') return Boolean(item.isListed)
+  return true
+}
+
+function matchesCardStatus(card, status) {
+  if (status === 'equipped') return isCardEquipped(card)
+  if (status === 'available') return !isCardEquipped(card) && !card.isListed
+  if (status === 'listed') return Boolean(card.isListed)
+  return true
+}
+
+const filteredItems = computed(() => {
+  const items = inventory.value?.items || []
+  return items.filter((item) => {
+    if (itemCategoryFilter.value !== 'all' && item.category !== itemCategoryFilter.value) {
+      return false
+    }
+    return matchesItemStatus(item, itemStatusFilter.value)
+  })
+})
+
+const filteredCards = computed(() => {
+  const cards = inventory.value?.tacticCards || []
+  return cards.filter((card) => matchesCardStatus(card, cardStatusFilter.value))
+})
+
+function itemCountForCategory(category) {
+  const items = inventory.value?.items || []
+  if (category === 'all') return items.length
+  return items.filter((item) => item.category === category).length
+}
+
+function itemCountForStatus(status) {
+  return (inventory.value?.items || []).filter((item) => matchesItemStatus(item, status)).length
+}
+
+function cardCountForStatus(status) {
+  return (inventory.value?.tacticCards || []).filter((card) => matchesCardStatus(card, status)).length
 }
 
 function sellPriceBounds(catalogPrice) {
@@ -294,27 +354,84 @@ async function unequipCard(ninjaId) {
       <section class="lg:col-span-5">
         <p class="section-label">{{ t('inventory.items') }}</p>
         <p v-if="selectedItemId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinja') }}</p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button
+            v-for="cat in ITEM_CATEGORY_FILTERS"
+            :key="`cat-${cat}`"
+            type="button"
+            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+            :class="
+              itemCategoryFilter === cat
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-line text-ink-faint hover:border-ink-faint'
+            "
+            @click="itemCategoryFilter = cat"
+          >
+            {{ t(`inventory.filterCategory.${cat}`) }}
+            <span class="ml-1 opacity-70">({{ itemCountForCategory(cat) }})</span>
+          </button>
+        </div>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <button
+            v-for="status in ITEM_STATUS_FILTERS"
+            :key="`status-${status}`"
+            type="button"
+            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+            :class="
+              itemStatusFilter === status
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-line text-ink-faint hover:border-ink-faint'
+            "
+            @click="itemStatusFilter = status"
+          >
+            {{ t(`inventory.filterStatus.${status}`) }}
+            <span class="ml-1 opacity-70">({{ itemCountForStatus(status) }})</span>
+          </button>
+        </div>
+
         <ul class="mt-6 space-y-3">
           <li
-            v-for="item in inventory.items"
+            v-for="item in filteredItems"
             :key="item.id"
             class="cursor-pointer border p-4 transition"
-            :class="
+            :class="[
               selectedItemId === item.id
                 ? 'border-accent bg-bg-soft'
-                : 'border-line hover:border-ink-faint'
-            "
+                : isItemEquipped(item)
+                  ? 'border-accent/40 border-l-4 bg-accent/5 hover:border-accent/60'
+                  : item.isListed
+                    ? 'border-line/80 bg-bg-soft/50 hover:border-ink-faint'
+                    : 'border-line hover:border-ink-faint',
+            ]"
             @click="selectedItemId = item.id; selectedCardId = null"
           >
-            <p class="text-sm text-ink">{{ itemName(item) }}</p>
-            <p class="mt-1 text-xs text-ink-faint">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <p class="text-sm text-ink">{{ itemName(item) }}</p>
+              <span
+                v-if="isItemEquipped(item)"
+                class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
+              >
+                {{ t('inventory.equippedBadge', { name: item.equipped_ninja_name }) }}
+              </span>
+              <span
+                v-else-if="item.isListed"
+                class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
+              >
+                {{ t('inventory.listed') }}
+              </span>
+            </div>
+            <p v-if="itemDesc(item)" class="mt-2 text-xs leading-relaxed text-ink-muted">
+              {{ itemDesc(item) }}
+            </p>
+            <p class="mt-2 text-xs text-ink-faint">
               {{ t(`market.categories.${item.category}`) }} · {{ usageLabel(item) }}
             </p>
-            <p class="mt-1 text-xs text-ink-faint">
-              <template v-if="item.isListed">{{ t('inventory.listed') }}</template>
-              <template v-else-if="item.nonVendable">{{ t('inventory.nonVendable') }}</template>
-              <template v-else-if="item.equipped_ninja_name">{{ t('inventory.equippedOn', { name: item.equipped_ninja_name }) }}</template>
-              <template v-else>{{ t('inventory.unequipped') }}</template>
+            <p v-if="item.nonVendable && !isItemEquipped(item) && !item.isListed" class="mt-1 text-xs text-ink-faint">
+              {{ t('inventory.nonVendable') }}
+            </p>
+            <p v-else-if="!isItemEquipped(item) && !item.isListed && !item.nonVendable" class="mt-1 text-xs text-ink-faint">
+              {{ t('inventory.unequipped') }}
             </p>
             <button
               v-if="canSellItem(item)"
@@ -325,34 +442,69 @@ async function unequipCard(ninjaId) {
               {{ t('inventory.sell') }}
             </button>
           </li>
-          <li v-if="!inventory.items.length" class="text-sm text-ink-muted">
-            {{ t('inventory.empty') }}
+          <li v-if="!filteredItems.length" class="text-sm text-ink-muted">
+            {{ inventory.items.length ? t('inventory.emptyFilter') : t('inventory.empty') }}
           </li>
         </ul>
 
         <p class="section-label mt-10">{{ t('inventory.tacticCards') }}</p>
         <p v-if="selectedCardId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinjaCard') }}</p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button
+            v-for="status in CARD_STATUS_FILTERS"
+            :key="`card-${status}`"
+            type="button"
+            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+            :class="
+              cardStatusFilter === status
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-line text-ink-faint hover:border-ink-faint'
+            "
+            @click="cardStatusFilter = status"
+          >
+            {{ t(`inventory.filterStatus.${status}`) }}
+            <span class="ml-1 opacity-70">({{ cardCountForStatus(status) }})</span>
+          </button>
+        </div>
+
         <ul class="mt-6 space-y-3">
           <li
-            v-for="card in inventory.tacticCards"
+            v-for="card in filteredCards"
             :key="`card-${cardInstanceId(card)}`"
             class="cursor-pointer border p-4 transition"
-            :class="
+            :class="[
               isCardSelected(card)
                 ? 'border-accent bg-bg-soft'
-                : 'border-line hover:border-ink-faint'
-            "
+                : isCardEquipped(card)
+                  ? 'border-accent/40 border-l-4 bg-accent/5 hover:border-accent/60'
+                  : card.isListed
+                    ? 'border-line/80 bg-bg-soft/50 hover:border-ink-faint'
+                    : 'border-line hover:border-ink-faint',
+            ]"
             @click="selectCard(card)"
           >
-            <p class="text-sm text-ink">{{ cardName(card) }}</p>
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <p class="text-sm text-ink">{{ cardName(card) }}</p>
+              <span
+                v-if="isCardEquipped(card)"
+                class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
+              >
+                {{ t('inventory.equippedBadge', { name: card.equippedNinjaName }) }}
+              </span>
+              <span
+                v-else-if="card.isListed"
+                class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
+              >
+                {{ t('inventory.listed') }}
+              </span>
+            </div>
             <p class="mt-1 text-xs text-ink-faint">
               {{ t(`inventory.cardRarity.${card.rarity}`) }} · {{ cardChargesLabel(card) }}
             </p>
-            <p class="mt-2 text-xs text-ink-muted">{{ cardDesc(card) }}</p>
-            <p class="mt-1 text-xs text-ink-faint">
-              <template v-if="card.isListed">{{ t('inventory.listed') }}</template>
-              <template v-else-if="card.equippedNinjaName">{{ t('inventory.equippedOn', { name: card.equippedNinjaName }) }}</template>
-              <template v-else>{{ t('inventory.unequipped') }}</template>
+            <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
+            <p v-if="!isCardEquipped(card) && !card.isListed" class="mt-1 text-xs text-ink-faint">
+              {{ t('inventory.unequipped') }}
             </p>
             <button
               v-if="canSellCard(card)"
@@ -363,8 +515,8 @@ async function unequipCard(ninjaId) {
               {{ t('inventory.sell') }}
             </button>
           </li>
-          <li v-if="!inventory.tacticCards?.length" class="text-sm text-ink-muted">
-            {{ t('inventory.emptyCards') }}
+          <li v-if="!filteredCards.length" class="text-sm text-ink-muted">
+            {{ inventory.tacticCards?.length ? t('inventory.emptyFilter') : t('inventory.emptyCards') }}
           </li>
         </ul>
 
@@ -389,8 +541,8 @@ async function unequipCard(ninjaId) {
           >
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <p class="text-ink">{{ ninja.name }}</p>
-                <p class="mt-1 text-xs text-ink-faint">
+                <NinjaListIdentity :ninja="ninja" />
+                <p class="mt-2 text-xs text-ink-faint">
                   {{ ninja.squad_position ? t('inventory.active') : t('inventory.bench') }}
                 </p>
               </div>

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -46,10 +47,7 @@ async function treat(ninjaId) {
         class="flex flex-wrap items-baseline justify-between gap-3 border border-line/80 p-4"
       >
         <div>
-          <p class="font-display text-lg text-ink">{{ ninja.name.split(' ')[0] }}</p>
-          <p class="mt-1 text-[11px] text-ink-faint">
-            {{ t('bureau.hospital.forme') }} · {{ t(`grades.${ninja.grade}`) }}
-          </p>
+          <NinjaListIdentity :ninja="ninja" compact first-name-only />
           <p v-if="ninja.baseCost > ninja.cost" class="mt-1 text-[10px] text-ink-faint">
             <span class="line-through">{{ ninja.baseCost }}</span>
             <span class="ml-1 text-accent">{{ ninja.cost }} Ryos</span>

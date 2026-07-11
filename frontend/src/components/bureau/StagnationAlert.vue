@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -38,8 +39,10 @@ const hasStagnation = computed(() => stagnantNinjas.value.length > 0)
         :key="ninja.id"
         class="text-sm text-ink"
       >
-        <span class="font-display">{{ ninja.name.split(' ')[0] }}</span>
-        <span class="text-ink-muted"> — {{ t(messageKey) }}</span>
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <NinjaListIdentity :ninja="ninja" compact first-name-only />
+          <span class="text-ink-muted">— {{ t(messageKey) }}</span>
+        </div>
       </li>
     </ul>
   </div>

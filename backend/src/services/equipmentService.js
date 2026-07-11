@@ -21,7 +21,7 @@ export async function getInventoryForUser(userId) {
   );
 
   const ninjas = await query(
-    `SELECT n.id, n.name, n.squad_position, n.grade,
+    `SELECT n.id, n.name, n.squad_position, n.grade, n.element_affinity, n.training_focus,
             match_ui.id AS match_item_id, match_idf.name_fr AS match_name_fr, match_idf.name_en AS match_name_en,
             cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en,
             ntc.user_tactic_card_id AS tactic_card_id,

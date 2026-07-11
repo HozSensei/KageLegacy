@@ -7,6 +7,7 @@ import {
   canRegisterForExam,
   getChuninExamProgress,
 } from '../../composables/useChuninExam.js'
+import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
@@ -60,7 +61,7 @@ async function register(ninjaId) {
     <ul class="exam-list mt-6 space-y-5">
       <li v-for="{ ninja, progress } in geninList" :key="ninja.id" class="exam-list__row">
         <div class="flex items-baseline justify-between gap-3">
-          <p class="font-display text-lg text-ink">{{ ninja.name.split(' ')[0] }}</p>
+          <NinjaListIdentity :ninja="ninja" compact first-name-only />
           <span
             v-if="ninja.chunin_exam_requested"
             class="text-[10px] uppercase tracking-[0.14em] text-accent"

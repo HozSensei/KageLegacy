@@ -105,10 +105,27 @@ export function useNinjaDisplay(ninjaRef) {
     return affinity ? `elements.${affinity}` : ''
   })
 
+  const gradeLabel = computed(() => {
+    const grade = ninja.value?.grade
+    return grade ? `grades.${grade}` : ''
+  })
+
+  const trainingFocus = computed(
+    () => ninja.value?.trainingFocus ?? ninja.value?.training_focus ?? null
+  )
+
+  const trainingFocusLabel = computed(() => {
+    const focus = trainingFocus.value
+    return focus ? `ninja.stats.${focus.toLowerCase()}` : ''
+  })
+
   return {
     overall,
     elementTone,
     elementLabel,
+    gradeLabel,
+    trainingFocus,
+    trainingFocusLabel,
     joninProgress,
     gradeProgress,
     statKeys,

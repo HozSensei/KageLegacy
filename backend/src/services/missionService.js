@@ -48,6 +48,8 @@ function mapNinjaForMissions(ninja) {
     id: ninja.id,
     name: ninja.name,
     grade: ninja.grade,
+    element_affinity: ninja.element_affinity,
+    training_focus: ninja.training_focus,
     eligibleTiers: recommendedTiers,
     recommendedTiers,
     hasCycleGear: Boolean(ninja.cycle_item_id),
