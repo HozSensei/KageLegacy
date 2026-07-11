@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import { useNotificationCopy } from '../../composables/useNotificationCopy'
+import { useAnchoredPopover } from '../../composables/useAnchoredPopover.js'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -13,6 +14,10 @@ const { title, body, linkPath, linkLabel } = useNotificationCopy()
 const open = ref(false)
 const dismissingId = ref(null)
 const root = ref(null)
+const trigger = ref(null)
+const panel = ref(null)
+
+const { panelStyle, updatePosition } = useAnchoredPopover(trigger, panel, open)
 
 const notifications = computed(() =>
   [...(store.notifications || [])].reverse()
@@ -33,9 +38,9 @@ function close() {
 
 function onDocumentClick(event) {
   if (!open.value) return
-  if (root.value && !root.value.contains(event.target)) {
-    close()
-  }
+  const inTrigger = root.value?.contains(event.target)
+  const inPanel = panel.value?.contains(event.target)
+  if (!inTrigger && !inPanel) close()
 }
 
 async function dismiss(id, event) {
@@ -57,6 +62,10 @@ function followLink(note, event) {
   }
 }
 
+watch(notifications, () => {
+  if (open.value) nextTick(updatePosition)
+})
+
 onMounted(() => document.addEventListener('click', onDocumentClick))
 onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 </script>
@@ -64,6 +73,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 <template>
   <div ref="root" class="relative">
     <button
+      ref="trigger"
       type="button"
       class="relative flex h-9 w-9 items-center justify-center rounded-full border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent"
       :aria-label="t('notifications.bell')"
@@ -88,52 +98,56 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       </span>
     </button>
 
-    <div
-      v-if="open"
-      class="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-3rem))] border border-line bg-bg-card shadow-lg"
-      role="dialog"
-      :aria-label="t('notifications.panelTitle')"
-      data-testid="notification-panel"
-      @click.stop
-    >
-      <div class="border-b border-line px-4 py-3">
-        <p class="text-sm font-medium text-ink">{{ t('notifications.panelTitle') }}</p>
-      </div>
+    <Teleport to="body">
+      <div
+        v-if="open"
+        ref="panel"
+        class="notification-panel"
+        :style="panelStyle"
+        role="dialog"
+        :aria-label="t('notifications.panelTitle')"
+        data-testid="notification-panel"
+        @click.stop
+      >
+        <div class="notification-panel__header border-b border-line px-4 py-3">
+          <p class="text-sm font-medium text-ink">{{ t('notifications.panelTitle') }}</p>
+        </div>
 
-      <div v-if="!notifications.length" class="px-4 py-8 text-center text-sm text-ink-muted">
-        {{ t('notifications.empty') }}
-      </div>
+        <div v-if="!notifications.length" class="px-4 py-8 text-center text-sm text-ink-muted">
+          {{ t('notifications.empty') }}
+        </div>
 
-      <ul v-else class="max-h-[min(24rem,60vh)] overflow-y-auto">
-        <li
-          v-for="note in notifications"
-          :key="note.id"
-          class="border-b border-line/60 px-4 py-4 last:border-b-0"
-        >
-          <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
-          <p class="mt-2 text-sm leading-relaxed text-ink">{{ body(note) }}</p>
-          <div class="mt-3 flex flex-wrap gap-2">
-            <button
-              v-if="linkPath(note)"
-              type="button"
-              class="btn-ghost text-[10px]"
-              data-testid="notification-follow"
-              @click="followLink(note, $event)"
-            >
-              {{ linkLabel(note) }}
-            </button>
-            <button
-              type="button"
-              class="btn-ghost text-[10px]"
-              data-testid="notification-dismiss"
-              :disabled="dismissingId === note.id"
-              @click="dismiss(note.id, $event)"
-            >
-              {{ t('notifications.dismiss') }}
-            </button>
-          </div>
-        </li>
-      </ul>
-    </div>
+        <ul v-else class="notification-panel__list">
+          <li
+            v-for="note in notifications"
+            :key="note.id"
+            class="border-b border-line/60 px-4 py-4 last:border-b-0"
+          >
+            <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
+            <p class="mt-2 text-sm leading-relaxed text-ink">{{ body(note) }}</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button
+                v-if="linkPath(note)"
+                type="button"
+                class="btn-ghost text-[10px]"
+                data-testid="notification-follow"
+                @click="followLink(note, $event)"
+              >
+                {{ linkLabel(note) }}
+              </button>
+              <button
+                type="button"
+                class="btn-ghost text-[10px]"
+                data-testid="notification-dismiss"
+                :disabled="dismissingId === note.id"
+                @click="dismiss(note.id, $event)"
+              >
+                {{ t('notifications.dismiss') }}
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </Teleport>
   </div>
 </template>

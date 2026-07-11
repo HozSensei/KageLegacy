@@ -1,9 +1,10 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useSquadStore } from '../../stores/squad'
 import { useEliteStore } from '../../stores/elite'
+import SlidePanel from './SlidePanel.vue'
 import VerifiedIcon from '../icons/VerifiedIcon.vue'
 
 defineOptions({ name: 'ProfileMenu' })
@@ -16,7 +17,6 @@ const squad = useSquadStore()
 const elite = useEliteStore()
 
 const open = ref(false)
-const root = ref(null)
 const section = ref(null)
 
 const currentPassword = ref('')
@@ -48,13 +48,6 @@ function toggle() {
 
 function close() {
   open.value = false
-}
-
-function onDocumentClick(event) {
-  if (!open.value) return
-  if (root.value && !root.value.contains(event.target)) {
-    close()
-  }
 }
 
 function toggleSection(name) {
@@ -129,21 +122,19 @@ function handleConvert() {
 }
 
 onMounted(() => {
-  document.addEventListener('click', onDocumentClick)
   if (auth.user && !elite.subscription) void elite.fetchElite()
 })
-onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 </script>
 
 <template>
-  <div ref="root" class="relative">
+  <div>
     <button
       type="button"
       class="flex h-9 w-9 items-center justify-center rounded-full border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent"
       :aria-label="t('profile.menu')"
       :aria-expanded="open"
       data-testid="profile-menu-button"
-      @click.stop="toggle"
+      @click="toggle"
     >
       <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path
@@ -156,15 +147,14 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       </svg>
     </button>
 
-    <div
-      v-if="open"
-      class="absolute right-0 z-50 mt-2 w-[min(20rem,calc(100vw-3rem))] border border-line bg-bg-card shadow-lg"
-      role="dialog"
+    <SlidePanel
+      v-model="open"
+      side="right"
+      wide
       :aria-label="t('profile.menu')"
-      data-testid="profile-menu-panel"
-      @click.stop
+      panel-test-id="profile-menu-panel"
     >
-      <div class="border-b border-line px-4 py-3">
+      <div class="border-b border-line px-5 py-4">
         <p class="truncate text-sm font-medium text-ink">{{ displayName }}</p>
         <p v-if="auth.user?.username && auth.sensei?.name" class="truncate text-xs text-ink-faint">
           {{ auth.user.username }}
@@ -172,7 +162,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         <p v-if="auth.user?.email" class="mt-1 truncate text-xs text-ink-muted">{{ auth.user.email }}</p>
       </div>
 
-      <div class="border-b border-line px-4 py-3">
+      <div class="border-b border-line px-5 py-4">
         <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.language') }}</p>
         <div class="mt-2 flex gap-1 text-[11px] uppercase tracking-[0.14em]">
           <button
@@ -197,7 +187,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         </div>
       </div>
 
-      <div class="border-b border-line px-4 py-3">
+      <div class="border-b border-line px-5 py-4">
         <router-link
           to="/profil"
           class="flex w-full px-0 py-0 text-left text-sm text-ink-muted transition hover:text-accent"
@@ -218,7 +208,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         </router-link>
       </div>
 
-      <div class="border-b border-line px-4 py-3">
+      <div class="border-b border-line px-5 py-4">
         <router-link
           to="/rules"
           class="flex w-full px-0 py-0 text-left text-sm text-ink-muted transition hover:text-accent"
@@ -232,7 +222,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       <div class="divide-y divide-line/60">
         <button
           type="button"
-          class="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-ink"
+          class="flex w-full items-center justify-between px-5 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-ink"
           data-testid="profile-change-email"
           @click="toggleSection('email')"
         >
@@ -241,7 +231,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 
         <form
           v-if="section === 'email'"
-          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-4 py-3"
+          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-5 py-3"
           @submit.prevent="submitEmail"
         >
           <label class="block text-xs">
@@ -266,7 +256,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         <button
           v-if="!isGuest"
           type="button"
-          class="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-ink"
+          class="flex w-full items-center justify-between px-5 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-ink"
           data-testid="profile-change-password"
           @click="toggleSection('password')"
         >
@@ -275,7 +265,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 
         <form
           v-if="section === 'password' && !isGuest"
-          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-4 py-3"
+          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-5 py-3"
           @submit.prevent="submitPassword"
         >
           <label class="block text-xs">
@@ -312,7 +302,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         <button
           v-if="isGuest"
           type="button"
-          class="flex w-full px-4 py-3 text-left text-sm text-accent transition hover:bg-bg-soft"
+          class="flex w-full px-5 py-3 text-left text-sm text-accent transition hover:bg-bg-soft"
           data-testid="profile-convert"
           @click="handleConvert"
         >
@@ -321,7 +311,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 
         <button
           type="button"
-          class="flex w-full px-4 py-3 text-left text-sm text-fire transition hover:bg-bg-soft"
+          class="flex w-full px-5 py-3 text-left text-sm text-fire transition hover:bg-bg-soft"
           data-testid="profile-delete-account"
           @click="toggleSection('delete')"
         >
@@ -330,7 +320,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
 
         <div
           v-if="section === 'delete'"
-          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-4 py-3"
+          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-5 py-3"
         >
           <p class="text-xs leading-relaxed text-ink-muted">{{ t('profile.deleteWarning') }}</p>
           <label v-if="!isGuest" class="block text-xs">
@@ -373,16 +363,16 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
         </div>
       </div>
 
-      <p v-if="formError" class="border-t border-line px-4 py-2 text-xs text-fire">{{ formError }}</p>
+      <p v-if="formError" class="border-t border-line px-5 py-2 text-xs text-fire">{{ formError }}</p>
 
       <button
         type="button"
-        class="w-full border-t border-line px-4 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-fire"
+        class="mt-auto w-full border-t border-line px-5 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-fire"
         data-testid="profile-logout"
         @click="handleLogout"
       >
         {{ t('auth.logout') }}
       </button>
-    </div>
+    </SlidePanel>
   </div>
 </template>

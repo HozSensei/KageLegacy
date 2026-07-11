@@ -17,6 +17,63 @@
       "cycle_end": "Cycle end"
     }
   },
+  "cycleProgress": {
+    "expand": "Expand cycle details",
+    "collapse": "Collapse cycle details",
+    "countdown": "In {hours}h",
+    "currentHour": "Current hour: H{hour}",
+    "status": {
+      "done": "Done",
+      "current": "In progress"
+    },
+    "milestones": {
+      "start": {
+        "short": "H0",
+        "title": "Preparation"
+      },
+      "mid": {
+        "short": "H36",
+        "title": "Mid-cycle"
+      },
+      "operation": {
+        "short": "H71",
+        "title": "Operation"
+      },
+      "end": {
+        "short": "H72",
+        "title": "Closure"
+      }
+    },
+    "events": {
+      "start": {
+        "training": "Training plans and ninja progression",
+        "missions": "Free mission contracts (3 tiers)",
+        "shop": "Village shop, promos and limited stock",
+        "academy": "Academy recruitment (rotating aspirants)",
+        "chunin": "Chunin exam registration (before H36)"
+      },
+      "mid": {
+        "chunin": "Chunin exam verdicts",
+        "scout": "Scout reports and opponent dossiers",
+        "management": "Squad management, training and trades",
+        "birdFlight": "Bird Flight registrations still open"
+      },
+      "operation": {
+        "lock": "Lineup and tactics lock",
+        "simulation": "League match simulation",
+        "chronicle": "Progressive chronicle reveal"
+      },
+      "end": {
+        "missions": "Mission resolution and loot",
+        "match": "Match results applied",
+        "salaries": "Salary deductions",
+        "training": "Training billing and stat gains",
+        "birdFlight": "Bird Flight graduations",
+        "stagnation": "Stagnation penalties",
+        "reset": "New cycle — back to H0"
+      }
+    }
+  },
   "locale": {
     "fr": "Fr",
     "en": "En"
@@ -148,6 +205,7 @@
     "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set."
   },
   "nav": {
+    "menu": "Navigation",
     "bureau": "Office",
     "squad": "Squad",
     "clan": "Clan",
