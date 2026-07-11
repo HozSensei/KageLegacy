@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { utcDateString } from './dailyUtc.js';
-import { grantItemToUser, countUnconsumedItemsBySlug } from './itemGrantService.js';
+import { grantItemToUser, countUnconsumedItemsBySlug, consumeOldestItemBySlug } from './itemGrantService.js';
 import { grantRandomTacticCard } from './tacticCards/tacticCardService.js';
 import { rollPercent } from './missionRules.js';
 import { addChakraDropForSealOpen } from './clanChakraWellService.js';

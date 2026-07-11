@@ -30,6 +30,15 @@ jobs:
       - name: ESLint frontend
         run: npm run lint --prefix frontend
 
+      - name: Audit imports backend (cross-exports)
+        run: npm run audit:imports --prefix backend
+
+      - name: Smoke test sceau chakra
+        run: npm run test:daily-seal --prefix backend
+
+      - name: Smoke test calendrier ligue
+        run: npm run test:pool-schedule --prefix backend
+
       - name: Smoke test moteur narratif
         run: npm run test:narrative --prefix backend
 
