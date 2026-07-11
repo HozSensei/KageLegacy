@@ -204,8 +204,9 @@ export async function getOperationDossier(userId, locale = 'fr') {
   const operationPosture = await getSavedPosture(userId, pool.id, pool.current_cycle);
   const ownSquad = buildOwnSquadSummary(ownNinjas, cardByNinjaId, lang);
   const clockRow = await getClockRow();
-  const tacticsLocked = await isTacticsLocked();
-  const compositionLocked = clockRow ? (await getGameClock()).compositionLocked : false;
+  const clock = await getGameClock();
+  const tacticsLocked = clock.tacticsLocked;
+  const compositionLocked = clock.compositionLocked;
 
   let environment = null;
   if (match?.environment_slug) {
@@ -234,10 +235,10 @@ export async function getOperationDossier(userId, locale = 'fr') {
   return {
     poolId: pool.id,
     seasonCycle: pool.current_cycle,
-    hour: clockRow?.hour ?? 0,
+    hour: clock.hour ?? 0,
     tacticsLocked,
     compositionLocked,
-    scoutAvailable: (clockRow?.hour ?? 0) >= 36,
+    scoutAvailable: (clock.hour ?? 0) >= 36,
     operationPosture,
     postureLabel: POSTURE_LABELS[lang][operationPosture],
     postureOptions: OPERATION_POSTURES.map((value) => ({

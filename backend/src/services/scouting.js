@@ -390,7 +390,7 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
   }
 
   await ensureIntelForHour(userId, seasonCycle, hour, lang);
-  const intel = await getIntelForUser(userId, seasonCycle, lang);
+  let intel = await getIntelForUser(userId, seasonCycle, lang);
 
   const historicalTendencies = intel?.tendencies ?? null;
 
@@ -425,6 +425,7 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
 
   if (!rosterReport) {
     rosterReport = await buildAndPersistRosterIntel(userId, seasonCycle, lang);
+    intel = await getIntelForUser(userId, seasonCycle, lang);
   }
 
   const anomalyFlags = compareRosterToHistory(rosterReport, historicalTendencies, lang);

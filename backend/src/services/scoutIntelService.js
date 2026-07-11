@@ -67,14 +67,15 @@ export function extractOpponentSquadFromMatch(matchRow, opponentId) {
 }
 
 export async function loadOpponentAppliedMatches(opponentId, poolId, limit = HISTORY_LIMIT) {
+  const safeLimit = Math.max(1, Math.min(20, Number(limit) || HISTORY_LIMIT));
   return query(
     `SELECT m.season_cycle, m.home_user_id, m.away_user_id, m.combat_log
      FROM matches m
      WHERE m.pool_id = ? AND m.status = 'applied'
        AND (m.home_user_id = ? OR m.away_user_id = ?)
      ORDER BY m.season_cycle DESC
-     LIMIT ?`,
-    [poolId, opponentId, opponentId, limit]
+     LIMIT ${safeLimit}`,
+    [poolId, opponentId, opponentId]
   );
 }
 

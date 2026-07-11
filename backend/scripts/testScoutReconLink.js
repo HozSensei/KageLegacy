@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { query } from '../src/config/database.js';
 import pool from '../src/config/database.js';
 import { registerUser } from '../src/services/authService.js';
-import { setHourDev } from '../src/services/gameClock.js';
+import { setHourDev, advanceToHourDev } from '../src/services/gameClock.js';
 import { joinOrCreatePool, findUserPool } from '../src/services/poolService.js';
 import { startMatchmaking } from '../src/services/reconnaissanceService.js';
 import { generateScoutReport } from '../src/services/scouting.js';
@@ -54,28 +54,37 @@ async function createPlaytestUser(username) {
   return user;
 }
 
+async function findPoolOpponent(poolId, userId) {
+  const rows = await query(
+    `SELECT u.id FROM users u
+     JOIN pool_members pm ON pm.user_id = u.id
+     WHERE pm.pool_id = ? AND u.id != ?
+     LIMIT 1`,
+    [poolId, userId]
+  );
+  return rows[0]?.id ?? null;
+}
+
 async function main() {
   console.log('=== Test scout ↔ reconnaissance ===\n');
 
   const user = await createPlaytestUser('playtest_scout_recon');
-  const pool = await findUserPool(user.id);
-  assert(pool, 'pool créé');
+  const userPool = await findUserPool(user.id);
+  assert(userPool, 'pool créé');
 
-  const bots = await query(
-    `SELECT u.id FROM users u JOIN pool_members pm ON pm.user_id = u.id
-     WHERE pm.pool_id = ? AND u.is_bot = TRUE LIMIT 1`,
-    [pool.id]
-  );
-  assert(bots[0], 'bot dans le pool');
+  const opponentId = await findPoolOpponent(userPool.id, user.id);
+  assert(opponentId, 'adversaire dans le pool');
+
+  await setHourDev(18);
 
   await query(
     `INSERT INTO matches (pool_id, season_cycle, home_user_id, away_user_id, status, environment_slug)
      VALUES (?, ?, ?, ?, 'scheduled', 'pluie')`,
-    [pool.id, pool.current_cycle, user.id, bots[0].id]
+    [userPool.id, userPool.current_cycle, user.id, opponentId]
   );
 
-  await setHourDev(40);
-  const scoutBefore = await generateScoutReport(user.id, pool.current_cycle, 'fr');
+  await advanceToHourDev(40);
+  const scoutBefore = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(scoutBefore?.lockReason === 'no_recon', 'sans recon → no_recon');
   assert(scoutBefore.phase === 'none', 'phase none sans recon');
 
@@ -83,17 +92,17 @@ async function main() {
   const fight = await startMatchmaking(user.id);
   assert(fight.missionId, 'mission de reconnaissance jouée');
 
-  await setHourDev(40);
-  const scoutH40 = await generateScoutReport(user.id, pool.current_cycle, 'fr');
-  assert(scoutH40.phase === 'tendencies', 'tendances après recon');
+  await advanceToHourDev(40);
+  const scoutH40 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
+  assert(scoutH40.phase === 'tendencies', `tendances après recon (got ${scoutH40.phase})`);
   assert(scoutH40.historicalTendencies, 'historique présent');
 
-  await setHourDev(55);
-  const scoutH55 = await generateScoutReport(user.id, pool.current_cycle, 'fr');
+  await advanceToHourDev(55);
+  const scoutH55 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(scoutH55.phase === 'roster', 'roster après H54');
   assert(['partial', 'full'].includes(scoutH55.tier), `tier partial ou full (got ${scoutH55.tier})`);
 
-  const match = await getUserMatchForCycle(user.id, pool.current_cycle);
+  const match = await getUserMatchForCycle(user.id, userPool.current_cycle);
   assert(match, 'match ligue');
 
   await deleteUserByUsername('playtest_scout_recon');

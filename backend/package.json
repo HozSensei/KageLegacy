@@ -36,6 +36,7 @@
     "test:reconnaissance": "node scripts/testReconnaissance.js",
     "test:scout-recon": "node scripts/testScoutReconLink.js",
     "test:scout-cycle": "node scripts/testScoutCycle.js",
+    "test:operation-dossier": "node scripts/testOperationDossier.js",
     "test:combat-loot": "node scripts/testCombatLoot.js"
   },
   "dependencies": {

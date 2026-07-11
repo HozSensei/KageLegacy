@@ -117,6 +117,9 @@ jobs:
       - name: Test scout cycle H36/H54
         run: npm run test:scout-cycle --prefix backend
 
+      - name: Test dossier d'opération
+        run: npm run test:operation-dossier --prefix backend
+
       - name: Upload Cypress screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4

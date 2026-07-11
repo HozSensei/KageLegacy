@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 import { query } from '../src/config/database.js';
 import pool from '../src/config/database.js';
 import { registerUser } from '../src/services/authService.js';
-import { setHourDev } from '../src/services/gameClock.js';
+import { setHourDev, advanceToHourDev } from '../src/services/gameClock.js';
 import { joinOrCreatePool, findUserPool } from '../src/services/poolService.js';
 import { startMatchmaking } from '../src/services/reconnaissanceService.js';
 import {
@@ -63,6 +63,17 @@ async function createUser(username) {
   return user;
 }
 
+async function findPoolOpponent(poolId, userId) {
+  const rows = await query(
+    `SELECT u.id FROM users u
+     JOIN pool_members pm ON pm.user_id = u.id
+     WHERE pm.pool_id = ? AND u.id != ?
+     LIMIT 1`,
+    [poolId, userId]
+  );
+  return rows[0]?.id ?? null;
+}
+
 async function seedMatch(poolId, homeId, awayId, cycle, combatLog = null) {
   await query(
     `INSERT INTO matches (pool_id, season_cycle, home_user_id, away_user_id, status, result, combat_log, results_applied_at)
@@ -101,20 +112,16 @@ async function main() {
   assert(tendencies.lines[0].includes('peu fiable') || tendencies.lines[0].includes('première'), 'low reliability');
 
   const user = await createUser('playtest_scout_cycle');
-  const pool = await findUserPool(user.id);
-  assert(pool, 'pool');
+  const userPool = await findUserPool(user.id);
+  assert(userPool, 'pool');
 
-  const bots = await query(
-    `SELECT u.id FROM users u JOIN pool_members pm ON pm.user_id = u.id
-     WHERE pm.pool_id = ? AND u.is_bot = TRUE LIMIT 1`,
-    [pool.id]
-  );
-  assert(bots[0], 'bot');
+  const opponentId = await findPoolOpponent(userPool.id, user.id);
+  assert(opponentId, 'adversaire dans le pool');
 
   await query(
     `INSERT INTO matches (pool_id, season_cycle, home_user_id, away_user_id, status, environment_slug)
      VALUES (?, ?, ?, ?, 'scheduled', 'pluie')`,
-    [pool.id, pool.current_cycle, user.id, bots[0].id]
+    [userPool.id, userPool.current_cycle, user.id, opponentId]
   );
 
   const snapshot = buildSquadSnapshotFromNinjas(
@@ -136,7 +143,7 @@ async function main() {
   );
   assert(snapshot[0].primaryArt === 'ninjutsu', 'snapshot art');
 
-  await seedMatch(pool.id, bots[0].id, user.id, Math.max(1, pool.current_cycle - 1), {
+  await seedMatch(userPool.id, opponentId, user.id, Math.max(1, userPool.current_cycle - 1), {
     squadSnapshots: {
       home: snapshot,
       away: snapshot,
@@ -146,25 +153,25 @@ async function main() {
   await setHourDev(18);
   await startMatchmaking(user.id);
 
-  await setHourDev(40);
-  const tendenciesIntel = await generateTendenciesIntelForUser(user.id, pool.current_cycle, 'fr');
+  await advanceToHourDev(40);
+  const tendenciesIntel = await generateTendenciesIntelForUser(user.id, userPool.current_cycle, 'fr');
   assert(tendenciesIntel?.sampleSize >= 0, 'tendances générées');
 
-  const scoutH40 = await generateScoutReport(user.id, pool.current_cycle, 'fr');
+  const scoutH40 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(scoutH40.phase === 'tendencies', 'phase tendencies à H40');
   assert(scoutH40.rosterPending, 'roster pending avant H54');
   assert(scoutH40.historicalTendencies?.lines?.length >= 1, 'lignes tendances');
 
-  await setHourDev(55);
+  await advanceToHourDev(55);
   assert(await isCompositionLocked(), 'composition locked H55');
 
-  const rosterIntel = await buildAndPersistRosterIntel(user.id, pool.current_cycle, 'fr');
+  const rosterIntel = await buildAndPersistRosterIntel(user.id, userPool.current_cycle, 'fr');
   assert(rosterIntel?.lines?.length >= 1, 'rapport roster persisté');
 
-  const scoutH55 = await generateScoutReport(user.id, pool.current_cycle, 'fr');
+  const scoutH55 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(scoutH55.phase === 'roster', 'phase roster à H55');
   assert(scoutH55.rosterFrozen, 'snapshot figé');
-  const scoutH60 = await generateScoutReport(user.id, pool.current_cycle, 'fr');
+  const scoutH60 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
   assert(
     JSON.stringify(scoutH60.rosterReport) === JSON.stringify(scoutH55.rosterReport),
     'rapport stable entre H55 et H60'
