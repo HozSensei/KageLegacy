@@ -17,6 +17,63 @@
       "cycle_end": "Fin de cycle"
     }
   },
+  "cycleProgress": {
+    "expand": "Déplier le détail du cycle",
+    "collapse": "Replier le détail du cycle",
+    "countdown": "Dans {hours}h",
+    "currentHour": "Heure actuelle : H{hour}",
+    "status": {
+      "done": "Terminé",
+      "current": "En cours"
+    },
+    "milestones": {
+      "start": {
+        "short": "H0",
+        "title": "Préparation"
+      },
+      "mid": {
+        "short": "H36",
+        "title": "Milieu de cycle"
+      },
+      "operation": {
+        "short": "H71",
+        "title": "Opération"
+      },
+      "end": {
+        "short": "H72",
+        "title": "Clôture"
+      }
+    },
+    "events": {
+      "start": {
+        "training": "Plans d'entraînement et progression des ninjas",
+        "missions": "Contrats de mission gratuits (3 paliers)",
+        "shop": "Magasin du village, promos et stocks limités",
+        "academy": "Recrutement à l'Académie (rotation des aspirants)",
+        "chunin": "Inscription à l'examen de Chunin (avant H36)"
+      },
+      "mid": {
+        "chunin": "Verdict des examens de Chunin",
+        "scout": "Bilans éclaireurs et dossiers adverses",
+        "management": "Gestion d'escouade, entraînement et échanges",
+        "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
+      },
+      "operation": {
+        "lock": "Verrouillage des compositions et tactiques",
+        "simulation": "Simulation du match de ligue",
+        "chronicle": "Révélation progressive de la chronique"
+      },
+      "end": {
+        "missions": "Résolution des missions et butin",
+        "match": "Application des résultats du match",
+        "salaries": "Prélèvement des salaires",
+        "training": "Facturation d'entraînement et gains de stats",
+        "birdFlight": "Graduations Vol de l'Oiseau",
+        "stagnation": "Pénalités de stagnation",
+        "reset": "Nouveau cycle — retour à H0"
+      }
+    }
+  },
   "locale": {
     "fr": "Fr",
     "en": "En"

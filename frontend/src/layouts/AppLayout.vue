@@ -1,11 +1,11 @@
 <script setup>
-import { computed, onMounted, ref, toRef } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
 import { useEliteStore } from '../stores/elite'
-import { useGameClockLabel } from '../composables/useGameClockLabel.js'
+import CycleProgressBar from '../components/layout/CycleProgressBar.vue'
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
@@ -46,8 +46,6 @@ const navItems = computed(() => {
   if (!elite.subscription?.isActive) return baseNavItems
   return [...baseNavItems, eliteToolsNavItem]
 })
-
-const cycleLabel = useGameClockLabel(toRef(store, 'gameClock'))
 
 function isActive(path) {
   if (path === '/profil') {
@@ -105,14 +103,6 @@ onMounted(async () => {
           {{ t('app.name') }}
         </router-link>
 
-        <span
-          v-if="auth.user && store.gameClock"
-          class="hidden shrink-0 text-[11px] uppercase tracking-[0.14em] text-ink-faint sm:inline"
-          data-testid="header-game-clock"
-        >
-          {{ cycleLabel }}
-        </span>
-
         <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationBell v-if="auth.user" />
           <ProfileMenu
@@ -131,6 +121,8 @@ onMounted(async () => {
           </router-link>
         </div>
       </div>
+
+      <CycleProgressBar v-if="auth.user && store.gameClock" />
     </header>
 
     <PageHero

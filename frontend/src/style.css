@@ -208,6 +208,99 @@
     @apply border-accent bg-bg-card text-accent;
   }
 
+  .cycle-progress__track {
+    @apply relative h-8 rounded-sm bg-bg-card;
+  }
+
+  .cycle-progress__fill {
+    @apply absolute inset-y-0 left-0 rounded-sm bg-accent/25 transition-[width] duration-500;
+  }
+
+  .cycle-progress__marker {
+    @apply absolute top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5;
+  }
+
+  .cycle-progress__marker--first {
+    @apply translate-x-0;
+  }
+
+  .cycle-progress__marker--last {
+    @apply -translate-x-full;
+  }
+
+  .cycle-progress__marker--done .cycle-progress__marker-icon {
+    @apply border-accent/50 bg-accent/15 text-accent;
+  }
+
+  .cycle-progress__marker--current .cycle-progress__marker-icon {
+    @apply border-accent bg-accent/20 text-accent ring-2 ring-accent/30;
+  }
+
+  .cycle-progress__marker--upcoming .cycle-progress__marker-icon {
+    @apply border-line bg-bg text-ink-faint;
+  }
+
+  .cycle-progress__marker-icon {
+    @apply flex h-6 w-6 items-center justify-center rounded-full border;
+  }
+
+  .cycle-progress__marker-label {
+    @apply hidden text-[9px] uppercase tracking-[0.1em] text-ink-faint sm:block;
+  }
+
+  .cycle-progress__marker--current .cycle-progress__marker-label {
+    @apply text-accent;
+  }
+
+  .cycle-progress__toggle {
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent;
+  }
+
+  .cycle-progress__timeline {
+    @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  .cycle-progress__step {
+    @apply rounded-sm border border-line bg-bg-card p-3;
+  }
+
+  .cycle-progress__step--current {
+    @apply border-accent/40 bg-accent/5;
+  }
+
+  .cycle-progress__step--done {
+    @apply opacity-80;
+  }
+
+  .cycle-progress__step-head {
+    @apply flex flex-wrap items-baseline gap-x-2 gap-y-1;
+  }
+
+  .cycle-progress__step-badge {
+    @apply text-[10px] font-medium uppercase tracking-[0.14em] text-ink-faint;
+  }
+
+  .cycle-progress__step-title {
+    @apply text-sm font-medium text-ink;
+  }
+
+  .cycle-progress__step-status {
+    @apply ml-auto text-[10px] uppercase tracking-[0.12em] text-ink-faint;
+  }
+
+  .cycle-progress__step--current .cycle-progress__step-status {
+    @apply text-accent;
+  }
+
+  .cycle-progress__events {
+    @apply mt-2 space-y-1 border-t border-line/60 pt-2 text-xs leading-relaxed text-ink-muted;
+  }
+
+  .cycle-progress__events li::before {
+    content: '·';
+    @apply mr-1.5 text-ink-faint/60;
+  }
+
   .surface-soft {
     @apply rounded-sm bg-bg-soft/80;
   }
