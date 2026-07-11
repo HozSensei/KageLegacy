@@ -19,6 +19,10 @@ export function useNotificationCopy() {
         return t('bureau.stagnation.notificationTitle')
       case 'clan_well_fusion':
         return t('notifications.clanWellTitle')
+      case 'reconnaissance_challenge':
+        return t('league.reconNotifChallengeTitle')
+      case 'reconnaissance_result':
+        return t('league.reconNotifResultTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -80,9 +84,26 @@ export function useNotificationCopy() {
       }
       case 'clan_well_fusion':
         return t('notifications.clanWellBody', { clanName: p.clanName || '—' })
+      case 'reconnaissance_challenge':
+        return t('league.reconNotifChallengeBody', { name: p.challengerName || '—' })
+      case 'reconnaissance_result':
+        return t('league.reconNotifResultBody', {
+          outcome: reconOutcomeLabel(p.outcome),
+          opponent: p.opponentName || '—',
+          ryos: p.ryos ?? 0,
+        })
       default:
         return t('notifications.genericBody')
     }
+  }
+
+  function reconOutcomeLabel(outcome) {
+    const map = {
+      win: t('league.reconOutcomeWin'),
+      draw: t('league.reconOutcomeDraw'),
+      loss: t('league.reconOutcomeLoss'),
+    }
+    return map[outcome] || outcome
   }
 
   function linkPath(note) {
@@ -96,6 +117,9 @@ export function useNotificationCopy() {
       return '/bureau'
     }
     if (note.kind === 'clan_well_fusion') return '/bureau'
+    if (note.kind === 'reconnaissance_challenge' || note.kind === 'reconnaissance_result') {
+      return '/league'
+    }
     return null
   }
 

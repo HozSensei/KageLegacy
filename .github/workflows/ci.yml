@@ -102,6 +102,9 @@ jobs:
       - name: Prepare database (migrate, seed, cycle H0→H72)
         run: npm run e2e:prepare
 
+      - name: Test mission de reconnaissance
+        run: npm run test:reconnaissance --prefix backend
+
       - name: Run Cypress E2E
         run: npm run test:e2e
 
