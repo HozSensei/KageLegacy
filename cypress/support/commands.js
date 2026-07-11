@@ -30,15 +30,16 @@ Cypress.Commands.add('loginDemo', () => {
 
 Cypress.Commands.add('closeSlidePanel', () => {
   cy.get('body').then(($body) => {
-    if ($body.find('[data-testid="slide-panel-backdrop"]:visible').length) {
+    if ($body.find('[data-testid="slide-panel-backdrop"]').length) {
       cy.get('[data-testid="slide-panel-backdrop"]').click();
     }
   });
+  cy.get('[data-testid="slide-panel-backdrop"]').should('not.exist');
 });
 
 Cypress.Commands.add('openNavMenu', () => {
   cy.closeSlidePanel();
-  cy.get('[data-testid="nav-menu-button"]').click();
+  cy.get('[data-testid="nav-menu-button"]').should('be.visible').click();
   cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
 });
 
