@@ -112,13 +112,7 @@ async function main() {
   );
   console.log('\n✅ Tous les tests reconnaissance ont réussi.');
 
-  try {
-    await deleteUserByUsername('playtest_recon_a');
-    await deleteUserByUsername('playtest_recon_b');
-    await deleteUserByUsername('playtest_recon_c');
-  } catch (cleanupError) {
-    console.warn('⚠ Nettoyage partiel:', cleanupError.message);
-  }
+  await setHourDev(0);
 }
 
 main()
