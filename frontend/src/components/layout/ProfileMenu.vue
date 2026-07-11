@@ -61,7 +61,10 @@ function toggleSection(name) {
 }
 
 async function setLanguage(lang) {
-  if (locale.value === lang) return
+  if (locale.value === lang) {
+    close()
+    return
+  }
   const ok = await auth.updateLanguage(lang)
   if (ok) {
     locale.value = lang
