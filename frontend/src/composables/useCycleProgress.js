@@ -93,7 +93,7 @@ export function useCycleProgress(gameClockRef) {
   onMounted(() => {
     tickTimer = window.setInterval(() => {
       now.value = Date.now()
-    }, 30_000)
+    }, 1_000)
   })
 
   onUnmounted(() => {

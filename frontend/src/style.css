@@ -208,16 +208,24 @@
     @apply border-accent bg-bg-card text-accent;
   }
 
+  .cycle-progress__clock {
+    @apply text-[11px] uppercase tracking-[0.08em] text-ink-faint;
+  }
+
+  .cycle-progress__track-wrap {
+    @apply relative h-8;
+  }
+
   .cycle-progress__track {
-    @apply relative h-8 rounded-sm bg-bg-card;
+    @apply absolute bottom-1 left-0 right-0 h-1 overflow-hidden rounded-full bg-bg-card;
   }
 
   .cycle-progress__fill {
-    @apply absolute inset-y-0 left-0 rounded-sm bg-accent/25 transition-[width] duration-500;
+    @apply h-full rounded-full bg-accent/30 transition-[width] duration-1000;
   }
 
   .cycle-progress__marker {
-    @apply absolute top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5;
+    @apply absolute bottom-1 z-10 flex -translate-x-1/2 flex-col items-center gap-0.5;
   }
 
   .cycle-progress__marker--first {
@@ -241,7 +249,7 @@
   }
 
   .cycle-progress__marker-icon {
-    @apply flex h-6 w-6 items-center justify-center rounded-full border;
+    @apply -translate-y-1/2 flex h-5 w-5 items-center justify-center rounded-full border bg-bg-soft;
   }
 
   .cycle-progress__marker-label {
@@ -253,7 +261,16 @@
   }
 
   .cycle-progress__toggle {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent;
+    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent;
+  }
+
+  .cycle-progress__detail {
+    @apply max-h-[min(70vh,calc(100dvh-7rem))] overflow-y-auto overscroll-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cycle-progress__detail-inner {
+    @apply min-h-0;
   }
 
   .cycle-progress__timeline {

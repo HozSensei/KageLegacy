@@ -7,7 +7,7 @@ describe('En-tête — horloge et navigation', () => {
   it('affiche l\'horloge du cycle', () => {
     cy.get('[data-testid="cycle-progress-bar"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="header-game-clock"]').should('be.visible');
-    cy.get('[data-testid="header-game-clock"]').contains(/H\d+/);
+    cy.get('[data-testid="header-game-clock"]').contains(/\d+h\d{2}:\d{2}/);
   });
 
   it('déplie le détail du cycle', () => {
