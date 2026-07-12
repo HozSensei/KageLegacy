@@ -150,7 +150,24 @@ Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie av
 
 ### Stagnation (H72)
 
-Genin éligible Chunin non inscrit, ou Chunin éligible Vol d’Oiseau non inscrit → forme −1 palier, moral −3.
+Genin éligible Chunin non inscrit, ou Chunin éligible Vol d'Oiseau non inscrit → **1 cycle de grâce**, puis forme −1 palier, moral −3.
+
+---
+
+## 5bis. Entraînement
+
+| Levier | Coef / ninja | Coût | Cible |
+|--------|--------------|------|-------|
+| **Préparation** | 0,4 | Ryos (actifs) | 3 titulaires, type individuel |
+| **Global** | 0,2 | Gratuit | 6 ninjas, 1 type commun |
+
+**Types :** Chakra · Physique · Medical · Genjutsu · Ninjutsu · Equilibre.
+
+**Potentiel :** ordinaire ×1 · prometteur ×1,1 · prodige ×1,25. Capital de stat avec variance RNG légère.
+
+**Rythme cible :** ~5 cycles (ordinaire) · ~2–3 (prodige) pour Chunin avec prep + global alignés.
+
+Spec détaillée : [`specs/training-system.md`](../specs/training-system.md).
 
 ---
 
@@ -187,7 +204,8 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 ### Dépenses principales
 
 - **Salaires H72** (escouade active uniquement)
-- **Entraînement H72** (opt-in par ninja, facturé si Ryos suffisants)
+- **Préparation H72** (actifs, payante si Ryos suffisants)
+- **Entraînement global H72** (toute l'équipe, gratuit)
 - Examen Chunin, dispensaire, Académie, magasin, marché P2P
 
 ### Objets (3 types)
@@ -379,7 +397,7 @@ flowchart TD
 |-------|----------|
 | **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie |
 | **Escouade** | Composition, consignes, swap actif/banc |
-| **Entraînement** | Focus par stat, facturé à H72 |
+| **Entraînement** | Préparation (actifs) + global gratuit, types groupés |
 | **Missions** | Contrats idle |
 | **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
 | **Magasin** | Achats objets |

@@ -219,18 +219,35 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 ### Stagnation
 
-À H72, un ninja **éligible** à une montée de grade (examen ou Vol d'Oiseau) mais **non inscrit** subit une pénalité : sa forme descend d'un palier et son moral baisse. Le jeu pousse à faire évoluer la carrière ou à accepter le coût de garder un vétéran.
+À H72, un ninja **éligible** à une montée de grade (examen ou Vol d'Oiseau) mais **non inscrit** subit une pénalité après **un cycle de grâce** : d'abord un avertissement sans malus, puis sa forme descend d'un palier et son moral baisse. Le jeu pousse à faire évoluer la carrière ou à accepter le coût de garder un vétéran.
 
 ---
 
 ## 6. Entraînement
 
-- Chaque ninja peut recevoir un **focus** (stat ciblée) pour le cycle en cours.
-- Seuls les ninjas pour lesquels vous avez **explicitement** choisi un focus sont entraînés.
-- La progression est appliquée à **H72** ; le coût en Ryos est facturé à ce moment si votre trésorerie le permet.
-- L'âge du ninja modère l'efficacité : les plus jeunes progressent plus vite.
-- Une stat déjà au **plafond du grade** ne progresse plus tant que le ninja n'a pas monté de grade.
-- Le **Bureau** affiche une prévision des dépenses (par ninja, total cycle, solde estimé après clôture).
+Deux leviers complémentaires :
+
+| | **Préparation** (actifs) | **Entraînement global** (toute l'équipe) |
+|---|--------------------------|-------------------------------------------|
+| **Coût** | Payant en Ryos à H72 | **Gratuit** |
+| **Gain moyen** | Capital 0,4 / ninja / cycle | Capital 0,2 / ninja / cycle |
+| **Choix** | Un type par titulaire (3 actifs) | Un type pour toute l'équipe |
+
+### Types groupés (6)
+
+Chakra (IQ, ninjutsu, genjutsu) · Physique (taijutsu, vitesse) · Médical · Genjutsu · Ninjutsu · Équilibre (toutes les stats).
+
+### Capital de stat et chance
+
+Chaque ninja tire une **part** du pot (variance légère cycle par cycle). Les **prodiges** progressent plus vite (×1,25) ; les **prometteurs** ×1,1.
+
+### Cumul
+
+Un titulaire peut cumuler **préparation + global** (ex. les deux en Chakra) pour accélérer la montée en grade (~5 cycles ordinaire → Chunin, ~2–3 prodige).
+
+- Progression appliquée à **H72** ; préparation facturée si trésorerie suffisante.
+- L'âge modère l'efficacité ; une stat au **plafond du grade** ne progresse plus.
+- Le **Bureau** affiche la prévision (salaires + préparation, global gratuit).
 
 ---
 
@@ -279,7 +296,7 @@ Les missions peuvent rapporter des **objets utilitaires** (pansements, kits, fum
 | Poste | Moment |
 |-------|--------|
 | **Salaires** | H72 — escouade active uniquement |
-| **Entraînement** | H72 — ninjas avec focus actif |
+| **Entraînement** | H72 — préparation des actifs (payant) ; global gratuit pour toute l'équipe |
 | **Examen Chunin** | À l'inscription |
 | **Hôpital** | À la demande |
 | **Académie** | À l'achat d'un aspirant |

@@ -71,7 +71,7 @@ async function enableTrainingPlans(userId) {
     [userId]
   );
   for (const ninja of ninjas) {
-    await query('UPDATE ninjas SET training_focus = ? WHERE id = ?', ['Taijutsu', ninja.id]);
+    await query('UPDATE ninjas SET preparation_type = ? WHERE id = ?', ['Physique', ninja.id]);
   }
   return ninjas.length;
 }
@@ -312,7 +312,7 @@ async function main() {
     startRyos,
     user.id,
   ]);
-  await query('UPDATE ninjas SET training_focus = NULL WHERE user_id = ?', [user.id]);
+  await query('UPDATE ninjas SET preparation_type = NULL WHERE user_id = ?', [user.id]);
 
   if (withTraining) {
     const planned = await enableTrainingPlans(user.id);

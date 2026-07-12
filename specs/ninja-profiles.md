@@ -47,9 +47,9 @@ Le clan **biaise** le tirage de la voie (ex. Yamanaka → 50 % Genjutsu, Uchiwa 
 
 | Niveau | Fréquence cible | Budget Genin | Entraînement (futur) |
 | :--- | :--- | :--- | :--- |
-| **Ordinaire** | ~55 % | +6 pts sur la voie | ×1.0 |
-| **Prometteur** | ~35 % | +9 pts | ×1.1 |
-| **Prodige** | ~10 % | +12 pts | ×1.2 |
+| **Ordinaire** | ~55 % | +6 pts sur la voie | ×1,0 |
+| **Prometteur** | ~35 % | +9 pts | ×1,1 |
+| **Prodige** | ~10 % | +12 pts | ×1,25 |
 
 À la création, un **Prodige Taijutsu** peut arriver à 9–10 taijutsu avec 3–4 ailleurs ; un **Ordinaire** est plus plat (6–7 partout).
 
@@ -99,7 +99,7 @@ Labels dérivés (pas besoin de deviner les chiffres) :
 | Payload escouade (`profile` par ninja) | ✅ `sensei.js` |
 | Colonnes BDD `primary_art`, `potential` | Backlog — inférence runtime suffit en V1 |
 | UI cartes ninja (voie + potentiel) | Backlog |
-| Multiplicateur entraînement par potentiel | Backlog |
+| Entraînement (vitesse de progression) | ✅ `training.js` — voir [`training-system.md`](./training-system.md) |
 
 ---
 

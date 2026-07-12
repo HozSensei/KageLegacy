@@ -60,11 +60,6 @@ function formatGain(value) {
   return value.toFixed(2).replace(/\.?0+$/, '') || '0'
 }
 
-function formatGainRange(min, max) {
-  if (min === max) return formatGain(min)
-  return `${formatGain(min)}–${formatGain(max)}`
-}
-
 function statCap(ninja, column) {
   return ninja.gradeStatCaps?.[column] ?? null
 }

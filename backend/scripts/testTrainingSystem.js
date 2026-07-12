@@ -80,4 +80,11 @@ assert(shouldApplyStagnationPenalty({ ...geninReady, stagnant_cycles: 1 }), 'pen
 assert(TRAINING_TYPES.Chakra.stats.length === 3, 'Chakra group');
 assert(TRAINING_TYPES.Equilibre.stats.length === 6, 'Equilibre group');
 
+const prepChakra = getTrainingGainRange(PREP_COEF, 'preparation', genin);
+const globalChakra = getTrainingGainRange(GLOBAL_COEF, 'global', genin);
+approx(prepChakra.avg + globalChakra.avg, 0.6);
+
+const prepOnly = distributePart(0.4, 'Chakra', genin, 'preparation', { rng: () => 0.5 });
+assert(prepOnly.gains.length === 3, 'Chakra touche 3 stats');
+
 console.log('testTrainingSystem: OK');

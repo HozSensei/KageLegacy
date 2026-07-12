@@ -60,6 +60,10 @@ $$\text{Coût} = 300 + \max(0, \text{combat} - 10) \times 40 + \max(0, \text{int
 
 À chaque **H72**, avant l'entraînement du nouveau cycle :
 
+### Cycle de grâce
+
+Le **premier cycle** où un ninja remplit les conditions de stagnation **sans être inscrit** ne subit **aucune pénalité** (`stagnant_cycles` passe à 1). À partir du **deuxième cycle** consécutif dans cet état : pénalité forme + moral.
+
 ### Genin stagnant
 
 Conditions **toutes** vraies :

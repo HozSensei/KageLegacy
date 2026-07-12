@@ -45,8 +45,12 @@ jobs:
       - name: Smoke test moteur narratif
         run: npm run test:narrative --prefix backend
 
-      - name: Smoke test insubordination Égoïste
-        run: npm run test:egoiste --prefix backend
+      - name: Smoke test système entraînement
+        run: npm run test:training-system --prefix backend
+
+      - name: Smoke test progression grades
+        run: node scripts/testGradeProgression.js
+        working-directory: backend
 
       - name: Calibrage économie (analytique)
         run: npm run economy:calibrate --prefix backend

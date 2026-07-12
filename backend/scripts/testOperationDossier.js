@@ -39,10 +39,10 @@ async function createHumanWithSquad(poolId, label, clanTraitId) {
   for (let pos = 1; pos <= 3; pos += 1) {
     await query(
       `INSERT INTO ninjas (
-         user_id, name, grade, age, squad_position, training_focus,
+         user_id, name, grade, age, squad_position, preparation_type,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
          moral, weekly_forme, battle_strategy, character_trait, element_affinity, clan_trait_id
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Taijutsu', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Offensive', 'Discipline', 'Katon', ?)`,
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Offensive', 'Discipline', 'Katon', ?)`,
       [userId, `${label}_n${pos}`, pos, clanTraitId]
     );
   }
