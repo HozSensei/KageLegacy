@@ -131,7 +131,7 @@ async function fetchProfile() {
       <EliteCheckoutBanner v-if="isOwnProfile" class="mb-8" />
 
       <div v-if="isOwnProfile" class="mb-6 flex flex-wrap items-center gap-3">
-        <span class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('senseiProfile.ownBadge') }}</span>
+        <span class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('senseiProfile.ownBadge') }}</span>
         <RouterLink
           v-if="isEliteActive"
           to="/elite/outils"
@@ -177,7 +177,7 @@ async function fetchProfile() {
         <button
           v-else-if="canChallengeRecon"
           type="button"
-          class="btn-primary text-[10px]"
+          class="btn-primary"
           :disabled="challengeBusy"
           data-testid="profile-recon-challenge-btn"
           @click="challengeRecon"

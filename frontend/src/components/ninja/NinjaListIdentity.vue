@@ -51,19 +51,19 @@ const displayName = computed(() => {
     >
       <span
         v-if="gradeLabel"
-        class="rounded-sm border border-line/80 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em] text-ink-muted"
+        class="rounded-sm border border-line/80 px-1.5 py-0.5 text-xs uppercase tracking-[0.1em] text-ink-muted"
       >
         {{ t(gradeLabel) }}
       </span>
       <span
         v-if="trainingFocusLabel"
-        class="rounded-sm border border-accent/30 bg-accent/5 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em] text-accent-soft"
+        class="rounded-sm border border-accent/30 bg-accent/5 px-1.5 py-0.5 text-xs uppercase tracking-[0.1em] text-accent-soft"
       >
         {{ t(trainingFocusLabel) }}
       </span>
       <span
         v-if="elementLabel"
-        class="rounded-sm border border-line/80 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.1em]"
+        class="rounded-sm border border-line/80 px-1.5 py-0.5 text-xs uppercase tracking-[0.1em]"
         :class="elementTone"
       >
         {{ t(elementLabel) }}

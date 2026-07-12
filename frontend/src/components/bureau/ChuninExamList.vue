@@ -64,13 +64,13 @@ async function register(ninjaId) {
           <NinjaListIdentity :ninja="ninja" compact first-name-only />
           <span
             v-if="ninja.chunin_exam_requested"
-            class="text-[10px] uppercase tracking-[0.14em] text-accent"
+            class="text-xs uppercase tracking-[0.14em] text-accent"
           >
             {{ t('bureau.chuninExam.registered') }}
           </span>
         </div>
 
-        <p class="mt-1 text-[11px] text-ink-faint">
+        <p class="mt-1 text-sm text-ink-faint">
           {{ t('bureau.chuninExam.combat') }}
           <span :class="progress.combat >= progress.combatRequired ? 'text-accent-soft' : 'text-ink-muted'">
             {{ progress.combat }}/{{ progress.combatRequired }}
@@ -91,14 +91,14 @@ async function register(ninjaId) {
           </div>
         </div>
 
-        <p v-if="ninja.stagnationRisk && !ninja.chunin_exam_requested" class="mt-2 text-[11px] text-fire">
+        <p v-if="ninja.stagnationRisk && !ninja.chunin_exam_requested" class="mt-2 text-sm text-fire">
           {{ t('bureau.chuninExam.stagnationWarning') }}
         </p>
 
         <button
           v-if="canRegisterForExam(ninja, store.gameClock, store.sensei)"
           type="button"
-          class="btn-ghost mt-3 text-[10px]"
+          class="btn-ghost mt-3"
           :disabled="registeringId === ninja.id"
           @click="register(ninja.id)"
         >

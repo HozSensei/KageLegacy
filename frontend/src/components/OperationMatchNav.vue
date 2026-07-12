@@ -70,7 +70,7 @@ function matchStatusClass(status) {
     <p class="section-label">{{ t('matches.navTitle') }}</p>
 
     <div class="operation-match-nav__controls mt-4">
-      <label class="operation-match-nav__pool block text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+      <label class="operation-match-nav__pool block text-xs uppercase tracking-[0.12em] text-ink-faint">
         {{ t('matches.pool') }}
         <select
           class="mt-2 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
@@ -85,7 +85,7 @@ function matchStatusClass(status) {
       </label>
 
       <div v-if="nav?.pool" class="operation-match-nav__cycles">
-        <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('matches.cycle') }}</p>
+        <p class="text-xs uppercase tracking-[0.12em] text-ink-faint">{{ t('matches.cycle') }}</p>
         <div class="mt-2 flex flex-wrap gap-1">
           <button
             v-for="c in cycles"
@@ -139,7 +139,7 @@ function matchStatusClass(status) {
               <template v-else>{{ match.away.name }}</template>
             </span>
           </span>
-          <span class="mt-1 flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.1em]">
+          <span class="mt-1 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.1em]">
             <span :class="matchStatusClass(match.status)">{{ t(`matches.status.${match.status}`, match.status) }}</span>
             <span v-if="match.isParticipant" class="text-accent">{{ t('matches.yourMatch') }}</span>
             <span v-if="match.hasChronicle && match.homeScore != null" class="text-ink-faint">
@@ -156,7 +156,7 @@ function matchStatusClass(status) {
     <div v-if="nav?.prevMatchId || nav?.nextMatchId" class="mt-5 flex gap-2 lg:justify-end">
       <button
         type="button"
-        class="btn-ghost flex-1 text-xs lg:flex-none lg:px-6"
+        class="btn-ghost flex-1 lg:flex-none lg:px-6"
         :disabled="!nav?.prevMatchId"
         @click="goPrev"
       >
@@ -164,7 +164,7 @@ function matchStatusClass(status) {
       </button>
       <button
         type="button"
-        class="btn-ghost flex-1 text-xs lg:flex-none lg:px-6"
+        class="btn-ghost flex-1 lg:flex-none lg:px-6"
         :disabled="!nav?.nextMatchId"
         @click="goNext"
       >

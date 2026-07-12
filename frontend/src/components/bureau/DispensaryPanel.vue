@@ -48,14 +48,14 @@ async function treat(ninjaId) {
       >
         <div>
           <NinjaListIdentity :ninja="ninja" compact first-name-only />
-          <p v-if="ninja.baseCost > ninja.cost" class="mt-1 text-[10px] text-ink-faint">
+          <p v-if="ninja.baseCost > ninja.cost" class="mt-1 text-xs text-ink-faint">
             <span class="line-through">{{ ninja.baseCost }}</span>
             <span class="ml-1 text-accent">{{ ninja.cost }} Ryos</span>
           </p>
         </div>
         <button
           type="button"
-          class="btn-ghost text-[10px]"
+          class="btn-ghost"
           :disabled="treatingId === ninja.id || debtBlocked"
           @click="treat(ninja.id)"
         >

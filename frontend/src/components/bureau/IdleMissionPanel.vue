@@ -219,7 +219,7 @@ function hoursUntilResolve(mission) {
       </div>
 
       <div v-if="missions.activeMissions?.length" class="mt-6 space-y-3" data-testid="missions-active">
-        <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
+        <p class="text-xs uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
         <div
           v-for="m in missions.activeMissions"
           :key="m.id"
@@ -232,7 +232,7 @@ function hoursUntilResolve(mission) {
       </div>
 
       <div v-if="missions.failedMissions?.length" class="mt-6 space-y-2">
-        <p class="text-[10px] uppercase tracking-[0.12em] text-fire">{{ t('missions.failed') }}</p>
+        <p class="text-xs uppercase tracking-[0.12em] text-fire">{{ t('missions.failed') }}</p>
         <p
           v-for="m in missions.failedMissions"
           :key="m.id"
@@ -246,7 +246,7 @@ function hoursUntilResolve(mission) {
       <div class="mt-8 overflow-x-auto">
         <table class="w-full min-w-[32rem] text-left text-xs">
           <thead>
-            <tr class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+            <tr class="text-xs uppercase tracking-[0.12em] text-ink-faint">
               <th class="pb-2 pr-4">{{ t('missions.pickTier') }}</th>
               <th class="pb-2 pr-4">{{ t('missions.reward') }}</th>
               <th class="pb-2 pr-4">{{ t('missions.resolve') }}</th>
@@ -257,11 +257,11 @@ function hoursUntilResolve(mission) {
             <tr v-for="tier in missions.tiers" :key="tier.tier" class="border-t border-line/60 text-ink-muted">
               <td class="py-2 pr-4">
                 <span class="text-ink">{{ t(`missions.tiers.${tier.tier}`) }}</span>
-                <p class="mt-0.5 text-[10px] text-ink-faint">{{ tier.requirement }}</p>
+                <p class="mt-0.5 text-xs text-ink-faint">{{ tier.requirement }}</p>
               </td>
               <td class="py-2 pr-4 tabular-nums">{{ tierRewardLabel(tier) }}</td>
               <td class="py-2 pr-4 tabular-nums">H{{ tier.resolvesAtHour }}</td>
-              <td class="py-2 text-[10px] text-ink-faint">
+              <td class="py-2 text-xs text-ink-faint">
                 <template v-if="tier.tier === 'routine'">{{ t('missions.riskNone') }}</template>
                 <template v-else-if="tier.tier === 'infiltration'">{{ t('missions.riskLight') }}</template>
                 <template v-else>{{ t('missions.riskCyclone') }}</template>

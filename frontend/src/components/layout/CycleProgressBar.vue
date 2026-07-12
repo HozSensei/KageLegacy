@@ -135,7 +135,7 @@ onUnmounted(() => {
             </ul>
           </li>
         </ol>
-        <p class="mt-3 text-[10px] uppercase tracking-[0.12em] text-ink-faint tabular-nums">
+        <p class="mt-3 text-xs uppercase tracking-[0.12em] text-ink-faint tabular-nums">
           {{ t('cycleProgress.currentHour', { hour }) }} · {{ liveLabel }}
         </p>
       </div>

@@ -143,7 +143,7 @@ onMounted(async () => {
           <router-link
             v-else
             to="/register"
-            class="border border-accent bg-accent/10 px-4 py-2 text-[11px] uppercase tracking-[0.14em] text-accent transition hover:bg-accent/20"
+            class="border border-accent bg-accent/10 px-4 py-2 text-sm uppercase tracking-[0.14em] text-accent transition hover:bg-accent/20"
             data-testid="header-register-cta"
           >
             {{ t('auth.register') }}

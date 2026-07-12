@@ -112,7 +112,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       </svg>
       <span
         v-if="unreadCount > 0"
-        class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-fire px-1 text-[10px] font-medium text-bg"
+        class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-fire px-1 text-xs font-medium text-bg"
       >
         {{ unreadCount > 9 ? '9+' : unreadCount }}
       </span>
@@ -134,7 +134,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
           <div class="mt-3 flex gap-1">
             <button
               type="button"
-              class="rounded px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+              class="rounded px-2.5 py-1 text-xs uppercase tracking-[0.12em] transition"
               :class="tab === 'unread' ? 'bg-accent/15 text-accent' : 'text-ink-muted hover:text-ink'"
               data-testid="notification-tab-unread"
               @click="tab = 'unread'"
@@ -144,7 +144,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
             </button>
             <button
               type="button"
-              class="rounded px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+              class="rounded px-2.5 py-1 text-xs uppercase tracking-[0.12em] transition"
               :class="tab === 'history' ? 'bg-accent/15 text-accent' : 'text-ink-muted hover:text-ink'"
               data-testid="notification-tab-history"
               @click="tab = 'history'"
@@ -166,15 +166,15 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
             :class="{ 'opacity-75': tab === 'history' || note.read }"
           >
             <div class="flex items-baseline justify-between gap-2">
-              <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
-              <time class="shrink-0 text-[10px] text-ink-faint">{{ formatWhen(note) }}</time>
+              <p class="text-xs uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
+              <time class="shrink-0 text-xs text-ink-faint">{{ formatWhen(note) }}</time>
             </div>
             <p class="mt-2 text-sm leading-relaxed text-ink">{{ body(note) }}</p>
             <div class="mt-3 flex flex-wrap gap-2">
               <button
                 v-if="linkPath(note) && linkLabel(note)"
                 type="button"
-                class="btn-ghost text-[10px]"
+                class="btn-ghost"
                 data-testid="notification-follow"
                 @click="followLink(note, $event)"
               >
@@ -183,7 +183,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
               <button
                 v-if="tab === 'unread'"
                 type="button"
-                class="btn-ghost text-[10px]"
+                class="btn-ghost"
                 data-testid="notification-dismiss"
                 :disabled="dismissingId === note.id"
                 @click="dismiss(note.id, $event)"

@@ -25,8 +25,8 @@ const chuninStagnant = computed(() => {
         class="border border-fire/30 bg-fire/5 p-4"
       >
         <NinjaListIdentity :ninja="ninja" compact first-name-only />
-        <p class="mt-2 text-[11px] text-fire">{{ t('bureau.chuninStagnation.warning') }}</p>
-        <p v-if="ninja.profile?.combatPeak" class="mt-2 text-[11px] text-ink-faint">
+        <p class="mt-2 text-sm text-fire">{{ t('bureau.chuninStagnation.warning') }}</p>
+        <p v-if="ninja.profile?.combatPeak" class="mt-2 text-sm text-ink-faint">
           {{ t('bureau.chuninStagnation.combatPeak', { value: ninja.profile.combatPeak }) }}
         </p>
       </li>

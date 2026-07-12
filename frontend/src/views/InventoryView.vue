@@ -379,7 +379,7 @@ async function unequipCard(ninjaId) {
             v-for="cat in ITEM_CATEGORY_FILTERS"
             :key="`cat-${cat}`"
             type="button"
-            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+            class="rounded-sm border px-2.5 py-1 text-xs uppercase tracking-[0.12em] transition"
             :class="
               itemCategoryFilter === cat
                 ? 'border-accent bg-accent/10 text-accent'
@@ -396,7 +396,7 @@ async function unequipCard(ninjaId) {
             v-for="status in ITEM_STATUS_FILTERS"
             :key="`status-${status}`"
             type="button"
-            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+            class="rounded-sm border px-2.5 py-1 text-xs uppercase tracking-[0.12em] transition"
             :class="
               itemStatusFilter === status
                 ? 'border-accent bg-accent/10 text-accent'
@@ -430,7 +430,7 @@ async function unequipCard(ninjaId) {
               <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             <span class="section-label">{{ t(`market.categories.${category}`) }}</span>
-            <span class="text-[10px] text-ink-faint">({{ itemsForCategory(category).length }})</span>
+            <span class="text-xs text-ink-faint">({{ itemsForCategory(category).length }})</span>
           </button>
 
           <ul v-show="!isCollapsed(category)" class="mt-4 space-y-3">
@@ -453,13 +453,13 @@ async function unequipCard(ninjaId) {
                 <p class="text-sm text-ink">{{ itemName(item) }}</p>
                 <span
                   v-if="isItemEquipped(item)"
-                  class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
+                  class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-xs font-medium uppercase tracking-[0.12em] text-accent"
                 >
                   {{ t('inventory.equippedBadge', { name: item.equipped_ninja_name }) }}
                 </span>
                 <span
                   v-else-if="item.isListed"
-                  class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
+                  class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-xs uppercase tracking-[0.12em] text-ink-faint"
                 >
                   {{ t('inventory.listed') }}
                 </span>
@@ -479,7 +479,7 @@ async function unequipCard(ninjaId) {
               <button
                 v-if="canSellItem(item)"
                 type="button"
-                class="btn-ghost mt-3 text-xs"
+                class="btn-ghost mt-3"
                 @click.stop="openSell(item)"
               >
                 {{ t('inventory.sell') }}
@@ -509,7 +509,7 @@ async function unequipCard(ninjaId) {
               <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             <span class="section-label">{{ t('inventory.tacticCards') }}</span>
-            <span class="text-[10px] text-ink-faint">({{ filteredCards.length }})</span>
+            <span class="text-xs text-ink-faint">({{ filteredCards.length }})</span>
           </button>
         </div>
         <p v-if="selectedCardId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinjaCard') }}</p>
@@ -519,7 +519,7 @@ async function unequipCard(ninjaId) {
             v-for="status in CARD_STATUS_FILTERS"
             :key="`card-${status}`"
             type="button"
-            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+            class="rounded-sm border px-2.5 py-1 text-xs uppercase tracking-[0.12em] transition"
             :class="
               cardStatusFilter === status
                 ? 'border-accent bg-accent/10 text-accent'
@@ -552,13 +552,13 @@ async function unequipCard(ninjaId) {
               <p class="text-sm text-ink">{{ cardName(card) }}</p>
               <span
                 v-if="isCardEquipped(card)"
-                class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
+                class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-xs font-medium uppercase tracking-[0.12em] text-accent"
               >
                 {{ t('inventory.equippedBadge', { name: card.equippedNinjaName }) }}
               </span>
               <span
                 v-else-if="card.isListed"
-                class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
+                class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-xs uppercase tracking-[0.12em] text-ink-faint"
               >
                 {{ t('inventory.listed') }}
               </span>
@@ -573,7 +573,7 @@ async function unequipCard(ninjaId) {
             <button
               v-if="canSellCard(card)"
               type="button"
-              class="btn-ghost mt-3 text-xs"
+              class="btn-ghost mt-3"
               @click.stop="openSellCard(card)"
             >
               {{ t('inventory.sell') }}

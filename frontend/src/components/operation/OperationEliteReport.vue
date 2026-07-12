@@ -69,7 +69,7 @@ function heatmapBarWidth(value, bucket) {
   >
     <button type="button" class="flex w-full items-center justify-between text-left" @click="toggle">
       <span class="section-label">{{ t('eliteReport.title') }}</span>
-      <span class="text-[10px] uppercase tracking-[0.14em] text-accent">
+      <span class="text-xs uppercase tracking-[0.14em] text-accent">
         {{ open ? t('eliteReport.hide') : t('eliteReport.show') }}
       </span>
     </button>
@@ -81,7 +81,7 @@ function heatmapBarWidth(value, bucket) {
       <template v-else-if="report">
         <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="border border-line/60 bg-bg-card/40 p-3">
-            <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ possessionCaption }}
             </dt>
             <dd class="mt-1 text-lg text-ink">
@@ -89,13 +89,13 @@ function heatmapBarWidth(value, bucket) {
             </dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
-            <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ t('eliteReport.endReason') }}
             </dt>
             <dd class="mt-1 text-sm text-ink-muted">{{ endReasonLabel }}</dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
-            <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ t('eliteReport.ko') }}
             </dt>
             <dd class="mt-1 text-sm text-ink-muted">
@@ -103,7 +103,7 @@ function heatmapBarWidth(value, bucket) {
             </dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
-            <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ t('operation.endingTour') }}
             </dt>
             <dd class="mt-1 text-sm text-ink-muted">{{ report.endingTour }} / 12</dd>
@@ -111,7 +111,7 @@ function heatmapBarWidth(value, bucket) {
         </dl>
 
         <div v-if="report.decisiveMoments?.length">
-          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
             {{ t('eliteReport.decisiveTitle') }}
           </p>
           <ul class="mt-3 space-y-2">
@@ -120,14 +120,14 @@ function heatmapBarWidth(value, bucket) {
               :key="idx"
               class="border-l-2 border-accent/50 pl-3 text-sm text-ink-muted"
             >
-              <span class="text-[10px] text-ink-faint">T{{ moment.tour }}</span>
+              <span class="text-xs text-ink-faint">T{{ moment.tour }}</span>
               · {{ moment.label }}
             </li>
           </ul>
         </div>
 
         <div v-if="report.techniqueBreakdown?.mine">
-          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
             {{ t('eliteReport.techniqueTitle') }}
           </p>
           <div class="mt-3 grid gap-3 sm:grid-cols-2">
@@ -157,7 +157,7 @@ function heatmapBarWidth(value, bucket) {
         </div>
 
         <div v-if="report.elementHeatmap">
-          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
             {{ t('eliteReport.heatmapTitle') }}
           </p>
           <div class="mt-3 grid gap-4 sm:grid-cols-2">
@@ -208,7 +208,7 @@ function heatmapBarWidth(value, bucket) {
           </div>
           <p
             v-if="report.elementHeatmap.circle"
-            class="mt-3 text-[11px] text-ink-faint"
+            class="mt-3 text-sm text-ink-faint"
           >
             {{
               t('eliteReport.heatmapCircle', {
@@ -220,7 +220,7 @@ function heatmapBarWidth(value, bucket) {
         </div>
 
         <div v-if="report.timeline?.length">
-          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
             {{ t('eliteReport.timelineTitle') }}
           </p>
           <ul class="mt-3 max-h-64 space-y-3 overflow-y-auto pr-2 text-xs">
