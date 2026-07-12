@@ -73,8 +73,38 @@
     }
   }
 
+  .page-hero__mural {
+    @apply pointer-events-none absolute inset-x-0 bottom-0 z-[1];
+    height: 3.25rem;
+    color: color-mix(in srgb, var(--color-ink) 72%, transparent);
+    opacity: 0.55;
+    mask-image: linear-gradient(180deg, transparent 0%, #000 35%, #000 100%);
+  }
+
+  @media (min-width: 640px) {
+    .page-hero__mural {
+      height: 3.75rem;
+      opacity: 0.6;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-hero__mural {
+      height: 4.25rem;
+      opacity: 0.65;
+    }
+  }
+
+  .page-hero__mural-svg {
+    @apply block h-full w-full;
+  }
+
+  .page-hero__mural-tile {
+    fill: currentColor;
+  }
+
   .page-hero__overlay {
-    @apply absolute inset-0;
+    @apply absolute inset-0 z-[2];
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--color-bg) 10%, transparent) 0%,
