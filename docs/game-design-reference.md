@@ -137,9 +137,10 @@ Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie av
 
 ### Examen Chunin (inscription avant H36, résolution H36)
 
-- Prérequis : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi)
-- Coût : 300 + max(0, moyenne − 8) × 45 Ryos
-- Succès → Chunin ; échec → moral −5
+- Prérequis : **note moyenne globale** ≥ 8
+- Inscription : **gratuite**
+- Réussite : prime 300–1 000 Ryos, +1 à +5 réputation, objet, forme +1 palier, moral +2 à +5
+- Échec → moral −5
 
 ### Vol d’Oiseau (Chunin → départ, H72)
 

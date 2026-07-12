@@ -475,17 +475,18 @@
     },
     "chuninExam": {
       "title": "Chunin exams",
-      "lead": "Village ceremony: register a ready Genin before H36. The council rules at mid-cycle — not a mere stat check.",
-      "ceremony": "The ninja presents their progress to the council. Pass: Chunin rank. Fail: village shame (morale −5).",
+      "lead": "Village ceremony: register a ready Genin before H36. Free registration — promotion payout scales with overall rating.",
+      "ceremony": "The ninja presents their progress to the council. Pass: Chunin rank, Ryos, item, form and morale boost. Fail: village shame (morale −5).",
       "average": "Overall rating",
-      "submit": "Present to council ({cost} Ryos)",
+      "rewardPreview": "Expected payout: +{ryos} Ryos · +{reputation} reputation · form +1 tier · morale +{moral}",
+      "submit": "Present to council (free)",
       "sending": "Registering…",
       "registered": "Presented · verdict H36",
       "closed": "Registration closed this cycle — next window at H0.",
       "debtBlocked": "Debt outstanding — registrations suspended.",
       "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72.",
       "successTitle": "Chunin promotion",
-      "successBody": "{name} is promoted to Chunin after the council exam (overall rating {average}).",
+      "successBody": "{name} is promoted to Chunin (rating {average}): +{ryos} Ryos, +{reputation} reputation, form {forme}, morale {moral}.",
       "failureTitle": "Chunin exam failure",
       "failureBody": "{name} failed to convince the council (overall rating {average}/{required}). Morale: {moral}."
     }

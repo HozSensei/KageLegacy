@@ -475,17 +475,18 @@
     },
     "chuninExam": {
       "title": "Examens Chunin",
-      "lead": "Cérémonie du village : inscrivez un Genin prêt avant H36. Le conseil statue à mi-cycle — pas un simple test de stats.",
-      "ceremony": "Le ninja présente sa progression devant le conseil. Réussite : grade Chunin. Échec : honte du village (moral −5).",
+      "lead": "Cérémonie du village : inscrivez un Genin prêt avant H36. Inscription gratuite — prime à la réussite selon la note moyenne.",
+      "ceremony": "Le ninja présente sa progression devant le conseil. Réussite : grade Chunin, Ryos, objet, forme et moral revalorisés. Échec : honte du village (moral −5).",
       "average": "Note moyenne",
-      "submit": "Présenter au conseil ({cost} Ryos)",
+      "rewardPreview": "Prime prévue : +{ryos} Ryos · +{reputation} réputation · forme +1 palier · moral +{moral}",
+      "submit": "Présenter au conseil (gratuit)",
       "sending": "Inscription…",
       "registered": "Présenté · verdict H36",
       "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0.",
       "debtBlocked": "Dette en cours — inscriptions suspendues.",
       "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72.",
       "successTitle": "Promotion Chunin",
-      "successBody": "{name} est promu Chunin après l'examen du conseil (note moyenne {average}).",
+      "successBody": "{name} est promu Chunin (note {average}) : +{ryos} Ryos, +{reputation} réputation, forme {forme}, moral {moral}.",
       "failureTitle": "Échec à l'examen Chunin",
       "failureBody": "{name} n'a pas convaincu le conseil (note moyenne {average}/{required}). Moral : {moral}."
     }

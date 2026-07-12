@@ -2,11 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
-import {
-  computeChuninExamCost,
-  canRegisterForExam,
-  getChuninExamProgress,
-} from '../../composables/useChuninExam.js'
+import { canRegisterForExam, getChuninExamProgress } from '../../composables/useChuninExam.js'
 import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
@@ -26,9 +22,6 @@ const geninList = computed(() => {
 })
 
 const registrationOpen = computed(() => (store.gameClock?.hour ?? 0) < 36)
-const debtBlocked = computed(
-  () => (store.sensei?.ryos ?? 0) < 0 || store.sensei?.salaryDebt
-)
 
 async function register(ninjaId) {
   registeringId.value = ninjaId
@@ -51,9 +44,6 @@ async function register(ninjaId) {
 
     <p v-if="!registrationOpen" class="mt-4 text-xs text-ink-muted">
       {{ t('bureau.chuninExam.closed') }}
-    </p>
-    <p v-else-if="debtBlocked" class="mt-4 text-xs text-fire">
-      {{ t('bureau.chuninExam.debtBlocked') }}
     </p>
 
     <p v-if="localError" class="mt-4 text-xs text-fire">{{ localError }}</p>
@@ -83,12 +73,25 @@ async function register(ninjaId) {
           </div>
         </div>
 
+        <p
+          v-if="progress.promotionRewards"
+          class="mt-2 text-[11px] leading-relaxed text-accent-soft"
+        >
+          {{
+            t('bureau.chuninExam.rewardPreview', {
+              ryos: progress.promotionRewards.ryos.toLocaleString(),
+              reputation: progress.promotionRewards.reputation,
+              moral: progress.promotionRewards.moralBoost,
+            })
+          }}
+        </p>
+
         <p v-if="ninja.stagnationRisk && !ninja.chunin_exam_requested" class="mt-2 text-[11px] text-fire">
           {{ t('bureau.chuninExam.stagnationWarning') }}
         </p>
 
         <button
-          v-if="canRegisterForExam(ninja, store.gameClock, store.sensei)"
+          v-if="canRegisterForExam(ninja, store.gameClock)"
           type="button"
           class="btn-ghost mt-3 text-[10px]"
           :disabled="registeringId === ninja.id"
@@ -97,7 +100,7 @@ async function register(ninjaId) {
           {{
             registeringId === ninja.id
               ? t('bureau.chuninExam.sending')
-              : t('bureau.chuninExam.submit', { cost: computeChuninExamCost(ninja) })
+              : t('bureau.chuninExam.submit')
           }}
         </button>
       </li>

@@ -55,6 +55,10 @@ export function useNotificationCopy() {
         return t('bureau.chuninExam.successBody', {
           name: p.name?.split(' ')[0] || '—',
           average: p.overallRating ?? '—',
+          ryos: (p.ryosReward ?? 0).toLocaleString(),
+          reputation: p.reputationReward ?? 0,
+          moral: p.moralAfter ?? '—',
+          forme: p.formeAfter ?? '—',
         })
       case 'chunin_exam_failure':
         return t('bureau.chuninExam.failureBody', {

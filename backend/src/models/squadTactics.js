@@ -1,8 +1,9 @@
 import { query } from '../config/database.js';
 import { CHUNIN_AVERAGE_REQUIRED, meetsChuninRequirements } from '../services/chuninExam.js';
 import { BIRD_FLIGHT_AVERAGE_REQUIRED } from '../services/birdFlightExam.js';
-import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/gradeProgression.js';
-import { assertSpendingAllowed } from '../services/economyDebt.js';
+import { meetsBirdFlightRequirements } from '../services/gradeProgression.js';
+import { meetsBirdFlightRequirements } from '../services/gradeProgression.js';
+import { meetsChuninRequirements } from '../services/chuninExam.js';
 import { getGameClock, isTacticsLocked, isTrainingLocked } from '../services/gameClock.js';
 import { isNinjaListed } from '../services/playerMarketService.js';
 import { TRAINING_TYPE_VALUES } from '../services/training.js';
@@ -160,26 +161,12 @@ export async function requestChuninExam(userId, ninjaId) {
     throw error;
   }
 
-  const examCost = computeChuninExamCost(ninja);
-
-  await assertSpendingAllowed(
-    userId,
-    'Gel administratif — remboursez votre dette avant d\'inscrire un Genin à l\'examen Chunin.'
-  );
-
-  if (ninja.ryos < examCost) {
-    const error = new Error(`Ryos insuffisants (${examCost} requis).`);
-    error.statusCode = 402;
-    throw error;
-  }
-
-  await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [examCost, userId]);
   await query(
     'UPDATE ninjas SET chunin_exam_requested = TRUE, stagnant_cycles = 0 WHERE id = ?',
     [ninjaId]
   );
 
-  return { ninjaId, cost: examCost };
+  return { ninjaId, cost: 0 };
 }
 
 export async function requestBirdFlight(userId, ninjaId) {

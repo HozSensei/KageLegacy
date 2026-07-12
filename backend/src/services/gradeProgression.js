@@ -1,7 +1,6 @@
 import { clampStat } from './ninjaStats.js';
-import { meetsChuninRequirements, CHUNIN_AVERAGE_REQUIRED } from './chuninExam.js';
+import { meetsChuninRequirements } from './chuninExam.js';
 import { meetsBirdFlightRequirements } from './birdFlightExam.js';
-import { ninjaOverallRating } from './ninjaStats.js';
 
 export { meetsBirdFlightRequirements, hasReachedTeachingPeak } from './birdFlightExam.js';
 
@@ -33,9 +32,6 @@ export const GRADE_STAT_CAPS = {
   },
 };
 
-const CHUNIN_EXAM_BASE_COST = 300;
-const CHUNIN_EXAM_AVERAGE_STEP = 45;
-
 const FORME_DOWNGRADE = {
   Divin: 'Excellent',
   Excellent: 'Passable',
@@ -56,10 +52,9 @@ export function clampStatToGradeCap(ninja, stat, value) {
   return clampStat(Math.min(value, cap));
 }
 
-export function computeChuninExamCost(ninja) {
-  const average = ninjaOverallRating(ninja);
-  const extraAverage = Math.max(0, average - CHUNIN_AVERAGE_REQUIRED) * CHUNIN_EXAM_AVERAGE_STEP;
-  return CHUNIN_EXAM_BASE_COST + extraAverage;
+/** @deprecated Examen Chunin gratuit depuis la refonte primes promotion. */
+export function computeChuninExamCost() {
+  return 0;
 }
 
 export function isGeninStagnantCandidate(ninja) {

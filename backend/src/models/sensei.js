@@ -2,7 +2,6 @@ import { query } from '../config/database.js';
 import { getGameClock } from '../services/gameClock.js';
 import {
   GRADE_STAT_CAPS,
-  computeChuninExamCost,
   hasReachedTeachingPeak,
   hasStagnationGrace,
   isChuninStagnant,
@@ -10,6 +9,8 @@ import {
   meetsBirdFlightRequirements,
 } from '../services/gradeProgression.js';
 import { getBirdFlightProgress } from '../services/birdFlightExam.js';
+import { meetsChuninRequirements } from '../services/chuninExam.js';
+import { computeChuninPromotionRewards } from '../services/chuninPromotionRewards.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
 import {
   getNotificationHistory,
@@ -41,7 +42,11 @@ function enrichNinja(ninja) {
     trainingFocus: ninja.preparation_type ?? null,
     preparationCost,
     trainingCost: preparationCost,
-    chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
+    chuninExamCost: null,
+    chuninPromotionRewards:
+      ninja.grade === 'Genin' && meetsChuninRequirements(ninja)
+        ? computeChuninPromotionRewards(ninja)
+        : null,
     birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
     birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
     birdFlightPeak: ninja.grade === 'Chunin' ? hasReachedTeachingPeak(ninja) : false,

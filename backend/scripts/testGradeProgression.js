@@ -7,6 +7,7 @@ import {
   isStatAtGradeCap,
   shouldApplyStagnationPenalty,
 } from '../src/services/gradeProgression.js';
+import { computeChuninPromotionRewards } from '../src/services/chuninPromotionRewards.js';
 
 const geninReady = {
   grade: 'Genin',
@@ -27,7 +28,36 @@ console.assert(hasStagnationGrace(geninReady));
 console.assert(!shouldApplyStagnationPenalty(geninReady));
 console.assert(shouldApplyStagnationPenalty({ ...geninReady, stagnant_cycles: 1 }));
 console.assert(!isGeninStagnant({ ...geninReady, chunin_exam_requested: true }));
-console.assert(computeChuninExamCost(geninReady) === 345);
+console.assert(computeChuninExamCost() === 0);
+
+const rewardsMin = computeChuninPromotionRewards({
+  ...geninReady,
+  taijutsu: 8,
+  ninjutsu: 8,
+  genjutsu: 8,
+  medecine: 8,
+  vitesse: 8,
+  intelligence: 8,
+  moral: 10,
+  weekly_forme: 'Passable',
+});
+console.assert(rewardsMin.ryos === 300, 'ryos min');
+console.assert(rewardsMin.reputation === 1, 'rep min');
+
+const rewardsMax = computeChuninPromotionRewards({
+  ...geninReady,
+  taijutsu: 12,
+  ninjutsu: 12,
+  genjutsu: 12,
+  medecine: 12,
+  vitesse: 10,
+  intelligence: 10,
+  moral: 8,
+  weekly_forme: 'Lamentable',
+});
+console.assert(rewardsMax.ryos === 1000, 'ryos max');
+console.assert(rewardsMax.reputation === 4, 'rep high');
+console.assert(rewardsMax.newForme === 'Passable', 'forme boost');
 
 const chuninVeteran = {
   grade: 'Chunin',

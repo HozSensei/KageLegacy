@@ -35,19 +35,23 @@ Dans le jeu, c'est la colonne `intelligence` (affichée **Intelligence** dans l'
 
 ---
 
-## 💰 Coût Ryos — Examen Chunin (H0–H36)
+## 💰 Examen Chunin (H0–H36) — gratuit, prime à la réussite
 
-Frais d'inscription **dynamiques** (prélevés à l'inscription), indexés sur la **note moyenne globale** du candidat (somme des 6 stats ÷ 6, arrondi) :
+**Inscription gratuite** (plus de coût Ryos à l'inscription).
 
-$$\text{Coût} = 300 + \max(0, \text{note moyenne} - 8) \times 45$$
+À la **réussite H36**, prime indexée sur la **note moyenne globale** :
 
-| Profil | Exemple (moyenne) | Coût |
-| :--- | :--- | :--- |
-| Minimum (8) | Débutant prêt | **300** Ryos |
-| Solide (9) | Genin mûr | **345** Ryos |
-| Plafond Genin (~9–10) | Avant examen | selon profil |
+| Composante | Échelle |
+| :--- | :--- |
+| **Ryos** | 300 (moy. 8) → 1 000 (moy. 11+) |
+| **Réputation Sensei** | +1 à +5 |
+| **Objet** | pansement → herbes → livre de stratégie → cachet chakra |
+| **Forme** | +1 palier (ex. Passable → Excellent) |
+| **Moral** | +2 à +5 |
 
-*Vol d'Oiseau (M7) : **inscription gratuite** — aucun coût Ryos. La prime est versée à H72 (`3000 + Σstats × 150` Ryos, +10 réputation).*
+$$\text{Ryos} = 300 + \frac{\min(\text{moyenne}, 11) - 8}{3} \times 700$$
+
+*Vol d'Oiseau (M7) : **inscription gratuite** — prime à H72 (`3000 + Σstats × 150` Ryos, +10 réputation).*
 
 | Profil | Exemple (moyenne) | Prime Ryos (indicative) |
 | :--- | :--- | :--- |

@@ -191,7 +191,8 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 - **Registration**: before H36 (preparation phase).
 - **Resolution**: automatic at H36.
 - **Requirements**: **overall rating** ≥ 8 (sum of 6 stats ÷ 6, rounded).
-- **Cost**: Ryos registration fee, **higher** if the candidate exceeds the minimum threshold (indexed on overall rating).
+- **Registration**: **free**.
+- **Success**: 300–1,000 Ryos payout, +1 to +5 reputation, item, form +1 tier, morale +2 to +5.
 - **Success**: promotion to Chunin and raised caps.
 - **Failure**: ninja stays Genin; morale drops.
 

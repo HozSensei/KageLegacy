@@ -203,7 +203,8 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 - **Inscription** : avant H36 (pendant la phase de préparation).
 - **Résolution** : automatique à H36.
 - **Prérequis** : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi).
-- **Coût** : frais d'inscription en Ryos, **plus élevés** si le candidat dépasse le seuil minimal (indexé sur la note moyenne).
+- **Inscription** : **gratuite**.
+- **Réussite** : prime 300–1 000 Ryos, +1 à +5 réputation, objet, forme remontée d'un palier, moral +2 à +5.
 - **Succès** : passage au grade Chunin et plafonds relevés.
 - **Échec** : le ninja reste Genin ; son moral chute.
 
