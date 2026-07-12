@@ -6,12 +6,13 @@ import { useSquadStore } from '../../stores/squad'
 import { useNotificationCopy } from '../../composables/useNotificationCopy'
 import { useAnchoredPopover } from '../../composables/useAnchoredPopover.js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const store = useSquadStore()
 const { title, body, linkPath, linkLabel } = useNotificationCopy()
 
 const open = ref(false)
+const tab = ref('unread')
 const dismissingId = ref(null)
 const root = ref(null)
 const trigger = ref(null)
@@ -19,11 +20,17 @@ const panel = ref(null)
 
 const { panelStyle, updatePosition } = useAnchoredPopover(trigger, panel, open)
 
-const notifications = computed(() =>
+const unreadNotifications = computed(() =>
   [...(store.notifications || [])].reverse()
 )
 
-const unreadCount = computed(() => notifications.value.length)
+const historyNotifications = computed(() => store.notificationHistory || [])
+
+const unreadCount = computed(() => unreadNotifications.value.length)
+
+const activeList = computed(() =>
+  tab.value === 'history' ? historyNotifications.value : unreadNotifications.value
+)
 
 function toggle() {
   open.value = !open.value
@@ -62,7 +69,20 @@ function followLink(note, event) {
   }
 }
 
-watch(notifications, () => {
+function formatWhen(note) {
+  if (!note.createdAt && !note.dismissedAt) return ''
+  const raw = note.dismissedAt || note.createdAt
+  const date = new Date(raw)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleString(locale.value === 'en' ? 'en-GB' : 'fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+watch([unreadNotifications, historyNotifications], () => {
   if (open.value) nextTick(updatePosition)
 })
 
@@ -111,19 +131,44 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
       >
         <div class="notification-panel__header border-b border-line px-4 py-3">
           <p class="text-sm font-medium text-ink">{{ t('notifications.panelTitle') }}</p>
+          <div class="mt-3 flex gap-1">
+            <button
+              type="button"
+              class="rounded px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+              :class="tab === 'unread' ? 'bg-accent/15 text-accent' : 'text-ink-muted hover:text-ink'"
+              data-testid="notification-tab-unread"
+              @click="tab = 'unread'"
+            >
+              {{ t('notifications.tabUnread') }}
+              <span v-if="unreadCount > 0" class="ml-1">({{ unreadCount }})</span>
+            </button>
+            <button
+              type="button"
+              class="rounded px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+              :class="tab === 'history' ? 'bg-accent/15 text-accent' : 'text-ink-muted hover:text-ink'"
+              data-testid="notification-tab-history"
+              @click="tab = 'history'"
+            >
+              {{ t('notifications.tabHistory') }}
+            </button>
+          </div>
         </div>
 
-        <div v-if="!notifications.length" class="px-4 py-8 text-center text-sm text-ink-muted">
-          {{ t('notifications.empty') }}
+        <div v-if="!activeList.length" class="px-4 py-8 text-center text-sm text-ink-muted">
+          {{ tab === 'history' ? t('notifications.historyEmpty') : t('notifications.empty') }}
         </div>
 
         <ul v-else class="notification-panel__list">
           <li
-            v-for="note in notifications"
+            v-for="note in activeList"
             :key="note.id"
             class="border-b border-line/60 px-4 py-4 last:border-b-0"
+            :class="{ 'opacity-75': tab === 'history' || note.read }"
           >
-            <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
+            <div class="flex items-baseline justify-between gap-2">
+              <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
+              <time class="shrink-0 text-[10px] text-ink-faint">{{ formatWhen(note) }}</time>
+            </div>
             <p class="mt-2 text-sm leading-relaxed text-ink">{{ body(note) }}</p>
             <div class="mt-3 flex flex-wrap gap-2">
               <button
@@ -136,6 +181,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
                 {{ linkLabel(note) }}
               </button>
               <button
+                v-if="tab === 'unread'"
                 type="button"
                 class="btn-ghost text-[10px]"
                 data-testid="notification-dismiss"

@@ -197,7 +197,15 @@
   }
 
   .app-nav-drawer__nav {
-    @apply flex flex-col gap-0.5 px-3 py-4;
+    @apply flex flex-col gap-4 px-3 py-4;
+  }
+
+  .app-nav-drawer__group {
+    @apply flex flex-col gap-0.5;
+  }
+
+  .app-nav-drawer__group-label {
+    @apply px-3 pb-1 pt-2 text-[10px] uppercase tracking-[0.16em] text-ink-faint;
   }
 
   .app-nav-drawer__link {
@@ -206,6 +214,18 @@
 
   .app-nav-drawer__link--active {
     @apply border-accent bg-bg-card text-accent;
+  }
+
+  .app-bottom-nav__link {
+    @apply flex min-h-14 flex-col items-center justify-center px-1 py-2 text-center text-[10px] uppercase tracking-[0.08em] text-ink-muted transition hover:text-ink;
+  }
+
+  .app-bottom-nav__link--active {
+    @apply text-accent;
+  }
+
+  .app-bottom-nav__label {
+    @apply line-clamp-2 leading-tight;
   }
 
   .cycle-progress__clock {

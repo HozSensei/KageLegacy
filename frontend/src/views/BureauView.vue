@@ -11,6 +11,7 @@ import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import DailySealPanel from '../components/bureau/DailySealPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
+import BureauActivityPanel from '../components/bureau/BureauActivityPanel.vue'
 
 defineOptions({ name: 'BureauView' })
 
@@ -72,6 +73,8 @@ onMounted(async () => {
       </div>
 
       <StagnationAlert />
+
+      <BureauActivityPanel />
 
       <dl class="metric-row mt-12">
         <div class="metric-item">

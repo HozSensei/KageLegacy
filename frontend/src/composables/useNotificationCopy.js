@@ -23,6 +23,14 @@ export function useNotificationCopy() {
         return t('missions.reconNotifChallengeTitle')
       case 'reconnaissance_result':
         return t('missions.reconNotifResultTitle')
+      case 'training_billing':
+        return t('notifications.trainingBillingTitle')
+      case 'scout_roster':
+        return t('notifications.scoutRosterTitle')
+      case 'operation_start':
+        return t('notifications.operationStartTitle')
+      case 'cycle_close':
+        return t('notifications.cycleCloseTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -92,6 +100,39 @@ export function useNotificationCopy() {
           opponent: p.opponentName || '—',
           ryos: p.ryos ?? 0,
         })
+      case 'training_billing':
+        if (p.paidCount === 0 && p.skippedCount > 0) {
+          return t('notifications.trainingBillingSkipped', { count: p.skippedCount })
+        }
+        return t('notifications.trainingBillingBody', {
+          paid: p.paidCount ?? 0,
+          cost: (p.totalCost ?? 0).toLocaleString(),
+          balance: (p.balanceAfter ?? 0).toLocaleString(),
+        })
+      case 'scout_roster':
+        return t('notifications.scoutRosterBody', {
+          opponent: p.opponentName || '—',
+          tier: p.tier || 'partial',
+        })
+      case 'operation_start':
+        return t('notifications.operationStartBody', {
+          opponent: p.opponentName || '—',
+        })
+      case 'cycle_close': {
+        const match = p.match
+        if (match?.outcome) {
+          return t('notifications.cycleCloseBodyMatch', {
+            salary: (p.salaryDeducted ?? 0).toLocaleString(),
+            balance: (p.balanceAfter ?? 0).toLocaleString(),
+            opponent: match.opponentName || '—',
+            outcome: cycleOutcomeLabel(match.outcome),
+          })
+        }
+        return t('notifications.cycleCloseBody', {
+          salary: (p.salaryDeducted ?? 0).toLocaleString(),
+          balance: (p.balanceAfter ?? 0).toLocaleString(),
+        })
+      }
       default:
         return t('notifications.genericBody')
     }
@@ -106,8 +147,30 @@ export function useNotificationCopy() {
     return map[outcome] || outcome
   }
 
+  function cycleOutcomeLabel(outcome) {
+    const map = {
+      win: t('notifications.matchWin'),
+      draw: t('notifications.matchDraw'),
+      loss: t('notifications.matchLoss'),
+    }
+    return map[outcome] || outcome
+  }
+
   function linkPath(note) {
+    if (note.kind === 'bird_flight') return '/bureau'
     if (note.kind === 'market_sale') return '/exchanges'
+    if (note.kind === 'training_billing') return '/training'
+    if (note.kind === 'scout_roster') return '/squad'
+    if (note.kind === 'operation_start') {
+      const matchId = note.payload?.matchId
+      if (matchId) return `/operation/match/${matchId}`
+      return '/operation'
+    }
+    if (note.kind === 'cycle_close') {
+      const matchId = note.payload?.match?.matchId
+      if (matchId) return `/operation/match/${matchId}`
+      return '/bureau'
+    }
     if (
       note.kind === 'mission_report' ||
       note.kind === 'stagnation' ||
@@ -127,12 +190,19 @@ export function useNotificationCopy() {
   }
 
   function linkLabel(note) {
+    if (note.kind === 'bird_flight') return t('notifications.viewBureau')
     if (note.kind === 'market_sale') return t('bureau.market.viewExchanges')
+    if (note.kind === 'training_billing') return t('notifications.viewTraining')
+    if (note.kind === 'scout_roster') return t('notifications.viewSquad')
+    if (note.kind === 'operation_start' || note.kind === 'cycle_close') {
+      return t('notifications.viewOperation')
+    }
     if (note.kind === 'mission_report') return t('missions.notificationLink')
     if (note.kind === 'chunin_exam_success' || note.kind === 'chunin_exam_failure') {
       return t('notifications.viewBureau')
     }
     if (note.kind === 'clan_well_fusion') return t('notifications.viewBureau')
+    if (note.kind === 'stagnation') return t('notifications.viewBureau')
     if (note.kind === 'reconnaissance_challenge') return t('missions.reconNotifLink')
     if (note.kind === 'reconnaissance_result') return t('missions.reconViewChronicle')
     return null

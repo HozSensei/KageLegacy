@@ -5,9 +5,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { useSquadStore } from '../stores/squad'
 import { useAuthStore } from '../stores/auth'
 import { useEliteStore } from '../stores/elite'
+import { useNavStructure } from '../composables/useNavStructure'
+import { useNotificationWatcher } from '../composables/useNotificationWatcher'
 import CycleProgressBar from '../components/layout/CycleProgressBar.vue'
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue'
+import AppBottomNav from '../components/layout/AppBottomNav.vue'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
+import ToastContainer from '../components/notifications/ToastContainer.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
 import PageHero from '../components/layout/PageHero.vue'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
@@ -63,6 +67,14 @@ function isActive(path) {
   return route.path === path || route.path.startsWith(`${path}/`)
 }
 
+const { groups: navGroups, bottomNavItems, currentSectionLabel } = useNavStructure({
+  navItems,
+  isActive,
+  t,
+})
+
+useNotificationWatcher()
+
 const guestDaysLeft = computed(() => {
   if (!auth.user?.guestExpiresAt) return null
   const ms = new Date(auth.user.guestExpiresAt) - Date.now()
@@ -106,11 +118,19 @@ onMounted(async () => {
   <div class="min-h-screen bg-bg">
     <header class="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur-md">
       <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-10 sm:py-3.5">
-        <AppNavDrawer v-if="auth.user" :nav-items="navItems" :is-active="isActive" />
+        <AppNavDrawer v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
 
         <router-link to="/bureau" class="shrink-0 font-display text-lg text-ink transition hover:text-accent sm:text-xl">
           {{ t('app.name') }}
         </router-link>
+
+        <p
+          v-if="auth.user && currentSectionLabel"
+          class="hidden min-w-0 truncate text-xs text-ink-muted sm:block"
+          data-testid="nav-current-section"
+        >
+          {{ currentSectionLabel }}
+        </p>
 
         <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationBell v-if="auth.user" />
@@ -150,9 +170,17 @@ onMounted(async () => {
       </button>
     </div>
 
-    <main class="relative z-10 pb-16">
+    <main class="relative z-10 pb-20 md:pb-16">
       <router-view />
     </main>
+
+    <AppBottomNav
+      v-if="auth.user"
+      :items="bottomNavItems"
+      :is-active="isActive"
+    />
+
+    <ToastContainer v-if="auth.user" />
 
     <ConvertGuestModal :open="showConvert" @close="showConvert = false" @converted="store.fetchSquad()" />
   </div>
