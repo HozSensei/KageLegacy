@@ -1,14 +1,16 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import { useAdminStore } from '../stores/admin'
+import { useAuthStore } from '../stores/auth'
 
 defineOptions({ name: 'AdminView' })
 
 const { t } = useI18n()
 const admin = useAdminStore()
+const auth = useAuthStore()
 
-const secretInput = ref(admin.secret)
 const targetHour = ref(36)
 const cycleStartAt = ref('')
 const seasonNumber = ref(1)
@@ -16,8 +18,8 @@ const resetConfirm = ref(false)
 const repairAll = ref(true)
 const repairPoolId = ref('')
 const repairIncludePlayed = ref(false)
-const unlocked = ref(false)
 
+const isAdmin = computed(() => Boolean(admin.status?.isAdmin))
 const phaseLabel = computed(() => {
   const phase = admin.clock?.phase
   if (!phase) return '—'
@@ -27,28 +29,12 @@ const phaseLabel = computed(() => {
 const preview = computed(() => (admin.lastResult?.dryRun ? admin.lastResult.preview : null))
 
 onMounted(async () => {
+  if (!auth.checked) await auth.fetchMe()
   await admin.fetchStatus()
-  if (admin.secret) {
-    await tryUnlock()
+  if (isAdmin.value) {
+    await admin.fetchClock()
   }
 })
-
-async function tryUnlock() {
-  admin.setSecret(secretInput.value)
-  try {
-    await admin.fetchClock()
-    unlocked.value = true
-    admin.error = null
-  } catch {
-    unlocked.value = false
-  }
-}
-
-function logout() {
-  admin.clearSecret()
-  secretInput.value = ''
-  unlocked.value = false
-}
 
 async function handleAdvanceHour() {
   await admin.advanceHour()
@@ -112,47 +98,29 @@ async function handleRepairPools() {
       </p>
 
       <div
-        v-else-if="!admin.status?.enabled"
+        v-else-if="!auth.user"
         class="mt-8 border border-line/60 bg-bg-card/40 px-5 py-6 text-sm"
-        data-testid="admin-disabled"
+        data-testid="admin-login-required"
       >
-        <p class="text-ink-muted">{{ t('admin.disabled') }}</p>
-        <p class="mt-3 text-xs text-ink-muted">{{ t('admin.disabledHint') }}</p>
+        <p class="text-ink-muted">{{ t('admin.loginRequired') }}</p>
+        <RouterLink to="/login" class="mt-4 inline-block text-accent underline-offset-2 hover:underline">
+          {{ t('admin.goLogin') }}
+        </RouterLink>
       </div>
 
-      <div v-else-if="!unlocked" class="mt-8 space-y-4" data-testid="admin-login">
-        <p class="text-sm text-ink-muted">{{ t('admin.secretPrompt') }}</p>
-        <input
-          v-model="secretInput"
-          type="password"
-          class="w-full border border-line/60 bg-bg-card px-3 py-2 text-sm"
-          :placeholder="t('admin.secretPlaceholder')"
-          data-testid="admin-secret-input"
-          @keyup.enter="tryUnlock"
-        />
-        <button
-          type="button"
-          class="border border-accent bg-accent/10 px-4 py-2 text-sm hover:bg-accent/20"
-          :disabled="!secretInput || admin.loading"
-          data-testid="admin-unlock"
-          @click="tryUnlock"
-        >
-          {{ t('admin.unlock') }}
-        </button>
-        <p v-if="admin.error" class="text-sm text-fire">{{ admin.error }}</p>
+      <div
+        v-else-if="!isAdmin"
+        class="mt-8 border border-line/60 bg-bg-card/40 px-5 py-6 text-sm"
+        data-testid="admin-forbidden"
+      >
+        <p class="text-ink-muted">{{ t('admin.forbidden') }}</p>
+        <p class="mt-3 text-xs text-ink-muted">{{ t('admin.forbiddenHint') }}</p>
       </div>
 
       <template v-else>
-        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <p class="text-sm text-ink-muted">{{ t('admin.authenticated') }}</p>
-          <button
-            type="button"
-            class="text-sm text-ink-muted underline-offset-2 hover:underline"
-            @click="logout"
-          >
-            {{ t('admin.logout') }}
-          </button>
-        </div>
+        <p class="mt-6 text-sm text-ink-muted">
+          {{ t('admin.connectedAs', { username: admin.status?.username || auth.user.username }) }}
+        </p>
 
         <p v-if="admin.error" class="mt-4 text-sm text-fire">{{ admin.error }}</p>
 

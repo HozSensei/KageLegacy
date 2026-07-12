@@ -960,13 +960,11 @@
   "admin": {
     "title": "Administration",
     "lead": "Operations tools: clock, season reset, and maintenance.",
-    "disabled": "The admin panel is disabled on this server.",
-    "disabledHint": "Set ENABLE_ADMIN_PANEL=true and ADMIN_SECRET in your .env file.",
-    "secretPrompt": "Enter the admin secret to access tools.",
-    "secretPlaceholder": "Admin secret",
-    "unlock": "Unlock",
-    "logout": "Lock",
-    "authenticated": "Panel unlocked.",
+    "loginRequired": "Sign in to access the admin panel.",
+    "goLogin": "Sign in",
+    "forbidden": "Your account does not have administrator rights.",
+    "forbiddenHint": "Ask an admin to run: UPDATE users SET is_admin = TRUE WHERE username = 'your_account';",
+    "connectedAs": "Signed in as {username}.",
     "lastResult": "Last result",
     "clock": {
       "title": "Game clock",

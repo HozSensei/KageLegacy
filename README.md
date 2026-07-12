@@ -173,14 +173,15 @@ Après le reset, l'horloge est à **H0** avec `cycle_start_at` = l'heure indiqu�
 
 Alternative au `docker exec` : interface web pour les mêmes opérations (horloge, hard reset, maintenance).
 
-Dans `.env` (ou `.env.prod`) :
+1. Promouvoir un compte en admin (une seule fois, via SQL) :
 
-```bash
-ENABLE_ADMIN_PANEL=true
-ADMIN_SECRET=votre-secret-long-et-aleatoire
+```sql
+UPDATE users SET is_admin = TRUE WHERE username = 'votre_compte';
 ```
 
-Puis ouvrez `https://votre-domaine/admin`, entrez le secret, et utilisez les outils. Les routes API sont sous `/api/admin/*` et exigent l'en-tête `X-Admin-Secret`.
+2. Se connecter avec ce compte et ouvrir `/admin`.
+
+Pour retirer les droits : `UPDATE users SET is_admin = FALSE WHERE username = 'votre_compte';`
 
 ### Cycle & maintenance prod
 

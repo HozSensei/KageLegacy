@@ -36,6 +36,7 @@ function serializeUser(user) {
     id: user.id,
     username: user.username,
     isGuest: Boolean(user.is_guest),
+    isAdmin: Boolean(user.is_admin) && !user.is_bot && !user.is_guest,
     guestExpiresAt: user.guest_expires_at || null,
     email: user.email || null,
   };

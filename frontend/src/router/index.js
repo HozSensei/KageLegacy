@@ -90,10 +90,15 @@ const router = createRouter({
   ],
 })
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules', '/admin'])
+const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules'])
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
+
+  if (to.path === '/admin') {
+    if (!auth.checked) await auth.fetchMe()
+    return true
+  }
 
   if (PUBLIC_PATHS.has(to.path)) {
     if (!auth.checked) await auth.fetchMe()

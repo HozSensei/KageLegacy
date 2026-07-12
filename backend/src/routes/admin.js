@@ -15,18 +15,22 @@ import {
 import { hardSeasonReset } from '../services/seasonResetService.js';
 import { purgeExpiredGuestAccounts } from '../services/guestCleanupService.js';
 import { repairAllActivePoolSchedules, repairPoolSchedule } from '../services/poolService.js';
-import { isAdminPanelEnabled, requireAdminSecret } from '../middleware/admin.js';
+import { isAdminUser, requireAdmin } from '../middleware/admin.js';
 
 const router = Router();
 
-router.get('/status', (_req, res) => {
+router.get('/status', (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Non authentifié.', isAdmin: false });
+  }
+
   res.json({
-    enabled: isAdminPanelEnabled(),
-    secretConfigured: Boolean(process.env.ADMIN_SECRET),
+    isAdmin: isAdminUser(req.user),
+    username: req.user.username,
   });
 });
 
-router.use(requireAdminSecret);
+router.use(requireAdmin);
 
 router.get('/clock', async (_req, res, next) => {
   try {

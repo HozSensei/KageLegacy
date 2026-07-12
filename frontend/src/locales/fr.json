@@ -960,13 +960,11 @@
   "admin": {
     "title": "Administration",
     "lead": "Outils d'exploitation : horloge, reset de saison et maintenance.",
-    "disabled": "Le panneau admin est désactivé sur ce serveur.",
-    "disabledHint": "Activez ENABLE_ADMIN_PANEL=true et définissez ADMIN_SECRET dans le fichier .env.",
-    "secretPrompt": "Entrez le secret admin pour accéder aux outils.",
-    "secretPlaceholder": "Secret admin",
-    "unlock": "Déverrouiller",
-    "logout": "Verrouiller",
-    "authenticated": "Panneau déverrouillé.",
+    "loginRequired": "Connectez-vous pour accéder au panneau admin.",
+    "goLogin": "Se connecter",
+    "forbidden": "Votre compte n'a pas les droits administrateur.",
+    "forbiddenHint": "Demandez à un admin d'exécuter : UPDATE users SET is_admin = TRUE WHERE username = 'votre_compte';",
+    "connectedAs": "Connecté en tant que {username}.",
     "lastResult": "Dernier résultat",
     "clock": {
       "title": "Horloge de jeu",

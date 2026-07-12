@@ -1,24 +1,18 @@
 /**
- * Panneau admin : activé via ENABLE_ADMIN_PANEL=true et protégé par ADMIN_SECRET.
+ * Panneau admin : réservé aux utilisateurs avec is_admin = TRUE (session requise).
  */
 
-export function isAdminPanelEnabled() {
-  return process.env.ENABLE_ADMIN_PANEL === 'true';
+export function isAdminUser(user) {
+  return Boolean(user?.is_admin) && !user?.is_bot && !user?.is_guest;
 }
 
-export function requireAdminSecret(req, res, next) {
-  if (!isAdminPanelEnabled()) {
-    return res.status(403).json({ error: 'Panneau admin désactivé.' });
+export function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Non authentifié.', isAdmin: false });
   }
 
-  const expected = process.env.ADMIN_SECRET;
-  if (!expected) {
-    return res.status(503).json({ error: 'ADMIN_SECRET non configuré côté serveur.' });
-  }
-
-  const provided = req.headers['x-admin-secret'];
-  if (!provided || provided !== expected) {
-    return res.status(401).json({ error: 'Secret admin invalide.' });
+  if (!isAdminUser(req.user)) {
+    return res.status(403).json({ error: 'Accès admin requis.', isAdmin: false });
   }
 
   next();
