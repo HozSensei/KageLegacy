@@ -7,6 +7,7 @@ import {
   LOOT_PROFILES,
   rollCombatLootBundle,
 } from '../src/services/combatLootService.js';
+import { SEAL_ITEM_SLUG } from '../src/services/dailySealService.js';
 import { MATCH_LOSS_RYOS } from '../src/services/matchEconomy.js';
 
 function assert(condition, message) {
@@ -14,6 +15,7 @@ function assert(condition, message) {
 }
 
 assert(LOOT_CONSUMABLE_POOL.length >= 5, 'pool objets consommables');
+assert(!LOOT_CONSUMABLE_POOL.includes(SEAL_ITEM_SLUG), 'le sceau quotidien ne doit pas tomber en butin');
 assert(LOOT_PROFILES.league_win, 'profil league_win');
 assert(LOOT_PROFILES.reconnaissance_loss, 'profil reconnaissance_loss');
 assert(LOOT_PROFILES.seal_common, 'profil seal_common');

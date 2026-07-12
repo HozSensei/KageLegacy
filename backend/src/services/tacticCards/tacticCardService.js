@@ -16,7 +16,13 @@ export async function grantTacticCard(userId, slug, charges = TACTIC_CARD_MAX_CH
      VALUES (?, ?, ?)`,
     [userId, def.id, safeCharges]
   );
-  return { userTacticCardId: result.insertId, slug, chargesRemaining: safeCharges };
+  return {
+    userTacticCardId: result.insertId,
+    slug,
+    chargesRemaining: safeCharges,
+    nameFr: def.name_fr,
+    nameEn: def.name_en,
+  };
 }
 
 export async function grantStarterTacticCards(userId) {

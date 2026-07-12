@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
-import { grantItemToUser } from './itemGrantService.js';
+import { grantItemToUser, findItemDefinitionBySlug } from './itemGrantService.js';
 import { grantRandomTacticCard } from './tacticCards/tacticCardService.js';
 import { rollPercent } from './missionRules.js';
 import {
@@ -85,9 +85,15 @@ export async function grantCombatLootBundle(userId, bundle) {
 
   const grantedItems = [];
   for (const entry of bundle.items || []) {
+    const def = await findItemDefinitionBySlug(entry.slug);
     const batch = await grantItemToUser(userId, entry.slug, entry.quantity ?? 1);
     for (const row of batch) {
-      grantedItems.push({ slug: entry.slug, userItemId: row.userItemId });
+      grantedItems.push({
+        slug: entry.slug,
+        userItemId: row.userItemId,
+        nameFr: def?.name_fr ?? null,
+        nameEn: def?.name_en ?? null,
+      });
     }
   }
 

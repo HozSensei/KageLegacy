@@ -98,10 +98,20 @@ function buildSealRewardLines(baseLoot, bonus = null) {
     lines.push({ type: 'ryos', ryos: baseLoot.ryos });
   }
   for (const item of baseLoot.items || []) {
-    lines.push({ type: 'item', slug: item.slug });
+    lines.push({
+      type: 'item',
+      slug: item.slug,
+      nameFr: item.nameFr ?? null,
+      nameEn: item.nameEn ?? null,
+    });
   }
   if (baseLoot.tacticCard?.slug) {
-    lines.push({ type: 'tactic_card', slug: baseLoot.tacticCard.slug });
+    lines.push({
+      type: 'tactic_card',
+      slug: baseLoot.tacticCard.slug,
+      nameFr: baseLoot.tacticCard.nameFr ?? null,
+      nameEn: baseLoot.tacticCard.nameEn ?? null,
+    });
   }
   if (bonus) lines.push(bonus);
   return lines;
