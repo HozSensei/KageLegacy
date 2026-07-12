@@ -7,7 +7,7 @@ import { applyPercentDiscount, getHeritageBonuses } from './heritageService.js';
 
 export const RESTOCK_EVERY_CYCLES = 3;
 export const PROMOS_PER_CYCLE = 2;
-export const PROMO_DISCOUNT_PCT = 20;
+export const PROMO_DISCOUNT_PCT = 50;
 
 /** Prix catalogue → promo cycle → réduction héritage (Match Genjutsu / Bureau Taijutsu). */
 export function computeShopItemPrice({
@@ -17,10 +17,7 @@ export function computeShopItemPrice({
   heritageMatchDiscountPct = 0,
   heritageBureauDiscountPct = 0,
 }) {
-  const promoPrice = Math.max(
-    1,
-    Math.floor(basePrice * (1 - Number(promoDiscountPct || 0) / 100))
-  );
+  const promoPrice = Math.floor(basePrice * (1 - Number(promoDiscountPct || 0) / 100));
   let finalPrice = promoPrice;
   let heritageDiscountPct = 0;
   if (category === 'match' && heritageMatchDiscountPct > 0) {
@@ -51,7 +48,7 @@ export function cyclesUntilRestock(poolCycle) {
 }
 
 async function getAllCatalogItems() {
-  return query('SELECT * FROM item_definitions ORDER BY category, id');
+  return query('SELECT * FROM item_definitions WHERE price > 0 ORDER BY category, id');
 }
 
 async function ensureStockForPeriod(userId, restockPeriod) {
