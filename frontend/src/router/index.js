@@ -9,6 +9,7 @@ import PlayerMarketView from '../views/PlayerMarketView.vue'
 import InventoryView from '../views/InventoryView.vue'
 import OperationView from '../views/OperationView.vue'
 import MissionsView from '../views/MissionsView.vue'
+import ReconMissionView from '../views/ReconMissionView.vue'
 import TrainingView from '../views/TrainingView.vue'
 import ClanView from '../views/ClanView.vue'
 import RulesView from '../views/RulesView.vue'
@@ -36,6 +37,13 @@ const router = createRouter({
         { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' } } },
         { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
         { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
+        {
+          path: 'missions/recon/:missionId',
+          name: 'recon-mission',
+          component: ReconMissionView,
+          props: true,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'missions.reconChronicleTitle' } },
+        },
         { path: 'clan', name: 'clan', component: ClanView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.clan' } } },
         { path: 'training', name: 'training', component: TrainingView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.training' } } },
         { path: 'league', name: 'league', component: LeagueView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.league' } } },

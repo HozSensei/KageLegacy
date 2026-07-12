@@ -26,10 +26,22 @@ const API_BASE = import.meta.env.VITE_API_URL || ''
 const loading = ref(true)
 const error = ref(null)
 const profile = ref(null)
+const recon = ref(null)
+const challengeBusy = ref(false)
+const challengeError = ref(null)
+const challengeSent = ref(false)
 
 const targetId = computed(() => props.userId || route.params.userId)
 const isOwnProfile = computed(() => profile.value?.isOwnProfile)
 const isEliteActive = computed(() => Boolean(elite.subscription?.isActive))
+
+const canChallengeRecon = computed(
+  () =>
+    !isOwnProfile.value &&
+    recon.value?.available &&
+    !recon.value?.played &&
+    !recon.value?.committed
+)
 
 const statsLine = computed(() => {
   const s = profile.value?.publicStats
@@ -44,6 +56,9 @@ const statsLine = computed(() => {
 
 onMounted(async () => {
   await fetchProfile()
+  if (!profile.value?.isOwnProfile) {
+    await fetchReconState()
+  }
   if (profile.value?.isOwnProfile) {
     await elite.handleCheckoutReturn(route, router)
     if (!elite.subscription) await elite.fetchElite()
@@ -54,9 +69,43 @@ onMounted(async () => {
 watch(
   () => route.params.userId,
   async () => {
+    challengeSent.value = false
+    challengeError.value = null
     await fetchProfile()
+    if (!profile.value?.isOwnProfile) {
+      await fetchReconState()
+    }
   }
 )
+
+async function fetchReconState() {
+  try {
+    const res = await fetch(`${API_BASE}/api/reconnaissance`)
+    if (res.ok) recon.value = await res.json()
+  } catch {
+    recon.value = null
+  }
+}
+
+async function challengeRecon() {
+  challengeBusy.value = true
+  challengeError.value = null
+  try {
+    const res = await fetch(`${API_BASE}/api/reconnaissance/challenges`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUserId: Number(targetId.value) }),
+    })
+    const body = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(body.error || `Erreur ${res.status}`)
+    challengeSent.value = true
+    await fetchReconState()
+  } catch (e) {
+    challengeError.value = e.message
+  } finally {
+    challengeBusy.value = false
+  }
+}
 
 async function fetchProfile() {
   loading.value = true
@@ -119,6 +168,26 @@ async function fetchProfile() {
           <dt class="metric-label">{{ t('league.points') }}</dt>
         </div>
       </dl>
+
+      <section v-if="!isOwnProfile && (canChallengeRecon || challengeSent)" class="mt-10" data-testid="profile-recon-challenge">
+        <p v-if="challengeError" class="text-xs text-fire">{{ challengeError }}</p>
+        <p v-if="challengeSent" class="text-xs text-ink-muted">
+          {{ t('senseiProfile.reconChallengeSent', { name: profile.identity?.senseiName || '—' }) }}
+        </p>
+        <button
+          v-else-if="canChallengeRecon"
+          type="button"
+          class="btn-primary text-[10px]"
+          :disabled="challengeBusy"
+          data-testid="profile-recon-challenge-btn"
+          @click="challengeRecon"
+        >
+          {{ challengeBusy ? t('missions.reconBusy') : t('missions.reconChallenge') }}
+        </button>
+        <p v-else-if="recon?.available === false" class="text-xs text-ink-faint">
+          {{ t('missions.reconClosed') }}
+        </p>
+      </section>
 
       <section v-if="profile.recentMatch" class="mt-14 border-t border-line pt-10">
         <p class="section-label">{{ t('senseiProfile.lastMatch') }}</p>

@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { getClockRow, getGameClock } from './gameClock.js';
 import { findUserPool } from './poolService.js';
-import { simulateMatchCombat } from './combat/matchLoader.js';
+import { simulateMatchCombat, loadTeamForCombat } from './combat/matchLoader.js';
 import {
   applyPostMatchForMatch,
   persistSenseiChakra,
@@ -13,10 +13,19 @@ import { pickEnvironmentModifier } from './matchEnvironment.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 import { squadAveragePower } from './combat/squadPowerScaling.js';
 import { grantReconnaissanceLoot } from './combatLootService.js';
+import { buildSquadSnapshotFromNinjas } from './scoutIntelService.js';
+import { assembleNarrative } from './narrative/narrativeAssembler.js';
+import { persistReconNarrativeSegments, getReconNarrativeSegments } from './reconNarrativeStore.js';
+import { resolveSegmentText } from './narrative/narrativeI18n.js';
+import { getUserLanguage } from './narrative/viewerLocale.js';
+import { buildSenseiIdentities } from './senseiIdentityService.js';
 
 export const RECON_MIN_HOUR = 0;
-export const RECON_MAX_HOUR = 36;
-/** Fourchettes indicatives — le tirage réel est dans combatLootService. */
+/** Inscriptions et défis jusqu'à H35 — résolution à H36. */
+export const RECON_REGISTRATION_MAX_HOUR = 35;
+export const RECON_RESOLVE_HOUR = 36;
+/** @deprecated Utiliser RECON_REGISTRATION_MAX_HOUR */
+export const RECON_MAX_HOUR = RECON_REGISTRATION_MAX_HOUR;
 export const RECON_WIN_RYOS = 500;
 export const RECON_DRAW_RYOS = 250;
 export const RECON_LOSS_RYOS = 80;
@@ -47,6 +56,11 @@ function serializeLootGrant(grant) {
   };
 }
 
+function parseJsonField(value) {
+  if (!value) return null;
+  return typeof value === 'string' ? JSON.parse(value) : value;
+}
+
 async function getUserSquadPower(userId) {
   const ninjas = await query(
     `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
@@ -57,9 +71,9 @@ async function getUserSquadPower(userId) {
 
 export async function assertReconnaissanceWindow() {
   const clock = await getGameClock();
-  if (clock.hour < RECON_MIN_HOUR || clock.hour > RECON_MAX_HOUR) {
+  if (clock.hour < RECON_MIN_HOUR || clock.hour > RECON_REGISTRATION_MAX_HOUR) {
     const error = new Error(
-      `Mission de reconnaissance disponible entre H${RECON_MIN_HOUR} et H${RECON_MAX_HOUR}.`
+      `Mission de reconnaissance : inscriptions et défis entre H${RECON_MIN_HOUR} et H${RECON_REGISTRATION_MAX_HOUR} (résolution à H${RECON_RESOLVE_HOUR}).`
     );
     error.statusCode = 403;
     throw error;
@@ -75,6 +89,42 @@ export async function hasPlayedReconThisCycle(userId, cycleStartAt) {
     [cycleStartAt, userId, userId]
   );
   return rows.length > 0;
+}
+
+export async function isCommittedToRecon(userId, cycleStartAt, { exceptChallengeId = null } = {}) {
+  if (!cycleStartAt) return false;
+  if (await hasPlayedReconThisCycle(userId, cycleStartAt)) return true;
+
+  const reg = await query(
+    `SELECT id FROM reconnaissance_registrations
+     WHERE cycle_start_at = ? AND user_id = ? AND status = 'queued'
+     LIMIT 1`,
+    [cycleStartAt, userId]
+  );
+  if (reg.length) return true;
+
+  const outgoingParams = [cycleStartAt, userId];
+  let outgoingSql = `SELECT id FROM reconnaissance_challenges
+     WHERE cycle_start_at = ? AND challenger_user_id = ? AND status = 'pending'`;
+  if (exceptChallengeId) {
+    outgoingSql += ' AND id != ?';
+    outgoingParams.push(exceptChallengeId);
+  }
+  outgoingSql += ' LIMIT 1';
+  const outgoing = await query(outgoingSql, outgoingParams);
+  if (outgoing.length) return true;
+
+  const acceptedParams = [cycleStartAt, userId, userId];
+  let acceptedSql = `SELECT id FROM reconnaissance_challenges
+     WHERE cycle_start_at = ? AND status = 'accepted' AND mission_id IS NULL
+       AND (challenger_user_id = ? OR defender_user_id = ?)`;
+  if (exceptChallengeId) {
+    acceptedSql += ' AND id != ?';
+    acceptedParams.push(exceptChallengeId);
+  }
+  acceptedSql += ' LIMIT 1';
+  const accepted = await query(acceptedSql, acceptedParams);
+  return accepted.length > 0;
 }
 
 /** Mission de recon du cycle — utilisée pour déterminer la qualité du rapport d'espionnage. */
@@ -127,7 +177,7 @@ async function assertNoPendingReconChallenge(userId, cycleStartAt, { exceptChall
   sql += ' LIMIT 1';
   const pending = await query(sql, params);
   if (pending.length) {
-    const error = new Error('Un défi de reconnaissance est en attente — réglez-le avant de lancer un combat.');
+    const error = new Error('Un défi de reconnaissance est en attente — réglez-le avant de continuer.');
     error.statusCode = 409;
     throw error;
   }
@@ -135,7 +185,11 @@ async function assertNoPendingReconChallenge(userId, cycleStartAt, { exceptChall
 
 async function assertEligibleParticipant(userId, cycleStartAt) {
   await assertBasicReconEligibility(userId, cycleStartAt);
-  await assertNoPendingReconChallenge(userId, cycleStartAt);
+  if (await isCommittedToRecon(userId, cycleStartAt)) {
+    const error = new Error('Vous êtes déjà inscrit ou engagé dans une mission de reconnaissance ce cycle.');
+    error.statusCode = 409;
+    throw error;
+  }
 }
 
 async function loadSenseiName(userId) {
@@ -143,7 +197,16 @@ async function loadSenseiName(userId) {
   return rows[0]?.name || 'Sensei';
 }
 
-export async function findMatchmakingOpponent(userId, cycleStartAt) {
+async function loadNarrativeContext(userId) {
+  const senseiRows = await query('SELECT name FROM sensei WHERE user_id = ?', [userId]);
+  const ninjas = await query(
+    `SELECT name FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+    [userId]
+  );
+  return { senseiName: senseiRows[0]?.name || 'Sensei', ninjas };
+}
+
+export async function findMatchmakingOpponent(userId, cycleStartAt, { excludeUserIds = [] } = {}) {
   const pool = await findUserPool(userId);
   const divisionLevel = pool?.division_level ?? 5;
   const myPower = await getUserSquadPower(userId);
@@ -151,6 +214,7 @@ export async function findMatchmakingOpponent(userId, cycleStartAt) {
 
   const minDiv = Math.max(1, divisionLevel - DIVISION_TOLERANCE);
   const maxDiv = Math.min(5, divisionLevel + DIVISION_TOLERANCE);
+  const exclude = new Set([userId, ...excludeUserIds]);
 
   const candidates = await query(
     `SELECT u.id AS user_id,
@@ -173,14 +237,20 @@ export async function findMatchmakingOpponent(userId, cycleStartAt) {
        AND NOT EXISTS (
          SELECT 1 FROM reconnaissance_challenges rc
          WHERE rc.cycle_start_at = ?
-           AND rc.status = 'pending'
+           AND rc.status IN ('pending', 'accepted')
+           AND rc.mission_id IS NULL
            AND (rc.challenger_user_id = u.id OR rc.defender_user_id = u.id)
        )
+       AND NOT EXISTS (
+         SELECT 1 FROM reconnaissance_registrations rr
+         WHERE rr.cycle_start_at = ? AND rr.user_id = u.id AND rr.status = 'queued'
+       )
      HAVING avg_power IS NOT NULL`,
-    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt]
+    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt]
   );
 
   const filtered = candidates.filter((row) => {
+    if (exclude.has(row.user_id)) return false;
     const power = Number(row.avg_power);
     if (!power) return false;
     const ratio = power / myPower;
@@ -229,6 +299,32 @@ async function notifyReconResult(userId, payload) {
   await createSenseiNotification(userId, 'reconnaissance_result', payload);
 }
 
+async function persistReconNarrative(missionId, homeUserId, awayUserId, combat, envSlug) {
+  const [homeCtx, awayCtx] = await Promise.all([
+    loadNarrativeContext(homeUserId),
+    loadNarrativeContext(awayUserId),
+  ]);
+
+  const narrative = assembleNarrative({
+    matchId: missionId,
+    homeSensei: homeCtx.senseiName,
+    awaySensei: awayCtx.senseiName,
+    homeNinjas: homeCtx.ninjas,
+    awayNinjas: awayCtx.ninjas,
+    combatLog: combat.combatLogPayload,
+    winner: combat.winner,
+    endReason: combat.endReason,
+    endingTour: combat.endingTour,
+    environmentSlug: envSlug,
+  });
+
+  const instantSegments = narrative.segments.map((seg) => ({
+    ...seg,
+    unlock_minutes: 0,
+  }));
+  await persistReconNarrativeSegments(missionId, instantSegments);
+}
+
 async function executeReconnaissanceFight({
   homeUserId,
   awayUserId,
@@ -239,6 +335,11 @@ async function executeReconnaissanceFight({
 }) {
   const env = pickEnvironmentModifier();
   const combat = await simulateMatchCombat(homeUserId, awayUserId, env.slug);
+
+  const [homeTeamData, awayTeamData] = await Promise.all([
+    loadTeamForCombat(homeUserId),
+    loadTeamForCombat(awayUserId),
+  ]);
 
   for (const itemId of combat.consumedItemIds || []) {
     await consumeUserItem(itemId);
@@ -272,6 +373,10 @@ async function executeReconnaissanceFight({
     possession: combat.possession,
     equipmentSummary: combat.equipmentSummary,
     environment: combat.environment,
+    squadSnapshots: {
+      home: buildSquadSnapshotFromNinjas(homeTeamData.ninjas, 'fr'),
+      away: buildSquadSnapshotFromNinjas(awayTeamData.ninjas, 'fr'),
+    },
   };
 
   await applyPostMatchForMatch(homeUserId, awayUserId, combat.koNinjaIds || []);
@@ -301,6 +406,11 @@ async function executeReconnaissanceFight({
   );
 
   const missionId = insert.insertId;
+  await persistReconNarrative(missionId, homeUserId, awayUserId, {
+    ...combat,
+    combatLogPayload,
+  }, env.slug);
+
   const [homeName, awayName] = await Promise.all([
     loadSenseiName(homeUserId),
     loadSenseiName(awayUserId),
@@ -355,6 +465,142 @@ async function executeReconnaissanceFight({
   };
 }
 
+async function markRegistrationResolved(userId, cycleStartAt, missionId) {
+  await query(
+    `UPDATE reconnaissance_registrations
+     SET status = 'resolved', mission_id = ?, resolved_at = UTC_TIMESTAMP()
+     WHERE cycle_start_at = ? AND user_id = ? AND status IN ('queued', 'matched')`,
+    [missionId, cycleStartAt, userId]
+  );
+}
+
+async function pairQueuedRegistrations(queued) {
+  const remaining = [...queued];
+  const pairs = [];
+
+  while (remaining.length >= 2) {
+    const user = remaining.shift();
+    const myPower = await getUserSquadPower(user.user_id);
+    if (!myPower) continue;
+
+    let bestIdx = -1;
+    let bestDiff = Infinity;
+    for (let i = 0; i < remaining.length; i++) {
+      const oppPower = await getUserSquadPower(remaining[i].user_id);
+      if (!oppPower) continue;
+      const ratio = oppPower / myPower;
+      if (ratio < 1 - POWER_TOLERANCE || ratio > 1 + POWER_TOLERANCE) continue;
+      const diff = Math.abs(oppPower - myPower);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestIdx = i;
+      }
+    }
+
+    if (bestIdx >= 0) {
+      const opponent = remaining.splice(bestIdx, 1)[0];
+      pairs.push([user, opponent]);
+    } else {
+      remaining.unshift(user);
+      break;
+    }
+  }
+
+  return { pairs, unpaired: remaining };
+}
+
+export async function resolveReconnaissanceAtH36(cycleStartAt) {
+  const results = [];
+
+  const acceptedChallenges = await query(
+    `SELECT * FROM reconnaissance_challenges
+     WHERE cycle_start_at = ? AND status = 'accepted' AND mission_id IS NULL
+     ORDER BY created_at ASC`,
+    [cycleStartAt]
+  );
+
+  for (const challenge of acceptedChallenges) {
+    const fight = await executeReconnaissanceFight({
+      homeUserId: challenge.challenger_user_id,
+      awayUserId: challenge.defender_user_id,
+      awayIsBot: false,
+      source: 'challenge',
+      challengeId: challenge.id,
+      cycleStartAt,
+    });
+
+    await query(
+      `UPDATE reconnaissance_challenges SET mission_id = ? WHERE id = ?`,
+      [fight.missionId, challenge.id]
+    );
+
+    await markRegistrationResolved(challenge.challenger_user_id, cycleStartAt, fight.missionId);
+    await markRegistrationResolved(challenge.defender_user_id, cycleStartAt, fight.missionId);
+    results.push(fight);
+  }
+
+  const queued = await query(
+    `SELECT * FROM reconnaissance_registrations
+     WHERE cycle_start_at = ? AND status = 'queued'
+     ORDER BY created_at ASC`,
+    [cycleStartAt]
+  );
+
+  const challengeUserIds = new Set(
+    acceptedChallenges.flatMap((c) => [c.challenger_user_id, c.defender_user_id])
+  );
+  const eligibleQueue = queued.filter((row) => !challengeUserIds.has(row.user_id));
+
+  const { pairs, unpaired } = await pairQueuedRegistrations(eligibleQueue);
+
+  for (const [homeReg, awayReg] of pairs) {
+    const fight = await executeReconnaissanceFight({
+      homeUserId: homeReg.user_id,
+      awayUserId: awayReg.user_id,
+      awayIsBot: false,
+      source: 'matchmaking',
+      cycleStartAt,
+    });
+
+    await markRegistrationResolved(homeReg.user_id, cycleStartAt, fight.missionId);
+    await markRegistrationResolved(awayReg.user_id, cycleStartAt, fight.missionId);
+    results.push(fight);
+  }
+
+  for (const reg of unpaired) {
+    const pool = await findUserPool(reg.user_id);
+    const bot = pool ? await pickBotOpponent(reg.user_id, pool.id) : null;
+    if (!bot) {
+      await query(
+        `UPDATE reconnaissance_registrations SET status = 'cancelled', resolved_at = UTC_TIMESTAMP()
+         WHERE id = ?`,
+        [reg.id]
+      );
+      continue;
+    }
+
+    const fight = await executeReconnaissanceFight({
+      homeUserId: reg.user_id,
+      awayUserId: bot.userId,
+      awayIsBot: true,
+      source: 'matchmaking',
+      cycleStartAt,
+    });
+
+    await markRegistrationResolved(reg.user_id, cycleStartAt, fight.missionId);
+    results.push(fight);
+  }
+
+  await query(
+    `UPDATE reconnaissance_challenges
+     SET status = 'expired', responded_at = UTC_TIMESTAMP()
+     WHERE cycle_start_at = ? AND status = 'pending'`,
+    [cycleStartAt]
+  );
+
+  return results;
+}
+
 export async function startMatchmaking(userId) {
   await assertReconnaissanceWindow();
   const clockRow = await getClockRow();
@@ -363,37 +609,33 @@ export async function startMatchmaking(userId) {
 
   const pool = await findUserPool(userId);
   if (!pool) {
-    const error = new Error('Aucune ligue active — impossible de lancer une reconnaissance.');
+    const error = new Error('Aucune ligue active — impossible de s\'inscrire à la reconnaissance.');
     error.statusCode = 404;
     throw error;
   }
 
-  const opponent = await findMatchmakingOpponent(userId, cycleStartAt);
-  if (opponent) {
-    await assertEligibleParticipant(opponent.user_id, cycleStartAt);
-    return executeReconnaissanceFight({
-      homeUserId: userId,
-      awayUserId: opponent.user_id,
-      awayIsBot: false,
-      source: 'matchmaking',
-      cycleStartAt,
-    });
-  }
-
-  const bot = await pickBotOpponent(userId, pool.id);
-  if (!bot) {
-    const error = new Error('Aucun adversaire disponible pour la reconnaissance.');
-    error.statusCode = 503;
+  const existing = await query(
+    `SELECT id FROM reconnaissance_registrations
+     WHERE cycle_start_at = ? AND user_id = ? AND status = 'queued'`,
+    [cycleStartAt, userId]
+  );
+  if (existing.length) {
+    const error = new Error('Vous êtes déjà inscrit à la file de reconnaissance.');
+    error.statusCode = 409;
     throw error;
   }
 
-  return executeReconnaissanceFight({
-    homeUserId: userId,
-    awayUserId: bot.userId,
-    awayIsBot: true,
-    source: 'matchmaking',
-    cycleStartAt,
-  });
+  const insert = await query(
+    `INSERT INTO reconnaissance_registrations (cycle_start_at, user_id, status)
+     VALUES (?, ?, 'queued')`,
+    [cycleStartAt, userId]
+  );
+
+  return {
+    registrationId: insert.insertId,
+    status: 'queued',
+    resolvesAtHour: RECON_RESOLVE_HOUR,
+  };
 }
 
 export async function createChallenge(challengerId, defenderId) {
@@ -446,6 +688,7 @@ export async function createChallenge(challengerId, defenderId) {
     challengeId: insert.insertId,
     status: 'pending',
     challengerName,
+    resolvesAtHour: RECON_RESOLVE_HOUR,
   };
 }
 
@@ -488,23 +731,48 @@ export async function acceptChallenge(challengeId, defenderId) {
   });
   await assertNoPendingReconChallenge(defenderId, cycleStartAt, { exceptChallengeId: challengeId });
 
-  const fight = await executeReconnaissanceFight({
-    homeUserId: challenge.challenger_user_id,
-    awayUserId: defenderId,
-    awayIsBot: false,
-    source: 'challenge',
-    challengeId,
-    cycleStartAt,
-  });
+  if (await isCommittedToRecon(challenge.challenger_user_id, cycleStartAt, { exceptChallengeId: challengeId })) {
+    const error = new Error('Le challenger est déjà engagé dans une autre reconnaissance.');
+    error.statusCode = 409;
+    throw error;
+  }
+  if (await isCommittedToRecon(defenderId, cycleStartAt, { exceptChallengeId: challengeId })) {
+    const error = new Error('Vous êtes déjà engagé dans une autre reconnaissance.');
+    error.statusCode = 409;
+    throw error;
+  }
+
+  await query(
+    `UPDATE reconnaissance_registrations SET status = 'cancelled', resolved_at = UTC_TIMESTAMP()
+     WHERE cycle_start_at = ? AND user_id IN (?, ?) AND status = 'queued'`,
+    [cycleStartAt, challenge.challenger_user_id, defenderId]
+  );
 
   await query(
     `UPDATE reconnaissance_challenges
-     SET status = 'accepted', responded_at = UTC_TIMESTAMP(), mission_id = ?
+     SET status = 'accepted', responded_at = UTC_TIMESTAMP()
      WHERE id = ?`,
-    [fight.missionId, challengeId]
+    [challengeId]
   );
 
-  return fight;
+  const [challengerName, defenderName] = await Promise.all([
+    loadSenseiName(challenge.challenger_user_id),
+    loadSenseiName(defenderId),
+  ]);
+
+  await createSenseiNotification(challenge.challenger_user_id, 'reconnaissance_challenge', {
+    challengeId,
+    accepted: true,
+    defenderName,
+  });
+
+  return {
+    challengeId,
+    status: 'accepted',
+    scheduledForHour: RECON_RESOLVE_HOUR,
+    challengerName,
+    defenderName,
+  };
 }
 
 export async function declineChallenge(challengeId, defenderId) {
@@ -563,12 +831,17 @@ export async function listExternalOpponents(userId, limit = 20) {
        AND NOT EXISTS (
          SELECT 1 FROM reconnaissance_challenges rc
          WHERE rc.cycle_start_at = ?
-           AND rc.status = 'pending'
+           AND rc.status IN ('pending', 'accepted')
+           AND rc.mission_id IS NULL
            AND (rc.challenger_user_id = u.id OR rc.defender_user_id = u.id)
+       )
+       AND NOT EXISTS (
+         SELECT 1 FROM reconnaissance_registrations rr
+         WHERE rr.cycle_start_at = ? AND rr.user_id = u.id AND rr.status = 'queued'
        )
      ORDER BY p.division_level ASC, s.name ASC
      LIMIT ?`,
-    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, limit]
+    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt, limit]
   );
 
   return rows.map((row) => ({
@@ -579,11 +852,6 @@ export async function listExternalOpponents(userId, limit = 20) {
     seasonNumber: row.seasonNumber,
     samePool: row.poolId === pool.id,
   }));
-}
-
-function parseJsonField(value) {
-  if (!value) return null;
-  return typeof value === 'string' ? JSON.parse(value) : value;
 }
 
 function formatMissionRow(row, userId) {
@@ -605,20 +873,140 @@ function formatMissionRow(row, userId) {
   };
 }
 
+export async function getReconnaissanceMission(missionId, userId) {
+  const rows = await query(
+    `SELECT rm.*, hs.name AS home_sensei, aws.name AS away_sensei
+     FROM reconnaissance_missions rm
+     JOIN sensei hs ON hs.user_id = rm.home_user_id
+     JOIN sensei aws ON aws.user_id = rm.away_user_id
+     WHERE rm.id = ?`,
+    [missionId]
+  );
+  const row = rows[0];
+  if (!row) {
+    const error = new Error('Mission de reconnaissance introuvable.');
+    error.statusCode = 404;
+    throw error;
+  }
+  if (row.home_user_id !== userId && row.away_user_id !== userId) {
+    const error = new Error('Accès refusé à cette mission.');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const viewerLocale = await getUserLanguage(userId);
+  const segments = await getReconNarrativeSegments(missionId);
+  const chronicle = segments.map((s) => ({
+    order: s.segment_order,
+    blockType: s.block_type,
+    text: resolveSegmentText(viewerLocale, s),
+  }));
+
+  const identityMap = await buildSenseiIdentities(
+    [row.home_user_id, row.away_user_id],
+    viewerLocale
+  );
+
+  const ninjaRows = await query(
+    `SELECT name FROM ninjas
+     WHERE user_id IN (?, ?) AND squad_position IS NOT NULL
+     ORDER BY user_id, squad_position`,
+    [row.home_user_id, row.away_user_id]
+  );
+
+  const formatted = formatMissionRow(row, userId);
+  const combatLog = parseJsonField(row.combat_log);
+
+  return {
+    mission: {
+      ...formatted,
+      homeSensei: row.home_sensei,
+      awaySensei: row.away_sensei,
+      opponentName: formatted.role === 'home' ? row.away_sensei : row.home_sensei,
+      homeIdentity: identityMap.get(row.home_user_id) ?? null,
+      awayIdentity: identityMap.get(row.away_user_id) ?? null,
+    },
+    chronicle,
+    chronicleCast: {
+      ninjas: ninjaRows.map((n) => n.name),
+      senseiIdentities: [
+        identityMap.get(row.home_user_id),
+        identityMap.get(row.away_user_id),
+      ].filter(Boolean),
+    },
+    combatLog: combatLog
+      ? {
+          homeScorePct: combatLog.homeScorePct,
+          awayScorePct: combatLog.awayScorePct,
+          possession: combatLog.possession,
+          environment: combatLog.environment,
+        }
+      : null,
+  };
+}
+
 export async function getReconnaissanceState(userId) {
   const clock = await getGameClock();
   const clockRow = await getClockRow();
   const cycleStartAt = clockRow?.cycle_start_at ?? null;
   const available =
-    clock.hour >= RECON_MIN_HOUR && clock.hour <= RECON_MAX_HOUR && Boolean(cycleStartAt);
+    clock.hour >= RECON_MIN_HOUR &&
+    clock.hour <= RECON_REGISTRATION_MAX_HOUR &&
+    Boolean(cycleStartAt);
 
   let played = false;
+  let committed = false;
+  let registration = null;
+  let scheduledChallenge = null;
   let lastMission = null;
   let pendingIncoming = [];
   let pendingOutgoing = null;
 
   if (cycleStartAt) {
     played = await hasPlayedReconThisCycle(userId, cycleStartAt);
+    committed = !played && (await isCommittedToRecon(userId, cycleStartAt));
+
+    const regRows = await query(
+      `SELECT id, status, created_at FROM reconnaissance_registrations
+       WHERE cycle_start_at = ? AND user_id = ? AND status = 'queued'
+       LIMIT 1`,
+      [cycleStartAt, userId]
+    );
+    if (regRows[0]) {
+      registration = {
+        registrationId: regRows[0].id,
+        status: regRows[0].status,
+        createdAt: regRows[0].created_at,
+        resolvesAtHour: RECON_RESOLVE_HOUR,
+      };
+    }
+
+    const scheduled = await query(
+      `SELECT rc.*,
+              cs.name AS challenger_name,
+              ds.name AS defender_name
+       FROM reconnaissance_challenges rc
+       JOIN sensei cs ON cs.user_id = rc.challenger_user_id
+       JOIN sensei ds ON ds.user_id = rc.defender_user_id
+       WHERE rc.cycle_start_at = ?
+         AND rc.status = 'accepted'
+         AND rc.mission_id IS NULL
+         AND (rc.challenger_user_id = ? OR rc.defender_user_id = ?)
+       LIMIT 1`,
+      [cycleStartAt, userId, userId]
+    );
+    if (scheduled[0]) {
+      const ch = scheduled[0];
+      scheduledChallenge = {
+        challengeId: ch.id,
+        role: ch.challenger_user_id === userId ? 'challenger' : 'defender',
+        opponentName:
+          ch.challenger_user_id === userId ? ch.defender_name : ch.challenger_name,
+        opponentUserId:
+          ch.challenger_user_id === userId ? ch.defender_user_id : ch.challenger_user_id,
+        scheduledForHour: RECON_RESOLVE_HOUR,
+      };
+    }
 
     const missionRows = await query(
       `SELECT rm.*, hs.name AS home_sensei, aws.name AS away_sensei
@@ -681,9 +1069,13 @@ export async function getReconnaissanceState(userId) {
     hour: clock.hour,
     phase: clock.phase,
     played,
+    committed,
+    registration,
+    scheduledChallenge,
     pendingIncoming,
     pendingOutgoing,
     lastMission,
+    resolvesAtHour: RECON_RESOLVE_HOUR,
     rewards: {
       winRyos: RECON_WIN_RYOS,
       drawRyos: RECON_DRAW_RYOS,

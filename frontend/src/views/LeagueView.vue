@@ -15,10 +15,6 @@ const gameClock = ref(null)
 const fixtures = ref(null)
 
 const showScout = computed(() => (gameClock.value?.hour ?? 0) >= 36)
-const showRecon = computed(() => recon.value?.available === true)
-const canReconAct = computed(
-  () => showRecon.value && !recon.value?.played && !recon.value?.pendingOutgoing?.length
-)
 const myFixture = computed(() =>
   fixtures.value?.matches?.find((m) => m.isParticipant) ?? null
 )
@@ -27,19 +23,12 @@ const otherFixtures = computed(() =>
 )
 const invite = ref(null)
 const inviteCopied = ref(false)
-const recon = ref(null)
-const reconOpponents = ref([])
-const reconLoading = ref(false)
-const reconBusy = ref(false)
-const reconError = ref(null)
 
 onMounted(async () => {
   try {
-    const [leagueRes, inviteRes, reconRes, opponentsRes] = await Promise.all([
+    const [leagueRes, inviteRes] = await Promise.all([
       fetch(`${API_BASE}/api/league`),
       fetch(`${API_BASE}/api/league/invite`).catch(() => null),
-      fetch(`${API_BASE}/api/reconnaissance`).catch(() => null),
-      fetch(`${API_BASE}/api/reconnaissance/opponents`).catch(() => null),
     ])
     if (!leagueRes.ok) {
       const body = await leagueRes.json().catch(() => ({}))
@@ -58,14 +47,6 @@ onMounted(async () => {
 
     if (inviteRes?.ok) {
       invite.value = await inviteRes.json()
-    }
-
-    if (reconRes?.ok) {
-      recon.value = await reconRes.json()
-    }
-    if (opponentsRes?.ok) {
-      const data = await opponentsRes.json()
-      reconOpponents.value = data.opponents ?? []
     }
   } catch (e) {
     error.value = e.message
@@ -104,93 +85,6 @@ function matchStatusLabel(status) {
   }
   return map[status] || status
 }
-
-async function refreshRecon() {
-  reconLoading.value = true
-  reconError.value = null
-  try {
-    const [reconRes, opponentsRes] = await Promise.all([
-      fetch(`${API_BASE}/api/reconnaissance`),
-      fetch(`${API_BASE}/api/reconnaissance/opponents`),
-    ])
-    if (reconRes.ok) recon.value = await reconRes.json()
-    if (opponentsRes.ok) {
-      const data = await opponentsRes.json()
-      reconOpponents.value = data.opponents ?? []
-    }
-  } catch (e) {
-    reconError.value = e.message
-  } finally {
-    reconLoading.value = false
-  }
-}
-
-function reconOutcomeLabel(outcome) {
-  const map = {
-    win: t('league.reconOutcomeWin'),
-    draw: t('league.reconOutcomeDraw'),
-    loss: t('league.reconOutcomeLoss'),
-  }
-  return map[outcome] || outcome
-}
-
-function canChallengeUser(row) {
-  return (
-    canReconAct.value &&
-    !row.isPlayer &&
-    !row.isBot &&
-    !recon.value?.pendingIncoming?.some((c) => c.challengerUserId === row.userId)
-  )
-}
-
-async function runReconAction(action) {
-  reconBusy.value = true
-  reconError.value = null
-  try {
-    const res = await action()
-    const body = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(body.error || `Erreur ${res.status}`)
-    await refreshRecon()
-    return body
-  } catch (e) {
-    reconError.value = e.message
-    return null
-  } finally {
-    reconBusy.value = false
-  }
-}
-
-async function startReconMatchmake() {
-  await runReconAction(() =>
-    fetch(`${API_BASE}/api/reconnaissance/matchmake`, { method: 'POST' })
-  )
-}
-
-async function challengeUser(targetUserId) {
-  await runReconAction(() =>
-    fetch(`${API_BASE}/api/reconnaissance/challenges`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetUserId }),
-    })
-  )
-}
-
-async function acceptReconChallenge(challengeId) {
-  await runReconAction(() =>
-    fetch(`${API_BASE}/api/reconnaissance/challenges/${challengeId}/accept`, { method: 'POST' })
-  )
-}
-
-async function declineReconChallenge(challengeId) {
-  await runReconAction(() =>
-    fetch(`${API_BASE}/api/reconnaissance/challenges/${challengeId}/decline`, { method: 'POST' })
-  )
-}
-
-const externalOpponents = computed(() =>
-  reconOpponents.value.filter((o) => !o.samePool)
-)
 </script>
 
 <template>
@@ -228,7 +122,6 @@ const externalOpponents = computed(() =>
                 <th class="pb-3">{{ t('league.sensei') }}</th>
                 <th class="pb-3 text-right">{{ t('league.played') }}</th>
                 <th class="pb-3 text-right">{{ t('league.points') }}</th>
-                <th v-if="showRecon" class="pb-3 text-right">{{ t('league.reconChallengeCol') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -253,115 +146,12 @@ const externalOpponents = computed(() =>
                 </td>
                 <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
                 <td class="py-3 text-right font-display text-lg tabular-nums">{{ row.points }}</td>
-                <td v-if="showRecon" class="py-3 text-right">
-                  <button
-                    v-if="canChallengeUser(row)"
-                    type="button"
-                    class="btn-ghost text-[10px]"
-                    :disabled="reconBusy"
-                    data-testid="recon-challenge-pool"
-                    @click="challengeUser(row.userId)"
-                  >
-                    {{ t('league.reconChallenge') }}
-                  </button>
-                </td>
               </tr>
             </tbody>
           </table>
         </section>
 
         <aside class="mt-12 lg:col-span-5 lg:mt-0">
-          <section v-if="showRecon" class="mb-10" data-testid="league-reconnaissance">
-            <p class="section-label">{{ t('league.reconTitle') }}</p>
-            <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('league.reconLead') }}</p>
-            <p class="mt-2 text-[10px] text-ink-faint">
-              {{ t('league.reconRewards') }}
-            </p>
-
-            <p v-if="reconError" class="mt-3 text-xs text-fire">{{ reconError }}</p>
-
-            <div v-if="recon?.pendingIncoming?.length" class="mt-4 space-y-2">
-              <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ t('league.reconIncoming') }}</p>
-              <div
-                v-for="challenge in recon.pendingIncoming"
-                :key="challenge.challengeId"
-                class="border border-line px-4 py-3 text-sm"
-              >
-                <p class="text-ink">{{ t('league.reconChallengeFrom', { name: challenge.challengerName }) }}</p>
-                <div class="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    class="btn-primary text-[10px]"
-                    :disabled="reconBusy"
-                    @click="acceptReconChallenge(challenge.challengeId)"
-                  >
-                    {{ t('league.reconAccept') }}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn-ghost text-[10px]"
-                    :disabled="reconBusy"
-                    @click="declineReconChallenge(challenge.challengeId)"
-                  >
-                    {{ t('league.reconDecline') }}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <p v-if="recon?.pendingOutgoing" class="mt-4 text-xs text-ink-muted">
-              {{ t('league.reconPendingOutgoing', { name: recon.pendingOutgoing.defenderName }) }}
-            </p>
-
-            <button
-              v-if="canReconAct"
-              type="button"
-              class="btn-primary mt-4 text-[10px]"
-              :disabled="reconBusy"
-              data-testid="recon-matchmake"
-              @click="startReconMatchmake"
-            >
-              {{ reconBusy ? t('league.reconBusy') : t('league.reconMatchmake') }}
-            </button>
-
-            <p v-else-if="recon?.played && recon?.lastMission" class="mt-4 border border-line px-4 py-3 text-sm">
-              <span class="text-ink">{{ reconOutcomeLabel(recon.lastMission.outcome) }}</span>
-              <span class="text-ink-muted"> · {{ recon.lastMission.opponentName }}</span>
-              <span v-if="recon.lastMission.awayIsBot" class="text-ink-faint">{{ t('league.botParen') }}</span>
-              <span v-if="recon.lastMission.ryos" class="ml-2 text-accent">+{{ recon.lastMission.ryos }} Ryos</span>
-              <span v-if="recon.lastMission.loot?.items?.length" class="ml-2 text-ink-muted">
-                · {{ recon.lastMission.loot.items.map((i) => i.slug).join(', ') }}
-              </span>
-              <span v-if="recon.lastMission.loot?.tacticCard?.slug" class="ml-2 text-accent">
-                · {{ recon.lastMission.loot.tacticCard.slug }}
-              </span>
-            </p>
-
-            <div v-if="externalOpponents.length && canReconAct" class="mt-6">
-              <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('league.reconOtherPools') }}</p>
-              <ul class="mt-3 space-y-2">
-                <li
-                  v-for="opp in externalOpponents"
-                  :key="opp.userId"
-                  class="flex items-center justify-between border border-line/60 px-3 py-2 text-xs"
-                >
-                  <span>
-                    {{ opp.senseiName }}
-                    <span class="text-ink-faint">· Div. {{ opp.divisionLevel }}</span>
-                  </span>
-                  <button
-                    type="button"
-                    class="btn-ghost text-[10px]"
-                    :disabled="reconBusy"
-                    @click="challengeUser(opp.userId)"
-                  >
-                    {{ t('league.reconChallenge') }}
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </section>
-
           <section v-if="invite" class="mb-10">
             <p class="section-label">{{ t('league.inviteTitle') }}</p>
             <p class="mt-2 text-xs text-ink-faint">{{ t('league.inviteLead') }}</p>

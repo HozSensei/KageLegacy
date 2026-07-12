@@ -55,7 +55,7 @@
         "shop": "Magasin du village, promos et stocks limités",
         "academy": "Recrutement à l'Académie (rotation des aspirants)",
         "chunin": "Inscription à l'examen de Chunin (avant H36)",
-        "reconnaissance": "Mission de reconnaissance (H0–H36) : combat d'entraînement, matchmaking ou défi"
+        "reconnaissance": "Mission de reconnaissance (H0–H35) : inscription file ou défi — combat à H36"
       },
       "mid": {
         "chunin": "Verdict des examens de Chunin",
@@ -562,9 +562,10 @@
     "reconOutcomeDraw": "Match nul",
     "reconOutcomeLoss": "Défaite",
     "reconNotifChallengeTitle": "Défi de reconnaissance",
-    "reconNotifChallengeBody": "{name} vous défie pour une mission de reconnaissance. Acceptez depuis la Ligue.",
+    "reconNotifChallengeBody": "{name} vous défie pour une mission de reconnaissance. Acceptez depuis Missions.",
     "reconNotifResultTitle": "Reconnaissance terminée",
-    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos."
+    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "Voir Missions"
   },
   "matches": {
     "navTitle": "Parcourir les combats",
@@ -812,7 +813,33 @@
       "routine": "Contrat de Routine",
       "infiltration": "Infiltration tactique",
       "cyclone": "Opération Cyclone"
-    }
+    },
+    "reconTitle": "Mission de reconnaissance",
+    "reconLead": "Inscrivez-vous à la file (H0–H35) ou défiez un joueur depuis son profil public. Le combat est simulé à H36 avec une chronique complète — comme un match de ligue, sans révélation progressive.",
+    "reconRewards": "Butin : Ryos + objet aléatoire (consommable) + chance de carte tactique — même en défaite.",
+    "reconRegister": "S'inscrire à la file",
+    "reconBusy": "En cours…",
+    "reconChallenge": "Défier en reconnaissance",
+    "reconIncoming": "Défis reçus",
+    "reconChallengeFrom": "{name} vous défie en reconnaissance",
+    "reconAccept": "Accepter",
+    "reconDecline": "Refuser",
+    "reconPendingOutgoing": "Défi envoyé à {name} — en attente d'acceptation.",
+    "reconQueued": "Inscrit à la file — combat prévu à H{hour}.",
+    "reconScheduled": "Défi accepté contre {name} — combat prévu à H{hour}.",
+    "reconWindow": "Inscriptions ouvertes — résolution à H{hour}.",
+    "reconClosed": "Fenêtre de reconnaissance fermée pour ce cycle.",
+    "reconOutcomeWin": "Victoire",
+    "reconOutcomeDraw": "Match nul",
+    "reconOutcomeLoss": "Défaite",
+    "reconViewChronicle": "Lire la chronique",
+    "reconChronicleTitle": "Chronique de reconnaissance",
+    "reconChronicleEmpty": "Chronique indisponible.",
+    "reconNotifChallengeTitle": "Défi de reconnaissance",
+    "reconNotifChallengeBody": "{name} vous défie pour une mission de reconnaissance. Acceptez depuis Missions.",
+    "reconNotifResultTitle": "Reconnaissance terminée",
+    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "Voir Missions"
   },
   "eliteIdentity": {
     "grade": {
@@ -927,6 +954,7 @@
     "ownBadge": "Votre profil public",
     "eliteSectionTitle": "Pack Élite",
     "eliteSectionLead": "Identité personnalisée, season pass et récompenses cosmétiques.",
-    "heritageSectionTitle": "Mur de l'héritage"
+    "heritageSectionTitle": "Mur de l'héritage",
+    "reconChallengeSent": "Défi de reconnaissance envoyé à {name} — en attente d'acceptation."
   }
 }

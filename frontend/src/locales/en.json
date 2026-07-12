@@ -55,7 +55,7 @@
         "shop": "Village shop, promos and limited stock",
         "academy": "Academy recruitment (rotating aspirants)",
         "chunin": "Chunin exam registration (before H36)",
-        "reconnaissance": "Reconnaissance mission (H0–H36): sparring combat, matchmaking or challenge"
+        "reconnaissance": "Reconnaissance mission (H0–H35): queue signup or challenge — combat at H36"
       },
       "mid": {
         "chunin": "Chunin exam verdicts",
@@ -562,9 +562,10 @@
     "reconOutcomeDraw": "Draw",
     "reconOutcomeLoss": "Defeat",
     "reconNotifChallengeTitle": "Reconnaissance challenge",
-    "reconNotifChallengeBody": "{name} challenged you to a reconnaissance mission. Accept from the League screen.",
+    "reconNotifChallengeBody": "{name} challenged you to a reconnaissance mission. Accept from Missions.",
     "reconNotifResultTitle": "Reconnaissance complete",
-    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos."
+    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "View Missions"
   },
   "matches": {
     "navTitle": "Browse matches",
@@ -812,7 +813,33 @@
       "routine": "Routine Contract",
       "infiltration": "Tactical Infiltration",
       "cyclone": "Operation Cyclone"
-    }
+    },
+    "reconTitle": "Reconnaissance mission",
+    "reconLead": "Join the queue (H0–H35) or challenge a player from their public profile. Combat is simulated at H36 with a full chronicle — like a league match, without progressive reveal.",
+    "reconRewards": "Loot: Ryos + random consumable + tactic card chance — even on defeat.",
+    "reconRegister": "Join queue",
+    "reconBusy": "Working…",
+    "reconChallenge": "Challenge to recon",
+    "reconIncoming": "Incoming challenges",
+    "reconChallengeFrom": "{name} challenges you to reconnaissance",
+    "reconAccept": "Accept",
+    "reconDecline": "Decline",
+    "reconPendingOutgoing": "Challenge sent to {name} — awaiting acceptance.",
+    "reconQueued": "Queued — combat scheduled at H{hour}.",
+    "reconScheduled": "Challenge accepted vs {name} — combat scheduled at H{hour}.",
+    "reconWindow": "Registration open — resolution at H{hour}.",
+    "reconClosed": "Reconnaissance window closed for this cycle.",
+    "reconOutcomeWin": "Victory",
+    "reconOutcomeDraw": "Draw",
+    "reconOutcomeLoss": "Defeat",
+    "reconViewChronicle": "Read chronicle",
+    "reconChronicleTitle": "Reconnaissance chronicle",
+    "reconChronicleEmpty": "Chronicle unavailable.",
+    "reconNotifChallengeTitle": "Reconnaissance challenge",
+    "reconNotifChallengeBody": "{name} challenged you to reconnaissance. Accept from Missions.",
+    "reconNotifResultTitle": "Reconnaissance complete",
+    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "View Missions"
   },
   "eliteIdentity": {
     "grade": {
@@ -927,6 +954,7 @@
     "ownBadge": "Your public profile",
     "eliteSectionTitle": "Elite Pack",
     "eliteSectionLead": "Custom identity, season pass, and cosmetic rewards.",
-    "heritageSectionTitle": "Heritage wall"
+    "heritageSectionTitle": "Heritage wall",
+    "reconChallengeSent": "Reconnaissance challenge sent to {name} — awaiting acceptance."
   }
 }

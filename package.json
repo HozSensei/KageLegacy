@@ -17,7 +17,7 @@
     "economy:calibrate": "npm run economy:calibrate --prefix backend",
     "lint": "npm run lint --prefix frontend",
     "test:unit": "npm run audit:imports --prefix backend && npm run test:daily-seal --prefix backend && npm run test:pool-schedule --prefix backend && npm run test:narrative --prefix backend && npm run test:egoiste --prefix backend",
-    "e2e:prepare": "npm run db:migrate && npm run db:seed && npm run playtest:cycle --prefix backend",
+    "e2e:prepare": "npm run db:migrate && npm run db:seed && npm run playtest:cycle --prefix backend && npm run e2e:ensure-league --prefix backend",
     "test:e2e": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress run\"",
     "test:e2e:open": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress open\"",
     "setup": "npm install && npm install --prefix backend && npm install --prefix frontend && npm run db:up && sleep 8 && npm run db:migrate && npm run db:seed"
