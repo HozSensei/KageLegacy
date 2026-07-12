@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFormatRyos } from '../composables/useFormatRyos'
+import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
 
 const { t, locale } = useI18n()
 const { formatRyos } = useFormatRyos()
@@ -11,6 +12,13 @@ const loading = ref(true)
 const error = ref(null)
 const market = ref(null)
 const buyingId = ref(null)
+const categoryFilter = ref('all')
+
+const CATEGORY_FILTERS = ['all', 'bureau', 'match', 'cycle']
+const categoryOrder = ['bureau', 'match', 'cycle']
+const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
+  [...categoryOrder, 'tacticCards']
+)
 
 const itemName = (item) => (locale.value === 'en' ? item.nameEn : item.nameFr)
 const itemDesc = (item) => (locale.value === 'en' ? item.descriptionEn : item.descriptionFr)
@@ -37,7 +45,22 @@ const groupedItems = computed(() => {
   }, {})
 })
 
+const visibleCategories = computed(() =>
+  categoryOrder.filter((cat) => {
+    const count = groupedItems.value[cat]?.length ?? 0
+    if (!count) return false
+    if (categoryFilter.value === 'all') return true
+    return categoryFilter.value === cat
+  })
+)
+
 const promoItems = computed(() => market.value?.items?.filter((item) => item.onPromo) || [])
+
+function itemCountForCategory(category) {
+  const items = market.value?.items || []
+  if (category === 'all') return items.length
+  return items.filter((item) => item.category === category).length
+}
 
 function itemElement(item) {
   const effects = item.effects || {}
@@ -49,8 +72,6 @@ function itemElement(item) {
   const resist = list.find((mod) => mod?.kind === 'element_resist')
   return resist?.element || null
 }
-
-const categoryOrder = ['bureau', 'match', 'cycle']
 
 onMounted(fetchMarket)
 
@@ -134,6 +155,24 @@ const canBuyCard = computed(() => (card) =>
       </div>
       <p v-if="market.debtBlocksSpending" class="mt-4 text-sm text-fire">{{ t('market.debtBlocked') }}</p>
 
+      <div class="mt-6 flex flex-wrap gap-2">
+        <button
+          v-for="cat in CATEGORY_FILTERS"
+          :key="`market-cat-${cat}`"
+          type="button"
+          class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
+          :class="
+            categoryFilter === cat
+              ? 'border-accent bg-accent/10 text-accent'
+              : 'border-line text-ink-faint hover:border-ink-faint'
+          "
+          @click="categoryFilter = cat"
+        >
+          {{ t(`inventory.filterCategory.${cat}`) }}
+          <span class="ml-1 opacity-70">({{ itemCountForCategory(cat) }})</span>
+        </button>
+      </div>
+
       <section v-if="promoItems.length" class="mt-10 border border-fire/30 bg-fire/5 p-5" data-testid="market-promos">
         <p class="section-label text-fire">{{ t('market.promoSectionTitle') }}</p>
         <p class="mt-2 text-xs text-ink-muted">{{ t('market.promoSectionHint', { count: promoItems.length }) }}</p>
@@ -156,12 +195,33 @@ const canBuyCard = computed(() => (card) =>
       </section>
 
       <section
-        v-for="cat in categoryOrder"
+        v-for="cat in visibleCategories"
         :key="cat"
         class="mt-14"
       >
-        <p class="section-label">{{ categoryLabel(cat) }}</p>
-        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <button
+          type="button"
+          class="flex w-full items-center gap-2 text-left"
+          :aria-expanded="!isCollapsed(cat)"
+          @click="toggleCategory(cat)"
+        >
+          <svg
+            class="h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200"
+            :class="{ '-rotate-90': isCollapsed(cat) }"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="section-label">{{ categoryLabel(cat) }}</span>
+          <span class="text-[10px] text-ink-faint">({{ groupedItems[cat]?.length ?? 0 }})</span>
+          <span class="sr-only">
+            {{ isCollapsed(cat) ? t('common.expandSection') : t('common.collapseSection') }}
+          </span>
+        </button>
+
+        <div v-show="!isCollapsed(cat)" class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <article
             v-for="item in groupedItems[cat] || []"
             :key="item.stockId"
@@ -238,10 +298,32 @@ const canBuyCard = computed(() => (card) =>
         </div>
       </section>
 
-      <section v-if="market.tacticCards?.length" class="mt-14" data-testid="market-tactic-cards">
-        <p class="section-label">{{ t('market.tacticCardsTitle') }}</p>
+      <section
+        v-if="market.tacticCards?.length && categoryFilter === 'all'"
+        class="mt-14"
+        data-testid="market-tactic-cards"
+      >
+        <button
+          type="button"
+          class="flex w-full items-center gap-2 text-left"
+          :aria-expanded="!isCollapsed('tacticCards')"
+          @click="toggleCategory('tacticCards')"
+        >
+          <svg
+            class="h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200"
+            :class="{ '-rotate-90': isCollapsed('tacticCards') }"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span class="section-label">{{ t('market.tacticCardsTitle') }}</span>
+          <span class="text-[10px] text-ink-faint">({{ market.tacticCards.length }})</span>
+        </button>
         <p class="mt-2 text-xs text-ink-muted">{{ t('market.tacticCardsHint') }}</p>
-        <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+        <div v-show="!isCollapsed('tacticCards')" class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           <article
             v-for="card in market.tacticCards"
             :key="card.stockId"

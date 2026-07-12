@@ -15,12 +15,6 @@ const gameClock = ref(null)
 const fixtures = ref(null)
 
 const showScout = computed(() => (gameClock.value?.hour ?? 0) >= 36)
-const myFixture = computed(() =>
-  fixtures.value?.matches?.find((m) => m.isParticipant) ?? null
-)
-const otherFixtures = computed(() =>
-  (fixtures.value?.matches ?? []).filter((m) => !m.isParticipant)
-)
 const invite = ref(null)
 const inviteCopied = ref(false)
 
@@ -112,74 +106,118 @@ function matchStatusLabel(status) {
         </div>
       </dl>
 
-      <div class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
-        <section class="lg:col-span-7" data-testid="league-standings">
-          <p class="section-label">{{ t('league.standings') }}</p>
-          <table class="league-table mt-6 w-full text-sm">
-            <thead>
-              <tr class="text-left text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                <th class="pb-3 pr-4">#</th>
-                <th class="pb-3">{{ t('league.sensei') }}</th>
-                <th class="pb-3 text-right">{{ t('league.played') }}</th>
-                <th class="pb-3 text-right">{{ t('league.points') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="row in league.standings"
-                :key="row.userId"
-                class="border-t border-line/60"
-                :class="{ 'text-accent': row.isPlayer }"
-              >
-                <td class="py-3 pr-4 tabular-nums text-ink-muted">{{ row.rank }}</td>
-                <td class="py-3">
-                  <SenseiIdentity
-                    v-if="row.identity"
-                    :identity="row.identity"
-                    variant="inline"
-                    :highlight="row.isPlayer"
-                  />
-                  <template v-else>
-                    {{ row.senseiName }}
-                    <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
-                  </template>
-                </td>
-                <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
-                <td class="py-3 text-right font-display text-lg tabular-nums">{{ row.points }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
+      <section class="mt-14" data-testid="league-standings">
+        <p class="section-label">{{ t('league.standings') }}</p>
+        <table class="league-table mt-6 w-full text-sm">
+          <thead>
+            <tr class="text-left text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              <th class="pb-3 pr-4">#</th>
+              <th class="pb-3">{{ t('league.sensei') }}</th>
+              <th class="pb-3 text-right">{{ t('league.played') }}</th>
+              <th class="pb-3 text-right">{{ t('league.points') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="row in league.standings"
+              :key="row.userId"
+              class="border-t border-line/60"
+              :class="{ 'text-accent': row.isPlayer }"
+            >
+              <td class="py-3 pr-4 tabular-nums text-ink-muted">{{ row.rank }}</td>
+              <td class="py-3">
+                <SenseiIdentity
+                  v-if="row.identity"
+                  :identity="row.identity"
+                  variant="inline"
+                  :highlight="row.isPlayer"
+                />
+                <template v-else>
+                  {{ row.senseiName }}
+                  <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
+                </template>
+              </td>
+              <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
+              <td class="py-3 text-right font-display text-lg tabular-nums">{{ row.points }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-        <aside class="mt-12 lg:col-span-5 lg:mt-0">
-          <section v-if="invite" class="mb-10">
-            <p class="section-label">{{ t('league.inviteTitle') }}</p>
-            <p class="mt-2 text-xs text-ink-faint">{{ t('league.inviteLead') }}</p>
-            <p class="mt-3 break-all font-mono text-[11px] text-ink-muted">{{ invite.inviteUrl }}</p>
-            <button type="button" class="btn-ghost mt-3 text-[10px]" @click="copyInvite">
-              {{ inviteCopied ? t('league.inviteCopied') : t('league.inviteCopy') }}
-            </button>
-          </section>
+      <section v-if="invite" class="mt-14">
+        <p class="section-label">{{ t('league.inviteTitle') }}</p>
+        <p class="mt-2 text-xs text-ink-faint">{{ t('league.inviteLead') }}</p>
+        <p class="mt-3 break-all font-mono text-[11px] text-ink-muted">{{ invite.inviteUrl }}</p>
+        <button type="button" class="btn-ghost mt-3 text-[10px]" @click="copyInvite">
+          {{ inviteCopied ? t('league.inviteCopied') : t('league.inviteCopy') }}
+        </button>
+      </section>
 
-          <section v-if="league.nextMatch">
-            <p class="section-label">{{ t('league.nextMatch') }}</p>
+      <section v-if="league.nextMatch" class="mt-14">
+        <p class="section-label">{{ t('league.nextMatch') }}</p>
+        <RouterLink
+          :to="{
+            name: 'operation-match',
+            params: { matchId: league.nextMatch.id },
+            query: { poolId: league.pool.id, cycle: league.nextMatch.cycle },
+          }"
+          class="mt-4 block border border-line p-5 transition hover:border-accent"
+        >
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ t('league.matchday') }} {{ league.nextMatch.cycle }}
+            · {{ matchStatusLabel(league.nextMatch.status) }}
+          </p>
+          <div class="operation-match-header operation-match-header--compact mt-4">
+            <div class="operation-match-header__versus">
+              <SenseiIdentity
+                class="operation-match-header__card"
+                :identity="fixtureIdentity(league.nextMatch.home, league.nextMatch.homeUserId)"
+                variant="match"
+                :subtitle="t('league.homeSide')"
+                :linkable="false"
+              />
+              <span class="operation-match-header__vs">{{ t('common.vs') }}</span>
+              <SenseiIdentity
+                class="operation-match-header__card"
+                :identity="fixtureIdentity(league.nextMatch.away, league.nextMatch.awayUserId)"
+                variant="match"
+                :subtitle="t('league.awaySide')"
+                :linkable="false"
+              />
+            </div>
+          </div>
+          <p
+            v-if="league.nextMatch.status !== 'scheduled'"
+            class="mt-2 text-sm text-ink-muted"
+          >
+            {{ league.nextMatch.homeScore }} : {{ league.nextMatch.awayScore }}
+          </p>
+          <p class="mt-3 text-xs text-accent">{{ t('league.viewChronicle') }}</p>
+        </RouterLink>
+      </section>
+
+      <section v-if="fixtures?.matches?.length" class="mt-14" data-testid="league-fixtures">
+        <p class="section-label">{{ t('league.fixtures') }}</p>
+        <p class="mt-2 text-xs leading-relaxed text-ink-muted">
+          {{ t('league.fixturesHint', { cycle: league.pool.currentCycle }) }}
+        </p>
+
+        <ul class="mt-6 space-y-2">
+          <li v-for="match in fixtures.matches" :key="match.id">
             <RouterLink
               :to="{
                 name: 'operation-match',
-                params: { matchId: league.nextMatch.id },
-                query: { poolId: league.pool.id, cycle: league.nextMatch.cycle },
+                params: { matchId: match.id },
+                query: { poolId: league.pool.id, cycle: match.cycle },
               }"
-              class="mt-4 block border border-line p-5 transition hover:border-accent"
+              class="block border px-4 py-4 text-sm transition hover:border-accent"
+              :class="match.isParticipant ? 'border-accent/60 bg-accent/5' : 'border-line'"
             >
-              <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                {{ t('league.matchday') }} {{ league.nextMatch.cycle }}
-                · {{ matchStatusLabel(league.nextMatch.status) }}
-              </p>
-              <div class="operation-match-header operation-match-header--compact mt-4">
+              <div class="operation-match-header operation-match-header--compact">
                 <div class="operation-match-header__versus">
                   <SenseiIdentity
                     class="operation-match-header__card"
-                    :identity="fixtureIdentity(league.nextMatch.home, league.nextMatch.homeUserId)"
+                    :identity="fixtureIdentity(match.home, match.homeUserId)"
                     variant="match"
                     :subtitle="t('league.homeSide')"
                     :linkable="false"
@@ -187,7 +225,7 @@ function matchStatusLabel(status) {
                   <span class="operation-match-header__vs">{{ t('common.vs') }}</span>
                   <SenseiIdentity
                     class="operation-match-header__card"
-                    :identity="fixtureIdentity(league.nextMatch.away, league.nextMatch.awayUserId)"
+                    :identity="fixtureIdentity(match.away, match.awayUserId)"
                     variant="match"
                     :subtitle="t('league.awaySide')"
                     :linkable="false"
@@ -195,122 +233,36 @@ function matchStatusLabel(status) {
                 </div>
               </div>
               <p
-                v-if="league.nextMatch.status !== 'scheduled'"
-                class="mt-2 text-sm text-ink-muted"
+                v-if="match.homeScore != null && match.awayScore != null && match.status !== 'scheduled'"
+                class="operation-match-header__status mt-3"
               >
-                {{ league.nextMatch.homeScore }} : {{ league.nextMatch.awayScore }}
+                {{ match.homeScore }} : {{ match.awayScore }}
               </p>
-              <p class="mt-3 text-xs text-accent">{{ t('league.viewChronicle') }}</p>
             </RouterLink>
-          </section>
+          </li>
+        </ul>
+      </section>
 
-          <section v-if="fixtures?.matches?.length" class="mt-10" data-testid="league-fixtures">
-            <p class="section-label">{{ t('league.fixtures') }}</p>
-            <p class="mt-2 text-xs leading-relaxed text-ink-muted">
-              {{ t('league.fixturesHint', { cycle: league.pool.currentCycle }) }}
-            </p>
+      <section v-if="league.recentMatches?.length" class="mt-14">
+        <p class="section-label">{{ t('league.recentMatches') }}</p>
+        <ul class="mt-4 space-y-2">
+          <li v-for="match in league.recentMatches" :key="match.id">
+            <RouterLink
+              :to="{
+                name: 'operation-match',
+                params: { matchId: match.id },
+                query: { poolId: league.pool.id, cycle: match.cycle },
+              }"
+              class="block border border-line px-4 py-3 text-sm text-ink-muted transition hover:border-accent hover:text-ink"
+            >
+              J{{ match.cycle }} · {{ match.home }} vs {{ match.away }}
+              <span class="ml-2 text-ink-faint">{{ match.score }}</span>
+            </RouterLink>
+          </li>
+        </ul>
+      </section>
 
-            <div v-if="myFixture" class="mt-6">
-              <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
-                {{ t('matches.yourMatch') }}
-              </p>
-              <RouterLink
-                :to="{
-                  name: 'operation-match',
-                  params: { matchId: myFixture.id },
-                  query: { poolId: league.pool.id, cycle: myFixture.cycle },
-                }"
-                class="mt-3 block border border-accent/60 bg-accent/5 px-4 py-4 transition hover:border-accent"
-              >
-                <div class="operation-match-header operation-match-header--compact">
-                  <div class="operation-match-header__versus">
-                    <SenseiIdentity
-                      class="operation-match-header__card"
-                      :identity="fixtureIdentity(myFixture.home, myFixture.homeUserId)"
-                      variant="match"
-                      :subtitle="t('league.homeSide')"
-                      :linkable="false"
-                    />
-                    <span class="operation-match-header__vs">{{ t('common.vs') }}</span>
-                    <SenseiIdentity
-                      class="operation-match-header__card"
-                      :identity="fixtureIdentity(myFixture.away, myFixture.awayUserId)"
-                      variant="match"
-                      :subtitle="t('league.awaySide')"
-                      :linkable="false"
-                    />
-                  </div>
-                </div>
-                <p
-                  v-if="myFixture.homeScore != null && myFixture.awayScore != null && myFixture.status !== 'scheduled'"
-                  class="operation-match-header__status mt-3"
-                >
-                  {{ myFixture.homeScore }} : {{ myFixture.awayScore }}
-                </p>
-                <p class="mt-3 text-center text-xs text-accent">{{ t('league.viewChronicle') }}</p>
-              </RouterLink>
-            </div>
-
-            <ul v-if="otherFixtures.length" class="mt-6 space-y-2">
-              <li v-for="match in otherFixtures" :key="match.id">
-                <RouterLink
-                  :to="{
-                    name: 'operation-match',
-                    params: { matchId: match.id },
-                    query: { poolId: league.pool.id, cycle: match.cycle },
-                  }"
-                  class="block border border-line px-4 py-4 text-sm transition hover:border-accent"
-                >
-                  <div class="operation-match-header operation-match-header--compact">
-                    <div class="operation-match-header__versus">
-                      <SenseiIdentity
-                        class="operation-match-header__card"
-                        :identity="fixtureIdentity(match.home, match.homeUserId)"
-                        variant="match"
-                        :subtitle="t('league.homeSide')"
-                        :linkable="false"
-                      />
-                      <span class="operation-match-header__vs">{{ t('common.vs') }}</span>
-                      <SenseiIdentity
-                        class="operation-match-header__card"
-                        :identity="fixtureIdentity(match.away, match.awayUserId)"
-                        variant="match"
-                        :subtitle="t('league.awaySide')"
-                        :linkable="false"
-                      />
-                    </div>
-                  </div>
-                  <p
-                    v-if="match.homeScore != null && match.awayScore != null && match.status !== 'scheduled'"
-                    class="operation-match-header__status mt-3"
-                  >
-                    {{ match.homeScore }} : {{ match.awayScore }}
-                  </p>
-                </RouterLink>
-              </li>
-            </ul>
-          </section>
-
-          <section v-if="league.recentMatches?.length" class="mt-10">
-            <p class="section-label">{{ t('league.recentMatches') }}</p>
-            <ul class="mt-4 space-y-2">
-              <li v-for="match in league.recentMatches" :key="match.id">
-                <RouterLink
-                  :to="{
-                    name: 'operation-match',
-                    params: { matchId: match.id },
-                    query: { poolId: league.pool.id, cycle: match.cycle },
-                  }"
-                  class="block border border-line px-4 py-3 text-sm text-ink-muted transition hover:border-accent hover:text-ink"
-                >
-                  J{{ match.cycle }} · {{ match.home }} vs {{ match.away }}
-                  <span class="ml-2 text-ink-faint">{{ match.score }}</span>
-                </RouterLink>
-              </li>
-            </ul>
-          </section>
-
-          <section v-if="showScout && league.scoutReport" class="mt-10">
+      <section v-if="showScout && league.scoutReport" class="mt-14">
             <p class="section-label">{{ t('league.scoutTitle') }}</p>
             <p
               v-if="league.scoutReport.lockReason === 'no_recon'"
@@ -382,8 +334,6 @@ function matchStatusLabel(status) {
               </template>
             </div>
           </section>
-        </aside>
-      </div>
     </template>
   </div>
 </template>

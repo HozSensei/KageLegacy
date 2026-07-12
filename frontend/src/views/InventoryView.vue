@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
+import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
 
 const { t, locale } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -23,6 +24,11 @@ const cardStatusFilter = ref('all')
 const ITEM_CATEGORY_FILTERS = ['all', 'bureau', 'match', 'cycle']
 const ITEM_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
 const CARD_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
+const INVENTORY_CATEGORIES = ['bureau', 'match', 'cycle']
+
+const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
+  [...INVENTORY_CATEGORIES, 'tacticCards']
+)
 
 const itemName = (item) => (locale.value === 'en' ? item.name_en : item.name_fr)
 const itemDesc = (item) => (locale.value === 'en' ? item.description_en : item.description_fr)
@@ -121,6 +127,19 @@ const filteredItems = computed(() => {
     return matchesItemStatus(item, itemStatusFilter.value)
   })
 })
+
+const visibleItemCategories = computed(() =>
+  INVENTORY_CATEGORIES.filter((category) => {
+    if (itemCategoryFilter.value !== 'all' && itemCategoryFilter.value !== category) {
+      return false
+    }
+    return filteredItems.value.some((item) => item.category === category)
+  })
+)
+
+function itemsForCategory(category) {
+  return filteredItems.value.filter((item) => item.category === category)
+}
 
 const filteredCards = computed(() => {
   const cards = inventory.value?.tacticCards || []
@@ -390,64 +409,109 @@ async function unequipCard(ninjaId) {
           </button>
         </div>
 
-        <ul class="mt-6 space-y-3">
-          <li
-            v-for="item in filteredItems"
-            :key="item.id"
-            class="cursor-pointer border p-4 transition"
-            :class="[
-              selectedItemId === item.id
-                ? 'border-accent bg-bg-soft'
-                : isItemEquipped(item)
-                  ? 'border-accent/40 border-l-4 bg-accent/5 hover:border-accent/60'
-                  : item.isListed
-                    ? 'border-line/80 bg-bg-soft/50 hover:border-ink-faint'
-                    : 'border-line hover:border-ink-faint',
-            ]"
-            @click="selectedItemId = item.id; selectedCardId = null"
+        <div
+          v-for="category in visibleItemCategories"
+          :key="`inv-cat-${category}`"
+          class="mt-6"
+        >
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 text-left"
+            :aria-expanded="!isCollapsed(category)"
+            @click="toggleCategory(category)"
           >
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <p class="text-sm text-ink">{{ itemName(item) }}</p>
-              <span
-                v-if="isItemEquipped(item)"
-                class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
-              >
-                {{ t('inventory.equippedBadge', { name: item.equipped_ninja_name }) }}
-              </span>
-              <span
-                v-else-if="item.isListed"
-                class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
-              >
-                {{ t('inventory.listed') }}
-              </span>
-            </div>
-            <p v-if="itemDesc(item)" class="mt-2 text-xs leading-relaxed text-ink-muted">
-              {{ itemDesc(item) }}
-            </p>
-            <p class="mt-2 text-xs text-ink-faint">
-              {{ t(`market.categories.${item.category}`) }} · {{ usageLabel(item) }}
-            </p>
-            <p v-if="item.nonVendable && !isItemEquipped(item) && !item.isListed" class="mt-1 text-xs text-ink-faint">
-              {{ t('inventory.nonVendable') }}
-            </p>
-            <p v-else-if="!isItemEquipped(item) && !item.isListed && !item.nonVendable" class="mt-1 text-xs text-ink-faint">
-              {{ t('inventory.unequipped') }}
-            </p>
-            <button
-              v-if="canSellItem(item)"
-              type="button"
-              class="btn-ghost mt-3 text-xs"
-              @click.stop="openSell(item)"
+            <svg
+              class="h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200"
+              :class="{ '-rotate-90': isCollapsed(category) }"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
             >
-              {{ t('inventory.sell') }}
-            </button>
-          </li>
-          <li v-if="!filteredItems.length" class="text-sm text-ink-muted">
-            {{ inventory.items.length ? t('inventory.emptyFilter') : t('inventory.empty') }}
-          </li>
-        </ul>
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="section-label">{{ t(`market.categories.${category}`) }}</span>
+            <span class="text-[10px] text-ink-faint">({{ itemsForCategory(category).length }})</span>
+          </button>
 
-        <p class="section-label mt-10">{{ t('inventory.tacticCards') }}</p>
+          <ul v-show="!isCollapsed(category)" class="mt-4 space-y-3">
+            <li
+              v-for="item in itemsForCategory(category)"
+              :key="item.id"
+              class="cursor-pointer border p-4 transition"
+              :class="[
+                selectedItemId === item.id
+                  ? 'border-accent bg-bg-soft'
+                  : isItemEquipped(item)
+                    ? 'border-accent/40 border-l-4 bg-accent/5 hover:border-accent/60'
+                    : item.isListed
+                      ? 'border-line/80 bg-bg-soft/50 hover:border-ink-faint'
+                      : 'border-line hover:border-ink-faint',
+              ]"
+              @click="selectedItemId = item.id; selectedCardId = null"
+            >
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <p class="text-sm text-ink">{{ itemName(item) }}</p>
+                <span
+                  v-if="isItemEquipped(item)"
+                  class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
+                >
+                  {{ t('inventory.equippedBadge', { name: item.equipped_ninja_name }) }}
+                </span>
+                <span
+                  v-else-if="item.isListed"
+                  class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
+                >
+                  {{ t('inventory.listed') }}
+                </span>
+              </div>
+              <p v-if="itemDesc(item)" class="mt-2 text-xs leading-relaxed text-ink-muted">
+                {{ itemDesc(item) }}
+              </p>
+              <p class="mt-2 text-xs text-ink-faint">
+                {{ t(`market.categories.${item.category}`) }} · {{ usageLabel(item) }}
+              </p>
+              <p v-if="item.nonVendable && !isItemEquipped(item) && !item.isListed" class="mt-1 text-xs text-ink-faint">
+                {{ t('inventory.nonVendable') }}
+              </p>
+              <p v-else-if="!isItemEquipped(item) && !item.isListed && !item.nonVendable" class="mt-1 text-xs text-ink-faint">
+                {{ t('inventory.unequipped') }}
+              </p>
+              <button
+                v-if="canSellItem(item)"
+                type="button"
+                class="btn-ghost mt-3 text-xs"
+                @click.stop="openSell(item)"
+              >
+                {{ t('inventory.sell') }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <p v-if="!filteredItems.length" class="mt-6 text-sm text-ink-muted">
+          {{ inventory.items.length ? t('inventory.emptyFilter') : t('inventory.empty') }}
+        </p>
+
+        <div class="mt-10">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 text-left"
+            :aria-expanded="!isCollapsed('tacticCards')"
+            @click="toggleCategory('tacticCards')"
+          >
+            <svg
+              class="h-4 w-4 shrink-0 text-ink-faint transition-transform duration-200"
+              :class="{ '-rotate-90': isCollapsed('tacticCards') }"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="section-label">{{ t('inventory.tacticCards') }}</span>
+            <span class="text-[10px] text-ink-faint">({{ filteredCards.length }})</span>
+          </button>
+        </div>
         <p v-if="selectedCardId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinjaCard') }}</p>
 
         <div class="mt-4 flex flex-wrap gap-2">
@@ -468,7 +532,7 @@ async function unequipCard(ninjaId) {
           </button>
         </div>
 
-        <ul class="mt-6 space-y-3">
+        <ul v-show="!isCollapsed('tacticCards')" class="mt-6 space-y-3">
           <li
             v-for="card in filteredCards"
             :key="`card-${cardInstanceId(card)}`"

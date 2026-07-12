@@ -6,7 +6,9 @@
     "loading": "Chargement…",
     "vs": "vs",
     "ryosAmount": "{amount} Ryos",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "collapseSection": "Réduire",
+    "expandSection": "Développer"
   },
   "gameClock": {
     "label": "H{hour} · {phase}",
@@ -217,7 +219,12 @@
     "lead": "Historique des événements marquants : entraînement, opérations, missions et clôture de cycle."
   },
   "training": {
-    "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi."
+    "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi.",
+    "gainPreview": "+{gain} {stat} ce cycle",
+    "pointGain": "→ +{count} point(s) immédiat(s)",
+    "residualProgress": "(résidu {residual} avant point entier)",
+    "atCap": "Plafond {stat} atteint pour ce grade — passage de grade requis.",
+    "lazyRisk": "Trait Fainéant : risque de sécher l'entraînement."
   },
   "nav": {
     "menu": "Navigation",

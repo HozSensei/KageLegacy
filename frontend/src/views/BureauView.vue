@@ -113,6 +113,8 @@ onMounted(async () => {
         </div>
       </dl>
 
+      <DailySealPanel class="mt-14" />
+
       <section class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
         <div class="lg:col-span-4">
           <h2 class="font-display text-3xl text-ink">{{ store.sensei.name }}</h2>
@@ -125,12 +127,8 @@ onMounted(async () => {
           </p>
 
           <CycleBudgetPanel />
-          <DailySealPanel />
-          <AcademyPanel />
-
           <ChuninExamList />
           <BirdFlightPanel />
-          <DispensaryPanel />
           <ChuninStagnationPanel />
         </div>
 
@@ -148,6 +146,9 @@ onMounted(async () => {
               size="md"
             />
           </div>
+
+          <AcademyPanel />
+          <DispensaryPanel />
         </div>
       </section>
     </template>

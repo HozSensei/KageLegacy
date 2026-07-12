@@ -261,7 +261,7 @@
   }
 
   .cycle-progress__marker-label {
-    @apply hidden text-[9px] uppercase tracking-[0.1em] text-ink-faint sm:block;
+    @apply hidden text-[9px] uppercase tracking-[0.1em] text-ink-faint;
   }
 
   .cycle-progress__marker--current .cycle-progress__marker-label {
@@ -460,18 +460,12 @@
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 35%, transparent);
   }
 
-  /* Banc : défilement horizontal — chevauchement desktop uniquement */
+  /* Banc : défilement horizontal, cartes côte à côte */
   .bench-stack {
-    @apply flex items-end gap-3 overflow-x-auto pb-4 pt-3;
+    @apply flex flex-wrap items-end justify-center gap-6 overflow-x-auto pb-4 pt-3 sm:justify-start;
     padding-left: 0.25rem;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--color-ink-faint) 40%, transparent) transparent;
-  }
-
-  @media (min-width: 768px) {
-    .bench-stack {
-      @apply gap-0 pb-6 pt-5;
-    }
   }
 
   .bench-stack::-webkit-scrollbar {
@@ -487,94 +481,20 @@
     @apply relative shrink-0;
   }
 
-  @media (min-width: 768px) {
-    .bench-stack__item {
-      @apply transition-all duration-300 ease-out;
-      margin-left: -2.75rem;
-      isolation: isolate;
-    }
-
-    .bench-stack__item:first-child {
-      margin-left: 0;
-    }
-
-    .bench-stack__item:nth-child(1) { z-index: 1; }
-    .bench-stack__item:nth-child(2) { z-index: 2; }
-    .bench-stack__item:nth-child(3) { z-index: 3; }
-    .bench-stack__item:nth-child(4) { z-index: 4; }
-    .bench-stack__item:nth-child(5) { z-index: 5; }
-    .bench-stack__item:nth-child(6) { z-index: 6; }
-    .bench-stack__item:nth-child(7) { z-index: 7; }
-    .bench-stack__item:nth-child(8) { z-index: 8; }
-    .bench-stack__item:nth-child(9) { z-index: 9; }
-    .bench-stack__item:nth-child(10) { z-index: 10; }
-
-    .bench-stack .flip-scene-wrap {
-      overflow: hidden;
-      border-radius: 20px;
-      background: var(--color-bg-card);
-    }
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .bench-stack__item:hover {
-      z-index: 40;
-      margin-left: 0.25rem;
-      margin-right: 0.75rem;
-      transform: translateY(-8px);
-    }
-  }
-
   .squad-card-wrap {
-    @apply relative inline-flex flex-col items-center;
+    @apply relative inline-flex flex-col-reverse items-center;
   }
 
   .squad-card-actions {
-    @apply pointer-events-none absolute -right-11 z-40 flex -translate-y-1/2 flex-col gap-2 opacity-0 transition-opacity duration-200;
-    top: 50%;
-  }
-
-  @media (max-width: 767px) {
-    .squad-card-wrap {
-      @apply flex-col-reverse;
-    }
-
-    .squad-card-actions {
-      @apply static right-auto top-auto flex-row translate-y-0 justify-center pt-2 opacity-100 pointer-events-auto;
-    }
-
-    .squad-card-actions--bench {
-      @apply pt-1;
-    }
+    @apply pointer-events-auto static flex flex-row justify-center gap-2 pt-2 opacity-100;
   }
 
   .squad-card-actions--bench {
-    @apply gap-1;
-  }
-
-  @media (min-width: 768px) {
-    .squad-card-actions--bench {
-      @apply -right-10;
-    }
-  }
-
-  @media (hover: none) {
-    .squad-card-actions {
-      @apply pointer-events-auto;
-    }
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .group:hover .squad-card-actions,
-    .group:focus-within .squad-card-actions,
-    .squad-card-slot--pending .squad-card-actions,
-    .squad-card-slot--target .squad-card-actions {
-      @apply pointer-events-auto opacity-100;
-    }
+    @apply gap-1.5 pt-1;
   }
 
   .squad-card-action {
-    @apply flex h-9 w-9 items-center justify-center rounded-full border border-line bg-bg-soft p-0 text-ink-muted shadow-md transition hover:border-accent/50 hover:text-accent;
+    @apply flex h-10 w-10 items-center justify-center rounded-full border border-line bg-bg-soft p-0 text-ink-muted shadow-md transition hover:border-accent/50 hover:text-accent;
   }
 
   .squad-card-action__spin {
@@ -586,11 +506,11 @@
   }
 
   .squad-card-action__icon {
-    @apply flex h-5 w-5 shrink-0 items-center justify-center text-[20px] leading-none;
+    @apply flex h-[18px] w-[18px] shrink-0 items-center justify-center text-[18px] leading-none;
   }
 
   .squad-card-action__icon.material-symbols-outlined {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .squad-card-action__icon--remove {
@@ -888,8 +808,25 @@ body::before {
 }
 
 .sensei-identity--match {
-  @apply overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-3;
+  @apply flex h-full min-h-[8.5rem] flex-col overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-4 text-center;
   min-width: 10rem;
+}
+
+.sensei-identity--match .sensei-identity__content {
+  @apply flex h-full w-full flex-col items-center justify-center px-0 py-0 text-center;
+}
+
+.sensei-identity--match .sensei-identity__name-row {
+  @apply justify-center;
+}
+
+.sensei-identity--match .sensei-identity__name {
+  @apply text-center;
+}
+
+.sensei-identity--match .sensei-identity__title,
+.sensei-identity--match .sensei-identity__subtitle {
+  @apply text-center;
 }
 
 .sensei-identity--highlight .sensei-identity__name {
@@ -913,13 +850,8 @@ body::before {
 }
 
 .sensei-identity--row .sensei-identity__content,
-.sensei-identity--card .sensei-identity__content,
-.sensei-identity--match .sensei-identity__content {
+.sensei-identity--card .sensei-identity__content {
   @apply px-4 py-3;
-}
-
-.sensei-identity--match .sensei-identity__content {
-  @apply px-0 py-0;
 }
 
 .sensei-identity--card .sensei-identity__content {
@@ -1011,7 +943,7 @@ body::before {
 }
 
 .operation-match-header__versus {
-  @apply flex w-full max-w-sm flex-col items-stretch gap-3;
+  @apply flex w-full flex-col items-stretch gap-4;
 }
 
 .operation-match-header__card {
@@ -1028,11 +960,11 @@ body::before {
 
 @media (min-width: 640px) {
   .operation-match-header__versus {
-    @apply max-w-2xl flex-row items-center justify-center gap-5;
+    @apply w-full max-w-none flex-row items-stretch justify-center gap-6;
   }
 
   .operation-match-header__card {
-    @apply w-auto min-w-[10rem] max-w-[14rem] flex-1;
+    @apply min-w-0 max-w-none flex-1;
   }
 }
 
