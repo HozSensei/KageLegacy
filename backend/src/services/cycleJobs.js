@@ -16,6 +16,7 @@ import { decrementFormeLocksForAllUsers } from './missionLootService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
+import { resolveReconnaissanceAtH36 } from './reconnaissanceService.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -34,13 +35,14 @@ async function markJobRun(cycleStartAt, jobName) {
 
 export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
+  const reconMissions = await resolveReconnaissanceAtH36(cycleStartAt);
   const promotions = await processChuninExamsForAllUsers();
   const tendencies = await generateTendenciesIntelForAllUsers();
   await markJobRun(cycleStartAt, 'h36');
   console.log(
-    `[H36] Examens Chunin : ${promotions.length} candidat(s) · Tendances espionnage : ${tendencies.length}`
+    `[H36] Reconnaissance : ${reconMissions.length} mission(s) · Examens Chunin : ${promotions.length} candidat(s) · Tendances espionnage : ${tendencies.length}`
   );
-  return { promotions, tendencies };
+  return { reconMissions, promotions, tendencies };
 }
 
 export async function runH54(cycleStartAt) {

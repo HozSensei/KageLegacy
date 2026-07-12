@@ -20,9 +20,9 @@ export function useNotificationCopy() {
       case 'clan_well_fusion':
         return t('notifications.clanWellTitle')
       case 'reconnaissance_challenge':
-        return t('league.reconNotifChallengeTitle')
+        return t('missions.reconNotifChallengeTitle')
       case 'reconnaissance_result':
-        return t('league.reconNotifResultTitle')
+        return t('missions.reconNotifResultTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -85,9 +85,9 @@ export function useNotificationCopy() {
       case 'clan_well_fusion':
         return t('notifications.clanWellBody', { clanName: p.clanName || '—' })
       case 'reconnaissance_challenge':
-        return t('league.reconNotifChallengeBody', { name: p.challengerName || '—' })
+        return t('missions.reconNotifChallengeBody', { name: p.challengerName || '—' })
       case 'reconnaissance_result':
-        return t('league.reconNotifResultBody', {
+        return t('missions.reconNotifResultBody', {
           outcome: reconOutcomeLabel(p.outcome),
           opponent: p.opponentName || '—',
           ryos: p.ryos ?? 0,
@@ -99,9 +99,9 @@ export function useNotificationCopy() {
 
   function reconOutcomeLabel(outcome) {
     const map = {
-      win: t('league.reconOutcomeWin'),
-      draw: t('league.reconOutcomeDraw'),
-      loss: t('league.reconOutcomeLoss'),
+      win: t('missions.reconOutcomeWin'),
+      draw: t('missions.reconOutcomeDraw'),
+      loss: t('missions.reconOutcomeLoss'),
     }
     return map[outcome] || outcome
   }
@@ -118,7 +118,7 @@ export function useNotificationCopy() {
     }
     if (note.kind === 'clan_well_fusion') return '/bureau'
     if (note.kind === 'reconnaissance_challenge' || note.kind === 'reconnaissance_result') {
-      return '/league'
+      return '/missions'
     }
     return null
   }

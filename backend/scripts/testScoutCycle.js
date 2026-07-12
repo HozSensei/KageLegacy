@@ -9,9 +9,10 @@ import { fileURLToPath } from 'url';
 import { query } from '../src/config/database.js';
 import pool from '../src/config/database.js';
 import { registerUser } from '../src/services/authService.js';
-import { setHourDev, advanceToHourDev } from '../src/services/gameClock.js';
+import { setHourDev, advanceToHourDev, getClockRow } from '../src/services/gameClock.js';
 import { joinOrCreatePool, findUserPool } from '../src/services/poolService.js';
 import { startMatchmaking } from '../src/services/reconnaissanceService.js';
+import { runH36 } from '../src/services/cycleJobs.js';
 import {
   buildHistoricalTendencies,
   buildSquadSnapshotFromNinjas,
@@ -42,6 +43,7 @@ async function deleteUserByUsername(username) {
     userId,
     userId,
   ]);
+  await query('DELETE FROM reconnaissance_registrations WHERE user_id = ?', [userId]);
   await query(
     'DELETE FROM reconnaissance_missions WHERE home_user_id = ? OR away_user_id = ?',
     [userId, userId]
@@ -158,8 +160,16 @@ async function main() {
   assert(scoutBeforeRecon.phase === 'none', 'phase none sans recon');
 
   await setHourDev(18);
-  const reconFight = await startMatchmaking(user.id);
-  assert(reconFight.missionId, 'mission de reconnaissance jouée');
+  const reg = await startMatchmaking(user.id);
+  assert(reg.status === 'queued', 'inscription reconnaissance');
+
+  await advanceToHourDev(36);
+  const clockRow = await getClockRow();
+  await query(
+    `DELETE FROM cycle_job_runs WHERE cycle_start_at = ? AND job_name = 'h36'`,
+    [clockRow.cycle_start_at]
+  );
+  await runH36(clockRow.cycle_start_at);
 
   await advanceToHourDev(40);
   const tendenciesIntel = await generateTendenciesIntelForUser(user.id, userPool.current_cycle, 'fr');

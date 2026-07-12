@@ -5,6 +5,7 @@ import {
   acceptChallenge,
   createChallenge,
   declineChallenge,
+  getReconnaissanceMission,
   getReconnaissanceState,
   listExternalOpponents,
   startMatchmaking,
@@ -33,6 +34,21 @@ router.get('/opponents', async (req, res, next) => {
     if (!user) return;
     const opponents = await listExternalOpponents(user.id);
     res.json({ opponents });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/missions/:id', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const missionId = Number(req.params.id);
+    if (!Number.isInteger(missionId) || missionId <= 0) {
+      return res.status(400).json({ error: 'Identifiant de mission invalide.' });
+    }
+    const payload = await getReconnaissanceMission(missionId, user.id);
+    res.json(payload);
   } catch (error) {
     next(error);
   }
