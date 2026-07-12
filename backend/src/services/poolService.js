@@ -65,6 +65,16 @@ async function createPoolWithBots(
 }
 
 async function replaceBotInPool(poolId, botUserId, humanUserId) {
+  await query(
+    'DELETE FROM reconnaissance_missions WHERE home_user_id = ? OR away_user_id = ?',
+    [botUserId, botUserId]
+  );
+  await query(
+    `DELETE FROM reconnaissance_challenges
+     WHERE challenger_user_id = ? OR defender_user_id = ?`,
+    [botUserId, botUserId]
+  );
+  await query('DELETE FROM reconnaissance_registrations WHERE user_id = ?', [botUserId]);
   await query('UPDATE pool_members SET user_id = ? WHERE pool_id = ? AND user_id = ?', [
     humanUserId,
     poolId,

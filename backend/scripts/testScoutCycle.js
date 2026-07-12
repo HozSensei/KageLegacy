@@ -45,6 +45,10 @@ async function deleteUserByUsername(username) {
   ]);
   await query('DELETE FROM reconnaissance_registrations WHERE user_id = ?', [userId]);
   await query(
+    'DELETE FROM reconnaissance_challenges WHERE challenger_user_id = ? OR defender_user_id = ?',
+    [userId, userId]
+  );
+  await query(
     'DELETE FROM reconnaissance_missions WHERE home_user_id = ? OR away_user_id = ?',
     [userId, userId]
   );
