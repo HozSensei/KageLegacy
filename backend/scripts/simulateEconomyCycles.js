@@ -114,7 +114,12 @@ async function benchChuninCandidates(userId) {
 async function boostGeninForExam(ninjaId) {
   await query(
     `UPDATE ninjas
-     SET taijutsu = GREATEST(taijutsu, 10), intelligence = GREATEST(intelligence, 8)
+     SET taijutsu = GREATEST(taijutsu, 10),
+         ninjutsu = GREATEST(ninjutsu, 9),
+         genjutsu = GREATEST(genjutsu, 8),
+         medecine = GREATEST(medecine, 8),
+         vitesse = GREATEST(vitesse, 8),
+         intelligence = GREATEST(intelligence, 8)
      WHERE id = ?`,
     [ninjaId]
   );
@@ -123,7 +128,12 @@ async function boostGeninForExam(ninjaId) {
 async function boostChuninForBirdFlight(ninjaId) {
   await query(
     `UPDATE ninjas
-     SET taijutsu = GREATEST(taijutsu, 16), intelligence = GREATEST(intelligence, 14)
+     SET taijutsu = GREATEST(taijutsu, 16),
+         ninjutsu = GREATEST(ninjutsu, 14),
+         genjutsu = GREATEST(genjutsu, 14),
+         medecine = GREATEST(medecine, 14),
+         vitesse = GREATEST(vitesse, 14),
+         intelligence = GREATEST(intelligence, 14)
      WHERE id = ?`,
     [ninjaId]
   );

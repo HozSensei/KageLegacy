@@ -243,11 +243,11 @@
     "lazyRisk": "Trait Fainéant : risque de sécher l'entraînement.",
     "types": {
       "Chakra": "Chakra (IQ, ninjutsu, genjutsu)",
-      "Physique": "Physique (taijutsu, vitesse)",
-      "Medical": "Médical (médecine, intelligence)",
-      "Genjutsu": "Genjutsu (genjutsu, intelligence)",
-      "Ninjutsu": "Ninjutsu (ninjutsu, intelligence)",
-      "Equilibre": "Équilibre (toutes les stats)"
+      "Physique": "Physique (taijutsu, vitesse, médecine)",
+      "Medical": "Médical (médecine, intelligence, vitesse)",
+      "Genjutsu": "Genjutsu (genjutsu, intelligence, vitesse)",
+      "Ninjutsu": "Ninjutsu (ninjutsu, intelligence, taijutsu)",
+      "Equilibre": "Équilibre (taijutsu, ninjutsu, genjutsu)"
     }
   },
   "nav": {
@@ -421,8 +421,8 @@
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",
-      "lead": "Inscription gratuite avant H72 · combat ≥ 16 et intelligence ≥ 14 · prime Ryos et relève Genin à la fin du cycle.",
-      "combat": "Combat",
+      "lead": "Inscription gratuite avant H72 · note moyenne globale ≥ 14 · prime Ryos et relève Genin à la fin du cycle.",
+      "average": "Note moyenne",
       "peak": "Sommet atteint",
       "submit": "Inscrire au Vol d'Oiseau",
       "sending": "Inscription…",
@@ -460,15 +460,15 @@
     },
     "chuninStagnation": {
       "title": "Chunin au sommet",
-      "lead": "Combat ≥ 16 et intelligence ≥ 14 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
+      "lead": "Note moyenne ≥ 14 : le ninja approche du départ. Sans Vol d'Oiseau, il stagne.",
       "warning": "Forme et moral chuteront à H72 tant qu'il reste Chunin.",
-      "combatPeak": "Pic combat : {value}/20"
+      "averageRating": "Note moyenne : {value}/20"
     },
     "chuninExam": {
       "title": "Examens Chunin",
       "lead": "Cérémonie du village : inscrivez un Genin prêt avant H36. Le conseil statue à mi-cycle — pas un simple test de stats.",
       "ceremony": "Le ninja présente sa progression devant le conseil. Réussite : grade Chunin. Échec : honte du village (moral −5).",
-      "combat": "Combat",
+      "average": "Note moyenne",
       "submit": "Présenter au conseil ({cost} Ryos)",
       "sending": "Inscription…",
       "registered": "Présenté · verdict H36",
@@ -476,9 +476,9 @@
       "debtBlocked": "Dette en cours — inscriptions suspendues.",
       "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72.",
       "successTitle": "Promotion Chunin",
-      "successBody": "{name} est promu Chunin après l'examen du conseil (combat {combat}, intelligence {intelligence}).",
+      "successBody": "{name} est promu Chunin après l'examen du conseil (note moyenne {average}).",
       "failureTitle": "Échec à l'examen Chunin",
-      "failureBody": "{name} n'a pas convaincu le conseil (combat {combat}/10, intelligence {intelligence}/8). Moral : {moral}."
+      "failureBody": "{name} n'a pas convaincu le conseil (note moyenne {average}/{required}). Moral : {moral}."
     }
   },
   "dossier": {

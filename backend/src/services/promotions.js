@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
-import { computeMatchChakraMax, computeSalaryCost, clampStat } from './ninjaStats.js';
-import { meetsChuninRequirements } from './chuninExam.js';
+import { computeMatchChakraMax, computeSalaryCost, clampStat, ninjaOverallRating } from './ninjaStats.js';
+import { meetsChuninRequirements, CHUNIN_AVERAGE_REQUIRED } from './chuninExam.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 
 export async function processChuninExamsForUser(userId) {
@@ -25,8 +25,7 @@ export async function processChuninExamsForUser(userId) {
       await createSenseiNotification(userId, 'chunin_exam_success', {
         ninjaId: ninja.id,
         name: ninja.name,
-        combatStat: Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine),
-        intelligence: ninja.intelligence,
+        overallRating: ninjaOverallRating(ninja),
       });
       results.push({ ninjaId: ninja.id, name: ninja.name, outcome: 'success' });
     } else {
@@ -39,10 +38,8 @@ export async function processChuninExamsForUser(userId) {
         ninjaId: ninja.id,
         name: ninja.name,
         moral,
-        combatStat: Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine),
-        combatRequired: 10,
-        intelligence: ninja.intelligence,
-        intelligenceRequired: 8,
+        overallRating: ninjaOverallRating(ninja),
+        averageRequired: CHUNIN_AVERAGE_REQUIRED,
       });
       results.push({ ninjaId: ninja.id, name: ninja.name, outcome: 'failure', moral });
     }

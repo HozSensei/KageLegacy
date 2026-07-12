@@ -1,10 +1,7 @@
 import { clampStat } from './ninjaStats.js';
-import { COMBAT_REQUIRED, IQ_REQUIRED, combatStat, meetsChuninRequirements } from './chuninExam.js';
-import {
-  BIRD_FLIGHT_COMBAT_REQUIRED,
-  BIRD_FLIGHT_IQ_REQUIRED,
-  meetsBirdFlightRequirements,
-} from './birdFlightExam.js';
+import { meetsChuninRequirements, CHUNIN_AVERAGE_REQUIRED } from './chuninExam.js';
+import { meetsBirdFlightRequirements } from './birdFlightExam.js';
+import { ninjaOverallRating } from './ninjaStats.js';
 
 export { meetsBirdFlightRequirements, hasReachedTeachingPeak } from './birdFlightExam.js';
 
@@ -37,8 +34,7 @@ export const GRADE_STAT_CAPS = {
 };
 
 const CHUNIN_EXAM_BASE_COST = 300;
-const CHUNIN_EXAM_COMBAT_STEP = 40;
-const CHUNIN_EXAM_IQ_STEP = 30;
+const CHUNIN_EXAM_AVERAGE_STEP = 45;
 
 const FORME_DOWNGRADE = {
   Divin: 'Excellent',
@@ -61,11 +57,9 @@ export function clampStatToGradeCap(ninja, stat, value) {
 }
 
 export function computeChuninExamCost(ninja) {
-  const combat = combatStat(ninja);
-  const iq = ninja.intelligence;
-  const extraCombat = Math.max(0, combat - COMBAT_REQUIRED) * CHUNIN_EXAM_COMBAT_STEP;
-  const extraIq = Math.max(0, iq - IQ_REQUIRED) * CHUNIN_EXAM_IQ_STEP;
-  return CHUNIN_EXAM_BASE_COST + extraCombat + extraIq;
+  const average = ninjaOverallRating(ninja);
+  const extraAverage = Math.max(0, average - CHUNIN_AVERAGE_REQUIRED) * CHUNIN_EXAM_AVERAGE_STEP;
+  return CHUNIN_EXAM_BASE_COST + extraAverage;
 }
 
 export function isGeninStagnantCandidate(ninja) {

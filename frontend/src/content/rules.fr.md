@@ -202,8 +202,8 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 - **Inscription** : avant H36 (pendant la phase de préparation).
 - **Résolution** : automatique à H36.
-- **Prérequis** : niveau suffisant en stat de combat et en Intelligence.
-- **Coût** : frais d'inscription en Ryos, **plus élevés** si le candidat est déjà très avancé (le serveur indexe le prix sur le profil du ninja).
+- **Prérequis** : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi).
+- **Coût** : frais d'inscription en Ryos, **plus élevés** si le candidat dépasse le seuil minimal (indexé sur la note moyenne).
 - **Succès** : passage au grade Chunin et plafonds relevés.
 - **Échec** : le ninja reste Genin ; son moral chute.
 
@@ -211,7 +211,7 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 - **Inscription** : pendant le cycle, avant H72.
 - **Résolution** : à H72.
-- **Prérequis** : stats de combat et d'Intelligence élevées (seuils supérieurs à l'examen Chunin).
+- **Prérequis** : **note moyenne globale** ≥ 14 (même calcul que l'examen Chunin).
 - **Coût d'inscription** : gratuit.
 - **Prime** : importante, calculée à partir du niveau global du Chunin partant (+ réputation).
 - **Relève** : un **Genin roturier** de remplacement arrive (bonne forme et moral élevé).

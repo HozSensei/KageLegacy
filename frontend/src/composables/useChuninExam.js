@@ -1,31 +1,23 @@
-const COMBAT_REQUIRED = 10
-const IQ_REQUIRED = 8
-export const CHUNIN_EXAM_BASE_COST = 300
+import { ninjaOverallRating } from '../utils/ninjaRating.js'
 
-export function combatStat(ninja) {
-  return Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)
-}
+export const CHUNIN_AVERAGE_REQUIRED = 8
+export const CHUNIN_EXAM_BASE_COST = 300
+const CHUNIN_EXAM_AVERAGE_STEP = 45
 
 export function computeChuninExamCost(ninja) {
   if (ninja.chuninExamCost != null) return ninja.chuninExamCost
-  const combat = combatStat(ninja)
-  const iq = ninja.intelligence
-  const extraCombat = Math.max(0, combat - COMBAT_REQUIRED) * 40
-  const extraIq = Math.max(0, iq - IQ_REQUIRED) * 30
-  return CHUNIN_EXAM_BASE_COST + extraCombat + extraIq
+  const average = ninjaOverallRating(ninja)
+  const extraAverage = Math.max(0, average - CHUNIN_AVERAGE_REQUIRED) * CHUNIN_EXAM_AVERAGE_STEP
+  return CHUNIN_EXAM_BASE_COST + extraAverage
 }
 
 export function getChuninExamProgress(ninja) {
-  const combat = combatStat(ninja)
-  const intelligence = ninja.intelligence
+  const average = ninjaOverallRating(ninja)
   return {
-    combat,
-    combatRequired: COMBAT_REQUIRED,
-    intelligence,
-    intelligenceRequired: IQ_REQUIRED,
-    ready: combat >= COMBAT_REQUIRED && intelligence >= IQ_REQUIRED,
-    combatRatio: Math.min(1, combat / COMBAT_REQUIRED),
-    intelligenceRatio: Math.min(1, intelligence / IQ_REQUIRED),
+    average,
+    averageRequired: CHUNIN_AVERAGE_REQUIRED,
+    ready: average >= CHUNIN_AVERAGE_REQUIRED,
+    averageRatio: Math.min(1, average / CHUNIN_AVERAGE_REQUIRED),
   }
 }
 

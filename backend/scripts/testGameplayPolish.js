@@ -70,9 +70,10 @@ const readyGenin = {
   ninjutsu: 8,
   genjutsu: 7,
   medecine: 6,
+  vitesse: 6,
   intelligence: 9,
 };
 console.assert(meetsChuninRequirements(readyGenin), 'Genin éligible Chunin');
-console.assert(!meetsChuninRequirements({ ...readyGenin, intelligence: 7 }), 'IQ insuffisante');
+console.assert(!meetsChuninRequirements({ ...readyGenin, vitesse: 2 }), 'note moyenne insuffisante');
 
 console.log('gameplay polish tests OK');

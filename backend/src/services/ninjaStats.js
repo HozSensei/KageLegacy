@@ -27,6 +27,28 @@ export function clampStat(value) {
   return Math.max(1, Math.min(20, value));
 }
 
+export const NINJA_STAT_COLUMNS = [
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medecine',
+  'vitesse',
+  'intelligence',
+];
+
+export function ninjaStatSum(ninja) {
+  return NINJA_STAT_COLUMNS.reduce((sum, column) => sum + (Number(ninja[column]) || 0), 0);
+}
+
+/** Note moyenne globale (même calcul que l'UI : somme des 6 stats / 6, arrondi). */
+export function ninjaOverallAverage(ninja) {
+  return ninjaStatSum(ninja) / NINJA_STAT_COLUMNS.length;
+}
+
+export function ninjaOverallRating(ninja) {
+  return Math.round(ninjaOverallAverage(ninja));
+}
+
 export function computeMoralWithClanVariance(baseMoral, clan) {
   if (!clan.moral_variance) return baseMoral;
   const variance = Math.floor(Math.random() * (clan.moral_variance * 2 + 1)) - clan.moral_variance;

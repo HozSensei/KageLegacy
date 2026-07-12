@@ -190,8 +190,8 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 - **Registration**: before H36 (preparation phase).
 - **Resolution**: automatic at H36.
-- **Requirements**: sufficient combat stat and Intelligence.
-- **Cost**: Ryos registration fee, **higher** if the candidate is already advanced (the server indexes price on the ninja's profile).
+- **Requirements**: **overall rating** ≥ 8 (sum of 6 stats ÷ 6, rounded).
+- **Cost**: Ryos registration fee, **higher** if the candidate exceeds the minimum threshold (indexed on overall rating).
 - **Success**: promotion to Chunin and raised caps.
 - **Failure**: ninja stays Genin; morale drops.
 
@@ -199,7 +199,7 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 - **Registration**: during the cycle, before H72.
 - **Resolution**: at H72.
-- **Requirements**: high combat stats and Intelligence (thresholds above Chunin exam).
+- **Requirements**: **overall rating** ≥ 14 (same formula as the Chunin exam).
 - **Registration cost**: free.
 - **Payout**: substantial, based on the departing Chunin's overall level (+ reputation).
 - **Relief**: a **commoner Genin** replacement arrives (good form and high morale).

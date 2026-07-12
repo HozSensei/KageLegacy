@@ -137,13 +137,13 @@ Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie av
 
 ### Examen Chunin (inscription avant H36, résolution H36)
 
-- Prérequis : meilleure stat combat ≥ 10 **et** QI ≥ 8
-- Coût : 300 + bonus selon stats au-delà des seuils
+- Prérequis : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi)
+- Coût : 300 + max(0, moyenne − 8) × 45 Ryos
 - Succès → Chunin ; échec → moral −5
 
 ### Vol d’Oiseau (Chunin → départ, H72)
 
-- Prérequis : combat ≥ 16, QI ≥ 14
+- Prérequis : **note moyenne globale** ≥ 14
 - Prime : 3000 + (somme des 6 stats) × 150 Ryos + réputation
 - Le Chunin part ; un **Genin roturier** de remplacement arrive (forme Excellent, moral 20)
 - Laisse un **Parchemin mural d'héritage** (bonus permanent selon stat dominante, cumulable avec plafond)

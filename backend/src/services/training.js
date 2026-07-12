@@ -31,24 +31,24 @@ export const TRAINING_TYPES = {
     weights: [0.35, 0.35, 0.3],
   },
   Physique: {
-    stats: ['taijutsu', 'vitesse'],
-    weights: [0.55, 0.45],
+    stats: ['taijutsu', 'vitesse', 'medecine'],
+    weights: [0.4, 0.35, 0.25],
   },
   Medical: {
-    stats: ['medecine', 'intelligence'],
-    weights: [0.55, 0.45],
+    stats: ['medecine', 'intelligence', 'vitesse'],
+    weights: [0.4, 0.35, 0.25],
   },
   Genjutsu: {
-    stats: ['genjutsu', 'intelligence'],
-    weights: [0.55, 0.45],
+    stats: ['genjutsu', 'intelligence', 'vitesse'],
+    weights: [0.4, 0.35, 0.25],
   },
   Ninjutsu: {
-    stats: ['ninjutsu', 'intelligence'],
-    weights: [0.55, 0.45],
+    stats: ['ninjutsu', 'intelligence', 'taijutsu'],
+    weights: [0.4, 0.35, 0.25],
   },
   Equilibre: {
-    stats: STAT_COLUMNS,
-    weights: STAT_COLUMNS.map(() => 1 / 6),
+    stats: ['taijutsu', 'ninjutsu', 'genjutsu'],
+    weights: [0.35, 0.35, 0.3],
   },
 };
 

@@ -53,7 +53,7 @@ const part = computeTrainingPart(PREP_COEF, 'preparation', genin, { rngMultiplie
 approx(part, 0.4);
 
 const distribution = distributePart(0.4, 'Ninjutsu', genin, 'global', { rng: () => 0 });
-assert(distribution.gains.length === 2, 'Ninjutsu type touche 2 stats');
+assert(distribution.gains.length === 3, 'Ninjutsu type touche 3 stats');
 assert(
   Math.abs(distribution.gains.reduce((sum, gain) => sum + gain.gain, 0) - 0.4) < 0.01,
   'distribution conserve le pot'
@@ -68,6 +68,7 @@ const geninReady = {
   ninjutsu: 8,
   genjutsu: 7,
   medecine: 6,
+  vitesse: 10,
   intelligence: 10,
   chunin_exam_requested: false,
   stagnant_cycles: 0,
@@ -78,7 +79,7 @@ assert(hasStagnationGrace(geninReady), 'has grace');
 assert(shouldApplyStagnationPenalty({ ...geninReady, stagnant_cycles: 1 }), 'penalty after grace');
 
 assert(TRAINING_TYPES.Chakra.stats.length === 3, 'Chakra group');
-assert(TRAINING_TYPES.Equilibre.stats.length === 6, 'Equilibre group');
+assert(TRAINING_TYPES.Equilibre.stats.length === 3, 'Equilibre group');
 
 const prepChakra = getTrainingGainRange(PREP_COEF, 'preparation', genin);
 const globalChakra = getTrainingGainRange(GLOBAL_COEF, 'global', genin);

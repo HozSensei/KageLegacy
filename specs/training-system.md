@@ -33,11 +33,11 @@ Les actifs **cumulent** préparation + global si les types sont actifs (aligneme
 | Type | Stats touchées | Poids |
 | :--- | :--- | :--- |
 | **Chakra** | intelligence, ninjutsu, genjutsu | 35 % / 35 % / 30 % |
-| **Physique** | taijutsu, vitesse | 55 % / 45 % |
-| **Medical** | medecine, intelligence | 55 % / 45 % |
-| **Genjutsu** | genjutsu, intelligence | 55 % / 45 % |
-| **Ninjutsu** | ninjutsu, intelligence | 55 % / 45 % |
-| **Equilibre** | les 6 stats | 1/6 chacune |
+| **Physique** | taijutsu, vitesse, medecine | 40 % / 35 % / 25 % |
+| **Medical** | medecine, intelligence, vitesse | 40 % / 35 % / 25 % |
+| **Genjutsu** | genjutsu, intelligence, vitesse | 40 % / 35 % / 25 % |
+| **Ninjutsu** | ninjutsu, intelligence, taijutsu | 40 % / 35 % / 25 % |
+| **Equilibre** | taijutsu, ninjutsu, genjutsu | 35 % / 35 % / 30 % |
 
 ---
 

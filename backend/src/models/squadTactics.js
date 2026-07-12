@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
-import { meetsChuninRequirements } from '../services/chuninExam.js';
+import { CHUNIN_AVERAGE_REQUIRED, meetsChuninRequirements } from '../services/chuninExam.js';
+import { BIRD_FLIGHT_AVERAGE_REQUIRED } from '../services/birdFlightExam.js';
 import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/gradeProgression.js';
 import { assertSpendingAllowed } from '../services/economyDebt.js';
 import { getGameClock, isTacticsLocked, isTrainingLocked } from '../services/gameClock.js';
@@ -154,7 +155,7 @@ export async function requestChuninExam(userId, ninjaId) {
   }
 
   if (!meetsChuninRequirements(ninja)) {
-    const error = new Error('Prérequis non atteints (combat ≥ 10 et intelligence ≥ 8).');
+    const error = new Error(`Prérequis non atteints (note moyenne ≥ ${CHUNIN_AVERAGE_REQUIRED}).`);
     error.statusCode = 400;
     throw error;
   }
@@ -215,7 +216,7 @@ export async function requestBirdFlight(userId, ninjaId) {
   }
 
   if (!meetsBirdFlightRequirements(ninja)) {
-    const error = new Error('Prérequis non atteints (combat ≥ 16 et intelligence ≥ 14).');
+    const error = new Error(`Prérequis non atteints (note moyenne ≥ ${BIRD_FLIGHT_AVERAGE_REQUIRED}).`);
     error.statusCode = 400;
     throw error;
   }
