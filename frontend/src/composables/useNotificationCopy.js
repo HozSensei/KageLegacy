@@ -117,7 +117,10 @@ export function useNotificationCopy() {
       return '/bureau'
     }
     if (note.kind === 'clan_well_fusion') return '/bureau'
-    if (note.kind === 'reconnaissance_challenge' || note.kind === 'reconnaissance_result') {
+    if (note.kind === 'reconnaissance_challenge') return '/missions'
+    if (note.kind === 'reconnaissance_result') {
+      const missionId = note.payload?.missionId
+      if (missionId) return `/missions/recon/${missionId}`
       return '/missions'
     }
     return null
@@ -129,6 +132,9 @@ export function useNotificationCopy() {
     if (note.kind === 'chunin_exam_success' || note.kind === 'chunin_exam_failure') {
       return t('notifications.viewBureau')
     }
+    if (note.kind === 'clan_well_fusion') return t('notifications.viewBureau')
+    if (note.kind === 'reconnaissance_challenge') return t('missions.reconNotifLink')
+    if (note.kind === 'reconnaissance_result') return t('missions.reconViewChronicle')
     return null
   }
 

@@ -127,7 +127,7 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick))
             <p class="mt-2 text-sm leading-relaxed text-ink">{{ body(note) }}</p>
             <div class="mt-3 flex flex-wrap gap-2">
               <button
-                v-if="linkPath(note)"
+                v-if="linkPath(note) && linkLabel(note)"
                 type="button"
                 class="btn-ghost text-[10px]"
                 data-testid="notification-follow"

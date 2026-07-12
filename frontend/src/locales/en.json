@@ -564,7 +564,8 @@
     "reconNotifChallengeTitle": "Reconnaissance challenge",
     "reconNotifChallengeBody": "{name} challenged you to a reconnaissance mission. Accept from Missions.",
     "reconNotifResultTitle": "Reconnaissance complete",
-    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos."
+    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "View Missions"
   },
   "matches": {
     "navTitle": "Browse matches",
@@ -837,7 +838,8 @@
     "reconNotifChallengeTitle": "Reconnaissance challenge",
     "reconNotifChallengeBody": "{name} challenged you to reconnaissance. Accept from Missions.",
     "reconNotifResultTitle": "Reconnaissance complete",
-    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos."
+    "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "View Missions"
   },
   "eliteIdentity": {
     "grade": {

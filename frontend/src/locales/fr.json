@@ -564,7 +564,8 @@
     "reconNotifChallengeTitle": "Défi de reconnaissance",
     "reconNotifChallengeBody": "{name} vous défie pour une mission de reconnaissance. Acceptez depuis Missions.",
     "reconNotifResultTitle": "Reconnaissance terminée",
-    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos."
+    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "Voir Missions"
   },
   "matches": {
     "navTitle": "Parcourir les combats",
@@ -837,7 +838,8 @@
     "reconNotifChallengeTitle": "Défi de reconnaissance",
     "reconNotifChallengeBody": "{name} vous défie pour une mission de reconnaissance. Acceptez depuis Missions.",
     "reconNotifResultTitle": "Reconnaissance terminée",
-    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos."
+    "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos.",
+    "reconNotifLink": "Voir Missions"
   },
   "eliteIdentity": {
     "grade": {
