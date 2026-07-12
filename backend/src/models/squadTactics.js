@@ -2,8 +2,6 @@ import { query } from '../config/database.js';
 import { CHUNIN_AVERAGE_REQUIRED, meetsChuninRequirements } from '../services/chuninExam.js';
 import { BIRD_FLIGHT_AVERAGE_REQUIRED } from '../services/birdFlightExam.js';
 import { meetsBirdFlightRequirements } from '../services/gradeProgression.js';
-import { meetsBirdFlightRequirements } from '../services/gradeProgression.js';
-import { meetsChuninRequirements } from '../services/chuninExam.js';
 import { getGameClock, isTacticsLocked, isTrainingLocked } from '../services/gameClock.js';
 import { isNinjaListed } from '../services/playerMarketService.js';
 import { TRAINING_TYPE_VALUES } from '../services/training.js';
