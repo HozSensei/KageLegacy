@@ -482,7 +482,7 @@
   }
 
   .squad-card-wrap {
-    @apply relative inline-flex flex-col-reverse items-center;
+    @apply relative inline-flex flex-col items-center;
   }
 
   .squad-card-actions {

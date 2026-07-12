@@ -476,16 +476,18 @@ watch(() => store.activeSquad, () => {
           <div
             v-for="entry in displayEntries"
             :key="entry.position"
-            class="squad-card-slot flex flex-col items-center"
+            class="squad-card-slot group flex flex-col items-center"
             :class="{
               'squad-card-slot--pending': isSwapSource(entry.position),
               'squad-card-slot--target': isSwapTarget(entry.position),
             }"
           >
-            <div
-              v-if="entry.ninja"
-              class="squad-card-wrap group relative"
-            >
+            <template v-if="entry.ninja">
+              <div
+                class="squad-card-wrap relative"
+              >
+                <NinjaFlipCard :ninja="entry.ninja" size="md" />
+              </div>
               <div
                 v-if="canCompose"
                 class="squad-card-actions"
@@ -523,8 +525,7 @@ watch(() => store.activeSquad, () => {
                   </svg>
                 </button>
               </div>
-              <NinjaFlipCard :ninja="entry.ninja" size="md" />
-            </div>
+            </template>
 
             <div
               v-else
@@ -567,68 +568,68 @@ watch(() => store.activeSquad, () => {
           <div
             v-for="ninja in benchNinjas"
             :key="ninja.id"
-            class="bench-stack__item squad-card-slot"
+            class="bench-stack__item squad-card-slot group flex flex-col items-center"
             :class="{
               'squad-card-slot--pending': isBenchSwapSource(ninja.id),
               'squad-card-slot--target': isBenchSwapTarget(ninja.id),
             }"
           >
-            <div class="squad-card-wrap group relative">
+            <div class="squad-card-wrap relative">
               <p
                 v-if="ninja.isListed"
                 class="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-bg px-2 text-[10px] uppercase tracking-wider text-accent"
               >
                 {{ t('squad.listed') }}
               </p>
-              <div
-                v-if="canCompose"
-                class="squad-card-actions squad-card-actions--bench"
-              >
-                <button
-                  v-if="canReleaseNinja(ninja)"
-                  type="button"
-                  class="squad-card-action squad-card-action--remove"
-                  :title="t('squad.releaseNinja')"
-                  :disabled="saving || releasing"
-                  @click.stop="openRelease(ninja)"
-                >
-                  <svg
-                    class="squad-card-action__icon squad-card-action__icon--remove"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-width="1.75"
-                      d="M6 6l12 12M18 6L6 18"
-                    />
-                  </svg>
-                </button>
-                <button
-                  v-if="canSellNinja(ninja)"
-                  type="button"
-                  class="squad-card-action"
-                  :title="t('squad.sellNinja')"
-                  :disabled="saving"
-                  @click.stop="openSell(ninja)"
-                >
-                  <StoreIcon />
-                </button>
-                <button
-                  type="button"
-                  class="squad-card-action"
-                  :title="t('squad.swapAction')"
-                  :disabled="saving"
-                  @click.stop="onBenchSwap(ninja.id)"
-                >
-                  <span class="squad-card-action__spin">
-                    <SyncIcon />
-                  </span>
-                </button>
-              </div>
               <NinjaFlipCard :ninja="ninja" size="sm" />
+            </div>
+            <div
+              v-if="canCompose"
+              class="squad-card-actions squad-card-actions--bench"
+            >
+              <button
+                v-if="canReleaseNinja(ninja)"
+                type="button"
+                class="squad-card-action squad-card-action--remove"
+                :title="t('squad.releaseNinja')"
+                :disabled="saving || releasing"
+                @click.stop="openRelease(ninja)"
+              >
+                <svg
+                  class="squad-card-action__icon squad-card-action__icon--remove"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-width="1.75"
+                    d="M6 6l12 12M18 6L6 18"
+                  />
+                </svg>
+              </button>
+              <button
+                v-if="canSellNinja(ninja)"
+                type="button"
+                class="squad-card-action"
+                :title="t('squad.sellNinja')"
+                :disabled="saving"
+                @click.stop="openSell(ninja)"
+              >
+                <StoreIcon />
+              </button>
+              <button
+                type="button"
+                class="squad-card-action"
+                :title="t('squad.swapAction')"
+                :disabled="saving"
+                @click.stop="onBenchSwap(ninja.id)"
+              >
+                <span class="squad-card-action__spin">
+                  <SyncIcon />
+                </span>
+              </button>
             </div>
           </div>
         </div>
