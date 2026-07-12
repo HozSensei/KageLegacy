@@ -55,6 +55,8 @@ part = coef × RNG × mult_potentiel × coef_âge × mult_équipement_cycle
 | Prometteur | ×1,1 |
 | Prodige | ×1,25 |
 
+> Le potentiel n'est pas stocké en BDD : il est **inféré** via `inferPotential()` (`ninjaProfile.js`) à partir des stats et du grade.
+
 | Âge | Mult |
 | :--- | :--- |
 | 15 | ×1,5 |
