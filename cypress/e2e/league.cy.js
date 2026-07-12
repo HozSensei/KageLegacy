@@ -1,4 +1,11 @@
 describe('Ligue — classement', () => {
+  before(() => {
+    cy.task('ensureLeagueFixtures').then((result) => {
+      expect(result.ok).to.eq(true);
+      expect(result.matchCount).to.be.gte(1);
+    });
+  });
+
   beforeEach(() => {
     cy.loginDemo();
     cy.visit('/bureau');
