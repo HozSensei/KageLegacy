@@ -507,10 +507,15 @@
 
   .squad-card-action__icon {
     @apply flex h-[18px] w-[18px] shrink-0 items-center justify-center text-[18px] leading-none;
+    display: flex !important;
   }
 
   .squad-card-action__icon.material-symbols-outlined {
     font-size: 18px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
 
   .squad-card-action__icon--remove {
@@ -1118,5 +1123,14 @@ body::before {
       0 10px 32px rgba(0, 0, 0, 0.4),
       0 0 24px rgba(201, 166, 107, 0.32);
   }
+}
+
+/* Google Fonts impose display:inline-block sur Material Symbols — priorité hors @layer */
+.material-symbols-outlined {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
 }
 
