@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Prépare le compte démo pour les tests E2E navigateur :
- * assigne 3 missions idle et les résout (rapports + notifications).
+ * assigne 3 missions idle (D, C, B) et les résout (rapports + notifications).
  * N'exécute pas le job H72 complet (évite effets de bord saison/pool).
  */
 import dotenv from 'dotenv';
@@ -22,14 +22,6 @@ async function demoUserId() {
      WHERE u.username = 'demo_sensei' AND u.is_bot = FALSE LIMIT 1`
   );
   return rows[0]?.id;
-}
-
-async function boostNinja(ninjaId, patch) {
-  const cols = Object.keys(patch);
-  await query(
-    `UPDATE ninjas SET ${cols.map((c) => `${c} = ?`).join(', ')} WHERE id = ?`,
-    [...cols.map((c) => patch[c]), ninjaId]
-  );
 }
 
 async function main() {
@@ -57,10 +49,6 @@ async function main() {
     console.error('Au moins 3 remplaçants requis sur le compte démo.');
     process.exit(1);
   }
-
-  await boostNinja(bench[0].id, { intelligence: 5, vitesse: 5 });
-  await boostNinja(bench[1].id, { intelligence: 9, vitesse: 8 });
-  await boostNinja(bench[2].id, { taijutsu: 13 });
 
   await assignMission(userId, bench[0].id, 'D');
   await assignMission(userId, bench[1].id, 'C');

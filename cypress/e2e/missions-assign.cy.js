@@ -15,7 +15,7 @@ describe('Missions — envoi de contrat (UI)', () => {
     cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
   });
 
-  it('envoie un contrat Routine et affiche la mission active sans rechargement', () => {
+  it('envoie une mission rang D et affiche la mission active sans rechargement', () => {
     cy.get('[data-testid="missions-ninja-select"] option:not([disabled])')
       .not('[value="null"]')
       .first()

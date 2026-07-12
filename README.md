@@ -198,7 +198,7 @@ Pour retirer les droits : `UPDATE users SET is_admin = FALSE WHERE username = 'v
 | Commande | Options | Description |
 |----------|---------|-------------|
 | `playtest:cycle` | — | Jalons H0 → H36 → H71 → H72 (1 joueur) |
-| `playtest:missions` | — | 3 paliers missions idle + notifications |
+| `playtest:missions` | — | Missions idle rangs D/C/B/A + notifications |
 | `playtest:multiplayer` | — | 2 comptes + P2P + cycle |
 | `playtest:league` | — | 2 humains même pool + match H71 |
 

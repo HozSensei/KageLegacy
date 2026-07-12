@@ -11,10 +11,12 @@ describe('Missions idle (navigateur)', () => {
     cy.loginDemo();
   });
 
-  it('charge la page missions', () => {
+  it('charge la page missions avec le tableau de probabilités', () => {
     cy.visit('/missions');
     cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="missions-collect"]').should('be.visible');
+    cy.get('[data-testid="missions-panel"]').contains(/Mission — rang [DCBA]|Mission — rank [DCBA]/);
+    cy.get('[data-testid="missions-panel"]').contains(/Réussite|Success/);
   });
 
   it('affiche les notifications mission_report dans la cloche', () => {

@@ -13,7 +13,7 @@ export const OVERDRAFT_FLOOR = -5000;
 export const ECONOMY_PROFILES = {
   casual: {
     label: 'Joueur casual',
-    description: '1 match ligue · 1 mission routine · 1 achat léger',
+    description: '1 match ligue · 1 mission rang D · 1 achat léger',
     salaries: DEFAULT_SALARIES_PER_CYCLE,
     trainingNinjas: 0,
     shopItems: 1,
@@ -25,7 +25,7 @@ export const ECONOMY_PROFILES = {
   },
   moderate: {
     label: 'Joueur modéré',
-    description: '1 match · 2 missions (routine + infiltration) · 1 achat · 1 ninja entraîné',
+    description: '1 match · 2 missions (D + C) · 1 achat · 1 ninja entraîné',
     salaries: DEFAULT_SALARIES_PER_CYCLE,
     trainingNinjas: 1,
     shopItems: 1,
