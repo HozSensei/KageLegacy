@@ -129,7 +129,7 @@ export async function processTrainingBillingForUser(userId) {
   const planned = await query(
     `SELECT id, name, grade, preparation_type, squad_position,
             taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
-            age, character_trait, stat_residuals, training_buff, potential
+            age, character_trait, stat_residuals, training_buff
      FROM ninjas
      WHERE user_id = ? AND squad_position IS NOT NULL AND preparation_type IS NOT NULL
      ORDER BY id`,

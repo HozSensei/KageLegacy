@@ -76,7 +76,7 @@ export function parseStatResiduals(ninja) {
 
 export function getTrainingGainRange(coef, mode, ninja) {
   const [minRng, maxRng] = mode === 'preparation' ? PREP_RNG : GLOBAL_RNG;
-  const potential = ninja?.potential ?? 'ordinaire';
+  const potential = ninja?.potential ?? ninja?.profile?.potential ?? 'ordinaire';
   const potentialMult = getPotentialMultiplier(potential);
   const ageMult = ageCoefficient(ninja?.age);
   let buffMult = 1;

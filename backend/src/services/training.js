@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { clampStatToGradeCap, isStatAtGradeCap } from './gradeProgression.js';
+import { inferPotential } from './ninjaProfile.js';
 import { getCycleEquipmentByUser } from './equipmentService.js';
 import { getTrainingBoostMultiplier } from './combat/equipment.js';
 
@@ -85,9 +86,24 @@ export function getPotentialMultiplier(potential) {
   return POTENTIAL_MULT[potential] ?? 1;
 }
 
+function resolvePotential(ninja) {
+  if (ninja.potential) return ninja.potential;
+  return inferPotential(
+    {
+      taijutsu: ninja.taijutsu,
+      ninjutsu: ninja.ninjutsu,
+      genjutsu: ninja.genjutsu,
+      medecine: ninja.medecine,
+      vitesse: ninja.vitesse,
+      intelligence: ninja.intelligence,
+    },
+    ninja.grade
+  );
+}
+
 export function computeTrainingPart(coef, mode, ninja, { cycleMultiplier = 1, rngMultiplier = null } = {}) {
   const mult = rngMultiplier ?? rollTrainingMultiplier(mode);
-  const potentialMult = getPotentialMultiplier(ninja.potential);
+  const potentialMult = getPotentialMultiplier(resolvePotential(ninja));
   const ageMult = ageCoefficient(ninja.age);
   let part = coef * mult * potentialMult * ageMult * cycleMultiplier;
   if (ninja.training_buff === 'strategy_book') {
@@ -98,7 +114,7 @@ export function computeTrainingPart(coef, mode, ninja, { cycleMultiplier = 1, rn
 
 export function getTrainingGainRange(coef, mode, ninja, { cycleMultiplier = 1 } = {}) {
   const [minRng, maxRng] = mode === 'preparation' ? PREP_RNG : GLOBAL_RNG;
-  const potentialMult = getPotentialMultiplier(ninja.potential);
+  const potentialMult = getPotentialMultiplier(resolvePotential(ninja));
   const ageMult = ageCoefficient(ninja.age);
   let buffMult = 1;
   if (ninja.training_buff === 'strategy_book') buffMult = 1.15;
