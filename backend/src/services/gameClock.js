@@ -79,14 +79,11 @@ export async function isTrainingLocked() {
   return clock.trainingLocked;
 }
 
-/** Avance d'une heure (outil dev) — conserve cycle_start_at, incrémente last_tick_hour */
+/** Avance d'une heure (outil dev) — conserve cycle_start_at, met à jour last_tick_hour. */
 export async function advanceHourDev() {
-  await query(
-    `UPDATE game_clock
-     SET last_tick_hour = LEAST(?, last_tick_hour + 1)
-     WHERE id = 1`,
-    [CYCLE_HOURS]
-  );
+  const clock = await getGameClock();
+  const newHour = Math.min(CYCLE_HOURS, clock.hour + 1);
+  await query(`UPDATE game_clock SET last_tick_hour = ? WHERE id = 1`, [newHour]);
   return getGameClock();
 }
 

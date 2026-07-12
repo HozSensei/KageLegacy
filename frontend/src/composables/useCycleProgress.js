@@ -119,12 +119,20 @@ export function useCycleProgress(gameClockRef) {
     const clock = gameClockRef.value
     if (!clock) return 0
 
+    const serverHour = clock.hour ?? 0
+
     if (clock.cycleStartAt) {
       const elapsed = now.value - new Date(clock.cycleStartAt).getTime()
+      const elapsedHour = Math.floor(elapsed / HOUR_MS)
+
+      if (serverHour > elapsedHour) {
+        return Math.min(100, (serverHour / CYCLE_HOURS) * 100)
+      }
+
       return Math.min(100, (elapsed / (CYCLE_HOURS * HOUR_MS)) * 100)
     }
 
-    return Math.min(100, (hour.value / CYCLE_HOURS) * 100)
+    return Math.min(100, (serverHour / CYCLE_HOURS) * 100)
   })
 
   const milestones = computed(() => {
