@@ -70,7 +70,7 @@ async function ensureStockForPeriod(userId, restockPeriod) {
   }
 }
 
-async function pickPromoItems(userId, cycleStartAt, eligibleItems) {
+async function pickPromoItems(userId, cycleStartAt, eligibleItems, count = PROMOS_PER_CYCLE) {
   const promoEligible = eligibleItems.filter((i) => i.promo_eligible !== 0);
   if (!promoEligible.length) return [];
 
@@ -85,7 +85,7 @@ async function pickPromoItems(userId, cycleStartAt, eligibleItems) {
 
   const picked = [];
   const pool = [...promoEligible];
-  while (picked.length < PROMOS_PER_CYCLE && pool.length) {
+  while (picked.length < count && pool.length) {
     const idx = randomInt(pool.length);
     const item = pool.splice(idx, 1)[0];
     if (picked.length === 0 || !avoidIds.has(item.id) || pool.length === 0) {
@@ -96,15 +96,39 @@ async function pickPromoItems(userId, cycleStartAt, eligibleItems) {
   return picked;
 }
 
-async function ensurePromosForCycle(userId, cycleStartAt) {
-  const existing = await query(
-    `SELECT id FROM village_shop_promos WHERE user_id = ? AND cycle_start_at = ? LIMIT 1`,
+async function pruneInvalidPromos(userId, cycleStartAt) {
+  if (!cycleStartAt) return;
+  await query(
+    `DELETE vsp FROM village_shop_promos vsp
+     LEFT JOIN item_definitions idf ON idf.id = vsp.item_definition_id
+     WHERE vsp.user_id = ? AND vsp.cycle_start_at = ?
+       AND (idf.id IS NULL OR idf.price <= 0 OR idf.promo_eligible = FALSE)`,
     [userId, cycleStartAt]
   );
-  if (existing.length) return;
+}
 
+async function ensurePromosForCycle(userId, cycleStartAt) {
   const catalog = await getAllCatalogItems();
-  const promoItems = await pickPromoItems(userId, cycleStartAt, catalog);
+  const eligibleItems = catalog.filter((item) => item.promo_eligible !== 0);
+  if (!eligibleItems.length) return;
+
+  await pruneInvalidPromos(userId, cycleStartAt);
+
+  const currentRows = await query(
+    `SELECT item_definition_id FROM village_shop_promos
+     WHERE user_id = ? AND cycle_start_at = ?`,
+    [userId, cycleStartAt]
+  );
+  const eligibleIds = new Set(eligibleItems.map((item) => item.id));
+  const activeIds = new Set(
+    currentRows.map((row) => row.item_definition_id).filter((id) => eligibleIds.has(id))
+  );
+
+  if (activeIds.size >= PROMOS_PER_CYCLE) return;
+
+  const slots = PROMOS_PER_CYCLE - activeIds.size;
+  const pool = eligibleItems.filter((item) => !activeIds.has(item.id));
+  const promoItems = await pickPromoItems(userId, cycleStartAt, pool, slots);
   for (const item of promoItems) {
     await query(
       `INSERT INTO village_shop_promos (user_id, cycle_start_at, item_definition_id, discount_pct)
@@ -114,8 +138,14 @@ async function ensurePromosForCycle(userId, cycleStartAt) {
   }
 }
 
+export function resolveItemDefinitionId(row) {
+  const itemDefinitionId = Number(row.item_definition_id ?? row.id);
+  return Number.isFinite(itemDefinitionId) ? itemDefinitionId : null;
+}
+
 function mapShopRow(row, promoByItem, heritageMatchDiscountPct, heritageBureauDiscountPct) {
-  const promoDiscountPct = promoByItem.get(row.item_definition_id) || 0;
+  const itemDefinitionId = resolveItemDefinitionId(row);
+  const promoDiscountPct = itemDefinitionId ? promoByItem.get(itemDefinitionId) || 0 : 0;
   const pricing = computeShopItemPrice({
     basePrice: row.price,
     category: row.category,
@@ -125,7 +155,7 @@ function mapShopRow(row, promoByItem, heritageMatchDiscountPct, heritageBureauDi
   });
   return {
     stockId: row.stock_id,
-    itemDefinitionId: row.item_definition_id,
+    itemDefinitionId,
     slug: row.slug,
     category: row.category,
     nameFr: row.name_fr,
@@ -165,11 +195,13 @@ export async function getVillageShopForUser(userId) {
         [userId, cycleStartAt]
       )
     : [];
-  const promoByItem = new Map(promoRows.map((p) => [p.item_definition_id, p.discount_pct]));
+  const promoByItem = new Map(
+    promoRows.map((p) => [Number(p.item_definition_id), Number(p.discount_pct)])
+  );
   const heritage = await getHeritageBonuses(userId);
 
   const stockRows = await query(
-    `SELECT vss.id AS stock_id, vss.stock_initial, vss.stock_remaining,
+    `SELECT vss.id AS stock_id, vss.item_definition_id, vss.stock_initial, vss.stock_remaining,
             idf.*
      FROM village_shop_stock vss
      JOIN item_definitions idf ON idf.id = vss.item_definition_id
@@ -178,20 +210,22 @@ export async function getVillageShopForUser(userId) {
     [userId, restockPeriod]
   );
 
+  const items = stockRows.map((row) =>
+    mapShopRow(
+      row,
+      promoByItem,
+      heritage.matchShopDiscountPct,
+      heritage.bureauShopDiscountPct
+    )
+  );
+
   return {
-    items: stockRows.map((row) =>
-      mapShopRow(
-        row,
-        promoByItem,
-        heritage.matchShopDiscountPct,
-        heritage.bureauShopDiscountPct
-      )
-    ),
+    items,
     restockPeriod,
     poolCycle,
     cyclesUntilRestock: cyclesUntilRestock(poolCycle),
     restockEveryCycles: RESTOCK_EVERY_CYCLES,
-    promoCount: promoRows.length,
+    promoCount: items.filter((item) => item.onPromo).length,
   };
 }
 
