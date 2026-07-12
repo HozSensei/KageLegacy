@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useSquadStore } from '../../stores/squad'
 import { useEliteStore } from '../../stores/elite'
+import { useThemeStore } from '../../stores/theme'
 import SlidePanel from './SlidePanel.vue'
 import VerifiedIcon from '../icons/VerifiedIcon.vue'
 
@@ -15,6 +16,7 @@ const { t, locale } = useI18n()
 const auth = useAuthStore()
 const squad = useSquadStore()
 const elite = useEliteStore()
+const themeStore = useThemeStore()
 
 const open = ref(false)
 const section = ref(null)
@@ -73,6 +75,10 @@ async function setLanguage(lang) {
   } else {
     formError.value = auth.error
   }
+}
+
+function setTheme(themeId) {
+  themeStore.setTheme(themeId)
 }
 
 async function submitEmail() {
@@ -164,6 +170,41 @@ onMounted(() => {
           {{ auth.user.username }}
         </p>
         <p v-if="auth.user?.email" class="mt-1 truncate text-xs text-ink-muted">{{ auth.user.email }}</p>
+      </div>
+
+      <div class="border-b border-line px-5 py-4">
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.theme') }}</p>
+        <ul class="mt-3 space-y-2" role="list">
+          <li v-for="theme in themeStore.options" :key="theme.id">
+            <button
+              type="button"
+              class="flex w-full items-center gap-3 rounded border px-3 py-2.5 text-left text-sm transition"
+              :class="
+                themeStore.currentId === theme.id
+                  ? 'border-accent bg-bg text-ink'
+                  : 'border-line text-ink-muted hover:border-ink-faint hover:text-ink'
+              "
+              :data-testid="`profile-theme-${theme.id}`"
+              @click="setTheme(theme.id)"
+            >
+              <span class="flex shrink-0 gap-1" aria-hidden="true">
+                <span
+                  v-for="(color, index) in theme.preview"
+                  :key="`${theme.id}-${index}`"
+                  class="h-4 w-4 rounded-full border border-line/60"
+                  :style="{ backgroundColor: color }"
+                />
+              </span>
+              <span class="min-w-0 flex-1">{{ t(theme.labelKey) }}</span>
+              <span
+                v-if="themeStore.currentId === theme.id"
+                class="shrink-0 text-[10px] uppercase tracking-[0.12em] text-accent"
+              >
+                {{ t('profile.themeActive') }}
+              </span>
+            </button>
+          </li>
+        </ul>
       </div>
 
       <div class="border-b border-line px-5 py-4">
