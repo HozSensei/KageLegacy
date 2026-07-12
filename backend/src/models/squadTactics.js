@@ -4,6 +4,7 @@ import { computeChuninExamCost, meetsBirdFlightRequirements } from '../services/
 import { assertSpendingAllowed } from '../services/economyDebt.js';
 import { getGameClock, isTacticsLocked, isTrainingLocked } from '../services/gameClock.js';
 import { isNinjaListed } from '../services/playerMarketService.js';
+import { TRAINING_TYPE_VALUES } from '../services/training.js';
 
 export async function updateBattleStrategies(userId, strategies) {
   if (await isTacticsLocked()) {
@@ -54,7 +55,7 @@ export async function updateBattleStrategies(userId, strategies) {
   return strategies;
 }
 
-export async function updateTrainingPlans(userId, plans) {
+export async function updateTrainingPlans(userId, { plans = [], globalTrainingType = undefined } = {}) {
   if (await isTrainingLocked()) {
     const error = new Error('Les plans d\'entraînement sont gelés depuis H54 jusqu\'au match (H71).');
     error.statusCode = 423;
@@ -66,10 +67,26 @@ export async function updateTrainingPlans(userId, plans) {
     throw error;
   }
 
+  if (globalTrainingType !== undefined) {
+    if (globalTrainingType !== null && !TRAINING_TYPE_VALUES.includes(globalTrainingType)) {
+      const error = new Error('Type d\'entraînement global invalide.');
+      error.statusCode = 400;
+      throw error;
+    }
+    await query('UPDATE sensei SET global_training_type = ? WHERE user_id = ?', [
+      globalTrainingType,
+      userId,
+    ]);
+  }
+
+  if (!plans.length) {
+    return { plans, globalTrainingType };
+  }
+
   const ninjaIds = plans.map((p) => p.ninjaId);
   const placeholders = ninjaIds.map(() => '?').join(',');
   const owned = await query(
-    `SELECT id FROM ninjas WHERE user_id = ? AND id IN (${placeholders})`,
+    `SELECT id, squad_position FROM ninjas WHERE user_id = ? AND id IN (${placeholders})`,
     [userId, ...ninjaIds]
   );
 
@@ -79,15 +96,28 @@ export async function updateTrainingPlans(userId, plans) {
     throw error;
   }
 
-  for (const { ninjaId, trainingFocus } of plans) {
-    await query('UPDATE ninjas SET training_focus = ? WHERE id = ? AND user_id = ?', [
-      trainingFocus,
+  const ownedById = new Map(owned.map((row) => [row.id, row]));
+
+  for (const { ninjaId, preparationType } of plans) {
+    const ninja = ownedById.get(ninjaId);
+    if (preparationType && !ninja.squad_position) {
+      const error = new Error('Seuls les ninjas actifs peuvent avoir une préparation payante.');
+      error.statusCode = 400;
+      throw error;
+    }
+    if (preparationType && !TRAINING_TYPE_VALUES.includes(preparationType)) {
+      const error = new Error('Type de préparation invalide.');
+      error.statusCode = 400;
+      throw error;
+    }
+    await query('UPDATE ninjas SET preparation_type = ? WHERE id = ? AND user_id = ?', [
+      preparationType,
       ninjaId,
       userId,
     ]);
   }
 
-  return plans;
+  return { plans, globalTrainingType };
 }
 
 export async function requestChuninExam(userId, ninjaId) {
@@ -143,7 +173,10 @@ export async function requestChuninExam(userId, ninjaId) {
   }
 
   await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [examCost, userId]);
-  await query('UPDATE ninjas SET chunin_exam_requested = TRUE WHERE id = ?', [ninjaId]);
+  await query(
+    'UPDATE ninjas SET chunin_exam_requested = TRUE, stagnant_cycles = 0 WHERE id = ?',
+    [ninjaId]
+  );
 
   return { ninjaId, cost: examCost };
 }
@@ -187,7 +220,10 @@ export async function requestBirdFlight(userId, ninjaId) {
     throw error;
   }
 
-  await query('UPDATE ninjas SET bird_flight_requested = TRUE WHERE id = ?', [ninjaId]);
+  await query(
+    'UPDATE ninjas SET bird_flight_requested = TRUE, stagnant_cycles = 0 WHERE id = ?',
+    [ninjaId]
+  );
 
   return { ninjaId };
 }

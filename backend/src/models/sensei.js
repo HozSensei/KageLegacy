@@ -4,6 +4,7 @@ import {
   GRADE_STAT_CAPS,
   computeChuninExamCost,
   hasReachedTeachingPeak,
+  hasStagnationGrace,
   isChuninStagnant,
   isGeninStagnant,
   meetsBirdFlightRequirements,
@@ -29,12 +30,17 @@ export { getGameClock };
 
 function enrichNinja(ninja) {
   const language = ninja.language || 'fr';
-  const trainingCost = ninja.training_focus ? computeTrainingCost(ninja) : null;
+  const isActive = ninja.squad_position !== null;
+  const preparationCost =
+    isActive && ninja.preparation_type ? computeTrainingCost(ninja) : null;
   return {
     ...ninja,
     isListed: Boolean(ninja.is_listed),
-    trainingFocus: ninja.training_focus ?? null,
-    trainingCost,
+    preparationType: ninja.preparation_type ?? null,
+    /** @deprecated */
+    trainingFocus: ninja.preparation_type ?? null,
+    preparationCost,
+    trainingCost: preparationCost,
     chuninExamCost: ninja.grade === 'Genin' ? computeChuninExamCost(ninja) : null,
     birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
     birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
@@ -46,6 +52,7 @@ function enrichNinja(ninja) {
         : ninja.grade === 'Chunin'
           ? isChuninStagnant(ninja)
           : false,
+    stagnationGrace: hasStagnationGrace(ninja),
     stagnationKind:
       ninja.grade === 'Genin' && isGeninStagnant(ninja)
         ? 'genin_exam'
@@ -127,6 +134,7 @@ export async function getSquadPayload(userId) {
       language: sensei.language,
       salaryDebt: Boolean(sensei.salary_debt),
       academyJackpotToken: Boolean(sensei.academy_jackpot_token),
+      globalTrainingType: sensei.global_training_type ?? null,
     },
     activeSquad,
     bench,

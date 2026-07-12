@@ -110,13 +110,20 @@ export function useNinjaDisplay(ninjaRef) {
     return grade ? `grades.${grade}` : ''
   })
 
-  const trainingFocus = computed(
-    () => ninja.value?.trainingFocus ?? ninja.value?.training_focus ?? null
+  const preparationType = computed(
+    () =>
+      ninja.value?.preparationType ??
+      ninja.value?.preparation_type ??
+      ninja.value?.trainingFocus ??
+      ninja.value?.training_focus ??
+      null
   )
 
+  const trainingFocus = preparationType
+
   const trainingFocusLabel = computed(() => {
-    const focus = trainingFocus.value
-    return focus ? `ninja.stats.${focus.toLowerCase()}` : ''
+    const type = preparationType.value
+    return type ? `training.types.${type}` : ''
   })
 
   return {

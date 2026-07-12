@@ -228,14 +228,27 @@
     "lead": "History of key events: training, operations, missions and cycle close."
   },
   "training": {
-    "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set.",
-    "costLabel": "Cycle cost",
-    "focusLabel": "Training focus",
-    "gainPreview": "+{gain} {stat} this cycle",
-    "pointGain": "→ +{count} point(s) now",
-    "residualProgress": "(residual {residual} before full point)",
-    "atCap": "{stat} cap reached for this grade — promotion required.",
-    "lazyRisk": "Lazy trait: chance to skip training."
+    "lead": "Paid preparation for actives and free global training for the whole squad — gains at H72.",
+    "globalLabel": "Global training (whole squad)",
+    "globalHint": "Free. All ninjas progress on this type, in addition to active preparation.",
+    "prepSectionTitle": "Preparation — active squad",
+    "prepSectionHint": "Billed at H72. Each starter picks a type — higher gains with a chance factor.",
+    "benchSectionTitle": "Bench — global training only",
+    "benchSectionHint": "Reserves progress via global training at no Ryos cost.",
+    "benchNoGlobal": "Pick a global training type to progress this ninja.",
+    "costLabel": "Prep cost",
+    "prepLabel": "Preparation type",
+    "gainRangePreview": "{stat}: +{min} to +{max} this cycle",
+    "allCapped": "Grade caps reached — promotion required.",
+    "lazyRisk": "Lazy trait: chance to skip training.",
+    "types": {
+      "Chakra": "Chakra (IQ, ninjutsu, genjutsu)",
+      "Physique": "Physical (taijutsu, speed)",
+      "Medical": "Medical (medicine, intelligence)",
+      "Genjutsu": "Genjutsu (genjutsu, intelligence)",
+      "Ninjutsu": "Ninjutsu (ninjutsu, intelligence)",
+      "Equilibre": "Balanced (all stats)"
+    }
   },
   "nav": {
     "menu": "Navigation",
@@ -344,7 +357,7 @@
     "activityEmpty": "Nothing to report yet — cycle events will appear here.",
     "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",
-    "trainingPlansHint": "Pick one stat per ninja. Billed at H72 — no plan means no cost or gain.",
+    "trainingPlansHint": "Paid preparation for your 3 actives, free global training for the whole squad.",
     "trainingLocked": "Training plans locked from H54 until the operation.",
     "trainingNone": "None",
     "budgetTitle": "Cycle budget (H72)",

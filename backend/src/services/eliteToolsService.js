@@ -197,7 +197,7 @@ async function getSeasonMatchStats(userId, pool) {
 
 function buildTrainingRoi(ninjas, heritage) {
   return ninjas
-    .filter((n) => n.training_focus)
+    .filter((n) => n.preparation_type)
     .map((ninja) => {
       const grossCost = computeTrainingCost(ninja);
       const netCost = applyPercentDiscount(grossCost, heritage.trainingDiscountPct);
@@ -205,7 +205,7 @@ function buildTrainingRoi(ninjas, heritage) {
       return {
         ninjaId: ninja.id,
         ninjaName: ninja.name,
-        focus: ninja.training_focus,
+        focus: ninja.preparation_type,
         age: ninja.age,
         grossCost,
         netCost,

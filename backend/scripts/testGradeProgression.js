@@ -1,9 +1,11 @@
 import {
   computeChuninExamCost,
   getGradeCap,
+  hasStagnationGrace,
   isChuninStagnant,
   isGeninStagnant,
   isStatAtGradeCap,
+  shouldApplyStagnationPenalty,
 } from '../src/services/gradeProgression.js';
 
 const geninReady = {
@@ -14,11 +16,15 @@ const geninReady = {
   medecine: 6,
   intelligence: 10,
   chunin_exam_requested: false,
+  stagnant_cycles: 0,
 };
 
 console.assert(getGradeCap('Genin', 'taijutsu') === 12);
 console.assert(isStatAtGradeCap(geninReady, 'taijutsu'));
 console.assert(isGeninStagnant(geninReady));
+console.assert(hasStagnationGrace(geninReady));
+console.assert(!shouldApplyStagnationPenalty(geninReady));
+console.assert(shouldApplyStagnationPenalty({ ...geninReady, stagnant_cycles: 1 }));
 console.assert(!isGeninStagnant({ ...geninReady, chunin_exam_requested: true }));
 console.assert(computeChuninExamCost(geninReady) === 440);
 

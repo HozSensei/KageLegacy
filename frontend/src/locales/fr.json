@@ -228,14 +228,27 @@
     "lead": "Historique des événements marquants : entraînement, opérations, missions et clôture de cycle."
   },
   "training": {
-    "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi.",
-    "costLabel": "Coût cycle",
-    "focusLabel": "Focus d'entraînement",
-    "gainPreview": "+{gain} {stat} ce cycle",
-    "pointGain": "→ +{count} point(s) immédiat(s)",
-    "residualProgress": "(résidu {residual} avant point entier)",
-    "atCap": "Plafond {stat} atteint pour ce grade — passage de grade requis.",
-    "lazyRisk": "Trait Fainéant : risque de sécher l'entraînement."
+    "lead": "Préparation payante pour les actifs et entraînement global gratuit pour toute l'équipe — gains à H72.",
+    "globalLabel": "Entraînement global (toute l'équipe)",
+    "globalHint": "Gratuit. Tous les ninjas progressent selon ce type, en plus de la préparation des actifs.",
+    "prepSectionTitle": "Préparation — escouade active",
+    "prepSectionHint": "Payante à H72. Chaque titulaire peut choisir son type — gains plus élevés avec part de chance.",
+    "benchSectionTitle": "Banc — entraînement global uniquement",
+    "benchSectionHint": "Les remplaçants progressent via l'entraînement global, sans coût Ryos.",
+    "benchNoGlobal": "Choisissez un entraînement global pour faire progresser ce ninja.",
+    "costLabel": "Coût préparation",
+    "prepLabel": "Type de préparation",
+    "gainRangePreview": "{stat} : +{min} à +{max} ce cycle",
+    "allCapped": "Plafonds atteints pour ce grade — passage de grade requis.",
+    "lazyRisk": "Trait Fainéant : risque de sécher l'entraînement.",
+    "types": {
+      "Chakra": "Chakra (IQ, ninjutsu, genjutsu)",
+      "Physique": "Physique (taijutsu, vitesse)",
+      "Medical": "Médical (médecine, intelligence)",
+      "Genjutsu": "Genjutsu (genjutsu, intelligence)",
+      "Ninjutsu": "Ninjutsu (ninjutsu, intelligence)",
+      "Equilibre": "Équilibre (toutes les stats)"
+    }
   },
   "nav": {
     "menu": "Navigation",
@@ -344,7 +357,7 @@
     "activityEmpty": "Rien à signaler pour l'instant — les événements du cycle apparaîtront ici.",
     "debtFreeze": "Gel administratif — remboursez votre dette avant tout achat, examen ou soin payant.",
     "trainingPlansTitle": "Plans d'entraînement",
-    "trainingPlansHint": "Choisissez une stat par ninja. Facturation à H72 — sans plan, pas de coût ni de gain.",
+    "trainingPlansHint": "Préparation payante pour les 3 actifs, entraînement global gratuit pour toute l'équipe.",
     "trainingLocked": "Plans d'entraînement gelés depuis H54 jusqu'à l'opération.",
     "trainingNone": "Aucun",
     "budgetTitle": "Budget du cycle (H72)",

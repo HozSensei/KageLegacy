@@ -68,21 +68,44 @@ export function computeChuninExamCost(ninja) {
   return CHUNIN_EXAM_BASE_COST + extraCombat + extraIq;
 }
 
-export function isGeninStagnant(ninja) {
+export function isGeninStagnantCandidate(ninja) {
   if (ninja.grade !== 'Genin') return false;
   if (!meetsChuninRequirements(ninja)) return false;
   if (ninja.chunin_exam_requested) return false;
   return true;
 }
 
-export function isChuninStagnant(ninja) {
+export function isChuninStagnantCandidate(ninja) {
   if (ninja.grade !== 'Chunin') return false;
   if (ninja.bird_flight_requested) return false;
   return meetsBirdFlightRequirements(ninja);
 }
 
+/** Prêt à monter mais pas encore inscrit — alerte UI (cycle de grâce inclus). */
+export function isGeninStagnant(ninja) {
+  return isGeninStagnantCandidate(ninja);
+}
+
+export function isChuninStagnant(ninja) {
+  return isChuninStagnantCandidate(ninja);
+}
+
+export function isStagnantCandidate(ninja) {
+  return isGeninStagnantCandidate(ninja) || isChuninStagnantCandidate(ninja);
+}
+
+/** Pénalité H72 : après 1 cycle de grâce (stagnant_cycles ≥ 1). */
+export function shouldApplyStagnationPenalty(ninja) {
+  if (!isStagnantCandidate(ninja)) return false;
+  return (ninja.stagnant_cycles ?? 0) >= 1;
+}
+
 export function isStagnant(ninja) {
-  return isGeninStagnant(ninja) || isChuninStagnant(ninja);
+  return shouldApplyStagnationPenalty(ninja);
+}
+
+export function hasStagnationGrace(ninja) {
+  return isStagnantCandidate(ninja) && (ninja.stagnant_cycles ?? 0) < 1;
 }
 
 export function applyStagnationPenalty(ninja) {

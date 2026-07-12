@@ -137,12 +137,12 @@ export const useSquadStore = defineStore('squad', () => {
     return data
   }
 
-  async function saveTrainingPlans(plans) {
+  async function saveTrainingPlans(payload) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/squad/training-plans`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plans }),
+      body: JSON.stringify(payload),
     })
     if (!res.ok) throw new Error(await readApiError(res))
     applySquadMutation(await res.json())

@@ -51,10 +51,10 @@ async function createUserWithSquad(poolId, label, clanTraitId) {
   for (let pos = 1; pos <= 3; pos += 1) {
     const result = await query(
       `INSERT INTO ninjas (
-         user_id, name, grade, age, squad_position, training_focus,
+         user_id, name, grade, age, squad_position, preparation_type,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
          moral, weekly_forme, battle_strategy, character_trait, element_affinity, clan_trait_id
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Taijutsu', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Offensive', 'Discipline', 'Katon', ?)`,
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Offensive', 'Discipline', 'Katon', ?)`,
       [userId, `${label}_n${pos}`, pos, clanTraitId]
     );
     ninjaIds.push(result.insertId);
@@ -109,9 +109,9 @@ async function main() {
   await updateBattleStrategies(userA.userId, [
     { ninjaId: userA.ninjaIds[0], strategy: 'Offensive' },
   ]);
-  await updateTrainingPlans(userA.userId, [
-    { ninjaId: userA.ninjaIds[0], trainingFocus: 'Ninjutsu' },
-  ]);
+  await updateTrainingPlans(userA.userId, {
+    plans: [{ ninjaId: userA.ninjaIds[0], preparationType: 'Ninjutsu' }],
+  });
 
   await advanceToHourDev(54);
 
@@ -128,9 +128,9 @@ async function main() {
 
   await expectStatus(
     () =>
-      updateTrainingPlans(userA.userId, [
-        { ninjaId: userA.ninjaIds[0], trainingFocus: 'Taijutsu' },
-      ]),
+      updateTrainingPlans(userA.userId, {
+        plans: [{ ninjaId: userA.ninjaIds[0], preparationType: 'Physique' }],
+      }),
     423,
     'entraînement H54'
   );

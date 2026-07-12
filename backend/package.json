@@ -39,6 +39,7 @@
     "test:cycle-freezes": "node scripts/testCycleFreezes.js",
     "test:operation-dossier": "node scripts/testOperationDossier.js",
     "test:combat-loot": "node scripts/testCombatLoot.js",
+    "test:training-system": "node scripts/testTrainingSystem.js",
     "test:village-shop": "node scripts/testVillageShopCatalog.js"
   },
   "dependencies": {
