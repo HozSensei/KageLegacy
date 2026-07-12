@@ -98,36 +98,44 @@ function formatLootLine(line) {
 <template>
   <div
     v-if="seal"
-    class="border-t border-line pt-8"
+    class="daily-seal-block mt-10"
     data-testid="bureau-daily-seal-panel"
   >
-    <p class="section-label">{{ t('bureau.dailySealTitle') }}</p>
-    <p class="mt-2 text-xs leading-relaxed text-ink-muted">
-      {{ t('bureau.dailySealHint', { max: seal.maxStack }) }}
-    </p>
-
-    <div class="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center sm:gap-10">
+    <div class="daily-seal-block__frame">
       <div
-        class="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-2 border-accent/60 bg-ink/40 shadow-[0_0_32px_rgba(212,175,55,0.18)] sm:h-32 sm:w-32"
-        :class="{ 'seal-pulse': canOpen }"
+        class="daily-seal-badge"
+        :class="{ 'daily-seal-badge--ready': canOpen }"
+        aria-hidden="true"
       >
-        <span class="text-4xl font-semibold text-accent">{{ seal.pending }}</span>
-        <span class="absolute -bottom-1 text-[10px] text-ink-faint">/ {{ seal.maxStack }}</span>
+        <span class="daily-seal-badge__count">{{ seal.pending }}</span>
+        <span class="daily-seal-badge__max">/ {{ seal.maxStack }}</span>
       </div>
 
-      <div class="min-w-0 text-center sm:text-left">
-        <p class="text-sm text-ink">
-          {{ t('bureau.dailySealStock', { count: seal.pending, max: seal.maxStack }) }}
-        </p>
-        <button
-          type="button"
-          class="btn-primary mt-4"
-          :disabled="!canOpen || opening"
-          data-testid="open-chakra-seal"
-          @click="openSeal"
-        >
-          {{ opening ? t('bureau.dailySealOpening') : t('bureau.dailySealOpen') }}
-        </button>
+      <div
+        class="daily-seal-card"
+        :class="{ 'daily-seal-card--ready': canOpen }"
+      >
+        <div class="daily-seal-card__body">
+          <div class="min-w-0 flex-1">
+            <p class="section-label">{{ t('bureau.dailySealTitle') }}</p>
+            <p class="mt-1 text-sm leading-relaxed text-ink-muted">
+              {{ t('bureau.dailySealHint', { max: seal.maxStack }) }}
+            </p>
+            <p class="mt-2 text-xs text-ink-faint">
+              {{ t('bureau.dailySealStock', { count: seal.pending, max: seal.maxStack }) }}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="btn-primary daily-seal-card__action shrink-0"
+            :disabled="!canOpen || opening"
+            data-testid="open-chakra-seal"
+            @click="openSeal"
+          >
+            {{ opening ? t('bureau.dailySealOpening') : t('bureau.dailySealOpen') }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -157,20 +165,6 @@ function formatLootLine(line) {
 </template>
 
 <style scoped>
-.seal-pulse {
-  animation: seal-glow 2s ease-in-out infinite;
-}
-
-@keyframes seal-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 16px rgba(212, 175, 55, 0.12);
-  }
-  50% {
-    box-shadow: 0 0 28px rgba(212, 175, 55, 0.35);
-  }
-}
-
 .seal-reveal-enter-active,
 .seal-reveal-leave-active {
   transition: opacity 0.35s ease, transform 0.35s ease;

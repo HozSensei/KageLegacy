@@ -1015,3 +1015,108 @@ body::before {
     linear-gradient(180deg, color-mix(in srgb, var(--color-earth) 12%, var(--color-bg-card)), var(--color-bg-soft));
 }
 
+/* Bureau — Sceau de Chakra (bloc type journal) */
+.daily-seal-block {
+  overflow: visible;
+}
+
+.daily-seal-block__frame {
+  position: relative;
+  overflow: visible;
+}
+
+.daily-seal-badge {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 20;
+  display: flex;
+  height: 5.5rem;
+  width: 5.5rem;
+  transform: translate(-38%, -50%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--color-line) 100%, transparent);
+  background: var(--color-bg-card);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.daily-seal-badge--ready {
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  animation: daily-seal-glow 2s ease-in-out infinite;
+}
+
+.daily-seal-badge__count {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.daily-seal-badge__max {
+  margin-top: 0.25rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-ink-faint);
+}
+
+.daily-seal-card {
+  border: 1px solid color-mix(in srgb, var(--color-line) 100%, transparent);
+  background: color-mix(in srgb, var(--color-bg-card) 40%, transparent);
+  padding: 1rem 1rem 1rem 4.75rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .daily-seal-card {
+    padding-left: 5.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.daily-seal-card--ready:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: var(--color-bg-card);
+}
+
+.daily-seal-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .daily-seal-card__body {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.daily-seal-card__action {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .daily-seal-card__action {
+    width: auto;
+  }
+}
+
+@keyframes daily-seal-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 28px rgba(0, 0, 0, 0.35),
+      0 0 12px rgba(201, 166, 107, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 10px 32px rgba(0, 0, 0, 0.4),
+      0 0 24px rgba(201, 166, 107, 0.32);
+  }
+}
+

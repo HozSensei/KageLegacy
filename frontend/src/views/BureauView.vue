@@ -113,7 +113,7 @@ onMounted(async () => {
         </div>
       </dl>
 
-      <DailySealPanel class="mt-14" />
+      <DailySealPanel />
 
       <section class="mt-14 lg:grid lg:grid-cols-12 lg:gap-10">
         <div class="lg:col-span-4">
