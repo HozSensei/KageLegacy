@@ -62,51 +62,57 @@ function matchStatusClass(status) {
 </script>
 
 <template>
-  <nav class="border border-line bg-bg-soft p-5" aria-label="Match navigation" data-testid="operation-match-nav">
+  <nav
+    class="operation-match-nav border border-line bg-bg-soft p-5"
+    aria-label="Match navigation"
+    data-testid="operation-match-nav"
+  >
     <p class="section-label">{{ t('matches.navTitle') }}</p>
 
-    <label class="mt-4 block text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-      {{ t('matches.pool') }}
-      <select
-        class="mt-2 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
-        :disabled="loading || !nav?.pools?.length"
-        :value="nav?.poolId ?? ''"
-        @change="goPool(Number($event.target.value))"
-      >
-        <option v-for="pool in nav?.pools || []" :key="pool.id" :value="pool.id">
-          {{ poolLabel(pool) }}
-        </option>
-      </select>
-    </label>
-
-    <div v-if="nav?.pool" class="mt-5">
-      <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('matches.cycle') }}</p>
-      <div class="mt-2 flex flex-wrap gap-1">
-        <button
-          v-for="c in cycles"
-          :key="c"
-          type="button"
-          class="min-w-[2rem] px-2 py-1 text-xs transition"
-          :class="
-            nav.cycle === c
-              ? 'bg-accent text-bg'
-              : 'border border-line text-ink-muted hover:border-ink-faint'
-          "
-          @click="goCycle(c)"
+    <div class="operation-match-nav__controls mt-4">
+      <label class="operation-match-nav__pool block text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+        {{ t('matches.pool') }}
+        <select
+          class="mt-2 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
+          :disabled="loading || !nav?.pools?.length"
+          :value="nav?.poolId ?? ''"
+          @change="goPool(Number($event.target.value))"
         >
-          {{ c }}
-        </button>
+          <option v-for="pool in nav?.pools || []" :key="pool.id" :value="pool.id">
+            {{ poolLabel(pool) }}
+          </option>
+        </select>
+      </label>
+
+      <div v-if="nav?.pool" class="operation-match-nav__cycles">
+        <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('matches.cycle') }}</p>
+        <div class="mt-2 flex flex-wrap gap-1">
+          <button
+            v-for="c in cycles"
+            :key="c"
+            type="button"
+            class="min-w-[2rem] px-2 py-1 text-xs transition"
+            :class="
+              nav.cycle === c
+                ? 'bg-accent text-bg'
+                : 'border border-line text-ink-muted hover:border-ink-faint'
+            "
+            @click="goCycle(c)"
+          >
+            {{ c }}
+          </button>
+        </div>
       </div>
     </div>
 
-    <ul class="mt-5 space-y-2">
+    <ul class="operation-match-nav__matches mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <li
         v-for="match in nav?.matches || []"
         :key="match.id"
       >
         <button
           type="button"
-          class="w-full border px-3 py-2 text-left text-sm transition"
+          class="h-full w-full border px-3 py-2 text-left text-sm transition"
           :class="
             nav?.matchId === match.id
               ? 'border-accent bg-bg text-ink'
@@ -142,15 +148,15 @@ function matchStatusClass(status) {
           </span>
         </button>
       </li>
-      <li v-if="!nav?.matches?.length" class="text-xs text-ink-faint">
+      <li v-if="!nav?.matches?.length" class="text-xs text-ink-faint sm:col-span-2 lg:col-span-3 xl:col-span-5">
         {{ t('matches.noFixtures') }}
       </li>
     </ul>
 
-    <div v-if="nav?.prevMatchId || nav?.nextMatchId" class="mt-5 flex gap-2">
+    <div v-if="nav?.prevMatchId || nav?.nextMatchId" class="mt-5 flex gap-2 lg:justify-end">
       <button
         type="button"
-        class="btn-ghost flex-1 text-xs"
+        class="btn-ghost flex-1 text-xs lg:flex-none lg:px-6"
         :disabled="!nav?.prevMatchId"
         @click="goPrev"
       >
@@ -158,7 +164,7 @@ function matchStatusClass(status) {
       </button>
       <button
         type="button"
-        class="btn-ghost flex-1 text-xs"
+        class="btn-ghost flex-1 text-xs lg:flex-none lg:px-6"
         :disabled="!nav?.nextMatchId"
         @click="goNext"
       >

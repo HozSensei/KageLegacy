@@ -264,12 +264,14 @@ export async function getUserMatchForCycle(userId, seasonCycle) {
     `SELECT m.*,
             hs.name AS home_sensei, aws.name AS away_sensei,
             hu.is_bot AS home_is_bot, au.is_bot AS away_is_bot,
-            hu.is_guest AS home_is_guest, au.is_guest AS away_is_guest
+            hu.is_guest AS home_is_guest, au.is_guest AS away_is_guest,
+            p.division_level, p.season_number, p.current_cycle AS pool_current_cycle, p.status AS pool_status
      FROM matches m
      JOIN sensei hs ON hs.user_id = m.home_user_id
      JOIN sensei aws ON aws.user_id = m.away_user_id
      JOIN users hu ON hu.id = m.home_user_id
      JOIN users au ON au.id = m.away_user_id
+     JOIN pools p ON p.id = m.pool_id
      WHERE (m.home_user_id = ? OR m.away_user_id = ?) AND m.season_cycle = ?
      LIMIT 1`,
     [userId, userId, seasonCycle]
