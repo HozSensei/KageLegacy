@@ -15,9 +15,9 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 | Phase | Heures | Ce que fait le joueur |
 |--------|--------|------------------------|
 | **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12), **mission de reconnaissance (H0–H36)** |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d’espionnage adversaire, gestion continue |
+| **Milieu de cycle** | H36 → H70 | Tendances adverses, rapport d'espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
-| **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d’Oiseau, facturation entraînement, nouveau cycle |
+| **Clôture** | H72 | Examens Chunin, Vol d'Oiseau, missions, salaires, stagnation, entraînement, nouveau cycle |
 
 **À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
 
