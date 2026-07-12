@@ -52,6 +52,7 @@ function mapUserRow(row) {
     id: row.id,
     username: row.username,
     is_bot: Boolean(row.is_bot),
+    is_admin: Boolean(row.is_admin),
     is_guest: Boolean(row.is_guest),
     guest_expires_at: row.guest_expires_at,
     email: row.email || null,
@@ -66,7 +67,7 @@ export async function findUserByUsername(username) {
 
 export async function findUserById(userId) {
   const rows = await query(
-    `SELECT id, username, is_bot, is_guest, guest_expires_at, email, created_at
+    `SELECT id, username, is_bot, is_admin, is_guest, guest_expires_at, email, created_at
      FROM users WHERE id = ? LIMIT 1`,
     [userId]
   );
@@ -212,7 +213,7 @@ export async function getUserBySessionToken(token) {
   if (!token) return null;
   const tokenHash = sessionTokenHash(token);
   const rows = await query(
-    `SELECT u.id, u.username, u.is_bot, u.is_guest, u.guest_expires_at, u.email, u.created_at
+    `SELECT u.id, u.username, u.is_bot, u.is_admin, u.is_guest, u.guest_expires_at, u.email, u.created_at
      FROM user_sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > UTC_TIMESTAMP()

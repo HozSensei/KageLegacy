@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import mysqlPool from '../src/config/database.js';
+import mysqlPool, { query } from '../src/config/database.js';
 import { upsertClanTraits, findAllClanTraits } from '../src/models/clanTrait.js';
 import { createNinja, deleteNinjasByUserId } from '../src/models/ninja.js';
 import { createDemoUser, findDemoUser } from '../src/models/sensei.js';
@@ -47,7 +47,8 @@ async function seed() {
   }
 
   await setUserPassword(user.id, 'demo');
-  console.log('🔑 Compte démo : demo_sensei / demo');
+  await query('UPDATE users SET is_admin = TRUE WHERE id = ?', [user.id]);
+  console.log('🔑 Compte démo : demo_sensei / demo (admin)');
 
   const totalNinjas = 15;
   const traits = distributeCharacterTraits(totalNinjas);

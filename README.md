@@ -169,6 +169,20 @@ docker exec -w /app/backend kage_app npm run season:hard-reset -- --confirm --se
 
 Après le reset, l'horloge est à **H0** avec `cycle_start_at` = l'heure indiquée par `--at`. Le scheduler prod (`ENABLE_SCHEDULER=true`) fera avancer le cycle en temps réel.
 
+### Panneau admin web (`/admin`)
+
+Alternative au `docker exec` : interface web pour les mêmes opérations (horloge, hard reset, maintenance).
+
+1. Promouvoir un compte en admin (une seule fois, via SQL) :
+
+```sql
+UPDATE users SET is_admin = TRUE WHERE username = 'votre_compte';
+```
+
+2. Se connecter avec ce compte et ouvrir `/admin`.
+
+Pour retirer les droits : `UPDATE users SET is_admin = FALSE WHERE username = 'votre_compte';`
+
 ### Cycle & maintenance prod
 
 | Commande | Arguments | Description |

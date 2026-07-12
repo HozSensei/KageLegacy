@@ -956,5 +956,47 @@
     "eliteSectionLead": "Identité personnalisée, season pass et récompenses cosmétiques.",
     "heritageSectionTitle": "Mur de l'héritage",
     "reconChallengeSent": "Défi de reconnaissance envoyé à {name} — en attente d'acceptation."
+  },
+  "admin": {
+    "title": "Administration",
+    "lead": "Outils d'exploitation : horloge, reset de saison et maintenance.",
+    "loginRequired": "Connectez-vous pour accéder au panneau admin.",
+    "goLogin": "Se connecter",
+    "forbidden": "Votre compte n'a pas les droits administrateur.",
+    "forbiddenHint": "Demandez à un admin d'exécuter : UPDATE users SET is_admin = TRUE WHERE username = 'votre_compte';",
+    "connectedAs": "Connecté en tant que {username}.",
+    "lastResult": "Dernier résultat",
+    "clock": {
+      "title": "Horloge de jeu",
+      "anchor": "Ancre H0 :",
+      "advanceHour": "+1 heure",
+      "tick": "Exécuter le tick",
+      "setHour": "Heure cible",
+      "applyHour": "Appliquer",
+      "setStart": "Ancre H0",
+      "applyStart": "Définir l'ancre"
+    },
+    "reset": {
+      "title": "Reset global de saison",
+      "warning": "Opération destructive : efface la progression de jeu tout en conservant comptes, clans, rouleaux d'héritage et abonnements Élite.",
+      "season": "Saison",
+      "preview": "Prévisualiser",
+      "confirmCheckbox": "Je comprends, exécuter le reset",
+      "execute": "Lancer le hard reset",
+      "humanPlayers": "{count} joueurs humains",
+      "eliteSubs": "{count} abonnements Élite",
+      "ninjas": "{count} ninjas à supprimer",
+      "pools": "{count} pools à supprimer",
+      "matches": "{count} matchs à supprimer"
+    },
+    "maintenance": {
+      "title": "Maintenance",
+      "purgeGuests": "Purger les invités expirés",
+      "repairPools": "Réparer les calendriers de ligue",
+      "repairAll": "Toutes les ligues actives",
+      "includePlayed": "Inclure les matchs déjà joués",
+      "poolId": "Pool ID (optionnel)",
+      "repairRun": "Lancer la réparation"
+    }
   }
 }

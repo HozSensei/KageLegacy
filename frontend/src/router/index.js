@@ -18,6 +18,7 @@ import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
 import SenseiProfileView from '../views/SenseiProfileView.vue'
 import ProfileRedirectView from '../views/ProfileRedirectView.vue'
 import EliteToolsView from '../views/EliteToolsView.vue'
+import AdminView from '../views/AdminView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -27,6 +28,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: LandingView },
     { path: '/rules', name: 'rules', component: RulesView },
+    { path: '/admin', name: 'admin', component: AdminView },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: LoginView },
     {
@@ -92,6 +94,11 @@ const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules'])
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
+
+  if (to.path === '/admin') {
+    if (!auth.checked) await auth.fetchMe()
+    return true
+  }
 
   if (PUBLIC_PATHS.has(to.path)) {
     if (!auth.checked) await auth.fetchMe()
