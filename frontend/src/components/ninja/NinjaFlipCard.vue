@@ -115,7 +115,7 @@ function onHoverMediaChange(event) {
                 class="uppercase tracking-[0.16em]"
                 :class="[
                   gradeColor(ninja.grade),
-                  isChunin ? 'text-[11px] font-medium' : 'text-[9px]',
+                  isChunin ? 'text-sm font-medium' : 'text-xs',
                 ]"
               >
                 {{ t(`grades.${ninja.grade}`) }}
@@ -126,14 +126,14 @@ function onHoverMediaChange(event) {
               <p class="font-display leading-tight text-ink" :class="size === 'xs' ? 'text-lg' : 'text-xl'">
                 {{ firstName }}
               </p>
-              <p class="mt-0.5 truncate text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ familyName }}</p>
+              <p class="mt-0.5 truncate text-xs uppercase tracking-[0.14em] text-ink-faint">{{ familyName }}</p>
               <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
-              <p class="mt-2 text-[10px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
-              <p v-if="slotLabel" class="mt-1 text-[9px] text-ink-faint/80">{{ slotLabel }}</p>
+              <p class="mt-2 text-xs uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
+              <p v-if="slotLabel" class="mt-1 text-xs text-ink-faint/80">{{ slotLabel }}</p>
             </div>
 
             <div v-if="size !== 'xs'" class="mt-3 space-y-1.5 border-t border-line/80 pt-2">
-              <div class="flex justify-between gap-2 text-[9px] uppercase tracking-wider text-ink-faint">
+              <div class="flex justify-between gap-2 text-xs uppercase tracking-wider text-ink-faint">
                 <span>{{ t('ninja.forme') }}</span>
                 <span class="text-right text-ink-muted">{{ t(`formes.${ninja.weekly_forme}`) }}</span>
               </div>
@@ -166,7 +166,7 @@ function onHoverMediaChange(event) {
               {{ t(`traits.${ninja.character_trait}.label`) }}
             </p>
 
-            <dl class="mt-2 flex-1 space-y-1 text-[10px]">
+            <dl class="mt-2 flex-1 space-y-1 text-xs">
               <div v-for="key in statKeys" :key="key" class="flex justify-between gap-2">
                 <dt class="text-ink-faint">{{ t(`ninja.stats.${key}`) }}</dt>
                 <dd class="tabular-nums font-medium text-ink">{{ ninja[key] }}</dd>
@@ -174,7 +174,7 @@ function onHoverMediaChange(event) {
             </dl>
 
             <div class="mt-2 space-y-1.5 border-t border-line/80 pt-2">
-              <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
+              <div class="flex justify-between text-xs uppercase tracking-wider text-ink-faint">
                 <span>{{ t('ninja.moral') }}</span>
                 <span class="text-ink-muted">{{ ninja.moral }}/20</span>
               </div>
@@ -182,7 +182,7 @@ function onHoverMediaChange(event) {
                 <div class="h-px bg-ink-muted/50" :style="{ width: `${(ninja.moral / 20) * 100}%` }" />
               </div>
               <template v-if="gradeProgress.show">
-                <div class="flex justify-between text-[9px] uppercase tracking-wider text-ink-faint">
+                <div class="flex justify-between text-xs uppercase tracking-wider text-ink-faint">
                   <span>{{ t(gradeProgress.labelKey) }}</span>
                   <span class="text-ink-muted">{{ gradeProgress.percent }}%</span>
                 </div>

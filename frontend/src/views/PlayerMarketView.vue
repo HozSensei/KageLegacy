@@ -185,7 +185,7 @@ function canBuy(listing) {
             :key="listing.id"
             class="border border-line bg-bg-soft p-6"
           >
-            <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
+            <p class="text-xs uppercase tracking-[0.14em] text-accent">
               {{
                 listing.listingType === 'ninja'
                   ? t('exchanges.ninja')

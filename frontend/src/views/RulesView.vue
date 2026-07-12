@@ -98,7 +98,7 @@ onUnmounted(() => observer?.disconnect())
       <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-8">
         <button
           type="button"
-          class="text-[11px] uppercase tracking-[0.14em] text-ink-muted transition hover:text-accent"
+          class="text-sm uppercase tracking-[0.14em] text-ink-muted transition hover:text-accent"
           data-testid="rules-back"
           @click="goBack"
         >
@@ -109,7 +109,7 @@ onUnmounted(() => observer?.disconnect())
 
         <button
           type="button"
-          class="ml-auto rounded border border-line px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-ink-muted lg:hidden"
+          class="ml-auto rounded border border-line px-3 py-1.5 text-sm uppercase tracking-[0.12em] text-ink-muted lg:hidden"
           data-testid="rules-sidebar-toggle"
           @click="sidebarOpen = !sidebarOpen"
         >

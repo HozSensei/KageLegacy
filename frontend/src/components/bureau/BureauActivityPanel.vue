@@ -61,15 +61,15 @@ function openNote(note) {
         :class="{ 'border-l-2 border-l-accent': !note.read }"
       >
         <div class="flex items-baseline justify-between gap-2">
-          <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
-          <time class="shrink-0 text-[10px] text-ink-faint">{{ formatWhen(note) }}</time>
+          <p class="text-xs uppercase tracking-[0.14em] text-accent">{{ title(note) }}</p>
+          <time class="shrink-0 text-xs text-ink-faint">{{ formatWhen(note) }}</time>
         </div>
         <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ body(note) }}</p>
         <TrainingJournalDetails v-if="hasTrainingDetails(note)" :note="note" />
         <button
           v-if="linkPath(note) && linkLabel(note)"
           type="button"
-          class="btn-ghost mt-2 text-[10px]"
+          class="btn-ghost mt-2"
           @click="openNote(note)"
         >
           {{ linkLabel(note) }}

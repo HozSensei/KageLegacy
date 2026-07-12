@@ -577,7 +577,7 @@ watch(() => store.activeSquad, () => {
             <div class="squad-card-wrap relative">
               <p
                 v-if="ninja.isListed"
-                class="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-bg px-2 text-[10px] uppercase tracking-wider text-accent"
+                class="absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-bg px-2 text-xs uppercase tracking-wider text-accent"
               >
                 {{ t('squad.listed') }}
               </p>

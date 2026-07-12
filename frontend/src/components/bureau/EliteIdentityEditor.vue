@@ -124,7 +124,7 @@ async function save() {
         </div>
       </fieldset>
 
-      <button type="submit" class="btn-ghost w-full text-xs" :disabled="saving" data-testid="elite-editor-save">
+      <button type="submit" class="btn-ghost w-full" :disabled="saving" data-testid="elite-editor-save">
         {{ saving ? t('common.loading') : t('elitePack.saveIdentity') }}
       </button>
       <p v-if="localError" class="text-xs text-fire">{{ localError }}</p>

@@ -71,7 +71,7 @@ async function savePosture() {
 
     <div class="mt-8 grid gap-8 lg:grid-cols-2">
       <div>
-        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('dossier.ownSquad') }}</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('dossier.ownSquad') }}</p>
         <p class="mt-2 text-sm text-ink">{{ dossier.ownSquad.ordersLabel }}</p>
         <p class="mt-1 text-xs text-ink-muted">
           {{ t('dossier.teamSpeed', { speed: dossier.ownSquad.teamSpeed }) }}
@@ -90,7 +90,7 @@ async function savePosture() {
       </div>
 
       <div>
-        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('dossier.scoutTitle') }}</p>
+        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('dossier.scoutTitle') }}</p>
         <p v-if="!dossier.scoutAvailable" class="mt-2 text-xs text-ink-faint">
           {{ t('dossier.scoutLocked') }}
         </p>
@@ -102,7 +102,7 @@ async function savePosture() {
         </p>
         <template v-else-if="dossier.scout">
           <div v-if="dossier.scout.historicalTendencies?.lines?.length" class="mt-2">
-            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ t('dossier.scoutTendenciesTitle', { count: dossier.scout.historicalTendencies.sampleSize }) }}
             </p>
             <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
@@ -115,20 +115,20 @@ async function savePosture() {
           <template v-else-if="dossier.scout.phase === 'roster'">
             <p
               v-if="dossier.scout.tier === 'full'"
-              class="mt-3 text-[10px] uppercase tracking-[0.14em] text-accent"
+              class="mt-3 text-xs uppercase tracking-[0.14em] text-accent"
             >
               {{ t('dossier.scoutFull', { pct: dossier.scout.reconScorePct ?? '—' }) }}
             </p>
             <p
               v-else-if="dossier.scout.reconOutcome === 'win'"
-              class="mt-3 text-[10px] uppercase tracking-[0.14em] text-ink-faint"
+              class="mt-3 text-xs uppercase tracking-[0.14em] text-ink-faint"
             >
               {{ t('dossier.scoutPartialWin', { pct: dossier.scout.reconScorePct ?? '—' }) }}
             </p>
-            <p v-else class="mt-3 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <p v-else class="mt-3 text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ t('dossier.scoutPartial') }}
             </p>
-            <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            <p class="mt-2 text-xs uppercase tracking-[0.14em] text-ink-faint">
               {{ t('dossier.scoutRosterTitle') }}
             </p>
             <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
@@ -182,7 +182,7 @@ async function savePosture() {
     </div>
 
     <div v-if="dossier.advice?.length" class="mt-8 border-t border-line/50 pt-6">
-      <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('dossier.adviceTitle') }}</p>
+      <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('dossier.adviceTitle') }}</p>
       <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink">
         <li v-for="(tip, i) in dossier.advice" :key="`adv-${i}`">→ {{ tip }}</li>
       </ul>

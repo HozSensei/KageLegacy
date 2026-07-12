@@ -242,7 +242,7 @@ function hoursUntilResolve(mission) {
       </div>
 
       <div v-if="missions.activeMissions?.length" class="mt-6 space-y-3" data-testid="missions-active">
-        <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
+        <p class="text-xs uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
         <div
           v-for="m in missions.activeMissions"
           :key="m.id"
@@ -255,7 +255,7 @@ function hoursUntilResolve(mission) {
       </div>
 
       <div v-if="missions.failedMissions?.length" class="mt-6 space-y-2">
-        <p class="text-[10px] uppercase tracking-[0.12em] text-fire">{{ t('missions.failed') }}</p>
+        <p class="text-xs uppercase tracking-[0.12em] text-fire">{{ t('missions.failed') }}</p>
         <p
           v-for="m in missions.failedMissions"
           :key="m.id"
@@ -269,7 +269,7 @@ function hoursUntilResolve(mission) {
       <div class="mt-8 overflow-x-auto">
         <table class="w-full min-w-[40rem] text-left text-xs">
           <thead>
-            <tr class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+            <tr class="text-xs uppercase tracking-[0.12em] text-ink-faint">
               <th class="pb-2 pr-4">{{ t('missions.pickTier') }}</th>
               <th class="pb-2 pr-4">{{ t('missions.reward') }}</th>
               <th class="pb-2 pr-4">{{ t('missions.statGain') }}</th>
@@ -288,12 +288,12 @@ function hoursUntilResolve(mission) {
             >
               <td class="py-2 pr-4">
                 <span class="text-ink">{{ t(`missions.tiers.${tier.tier}`) }}</span>
-                <p class="mt-0.5 text-[10px] text-ink-faint">
+                <p class="mt-0.5 text-xs text-ink-faint">
                   {{ t('missions.targetRating', { rating: tier.targetRating }) }}
                 </p>
               </td>
               <td class="py-2 pr-4 tabular-nums">{{ tierRewardLabel(tier) }}</td>
-              <td class="py-2 pr-4 tabular-nums text-[10px]">{{ statGainLabel(tier) }}</td>
+              <td class="py-2 pr-4 tabular-nums text-xs">{{ statGainLabel(tier) }}</td>
               <td class="py-2 pr-4 tabular-nums">
                 <template v-if="selectedNinja && oddsForTier(tier.tier)">
                   {{ oddsForTier(tier.tier).successChance }} %
