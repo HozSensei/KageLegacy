@@ -228,7 +228,8 @@
     "inventory": "Inventaire",
     "operation": "Opération",
     "profile": "Profil",
-    "eliteTools": "Outils Élite"
+    "eliteTools": "Outils Élite",
+    "admin": "Administration"
   },
   "rules": {
     "pageTitle": "Règles du jeu",
@@ -827,6 +828,7 @@
     "reconPendingOutgoing": "Défi envoyé à {name} — en attente d'acceptation.",
     "reconQueued": "Inscrit à la file — combat prévu à H{hour}.",
     "reconScheduled": "Défi accepté contre {name} — combat prévu à H{hour}.",
+    "reconPendingResolution": "Inscription en attente — résolution à H{hour}.",
     "reconWindow": "Inscriptions ouvertes — résolution à H{hour}.",
     "reconClosed": "Fenêtre de reconnaissance fermée pour ce cycle.",
     "reconOutcomeWin": "Victoire",
@@ -974,7 +976,8 @@
       "setHour": "Heure cible",
       "applyHour": "Appliquer",
       "setStart": "Ancre H0",
-      "applyStart": "Définir l'ancre"
+      "applyStart": "Définir l'ancre",
+      "reconHint": "Reconnaissance : inscrivez-vous à la file (Missions) avant de sauter à H36 — le combat se résout au passage de H36."
     },
     "reset": {
       "title": "Reset global de saison",

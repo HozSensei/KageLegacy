@@ -811,6 +811,7 @@ export async function listExternalOpponents(userId, limit = 20) {
   const divisionLevel = pool.division_level;
   const minDiv = Math.max(1, divisionLevel - DIVISION_TOLERANCE);
   const maxDiv = Math.min(5, divisionLevel + DIVISION_TOLERANCE);
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
 
   const rows = await query(
     `SELECT u.id AS userId, s.name AS senseiName, p.division_level AS divisionLevel,
@@ -840,8 +841,8 @@ export async function listExternalOpponents(userId, limit = 20) {
          WHERE rr.cycle_start_at = ? AND rr.user_id = u.id AND rr.status = 'queued'
        )
      ORDER BY p.division_level ASC, s.name ASC
-     LIMIT ?`,
-    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt, limit]
+     LIMIT ${safeLimit}`,
+    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt]
   );
 
   return rows.map((row) => ({

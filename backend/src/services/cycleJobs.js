@@ -33,6 +33,22 @@ async function markJobRun(cycleStartAt, jobName) {
   );
 }
 
+/** Réinitialise les jobs de cycle à partir d'une heure cible (outil admin / dev). */
+export async function resetCycleJobsFromHour(cycleStartAt, hour) {
+  if (!cycleStartAt) return;
+  const jobs = [];
+  if (hour <= 36) jobs.push('h36');
+  if (hour <= 54) jobs.push('h54');
+  if (hour <= 71) jobs.push('h71');
+  if (hour <= 72) jobs.push('h72');
+  for (const jobName of jobs) {
+    await query('DELETE FROM cycle_job_runs WHERE cycle_start_at = ? AND job_name = ?', [
+      cycleStartAt,
+      jobName,
+    ]);
+  }
+}
+
 export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
   const reconMissions = await resolveReconnaissanceAtH36(cycleStartAt);

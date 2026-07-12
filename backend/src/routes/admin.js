@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import {
   advanceHourDev,
+  getClockRow,
   getGameClock,
   setCycleStartAt,
   setHourDev,
 } from '../services/gameClock.js';
-import { processCycleTick } from '../services/cycleJobs.js';
+import { processCycleTick, resetCycleJobsFromHour } from '../services/cycleJobs.js';
 import { setHourSchema } from '../validators/squadTactics.js';
 import {
   hardResetSchema,
@@ -54,6 +55,10 @@ router.post('/clock/advance-hour', async (_req, res, next) => {
 router.post('/clock/set-hour', async (req, res, next) => {
   try {
     const { hour } = setHourSchema.parse(req.body);
+    const row = await getClockRow();
+    if (row?.cycle_start_at) {
+      await resetCycleJobsFromHour(row.cycle_start_at, hour);
+    }
     const clock = await setHourDev(hour);
     const tick = await processCycleTick();
     res.json({ clock, tick });

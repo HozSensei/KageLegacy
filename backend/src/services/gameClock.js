@@ -90,15 +90,14 @@ export async function advanceHourDev() {
   return getGameClock();
 }
 
-/** Place l'horloge à une heure précise du cycle en cours (outil dev) */
+/** Place l'horloge à une heure précise du cycle en cours (outil dev) — conserve cycle_start_at. */
 export async function setHourDev(targetHour) {
   const hour = Math.max(0, Math.min(CYCLE_HOURS, Number(targetHour)));
   await query(
     `UPDATE game_clock
-     SET cycle_start_at = DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? HOUR),
-         last_tick_hour = ?
+     SET last_tick_hour = ?
      WHERE id = 1`,
-    [hour, hour]
+    [hour]
   );
   return getGameClock();
 }

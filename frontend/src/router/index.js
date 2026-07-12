@@ -28,7 +28,6 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: LandingView },
     { path: '/rules', name: 'rules', component: RulesView },
-    { path: '/admin', name: 'admin', component: AdminView },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: LoginView },
     {
@@ -85,6 +84,15 @@ const router = createRouter({
           props: true,
           meta: { hero: { image: HERO_VILLAGE, titleKey: 'senseiProfile.title' } },
         },
+        {
+          path: 'admin',
+          name: 'admin',
+          component: AdminView,
+          meta: {
+            requiresAdmin: true,
+            hero: { image: HERO_VILLAGE, titleKey: 'nav.admin' },
+          },
+        },
       ],
     },
   ],
@@ -94,11 +102,6 @@ const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules'])
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-
-  if (to.path === '/admin') {
-    if (!auth.checked) await auth.fetchMe()
-    return true
-  }
 
   if (PUBLIC_PATHS.has(to.path)) {
     if (!auth.checked) await auth.fetchMe()
@@ -110,6 +113,7 @@ router.beforeEach(async (to) => {
 
   if (!auth.checked) await auth.fetchMe()
   if (!auth.user) return { path: '/' }
+  if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/bureau' }
   return true
 })
 
