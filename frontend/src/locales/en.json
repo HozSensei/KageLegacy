@@ -6,7 +6,9 @@
     "loading": "Loading…",
     "vs": "vs",
     "ryosAmount": "{amount} Ryos",
-    "dismiss": "Close"
+    "dismiss": "Close",
+    "collapseSection": "Collapse",
+    "expandSection": "Expand"
   },
   "gameClock": {
     "label": "H{hour} · {phase}",
@@ -217,7 +219,12 @@
     "lead": "History of key events: training, operations, missions and cycle close."
   },
   "training": {
-    "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set."
+    "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set.",
+    "gainPreview": "+{gain} {stat} this cycle",
+    "pointGain": "→ +{count} point(s) now",
+    "residualProgress": "(residual {residual} before full point)",
+    "atCap": "{stat} cap reached for this grade — promotion required.",
+    "lazyRisk": "Lazy trait: chance to skip training."
   },
   "nav": {
     "menu": "Navigation",

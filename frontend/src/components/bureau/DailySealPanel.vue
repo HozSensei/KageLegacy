@@ -98,7 +98,7 @@ function formatLootLine(line) {
 <template>
   <div
     v-if="seal"
-    class="mt-10 border-t border-line pt-8"
+    class="border-t border-line pt-8"
     data-testid="bureau-daily-seal-panel"
   >
     <p class="section-label">{{ t('bureau.dailySealTitle') }}</p>
@@ -106,22 +106,22 @@ function formatLootLine(line) {
       {{ t('bureau.dailySealHint', { max: seal.maxStack }) }}
     </p>
 
-    <div class="mt-4 flex flex-wrap items-center gap-4">
+    <div class="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:justify-center sm:gap-10">
       <div
-        class="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-accent/60 bg-ink/40 shadow-[0_0_24px_rgba(212,175,55,0.15)]"
+        class="relative flex h-28 w-28 shrink-0 items-center justify-center rounded-full border-2 border-accent/60 bg-ink/40 shadow-[0_0_32px_rgba(212,175,55,0.18)] sm:h-32 sm:w-32"
         :class="{ 'seal-pulse': canOpen }"
       >
-        <span class="text-2xl font-semibold text-accent">{{ seal.pending }}</span>
+        <span class="text-4xl font-semibold text-accent">{{ seal.pending }}</span>
         <span class="absolute -bottom-1 text-[10px] text-ink-faint">/ {{ seal.maxStack }}</span>
       </div>
 
-      <div class="min-w-0 flex-1">
+      <div class="min-w-0 text-center sm:text-left">
         <p class="text-sm text-ink">
           {{ t('bureau.dailySealStock', { count: seal.pending, max: seal.maxStack }) }}
         </p>
         <button
           type="button"
-          class="btn-primary mt-3"
+          class="btn-primary mt-4"
           :disabled="!canOpen || opening"
           data-testid="open-chakra-seal"
           @click="openSeal"

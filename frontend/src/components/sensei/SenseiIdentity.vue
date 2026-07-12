@@ -16,15 +16,16 @@ const props = defineProps({
   subtitle: { type: String, default: null },
   linkable: { type: Boolean, default: true },
   highlight: { type: Boolean, default: false },
+  plain: { type: Boolean, default: false },
 })
 
 const { t } = useI18n()
 
-const isElite = computed(() => Boolean(props.identity?.isElite))
+const isElite = computed(() => !props.plain && Boolean(props.identity?.isElite))
 const isBot = computed(() => Boolean(props.identity?.isBot))
 const isGuest = computed(() => Boolean(props.identity?.isGuest))
-const bannerClass = computed(() => resolveBannerClass(props.identity?.bannerSlug))
-const hasBanner = computed(() => bannerClass.value.length > 0 && props.variant !== 'inline')
+const bannerClass = computed(() => (props.plain ? '' : resolveBannerClass(props.identity?.bannerSlug)))
+const hasBanner = computed(() => !props.plain && bannerClass.value.length > 0 && props.variant !== 'inline')
 
 const gradeLabel = computed(() => {
   if (isBot.value) return t('eliteIdentity.grade.bot')
