@@ -217,6 +217,7 @@
   },
   "nav": {
     "menu": "Navigation",
+    "menuHint": "Sections grouped by activity.",
     "bureau": "Office",
     "squad": "Squad",
     "clan": "Clan",
@@ -229,7 +230,14 @@
     "operation": "Operation",
     "profile": "Profile",
     "eliteTools": "Elite tools",
-    "admin": "Administration"
+    "admin": "Administration",
+    "groups": {
+      "hub": "Command hub",
+      "squad": "Squad & progression",
+      "missions": "Missions & league",
+      "economy": "Economy",
+      "extra": "Account & tools"
+    }
   },
   "rules": {
     "pageTitle": "Game rules",
@@ -242,13 +250,32 @@
   "notifications": {
     "bell": "Notifications",
     "panelTitle": "Notifications",
+    "tabUnread": "Unread",
+    "tabHistory": "History",
     "empty": "No notifications yet.",
+    "historyEmpty": "No recently read notifications.",
     "dismiss": "Mark as read",
     "genericTitle": "Notification",
     "genericBody": "New activity regarding your squad.",
     "clanWellTitle": "Great Invocation",
     "clanWellBody": "Clan Well {clanName} has fused — a bonus Chakra Seal awaits you!",
-    "viewBureau": "View bureau"
+    "viewBureau": "View bureau",
+    "viewTraining": "View training",
+    "viewSquad": "View squad",
+    "viewOperation": "View operation",
+    "trainingBillingTitle": "Training billing",
+    "trainingBillingBody": "{paid} ninja(s) trained — {cost} Ryos debited. Balance: {balance} Ryos.",
+    "trainingBillingSkipped": "Training cancelled for {count} ninja(s) — insufficient Ryos.",
+    "scoutRosterTitle": "Scout report",
+    "scoutRosterBody": "Opponent lineup for {opponent} revealed (tier {tier}).",
+    "operationStartTitle": "Operation started",
+    "operationStartBody": "Match vs {opponent} is live — the chronicle is unfolding.",
+    "cycleCloseTitle": "Cycle closed",
+    "cycleCloseBody": "Salaries: −{salary} Ryos. New balance: {balance} Ryos. A new cycle begins.",
+    "cycleCloseBodyMatch": "Cycle closed — salaries −{salary} Ryos, balance {balance} Ryos. Match vs {opponent}: {outcome}.",
+    "matchWin": "win",
+    "matchDraw": "draw",
+    "matchLoss": "loss"
   },
   "clan": {
     "lead": "Co-op hub: share recruits and fill the Chakra Well — no combat bonuses.",
@@ -287,6 +314,9 @@
     "activeSquad": "Active squad",
     "operationLive": "Operation in progress",
     "operationLink": "View report",
+    "activityTitle": "Cycle journal",
+    "activityHint": "Latest updates: training, operation, missions and key events.",
+    "activityEmpty": "Nothing to report yet — cycle events will appear here.",
     "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",
     "trainingPlansHint": "Pick one stat per ninja. Billed at H72 — no plan means no cost or gain.",

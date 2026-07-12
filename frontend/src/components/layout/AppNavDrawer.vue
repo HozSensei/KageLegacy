@@ -8,7 +8,7 @@ import VerifiedIcon from '../icons/VerifiedIcon.vue'
 defineOptions({ name: 'AppNavDrawer' })
 
 defineProps({
-  navItems: { type: Array, required: true },
+  navGroups: { type: Array, required: true },
   isActive: { type: Function, required: true },
 })
 
@@ -56,21 +56,29 @@ function close() {
   >
     <div class="border-b border-line px-5 py-4">
       <p class="font-display text-lg text-ink">{{ t('nav.menu') }}</p>
+      <p class="mt-1 text-xs text-ink-muted">{{ t('nav.menuHint') }}</p>
     </div>
 
     <nav class="app-nav-drawer__nav" :aria-label="t('nav.menu')">
-      <router-link
-        v-for="item in navItems"
-        :key="item.name"
-        :to="item.path"
-        class="app-nav-drawer__link"
-        :class="{ 'app-nav-drawer__link--active': isActive(item.path) }"
-        :data-testid="`nav-${item.name}`"
-        @click="close"
+      <div
+        v-for="group in navGroups"
+        :key="group.id"
+        class="app-nav-drawer__group"
       >
-        {{ t(item.label) }}
-        <VerifiedIcon v-if="item.elite" size="0.875rem" />
-      </router-link>
+        <p class="app-nav-drawer__group-label">{{ t(group.labelKey) }}</p>
+        <router-link
+          v-for="item in group.items"
+          :key="item.name"
+          :to="item.path"
+          class="app-nav-drawer__link"
+          :class="{ 'app-nav-drawer__link--active': isActive(item.path) }"
+          :data-testid="`nav-${item.name}`"
+          @click="close"
+        >
+          {{ t(item.label) }}
+          <VerifiedIcon v-if="item.elite" size="0.875rem" />
+        </router-link>
+      </div>
     </nav>
   </SlidePanel>
 </template>

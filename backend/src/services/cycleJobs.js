@@ -17,6 +17,7 @@ import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
 import { resolveReconnaissanceAtH36 } from './reconnaissanceService.js';
+import { createCycleCloseNotificationsForAllUsers } from './cycleCloseNotifications.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -92,6 +93,7 @@ export async function runH72(cycleStartAt) {
   const birdFlights = await processBirdFlightsForAllUsers();
   const stagnation = await applyStagnationForAllUsers();
   const training = await processTrainingBillingForAllUsers();
+  await createCycleCloseNotificationsForAllUsers(salaries);
   await markJobRun(cycleStartAt, 'h72');
   await resetCycle();
   const newRow = await getClockRow();

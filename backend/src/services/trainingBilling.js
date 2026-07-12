@@ -4,6 +4,7 @@ import { getCycleEquipmentByUser } from './equipmentService.js';
 import { getSalaryDiscountPercent } from './combat/equipment.js';
 import { applyTrainingForUser, computeTrainingCost, FOCUS_VALUES } from './training.js';
 import { getHeritageBonuses, applyPercentDiscount } from './heritageService.js';
+import { createSenseiNotification } from './senseiNotifications.js';
 
 export const OVERDRAFT_LIMIT = -5000;
 export const DEBT_INTEREST_RATE = 0.03;
@@ -152,6 +153,24 @@ export async function processTrainingBillingForUser(userId) {
   ]);
 
   const { logs: trainingLogs } = await applyTrainingForUser(userId, { onlyNinjaIds: paidNinjaIds });
+
+  const totalCost = billingLogs
+    .filter((line) => line.includes('−') && line.includes('Ryos'))
+    .reduce((sum, line) => {
+      const match = line.match(/−(\d+) Ryos/);
+      return sum + (match ? Number(match[1]) : 0);
+    }, 0);
+
+  if (planned.length > 0 || billingLogs.length > 0 || trainingLogs.length > 0) {
+    await createSenseiNotification(userId, 'training_billing', {
+      paidCount: paidNinjaIds.length,
+      skippedCount: planned.length - paidNinjaIds.length,
+      totalCost,
+      billingLogs,
+      trainingLogs,
+      balanceAfter: afterInterest,
+    });
+  }
 
   return { billingLogs, trainingLogs, paidCount: paidNinjaIds.length, skippedCount: planned.length - paidNinjaIds.length };
 }

@@ -13,6 +13,8 @@ export const useSquadStore = defineStore('squad', () => {
   const bench = ref([])
   const gameClock = ref(null)
   const notifications = ref([])
+  const notificationHistory = ref([])
+  const activityFeed = ref([])
   const dispensaryCandidates = ref([])
   const cycleBudget = ref(null)
   const academy = ref(null)
@@ -29,6 +31,8 @@ export const useSquadStore = defineStore('squad', () => {
     bench.value = data.bench
     gameClock.value = data.gameClock
     notifications.value = data.notifications || []
+    notificationHistory.value = data.notificationHistory || []
+    activityFeed.value = data.activityFeed || []
     dispensaryCandidates.value = data.dispensaryCandidates || []
     cycleBudget.value = data.cycleBudget || null
     academy.value = data.academy || null
@@ -54,6 +58,8 @@ export const useSquadStore = defineStore('squad', () => {
     if (data.clan !== undefined) clan.value = data.clan
     if (data.clanBoard !== undefined) clanBoard.value = data.clanBoard
     if (data.notifications) notifications.value = data.notifications
+    if (data.notificationHistory) notificationHistory.value = data.notificationHistory
+    if (data.activityFeed) activityFeed.value = data.activityFeed
   }
 
   async function fetchSquad() {
@@ -271,6 +277,8 @@ export const useSquadStore = defineStore('squad', () => {
     bench.value = []
     gameClock.value = null
     notifications.value = []
+    notificationHistory.value = []
+    activityFeed.value = []
     dispensaryCandidates.value = []
     cycleBudget.value = null
     academy.value = null
@@ -290,6 +298,8 @@ export const useSquadStore = defineStore('squad', () => {
     bench,
     gameClock,
     notifications,
+    notificationHistory,
+    activityFeed,
     dispensaryCandidates,
     cycleBudget,
     academy,

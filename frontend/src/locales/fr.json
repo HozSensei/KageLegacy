@@ -217,6 +217,7 @@
   },
   "nav": {
     "menu": "Navigation",
+    "menuHint": "Sections regroupées par activité.",
     "bureau": "Bureau",
     "squad": "Escouade",
     "clan": "Clan",
@@ -229,7 +230,14 @@
     "operation": "Opération",
     "profile": "Profil",
     "eliteTools": "Outils Élite",
-    "admin": "Administration"
+    "admin": "Administration",
+    "groups": {
+      "hub": "Centre de commande",
+      "squad": "Escouade & progression",
+      "missions": "Missions & ligue",
+      "economy": "Économie",
+      "extra": "Compte & outils"
+    }
   },
   "rules": {
     "pageTitle": "Règles du jeu",
@@ -242,13 +250,32 @@
   "notifications": {
     "bell": "Notifications",
     "panelTitle": "Notifications",
+    "tabUnread": "Non lues",
+    "tabHistory": "Historique",
     "empty": "Aucune notification pour le moment.",
+    "historyEmpty": "Aucune notification lue récemment.",
     "dismiss": "Marquer comme lu",
     "genericTitle": "Notification",
     "genericBody": "Nouvelle activité concernant votre équipe.",
     "clanWellTitle": "Grande Invocation",
     "clanWellBody": "Le Puits du clan {clanName} est en fusion — un Sceau de Chakra bonus vous attend !",
-    "viewBureau": "Voir le bureau"
+    "viewBureau": "Voir le bureau",
+    "viewTraining": "Voir l'entraînement",
+    "viewSquad": "Voir l'escouade",
+    "viewOperation": "Voir l'opération",
+    "trainingBillingTitle": "Facturation d'entraînement",
+    "trainingBillingBody": "{paid} ninja(s) entraîné(s) — {cost} Ryos débités. Solde : {balance} Ryos.",
+    "trainingBillingSkipped": "Entraînement annulé pour {count} ninja(s) — Ryos insuffisants.",
+    "scoutRosterTitle": "Rapport d'espionnage",
+    "scoutRosterBody": "Composition adverse de {opponent} révélée (niveau {tier}).",
+    "operationStartTitle": "Opération lancée",
+    "operationStartBody": "Le match contre {opponent} est en cours — la chronique se dévoile.",
+    "cycleCloseTitle": "Clôture du cycle",
+    "cycleCloseBody": "Salaires : −{salary} Ryos. Nouveau solde : {balance} Ryos. Un nouveau cycle commence.",
+    "cycleCloseBodyMatch": "Cycle clos — salaires −{salary} Ryos, solde {balance} Ryos. Match vs {opponent} : {outcome}.",
+    "matchWin": "victoire",
+    "matchDraw": "nul",
+    "matchLoss": "défaite"
   },
   "clan": {
     "lead": "Hub coopératif : partagez des recrues et remplissez le Puits de Chakra — sans bonus de combat.",
@@ -287,6 +314,9 @@
     "activeSquad": "Escouade active",
     "operationLive": "Opération en cours",
     "operationLink": "Voir le rapport",
+    "activityTitle": "Journal du cycle",
+    "activityHint": "Dernières nouvelles : entraînement, opération, missions et événements marquants.",
+    "activityEmpty": "Rien à signaler pour l'instant — les événements du cycle apparaîtront ici.",
     "debtFreeze": "Gel administratif — remboursez votre dette avant tout achat, examen ou soin payant.",
     "trainingPlansTitle": "Plans d'entraînement",
     "trainingPlansHint": "Choisissez une stat par ninja. Facturation à H72 — sans plan, pas de coût ni de gain.",

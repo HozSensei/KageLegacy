@@ -11,6 +11,7 @@ import {
   upsertIntelRow,
 } from './scoutIntelService.js';
 import { findUserPool } from './poolService.js';
+import { createSenseiNotification } from './senseiNotifications.js';
 
 import { analyzeStrategies, dominantElement } from './scoutSquadAnalysis.js';
 
@@ -300,7 +301,17 @@ export async function generateRosterIntelForAllUsers() {
     const pool = await findUserPool(user.id);
     if (!pool) continue;
     const report = await buildAndPersistRosterIntel(user.id, pool.current_cycle, 'fr');
-    if (report) results.push({ userId: user.id, report });
+    if (report) {
+      const match = await getUserMatchForCycle(user.id, pool.current_cycle);
+      const opponentName =
+        match?.home_user_id === user.id ? match?.away_sensei : match?.home_sensei;
+      await createSenseiNotification(user.id, 'scout_roster', {
+        opponentName: opponentName || '—',
+        tier: report.tier || 'partial',
+        seasonCycle: pool.current_cycle,
+      });
+      results.push({ userId: user.id, report });
+    }
   }
   return results;
 }

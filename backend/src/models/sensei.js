@@ -10,7 +10,11 @@ import {
 } from '../services/gradeProgression.js';
 import { getBirdFlightProgress } from '../services/birdFlightExam.js';
 import { describeNinjaProfile } from '../services/ninjaProfile.js';
-import { getUnreadNotifications } from '../services/senseiNotifications.js';
+import {
+  getNotificationHistory,
+  getRecentActivity,
+  getUnreadNotifications,
+} from '../services/senseiNotifications.js';
 import { listDispensaryCandidates } from '../services/dispensaryService.js';
 import { getAcademyPayload } from '../services/academyService.js';
 import { getDailySealPayload } from '../services/dailySealService.js';
@@ -100,7 +104,11 @@ export async function getSquadPayload(userId) {
   const bench = ninjas
     .filter((n) => n.squad_position === null)
     .map((n) => enrichNinja({ ...n, is_listed: listedNinjaIds.has(n.id) }));
-  const notifications = await getUnreadNotifications(userId);
+  const [notifications, notificationHistory, activityFeed] = await Promise.all([
+    getUnreadNotifications(userId),
+    getNotificationHistory(userId, 15),
+    getRecentActivity(userId, 20),
+  ]);
   const dispensaryCandidates = await listDispensaryCandidates(userId);
   const cycleBudget = await getCycleBudgetPreview(userId);
   const academy = await getAcademyPayload(userId);
@@ -123,6 +131,8 @@ export async function getSquadPayload(userId) {
     activeSquad,
     bench,
     notifications,
+    notificationHistory,
+    activityFeed,
     dispensaryCandidates,
     cycleBudget,
     academy,

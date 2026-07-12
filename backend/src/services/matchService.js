@@ -12,6 +12,7 @@ import { persistNarrativeSegments } from './narrative/narrativeStore.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
 import { grantLeagueMatchLoot } from './combatLootService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
+import { createSenseiNotification } from './senseiNotifications.js';
 
 function mapWinnerToDb(winner, homeUserId, awayUserId) {
   if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
@@ -33,6 +34,27 @@ async function loadNarrativeContext(userId) {
     [userId]
   );
   return { senseiName: senseiRows[0]?.name || 'Sensei', ninjas };
+}
+
+async function notifyOperationStart(homeUserId, awayUserId, matchId, homeSensei, awaySensei) {
+  const users = await query(
+    'SELECT id, is_bot FROM users WHERE id IN (?, ?)',
+    [homeUserId, awayUserId]
+  );
+  const botIds = new Set(users.filter((u) => u.is_bot).map((u) => u.id));
+
+  if (!botIds.has(homeUserId)) {
+    await createSenseiNotification(homeUserId, 'operation_start', {
+      matchId,
+      opponentName: awaySensei,
+    });
+  }
+  if (!botIds.has(awayUserId)) {
+    await createSenseiNotification(awayUserId, 'operation_start', {
+      matchId,
+      opponentName: homeSensei,
+    });
+  }
 }
 
 export async function simulateMatchesForCycle(poolId, seasonCycle) {
@@ -145,6 +167,14 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       endingTour: combat.endingTour,
       tours: combat.logs.length,
     });
+
+    await notifyOperationStart(
+      match.home_user_id,
+      match.away_user_id,
+      match.id,
+      homeCtx.senseiName,
+      awayCtx.senseiName
+    );
   }
   return results;
 }
