@@ -56,11 +56,11 @@
         "missions": "Free mission contracts (3 tiers)",
         "shop": "Village shop, promos and limited stock",
         "academy": "Academy recruitment (rotating aspirants)",
-        "chunin": "Chunin exam registration (before H36)",
+        "chunin": "Chunin exam registration (until H72)",
         "reconnaissance": "Reconnaissance mission (H0–H35): queue signup or challenge — combat at H36"
       },
       "mid": {
-        "chunin": "Chunin exam verdicts",
+        "chuninRegistration": "Chunin exam registrations still open",
         "scoutTendencies": "Opponent tendencies (recent league matches)",
         "management": "Adjust lineup based on tendencies",
         "birdFlight": "Bird Flight registrations still open"
@@ -80,6 +80,7 @@
         "missions": "Mission resolution and loot",
         "match": "Match results applied",
         "salaries": "Salary deductions",
+        "chunin": "Chunin exam verdicts",
         "training": "Training billing and stat gains",
         "birdFlight": "Bird Flight graduations",
         "stagnation": "Stagnation penalties",
@@ -183,7 +184,7 @@
     "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
     "timeline": {
       "start": "Cycle start: training, missions, shop, Academy recruitment and reconnaissance mission (through H36).",
-      "mid": "After 36 hours: Chunin exams and scouting.",
+      "mid": "After 36 hours: opponent tendencies and scouting.",
       "operation": "At 71 hours: league match and border operation. The chronicle unfolds step by step.",
       "end": "At 72 hours: cycle closes — salaries, Ryos economy, then a new cycle begins."
     }
@@ -421,7 +422,7 @@
     "stagnation": {
       "title": "Stagnation risk",
       "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",
-      "geninExam": "ready for Chunin exam — register before H36",
+      "geninExam": "ready for Chunin exam — register before H72",
       "chuninJonin": "Chunin peak reached — register for the Vol d'Oiseau",
       "notificationTitle": "Squad stagnation",
       "notificationBody": "{name} is growing restless — form {forme}, morale {moral}. Consider the exam or the Vol d'Oiseau.",
@@ -475,14 +476,14 @@
     },
     "chuninExam": {
       "title": "Chunin exams",
-      "lead": "Village ceremony: register a ready Genin before H36. Free registration — promotion payout scales with overall rating.",
+      "lead": "Village ceremony: register a ready Genin before H72. Free registration — promotion payout scales with overall rating.",
       "ceremony": "The ninja presents their progress to the council. Pass: Chunin rank, Ryos, item, form and morale boost. Fail: village shame (morale −5).",
       "average": "Overall rating",
       "rewardPreview": "Expected payout: +{ryos} Ryos · +{reputation} reputation · form +1 tier · morale +{moral}",
       "submit": "Present to council (free)",
       "sending": "Registering…",
-      "registered": "Presented · verdict H36",
-      "closed": "Registration closed this cycle — next window at H0.",
+      "registered": "Registered · verdict H72",
+      "closed": "Registration closed for this cycle.",
       "debtBlocked": "Debt outstanding — registrations suspended.",
       "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72.",
       "successTitle": "Chunin promotion",

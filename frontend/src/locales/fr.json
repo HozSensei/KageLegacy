@@ -56,11 +56,11 @@
         "missions": "Contrats de mission gratuits (3 paliers)",
         "shop": "Magasin du village, promos et stocks limités",
         "academy": "Recrutement à l'Académie (rotation des aspirants)",
-        "chunin": "Inscription à l'examen de Chunin (avant H36)",
+        "chunin": "Inscription à l'examen Chunin (jusqu'à H72)",
         "reconnaissance": "Mission de reconnaissance (H0–H35) : inscription file ou défi — combat à H36"
       },
       "mid": {
-        "chunin": "Verdict des examens de Chunin",
+        "chuninRegistration": "Inscriptions examen Chunin encore ouvertes",
         "scoutTendencies": "Tendances adverses (derniers matchs de ligue)",
         "management": "Ajuster la composition selon les tendances",
         "birdFlight": "Inscriptions Vol de l'Oiseau encore ouvertes"
@@ -80,6 +80,7 @@
         "missions": "Résolution des missions et butin",
         "match": "Application des résultats du match",
         "salaries": "Prélèvement des salaires",
+        "chunin": "Verdicts examens Chunin",
         "training": "Facturation d'entraînement et gains de stats",
         "birdFlight": "Graduations Vol de l'Oiseau",
         "stagnation": "Pénalités de stagnation",
@@ -183,7 +184,7 @@
     "timelineRealtime": "Le temps avance comme dans la vraie vie : une heure chez vous, c'est une heure de jeu.",
     "timeline": {
       "start": "Début du cycle : entraînement, missions, magasin, recrutement à l'Académie et mission de reconnaissance (jusqu'à H36).",
-      "mid": "Après 36 heures : examens de Chunin et espionnage.",
+      "mid": "Après 36 heures : tendances adverses et espionnage.",
       "operation": "À 71 heures : match de ligue et opération de frontière. La chronique se dévoile peu à peu.",
       "end": "À 72 heures : clôture du cycle — salaires, économie Ryos, puis un nouveau cycle commence."
     }
@@ -421,7 +422,7 @@
     "stagnation": {
       "title": "Stagnation imminente",
       "lead": "À H72, forme et moral baissent si ces ninjas restent bloqués au grade actuel.",
-      "geninExam": "prêt pour l'examen Chunin — inscrivez-le avant H36",
+      "geninExam": "prêt pour l'examen Chunin — inscrivez-le avant H72",
       "chuninJonin": "sommet Chunin atteint — inscrivez-le au Vol d'Oiseau",
       "notificationTitle": "Stagnation d'escouade",
       "notificationBody": "{name} s'impatiente — forme {forme}, moral {moral}. Pensez à l'examen ou au Vol d'Oiseau.",
@@ -475,14 +476,14 @@
     },
     "chuninExam": {
       "title": "Examens Chunin",
-      "lead": "Cérémonie du village : inscrivez un Genin prêt avant H36. Inscription gratuite — prime à la réussite selon la note moyenne.",
+      "lead": "Cérémonie du village : inscrivez un Genin prêt avant H72. Inscription gratuite — prime à la réussite selon la note moyenne.",
       "ceremony": "Le ninja présente sa progression devant le conseil. Réussite : grade Chunin, Ryos, objet, forme et moral revalorisés. Échec : honte du village (moral −5).",
       "average": "Note moyenne",
       "rewardPreview": "Prime prévue : +{ryos} Ryos · +{reputation} réputation · forme +1 palier · moral +{moral}",
       "submit": "Présenter au conseil (gratuit)",
       "sending": "Inscription…",
-      "registered": "Présenté · verdict H36",
-      "closed": "Inscriptions closes pour ce cycle — prochaine fenêtre à H0.",
+      "registered": "Inscrit · verdict H72",
+      "closed": "Inscriptions closes pour ce cycle.",
       "debtBlocked": "Dette en cours — inscriptions suspendues.",
       "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72.",
       "successTitle": "Promotion Chunin",

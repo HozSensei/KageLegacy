@@ -13,7 +13,7 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 | Phase | Période | Activités principales |
 |-------|---------|------------------------|
 | **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie, **mission de reconnaissance (H0–H36)** |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d'espionnage, gestion continue |
+| **Milieu de cycle** | H36 → H70 | Tendances adverses, espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
 
@@ -40,7 +40,8 @@ Examens Chunin, soins et missions doivent être **réglés avant H54** pour évi
 ### Jalons automatiques
 
 - **H0 → H36** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
-- **H36** : résolution des examens Chunin inscrits ; **tendances adverses** (si reconnaissance effectuée).
+- **H36** : **tendances adverses** (si reconnaissance effectuée).
+- **H72** : verdicts examens Chunin, Vol d'Oiseau, clôture du cycle.
 - **H54** : gel de la composition + **rapport d'espionnage complet** figé.
 - **H71** : simulation du match de ligue ; gel final des consignes ; début de la chronique narrative.
 - **H72** : clôture économique et début du cycle suivant.
@@ -200,8 +201,8 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 ### Examen Chunin
 
-- **Inscription** : avant H36 (pendant la phase de préparation).
-- **Résolution** : automatique à H36.
+- **Inscription** : avant H72 (pendant tout le cycle).
+- **Résolution** : automatique à H72.
 - **Prérequis** : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi).
 - **Inscription** : **gratuite**.
 - **Réussite** : prime 300–1 000 Ryos, +1 à +5 réputation, objet, forme remontée d'un palier, moral +2 à +5.

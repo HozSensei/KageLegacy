@@ -46,6 +46,7 @@ export function canRegisterForExam(ninja, gameClock) {
     ninja.grade === 'Genin' &&
     !ninja.chunin_exam_requested &&
     getChuninExamProgress(ninja).ready &&
-    hour < 36
+    hour < 72 &&
+    !gameClock?.cycleComplete
   )
 }

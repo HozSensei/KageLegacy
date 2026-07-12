@@ -35,11 +35,11 @@ Dans le jeu, c'est la colonne `intelligence` (affichée **Intelligence** dans l'
 
 ---
 
-## 💰 Examen Chunin (H0–H36) — gratuit, prime à la réussite
+## 💰 Examen Chunin — gratuit, prime à la réussite (H72)
 
-**Inscription gratuite** (plus de coût Ryos à l'inscription).
+**Inscription gratuite** jusqu'à **H72** (comme le Vol d'Oiseau). Résolution à **H72**, avant la stagnation.
 
-À la **réussite H36**, prime indexée sur la **note moyenne globale** :
+À la **réussite**, prime indexée sur la **note moyenne globale** :
 
 | Composante | Échelle |
 | :--- | :--- |
@@ -91,7 +91,7 @@ Conditions **toutes** vraies :
 ### Pas de pénalité si
 
 - Encore en montée (stats sous les seuils)
-- Inscrit à l'examen Chunin (même en attente de H36)
+- Inscrit à l'examen Chunin (même en attente de H72)
 - Bot (`is_bot`)
 
 ---
@@ -101,7 +101,7 @@ Conditions **toutes** vraies :
 ```text
 Genin s'entraîne → plafond 12 → doit payer l'examen Chunin
   → refuse / pas de Ryos → forme & moral chutent chaque cycle
-  → paie + réussit H36 → Chunin, plafonds relevés
+  → s'inscrit + réussit H72 → Chunin, plafonds relevés, prime
 
 Chunin s'entraîne → plafond 18/16 → inscrire au Vol d'Oiseau (gratuit, note moyenne ≥ 14)
   → reste trop longtemps sans s'inscrire → stagnation

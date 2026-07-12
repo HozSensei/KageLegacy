@@ -21,7 +21,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 
 **À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
 
-**Jalons automatiques :** mission de reconnaissance H0→H36 ; examens Chunin + tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72.
+**Jalons automatiques :** mission de reconnaissance H0→H36 ; tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72 (examens Chunin, Vol d'Oiseau, entraînement).
 
 ---
 
@@ -135,7 +135,7 @@ Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie av
 
 6 ninjas : 1 Chunin actif (poste central) + 5 Genin (2 actifs, 3 au banc). Chaque trait représenté une fois.
 
-### Examen Chunin (inscription avant H36, résolution H36)
+### Examen Chunin (inscription avant H72, résolution H72)
 
 - Prérequis : **note moyenne globale** ≥ 8
 - Inscription : **gratuite**

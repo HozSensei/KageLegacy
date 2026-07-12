@@ -81,7 +81,7 @@ async function main() {
 
   const h36 = await jumpAndTick(36);
   console.log('  Tick H36:', h36?.actions?.length ? 'jobs exécutés' : 'ok');
-  await snapshot('H36 — examens + scout', userId);
+  await snapshot('H36 — reconnaissance + scout', userId);
 
   const h71 = await jumpAndTick(71);
   console.log('  Tick H71:', h71?.actions?.length ? 'simulation matchs' : 'ok');

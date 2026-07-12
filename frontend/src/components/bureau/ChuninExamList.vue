@@ -21,7 +21,10 @@ const geninList = computed(() => {
     })
 })
 
-const registrationOpen = computed(() => (store.gameClock?.hour ?? 0) < 36)
+const registrationOpen = computed(() => {
+  const hour = store.gameClock?.hour ?? 0
+  return hour < 72 && !store.gameClock?.cycleComplete
+})
 
 async function register(ninjaId) {
   registeringId.value = ninjaId

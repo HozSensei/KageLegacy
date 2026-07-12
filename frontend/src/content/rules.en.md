@@ -13,7 +13,7 @@ Each cycle is a synchronized "game week" for all players on the server.
 | Phase | Period | Main activities |
 |-------|--------|-----------------|
 | **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy, **reconnaissance mission (H0–H36)** |
-| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, ongoing management |
+| **Mid-cycle** | H36 → H70 | Opponent tendencies, scouting, ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
@@ -28,7 +28,8 @@ Each cycle is a synchronized "game week" for all players on the server.
 ### Automatic milestones
 
 - **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
-- **H36**: Chunin exams resolved ; **opponent tendencies** (if reconnaissance completed).
+- **H36**: **opponent tendencies** (if reconnaissance completed).
+- **H72**: Chunin exam verdicts, Bird Flight, cycle closure.
 - **H54**: lineup freeze + **frozen full scout report**.
 - **H71**: league match simulation ; final orders lock ; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
@@ -188,8 +189,8 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 ### Chunin exam
 
-- **Registration**: before H36 (preparation phase).
-- **Resolution**: automatic at H36.
+- **Registration**: before H72 (any time during the cycle).
+- **Resolution**: automatic at H72.
 - **Requirements**: **overall rating** ≥ 8 (sum of 6 stats ÷ 6, rounded).
 - **Registration**: **free**.
 - **Success**: 300–1,000 Ryos payout, +1 to +5 reputation, item, form +1 tier, morale +2 to +5.

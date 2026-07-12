@@ -124,8 +124,8 @@ export async function updateTrainingPlans(userId, { plans = [], globalTrainingTy
 
 export async function requestChuninExam(userId, ninjaId) {
   const clock = await getGameClock();
-  if (clock.hour >= 36) {
-    const error = new Error('Les inscriptions sont closes jusqu\'au prochain cycle (après H36).');
+  if (clock.hour >= 72 || clock.cycleComplete) {
+    const error = new Error('Les inscriptions à l\'examen Chunin sont closes pour ce cycle.');
     error.statusCode = 423;
     throw error;
   }

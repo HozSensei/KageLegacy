@@ -366,7 +366,7 @@ async function main() {
       const purchases = await buyShopItems(user.id, itemsPerCycle);
       const spentShop = purchases.reduce((s, p) => s + p.price, 0);
 
-      const geninBeforeH36 = await countGrade(user.id, 'Genin');
+      const geninBeforeClose = await countGrade(user.id, 'Genin');
 
       const notifBefore = await query(
         `SELECT COUNT(*) AS c FROM sensei_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
@@ -375,11 +375,11 @@ async function main() {
 
       await jumpAndTick(36);
 
-      const geninAfterH36 = await countGrade(user.id, 'Genin');
-      const chuninPromoted = Math.max(0, geninBeforeH36 - geninAfterH36);
-
       await jumpAndTick(71);
       await jumpAndTick(72);
+
+      const geninAfterClose = await countGrade(user.id, 'Genin');
+      const chuninPromoted = Math.max(0, geninBeforeClose - geninAfterClose);
 
       const notifAfter = await query(
         `SELECT COUNT(*) AS c FROM sensei_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
