@@ -243,6 +243,7 @@ async function applyGainsToNinja(ninja, session) {
   const residuals = parseStatResiduals(ninja);
   const statUpdates = {};
   const appliedLogs = [];
+  const appliedGains = [];
 
   for (const { column, gain } of session.gains) {
     const residual = (Number(residuals[column]) || 0) + gain;
@@ -255,6 +256,7 @@ async function applyGainsToNinja(ninja, session) {
       statUpdates[column] = newValue;
       ninja[column] = newValue;
       if (newValue > current) {
+        appliedGains.push({ stat: column, delta: newValue - current });
         appliedLogs.push(`${ninja.name} : +${newValue - current} ${column}`);
       }
     }
@@ -277,7 +279,11 @@ async function applyGainsToNinja(ninja, session) {
   values.push(ninja.id);
   await query(`UPDATE ninjas SET ${setClauses.join(', ')} WHERE id = ?`, values);
 
-  return appliedLogs.length ? appliedLogs : session.logs.filter((line) => line.includes(':'));
+  return {
+    appliedGains,
+    sessionGains: session.gains.map(({ column, gain }) => ({ stat: column, amount: gain })),
+    logs: appliedLogs.length ? appliedLogs : session.logs.filter((line) => line.includes(':')),
+  };
 }
 
 export async function applyTrainingForUser(
@@ -285,7 +291,7 @@ export async function applyTrainingForUser(
   { mode = 'preparation', onlyNinjaIds = null, globalTrainingType = null } = {}
 ) {
   const ninjas = await query('SELECT * FROM ninjas WHERE user_id = ?', [userId]);
-  if (!ninjas.length) return { logs: [] };
+  if (!ninjas.length) return { logs: [], sessions: [] };
 
   const cycleGear = await getCycleEquipmentByUser(userId);
   const cycleByNinja = cycleGear.reduce((acc, row) => {
@@ -295,6 +301,7 @@ export async function applyTrainingForUser(
   }, {});
 
   const logs = [];
+  const sessions = [];
 
   for (const ninja of ninjas) {
     if (onlyNinjaIds && !onlyNinjaIds.includes(ninja.id)) continue;
@@ -314,15 +321,39 @@ export async function applyTrainingForUser(
     const session = computeTrainingSession(ninja, trainingType, mode, { cycleMultiplier });
 
     if (session.skipped) {
+      sessions.push({
+        ninjaId: ninja.id,
+        name: ninja.name,
+        grade: ninja.grade,
+        mode,
+        trainingType,
+        skipped: true,
+        skipReason: session.reason,
+        appliedGains: [],
+        sessionGains: [],
+        focusStat: null,
+      });
       logs.push(...session.logs);
       continue;
     }
 
-    const appliedLogs = await applyGainsToNinja(ninja, session);
+    const { appliedGains, sessionGains, logs: appliedLogs } = await applyGainsToNinja(ninja, session);
+    sessions.push({
+      ninjaId: ninja.id,
+      name: ninja.name,
+      grade: ninja.grade,
+      mode,
+      trainingType,
+      skipped: false,
+      skipReason: null,
+      appliedGains,
+      sessionGains,
+      focusStat: session.focusStat,
+    });
     logs.push(...appliedLogs);
   }
 
-  return { logs };
+  return { logs, sessions };
 }
 
 export function previewTrainingSession(ninja, trainingType, mode, { cycleMultiplier = 1 } = {}) {

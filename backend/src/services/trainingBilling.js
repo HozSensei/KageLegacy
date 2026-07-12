@@ -166,21 +166,24 @@ export async function processTrainingBillingForUser(userId) {
   ]);
 
   const trainingLogs = [];
+  const trainingResults = [];
 
   if (globalTrainingType) {
-    const { logs: globalLogs } = await applyTrainingForUser(userId, {
+    const { logs: globalLogs, sessions: globalSessions } = await applyTrainingForUser(userId, {
       mode: 'global',
       globalTrainingType,
     });
     trainingLogs.push(...globalLogs);
+    trainingResults.push(...globalSessions);
   }
 
   if (paidNinjaIds.length) {
-    const { logs: prepLogs } = await applyTrainingForUser(userId, {
+    const { logs: prepLogs, sessions: prepSessions } = await applyTrainingForUser(userId, {
       mode: 'preparation',
       onlyNinjaIds: paidNinjaIds,
     });
     trainingLogs.push(...prepLogs);
+    trainingResults.push(...prepSessions);
   }
 
   const totalCost = billingLogs
@@ -197,6 +200,7 @@ export async function processTrainingBillingForUser(userId) {
       totalCost,
       billingLogs,
       trainingLogs,
+      trainingResults,
       balanceAfter: afterInterest,
       globalTrainingType,
     });
@@ -205,6 +209,7 @@ export async function processTrainingBillingForUser(userId) {
   return {
     billingLogs,
     trainingLogs,
+    trainingResults,
     paidCount: paidNinjaIds.length,
     skippedCount: planned.length - paidNinjaIds.length,
   };
