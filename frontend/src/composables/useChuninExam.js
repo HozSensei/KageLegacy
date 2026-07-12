@@ -1,4 +1,4 @@
-import { ninjaOverallRating } from './ninjaRating.js'
+import { ninjaOverallRating } from '../utils/ninjaRating.js'
 
 export const CHUNIN_AVERAGE_REQUIRED = 8
 export const CHUNIN_PROMOTION_RYOS_MIN = 300
