@@ -11,7 +11,6 @@ import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import DailySealPanel from '../components/bureau/DailySealPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
-import BureauActivityPanel from '../components/bureau/BureauActivityPanel.vue'
 
 defineOptions({ name: 'BureauView' })
 
@@ -33,6 +32,10 @@ const showOperationBanner = computed(() => {
 
 const debtFrozen = computed(
   () => (store.sensei?.ryos ?? 0) < 0 || store.sensei?.salaryDebt
+)
+
+const journalUnreadCount = computed(() =>
+  (store.activityFeed || []).filter((note) => !note.read).length
 )
 
 onMounted(async () => {
@@ -74,7 +77,22 @@ onMounted(async () => {
 
       <StagnationAlert />
 
-      <BureauActivityPanel />
+      <router-link
+        to="/journal"
+        class="mt-10 flex items-center justify-between gap-4 border border-line bg-bg-card/40 px-4 py-3 transition hover:border-accent/40 hover:bg-bg-card"
+        data-testid="bureau-journal-link"
+      >
+        <div class="min-w-0">
+          <p class="section-label">{{ t('bureau.activityTitle') }}</p>
+          <p class="mt-1 text-sm text-ink-muted">{{ t('bureau.activityTeaser') }}</p>
+        </div>
+        <span
+          v-if="journalUnreadCount > 0"
+          class="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-fire px-1.5 text-[10px] font-medium text-bg"
+        >
+          {{ journalUnreadCount > 9 ? '9+' : journalUnreadCount }}
+        </span>
+      </router-link>
 
       <dl class="metric-row mt-12">
         <div class="metric-item">

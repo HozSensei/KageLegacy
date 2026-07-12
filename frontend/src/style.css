@@ -216,18 +216,6 @@
     @apply border-accent bg-bg-card text-accent;
   }
 
-  .app-bottom-nav__link {
-    @apply flex min-h-14 flex-col items-center justify-center px-1 py-2 text-center text-[10px] uppercase tracking-[0.08em] text-ink-muted transition hover:text-ink;
-  }
-
-  .app-bottom-nav__link--active {
-    @apply text-accent;
-  }
-
-  .app-bottom-nav__label {
-    @apply line-clamp-2 leading-tight;
-  }
-
   .cycle-progress__clock {
     @apply text-[11px] uppercase tracking-[0.08em] text-ink-faint;
   }

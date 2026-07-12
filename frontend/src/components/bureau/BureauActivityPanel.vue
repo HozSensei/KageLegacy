@@ -7,6 +7,10 @@ import { useNotificationCopy } from '../../composables/useNotificationCopy'
 
 defineOptions({ name: 'BureauActivityPanel' })
 
+defineProps({
+  standalone: { type: Boolean, default: false },
+})
+
 const { t, locale } = useI18n()
 const router = useRouter()
 const store = useSquadStore()
@@ -33,9 +37,14 @@ function openNote(note) {
 </script>
 
 <template>
-  <section class="mt-10 border-t border-line pt-8" data-testid="bureau-activity-panel">
-    <p class="section-label">{{ t('bureau.activityTitle') }}</p>
-    <p class="mt-2 text-sm text-ink-muted">{{ t('bureau.activityHint') }}</p>
+  <section
+    :class="standalone ? 'mt-10' : 'mt-10 border-t border-line pt-8'"
+    data-testid="cycle-journal-feed"
+  >
+    <template v-if="!standalone">
+      <p class="section-label">{{ t('bureau.activityTitle') }}</p>
+      <p class="mt-2 text-sm text-ink-muted">{{ t('bureau.activityHint') }}</p>
+    </template>
 
     <p v-if="!feed.length" class="mt-4 text-sm text-ink-faint">
       {{ t('bureau.activityEmpty') }}

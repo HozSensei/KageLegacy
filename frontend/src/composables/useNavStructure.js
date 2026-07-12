@@ -13,7 +13,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'hub',
         labelKey: 'nav.groups.hub',
-        items: pick('bureau', 'profile'),
+        items: pick('bureau', 'journal', 'profile'),
       },
       {
         id: 'squad',
@@ -40,17 +40,10 @@ export function useNavStructure({ navItems, isActive, t }) {
     return sections.filter((section) => section.items.length > 0)
   })
 
-  const bottomNavItems = computed(() => {
-    const preferred = ['bureau', 'squad', 'missions', 'league', 'operation']
-    return preferred
-      .map((name) => items.value.find((item) => item.name === name))
-      .filter(Boolean)
-  })
-
   const currentSectionLabel = computed(() => {
     const active = items.value.find((item) => isActive(item.path))
     return active ? t(active.label) : ''
   })
 
-  return { groups, bottomNavItems, currentSectionLabel }
+  return { groups, currentSectionLabel }
 }

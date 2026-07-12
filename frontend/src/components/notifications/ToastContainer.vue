@@ -8,7 +8,7 @@ const { toasts, dismiss } = useToast()
 
 <template>
   <div
-    class="pointer-events-none fixed bottom-20 right-4 z-50 flex max-w-sm flex-col gap-2 sm:bottom-6"
+    class="pointer-events-none fixed bottom-6 right-4 z-50 flex max-w-sm flex-col gap-2"
     aria-live="polite"
     data-testid="toast-container"
   >

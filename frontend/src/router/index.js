@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '../layouts/AppLayout.vue'
 import LandingView from '../views/LandingView.vue'
 import BureauView from '../views/BureauView.vue'
+import CycleJournalView from '../views/CycleJournalView.vue'
 import SquadView from '../views/SquadView.vue'
 import LeagueView from '../views/LeagueView.vue'
 import MarketView from '../views/MarketView.vue'
@@ -36,6 +37,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' } } },
+        { path: 'journal', name: 'journal', component: CycleJournalView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'journal.title' } } },
         { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
         { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
         {
