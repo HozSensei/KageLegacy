@@ -20,7 +20,7 @@ const chuninList = computed(() => {
     .map((n) => ({ ninja: n, progress: getBirdFlightProgress(n) }))
     .sort((a, b) => {
       if (a.progress.ready !== b.progress.ready) return a.progress.ready ? -1 : 1
-      return b.progress.combat - a.progress.combat
+      return b.progress.average - a.progress.average
     })
 })
 
@@ -71,26 +71,18 @@ async function register(ninjaId) {
         </div>
 
         <p class="mt-1 text-[11px] text-ink-faint">
-          {{ t('bureau.birdFlight.combat') }}
-          <span :class="progress.combat >= progress.combatRequired ? 'text-accent-soft' : 'text-ink-muted'">
-            {{ progress.combat }}/{{ progress.combatRequired }}
-          </span>
-          ·
-          {{ t('ninja.stats.intelligence') }}
-          <span :class="progress.intelligence >= progress.intelligenceRequired ? 'text-accent-soft' : 'text-ink-muted'">
-            {{ progress.intelligence }}/{{ progress.intelligenceRequired }}
+          {{ t('bureau.birdFlight.average') }}
+          <span :class="progress.average >= progress.averageRequired ? 'text-accent-soft' : 'text-ink-muted'">
+            {{ progress.average }}/{{ progress.averageRequired }}
           </span>
           <span v-if="ninja.birdFlightPeak" class="ml-2 text-accent">
             · {{ t('bureau.birdFlight.peak') }}
           </span>
         </p>
 
-        <div class="mt-2 flex gap-3">
-          <div class="exam-bar flex-1">
-            <div class="exam-bar__fill" :style="{ width: `${progress.combatRatio * 100}%` }" />
-          </div>
-          <div class="exam-bar flex-1">
-            <div class="exam-bar__fill exam-bar__fill--iq" :style="{ width: `${progress.intelligenceRatio * 100}%` }" />
+        <div class="mt-2">
+          <div class="exam-bar">
+            <div class="exam-bar__fill" :style="{ width: `${progress.averageRatio * 100}%` }" />
           </div>
         </div>
 

@@ -6,8 +6,8 @@
 import { simulateCombat } from '../combat/combatEngine.js';
 import { buildCombatTeam } from '../combat/matchLoader.js';
 import { FORME_DOWNGRADE } from '../combat/constants.js';
-import { computeTrainingGain } from '../training.js';
-import { clampStatToGradeCap, isStatAtGradeCap } from '../gradeProgression.js';
+import { computeTrainingSession, parseStatResiduals } from '../training.js';
+import { clampStatToGradeCap } from '../gradeProgression.js';
 import { clampStat } from '../ninjaStats.js';
 import { collectEquipmentSummary } from '../combat/equipment.js';
 import {
@@ -27,7 +27,11 @@ function pick(arr, i = 0) {
 }
 
 export function cloneNinja(ninja) {
-  return { ...ninja, training_residual: ninja.training_residual ?? 0 };
+  return {
+    ...ninja,
+    stat_residuals: parseStatResiduals(ninja),
+    training_residual: ninja.training_residual ?? 0,
+  };
 }
 
 export function createNinja({
@@ -212,23 +216,31 @@ export function applyPostMatchToSquad(ninjas, koNinjaIds) {
   }
 }
 
-export function applyTrainingToSquad(ninjas) {
+export function applyTrainingToSquad(ninjas, { globalTrainingType = 'Chakra' } = {}) {
   const logs = [];
   for (const ninja of ninjas) {
-    if (!ninja.training_focus) continue;
-    const result = computeTrainingGain(ninja);
-    if (result.skipped) continue;
+    const prepType = ninja.preparation_type ?? ninja.training_focus;
+    const sessions = [];
+    if (globalTrainingType) {
+      sessions.push(computeTrainingSession(ninja, globalTrainingType, 'global', { rngMultiplier: 1 }));
+    }
+    if (prepType && ninja.squad_position) {
+      sessions.push(computeTrainingSession(ninja, prepType, 'preparation', { rngMultiplier: 1 }));
+    }
 
-    const column = result.column;
-    if (isStatAtGradeCap(ninja, column)) continue;
-
-    const residual = Number(ninja.training_residual || 0) + result.gain;
-    const wholePoints = Math.floor(residual);
-    ninja.training_residual = residual - wholePoints;
-
-    if (wholePoints > 0) {
-      ninja[column] = clampStatToGradeCap(ninja, column, ninja[column] + wholePoints);
-      logs.push({ ninja: ninja.name, stat: column, delta: wholePoints });
+    for (const session of sessions) {
+      if (session.skipped) continue;
+      const residuals = parseStatResiduals(ninja);
+      for (const { column, gain } of session.gains) {
+        const residual = (Number(residuals[column]) || 0) + gain;
+        const wholePoints = Math.floor(residual);
+        residuals[column] = residual - wholePoints;
+        if (wholePoints > 0) {
+          ninja[column] = clampStatToGradeCap(ninja, column, ninja[column] + wholePoints);
+          logs.push({ ninja: ninja.name, stat: column, delta: wholePoints });
+        }
+      }
+      ninja.stat_residuals = residuals;
     }
   }
   return logs;
@@ -335,10 +347,18 @@ export function runMultiCycle({
     applyPostMatchToSquad(slotA, koSlotA);
     applyPostMatchToSquad(slotB, koSlotB);
 
-    for (const n of slotA) n.training_focus = slotASensei.training_focus;
-    for (const n of slotB) n.training_focus = slotBSensei.training_focus;
-    applyTrainingToSquad(slotA);
-    applyTrainingToSquad(slotB);
+    const typeA = trainingTypeFromSensei(slotASensei);
+    const typeB = trainingTypeFromSensei(slotBSensei);
+    for (const n of slotA) {
+      n.preparation_type = typeA;
+      n.squad_position = n.squad_position ?? 1;
+    }
+    for (const n of slotB) {
+      n.preparation_type = typeB;
+      n.squad_position = n.squad_position ?? 1;
+    }
+    applyTrainingToSquad(slotA, { globalTrainingType: typeA });
+    applyTrainingToSquad(slotB, { globalTrainingType: typeB });
 
     timeline.push({
       cycle,
@@ -356,6 +376,20 @@ export function runMultiCycle({
     finalSlotB: squadSnapshot(slotB),
     timeline,
   };
+}
+
+const LEGACY_FOCUS_TO_TYPE = {
+  Taijutsu: 'Physique',
+  Ninjutsu: 'Ninjutsu',
+  Genjutsu: 'Genjutsu',
+  Medecine: 'Medical',
+  Vitesse: 'Physique',
+  Intelligence: 'Chakra',
+};
+
+function trainingTypeFromSensei(sensei) {
+  const raw = sensei?.global_training_type ?? sensei?.training_focus ?? 'Ninjutsu';
+  return LEGACY_FOCUS_TO_TYPE[raw] ?? raw;
 }
 
 const COMPOSITION_STRATEGY = {

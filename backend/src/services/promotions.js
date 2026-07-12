@@ -1,6 +1,8 @@
 import { query } from '../config/database.js';
-import { computeMatchChakraMax, computeSalaryCost, clampStat } from './ninjaStats.js';
-import { meetsChuninRequirements } from './chuninExam.js';
+import { computeMatchChakraMax, computeSalaryCost, clampStat, ninjaOverallRating } from './ninjaStats.js';
+import { meetsChuninRequirements, CHUNIN_AVERAGE_REQUIRED } from './chuninExam.js';
+import { computeChuninPromotionRewards } from './chuninPromotionRewards.js';
+import { grantItemToUser } from './itemGrantService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 
 export async function processChuninExamsForUser(userId) {
@@ -14,21 +16,45 @@ export async function processChuninExamsForUser(userId) {
 
   for (const ninja of candidates) {
     if (meetsChuninRequirements(ninja)) {
+      const rewards = computeChuninPromotionRewards(ninja);
       const salary_cost = computeSalaryCost('Chunin', ninja);
       const current_chakra_match = computeMatchChakraMax('Chunin', ninja.ninjutsu);
+      const grantedItems = await grantItemToUser(userId, rewards.itemSlug, 1);
+
       await query(
         `UPDATE ninjas
-         SET grade = 'Chunin', salary_cost = ?, current_chakra_match = ?, chunin_exam_requested = FALSE
+         SET grade = 'Chunin',
+             salary_cost = ?,
+             current_chakra_match = ?,
+             chunin_exam_requested = FALSE,
+             moral = ?,
+             weekly_forme = ?
          WHERE id = ?`,
-        [salary_cost, current_chakra_match, ninja.id]
+        [salary_cost, current_chakra_match, rewards.newMoral, rewards.newForme, ninja.id]
       );
+      await query(
+        'UPDATE sensei SET ryos = ryos + ?, reputation = reputation + ? WHERE user_id = ?',
+        [rewards.ryos, rewards.reputation, userId]
+      );
+
       await createSenseiNotification(userId, 'chunin_exam_success', {
         ninjaId: ninja.id,
         name: ninja.name,
-        combatStat: Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine),
-        intelligence: ninja.intelligence,
+        overallRating: ninjaOverallRating(ninja),
+        ryosReward: rewards.ryos,
+        reputationReward: rewards.reputation,
+        itemSlug: rewards.itemSlug,
+        moralAfter: rewards.newMoral,
+        formeAfter: rewards.newForme,
+        moralBoost: rewards.moralBoost,
       });
-      results.push({ ninjaId: ninja.id, name: ninja.name, outcome: 'success' });
+
+      results.push({
+        ninjaId: ninja.id,
+        name: ninja.name,
+        outcome: 'success',
+        rewards: { ...rewards, itemGranted: grantedItems.length > 0 },
+      });
     } else {
       const moral = clampStat(ninja.moral - 5);
       await query(
@@ -39,10 +65,8 @@ export async function processChuninExamsForUser(userId) {
         ninjaId: ninja.id,
         name: ninja.name,
         moral,
-        combatStat: Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine),
-        combatRequired: 10,
-        intelligence: ninja.intelligence,
-        intelligenceRequired: 8,
+        overallRating: ninjaOverallRating(ninja),
+        averageRequired: CHUNIN_AVERAGE_REQUIRED,
       });
       results.push({ ninjaId: ninja.id, name: ninja.name, outcome: 'failure', moral });
     }

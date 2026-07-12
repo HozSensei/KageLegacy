@@ -24,9 +24,9 @@ export const CYCLE_MILESTONES = [
     shortKey: 'cycleProgress.milestones.mid.short',
     titleKey: 'cycleProgress.milestones.mid.title',
     eventKeys: [
-      'cycleProgress.events.mid.chunin',
       'cycleProgress.events.mid.scoutTendencies',
       'cycleProgress.events.mid.management',
+      'cycleProgress.events.mid.chuninRegistration',
       'cycleProgress.events.mid.birdFlight',
     ],
   },
@@ -62,6 +62,7 @@ export const CYCLE_MILESTONES = [
       'cycleProgress.events.end.missions',
       'cycleProgress.events.end.match',
       'cycleProgress.events.end.salaries',
+      'cycleProgress.events.end.chunin',
       'cycleProgress.events.end.training',
       'cycleProgress.events.end.birdFlight',
       'cycleProgress.events.end.stagnation',

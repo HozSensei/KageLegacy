@@ -2,11 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
-import {
-  computeChuninExamCost,
-  canRegisterForExam,
-  getChuninExamProgress,
-} from '../../composables/useChuninExam.js'
+import { canRegisterForExam, getChuninExamProgress } from '../../composables/useChuninExam.js'
 import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
 
 const { t } = useI18n()
@@ -25,10 +21,10 @@ const geninList = computed(() => {
     })
 })
 
-const registrationOpen = computed(() => (store.gameClock?.hour ?? 0) < 36)
-const debtBlocked = computed(
-  () => (store.sensei?.ryos ?? 0) < 0 || store.sensei?.salaryDebt
-)
+const registrationOpen = computed(() => {
+  const hour = store.gameClock?.hour ?? 0
+  return hour < 72 && !store.gameClock?.cycleComplete
+})
 
 async function register(ninjaId) {
   registeringId.value = ninjaId
@@ -52,9 +48,6 @@ async function register(ninjaId) {
     <p v-if="!registrationOpen" class="mt-4 text-xs text-ink-muted">
       {{ t('bureau.chuninExam.closed') }}
     </p>
-    <p v-else-if="debtBlocked" class="mt-4 text-xs text-fire">
-      {{ t('bureau.chuninExam.debtBlocked') }}
-    </p>
 
     <p v-if="localError" class="mt-4 text-xs text-fire">{{ localError }}</p>
 
@@ -71,32 +64,37 @@ async function register(ninjaId) {
         </div>
 
         <p class="mt-1 text-[11px] text-ink-faint">
-          {{ t('bureau.chuninExam.combat') }}
-          <span :class="progress.combat >= progress.combatRequired ? 'text-accent-soft' : 'text-ink-muted'">
-            {{ progress.combat }}/{{ progress.combatRequired }}
-          </span>
-          ·
-          {{ t('ninja.stats.intelligence') }}
-          <span :class="progress.intelligence >= progress.intelligenceRequired ? 'text-accent-soft' : 'text-ink-muted'">
-            {{ progress.intelligence }}/{{ progress.intelligenceRequired }}
+          {{ t('bureau.chuninExam.average') }}
+          <span :class="progress.average >= progress.averageRequired ? 'text-accent-soft' : 'text-ink-muted'">
+            {{ progress.average }}/{{ progress.averageRequired }}
           </span>
         </p>
 
-        <div class="mt-2 flex gap-3">
-          <div class="exam-bar flex-1">
-            <div class="exam-bar__fill" :style="{ width: `${progress.combatRatio * 100}%` }" />
-          </div>
-          <div class="exam-bar flex-1">
-            <div class="exam-bar__fill exam-bar__fill--iq" :style="{ width: `${progress.intelligenceRatio * 100}%` }" />
+        <div class="mt-2">
+          <div class="exam-bar">
+            <div class="exam-bar__fill" :style="{ width: `${progress.averageRatio * 100}%` }" />
           </div>
         </div>
+
+        <p
+          v-if="progress.promotionRewards"
+          class="mt-2 text-[11px] leading-relaxed text-accent-soft"
+        >
+          {{
+            t('bureau.chuninExam.rewardPreview', {
+              ryos: progress.promotionRewards.ryos.toLocaleString(),
+              reputation: progress.promotionRewards.reputation,
+              moral: progress.promotionRewards.moralBoost,
+            })
+          }}
+        </p>
 
         <p v-if="ninja.stagnationRisk && !ninja.chunin_exam_requested" class="mt-2 text-[11px] text-fire">
           {{ t('bureau.chuninExam.stagnationWarning') }}
         </p>
 
         <button
-          v-if="canRegisterForExam(ninja, store.gameClock, store.sensei)"
+          v-if="canRegisterForExam(ninja, store.gameClock)"
           type="button"
           class="btn-ghost mt-3 text-[10px]"
           :disabled="registeringId === ninja.id"
@@ -105,7 +103,7 @@ async function register(ninjaId) {
           {{
             registeringId === ninja.id
               ? t('bureau.chuninExam.sending')
-              : t('bureau.chuninExam.submit', { cost: computeChuninExamCost(ninja) })
+              : t('bureau.chuninExam.submit')
           }}
         </button>
       </li>

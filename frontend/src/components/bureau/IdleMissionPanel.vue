@@ -146,7 +146,8 @@ function ninjaOptionLabel(ninja) {
   const parts = [ninja.name]
   if (ninja.grade) parts.push(t(`grades.${ninja.grade}`))
   if (ninja.element_affinity) parts.push(t(`elements.${ninja.element_affinity}`))
-  if (ninja.training_focus) parts.push(t(`ninja.stats.${ninja.training_focus.toLowerCase()}`))
+  const prepType = ninja.preparation_type ?? ninja.preparationType
+  if (prepType) parts.push(t(`training.types.${prepType}`))
   const blocked = ninjaBlockedReason(ninja)
   if (blocked) parts.push(`(${blocked})`)
   return parts.join(' · ')

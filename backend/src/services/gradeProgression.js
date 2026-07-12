@@ -1,10 +1,6 @@
 import { clampStat } from './ninjaStats.js';
-import { COMBAT_REQUIRED, IQ_REQUIRED, combatStat, meetsChuninRequirements } from './chuninExam.js';
-import {
-  BIRD_FLIGHT_COMBAT_REQUIRED,
-  BIRD_FLIGHT_IQ_REQUIRED,
-  meetsBirdFlightRequirements,
-} from './birdFlightExam.js';
+import { meetsChuninRequirements } from './chuninExam.js';
+import { meetsBirdFlightRequirements } from './birdFlightExam.js';
 
 export { meetsBirdFlightRequirements, hasReachedTeachingPeak } from './birdFlightExam.js';
 
@@ -36,10 +32,6 @@ export const GRADE_STAT_CAPS = {
   },
 };
 
-const CHUNIN_EXAM_BASE_COST = 300;
-const CHUNIN_EXAM_COMBAT_STEP = 40;
-const CHUNIN_EXAM_IQ_STEP = 30;
-
 const FORME_DOWNGRADE = {
   Divin: 'Excellent',
   Excellent: 'Passable',
@@ -60,29 +52,49 @@ export function clampStatToGradeCap(ninja, stat, value) {
   return clampStat(Math.min(value, cap));
 }
 
-export function computeChuninExamCost(ninja) {
-  const combat = combatStat(ninja);
-  const iq = ninja.intelligence;
-  const extraCombat = Math.max(0, combat - COMBAT_REQUIRED) * CHUNIN_EXAM_COMBAT_STEP;
-  const extraIq = Math.max(0, iq - IQ_REQUIRED) * CHUNIN_EXAM_IQ_STEP;
-  return CHUNIN_EXAM_BASE_COST + extraCombat + extraIq;
+/** @deprecated Examen Chunin gratuit depuis la refonte primes promotion. */
+export function computeChuninExamCost() {
+  return 0;
 }
 
-export function isGeninStagnant(ninja) {
+export function isGeninStagnantCandidate(ninja) {
   if (ninja.grade !== 'Genin') return false;
   if (!meetsChuninRequirements(ninja)) return false;
   if (ninja.chunin_exam_requested) return false;
   return true;
 }
 
-export function isChuninStagnant(ninja) {
+export function isChuninStagnantCandidate(ninja) {
   if (ninja.grade !== 'Chunin') return false;
   if (ninja.bird_flight_requested) return false;
   return meetsBirdFlightRequirements(ninja);
 }
 
+/** Prêt à monter mais pas encore inscrit — alerte UI (cycle de grâce inclus). */
+export function isGeninStagnant(ninja) {
+  return isGeninStagnantCandidate(ninja);
+}
+
+export function isChuninStagnant(ninja) {
+  return isChuninStagnantCandidate(ninja);
+}
+
+export function isStagnantCandidate(ninja) {
+  return isGeninStagnantCandidate(ninja) || isChuninStagnantCandidate(ninja);
+}
+
+/** Pénalité H72 : après 1 cycle de grâce (stagnant_cycles ≥ 1). */
+export function shouldApplyStagnationPenalty(ninja) {
+  if (!isStagnantCandidate(ninja)) return false;
+  return (ninja.stagnant_cycles ?? 0) >= 1;
+}
+
 export function isStagnant(ninja) {
-  return isGeninStagnant(ninja) || isChuninStagnant(ninja);
+  return shouldApplyStagnationPenalty(ninja);
+}
+
+export function hasStagnationGrace(ninja) {
+  return isStagnantCandidate(ninja) && (ninja.stagnant_cycles ?? 0) < 1;
 }
 
 export function applyStagnationPenalty(ninja) {

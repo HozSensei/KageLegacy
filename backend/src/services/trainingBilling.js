@@ -2,7 +2,11 @@ import { query } from '../config/database.js';
 import { computeSalaryCost } from './ninjaStats.js';
 import { getCycleEquipmentByUser } from './equipmentService.js';
 import { getSalaryDiscountPercent } from './combat/equipment.js';
-import { applyTrainingForUser, computeTrainingCost, FOCUS_VALUES } from './training.js';
+import {
+  applyTrainingForUser,
+  computeTrainingCost,
+  TRAINING_TYPE_VALUES,
+} from './training.js';
 import { getHeritageBonuses, applyPercentDiscount } from './heritageService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 
@@ -48,11 +52,15 @@ export async function computeSalaryTotalForUser(userId) {
 }
 
 export async function getCycleBudgetPreview(userId) {
-  const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [userId]);
+  const senseiRows = await query(
+    'SELECT ryos, global_training_type FROM sensei WHERE user_id = ?',
+    [userId]
+  );
   const ryos = senseiRows[0]?.ryos ?? 0;
+  const globalTrainingType = senseiRows[0]?.global_training_type ?? null;
 
   const ninjas = await query(
-    `SELECT id, name, grade, training_focus,
+    `SELECT id, name, grade, preparation_type, squad_position,
             taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence
      FROM ninjas WHERE user_id = ?`,
     [userId]
@@ -64,7 +72,7 @@ export async function getCycleBudgetPreview(userId) {
   const trainingLines = [];
   let trainingTotal = 0;
   for (const ninja of ninjas) {
-    if (!ninja.training_focus) continue;
+    if (!ninja.squad_position || !ninja.preparation_type) continue;
     const amount = applyPercentDiscount(
       computeTrainingCost(ninja),
       heritage.trainingDiscountPct
@@ -73,9 +81,9 @@ export async function getCycleBudgetPreview(userId) {
     trainingLines.push({
       ninjaId: ninja.id,
       ninjaName: ninja.name,
-      focus: ninja.training_focus,
+      trainingType: ninja.preparation_type,
       amount,
-      label: 'entrainement',
+      label: 'preparation',
     });
   }
 
@@ -96,6 +104,8 @@ export async function getCycleBudgetPreview(userId) {
     trainingLines,
     salaryLines,
     ninjasWithPlan: trainingLines.length,
+    globalTrainingType,
+    globalTrainingFree: Boolean(globalTrainingType),
   };
 }
 
@@ -106,19 +116,22 @@ function applyInterest(balance) {
 }
 
 /**
- * Facturation H72 puis application des gains (opt-in par ninja).
- * Ordre : après salaires. Ninjas non couverts = pas de gain.
+ * Facturation H72 : préparation payante (actifs), entraînement global gratuit (toute l'équipe).
  */
 export async function processTrainingBillingForUser(userId) {
-  const senseiRows = await query('SELECT ryos FROM sensei WHERE user_id = ?', [userId]);
+  const senseiRows = await query(
+    'SELECT ryos, global_training_type FROM sensei WHERE user_id = ?',
+    [userId]
+  );
   let balance = senseiRows[0]?.ryos ?? 0;
+  const globalTrainingType = senseiRows[0]?.global_training_type ?? null;
 
   const planned = await query(
-    `SELECT id, name, grade, training_focus,
+    `SELECT id, name, grade, preparation_type, squad_position,
             taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
-            age, character_trait, training_residual, training_buff
+            age, character_trait, stat_residuals, training_buff
      FROM ninjas
-     WHERE user_id = ? AND training_focus IS NOT NULL
+     WHERE user_id = ? AND squad_position IS NOT NULL AND preparation_type IS NOT NULL
      ORDER BY id`,
     [userId]
   );
@@ -132,13 +145,13 @@ export async function processTrainingBillingForUser(userId) {
     const after = balance - cost;
     if (after < OVERDRAFT_LIMIT) {
       billingLogs.push(
-        `${ninja.name} : entraînement ${ninja.training_focus} annulé (Ryos insuffisants, découvert max ${OVERDRAFT_LIMIT}).`
+        `${ninja.name} : préparation ${ninja.preparation_type} annulée (Ryos insuffisants, découvert max ${OVERDRAFT_LIMIT}).`
       );
       continue;
     }
     balance = after;
     paidNinjaIds.push(ninja.id);
-    billingLogs.push(`${ninja.name} : −${cost} Ryos (entraînement ${ninja.training_focus}).`);
+    billingLogs.push(`${ninja.name} : −${cost} Ryos (préparation ${ninja.preparation_type}).`);
   }
 
   const { balance: afterInterest, interest } = applyInterest(balance);
@@ -152,7 +165,26 @@ export async function processTrainingBillingForUser(userId) {
     userId,
   ]);
 
-  const { logs: trainingLogs } = await applyTrainingForUser(userId, { onlyNinjaIds: paidNinjaIds });
+  const trainingLogs = [];
+  const trainingResults = [];
+
+  if (globalTrainingType) {
+    const { logs: globalLogs, sessions: globalSessions } = await applyTrainingForUser(userId, {
+      mode: 'global',
+      globalTrainingType,
+    });
+    trainingLogs.push(...globalLogs);
+    trainingResults.push(...globalSessions);
+  }
+
+  if (paidNinjaIds.length) {
+    const { logs: prepLogs, sessions: prepSessions } = await applyTrainingForUser(userId, {
+      mode: 'preparation',
+      onlyNinjaIds: paidNinjaIds,
+    });
+    trainingLogs.push(...prepLogs);
+    trainingResults.push(...prepSessions);
+  }
 
   const totalCost = billingLogs
     .filter((line) => line.includes('−') && line.includes('Ryos'))
@@ -161,18 +193,26 @@ export async function processTrainingBillingForUser(userId) {
       return sum + (match ? Number(match[1]) : 0);
     }, 0);
 
-  if (planned.length > 0 || billingLogs.length > 0 || trainingLogs.length > 0) {
+  if (planned.length > 0 || globalTrainingType || billingLogs.length > 0 || trainingLogs.length > 0) {
     await createSenseiNotification(userId, 'training_billing', {
       paidCount: paidNinjaIds.length,
       skippedCount: planned.length - paidNinjaIds.length,
       totalCost,
       billingLogs,
       trainingLogs,
+      trainingResults,
       balanceAfter: afterInterest,
+      globalTrainingType,
     });
   }
 
-  return { billingLogs, trainingLogs, paidCount: paidNinjaIds.length, skippedCount: planned.length - paidNinjaIds.length };
+  return {
+    billingLogs,
+    trainingLogs,
+    trainingResults,
+    paidCount: paidNinjaIds.length,
+    skippedCount: planned.length - paidNinjaIds.length,
+  };
 }
 
 export async function processTrainingBillingForAllUsers() {
@@ -184,4 +224,4 @@ export async function processTrainingBillingForAllUsers() {
   return results;
 }
 
-export { FOCUS_VALUES };
+export { TRAINING_TYPE_VALUES };

@@ -1,5 +1,9 @@
 import { query } from '../config/database.js';
-import { applyStagnationPenalty, isStagnant } from './gradeProgression.js';
+import {
+  applyStagnationPenalty,
+  isStagnantCandidate,
+  shouldApplyStagnationPenalty,
+} from './gradeProgression.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 
 export async function applyStagnationForUser(userId) {
@@ -7,14 +11,30 @@ export async function applyStagnationForUser(userId) {
   const results = [];
 
   for (const ninja of ninjas) {
-    if (!isStagnant(ninja)) continue;
+    if (!isStagnantCandidate(ninja)) {
+      if ((ninja.stagnant_cycles ?? 0) > 0) {
+        await query('UPDATE ninjas SET stagnant_cycles = 0 WHERE id = ?', [ninja.id]);
+      }
+      continue;
+    }
+
+    if (!shouldApplyStagnationPenalty(ninja)) {
+      await query('UPDATE ninjas SET stagnant_cycles = 1 WHERE id = ?', [ninja.id]);
+      results.push({
+        ninjaId: ninja.id,
+        name: ninja.name,
+        grade: ninja.grade,
+        grace: true,
+        reason: ninja.grade === 'Genin' ? 'genin_exam_pending' : 'chunin_departure_pending',
+      });
+      continue;
+    }
 
     const { weeklyForme, moral } = applyStagnationPenalty(ninja);
-    await query('UPDATE ninjas SET weekly_forme = ?, moral = ? WHERE id = ?', [
-      weeklyForme,
-      moral,
-      ninja.id,
-    ]);
+    await query(
+      'UPDATE ninjas SET weekly_forme = ?, moral = ?, stagnant_cycles = stagnant_cycles + 1 WHERE id = ?',
+      [weeklyForme, moral, ninja.id]
+    );
 
     results.push({
       ninjaId: ninja.id,
@@ -22,6 +42,7 @@ export async function applyStagnationForUser(userId) {
       grade: ninja.grade,
       weeklyForme,
       moral,
+      grace: false,
       reason: ninja.grade === 'Genin' ? 'genin_exam_pending' : 'chunin_departure_pending',
     });
   }

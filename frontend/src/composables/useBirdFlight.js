@@ -1,30 +1,24 @@
-import { combatStat } from './useChuninExam.js'
-import {
-  BIRD_FLIGHT_COMBAT_REQUIRED,
-  BIRD_FLIGHT_IQ_REQUIRED,
-} from '../constants/birdFlight.js'
+import { ninjaOverallRating } from '../utils/ninjaRating.js'
+
+export const BIRD_FLIGHT_AVERAGE_REQUIRED = 14
 
 export function getBirdFlightProgress(ninja) {
-  if (ninja.birdFlightProgress) return ninja.birdFlightProgress
-  const combat = combatStat(ninja)
-  const intelligence = ninja.intelligence
-  const ready = combat >= BIRD_FLIGHT_COMBAT_REQUIRED && intelligence >= BIRD_FLIGHT_IQ_REQUIRED
+  const average = ninjaOverallRating(ninja)
   return {
-    combat,
-    combatRequired: BIRD_FLIGHT_COMBAT_REQUIRED,
-    intelligence,
-    intelligenceRequired: BIRD_FLIGHT_IQ_REQUIRED,
-    ready,
-    combatRatio: Math.min(1, combat / BIRD_FLIGHT_COMBAT_REQUIRED),
-    intelligenceRatio: Math.min(1, intelligence / BIRD_FLIGHT_IQ_REQUIRED),
+    average,
+    averageRequired: BIRD_FLIGHT_AVERAGE_REQUIRED,
+    ready: ninja.grade === 'Chunin' && average >= BIRD_FLIGHT_AVERAGE_REQUIRED,
+    averageRatio: Math.min(1, average / BIRD_FLIGHT_AVERAGE_REQUIRED),
   }
 }
 
 export function canRegisterBirdFlight(ninja, gameClock) {
-  if (ninja.grade !== 'Chunin') return false
-  if (ninja.bird_flight_requested) return false
-  if (!getBirdFlightProgress(ninja).ready) return false
   const hour = gameClock?.hour ?? 0
-  if (hour >= 72 || gameClock?.cycleComplete) return false
-  return true
+  return (
+    ninja.grade === 'Chunin' &&
+    !ninja.bird_flight_requested &&
+    getBirdFlightProgress(ninja).ready &&
+    hour < 72 &&
+    !gameClock?.cycleComplete
+  )
 }

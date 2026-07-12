@@ -13,7 +13,7 @@ Each cycle is a synchronized "game week" for all players on the server.
 | Phase | Period | Main activities |
 |-------|--------|-----------------|
 | **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy, **reconnaissance mission (H0–H36)** |
-| **Mid-cycle** | H36 → H70 | Chunin exams (H36), scouting, ongoing management |
+| **Mid-cycle** | H36 → H70 | Opponent tendencies, scouting, ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
@@ -28,7 +28,8 @@ Each cycle is a synchronized "game week" for all players on the server.
 ### Automatic milestones
 
 - **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
-- **H36**: Chunin exams resolved ; **opponent tendencies** (if reconnaissance completed).
+- **H36**: **opponent tendencies** (if reconnaissance completed).
+- **H72**: Chunin exam verdicts, Bird Flight, cycle closure.
 - **H54**: lineup freeze + **frozen full scout report**.
 - **H71**: league match simulation ; final orders lock ; narrative chronicle begins.
 - **H72**: economic closure and start of the next cycle.
@@ -188,10 +189,11 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 ### Chunin exam
 
-- **Registration**: before H36 (preparation phase).
-- **Resolution**: automatic at H36.
-- **Requirements**: sufficient combat stat and Intelligence.
-- **Cost**: Ryos registration fee, **higher** if the candidate is already advanced (the server indexes price on the ninja's profile).
+- **Registration**: before H72 (any time during the cycle).
+- **Resolution**: automatic at H72.
+- **Requirements**: **overall rating** ≥ 8 (sum of 6 stats ÷ 6, rounded).
+- **Registration**: **free**.
+- **Success**: 300–1,000 Ryos payout, +1 to +5 reputation, item, form +1 tier, morale +2 to +5.
 - **Success**: promotion to Chunin and raised caps.
 - **Failure**: ninja stays Genin; morale drops.
 
@@ -199,7 +201,7 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 - **Registration**: during the cycle, before H72.
 - **Resolution**: at H72.
-- **Requirements**: high combat stats and Intelligence (thresholds above Chunin exam).
+- **Requirements**: **overall rating** ≥ 14 (same formula as the Chunin exam).
 - **Registration cost**: free.
 - **Payout**: substantial, based on the departing Chunin's overall level (+ reputation).
 - **Relief**: a **commoner Genin** replacement arrives (good form and high morale).
@@ -207,18 +209,35 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 ### Stagnation
 
-At H72, a ninja **eligible** for grade advancement (exam or Bird Flight) but **not registered** is penalized: form drops one tier and morale falls. The game pushes career evolution or accepting the cost of keeping a veteran.
+At H72, a ninja **eligible** for grade advancement (exam or Bird Flight) but **not registered** is penalized after **one grace cycle**: first an warning with no malus, then form drops one tier and morale falls.
 
 ---
 
 ## 6. Training
 
-- Each ninja can receive a **focus** (targeted stat) for the current cycle.
-- Only ninjas for whom you **explicitly** chose a focus are trained.
-- Progress applies at **H72**; Ryos cost is billed then if your treasury allows.
-- Ninja age moderates efficiency: younger progress faster.
-- A stat at the **grade cap** no longer progresses until the ninja advances grade.
-- The **Office** shows spending forecast (per ninja, cycle total, estimated balance after closure).
+Two complementary levers:
+
+| | **Preparation** (actives) | **Global training** (whole squad) |
+|---|---------------------------|-----------------------------------|
+| **Cost** | Billed in Ryos at H72 | **Free** |
+| **Average gain** | 0.4 stat capital / ninja / cycle | 0.2 stat capital / ninja / cycle |
+| **Choice** | One type per starter (3 actives) | One type for the whole team |
+
+### Group types (6)
+
+Chakra (IQ, ninjutsu, genjutsu) · Physical (taijutsu, speed) · Medical · Genjutsu · Ninjutsu · Balanced (all stats).
+
+### Stat capital and variance
+
+Each ninja draws a **share** of the pot (light cycle-to-cycle variance). **Prodigies** progress faster (×1.25); **promising** ×1.1.
+
+### Stacking
+
+A starter can stack **preparation + global** (e.g. both Chakra) to reach Chunin faster (~5 cycles ordinary, ~2–3 prodigy).
+
+- Progress applies at **H72**; preparation billed if treasury allows.
+- Age moderates efficiency; stats at **grade cap** stop until promotion.
+- The **Office** shows forecast (salaries + preparation; global is free).
 
 ---
 
@@ -267,7 +286,7 @@ Missions may yield **utility items** (bandages, kits, smoke bombs, scrolls…) o
 | Item | Timing |
 |------|--------|
 | **Salaries** | H72 — active squad only |
-| **Training** | H72 — ninjas with active focus |
+| **Training** | H72 — active preparation (paid); global training free for whole squad |
 | **Chunin exam** | On registration |
 | **Hospital** | On demand |
 | **Academy** | On aspirant purchase |
@@ -449,7 +468,7 @@ The **Sensei** may try to **intercept a fatal blow** on a ninja: this spends mat
 |--------|------|
 | **Office** | Hub: budget, exams, Bird Flight, hospital, Academy, Chakra Seal |
 | **Squad** | Composition, orders, operation dossier (postures), active/bench swaps |
-| **Training** | Stat focus, cost forecast |
+| **Training** | Group types, prep + global, cost forecast |
 | **Missions** | Idle contracts |
 | **League** | Standings, schedule, scouting, reconnaissance mission |
 | **Shop** | Village item purchases |

@@ -71,7 +71,7 @@ async function enableTrainingPlans(userId) {
     [userId]
   );
   for (const ninja of ninjas) {
-    await query('UPDATE ninjas SET training_focus = ? WHERE id = ?', ['Taijutsu', ninja.id]);
+    await query('UPDATE ninjas SET preparation_type = ? WHERE id = ?', ['Physique', ninja.id]);
   }
   return ninjas.length;
 }
@@ -114,7 +114,12 @@ async function benchChuninCandidates(userId) {
 async function boostGeninForExam(ninjaId) {
   await query(
     `UPDATE ninjas
-     SET taijutsu = GREATEST(taijutsu, 10), intelligence = GREATEST(intelligence, 8)
+     SET taijutsu = GREATEST(taijutsu, 10),
+         ninjutsu = GREATEST(ninjutsu, 9),
+         genjutsu = GREATEST(genjutsu, 8),
+         medecine = GREATEST(medecine, 8),
+         vitesse = GREATEST(vitesse, 8),
+         intelligence = GREATEST(intelligence, 8)
      WHERE id = ?`,
     [ninjaId]
   );
@@ -123,7 +128,12 @@ async function boostGeninForExam(ninjaId) {
 async function boostChuninForBirdFlight(ninjaId) {
   await query(
     `UPDATE ninjas
-     SET taijutsu = GREATEST(taijutsu, 16), intelligence = GREATEST(intelligence, 14)
+     SET taijutsu = GREATEST(taijutsu, 16),
+         ninjutsu = GREATEST(ninjutsu, 14),
+         genjutsu = GREATEST(genjutsu, 14),
+         medecine = GREATEST(medecine, 14),
+         vitesse = GREATEST(vitesse, 14),
+         intelligence = GREATEST(intelligence, 14)
      WHERE id = ?`,
     [ninjaId]
   );
@@ -312,7 +322,7 @@ async function main() {
     startRyos,
     user.id,
   ]);
-  await query('UPDATE ninjas SET training_focus = NULL WHERE user_id = ?', [user.id]);
+  await query('UPDATE ninjas SET preparation_type = NULL WHERE user_id = ?', [user.id]);
 
   if (withTraining) {
     const planned = await enableTrainingPlans(user.id);
@@ -356,7 +366,7 @@ async function main() {
       const purchases = await buyShopItems(user.id, itemsPerCycle);
       const spentShop = purchases.reduce((s, p) => s + p.price, 0);
 
-      const geninBeforeH36 = await countGrade(user.id, 'Genin');
+      const geninBeforeClose = await countGrade(user.id, 'Genin');
 
       const notifBefore = await query(
         `SELECT COUNT(*) AS c FROM sensei_notifications WHERE user_id = ? AND kind = 'bird_flight'`,
@@ -365,11 +375,11 @@ async function main() {
 
       await jumpAndTick(36);
 
-      const geninAfterH36 = await countGrade(user.id, 'Genin');
-      const chuninPromoted = Math.max(0, geninBeforeH36 - geninAfterH36);
-
       await jumpAndTick(71);
       await jumpAndTick(72);
+
+      const geninAfterClose = await countGrade(user.id, 'Genin');
+      const chuninPromoted = Math.max(0, geninBeforeClose - geninAfterClose);
 
       const notifAfter = await query(
         `SELECT COUNT(*) AS c FROM sensei_notifications WHERE user_id = ? AND kind = 'bird_flight'`,

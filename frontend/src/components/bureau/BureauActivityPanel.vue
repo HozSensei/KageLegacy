@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import { useNotificationCopy } from '../../composables/useNotificationCopy'
+import { useTrainingJournalDetails } from '../../composables/useTrainingJournalDetails.js'
+import TrainingJournalDetails from '../journal/TrainingJournalDetails.vue'
 
 defineOptions({ name: 'BureauActivityPanel' })
 
@@ -15,6 +17,7 @@ const { t, locale } = useI18n()
 const router = useRouter()
 const store = useSquadStore()
 const { title, body, linkPath, linkLabel } = useNotificationCopy()
+const { hasTrainingDetails } = useTrainingJournalDetails()
 
 const feed = computed(() => store.activityFeed || [])
 
@@ -62,6 +65,7 @@ function openNote(note) {
           <time class="shrink-0 text-[10px] text-ink-faint">{{ formatWhen(note) }}</time>
         </div>
         <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ body(note) }}</p>
+        <TrainingJournalDetails v-if="hasTrainingDetails(note)" :note="note" />
         <button
           v-if="linkPath(note) && linkLabel(note)"
           type="button"

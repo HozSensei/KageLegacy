@@ -13,7 +13,7 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 | Phase | Période | Activités principales |
 |-------|---------|------------------------|
 | **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie, **mission de reconnaissance (H0–H36)** |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d'espionnage, gestion continue |
+| **Milieu de cycle** | H36 → H70 | Tendances adverses, espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
 
@@ -40,7 +40,8 @@ Examens Chunin, soins et missions doivent être **réglés avant H54** pour évi
 ### Jalons automatiques
 
 - **H0 → H36** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
-- **H36** : résolution des examens Chunin inscrits ; **tendances adverses** (si reconnaissance effectuée).
+- **H36** : **tendances adverses** (si reconnaissance effectuée).
+- **H72** : verdicts examens Chunin, Vol d'Oiseau, clôture du cycle.
 - **H54** : gel de la composition + **rapport d'espionnage complet** figé.
 - **H71** : simulation du match de ligue ; gel final des consignes ; début de la chronique narrative.
 - **H72** : clôture économique et début du cycle suivant.
@@ -200,10 +201,11 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 ### Examen Chunin
 
-- **Inscription** : avant H36 (pendant la phase de préparation).
-- **Résolution** : automatique à H36.
-- **Prérequis** : niveau suffisant en stat de combat et en Intelligence.
-- **Coût** : frais d'inscription en Ryos, **plus élevés** si le candidat est déjà très avancé (le serveur indexe le prix sur le profil du ninja).
+- **Inscription** : avant H72 (pendant tout le cycle).
+- **Résolution** : automatique à H72.
+- **Prérequis** : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi).
+- **Inscription** : **gratuite**.
+- **Réussite** : prime 300–1 000 Ryos, +1 à +5 réputation, objet, forme remontée d'un palier, moral +2 à +5.
 - **Succès** : passage au grade Chunin et plafonds relevés.
 - **Échec** : le ninja reste Genin ; son moral chute.
 
@@ -211,7 +213,7 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 - **Inscription** : pendant le cycle, avant H72.
 - **Résolution** : à H72.
-- **Prérequis** : stats de combat et d'Intelligence élevées (seuils supérieurs à l'examen Chunin).
+- **Prérequis** : **note moyenne globale** ≥ 14 (même calcul que l'examen Chunin).
 - **Coût d'inscription** : gratuit.
 - **Prime** : importante, calculée à partir du niveau global du Chunin partant (+ réputation).
 - **Relève** : un **Genin roturier** de remplacement arrive (bonne forme et moral élevé).
@@ -219,18 +221,35 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 ### Stagnation
 
-À H72, un ninja **éligible** à une montée de grade (examen ou Vol d'Oiseau) mais **non inscrit** subit une pénalité : sa forme descend d'un palier et son moral baisse. Le jeu pousse à faire évoluer la carrière ou à accepter le coût de garder un vétéran.
+À H72, un ninja **éligible** à une montée de grade (examen ou Vol d'Oiseau) mais **non inscrit** subit une pénalité après **un cycle de grâce** : d'abord un avertissement sans malus, puis sa forme descend d'un palier et son moral baisse. Le jeu pousse à faire évoluer la carrière ou à accepter le coût de garder un vétéran.
 
 ---
 
 ## 6. Entraînement
 
-- Chaque ninja peut recevoir un **focus** (stat ciblée) pour le cycle en cours.
-- Seuls les ninjas pour lesquels vous avez **explicitement** choisi un focus sont entraînés.
-- La progression est appliquée à **H72** ; le coût en Ryos est facturé à ce moment si votre trésorerie le permet.
-- L'âge du ninja modère l'efficacité : les plus jeunes progressent plus vite.
-- Une stat déjà au **plafond du grade** ne progresse plus tant que le ninja n'a pas monté de grade.
-- Le **Bureau** affiche une prévision des dépenses (par ninja, total cycle, solde estimé après clôture).
+Deux leviers complémentaires :
+
+| | **Préparation** (actifs) | **Entraînement global** (toute l'équipe) |
+|---|--------------------------|-------------------------------------------|
+| **Coût** | Payant en Ryos à H72 | **Gratuit** |
+| **Gain moyen** | Capital 0,4 / ninja / cycle | Capital 0,2 / ninja / cycle |
+| **Choix** | Un type par titulaire (3 actifs) | Un type pour toute l'équipe |
+
+### Types groupés (6)
+
+Chakra (IQ, ninjutsu, genjutsu) · Physique (taijutsu, vitesse) · Médical · Genjutsu · Ninjutsu · Équilibre (toutes les stats).
+
+### Capital de stat et chance
+
+Chaque ninja tire une **part** du pot (variance légère cycle par cycle). Les **prodiges** progressent plus vite (×1,25) ; les **prometteurs** ×1,1.
+
+### Cumul
+
+Un titulaire peut cumuler **préparation + global** (ex. les deux en Chakra) pour accélérer la montée en grade (~5 cycles ordinaire → Chunin, ~2–3 prodige).
+
+- Progression appliquée à **H72** ; préparation facturée si trésorerie suffisante.
+- L'âge modère l'efficacité ; une stat au **plafond du grade** ne progresse plus.
+- Le **Bureau** affiche la prévision (salaires + préparation, global gratuit).
 
 ---
 
@@ -279,7 +298,7 @@ Les missions peuvent rapporter des **objets utilitaires** (pansements, kits, fum
 | Poste | Moment |
 |-------|--------|
 | **Salaires** | H72 — escouade active uniquement |
-| **Entraînement** | H72 — ninjas avec focus actif |
+| **Entraînement** | H72 — préparation des actifs (payant) ; global gratuit pour toute l'équipe |
 | **Examen Chunin** | À l'inscription |
 | **Hôpital** | À la demande |
 | **Académie** | À l'achat d'un aspirant |

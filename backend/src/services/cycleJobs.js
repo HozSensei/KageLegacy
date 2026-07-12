@@ -53,13 +53,12 @@ export async function resetCycleJobsFromHour(cycleStartAt, hour) {
 export async function runH36(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h36')) return { skipped: true };
   const reconMissions = await resolveReconnaissanceAtH36(cycleStartAt);
-  const promotions = await processChuninExamsForAllUsers();
   const tendencies = await generateTendenciesIntelForAllUsers();
   await markJobRun(cycleStartAt, 'h36');
   console.log(
-    `[H36] Reconnaissance : ${reconMissions.length} mission(s) · Examens Chunin : ${promotions.length} candidat(s) · Tendances espionnage : ${tendencies.length}`
+    `[H36] Reconnaissance : ${reconMissions.length} mission(s) · Tendances espionnage : ${tendencies.length}`
   );
-  return { reconMissions, promotions, tendencies };
+  return { reconMissions, tendencies };
 }
 
 export async function runH54(cycleStartAt) {
@@ -90,6 +89,7 @@ export async function runH72(cycleStartAt) {
     poolCycles.push(await incrementPoolCycle(pool.id));
   }
   const seasonTransitions = await processAllCompletedSeasons(poolCycles);
+  const chuninExams = await processChuninExamsForAllUsers();
   const birdFlights = await processBirdFlightsForAllUsers();
   const stagnation = await applyStagnationForAllUsers();
   const training = await processTrainingBillingForAllUsers();
@@ -100,7 +100,7 @@ export async function runH72(cycleStartAt) {
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureVillageShopForAllUsers();
   console.log(
-    `[H72] Missions ${missionResults.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s))`
+    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s))`
   );
   return {
     missionResults,
@@ -108,6 +108,7 @@ export async function runH72(cycleStartAt) {
     salaries,
     poolCycles,
     seasonTransitions,
+    chuninExams,
     birdFlights,
     stagnation,
     training,

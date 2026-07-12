@@ -12,7 +12,8 @@ Dans **Kage Legacy**, vous incarnez un **Jonin-Sensei**, mentor de votre propre 
 
 * **L'Entraînement** — progression automatique selon le focus choisi (appliquée à H72).
 * **La Préparation (H0–H35)** — entraînement, missions, magasin, Académie, inscription **reconnaissance** (combat résolu à H36).
-* **Les Épreuves (H36)** — examens Chunin et rapport d'espionnage (conditionné par la mission de reconnaissance).
+* **Les Épreuves (H72)** — examens Chunin, Vol d'Oiseau, clôture du cycle.
+* **Le Milieu (H36)** — reconnaissance et tendances espionnage.
 * **L'Opération de Frontière (H71→H72)** — chronique shinobi révélée progressivement.
 * **Le Vol d'Oiseau** — vos Chunins d'élite partent en Jonin, la relève arrive.
 
@@ -102,7 +103,7 @@ Les commandes **backend** détaillées ci-dessous se lancent avec `npm run <scri
 # Avancer d'une heure et déclencher les jobs éventuels
 npm run clock:advance --prefix backend
 
-# Se placer à H36 et lancer Chunin + reconnaissance + tendances scout
+# Se placer à H36 et lancer reconnaissance + tendances scout
 npm run clock:set --prefix backend -- 36
 
 # Ancrer le cycle à aujourd'hui 8h (heure de Paris/Bruxelles, été UTC+2)

@@ -56,11 +56,11 @@
         "missions": "Free mission contracts (3 tiers)",
         "shop": "Village shop, promos and limited stock",
         "academy": "Academy recruitment (rotating aspirants)",
-        "chunin": "Chunin exam registration (before H36)",
+        "chunin": "Chunin exam registration (until H72)",
         "reconnaissance": "Reconnaissance mission (H0–H35): queue signup or challenge — combat at H36"
       },
       "mid": {
-        "chunin": "Chunin exam verdicts",
+        "chuninRegistration": "Chunin exam registrations still open",
         "scoutTendencies": "Opponent tendencies (recent league matches)",
         "management": "Adjust lineup based on tendencies",
         "birdFlight": "Bird Flight registrations still open"
@@ -80,6 +80,7 @@
         "missions": "Mission resolution and loot",
         "match": "Match results applied",
         "salaries": "Salary deductions",
+        "chunin": "Chunin exam verdicts",
         "training": "Training billing and stat gains",
         "birdFlight": "Bird Flight graduations",
         "stagnation": "Stagnation penalties",
@@ -183,7 +184,7 @@
     "timelineRealtime": "Time moves like real life: one hour for you is one hour in the game.",
     "timeline": {
       "start": "Cycle start: training, missions, shop, Academy recruitment and reconnaissance mission (through H36).",
-      "mid": "After 36 hours: Chunin exams and scouting.",
+      "mid": "After 36 hours: opponent tendencies and scouting.",
       "operation": "At 71 hours: league match and border operation. The chronicle unfolds step by step.",
       "end": "At 72 hours: cycle closes — salaries, Ryos economy, then a new cycle begins."
     }
@@ -228,14 +229,27 @@
     "lead": "History of key events: training, operations, missions and cycle close."
   },
   "training": {
-    "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set.",
-    "costLabel": "Cycle cost",
-    "focusLabel": "Training focus",
-    "gainPreview": "+{gain} {stat} this cycle",
-    "pointGain": "→ +{count} point(s) now",
-    "residualProgress": "(residual {residual} before full point)",
-    "atCap": "{stat} cap reached for this grade — promotion required.",
-    "lazyRisk": "Lazy trait: chance to skip training."
+    "lead": "Paid preparation for actives and free global training for the whole squad — gains at H72.",
+    "globalLabel": "Global training (whole squad)",
+    "globalHint": "Free. All ninjas progress on this type, in addition to active preparation.",
+    "prepSectionTitle": "Preparation — active squad",
+    "prepSectionHint": "Billed at H72. Each starter picks a type — higher gains with a chance factor.",
+    "benchSectionTitle": "Bench — global training only",
+    "benchSectionHint": "Reserves progress via global training at no Ryos cost.",
+    "benchNoGlobal": "Pick a global training type to progress this ninja.",
+    "costLabel": "Prep cost",
+    "prepLabel": "Preparation type",
+    "gainRangePreview": "{stat}: +{min} to +{max} this cycle",
+    "allCapped": "Grade caps reached — promotion required.",
+    "lazyRisk": "Lazy trait: chance to skip training.",
+    "types": {
+      "Chakra": "Chakra (IQ, ninjutsu, genjutsu)",
+      "Physique": "Physical (taijutsu, speed, medicine)",
+      "Medical": "Medical (medicine, intelligence, speed)",
+      "Genjutsu": "Genjutsu (genjutsu, intelligence, speed)",
+      "Ninjutsu": "Ninjutsu (ninjutsu, intelligence, taijutsu)",
+      "Equilibre": "Balanced (taijutsu, ninjutsu, genjutsu)"
+    }
   },
   "nav": {
     "menu": "Navigation",
@@ -290,6 +304,15 @@
     "trainingBillingTitle": "Training billing",
     "trainingBillingBody": "{paid} ninja(s) trained — {cost} Ryos debited. Balance: {balance} Ryos.",
     "trainingBillingSkipped": "Training cancelled for {count} ninja(s) — insufficient Ryos.",
+    "trainingJournalGlobal": "Global training: {type}",
+    "trainingJournalModePrep": "Preparation",
+    "trainingJournalModeGlobal": "Global",
+    "trainingJournalGain": "+{delta} {stat}",
+    "trainingJournalGainReserve": "+{amount} {stat} (reserve)",
+    "trainingJournalFocus": "Focus: {stat}",
+    "trainingJournalNoGain": "No stat points applied this cycle",
+    "trainingJournalSkippedLazy": "Skipped — preferred napping under a tree",
+    "trainingJournalSkippedCap": "{grade} cap reached for {type}",
     "scoutRosterTitle": "Scout report",
     "scoutRosterBody": "Opponent lineup for {opponent} revealed (tier {tier}).",
     "operationStartTitle": "Operation started",
@@ -344,7 +367,7 @@
     "activityEmpty": "Nothing to report yet — cycle events will appear here.",
     "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",
-    "trainingPlansHint": "Pick one stat per ninja. Billed at H72 — no plan means no cost or gain.",
+    "trainingPlansHint": "Paid preparation for your 3 actives, free global training for the whole squad.",
     "trainingLocked": "Training plans locked from H54 until the operation.",
     "trainingNone": "None",
     "budgetTitle": "Cycle budget (H72)",
@@ -399,7 +422,7 @@
     "stagnation": {
       "title": "Stagnation risk",
       "lead": "At H72, form and morale drop if these ninjas stay stuck at their current grade.",
-      "geninExam": "ready for Chunin exam — register before H36",
+      "geninExam": "ready for Chunin exam — register before H72",
       "chuninJonin": "Chunin peak reached — register for the Vol d'Oiseau",
       "notificationTitle": "Squad stagnation",
       "notificationBody": "{name} is growing restless — form {forme}, morale {moral}. Consider the exam or the Vol d'Oiseau.",
@@ -408,8 +431,8 @@
     },
     "birdFlight": {
       "title": "Vol d'Oiseau",
-      "lead": "Free registration before H72 · combat ≥ 16 and intelligence ≥ 14 · Ryos bonus and Genin replacement at cycle end.",
-      "combat": "Combat",
+      "lead": "Free registration before H72 · overall rating ≥ 14 · Ryos bonus and Genin replacement at cycle end.",
+      "average": "Overall rating",
       "peak": "Peak reached",
       "submit": "Register for Vol d'Oiseau",
       "sending": "Registering…",
@@ -447,25 +470,26 @@
     },
     "chuninStagnation": {
       "title": "Chunin at the peak",
-      "lead": "Combat ≥ 16 and intelligence ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
+      "lead": "Overall rating ≥ 14: the ninja is nearing graduation. Without Vol d'Oiseau, they stagnate.",
       "warning": "Form and morale will drop at H72 while they remain Chunin.",
-      "combatPeak": "Combat peak: {value}/20"
+      "averageRating": "Overall rating: {value}/20"
     },
     "chuninExam": {
       "title": "Chunin exams",
-      "lead": "Village ceremony: register a ready Genin before H36. The council rules at mid-cycle — not a mere stat check.",
-      "ceremony": "The ninja presents their progress to the council. Pass: Chunin rank. Fail: village shame (morale −5).",
-      "combat": "Combat",
-      "submit": "Present to council ({cost} Ryos)",
+      "lead": "Village ceremony: register a ready Genin before H72. Free registration — promotion payout scales with overall rating.",
+      "ceremony": "The ninja presents their progress to the council. Pass: Chunin rank, Ryos, item, form and morale boost. Fail: village shame (morale −5).",
+      "average": "Overall rating",
+      "rewardPreview": "Expected payout: +{ryos} Ryos · +{reputation} reputation · form +1 tier · morale +{moral}",
+      "submit": "Present to council (free)",
       "sending": "Registering…",
-      "registered": "Presented · verdict H36",
-      "closed": "Registration closed this cycle — next window at H0.",
+      "registered": "Registered · verdict H72",
+      "closed": "Registration closed for this cycle.",
       "debtBlocked": "Debt outstanding — registrations suspended.",
       "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72.",
       "successTitle": "Chunin promotion",
-      "successBody": "{name} is promoted to Chunin after the council exam (combat {combat}, intelligence {intelligence}).",
+      "successBody": "{name} is promoted to Chunin (rating {average}): +{ryos} Ryos, +{reputation} reputation, form {forme}, morale {moral}.",
       "failureTitle": "Chunin exam failure",
-      "failureBody": "{name} failed to convince the council (combat {combat}/10, intelligence {intelligence}/8). Morale: {moral}."
+      "failureBody": "{name} failed to convince the council (overall rating {average}/{required}). Morale: {moral}."
     }
   },
   "dossier": {

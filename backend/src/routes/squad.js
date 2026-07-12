@@ -178,7 +178,7 @@ router.patch('/training-plans', async (req, res, next) => {
     if (!user) return;
 
     const parsed = updateTrainingPlansSchema.parse(req.body);
-    await updateTrainingPlans(user.id, parsed.plans);
+    await updateTrainingPlans(user.id, parsed);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

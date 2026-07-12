@@ -1,7 +1,7 @@
 import { query } from '../config/database.js';
 import { getHeritageBonuses, listHeritageScrolls, applyPercentDiscount } from './heritageService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
-import { computeTrainingCost, computeTrainingGain } from './training.js';
+import { computeTrainingCost, previewTrainingSession } from './training.js';
 import { cloneNinja, runMonteCarlo } from './simulation/cycleSimulator.js';
 import { DIVISION_ROMAN } from '../models/league.js';
 import {
@@ -197,21 +197,23 @@ async function getSeasonMatchStats(userId, pool) {
 
 function buildTrainingRoi(ninjas, heritage) {
   return ninjas
-    .filter((n) => n.training_focus)
+    .filter((n) => n.preparation_type)
     .map((ninja) => {
       const grossCost = computeTrainingCost(ninja);
       const netCost = applyPercentDiscount(grossCost, heritage.trainingDiscountPct);
-      const gainPreview = computeTrainingGain(ninja);
+      const preview = previewTrainingSession(ninja, ninja.preparation_type, 'preparation');
+      const expectedGain = preview?.statPreviews?.reduce((sum, stat) => sum + (stat.avgGain || 0), 0) ?? 0;
+      const atCap = preview?.allCapped ?? true;
       return {
         ninjaId: ninja.id,
         ninjaName: ninja.name,
-        focus: ninja.training_focus,
+        focus: ninja.preparation_type,
         age: ninja.age,
         grossCost,
         netCost,
-        expectedGain: gainPreview.skipped ? 0 : gainPreview.gain,
-        stat: gainPreview.column ?? null,
-        atCap: gainPreview.skipped,
+        expectedGain,
+        stat: preview?.trainingType ?? null,
+        atCap,
       };
     });
 }

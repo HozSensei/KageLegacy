@@ -15,13 +15,13 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 | Phase | Heures | Ce que fait le joueur |
 |--------|--------|------------------------|
 | **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12), **mission de reconnaissance (H0–H36)** |
-| **Milieu de cycle** | H36 → H70 | Examens Chunin (H36), rapport d’espionnage adversaire, gestion continue |
+| **Milieu de cycle** | H36 → H70 | Tendances adverses, rapport d'espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
-| **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d’Oiseau, facturation entraînement, nouveau cycle |
+| **Clôture** | H72 | Examens Chunin, Vol d'Oiseau, missions, salaires, stagnation, entraînement, nouveau cycle |
 
 **À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
 
-**Jalons automatiques :** mission de reconnaissance H0→H36 ; examens Chunin + tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72.
+**Jalons automatiques :** mission de reconnaissance H0→H36 ; tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72 (examens Chunin, Vol d'Oiseau, entraînement).
 
 ---
 
@@ -135,22 +135,40 @@ Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie av
 
 6 ninjas : 1 Chunin actif (poste central) + 5 Genin (2 actifs, 3 au banc). Chaque trait représenté une fois.
 
-### Examen Chunin (inscription avant H36, résolution H36)
+### Examen Chunin (inscription avant H72, résolution H72)
 
-- Prérequis : meilleure stat combat ≥ 10 **et** QI ≥ 8
-- Coût : 300 + bonus selon stats au-delà des seuils
-- Succès → Chunin ; échec → moral −5
+- Prérequis : **note moyenne globale** ≥ 8
+- Inscription : **gratuite**
+- Réussite : prime 300–1 000 Ryos, +1 à +5 réputation, objet, forme +1 palier, moral +2 à +5
+- Échec → moral −5
 
 ### Vol d’Oiseau (Chunin → départ, H72)
 
-- Prérequis : combat ≥ 16, QI ≥ 14
+- Prérequis : **note moyenne globale** ≥ 14
 - Prime : 3000 + (somme des 6 stats) × 150 Ryos + réputation
 - Le Chunin part ; un **Genin roturier** de remplacement arrive (forme Excellent, moral 20)
 - Laisse un **Parchemin mural d'héritage** (bonus permanent selon stat dominante, cumulable avec plafond)
 
 ### Stagnation (H72)
 
-Genin éligible Chunin non inscrit, ou Chunin éligible Vol d’Oiseau non inscrit → forme −1 palier, moral −3.
+Genin éligible Chunin non inscrit, ou Chunin éligible Vol d'Oiseau non inscrit → **1 cycle de grâce**, puis forme −1 palier, moral −3.
+
+---
+
+## 5bis. Entraînement
+
+| Levier | Coef / ninja | Coût | Cible |
+|--------|--------------|------|-------|
+| **Préparation** | 0,4 | Ryos (actifs) | 3 titulaires, type individuel |
+| **Global** | 0,2 | Gratuit | 6 ninjas, 1 type commun |
+
+**Types :** Chakra · Physique · Medical · Genjutsu · Ninjutsu · Equilibre.
+
+**Potentiel :** ordinaire ×1 · prometteur ×1,1 · prodige ×1,25. Capital de stat avec variance RNG légère.
+
+**Rythme cible :** ~5 cycles (ordinaire) · ~2–3 (prodige) pour Chunin avec prep + global alignés.
+
+Spec détaillée : [`specs/training-system.md`](../specs/training-system.md).
 
 ---
 
@@ -187,7 +205,8 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 ### Dépenses principales
 
 - **Salaires H72** (escouade active uniquement)
-- **Entraînement H72** (opt-in par ninja, facturé si Ryos suffisants)
+- **Préparation H72** (actifs, payante si Ryos suffisants)
+- **Entraînement global H72** (toute l'équipe, gratuit)
 - Examen Chunin, dispensaire, Académie, magasin, marché P2P
 
 ### Objets (3 types)
@@ -379,7 +398,7 @@ flowchart TD
 |-------|----------|
 | **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie |
 | **Escouade** | Composition, consignes, swap actif/banc |
-| **Entraînement** | Focus par stat, facturé à H72 |
+| **Entraînement** | Préparation (actifs) + global gratuit, types groupés |
 | **Missions** | Contrats idle |
 | **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
 | **Magasin** | Achats objets |

@@ -54,14 +54,17 @@ export function useNotificationCopy() {
       case 'chunin_exam_success':
         return t('bureau.chuninExam.successBody', {
           name: p.name?.split(' ')[0] || '—',
-          combat: p.combatStat ?? '—',
-          intelligence: p.intelligence ?? '—',
+          average: p.overallRating ?? '—',
+          ryos: (p.ryosReward ?? 0).toLocaleString(),
+          reputation: p.reputationReward ?? 0,
+          moral: p.moralAfter ?? '—',
+          forme: p.formeAfter ?? '—',
         })
       case 'chunin_exam_failure':
         return t('bureau.chuninExam.failureBody', {
           name: p.name?.split(' ')[0] || '—',
-          combat: p.combatStat ?? '—',
-          intelligence: p.intelligence ?? '—',
+          average: p.overallRating ?? '—',
+          required: p.averageRequired ?? 8,
           moral: p.moral ?? '—',
         })
       case 'market_sale':

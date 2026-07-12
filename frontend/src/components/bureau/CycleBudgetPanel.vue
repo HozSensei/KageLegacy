@@ -32,7 +32,7 @@ const budget = computed(() => store.cycleBudget)
           class="flex justify-between gap-4 text-xs"
         >
           <dt class="text-ink-faint pl-2">
-            {{ line.ninjaName }} — {{ t(`ninja.stats.${line.focus.toLowerCase()}`) }}
+            {{ line.ninjaName }} — {{ t(`training.types.${line.trainingType ?? line.focus}`) }}
           </dt>
           <dd class="text-fire">−{{ formatRyos(line.amount) }}</dd>
         </div>

@@ -1,21 +1,64 @@
 import { query } from '../config/database.js';
 import { clampStatToGradeCap, isStatAtGradeCap } from './gradeProgression.js';
+import { inferPotential } from './ninjaProfile.js';
 import { getCycleEquipmentByUser } from './equipmentService.js';
 import { getTrainingBoostMultiplier } from './combat/equipment.js';
 
-export const FOCUS_VALUES = [
-  'Taijutsu',
-  'Ninjutsu',
+export const TRAINING_TYPE_VALUES = [
+  'Chakra',
+  'Physique',
+  'Medical',
   'Genjutsu',
-  'Medecine',
-  'Vitesse',
-  'Intelligence',
+  'Ninjutsu',
+  'Equilibre',
 ];
 
-const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
+/** @deprecated Utiliser TRAINING_TYPE_VALUES */
+export const FOCUS_VALUES = TRAINING_TYPE_VALUES;
 
+export const STAT_COLUMNS = [
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medecine',
+  'vitesse',
+  'intelligence',
+];
+
+export const TRAINING_TYPES = {
+  Chakra: {
+    stats: ['intelligence', 'ninjutsu', 'genjutsu'],
+    weights: [0.35, 0.35, 0.3],
+  },
+  Physique: {
+    stats: ['taijutsu', 'vitesse', 'medecine'],
+    weights: [0.4, 0.35, 0.25],
+  },
+  Medical: {
+    stats: ['medecine', 'intelligence', 'vitesse'],
+    weights: [0.4, 0.35, 0.25],
+  },
+  Genjutsu: {
+    stats: ['genjutsu', 'intelligence', 'vitesse'],
+    weights: [0.4, 0.35, 0.25],
+  },
+  Ninjutsu: {
+    stats: ['ninjutsu', 'intelligence', 'taijutsu'],
+    weights: [0.4, 0.35, 0.25],
+  },
+  Equilibre: {
+    stats: ['taijutsu', 'ninjutsu', 'genjutsu'],
+    weights: [0.35, 0.35, 0.3],
+  },
+};
+
+export const PREP_COEF = 0.4;
+export const GLOBAL_COEF = 0.2;
+const PREP_RNG = [0.75, 1.25];
+const GLOBAL_RNG = [0.85, 1.15];
+const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.1, prodige: 1.25 };
+const FOCUS_STAT_BOOST = 1.5;
 const AGE_COEFF = { 15: 1.5, 16: 1.0, 17: 0.7, 18: 0.4 };
-const BASE_GAIN = 0.2;
 
 export function computeTrainingCost(ninja) {
   const sum =
@@ -34,101 +77,325 @@ function ageCoefficient(age) {
   return AGE_COEFF[age] ?? 1.0;
 }
 
-function statColumnForFocus(focus) {
-  const map = {
-    Taijutsu: 'taijutsu',
-    Ninjutsu: 'ninjutsu',
-    Genjutsu: 'genjutsu',
-    Medecine: 'medecine',
-    Vitesse: 'vitesse',
-    Intelligence: 'intelligence',
-  };
-  return map[focus];
+export function rollTrainingMultiplier(mode, rng = Math.random) {
+  const [min, max] = mode === 'preparation' ? PREP_RNG : GLOBAL_RNG;
+  return min + rng() * (max - min);
 }
 
-export function computeTrainingGain(ninja, { cycleMultiplier = 1 } = {}) {
-  const focus = ninja.training_focus;
-  if (!focus) {
-    return { column: null, gain: 0, skipped: true, reason: 'no_plan' };
+export function getPotentialMultiplier(potential) {
+  return POTENTIAL_MULT[potential] ?? 1;
+}
+
+function resolvePotential(ninja) {
+  if (ninja.potential) return ninja.potential;
+  return inferPotential(
+    {
+      taijutsu: ninja.taijutsu,
+      ninjutsu: ninja.ninjutsu,
+      genjutsu: ninja.genjutsu,
+      medecine: ninja.medecine,
+      vitesse: ninja.vitesse,
+      intelligence: ninja.intelligence,
+    },
+    ninja.grade
+  );
+}
+
+export function computeTrainingPart(coef, mode, ninja, { cycleMultiplier = 1, rngMultiplier = null } = {}) {
+  const mult = rngMultiplier ?? rollTrainingMultiplier(mode);
+  const potentialMult = getPotentialMultiplier(resolvePotential(ninja));
+  const ageMult = ageCoefficient(ninja.age);
+  let part = coef * mult * potentialMult * ageMult * cycleMultiplier;
+  if (ninja.training_buff === 'strategy_book') {
+    part *= 1.15;
+  }
+  return part;
+}
+
+export function getTrainingGainRange(coef, mode, ninja, { cycleMultiplier = 1 } = {}) {
+  const [minRng, maxRng] = mode === 'preparation' ? PREP_RNG : GLOBAL_RNG;
+  const potentialMult = getPotentialMultiplier(resolvePotential(ninja));
+  const ageMult = ageCoefficient(ninja.age);
+  let buffMult = 1;
+  if (ninja.training_buff === 'strategy_book') buffMult = 1.15;
+  const base = coef * potentialMult * ageMult * cycleMultiplier * buffMult;
+  return { min: base * minRng, max: base * maxRng, avg: base };
+}
+
+export function distributePart(part, trainingType, ninja, mode, { rng = Math.random } = {}) {
+  const config = TRAINING_TYPES[trainingType];
+  if (!config) return { gains: [], allCapped: true, focusStat: null };
+
+  const uncapped = config.stats.filter((stat) => !isStatAtGradeCap(ninja, stat));
+  if (!uncapped.length) {
+    return { gains: [], allCapped: true, focusStat: null };
   }
 
-  const column = statColumnForFocus(focus);
-  if (!column) return { column: null, gain: 0, skipped: true, reason: 'invalid_focus' };
+  let weights = config.stats.map((stat, index) =>
+    isStatAtGradeCap(ninja, stat) ? 0 : config.weights[index]
+  );
+  const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
+  if (weightSum <= 0) {
+    return { gains: [], allCapped: true, focusStat: null };
+  }
+  weights = weights.map((weight) => weight / weightSum);
 
-  if (isStatAtGradeCap(ninja, column)) {
-    return {
-      column,
-      gain: 0,
-      skipped: true,
-      reason: 'grade_cap',
-      log: `${ninja.name} a atteint le plafond ${ninja.grade} en ${column} — passage de grade requis.`,
-    };
+  let focusIdx = -1;
+  if (mode === 'preparation' && uncapped.length > 0) {
+    const focusStat = uncapped[Math.floor(rng() * uncapped.length)];
+    focusIdx = config.stats.indexOf(focusStat);
   }
 
+  const gains = [];
+  for (let index = 0; index < config.stats.length; index += 1) {
+    const stat = config.stats[index];
+    if (isStatAtGradeCap(ninja, stat)) continue;
+    let share = part * weights[index];
+    if (index === focusIdx) share *= FOCUS_STAT_BOOST;
+    if (share > 0) gains.push({ column: stat, gain: share });
+  }
+
+  return {
+    gains,
+    allCapped: false,
+    focusStat: focusIdx >= 0 ? config.stats[focusIdx] : null,
+  };
+}
+
+export function parseStatResiduals(ninja) {
+  if (ninja.stat_residuals) {
+    if (typeof ninja.stat_residuals === 'string') {
+      try {
+        return JSON.parse(ninja.stat_residuals);
+      } catch {
+        return {};
+      }
+    }
+    return { ...ninja.stat_residuals };
+  }
+  if (Number(ninja.training_residual) > 0 && ninja.preparation_type) {
+    const config = TRAINING_TYPES[ninja.preparation_type];
+    const firstStat = config?.stats?.[0];
+    if (firstStat) {
+      return { [firstStat]: Number(ninja.training_residual) };
+    }
+  }
+  return {};
+}
+
+function shouldSkipLazy(ninja) {
   const lazyChance = ninja.training_buff === 'strategy_book' ? 5 : 15;
-  if (ninja.character_trait === 'Faineant' && Math.floor(Math.random() * 100) < lazyChance) {
+  return ninja.character_trait === 'Faineant' && Math.floor(Math.random() * 100) < lazyChance;
+}
+
+export function computeTrainingSession(ninja, trainingType, mode, options = {}) {
+  if (!trainingType) {
+    return { skipped: true, reason: 'no_plan', gains: [], logs: [] };
+  }
+
+  if (shouldSkipLazy(ninja)) {
     return {
-      column,
-      gain: 0,
       skipped: true,
       reason: 'lazy',
-      log: `${ninja.name} a préféré dormir sous un arbre plutôt que de s'entraîner.`,
+      gains: [],
+      logs: [`${ninja.name} a préféré dormir sous un arbre plutôt que de s'entraîner.`],
     };
   }
 
-  let gain = BASE_GAIN * ageCoefficient(ninja.age) * cycleMultiplier;
-  if (ninja.training_buff === 'strategy_book') {
-    gain *= 1.15;
+  const coef = mode === 'preparation' ? PREP_COEF : GLOBAL_COEF;
+  const part = computeTrainingPart(coef, mode, ninja, options);
+  const distribution = distributePart(part, trainingType, ninja, mode, options);
+
+  if (distribution.allCapped) {
+    return {
+      skipped: true,
+      reason: 'grade_cap',
+      gains: [],
+      logs: [
+        `${ninja.name} a atteint les plafonds ${ninja.grade} pour ${trainingType} — passage de grade requis.`,
+      ],
+    };
   }
 
-  return { column, gain, skipped: false, clearStrategyBook: ninja.training_buff === 'strategy_book' };
+  if (!distribution.gains.length) {
+    return { skipped: true, reason: 'no_gain', gains: [], logs: [] };
+  }
+
+  const modeLabel = mode === 'preparation' ? 'préparation' : 'entraînement global';
+  const gainSummary = distribution.gains
+    .map(({ column, gain }) => `${column} +${gain.toFixed(2)}`)
+    .join(', ');
+  const logs = [`${ninja.name} (${modeLabel} ${trainingType}) : ${gainSummary}`];
+  if (distribution.focusStat) {
+    logs.push(`${ninja.name} brille particulièrement en ${distribution.focusStat} ce cycle.`);
+  }
+
+  return {
+    skipped: false,
+    gains: distribution.gains,
+    focusStat: distribution.focusStat,
+    clearStrategyBook: mode === 'preparation' && ninja.training_buff === 'strategy_book',
+    logs,
+  };
 }
 
-export async function applyTrainingForUser(userId, { onlyNinjaIds = null } = {}) {
+async function applyGainsToNinja(ninja, session) {
+  const residuals = parseStatResiduals(ninja);
+  const statUpdates = {};
+  const appliedLogs = [];
+  const appliedGains = [];
+
+  for (const { column, gain } of session.gains) {
+    const residual = (Number(residuals[column]) || 0) + gain;
+    const wholePoints = Math.floor(residual);
+    residuals[column] = residual - wholePoints;
+
+    if (wholePoints > 0) {
+      const current = Number(ninja[column]) || 0;
+      const newValue = clampStatToGradeCap(ninja, column, current + wholePoints);
+      statUpdates[column] = newValue;
+      ninja[column] = newValue;
+      if (newValue > current) {
+        appliedGains.push({ stat: column, delta: newValue - current });
+        appliedLogs.push(`${ninja.name} : +${newValue - current} ${column}`);
+      }
+    }
+  }
+
+  const setClauses = [];
+  const values = [];
+  for (const [column, value] of Object.entries(statUpdates)) {
+    setClauses.push(`${column} = ?`);
+    values.push(value);
+  }
+  setClauses.push('stat_residuals = ?');
+  values.push(JSON.stringify(residuals));
+
+  if (session.clearStrategyBook) {
+    setClauses.push('training_buff = ?');
+    values.push(null);
+  }
+
+  values.push(ninja.id);
+  await query(`UPDATE ninjas SET ${setClauses.join(', ')} WHERE id = ?`, values);
+
+  return {
+    appliedGains,
+    sessionGains: session.gains.map(({ column, gain }) => ({ stat: column, amount: gain })),
+    logs: appliedLogs.length ? appliedLogs : session.logs.filter((line) => line.includes(':')),
+  };
+}
+
+export async function applyTrainingForUser(
+  userId,
+  { mode = 'preparation', onlyNinjaIds = null, globalTrainingType = null } = {}
+) {
   const ninjas = await query('SELECT * FROM ninjas WHERE user_id = ?', [userId]);
-  if (!ninjas.length) return { logs: [] };
+  if (!ninjas.length) return { logs: [], sessions: [] };
+
   const cycleGear = await getCycleEquipmentByUser(userId);
   const cycleByNinja = cycleGear.reduce((acc, row) => {
     if (!acc[row.ninja_id]) acc[row.ninja_id] = [];
     acc[row.ninja_id].push(row);
     return acc;
   }, {});
+
   const logs = [];
+  const sessions = [];
 
   for (const ninja of ninjas) {
     if (onlyNinjaIds && !onlyNinjaIds.includes(ninja.id)) continue;
-    if (!ninja.training_focus) continue;
 
-    const cycleMultiplier = getTrainingBoostMultiplier(ninja, cycleByNinja[ninja.id] || []);
-    const result = computeTrainingGain(ninja, { cycleMultiplier });
-    if (result.skipped) {
-      if (result.log) logs.push(result.log);
+    let trainingType = null;
+    if (mode === 'preparation') {
+      if (!ninja.squad_position || !ninja.preparation_type) continue;
+      trainingType = ninja.preparation_type;
+    } else if (mode === 'global') {
+      if (!globalTrainingType) continue;
+      trainingType = globalTrainingType;
+    } else {
       continue;
     }
 
-    const residual = Number(ninja.training_residual) + result.gain;
-    const wholePoints = Math.floor(residual);
-    const newResidual = residual - wholePoints;
+    const cycleMultiplier = getTrainingBoostMultiplier(ninja, cycleByNinja[ninja.id] || []);
+    const session = computeTrainingSession(ninja, trainingType, mode, { cycleMultiplier });
 
-    if (wholePoints > 0) {
-      const column = result.column;
-      const newValue = clampStatToGradeCap(ninja, column, ninja[column] + wholePoints);
-      await query(
-        `UPDATE ninjas SET ${column} = ?, training_residual = ?, training_buff = ? WHERE id = ?`,
-        [newValue, newResidual, result.clearStrategyBook ? null : ninja.training_buff, ninja.id]
-      );
-      logs.push(`${ninja.name} : +${wholePoints} ${column} (${ninja.training_focus})`);
-    } else {
-      await query('UPDATE ninjas SET training_residual = ?, training_buff = ? WHERE id = ?', [
-        newResidual,
-        result.clearStrategyBook ? null : ninja.training_buff,
-        ninja.id,
-      ]);
+    if (session.skipped) {
+      sessions.push({
+        ninjaId: ninja.id,
+        name: ninja.name,
+        grade: ninja.grade,
+        mode,
+        trainingType,
+        skipped: true,
+        skipReason: session.reason,
+        appliedGains: [],
+        sessionGains: [],
+        focusStat: null,
+      });
+      logs.push(...session.logs);
+      continue;
     }
+
+    const { appliedGains, sessionGains, logs: appliedLogs } = await applyGainsToNinja(ninja, session);
+    sessions.push({
+      ninjaId: ninja.id,
+      name: ninja.name,
+      grade: ninja.grade,
+      mode,
+      trainingType,
+      skipped: false,
+      skipReason: null,
+      appliedGains,
+      sessionGains,
+      focusStat: session.focusStat,
+    });
+    logs.push(...appliedLogs);
   }
 
-  return { logs };
+  return { logs, sessions };
 }
 
+export function previewTrainingSession(ninja, trainingType, mode, { cycleMultiplier = 1 } = {}) {
+  if (!trainingType) return null;
 
-export { STAT_COLUMNS };
+  const coef = mode === 'preparation' ? PREP_COEF : GLOBAL_COEF;
+  const range = getTrainingGainRange(coef, mode, ninja, { cycleMultiplier });
+  const config = TRAINING_TYPES[trainingType];
+  if (!config) return null;
+
+  const statPreviews = config.stats.map((column) => {
+    const atCap = isStatAtGradeCap(ninja, column);
+    const weight = config.weights[config.stats.indexOf(column)] ?? 0;
+    const residuals = parseStatResiduals(ninja);
+    const residualBefore = Number(residuals[column]) || 0;
+
+    if (atCap) {
+      return { column, atCap: true, minGain: 0, maxGain: 0, weight };
+    }
+
+    const minGain = range.min * weight;
+    const maxGain = range.max * weight * (mode === 'preparation' ? FOCUS_STAT_BOOST : 1);
+    const avgGain = range.avg * weight;
+
+    return {
+      column,
+      atCap: false,
+      minGain,
+      maxGain,
+      avgGain,
+      weight,
+      residualBefore,
+    };
+  });
+
+  const allCapped = statPreviews.every((preview) => preview.atCap);
+
+  return {
+    trainingType,
+    mode,
+    allCapped,
+    statPreviews,
+    lazyRisk: ninja.character_trait === 'Faineant',
+  };
+}

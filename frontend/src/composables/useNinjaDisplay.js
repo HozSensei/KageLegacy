@@ -1,5 +1,7 @@
 import { computed } from 'vue'
 import { getChuninExamProgress } from './useChuninExam.js'
+import { getBirdFlightProgress } from './useBirdFlight.js'
+import { ninjaOverallRating } from '../utils/ninjaRating.js'
 
 const FORME_BAR_WIDTH = {
   Lamentable: 25,
@@ -8,21 +10,10 @@ const FORME_BAR_WIDTH = {
   Divin: 100,
 }
 
-const BIRD_FLIGHT_COMBAT_REQUIRED = 16
-const BIRD_FLIGHT_IQ_REQUIRED = 14
-
-function combatStat(ninja) {
-  return Math.max(ninja.taijutsu, ninja.ninjutsu, ninja.genjutsu, ninja.medecine)
-}
-
 export function useNinjaDisplay(ninjaRef) {
   const ninja = computed(() => ninjaRef.value ?? ninjaRef)
 
-  const overall = computed(() => {
-    const n = ninja.value
-    if (!n) return 0
-    return Math.round((n.taijutsu + n.ninjutsu + n.genjutsu + n.medecine + n.vitesse + n.intelligence) / 6)
-  })
+  const overall = computed(() => ninjaOverallRating(ninja.value))
 
   const elementTone = computed(() => {
     const n = ninja.value
@@ -38,14 +29,8 @@ export function useNinjaDisplay(ninjaRef) {
   const joninProgress = computed(() => {
     const n = ninja.value
     if (!n || n.grade !== 'Chunin') return 0
-    const progress = n.birdFlightProgress
-    if (progress) {
-      return Math.round(((progress.combatRatio + progress.intelligenceRatio) / 2) * 100)
-    }
-    const combat = combatStat(n)
-    const combatRatio = Math.min(1, combat / BIRD_FLIGHT_COMBAT_REQUIRED)
-    const intelligenceRatio = Math.min(1, n.intelligence / BIRD_FLIGHT_IQ_REQUIRED)
-    return Math.round(((combatRatio + intelligenceRatio) / 2) * 100)
+    const progress = n.birdFlightProgress ?? getBirdFlightProgress(n)
+    return Math.round((progress.averageRatio ?? 0) * 100)
   })
 
   const gradeProgress = computed(() => {
@@ -57,7 +42,7 @@ export function useNinjaDisplay(ninjaRef) {
       return {
         show: true,
         labelKey: 'ninja.chuninProgress',
-        percent: Math.round(((exam.combatRatio + exam.intelligenceRatio) / 2) * 100),
+        percent: Math.round((exam.averageRatio ?? 0) * 100),
       }
     }
 
@@ -110,13 +95,20 @@ export function useNinjaDisplay(ninjaRef) {
     return grade ? `grades.${grade}` : ''
   })
 
-  const trainingFocus = computed(
-    () => ninja.value?.trainingFocus ?? ninja.value?.training_focus ?? null
+  const preparationType = computed(
+    () =>
+      ninja.value?.preparationType ??
+      ninja.value?.preparation_type ??
+      ninja.value?.trainingFocus ??
+      ninja.value?.training_focus ??
+      null
   )
 
+  const trainingFocus = preparationType
+
   const trainingFocusLabel = computed(() => {
-    const focus = trainingFocus.value
-    return focus ? `ninja.stats.${focus.toLowerCase()}` : ''
+    const type = preparationType.value
+    return type ? `training.types.${type}` : ''
   })
 
   return {

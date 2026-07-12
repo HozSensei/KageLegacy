@@ -44,7 +44,9 @@ export async function updateSquadComposition(userId, slots) {
     }
   }
 
-  await query('UPDATE ninjas SET squad_position = NULL WHERE user_id = ?', [userId]);
+  await query('UPDATE ninjas SET squad_position = NULL, preparation_type = NULL WHERE user_id = ?', [
+    userId,
+  ]);
 
   for (const { position, ninjaId } of slots) {
     await query('UPDATE ninjas SET squad_position = ? WHERE id = ? AND user_id = ?', [
