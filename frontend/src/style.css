@@ -1,21 +1,22 @@
 @import "tailwindcss";
+@import "./themes.css";
 
 @theme {
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-sans: "DM Sans", system-ui, sans-serif;
 
-  --color-ink: #e8ece9;
-  --color-ink-muted: #9aab9f;
-  --color-ink-faint: #5f6f66;
-  --color-bg: #111614;
-  --color-bg-soft: #171d1a;
-  --color-bg-card: #1c2420;
-  --color-line: color-mix(in srgb, #8fad9a 14%, transparent);
-  --color-accent: #c9a66b;
-  --color-accent-soft: #8fad9a;
-  --color-fire: #c97d5d;
-  --color-water: #6d9eb8;
-  --color-earth: #a68b5b;
+  --color-ink: var(--kl-ink);
+  --color-ink-muted: var(--kl-ink-muted);
+  --color-ink-faint: var(--kl-ink-faint);
+  --color-bg: var(--kl-bg);
+  --color-bg-soft: var(--kl-bg-soft);
+  --color-bg-card: var(--kl-bg-card);
+  --color-line: color-mix(in srgb, var(--kl-line-mix) 14%, transparent);
+  --color-accent: var(--kl-accent);
+  --color-accent-soft: var(--kl-accent-soft);
+  --color-fire: var(--kl-fire);
+  --color-water: var(--kl-water);
+  --color-earth: var(--kl-earth);
 }
 
 @layer base {
@@ -654,7 +655,7 @@ body::before {
   pointer-events: none;
   position: fixed;
   inset: 0;
-  opacity: 0.035;
+  opacity: var(--kl-grain-opacity);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   z-index: 0;
 }
