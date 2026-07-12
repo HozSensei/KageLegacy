@@ -1,13 +1,15 @@
 import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { createNinja, findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
-import { clampStatToGradeCap } from './gradeProgression.js';
+import { clampStatToGradeCap, isStatAtGradeCap } from './gradeProgression.js';
 import { generateNinjaProfile } from './ninjaGenerator.js';
 import { collectIdentityKeys } from './ninjaNaming.js';
 import {
   MISSION_TIERS,
-  getRiskPenalties,
-  meetsTierRequirement,
+  computeMissionOddsForTier,
+  getMissionTierConfig,
+  narrativeTierKey,
+  normalizeMissionTier,
   rollPercent,
 } from './missionRules.js';
 import { createSenseiNotification } from './senseiNotifications.js';
@@ -121,24 +123,70 @@ function rollCycloneLoot() {
   };
 }
 
-function rollInjury(tier, ninja) {
-  const config = MISSION_TIERS[tier];
-  const underQualified = !meetsTierRequirement(tier, ninja);
-  const penalties = getRiskPenalties(tier, ninja);
+function rollTierLoot(tier, ninja) {
+  const normalized = normalizeMissionTier(tier);
+  if (normalized === 'D') return rollRoutineLoot();
+  if (normalized === 'C') return rollInfiltrationLoot(ninja);
+  if (normalized === 'B' || normalized === 'A') return rollCycloneLoot();
+  return { lootTier: 'none', items: [], narrative: 'empty' };
+}
 
-  if (tier === 'cyclone') {
-    if (Math.random() < config.deathChance) return 'death';
-    const graveChance =
-      config.graveInjuryChance + (underQualified ? penalties.graveBonus : 0);
-    if (Math.random() < graveChance) return 'grave';
-    return 'none';
+function rollMissionSuccess(odds) {
+  return rollPercent() <= odds.successChance;
+}
+
+function rollFailureInjury(tier, odds) {
+  const config = getMissionTierConfig(tier);
+  if (!config) return 'none';
+
+  if (odds.deathChance > 0 && rollPercent() <= odds.deathChance) {
+    return 'death';
   }
 
-  if (tier === 'infiltration' && Math.random() < config.lightInjuryChance) {
-    return 'light';
+  if (odds.injuryChance > 0 && rollPercent() <= odds.injuryChance) {
+    return config.injurySeverity === 'grave' ? 'grave' : 'light';
   }
 
   return 'none';
+}
+
+function pickMissionStatGainTarget(ninja) {
+  const uncapped = STAT_COLUMNS.filter((stat) => !isStatAtGradeCap(ninja, stat));
+  if (!uncapped.length) return null;
+  return uncapped[randomInt(uncapped.length)];
+}
+
+/**
+ * Gain de stat à la réussite — complément à l'entraînement, bonus pour le banc.
+ */
+export function computeMissionStatGain(ninja, tier, { isBench = true } = {}) {
+  const config = getMissionTierConfig(tier);
+  if (!config?.statGainOnSuccess) return null;
+
+  const stat = pickMissionStatGainTarget(ninja);
+  if (!stat) return null;
+
+  const benchMult = isBench ? config.benchStatGainBonus : 1;
+  const gain = Math.round(config.statGainOnSuccess * benchMult * 100) / 100;
+  if (gain <= 0) return null;
+
+  return { stat, gain };
+}
+
+async function applyMissionStatGain(ninjaId, statGain) {
+  if (!statGain) return null;
+
+  const rows = await query('SELECT * FROM ninjas WHERE id = ?', [ninjaId]);
+  const ninja = rows[0];
+  if (!ninja || !STAT_COLUMNS.includes(statGain.stat)) return null;
+
+  const current = Number(ninja[statGain.stat]);
+  const next = clampStatToGradeCap(ninja, statGain.stat, current + statGain.gain);
+  const applied = Math.round((next - current) * 100) / 100;
+  if (applied <= 0) return null;
+
+  await query(`UPDATE ninjas SET ${statGain.stat} = ? WHERE id = ?`, [next, ninjaId]);
+  return { stat: statGain.stat, gain: applied, ninjaId };
 }
 
 async function applyInjury(ninjaId, injuryType) {
@@ -193,37 +241,52 @@ async function recruitMissionProdige(userId) {
 }
 
 export function rollBaseRyos(tier) {
-  const config = MISSION_TIERS[tier];
-  if (tier === 'routine' || tier === 'infiltration') {
-    return randomInt(config.baseRewardMin, config.baseRewardMax + 1);
+  const config = getMissionTierConfig(tier);
+  if (!config) return 0;
+  if (config.baseRewardMin === config.baseRewardMax) {
+    return config.baseRewardMin;
   }
-  return config.baseReward;
+  return randomInt(config.baseRewardMin, config.baseRewardMax + 1);
 }
 
 export async function resolveMissionOutcome(mission, ninja) {
-  const tier = mission.mission_tier;
-  const injuryType = rollInjury(tier, ninja);
-  const baseRyos = injuryType === 'death' ? 0 : rollBaseRyos(tier);
+  const tier = normalizeMissionTier(mission.mission_tier);
+  const odds = computeMissionOddsForTier(ninja, tier);
+  const success = rollMissionSuccess(odds);
+  const injuryType = success ? 'none' : rollFailureInjury(tier, odds);
+  const baseRyos = success && injuryType !== 'death' ? rollBaseRyos(tier) : 0;
 
   let loot = { lootTier: 'none', items: [], narrative: 'none' };
-  if (injuryType !== 'death') {
-    if (tier === 'routine') loot = rollRoutineLoot();
-    else if (tier === 'infiltration') loot = rollInfiltrationLoot(ninja);
-    else if (tier === 'cyclone') loot = rollCycloneLoot();
+  let statGain = null;
+
+  if (success && injuryType !== 'death') {
+    loot = rollTierLoot(tier, ninja);
+    statGain = computeMissionStatGain(ninja, tier, { isBench: ninja.squad_position == null });
+    if (statGain) {
+      statGain = await applyMissionStatGain(mission.ninja_id, statGain);
+    }
   }
 
   const lootResult = {
     baseRyos,
+    success,
+    odds: {
+      successChance: odds.successChance,
+      injuryChance: odds.injuryChance,
+      deathChance: odds.deathChance,
+      ninjaRating: odds.ninjaRating,
+      targetRating: odds.targetRating,
+    },
     ...loot,
     injuryType,
-    underQualified: !meetsTierRequirement(tier, ninja),
+    statGain: statGain ?? null,
   };
 
-  if (injuryType !== 'death' && loot.prodige) {
+  if (success && injuryType !== 'death' && loot.prodige) {
     lootResult.prodige = await recruitMissionProdige(mission.user_id);
   }
 
-  if (injuryType !== 'death' && loot.tacticCard) {
+  if (success && injuryType !== 'death' && loot.tacticCard) {
     lootResult.tacticCard = await grantRandomTacticCard(mission.user_id, loot.tacticCard);
   }
 
@@ -246,6 +309,7 @@ export async function resolveMissionOutcome(mission, ninja) {
     status,
     lootResult: { ...lootResult, missionId: mission.id },
     injuryType,
+    success,
   });
   await createSenseiNotification(mission.user_id, 'mission_report', reportPayload);
 
@@ -257,7 +321,7 @@ export async function grantLootOnCollect(userId, mission) {
     typeof mission.loot_result === 'string'
       ? JSON.parse(mission.loot_result)
       : mission.loot_result;
-  if (!loot) return { items: [], scroll: null };
+  if (!loot) return { items: [], scroll: null, statGain: null };
 
   const grantedItems = [];
   for (const entry of loot.items ?? []) {
@@ -279,7 +343,13 @@ export async function grantLootOnCollect(userId, mission) {
     }
   }
 
-  return { items: grantedItems, scroll: loot.scrollApplied ?? null, prodige: loot.prodige ?? null, tacticCard: loot.tacticCard ?? null };
+  return {
+    items: grantedItems,
+    scroll: loot.scrollApplied ?? null,
+    statGain: loot.statGain ?? null,
+    prodige: loot.prodige ?? null,
+    tacticCard: loot.tacticCard ?? null,
+  };
 }
 
 export async function decrementFormeLocksForAllUsers() {
@@ -289,3 +359,5 @@ export async function decrementFormeLocksForAllUsers() {
      WHERE forme_lock_cycles > 0`
   );
 }
+
+export { narrativeTierKey, MISSION_TIERS };

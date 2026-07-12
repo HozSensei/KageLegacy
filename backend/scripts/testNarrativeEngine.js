@@ -65,7 +65,7 @@ if (a !== b) throw new Error('seed non reproductible');
 const mission = buildMissionReportPayload({
   missionId: 42,
   locale: 'en',
-  tier: 'routine',
+  tier: 'D',
   ninjaName: 'Haru',
   status: 'completed',
   lootResult: { narrative: 'medical_kit', baseRyos: 50 },

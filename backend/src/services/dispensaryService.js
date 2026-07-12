@@ -9,6 +9,10 @@ const HOSPITAL_COST = {
 };
 
 const MISSION_MORAL_GAIN = {
+  D: 1,
+  C: 2,
+  B: 1,
+  A: 2,
   routine: 1,
   infiltration: 2,
   cyclone: 1,

@@ -62,9 +62,9 @@ async function main() {
   await boostNinja(bench[1].id, { intelligence: 9, vitesse: 8 });
   await boostNinja(bench[2].id, { taijutsu: 13 });
 
-  await assignMission(userId, bench[0].id, 'routine');
-  await assignMission(userId, bench[1].id, 'infiltration');
-  await assignMission(userId, bench[2].id, 'cyclone');
+  await assignMission(userId, bench[0].id, 'D');
+  await assignMission(userId, bench[1].id, 'C');
+  await assignMission(userId, bench[2].id, 'B');
 
   await resolveMissionsForCycle(cycleStartAt, 72);
 

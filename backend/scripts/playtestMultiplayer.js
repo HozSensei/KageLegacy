@@ -102,9 +102,9 @@ async function assignThreeMissions(userId, clans) {
   await boostNinja(ninjas[0].id, { intelligence: 5 });
   await boostNinja(ninjas[1].id, { intelligence: 9 });
   await boostNinja(ninjas[2].id, { taijutsu: 13 });
-  await assignMission(userId, ninjas[0].id, 'routine');
-  await assignMission(userId, ninjas[1].id, 'infiltration');
-  await assignMission(userId, ninjas[2].id, 'cyclone');
+  await assignMission(userId, ninjas[0].id, 'D');
+  await assignMission(userId, ninjas[1].id, 'C');
+  await assignMission(userId, ninjas[2].id, 'B');
 }
 
 async function snapshot(label, userId, senseiName) {
@@ -210,7 +210,7 @@ async function main() {
   await setHourDev(0);
   await assignThreeMissions(userA.id, clans);
   await assignThreeMissions(userB.id, clans);
-  console.log('✅ 3 contrats idle / joueur (routine, infiltration, cyclone)');
+  console.log('✅ 3 missions idle / joueur (D, C, B)');
 
   const benchNinja = await createBenchNinja(userA.id, clans);
   console.log(`✅ Ninja banc créé pour A : ${benchNinja.name} (#${benchNinja.id})`);

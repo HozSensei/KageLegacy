@@ -75,16 +75,13 @@ async function main() {
   const bench = await benchNinjas(userId);
   assert(bench.length >= 3, `Au moins 3 remplaçants requis (trouvé ${bench.length})`);
 
-  const [nRoutine, nInfil, nCyclone] = bench;
-
-  await boostNinja(nInfil.id, { intelligence: 9, vitesse: 8 });
-  await boostNinja(nCyclone.id, { taijutsu: 13 });
+  const [nD, nC, nB] = bench;
 
   const ryosBefore = (await getDebtStatus(userId)).ryos;
 
-  const a1 = await assignMission(userId, nRoutine.id, 'routine');
-  const a2 = await assignMission(userId, nInfil.id, 'infiltration');
-  const a3 = await assignMission(userId, nCyclone.id, 'cyclone');
+  const a1 = await assignMission(userId, nD.id, 'D');
+  const a2 = await assignMission(userId, nC.id, 'C');
+  const a3 = await assignMission(userId, nB.id, 'B');
 
   console.log(`✅ 3 contrats envoyés (#${a1.missionId}, #${a2.missionId}, #${a3.missionId})`);
 

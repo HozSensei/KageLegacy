@@ -23,7 +23,7 @@ describe('Missions — envoi de contrat (UI)', () => {
         cy.get('[data-testid="missions-ninja-select"]').select($option.val());
       });
 
-    cy.get('[data-testid="missions-tier-select"]').select('routine');
+    cy.get('[data-testid="missions-tier-select"]').select('D');
     cy.intercept('POST', '/api/missions/assign').as('assignMission');
     cy.get('[data-testid="missions-send"]').should('not.be.disabled').click();
     cy.wait('@assignMission').then(({ response }) => {
@@ -35,7 +35,7 @@ describe('Missions — envoi de contrat (UI)', () => {
     cy.get('[data-testid="missions-panel"]').should('not.contain.text', 'Chargement');
     cy.get('[data-testid="missions-active"]', { timeout: 10000 }).should('exist').and('be.visible');
     cy.get('[data-testid="missions-active"]').contains(/En mission|On mission/);
-    cy.get('[data-testid="missions-active"]').contains(/Contrat de Routine|Routine [Cc]ontract|Routine/);
+    cy.get('[data-testid="missions-active"]').contains(/Mission — rang D|Mission — rank D/);
 
     cy.get('[data-testid="missions-ninja-select"] option:not([disabled])')
       .not('[value="null"]')
@@ -43,6 +43,6 @@ describe('Missions — envoi de contrat (UI)', () => {
       .then(($option) => {
         cy.get('[data-testid="missions-ninja-select"]').select($option.val());
       });
-    cy.get('[data-testid="missions-tier-select"] option[value="routine"]').should('be.disabled');
+    cy.get('[data-testid="missions-tier-select"] option[value="D"]').should('be.disabled');
   });
 });
