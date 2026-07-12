@@ -3,10 +3,8 @@ import { simulateMatchCombat, loadTeamForCombat } from './combat/matchLoader.js'
 import { buildSquadSnapshotFromNinjas } from './scoutIntelService.js';
 import {
   applyPostMatchForMatch,
-  persistSenseiChakra,
 } from './combat/postMatch.js';
-import { consumeUserItem } from './equipmentService.js';
-import { persistTacticCardCombatUsage } from './tacticCards/tacticCardPersistence.js';
+import { persistPlayedDeckElementCharges } from './tacticCards/tacticCardPersistence.js';
 import { assembleNarrative } from './narrative/narrativeAssembler.js';
 import { persistNarrativeSegments } from './narrative/narrativeStore.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
@@ -87,19 +85,13 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       loadTeamForCombat(match.home_user_id),
       loadTeamForCombat(match.away_user_id),
     ]);
-    for (const itemId of combat.consumedItemIds || []) {
-      await consumeUserItem(itemId);
-    }
-    await persistTacticCardCombatUsage([combat.homeTeam, combat.awayTeam]);
+    await persistPlayedDeckElementCharges(combat.playedElementCardIds || []);
     const { result, winnerUserId } = mapWinnerToDb(
       combat.winner,
       match.home_user_id,
       match.away_user_id
     );
     const scores = mapScores(combat.winner, combat.endReason);
-
-    await persistSenseiChakra(match.home_user_id, combat.homeTeam.sensei.chakraPool);
-    await persistSenseiChakra(match.away_user_id, combat.awayTeam.sensei.chakraPool);
 
     const now = new Date();
     const combatLogPayload = {
@@ -109,7 +101,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       awayScorePct: combat.awayScorePct,
       koNinjaIds: combat.koNinjaIds,
       possession: combat.possession,
-      equipmentSummary: combat.equipmentSummary,
+      plisWon: combat.plisWon,
       environment: combat.environment,
       squadSnapshots: {
         home: buildSquadSnapshotFromNinjas(homeTeamData.ninjas, 'fr'),

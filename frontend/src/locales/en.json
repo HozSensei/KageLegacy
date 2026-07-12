@@ -561,6 +561,15 @@
       "Tank": "Defensive — provocation",
       "Protect": "Protection — ally support",
       "Offensive": "Offensive — attack priority"
+    },
+    "deck": {
+      "title": "Operation deck",
+      "lead": "9 technique cards (3 per ninja) + 5 deck elements. Shuffled deck — 14 pli per match. Match items are no longer used.",
+      "elementsTitle": "Deck elements ({count})",
+      "autoFill": "Auto-filled from your collection if empty.",
+      "pickHint": "Pick up to 5 tactic cards (charge spent when drawn).",
+      "save": "Save deck",
+      "locked": "Deck locked — operation in progress."
     }
   },
   "elements": {

@@ -24,6 +24,7 @@ import { updateCompositionSchema } from '../validators/squadComposition.js';
 import { ensureStarterSquad } from '../services/starterSquadService.js';
 import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
 import { alignPoolBotsToPoolAverage } from '../services/botFactory.js';
+import { saveOperationDeck } from '../services/operationDeckService.js';
 import { findUserPool } from '../services/poolService.js';
 
 const router = Router();
@@ -167,6 +168,24 @@ router.post('/release', async (req, res, next) => {
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();
     res.json({ ...squad, gameClock: clock });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/deck', async (req, res, next) => {
+  try {
+    const user = await resolveUser(req, res);
+    if (!user) return;
+
+    const deck = await saveOperationDeck(user.id, {
+      techniquesByNinjaId: req.body?.techniquesByNinjaId,
+      elementCardIds: req.body?.elementCardIds,
+    });
+
+    const squad = await getSquadPayload(user.id);
+    const clock = await getGameClock();
+    res.json({ ...squad, operationDeck: deck, gameClock: clock });
   } catch (error) {
     next(error);
   }

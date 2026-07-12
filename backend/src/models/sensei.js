@@ -26,6 +26,7 @@ import { listClanAcademyBoard } from '../services/clanAcademyBoardService.js';
 import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
 import { computeTrainingCost } from '../services/training.js';
 import { getCycleBudgetPreview } from '../services/trainingBilling.js';
+import { getOperationDeck } from '../services/operationDeckService.js';
 
 export { getGameClock };
 
@@ -128,6 +129,7 @@ export async function getSquadPayload(userId) {
   const heritage = await getHeritagePayload(userId, sensei.language || 'fr');
   const clan = await getClanPayload(userId);
   const clanBoard = await listClanAcademyBoard(userId);
+  const operationDeck = await getOperationDeck(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -153,5 +155,6 @@ export async function getSquadPayload(userId) {
     heritage,
     clan,
     clanBoard,
+    operationDeck,
   };
 }

@@ -58,8 +58,11 @@ jobs:
       - name: Benchmark combat (smoke)
         run: npm run combat:benchmark --prefix backend -- --runs=100
 
-      - name: Benchmark cartes tactiques (smoke)
-        run: npm run combat:tactic-cards --prefix backend -- --runs=100
+      - name: Smoke test combat par plis
+        run: npm run test:pli-combat --prefix backend
+
+      - name: Benchmark combat par plis (smoke)
+        run: npm run combat:pli-deck --prefix backend -- --runs=100
 
   e2e:
     runs-on: ubuntu-latest

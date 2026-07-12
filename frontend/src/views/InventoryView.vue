@@ -21,10 +21,10 @@ const itemCategoryFilter = ref('all')
 const itemStatusFilter = ref('all')
 const cardStatusFilter = ref('all')
 
-const ITEM_CATEGORY_FILTERS = ['all', 'bureau', 'match', 'cycle']
+const INVENTORY_CATEGORIES = ['bureau', 'cycle']
+const ITEM_CATEGORY_FILTERS = ['all', 'bureau', 'cycle']
 const ITEM_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
 const CARD_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
-const INVENTORY_CATEGORIES = ['bureau', 'match', 'cycle']
 
 const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
   [...INVENTORY_CATEGORIES, 'tacticCards']

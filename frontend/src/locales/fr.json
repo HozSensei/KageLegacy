@@ -561,6 +561,15 @@
       "Tank": "Défensive — provocation",
       "Protect": "Protection — soutien allié",
       "Offensive": "Offensive — priorité attaque"
+    },
+    "deck": {
+      "title": "Deck d'opération",
+      "lead": "9 cartes techniques (3 par ninja) + 5 éléments de deck. Le deck est mélangé — 14 plis par match. Les objets match ne sont plus utilisés.",
+      "elementsTitle": "Éléments de deck ({count})",
+      "autoFill": "Sélection automatique depuis votre collection si vide.",
+      "pickHint": "Choisissez jusqu'à 5 cartes tactiques (charges consommées quand la carte est tirée).",
+      "save": "Enregistrer le deck",
+      "locked": "Deck verrouillé — opération en cours."
     }
   },
   "elements": {
@@ -713,7 +722,7 @@
     "purchased": "Acheté",
     "soldOut": "Épuisé",
     "tacticCardsTitle": "Cartes tactiques",
-    "tacticCardsHint": "2 offres par période de réassort — 3 charges, 1 proc max par match.",
+    "tacticCardsHint": "Éléments de deck d'opération — 5 max, mélangés avec les techniques (14 plis).",
     "cardChargesShop": "{count} charges",
     "restock": "Prochain réassort dans {cycles} cycle(s) (tous les {every})",
     "promo": "−{pct} %",

@@ -6,6 +6,7 @@ import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import SyncIcon from '../components/icons/SyncIcon.vue'
 import StoreIcon from '../components/icons/StoreIcon.vue'
 import OperationDossierPanel from '../components/squad/OperationDossierPanel.vue'
+import OperationDeckPanel from '../components/squad/OperationDeckPanel.vue'
 import { formatNinjaDisplayName } from '../utils/ninjaName.js'
 
 const { t } = useI18n()
@@ -382,6 +383,18 @@ async function fetchDossier() {
   }
 }
 
+async function saveDeck(payload) {
+  saving.value = true
+  saveError.value = null
+  try {
+    await store.saveOperationDeck(payload)
+  } catch (e) {
+    saveError.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
+
 async function updateDossierPosture(operationPosture) {
   const res = await fetch(`${API_BASE}/api/operation/dossier`, {
     method: 'PATCH',
@@ -468,6 +481,11 @@ watch(() => store.activeSquad, () => {
         :dossier="dossier"
         :loading="dossierLoading"
         @update-posture="updateDossierPosture"
+      />
+
+      <OperationDeckPanel
+        :deck="store.operationDeck"
+        @save-deck="saveDeck"
       />
 
       <section class="mt-14" data-testid="squad-composition">

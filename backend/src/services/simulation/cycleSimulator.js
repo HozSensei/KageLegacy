@@ -3,13 +3,12 @@
  * Mesure win%/nul%, upsets, KO, croissance stats, impact tactiques.
  */
 
-import { simulateCombat } from '../combat/combatEngine.js';
+import { simulatePliCombat } from '../combat/pli/pliCombatEngine.js';
 import { buildCombatTeam } from '../combat/matchLoader.js';
 import { FORME_DOWNGRADE } from '../combat/constants.js';
 import { computeTrainingSession, parseStatResiduals } from '../training.js';
 import { clampStatToGradeCap } from '../gradeProgression.js';
 import { clampStat } from '../ninjaStats.js';
-import { collectEquipmentSummary } from '../combat/equipment.js';
 import {
   LOADOUT_MISPLACED_SMOKE,
   LOADOUT_OPTIMIZED_UNDERDOG,
@@ -116,19 +115,12 @@ export function createBalancedSquad(prefix, idOffset = 0, statScale = 1) {
   ];
 }
 
-function teamDataFromNinjas(
-  userId,
-  ninjas,
-  sensei = { name: 'Sensei', chakra_pool: 100, training_focus: 'Ninjutsu' },
-  equipmentByNinja = {},
-  tacticCardByNinja = {}
-) {
+function teamDataFromNinjas(userId, ninjas, sensei = { name: 'Sensei' }) {
   return {
     userId,
     sensei,
     ninjas: ninjas.map(cloneNinja),
-    equipmentByNinja,
-    tacticCardByNinja,
+    operationDeck: { techniquesByNinjaId: {}, elementCards: [] },
   };
 }
 
@@ -141,25 +133,13 @@ function combatWinnerToSlot(winner) {
   return winner === COMBAT_SLOT_A ? 'slotA' : 'slotB';
 }
 
-function runSingleMatch(
-  slotANinjas,
-  slotBNinjas,
-  slotASensei,
-  slotBSensei,
-  slotAEquipment = {},
-  slotBEquipment = {},
-  slotATacticCards = {},
-  slotBTacticCards = {}
-) {
-  const slotA = buildCombatTeam(
-    teamDataFromNinjas(1, slotANinjas, slotASensei, slotAEquipment, slotATacticCards),
-    COMBAT_SLOT_A
-  );
-  const slotB = buildCombatTeam(
-    teamDataFromNinjas(2, slotBNinjas, slotBSensei, slotBEquipment, slotBTacticCards),
-    COMBAT_SLOT_B
-  );
-  return simulateCombat(slotA, slotB);
+function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei) {
+  const slotA = buildCombatTeam(teamDataFromNinjas(1, slotANinjas, slotASensei), COMBAT_SLOT_A);
+  const slotB = buildCombatTeam(teamDataFromNinjas(2, slotBNinjas, slotBSensei), COMBAT_SLOT_B);
+  return simulatePliCombat(slotA, slotB, {
+    homeDeck: { techniquesByNinjaId: {}, elementCards: [] },
+    awayDeck: { techniquesByNinjaId: {}, elementCards: [] },
+  });
 }
 
 function initOutcomeCounter() {
@@ -289,21 +269,12 @@ export function runMonteCarlo({
         slotANinjas.map(cloneNinja),
         slotBNinjas.map(cloneNinja),
         slotASensei,
-        slotBSensei,
-        slotAEquipment,
-        slotBEquipment,
-        slotATacticCards,
-        slotBTacticCards
+        slotBSensei
       );
       recordOutcome(counter, result, favoriteSide);
-      const summary = collectEquipmentSummary([
-        ...result.homeTeam.fighters,
-        ...result.awayTeam.fighters,
-      ]);
-      consumablesTriggered += summary.reduce((s, row) => s + row.consumedSlugs.length, 0);
-      const procs = result.logs.filter((l) => l.type === 'tactic_card').length;
-      cardProcs += procs;
-      if (procs > 0) matchesWithCardProc += 1;
+      const elementPlays = result.logs.filter((l) => l.type === 'element').length;
+      cardProcs += elementPlays;
+      if (elementPlays > 0) matchesWithCardProc += 1;
     } catch (err) {
       errors += 1;
       if (errors === 1) console.error('runMonteCarlo error:', err);

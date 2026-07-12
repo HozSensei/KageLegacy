@@ -210,14 +210,20 @@ export async function getVillageShopForUser(userId) {
     [userId, restockPeriod]
   );
 
-  const items = stockRows.map((row) =>
-    mapShopRow(
-      row,
-      promoByItem,
-      heritage.matchShopDiscountPct,
-      heritage.bureauShopDiscountPct
+  const items = stockRows
+    .map((row) =>
+      mapShopRow(
+        row,
+        promoByItem,
+        heritage.matchShopDiscountPct,
+        heritage.bureauShopDiscountPct
+      )
     )
-  );
+    .filter(
+      (item) =>
+        item.category !== 'match' &&
+        !['cape-impermeable', 'torche-signalisation', 'sandales-canyon'].includes(item.slug)
+    );
 
   return {
     items,

@@ -143,9 +143,17 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 - La composition est modifiable jusqu'à **H54** (gel des 3 ninjas actifs).
 - Un ninja est **indisponible** s'il est en mission, en vente sur le marché P2P, ou si la fenêtre tactique est fermée.
 
-### Consignes individuelles
+### Deck d'opération (combat par plis)
 
-Chaque ninja actif reçoit **une consigne de combat**. C'est le levier principal en match : elle modifie le ciblage, les soins et la priorité d'attaque.
+Chaque match se joue en **14 plis** : deck mélangé de **9 cartes techniques** (3 par ninja actif : 1× principale, 2× secondaire) et **5 éléments de deck** (cartes tactiques d'escouade).
+
+- **PV max** = note globale du ninja × 10 (moyenne des 6 stats).
+- Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
+- **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
+- **Objets match** : retirés du combat ; seules les **cartes tactiques** servent d'éléments de deck (plus d'équipement match par ninja).
+- Les **consignes** restent modifiables en interface mais ne pilotent plus le moteur de combat (remplacées par le deck).
+
+### Consignes individuelles (héritage interface)
 
 | Consigne | Rôle en match | Quand l'utiliser |
 |----------|---------------|----------------|

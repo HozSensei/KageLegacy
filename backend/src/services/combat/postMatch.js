@@ -1,5 +1,5 @@
 import { query } from '../../config/database.js';
-import { computeMatchPv, computeMatchChakraMax } from '../ninjaStats.js';
+import { computeMatchPvFromRating, computeMatchChakraMax } from '../ninjaStats.js';
 import { FORME_DOWNGRADE } from './constants.js';
 import { applyFormeToStats } from './forme.js';
 
@@ -9,7 +9,7 @@ export async function applyPostMatchRecovery(userId, koNinjaIds = []) {
 
   for (const ninja of ninjas) {
     const stats = applyFormeToStats(ninja);
-    const maxPv = computeMatchPv(stats.taijutsu);
+    const maxPv = computeMatchPvFromRating(stats);
     const maxChakra = computeMatchChakraMax(ninja.grade, stats.ninjutsu);
 
     let weeklyForme = ninja.weekly_forme;
