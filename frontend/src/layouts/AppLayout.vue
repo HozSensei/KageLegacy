@@ -42,9 +42,18 @@ const eliteToolsNavItem = {
   elite: true,
 }
 
+const adminNavItem = {
+  name: 'admin',
+  path: '/admin',
+  label: 'nav.admin',
+  admin: true,
+}
+
 const navItems = computed(() => {
-  if (!elite.subscription?.isActive) return baseNavItems
-  return [...baseNavItems, eliteToolsNavItem]
+  const items = [...baseNavItems]
+  if (elite.subscription?.isActive) items.push(eliteToolsNavItem)
+  if (auth.user?.isAdmin) items.push(adminNavItem)
+  return items
 })
 
 function isActive(path) {

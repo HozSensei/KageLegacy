@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { readApiError } from '../utils/http.js'
+import { useSquadStore } from './squad'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -60,6 +61,13 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  async function refreshGameClock() {
+    const squad = useSquadStore()
+    if (squad.sensei) {
+      await squad.fetchSquad()
+    }
+  }
+
   async function advanceHour() {
     loading.value = true
     error.value = null
@@ -67,6 +75,7 @@ export const useAdminStore = defineStore('admin', () => {
       const data = await adminFetch('/clock/advance-hour', { method: 'POST' })
       clock.value = data.clock
       lastResult.value = data
+      await refreshGameClock()
       return data
     } catch (e) {
       error.value = e.message
@@ -86,6 +95,7 @@ export const useAdminStore = defineStore('admin', () => {
       })
       clock.value = data.clock
       lastResult.value = data
+      await refreshGameClock()
       return data
     } catch (e) {
       error.value = e.message
@@ -105,6 +115,7 @@ export const useAdminStore = defineStore('admin', () => {
       })
       clock.value = data.clock
       lastResult.value = data
+      await refreshGameClock()
       return data
     } catch (e) {
       error.value = e.message
@@ -121,6 +132,7 @@ export const useAdminStore = defineStore('admin', () => {
       const data = await adminFetch('/clock/tick', { method: 'POST' })
       clock.value = data.clock
       lastResult.value = data
+      await refreshGameClock()
       return data
     } catch (e) {
       error.value = e.message
@@ -140,6 +152,7 @@ export const useAdminStore = defineStore('admin', () => {
       })
       if (data.clock) clock.value = data.clock
       lastResult.value = data
+      if (!data.dryRun) await refreshGameClock()
       return data
     } catch (e) {
       error.value = e.message

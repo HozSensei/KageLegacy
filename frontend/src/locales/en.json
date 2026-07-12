@@ -228,7 +228,8 @@
     "inventory": "Inventory",
     "operation": "Operation",
     "profile": "Profile",
-    "eliteTools": "Elite tools"
+    "eliteTools": "Elite tools",
+    "admin": "Administration"
   },
   "rules": {
     "pageTitle": "Game rules",
@@ -827,6 +828,7 @@
     "reconPendingOutgoing": "Challenge sent to {name} — awaiting acceptance.",
     "reconQueued": "Queued — combat scheduled at H{hour}.",
     "reconScheduled": "Challenge accepted vs {name} — combat scheduled at H{hour}.",
+    "reconPendingResolution": "Registration pending — resolution at H{hour}.",
     "reconWindow": "Registration open — resolution at H{hour}.",
     "reconClosed": "Reconnaissance window closed for this cycle.",
     "reconOutcomeWin": "Victory",
@@ -974,7 +976,8 @@
       "setHour": "Target hour",
       "applyHour": "Apply",
       "setStart": "H0 anchor",
-      "applyStart": "Set anchor"
+      "applyStart": "Set anchor",
+      "reconHint": "Reconnaissance: join the queue (Missions) before jumping to H36 — combat resolves when H36 is reached."
     },
     "reset": {
       "title": "Global season reset",

@@ -131,17 +131,20 @@ function outcomeLabel(outcome) {
         {{ t('missions.reconPendingOutgoing', { name: recon.pendingOutgoing.defenderName }) }}
       </p>
 
-      <p v-if="isQueued" class="mt-4 border border-accent/40 bg-accent/5 px-4 py-3 text-sm text-ink">
-        {{ t('missions.reconQueued', { hour: recon.resolvesAtHour }) }}
-      </p>
-
-      <p v-else-if="isScheduled" class="mt-4 border border-accent/40 bg-accent/5 px-4 py-3 text-sm text-ink">
-        {{
-          t('missions.reconScheduled', {
-            name: recon.scheduledChallenge.opponentName,
-            hour: recon.scheduledChallenge.scheduledForHour,
-          })
-        }}
+        <p v-else-if="isQueued || isScheduled" class="mt-4 border border-accent/40 bg-accent/5 px-4 py-3 text-sm text-ink">
+        <template v-if="isQueued">
+          {{ recon.hour >= recon.resolvesAtHour ? t('missions.reconPendingResolution', { hour: recon.resolvesAtHour }) : t('missions.reconQueued', { hour: recon.resolvesAtHour }) }}
+        </template>
+        <template v-else>
+          {{
+            recon.hour >= recon.scheduledChallenge.scheduledForHour
+              ? t('missions.reconPendingResolution', { hour: recon.scheduledChallenge.scheduledForHour })
+              : t('missions.reconScheduled', {
+                  name: recon.scheduledChallenge.opponentName,
+                  hour: recon.scheduledChallenge.scheduledForHour,
+                })
+          }}
+        </template>
       </p>
 
       <button
