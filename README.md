@@ -11,7 +11,7 @@ Dans **Kage Legacy**, vous incarnez un **Jonin-Sensei**, mentor de votre propre 
 ### 🔄 La Boucle de Jeu (Cycle de 72h)
 
 * **L'Entraînement** — progression automatique selon le focus choisi (appliquée à H72).
-* **La Préparation (H0–H36)** — entraînement, missions, magasin, Académie et **mission de reconnaissance** (combat d'entraînement).
+* **La Préparation (H0–H35)** — entraînement, missions, magasin, Académie, inscription **reconnaissance** (combat résolu à H36).
 * **Les Épreuves (H36)** — examens Chunin et rapport d'espionnage (conditionné par la mission de reconnaissance).
 * **L'Opération de Frontière (H71→H72)** — chronique shinobi révélée progressivement.
 * **Le Vol d'Oiseau** — vos Chunins d'élite partent en Jonin, la relève arrive.
@@ -56,32 +56,175 @@ npm run dev
 | Health check | http://localhost:3000/api/health |
 | Connexion | http://localhost:5173/login — ou compte démo `demo_sensei` / `demo` après seed |
 
-### Scripts utiles
+### Scripts utiles (racine)
+
+| Commande | Description |
+|----------|-------------|
+| `npm run db:up` | Démarre MySQL (Docker) |
+| `npm run db:down` | Arrête les conteneurs Docker |
+| `npm run db:migrate` | Applique les migrations SQL |
+| `npm run db:seed` | Génère le joueur démo + 15 ninjas (**dev uniquement**) |
+| `npm run dev` | API + front en parallèle |
+| `npm run dev:api` / `npm run dev:web` | API ou front seul |
+| `npm run lint` | ESLint frontend |
+| `npm run test:unit` | Smoke tests backend (imports, sceau, ligue, narratif, Égoïste) |
+| `npm run e2e:prepare` | Migrate + seed + playtest cycle + calendrier ligue E2E |
+| `npm run test:e2e` | Cypress headless (15 specs) |
+| `npm run test:e2e:open` | Cypress interactif |
+
+Les commandes **backend** détaillées ci-dessous se lancent avec `npm run <script> --prefix backend` (ajoutez `--` avant les arguments du script).
+
+---
+
+## 📟 Référence des commandes CLI
+
+> **Syntaxe npm** : `npm run <script> --prefix backend -- [--option=valeur]`  
+> Le `--` sépare les arguments npm de ceux passés au script Node.
+
+### Base de données
+
+| Commande | Arguments | Description |
+|----------|-----------|-------------|
+| `db:migrate` | — | Applique les migrations en attente |
+| `db:seed` | — | Compte `demo_sensei` / `demo` + escouade (**ne pas lancer en prod** sur une base existante) |
+
+### Horloge du cycle (72 h)
+
+| Commande | Arguments | Description |
+|----------|-----------|-------------|
+| `clock:advance` | — | **+1 heure** (dev) + exécute les jobs de cycle si seuil atteint (H36, H54, H71, H72) |
+| `clock:set` | `[0-72]` | Place l'horloge à **Hx** (recalcule `cycle_start_at` depuis maintenant) + jobs |
+| `clock:set-start` | `--at=<ISO-8601>` | **Ancre H0** à une date précise ; l'heure courante est recalculée depuis cette ancre |
+
+**Exemples horloge (local)** :
 
 ```bash
-npm run db:up       # Démarre MySQL (Docker)
-npm run db:migrate  # Applique les migrations SQL
-npm run db:seed     # Génère le joueur démo + 15 ninjas
-npm run clock:advance  # Avance l'horloge d'1h (dev)
-npm run lint           # ESLint frontend
-npm run test:unit      # Smoke tests narratif + Égoïste
-npm run combat:benchmark --prefix backend  # Benchmark équilibre combat
-npm run playtest:cycle --prefix backend    # Playtest cycle H0→H72 (1 joueur)
-npm run playtest:missions --prefix backend # Playtest 3 paliers idle + notifications
-npm run e2e:prepare                        # MySQL : migrate + seed + cycle H0→H72 (prérequis E2E)
-npm run test:e2e                           # Cypress : login, missions, cloche, collecte
-npm run test:e2e:open                      # Cypress interactif (navigateur)
-npm run playtest:multiplayer --prefix backend  # Playtest 2 comptes + P2P + cycle
-npm run playtest:league --prefix backend       # Playtest 2 humains même pool + match H71
-npm run economy:simulate --prefix backend      # Simule ~20 cycles + achats magasin (équilibre Ryos)
-npm run economy:calibrate --prefix backend     # Calibrage analytique des primes match
-npm run narrative:backfill --prefix backend  # One-shot : segments i18n sur chroniques legacy
-# Options : --progression (Chunin + Vol d'Oiseau), --chunin, --bird-flight, --items=1, --training
-npm run cycle:tick --prefix backend        # Tick horloge (cron / prod)
-npm run guest:purge --prefix backend       # Purge invités expirés + sessions orphelines (cron optionnel)
-npm run dev:api     # API seule
-npm run dev:web     # Front seul
+# Avancer d'une heure et déclencher les jobs éventuels
+npm run clock:advance --prefix backend
+
+# Se placer à H36 et lancer Chunin + reconnaissance + tendances scout
+npm run clock:set --prefix backend -- 36
+
+# Ancrer le cycle à aujourd'hui 8h (heure de Paris/Bruxelles, été UTC+2)
+npm run clock:set-start --prefix backend -- --at=2026-07-12T08:00:00+02:00
 ```
+
+**Docker prod** (répertoire de travail `/app/backend`) :
+
+```bash
+docker exec -w /app/backend kage_app npm run clock:set-start -- --at=2026-07-12T08:00:00+02:00
+docker exec -w /app/backend kage_app npm run clock:set -- 36
+```
+
+| Variable `.env.prod` | Rôle |
+|---------------------|------|
+| `CYCLE_START_AT` | Date ISO de l'ancre H0 (ex. `2026-07-12T08:00:00+02:00`) |
+| `CYCLE_START_AT_APPLY` | `true` **une seule fois** au redémarrage pour appliquer l'ancre, puis repasser à `false` |
+
+**SQL direct** (alternative à `clock:set-start`) :
+
+```sql
+UPDATE game_clock
+SET
+  cycle_start_at = '2026-07-12 06:00:00',
+  last_tick_hour = LEAST(72, GREATEST(0, TIMESTAMPDIFF(HOUR, '2026-07-12 06:00:00', UTC_TIMESTAMP())))
+WHERE id = 1;
+```
+
+*(8h à Paris en été = 6:00 UTC)*
+
+### Reset global de saison (`season:hard-reset`)
+
+Remet **tous les joueurs humains** à zéro gameplay : nouvelle escouade, nouvelles ligues, Ryos/réputation réinitialisés. **Conserve** : comptes, sessions, clans, rouleaux d'héritage, abonnements Élite (réactivés).
+
+| Argument | Obligatoire | Description |
+|----------|-------------|-------------|
+| `--dry-run` | ou `--confirm` | Aperçu sans modifier la base |
+| `--confirm` | ou `--dry-run` | Exécute réellement le reset |
+| `--season=<n>` | recommandé | Numéro de saison des nouveaux pools (défaut `1`) |
+| `--at=<ISO-8601>` | optionnel | Ancre **H0** du nouveau cycle (défaut : maintenant en UTC) |
+
+**Procédure recommandée** :
+
+```bash
+# 1. Prévisualiser
+npm run season:hard-reset --prefix backend -- --dry-run --season=1 --at=2026-07-12T08:00:00+02:00
+
+# 2. Exécuter (irréversible côté gameplay)
+npm run season:hard-reset --prefix backend -- --confirm --season=1 --at=2026-07-12T08:00:00+02:00
+```
+
+**Hard reset effectif à aujourd'hui 8h** (Paris/Bruxelles, été) :
+
+```bash
+npm run season:hard-reset --prefix backend -- --confirm --season=1 --at=2026-07-12T08:00:00+02:00
+```
+
+Sur le NAS :
+
+```bash
+docker exec -w /app/backend kage_app npm run season:hard-reset -- --dry-run --season=1 --at=2026-07-12T08:00:00+02:00
+docker exec -w /app/backend kage_app npm run season:hard-reset -- --confirm --season=1 --at=2026-07-12T08:00:00+02:00
+```
+
+Après le reset, l'horloge est à **H0** avec `cycle_start_at` = l'heure indiquée par `--at`. Le scheduler prod (`ENABLE_SCHEDULER=true`) fera avancer le cycle en temps réel.
+
+### Cycle & maintenance prod
+
+| Commande | Arguments | Description |
+|----------|-----------|-------------|
+| `cycle:tick` | — | Un tick horloge (cron prod, H36/H54/H71/H72 selon l'heure réelle) |
+| `guest:purge` | — | Purge comptes invités expirés |
+| `pool:repair-schedules` | `--all` ou `--pool-id=<id>` | Répare un calendrier ligue round-robin corrompu |
+| | `--include-played` | Réécrit aussi les matchs déjà joués (défaut : `scheduled` seulement) |
+
+### Playtests (dev)
+
+| Commande | Options | Description |
+|----------|---------|-------------|
+| `playtest:cycle` | — | Jalons H0 → H36 → H71 → H72 (1 joueur) |
+| `playtest:missions` | — | 3 paliers missions idle + notifications |
+| `playtest:multiplayer` | — | 2 comptes + P2P + cycle |
+| `playtest:league` | — | 2 humains même pool + match H71 |
+
+Options `economy:simulate` : `--cycles=20`, `--items=1`, `--chunin`, `--bird-flight`, `--progression` (= chunin + bird-flight) — voir `backend/scripts/simulateEconomyCycles.js`.
+
+### Tests automatisés (backend)
+
+| Commande | Sujet |
+|----------|--------|
+| `test:reconnaissance` | Mission reconnaissance différée H36 |
+| `test:scout-cycle` | Espionnage H36/H54 |
+| `test:cycle-freezes` | Gels composition / équipement H54/H71 |
+| `test:operation-dossier` | Dossier d'opération |
+| `test:combat-loot` | Butin combat |
+| `test:narrative` | Moteur de chronique |
+| `test:egoiste` | Trait Égoïste / insubordination |
+| `test:pool-schedule` | Calendrier round-robin |
+| `test:season-hard-reset` | Reset global de saison |
+| `audit:imports` | Cohérence des imports backend |
+
+### Combat, économie, narratif
+
+| Commande | Arguments | Description |
+|----------|-----------|-------------|
+| `combat:benchmark` | `-- --runs=100` | Benchmark équilibre combat |
+| `combat:tactic-cards` | `-- --runs=100` | Benchmark cartes tactiques |
+| `combat:simulate` | — | Simule un match (script interactif) |
+| `economy:simulate` | — | ~20 cycles + achats magasin |
+| `economy:calibrate` | — | Calibrage analytique des primes |
+| `narrative:backfill` | — | Régénère les segments i18n des chroniques legacy |
+
+### Ancien bloc scripts (raccourci)
+
+```bash
+npm run combat:benchmark --prefix backend
+npm run playtest:cycle --prefix backend
+npm run cycle:tick --prefix backend
+npm run guest:purge --prefix backend
+```
+
+---
 
 ### CI (GitHub Actions)
 
@@ -128,38 +271,7 @@ Au démarrage, le container **attend MySQL**, applique les **migrations** (donn�
 
 **Mise à jour** : `pull` + `up -d` — ne jamais lancer `db:seed` en prod sur une base existante.
 
-### Ancre du cycle (horloge H0)
-
-À la **première migration**, `game_clock.cycle_start_at` est fixé à `UTC_TIMESTAMP()` — donc au premier `db:migrate` de votre déploiement (≈ 20h12 si c'est à ce moment-là que le container a migré).
-
-Pour reculer le début du cycle (ex. « hier à midi ») :
-
-**Option A — une fois via Docker** (après mise à jour image) :
-
-```bash
-docker exec kage_app node scripts/setCycleStart.js --at=2026-07-06T12:00:00+02:00
-```
-
-**Option B — via `.env.prod`** (redémarrage unique, puis retirer `CYCLE_START_AT_APPLY`) :
-
-```env
-CYCLE_START_AT=2026-07-06T12:00:00+02:00
-CYCLE_START_AT_APPLY=true
-```
-
-**Option C — SQL direct** sur MySQL :
-
-```sql
-UPDATE game_clock
-SET
-  cycle_start_at = '2026-07-06 10:00:00',
-  last_tick_hour = LEAST(72, GREATEST(0, TIMESTAMPDIFF(HOUR, '2026-07-06 10:00:00', UTC_TIMESTAMP())))
-WHERE id = 1;
-```
-
-*(midi heure de Bruxelles en été = 10:00 UTC)*
-
-Le redémarrage du container **ne modifie pas** l'ancre — seul `cycle_start_at` en base compte.
+Pour l'horloge et le hard reset en prod, voir la section **Référence des commandes CLI** (horloge, `season:hard-reset`, variables `CYCLE_START_AT`).
 
 Build local : `docker build -t kage-legacy:local .`
 
