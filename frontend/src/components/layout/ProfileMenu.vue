@@ -173,7 +173,7 @@ onMounted(() => {
       </div>
 
       <div class="border-b border-line px-5 py-4">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.theme') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.theme') }}</p>
         <ul class="mt-3 space-y-2" role="list">
           <li v-for="theme in themeStore.options" :key="theme.id">
             <button
@@ -198,7 +198,7 @@ onMounted(() => {
               <span class="min-w-0 flex-1">{{ t(theme.labelKey) }}</span>
               <span
                 v-if="themeStore.currentId === theme.id"
-                class="shrink-0 text-xs uppercase tracking-[0.12em] text-accent"
+                class="shrink-0 text-[10px] uppercase tracking-[0.12em] text-accent"
               >
                 {{ t('profile.themeActive') }}
               </span>
@@ -208,8 +208,8 @@ onMounted(() => {
       </div>
 
       <div class="border-b border-line px-5 py-4">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.language') }}</p>
-        <div class="mt-2 flex gap-1 text-sm uppercase tracking-[0.14em]">
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.language') }}</p>
+        <div class="mt-2 flex gap-1 text-[11px] uppercase tracking-[0.14em]">
           <button
             type="button"
             class="px-2 py-1 transition"
@@ -290,7 +290,7 @@ onMounted(() => {
           </label>
           <button
             type="submit"
-            class="btn-ghost w-full"
+            class="btn-ghost w-full text-xs"
             :disabled="saving"
             data-testid="profile-email-submit"
           >
@@ -336,7 +336,7 @@ onMounted(() => {
           </label>
           <button
             type="submit"
-            class="btn-ghost w-full"
+            class="btn-ghost w-full text-xs"
             :disabled="saving"
             data-testid="profile-password-submit"
           >
@@ -390,14 +390,14 @@ onMounted(() => {
           <div class="flex gap-2">
             <button
               type="button"
-              class="btn-ghost flex-1"
+              class="btn-ghost flex-1 text-xs"
               @click="toggleSection(null)"
             >
               {{ t('profile.deleteCancel') }}
             </button>
             <button
               type="button"
-              class="btn-ghost flex-1 border-fire text-fire"
+              class="btn-ghost flex-1 border-fire text-fire text-xs"
               :disabled="saving || !deleteConfirmed"
               data-testid="profile-delete-submit"
               @click="submitDelete"

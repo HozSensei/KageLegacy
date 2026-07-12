@@ -137,7 +137,7 @@ function expiresLabel(expiresAt) {
             </div>
           </div>
 
-          <button type="button" class="btn-ghost mt-6" :disabled="busy" @click="leaveClan">
+          <button type="button" class="btn-ghost mt-6 text-xs" :disabled="busy" @click="leaveClan">
             {{ t('clan.leaveAction') }}
           </button>
         </section>

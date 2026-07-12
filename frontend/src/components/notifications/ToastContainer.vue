@@ -21,7 +21,7 @@ const { toasts, dismiss } = useToast()
     >
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-xs uppercase tracking-[0.14em] text-accent">{{ toast.title }}</p>
+          <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ toast.title }}</p>
           <p v-if="toast.body" class="mt-1 text-sm leading-relaxed text-ink">{{ toast.body }}</p>
         </div>
         <button

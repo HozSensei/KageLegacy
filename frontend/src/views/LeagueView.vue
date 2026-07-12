@@ -110,7 +110,7 @@ function matchStatusLabel(status) {
         <p class="section-label">{{ t('league.standings') }}</p>
         <table class="league-table mt-6 w-full text-sm">
           <thead>
-            <tr class="text-left text-xs uppercase tracking-[0.14em] text-ink-faint">
+            <tr class="text-left text-[10px] uppercase tracking-[0.14em] text-ink-faint">
               <th class="pb-3 pr-4">#</th>
               <th class="pb-3">{{ t('league.sensei') }}</th>
               <th class="pb-3 text-right">{{ t('league.played') }}</th>
@@ -134,7 +134,7 @@ function matchStatusLabel(status) {
                 />
                 <template v-else>
                   {{ row.senseiName }}
-                  <span v-if="row.isBot" class="ml-1 text-xs text-ink-faint">{{ t('league.bot') }}</span>
+                  <span v-if="row.isBot" class="ml-1 text-[10px] text-ink-faint">{{ t('league.bot') }}</span>
                 </template>
               </td>
               <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
@@ -147,8 +147,8 @@ function matchStatusLabel(status) {
       <section v-if="invite" class="mt-14">
         <p class="section-label">{{ t('league.inviteTitle') }}</p>
         <p class="mt-2 text-xs text-ink-faint">{{ t('league.inviteLead') }}</p>
-        <p class="mt-3 break-all font-mono text-sm text-ink-muted">{{ invite.inviteUrl }}</p>
-        <button type="button" class="btn-ghost mt-3" @click="copyInvite">
+        <p class="mt-3 break-all font-mono text-[11px] text-ink-muted">{{ invite.inviteUrl }}</p>
+        <button type="button" class="btn-ghost mt-3 text-[10px]" @click="copyInvite">
           {{ inviteCopied ? t('league.inviteCopied') : t('league.inviteCopy') }}
         </button>
       </section>
@@ -163,7 +163,7 @@ function matchStatusLabel(status) {
           }"
           class="mt-4 block border border-line p-5 transition hover:border-accent"
         >
-          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
             {{ t('league.matchday') }} {{ league.nextMatch.cycle }}
             · {{ matchStatusLabel(league.nextMatch.status) }}
           </p>
@@ -277,7 +277,7 @@ function matchStatusLabel(status) {
               </p>
 
               <div v-if="league.scoutReport.historicalTendencies?.lines?.length" class="mt-4">
-                <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+                <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                   {{ t('league.scoutTendenciesTitle', { count: league.scoutReport.historicalTendencies.sampleSize }) }}
                 </p>
                 <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
@@ -295,20 +295,20 @@ function matchStatusLabel(status) {
               <template v-else-if="league.scoutReport.phase === 'roster'">
                 <p
                   v-if="league.scoutReport.tier === 'full'"
-                  class="mt-4 text-xs uppercase tracking-[0.14em] text-accent"
+                  class="mt-4 text-[10px] uppercase tracking-[0.14em] text-accent"
                 >
                   {{ t('league.scoutFull', { pct: league.scoutReport.reconScorePct ?? '—' }) }}
                 </p>
                 <p
                   v-else-if="league.scoutReport.reconOutcome === 'win'"
-                  class="mt-4 text-xs uppercase tracking-[0.14em] text-ink-faint"
+                  class="mt-4 text-[10px] uppercase tracking-[0.14em] text-ink-faint"
                 >
                   {{ t('league.scoutPartialWin', { pct: league.scoutReport.reconScorePct ?? '—' }) }}
                 </p>
-                <p v-else class="mt-4 text-xs uppercase tracking-[0.14em] text-ink-faint">
+                <p v-else class="mt-4 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                   {{ t('league.scoutPartial') }}
                 </p>
-                <p class="mt-2 text-xs uppercase tracking-[0.14em] text-ink-faint">
+                <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                   {{ t('league.scoutRosterTitle') }}
                 </p>
                 <ul

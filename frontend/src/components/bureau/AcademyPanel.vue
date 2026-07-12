@@ -89,7 +89,7 @@ async function recommend(drawId) {
           </p>
           <span
             v-if="draw.expiresSoon"
-            class="text-xs uppercase tracking-wider text-fire"
+            class="text-[10px] uppercase tracking-wider text-fire"
           >
             {{ t('bureau.academyExpiresSoon') }}
           </span>
@@ -110,7 +110,7 @@ async function recommend(drawId) {
             <button
               v-if="canRecommend && academy.rotationOpen"
               type="button"
-              class="btn-ghost text-sm"
+              class="btn-ghost text-[11px]"
               :disabled="recommendingId === draw.id"
               data-testid="recommend-to-clan"
               @click="recommend(draw.id)"

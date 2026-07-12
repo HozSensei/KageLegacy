@@ -71,7 +71,7 @@ async function runMatchup() {
 
     <template v-else-if="tools">
       <section class="mt-8">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.seasonTitle') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.seasonTitle') }}</p>
         <dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <div>
             <dt class="text-ink-faint">{{ t('senseiProfile.wins') }}</dt>
@@ -93,7 +93,7 @@ async function runMatchup() {
       </section>
 
       <section class="mt-8">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.ordersTitle') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.ordersTitle') }}</p>
         <p class="mt-2 text-sm text-ink">{{ tools.orders?.label ?? tools.composition?.label }}</p>
         <ul class="mt-2 space-y-1 text-xs text-ink-muted">
           <li v-for="(tip, i) in (tools.orders?.tips ?? tools.composition?.tips)" :key="i">{{ tip }}</li>
@@ -101,7 +101,7 @@ async function runMatchup() {
       </section>
 
       <section v-if="tools.preparationChallenges?.challenges?.length" class="mt-8">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.challengesTitle') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.challengesTitle') }}</p>
         <p class="mt-2 text-xs text-ink-muted">{{ t('eliteTools.challengesLead') }}</p>
         <p class="mt-2 text-xs text-ink-faint">
           {{ t('eliteTools.challengesSummary', tools.preparationChallenges.summary) }}
@@ -125,7 +125,7 @@ async function runMatchup() {
       </section>
 
       <section v-if="tools.trainingRoi?.length" class="mt-8">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.trainingTitle') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.trainingTitle') }}</p>
         <ul class="mt-3 space-y-2 text-xs">
           <li
             v-for="row in tools.trainingRoi"
@@ -142,7 +142,7 @@ async function runMatchup() {
       </section>
 
       <section class="mt-8">
-        <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.matchupTitle') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.matchupTitle') }}</p>
         <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('eliteTools.matchupHint') }}</p>
         <RouterLink
           :to="rulesCompLink"
@@ -186,7 +186,7 @@ async function runMatchup() {
           </label>
           <button
             type="button"
-            class="btn-ghost"
+            class="btn-ghost text-xs"
             :disabled="simulating"
             data-testid="elite-matchup-run"
             @click="runMatchup"
@@ -240,12 +240,12 @@ async function runMatchup() {
           </p>
 
           <ul v-if="matchup.verdict?.factors?.length" class="mt-4 space-y-2 border-t border-line/50 pt-3 text-xs leading-relaxed text-ink-muted">
-            <li class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.whyTitle') }}</li>
+            <li class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.whyTitle') }}</li>
             <li v-for="(factor, i) in matchup.verdict.factors" :key="`f-${i}`">· {{ factor }}</li>
           </ul>
 
           <div v-if="matchup.verdict?.advice?.length" class="mt-4 border-t border-line/50 pt-3">
-            <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.adviceTitle') }}</p>
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.adviceTitle') }}</p>
             <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink">
               <li v-for="(tip, i) in matchup.verdict.advice" :key="`a-${i}`">→ {{ tip }}</li>
             </ul>

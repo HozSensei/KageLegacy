@@ -5,17 +5,6 @@
   --font-display: "Cormorant Garamond", Georgia, serif;
   --font-sans: "DM Sans", system-ui, sans-serif;
 
-  --text-xs: 0.8125rem;
-  --text-xs--line-height: 1.125rem;
-  --text-sm: 0.9375rem;
-  --text-sm--line-height: 1.375rem;
-  --text-base: 1.0625rem;
-  --text-base--line-height: 1.625rem;
-  --text-lg: 1.1875rem;
-  --text-lg--line-height: 1.75rem;
-  --text-xl: 1.3125rem;
-  --text-xl--line-height: 1.875rem;
-
   --color-ink: var(--kl-ink);
   --color-ink-muted: var(--kl-ink-muted);
   --color-ink-faint: var(--kl-ink-faint);
@@ -37,7 +26,7 @@
 
   body {
     font-family: var(--font-sans);
-    @apply bg-bg text-base text-ink antialiased;
+    @apply bg-bg text-ink antialiased;
     font-feature-settings: "kern" 1, "liga" 1;
   }
 
@@ -135,7 +124,7 @@
   }
 
   .page-kicker {
-    @apply text-sm font-medium uppercase tracking-[0.22em] text-ink-faint;
+    @apply text-[11px] font-medium uppercase tracking-[0.22em] text-ink-faint;
   }
 
   .page-title {
@@ -144,7 +133,7 @@
   }
 
   .page-lead {
-    @apply mt-4 max-w-xl text-base leading-7 text-ink-muted;
+    @apply mt-4 max-w-xl text-[15px] leading-7 text-ink-muted;
   }
 
   .metric-row {
@@ -161,11 +150,11 @@
   }
 
   .metric-label {
-    @apply mt-1.5 text-sm uppercase tracking-[0.16em] text-ink-faint;
+    @apply mt-1.5 text-[11px] uppercase tracking-[0.16em] text-ink-faint;
   }
 
   .section-label {
-    @apply text-sm font-medium uppercase tracking-[0.2em] text-ink-faint;
+    @apply text-[11px] font-medium uppercase tracking-[0.2em] text-ink-faint;
   }
 
   .ghost-link {
@@ -173,7 +162,7 @@
   }
 
   .nav-link {
-    @apply text-sm uppercase tracking-[0.18em] text-ink-faint transition hover:text-ink;
+    @apply text-[11px] uppercase tracking-[0.18em] text-ink-faint transition hover:text-ink;
   }
 
   .nav-link-active {
@@ -217,7 +206,7 @@
   }
 
   .app-nav-drawer__group-label {
-    @apply px-3 pb-1 pt-2 text-xs uppercase tracking-[0.16em] text-ink-faint;
+    @apply px-3 pb-1 pt-2 text-[10px] uppercase tracking-[0.16em] text-ink-faint;
   }
 
   .app-nav-drawer__link {
@@ -229,7 +218,7 @@
   }
 
   .cycle-progress__clock {
-    @apply text-sm uppercase tracking-[0.08em] text-ink-faint;
+    @apply text-[11px] uppercase tracking-[0.08em] text-ink-faint;
   }
 
   .cycle-progress__track-wrap {
@@ -273,7 +262,7 @@
   }
 
   .cycle-progress__marker-label {
-    @apply hidden text-xs uppercase tracking-[0.1em] text-ink-faint;
+    @apply hidden text-[10px] uppercase tracking-[0.1em] text-ink-faint;
   }
 
   .cycle-progress__marker--current .cycle-progress__marker-label {
@@ -314,7 +303,7 @@
   }
 
   .cycle-progress__step-badge {
-    @apply text-xs font-medium uppercase tracking-[0.14em] text-ink-faint;
+    @apply text-[10px] font-medium uppercase tracking-[0.14em] text-ink-faint;
   }
 
   .cycle-progress__step-title {
@@ -322,7 +311,7 @@
   }
 
   .cycle-progress__step-status {
-    @apply ml-auto text-xs uppercase tracking-[0.12em] text-ink-faint;
+    @apply ml-auto text-[10px] uppercase tracking-[0.12em] text-ink-faint;
   }
 
   .cycle-progress__step--current .cycle-progress__step-status {
@@ -444,7 +433,7 @@
   }
 
   .flip-face__content--back {
-    @apply text-xs;
+    @apply text-[10px];
   }
 
   /* Rectangle classique aux coins arrondis */
@@ -591,7 +580,7 @@
   }
 
   .chronicle-elite-badge {
-    @apply ml-1 inline-flex align-middle rounded-sm border border-accent/30 bg-accent/10 px-1 py-px text-xs uppercase leading-none tracking-[0.14em] text-accent;
+    @apply ml-1 inline-flex align-middle rounded-sm border border-accent/30 bg-accent/10 px-1 py-px text-[10px] uppercase leading-none tracking-[0.14em] text-accent;
   }
 
   .chronicle-ninja {
@@ -599,7 +588,7 @@
   }
 
   .chronicle-impact {
-    @apply text-sm uppercase tracking-[0.12em] text-ink-faint;
+    @apply text-[13px] uppercase tracking-[0.12em] text-ink-faint;
   }
 
   .chronicle-momentum {
@@ -611,15 +600,11 @@
   }
 
   .btn-ghost {
-    @apply border border-line px-4 py-2 text-sm uppercase tracking-[0.18em] text-ink-muted transition hover:border-ink-faint hover:text-ink;
-  }
-
-  .btn-primary {
-    @apply border border-accent bg-accent/10 px-4 py-2 text-sm uppercase tracking-[0.14em] text-accent transition hover:bg-accent/20 disabled:opacity-50;
+    @apply border border-line px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-ink-muted transition hover:border-ink-faint hover:text-ink;
   }
 
   .strategy-select {
-    @apply mt-4 w-full border border-line bg-bg-soft px-2 py-2 text-sm uppercase tracking-wider text-ink-muted focus:border-accent/50 focus:outline-none;
+    @apply mt-4 w-full border border-line bg-bg-soft px-2 py-2 text-[11px] uppercase tracking-wider text-ink-muted focus:border-accent/50 focus:outline-none;
   }
 
   .trait-tooltip {
@@ -627,7 +612,7 @@
   }
 
   .trait-tooltip__panel {
-    @apply pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-52 border border-line bg-bg-soft p-3 text-xs leading-relaxed opacity-0 shadow-lg transition-opacity duration-200;
+    @apply pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-52 border border-line bg-bg-soft p-3 text-[10px] leading-relaxed opacity-0 shadow-lg transition-opacity duration-200;
   }
 
   .trait-tooltip:hover .trait-tooltip__panel,
@@ -891,7 +876,7 @@ body::before {
 }
 
 .sensei-identity__grade {
-  @apply mb-1 text-xs uppercase tracking-[0.16em] text-ink-faint;
+  @apply mb-1 text-[10px] uppercase tracking-[0.16em] text-ink-faint;
 }
 
 .sensei-identity--elite .sensei-identity__grade {
@@ -899,7 +884,7 @@ body::before {
 }
 
 .sensei-identity__elite-mark {
-  @apply ml-1 text-xs text-accent;
+  @apply ml-1 text-[10px] text-accent;
 }
 
 .sensei-identity__name-row {
@@ -920,15 +905,15 @@ body::before {
 }
 
 .sensei-identity__elite-pill {
-  @apply shrink-0 rounded-sm border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-xs uppercase tracking-[0.12em] text-accent;
+  @apply shrink-0 rounded-sm border border-accent/30 bg-accent/10 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-accent;
 }
 
 .sensei-identity__bot {
-  @apply shrink-0 text-xs text-ink-faint;
+  @apply shrink-0 text-[10px] text-ink-faint;
 }
 
 .sensei-identity__guest {
-  @apply shrink-0 rounded-sm border border-accent/30 bg-accent/5 px-1.5 py-0.5 text-xs uppercase tracking-[0.1em] text-accent;
+  @apply shrink-0 rounded-sm border border-accent/30 bg-accent/5 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.1em] text-accent;
 }
 
 .sensei-identity--guest.sensei-identity--card,
@@ -941,7 +926,7 @@ body::before {
 }
 
 .sensei-identity__subtitle {
-  @apply mt-1 text-sm text-ink-faint;
+  @apply mt-1 text-[11px] text-ink-faint;
 }
 
 .sensei-identity--inline .sensei-identity__title {
@@ -1105,7 +1090,7 @@ body::before {
 
 .daily-seal-badge__max {
   margin-top: 0.25rem;
-  font-size: 0.8125rem;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-ink-faint);
@@ -1207,7 +1192,7 @@ body::before {
 }
 
 .training-card__header span {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
 }
 
@@ -1237,20 +1222,20 @@ body::before {
 }
 
 .training-stat__label {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-ink-faint);
 }
 
 .training-stat__value {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink);
 }
 
 .training-stat__cap {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: var(--color-ink-faint);
 }
 
@@ -1299,14 +1284,14 @@ body::before {
 
 .training-card__cost-label,
 .training-card__focus-label {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--color-ink-faint);
 }
 
 .training-card__cost {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   color: var(--color-ink);
 }
 
@@ -1325,7 +1310,7 @@ body::before {
   border: 1px solid color-mix(in srgb, var(--color-line) 100%, transparent);
   background: var(--color-bg-soft);
   padding: 0.625rem 0.75rem;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--color-ink-muted);
@@ -1337,7 +1322,7 @@ body::before {
 }
 
 .training-card__preview {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.5;
   color: var(--color-ink-muted);
 }

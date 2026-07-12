@@ -88,18 +88,18 @@ function outcomeLabel(outcome) {
   <section class="mt-14 border-t border-line pt-10" data-testid="missions-reconnaissance">
     <p class="section-label">{{ t('missions.reconTitle') }}</p>
     <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('missions.reconLead') }}</p>
-    <p class="mt-2 text-xs text-ink-faint">{{ t('missions.reconRewards') }}</p>
+    <p class="mt-2 text-[10px] text-ink-faint">{{ t('missions.reconRewards') }}</p>
 
     <p v-if="loading" class="mt-4 text-xs text-ink-muted">{{ t('common.loading') }}</p>
     <p v-else-if="error" class="mt-4 text-xs text-fire">{{ error }}</p>
 
     <template v-else-if="recon">
-      <p v-if="recon.available" class="mt-3 text-xs text-accent">
+      <p v-if="recon.available" class="mt-3 text-[10px] text-accent">
         {{ t('missions.reconWindow', { hour: recon.resolvesAtHour }) }}
       </p>
 
       <div v-if="recon.pendingIncoming?.length" class="mt-4 space-y-2">
-        <p class="text-xs uppercase tracking-[0.14em] text-accent">{{ t('missions.reconIncoming') }}</p>
+        <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ t('missions.reconIncoming') }}</p>
         <div
           v-for="challenge in recon.pendingIncoming"
           :key="challenge.challengeId"
@@ -109,7 +109,7 @@ function outcomeLabel(outcome) {
           <div class="mt-3 flex gap-2">
             <button
               type="button"
-              class="btn-primary"
+              class="btn-primary text-[10px]"
               :disabled="busy"
               @click="acceptChallenge(challenge.challengeId)"
             >
@@ -117,7 +117,7 @@ function outcomeLabel(outcome) {
             </button>
             <button
               type="button"
-              class="btn-ghost"
+              class="btn-ghost text-[10px]"
               :disabled="busy"
               @click="declineChallenge(challenge.challengeId)"
             >
@@ -150,7 +150,7 @@ function outcomeLabel(outcome) {
       <button
         v-if="canRegister"
         type="button"
-        class="btn-primary mt-4"
+        class="btn-primary mt-4 text-[10px]"
         :disabled="busy"
         data-testid="recon-matchmake"
         @click="registerMatchmaking"

@@ -135,7 +135,7 @@ const livePreview = computed(() => {
 
       <div class="mt-8 space-y-12">
         <div>
-          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">inline</p>
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">inline</p>
           <div class="mt-3 flex flex-wrap items-center gap-6 border border-line bg-bg-soft p-4">
             <SenseiIdentity :identity="SHOWCASE_IDENTITIES.free" variant="inline" :linkable="false" />
             <SenseiIdentity
@@ -149,7 +149,7 @@ const livePreview = computed(() => {
         </div>
 
         <div>
-          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">row</p>
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">row</p>
           <div class="mt-3 max-w-md space-y-1 border border-line bg-bg-soft p-2">
             <SenseiIdentity
               :identity="SHOWCASE_IDENTITIES.eliteEmbers"
@@ -173,7 +173,7 @@ const livePreview = computed(() => {
         </div>
 
         <div>
-          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">match</p>
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">match</p>
           <div class="mt-3 flex flex-wrap items-stretch gap-4">
             <SenseiIdentity
               :identity="SHOWCASE_IDENTITIES.eliteMist"
@@ -192,7 +192,7 @@ const livePreview = computed(() => {
         </div>
 
         <div>
-          <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">card</p>
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">card</p>
           <div class="mt-3 grid gap-4 sm:grid-cols-2">
             <SenseiIdentity
               :identity="SHOWCASE_IDENTITIES.eliteMist"

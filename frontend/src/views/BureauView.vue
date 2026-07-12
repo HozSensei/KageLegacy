@@ -88,7 +88,7 @@ onMounted(async () => {
         </div>
         <span
           v-if="journalUnreadCount > 0"
-          class="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-fire px-1.5 text-xs font-medium text-bg"
+          class="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-fire px-1.5 text-[10px] font-medium text-bg"
         >
           {{ journalUnreadCount > 9 ? '9+' : journalUnreadCount }}
         </span>

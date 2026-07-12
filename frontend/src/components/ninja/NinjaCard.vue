@@ -43,9 +43,9 @@ const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' ')
     >
       <p class="font-display text-3xl leading-none text-ink">{{ overall }}</p>
       <p class="mt-2 font-display text-lg leading-tight text-ink">{{ firstName }}</p>
-      <p class="text-sm uppercase tracking-[0.14em] text-ink-faint">{{ familyName }}</p>
-      <p class="mt-2 text-sm uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
-      <p v-if="slotLabel" class="mt-1 text-xs text-ink-faint/70">{{ slotLabel }}</p>
+      <p class="text-[11px] uppercase tracking-[0.14em] text-ink-faint">{{ familyName }}</p>
+      <p class="mt-2 text-[11px] uppercase tracking-[0.12em]" :class="elementTone">{{ t(elementLabel) }}</p>
+      <p v-if="slotLabel" class="mt-1 text-[10px] text-ink-faint/70">{{ slotLabel }}</p>
     </div>
   </button>
 
@@ -92,7 +92,7 @@ const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' ')
 
       <div class="mt-6 space-y-4">
         <div>
-          <div class="flex justify-between text-sm uppercase tracking-[0.14em] text-ink-faint">
+          <div class="flex justify-between text-[11px] uppercase tracking-[0.14em] text-ink-faint">
             <span>{{ t('ninja.forme') }}</span>
             <span class="text-ink-muted">{{ t(`formes.${ninja.weekly_forme}`) }}</span>
           </div>
@@ -104,7 +104,7 @@ const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' ')
           </div>
         </div>
         <div>
-          <div class="flex justify-between text-sm uppercase tracking-[0.14em] text-ink-faint">
+          <div class="flex justify-between text-[11px] uppercase tracking-[0.14em] text-ink-faint">
             <span>{{ t('ninja.moral') }}</span>
             <span class="text-ink-muted">{{ ninja.moral }}/20</span>
           </div>
@@ -113,7 +113,7 @@ const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' ')
           </div>
         </div>
         <div v-if="gradeProgress.show">
-          <div class="flex justify-between text-sm uppercase tracking-[0.14em] text-ink-faint">
+          <div class="flex justify-between text-[11px] uppercase tracking-[0.14em] text-ink-faint">
             <span>{{ t(gradeProgress.labelKey) }}</span>
             <span class="text-ink-muted">{{ gradeProgress.percent }}%</span>
           </div>

@@ -198,13 +198,13 @@ onUnmounted(() => clearInterval(pollTimer))
             >
               <span
                 v-if="spectatorBadge"
-                class="text-xs uppercase tracking-[0.14em] text-ink-faint"
+                class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
               >
                 {{ t('matches.spectator') }}
               </span>
               <span
                 v-if="operation.match?.seasonCycle"
-                class="text-xs uppercase tracking-[0.14em] text-ink-faint"
+                class="text-[10px] uppercase tracking-[0.14em] text-ink-faint"
               >
                 {{ t('league.matchday') }} {{ operation.match.seasonCycle }}
               </span>
@@ -261,7 +261,7 @@ onUnmounted(() => clearInterval(pollTimer))
               </div>
 
               <ChronicleReader
-                class="mt-8 text-base leading-relaxed text-ink-muted"
+                class="mt-8 text-[15px] leading-relaxed text-ink-muted"
                 :segments="operation.chronicle"
                 :cast="chronicleCast"
                 :empty-text="t('operation.noChronicle')"
@@ -309,7 +309,7 @@ onUnmounted(() => clearInterval(pollTimer))
               >
                 <dl class="space-y-4">
                   <div>
-                    <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+                    <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                       {{ t('operation.possession') }}
                     </dt>
                     <dd class="mt-1 text-ink-muted">
@@ -318,7 +318,7 @@ onUnmounted(() => clearInterval(pollTimer))
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+                    <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                       {{ t('operation.remainingPower') }}
                     </dt>
                     <dd class="mt-1 text-ink-muted">
@@ -327,13 +327,13 @@ onUnmounted(() => clearInterval(pollTimer))
                     </dd>
                   </div>
                   <div>
-                    <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+                    <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                       {{ t('operation.endingTour') }}
                     </dt>
                     <dd class="mt-1 text-ink-muted">{{ operation.mechanical.endingTour }} / 12</dd>
                   </div>
                   <div v-if="equipmentRows.length">
-                    <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+                    <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                       {{ t('operation.equipmentTitle') }}
                     </dt>
                     <dd class="mt-2 space-y-2">

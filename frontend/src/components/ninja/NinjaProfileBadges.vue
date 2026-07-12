@@ -22,7 +22,7 @@ const {
 <template>
   <div
     class="flex flex-wrap gap-1.5"
-    :class="compact ? 'text-xs' : 'text-xs'"
+    :class="compact ? 'text-[9px]' : 'text-[9px]'"
   >
     <span
       v-if="artLabel"

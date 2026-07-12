@@ -160,7 +160,7 @@ const canBuyCard = computed(() => (card) =>
           v-for="cat in CATEGORY_FILTERS"
           :key="`market-cat-${cat}`"
           type="button"
-          class="rounded-sm border px-2.5 py-1 text-xs uppercase tracking-[0.12em] transition"
+          class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
           :class="
             categoryFilter === cat
               ? 'border-accent bg-accent/10 text-accent'
@@ -186,7 +186,7 @@ const canBuyCard = computed(() => (card) =>
             <span class="flex items-baseline gap-2">
               <span class="text-ink-faint line-through">{{ formatRyos(item.basePrice) }}</span>
               <span class="font-semibold text-fire">{{ formatRyos(item.finalPrice) }}</span>
-              <span class="text-xs uppercase tracking-wider text-fire">
+              <span class="text-[10px] uppercase tracking-wider text-fire">
                 {{ t('market.promo', { pct: item.discountPct }) }}
               </span>
             </span>
@@ -215,7 +215,7 @@ const canBuyCard = computed(() => (card) =>
             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <span class="section-label">{{ categoryLabel(cat) }}</span>
-          <span class="text-xs text-ink-faint">({{ groupedItems[cat]?.length ?? 0 }})</span>
+          <span class="text-[10px] text-ink-faint">({{ groupedItems[cat]?.length ?? 0 }})</span>
           <span class="sr-only">
             {{ isCollapsed(cat) ? t('common.expandSection') : t('common.collapseSection') }}
           </span>
@@ -232,25 +232,25 @@ const canBuyCard = computed(() => (card) =>
             ]"
           >
             <div class="flex flex-wrap items-start justify-between gap-2">
-              <p class="text-xs uppercase tracking-[0.14em] text-accent">
+              <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
                 {{ categoryLabel(item.category) }}
               </p>
               <div class="flex flex-wrap items-center gap-2">
                 <span
                   v-if="itemElement(item)"
-                  class="text-xs uppercase tracking-[0.12em] text-ink-muted"
+                  class="text-[10px] uppercase tracking-[0.12em] text-ink-muted"
                 >
                   {{ itemElement(item) }}
                 </span>
                 <span
                   v-if="item.onHeritageDiscount"
-                  class="rounded-sm bg-accent/15 px-1.5 py-0.5 text-xs uppercase tracking-[0.12em] text-accent"
+                  class="rounded-sm bg-accent/15 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-accent"
                 >
                   {{ t('market.heritageDiscount', { pct: item.heritageDiscountPct }) }}
                 </span>
                 <span
                   v-if="item.onPromo"
-                  class="rounded-sm bg-fire/15 px-1.5 py-0.5 text-xs uppercase tracking-[0.12em] text-fire"
+                  class="rounded-sm bg-fire/15 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-fire"
                 >
                   {{ t('market.promo', { pct: item.discountPct }) }}
                 </span>
@@ -258,7 +258,7 @@ const canBuyCard = computed(() => (card) =>
             </div>
             <h2 class="mt-3 font-display text-xl text-ink">{{ itemName(item) }}</h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ itemDesc(item) }}</p>
-            <p class="mt-2 text-xs uppercase tracking-[0.12em] text-ink-faint">
+            <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
               {{ t('market.situational') }} · {{ usageLabel(item) }}
             </p>
             <p class="mt-4 text-xs text-ink-faint">
@@ -319,7 +319,7 @@ const canBuyCard = computed(() => (card) =>
             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <span class="section-label">{{ t('market.tacticCardsTitle') }}</span>
-          <span class="text-xs text-ink-faint">({{ market.tacticCards.length }})</span>
+          <span class="text-[10px] text-ink-faint">({{ market.tacticCards.length }})</span>
         </button>
         <p class="mt-2 text-xs text-ink-muted">{{ t('market.tacticCardsHint') }}</p>
 
@@ -330,12 +330,12 @@ const canBuyCard = computed(() => (card) =>
             class="border bg-bg-soft p-6"
             :class="card.soldOut ? 'border-line opacity-60' : 'border-line'"
           >
-            <p class="text-xs uppercase tracking-[0.14em] text-accent">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-accent">
               {{ t(`inventory.cardRarity.${card.rarity}`) }}
             </p>
             <h2 class="mt-3 font-display text-xl text-ink">{{ cardName(card) }}</h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
-            <p class="mt-2 text-xs uppercase tracking-[0.12em] text-ink-faint">
+            <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
               {{ t('market.cardChargesShop', { count: 3 }) }}
             </p>
             <p class="mt-4 text-xs text-ink-faint">

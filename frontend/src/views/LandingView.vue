@@ -33,7 +33,7 @@ async function playAsGuest() {
   <div class="min-h-screen bg-bg" data-testid="landing-page">
     <header class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 sm:px-10">
       <p class="font-display text-xl text-ink">{{ t('app.name') }}</p>
-      <div class="flex items-center gap-4 text-sm uppercase tracking-[0.14em]">
+      <div class="flex items-center gap-4 text-[11px] uppercase tracking-[0.14em]">
         <router-link to="/rules" class="text-ink-muted hover:text-ink" data-testid="landing-rules-link">
           {{ t('rules.link') }}
         </router-link>
@@ -85,7 +85,7 @@ async function playAsGuest() {
           <p class="mt-4 text-sm leading-7 text-ink-muted">{{ t('landing.asideBody') }}</p>
           <dl class="mt-8 space-y-4 text-sm">
             <div>
-              <dt class="text-xs uppercase tracking-[0.14em] text-ink-faint">{{ t('landing.timelineTitle') }}</dt>
+              <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('landing.timelineTitle') }}</dt>
               <dd class="mt-1 text-ink-muted">{{ t('landing.timelineRealtime') }}</dd>
             </div>
             <div

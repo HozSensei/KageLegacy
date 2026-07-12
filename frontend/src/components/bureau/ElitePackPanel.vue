@@ -73,7 +73,7 @@ function questProgress(quest) {
       </div>
 
       <div class="mt-6">
-        <div class="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-ink-faint">
+        <div class="flex items-center justify-between text-[10px] uppercase tracking-[0.14em] text-ink-faint">
           <span>{{ t('elitePack.seasonPassTitle') }}</span>
           <span>{{ pass?.summary?.completed ?? 0 }} / {{ pass?.summary?.total ?? 0 }}</span>
         </div>
@@ -98,7 +98,7 @@ function questProgress(quest) {
             </p>
             <span
               v-if="quest.completed"
-              class="shrink-0 text-xs uppercase tracking-[0.12em] text-accent"
+              class="shrink-0 text-[10px] uppercase tracking-[0.12em] text-accent"
             >
               {{ t('elitePack.questDone') }}
             </span>
@@ -111,11 +111,11 @@ function questProgress(quest) {
                 :style="{ width: `${questProgress(quest)}%` }"
               />
             </div>
-            <span class="shrink-0 text-sm tabular-nums text-ink-faint">
+            <span class="shrink-0 text-[11px] tabular-nums text-ink-faint">
               {{ quest.currentProgress }}/{{ quest.targetCount }}
             </span>
           </div>
-          <p class="mt-2 text-xs text-ink-faint">
+          <p class="mt-2 text-[10px] text-ink-faint">
             {{ t(`elitePack.reward.${quest.reward.type}`, { slug: quest.reward.slug }) }}
           </p>
         </li>

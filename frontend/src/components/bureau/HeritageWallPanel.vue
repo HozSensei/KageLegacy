@@ -22,7 +22,7 @@ const bonuses = computed(() => heritage.value?.bonuses)
       {{ t('bureau.heritageHint') }}
     </p>
 
-    <div v-if="bonuses?.scrollCount" class="mt-4 flex flex-wrap gap-2 text-sm text-ink-muted">
+    <div v-if="bonuses?.scrollCount" class="mt-4 flex flex-wrap gap-2 text-[11px] text-ink-muted">
       <span v-if="bonuses.trainingDiscountPct">
         {{ t('bureau.heritageBonusTraining', { pct: bonuses.trainingDiscountPct }) }}
       </span>
