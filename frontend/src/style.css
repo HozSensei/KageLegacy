@@ -813,12 +813,23 @@ body::before {
 }
 
 .sensei-identity--match {
-  @apply flex h-full min-h-[8.5rem] flex-col overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-4 text-center;
+  @apply flex min-h-[9rem] flex-col overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-4 text-center;
   min-width: 10rem;
+  height: 100%;
+  align-self: stretch;
 }
 
 .sensei-identity--match .sensei-identity__content {
-  @apply flex h-full w-full flex-col items-center justify-center px-0 py-0 text-center;
+  @apply flex w-full flex-1 flex-col items-center justify-center px-0 py-0 text-center;
+  min-height: 0;
+}
+
+.sensei-identity--match.sensei-identity--banner {
+  background-color: var(--color-bg-card);
+}
+
+.sensei-identity--match .sensei-identity__banner {
+  @apply opacity-90;
 }
 
 .sensei-identity--match .sensei-identity__name-row {
@@ -949,10 +960,15 @@ body::before {
 
 .operation-match-header__versus {
   @apply flex w-full flex-col items-stretch gap-4;
+  min-height: 9rem;
 }
 
 .operation-match-header__card {
   @apply w-full;
+}
+
+.operation-match-header__card.sensei-identity--match {
+  height: 100%;
 }
 
 .operation-match-header__vs {

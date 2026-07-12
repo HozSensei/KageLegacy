@@ -151,6 +151,20 @@ const reportReady = computed(() => {
 const spectatorBadge = computed(() => operation.value?.viewerRole === 'spectator')
 const canUseEliteAnalytics = computed(() => Boolean(elite.subscription?.isActive))
 
+const plainHomeMatchCard = computed(() => {
+  if (operation.value?.viewerRole !== 'participant') return false
+  const match = operation.value?.match
+  if (!match?.isHome) return false
+  return Boolean(match.homeIdentity?.isElite)
+})
+
+const plainAwayMatchCard = computed(() => {
+  if (operation.value?.viewerRole !== 'participant') return false
+  const match = operation.value?.match
+  if (match?.isHome) return false
+  return Boolean(match.awayIdentity?.isElite)
+})
+
 const equipmentRows = computed(() => {
   const summary = operation.value?.mechanical?.equipmentSummary || []
   return summary.filter((row) => row.equippedSlugs?.length || row.consumedSlugs?.length)
@@ -212,7 +226,7 @@ onUnmounted(() => clearInterval(pollTimer))
                 class="operation-match-header__card"
                 :identity="matchIdentities.homeIdentity"
                 variant="match"
-                plain
+                :plain="plainHomeMatchCard"
                 :subtitle="t('league.homeSide')"
               />
               <span v-else class="operation-match-header__card font-display text-xl text-ink">
@@ -224,7 +238,7 @@ onUnmounted(() => clearInterval(pollTimer))
                 class="operation-match-header__card"
                 :identity="matchIdentities.awayIdentity"
                 variant="match"
-                plain
+                :plain="plainAwayMatchCard"
                 :subtitle="t('league.awaySide')"
               />
               <span v-else class="operation-match-header__card font-display text-xl text-ink">
