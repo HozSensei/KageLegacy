@@ -212,6 +212,10 @@
     "deleteSubmit": "Supprimer définitivement",
     "deleteCancel": "Annuler"
   },
+  "journal": {
+    "title": "Journal du cycle",
+    "lead": "Historique des événements marquants : entraînement, opérations, missions et clôture de cycle."
+  },
   "training": {
     "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi."
   },
@@ -219,6 +223,7 @@
     "menu": "Navigation",
     "menuHint": "Sections regroupées par activité.",
     "bureau": "Bureau",
+    "journal": "Journal du cycle",
     "squad": "Escouade",
     "clan": "Clan",
     "missions": "Missions",
@@ -260,6 +265,7 @@
     "clanWellTitle": "Grande Invocation",
     "clanWellBody": "Le Puits du clan {clanName} est en fusion — un Sceau de Chakra bonus vous attend !",
     "viewBureau": "Voir le bureau",
+    "viewJournal": "Voir le journal",
     "viewTraining": "Voir l'entraînement",
     "viewSquad": "Voir l'escouade",
     "viewOperation": "Voir l'opération",
@@ -316,6 +322,7 @@
     "operationLink": "Voir le rapport",
     "activityTitle": "Journal du cycle",
     "activityHint": "Dernières nouvelles : entraînement, opération, missions et événements marquants.",
+    "activityTeaser": "Consulter l'historique des événements du cycle en cours.",
     "activityEmpty": "Rien à signaler pour l'instant — les événements du cycle apparaîtront ici.",
     "debtFreeze": "Gel administratif — remboursez votre dette avant tout achat, examen ou soin payant.",
     "trainingPlansTitle": "Plans d'entraînement",

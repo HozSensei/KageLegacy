@@ -9,7 +9,6 @@ import { useNavStructure } from '../composables/useNavStructure'
 import { useNotificationWatcher } from '../composables/useNotificationWatcher'
 import CycleProgressBar from '../components/layout/CycleProgressBar.vue'
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue'
-import AppBottomNav from '../components/layout/AppBottomNav.vue'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
 import ToastContainer from '../components/notifications/ToastContainer.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
@@ -27,6 +26,7 @@ const showConvert = ref(false)
 
 const baseNavItems = [
   { name: 'bureau', path: '/bureau', label: 'nav.bureau' },
+  { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
   { name: 'squad', path: '/squad', label: 'nav.squad' },
   { name: 'clan', path: '/clan', label: 'nav.clan' },
@@ -67,7 +67,7 @@ function isActive(path) {
   return route.path === path || route.path.startsWith(`${path}/`)
 }
 
-const { groups: navGroups, bottomNavItems, currentSectionLabel } = useNavStructure({
+const { groups: navGroups, currentSectionLabel } = useNavStructure({
   navItems,
   isActive,
   t,
@@ -170,15 +170,9 @@ onMounted(async () => {
       </button>
     </div>
 
-    <main class="relative z-10 pb-20 md:pb-16">
+    <main class="relative z-10 pb-16">
       <router-view />
     </main>
-
-    <AppBottomNav
-      v-if="auth.user"
-      :items="bottomNavItems"
-      :is-active="isActive"
-    />
 
     <ToastContainer v-if="auth.user" />
 

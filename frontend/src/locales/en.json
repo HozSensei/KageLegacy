@@ -212,6 +212,10 @@
     "deleteSubmit": "Delete permanently",
     "deleteCancel": "Cancel"
   },
+  "journal": {
+    "title": "Cycle journal",
+    "lead": "History of key events: training, operations, missions and cycle close."
+  },
   "training": {
     "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set."
   },
@@ -219,6 +223,7 @@
     "menu": "Navigation",
     "menuHint": "Sections grouped by activity.",
     "bureau": "Office",
+    "journal": "Cycle journal",
     "squad": "Squad",
     "clan": "Clan",
     "missions": "Missions",
@@ -260,6 +265,7 @@
     "clanWellTitle": "Great Invocation",
     "clanWellBody": "Clan Well {clanName} has fused — a bonus Chakra Seal awaits you!",
     "viewBureau": "View bureau",
+    "viewJournal": "View journal",
     "viewTraining": "View training",
     "viewSquad": "View squad",
     "viewOperation": "View operation",
@@ -316,6 +322,7 @@
     "operationLink": "View report",
     "activityTitle": "Cycle journal",
     "activityHint": "Latest updates: training, operation, missions and key events.",
+    "activityTeaser": "View the history of events from the current cycle.",
     "activityEmpty": "Nothing to report yet — cycle events will appear here.",
     "debtFreeze": "Administrative freeze — repay your debt before any purchase, exam, or paid treatment.",
     "trainingPlansTitle": "Training plans",

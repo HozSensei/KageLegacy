@@ -169,7 +169,7 @@ export function useNotificationCopy() {
     if (note.kind === 'cycle_close') {
       const matchId = note.payload?.match?.matchId
       if (matchId) return `/operation/match/${matchId}`
-      return '/bureau'
+      return '/journal'
     }
     if (
       note.kind === 'mission_report' ||
@@ -195,7 +195,9 @@ export function useNotificationCopy() {
     if (note.kind === 'training_billing') return t('notifications.viewTraining')
     if (note.kind === 'scout_roster') return t('notifications.viewSquad')
     if (note.kind === 'operation_start' || note.kind === 'cycle_close') {
-      return t('notifications.viewOperation')
+      return note.kind === 'cycle_close' && !note.payload?.match?.matchId
+        ? t('notifications.viewJournal')
+        : t('notifications.viewOperation')
     }
     if (note.kind === 'mission_report') return t('missions.notificationLink')
     if (note.kind === 'chunin_exam_success' || note.kind === 'chunin_exam_failure') {
