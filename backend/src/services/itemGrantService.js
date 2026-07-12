@@ -5,6 +5,14 @@ export async function findItemIdBySlug(slug) {
   return rows[0]?.id ?? null;
 }
 
+export async function findItemDefinitionBySlug(slug) {
+  const rows = await query(
+    'SELECT slug, name_fr, name_en FROM item_definitions WHERE slug = ? LIMIT 1',
+    [slug]
+  );
+  return rows[0] || null;
+}
+
 export async function grantItemToUser(userId, slug, quantity = 1) {
   const itemId = await findItemIdBySlug(slug);
   if (!itemId) return [];

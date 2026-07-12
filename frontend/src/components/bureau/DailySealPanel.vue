@@ -5,7 +5,7 @@ import { useSquadStore } from '../../stores/squad'
 import { useEliteStore } from '../../stores/elite'
 import { readApiError } from '../../utils/http.js'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const store = useSquadStore()
 const elite = useEliteStore()
 const opening = ref(false)
@@ -69,16 +69,21 @@ const rewardMessage = computed(() => {
   return t(`bureau.sealTier.${reward.tier}`)
 })
 
+function lootDisplayName(line) {
+  const name = locale.value === 'en' ? line.nameEn : line.nameFr
+  return name || line.slug || ''
+}
+
 function formatLootLine(line) {
   if (!line) return ''
   if (line.type === 'ryos' || line.type === 'ryos_fallback') {
     return t('bureau.sealRewardRyos', { amount: line.ryos })
   }
   if (line.type === 'item') {
-    return t('bureau.lootRewardItem', { slug: line.slug })
+    return t('bureau.lootRewardItem', { name: lootDisplayName(line) })
   }
   if (line.type === 'tactic_card') {
-    return t('bureau.lootRewardTacticCard', { slug: line.slug })
+    return t('bureau.lootRewardTacticCard', { name: lootDisplayName(line) })
   }
   if (line.type === 'moral_boost') {
     return t('bureau.sealRewardMoral', { name: line.ninjaName, moral: line.to })
