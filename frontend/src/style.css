@@ -942,6 +942,17 @@ body::before {
 }
 
 /* En-tête match opération / ligue */
+.operation-match-nav__controls {
+  @apply grid gap-5;
+}
+
+@media (min-width: 1024px) {
+  .operation-match-nav__controls {
+    grid-template-columns: minmax(14rem, 18rem) 1fr;
+    align-items: start;
+  }
+}
+
 .operation-match-header {
   @apply flex flex-col items-center text-center;
 }

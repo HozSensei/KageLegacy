@@ -45,10 +45,15 @@ async function fetchNavigation() {
   }
 }
 
+function resolveOperationMatchId() {
+  return activeMatchId.value ?? navigation.value?.matchId ?? null
+}
+
 async function fetchOperation() {
   try {
-    const url = activeMatchId.value
-      ? `${API_BASE}/api/matches/${activeMatchId.value}`
+    const matchId = resolveOperationMatchId()
+    const url = matchId
+      ? `${API_BASE}/api/matches/${matchId}`
       : `${API_BASE}/api/operation/live`
     const res = await fetch(url)
     if (!res.ok) {
@@ -81,7 +86,8 @@ async function fetchOperation() {
 }
 
 async function refreshAll() {
-  await Promise.all([fetchOperation(), fetchNavigation()])
+  await fetchNavigation()
+  await fetchOperation()
 }
 
 function schedulePoll() {
@@ -180,12 +186,10 @@ onUnmounted(() => clearInterval(pollTimer))
     <p v-if="loading && !operation" class="mt-12 text-sm text-ink-muted">{{ t('operation.loading') }}</p>
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
 
-    <div v-else class="mt-10 lg:grid lg:grid-cols-12 lg:gap-10">
-      <aside class="lg:col-span-4 xl:col-span-3">
-        <OperationMatchNav :nav="navigation" :loading="navLoading" />
-      </aside>
+    <div v-else class="mt-10 space-y-10">
+      <OperationMatchNav :nav="navigation" :loading="navLoading" />
 
-      <div class="mt-10 lg:col-span-8 lg:mt-0 xl:col-span-9">
+      <div>
         <template v-if="operation">
           <div v-if="matchTitle" class="operation-match-header mb-8">
             <div

@@ -207,7 +207,7 @@ async function fetchProfile() {
       </section>
 
       <template v-if="isOwnProfile">
-        <section class="mt-14 border-t border-line pt-10" data-testid="profile-elite-section">
+        <section class="mt-14" data-testid="profile-elite-section">
           <div class="flex flex-wrap items-center gap-2">
             <VerifiedIcon v-if="isEliteActive" size="1.25rem" />
             <p class="section-label">{{ t('senseiProfile.eliteSectionTitle') }}</p>
@@ -216,7 +216,7 @@ async function fetchProfile() {
           <ElitePackPanel class="profile-panel" />
         </section>
 
-        <section class="mt-14 border-t border-line pt-10" data-testid="profile-heritage-section">
+        <section class="mt-14" data-testid="profile-heritage-section">
           <p class="section-label">{{ t('senseiProfile.heritageSectionTitle') }}</p>
           <HeritageWallPanel class="profile-panel" />
         </section>
