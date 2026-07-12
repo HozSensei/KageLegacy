@@ -205,15 +205,9 @@ const canBuyCard = computed(() => (card) =>
               {{ t('market.stock', { remaining: item.stockRemaining, initial: item.stockInitial }) }}
             </p>
             <div class="mt-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <template v-if="item.onPromo && item.finalPrice < item.basePrice">
-                <span class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-                  {{ t('market.priceOriginal') }}
-                </span>
+              <template v-if="item.onPromo">
                 <span class="text-sm text-ink-faint line-through">
                   {{ formatRyos(item.basePrice) }}
-                </span>
-                <span class="text-[10px] uppercase tracking-[0.12em] text-fire">
-                  {{ t('market.pricePromo') }}
                 </span>
                 <span class="text-base font-semibold text-fire">
                   {{ formatRyos(item.finalPrice) }}

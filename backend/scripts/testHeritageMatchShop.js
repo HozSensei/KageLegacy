@@ -28,11 +28,11 @@ function testPricingUnit() {
   const promoAndHeritage = computeShopItemPrice({
     basePrice: 1000,
     category: 'match',
-    promoDiscountPct: 20,
+    promoDiscountPct: 50,
     heritageMatchDiscountPct: 6,
   });
-  assert.equal(promoAndHeritage.promoPrice, 800);
-  assert.equal(promoAndHeritage.finalPrice, 752);
+  assert.equal(promoAndHeritage.promoPrice, 500);
+  assert.equal(promoAndHeritage.finalPrice, 470);
 
   const bureauIgnored = computeShopItemPrice({
     basePrice: 400,
