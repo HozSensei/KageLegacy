@@ -43,6 +43,27 @@ function formatGain(value) {
   return value.toFixed(2).replace(/\.?0+$/, '') || '0'
 }
 
+function statCap(ninja, column) {
+  return ninja.gradeStatCaps?.[column] ?? null
+}
+
+function statPercent(ninja, column) {
+  const cap = statCap(ninja, column)
+  if (!cap) return 100
+  return Math.min(100, (Number(ninja[column] ?? 0) / cap) * 100)
+}
+
+function projectedPercent(ninja, column, preview) {
+  if (!preview || preview.column !== column || preview.atCap) return statPercent(ninja, column)
+  const cap = statCap(ninja, column)
+  if (!cap) return statPercent(ninja, column)
+  return Math.min(100, (preview.projectedStat / cap) * 100)
+}
+
+function isFocusedStat(ninja, column) {
+  return trainingPreview(ninja)?.column === column && selectedFocus(ninja.id)
+}
+
 async function onPlanChange(ninjaId) {
   const raw = localPlans.value[ninjaId]
   const trainingFocus = raw === '' ? null : raw
@@ -62,29 +83,77 @@ async function onPlanChange(ninjaId) {
   >
     <template v-if="!standalone">
       <p class="section-label">{{ t('bureau.trainingPlansTitle') }}</p>
-      <p class="mt-2 text-xs leading-relaxed text-ink-muted">
+      <p class="mt-2 text-sm leading-relaxed text-ink-muted">
         {{ t('bureau.trainingPlansHint') }}
       </p>
-      <p v-if="store.trainingLocked()" class="mt-2 text-xs text-ink-muted">
+      <p v-if="store.trainingLocked()" class="mt-2 text-sm text-ink-muted">
         {{ t('bureau.trainingLocked') }}
       </p>
     </template>
 
-    <ul class="mt-6 space-y-4">
+    <p v-else-if="store.trainingLocked()" class="text-sm text-ink-muted">
+      {{ t('bureau.trainingLocked') }}
+    </p>
+
+    <ul class="training-grid mt-8">
       <li
         v-for="ninja in allNinjas"
         :key="ninja.id"
-        class="border border-line/60 bg-bg-soft/40 p-4 text-sm"
+        class="training-card"
       >
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <NinjaListIdentity :ninja="ninja" />
-          <div class="flex flex-wrap items-center gap-3">
-            <span v-if="ninja.trainingCost" class="text-xs text-ink-faint">
+        <div class="training-card__header">
+          <NinjaListIdentity :ninja="ninja" compact />
+        </div>
+
+        <dl class="training-card__stats">
+          <div
+            v-for="column in STAT_COLUMNS"
+            :key="`${ninja.id}-${column}`"
+            class="training-stat"
+            :class="{ 'training-stat--focused': isFocusedStat(ninja, column) }"
+          >
+            <div class="training-stat__head">
+              <dt class="training-stat__label">{{ t(`ninja.stats.${column}`) }}</dt>
+              <dd class="training-stat__value">
+                {{ ninja[column] }}
+                <span v-if="statCap(ninja, column)" class="training-stat__cap">
+                  / {{ statCap(ninja, column) }}
+                </span>
+              </dd>
+            </div>
+            <div class="training-stat__track" aria-hidden="true">
+              <div
+                class="training-stat__fill"
+                :style="{ width: `${statPercent(ninja, column)}%` }"
+              />
+              <div
+                v-if="isFocusedStat(ninja, column) && trainingPreview(ninja) && !trainingPreview(ninja).atCap"
+                class="training-stat__gain"
+                :style="{
+                  left: `${statPercent(ninja, column)}%`,
+                  width: `${Math.max(0, projectedPercent(ninja, column, trainingPreview(ninja)) - statPercent(ninja, column))}%`,
+                }"
+              />
+            </div>
+          </div>
+        </dl>
+
+        <div class="training-card__footer">
+          <div class="training-card__cost-row">
+            <span class="training-card__cost-label">{{ t('training.costLabel') }}</span>
+            <span v-if="ninja.trainingCost && selectedFocus(ninja.id)" class="training-card__cost">
               {{ formatRyos(ninja.trainingCost) }}
             </span>
+            <span v-else class="training-card__cost training-card__cost--idle">
+              {{ t('bureau.trainingNone') }}
+            </span>
+          </div>
+
+          <label class="training-card__focus">
+            <span class="training-card__focus-label">{{ t('training.focusLabel') }}</span>
             <select
               :value="localPlans[ninja.id] ?? ''"
-              class="strategy-select max-w-[10rem] text-xs"
+              class="training-focus-select"
               data-testid="training-plan-select"
               :disabled="saving || store.trainingLocked()"
               @change="localPlans[ninja.id] = $event.target.value; onPlanChange(ninja.id)"
@@ -94,55 +163,33 @@ async function onPlanChange(ninjaId) {
                 {{ t(`ninja.stats.${key.toLowerCase()}`) }}
               </option>
             </select>
-          </div>
-        </div>
+          </label>
 
-        <dl class="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
           <div
-            v-for="column in STAT_COLUMNS"
-            :key="`${ninja.id}-${column}`"
-            class="rounded-sm border border-line/50 bg-bg-card/60 px-2 py-1.5 text-center"
-            :class="{
-              'border-accent/50 bg-accent/10': trainingPreview(ninja)?.column === column && selectedFocus(ninja.id),
-            }"
+            v-if="selectedFocus(ninja.id) && trainingPreview(ninja)"
+            class="training-card__preview"
           >
-            <dt class="text-[9px] uppercase tracking-[0.1em] text-ink-faint">
-              {{ t(`ninja.stats.${column}`) }}
-            </dt>
-            <dd class="mt-0.5 font-display text-base tabular-nums text-ink">
-              {{ ninja[column] }}
-              <span
-                v-if="ninja.gradeStatCaps?.[column]"
-                class="text-[10px] text-ink-faint"
-              >/{{ ninja.gradeStatCaps[column] }}</span>
-            </dd>
+            <template v-if="trainingPreview(ninja).atCap">
+              <p>{{ t('training.atCap', { stat: t(`ninja.stats.${trainingPreview(ninja).column}`) }) }}</p>
+            </template>
+            <template v-else>
+              <p>
+                {{ t('training.gainPreview', {
+                  stat: t(`ninja.stats.${trainingPreview(ninja).column}`),
+                  gain: formatGain(trainingPreview(ninja).gain),
+                }) }}
+                <span v-if="trainingPreview(ninja).wholePoints > 0" class="text-accent">
+                  {{ t('training.pointGain', { count: trainingPreview(ninja).wholePoints }) }}
+                </span>
+                <span v-else class="text-ink-faint">
+                  {{ t('training.residualProgress', { residual: formatGain(trainingPreview(ninja).residualAfter) }) }}
+                </span>
+              </p>
+              <p v-if="trainingPreview(ninja).lazyRisk" class="mt-1 text-ink-faint">
+                {{ t('training.lazyRisk') }}
+              </p>
+            </template>
           </div>
-        </dl>
-
-        <div
-          v-if="selectedFocus(ninja.id) && trainingPreview(ninja)"
-          class="mt-3 border-t border-line/40 pt-3 text-xs text-ink-muted"
-        >
-          <template v-if="trainingPreview(ninja).atCap">
-            <p>{{ t('training.atCap', { stat: t(`ninja.stats.${trainingPreview(ninja).column}`) }) }}</p>
-          </template>
-          <template v-else>
-            <p>
-              {{ t('training.gainPreview', {
-                stat: t(`ninja.stats.${trainingPreview(ninja).column}`),
-                gain: formatGain(trainingPreview(ninja).gain),
-              }) }}
-              <span v-if="trainingPreview(ninja).wholePoints > 0" class="text-accent">
-                {{ t('training.pointGain', { count: trainingPreview(ninja).wholePoints }) }}
-              </span>
-              <span v-else class="text-ink-faint">
-                {{ t('training.residualProgress', { residual: formatGain(trainingPreview(ninja).residualAfter) }) }}
-              </span>
-            </p>
-            <p v-if="trainingPreview(ninja).lazyRisk" class="mt-1 text-ink-faint">
-              {{ t('training.lazyRisk') }}
-            </p>
-          </template>
         </div>
       </li>
     </ul>

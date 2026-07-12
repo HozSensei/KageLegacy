@@ -220,6 +220,8 @@
   },
   "training": {
     "lead": "Opt-in training plans per ninja — billed at H72 when a focus is set.",
+    "costLabel": "Cycle cost",
+    "focusLabel": "Training focus",
     "gainPreview": "+{gain} {stat} this cycle",
     "pointGain": "→ +{count} point(s) now",
     "residualProgress": "(residual {residual} before full point)",
