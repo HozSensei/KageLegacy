@@ -482,7 +482,7 @@
   }
 
   .squad-card-wrap {
-    @apply relative inline-flex flex-col-reverse items-center;
+    @apply relative inline-flex flex-col items-center;
   }
 
   .squad-card-actions {
@@ -507,10 +507,15 @@
 
   .squad-card-action__icon {
     @apply flex h-[18px] w-[18px] shrink-0 items-center justify-center text-[18px] leading-none;
+    display: flex !important;
   }
 
   .squad-card-action__icon.material-symbols-outlined {
     font-size: 18px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
   }
 
   .squad-card-action__icon--remove {
@@ -808,12 +813,23 @@ body::before {
 }
 
 .sensei-identity--match {
-  @apply flex h-full min-h-[8.5rem] flex-col overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-4 text-center;
+  @apply flex min-h-[9rem] flex-col overflow-hidden rounded-sm border border-line bg-bg-card px-4 py-4 text-center;
   min-width: 10rem;
+  height: 100%;
+  align-self: stretch;
 }
 
 .sensei-identity--match .sensei-identity__content {
-  @apply flex h-full w-full flex-col items-center justify-center px-0 py-0 text-center;
+  @apply flex w-full flex-1 flex-col items-center justify-center px-0 py-0 text-center;
+  min-height: 0;
+}
+
+.sensei-identity--match.sensei-identity--banner {
+  background-color: var(--color-bg-card);
+}
+
+.sensei-identity--match .sensei-identity__banner {
+  @apply opacity-90;
 }
 
 .sensei-identity--match .sensei-identity__name-row {
@@ -944,10 +960,15 @@ body::before {
 
 .operation-match-header__versus {
   @apply flex w-full flex-col items-stretch gap-4;
+  min-height: 9rem;
 }
 
 .operation-match-header__card {
   @apply w-full;
+}
+
+.operation-match-header__card.sensei-identity--match {
+  height: 100%;
 }
 
 .operation-match-header__vs {
@@ -1013,5 +1034,293 @@ body::before {
       color-mix(in srgb, var(--color-earth) 8%, transparent) 25px
     ),
     linear-gradient(180deg, color-mix(in srgb, var(--color-earth) 12%, var(--color-bg-card)), var(--color-bg-soft));
+}
+
+/* Bureau — Sceau de Chakra (bloc type journal) */
+.daily-seal-block {
+  overflow: visible;
+}
+
+.daily-seal-block__frame {
+  position: relative;
+  overflow: visible;
+}
+
+.daily-seal-badge {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 20;
+  display: flex;
+  height: 5.5rem;
+  width: 5.5rem;
+  transform: translate(-38%, -50%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--color-line) 100%, transparent);
+  background: var(--color-bg-card);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.daily-seal-badge--ready {
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  animation: daily-seal-glow 2s ease-in-out infinite;
+}
+
+.daily-seal-badge__count {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.daily-seal-badge__max {
+  margin-top: 0.25rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-ink-faint);
+}
+
+.daily-seal-card {
+  border: 1px solid color-mix(in srgb, var(--color-line) 100%, transparent);
+  background: color-mix(in srgb, var(--color-bg-card) 40%, transparent);
+  padding: 1rem 1rem 1rem 4.75rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+@media (min-width: 640px) {
+  .daily-seal-card {
+    padding-left: 5.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+.daily-seal-card--ready:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: var(--color-bg-card);
+}
+
+.daily-seal-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .daily-seal-card__body {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.daily-seal-card__action {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .daily-seal-card__action {
+    width: auto;
+  }
+}
+
+@keyframes daily-seal-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 28px rgba(0, 0, 0, 0.35),
+      0 0 12px rgba(201, 166, 107, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 10px 32px rgba(0, 0, 0, 0.4),
+      0 0 24px rgba(201, 166, 107, 0.32);
+  }
+}
+
+/* Entraînement — grille de cartes verticales */
+.training-grid {
+  display: grid;
+  gap: 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .training-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .training-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.training-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--color-line) 100%, transparent);
+  background: color-mix(in srgb, var(--color-bg-soft) 50%, transparent);
+  padding: 1.25rem;
+}
+
+.training-card__header {
+  border-bottom: 1px solid color-mix(in srgb, var(--color-line) 60%, transparent);
+  padding-bottom: 1rem;
+}
+
+.training-card__header .font-display {
+  font-size: 1.25rem;
+}
+
+.training-card__header span {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.training-card__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 1rem 0;
+  flex: 1;
+}
+
+.training-stat {
+  margin: 0;
+}
+
+.training-stat--focused .training-stat__label {
+  color: var(--color-accent);
+}
+
+.training-stat__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.375rem;
+}
+
+.training-stat__label {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-faint);
+}
+
+.training-stat__value {
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.training-stat__cap {
+  font-size: 0.8125rem;
+  color: var(--color-ink-faint);
+}
+
+.training-stat__track {
+  position: relative;
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-line) 100%, transparent);
+}
+
+.training-stat__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-accent-soft) 75%, transparent);
+}
+
+.training-stat--focused .training-stat__fill {
+  background: color-mix(in srgb, var(--color-accent) 70%, transparent);
+}
+
+.training-stat__gain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 0 9999px 9999px 0;
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+.training-card__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-line) 60%, transparent);
+  padding-top: 1rem;
+  margin-top: auto;
+}
+
+.training-card__cost-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.training-card__cost-label,
+.training-card__focus-label {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-faint);
+}
+
+.training-card__cost {
+  font-size: 0.9375rem;
+  color: var(--color-ink);
+}
+
+.training-card__cost--idle {
+  color: var(--color-ink-faint);
+}
+
+.training-card__focus {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.training-focus-select {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--color-line) 100%, transparent);
+  background: var(--color-bg-soft);
+  padding: 0.625rem 0.75rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+}
+
+.training-focus-select:focus {
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  outline: none;
+}
+
+.training-card__preview {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+/* Google Fonts impose display:inline-block sur Material Symbols — priorité hors @layer */
+.material-symbols-outlined {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
 }
 

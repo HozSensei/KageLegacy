@@ -492,7 +492,7 @@ async function unequipCard(ninjaId) {
           {{ inventory.items.length ? t('inventory.emptyFilter') : t('inventory.empty') }}
         </p>
 
-        <div class="mt-10">
+        <div class="mt-6">
           <button
             type="button"
             class="flex w-full items-center gap-2 text-left"

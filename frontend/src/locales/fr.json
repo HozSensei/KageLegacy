@@ -220,6 +220,8 @@
   },
   "training": {
     "lead": "Plans d'entraînement opt-in par ninja — facturés à H72 si un focus est choisi.",
+    "costLabel": "Coût cycle",
+    "focusLabel": "Focus d'entraînement",
     "gainPreview": "+{gain} {stat} ce cycle",
     "pointGain": "→ +{count} point(s) immédiat(s)",
     "residualProgress": "(résidu {residual} avant point entier)",

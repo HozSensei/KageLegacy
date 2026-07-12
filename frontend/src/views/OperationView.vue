@@ -212,7 +212,6 @@ onUnmounted(() => clearInterval(pollTimer))
                 class="operation-match-header__card"
                 :identity="matchIdentities.homeIdentity"
                 variant="match"
-                plain
                 :subtitle="t('league.homeSide')"
               />
               <span v-else class="operation-match-header__card font-display text-xl text-ink">
@@ -224,7 +223,6 @@ onUnmounted(() => clearInterval(pollTimer))
                 class="operation-match-header__card"
                 :identity="matchIdentities.awayIdentity"
                 variant="match"
-                plain
                 :subtitle="t('league.awaySide')"
               />
               <span v-else class="operation-match-header__card font-display text-xl text-ink">

@@ -189,7 +189,7 @@ async function fetchProfile() {
         </p>
       </section>
 
-      <section v-if="profile.recentMatch" class="mt-14 border-t border-line pt-10">
+      <section v-if="profile.recentMatch" class="mt-10">
         <p class="section-label">{{ t('senseiProfile.lastMatch') }}</p>
         <RouterLink
           :to="{
