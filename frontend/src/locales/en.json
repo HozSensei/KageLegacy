@@ -956,5 +956,49 @@
     "eliteSectionLead": "Custom identity, season pass, and cosmetic rewards.",
     "heritageSectionTitle": "Heritage wall",
     "reconChallengeSent": "Reconnaissance challenge sent to {name} — awaiting acceptance."
+  },
+  "admin": {
+    "title": "Administration",
+    "lead": "Operations tools: clock, season reset, and maintenance.",
+    "disabled": "The admin panel is disabled on this server.",
+    "disabledHint": "Set ENABLE_ADMIN_PANEL=true and ADMIN_SECRET in your .env file.",
+    "secretPrompt": "Enter the admin secret to access tools.",
+    "secretPlaceholder": "Admin secret",
+    "unlock": "Unlock",
+    "logout": "Lock",
+    "authenticated": "Panel unlocked.",
+    "lastResult": "Last result",
+    "clock": {
+      "title": "Game clock",
+      "anchor": "H0 anchor:",
+      "advanceHour": "+1 hour",
+      "tick": "Run tick",
+      "setHour": "Target hour",
+      "applyHour": "Apply",
+      "setStart": "H0 anchor",
+      "applyStart": "Set anchor"
+    },
+    "reset": {
+      "title": "Global season reset",
+      "warning": "Destructive operation: wipes gameplay while keeping accounts, clans, heritage scrolls, and Elite subscriptions.",
+      "season": "Season",
+      "preview": "Preview",
+      "confirmCheckbox": "I understand, run the reset",
+      "execute": "Run hard reset",
+      "humanPlayers": "{count} human players",
+      "eliteSubs": "{count} Elite subscriptions",
+      "ninjas": "{count} ninjas to delete",
+      "pools": "{count} pools to delete",
+      "matches": "{count} matches to delete"
+    },
+    "maintenance": {
+      "title": "Maintenance",
+      "purgeGuests": "Purge expired guests",
+      "repairPools": "Repair league schedules",
+      "repairAll": "All active leagues",
+      "includePlayed": "Include already played matches",
+      "poolId": "Pool ID (optional)",
+      "repairRun": "Run repair"
+    }
   }
 }
