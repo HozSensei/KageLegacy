@@ -253,33 +253,43 @@ Un titulaire peut cumuler **préparation + global** (ex. les deux en Chakra) pou
 
 ---
 
-## 7. Missions (contrats idle)
+## 7. Missions (rangs D → A)
 
 Les missions sont réservées aux ninjas **au banc** (hors escouade active).
 
 ### Règles générales
 
-- **Une mission par palier de danger** par cycle (maximum trois contrats différents).
-- Résolution automatique à **H72**.
+- **Une mission par rang** par cycle (maximum quatre : D, C, B, A).
+- Résolution automatique à **H72** avec **jet de réussite**.
 - Les récompenses doivent être **collectées manuellement** après résolution.
+- Tous les rangs sont **envoyables** ; l'interface affiche les probabilités selon la **note globale** du ninja (moyenne des 6 stats, arrondie).
 
-### Paliers
+### Rangs
 
-| Palier | Récompense | Risques | Prérequis |
-|--------|------------|---------|-----------|
-| **Routine** | Ryos modestes | Aucun | Tous les ninjas |
-| **Infiltration** | Ryos moyens | Blessure légère possible | Vitesse ou Intelligence suffisante |
-| **Cyclone** | Ryos élevés | Blessure grave ou mort possible | Au moins une stat de combat élevée |
+| Rang | Ryos (succès) | Note cible (50 % réussite) | Risques si échec |
+|------|---------------|----------------------------|------------------|
+| **D** | 300–500 | 4 | Aucun |
+| **C** | 600–800 | 6 | Blessure légère possible |
+| **B** | 1 000 | 8 | Blessure grave ou mort possible |
+| **A** | 1 500–2 000 | 10 | Blessure grave ou mort élevés |
+
+Les pourcentages de **réussite**, **blessure** et **mort** évoluent avec l'écart entre la note du ninja et la note cible du rang. En cas de **succès** : Ryos, loot bonus et **gain de stat** (complément à l'entraînement). En cas d'**échec** : 0 Ryos, pas de loot.
+
+### Progression via missions
+
+Chaque réussite accorde un petit gain sur une stat (ex. +0,25 à +1,0 selon le rang). Les **remplaçants au banc** bénéficient d'un **bonus** (×1,5 sur D/C) pour compenser l'entraînement global plus lent.
 
 ### Conséquences des blessures
 
-- **Légère** : impact sur la forme.
-- **Grave** : forme au plus bas + plusieurs cycles de convalescence sans soin à l'hôpital.
+- **Légère** : forme Lamentable.
+- **Grave** : forme Lamentable + plusieurs cycles sans soin à l'hôpital.
 - **Mort** : le ninja est définitivement perdu.
 
 ### Butin
 
-Les missions peuvent rapporter des **objets utilitaires** (pansements, kits, fumigènes, parchemins…) ou, plus rarement, des profils exceptionnels.
+Sur **succès** uniquement : objets utilitaires (pansements, kits, fumigènes, parchemins…) ou, plus rarement, recrutement prodige sur les rangs B/A.
+
+Spec détaillée : [`specs/mission-rank-system.md`](../../../specs/mission-rank-system.md).
 
 ---
 
@@ -290,7 +300,7 @@ Les missions peuvent rapporter des **objets utilitaires** (pansements, kits, fum
 | Source | Nature |
 |--------|--------|
 | **Ligue** | Prime selon victoire, nul ou défaite |
-| **Missions** | Contrats idle selon le palier |
+| **Missions** | Missions idle par rang (D–A) |
 | **Vol d'Oiseau** | Prime de départ du Chunin |
 
 ### Dépenses principales
@@ -481,7 +491,7 @@ La **possession** (temps d'initiative) sert à la narration et au débrief — e
 | **Bureau** | Hub : budget, examens, Vol d'Oiseau, hôpital, Académie, Sceau de Chakra |
 | **Escouade** | Composition, consignes, dossier d'opération (postures), échanges actif/banc |
 | **Entraînement** | Focus par stat, prévision de coût |
-| **Missions** | Contrats idle |
+| **Missions** | Missions idle |
 | **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
 | **Magasin** | Achats d'objets du village |
 | **Échanges** | Marché entre joueurs |

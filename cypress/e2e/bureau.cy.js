@@ -15,6 +15,6 @@ describe('Bureau — panneaux clés', () => {
     cy.visit('/missions');
     cy.get('[data-testid="missions-page"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="missions-panel"]').should('be.visible');
-    cy.get('[data-testid="missions-panel"]').contains('Palier du contrat');
+    cy.get('[data-testid="missions-panel"]').contains('Rang de mission');
   });
 });

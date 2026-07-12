@@ -241,33 +241,43 @@ A starter can stack **preparation + global** (e.g. both Chakra) to reach Chunin 
 
 ---
 
-## 7. Missions (idle contracts)
+## 7. Missions (ranks D → A)
 
 Missions are for **bench** ninjas only (not the active squad).
 
 ### General rules
 
-- **One mission per danger tier** per cycle (up to three different contracts).
-- Automatic resolution at **H72**.
+- **One mission per rank** per cycle (up to four: D, C, B, A).
+- Automatic resolution at **H72** with a **success roll**.
 - Rewards must be **collected manually** after resolution.
+- All ranks are **sendable**; the UI shows odds based on the ninja's **overall rating** (average of 6 stats, rounded).
 
-### Tiers
+### Ranks
 
-| Tier | Reward | Risks | Requirements |
-|------|--------|-------|--------------|
-| **Routine** | Modest Ryos | None | All ninjas |
-| **Infiltration** | Medium Ryos | Possible light injury | Sufficient Speed or Intelligence |
-| **Cyclone** | High Ryos | Serious injury or death possible | At least one high combat stat |
+| Rank | Ryos (success) | Target rating (50% success) | Risks on failure |
+|------|----------------|----------------------------|------------------|
+| **D** | 300–500 | 4 | None |
+| **C** | 600–800 | 6 | Possible light injury |
+| **B** | 1,000 | 8 | Serious injury or death possible |
+| **A** | 1,500–2,000 | 10 | High serious injury or death |
+
+**Success**, **injury**, and **death** percentages scale with the gap between ninja rating and rank target. On **success**: Ryos, bonus loot, and **stat gain** (training complement). On **failure**: 0 Ryos, no loot.
+
+### Progression via missions
+
+Each success grants a small stat bump (e.g. +0.25 to +1.0 by rank). **Bench replacements** get a **bonus** (×1.5 on D/C) to offset slower global-only training.
 
 ### Injury consequences
 
-- **Light**: impact on form.
-- **Serious**: lowest form + several cycles of convalescence without hospital treatment.
+- **Light**: Lamentable form.
+- **Serious**: Lamentable form + several cycles without hospital treatment.
 - **Death**: ninja is permanently lost.
 
 ### Loot
 
-Missions may yield **utility items** (bandages, kits, smoke bombs, scrolls…) or, more rarely, exceptional profiles.
+On **success** only: utility items (bandages, kits, smoke bombs, scrolls…) or, more rarely, prodigy recruitment on ranks B/A.
+
+Detailed spec: [`specs/mission-rank-system.md`](../../../specs/mission-rank-system.md).
 
 ---
 
@@ -278,7 +288,7 @@ Missions may yield **utility items** (bandages, kits, smoke bombs, scrolls…) o
 | Source | Nature |
 |--------|--------|
 | **League** | Payout by win, draw, or loss |
-| **Missions** | Idle contracts by tier |
+| **Missions** | Idle missions by rank (D–A) |
 | **Bird Flight** | Departing Chunin payout |
 
 ### Main expenses

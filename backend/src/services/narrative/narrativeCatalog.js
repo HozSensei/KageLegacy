@@ -587,6 +587,20 @@ export const NARRATIVE_CATALOG = {
           'La mission a révélé une carte tactique légendaire, gardée comme un trésor.',
         ],
       },
+      outcome: {
+        failure: [
+          'La mission de {ninja_name} a échoué — aucun butin à rapporter au camp.',
+          '{ninja_name} revient bredouille : l\'objectif n\'a pas été atteint.',
+          'Échec sur le terrain : {ninja_name} n\'a pu remplir le contrat.',
+          'Le rapport de {ninja_name} est amer — la mission n\'a pas abouti.',
+        ],
+        stat_gain: [
+          'Malgré l\'épreuve, {ninja_name} progresse en {stat} (+{gain}).',
+          'L\'expérience de terrain renforce {ninja_name} : +{gain} en {stat}.',
+          '{ninja_name} revient plus affûté — gain de {gain} en {stat}.',
+          'La mission forge {ninja_name} : +{gain} {stat} acquis sur le terrain.',
+        ],
+      },
     },
 
     debrief: {
@@ -1223,6 +1237,20 @@ export const NARRATIVE_CATALOG = {
           '{ninja_name} returns with a legendary card — camp holds its breath.',
           'Legendary loot: an exceptional tactic card joins the collection.',
           'The mission revealed a legendary tactic card, kept like a treasure.',
+        ],
+      },
+      outcome: {
+        failure: [
+          '{ninja_name}\'s mission failed — no loot to bring back to camp.',
+          '{ninja_name} returns empty-handed: the objective was not met.',
+          'Field failure: {ninja_name} could not complete the contract.',
+          '{ninja_name}\'s report is bitter — the mission did not succeed.',
+        ],
+        stat_gain: [
+          'Despite the ordeal, {ninja_name} improves in {stat} (+{gain}).',
+          'Field experience strengthens {ninja_name}: +{gain} in {stat}.',
+          '{ninja_name} returns sharper — gained {gain} in {stat}.',
+          'The mission forges {ninja_name}: +{gain} {stat} earned on the field.',
         ],
       },
     },

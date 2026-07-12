@@ -1,16 +1,22 @@
 import { query } from '../config/database.js';
 import { getClockRow, getGameClock, isTacticsLocked } from './gameClock.js';
 import {
+  computeMissionOdds,
+  computeMissionOddsForTier,
   getEligibleTiersForNinja,
+  getRecommendedTiersForNinja,
   MISSION_TIERS,
+  MISSION_TIER_ORDER,
   missionGuaranteedRyos,
   missionNetProfit,
   ninjaStatsFromRow,
+  normalizeMissionTier,
 } from './missionRules.js';
 import { grantLootOnCollect, resolveMissionOutcome } from './missionLootService.js';
 import { getMissionMoralGain } from './dispensaryService.js';
 import { isNinjaListed } from './playerMarketService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
+import { ninjaOverallRating } from './ninjaStats.js';
 
 async function getCycleStartAt() {
   const row = await getClockRow();
@@ -18,21 +24,19 @@ async function getCycleStartAt() {
 }
 
 function mapTierConfig() {
-  return Object.values(MISSION_TIERS).map((cfg) => {
-    const guaranteed = missionGuaranteedRyos(cfg.tier);
+  return MISSION_TIER_ORDER.map((tier) => {
+    const cfg = MISSION_TIERS[tier];
+    const guaranteed = missionGuaranteedRyos(tier);
     return {
       tier: cfg.tier,
+      rank: cfg.rank,
+      targetRating: cfg.targetRating,
       rewardMin: guaranteed.min,
       rewardMax: guaranteed.max,
-      netProfit: missionNetProfit(cfg.tier),
-      requirement: cfg.requirementText,
-      label: cfg.label,
+      netProfit: missionNetProfit(tier),
       resolvesAtHour: cfg.resolvesAtHour,
-      risk: {
-        lightInjury: cfg.lightInjuryChance ?? 0,
-        graveInjury: cfg.graveInjuryChance ?? 0,
-        death: cfg.deathChance ?? 0,
-      },
+      statGainOnSuccess: cfg.statGainOnSuccess,
+      benchStatGainBonus: cfg.benchStatGainBonus,
     };
   });
 }
@@ -43,15 +47,19 @@ function parseLootResult(row) {
 }
 
 function mapNinjaForMissions(ninja) {
-  const recommendedTiers = getEligibleTiersForNinja(ninja);
+  const oddsByTier = computeMissionOdds(ninja);
+  const recommendedTiers = getRecommendedTiersForNinja(ninja);
   return {
     id: ninja.id,
     name: ninja.name,
     grade: ninja.grade,
     element_affinity: ninja.element_affinity,
+    preparation_type: ninja.preparation_type,
     training_focus: ninja.preparation_type,
-    eligibleTiers: recommendedTiers,
+    overallRating: ninjaOverallRating(ninja),
+    eligibleTiers: getEligibleTiersForNinja(ninja),
     recommendedTiers,
+    oddsByTier,
     hasCycleGear: Boolean(ninja.cycle_item_id),
     examBlocked: Boolean(ninja.chunin_exam_requested || ninja.bird_flight_requested),
     stats: ninjaStatsFromRow(ninja),
@@ -112,9 +120,10 @@ export async function getMissionsForUser(userId) {
 }
 
 export async function assignMission(userId, ninjaId, tier) {
-  const config = MISSION_TIERS[tier];
+  const normalizedTier = normalizeMissionTier(tier);
+  const config = normalizedTier ? MISSION_TIERS[normalizedTier] : null;
   if (!config) {
-    const error = new Error('Palier de mission invalide.');
+    const error = new Error('Rang de mission invalide.');
     error.statusCode = 400;
     throw error;
   }
@@ -177,33 +186,36 @@ export async function assignMission(userId, ninjaId, tier) {
   const existingTier = await query(
     `SELECT id FROM idle_missions
      WHERE user_id = ? AND cycle_start_at = ? AND mission_tier = ?`,
-    [userId, cycleStartAt, tier]
+    [userId, cycleStartAt, normalizedTier]
   );
   if (existingTier.length) {
-    const error = new Error('Vous avez déjà un contrat actif pour ce palier de danger ce cycle.');
+    const error = new Error('Vous avez déjà un contrat actif pour ce rang ce cycle.');
     error.statusCode = 409;
     throw error;
   }
 
-  const guaranteed = missionGuaranteedRyos(tier);
+  const odds = computeMissionOddsForTier(ninja, normalizedTier);
+  const guaranteed = missionGuaranteedRyos(normalizedTier);
   const result = await query(
     `INSERT INTO idle_missions
      (user_id, ninja_id, cycle_start_at, mission_tier, send_cost, reward_amount, resolves_at_hour)
      VALUES (?, ?, ?, ?, 0, ?, ?)`,
-    [userId, ninjaId, cycleStartAt, tier, guaranteed.max, config.resolvesAtHour]
+    [userId, ninjaId, cycleStartAt, normalizedTier, guaranteed.max, config.resolvesAtHour]
   );
 
   return {
     missionId: result.insertId,
-    tier,
+    tier: normalizedTier,
+    odds,
     resolvesAtHour: config.resolvesAtHour,
-    netProfit: missionNetProfit(tier),
+    netProfit: missionNetProfit(normalizedTier),
   };
 }
 
 export async function resolveMissionsForCycle(cycleStartAt, resolvesAtHour) {
   const missions = await query(
-    `SELECT im.*, n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence, n.name AS ninja_name
+    `SELECT im.*, n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence,
+            n.squad_position, n.grade, n.name AS ninja_name
      FROM idle_missions im
      JOIN ninjas n ON n.id = im.ninja_id
      WHERE im.cycle_start_at = ? AND im.status = 'active' AND im.resolves_at_hour = ?`,

@@ -50,8 +50,9 @@ console.assert(
 console.assert(getFormeMultiplier('Excellent', 6) < getFormeMultiplier('Excellent', 10), 'Moral bas pénalise la forme');
 console.assert(getFormeMultiplier('Excellent', 18) > getFormeMultiplier('Excellent', 10), 'Moral haut booste la forme');
 
-console.assert(getMissionMoralGain('routine') === 1, 'Mission routine +1 moral');
-console.assert(getMissionMoralGain('infiltration') === 2, 'Mission infiltration +2 moral');
+console.assert(getMissionMoralGain('D') === 1, 'Mission D +1 moral');
+console.assert(getMissionMoralGain('C') === 2, 'Mission C +2 moral');
+console.assert(getMissionMoralGain('routine') === 1, 'legacy routine moral');
 console.assert(getMissionMoralGain('unknown') === 0, 'Tier inconnu sans gain moral');
 
 const elementEnvs = ENVIRONMENT_MODIFIERS.filter(

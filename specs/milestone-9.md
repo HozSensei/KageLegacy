@@ -182,7 +182,7 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 
 | Sujet | Question ouverte | État actuel |
 | :--- | :--- | :--- |
-| **Missions idle** | Règles, loot tables, notifications H72, narratif rapport | ✅ `missionRules.js` · `missionNarrative.js` · `playtest:missions` |
+| **Missions idle** | Rangs D/C/B/A, probabilités note globale, gains stat banc | ✅ `missionRules.js` · `specs/mission-rank-system.md` · `playtest:missions` |
 | **Entraînement par ninja (Ryos)** | **Décision PO :** seuls les ninjas pour lesquels le joueur a **explicitement choisi** un plan d'entraînement (stat ciblée) sont entraînés et facturés. Pas de focus dojo global implicite. **Bureau :** toujours afficher le détail des dépenses prévues / réalisées (par ninja, total cycle, solde après H72). **Déficit :** voir § Sanctions déficit ci-dessous. | ✅ `ninjas.training_focus`, `trainingBilling.js`, panneaux Bureau |
 
 ### Entraînement payant — principes validés (session design)

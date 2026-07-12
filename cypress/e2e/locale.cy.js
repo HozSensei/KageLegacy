@@ -11,7 +11,7 @@ describe('Interface — locale', () => {
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
-    cy.get('[data-testid="missions-panel"]').contains('Contract tier');
+    cy.get('[data-testid="missions-panel"]').contains('Mission rank');
   });
 
   it('revient en français', () => {
@@ -27,7 +27,7 @@ describe('Interface — locale', () => {
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
     cy.get('[data-testid="nav-squad"]').should('contain', 'Escouade');
-    cy.get('[data-testid="missions-panel"]').contains('Palier du contrat');
+    cy.get('[data-testid="missions-panel"]').contains('Rang de mission');
   });
 
   it('affiche la chronique en anglais sur /operation', () => {

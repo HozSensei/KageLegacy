@@ -172,21 +172,24 @@ Spec détaillée : [`specs/training-system.md`](../specs/training-system.md).
 
 ---
 
-## 6. Missions idle (contrats)
+## 6. Missions idle (rangs D → A)
 
 - Réservées aux ninjas **au banc**
-- **1 contrat par palier de danger par cycle**
-- Résolution H72, collecte manuelle des récompenses
+- **1 mission par rang par cycle** (D, C, B, A — max 4)
+- Résolution H72 avec **jet de réussite**, collecte manuelle
 
-| Palier | Ryos | Risques | Prérequis |
-|--------|------|---------|-----------|
-| **Routine** | 300–500 | Aucun | Tous |
-| **Infiltration** | 600–800 | 20 % blessure légère | QI ≥ 8 ou Vitesse ≥ 8 |
-| **Cyclone** | 1000 | 40 % grave, 5 % mort | Une stat combat ≥ 12 |
+| Rang | Ryos (succès) | Note cible | Risques (si échec) |
+|--------|---------------|------------|---------------------|
+| **D** | 300–500 | 4 | Aucun |
+| **C** | 600–800 | 6 | Blessure légère |
+| **B** | 1 000 | 8 | 40 % grave, 5 % mort (base) |
+| **A** | 1 500–2 000 | 10 | 50 % grave, 10 % mort (base) |
 
-Blessure **grave** : Lamentable + 2 cycles sans soin dispensaire. **Mort** : ninja supprimé.
+Probabilités : `réussite = clamp(50 + (note − cible) × 12, 5, 95)`. Blessure/mort uniquement sur **échec**.
 
-Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou scroll de stat.
+**Succès** : Ryos + loot + gain de stat (+ bonus ×1,5 banc sur D/C). **Échec** : 0 Ryos. **Mort** : ninja supprimé.
+
+Spec : [`specs/mission-rank-system.md`](../specs/mission-rank-system.md).
 
 ---
 
@@ -199,7 +202,7 @@ Butin possible : pansements, kits, fumigènes, parchemins, parfois prodige ou sc
 | Victoire ligue | 1 600 Ryos (+ butin bonus : Ryos, objet, carte) |
 | Nul ligue | 800 Ryos (+ butin bonus) |
 | Défaite ligue | 100 Ryos consolation (+ butin bonus) |
-| Missions | 300–1000 |
+| Missions | 300–2 000 |
 | Vol d’Oiseau | 3000 + stats×150 |
 
 ### Dépenses principales

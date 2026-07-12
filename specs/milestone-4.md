@@ -1,5 +1,7 @@
 # 💰 Milestone 4 : Économie Asynchrone (Missions Idle & Marché Noir)
 
+> **Missions idle — refonte rangs D/C/B/A :** voir [`mission-rank-system.md`](./mission-rank-system.md) (remplace les paliers Routine/Infiltration/Cyclone et les prérequis de stats).
+
 Ce document spécifie le système de génération de Ryos via les missions de fond, la structure du catalogue du Marché Noir par cycle, et la mécanique d'équipement des ninjas.
 
 ---
@@ -15,7 +17,7 @@ Toutes les actions financières et logistiques s'alignent sur le cycle commun de
 
 ## 🗺️ 2. Les Missions Idle & Tables de Butin (Loot Tables)
 
-Les joueurs peuvent lancer **jusqu'à 3 missions par cycle** — **une par palier de danger**. Les missions secondaires ne donnent **jamais** de statistiques garanties. Le serveur calcule le résultat au moment du traitement du cycle (**H72**) via un jet de dé en pourcentage.
+Les joueurs peuvent lancer **jusqu'à 4 missions par cycle** — **une par rang D/C/B/A**. Le serveur calcule le résultat au moment du traitement du cycle (**H72**) : jet de réussite selon la note globale, puis blessure/mort en cas d'échec. Voir [`mission-rank-system.md`](./mission-rank-system.md).
 
 ### A. Fonctionnement de l'envoi
 * Le joueur sélectionne un ninja *hors escouade active*.
