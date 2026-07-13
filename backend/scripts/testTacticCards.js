@@ -8,7 +8,12 @@ import {
   grantTacticCard,
 } from '../src/services/tacticCards/tacticCardService.js';
 import { createTacticCardListing } from '../src/services/playerMarketService.js';
-import { STARTER_CARD_SLUGS, TACTIC_CARD_MAX_CHARGES } from '../src/services/tacticCards/tacticCardCatalog.js';
+import {
+  STARTER_CARD_SLUGS,
+  TACTIC_CARD_MAX_CHARGES,
+  SHOP_OFFERS_PER_RESTOCK,
+  pickShopSlugs,
+} from '../src/services/tacticCards/tacticCardCatalog.js';
 
 const PREFIX = `tactic_cards_${Date.now()}`;
 
@@ -32,7 +37,19 @@ async function cleanup(userId) {
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 
+function testShopRotation() {
+  const userA = pickShopSlugs(42, 3);
+  const userARepeat = pickShopSlugs(42, 3);
+  const userB = pickShopSlugs(99, 3);
+  console.assert(userA.length === SHOP_OFFERS_PER_RESTOCK, `shop offers count ${userA.length}`);
+  console.assert(new Set(userA).size === userA.length, 'shop offers unique');
+  console.assert(JSON.stringify(userA) === JSON.stringify(userARepeat), 'shop deterministic');
+  console.assert(JSON.stringify(userA) !== JSON.stringify(userB), 'shop per-player variance');
+}
+
 async function main() {
+  testShopRotation();
+
   const defRows = await query('SELECT COUNT(*) AS c FROM tactic_card_definitions');
   if (!Number(defRows[0]?.c)) {
     console.error('SKIP: migration 039 non appliquée — exécutez les migrations.');
@@ -44,7 +61,10 @@ async function main() {
   const granted = await ensureStarterTacticCards(userId);
   console.assert(granted, 'starter cards granted');
   const cards = await getTacticCardsForUser(userId);
-  console.assert(cards.length === 3, `3 starter cards, got ${cards.length}`);
+  console.assert(
+    cards.length === STARTER_CARD_SLUGS.length,
+    `${STARTER_CARD_SLUGS.length} starter cards, got ${cards.length}`
+  );
   console.assert(
     STARTER_CARD_SLUGS.every((slug) => cards.some((c) => c.slug === slug)),
     'starter slugs present'

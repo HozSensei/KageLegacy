@@ -730,7 +730,7 @@
     "purchased": "Purchased",
     "soldOut": "Sold out",
     "tacticCardsTitle": "Tactic cards",
-    "tacticCardsHint": "2 offers per restock period — 3 charges, 1 proc max per match.",
+    "tacticCardsHint": "10 offers per restock period (every 3 cycles), unique per player — 3 charges, operation deck elements (5 max).",
     "cardChargesShop": "{count} charges",
     "restock": "Next restock in {cycles} cycle(s) (every {every})",
     "promo": "−{pct}%",

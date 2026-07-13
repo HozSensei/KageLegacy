@@ -730,7 +730,7 @@
     "purchased": "Acheté",
     "soldOut": "Épuisé",
     "tacticCardsTitle": "Cartes tactiques",
-    "tacticCardsHint": "Éléments de deck d'opération — 5 max, mélangés avec les techniques (14 plis).",
+    "tacticCardsHint": "10 offres par période de réassort (tous les 3 cycles), distinctes par joueur — 3 charges, éléments de deck d'opération (5 max).",
     "cardChargesShop": "{count} charges",
     "restock": "Prochain réassort dans {cycles} cycle(s) (tous les {every})",
     "promo": "−{pct} %",

@@ -193,6 +193,7 @@ Chaque escouade choisit **jusqu'à 5 cartes tactiques** comme **éléments de de
 
 | Règle | Détail |
 |-------|--------|
+| **Acquisition** | **5 cartes** à la création ; magasin du village (**10 offres** par période de réassort, tous les 3 cycles, rotation **personnalisée** par joueur) ; butin missions, sceaux, reconnaissance, marché P2P. |
 | **Charges** | 3 charges par carte ; une charge est consommée **uniquement si la carte se déclenche**. |
 | **Proc** | **1 déclenchement maximum par ninja et par match.** |
 | **Épuisement** | À 0 charge, la carte disparaît de l'inventaire (à re-looter). |

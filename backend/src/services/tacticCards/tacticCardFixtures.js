@@ -222,7 +222,13 @@ export function equipCardsOnSquad(ninjas, slugs) {
   return map;
 }
 
-export const STARTER_LOADOUT = ['tai-parade-ecole', 'med-pansement-rapide', 'nin-eclair-discret'];
+export const STARTER_LOADOUT = [
+  'tai-parade-ecole',
+  'med-pansement-rapide',
+  'nin-eclair-discret',
+  'futon-lame-retour',
+  'katon-mur-braises',
+];
 
 export const RARE_LOADOUT = ['gen-kage-bunshin', 'med-soin-zone', 'suiton-cage-aqueuse'];
 

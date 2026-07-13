@@ -1,33 +1,10 @@
-import { createHash } from 'node:crypto';
 import { query } from '../../config/database.js';
 import { assertSpendingAllowed } from '../economyDebt.js';
 import { findUserPool } from '../poolService.js';
 import { getHeritageBonuses, applyPercentDiscount } from '../heritageService.js';
 import { computeRestockPeriod, cyclesUntilRestock, RESTOCK_EVERY_CYCLES } from '../villageShopService.js';
 import { grantTacticCard } from './tacticCardService.js';
-
-const SHOP_CARD_POOL = [
-  'katon-mur-braises',
-  'raiton-surcharge',
-  'gen-illusion-mineure',
-  'futon-lame-retour',
-  'tai-parade-ecole',
-  'nin-eclair-discret',
-];
-
-function pickShopSlugs(userId, restockPeriod) {
-  const hash = createHash('sha256').update(`${userId}:${restockPeriod}`).digest();
-  const picks = [];
-  for (let i = 0; i < 2; i += 1) {
-    const idx = hash[i] % SHOP_CARD_POOL.length;
-    const slug = SHOP_CARD_POOL[(idx + i) % SHOP_CARD_POOL.length];
-    if (!picks.includes(slug)) picks.push(slug);
-  }
-  if (picks.length < 2) {
-    picks.push(SHOP_CARD_POOL[(hash[2] + 1) % SHOP_CARD_POOL.length]);
-  }
-  return picks.slice(0, 2);
-}
+import { pickShopSlugs } from './tacticCardCatalog.js';
 
 async function ensureCardStock(userId, restockPeriod) {
   const slugs = pickShopSlugs(userId, restockPeriod);

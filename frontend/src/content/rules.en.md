@@ -194,6 +194,7 @@ Each squad picks **up to 5 tactic cards** as **deck elements** (Squad screen →
 
 | Rule | Detail |
 |------|--------|
+| **Acquisition** | **5 cards** at account creation; village shop (**10 offers** per restock period, every 3 cycles, **per-player** rotation); mission loot, seals, recon, P2P market. |
 | **Charges** | 3 charges per card; a charge is spent **only when the card triggers**. |
 | **Proc** | **At most one trigger per ninja per match.** |
 | **Depletion** | At 0 charges, the card leaves inventory (re-loot). |
