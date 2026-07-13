@@ -3,6 +3,7 @@ import {
   TECHNIQUE_CARDS_PER_NINJA,
   DECK_ELEMENTS_COUNT,
   DOMAIN_LABELS,
+  MAX_PLIS,
 } from './constants.js';
 import { DOMAINS } from './constants.js';
 
@@ -23,15 +24,57 @@ export function defaultTechniquesForFighter(fighter) {
   };
 }
 
+function hasExplicitTechniques(rawTechniques, fighterId) {
+  const saved = rawTechniques?.[fighterId] ?? rawTechniques?.[String(fighterId)];
+  return Boolean(saved?.primary || saved?.secondary);
+}
+
+/** Carte relais de comblement — proxy aléatoire, domaine dominant (comme relais K.O.). */
+export function createRelaisFillerCard(team, fighter = null) {
+  const label = fighter?.name
+    ? `Relais · ${fighter.name}`
+    : 'Relais · Escouade';
+  return {
+    kind: 'relais',
+    padded: true,
+    ownerId: fighter?.id ?? null,
+    ownerName: fighter?.name ?? null,
+    domain: null,
+    label,
+  };
+}
+
+/** Complète le deck jusqu'à MAX_PLIS avec des cartes relais. */
+export function padDeckToMaxPlis(cards, team) {
+  while (cards.length < MAX_PLIS) {
+    cards.push(createRelaisFillerCard(team));
+  }
+  return cards;
+}
+
 /**
- * Construit le deck : 3 cartes technique / ninja actif + 5 éléments d'escouade.
+ * Construit le deck : 3 cartes technique / ninja actif (ou relais si non configuré)
+ * + éléments d'escouade + relais de comblement → toujours MAX_PLIS cartes.
  */
-export function buildTeamDeck(team, { techniquesByNinjaId = {}, elementCards = [] } = {}) {
+export function buildTeamDeck(
+  team,
+  { techniquesByNinjaId = {}, rawTechniquesByNinjaId = null, elementCards = [] } = {}
+) {
+  const rawTechniques = rawTechniquesByNinjaId ?? techniquesByNinjaId;
   const cards = [];
 
   for (const fighter of team.fighters) {
+    if (!hasExplicitTechniques(rawTechniques, fighter.id)) {
+      for (let i = 0; i < TECHNIQUE_CARDS_PER_NINJA; i += 1) {
+        cards.push(createRelaisFillerCard(team, fighter));
+      }
+      continue;
+    }
+
     const picks =
-      techniquesByNinjaId[fighter.id] || defaultTechniquesForFighter(fighter);
+      techniquesByNinjaId[fighter.id] ||
+      techniquesByNinjaId[String(fighter.id)] ||
+      defaultTechniquesForFighter(fighter);
     const primary = picks.primary || picks.primaryTechnique;
     const secondary = picks.secondary || picks.secondaryTechnique;
 
@@ -71,6 +114,7 @@ export function buildTeamDeck(team, { techniquesByNinjaId = {}, elementCards = [
     });
   }
 
+  padDeckToMaxPlis(cards, team);
   shuffleInPlace(cards);
   return cards;
 }

@@ -570,7 +570,7 @@
         "medecine": "Medicine"
       },
       "elementsTitle": "Deck elements ({count})",
-      "autoFill": "Auto-filled from your collection if empty.",
+      "autoFill": "Empty slots are filled with relay cards in match (14 plis guaranteed).",
       "pickHint": "Pick up to 5 tactic cards (charge spent when drawn).",
       "save": "Save deck",
       "locked": "Deck locked — operation in progress."

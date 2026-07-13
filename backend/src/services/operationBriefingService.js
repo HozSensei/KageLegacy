@@ -8,7 +8,7 @@ import { getUserLanguage } from './narrative/viewerLocale.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { dominantElement } from './scoutSquadAnalysis.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS } from './combat/pli/constants.js';
+import { DOMAIN_LABELS, MAX_PLIS } from './combat/pli/constants.js';
 
 async function loadOwnActiveSquad(userId) {
   return query(
@@ -43,15 +43,21 @@ function buildDeckSummary(ninjas, deck, lang) {
   });
 
   const elementCount = deck.elementCardIds?.length ?? 0;
-  const pliCount = ninjas.length * 3 + elementCount;
+  const configuredPlis = ninjas.length * 3 + elementCount;
+  const relaisPadding = Math.max(0, MAX_PLIS - configuredPlis);
 
   return {
     teamSpeed: speed,
     dominantElement: element,
     elementCount,
-    pliCount,
+    pliCount: MAX_PLIS,
+    configuredPlis,
+    relaisPadding,
     members,
-    techniquesConfigured: members.every((m) => m.primaryDomain && m.secondaryDomain),
+    techniquesConfigured: members.every((m) => {
+      const raw = deck.rawTechniquesByNinjaId?.[m.ninjaId] ?? deck.rawTechniquesByNinjaId?.[String(m.ninjaId)];
+      return Boolean(raw?.primary && raw?.secondary);
+    }),
   };
 }
 
@@ -66,8 +72,8 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
   if (ownDeck.elementCount < 5) {
     tips.push(
       lang === 'en'
-        ? 'Pick 5 squad deck elements before H71 — each adds a tactical pli to your shuffle.'
-        : 'Choisissez 5 éléments de deck avant H71 — chacun ajoute un pli tactique au mélange.'
+        ? 'Pick 5 squad deck elements before H71 — empty slots become relay plis (match still plays 14 plis).'
+        : 'Choisissez 5 éléments de deck avant H71 — les emplacements vides deviennent des relais (14 plis joués).'
     );
   }
 

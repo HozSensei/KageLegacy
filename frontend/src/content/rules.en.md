@@ -472,7 +472,7 @@ Each pli pits two cards (domain vs domain):
 - Intelligence/Speed as support depending on domain;
 - Tai effects (+10% team next pli) and Gen (−10% enemy);
 - Medicine: heal on win, 50% damage on loss;
-- **relay** cards if the owner is K.O. (random proxy, dominant stat).
+- **Relay** cards if the owner is K.O. (random proxy, dominant stat) **or** if the deck is incomplete (techniques not saved, missing elements) — the match always pads to **14 plis**.
 
 ### Victory conditions
 

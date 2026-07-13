@@ -471,7 +471,7 @@ Chaque pli oppose deux cartes (domaine vs domaine) :
 - Intelligence/Vitesse en support selon le domaine ;
 - effets Tai (+10 % équipe au pli suivant) et Gen (−10 % adverse) ;
 - Médecine : soin si victoire, 50 % dégâts si défaite ;
-- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante).
+- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante) **ou** si le deck est incomplet (techniques non enregistrées, éléments manquants) — le match comble toujours jusqu'à **14 plis**.
 
 ### Conditions de victoire
 

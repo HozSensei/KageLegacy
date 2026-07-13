@@ -31,18 +31,6 @@ async function loadUserElementCards(userId, cardIds = []) {
   return cardIds.map((id) => byId[Number(id)]).filter(Boolean);
 }
 
-async function defaultElementCardIds(userId) {
-  const rows = await query(
-    `SELECT utc.id
-     FROM user_tactic_cards utc
-     WHERE utc.user_id = ? AND utc.charges_remaining > 0
-     ORDER BY utc.id ASC
-     LIMIT ${DECK_ELEMENTS_COUNT}`,
-    [userId]
-  );
-  return rows.map((r) => Number(r.id));
-}
-
 async function resolveSeasonCycle(userId, seasonCycle = null) {
   if (seasonCycle != null) return seasonCycle;
   const pool = await findUserPool(userId);
@@ -63,10 +51,6 @@ export async function getOperationDeck(userId, seasonCycle = null) {
   const techniques = parseJson(rows[0]?.techniques_json, {});
   let elementCardIds = parseJson(rows[0]?.element_card_ids_json, []);
 
-  if (!elementCardIds.length) {
-    elementCardIds = await defaultElementCardIds(userId);
-  }
-
   const techniquesByNinjaId = {};
   for (const ninja of ninjas) {
     const stats = applyFormeToStats(ninja);
@@ -82,6 +66,7 @@ export async function getOperationDeck(userId, seasonCycle = null) {
 
   return {
     seasonCycle: cycle,
+    rawTechniquesByNinjaId: techniques,
     techniquesByNinjaId,
     elementCardIds: elementCardIds.slice(0, DECK_ELEMENTS_COUNT),
     elementCards: elementCards.map((row) => ({
@@ -141,6 +126,7 @@ export async function saveOperationDeck(userId, { techniquesByNinjaId, elementCa
 export function deckConfigForCombat(deck) {
   return {
     techniquesByNinjaId: deck.techniquesByNinjaId,
+    rawTechniquesByNinjaId: deck.rawTechniquesByNinjaId ?? {},
     elementCards: deck.elementCards,
   };
 }
