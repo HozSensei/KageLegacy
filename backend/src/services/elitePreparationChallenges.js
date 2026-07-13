@@ -3,7 +3,7 @@
  */
 
 import { inferPrimaryArt } from './ninjaProfile.js';
-import { DECK_ELEMENTS_COUNT } from './combat/pli/constants.js';
+import { TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
 
 const ART_LABELS = {
   fr: {
@@ -41,61 +41,50 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
     .sort((a, b) => a.squad_position - b.squad_position);
 
   const challenges = [];
-  const elementCount = operationDeck?.elementCardIds?.length ?? 0;
-  const rawTechniques = operationDeck?.rawTechniquesByNinjaId ?? operationDeck?.techniquesByNinjaId ?? {};
+  const techniqueCount = operationDeck?.techniqueCount ?? 0;
+  const maxTechniques = active.length * TECHNIQUE_CARDS_PER_NINJA;
+  const rawSlots = operationDeck?.rawTechniqueSlotsByNinjaId ?? operationDeck?.techniqueSlotsByNinjaId ?? {};
 
-  if (active.length >= 3 && elementCount < DECK_ELEMENTS_COUNT) {
+  if (active.length >= 3 && techniqueCount < maxTechniques) {
     challenges.push(
       challenge(
-        'deck_elements',
+        'deck_techniques',
         'pending',
         'high',
-        lang === 'en' ? 'Pick 5 deck elements' : 'Choisir 5 éléments de deck',
+        lang === 'en' ? 'Assign ninja technique cards' : 'Assigner les cartes technique ninja',
         lang === 'en'
-          ? `${elementCount}/${DECK_ELEMENTS_COUNT} elements selected — missing slots become relay plis at H71.`
-          : `${elementCount}/${DECK_ELEMENTS_COUNT} éléments choisis — les emplacements vides deviennent des relais à H71.`
+          ? `${techniqueCount}/${maxTechniques} cards assigned — empty slots become relay plis at H71.`
+          : `${techniqueCount}/${maxTechniques} cartes assignées — les emplacements vides deviennent des relais à H71.`
       )
     );
   } else if (active.length >= 3) {
     challenges.push(
       challenge(
-        'deck_elements',
+        'deck_techniques',
         'done',
         'high',
-        lang === 'en' ? 'Deck elements complete' : 'Éléments de deck complets',
+        lang === 'en' ? 'Technique deck complete' : 'Deck technique complet',
         lang === 'en'
-          ? 'Full 14-pli shuffle — techniques + squad elements.'
-          : 'Mélange complet à 14 plis — techniques + éléments d\'escouade.'
+          ? 'Full 14-pli shuffle — 3 technique cards per active ninja.'
+          : 'Mélange complet à 14 plis — 3 cartes technique par ninja actif.'
       )
     );
   }
 
   const missingTechniques = active.filter((n) => {
-    const t = rawTechniques[n.id] || rawTechniques[String(n.id)];
-    return !t?.primary || !t?.secondary;
+    const slots = rawSlots[n.id] || rawSlots[String(n.id)] || [];
+    return (Array.isArray(slots) ? slots : []).length < TECHNIQUE_CARDS_PER_NINJA;
   });
-  if (missingTechniques.length) {
+  if (missingTechniques.length && techniqueCount < maxTechniques) {
     challenges.push(
       challenge(
-        'deck_techniques',
+        'deck_per_ninja',
         'warning',
         'medium',
-        lang === 'en' ? 'Configure ninja techniques' : 'Configurer les techniques des ninjas',
+        lang === 'en' ? 'Fill technique slots per ninja' : 'Remplir les emplacements technique par ninja',
         lang === 'en'
-          ? `${missingTechniques.length} active(s) without saved techniques — relay plis will fill those slots.`
-          : `${missingTechniques.length} actif(s) sans techniques enregistrées — des relais combleront ces emplacements.`
-      )
-    );
-  } else if (active.length >= 3) {
-    challenges.push(
-      challenge(
-        'deck_techniques',
-        'done',
-        'medium',
-        lang === 'en' ? 'Techniques configured' : 'Techniques configurées',
-        lang === 'en'
-          ? 'Each ninja has primary and secondary technique domains.'
-          : 'Chaque ninja a un domaine principal et secondaire.'
+          ? `${missingTechniques.length} active(s) without 3 technique cards — relay plis will fill those slots.`
+          : `${missingTechniques.length} actif(s) sans 3 cartes technique — des relais combleront ces emplacements.`
       )
     );
   }

@@ -34,15 +34,14 @@ export function buildSquadSnapshotFromNinjas(ninjas, lang = 'fr') {
 }
 
 export function buildDeckSnapshotFromOperationDeck(deck) {
-  const techniques = deck?.techniquesByNinjaId || {};
   const primaryDomains = { taijutsu: 0, ninjutsu: 0, genjutsu: 0, medecine: 0 };
-  for (const tech of Object.values(techniques)) {
-    const primary = tech?.primary || 'taijutsu';
-    primaryDomains[primary] = (primaryDomains[primary] || 0) + 1;
+  for (const card of deck?.techniqueCards || []) {
+    const domain = card.statType || card.stat_type;
+    if (domain) primaryDomains[domain] = (primaryDomains[domain] || 0) + 1;
   }
   return {
-    elementCount: deck?.elementCardIds?.length ?? deck?.elementCards?.length ?? 0,
-    elementSlugs: (deck?.elementCards || []).map((c) => c.slug).filter(Boolean),
+    techniqueCount: deck?.techniqueCount ?? 0,
+    techniqueSlugs: (deck?.techniqueCards || []).map((c) => c.slug).filter(Boolean),
     primaryDomains,
   };
 }

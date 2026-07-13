@@ -41,7 +41,7 @@ const rulesDeckLink = { path: '/rules', hash: '#combat-pli' }
         <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('briefing.ownDeck') }}</p>
         <p class="mt-2 text-sm text-ink">
           {{ t('briefing.pliCount', { count: briefing.ownDeck.pliCount }) }}
-          · {{ t('briefing.elements', { count: briefing.ownDeck.elementCount }) }}
+          · {{ t('briefing.techniques', { count: briefing.ownDeck.techniqueCount }) }}
         </p>
         <p class="mt-1 text-xs text-ink-muted">
           {{ t('briefing.teamSpeed', { speed: briefing.ownDeck.teamSpeed }) }}
@@ -50,7 +50,10 @@ const rulesDeckLink = { path: '/rules', hash: '#combat-pli' }
           <li v-for="member in briefing.ownDeck.members" :key="member.ninjaId">
             <span class="text-ink">{{ member.name }}</span>
             · {{ member.artLabel }}
-            · {{ member.primaryLabel }} / {{ member.secondaryLabel }}
+            <span v-if="member.techniques?.length">
+              · {{ member.techniques.map((tech) => tech.name).join(', ') }}
+            </span>
+            <span v-else class="text-ink-faint"> · {{ t('squad.deck.autoFill') }}</span>
           </li>
         </ul>
       </div>

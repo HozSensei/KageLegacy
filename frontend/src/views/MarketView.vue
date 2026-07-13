@@ -14,8 +14,8 @@ const market = ref(null)
 const buyingId = ref(null)
 const categoryFilter = ref('all')
 
-const CATEGORY_FILTERS = ['all', 'bureau', 'match', 'cycle']
-const categoryOrder = ['bureau', 'match', 'cycle']
+const CATEGORY_FILTERS = ['all', 'bureau', 'cycle']
+const categoryOrder = ['bureau', 'cycle']
 const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
   [...categoryOrder, 'tacticCards']
 )

@@ -123,7 +123,7 @@ function teamDataFromNinjas(userId, ninjas, sensei = { name: 'Sensei' }) {
     userId,
     sensei,
     ninjas: ninjas.map(cloneNinja),
-    operationDeck: { techniquesByNinjaId: {}, elementCards: [] },
+    operationDeck: { techniqueSlotsByNinjaId: {}, techniqueCards: [] },
   };
 }
 
@@ -137,7 +137,7 @@ function combatWinnerToSlot(winner) {
 }
 
 function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei, decks = {}) {
-  const emptyDeck = { techniquesByNinjaId: {}, elementCards: [] };
+  const emptyDeck = { techniqueSlotsByNinjaId: {}, techniqueCardsById: {} };
   const slotA = buildCombatTeam(teamDataFromNinjas(1, slotANinjas, slotASensei), COMBAT_SLOT_A);
   const slotB = buildCombatTeam(teamDataFromNinjas(2, slotBNinjas, slotBSensei), COMBAT_SLOT_B);
   return simulatePliCombat(slotA, slotB, {

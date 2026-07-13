@@ -47,15 +47,6 @@ function applyHeal(fighter, amount) {
 }
 
 function resolveCardActor(team, card, koSet) {
-  if (card.kind === 'element') {
-    const alive = aliveFighters(team);
-    if (!alive.length) return null;
-    const best = alive.reduce((a, b) =>
-      (b.stats[card.domain] || 0) > (a.stats[card.domain] || 0) ? b : a
-    );
-    return { fighter: best, domain: card.domain, relais: false, element: true, cardOwner: null };
-  }
-
   if (card.kind === 'relais' && card.padded) {
     const proxy = randomProxy(team);
     if (!proxy) return null;
@@ -93,18 +84,20 @@ function damageBearer(actor) {
   return actor.relais ? actor.fighter : actor.cardOwner || actor.fighter;
 }
 
-function computePowers(homeActor, awayActor, homeDomain, awayDomain, env, state) {
+function computePowers(homeActor, awayActor, homeDomain, awayDomain, env, state, homeCard, awayCard) {
   const homePower = computeCardPower(homeActor.fighter, homeDomain, {
     env,
     nextMod: state.homeNextMod,
     typeAdvantage: hasTypeAdvantage(homeDomain, awayDomain),
     opponentElement: awayActor.fighter.element_affinity,
+    cardDef: homeCard?.cardDef,
   });
   const awayPower = computeCardPower(awayActor.fighter, awayDomain, {
     env,
     nextMod: state.awayNextMod,
     typeAdvantage: hasTypeAdvantage(awayDomain, homeDomain),
     opponentElement: homeActor.fighter.element_affinity,
+    cardDef: awayCard?.cardDef,
   });
   return { homePower, awayPower };
 }
@@ -176,7 +169,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
 
   const logs = [];
   const plisWon = { home: 0, away: 0 };
-  const playedElementCardIds = [];
+  const playedTechniqueCardIds = [];
   const koOwnerIds = { home: new Set(), away: new Set() };
   const state = {
     homeNextMod: 1,
@@ -198,8 +191,8 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     const awayActor = resolveCardActor(awayTeam, awayCard, koOwnerIds.away);
     if (!homeActor?.fighter || !awayActor?.fighter) break;
 
-    if (homeCard.userTacticCardId) playedElementCardIds.push(homeCard.userTacticCardId);
-    if (awayCard.userTacticCardId) playedElementCardIds.push(awayCard.userTacticCardId);
+    if (homeCard.userTacticCardId) playedTechniqueCardIds.push(homeCard.userTacticCardId);
+    if (awayCard.userTacticCardId) playedTechniqueCardIds.push(awayCard.userTacticCardId);
 
     const homeDomain = homeActor.domain;
     const awayDomain = awayActor.domain;
@@ -209,7 +202,9 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       homeDomain,
       awayDomain,
       env,
-      state
+      state,
+      homeCard,
+      awayCard
     );
 
     let outcome = 'draw';
@@ -219,12 +214,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     const log = {
       tour: pli,
       pli,
-      type:
-        homeActor.relais || awayActor.relais
-          ? 'relais'
-          : homeCard.kind === 'element' || awayCard.kind === 'element'
-            ? 'element'
-            : 'pli',
+      type: homeActor.relais || awayActor.relais ? 'relais' : 'pli',
       carte_home: homeCard.label,
       carte_away: awayCard.label,
       technique_type_home: DOMAIN_LABELS[homeDomain],
@@ -342,7 +332,8 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     homeScorePct: teamTotalPv(homeTeam),
     awayScorePct: teamTotalPv(awayTeam),
     plisWon: { home: Math.round(plisWon.home), away: Math.round(plisWon.away) },
-    playedElementCardIds: [...new Set(playedElementCardIds)],
+    playedTechniqueCardIds: [...new Set(playedTechniqueCardIds)],
+    playedElementCardIds: [...new Set(playedTechniqueCardIds)],
     possession: { home: 0, away: 0, homePct: 50, awayPct: 50 },
   };
 }

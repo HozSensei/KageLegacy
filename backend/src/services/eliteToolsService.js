@@ -25,8 +25,7 @@ import {
   buildSyntheticOpponentDeck,
   describeOpponentDeck,
   getPresetDeckConfig,
-  getSimulatorDomainOptions,
-  getSimulatorElementOptions,
+  getSimulatorTechniqueOptions,
   isCustomOpponentDeckInput,
   normalizeOpponentDeckProfile,
 } from './eliteDeckSimulation.js';
@@ -220,13 +219,11 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     opponentStyleOptions: opponentProfileOptions,
     compositionOptions: opponentProfileOptions,
     matchupBuilder: {
-      domainOptions: getSimulatorDomainOptions(lang),
-      elementOptions: getSimulatorElementOptions(lang),
-      defaultSlots: defaultPreset.slots,
-      defaultElementSlugs: defaultPreset.elementSlugs,
+      techniqueOptions: getSimulatorTechniqueOptions(lang),
+      defaultTechniqueSlugsByNinja: defaultPreset.techniqueSlugsByNinja,
       presets,
-      maxElements: 5,
-      slotCount: 3,
+      maxTechniquesPerNinja: 3,
+      ninjaSlotCount: 3,
     },
     scoutPrefill,
     levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
@@ -271,7 +268,7 @@ export async function simulateEliteMatchup(
   const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentProfileId, level).map(dbNinjaToSim);
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
 
-  const homeDeck = operationDeck ? deckConfigForCombat(operationDeck) : { techniquesByNinjaId: {}, elementCards: [] };
+  const homeDeck = operationDeck ? deckConfigForCombat(operationDeck) : { techniqueSlotsByNinjaId: {}, techniqueCardsById: {} };
   const awayDeck = useCustomDeck
     ? buildCustomOpponentDeck(oppSquad, opponentDeck)
     : buildSyntheticOpponentDeck(oppSquad, opponentProfileId);
@@ -320,9 +317,12 @@ export async function simulateEliteMatchup(
       opponentLevel: level,
       locale: lang,
       squadContext: {
-        deckElements: operationDeck?.elementCardIds?.length ?? 0,
-        opponentDeckElements: awayDeck.elementCards?.length ?? 0,
-        opponentTechniquesConfigured: Object.keys(awayDeck.techniquesByNinjaId || {}).length,
+        deckTechniques: operationDeck?.techniqueCount ?? 0,
+        opponentDeckTechniques: Object.values(awayDeck.techniqueSlotsByNinjaId || {}).reduce(
+          (sum, ids) => sum + (ids?.length || 0),
+          0
+        ),
+        opponentTechniquesConfigured: Object.keys(awayDeck.techniqueSlotsByNinjaId || {}).length,
         avgMoral: summarizeSquadMoral(ninjas),
       },
     }),

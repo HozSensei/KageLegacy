@@ -38,10 +38,22 @@ export function domainBaseStat(fighter, domain) {
 
 /**
  * Puissance d'une carte pour un ninja donné.
+ * Si cardDef est fourni (carte technique ninja), applique moyenne de stats + bonus %.
  */
 export function computeCardPower(fighter, domain, ctx = {}) {
-  const { env, nextMod = 1, opponentElement } = ctx;
+  const { env, nextMod = 1, opponentElement, cardDef } = ctx;
   let power = domainBaseStat(fighter, domain);
+
+  if (cardDef) {
+    const secondary = cardDef.pli_secondary_stat ?? cardDef.pliSecondaryStat;
+    if (secondary) {
+      power = Math.floor((power + domainBaseStat(fighter, secondary)) / 2);
+    }
+    const bonusPct = Number(cardDef.pli_bonus_pct ?? cardDef.pliBonusPct ?? 0);
+    if (bonusPct > 0) {
+      power = Math.floor(power * (1 + bonusPct));
+    }
+  }
 
   if (ctx.typeAdvantage) {
     power = Math.floor(power * TYPE_ADVANTAGE_MULT);
