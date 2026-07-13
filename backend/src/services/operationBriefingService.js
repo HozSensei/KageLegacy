@@ -87,6 +87,22 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     );
   }
 
+  const deck = scout?.deckReport;
+  if (deck?.domainCounts?.medecine >= 2) {
+    tips.push(
+      lang === 'en'
+        ? 'Enemy deck favors Medicine plis — prepare Tai or Gen counters.'
+        : 'Le deck adverse privilégie la Médecine — prévoyez des contre-plis Tai ou Gen.'
+    );
+  }
+  if (deck?.elementCards?.length >= 4) {
+    tips.push(
+      lang === 'en'
+        ? 'Full element deck spotted — expect tactical pli surprises.'
+        : 'Deck éléments quasi complet repéré — anticipez des plis tactiques surprises.'
+    );
+  }
+
   const profiles = scout?.rosterReport?.profiles ?? scout?.profiles ?? [];
   if (
     profiles.some(
@@ -177,6 +193,7 @@ export async function getOperationBriefing(userId, locale = 'fr') {
     environment,
     scout: scoutReport,
     ownDeck,
+    opponentDeck: scoutReport?.deckReport ?? null,
     deck,
     advice: buildAdvice({
       ownDeck,

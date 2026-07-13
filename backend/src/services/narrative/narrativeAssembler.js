@@ -45,10 +45,20 @@ function tourDamageBySide(tourLogs) {
   let home = 0;
   let away = 0;
   for (const log of tourLogs) {
-    const dmg = Number(log.degats_pv) || Number(log.card_damage) || 0;
-    if (!dmg) continue;
-    if (log.equipe_attaque === 'home') home += dmg;
-    else if (log.equipe_attaque === 'away') away += dmg;
+    const homeDmg = Number(log.degats_pv) || 0;
+    const awayDmg = Number(log.degats_pv_away) || 0;
+    if (log.pli_winner === 'home') {
+      home += homeDmg + awayDmg;
+    } else if (log.pli_winner === 'away') {
+      away += homeDmg + awayDmg;
+    } else if (log.egallite) {
+      home += homeDmg;
+      away += awayDmg;
+    } else if (log.equipe_attaque === 'home') {
+      home += homeDmg || Number(log.card_damage) || 0;
+    } else if (log.equipe_attaque === 'away') {
+      away += homeDmg || Number(log.card_damage) || 0;
+    }
   }
   return { home, away };
 }
@@ -93,29 +103,45 @@ function buildTourMomentum(tourLogs, homeSensei, awaySensei, rng) {
   return { ...pick, key: poolKey, sensei: vars.sensei };
 }
 
+function pliWinnerTechnique(log) {
+  if (log.pli_winner === 'away') {
+    return (log.technique_type_away || log.technique_type || '').toLowerCase();
+  }
+  if (log.pli_winner === 'home') {
+    return (log.technique_type_home || log.technique_type || '').toLowerCase();
+  }
+  return (log.technique_type_home || log.technique_type_away || log.technique_type || '').toLowerCase();
+}
+
 function actionSpecForLog(log) {
-  if (log.type === 'pli' || log.type === 'relais' || log.type === 'element') {
-    const technique = (log.technique_type || log.technique_type_home || '').toLowerCase();
-    const damage = Number(log.degats_pv) || 0;
+  if (log.type === 'relais') {
+    return { actionKey: 'combat.actions.pli.relais', reactionKey: null };
+  }
+  if (log.type === 'element') {
+    return { actionKey: 'combat.actions.pli.element', reactionKey: null };
+  }
+  if (log.type === 'pli') {
+    const technique = pliWinnerTechnique(log);
+    const damage = Number(log.degats_pv) || Number(log.degats_pv_away) || 0;
     if (technique === 'médecine' || technique === 'medecine') {
-      return { actionKey: 'combat.actions.strike.medecine', reactionKey: null };
+      return { actionKey: 'combat.actions.pli.medecine', reactionKey: null };
     }
     if (technique === 'genjutsu') {
-      return { actionKey: 'combat.actions.strike.genjutsu_success', reactionKey: null };
+      return { actionKey: 'combat.actions.pli.genjutsu', reactionKey: null };
     }
     if (technique === 'ninjutsu') {
       return {
-        actionKey: 'combat.actions.strike.ninjutsu',
+        actionKey: 'combat.actions.pli.ninjutsu',
         reactionKey: damage >= 6 ? 'combat.reactions.ninjutsu_short' : null,
       };
     }
     if (technique === 'taijutsu') {
       return {
-        actionKey: 'combat.actions.strike.taijutsu',
+        actionKey: 'combat.actions.pli.taijutsu',
         reactionKey: damage >= 6 ? 'combat.reactions.taijutsu_short' : null,
       };
     }
-    return { actionKey: 'combat.actions.strike.taijutsu', reactionKey: null };
+    return { actionKey: 'combat.actions.pli.reveal', reactionKey: null };
   }
 
   if (log.type === 'confusion') {
@@ -185,13 +211,16 @@ function logToPart(log, rng) {
     return null;
   }
   const vars = {
-    attaquant_name: log.attaquant_name,
-    cible_name: log.cible_name || log.ninja,
+    attaquant_name: log.attaquant_name || log.proxy_name || log.relais_name,
+    cible_name: log.cible_name || log.cible_name_away || log.ninja,
     ninja_name: log.ninja_name || log.cible_name || log.ninja,
     sacrificial_name: log.sacrificial_name,
     card_targets: (log.card_targets || []).join(', '),
     card_healed: log.card_healed || 0,
     card_damage: log.card_damage || 0,
+    carte_home: log.carte_home || '—',
+    carte_away: log.carte_away || '—',
+    pli_winner: log.pli_winner || 'draw',
     degats_pv: Number(log.degats_pv) || 0,
     soins_pv: Number(log.soins_pv) || 0,
     impact_label: impactLabel(log.degats_pv, log.esquive),
@@ -234,11 +263,29 @@ function buildKoSentence(koNinjaIds, homeSensei, awaySensei) {
   return `Mis hors combat : ${names}.`;
 }
 
+function possessionFromPlis(combatLog) {
+  const plis = combatLog.plisWon || {};
+  const homePlis = Number(plis.home) || 0;
+  const awayPlis = Number(plis.away) || 0;
+  const total = homePlis + awayPlis;
+  if (total <= 0) {
+    return {
+      homePct: Number(combatLog.possession?.homePct ?? 50),
+      awayPct: Number(combatLog.possession?.awayPct ?? 50),
+    };
+  }
+  return {
+    homePct: Math.round((homePlis / total) * 100),
+    awayPct: Math.round((awayPlis / total) * 100),
+  };
+}
+
 function buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei) {
   const homeScore = Number(combatLog.homeScorePct ?? 0);
   const awayScore = Number(combatLog.awayScorePct ?? 0);
-  const homePoss = Number(combatLog.possession?.homePct ?? 0);
-  const awayPoss = Number(combatLog.possession?.awayPct ?? 0);
+  const plisPoss = possessionFromPlis(combatLog);
+  const homePoss = plisPoss.homePct;
+  const awayPoss = plisPoss.awayPct;
   const winnerScore = winnerSide === 'home' ? homeScore : awayScore;
   const loserScore = winnerSide === 'home' ? awayScore : homeScore;
   const winnerPoss = winnerSide === 'home' ? homePoss : awayPoss;
@@ -411,8 +458,10 @@ export function assembleNarrative({
       ? {
           home_score_pct: Number(combatLog.homeScorePct ?? 0),
           away_score_pct: Number(combatLog.awayScorePct ?? 0),
-          home_possession_pct: Number(combatLog.possession?.homePct ?? 0),
-          away_possession_pct: Number(combatLog.possession?.awayPct ?? 0),
+          ...(() => {
+            const p = possessionFromPlis(combatLog);
+            return { home_possession_pct: p.homePct, away_possession_pct: p.awayPct };
+          })(),
           ko_sentence: buildKoSentence(combatLog.koNinjaIds, homeSensei, awaySensei),
         }
       : buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei);

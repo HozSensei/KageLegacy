@@ -52,9 +52,20 @@ export function buildDebriefing(match, userId, combatLog, locale = 'fr') {
   const logs = combatLog.logs || [];
   let ninHits = 0;
   for (const log of logs) {
+    const hurtsHome = log.pli_winner === 'away';
+    const hurtsAway = log.pli_winner === 'home';
     const hurtsMe =
-      (side === 'home' && log.gagnant === 'away') || (side === 'away' && log.gagnant === 'home');
-    if (hurtsMe && log.domaine === 'ninjutsu' && (log.degats_pv > 0 || log.degats_pv_away > 0)) {
+      (side === 'home' && hurtsHome) || (side === 'away' && hurtsAway);
+    const domain = hurtsHome
+      ? (log.technique_type_away || '').toLowerCase()
+      : hurtsAway
+        ? (log.technique_type_home || '').toLowerCase()
+        : '';
+    const dmg =
+      Number(log.degats_pv) ||
+      Number(log.degats_pv_away) ||
+      (log.egallite ? Number(log.degats_pv) + Number(log.degats_pv_away) : 0);
+    if (hurtsMe && domain === 'ninjutsu' && dmg > 0) {
       ninHits += 1;
     }
   }

@@ -12,6 +12,11 @@ import {
 } from './scoutIntelService.js';
 import { findUserPool } from './poolService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
+import {
+  buildDeckReport,
+  buildPartialDeckReport,
+  freezeDeckIntelForAllUsers,
+} from './scoutDeckIntel.js';
 
 import { analyzeDomainMix, dominantElement } from './scoutSquadAnalysis.js';
 
@@ -199,6 +204,7 @@ async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opp
   }
 
   return {
+    opponentUserId: opponentId,
     opponentName,
     opponentIsBot,
     lines,
@@ -287,6 +293,8 @@ export async function buildAndPersistRosterIntel(userId, seasonCycle, locale = '
 
   return rosterReport;
 }
+
+export { freezeDeckIntelForAllUsers };
 
 export async function generateRosterIntelForAllUsers() {
   const users = await query(
@@ -428,6 +436,30 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
 
   const anomalyFlags = compareRosterToHistory(rosterReport, historicalTendencies, lang);
 
+  let deckReport = rosterReport?.deckReport ?? null;
+  let deckPending = hour < 71;
+  let deckFrozen = Boolean(rosterReport?.deckFrozenAt);
+
+  if (hour >= 54 && rosterReport) {
+    const opponentId =
+      match.home_user_id === userId ? match.away_user_id : match.home_user_id;
+    const ninjas = await loadOpponentNinjas(opponentId);
+
+    if (deckFrozen && deckReport) {
+      deckPending = false;
+    } else if (hour >= 71) {
+      const tier = rosterReport.tier === 'full' ? 'full' : 'partial';
+      const fullDeck = await buildDeckReport(opponentId, seasonCycle, ninjas, lang, tier);
+      deckReport = tier === 'full' ? fullDeck : buildPartialDeckReport(fullDeck, lang);
+      deckPending = false;
+    } else {
+      const tier = rosterReport.tier === 'full' ? 'full' : 'partial';
+      const fullDeck = await buildDeckReport(opponentId, seasonCycle, ninjas, lang, tier);
+      deckReport = tier === 'full' ? fullDeck : buildPartialDeckReport(fullDeck, lang);
+      deckPending = true;
+    }
+  }
+
   return {
     phase: 'roster',
     hour,
@@ -435,6 +467,9 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
     opponentIsBot,
     historicalTendencies: tendenciesPayload,
     rosterReport,
+    deckReport,
+    deckPending,
+    deckFrozen,
     anomalyFlags,
     tier: rosterReport?.tier ?? 'partial',
     reconOutcome: rosterReport?.reconOutcome ?? null,
