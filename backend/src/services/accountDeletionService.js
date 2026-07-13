@@ -60,14 +60,6 @@ export async function deleteUserAccount(user, { password } = {}) {
     [user.id]
   );
 
-  await query(
-    `UPDATE ninjas SET protect_target_ninja_id = NULL
-     WHERE protect_target_ninja_id IN (
-       SELECT id FROM (SELECT id FROM ninjas WHERE user_id = ?) AS targets
-     )`,
-    [user.id]
-  );
-
   const poolRows = await query(
     `SELECT p.id AS pool_id FROM pools p
      JOIN pool_members pm ON pm.pool_id = p.id

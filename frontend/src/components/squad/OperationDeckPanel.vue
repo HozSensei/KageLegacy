@@ -2,8 +2,11 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const DOMAIN_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine']
+
 const props = defineProps({
   deck: { type: Object, default: null },
+  activeSquad: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
 })
 
@@ -17,6 +20,10 @@ const techniques = ref({})
 const saving = ref(false)
 
 const canEdit = computed(() => props.deck && !props.deck.tacticsLocked)
+
+function domainLabel(key) {
+  return t(`squad.deck.domains.${key}`, key)
+}
 
 function syncFromDeck() {
   if (!props.deck) return
@@ -45,6 +52,13 @@ function toggleCard(id) {
   selectedIds.value = [...set]
 }
 
+function ensureTechnique(ninjaId) {
+  if (!techniques.value[ninjaId]) {
+    techniques.value[ninjaId] = { primary: 'taijutsu', secondary: 'ninjutsu' }
+  }
+  return techniques.value[ninjaId]
+}
+
 async function save() {
   if (!canEdit.value) return
   saving.value = true
@@ -70,7 +84,51 @@ onMounted(loadCards)
     <p class="section-label">{{ t('squad.deck.title') }}</p>
     <p class="mt-2 text-xs text-ink-muted">{{ t('squad.deck.lead') }}</p>
 
-    <p class="mt-6 text-xs uppercase tracking-[0.14em] text-ink-faint">
+    <div v-if="activeSquad.length" class="mt-8">
+      <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
+        {{ t('squad.deck.techniquesTitle') }}
+      </p>
+      <ul class="mt-4 space-y-4">
+        <li
+          v-for="ninja in activeSquad"
+          :key="ninja.id"
+          class="border border-line/60 p-4 text-sm"
+        >
+          <p class="font-medium text-ink">{{ ninja.name }}</p>
+          <div v-if="canEdit" class="mt-3 grid gap-3 sm:grid-cols-2">
+            <label class="text-xs text-ink-muted">
+              {{ t('squad.deck.primary') }}
+              <select
+                v-model="ensureTechnique(ninja.id).primary"
+                class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
+              >
+                <option v-for="key in DOMAIN_KEYS" :key="`p-${ninja.id}-${key}`" :value="key">
+                  {{ domainLabel(key) }}
+                </option>
+              </select>
+            </label>
+            <label class="text-xs text-ink-muted">
+              {{ t('squad.deck.secondary') }}
+              <select
+                v-model="ensureTechnique(ninja.id).secondary"
+                class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
+              >
+                <option v-for="key in DOMAIN_KEYS" :key="`s-${ninja.id}-${key}`" :value="key">
+                  {{ domainLabel(key) }}
+                </option>
+              </select>
+            </label>
+          </div>
+          <p v-else class="mt-2 text-xs text-ink-muted">
+            {{ domainLabel(deck.techniquesByNinjaId?.[ninja.id]?.primary) }}
+            /
+            {{ domainLabel(deck.techniquesByNinjaId?.[ninja.id]?.secondary) }}
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <p class="mt-8 text-xs uppercase tracking-[0.14em] text-ink-faint">
       {{ t('squad.deck.elementsTitle', { count: 5 }) }}
     </p>
     <ul class="mt-3 space-y-2 text-sm text-ink">
@@ -102,6 +160,7 @@ onMounted(loadCards)
         type="button"
         class="mt-4 text-sm text-accent"
         :disabled="saving"
+        data-testid="deck-save"
         @click="save"
       >
         {{ t('squad.deck.save') }}

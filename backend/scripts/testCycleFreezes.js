@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Vérifie les gels de cycle : H54 compo/entraînement, H71 tactiques/équipement.
- * Usage: npm run test:cycle-freezes
+ * Vérifie les gels de cycle : H54 compo/entraînement, H71 deck/équipement.
  */
 import dotenv from 'dotenv';
 import path from 'path';
@@ -10,8 +9,10 @@ import { query } from '../src/config/database.js';
 import pool from '../src/config/database.js';
 import { setHourDev, advanceToHourDev } from '../src/services/gameClock.js';
 import { updateSquadComposition } from '../src/models/squadComposition.js';
-import { updateBattleStrategies, updateTrainingPlans } from '../src/models/squadTactics.js';
+import { updateTrainingPlans } from '../src/models/squadTactics.js';
 import { equipItem } from '../src/services/equipmentService.js';
+import { saveOperationDeck } from '../src/services/operationDeckService.js';
+import { grantTacticCard } from '../src/services/tacticCards/tacticCardService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -23,15 +24,13 @@ function assert(condition, message) {
 }
 
 async function expectStatus(fn, statusCode, label) {
-  let failed = false;
   try {
     await fn();
   } catch (error) {
-    if (error.statusCode === statusCode) return;
-    throw new Error(`${label}: attendu ${statusCode}, reçu ${error.statusCode ?? 'erreur'} — ${error.message}`);
+    if (error.status === statusCode || error.statusCode === statusCode) return;
+    throw new Error(`${label}: attendu ${statusCode}, reçu ${error.statusCode ?? error.status ?? 'erreur'} — ${error.message}`);
   }
-  failed = true;
-  if (failed) throw new Error(`${label}: aurait dû échouer avec ${statusCode}`);
+  throw new Error(`${label}: aurait dû échouer avec ${statusCode}`);
 }
 
 async function createUserWithSquad(poolId, label, clanTraitId) {
@@ -53,8 +52,8 @@ async function createUserWithSquad(poolId, label, clanTraitId) {
       `INSERT INTO ninjas (
          user_id, name, grade, age, squad_position, preparation_type,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
-         moral, weekly_forme, battle_strategy, character_trait, element_affinity, clan_trait_id
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Offensive', 'Discipline', 'Katon', ?)`,
+         moral, weekly_forme, character_trait, element_affinity, clan_trait_id
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Discipline', 'Katon', ?)`,
       [userId, `${label}_n${pos}`, pos, clanTraitId]
     );
     ninjaIds.push(result.insertId);
@@ -62,11 +61,11 @@ async function createUserWithSquad(poolId, label, clanTraitId) {
   return { userId, ninjaIds };
 }
 
-async function grantMatchItem(userId) {
+async function grantCycleItem(userId) {
   const defRows = await query(
-    `SELECT id FROM item_definitions WHERE category = 'match' LIMIT 1`
+    `SELECT id FROM item_definitions WHERE category = 'cycle' LIMIT 1`
   );
-  assert(defRows[0], 'item match en base');
+  assert(defRows[0], 'item cycle en base');
   const itemResult = await query(
     `INSERT INTO user_items (user_id, item_definition_id) VALUES (?, ?)`,
     [userId, defRows[0].id]
@@ -77,10 +76,12 @@ async function grantMatchItem(userId) {
 async function cleanup(poolId, userIds) {
   await query('DELETE FROM matches WHERE pool_id = ?', [poolId]);
   for (const userId of userIds) {
+    await query('DELETE FROM operation_decks WHERE user_id = ?', [userId]);
     await query('DELETE FROM ninja_equipment WHERE ninja_id IN (SELECT id FROM ninjas WHERE user_id = ?)', [
       userId,
     ]);
     await query('DELETE FROM user_items WHERE user_id = ?', [userId]);
+    await query('DELETE FROM user_tactic_cards WHERE user_id = ?', [userId]);
     await query('DELETE FROM ninjas WHERE user_id = ?', [userId]);
     await query('DELETE FROM pool_standings WHERE user_id = ?', [userId]);
     await query('DELETE FROM pool_members WHERE user_id = ?', [userId]);
@@ -91,8 +92,6 @@ async function cleanup(poolId, userIds) {
 }
 
 async function main() {
-  console.log('=== Test gels de cycle H54/H71 ===\n');
-
   const clanRows = await query('SELECT id FROM clan_traits LIMIT 1');
   const clanTraitId = clanRows[0]?.id ?? 1;
 
@@ -104,11 +103,18 @@ async function main() {
   const userA = await createUserWithSquad(poolId, 'alpha', clanTraitId);
   const userB = await createUserWithSquad(poolId, 'beta', clanTraitId);
 
+  const card = await grantTacticCard(userA.userId, 'tai-parade-ecole');
+  assert(card?.userTacticCardId, 'carte accordée');
+
   await setHourDev(40);
 
-  await updateBattleStrategies(userA.userId, [
-    { ninjaId: userA.ninjaIds[0], strategy: 'Offensive' },
-  ]);
+  await saveOperationDeck(userA.userId, {
+    elementCardIds: [card.userTacticCardId],
+    techniquesByNinjaId: {
+      [userA.ninjaIds[0]]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+    },
+  });
+
   await updateTrainingPlans(userA.userId, {
     plans: [{ ninjaId: userA.ninjaIds[0], preparationType: 'Ninjutsu' }],
   });
@@ -135,25 +141,31 @@ async function main() {
     'entraînement H54'
   );
 
-  await updateBattleStrategies(userA.userId, [
-    { ninjaId: userA.ninjaIds[0], strategy: 'Tank' },
-  ]);
+  await saveOperationDeck(userA.userId, {
+    elementCardIds: [card.userTacticCardId],
+    techniquesByNinjaId: {
+      [userA.ninjaIds[0]]: { primary: 'genjutsu', secondary: 'ninjutsu' },
+    },
+  });
 
-  const matchItemId = await grantMatchItem(userA.userId);
-  await equipItem(userA.userId, userA.ninjaIds[0], matchItemId);
+  const cycleItemId = await grantCycleItem(userA.userId);
+  await equipItem(userA.userId, userA.ninjaIds[0], cycleItemId);
 
   await advanceToHourDev(71);
 
   await expectStatus(
     () =>
-      updateBattleStrategies(userA.userId, [
-        { ninjaId: userA.ninjaIds[0], strategy: 'Offensive' },
-      ]),
-    423,
-    'consignes H71'
+      saveOperationDeck(userA.userId, {
+        elementCardIds: [card.userTacticCardId],
+        techniquesByNinjaId: {
+          [userA.ninjaIds[0]]: { primary: 'taijutsu', secondary: 'medecine' },
+        },
+      }),
+    403,
+    'deck H71'
   );
 
-  const item2 = await grantMatchItem(userA.userId);
+  const item2 = await grantCycleItem(userA.userId);
   await expectStatus(
     () => equipItem(userA.userId, userA.ninjaIds[1], item2),
     423,
@@ -161,7 +173,7 @@ async function main() {
   );
 
   await cleanup(poolId, [userA.userId, userB.userId]);
-  console.log('\n=== test:cycle-freezes OK ===');
+  console.log('test:cycle-freezes OK');
   await pool.end();
 }
 

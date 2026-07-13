@@ -1,17 +1,13 @@
 /**
- * Tests dossier d'opération + espionnage enrichi + bots pool average.
- * Usage: node scripts/testOperationDossier.js
+ * Tests briefing d'opération + espionnage.
+ * Usage: node scripts/testOperationBriefing.js
  */
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { query } from '../src/config/database.js';
 import pool from '../src/config/database.js';
-import {
-  getOperationDossier,
-  setOperationPosture,
-  OPERATION_POSTURES,
-} from '../src/services/operationDossierService.js';
+import { getOperationBriefing } from '../src/services/operationBriefingService.js';
 import { generateScoutReport } from '../src/services/scouting.js';
 import {
   alignPoolBotsToPoolAverage,
@@ -22,7 +18,7 @@ import { setHourDev, advanceToHourDev } from '../src/services/gameClock.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const PREFIX = `op_dossier_${Date.now()}`;
+const PREFIX = `op_brief_${Date.now()}`;
 
 async function createHumanWithSquad(poolId, label, clanTraitId) {
   const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
@@ -41,8 +37,8 @@ async function createHumanWithSquad(poolId, label, clanTraitId) {
       `INSERT INTO ninjas (
          user_id, name, grade, age, squad_position, preparation_type,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
-         moral, weekly_forme, battle_strategy, character_trait, element_affinity, clan_trait_id
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Offensive', 'Discipline', 'Katon', ?)`,
+         moral, weekly_forme, character_trait, element_affinity, clan_trait_id
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Discipline', 'Katon', ?)`,
       [userId, `${label}_n${pos}`, pos, clanTraitId]
     );
   }
@@ -56,7 +52,7 @@ async function cleanupPool(poolId, userIds) {
       userId,
       userId,
     ]);
-    await query('DELETE FROM operation_dossiers WHERE user_id = ?', [userId]);
+    await query('DELETE FROM operation_decks WHERE user_id = ?', [userId]);
     await query('DELETE FROM ninjas WHERE user_id = ?', [userId]);
     await query('DELETE FROM pool_standings WHERE user_id = ?', [userId]);
     await query('DELETE FROM pool_members WHERE user_id = ?', [userId]);
@@ -92,30 +88,22 @@ async function main() {
   const align = await alignPoolBotsToPoolAverage(poolId);
   console.assert(align.targetPower > 0, 'bots aligned to pool avg');
 
-  for (const posture of OPERATION_POSTURES) {
-    console.assert(OPERATION_POSTURES.includes(posture), 'posture enum');
-  }
-
-  const saved = await setOperationPosture(userA, 'tank');
-  console.assert(saved.operationPosture === 'tank', 'posture saved');
-
-  const dossier = await getOperationDossier(userA, 'fr');
-  console.assert(dossier.operationPosture === 'tank', 'dossier posture');
-  console.assert(dossier.postureLabel, 'posture label');
-  console.assert(dossier.ownSquad.members.length === 3, 'own squad members');
-  console.assert(Array.isArray(dossier.advice), 'advice array');
-  console.assert(dossier.scoutAvailable, 'scout available at H36');
+  const briefing = await getOperationBriefing(userA, 'fr');
+  console.assert(briefing.ownDeck.members.length === 3, 'own deck members');
+  console.assert(Array.isArray(briefing.advice), 'advice array');
+  console.assert(briefing.scoutAvailable, 'scout available at H36');
+  console.assert(briefing.deck, 'deck payload');
 
   const scout = await generateScoutReport(userA, 1, 'fr');
   console.assert(scout?.lockReason === 'no_recon', 'sans recon → no_recon');
   console.assert(scout.phase === 'none', 'phase none sans recon');
 
   await advanceToHourDev(54);
-  const dossierH54 = await getOperationDossier(userA, 'fr');
-  console.assert(dossierH54.compositionLocked, 'composition locked at H54');
+  const briefingH54 = await getOperationBriefing(userA, 'fr');
+  console.assert(briefingH54.compositionLocked, 'composition locked at H54');
 
   await cleanupPool(poolId, [userA, userB]);
-  console.log('testOperationDossier: OK');
+  console.log('testOperationBriefing: OK');
   await pool.end();
 }
 

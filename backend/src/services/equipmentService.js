@@ -22,21 +22,11 @@ export async function getInventoryForUser(userId) {
 
   const ninjas = await query(
     `SELECT n.id, n.name, n.squad_position, n.grade, n.element_affinity, n.preparation_type,
-            match_ui.id AS match_item_id, match_idf.name_fr AS match_name_fr, match_idf.name_en AS match_name_en,
-            cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en,
-            ntc.user_tactic_card_id AS tactic_card_id,
-            tcd.name_fr AS tactic_card_name_fr, tcd.name_en AS tactic_card_name_en,
-            tcd.slug AS tactic_card_slug, utc.charges_remaining AS tactic_card_charges
+            cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en
      FROM ninjas n
-     LEFT JOIN ninja_equipment ne_match ON ne_match.ninja_id = n.id AND ne_match.slot = 'match'
-     LEFT JOIN user_items match_ui ON match_ui.id = ne_match.user_item_id
-     LEFT JOIN item_definitions match_idf ON match_idf.id = match_ui.item_definition_id
      LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
      LEFT JOIN user_items cycle_ui ON cycle_ui.id = ne_cycle.user_item_id
      LEFT JOIN item_definitions cycle_idf ON cycle_idf.id = cycle_ui.item_definition_id
-     LEFT JOIN ninja_tactic_cards ntc ON ntc.ninja_id = n.id
-     LEFT JOIN user_tactic_cards utc ON utc.id = ntc.user_tactic_card_id
-     LEFT JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE n.user_id = ?
      ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
     [userId]
@@ -52,12 +42,6 @@ export async function getInventoryForUser(userId) {
     })),
     ninjas,
   };
-}
-
-function slotForCategory(category) {
-  if (category === 'match') return 'match';
-  if (category === 'cycle') return 'cycle';
-  return null;
 }
 
 export async function equipItem(userId, ninjaId, userItemId) {
@@ -81,19 +65,18 @@ export async function equipItem(userId, ninjaId, userItemId) {
     throw error;
   }
 
+  if (item.category !== 'cycle') {
+    const error = new Error('Cet objet ne s\'équipe pas — utilisez-le depuis le Bureau.');
+    error.statusCode = 400;
+    throw error;
+  }
+
   const listed = await query(
     `SELECT id FROM player_listings WHERE user_item_id = ? AND status = 'active'`,
     [userItemId]
   );
   if (listed.length) {
     const error = new Error('Retirez l\'objet de la vente avant de l\'équiper.');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const slot = slotForCategory(item.category);
-  if (!slot) {
-    const error = new Error('Cet objet ne s\'équipe pas — utilisez-le depuis le Bureau.');
     error.statusCode = 400;
     throw error;
   }
@@ -122,26 +105,20 @@ export async function equipItem(userId, ninjaId, userItemId) {
     }
   }
 
-  await query('DELETE FROM ninja_equipment WHERE ninja_id = ? AND slot = ?', [ninjaId, slot]);
+  await query('DELETE FROM ninja_equipment WHERE ninja_id = ? AND slot = ?', [ninjaId, 'cycle']);
   await query('DELETE FROM ninja_equipment WHERE user_item_id = ?', [userItemId]);
   await query(
     'INSERT INTO ninja_equipment (ninja_id, slot, user_item_id) VALUES (?, ?, ?)',
-    [ninjaId, slot, userItemId]
+    [ninjaId, 'cycle', userItemId]
   );
 
-  return { ninjaId, userItemId, slot };
+  return { ninjaId, userItemId, slot: 'cycle' };
 }
 
-export async function unequipItem(userId, ninjaId, slot) {
+export async function unequipItem(userId, ninjaId) {
   if (await isTacticsLocked()) {
     const error = new Error('L\'équipement est gelé pendant l\'opération (à partir de H71).');
     error.statusCode = 423;
-    throw error;
-  }
-
-  if (!['match', 'cycle'].includes(slot)) {
-    const error = new Error('Slot invalide.');
-    error.statusCode = 400;
     throw error;
   }
 
@@ -150,15 +127,15 @@ export async function unequipItem(userId, ninjaId, slot) {
      FROM ninja_equipment ne
      JOIN ninjas n ON n.id = ne.ninja_id
      WHERE ne.ninja_id = ? AND ne.slot = ? AND n.user_id = ?`,
-    [ninjaId, slot, userId]
+    [ninjaId, 'cycle', userId]
   );
   if (!rows.length) {
-    const error = new Error('Aucun objet équipé sur ce slot.');
+    const error = new Error('Aucun objet équipé sur ce ninja.');
     error.statusCode = 404;
     throw error;
   }
-  await query('DELETE FROM ninja_equipment WHERE ninja_id = ? AND slot = ?', [ninjaId, slot]);
-  return { ninjaId, slot };
+  await query('DELETE FROM ninja_equipment WHERE ninja_id = ? AND slot = ?', [ninjaId, 'cycle']);
+  return { ninjaId, slot: 'cycle' };
 }
 
 export async function getEquipmentForNinjas(userId) {
@@ -168,7 +145,7 @@ export async function getEquipmentForNinjas(userId) {
      JOIN user_items ui ON ui.id = ne.user_item_id
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
      JOIN ninjas n ON n.id = ne.ninja_id
-     WHERE n.user_id = ? AND ui.consumed = FALSE`,
+     WHERE n.user_id = ? AND ui.consumed = FALSE AND ne.slot = 'cycle'`,
     [userId]
   );
 }

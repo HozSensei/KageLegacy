@@ -3,17 +3,12 @@
  * Tests défis de préparation Élite (sans BDD).
  */
 import { buildPreparationChallenges } from '../src/services/elitePreparationChallenges.js';
-import {
-  getStrategiesForComposition,
-  normalizeOrderStyle,
-} from '../src/services/combat/squadPowerScaling.js';
 
 const ninjas = [
   {
     id: 1,
     name: 'Tai',
     squad_position: 1,
-    battle_strategy: 'Offensive',
     taijutsu: 12,
     ninjutsu: 6,
     genjutsu: 5,
@@ -23,11 +18,10 @@ const ninjas = [
   },
   {
     id: 2,
-    name: 'Tank',
+    name: 'Nin',
     squad_position: 2,
-    battle_strategy: 'Tank',
-    taijutsu: 10,
-    ninjutsu: 8,
+    taijutsu: 6,
+    ninjutsu: 12,
     genjutsu: 6,
     medecine: 6,
     vitesse: 7,
@@ -37,8 +31,6 @@ const ninjas = [
     id: 3,
     name: 'Med',
     squad_position: 3,
-    battle_strategy: 'Protect',
-    protect_target_ninja_id: 1,
     taijutsu: 6,
     ninjutsu: 6,
     genjutsu: 7,
@@ -48,37 +40,21 @@ const ninjas = [
   },
 ];
 
-const cards = [
-  {
-    ninja_id: 1,
-    card_type: 'attack',
-    stat_type: 'ninjutsu',
-    slug: 'nin-eclair-discret',
+const operationDeck = {
+  elementCardIds: [1, 2, 3, 4, 5],
+  techniquesByNinjaId: {
+    1: { primary: 'taijutsu', secondary: 'ninjutsu' },
+    2: { primary: 'ninjutsu', secondary: 'genjutsu' },
+    3: { primary: 'medecine', secondary: 'taijutsu' },
   },
-  {
-    ninja_id: 2,
-    card_type: 'defense',
-    stat_type: 'taijutsu',
-    slug: 'tai-parade-ecole',
-  },
-  {
-    ninja_id: 3,
-    card_type: 'support',
-    stat_type: 'medecine',
-    slug: 'med-pansement-rapide',
-  },
-];
+};
 
-const result = buildPreparationChallenges({ ninjas, cardRows: cards, locale: 'fr' });
-console.assert(result.challenges.length >= 5, 'challenges générés');
-console.assert(result.summary.done >= 4, 'majorité validée');
+const result = buildPreparationChallenges({ ninjas, operationDeck, locale: 'fr' });
+console.assert(result.challenges.length >= 3, 'challenges générés');
+console.assert(result.summary.done >= 2, 'majorité validée');
 console.assert(
-  result.challenges.some((c) => c.id === 'equip_all_cards' && c.status === 'done'),
-  'cartes complètes'
+  result.challenges.some((c) => c.id === 'deck_elements' && c.status === 'done'),
+  'éléments deck complets'
 );
-
-console.assert(normalizeOrderStyle('assaut') === 'offensive', 'alias assaut');
-console.assert(getStrategiesForComposition('tank')[0] === 'Tank', 'style tank');
-console.assert(getStrategiesForComposition('offensive').every((s) => s === 'Offensive'), 'style offensive');
 
 console.log('testPreparationChallenges: OK');

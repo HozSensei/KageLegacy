@@ -10,8 +10,7 @@ describe('Escouade — composition', () => {
     cy.get('[data-testid="squad-composition"] .squad-card-wrap').should('have.length', 3);
   });
 
-  it('ouvre le mode édition de stratégie', () => {
-    cy.get('[data-testid="squad-edit-strategy"]').click();
-    cy.get('[data-testid="squad-edit-strategy"]').contains(/Terminer|Done/);
+  it('affiche le panneau deck d\'opération', () => {
+    cy.get('[data-testid="operation-deck"]', { timeout: 15000 }).should('be.visible');
   });
 });

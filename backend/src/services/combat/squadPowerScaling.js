@@ -81,13 +81,7 @@ export function buildOpponentSquadFromPlayer(playerNinjas, composition, level = 
   const strategies = getStrategiesForComposition(composition);
 
   return base.map((ninja, index) =>
-    scaleNinjaStats(
-      {
-        ...ninja,
-        battle_strategy: strategies[index] ?? strategies[0],
-      },
-      multiplier
-    )
+    scaleNinjaStats({ ...ninja }, multiplier)
   );
 }
 

@@ -304,11 +304,9 @@ export async function createTacticCardListing(userId, userTacticCardId, price) {
   const poolId = await optionalSellerPoolId(userId);
 
   const cardRows = await query(
-    `SELECT utc.*, tcd.catalog_price, tcd.slug, tcd.name_fr,
-            ntc.ninja_id AS equipped_ninja_id
+    `SELECT utc.*, tcd.catalog_price, tcd.slug, tcd.name_fr
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
-     LEFT JOIN ninja_tactic_cards ntc ON ntc.user_tactic_card_id = utc.id
      WHERE utc.id = ? AND utc.user_id = ? AND utc.charges_remaining > 0`,
     [userTacticCardId, userId]
   );
@@ -316,11 +314,6 @@ export async function createTacticCardListing(userId, userTacticCardId, price) {
   if (!card) {
     const error = new Error('Carte introuvable ou épuisée.');
     error.statusCode = 404;
-    throw error;
-  }
-  if (card.equipped_ninja_id) {
-    const error = new Error('Retirez la carte de l\'équipement avant de la vendre.');
-    error.statusCode = 400;
     throw error;
   }
 

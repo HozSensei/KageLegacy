@@ -95,14 +95,13 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
   const mechanical =
     viewerIsElite && combatLog && chronicle.length
       ? {
-          possession: combatLog.possession,
+          plisWon: combatLog.plisWon,
           homeScorePct: combatLog.homeScorePct,
           awayScorePct: combatLog.awayScorePct,
           endingTour: match.ending_tour,
           result: match.result,
           winnerUserId: match.winner_user_id,
           isHome: perspective?.isHome ?? null,
-          equipmentSummary: combatLog.equipmentSummary || [],
           environment: combatLog.environment || null,
         }
       : null;

@@ -124,8 +124,8 @@ jobs:
       - name: Test gels de cycle H54/H71
         run: npm run test:cycle-freezes --prefix backend
 
-      - name: Test dossier d'opération
-        run: npm run test:operation-dossier --prefix backend
+      - name: Test briefing d'opération
+        run: npm run test:operation-briefing --prefix backend
 
       - name: Upload Cypress screenshots on failure
         if: failure()

@@ -27,7 +27,6 @@
     "test:tactic-cards": "node scripts/testTacticCards.js",
     "audit:imports": "node scripts/auditCrossImports.js",
     "test:narrative": "node scripts/testNarrativeEngine.js",
-    "test:egoiste": "node scripts/testEgoisteInsubordination.js",
     "test:pool-schedule": "node scripts/testPoolSchedule.js",
     "narrative:backfill": "node scripts/backfillNarrativeI18n.js",
     "test:retention": "node scripts/testRetentionSystem.js && node scripts/testPlayerClans.js && node scripts/testRetentionClansIntegration.js && node scripts/testAccountDeletionClans.js && node scripts/testAccountDeletionGuest.js && node scripts/testGuestCleanup.js && node scripts/testHeritageMatchShop.js",
@@ -39,7 +38,7 @@
     "test:reconnaissance": "node scripts/testReconnaissance.js",
     "test:scout-cycle": "node scripts/testScoutCycle.js",
     "test:cycle-freezes": "node scripts/testCycleFreezes.js",
-    "test:operation-dossier": "node scripts/testOperationDossier.js",
+    "test:operation-briefing": "node scripts/testOperationBriefing.js",
     "test:combat-loot": "node scripts/testCombatLoot.js",
     "test:training-system": "node scripts/testTrainingSystem.js",
     "test:village-shop": "node scripts/testVillageShopCatalog.js"

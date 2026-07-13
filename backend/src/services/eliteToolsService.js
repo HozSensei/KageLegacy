@@ -10,8 +10,7 @@ import {
   buildSimulationVerdict,
 } from './eliteReportService.js';
 import { buildPreparationChallenges } from './elitePreparationChallenges.js';
-import { getTacticCardsForNinjas } from './tacticCards/tacticCardService.js';
-import { makeEquippedCard } from './tacticCards/tacticCardFixtures.js';
+import { getOperationDeck } from './operationDeckService.js';
 import {
   buildOpponentSquadFromPlayer,
   getOpponentLevelMultiplier,
@@ -61,29 +60,12 @@ const OPPONENT_LEVEL_LABELS = {
   },
 };
 
-function summarizeSquadOrders(ninjas) {
-  const counts = { Offensive: 0, Tank: 0, Protect: 0, Normal: 0 };
-  for (const ninja of ninjas) {
-    const key = ninja.battle_strategy || 'Normal';
-    if (counts[key] != null) counts[key] += 1;
-    else counts.Normal += 1;
-  }
-  return counts;
-}
-
-function summarizeSquadMoral(ninjas) {
-  if (!ninjas.length) return null;
-  const sum = ninjas.reduce((acc, n) => acc + Number(n.moral ?? 15), 0);
-  return sum / ninjas.length;
-}
-
 function dbNinjaToSim(ninja) {
   return cloneNinja({
     id: ninja.id,
     name: ninja.name,
     grade: ninja.grade,
     age: ninja.age,
-    battle_strategy: ninja.battle_strategy || 'Normal',
     weekly_forme: ninja.weekly_forme || 'Passable',
     moral: ninja.moral ?? 15,
     character_trait: ninja.character_trait || 'Discipline',
@@ -98,32 +80,12 @@ function dbNinjaToSim(ninja) {
   });
 }
 
-function cardRowsToMap(cardRows) {
-  const map = {};
-  for (const row of cardRows) {
-    map[row.ninja_id] = row;
-  }
-  return map;
-}
-
-function buildOpponentCardMap(oppSquad, style) {
-  const slugs = OPPONENT_STYLE_CARD_LOADOUTS[style] || OPPONENT_STYLE_CARD_LOADOUTS.mixed;
-  const map = {};
-  oppSquad.forEach((ninja, index) => {
-    const slug = slugs[index];
-    if (slug) {
-      map[ninja.id] = makeEquippedCard(slug, { userTacticCardId: 9000 + ninja.id });
-    }
-  });
-  return map;
-}
-
 async function loadActiveSquad(userId) {
   const ninjas = await query(
     `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
     [userId]
   );
-  return { ninjas, orderCounts: summarizeSquadOrders(ninjas) };
+  return { ninjas };
 }
 
 async function getSeasonMatchStats(userId, pool) {
@@ -222,20 +184,20 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
   const { pool } = await assertEliteToolsAccess(userId);
   const lang = locale === 'en' ? 'en' : 'fr';
 
-  const [{ ninjas, orderCounts }, cardRows, heritageBonuses, heritageScrolls, seasonStats] =
+  const [{ ninjas }, operationDeck, heritageBonuses, heritageScrolls, seasonStats] =
     await Promise.all([
       loadActiveSquad(userId),
-      getTacticCardsForNinjas(userId).catch(() => []),
+      getOperationDeck(userId).catch(() => null),
       getHeritageBonuses(userId),
       listHeritageScrolls(userId),
       getSeasonMatchStats(userId, pool),
     ]);
 
-  const ordersAdvice = buildOrdersAdvice(orderCounts, lang);
+  const ordersAdvice = buildOrdersAdvice({ deck: operationDeck }, lang);
   const trainingRoi = buildTrainingRoi(ninjas, heritageBonuses);
   const preparationChallenges = buildPreparationChallenges({
     ninjas,
-    cardRows,
+    operationDeck,
     locale: lang,
   });
 
@@ -283,14 +245,16 @@ export async function simulateEliteMatchup(
     : normalizeOrderStyle(styleInput);
   const level = normalizeOpponentLevel(opponentLevel);
 
-  const { ninjas, orderCounts } = await loadActiveSquad(userId);
+  const [{ ninjas }, operationDeck] = await Promise.all([
+    loadActiveSquad(userId),
+    getOperationDeck(userId).catch(() => null),
+  ]);
   if (ninjas.length < 3) {
     const error = new Error('Escouade active incomplète pour la simulation.');
     error.statusCode = 400;
     throw error;
   }
 
-  const cardRows = await getTacticCardsForNinjas(userId).catch(() => []);
   const mySquad = ninjas.map(dbNinjaToSim);
   const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentStyleId, level).map(dbNinjaToSim);
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
@@ -300,8 +264,6 @@ export async function simulateEliteMatchup(
     slotBNinjas: oppSquad,
     runs: runCount,
     favoriteSide: 'slotA',
-    slotATacticCards: cardRowsToMap(cardRows),
-    slotBTacticCards: buildOpponentCardMap(oppSquad, opponentStyleId),
   });
 
   const winPct = result.slotAWinPct;
@@ -314,7 +276,7 @@ export async function simulateEliteMatchup(
     opponentLevel: level,
     opponentLevelLabel: levelLabel,
     opponentLevelMultiplier: getOpponentLevelMultiplier(level),
-    myCompositionLabel: buildOrdersAdvice(orderCounts, lang).label,
+    myCompositionLabel: ordersAdvice.label,
     opponentCompositionLabel: OPPONENT_STYLE_LABELS[lang][opponentStyleId],
     runs: runCount,
     winPct,
@@ -331,12 +293,17 @@ export async function simulateEliteMatchup(
       opponentLevel: level,
       locale: lang,
       squadContext: {
-        orderCounts,
+        deckElements: operationDeck?.elementCardIds?.length ?? 0,
         avgMoral: summarizeSquadMoral(ninjas),
-        cardsEquipped: cardRows.length,
       },
     }),
   };
+}
+
+function summarizeSquadMoral(ninjas) {
+  if (!ninjas.length) return null;
+  const sum = ninjas.reduce((acc, n) => acc + Number(n.moral ?? 15), 0);
+  return sum / ninjas.length;
 }
 
 export async function getEliteToolsPayloadForUser(userId) {

@@ -13,7 +13,7 @@ import {
 import { findUserPool } from './poolService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 
-import { analyzeStrategies, dominantElement } from './scoutSquadAnalysis.js';
+import { analyzeDomainMix, dominantElement } from './scoutSquadAnalysis.js';
 
 function fuzzyPotentialHint(potential, lang) {
   const map = {
@@ -37,7 +37,6 @@ function buildFuzzyProfiles(ninjas, lang) {
       artLabel: profile.artLabel,
       potentialHint: fuzzyPotentialHint(profile.potential, lang),
       element: ninja.element_affinity,
-      strategy: ninja.battle_strategy || 'Normal',
     };
   });
 }
@@ -81,27 +80,27 @@ function buildProfileSummaryLines(profiles, lang) {
   return lines;
 }
 
-function buildTendencyLines(strategies, speed, element, lang) {
+function buildTendencyLines(domains, speed, element, lang) {
   const lines = [];
-  if (strategies.Offensive >= 2) {
+  if (domains.taijutsu >= 2) {
     lines.push(
       lang === 'en'
-        ? 'Marked offensive disposition on several members.'
-        : 'Disposition offensive marquée sur plusieurs membres.'
+        ? 'Heavy Taijutsu lean — expect close-range plis.'
+        : 'Forte orientation Taijutsu — plis de mêlée probables.'
     );
   }
-  if (strategies.Tank >= 1) {
+  if (domains.ninjutsu >= 2) {
     lines.push(
       lang === 'en'
-        ? 'At least one Defensive order detected.'
-        : 'Au moins une consigne Défensive repérée.'
+        ? 'Ninjutsu-heavy lineup — elemental pressure likely.'
+        : 'Composition Ninjutsu marquée — pression élémentaire probable.'
     );
   }
-  if (strategies.Protect >= 1) {
+  if (domains.medecine >= 1) {
     lines.push(
       lang === 'en'
-        ? 'Protection orders spotted — expect targeted heals under pressure.'
-        : 'Consignes Protection repérées — soins ciblés probables sous pression.'
+        ? 'Medicine domain spotted — healing plis possible.'
+        : 'Domaine Médecine repéré — plis de soin possibles.'
     );
   }
   if (speedBand(speed, lang) === 'fast') {
@@ -169,20 +168,19 @@ function buildPartialRosterReport(fullReport, lang) {
     .map((profile) => ({
       ...profile,
       potentialHint: unknownPotential,
-      strategy: null,
     }));
   return { ...fullReport, tier: 'partial', lines, profiles };
 }
 
 async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opponentIsBot, match, ninjas, lang) {
-  const strategies = analyzeStrategies(ninjas);
+  const domains = analyzeDomainMix(ninjas);
   const speed = ninjas.reduce((s, n) => s + n.vitesse + n.intelligence, 0);
   const element = dominantElement(ninjas);
   const profiles = buildFuzzyProfiles(ninjas, lang);
 
   const lines = [
     ...buildProfileSummaryLines(profiles, lang),
-    ...buildTendencyLines(strategies, speed, element, lang),
+    ...buildTendencyLines(domains, speed, element, lang),
   ];
 
   if (match.environment_slug) {
@@ -206,18 +204,19 @@ async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opp
     lines,
     profiles,
     tendencies: {
-      ...strategies,
+      ...domains,
       speed,
       speedBand: speedBand(speed, lang),
       dominantElement: element || null,
-      offensive: strategies.Offensive,
+      taiLean: domains.taijutsu,
+      ninLean: domains.ninjutsu,
     },
   };
 }
 
 async function loadOpponentNinjas(opponentId) {
   return query(
-    `SELECT n.battle_strategy, n.element_affinity, n.taijutsu, n.ninjutsu, n.genjutsu,
+    `SELECT n.element_affinity, n.taijutsu, n.ninjutsu, n.genjutsu,
             n.medecine, n.vitesse, n.intelligence, n.grade,
             c.name AS clan_name, c.is_noble AS clan_is_noble
      FROM ninjas n
@@ -322,18 +321,18 @@ function compareRosterToHistory(rosterReport, historicalTendencies, lang) {
   const hist = historicalTendencies.summary;
   const flags = [];
 
-  if (hist.avgOffensive >= 1.2 && current.offensive === 0) {
+  if (hist.avgTaiLean >= 1.5 && (current.taiLean ?? current.taijutsu ?? 0) === 0) {
     flags.push(
       lang === 'en'
-        ? 'Current lineup looks less offensive than recent habits.'
-        : 'La composition actuelle paraît moins offensive que les habitudes récentes.'
+        ? 'Current lineup looks less Tai-focused than recent habits.'
+        : 'La composition actuelle paraît moins orientée Tai que les habitudes récentes.'
     );
   }
-  if (hist.avgOffensive < 0.8 && current.offensive >= 2) {
+  if (hist.avgTaiLean < 0.5 && (current.taiLean ?? current.taijutsu ?? 0) >= 2) {
     flags.push(
       lang === 'en'
-        ? 'Sudden offensive spread — atypical vs recent league matches.'
-        : 'Disposition offensive soudaine — atypique par rapport aux derniers matchs de ligue.'
+        ? 'Sudden Tai spread — atypical vs recent league matches.'
+        : 'Montée soudaine du Tai — atypique par rapport aux derniers matchs de ligue.'
     );
   }
   if (hist.dominantElement && current.dominantElement && hist.dominantElement !== current.dominantElement) {

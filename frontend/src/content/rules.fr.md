@@ -459,20 +459,19 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 
 ### Structure d'un match
 
-- **Douze tours maximum**.
-- Chaque tour : initiative → choix de l'attaquant → cible → résolution du duel.
-- **Environnement** aléatoire (météo, terrain) avec modificateurs ; certains objets de cycle compensent les conditions défavorables.
+- **Quatorze plis maximum** (9 techniques + 5 éléments de deck, mélangés).
+- Chaque pli : révélation simultanée des cartes, comparaison de puissance, dégâts sur le propriétaire perdant.
+- **Environnement** aléatoire (météo, terrain) avec modificateurs sur les domaines concernés ; les objets « counter terrain » sont retirés.
 
-### Résolution des duels (sans formules)
+### Résolution des plis
 
-Chaque échange oppose attaquant et défenseur. Le serveur combine :
+Chaque pli oppose deux cartes (domaine vs domaine) :
 
-- les stats pertinentes (combat, vitesse, intelligence) ;
-- un **facteur aléatoire** (dés) pour éviter l'issue purement déterministe ;
-- des modificateurs : éléments, forme, composition d'équipe, traits, équipement ;
-- des événements spéciaux : **critiques**, **ratés**, **Genjutsu** (paralysie ou confusion), **soins** des ninjas en consigne Protection.
-
-Le **Sensei** peut tenter d'**intercepter un coup fatal** sur un de ses ninjas : cela consomme du chakra de match et dépend de l'Intelligence moyenne de l'escouade.
+- bonus de type +20 % (Taijutsu > Genjutsu > Ninjutsu > Taijutsu) ;
+- Intelligence/Vitesse en support selon le domaine ;
+- effets Tai (+10 % équipe au pli suivant) et Gen (−10 % adverse) ;
+- Médecine : soin si victoire, 50 % dégâts si défaite ;
+- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante).
 
 ### Conditions de victoire
 

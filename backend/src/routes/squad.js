@@ -5,7 +5,6 @@ import { updateSquadComposition } from '../models/squadComposition.js';
 import {
   requestBirdFlight,
   requestChuninExam,
-  updateBattleStrategies,
   updateTrainingPlans,
 } from '../models/squadTactics.js';
 import {
@@ -14,7 +13,6 @@ import {
   releaseNinjaSchema,
   requestBirdFlightSchema,
   requestChuninExamSchema,
-  updateStrategiesSchema,
   updateTrainingPlansSchema,
 } from '../validators/squadTactics.js';
 import { dismissNotification } from '../services/senseiNotifications.js';
@@ -65,22 +63,6 @@ router.patch('/composition', async (req, res, next) => {
     const parsed = updateCompositionSchema.parse(req.body);
     await updateSquadComposition(user.id, parsed.slots);
     await maybeRealignPoolBots(user.id);
-
-    const squad = await getSquadPayload(user.id);
-    const clock = await getGameClock();
-    res.json({ ...squad, gameClock: clock });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.patch('/strategies', async (req, res, next) => {
-  try {
-    const user = await resolveUser(req, res);
-    if (!user) return;
-
-    const parsed = updateStrategiesSchema.parse(req.body);
-    await updateBattleStrategies(user.id, parsed.strategies);
 
     const squad = await getSquadPayload(user.id);
     const clock = await getGameClock();

@@ -5,9 +5,8 @@ import {
   pickTemplateEntry,
 } from './narrativeI18n.js';
 
-const INITIATIVE_THRESHOLD = 35;
 const ELEMENT_WEAKNESS_THRESHOLD = 3;
-const CHAKRA_KO_THRESHOLD = 2;
+const KO_THRESHOLD = 2;
 
 function userSide(match, userId) {
   if (match.home_user_id === userId) return 'home';
@@ -21,7 +20,7 @@ function pickDebriefVariant(locale, code, rng, vars = {}) {
 }
 
 /**
- * Génère jusqu'à 4 alertes pédagogiques à partir du combat_log (ton analytique).
+ * Génère jusqu'à 4 alertes pédagogiques à partir du combat_log pli.
  */
 export function buildDebriefing(match, userId, combatLog, locale = 'fr') {
   if (!combatLog) return [];
@@ -39,29 +38,28 @@ export function buildDebriefing(match, userId, combatLog, locale = 'fr') {
     if (text) alerts.push({ code: 'environment', text });
   }
 
-  const possession = combatLog.possession || {};
-  const myPct = side === 'home' ? possession.homePct : possession.awayPct;
+  const plisWon = combatLog.plisWon || {};
+  const myPlis = side === 'home' ? plisWon.home : plisWon.away;
+  const theirPlis = side === 'home' ? plisWon.away : plisWon.home;
 
-  if (myPct !== undefined && myPct < INITIATIVE_THRESHOLD) {
+  if (myPlis !== undefined && theirPlis !== undefined && myPlis < theirPlis - 2) {
     alerts.push({
-      code: 'initiative',
-      text: pickDebriefVariant(lang, 'initiative', rng.fork(1)),
+      code: 'plis_lost',
+      text: pickDebriefVariant(lang, 'plis_lost', rng.fork(1)),
     });
   }
 
   const logs = combatLog.logs || [];
-  let elementalHits = 0;
+  let ninHits = 0;
   for (const log of logs) {
-    const attackingAway = log.equipe_attaque === 'away';
-    const attackingHome = log.equipe_attaque === 'home';
     const hurtsMe =
-      (side === 'home' && attackingAway) || (side === 'away' && attackingHome);
-    if (hurtsMe && log.technique_type === 'Ninjutsu' && log.degats_pv > 0) {
-      elementalHits += 1;
+      (side === 'home' && log.gagnant === 'away') || (side === 'away' && log.gagnant === 'home');
+    if (hurtsMe && log.domaine === 'ninjutsu' && (log.degats_pv > 0 || log.degats_pv_away > 0)) {
+      ninHits += 1;
     }
   }
 
-  if (elementalHits > ELEMENT_WEAKNESS_THRESHOLD) {
+  if (ninHits > ELEMENT_WEAKNESS_THRESHOLD) {
     alerts.push({
       code: 'element',
       text: pickDebriefVariant(lang, 'element', rng.fork(2)),
@@ -69,27 +67,10 @@ export function buildDebriefing(match, userId, combatLog, locale = 'fr') {
   }
 
   const koOnSide = (combatLog.koNinjaIds || []).filter((k) => k.side === side);
-  if (koOnSide.length >= CHAKRA_KO_THRESHOLD) {
+  if (koOnSide.length >= KO_THRESHOLD) {
     alerts.push({
-      code: 'chakra',
+      code: 'ko',
       text: pickDebriefVariant(lang, 'chakra', rng.fork(3)),
-    });
-  }
-
-  const summary = combatLog.equipmentSummary || [];
-  for (const entry of summary) {
-    if (entry.side !== side) continue;
-    const unused = entry.equippedSlugs.filter((s) => !entry.consumedSlugs.includes(s));
-    if (!unused.length) continue;
-    const labels = unused
-      .map((slug) => pickTemplateEntry(lang, `debrief.item_labels.${slug}`, 0) || slug)
-      .join(', ');
-    alerts.push({
-      code: 'item_unused',
-      text: pickTemplateEntry(lang, 'debrief.item_unused', 0, {
-        ninja_name: entry.ninjaName,
-        items: labels,
-      }),
     });
   }
 

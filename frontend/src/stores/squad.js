@@ -107,26 +107,6 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
-  async function saveStrategies(strategyMap, protectTargetMap = {}) {
-    error.value = null
-    const payload = {
-      strategies: Object.entries(strategyMap).map(([ninjaId, strategy]) => ({
-        ninjaId: Number(ninjaId),
-        strategy,
-        protectTargetNinjaId:
-          strategy === 'Protect' ? Number(protectTargetMap[ninjaId]) || null : null,
-      })),
-    }
-    const res = await fetch(`${API_BASE}/api/squad/strategies`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error(await readApiError(res))
-    applySquadMutation(await res.json())
-  }
-
-  async function recruitFromAcademy(drawId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/academy/recruit`, {
       method: 'POST',
@@ -324,7 +304,6 @@ export const useSquadStore = defineStore('squad', () => {
     operationDeck,
     fetchSquad,
     saveComposition,
-    saveStrategies,
     saveOperationDeck,
     saveTrainingPlans,
     recruitFromAcademy,
