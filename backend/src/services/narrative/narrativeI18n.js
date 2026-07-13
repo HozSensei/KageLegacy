@@ -28,7 +28,39 @@ export function buildPliImpactLog(log) {
     soins_pv_draw_away: Number(log?.soins_pv_draw_away) || 0,
     soin_inutile: Boolean(log?.soin_inutile),
     soin_inutile_away: Boolean(log?.soin_inutile_away),
+    domain_effect_home: log?.domain_effect_home || null,
+    domain_effect_away: log?.domain_effect_away || null,
+    element_mod_home: log?.element_mod_home || null,
+    element_mod_away: log?.element_mod_away || null,
+    med_fail: Boolean(log?.med_fail),
+    med_fail_away: Boolean(log?.med_fail_away),
   };
+}
+
+function formatDomainEffect(effect, lang) {
+  if (!effect) return null;
+  const labels = {
+    fr: {
+      tai_bonus_next: 'Taijutsu : +10 % puissance équipe au prochain pli',
+      gen_malus_next: 'Genjutsu : −10 % puissance adverse au prochain pli',
+    },
+    en: {
+      tai_bonus_next: 'Taijutsu: +10% team power on the next pli',
+      gen_malus_next: 'Genjutsu: −10% opponent power on the next pli',
+    },
+  };
+  return labels[lang]?.[effect] || null;
+}
+
+function formatElementMod(mod, lang) {
+  if (!mod) return null;
+  if (mod === 'advantage') {
+    return lang === 'en' ? 'Ninjutsu: elemental advantage' : 'Ninjutsu : avantage élémentaire';
+  }
+  if (mod === 'disadvantage') {
+    return lang === 'en' ? 'Ninjutsu: elemental disadvantage' : 'Ninjutsu : désavantage élémentaire';
+  }
+  return null;
 }
 
 export function formatPliImpactDetail(impactLog, locale = 'fr') {
@@ -45,15 +77,27 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
     soins_pv_draw_away: healDrawAway,
     soin_inutile: healUseless,
     soin_inutile_away: healUselessAway,
+    domain_effect_home: domainEffectHome,
+    domain_effect_away: domainEffectAway,
+    element_mod_home: elementModHome,
+    element_mod_away: elementModAway,
+    med_fail: medFail,
+    med_fail_away: medFailAway,
   } = impactLog || {};
 
+  const pushUnique = (line) => {
+    if (line && !parts.includes(line)) parts.push(line);
+  };
+
   if (dmg > 0 && cible) {
-    parts.push(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
+    pushUnique(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
   }
   if (dmgAway > 0 && cibleAway) {
-    parts.push(
-      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`
-    );
+    const awayLine =
+      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`;
+    if (!(dmg === dmgAway && cible === cibleAway)) {
+      pushUnique(awayLine);
+    }
   }
   if (heal > 0 && cible) {
     parts.push(lang === 'en' ? `healed ${cible} for ${heal} HP` : `soin de ${heal} PV sur ${cible}`);
@@ -78,8 +122,21 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
     );
   }
   if (healUseless || healUselessAway) {
-    parts.push(lang === 'en' ? 'heal with no wounded target' : 'soin sans cible blessée');
+    pushUnique(lang === 'en' ? 'heal with no wounded target' : 'soin sans cible blessée');
   }
+  if (medFail || medFailAway) {
+    pushUnique(
+      lang === 'en' ? 'Medicine pli failed — damage halved' : 'Médecine en échec — dégâts réduits de moitié'
+    );
+  }
+  const domainHomeLine = formatDomainEffect(domainEffectHome, lang);
+  const domainAwayLine = formatDomainEffect(domainEffectAway, lang);
+  if (domainHomeLine) pushUnique(domainHomeLine);
+  if (domainAwayLine && domainAwayLine !== domainHomeLine) pushUnique(domainAwayLine);
+  const elementHomeLine = formatElementMod(elementModHome, lang);
+  const elementAwayLine = formatElementMod(elementModAway, lang);
+  if (elementHomeLine) pushUnique(elementHomeLine);
+  if (elementAwayLine && elementAwayLine !== elementHomeLine) pushUnique(elementAwayLine);
   return parts.length ? parts.join(' · ') : lang === 'en' ? 'no notable effect' : 'aucun effet notable';
 }
 

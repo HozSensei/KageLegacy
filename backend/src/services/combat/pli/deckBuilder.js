@@ -3,7 +3,6 @@ import {
   TECHNIQUE_CARDS_PER_NINJA,
   PRIMARY_STAT_COPIES,
   SECONDARY_STAT_COPIES,
-  STAT_CARDS_PER_NINJA,
   DOMAIN_LABELS,
   DOMAINS,
 } from './constants.js';
@@ -25,17 +24,23 @@ export function defaultTechniquesForFighter(fighter) {
   };
 }
 
-function hasExplicitTechniques(rawTechniques, fighterId) {
+function hasSavedDomainPicks(rawTechniques, fighterId) {
   const saved = rawTechniques?.[fighterId] ?? rawTechniques?.[String(fighterId)];
   return Boolean(saved?.primary || saved?.secondary);
 }
 
-/** Carte relais — proxy aléatoire si emplacement non configuré ou propriétaire K.O. */
-export function createRelaisFillerCard(team, fighter = null) {
+/** @deprecated — conservé pour les tests */
+export function hasExplicitTechniques(rawTechniques, fighterId) {
+  return hasSavedDomainPicks(rawTechniques, fighterId);
+}
+
+/** Carte relais — proxy si carte technique inventaire non assignée ou propriétaire K.O. */
+export function createRelaisFillerCard(team, fighter = null, { reason = 'missing_technique' } = {}) {
   const label = fighter?.name ? `Relais · ${fighter.name}` : 'Relais · Escouade';
   return {
     kind: 'relais',
     padded: true,
+    relaisReason: reason,
     ownerId: fighter?.id ?? null,
     ownerName: fighter?.name ?? null,
     domain: null,
@@ -84,7 +89,6 @@ export function buildTeamDeck(
     techniqueCardsById = {},
   } = {}
 ) {
-  const rawTechniques = rawTechniquesByNinjaId ?? techniquesByNinjaId;
   const cards = [];
 
   for (const fighter of team.fighters) {
@@ -110,14 +114,7 @@ export function buildTeamDeck(
         cardDef: inventoryCard,
       });
     } else {
-      cards.push(createRelaisFillerCard(team, fighter));
-    }
-
-    if (!hasExplicitTechniques(rawTechniques, fighter.id)) {
-      for (let i = 0; i < STAT_CARDS_PER_NINJA; i += 1) {
-        cards.push(createRelaisFillerCard(team, fighter));
-      }
-      continue;
+      cards.push(createRelaisFillerCard(team, fighter, { reason: 'missing_technique' }));
     }
 
     const picks = techniquesForFighter(techniquesByNinjaId, fighter);

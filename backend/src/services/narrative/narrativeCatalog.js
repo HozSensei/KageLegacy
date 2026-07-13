@@ -87,6 +87,10 @@ export const NARRATIVE_CATALOG = {
         combatOpen: 'Le combat s\'engage — {total_plis} plis à disputer.',
         header: ['Pli {pli_num}'],
         play: ['· {sensei} : {actor} joue « {card_name} » ({domain}).'],
+        play_tai: ['· {sensei} : {actor} engage au Taijutsu ({domain}).'],
+        play_nin: ['· {sensei} : {actor} déchaîne un Ninjutsu ({domain}).'],
+        play_gen: ['· {sensei} : {actor} tisse un Genjutsu ({domain}).'],
+        play_med: ['· {sensei} : {actor} pose un geste de Médecine ({domain}).'],
         play_relais: [
           '· {sensei} : {owner} étant hors combat, {actor} prend le relais et joue « {card_name} » ({domain}).',
         ],
@@ -94,8 +98,12 @@ export const NARRATIVE_CATALOG = {
           '· {sensei} : aucune carte technique sur ce pli — {actor} improvise en {domain}.',
         ],
         play_relais_no_technique: [
-          '· {sensei} : {owner} n\'ayant pas de technique configurée, {actor} joue un relais ({domain}).',
-          '· {sensei} : {owner} joue un relais ({domain}) — aucune technique configurée sur ce pli.',
+          '· {sensei} : {owner} n\'ayant pas de carte configurée, {actor} joue un relais ({domain}).',
+          '· {sensei} : {owner} joue un relais ({domain}) — aucune carte configurée sur ce pli.',
+        ],
+        play_relais_no_inventory: [
+          '· {sensei} : {owner} sans carte technique inventaire assignée, {actor} improvise en {domain}.',
+          '· {sensei} : {owner} joue un relais ({domain}) — aucune carte technique inventaire sur ce pli.',
         ],
         outcome_win: ['→ {winner_team} remporte le pli. {impact_detail}.'],
         outcome_draw: ['→ Égalité au pli. {impact_detail}.'],
@@ -795,6 +803,10 @@ export const NARRATIVE_CATALOG = {
         combatOpen: 'The fight begins — {total_plis} plis to play.',
         header: ['Pli {pli_num}'],
         play: ['· {sensei}: {actor} plays "{card_name}" ({domain}).'],
+        play_tai: ['· {sensei}: {actor} presses the Taijutsu exchange ({domain}).'],
+        play_nin: ['· {sensei}: {actor} unleashes Ninjutsu ({domain}).'],
+        play_gen: ['· {sensei}: {actor} weaves Genjutsu ({domain}).'],
+        play_med: ['· {sensei}: {actor} attempts a Medicine technique ({domain}).'],
         play_relais: [
           '· {sensei}: with {owner} out of the fight, {actor} steps in and plays "{card_name}" ({domain}).',
         ],
@@ -802,8 +814,12 @@ export const NARRATIVE_CATALOG = {
           '· {sensei}: {actor} plays a squad relay ({domain}).',
         ],
         play_relais_no_technique: [
-          '· {sensei}: with no technique set for {owner}, {actor} plays a relay ({domain}).',
-          '· {sensei}: {owner} plays a relay ({domain}) — no technique configured on this pli.',
+          '· {sensei}: with no card set for {owner}, {actor} plays a relay ({domain}).',
+          '· {sensei}: {owner} plays a relay ({domain}) — no card configured on this pli.',
+        ],
+        play_relais_no_inventory: [
+          '· {sensei}: with no inventory technique for {owner}, {actor} improvises in {domain}.',
+          '· {sensei}: {owner} plays a relay ({domain}) — no inventory technique card on this pli.',
         ],
         outcome_win: ['→ {winner_team} wins the pli. {impact_detail}.'],
         outcome_draw: ['→ Draw on this pli. {impact_detail}.'],

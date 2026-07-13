@@ -1,5 +1,6 @@
 import { getEnvironmentModifier } from '../../matchEnvironment.js';
 import { buildTeamDeck } from './deckBuilder.js';
+import { elementDamageMultiplier } from '../element.js';
 import {
   MAX_PLIS,
   DOMAIN_LABELS,
@@ -117,15 +118,33 @@ function computePowers(homeActor, awayActor, homeDomain, awayDomain, env, state,
   return { homePower, awayPower };
 }
 
-function scheduleDomainEffect(domain, winnerSide, relais, state) {
+function recordElementMod(log, side, domain, fighter, opponentElement) {
+  if (domain !== 'ninjutsu' || !fighter?.element_affinity || !opponentElement) return;
+  const mult = elementDamageMultiplier(fighter.element_affinity, opponentElement);
+  const key = side === 'home' ? 'element_mod_home' : 'element_mod_away';
+  if (mult > 1) log[key] = 'advantage';
+  else if (mult < 1) log[key] = 'disadvantage';
+}
+
+function scheduleDomainEffect(domain, winnerSide, relais, state, log) {
   if (relais) return;
   if (domain === 'taijutsu') {
-    if (winnerSide === 'home') state.pendingHomeMod = TAI_BONUS_NEXT;
-    else state.pendingAwayMod = TAI_BONUS_NEXT;
+    if (winnerSide === 'home') {
+      state.pendingHomeMod = TAI_BONUS_NEXT;
+      log.domain_effect_home = 'tai_bonus_next';
+    } else {
+      state.pendingAwayMod = TAI_BONUS_NEXT;
+      log.domain_effect_away = 'tai_bonus_next';
+    }
   }
   if (domain === 'genjutsu') {
-    if (winnerSide === 'home') state.pendingAwayMod = GEN_MALUS_NEXT;
-    else state.pendingHomeMod = GEN_MALUS_NEXT;
+    if (winnerSide === 'home') {
+      state.pendingAwayMod = GEN_MALUS_NEXT;
+      log.domain_effect_away = 'gen_malus_next';
+    } else {
+      state.pendingHomeMod = GEN_MALUS_NEXT;
+      log.domain_effect_home = 'gen_malus_next';
+    }
   }
 }
 
@@ -179,6 +198,8 @@ function resolveMedSide(team, sideKey, actor, power, oppPower, outcome, log, suf
     const dmg = applyDamage(bearer, computeMedFailDamage(reduced));
     log[key] = dmg;
     log[cibleKey] = bearer?.name;
+    const failKey = suffix ? `med_fail${suffix}` : 'med_fail';
+    log[failKey] = true;
   }
 }
 
@@ -297,11 +318,15 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       cible_name: null,
     };
 
+    recordElementMod(log, 'home', homeDomain, homeActor.fighter, awayActor.fighter.element_affinity);
+    recordElementMod(log, 'away', awayDomain, awayActor.fighter, homeActor.fighter.element_affinity);
+
     if (homeActor.relais) {
       log.relais_home = true;
       log.proxy_home = homeActor.fighter.name;
       if (homeActor.padded) log.relais_padding_home = true;
       else log.owner_ko_home = homeActor.relaisOwner?.name;
+      if (homeCard.relaisReason) log.relais_reason_home = homeCard.relaisReason;
       log.carte_resolution_home = `${homeActor.fighter.name} · ${DOMAIN_LABELS[homeDomain]}`;
     }
     if (awayActor.relais) {
@@ -309,6 +334,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       log.proxy_away = awayActor.fighter.name;
       if (awayActor.padded) log.relais_padding_away = true;
       else log.owner_ko_away = awayActor.relaisOwner?.name;
+      if (awayCard.relaisReason) log.relais_reason_away = awayCard.relaisReason;
       log.carte_resolution_away = `${awayActor.fighter.name} · ${DOMAIN_LABELS[awayDomain]}`;
     }
 
@@ -336,14 +362,12 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
         outcome,
         log
       );
-      if (dmgOutcome === 'home') scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
-      else if (dmgOutcome === 'away') scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
+      if (dmgOutcome === 'home') scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state, log);
+      else if (dmgOutcome === 'away') scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state, log);
     } else if (!medHome && medAway && outcome === 'home') {
-      applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, 'home', log);
-      scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
+      scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state, log);
     } else if (medHome && !medAway && outcome === 'away') {
-      applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, 'away', log);
-      scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
+      scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state, log);
     }
 
     if (outcome === 'home' && !homeActor.relais) {

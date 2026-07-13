@@ -50,12 +50,17 @@ const result = simulatePliCombat(home, away, {
 console.assert(result.logs.length === MAX_PLIS, `attendu ${MAX_PLIS} plis, reçu ${result.logs.length}`);
 console.assert(['home', 'away', 'draw'].includes(result.winner), 'winner valide');
 console.assert(
-  result.logs.some((log) => log.relais_padding_home || log.relais_padding_away || log.type === 'relais'),
-  'au moins un pli relais'
+  result.logs.some((log) => log.relais_padding_home || log.relais_padding_away),
+  'au moins un relais (carte technique inventaire manquante)'
 );
 
 const deck = buildTeamDeck(home, emptyDeck);
 console.assert(deck.length === squadA.length * CARDS_PER_NINJA, `deck = ${CARDS_PER_NINJA} cartes / ninja`);
+console.assert(deck.some((c) => c.kind === 'domain'), 'cartes stat domaine par défaut');
+console.assert(
+  deck.filter((c) => c.kind === 'relais').length === home.fighters.length,
+  '1 relais technique inventaire / ninja sans deck'
+);
 
 const fighter = home.fighters[0];
 const base = statBaseValue(fighter, 'taijutsu');
