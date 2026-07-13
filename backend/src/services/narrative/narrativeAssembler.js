@@ -31,6 +31,17 @@ function buildSidePlayPart(side, log, sensei, rng) {
     ownerKo || parsed.owner || (isHome ? 'un coéquipier' : 'un coéquipier');
 
   let poolKey = 'chronicle.pli.play';
+  const domainPlayKeys = {
+    Taijutsu: 'chronicle.pli.play_tai',
+    Ninjutsu: 'chronicle.pli.play_nin',
+    Genjutsu: 'chronicle.pli.play_gen',
+    Médecine: 'chronicle.pli.play_med',
+    Medicine: 'chronicle.pli.play_med',
+  };
+  if (!relais && domainPlayKeys[domain]) {
+    poolKey = domainPlayKeys[domain];
+  }
+
   const vars = {
     sensei,
     actor: parsed.owner || proxy || '—',
