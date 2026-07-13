@@ -110,7 +110,7 @@ function scheduleAutoSave() {
   saveState.value = 'pending'
   saveTimer = setTimeout(() => {
     saveTimer = null
-  void persistDeck()
+    void persistDeck()
   }, AUTO_SAVE_MS)
 }
 
