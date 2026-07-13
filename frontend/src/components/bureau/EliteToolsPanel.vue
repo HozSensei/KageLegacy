@@ -35,10 +35,6 @@ const verdictToneClass = computed(() => {
 
 const rulesCompLink = { path: '/rules', hash: '#cartes-tactiques' }
 
-function domainLabel(key) {
-  return t(`squad.deck.domains.${key}`, key)
-}
-
 function initCustomDeckFromBuilder() {
   const b = builder.value
   if (!b) return
