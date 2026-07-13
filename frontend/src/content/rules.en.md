@@ -203,6 +203,7 @@ Each active ninja gets **up to 3 technique cards** (Squad → operation deck).
 | **Refinement hall** | Paid re-roll of the % bonus on an owned card (cost by rarity; shop heritage discount applies). |
 | **Shop** | **10 random offers** from the catalog each restock (repeats allowed across periods); **fresh bonus roll** on purchase. |
 | **Effects** | Some cards have a **pli effect** (bonus damage, reduction, heal, opponent debuff next pli) — described on the card. |
+| **Elements** | 16 cards require the bearer's element — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (balanced spread). |
 
 Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suiton bearer), **Chakra Scalpel** (offensive medicine).
 

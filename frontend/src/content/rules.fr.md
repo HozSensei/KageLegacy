@@ -202,6 +202,7 @@ Chaque ninja actif reçoit **jusqu'à 3 cartes technique** (Escouade → deck d'
 | **Atelier de perfectionnement** | Retirage payant du bonus % sur une carte possédée (coût selon rareté ; réduction héritage magasin). |
 | **Magasin** | 10 offres tirées **au hasard** dans le catalogue à chaque réassort (répétitions possibles) ; **nouveau tirage** du bonus à l'achat. |
 | **Effets** | Certaines cartes ont un **effet de pli** (dégâts bonus, réduction, soin, malus adverse au pli suivant) — décrit sur la carte. |
+| **Éléments** | 16 cartes exigent l'élément du porteur — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (répartition équilibrée). |
 
 Exemples : **Lame de chakra** (+15 %, sans prérequis), **Lame suiton** (+30 %, porteur Suiton), **Scalpel de chakra** (médecine offensive).
 

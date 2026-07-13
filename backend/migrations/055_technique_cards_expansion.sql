@@ -60,8 +60,8 @@ INSERT INTO tactic_card_definitions (
   'nin-mur-katon',
   'Mur de flammes',
   'Flame Wall',
-  'Ninjutsu défensif. Requiert Katon. Défaite au pli : −22 % dégâts.',
-  'Defensive ninjutsu. Requires Katon. Pli loss: −22% damage.',
+  'Ninjutsu. Requiert Katon. Si cette carte perd le pli : le porteur subit −22 % de dégâts (ce pli uniquement ; aucun effet en cas de victoire).',
+  'Ninjutsu. Requires Katon. If this card loses the pli: bearer takes −22% damage (this pli only; no effect on win).',
   'common', 'defense', 'ninjutsu', NULL, 0.0500, 0.2500, 'Katon',
   'pli_lose', JSON_OBJECT(), 'self', JSON_OBJECT(), 'damage_reduction_pct', JSON_OBJECT('pct', 0.22),
   400, 'tech_flame_wall'
@@ -90,8 +90,8 @@ INSERT INTO tactic_card_definitions (
   'nin-prison-doton',
   'Prison de roche',
   'Stone Prison',
-  'Ninjutsu défensif. Requiert Doton. Défaite : −30 % dégâts.',
-  'Defensive ninjutsu. Requires Doton. Loss: −30% damage.',
+  'Ninjutsu. Requiert Doton. Si cette carte perd le pli : le porteur subit −30 % de dégâts (ce pli uniquement ; aucun effet en cas de victoire).',
+  'Ninjutsu. Requires Doton. If this card loses the pli: bearer takes −30% damage (this pli only; no effect on win).',
   'rare', 'defense', 'ninjutsu', NULL, 0.1500, 0.3500, 'Doton',
   'pli_lose', JSON_OBJECT(), 'self', JSON_OBJECT(), 'damage_reduction_pct', JSON_OBJECT('pct', 0.30),
   830, 'tech_stone_prison'
@@ -128,11 +128,11 @@ INSERT INTO tactic_card_definitions (
 ),
 (
   'gen-voile-paralysie',
-  'Voile paralysant',
-  'Paralyzing Veil',
-  'Genjutsu défensif. Victoire : ralentit l''adversaire au pli suivant (−18 %).',
-  'Defensive genjutsu. Win: slows opponent next pli (−18%).',
-  'rare', 'defense', 'genjutsu', NULL, 0.1500, 0.3500, NULL,
+  'Voile de vent',
+  'Wind Veil',
+  'Genjutsu. Requiert Futon. Si cette carte gagne le pli : l''adversaire −18 % de puissance au pli suivant.',
+  'Genjutsu. Requires Futon. If this card wins the pli: opponent −18% power on the next pli.',
+  'rare', 'defense', 'genjutsu', NULL, 0.1500, 0.3500, 'Futon',
   'pli_win', JSON_OBJECT(), 'enemy_attacker', JSON_OBJECT(), 'opp_next_pli_mod', JSON_OBJECT('mult', 0.82),
   870, 'tech_paralyzing_veil'
 ),
@@ -158,11 +158,11 @@ INSERT INTO tactic_card_definitions (
 ),
 (
   'med-barriere-vie',
-  'Barrière de vie',
-  'Life Barrier',
-  'Médecine + ninjutsu. Défaite : −25 % dégâts subis.',
-  'Medicine + ninjutsu. Loss: −25% damage taken.',
-  'rare', 'support', 'medecine', 'ninjutsu', 0.1500, 0.3500, NULL,
+  'Barrière aqueuse',
+  'Water Barrier',
+  'Médecine + ninjutsu. Requiert Suiton. Si cette carte perd le pli : le porteur subit −25 % de dégâts (ce pli uniquement ; aucun effet en cas de victoire).',
+  'Medicine + ninjutsu. Requires Suiton. If this card loses the pli: bearer takes −25% damage (this pli only; no effect on win).',
+  'rare', 'support', 'medecine', 'ninjutsu', 0.1500, 0.3500, 'Suiton',
   'pli_lose', JSON_OBJECT(), 'self', JSON_OBJECT(), 'damage_reduction_pct', JSON_OBJECT('pct', 0.25),
   810, 'tech_life_barrier'
 ),
@@ -207,40 +207,40 @@ INSERT INTO tactic_card_definitions (
   1750, 'tech_dragon_impact'
 );
 
--- Effets sur cartes existantes (variété gameplay)
+-- Effets sur cartes existantes (descriptions complètes)
 UPDATE tactic_card_definitions
 SET trigger_kind = 'pli_win', effect_kind = 'opp_next_pli_mod',
     effect_params = JSON_OBJECT('mult', 0.88),
-    description_fr = CONCAT(description_fr, ' Effet : victoire au pli → adversaire −12 % au pli suivant.'),
-    description_en = CONCAT(description_en, ' Effect: pli win → opponent −12% next pli.')
+    description_fr = 'Genjutsu du porteur, bonus variable. Si cette carte gagne le pli : l''adversaire −12 % de puissance au pli suivant.',
+    description_en = 'Bearer genjutsu, variable bonus. If this card wins the pli: opponent −12% power on the next pli.'
 WHERE slug = 'gen-dango-cuisiniere';
 
 UPDATE tactic_card_definitions
 SET trigger_kind = 'pli_win', effect_kind = 'heal_bonus',
     effect_params = JSON_OBJECT('flat', 3, 'scaleStat', 'medecine', 'scaleDiv', 6),
-    description_fr = CONCAT(description_fr, ' Effet : soin renforcé si le pli est gagné.'),
-    description_en = CONCAT(description_en, ' Effect: boosted heal if pli is won.')
+    description_fr = 'Médecine du porteur (soin ou riposte), bonus variable. Si cette carte gagne le pli en soignant : soins renforcés.',
+    description_en = 'Bearer medicine (heal or riposte), variable bonus. If this card wins the pli with a heal: boosted healing.'
 WHERE slug = 'med-paume-mystique';
 
 UPDATE tactic_card_definitions
 SET trigger_kind = 'pli_win', effect_kind = 'bonus_damage',
     effect_params = JSON_OBJECT('flat', 4, 'scaleStat', 'genjutsu', 'scaleDiv', 8),
-    description_fr = CONCAT(description_fr, ' Effet : dégâts bonus si victoire au pli.'),
-    description_en = CONCAT(description_en, ' Effect: bonus damage on pli win.')
+    description_fr = 'Moyenne taijutsu + genjutsu, bonus variable. Si cette carte gagne le pli : dégâts bonus.',
+    description_en = 'Taijutsu + genjutsu average, variable bonus. If this card wins the pli: bonus damage.'
 WHERE slug = 'tai-frappe-ombre';
 
 UPDATE tactic_card_definitions
 SET trigger_kind = 'pli_win', effect_kind = 'next_pli_mod',
     effect_params = JSON_OBJECT('mult', 1.10),
-    description_fr = CONCAT(description_fr, ' Effet : +10 % au pli suivant si victoire.'),
-    description_en = CONCAT(description_en, ' Effect: +10% next pli on win.')
+    description_fr = 'Moyenne ninjutsu + genjutsu, bonus variable. Si cette carte gagne le pli : +10 % de puissance au pli suivant.',
+    description_en = 'Ninjutsu + genjutsu average, variable bonus. If this card wins the pli: +10% power on the next pli.'
 WHERE slug = 'nin-clone-ombre';
 
 UPDATE tactic_card_definitions
 SET trigger_kind = 'pli_lose', effect_kind = 'damage_reduction_pct',
     effect_params = JSON_OBJECT('pct', 0.18),
-    description_fr = CONCAT(description_fr, ' Effet : −18 % dégâts si défaite au pli.'),
-    description_en = CONCAT(description_en, ' Effect: −18% damage if pli is lost.')
+    description_fr = 'Moyenne médecine + ninjutsu, bonus variable. Si cette carte perd le pli : le porteur subit −18 % de dégâts (ce pli uniquement ; aucun effet en cas de victoire).',
+    description_en = 'Medicine + ninjutsu average, variable bonus. If this card loses the pli: bearer takes −18% damage (this pli only; no effect on win).'
 WHERE slug = 'med-antidote-choc';
 
 -- Dragon Impact : aussi next_pli_mod — on garde bonus_damage comme effet principal (légendaire déjà forte)
