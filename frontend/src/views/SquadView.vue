@@ -313,6 +313,19 @@ async function fetchBriefing() {
 }
 
 
+async function saveDeck(payload) {
+  saving.value = true
+  saveError.value = null
+  try {
+    await store.saveOperationDeck(payload)
+    await fetchBriefing()
+  } catch (e) {
+    saveError.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
+
 watch(
   () => store.activeSquad,
   () => {
@@ -373,7 +386,8 @@ watch(
       <OperationDeckPanel
         :deck="store.operationDeck"
         :active-squad="store.activeSquad"
-        @deck-saved="fetchBriefing"
+        :loading="saving"
+        @save-deck="saveDeck"
       />
 
       <section class="mt-14" data-testid="squad-composition">

@@ -1,11 +1,9 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSquadStore } from '../../stores/squad'
 import { formatInstanceBonusPct } from '../../utils/techniqueCardBonus.js'
 
 const DOMAIN_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine']
-const AUTO_SAVE_MS = 450
 
 const props = defineProps({
   deck: { type: Object, default: null },
@@ -13,18 +11,13 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['deck-saved'])
+const emit = defineEmits(['save-deck'])
 
 const { t } = useI18n()
-const store = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 const availableCards = ref([])
 const techniqueSlots = ref({})
 const techniques = ref({})
-const saving = ref(false)
-const saveState = ref('idle')
-const skipAutoSave = ref(false)
-let saveTimer = null
 
 const canEdit = computed(() => props.deck && !props.deck.tacticsLocked)
 
@@ -53,12 +46,8 @@ function cardsForNinja(ninja) {
 
 function syncFromDeck() {
   if (!props.deck) return
-  skipAutoSave.value = true
   techniqueSlots.value = { ...(props.deck.techniqueSlotsByNinjaId || {}) }
   techniques.value = { ...(props.deck.techniquesByNinjaId || {}) }
-  nextTick(() => {
-    skipAutoSave.value = false
-  })
 }
 
 watch(
@@ -97,39 +86,13 @@ function setTechniqueSlot(ninjaId, rawValue) {
   techniqueSlots.value[ninjaId] = value ? [value] : []
 }
 
-function buildPayload() {
-  return {
+function save() {
+  if (!canEdit.value || props.loading) return
+  emit('save-deck', {
     techniquesByNinjaId: techniques.value,
     techniqueSlotsByNinjaId: techniqueSlots.value,
-  }
+  })
 }
-
-function scheduleAutoSave() {
-  if (!canEdit.value || skipAutoSave.value) return
-  if (saveTimer) clearTimeout(saveTimer)
-  saveState.value = 'pending'
-  saveTimer = setTimeout(() => {
-    saveTimer = null
-    void persistDeck()
-  }, AUTO_SAVE_MS)
-}
-
-async function persistDeck() {
-  if (!canEdit.value || skipAutoSave.value) return
-  saving.value = true
-  saveState.value = 'saving'
-  try {
-    await store.saveOperationDeck(buildPayload())
-    saveState.value = 'saved'
-    emit('deck-saved')
-  } catch {
-    saveState.value = 'error'
-  } finally {
-    saving.value = false
-  }
-}
-
-watch([techniqueSlots, techniques], scheduleAutoSave, { deep: true })
 
 function assignedTechniqueCard(ninjaId) {
   const cardsById = Object.fromEntries(
@@ -174,7 +137,6 @@ onMounted(loadCards)
               <select
                 :value="techniqueSlotValue(ninja.id) || ''"
                 class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
-                data-testid="deck-technique-slot"
                 @change="setTechniqueSlot(ninja.id, $event.target.value)"
               >
                 <option value="">{{ t('squad.deck.emptySlot') }}</option>
@@ -194,7 +156,6 @@ onMounted(loadCards)
                 <select
                   v-model="ensureTechnique(ninja.id).primary"
                   class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
-                  data-testid="deck-primary-domain"
                 >
                   <option v-for="key in DOMAIN_KEYS" :key="`p-${ninja.id}-${key}`" :value="key">
                     {{ domainLabel(key) }}
@@ -206,7 +167,6 @@ onMounted(loadCards)
                 <select
                   v-model="ensureTechnique(ninja.id).secondary"
                   class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
-                  data-testid="deck-secondary-domain"
                 >
                   <option v-for="key in DOMAIN_KEYS" :key="`s-${ninja.id}-${key}`" :value="key">
                     {{ domainLabel(key) }}
@@ -232,16 +192,16 @@ onMounted(loadCards)
       </ul>
     </div>
 
-    <p
-      v-if="canEdit && saveState !== 'idle'"
-      class="mt-4 text-[11px] text-ink-faint"
-      data-testid="deck-save-status"
-      aria-live="polite"
+    <button
+      v-if="canEdit"
+      type="button"
+      class="mt-6 text-sm text-accent"
+      :disabled="loading"
+      data-testid="deck-save"
+      @click="save"
     >
-      <span v-if="saveState === 'pending' || saveState === 'saving'">{{ t('squad.deck.saving') }}</span>
-      <span v-else-if="saveState === 'saved'">{{ t('squad.deck.saved') }}</span>
-      <span v-else-if="saveState === 'error'">{{ t('squad.deck.saveFailed') }}</span>
-    </p>
+      {{ loading ? t('squad.deck.saving') : t('squad.deck.save') }}
+    </button>
 
     <p v-if="deck.tacticsLocked" class="mt-4 text-xs text-ink-faint">{{ t('squad.deck.locked') }}</p>
   </section>
