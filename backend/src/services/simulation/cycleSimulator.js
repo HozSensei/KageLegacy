@@ -136,12 +136,13 @@ function combatWinnerToSlot(winner) {
   return winner === COMBAT_SLOT_A ? 'slotA' : 'slotB';
 }
 
-function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei) {
+function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei, decks = {}) {
+  const emptyDeck = { techniquesByNinjaId: {}, elementCards: [] };
   const slotA = buildCombatTeam(teamDataFromNinjas(1, slotANinjas, slotASensei), COMBAT_SLOT_A);
   const slotB = buildCombatTeam(teamDataFromNinjas(2, slotBNinjas, slotBSensei), COMBAT_SLOT_B);
   return simulatePliCombat(slotA, slotB, {
-    homeDeck: { techniquesByNinjaId: {}, elementCards: [] },
-    awayDeck: { techniquesByNinjaId: {}, elementCards: [] },
+    homeDeck: decks.homeDeck ?? emptyDeck,
+    awayDeck: decks.awayDeck ?? emptyDeck,
   });
 }
 
@@ -257,6 +258,8 @@ export function runMonteCarlo({
   slotBEquipment = {},
   slotATacticCards = {},
   slotBTacticCards = {},
+  homeDeck = null,
+  awayDeck = null,
 }) {
   const counter = initOutcomeCounter();
   const slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' };
@@ -265,6 +268,7 @@ export function runMonteCarlo({
   let cardProcs = 0;
   let matchesWithCardProc = 0;
   let errors = 0;
+  const decks = { homeDeck, awayDeck };
 
   for (let i = 0; i < runs; i += 1) {
     try {
@@ -272,7 +276,8 @@ export function runMonteCarlo({
         slotANinjas.map(cloneNinja),
         slotBNinjas.map(cloneNinja),
         slotASensei,
-        slotBSensei
+        slotBSensei,
+        decks
       );
       recordOutcome(counter, result, favoriteSide);
       const elementPlays = result.logs.filter((l) => l.type === 'element').length;

@@ -11,38 +11,19 @@ import {
   buildSimulationVerdict,
 } from './eliteReportService.js';
 import { buildPreparationChallenges } from './elitePreparationChallenges.js';
-import { getOperationDeck } from './operationDeckService.js';
+import { getOperationDeck, deckConfigForCombat } from './operationDeckService.js';
 import {
   buildOpponentSquadFromPlayer,
   getOpponentLevelMultiplier,
   normalizeOpponentLevel,
-  normalizeOrderStyle,
   OPPONENT_LEVEL_IDS,
 } from './combat/squadPowerScaling.js';
-
-const OPPONENT_STYLE_OPTIONS = ['offensive', 'tank', 'protect', 'mixed'];
-
-const OPPONENT_STYLE_LABELS = {
-  fr: {
-    offensive: 'Offensive pure',
-    tank: 'Défensive pure',
-    protect: 'Protection pure',
-    mixed: 'Mixte Off/Déf/Prot',
-  },
-  en: {
-    offensive: 'Pure Offensive',
-    tank: 'Pure Defensive',
-    protect: 'Pure Protection',
-    mixed: 'Mixed Off/Def/Prot',
-  },
-};
-
-const OPPONENT_STYLE_CARD_LOADOUTS = {
-  offensive: ['nin-eclair-discret', 'raiton-surcharge', 'futon-lame-retour'],
-  tank: ['tai-parade-ecole', 'gen-kage-bunshin', 'doton-racines'],
-  protect: ['med-pansement-rapide', 'med-soin-zone', 'med-pansement-rapide'],
-  mixed: ['nin-eclair-discret', 'tai-parade-ecole', 'med-pansement-rapide'],
-};
+import {
+  OPPONENT_DECK_PROFILE_IDS,
+  OPPONENT_DECK_PROFILE_LABELS,
+  buildSyntheticOpponentDeck,
+  normalizeOpponentDeckProfile,
+} from './eliteDeckSimulation.js';
 
 const OPPONENT_LEVEL_LABELS = {
   fr: {
@@ -209,9 +190,10 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     scrolls: heritageScrolls.slice(0, 6),
   };
 
-  const opponentStyleOptions = OPPONENT_STYLE_OPTIONS.map((value) => ({
+  const profileLabels = OPPONENT_DECK_PROFILE_LABELS[lang] || OPPONENT_DECK_PROFILE_LABELS.fr;
+  const opponentProfileOptions = OPPONENT_DECK_PROFILE_IDS.map((value) => ({
     value,
-    label: OPPONENT_STYLE_LABELS[lang][value],
+    label: profileLabels[value],
   }));
 
   return {
@@ -221,8 +203,9 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     heritage: heritageSummary,
     trainingRoi,
     preparationChallenges,
-    opponentStyleOptions,
-    compositionOptions: opponentStyleOptions,
+    opponentProfileOptions,
+    opponentStyleOptions: opponentProfileOptions,
+    compositionOptions: opponentProfileOptions,
     levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
       value,
       label: OPPONENT_LEVEL_LABELS[lang][value],
@@ -233,15 +216,13 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
 
 export async function simulateEliteMatchup(
   userId,
-  { opponentComposition, opponentStyle, opponentLevel, runs = 100, locale = 'fr' } = {}
+  { opponentComposition, opponentProfile, opponentStyle, opponentLevel, runs = 100, locale = 'fr' } = {}
 ) {
   await assertEliteToolsAccess(userId);
 
   const lang = locale === 'en' ? 'en' : 'fr';
-  const styleInput = opponentStyle ?? opponentComposition;
-  const opponentStyleId = OPPONENT_STYLE_OPTIONS.includes(styleInput)
-    ? styleInput
-    : normalizeOrderStyle(styleInput);
+  const profileInput = opponentProfile ?? opponentStyle ?? opponentComposition;
+  const opponentProfileId = normalizeOpponentDeckProfile(profileInput);
   const level = normalizeOpponentLevel(opponentLevel);
 
   const [{ ninjas }, operationDeck] = await Promise.all([
@@ -255,29 +236,36 @@ export async function simulateEliteMatchup(
   }
 
   const mySquad = ninjas.map(dbNinjaToSim);
-  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentStyleId, level).map(dbNinjaToSim);
+  const oppSquad = buildOpponentSquadFromPlayer(ninjas, opponentProfileId, level).map(dbNinjaToSim);
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
+
+  const homeDeck = operationDeck ? deckConfigForCombat(operationDeck) : { techniquesByNinjaId: {}, elementCards: [] };
+  const awayDeck = buildSyntheticOpponentDeck(oppSquad, opponentProfileId);
 
   const result = runMonteCarlo({
     slotANinjas: mySquad,
     slotBNinjas: oppSquad,
     runs: runCount,
     favoriteSide: 'slotA',
+    homeDeck,
+    awayDeck,
   });
 
   const winPct = result.slotAWinPct;
   const levelLabel = OPPONENT_LEVEL_LABELS[lang][level];
   const ordersAdvice = buildOrdersAdvice({ deck: operationDeck }, lang);
+  const profileLabels = OPPONENT_DECK_PROFILE_LABELS[lang] || OPPONENT_DECK_PROFILE_LABELS.fr;
 
   return {
-    myComposition: 'orders',
-    opponentComposition: opponentStyleId,
-    opponentStyle: opponentStyleId,
+    myComposition: 'deck',
+    opponentComposition: opponentProfileId,
+    opponentProfile: opponentProfileId,
+    opponentStyle: opponentProfileId,
     opponentLevel: level,
     opponentLevelLabel: levelLabel,
     opponentLevelMultiplier: getOpponentLevelMultiplier(level),
     myCompositionLabel: ordersAdvice.label,
-    opponentCompositionLabel: OPPONENT_STYLE_LABELS[lang][opponentStyleId],
+    opponentCompositionLabel: profileLabels[opponentProfileId],
     runs: runCount,
     winPct,
     drawPct: result.drawPct,
@@ -289,7 +277,7 @@ export async function simulateEliteMatchup(
     matchProcPct: result.matchProcPct,
     verdict: buildSimulationVerdict({
       winPct,
-      opponentStyle: opponentStyleId,
+      opponentProfile: opponentProfileId,
       opponentLevel: level,
       locale: lang,
       squadContext: {
