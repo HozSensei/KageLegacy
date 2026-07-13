@@ -151,6 +151,7 @@ Chaque match se joue en **14 plis** : deck mélangé de **9 cartes techniques** 
 - Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
 - **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
 - **Objets match** : retirés du combat ; seules les **cartes tactiques** servent d'éléments de deck (plus d'équipement match par ninja).
+- **Reconduction** : chaque nouvelle journée de ligue, votre deck est **recopié** depuis la précédente (techniques des ninjas actifs ; éléments seulement si la carte a encore des charges).
 - Les **consignes** restent modifiables en interface mais ne pilotent plus le moteur de combat (remplacées par le deck).
 
 ### Consignes individuelles (héritage interface)

@@ -571,7 +571,7 @@
       },
       "elementsTitle": "Éléments de deck ({count})",
       "autoFill": "Emplacements vides comblés par des cartes relais en match (14 plis garantis).",
-      "pickHint": "Choisissez jusqu'à 5 cartes tactiques (charges consommées quand la carte est tirée).",
+      "pickHint": "Choisissez jusqu'à 5 cartes tactiques (charges consommées quand la carte est tirée). Le deck est reconduit chaque journée depuis la précédente.",
       "save": "Enregistrer le deck",
       "locked": "Deck verrouillé — opération en cours."
     }

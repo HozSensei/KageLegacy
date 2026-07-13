@@ -571,7 +571,7 @@
       },
       "elementsTitle": "Deck elements ({count})",
       "autoFill": "Empty slots are filled with relay cards in match (14 plis guaranteed).",
-      "pickHint": "Pick up to 5 tactic cards (charge spent when drawn).",
+      "pickHint": "Pick up to 5 tactic cards (charge spent when drawn). Your deck carries over each matchday from the previous one.",
       "save": "Save deck",
       "locked": "Deck locked — operation in progress."
     }

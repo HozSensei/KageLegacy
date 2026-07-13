@@ -150,6 +150,7 @@ Each match plays out in **14 plis**: a shuffled deck of **9 technique cards** (3
 - Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
 - **Victory**: more team HP at match end; tie → most plis won.
 - **Match items** removed from combat; only **tactic cards** serve as deck elements (no per-ninja match gear).
+- **Carry-over**: each new league matchday, your deck is **copied** from the previous one (techniques for active ninjas; elements only if the card still has charges).
 - **Orders** remain editable in the UI but no longer drive the combat engine (replaced by the deck).
 
 ### Individual orders (legacy UI)

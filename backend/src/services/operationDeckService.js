@@ -37,12 +37,104 @@ async function resolveSeasonCycle(userId, seasonCycle = null) {
   return pool?.current_cycle ?? 1;
 }
 
+async function loadActiveNinjaIds(userId) {
+  const ninjas = await query(
+    `SELECT id FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+    [userId]
+  );
+  return ninjas.map((n) => n.id);
+}
+
+async function filterValidElementCardIds(userId, cardIds = []) {
+  const ids = (cardIds || []).slice(0, DECK_ELEMENTS_COUNT).map(Number).filter(Boolean);
+  if (!ids.length) return [];
+  const placeholders = ids.map(() => '?').join(',');
+  const rows = await query(
+    `SELECT id FROM user_tactic_cards
+     WHERE user_id = ? AND id IN (${placeholders}) AND charges_remaining > 0`,
+    [userId, ...ids]
+  );
+  const valid = new Set(rows.map((r) => Number(r.id)));
+  return ids.filter((id) => valid.has(id));
+}
+
+export function filterTechniquesForActiveSquad(techniquesJson, activeNinjaIds) {
+  const active = new Set(activeNinjaIds.map((id) => String(id)));
+  const out = {};
+  for (const [key, value] of Object.entries(techniquesJson || {})) {
+    if (!active.has(String(key))) continue;
+    if (!value?.primary && !value?.secondary) continue;
+    out[key] = {
+      primary: value.primary,
+      secondary: value.secondary,
+    };
+  }
+  return out;
+}
+
+/**
+ * Recopie le deck du cycle précédent (éléments avec charges restantes, techniques des actifs).
+ * Retourne null si déjà initialisé ou pas de cycle source.
+ */
+export async function ensureOperationDeckFromPreviousCycle(userId, targetCycle) {
+  if (!targetCycle || targetCycle <= 1) return null;
+
+  const existing = await query(
+    'SELECT user_id FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
+    [userId, targetCycle]
+  );
+  if (existing[0]) return null;
+
+  const prevRows = await query(
+    'SELECT techniques_json, element_card_ids_json FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
+    [userId, targetCycle - 1]
+  );
+  if (!prevRows[0]) return null;
+
+  const prevTechniques = parseJson(prevRows[0].techniques_json, {});
+  const prevElements = parseJson(prevRows[0].element_card_ids_json, []);
+  const activeNinjaIds = await loadActiveNinjaIds(userId);
+  const techniques = filterTechniquesForActiveSquad(prevTechniques, activeNinjaIds);
+  const elementCardIds = await filterValidElementCardIds(userId, prevElements);
+
+  await query(
+    `INSERT INTO operation_decks (user_id, season_cycle, techniques_json, element_card_ids_json)
+     VALUES (?, ?, ?, ?)`,
+    [userId, targetCycle, JSON.stringify(techniques), JSON.stringify(elementCardIds)]
+  );
+
+  return {
+    fromCycle: targetCycle - 1,
+    techniqueCount: Object.keys(techniques).length,
+    elementCount: elementCardIds.length,
+  };
+}
+
+/** Reconduit les decks de tous les membres d'une pool vers la nouvelle journée. */
+export async function carryOperationDecksForPool(poolId, newCycle) {
+  if (!newCycle || newCycle <= 1) return [];
+  const members = await query('SELECT user_id FROM pool_members WHERE pool_id = ?', [poolId]);
+  const results = [];
+  for (const row of members) {
+    const carried = await ensureOperationDeckFromPreviousCycle(row.user_id, newCycle);
+    if (carried) results.push({ userId: row.user_id, ...carried });
+  }
+  return results;
+}
+
 export async function getOperationDeck(userId, seasonCycle = null) {
   const cycle = await resolveSeasonCycle(userId, seasonCycle);
-  const rows = await query(
+  let rows = await query(
     'SELECT * FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
     [userId, cycle]
   );
+  if (!rows[0] && cycle > 1) {
+    await ensureOperationDeckFromPreviousCycle(userId, cycle);
+    rows = await query(
+      'SELECT * FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
+      [userId, cycle]
+    );
+  }
   const ninjas = await query(
     `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
     [userId]
