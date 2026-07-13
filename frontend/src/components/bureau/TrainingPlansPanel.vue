@@ -59,11 +59,6 @@ function formatGain(value) {
   return value.toFixed(2).replace(/\.?0+$/, '') || '0'
 }
 
-function statPreviewFor(ninja, column, isActive) {
-  const preview = trainingPreview(ninja, isActive)
-  return preview?.statPreviews?.find((entry) => entry.column === column) ?? null
-}
-
 function focusedStatsFor(ninja, isActive) {
   const preview = trainingPreview(ninja, isActive)
   if (!preview) return []
