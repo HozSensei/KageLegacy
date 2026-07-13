@@ -1,14 +1,146 @@
 import { randomInt } from 'node:crypto';
 import {
   buildTerrainIntroVars,
+  buildPliImpactLog,
   createNarrativeRng,
+  formatPliImpactDetail,
   getCatalog,
   getPath,
   pickFromPool,
   pickTemplateEntry,
   teamLabel,
 } from './narrativeI18n.js';
-import { plisMetrics } from '../combat/pli/combatLogMetrics.js';
+import { plisMetrics, isPliLog } from '../combat/pli/combatLogMetrics.js';
+
+function isPliCombatLog(logs) {
+  return (logs || []).some((log) => isPliLog(log));
+}
+
+function buildPliParts(log, homeSensei, awaySensei, rng) {
+  const impactLog = buildPliImpactLog(log);
+  const baseVars = {
+    pli_num: log.pli || log.tour,
+    carte_home: log.carte_home || '—',
+    carte_away: log.carte_away || '—',
+    home_sensei: homeSensei,
+    away_sensei: awaySensei,
+    impact_log: impactLog,
+    impact_detail: formatPliImpactDetail(impactLog, 'fr'),
+  };
+  const parts = [];
+
+  const header = pickFromPool('fr', 'chronicle.pli.header', rng, baseVars);
+  parts.push({
+    action_key: header.key,
+    action_index: header.index,
+    vars: baseVars,
+  });
+
+  if (log.relais_home && log.proxy_home) {
+    const relaisKey = log.relais_padding_home ? 'chronicle.pli.relais_home_padding' : 'chronicle.pli.relais_home';
+    const relaisVars = {
+      ...baseVars,
+      sensei: homeSensei,
+      proxy: log.proxy_home,
+      owner: log.owner_ko_home || 'un camarade K.O.',
+      domain: log.technique_type_home || log.carte_resolution_home || '—',
+    };
+    const relais = pickFromPool('fr', relaisKey, rng, relaisVars);
+    parts.push({ action_key: relais.key, action_index: relais.index, vars: relaisVars });
+  }
+
+  if (log.relais_away && log.proxy_away) {
+    const relaisKey = log.relais_padding_away ? 'chronicle.pli.relais_away_padding' : 'chronicle.pli.relais_away';
+    const relaisVars = {
+      ...baseVars,
+      sensei: awaySensei,
+      proxy: log.proxy_away,
+      owner: log.owner_ko_away || 'un camarade K.O.',
+      domain: log.technique_type_away || log.carte_resolution_away || '—',
+    };
+    const relais = pickFromPool('fr', relaisKey, rng, relaisVars);
+    parts.push({ action_key: relais.key, action_index: relais.index, vars: relaisVars });
+  }
+
+  const winnerSensei =
+    log.pli_winner === 'home' ? homeSensei : log.pli_winner === 'away' ? awaySensei : null;
+  const outcomeKey = winnerSensei ? 'chronicle.pli.outcome_win' : 'chronicle.pli.outcome_draw';
+  const outcomeVars = {
+    ...baseVars,
+    winner_team: winnerSensei ? teamLabel('fr', winnerSensei) : '',
+    sensei: winnerSensei,
+  };
+  const outcome = pickFromPool('fr', outcomeKey, rng, outcomeVars);
+  parts.push({ action_key: outcome.key, action_index: outcome.index, vars: outcomeVars });
+
+  return parts;
+}
+
+function renderPliParts(parts) {
+  return parts
+    .map((part) => pickTemplateEntry('fr', part.action_key, part.action_index, part.vars))
+    .join(' ');
+}
+
+function assemblePliNarrativeSegments({
+  logs,
+  endingTour,
+  homeSensei,
+  awaySensei,
+  rng,
+  orderStart,
+  unlockAtStart,
+}) {
+  const pliLogs = logs
+    .filter((log) => isPliLog(log) && log.tour <= endingTour)
+    .sort((a, b) => (a.pli || a.tour) - (b.pli || b.tour));
+
+  const segments = [];
+  let order = orderStart;
+  let unlockAt = unlockAtStart;
+
+  unlockAt = 2;
+  const combatOpenText = pickTemplateEntry('fr', 'chronicle.pli.combatOpen', 0, {
+    total_plis: endingTour,
+  });
+  segments.push({
+    segment_order: order++,
+    block_type: 'action',
+    unlock_minutes: unlockAt,
+    template_key: 'chronicle.pli.combatOpen',
+    template_index: 0,
+    template_vars: { total_plis: endingTour },
+    text: combatOpenText,
+  });
+
+  for (const log of pliLogs) {
+    const pliNum = log.pli || log.tour;
+    const tourRng = rng.fork(10 + pliNum);
+    const parts = buildPliParts(log, homeSensei, awaySensei, tourRng.fork(1));
+    const body = renderPliParts(parts);
+
+    unlockAt += randomGapMinutes(tourRng);
+    if (unlockAt > 55) unlockAt = 55;
+
+    segments.push({
+      segment_order: order++,
+      block_type: 'action',
+      unlock_minutes: unlockAt,
+      template_key: 'chronicle.pli',
+      template_index: pliNum,
+      template_vars: {
+        pli_num: pliNum,
+        home_sensei: homeSensei,
+        away_sensei: awaySensei,
+        impact_log: buildPliImpactLog(log),
+        parts,
+      },
+      text: body,
+    });
+  }
+
+  return { segments, order, unlockAt };
+}
 
 function groupLogsByTour(logs, endingTour) {
   const byTour = new Map();
@@ -357,78 +489,93 @@ export function assembleNarrative({
     text: pickTemplateEntry('fr', 'chronicle.tension', 0, { transition: tensionTransition.text }),
   });
 
-  let lastBridgeIndex = -1;
+  if (isPliCombatLog(logs)) {
+    const pliResult = assemblePliNarrativeSegments({
+      logs,
+      endingTour,
+      homeSensei,
+      awaySensei,
+      rng,
+      orderStart: order,
+      unlockAtStart: unlockAt,
+    });
+    segments.push(...pliResult.segments);
+    order = pliResult.order;
+    unlockAt = pliResult.unlockAt;
+  } else {
+    let lastBridgeIndex = -1;
 
-  for (let tour = 1; tour <= endingTour; tour += 1) {
-    const tourLogs = sortLogsForNarrative(byTour.get(tour) || []);
-    if (!tourLogs.length) continue;
+    for (let tour = 1; tour <= endingTour; tour += 1) {
+      const tourLogs = sortLogsForNarrative(byTour.get(tour) || []);
+      if (!tourLogs.length) continue;
 
-    const tourRng = rng.fork(10 + tour);
-    const parts = tourLogs
-      .map((log, index) => logToPart(log, tourRng.fork(index + 1)))
-      .filter(Boolean);
-    const tourDamage = tourDamageBySide(tourLogs);
+      const tourRng = rng.fork(10 + tour);
+      const parts = tourLogs
+        .map((log, index) => logToPart(log, tourRng.fork(index + 1)))
+        .filter(Boolean);
+      const tourDamage = tourDamageBySide(tourLogs);
 
-    let advantage = 'even';
-    if (tourDamage.home > tourDamage.away + 3) advantage = 'home';
-    else if (tourDamage.away > tourDamage.home + 3) advantage = 'away';
+      let advantage = 'even';
+      if (tourDamage.home > tourDamage.away + 3) advantage = 'home';
+      else if (tourDamage.away > tourDamage.home + 3) advantage = 'away';
 
-    const connector =
-      tour === 1
-        ? { connector_key: 'chronicle.combatOpen', connector_index: 0 }
-        : pickTourBridge(tour, endingTour, advantage, tourRng.fork(1), lastBridgeIndex);
+      const connector =
+        tour === 1
+          ? { connector_key: 'chronicle.combatOpen', connector_index: 0 }
+          : pickTourBridge(tour, endingTour, advantage, tourRng.fork(1), lastBridgeIndex);
 
-    if (connector.connector_index != null) {
-      lastBridgeIndex = connector.connector_index;
+      if (connector.connector_index != null) {
+        lastBridgeIndex = connector.connector_index;
+      }
+
+      const momentum = buildTourMomentum(tourLogs, homeSensei, awaySensei, tourRng.fork(2));
+      const tourVars = {
+        home_sensei: homeSensei,
+        away_sensei: awaySensei,
+        connector_key: connector.connector_key,
+        connector_index: connector.connector_index,
+        momentum_key: momentum.key,
+        momentum_index: momentum.index,
+        momentum_sensei: momentum.sensei,
+        parts,
+      };
+
+      const connectorText =
+        connector.connector_key === 'chronicle.combatOpen'
+          ? pickTemplateEntry('fr', 'chronicle.combatOpen', 0)
+          : pickTemplateEntry('fr', connector.connector_key, connector.connector_index, {
+              home_sensei: homeSensei,
+              away_sensei: awaySensei,
+            });
+
+      const body = parts
+        .map((part) => {
+          const action = pickTemplateEntry('fr', part.action_key, part.action_index, part.vars);
+          if (!part.reaction_key) return action;
+          const reaction = pickTemplateEntry('fr', part.reaction_key, part.reaction_index, part.vars);
+          return `${action} ${reaction}`;
+        })
+        .join(' ');
+
+      const momentumText = pickTemplateEntry('fr', momentum.key, momentum.index, {
+        sensei: momentum.sensei,
+        home_sensei: homeSensei,
+        away_sensei: awaySensei,
+      });
+
+      unlockAt += randomGapMinutes(tourRng);
+      if (unlockAt > 55) unlockAt = 55;
+
+      segments.push({
+        segment_order: order++,
+        block_type: 'action',
+        unlock_minutes: unlockAt,
+        template_key: 'chronicle.tour',
+        template_index: tour,
+        template_vars: tourVars,
+        text: `${connectorText} ${body} ${momentumText}`.trim(),
+      });
     }
-
-    const momentum = buildTourMomentum(tourLogs, homeSensei, awaySensei, tourRng.fork(2));
-    const tourVars = {
-      home_sensei: homeSensei,
-      away_sensei: awaySensei,
-      connector_key: connector.connector_key,
-      connector_index: connector.connector_index,
-      momentum_key: momentum.key,
-      momentum_index: momentum.index,
-      momentum_sensei: momentum.sensei,
-      parts,
-    };
-
-    const connectorText =
-      connector.connector_key === 'chronicle.combatOpen'
-        ? pickTemplateEntry('fr', 'chronicle.combatOpen', 0)
-        : pickTemplateEntry('fr', connector.connector_key, connector.connector_index, {
-            home_sensei: homeSensei,
-            away_sensei: awaySensei,
-          });
-
-    const body = parts
-      .map((part) => {
-        const action = pickTemplateEntry('fr', part.action_key, part.action_index, part.vars);
-        if (!part.reaction_key) return action;
-        const reaction = pickTemplateEntry('fr', part.reaction_key, part.reaction_index, part.vars);
-        return `${action} ${reaction}`;
-      })
-      .join(' ');
-
-    const momentumText = pickTemplateEntry('fr', momentum.key, momentum.index, {
-      sensei: momentum.sensei,
-      home_sensei: homeSensei,
-      away_sensei: awaySensei,
-    });
-
-    unlockAt += randomGapMinutes(tourRng);
-    if (unlockAt > 55) unlockAt = 55;
-
-    segments.push({
-      segment_order: order++,
-      block_type: 'action',
-      unlock_minutes: unlockAt,
-      template_key: 'chronicle.tour',
-      template_index: tour,
-      template_vars: tourVars,
-      text: `${connectorText} ${body} ${momentumText}`.trim(),
-    });
   }
 
   const winnerSide = winner === 'home' || winner === 'away' ? winner : 'draw';

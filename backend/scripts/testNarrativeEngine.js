@@ -92,9 +92,11 @@ const denouementFr = resolveSegmentText('fr', denouement);
 if (!denouementFr.includes('58%')) throw new Error('denouement score manquant');
 if (!denouementFr.includes('plis')) throw new Error('denouement plis manquant');
 
-const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_index === 1);
+const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_key === 'chronicle.pli');
 const actionFr = resolveSegmentText('fr', actionSeg);
-if (!actionFr.includes('→')) throw new Error('momentum tour manquant');
+if (!actionFr.includes('→')) throw new Error('résultat pli manquant');
+if (!actionFr.includes('Taijutsu')) throw new Error('carte pli manquante dans la chronique');
+if (!actionFr.includes('contre') && !actionFr.includes('face à')) throw new Error('affrontement cartes manquant');
 
 console.log('NARRATIVE_TEST_OK');
 console.log('Intro FR:', introFr.slice(0, 120) + '…');
