@@ -37,8 +37,8 @@ async function defaultElementCardIds(userId) {
      FROM user_tactic_cards utc
      WHERE utc.user_id = ? AND utc.charges_remaining > 0
      ORDER BY utc.id ASC
-     LIMIT ?`,
-    [userId, DECK_ELEMENTS_COUNT]
+     LIMIT ${DECK_ELEMENTS_COUNT}`,
+    [userId]
   );
   return rows.map((r) => Number(r.id));
 }

@@ -104,9 +104,9 @@ async function main() {
         combat_log: {
           squadSnapshots: {
             home: [
-              { battle_strategy: 'Offensive', element_affinity: 'Katon', primaryArt: 'ninjutsu', speed: 50 },
-              { battle_strategy: 'Offensive', element_affinity: 'Katon', primaryArt: 'ninjutsu', speed: 48 },
-              { battle_strategy: 'Tank', element_affinity: 'Katon', primaryArt: 'taijutsu', speed: 42 },
+              { element_affinity: 'Katon', primaryArt: 'ninjutsu', speed: 50 },
+              { element_affinity: 'Katon', primaryArt: 'ninjutsu', speed: 48 },
+              { element_affinity: 'Katon', primaryArt: 'taijutsu', speed: 42 },
             ],
           },
         },
@@ -135,7 +135,6 @@ async function main() {
     [
       {
         id: 1,
-        battle_strategy: 'Offensive',
         element_affinity: 'Katon',
         taijutsu: 5,
         ninjutsu: 8,
@@ -197,7 +196,7 @@ async function main() {
   assert(await getUserMatchForCycle(user.id, userPool.current_cycle), 'match ligue');
 
   await query(
-    `UPDATE ninjas SET battle_strategy = 'Tank' WHERE user_id = ? AND squad_position IS NOT NULL`,
+    `UPDATE ninjas SET taijutsu = taijutsu + 5 WHERE user_id = ? AND squad_position IS NOT NULL`,
     [opponentId]
   );
   const scoutAfterOpponentChange = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
