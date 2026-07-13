@@ -88,9 +88,11 @@ export const NARRATIVE_CATALOG = {
         header: ['Pli {pli_num}'],
         play: ['· {sensei} : {actor} joue « {card_name} » ({domain}).'],
         play_relais: [
-          '· {sensei} : {actor} joue « {card_name} » ({domain}) — relais pour {owner}, K.O.',
+          '· {sensei} : {owner} étant hors combat, {actor} prend le relais et joue « {card_name} » ({domain}).',
         ],
-        play_relais_padding: ['· {sensei} : {actor} joue une carte relais ({domain}).'],
+        play_relais_padding: [
+          '· {sensei} : {actor} prend le relais sur une carte de comblement ({domain}).',
+        ],
         outcome_win: ['→ {winner_team} remporte le pli. {impact_detail}.'],
         outcome_draw: ['→ Égalité au pli. {impact_detail}.'],
       },
@@ -790,9 +792,11 @@ export const NARRATIVE_CATALOG = {
         header: ['Pli {pli_num}'],
         play: ['· {sensei}: {actor} plays "{card_name}" ({domain}).'],
         play_relais: [
-          '· {sensei}: {actor} plays "{card_name}" ({domain}) — relay for {owner} (K.O.).',
+          '· {sensei}: with {owner} out of the fight, {actor} steps in and plays "{card_name}" ({domain}).',
         ],
-        play_relais_padding: ['· {sensei}: {actor} plays a padding relay card ({domain}).'],
+        play_relais_padding: [
+          '· {sensei}: {actor} steps in on a padding relay card ({domain}).',
+        ],
         outcome_win: ['→ {winner_team} wins the pli. {impact_detail}.'],
         outcome_draw: ['→ Draw on this pli. {impact_detail}.'],
       },
