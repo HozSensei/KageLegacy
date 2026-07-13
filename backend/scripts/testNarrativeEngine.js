@@ -92,9 +92,14 @@ const denouementFr = resolveSegmentText('fr', denouement);
 if (!denouementFr.includes('58%')) throw new Error('denouement score manquant');
 if (!denouementFr.includes('plis')) throw new Error('denouement plis manquant');
 
-const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_index === 1);
+const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_key === 'chronicle.pli');
 const actionFr = resolveSegmentText('fr', actionSeg);
-if (!actionFr.includes('→')) throw new Error('momentum tour manquant');
+if (!actionFr.includes('→')) throw new Error('résultat pli manquant');
+if (!actionFr.includes('joue')) throw new Error('action de jeu manquante dans la chronique');
+if (!actionFr.includes('Taijutsu') && !actionFr.includes('Genjutsu')) throw new Error('domaine carte manquant');
+if (actionFr.includes('contre') && actionFr.includes('·')) {
+  throw new Error('format carte legacy encore présent');
+}
 
 console.log('NARRATIVE_TEST_OK');
 console.log('Intro FR:', introFr.slice(0, 120) + '…');

@@ -83,10 +83,23 @@ export const NARRATIVE_CATALOG = {
           '→ Le tour se conclut sans vainqueur évident.',
         ],
       },
+      pli: {
+        combatOpen: 'Le combat s\'engage — {total_plis} plis à disputer.',
+        header: ['Pli {pli_num}'],
+        play: ['· {sensei} : {actor} joue « {card_name} » ({domain}).'],
+        play_relais: [
+          '· {sensei} : {owner} étant hors combat, {actor} prend le relais et joue « {card_name} » ({domain}).',
+        ],
+        play_relais_padding: [
+          '· {sensei} : {actor} prend le relais sur une carte de comblement ({domain}).',
+        ],
+        outcome_win: ['→ {winner_team} remporte le pli. {impact_detail}.'],
+        outcome_draw: ['→ Égalité au pli. {impact_detail}.'],
+      },
       tension:
         '{transition} Dans ce silence lourd, chaque ninja ajuste son équipement et jauge l\'adversaire du coin de l\'œil, conscient que la moindre erreur coûtera cher au campement.',
       intro:
-        'L\'Opération se déroule cette semaine {terrain_atmosphere} {terrain_setting}. {home_team} — {home_names} — se prépare au contact tandis que {away_team}, avec {away_names}, attend le signal dans une posture tendue.',
+        'L\'Opération se déroule cette semaine {terrain_atmosphere}, {terrain_setting}. {home_team} — {home_names} — se prépare au contact tandis que {away_team}, avec {away_names}, attend le signal dans une posture tendue.',
       teamLabel: 'l\'équipe de {sensei_name}',
       denouement: {
         draw:
@@ -774,10 +787,23 @@ export const NARRATIVE_CATALOG = {
           '→ The turn ends with no obvious winner.',
         ],
       },
+      pli: {
+        combatOpen: 'The fight begins — {total_plis} plis to play.',
+        header: ['Pli {pli_num}'],
+        play: ['· {sensei}: {actor} plays "{card_name}" ({domain}).'],
+        play_relais: [
+          '· {sensei}: with {owner} out of the fight, {actor} steps in and plays "{card_name}" ({domain}).',
+        ],
+        play_relais_padding: [
+          '· {sensei}: {actor} steps in on a padding relay card ({domain}).',
+        ],
+        outcome_win: ['→ {winner_team} wins the pli. {impact_detail}.'],
+        outcome_draw: ['→ Draw on this pli. {impact_detail}.'],
+      },
       tension:
         '{transition} In that heavy silence, every ninja checks their gear and sizes up the enemy from the corner of their eye, knowing the smallest mistake will cost the camp dearly.',
       intro:
-        'This week\'s operation unfolds {terrain_atmosphere} {terrain_setting}. {home_team} — {home_names} — brace for contact while {away_team}, with {away_names}, wait for the signal in tense readiness.',
+        'This week\'s operation unfolds {terrain_atmosphere}, {terrain_setting}. {home_team} — {home_names} — brace for contact while {away_team}, with {away_names}, wait for the signal in tense readiness.',
       teamLabel: '{sensei_name}\'s team',
       denouement: {
         draw:
