@@ -3,6 +3,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
+defineProps({
+  standalone: { type: Boolean, default: false },
+})
+
 defineOptions({ name: 'ReconnaissancePanel' })
 
 const { t } = useI18n()
@@ -85,7 +89,10 @@ function outcomeLabel(outcome) {
 </script>
 
 <template>
-  <section class="mt-14 border-t border-line pt-10" data-testid="missions-reconnaissance">
+  <section
+    :class="standalone ? 'mt-6' : 'mt-14 border-t border-line pt-10'"
+    data-testid="missions-reconnaissance"
+  >
     <p class="section-label">{{ t('missions.reconTitle') }}</p>
     <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('missions.reconLead') }}</p>
     <p class="mt-2 text-[10px] text-ink-faint">{{ t('missions.reconRewards') }}</p>

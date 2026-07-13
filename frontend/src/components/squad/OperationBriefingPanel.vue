@@ -9,6 +9,14 @@ defineProps({
 
 const { t } = useI18n()
 const rulesDeckLink = { path: '/rules', hash: '#combat-pli' }
+
+function potentialLabel(profile) {
+  const hint = profile?.potentialHint
+  if (!hint) return ''
+  const key = `scout.potentialLevels.${hint}`
+  const translated = t(key)
+  return translated !== key ? translated : hint
+}
 </script>
 
 <template>
@@ -115,13 +123,19 @@ const rulesDeckLink = { path: '/rules', hash: '#combat-pli' }
               class="mt-4 space-y-1 border-t border-line/50 pt-3 text-xs text-ink-faint"
             >
               <li v-for="(profile, i) in briefing.scout.profiles" :key="`prof-${i}`">
-                {{ profile.artLabel }} · {{ t('briefing.potential', { level: profile.potentialHint }) }}
+                {{ profile.artLabel }}
+                <span v-if="potentialLabel(profile)">
+                  · {{ t('scout.potential', { level: potentialLabel(profile) }) }}
+                </span>
                 <span v-if="profile.element"> · {{ profile.element }}</span>
               </li>
             </ul>
             <div v-if="briefing.opponentDeck?.lines?.length" class="mt-6 border-t border-line/50 pt-4">
               <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                 {{ t('briefing.opponentDeck') }}
+              </p>
+              <p class="mt-1 text-[11px] leading-relaxed text-ink-muted">
+                {{ t('scout.deckLead') }}
               </p>
               <p v-if="briefing.scout.deckPending" class="mt-1 text-[10px] text-amber-700/90">
                 {{ t('briefing.deckPending') }}

@@ -38,6 +38,7 @@
     "test:season-hard-reset": "node scripts/testSeasonHardReset.js",
     "test:reconnaissance": "node scripts/testReconnaissance.js",
     "test:scout-cycle": "node scripts/testScoutCycle.js",
+    "test:scout-deck-intel": "node scripts/testScoutDeckIntel.js",
     "test:cycle-freezes": "node scripts/testCycleFreezes.js",
     "test:operation-briefing": "node scripts/testOperationBriefing.js",
     "test:operation-deck-carryover": "node scripts/testOperationDeckCarryover.js",

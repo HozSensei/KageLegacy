@@ -18,7 +18,6 @@ const API_BASE = import.meta.env.VITE_API_URL || ''
 const availableCards = ref([])
 const techniqueSlots = ref({})
 const techniques = ref({})
-const saving = ref(false)
 
 const canEdit = computed(() => props.deck && !props.deck.tacticsLocked)
 
@@ -87,17 +86,12 @@ function setTechniqueSlot(ninjaId, rawValue) {
   techniqueSlots.value[ninjaId] = value ? [value] : []
 }
 
-async function save() {
-  if (!canEdit.value) return
-  saving.value = true
-  try {
-    emit('save-deck', {
-      techniquesByNinjaId: techniques.value,
-      techniqueSlotsByNinjaId: techniqueSlots.value,
-    })
-  } finally {
-    saving.value = false
-  }
+function save() {
+  if (!canEdit.value || props.loading) return
+  emit('save-deck', {
+    techniquesByNinjaId: techniques.value,
+    techniqueSlotsByNinjaId: techniqueSlots.value,
+  })
 }
 
 function assignedTechniqueCard(ninjaId) {
@@ -202,11 +196,11 @@ onMounted(loadCards)
       v-if="canEdit"
       type="button"
       class="mt-6 text-sm text-accent"
-      :disabled="saving"
+      :disabled="loading"
       data-testid="deck-save"
       @click="save"
     >
-      {{ t('squad.deck.save') }}
+      {{ loading ? t('squad.deck.saving') : t('squad.deck.save') }}
     </button>
 
     <p v-if="deck.tacticsLocked" class="mt-4 text-xs text-ink-faint">{{ t('squad.deck.locked') }}</p>

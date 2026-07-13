@@ -312,6 +312,7 @@ async function fetchBriefing() {
   }
 }
 
+
 async function saveDeck(payload) {
   saving.value = true
   saveError.value = null
@@ -385,6 +386,7 @@ watch(
       <OperationDeckPanel
         :deck="store.operationDeck"
         :active-squad="store.activeSquad"
+        :loading="saving"
         @save-deck="saveDeck"
       />
 
