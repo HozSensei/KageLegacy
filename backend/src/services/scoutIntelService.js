@@ -33,6 +33,26 @@ export function buildSquadSnapshotFromNinjas(ninjas, lang = 'fr') {
   });
 }
 
+export function buildDeckSnapshotFromOperationDeck(deck) {
+  const techniques = deck?.techniquesByNinjaId || {};
+  const primaryDomains = { taijutsu: 0, ninjutsu: 0, genjutsu: 0, medecine: 0 };
+  for (const tech of Object.values(techniques)) {
+    const primary = tech?.primary || 'taijutsu';
+    primaryDomains[primary] = (primaryDomains[primary] || 0) + 1;
+  }
+  return {
+    elementCount: deck?.elementCardIds?.length ?? deck?.elementCards?.length ?? 0,
+    elementSlugs: (deck?.elementCards || []).map((c) => c.slug).filter(Boolean),
+    primaryDomains,
+  };
+}
+
+export function extractOpponentDeckFromMatch(matchRow, opponentId) {
+  const log = parseJson(matchRow.combat_log);
+  if (!log?.deckSnapshots) return null;
+  return matchRow.home_user_id === opponentId ? log.deckSnapshots.home : log.deckSnapshots.away;
+}
+
 export function extractOpponentSquadFromMatch(matchRow, opponentId) {
   const log = parseJson(matchRow.combat_log);
   if (!log?.squadSnapshots) return null;
@@ -54,9 +74,12 @@ export async function loadOpponentAppliedMatches(opponentId, poolId, limit = HIS
 
 export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
   const squads = [];
+  const decks = [];
   for (const row of matchRows) {
     const squad = extractOpponentSquadFromMatch(row, opponentId);
     if (squad?.length) squads.push(squad);
+    const deck = extractOpponentDeckFromMatch(row, opponentId);
+    if (deck) decks.push(deck);
   }
 
   const sampleSize = squads.length;
@@ -143,10 +166,43 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
     lines.push(
       lang === 'en' ? 'Historically fast tactical tempo.' : 'Tempo tactique historiquement rapide.'
     );
-  } else if (avgSpeed <= 40) {
+  } else   if (avgSpeed <= 40) {
     lines.push(
       lang === 'en' ? 'Historically slow tactical tempo.' : 'Tempo tactique historiquement lent.'
     );
+  }
+
+  if (decks.length) {
+    const avgElements = decks.reduce((s, d) => s + (d.elementCount || 0), 0) / decks.length;
+    const domainTotals = { taijutsu: 0, ninjutsu: 0, genjutsu: 0, medecine: 0 };
+    for (const deck of decks) {
+      for (const [domain, count] of Object.entries(deck.primaryDomains || {})) {
+        domainTotals[domain] = (domainTotals[domain] || 0) + count;
+      }
+    }
+    const dominantDeckDomain = Object.entries(domainTotals).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (avgElements >= 3) {
+      lines.push(
+        lang === 'en'
+          ? `Often fields ~${Math.round(avgElements)} deck element cards per match.`
+          : `Dispose souvent d'environ ${Math.round(avgElements)} éléments de deck par match.`
+      );
+    }
+    if (dominantDeckDomain) {
+      const label =
+        lang === 'en'
+          ? { taijutsu: 'Taijutsu', ninjutsu: 'Ninjutsu', genjutsu: 'Genjutsu', medecine: 'Medicine' }[
+              dominantDeckDomain
+            ]
+          : { taijutsu: 'Taijutsu', ninjutsu: 'Ninjutsu', genjutsu: 'Genjutsu', medecine: 'Médecine' }[
+              dominantDeckDomain
+            ];
+      lines.push(
+        lang === 'en'
+          ? `Deck techniques often lean ${label} as primary domain.`
+          : `Les techniques de deck penchent souvent vers ${label} en domaine principal.`
+      );
+    }
   }
 
   return {

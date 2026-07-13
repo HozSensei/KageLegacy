@@ -16,18 +16,20 @@ const report = computed(() => elite.matchReport)
 const loading = computed(() => elite.reportLoading)
 const error = computed(() => elite.reportError)
 
-const possessionLabel = computed(() => {
-  const p = report.value?.summary?.possession
-  if (!p) return '—'
-  if (p.home != null && p.away != null) return `${p.home}% / ${p.away}%`
-  if (p.mine != null) return `${p.mine}%`
+const plisLabel = computed(() => {
+  const plis = report.value?.summary?.plisWon
+  const share = report.value?.summary?.possession
+  if (plis?.home != null && plis?.away != null) {
+    return `${plis.home} / ${plis.away}`
+  }
+  if (share?.mine != null) return `${share.mine}%`
   return '—'
 })
 
-const possessionCaption = computed(() => {
-  const p = report.value?.summary?.possession
-  if (p?.home != null && p?.away != null) return t('eliteReport.possessionSplit')
-  return t('eliteReport.possession')
+const plisCaption = computed(() => {
+  const plis = report.value?.summary?.plisWon
+  if (plis?.home != null && plis?.away != null) return t('eliteReport.plisSplit')
+  return t('eliteReport.plisWon')
 })
 
 const endReasonLabel = computed(() => {
@@ -82,10 +84,10 @@ function heatmapBarWidth(value, bucket) {
         <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="border border-line/60 bg-bg-card/40 p-3">
             <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-              {{ possessionCaption }}
+              {{ plisCaption }}
             </dt>
             <dd class="mt-1 text-lg text-ink">
-              {{ possessionLabel }}
+              {{ plisLabel }}
             </dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
@@ -227,8 +229,8 @@ function heatmapBarWidth(value, bucket) {
             <li v-for="row in report.timeline" :key="row.tour" class="border border-line/40 p-2">
               <p class="font-medium text-ink">
                 {{ t('eliteReport.tour', { n: row.tour }) }}
-                <span v-if="row.initiativeHomePct != null" class="text-ink-faint">
-                  · init {{ row.initiativeHomePct }}%
+                <span v-if="row.pliWinner" class="text-ink-faint">
+                  · {{ row.pliWinner === 'home' ? t('eliteReport.pliWonHome') : t('eliteReport.pliWonAway') }}
                 </span>
               </p>
               <ul class="mt-1 space-y-1 text-ink-muted">

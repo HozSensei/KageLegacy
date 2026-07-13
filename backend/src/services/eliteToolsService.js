@@ -1,4 +1,5 @@
 import { query } from '../config/database.js';
+import { plisMetrics } from './combat/pli/combatLogMetrics.js';
 import { getHeritageBonuses, listHeritageScrolls, applyPercentDiscount } from './heritageService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { computeTrainingCost, previewTrainingSession } from './training.js';
@@ -103,8 +104,8 @@ async function getSeasonMatchStats(userId, pool) {
   let wins = 0;
   let draws = 0;
   let losses = 0;
-  let possessionSum = 0;
-  let possessionCount = 0;
+  let plisSum = 0;
+  let plisCount = 0;
 
   const history = rows.map((row) => {
     const isHome = row.home_user_id === userId;
@@ -122,16 +123,14 @@ async function getSeasonMatchStats(userId, pool) {
       losses += 1;
     }
 
-    let myPossession = null;
+    let myPlisShare = null;
     if (row.combat_log) {
       const log = typeof row.combat_log === 'string' ? JSON.parse(row.combat_log) : row.combat_log;
-      const pos = log.possession;
-      if (pos) {
-        myPossession = isHome ? pos.homePct : pos.awayPct;
-        if (myPossession != null) {
-          possessionSum += myPossession;
-          possessionCount += 1;
-        }
+      const plis = plisMetrics(log);
+      myPlisShare = isHome ? plis.homePct : plis.awayPct;
+      if (myPlisShare != null) {
+        plisSum += myPlisShare;
+        plisCount += 1;
       }
     }
 
@@ -141,7 +140,7 @@ async function getSeasonMatchStats(userId, pool) {
       outcome,
       score: isHome ? `${row.home_score}:${row.away_score}` : `${row.away_score}:${row.home_score}`,
       endingTour: row.ending_tour,
-      possession: myPossession,
+      plisShare: myPlisShare,
     };
   });
 
@@ -152,7 +151,7 @@ async function getSeasonMatchStats(userId, pool) {
     wins,
     draws,
     losses,
-    avgPossession: possessionCount ? Math.round(possessionSum / possessionCount) : null,
+    avgPlisShare: plisCount ? Math.round(plisSum / plisCount) : null,
     history,
   };
 }
@@ -268,6 +267,7 @@ export async function simulateEliteMatchup(
 
   const winPct = result.slotAWinPct;
   const levelLabel = OPPONENT_LEVEL_LABELS[lang][level];
+  const ordersAdvice = buildOrdersAdvice({ deck: operationDeck }, lang);
 
   return {
     myComposition: 'orders',

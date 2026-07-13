@@ -454,7 +454,7 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 ### Déroulement visible
 
 - **Chronique narrative** : récit romancé débloqué progressivement après H71 (les deux adversaires lisent la même histoire au même rythme).
-- **Débrief mécanique** : possession, scores, environnement, équipement — ton plus analytique, personnalisé par joueur.
+- **Débrief mécanique** : plis gagnés, scores PV, environnement — ton analytique personnalisé.
 - **Spectateur** : possibilité de suivre des matchs d'autres pools.
 
 ### Structure d'un match
@@ -477,9 +477,9 @@ Chaque pli oppose deux cartes (domaine vs domaine) :
 
 1. **K.O. immédiat** : si tous les actifs d'une équipe sont à terre (PV ou chakra épuisé), l'adversaire gagne sur-le-champ.
 
-2. **Fin des douze tours** : si aucune équipe n'est totalement éliminée, le serveur calcule un **score de force restante** pour chaque camp, en pondérant les PV et le chakra restants. Il faut un **écart net** entre les deux scores pour qu'un vainqueur soit désigné ; sinon, **match nul**.
+2. **Fin des plis** : si aucune équipe n'est totalement éliminée après les 14 plis joués, le vainqueur est celui qui a le plus de **PV d'équipe restants** ; à égalité, celui qui a remporté le plus de **plis**.
 
-La **possession** (temps d'initiative) sert à la narration et au débrief — elle **ne détermine pas** le vainqueur.
+Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne détermine pas** seul le vainqueur (les PV restants priment).
 
 ### Conséquences (à H72)
 

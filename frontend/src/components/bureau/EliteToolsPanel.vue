@@ -86,8 +86,8 @@ async function runMatchup() {
             <dd class="text-ink">{{ tools.seasonStats.losses }}</dd>
           </div>
           <div>
-            <dt class="text-ink-faint">{{ t('eliteReport.possession') }}</dt>
-            <dd class="text-ink">{{ tools.seasonStats.avgPossession ?? '—' }}%</dd>
+            <dt class="text-ink-faint">{{ t('eliteReport.plisWon') }}</dt>
+            <dd class="text-ink">{{ tools.seasonStats.avgPlisShare ?? '—' }}%</dd>
           </div>
         </dl>
       </section>

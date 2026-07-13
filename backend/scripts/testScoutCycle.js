@@ -12,7 +12,7 @@ import { registerUser } from '../src/services/authService.js';
 import { setHourDev, advanceToHourDev, getClockRow } from '../src/services/gameClock.js';
 import { joinOrCreatePool, findUserPool } from '../src/services/poolService.js';
 import { startMatchmaking } from '../src/services/reconnaissanceService.js';
-import { runH36 } from '../src/services/cycleJobs.js';
+import { runH36, runH71 } from '../src/services/cycleJobs.js';
 import {
   buildHistoricalTendencies,
   buildSquadSnapshotFromNinjas,
@@ -25,6 +25,7 @@ import {
 } from '../src/services/scouting.js';
 import { getUserMatchForCycle } from '../src/services/matchService.js';
 import { isCompositionLocked } from '../src/services/gameClock.js';
+import { saveOperationDeck } from '../src/services/operationDeckService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -209,6 +210,49 @@ async function main() {
   assert(
     JSON.stringify(scoutH60.rosterReport) === JSON.stringify(scoutH55.rosterReport),
     'rapport stable entre H55 et H60'
+  );
+
+  const oppNinjas = await query(
+    `SELECT id FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
+    [opponentId]
+  );
+  assert(oppNinjas.length >= 1, 'ninjas adverses pour deck');
+  await saveOperationDeck(opponentId, {
+    techniquesByNinjaId: Object.fromEntries(
+      oppNinjas.map((n) => [n.id, { primary: 'ninjutsu', secondary: 'taijutsu' }])
+    ),
+    elementCardIds: [],
+  });
+
+  await advanceToHourDev(71);
+  const clockH71 = await getClockRow();
+  await query(`DELETE FROM cycle_job_runs WHERE cycle_start_at = ? AND job_name = 'h71'`, [
+    clockH71.cycle_start_at,
+  ]);
+  await runH71(clockH71.cycle_start_at);
+
+  const scoutH71 = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
+  assert(scoutH71.deckFrozen, 'deck figé à H71');
+  assert(scoutH71.deckReport?.lines?.length >= 1, 'rapport deck adverse');
+  const deckLinesFrozen = [...(scoutH71.deckReport?.lines || [])];
+
+  let deckSaveRejected = false;
+  try {
+    await saveOperationDeck(opponentId, {
+      techniquesByNinjaId: Object.fromEntries(
+        oppNinjas.map((n) => [n.id, { primary: 'taijutsu', secondary: 'genjutsu' }])
+      ),
+      elementCardIds: [],
+    });
+  } catch {
+    deckSaveRejected = true;
+  }
+  assert(deckSaveRejected, 'deck adverse verrouillé à H71');
+
+  const scoutAfterDeckChange = await generateScoutReport(user.id, userPool.current_cycle, 'fr');
+  assert(
+    JSON.stringify(scoutAfterDeckChange.deckReport?.lines) === JSON.stringify(deckLinesFrozen),
+    'rapport deck inchangé après tentative de modification adverse post-H71'
   );
 
   await deleteUserByUsername('playtest_scout_cycle');

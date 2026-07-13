@@ -1,6 +1,13 @@
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { assertActiveEliteSubscription } from './eliteSubscriptionService.js';
 import { loadMatchRow, assertViewerCanAccessMatch, isMatchParticipant } from './matchSpectatorService.js';
+import {
+  isPliLog,
+  pliDamageTotal,
+  plisMetrics,
+  pliWinnerSide,
+  winningTechniqueLabel,
+} from './combat/pli/combatLogMetrics.js';
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 
@@ -39,6 +46,8 @@ function sideFromAttackLabel(label, match) {
 }
 
 function isMyAction(log, mySide, match) {
+  const pliSide = pliWinnerSide(log);
+  if (pliSide) return pliSide === mySide;
   const atk = log.equipe_attaque;
   if (!atk) return false;
   if (atk === mySide) return true;
@@ -48,6 +57,20 @@ function isMyAction(log, mySide, match) {
 
 function summarizeLogAction(log, locale) {
   const lang = normalizeLocale(locale);
+  if (isPliLog(log)) {
+    const home = log.carte_home || '—';
+    const away = log.carte_away || '—';
+    if (log.type === 'relais') {
+      return lang === 'en' ? `Relay — ${home} vs ${away}` : `Relais — ${home} vs ${away}`;
+    }
+    if (log.type === 'element') {
+      return lang === 'en' ? `Deck element — ${home} vs ${away}` : `Élément deck — ${home} vs ${away}`;
+    }
+    const domain = winningTechniqueLabel(log) || '—';
+    return lang === 'en'
+      ? `Pli — ${home} vs ${away} (${domain})`
+      : `Pli — ${home} vs ${away} (${domain})`;
+  }
   if (log.type === 'confusion') {
     return lang === 'en'
       ? `${log.attaquant_name} hits ally ${log.cible_name}`
@@ -91,18 +114,17 @@ function buildTimeline(logs, mySide, match, locale) {
   for (const log of logs) {
     if (!log.tour) continue;
     if (!byTour.has(log.tour)) {
-      byTour.set(log.tour, { tour: log.tour, homePctSamples: [], events: [] });
+      byTour.set(log.tour, { tour: log.tour, pliWinner: null, events: [] });
     }
     const bucket = byTour.get(log.tour);
-    if (log.initiative_chance_home != null) {
-      bucket.homePctSamples.push(log.initiative_chance_home);
-    }
+    const winner = pliWinnerSide(log);
+    if (winner) bucket.pliWinner = winner;
     bucket.events.push({
       side: isMyAction(log, mySide, match) ? 'mine' : 'opponent',
-      technique: log.technique_type || log.type || 'action',
-      icon: TECHNIQUE_ICONS[log.technique_type] || TECHNIQUE_ICONS[log.type] || 'action',
+      technique: winningTechniqueLabel(log) || log.technique_type || log.type || 'action',
+      icon: TECHNIQUE_ICONS[winningTechniqueLabel(log)] || TECHNIQUE_ICONS[log.type] || 'action',
       summary: summarizeLogAction(log, locale),
-      damage: log.degats_pv ?? 0,
+      damage: pliDamageTotal(log),
       heal: log.soins_pv ?? 0,
     });
   }
@@ -111,12 +133,8 @@ function buildTimeline(logs, mySide, match, locale) {
     .sort((a, b) => a.tour - b.tour)
     .map((row) => ({
       tour: row.tour,
-      initiativeHomePct:
-        row.homePctSamples.length > 0
-          ? Math.round(
-              row.homePctSamples.reduce((s, v) => s + v, 0) / row.homePctSamples.length
-            )
-          : null,
+      pliWinner: row.pliWinner,
+      initiativeHomePct: row.pliWinner === 'home' ? 100 : row.pliWinner === 'away' ? 0 : null,
       events: row.events,
     }));
 }
@@ -126,12 +144,14 @@ function buildTechniqueBreakdown(logs, mySide, match) {
   const opp = { Taijutsu: 0, Ninjutsu: 0, Genjutsu: 0, Medecine: 0, received: 0 };
 
   for (const log of logs) {
-    const dmg = log.degats_pv ?? 0;
+    const dmg = isPliLog(log) ? pliDamageTotal(log) : Number(log.degats_pv ?? 0);
     if (!dmg) continue;
-    const mineAtk = isMyAction(log, mySide, match);
+    const winner = pliWinnerSide(log);
+    const mineAtk = winner ? winner === mySide : isMyAction(log, mySide, match);
     const bucket = mineAtk ? mine : opp;
     const recv = mineAtk ? opp : mine;
-    const tech = log.technique_type;
+    const rawTech = isPliLog(log) ? winningTechniqueLabel(log) : log.technique_type;
+    const tech = rawTech === 'Médecine' ? 'Medecine' : rawTech;
     if (tech && bucket[tech] != null) bucket[tech] += dmg;
     recv.received += dmg;
   }
@@ -140,21 +160,25 @@ function buildTechniqueBreakdown(logs, mySide, match) {
 }
 
 function scoreDecisiveMoment(log, mySide, match, locale) {
-  let score = log.degats_pv ?? 0;
+  let score = isPliLog(log) ? pliDamageTotal(log) : Number(log.degats_pv ?? 0);
   if (log.sensei_interception) score += 40;
   if (log.item_smoke_save) score += 25;
   if (log.altruiste_sacrifice) score += 20;
   if (log.critique) score += 15;
+  if (log.type === 'relais') score += 10;
+  if (log.type === 'element') score += 8;
   return {
     score,
     tour: log.tour,
     label: summarizeLogAction(log, locale),
     side: isMyAction(log, mySide, match) ? 'mine' : 'opponent',
     tags: [
+      log.type === 'relais' ? 'relais' : null,
+      log.type === 'element' ? 'element' : null,
       log.sensei_interception ? 'interception' : null,
       log.item_smoke_save ? 'smoke' : null,
       log.critique ? 'crit' : null,
-      (log.degats_pv ?? 0) >= 30 ? 'heavy' : null,
+      score >= 30 ? 'heavy' : null,
     ].filter(Boolean),
   };
 }
@@ -236,9 +260,9 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
 
   const mySide = viewerSide(match, viewerUserId);
   const lang = normalizeLocale(locale);
-  const possession = combatLog.possession || {};
+  const plis = plisMetrics(combatLog);
   const myPossessionPct =
-    mySide === 'home' ? possession.homePct : mySide === 'away' ? possession.awayPct : null;
+    mySide === 'home' ? plis.homePct : mySide === 'away' ? plis.awayPct : null;
 
   const logs = combatLog.logs;
   const techniqueBreakdown = mySide
@@ -254,10 +278,14 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
     viewerRole: isMatchParticipant(match, viewerUserId) ? 'participant' : 'spectator',
     summary: {
       possession: {
-        home: possession.homePct ?? null,
-        away: possession.awayPct ?? null,
+        home: plis.homePct ?? null,
+        away: plis.awayPct ?? null,
         mine: myPossessionPct,
         opponent: myPossessionPct != null ? 100 - myPossessionPct : null,
+      },
+      plisWon: {
+        home: plis.homePlis,
+        away: plis.awayPlis,
       },
       remainingPower: {
         home: combatLog.homeScorePct,
