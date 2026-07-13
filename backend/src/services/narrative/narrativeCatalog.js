@@ -90,8 +90,12 @@ export const NARRATIVE_CATALOG = {
         play_relais: [
           '· {sensei} : {owner} étant hors combat, {actor} prend le relais et joue « {card_name} » ({domain}).',
         ],
-        play_relais_padding: [
-          '· {sensei} : {actor} prend le relais sur une carte de comblement ({domain}).',
+        play_relais_escouade: [
+          '· {sensei} : {actor} joue un relais d\'escouade ({domain}).',
+        ],
+        play_relais_no_technique: [
+          '· {sensei} : {owner} n\'ayant pas de technique configurée, {actor} joue un relais ({domain}).',
+          '· {sensei} : {owner} joue un relais ({domain}) — aucune technique configurée sur ce pli.',
         ],
         outcome_win: ['→ {winner_team} remporte le pli. {impact_detail}.'],
         outcome_draw: ['→ Égalité au pli. {impact_detail}.'],
@@ -794,8 +798,12 @@ export const NARRATIVE_CATALOG = {
         play_relais: [
           '· {sensei}: with {owner} out of the fight, {actor} steps in and plays "{card_name}" ({domain}).',
         ],
-        play_relais_padding: [
-          '· {sensei}: {actor} steps in on a padding relay card ({domain}).',
+        play_relais_escouade: [
+          '· {sensei}: {actor} plays a squad relay ({domain}).',
+        ],
+        play_relais_no_technique: [
+          '· {sensei}: with no technique set for {owner}, {actor} plays a relay ({domain}).',
+          '· {sensei}: {owner} plays a relay ({domain}) — no technique configured on this pli.',
         ],
         outcome_win: ['→ {winner_team} wins the pli. {impact_detail}.'],
         outcome_draw: ['→ Draw on this pli. {impact_detail}.'],

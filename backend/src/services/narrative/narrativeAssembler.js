@@ -41,7 +41,15 @@ function buildSidePlayPart(side, log, sensei, rng) {
   if (relais && proxy) {
     vars.actor = proxy;
     if (padding || parsed.kind === 'relais_padding') {
-      poolKey = 'chronicle.pli.play_relais_padding';
+      if (parsed.owner && parsed.owner !== 'Escouade') {
+        poolKey = 'chronicle.pli.play_relais_no_technique';
+        vars.owner = parsed.owner;
+        if (proxy === parsed.owner) {
+          vars.actor = parsed.owner;
+        }
+      } else {
+        poolKey = 'chronicle.pli.play_relais_escouade';
+      }
     } else {
       poolKey = 'chronicle.pli.play_relais';
       vars.card_name = parsed.kind === 'technique' ? parsed.cardName : 'Relais';
@@ -49,7 +57,16 @@ function buildSidePlayPart(side, log, sensei, rng) {
     }
   }
 
-  const pick = pickFromPool('fr', poolKey, rng, vars);
+  let pick;
+  if (
+    poolKey === 'chronicle.pli.play_relais_no_technique' &&
+    parsed.owner &&
+    proxy === parsed.owner
+  ) {
+    pick = { key: poolKey, index: 1 };
+  } else {
+    pick = pickFromPool('fr', poolKey, rng, vars);
+  }
   return { action_key: pick.key, action_index: pick.index, vars };
 }
 
