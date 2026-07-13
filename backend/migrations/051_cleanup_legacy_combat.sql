@@ -11,6 +11,18 @@ INNER JOIN user_items ui ON ui.id = pl.user_item_id
 INNER JOIN item_definitions idf ON idf.id = ui.item_definition_id
 WHERE idf.category = 'match';
 
+DELETE mo FROM market_offers mo
+INNER JOIN item_definitions idf ON idf.id = mo.item_definition_id
+WHERE idf.category = 'match';
+
+DELETE vsp FROM village_shop_promos vsp
+INNER JOIN item_definitions idf ON idf.id = vsp.item_definition_id
+WHERE idf.category = 'match';
+
+DELETE vss FROM village_shop_stock vss
+INNER JOIN item_definitions idf ON idf.id = vss.item_definition_id
+WHERE idf.category = 'match';
+
 DELETE ui FROM user_items ui
 INNER JOIN item_definitions idf ON idf.id = ui.item_definition_id
 WHERE idf.category = 'match';
