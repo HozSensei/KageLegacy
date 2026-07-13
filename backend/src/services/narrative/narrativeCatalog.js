@@ -84,29 +84,15 @@ export const NARRATIVE_CATALOG = {
         ],
       },
       pli: {
-        combatOpen: 'Le combat s\'engage — les cartes s\'enchaînent sur {total_plis} plis.',
-        header: [
-          'Pli {pli_num} : {carte_home} contre {carte_away}.',
-          'Échange {pli_num} — {carte_home} face à {carte_away}.',
+        combatOpen: 'Le combat s\'engage — {total_plis} plis à disputer.',
+        header: ['Pli {pli_num}'],
+        play: ['· {sensei} : {actor} joue « {card_name} » ({domain}).'],
+        play_relais: [
+          '· {sensei} : {actor} joue « {card_name} » ({domain}) — relais pour {owner}, K.O.',
         ],
-        relais_home: [
-          'Relais côté {sensei} : {proxy} entre en jeu à la place de {owner} ({domain}).',
-        ],
-        relais_home_padding: [
-          'Relais de comblement côté {sensei} : {proxy} prend la carte ({domain}).',
-        ],
-        relais_away: [
-          'Relais côté {sensei} : {proxy} entre en jeu à la place de {owner} ({domain}).',
-        ],
-        relais_away_padding: [
-          'Relais de comblement côté {sensei} : {proxy} prend la carte ({domain}).',
-        ],
-        outcome_win: [
-          '→ {winner_team} remporte le pli ({impact_detail}).',
-        ],
-        outcome_draw: [
-          '→ Égalité au pli ({impact_detail}).',
-        ],
+        play_relais_padding: ['· {sensei} : {actor} joue une carte relais ({domain}).'],
+        outcome_win: ['→ {winner_team} remporte le pli. {impact_detail}.'],
+        outcome_draw: ['→ Égalité au pli. {impact_detail}.'],
       },
       tension:
         '{transition} Dans ce silence lourd, chaque ninja ajuste son équipement et jauge l\'adversaire du coin de l\'œil, conscient que la moindre erreur coûtera cher au campement.',
@@ -800,29 +786,15 @@ export const NARRATIVE_CATALOG = {
         ],
       },
       pli: {
-        combatOpen: 'The fight begins — cards clash across {total_plis} plis.',
-        header: [
-          'Pli {pli_num}: {carte_home} vs {carte_away}.',
-          'Exchange {pli_num} — {carte_home} against {carte_away}.',
+        combatOpen: 'The fight begins — {total_plis} plis to play.',
+        header: ['Pli {pli_num}'],
+        play: ['· {sensei}: {actor} plays "{card_name}" ({domain}).'],
+        play_relais: [
+          '· {sensei}: {actor} plays "{card_name}" ({domain}) — relay for {owner} (K.O.).',
         ],
-        relais_home: [
-          'Relay on {sensei}\'s side: {proxy} steps in for {owner} ({domain}).',
-        ],
-        relais_home_padding: [
-          'Padding relay on {sensei}\'s side: {proxy} plays the card ({domain}).',
-        ],
-        relais_away: [
-          'Relay on {sensei}\'s side: {proxy} steps in for {owner} ({domain}).',
-        ],
-        relais_away_padding: [
-          'Padding relay on {sensei}\'s side: {proxy} plays the card ({domain}).',
-        ],
-        outcome_win: [
-          '→ {winner_team} wins the pli ({impact_detail}).',
-        ],
-        outcome_draw: [
-          '→ Draw on this pli ({impact_detail}).',
-        ],
+        play_relais_padding: ['· {sensei}: {actor} plays a padding relay card ({domain}).'],
+        outcome_win: ['→ {winner_team} wins the pli. {impact_detail}.'],
+        outcome_draw: ['→ Draw on this pli. {impact_detail}.'],
       },
       tension:
         '{transition} In that heavy silence, every ninja checks their gear and sizes up the enemy from the corner of their eye, knowing the smallest mistake will cost the camp dearly.',

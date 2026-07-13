@@ -48,10 +48,12 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
   } = impactLog || {};
 
   if (dmg > 0 && cible) {
-    parts.push(lang === 'en' ? `${dmg} damage to ${cible}` : `${dmg} dégâts sur ${cible}`);
+    parts.push(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
   }
   if (dmgAway > 0 && cibleAway) {
-    parts.push(lang === 'en' ? `${dmgAway} damage to ${cibleAway}` : `${dmgAway} dégâts sur ${cibleAway}`);
+    parts.push(
+      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`
+    );
   }
   if (heal > 0 && cible) {
     parts.push(lang === 'en' ? `healed ${cible} for ${heal} HP` : `soin de ${heal} PV sur ${cible}`);
@@ -78,7 +80,31 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
   if (healUseless || healUselessAway) {
     parts.push(lang === 'en' ? 'heal with no wounded target' : 'soin sans cible blessée');
   }
-  return parts.length ? parts.join(' · ') : lang === 'en' ? 'no notable effect' : 'sans effet notable';
+  return parts.length ? parts.join(' · ') : lang === 'en' ? 'no notable effect' : 'aucun effet notable';
+}
+
+/** Décompose un libellé de carte deck (« Ninja · Carte » ou « Relais · … »). */
+export function parseCardLabel(label) {
+  if (!label || label === '—') {
+    return { kind: 'unknown', owner: null, cardName: '—', raw: label || '—' };
+  }
+  const sep = ' · ';
+  const idx = label.indexOf(sep);
+  if (idx === -1) {
+    return { kind: 'unknown', owner: null, cardName: label, raw: label };
+  }
+  const prefix = label.slice(0, idx);
+  const suffix = label.slice(idx + sep.length);
+  if (prefix === 'Relais') {
+    const isPadding = !suffix || suffix === 'Escouade';
+    return {
+      kind: isPadding ? 'relais_padding' : 'relais',
+      owner: isPadding ? null : suffix,
+      cardName: 'Relais',
+      raw: label,
+    };
+  }
+  return { kind: 'technique', owner: prefix, cardName: suffix, raw: label };
 }
 
 export function fillTemplate(template, vars = {}) {
@@ -154,7 +180,7 @@ export function resolveSegmentText(locale, segment) {
   if (segment.template_key === 'chronicle.pli') {
     const vars = segment.template_vars || {};
     const impactLog = vars.impact_log;
-    return (vars.parts || []).map((part) => resolvePliPart(code, part, impactLog)).join(' ');
+    return (vars.parts || []).map((part) => resolvePliPart(code, part, impactLog)).join('\n');
   }
 
   if (segment.template_key === 'chronicle.tour') {

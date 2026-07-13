@@ -6,6 +6,7 @@ import {
   formatPliImpactDetail,
   getCatalog,
   getPath,
+  parseCardLabel,
   pickFromPool,
   pickTemplateEntry,
   teamLabel,
@@ -16,12 +17,46 @@ function isPliCombatLog(logs) {
   return (logs || []).some((log) => isPliLog(log));
 }
 
+function buildSidePlayPart(side, log, sensei, rng) {
+  const isHome = side === 'home';
+  const label = isHome ? log.carte_home : log.carte_away;
+  const parsed = parseCardLabel(label);
+  const domain = (isHome ? log.technique_type_home : log.technique_type_away) || '—';
+  const relais = isHome ? log.relais_home : log.relais_away;
+  const proxy = isHome ? log.proxy_home : log.proxy_away;
+  const ownerKo = isHome ? log.owner_ko_home : log.owner_ko_away;
+  const padding = isHome ? log.relais_padding_home : log.relais_padding_away;
+  const ownerFallback =
+    ownerKo || parsed.owner || (isHome ? 'un coéquipier' : 'un coéquipier');
+
+  let poolKey = 'chronicle.pli.play';
+  const vars = {
+    sensei,
+    actor: parsed.owner || proxy || '—',
+    card_name: parsed.cardName,
+    domain,
+    owner: ownerFallback,
+  };
+
+  if (relais && proxy) {
+    vars.actor = proxy;
+    if (padding || parsed.kind === 'relais_padding') {
+      poolKey = 'chronicle.pli.play_relais_padding';
+    } else {
+      poolKey = 'chronicle.pli.play_relais';
+      vars.card_name = parsed.kind === 'technique' ? parsed.cardName : 'Relais';
+      vars.owner = ownerKo || parsed.owner || 'un coéquipier';
+    }
+  }
+
+  const pick = pickFromPool('fr', poolKey, rng, vars);
+  return { action_key: pick.key, action_index: pick.index, vars };
+}
+
 function buildPliParts(log, homeSensei, awaySensei, rng) {
   const impactLog = buildPliImpactLog(log);
   const baseVars = {
     pli_num: log.pli || log.tour,
-    carte_home: log.carte_home || '—',
-    carte_away: log.carte_away || '—',
     home_sensei: homeSensei,
     away_sensei: awaySensei,
     impact_log: impactLog,
@@ -36,31 +71,8 @@ function buildPliParts(log, homeSensei, awaySensei, rng) {
     vars: baseVars,
   });
 
-  if (log.relais_home && log.proxy_home) {
-    const relaisKey = log.relais_padding_home ? 'chronicle.pli.relais_home_padding' : 'chronicle.pli.relais_home';
-    const relaisVars = {
-      ...baseVars,
-      sensei: homeSensei,
-      proxy: log.proxy_home,
-      owner: log.owner_ko_home || 'un camarade K.O.',
-      domain: log.technique_type_home || log.carte_resolution_home || '—',
-    };
-    const relais = pickFromPool('fr', relaisKey, rng, relaisVars);
-    parts.push({ action_key: relais.key, action_index: relais.index, vars: relaisVars });
-  }
-
-  if (log.relais_away && log.proxy_away) {
-    const relaisKey = log.relais_padding_away ? 'chronicle.pli.relais_away_padding' : 'chronicle.pli.relais_away';
-    const relaisVars = {
-      ...baseVars,
-      sensei: awaySensei,
-      proxy: log.proxy_away,
-      owner: log.owner_ko_away || 'un camarade K.O.',
-      domain: log.technique_type_away || log.carte_resolution_away || '—',
-    };
-    const relais = pickFromPool('fr', relaisKey, rng, relaisVars);
-    parts.push({ action_key: relais.key, action_index: relais.index, vars: relaisVars });
-  }
+  parts.push(buildSidePlayPart('home', log, homeSensei, rng.fork(2)));
+  parts.push(buildSidePlayPart('away', log, awaySensei, rng.fork(3)));
 
   const winnerSensei =
     log.pli_winner === 'home' ? homeSensei : log.pli_winner === 'away' ? awaySensei : null;
@@ -70,7 +82,7 @@ function buildPliParts(log, homeSensei, awaySensei, rng) {
     winner_team: winnerSensei ? teamLabel('fr', winnerSensei) : '',
     sensei: winnerSensei,
   };
-  const outcome = pickFromPool('fr', outcomeKey, rng, outcomeVars);
+  const outcome = pickFromPool('fr', outcomeKey, rng.fork(4), outcomeVars);
   parts.push({ action_key: outcome.key, action_index: outcome.index, vars: outcomeVars });
 
   return parts;
@@ -79,7 +91,7 @@ function buildPliParts(log, homeSensei, awaySensei, rng) {
 function renderPliParts(parts) {
   return parts
     .map((part) => pickTemplateEntry('fr', part.action_key, part.action_index, part.vars))
-    .join(' ');
+    .join('\n');
 }
 
 function assemblePliNarrativeSegments({
