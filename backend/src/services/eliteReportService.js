@@ -295,8 +295,8 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
   } else {
     tips.push(
       lang === 'en'
-        ? 'Full 9-pli shuffle — 1 inventory card + 2 stat cards per active ninja.'
-        : 'Mélange complet à 9 plis — 1 carte inventaire + 2 cartes stat par ninja actif.'
+        ? 'Full 18-pli shuffle — 1 inventory card + 2× primary stat + 3× secondary stat per ninja.'
+        : 'Mélange complet à 18 plis — 1 carte inventaire + 2× stat primaire + 3× stat secondaire par ninja.'
     );
   }
 

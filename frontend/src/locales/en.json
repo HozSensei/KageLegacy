@@ -560,7 +560,7 @@
     },
     "deck": {
       "title": "Operation deck",
-      "lead": "Per active ninja: 1 inventory technique card + 2 stat cards (domains). 9 pli per match — relays if slots empty.",
+      "lead": "Per active ninja: 1 inventory technique card + 2× primary stat + 3× secondary stat. 18 pli per match — relays if slots empty.",
       "perNinjaTitle": "Per-ninja loadout",
       "techniqueSlot": "Technique card",
       "primary": "Primary stat card",

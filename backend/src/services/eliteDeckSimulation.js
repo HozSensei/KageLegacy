@@ -127,13 +127,13 @@ const LEGACY_PROFILE_ALIASES = {
 
 export const OPPONENT_DECK_PROFILE_LABELS = {
   fr: {
-    complete: 'Deck complet (9 plis)',
+    complete: 'Deck complet (18 plis)',
     technique_heavy: 'Deck riche en techniques',
     domain_ninjutsu: 'Orientation Ninjutsu',
     sparse: 'Deck incomplet (relais)',
   },
   en: {
-    complete: 'Full deck (9 pli)',
+    complete: 'Full deck (18 pli)',
     technique_heavy: 'Technique-heavy deck',
     domain_ninjutsu: 'Ninjutsu-focused',
     sparse: 'Sparse deck (relays)',

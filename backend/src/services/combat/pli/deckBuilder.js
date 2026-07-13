@@ -1,6 +1,8 @@
 import { randomInt } from 'node:crypto';
 import {
   TECHNIQUE_CARDS_PER_NINJA,
+  PRIMARY_STAT_COPIES,
+  SECONDARY_STAT_COPIES,
   STAT_CARDS_PER_NINJA,
   DOMAIN_LABELS,
   DOMAINS,
@@ -57,11 +59,21 @@ function techniquesForFighter(techniquesByNinjaId, fighter) {
   );
 }
 
+function pushDomainCards(cards, fighter, domain) {
+  cards.push({
+    kind: 'domain',
+    ownerId: fighter.id,
+    ownerName: fighter.name,
+    domain,
+    label: `${fighter.name} · ${DOMAIN_LABELS[domain]}`,
+  });
+}
+
 /**
  * Construit le deck : par ninja actif
  * — 1 carte technique inventaire (ou relais)
- * — 2 cartes stat / domaine (primaire + secondaire, ou relais)
- * → 9 plis pour 3 ninjas, sans comblement.
+ * — 2× carte stat primaire + 3× carte stat secondaire (ou relais)
+ * → 18 plis pour 3 ninjas.
  */
 export function buildTeamDeck(
   team,
@@ -112,20 +124,12 @@ export function buildTeamDeck(
     const primary = picks.primary || picks.primaryTechnique || 'taijutsu';
     const secondary = picks.secondary || picks.secondaryTechnique || 'ninjutsu';
 
-    cards.push({
-      kind: 'domain',
-      ownerId: fighter.id,
-      ownerName: fighter.name,
-      domain: primary,
-      label: `${fighter.name} · ${DOMAIN_LABELS[primary]}`,
-    });
-    cards.push({
-      kind: 'domain',
-      ownerId: fighter.id,
-      ownerName: fighter.name,
-      domain: secondary,
-      label: `${fighter.name} · ${DOMAIN_LABELS[secondary]}`,
-    });
+    for (let i = 0; i < PRIMARY_STAT_COPIES; i += 1) {
+      pushDomainCards(cards, fighter, primary);
+    }
+    for (let i = 0; i < SECONDARY_STAT_COPIES; i += 1) {
+      pushDomainCards(cards, fighter, secondary);
+    }
   }
 
   shuffleInPlace(cards);

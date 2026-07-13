@@ -1,5 +1,5 @@
 /**
- * Smoke test — combat par plis (1 technique inventaire + 2 stats / ninja = 9 plis).
+ * Smoke test — combat par plis (1 technique + 2× primaire + 3× secondaire / ninja = 18 plis).
  */
 import { simulatePliCombat } from '../src/services/combat/pli/pliCombatEngine.js';
 import { buildTeamDeck } from '../src/services/combat/pli/deckBuilder.js';
@@ -10,6 +10,8 @@ import { applyFormeToStats } from '../src/services/combat/forme.js';
 import {
   MAX_PLIS,
   TECHNIQUE_CARDS_PER_NINJA,
+  PRIMARY_STAT_COPIES,
+  SECONDARY_STAT_COPIES,
   STAT_CARDS_PER_NINJA,
   CARDS_PER_NINJA,
 } from '../src/services/combat/pli/constants.js';
@@ -62,7 +64,9 @@ const withBonus = Math.floor(withSecondary * 1.3);
 console.assert(withBonus > withSecondary, 'bonus carte technique sur base sans d6');
 
 console.assert(TECHNIQUE_CARDS_PER_NINJA === 1, '1 carte technique inventaire / ninja');
-console.assert(STAT_CARDS_PER_NINJA === 2, '2 cartes stat / ninja');
+console.assert(PRIMARY_STAT_COPIES === 2, '2 copies stat primaire / ninja');
+console.assert(SECONDARY_STAT_COPIES === 3, '3 copies stat secondaire / ninja');
+console.assert(STAT_CARDS_PER_NINJA === 5, '5 cartes stat / ninja');
 
 console.log('testPliCombat OK', {
   plis: result.logs.length,

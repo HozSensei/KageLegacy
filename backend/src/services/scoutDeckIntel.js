@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
+import { DOMAIN_LABELS, TECHNIQUE_CARDS_PER_NINJA, PRIMARY_STAT_COPIES, SECONDARY_STAT_COPIES } from './combat/pli/constants.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
@@ -20,8 +20,8 @@ function countDomainsFromDeck(deck, ninjas) {
   }
   for (const ninja of ninjas) {
     const domains = deck.techniquesByNinjaId?.[ninja.id];
-    if (domains?.primary) counts[domains.primary] = (counts[domains.primary] || 0) + 1;
-    if (domains?.secondary) counts[domains.secondary] = (counts[domains.secondary] || 0) + 1;
+    if (domains?.primary) counts[domains.primary] = (counts[domains.primary] || 0) + PRIMARY_STAT_COPIES;
+    if (domains?.secondary) counts[domains.secondary] = (counts[domains.secondary] || 0) + SECONDARY_STAT_COPIES;
   }
   return counts;
 }
@@ -104,8 +104,8 @@ export async function buildDeckReport(opponentId, seasonCycle, ninjas, lang, tie
 
   lines.push(
     lang === 'en'
-      ? `Operation deck: ${techniqueCount}/${maxTechniques} inventory technique cards · 9 pli.`
-      : `Deck d'opération : ${techniqueCount}/${maxTechniques} cartes technique inventaire · 9 plis.`
+      ? `Operation deck: ${techniqueCount}/${maxTechniques} inventory technique cards · 18 pli.`
+      : `Deck d'opération : ${techniqueCount}/${maxTechniques} cartes technique inventaire · 18 plis.`
   );
   const summary = domainSummaryLines(domainCounts, lang);
   if (summary.length) {

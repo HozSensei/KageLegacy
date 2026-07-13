@@ -560,7 +560,7 @@
     },
     "deck": {
       "title": "Deck d'opération",
-      "lead": "Par ninja actif : 1 carte technique inventaire + 2 cartes stat (domaines). 9 plis par match — relais si emplacements vides.",
+      "lead": "Par ninja actif : 1 carte technique inventaire + 2× stat primaire + 3× stat secondaire. 18 plis par match — relais si emplacements vides.",
       "perNinjaTitle": "Composition par ninja",
       "techniqueSlot": "Carte technique",
       "primary": "Carte stat principale",

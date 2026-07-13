@@ -4,7 +4,7 @@ import { findUserPool } from './poolService.js';
 import { TECHNIQUE_SLOTS_PER_NINJA, canAssignTechniqueToNinja } from './tacticCards/tacticCardCatalog.js';
 import { defaultTechniquesForFighter } from './combat/pli/deckBuilder.js';
 import { applyFormeToStats } from './combat/forme.js';
-import { CARDS_PER_NINJA } from './combat/pli/constants.js';
+import { CARDS_PER_NINJA, PRIMARY_STAT_COPIES, SECONDARY_STAT_COPIES } from './combat/pli/constants.js';
 
 function parseJson(value, fallback) {
   if (!value) return fallback;
@@ -146,14 +146,14 @@ async function filterValidTechniqueSlots(userId, slotsJson, ninjas) {
   return out;
 }
 
-function countConfiguredPlis(ninjas, techniqueSlotsByNinjaId, techniquesByNinjaId, rawTechniques) {
+function countConfiguredPlis(ninjas, techniqueSlotsByNinjaId, rawTechniques) {
   let count = 0;
   for (const ninja of ninjas) {
     const slots = techniqueSlotsByNinjaId[ninja.id] || [];
     if (slots.length) count += 1;
     const saved = rawTechniques[String(ninja.id)] || rawTechniques[ninja.id];
-    if (saved?.primary) count += 1;
-    if (saved?.secondary) count += 1;
+    if (saved?.primary) count += PRIMARY_STAT_COPIES;
+    if (saved?.secondary) count += SECONDARY_STAT_COPIES;
   }
   return count;
 }
@@ -252,12 +252,7 @@ export async function getOperationDeck(userId, seasonCycle = null) {
     (sum, ids) => sum + ids.length,
     0
   );
-  const configuredPlis = countConfiguredPlis(
-    ninjas,
-    techniqueSlotsByNinjaId,
-    techniquesByNinjaId,
-    rawTechniques
-  );
+  const configuredPlis = countConfiguredPlis(ninjas, techniqueSlotsByNinjaId, rawTechniques);
 
   return {
     seasonCycle: cycle,
