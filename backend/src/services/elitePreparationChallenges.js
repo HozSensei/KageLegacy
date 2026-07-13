@@ -51,7 +51,7 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         'deck_techniques',
         'pending',
         'high',
-        lang === 'en' ? 'Assign ninja technique cards' : 'Assigner les cartes technique ninja',
+        lang === 'en' ? 'Assign inventory technique cards' : 'Assigner les cartes technique inventaire',
         lang === 'en'
           ? `${techniqueCount}/${maxTechniques} cards assigned — empty slots become relay plis at H71.`
           : `${techniqueCount}/${maxTechniques} cartes assignées — les emplacements vides deviennent des relais à H71.`
@@ -65,8 +65,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         'high',
         lang === 'en' ? 'Technique deck complete' : 'Deck technique complet',
         lang === 'en'
-          ? 'Full 14-pli shuffle — 3 technique cards per active ninja.'
-          : 'Mélange complet à 14 plis — 3 cartes technique par ninja actif.'
+          ? 'Full 9-pli shuffle — 1 inventory card + 2 stat cards per active ninja.'
+          : 'Mélange complet à 9 plis — 1 carte inventaire + 2 cartes stat par ninja actif.'
       )
     );
   }
@@ -81,10 +81,10 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         'deck_per_ninja',
         'warning',
         'medium',
-        lang === 'en' ? 'Fill technique slots per ninja' : 'Remplir les emplacements technique par ninja',
+        lang === 'en' ? 'Fill technique slot per ninja' : 'Remplir la carte technique par ninja',
         lang === 'en'
-          ? `${missingTechniques.length} active(s) without 3 technique cards — relay plis will fill those slots.`
-          : `${missingTechniques.length} actif(s) sans 3 cartes technique — des relais combleront ces emplacements.`
+          ? `${missingTechniques.length} active(s) without an inventory technique card — relay plis will fill those slots.`
+          : `${missingTechniques.length} actif(s) sans carte technique inventaire — des relais combleront ces emplacements.`
       )
     );
   }

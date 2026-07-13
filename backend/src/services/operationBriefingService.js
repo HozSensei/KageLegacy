@@ -8,7 +8,7 @@ import { getUserLanguage } from './narrative/viewerLocale.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { dominantElement } from './scoutSquadAnalysis.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS, MAX_PLIS } from './combat/pli/constants.js';
+import { DOMAIN_LABELS, MAX_PLIS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
 
 async function loadOwnActiveSquad(userId) {
   return query(
@@ -39,6 +39,7 @@ function buildDeckSummary(ninjas, deck, lang) {
         statType: card.statType,
         bonusPct: card.pliBonusPct,
       }));
+    const domains = deck.techniquesByNinjaId?.[n.id];
     return {
       ninjaId: n.id,
       name: n.name,
@@ -46,12 +47,14 @@ function buildDeckSummary(ninjas, deck, lang) {
       artLabel: profile.artLabel,
       potentialLabel: profile.potentialLabel,
       techniques,
+      primaryDomain: domains?.primary,
+      secondaryDomain: domains?.secondary,
     };
   });
 
   const techniqueCount = deck.techniqueCount ?? 0;
-  const maxTechniques = ninjas.length * 3;
-  const configuredPlis = techniqueCount;
+  const maxTechniques = ninjas.length * TECHNIQUE_CARDS_PER_NINJA;
+  const configuredPlis = deck.configuredPlis ?? techniqueCount;
   const relaisPadding = Math.max(0, MAX_PLIS - configuredPlis);
 
   return {
@@ -78,8 +81,8 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
   if (ownDeck.techniqueCount < ownDeck.maxTechniques) {
     tips.push(
       lang === 'en'
-        ? 'Assign 3 technique cards per active ninja before H71 — empty slots become relay plis (match still plays 14 plis).'
-        : 'Assignez 3 cartes technique par ninja actif avant H71 — les emplacements vides deviennent des relais (14 plis joués).'
+        ? 'Assign 1 inventory technique card per active ninja before H71 — empty slots become relay plis.'
+        : 'Assignez 1 carte technique inventaire par ninja actif avant H71 — les emplacements vides deviennent des relais.'
     );
   }
 

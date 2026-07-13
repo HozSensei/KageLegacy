@@ -134,7 +134,7 @@ async function main() {
     (sum, ids) => sum + ids.length,
     0
   );
-  console.assert(syntheticCount >= 3, 'deck synthétique avec techniques');
+  console.assert(syntheticCount >= 1, 'deck synthétique avec technique');
 
   const custom = buildCustomOpponentDeck(
     [
@@ -143,17 +143,13 @@ async function main() {
       { id: 3, squad_position: 3, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 },
     ],
     {
-      techniqueSlugsByNinja: [
-        ['tai-lame-chakras', 'nin-afflux-chakra'],
-        [],
-        ['gen-mirage-simple'],
-      ],
+      techniqueSlugsByNinja: [['tai-lame-chakras'], [], ['gen-mirage-simple']],
     }
   );
   console.assert(Object.keys(custom.techniqueSlotsByNinjaId).length === 2, 'deck custom 2 ninjas');
   console.assert(
-    Object.values(custom.techniqueCardsById || {}).length === 3,
-    'deck custom 3 cartes'
+    Object.values(custom.techniqueCardsById || {}).length === 2,
+    'deck custom 2 cartes'
   );
   console.assert(isCustomOpponentDeckInput({ techniqueSlugsByNinja: [[]] }), 'detect custom input');
 
@@ -164,7 +160,7 @@ async function main() {
       techniqueCount: 2,
       domainCounts: { ninjutsu: 2, genjutsu: 1 },
       slots: [
-        { techniques: [{ slug: 'nin-afflux-chakra' }, { slug: 'nin-katon-boule' }] },
+        { techniques: [{ slug: 'nin-afflux-chakra' }] },
         { techniques: [{ slug: 'gen-mirage-simple' }] },
         { techniques: [] },
       ],
@@ -172,7 +168,7 @@ async function main() {
     }
   );
   console.assert(scoutConfig.techniqueSlugsByNinja.length === 3, 'scout prefill 3 ninjas');
-  console.assert(scoutConfig.techniqueSlugsByNinja[0].length === 2, 'scout ninja 1 techniques');
+  console.assert(scoutConfig.techniqueSlugsByNinja[0].length === 1, 'scout ninja 1 technique');
 
   const domainWins = buildDomainPliWins(MINIMAL_COMBAT_LOG.logs, 'home');
   console.assert(domainWins?.mine?.Taijutsu >= 1, 'domain pli wins tai');

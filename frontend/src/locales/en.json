@@ -560,14 +560,23 @@
     },
     "deck": {
       "title": "Operation deck",
-      "lead": "Assign up to 3 technique cards per active ninja (9 max). Shuffled deck — 14 pli per match, relays if slots empty.",
-      "techniquesTitle": "Technique cards per ninja",
-      "techniqueSlot": "Card {n}",
+      "lead": "Per active ninja: 1 inventory technique card + 2 stat cards (domains). 9 pli per match — relays if slots empty.",
+      "perNinjaTitle": "Per-ninja loadout",
+      "techniqueSlot": "Technique card",
+      "primary": "Primary stat card",
+      "secondary": "Secondary stat card",
       "emptySlot": "— None —",
       "charges": "charges",
-      "autoFill": "Empty slots are filled with relay cards in match (14 plis guaranteed).",
+      "autoFill": "Empty slots are filled with relay cards in match.",
+      "autoFillTechnique": "No technique card assigned — relay in match.",
       "save": "Save deck",
-      "locked": "Deck locked — operation in progress."
+      "locked": "Deck locked — operation in progress.",
+      "domains": {
+        "taijutsu": "Taijutsu",
+        "ninjutsu": "Ninjutsu",
+        "genjutsu": "Genjutsu",
+        "medecine": "Medicine"
+      }
     }
   },
   "elements": {

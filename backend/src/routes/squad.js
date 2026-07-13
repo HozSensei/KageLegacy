@@ -161,6 +161,7 @@ router.patch('/deck', async (req, res, next) => {
     if (!user) return;
 
     const deck = await saveOperationDeck(user.id, {
+      techniquesByNinjaId: req.body?.techniquesByNinjaId,
       techniqueSlotsByNinjaId: req.body?.techniqueSlotsByNinjaId,
     });
 

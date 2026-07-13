@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatInstanceBonusPct } from '../../utils/techniqueCardBonus.js'
 
-const SLOTS_PER_NINJA = 3
+const DOMAIN_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine']
 
 const props = defineProps({
   deck: { type: Object, default: null },
@@ -17,9 +17,14 @@ const { t } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 const availableCards = ref([])
 const techniqueSlots = ref({})
+const techniques = ref({})
 const saving = ref(false)
 
 const canEdit = computed(() => props.deck && !props.deck.tacticsLocked)
+
+function domainLabel(key) {
+  return t(`squad.deck.domains.${key}`, key)
+}
 
 function cardLabel(card) {
   const bonus = card.pliBonusPct != null ? ` ${formatInstanceBonusPct(card)}` : ''
@@ -43,6 +48,7 @@ function cardsForNinja(ninja) {
 function syncFromDeck() {
   if (!props.deck) return
   techniqueSlots.value = { ...(props.deck.techniqueSlotsByNinjaId || {}) }
+  techniques.value = { ...(props.deck.techniquesByNinjaId || {}) }
 }
 
 watch(
@@ -58,6 +64,13 @@ async function loadCards() {
   availableCards.value = (data.tacticCards || []).filter((c) => c.chargesRemaining > 0)
 }
 
+function ensureTechnique(ninjaId) {
+  if (!techniques.value[ninjaId]) {
+    techniques.value[ninjaId] = { primary: 'taijutsu', secondary: 'ninjutsu' }
+  }
+  return techniques.value[ninjaId]
+}
+
 function ensureSlots(ninjaId) {
   if (!techniqueSlots.value[ninjaId]) {
     techniqueSlots.value[ninjaId] = []
@@ -65,15 +78,13 @@ function ensureSlots(ninjaId) {
   return techniqueSlots.value[ninjaId]
 }
 
-function slotValue(ninjaId, index) {
-  return ensureSlots(ninjaId)[index] ?? ''
+function techniqueSlotValue(ninjaId) {
+  return ensureSlots(ninjaId)[0] ?? ''
 }
 
-function setSlot(ninjaId, index, rawValue) {
-  const ids = [...ensureSlots(ninjaId)]
+function setTechniqueSlot(ninjaId, rawValue) {
   const value = rawValue ? Number(rawValue) : null
-  ids[index] = value
-  techniqueSlots.value[ninjaId] = ids.filter(Boolean).slice(0, SLOTS_PER_NINJA)
+  techniqueSlots.value[ninjaId] = value ? [value] : []
 }
 
 async function save() {
@@ -81,6 +92,7 @@ async function save() {
   saving.value = true
   try {
     emit('save-deck', {
+      techniquesByNinjaId: techniques.value,
       techniqueSlotsByNinjaId: techniqueSlots.value,
     })
   } finally {
@@ -88,13 +100,12 @@ async function save() {
   }
 }
 
-function assignedCardsForNinja(ninjaId) {
+function assignedTechniqueCard(ninjaId) {
   const cardsById = Object.fromEntries(
     (props.deck?.techniqueCards || []).map((c) => [c.userTacticCardId, c])
   )
-  return (props.deck?.techniqueSlotsByNinjaId?.[ninjaId] || [])
-    .map((id) => cardsById[id])
-    .filter(Boolean)
+  const id = (props.deck?.techniqueSlotsByNinjaId?.[ninjaId] || [])[0]
+  return id ? cardsById[id] : null
 }
 
 onMounted(loadCards)
@@ -111,7 +122,7 @@ onMounted(loadCards)
 
     <div v-if="activeSquad.length" class="mt-8">
       <p class="text-xs uppercase tracking-[0.14em] text-ink-faint">
-        {{ t('squad.deck.techniquesTitle') }}
+        {{ t('squad.deck.perNinjaTitle') }}
       </p>
       <ul class="mt-4 space-y-4">
         <li
@@ -126,17 +137,13 @@ onMounted(loadCards)
             </span>
           </p>
 
-          <div v-if="canEdit" class="mt-3 space-y-2">
-            <label
-              v-for="slotIndex in SLOTS_PER_NINJA"
-              :key="`${ninja.id}-${slotIndex}`"
-              class="block text-xs text-ink-muted"
-            >
-              {{ t('squad.deck.techniqueSlot', { n: slotIndex }) }}
+          <div v-if="canEdit" class="mt-3 space-y-3">
+            <label class="block text-xs text-ink-muted">
+              {{ t('squad.deck.techniqueSlot') }}
               <select
-                :value="slotValue(ninja.id, slotIndex - 1) || ''"
+                :value="techniqueSlotValue(ninja.id) || ''"
                 class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
-                @change="setSlot(ninja.id, slotIndex - 1, $event.target.value)"
+                @change="setTechniqueSlot(ninja.id, $event.target.value)"
               >
                 <option value="">{{ t('squad.deck.emptySlot') }}</option>
                 <option
@@ -148,16 +155,45 @@ onMounted(loadCards)
                 </option>
               </select>
             </label>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <label class="text-xs text-ink-muted">
+                {{ t('squad.deck.primary') }}
+                <select
+                  v-model="ensureTechnique(ninja.id).primary"
+                  class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
+                >
+                  <option v-for="key in DOMAIN_KEYS" :key="`p-${ninja.id}-${key}`" :value="key">
+                    {{ domainLabel(key) }}
+                  </option>
+                </select>
+              </label>
+              <label class="text-xs text-ink-muted">
+                {{ t('squad.deck.secondary') }}
+                <select
+                  v-model="ensureTechnique(ninja.id).secondary"
+                  class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm"
+                >
+                  <option v-for="key in DOMAIN_KEYS" :key="`s-${ninja.id}-${key}`" :value="key">
+                    {{ domainLabel(key) }}
+                  </option>
+                </select>
+              </label>
+            </div>
           </div>
 
-          <ul v-else class="mt-2 space-y-1 text-xs text-ink-muted">
-            <li v-for="card in assignedCardsForNinja(ninja.id)" :key="card.userTacticCardId">
-              {{ cardLabel(card) }} · {{ card.chargesRemaining }} {{ t('squad.deck.charges') }}
-            </li>
-            <li v-if="!assignedCardsForNinja(ninja.id).length" class="text-ink-faint">
-              {{ t('squad.deck.autoFill') }}
-            </li>
-          </ul>
+          <div v-else class="mt-2 space-y-1 text-xs text-ink-muted">
+            <p v-if="assignedTechniqueCard(ninja.id)">
+              {{ cardLabel(assignedTechniqueCard(ninja.id)) }}
+              · {{ assignedTechniqueCard(ninja.id).chargesRemaining }} {{ t('squad.deck.charges') }}
+            </p>
+            <p v-else class="text-ink-faint">{{ t('squad.deck.autoFillTechnique') }}</p>
+            <p>
+              {{ domainLabel(deck.techniquesByNinjaId?.[ninja.id]?.primary) }}
+              /
+              {{ domainLabel(deck.techniquesByNinjaId?.[ninja.id]?.secondary) }}
+            </p>
+          </div>
         </li>
       </ul>
     </div>

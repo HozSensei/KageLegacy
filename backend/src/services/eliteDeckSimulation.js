@@ -1,4 +1,5 @@
 import { TECHNIQUE_CARDS_PER_NINJA, DOMAINS, DOMAIN_LABELS } from './combat/pli/constants.js';
+import { defaultTechniquesForFighter } from './combat/pli/deckBuilder.js';
 
 export const OPPONENT_DECK_PROFILE_IDS = ['complete', 'technique_heavy', 'domain_ninjutsu', 'sparse'];
 
@@ -78,22 +79,38 @@ const TECHNIQUE_STUBS = {
 };
 
 const PROFILE_LOADOUTS = {
-  complete: [
-    ['tai-lame-chakras', 'nin-afflux-chakra', 'gen-mirage-simple'],
-    ['tai-lame-chakras', 'med-scalpel-chakra', 'nin-afflux-chakra'],
-    ['gen-mirage-simple', 'nin-afflux-chakra', 'tai-lame-chakras'],
-  ],
-  technique_heavy: [
-    ['nin-katon-boule', 'nin-raiton-eclair', 'nin-afflux-chakra'],
-    ['tai-lame-suiton', 'med-scalpel-chakra', 'nin-afflux-chakra'],
-    ['nin-chidori', 'gen-mirage-simple', 'tai-lame-chakras'],
-  ],
-  domain_ninjutsu: [
-    ['nin-afflux-chakra', 'nin-katon-boule', 'nin-raiton-eclair'],
-    ['nin-afflux-chakra', 'nin-katon-boule', 'nin-raiton-eclair'],
-    ['nin-afflux-chakra', 'nin-katon-boule', 'nin-raiton-eclair'],
-  ],
-  sparse: [['tai-lame-chakras'], ['nin-afflux-chakra'], []],
+  complete: {
+    slugs: [['tai-lame-chakras'], ['nin-afflux-chakra'], ['gen-mirage-simple']],
+    domains: [
+      { primary: 'taijutsu', secondary: 'ninjutsu' },
+      { primary: 'ninjutsu', secondary: 'genjutsu' },
+      { primary: 'genjutsu', secondary: 'taijutsu' },
+    ],
+  },
+  technique_heavy: {
+    slugs: [['nin-katon-boule'], ['tai-lame-suiton'], ['nin-chidori']],
+    domains: [
+      { primary: 'ninjutsu', secondary: 'taijutsu' },
+      { primary: 'taijutsu', secondary: 'medecine' },
+      { primary: 'ninjutsu', secondary: 'taijutsu' },
+    ],
+  },
+  domain_ninjutsu: {
+    slugs: [['nin-afflux-chakra'], ['nin-katon-boule'], ['nin-raiton-eclair']],
+    domains: [
+      { primary: 'ninjutsu', secondary: 'ninjutsu' },
+      { primary: 'ninjutsu', secondary: 'ninjutsu' },
+      { primary: 'ninjutsu', secondary: 'ninjutsu' },
+    ],
+  },
+  sparse: {
+    slugs: [['tai-lame-chakras'], [], []],
+    domains: [
+      { primary: 'taijutsu', secondary: 'ninjutsu' },
+      null,
+      null,
+    ],
+  },
 };
 
 const LEGACY_PROFILE_ALIASES = {
@@ -110,13 +127,13 @@ const LEGACY_PROFILE_ALIASES = {
 
 export const OPPONENT_DECK_PROFILE_LABELS = {
   fr: {
-    complete: 'Deck complet (9 techniques)',
+    complete: 'Deck complet (9 plis)',
     technique_heavy: 'Deck riche en techniques',
     domain_ninjutsu: 'Orientation Ninjutsu',
     sparse: 'Deck incomplet (relais)',
   },
   en: {
-    complete: 'Full deck (9 techniques)',
+    complete: 'Full deck (9 pli)',
     technique_heavy: 'Technique-heavy deck',
     domain_ninjutsu: 'Ninjutsu-focused',
     sparse: 'Sparse deck (relays)',
@@ -148,13 +165,17 @@ function stubToCard(id, stub) {
   };
 }
 
-function buildDeckFromSlugRows(ninjas, slugRows = []) {
+function buildDeckFromLoadout(ninjas, loadout = {}) {
   const ordered = orderedNinjas(ninjas);
   const techniqueSlotsByNinjaId = {};
+  const techniquesByNinjaId = {};
   const techniqueCardsById = {};
   let fakeId = 1;
+  const slugRows = loadout.slugs || [];
+  const domainRows = loadout.domains || [];
 
   for (let i = 0; i < ordered.length; i += 1) {
+    const ninja = ordered[i];
     const slugs = (slugRows[i] || []).filter((slug) => TECHNIQUE_STUBS[slug]).slice(0, TECHNIQUE_CARDS_PER_NINJA);
     const ids = [];
     for (const slug of slugs) {
@@ -163,10 +184,18 @@ function buildDeckFromSlugRows(ninjas, slugRows = []) {
       ids.push(fakeId);
       fakeId += 1;
     }
-    if (ids.length) techniqueSlotsByNinjaId[ordered[i].id] = ids;
+    if (ids.length) techniqueSlotsByNinjaId[ninja.id] = ids;
+
+    const domainPick = domainRows[i];
+    if (domainPick?.primary && domainPick?.secondary) {
+      techniquesByNinjaId[ninja.id] = domainPick;
+    } else {
+      const defaults = defaultTechniquesForFighter({ stats: ninja });
+      techniquesByNinjaId[ninja.id] = defaults;
+    }
   }
 
-  return { techniqueSlotsByNinjaId, techniqueCardsById };
+  return { techniqueSlotsByNinjaId, techniquesByNinjaId, techniqueCardsById };
 }
 
 export function getSimulatorTechniqueOptions(locale = 'fr') {
@@ -195,15 +224,19 @@ export function getSimulatorElementOptions(locale = 'fr') {
 }
 
 export function buildCustomOpponentDeck(ninjas, { techniqueSlugsByNinja = [] } = {}) {
-  return buildDeckFromSlugRows(ninjas, techniqueSlugsByNinja);
+  const loadout = {
+    slugs: techniqueSlugsByNinja,
+    domains: orderedNinjas(ninjas).map((ninja) => defaultTechniquesForFighter({ stats: ninja })),
+  };
+  return buildDeckFromLoadout(ninjas, loadout);
 }
 
 export function getPresetDeckConfig(ninjas, profileInput = 'complete') {
   const profile = normalizeOpponentDeckProfile(profileInput);
-  const slugRows = PROFILE_LOADOUTS[profile] || PROFILE_LOADOUTS.complete;
-  const deck = buildDeckFromSlugRows(ninjas, slugRows);
+  const loadout = PROFILE_LOADOUTS[profile] || PROFILE_LOADOUTS.complete;
+  const deck = buildDeckFromLoadout(ninjas, loadout);
   const ordered = orderedNinjas(ninjas);
-  const techniqueSlugsByNinja = ordered.map((ninja, i) => {
+  const techniqueSlugsByNinja = ordered.map((ninja) => {
     const ids = deck.techniqueSlotsByNinjaId[ninja.id] || [];
     return ids
       .map((id) => deck.techniqueCardsById[id]?.slug)
@@ -219,8 +252,8 @@ export function describeOpponentDeck(deck, locale = 'fr') {
     0
   );
   return lang === 'en'
-    ? `Custom deck · ${configured}/9 technique cards`
-    : `Deck personnalisé · ${configured}/9 cartes technique`;
+    ? `Custom deck · ${configured}/3 technique cards`
+    : `Deck personnalisé · ${configured}/3 cartes technique`;
 }
 
 export function isCustomOpponentDeckInput(input) {
@@ -230,6 +263,6 @@ export function isCustomOpponentDeckInput(input) {
 
 export function buildSyntheticOpponentDeck(ninjas, profileInput = 'complete') {
   const profile = normalizeOpponentDeckProfile(profileInput);
-  const slugRows = PROFILE_LOADOUTS[profile] || PROFILE_LOADOUTS.complete;
-  return buildDeckFromSlugRows(ninjas, slugRows);
+  const loadout = PROFILE_LOADOUTS[profile] || PROFILE_LOADOUTS.complete;
+  return buildDeckFromLoadout(ninjas, loadout);
 }

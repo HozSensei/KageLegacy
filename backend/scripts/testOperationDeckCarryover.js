@@ -82,8 +82,12 @@ async function main() {
   assert(cardA?.userTacticCardId && cardB?.userTacticCardId && cardC?.userTacticCardId, 'cartes accordées');
 
   await saveOperationDeck(userId, {
+    techniquesByNinjaId: {
+      [ninjaIds[0]]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+      [ninjaIds[1]]: { primary: 'ninjutsu', secondary: 'genjutsu' },
+    },
     techniqueSlotsByNinjaId: {
-      [ninjaIds[0]]: [cardA.userTacticCardId, cardB.userTacticCardId],
+      [ninjaIds[0]]: [cardA.userTacticCardId],
       [ninjaIds[1]]: [cardC.userTacticCardId],
     },
   });

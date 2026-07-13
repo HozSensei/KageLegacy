@@ -3,7 +3,7 @@
 import { createHash } from 'node:crypto';
 
 export const TACTIC_CARD_MAX_CHARGES = 5;
-export const TECHNIQUE_SLOTS_PER_NINJA = 3;
+export const TECHNIQUE_SLOTS_PER_NINJA = 1;
 
 /** Cartes génériques sans prérequis d'élément — une par slot de départ typique. */
 export const STARTER_CARD_SLUGS = [

@@ -2,10 +2,12 @@
 
 ## Deck
 
-- **9 cartes techniques** : par ninja actif, 1× technique principale + 2× secondaire (auto ou choix dans `operation_decks.techniques_json`).
-- **5 éléments de deck** : cartes tactiques (`user_tactic_cards`) choisies au niveau escouade.
-- **Total** : 14 plis par match (deck mélangé au début). Si le deck est incomplet (techniques non enregistrées ou éléments manquants), des **cartes relais** comblent jusqu'à 14 plis.
-- **Reconduction** : à chaque nouvelle journée de ligue (cycle N+1), le deck est recopié depuis le cycle précédent — techniques des ninjas encore actifs ; éléments uniquement si la carte a encore des **charges** (> 0).
+- **9 plis** par match (deck mélangé au début), pour 3 ninjas actifs.
+- Par ninja actif :
+  - **1 carte technique inventaire** (`technique_slots_json` → `user_tactic_cards`, bonus %, effets, charges)
+  - **2 cartes stat / domaine** (`techniques_json` → primaire + secondaire : taijutsu, ninjutsu, genjutsu, médecine)
+- Si le deck est incomplet (technique non assignée ou domaines non enregistrés), des **cartes relais** comblent les emplacements manquants — le match joue jusqu'à **9 plis**.
+- **Reconduction** : à chaque nouvelle journée de ligue (cycle N+1), le deck est recopié depuis le cycle précédent — domaines des ninjas encore actifs ; carte inventaire uniquement si elle a encore des **charges** (> 0).
 - **Objets match** : retirés du combat et du magasin (bureau + cycle conservés).
 
 ## Résolution
@@ -14,7 +16,7 @@
 - Bonus type +20 % (Tai > Gen > Nin > Tai).
 - PV max = note globale × 10.
 - Victoire : PV totaux → plis gagnés si égalité.
-- Cartes relais si propriétaire K.O. **ou** emplacement non configuré (techniques non enregistrées, éléments manquants) — le match joue toujours 14 plis.
+- Cartes relais si propriétaire K.O. **ou** emplacement non configuré.
 - Chakra / interception Sensei : supprimés v1.
 
 ## Fichiers clés

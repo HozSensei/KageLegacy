@@ -284,30 +284,30 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
     (sum, ids) => sum + (ids?.length || 0),
     0
   );
-  const maxTechniques = 9;
+  const maxTechniques = 3;
 
   if (techniqueCount < maxTechniques) {
     tips.push(
       lang === 'en'
-        ? `Deck has ${techniqueCount}/${maxTechniques} technique cards — assign cards per ninja before H71.`
-        : `Deck : ${techniqueCount}/${maxTechniques} cartes technique — assignez-les par ninja avant H71.`
+        ? `Deck has ${techniqueCount}/${maxTechniques} inventory technique cards — assign one per ninja before H71.`
+        : `Deck : ${techniqueCount}/${maxTechniques} cartes technique inventaire — assignez-en une par ninja avant H71.`
     );
   } else {
     tips.push(
       lang === 'en'
-        ? 'Full 14-pli shuffle — 3 technique cards per active ninja.'
-        : 'Mélange complet à 14 plis — 3 cartes technique par ninja actif.'
+        ? 'Full 9-pli shuffle — 1 inventory card + 2 stat cards per active ninja.'
+        : 'Mélange complet à 9 plis — 1 carte inventaire + 2 cartes stat par ninja actif.'
     );
   }
 
   const configuredNinjas = Object.values(deck?.techniqueSlotsByNinjaId || {}).filter(
-    (ids) => (ids?.length || 0) >= 3
+    (ids) => (ids?.length || 0) >= 1
   ).length;
   if (configuredNinjas < 3) {
     tips.push(
       lang === 'en'
-        ? 'Assign 3 technique cards on each active ninja.'
-        : 'Assignez 3 cartes technique sur chaque ninja actif.'
+        ? 'Assign 1 inventory technique card on each active ninja.'
+        : 'Assignez 1 carte technique inventaire sur chaque ninja actif.'
     );
   }
 

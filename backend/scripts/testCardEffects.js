@@ -109,10 +109,20 @@ function testCombatWithEffectCard() {
     effectParams: { flat: 5, scaleStat: 'vitesse', scaleDiv: 5 },
   };
 
-  const slots = { [home.fighters[0].id]: [9001, 9001, 9001] };
+  const slots = { [home.fighters[0].id]: [9001] };
   const deck = {
     techniqueSlotsByNinjaId: slots,
     techniqueCardsById: { 9001: effectCard },
+    techniquesByNinjaId: {
+      [home.fighters[0].id]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+      [home.fighters[1].id]: { primary: 'ninjutsu', secondary: 'genjutsu' },
+      [home.fighters[2].id]: { primary: 'genjutsu', secondary: 'medecine' },
+    },
+    rawTechniquesByNinjaId: {
+      [home.fighters[0].id]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+      [home.fighters[1].id]: { primary: 'ninjutsu', secondary: 'genjutsu' },
+      [home.fighters[2].id]: { primary: 'genjutsu', secondary: 'medecine' },
+    },
   };
 
   const result = simulatePliCombat(home, away, { homeDeck: deck, awayDeck: deck });
