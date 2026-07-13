@@ -85,8 +85,6 @@ async function purgeGameplayState(connection) {
   await exec(
     `UPDATE player_listings SET status = 'cancelled' WHERE status = 'active'`
   );
-  await exec(`UPDATE ninjas SET protect_target_ninja_id = NULL`);
-  await exec(`DELETE FROM ninja_tactic_cards`);
   await exec(`DELETE FROM ninja_equipment`);
   await exec(`DELETE FROM idle_missions`);
   await exec(`DELETE FROM academy_draws`);
@@ -97,7 +95,7 @@ async function purgeGameplayState(connection) {
   await exec(`DELETE FROM sensei_notifications`);
   await exec(`DELETE FROM elite_quest_progress`);
   await exec(`DELETE FROM elite_season_passes`);
-  await exec(`DELETE FROM operation_dossiers`);
+  await exec(`DELETE FROM operation_decks`);
   await exec(`DELETE FROM player_listings`);
   await exec(`DELETE FROM user_tactic_cards`);
   await exec(`DELETE FROM user_items`);

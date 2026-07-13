@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-export const STRATEGY_VALUES = ['Normal', 'Tank', 'Protect', 'Offensive'];
-
 export const TRAINING_TYPE_VALUES = [
   'Chakra',
   'Physique',
@@ -13,19 +11,6 @@ export const TRAINING_TYPE_VALUES = [
 
 /** @deprecated */
 export const FOCUS_VALUES = TRAINING_TYPE_VALUES;
-
-export const updateStrategiesSchema = z.object({
-  strategies: z
-    .array(
-      z.object({
-        ninjaId: z.number().int().positive(),
-        strategy: z.enum(STRATEGY_VALUES),
-        protectTargetNinjaId: z.number().int().positive().nullable().optional(),
-      })
-    )
-    .min(1)
-    .max(3),
-});
 
 export const updateTrainingPlansSchema = z.object({
   plans: z

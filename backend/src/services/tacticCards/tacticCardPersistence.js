@@ -1,8 +1,18 @@
 import { consumeTacticCardCharge } from './tacticCardService.js';
 
 /**
- * Persiste les charges consommées pendant un match (après simulation).
+ * Persiste les charges des éléments de deck joués pendant un match (après simulation).
  */
+export async function persistPlayedDeckElementCharges(cardIds = []) {
+  const processed = new Set();
+  for (const cardId of cardIds) {
+    if (!cardId || processed.has(cardId)) continue;
+    processed.add(cardId);
+    await consumeTacticCardCharge(cardId);
+  }
+}
+
+/** @deprecated Utiliser persistPlayedDeckElementCharges */
 export async function persistTacticCardCombatUsage(teams) {
   const processed = new Set();
   for (const team of teams) {

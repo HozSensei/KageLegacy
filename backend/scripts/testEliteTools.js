@@ -86,8 +86,8 @@ async function seedSquad(userId) {
       `INSERT INTO ninjas (
          user_id, name, grade, age, squad_position, training_focus,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
-         moral, weekly_forme, battle_strategy, character_trait, element_affinity
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Taijutsu', 40, 35, 30, 20, 45, 30, 15, 'Passable', 'Offensive', 'Discipline', 'Katon')`,
+         moral, weekly_forme, character_trait, element_affinity
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Taijutsu', 40, 35, 30, 20, 45, 30, 15, 'Passable', 'Discipline', 'Katon')`,
       [userId, `${PREFIX}_n${pos}`, pos]
     );
   }

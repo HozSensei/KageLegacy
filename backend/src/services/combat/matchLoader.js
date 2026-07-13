@@ -1,11 +1,11 @@
 import { query } from '../../config/database.js';
-import { computeMatchChakraMax } from '../ninjaStats.js';
-import { getEquipmentForNinjas } from '../equipmentService.js';
-import { getTacticCardsForNinjas } from '../tacticCards/tacticCardService.js';
-import { applyEquipmentToFighter } from './equipment.js';
-import { initTacticCardOnFighter } from '../tacticCards/tacticCardCombat.js';
+import { computeMatchPvFromRating } from '../ninjaStats.js';
 import { applyFormeToStats } from './forme.js';
-import { simulateCombat } from './combatEngine.js';
+import { simulatePliCombat } from './pli/pliCombatEngine.js';
+import {
+  getOperationDeck,
+  deckConfigForCombat,
+} from '../operationDeckService.js';
 
 export async function loadTeamForCombat(userId) {
   const senseiRows = await query('SELECT * FROM sensei WHERE user_id = ?', [userId]);
@@ -14,71 +14,42 @@ export async function loadTeamForCombat(userId) {
      ORDER BY squad_position`,
     [userId]
   );
-  const equipmentRows = await getEquipmentForNinjas(userId);
-  const tacticCardRows = await getTacticCardsForNinjas(userId);
-  const equipmentByNinja = {};
-  const tacticCardByNinja = {};
-  for (const row of equipmentRows) {
-    if (!equipmentByNinja[row.ninja_id]) equipmentByNinja[row.ninja_id] = [];
-    equipmentByNinja[row.ninja_id].push(row);
-  }
-  for (const row of tacticCardRows) {
-    tacticCardByNinja[row.ninja_id] = row;
-  }
+  const operationDeck = await getOperationDeck(userId);
 
   return {
     userId,
     sensei: senseiRows[0] || null,
     ninjas,
-    equipmentByNinja,
-    tacticCardByNinja,
+    operationDeck,
   };
 }
 
 export function buildCombatTeam(teamData, sideLabel) {
   const fighters = teamData.ninjas.map((ninja, index) => {
     const stats = applyFormeToStats(ninja);
-    const maxPv = stats.taijutsu * 10;
-    const maxChakra = computeMatchChakraMax(ninja.grade, stats.ninjutsu);
-    let fighter = {
+    const maxPv = computeMatchPvFromRating(stats);
+    return {
       id: ninja.id,
       name: ninja.name,
       side: sideLabel,
       character_trait: ninja.character_trait,
       element_affinity: ninja.element_affinity,
-      battle_strategy: ninja.battle_strategy || 'Normal',
-      protect_target_ninja_id: ninja.protect_target_ninja_id ?? null,
       grade: ninja.grade,
       weekly_forme: ninja.weekly_forme,
       stats,
       pv: maxPv,
       maxPv,
-      chakra: maxChakra,
-      maxChakra,
       ko: false,
-      genjutsuReceived: false,
-      consumableUsed: false,
-      status: null,
       slot: index + 1,
     };
-    fighter = applyEquipmentToFighter(
-      fighter,
-      teamData.equipmentByNinja?.[ninja.id] || []
-    );
-    fighter = initTacticCardOnFighter(fighter, teamData.tacticCardByNinja?.[ninja.id]);
-    return fighter;
   });
 
   return {
     userId: teamData.userId,
     label: sideLabel,
-    sensei: teamData.sensei
-      ? {
-          name: teamData.sensei.name,
-          chakraPool: teamData.sensei.chakra_pool,
-        }
-      : { name: 'Sensei', chakraPool: 0 },
+    sensei: teamData.sensei ? { name: teamData.sensei.name } : { name: 'Sensei' },
     fighters,
+    operationDeck: teamData.operationDeck,
   };
 }
 
@@ -89,5 +60,9 @@ export async function simulateMatchCombat(homeUserId, awayUserId, environmentSlu
   const home = buildCombatTeam(homeData, 'home');
   const away = buildCombatTeam(awayData, 'away');
 
-  return simulateCombat(home, away, { environmentSlug });
+  return simulatePliCombat(home, away, {
+    environmentSlug,
+    homeDeck: deckConfigForCombat(homeData.operationDeck),
+    awayDeck: deckConfigForCombat(awayData.operationDeck),
+  });
 }

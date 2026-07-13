@@ -23,10 +23,8 @@ export async function assertNinjaReleasable(userId, ninjaId) {
 
   const ninjaRows = await query(
     `SELECT n.*,
-            ne_match.ninja_id AS match_equipped,
             ne_cycle.ninja_id AS cycle_equipped
      FROM ninjas n
-     LEFT JOIN ninja_equipment ne_match ON ne_match.ninja_id = n.id AND ne_match.slot = 'match'
      LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
      WHERE n.id = ? AND n.user_id = ?`,
     [ninjaId, userId]
@@ -49,7 +47,7 @@ export async function assertNinjaReleasable(userId, ninjaId) {
     error.statusCode = 409;
     throw error;
   }
-  if (ninja.match_equipped || ninja.cycle_equipped) {
+  if (ninja.cycle_equipped) {
     const error = new Error('Retirez l\'équipement du ninja avant de le libérer.');
     error.statusCode = 400;
     throw error;
@@ -91,10 +89,6 @@ export async function releaseNinja(userId, ninjaId) {
   await assertHumanPlayer(userId);
   const ninja = await assertNinjaReleasable(userId, ninjaId);
 
-  await query(
-    'UPDATE ninjas SET protect_target_ninja_id = NULL WHERE protect_target_ninja_id = ? AND user_id = ?',
-    [ninjaId, userId]
-  );
   await query('DELETE FROM ninjas WHERE id = ? AND user_id = ?', [ninjaId, userId]);
 
   return { ninjaId, name: ninja.name };

@@ -4,23 +4,13 @@ import { getUserMatchForCycle } from './matchService.js';
 import { findUserPool } from './poolService.js';
 import { getUserReconMissionForCycle } from './reconnaissanceService.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
+import { analyzeDomainMix, dominantElement, dominantArt } from './scoutSquadAnalysis.js';
 
 const HISTORY_LIMIT = 5;
 
 function parseJson(value) {
   if (!value) return null;
   return typeof value === 'string' ? JSON.parse(value) : value;
-}
-
-import { analyzeStrategies, dominantElement } from './scoutSquadAnalysis.js';
-
-function dominantArt(ninjas) {
-  const freq = {};
-  for (const n of ninjas) {
-    if (!n.primaryArt) continue;
-    freq[n.primaryArt] = (freq[n.primaryArt] || 0) + 1;
-  }
-  return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
 export function computeReliability(sampleSize) {
@@ -36,7 +26,6 @@ export function buildSquadSnapshotFromNinjas(ninjas, lang = 'fr') {
     const profile = describeNinjaProfile(ninja, lang);
     return {
       ninjaId: ninja.id,
-      battle_strategy: ninja.battle_strategy || 'Normal',
       element_affinity: ninja.element_affinity,
       primaryArt: profile.primaryArt,
       speed: Number(ninja.vitesse ?? 0) + Number(ninja.intelligence ?? 0),
@@ -102,34 +91,34 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
   }
 
   const allNinjas = squads.flat();
-  const strategies = analyzeStrategies(allNinjas);
+  const domains = analyzeDomainMix(allNinjas);
   const matchCount = squads.length;
-  const avgOffensive = strategies.Offensive / matchCount;
-  const avgTank = strategies.Tank / matchCount;
-  const avgProtect = strategies.Protect / matchCount;
+  const avgTaiLean = domains.taijutsu / matchCount;
+  const avgNinLean = domains.ninjutsu / matchCount;
+  const avgMedLean = domains.medecine / matchCount;
   const element = dominantElement(allNinjas);
   const art = dominantArt(allNinjas);
   const avgSpeed = allNinjas.reduce((s, n) => s + (n.speed ?? 0), 0) / allNinjas.length;
 
-  if (avgOffensive >= 1.2) {
+  if (avgTaiLean >= 1.2) {
     lines.push(
       lang === 'en'
-        ? 'Usually fields multiple Offensive orders.'
-        : 'Dispose souvent de plusieurs consignes Offensive.'
+        ? 'Usually fields multiple Taijutsu specialists.'
+        : 'Dispose souvent de plusieurs spécialistes Taijutsu.'
     );
   }
-  if (avgTank >= 0.8) {
+  if (avgNinLean >= 1.2) {
     lines.push(
       lang === 'en'
-        ? 'Often relies on at least one Defensive order.'
-        : 'S\'appuie souvent sur au moins une consigne Défensive.'
+        ? 'Often leans on Ninjutsu pressure.'
+        : 'S\'appuie souvent sur la pression Ninjutsu.'
     );
   }
-  if (avgProtect >= 0.8) {
+  if (avgMedLean >= 0.8) {
     lines.push(
       lang === 'en'
-        ? 'Frequently uses Protection orders.'
-        : 'Utilise fréquemment des consignes Protection.'
+        ? 'Frequently includes Medicine-oriented ninjas.'
+        : 'Inclut fréquemment des ninjas orientés Médecine.'
     );
   }
   if (art) {
@@ -165,9 +154,9 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
     reliability,
     lines,
     summary: {
-      avgOffensive,
-      avgTank,
-      avgProtect,
+      avgTaiLean,
+      avgNinLean,
+      avgMedLean,
       dominantElement: element,
       dominantArt: art,
       avgSpeed,

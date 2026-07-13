@@ -1,19 +1,18 @@
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
 import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
 import SyncIcon from '../components/icons/SyncIcon.vue'
 import StoreIcon from '../components/icons/StoreIcon.vue'
-import OperationDossierPanel from '../components/squad/OperationDossierPanel.vue'
-import { formatNinjaDisplayName } from '../utils/ninjaName.js'
+import OperationBriefingPanel from '../components/squad/OperationBriefingPanel.vue'
+import OperationDeckPanel from '../components/squad/OperationDeckPanel.vue'
 
 const { t } = useI18n()
 const store = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
-const dossier = ref(null)
-const dossierLoading = ref(false)
-const editingStrategy = ref(false)
+const briefing = ref(null)
+const briefingLoading = ref(false)
 const saving = ref(false)
 const saveError = ref(null)
 const swapPending = ref(null)
@@ -27,13 +26,7 @@ const releasing = ref(false)
 const releaseError = ref(null)
 
 const totalRoster = computed(() => store.activeSquad.length + store.bench.length)
-
-const STRATEGY_KEYS = ['Normal', 'Tank', 'Protect', 'Offensive']
-const strategies = reactive({})
-const protectTargets = reactive({})
-
 const canCompose = computed(() => store.canChangeComposition())
-
 const slots = ref([null, null, null])
 const localBench = ref([])
 
@@ -72,36 +65,6 @@ function syncSlotsFromStore() {
   )
   slots.value = ordered
   localBench.value = []
-}
-
-function initStrategies() {
-  const activeIds = new Set(store.activeSquad.map((n) => n.id))
-
-  for (const id of Object.keys(strategies)) {
-    if (!activeIds.has(Number(id))) {
-      delete strategies[id]
-      delete protectTargets[id]
-    }
-  }
-
-  for (const n of store.activeSquad) {
-    strategies[n.id] = n.battle_strategy || 'Normal'
-    protectTargets[n.id] = n.protect_target_ninja_id || null
-  }
-}
-
-function activeStrategyPayload() {
-  const payload = {}
-  const protectPayload = {}
-  for (const n of store.activeSquad) {
-    payload[n.id] = strategies[n.id] || n.battle_strategy || 'Normal'
-    protectPayload[n.id] = protectTargets[n.id] ?? n.protect_target_ninja_id ?? null
-  }
-  return { payload, protectPayload }
-}
-
-function protectAlliesFor(ninjaId) {
-  return slots.value.filter((n) => n && n.id !== ninjaId)
 }
 
 function canSellNinja(ninja) {
@@ -192,7 +155,6 @@ async function persistSlots() {
     await store.saveComposition(ordered)
     swapPending.value = null
     localBench.value = []
-    initStrategies()
     return true
   } catch (e) {
     saveError.value = e.message
@@ -329,76 +291,48 @@ function isBenchSwapTarget(_ninjaId) {
   return swapPending.value?.kind === 'active'
 }
 
-async function toggleStrategyEdit() {
-  if (editingStrategy.value) {
-    if (!store.activeSquad.length) {
-      saveError.value = t('squad.noActiveForStrategy')
-      return
-    }
-    saving.value = true
-    saveError.value = null
-    try {
-      const { payload, protectPayload } = activeStrategyPayload()
-      for (const n of store.activeSquad) {
-        if (payload[n.id] === 'Protect' && !protectPayload[n.id]) {
-          const ally = protectAlliesFor(n.id)[0]
-          if (ally) protectPayload[n.id] = ally.id
-        }
-      }
-      await store.saveStrategies(payload, protectPayload)
-      editingStrategy.value = false
-    } catch (e) {
-      saveError.value = e.message
-    } finally {
-      saving.value = false
-    }
-    return
-  }
-  if (!store.tacticsLocked()) {
-    swapPending.value = null
-    initStrategies()
-    editingStrategy.value = true
-  }
-}
-
 onMounted(async () => {
   if (!store.sensei) await store.fetchSquad()
   syncSlotsFromStore()
-  await fetchDossier()
+  await fetchBriefing()
 })
 
-async function fetchDossier() {
-  dossierLoading.value = true
+async function fetchBriefing() {
+  briefingLoading.value = true
   try {
-    const res = await fetch(`${API_BASE}/api/operation/dossier`)
+    const res = await fetch(`${API_BASE}/api/operation/briefing`)
     if (res.ok) {
       const data = await res.json()
-      dossier.value = data.dossier
+      briefing.value = data.briefing
     }
   } catch {
-    dossier.value = null
+    briefing.value = null
   } finally {
-    dossierLoading.value = false
+    briefingLoading.value = false
   }
 }
 
-async function updateDossierPosture(operationPosture) {
-  const res = await fetch(`${API_BASE}/api/operation/dossier`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ operationPosture }),
-  })
-  if (res.ok) {
-    const data = await res.json()
-    dossier.value = data.dossier
+async function saveDeck(payload) {
+  saving.value = true
+  saveError.value = null
+  try {
+    await store.saveOperationDeck(payload)
+    await fetchBriefing()
+  } catch (e) {
+    saveError.value = e.message
+  } finally {
+    saving.value = false
   }
 }
 
-watch(() => store.activeSquad, () => {
-  if (composing.value || swapPending.value) return
-  syncSlotsFromStore()
-  initStrategies()
-}, { immediate: true, deep: true })
+watch(
+  () => store.activeSquad,
+  () => {
+    if (composing.value || swapPending.value) return
+    syncSlotsFromStore()
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <template>
@@ -421,38 +355,20 @@ watch(() => store.activeSquad, () => {
         {{ t('squad.tacticsLocked') }}
       </p>
 
-      <div class="mt-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-        <dl class="metric-row flex-1 border-0 py-0">
-          <div class="metric-item">
-            <dd class="metric-value">{{ teamSpeed }}</dd>
-            <dt class="metric-label">{{ t('squad.tacticalSpeed') }}</dt>
-          </div>
-          <div class="metric-item">
-            <dd class="metric-value">{{ slots.filter(Boolean).length }}</dd>
-            <dt class="metric-label">{{ t('squad.activeCount') }}</dt>
-          </div>
-          <div class="metric-item">
-            <dd class="metric-value">{{ store.bench.length }}</dd>
-            <dt class="metric-label">{{ t('squad.benchCount') }}</dt>
-          </div>
-        </dl>
-
-        <button
-          type="button"
-          class="btn-ghost shrink-0 disabled:opacity-40"
-          data-testid="squad-edit-strategy"
-          :disabled="(!editingStrategy && store.tacticsLocked()) || saving || (!editingStrategy && !store.activeSquad.length)"
-          @click="toggleStrategyEdit"
-        >
-          {{
-            saving && editingStrategy
-              ? t('squad.saving')
-              : editingStrategy
-                ? t('squad.doneStrategy')
-                : t('squad.editStrategy')
-          }}
-        </button>
-      </div>
+      <dl class="metric-row mt-12 flex-1 border-0 py-0">
+        <div class="metric-item">
+          <dd class="metric-value">{{ teamSpeed }}</dd>
+          <dt class="metric-label">{{ t('squad.tacticalSpeed') }}</dt>
+        </div>
+        <div class="metric-item">
+          <dd class="metric-value">{{ slots.filter(Boolean).length }}</dd>
+          <dt class="metric-label">{{ t('squad.activeCount') }}</dt>
+        </div>
+        <div class="metric-item">
+          <dd class="metric-value">{{ store.bench.length }}</dd>
+          <dt class="metric-label">{{ t('squad.benchCount') }}</dt>
+        </div>
+      </dl>
 
       <p v-if="swapPending" class="mt-4 text-sm text-accent">
         {{ swapHint }}
@@ -464,10 +380,12 @@ watch(() => store.activeSquad, () => {
 
       <p v-if="saveError" class="mt-4 text-sm text-fire">{{ saveError }}</p>
 
-      <OperationDossierPanel
-        :dossier="dossier"
-        :loading="dossierLoading"
-        @update-posture="updateDossierPosture"
+      <OperationBriefingPanel :briefing="briefing" :loading="briefingLoading" />
+
+      <OperationDeckPanel
+        :deck="store.operationDeck"
+        :active-squad="store.activeSquad"
+        @save-deck="saveDeck"
       />
 
       <section class="mt-14" data-testid="squad-composition">
@@ -483,15 +401,10 @@ watch(() => store.activeSquad, () => {
             }"
           >
             <template v-if="entry.ninja">
-              <div
-                class="squad-card-wrap relative"
-              >
+              <div class="squad-card-wrap relative">
                 <NinjaFlipCard :ninja="entry.ninja" size="md" />
               </div>
-              <div
-                v-if="canCompose"
-                class="squad-card-actions"
-              >
+              <div v-if="canCompose" class="squad-card-actions">
                 <button
                   type="button"
                   class="squad-card-action"
@@ -533,30 +446,6 @@ watch(() => store.activeSquad, () => {
             >
               {{ t('squad.emptySlot') }}
             </div>
-
-            <select
-              v-if="editingStrategy && entry.ninja"
-              v-model="strategies[entry.ninja.id]"
-              class="strategy-select max-w-[12rem]"
-            >
-              <option v-for="key in STRATEGY_KEYS" :key="key" :value="key">
-                {{ t(`squad.strategies.${key}`) }}
-              </option>
-            </select>
-            <select
-              v-if="editingStrategy && entry.ninja && strategies[entry.ninja.id] === 'Protect'"
-              v-model="protectTargets[entry.ninja.id]"
-              class="strategy-select mt-2 max-w-[12rem]"
-            >
-              <option :value="null" disabled>{{ t('squad.protectTarget') }}</option>
-              <option
-                v-for="ally in protectAlliesFor(entry.ninja.id)"
-                :key="ally.id"
-                :value="ally.id"
-              >
-                {{ formatNinjaDisplayName(ally.name) }}
-              </option>
-            </select>
           </div>
         </div>
       </section>

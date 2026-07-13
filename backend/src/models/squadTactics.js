@@ -6,55 +6,6 @@ import { getGameClock, isTacticsLocked, isTrainingLocked } from '../services/gam
 import { isNinjaListed } from '../services/playerMarketService.js';
 import { TRAINING_TYPE_VALUES } from '../services/training.js';
 
-export async function updateBattleStrategies(userId, strategies) {
-  if (await isTacticsLocked()) {
-    const error = new Error('Les tactiques sont gelées jusqu\'à la fin du cycle (H71).');
-    error.statusCode = 423;
-    throw error;
-  }
-
-  const ninjaIds = strategies.map((s) => s.ninjaId);
-  const placeholders = ninjaIds.map(() => '?').join(',');
-  const owned = await query(
-    `SELECT id FROM ninjas
-     WHERE user_id = ? AND id IN (${placeholders}) AND squad_position IS NOT NULL`,
-    [userId, ...ninjaIds]
-  );
-
-  if (owned.length !== strategies.length) {
-    const error = new Error('Consignes invalides : ninjas actifs introuvables.');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const activeIds = new Set(owned.map((r) => r.id));
-
-  for (const { ninjaId, strategy, protectTargetNinjaId } of strategies) {
-    if (strategy === 'Protect') {
-      if (!protectTargetNinjaId) {
-        const error = new Error('La consigne Protect exige un allié à couvrir.');
-        error.statusCode = 400;
-        throw error;
-      }
-      if (protectTargetNinjaId === ninjaId || !activeIds.has(protectTargetNinjaId)) {
-        const error = new Error('Cible Protect invalide : choisissez un autre ninja actif.');
-        error.statusCode = 400;
-        throw error;
-      }
-    }
-  }
-
-  for (const { ninjaId, strategy, protectTargetNinjaId } of strategies) {
-    const targetId = strategy === 'Protect' ? protectTargetNinjaId : null;
-    await query(
-      'UPDATE ninjas SET battle_strategy = ?, protect_target_ninja_id = ? WHERE id = ? AND user_id = ?',
-      [strategy, targetId, ninjaId, userId]
-    );
-  }
-
-  return strategies;
-}
-
 export async function updateTrainingPlans(userId, { plans = [], globalTrainingType = undefined } = {}) {
   if (await isTrainingLocked()) {
     const error = new Error('Les plans d\'entraînement sont gelés depuis H54 jusqu\'au match (H71).');

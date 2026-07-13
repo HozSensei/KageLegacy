@@ -22,6 +22,7 @@ export const useSquadStore = defineStore('squad', () => {
   const heritage = ref(null)
   const clan = ref(null)
   const clanBoard = ref(null)
+  const operationDeck = ref(null)
   let fetchPromise = null
 
   function applyPayload(data) {
@@ -40,6 +41,7 @@ export const useSquadStore = defineStore('squad', () => {
     heritage.value = data.heritage || null
     clan.value = data.clan || null
     clanBoard.value = data.clanBoard || null
+    operationDeck.value = data.operationDeck || null
   }
 
   /** Mise à jour partielle après mutation — préserve notifs/académie si absentes */
@@ -57,6 +59,7 @@ export const useSquadStore = defineStore('squad', () => {
     if (data.heritage !== undefined) heritage.value = data.heritage
     if (data.clan !== undefined) clan.value = data.clan
     if (data.clanBoard !== undefined) clanBoard.value = data.clanBoard
+    if (data.operationDeck !== undefined) operationDeck.value = data.operationDeck
     if (data.notifications) notifications.value = data.notifications
     if (data.notificationHistory) notificationHistory.value = data.notificationHistory
     if (data.activityFeed) activityFeed.value = data.activityFeed
@@ -104,25 +107,6 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
-  async function saveStrategies(strategyMap, protectTargetMap = {}) {
-    error.value = null
-    const payload = {
-      strategies: Object.entries(strategyMap).map(([ninjaId, strategy]) => ({
-        ninjaId: Number(ninjaId),
-        strategy,
-        protectTargetNinjaId:
-          strategy === 'Protect' ? Number(protectTargetMap[ninjaId]) || null : null,
-      })),
-    }
-    const res = await fetch(`${API_BASE}/api/squad/strategies`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error(await readApiError(res))
-    applySquadMutation(await res.json())
-  }
-
   async function recruitFromAcademy(drawId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/academy/recruit`, {
@@ -135,6 +119,17 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(data)
     if (data.academy) academy.value = data.academy
     return data
+  }
+
+  async function saveOperationDeck(payload) {
+    error.value = null
+    const res = await fetch(`${API_BASE}/api/squad/deck`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error(await readApiError(res))
+    applySquadMutation(await res.json())
   }
 
   async function saveTrainingPlans(payload) {
@@ -307,9 +302,10 @@ export const useSquadStore = defineStore('squad', () => {
     heritage,
     clan,
     clanBoard,
+    operationDeck,
     fetchSquad,
     saveComposition,
-    saveStrategies,
+    saveOperationDeck,
     saveTrainingPlans,
     recruitFromAcademy,
     recommendToClan,

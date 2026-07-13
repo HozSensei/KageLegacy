@@ -1,5 +1,4 @@
 import { query } from '../../config/database.js';
-import { getClockRow, isTacticsLocked } from '../gameClock.js';
 import { STARTER_CARD_SLUGS, TACTIC_CARD_MAX_CHARGES } from './tacticCardCatalog.js';
 
 export async function findCardDefinitionBySlug(slug) {
@@ -101,8 +100,6 @@ function mapUserCard(row) {
     effectParams: parseJsonField(row.effect_params),
     catalogPrice: row.catalog_price,
     narrativeKey: row.narrative_key,
-    equippedNinjaId: row.equipped_ninja_id ?? null,
-    equippedNinjaName: row.equipped_ninja_name ?? null,
     listingId: row.listing_id ?? null,
     isListed: Boolean(row.listing_id),
   };
@@ -142,139 +139,15 @@ export async function getTacticCardsForUser(userId) {
        tcd.effect_params,
        tcd.catalog_price,
        tcd.narrative_key,
-       ntc.ninja_id AS equipped_ninja_id,
-       n.name AS equipped_ninja_name,
        pl.id AS listing_id
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
-     LEFT JOIN ninja_tactic_cards ntc ON ntc.user_tactic_card_id = utc.id
-     LEFT JOIN ninjas n ON n.id = ntc.ninja_id
      LEFT JOIN player_listings pl ON pl.user_tactic_card_id = utc.id AND pl.status = 'active'
      WHERE utc.user_id = ? AND utc.charges_remaining > 0
      ORDER BY utc.acquired_at DESC, utc.id DESC`,
     [userId]
   );
   return dedupeUserCards(rows.map(mapUserCard).filter(Boolean));
-}
-
-export async function getTacticCardsForNinjas(userId) {
-  return query(
-    `SELECT ntc.ninja_id, utc.id AS user_tactic_card_id, utc.charges_remaining,
-            tcd.slug, tcd.name_fr, tcd.name_en, tcd.rarity, tcd.card_type, tcd.stat_type,
-            tcd.element_affinity, tcd.trigger_kind, tcd.trigger_params,
-            tcd.target_kind, tcd.target_params, tcd.effect_kind, tcd.effect_params,
-            tcd.narrative_key, tcd.catalog_price
-     FROM ninja_tactic_cards ntc
-     JOIN user_tactic_cards utc ON utc.id = ntc.user_tactic_card_id
-     JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
-     JOIN ninjas n ON n.id = ntc.ninja_id
-     WHERE n.user_id = ? AND utc.charges_remaining > 0`,
-    [userId]
-  );
-}
-
-function assertElementCompatible(ninja, cardDef) {
-  if (!cardDef.element_affinity) return;
-  if (ninja.element_affinity !== cardDef.element_affinity) {
-    const error = new Error(
-      `Affinité incompatible : ${cardDef.element_affinity} requis, ninja ${ninja.element_affinity}.`
-    );
-    error.statusCode = 400;
-    throw error;
-  }
-}
-
-async function assertNinjaAvailableForEquip(userId, ninjaId) {
-  const ninjaRows = await query('SELECT * FROM ninjas WHERE id = ? AND user_id = ?', [ninjaId, userId]);
-  const ninja = ninjaRows[0];
-  if (!ninja) {
-    const error = new Error('Ninja introuvable.');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const cycleRow = await getClockRow();
-  if (cycleRow?.cycle_start_at) {
-    const missionRows = await query(
-      `SELECT id FROM idle_missions
-       WHERE ninja_id = ? AND cycle_start_at = ? AND status = 'active'`,
-      [ninjaId, cycleRow.cycle_start_at]
-    );
-    if (missionRows.length) {
-      const error = new Error('Ce ninja est en mission et ne peut pas être équipé.');
-      error.statusCode = 423;
-      throw error;
-    }
-  }
-  return ninja;
-}
-
-export async function equipTacticCard(userId, ninjaId, userTacticCardId) {
-  if (await isTacticsLocked()) {
-    const error = new Error('Les cartes tactiques sont gelées pendant l\'opération (à partir de H71).');
-    error.statusCode = 423;
-    throw error;
-  }
-
-  const ninja = await assertNinjaAvailableForEquip(userId, ninjaId);
-
-  const cardRows = await query(
-    `SELECT utc.*, tcd.element_affinity
-     FROM user_tactic_cards utc
-     JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
-     WHERE utc.id = ? AND utc.user_id = ? AND utc.charges_remaining > 0`,
-    [userTacticCardId, userId]
-  );
-  const card = cardRows[0];
-  if (!card) {
-    const error = new Error('Carte introuvable ou épuisée.');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const listed = await query(
-    `SELECT id FROM player_listings WHERE user_tactic_card_id = ? AND status = 'active'`,
-    [userTacticCardId]
-  );
-  if (listed.length) {
-    const error = new Error('Retirez la carte de la vente avant de l\'équiper.');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  assertElementCompatible(ninja, card);
-
-  await query('DELETE FROM ninja_tactic_cards WHERE ninja_id = ?', [ninjaId]);
-  await query('DELETE FROM ninja_tactic_cards WHERE user_tactic_card_id = ?', [userTacticCardId]);
-  await query(
-    'INSERT INTO ninja_tactic_cards (ninja_id, user_tactic_card_id) VALUES (?, ?)',
-    [ninjaId, userTacticCardId]
-  );
-
-  return { ninjaId, userTacticCardId };
-}
-
-export async function unequipTacticCard(userId, ninjaId) {
-  if (await isTacticsLocked()) {
-    const error = new Error('Les cartes tactiques sont gelées pendant l\'opération (à partir de H71).');
-    error.statusCode = 423;
-    throw error;
-  }
-
-  const rows = await query(
-    `SELECT ntc.user_tactic_card_id
-     FROM ninja_tactic_cards ntc
-     JOIN ninjas n ON n.id = ntc.ninja_id
-     WHERE ntc.ninja_id = ? AND n.user_id = ?`,
-    [ninjaId, userId]
-  );
-  if (!rows.length) {
-    const error = new Error('Aucune carte équipée sur ce ninja.');
-    error.statusCode = 404;
-    throw error;
-  }
-  await query('DELETE FROM ninja_tactic_cards WHERE ninja_id = ?', [ninjaId]);
-  return { ninjaId };
 }
 
 export async function consumeTacticCardCharge(userTacticCardId) {
@@ -286,7 +159,6 @@ export async function consumeTacticCardCharge(userTacticCardId) {
 
   const next = current - 1;
   if (next <= 0) {
-    await query('DELETE FROM ninja_tactic_cards WHERE user_tactic_card_id = ?', [userTacticCardId]);
     await query('DELETE FROM user_tactic_cards WHERE id = ?', [userTacticCardId]);
     return { deleted: true, chargesRemaining: 0 };
   }

@@ -280,55 +280,42 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
   return report;
 }
 
-export function buildOrdersAdvice(orderCounts, locale = 'fr') {
+export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
   const lang = normalizeLocale(locale);
   const tips = [];
-  const off = orderCounts?.Offensive ?? 0;
-  const tank = orderCounts?.Tank ?? 0;
-  const prot = orderCounts?.Protect ?? 0;
-  const normal = orderCounts?.Normal ?? 0;
+  const deck = deckOrCounts?.deck ?? deckOrCounts;
+  const elementCount = deck?.elementCardIds?.length ?? 0;
+  const techniques = deck?.techniquesByNinjaId ?? {};
 
-  if (off + tank + prot === 0) {
+  if (elementCount < 5) {
     tips.push(
       lang === 'en'
-        ? 'All Normal orders — attackers are picked at random. Set Offensive / Defensive / Protection roles.'
-        : 'Toutes consignes Normal — les attaquants sont tirés au sort. Définissez Offensive / Défensive / Protection.'
+        ? `Deck has ${elementCount}/5 squad elements — add cards from inventory before H71.`
+        : `Deck : ${elementCount}/5 éléments — ajoutez des cartes depuis l'inventaire avant H71.`
     );
   } else {
-    if (tank === 0) {
-      tips.push(
-        lang === 'en'
-          ? 'No Defensive order — your line may crumble under focused assault.'
-          : 'Aucune consigne Défensive — votre ligne peut céder sous une pression ciblée.'
-      );
-    }
-    if (prot === 0) {
-      tips.push(
-        lang === 'en'
-          ? 'No Protection order — no dedicated healer behavior under 50% HP.'
-          : 'Aucune consigne Protection — pas de soin dédié sous 50 % PV.'
-      );
-    }
-    if (off === 0) {
-      tips.push(
-        lang === 'en'
-          ? 'No Offensive — burst damage may be inconsistent.'
-          : 'Aucun Offensive — le burst peut manquer de régularité.'
-      );
-    }
     tips.push(
       lang === 'en'
-        ? 'Equip tactic cards on each ninja — they proc when their built-in condition is met.'
-        : 'Équipez des cartes tactiques sur chaque ninja — elles se déclenchent selon leur condition.'
+        ? 'Full 14-pli shuffle — techniques plus 5 squad elements.'
+        : 'Mélange complet à 14 plis — techniques + 5 éléments d\'escouade.'
+    );
+  }
+
+  const configured = Object.values(techniques).filter((t) => t?.primary && t?.secondary).length;
+  if (configured < 3) {
+    tips.push(
+      lang === 'en'
+        ? 'Set primary/secondary technique domains on each active ninja.'
+        : 'Définissez domaines principal/secondaire sur chaque ninja actif.'
     );
   }
 
   return {
-    orderCounts: { Offensive: off, Tank: tank, Protect: prot, Normal: normal },
+    elementCount,
     label:
       lang === 'en'
-        ? `${off} Off · ${tank} Def · ${prot} Prot · ${normal} Normal`
-        : `${off} Offensive · ${tank} Défensive · ${prot} Protection · ${normal} Normal`,
+        ? `${elementCount}/5 elements · ${configured}/3 techniques`
+        : `${elementCount}/5 éléments · ${configured}/3 techniques`,
     tips,
   };
 }
@@ -358,21 +345,11 @@ export function buildSimulationVerdict({
       : `Adversaire de référence en consignes ${oppLabel}, calibré sur votre puissance (${opponentLevel}).`
   );
 
-  if (squadContext?.orderCounts) {
-    const orders = buildOrdersAdvice(squadContext.orderCounts, lang);
+  if (squadContext?.deckElements != null && squadContext.deckElements < 5) {
     factors.push(
       lang === 'en'
-        ? `Your orders: ${orders.label}.`
-        : `Vos consignes : ${orders.label}.`
-    );
-    advice.push(...orders.tips.slice(0, 2));
-  }
-
-  if (squadContext?.cardsEquipped != null && squadContext.cardsEquipped < 3) {
-    factors.push(
-      lang === 'en'
-        ? `Only ${squadContext.cardsEquipped}/3 actives have tactic cards equipped.`
-        : `Seulement ${squadContext.cardsEquipped}/3 actifs ont une carte tactique équipée.`
+        ? `Only ${squadContext.deckElements}/5 deck elements selected.`
+        : `Seulement ${squadContext.deckElements}/5 éléments de deck choisis.`
     );
   }
 

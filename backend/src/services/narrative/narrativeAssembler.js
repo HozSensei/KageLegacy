@@ -30,6 +30,7 @@ function impactLabel(degats, esquive) {
 
 function sortLogsForNarrative(logs) {
   const rank = (log) => {
+    if (log.type === 'pli' || log.type === 'relais' || log.type === 'element') return 1;
     if (log.technique_type || log.type === 'confusion' || log.type === 'skip') return 1;
     if (log.sensei_interception || log.item_smoke_save || log.type === 'item_event') return 2;
     if (log.type === 'tactic_card' && log.card_type === 'defense') return 3;
@@ -93,6 +94,30 @@ function buildTourMomentum(tourLogs, homeSensei, awaySensei, rng) {
 }
 
 function actionSpecForLog(log) {
+  if (log.type === 'pli' || log.type === 'relais' || log.type === 'element') {
+    const technique = (log.technique_type || log.technique_type_home || '').toLowerCase();
+    const damage = Number(log.degats_pv) || 0;
+    if (technique === 'médecine' || technique === 'medecine') {
+      return { actionKey: 'combat.actions.strike.medecine', reactionKey: null };
+    }
+    if (technique === 'genjutsu') {
+      return { actionKey: 'combat.actions.strike.genjutsu_success', reactionKey: null };
+    }
+    if (technique === 'ninjutsu') {
+      return {
+        actionKey: 'combat.actions.strike.ninjutsu',
+        reactionKey: damage >= 6 ? 'combat.reactions.ninjutsu_short' : null,
+      };
+    }
+    if (technique === 'taijutsu') {
+      return {
+        actionKey: 'combat.actions.strike.taijutsu',
+        reactionKey: damage >= 6 ? 'combat.reactions.taijutsu_short' : null,
+      };
+    }
+    return { actionKey: 'combat.actions.strike.taijutsu', reactionKey: null };
+  }
+
   if (log.type === 'confusion') {
     return { actionKey: 'combat.actions.confusion', reactionKey: null };
   }

@@ -79,7 +79,7 @@ const debrief = buildDebriefing(
   combatLog,
   'fr'
 );
-if (!debrief.some((d) => d.code === 'initiative')) throw new Error('debrief initiative');
+if (!debrief.some((d) => d.code === 'environment')) throw new Error('debrief environment');
 
 const denouement = narrative.segments.find((s) => s.block_type === 'denouement');
 const denouementFr = resolveSegmentText('fr', denouement);

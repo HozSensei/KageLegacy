@@ -143,9 +143,17 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 - La composition est modifiable jusqu'à **H54** (gel des 3 ninjas actifs).
 - Un ninja est **indisponible** s'il est en mission, en vente sur le marché P2P, ou si la fenêtre tactique est fermée.
 
-### Consignes individuelles
+### Deck d'opération (combat par plis)
 
-Chaque ninja actif reçoit **une consigne de combat**. C'est le levier principal en match : elle modifie le ciblage, les soins et la priorité d'attaque.
+Chaque match se joue en **14 plis** : deck mélangé de **9 cartes techniques** (3 par ninja actif : 1× principale, 2× secondaire) et **5 éléments de deck** (cartes tactiques d'escouade).
+
+- **PV max** = note globale du ninja × 10 (moyenne des 6 stats).
+- Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
+- **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
+- **Objets match** : retirés du combat ; seules les **cartes tactiques** servent d'éléments de deck (plus d'équipement match par ninja).
+- Les **consignes** restent modifiables en interface mais ne pilotent plus le moteur de combat (remplacées par le deck).
+
+### Consignes individuelles (héritage interface)
 
 | Consigne | Rôle en match | Quand l'utiliser |
 |----------|---------------|----------------|
@@ -451,20 +459,19 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 
 ### Structure d'un match
 
-- **Douze tours maximum**.
-- Chaque tour : initiative → choix de l'attaquant → cible → résolution du duel.
-- **Environnement** aléatoire (météo, terrain) avec modificateurs ; certains objets de cycle compensent les conditions défavorables.
+- **Quatorze plis maximum** (9 techniques + 5 éléments de deck, mélangés).
+- Chaque pli : révélation simultanée des cartes, comparaison de puissance, dégâts sur le propriétaire perdant.
+- **Environnement** aléatoire (météo, terrain) avec modificateurs sur les domaines concernés ; les objets « counter terrain » sont retirés.
 
-### Résolution des duels (sans formules)
+### Résolution des plis
 
-Chaque échange oppose attaquant et défenseur. Le serveur combine :
+Chaque pli oppose deux cartes (domaine vs domaine) :
 
-- les stats pertinentes (combat, vitesse, intelligence) ;
-- un **facteur aléatoire** (dés) pour éviter l'issue purement déterministe ;
-- des modificateurs : éléments, forme, composition d'équipe, traits, équipement ;
-- des événements spéciaux : **critiques**, **ratés**, **Genjutsu** (paralysie ou confusion), **soins** des ninjas en consigne Protection.
-
-Le **Sensei** peut tenter d'**intercepter un coup fatal** sur un de ses ninjas : cela consomme du chakra de match et dépend de l'Intelligence moyenne de l'escouade.
+- bonus de type +20 % (Taijutsu > Genjutsu > Ninjutsu > Taijutsu) ;
+- Intelligence/Vitesse en support selon le domaine ;
+- effets Tai (+10 % équipe au pli suivant) et Gen (−10 % adverse) ;
+- Médecine : soin si victoire, 50 % dégâts si défaite ;
+- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante).
 
 ### Conditions de victoire
 
