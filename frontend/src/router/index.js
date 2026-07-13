@@ -19,6 +19,8 @@ import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
 import SenseiProfileView from '../views/SenseiProfileView.vue'
 import ProfileRedirectView from '../views/ProfileRedirectView.vue'
 import EliteToolsView from '../views/EliteToolsView.vue'
+import ScoutReportView from '../views/ScoutReportView.vue'
+import ReconnaissanceView from '../views/ReconnaissanceView.vue'
 import AdminView from '../views/AdminView.vue'
 import { useAuthStore } from '../stores/auth'
 
@@ -40,6 +42,18 @@ const router = createRouter({
         { path: 'journal', name: 'journal', component: CycleJournalView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'journal.title' } } },
         { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
         { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
+        {
+          path: 'reconnaissance',
+          name: 'reconnaissance',
+          component: ReconnaissanceView,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.reconnaissance' } },
+        },
+        {
+          path: 'espionnage',
+          name: 'scout',
+          component: ScoutReportView,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.scout' } },
+        },
         {
           path: 'missions/recon/:missionId',
           name: 'recon-mission',

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
+import ScoutReportPanel from '../components/scout/ScoutReportPanel.vue'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 import { resolveIdentity } from '../utils/senseiIdentity.js'
 
@@ -263,91 +264,9 @@ function matchStatusLabel(status) {
       </section>
 
       <section v-if="showScout && league.scoutReport" class="mt-14">
-            <p class="section-label">{{ t('league.scoutTitle') }}</p>
-            <p
-              v-if="league.scoutReport.lockReason === 'no_recon'"
-              class="mt-4 text-xs leading-relaxed text-ink-muted"
-            >
-              {{ t('league.scoutNoRecon', { opponent: league.scoutReport.opponentName }) }}
-            </p>
-            <div v-else class="mt-4 border-l-2 border-accent-soft pl-4">
-              <p class="text-sm text-ink">
-                {{ league.scoutReport.opponentName }}
-                <span v-if="league.scoutReport.opponentIsBot" class="text-ink-faint">{{ t('league.botParen') }}</span>
-              </p>
-
-              <div v-if="league.scoutReport.historicalTendencies?.lines?.length" class="mt-4">
-                <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                  {{ t('league.scoutTendenciesTitle', { count: league.scoutReport.historicalTendencies.sampleSize }) }}
-                </p>
-                <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
-                  <li v-for="(line, i) in league.scoutReport.historicalTendencies.lines" :key="`tend-${i}`">{{ line }}</li>
-                </ul>
-              </div>
-
-              <p
-                v-if="league.scoutReport.rosterPending"
-                class="mt-4 text-xs text-ink-faint"
-              >
-                {{ t('league.scoutRosterPending') }}
-              </p>
-
-              <template v-else-if="league.scoutReport.phase === 'roster'">
-                <p
-                  v-if="league.scoutReport.tier === 'full'"
-                  class="mt-4 text-[10px] uppercase tracking-[0.14em] text-accent"
-                >
-                  {{ t('league.scoutFull', { pct: league.scoutReport.reconScorePct ?? '—' }) }}
-                </p>
-                <p
-                  v-else-if="league.scoutReport.reconOutcome === 'win'"
-                  class="mt-4 text-[10px] uppercase tracking-[0.14em] text-ink-faint"
-                >
-                  {{ t('league.scoutPartialWin', { pct: league.scoutReport.reconScorePct ?? '—' }) }}
-                </p>
-                <p v-else class="mt-4 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                  {{ t('league.scoutPartial') }}
-                </p>
-                <p class="mt-2 text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                  {{ t('league.scoutRosterTitle') }}
-                </p>
-                <ul
-                  v-if="league.scoutReport.rosterReport?.lines?.length"
-                  class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted"
-                >
-                  <li v-for="(line, i) in league.scoutReport.rosterReport.lines" :key="`roster-${i}`">{{ line }}</li>
-                </ul>
-                <ul
-                  v-if="league.scoutReport.anomalyFlags?.length"
-                  class="mt-3 space-y-1 text-xs text-amber-700/90 dark:text-amber-400/90"
-                >
-                  <li v-for="(flag, k) in league.scoutReport.anomalyFlags" :key="`flag-${k}`">{{ flag }}</li>
-                </ul>
-                <ul
-                  v-if="league.scoutReport.profiles?.length"
-                  class="mt-4 space-y-1 border-t border-line/40 pt-3 text-xs text-ink-faint"
-                >
-                  <li v-for="(profile, j) in league.scoutReport.profiles" :key="`sp-${j}`">
-                    {{ profile.artLabel }} · {{ t('dossier.potential', { level: profile.potentialHint }) }}
-                  </li>
-                </ul>
-                <div v-if="league.scoutReport.deckReport?.lines?.length" class="mt-6 border-t border-line/50 pt-4">
-                  <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                    {{ t('league.opponentDeck') }}
-                  </p>
-                  <p v-if="league.scoutReport.deckPending" class="mt-1 text-[10px] text-amber-700/90 dark:text-amber-400/90">
-                    {{ t('league.deckPending') }}
-                  </p>
-                  <p v-else-if="league.scoutReport.deckFrozen" class="mt-1 text-[10px] text-accent">
-                    {{ t('league.deckFrozen') }}
-                  </p>
-                  <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
-                    <li v-for="(line, k) in league.scoutReport.deckReport.lines" :key="`deck-${k}`">{{ line }}</li>
-                  </ul>
-                </div>
-              </template>
-            </div>
-          </section>
+        <p class="section-label">{{ t('league.scoutTitle') }}</p>
+        <ScoutReportPanel class="mt-4" :scout-report="league.scoutReport" compact />
+      </section>
     </template>
   </div>
 </template>
