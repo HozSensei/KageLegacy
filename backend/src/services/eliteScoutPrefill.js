@@ -24,7 +24,7 @@ function mapTechniqueSlugsByNinja(deckReport) {
     (slot.techniques || [])
       .map((t) => t.slug)
       .filter((slug) => slug && known.has(slug))
-      .slice(0, 3)
+      .slice(0, 1)
   );
   if (fromSlots.some((row) => row.length)) return fromSlots;
 
@@ -61,15 +61,15 @@ function buildSummary(scoutReport, deckReport, config, lang) {
 
   if (lang === 'en') {
     if (tier === 'full') {
-      return `Filled from full scout report on ${opponent} (${techniques}/9 technique cards).`;
+      return `Filled from full scout report on ${opponent} (${techniques}/3 inventory technique cards).`;
     }
-    return `Filled from partial scout on ${opponent} — estimated techniques (${techniques}/9 cards).`;
+    return `Filled from partial scout on ${opponent} — estimated techniques (${techniques}/3 cards).`;
   }
 
   if (tier === 'full') {
-    return `Pré-rempli depuis le rapport complet sur ${opponent} (${techniques}/9 cartes technique).`;
+    return `Pré-rempli depuis le rapport complet sur ${opponent} (${techniques}/3 cartes technique inventaire).`;
   }
-  return `Pré-rempli depuis le scout partiel sur ${opponent} — techniques estimées (${techniques}/9 cartes).`;
+  return `Pré-rempli depuis le scout partiel sur ${opponent} — techniques estimées (${techniques}/3 cartes).`;
 }
 
 export async function getScoutMatchupPrefill(userId, locale = 'fr') {

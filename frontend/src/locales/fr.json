@@ -560,14 +560,23 @@
     },
     "deck": {
       "title": "Deck d'opération",
-      "lead": "Assignez jusqu'à 3 cartes technique par ninja actif (9 max). Deck mélangé — 14 plis par match, relais si emplacements vides.",
-      "techniquesTitle": "Cartes technique par ninja",
-      "techniqueSlot": "Carte {n}",
+      "lead": "Par ninja actif : 1 carte technique inventaire + 2× stat primaire + 3× stat secondaire. 18 plis par match — relais si emplacements vides.",
+      "perNinjaTitle": "Composition par ninja",
+      "techniqueSlot": "Carte technique",
+      "primary": "Carte stat principale",
+      "secondary": "Carte stat secondaire",
       "emptySlot": "— Aucune —",
       "charges": "charges",
-      "autoFill": "Emplacements vides comblés par des cartes relais en match (14 plis garantis).",
+      "autoFill": "Emplacements vides comblés par des cartes relais en match.",
+      "autoFillTechnique": "Carte technique non assignée — relais en match.",
       "save": "Enregistrer le deck",
-      "locked": "Deck verrouillé — opération en cours."
+      "locked": "Deck verrouillé — opération en cours.",
+      "domains": {
+        "taijutsu": "Taijutsu",
+        "ninjutsu": "Ninjutsu",
+        "genjutsu": "Genjutsu",
+        "medecine": "Médecine"
+      }
     }
   },
   "elements": {

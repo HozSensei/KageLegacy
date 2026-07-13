@@ -145,7 +145,7 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 
 ### Deck d'opération (combat par plis)
 
-Chaque match se joue en **14 plis** : deck mélangé de **jusqu'à 9 cartes technique ninja** (3 par ninja actif, assignées individuellement) + **relais** si emplacements vides.
+Chaque match se joue en **18 plis** : deck mélangé de **6 cartes par ninja actif** — **1 carte technique inventaire** + **2× carte stat primaire** + **3× carte stat secondaire** (domaines taijutsu, ninjutsu, genjutsu, médecine) + **relais** si emplacements vides.
 
 - **PV max** = note globale du ninja × 10 (moyenne des 6 stats).
 - Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
@@ -189,7 +189,7 @@ Les **traits** modifient ce tableau : un **Égoïste** ignore parfois le ciblage
 
 ### Cartes technique ninja
 
-Chaque ninja actif reçoit **jusqu'à 3 cartes technique** (Escouade → deck d'opération).
+Chaque ninja actif compose **6 cartes** dans le deck d'opération : **1 carte technique inventaire** + **2 exemplaires** de la stat primaire + **3 exemplaires** de la stat secondaire.
 
 | Règle | Détail |
 |-------|--------|
@@ -474,7 +474,7 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 
 ### Structure d'un match
 
-- **Quatorze plis maximum** (9 techniques + 5 éléments de deck, mélangés).
+- **Dix-huit plis maximum** (6 cartes × 3 ninjas actifs, mélangées).
 - Chaque pli : révélation simultanée des cartes, comparaison de puissance, dégâts sur le propriétaire perdant.
 - **Environnement** aléatoire (météo, terrain) avec modificateurs sur les domaines concernés ; les objets « counter terrain » sont retirés.
 
@@ -486,13 +486,13 @@ Chaque pli oppose deux cartes (domaine vs domaine) :
 - Intelligence/Vitesse en support selon le domaine ;
 - effets Tai (+10 % équipe au pli suivant) et Gen (−10 % adverse) ;
 - Médecine : soin si victoire, 50 % dégâts si défaite ;
-- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante) **ou** si le deck est incomplet (techniques non enregistrées, éléments manquants) — le match comble toujours jusqu'à **14 plis**.
+- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante) **ou** si le deck est incomplet (technique non assignée, domaines non enregistrés).
 
 ### Conditions de victoire
 
 1. **K.O. immédiat** : si tous les actifs d'une équipe sont à terre (PV ou chakra épuisé), l'adversaire gagne sur-le-champ.
 
-2. **Fin des plis** : si aucune équipe n'est totalement éliminée après les 14 plis joués, le vainqueur est celui qui a le plus de **PV d'équipe restants** ; à égalité, celui qui a remporté le plus de **plis**.
+2. **Fin des plis** : si aucune équipe n'est totalement éliminée après les 18 plis joués, le vainqueur est celui qui a le plus de **PV d'équipe restants** ; à égalité, celui qui a remporté le plus de **plis**.
 
 Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne détermine pas** seul le vainqueur (les PV restants priment).
 

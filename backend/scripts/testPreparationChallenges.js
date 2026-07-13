@@ -41,16 +41,16 @@ const ninjas = [
 ];
 
 const operationDeck = {
-  techniqueCount: 9,
+  techniqueCount: 3,
   techniqueSlotsByNinjaId: {
-    1: [1, 2, 3],
-    2: [4, 5, 6],
-    3: [7, 8, 9],
+    1: [1],
+    2: [2],
+    3: [3],
   },
 };
 
 const result = buildPreparationChallenges({ ninjas, operationDeck, locale: 'fr' });
-console.assert(result.challenges.length >= 3, 'challenges générés');
+console.assert(result.challenges.length >= 1, 'challenges générés');
 console.assert(result.summary.done >= 2, 'majorité validée');
 console.assert(
   result.challenges.some((c) => c.id === 'deck_techniques' && c.status === 'done'),

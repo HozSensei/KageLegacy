@@ -2,6 +2,9 @@ import { query } from '../config/database.js';
 import { isTacticsLocked } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 import { TECHNIQUE_SLOTS_PER_NINJA, canAssignTechniqueToNinja } from './tacticCards/tacticCardCatalog.js';
+import { defaultTechniquesForFighter } from './combat/pli/deckBuilder.js';
+import { applyFormeToStats } from './combat/forme.js';
+import { CARDS_PER_NINJA, PRIMARY_STAT_COPIES, SECONDARY_STAT_COPIES } from './combat/pli/constants.js';
 
 function parseJson(value, fallback) {
   if (!value) return fallback;
@@ -65,7 +68,7 @@ async function resolveSeasonCycle(userId, seasonCycle = null) {
 
 async function loadActiveNinjas(userId) {
   return query(
-    `SELECT id, name, element_affinity FROM ninjas
+    `SELECT * FROM ninjas
      WHERE user_id = ? AND squad_position IS NOT NULL
      ORDER BY squad_position`,
     [userId]
@@ -77,6 +80,20 @@ function normalizeSlotIds(rawIds = []) {
     .slice(0, TECHNIQUE_SLOTS_PER_NINJA)
     .map(Number)
     .filter(Boolean);
+}
+
+export function filterTechniquesForActiveSquad(techniquesJson, activeNinjaIds) {
+  const active = new Set(activeNinjaIds.map((id) => String(id)));
+  const out = {};
+  for (const [key, value] of Object.entries(techniquesJson || {})) {
+    if (!active.has(String(key))) continue;
+    if (!value?.primary && !value?.secondary) continue;
+    out[key] = {
+      primary: value.primary,
+      secondary: value.secondary,
+    };
+  }
+  return out;
 }
 
 export function filterTechniqueSlotsForActiveSquad(slotsJson, activeNinjaIds) {
@@ -129,8 +146,20 @@ async function filterValidTechniqueSlots(userId, slotsJson, ninjas) {
   return out;
 }
 
+function countConfiguredPlis(ninjas, techniqueSlotsByNinjaId, rawTechniques) {
+  let count = 0;
+  for (const ninja of ninjas) {
+    const slots = techniqueSlotsByNinjaId[ninja.id] || [];
+    if (slots.length) count += 1;
+    const saved = rawTechniques[String(ninja.id)] || rawTechniques[ninja.id];
+    if (saved?.primary) count += PRIMARY_STAT_COPIES;
+    if (saved?.secondary) count += SECONDARY_STAT_COPIES;
+  }
+  return count;
+}
+
 /**
- * Recopie le deck du cycle précédent (cartes avec charges, ninjas encore actifs).
+ * Recopie le deck du cycle précédent (techniques + cartes inventaire avec charges).
  */
 export async function ensureOperationDeckFromPreviousCycle(userId, targetCycle) {
   if (!targetCycle || targetCycle <= 1) return null;
@@ -142,27 +171,30 @@ export async function ensureOperationDeckFromPreviousCycle(userId, targetCycle) 
   if (existing[0]) return null;
 
   const prevRows = await query(
-    'SELECT technique_slots_json FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
+    'SELECT techniques_json, technique_slots_json FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
     [userId, targetCycle - 1]
   );
   if (!prevRows[0]) return null;
 
+  const prevTechniques = parseJson(prevRows[0].techniques_json, {});
   const prevSlots = parseJson(prevRows[0].technique_slots_json, {});
   const ninjas = await loadActiveNinjas(userId);
   const activeIds = ninjas.map((n) => n.id);
+  const techniques = filterTechniquesForActiveSquad(prevTechniques, activeIds);
   const filtered = filterTechniqueSlotsForActiveSquad(prevSlots, activeIds);
   const techniqueSlots = await filterValidTechniqueSlots(userId, filtered, ninjas);
 
   await query(
     `INSERT INTO operation_decks (user_id, season_cycle, techniques_json, element_card_ids_json, technique_slots_json)
-     VALUES (?, ?, '{}', '[]', ?)`,
-    [userId, targetCycle, JSON.stringify(techniqueSlots)]
+     VALUES (?, ?, ?, '[]', ?)`,
+    [userId, targetCycle, JSON.stringify(techniques), JSON.stringify(techniqueSlots)]
   );
 
-  const cardCount = Object.values(techniqueSlots).reduce((sum, ids) => sum + ids.length, 0);
+  const inventoryCount = Object.values(techniqueSlots).reduce((sum, ids) => sum + ids.length, 0);
   return {
     fromCycle: targetCycle - 1,
-    techniqueCount: cardCount,
+    techniqueCount: inventoryCount,
+    domainNinjaCount: Object.keys(techniques).length,
     ninjaCount: Object.keys(techniqueSlots).length,
   };
 }
@@ -176,13 +208,6 @@ export async function carryOperationDecksForPool(poolId, newCycle) {
     if (carried) results.push({ userId: row.user_id, ...carried });
   }
   return results;
-}
-
-function countAssignedCards(slotsJson) {
-  return Object.values(slotsJson || {}).reduce(
-    (sum, ids) => sum + normalizeSlotIds(Array.isArray(ids) ? ids : []).length,
-    0
-  );
 }
 
 export async function getOperationDeck(userId, seasonCycle = null) {
@@ -200,11 +225,22 @@ export async function getOperationDeck(userId, seasonCycle = null) {
   }
 
   const ninjas = await loadActiveNinjas(userId);
+  const rawTechniques = parseJson(rows[0]?.techniques_json, {});
   const rawSlots = parseJson(rows[0]?.technique_slots_json, {});
+
+  const techniquesByNinjaId = {};
   const techniqueSlotsByNinjaId = {};
   const allCardIds = [];
 
   for (const ninja of ninjas) {
+    const stats = applyFormeToStats(ninja);
+    const defaults = defaultTechniquesForFighter({ stats });
+    const saved = rawTechniques[String(ninja.id)] || rawTechniques[ninja.id] || {};
+    techniquesByNinjaId[ninja.id] = {
+      primary: saved.primary || defaults.primary,
+      secondary: saved.secondary || defaults.secondary,
+    };
+
     const ids = normalizeSlotIds(rawSlots[String(ninja.id)] || rawSlots[ninja.id] || []);
     techniqueSlotsByNinjaId[ninja.id] = ids;
     allCardIds.push(...ids);
@@ -212,18 +248,27 @@ export async function getOperationDeck(userId, seasonCycle = null) {
 
   const cardsById = await loadTechniqueCardsByIds(userId, allCardIds);
   const techniqueCards = allCardIds.map((id) => cardsById[id]).filter(Boolean);
+  const inventoryCount = Object.values(techniqueSlotsByNinjaId).reduce(
+    (sum, ids) => sum + ids.length,
+    0
+  );
+  const configuredPlis = countConfiguredPlis(ninjas, techniqueSlotsByNinjaId, rawTechniques);
 
   return {
     seasonCycle: cycle,
+    rawTechniquesByNinjaId: rawTechniques,
+    techniquesByNinjaId,
     techniqueSlotsByNinjaId,
     rawTechniqueSlotsByNinjaId: rawSlots,
     techniqueCards,
-    techniqueCount: countAssignedCards(techniqueSlotsByNinjaId),
+    techniqueCount: inventoryCount,
+    configuredPlis,
+    maxPlis: ninjas.length * CARDS_PER_NINJA,
     tacticsLocked: await isTacticsLocked(),
   };
 }
 
-export async function saveOperationDeck(userId, { techniqueSlotsByNinjaId }) {
+export async function saveOperationDeck(userId, { techniquesByNinjaId, techniqueSlotsByNinjaId }) {
   if (await isTacticsLocked()) {
     const error = new Error('Deck verrouillé pour ce cycle (H71+).');
     error.status = 403;
@@ -234,7 +279,7 @@ export async function saveOperationDeck(userId, { techniqueSlotsByNinjaId }) {
   const ninjaById = Object.fromEntries(ninjas.map((n) => [String(n.id), n]));
   const input = techniqueSlotsByNinjaId || {};
   const used = new Set();
-  const sanitized = {};
+  const sanitizedSlots = {};
 
   for (const [ninjaKey, rawIds] of Object.entries(input)) {
     const ninja = ninjaById[String(ninjaKey)];
@@ -272,15 +317,28 @@ export async function saveOperationDeck(userId, { techniqueSlotsByNinjaId }) {
       kept.push(id);
       used.add(id);
     }
-    sanitized[String(ninja.id)] = kept;
+    sanitizedSlots[String(ninja.id)] = kept;
+  }
+
+  const techniques = {};
+  for (const [ninjaKey, picks] of Object.entries(techniquesByNinjaId || {})) {
+    const ninja = ninjaById[String(ninjaKey)];
+    if (!ninja || !picks) continue;
+    if (!picks.primary && !picks.secondary) continue;
+    techniques[String(ninja.id)] = {
+      primary: picks.primary,
+      secondary: picks.secondary,
+    };
   }
 
   const cycle = await resolveSeasonCycle(userId);
   await query(
     `INSERT INTO operation_decks (user_id, season_cycle, techniques_json, element_card_ids_json, technique_slots_json)
-     VALUES (?, ?, '{}', '[]', ?)
-     ON DUPLICATE KEY UPDATE technique_slots_json = VALUES(technique_slots_json)`,
-    [userId, cycle, JSON.stringify(sanitized)]
+     VALUES (?, ?, ?, '[]', ?)
+     ON DUPLICATE KEY UPDATE
+       techniques_json = VALUES(techniques_json),
+       technique_slots_json = VALUES(technique_slots_json)`,
+    [userId, cycle, JSON.stringify(techniques), JSON.stringify(sanitizedSlots)]
   );
 
   return getOperationDeck(userId, cycle);
@@ -294,6 +352,8 @@ export function deckConfigForCombat(deck) {
   );
 
   return {
+    techniquesByNinjaId: deck.techniquesByNinjaId,
+    rawTechniquesByNinjaId: deck.rawTechniquesByNinjaId ?? {},
     techniqueSlotsByNinjaId,
     techniqueCardsById,
   };

@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
+import { DOMAIN_LABELS, TECHNIQUE_CARDS_PER_NINJA, PRIMARY_STAT_COPIES, SECONDARY_STAT_COPIES } from './combat/pli/constants.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
@@ -12,11 +12,16 @@ function parseJson(value) {
   return typeof value === 'string' ? JSON.parse(value) : value;
 }
 
-function countDomainsFromCards(cards = []) {
+function countDomainsFromDeck(deck, ninjas) {
   const counts = { taijutsu: 0, ninjutsu: 0, genjutsu: 0, medecine: 0 };
-  for (const card of cards) {
+  for (const card of deck.techniqueCards || []) {
     const domain = card.statType || card.stat_type;
     if (domain) counts[domain] = (counts[domain] || 0) + 1;
+  }
+  for (const ninja of ninjas) {
+    const domains = deck.techniquesByNinjaId?.[ninja.id];
+    if (domains?.primary) counts[domains.primary] = (counts[domains.primary] || 0) + PRIMARY_STAT_COPIES;
+    if (domains?.secondary) counts[domains.secondary] = (counts[domains.secondary] || 0) + SECONDARY_STAT_COPIES;
   }
   return counts;
 }
@@ -43,7 +48,7 @@ export async function buildDeckReport(opponentId, seasonCycle, ninjas, lang, tie
   const cardsById = Object.fromEntries(
     (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c])
   );
-  const domainCounts = countDomainsFromCards(deck.techniqueCards || []);
+  const domainCounts = countDomainsFromDeck(deck, ninjas);
 
   const slots = ninjas.map((ninja, index) => {
     const profile = describeNinjaProfile(ninja, lang);
@@ -57,11 +62,14 @@ export async function buildDeckReport(opponentId, seasonCycle, ninjas, lang, tie
         statType: card.statType,
         bonusPct: card.pliBonusPct,
       }));
+    const domains = deck.techniquesByNinjaId?.[ninja.id];
     return {
       slot: index + 1,
       artKey: profile.primaryArt,
       artLabel: profile.artLabel,
       techniques,
+      primaryDomain: domains?.primary,
+      secondaryDomain: domains?.secondary,
     };
   });
 
@@ -96,8 +104,8 @@ export async function buildDeckReport(opponentId, seasonCycle, ninjas, lang, tie
 
   lines.push(
     lang === 'en'
-      ? `Operation deck: ${techniqueCount}/${maxTechniques} ninja technique cards.`
-      : `Deck d'opération : ${techniqueCount}/${maxTechniques} cartes technique ninja.`
+      ? `Operation deck: ${techniqueCount}/${maxTechniques} inventory technique cards · 18 pli.`
+      : `Deck d'opération : ${techniqueCount}/${maxTechniques} cartes technique inventaire · 18 plis.`
   );
   const summary = domainSummaryLines(domainCounts, lang);
   if (summary.length) {
@@ -118,8 +126,8 @@ export async function buildDeckReport(opponentId, seasonCycle, ninjas, lang, tie
     }
     lines.push(
       lang === 'en'
-        ? `Slot ${slot.slot} (${slot.artLabel}): ${slot.techniques.map((t) => t.name).join(', ')}.`
-        : `Emplacement ${slot.slot} (${slot.artLabel}) : ${slot.techniques.map((t) => t.name).join(', ')}.`
+        ? `Slot ${slot.slot} (${slot.artLabel}): ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}.`
+        : `Emplacement ${slot.slot} (${slot.artLabel}) : ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}.`
     );
   }
 

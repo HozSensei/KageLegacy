@@ -144,7 +144,7 @@ Morale (internal scale) affects squad stability. It drops notably on Chunin exam
 
 ### Operation deck (pli combat)
 
-Each match plays out in **14 plis**: a shuffled deck of **9 technique cards** (3 per active ninja: 1× primary, 2× secondary) and **5 deck elements** (squad tactic cards).
+Each match plays out in **18 pli**: a shuffled deck of **6 cards per active ninja** — **1 inventory technique card** + **2× primary stat** + **3× secondary stat** (taijutsu, ninjutsu, genjutsu, medicine domains) + **relays** if slots are empty.
 
 - **Max HP** = ninja overall grade × 10 (average of 6 stats).
 - Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
@@ -190,7 +190,7 @@ From **H36**, **scouting** reveals hints about the opponent (arts, spotted order
 
 ### Ninja technique cards
 
-Each active ninja gets **up to 3 technique cards** (Squad → operation deck).
+Each active ninja contributes **6 cards** to the operation deck: **1 inventory technique card** + **2 copies** of the primary stat + **3 copies** of the secondary stat.
 
 | Rule | Detail |
 |------|--------|
@@ -467,7 +467,7 @@ A Sensei can generate an **invitation link** to their pool to recruit allies in 
 
 ### Match structure
 
-- **Fourteen plis maximum** (9 techniques + 5 deck elements, shuffled).
+- **Eighteen pli maximum** (6 cards × 3 active ninjas, shuffled).
 - Each pli: simultaneous card reveal, power comparison, damage to the losing card's owner.
 - **Random environment** (weather, terrain) with modifiers on relevant domains; terrain-counter items removed.
 
@@ -479,13 +479,13 @@ Each pli pits two cards (domain vs domain):
 - Intelligence/Speed as support depending on domain;
 - Tai effects (+10% team next pli) and Gen (−10% enemy);
 - Medicine: heal on win, 50% damage on loss;
-- **Relay** cards if the owner is K.O. (random proxy, dominant stat) **or** if the deck is incomplete (techniques not saved, missing elements) — the match always pads to **14 plis**.
+- **Relay** cards if the owner is K.O. (random proxy, dominant stat) **or** if the deck is incomplete (technique not assigned, domains not saved).
 
 ### Victory conditions
 
 1. **Immediate K.O.**: if all actives on a team are down (HP or chakra depleted), the opponent wins outright.
 
-2. **End of plis**: if neither team is fully eliminated after all 14 plis, the winner is whoever has the most **team HP remaining**; on a tie, whoever won the most **plis**.
+2. **End of plis**: if neither team is fully eliminated after all 18 pli, the winner is whoever has the most **team HP remaining**; on a tie, whoever won the most **plis**.
 
 The **plis won** ratio feeds narration and debrief — it does **not** alone determine the winner (remaining HP takes priority).
 

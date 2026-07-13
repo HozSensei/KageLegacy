@@ -1,7 +1,14 @@
 /** Combat par plis — constantes v1 */
 
-export const MAX_PLIS = 14;
-export const TECHNIQUE_CARDS_PER_NINJA = 3;
+export const MAX_PLIS = 18;
+/** Cartes technique inventaire (nommées) par ninja actif. */
+export const TECHNIQUE_CARDS_PER_NINJA = 1;
+/** Copies de la carte stat primaire dans le deck mélangé. */
+export const PRIMARY_STAT_COPIES = 2;
+/** Copies de la carte stat secondaire dans le deck mélangé. */
+export const SECONDARY_STAT_COPIES = 3;
+export const STAT_CARDS_PER_NINJA = PRIMARY_STAT_COPIES + SECONDARY_STAT_COPIES;
+export const CARDS_PER_NINJA = TECHNIQUE_CARDS_PER_NINJA + STAT_CARDS_PER_NINJA;
 
 export const DOMAINS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
 
