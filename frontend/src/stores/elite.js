@@ -164,14 +164,20 @@ export const useEliteStore = defineStore('elite', () => {
     }
   }
 
-  async function simulateMatchup(opponentComposition, opponentLevel = 'similar', runs = 100) {
+  async function simulateMatchup(opponentComposition, opponentLevel = 'similar', runs = 100, opponentDeck = null) {
     if (!subscription.value?.isActive) {
       throw new Error('Pack Élite requis.')
+    }
+    const body = { opponentLevel, runs }
+    if (opponentDeck) {
+      body.opponentDeck = opponentDeck
+    } else {
+      body.opponentProfile = opponentComposition
     }
     const res = await fetch(`${API_BASE}/api/elite/tools/matchup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ opponentComposition, opponentLevel, runs }),
+      body: JSON.stringify(body),
     })
     if (!res.ok) throw new Error(await readApiError(res))
     lastMatchup.value = await res.json()

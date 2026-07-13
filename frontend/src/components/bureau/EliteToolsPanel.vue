@@ -13,14 +13,19 @@ defineProps({
 const { t } = useI18n()
 const elite = useEliteStore()
 
-const opponentComp = ref('complete')
 const opponentLevel = ref('similar')
+const customSlots = ref([])
+const customElementSlugs = ref([])
 const simulating = ref(false)
 const simError = ref(null)
+const prefillMessage = ref(null)
+
+const scoutPrefill = computed(() => tools.value?.scoutPrefill)
 
 const isActive = computed(() => Boolean(elite.subscription?.isActive))
 const tools = computed(() => elite.tools)
 const matchup = computed(() => elite.lastMatchup)
+const builder = computed(() => tools.value?.matchupBuilder)
 
 const verdictToneClass = computed(() => {
   const tone = matchup.value?.verdict?.tone
@@ -30,6 +35,48 @@ const verdictToneClass = computed(() => {
 })
 
 const rulesCompLink = { path: '/rules', hash: '#cartes-tactiques' }
+
+function domainLabel(key) {
+  return t(`squad.deck.domains.${key}`, key)
+}
+
+function initCustomDeckFromBuilder() {
+  const b = builder.value
+  if (!b) return
+  customSlots.value = (b.defaultSlots || []).map((slot) => ({ ...slot }))
+  customElementSlugs.value = [...(b.defaultElementSlugs || [])]
+}
+
+function fillPreset(profile) {
+  const preset = builder.value?.presets?.[profile]
+  if (!preset) return
+  customSlots.value = preset.slots.map((slot) => ({ ...slot }))
+  customElementSlugs.value = [...(preset.elementSlugs || [])]
+  prefillMessage.value = null
+}
+
+function fillFromScout() {
+  const prefill = scoutPrefill.value
+  if (!prefill?.available || !prefill.config) return
+  customSlots.value = prefill.config.slots.map((slot) => ({ ...slot }))
+  customElementSlugs.value = [...(prefill.config.elementSlugs || [])]
+  prefillMessage.value = prefill.summary
+}
+
+function scoutUnavailableHint() {
+  const reason = scoutPrefill.value?.reason
+  if (!reason) return ''
+  const key = `eliteTools.scoutPrefillUnavailable.${reason}`
+  const translated = t(key, { opponent: scoutPrefill.value?.opponentName ?? '—' })
+  return translated === key ? reason : translated
+}
+
+function toggleElement(slug) {
+  const set = new Set(customElementSlugs.value)
+  if (set.has(slug)) set.delete(slug)
+  else if (set.size < (builder.value?.maxElements ?? 5)) set.add(slug)
+  customElementSlugs.value = [...set]
+}
 
 onMounted(async () => {
   if (!elite.subscription) await elite.fetchElite()
@@ -43,11 +90,26 @@ watch(
   { immediate: true }
 )
 
+watch(
+  () => builder.value,
+  () => {
+    if (!customSlots.value.length) initCustomDeckFromBuilder()
+  },
+  { immediate: true }
+)
+
 async function runMatchup() {
   simulating.value = true
   simError.value = null
   try {
-    await elite.simulateMatchup(opponentComp.value, opponentLevel.value)
+    await elite.simulateMatchup(null, opponentLevel.value, 100, {
+      slots: customSlots.value.map((slot) => ({
+        configured: Boolean(slot.configured),
+        primary: slot.primary,
+        secondary: slot.secondary,
+      })),
+      elementSlugs: [...customElementSlugs.value],
+    })
   } catch (e) {
     simError.value = e.message
   } finally {
@@ -151,23 +213,115 @@ async function runMatchup() {
         >
           {{ t('eliteTools.rulesCompLink') }}
         </RouterLink>
-        <div class="mt-3 flex flex-wrap items-end gap-3">
-          <label class="text-xs">
-            <span class="text-ink-muted">{{ t('eliteTools.opponentProfile') }}</span>
-            <select
-              v-model="opponentComp"
-              class="mt-1 block border border-line bg-bg px-3 py-2 text-sm text-ink"
-              data-testid="elite-matchup-select"
-            >
-              <option
-                v-for="c in (tools.opponentProfileOptions ?? tools.opponentStyleOptions ?? tools.compositionOptions)"
-                :key="c.value ?? c"
-                :value="c.value ?? c"
+        <div class="mt-4 space-y-6 border border-line/60 p-4" data-testid="elite-matchup-builder">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              {{ t('eliteTools.customDeckTitle') }}
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="border border-accent/50 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-accent hover:bg-accent/10"
+                :disabled="!scoutPrefill?.available"
+                data-testid="elite-matchup-scout-prefill"
+                @click="fillFromScout"
               >
-                {{ c.label ?? c }}
-              </option>
-            </select>
-          </label>
+                {{ t('eliteTools.fillFromScout') }}
+              </button>
+              <button
+                v-for="preset in tools.opponentProfileOptions"
+                :key="preset.value"
+                type="button"
+                class="border border-line px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-ink-muted hover:border-accent hover:text-accent"
+                @click="fillPreset(preset.value)"
+              >
+                {{ preset.label }}
+              </button>
+            </div>
+          </div>
+          <p v-if="prefillMessage" class="text-[11px] text-water">{{ prefillMessage }}</p>
+          <p v-else-if="!scoutPrefill?.available && scoutPrefill?.reason" class="text-[11px] text-ink-faint">
+            {{ scoutUnavailableHint() }}
+          </p>
+
+          <ul v-if="customSlots.length" class="space-y-3">
+            <li
+              v-for="(slot, index) in customSlots"
+              :key="`slot-${index}`"
+              class="border border-line/50 p-3 text-xs"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <p class="font-medium text-ink">
+                  {{ t('eliteTools.opponentSlot', { n: index + 1 }) }}
+                </p>
+                <label class="flex items-center gap-2 text-ink-muted">
+                  <input v-model="slot.configured" type="checkbox" />
+                  {{ t('eliteTools.techniquesConfigured') }}
+                </label>
+              </div>
+              <div v-if="slot.configured" class="mt-3 grid gap-3 sm:grid-cols-2">
+                <label class="text-ink-muted">
+                  {{ t('squad.deck.primary') }}
+                  <select
+                    v-model="slot.primary"
+                    class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm text-ink"
+                  >
+                    <option
+                      v-for="domain in builder?.domainOptions"
+                      :key="`p-${index}-${domain.value}`"
+                      :value="domain.value"
+                    >
+                      {{ domainLabel(domain.value) }}
+                    </option>
+                  </select>
+                </label>
+                <label class="text-ink-muted">
+                  {{ t('squad.deck.secondary') }}
+                  <select
+                    v-model="slot.secondary"
+                    class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm text-ink"
+                  >
+                    <option
+                      v-for="domain in builder?.domainOptions"
+                      :key="`s-${index}-${domain.value}`"
+                      :value="domain.value"
+                    >
+                      {{ domainLabel(domain.value) }}
+                    </option>
+                  </select>
+                </label>
+              </div>
+              <p v-else class="mt-2 text-ink-faint">{{ t('eliteTools.relaisSlotHint') }}</p>
+            </li>
+          </ul>
+
+          <div>
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              {{ t('eliteTools.opponentElements', { count: builder?.maxElements ?? 5 }) }}
+            </p>
+            <ul class="mt-2 flex flex-wrap gap-2">
+              <li v-for="element in builder?.elementOptions" :key="element.slug">
+                <button
+                  type="button"
+                  class="border px-2 py-1 text-[11px]"
+                  :class="
+                    customElementSlugs.includes(element.slug)
+                      ? 'border-accent text-accent'
+                      : 'border-line text-ink-muted'
+                  "
+                  @click="toggleElement(element.slug)"
+                >
+                  {{ element.label }}
+                </button>
+              </li>
+            </ul>
+            <p class="mt-2 text-[11px] text-ink-faint">
+              {{ t('eliteTools.elementPickCount', { n: customElementSlugs.length, max: builder?.maxElements ?? 5 }) }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-end gap-3">
           <label class="text-xs">
             <span class="text-ink-muted">{{ t('eliteTools.opponentLevel') }}</span>
             <select
@@ -183,6 +337,9 @@ async function runMatchup() {
                 {{ lvl.label }}
               </option>
             </select>
+            <span class="mt-1 block max-w-xs text-[10px] leading-relaxed text-ink-faint">
+              {{ t('eliteTools.levelHint') }}
+            </span>
           </label>
           <button
             type="button"
