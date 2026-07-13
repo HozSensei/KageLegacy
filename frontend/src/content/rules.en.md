@@ -190,7 +190,7 @@ From **H36**, **scouting** reveals hints about the opponent (arts, spotted order
 
 ### Tactic cards
 
-Each active ninja can equip **one tactic card** (inventory → equip). Cards replaced the old composition circle (Assault / Wall / Flow): they add situational effects in combat.
+Each squad picks **up to 5 tactic cards** as **deck elements** (Squad screen → operation deck, or Inventory → add to deck). This replaces the old “one card per ninja” equip flow.
 
 | Rule | Detail |
 |------|--------|
