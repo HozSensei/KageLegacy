@@ -18,9 +18,9 @@ async function loadTechniqueCardsByIds(userId, cardIds = []) {
   if (!ids.length) return {};
   const placeholders = ids.map(() => '?').join(',');
   const rows = await query(
-    `SELECT utc.id AS user_tactic_card_id, utc.charges_remaining,
+    `SELECT utc.id AS user_tactic_card_id, utc.charges_remaining, utc.pli_bonus_pct,
             tcd.slug, tcd.name_fr, tcd.name_en, tcd.stat_type, tcd.pli_secondary_stat,
-            tcd.pli_bonus_pct, tcd.card_type, tcd.element_affinity, tcd.rarity
+            tcd.pli_bonus_min, tcd.pli_bonus_max, tcd.card_type, tcd.element_affinity, tcd.rarity
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE utc.user_id = ? AND utc.id IN (${placeholders}) AND utc.charges_remaining > 0`,
@@ -36,6 +36,8 @@ async function loadTechniqueCardsByIds(userId, cardIds = []) {
       statType: row.stat_type,
       pliSecondaryStat: row.pli_secondary_stat,
       pliBonusPct: Number(row.pli_bonus_pct),
+      pliBonusMin: Number(row.pli_bonus_min),
+      pliBonusMax: Number(row.pli_bonus_max),
       cardType: row.card_type,
       elementAffinity: row.element_affinity,
       rarity: row.rarity,

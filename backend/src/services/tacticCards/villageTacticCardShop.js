@@ -30,7 +30,8 @@ export async function getVillageTacticCardOffers(userId) {
   const rows = await query(
     `SELECT vscs.id AS stock_id, vscs.stock_remaining,
             tcd.slug, tcd.name_fr, tcd.name_en, tcd.description_fr, tcd.description_en,
-            tcd.rarity, tcd.card_type, tcd.stat_type, tcd.pli_secondary_stat, tcd.pli_bonus_pct,
+            tcd.rarity, tcd.card_type, tcd.stat_type, tcd.pli_secondary_stat,
+            tcd.pli_bonus_min, tcd.pli_bonus_max,
             tcd.element_affinity, tcd.catalog_price
      FROM village_shop_card_stock vscs
      JOIN tactic_card_definitions tcd ON tcd.id = vscs.tactic_card_definition_id
@@ -58,7 +59,8 @@ export async function getVillageTacticCardOffers(userId) {
         cardType: row.card_type,
         statType: row.stat_type,
         pliSecondaryStat: row.pli_secondary_stat,
-        pliBonusPct: Number(row.pli_bonus_pct),
+        pliBonusMin: Number(row.pli_bonus_min),
+        pliBonusMax: Number(row.pli_bonus_max),
         elementAffinity: row.element_affinity,
         basePrice,
         heritageDiscountPct: heritage.matchShopDiscountPct,

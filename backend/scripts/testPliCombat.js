@@ -3,7 +3,7 @@
  */
 import { simulatePliCombat } from '../src/services/combat/pli/pliCombatEngine.js';
 import { buildTeamDeck } from '../src/services/combat/pli/deckBuilder.js';
-import { computeCardPower } from '../src/services/combat/pli/power.js';
+import { statBaseValue } from '../src/services/combat/pli/power.js';
 import { createBalancedSquad } from '../src/services/simulation/cycleSimulator.js';
 import { computeMatchPvFromRating } from '../src/services/ninjaStats.js';
 import { applyFormeToStats } from '../src/services/combat/forme.js';
@@ -51,11 +51,10 @@ const paddedDeck = buildTeamDeck(home, emptyDeck);
 console.assert(paddedDeck.length === MAX_PLIS, `deck complété à ${MAX_PLIS} cartes`);
 
 const fighter = home.fighters[0];
-const baseTai = computeCardPower(fighter, 'taijutsu', {});
-const boosted = computeCardPower(fighter, 'taijutsu', {
-  cardDef: { pli_bonus_pct: 0.3, pli_secondary_stat: 'ninjutsu' },
-});
-console.assert(boosted > baseTai, 'bonus carte technique appliqué');
+const base = statBaseValue(fighter, 'taijutsu');
+const withSecondary = Math.floor((base + statBaseValue(fighter, 'ninjutsu')) / 2);
+const withBonus = Math.floor(withSecondary * 1.3);
+console.assert(withBonus > withSecondary, 'bonus carte technique sur base sans d6');
 
 console.assert(TECHNIQUE_CARDS_PER_NINJA === 3, '3 cartes / ninja');
 

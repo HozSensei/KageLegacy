@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { formatInstanceBonusPct } from '../../utils/techniqueCardBonus.js'
 
 const SLOTS_PER_NINJA = 3
 
@@ -21,7 +22,7 @@ const saving = ref(false)
 const canEdit = computed(() => props.deck && !props.deck.tacticsLocked)
 
 function cardLabel(card) {
-  const bonus = card.pliBonusPct != null ? ` +${Math.round(card.pliBonusPct * 100)}%` : ''
+  const bonus = card.pliBonusPct != null ? ` ${formatInstanceBonusPct(card)}` : ''
   const element = card.elementAffinity ? ` · ${card.elementAffinity}` : ''
   return `${card.nameFr}${bonus}${element}`
 }

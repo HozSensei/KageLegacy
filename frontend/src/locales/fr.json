@@ -725,6 +725,7 @@
     "tacticCardsTitle": "Cartes technique",
     "tacticCardsHint": "10 offres par période de réassort — assignez-les par ninja en Escouade (3 max / ninja).",
     "cardChargesShop": "{count} charges",
+    "cardBonusRange": "Bonus {range} (tiré à l'achat)",
     "restock": "Prochain réassort dans {cycles} cycle(s) (tous les {every})",
     "promo": "−{pct} %",
     "promoActive": "{count} promo(s) ce cycle",
@@ -782,6 +783,7 @@
     "slotCycle": "Investissement cycle",
     "slotCard": "Carte tactique",
     "cardCharges": "{count} charge(s)",
+    "cardBonusRolled": "Bonus {bonus}",
     "cardRarity": {
       "common": "Commune",
       "rare": "Rare",

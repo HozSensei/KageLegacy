@@ -725,6 +725,7 @@
     "tacticCardsTitle": "Technique cards",
     "tacticCardsHint": "10 offers per restock period — assign per ninja in Squad (3 max / ninja).",
     "cardChargesShop": "{count} charges",
+    "cardBonusRange": "Bonus {range} (rolled on purchase)",
     "restock": "Next restock in {cycles} cycle(s) (every {every})",
     "promo": "−{pct}%",
     "promoActive": "{count} promo(s) this cycle",
@@ -782,6 +783,7 @@
     "slotCycle": "Cycle investment",
     "slotCard": "Tactic card",
     "cardCharges": "{count} charge(s)",
+    "cardBonusRolled": "Bonus {bonus}",
     "cardRarity": {
       "common": "Common",
       "rare": "Rare",

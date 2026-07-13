@@ -20,9 +20,10 @@ export function hasTypeAdvantage(attackerDomain, defenderDomain) {
   return DOMAIN_BEATS[attackerDomain] === defenderDomain;
 }
 
-export function domainBaseStat(fighter, domain) {
+/** Valeur de base d'une stat (domaine combat ou attribut brut). */
+export function statBaseValue(fighter, statKey) {
   const s = fighter.stats;
-  switch (domain) {
+  switch (statKey) {
     case 'taijutsu':
       return s.taijutsu + Math.floor(s.vitesse / 2);
     case 'ninjutsu':
@@ -31,23 +32,31 @@ export function domainBaseStat(fighter, domain) {
       return s.genjutsu + Math.floor(s.intelligence / 2);
     case 'medecine':
       return s.medecine + Math.floor(s.vitesse / 2);
+    case 'vitesse':
+      return s.vitesse ?? 0;
+    case 'intelligence':
+      return s.intelligence ?? 0;
     default:
       return 0;
   }
 }
 
+export function domainBaseStat(fighter, domain) {
+  return statBaseValue(fighter, domain);
+}
+
 /**
  * Puissance d'une carte pour un ninja donné.
- * Si cardDef est fourni (carte technique ninja), applique moyenne de stats + bonus %.
+ * Si cardDef est fourni (carte technique ninja), applique moyenne de stats + bonus % instance.
  */
 export function computeCardPower(fighter, domain, ctx = {}) {
   const { env, nextMod = 1, opponentElement, cardDef } = ctx;
-  let power = domainBaseStat(fighter, domain);
+  let power = statBaseValue(fighter, domain);
 
   if (cardDef) {
     const secondary = cardDef.pli_secondary_stat ?? cardDef.pliSecondaryStat;
     if (secondary) {
-      power = Math.floor((power + domainBaseStat(fighter, secondary)) / 2);
+      power = Math.floor((power + statBaseValue(fighter, secondary)) / 2);
     }
     const bonusPct = Number(cardDef.pli_bonus_pct ?? cardDef.pliBonusPct ?? 0);
     if (bonusPct > 0) {
@@ -102,7 +111,7 @@ export function computeMedFailDamage(fullDamage) {
 export function pickDominantDomain(fighter) {
   const domains = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
   return domains.reduce((best, d) =>
-    domainBaseStat(fighter, d) > domainBaseStat(fighter, best) ? d : best
+    statBaseValue(fighter, d) > statBaseValue(fighter, best) ? d : best
   );
 }
 

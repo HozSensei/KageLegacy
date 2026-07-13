@@ -1,5 +1,6 @@
 import { query } from '../../config/database.js';
 import { STARTER_CARD_SLUGS, TACTIC_CARD_MAX_CHARGES } from './tacticCardCatalog.js';
+import { rollTechniqueBonusPct } from './tacticCardRoll.js';
 
 export async function findCardDefinitionBySlug(slug) {
   const rows = await query('SELECT * FROM tactic_card_definitions WHERE slug = ?', [slug]);
@@ -10,15 +11,19 @@ export async function grantTacticCard(userId, slug, charges = TACTIC_CARD_MAX_CH
   const def = await findCardDefinitionBySlug(slug);
   if (!def) return null;
   const safeCharges = Math.min(TACTIC_CARD_MAX_CHARGES, Math.max(1, Number(charges) || TACTIC_CARD_MAX_CHARGES));
+  const minBonus = Number(def.pli_bonus_min ?? 0.01);
+  const maxBonus = Number(def.pli_bonus_max ?? def.pli_bonus_min ?? 0.2);
+  const rolledBonus = rollTechniqueBonusPct(minBonus, maxBonus);
   const result = await query(
-    `INSERT INTO user_tactic_cards (user_id, tactic_card_definition_id, charges_remaining)
-     VALUES (?, ?, ?)`,
-    [userId, def.id, safeCharges]
+    `INSERT INTO user_tactic_cards (user_id, tactic_card_definition_id, charges_remaining, pli_bonus_pct)
+     VALUES (?, ?, ?, ?)`,
+    [userId, def.id, safeCharges, rolledBonus]
   );
   return {
     userTacticCardId: result.insertId,
     slug,
     chargesRemaining: safeCharges,
+    pliBonusPct: rolledBonus,
     nameFr: def.name_fr,
     nameEn: def.name_en,
   };
@@ -97,7 +102,9 @@ function mapUserCard(row) {
     cardType: row.card_type,
     statType: row.stat_type,
     pliSecondaryStat: row.pli_secondary_stat,
-    pliBonusPct: row.pli_bonus_pct != null ? Number(row.pli_bonus_pct) : null,
+    pliBonusPct: row.utc_pli_bonus_pct != null ? Number(row.utc_pli_bonus_pct) : null,
+    pliBonusMin: row.pli_bonus_min != null ? Number(row.pli_bonus_min) : null,
+    pliBonusMax: row.pli_bonus_max != null ? Number(row.pli_bonus_max) : null,
     elementAffinity: row.element_affinity,
     triggerKind: row.trigger_kind,
     triggerParams: parseJsonField(row.trigger_params),
@@ -129,6 +136,7 @@ export async function getTacticCardsForUser(userId) {
        utc.tactic_card_definition_id,
        utc.charges_remaining,
        utc.acquired_at,
+       utc.pli_bonus_pct AS utc_pli_bonus_pct,
        tcd.slug,
        tcd.name_fr,
        tcd.name_en,
@@ -138,7 +146,8 @@ export async function getTacticCardsForUser(userId) {
        tcd.card_type,
        tcd.stat_type,
        tcd.pli_secondary_stat,
-       tcd.pli_bonus_pct,
+       tcd.pli_bonus_min,
+       tcd.pli_bonus_max,
        tcd.element_affinity,
        tcd.trigger_kind,
        tcd.trigger_params,

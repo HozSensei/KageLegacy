@@ -194,7 +194,8 @@ Chaque ninja actif reçoit **jusqu'à 3 cartes technique** (Escouade → deck d'
 | Règle | Détail |
 |-------|--------|
 | **Porteur** | La carte est jouée par le **ninja assigné**. |
-| **Puissance** | Stat de la carte (+ moyenne secondaire) × bonus % (+15 % générique, +30 % avec synergie élément). |
+| **Puissance** | Stat principale (+ moyenne secondaire : domaine, vitesse ou intelligence) × **bonus % unique** tiré à l'acquisition. |
+| **Bonus variable** | Communes 1–20 % · avec synergie 5–25 % · rares 15–35 % · légendaires 30–50 %. |
 | **Prérequis** | Certaines cartes exigent l'élément du porteur (ex. Lame suiton → Suiton). |
 | **Charges** | 3 charges ; consommée quand la carte est **tirée** dans un pli. |
 | **Magasin** | 10 offres / période de réassort, rotation personnalisée par joueur. |

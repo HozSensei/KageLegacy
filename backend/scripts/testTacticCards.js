@@ -8,6 +8,7 @@ import {
   grantTacticCard,
 } from '../src/services/tacticCards/tacticCardService.js';
 import { createTacticCardListing } from '../src/services/playerMarketService.js';
+import { rollTechniqueBonusPct } from '../src/services/tacticCards/tacticCardRoll.js';
 import {
   STARTER_CARD_SLUGS,
   TACTIC_CARD_MAX_CHARGES,
@@ -16,6 +17,15 @@ import {
 } from '../src/services/tacticCards/tacticCardCatalog.js';
 
 const PREFIX = `tactic_cards_${Date.now()}`;
+
+function testBonusRoll() {
+  for (let i = 0; i < 50; i += 1) {
+    const rolled = rollTechniqueBonusPct(0.01, 0.2);
+    const pct = Math.round(rolled * 100);
+    console.assert(pct >= 1 && pct <= 20, `roll in range, got ${pct}`);
+  }
+  console.assert(rollTechniqueBonusPct(0.3, 0.3) === 0.3, 'fixed min=max');
+}
 
 function testShopRotation() {
   const userA = pickShopSlugs(42, 3);
@@ -48,6 +58,7 @@ async function cleanup(userId) {
 }
 
 async function main() {
+  testBonusRoll();
   testShopRotation();
 
   const defRows = await query('SELECT COUNT(*) AS c FROM tactic_card_definitions');
@@ -70,7 +81,7 @@ async function main() {
     'starter slugs present'
   );
   console.assert(cards.every((c) => c.chargesRemaining === TACTIC_CARD_MAX_CHARGES), '3 charges each');
-  console.assert(cards[0].pliBonusPct != null, 'pli bonus exposed');
+  console.assert(cards[0].pliBonusPct != null && cards[0].pliBonusPct > 0, 'rolled bonus on grant');
 
   const dup = await ensureStarterTacticCards(userId);
   console.assert(!dup, 'no duplicate starter grant');

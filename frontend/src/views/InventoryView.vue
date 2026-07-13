@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
 import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
+import { formatInstanceBonusPct } from '../utils/techniqueCardBonus.js'
 
 const { t, locale } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -66,6 +67,11 @@ const selectedCard = computed(() =>
 
 function cardChargesLabel(card) {
   return t('inventory.cardCharges', { count: card.chargesRemaining })
+}
+
+function cardBonusLabel(card) {
+  if (card.pliBonusPct == null) return ''
+  return t('inventory.cardBonusRolled', { bonus: formatInstanceBonusPct(card) })
 }
 
 function normalizeInventory(payload) {
@@ -532,6 +538,7 @@ async function unequip(ninjaId) {
             </div>
             <p class="mt-1 text-xs text-ink-faint">
               {{ t(`inventory.cardRarity.${card.rarity}`) }} · {{ cardChargesLabel(card) }}
+              <span v-if="cardBonusLabel(card)"> · {{ cardBonusLabel(card) }}</span>
             </p>
             <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
             <p v-if="!card.isListed" class="mt-1 text-xs text-ink-faint">
