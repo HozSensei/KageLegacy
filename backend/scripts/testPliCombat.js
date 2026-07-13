@@ -1,7 +1,8 @@
 /**
- * Smoke test — combat par plis (deck 9 techniques + 5 éléments).
+ * Smoke test — combat par plis (deck 9 techniques + 5 éléments, relais de comblement).
  */
 import { simulatePliCombat } from '../src/services/combat/pli/pliCombatEngine.js';
+import { buildTeamDeck } from '../src/services/combat/pli/deckBuilder.js';
 import { createBalancedSquad } from '../src/services/simulation/cycleSimulator.js';
 import { computeMatchPvFromRating } from '../src/services/ninjaStats.js';
 import { applyFormeToStats } from '../src/services/combat/forme.js';
@@ -32,19 +33,42 @@ const squadB = createBalancedSquad('B', 10, 1.0);
 const home = buildTeam(squadA, 'home');
 const away = buildTeam(squadB, 'away');
 
+const emptyDeck = { techniquesByNinjaId: {}, rawTechniquesByNinjaId: {}, elementCards: [] };
 const result = simulatePliCombat(home, away, {
-  homeDeck: { techniquesByNinjaId: {}, elementCards: [] },
-  awayDeck: { techniquesByNinjaId: {}, elementCards: [] },
+  homeDeck: emptyDeck,
+  awayDeck: emptyDeck,
 });
 
-console.assert(result.logs.length === 9, `attendu 9 plis sans éléments, reçu ${result.logs.length}`);
+console.assert(result.logs.length === MAX_PLIS, `attendu ${MAX_PLIS} plis, reçu ${result.logs.length}`);
 console.assert(['home', 'away', 'draw'].includes(result.winner), 'winner valide');
 console.assert(result.homeScorePct >= 0 && result.awayScorePct >= 0, 'PV restants');
+console.assert(
+  result.logs.some((log) => log.relais_padding_home || log.relais_padding_away || log.type === 'relais'),
+  'au moins un pli relais de comblement'
+);
+
+const paddedDeck = buildTeamDeck(home, emptyDeck);
+console.assert(paddedDeck.length === MAX_PLIS, `deck complété à ${MAX_PLIS} cartes`);
 
 const sample = squadA[0];
 const stats = applyFormeToStats(sample);
 const pv = computeMatchPvFromRating(stats);
-console.assert(pv === Math.max(10, Math.round((stats.taijutsu + stats.ninjutsu + stats.genjutsu + stats.medecine + stats.vitesse + stats.intelligence) / 6) * 10), 'PV note globale');
+console.assert(
+  pv ===
+    Math.max(
+      10,
+      Math.round(
+        (stats.taijutsu +
+          stats.ninjutsu +
+          stats.genjutsu +
+          stats.medecine +
+          stats.vitesse +
+          stats.intelligence) /
+          6
+      ) * 10
+    ),
+  'PV note globale'
+);
 
 console.assert(DECK_ELEMENTS_COUNT === 5, '5 éléments deck');
 

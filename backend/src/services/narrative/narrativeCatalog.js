@@ -90,11 +90,11 @@ export const NARRATIVE_CATALOG = {
       teamLabel: 'l\'équipe de {sensei_name}',
       denouement: {
         draw:
-          'Après {ending_tour} tours, ni {home_team} ni {away_team} ne l\'emporte clairement (réserves : {home_score_pct}% vs {away_score_pct}% · possession {home_possession_pct}% / {away_possession_pct}%). {ko_sentence}',
+          'Après {ending_tour} plis, ni {home_team} ni {away_team} ne l\'emporte clairement (réserves : {home_score_pct}% vs {away_score_pct}% · plis gagnés {home_plis_won} / {away_plis_won}). {ko_sentence}',
         ko:
-          'La pression constante de {winner_team} finit par faire plier l\'adversaire. Acculés, les ninjas de {loser_team} ne peuvent plus tenir la ligne ({ko_sentence}). Réserves finales : {winner_score_pct}% contre {loser_score_pct}% · possession {winner_possession_pct}% / {loser_possession_pct}%.',
+          'La pression constante de {winner_team} finit par faire plier l\'adversaire. Acculés, les ninjas de {loser_team} ne peuvent plus tenir la ligne ({ko_sentence}). Réserves finales : {winner_score_pct}% contre {loser_score_pct}% · plis remportés {winner_possession_pct}% du tempo.',
         points:
-          'Au terme de {ending_tour} tours, {winner_team} l\'emporte aux points face à {loser_team} : réserves restantes {winner_score_pct}% contre {loser_score_pct}%, possession du tempo {winner_possession_pct}% contre {loser_possession_pct}%. {ko_sentence}',
+          'Au terme de {ending_tour} plis, {winner_team} l\'emporte aux points face à {loser_team} : réserves restantes {winner_score_pct}% contre {loser_score_pct}%, plis gagnés {winner_possession_pct}% contre {loser_possession_pct}%. {ko_sentence}',
       },
       epilogue: [
         'Les éclaireurs continuent de surveiller les environs pendant que les blessés sont évacués vers le campement.',
@@ -203,6 +203,39 @@ export const NARRATIVE_CATALOG = {
       },
 
       actions: {
+        pli: {
+          reveal: [
+            'Pli {carte_home} contre {carte_away} — le tempo bascule ({impact_label}).',
+            'Les cartes {carte_home} et {carte_away} s\'affrontent ; un camp prend l\'avantage ({impact_label}).',
+            'Révélation : {carte_home} face à {carte_away} ({impact_label}).',
+          ],
+          element: [
+            'Élément de deck joué — {carte_home} contre {carte_away} injecte une surprise tactique.',
+            'Une carte élément sort du mélange : {carte_home} vs {carte_away}.',
+            'Le deck adverse révèle {carte_away} ; réponse {carte_home}.',
+          ],
+          relais: [
+            'Relais ! {attaquant_name} prend le relais pour sauver un ninja au bord du K.O.',
+            'Substitution d\'urgence : {attaquant_name} entre en jeu à la place d\'un camarade blessé.',
+            '{attaquant_name} bondit sur le terrain en relais — le pli change de visage.',
+          ],
+          taijutsu: [
+            'Le Taijutsu l\'emporte sur ce pli ({carte_home} vs {carte_away}, {impact_label}).',
+            '{carte_home} contre {carte_away} : la mêlée décide du pli ({impact_label}).',
+          ],
+          ninjutsu: [
+            'Pression ninjutsu sur ce pli ({carte_home} vs {carte_away}, {impact_label}).',
+            '{carte_home} et {carte_away} — le ninjutsu fait la différence ({impact_label}).',
+          ],
+          genjutsu: [
+            'Le Genjutsu domine ce pli ({carte_home} vs {carte_away}).',
+            'Illusion et contrôle : {carte_home} face à {carte_away}.',
+          ],
+          medecine: [
+            'Pli de soin — {carte_home} contre {carte_away} stabilise la ligne.',
+            'Médecine au bon moment sur ce pli ({carte_home} vs {carte_away}).',
+          ],
+        },
         strike: {
           taijutsu: [
             '{attaquant_name} porte une série taijutsu sur {cible_name} ({impact_label}).',
@@ -618,6 +651,12 @@ export const NARRATIVE_CATALOG = {
         '🚩 Votre équipe a passé le match à réagir plutôt qu\'à mener. Travaillez l\'initiative au prochain cycle d\'entraînement.',
         '🚩 Peu de temps de possession : l\'escouade a été dominée au rythme. Ajustez la composition ou la Vitesse des ninjas.',
       ],
+      plis_lost: [
+        '🚩 Trop de plis perdus ce match — revoyez vos paires de techniques et vos éléments de deck.',
+        '🚩 L\'adversaire a remporté la majorité des plis : affinez le deck (9 techniques + 5 éléments) avant H71.',
+        '🚩 Le tempo des cartes vous a échappé — testez d\'autres domaines principaux ou secondaires.',
+        '🚩 Déséquilibre sur les plis : anticipez les relais et les cartes élément adverses.',
+      ],
       element: [
         '🚩 L\'adversaire a exploité vos faiblesses élémentaires à plusieurs reprises. Pensez à renforcer votre composition ou vos protections au prochain cycle.',
         '🚩 Trop de Ninjutsu élémentaire a touché vos rangs. Revoyez les affinités et les contre-mesures de l\'équipe.',
@@ -742,11 +781,11 @@ export const NARRATIVE_CATALOG = {
       teamLabel: '{sensei_name}\'s team',
       denouement: {
         draw:
-          'After {ending_tour} turns, neither {home_team} nor {away_team} breaks clear ({home_score_pct}% vs {away_score_pct}% reserves · {home_possession_pct}% / {away_possession_pct}% possession). {ko_sentence}',
+          'After {ending_tour} plis, neither {home_team} nor {away_team} breaks clear ({home_score_pct}% vs {away_score_pct}% reserves · plis won {home_plis_won} / {away_plis_won}). {ko_sentence}',
         ko:
-          'Relentless pressure from {winner_team} finally breaks the line. Cornered, {loser_team}\'s ninjas can no longer hold ({ko_sentence}). Final reserves: {winner_score_pct}% vs {loser_score_pct}% · possession {winner_possession_pct}% / {loser_possession_pct}%.',
+          'Relentless pressure from {winner_team} finally breaks the line. Cornered, {loser_team}\'s ninjas can no longer hold ({ko_sentence}). Final reserves: {winner_score_pct}% vs {loser_score_pct}% · plis won {winner_possession_pct}% of tempo.',
         points:
-          'After {ending_tour} turns, {winner_team} wins on points over {loser_team}: {winner_score_pct}% reserves left vs {loser_score_pct}%, tempo possession {winner_possession_pct}% vs {loser_possession_pct}%. {ko_sentence}',
+          'After {ending_tour} plis, {winner_team} wins on points over {loser_team}: {winner_score_pct}% reserves left vs {loser_score_pct}%, plis won {winner_possession_pct}% vs {loser_possession_pct}%. {ko_sentence}',
       },
       epilogue: [
         'Scouts keep watch on the surroundings while the wounded are evacuated to camp.',
@@ -855,6 +894,39 @@ export const NARRATIVE_CATALOG = {
       },
 
       actions: {
+        pli: {
+          reveal: [
+            'Pli {carte_home} vs {carte_away} — tempo shifts ({impact_label}).',
+            'Cards {carte_home} and {carte_away} clash; one side takes the pli ({impact_label}).',
+            'Reveal: {carte_home} against {carte_away} ({impact_label}).',
+          ],
+          element: [
+            'Deck element played — {carte_home} vs {carte_away} adds a tactical twist.',
+            'An element card leaves the shuffle: {carte_home} vs {carte_away}.',
+            'Enemy deck shows {carte_away}; answer {carte_home}.',
+          ],
+          relais: [
+            'Relay! {attaquant_name} steps in to save a ninja on the brink of K.O.',
+            'Emergency substitution: {attaquant_name} replaces an injured teammate.',
+            '{attaquant_name} jumps in as relay — the pli changes shape.',
+          ],
+          taijutsu: [
+            'Taijutsu wins this pli ({carte_home} vs {carte_away}, {impact_label}).',
+            '{carte_home} vs {carte_away}: melee decides the pli ({impact_label}).',
+          ],
+          ninjutsu: [
+            'Ninjutsu pressure on this pli ({carte_home} vs {carte_away}, {impact_label}).',
+            '{carte_home} and {carte_away} — ninjutsu makes the difference ({impact_label}).',
+          ],
+          genjutsu: [
+            'Genjutsu dominates this pli ({carte_home} vs {carte_away}).',
+            'Illusion and control: {carte_home} against {carte_away}.',
+          ],
+          medecine: [
+            'Healing pli — {carte_home} vs {carte_away} stabilizes the line.',
+            'Medicine at the right moment on this pli ({carte_home} vs {carte_away}).',
+          ],
+        },
         strike: {
           taijutsu: [
             '{attaquant_name} lands a taijutsu combo on {cible_name} ({impact_label}).',
@@ -1269,6 +1341,12 @@ export const NARRATIVE_CATALOG = {
         '🚩 The enemy dictated tempo: insufficient possession. Strengthen team Speed and Intelligence back at camp.',
         '🚩 Your team spent the match reacting instead of leading. Work on initiative in the next training cycle.',
         '🚩 Low possession time: the squad was dominated on rhythm. Adjust composition or ninja Speed.',
+      ],
+      plis_lost: [
+        '🚩 Too many plis lost this match — review technique pairs and deck elements.',
+        '🚩 The opponent won most plis: refine your deck (9 techniques + 5 elements) before H71.',
+        '🚩 Card tempo slipped away — try different primary/secondary domains.',
+        '🚩 Pli imbalance: anticipate enemy relays and element cards.',
       ],
       element: [
         '🚩 The opponent exploited your elemental weaknesses repeatedly. Strengthen composition or protections next cycle.',

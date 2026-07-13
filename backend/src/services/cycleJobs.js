@@ -3,12 +3,13 @@ import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gam
 import { processTrainingBillingForAllUsers } from './trainingBilling.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
 import { generateTendenciesIntelForAllUsers } from './scoutIntelService.js';
-import { generateRosterIntelForAllUsers } from './scouting.js';
+import { generateRosterIntelForAllUsers, freezeDeckIntelForAllUsers } from './scouting.js';
 import {
   applyAllPoolsMatchResults,
   simulateAllPoolsCurrentCycle,
 } from './matchService.js';
 import { incrementPoolCycle } from './poolService.js';
+import { carryOperationDecksForPool } from './operationDeckService.js';
 import { deductSalariesForAllUsers } from './economyService.js';
 import { ensureVillageShopForAllUsers } from './villageShopService.js';
 import { resolveMissionsForCycle } from './missionService.js';
@@ -71,10 +72,11 @@ export async function runH54(cycleStartAt) {
 
 export async function runH71(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h71')) return { skipped: true };
+  const deckIntel = await freezeDeckIntelForAllUsers();
   const simulations = await simulateAllPoolsCurrentCycle();
   await markJobRun(cycleStartAt, 'h71');
-  console.log(`[H71] Simulation — ${simulations.length} pool(s)`);
-  return { simulations };
+  console.log(`[H71] Deck gelé : ${deckIntel.length} · Simulation — ${simulations.length} pool(s)`);
+  return { deckIntel, simulations };
 }
 
 export async function runH72(cycleStartAt) {
@@ -84,9 +86,14 @@ export async function runH72(cycleStartAt) {
   const salaries = await deductSalariesForAllUsers();
   await decrementFormeLocksForAllUsers();
   const poolCycles = [];
+  const deckCarry = [];
   const pools = await query(`SELECT id FROM pools WHERE status = 'active'`);
   for (const pool of pools) {
-    poolCycles.push(await incrementPoolCycle(pool.id));
+    const cycleResult = await incrementPoolCycle(pool.id);
+    poolCycles.push(cycleResult);
+    if (!cycleResult.seasonEnded && cycleResult.cycle > 1) {
+      deckCarry.push(...(await carryOperationDecksForPool(pool.id, cycleResult.cycle)));
+    }
   }
   const seasonTransitions = await processAllCompletedSeasons(poolCycles);
   const chuninExams = await processChuninExamsForAllUsers();
@@ -100,7 +107,7 @@ export async function runH72(cycleStartAt) {
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureVillageShopForAllUsers();
   console.log(
-    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s))`
+    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · decks reconduits ${deckCarry.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s))`
   );
   return {
     missionResults,

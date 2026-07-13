@@ -42,7 +42,7 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
 
   const challenges = [];
   const elementCount = operationDeck?.elementCardIds?.length ?? 0;
-  const techniques = operationDeck?.techniquesByNinjaId ?? {};
+  const rawTechniques = operationDeck?.rawTechniquesByNinjaId ?? operationDeck?.techniquesByNinjaId ?? {};
 
   if (active.length >= 3 && elementCount < DECK_ELEMENTS_COUNT) {
     challenges.push(
@@ -52,8 +52,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         'high',
         lang === 'en' ? 'Pick 5 deck elements' : 'Choisir 5 éléments de deck',
         lang === 'en'
-          ? `${elementCount}/${DECK_ELEMENTS_COUNT} elements selected — each adds a tactical pli.`
-          : `${elementCount}/${DECK_ELEMENTS_COUNT} éléments choisis — chacun ajoute un pli tactique.`
+          ? `${elementCount}/${DECK_ELEMENTS_COUNT} elements selected — missing slots become relay plis at H71.`
+          : `${elementCount}/${DECK_ELEMENTS_COUNT} éléments choisis — les emplacements vides deviennent des relais à H71.`
       )
     );
   } else if (active.length >= 3) {
@@ -71,7 +71,7 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
   }
 
   const missingTechniques = active.filter((n) => {
-    const t = techniques[n.id] || techniques[String(n.id)];
+    const t = rawTechniques[n.id] || rawTechniques[String(n.id)];
     return !t?.primary || !t?.secondary;
   });
   if (missingTechniques.length) {
@@ -82,8 +82,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         'medium',
         lang === 'en' ? 'Configure ninja techniques' : 'Configurer les techniques des ninjas',
         lang === 'en'
-          ? `${missingTechniques.length} active(s) still use auto defaults — set primary/secondary domains.`
-          : `${missingTechniques.length} actif(s) en défaut auto — définissez domaines principal/secondaire.`
+          ? `${missingTechniques.length} active(s) without saved techniques — relay plis will fill those slots.`
+          : `${missingTechniques.length} actif(s) sans techniques enregistrées — des relais combleront ces emplacements.`
       )
     );
   } else if (active.length >= 3) {
@@ -128,7 +128,7 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
 
   const genNinja = active.find((n) => inferPrimaryArt(n) === 'genjutsu');
   if (genNinja) {
-    const t = techniques[genNinja.id] || techniques[String(genNinja.id)] || {};
+    const t = rawTechniques[genNinja.id] || rawTechniques[String(genNinja.id)] || {};
     const hasGenTechnique = t.primary === 'genjutsu' || t.secondary === 'genjutsu';
     challenges.push(
       challenge(

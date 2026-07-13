@@ -1,6 +1,6 @@
 import { query } from '../config/database.js';
 import { simulateMatchCombat, loadTeamForCombat } from './combat/matchLoader.js';
-import { buildSquadSnapshotFromNinjas } from './scoutIntelService.js';
+import { buildSquadSnapshotFromNinjas, buildDeckSnapshotFromOperationDeck } from './scoutIntelService.js';
 import {
   applyPostMatchForMatch,
 } from './combat/postMatch.js';
@@ -106,6 +106,10 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       squadSnapshots: {
         home: buildSquadSnapshotFromNinjas(homeTeamData.ninjas, 'fr'),
         away: buildSquadSnapshotFromNinjas(awayTeamData.ninjas, 'fr'),
+      },
+      deckSnapshots: {
+        home: buildDeckSnapshotFromOperationDeck(homeTeamData.operationDeck),
+        away: buildDeckSnapshotFromOperationDeck(awayTeamData.operationDeck),
       },
     };
 

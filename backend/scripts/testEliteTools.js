@@ -21,7 +21,7 @@ import { getSeasonPassPayload, recordEliteQuestEvent } from '../src/services/eli
 const PREFIX = `elite_tools_${Date.now()}`;
 
 const MINIMAL_COMBAT_LOG = {
-  possession: { homePct: 55, awayPct: 45 },
+  plisWon: { home: 6, away: 4 },
   homeScorePct: 62,
   awayScorePct: 38,
   endReason: 'score',
@@ -29,41 +29,47 @@ const MINIMAL_COMBAT_LOG = {
   logs: [
     {
       tour: 1,
-      equipe_attaque: 'home',
-      attaquant_name: 'Ninja A',
-      cible_name: 'Ninja B',
+      type: 'pli',
+      carte_home: 'Taijutsu',
+      carte_away: 'Genjutsu',
+      technique_type_home: 'Taijutsu',
+      technique_type_away: 'Genjutsu',
       attaquant_element: 'Katon',
       cible_element: 'Suiton',
       element_effect: 'advantage',
-      technique_type: 'Taijutsu',
+      pli_winner: 'home',
       degats_pv: 18,
-      initiative_chance_home: 55,
+      degats_pv_away: 0,
     },
     {
       tour: 3,
-      equipe_attaque: 'away',
-      attaquant_name: 'Ninja C',
-      cible_name: 'Ninja A',
+      type: 'pli',
+      carte_home: 'Ninjutsu',
+      carte_away: 'Taijutsu',
+      technique_type_home: 'Ninjutsu',
+      technique_type_away: 'Taijutsu',
       attaquant_element: 'Raiton',
       cible_element: 'Doton',
       element_effect: 'neutral',
-      technique_type: 'Ninjutsu',
-      degats_pv: 32,
+      pli_winner: 'away',
+      degats_pv: 0,
+      degats_pv_away: 32,
       critique: true,
-      initiative_chance_home: 48,
     },
     {
       tour: 5,
-      equipe_attaque: 'home',
-      attaquant_name: 'Ninja A',
-      cible_name: 'Ninja C',
+      type: 'pli',
+      carte_home: 'Genjutsu',
+      carte_away: 'Taijutsu',
+      technique_type_home: 'Genjutsu',
+      technique_type_away: 'Taijutsu',
       attaquant_element: 'Futon',
       cible_element: 'Katon',
       element_effect: 'disadvantage',
-      technique_type: 'Genjutsu',
+      pli_winner: 'home',
       degats_pv: 24,
+      degats_pv_away: 0,
       sensei_interception: true,
-      initiative_chance_home: 60,
     },
   ],
   equipmentSummary: [],
@@ -180,7 +186,8 @@ async function main() {
 
   const report = await buildEliteMatchReport(matchId, homeId, 'fr');
   console.assert(report.matchId === matchId, 'rapport matchId');
-  console.assert(report.summary.possession.mine === 55, 'possession home');
+  console.assert(report.summary.possession.mine === 60, 'plis share home');
+  console.assert(report.summary.plisWon.home === 6, 'plis won home');
   console.assert(report.decisiveMoments.length >= 1, 'moments décisifs');
   console.assert(report.timeline.length >= 1, 'timeline');
   console.assert(report.techniqueBreakdown.mine.Taijutsu === 18, 'breakdown tai');

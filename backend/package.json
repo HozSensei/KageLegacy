@@ -39,6 +39,7 @@
     "test:scout-cycle": "node scripts/testScoutCycle.js",
     "test:cycle-freezes": "node scripts/testCycleFreezes.js",
     "test:operation-briefing": "node scripts/testOperationBriefing.js",
+    "test:operation-deck-carryover": "node scripts/testOperationDeckCarryover.js",
     "test:combat-loot": "node scripts/testCombatLoot.js",
     "test:training-system": "node scripts/testTrainingSystem.js",
     "test:village-shop": "node scripts/testVillageShopCatalog.js"
