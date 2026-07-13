@@ -8,8 +8,13 @@ import {
   pliWinnerSide,
   winningTechniqueLabel,
 } from './combat/pli/combatLogMetrics.js';
-
-const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
+import { MAX_PLIS } from './combat/pli/constants.js';
+import {
+  buildDeckComparison,
+  buildDomainPliWins,
+  buildRelaisStats,
+} from './eliteMatchAnalytics.js';
+import { OPPONENT_DECK_PROFILE_LABELS } from './eliteDeckSimulation.js';
 
 const TECHNIQUE_ICONS = {
   Taijutsu: 'tai',
@@ -196,46 +201,6 @@ export async function assertEliteToolsAccess(userId) {
   return assertActiveEliteSubscription(userId);
 }
 
-function emptyElementMap() {
-  return Object.fromEntries(ELEMENTS.map((element) => [element, 0]));
-}
-
-function buildElementHeatmap(logs, mySide, match) {
-  if (!mySide) return null;
-
-  const mine = { dealt: emptyElementMap(), taken: emptyElementMap() };
-  const opponent = { dealt: emptyElementMap(), taken: emptyElementMap() };
-  const circle = { mineAdvantage: 0, mineDisadvantage: 0, opponentAdvantage: 0, opponentDisadvantage: 0 };
-  let hasElementData = false;
-
-  for (const log of logs) {
-    const dmg = log.degats_pv ?? 0;
-    if (!dmg || !log.attaquant_element) continue;
-
-    hasElementData = true;
-    const mineAtk = isMyAction(log, mySide, match);
-    const atkEl = log.attaquant_element;
-    const defEl = log.cible_element;
-    const bucket = mineAtk ? mine : opponent;
-    const recv = mineAtk ? opponent : mine;
-
-    bucket.dealt[atkEl] = (bucket.dealt[atkEl] || 0) + dmg;
-    if (defEl) recv.taken[defEl] = (recv.taken[defEl] || 0) + dmg;
-
-    if (log.element_effect === 'advantage') {
-      if (mineAtk) circle.mineAdvantage += 1;
-      else circle.opponentAdvantage += 1;
-    } else if (log.element_effect === 'disadvantage') {
-      if (mineAtk) circle.mineDisadvantage += 1;
-      else circle.opponentDisadvantage += 1;
-    }
-  }
-
-  if (!hasElementData) return null;
-
-  return { elements: ELEMENTS, mine, opponent, circle };
-}
-
 /**
  * Rapport analytique privé post-match (Pack Élite).
  */
@@ -297,11 +262,14 @@ export async function buildEliteMatchReport(matchId, viewerUserId, locale = 'fr'
         home: (combatLog.koNinjaIds || []).filter((k) => k.side === 'home').length,
         away: (combatLog.koNinjaIds || []).filter((k) => k.side === 'away').length,
       },
+      maxPlis: MAX_PLIS,
     },
     timeline: mySide ? buildTimeline(logs, mySide, match, lang) : [],
     techniqueBreakdown,
     decisiveMoments: mySide ? buildDecisiveMoments(logs, mySide, match, lang) : [],
-    elementHeatmap: buildElementHeatmap(logs, mySide, match),
+    domainPliWins: buildDomainPliWins(logs, mySide),
+    deckComparison: buildDeckComparison(combatLog, mySide, lang),
+    relaisStats: buildRelaisStats(logs, mySide),
     equipment: combatLog.equipmentSummary || [],
   };
 
@@ -353,24 +321,21 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
  */
 export function buildSimulationVerdict({
   winPct,
-  opponentStyle = 'mixed',
+  opponentProfile = 'complete',
   opponentLevel = 'similar',
   locale = 'fr',
   squadContext = null,
 }) {
   const lang = normalizeLocale(locale);
-  const styleLabels = {
-    fr: { offensive: 'Offensive', tank: 'Défensive', protect: 'Protection', mixed: 'Mixte' },
-    en: { offensive: 'Offensive', tank: 'Defensive', protect: 'Protection', mixed: 'Mixed' },
-  };
-  const oppLabel = styleLabels[lang][opponentStyle] || opponentStyle;
+  const profileLabels = OPPONENT_DECK_PROFILE_LABELS[lang] || OPPONENT_DECK_PROFILE_LABELS.fr;
+  const oppLabel = profileLabels[opponentProfile] || opponentProfile;
   const factors = [];
   const advice = [];
 
   factors.push(
     lang === 'en'
-      ? `Reference opponent uses ${oppLabel} orders at your power level (${opponentLevel}).`
-      : `Adversaire de référence en consignes ${oppLabel}, calibré sur votre puissance (${opponentLevel}).`
+      ? `Reference opponent uses a ${oppLabel.toLowerCase()} at your power level (${opponentLevel}).`
+      : `Adversaire de référence avec un profil « ${oppLabel} », calibré sur votre puissance (${opponentLevel}).`
   );
 
   if (squadContext?.deckElements != null && squadContext.deckElements < 5) {
@@ -404,8 +369,8 @@ export function buildSimulationVerdict({
 
   factors.push(
     lang === 'en'
-      ? `Reference opponent: pure ${oppLabel} orders with matching reference cards, ${levelDescriptions[lang][levelKey]} — not a real player roster.`
-      : `Adversaire de référence : consignes pures ${oppLabel} avec cartes de référence, ${levelDescriptions.fr[levelKey]} — pas un vrai roster adverse.`
+      ? `Synthetic opponent deck — ${levelDescriptions[lang][levelKey]}, not a real player roster.`
+      : `Deck adverse synthétique — ${levelDescriptions.fr[levelKey]}, pas un vrai roster joueur.`
   );
 
   if (squadContext?.avgMoral != null && squadContext.avgMoral < 12 && winPct < 50) {
@@ -428,8 +393,8 @@ export function buildSimulationVerdict({
     headline = lang === 'en' ? 'Favorable outlook' : 'Tendance favorable';
     advice.push(
       lang === 'en'
-        ? 'Trend is positive — keep training your focus stat and lock orders that preserve this matchup.'
-        : 'La tendance est bonne — continuez l\'entraînement sur votre stat focus et verrouillez des consignes qui préservent ce matchup.'
+        ? 'Trend is positive — keep refining your operation deck and training focus.'
+        : 'La tendance est bonne — continuez à affiner votre deck d\'opération et votre entraînement.'
     );
   } else if (winPct <= 42) {
     tone = 'unfavorable';
@@ -438,24 +403,24 @@ export function buildSimulationVerdict({
     headline = lang === 'en' ? 'Close matchup' : 'Match serré';
     advice.push(
       lang === 'en'
-        ? 'Small changes (one consigne swap, one training cycle, or morale recovery) can flip this trend.'
-        : 'De petits ajustements (une consigne, un cycle d\'entraînement ou du moral) peuvent renverser la tendance.'
+        ? 'Small changes (one technique swap, one element card, or morale recovery) can flip this trend.'
+        : 'De petits ajustements (une technique, une carte élément ou du moral) peuvent renverser la tendance.'
     );
   }
 
   if (winPct <= 42) {
     advice.push(
       lang === 'en'
-        ? 'Equip tactic cards on key ninjas and align Defensive/Protection orders to survive this reference style.'
-        : 'Équipez des cartes tactiques sur vos ninjas clés et alignez Défensive/Protection pour tenir face à ce style de référence.'
+        ? 'Complete your 5 deck elements and set primary/secondary techniques on every active ninja before H71.'
+        : 'Complétez vos 5 éléments de deck et définissez les techniques principal/secondaire sur chaque ninja actif avant H71.'
     );
   }
 
   if (!advice.length && tone === 'unfavorable') {
     advice.push(
       lang === 'en'
-        ? 'Review combat orders and training ROI in the panel above, then re-run the simulator.'
-        : 'Revoyez les consignes de combat et le ROI entraînement ci-dessus, puis relancez la simulation.'
+        ? 'Review your deck checklist and training ROI above, then re-run the simulator.'
+        : 'Revoyez la checklist deck et le ROI entraînement ci-dessus, puis relancez la simulation.'
     );
   }
 

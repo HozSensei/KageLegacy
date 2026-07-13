@@ -99,6 +99,7 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
           homeScorePct: combatLog.homeScorePct,
           awayScorePct: combatLog.awayScorePct,
           endingTour: match.ending_tour,
+          maxPlis: 14,
           result: match.result,
           winnerUserId: match.winner_user_id,
           isHome: perspective?.isHome ?? null,

@@ -13,7 +13,7 @@ defineProps({
 const { t } = useI18n()
 const elite = useEliteStore()
 
-const opponentComp = ref('mixed')
+const opponentComp = ref('complete')
 const opponentLevel = ref('similar')
 const simulating = ref(false)
 const simError = ref(null)
@@ -153,14 +153,14 @@ async function runMatchup() {
         </RouterLink>
         <div class="mt-3 flex flex-wrap items-end gap-3">
           <label class="text-xs">
-            <span class="text-ink-muted">{{ t('eliteTools.opponentStyle') }}</span>
+            <span class="text-ink-muted">{{ t('eliteTools.opponentProfile') }}</span>
             <select
               v-model="opponentComp"
               class="mt-1 block border border-line bg-bg px-3 py-2 text-sm text-ink"
               data-testid="elite-matchup-select"
             >
               <option
-                v-for="c in (tools.opponentStyleOptions ?? tools.compositionOptions)"
+                v-for="c in (tools.opponentProfileOptions ?? tools.opponentStyleOptions ?? tools.compositionOptions)"
                 :key="c.value ?? c"
                 :value="c.value ?? c"
               >
