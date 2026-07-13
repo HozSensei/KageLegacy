@@ -322,15 +322,17 @@ onUnmounted(() => clearInterval(pollTimer))
                       {{ t('operation.remainingPower') }}
                     </dt>
                     <dd class="mt-1 text-ink-muted">
-                      {{ operation.mechanical.homeScorePct }}% /
-                      {{ operation.mechanical.awayScorePct }}%
+                      {{ operation.mechanical.homeScorePct }} /
+                      {{ operation.mechanical.awayScorePct }}
                     </dd>
                   </div>
                   <div>
                     <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
                       {{ t('operation.endingTour') }}
                     </dt>
-                    <dd class="mt-1 text-ink-muted">{{ operation.mechanical.endingTour }} / 12</dd>
+                    <dd class="mt-1 text-ink-muted">
+                      {{ operation.mechanical.endingTour }} / {{ operation.mechanical.maxPlis ?? 14 }}
+                    </dd>
                   </div>
                   <div v-if="equipmentRows.length">
                     <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">

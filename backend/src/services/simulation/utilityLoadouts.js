@@ -5,6 +5,10 @@
 
 let nextItemId = 1000;
 
+function ninjaBySlot(ninjas, position, fallbackIndex = 0) {
+  return ninjas.find((n) => n.squad_position === position) || ninjas[fallbackIndex];
+}
+
 function itemRow(slug, matchEffect = null, cycleEffect = null) {
   const id = nextItemId++;
   const effects = {};
@@ -19,7 +23,7 @@ export const LOADOUT_SMOKE_TANK = {
   label: 'Fumigène sur Tank (lethal_mitigation −50 %)',
   description: 'Tank équipé fumigène ; consigne Tank cohérente.',
   attach(ninjas) {
-    const tank = ninjas.find((n) => n.battle_strategy === 'Tank') || ninjas[1];
+    const tank = ninjaBySlot(ninjas, 2, 1);
     return {
       [tank.id]: [
         itemRow('fumigene-secours', {
@@ -39,7 +43,7 @@ export const LOADOUT_RUPTURE_GENJUTSU = {
   label: 'Parchemin rupture sur support Genjutsu',
   description: 'Défense +4 contre Genjutsu adverse — 1× / match.',
   attach(ninjas) {
-    const defender = ninjas.find((n) => n.battle_strategy === 'Protect') || ninjas[2];
+    const defender = ninjaBySlot(ninjas, 3, 2);
     return {
       [defender.id]: [
         itemRow('parchemin-rupture', {
@@ -84,7 +88,7 @@ export const LOADOUT_DECOY_OFFENSE = {
   label: 'Parchemin leurre sur Offensive',
   description: '30 % redirection si ciblé — 1× / match.',
   attach(ninjas) {
-    const attacker = ninjas.find((n) => n.battle_strategy === 'Offensive') || ninjas[0];
+    const attacker = ninjaBySlot(ninjas, 1, 0);
     return {
       [attacker.id]: [
         itemRow('parchemin-leurre', {
@@ -122,7 +126,7 @@ export const LOADOUT_OPTIMIZED_UNDERDOG = {
   label: 'Underdog optimisé (fumigène Tank + herbes support)',
   description: 'Plafond cible milestone-9 : ≤ +12 pts win rate vs sans objet.',
   attach(ninjas) {
-    const tank = ninjas.find((n) => n.battle_strategy === 'Tank') || ninjas[1];
+    const tank = ninjaBySlot(ninjas, 2, 1);
     const support = ninjas[2];
     return {
       [tank.id]: [
@@ -151,7 +155,7 @@ export const LOADOUT_MISPLACED_SMOKE = {
   label: 'Fumigène sur Offensive (hors plan)',
   description: 'Cible attendue ≈ 0 à +2 pts — objet sur mauvaise consigne.',
   attach(ninjas) {
-    const wrong = ninjas.find((n) => n.battle_strategy === 'Offensive') || ninjas[0];
+    const wrong = ninjaBySlot(ninjas, 1, 0);
     return {
       [wrong.id]: [
         itemRow('fumigene-secours', {

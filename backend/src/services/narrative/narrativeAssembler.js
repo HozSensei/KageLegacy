@@ -8,6 +8,7 @@ import {
   pickTemplateEntry,
   teamLabel,
 } from './narrativeI18n.js';
+import { plisMetrics } from '../combat/pli/combatLogMetrics.js';
 
 function groupLogsByTour(logs, endingTour) {
   const byTour = new Map();
@@ -263,29 +264,12 @@ function buildKoSentence(koNinjaIds, homeSensei, awaySensei) {
   return `Mis hors combat : ${names}.`;
 }
 
-function possessionFromPlis(combatLog) {
-  const plis = combatLog.plisWon || {};
-  const homePlis = Number(plis.home) || 0;
-  const awayPlis = Number(plis.away) || 0;
-  const total = homePlis + awayPlis;
-  if (total <= 0) {
-    return {
-      homePct: Number(combatLog.possession?.homePct ?? 50),
-      awayPct: Number(combatLog.possession?.awayPct ?? 50),
-    };
-  }
-  return {
-    homePct: Math.round((homePlis / total) * 100),
-    awayPct: Math.round((awayPlis / total) * 100),
-  };
-}
-
 function buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei) {
   const homeScore = Number(combatLog.homeScorePct ?? 0);
   const awayScore = Number(combatLog.awayScorePct ?? 0);
-  const plisPoss = possessionFromPlis(combatLog);
-  const homePoss = plisPoss.homePct;
-  const awayPoss = plisPoss.awayPct;
+  const plis = plisMetrics(combatLog);
+  const homePoss = plis.homePct;
+  const awayPoss = plis.awayPct;
   const winnerScore = winnerSide === 'home' ? homeScore : awayScore;
   const loserScore = winnerSide === 'home' ? awayScore : homeScore;
   const winnerPoss = winnerSide === 'home' ? homePoss : awayPoss;
@@ -295,6 +279,8 @@ function buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei) {
     away_score_pct: awayScore,
     home_possession_pct: homePoss,
     away_possession_pct: awayPoss,
+    home_plis_won: plis.homePlis,
+    away_plis_won: plis.awayPlis,
     winner_score_pct: winnerScore,
     loser_score_pct: loserScore,
     winner_possession_pct: winnerPoss,
@@ -459,8 +445,13 @@ export function assembleNarrative({
           home_score_pct: Number(combatLog.homeScorePct ?? 0),
           away_score_pct: Number(combatLog.awayScorePct ?? 0),
           ...(() => {
-            const p = possessionFromPlis(combatLog);
-            return { home_possession_pct: p.homePct, away_possession_pct: p.awayPct };
+            const p = plisMetrics(combatLog);
+            return {
+              home_possession_pct: p.homePct,
+              away_possession_pct: p.awayPct,
+              home_plis_won: p.homePlis,
+              away_plis_won: p.awayPlis,
+            };
           })(),
           ko_sentence: buildKoSentence(combatLog.koNinjaIds, homeSensei, awaySensei),
         }

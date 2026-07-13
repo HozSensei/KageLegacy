@@ -16,18 +16,22 @@ const report = computed(() => elite.matchReport)
 const loading = computed(() => elite.reportLoading)
 const error = computed(() => elite.reportError)
 
-const possessionLabel = computed(() => {
-  const p = report.value?.summary?.possession
-  if (!p) return '—'
-  if (p.home != null && p.away != null) return `${p.home}% / ${p.away}%`
-  if (p.mine != null) return `${p.mine}%`
+const maxPlis = computed(() => report.value?.summary?.maxPlis ?? 14)
+
+const plisLabel = computed(() => {
+  const plis = report.value?.summary?.plisWon
+  const share = report.value?.summary?.possession
+  if (plis?.home != null && plis?.away != null) {
+    return `${plis.home} / ${plis.away}`
+  }
+  if (share?.mine != null) return `${share.mine}%`
   return '—'
 })
 
-const possessionCaption = computed(() => {
-  const p = report.value?.summary?.possession
-  if (p?.home != null && p?.away != null) return t('eliteReport.possessionSplit')
-  return t('eliteReport.possession')
+const plisCaption = computed(() => {
+  const plis = report.value?.summary?.plisWon
+  if (plis?.home != null && plis?.away != null) return t('eliteReport.plisSplit')
+  return t('eliteReport.plisWon')
 })
 
 const endReasonLabel = computed(() => {
@@ -55,7 +59,7 @@ async function toggle() {
   }
 }
 
-function heatmapBarWidth(value, bucket) {
+function barWidth(value, bucket) {
   const max = Math.max(...Object.values(bucket || {}), 1)
   return Math.round(((value || 0) / max) * 100)
 }
@@ -82,10 +86,10 @@ function heatmapBarWidth(value, bucket) {
         <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="border border-line/60 bg-bg-card/40 p-3">
             <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-              {{ possessionCaption }}
+              {{ plisCaption }}
             </dt>
             <dd class="mt-1 text-lg text-ink">
-              {{ possessionLabel }}
+              {{ plisLabel }}
             </dd>
           </div>
           <div class="border border-line/60 bg-bg-card/40 p-3">
@@ -106,9 +110,51 @@ function heatmapBarWidth(value, bucket) {
             <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
               {{ t('operation.endingTour') }}
             </dt>
-            <dd class="mt-1 text-sm text-ink-muted">{{ report.endingTour }} / 12</dd>
+            <dd class="mt-1 text-sm text-ink-muted">{{ report.endingTour }} / {{ maxPlis }}</dd>
           </div>
         </dl>
+
+        <div v-if="report.deckComparison" class="border border-line/60 p-4 text-xs">
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ t('eliteReport.deckComparisonTitle') }}
+          </p>
+          <div class="mt-3 grid gap-4 sm:grid-cols-2">
+            <div v-if="report.deckComparison.mine">
+              <p class="font-medium text-ink">{{ t('eliteReport.myDeck') }}</p>
+              <p class="mt-1 text-ink-muted">
+                {{ t('eliteReport.deckElements', { n: report.deckComparison.mine.elementCount }) }}
+              </p>
+              <p v-if="report.deckComparison.mine.domainSummary" class="mt-1 text-ink-faint">
+                {{ report.deckComparison.mine.domainSummary }}
+              </p>
+            </div>
+            <div v-if="report.deckComparison.opponent">
+              <p class="font-medium text-ink">{{ t('eliteReport.oppDeck') }}</p>
+              <p class="mt-1 text-ink-muted">
+                {{ t('eliteReport.deckElements', { n: report.deckComparison.opponent.elementCount }) }}
+              </p>
+              <p v-if="report.deckComparison.opponent.domainSummary" class="mt-1 text-ink-faint">
+                {{ report.deckComparison.opponent.domainSummary }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="report.relaisStats" class="border border-line/60 p-4 text-xs text-ink-muted">
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ t('eliteReport.relaisTitle') }}
+          </p>
+          <p class="mt-2">
+            {{
+              t('eliteReport.relaisLine', {
+                mineRelais: report.relaisStats.mine.relais,
+                oppRelais: report.relaisStats.opponent.relais,
+                mineElement: report.relaisStats.mine.element,
+                oppElement: report.relaisStats.opponent.element,
+              })
+            }}
+          </p>
+        </div>
 
         <div v-if="report.decisiveMoments?.length">
           <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
@@ -136,7 +182,8 @@ function heatmapBarWidth(value, bucket) {
               <p class="mt-2">
                 Tai {{ report.techniqueBreakdown.mine.Taijutsu }} ·
                 Nin {{ report.techniqueBreakdown.mine.Ninjutsu }} ·
-                Gen {{ report.techniqueBreakdown.mine.Genjutsu }}
+                Gen {{ report.techniqueBreakdown.mine.Genjutsu }} ·
+                Méd {{ report.techniqueBreakdown.mine.Medecine }}
               </p>
               <p class="mt-1 text-ink-faint">
                 {{ t('eliteReport.received') }} {{ report.techniqueBreakdown.mine.received }}
@@ -147,7 +194,8 @@ function heatmapBarWidth(value, bucket) {
               <p class="mt-2">
                 Tai {{ report.techniqueBreakdown.opponent.Taijutsu }} ·
                 Nin {{ report.techniqueBreakdown.opponent.Ninjutsu }} ·
-                Gen {{ report.techniqueBreakdown.opponent.Genjutsu }}
+                Gen {{ report.techniqueBreakdown.opponent.Genjutsu }} ·
+                Méd {{ report.techniqueBreakdown.opponent.Medecine }}
               </p>
               <p class="mt-1 text-ink-faint">
                 {{ t('eliteReport.received') }} {{ report.techniqueBreakdown.opponent.received }}
@@ -156,28 +204,26 @@ function heatmapBarWidth(value, bucket) {
           </div>
         </div>
 
-        <div v-if="report.elementHeatmap">
+        <div v-if="report.domainPliWins">
           <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-            {{ t('eliteReport.heatmapTitle') }}
+            {{ t('eliteReport.domainPliTitle') }}
           </p>
           <div class="mt-3 grid gap-4 sm:grid-cols-2">
             <div class="border border-line/60 p-3 text-xs">
-              <p class="text-ink">{{ t('eliteReport.heatmapDealt') }}</p>
+              <p class="text-ink">{{ t('eliteReport.myPlisWon') }}</p>
               <ul class="mt-2 space-y-1 text-ink-muted">
                 <li
-                  v-for="element in report.elementHeatmap.elements"
-                  :key="`dealt-${element}`"
+                  v-for="domain in report.domainPliWins.domains"
+                  :key="`mine-${domain}`"
                   class="flex items-center gap-2"
                 >
-                  <span class="w-14 shrink-0 text-ink-faint">{{ element }}</span>
-                  <span class="w-8 tabular-nums">{{ report.elementHeatmap.mine.dealt[element] }}</span>
-                  <span
-                    class="h-1.5 flex-1 rounded-full bg-bg-soft"
-                  >
+                  <span class="w-16 shrink-0 text-ink-faint">{{ domain }}</span>
+                  <span class="w-6 tabular-nums">{{ report.domainPliWins.mine[domain] }}</span>
+                  <span class="h-1.5 flex-1 rounded-full bg-bg-soft">
                     <span
                       class="block h-full rounded-full bg-accent/70"
                       :style="{
-                        width: `${heatmapBarWidth(report.elementHeatmap.mine.dealt[element], report.elementHeatmap.mine.dealt)}%`,
+                        width: `${barWidth(report.domainPliWins.mine[domain], report.domainPliWins.mine)}%`,
                       }"
                     />
                   </span>
@@ -185,20 +231,20 @@ function heatmapBarWidth(value, bucket) {
               </ul>
             </div>
             <div class="border border-line/60 p-3 text-xs">
-              <p class="text-ink">{{ t('eliteReport.heatmapTaken') }}</p>
+              <p class="text-ink">{{ t('eliteReport.oppPlisWon') }}</p>
               <ul class="mt-2 space-y-1 text-ink-muted">
                 <li
-                  v-for="element in report.elementHeatmap.elements"
-                  :key="`taken-${element}`"
+                  v-for="domain in report.domainPliWins.domains"
+                  :key="`opp-${domain}`"
                   class="flex items-center gap-2"
                 >
-                  <span class="w-14 shrink-0 text-ink-faint">{{ element }}</span>
-                  <span class="w-8 tabular-nums">{{ report.elementHeatmap.mine.taken[element] }}</span>
+                  <span class="w-16 shrink-0 text-ink-faint">{{ domain }}</span>
+                  <span class="w-6 tabular-nums">{{ report.domainPliWins.opponent[domain] }}</span>
                   <span class="h-1.5 flex-1 rounded-full bg-bg-soft">
                     <span
                       class="block h-full rounded-full bg-fire/60"
                       :style="{
-                        width: `${heatmapBarWidth(report.elementHeatmap.mine.taken[element], report.elementHeatmap.mine.taken)}%`,
+                        width: `${barWidth(report.domainPliWins.opponent[domain], report.domainPliWins.opponent)}%`,
                       }"
                     />
                   </span>
@@ -206,17 +252,6 @@ function heatmapBarWidth(value, bucket) {
               </ul>
             </div>
           </div>
-          <p
-            v-if="report.elementHeatmap.circle"
-            class="mt-3 text-[11px] text-ink-faint"
-          >
-            {{
-              t('eliteReport.heatmapCircle', {
-                adv: report.elementHeatmap.circle.mineAdvantage,
-                dis: report.elementHeatmap.circle.mineDisadvantage,
-              })
-            }}
-          </p>
         </div>
 
         <div v-if="report.timeline?.length">
@@ -227,8 +262,8 @@ function heatmapBarWidth(value, bucket) {
             <li v-for="row in report.timeline" :key="row.tour" class="border border-line/40 p-2">
               <p class="font-medium text-ink">
                 {{ t('eliteReport.tour', { n: row.tour }) }}
-                <span v-if="row.initiativeHomePct != null" class="text-ink-faint">
-                  · init {{ row.initiativeHomePct }}%
+                <span v-if="row.pliWinner" class="text-ink-faint">
+                  · {{ row.pliWinner === 'home' ? t('eliteReport.pliWonHome') : t('eliteReport.pliWonAway') }}
                 </span>
               </p>
               <ul class="mt-1 space-y-1 text-ink-muted">

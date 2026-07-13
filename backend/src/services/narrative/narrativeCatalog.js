@@ -90,11 +90,11 @@ export const NARRATIVE_CATALOG = {
       teamLabel: 'l\'équipe de {sensei_name}',
       denouement: {
         draw:
-          'Après {ending_tour} tours, ni {home_team} ni {away_team} ne l\'emporte clairement (réserves : {home_score_pct}% vs {away_score_pct}% · possession {home_possession_pct}% / {away_possession_pct}%). {ko_sentence}',
+          'Après {ending_tour} plis, ni {home_team} ni {away_team} ne l\'emporte clairement (réserves : {home_score_pct}% vs {away_score_pct}% · plis gagnés {home_plis_won} / {away_plis_won}). {ko_sentence}',
         ko:
-          'La pression constante de {winner_team} finit par faire plier l\'adversaire. Acculés, les ninjas de {loser_team} ne peuvent plus tenir la ligne ({ko_sentence}). Réserves finales : {winner_score_pct}% contre {loser_score_pct}% · possession {winner_possession_pct}% / {loser_possession_pct}%.',
+          'La pression constante de {winner_team} finit par faire plier l\'adversaire. Acculés, les ninjas de {loser_team} ne peuvent plus tenir la ligne ({ko_sentence}). Réserves finales : {winner_score_pct}% contre {loser_score_pct}% · plis remportés {winner_possession_pct}% du tempo.',
         points:
-          'Au terme de {ending_tour} tours, {winner_team} l\'emporte aux points face à {loser_team} : réserves restantes {winner_score_pct}% contre {loser_score_pct}%, possession du tempo {winner_possession_pct}% contre {loser_possession_pct}%. {ko_sentence}',
+          'Au terme de {ending_tour} plis, {winner_team} l\'emporte aux points face à {loser_team} : réserves restantes {winner_score_pct}% contre {loser_score_pct}%, plis gagnés {winner_possession_pct}% contre {loser_possession_pct}%. {ko_sentence}',
       },
       epilogue: [
         'Les éclaireurs continuent de surveiller les environs pendant que les blessés sont évacués vers le campement.',
@@ -781,11 +781,11 @@ export const NARRATIVE_CATALOG = {
       teamLabel: '{sensei_name}\'s team',
       denouement: {
         draw:
-          'After {ending_tour} turns, neither {home_team} nor {away_team} breaks clear ({home_score_pct}% vs {away_score_pct}% reserves · {home_possession_pct}% / {away_possession_pct}% possession). {ko_sentence}',
+          'After {ending_tour} plis, neither {home_team} nor {away_team} breaks clear ({home_score_pct}% vs {away_score_pct}% reserves · plis won {home_plis_won} / {away_plis_won}). {ko_sentence}',
         ko:
-          'Relentless pressure from {winner_team} finally breaks the line. Cornered, {loser_team}\'s ninjas can no longer hold ({ko_sentence}). Final reserves: {winner_score_pct}% vs {loser_score_pct}% · possession {winner_possession_pct}% / {loser_possession_pct}%.',
+          'Relentless pressure from {winner_team} finally breaks the line. Cornered, {loser_team}\'s ninjas can no longer hold ({ko_sentence}). Final reserves: {winner_score_pct}% vs {loser_score_pct}% · plis won {winner_possession_pct}% of tempo.',
         points:
-          'After {ending_tour} turns, {winner_team} wins on points over {loser_team}: {winner_score_pct}% reserves left vs {loser_score_pct}%, tempo possession {winner_possession_pct}% vs {loser_possession_pct}%. {ko_sentence}',
+          'After {ending_tour} plis, {winner_team} wins on points over {loser_team}: {winner_score_pct}% reserves left vs {loser_score_pct}%, plis won {winner_possession_pct}% vs {loser_possession_pct}%. {ko_sentence}',
       },
       epilogue: [
         'Scouts keep watch on the surroundings while the wounded are evacuated to camp.',

@@ -25,6 +25,17 @@ Each cycle is a synchronized "game week" for all players on the server.
 | **H54 → H70** | Orders, tactic cards and items still editable |
 | **H71** | Full lock until next cycle |
 
+### Scouting
+
+| Milestone | Content |
+|-----------|---------|
+| **H36** | **Tendencies** from the opponent's recent league matches (match count shown; unreliable on 1st or 2nd match) — requires a successful **reconnaissance** this cycle |
+| **H54** | **Full report** frozen on enemy lineup (partial/full quality depending on your reconnaissance) |
+| **H54 → H71** | Report no longer changes; compare tendencies vs spotted unit to detect atypical formations |
+| **H71** | Enemy **operation deck** frozen |
+
+The **reconnaissance** mission (H0–H36) gates access and quality of intel — it is not a fight against your league opponent, but a field mission to gather intelligence.
+
 ### Automatic milestones
 
 - **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
@@ -131,7 +142,18 @@ Morale (internal scale) affects squad stability. It drops notably on Chunin exam
 - Composition can be changed until **H54** (active trio locked).
 - A ninja is **unavailable** if on a mission, listed on the P2P market, or when the tactical window is closed.
 
-### Individual orders
+### Operation deck (pli combat)
+
+Each match plays out in **14 plis**: a shuffled deck of **9 technique cards** (3 per active ninja: 1× primary, 2× secondary) and **5 deck elements** (squad tactic cards).
+
+- **Max HP** = ninja overall grade × 10 (average of 6 stats).
+- Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
+- **Victory**: more team HP at match end; tie → most plis won.
+- **Match items** removed from combat; only **tactic cards** serve as deck elements (no per-ninja match gear).
+- **Carry-over**: each new league matchday, your deck is **copied** from the previous one (techniques for active ninjas; elements only if the card still has charges).
+- **Orders** remain editable in the UI but no longer drive the combat engine (replaced by the deck).
+
+### Individual orders (legacy UI)
 
 Each active ninja receives **one combat order**. This is the main in-match lever: it changes targeting, healing, and attack priority.
 
@@ -168,7 +190,7 @@ From **H36**, **scouting** reveals hints about the opponent (arts, spotted order
 
 ### Tactic cards
 
-Each active ninja can equip **one tactic card** (inventory → equip). Cards replaced the old composition circle (Assault / Wall / Flow): they add situational effects in combat.
+Each squad picks **up to 5 tactic cards** as **deck elements** (Squad screen → operation deck, or Inventory → add to deck). This replaces the old “one card per ninja” equip flow.
 
 | Rule | Detail |
 |------|--------|
@@ -434,33 +456,32 @@ A Sensei can generate an **invitation link** to their pool to recruit allies in 
 ### What you see
 
 - **Narrative chronicle**: story unlocked progressively after H71 (both opponents read the same tale at the same pace).
-- **Mechanical debrief**: possession, scores, environment, equipment — more analytical tone, personalized per player.
+- **Mechanical debrief**: plis won, HP scores, environment — analytical tone, personalized per player.
 - **Spectator**: watch matches from other pools.
 
 ### Match structure
 
-- **Twelve turns maximum**.
-- Each turn: initiative → attacker choice → target → duel resolution.
-- **Random environment** (weather, terrain) with modifiers; some cycle items offset unfavorable conditions.
+- **Fourteen plis maximum** (9 techniques + 5 deck elements, shuffled).
+- Each pli: simultaneous card reveal, power comparison, damage to the losing card's owner.
+- **Random environment** (weather, terrain) with modifiers on relevant domains; terrain-counter items removed.
 
-### Duel resolution (no formulas)
+### Pli resolution
 
-Each exchange pits attacker vs defender. The server combines:
+Each pli pits two cards (domain vs domain):
 
-- relevant stats (combat, speed, intelligence);
-- a **random factor** (dice) to avoid purely deterministic outcomes;
-- modifiers: elements, form, team composition, traits, equipment;
-- special events: **crits**, **misses**, **Genjutsu** (paralysis or confusion), **Protection** order heals.
-
-The **Sensei** may try to **intercept a fatal blow** on a ninja: this spends match chakra and depends on squad average Intelligence.
+- type bonus +20% (Taijutsu > Genjutsu > Ninjutsu > Taijutsu);
+- Intelligence/Speed as support depending on domain;
+- Tai effects (+10% team next pli) and Gen (−10% enemy);
+- Medicine: heal on win, 50% damage on loss;
+- **Relay** cards if the owner is K.O. (random proxy, dominant stat) **or** if the deck is incomplete (techniques not saved, missing elements) — the match always pads to **14 plis**.
 
 ### Victory conditions
 
 1. **Immediate K.O.**: if all actives on a team are down (HP or chakra depleted), the opponent wins outright.
 
-2. **End of twelve turns**: if neither team is fully eliminated, the server computes a **remaining strength score** per side, weighting HP and chakra left. A **clear gap** between scores is needed to declare a winner; otherwise, **draw**.
+2. **End of plis**: if neither team is fully eliminated after all 14 plis, the winner is whoever has the most **team HP remaining**; on a tie, whoever won the most **plis**.
 
-**Possession** (initiative time) serves narration and debrief — it does **not** determine the winner.
+The **plis won** ratio feeds narration and debrief — it does **not** alone determine the winner (remaining HP takes priority).
 
 ### Consequences (at H72)
 

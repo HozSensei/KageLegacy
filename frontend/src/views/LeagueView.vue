@@ -331,6 +331,20 @@ function matchStatusLabel(status) {
                     {{ profile.artLabel }} · {{ t('dossier.potential', { level: profile.potentialHint }) }}
                   </li>
                 </ul>
+                <div v-if="league.scoutReport.deckReport?.lines?.length" class="mt-6 border-t border-line/50 pt-4">
+                  <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+                    {{ t('league.opponentDeck') }}
+                  </p>
+                  <p v-if="league.scoutReport.deckPending" class="mt-1 text-[10px] text-amber-700/90 dark:text-amber-400/90">
+                    {{ t('league.deckPending') }}
+                  </p>
+                  <p v-else-if="league.scoutReport.deckFrozen" class="mt-1 text-[10px] text-accent">
+                    {{ t('league.deckFrozen') }}
+                  </p>
+                  <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
+                    <li v-for="(line, k) in league.scoutReport.deckReport.lines" :key="`deck-${k}`">{{ line }}</li>
+                  </ul>
+                </div>
               </template>
             </div>
           </section>

@@ -56,6 +56,20 @@ function resolveCardActor(team, card, koSet) {
     return { fighter: best, domain: card.domain, relais: false, element: true, cardOwner: null };
   }
 
+  if (card.kind === 'relais' && card.padded) {
+    const proxy = randomProxy(team);
+    if (!proxy) return null;
+    return {
+      fighter: proxy,
+      domain: pickDominantDomain(proxy),
+      relais: true,
+      padded: true,
+      relaisOwner: null,
+      deckLabel: card.label,
+      cardOwner: null,
+    };
+  }
+
   const owner = getFighter(team, card.ownerId);
   if (!owner) return null;
 
@@ -225,13 +239,15 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     if (homeActor.relais) {
       log.relais_home = true;
       log.proxy_home = homeActor.fighter.name;
-      log.owner_ko_home = homeActor.relaisOwner?.name;
+      if (homeActor.padded) log.relais_padding_home = true;
+      else log.owner_ko_home = homeActor.relaisOwner?.name;
       log.carte_resolution_home = `${homeActor.fighter.name} · ${DOMAIN_LABELS[homeDomain]}`;
     }
     if (awayActor.relais) {
       log.relais_away = true;
       log.proxy_away = awayActor.fighter.name;
-      log.owner_ko_away = awayActor.relaisOwner?.name;
+      if (awayActor.padded) log.relais_padding_away = true;
+      else log.owner_ko_away = awayActor.relaisOwner?.name;
       log.carte_resolution_away = `${awayActor.fighter.name} · ${DOMAIN_LABELS[awayDomain]}`;
     }
 

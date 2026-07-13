@@ -12,22 +12,28 @@ const combatLog = {
   logs: [
     {
       tour: 1,
-      attaquant_name: 'Rei',
-      cible_name: 'Haru',
-      technique_type: 'Taijutsu',
+      type: 'pli',
+      carte_home: 'Taijutsu',
+      carte_away: 'Genjutsu',
+      technique_type_home: 'Taijutsu',
+      technique_type_away: 'Genjutsu',
+      pli_winner: 'away',
       degats_pv: 8,
-      equipe_attaque: 'away',
+      degats_pv_away: 0,
     },
     {
       tour: 2,
-      attaquant_name: 'Sora',
-      cible_name: 'Gen',
-      technique_type: 'Ninjutsu',
-      degats_pv: 2,
-      equipe_attaque: 'home',
+      type: 'pli',
+      carte_home: 'Ninjutsu',
+      carte_away: 'Taijutsu',
+      technique_type_home: 'Ninjutsu',
+      technique_type_away: 'Taijutsu',
+      pli_winner: 'home',
+      degats_pv: 0,
+      degats_pv_away: 2,
     },
   ],
-  possession: { homePct: 28, awayPct: 72 },
+  plisWon: { home: 1, away: 1 },
   homeScorePct: 41,
   awayScorePct: 58,
   environment: { slug: 'brouillard' },
@@ -84,7 +90,7 @@ if (!debrief.some((d) => d.code === 'environment')) throw new Error('debrief env
 const denouement = narrative.segments.find((s) => s.block_type === 'denouement');
 const denouementFr = resolveSegmentText('fr', denouement);
 if (!denouementFr.includes('58%')) throw new Error('denouement score manquant');
-if (!denouementFr.includes('possession')) throw new Error('denouement possession manquant');
+if (!denouementFr.includes('plis')) throw new Error('denouement plis manquant');
 
 const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_index === 1);
 const actionFr = resolveSegmentText('fr', actionSeg);

@@ -3,11 +3,10 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
 import { useFormatRyos } from '../../composables/useFormatRyos'
-import NinjaListIdentity from '../ninja/NinjaListIdentity.vue'
+import NinjaPanelCard from '../ninja/NinjaPanelCard.vue'
 import {
   combinePreviews,
   previewTrainingSession,
-  STAT_COLUMNS,
   TRAINING_TYPE_VALUES,
 } from '../../utils/trainingPreview.js'
 
@@ -60,24 +59,12 @@ function formatGain(value) {
   return value.toFixed(2).replace(/\.?0+$/, '') || '0'
 }
 
-function statCap(ninja, column) {
-  return ninja.gradeStatCaps?.[column] ?? null
-}
-
-function statPercent(ninja, column) {
-  const cap = statCap(ninja, column)
-  if (!cap) return 100
-  return Math.min(100, (Number(ninja[column] ?? 0) / cap) * 100)
-}
-
-function statPreviewFor(ninja, column, isActive) {
+function focusedStatsFor(ninja, isActive) {
   const preview = trainingPreview(ninja, isActive)
-  return preview?.statPreviews?.find((entry) => entry.column === column) ?? null
-}
-
-function isFocusedStat(ninja, column, isActive) {
-  const preview = statPreviewFor(ninja, column, isActive)
-  return Boolean(preview && !preview.atCap && preview.avgGain > 0)
+  if (!preview) return []
+  return preview.statPreviews
+    .filter((entry) => !entry.atCap && entry.avgGain > 0)
+    .map((entry) => entry.column)
 }
 
 async function onPrepChange(ninjaId) {
@@ -141,54 +128,27 @@ async function onGlobalChange() {
       <p class="section-label">{{ t('training.prepSectionTitle') }}</p>
       <p class="mt-1 text-xs text-ink-muted">{{ t('training.prepSectionHint') }}</p>
 
-      <ul class="training-grid mt-4">
-        <li
+      <ul class="ninja-panel-grid mt-4">
+        <NinjaPanelCard
           v-for="ninja in activeNinjas"
           :key="ninja.id"
-          class="training-card"
+          tag="li"
+          :ninja="ninja"
+          :focused-stats="focusedStatsFor(ninja, true)"
         >
-          <div class="training-card__header">
-            <NinjaListIdentity :ninja="ninja" compact />
-          </div>
-
-          <dl class="training-card__stats">
-            <div
-              v-for="column in STAT_COLUMNS"
-              :key="`${ninja.id}-${column}`"
-              class="training-stat"
-              :class="{ 'training-stat--focused': isFocusedStat(ninja, column, true) }"
-            >
-              <div class="training-stat__head">
-                <dt class="training-stat__label">{{ t(`ninja.stats.${column}`) }}</dt>
-                <dd class="training-stat__value">
-                  {{ ninja[column] }}
-                  <span v-if="statCap(ninja, column)" class="training-stat__cap">
-                    / {{ statCap(ninja, column) }}
-                  </span>
-                </dd>
-              </div>
-              <div class="training-stat__track" aria-hidden="true">
-                <div
-                  class="training-stat__fill"
-                  :style="{ width: `${statPercent(ninja, column)}%` }"
-                />
-              </div>
-            </div>
-          </dl>
-
-          <div class="training-card__footer">
-            <div class="training-card__cost-row">
-              <span class="training-card__cost-label">{{ t('training.costLabel') }}</span>
-              <span v-if="ninja.preparationCost && selectedPrepType(ninja.id)" class="training-card__cost">
+          <template #footer>
+            <div class="ninja-panel-card__cost-row">
+              <span class="ninja-panel-card__cost-label">{{ t('training.costLabel') }}</span>
+              <span v-if="ninja.preparationCost && selectedPrepType(ninja.id)" class="ninja-panel-card__cost">
                 {{ formatRyos(ninja.preparationCost ?? ninja.trainingCost) }}
               </span>
-              <span v-else class="training-card__cost training-card__cost--idle">
+              <span v-else class="ninja-panel-card__cost ninja-panel-card__cost--idle">
                 {{ t('bureau.trainingNone') }}
               </span>
             </div>
 
-            <label class="training-card__focus">
-              <span class="training-card__focus-label">{{ t('training.prepLabel') }}</span>
+            <label class="ninja-panel-card__focus">
+              <span class="ninja-panel-card__focus-label">{{ t('training.prepLabel') }}</span>
               <select
                 :value="localPrepPlans[ninja.id] ?? ''"
                 class="training-focus-select"
@@ -205,7 +165,7 @@ async function onGlobalChange() {
 
             <div
               v-if="trainingPreview(ninja, true)"
-              class="training-card__preview"
+              class="ninja-panel-card__preview"
             >
               <template v-if="trainingPreview(ninja, true).allCapped">
                 <p>{{ t('training.allCapped') }}</p>
@@ -226,8 +186,8 @@ async function onGlobalChange() {
                 </p>
               </template>
             </div>
-          </div>
-        </li>
+          </template>
+        </NinjaPanelCard>
       </ul>
     </section>
 
@@ -235,41 +195,42 @@ async function onGlobalChange() {
       <p class="section-label">{{ t('training.benchSectionTitle') }}</p>
       <p class="mt-1 text-xs text-ink-muted">{{ t('training.benchSectionHint') }}</p>
 
-      <ul class="training-grid mt-4">
-        <li
+      <ul class="ninja-panel-grid mt-4">
+        <NinjaPanelCard
           v-for="ninja in benchNinjas"
           :key="`bench-${ninja.id}`"
-          class="training-card training-card--bench"
+          tag="li"
+          :ninja="ninja"
+          bench
+          :show-vitals="false"
+          :focused-stats="focusedStatsFor(ninja, false)"
         >
-          <div class="training-card__header">
-            <NinjaListIdentity :ninja="ninja" compact />
-          </div>
-
-          <div
-            v-if="globalType() && trainingPreview(ninja, false)"
-            class="training-card__preview px-4 pb-4"
-          >
-            <template v-if="trainingPreview(ninja, false).allCapped">
-              <p class="text-sm text-ink-muted">{{ t('training.allCapped') }}</p>
-            </template>
-            <template v-else>
-              <p
-                v-for="statPreview in trainingPreview(ninja, false).statPreviews.filter((entry) => !entry.atCap && entry.avgGain > 0)"
-                :key="`${ninja.id}-bench-${statPreview.column}`"
-                class="text-sm"
-              >
-                {{ t('training.gainRangePreview', {
-                  stat: t(`ninja.stats.${statPreview.column}`),
-                  min: formatGain(statPreview.minGain),
-                  max: formatGain(statPreview.maxGain),
-                }) }}
-              </p>
-            </template>
-          </div>
-          <p v-else class="px-4 pb-4 text-sm text-ink-faint">
-            {{ t('training.benchNoGlobal') }}
-          </p>
-        </li>
+          <template #footer>
+            <div
+              v-if="globalType() && trainingPreview(ninja, false)"
+              class="ninja-panel-card__preview"
+            >
+              <template v-if="trainingPreview(ninja, false).allCapped">
+                <p>{{ t('training.allCapped') }}</p>
+              </template>
+              <template v-else>
+                <p
+                  v-for="statPreview in trainingPreview(ninja, false).statPreviews.filter((entry) => !entry.atCap && entry.avgGain > 0)"
+                  :key="`${ninja.id}-bench-${statPreview.column}`"
+                >
+                  {{ t('training.gainRangePreview', {
+                    stat: t(`ninja.stats.${statPreview.column}`),
+                    min: formatGain(statPreview.minGain),
+                    max: formatGain(statPreview.maxGain),
+                  }) }}
+                </p>
+              </template>
+            </div>
+            <p v-else class="ninja-panel-card__preview text-ink-faint">
+              {{ t('training.benchNoGlobal') }}
+            </p>
+          </template>
+        </NinjaPanelCard>
       </ul>
     </section>
   </div>

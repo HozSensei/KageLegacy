@@ -19,10 +19,13 @@ import {
 const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 const TRAITS = ['Discipline', 'Temeraire', 'Altruiste', 'Egoiste', 'Faineant'];
-const STRATEGIES = ['Normal', 'Offensive', 'Tank', 'Protect'];
 
 function pick(arr, i = 0) {
   return arr[i % arr.length];
+}
+
+function ninjaBySlot(ninjas, position, fallbackIndex = 0) {
+  return ninjas.find((n) => n.squad_position === position) || ninjas[fallbackIndex];
 }
 
 export function cloneNinja(ninja) {
@@ -37,7 +40,7 @@ export function createNinja({
   id,
   name,
   grade = 'Genin',
-  battle_strategy = 'Normal',
+  squad_position = null,
   weekly_forme = 'Passable',
   moral = 15,
   age = 15,
@@ -57,7 +60,7 @@ export function createNinja({
     name,
     grade,
     age,
-    battle_strategy,
+    squad_position,
     weekly_forme,
     moral,
     character_trait: 'Discipline',
@@ -75,7 +78,7 @@ export function createBalancedSquad(prefix, idOffset = 0, statScale = 1) {
     createNinja({
       id: idOffset + 1,
       name: `${prefix} Tai`,
-      battle_strategy: 'Offensive',
+      squad_position: 1,
       stats: {
         taijutsu: scale(9),
         ninjutsu: scale(6),
@@ -89,7 +92,7 @@ export function createBalancedSquad(prefix, idOffset = 0, statScale = 1) {
       id: idOffset + 2,
       name: `${prefix} Nin`,
       grade: 'Chunin',
-      battle_strategy: 'Normal',
+      squad_position: 2,
       stats: {
         taijutsu: scale(6),
         ninjutsu: scale(10),
@@ -102,7 +105,7 @@ export function createBalancedSquad(prefix, idOffset = 0, statScale = 1) {
     createNinja({
       id: idOffset + 3,
       name: `${prefix} Sup`,
-      battle_strategy: 'Protect',
+      squad_position: 3,
       stats: {
         taijutsu: scale(6),
         ninjutsu: scale(6),
@@ -133,12 +136,13 @@ function combatWinnerToSlot(winner) {
   return winner === COMBAT_SLOT_A ? 'slotA' : 'slotB';
 }
 
-function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei) {
+function runSingleMatch(slotANinjas, slotBNinjas, slotASensei, slotBSensei, decks = {}) {
+  const emptyDeck = { techniquesByNinjaId: {}, elementCards: [] };
   const slotA = buildCombatTeam(teamDataFromNinjas(1, slotANinjas, slotASensei), COMBAT_SLOT_A);
   const slotB = buildCombatTeam(teamDataFromNinjas(2, slotBNinjas, slotBSensei), COMBAT_SLOT_B);
   return simulatePliCombat(slotA, slotB, {
-    homeDeck: { techniquesByNinjaId: {}, elementCards: [] },
-    awayDeck: { techniquesByNinjaId: {}, elementCards: [] },
+    homeDeck: decks.homeDeck ?? emptyDeck,
+    awayDeck: decks.awayDeck ?? emptyDeck,
   });
 }
 
@@ -254,6 +258,8 @@ export function runMonteCarlo({
   slotBEquipment = {},
   slotATacticCards = {},
   slotBTacticCards = {},
+  homeDeck = null,
+  awayDeck = null,
 }) {
   const counter = initOutcomeCounter();
   const slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' };
@@ -262,6 +268,7 @@ export function runMonteCarlo({
   let cardProcs = 0;
   let matchesWithCardProc = 0;
   let errors = 0;
+  const decks = { homeDeck, awayDeck };
 
   for (let i = 0; i < runs; i += 1) {
     try {
@@ -269,7 +276,8 @@ export function runMonteCarlo({
         slotANinjas.map(cloneNinja),
         slotBNinjas.map(cloneNinja),
         slotASensei,
-        slotBSensei
+        slotBSensei,
+        decks
       );
       recordOutcome(counter, result, favoriteSide);
       const elementPlays = result.logs.filter((l) => l.type === 'element').length;
@@ -364,27 +372,19 @@ function trainingTypeFromSensei(sensei) {
 }
 
 const COMPOSITION_STRATEGY = {
-  assaut: 'Offensive',
-  mur: 'Tank',
-  flux: 'Protect',
+  assaut: 'assaut',
+  mur: 'mur',
+  flux: 'flux',
 };
 
-/** Escouade pure (2+ même consigne) pour le cercle Assaut/Flux/Mur. */
+/** Escouade pure (2+ même profil) pour le cercle Assaut/Flux/Mur. */
 export function createPureCompositionSquad(prefix, composition, idOffset = 0, statScale = 1) {
-  const strategy = COMPOSITION_STRATEGY[composition] || 'Normal';
-  return createBalancedSquad(prefix, idOffset, statScale).map((n) => ({
-    ...cloneNinja(n),
-    battle_strategy: strategy,
-  }));
+  return createBalancedSquad(prefix, idOffset, statScale).map((n) => cloneNinja(n));
 }
 
-/** Escouade équilibrée Off/Tank/Protect — hors cercle, ~neutre. */
+/** Escouade équilibrée Tai/Nin/Sup — hors cercle, ~neutre. */
 export function createEquilibreSquad(prefix, idOffset = 0, statScale = 1) {
-  const squad = createBalancedSquad(prefix, idOffset, statScale).map(cloneNinja);
-  squad[0].battle_strategy = 'Offensive';
-  squad[1].battle_strategy = 'Tank';
-  squad[2].battle_strategy = 'Protect';
-  return squad;
+  return createBalancedSquad(prefix, idOffset, statScale).map(cloneNinja);
 }
 
 const COMPOSITION_NAMES = {
@@ -535,17 +535,15 @@ export function runCompositionMatrix({ runs = 600 } = {}) {
   return results;
 }
 
-const TACTIC_PRESETS = {
-  normal: ['Normal', 'Normal', 'Normal'],
-  balanced: ['Offensive', 'Tank', 'Protect'],
-  aggressive: ['Offensive', 'Offensive', 'Offensive'],
+const DECK_PRESETS = {
+  normal: {},
+  balanced: {},
+  aggressive: {},
 };
 
-export function applyTactics(ninjas, preset) {
-  const strategies = TACTIC_PRESETS[preset] || TACTIC_PRESETS.normal;
-  ninjas.forEach((n, i) => {
-    n.battle_strategy = strategies[i] || 'Normal';
-  });
+export function applyDeckPreset(ninjas, preset) {
+  void preset;
+  return ninjas;
 }
 
 /**
@@ -575,9 +573,6 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
 
   const slotATactical = slotABase.map(cloneNinja);
   const slotBTactical = slotBBuffed.map(cloneNinja);
-  slotATactical[0].battle_strategy = 'Offensive';
-  slotATactical[1].battle_strategy = 'Tank';
-  slotATactical[2].battle_strategy = 'Protect';
   const tacticsImpact = runMonteCarlo({
     slotANinjas: slotATactical,
     slotBNinjas: slotBTactical,
@@ -587,8 +582,8 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
 
   const slotAAgg = slotABase.map(cloneNinja);
   const slotBAgg = slotBBuffed.map(cloneNinja);
-  applyTactics(slotAAgg, 'aggressive');
-  applyTactics(slotBAgg, 'normal');
+  applyDeckPreset(slotAAgg, 'aggressive');
+  applyDeckPreset(slotBAgg, 'normal');
   const badTactics = runMonteCarlo({
     slotANinjas: slotAAgg,
     slotBNinjas: slotBAgg,
@@ -649,9 +644,6 @@ export function runFullBenchmark({ runs = 400, cycles = 12 } = {}) {
 export function runUtilityBenchmark({ runs = 400 } = {}) {
   const botSquad = createBalancedSquad('Bot', 20, 1.4).map(cloneNinja);
   const underdogTactical = createBalancedSquad('Under', 0, 1).map(cloneNinja);
-  underdogTactical[0].battle_strategy = 'Offensive';
-  underdogTactical[1].battle_strategy = 'Tank';
-  underdogTactical[2].battle_strategy = 'Protect';
 
   const baseline = runMonteCarlo({
     slotANinjas: underdogTactical,
@@ -723,4 +715,3 @@ export function runUtilityBenchmark({ runs = 400 } = {}) {
   };
 }
 
-export { summarize, TACTIC_PRESETS };
