@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
-import { getClockRow, isTacticsLocked } from './gameClock.js';
+import { isTacticsLocked } from './gameClock.js';
+import { findUserPool } from './poolService.js';
 import { DECK_ELEMENTS_COUNT } from './combat/pli/constants.js';
 import { defaultTechniquesForFighter } from './combat/pli/deckBuilder.js';
 import { applyFormeToStats } from './combat/forme.js';
@@ -42,9 +43,14 @@ async function defaultElementCardIds(userId) {
   return rows.map((r) => Number(r.id));
 }
 
+async function resolveSeasonCycle(userId, seasonCycle = null) {
+  if (seasonCycle != null) return seasonCycle;
+  const pool = await findUserPool(userId);
+  return pool?.current_cycle ?? 1;
+}
+
 export async function getOperationDeck(userId, seasonCycle = null) {
-  const clock = await getClockRow();
-  const cycle = seasonCycle ?? clock.season_cycle;
+  const cycle = await resolveSeasonCycle(userId, seasonCycle);
   const rows = await query(
     'SELECT * FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
     [userId, cycle]
@@ -87,13 +93,12 @@ export async function getOperationDeck(userId, seasonCycle = null) {
       cardType: row.card_type,
       chargesRemaining: row.charges_remaining,
     })),
-    tacticsLocked: isTacticsLocked(clock),
+    tacticsLocked: await isTacticsLocked(),
   };
 }
 
 export async function saveOperationDeck(userId, { techniquesByNinjaId, elementCardIds }) {
-  const clock = await getClockRow();
-  if (isTacticsLocked(clock)) {
+  if (await isTacticsLocked()) {
     const error = new Error('Deck verrouillé pour ce cycle (H71+).');
     error.status = 403;
     throw error;
@@ -120,16 +125,17 @@ export async function saveOperationDeck(userId, { techniquesByNinjaId, elementCa
   }
 
   const techniques = techniquesByNinjaId || {};
+  const cycle = await resolveSeasonCycle(userId);
   await query(
     `INSERT INTO operation_decks (user_id, season_cycle, techniques_json, element_card_ids_json)
      VALUES (?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        techniques_json = VALUES(techniques_json),
        element_card_ids_json = VALUES(element_card_ids_json)`,
-    [userId, clock.season_cycle, JSON.stringify(techniques), JSON.stringify(ids)]
+    [userId, cycle, JSON.stringify(techniques), JSON.stringify(ids)]
   );
 
-  return getOperationDeck(userId, clock.season_cycle);
+  return getOperationDeck(userId, cycle);
 }
 
 export function deckConfigForCombat(deck) {

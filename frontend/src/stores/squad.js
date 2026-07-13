@@ -107,6 +107,7 @@ export const useSquadStore = defineStore('squad', () => {
     applySquadMutation(await res.json())
   }
 
+  async function recruitFromAcademy(drawId) {
     error.value = null
     const res = await fetch(`${API_BASE}/api/academy/recruit`, {
       method: 'POST',
