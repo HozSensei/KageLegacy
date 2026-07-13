@@ -91,7 +91,7 @@ export const NARRATIVE_CATALOG = {
           '· {sensei} : {owner} étant hors combat, {actor} prend le relais et joue « {card_name} » ({domain}).',
         ],
         play_relais_escouade: [
-          '· {sensei} : {actor} joue un relais d\'escouade ({domain}).',
+          '· {sensei} : aucune carte technique sur ce pli — {actor} improvise en {domain}.',
         ],
         play_relais_no_technique: [
           '· {sensei} : {owner} n\'ayant pas de technique configurée, {actor} joue un relais ({domain}).',
