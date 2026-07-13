@@ -189,7 +189,7 @@ Les **traits** modifient ce tableau : un **Égoïste** ignore parfois le ciblage
 
 ### Cartes tactiques
 
-Chaque ninja actif peut équiper **une carte tactique** (inventaire → équipement). Les cartes remplacent l'ancien « cercle de composition » (Assaut / Mur / Flux) : elles apportent des effets situationnels en combat.
+Chaque escouade choisit **jusqu'à 5 cartes tactiques** comme **éléments de deck** (écran Escouade → deck d'opération, ou Inventaire → ajouter au deck). Les cartes remplacent l'ancien équipement « 1 carte par ninja ».
 
 | Règle | Détail |
 |-------|--------|

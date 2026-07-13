@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
 import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
 
@@ -17,6 +18,7 @@ const sellItemId = ref(null)
 const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
+const deckActionMessage = ref(null)
 const itemCategoryFilter = ref('all')
 const itemStatusFilter = ref('all')
 const cardStatusFilter = ref('all')
@@ -55,7 +57,12 @@ function isCardSelected(card) {
 function selectCard(card) {
   selectedCardId.value = cardInstanceId(card)
   selectedItemId.value = null
+  deckActionMessage.value = null
 }
+
+const selectedCard = computed(() =>
+  (inventory.value?.tacticCards || []).find((card) => isCardSelected(card)) ?? null
+)
 
 function cardChargesLabel(card) {
   return t('inventory.cardCharges', { count: card.chargesRemaining })
@@ -315,6 +322,46 @@ async function unequip(ninjaId) {
     saving.value = false
   }
 }
+
+async function addCardToDeck() {
+  const cardId = selectedCardId.value
+  if (!cardId) return
+  saving.value = true
+  error.value = null
+  deckActionMessage.value = null
+  try {
+    const squadRes = await fetch(`${API_BASE}/api/squad`)
+    if (!squadRes.ok) throw new Error((await squadRes.json().catch(() => ({}))).error || `Erreur ${squadRes.status}`)
+    const squad = await squadRes.json()
+    const deck = squad.operationDeck
+    if (deck?.tacticsLocked) {
+      throw new Error(t('inventory.deckLocked'))
+    }
+    const currentIds = [...(deck?.elementCardIds || [])]
+    if (currentIds.includes(cardId)) {
+      deckActionMessage.value = t('inventory.cardAlreadyInDeck')
+      return
+    }
+    if (currentIds.length >= 5) {
+      throw new Error(t('inventory.deckFull'))
+    }
+    const saveRes = await fetch(`${API_BASE}/api/squad/deck`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        elementCardIds: [...currentIds, cardId],
+        techniquesByNinjaId: deck?.rawTechniquesByNinjaId || deck?.techniquesByNinjaId || {},
+      }),
+    })
+    if (!saveRes.ok) throw new Error((await saveRes.json().catch(() => ({}))).error || `Erreur ${saveRes.status}`)
+    deckActionMessage.value = t('inventory.cardAddedToDeck')
+    selectedCardId.value = null
+  } catch (e) {
+    error.value = e.message
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 
 <template>
@@ -469,7 +516,27 @@ async function unequip(ninjaId) {
             <span class="text-[10px] text-ink-faint">({{ filteredCards.length }})</span>
           </button>
         </div>
-        <p v-if="selectedCardId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinjaCard') }}</p>
+        <p v-if="selectedCardId" class="mt-2 text-xs leading-relaxed text-ink-muted">
+          {{ t('inventory.cardDeckHint') }}
+        </p>
+        <div
+          v-if="selectedCard && !selectedCard.isListed"
+          class="mt-4 flex flex-wrap items-center gap-3 border border-accent/30 bg-accent/5 p-4"
+        >
+          <button
+            type="button"
+            class="btn-primary text-xs"
+            :disabled="saving"
+            data-testid="inventory-add-card-to-deck"
+            @click="addCardToDeck"
+          >
+            {{ t('inventory.addToDeck') }}
+          </button>
+          <RouterLink to="/squad" class="text-xs text-accent underline-offset-2 hover:underline">
+            {{ t('inventory.openSquadDeck') }}
+          </RouterLink>
+        </div>
+        <p v-if="deckActionMessage" class="mt-2 text-xs text-accent">{{ deckActionMessage }}</p>
 
         <div class="mt-4 flex flex-wrap gap-2">
           <button
