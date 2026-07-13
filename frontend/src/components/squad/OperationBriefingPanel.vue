@@ -116,6 +116,22 @@ const rulesDeckLink = { path: '/rules', hash: '#combat-pli' }
                 <span v-if="profile.element"> · {{ profile.element }}</span>
               </li>
             </ul>
+            <div v-if="briefing.opponentDeck?.lines?.length" class="mt-6 border-t border-line/50 pt-4">
+              <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+                {{ t('briefing.opponentDeck') }}
+              </p>
+              <p v-if="briefing.scout.deckPending" class="mt-1 text-[10px] text-amber-700/90">
+                {{ t('briefing.deckPending') }}
+              </p>
+              <p v-else-if="briefing.scout.deckFrozen" class="mt-1 text-[10px] text-accent">
+                {{ t('briefing.deckFrozen') }}
+              </p>
+              <ul class="mt-2 space-y-2 text-xs leading-relaxed text-ink-muted">
+                <li v-for="(line, j) in briefing.opponentDeck.lines" :key="`deck-${j}`">
+                  {{ line }}
+                </li>
+              </ul>
+            </div>
           </template>
         </template>
       </div>

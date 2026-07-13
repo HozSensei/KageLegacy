@@ -3,7 +3,7 @@ import { getClockRow, getGameClock, resetCycle, updateLastTickHour } from './gam
 import { processTrainingBillingForAllUsers } from './trainingBilling.js';
 import { processChuninExamsForAllUsers } from './promotions.js';
 import { generateTendenciesIntelForAllUsers } from './scoutIntelService.js';
-import { generateRosterIntelForAllUsers } from './scouting.js';
+import { generateRosterIntelForAllUsers, freezeDeckIntelForAllUsers } from './scouting.js';
 import {
   applyAllPoolsMatchResults,
   simulateAllPoolsCurrentCycle,
@@ -71,10 +71,11 @@ export async function runH54(cycleStartAt) {
 
 export async function runH71(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h71')) return { skipped: true };
+  const deckIntel = await freezeDeckIntelForAllUsers();
   const simulations = await simulateAllPoolsCurrentCycle();
   await markJobRun(cycleStartAt, 'h71');
-  console.log(`[H71] Simulation — ${simulations.length} pool(s)`);
-  return { simulations };
+  console.log(`[H71] Deck gelé : ${deckIntel.length} · Simulation — ${simulations.length} pool(s)`);
+  return { deckIntel, simulations };
 }
 
 export async function runH72(cycleStartAt) {

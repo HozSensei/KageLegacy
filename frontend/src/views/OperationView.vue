@@ -310,11 +310,11 @@ onUnmounted(() => clearInterval(pollTimer))
                 <dl class="space-y-4">
                   <div>
                     <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-                      {{ t('operation.possession') }}
+                      {{ t('operation.plisWon') }}
                     </dt>
                     <dd class="mt-1 text-ink-muted">
-                      {{ operation.mechanical.possession?.homePct }}% /
-                      {{ operation.mechanical.possession?.awayPct }}%
+                      {{ operation.mechanical.plisWon?.home ?? '—' }} /
+                      {{ operation.mechanical.plisWon?.away ?? '—' }}
                     </dd>
                   </div>
                   <div>
