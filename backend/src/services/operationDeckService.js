@@ -13,6 +13,11 @@ function parseJson(value, fallback) {
   }
 }
 
+function parseJsonField(value) {
+  if (!value) return {};
+  return typeof value === 'string' ? JSON.parse(value) : value;
+}
+
 async function loadTechniqueCardsByIds(userId, cardIds = []) {
   const ids = [...new Set(cardIds.map(Number).filter(Boolean))];
   if (!ids.length) return {};
@@ -20,7 +25,8 @@ async function loadTechniqueCardsByIds(userId, cardIds = []) {
   const rows = await query(
     `SELECT utc.id AS user_tactic_card_id, utc.charges_remaining, utc.pli_bonus_pct,
             tcd.slug, tcd.name_fr, tcd.name_en, tcd.stat_type, tcd.pli_secondary_stat,
-            tcd.pli_bonus_min, tcd.pli_bonus_max, tcd.card_type, tcd.element_affinity, tcd.rarity
+            tcd.pli_bonus_min, tcd.pli_bonus_max, tcd.card_type, tcd.element_affinity, tcd.rarity,
+            tcd.trigger_kind, tcd.trigger_params, tcd.effect_kind, tcd.effect_params
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE utc.user_id = ? AND utc.id IN (${placeholders}) AND utc.charges_remaining > 0`,
@@ -41,6 +47,10 @@ async function loadTechniqueCardsByIds(userId, cardIds = []) {
       cardType: row.card_type,
       elementAffinity: row.element_affinity,
       rarity: row.rarity,
+      triggerKind: row.trigger_kind,
+      triggerParams: parseJsonField(row.trigger_params),
+      effectKind: row.effect_kind,
+      effectParams: parseJsonField(row.effect_params),
       chargesRemaining: row.charges_remaining,
     };
   }

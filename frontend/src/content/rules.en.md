@@ -202,6 +202,7 @@ Each active ninja gets **up to 3 technique cards** (Squad → operation deck).
 | **Player market** | The **instance** transfers as-is: **same % bonus**, same charges — no re-roll on purchase. |
 | **Refinement hall** | Paid re-roll of the % bonus on an owned card (cost by rarity; shop heritage discount applies). |
 | **Shop** | **10 random offers** from the catalog each restock (repeats allowed across periods); **fresh bonus roll** on purchase. |
+| **Effects** | Some cards have a **pli effect** (bonus damage, reduction, heal, opponent debuff next pli) — described on the card. |
 
 Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suiton bearer), **Chakra Scalpel** (offensive medicine).
 

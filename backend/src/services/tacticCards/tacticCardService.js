@@ -50,6 +50,16 @@ const LOOT_POOL_BY_RARITY = {
     'nin-futon-lame',
     'gen-brume-mentale',
     'med-paume-mystique',
+    'tai-poing-chakra',
+    'tai-enchainement',
+    'tai-mur-parade',
+    'nin-mur-katon',
+    'nin-spirale-suiton',
+    'nin-rafale-futon',
+    'gen-illusion-miroir',
+    'gen-brume-apaisante',
+    'med-bonus-soin',
+    'med-paume-choc',
   ],
   rare: [
     'tai-lame-futon',
@@ -58,8 +68,15 @@ const LOOT_POOL_BY_RARITY = {
     'nin-doton-seisme',
     'tai-frappe-ombre',
     'tai-lame-suiton',
+    'tai-coup-furtif',
+    'tai-pied-ecrasant',
+    'nin-eclair-double',
+    'nin-prison-doton',
+    'gen-chaos-esprit',
+    'gen-voile-paralysie',
+    'med-barriere-vie',
   ],
-  legendary: ['nin-suiton-dragon', 'nin-chidori'],
+  legendary: ['nin-suiton-dragon', 'nin-chidori', 'nin-kirin', 'nin-amaterasu', 'tai-dragon-impact'],
 };
 
 export async function grantRandomTacticCard(userId, { rarity = 'common' } = {}) {
