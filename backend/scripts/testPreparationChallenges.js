@@ -41,11 +41,11 @@ const ninjas = [
 ];
 
 const operationDeck = {
-  elementCardIds: [1, 2, 3, 4, 5],
-  techniquesByNinjaId: {
-    1: { primary: 'taijutsu', secondary: 'ninjutsu' },
-    2: { primary: 'ninjutsu', secondary: 'genjutsu' },
-    3: { primary: 'medecine', secondary: 'taijutsu' },
+  techniqueCount: 9,
+  techniqueSlotsByNinjaId: {
+    1: [1, 2, 3],
+    2: [4, 5, 6],
+    3: [7, 8, 9],
   },
 };
 
@@ -53,8 +53,8 @@ const result = buildPreparationChallenges({ ninjas, operationDeck, locale: 'fr' 
 console.assert(result.challenges.length >= 3, 'challenges générés');
 console.assert(result.summary.done >= 2, 'majorité validée');
 console.assert(
-  result.challenges.some((c) => c.id === 'deck_elements' && c.status === 'done'),
-  'éléments deck complets'
+  result.challenges.some((c) => c.id === 'deck_techniques' && c.status === 'done'),
+  'deck technique complet'
 );
 
 console.log('testPreparationChallenges: OK');

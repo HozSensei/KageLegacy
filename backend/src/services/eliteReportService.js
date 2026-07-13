@@ -280,38 +280,43 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
   const lang = normalizeLocale(locale);
   const tips = [];
   const deck = deckOrCounts?.deck ?? deckOrCounts;
-  const elementCount = deck?.elementCardIds?.length ?? 0;
-  const techniques = deck?.techniquesByNinjaId ?? {};
+  const techniqueCount = deck?.techniqueCount ?? Object.values(deck?.techniqueSlotsByNinjaId || {}).reduce(
+    (sum, ids) => sum + (ids?.length || 0),
+    0
+  );
+  const maxTechniques = 9;
 
-  if (elementCount < 5) {
+  if (techniqueCount < maxTechniques) {
     tips.push(
       lang === 'en'
-        ? `Deck has ${elementCount}/5 squad elements — add cards from inventory before H71.`
-        : `Deck : ${elementCount}/5 éléments — ajoutez des cartes depuis l'inventaire avant H71.`
+        ? `Deck has ${techniqueCount}/${maxTechniques} technique cards — assign cards per ninja before H71.`
+        : `Deck : ${techniqueCount}/${maxTechniques} cartes technique — assignez-les par ninja avant H71.`
     );
   } else {
     tips.push(
       lang === 'en'
-        ? 'Full 14-pli shuffle — techniques plus 5 squad elements.'
-        : 'Mélange complet à 14 plis — techniques + 5 éléments d\'escouade.'
+        ? 'Full 14-pli shuffle — 3 technique cards per active ninja.'
+        : 'Mélange complet à 14 plis — 3 cartes technique par ninja actif.'
     );
   }
 
-  const configured = Object.values(techniques).filter((t) => t?.primary && t?.secondary).length;
-  if (configured < 3) {
+  const configuredNinjas = Object.values(deck?.techniqueSlotsByNinjaId || {}).filter(
+    (ids) => (ids?.length || 0) >= 3
+  ).length;
+  if (configuredNinjas < 3) {
     tips.push(
       lang === 'en'
-        ? 'Set primary/secondary technique domains on each active ninja.'
-        : 'Définissez domaines principal/secondaire sur chaque ninja actif.'
+        ? 'Assign 3 technique cards on each active ninja.'
+        : 'Assignez 3 cartes technique sur chaque ninja actif.'
     );
   }
 
   return {
-    elementCount,
+    techniqueCount,
     label:
       lang === 'en'
-        ? `${elementCount}/5 elements · ${configured}/3 techniques`
-        : `${elementCount}/5 éléments · ${configured}/3 techniques`,
+        ? `${techniqueCount}/${maxTechniques} technique cards`
+        : `${techniqueCount}/${maxTechniques} cartes technique`,
     tips,
   };
 }

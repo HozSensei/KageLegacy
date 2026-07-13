@@ -14,8 +14,7 @@ const { t } = useI18n()
 const elite = useEliteStore()
 
 const opponentLevel = ref('similar')
-const customSlots = ref([])
-const customElementSlugs = ref([])
+const customTechniqueSlugsByNinja = ref([[], [], []])
 const simulating = ref(false)
 const simError = ref(null)
 const prefillMessage = ref(null)
@@ -36,30 +35,23 @@ const verdictToneClass = computed(() => {
 
 const rulesCompLink = { path: '/rules', hash: '#cartes-tactiques' }
 
-function domainLabel(key) {
-  return t(`squad.deck.domains.${key}`, key)
-}
-
 function initCustomDeckFromBuilder() {
   const b = builder.value
   if (!b) return
-  customSlots.value = (b.defaultSlots || []).map((slot) => ({ ...slot }))
-  customElementSlugs.value = [...(b.defaultElementSlugs || [])]
+  customTechniqueSlugsByNinja.value = (b.defaultTechniqueSlugsByNinja || [[], [], []]).map((row) => [...row])
 }
 
 function fillPreset(profile) {
   const preset = builder.value?.presets?.[profile]
   if (!preset) return
-  customSlots.value = preset.slots.map((slot) => ({ ...slot }))
-  customElementSlugs.value = [...(preset.elementSlugs || [])]
+  customTechniqueSlugsByNinja.value = (preset.techniqueSlugsByNinja || [[], [], []]).map((row) => [...row])
   prefillMessage.value = null
 }
 
 function fillFromScout() {
   const prefill = scoutPrefill.value
   if (!prefill?.available || !prefill.config) return
-  customSlots.value = prefill.config.slots.map((slot) => ({ ...slot }))
-  customElementSlugs.value = [...(prefill.config.elementSlugs || [])]
+  customTechniqueSlugsByNinja.value = (prefill.config.techniqueSlugsByNinja || [[], [], []]).map((row) => [...row])
   prefillMessage.value = prefill.summary
 }
 
@@ -71,11 +63,13 @@ function scoutUnavailableHint() {
   return translated === key ? reason : translated
 }
 
-function toggleElement(slug) {
-  const set = new Set(customElementSlugs.value)
-  if (set.has(slug)) set.delete(slug)
-  else if (set.size < (builder.value?.maxElements ?? 5)) set.add(slug)
-  customElementSlugs.value = [...set]
+function toggleTechnique(ninjaIndex, slug) {
+  const row = [...(customTechniqueSlugsByNinja.value[ninjaIndex] || [])]
+  const idx = row.indexOf(slug)
+  if (idx >= 0) row.splice(idx, 1)
+  else if (row.length < (builder.value?.maxTechniquesPerNinja ?? 3)) row.push(slug)
+  customTechniqueSlugsByNinja.value[ninjaIndex] = row
+  customTechniqueSlugsByNinja.value = [...customTechniqueSlugsByNinja.value]
 }
 
 onMounted(async () => {
@@ -93,7 +87,7 @@ watch(
 watch(
   () => builder.value,
   () => {
-    if (!customSlots.value.length) initCustomDeckFromBuilder()
+    if (!customTechniqueSlugsByNinja.value.some((row) => row.length)) initCustomDeckFromBuilder()
   },
   { immediate: true }
 )
@@ -103,12 +97,7 @@ async function runMatchup() {
   simError.value = null
   try {
     await elite.simulateMatchup(null, opponentLevel.value, 100, {
-      slots: customSlots.value.map((slot) => ({
-        configured: Boolean(slot.configured),
-        primary: slot.primary,
-        secondary: slot.secondary,
-      })),
-      elementSlugs: [...customElementSlugs.value],
+      techniqueSlugsByNinja: customTechniqueSlugsByNinja.value.map((row) => [...row]),
     })
   } catch (e) {
     simError.value = e.message
@@ -244,81 +233,36 @@ async function runMatchup() {
             {{ scoutUnavailableHint() }}
           </p>
 
-          <ul v-if="customSlots.length" class="space-y-3">
+          <ul v-if="customTechniqueSlugsByNinja.length" class="space-y-3">
             <li
-              v-for="(slot, index) in customSlots"
-              :key="`slot-${index}`"
+              v-for="(row, index) in customTechniqueSlugsByNinja"
+              :key="`ninja-${index}`"
               class="border border-line/50 p-3 text-xs"
             >
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <p class="font-medium text-ink">
-                  {{ t('eliteTools.opponentSlot', { n: index + 1 }) }}
-                </p>
-                <label class="flex items-center gap-2 text-ink-muted">
-                  <input v-model="slot.configured" type="checkbox" />
-                  {{ t('eliteTools.techniquesConfigured') }}
-                </label>
-              </div>
-              <div v-if="slot.configured" class="mt-3 grid gap-3 sm:grid-cols-2">
-                <label class="text-ink-muted">
-                  {{ t('squad.deck.primary') }}
-                  <select
-                    v-model="slot.primary"
-                    class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm text-ink"
+              <p class="font-medium text-ink">
+                {{ t('eliteTools.opponentSlot', { n: index + 1 }) }}
+              </p>
+              <ul class="mt-2 flex flex-wrap gap-2">
+                <li v-for="technique in builder?.techniqueOptions" :key="`${index}-${technique.slug}`">
+                  <button
+                    type="button"
+                    class="border px-2 py-1 text-[11px]"
+                    :class="
+                      row.includes(technique.slug)
+                        ? 'border-accent text-accent'
+                        : 'border-line text-ink-muted'
+                    "
+                    @click="toggleTechnique(index, technique.slug)"
                   >
-                    <option
-                      v-for="domain in builder?.domainOptions"
-                      :key="`p-${index}-${domain.value}`"
-                      :value="domain.value"
-                    >
-                      {{ domainLabel(domain.value) }}
-                    </option>
-                  </select>
-                </label>
-                <label class="text-ink-muted">
-                  {{ t('squad.deck.secondary') }}
-                  <select
-                    v-model="slot.secondary"
-                    class="mt-1 block w-full border border-line bg-bg px-2 py-1.5 text-sm text-ink"
-                  >
-                    <option
-                      v-for="domain in builder?.domainOptions"
-                      :key="`s-${index}-${domain.value}`"
-                      :value="domain.value"
-                    >
-                      {{ domainLabel(domain.value) }}
-                    </option>
-                  </select>
-                </label>
-              </div>
-              <p v-else class="mt-2 text-ink-faint">{{ t('eliteTools.relaisSlotHint') }}</p>
+                    {{ technique.label }}
+                  </button>
+                </li>
+              </ul>
+              <p class="mt-2 text-[11px] text-ink-faint">
+                {{ t('eliteTools.techniquePickCount', { n: row.length, max: builder?.maxTechniquesPerNinja ?? 3 }) }}
+              </p>
             </li>
           </ul>
-
-          <div>
-            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
-              {{ t('eliteTools.opponentElements', { count: builder?.maxElements ?? 5 }) }}
-            </p>
-            <ul class="mt-2 flex flex-wrap gap-2">
-              <li v-for="element in builder?.elementOptions" :key="element.slug">
-                <button
-                  type="button"
-                  class="border px-2 py-1 text-[11px]"
-                  :class="
-                    customElementSlugs.includes(element.slug)
-                      ? 'border-accent text-accent'
-                      : 'border-line text-ink-muted'
-                  "
-                  @click="toggleElement(element.slug)"
-                >
-                  {{ element.label }}
-                </button>
-              </li>
-            </ul>
-            <p class="mt-2 text-[11px] text-ink-faint">
-              {{ t('eliteTools.elementPickCount', { n: customElementSlugs.length, max: builder?.maxElements ?? 5 }) }}
-            </p>
-          </div>
         </div>
 
         <div class="mt-4 flex flex-wrap items-end gap-3">

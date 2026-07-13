@@ -189,7 +189,7 @@ export function getTacticCardFixture(slug) {
 }
 
 /** Format compatible initTacticCardOnFighter (comme une ligne DB équipée). */
-export function makeEquippedCard(slug, { userTacticCardId = 1, chargesRemaining = 3 } = {}) {
+export function makeEquippedCard(slug, { userTacticCardId = 1, chargesRemaining = 5 } = {}) {
   const def = getTacticCardFixture(slug);
   return {
     user_tactic_card_id: userTacticCardId,

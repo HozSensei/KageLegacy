@@ -604,7 +604,7 @@ export const NARRATIVE_CATALOG = {
         tactic_card: [
           '{ninja_name} rapporte une carte tactique trouvée sur le terrain.',
           'Butin tactique : une carte de combat rejoint la collection de l\'équipe.',
-          'Une carte tactique a été récupérée dans une cache — 3 charges prêtes à l\'emploi.',
+          'Une carte tactique a été récupérée dans une cache — 5 charges prêtes à l\'emploi.',
           '{ninja_name} glisse une carte tactique dans sa besace avant le retour au camp.',
         ],
         tactic_card_rare: [
@@ -1295,7 +1295,7 @@ export const NARRATIVE_CATALOG = {
         tactic_card: [
           '{ninja_name} brings back a tactic card found on the field.',
           'Tactical loot: a combat card joins the squad collection.',
-          'A tactic card was recovered from a cache — 3 charges ready to use.',
+          'A tactic card was recovered from a cache — 5 charges ready to use.',
           '{ninja_name} slips a tactic card into their pack before returning to camp.',
         ],
         tactic_card_rare: [

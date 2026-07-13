@@ -1,5 +1,6 @@
 import { query } from '../../config/database.js';
 import { STARTER_CARD_SLUGS, TACTIC_CARD_MAX_CHARGES } from './tacticCardCatalog.js';
+import { rollTechniqueBonusPct } from './tacticCardRoll.js';
 
 export async function findCardDefinitionBySlug(slug) {
   const rows = await query('SELECT * FROM tactic_card_definitions WHERE slug = ?', [slug]);
@@ -10,15 +11,19 @@ export async function grantTacticCard(userId, slug, charges = TACTIC_CARD_MAX_CH
   const def = await findCardDefinitionBySlug(slug);
   if (!def) return null;
   const safeCharges = Math.min(TACTIC_CARD_MAX_CHARGES, Math.max(1, Number(charges) || TACTIC_CARD_MAX_CHARGES));
+  const minBonus = Number(def.pli_bonus_min ?? 0.01);
+  const maxBonus = Number(def.pli_bonus_max ?? def.pli_bonus_min ?? 0.2);
+  const rolledBonus = rollTechniqueBonusPct(minBonus, maxBonus);
   const result = await query(
-    `INSERT INTO user_tactic_cards (user_id, tactic_card_definition_id, charges_remaining)
-     VALUES (?, ?, ?)`,
-    [userId, def.id, safeCharges]
+    `INSERT INTO user_tactic_cards (user_id, tactic_card_definition_id, charges_remaining, pli_bonus_pct)
+     VALUES (?, ?, ?, ?)`,
+    [userId, def.id, safeCharges, rolledBonus]
   );
   return {
     userTacticCardId: result.insertId,
     slug,
     chargesRemaining: safeCharges,
+    pliBonusPct: rolledBonus,
     nameFr: def.name_fr,
     nameEn: def.name_en,
   };
@@ -35,21 +40,43 @@ export async function grantStarterTacticCards(userId) {
 
 const LOOT_POOL_BY_RARITY = {
   common: [
-    'tai-parade-ecole',
-    'med-pansement-rapide',
-    'nin-eclair-discret',
-    'katon-mur-braises',
-    'raiton-surcharge',
-    'gen-illusion-mineure',
-    'futon-lame-retour',
+    'tai-lame-chakras',
+    'nin-afflux-chakra',
+    'gen-mirage-simple',
+    'med-scalpel-chakra',
+    'tai-coup-poing-leon',
+    'nin-katon-boule',
+    'nin-raiton-eclair',
+    'nin-futon-lame',
+    'gen-brume-mentale',
+    'med-paume-mystique',
+    'tai-poing-chakra',
+    'tai-enchainement',
+    'tai-mur-parade',
+    'nin-mur-katon',
+    'nin-spirale-suiton',
+    'nin-rafale-futon',
+    'gen-illusion-miroir',
+    'gen-brume-apaisante',
+    'med-bonus-soin',
+    'med-paume-choc',
   ],
   rare: [
-    'gen-kage-bunshin',
-    'suiton-cage-aqueuse',
-    'med-soin-zone',
-    'doton-racines',
+    'tai-lame-futon',
+    'nin-clone-ombre',
+    'gen-dango-cuisiniere',
+    'nin-doton-seisme',
+    'tai-frappe-ombre',
+    'tai-lame-suiton',
+    'tai-coup-furtif',
+    'tai-pied-ecrasant',
+    'nin-eclair-double',
+    'nin-prison-doton',
+    'gen-chaos-esprit',
+    'gen-voile-paralysie',
+    'med-barriere-vie',
   ],
-  legendary: ['legende-suiton-dragon'],
+  legendary: ['nin-suiton-dragon', 'nin-chidori', 'nin-kirin', 'nin-amaterasu', 'tai-dragon-impact'],
 };
 
 export async function grantRandomTacticCard(userId, { rarity = 'common' } = {}) {
@@ -91,6 +118,10 @@ function mapUserCard(row) {
     rarity: row.rarity,
     cardType: row.card_type,
     statType: row.stat_type,
+    pliSecondaryStat: row.pli_secondary_stat,
+    pliBonusPct: row.utc_pli_bonus_pct != null ? Number(row.utc_pli_bonus_pct) : null,
+    pliBonusMin: row.pli_bonus_min != null ? Number(row.pli_bonus_min) : null,
+    pliBonusMax: row.pli_bonus_max != null ? Number(row.pli_bonus_max) : null,
     elementAffinity: row.element_affinity,
     triggerKind: row.trigger_kind,
     triggerParams: parseJsonField(row.trigger_params),
@@ -122,6 +153,7 @@ export async function getTacticCardsForUser(userId) {
        utc.tactic_card_definition_id,
        utc.charges_remaining,
        utc.acquired_at,
+       utc.pli_bonus_pct AS utc_pli_bonus_pct,
        tcd.slug,
        tcd.name_fr,
        tcd.name_en,
@@ -130,6 +162,9 @@ export async function getTacticCardsForUser(userId) {
        tcd.rarity,
        tcd.card_type,
        tcd.stat_type,
+       tcd.pli_secondary_stat,
+       tcd.pli_bonus_min,
+       tcd.pli_bonus_max,
        tcd.element_affinity,
        tcd.trigger_kind,
        tcd.trigger_params,

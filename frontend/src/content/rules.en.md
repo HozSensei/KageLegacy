@@ -188,18 +188,24 @@ From **H36**, **scouting** reveals hints about the opponent (arts, spotted order
 
 **Important:** posture grants **no hidden combat bonus**. It records your **cycle plan** and shapes **dossier advice** (cross-checked with scouting). For the plan to matter, align **posture + orders + tactic cards** on each ninja.
 
-### Tactic cards
+### Ninja technique cards
 
-Each squad picks **up to 5 tactic cards** as **deck elements** (Squad screen → operation deck, or Inventory → add to deck). This replaces the old “one card per ninja” equip flow.
+Each active ninja gets **up to 3 technique cards** (Squad → operation deck).
 
 | Rule | Detail |
 |------|--------|
-| **Charges** | 3 charges per card; a charge is spent **only when the card triggers**. |
-| **Proc** | **At most one trigger per ninja per match.** |
-| **Depletion** | At 0 charges, the card leaves inventory (re-loot). |
-| **Synergy** | **Attack** cards → Offensive; **defense** cards → Defensive; **support** cards → Protection. |
+| **Bearer** | The card is played by the **assigned ninja**. |
+| **Power** | Primary stat (+ secondary average: domain, speed or intelligence) × **unique % bonus** rolled on acquisition. |
+| **Variable bonus** | Common 1–20% · with synergy 5–25% · rare 15–35% · legendary 30–50%. |
+| **Prerequisites** | Some cards require the bearer's element (e.g. Water Blade → Suiton). |
+| **Charges** | 5 charges; one spent when the card is **drawn** in a pli (near-guaranteed use each cycle). |
+| **Player market** | The **instance** transfers as-is: **same % bonus**, same charges — no re-roll on purchase. |
+| **Refinement hall** | Paid re-roll of the % bonus on an owned card (cost by rarity; shop heritage discount applies). |
+| **Shop** | **10 random offers** from the catalog each restock (repeats allowed across periods); **fresh bonus roll** on purchase. |
+| **Effects** | Some cards have a **pli effect** (bonus damage, reduction, heal, opponent debuff next pli) — described on the card. |
+| **Elements** | 16 cards require the bearer's element — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (balanced spread). |
 
-Examples: parry when targeted twice same turn (Defensive), chip damage on attack (Offensive), heal wounded ally (Protection).
+Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suiton bearer), **Chakra Scalpel** (offensive medicine).
 
 ---
 

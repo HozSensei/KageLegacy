@@ -1,5 +1,5 @@
 /**
- * Tests cartes tactiques — collection, charges, marché (pool deck).
+ * Tests cartes technique ninja — collection, charges, magasin.
  */
 import { query } from '../src/config/database.js';
 import {
@@ -8,9 +8,39 @@ import {
   grantTacticCard,
 } from '../src/services/tacticCards/tacticCardService.js';
 import { createTacticCardListing } from '../src/services/playerMarketService.js';
-import { STARTER_CARD_SLUGS, TACTIC_CARD_MAX_CHARGES } from '../src/services/tacticCards/tacticCardCatalog.js';
+import { rollTechniqueBonusPct } from '../src/services/tacticCards/tacticCardRoll.js';
+import {
+  STARTER_CARD_SLUGS,
+  TACTIC_CARD_MAX_CHARGES,
+  SHOP_OFFERS_PER_RESTOCK,
+  pickShopSlugs,
+  computeRefinementCost,
+} from '../src/services/tacticCards/tacticCardCatalog.js';
 
 const PREFIX = `tactic_cards_${Date.now()}`;
+
+function testBonusRoll() {
+  for (let i = 0; i < 50; i += 1) {
+    const rolled = rollTechniqueBonusPct(0.01, 0.2);
+    const pct = Math.round(rolled * 100);
+    console.assert(pct >= 1 && pct <= 20, `roll in range, got ${pct}`);
+  }
+  console.assert(rollTechniqueBonusPct(0.3, 0.3) === 0.3, 'fixed min=max');
+}
+
+function testShopRotation() {
+  const userA = pickShopSlugs(42, 3);
+  const userARepeat = pickShopSlugs(42, 3);
+  const userB = pickShopSlugs(99, 3);
+  console.assert(userA.length === SHOP_OFFERS_PER_RESTOCK, `shop offers count ${userA.length}`);
+  console.assert(new Set(userA).size === userA.length, 'shop offers unique within period');
+  console.assert(JSON.stringify(userA) === JSON.stringify(userARepeat), 'shop deterministic');
+  console.assert(JSON.stringify(userA) !== JSON.stringify(userB), 'shop per-player variance');
+  const period0 = pickShopSlugs(42, 0);
+  const period1 = pickShopSlugs(42, 1);
+  const repeatsAcrossRestocks = period0.some((slug) => period1.includes(slug));
+  console.assert(repeatsAcrossRestocks, 'independent restocks may repeat offers');
+}
 
 async function createUser() {
   const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
@@ -32,7 +62,18 @@ async function cleanup(userId) {
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 
+function testRefinementCost() {
+  console.assert(computeRefinementCost(1000, 'common') === 500, 'common 50%');
+  console.assert(computeRefinementCost(1000, 'rare') === 750, 'rare 75%');
+  console.assert(computeRefinementCost(1000, 'legendary') === 1000, 'legendary 100%');
+  console.assert(computeRefinementCost(1, 'common') === 1, 'min cost 1');
+}
+
 async function main() {
+  testBonusRoll();
+  testShopRotation();
+  testRefinementCost();
+
   const defRows = await query('SELECT COUNT(*) AS c FROM tactic_card_definitions');
   if (!Number(defRows[0]?.c)) {
     console.error('SKIP: migration 039 non appliquée — exécutez les migrations.');
@@ -44,12 +85,16 @@ async function main() {
   const granted = await ensureStarterTacticCards(userId);
   console.assert(granted, 'starter cards granted');
   const cards = await getTacticCardsForUser(userId);
-  console.assert(cards.length === 3, `3 starter cards, got ${cards.length}`);
+  console.assert(
+    cards.length === STARTER_CARD_SLUGS.length,
+    `${STARTER_CARD_SLUGS.length} starter cards, got ${cards.length}`
+  );
   console.assert(
     STARTER_CARD_SLUGS.every((slug) => cards.some((c) => c.slug === slug)),
     'starter slugs present'
   );
-  console.assert(cards.every((c) => c.chargesRemaining === TACTIC_CARD_MAX_CHARGES), '3 charges each');
+  console.assert(cards.every((c) => c.chargesRemaining === TACTIC_CARD_MAX_CHARGES), '5 charges each');
+  console.assert(cards[0].pliBonusPct != null && cards[0].pliBonusPct > 0, 'rolled bonus on grant');
 
   const dup = await ensureStarterTacticCards(userId);
   console.assert(!dup, 'no duplicate starter grant');
@@ -58,9 +103,9 @@ async function main() {
   const listing = await createTacticCardListing(userId, cardId, 450);
   console.assert(listing.listingId, 'card listed');
 
-  await grantTacticCard(userId, 'tai-parade-ecole');
+  await grantTacticCard(userId, STARTER_CARD_SLUGS[0]);
   const afterGrant = await getTacticCardsForUser(userId);
-  console.assert(afterGrant.length >= 4, 'grant adds card to pool');
+  console.assert(afterGrant.length >= STARTER_CARD_SLUGS.length + 1, 'grant adds card to pool');
 
   await cleanup(userId);
   console.log('testTacticCards: OK');

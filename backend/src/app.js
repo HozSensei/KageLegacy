@@ -21,6 +21,7 @@ import eliteRouter from './routes/elite.js';
 import senseiRouter from './routes/sensei.js';
 import stripeRouter from './routes/stripe.js';
 import reconnaissanceRouter from './routes/reconnaissance.js';
+import techniqueRefinementRouter from './routes/techniqueRefinement.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -61,6 +62,7 @@ app.use('/api/bureau', bureauRouter);
 app.use('/api/clan', clanRouter);
 app.use('/api/matches', matchesRouter);
 app.use('/api/player-market', playerMarketRouter);
+app.use('/api/technique-refinement', techniqueRefinementRouter);
 app.use('/api/elite', eliteRouter);
 app.use('/api/sensei', senseiRouter);
 app.use('/api/reconnaissance', reconnaissanceRouter);

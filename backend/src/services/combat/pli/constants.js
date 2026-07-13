@@ -2,7 +2,6 @@
 
 export const MAX_PLIS = 14;
 export const TECHNIQUE_CARDS_PER_NINJA = 3;
-export const DECK_ELEMENTS_COUNT = 5;
 
 export const DOMAINS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
 

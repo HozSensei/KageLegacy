@@ -19,6 +19,15 @@ import {
   allFightersKo,
   randomProxy,
 } from './power.js';
+import {
+  applyPlayPowerBonus,
+  applyLoseDamageReduction,
+  computeWinBonusDamage,
+  computeHealBonus,
+  computeDrawHeal,
+  applyWinPliMods,
+  cardDefForCombat,
+} from './cardEffectRegistry.js';
 
 function getFighter(team, id) {
   return team.fighters.find((f) => f.id === id);
@@ -47,15 +56,6 @@ function applyHeal(fighter, amount) {
 }
 
 function resolveCardActor(team, card, koSet) {
-  if (card.kind === 'element') {
-    const alive = aliveFighters(team);
-    if (!alive.length) return null;
-    const best = alive.reduce((a, b) =>
-      (b.stats[card.domain] || 0) > (a.stats[card.domain] || 0) ? b : a
-    );
-    return { fighter: best, domain: card.domain, relais: false, element: true, cardOwner: null };
-  }
-
   if (card.kind === 'relais' && card.padded) {
     const proxy = randomProxy(team);
     if (!proxy) return null;
@@ -93,19 +93,27 @@ function damageBearer(actor) {
   return actor.relais ? actor.fighter : actor.cardOwner || actor.fighter;
 }
 
-function computePowers(homeActor, awayActor, homeDomain, awayDomain, env, state) {
-  const homePower = computeCardPower(homeActor.fighter, homeDomain, {
+function computePowers(homeActor, awayActor, homeDomain, awayDomain, env, state, homeCard, awayCard) {
+  let homePower = computeCardPower(homeActor.fighter, homeDomain, {
     env,
     nextMod: state.homeNextMod,
     typeAdvantage: hasTypeAdvantage(homeDomain, awayDomain),
     opponentElement: awayActor.fighter.element_affinity,
+    cardDef: homeCard?.cardDef,
   });
-  const awayPower = computeCardPower(awayActor.fighter, awayDomain, {
+  let awayPower = computeCardPower(awayActor.fighter, awayDomain, {
     env,
     nextMod: state.awayNextMod,
     typeAdvantage: hasTypeAdvantage(awayDomain, homeDomain),
     opponentElement: homeActor.fighter.element_affinity,
+    cardDef: awayCard?.cardDef,
   });
+  if (!homeActor.relais) {
+    homePower = applyPlayPowerBonus(homePower, homeActor.fighter, cardDefForCombat(homeCard?.cardDef));
+  }
+  if (!awayActor.relais) {
+    awayPower = applyPlayPowerBonus(awayPower, awayActor.fighter, cardDefForCombat(awayCard?.cardDef));
+  }
   return { homePower, awayPower };
 }
 
@@ -136,16 +144,20 @@ function applyPendingMods(state) {
   }
 }
 
-function resolveMedSide(team, sideKey, actor, power, oppPower, outcome, log, suffix = '') {
+function resolveMedSide(team, sideKey, actor, power, oppPower, outcome, log, suffix = '', cardDef = null) {
   const bearer = damageBearer(actor);
   const won = outcome === sideKey;
   const key = suffix ? `degats_pv${suffix}` : 'degats_pv';
   const cibleKey = suffix ? `cible_name${suffix}` : 'cible_name';
+  const combatCard = cardDefForCombat(cardDef);
 
   if (won && !actor.relais) {
     const target = findMostWoundedPct(team.fighters);
     if (target && target.pv < target.maxPv) {
-      const heal = applyHeal(target, computeHealAmount(power));
+      const heal = applyHeal(
+        target,
+        computeHealBonus(actor.fighter, combatCard, computeHealAmount(power))
+      );
       log[`soins_pv${suffix}`] = heal;
       log[cibleKey] = target.name;
       return;
@@ -163,10 +175,62 @@ function resolveMedSide(team, sideKey, actor, power, oppPower, outcome, log, suf
 
   if (!won) {
     const full = computeDamage(oppPower, power);
-    const dmg = applyDamage(bearer, computeMedFailDamage(full));
+    const reduced = applyLoseDamageReduction(full, combatCard);
+    const dmg = applyDamage(bearer, computeMedFailDamage(reduced));
     log[key] = dmg;
     log[cibleKey] = bearer?.name;
   }
+}
+
+function applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, outcome, log) {
+  const homeCombat = cardDefForCombat(homeCard?.cardDef);
+  const awayCombat = cardDefForCombat(awayCard?.cardDef);
+
+  if (outcome === 'home') {
+    let dmg = computeDamage(homePower, awayPower, { relais: awayActor.relais });
+    dmg = applyLoseDamageReduction(dmg, awayCombat);
+    const bonus = homeActor.relais ? 0 : computeWinBonusDamage(homeActor.fighter, homeCombat);
+    dmg += bonus;
+    log.degats_pv = applyDamage(damageBearer(awayActor), dmg);
+    log.cible_name = damageBearer(awayActor)?.name;
+    log.attaquant_name = homeActor.fighter.name;
+    if (bonus > 0) log.bonus_degats = bonus;
+    return 'home';
+  }
+  if (outcome === 'away') {
+    let dmg = computeDamage(awayPower, homePower, { relais: homeActor.relais });
+    dmg = applyLoseDamageReduction(dmg, homeCombat);
+    const bonus = awayActor.relais ? 0 : computeWinBonusDamage(awayActor.fighter, awayCombat);
+    dmg += bonus;
+    log.degats_pv = applyDamage(damageBearer(homeActor), dmg);
+    log.cible_name = damageBearer(homeActor)?.name;
+    log.attaquant_name = awayActor.fighter.name;
+    if (bonus > 0) log.bonus_degats = bonus;
+    return 'away';
+  }
+
+  const tieDmg = computeTieDamage(homePower, awayPower);
+  const homeReduced = applyLoseDamageReduction(tieDmg, homeCombat);
+  const awayReduced = applyLoseDamageReduction(tieDmg, awayCombat);
+  log.degats_pv = applyDamage(damageBearer(homeActor), homeReduced);
+  log.degats_pv_away = applyDamage(damageBearer(awayActor), awayReduced);
+  log.cible_name = damageBearer(homeActor)?.name;
+  log.cible_name_away = damageBearer(awayActor)?.name;
+  log.egallite = true;
+
+  if (!homeActor.relais) {
+    const homeHeal = computeDrawHeal(homeActor.fighter, homeCombat);
+    if (homeHeal > 0) {
+      log.soins_pv_draw_home = applyHeal(damageBearer(homeActor), homeHeal);
+    }
+  }
+  if (!awayActor.relais) {
+    const awayHeal = computeDrawHeal(awayActor.fighter, awayCombat);
+    if (awayHeal > 0) {
+      log.soins_pv_draw_away = applyHeal(damageBearer(awayActor), awayHeal);
+    }
+  }
+  return 'draw';
 }
 
 export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
@@ -176,7 +240,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
 
   const logs = [];
   const plisWon = { home: 0, away: 0 };
-  const playedElementCardIds = [];
+  const playedTechniqueCardIds = [];
   const koOwnerIds = { home: new Set(), away: new Set() };
   const state = {
     homeNextMod: 1,
@@ -198,8 +262,8 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     const awayActor = resolveCardActor(awayTeam, awayCard, koOwnerIds.away);
     if (!homeActor?.fighter || !awayActor?.fighter) break;
 
-    if (homeCard.userTacticCardId) playedElementCardIds.push(homeCard.userTacticCardId);
-    if (awayCard.userTacticCardId) playedElementCardIds.push(awayCard.userTacticCardId);
+    if (homeCard.userTacticCardId) playedTechniqueCardIds.push(homeCard.userTacticCardId);
+    if (awayCard.userTacticCardId) playedTechniqueCardIds.push(awayCard.userTacticCardId);
 
     const homeDomain = homeActor.domain;
     const awayDomain = awayActor.domain;
@@ -209,7 +273,9 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       homeDomain,
       awayDomain,
       env,
-      state
+      state,
+      homeCard,
+      awayCard
     );
 
     let outcome = 'draw';
@@ -219,12 +285,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     const log = {
       tour: pli,
       pli,
-      type:
-        homeActor.relais || awayActor.relais
-          ? 'relais'
-          : homeCard.kind === 'element' || awayCard.kind === 'element'
-            ? 'element'
-            : 'pli',
+      type: homeActor.relais || awayActor.relais ? 'relais' : 'pli',
       carte_home: homeCard.label,
       carte_away: awayCard.label,
       technique_type_home: DOMAIN_LABELS[homeDomain],
@@ -261,38 +322,34 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     const medHome = homeDomain === 'medecine';
     const medAway = awayDomain === 'medecine';
 
-    if (medHome) resolveMedSide(homeTeam, 'home', homeActor, homePower, awayPower, outcome, log);
-    if (medAway) resolveMedSide(awayTeam, 'away', awayActor, awayPower, homePower, outcome, log, '_away');
+    if (medHome) resolveMedSide(homeTeam, 'home', homeActor, homePower, awayPower, outcome, log, '', homeCard?.cardDef);
+    if (medAway) resolveMedSide(awayTeam, 'away', awayActor, awayPower, homePower, outcome, log, '_away', awayCard?.cardDef);
 
     if (!medHome && !medAway) {
-      if (outcome === 'home') {
-        const dmg = computeDamage(homePower, awayPower, { relais: awayActor.relais });
-        log.degats_pv = applyDamage(damageBearer(awayActor), dmg);
-        log.cible_name = damageBearer(awayActor)?.name;
-        log.attaquant_name = homeActor.fighter.name;
-        scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
-      } else if (outcome === 'away') {
-        const dmg = computeDamage(awayPower, homePower, { relais: homeActor.relais });
-        log.degats_pv = applyDamage(damageBearer(homeActor), dmg);
-        log.cible_name = damageBearer(homeActor)?.name;
-        log.attaquant_name = awayActor.fighter.name;
-        scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
-      } else {
-        const tieDmg = computeTieDamage(homePower, awayPower);
-        log.degats_pv = applyDamage(damageBearer(homeActor), tieDmg);
-        log.degats_pv_away = applyDamage(damageBearer(awayActor), tieDmg);
-        log.cible_name = damageBearer(homeActor)?.name;
-        log.cible_name_away = damageBearer(awayActor)?.name;
-        log.egallite = true;
-      }
+      const dmgOutcome = applyWinDamage(
+        homeActor,
+        awayActor,
+        homeCard,
+        awayCard,
+        homePower,
+        awayPower,
+        outcome,
+        log
+      );
+      if (dmgOutcome === 'home') scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
+      else if (dmgOutcome === 'away') scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
     } else if (!medHome && medAway && outcome === 'home') {
-      const dmg = computeDamage(homePower, awayPower, { relais: awayActor.relais });
-      log.degats_pv = applyDamage(damageBearer(awayActor), dmg);
+      applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, 'home', log);
       scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
     } else if (medHome && !medAway && outcome === 'away') {
-      const dmg = computeDamage(awayPower, homePower, { relais: homeActor.relais });
-      log.degats_pv = applyDamage(damageBearer(homeActor), dmg);
+      applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, 'away', log);
       scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
+    }
+
+    if (outcome === 'home' && !homeActor.relais) {
+      applyWinPliMods(cardDefForCombat(homeCard?.cardDef), 'home', state);
+    } else if (outcome === 'away' && !awayActor.relais) {
+      applyWinPliMods(cardDefForCombat(awayCard?.cardDef), 'away', state);
     }
 
     applyPendingMods(state);
@@ -342,7 +399,8 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
     homeScorePct: teamTotalPv(homeTeam),
     awayScorePct: teamTotalPv(awayTeam),
     plisWon: { home: Math.round(plisWon.home), away: Math.round(plisWon.away) },
-    playedElementCardIds: [...new Set(playedElementCardIds)],
+    playedTechniqueCardIds: [...new Set(playedTechniqueCardIds)],
+    playedElementCardIds: [...new Set(playedTechniqueCardIds)],
     possession: { home: 0, away: 0, homePct: 50, awayPct: 50 },
   };
 }

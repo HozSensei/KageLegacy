@@ -10,7 +10,7 @@ import pool from '../src/config/database.js';
 import {
   carryOperationDecksForPool,
   ensureOperationDeckFromPreviousCycle,
-  filterTechniquesForActiveSquad,
+  filterTechniqueSlotsForActiveSquad,
   getOperationDeck,
   saveOperationDeck,
 } from '../src/services/operationDeckService.js';
@@ -37,12 +37,17 @@ async function cleanup(poolId, userId) {
 }
 
 async function main() {
-  const filtered = filterTechniquesForActiveSquad(
-    { 1: { primary: 'taijutsu', secondary: 'ninjutsu' }, 99: { primary: 'genjutsu', secondary: 'taijutsu' } },
-    [1, 2]
-  );
-  assert(filtered['1']?.primary === 'taijutsu', 'filtre techniques actifs');
+  const filtered = filterTechniqueSlotsForActiveSquad({ 1: [10, 11], 99: [12] }, [1, 2]);
+  assert(filtered['1']?.length === 2, 'filtre slots actifs');
   assert(!filtered['99'], 'ninjas hors escouade exclus');
+
+  const defRows = await query('SELECT COUNT(*) AS c FROM tactic_card_definitions WHERE slug = ?', [
+    'tai-lame-chakras',
+  ]);
+  if (!Number(defRows[0]?.c)) {
+    console.error('SKIP: migration 052 non appliquée.');
+    process.exit(0);
+  }
 
   const poolResult = await query(
     `INSERT INTO pools (division_level, season_number, current_cycle, status) VALUES (5, 1, 1, 'active')`
@@ -71,15 +76,15 @@ async function main() {
     ninjaIds.push(row.insertId);
   }
 
-  const cardA = await grantTacticCard(userId, 'tai-parade-ecole');
-  const cardB = await grantTacticCard(userId, 'nin-eclair-discret');
-  assert(cardA?.userTacticCardId && cardB?.userTacticCardId, 'cartes accordées');
+  const cardA = await grantTacticCard(userId, 'tai-lame-chakras');
+  const cardB = await grantTacticCard(userId, 'nin-afflux-chakra');
+  const cardC = await grantTacticCard(userId, 'gen-mirage-simple');
+  assert(cardA?.userTacticCardId && cardB?.userTacticCardId && cardC?.userTacticCardId, 'cartes accordées');
 
   await saveOperationDeck(userId, {
-    elementCardIds: [cardA.userTacticCardId, cardB.userTacticCardId],
-    techniquesByNinjaId: {
-      [ninjaIds[0]]: { primary: 'taijutsu', secondary: 'ninjutsu' },
-      [ninjaIds[1]]: { primary: 'genjutsu', secondary: 'medecine' },
+    techniqueSlotsByNinjaId: {
+      [ninjaIds[0]]: [cardA.userTacticCardId, cardB.userTacticCardId],
+      [ninjaIds[1]]: [cardC.userTacticCardId],
     },
   });
 
@@ -88,15 +93,15 @@ async function main() {
 
   const carried = await ensureOperationDeckFromPreviousCycle(userId, 2);
   assert(carried?.fromCycle === 1, 'reconduction depuis cycle 1');
-  assert(carried.elementCount === 1, 'élément épuisé exclu');
-  assert(carried.techniqueCount === 2, 'techniques des actifs reconduites');
+  assert(carried.techniqueCount === 2, 'carte épuisée exclue');
 
   const deckCycle2 = await getOperationDeck(userId, 2);
-  assert(deckCycle2.rawTechniquesByNinjaId[String(ninjaIds[0])]?.primary === 'taijutsu', 'techniques reconduites');
-  assert(deckCycle2.elementCardIds.length === 1, 'un seul élément valide');
+  const slots0 = deckCycle2.techniqueSlotsByNinjaId[ninjaIds[0]] || [];
+  assert(slots0.includes(cardA.userTacticCardId), 'carte valide reconduite');
+  assert(!slots0.includes(cardB.userTacticCardId), 'carte sans charge non reconduite');
   assert(
-    !deckCycle2.elementCardIds.includes(cardB.userTacticCardId),
-    'carte sans charge non reconduite'
+    (deckCycle2.techniqueSlotsByNinjaId[ninjaIds[1]] || []).includes(cardC.userTacticCardId),
+    'autre ninja reconduit'
   );
 
   await query('DELETE FROM operation_decks WHERE user_id = ? AND season_cycle = 2', [userId]);
