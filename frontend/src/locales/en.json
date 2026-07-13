@@ -1048,6 +1048,15 @@
     "elementPickCount": "{n}/{max} elements selected",
     "levelHint": "Scales opponent global power (±7 to 15% on stats) — useful to test a stronger or weaker rival.",
     "presetFill": "Shortcuts",
+    "fillFromScout": "Fill from scout report",
+    "scoutPrefillUnavailable": {
+      "no_recon": "Recon mission required vs {opponent} (H0–H36) to use scout data.",
+      "before_h36": "Scouting unlocks at H36.",
+      "before_h54": "Deck intel on {opponent} unlocks at H54.",
+      "deck_pending": "Opponent deck report still pending.",
+      "no_match": "No league match this cycle.",
+      "no_pool": "No active league pool."
+    },
     "opponentProfile": "Opponent deck profile",
     "opponentStyle": "Opponent deck profile",
     "opponentComp": "Opponent deck profile",

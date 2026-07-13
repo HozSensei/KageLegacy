@@ -18,6 +18,9 @@ const customSlots = ref([])
 const customElementSlugs = ref([])
 const simulating = ref(false)
 const simError = ref(null)
+const prefillMessage = ref(null)
+
+const scoutPrefill = computed(() => tools.value?.scoutPrefill)
 
 const isActive = computed(() => Boolean(elite.subscription?.isActive))
 const tools = computed(() => elite.tools)
@@ -49,6 +52,23 @@ function fillPreset(profile) {
   if (!preset) return
   customSlots.value = preset.slots.map((slot) => ({ ...slot }))
   customElementSlugs.value = [...(preset.elementSlugs || [])]
+  prefillMessage.value = null
+}
+
+function fillFromScout() {
+  const prefill = scoutPrefill.value
+  if (!prefill?.available || !prefill.config) return
+  customSlots.value = prefill.config.slots.map((slot) => ({ ...slot }))
+  customElementSlugs.value = [...(prefill.config.elementSlugs || [])]
+  prefillMessage.value = prefill.summary
+}
+
+function scoutUnavailableHint() {
+  const reason = scoutPrefill.value?.reason
+  if (!reason) return ''
+  const key = `eliteTools.scoutPrefillUnavailable.${reason}`
+  const translated = t(key, { opponent: scoutPrefill.value?.opponentName ?? '—' })
+  return translated === key ? reason : translated
 }
 
 function toggleElement(slug) {
@@ -200,6 +220,15 @@ async function runMatchup() {
             </p>
             <div class="flex flex-wrap gap-2">
               <button
+                type="button"
+                class="border border-accent/50 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-accent hover:bg-accent/10"
+                :disabled="!scoutPrefill?.available"
+                data-testid="elite-matchup-scout-prefill"
+                @click="fillFromScout"
+              >
+                {{ t('eliteTools.fillFromScout') }}
+              </button>
+              <button
                 v-for="preset in tools.opponentProfileOptions"
                 :key="preset.value"
                 type="button"
@@ -210,6 +239,10 @@ async function runMatchup() {
               </button>
             </div>
           </div>
+          <p v-if="prefillMessage" class="text-[11px] text-water">{{ prefillMessage }}</p>
+          <p v-else-if="!scoutPrefill?.available && scoutPrefill?.reason" class="text-[11px] text-ink-faint">
+            {{ scoutUnavailableHint() }}
+          </p>
 
           <ul v-if="customSlots.length" class="space-y-3">
             <li

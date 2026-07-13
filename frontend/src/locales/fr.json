@@ -1048,6 +1048,15 @@
     "elementPickCount": "{n}/{max} éléments sélectionnés",
     "levelHint": "Ajuste la puissance globale de l'adversaire (±7 à 15 % sur les stats) — utile pour tester un rival plus fort ou plus faible.",
     "presetFill": "Raccourcis",
+    "fillFromScout": "Pré-remplir depuis le scout",
+    "scoutPrefillUnavailable": {
+      "no_recon": "Reconnaissance requise sur {opponent} (H0–H36) pour utiliser le scout.",
+      "before_h36": "Espionnage disponible à partir de H36.",
+      "before_h54": "Intel deck de {opponent} disponible à H54.",
+      "deck_pending": "Rapport deck adverse en cours de collecte.",
+      "no_match": "Aucun match de ligue ce cycle.",
+      "no_pool": "Pas de ligue active."
+    },
     "opponentProfile": "Profil deck adverse",
     "opponentStyle": "Profil deck adverse",
     "opponentComp": "Profil deck adverse",

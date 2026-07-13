@@ -27,6 +27,7 @@ import {
   isCustomOpponentDeckInput,
   normalizeOpponentDeckProfile,
 } from '../src/services/eliteDeckSimulation.js';
+import { buildScoutMatchupConfigFromReport } from '../src/services/eliteScoutPrefill.js';
 
 const PREFIX = `elite_tools_${Date.now()}`;
 
@@ -149,6 +150,31 @@ async function main() {
   console.assert(Object.keys(custom.techniquesByNinjaId).length === 2, 'deck custom 2 ninjas');
   console.assert(custom.elementCards.length === 2, 'deck custom 2 éléments');
   console.assert(isCustomOpponentDeckInput({ slots: [], elementSlugs: [] }), 'detect custom input');
+
+  const scoutConfig = buildScoutMatchupConfigFromReport(
+    {
+      opponentName: 'Orochimaru',
+      profiles: [
+        { artKey: 'ninjutsu' },
+        { artKey: 'genjutsu' },
+        { artKey: 'taijutsu' },
+      ],
+    },
+    {
+      tier: 'full',
+      elementCount: 2,
+      domainCounts: { ninjutsu: 2, genjutsu: 1 },
+      slots: [
+        { primary: 'ninjutsu', secondary: 'genjutsu' },
+        { primary: 'genjutsu', secondary: 'ninjutsu' },
+        { primary: 'taijutsu', secondary: 'ninjutsu' },
+      ],
+      elementCards: [{ slug: 'raiton-surcharge' }, { slug: 'nin-eclair-discret' }],
+    }
+  );
+  console.assert(scoutConfig.slots.length === 3, 'scout prefill 3 slots');
+  console.assert(scoutConfig.slots[0].primary === 'ninjutsu', 'scout slot 1 nin');
+  console.assert(scoutConfig.elementSlugs.length === 2, 'scout prefill elements');
 
   const domainWins = buildDomainPliWins(MINIMAL_COMBAT_LOG.logs, 'home');
   console.assert(domainWins?.mine?.Taijutsu >= 1, 'domain pli wins tai');

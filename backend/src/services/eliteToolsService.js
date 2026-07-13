@@ -30,6 +30,7 @@ import {
   isCustomOpponentDeckInput,
   normalizeOpponentDeckProfile,
 } from './eliteDeckSimulation.js';
+import { getScoutMatchupPrefill } from './eliteScoutPrefill.js';
 
 const OPPONENT_LEVEL_LABELS = {
   fr: {
@@ -170,13 +171,14 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
   const { pool } = await assertEliteToolsAccess(userId);
   const lang = locale === 'en' ? 'en' : 'fr';
 
-  const [{ ninjas }, operationDeck, heritageBonuses, heritageScrolls, seasonStats] =
+  const [{ ninjas }, operationDeck, heritageBonuses, heritageScrolls, seasonStats, scoutPrefill] =
     await Promise.all([
       loadActiveSquad(userId),
       getOperationDeck(userId).catch(() => null),
       getHeritageBonuses(userId),
       listHeritageScrolls(userId),
       getSeasonMatchStats(userId, pool),
+      getScoutMatchupPrefill(userId, lang),
     ]);
 
   const ordersAdvice = buildOrdersAdvice({ deck: operationDeck }, lang);
@@ -226,6 +228,7 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
       maxElements: 5,
       slotCount: 3,
     },
+    scoutPrefill,
     levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
       value,
       label: OPPONENT_LEVEL_LABELS[lang][value],
