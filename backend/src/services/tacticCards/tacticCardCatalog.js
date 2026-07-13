@@ -52,15 +52,36 @@ export function computeRefinementCost(catalogPrice, rarity) {
   return Math.max(1, Math.floor(Number(catalogPrice) * mult));
 }
 
-export function pickShopSlugs(userId, restockPeriod) {
+function createSeededRng(userId, restockPeriod) {
   const hash = createHash('sha256').update(`${userId}:${restockPeriod}`).digest();
-  const indices = SHOP_CARD_POOL.map((_, i) => i);
-  for (let i = indices.length - 1; i > 0; i -= 1) {
-    const j = hash[i % hash.length] % (i + 1);
-    [indices[i], indices[j]] = [indices[j], indices[i]];
+  let cursor = 0;
+  return () => {
+    const a = hash.readUInt32BE(cursor % (hash.length - 3));
+    cursor = (cursor + 4) % (hash.length - 3);
+    const b = hash.readUInt32BE(cursor % (hash.length - 3));
+    cursor = (cursor + 4) % (hash.length - 3);
+    return ((a ^ b) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Tire `count` cartes distinctes au hasard dans le pool.
+ * Chaque période de réassort est un tirage indépendant — les offres peuvent revenir.
+ */
+export function pickShopSlugsFromPool(pool, userId, restockPeriod, count = SHOP_OFFERS_PER_RESTOCK) {
+  const rand = createSeededRng(userId, restockPeriod);
+  const available = [...pool];
+  const picked = [];
+  const target = Math.min(count, available.length);
+  while (picked.length < target) {
+    const idx = Math.floor(rand() * available.length);
+    picked.push(available.splice(idx, 1)[0]);
   }
-  const count = Math.min(SHOP_OFFERS_PER_RESTOCK, SHOP_CARD_POOL.length);
-  return indices.slice(0, count).map((i) => SHOP_CARD_POOL[i]);
+  return picked;
+}
+
+export function pickShopSlugs(userId, restockPeriod) {
+  return pickShopSlugsFromPool(SHOP_CARD_POOL, userId, restockPeriod);
 }
 
 export function canAssignTechniqueToNinja(card, ninja) {

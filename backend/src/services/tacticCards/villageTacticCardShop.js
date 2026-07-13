@@ -4,10 +4,16 @@ import { findUserPool } from '../poolService.js';
 import { getHeritageBonuses, applyPercentDiscount } from '../heritageService.js';
 import { computeRestockPeriod, cyclesUntilRestock, RESTOCK_EVERY_CYCLES } from '../villageShopService.js';
 import { grantTacticCard } from './tacticCardService.js';
-import { pickShopSlugs } from './tacticCardCatalog.js';
+import { pickShopSlugsFromPool } from './tacticCardCatalog.js';
+
+async function getShopCardPool() {
+  const rows = await query('SELECT slug FROM tactic_card_definitions ORDER BY catalog_price, id');
+  return rows.map((row) => row.slug);
+}
 
 async function ensureCardStock(userId, restockPeriod) {
-  const slugs = pickShopSlugs(userId, restockPeriod);
+  const pool = await getShopCardPool();
+  const slugs = pickShopSlugsFromPool(pool, userId, restockPeriod);
   for (const slug of slugs) {
     const defRows = await query('SELECT id FROM tactic_card_definitions WHERE slug = ?', [slug]);
     const defId = defRows[0]?.id;

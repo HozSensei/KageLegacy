@@ -724,7 +724,7 @@
     "purchased": "Acheté",
     "soldOut": "Épuisé",
     "tacticCardsTitle": "Cartes technique",
-    "tacticCardsHint": "10 offres par période de réassort — assignez-les par ninja en Escouade (3 max / ninja).",
+    "tacticCardsHint": "10 offres tirées au hasard dans le catalogue à chaque réassort — elles peuvent revenir d'une période à l'autre. Assignez-les par ninja en Escouade (3 max / ninja).",
     "cardChargesShop": "{count} charges",
     "cardBonusRange": "Bonus {range} (tiré à l'achat)",
     "restock": "Prochain réassort dans {cycles} cycle(s) (tous les {every})",

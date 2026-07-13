@@ -724,7 +724,7 @@
     "purchased": "Purchased",
     "soldOut": "Sold out",
     "tacticCardsTitle": "Technique cards",
-    "tacticCardsHint": "10 offers per restock period — assign per ninja in Squad (3 max / ninja).",
+    "tacticCardsHint": "10 random offers from the catalog each restock — offers may return from one period to the next. Assign per ninja in Squad (3 max / ninja).",
     "cardChargesShop": "{count} charges",
     "cardBonusRange": "Bonus {range} (rolled on purchase)",
     "restock": "Next restock in {cycles} cycle(s) (every {every})",

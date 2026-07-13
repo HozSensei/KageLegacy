@@ -33,9 +33,13 @@ function testShopRotation() {
   const userARepeat = pickShopSlugs(42, 3);
   const userB = pickShopSlugs(99, 3);
   console.assert(userA.length === SHOP_OFFERS_PER_RESTOCK, `shop offers count ${userA.length}`);
-  console.assert(new Set(userA).size === userA.length, 'shop offers unique');
+  console.assert(new Set(userA).size === userA.length, 'shop offers unique within period');
   console.assert(JSON.stringify(userA) === JSON.stringify(userARepeat), 'shop deterministic');
   console.assert(JSON.stringify(userA) !== JSON.stringify(userB), 'shop per-player variance');
+  const period0 = pickShopSlugs(42, 0);
+  const period1 = pickShopSlugs(42, 1);
+  const repeatsAcrossRestocks = period0.some((slug) => period1.includes(slug));
+  console.assert(repeatsAcrossRestocks, 'independent restocks may repeat offers');
 }
 
 async function createUser() {
