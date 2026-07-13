@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFormatRyos } from '../composables/useFormatRyos'
 import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
+import { formatBonusRange } from '../utils/techniqueCardBonus.js'
 
 const { t, locale } = useI18n()
 const { formatRyos } = useFormatRyos()
@@ -14,8 +15,8 @@ const market = ref(null)
 const buyingId = ref(null)
 const categoryFilter = ref('all')
 
-const CATEGORY_FILTERS = ['all', 'bureau', 'match', 'cycle']
-const categoryOrder = ['bureau', 'match', 'cycle']
+const CATEGORY_FILTERS = ['all', 'bureau', 'cycle']
+const categoryOrder = ['bureau', 'cycle']
 const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
   [...categoryOrder, 'tacticCards']
 )
@@ -336,7 +337,8 @@ const canBuyCard = computed(() => (card) =>
             <h2 class="mt-3 font-display text-xl text-ink">{{ cardName(card) }}</h2>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
             <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-              {{ t('market.cardChargesShop', { count: 3 }) }}
+              {{ t('market.cardBonusRange', { range: formatBonusRange(card, locale) }) }}
+              · {{ t('market.cardChargesShop', { count: 5 }) }}
             </p>
             <p class="mt-4 text-xs text-ink-faint">
               {{ t('market.stock', { remaining: card.stockRemaining, initial: 1 }) }}

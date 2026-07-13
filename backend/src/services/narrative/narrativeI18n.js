@@ -16,6 +16,154 @@ export function getPath(obj, path) {
   return path.split('.').reduce((current, key) => current?.[key], obj);
 }
 
+export function buildPliImpactLog(log) {
+  return {
+    degats_pv: Number(log?.degats_pv) || 0,
+    degats_pv_away: Number(log?.degats_pv_away) || 0,
+    cible_name: log?.cible_name || null,
+    cible_name_away: log?.cible_name_away || null,
+    soins_pv: Number(log?.soins_pv) || 0,
+    soins_pv_away: Number(log?.soins_pv_away) || 0,
+    soins_pv_draw_home: Number(log?.soins_pv_draw_home) || 0,
+    soins_pv_draw_away: Number(log?.soins_pv_draw_away) || 0,
+    soin_inutile: Boolean(log?.soin_inutile),
+    soin_inutile_away: Boolean(log?.soin_inutile_away),
+    domain_effect_home: log?.domain_effect_home || null,
+    domain_effect_away: log?.domain_effect_away || null,
+    element_mod_home: log?.element_mod_home || null,
+    element_mod_away: log?.element_mod_away || null,
+    med_fail: Boolean(log?.med_fail),
+    med_fail_away: Boolean(log?.med_fail_away),
+  };
+}
+
+function formatDomainEffect(effect, lang) {
+  if (!effect) return null;
+  const labels = {
+    fr: {
+      tai_bonus_next: 'Taijutsu : +10 % puissance équipe au prochain pli',
+      gen_malus_next: 'Genjutsu : −10 % puissance adverse au prochain pli',
+    },
+    en: {
+      tai_bonus_next: 'Taijutsu: +10% team power on the next pli',
+      gen_malus_next: 'Genjutsu: −10% opponent power on the next pli',
+    },
+  };
+  return labels[lang]?.[effect] || null;
+}
+
+function formatElementMod(mod, lang) {
+  if (!mod) return null;
+  if (mod === 'advantage') {
+    return lang === 'en' ? 'Ninjutsu: elemental advantage' : 'Ninjutsu : avantage élémentaire';
+  }
+  if (mod === 'disadvantage') {
+    return lang === 'en' ? 'Ninjutsu: elemental disadvantage' : 'Ninjutsu : désavantage élémentaire';
+  }
+  return null;
+}
+
+export function formatPliImpactDetail(impactLog, locale = 'fr') {
+  const parts = [];
+  const lang = locale === 'en' ? 'en' : 'fr';
+  const {
+    degats_pv: dmg,
+    degats_pv_away: dmgAway,
+    cible_name: cible,
+    cible_name_away: cibleAway,
+    soins_pv: heal,
+    soins_pv_away: healAway,
+    soins_pv_draw_home: healDrawHome,
+    soins_pv_draw_away: healDrawAway,
+    soin_inutile: healUseless,
+    soin_inutile_away: healUselessAway,
+    domain_effect_home: domainEffectHome,
+    domain_effect_away: domainEffectAway,
+    element_mod_home: elementModHome,
+    element_mod_away: elementModAway,
+    med_fail: medFail,
+    med_fail_away: medFailAway,
+  } = impactLog || {};
+
+  const pushUnique = (line) => {
+    if (line && !parts.includes(line)) parts.push(line);
+  };
+
+  if (dmg > 0 && cible) {
+    pushUnique(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
+  }
+  if (dmgAway > 0 && cibleAway) {
+    const awayLine =
+      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`;
+    if (!(dmg === dmgAway && cible === cibleAway)) {
+      pushUnique(awayLine);
+    }
+  }
+  if (heal > 0 && cible) {
+    parts.push(lang === 'en' ? `healed ${cible} for ${heal} HP` : `soin de ${heal} PV sur ${cible}`);
+  }
+  if (healAway > 0 && cibleAway) {
+    parts.push(
+      lang === 'en' ? `healed ${cibleAway} for ${healAway} HP` : `soin de ${healAway} PV sur ${cibleAway}`
+    );
+  }
+  if (healDrawHome > 0 && cible) {
+    parts.push(
+      lang === 'en'
+        ? `draw heal of ${healDrawHome} HP on ${cible}`
+        : `soin d'égalité de ${healDrawHome} PV sur ${cible}`
+    );
+  }
+  if (healDrawAway > 0 && cibleAway) {
+    parts.push(
+      lang === 'en'
+        ? `draw heal of ${healDrawAway} HP on ${cibleAway}`
+        : `soin d'égalité de ${healDrawAway} PV sur ${cibleAway}`
+    );
+  }
+  if (healUseless || healUselessAway) {
+    pushUnique(lang === 'en' ? 'heal with no wounded target' : 'soin sans cible blessée');
+  }
+  if (medFail || medFailAway) {
+    pushUnique(
+      lang === 'en' ? 'Medicine pli failed — damage halved' : 'Médecine en échec — dégâts réduits de moitié'
+    );
+  }
+  const domainHomeLine = formatDomainEffect(domainEffectHome, lang);
+  const domainAwayLine = formatDomainEffect(domainEffectAway, lang);
+  if (domainHomeLine) pushUnique(domainHomeLine);
+  if (domainAwayLine && domainAwayLine !== domainHomeLine) pushUnique(domainAwayLine);
+  const elementHomeLine = formatElementMod(elementModHome, lang);
+  const elementAwayLine = formatElementMod(elementModAway, lang);
+  if (elementHomeLine) pushUnique(elementHomeLine);
+  if (elementAwayLine && elementAwayLine !== elementHomeLine) pushUnique(elementAwayLine);
+  return parts.length ? parts.join(' · ') : lang === 'en' ? 'no notable effect' : 'aucun effet notable';
+}
+
+/** Décompose un libellé de carte deck (« Ninja · Carte » ou « Relais · … »). */
+export function parseCardLabel(label) {
+  if (!label || label === '—') {
+    return { kind: 'unknown', owner: null, cardName: '—', raw: label || '—' };
+  }
+  const sep = ' · ';
+  const idx = label.indexOf(sep);
+  if (idx === -1) {
+    return { kind: 'unknown', owner: null, cardName: label, raw: label };
+  }
+  const prefix = label.slice(0, idx);
+  const suffix = label.slice(idx + sep.length);
+  if (prefix === 'Relais') {
+    const isPadding = !suffix || suffix === 'Escouade';
+    return {
+      kind: isPadding ? 'relais_padding' : 'relais',
+      owner: isPadding ? null : suffix,
+      cardName: 'Relais',
+      raw: label,
+    };
+  }
+  return { kind: 'technique', owner: prefix, cardName: suffix, raw: label };
+}
+
 export function fillTemplate(template, vars = {}) {
   if (!template) return '';
   return template.replace(/\{(\w+)\}/g, (_, key) => String(vars[key] ?? ''));
@@ -61,11 +209,35 @@ function resolveTourPart(locale, part) {
   return `${action} ${reaction}`;
 }
 
+function resolvePliPart(locale, part, impactLog) {
+  const vars = {
+    ...(part.vars || {}),
+    impact_detail: formatPliImpactDetail(impactLog || part.vars?.impact_log, locale),
+    winner_team:
+      part.vars?.winner_team && part.vars?.sensei
+        ? teamLabel(locale, part.vars.sensei)
+        : part.vars?.winner_team,
+  };
+  return pickTemplateEntry(locale, part.action_key, part.action_index, vars);
+}
+
 export function resolveSegmentText(locale, segment) {
   const code = normalizeLocale(locale);
 
   if (!segment?.template_key) {
     return segment?.text ?? '';
+  }
+
+  if (segment.template_key === 'chronicle.pli.combatOpen') {
+    return pickTemplateEntry(code, 'chronicle.pli.combatOpen', 0, {
+      total_plis: segment.template_vars?.total_plis,
+    });
+  }
+
+  if (segment.template_key === 'chronicle.pli') {
+    const vars = segment.template_vars || {};
+    const impactLog = vars.impact_log;
+    return (vars.parts || []).map((part) => resolvePliPart(code, part, impactLog)).join('\n');
   }
 
   if (segment.template_key === 'chronicle.tour') {

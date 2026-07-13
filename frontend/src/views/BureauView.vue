@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
-import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
+import NinjaPanelCard from '../components/ninja/NinjaPanelCard.vue'
 import ChuninExamList from '../components/bureau/ChuninExamList.vue'
 import ChuninStagnationPanel from '../components/bureau/ChuninStagnationPanel.vue'
 import BirdFlightPanel from '../components/bureau/BirdFlightPanel.vue'
@@ -138,14 +138,14 @@ onMounted(async () => {
             {{ t('bureau.activeSquadHint') }}
           </p>
 
-          <div class="mt-8 flex flex-wrap justify-center gap-6 sm:justify-start lg:gap-8">
-            <NinjaFlipCard
+          <ul class="ninja-panel-grid mt-8">
+            <NinjaPanelCard
               v-for="ninja in store.activeSquad"
               :key="ninja.id"
+              tag="li"
               :ninja="ninja"
-              size="md"
             />
-          </div>
+          </ul>
 
           <AcademyPanel />
           <DispensaryPanel />

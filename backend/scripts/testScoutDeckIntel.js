@@ -1,8 +1,9 @@
 /**
- * Smoke test — libellés du rapport deck scout (système pli).
+ * Smoke test — libellés du rapport deck scout (deck hybride 18 plis).
  */
 import assert from 'node:assert/strict';
 import { buildDeckReportFromDeck } from '../src/services/scoutDeckIntel.js';
+import { MAX_PLIS } from '../src/services/combat/pli/constants.js';
 
 const ninjas = [
   {
@@ -40,37 +41,51 @@ const ninjas = [
   },
 ];
 
-const deckUnconfigured = {
-  elementCardIds: [],
+const deckEmpty = {
+  techniqueCount: 0,
+  techniqueSlotsByNinjaId: {},
   rawTechniquesByNinjaId: {},
   techniquesByNinjaId: {
     1: { primary: 'taijutsu', secondary: 'ninjutsu' },
     2: { primary: 'ninjutsu', secondary: 'taijutsu' },
     3: { primary: 'medecine', secondary: 'ninjutsu' },
   },
-  elementCards: [],
+  techniqueCards: [],
 };
 
-const report = buildDeckReportFromDeck(deckUnconfigured, ninjas, 'fr', 'full');
-assert.equal(report.pliCount, 14, '14 plis');
-assert.equal(report.configuredTechniqueNinjas, 0, 'aucune technique enregistrée');
-assert(report.relaisPadding >= 9, 'relais attendus pour techniques manquantes');
-assert(report.lines[0].includes('0/3 ninjas avec techniques enregistrées'), 'résumé techniques');
-assert(report.lines.some((line) => line.includes('relais de comblement attendus')), 'emplacements sans techniques');
-assert(!report.lines.some((line) => line.includes('18 plis')), 'pas de 18 plis');
+const report = buildDeckReportFromDeck(deckEmpty, ninjas, 'fr', 'full');
+assert.equal(report.pliCount, MAX_PLIS, `${MAX_PLIS} plis`);
+assert.equal(report.inventoryAssigned, 0, 'aucune carte inventaire');
+assert(report.relaisInventory === 3, '3 relais inventaire attendus');
+assert(report.lines[0].includes('0/3 cartes technique inventaire'), 'résumé inventaire');
+assert(
+  report.lines.some((line) => line.includes('relais de comblement attendus')),
+  'emplacements sans carte inventaire'
+);
 
 const deckPartial = {
-  ...deckUnconfigured,
+  ...deckEmpty,
+  techniqueCount: 1,
+  techniqueSlotsByNinjaId: { 1: [42] },
+  techniqueCards: [
+    {
+      userTacticCardId: 42,
+      slug: 'test-card',
+      nameFr: 'Carte test',
+      statType: 'taijutsu',
+      pliBonusPct: 5,
+    },
+  ],
   rawTechniquesByNinjaId: {
     1: { primary: 'taijutsu', secondary: 'ninjutsu' },
   },
 };
 const partialConfigured = buildDeckReportFromDeck(deckPartial, ninjas, 'fr', 'full');
-assert.equal(partialConfigured.configuredTechniqueNinjas, 1, '1 ninja configuré');
-assert(partialConfigured.lines.some((line) => line.includes('Taijutsu / Ninjutsu')), 'slot configuré affiché');
+assert.equal(partialConfigured.inventoryAssigned, 1, '1 carte inventaire');
+assert(partialConfigured.lines.some((line) => line.includes('Carte test')), 'carte affichée');
 assert(
-  partialConfigured.lines.some((line) => line.includes('techniques non enregistrées')),
-  'slots non configurés'
+  partialConfigured.lines.some((line) => line.includes('pas de carte inventaire')),
+  'slots sans carte'
 );
 
 console.log('test:scout-deck-intel OK');

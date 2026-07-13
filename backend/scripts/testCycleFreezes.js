@@ -103,15 +103,14 @@ async function main() {
   const userA = await createUserWithSquad(poolId, 'alpha', clanTraitId);
   const userB = await createUserWithSquad(poolId, 'beta', clanTraitId);
 
-  const card = await grantTacticCard(userA.userId, 'tai-parade-ecole');
+  const card = await grantTacticCard(userA.userId, 'tai-lame-chakras');
   assert(card?.userTacticCardId, 'carte accordée');
 
   await setHourDev(40);
 
   await saveOperationDeck(userA.userId, {
-    elementCardIds: [card.userTacticCardId],
-    techniquesByNinjaId: {
-      [userA.ninjaIds[0]]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+    techniqueSlotsByNinjaId: {
+      [userA.ninjaIds[0]]: [card.userTacticCardId],
     },
   });
 
@@ -142,9 +141,8 @@ async function main() {
   );
 
   await saveOperationDeck(userA.userId, {
-    elementCardIds: [card.userTacticCardId],
-    techniquesByNinjaId: {
-      [userA.ninjaIds[0]]: { primary: 'genjutsu', secondary: 'ninjutsu' },
+    techniqueSlotsByNinjaId: {
+      [userA.ninjaIds[0]]: [card.userTacticCardId],
     },
   });
 
@@ -156,9 +154,8 @@ async function main() {
   await expectStatus(
     () =>
       saveOperationDeck(userA.userId, {
-        elementCardIds: [card.userTacticCardId],
-        techniquesByNinjaId: {
-          [userA.ninjaIds[0]]: { primary: 'taijutsu', secondary: 'medecine' },
+        techniqueSlotsByNinjaId: {
+          [userA.ninjaIds[0]]: [card.userTacticCardId],
         },
       }),
     403,

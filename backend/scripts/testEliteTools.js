@@ -127,10 +127,14 @@ async function main() {
   console.assert(normalizeOpponentDeckProfile('sparse') === 'sparse', 'profil sparse');
 
   const synthetic = buildSyntheticOpponentDeck(
-    [{ id: 1, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 }],
+    [{ id: 1, squad_position: 1, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 }],
     'complete'
   );
-  console.assert(synthetic.elementCards.length === 5, 'deck synthétique 5 éléments');
+  const syntheticCount = Object.values(synthetic.techniqueSlotsByNinjaId || {}).reduce(
+    (sum, ids) => sum + ids.length,
+    0
+  );
+  console.assert(syntheticCount >= 1, 'deck synthétique avec technique');
 
   const custom = buildCustomOpponentDeck(
     [
@@ -139,42 +143,32 @@ async function main() {
       { id: 3, squad_position: 3, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 },
     ],
     {
-      slots: [
-        { configured: true, primary: 'genjutsu', secondary: 'ninjutsu' },
-        { configured: false },
-        { configured: true, primary: 'taijutsu', secondary: 'ninjutsu' },
-      ],
-      elementSlugs: ['raiton-surcharge', 'med-pansement-rapide'],
+      techniqueSlugsByNinja: [['tai-lame-chakras'], [], ['gen-mirage-simple']],
     }
   );
-  console.assert(Object.keys(custom.techniquesByNinjaId).length === 2, 'deck custom 2 ninjas');
-  console.assert(custom.elementCards.length === 2, 'deck custom 2 éléments');
-  console.assert(isCustomOpponentDeckInput({ slots: [], elementSlugs: [] }), 'detect custom input');
+  console.assert(Object.keys(custom.techniqueSlotsByNinjaId).length === 2, 'deck custom 2 ninjas');
+  console.assert(
+    Object.values(custom.techniqueCardsById || {}).length === 2,
+    'deck custom 2 cartes'
+  );
+  console.assert(isCustomOpponentDeckInput({ techniqueSlugsByNinja: [[]] }), 'detect custom input');
 
   const scoutConfig = buildScoutMatchupConfigFromReport(
-    {
-      opponentName: 'Orochimaru',
-      profiles: [
-        { artKey: 'ninjutsu' },
-        { artKey: 'genjutsu' },
-        { artKey: 'taijutsu' },
-      ],
-    },
+    { opponentName: 'Orochimaru' },
     {
       tier: 'full',
-      elementCount: 2,
+      techniqueCount: 2,
       domainCounts: { ninjutsu: 2, genjutsu: 1 },
       slots: [
-        { primary: 'ninjutsu', secondary: 'genjutsu' },
-        { primary: 'genjutsu', secondary: 'ninjutsu' },
-        { primary: 'taijutsu', secondary: 'ninjutsu' },
+        { techniques: [{ slug: 'nin-afflux-chakra' }] },
+        { techniques: [{ slug: 'gen-mirage-simple' }] },
+        { techniques: [] },
       ],
-      elementCards: [{ slug: 'raiton-surcharge' }, { slug: 'nin-eclair-discret' }],
+      techniqueCards: [{ slug: 'nin-afflux-chakra' }, { slug: 'gen-mirage-simple' }],
     }
   );
-  console.assert(scoutConfig.slots.length === 3, 'scout prefill 3 slots');
-  console.assert(scoutConfig.slots[0].primary === 'ninjutsu', 'scout slot 1 nin');
-  console.assert(scoutConfig.elementSlugs.length === 2, 'scout prefill elements');
+  console.assert(scoutConfig.techniqueSlugsByNinja.length === 3, 'scout prefill 3 ninjas');
+  console.assert(scoutConfig.techniqueSlugsByNinja[0].length === 1, 'scout ninja 1 technique');
 
   const domainWins = buildDomainPliWins(MINIMAL_COMBAT_LOG.logs, 'home');
   console.assert(domainWins?.mine?.Taijutsu >= 1, 'domain pli wins tai');
@@ -195,8 +189,8 @@ async function main() {
   console.assert(verdict.advice.length >= 1, 'verdict conseils');
   console.assert(!verdict.advice.some((a) => a.includes('consignes')), 'pas de conseil consignes');
 
-  const orders = buildOrdersAdvice({ deck: { elementCardIds: [1, 2], techniquesByNinjaId: {} } }, 'fr');
-  console.assert(orders.tips.some((t) => t.includes('éléments') || t.includes('elements')), 'conseil deck');
+  const orders = buildOrdersAdvice({ techniqueCount: 4, techniqueSlotsByNinjaId: { 1: [1, 2] } }, 'fr');
+  console.assert(orders.tips.some((t) => t.includes('technique') || t.includes('carte')), 'conseil deck');
 
   const poolRows = await query(`SELECT p.* FROM pools p LIMIT 1`);
   if (!poolRows[0]) {

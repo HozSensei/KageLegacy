@@ -162,7 +162,7 @@ router.patch('/deck', async (req, res, next) => {
 
     const deck = await saveOperationDeck(user.id, {
       techniquesByNinjaId: req.body?.techniquesByNinjaId,
-      elementCardIds: req.body?.elementCardIds,
+      techniqueSlotsByNinjaId: req.body?.techniqueSlotsByNinjaId,
     });
 
     const squad = await getSquadPayload(user.id);

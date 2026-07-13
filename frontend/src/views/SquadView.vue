@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../stores/squad'
-import NinjaFlipCard from '../components/ninja/NinjaFlipCard.vue'
+import NinjaPanelCard from '../components/ninja/NinjaPanelCard.vue'
 import SyncIcon from '../components/icons/SyncIcon.vue'
 import StoreIcon from '../components/icons/StoreIcon.vue'
 import OperationBriefingPanel from '../components/squad/OperationBriefingPanel.vue'
@@ -312,18 +312,6 @@ async function fetchBriefing() {
   }
 }
 
-async function saveDeck(payload) {
-  saving.value = true
-  saveError.value = null
-  try {
-    await store.saveOperationDeck(payload)
-    await fetchBriefing()
-  } catch (e) {
-    saveError.value = e.message
-  } finally {
-    saving.value = false
-  }
-}
 
 watch(
   () => store.activeSquad,
@@ -385,16 +373,16 @@ watch(
       <OperationDeckPanel
         :deck="store.operationDeck"
         :active-squad="store.activeSquad"
-        @save-deck="saveDeck"
+        @deck-saved="fetchBriefing"
       />
 
       <section class="mt-14" data-testid="squad-composition">
         <p class="section-label">{{ t('squad.activeSquad') }}</p>
-        <div class="mt-8 flex flex-wrap justify-center gap-10 lg:justify-start lg:gap-12">
-          <div
+        <ul class="ninja-panel-grid mt-8">
+          <li
             v-for="entry in displayEntries"
             :key="entry.position"
-            class="squad-card-slot group flex flex-col items-center"
+            class="squad-card-slot group"
             :class="{
               'squad-card-slot--pending': isSwapSource(entry.position),
               'squad-card-slot--target': isSwapTarget(entry.position),
@@ -402,7 +390,7 @@ watch(
           >
             <template v-if="entry.ninja">
               <div class="squad-card-wrap relative">
-                <NinjaFlipCard :ninja="entry.ninja" size="md" />
+                <NinjaPanelCard :ninja="entry.ninja" tag="div" />
               </div>
               <div v-if="canCompose" class="squad-card-actions">
                 <button
@@ -442,22 +430,22 @@ watch(
 
             <div
               v-else
-              class="squad-card-empty flex h-[19.5rem] w-[12rem] items-center justify-center rounded-[20px] border border-dashed border-line/60 text-sm text-ink-faint"
+              class="squad-card-empty flex min-h-[28rem] items-center justify-center border border-dashed border-line/60 text-sm text-ink-faint"
             >
               {{ t('squad.emptySlot') }}
             </div>
-          </div>
-        </div>
+          </li>
+        </ul>
       </section>
 
       <section class="mt-16 border-t border-line pt-10">
         <p class="section-label">{{ t('squad.bench') }}</p>
         <p class="mt-2 text-sm text-ink-muted">{{ t('squad.benchHint') }}</p>
-        <div class="bench-stack mt-2">
-          <div
+        <ul class="ninja-panel-grid mt-4">
+          <li
             v-for="ninja in benchNinjas"
             :key="ninja.id"
-            class="bench-stack__item squad-card-slot group flex flex-col items-center"
+            class="bench-stack__item squad-card-slot group"
             :class="{
               'squad-card-slot--pending': isBenchSwapSource(ninja.id),
               'squad-card-slot--target': isBenchSwapTarget(ninja.id),
@@ -470,7 +458,7 @@ watch(
               >
                 {{ t('squad.listed') }}
               </p>
-              <NinjaFlipCard :ninja="ninja" size="sm" />
+              <NinjaPanelCard :ninja="ninja" tag="div" compact />
             </div>
             <div
               v-if="canCompose"
@@ -520,8 +508,8 @@ watch(
                 </span>
               </button>
             </div>
-          </div>
-        </div>
+          </li>
+        </ul>
       </section>
 
       <div

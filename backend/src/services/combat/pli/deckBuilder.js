@@ -1,11 +1,11 @@
 import { randomInt } from 'node:crypto';
 import {
   TECHNIQUE_CARDS_PER_NINJA,
-  DECK_ELEMENTS_COUNT,
+  PRIMARY_STAT_COPIES,
+  SECONDARY_STAT_COPIES,
   DOMAIN_LABELS,
-  MAX_PLIS,
+  DOMAINS,
 } from './constants.js';
-import { DOMAINS } from './constants.js';
 
 function shuffleInPlace(arr) {
   for (let i = arr.length - 1; i > 0; i -= 1) {
@@ -24,19 +24,23 @@ export function defaultTechniquesForFighter(fighter) {
   };
 }
 
-function hasExplicitTechniques(rawTechniques, fighterId) {
+function hasSavedDomainPicks(rawTechniques, fighterId) {
   const saved = rawTechniques?.[fighterId] ?? rawTechniques?.[String(fighterId)];
   return Boolean(saved?.primary || saved?.secondary);
 }
 
-/** Carte relais de comblement — proxy aléatoire, domaine dominant (comme relais K.O.). */
-export function createRelaisFillerCard(team, fighter = null) {
-  const label = fighter?.name
-    ? `Relais · ${fighter.name}`
-    : 'Relais · Escouade';
+/** @deprecated — conservé pour les tests */
+export function hasExplicitTechniques(rawTechniques, fighterId) {
+  return hasSavedDomainPicks(rawTechniques, fighterId);
+}
+
+/** Carte relais — proxy si carte technique inventaire non assignée ou propriétaire K.O. */
+export function createRelaisFillerCard(team, fighter = null, { reason = 'missing_technique' } = {}) {
+  const label = fighter?.name ? `Relais · ${fighter.name}` : 'Relais · Escouade';
   return {
     kind: 'relais',
     padded: true,
+    relaisReason: reason,
     ownerId: fighter?.id ?? null,
     ownerName: fighter?.name ?? null,
     domain: null,
@@ -44,77 +48,87 @@ export function createRelaisFillerCard(team, fighter = null) {
   };
 }
 
-/** Complète le deck jusqu'à MAX_PLIS avec des cartes relais. */
-export function padDeckToMaxPlis(cards, team) {
-  while (cards.length < MAX_PLIS) {
-    cards.push(createRelaisFillerCard(team));
-  }
-  return cards;
+function slotIdsForFighter(techniqueSlotsByNinjaId, fighterId) {
+  return (
+    techniqueSlotsByNinjaId[fighterId] ||
+    techniqueSlotsByNinjaId[String(fighterId)] ||
+    []
+  );
+}
+
+function techniquesForFighter(techniquesByNinjaId, fighter) {
+  return (
+    techniquesByNinjaId[fighter.id] ||
+    techniquesByNinjaId[String(fighter.id)] ||
+    defaultTechniquesForFighter(fighter)
+  );
+}
+
+function pushDomainCards(cards, fighter, domain) {
+  cards.push({
+    kind: 'domain',
+    ownerId: fighter.id,
+    ownerName: fighter.name,
+    domain,
+    label: `${fighter.name} · ${DOMAIN_LABELS[domain]}`,
+  });
 }
 
 /**
- * Construit le deck : 3 cartes technique / ninja actif (ou relais si non configuré)
- * + éléments d'escouade + relais de comblement → toujours MAX_PLIS cartes.
+ * Construit le deck : par ninja actif
+ * — 1 carte technique inventaire (ou relais)
+ * — 2× carte stat primaire + 3× carte stat secondaire (ou relais)
+ * → 18 plis pour 3 ninjas.
  */
 export function buildTeamDeck(
   team,
-  { techniquesByNinjaId = {}, rawTechniquesByNinjaId = null, elementCards = [] } = {}
+  {
+    techniquesByNinjaId = {},
+    rawTechniquesByNinjaId = null,
+    techniqueSlotsByNinjaId = {},
+    techniqueCardsById = {},
+  } = {}
 ) {
-  const rawTechniques = rawTechniquesByNinjaId ?? techniquesByNinjaId;
   const cards = [];
 
   for (const fighter of team.fighters) {
-    if (!hasExplicitTechniques(rawTechniques, fighter.id)) {
-      for (let i = 0; i < TECHNIQUE_CARDS_PER_NINJA; i += 1) {
-        cards.push(createRelaisFillerCard(team, fighter));
-      }
-      continue;
+    const slotIds = slotIdsForFighter(techniqueSlotsByNinjaId, fighter.id)
+      .slice(0, TECHNIQUE_CARDS_PER_NINJA)
+      .map(Number)
+      .filter(Boolean);
+
+    const inventoryCard = slotIds
+      .map((id) => techniqueCardsById[id] || techniqueCardsById[String(id)])
+      .find(Boolean);
+
+    if (inventoryCard) {
+      const domain = inventoryCard.statType || inventoryCard.stat_type || 'taijutsu';
+      const name = inventoryCard.nameFr || inventoryCard.name_fr || inventoryCard.slug;
+      cards.push({
+        kind: 'technique',
+        ownerId: fighter.id,
+        ownerName: fighter.name,
+        domain,
+        label: `${fighter.name} · ${name}`,
+        userTacticCardId: inventoryCard.userTacticCardId || inventoryCard.user_tactic_card_id,
+        cardDef: inventoryCard,
+      });
+    } else {
+      cards.push(createRelaisFillerCard(team, fighter, { reason: 'missing_technique' }));
     }
 
-    const picks =
-      techniquesByNinjaId[fighter.id] ||
-      techniquesByNinjaId[String(fighter.id)] ||
-      defaultTechniquesForFighter(fighter);
-    const primary = picks.primary || picks.primaryTechnique;
-    const secondary = picks.secondary || picks.secondaryTechnique;
+    const picks = techniquesForFighter(techniquesByNinjaId, fighter);
+    const primary = picks.primary || picks.primaryTechnique || 'taijutsu';
+    const secondary = picks.secondary || picks.secondaryTechnique || 'ninjutsu';
 
-    cards.push({
-      kind: 'technique',
-      ownerId: fighter.id,
-      ownerName: fighter.name,
-      domain: primary,
-      label: `${fighter.name} · ${DOMAIN_LABELS[primary]}`,
-    });
-    cards.push({
-      kind: 'technique',
-      ownerId: fighter.id,
-      ownerName: fighter.name,
-      domain: secondary,
-      label: `${fighter.name} · ${DOMAIN_LABELS[secondary]}`,
-    });
-    cards.push({
-      kind: 'technique',
-      ownerId: fighter.id,
-      ownerName: fighter.name,
-      domain: secondary,
-      label: `${fighter.name} · ${DOMAIN_LABELS[secondary]}`,
-    });
+    for (let i = 0; i < PRIMARY_STAT_COPIES; i += 1) {
+      pushDomainCards(cards, fighter, primary);
+    }
+    for (let i = 0; i < SECONDARY_STAT_COPIES; i += 1) {
+      pushDomainCards(cards, fighter, secondary);
+    }
   }
 
-  const elements = elementCards.slice(0, DECK_ELEMENTS_COUNT);
-  for (const el of elements) {
-    cards.push({
-      kind: 'element',
-      ownerId: null,
-      ownerName: null,
-      domain: el.statType || el.stat_type || 'ninjutsu',
-      label: el.nameFr || el.name_fr || el.slug,
-      elementDef: el,
-      userTacticCardId: el.userTacticCardId || el.user_tactic_card_id,
-    });
-  }
-
-  padDeckToMaxPlis(cards, team);
   shuffleInPlace(cards);
   return cards;
 }
@@ -122,7 +136,7 @@ export function buildTeamDeck(
 export function markRelaisCards(deck, koOwnerIds) {
   const koSet = new Set(koOwnerIds);
   for (const card of deck) {
-    if (card.kind === 'technique' && koSet.has(card.ownerId)) {
+    if ((card.kind === 'technique' || card.kind === 'domain') && koSet.has(card.ownerId)) {
       card.relais = true;
       card.relaisOwnerId = card.ownerId;
       card.relaisOwnerName = card.ownerName;

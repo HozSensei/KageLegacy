@@ -1,8 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
 import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
+import { formatInstanceBonusPct } from '../utils/techniqueCardBonus.js'
 
 const { t, locale } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -17,6 +19,7 @@ const sellItemId = ref(null)
 const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
+const deckActionMessage = ref(null)
 const itemCategoryFilter = ref('all')
 const itemStatusFilter = ref('all')
 const cardStatusFilter = ref('all')
@@ -55,10 +58,20 @@ function isCardSelected(card) {
 function selectCard(card) {
   selectedCardId.value = cardInstanceId(card)
   selectedItemId.value = null
+  deckActionMessage.value = null
 }
+
+const selectedCard = computed(() =>
+  (inventory.value?.tacticCards || []).find((card) => isCardSelected(card)) ?? null
+)
 
 function cardChargesLabel(card) {
   return t('inventory.cardCharges', { count: card.chargesRemaining })
+}
+
+function cardBonusLabel(card) {
+  if (card.pliBonusPct == null) return ''
+  return t('inventory.cardBonusRolled', { bonus: formatInstanceBonusPct(card) })
 }
 
 function normalizeInventory(payload) {
@@ -315,6 +328,7 @@ async function unequip(ninjaId) {
     saving.value = false
   }
 }
+
 </script>
 
 <template>
@@ -469,7 +483,20 @@ async function unequip(ninjaId) {
             <span class="text-[10px] text-ink-faint">({{ filteredCards.length }})</span>
           </button>
         </div>
-        <p v-if="selectedCardId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinjaCard') }}</p>
+        <p v-if="selectedCardId" class="mt-2 text-xs leading-relaxed text-ink-muted">
+          {{ t('inventory.cardDeckHint') }}
+        </p>
+        <div
+          v-if="selectedCard && !selectedCard.isListed"
+          class="mt-4 flex flex-wrap items-center gap-3 border border-accent/30 bg-accent/5 p-4"
+        >
+          <RouterLink to="/squad" class="btn-primary text-xs" data-testid="inventory-open-squad-deck">
+            {{ t('inventory.openSquadDeck') }}
+          </RouterLink>
+          <RouterLink to="/refinement" class="btn-ghost text-xs" data-testid="inventory-open-refinement">
+            {{ t('nav.refinement') }}
+          </RouterLink>
+        </div>
 
         <div class="mt-4 flex flex-wrap gap-2">
           <button
@@ -514,6 +541,7 @@ async function unequip(ninjaId) {
             </div>
             <p class="mt-1 text-xs text-ink-faint">
               {{ t(`inventory.cardRarity.${card.rarity}`) }} · {{ cardChargesLabel(card) }}
+              <span v-if="cardBonusLabel(card)"> · {{ cardBonusLabel(card) }}</span>
             </p>
             <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
             <p v-if="!card.isListed" class="mt-1 text-xs text-ink-faint">

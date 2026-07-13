@@ -28,7 +28,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'economy',
         labelKey: 'nav.groups.economy',
-        items: pick('market', 'exchanges', 'inventory'),
+        items: pick('market', 'refinement', 'exchanges', 'inventory'),
       },
       {
         id: 'extra',

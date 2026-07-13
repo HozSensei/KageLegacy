@@ -8,7 +8,7 @@ import { getUserLanguage } from './narrative/viewerLocale.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { dominantElement } from './scoutSquadAnalysis.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS, MAX_PLIS } from './combat/pli/constants.js';
+import { DOMAIN_LABELS, MAX_PLIS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
 
 async function loadOwnActiveSquad(userId) {
   return query(
@@ -24,40 +24,49 @@ async function loadOwnActiveSquad(userId) {
 function buildDeckSummary(ninjas, deck, lang) {
   const speed = ninjas.reduce((s, n) => s + Number(n.vitesse) + Number(n.intelligence), 0);
   const element = dominantElement(ninjas);
+  const cardsById = Object.fromEntries(
+    (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c])
+  );
   const members = ninjas.map((n) => {
     const profile = describeNinjaProfile(n, lang);
-    const techniques = deck.techniquesByNinjaId?.[n.id] || {};
-    const primary = techniques.primary || 'taijutsu';
-    const secondary = techniques.secondary || 'ninjutsu';
+    const assignedIds = deck.techniqueSlotsByNinjaId?.[n.id] || [];
+    const techniques = assignedIds
+      .map((id) => cardsById[id])
+      .filter(Boolean)
+      .map((card) => ({
+        slug: card.slug,
+        name: lang === 'en' ? card.nameEn : card.nameFr,
+        statType: card.statType,
+        bonusPct: card.pliBonusPct,
+      }));
+    const domains = deck.techniquesByNinjaId?.[n.id];
     return {
       ninjaId: n.id,
       name: n.name,
       element: n.element_affinity,
       artLabel: profile.artLabel,
       potentialLabel: profile.potentialLabel,
-      primaryDomain: primary,
-      secondaryDomain: secondary,
-      primaryLabel: DOMAIN_LABELS[primary] || primary,
-      secondaryLabel: DOMAIN_LABELS[secondary] || secondary,
+      techniques,
+      primaryDomain: domains?.primary,
+      secondaryDomain: domains?.secondary,
     };
   });
 
-  const elementCount = deck.elementCardIds?.length ?? 0;
-  const configuredPlis = ninjas.length * 3 + elementCount;
+  const techniqueCount = deck.techniqueCount ?? 0;
+  const maxTechniques = ninjas.length * TECHNIQUE_CARDS_PER_NINJA;
+  const configuredPlis = deck.configuredPlis ?? techniqueCount;
   const relaisPadding = Math.max(0, MAX_PLIS - configuredPlis);
 
   return {
     teamSpeed: speed,
     dominantElement: element,
-    elementCount,
+    techniqueCount,
+    maxTechniques,
     pliCount: MAX_PLIS,
     configuredPlis,
     relaisPadding,
     members,
-    techniquesConfigured: members.every((m) => {
-      const raw = deck.rawTechniquesByNinjaId?.[m.ninjaId] ?? deck.rawTechniquesByNinjaId?.[String(m.ninjaId)];
-      return Boolean(raw?.primary && raw?.secondary);
-    }),
+    techniquesConfigured: techniqueCount >= maxTechniques,
   };
 }
 
@@ -69,11 +78,11 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     tips.push(scout.anomalyFlags[0]);
   }
 
-  if (ownDeck.elementCount < 5) {
+  if (ownDeck.techniqueCount < ownDeck.maxTechniques) {
     tips.push(
       lang === 'en'
-        ? 'Pick 5 squad deck elements before H71 — empty slots become relay plis (match still plays 14 plis).'
-        : 'Choisissez 5 éléments de deck avant H71 — les emplacements vides deviennent des relais (14 plis joués).'
+        ? 'Assign 1 inventory technique card per active ninja before H71 — empty slots become relay plis.'
+        : 'Assignez 1 carte technique inventaire par ninja actif avant H71 — les emplacements vides deviennent des relais.'
     );
   }
 
@@ -101,11 +110,11 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
         : 'Le deck adverse privilégie la Médecine — prévoyez des contre-plis Tai ou Gen.'
     );
   }
-  if (deck?.elementCards?.length >= 4) {
+  if (deck?.techniqueCount >= 7) {
     tips.push(
       lang === 'en'
-        ? 'Full element deck spotted — expect tactical pli surprises.'
-        : 'Deck éléments quasi complet repéré — anticipez des plis tactiques surprises.'
+        ? 'Dense technique deck spotted — expect strong pli power swings.'
+        : 'Deck technique dense repéré — anticipez des écarts de puissance marqués.'
     );
   }
 

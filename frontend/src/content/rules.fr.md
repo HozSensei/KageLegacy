@@ -145,13 +145,13 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 
 ### Deck d'opération (combat par plis)
 
-Chaque match se joue en **14 plis** : deck mélangé de **9 cartes techniques** (3 par ninja actif : 1× principale, 2× secondaire) et **5 éléments de deck** (cartes tactiques d'escouade).
+Chaque match se joue en **18 plis** : deck mélangé de **6 cartes par ninja actif** — **1 carte technique inventaire** + **2× carte stat primaire** + **3× carte stat secondaire** (domaines taijutsu, ninjutsu, genjutsu, médecine) + **relais** si emplacements vides.
 
 - **PV max** = note globale du ninja × 10 (moyenne des 6 stats).
 - Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
 - **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
-- **Objets match** : retirés du combat ; seules les **cartes tactiques** servent d'éléments de deck (plus d'équipement match par ninja).
-- **Reconduction** : chaque nouvelle journée de ligue, votre deck est **recopié** depuis la précédente (techniques des ninjas actifs ; éléments seulement si la carte a encore des charges).
+- **Objets match** : retirés ; **cartes technique** assignées par ninja ; consommables bureau et équipement cycle hors combat.
+- **Reconduction** : chaque nouvelle journée, le deck est **recopié** (cartes des ninjas actifs avec charges restantes).
 - Les **consignes** restent modifiables en interface mais ne pilotent plus le moteur de combat (remplacées par le deck).
 
 ### Consignes individuelles (héritage interface)
@@ -187,18 +187,32 @@ Les **traits** modifient ce tableau : un **Égoïste** ignore parfois le ciblage
 
 **Important :** la posture **ne donne pas de bonus caché** en match. Elle enregistre votre **plan de cycle** et adapte les **conseils** du dossier (croisement avec l'espionnage). Pour que le plan soit réel, alignez **posture + consignes + cartes tactiques** sur chaque ninja.
 
-### Cartes tactiques
+### Cartes technique ninja
 
-Chaque ninja actif peut équiper **une carte tactique** (inventaire → équipement). Les cartes remplacent l'ancien « cercle de composition » (Assaut / Mur / Flux) : elles apportent des effets situationnels en combat.
+Chaque ninja actif compose **6 cartes** dans le deck d'opération : **1 carte technique inventaire** + **2 exemplaires** de la stat primaire + **3 exemplaires** de la stat secondaire.
 
 | Règle | Détail |
 |-------|--------|
-| **Charges** | 3 charges par carte ; une charge est consommée **uniquement si la carte se déclenche**. |
-| **Proc** | **1 déclenchement maximum par ninja et par match.** |
-| **Épuisement** | À 0 charge, la carte disparaît de l'inventaire (à re-looter). |
-| **Synergie** | Cartes d'**attaque** → consigne Offensive ; cartes de **défense** → Défensive ; cartes de **soutien** → Protection. |
+| **Porteur** | La carte est jouée par le **ninja assigné**. |
+| **Puissance** | Stat principale (+ moyenne secondaire : domaine, vitesse ou intelligence) × **bonus % unique** tiré à l'acquisition. |
+| **Bonus variable** | Communes 1–20 % · avec synergie 5–25 % · rares 15–35 % · légendaires 30–50 %. |
+| **Prérequis** | Certaines cartes exigent l'élément du porteur (ex. Lame suiton → Suiton). |
+| **Charges** | 5 charges ; une consommée quand la carte est **tirée** dans un pli (usage quasi systématique chaque cycle). |
+| **Marché P2P** | L'**exemplaire** est transféré tel quel : **même bonus %**, mêmes charges — pas de nouveau tirage à l'achat. |
+| **Atelier de perfectionnement** | Retirage payant du bonus % sur une carte possédée (coût selon rareté ; réduction héritage magasin). |
+| **Magasin** | 10 offres tirées **au hasard** dans le catalogue à chaque réassort (répétitions possibles) ; **nouveau tirage** du bonus à l'achat. |
+| **Effets** | Certaines cartes ont un **effet de pli** (dégâts bonus, réduction, soin, malus adverse au pli suivant) — décrit sur la carte. |
+| **Éléments** | 16 cartes exigent l'élément du porteur — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (répartition équilibrée). |
 
-Exemples : parade si ciblé deux fois au même tour (Défensive), chip de dégâts à l'attaque (Offensive), soin d'allié blessé (Protection).
+Exemples : **Lame de chakra** (+15 %, sans prérequis), **Lame suiton** (+30 %, porteur Suiton), **Scalpel de chakra** (médecine offensive).
+
+### Inventaire
+
+| Catégorie | Usage |
+|-----------|--------|
+| **Cartes technique** | Assignées par ninja |
+| **Consommables ninja** | Objets bureau — utiliser sur un ninja |
+| **Équipement cycle** | 1 par ninja pour le cycle |
 
 ---
 
@@ -460,7 +474,7 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 
 ### Structure d'un match
 
-- **Quatorze plis maximum** (9 techniques + 5 éléments de deck, mélangés).
+- **Dix-huit plis maximum** (6 cartes × 3 ninjas actifs, mélangées).
 - Chaque pli : révélation simultanée des cartes, comparaison de puissance, dégâts sur le propriétaire perdant.
 - **Environnement** aléatoire (météo, terrain) avec modificateurs sur les domaines concernés ; les objets « counter terrain » sont retirés.
 
@@ -472,13 +486,13 @@ Chaque pli oppose deux cartes (domaine vs domaine) :
 - Intelligence/Vitesse en support selon le domaine ;
 - effets Tai (+10 % équipe au pli suivant) et Gen (−10 % adverse) ;
 - Médecine : soin si victoire, 50 % dégâts si défaite ;
-- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante) **ou** si le deck est incomplet (techniques non enregistrées, éléments manquants) — le match comble toujours jusqu'à **14 plis**.
+- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante) **ou** si le deck est incomplet (technique non assignée, domaines non enregistrés).
 
 ### Conditions de victoire
 
 1. **K.O. immédiat** : si tous les actifs d'une équipe sont à terre (PV ou chakra épuisé), l'adversaire gagne sur-le-champ.
 
-2. **Fin des plis** : si aucune équipe n'est totalement éliminée après les 14 plis joués, le vainqueur est celui qui a le plus de **PV d'équipe restants** ; à égalité, celui qui a remporté le plus de **plis**.
+2. **Fin des plis** : si aucune équipe n'est totalement éliminée après les 18 plis joués, le vainqueur est celui qui a le plus de **PV d'équipe restants** ; à égalité, celui qui a remporté le plus de **plis**.
 
 Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne détermine pas** seul le vainqueur (les PV restants priment).
 

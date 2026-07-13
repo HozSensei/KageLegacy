@@ -1,12 +1,20 @@
 /**
- * Smoke test — combat par plis (deck 9 techniques + 5 éléments, relais de comblement).
+ * Smoke test — combat par plis (1 technique + 2× primaire + 3× secondaire / ninja = 18 plis).
  */
 import { simulatePliCombat } from '../src/services/combat/pli/pliCombatEngine.js';
 import { buildTeamDeck } from '../src/services/combat/pli/deckBuilder.js';
+import { statBaseValue } from '../src/services/combat/pli/power.js';
 import { createBalancedSquad } from '../src/services/simulation/cycleSimulator.js';
 import { computeMatchPvFromRating } from '../src/services/ninjaStats.js';
 import { applyFormeToStats } from '../src/services/combat/forme.js';
-import { MAX_PLIS, DECK_ELEMENTS_COUNT } from '../src/services/combat/pli/constants.js';
+import {
+  MAX_PLIS,
+  TECHNIQUE_CARDS_PER_NINJA,
+  PRIMARY_STAT_COPIES,
+  SECONDARY_STAT_COPIES,
+  STAT_CARDS_PER_NINJA,
+  CARDS_PER_NINJA,
+} from '../src/services/combat/pli/constants.js';
 
 function buildTeam(ninjas, label) {
   const fighters = ninjas.map((ninja, index) => {
@@ -33,7 +41,7 @@ const squadB = createBalancedSquad('B', 10, 1.0);
 const home = buildTeam(squadA, 'home');
 const away = buildTeam(squadB, 'away');
 
-const emptyDeck = { techniquesByNinjaId: {}, rawTechniquesByNinjaId: {}, elementCards: [] };
+const emptyDeck = { techniqueSlotsByNinjaId: {}, techniqueCardsById: {}, techniquesByNinjaId: {} };
 const result = simulatePliCombat(home, away, {
   homeDeck: emptyDeck,
   awayDeck: emptyDeck,
@@ -41,41 +49,32 @@ const result = simulatePliCombat(home, away, {
 
 console.assert(result.logs.length === MAX_PLIS, `attendu ${MAX_PLIS} plis, reçu ${result.logs.length}`);
 console.assert(['home', 'away', 'draw'].includes(result.winner), 'winner valide');
-console.assert(result.homeScorePct >= 0 && result.awayScorePct >= 0, 'PV restants');
 console.assert(
-  result.logs.some((log) => log.relais_padding_home || log.relais_padding_away || log.type === 'relais'),
-  'au moins un pli relais de comblement'
+  result.logs.some((log) => log.relais_padding_home || log.relais_padding_away),
+  'au moins un relais (carte technique inventaire manquante)'
 );
 
-const paddedDeck = buildTeamDeck(home, emptyDeck);
-console.assert(paddedDeck.length === MAX_PLIS, `deck complété à ${MAX_PLIS} cartes`);
-
-const sample = squadA[0];
-const stats = applyFormeToStats(sample);
-const pv = computeMatchPvFromRating(stats);
+const deck = buildTeamDeck(home, emptyDeck);
+console.assert(deck.length === squadA.length * CARDS_PER_NINJA, `deck = ${CARDS_PER_NINJA} cartes / ninja`);
+console.assert(deck.some((c) => c.kind === 'domain'), 'cartes stat domaine par défaut');
 console.assert(
-  pv ===
-    Math.max(
-      10,
-      Math.round(
-        (stats.taijutsu +
-          stats.ninjutsu +
-          stats.genjutsu +
-          stats.medecine +
-          stats.vitesse +
-          stats.intelligence) /
-          6
-      ) * 10
-    ),
-  'PV note globale'
+  deck.filter((c) => c.kind === 'relais').length === home.fighters.length,
+  '1 relais technique inventaire / ninja sans deck'
 );
 
-console.assert(DECK_ELEMENTS_COUNT === 5, '5 éléments deck');
+const fighter = home.fighters[0];
+const base = statBaseValue(fighter, 'taijutsu');
+const withSecondary = Math.floor((base + statBaseValue(fighter, 'ninjutsu')) / 2);
+const withBonus = Math.floor(withSecondary * 1.3);
+console.assert(withBonus > withSecondary, 'bonus carte technique sur base sans d6');
+
+console.assert(TECHNIQUE_CARDS_PER_NINJA === 1, '1 carte technique inventaire / ninja');
+console.assert(PRIMARY_STAT_COPIES === 2, '2 copies stat primaire / ninja');
+console.assert(SECONDARY_STAT_COPIES === 3, '3 copies stat secondaire / ninja');
+console.assert(STAT_CARDS_PER_NINJA === 5, '5 cartes stat / ninja');
 
 console.log('testPliCombat OK', {
   plis: result.logs.length,
   winner: result.winner,
-  homePv: result.homeScorePct,
-  awayPv: result.awayScorePct,
   plisWon: result.plisWon,
 });

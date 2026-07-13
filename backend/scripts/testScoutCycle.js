@@ -218,10 +218,7 @@ async function main() {
   );
   assert(oppNinjas.length >= 1, 'ninjas adverses pour deck');
   await saveOperationDeck(opponentId, {
-    techniquesByNinjaId: Object.fromEntries(
-      oppNinjas.map((n) => [n.id, { primary: 'ninjutsu', secondary: 'taijutsu' }])
-    ),
-    elementCardIds: [],
+    techniqueSlotsByNinjaId: {},
   });
 
   await advanceToHourDev(71);

@@ -7,6 +7,7 @@ import SquadView from '../views/SquadView.vue'
 import LeagueView from '../views/LeagueView.vue'
 import MarketView from '../views/MarketView.vue'
 import PlayerMarketView from '../views/PlayerMarketView.vue'
+import TechniqueRefinementView from '../views/TechniqueRefinementView.vue'
 import InventoryView from '../views/InventoryView.vue'
 import OperationView from '../views/OperationView.vue'
 import MissionsView from '../views/MissionsView.vue'
@@ -65,6 +66,12 @@ const router = createRouter({
         { path: 'training', name: 'training', component: TrainingView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.training' } } },
         { path: 'league', name: 'league', component: LeagueView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.league' } } },
         { path: 'market', name: 'market', component: MarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.market' } } },
+        {
+          path: 'refinement',
+          name: 'refinement',
+          component: TechniqueRefinementView,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'techniqueRefinement.title' } },
+        },
         { path: 'exchanges', name: 'exchanges', component: PlayerMarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.exchanges' } } },
         { path: 'inventory', name: 'inventory', component: InventoryView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.inventory' } } },
         { path: 'operation', name: 'operation', component: OperationView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } } },

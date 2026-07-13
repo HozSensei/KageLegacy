@@ -125,7 +125,7 @@ Postures **Équilibrée / Offensive / Défensive / Protection** : plan de cycle 
 
 ### Cartes tactiques
 
-Remplacent le cercle Assaut/Mur/Flux. 3 charges, 1 proc/match/ninja, synergie avec consignes.
+Remplacent le cercle Assaut/Mur/Flux. 5 charges, tirage en pli, synergie avec consignes.
 
 ---
 

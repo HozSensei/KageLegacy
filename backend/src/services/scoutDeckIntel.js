@@ -1,6 +1,12 @@
 import { query } from '../config/database.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS, MAX_PLIS, TECHNIQUE_CARDS_PER_NINJA, DECK_ELEMENTS_COUNT } from './combat/pli/constants.js';
+import {
+  DOMAIN_LABELS,
+  MAX_PLIS,
+  TECHNIQUE_CARDS_PER_NINJA,
+  PRIMARY_STAT_COPIES,
+  SECONDARY_STAT_COPIES,
+} from './combat/pli/constants.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
@@ -12,26 +18,37 @@ function parseJson(value) {
   return typeof value === 'string' ? JSON.parse(value) : value;
 }
 
+function cardName(card, lang) {
+  return lang === 'en' ? card.nameEn || card.nameFr : card.nameFr || card.nameEn;
+}
+
 function rawTechniquesForNinja(rawTechniquesByNinjaId, ninjaId) {
   return rawTechniquesByNinjaId?.[ninjaId] || rawTechniquesByNinjaId?.[String(ninjaId)] || null;
 }
 
-function isTechniquesConfigured(rawTechniquesByNinjaId, ninjaId) {
+function isDomainConfigured(rawTechniquesByNinjaId, ninjaId) {
   const raw = rawTechniquesForNinja(rawTechniquesByNinjaId, ninjaId);
   return Boolean(raw?.primary && raw?.secondary);
 }
 
-function countConfiguredTechniques(rawTechniquesByNinjaId, ninjas) {
-  return ninjas.filter((ninja) => isTechniquesConfigured(rawTechniquesByNinjaId, ninja.id)).length;
+function countInventoryAssigned(techniqueSlotsByNinjaId, ninjas) {
+  return ninjas.filter((ninja) => {
+    const ids = techniqueSlotsByNinjaId?.[ninja.id] || techniqueSlotsByNinjaId?.[String(ninja.id)] || [];
+    return ids.length > 0;
+  }).length;
 }
 
-function countPrimaryDomains(techniquesByNinjaId, rawTechniquesByNinjaId, ninjas) {
+function countDomainsFromDeck(deck, ninjas) {
   const counts = { taijutsu: 0, ninjutsu: 0, genjutsu: 0, medecine: 0 };
+  for (const card of deck.techniqueCards || []) {
+    const domain = card.statType || card.stat_type;
+    if (domain) counts[domain] = (counts[domain] || 0) + 1;
+  }
   for (const ninja of ninjas) {
-    if (!isTechniquesConfigured(rawTechniquesByNinjaId, ninja.id)) continue;
-    const tech = techniquesByNinjaId?.[ninja.id] || techniquesByNinjaId?.[String(ninja.id)] || {};
-    const primary = tech.primary || 'taijutsu';
-    counts[primary] = (counts[primary] || 0) + 1;
+    if (!isDomainConfigured(deck.rawTechniquesByNinjaId, ninja.id)) continue;
+    const domains = deck.techniquesByNinjaId?.[ninja.id];
+    if (domains?.primary) counts[domains.primary] = (counts[domains.primary] || 0) + PRIMARY_STAT_COPIES;
+    if (domains?.secondary) counts[domains.secondary] = (counts[domains.secondary] || 0) + SECONDARY_STAT_COPIES;
   }
   return counts;
 }
@@ -47,36 +64,40 @@ function domainSummaryLines(counts, lang) {
     .map(([domain, count]) => `${count}× ${labels[domain]}`);
 }
 
-function computeRelaisPadding(configuredTechniqueNinjas, elementCount, ninjaCount) {
-  const configuredPlis = configuredTechniqueNinjas * TECHNIQUE_CARDS_PER_NINJA + elementCount;
-  return Math.max(0, MAX_PLIS - configuredPlis);
-}
-
 export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
-  const elementCount = deck.elementCardIds?.length ?? 0;
-  const configuredTechniqueNinjas = countConfiguredTechniques(deck.rawTechniquesByNinjaId, ninjas);
-  const relaisPadding = computeRelaisPadding(configuredTechniqueNinjas, elementCount, ninjas.length);
-  const domainCounts = countPrimaryDomains(
-    deck.techniquesByNinjaId,
-    deck.rawTechniquesByNinjaId,
-    ninjas
+  const techniqueCount = deck.techniqueCount ?? 0;
+  const maxTechniques = ninjas.length * TECHNIQUE_CARDS_PER_NINJA;
+  const inventoryAssigned = countInventoryAssigned(deck.techniqueSlotsByNinjaId || {}, ninjas);
+  const domainsConfigured = ninjas.filter((ninja) =>
+    isDomainConfigured(deck.rawTechniquesByNinjaId, ninja.id)
+  ).length;
+  const relaisInventory = Math.max(0, maxTechniques - inventoryAssigned);
+  const cardsById = Object.fromEntries(
+    (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c])
   );
+  const domainCounts = countDomainsFromDeck(deck, ninjas);
 
   const slots = ninjas.map((ninja, index) => {
     const profile = describeNinjaProfile(ninja, lang);
-    const configured = isTechniquesConfigured(deck.rawTechniquesByNinjaId, ninja.id);
-    const tech = deck.techniquesByNinjaId?.[ninja.id] || deck.techniquesByNinjaId?.[String(ninja.id)] || {};
-    const primary = tech.primary || 'taijutsu';
-    const secondary = tech.secondary || 'ninjutsu';
+    const assignedIds = deck.techniqueSlotsByNinjaId?.[ninja.id] || [];
+    const techniques = assignedIds
+      .map((id) => cardsById[id])
+      .filter(Boolean)
+      .map((card) => ({
+        slug: card.slug,
+        name: cardName(card, lang),
+        statType: card.statType,
+        bonusPct: card.pliBonusPct,
+      }));
+    const domains = deck.techniquesByNinjaId?.[ninja.id];
     return {
       slot: index + 1,
       artKey: profile.primaryArt,
       artLabel: profile.artLabel,
-      configured,
-      primary,
-      secondary,
-      primaryLabel: DOMAIN_LABELS[primary] || primary,
-      secondaryLabel: DOMAIN_LABELS[secondary] || secondary,
+      techniques,
+      primaryDomain: domains?.primary,
+      secondaryDomain: domains?.secondary,
+      domainsConfigured: isDomainConfigured(deck.rawTechniquesByNinjaId, ninja.id),
     };
   });
 
@@ -84,99 +105,99 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
   if (tier === 'partial') {
     lines.push(
       lang === 'en'
-        ? `Fragmentary deck intel — ${elementCount}/${DECK_ELEMENTS_COUNT} element cards configured.`
-        : `Renseignements deck fragmentaires — ${elementCount}/${DECK_ELEMENTS_COUNT} éléments configurés.`
+        ? `Fragmentary deck intel — ${inventoryAssigned}/${maxTechniques} inventory technique cards assigned.`
+        : `Renseignements deck fragmentaires — ${inventoryAssigned}/${maxTechniques} cartes technique inventaire assignées.`
     );
     const summary = domainSummaryLines(domainCounts, lang);
     if (summary.length) {
       lines.push(
         lang === 'en'
-          ? `Primary technique lean (confirmed only): ${summary.join(', ')}.`
-          : `Orientation des techniques principales (confirmées) : ${summary.join(', ')}.`
+          ? `Technique lean (confirmed): ${summary.join(', ')}.`
+          : `Orientation des techniques (confirmée) : ${summary.join(', ')}.`
       );
-    } else if (configuredTechniqueNinjas === 0) {
+    } else if (inventoryAssigned === 0) {
       lines.push(
         lang === 'en'
-          ? 'No registered techniques yet — relay plis expected for unconfigured slots.'
-          : 'Aucune technique enregistrée — relais de comblement attendus sur les emplacements non configurés.'
+          ? 'No inventory cards assigned — relay plis expected for empty slots.'
+          : 'Aucune carte inventaire assignée — relais de comblement attendus sur les emplacements vides.'
       );
     }
     return {
       tier: 'partial',
-      elementCount,
-      configuredTechniqueNinjas,
-      relaisPadding,
+      techniqueCount,
+      inventoryAssigned,
+      domainsConfigured,
+      relaisInventory,
       pliCount: MAX_PLIS,
       domainCounts,
       slots: slots.map((slot) => ({
         slot: slot.slot,
         artLabel: slot.artLabel,
-        configured: slot.configured,
-        primaryLabel: null,
-        secondaryLabel: null,
+        techniques: [],
       })),
-      elementCards: [],
+      techniqueCards: [],
       lines,
     };
   }
 
   lines.push(
     lang === 'en'
-      ? `Spotted deck: ${configuredTechniqueNinjas}/${ninjas.length} ninjas with registered techniques · ${elementCount}/${DECK_ELEMENTS_COUNT} element cards · ${MAX_PLIS} plis per match.`
-      : `Deck repéré : ${configuredTechniqueNinjas}/${ninjas.length} ninjas avec techniques enregistrées · ${elementCount}/${DECK_ELEMENTS_COUNT} éléments de deck · ${MAX_PLIS} plis par match.`
+      ? `Spotted deck: ${inventoryAssigned}/${ninjas.length} inventory technique cards · ${domainsConfigured}/${ninjas.length} ninjas with saved stat domains · ${MAX_PLIS} plis per match.`
+      : `Deck repéré : ${inventoryAssigned}/${ninjas.length} cartes technique inventaire · ${domainsConfigured}/${ninjas.length} ninjas avec domaines enregistrés · ${MAX_PLIS} plis par match.`
   );
-  if (relaisPadding > 0) {
+  if (relaisInventory > 0) {
     lines.push(
       lang === 'en'
-        ? `${relaisPadding} relay pli(s) expected to pad the shuffle (unconfigured techniques or missing elements).`
-        : `${relaisPadding} relais de comblement attendu(s) pour compléter le mélange (techniques ou éléments manquants).`
+        ? `${relaisInventory} empty inventory slot(s) — relay padding plis expected.`
+        : `${relaisInventory} emplacement(s) inventaire vide(s) — relais de comblement attendus.`
     );
   }
   const summary = domainSummaryLines(domainCounts, lang);
   if (summary.length) {
     lines.push(
       lang === 'en'
-        ? `Registered primary techniques: ${summary.join(', ')}.`
-        : `Techniques principales enregistrées : ${summary.join(', ')}.`
+        ? `Techniques in deck (confirmed): ${summary.join(', ')}.`
+        : `Techniques dans le deck (confirmées) : ${summary.join(', ')}.`
     );
   }
   for (const slot of slots) {
-    if (slot.configured) {
+    if (!slot.techniques.length) {
       lines.push(
         lang === 'en'
-          ? `Slot ${slot.slot} (${slot.artLabel}): ${slot.primaryLabel} / ${slot.secondaryLabel}.`
-          : `Emplacement ${slot.slot} (${slot.artLabel}) : ${slot.primaryLabel} / ${slot.secondaryLabel}.`
+          ? `Slot ${slot.slot} (${slot.artLabel}): no inventory card — relay plis expected.`
+          : `Emplacement ${slot.slot} (${slot.artLabel}) : pas de carte inventaire — relais de comblement attendus.`
       );
-    } else {
-      lines.push(
-        lang === 'en'
-          ? `Slot ${slot.slot} (${slot.artLabel}): no techniques registered — relay plis expected.`
-          : `Emplacement ${slot.slot} (${slot.artLabel}) : techniques non enregistrées — relais de comblement attendus.`
-      );
+      continue;
     }
-  }
-  const elementCards = (deck.elementCards || []).map((card) => ({
-    slug: card.slug,
-    name: lang === 'en' ? card.nameEn || card.nameFr : card.nameFr || card.nameEn,
-    statType: card.statType,
-  }));
-  if (elementCards.length) {
+    const domainSuffix = slot.domainsConfigured
+      ? ''
+      : lang === 'en'
+        ? ' · stat domains auto'
+        : ' · domaines stat auto';
     lines.push(
       lang === 'en'
-        ? `Deck elements: ${elementCards.map((c) => c.name).join(', ')}.`
-        : `Éléments de deck : ${elementCards.map((c) => c.name).join(', ')}.`
+        ? `Slot ${slot.slot} (${slot.artLabel}): ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}${domainSuffix}.`
+        : `Emplacement ${slot.slot} (${slot.artLabel}) : ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}${domainSuffix}.`
     );
   }
 
+  const techniqueCards = (deck.techniqueCards || []).map((card) => ({
+    slug: card.slug,
+    name: cardName(card, lang),
+    statType: card.statType,
+    bonusPct: card.pliBonusPct,
+  }));
+
   return {
     tier: 'full',
-    elementCount,
-    configuredTechniqueNinjas,
-    relaisPadding,
+    techniqueCount,
+    inventoryAssigned,
+    domainsConfigured,
+    relaisInventory,
     pliCount: MAX_PLIS,
     domainCounts,
     slots,
-    elementCards,
+    techniqueCards,
     lines,
   };
 }
@@ -193,10 +214,9 @@ export function buildPartialDeckReport(fullReport, lang) {
     lines: fullReport.lines.slice(0, Math.min(2, fullReport.lines.length)),
     slots: fullReport.slots.map((slot) => ({
       ...slot,
-      primaryLabel: null,
-      secondaryLabel: null,
+      techniques: [],
     })),
-    elementCards: [],
+    techniqueCards: [],
   };
 }
 
