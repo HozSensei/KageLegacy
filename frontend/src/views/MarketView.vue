@@ -338,7 +338,7 @@ const canBuyCard = computed(() => (card) =>
             <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ cardDesc(card) }}</p>
             <p class="mt-2 text-[10px] uppercase tracking-[0.12em] text-ink-faint">
               {{ t('market.cardBonusRange', { range: formatBonusRange(card, locale) }) }}
-              · {{ t('market.cardChargesShop', { count: 3 }) }}
+              · {{ t('market.cardChargesShop', { count: 5 }) }}
             </p>
             <p class="mt-4 text-xs text-ink-faint">
               {{ t('market.stock', { remaining: card.stockRemaining, initial: 1 }) }}

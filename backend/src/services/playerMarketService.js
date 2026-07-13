@@ -19,6 +19,7 @@ const MIN_NINJA_LISTING_PRICE = 1;
 const LISTING_SELECT = `
   pl.*,
   utc.charges_remaining,
+  utc.pli_bonus_pct AS card_pli_bonus_pct,
   idf.slug, idf.name_fr, idf.name_en, idf.category, idf.price AS catalog_price,
   tcd.slug AS card_slug, tcd.name_fr AS card_name_fr, tcd.name_en AS card_name_en,
   tcd.rarity AS card_rarity, tcd.card_type AS card_type, tcd.catalog_price AS card_catalog_price,
@@ -156,6 +157,7 @@ function mapListing(row, identityMap = null) {
       cardType: row.card_type,
       catalogPrice: row.card_catalog_price,
       chargesRemaining: row.charges_remaining,
+      pliBonusPct: row.card_pli_bonus_pct != null ? Number(row.card_pli_bonus_pct) : null,
     };
   }
 
@@ -528,6 +530,7 @@ export async function buyListing(userId, listingId) {
       [userId, NINJA_RESALE_MORAL_PENALTY, listing.ninja_id]
     );
   } else if (listing.listing_type === 'tactic_card') {
+    // Transfert de la ligne user_tactic_cards : bonus % et charges conservés (pas de nouveau tirage).
     await query('UPDATE user_tactic_cards SET user_id = ? WHERE id = ?', [
       userId,
       listing.user_tactic_card_id,

@@ -197,8 +197,9 @@ Chaque ninja actif reçoit **jusqu'à 3 cartes technique** (Escouade → deck d'
 | **Puissance** | Stat principale (+ moyenne secondaire : domaine, vitesse ou intelligence) × **bonus % unique** tiré à l'acquisition. |
 | **Bonus variable** | Communes 1–20 % · avec synergie 5–25 % · rares 15–35 % · légendaires 30–50 %. |
 | **Prérequis** | Certaines cartes exigent l'élément du porteur (ex. Lame suiton → Suiton). |
-| **Charges** | 3 charges ; consommée quand la carte est **tirée** dans un pli. |
-| **Magasin** | 10 offres / période de réassort, rotation personnalisée par joueur. |
+| **Charges** | 5 charges ; une consommée quand la carte est **tirée** dans un pli (usage quasi systématique chaque cycle). |
+| **Marché P2P** | L'**exemplaire** est transféré tel quel : **même bonus %**, mêmes charges — pas de nouveau tirage à l'achat. |
+| **Magasin** | 10 offres / période de réassort, rotation personnalisée par joueur ; **nouveau tirage** du bonus à l'achat. |
 
 Exemples : **Lame de chakra** (+15 %, sans prérequis), **Lame suiton** (+30 %, porteur Suiton), **Scalpel de chakra** (médecine offensive).
 

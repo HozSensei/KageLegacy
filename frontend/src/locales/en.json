@@ -799,6 +799,14 @@
     "listed": "Listed on player market",
     "nonVendable": "Not for resale"
   },
+  "techniqueRefinement": {
+    "title": "Technique refinement hall",
+    "subtitle": "Jutsu refinement",
+    "lead": "Reroll the % bonus on a technique card you already own (Ryos cost). Shop and loot grant a fresh roll; the player market keeps the instance bonus.",
+    "action": "Refine",
+    "bonusKept": "Current bonus: {bonus}",
+    "comingSoon": "Coming soon"
+  },
   "exchanges": {
     "kicker": "Player market",
     "lead": "Buy and sell items and bench ninjas with any Sensei on the server — window H0–H71.",
@@ -822,6 +830,7 @@
     "historyBought": "Bought: {asset} from {seller} — {price} Ryos",
     "seller": "Seller: {name}",
     "catalogRef": "Catalog: {price} Ryos",
+    "cardBonus": "Bonus {bonus}",
     "buy": "Buy",
     "buying": "Buying…",
     "cancel": "Remove",

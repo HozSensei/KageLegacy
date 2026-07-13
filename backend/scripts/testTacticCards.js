@@ -80,7 +80,7 @@ async function main() {
     STARTER_CARD_SLUGS.every((slug) => cards.some((c) => c.slug === slug)),
     'starter slugs present'
   );
-  console.assert(cards.every((c) => c.chargesRemaining === TACTIC_CARD_MAX_CHARGES), '3 charges each');
+  console.assert(cards.every((c) => c.chargesRemaining === TACTIC_CARD_MAX_CHARGES), '5 charges each');
   console.assert(cards[0].pliBonusPct != null && cards[0].pliBonusPct > 0, 'rolled bonus on grant');
 
   const dup = await ensureStarterTacticCards(userId);

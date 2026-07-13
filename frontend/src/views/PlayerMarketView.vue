@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useFormatRyos } from '../composables/useFormatRyos'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 import { resolveIdentity } from '../utils/senseiIdentity.js'
+import { formatInstanceBonusPct } from '../utils/techniqueCardBonus.js'
 
 const { t, locale } = useI18n()
 const { formatRyos } = useFormatRyos()
@@ -28,7 +29,14 @@ function listingSubtitle(listing) {
     return `${t(`grades.${listing.grade}`)} · ${listing.age} ${t('ninja.age')} · ${listing.clanName}`
   }
   if (listing.listingType === 'tactic_card') {
-    return `${t(`inventory.cardRarity.${listing.rarity}`)} · ${t('inventory.cardCharges', { count: listing.chargesRemaining })}`
+    const parts = [
+      t(`inventory.cardRarity.${listing.rarity}`),
+      t('inventory.cardCharges', { count: listing.chargesRemaining }),
+    ]
+    if (listing.pliBonusPct != null) {
+      parts.push(t('exchanges.cardBonus', { bonus: formatInstanceBonusPct(listing) }))
+    }
+    return parts.join(' · ')
   }
   return categoryLabel(listing.category)
 }

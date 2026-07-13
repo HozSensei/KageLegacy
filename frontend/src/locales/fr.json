@@ -799,6 +799,14 @@
     "listed": "En vente sur le marché",
     "nonVendable": "Non revendable"
   },
+  "techniqueRefinement": {
+    "title": "Atelier de perfectionnement",
+    "subtitle": "Dojo des techniques",
+    "lead": "Affinez le bonus % d'une carte technique déjà possédée (coût en Ryos). Le magasin et le butin tirent un nouveau bonus ; le marché entre joueurs conserve l'exemplaire.",
+    "action": "Perfectionner",
+    "bonusKept": "Bonus actuel : {bonus}",
+    "comingSoon": "Bientôt disponible"
+  },
   "exchanges": {
     "kicker": "Marché entre joueurs",
     "lead": "Achetez et vendez objets et ninjas banc avec tous les Sensei du serveur — fenêtre H0–H71.",
@@ -822,6 +830,7 @@
     "historyBought": "Acheté : {asset} à {seller} — {price} Ryos",
     "seller": "Vendeur : {name}",
     "catalogRef": "Catalogue : {price} Ryos",
+    "cardBonus": "Bonus {bonus}",
     "buy": "Acheter",
     "buying": "Achat…",
     "cancel": "Retirer",
