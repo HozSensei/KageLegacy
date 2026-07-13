@@ -47,13 +47,19 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
     soin_inutile_away: healUselessAway,
   } = impactLog || {};
 
+  const pushUnique = (line) => {
+    if (line && !parts.includes(line)) parts.push(line);
+  };
+
   if (dmg > 0 && cible) {
-    parts.push(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
+    pushUnique(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
   }
   if (dmgAway > 0 && cibleAway) {
-    parts.push(
-      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`
-    );
+    const awayLine =
+      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`;
+    if (!(dmg === dmgAway && cible === cibleAway)) {
+      pushUnique(awayLine);
+    }
   }
   if (heal > 0 && cible) {
     parts.push(lang === 'en' ? `healed ${cible} for ${heal} HP` : `soin de ${heal} PV sur ${cible}`);

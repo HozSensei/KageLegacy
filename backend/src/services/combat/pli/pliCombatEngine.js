@@ -302,6 +302,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       log.proxy_home = homeActor.fighter.name;
       if (homeActor.padded) log.relais_padding_home = true;
       else log.owner_ko_home = homeActor.relaisOwner?.name;
+      if (homeCard.relaisReason) log.relais_reason_home = homeCard.relaisReason;
       log.carte_resolution_home = `${homeActor.fighter.name} · ${DOMAIN_LABELS[homeDomain]}`;
     }
     if (awayActor.relais) {
@@ -309,6 +310,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       log.proxy_away = awayActor.fighter.name;
       if (awayActor.padded) log.relais_padding_away = true;
       else log.owner_ko_away = awayActor.relaisOwner?.name;
+      if (awayCard.relaisReason) log.relais_reason_away = awayCard.relaisReason;
       log.carte_resolution_away = `${awayActor.fighter.name} · ${DOMAIN_LABELS[awayDomain]}`;
     }
 
@@ -339,10 +341,8 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       if (dmgOutcome === 'home') scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
       else if (dmgOutcome === 'away') scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
     } else if (!medHome && medAway && outcome === 'home') {
-      applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, 'home', log);
       scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state);
     } else if (medHome && !medAway && outcome === 'away') {
-      applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awayPower, 'away', log);
       scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state);
     }
 

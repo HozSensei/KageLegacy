@@ -26,6 +26,7 @@ function buildSidePlayPart(side, log, sensei, rng) {
   const proxy = isHome ? log.proxy_home : log.proxy_away;
   const ownerKo = isHome ? log.owner_ko_home : log.owner_ko_away;
   const padding = isHome ? log.relais_padding_home : log.relais_padding_away;
+  const relaisReason = isHome ? log.relais_reason_home : log.relais_reason_away;
   const ownerFallback =
     ownerKo || parsed.owner || (isHome ? 'un coéquipier' : 'un coéquipier');
 
@@ -42,7 +43,10 @@ function buildSidePlayPart(side, log, sensei, rng) {
     vars.actor = proxy;
     if (padding || parsed.kind === 'relais_padding') {
       if (parsed.owner && parsed.owner !== 'Escouade') {
-        poolKey = 'chronicle.pli.play_relais_no_technique';
+        poolKey =
+          relaisReason === 'missing_technique'
+            ? 'chronicle.pli.play_relais_no_inventory'
+            : 'chronicle.pli.play_relais_no_technique';
         vars.owner = parsed.owner;
         if (proxy === parsed.owner) {
           vars.actor = parsed.owner;
@@ -59,7 +63,8 @@ function buildSidePlayPart(side, log, sensei, rng) {
 
   let pick;
   if (
-    poolKey === 'chronicle.pli.play_relais_no_technique' &&
+    (poolKey === 'chronicle.pli.play_relais_no_technique' ||
+      poolKey === 'chronicle.pli.play_relais_no_inventory') &&
     parsed.owner &&
     proxy === parsed.owner
   ) {
