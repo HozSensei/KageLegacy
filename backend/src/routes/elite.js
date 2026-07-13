@@ -122,11 +122,13 @@ router.post('/tools/matchup', async (req, res, next) => {
     if (!user) return;
 
     const locale = await getUserLanguage(user.id);
-    const { opponentComposition, opponentProfile, opponentStyle, opponentLevel, runs } = req.body ?? {};
+    const { opponentComposition, opponentProfile, opponentStyle, opponentDeck, opponentLevel, runs } =
+      req.body ?? {};
     const result = await simulateEliteMatchup(user.id, {
       opponentComposition,
       opponentProfile,
       opponentStyle,
+      opponentDeck,
       opponentLevel,
       runs,
       locale,

@@ -21,7 +21,12 @@ import {
   buildDomainPliWins,
   buildRelaisStats,
 } from '../src/services/eliteMatchAnalytics.js';
-import { buildSyntheticOpponentDeck, normalizeOpponentDeckProfile } from '../src/services/eliteDeckSimulation.js';
+import {
+  buildCustomOpponentDeck,
+  buildSyntheticOpponentDeck,
+  isCustomOpponentDeckInput,
+  normalizeOpponentDeckProfile,
+} from '../src/services/eliteDeckSimulation.js';
 
 const PREFIX = `elite_tools_${Date.now()}`;
 
@@ -126,6 +131,25 @@ async function main() {
   );
   console.assert(synthetic.elementCards.length === 5, 'deck synthétique 5 éléments');
 
+  const custom = buildCustomOpponentDeck(
+    [
+      { id: 1, squad_position: 1, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 },
+      { id: 2, squad_position: 2, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 },
+      { id: 3, squad_position: 3, taijutsu: 40, ninjutsu: 35, genjutsu: 30, medecine: 20 },
+    ],
+    {
+      slots: [
+        { configured: true, primary: 'genjutsu', secondary: 'ninjutsu' },
+        { configured: false },
+        { configured: true, primary: 'taijutsu', secondary: 'ninjutsu' },
+      ],
+      elementSlugs: ['raiton-surcharge', 'med-pansement-rapide'],
+    }
+  );
+  console.assert(Object.keys(custom.techniquesByNinjaId).length === 2, 'deck custom 2 ninjas');
+  console.assert(custom.elementCards.length === 2, 'deck custom 2 éléments');
+  console.assert(isCustomOpponentDeckInput({ slots: [], elementSlugs: [] }), 'detect custom input');
+
   const domainWins = buildDomainPliWins(MINIMAL_COMBAT_LOG.logs, 'home');
   console.assert(domainWins?.mine?.Taijutsu >= 1, 'domain pli wins tai');
   const relais = buildRelaisStats(MINIMAL_COMBAT_LOG.logs, 'home');
@@ -208,16 +232,25 @@ async function main() {
   console.assert(tools.seasonStats.played >= 1, 'stats saison joués');
   console.assert(tools.orders?.label, 'label deck');
   console.assert(tools.opponentProfileOptions?.length === 4, 'options profil deck');
+  console.assert(tools.matchupBuilder?.domainOptions?.length === 4, 'domaines simulateur');
+  console.assert(tools.matchupBuilder?.presets?.sparse, 'preset sparse');
   console.assert(tools.levelOptions.length === 5, 'options niveau');
 
   const sim = await simulateEliteMatchup(homeId, {
-    opponentProfile: 'sparse',
+    opponentDeck: {
+      slots: [
+        { configured: true, primary: 'ninjutsu', secondary: 'genjutsu' },
+        { configured: true, primary: 'taijutsu', secondary: 'ninjutsu' },
+        { configured: false },
+      ],
+      elementSlugs: ['raiton-surcharge'],
+    },
     opponentLevel: 'similar',
     runs: 30,
   });
   console.assert(sim.runs === 30, 'sim runs');
   console.assert(sim.winPct != null, 'sim winPct');
-  console.assert(sim.opponentProfile === 'sparse', 'sim profil sparse');
+  console.assert(sim.opponentProfile === 'custom', 'sim deck custom');
   console.assert(sim.verdict?.headline, 'sim verdict headline');
   console.assert(sim.verdict?.rulesAnchor === ELITE_RULES_COMPOSITION_ANCHOR, 'ancre règles');
 

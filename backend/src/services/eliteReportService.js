@@ -322,13 +322,14 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
 export function buildSimulationVerdict({
   winPct,
   opponentProfile = 'complete',
+  opponentProfileLabel = null,
   opponentLevel = 'similar',
   locale = 'fr',
   squadContext = null,
 }) {
   const lang = normalizeLocale(locale);
   const profileLabels = OPPONENT_DECK_PROFILE_LABELS[lang] || OPPONENT_DECK_PROFILE_LABELS.fr;
-  const oppLabel = profileLabels[opponentProfile] || opponentProfile;
+  const oppLabel = opponentProfileLabel || profileLabels[opponentProfile] || opponentProfile;
   const factors = [];
   const advice = [];
 
@@ -341,8 +342,24 @@ export function buildSimulationVerdict({
   if (squadContext?.deckElements != null && squadContext.deckElements < 5) {
     factors.push(
       lang === 'en'
-        ? `Only ${squadContext.deckElements}/5 deck elements selected.`
-        : `Seulement ${squadContext.deckElements}/5 éléments de deck choisis.`
+        ? `Only ${squadContext.deckElements}/5 deck elements selected on your side.`
+        : `Seulement ${squadContext.deckElements}/5 éléments de deck choisis de votre côté.`
+    );
+  }
+
+  if (squadContext?.opponentDeckElements != null && squadContext.opponentDeckElements < 5) {
+    factors.push(
+      lang === 'en'
+        ? `Reference opponent uses ${squadContext.opponentDeckElements}/5 element cards — relay plis expected.`
+        : `L'adversaire de référence n'a que ${squadContext.opponentDeckElements}/5 éléments — relais probables.`
+    );
+  }
+
+  if (squadContext?.opponentTechniquesConfigured != null && squadContext.opponentTechniquesConfigured < 3) {
+    factors.push(
+      lang === 'en'
+        ? `Only ${squadContext.opponentTechniquesConfigured}/3 opponent ninjas have configured techniques.`
+        : `Seulement ${squadContext.opponentTechniquesConfigured}/3 ninjas adverses ont des techniques configurées.`
     );
   }
 

@@ -21,7 +21,13 @@ import {
 import {
   OPPONENT_DECK_PROFILE_IDS,
   OPPONENT_DECK_PROFILE_LABELS,
+  buildCustomOpponentDeck,
   buildSyntheticOpponentDeck,
+  describeOpponentDeck,
+  getPresetDeckConfig,
+  getSimulatorDomainOptions,
+  getSimulatorElementOptions,
+  isCustomOpponentDeckInput,
   normalizeOpponentDeckProfile,
 } from './eliteDeckSimulation.js';
 
@@ -196,6 +202,11 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     label: profileLabels[value],
   }));
 
+  const defaultPreset = getPresetDeckConfig(ninjas, 'complete');
+  const presets = Object.fromEntries(
+    OPPONENT_DECK_PROFILE_IDS.map((id) => [id, getPresetDeckConfig(ninjas, id)])
+  );
+
   return {
     seasonStats,
     orders: ordersAdvice,
@@ -206,6 +217,15 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
     opponentProfileOptions,
     opponentStyleOptions: opponentProfileOptions,
     compositionOptions: opponentProfileOptions,
+    matchupBuilder: {
+      domainOptions: getSimulatorDomainOptions(lang),
+      elementOptions: getSimulatorElementOptions(lang),
+      defaultSlots: defaultPreset.slots,
+      defaultElementSlugs: defaultPreset.elementSlugs,
+      presets,
+      maxElements: 5,
+      slotCount: 3,
+    },
     levelOptions: OPPONENT_LEVEL_IDS.map((value) => ({
       value,
       label: OPPONENT_LEVEL_LABELS[lang][value],
@@ -216,7 +236,15 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
 
 export async function simulateEliteMatchup(
   userId,
-  { opponentComposition, opponentProfile, opponentStyle, opponentLevel, runs = 100, locale = 'fr' } = {}
+  {
+    opponentComposition,
+    opponentProfile,
+    opponentStyle,
+    opponentDeck,
+    opponentLevel,
+    runs = 100,
+    locale = 'fr',
+  } = {}
 ) {
   await assertEliteToolsAccess(userId);
 
@@ -224,6 +252,7 @@ export async function simulateEliteMatchup(
   const profileInput = opponentProfile ?? opponentStyle ?? opponentComposition;
   const opponentProfileId = normalizeOpponentDeckProfile(profileInput);
   const level = normalizeOpponentLevel(opponentLevel);
+  const useCustomDeck = isCustomOpponentDeckInput(opponentDeck);
 
   const [{ ninjas }, operationDeck] = await Promise.all([
     loadActiveSquad(userId),
@@ -240,7 +269,9 @@ export async function simulateEliteMatchup(
   const runCount = Math.min(200, Math.max(20, Number(runs) || 100));
 
   const homeDeck = operationDeck ? deckConfigForCombat(operationDeck) : { techniquesByNinjaId: {}, elementCards: [] };
-  const awayDeck = buildSyntheticOpponentDeck(oppSquad, opponentProfileId);
+  const awayDeck = useCustomDeck
+    ? buildCustomOpponentDeck(oppSquad, opponentDeck)
+    : buildSyntheticOpponentDeck(oppSquad, opponentProfileId);
 
   const result = runMonteCarlo({
     slotANinjas: mySquad,
@@ -255,17 +286,21 @@ export async function simulateEliteMatchup(
   const levelLabel = OPPONENT_LEVEL_LABELS[lang][level];
   const ordersAdvice = buildOrdersAdvice({ deck: operationDeck }, lang);
   const profileLabels = OPPONENT_DECK_PROFILE_LABELS[lang] || OPPONENT_DECK_PROFILE_LABELS.fr;
+  const opponentLabel = useCustomDeck
+    ? describeOpponentDeck(awayDeck, lang)
+    : profileLabels[opponentProfileId];
 
   return {
     myComposition: 'deck',
-    opponentComposition: opponentProfileId,
-    opponentProfile: opponentProfileId,
-    opponentStyle: opponentProfileId,
+    opponentComposition: useCustomDeck ? 'custom' : opponentProfileId,
+    opponentProfile: useCustomDeck ? 'custom' : opponentProfileId,
+    opponentStyle: useCustomDeck ? 'custom' : opponentProfileId,
+    opponentDeck: useCustomDeck ? opponentDeck : null,
     opponentLevel: level,
     opponentLevelLabel: levelLabel,
     opponentLevelMultiplier: getOpponentLevelMultiplier(level),
     myCompositionLabel: ordersAdvice.label,
-    opponentCompositionLabel: profileLabels[opponentProfileId],
+    opponentCompositionLabel: opponentLabel,
     runs: runCount,
     winPct,
     drawPct: result.drawPct,
@@ -277,11 +312,14 @@ export async function simulateEliteMatchup(
     matchProcPct: result.matchProcPct,
     verdict: buildSimulationVerdict({
       winPct,
-      opponentProfile: opponentProfileId,
+      opponentProfile: useCustomDeck ? 'custom' : opponentProfileId,
+      opponentProfileLabel: opponentLabel,
       opponentLevel: level,
       locale: lang,
       squadContext: {
         deckElements: operationDeck?.elementCardIds?.length ?? 0,
+        opponentDeckElements: awayDeck.elementCards?.length ?? 0,
+        opponentTechniquesConfigured: Object.keys(awayDeck.techniquesByNinjaId || {}).length,
         avgMoral: summarizeSquadMoral(ninjas),
       },
     }),

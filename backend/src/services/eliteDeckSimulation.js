@@ -1,5 +1,5 @@
 import { defaultTechniquesForFighter } from './combat/pli/deckBuilder.js';
-import { DECK_ELEMENTS_COUNT } from './combat/pli/constants.js';
+import { DECK_ELEMENTS_COUNT, DOMAINS, DOMAIN_LABELS } from './combat/pli/constants.js';
 import { applyFormeToStats } from './combat/forme.js';
 
 export const OPPONENT_DECK_PROFILE_IDS = ['complete', 'element_heavy', 'domain_ninjutsu', 'sparse'];
@@ -102,8 +102,38 @@ export function normalizeOpponentDeckProfile(profile) {
   return LEGACY_PROFILE_ALIASES[profile] || 'complete';
 }
 
+function orderedNinjas(ninjas) {
+  return [...ninjas]
+    .filter((n) => n.squad_position != null)
+    .sort((a, b) => a.squad_position - b.squad_position)
+    .slice(0, 3);
+}
+
 function fighterStats(ninja) {
   return applyFormeToStats(ninja);
+}
+
+export function getSimulatorDomainOptions(locale = 'fr') {
+  const lang = locale === 'en' ? 'en' : 'fr';
+  return DOMAINS.map((value) => ({
+    value,
+    label: DOMAIN_LABELS[value] || value,
+    labelKey: `squad.deck.domains.${value}`,
+  }));
+}
+
+export function getSimulatorElementOptions(locale = 'fr') {
+  const lang = locale === 'en' ? 'en' : 'fr';
+  return Object.entries(ELEMENT_STUBS).map(([slug, stub]) => ({
+    slug,
+    label: lang === 'en' ? stub.name_en : stub.name_fr,
+    statType: stub.stat_type,
+    elementAffinity: stub.element_affinity,
+  }));
+}
+
+function buildElementCards(slugs = []) {
+  return slugs.map((slug) => ELEMENT_STUBS[slug]).filter(Boolean);
 }
 
 function defaultTechniquesForNinjas(ninjas) {
@@ -114,8 +144,72 @@ function defaultTechniquesForNinjas(ninjas) {
   return techniquesByNinjaId;
 }
 
-function buildElementCards(slugs = []) {
-  return slugs.map((slug) => ELEMENT_STUBS[slug]).filter(Boolean);
+function normalizeSlotConfig(raw) {
+  if (!raw || raw.configured === false) {
+    return { configured: false, primary: null, secondary: null };
+  }
+  const primary = DOMAINS.includes(raw.primary) ? raw.primary : 'taijutsu';
+  const secondary = DOMAINS.includes(raw.secondary) ? raw.secondary : 'ninjutsu';
+  return { configured: true, primary, secondary };
+}
+
+/**
+ * Construit un deck adverse personnalisé (simulateur Élite).
+ * slots[i].configured=false → relais de comblement pour ce ninja.
+ */
+export function buildCustomOpponentDeck(ninjas, { slots = [], elementSlugs = [] } = {}) {
+  const ordered = orderedNinjas(ninjas);
+  const techniquesByNinjaId = {};
+
+  for (let i = 0; i < ordered.length; i += 1) {
+    const slot = normalizeSlotConfig(slots[i]);
+    if (slot.configured) {
+      techniquesByNinjaId[ordered[i].id] = {
+        primary: slot.primary,
+        secondary: slot.secondary,
+      };
+    }
+  }
+
+  const safeSlugs = (elementSlugs || [])
+    .filter((slug) => ELEMENT_STUBS[slug])
+    .slice(0, DECK_ELEMENTS_COUNT);
+
+  return {
+    techniquesByNinjaId,
+    rawTechniquesByNinjaId: techniquesByNinjaId,
+    elementCards: buildElementCards(safeSlugs),
+  };
+}
+
+export function getPresetDeckConfig(ninjas, profileInput = 'complete') {
+  const profile = normalizeOpponentDeckProfile(profileInput);
+  const deck = buildSyntheticOpponentDeck(ninjas, profile);
+  const ordered = orderedNinjas(ninjas);
+  const slots = ordered.map((ninja) => {
+    const tech = deck.techniquesByNinjaId[ninja.id];
+    return tech
+      ? { configured: true, primary: tech.primary, secondary: tech.secondary }
+      : { configured: false, primary: 'taijutsu', secondary: 'ninjutsu' };
+  });
+  return {
+    slots,
+    elementSlugs: (deck.elementCards || []).map((card) => card.slug).filter(Boolean),
+  };
+}
+
+export function describeOpponentDeck(deck, locale = 'fr') {
+  const lang = locale === 'en' ? 'en' : 'fr';
+  const configured = Object.keys(deck?.techniquesByNinjaId || {}).length;
+  const elements = deck?.elementCards?.length ?? 0;
+  return lang === 'en'
+    ? `Custom deck · ${configured}/3 techniques · ${elements}/5 elements`
+    : `Deck personnalisé · ${configured}/3 techniques · ${elements}/5 éléments`;
+}
+
+export function isCustomOpponentDeckInput(input) {
+  if (!input || typeof input !== 'object') return false;
+  return Array.isArray(input.slots) || Array.isArray(input.elementSlugs);
 }
 
 /**
