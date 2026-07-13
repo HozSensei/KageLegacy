@@ -14,6 +14,7 @@ import {
   TACTIC_CARD_MAX_CHARGES,
   SHOP_OFFERS_PER_RESTOCK,
   pickShopSlugs,
+  computeRefinementCost,
 } from '../src/services/tacticCards/tacticCardCatalog.js';
 
 const PREFIX = `tactic_cards_${Date.now()}`;
@@ -57,9 +58,17 @@ async function cleanup(userId) {
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 
+function testRefinementCost() {
+  console.assert(computeRefinementCost(1000, 'common') === 500, 'common 50%');
+  console.assert(computeRefinementCost(1000, 'rare') === 750, 'rare 75%');
+  console.assert(computeRefinementCost(1000, 'legendary') === 1000, 'legendary 100%');
+  console.assert(computeRefinementCost(1, 'common') === 1, 'min cost 1');
+}
+
 async function main() {
   testBonusRoll();
   testShopRotation();
+  testRefinementCost();
 
   const defRows = await query('SELECT COUNT(*) AS c FROM tactic_card_definitions');
   if (!Number(defRows[0]?.c)) {

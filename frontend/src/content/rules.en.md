@@ -200,6 +200,7 @@ Each active ninja gets **up to 3 technique cards** (Squad → operation deck).
 | **Prerequisites** | Some cards require the bearer's element (e.g. Water Blade → Suiton). |
 | **Charges** | 5 charges; one spent when the card is **drawn** in a pli (near-guaranteed use each cycle). |
 | **Player market** | The **instance** transfers as-is: **same % bonus**, same charges — no re-roll on purchase. |
+| **Refinement hall** | Paid re-roll of the % bonus on an owned card (cost by rarity; shop heritage discount applies). |
 | **Shop** | 10 offers per restock period, personalized rotation; **fresh bonus roll** on purchase. |
 
 Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suiton bearer), **Chakra Scalpel** (offensive medicine).

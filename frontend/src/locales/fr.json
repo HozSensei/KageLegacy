@@ -262,6 +262,7 @@
     "training": "Entraînement",
     "league": "Ligue",
     "market": "Magasin",
+    "refinement": "Perfectionnement",
     "exchanges": "Échanges",
     "inventory": "Inventaire",
     "operation": "Opération",
@@ -803,9 +804,18 @@
     "title": "Atelier de perfectionnement",
     "subtitle": "Dojo des techniques",
     "lead": "Affinez le bonus % d'une carte technique déjà possédée (coût en Ryos). Le magasin et le butin tirent un nouveau bonus ; le marché entre joueurs conserve l'exemplaire.",
+    "loading": "Chargement de l'atelier…",
+    "balance": "Solde : {ryos} Ryos",
+    "heritageDiscount": "Réduction héritage magasin : −{pct} %",
+    "debtBlocked": "Gel administratif — perfectionnement suspendu tant que la dette n'est pas remboursée.",
+    "empty": "Aucune carte éligible — récupérez des cartes technique avec des charges restantes.",
+    "listedBlocked": "Retirez la carte du marché pour la perfectionner.",
+    "bonusRange": "Plage possible {range}",
+    "cost": "Coût : {price}",
     "action": "Perfectionner",
+    "refining": "Perfectionnement…",
     "bonusKept": "Bonus actuel : {bonus}",
-    "comingSoon": "Bientôt disponible"
+    "success": "Bonus mis à jour : {previous} → {next}"
   },
   "exchanges": {
     "kicker": "Marché entre joueurs",

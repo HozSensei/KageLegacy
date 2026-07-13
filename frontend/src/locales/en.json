@@ -262,6 +262,7 @@
     "training": "Training",
     "league": "League",
     "market": "Shop",
+    "refinement": "Refinement",
     "exchanges": "Exchanges",
     "inventory": "Inventory",
     "operation": "Operation",
@@ -803,9 +804,18 @@
     "title": "Technique refinement hall",
     "subtitle": "Jutsu refinement",
     "lead": "Reroll the % bonus on a technique card you already own (Ryos cost). Shop and loot grant a fresh roll; the player market keeps the instance bonus.",
+    "loading": "Loading refinement hall…",
+    "balance": "Balance: {ryos} Ryos",
+    "heritageDiscount": "Shop heritage discount: −{pct}%",
+    "debtBlocked": "Administrative freeze — refinement suspended until debt is repaid.",
+    "empty": "No eligible cards — acquire technique cards with charges remaining.",
+    "listedBlocked": "Remove the card from the market to refine it.",
+    "bonusRange": "Possible range {range}",
+    "cost": "Cost: {price}",
     "action": "Refine",
+    "refining": "Refining…",
     "bonusKept": "Current bonus: {bonus}",
-    "comingSoon": "Coming soon"
+    "success": "Bonus updated: {previous} → {next}"
   },
   "exchanges": {
     "kicker": "Player market",

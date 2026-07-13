@@ -493,6 +493,9 @@ async function unequip(ninjaId) {
           <RouterLink to="/squad" class="btn-primary text-xs" data-testid="inventory-open-squad-deck">
             {{ t('inventory.openSquadDeck') }}
           </RouterLink>
+          <RouterLink to="/refinement" class="btn-ghost text-xs" data-testid="inventory-open-refinement">
+            {{ t('nav.refinement') }}
+          </RouterLink>
         </div>
 
         <div class="mt-4 flex flex-wrap gap-2">

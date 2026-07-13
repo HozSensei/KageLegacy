@@ -40,6 +40,18 @@ export const SHOP_CARD_POOL = [
 
 export const SHOP_OFFERS_PER_RESTOCK = 10;
 
+/** Coût de perfectionnement = catalog_price × multiplicateur par rareté. */
+export const REFINEMENT_COST_MULTIPLIER_BY_RARITY = {
+  common: 0.5,
+  rare: 0.75,
+  legendary: 1,
+};
+
+export function computeRefinementCost(catalogPrice, rarity) {
+  const mult = REFINEMENT_COST_MULTIPLIER_BY_RARITY[rarity] ?? 0.5;
+  return Math.max(1, Math.floor(Number(catalogPrice) * mult));
+}
+
 export function pickShopSlugs(userId, restockPeriod) {
   const hash = createHash('sha256').update(`${userId}:${restockPeriod}`).digest();
   const indices = SHOP_CARD_POOL.map((_, i) => i);
