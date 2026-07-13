@@ -30,8 +30,8 @@ INSERT INTO tactic_card_definitions (
   'tai-mur-parade',
   'Mur de parade',
   'Parry Wall',
-  'Taijutsu défensif. Défaite au pli : −20 % des dégâts subis par le porteur.',
-  'Defensive taijutsu. Pli loss: bearer takes −20% damage.',
+  'Taijutsu du porteur. Si cette carte perd le pli : le porteur subit −20 % de dégâts (ce pli uniquement ; aucun effet en cas de victoire).',
+  'Bearer taijutsu. If this card loses the pli: bearer takes −20% damage (this pli only; no effect on win).',
   'common', 'defense', 'taijutsu', NULL, 0.0500, 0.2500, NULL,
   'pli_lose', JSON_OBJECT(), 'self', JSON_OBJECT(), 'damage_reduction_pct', JSON_OBJECT('pct', 0.20),
   380, 'tech_parry_wall'
