@@ -52,9 +52,9 @@ export const TRAINING_TYPES = {
   },
 };
 
-/** Calibré juil. 2026 — progression Chunin ~12–15 cycles avec préparation + global. */
-export const PREP_COEF = 0.7;
-export const GLOBAL_COEF = 0.35;
+/** Calibré juil. 2026 — progression Chunin ~10–12 cycles avec préparation + global. */
+export const PREP_COEF = 0.85;
+export const GLOBAL_COEF = 0.42;
 const PREP_RNG = [0.75, 1.25];
 const GLOBAL_RNG = [0.85, 1.15];
 const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.1, prodige: 1.25 };
