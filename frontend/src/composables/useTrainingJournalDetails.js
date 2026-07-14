@@ -48,27 +48,29 @@ export function useTrainingJournalDetails() {
     const applied = session.appliedGains || []
     const fractional = session.sessionGains || []
 
-    if (applied.length) {
-      for (const { stat, delta } of applied) {
-        lines.push({
-          text: t('notifications.trainingJournalGain', {
-            delta,
-            stat: statLabel(stat),
-          }),
-          kind: 'gain',
-        })
-      }
-    } else if (fractional.length) {
-      for (const { stat, amount } of fractional) {
-        lines.push({
-          text: t('notifications.trainingJournalGainReserve', {
-            amount: Number(amount).toFixed(2),
-            stat: statLabel(stat),
-          }),
-          kind: 'reserve',
-        })
-      }
-    } else {
+    for (const { stat, delta } of applied) {
+      lines.push({
+        text: t('notifications.trainingJournalGain', {
+          delta,
+          stat: statLabel(stat),
+        }),
+        kind: 'gain',
+      })
+    }
+
+    for (const { stat, amount } of fractional) {
+      const reserve = Number(amount)
+      if (!Number.isFinite(reserve) || reserve <= 0) continue
+      lines.push({
+        text: t('notifications.trainingJournalGainReserve', {
+          amount: reserve.toFixed(2),
+          stat: statLabel(stat),
+        }),
+        kind: 'reserve',
+      })
+    }
+
+    if (!lines.length) {
       lines.push({ text: t('notifications.trainingJournalNoGain'), kind: 'none' })
     }
 

@@ -71,15 +71,15 @@ function rollInfiltrationLoot(ninja) {
   }
   return {
     lootTier: 'rare',
-    items: [{ slug: 'fumigene-secours', quantity: 1 }],
-    narrative: 'smoke_bomb',
+    items: [{ slug: 'bandage-rapide', quantity: 1 }],
+    narrative: 'quick_bandage',
   };
 }
 
 function rollCycloneRareConsumable() {
   return rollPercent() <= 50
-    ? { slug: 'cachet-chakra', quantity: 1 }
-    : { slug: 'livre-strategie', quantity: 1 };
+    ? { slug: 'livre-strategie', quantity: 1 }
+    : { slug: 'pilule-recuperation', quantity: 1 };
 }
 
 function rollCycloneLoot() {

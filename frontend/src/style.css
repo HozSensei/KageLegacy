@@ -1248,6 +1248,22 @@ body::before {
   color: var(--color-accent-soft);
 }
 
+.ninja-panel-card__badge--cycle {
+  border-color: color-mix(in srgb, var(--color-water) 35%, transparent);
+  background: color-mix(in srgb, var(--color-water) 8%, transparent);
+  color: var(--color-water);
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ninja-panel-card__badge--buff {
+  border-color: color-mix(in srgb, var(--color-earth) 35%, transparent);
+  background: color-mix(in srgb, var(--color-earth) 8%, transparent);
+  color: var(--color-earth);
+}
+
 .ninja-panel-card__stats {
   display: flex;
   flex-direction: column;
