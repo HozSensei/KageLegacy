@@ -39,7 +39,7 @@ export async function computeSalaryTotalForUser(userId) {
       vitesse: ninja.vitesse,
       intelligence: ninja.intelligence,
     };
-    let salary = ninja.salary_cost || computeSalaryCost(ninja.grade, stats);
+    let salary = computeSalaryCost(ninja.grade, stats);
     const discount = getSalaryDiscountPercent(ninja, cycleByNinja[ninja.id] || []);
     if (discount > 0) {
       salary = Math.max(0, Math.floor(salary * (1 - discount / 100)));

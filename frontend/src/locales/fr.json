@@ -374,7 +374,7 @@
     "trainingLocked": "Plans d'entraînement gelés depuis H54 jusqu'à l'opération.",
     "trainingNone": "Aucun",
     "budgetTitle": "Budget du cycle (H72)",
-    "budgetHint": "Projection : salaires des actifs, puis entraînement opt-in.",
+    "budgetHint": "Projection : entraînement de préparation (actifs), puis entraînement global gratuit.",
     "budgetCurrent": "Solde actuel",
     "budgetSalaries": "Salaires (actifs)",
     "budgetInterest": "Intérêts sur dette (estim.)",
