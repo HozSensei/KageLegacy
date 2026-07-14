@@ -9,13 +9,14 @@ import {
   MATCH_WIN_RYOS,
 } from './matchEconomy.js';
 
-/** Objets consommables pouvant tomber en butin de combat / sceau. */
+/** Objets bureau/consommables pouvant tomber en butin de combat / mission. */
 export const LOOT_CONSUMABLE_POOL = [
   'pansement-terrain',
-  'fumigene-secours',
   'kit-materiel-medical',
-  'cachet-chakra',
   'livre-strategie',
+  'bandage-rapide',
+  'pilule-recuperation',
+  'parchemin-jutsu-interdit',
 ];
 
 /**

@@ -43,8 +43,8 @@ export const TRAINING_TYPES = {
   },
 }
 
-export const PREP_COEF = 0.4
-export const GLOBAL_COEF = 0.2
+export const PREP_COEF = 0.85
+export const GLOBAL_COEF = 0.42
 
 const PREP_RNG = [0.75, 1.25]
 const GLOBAL_RNG = [0.85, 1.15]

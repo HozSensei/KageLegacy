@@ -52,8 +52,9 @@ export const TRAINING_TYPES = {
   },
 };
 
-export const PREP_COEF = 0.4;
-export const GLOBAL_COEF = 0.2;
+/** Calibré juil. 2026 — progression Chunin ~10–12 cycles avec préparation + global. */
+export const PREP_COEF = 0.85;
+export const GLOBAL_COEF = 0.42;
 const PREP_RNG = [0.75, 1.25];
 const GLOBAL_RNG = [0.85, 1.15];
 const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.1, prodige: 1.25 };
@@ -68,9 +69,9 @@ export function computeTrainingCost(ninja) {
     ninja.medecine +
     ninja.vitesse +
     ninja.intelligence;
-  const bases = { Genin: 150, Chunin: 400, Jonin: 700 };
-  const multipliers = { Genin: 5, Chunin: 8, Jonin: 12 };
-  return (bases[ninja.grade] || 150) + sum * (multipliers[ninja.grade] || 5);
+  const bases = { Genin: 220, Chunin: 550, Jonin: 950 };
+  const multipliers = { Genin: 7, Chunin: 11, Jonin: 16 };
+  return (bases[ninja.grade] || 220) + sum * (multipliers[ninja.grade] || 7);
 }
 
 function ageCoefficient(age) {

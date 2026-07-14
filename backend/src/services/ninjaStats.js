@@ -1,8 +1,6 @@
-export function computeSalaryCost(grade, stats) {
-  const sum = stats.taijutsu + stats.ninjutsu + stats.genjutsu + stats.medecine + stats.vitesse + stats.intelligence;
-  const bases = { Genin: 200, Chunin: 500, Jonin: 800 };
-  const multipliers = { Genin: 10, Chunin: 15, Jonin: 20 };
-  return (bases[grade] || 200) + sum * (multipliers[grade] || 10);
+/** Salaires retirés (juil. 2026) — l'économie repose sur l'entraînement et les achats. */
+export function computeSalaryCost(_grade, _stats) {
+  return 0;
 }
 
 export function computeMatchPv(taijutsu, equipmentBonus = 0) {

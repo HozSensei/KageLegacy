@@ -22,18 +22,25 @@ const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse',
 
 function rollRoutineLoot() {
   const roll = rollPercent();
-  if (roll <= 10) {
+  if (roll <= 20) {
     return {
       lootTier: 'bonus',
       items: [{ slug: 'pansement-terrain', quantity: 1 }],
       narrative: 'pansement',
     };
   }
-  if (roll <= 14) {
+  if (roll <= 32) {
     return {
       lootTier: 'common',
       tacticCard: { rarity: 'common' },
       narrative: 'tactic_card',
+    };
+  }
+  if (roll <= 45) {
+    return {
+      lootTier: 'common',
+      items: [{ slug: 'kit-materiel-medical', quantity: 1 }],
+      narrative: 'medical_kit',
     };
   }
   return { lootTier: 'none', items: [], narrative: 'empty' };
@@ -47,15 +54,15 @@ function rollInfiltrationLoot(ninja) {
   const teamBonus = stats.intelligence + stats.vitesse >= 18 ? 5 : 0;
   const roll = rollPercent() - teamBonus;
 
-  if (roll <= 60) return { lootTier: 'none', items: [], narrative: 'empty_chests' };
-  if (roll <= 90) {
+  if (roll <= 40) return { lootTier: 'none', items: [], narrative: 'empty_chests' };
+  if (roll <= 80) {
     return {
       lootTier: 'common',
       items: [{ slug: 'kit-materiel-medical', quantity: 1 }],
       narrative: 'medical_kit',
     };
   }
-  if (roll <= 95) {
+  if (roll <= 92) {
     return {
       lootTier: 'rare',
       tacticCard: { rarity: 'common' },
@@ -64,35 +71,35 @@ function rollInfiltrationLoot(ninja) {
   }
   return {
     lootTier: 'rare',
-    items: [{ slug: 'fumigene-secours', quantity: 1 }],
-    narrative: 'smoke_bomb',
+    items: [{ slug: 'bandage-rapide', quantity: 1 }],
+    narrative: 'quick_bandage',
   };
 }
 
 function rollCycloneRareConsumable() {
   return rollPercent() <= 50
-    ? { slug: 'cachet-chakra', quantity: 1 }
-    : { slug: 'livre-strategie', quantity: 1 };
+    ? { slug: 'livre-strategie', quantity: 1 }
+    : { slug: 'pilule-recuperation', quantity: 1 };
 }
 
 function rollCycloneLoot() {
   const roll = rollPercent();
-  if (roll <= 50) return { lootTier: 'none', items: [], narrative: 'search_failed' };
-  if (roll <= 85) {
+  if (roll <= 30) return { lootTier: 'none', items: [], narrative: 'search_failed' };
+  if (roll <= 75) {
     return {
       lootTier: 'common',
       items: [{ slug: 'kit-materiel-medical', quantity: 2 }],
       narrative: 'double_medical',
     };
   }
-  if (roll <= 92) {
+  if (roll <= 87) {
     return {
       lootTier: 'rare',
       tacticCard: { rarity: 'rare' },
       narrative: 'tactic_card_rare',
     };
   }
-  if (roll <= 97) {
+  if (roll <= 95) {
     return {
       lootTier: 'rare',
       items: [rollCycloneRareConsumable()],

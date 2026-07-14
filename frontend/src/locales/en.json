@@ -108,6 +108,7 @@
     "moral": "Morale",
     "chuninProgress": "Chunin progress",
     "joninProgress": "Jonin progress",
+    "strategyBookBuff": "Strategy book",
     "profile": {
       "voie": "Path",
       "potentiel": "Potential",
@@ -374,7 +375,7 @@
     "trainingLocked": "Training plans locked from H54 until the operation.",
     "trainingNone": "None",
     "budgetTitle": "Cycle budget (H72)",
-    "budgetHint": "Projection: active salaries, then opt-in training.",
+    "budgetHint": "Projection: paid preparation training (active squad), then free global training.",
     "budgetCurrent": "Current balance",
     "budgetSalaries": "Salaries (active)",
     "budgetInterest": "Debt interest (est.)",

@@ -21,7 +21,7 @@ const budget = computed(() => store.cycleBudget)
         <dt class="text-ink-muted">{{ t('bureau.budgetCurrent') }}</dt>
         <dd class="text-ink">{{ formatRyos(budget.ryos) }}</dd>
       </div>
-      <div class="flex justify-between gap-4">
+      <div v-if="budget.salariesTotal > 0" class="flex justify-between gap-4">
         <dt class="text-ink-muted">{{ t('bureau.budgetSalaries') }}</dt>
         <dd class="text-fire">−{{ formatRyos(budget.salariesTotal) }}</dd>
       </div>

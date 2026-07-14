@@ -3,8 +3,10 @@
  * Modèle en mémoire (pas de BDD) : sinks fixes + revenus probabilistes.
  */
 
-export const DEFAULT_SALARIES_PER_CYCLE = 1880;
-export const DEFAULT_TRAINING_PER_NINJA = 478;
+/** Salaires retirés — seul l'entraînement (préparation payante) draine la trésorerie. */
+export const DEFAULT_SALARIES_PER_CYCLE = 0;
+/** Genin typique (somme stats ~48) : 220 + 48×7 ≈ 556 Ryos/cycle. */
+export const DEFAULT_TRAINING_PER_NINJA = 556;
 export const DEFAULT_SHOP_ITEM_PRICE = 400;
 export const DEFAULT_START_RYOS = 15400;
 export const OVERDRAFT_FLOOR = -5000;

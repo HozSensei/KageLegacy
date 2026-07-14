@@ -15,9 +15,9 @@ const FORME_UPGRADE = {
 
 const ITEM_BY_RATING = {
   8: 'pansement-terrain',
-  9: 'herbes-soin',
+  9: 'kit-materiel-medical',
   10: 'livre-strategie',
-  11: 'cachet-chakra',
+  11: 'parchemin-jutsu-interdit',
 };
 
 export function computeChuninPromotionRewards(ninja) {

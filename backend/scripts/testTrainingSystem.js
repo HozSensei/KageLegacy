@@ -39,28 +39,28 @@ const prodige = { ...genin, potential: 'prodige', ninjutsu: 9, intelligence: 6 }
 console.log('=== testTrainingSystem ===');
 
 const prepRange = getTrainingGainRange(PREP_COEF, 'preparation', genin);
-approx(prepRange.avg, 0.4);
-approx(prepRange.min, 0.3);
-approx(prepRange.max, 0.5);
+approx(prepRange.avg, 0.85);
+approx(prepRange.min, 0.6375);
+approx(prepRange.max, 1.0625);
 
 const globalRange = getTrainingGainRange(GLOBAL_COEF, 'global', genin);
-approx(globalRange.avg, 0.2);
+approx(globalRange.avg, 0.42);
 
 assert(getPotentialMultiplier('prodige') === 1.25, 'prodige mult');
 assert(getPotentialMultiplier('prometteur') === 1.1, 'prometteur mult');
 
 const part = computeTrainingPart(PREP_COEF, 'preparation', genin, { rngMultiplier: 1 });
-approx(part, 0.4);
+approx(part, 0.85);
 
-const distribution = distributePart(0.4, 'Ninjutsu', genin, 'global', { rng: () => 0 });
+const distribution = distributePart(0.85, 'Ninjutsu', genin, 'global', { rng: () => 0 });
 assert(distribution.gains.length === 3, 'Ninjutsu type touche 3 stats');
 assert(
-  Math.abs(distribution.gains.reduce((sum, gain) => sum + gain.gain, 0) - 0.4) < 0.01,
+  Math.abs(distribution.gains.reduce((sum, gain) => sum + gain.gain, 0) - 0.85) < 0.01,
   'distribution conserve le pot'
 );
 
 const prodigePart = computeTrainingPart(PREP_COEF, 'preparation', prodige, { rngMultiplier: 1 });
-approx(prodigePart, 0.5);
+approx(prodigePart, 1.0625);
 
 const geninReady = {
   grade: 'Genin',
@@ -83,9 +83,9 @@ assert(TRAINING_TYPES.Equilibre.stats.length === 3, 'Equilibre group');
 
 const prepChakra = getTrainingGainRange(PREP_COEF, 'preparation', genin);
 const globalChakra = getTrainingGainRange(GLOBAL_COEF, 'global', genin);
-approx(prepChakra.avg + globalChakra.avg, 0.6);
+approx(prepChakra.avg + globalChakra.avg, 1.27);
 
-const prepOnly = distributePart(0.4, 'Chakra', genin, 'preparation', { rng: () => 0.5 });
+const prepOnly = distributePart(0.85, 'Chakra', genin, 'preparation', { rng: () => 0.5 });
 assert(prepOnly.gains.length === 3, 'Chakra touche 3 stats');
 
 console.log('testTrainingSystem: OK');
