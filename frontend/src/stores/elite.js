@@ -14,6 +14,7 @@ export const useEliteStore = defineStore('elite', () => {
   const equipped = ref(null)
   const tools = ref(null)
   const toolsLoading = ref(false)
+  const toolsError = ref(null)
   const matchReport = ref(null)
   const reportLoading = ref(false)
   const reportError = ref(null)
@@ -139,10 +140,14 @@ export const useEliteStore = defineStore('elite', () => {
   async function fetchTools() {
     if (!subscription.value?.isActive) return
     toolsLoading.value = true
+    toolsError.value = null
     try {
       const res = await fetch(`${API_BASE}/api/elite/tools`)
       if (!res.ok) throw new Error(await readApiError(res))
       tools.value = await res.json()
+    } catch (e) {
+      toolsError.value = e.message
+      tools.value = null
     } finally {
       toolsLoading.value = false
     }
@@ -202,6 +207,7 @@ export const useEliteStore = defineStore('elite', () => {
     simulateMatchup,
     tools,
     toolsLoading,
+    toolsError,
     matchReport,
     reportLoading,
     reportError,

@@ -19,12 +19,11 @@ const simulating = ref(false)
 const simError = ref(null)
 const prefillMessage = ref(null)
 
-const scoutPrefill = computed(() => tools.value?.scoutPrefill)
-
 const isActive = computed(() => Boolean(elite.subscription?.isActive))
 const tools = computed(() => elite.tools)
 const matchup = computed(() => elite.lastMatchup)
 const builder = computed(() => tools.value?.matchupBuilder)
+const scoutPrefill = computed(() => tools.value?.scoutPrefill)
 
 const verdictToneClass = computed(() => {
   const tone = matchup.value?.verdict?.tone
@@ -74,6 +73,9 @@ function toggleTechnique(ninjaIndex, slug) {
 
 onMounted(async () => {
   if (!elite.subscription) await elite.fetchElite()
+  if (elite.subscription?.isActive && !elite.tools && !elite.toolsLoading) {
+    await elite.fetchTools()
+  }
 })
 
 watch(
@@ -120,25 +122,33 @@ async function runMatchup() {
 
     <p v-if="elite.toolsLoading && !tools" class="mt-4 text-sm text-ink-muted">{{ t('common.loading') }}</p>
 
+    <div v-else-if="elite.toolsError" class="mt-4 border border-fire/40 px-4 py-3 text-sm" data-testid="elite-tools-error">
+      <p class="text-fire">{{ t('eliteTools.loadError') }}</p>
+      <p class="mt-1 text-xs text-ink-muted">{{ elite.toolsError }}</p>
+      <button type="button" class="btn-ghost mt-3 text-xs" @click="elite.fetchTools()">
+        {{ t('eliteTools.retry') }}
+      </button>
+    </div>
+
     <template v-else-if="tools">
       <section class="mt-8">
         <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('eliteTools.seasonTitle') }}</p>
         <dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
           <div>
             <dt class="text-ink-faint">{{ t('senseiProfile.wins') }}</dt>
-            <dd class="text-ink">{{ tools.seasonStats.wins }}</dd>
+            <dd class="text-ink">{{ tools.seasonStats?.wins ?? '—' }}</dd>
           </div>
           <div>
             <dt class="text-ink-faint">{{ t('senseiProfile.draws') }}</dt>
-            <dd class="text-ink">{{ tools.seasonStats.draws }}</dd>
+            <dd class="text-ink">{{ tools.seasonStats?.draws ?? '—' }}</dd>
           </div>
           <div>
             <dt class="text-ink-faint">{{ t('senseiProfile.losses') }}</dt>
-            <dd class="text-ink">{{ tools.seasonStats.losses }}</dd>
+            <dd class="text-ink">{{ tools.seasonStats?.losses ?? '—' }}</dd>
           </div>
           <div>
             <dt class="text-ink-faint">{{ t('eliteReport.plisWon') }}</dt>
-            <dd class="text-ink">{{ tools.seasonStats.avgPlisShare ?? '—' }}%</dd>
+            <dd class="text-ink">{{ tools.seasonStats?.avgPlisShare ?? '—' }}%</dd>
           </div>
         </dl>
       </section>
@@ -360,5 +370,9 @@ async function runMatchup() {
         </div>
       </section>
     </template>
+
+    <p v-else class="mt-4 text-sm text-ink-muted" data-testid="elite-tools-empty">
+      {{ t('eliteTools.empty') }}
+    </p>
   </div>
 </template>

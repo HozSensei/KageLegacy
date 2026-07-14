@@ -15,6 +15,7 @@ const isActive = computed(() => Boolean(elite.subscription?.isActive))
 
 onMounted(async () => {
   if (!elite.subscription) await elite.fetchElite()
+  if (elite.subscription?.isActive) await elite.fetchTools()
 })
 </script>
 

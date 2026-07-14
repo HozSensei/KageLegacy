@@ -170,15 +170,20 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
   const { pool } = await assertEliteToolsAccess(userId);
   const lang = locale === 'en' ? 'en' : 'fr';
 
-  const [{ ninjas }, operationDeck, heritageBonuses, heritageScrolls, seasonStats, scoutPrefill] =
+  const [{ ninjas }, operationDeck, heritageBonuses, heritageScrolls, seasonStats, scoutPrefillRaw] =
     await Promise.all([
       loadActiveSquad(userId),
       getOperationDeck(userId).catch(() => null),
       getHeritageBonuses(userId),
       listHeritageScrolls(userId),
       getSeasonMatchStats(userId, pool),
-      getScoutMatchupPrefill(userId, lang),
+      getScoutMatchupPrefill(userId, lang).catch(() => ({
+        available: false,
+        reason: 'error',
+      })),
     ]);
+
+  const scoutPrefill = scoutPrefillRaw;
 
   const ordersAdvice = buildOrdersAdvice({ deck: operationDeck }, lang);
   const trainingRoi = buildTrainingRoi(ninjas, heritageBonuses);
