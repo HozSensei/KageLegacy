@@ -1095,6 +1095,9 @@
     "pageLead": "Private analytics to refine your strategy — no in-match advantage.",
     "subscribersOnly": "This page is for Elite Pack subscribers only.",
     "goProfile": "View my profile and activate the Elite Pack",
+    "loadError": "Could not load Elite tools.",
+    "retry": "Retry",
+    "empty": "No data available right now.",
     "lead": "Private analytics to refine your strategy — no in-match advantage.",
     "seasonTitle": "Current season",
     "ordersTitle": "Your operation deck",
@@ -1120,7 +1123,8 @@
       "before_h54": "Deck intel on {opponent} unlocks at H54.",
       "deck_pending": "Opponent deck report still pending.",
       "no_match": "No league match this cycle.",
-      "no_pool": "No active league pool."
+      "no_pool": "No active league pool.",
+      "error": "Scout data could not be loaded."
     },
     "opponentProfile": "Opponent deck profile",
     "opponentStyle": "Opponent deck profile",

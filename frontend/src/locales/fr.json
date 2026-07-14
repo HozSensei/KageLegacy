@@ -1095,6 +1095,9 @@
     "pageLead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
     "subscribersOnly": "Cette page est réservée aux abonnés Pack Élite.",
     "goProfile": "Voir mon profil et activer le Pack Élite",
+    "loadError": "Impossible de charger les outils Élite.",
+    "retry": "Réessayer",
+    "empty": "Aucune donnée disponible pour le moment.",
     "lead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
     "seasonTitle": "Saison en cours",
     "ordersTitle": "Votre deck d'opération",
@@ -1120,7 +1123,8 @@
       "before_h54": "Intel deck de {opponent} disponible à H54.",
       "deck_pending": "Rapport deck adverse en cours de collecte.",
       "no_match": "Aucun match de ligue ce cycle.",
-      "no_pool": "Pas de ligue active."
+      "no_pool": "Pas de ligue active.",
+      "error": "Erreur lors du chargement du scout."
     },
     "opponentProfile": "Profil deck adverse",
     "opponentStyle": "Profil deck adverse",
