@@ -6,7 +6,10 @@ import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
 import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
 import { formatInstanceBonusPct } from '../utils/techniqueCardBonus.js'
 
+import { useSquadStore } from '../stores/squad'
+
 const { t, locale } = useI18n()
+const squadStore = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -19,6 +22,7 @@ const sellItemId = ref(null)
 const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
+const useMessage = ref(null)
 const deckActionMessage = ref(null)
 const itemCategoryFilter = ref('all')
 const itemStatusFilter = ref('all')
@@ -90,8 +94,43 @@ function applyInventory(payload) {
 }
 
 function isGlobalBureauItem(item) {
-  return item?.slug === 'carte-secteur'
+  return item?.slug === 'carte-secteur' || item?.slug === 'sceau-chakra'
 }
+
+const selectedItem = computed(
+  () => inventory.value?.items.find((item) => item.id === selectedItemId.value) ?? null
+)
+
+function bureauEligibilityFor(ninja, itemId = selectedItemId.value) {
+  if (!ninja?.bureauEligibility || itemId == null) return null
+  return ninja.bureauEligibility[itemId] ?? null
+}
+
+function globalBureauEligibility(itemId = selectedItemId.value) {
+  if (!inventory.value?.globalBureauEligibility || itemId == null) return null
+  return inventory.value.globalBureauEligibility[itemId] ?? null
+}
+
+function useBlockedMessage(eligibility) {
+  if (!eligibility?.reasonCode) return null
+  const key = `inventory.useBlocked.${eligibility.reasonCode}`
+  const translated = t(key)
+  return translated === key ? eligibility.reason : translated
+}
+
+function canUseOnNinja(ninja) {
+  const eligibility = bureauEligibilityFor(ninja)
+  return eligibility?.eligible === true
+}
+
+const canUseGlobalBureau = computed(() => globalBureauEligibility()?.eligible === true)
+
+const globalUseBlockedMessage = computed(() => useBlockedMessage(globalBureauEligibility()))
+
+const selectedItemEligibleNinjaCount = computed(() => {
+  if (!selectedItemId.value || !inventory.value?.ninjas) return 0
+  return inventory.value.ninjas.filter((ninja) => canUseOnNinja(ninja)).length
+})
 
 function isBureauItem(item) {
   return item?.category === 'bureau'
@@ -271,10 +310,31 @@ async function equip(ninjaId) {
   }
 }
 
+function formatUseResult(result) {
+  if (!result) return null
+  if (result.effect === 'dispensary_heal' || result.effect === 'forme_upgrade') {
+    return t('inventory.useFormeResult', {
+      from: t(`formes.${result.previousForme || result.from}`),
+      to: t(`formes.${result.newForme || result.to}`),
+    })
+  }
+  if (result.effect === 'pv_heal') {
+    return t('inventory.usePvHealResult', { amount: result.healed })
+  }
+  return t('inventory.useSuccess')
+}
+
 async function useOnNinja(ninjaId) {
   if (!selectedItemId.value) return
+  const ninja = inventory.value?.ninjas.find((row) => row.id === ninjaId)
+  const eligibility = bureauEligibilityFor(ninja)
+  if (!eligibility?.eligible) {
+    error.value = useBlockedMessage(eligibility) || t('inventory.useBlocked.unsupportedItem')
+    return
+  }
   saving.value = true
   error.value = null
+  useMessage.value = null
   try {
     const res = await fetch(`${API_BASE}/api/inventory/use`, {
       method: 'POST',
@@ -282,8 +342,11 @@ async function useOnNinja(ninjaId) {
       body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    applyInventory(await res.json())
+    const data = await res.json()
+    applyInventory(data)
+    useMessage.value = formatUseResult(data.result)
     selectedItemId.value = null
+    if (squadStore.sensei) await squadStore.fetchSquad()
   } catch (e) {
     error.value = e.message
   } finally {
@@ -293,8 +356,14 @@ async function useOnNinja(ninjaId) {
 
 async function useGlobalBureau() {
   if (!selectedItemId.value) return
+  const eligibility = globalBureauEligibility()
+  if (!eligibility?.eligible) {
+    error.value = useBlockedMessage(eligibility) || t('inventory.useBlocked.unsupportedItem')
+    return
+  }
   saving.value = true
   error.value = null
+  useMessage.value = null
   try {
     const res = await fetch(`${API_BASE}/api/inventory/use`, {
       method: 'POST',
@@ -339,11 +408,18 @@ async function unequip(ninjaId) {
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('inventory.loading') }}</p>
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
+    <p v-else-if="useMessage" class="mt-12 text-sm text-accent">{{ useMessage }}</p>
 
     <div v-else-if="inventory" class="mt-12 lg:grid lg:grid-cols-12 lg:gap-10" data-testid="inventory-content">
       <section class="lg:col-span-5">
         <p class="section-label">{{ t('inventory.items') }}</p>
         <p v-if="selectedItemId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinja') }}</p>
+        <p
+          v-if="selectedItem && isBureauItem(selectedItem) && !isGlobalBureauItem(selectedItem) && selectedItemEligibleNinjaCount === 0"
+          class="mt-2 text-xs text-fire"
+        >
+          {{ t('inventory.noEligibleNinja') }}
+        </p>
 
         <div class="mt-4 flex flex-wrap gap-2">
           <button
@@ -562,14 +638,17 @@ async function unequip(ninjaId) {
         </ul>
 
         <button
-          v-if="selectedItemId && isGlobalBureauItem(inventory.items.find((i) => i.id === selectedItemId))"
+          v-if="selectedItemId && isGlobalBureauItem(selectedItem)"
           type="button"
           class="btn-primary mt-6"
-          :disabled="saving"
+          :disabled="saving || !canUseGlobalBureau"
           @click="useGlobalBureau"
         >
           {{ t('inventory.use') }}
         </button>
+        <p v-if="selectedItemId && isGlobalBureauItem(selectedItem) && globalUseBlockedMessage" class="mt-2 text-xs text-fire">
+          {{ globalUseBlockedMessage }}
+        </p>
       </section>
 
       <section class="mt-10 border-t border-line pt-10 lg:col-span-7 lg:mt-0 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-10">
@@ -585,30 +664,41 @@ async function unequip(ninjaId) {
                 <NinjaListIdentity :ninja="ninja" />
                 <p class="mt-2 text-xs text-ink-faint">
                   {{ ninja.squad_position ? t('inventory.active') : t('inventory.bench') }}
+                  · {{ t(`formes.${ninja.weekly_forme || 'Passable'}`) }}
+                  <span v-if="Number(ninja.forme_lock_cycles) > 0" class="text-fire">
+                    — {{ t('inventory.medLock') }}
+                  </span>
                 </p>
               </div>
-              <button
-                v-if="selectedItemId && canEquipItem(inventory.items.find((i) => i.id === selectedItemId))"
-                type="button"
-                class="btn-ghost"
-                :disabled="saving"
-                @click="equip(ninja.id)"
-              >
-                {{ t('inventory.equip') }}
-              </button>
-              <button
-                v-else-if="
-                  selectedItemId &&
-                  isBureauItem(inventory.items.find((i) => i.id === selectedItemId)) &&
-                  !isGlobalBureauItem(inventory.items.find((i) => i.id === selectedItemId))
-                "
-                type="button"
-                class="btn-ghost"
-                :disabled="saving"
-                @click="useOnNinja(ninja.id)"
-              >
-                {{ t('inventory.use') }}
-              </button>
+              <div class="flex min-w-[8rem] flex-col items-end gap-1">
+                <button
+                  v-if="selectedItemId && canEquipItem(selectedItem)"
+                  type="button"
+                  class="btn-ghost"
+                  :disabled="saving"
+                  @click="equip(ninja.id)"
+                >
+                  {{ t('inventory.equip') }}
+                </button>
+                <template
+                  v-else-if="selectedItemId && isBureauItem(selectedItem) && !isGlobalBureauItem(selectedItem)"
+                >
+                  <button
+                    type="button"
+                    class="btn-ghost"
+                    :disabled="saving || !canUseOnNinja(ninja)"
+                    @click="useOnNinja(ninja.id)"
+                  >
+                    {{ t('inventory.use') }}
+                  </button>
+                  <p
+                    v-if="bureauEligibilityFor(ninja) && !bureauEligibilityFor(ninja).eligible"
+                    class="max-w-xs text-right text-[10px] leading-snug text-fire"
+                  >
+                    {{ useBlockedMessage(bureauEligibilityFor(ninja)) }}
+                  </p>
+                </template>
+              </div>
             </div>
             <dl class="mt-4 grid gap-2 text-xs text-ink-muted sm:grid-cols-2">
               <div>
