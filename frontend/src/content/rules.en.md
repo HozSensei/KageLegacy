@@ -2,17 +2,249 @@
 
 **Kage Legacy** is an asynchronous browser-based shinobi manager. You play a **Jonin-Sensei**: you manage a squad of young ninjas, your **Ryos** budget, and face other Sensei in **league pools** over **72-hour cycles** (real time).
 
+This guide is organized in **two parts**:
+
+1. **The interface** — what each screen does, grouped like the navigation menu.
+2. **Game systems** — detailed rules (cycle, progression, combat, economy…).
+
 *Last updated: July 2026*
 
 ---
 
-## 1. The 72-hour cycle
+# Part 1 — The interface
+
+The side menu groups screens into **five sections**: Command center, Squad & progression, Missions & league, Economy, and Account & tools. The progress bar at the top shows the current cycle hour (H0 → H72).
+
+## Command center
+
+### Office
+
+**Route:** `/bureau` — main **hub** of the game.
+
+Your daily dashboard. You will find:
+
+| Area | Role |
+|------|------|
+| **Treasury** | Ryos balance, reputation, match chakra, salary + training forecast at H72 |
+| **Active squad** | Overview of the 3 field ninjas and quick access to their profiles |
+| **Chakra Seal** | Free daily ritual (midnight UTC) — see § Academy and Chakra Seal |
+| **Chunin exam** | Register an eligible Genin before H72 |
+| **Bird Flight** | Register a Chunin ready to depart before H72 |
+| **Stagnation** | Warnings on eligible ninjas not registered for advancement |
+| **Academy** | Showcase of 3 Genin aspirants on rotation — paid recruitment |
+| **Dispensary** | Healing for ninjas in Lamentable form (hospital) |
+
+The Office concentrates **cycle management** actions: budget, recruitment, care, and career registrations. Check it at cycle start and before milestones H54 / H71.
+
+### Cycle journal
+
+**Route:** `/journal`
+
+Chronological activity feed for your cycle: training gains, mission results, economic closure, league messages, etc. Useful to trace what happened without reopening every screen.
+
+### Profile
+
+**Route:** `/profil`
+
+Public Sensei identity: name, heritage wall (scrolls left by Chunin who departed via Bird Flight), Elite Pack cosmetics. Other players can view your profile via `/sensei/:id`.
+
+---
+
+## Squad & progression
+
+### Squad
+
+**Route:** `/squad`
+
+Central screen for **tactical preparation**:
+
+| Feature | Detail |
+|---------|--------|
+| **Lineup** | 3 active ninjas + bench reserves; active ↔ bench swaps until H54 |
+| **Operation deck** | Per active: technique card + primary/secondary domains (6 cards per ninja) — see § Operation deck |
+| **Orders** | Normal, Offensive, Defensive, Protection — legacy UI, aligned with the deck |
+| **Operation dossier** | Cycle posture (Balanced, Offensive, Defensive, Protection) from H36 |
+| **Briefing** | Reminder of league opponent and next match |
+| **Player market** | List a bench ninja for sale or release them |
+
+A ninja is **unavailable** if on a mission, listed on the player market, or when the tactical window is closed (H71+).
+
+### Training
+
+**Route:** `/training`
+
+Configure training plans for the cycle:
+
+| Lever | Scope | Cost |
+|-------|-------|------|
+| **Preparation** | One type per active ninja (3 choices) | Billed in Ryos at H72 |
+| **Global training** | One type for the whole squad | Free |
+
+Six types available (Chakra, Physical, Medical, Genjutsu, Ninjutsu, Balanced). The screen shows **cost forecast** and expected gains. Training is **locked at H54** (lineup frozen). Mechanical details: see § Training.
+
+### Clan
+
+**Route:** `/clan`
+
+**Cooperative hub without combat bonuses** (up to 12 Sensei):
+
+- **Create or join** a clan.
+- **Academy display board**: recommend an aspirant from your showcase (once per cycle).
+- **Chakra well**: each daily seal feeds a collective threshold → bonus seal for all members.
+
+Details: see § Player clans.
+
+---
+
+## Missions & league
+
+### Missions
+
+**Route:** `/missions`
+
+Send **idle missions** (ranks D, C, B, A) to **bench ninjas only**:
+
+- One mission per rank per cycle (up to 4 simultaneous).
+- Success odds shown based on the ninja's overall rating.
+- Automatic resolution at **H72**; rewards must be **collected manually**.
+
+A **reconnaissance** panel is also accessible from this screen. Details: see § Idle missions.
+
+### Reconnaissance
+
+**Route:** `/reconnaissance`
+
+Sparring combat to **test your lineup** between **H0 and H36**:
+
+| Mode | How it works |
+|------|----------------|
+| **Matchmaking** | Nearby-division human opponent, otherwise a league bot |
+| **Direct challenge** | Challenge a pool member or a nearby-division player (acceptance required) |
+
+One mission per cycle. The outcome gates **scouting quality** (H36 / H54). Details: see § Reconnaissance.
+
+### Scouting
+
+**Route:** `/espionnage`
+
+Intel report on your **league opponent** for the cycle:
+
+| Milestone | Content |
+|-----------|---------|
+| **H36** | Tendencies from recent matches (requires reconnaissance this cycle) |
+| **H54** | Full frozen report on the enemy trio (partial or full depending on reconnaissance) |
+
+Compare tendencies (H36) and spotted unit (H54) to detect atypical formations. Details: see § The 72-hour cycle.
+
+### League
+
+**Route:** `/league`
+
+Competitive view of your **pool** (6 Sensei):
+
+- Standings, schedule for the 10-cycle season.
+- Points (win 3, draw 1, loss 0) and promotion / relegation at season end.
+- **Invitation link** to your pool.
+- Quick access to scouting and reconnaissance challenges.
+
+Structure details: see § League.
+
+### Operation
+
+**Route:** `/operation`
+
+League match for the cycle (**H71 → H72**):
+
+- **Narrative chronicle** revealed progressively (same pace for both opponents).
+- **Mechanical debrief**: plis won, HP scores, environment.
+- **Spectator** mode for other pools' matches.
+
+Combat details: see § Border operation.
+
+---
+
+## Economy
+
+### Shop
+
+**Route:** `/market`
+
+**Village shop** — purchases with your Ryos:
+
+- Utility items (office, match, cycle) by category.
+- **Tactic card offers**: 10 random draws per restock, fresh bonus % on purchase.
+- Random promotions each cycle; personal catalogue restocked periodically.
+
+Closed when in **debt** or during **H71+** lock. Details: see § Economy.
+
+### Refinement
+
+**Route:** `/refinement`
+
+**Refinement hall** — paid re-roll of a owned tactic card's **% bonus**:
+
+- Cost by card rarity; possible discount via shop heritage.
+- Blocked if treasury is negative or card is listed on the player market.
+- Also accessible from **Inventory**.
+
+Card details: see § Ninja technique cards.
+
+### Exchanges
+
+**Route:** `/exchanges`
+
+**Player market** (P2P):
+
+- Sell bench ninjas or unequipped items / cards.
+- Limited number of active listings; commission on sale.
+- **Global** market (all human Sensei on the server).
+
+Closed from **H71** and when in debt.
+
+### Inventory
+
+**Route:** `/inventory`
+
+Manage your **stock**:
+
+| Category | Use |
+|----------|-----|
+| **Technique cards** | Assignment per active ninja for the operation deck |
+| **Office consumables** | Immediate use on a ninja |
+| **Cycle equipment** | 1 per ninja for the whole cycle |
+| **Match items** | 1 slot per ninja; effect in operation if conditions are met |
+
+Actions: equip, use, list on player market, open refinement.
+
+---
+
+## Account & tools
+
+### Notifications
+
+**Bell** icon in the header: mission completion, exam results, cycle closure, operation start, scout report, clan well, etc. Each notification links to the relevant screen.
+
+### Elite tools
+
+**Route:** `/elite/outils` — reserved for **Elite Pack** subscribers.
+
+Deck simulator, scout prefill, training ROI calculator — **no direct competitive advantage** in match.
+
+### Game rules
+
+**Route:** `/rules` — this document, also accessible from the profile menu (theme, language, logout).
+
+---
+
+# Part 2 — Game systems
+
+## The 72-hour cycle
 
 Each cycle is a synchronized "game week" for all players on the server.
 
 | Phase | Period | Main activities |
 |-------|--------|-----------------|
-| **Preparation** | H0 → H35 | Squad, tactics, training, missions, shop, Academy, **reconnaissance mission (H0–H36)** |
+| **Preparation** | H0 → H35 | Squad, deck, training, missions, shop, Academy, reconnaissance (H0–H36) |
 | **Mid-cycle** | H36 → H70 | Opponent tendencies, scouting, ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
 | **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
@@ -21,33 +253,33 @@ Each cycle is a synchronized "game week" for all players on the server.
 
 | Milestone | Effect |
 |-----------|--------|
-| **H54** | **Lineup locked** (active trio) ; training locked ; **full scout report** on spotted enemy unit |
-| **H54 → H70** | Orders, tactic cards and items still editable |
+| **H54** | **Lineup locked** (active trio); training locked; H36 tendencies already available; **full scout report** on spotted enemy unit |
+| **H54 → H70** | Deck, orders, tactic cards and items still editable |
 | **H71** | Full lock until next cycle |
 
-### Scouting
+### Scouting (milestones)
 
 | Milestone | Content |
 |-----------|---------|
-| **H36** | **Tendencies** from the opponent's recent league matches (match count shown; unreliable on 1st or 2nd match) — requires a successful **reconnaissance** this cycle |
+| **H36** | **Tendencies** from the opponent's recent league matches — requires a successful **reconnaissance** this cycle |
 | **H54** | **Full report** frozen on enemy lineup (partial/full quality depending on your reconnaissance) |
 | **H54 → H71** | Report no longer changes; compare tendencies vs spotted unit to detect atypical formations |
-| **H71** | Enemy **operation deck** frozen |
 
 The **reconnaissance** mission (H0–H36) gates access and quality of intel — it is not a fight against your league opponent, but a field mission to gather intelligence.
 
+Chunin exams, healing, and missions should be **settled before H54** to avoid a hole in the frozen lineup.
+
 ### Automatic milestones
 
-- **H0 → H36**: reconnaissance mission (one sparring fight per cycle, see § League).
-- **H36**: **opponent tendencies** (if reconnaissance completed).
-- **H72**: Chunin exam verdicts, Bird Flight, cycle closure.
-- **H54**: lineup freeze + **frozen full scout report**.
-- **H71**: league match simulation ; final orders lock ; narrative chronicle begins.
-- **H72**: economic closure and start of the next cycle.
+- **H0 → H36**: reconnaissance window.
+- **H36**: opponent tendencies (if reconnaissance completed); resolution of ongoing reconnaissance missions.
+- **H54**: lineup freeze + frozen full scout report.
+- **H71**: league match simulation; final lock; narrative chronicle begins.
+- **H72**: Chunin exam verdicts, Bird Flight, economic closure, new cycle.
 
 ---
 
-## 2. The Sensei (your account)
+## The Sensei (your account)
 
 ### Resources
 
@@ -61,7 +293,7 @@ Your **Sensei name** and visual identity (Elite Pack) define your league presenc
 
 ### Debt and administrative freeze
 
-If your Ryos balance becomes **negative** (unpaid salaries, overspending), an **administrative freeze** blocks new spending: shop, player market, Chunin exam, hospital, etc. Restore your treasury to resume purchases.
+If your Ryos balance becomes **negative** (unpaid salaries, overspending), an **administrative freeze** blocks new spending: shop, player market, Chunin exam, hospital, refinement, etc. Restore your treasury to resume purchases.
 
 A small overdraft may be allowed; persistent debt incurs **interest** at cycle closure, increasing economic pressure without immediate game over.
 
@@ -71,7 +303,7 @@ A **guest account** lets you try the game for a limited time, then convert to a 
 
 ---
 
-## 3. Ninjas
+## Ninjas
 
 ### Grades
 
@@ -130,17 +362,16 @@ Each clan influences **path** (main art) and some stat bonuses at generation.
 
 ### Morale
 
-Morale (internal scale) affects squad stability. It drops notably on Chunin exam failure, unpaid salaries, **stagnation** (see §5), or buying a ninja on the player market.
+Morale (internal scale) affects squad stability. It drops notably on Chunin exam failure, unpaid salaries, **stagnation** (see § Grade progression), or buying a ninja on the player market.
 
 ---
 
-## 4. The squad
+## Squad and operation deck
 
 ### Composition
 
 - **3 active ninjas** (field positions) + a **bench** of reserves.
 - Composition can be changed until **H54** (active trio locked).
-- A ninja is **unavailable** if on a mission, listed on the P2P market, or when the tactical window is closed.
 
 ### Operation deck (pli combat)
 
@@ -149,13 +380,11 @@ Each match plays out in **18 pli**: a shuffled deck of **6 cards per active ninj
 - **Max HP** = ninja overall grade × 10 (average of 6 stats).
 - Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
 - **Victory**: more team HP at match end; tie → most plis won.
-- **Match items** removed from combat; only **tactic cards** serve as deck elements (no per-ninja match gear).
-- **Carry-over**: each new league matchday, your deck is **copied** from the previous one (techniques for active ninjas; elements only if the card still has charges).
+- **Match items** removed from combat; only **tactic cards** serve as deck elements.
+- **Carry-over**: each new league matchday, your deck is **copied** from the previous one (techniques for active ninjas; charges preserved).
 - **Orders** remain editable in the UI but no longer drive the combat engine (replaced by the deck).
 
 ### Individual orders (legacy UI)
-
-Each active ninja receives **one combat order**. This is the main in-match lever: it changes targeting, healing, and attack priority.
 
 | Order | Role in match | When to use |
 |-------|---------------|-------------|
@@ -164,7 +393,7 @@ Each active ninja receives **one combat order**. This is the main in-match lever
 | **Defensive** | High chance of **being targeted** when the enemy attacks — acts as a shield. | Absorb pressure to protect a fragile ally; parry or damage-reduction cards. |
 | **Protection** | Can **heal a designated ally** when critically wounded. | Support, medic, holding the line; healing cards. |
 
-> **Terminology:** in the UI and this guide, **Defensive** replaces the old “Tank” label (provocation) and **Protection** replaces “Protect” (ally support). Server values are unchanged.
+> **Terminology:** in the UI and this guide, **Defensive** replaces the old "Tank" label (provocation) and **Protection** replaces "Protect" (ally support). Server values are unchanged.
 
 ### How to compose your squad
 
@@ -188,7 +417,9 @@ From **H36**, **scouting** reveals hints about the opponent (arts, spotted order
 
 **Important:** posture grants **no hidden combat bonus**. It records your **cycle plan** and shapes **dossier advice** (cross-checked with scouting). For the plan to matter, align **posture + orders + tactic cards** on each ninja.
 
-### Ninja technique cards
+---
+
+## Ninja technique cards
 
 Each active ninja contributes **6 cards** to the operation deck: **1 inventory technique card** + **2 copies** of the primary stat + **3 copies** of the secondary stat.
 
@@ -201,7 +432,7 @@ Each active ninja contributes **6 cards** to the operation deck: **1 inventory t
 | **Charges** | 5 charges; one spent when the card is **drawn** in a pli (near-guaranteed use each cycle). |
 | **Player market** | The **instance** transfers as-is: **same % bonus**, same charges — no re-roll on purchase. |
 | **Refinement hall** | Paid re-roll of the % bonus on an owned card (cost by rarity; shop heritage discount applies). |
-| **Shop** | **10 random offers** from the catalog each restock (repeats allowed across periods); **fresh bonus roll** on purchase. |
+| **Shop** | **10 random offers** from the catalog each restock (repeats allowed); **fresh bonus roll** on purchase. |
 | **Effects** | Some cards have a **pli effect** (bonus damage, reduction, heal, opponent debuff next pli) — described on the card. |
 | **Elements** | 16 cards require the bearer's element — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (balanced spread). |
 
@@ -209,7 +440,7 @@ Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suito
 
 ---
 
-## 5. Grade progression
+## Grade progression
 
 ### Start
 
@@ -237,11 +468,11 @@ You begin with **6 ninjas**: one active Chunin in the center, five Genin (two ac
 
 ### Stagnation
 
-At H72, a ninja **eligible** for grade advancement (exam or Bird Flight) but **not registered** is penalized after **one grace cycle**: first an warning with no malus, then form drops one tier and morale falls.
+At H72, a ninja **eligible** for grade advancement (exam or Bird Flight) but **not registered** is penalized after **one grace cycle**: first a warning with no malus, then form drops one tier and morale falls.
 
 ---
 
-## 6. Training
+## Training
 
 Two complementary levers:
 
@@ -269,7 +500,7 @@ A starter can stack **preparation + global** (e.g. both Chakra) to reach Chunin 
 
 ---
 
-## 7. Missions (ranks D → A)
+## Idle missions
 
 Missions are for **bench** ninjas only (not the active squad).
 
@@ -309,7 +540,22 @@ Detailed spec: [`specs/mission-rank-system.md`](../../../specs/mission-rank-syst
 
 ---
 
-## 8. Economy
+## Reconnaissance
+
+Sparring combat to **test your squad** during the preparation phase, before the operation tactical lock. **One mission per cycle** per Sensei.
+
+| Mode | How it works |
+|------|----------------|
+| **Matchmaking** | Human opponent of similar division and power; otherwise a **league bot**. |
+| **Direct challenge** | From the League screen: challenge a pool member or a nearby-division player from another league. Defender must **accept**. |
+
+**Consequences**: real combat engine (gear, tactic cards, environment); K.O.s can **lower form** like league matches. **Loot**: Ryos + random consumable + tactic card chance (even on a loss). Does **not** affect league standings.
+
+**Resolution**: at **H36**. The outcome determines scouting quality (H36 tendencies, H54 report).
+
+---
+
+## Economy
 
 ### Main income
 
@@ -318,6 +564,7 @@ Detailed spec: [`specs/mission-rank-system.md`](../../../specs/mission-rank-syst
 | **League** | Payout by win, draw, or loss |
 | **Missions** | Idle missions by rank (D–A) |
 | **Bird Flight** | Departing Chunin payout |
+| **Reconnaissance** | Combat loot (Ryos, items, cards) |
 
 ### Main expenses
 
@@ -329,6 +576,7 @@ Detailed spec: [`specs/mission-rank-system.md`](../../../specs/mission-rank-syst
 | **Hospital** | On demand |
 | **Academy** | On aspirant purchase |
 | **Village shop** | During the cycle |
+| **Refinement** | On demand (card bonus re-roll) |
 | **Player market** | On purchase (seller commission) |
 
 Salaries rise with a ninja's **overall level**: an experienced squad is expensive to maintain.
@@ -357,7 +605,7 @@ Salaries rise with a ninja's **overall level**: an experienced squad is expensiv
 
 ---
 
-## 9. Academy and Chakra Seal
+## Academy and Chakra Seal
 
 ### Academy (recruitment)
 
@@ -375,7 +623,7 @@ Salaries rise with a ninja's **overall level**: an experienced squad is expensiv
 
 ---
 
-## 10. Hospital
+## Hospital
 
 - Heals ninjas in **Lamentable** form (except extended convalescence after serious mission injury).
 - Ryos cost by ninja **grade**.
@@ -384,7 +632,7 @@ Salaries rise with a ninja's **overall level**: an experienced squad is expensiv
 
 ---
 
-## 11. Player clans (cooperation)
+## Player clans (cooperation)
 
 Hub **without combat bonuses** — up to **12 Sensei** per clan.
 
@@ -401,7 +649,7 @@ Hub **without combat bonuses** — up to **12 Sensei** per clan.
 
 ---
 
-## 12. League
+## League
 
 ### Structure
 
@@ -431,33 +679,13 @@ Tie-breakers: wins, then matches played.
 - **6th**: relegation.
 - New pool and new schedule.
 
-### Scouting (from H36)
-
-Intel unfolds in **two stages**:
-
-1. **H36 — Tendencies**: habits from recent league matches (sample size shown ; unreliable on 1st or 2nd match).
-2. **H54 — Spotted unit**: frozen report on the enemy trio (partial or full depending on your reconnaissance).
-
-Between H36 and H54, adjust your lineup from tendencies. After H54, only orders, cards and items remain editable.
-
-### Reconnaissance mission (H0 → H36)
-
-Sparring combat to **test your squad** during the preparation phase, before the operation tactical lock. **One mission per cycle** per Sensei.
-
-| Mode | How it works |
-|------|----------------|
-| **Matchmaking** | Human opponent of similar division and power; otherwise a **league bot**. |
-| **Direct challenge** | From the League screen: challenge a pool member or a nearby-division player from another league. Defender must **accept**. |
-
-**Consequences**: real combat engine (gear, tactic cards, environment); K.O.s can **lower form** like league matches. **Loot**: Ryos + random consumable + tactic card chance (even on a loss). Does **not** affect league standings.
-
 ### Invitation
 
 A Sensei can generate an **invitation link** to their pool to recruit allies in their league.
 
 ---
 
-## 13. Border operation (league match)
+## Border operation (league match)
 
 ### What you see
 
@@ -499,32 +727,10 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 
 ---
 
-## 14. Game screens
-
-| Screen | Role |
-|--------|------|
-| **Office** | Hub: budget, exams, Bird Flight, hospital, Academy, Chakra Seal |
-| **Squad** | Composition, orders, operation dossier (postures), active/bench swaps |
-| **Training** | Group types, prep + global, cost forecast |
-| **Missions** | Idle contracts |
-| **League** | Standings, schedule, scouting, reconnaissance mission |
-| **Shop** | Village item purchases |
-| **Exchanges** | Player market |
-| **Inventory** | Items and match/cycle equipment |
-| **Clan** | Academy board, Chakra well |
-| **Operation** | Match chronicle and debrief |
-
----
-
-## 15. Notifications
-
-A bell in the interface signals important events: mission completion, exam results, cycle closure, league messages, etc.
-
----
-
 ## Update history
 
 | Date | Change |
 |------|--------|
 | 2026-07-09 | Initial document (player rules, no exact formulas) |
 | 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
+| 2026-07-15 | Restructured into two parts: interface by menus, then game systems |

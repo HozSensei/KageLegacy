@@ -2,17 +2,249 @@
 
 **Kage Legacy** est un manager shinobi asynchrone par navigateur. Vous incarnez un **Jonin-Sensei** : vous gérez une escouade de jeunes ninjas, votre budget en **Ryos**, et vous affrontez d'autres Sensei dans une **ligue par pools** sur des **cycles de 72 heures** (temps réel).
 
+Ce guide est organisé en **deux parties** :
+
+1. **L'interface** — ce que fait chaque écran, regroupé comme dans le menu de navigation.
+2. **Les systèmes de jeu** — les règles détaillées (cycle, progression, combat, économie…).
+
 *Dernière mise à jour : juillet 2026*
 
 ---
 
-## 1. Le cycle de 72 heures
+# Partie 1 — L'interface
+
+Le menu latéral regroupe les écrans en **cinq sections** : Centre de commande, Escouade & progression, Missions & ligue, Économie, et Compte & outils. La barre de progression en haut de l'écran indique l'heure du cycle en cours (H0 → H72).
+
+## Centre de commande
+
+### Bureau
+
+**Route :** `/bureau` — **Hub principal** du jeu.
+
+C'est votre tableau de bord quotidien. Vous y trouvez :
+
+| Zone | Rôle |
+|------|------|
+| **Trésorerie** | Solde de Ryos, réputation, chakra de match, prévision salaires + entraînement à H72 |
+| **Escouade active** | Aperçu des 3 ninjas de terrain et accès rapide à leur fiche |
+| **Sceau de Chakra** | Rituel quotidien gratuit (minuit UTC) — voir § Académie et Sceau de Chakra |
+| **Examen Chunin** | Inscrire un Genin éligible avant H72 |
+| **Vol d'Oiseau** | Inscrire un Chunin prêt au départ avant H72 |
+| **Stagnation** | Avertissements sur les ninjas éligibles à une montée non inscrits |
+| **Académie** | Vitrine des 3 aspirants Genin en rotation — recrutement payant |
+| **Dispensaire** | Soins des ninjas en forme Lamentable (hôpital) |
+
+Le Bureau concentre les actions de **gestion du cycle** : budget, recrutement, soins et inscriptions de carrière. Consultez-le en début de cycle et avant les jalons H54 / H71.
+
+### Journal du cycle
+
+**Route :** `/journal`
+
+Fil d'activité chronologique de votre cycle : gains d'entraînement, résultats de missions, clôture économique, messages de ligue, etc. Utile pour retracer ce qui s'est passé sans rouvrir chaque écran.
+
+### Profil
+
+**Route :** `/profil`
+
+Identité publique du Sensei : nom, mur d'héritage (parchemins laissés par les Chunin partis en Vol d'Oiseau), cosmétiques Pack Élite. Les autres joueurs peuvent consulter votre profil via `/sensei/:id`.
+
+---
+
+## Escouade & progression
+
+### Escouade
+
+**Route :** `/squad`
+
+Écran central de la **préparation tactique** :
+
+| Fonction | Détail |
+|----------|--------|
+| **Composition** | 3 ninjas actifs + banc de remplaçants ; échanges actif ↔ banc jusqu'à H54 |
+| **Deck d'opération** | Pour chaque actif : carte technique + domaines primaire/secondaire (6 cartes par ninja) — voir § Deck d'opération |
+| **Consignes** | Normal, Offensive, Défensive, Protection — héritage d'interface, alignées avec le deck |
+| **Dossier d'opération** | Posture de cycle (Équilibrée, Offensive, Défensive, Protection) à partir de H36 |
+| **Briefing** | Rappel de l'adversaire de ligue et du prochain match |
+| **Marché P2P** | Mettre un ninja du banc en vente ou le libérer |
+
+Un ninja est **indisponible** s'il est en mission, listé sur le marché entre joueurs, ou si la fenêtre tactique est fermée (H71+).
+
+### Entraînement
+
+**Route :** `/training`
+
+Configurez les plans d'entraînement du cycle :
+
+| Levier | Portée | Coût |
+|--------|--------|------|
+| **Préparation** | Un type par ninja actif (3 choix) | Payant en Ryos à H72 |
+| **Entraînement global** | Un type pour toute l'escouade | Gratuit |
+
+Six types disponibles (Chakra, Physique, Médical, Genjutsu, Ninjutsu, Équilibre). L'écran affiche la **prévision de coût** et les gains attendus. L'entraînement est **gelé à H54** (composition figée). Détails mécaniques : voir § Entraînement.
+
+### Clan
+
+**Route :** `/clan`
+
+Hub **coopératif sans bonus de combat** (jusqu'à 12 Senseis) :
+
+- **Créer ou rejoindre** un clan.
+- **Tableau d'affichage Académie** : recommander un aspirant de votre vitrine (1 fois par cycle).
+- **Puits de Chakra** : chaque Sceau quotidien alimente un seuil collectif → Sceau bonus pour tous les membres.
+
+Détails : voir § Clans de joueurs.
+
+---
+
+## Missions & ligue
+
+### Missions
+
+**Route :** `/missions`
+
+Envoie de **missions idle** (rangs D, C, B, A) aux ninjas **du banc uniquement** :
+
+- Une mission par rang et par cycle (jusqu'à 4 simultanées).
+- Probabilités de réussite affichées selon la note globale du ninja.
+- Résolution automatique à **H72** ; récompenses à **collecter manuellement**.
+
+Un panneau de **reconnaissance** est aussi accessible depuis cet écran. Détails : voir § Missions idle.
+
+### Reconnaissance
+
+**Route :** `/reconnaissance`
+
+Combat d'entraînement pour **tester votre composition** entre **H0 et H36** :
+
+| Mode | Fonctionnement |
+|------|----------------|
+| **Matchmaking** | Adversaire humain de division proche, sinon bot de ligue |
+| **Défi direct** | Défier un membre de votre pool ou d'une autre ligue (acceptation requise) |
+
+Une mission par cycle. Le résultat conditionne la **qualité de l'espionnage** (H36 / H54). Détails : voir § Reconnaissance.
+
+### Espionnage
+
+**Route :** `/espionnage`
+
+Rapport d'intel sur l'**adversaire de ligue** du cycle :
+
+| Jalon | Contenu |
+|-------|---------|
+| **H36** | Tendances sur les derniers matchs (nécessite une reconnaissance ce cycle) |
+| **H54** | Rapport complet figé sur les 3 ninjas adverses (partiel ou complet selon reconnaissance) |
+
+Comparez tendances (H36) et unité repérée (H54) pour détecter une formation atypique. Détails : voir § Le cycle de 72 heures.
+
+### Ligue
+
+**Route :** `/league`
+
+Vue compétitive de votre **pool** (6 Sensei) :
+
+- Classement, calendrier des 10 cycles de saison.
+- Points (victoire 3, nul 1, défaite 0) et promotions / relégations en fin de saison.
+- **Lien d'invitation** vers votre pool.
+- Accès rapide à l'espionnage et aux défis de reconnaissance.
+
+Détails structure : voir § Ligue.
+
+### Opération
+
+**Route :** `/operation`
+
+Match de ligue du cycle (**H71 → H72**) :
+
+- **Chronique narrative** dévoilée progressivement (même rythme pour les deux adversaires).
+- **Débrief mécanique** : plis gagnés, scores PV, environnement.
+- Mode **spectateur** pour les matchs d'autres pools.
+
+Détails combat : voir § Opération de frontière.
+
+---
+
+## Économie
+
+### Magasin
+
+**Route :** `/market`
+
+**Magasin du village** — achats avec vos Ryos :
+
+- Objets utilitaires (bureau, match, cycle) par catégories.
+- **Offres de cartes tactiques** : 10 tirages aléatoires par réassort, nouveau bonus % à l'achat.
+- Promotions aléatoires chaque cycle ; catalogue personnel réassorti périodiquement.
+
+Fermé en cas de **dette** ou pendant le gel **H71+**. Détails : voir § Économie.
+
+### Perfectionnement
+
+**Route :** `/refinement`
+
+**Atelier de perfectionnement** — retirage payant du **bonus %** d'une carte tactique possédée :
+
+- Coût selon la rareté de la carte ; réduction possible via l'héritage magasin.
+- Bloqué si trésorerie négative ou carte listée sur le marché P2P.
+- Accessible aussi depuis l'**Inventaire**.
+
+Détails cartes : voir § Cartes technique ninja.
+
+### Échanges
+
+**Route :** `/exchanges`
+
+**Marché entre joueurs** (P2P) :
+
+- Vente de ninjas au banc ou d'objets / cartes non équipés.
+- Nombre limité d'annonces actives ; commission au vendeur.
+- Marché **global** (tous les Sensei humains du serveur).
+
+Fermé à partir de **H71** et en cas de dette.
+
+### Inventaire
+
+**Route :** `/inventory`
+
+Gestion de votre **stock** :
+
+| Catégorie | Usage |
+|-----------|--------|
+| **Cartes technique** | Assignation par ninja actif pour le deck d'opération |
+| **Consommables bureau** | Utilisation immédiate sur un ninja |
+| **Équipement cycle** | 1 par ninja pour tout le cycle |
+| **Objets match** | 1 slot par ninja ; effet en opération si conditions remplies |
+
+Actions : équiper, utiliser, lister sur le marché P2P, ouvrir le perfectionnement.
+
+---
+
+## Compte & outils
+
+### Notifications
+
+Icône **cloche** dans l'en-tête : fin de mission, résultats d'examen, clôture de cycle, début d'opération, rapport d'espionnage, Puits de clan, etc. Chaque notification propose un lien vers l'écran concerné.
+
+### Outils Élite
+
+**Route :** `/elite/outils` — réservé aux abonnés **Pack Élite**.
+
+Simulateur de deck, préremplissage espionnage, calculateur ROI entraînement — **sans avantage compétitif direct** en match.
+
+### Règles du jeu
+
+**Route :** `/rules` — ce document, accessible aussi depuis le menu profil (thème, langue, déconnexion).
+
+---
+
+# Partie 2 — Les systèmes de jeu
+
+## Le cycle de 72 heures
 
 Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs du serveur.
 
 | Phase | Période | Activités principales |
 |-------|---------|------------------------|
-| **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie, **mission de reconnaissance (H0–H36)** |
+| **Préparation** | H0 → H35 | Escouade, deck, entraînement, missions, magasin, Académie, reconnaissance (H0–H36) |
 | **Milieu de cycle** | H36 → H70 | Tendances adverses, espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
@@ -22,14 +254,14 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 | Jalon | Effet |
 |-------|--------|
 | **H54** | **Composition figée** (3 ninjas actifs) ; entraînement gelé ; tendances H36 déjà disponibles ; **rapport complet** sur l'unité adverse |
-| **H54 → H70** | Consignes, cartes tactiques et objets encore modifiables |
+| **H54 → H70** | Deck, consignes, cartes tactiques et objets encore modifiables |
 | **H71** | Gel total jusqu'au cycle suivant |
 
-### Espionnage
+### Espionnage (jalons)
 
 | Jalon | Contenu |
 |-------|---------|
-| **H36** | **Tendances** sur les derniers matchs de ligue de l'adversaire (nombre de matchs indiqué ; peu fiable au 1er ou 2e match) — nécessite une **reconnaissance** réussie ce cycle |
+| **H36** | **Tendances** sur les derniers matchs de ligue de l'adversaire — nécessite une **reconnaissance** réussie ce cycle |
 | **H54** | **Rapport complet** figé sur la composition adverse (qualité partielle/complet selon votre reconnaissance) |
 | **H54 → H71** | Le rapport ne change plus ; comparez tendances vs unité repérée pour détecter une formation atypique |
 
@@ -39,16 +271,15 @@ Examens Chunin, soins et missions doivent être **réglés avant H54** pour évi
 
 ### Jalons automatiques
 
-- **H0 → H36** : mission de reconnaissance (1 combat d'entraînement par cycle, voir § Ligue).
-- **H36** : **tendances adverses** (si reconnaissance effectuée).
-- **H72** : verdicts examens Chunin, Vol d'Oiseau, clôture du cycle.
-- **H54** : gel de la composition + **rapport d'espionnage complet** figé.
-- **H71** : simulation du match de ligue ; gel final des consignes ; début de la chronique narrative.
-- **H72** : clôture économique et début du cycle suivant.
+- **H0 → H36** : fenêtre de reconnaissance.
+- **H36** : tendances adverses (si reconnaissance effectuée) ; résolution des missions de reconnaissance en cours.
+- **H54** : gel de la composition + rapport d'espionnage complet figé.
+- **H71** : simulation du match de ligue ; gel final ; début de la chronique narrative.
+- **H72** : verdicts examens Chunin, Vol d'Oiseau, clôture économique, nouveau cycle.
 
 ---
 
-## 2. Le Sensei (votre compte)
+## Le Sensei (votre compte)
 
 ### Ressources
 
@@ -62,7 +293,7 @@ Votre **nom de Sensei** et votre identité visuelle (Pack Élite) définissent v
 
 ### Dette et gel administratif
 
-Si votre solde de Ryos devient **négatif** (salaires impayés, dépenses excessives), un **gel administratif** bloque les nouvelles dépenses : magasin, marché entre joueurs, examen Chunin, hôpital, etc. Remettez votre trésorerie à l'équilibre pour reprendre vos achats.
+Si votre solde de Ryos devient **négatif** (salaires impayés, dépenses excessives), un **gel administratif** bloque les nouvelles dépenses : magasin, marché entre joueurs, examen Chunin, hôpital, perfectionnement, etc. Remettez votre trésorerie à l'équilibre pour reprendre vos achats.
 
 Un léger découvert peut exister ; la dette persistante entraîne des **intérêts** à la clôture du cycle, ce qui augmente la pression économique sans game over immédiat.
 
@@ -72,7 +303,7 @@ Un **compte invité** permet d'essayer le jeu pendant une durée limitée, puis 
 
 ---
 
-## 3. Les ninjas
+## Les ninjas
 
 ### Grades
 
@@ -131,17 +362,16 @@ Chaque clan influence la **voie** (art principal) et quelques bonus de stats à 
 
 ### Moral
 
-Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse notamment en cas d'échec à l'examen Chunin, de salaires impayés, de **stagnation** (voir §5), ou d'achat d'un ninja sur le marché entre joueurs.
+Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse notamment en cas d'échec à l'examen Chunin, de salaires impayés, de **stagnation** (voir § Progression des grades), ou d'achat d'un ninja sur le marché entre joueurs.
 
 ---
 
-## 4. L'escouade
+## L'escouade et le deck d'opération
 
 ### Composition
 
 - **3 ninjas actifs** (postes de terrain) + un **banc** de remplaçants.
 - La composition est modifiable jusqu'à **H54** (gel des 3 ninjas actifs).
-- Un ninja est **indisponible** s'il est en mission, en vente sur le marché P2P, ou si la fenêtre tactique est fermée.
 
 ### Deck d'opération (combat par plis)
 
@@ -187,7 +417,9 @@ Les **traits** modifient ce tableau : un **Égoïste** ignore parfois le ciblage
 
 **Important :** la posture **ne donne pas de bonus caché** en match. Elle enregistre votre **plan de cycle** et adapte les **conseils** du dossier (croisement avec l'espionnage). Pour que le plan soit réel, alignez **posture + consignes + cartes tactiques** sur chaque ninja.
 
-### Cartes technique ninja
+---
+
+## Cartes technique ninja
 
 Chaque ninja actif compose **6 cartes** dans le deck d'opération : **1 carte technique inventaire** + **2 exemplaires** de la stat primaire + **3 exemplaires** de la stat secondaire.
 
@@ -206,17 +438,9 @@ Chaque ninja actif compose **6 cartes** dans le deck d'opération : **1 carte te
 
 Exemples : **Lame de chakra** (+15 %, sans prérequis), **Lame suiton** (+30 %, porteur Suiton), **Scalpel de chakra** (médecine offensive).
 
-### Inventaire
-
-| Catégorie | Usage |
-|-----------|--------|
-| **Cartes technique** | Assignées par ninja |
-| **Consommables ninja** | Objets bureau — utiliser sur un ninja |
-| **Équipement cycle** | 1 par ninja pour le cycle |
-
 ---
 
-## 5. Progression des grades
+## Progression des grades
 
 ### Départ
 
@@ -248,7 +472,7 @@ Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont d
 
 ---
 
-## 6. Entraînement
+## Entraînement
 
 Deux leviers complémentaires :
 
@@ -276,7 +500,7 @@ Un titulaire peut cumuler **préparation + global** (ex. les deux en Chakra) pou
 
 ---
 
-## 7. Missions (rangs D → A)
+## Missions idle
 
 Les missions sont réservées aux ninjas **au banc** (hors escouade active).
 
@@ -316,7 +540,22 @@ Spec détaillée : [`specs/mission-rank-system.md`](../../../specs/mission-rank-
 
 ---
 
-## 8. Économie
+## Reconnaissance
+
+Combat d'entraînement pour **tester votre composition** pendant la phase de préparation, avant le gel tactique de l'opération. **Une mission par cycle** par Sensei.
+
+| Mode | Fonctionnement |
+|------|----------------|
+| **Matchmaking** | Adversaire humain de division et puissance proches ; sinon un **bot** de la ligue. |
+| **Défi direct** | Depuis le menu Ligue : défier un membre de votre pool ou d'une autre ligue (division proche). Le défenseur doit **accepter**. |
+
+**Conséquences** : moteur de combat réel (objets, cartes tactiques, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte tactique (y compris en défaite). N'affecte **pas** le classement de ligue.
+
+**Résolution** : à **H36**. Le résultat détermine la qualité de l'espionnage (tendances H36, rapport H54).
+
+---
+
+## Économie
 
 ### Revenus principaux
 
@@ -325,6 +564,7 @@ Spec détaillée : [`specs/mission-rank-system.md`](../../../specs/mission-rank-
 | **Ligue** | Prime selon victoire, nul ou défaite |
 | **Missions** | Missions idle par rang (D–A) |
 | **Vol d'Oiseau** | Prime de départ du Chunin |
+| **Reconnaissance** | Butin de combat (Ryos, objets, cartes) |
 
 ### Dépenses principales
 
@@ -336,6 +576,7 @@ Spec détaillée : [`specs/mission-rank-system.md`](../../../specs/mission-rank-
 | **Hôpital** | À la demande |
 | **Académie** | À l'achat d'un aspirant |
 | **Magasin du village** | Pendant le cycle |
+| **Perfectionnement** | À la demande (retirage bonus carte) |
 | **Marché entre joueurs** | À l'achat (commission au vendeur) |
 
 Les salaires augmentent avec le **niveau global** du ninja : une escouade expérimentée coûte cher à maintenir.
@@ -364,7 +605,7 @@ Les salaires augmentent avec le **niveau global** du ninja : une escouade expér
 
 ---
 
-## 9. Académie et Sceau de Chakra
+## Académie et Sceau de Chakra
 
 ### Académie (recrutement)
 
@@ -382,7 +623,7 @@ Les salaires augmentent avec le **niveau global** du ninja : une escouade expér
 
 ---
 
-## 10. Hôpital
+## Hôpital
 
 - Soigne les ninjas en forme **Lamentable** (hors convalescence prolongée après blessure grave).
 - Coût en Ryos selon le **grade** du ninja.
@@ -391,7 +632,7 @@ Les salaires augmentent avec le **niveau global** du ninja : une escouade expér
 
 ---
 
-## 11. Clans de joueurs (coopération)
+## Clans de joueurs (coopération)
 
 Hub **sans bonus de combat** — jusqu'à **12 Senseis** par clan.
 
@@ -408,7 +649,7 @@ Hub **sans bonus de combat** — jusqu'à **12 Senseis** par clan.
 
 ---
 
-## 12. Ligue
+## Ligue
 
 ### Structure
 
@@ -438,33 +679,13 @@ En cas d'égalité de points : victoires, puis matchs joués.
 - **6ᵉ** : relégation.
 - Nouvelle pool et nouveau calendrier.
 
-### Espionnage (à partir de H36)
-
-Le rapport se déroule en **deux temps** :
-
-1. **H36 — Tendances** : habitudes sur les derniers matchs de ligue (échantillon indiqué ; fiabilité faible au 1er ou 2e match).
-2. **H54 — Unité repérée** : rapport figé sur les 3 ninjas adverses (partiel ou complet selon votre reconnaissance).
-
-Entre H36 et H54, ajustez votre composition selon les tendances. Après H54, seules consignes, cartes et objets restent modifiables.
-
-### Mission de reconnaissance (H0 → H36)
-
-Combat d'entraînement pour **tester votre composition** pendant la phase de préparation, avant le gel tactique de l'opération. **Une mission par cycle** par Sensei.
-
-| Mode | Fonctionnement |
-|------|----------------|
-| **Matchmaking** | Adversaire humain de division et puissance proches ; sinon un **bot** de la ligue. |
-| **Défi direct** | Depuis le menu Ligue : défier un membre de votre pool ou d'une autre ligue (division proche). Le défenseur doit **accepter**. |
-
-**Conséquences** : moteur de combat réel (objets, cartes tactiques, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte tactique (y compris en défaite). N'affecte **pas** le classement de ligue.
-
 ### Invitation
 
 Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des alliés dans sa ligue.
 
 ---
 
-## 13. Opération de frontière (match de ligue)
+## Opération de frontière (match de ligue)
 
 ### Déroulement visible
 
@@ -506,32 +727,10 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 
 ---
 
-## 14. Écrans du jeu
-
-| Écran | Rôle |
-|-------|------|
-| **Bureau** | Hub : budget, examens, Vol d'Oiseau, hôpital, Académie, Sceau de Chakra |
-| **Escouade** | Composition, consignes, dossier d'opération (postures), échanges actif/banc |
-| **Entraînement** | Focus par stat, prévision de coût |
-| **Missions** | Missions idle |
-| **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
-| **Magasin** | Achats d'objets du village |
-| **Échanges** | Marché entre joueurs |
-| **Inventaire** | Objets et équipement match/cycle |
-| **Clan** | Tableau Académie, Puits de Chakra |
-| **Opération** | Chronique et débrief du match |
-
----
-
-## 15. Notifications
-
-Une cloche dans l'interface signale les événements importants : fin de mission, résultats d'examen, clôture de cycle, messages de ligue, etc.
-
----
-
 ## Historique des mises à jour
 
 | Date | Changement |
 |------|------------|
 | 2026-07-09 | Création du document (règles joueur, sans formules exactes) |
 | 2026-07-10 | Consignes renommées (Défensive / Protection), guide postures & cartes tactiques ; retrait du cercle Assaut/Mur/Flux |
+| 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |
