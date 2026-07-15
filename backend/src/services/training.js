@@ -236,9 +236,8 @@ export function computeTrainingSession(ninja, trainingType, mode, options = {}) 
     gains: distribution.gains,
     focusStat: distribution.focusStat,
     clearTrainingBuff:
-      !session.skipped &&
-      ((mode === 'preparation' && ninja.training_buff === 'strategy_book') ||
-        ninja.training_buff === 'training_weights'),
+      (mode === 'preparation' && ninja.training_buff === 'strategy_book') ||
+      ninja.training_buff === 'training_weights',
     logs,
   };
 }
