@@ -1179,6 +1179,10 @@
       "title": "Reset global de saison",
       "warning": "Opération destructive : efface la progression de jeu tout en conservant comptes, clans, rouleaux d'héritage et abonnements Élite.",
       "season": "Saison",
+      "anchor": "Ancre H0 (date et heure)",
+      "anchorHint": "Optionnel. Laissez vide pour ancrer H0 à l'heure d'exécution du reset (UTC). Sinon, indiquez la date et l'heure de début du cycle.",
+      "anchorPreview": "Ancre H0 prévue : {at}",
+      "anchorNow": "Ancre H0 : maintenant (UTC) à l'exécution",
       "preview": "Prévisualiser",
       "confirmCheckbox": "Je comprends, exécuter le reset",
       "execute": "Lancer le hard reset",
@@ -1186,7 +1190,8 @@
       "eliteSubs": "{count} abonnements Élite",
       "ninjas": "{count} ninjas à supprimer",
       "pools": "{count} pools à supprimer",
-      "matches": "{count} matchs à supprimer"
+      "matches": "{count} matchs à supprimer",
+      "reconMissions": "{count} missions de reconnaissance à supprimer"
     },
     "maintenance": {
       "title": "Maintenance",

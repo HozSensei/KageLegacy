@@ -13,6 +13,7 @@ const auth = useAuthStore()
 const targetHour = ref(36)
 const cycleStartAt = ref('')
 const seasonNumber = ref(1)
+const resetCycleStartAt = ref('')
 const resetConfirm = ref(false)
 const repairAll = ref(true)
 const repairPoolId = ref('')
@@ -46,11 +47,15 @@ async function handleSetCycleStart() {
   await admin.setCycleStart(iso)
 }
 
+function resolveResetCycleStartAt() {
+  return resetCycleStartAt.value ? new Date(resetCycleStartAt.value).toISOString() : null
+}
+
 async function handlePreviewReset() {
   resetConfirm.value = false
   await admin.hardReset({
     seasonNumber: seasonNumber.value,
-    cycleStartAt: cycleStartAt.value ? new Date(cycleStartAt.value).toISOString() : null,
+    cycleStartAt: resolveResetCycleStartAt(),
     dryRun: true,
     confirm: false,
   })
@@ -60,7 +65,7 @@ async function handleConfirmReset() {
   if (!resetConfirm.value) return
   await admin.hardReset({
     seasonNumber: seasonNumber.value,
-    cycleStartAt: cycleStartAt.value ? new Date(cycleStartAt.value).toISOString() : null,
+    cycleStartAt: resolveResetCycleStartAt(),
     dryRun: false,
     confirm: true,
   })
@@ -192,7 +197,16 @@ async function handleRepairPools() {
               class="ml-2 w-16 border border-line/60 bg-bg px-2 py-1"
             />
           </label>
+          <label class="text-sm">
+            {{ t('admin.reset.anchor') }}
+            <input
+              v-model="resetCycleStartAt"
+              type="datetime-local"
+              class="ml-2 border border-line/60 bg-bg px-2 py-1"
+            />
+          </label>
         </div>
+        <p class="mt-2 text-xs text-ink-muted">{{ t('admin.reset.anchorHint') }}</p>
 
         <div class="mt-4 flex flex-wrap gap-2">
           <button
@@ -211,6 +225,14 @@ async function handleRepairPools() {
           <p>{{ t('admin.reset.ninjas', { count: preview.ninjasToDelete }) }}</p>
           <p>{{ t('admin.reset.pools', { count: preview.poolsToDelete }) }}</p>
           <p>{{ t('admin.reset.matches', { count: preview.matchesToDelete }) }}</p>
+          <p>{{ t('admin.reset.reconMissions', { count: preview.reconMissionsToDelete }) }}</p>
+          <p v-if="admin.lastResult?.cycleStartAt">
+            {{ t('admin.reset.anchorPreview', { at: admin.lastResult.cycleStartAt }) }}
+          </p>
+          <p v-else-if="resetCycleStartAt">
+            {{ t('admin.reset.anchorPreview', { at: resolveResetCycleStartAt() }) }}
+          </p>
+          <p v-else class="text-ink-muted">{{ t('admin.reset.anchorNow') }}</p>
         </div>
 
         <div class="mt-4 flex flex-wrap items-center gap-3">
