@@ -1,4 +1,4 @@
-/** Plafonds des effets match utilitaires */
+/** Plafonds des effets utilitaires */
 export const MATCH_CAPS = {
   pvRestore: 22,
   chakraRestore: 18,
@@ -12,19 +12,6 @@ export function describeUsageLimits(effects, category) {
 
   if (category === 'bureau') {
     parts.push({ label: 'bureau', uses: 1 });
-    return parts;
-  }
-
-  if (category === 'match' && parsed.match) {
-    parts.push({
-      label: 'match',
-      uses: parsed.match.usesPerMatch ?? CONSUMABLE_USES_PER_MATCH,
-    });
-    return parts;
-  }
-
-  if (category === 'cycle') {
-    parts.push({ label: 'cycle', uses: 'cycle' });
     return parts;
   }
 

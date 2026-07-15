@@ -66,13 +66,6 @@ function enrichNinja(ninja) {
           ? 'chunin_jonin'
           : null,
     profile: describeNinjaProfile(ninja, language),
-    cycleItem: ninja.cycle_slug
-      ? {
-          slug: ninja.cycle_slug,
-          nameFr: ninja.cycle_name_fr,
-          nameEn: ninja.cycle_name_en,
-        }
-      : null,
     trainingBuff: ninja.training_buff ?? null,
   };
 }
@@ -111,13 +104,9 @@ export async function getSquadPayload(userId) {
   const userRows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
   const listedNinjaIds = await getListedNinjaIdsForUser(userId);
   const ninjas = await query(
-    `SELECT n.*, c.name AS clan_name, c.is_noble AS clan_is_noble,
-            cycle_idf.slug AS cycle_slug, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en
+    `SELECT n.*, c.name AS clan_name, c.is_noble AS clan_is_noble
      FROM ninjas n
      JOIN clan_traits c ON c.id = n.clan_trait_id
-     LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
-     LEFT JOIN user_items cycle_ui ON cycle_ui.id = ne_cycle.user_item_id AND cycle_ui.consumed = FALSE
-     LEFT JOIN item_definitions cycle_idf ON cycle_idf.id = cycle_ui.item_definition_id
      WHERE n.user_id = ?
      ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
     [userId]

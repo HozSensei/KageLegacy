@@ -85,7 +85,6 @@ async function purgeGameplayState(connection) {
   await exec(
     `UPDATE player_listings SET status = 'cancelled' WHERE status = 'active'`
   );
-  await exec(`DELETE FROM ninja_equipment`);
   await exec(`DELETE FROM idle_missions`);
   await exec(`DELETE FROM academy_draws`);
   await exec(`DELETE FROM market_offers`);

@@ -80,8 +80,11 @@ export function getTrainingGainRange(coef, mode, ninja) {
   const potentialMult = getPotentialMultiplier(potential)
   const ageMult = ageCoefficient(ninja?.age)
   let buffMult = 1
-  if (ninja?.training_buff === 'strategy_book' || ninja?.trainingBuff === 'strategy_book') {
+  const buff = ninja?.training_buff ?? ninja?.trainingBuff
+  if (buff === 'strategy_book') {
     buffMult = 1.15
+  } else if (buff === 'training_weights') {
+    buffMult = 1.2
   }
   const base = coef * potentialMult * ageMult * buffMult
   return { min: base * minRng, max: base * maxRng, avg: base }

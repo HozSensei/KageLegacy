@@ -21,14 +21,10 @@ export async function assertNinjaReleasable(userId, ninjaId) {
     throw error;
   }
 
-  const ninjaRows = await query(
-    `SELECT n.*,
-            ne_cycle.ninja_id AS cycle_equipped
-     FROM ninjas n
-     LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
-     WHERE n.id = ? AND n.user_id = ?`,
-    [ninjaId, userId]
-  );
+  const ninjaRows = await query('SELECT n.* FROM ninjas n WHERE n.id = ? AND n.user_id = ?', [
+    ninjaId,
+    userId,
+  ]);
   const ninja = ninjaRows[0];
   if (!ninja) {
     const error = new Error('Ninja introuvable.');
@@ -45,11 +41,6 @@ export async function assertNinjaReleasable(userId, ninjaId) {
   if (ninja.chunin_exam_requested || ninja.bird_flight_requested) {
     const error = new Error('Retirez ce ninja des examens avant de le libérer.');
     error.statusCode = 409;
-    throw error;
-  }
-  if (ninja.cycle_equipped) {
-    const error = new Error('Retirez l\'équipement du ninja avant de le libérer.');
-    error.statusCode = 400;
     throw error;
   }
   if (await isNinjaListed(ninjaId)) {

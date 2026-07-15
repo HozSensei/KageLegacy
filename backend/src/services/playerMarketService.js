@@ -244,11 +244,9 @@ export async function createItemListing(userId, userItemId, price) {
   const poolId = await optionalSellerPoolId(userId);
 
   const itemRows = await query(
-    `SELECT ui.*, idf.price AS catalog_price, idf.slug, idf.name_fr, idf.non_vendable,
-            ne.ninja_id AS equipped_ninja_id
+    `SELECT ui.*, idf.price AS catalog_price, idf.slug, idf.name_fr, idf.non_vendable
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
-     LEFT JOIN ninja_equipment ne ON ne.user_item_id = ui.id
      WHERE ui.id = ? AND ui.user_id = ? AND ui.consumed = FALSE`,
     [userItemId, userId]
   );
@@ -260,11 +258,6 @@ export async function createItemListing(userId, userItemId, price) {
   }
   if (item.non_vendable) {
     const error = new Error('Cet objet ne peut pas être vendé sur le marché.');
-    error.statusCode = 400;
-    throw error;
-  }
-  if (item.equipped_ninja_id) {
-    const error = new Error('Retirez l\'objet de l\'équipement avant de le vendre.');
     error.statusCode = 400;
     throw error;
   }
@@ -358,13 +351,9 @@ export async function createNinjaListing(userId, ninjaId, price) {
   const cycleStartAt = cycleRow?.cycle_start_at;
 
   const ninjaRows = await query(
-    `SELECT n.*, c.is_noble AS clan_is_noble,
-            ne_match.ninja_id AS match_equipped,
-            ne_cycle.ninja_id AS cycle_equipped
+    `SELECT n.*, c.is_noble AS clan_is_noble
      FROM ninjas n
      JOIN clan_traits c ON c.id = n.clan_trait_id
-     LEFT JOIN ninja_equipment ne_match ON ne_match.ninja_id = n.id AND ne_match.slot = 'match'
-     LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
      WHERE n.id = ? AND n.user_id = ?`,
     [ninjaId, userId]
   );
@@ -382,11 +371,6 @@ export async function createNinjaListing(userId, ninjaId, price) {
   if (ninja.chunin_exam_requested || ninja.bird_flight_requested) {
     const error = new Error('Retirez ce ninja des examens avant de le vendre.');
     error.statusCode = 409;
-    throw error;
-  }
-  if (ninja.match_equipped || ninja.cycle_equipped) {
-    const error = new Error('Retirez l\'équipement du ninja avant de le vendre.');
-    error.statusCode = 400;
     throw error;
   }
 

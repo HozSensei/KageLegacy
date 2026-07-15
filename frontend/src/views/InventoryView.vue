@@ -20,13 +20,11 @@ const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
 const deckActionMessage = ref(null)
-const itemCategoryFilter = ref('all')
 const itemStatusFilter = ref('all')
 const cardStatusFilter = ref('all')
 
-const INVENTORY_CATEGORIES = ['bureau', 'cycle']
-const ITEM_CATEGORY_FILTERS = ['all', 'bureau', 'cycle']
-const ITEM_STATUS_FILTERS = ['all', 'equipped', 'available', 'listed']
+const INVENTORY_CATEGORIES = ['bureau']
+const ITEM_STATUS_FILTERS = ['all', 'available', 'listed']
 const CARD_STATUS_FILTERS = ['all', 'available', 'listed']
 
 const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
@@ -40,7 +38,6 @@ const cardDesc = (card) => (locale.value === 'en' ? card.descriptionEn : card.de
 
 function usageLabel(item) {
   if (item.category === 'bureau') return t('market.bureauOnce')
-  if (item.category === 'cycle') return t('market.cycleItem')
   const limit = item.usageLimits?.[0]
   if (!limit) return t('market.consumableOnce')
   return t('market.usesPerMatch', { count: limit.uses })
@@ -97,25 +94,16 @@ function isBureauItem(item) {
   return item?.category === 'bureau'
 }
 
-function canEquipItem(item) {
-  return item?.category === 'cycle'
-}
-
 function canSellItem(item) {
-  return item && !item.equipped_ninja_name && !item.isListed && !item.nonVendable
+  return item && !item.isListed && !item.nonVendable
 }
 
 function canSellCard(card) {
   return card && !card.isListed
 }
 
-function isItemEquipped(item) {
-  return Boolean(item?.equipped_ninja_name)
-}
-
 function matchesItemStatus(item, status) {
-  if (status === 'equipped') return isItemEquipped(item)
-  if (status === 'available') return !isItemEquipped(item) && !item.isListed
+  if (status === 'available') return !item.isListed
   if (status === 'listed') return Boolean(item.isListed)
   return true
 }
@@ -128,21 +116,13 @@ function matchesCardStatus(card, status) {
 
 const filteredItems = computed(() => {
   const items = inventory.value?.items || []
-  return items.filter((item) => {
-    if (itemCategoryFilter.value !== 'all' && item.category !== itemCategoryFilter.value) {
-      return false
-    }
-    return matchesItemStatus(item, itemStatusFilter.value)
-  })
+  return items.filter((item) => matchesItemStatus(item, itemStatusFilter.value))
 })
 
 const visibleItemCategories = computed(() =>
-  INVENTORY_CATEGORIES.filter((category) => {
-    if (itemCategoryFilter.value !== 'all' && itemCategoryFilter.value !== category) {
-      return false
-    }
-    return filteredItems.value.some((item) => item.category === category)
-  })
+  INVENTORY_CATEGORIES.filter((category) =>
+    filteredItems.value.some((item) => item.category === category)
+  )
 )
 
 function itemsForCategory(category) {
@@ -153,12 +133,6 @@ const filteredCards = computed(() => {
   const cards = inventory.value?.tacticCards || []
   return cards.filter((card) => matchesCardStatus(card, cardStatusFilter.value))
 })
-
-function itemCountForCategory(category) {
-  const items = inventory.value?.items || []
-  if (category === 'all') return items.length
-  return items.filter((item) => item.category === category).length
-}
 
 function itemCountForStatus(status) {
   return (inventory.value?.items || []).filter((item) => matchesItemStatus(item, status)).length
@@ -251,26 +225,6 @@ async function fetchInventory() {
   }
 }
 
-async function equip(ninjaId) {
-  if (!selectedItemId.value) return
-  saving.value = true
-  error.value = null
-  try {
-    const res = await fetch(`${API_BASE}/api/inventory/equip`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
-    })
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    applyInventory(await res.json())
-    selectedItemId.value = null
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    saving.value = false
-  }
-}
-
 async function useOnNinja(ninjaId) {
   if (!selectedItemId.value) return
   saving.value = true
@@ -311,24 +265,6 @@ async function useGlobalBureau() {
   }
 }
 
-async function unequip(ninjaId) {
-  saving.value = true
-  error.value = null
-  try {
-    const res = await fetch(`${API_BASE}/api/inventory/unequip`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ninjaId }),
-    })
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    applyInventory(await res.json())
-  } catch (e) {
-    error.value = e.message
-  } finally {
-    saving.value = false
-  }
-}
-
 </script>
 
 <template>
@@ -346,23 +282,6 @@ async function unequip(ninjaId) {
         <p v-if="selectedItemId" class="mt-2 text-xs text-accent">{{ t('inventory.selectNinja') }}</p>
 
         <div class="mt-4 flex flex-wrap gap-2">
-          <button
-            v-for="cat in ITEM_CATEGORY_FILTERS"
-            :key="`cat-${cat}`"
-            type="button"
-            class="rounded-sm border px-2.5 py-1 text-[10px] uppercase tracking-[0.12em] transition"
-            :class="
-              itemCategoryFilter === cat
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-line text-ink-faint hover:border-ink-faint'
-            "
-            @click="itemCategoryFilter = cat"
-          >
-            {{ t(`inventory.filterCategory.${cat}`) }}
-            <span class="ml-1 opacity-70">({{ itemCountForCategory(cat) }})</span>
-          </button>
-        </div>
-        <div class="mt-2 flex flex-wrap gap-2">
           <button
             v-for="status in ITEM_STATUS_FILTERS"
             :key="`status-${status}`"
@@ -412,24 +331,16 @@ async function unequip(ninjaId) {
               :class="[
                 selectedItemId === item.id
                   ? 'border-accent bg-bg-soft'
-                  : isItemEquipped(item)
-                    ? 'border-accent/40 border-l-4 bg-accent/5 hover:border-accent/60'
-                    : item.isListed
-                      ? 'border-line/80 bg-bg-soft/50 hover:border-ink-faint'
-                      : 'border-line hover:border-ink-faint',
+                  : item.isListed
+                    ? 'border-line/80 bg-bg-soft/50 hover:border-ink-faint'
+                    : 'border-line hover:border-ink-faint',
               ]"
               @click="selectedItemId = item.id; selectedCardId = null"
             >
               <div class="flex flex-wrap items-start justify-between gap-2">
                 <p class="text-sm text-ink">{{ itemName(item) }}</p>
                 <span
-                  v-if="isItemEquipped(item)"
-                  class="shrink-0 rounded-sm border border-accent/50 bg-accent/15 px-2 py-0.5 text-[9px] font-medium uppercase tracking-[0.12em] text-accent"
-                >
-                  {{ t('inventory.equippedBadge', { name: item.equipped_ninja_name }) }}
-                </span>
-                <span
-                  v-else-if="item.isListed"
+                  v-if="item.isListed"
                   class="shrink-0 rounded-sm border border-line px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-ink-faint"
                 >
                   {{ t('inventory.listed') }}
@@ -441,11 +352,8 @@ async function unequip(ninjaId) {
               <p class="mt-2 text-xs text-ink-faint">
                 {{ t(`market.categories.${item.category}`) }} · {{ usageLabel(item) }}
               </p>
-              <p v-if="item.nonVendable && !isItemEquipped(item) && !item.isListed" class="mt-1 text-xs text-ink-faint">
+              <p v-if="item.nonVendable && !item.isListed" class="mt-1 text-xs text-ink-faint">
                 {{ t('inventory.nonVendable') }}
-              </p>
-              <p v-else-if="!isItemEquipped(item) && !item.isListed && !item.nonVendable" class="mt-1 text-xs text-ink-faint">
-                {{ t('inventory.unequipped') }}
               </p>
               <button
                 v-if="canSellItem(item)"
@@ -588,16 +496,7 @@ async function unequip(ninjaId) {
                 </p>
               </div>
               <button
-                v-if="selectedItemId && canEquipItem(inventory.items.find((i) => i.id === selectedItemId))"
-                type="button"
-                class="btn-ghost"
-                :disabled="saving"
-                @click="equip(ninja.id)"
-              >
-                {{ t('inventory.equip') }}
-              </button>
-              <button
-                v-else-if="
+                v-if="
                   selectedItemId &&
                   isBureauItem(inventory.items.find((i) => i.id === selectedItemId)) &&
                   !isGlobalBureauItem(inventory.items.find((i) => i.id === selectedItemId))
@@ -610,20 +509,18 @@ async function unequip(ninjaId) {
                 {{ t('inventory.use') }}
               </button>
             </div>
-            <dl class="mt-4 grid gap-2 text-xs text-ink-muted sm:grid-cols-2">
-              <div>
-                <dt>{{ t('inventory.slotCycle') }}</dt>
-                <dd class="mt-1 text-ink">
-                  {{ ninja.cycle_name_fr ? (locale === 'en' ? ninja.cycle_name_en : ninja.cycle_name_fr) : '—' }}
-                  <button
-                    v-if="ninja.cycle_item_id"
-                    type="button"
-                    class="ml-2 text-fire"
-                    @click="unequip(ninja.id)"
-                  >×</button>
-                </dd>
-              </div>
-            </dl>
+            <p
+              v-if="ninja.training_buff === 'strategy_book'"
+              class="mt-2 text-xs text-accent"
+            >
+              {{ t('ninja.strategyBookBuff') }}
+            </p>
+            <p
+              v-else-if="ninja.training_buff === 'training_weights'"
+              class="mt-2 text-xs text-accent"
+            >
+              {{ t('ninja.trainingWeightsBuff') }}
+            </p>
           </li>
         </ul>
       </section>

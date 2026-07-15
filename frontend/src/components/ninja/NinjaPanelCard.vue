@@ -30,7 +30,7 @@ const props = defineProps({
   },
 })
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const {
   overall,
@@ -44,12 +44,6 @@ const {
 } = useNinjaDisplay(toRef(props, 'ninja'))
 
 const isChunin = computed(() => props.ninja.grade === 'Chunin')
-
-const cycleItemLabel = computed(() => {
-  const item = props.ninja.cycleItem
-  if (!item) return ''
-  return locale.value === 'en' ? item.nameEn || item.slug : item.nameFr || item.slug
-})
 
 function statCap(column) {
   return props.ninja.gradeStatCaps?.[column] ?? null
@@ -100,17 +94,16 @@ function isFocusedStat(column) {
           {{ t(trainingFocusLabel) }}
         </span>
         <span
-          v-if="ninja.cycleItem"
-          class="ninja-panel-card__badge ninja-panel-card__badge--cycle"
-          :title="cycleItemLabel"
-        >
-          {{ cycleItemLabel }}
-        </span>
-        <span
           v-if="ninja.trainingBuff === 'strategy_book'"
           class="ninja-panel-card__badge ninja-panel-card__badge--buff"
         >
           {{ t('ninja.strategyBookBuff') }}
+        </span>
+        <span
+          v-if="ninja.trainingBuff === 'training_weights'"
+          class="ninja-panel-card__badge ninja-panel-card__badge--buff"
+        >
+          {{ t('ninja.trainingWeightsBuff') }}
         </span>
         <span
           v-if="elementLabel"

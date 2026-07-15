@@ -109,6 +109,7 @@
     "chuninProgress": "Progression Chunin",
     "joninProgress": "Progression Jonin",
     "strategyBookBuff": "Livre de stratégie",
+    "trainingWeightsBuff": "Poids d'entraînement (+20 %)",
     "profile": {
       "voie": "Voie",
       "potentiel": "Potentiel",
@@ -794,20 +795,18 @@
     "usesPerMatch": "{count} utilisation(s) / match",
     "consumableOnce": "Usage unique — détruit après le match",
     "bureauOnce": "Usage unique — depuis le Bureau",
-    "cycleItem": "Actif tout le cycle (72 h)",
     "categories": {
-      "bureau": "Consommables ninja",
-      "cycle": "Équipement cycle"
+      "bureau": "Consommables ninja"
     }
   },
   "inventory": {
     "kicker": "Équipement",
-    "lead": "Consommables ninja (utiliser sur un ninja), équipement cycle (1 par ninja) et cartes technique (3 par ninja actif en Escouade).",
+    "lead": "Consommables ninja (utiliser sur un ninja) et cartes technique (3 par ninja actif en Escouade).",
     "loading": "Chargement…",
     "items": "Objets",
     "tacticCards": "Cartes technique",
     "ninjas": "Effectif",
-    "selectNinja": "Sélectionnez un ninja à équiper.",
+    "selectNinja": "Sélectionnez un ninja pour utiliser l'objet.",
     "cardDeckHint": "Assignez chaque carte technique à un ninja actif depuis Escouade → deck d'opération (prérequis d'élément affiché sur la carte).",
     "openSquadDeck": "Configurer en Escouade →",
     "equippedOn": "Équipé sur {name}",
@@ -815,14 +814,8 @@
     "unequipped": "Non assigné",
     "deckPoolHint": "Pool cartes — assignez-les par ninja en Escouade.",
     "emptyFilter": "Aucun objet ne correspond à ces filtres.",
-    "filterCategory": {
-      "all": "Tous",
-      "bureau": "Consommables",
-      "cycle": "Cycle"
-    },
     "filterStatus": {
       "all": "Tous",
-      "equipped": "Équipés",
       "available": "Disponibles",
       "listed": "En vente"
     },
@@ -925,7 +918,6 @@
     "tierUsed": "Rang déjà pris ce cycle",
     "lowSuccess": "Réussite faible ({pct} %)",
     "examBlocked": "examen / Vol d'Oiseau",
-    "cycleGearBlocked": "objet cycle équipé",
     "cost": "Coût",
     "reward": "Gains possibles",
     "net": "Net",

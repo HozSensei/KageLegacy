@@ -57,7 +57,7 @@ const canAssign = computed(() => {
 watch(selectedNinjaId, (id) => {
   if (!id) return
   const ninja = missions.value?.availableNinjas?.find((n) => n.id === id)
-  if (ninja?.examBlocked || ninja?.hasCycleGear) {
+  if (ninja?.examBlocked) {
     selectedTier.value = 'D'
   }
 })
@@ -141,7 +141,6 @@ async function collect() {
 
 function ninjaBlockedReason(ninja) {
   if (ninja.examBlocked) return t('missions.examBlocked')
-  if (ninja.hasCycleGear) return t('missions.cycleGearBlocked')
   return null
 }
 
@@ -334,7 +333,7 @@ function hoursUntilResolve(mission) {
               v-for="n in missions.availableNinjas"
               :key="n.id"
               :value="n.id"
-              :disabled="n.examBlocked || n.hasCycleGear"
+              :disabled="n.examBlocked"
             >
               {{ ninjaOptionLabel(n) }}
             </option>
@@ -364,7 +363,7 @@ function hoursUntilResolve(mission) {
       </div>
 
       <div
-        v-if="selectedNinja && selectedOdds && !selectedNinja.examBlocked && !selectedNinja.hasCycleGear"
+        v-if="selectedNinja && selectedOdds && !selectedNinja.examBlocked"
         class="mt-4 rounded border border-line/60 px-4 py-3 text-xs text-ink-muted"
       >
         <p>{{ t('missions.ninjaRating', { rating: selectedOdds.ninjaRating }) }}</p>

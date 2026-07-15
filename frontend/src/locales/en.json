@@ -109,6 +109,7 @@
     "chuninProgress": "Chunin progress",
     "joninProgress": "Jonin progress",
     "strategyBookBuff": "Strategy book",
+    "trainingWeightsBuff": "Training weights (+20%)",
     "profile": {
       "voie": "Path",
       "potentiel": "Potential",
@@ -794,20 +795,18 @@
     "usesPerMatch": "{count} use(s) per match",
     "consumableOnce": "Single use — destroyed after the match",
     "bureauOnce": "Single use — from Bureau",
-    "cycleItem": "Active for the full cycle (72 h)",
     "categories": {
-      "bureau": "Ninja consumables",
-      "cycle": "Cycle gear"
+      "bureau": "Ninja consumables"
     }
   },
   "inventory": {
     "kicker": "Equipment",
-    "lead": "Ninja consumables (use on a ninja), cycle gear (one per ninja), and technique cards (3 per active ninja on Squad).",
+    "lead": "Ninja consumables (use on a ninja) and technique cards (3 per active ninja on Squad).",
     "loading": "Loading…",
     "items": "Items",
     "tacticCards": "Technique cards",
     "ninjas": "Roster",
-    "selectNinja": "Select a ninja to equip.",
+    "selectNinja": "Select a ninja to use the item.",
     "cardDeckHint": "Assign each technique card to an active ninja from Squad → operation deck (element requirement shown on card).",
     "openSquadDeck": "Configure on Squad →",
     "equippedOn": "Equipped on {name}",
@@ -815,14 +814,8 @@
     "unequipped": "Unassigned",
     "deckPoolHint": "Card pool — assign per ninja on Squad.",
     "emptyFilter": "No items match these filters.",
-    "filterCategory": {
-      "all": "All",
-      "bureau": "Consumables",
-      "cycle": "Cycle"
-    },
     "filterStatus": {
       "all": "All",
-      "equipped": "Equipped",
       "available": "Available",
       "listed": "Listed"
     },
@@ -925,7 +918,6 @@
     "tierUsed": "Rank already taken this cycle",
     "lowSuccess": "Low success ({pct}%)",
     "examBlocked": "exam / Bird Flight",
-    "cycleGearBlocked": "cycle item equipped",
     "cost": "Cost",
     "reward": "Possible rewards",
     "net": "Net",

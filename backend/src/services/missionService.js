@@ -60,7 +60,6 @@ function mapNinjaForMissions(ninja) {
     eligibleTiers: getEligibleTiersForNinja(ninja),
     recommendedTiers,
     oddsByTier,
-    hasCycleGear: Boolean(ninja.cycle_item_id),
     examBlocked: Boolean(ninja.chunin_exam_requested || ninja.bird_flight_requested),
     stats: ninjaStatsFromRow(ninja),
   };
@@ -95,12 +94,9 @@ export async function getMissionsForUser(userId) {
 
   const bench = cycleStartAt
     ? await query(
-        `SELECT n.*,
-                cycle_ui.id AS cycle_item_id
+        `SELECT n.*
          FROM ninjas n
          LEFT JOIN idle_missions im ON im.ninja_id = n.id AND im.cycle_start_at = ? AND im.status IN ('active', 'completed')
-         LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
-         LEFT JOIN user_items cycle_ui ON cycle_ui.id = ne_cycle.user_item_id
          WHERE n.user_id = ? AND n.squad_position IS NULL AND im.id IS NULL`,
         [cycleStartAt, userId]
       )
@@ -136,12 +132,9 @@ export async function assignMission(userId, ninjaId, tier) {
 
   const cycleStartAt = await getCycleStartAt();
   const ninjaRows = await query(
-    `SELECT n.*, s.ryos, s.salary_debt,
-            cycle_ui.id AS cycle_item_id
+    `SELECT n.*, s.ryos, s.salary_debt
      FROM ninjas n
      JOIN sensei s ON s.user_id = n.user_id
-     LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
-     LEFT JOIN user_items cycle_ui ON cycle_ui.id = ne_cycle.user_item_id
      WHERE n.id = ? AND n.user_id = ? AND n.squad_position IS NULL`,
     [ninjaId, userId]
   );
@@ -160,11 +153,6 @@ export async function assignMission(userId, ninjaId, tier) {
   if (ninja.bird_flight_requested) {
     const error = new Error('Ce ninja est inscrit au Vol d\'Oiseau et ne peut pas partir en mission.');
     error.statusCode = 409;
-    throw error;
-  }
-  if (ninja.cycle_item_id) {
-    const error = new Error('Retirez l\'objet cycle avant d\'envoyer ce ninja en mission.');
-    error.statusCode = 400;
     throw error;
   }
   if (await isNinjaListed(ninjaId)) {

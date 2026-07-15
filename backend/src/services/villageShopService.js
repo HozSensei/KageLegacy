@@ -219,11 +219,7 @@ export async function getVillageShopForUser(userId) {
         heritage.bureauShopDiscountPct
       )
     )
-    .filter(
-      (item) =>
-        item.category !== 'match' &&
-        !['cape-impermeable', 'torche-signalisation', 'sandales-canyon'].includes(item.slug)
-    );
+    .filter((item) => item.category !== 'match');
 
   return {
     items,

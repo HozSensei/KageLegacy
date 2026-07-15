@@ -89,8 +89,23 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
       break;
     }
     case 'strategy_book': {
+      if (ninja.training_buff) {
+        const error = new Error('Ce ninja a déjà un bonus d\'entraînement actif.');
+        error.statusCode = 400;
+        throw error;
+      }
       await query('UPDATE ninjas SET training_buff = ? WHERE id = ?', ['strategy_book', ninjaId]);
       result = { effect: 'strategy_book', ninjaId };
+      break;
+    }
+    case 'training_boost': {
+      if (ninja.training_buff) {
+        const error = new Error('Ce ninja a déjà un bonus d\'entraînement actif.');
+        error.statusCode = 400;
+        throw error;
+      }
+      await query('UPDATE ninjas SET training_buff = ? WHERE id = ?', ['training_weights', ninjaId]);
+      result = { effect: 'training_boost', buff: 'training_weights', ninjaId };
       break;
     }
     case 'pv_heal_pct': {

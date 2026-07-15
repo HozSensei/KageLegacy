@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Vérifie les gels de cycle : H54 compo/entraînement, H71 deck/équipement.
+ * Vérifie les gels de cycle : H54 compo/entraînement, H71 deck.
  */
 import dotenv from 'dotenv';
 import path from 'path';
@@ -10,7 +10,6 @@ import pool from '../src/config/database.js';
 import { setHourDev, advanceToHourDev } from '../src/services/gameClock.js';
 import { updateSquadComposition } from '../src/models/squadComposition.js';
 import { updateTrainingPlans } from '../src/models/squadTactics.js';
-import { equipItem } from '../src/services/equipmentService.js';
 import { saveOperationDeck } from '../src/services/operationDeckService.js';
 import { grantTacticCard } from '../src/services/tacticCards/tacticCardService.js';
 
@@ -61,25 +60,10 @@ async function createUserWithSquad(poolId, label, clanTraitId) {
   return { userId, ninjaIds };
 }
 
-async function grantCycleItem(userId) {
-  const defRows = await query(
-    `SELECT id FROM item_definitions WHERE category = 'cycle' LIMIT 1`
-  );
-  assert(defRows[0], 'item cycle en base');
-  const itemResult = await query(
-    `INSERT INTO user_items (user_id, item_definition_id) VALUES (?, ?)`,
-    [userId, defRows[0].id]
-  );
-  return itemResult.insertId;
-}
-
 async function cleanup(poolId, userIds) {
   await query('DELETE FROM matches WHERE pool_id = ?', [poolId]);
   for (const userId of userIds) {
     await query('DELETE FROM operation_decks WHERE user_id = ?', [userId]);
-    await query('DELETE FROM ninja_equipment WHERE ninja_id IN (SELECT id FROM ninjas WHERE user_id = ?)', [
-      userId,
-    ]);
     await query('DELETE FROM user_items WHERE user_id = ?', [userId]);
     await query('DELETE FROM user_tactic_cards WHERE user_id = ?', [userId]);
     await query('DELETE FROM ninjas WHERE user_id = ?', [userId]);
@@ -146,9 +130,6 @@ async function main() {
     },
   });
 
-  const cycleItemId = await grantCycleItem(userA.userId);
-  await equipItem(userA.userId, userA.ninjaIds[0], cycleItemId);
-
   await advanceToHourDev(71);
 
   await expectStatus(
@@ -160,13 +141,6 @@ async function main() {
       }),
     403,
     'deck H71'
-  );
-
-  const item2 = await grantCycleItem(userA.userId);
-  await expectStatus(
-    () => equipItem(userA.userId, userA.ninjaIds[1], item2),
-    423,
-    'équipement H71'
   );
 
   await cleanup(poolId, [userA.userId, userB.userId]);
