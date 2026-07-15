@@ -9,6 +9,10 @@ import {
   applyDispensaryHeal,
   assertDispensaryHealEligible,
 } from './dispensaryService.js';
+import {
+  assertBureauItemEligible,
+  resolveBureauTrigger,
+} from './bureauItemEligibility.js';
 
 const FORME_UPGRADE = {
   Lamentable: 'Passable',
@@ -16,13 +20,6 @@ const FORME_UPGRADE = {
   Excellent: 'Divin',
   Divin: 'Divin',
 };
-
-function resolveBureauTrigger(item, bureau) {
-  if (item.slug === 'kit-materiel-medical' && bureau.trigger === 'forme_upgrade') {
-    return 'dispensary_heal';
-  }
-  return bureau.trigger;
-}
 
 async function applyBureauEffect({ trigger, bureau, userId, ninjaId, ninja, exec }) {
   switch (trigger) {
@@ -75,6 +72,11 @@ async function applyBureauEffect({ trigger, bureau, userId, ninjaId, ninja, exec
       const maxPv = computeMatchPv(ninja.taijutsu);
       const heal = Math.max(1, Math.floor(maxPv * ((bureau.percent || 15) / 100)));
       const newPv = Math.min(maxPv, ninja.current_pv_match + heal);
+      if (newPv === ninja.current_pv_match) {
+        const error = new Error('Les PV de ce ninja sont déjà au maximum.');
+        error.statusCode = 400;
+        throw error;
+      }
       await exec('UPDATE ninjas SET current_pv_match = ? WHERE id = ?', [newPv, ninjaId]);
       return {
         effect: 'pv_heal',
@@ -94,10 +96,25 @@ async function applyBureauEffect({ trigger, bureau, userId, ninjaId, ninja, exec
     }
     case 'jutsu_scroll': {
       const stats = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
-      const stat = stats[Math.floor(Math.random() * stats.length)];
+      const eligibleStats = stats.filter((stat) => {
+        const current = Number(ninja[stat]);
+        const next = clampStatToGradeCap(ninja, stat, current + 0.5);
+        return next > current;
+      });
+      if (!eligibleStats.length) {
+        const error = new Error('Toutes les stats de ce ninja sont déjà au plafond de grade.');
+        error.statusCode = 400;
+        throw error;
+      }
+      const stat = eligibleStats[Math.floor(Math.random() * eligibleStats.length)];
       const gain = Math.random() < 0.5 ? 0.5 : 1.0;
       const current = Number(ninja[stat]);
       const next = clampStatToGradeCap(ninja, stat, current + gain);
+      if (next <= current) {
+        const error = new Error('Toutes les stats de ce ninja sont déjà au plafond de grade.');
+        error.statusCode = 400;
+        throw error;
+      }
       await exec(`UPDATE ninjas SET ${stat} = ? WHERE id = ?`, [next, ninjaId]);
       return { effect: 'jutsu_scroll', stat, gain: next - current, ninjaId };
     }
@@ -122,9 +139,10 @@ async function applyBureauEffect({ trigger, bureau, userId, ninjaId, ninja, exec
 
 export async function useBureauItem(userId, userItemId, ninjaId = null) {
   const itemRows = await query(
-    `SELECT ui.*, idf.category, idf.slug, idf.effects
+    `SELECT ui.*, idf.category, idf.slug, idf.effects, pl.id AS listing_id
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
+     LEFT JOIN player_listings pl ON pl.user_item_id = ui.id AND pl.status = 'active'
      WHERE ui.id = ? AND ui.user_id = ? AND ui.consumed = FALSE`,
     [userItemId, userId]
   );
@@ -149,9 +167,19 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
   }
 
   const trigger = resolveBureauTrigger(item, bureau);
+  const [clockRow, tacticsLocked, senseiRows] = await Promise.all([
+    getClockRow(),
+    isTacticsLocked(),
+    query('SELECT scout_env_confirmed_cycle FROM sensei WHERE user_id = ?', [userId]),
+  ]);
+  const context = {
+    cycleStartAt: clockRow?.cycle_start_at ?? null,
+    scoutEnvConfirmedCycle: senseiRows[0]?.scout_env_confirmed_cycle ?? null,
+    tacticsLocked,
+  };
 
   let ninja = null;
-  if (trigger !== 'scout_map') {
+  if (trigger !== 'scout_map' && trigger !== 'chakra_seal') {
     const ninjaRows = await query('SELECT * FROM ninjas WHERE id = ? AND user_id = ?', [
       ninjaId,
       userId,
@@ -163,6 +191,13 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
       throw error;
     }
   }
+
+  assertBureauItemEligible({
+    item: { ...item, isListed: Boolean(item.listing_id) },
+    bureau,
+    ninja,
+    context,
+  });
 
   const connection = await getConnection();
   try {

@@ -1,9 +1,11 @@
 import { query, getConnection } from '../config/database.js';
 import { getClockRow, isTacticsLocked } from './gameClock.js';
 import { describeUsageLimits } from './combat/equipmentConstants.js';
+import { buildBureauEligibilityMatrix } from './bureauItemEligibility.js';
 
 export async function getInventoryForUser(userId) {
-  const items = await query(
+  const [items, ninjas, clockRow, tacticsLocked, senseiRows] = await Promise.all([
+    query(
     `SELECT ui.id, ui.consumed, ui.acquired_at,
             idf.slug, idf.category, idf.name_fr, idf.name_en,
             idf.description_fr, idf.description_en, idf.effects, idf.price AS catalog_price,
@@ -17,12 +19,12 @@ export async function getInventoryForUser(userId) {
      LEFT JOIN player_listings pl ON pl.user_item_id = ui.id AND pl.status = 'active'
      WHERE ui.user_id = ? AND ui.consumed = FALSE
      ORDER BY ui.acquired_at DESC`,
-    [userId]
-  );
-
-  const ninjas = await query(
+      [userId]
+    ),
+    query(
     `SELECT n.id, n.name, n.squad_position, n.grade, n.element_affinity, n.preparation_type,
-            n.weekly_forme, n.forme_lock_cycles,
+            n.weekly_forme, n.forme_lock_cycles, n.moral, n.taijutsu, n.current_pv_match,
+            n.training_buff, n.injury_discount_ryos,
             cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en
      FROM ninjas n
      LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
@@ -30,18 +32,35 @@ export async function getInventoryForUser(userId) {
      LEFT JOIN item_definitions cycle_idf ON cycle_idf.id = cycle_ui.item_definition_id
      WHERE n.user_id = ?
      ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
-    [userId]
-  );
+      [userId]
+    ),
+    getClockRow(),
+    isTacticsLocked(),
+    query('SELECT scout_env_confirmed_cycle FROM sensei WHERE user_id = ?', [userId]),
+  ]);
+
+  const mappedItems = items.map((item) => ({
+    ...item,
+    usageLimits: describeUsageLimits(item.effects, item.category),
+    isListed: Boolean(item.listing_id),
+    listingId: item.listing_id || null,
+    nonVendable: Boolean(item.non_vendable),
+  }));
+
+  const { ninjas: ninjasWithEligibility, globalBureauEligibility } = buildBureauEligibilityMatrix({
+    items: mappedItems,
+    ninjas,
+    context: {
+      cycleStartAt: clockRow?.cycle_start_at ?? null,
+      scoutEnvConfirmedCycle: senseiRows[0]?.scout_env_confirmed_cycle ?? null,
+      tacticsLocked,
+    },
+  });
 
   return {
-    items: items.map((item) => ({
-      ...item,
-      usageLimits: describeUsageLimits(item.effects, item.category),
-      isListed: Boolean(item.listing_id),
-      listingId: item.listing_id || null,
-      nonVendable: Boolean(item.non_vendable),
-    })),
-    ninjas,
+    items: mappedItems,
+    ninjas: ninjasWithEligibility,
+    globalBureauEligibility,
   };
 }
 
@@ -164,9 +183,6 @@ export async function getCycleEquipmentByUser(userId) {
 }
 
 export async function consumeUserItem(userItemId, connection = null) {
-  const exec = (sql, params = []) =>
-    connection ? connection.execute(sql, params) : getConnection().then((c) => c.execute(sql, params));
-
   let ownedConnection = null;
   try {
     if (!connection) {
