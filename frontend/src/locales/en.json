@@ -461,6 +461,7 @@
       "submit": "Admit ({cost} Ryos)",
       "sending": "Treating…",
       "debtBlocked": "Debt outstanding — hospital unavailable.",
+      "medKitHint": "A medical supply kit (Inventory) freely heals a ninja in Awful form, even when in debt.",
       "empty": "No eligible ninja in Lamentable form.",
       "medLock": "extended medical watch (grave injury)"
     },
@@ -831,6 +832,10 @@
     "equip": "Equip",
     "equipCard": "Equip card",
     "use": "Use",
+    "useSuccess": "Item used.",
+    "useFormeResult": "Form updated: {from} → {to}.",
+    "usePvHealResult": "HP restored: +{amount}.",
+    "medLock": "extended medical watch",
     "active": "Active",
     "bench": "Bench",
     "slotMatch": "Match consumable",

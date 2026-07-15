@@ -6,7 +6,10 @@ import NinjaListIdentity from '../components/ninja/NinjaListIdentity.vue'
 import { useCategoryCollapse } from '../composables/useCategoryCollapse.js'
 import { formatInstanceBonusPct } from '../utils/techniqueCardBonus.js'
 
+import { useSquadStore } from '../stores/squad'
+
 const { t, locale } = useI18n()
+const squadStore = useSquadStore()
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
 const loading = ref(true)
@@ -19,6 +22,7 @@ const sellItemId = ref(null)
 const sellCardId = ref(null)
 const sellPrice = ref('')
 const selling = ref(false)
+const useMessage = ref(null)
 const deckActionMessage = ref(null)
 const itemCategoryFilter = ref('all')
 const itemStatusFilter = ref('all')
@@ -271,10 +275,25 @@ async function equip(ninjaId) {
   }
 }
 
+function formatUseResult(result) {
+  if (!result) return null
+  if (result.effect === 'dispensary_heal' || result.effect === 'forme_upgrade') {
+    return t('inventory.useFormeResult', {
+      from: t(`formes.${result.previousForme || result.from}`),
+      to: t(`formes.${result.newForme || result.to}`),
+    })
+  }
+  if (result.effect === 'pv_heal') {
+    return t('inventory.usePvHealResult', { amount: result.healed })
+  }
+  return t('inventory.useSuccess')
+}
+
 async function useOnNinja(ninjaId) {
   if (!selectedItemId.value) return
   saving.value = true
   error.value = null
+  useMessage.value = null
   try {
     const res = await fetch(`${API_BASE}/api/inventory/use`, {
       method: 'POST',
@@ -282,8 +301,11 @@ async function useOnNinja(ninjaId) {
       body: JSON.stringify({ ninjaId, userItemId: selectedItemId.value }),
     })
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`)
-    applyInventory(await res.json())
+    const data = await res.json()
+    applyInventory(data)
+    useMessage.value = formatUseResult(data.result)
     selectedItemId.value = null
+    if (squadStore.sensei) await squadStore.fetchSquad()
   } catch (e) {
     error.value = e.message
   } finally {
@@ -339,6 +361,7 @@ async function unequip(ninjaId) {
 
     <p v-if="loading" class="mt-12 text-sm text-ink-muted">{{ t('inventory.loading') }}</p>
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
+    <p v-else-if="useMessage" class="mt-12 text-sm text-accent">{{ useMessage }}</p>
 
     <div v-else-if="inventory" class="mt-12 lg:grid lg:grid-cols-12 lg:gap-10" data-testid="inventory-content">
       <section class="lg:col-span-5">
@@ -585,6 +608,10 @@ async function unequip(ninjaId) {
                 <NinjaListIdentity :ninja="ninja" />
                 <p class="mt-2 text-xs text-ink-faint">
                   {{ ninja.squad_position ? t('inventory.active') : t('inventory.bench') }}
+                  · {{ t(`formes.${ninja.weekly_forme || 'Passable'}`) }}
+                  <span v-if="Number(ninja.forme_lock_cycles) > 0" class="text-fire">
+                    — {{ t('inventory.medLock') }}
+                  </span>
                 </p>
               </div>
               <button

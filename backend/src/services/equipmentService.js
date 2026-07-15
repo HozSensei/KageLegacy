@@ -1,4 +1,4 @@
-import { query } from '../config/database.js';
+import { query, getConnection } from '../config/database.js';
 import { getClockRow, isTacticsLocked } from './gameClock.js';
 import { describeUsageLimits } from './combat/equipmentConstants.js';
 
@@ -22,6 +22,7 @@ export async function getInventoryForUser(userId) {
 
   const ninjas = await query(
     `SELECT n.id, n.name, n.squad_position, n.grade, n.element_affinity, n.preparation_type,
+            n.weekly_forme, n.forme_lock_cycles,
             cycle_ui.id AS cycle_item_id, cycle_idf.name_fr AS cycle_name_fr, cycle_idf.name_en AS cycle_name_en
      FROM ninjas n
      LEFT JOIN ninja_equipment ne_cycle ON ne_cycle.ninja_id = n.id AND ne_cycle.slot = 'cycle'
@@ -162,7 +163,28 @@ export async function getCycleEquipmentByUser(userId) {
   );
 }
 
-export async function consumeUserItem(userItemId) {
-  await query('UPDATE user_items SET consumed = TRUE WHERE id = ?', [userItemId]);
-  await query('DELETE FROM ninja_equipment WHERE user_item_id = ?', [userItemId]);
+export async function consumeUserItem(userItemId, connection = null) {
+  const exec = (sql, params = []) =>
+    connection ? connection.execute(sql, params) : getConnection().then((c) => c.execute(sql, params));
+
+  let ownedConnection = null;
+  try {
+    if (!connection) {
+      ownedConnection = await getConnection();
+      connection = ownedConnection;
+    }
+
+    const [updateResult] = await connection.execute(
+      'UPDATE user_items SET consumed = TRUE WHERE id = ? AND consumed = FALSE',
+      [userItemId]
+    );
+    if (updateResult.affectedRows === 0) {
+      const error = new Error('Objet introuvable ou déjà consommé.');
+      error.statusCode = 404;
+      throw error;
+    }
+    await connection.execute('DELETE FROM ninja_equipment WHERE user_item_id = ?', [userItemId]);
+  } finally {
+    if (ownedConnection) ownedConnection.release();
+  }
 }

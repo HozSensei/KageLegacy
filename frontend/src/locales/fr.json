@@ -461,6 +461,7 @@
       "submit": "Hospitaliser ({cost} Ryos)",
       "sending": "Soins…",
       "debtBlocked": "Dette en cours — hôpital indisponible.",
+      "medKitHint": "Un kit de matériel médical (Inventaire) soigne gratuitement un ninja en forme Lamentable, même en cas de dette.",
       "empty": "Aucun ninja en forme Lamentable éligible aux soins.",
       "medLock": "surveillance médicale prolongée (blessure grave)"
     },
@@ -831,6 +832,10 @@
     "equip": "Équiper",
     "equipCard": "Équiper la carte",
     "use": "Utiliser",
+    "useSuccess": "Objet utilisé.",
+    "useFormeResult": "Forme mise à jour : {from} → {to}.",
+    "usePvHealResult": "PV restaurés : +{amount}.",
+    "medLock": "surveillance médicale prolongée",
     "active": "Actif",
     "bench": "Banc",
     "slotMatch": "Consommable match",
