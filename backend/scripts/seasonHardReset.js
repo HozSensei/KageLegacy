@@ -37,6 +37,7 @@ function printPreview(result) {
   console.log(`  Pools à supprimer    : ${result.preview.poolsToDelete}`);
   console.log(`  Ninjas à supprimer   : ${result.preview.ninjasToDelete}`);
   console.log(`  Matchs à supprimer   : ${result.preview.matchesToDelete}`);
+  console.log(`  Missions recon.      : ${result.preview.reconMissionsToDelete ?? 0}`);
   console.log(`  Notifications        : ${result.preview.notificationsToDelete}`);
   console.log(`\n  Saison cible         : S${result.seasonNumber}`);
   if (result.cycleStartAt) {

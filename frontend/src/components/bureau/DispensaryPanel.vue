@@ -34,6 +34,7 @@ async function treat(ninjaId) {
     <p class="mt-2 text-xs leading-relaxed text-ink-faint">{{ t('bureau.hospital.lead') }}</p>
 
     <p v-if="debtBlocked" class="mt-4 text-xs text-fire">{{ t('bureau.hospital.debtBlocked') }}</p>
+    <p v-if="debtBlocked" class="mt-2 text-xs text-ink-muted">{{ t('bureau.hospital.medKitHint') }}</p>
     <p v-else-if="!treatableCandidates.length" class="mt-4 text-xs text-ink-muted">
       {{ t('bureau.hospital.empty') }}
     </p>

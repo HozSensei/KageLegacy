@@ -26,6 +26,35 @@ export function getMissionMoralGain(tier) {
   return MISSION_MORAL_GAIN[tier] ?? 0;
 }
 
+export function assertDispensaryHealEligible(ninja) {
+  if (ninja.weekly_forme !== 'Lamentable') {
+    const error = new Error('Seuls les ninjas en forme Lamentable peuvent être soignés.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (Number(ninja.forme_lock_cycles) > 0) {
+    const error = new Error(
+      'Ce ninja est sous surveillance médicale prolongée (blessure grave de mission).'
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+}
+
+export async function applyDispensaryHeal(ninjaId, exec = query) {
+  await exec('UPDATE ninjas SET weekly_forme = ?, injury_discount_ryos = 0 WHERE id = ?', [
+    'Passable',
+    ninjaId,
+  ]);
+  return {
+    effect: 'dispensary_heal',
+    ninjaId,
+    previousForme: 'Lamentable',
+    newForme: 'Passable',
+  };
+}
+
 export async function treatNinjaAtDispensary(userId, ninjaId) {
   if (await isTacticsLocked()) {
     const error = new Error('L\'hôpital est fermé pendant l\'opération (à partir de H71).');
@@ -47,17 +76,7 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
     throw error;
   }
 
-  if (ninja.weekly_forme !== 'Lamentable') {
-    const error = new Error('Seuls les ninjas en forme Lamentable peuvent être soignés à l\'hôpital.');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  if (ninja.forme_lock_cycles > 0) {
-    const error = new Error('Ce ninja est sous surveillance médicale prolongée (blessure grave de mission).');
-    error.statusCode = 400;
-    throw error;
-  }
+  assertDispensaryHealEligible(ninja);
 
   const heritage = await getHeritageBonuses(userId);
   const baseCost = getDispensaryCost(ninja.grade);
@@ -81,12 +100,9 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
   }
 
   await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [cost, userId]);
-  await query(
-    'UPDATE ninjas SET weekly_forme = ?, injury_discount_ryos = 0 WHERE id = ?',
-    ['Passable', ninjaId]
-  );
+  const heal = await applyDispensaryHeal(ninjaId);
 
-  return { ninjaId, cost, baseCost, previousForme: 'Lamentable', newForme: 'Passable' };
+  return { ninjaId, cost, baseCost, ...heal };
 }
 
 export async function listDispensaryCandidates(userId) {
