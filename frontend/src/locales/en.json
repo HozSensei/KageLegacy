@@ -1179,6 +1179,10 @@
       "title": "Global season reset",
       "warning": "Destructive operation: wipes gameplay while keeping accounts, clans, heritage scrolls, and Elite subscriptions.",
       "season": "Season",
+      "anchor": "H0 anchor (date and time)",
+      "anchorHint": "Optional. Leave empty to anchor H0 at reset execution time (UTC). Otherwise set the cycle start date and time.",
+      "anchorPreview": "Planned H0 anchor: {at}",
+      "anchorNow": "H0 anchor: now (UTC) at execution",
       "preview": "Preview",
       "confirmCheckbox": "I understand, run the reset",
       "execute": "Run hard reset",
@@ -1186,7 +1190,8 @@
       "eliteSubs": "{count} Elite subscriptions",
       "ninjas": "{count} ninjas to delete",
       "pools": "{count} pools to delete",
-      "matches": "{count} matches to delete"
+      "matches": "{count} matches to delete",
+      "reconMissions": "{count} reconnaissance missions to delete"
     },
     "maintenance": {
       "title": "Maintenance",

@@ -54,6 +54,9 @@ export async function collectSeasonResetPreview() {
     ninjas,
     matches,
     notifications,
+    reconMissions,
+    reconChallenges,
+    scoutIntel,
   ] = await Promise.all([
     listHumanPlayers(),
     snapshotActiveEliteSubscriptions(),
@@ -63,6 +66,9 @@ export async function collectSeasonResetPreview() {
     query('SELECT COUNT(*) AS count FROM ninjas'),
     query('SELECT COUNT(*) AS count FROM matches'),
     query('SELECT COUNT(*) AS count FROM sensei_notifications'),
+    query('SELECT COUNT(*) AS count FROM reconnaissance_missions'),
+    query('SELECT COUNT(*) AS count FROM reconnaissance_challenges'),
+    query('SELECT COUNT(*) AS count FROM cycle_scout_intel'),
   ]);
 
   return {
@@ -74,6 +80,9 @@ export async function collectSeasonResetPreview() {
     ninjasToDelete: Number(ninjas[0]?.count ?? 0),
     matchesToDelete: Number(matches[0]?.count ?? 0),
     notificationsToDelete: Number(notifications[0]?.count ?? 0),
+    reconMissionsToDelete: Number(reconMissions[0]?.count ?? 0),
+    reconChallengesToDelete: Number(reconChallenges[0]?.count ?? 0),
+    scoutIntelToDelete: Number(scoutIntel[0]?.count ?? 0),
     humans,
     eliteSubs,
   };
@@ -93,6 +102,10 @@ async function purgeGameplayState(connection) {
   await exec(`DELETE FROM village_shop_promos`);
   await exec(`DELETE FROM village_shop_card_stock`);
   await exec(`DELETE FROM sensei_notifications`);
+  await exec(`DELETE FROM reconnaissance_registrations`);
+  await exec(`DELETE FROM reconnaissance_missions`);
+  await exec(`DELETE FROM reconnaissance_challenges`);
+  await exec(`DELETE FROM cycle_scout_intel`);
   await exec(`DELETE FROM elite_quest_progress`);
   await exec(`DELETE FROM elite_season_passes`);
   await exec(`DELETE FROM operation_decks`);
