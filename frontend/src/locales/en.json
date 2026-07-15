@@ -815,6 +815,10 @@
     "unequipped": "Unassigned",
     "deckPoolHint": "Card pool — assign per ninja on Squad.",
     "emptyFilter": "No items match these filters.",
+    "filterCategory": {
+      "all": "All",
+      "bureau": "Ninja consumables"
+    },
     "filterStatus": {
       "all": "All",
       "available": "Available",

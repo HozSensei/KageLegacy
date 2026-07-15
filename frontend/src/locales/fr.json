@@ -815,6 +815,10 @@
     "unequipped": "Non assigné",
     "deckPoolHint": "Pool cartes — assignez-les par ninja en Escouade.",
     "emptyFilter": "Aucun objet ne correspond à ces filtres.",
+    "filterCategory": {
+      "all": "Tous",
+      "bureau": "Consommables ninja"
+    },
     "filterStatus": {
       "all": "Tous",
       "available": "Disponibles",
