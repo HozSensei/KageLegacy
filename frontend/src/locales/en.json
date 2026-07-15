@@ -827,7 +827,6 @@
     "active": "Active",
     "bench": "Bench",
     "slotMatch": "Match consumable",
-    "slotCycle": "Cycle investment",
     "slotCard": "Tactic card",
     "cardCharges": "{count} charge(s)",
     "cardBonusRolled": "Bonus {bonus}",

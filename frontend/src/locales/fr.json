@@ -827,7 +827,6 @@
     "active": "Actif",
     "bench": "Banc",
     "slotMatch": "Consommable match",
-    "slotCycle": "Investissement cycle",
     "slotCard": "Carte tactique",
     "cardCharges": "{count} charge(s)",
     "cardBonusRolled": "Bonus {bonus}",
