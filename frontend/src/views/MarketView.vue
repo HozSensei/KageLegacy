@@ -15,8 +15,8 @@ const market = ref(null)
 const buyingId = ref(null)
 const categoryFilter = ref('all')
 
-const CATEGORY_FILTERS = ['all', 'bureau', 'cycle']
-const categoryOrder = ['bureau', 'cycle']
+const CATEGORY_FILTERS = ['all', 'bureau']
+const categoryOrder = ['bureau']
 const { toggle: toggleCategory, isCollapsed } = useCategoryCollapse(
   [...categoryOrder, 'tacticCards']
 )
@@ -30,7 +30,6 @@ const categoryLabel = (cat) => t(`market.categories.${cat}`)
 
 function usageLabel(item) {
   if (item.category === 'bureau') return t('market.bureauOnce')
-  if (item.category === 'cycle') return t('market.cycleItem')
   if (item.category === 'match') return t('market.consumableOnce')
   const limit = item.usageLimits?.[0]
   if (!limit) return ''

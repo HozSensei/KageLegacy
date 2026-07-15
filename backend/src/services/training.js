@@ -1,8 +1,6 @@
 import { query } from '../config/database.js';
 import { clampStatToGradeCap, isStatAtGradeCap } from './gradeProgression.js';
 import { inferPotential } from './ninjaProfile.js';
-import { getCycleEquipmentByUser } from './equipmentService.js';
-import { getTrainingBoostMultiplier } from './combat/equipment.js';
 
 export const TRAINING_TYPE_VALUES = [
   'Chakra',
@@ -102,24 +100,26 @@ function resolvePotential(ninja) {
   );
 }
 
-export function computeTrainingPart(coef, mode, ninja, { cycleMultiplier = 1, rngMultiplier = null } = {}) {
+export function getTrainingBuffMultiplier(ninja) {
+  if (ninja.training_buff === 'strategy_book') return 1.15;
+  if (ninja.training_buff === 'training_weights') return 1.2;
+  return 1;
+}
+
+export function computeTrainingPart(coef, mode, ninja, { rngMultiplier = null } = {}) {
   const mult = rngMultiplier ?? rollTrainingMultiplier(mode);
   const potentialMult = getPotentialMultiplier(resolvePotential(ninja));
   const ageMult = ageCoefficient(ninja.age);
-  let part = coef * mult * potentialMult * ageMult * cycleMultiplier;
-  if (ninja.training_buff === 'strategy_book') {
-    part *= 1.15;
-  }
-  return part;
+  const buffMult = getTrainingBuffMultiplier(ninja);
+  return coef * mult * potentialMult * ageMult * buffMult;
 }
 
-export function getTrainingGainRange(coef, mode, ninja, { cycleMultiplier = 1 } = {}) {
+export function getTrainingGainRange(coef, mode, ninja) {
   const [minRng, maxRng] = mode === 'preparation' ? PREP_RNG : GLOBAL_RNG;
   const potentialMult = getPotentialMultiplier(resolvePotential(ninja));
   const ageMult = ageCoefficient(ninja.age);
-  let buffMult = 1;
-  if (ninja.training_buff === 'strategy_book') buffMult = 1.15;
-  const base = coef * potentialMult * ageMult * cycleMultiplier * buffMult;
+  const buffMult = getTrainingBuffMultiplier(ninja);
+  const base = coef * potentialMult * ageMult * buffMult;
   return { min: base * minRng, max: base * maxRng, avg: base };
 }
 
@@ -235,7 +235,9 @@ export function computeTrainingSession(ninja, trainingType, mode, options = {}) 
     skipped: false,
     gains: distribution.gains,
     focusStat: distribution.focusStat,
-    clearStrategyBook: mode === 'preparation' && ninja.training_buff === 'strategy_book',
+    clearTrainingBuff:
+      (mode === 'preparation' && ninja.training_buff === 'strategy_book') ||
+      ninja.training_buff === 'training_weights',
     logs,
   };
 }
@@ -272,7 +274,7 @@ async function applyGainsToNinja(ninja, session) {
   setClauses.push('stat_residuals = ?');
   values.push(JSON.stringify(residuals));
 
-  if (session.clearStrategyBook) {
+  if (session.clearTrainingBuff) {
     setClauses.push('training_buff = ?');
     values.push(null);
   }
@@ -294,13 +296,6 @@ export async function applyTrainingForUser(
   const ninjas = await query('SELECT * FROM ninjas WHERE user_id = ?', [userId]);
   if (!ninjas.length) return { logs: [], sessions: [] };
 
-  const cycleGear = await getCycleEquipmentByUser(userId);
-  const cycleByNinja = cycleGear.reduce((acc, row) => {
-    if (!acc[row.ninja_id]) acc[row.ninja_id] = [];
-    acc[row.ninja_id].push(row);
-    return acc;
-  }, {});
-
   const logs = [];
   const sessions = [];
 
@@ -318,8 +313,7 @@ export async function applyTrainingForUser(
       continue;
     }
 
-    const cycleMultiplier = getTrainingBoostMultiplier(ninja, cycleByNinja[ninja.id] || []);
-    const session = computeTrainingSession(ninja, trainingType, mode, { cycleMultiplier });
+    const session = computeTrainingSession(ninja, trainingType, mode);
 
     if (session.skipped) {
       sessions.push({
@@ -357,11 +351,11 @@ export async function applyTrainingForUser(
   return { logs, sessions };
 }
 
-export function previewTrainingSession(ninja, trainingType, mode, { cycleMultiplier = 1 } = {}) {
+export function previewTrainingSession(ninja, trainingType, mode) {
   if (!trainingType) return null;
 
   const coef = mode === 'preparation' ? PREP_COEF : GLOBAL_COEF;
-  const range = getTrainingGainRange(coef, mode, ninja, { cycleMultiplier });
+  const range = getTrainingGainRange(coef, mode, ninja);
   const config = TRAINING_TYPES[trainingType];
   if (!config) return null;
 

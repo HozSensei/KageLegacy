@@ -13,6 +13,7 @@ export const BUREAU_REASON = {
   PV_FULL: 'pvFull',
   MORAL_MAX: 'moralMax',
   STATS_MAX: 'statsMax',
+  TRAINING_BUFF_ACTIVE: 'trainingBuffActive',
   USE_BUREAU_PANEL: 'useBureauPanel',
   UNSUPPORTED_ITEM: 'unsupportedItem',
   ITEM_LISTED: 'itemListed',
@@ -39,6 +40,7 @@ const REASON_MESSAGES = {
   [BUREAU_REASON.PV_FULL]: 'Les PV de ce ninja sont déjà au maximum.',
   [BUREAU_REASON.MORAL_MAX]: 'Le moral de ce ninja est déjà au maximum.',
   [BUREAU_REASON.STATS_MAX]: 'Toutes les stats de ce ninja sont déjà au plafond de grade.',
+  [BUREAU_REASON.TRAINING_BUFF_ACTIVE]: 'Ce ninja a déjà un bonus d\'entraînement actif.',
   [BUREAU_REASON.USE_BUREAU_PANEL]: 'Utilisez cet objet depuis le Bureau, pas l\'inventaire.',
   [BUREAU_REASON.UNSUPPORTED_ITEM]: 'Type d\'objet bureau non géré.',
   [BUREAU_REASON.ITEM_LISTED]: 'Retirez l\'objet de la vente avant de l\'utiliser.',
@@ -126,8 +128,11 @@ export function evaluateBureauItemEligibility({
       return eligible();
     }
     case 'strategy_book':
-    case 'injury_discount':
+    case 'training_boost': {
+      if (ninja.training_buff) return ineligible(BUREAU_REASON.TRAINING_BUFF_ACTIVE);
       return eligible();
+    }
+    case 'injury_discount':
     case 'pv_heal_pct': {
       const maxPv = computeMatchPv(ninja.taijutsu);
       if (Number(ninja.current_pv_match) >= maxPv) return ineligible(BUREAU_REASON.PV_FULL);

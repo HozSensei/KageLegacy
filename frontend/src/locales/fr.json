@@ -109,6 +109,7 @@
     "chuninProgress": "Progression Chunin",
     "joninProgress": "Progression Jonin",
     "strategyBookBuff": "Livre de stratégie",
+    "trainingWeightsBuff": "Poids d'entraînement (+20 %)",
     "profile": {
       "voie": "Voie",
       "potentiel": "Potentiel",
@@ -795,20 +796,18 @@
     "usesPerMatch": "{count} utilisation(s) / match",
     "consumableOnce": "Usage unique — détruit après le match",
     "bureauOnce": "Usage unique — depuis le Bureau",
-    "cycleItem": "Actif tout le cycle (72 h)",
     "categories": {
-      "bureau": "Consommables ninja",
-      "cycle": "Équipement cycle"
+      "bureau": "Consommables ninja"
     }
   },
   "inventory": {
     "kicker": "Équipement",
-    "lead": "Consommables ninja (utiliser sur un ninja), équipement cycle (1 par ninja) et cartes technique (3 par ninja actif en Escouade).",
+    "lead": "Consommables ninja (utiliser sur un ninja) et cartes technique (3 par ninja actif en Escouade).",
     "loading": "Chargement…",
     "items": "Objets",
     "tacticCards": "Cartes technique",
     "ninjas": "Effectif",
-    "selectNinja": "Sélectionnez un ninja à équiper.",
+    "selectNinja": "Sélectionnez un ninja pour utiliser l'objet.",
     "cardDeckHint": "Assignez chaque carte technique à un ninja actif depuis Escouade → deck d'opération (prérequis d'élément affiché sur la carte).",
     "openSquadDeck": "Configurer en Escouade →",
     "equippedOn": "Équipé sur {name}",
@@ -816,14 +815,8 @@
     "unequipped": "Non assigné",
     "deckPoolHint": "Pool cartes — assignez-les par ninja en Escouade.",
     "emptyFilter": "Aucun objet ne correspond à ces filtres.",
-    "filterCategory": {
-      "all": "Tous",
-      "bureau": "Consommables",
-      "cycle": "Cycle"
-    },
     "filterStatus": {
       "all": "Tous",
-      "equipped": "Équipés",
       "available": "Disponibles",
       "listed": "En vente"
     },
@@ -835,6 +828,7 @@
     "useSuccess": "Objet utilisé.",
     "useFormeResult": "Forme mise à jour : {from} → {to}.",
     "usePvHealResult": "PV restaurés : +{amount}.",
+    "useTrainingBoostResult": "Bonus d'entraînement +20 % appliqué sur le prochain entraînement.",
     "medLock": "surveillance médicale prolongée",
     "noEligibleNinja": "Aucun ninja éligible pour cet objet — consultez les raisons ci-contre.",
     "useBlocked": {
@@ -847,6 +841,7 @@
       "pvFull": "PV déjà au maximum.",
       "moralMax": "Moral déjà au maximum.",
       "statsMax": "Stats déjà au plafond de grade.",
+      "trainingBuffActive": "Bonus d'entraînement déjà actif sur ce ninja.",
       "useBureauPanel": "À utiliser depuis le Bureau.",
       "unsupportedItem": "Objet non utilisable ici.",
       "itemListed": "Retirez l'objet de la vente avant utilisation."
@@ -854,7 +849,6 @@
     "active": "Actif",
     "bench": "Banc",
     "slotMatch": "Consommable match",
-    "slotCycle": "Investissement cycle",
     "slotCard": "Carte tactique",
     "cardCharges": "{count} charge(s)",
     "cardBonusRolled": "Bonus {bonus}",
@@ -945,7 +939,6 @@
     "tierUsed": "Rang déjà pris ce cycle",
     "lowSuccess": "Réussite faible ({pct} %)",
     "examBlocked": "examen / Vol d'Oiseau",
-    "cycleGearBlocked": "objet cycle équipé",
     "cost": "Coût",
     "reward": "Gains possibles",
     "net": "Net",

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireUser } from '../middleware/auth.js';
 import { getGameClock } from '../models/sensei.js';
-import { getInventoryForUser, equipItem, unequipItem } from '../services/equipmentService.js';
+import { getInventoryForUser } from '../services/equipmentService.js';
 import { getTacticCardsForUser } from '../services/tacticCards/tacticCardService.js';
 import { useBureauItem } from '../services/bureauItemService.js';
 
@@ -18,41 +18,6 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    res.json(await inventoryPayload(user.id));
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/equip', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-
-    const ninjaId = Number(req.body?.ninjaId);
-    const userItemId = Number(req.body?.userItemId);
-    if (!ninjaId || !userItemId) {
-      return res.status(400).json({ error: 'ninjaId et userItemId requis.' });
-    }
-
-    await equipItem(user.id, ninjaId, userItemId);
-    res.json(await inventoryPayload(user.id));
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/unequip', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-
-    const ninjaId = Number(req.body?.ninjaId);
-    if (!ninjaId) {
-      return res.status(400).json({ error: 'ninjaId requis.' });
-    }
-
-    await unequipItem(user.id, ninjaId);
     res.json(await inventoryPayload(user.id));
   } catch (error) {
     next(error);

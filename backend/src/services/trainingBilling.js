@@ -1,7 +1,5 @@
 import { query } from '../config/database.js';
 import { computeSalaryCost } from './ninjaStats.js';
-import { getCycleEquipmentByUser } from './equipmentService.js';
-import { getSalaryDiscountPercent } from './combat/equipment.js';
 import {
   applyTrainingForUser,
   computeTrainingCost,
@@ -20,13 +18,6 @@ export async function computeSalaryTotalForUser(userId) {
     [userId]
   );
 
-  const cycleGear = await getCycleEquipmentByUser(userId);
-  const cycleByNinja = cycleGear.reduce((acc, row) => {
-    if (!acc[row.ninja_id]) acc[row.ninja_id] = [];
-    acc[row.ninja_id].push(row);
-    return acc;
-  }, {});
-
   let total = 0;
   const lines = [];
 
@@ -39,11 +30,7 @@ export async function computeSalaryTotalForUser(userId) {
       vitesse: ninja.vitesse,
       intelligence: ninja.intelligence,
     };
-    let salary = computeSalaryCost(ninja.grade, stats);
-    const discount = getSalaryDiscountPercent(ninja, cycleByNinja[ninja.id] || []);
-    if (discount > 0) {
-      salary = Math.max(0, Math.floor(salary * (1 - discount / 100)));
-    }
+    const salary = computeSalaryCost(ninja.grade, stats);
     total += salary;
     lines.push({ ninjaId: ninja.id, amount: salary, label: 'salaire' });
   }

@@ -109,6 +109,7 @@
     "chuninProgress": "Chunin progress",
     "joninProgress": "Jonin progress",
     "strategyBookBuff": "Strategy book",
+    "trainingWeightsBuff": "Training weights (+20%)",
     "profile": {
       "voie": "Path",
       "potentiel": "Potential",
@@ -795,20 +796,18 @@
     "usesPerMatch": "{count} use(s) per match",
     "consumableOnce": "Single use — destroyed after the match",
     "bureauOnce": "Single use — from Bureau",
-    "cycleItem": "Active for the full cycle (72 h)",
     "categories": {
-      "bureau": "Ninja consumables",
-      "cycle": "Cycle gear"
+      "bureau": "Ninja consumables"
     }
   },
   "inventory": {
     "kicker": "Equipment",
-    "lead": "Ninja consumables (use on a ninja), cycle gear (one per ninja), and technique cards (3 per active ninja on Squad).",
+    "lead": "Ninja consumables (use on a ninja) and technique cards (3 per active ninja on Squad).",
     "loading": "Loading…",
     "items": "Items",
     "tacticCards": "Technique cards",
     "ninjas": "Roster",
-    "selectNinja": "Select a ninja to equip.",
+    "selectNinja": "Select a ninja to use the item.",
     "cardDeckHint": "Assign each technique card to an active ninja from Squad → operation deck (element requirement shown on card).",
     "openSquadDeck": "Configure on Squad →",
     "equippedOn": "Equipped on {name}",
@@ -816,14 +815,8 @@
     "unequipped": "Unassigned",
     "deckPoolHint": "Card pool — assign per ninja on Squad.",
     "emptyFilter": "No items match these filters.",
-    "filterCategory": {
-      "all": "All",
-      "bureau": "Consumables",
-      "cycle": "Cycle"
-    },
     "filterStatus": {
       "all": "All",
-      "equipped": "Equipped",
       "available": "Available",
       "listed": "Listed"
     },
@@ -835,6 +828,7 @@
     "useSuccess": "Item used.",
     "useFormeResult": "Form updated: {from} → {to}.",
     "usePvHealResult": "HP restored: +{amount}.",
+    "useTrainingBoostResult": "+20% training bonus applied to the next session.",
     "medLock": "extended medical watch",
     "noEligibleNinja": "No eligible ninja for this item — see reasons on the right.",
     "useBlocked": {
@@ -847,6 +841,7 @@
       "pvFull": "HP already at maximum.",
       "moralMax": "Morale already at maximum.",
       "statsMax": "Stats already at grade cap.",
+      "trainingBuffActive": "This ninja already has an active training bonus.",
       "useBureauPanel": "Use this item from the Bureau.",
       "unsupportedItem": "Item cannot be used here.",
       "itemListed": "Remove the item from sale before using it."
@@ -854,7 +849,6 @@
     "active": "Active",
     "bench": "Bench",
     "slotMatch": "Match consumable",
-    "slotCycle": "Cycle investment",
     "slotCard": "Tactic card",
     "cardCharges": "{count} charge(s)",
     "cardBonusRolled": "Bonus {bonus}",
@@ -945,7 +939,6 @@
     "tierUsed": "Rank already taken this cycle",
     "lowSuccess": "Low success ({pct}%)",
     "examBlocked": "exam / Bird Flight",
-    "cycleGearBlocked": "cycle item equipped",
     "cost": "Cost",
     "reward": "Possible rewards",
     "net": "Net",

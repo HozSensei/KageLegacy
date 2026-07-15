@@ -65,8 +65,22 @@ async function applyBureauEffect({ trigger, bureau, userId, ninjaId, ninja, exec
       return { effect: 'forme_upgrade', from: ninja.weekly_forme, to: next, ninjaId };
     }
     case 'strategy_book': {
+      if (ninja.training_buff) {
+        const error = new Error('Ce ninja a déjà un bonus d\'entraînement actif.');
+        error.statusCode = 400;
+        throw error;
+      }
       await exec('UPDATE ninjas SET training_buff = ? WHERE id = ?', ['strategy_book', ninjaId]);
       return { effect: 'strategy_book', ninjaId };
+    }
+    case 'training_boost': {
+      if (ninja.training_buff) {
+        const error = new Error('Ce ninja a déjà un bonus d\'entraînement actif.');
+        error.statusCode = 400;
+        throw error;
+      }
+      await exec('UPDATE ninjas SET training_buff = ? WHERE id = ?', ['training_weights', ninjaId]);
+      return { effect: 'training_boost', buff: 'training_weights', ninjaId };
     }
     case 'pv_heal_pct': {
       const maxPv = computeMatchPv(ninja.taijutsu);
