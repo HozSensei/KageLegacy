@@ -18,7 +18,7 @@ import {
 
 const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
-const TRAITS = ['Discipline', 'Temeraire', 'Altruiste', 'Egoiste', 'Faineant'];
+const TRAITS = ['Brute', 'Canaliseur', 'Illusionniste', 'Guerisseur', 'Veloce', 'Stratege'];
 
 function pick(arr, i = 0) {
   return arr[i % arr.length];
@@ -63,7 +63,8 @@ export function createNinja({
     squad_position,
     weekly_forme,
     moral,
-    character_trait: 'Discipline',
+    character_trait: 'Brute',
+    trait_boost: 1,
     element_affinity: pick(ELEMENTS, id),
     training_residual: 0,
     chunin_exam_requested: false,

@@ -5,7 +5,7 @@ const mockClan = { id: 1, name: 'Yamanaka', is_noble: false, genjutsu_bonus: 2, 
 
 const samples = [];
 for (let i = 0; i < 20; i += 1) {
-  const p = await generateNinjaProfile({ clan: mockClan, grade: 'Genin', characterTrait: 'Discipline' });
+  const p = await generateNinjaProfile({ clan: mockClan, grade: 'Genin', characterTrait: 'Brute' });
   samples.push(p);
 }
 

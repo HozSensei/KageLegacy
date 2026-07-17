@@ -125,30 +125,33 @@
     }
   },
   "traits": {
-    "Egoiste": {
-      "label": "Selfish",
-      "bonus": "Solitary pride: +2 Taijutsu/Ninjutsu when teammates have less HP.",
-      "malus": "Defiant: ignores protection orders (will never take the Defensive order)."
+    "none": {
+      "label": "No profile",
+      "hint": "No stat bias — neutral silhouette."
     },
-    "Altruiste": {
-      "label": "Altruistic",
-      "bonus": "Bodyguard: 50% chance to take a fatal blow for an ally.",
-      "malus": "Sensitive: morale drops twice as fast after a defeat."
+    "Brute": {
+      "label": "Brute",
+      "hint": "Taijutsu bias."
     },
-    "Faineant": {
-      "label": "Lazy",
-      "bonus": "Olympian calm: immune to the first Genjutsu of the match.",
-      "malus": "Slacker: 15% chance to skip training."
+    "Canaliseur": {
+      "label": "Channeler",
+      "hint": "Ninjutsu bias."
     },
-    "Temeraire": {
-      "label": "Reckless",
-      "bonus": "Heroic charge: +4 Speed on turn 1.",
-      "malus": "Raw consumption: +20% Chakra cost on techniques."
+    "Illusionniste": {
+      "label": "Illusionist",
+      "hint": "Genjutsu bias."
     },
-    "Discipline": {
-      "label": "Disciplined",
-      "bonus": "Total reliability: follows all orders to the letter.",
-      "malus": "No special unpredictable effects."
+    "Guerisseur": {
+      "label": "Healer",
+      "hint": "Medicine bias."
+    },
+    "Veloce": {
+      "label": "Swift",
+      "hint": "Speed bias."
+    },
+    "Stratege": {
+      "label": "Strategist",
+      "hint": "Intelligence bias."
     }
   },
   "auth": {

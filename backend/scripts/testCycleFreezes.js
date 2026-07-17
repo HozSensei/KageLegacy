@@ -52,7 +52,7 @@ async function createUserWithSquad(poolId, label, clanTraitId) {
          user_id, name, grade, age, squad_position, preparation_type,
          taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
          moral, weekly_forme, character_trait, element_affinity, clan_trait_id
-       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Discipline', 'Katon', ?)`,
+       ) VALUES (?, ?, 'Chunin', 16, ?, 'Physique', 15, 15, 15, 15, 15, 15, 15, 'Passable', 'Brute', 'Katon', ?)`,
       [userId, `${label}_n${pos}`, pos, clanTraitId]
     );
     ninjaIds.push(result.insertId);

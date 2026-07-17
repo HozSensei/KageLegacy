@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
 import { STAT_COLUMNS } from '../../utils/trainingPreview.js'
 import NinjaProfileBadges from './NinjaProfileBadges.vue'
+import NinjaTraitLabel from './NinjaTraitLabel.vue'
 
 defineOptions({ name: 'NinjaPanelCard' })
 
@@ -120,15 +121,7 @@ function isFocusedStat(column) {
         {{ ninja.age }} {{ t('ninja.age') }}
       </p>
 
-      <div v-if="showTrait" class="trait-tooltip mt-2">
-        <p class="text-sm italic leading-snug text-ink-muted">
-          {{ t(`traits.${ninja.character_trait}.label`) }}
-        </p>
-        <div class="trait-tooltip__panel" role="tooltip">
-          <p class="text-accent-soft">{{ t(`traits.${ninja.character_trait}.bonus`) }}</p>
-          <p class="mt-1.5 text-ink-faint">{{ t(`traits.${ninja.character_trait}.malus`) }}</p>
-        </div>
-      </div>
+      <NinjaTraitLabel v-if="showTrait" class="mt-2" :ninja="ninja" size="sm" />
 
       <slot name="header-extra" />
     </header>

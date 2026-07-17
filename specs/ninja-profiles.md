@@ -16,15 +16,16 @@ Le manager ne peut pas vraiment choisir « mon spécialiste genjutsu » vs « mo
 
 ---
 
-## 🧬 Trois axes d'identité (complémentaires)
+## 🧬 Quatre axes d'identité (complémentaires)
 
 | Axe | Rôle | Exemple |
 | :--- | :--- | :--- |
 | **Clan** | ADN fixe, bonus plats — **rare** (noble ~10 %) | Uchiwa → feu/illusion ; roturier = majorité |
 | **Voie (art principal)** | Spécialisation de combat | Genjutsu, Taijutsu, Ninjutsu, Médecine |
 | **Potentiel** | Talent brut + vitesse de progression | Ordinaire / Prometteur / Prodige |
+| **Profil de caractère** | Petit biais d'**une** stat (+1/+2) ou **sans profil** | Brute → Taijutsu ; Véloce → Vitesse |
 
-Le **trait de caractère** reste le comportement en match (Égoïste, Fainéant…), pas la spécialisation stats.
+Le profil n'est **pas** un comportement en match : le boost est appliqué une fois à la génération (stats figées). Intensité lue à la couleur en UI (pas de « +1 » écrit).
 
 ---
 
@@ -73,6 +74,7 @@ Labels dérivés (pas besoin de deviner les chiffres) :
 | :--- | :--- |
 | Voie | « Spécialiste Genjutsu » |
 | Potentiel | « Profil prometteur » / « Talent ordinaire » / « Prodige » |
+| Profil de caractère | « Brute » / « Véloce » / « Sans profil » — couleur = +1 ou +2 |
 | Élément | « Affinité Katon » (déjà en BDD) |
 | Clan | « Clan Nara » (déjà) |
 

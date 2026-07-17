@@ -57,7 +57,7 @@ export function previewTrainingSession(ninja, trainingType, mode) {
     mode,
     allCapped: statPreviews.every((preview) => preview.atCap),
     statPreviews,
-    lazyRisk: ninja.character_trait === 'Faineant' || ninja.characterTrait === 'Faineant',
+    lazyRisk: false,
   };
 }
 

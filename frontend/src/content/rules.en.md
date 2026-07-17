@@ -317,17 +317,21 @@ Each ninja has **form** for the cycle (best to worst: Divine → Excellent → P
 
 After a match, K.O.'d ninjas drop **one form tier**. At H72, HP and chakra are fully restored.
 
-### Character traits
+### Character profiles
 
-Each ninja has a **trait** affecting operation behavior:
+Each ninja may have a **profile** that slightly biases **one** stat at generation (+1 or +2 already baked into the sheet). About one third of ninjas have **no profile**.
 
-| Trait | Behavior (summary) |
-|-------|-------------------|
-| **Selfish** | More aggressive when allies are weakened; sometimes ignores defensive targeting |
-| **Altruistic** | May take a fatal blow for an ally |
-| **Lazy** | Resists the first Genjutsu suffered; may skip training |
-| **Reckless** | Very fast on turn one; spends more chakra |
-| **Disciplined** | Standard, predictable behavior |
+| Profile | Favored stat |
+|---------|--------------|
+| **Brute** | Taijutsu |
+| **Channeler** | Ninjutsu |
+| **Illusionist** | Genjutsu |
+| **Healer** | Medicine |
+| **Swift** | Speed |
+| **Strategist** | Intelligence |
+| **No profile** | No bias |
+
+Boost intensity (+1 or +2) is shown by the **label color** on the sheet (stronger = +2) — the number is not written. Profile is orthogonal to **art**, **clan**, and **potential**.
 
 ### Elements (affinity)
 
@@ -698,3 +702,4 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 | 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
 | 2026-07-15 | Restructured into two parts: interface by menus, then game systems |
 | 2026-07-17 | Removed Elite Pack (disabled), obsolete orders/postures and match items; aligned on operation deck |
+| 2026-07-17 | Character profiles (Brute…Strategist / no profile) — +1/+2 stat bias at generation |

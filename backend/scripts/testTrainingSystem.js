@@ -31,7 +31,7 @@ const genin = {
   medecine: 4,
   vitesse: 5,
   intelligence: 4,
-  character_trait: 'Discipline',
+  character_trait: 'Brute',
 };
 
 const prodige = { ...genin, potential: 'prodige', ninjutsu: 9, intelligence: 6 };

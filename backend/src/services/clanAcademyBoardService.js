@@ -29,6 +29,7 @@ function mapBoardRow(row, viewerUserId) {
       primaryArt: candidate.primary_art,
       element: candidate.element_affinity,
       characterTrait: candidate.character_trait,
+      traitBoost: candidate.trait_boost,
       profile: candidate.displayProfile,
     },
   };

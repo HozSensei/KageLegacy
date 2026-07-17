@@ -125,30 +125,33 @@
     }
   },
   "traits": {
-    "Egoiste": {
-      "label": "Égoïste",
-      "bonus": "Fierté solitaire : +2 Taijutsu/Ninjutsu si ses coéquipiers ont moins de PV.",
-      "malus": "Insoumis : ignore les consignes de protection (ne prendra jamais la consigne Défensive)."
+    "none": {
+      "label": "Sans profil",
+      "hint": "Aucun biais de stats — silhouette neutre."
     },
-    "Altruiste": {
-      "label": "Altruiste",
-      "bonus": "Garde du corps : 50% de chances d'encaisser un coup fatal à la place d'un allié.",
-      "malus": "Sensible : moral qui chute deux fois plus vite après une défaite."
+    "Brute": {
+      "label": "Brute",
+      "hint": "Biais Taijutsu."
     },
-    "Faineant": {
-      "label": "Fainéant",
-      "bonus": "Détachement olympien : immunisé contre le premier Genjutsu du match.",
-      "malus": "Poil dans la main : 15% de chances de sécher l'entraînement."
+    "Canaliseur": {
+      "label": "Canaliseur",
+      "hint": "Biais Ninjutsu."
     },
-    "Temeraire": {
-      "label": "Téméraire",
-      "bonus": "Charge héroïque : +4 Vitesse au premier tour.",
-      "malus": "Consommation brute : +20% de coût en Chakra sur ses techniques."
+    "Illusionniste": {
+      "label": "Illusionniste",
+      "hint": "Biais Genjutsu."
     },
-    "Discipline": {
-      "label": "Discipliné",
-      "bonus": "Fiabilité totale : suit toutes les consignes à la lettre.",
-      "malus": "Aucun effet spécial imprévisible."
+    "Guerisseur": {
+      "label": "Guérisseur",
+      "hint": "Biais Médecine."
+    },
+    "Veloce": {
+      "label": "Véloce",
+      "hint": "Biais Vitesse."
+    },
+    "Stratege": {
+      "label": "Stratège",
+      "hint": "Biais Intelligence."
     }
   },
   "auth": {

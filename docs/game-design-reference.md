@@ -65,15 +65,21 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 
 Après un match : les K.O. descendent d’un palier. À H72, PV et chakra sont restaurés à 100 %.
 
-### Traits de caractère
+### Profils de caractère
 
-| Trait | Comportement |
-|-------|--------------|
-| **Égoïste** | +2 attaque si alliés ont moins de PV ; ignore le ciblage Tank |
-| **Altruiste** | 50 % de chances d’encaisser un coup fatal à la place d’un allié |
-| **Fainéant** | Immunisé au 1er Genjutsu ; 15 % de rater l’entraînement |
-| **Téméraire** | +4 Vitesse tour 1 ; coût chakra 12 au lieu de 10 |
-| **Discipliné** | Standard, sans surprise |
+Biais de **une** stat à la génération (+1 courant, +2 rare), déjà intégré dans la fiche. ~30 % sans profil.
+
+| Profil | Stat |
+|--------|------|
+| **Brute** | Taijutsu |
+| **Canaliseur** | Ninjutsu |
+| **Illusionniste** | Genjutsu |
+| **Guérisseur** | Médecine |
+| **Véloce** | Vitesse |
+| **Stratège** | Intelligence |
+| **Sans profil** | — |
+
+UI : couleur du libellé = intensité (+1 soft / +2 accent). Orthogonal à voie / clan / potentiel.
 
 ### Éléments
 
@@ -354,7 +360,7 @@ Ces mécaniques façonnent les PV restants à la fin :
 - **Deck d'opération** : domaines, carte technique, avantages de type (+20 %)
 - **Note globale** : PV max = note × 10
 - **Effets de domaine** : Tai / Gen / Med / Nin selon le pli
-- **Traits** : Égoïste, Altruiste, etc. (effets narratifs / situations limites)
+- **Profils de caractère** : biais stats déjà intégré à la génération (pas d'effet dynamique en match)
 - **Environnement** : météo / terrain sur certains domaines
 
 ### Schéma décisionnel
@@ -417,3 +423,4 @@ Quelques angles ouverts pour de nouvelles features :
 | 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
 | 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |
 | 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |
+| 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais +1/+2 à la génération |

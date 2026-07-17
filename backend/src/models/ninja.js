@@ -62,10 +62,10 @@ export async function createNinja(data) {
 
   const result = await query(
     `INSERT INTO ninjas (
-      user_id, name, age, grade, clan_trait_id, element_affinity, character_trait,
+      user_id, name, age, grade, clan_trait_id, element_affinity, character_trait, trait_boost,
       salary_cost, language, taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
       weekly_forme, moral, current_pv_match, current_chakra_match, squad_position
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       validated.user_id,
       validated.name,
@@ -73,7 +73,8 @@ export async function createNinja(data) {
       validated.grade,
       validated.clan_trait_id,
       validated.element_affinity,
-      validated.character_trait,
+      validated.character_trait ?? null,
+      validated.trait_boost ?? null,
       salary_cost,
       validated.language,
       validated.taijutsu,
