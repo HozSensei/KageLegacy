@@ -17,6 +17,7 @@ Hors scope : match de la journée, réactions emoji, quotas mur.
 | Portée | `pool_id` + `season_number` |
 | Longueur | 1–280 caractères |
 | Quota | Aucun |
+| Modération | Liste minimale FR/EN : mot → 1ʳᵉ lettre + `*` (ex. `merde` → `m****`) |
 | Pagination | 20 posts / page (`beforeId`) |
 | Auteurs | Humains membres de la pool |
 | Reset | Nouvelle saison → mur vide (filtre `season_number`) |

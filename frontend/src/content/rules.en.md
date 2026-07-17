@@ -650,7 +650,7 @@ Tie-breakers: wins, then matches played.
 
 ### League wall
 
-Season-long discussion thread for Sensei in your pool. No post quota (short messages, pagination). Automatic reset on a **new season** (promotion / relegation).
+Season-long discussion thread for Sensei in your pool. No post quota (short messages, pagination). Automatic reset on a **new season** (promotion / relegation). A minimal FR/EN **word filter** masks swear words (keeps the first letter, replaces the rest with `*`).
 
 ### Head-to-head and nemesis
 
