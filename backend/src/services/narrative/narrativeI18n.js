@@ -90,11 +90,11 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
   };
 
   if (dmg > 0 && cible) {
-    pushUnique(lang === 'en' ? `${dmg} damage dealt to ${cible}` : `${dmg} dégâts infligés à ${cible}`);
+    pushUnique(lang === 'en' ? `${dmg} HP dealt to ${cible}` : `${dmg} PV infligés à ${cible}`);
   }
   if (dmgAway > 0 && cibleAway) {
     const awayLine =
-      lang === 'en' ? `${dmgAway} damage dealt to ${cibleAway}` : `${dmgAway} dégâts infligés à ${cibleAway}`;
+      lang === 'en' ? `${dmgAway} HP dealt to ${cibleAway}` : `${dmgAway} PV infligés à ${cibleAway}`;
     if (!(dmg === dmgAway && cible === cibleAway)) {
       pushUnique(awayLine);
     }
@@ -291,6 +291,8 @@ export function resolveSegmentText(locale, segment) {
         ending_tour: vars.ending_tour,
         home_score_pct: vars.home_score_pct,
         away_score_pct: vars.away_score_pct,
+        home_plis_won: vars.home_plis_won,
+        away_plis_won: vars.away_plis_won,
         home_possession_pct: vars.home_possession_pct,
         away_possession_pct: vars.away_possession_pct,
         ko_sentence: vars.ko_sentence,
@@ -304,6 +306,8 @@ export function resolveSegmentText(locale, segment) {
       loser_score_pct: vars.loser_score_pct,
       winner_possession_pct: vars.winner_possession_pct,
       loser_possession_pct: vars.loser_possession_pct,
+      winner_plis_won: vars.winner_plis_won,
+      loser_plis_won: vars.loser_plis_won,
       ko_sentence: vars.ko_sentence,
     });
   }

@@ -656,8 +656,8 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 
 ### Déroulement visible
 
-- **Chronique narrative** : récit romancé débloqué progressivement après H71 (les deux adversaires lisent la même histoire au même rythme).
-- **Débrief mécanique** : plis gagnés, scores PV, environnement — ton analytique personnalisé.
+- **Rapport d'opération** : courte intro narrative, puis **échanges de plis en face-à-face** (vainqueur surligné, dégâts en **PV**), puis conclusion. Même présentation pour la **reconnaissance**.
+- **Débrief mécanique** : plis gagnés, PV restants, environnement — ton analytique personnalisé.
 - **Spectateur** : possibilité de suivre des matchs d'autres pools.
 
 ### Structure d'un match
@@ -704,3 +704,4 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 | 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |
 | 2026-07-17 | Retrait Pack Élite (désactivé), consignes/postures et objets match obsolètes ; alignement sur le deck d'opération |
 | 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais stats +1/+2 à la génération |
+| 2026-07-17 | Rapport d'opération / reconnaissance en face-à-face (dégâts en PV) |

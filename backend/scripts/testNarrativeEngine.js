@@ -94,7 +94,7 @@ if (!debrief.some((d) => d.code === 'environment')) throw new Error('debrief env
 
 const denouement = narrative.segments.find((s) => s.block_type === 'denouement');
 const denouementFr = resolveSegmentText('fr', denouement);
-if (!denouementFr.includes('58%')) throw new Error('denouement score manquant');
+if (!denouementFr.includes('58') || !denouementFr.includes('41')) throw new Error('denouement score manquant');
 if (!denouementFr.includes('plis')) throw new Error('denouement plis manquant');
 
 const actionSeg = narrative.segments.find((s) => s.block_type === 'action' && s.template_key === 'chronicle.pli');

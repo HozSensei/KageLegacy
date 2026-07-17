@@ -3,6 +3,7 @@ import { getGameClock } from './gameClock.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { buildDebriefing, pickSuspenseLine } from './narrative/debriefing.js';
 import { resolveSegmentText } from './narrative/narrativeI18n.js';
+import { mapChronicleSegmentForClient } from './narrative/pliExchangeView.js';
 import { getNarrativeSegments } from './narrative/narrativeStore.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import {
@@ -69,11 +70,9 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
 
   const chronicle = allSegments
     .filter((s) => revealComplete || Number(s.unlock_minutes) <= unlockedMinutes)
-    .map((s) => ({
-      order: s.segment_order,
-      blockType: s.block_type,
-      text: resolveSegmentText(viewerLocale, s),
-    }));
+    .map((s) =>
+      mapChronicleSegmentForClient(s, (seg) => resolveSegmentText(viewerLocale, seg))
+    );
 
   const hasDenouement = chronicle.some((s) => s.blockType === 'denouement');
   const morePending =

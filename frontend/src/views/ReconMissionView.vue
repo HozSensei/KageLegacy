@@ -72,7 +72,6 @@ async function fetchMission() {
             class="operation-match-header__card"
             :identity="payload.mission.homeIdentity"
             variant="match"
-            :subtitle="t('league.homeSide')"
             :linkable="false"
           />
           <span v-else class="operation-match-header__card font-display text-xl text-ink">
@@ -84,7 +83,6 @@ async function fetchMission() {
             class="operation-match-header__card"
             :identity="payload.mission.awayIdentity"
             variant="match"
-            :subtitle="t('league.awaySide')"
             :linkable="false"
           />
           <span v-else class="operation-match-header__card font-display text-xl text-ink">

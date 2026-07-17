@@ -656,8 +656,8 @@ A Sensei can generate an **invitation link** to their pool to recruit allies in 
 
 ### What you see
 
-- **Narrative chronicle**: story unlocked progressively after H71 (both opponents read the same tale at the same pace).
-- **Mechanical debrief**: plis won, HP scores, environment — analytical tone, personalized per player.
+- **Operation report**: short narrative intro, then **face-to-face pli exchanges** (winner highlighted, damage in **HP**), then a closing line. Same layout for **reconnaissance**.
+- **Mechanical debrief**: plis won, remaining HP, environment — analytical tone, personalized per player.
 - **Spectator**: watch matches from other pools.
 
 ### Match structure
@@ -704,3 +704,4 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 | 2026-07-15 | Restructured into two parts: interface by menus, then game systems |
 | 2026-07-17 | Removed Elite Pack (disabled), obsolete orders/postures and match items; aligned on operation deck |
 | 2026-07-17 | Character profiles (Brute…Strategist / no profile) — +1/+2 stat bias at generation |
+| 2026-07-17 | Operation / recon report as face-to-face plis (damage in HP) |
