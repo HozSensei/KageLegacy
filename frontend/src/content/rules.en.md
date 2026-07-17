@@ -723,3 +723,4 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 | 2026-07-17 | Removed Elite Pack (disabled), obsolete orders/postures and match items; aligned on operation deck |
 | 2026-07-17 | Character profiles (Brute…Strategist / no profile) — +1/+2 stat bias at generation |
 | 2026-07-17 | Operation / recon report as face-to-face plis (damage in HP) |
+| 2026-07-17 | League social S1: season wall, H2H / nemesis, cross-league challenges, invite polish |
