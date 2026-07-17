@@ -251,6 +251,14 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 - **Saison = 10 cycles** (round-robin)
 - **5 divisions** (1 = élite, 5 = la plus basse)
 
+### Social de ligue (Vague S1)
+
+- **Mur de saison** : fil de discussion de la pool, sans quota, pagination ; reset à la promotion / relégation (nouvelle saison).
+- **H2H** : face-à-face saison affiché au classement (W–D–L).
+- **Némésis** : badge après 2 défaites d’affilée vs le même Sensei (même pool).
+- **Défi recon** depuis le classement / profil / hors ligue (division proche) — le défenseur **accepte** ; combat à H36.
+- **Invite** : lien pour remplacer un bot ; compteur humains / bots restants.
+
 ### Points
 
 - Victoire : **3 pts** · Nul : **1 pt** · Défaite : **0 pt**
@@ -259,6 +267,7 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 ### Fin de saison (cycle 10)
 
 - 1er → promotion · 6e → relégation · nouvelle pool
+- Le mur de la saison précédente n’est plus affiché (filtre `season_number`)
 
 ### Espionnage
 
@@ -364,7 +373,7 @@ flowchart TD
 | **Escouade** | Composition, deck d'opération, swap actif/banc |
 | **Entraînement** | Préparation (actifs) + global gratuit, types groupés |
 | **Missions** | Contrats idle |
-| **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
+| **Ligue** | Classement, mur de saison, H2H / némésis, calendrier, espionnage, défi recon (pool + hors ligue), invitation |
 | **Magasin** | Achats objets |
 | **Échanges** | Marché P2P |
 | **Inventaire** | Objets et équipement |
@@ -378,7 +387,7 @@ Quelques angles ouverts pour de nouvelles features :
 
 - **Méta post-match** : récompenses ou malus selon marge de victoire (K.O. vs points serrés) — partiellement couvert par objectifs de cycle / upsets
 - **Objectifs de saison** : missions ligue, badges, quêtes de division (objectifs de cycle livrés)
-- **Rivalités** : némésis après 2 défaites d'affilée (livré)
+- **Rivalités** : némésis après 2 défaites d'affilée (livré) ; mur de ligue + H2H + défis cross-ligue (Vague S1)
 - **Événements cycle** : environnement imposé, tournoi inter-pools
 - **Identité Sensei** : cosmétique et profil public (Pack Élite — code prêt, feature désactivée)
 - **Coopération** : entraînement croisé, prêts temporaires
@@ -398,3 +407,4 @@ Quelques angles ouverts pour de nouvelles features :
 | 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |
 | 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais +1/+2 à la génération |
 | 2026-07-17 | Victoire pli = PV → plis ; débrief causal ; onboarding ; objectifs ; rivalités ; rumeur mid-cycle |
+| 2026-07-17 | Social ligue S1 : mur de saison, H2H, défis recon cross-ligue, invite polish |
