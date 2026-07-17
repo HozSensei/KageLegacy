@@ -140,10 +140,11 @@ Comparez tendances (H36) et unité repérée (H54) pour détecter une formation 
 
 Vue compétitive de votre **pool** (6 Sensei) :
 
-- Classement, calendrier des 10 cycles de saison.
+- Classement avec **H2H** et badge **Némésis**, calendrier des 10 cycles de saison.
+- **Mur de saison** (discussion libre, pagination ; reset en fin de saison).
 - Points (victoire 3, nul 1, défaite 0) et promotions / relégations en fin de saison.
-- **Lien d'invitation** vers votre pool.
-- Accès rapide à l'espionnage et aux défis de reconnaissance.
+- **Lien d'invitation** (compteur humains / bots) pour remplacer un bot.
+- Défis de reconnaissance : **même pool** ou **autre ligue** (division proche) — acceptation requise.
 
 Détails structure : voir § Ligue.
 
@@ -645,10 +646,19 @@ En cas d'égalité de points : victoires, puis matchs joués.
 - **1er** : promotion de division.
 - **6ᵉ** : relégation.
 - Nouvelle pool et nouveau calendrier.
+- Le **mur de ligue** de la saison précédente n'est plus affiché.
+
+### Mur de la ligue
+
+Fil de discussion **de toute la saison** entre les Sensei de votre pool. Pas de quota (messages courts, pagination). Reset automatique à la **nouvelle saison** (promotion / relégation).
+
+### Face-à-face et némésis
+
+Le classement affiche le **H2H** de la saison (victoires–nuls–défaites) contre chaque adversaire. Après **deux défaites d'affilée** face au même Sensei, le badge **Némésis** apparaît. Un bouton permet d'envoyer un **défi de reconnaissance** (H0–H35) — le défenseur doit accepter.
 
 ### Invitation
 
-Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des alliés dans sa ligue.
+Un Sensei peut générer un **lien d'invitation** vers sa pool. L'écran indique combien d'**humains** et de **bots** restent : l'objectif est de remplacer un bot par un allié.
 
 ---
 
@@ -713,3 +723,4 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 | 2026-07-17 | Retrait Pack Élite (désactivé), consignes/postures et objets match obsolètes ; alignement sur le deck d'opération |
 | 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais stats +1/+2 à la génération |
 | 2026-07-17 | Rapport d'opération / reconnaissance en face-à-face (dégâts en PV) |
+| 2026-07-17 | Social ligue S1 : mur de saison, H2H / némésis, défis cross-ligue, invite polish |

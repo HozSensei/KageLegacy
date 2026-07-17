@@ -140,10 +140,11 @@ Compare tendencies (H36) and spotted unit (H54) to detect atypical formations. D
 
 Competitive view of your **pool** (6 Sensei):
 
-- Standings, schedule for the 10-cycle season.
+- Standings with **H2H** and **Nemesis** badge, schedule for the 10-cycle season.
+- **Season wall** (free discussion, pagination; resets at season end).
 - Points (win 3, draw 1, loss 0) and promotion / relegation at season end.
-- **Invitation link** to your pool.
-- Quick access to scouting and reconnaissance challenges.
+- **Invitation link** (human / bot counts) to replace a bot.
+- Recon challenges: **same pool** or **another league** (nearby division) — acceptance required.
 
 Structure details: see § League.
 
@@ -645,10 +646,19 @@ Tie-breakers: wins, then matches played.
 - **1st**: division promotion.
 - **6th**: relegation.
 - New pool and new schedule.
+- The previous season's **league wall** is no longer shown.
+
+### League wall
+
+Season-long discussion thread for Sensei in your pool. No post quota (short messages, pagination). Automatic reset on a **new season** (promotion / relegation).
+
+### Head-to-head and nemesis
+
+Standings show season **H2H** (wins–draws–losses) against each opponent. After **two consecutive losses** to the same Sensei, a **Nemesis** badge appears. A button can send a **reconnaissance challenge** (H0–H35) — the defender must accept.
 
 ### Invitation
 
-A Sensei can generate an **invitation link** to their pool to recruit allies in their league.
+A Sensei can generate an **invitation link** to their pool. The screen shows how many **humans** and **bots** remain: the goal is to replace a bot with an ally.
 
 ---
 

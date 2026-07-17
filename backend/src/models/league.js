@@ -4,6 +4,11 @@ import { getUserMatchForCycle } from '../services/matchService.js';
 import { generateScoutReport } from '../services/scouting.js';
 import { buildSenseiIdentities } from '../services/senseiIdentityService.js';
 import { getUserLanguage } from '../services/narrative/viewerLocale.js';
+import {
+  enrichStandingsSocial,
+  enrichNextMatchSocial,
+  getPoolRosterCounts,
+} from '../services/leagueSocialService.js';
 
 const DIVISION_ROMAN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
 
@@ -80,6 +85,37 @@ export async function getLeaguePayload(userId) {
     };
   }
 
+  const baseStandings = standings.map((row, index) => ({
+    rank: index + 1,
+    userId: row.user_id,
+    senseiName: row.sensei_name,
+    identity: identityMap.get(row.user_id) ?? {
+      userId: row.user_id,
+      senseiName: row.sensei_name,
+      isBot: Boolean(row.is_bot),
+      isElite: false,
+      gradeLabel: row.is_bot ? 'bot' : 'jonin',
+      title: null,
+      titleSlug: null,
+      bannerSlug: 'none',
+      nameColor: '#e8ece9',
+      profileUrl: `/sensei/${row.user_id}`,
+    },
+    isBot: Boolean(row.is_bot),
+    points: row.points,
+    played: row.played,
+    wins: row.wins,
+    draws: row.draws,
+    losses: row.losses,
+    isPlayer: row.user_id === userId,
+  }));
+
+  const [enrichedStandings, enrichedNext, roster] = await Promise.all([
+    enrichStandingsSocial(userId, pool.id, baseStandings),
+    enrichNextMatchSocial(userId, pool.id, nextMatchPayload),
+    getPoolRosterCounts(pool.id),
+  ]);
+
   return {
     pool: {
       id: pool.id,
@@ -89,32 +125,10 @@ export async function getLeaguePayload(userId) {
       currentCycle: pool.current_cycle,
       maxCycles: 10,
       status: pool.status,
+      roster,
     },
-    standings: standings.map((row, index) => ({
-      rank: index + 1,
-      userId: row.user_id,
-      senseiName: row.sensei_name,
-      identity: identityMap.get(row.user_id) ?? {
-        userId: row.user_id,
-        senseiName: row.sensei_name,
-        isBot: Boolean(row.is_bot),
-        isElite: false,
-        gradeLabel: row.is_bot ? 'bot' : 'jonin',
-        title: null,
-        titleSlug: null,
-        bannerSlug: 'none',
-        nameColor: '#e8ece9',
-        profileUrl: `/sensei/${row.user_id}`,
-      },
-      isBot: Boolean(row.is_bot),
-      points: row.points,
-      played: row.played,
-      wins: row.wins,
-      draws: row.draws,
-      losses: row.losses,
-      isPlayer: row.user_id === userId,
-    })),
-    nextMatch: nextMatchPayload,
+    standings: enrichedStandings,
+    nextMatch: enrichedNext,
     recentMatches: recentMatches.map((m) => ({
       id: m.id,
       cycle: m.season_cycle,
