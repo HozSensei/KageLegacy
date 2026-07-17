@@ -242,7 +242,7 @@ onMounted(() => {
           {{ t('nav.profile') }}
         </router-link>
         <router-link
-          v-if="elite.subscription?.isActive"
+          v-if="elite.featureEnabled && elite.subscription?.isActive"
           to="/elite/outils"
           class="mt-2 flex items-center gap-1.5 text-sm text-accent transition hover:underline"
           data-testid="profile-elite-tools-link"

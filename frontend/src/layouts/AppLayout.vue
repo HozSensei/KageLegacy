@@ -58,7 +58,7 @@ const adminNavItem = {
 
 const navItems = computed(() => {
   const items = [...baseNavItems]
-  if (elite.subscription?.isActive) items.push(eliteToolsNavItem)
+  if (elite.featureEnabled && elite.subscription?.isActive) items.push(eliteToolsNavItem)
   if (auth.user?.isAdmin) items.push(adminNavItem)
   return items
 })

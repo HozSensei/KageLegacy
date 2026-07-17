@@ -19,7 +19,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
 | **Clôture** | H72 | Examens Chunin, Vol d'Oiseau, missions, salaires, stagnation, entraînement, nouveau cycle |
 
-**À partir de H71**, tout est gelé : composition, consignes de combat, entraînement, missions, dispensaire, marché P2P.
+**À partir de H71**, tout est gelé : composition, deck d'opération, entraînement, missions, dispensaire, marché P2P.
 
 **Jalons automatiques :** mission de reconnaissance H0→H36 ; tendances H36 ; gel compo + rapport espionnage H54 ; simulation ligue H71 ; clôture H72 (examens Chunin, Vol d'Oiseau, entraînement).
 
@@ -30,7 +30,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 - Monnaie : **Ryos**
 - **Réputation** (Vol d’Oiseau, prestige)
 - **Pool de chakra de match** (~100) : permet d’intercepter des coups fatals (−25 chakra par sauvetage)
-- **Identité** (nom Sensei, cosmétiques Pack Élite) — pas de spécialité à choisir à la création
+- **Identité** (nom Sensei) — pas de spécialité à choisir à la création
 - **Dette** (Ryos < 0) : bloque magasin, marché, examen, dispensaire
 
 **Compte invité** : essai 7 jours, conversion possible en compte permanent.
@@ -107,25 +107,12 @@ Pénalités : échec examen Chunin (−5), faillite salariale (moral escouade ac
 ## 4. Escouade
 
 - **3 actifs** (postes 1–3) + **banc** (remplaçants)
-- Modifiable jusqu’à H71
+- Composition modifiable jusqu’à **H54** ; deck jusqu’à **H71**
 - Bloqué si ninja en mission, en vente P2P, ou fenêtre fermée
 
-### Consignes individuelles
+### Deck d'opération
 
-| Consigne | Rôle |
-|----------|------|
-| **Normal** | Attaquant tiré au sort |
-| **Offensive** | Priorité attaque (meilleure stat combat) |
-| **Défensive** | ~70 % de chances d’être ciblé en défense (ex-Tank) |
-| **Protection** | Peut soigner un allié désigné sous 50 % PV (ex-Protect) |
-
-### Dossier d'opération
-
-Postures **Équilibrée / Offensive / Défensive / Protection** : plan de cycle + conseils (pas de bonus combat). Voir règles joueur §4.
-
-### Cartes tactiques
-
-Remplacent le cercle Assaut/Mur/Flux. 5 charges, tirage en pli, synergie avec consignes.
+Combat par **plis** : 6 cartes par ninja actif (1 technique inventaire + domaines primaire/secondaire). Remplace les anciennes consignes, postures et le cercle Assaut/Mur/Flux.
 
 ---
 
@@ -362,16 +349,13 @@ POINTS_WIN_MARGIN = 0,045  (soit 4,5 %)
 
 ### Ce qui influence le score (sans décider directement)
 
-Ces mécaniques façonnent PV/chakra restants à la fin :
+Ces mécaniques façonnent les PV restants à la fin :
 
-- **Initiative** : Vitesse + QI (paralysie = 0 ce tour) → détermine qui attaque (→ possession)
-- **Compositions** : Assaut/Mur/Flux avec bonus matchup (+5 % atk, etc.)
-- **Duels** : dés + stats, critiques (8 %), ratés (7 %), éléments ±15/25 %
-- **Genjutsu** : paralysie ou confusion
-- **Soins Protect** : Médecine × 1,5 (bonus Flux)
-- **Sensei** : interception coup fatal (jet d20 + QI escouade/3 ≥ 14, −25 chakra)
-- **Altruiste** : sacrifice 50 %
-- **Équipement match** : fumigène, herbes, cachet chakra, parchemin rupture…
+- **Deck d'opération** : domaines, carte technique, avantages de type (+20 %)
+- **Note globale** : PV max = note × 10
+- **Effets de domaine** : Tai / Gen / Med / Nin selon le pli
+- **Traits** : Égoïste, Altruiste, etc. (effets narratifs / situations limites)
+- **Environnement** : météo / terrain sur certains domaines
 
 ### Schéma décisionnel
 
@@ -379,19 +363,17 @@ Ces mécaniques façonnent PV/chakra restants à la fin :
 flowchart TD
     A[Fin du match] --> B{Toute une équipe K.O.?}
     B -->|Oui| C[Victoire adverse immédiate]
-    B -->|Non| D[Calcul score PV 60% + chakra 40%]
-    D --> E{Écart > 4,5%?}
-    E -->|Home > Away + 4,5%| F[Victoire domicile]
-    E -->|Away > Home + 4,5%| G[Victoire extérieur]
-    E -->|Sinon| H[Match nul]
+    B -->|Non| D[Comparaison PV d'équipe restants]
+    D --> E{Égalité PV?}
+    E -->|Non| F[Victoire au plus de PV]
+    E -->|Oui| G[Victoire au plus de plis gagnés]
 ```
 
 ### Références code
 
-- `backend/src/services/combat/combatEngine.js` — `teamRemainingScore()`, résolution du vainqueur
-- `backend/src/services/combat/constants.js` — `POINTS_WIN_MARGIN = 0.045`
-- `backend/src/services/combat/battleRoleMeta.js` — consignes Défensive / Protection
-- `backend/src/services/tacticCards/` — cartes tactiques en match
+- `backend/src/services/combat/` — moteur par plis
+- `backend/src/services/operationBriefingService.js` — briefing d'opération
+- Cartes technique / inventaire — deck d'opération
 
 ---
 
@@ -400,7 +382,7 @@ flowchart TD
 | Écran | Fonction |
 |-------|----------|
 | **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie |
-| **Escouade** | Composition, consignes, swap actif/banc |
+| **Escouade** | Composition, deck d'opération, swap actif/banc |
 | **Entraînement** | Préparation (actifs) + global gratuit, types groupés |
 | **Missions** | Contrats idle |
 | **Ligue** | Classement, calendrier, espionnage, mission de reconnaissance |
@@ -419,7 +401,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Objectifs de saison** : missions ligue, badges, quêtes de division
 - **Rivalités** : historique head-to-head, revanche
 - **Événements cycle** : environnement imposé, tournoi inter-pools
-- **Identité Sensei** : cosmétique et profil public (Pack Élite)
+- **Identité Sensei** : cosmétique et profil public (Pack Élite — code prêt, feature désactivée)
 - **Coopération** : entraînement croisé, prêts temporaires
 - **Narration** : choix du joueur influençant le débrief (sans changer le résultat simulé)
 - **Économie** : contrats sponsors, paris spectateurs
@@ -434,3 +416,4 @@ Quelques angles ouverts pour de nouvelles features :
 |------|------|
 | 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
 | 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |
+| 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |

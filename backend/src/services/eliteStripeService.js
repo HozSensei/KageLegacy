@@ -5,6 +5,7 @@ import { findUserPool } from './poolService.js';
 import {
   activateEliteFromStripe,
   getActiveEliteSubscription,
+  isEliteFeatureEnabled,
   revokeEliteSubscription,
 } from './eliteSubscriptionService.js';
 
@@ -68,6 +69,10 @@ async function resolveCheckoutMode(stripe, priceId) {
  * Active le Pack Élite via Stripe Checkout (paiement saison ou abonnement).
  */
 export async function createEliteCheckoutSession(userId) {
+  if (!isEliteFeatureEnabled()) {
+    throw stripeHttpError('Pack Élite temporairement indisponible.', 503);
+  }
+
   if (!process.env.STRIPE_SECRET_KEY) {
     if (!isDevEliteGrantAllowed()) {
       throw stripeHttpError('Paiement Pack Élite indisponible — Stripe non configuré.', 503);
@@ -152,6 +157,9 @@ export async function createEliteCheckoutSession(userId) {
 
 export async function fulfillCheckoutSession(session) {
   if (!session) return { fulfilled: false, reason: 'missing_session' };
+  if (!isEliteFeatureEnabled()) {
+    return { fulfilled: false, reason: 'feature_disabled' };
+  }
 
   const paid =
     session.payment_status === 'paid' ||

@@ -46,7 +46,7 @@ Fil d'activité chronologique de votre cycle : gains d'entraînement, résultats
 
 **Route :** `/profil`
 
-Identité publique du Sensei : nom, mur d'héritage (parchemins laissés par les Chunin partis en Vol d'Oiseau), cosmétiques Pack Élite. Les autres joueurs peuvent consulter votre profil via `/sensei/:id`.
+Identité publique du Sensei : nom, mur d'héritage (parchemins laissés par les Chunin partis en Vol d'Oiseau). Les autres joueurs peuvent consulter votre profil via `/sensei/:id`.
 
 ---
 
@@ -62,8 +62,6 @@ Identité publique du Sensei : nom, mur d'héritage (parchemins laissés par les
 |----------|--------|
 | **Composition** | 3 ninjas actifs + banc de remplaçants ; échanges actif ↔ banc jusqu'à H54 |
 | **Deck d'opération** | Pour chaque actif : carte technique + domaines primaire/secondaire (6 cartes par ninja) — voir § Deck d'opération |
-| **Consignes** | Normal, Offensive, Défensive, Protection — héritage d'interface, alignées avec le deck |
-| **Dossier d'opération** | Posture de cycle (Équilibrée, Offensive, Défensive, Protection) à partir de H36 |
 | **Briefing** | Rappel de l'adversaire de ligue et du prochain match |
 | **Marché P2P** | Mettre un ninja du banc en vente ou le libérer |
 
@@ -171,8 +169,8 @@ Détails combat : voir § Opération de frontière.
 
 **Magasin du village** — achats avec vos Ryos :
 
-- Objets utilitaires (bureau, match, cycle) par catégories.
-- **Offres de cartes tactiques** : 10 tirages aléatoires par réassort, nouveau bonus % à l'achat.
+- Objets utilitaires (bureau, cycle) par catégories.
+- **Offres de cartes technique** : 10 tirages aléatoires par réassort, nouveau bonus % à l'achat.
 - Promotions aléatoires chaque cycle ; catalogue personnel réassorti périodiquement.
 
 Fermé en cas de **dette** ou pendant le gel **H71+**. Détails : voir § Économie.
@@ -181,7 +179,7 @@ Fermé en cas de **dette** ou pendant le gel **H71+**. Détails : voir § Écono
 
 **Route :** `/refinement`
 
-**Atelier de perfectionnement** — retirage payant du **bonus %** d'une carte tactique possédée :
+**Atelier de perfectionnement** — retirage payant du **bonus %** d'une carte technique possédée :
 
 - Coût selon la rareté de la carte ; réduction possible via l'héritage magasin.
 - Bloqué si trésorerie négative ou carte listée sur le marché P2P.
@@ -212,7 +210,6 @@ Gestion de votre **stock** :
 | **Cartes technique** | Assignation par ninja actif pour le deck d'opération |
 | **Consommables bureau** | Utilisation immédiate sur un ninja |
 | **Équipement cycle** | 1 par ninja pour tout le cycle |
-| **Objets match** | 1 slot par ninja ; effet en opération si conditions remplies |
 
 Actions : équiper, utiliser, lister sur le marché P2P, ouvrir le perfectionnement.
 
@@ -223,12 +220,6 @@ Actions : équiper, utiliser, lister sur le marché P2P, ouvrir le perfectionnem
 ### Notifications
 
 Icône **cloche** dans l'en-tête : fin de mission, résultats d'examen, clôture de cycle, début d'opération, rapport d'espionnage, Puits de clan, etc. Chaque notification propose un lien vers l'écran concerné.
-
-### Outils Élite
-
-**Route :** `/elite/outils` — réservé aux abonnés **Pack Élite**.
-
-Simulateur de deck, préremplissage espionnage, calculateur ROI entraînement — **sans avantage compétitif direct** en match.
 
 ### Règles du jeu
 
@@ -254,7 +245,7 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 | Jalon | Effet |
 |-------|--------|
 | **H54** | **Composition figée** (3 ninjas actifs) ; entraînement gelé ; tendances H36 déjà disponibles ; **rapport complet** sur l'unité adverse |
-| **H54 → H70** | Deck, consignes, cartes tactiques et objets encore modifiables |
+| **H54 → H70** | Deck encore modifiable |
 | **H71** | Gel total jusqu'au cycle suivant |
 
 ### Espionnage (jalons)
@@ -289,7 +280,7 @@ Examens Chunin, soins et missions doivent être **réglés avant H54** pour évi
 
 ### Identité du Sensei
 
-Votre **nom de Sensei** et votre identité visuelle (Pack Élite) définissent votre présence en ligue. Il n'y a pas de spécialité à choisir à la création du compte : la préparation passe par l'escouade, les consignes et les cartes tactiques.
+Votre **nom de Sensei** définit votre présence en ligue. Il n'y a pas de spécialité à choisir à la création du compte : la préparation passe par l'escouade et le deck d'opération.
 
 ### Dette et gel administratif
 
@@ -382,40 +373,12 @@ Chaque match se joue en **18 plis** : deck mélangé de **6 cartes par ninja act
 - **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
 - **Objets match** : retirés ; **cartes technique** assignées par ninja ; consommables bureau et équipement cycle hors combat.
 - **Reconduction** : chaque nouvelle journée, le deck est **recopié** (cartes des ninjas actifs avec charges restantes).
-- Les **consignes** restent modifiables en interface mais ne pilotent plus le moteur de combat (remplacées par le deck).
-
-### Consignes individuelles (héritage interface)
-
-| Consigne | Rôle en match | Quand l'utiliser |
-|----------|---------------|----------------|
-| **Normal** | Comportement équilibré ; l'attaquant adverse vous cible selon les règles standard. | Ninja polyvalent, ou lorsque vous ne voulez pas forcer un rôle. |
-| **Offensive** | Priorité à l'attaque : le ninja choisit sa meilleure stat de combat pour frapper. | Spécialiste de dégâts, burst, pression rapide ; escouade qui veut finir tôt. |
-| **Défensive** | Forte probabilité d'**être ciblé** quand l'adversaire attaque — le ninja sert de bouclier. | Absorber la pression pour protéger un allié fragile ; cartes de parade ou de réduction de dégâts. |
-| **Protection** | Peut **soigner un allié désigné** lorsqu'il est gravement blessé. | Soutien, médecin, maintien de la ligne ; cartes de soin. |
-
-> **Vocabulaire :** en interface et dans ce guide, **Défensive** remplace l'ancien terme « Tank » (provocation) et **Protection** remplace « Protect » (soutien allié). Les valeurs techniques du serveur restent inchangées.
 
 ### Quand composer votre escouade
 
-- **2 Offensive + 1 Défensive** : pression directe avec un bouclier.
-- **1 Offensive + 1 Défensive + 1 Protection** : équilibre classique — burst, absorption, soin.
-- **2 Protection + 1 Défensive** : match lent, survie et usure (genjutsu, soins).
-- **3 Normal** : pas de rôle assumé — viable mais sans synergie de ciblage.
-
-Les **traits** modifient ce tableau : un **Égoïste** ignore parfois le ciblage défensif et ne se mettra jamais en consigne Défensive.
-
-### Dossier d'opération (postures)
-
-À partir de **H36**, l'**espionnage** révèle des indices sur l'adversaire (voies, consignes repérées, vitesse, élément). Dans l'écran **Escouade**, le **dossier d'opération** vous permet de choisir une **posture** avant le gel tactique (**H71**).
-
-| Posture | Intention | Quand la choisir |
-|---------|-----------|------------------|
-| **Équilibrée** | Pas de pari marqué sur le cycle. | Adversaire peu lisible, escouade mixte, ou vous affinez encore consignes et cartes. |
-| **Offensive** | Gagner l'initiative et finir vite. | Votre escouade est montée Offensive ; l'espionnage signale aussi une disposition offensive adverse (miroir) ou une escouade lente. |
-| **Défensive** | Tenir la ligne sous la pression. | Vous avez au moins un ninja en consigne Défensive ; l'adversaire montre **2 consignes Offensive** ou plus. |
-| **Protection** | Survivre au tempo, soigner, protéger. | Vous avez des consignes Protection et des cartes de soin ; l'adversaire est **rapide** ou à **fort potentiel** (échanges longs risqués). |
-
-**Important :** la posture **ne donne pas de bonus caché** en match. Elle enregistre votre **plan de cycle** et adapte les **conseils** du dossier (croisement avec l'espionnage). Pour que le plan soit réel, alignez **posture + consignes + cartes tactiques** sur chaque ninja.
+- Mélangez les **voies** (Taijutsu, Ninjutsu, Genjutsu, Médecine) pour couvrir les avantages de domaine en plis.
+- Priorisez un **deck cohérent** : carte technique alignée avec la voie du ninja, domaines primaire/secondaire solides.
+- Surveillez l'**espionnage** (H36 tendances, H54 composition) pour ajuster le deck avant H71.
 
 ---
 
@@ -549,7 +512,7 @@ Combat d'entraînement pour **tester votre composition** pendant la phase de pr�
 | **Matchmaking** | Adversaire humain de division et puissance proches ; sinon un **bot** de la ligue. |
 | **Défi direct** | Depuis le menu Ligue : défier un membre de votre pool ou d'une autre ligue (division proche). Le défenseur doit **accepter**. |
 
-**Conséquences** : moteur de combat réel (objets, cartes tactiques, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte tactique (y compris en défaite). N'affecte **pas** le classement de ligue.
+**Conséquences** : moteur de combat réel (deck, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte technique (y compris en défaite). N'affecte **pas** le classement de ligue.
 
 **Résolution** : à **H36**. Le résultat détermine la qualité de l'espionnage (tendances H36, rapport H54).
 
@@ -734,3 +697,4 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 | 2026-07-09 | Création du document (règles joueur, sans formules exactes) |
 | 2026-07-10 | Consignes renommées (Défensive / Protection), guide postures & cartes tactiques ; retrait du cercle Assaut/Mur/Flux |
 | 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |
+| 2026-07-17 | Retrait Pack Élite (désactivé), consignes/postures et objets match obsolètes ; alignement sur le deck d'opération |

@@ -1,7 +1,15 @@
 import { query } from '../config/database.js';
 import { findUserPool } from './poolService.js';
 
-export async function getActiveEliteSubscription(userId, pool) {
+/**
+ * Kill-switch temporaire du Pack Élite.
+ * Réactiver avec ELITE_FEATURE_ENABLED=true (le code reste en place).
+ */
+export function isEliteFeatureEnabled() {
+  return process.env.ELITE_FEATURE_ENABLED === 'true';
+}
+
+async function findActiveEliteSubscriptionRow(userId, pool) {
   if (!pool) return null;
   const rows = await query(
     `SELECT * FROM sensei_elite_subscriptions
@@ -10,6 +18,11 @@ export async function getActiveEliteSubscription(userId, pool) {
     [userId, pool.season_number]
   );
   return rows[0] ?? null;
+}
+
+export async function getActiveEliteSubscription(userId, pool) {
+  if (!isEliteFeatureEnabled()) return null;
+  return findActiveEliteSubscriptionRow(userId, pool);
 }
 
 export async function ensureSeasonPass(userId, pool) {
@@ -65,7 +78,7 @@ export async function activateEliteFromStripe({
     );
     if (dup[0]) {
       const poolRows = await query('SELECT * FROM pools WHERE id = ? LIMIT 1', [poolId]);
-      return getActiveEliteSubscription(userId, poolRows[0]);
+      return findActiveEliteSubscriptionRow(userId, poolRows[0]);
     }
   }
 
@@ -100,7 +113,7 @@ export async function activateEliteFromStripe({
   );
 
   const pool = (await query('SELECT * FROM pools WHERE id = ? LIMIT 1', [poolId]))[0];
-  return getActiveEliteSubscription(userId, pool);
+  return findActiveEliteSubscriptionRow(userId, pool);
 }
 
 /**
@@ -150,8 +163,9 @@ export async function hasActiveEliteSubscription(userId) {
 }
 
 export async function getEliteMePayload(userId, locale = 'fr') {
+  const featureEnabled = isEliteFeatureEnabled();
   const pool = await findUserPool(userId);
-  const subscription = pool ? await getActiveEliteSubscription(userId, pool) : null;
+  const subscription = featureEnabled && pool ? await findActiveEliteSubscriptionRow(userId, pool) : null;
   const isActive = Boolean(subscription);
 
   const equippedRows = isActive
@@ -159,6 +173,7 @@ export async function getEliteMePayload(userId, locale = 'fr') {
     : [];
 
   return {
+    featureEnabled,
     subscription: {
       isActive,
       status: subscription?.status ?? null,

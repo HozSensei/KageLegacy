@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { getUnlockedRewardSlugs } from './eliteSeasonPassService.js';
+import { isEliteFeatureEnabled } from './eliteSubscriptionService.js';
 
 export const ELITE_NAME_COLORS = ['#e8ece9', '#c9a66b', '#8fad9a', '#6d9eb8', '#c97d5d'];
 
@@ -42,7 +43,7 @@ async function loadPoolsForUsers(userIds, poolContext = null) {
 
 async function loadActiveSubscriptions(userIds) {
   const subByUser = new Map();
-  if (!userIds.length) return subByUser;
+  if (!isEliteFeatureEnabled() || !userIds.length) return subByUser;
 
   const placeholders = userIds.map(() => '?').join(', ');
   const rows = await query(
@@ -147,13 +148,14 @@ export async function getCosmeticsCatalog(userId, locale = 'fr') {
   );
   const pool = poolRows[0] ?? null;
 
-  const subRows = pool
-    ? await query(
-        `SELECT * FROM sensei_elite_subscriptions
+  const subRows =
+    isEliteFeatureEnabled() && pool
+      ? await query(
+          `SELECT * FROM sensei_elite_subscriptions
          WHERE user_id = ? AND season_number = ? AND status = 'active' LIMIT 1`,
-        [userId, pool.season_number]
-      )
-    : [];
+          [userId, pool.season_number]
+        )
+      : [];
   const isElite = Boolean(subRows[0]);
   const unlocked = await getUnlockedRewardSlugs(userId);
 
@@ -211,6 +213,12 @@ export async function updateEquippedCosmetics(userId, { titleSlug, bannerSlug, n
   if (!pool) {
     const error = new Error('Aucune ligue active.');
     error.statusCode = 404;
+    throw error;
+  }
+
+  if (!isEliteFeatureEnabled()) {
+    const error = new Error('Pack Élite temporairement indisponible.');
+    error.statusCode = 503;
     throw error;
   }
 

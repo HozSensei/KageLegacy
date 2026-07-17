@@ -137,6 +137,17 @@ router.beforeEach(async (to) => {
   if (!auth.checked) await auth.fetchMe()
   if (!auth.user) return { path: '/' }
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/bureau' }
+
+  const eliteRouteNames = new Set(['elite-tools', 'elite-identity-showcase'])
+  if (eliteRouteNames.has(to.name)) {
+    const { useEliteStore } = await import('../stores/elite')
+    const elite = useEliteStore()
+    if (!elite.subscription && auth.user) {
+      await elite.fetchElite()
+    }
+    if (!elite.featureEnabled) return { path: '/bureau' }
+  }
+
   return true
 })
 

@@ -7,6 +7,7 @@ const API_BASE = import.meta.env.VITE_API_URL || ''
 export const useEliteStore = defineStore('elite', () => {
   const loading = ref(false)
   const error = ref(null)
+  const featureEnabled = ref(false)
   const subscription = ref(null)
   const seasonPass = ref(null)
   const catalog = ref(null)
@@ -61,6 +62,7 @@ export const useEliteStore = defineStore('elite', () => {
   }
 
   function applyPayload(data) {
+    featureEnabled.value = Boolean(data.featureEnabled)
     subscription.value = data.subscription ?? null
     seasonPass.value = data.seasonPass ?? null
     catalog.value = data.catalog ?? null
@@ -192,6 +194,7 @@ export const useEliteStore = defineStore('elite', () => {
   return {
     loading,
     error,
+    featureEnabled,
     subscription,
     seasonPass,
     catalog,
