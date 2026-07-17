@@ -703,4 +703,8 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 | 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
 | 2026-07-15 | Restructured into two parts: interface by menus, then game systems |
 | 2026-07-17 | Removed Elite Pack (disabled), obsolete orders/postures and match items; aligned on operation deck |
+<<<<<<< HEAD
 | 2026-07-17 | Character profiles (Brute…Strategist / no profile) — +1/+2 stat bias at generation |
+=======
+| 2026-07-17 | Operation / recon report as face-to-face plis (damage in HP) |
+>>>>>>> a73d148 (Changelog règles EN : rapport face-à-face)
