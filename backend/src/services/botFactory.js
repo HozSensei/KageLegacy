@@ -9,10 +9,11 @@ import {
   squadAveragePower,
 } from './combat/squadPowerScaling.js';
 
+import { rollCharacterTrait } from './characterTraits.js';
+
 const BOT_SENSEI_NAMES = ['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might'];
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
-const TRAITS = ['Discipline', 'Discipline', 'Temeraire', 'Altruiste', 'Discipline'];
 
 const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
@@ -42,6 +43,7 @@ async function createBotSquad(userId, slotIndex, clans) {
     forbidden.add(key);
     globalKeys.add(key);
     forbidden.add(ninjaIdentityKey(name));
+    const trait = rollCharacterTrait();
     await createNinja({
       user_id: userId,
       name,
@@ -49,7 +51,8 @@ async function createBotSquad(userId, slotIndex, clans) {
       grade: i === 1 ? 'Chunin' : 'Genin',
       clan_trait_id: clan.id,
       element_affinity: pick(ELEMENTS, slotIndex + i),
-      character_trait: pick(TRAITS, slotIndex + i),
+      character_trait: trait.character_trait,
+      trait_boost: trait.trait_boost,
       language: 'fr',
       ...stats,
       weekly_forme: 'Passable',

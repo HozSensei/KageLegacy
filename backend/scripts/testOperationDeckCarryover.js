@@ -70,7 +70,7 @@ async function main() {
       `INSERT INTO ninjas (
          user_id, name, grade, age, squad_position, taijutsu, ninjutsu, genjutsu,
          medecine, vitesse, intelligence, moral, weekly_forme, character_trait, element_affinity
-       ) VALUES (?, ?, 'Chunin', 16, ?, 10, 10, 10, 10, 10, 10, 15, 'Passable', 'Discipline', 'Katon')`,
+       ) VALUES (?, ?, 'Chunin', 16, ?, 10, 10, 10, 10, 10, 10, 15, 'Passable', 'Brute', 'Katon')`,
       [userId, `N${pos}`, pos]
     );
     ninjaIds.push(row.insertId);

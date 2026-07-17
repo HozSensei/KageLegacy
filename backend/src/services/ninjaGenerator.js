@@ -1,4 +1,4 @@
-import { CHARACTER_TRAITS, ELEMENTS } from '../validators/ninja.js';
+import { ELEMENTS } from '../validators/ninja.js';
 import {
   applyClanBonuses,
   computeMatchChakraMax,
@@ -9,6 +9,14 @@ import {
 import { pickClanForRecruitment } from './clanRecruitment.js';
 import { pickUniqueCivName } from './ninjaNameGenerator.js';
 import { loadGlobalIdentityKeySet } from '../models/ninja.js';
+import {
+  applyTraitBoost,
+  distributeCharacterTraits,
+  resolveTraitPayload,
+  rollCharacterTrait,
+} from './characterTraits.js';
+
+export { CHARACTER_TRAITS, distributeCharacterTraits } from './characterTraits.js';
 
 const CLAN_NAMES = ['Roturier', 'Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
 
@@ -174,6 +182,19 @@ export async function generateNinjaProfile({
   let stats = generateSpecializedStats(grade, primaryArt, potential);
   stats = applyClanBonuses(stats, resolvedClan);
 
+  let resolvedTrait;
+  if (characterTrait === undefined) {
+    resolvedTrait = rollCharacterTrait();
+  } else if (characterTrait == null) {
+    resolvedTrait = { character_trait: null, trait_boost: null };
+  } else if (typeof characterTrait === 'object') {
+    resolvedTrait = resolveTraitPayload(characterTrait.character_trait, characterTrait.trait_boost);
+  } else {
+    resolvedTrait = resolveTraitPayload(characterTrait, null);
+  }
+
+  stats = applyTraitBoost(stats, resolvedTrait.character_trait, resolvedTrait.trait_boost, grade);
+
   const moral = computeMoralWithClanVariance(12 + Math.floor(Math.random() * 6), resolvedClan);
   const weeklyForme = pickRandom(FORMES);
 
@@ -187,7 +208,8 @@ export async function generateNinjaProfile({
     grade,
     clan_trait_id: resolvedClan.id,
     element_affinity: pickRandom(ELEMENTS),
-    character_trait: characterTrait || pickRandom(CHARACTER_TRAITS),
+    character_trait: resolvedTrait.character_trait,
+    trait_boost: resolvedTrait.trait_boost,
     language,
     salary_cost,
     weekly_forme: weeklyForme,
@@ -198,19 +220,6 @@ export async function generateNinjaProfile({
     potential,
     ...stats,
   };
-}
-
-export function distributeCharacterTraits(count) {
-  const traits = [];
-  const repeats = Math.floor(count / CHARACTER_TRAITS.length);
-  const remainder = count % CHARACTER_TRAITS.length;
-
-  for (const trait of CHARACTER_TRAITS) {
-    for (let i = 0; i < repeats; i += 1) traits.push(trait);
-  }
-
-  const extra = shuffle(CHARACTER_TRAITS).slice(0, remainder);
-  return shuffle([...traits, ...extra]);
 }
 
 export { CLAN_NAMES, PRIMARY_ARTS };

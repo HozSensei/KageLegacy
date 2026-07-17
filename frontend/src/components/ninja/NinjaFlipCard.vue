@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
 import NinjaProfileBadges from './NinjaProfileBadges.vue'
+import NinjaTraitLabel from './NinjaTraitLabel.vue'
 
 const props = defineProps({
   ninja: { type: Object, required: true },
@@ -153,18 +154,12 @@ function onHoverMediaChange(event) {
             <p class="truncate font-display text-base text-ink">{{ ninja.name }}</p>
             <NinjaProfileBadges class="mt-2" :ninja="ninja" :compact="size === 'xs'" />
 
-            <div v-if="size !== 'xs'" class="trait-tooltip mt-2">
-              <p class="italic leading-snug text-ink-muted">
-                {{ t(`traits.${ninja.character_trait}.label`) }}
-              </p>
-              <div class="trait-tooltip__panel" role="tooltip">
-                <p class="text-accent-soft">{{ t(`traits.${ninja.character_trait}.bonus`) }}</p>
-                <p class="mt-1.5 text-ink-faint">{{ t(`traits.${ninja.character_trait}.malus`) }}</p>
-              </div>
-            </div>
-            <p v-else class="mt-2 truncate italic leading-snug text-ink-muted">
-              {{ t(`traits.${ninja.character_trait}.label`) }}
-            </p>
+            <NinjaTraitLabel
+              class="mt-2"
+              :ninja="ninja"
+              :tooltip="size !== 'xs'"
+              :size="size === 'xs' ? 'xs' : 'sm'"
+            />
 
             <dl class="mt-2 flex-1 space-y-1 text-[10px]">
               <div v-for="key in statKeys" :key="key" class="flex justify-between gap-2">

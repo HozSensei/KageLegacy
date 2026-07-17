@@ -317,17 +317,21 @@ Chaque ninja possède une **forme** du cycle (de la meilleure à la pire : Divin
 
 Après un match, les ninjas mis K.O. voient leur forme **baisser d'un palier**. À H72, PV et chakra sont entièrement restaurés.
 
-### Traits de caractère
+### Profils de caractère
 
-Chaque ninja a un **trait** qui influence son comportement en opération :
+Chaque ninja peut avoir un **profil** qui biaise **légèrement** une stat à la génération (±1 ou ±2 déjà intégré dans la fiche). Environ un tiers des ninjas sont **sans profil**.
 
-| Trait | Comportement (résumé) |
-|-------|------------------------|
-| **Égoïste** | Plus agressif quand ses alliés sont affaiblis ; ignore parfois le ciblage défensif |
-| **Altruiste** | Peut encaisser un coup fatal à la place d'un allié |
-| **Fainéant** | Résiste au premier Genjutsu subi ; peut rater l'entraînement |
-| **Téméraire** | Très rapide au premier tour ; dépense plus de chakra |
-| **Discipliné** | Comportement standard, prévisible |
+| Profil | Stat favorisée |
+|--------|----------------|
+| **Brute** | Taijutsu |
+| **Canaliseur** | Ninjutsu |
+| **Illusionniste** | Genjutsu |
+| **Guérisseur** | Médecine |
+| **Véloce** | Vitesse |
+| **Stratège** | Intelligence |
+| **Sans profil** | Aucun biais |
+
+L'intensité du biais (+1 ou +2) se lit à la **couleur** du libellé sur la fiche (plus marqué = +2) — le chiffre n'est pas affiché. Le profil est orthogonal à la **voie**, au **clan** et au **potentiel**.
 
 ### Éléments (affinité)
 
@@ -698,3 +702,4 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 | 2026-07-10 | Consignes renommées (Défensive / Protection), guide postures & cartes tactiques ; retrait du cercle Assaut/Mur/Flux |
 | 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |
 | 2026-07-17 | Retrait Pack Élite (désactivé), consignes/postures et objets match obsolètes ; alignement sur le deck d'opération |
+| 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais stats +1/+2 à la génération |

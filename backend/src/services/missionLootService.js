@@ -233,6 +233,7 @@ async function recruitMissionProdige(userId) {
     clan_trait_id: profile.clan_trait_id,
     element_affinity: profile.element_affinity,
     character_trait: profile.character_trait,
+    trait_boost: profile.trait_boost,
     language: profile.language || 'fr',
     taijutsu: profile.taijutsu,
     ninjutsu: profile.ninjutsu,

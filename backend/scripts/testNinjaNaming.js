@@ -56,7 +56,7 @@ const mockClan = {
 const profile = await generateNinjaProfile({
   clan: mockClan,
   grade: 'Genin',
-  characterTrait: 'Discipline',
+  characterTrait: 'Brute',
   forbiddenGlobalKeys: globalEmpty,
 });
 assert.ok(profile.name.endsWith(' Yamanaka'), `profile uses clan surname: ${profile.name}`);

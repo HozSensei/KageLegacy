@@ -23,7 +23,7 @@ const LISTING_SELECT = `
   idf.slug, idf.name_fr, idf.name_en, idf.category, idf.price AS catalog_price,
   tcd.slug AS card_slug, tcd.name_fr AS card_name_fr, tcd.name_en AS card_name_en,
   tcd.rarity AS card_rarity, tcd.card_type AS card_type, tcd.catalog_price AS card_catalog_price,
-  n.name AS ninja_name, n.grade, n.age, n.character_trait,
+  n.name AS ninja_name, n.grade, n.age, n.character_trait, n.trait_boost,
   n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence,
   c.name AS clan_name, c.is_noble AS clan_is_noble,
   ss.name AS seller_name,
@@ -133,6 +133,7 @@ function mapListing(row, identityMap = null) {
       grade: row.grade,
       age: row.age,
       characterTrait: row.character_trait,
+      traitBoost: row.trait_boost,
       clanName: row.clan_name,
       isNoble: Boolean(row.clan_is_noble),
       stats: {

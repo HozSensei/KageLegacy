@@ -42,7 +42,7 @@ async function main() {
        user_id, name, grade, age, squad_position, preparation_type,
        taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence,
        moral, weekly_forme, character_trait, element_affinity
-     ) VALUES (?, 'Boost', 'Genin', 16, 1, 'Physique', 10, 10, 10, 10, 10, 10, 15, 'Passable', 'Discipline', 'Katon')`,
+     ) VALUES (?, 'Boost', 'Genin', 16, 1, 'Physique', 10, 10, 10, 10, 10, 10, 15, 'Passable', 'Brute', 'Katon')`,
     [userId]
   );
   const ninjaId = ninjaResult.insertId;

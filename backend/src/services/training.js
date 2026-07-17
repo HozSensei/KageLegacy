@@ -184,23 +184,9 @@ export function parseStatResiduals(ninja) {
   return {};
 }
 
-function shouldSkipLazy(ninja) {
-  const lazyChance = ninja.training_buff === 'strategy_book' ? 5 : 15;
-  return ninja.character_trait === 'Faineant' && Math.floor(Math.random() * 100) < lazyChance;
-}
-
 export function computeTrainingSession(ninja, trainingType, mode, options = {}) {
   if (!trainingType) {
     return { skipped: true, reason: 'no_plan', gains: [], logs: [] };
-  }
-
-  if (shouldSkipLazy(ninja)) {
-    return {
-      skipped: true,
-      reason: 'lazy',
-      gains: [],
-      logs: [`${ninja.name} a préféré dormir sous un arbre plutôt que de s'entraîner.`],
-    };
   }
 
   const coef = mode === 'preparation' ? PREP_COEF : GLOBAL_COEF;
@@ -391,6 +377,6 @@ export function previewTrainingSession(ninja, trainingType, mode) {
     mode,
     allCapped,
     statPreviews,
-    lazyRisk: ninja.character_trait === 'Faineant',
+    lazyRisk: false,
   };
 }

@@ -3,6 +3,7 @@ import { computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNinjaDisplay } from '../../composables/useNinjaDisplay.js'
 import NinjaProfileBadges from './NinjaProfileBadges.vue'
+import NinjaTraitLabel from './NinjaTraitLabel.vue'
 
 defineOptions({ name: 'NinjaCard' })
 
@@ -79,16 +80,7 @@ const familyName = computed(() => props.ninja.name.split(' ').slice(1).join(' ')
         </div>
       </div>
 
-      <p class="group relative mt-4 inline-block text-sm italic text-ink-muted">
-        {{ t(`traits.${ninja.character_trait}.label`) }}
-        <span
-          class="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 border border-line bg-bg-card p-3 text-xs not-italic text-ink-muted shadow-2xl group-hover:block"
-        >
-          <span class="text-accent-soft">+</span> {{ t(`traits.${ninja.character_trait}.bonus`) }}
-          <br />
-          <span class="text-fire/80">−</span> {{ t(`traits.${ninja.character_trait}.malus`) }}
-        </span>
-      </p>
+      <NinjaTraitLabel class="mt-4" :ninja="ninja" />
 
       <div class="mt-6 space-y-4">
         <div>

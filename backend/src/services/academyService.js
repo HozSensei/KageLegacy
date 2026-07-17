@@ -102,6 +102,7 @@ function mapDrawRow(row) {
       profile: candidate.displayProfile,
       element: candidate.element_affinity,
       characterTrait: candidate.character_trait,
+      traitBoost: candidate.trait_boost,
       jackpotForced: Boolean(candidate.jackpotForced),
     },
   };

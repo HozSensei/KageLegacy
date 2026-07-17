@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { CHARACTER_TRAITS } from '../services/characterTraits.js';
+
+export { CHARACTER_TRAITS } from '../services/characterTraits.js';
 
 export const GRADES = ['Genin', 'Chunin', 'Jonin'];
 export const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
-export const CHARACTER_TRAITS = ['Egoiste', 'Altruiste', 'Faineant', 'Temeraire', 'Discipline'];
 export const WEEKLY_FORMES = ['Lamentable', 'Passable', 'Excellent', 'Divin'];
 export const LANGUAGES = ['fr', 'en'];
 
@@ -24,7 +26,8 @@ export const ninjaInputSchema = z.object({
   grade: z.enum(GRADES),
   clan_trait_id: z.number().int().positive(),
   element_affinity: z.enum(ELEMENTS),
-  character_trait: z.enum(CHARACTER_TRAITS),
+  character_trait: z.enum(CHARACTER_TRAITS).nullable().optional(),
+  trait_boost: z.union([z.literal(1), z.literal(2)]).nullable().optional(),
   language: z.enum(LANGUAGES).default('fr'),
   weekly_forme: z.enum(WEEKLY_FORMES).default('Passable'),
   moral: statSchema,
