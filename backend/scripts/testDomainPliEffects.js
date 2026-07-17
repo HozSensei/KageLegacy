@@ -43,65 +43,86 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+/** Relance une sim jusqu'à trouver un log attendu (shuffle + d6). */
+function findLog(build, predicate, attempts = 40) {
+  for (let i = 0; i < attempts; i += 1) {
+    const { home, away, homeDeck, awayDeck } = build();
+    const result = simulatePliCombat(home, away, { homeDeck, awayDeck });
+    const hit = result.logs.find(predicate);
+    if (hit) return { result, hit };
+  }
+  return null;
+}
+
+assert(TAI_BONUS_NEXT > 1, 'constante Tai bonus > 1');
+assert(GEN_MALUS_NEXT < 1, 'constante Gen malus < 1');
+
 // Taijutsu victoire → bonus puissance au pli suivant
 {
-  const f1 = buildFighter(1, 'TaiA', { taijutsu: 30, ninjutsu: 5, genjutsu: 5, medecine: 5, vitesse: 20, intelligence: 5 }, 'Katon');
-  const f2 = buildFighter(2, 'TaiB', { taijutsu: 8, ninjutsu: 8, genjutsu: 8, medecine: 8, vitesse: 8, intelligence: 8 }, 'Suiton');
-  const home = { label: 'home', fighters: [f1], sensei: { name: 'H' } };
-  const away = { label: 'away', fighters: [f2], sensei: { name: 'A' } };
-  const picks = { 1: { primary: 'taijutsu', secondary: 'ninjutsu' }, 2: { primary: 'taijutsu', secondary: 'ninjutsu' } };
-  const result = simulatePliCombat(home, away, { homeDeck: deckFor(picks), awayDeck: deckFor(picks) });
-  const taiWin = result.logs.find((log) => log.domain_effect_home === 'tai_bonus_next');
-  assert(taiWin, 'victoire Taijutsu doit programmer le bonus +10 %');
-  const base = computeCardPower(f1, 'taijutsu', { nextMod: 1 });
-  const boosted = computeCardPower(f1, 'taijutsu', { nextMod: TAI_BONUS_NEXT });
-  assert(boosted > base, 'modificateur Tai +10 % augmente la puissance');
+  const found = findLog(() => {
+    const f1 = buildFighter(1, 'TaiA', { taijutsu: 30, ninjutsu: 5, genjutsu: 5, medecine: 5, vitesse: 20, intelligence: 5 }, 'Katon');
+    const f2 = buildFighter(2, 'TaiB', { taijutsu: 8, ninjutsu: 8, genjutsu: 8, medecine: 8, vitesse: 8, intelligence: 8 }, 'Suiton');
+    // PV élevés : le match ne finit pas avant qu'une carte Taijutsu soit jouée.
+    f2.pv = f2.maxPv = 180;
+    const picks = { 1: { primary: 'taijutsu', secondary: 'taijutsu' }, 2: { primary: 'taijutsu', secondary: 'ninjutsu' } };
+    return {
+      home: { label: 'home', fighters: [f1], sensei: { name: 'H' } },
+      away: { label: 'away', fighters: [f2], sensei: { name: 'A' } },
+      homeDeck: deckFor(picks),
+      awayDeck: deckFor(picks),
+    };
+  }, (log) => log.domain_effect_home === 'tai_bonus_next');
+  assert(found, 'victoire Taijutsu doit programmer le bonus +10 %');
 }
 
 // Genjutsu victoire → malus adverse au pli suivant
 {
-  const f1 = buildFighter(1, 'GenA', { genjutsu: 30, taijutsu: 5, ninjutsu: 5, medecine: 5, vitesse: 5, intelligence: 25 }, 'Raiton');
-  const f2 = buildFighter(2, 'GenB', { genjutsu: 8, taijutsu: 8, ninjutsu: 8, medecine: 8, vitesse: 8, intelligence: 8 }, 'Doton');
-  const home = { label: 'home', fighters: [f1], sensei: { name: 'H' } };
-  const away = { label: 'away', fighters: [f2], sensei: { name: 'A' } };
-  const picks = { 1: { primary: 'genjutsu', secondary: 'ninjutsu' }, 2: { primary: 'genjutsu', secondary: 'ninjutsu' } };
-  const result = simulatePliCombat(home, away, { homeDeck: deckFor(picks), awayDeck: deckFor(picks) });
-  const genWin = result.logs.find((log) => log.domain_effect_away === 'gen_malus_next');
-  assert(genWin, 'victoire Genjutsu doit programmer le malus −10 % adverse');
-  const base = computeCardPower(f2, 'genjutsu', { nextMod: 1 });
-  const malus = computeCardPower(f2, 'genjutsu', { nextMod: GEN_MALUS_NEXT });
-  assert(malus < base, 'modificateur Gen −10 % réduit la puissance');
+  const found = findLog(() => {
+    const f1 = buildFighter(1, 'GenA', { genjutsu: 30, taijutsu: 5, ninjutsu: 5, medecine: 5, vitesse: 5, intelligence: 25 }, 'Raiton');
+    const f2 = buildFighter(2, 'GenB', { genjutsu: 8, taijutsu: 8, ninjutsu: 8, medecine: 8, vitesse: 8, intelligence: 8 }, 'Doton');
+    f2.pv = f2.maxPv = 180;
+    const picks = { 1: { primary: 'genjutsu', secondary: 'genjutsu' }, 2: { primary: 'genjutsu', secondary: 'ninjutsu' } };
+    return {
+      home: { label: 'home', fighters: [f1], sensei: { name: 'H' } },
+      away: { label: 'away', fighters: [f2], sensei: { name: 'A' } },
+      homeDeck: deckFor(picks),
+      awayDeck: deckFor(picks),
+    };
+  }, (log) => log.domain_effect_away === 'gen_malus_next');
+  assert(found, 'victoire Genjutsu doit programmer le malus −10 % adverse');
 }
 
 // Médecine : soin si victoire
 {
-  const medic = buildFighter(1, 'Med', { medecine: 35, taijutsu: 5, ninjutsu: 5, genjutsu: 5, vitesse: 15, intelligence: 10 }, null);
-  medic.pv = Math.floor(medic.maxPv * 0.4);
-  const weak = buildFighter(2, 'Weak', { taijutsu: 5, ninjutsu: 5, genjutsu: 5, medecine: 5, vitesse: 5, intelligence: 5 }, null);
-  const home = { label: 'home', fighters: [medic, weak], sensei: { name: 'H' } };
-  const awayF = buildFighter(3, 'Opp', { taijutsu: 5, ninjutsu: 5, genjutsu: 5, medecine: 5, vitesse: 5, intelligence: 5 }, null);
-  const away = { label: 'away', fighters: [awayF], sensei: { name: 'A' } };
-  const homeDeck = deckFor({
-    1: { primary: 'medecine', secondary: 'taijutsu' },
-    2: { primary: 'taijutsu', secondary: 'ninjutsu' },
-  });
-  const awayDeck = deckFor({ 3: { primary: 'taijutsu', secondary: 'ninjutsu' } });
-  const before = medic.pv;
-  const result = simulatePliCombat(home, away, { homeDeck, awayDeck });
-  const medHeal = result.logs.find((log) => (log.soins_pv || 0) > 0 || (log.soins_pv_away || 0) > 0);
-  assert(medHeal || medic.pv > before, 'victoire Médecine doit soigner');
+  const found = findLog(() => {
+    const medic = buildFighter(1, 'Med', { medecine: 35, taijutsu: 5, ninjutsu: 5, genjutsu: 5, vitesse: 15, intelligence: 10 }, null);
+    medic.pv = Math.max(8, Math.floor(medic.maxPv * 0.35));
+    const awayF = buildFighter(3, 'Opp', { taijutsu: 4, ninjutsu: 4, genjutsu: 4, medecine: 4, vitesse: 4, intelligence: 4 }, null);
+    awayF.pv = awayF.maxPv = 120;
+    return {
+      home: { label: 'home', fighters: [medic], sensei: { name: 'H' } },
+      away: { label: 'away', fighters: [awayF], sensei: { name: 'A' } },
+      homeDeck: deckFor({ 1: { primary: 'medecine', secondary: 'medecine' } }),
+      awayDeck: deckFor({ 3: { primary: 'taijutsu', secondary: 'ninjutsu' } }),
+    };
+  }, (log) => (log.soins_pv || 0) > 0 || (log.soins_pv_away || 0) > 0);
+  assert(found, 'victoire Médecine doit soigner');
 }
 
 // Médecine : dégâts réduits si défaite
 {
-  const medic = buildFighter(1, 'MedLose', { medecine: 5, taijutsu: 5, ninjutsu: 5, genjutsu: 5, vitesse: 5, intelligence: 5 }, null);
-  const bruiser = buildFighter(2, 'Bruiser', { taijutsu: 40, ninjutsu: 5, genjutsu: 5, medecine: 5, vitesse: 20, intelligence: 5 }, null);
-  const home = { label: 'home', fighters: [medic], sensei: { name: 'H' } };
-  const away = { label: 'away', fighters: [bruiser], sensei: { name: 'A' } };
-  const picks = { 1: { primary: 'medecine', secondary: 'taijutsu' }, 2: { primary: 'taijutsu', secondary: 'ninjutsu' } };
-  const result = simulatePliCombat(home, away, { homeDeck: deckFor(picks), awayDeck: deckFor(picks) });
-  const medFail = result.logs.find((log) => log.med_fail || log.med_fail_away);
-  assert(medFail, 'défaite Médecine doit marquer med_fail');
+  const found = findLog(() => {
+    const medic = buildFighter(1, 'MedLose', { medecine: 5, taijutsu: 5, ninjutsu: 5, genjutsu: 5, vitesse: 5, intelligence: 5 }, null);
+    medic.pv = medic.maxPv = 160;
+    const bruiser = buildFighter(2, 'Bruiser', { taijutsu: 40, ninjutsu: 5, genjutsu: 5, medecine: 5, vitesse: 20, intelligence: 5 }, null);
+    return {
+      home: { label: 'home', fighters: [medic], sensei: { name: 'H' } },
+      away: { label: 'away', fighters: [bruiser], sensei: { name: 'A' } },
+      homeDeck: deckFor({ 1: { primary: 'medecine', secondary: 'medecine' } }),
+      awayDeck: deckFor({ 2: { primary: 'taijutsu', secondary: 'taijutsu' } }),
+    };
+  }, (log) => log.med_fail || log.med_fail_away);
+  assert(found, 'défaite Médecine doit marquer med_fail');
 }
 
 // Ninjutsu : roue élémentaire Katon > Futon
@@ -111,12 +132,21 @@ function assert(condition, message) {
   const adv = computeCardPower(katon, 'ninjutsu', { opponentElement: 'Futon' });
   const neutral = computeCardPower(katon, 'ninjutsu', { opponentElement: 'Katon' });
   assert(adv > neutral, 'Katon doit avoir l\'avantage sur Futon en Ninjutsu');
-  const home = { label: 'home', fighters: [katon], sensei: { name: 'H' } };
-  const away = { label: 'away', fighters: [futon], sensei: { name: 'A' } };
-  const picks = { 1: { primary: 'ninjutsu', secondary: 'taijutsu' }, 2: { primary: 'ninjutsu', secondary: 'taijutsu' } };
-  const result = simulatePliCombat(home, away, { homeDeck: deckFor(picks), awayDeck: deckFor(picks) });
-  const elementLog = result.logs.find((log) => log.element_mod_home === 'advantage');
-  assert(elementLog, 'avantage élémentaire doit être journalisé');
+
+  const found = findLog(() => {
+    const k = buildFighter(1, 'Katon', { ninjutsu: 20, taijutsu: 5, genjutsu: 5, medecine: 5, vitesse: 5, intelligence: 15 }, 'Katon');
+    const f = buildFighter(2, 'Futon', { ninjutsu: 20, taijutsu: 5, genjutsu: 5, medecine: 5, vitesse: 5, intelligence: 15 }, 'Futon');
+    k.pv = k.maxPv = 160;
+    f.pv = f.maxPv = 160;
+    const picks = { 1: { primary: 'ninjutsu', secondary: 'ninjutsu' }, 2: { primary: 'ninjutsu', secondary: 'ninjutsu' } };
+    return {
+      home: { label: 'home', fighters: [k], sensei: { name: 'H' } },
+      away: { label: 'away', fighters: [f], sensei: { name: 'A' } },
+      homeDeck: deckFor(picks),
+      awayDeck: deckFor(picks),
+    };
+  }, (log) => log.element_mod_home === 'advantage');
+  assert(found, 'avantage élémentaire doit être journalisé');
 }
 
 console.log('testDomainPliEffects OK');

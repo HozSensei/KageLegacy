@@ -92,11 +92,6 @@ function buildTeam(ninjas, label) {
 }
 
 function testCombatWithEffectCard() {
-  const squadA = createBalancedSquad('A', 0, 1.2);
-  const squadB = createBalancedSquad('B', 10, 0.9);
-  const home = buildTeam(squadA, 'home');
-  const away = buildTeam(squadB, 'away');
-
   const effectCard = {
     userTacticCardId: 9001,
     slug: 'tai-poing-chakra',
@@ -109,25 +104,43 @@ function testCombatWithEffectCard() {
     effectParams: { flat: 5, scaleStat: 'vitesse', scaleDiv: 5 },
   };
 
-  const slots = { [home.fighters[0].id]: [9001] };
-  const deck = {
-    techniqueSlotsByNinjaId: slots,
-    techniqueCardsById: { 9001: effectCard },
-    techniquesByNinjaId: {
-      [home.fighters[0].id]: { primary: 'taijutsu', secondary: 'ninjutsu' },
-      [home.fighters[1].id]: { primary: 'ninjutsu', secondary: 'genjutsu' },
-      [home.fighters[2].id]: { primary: 'genjutsu', secondary: 'medecine' },
-    },
-    rawTechniquesByNinjaId: {
-      [home.fighters[0].id]: { primary: 'taijutsu', secondary: 'ninjutsu' },
-      [home.fighters[1].id]: { primary: 'ninjutsu', secondary: 'genjutsu' },
-      [home.fighters[2].id]: { primary: 'genjutsu', secondary: 'medecine' },
-    },
-  };
+  let withBonus = false;
+  let logsLen = 0;
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const squadA = createBalancedSquad('A', 0, 1.2);
+    const squadB = createBalancedSquad('B', 10, 0.9);
+    const home = buildTeam(squadA, 'home');
+    const away = buildTeam(squadB, 'away');
+    // PV élevés pour laisser le temps à la carte technique d'être jouée avant un KO d'équipe.
+    for (const f of [...home.fighters, ...away.fighters]) {
+      f.pv = f.maxPv = Math.max(f.maxPv, 120);
+    }
 
-  const result = simulatePliCombat(home, away, { homeDeck: deck, awayDeck: deck });
-  console.assert(result.logs.length > 0, 'combat with effect cards runs');
-  const withBonus = result.logs.some((log) => (log.bonus_degats ?? 0) > 0);
+    const slots = { [home.fighters[0].id]: [9001] };
+    const deck = {
+      techniqueSlotsByNinjaId: slots,
+      techniqueCardsById: { 9001: effectCard },
+      techniquesByNinjaId: {
+        [home.fighters[0].id]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+        [home.fighters[1].id]: { primary: 'ninjutsu', secondary: 'genjutsu' },
+        [home.fighters[2].id]: { primary: 'genjutsu', secondary: 'medecine' },
+      },
+      rawTechniquesByNinjaId: {
+        [home.fighters[0].id]: { primary: 'taijutsu', secondary: 'ninjutsu' },
+        [home.fighters[1].id]: { primary: 'ninjutsu', secondary: 'genjutsu' },
+        [home.fighters[2].id]: { primary: 'genjutsu', secondary: 'medecine' },
+      },
+    };
+
+    const result = simulatePliCombat(home, away, { homeDeck: deck, awayDeck: deck });
+    logsLen = result.logs.length;
+    if (result.logs.some((log) => (log.bonus_degats ?? 0) > 0)) {
+      withBonus = true;
+      break;
+    }
+  }
+
+  console.assert(logsLen > 0, 'combat with effect cards runs');
   console.assert(withBonus, 'bonus damage effect can proc in combat');
 }
 

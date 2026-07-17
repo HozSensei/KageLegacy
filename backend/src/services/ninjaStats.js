@@ -8,11 +8,13 @@ export function computeMatchPv(taijutsu, equipmentBonus = 0) {
 }
 
 /** PV de match basés sur la note globale (somme des 6 stats / 6, arrondi). */
+export const MATCH_PV_PER_RATING = 5;
+
 export function computeMatchPvFromRating(statsOrNinja, equipmentBonus = 0) {
   const stats = statsOrNinja.stats || statsOrNinja;
   const sum = NINJA_STAT_COLUMNS.reduce((acc, col) => acc + (Number(stats[col]) || 0), 0);
   const rating = Math.round(sum / NINJA_STAT_COLUMNS.length);
-  return Math.max(10, rating * 10 + equipmentBonus);
+  return Math.max(10, rating * MATCH_PV_PER_RATING + equipmentBonus);
 }
 
 export function computeMatchChakraMax(grade, ninjutsu) {

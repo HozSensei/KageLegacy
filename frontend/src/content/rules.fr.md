@@ -372,7 +372,7 @@ Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse not
 
 Chaque match se joue en **18 plis** : deck mélangé de **6 cartes par ninja actif** — **1 carte technique inventaire** + **2× carte stat primaire** + **3× carte stat secondaire** (domaines taijutsu, ninjutsu, genjutsu, médecine) + **relais** si emplacements vides.
 
-- **PV max** = note globale du ninja × 10 (moyenne des 6 stats).
+- **PV max** = note globale du ninja × 5 (moyenne des 6 stats).
 - Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
 - **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
 - **Objets match** : retirés ; **cartes technique** assignées par ninja ; consommables bureau et équipement cycle hors combat.
@@ -698,6 +698,7 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 
 | Date | Changement |
 |------|------------|
+| 2026-07-17 | Rééquilibrage combat par plis : PV max × 5 (au lieu de × 10) et dégâts de pli relevés pour rendre les K.O. possibles |
 | 2026-07-09 | Création du document (règles joueur, sans formules exactes) |
 | 2026-07-10 | Consignes renommées (Défensive / Protection), guide postures & cartes tactiques ; retrait du cercle Assaut/Mur/Flux |
 | 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |

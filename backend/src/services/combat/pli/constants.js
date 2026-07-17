@@ -17,8 +17,23 @@ export const GEN_MALUS_NEXT = 0.9;
 export const TAI_BONUS_NEXT = 1.1;
 export const RELAIS_DAMAGE_MULT = 0.5;
 export const MED_FAIL_DAMAGE_MULT = 0.5;
-export const DECISIVE_EDGE = 12;
+/** Écart de puissance à partir duquel le pli est « décisif ». */
+export const DECISIVE_EDGE = 8;
 export const DECISIVE_DAMAGE_MULT = 1.5;
+
+/**
+ * Dégâts d'un pli gagné.
+ * Part puissance du vainqueur + bonus d'écart — les exchanges proches font aussi mal.
+ * Cible : matchs égaux ≈ 15–20 % KO d'équipe, ~2 ninjas K.O./match.
+ */
+export const DAMAGE_POWER_FACTOR = 0.75;
+export const DAMAGE_EDGE_FACTOR = 1.8;
+export const DAMAGE_MIN = 8;
+
+/** Dégâts d'égalité (chip des deux côtés). */
+export const TIE_DAMAGE_POWER_FACTOR = 0.28;
+export const TIE_DAMAGE_EDGE_FACTOR = 0.7;
+export const TIE_DAMAGE_MIN = 4;
 
 /** Tai > Gen > Nin > Tai */
 export const DOMAIN_BEATS = {
