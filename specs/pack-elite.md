@@ -1,6 +1,8 @@
 # 🎖️ Pack Élite — Identité Sensei & monétisation cosmétique
 
-**Statut :** 📐 spec + maquette UI (juil. 2026) — backend paiement non livré.
+**Statut :** ⏸️ **désactivé temporairement** (juil. 2026) — le code reste en place ; réactiver avec `ELITE_FEATURE_ENABLED=true`.
+
+**Kill-switch :** si `ELITE_FEATURE_ENABLED` ≠ `true`, les abonnements DB sont ignorés, le checkout renvoie 503, et l'UI (profil, nav, outils) masque tout le Pack Élite.
 
 **Objectif :** offrir un abonnement **Pack Élite** qui transforme l'identité publique du joueur (cosmétiques visibles par tous) et débloque des outils d'analyse privés — **sans aucun avantage compétitif**.
 
@@ -371,7 +373,7 @@ UI : panneau repliable dans `OperationView` (`OperationEliteReport.vue`).
 | Outil | Description |
 | :--- | :--- |
 | **Stats saison** | V/D/N, possession moyenne, historique des matchs |
-| **Conseil composition** | Triangle Assaut / Mur / Flux + tips |
+| **Conseil composition** | Tips deck / voies (plus de triangle Assaut / Mur / Flux) |
 | **ROI entraînement** | Coût net (héritage) vs gain attendu par ninja |
 | **Héritage** | Résumé parchemins + remises actives |
 | **Simulateur matchup** | Monte Carlo escouade active vs compo pure adverse |

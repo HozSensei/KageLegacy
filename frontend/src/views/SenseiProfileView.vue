@@ -33,7 +33,10 @@ const challengeSent = ref(false)
 
 const targetId = computed(() => props.userId || route.params.userId)
 const isOwnProfile = computed(() => profile.value?.isOwnProfile)
-const isEliteActive = computed(() => Boolean(elite.subscription?.isActive))
+const isEliteActive = computed(
+  () => Boolean(elite.featureEnabled && elite.subscription?.isActive)
+)
+const showEliteSection = computed(() => Boolean(elite.featureEnabled))
 
 const canChallengeRecon = computed(
   () =>
@@ -128,7 +131,7 @@ async function fetchProfile() {
     <p v-else-if="error" class="mt-12 text-sm text-fire">{{ error }}</p>
 
     <template v-else-if="profile">
-      <EliteCheckoutBanner v-if="isOwnProfile" class="mb-8" />
+      <EliteCheckoutBanner v-if="isOwnProfile && showEliteSection" class="mb-8" />
 
       <div v-if="isOwnProfile" class="mb-6 flex flex-wrap items-center gap-3">
         <span class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('senseiProfile.ownBadge') }}</span>
@@ -207,7 +210,7 @@ async function fetchProfile() {
       </section>
 
       <template v-if="isOwnProfile">
-        <section class="mt-14" data-testid="profile-elite-section">
+        <section v-if="showEliteSection" class="mt-14" data-testid="profile-elite-section">
           <div class="flex flex-wrap items-center gap-2">
             <VerifiedIcon v-if="isEliteActive" size="1.25rem" />
             <p class="section-label">{{ t('senseiProfile.eliteSectionTitle') }}</p>

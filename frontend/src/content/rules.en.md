@@ -46,7 +46,7 @@ Chronological activity feed for your cycle: training gains, mission results, eco
 
 **Route:** `/profil`
 
-Public Sensei identity: name, heritage wall (scrolls left by Chunin who departed via Bird Flight), Elite Pack cosmetics. Other players can view your profile via `/sensei/:id`.
+Public Sensei identity: name, heritage wall (scrolls left by Chunin who departed via Bird Flight). Other players can view your profile via `/sensei/:id`.
 
 ---
 
@@ -62,8 +62,6 @@ Central screen for **tactical preparation**:
 |---------|--------|
 | **Lineup** | 3 active ninjas + bench reserves; active ↔ bench swaps until H54 |
 | **Operation deck** | Per active: technique card + primary/secondary domains (6 cards per ninja) — see § Operation deck |
-| **Orders** | Normal, Offensive, Defensive, Protection — legacy UI, aligned with the deck |
-| **Operation dossier** | Cycle posture (Balanced, Offensive, Defensive, Protection) from H36 |
 | **Briefing** | Reminder of league opponent and next match |
 | **Player market** | List a bench ninja for sale or release them |
 
@@ -171,8 +169,8 @@ Combat details: see § Border operation.
 
 **Village shop** — purchases with your Ryos:
 
-- Utility items (office, match, cycle) by category.
-- **Tactic card offers**: 10 random draws per restock, fresh bonus % on purchase.
+- Utility items (office, cycle) by category.
+- **Technique card offers**: 10 random draws per restock, fresh bonus % on purchase.
 - Random promotions each cycle; personal catalogue restocked periodically.
 
 Closed when in **debt** or during **H71+** lock. Details: see § Economy.
@@ -181,7 +179,7 @@ Closed when in **debt** or during **H71+** lock. Details: see § Economy.
 
 **Route:** `/refinement`
 
-**Refinement hall** — paid re-roll of a owned tactic card's **% bonus**:
+**Refinement hall** — paid re-roll of a owned technique card's **% bonus**:
 
 - Cost by card rarity; possible discount via shop heritage.
 - Blocked if treasury is negative or card is listed on the player market.
@@ -212,7 +210,6 @@ Manage your **stock**:
 | **Technique cards** | Assignment per active ninja for the operation deck |
 | **Office consumables** | Immediate use on a ninja |
 | **Cycle equipment** | 1 per ninja for the whole cycle |
-| **Match items** | 1 slot per ninja; effect in operation if conditions are met |
 
 Actions: equip, use, list on player market, open refinement.
 
@@ -223,12 +220,6 @@ Actions: equip, use, list on player market, open refinement.
 ### Notifications
 
 **Bell** icon in the header: mission completion, exam results, cycle closure, operation start, scout report, clan well, etc. Each notification links to the relevant screen.
-
-### Elite tools
-
-**Route:** `/elite/outils` — reserved for **Elite Pack** subscribers.
-
-Deck simulator, scout prefill, training ROI calculator — **no direct competitive advantage** in match.
 
 ### Game rules
 
@@ -254,7 +245,7 @@ Each cycle is a synchronized "game week" for all players on the server.
 | Milestone | Effect |
 |-----------|--------|
 | **H54** | **Lineup locked** (active trio); training locked; H36 tendencies already available; **full scout report** on spotted enemy unit |
-| **H54 → H70** | Deck, orders, tactic cards and items still editable |
+| **H54 → H70** | Deck still editable |
 | **H71** | Full lock until next cycle |
 
 ### Scouting (milestones)
@@ -289,7 +280,7 @@ Chunin exams, healing, and missions should be **settled before H54** to avoid a 
 
 ### Sensei identity
 
-Your **Sensei name** and visual identity (Elite Pack) define your league presence. There is no specialty to pick at account creation: preparation comes from your squad, combat orders, and tactic cards.
+Your **Sensei name** defines your league presence. There is no specialty to pick at account creation: preparation comes from your squad and operation deck.
 
 ### Debt and administrative freeze
 
@@ -380,42 +371,14 @@ Each match plays out in **18 pli**: a shuffled deck of **6 cards per active ninj
 - **Max HP** = ninja overall grade × 10 (average of 6 stats).
 - Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
 - **Victory**: more team HP at match end; tie → most plis won.
-- **Match items** removed from combat; only **tactic cards** serve as deck elements.
+- **Match items** removed from combat; **technique cards** assigned per ninja; office consumables and cycle gear stay out of combat.
 - **Carry-over**: each new league matchday, your deck is **copied** from the previous one (techniques for active ninjas; charges preserved).
-- **Orders** remain editable in the UI but no longer drive the combat engine (replaced by the deck).
-
-### Individual orders (legacy UI)
-
-| Order | Role in match | When to use |
-|-------|---------------|-------------|
-| **Normal** | Balanced behavior; enemies target you by standard rules. | Versatile ninja, or when you don't want to force a role. |
-| **Offensive** | Attack priority: the ninja uses their best combat stat to strike. | Damage specialist, burst, fast pressure; squads that want to end early. |
-| **Defensive** | High chance of **being targeted** when the enemy attacks — acts as a shield. | Absorb pressure to protect a fragile ally; parry or damage-reduction cards. |
-| **Protection** | Can **heal a designated ally** when critically wounded. | Support, medic, holding the line; healing cards. |
-
-> **Terminology:** in the UI and this guide, **Defensive** replaces the old "Tank" label (provocation) and **Protection** replaces "Protect" (ally support). Server values are unchanged.
 
 ### How to compose your squad
 
-- **2 Offensive + 1 Defensive**: direct pressure with a shield.
-- **1 Offensive + 1 Defensive + 1 Protection**: classic balance — burst, absorption, heal.
-- **2 Protection + 1 Defensive**: slow match, survival and attrition (genjutsu, heals).
-- **3 Normal**: no assumed role — viable but no targeting synergy.
-
-**Traits** change this: **Selfish** ninjas may ignore defensive targeting and will never take the Defensive order.
-
-### Operation dossier (postures)
-
-From **H36**, **scouting** reveals hints about the opponent (arts, spotted orders, speed, element). On the **Squad** screen, the **operation dossier** lets you pick a **posture** before the tactical lock (**H71**).
-
-| Posture | Intent | When to pick |
-|---------|--------|--------------|
-| **Balanced** | No strong bet this cycle. | Fuzzy opponent read, mixed squad, or still tuning orders and cards. |
-| **Offensive** | Win initiative and finish fast. | Your squad runs Offensive orders; scout shows an offensive spread or a slow enemy. |
-| **Defensive** | Hold the line under pressure. | You have at least one Defensive order; enemy shows **2+ Offensive** orders. |
-| **Protection** | Survive tempo, heal, protect. | You run Protection orders and healing cards; enemy is **fast** or **high potential** (long trades risky). |
-
-**Important:** posture grants **no hidden combat bonus**. It records your **cycle plan** and shapes **dossier advice** (cross-checked with scouting). For the plan to matter, align **posture + orders + tactic cards** on each ninja.
+- Mix **arts** (Taijutsu, Ninjutsu, Genjutsu, Medicine) to cover domain advantages across plis.
+- Prioritize a **coherent deck**: technique card aligned with the ninja's art, solid primary/secondary domains.
+- Watch **scouting** (H36 trends, H54 lineup) to tune the deck before H71.
 
 ---
 
@@ -549,7 +512,7 @@ Sparring combat to **test your squad** during the preparation phase, before the 
 | **Matchmaking** | Human opponent of similar division and power; otherwise a **league bot**. |
 | **Direct challenge** | From the League screen: challenge a pool member or a nearby-division player from another league. Defender must **accept**. |
 
-**Consequences**: real combat engine (gear, tactic cards, environment); K.O.s can **lower form** like league matches. **Loot**: Ryos + random consumable + tactic card chance (even on a loss). Does **not** affect league standings.
+**Consequences**: real combat engine (deck, environment); K.O.s can **lower form** like league matches. **Loot**: Ryos + random consumable + technique card chance (even on a loss). Does **not** affect league standings.
 
 **Resolution**: at **H36**. The outcome determines scouting quality (H36 tendencies, H54 report).
 
@@ -734,3 +697,4 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 | 2026-07-09 | Initial document (player rules, no exact formulas) |
 | 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
 | 2026-07-15 | Restructured into two parts: interface by menus, then game systems |
+| 2026-07-17 | Removed Elite Pack (disabled), obsolete orders/postures and match items; aligned on operation deck |

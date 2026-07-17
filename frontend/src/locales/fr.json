@@ -69,10 +69,10 @@
         "composition": "Gel des 3 ninjas actifs",
         "training": "Gel des plans d'entraînement",
         "scoutRoster": "Rapport d'espionnage complet (composition figée)",
-        "tactics": "Ajustement consignes, cartes et objets jusqu'à H71"
+        "tactics": "Ajustement du deck jusqu'à H71"
       },
       "operation": {
-        "lock": "Verrouillage final des consignes et tactiques",
+        "lock": "Verrouillage final du deck et de la composition",
         "simulation": "Simulation du match de ligue",
         "chronicle": "Révélation progressive de la chronique"
       },
@@ -1156,7 +1156,7 @@
     "simCardProcs": "{pct}% des matchs avec proc carte ({rate}/match)",
     "whyTitle": "Pourquoi cette tendance",
     "adviceTitle": "Conseils",
-    "rulesCompLink": "Cartes tactiques & consignes (règles du jeu)"
+    "rulesCompLink": "Deck d'opération (règles du jeu)"
   },
   "senseiProfile": {
     "title": "Profil Sensei",

@@ -69,10 +69,10 @@
         "composition": "Active trio locked",
         "training": "Training plans locked",
         "scoutRoster": "Full scout report (frozen lineup)",
-        "tactics": "Orders, cards and items adjustable until H71"
+        "tactics": "Deck adjustable until H71"
       },
       "operation": {
-        "lock": "Final orders and tactics lock",
+        "lock": "Final deck and lineup lock",
         "simulation": "League match simulation",
         "chronicle": "Progressive chronicle reveal"
       },
@@ -1156,7 +1156,7 @@
     "simCardProcs": "{pct}% of matches with card proc ({rate}/match)",
     "whyTitle": "Why this trend",
     "adviceTitle": "Advice",
-    "rulesCompLink": "Tactic cards & combat orders (game rules)"
+    "rulesCompLink": "Operation deck (game rules)"
   },
   "senseiProfile": {
     "title": "Sensei profile",

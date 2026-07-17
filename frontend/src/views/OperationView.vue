@@ -155,7 +155,9 @@ const reportReady = computed(() => {
 })
 
 const spectatorBadge = computed(() => operation.value?.viewerRole === 'spectator')
-const canUseEliteAnalytics = computed(() => Boolean(elite.subscription?.isActive))
+const canUseEliteAnalytics = computed(
+  () => Boolean(elite.featureEnabled && elite.subscription?.isActive)
+)
 
 const equipmentRows = computed(() => {
   const summary = operation.value?.mechanical?.equipmentSummary || []
