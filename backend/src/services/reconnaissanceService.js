@@ -11,6 +11,7 @@ import { consumeUserItem } from './equipmentService.js';
 import { persistTacticCardCombatUsage } from './tacticCards/tacticCardPersistence.js';
 import { pickEnvironmentModifier } from './matchEnvironment.js';
 import { createSenseiNotification } from './senseiNotifications.js';
+import { recordCycleObjectiveEvent } from './cycleObjectiveService.js';
 import { squadAveragePower } from './combat/squadPowerScaling.js';
 import { grantReconnaissanceLoot } from './combatLootService.js';
 import { buildSquadSnapshotFromNinjas } from './scoutIntelService.js';
@@ -298,6 +299,7 @@ export async function pickBotOpponent(userId, poolId) {
 
 async function notifyReconResult(userId, payload) {
   await createSenseiNotification(userId, 'reconnaissance_result', payload);
+  await recordCycleObjectiveEvent(userId, 'recon_complete');
 }
 
 async function persistReconNarrative(missionId, homeUserId, awayUserId, combat, envSlug) {

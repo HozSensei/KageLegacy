@@ -341,6 +341,10 @@ export async function saveOperationDeck(userId, { techniquesByNinjaId, technique
     [userId, cycle, JSON.stringify(techniques), JSON.stringify(sanitizedSlots)]
   );
 
+  if (Object.keys(sanitizedSlots).length > 0) {
+    await query('UPDATE sensei SET onboarding_deck_done = 1 WHERE user_id = ?', [userId]);
+  }
+
   return getOperationDeck(userId, cycle);
 }
 

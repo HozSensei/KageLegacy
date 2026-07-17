@@ -1,7 +1,7 @@
 import { useI18n } from 'vue-i18n'
 
 export function useNotificationCopy() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   function title(note) {
     switch (note.kind) {
@@ -31,6 +31,12 @@ export function useNotificationCopy() {
         return t('notifications.operationStartTitle')
       case 'cycle_close':
         return t('notifications.cycleCloseTitle')
+      case 'upset':
+        return t('notifications.upsetTitle')
+      case 'rivalry_nemesis':
+        return t('notifications.rivalryTitle')
+      case 'cycle_objective':
+        return t('notifications.cycleObjectiveTitle')
       default:
         return t('notifications.genericTitle')
     }
@@ -39,7 +45,13 @@ export function useNotificationCopy() {
   function body(note) {
     const p = note.payload || {}
     switch (note.kind) {
-      case 'bird_flight':
+      case 'bird_flight': {
+        const farewell =
+          typeof p.ceremony?.farewellLine === 'string'
+            ? p.ceremony.farewellLine
+            : p.ceremony?.farewellLine?.[locale.value?.startsWith?.('en') ? 'en' : 'fr'] ||
+              p.ceremony?.farewellLine?.fr ||
+              ''
         return [
           t('bureau.birdFlight.graduationBody', {
             name: p.departed?.name?.split(' ')[0] || '—',
@@ -50,7 +62,11 @@ export function useNotificationCopy() {
             name: p.arrival?.name || '—',
             profile: p.arrival?.potential || p.arrival?.primaryArt || '',
           }),
-        ].join(' ')
+          farewell,
+        ]
+          .filter(Boolean)
+          .join(' ')
+      }
       case 'chunin_exam_success':
         return t('bureau.chuninExam.successBody', {
           name: p.name?.split(' ')[0] || '—',
@@ -136,6 +152,23 @@ export function useNotificationCopy() {
           balance: (p.balanceAfter ?? 0).toLocaleString(),
         })
       }
+      case 'upset':
+        return p.role === 'winner'
+          ? t('notifications.upsetBodyWin', {
+              loser: p.loserName || '—',
+            })
+          : t('notifications.upsetBodyLoss', {
+              winner: p.winnerName || '—',
+            })
+      case 'rivalry_nemesis':
+        return t('notifications.rivalryBody', {
+          name: p.rivalName || '—',
+          count: p.consecutiveLosses ?? 2,
+        })
+      case 'cycle_objective':
+        return t('notifications.cycleObjectiveBody', {
+          ryos: (p.rewardRyos ?? 0).toLocaleString(),
+        })
       default:
         return t('notifications.genericBody')
     }
@@ -189,6 +222,12 @@ export function useNotificationCopy() {
       if (missionId) return `/missions/recon/${missionId}`
       return '/missions'
     }
+    if (note.kind === 'upset' || note.kind === 'rivalry_nemesis') {
+      const matchId = note.payload?.matchId
+      if (matchId) return `/operation/match/${matchId}`
+      return '/league'
+    }
+    if (note.kind === 'cycle_objective') return '/bureau'
     return null
   }
 
@@ -210,6 +249,8 @@ export function useNotificationCopy() {
     if (note.kind === 'stagnation') return t('notifications.viewBureau')
     if (note.kind === 'reconnaissance_challenge') return t('missions.reconNotifLink')
     if (note.kind === 'reconnaissance_result') return t('missions.reconViewChronicle')
+    if (note.kind === 'upset' || note.kind === 'rivalry_nemesis') return t('notifications.viewOperation')
+    if (note.kind === 'cycle_objective') return t('notifications.viewBureau')
     return null
   }
 

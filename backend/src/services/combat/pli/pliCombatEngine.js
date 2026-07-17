@@ -318,6 +318,11 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       cible_name: null,
     };
 
+    if (hasTypeAdvantage(homeDomain, awayDomain)) log.type_advantage_home = true;
+    if (hasTypeAdvantage(awayDomain, homeDomain)) log.type_advantage_away = true;
+    if (homeCard?.kind === 'technique') log.technique_card_home = true;
+    if (awayCard?.kind === 'technique') log.technique_card_away = true;
+
     recordElementMod(log, 'home', homeDomain, homeActor.fighter, awayActor.fighter.element_affinity);
     recordElementMod(log, 'away', awayDomain, awayActor.fighter, homeActor.fighter.element_affinity);
 

@@ -25,7 +25,7 @@ C'est votre tableau de bord quotidien. Vous y trouvez :
 
 | Zone | Rôle |
 |------|------|
-| **Trésorerie** | Solde de Ryos, réputation, chakra de match, prévision salaires + entraînement à H72 |
+| **Trésorerie** | Solde de Ryos, réputation, prévision salaires + entraînement à H72 |
 | **Escouade active** | Aperçu des 3 ninjas de terrain et accès rapide à leur fiche |
 | **Sceau de Chakra** | Rituel quotidien gratuit (minuit UTC) — voir § Académie et Sceau de Chakra |
 | **Examen Chunin** | Inscrire un Genin éligible avant H72 |
@@ -309,13 +309,13 @@ Chaque grade impose des **plafonds** sur les statistiques : un Genin ne peut pas
 | **Combat** | Taijutsu, Ninjutsu, Genjutsu, Médecine |
 | **Support** | Vitesse, Intelligence |
 
-En match, la **robustesse physique** dépend surtout du Taijutsu ; la **réserve de chakra** combine le grade et le Ninjutsu. L'**initiative** et certaines techniques du Sensei s'appuient sur la Vitesse et l'Intelligence.
+En match (combat par plis), la **robustesse** (PV) dépend de la note globale × 5 après Forme. Les domaines Taijutsu / Ninjutsu / Genjutsu / Médecine déterminent la puissance des cartes. Le chakra de match et l'interception Sensei ne s'appliquent plus au moteur pli.
 
 ### Forme hebdomadaire
 
 Chaque ninja possède une **forme** du cycle (de la meilleure à la pire : Divin → Excellent → Passable → Lamentable). Elle modifie **toutes** les stats de façon proportionnelle : une bonne forme amplifie les performances ; une mauvaise forme les pénalise fortement.
 
-Après un match, les ninjas mis K.O. voient leur forme **baisser d'un palier**. À H72, PV et chakra sont entièrement restaurés.
+Après un match, les ninjas mis K.O. voient leur forme **baisser d'un palier**. À H72, les PV sont entièrement restaurés.
 
 ### Profils de caractère
 
@@ -665,6 +665,14 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 - **Dix-huit plis maximum** (6 cartes × 3 ninjas actifs, mélangées).
 - Chaque pli : révélation simultanée des cartes, comparaison de puissance, dégâts sur le propriétaire perdant.
 - **Environnement** aléatoire (météo, terrain) avec modificateurs sur les domaines concernés ; les objets « counter terrain » sont retirés.
+
+### Débrief causal
+
+Après l'opération, chaque Sensei participant reçoit jusqu'à **3 causes** lisibles (avantage de domaine, carte technique décisive, forme Lamentable, deck incomplet…). Objectif : comprendre *pourquoi* le résultat, pas seulement le lire.
+
+### Preview matchup (espionnage)
+
+Dès que le deck adverse est visible via espionnage, un **aperçu matchup** indique les domaines où vous êtes fort ou faible avant H71.
 
 ### Résolution des plis
 

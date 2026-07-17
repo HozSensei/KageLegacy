@@ -229,6 +229,8 @@ export async function getPoolMemberIds(poolId) {
 export async function incrementPoolCycle(poolId) {
   const rows = await query('SELECT current_cycle FROM pools WHERE id = ?', [poolId]);
   const cycle = rows[0]?.current_cycle ?? 1;
+  const { expireCycleObjectivesForPool } = await import('./cycleObjectiveService.js');
+  await expireCycleObjectivesForPool(poolId, cycle);
   if (cycle >= SEASON_CYCLES) {
     await query(`UPDATE pools SET status = 'completed', current_cycle = ? WHERE id = ?`, [
       SEASON_CYCLES,

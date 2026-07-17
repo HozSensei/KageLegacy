@@ -11,6 +11,7 @@ import { pickEnvironmentModifier } from './matchEnvironment.js';
 import { grantLeagueMatchLoot } from './combatLootService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
+import { applyPostMatchSocial } from './postMatchSocial.js';
 
 function mapWinnerToDb(winner, homeUserId, awayUserId) {
   if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
@@ -235,6 +236,7 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
       koNinjaIds = parsed.koNinjaIds || [];
     }
     await applyPostMatchForMatch(match.home_user_id, match.away_user_id, koNinjaIds);
+    await applyPostMatchSocial(match);
 
     await query(
       `UPDATE matches SET status = 'applied', results_applied_at = UTC_TIMESTAMP() WHERE id = ?`,

@@ -191,6 +191,8 @@ export async function assignMission(userId, ninjaId, tier) {
     [userId, ninjaId, cycleStartAt, normalizedTier, guaranteed.max, config.resolvesAtHour]
   );
 
+  await query('UPDATE sensei SET onboarding_mission_done = 1 WHERE user_id = ?', [userId]);
+
   return {
     missionId: result.insertId,
     tier: normalizedTier,

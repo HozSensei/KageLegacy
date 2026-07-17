@@ -101,6 +101,9 @@ Ces règles ont été posées explicitement et doivent guider les prochains mile
 
 ### Profil de référence (sans équipement)
 
+> **Note juil. 2026 :** les chiffres ci-dessous datent du moteur **tour-par-tour / consignes** (Assaut·Mur·Flux).  
+> Re-mesurer avec `npm run combat:pli-deck --prefix backend` et `combat:benchmark` après chaque changement du moteur **pli**.
+
 Simulation démo vs bot (~**+40 %** puissance brute côté démo) — `npm run combat:benchmark` (800 runs, juil. 2026) :
 
 | Métrique | Valeur observée | Cible indicative |
