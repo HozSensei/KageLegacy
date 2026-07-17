@@ -656,8 +656,8 @@ A Sensei can generate an **invitation link** to their pool to recruit allies in 
 
 ### What you see
 
-- **Narrative chronicle**: story unlocked progressively after H71 (both opponents read the same tale at the same pace).
-- **Mechanical debrief**: plis won, HP scores, environment — analytical tone, personalized per player.
+- **Operation report**: short narrative intro, then **face-to-face pli exchanges** (winner highlighted, damage in **HP**), then a closing line. Same layout for **reconnaissance**.
+- **Mechanical debrief**: plis won, remaining HP, environment — analytical tone, personalized per player.
 - **Spectator**: watch matches from other pools.
 
 ### Match structure

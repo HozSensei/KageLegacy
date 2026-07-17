@@ -704,3 +704,4 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 | 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |
 | 2026-07-17 | Retrait Pack Élite (désactivé), consignes/postures et objets match obsolètes ; alignement sur le deck d'opération |
 | 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais stats +1/+2 à la génération |
+| 2026-07-17 | Rapport d'opération / reconnaissance en face-à-face (dégâts en PV) |
