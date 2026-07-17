@@ -17,6 +17,7 @@ import { buildSquadSnapshotFromNinjas } from './scoutIntelService.js';
 import { assembleNarrative } from './narrative/narrativeAssembler.js';
 import { persistReconNarrativeSegments, getReconNarrativeSegments } from './reconNarrativeStore.js';
 import { resolveSegmentText } from './narrative/narrativeI18n.js';
+import { mapChronicleSegmentForClient } from './narrative/pliExchangeView.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
 
@@ -897,11 +898,9 @@ export async function getReconnaissanceMission(missionId, userId) {
 
   const viewerLocale = await getUserLanguage(userId);
   const segments = await getReconNarrativeSegments(missionId);
-  const chronicle = segments.map((s) => ({
-    order: s.segment_order,
-    blockType: s.block_type,
-    text: resolveSegmentText(viewerLocale, s),
-  }));
+  const chronicle = segments.map((s) =>
+    mapChronicleSegmentForClient(s, (seg) => resolveSegmentText(viewerLocale, seg))
+  );
 
   const identityMap = await buildSenseiIdentities(
     [row.home_user_id, row.away_user_id],

@@ -566,6 +566,83 @@
     @apply border-l-2 border-accent/50 pl-4 text-ink;
   }
 
+  .pli-exchange {
+    @apply mb-6 border-t border-line pt-5 last:mb-0;
+    font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  }
+
+  .pli-exchange__head {
+    @apply mb-3 flex flex-wrap items-baseline justify-between gap-2;
+  }
+
+  .pli-exchange__pli {
+    @apply text-[10px] uppercase tracking-[0.16em] text-ink-faint;
+  }
+
+  .pli-exchange__winner {
+    @apply text-xs text-accent;
+  }
+
+  .pli-exchange__winner--draw {
+    @apply text-ink-faint;
+  }
+
+  .pli-exchange__grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-stretch sm:gap-4;
+  }
+
+  .pli-exchange__vs {
+    @apply hidden text-[10px] uppercase tracking-[0.18em] text-ink-faint sm:flex sm:items-center sm:justify-center;
+  }
+
+  .pli-exchange__side {
+    @apply border border-line bg-bg-soft/40 px-4 py-3 transition;
+  }
+
+  .pli-exchange__side--win {
+    @apply border-accent/60 bg-accent/10;
+  }
+
+  .pli-exchange__side--lose {
+    @apply opacity-55;
+  }
+
+  .pli-exchange__side--draw {
+    @apply border-line;
+  }
+
+  .pli-exchange__sensei {
+    @apply text-[10px] uppercase tracking-[0.12em] text-ink-faint;
+  }
+
+  .pli-exchange__actor {
+    @apply mt-1 font-display text-lg leading-tight text-ink;
+  }
+
+  .pli-exchange__card {
+    @apply mt-1 text-sm text-ink-muted;
+  }
+
+  .pli-exchange__domain {
+    @apply mt-2 text-[11px] uppercase tracking-[0.12em] text-ink-faint;
+  }
+
+  .pli-exchange__impact {
+    @apply mt-3 text-sm tabular-nums;
+  }
+
+  .pli-exchange__impact--dmg {
+    @apply text-fire;
+  }
+
+  .pli-exchange__impact--heal {
+    @apply text-accent-soft;
+  }
+
+  .pli-exchange__target {
+    @apply text-ink-faint;
+  }
+
   .chronicle-sensei {
     @apply font-semibold text-ink;
   }

@@ -462,6 +462,8 @@ function buildScoreSummary(combatLog, winnerSide, homeSensei, awaySensei) {
     loser_score_pct: loserScore,
     winner_possession_pct: winnerPoss,
     loser_possession_pct: loserPoss,
+    winner_plis_won: winnerSide === 'home' ? plis.homePlis : plis.awayPlis,
+    loser_plis_won: winnerSide === 'home' ? plis.awayPlis : plis.homePlis,
     ko_sentence: buildKoSentence(combatLog.koNinjaIds, homeSensei, awaySensei),
   };
 }

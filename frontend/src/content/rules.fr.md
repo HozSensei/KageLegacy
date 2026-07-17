@@ -656,8 +656,8 @@ Un Sensei peut générer un **lien d'invitation** vers sa pool pour recruter des
 
 ### Déroulement visible
 
-- **Chronique narrative** : récit romancé débloqué progressivement après H71 (les deux adversaires lisent la même histoire au même rythme).
-- **Débrief mécanique** : plis gagnés, scores PV, environnement — ton analytique personnalisé.
+- **Rapport d'opération** : courte intro narrative, puis **échanges de plis en face-à-face** (vainqueur surligné, dégâts en **PV**), puis conclusion. Même présentation pour la **reconnaissance**.
+- **Débrief mécanique** : plis gagnés, PV restants, environnement — ton analytique personnalisé.
 - **Spectateur** : possibilité de suivre des matchs d'autres pools.
 
 ### Structure d'un match
