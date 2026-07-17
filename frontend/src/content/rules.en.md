@@ -368,7 +368,7 @@ Morale (internal scale) affects squad stability. It drops notably on Chunin exam
 
 Each match plays out in **18 pli**: a shuffled deck of **6 cards per active ninja** — **1 inventory technique card** + **2× primary stat** + **3× secondary stat** (taijutsu, ninjutsu, genjutsu, medicine domains) + **relays** if slots are empty.
 
-- **Max HP** = ninja overall grade × 10 (average of 6 stats).
+- **Max HP** = ninja overall grade × 5 (average of 6 stats).
 - Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
 - **Victory**: more team HP at match end; tie → most plis won.
 - **Match items** removed from combat; **technique cards** assigned per ninja; office consumables and cycle gear stay out of combat.
@@ -694,6 +694,7 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 
 | Date | Change |
 |------|--------|
+| 2026-07-17 | Pli combat rebalance: max HP × 5 (was × 10) and higher pli damage so KOs are reachable |
 | 2026-07-09 | Initial document (player rules, no exact formulas) |
 | 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
 | 2026-07-15 | Restructured into two parts: interface by menus, then game systems |

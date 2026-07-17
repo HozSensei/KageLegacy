@@ -14,7 +14,8 @@
 
 - Comparaison carte vs carte (domaine vs domaine).
 - Bonus type +20 % (Tai > Gen > Nin > Tai).
-- PV max = note globale × 10.
+- PV max = note globale × 5.
+- Dégâts de pli ≈ puissance vainqueur × 0,75 + écart × 1,8 (plancher 8) — les exchanges proches font aussi mal.
 - Victoire : PV totaux → plis gagnés si égalité.
 - Cartes relais si propriétaire K.O. **ou** emplacement non configuré.
 - Chakra / interception Sensei : supprimés v1.

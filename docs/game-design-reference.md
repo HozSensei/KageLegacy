@@ -52,7 +52,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 - **Combat** : Taijutsu, Ninjutsu, Genjutsu, Médecine
 - **Support** : Vitesse, Intelligence (QI)
 
-**En match :** PV max = Taijutsu × 10 (après Forme) ; Chakra max = base du grade + Ninjutsu × 2.
+**En match :** PV max = note globale × 5 (après Forme) ; le combat par plis n'utilise plus le chakra.
 
 ### Forme hebdomadaire
 

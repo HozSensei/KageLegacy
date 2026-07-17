@@ -47,7 +47,10 @@ const result = simulatePliCombat(home, away, {
   awayDeck: emptyDeck,
 });
 
-console.assert(result.logs.length === MAX_PLIS, `attendu ${MAX_PLIS} plis, reçu ${result.logs.length}`);
+console.assert(
+  result.logs.length === MAX_PLIS || result.endReason === 'ko',
+  `attendu ${MAX_PLIS} plis ou fin KO, reçu ${result.logs.length} (${result.endReason})`
+);
 console.assert(['home', 'away', 'draw'].includes(result.winner), 'winner valide');
 console.assert(
   result.logs.some((log) => log.relais_padding_home || log.relais_padding_away),
@@ -75,6 +78,7 @@ console.assert(STAT_CARDS_PER_NINJA === 5, '5 cartes stat / ninja');
 
 console.log('testPliCombat OK', {
   plis: result.logs.length,
+  endReason: result.endReason,
   winner: result.winner,
   plisWon: result.plisWon,
 });

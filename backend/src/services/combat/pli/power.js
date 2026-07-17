@@ -8,6 +8,12 @@ import {
   DECISIVE_DAMAGE_MULT,
   RELAIS_DAMAGE_MULT,
   MED_FAIL_DAMAGE_MULT,
+  DAMAGE_POWER_FACTOR,
+  DAMAGE_EDGE_FACTOR,
+  DAMAGE_MIN,
+  TIE_DAMAGE_POWER_FACTOR,
+  TIE_DAMAGE_EDGE_FACTOR,
+  TIE_DAMAGE_MIN,
 } from './constants.js';
 
 function rollD6() {
@@ -85,19 +91,26 @@ export function computeCardPower(fighter, domain, ctx = {}) {
 
 export function computeDamage(winnerPower, loserPower, { relais = false } = {}) {
   const edge = Math.abs(winnerPower - loserPower);
-  let damage = Math.max(2, Math.floor(edge * 1.0));
+  let damage = Math.max(
+    DAMAGE_MIN,
+    Math.floor(winnerPower * DAMAGE_POWER_FACTOR + edge * DAMAGE_EDGE_FACTOR)
+  );
   if (edge >= DECISIVE_EDGE) {
     damage = Math.floor(damage * DECISIVE_DAMAGE_MULT);
   }
   if (relais) {
-    damage = Math.max(1, Math.floor(damage * RELAIS_DAMAGE_MULT));
+    damage = Math.max(3, Math.floor(damage * RELAIS_DAMAGE_MULT));
   }
   return damage;
 }
 
 export function computeTieDamage(powerA, powerB) {
+  const avg = (Number(powerA) + Number(powerB)) / 2;
   const edge = Math.abs(powerA - powerB);
-  return Math.max(1, Math.floor(edge * 0.4));
+  return Math.max(
+    TIE_DAMAGE_MIN,
+    Math.floor(avg * TIE_DAMAGE_POWER_FACTOR + edge * TIE_DAMAGE_EDGE_FACTOR)
+  );
 }
 
 export function computeHealAmount(power) {
