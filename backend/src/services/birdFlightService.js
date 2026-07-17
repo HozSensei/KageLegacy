@@ -106,6 +106,33 @@ export async function processBirdFlightsForUser(userId) {
 
     const arrival = await spawnReplacementGenin(userId, squadPosition, ninja.language || 'fr');
 
+    const highlights = await query(
+      `SELECT m.id, m.result, m.home_user_id, m.away_user_id, m.season_cycle,
+              hs.name AS home_sensei, aws.name AS away_sensei, m.ending_tour
+       FROM matches m
+       JOIN sensei hs ON hs.user_id = m.home_user_id
+       JOIN sensei aws ON aws.user_id = m.away_user_id
+       WHERE m.status = 'applied'
+         AND (m.home_user_id = ? OR m.away_user_id = ?)
+       ORDER BY m.season_cycle DESC, m.id DESC
+       LIMIT 2`,
+      [userId, userId]
+    );
+
+    const matchHighlights = highlights.map((m) => {
+      const isHome = m.home_user_id === userId;
+      let outcome = 'draw';
+      if (m.result === 'home_win') outcome = isHome ? 'win' : 'loss';
+      else if (m.result === 'away_win') outcome = isHome ? 'loss' : 'win';
+      return {
+        matchId: m.id,
+        cycle: m.season_cycle,
+        opponent: isHome ? m.away_sensei : m.home_sensei,
+        outcome,
+        endingTour: m.ending_tour,
+      };
+    });
+
     const payload = {
       departed: {
         name: ninja.name,
@@ -125,6 +152,19 @@ export async function processBirdFlightsForUser(userId) {
         clanName: arrival.clan_name,
         potential: arrival.profile?.potentialLabel,
         primaryArt: arrival.profile?.artLabel,
+      },
+      ceremony: {
+        matchHighlights,
+        farewellLine:
+          matchHighlights.length > 0
+            ? {
+                fr: `${ninja.name.split(' ')[0]} quitte l'escouade après ${matchHighlights.length} opération(s) marquante(s) — l'héritage demeure.`,
+                en: `${ninja.name.split(' ')[0]} leaves the squad after ${matchHighlights.length} memorable operation(s) — the heritage remains.`,
+              }
+            : {
+                fr: `${ninja.name.split(' ')[0]} s'envole vers le grade Jonin — un Parchemin d'héritage reste au mur.`,
+                en: `${ninja.name.split(' ')[0]} takes flight as a Jonin — a heritage scroll remains on the wall.`,
+              },
       },
     };
 

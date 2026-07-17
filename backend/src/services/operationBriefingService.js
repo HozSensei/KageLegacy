@@ -9,6 +9,7 @@ import { describeNinjaProfile } from './ninjaProfile.js';
 import { dominantElement } from './scoutSquadAnalysis.js';
 import { getOperationDeck } from './operationDeckService.js';
 import { DOMAIN_LABELS, MAX_PLIS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
+import { buildDeckMatchupPreview } from './deckMatchupPreview.js';
 
 async function loadOwnActiveSquad(userId) {
   return query(
@@ -209,6 +210,7 @@ export async function getOperationBriefing(userId, locale = 'fr') {
     scout: scoutReport,
     ownDeck,
     opponentDeck: scoutReport?.deckReport ?? null,
+    matchupPreview: buildDeckMatchupPreview(ownDeck, scoutReport?.deckReport, lang),
     deck,
     advice: buildAdvice({
       ownDeck,

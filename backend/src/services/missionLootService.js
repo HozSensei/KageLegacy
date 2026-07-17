@@ -13,6 +13,7 @@ import {
   rollPercent,
 } from './missionRules.js';
 import { createSenseiNotification } from './senseiNotifications.js';
+import { recordCycleObjectiveEvent } from './cycleObjectiveService.js';
 import { buildMissionReportPayload } from './missionNarrative.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { grantItemToUser } from './itemGrantService.js';
@@ -320,6 +321,10 @@ export async function resolveMissionOutcome(mission, ninja) {
     success,
   });
   await createSenseiNotification(mission.user_id, 'mission_report', reportPayload);
+
+  if (success && injuryType !== 'death' && ['C', 'B', 'A'].includes(tier)) {
+    await recordCycleObjectiveEvent(mission.user_id, 'mission_c_plus_success');
+  }
 
   return { missionId: mission.id, status, lootResult };
 }

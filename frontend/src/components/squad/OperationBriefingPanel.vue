@@ -166,6 +166,16 @@ function potentialLabel(profile) {
     </p>
     <p v-if="briefing.tacticsLocked" class="mt-2 text-xs text-fire">{{ t('briefing.locked') }}</p>
 
+    <div v-if="briefing.matchupPreview?.lines?.length" class="mt-8 border-t border-line/50 pt-6" data-testid="deck-matchup-preview">
+      <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('briefing.matchupTitle') }}</p>
+      <p v-if="briefing.matchupPreview.scoreHint" class="mt-2 text-sm text-ink">
+        {{ briefing.matchupPreview.scoreHint }}
+      </p>
+      <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink-muted">
+        <li v-for="(line, i) in briefing.matchupPreview.lines" :key="`mu-${i}`">{{ line }}</li>
+      </ul>
+    </div>
+
     <div v-if="briefing.advice?.length" class="mt-8 border-t border-line/50 pt-6">
       <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('briefing.adviceTitle') }}</p>
       <ul class="mt-3 space-y-2 text-xs leading-relaxed text-ink">

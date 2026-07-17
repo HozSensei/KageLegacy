@@ -6,6 +6,7 @@ import OperationMatchNav from '../components/OperationMatchNav.vue'
 import ChronicleReader from '../components/operation/ChronicleReader.vue'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 import OperationEliteReport from '../components/operation/OperationEliteReport.vue'
+import CausalDebriefPanel from '../components/operation/CausalDebriefPanel.vue'
 import { useEliteStore } from '../stores/elite'
 
 const props = defineProps({
@@ -274,6 +275,8 @@ onUnmounted(() => clearInterval(pollTimer))
                 {{ operation.suspense }}
               </p>
 
+              <CausalDebriefPanel :causal-debrief="operation.causalDebrief" />
+
               <section v-if="operation.debriefing?.length" class="mt-14 border-t border-line pt-10">
                 <p class="section-label">{{ t('operation.debriefTitle') }}</p>
                 <ul class="mt-6 space-y-4">
@@ -288,13 +291,16 @@ onUnmounted(() => clearInterval(pollTimer))
               </section>
 
               <OperationEliteReport
-                v-if="activeMatchId"
+                v-if="activeMatchId && canUseEliteAnalytics"
                 :match-id="activeMatchId"
                 :can-load="reportReady"
               />
             </article>
 
-            <aside v-if="canUseEliteAnalytics" class="mt-12 lg:col-span-4 lg:mt-0">
+            <aside
+              v-if="operation.mechanical"
+              class="mt-12 lg:col-span-4 lg:mt-0"
+            >
               <button
                 type="button"
                 class="btn-ghost w-full"

@@ -25,7 +25,7 @@ Your daily dashboard. You will find:
 
 | Area | Role |
 |------|------|
-| **Treasury** | Ryos balance, reputation, match chakra, salary + training forecast at H72 |
+| **Treasury** | Ryos balance, reputation, salary + training forecast at H72 |
 | **Active squad** | Overview of the 3 field ninjas and quick access to their profiles |
 | **Chakra Seal** | Free daily ritual (midnight UTC) — see § Academy and Chakra Seal |
 | **Chunin exam** | Register an eligible Genin before H72 |
@@ -666,7 +666,15 @@ A Sensei can generate an **invitation link** to their pool to recruit allies in 
 - Each pli: simultaneous card reveal, power comparison, damage to the losing card's owner.
 - **Random environment** (weather, terrain) with modifiers on relevant domains; terrain-counter items removed.
 
-### Pli resolution
+### Causal debrief
+
+After the operation, each participating Sensei gets up to **3 readable causes** (domain edge, decisive technique card, Wretched form, incomplete deck…). Goal: understand *why*, not only the result.
+
+### Matchup preview (scouting)
+
+Once the enemy deck is visible via scouting, a **matchup preview** highlights domains where you are strong or weak before H71.
+
+### Resolving plis
 
 Each pli pits two cards (domain vs domain):
 

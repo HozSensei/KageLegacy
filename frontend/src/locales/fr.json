@@ -99,7 +99,7 @@
     "chakra": "Chakra de match",
     "chakraMax": "{current} / {max}",
     "interception": "Interception",
-    "interceptionHint": "Réserve passive : peut sauver un élève d'un coup fatal (Substitution, 25 chakra)."
+    "interceptionHint": "Ancienne réserve Sensei (legacy) : le combat par plis n'utilise plus l'interception chakra."
   },
   "ninja": {
     "age": "ans",
@@ -330,7 +330,14 @@
     "cycleCloseBodyMatch": "Cycle clos — salaires −{salary} Ryos, solde {balance} Ryos. Match vs {opponent} : {outcome}.",
     "matchWin": "victoire",
     "matchDraw": "nul",
-    "matchLoss": "défaite"
+    "matchLoss": "défaite",
+    "upsetTitle": "Upset !",
+    "upsetBodyWin": "Victoire surprise contre {loser} — la chronique s'en souviendra.",
+    "upsetBodyLoss": "{winner} vous a renversé contre toute attente.",
+    "rivalryTitle": "Rivalité némésis",
+    "rivalryBody": "{name} est votre némésis ({count} défaites d'affilée).",
+    "cycleObjectiveTitle": "Objectif de cycle réussi",
+    "cycleObjectiveBody": "Objectif accompli — +{ryos} Ryos crédités."
   },
   "clan": {
     "lead": "Hub coopératif : partagez des recrues et remplissez le Puits de Chakra — sans bonus de combat.",
@@ -527,7 +534,8 @@
     "potential": "potentiel {level}",
     "rulesLink": "Guide complet : combat par plis",
     "locked": "Briefing verrouillé — opération en cours.",
-    "adviceTitle": "Conseils tactiques"
+    "adviceTitle": "Conseils tactiques",
+    "matchupTitle": "Preview matchup deck"
   },
   "scout": {
     "title": "Rapport d'espionnage",
@@ -1226,5 +1234,35 @@
       "poolId": "Pool ID (optionnel)",
       "repairRun": "Lancer la réparation"
     }
+  },
+  "onboarding": {
+    "title": "Premiers pas",
+    "lead": "Cycle 1 : configurez votre deck d'opération, puis lancez une mission. Le reste peut attendre.",
+    "stepDeck": "Assigner au moins une carte technique au deck",
+    "stepMission": "Envoyer un ninja du banc en mission",
+    "go": "Y aller",
+    "done": "Fait",
+    "dismiss": "Passer"
+  },
+  "cycleObjectives": {
+    "title": "Objectifs du cycle",
+    "lead": "1–2 défis pour ce cycle de ligue — récompense en Ryos à la réussite.",
+    "reward": "+{ryos} Ryos"
+  },
+  "midcycle": {
+    "title": "Rumeur mid-cycle",
+    "lead": "Entre H36 et H70, achetez une info imparfaite sur le deck adverse (70 % de fiabilité).",
+    "buy": "Acheter une rumeur ({cost} Ryos)",
+    "alreadyUsed": "Rumeur déjà achetée ce cycle.",
+    "cannotAfford": "Ryos insuffisants."
+  },
+  "rivalry": {
+    "title": "Némésis",
+    "lead": "{name} vous a battu deux fois de suite — la revanche s'impose."
+  },
+  "causalDebrief": {
+    "title": "Pourquoi ce résultat ?",
+    "lead": "Trois causes principales tirées des plis — pour préparer le prochain cycle.",
+    "cause": "Cause {n}"
   }
 }

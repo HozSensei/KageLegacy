@@ -11,6 +11,9 @@ import StagnationAlert from '../components/bureau/StagnationAlert.vue'
 import CycleBudgetPanel from '../components/bureau/CycleBudgetPanel.vue'
 import DailySealPanel from '../components/bureau/DailySealPanel.vue'
 import AcademyPanel from '../components/bureau/AcademyPanel.vue'
+import OnboardingChecklist from '../components/bureau/OnboardingChecklist.vue'
+import CycleObjectivesPanel from '../components/bureau/CycleObjectivesPanel.vue'
+import MidcycleRumorPanel from '../components/bureau/MidcycleRumorPanel.vue'
 
 defineOptions({ name: 'BureauView' })
 
@@ -76,6 +79,21 @@ onMounted(async () => {
       </div>
 
       <StagnationAlert />
+
+      <OnboardingChecklist />
+      <CycleObjectivesPanel />
+      <MidcycleRumorPanel />
+
+      <div
+        v-if="store.rivalry?.nemeses?.length"
+        class="mt-10 border-l-2 border-fire pl-4 text-sm"
+        data-testid="rivalry-nemesis"
+      >
+        <p class="text-[10px] uppercase tracking-[0.14em] text-fire">{{ t('rivalry.title') }}</p>
+        <p class="mt-2 text-ink-muted">
+          {{ t('rivalry.lead', { name: store.rivalry.nemeses[0].rivalName }) }}
+        </p>
+      </div>
 
       <router-link
         to="/journal"
@@ -147,7 +165,7 @@ onMounted(async () => {
             />
           </ul>
 
-          <AcademyPanel />
+          <AcademyPanel v-if="!store.onboarding?.softHideSecondary" />
           <DispensaryPanel />
         </div>
       </section>

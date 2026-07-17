@@ -26,8 +26,11 @@ export function buildSquadSnapshotFromNinjas(ninjas, lang = 'fr') {
     const profile = describeNinjaProfile(ninja, lang);
     return {
       ninjaId: ninja.id,
+      name: ninja.name || null,
       element_affinity: ninja.element_affinity,
       primaryArt: profile.primaryArt,
+      weekly_forme: ninja.weekly_forme || 'Passable',
+      forme: ninja.weekly_forme || 'Passable',
       speed: Number(ninja.vitesse ?? 0) + Number(ninja.intelligence ?? 0),
     };
   });

@@ -689,10 +689,10 @@ export const NARRATIVE_CATALOG = {
         '🚩 Vos ninjas ont encaissé des techniques élémentaires ciblées. Anticipez les matchups au prochain cycle.',
       ],
       chakra: [
-        '🚩 Plusieurs de vos ninjas ont été mis hors de combat. Améliorez leur réserve de Chakra, ajustez les consignes, ou recrutez un soutien médical.',
-        '🚩 L\'épuisement a coûté cher : renforcez les réserves de Chakra ou la discipline tactique de l\'équipe.',
-        '🚩 Trop de K.O. par manque d\'énergie. Le dispensaire et l\'entraînement au Chakra sont prioritaires au camp.',
-        '🚩 Vos ninjas se sont effondrés avant la fin : révisez les consignes et la gestion du Chakra en match.',
+        '🚩 Plusieurs de vos ninjas ont été mis hors de combat. Renforcez la forme, peaufinez le deck de domaines, ou recrutez un soutien médical.',
+        '🚩 L\'usure des plis a coûté cher : priorisez Médecine et forme avant le prochain cycle.',
+        '🚩 Trop de K.O. — le dispensaire et un deck moins dépendant des relais sont prioritaires.',
+        '🚩 Vos ninjas se sont effondrés avant les 18 plis : révisez domaines primaire/secondaire et cartes technique.',
       ],
       item_unused:
         '🚩 {ninja_name} avait équipé {items} mais ne l\'a jamais déclenché — vérifiez la consigne ou le matchup.',
@@ -1405,10 +1405,10 @@ export const NARRATIVE_CATALOG = {
         '🚩 Your ninjas took focused elemental techniques. Anticipate matchups next cycle.',
       ],
       chakra: [
-        '🚩 Several of your ninjas were knocked out. Improve their Chakra reserves, adjust orders, or recruit medical support.',
-        '🚩 Exhaustion cost dearly: strengthen Chakra reserves or tactical discipline on the squad.',
-        '🚩 Too many K.O.s from energy drain. Dispensary and Chakra training are priorities at camp.',
-        '🚩 Your ninjas collapsed before the end: review orders and Chakra management in match.',
+        '🚩 Several of your ninjas were knocked out. Improve form, refine domain decks, or recruit medical support.',
+        '🚩 Pli attrition cost dearly: prioritize Medicine and form before the next cycle.',
+        '🚩 Too many K.O.s — dispensary care and fewer relay plis should come first.',
+        '🚩 Your ninjas collapsed before 18 plis: review primary/secondary domains and technique cards.',
       ],
       item_unused:
         '🚩 {ninja_name} had equipped {items} but never triggered it — check orders or the matchup.',

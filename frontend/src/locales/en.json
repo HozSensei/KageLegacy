@@ -99,7 +99,7 @@
     "chakra": "Match Chakra",
     "chakraMax": "{current} / {max}",
     "interception": "Interception",
-    "interceptionHint": "Passive reserve: can save a student from a fatal blow (Substitution, 25 chakra)."
+    "interceptionHint": "Legacy Sensei pool: pli combat no longer uses chakra interception."
   },
   "ninja": {
     "age": "yrs",
@@ -330,7 +330,14 @@
     "cycleCloseBodyMatch": "Cycle closed — salaries −{salary} Ryos, balance {balance} Ryos. Match vs {opponent}: {outcome}.",
     "matchWin": "win",
     "matchDraw": "draw",
-    "matchLoss": "loss"
+    "matchLoss": "loss",
+    "upsetTitle": "Upset!",
+    "upsetBodyWin": "Shock win against {loser} — the chronicle will remember.",
+    "upsetBodyLoss": "{winner} overturned you against the odds.",
+    "rivalryTitle": "Nemesis rivalry",
+    "rivalryBody": "{name} is your nemesis ({count} losses in a row).",
+    "cycleObjectiveTitle": "Cycle objective complete",
+    "cycleObjectiveBody": "Objective complete — +{ryos} Ryos credited."
   },
   "clan": {
     "lead": "Co-op hub: share recruits and fill the Chakra Well — no combat bonuses.",
@@ -527,7 +534,8 @@
     "potential": "potential {level}",
     "rulesLink": "Full guide: pli combat",
     "locked": "Briefing locked — operation in progress.",
-    "adviceTitle": "Tactical advice"
+    "adviceTitle": "Tactical advice",
+    "matchupTitle": "Deck matchup preview"
   },
   "scout": {
     "title": "Scout report",
@@ -1226,5 +1234,35 @@
       "poolId": "Pool ID (optional)",
       "repairRun": "Run repair"
     }
+  },
+  "onboarding": {
+    "title": "First steps",
+    "lead": "Cycle 1: set up your operation deck, then send a mission. Everything else can wait.",
+    "stepDeck": "Assign at least one technique card to the deck",
+    "stepMission": "Send a bench ninja on a mission",
+    "go": "Go",
+    "done": "Done",
+    "dismiss": "Skip"
+  },
+  "cycleObjectives": {
+    "title": "Cycle objectives",
+    "lead": "1–2 challenges for this league cycle — Ryos reward on completion.",
+    "reward": "+{ryos} Ryos"
+  },
+  "midcycle": {
+    "title": "Mid-cycle rumor",
+    "lead": "Between H36 and H70, buy imperfect intel on the enemy deck (70% reliability).",
+    "buy": "Buy a rumor ({cost} Ryos)",
+    "alreadyUsed": "Rumor already bought this cycle.",
+    "cannotAfford": "Not enough Ryos."
+  },
+  "rivalry": {
+    "title": "Nemesis",
+    "lead": "{name} beat you twice in a row — a rematch is due."
+  },
+  "causalDebrief": {
+    "title": "Why this result?",
+    "lead": "Three main causes from the plis — to prepare the next cycle.",
+    "cause": "Cause {n}"
   }
 }

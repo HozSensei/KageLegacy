@@ -4,6 +4,7 @@ import { meetsChuninRequirements, CHUNIN_AVERAGE_REQUIRED } from './chuninExam.j
 import { computeChuninPromotionRewards } from './chuninPromotionRewards.js';
 import { grantItemToUser } from './itemGrantService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
+import { recordCycleObjectiveEvent } from './cycleObjectiveService.js';
 
 export async function processChuninExamsForUser(userId) {
   const candidates = await query(
@@ -48,6 +49,7 @@ export async function processChuninExamsForUser(userId) {
         formeAfter: rewards.newForme,
         moralBoost: rewards.moralBoost,
       });
+      await recordCycleObjectiveEvent(userId, 'chunin_promote');
 
       results.push({
         ninjaId: ninja.id,

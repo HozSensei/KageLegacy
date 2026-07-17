@@ -17,6 +17,7 @@ import {
 import { findUserPool } from './poolService.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
 import { hasActiveEliteSubscription } from './eliteSubscriptionService.js';
+import { buildCausalDebrief } from './combat/pli/causalDebrief.js';
 
 function parseCombatLog(raw) {
   if (!raw) return null;
@@ -91,18 +92,24 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
       ? buildDebriefing(match, viewerUserId, combatLog, viewerLocale)
       : [];
 
+  const causalDebrief =
+    isParticipant && combatLog && (revealComplete || clock.hour >= 71 || match.status === 'applied')
+      ? buildCausalDebrief(match, viewerUserId, combatLog, viewerLocale)
+      : null;
+
   const mechanical =
-    viewerIsElite && combatLog && chronicle.length
+    combatLog && chronicle.length
       ? {
           plisWon: combatLog.plisWon,
           homeScorePct: combatLog.homeScorePct,
           awayScorePct: combatLog.awayScorePct,
           endingTour: match.ending_tour,
-          maxPlis: 14,
+          maxPlis: 18,
           result: match.result,
           winnerUserId: match.winner_user_id,
           isHome: perspective?.isHome ?? null,
           environment: combatLog.environment || null,
+          eliteOnly: viewerIsElite,
         }
       : null;
 
@@ -130,6 +137,7 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
     chronicleCast,
     suspense: morePending && !hasDenouement ? pickSuspenseLine(viewerLocale, match.id) : null,
     debriefing,
+    causalDebrief,
     viewerRole: isParticipant ? 'participant' : 'spectator',
     pool: {
       id: match.pool_id,
@@ -184,6 +192,7 @@ export async function getOperationLivePayload(userId) {
       chronicleCast: { senseis: [], ninjas: [] },
       suspense: null,
       debriefing: [],
+      causalDebrief: null,
       viewerRole: 'spectator',
       pool: null,
       match: null,
@@ -201,6 +210,7 @@ export async function getOperationLivePayload(userId) {
       chronicleCast: { senseis: [], ninjas: [] },
       suspense: null,
       debriefing: [],
+      causalDebrief: null,
       viewerRole: 'participant',
       pool: {
         id: pool.id,

@@ -23,6 +23,10 @@ export const useSquadStore = defineStore('squad', () => {
   const clan = ref(null)
   const clanBoard = ref(null)
   const operationDeck = ref(null)
+  const onboarding = ref(null)
+  const cycleObjectives = ref(null)
+  const midcycle = ref(null)
+  const rivalry = ref(null)
   let fetchPromise = null
 
   function applyPayload(data) {
@@ -42,6 +46,10 @@ export const useSquadStore = defineStore('squad', () => {
     clan.value = data.clan || null
     clanBoard.value = data.clanBoard || null
     operationDeck.value = data.operationDeck || null
+    onboarding.value = data.onboarding || null
+    cycleObjectives.value = data.cycleObjectives || null
+    midcycle.value = data.midcycle || null
+    rivalry.value = data.rivalry || null
   }
 
   /** Mise à jour partielle après mutation — préserve notifs/académie si absentes */
@@ -60,6 +68,10 @@ export const useSquadStore = defineStore('squad', () => {
     if (data.clan !== undefined) clan.value = data.clan
     if (data.clanBoard !== undefined) clanBoard.value = data.clanBoard
     if (data.operationDeck !== undefined) operationDeck.value = data.operationDeck
+    if (data.onboarding !== undefined) onboarding.value = data.onboarding
+    if (data.cycleObjectives !== undefined) cycleObjectives.value = data.cycleObjectives
+    if (data.midcycle !== undefined) midcycle.value = data.midcycle
+    if (data.rivalry !== undefined) rivalry.value = data.rivalry
     if (data.notifications) notifications.value = data.notifications
     if (data.notificationHistory) notificationHistory.value = data.notificationHistory
     if (data.activityFeed) activityFeed.value = data.activityFeed
@@ -281,6 +293,11 @@ export const useSquadStore = defineStore('squad', () => {
     heritage.value = null
     clan.value = null
     clanBoard.value = null
+    operationDeck.value = null
+    onboarding.value = null
+    cycleObjectives.value = null
+    midcycle.value = null
+    rivalry.value = null
     fetchPromise = null
   }
 
@@ -303,6 +320,10 @@ export const useSquadStore = defineStore('squad', () => {
     clan,
     clanBoard,
     operationDeck,
+    onboarding,
+    cycleObjectives,
+    midcycle,
+    rivalry,
     fetchSquad,
     saveComposition,
     saveOperationDeck,

@@ -27,6 +27,11 @@ import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
 import { computeTrainingCost } from '../services/training.js';
 import { getCycleBudgetPreview } from '../services/trainingBilling.js';
 import { getOperationDeck } from '../services/operationDeckService.js';
+import { getOnboardingPayload } from '../services/onboardingService.js';
+import { getCycleObjectivesPayload } from '../services/cycleObjectiveService.js';
+import { getMidcycleChoicePayload } from '../services/midcycleChoiceService.js';
+import { getRivalryPayload } from '../services/rivalryService.js';
+import { findUserPool } from '../services/poolService.js';
 
 export { getGameClock };
 
@@ -131,6 +136,11 @@ export async function getSquadPayload(userId) {
   const clan = await getClanPayload(userId);
   const clanBoard = await listClanAcademyBoard(userId);
   const operationDeck = await getOperationDeck(userId);
+  const onboarding = await getOnboardingPayload(userId);
+  const cycleObjectives = await getCycleObjectivesPayload(userId, sensei.language || 'fr');
+  const midcycle = await getMidcycleChoicePayload(userId);
+  const pool = await findUserPool(userId);
+  const rivalry = pool ? await getRivalryPayload(userId, pool.id) : { nemeses: [] };
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -157,5 +167,9 @@ export async function getSquadPayload(userId) {
     clan,
     clanBoard,
     operationDeck,
+    onboarding,
+    cycleObjectives,
+    midcycle,
+    rivalry,
   };
 }

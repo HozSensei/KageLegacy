@@ -29,7 +29,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 
 - Monnaie : **Ryos**
 - **Réputation** (Vol d’Oiseau, prestige)
-- **Pool de chakra de match** (~100) : permet d’intercepter des coups fatals (−25 chakra par sauvetage)
+- **Pool de chakra de match** (~100) : **legacy UI** — n'intercepte plus en combat pli (conservé pour compat / affichage Bureau)
 - **Identité** (nom Sensei) — pas de spécialité à choisir à la création
 - **Dette** (Ryos < 0) : bloque magasin, marché, examen, dispensaire
 
@@ -52,7 +52,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 - **Combat** : Taijutsu, Ninjutsu, Genjutsu, Médecine
 - **Support** : Vitesse, Intelligence (QI)
 
-**En match :** PV max = note globale × 5 (après Forme) ; le combat par plis n'utilise plus le chakra.
+**En match (moteur pli) :** PV max = note globale × 5 (après Forme). Le combat par plis **n'utilise plus** le chakra ni l'interception Sensei.
 
 ### Forme hebdomadaire
 
@@ -63,7 +63,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 | Passable | neutre |
 | Lamentable | −25 % |
 
-Après un match : les K.O. descendent d’un palier. À H72, PV et chakra sont restaurés à 100 %.
+Après un match : les K.O. descendent d’un palier. À H72, PV (et chakra legacy affiché) sont restaurés.
 
 ### Profils de caractère
 
@@ -285,65 +285,39 @@ Combat d’entraînement pendant la **préparation** pour tester sa composition 
 ### Ce que voit le joueur
 
 - **Chronique narrative** débloquée progressivement après H71
-- **Débrief mécanique** : possession, scores %, environnement, équipement
+- **Débrief causal** (tous les participants) : jusqu'à 3 causes lisibles (domaines, carte technique, forme…)
+- **Débrief mécanique** : plis gagnés, PV restants, environnement
 - Spectateur possible sur d’autres pools
 
-### Structure d’un match
+### Structure d’un match (moteur pli)
 
-- **12 tours maximum**
-- Chaque tour : initiative → attaquant → cible → duel
-- Environnement aléatoire (météo/topologie) avec modificateurs ; certains objets cycle compensent
+- **18 plis maximum** (6 cartes × 3 ninjas actifs, mélangées)
+- Chaque pli : révélation simultanée → comparaison de puissance → dégâts / soins
+- Environnement aléatoire (météo/topologie) avec modificateurs
 
 ---
 
-## 11. Calcul de victoire des opérations (détail)
+## 11. Calcul de victoire des opérations (moteur pli)
 
-C’est le cœur de la résolution. **La possession n’est pas un critère de victoire** — elle sert à l’affichage et au débrief narratif uniquement.
+C’est le cœur de la résolution. **La possession n’est plus un critère** (métrique d’affichage legacy).
 
 ### Étape 1 — K.O. immédiat
 
-Un ninja est K.O. si **PV ≤ 0** ou **chakra ≤ 0**.
+Un ninja est K.O. si **PV ≤ 0**.
 
 Si **tous les actifs** d’une équipe sont K.O. → **fin immédiate**, victoire de l’adversaire.
 
 - Score affiché typique : **2–0** (victoire par K.O.)
 - Raison de fin : `ko`
 
-### Étape 2 — Fin des 12 tours sans K.O. total
+### Étape 2 — Fin des 18 plis sans K.O. total
 
-Si personne n’a mis toute l’équipe adverse à terre, on calcule un **score de force restante** pour chaque camp.
+Comparaison des **PV totaux restants** de chaque camp.
 
-**Formule par équipe :**
-
-```
-score = (PV_restants / PV_max_total) × 60 %
-      + (chakra_restants / chakra_max_total) × 40 %
-```
-
-- Somme sur **tous les combattants** de l’équipe (actifs + K.O. partiels gardent leur état actuel)
-- Affiché en % arrondi : `round(score × 100)`
+- Si égalité de PV → départage aux **plis gagnés**
+- Sinon → victoire au camp avec le plus de PV
+- Égalité PV + plis → **match nul**
 - Raison de fin : `points`
-
-**Exemple :** équipe à 70 % PV restants et 50 % chakra →  
-`0,70 × 0,6 + 0,50 × 0,4 = 0,42 + 0,20 = 62 %`
-
-### Étape 3 — Seuil de victoire aux points
-
-Il faut un écart **strictement supérieur à 4,5 points de pourcentage** sur ce score composite :
-
-```
-POINTS_WIN_MARGIN = 0,045  (soit 4,5 %)
-```
-
-| Condition | Résultat |
-|-----------|----------|
-| `score_home > score_away + 0,045` | Victoire domicile |
-| `score_away > score_home + 0,045` | Victoire extérieur |
-| Sinon | **Match nul** |
-
-**Exemple nul :** home 52 %, away 48 % → écart 4 % < 4,5 % → **nul**.
-
-**Exemple victoire :** home 55 %, away 48 % → écart 7 % > 4,5 % → **victoire home**.
 
 ### Conséquences du résultat
 
@@ -353,14 +327,12 @@ POINTS_WIN_MARGIN = 0,045  (soit 4,5 %)
 | Nul | 1 chacun | 800 chacun | idem (odds réduites) | 1–1 |
 | Défaite | 0 | 100 consolation | idem (odds réduites) | 0–1 ou 0–2 |
 
-### Ce qui influence le score (sans décider directement)
+### Ce qui influence le score
 
-Ces mécaniques façonnent les PV restants à la fin :
-
-- **Deck d'opération** : domaines, carte technique, avantages de type (+20 %)
-- **Note globale** : PV max = note × 10
-- **Effets de domaine** : Tai / Gen / Med / Nin selon le pli
-- **Profils de caractère** : biais stats déjà intégré à la génération (pas d'effet dynamique en match)
+- **Deck d'opération** : domaines, carte technique, avantages Tai > Gen > Nin (+20 %)
+- **Note globale** : PV max = note × 5
+- **Effets de domaine / cartes** : bonus, malus prochain pli, soins Médecine
+- **Forme** : Divin / Lamentable etc.
 - **Environnement** : météo / terrain sur certains domaines
 
 ### Schéma décisionnel
@@ -377,8 +349,9 @@ flowchart TD
 
 ### Références code
 
-- `backend/src/services/combat/` — moteur par plis
-- `backend/src/services/operationBriefingService.js` — briefing d'opération
+- `backend/src/services/combat/pli/` — moteur par plis
+- `backend/src/services/combat/pli/causalDebrief.js` — débrief causal
+- `backend/src/services/operationBriefingService.js` — briefing + preview matchup
 - Cartes technique / inventaire — deck d'opération
 
 ---
@@ -387,7 +360,7 @@ flowchart TD
 
 | Écran | Fonction |
 |-------|----------|
-| **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie |
+| **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie, onboarding, objectifs de cycle, rumeur mid-cycle |
 | **Escouade** | Composition, deck d'opération, swap actif/banc |
 | **Entraînement** | Préparation (actifs) + global gratuit, types groupés |
 | **Missions** | Contrats idle |
@@ -395,7 +368,7 @@ flowchart TD
 | **Magasin** | Achats objets |
 | **Échanges** | Marché P2P |
 | **Inventaire** | Objets et équipement |
-| **Opération** | Chronique + débrief du match |
+| **Opération** | Chronique + débrief causal + débrief du match |
 
 ---
 
@@ -403,9 +376,9 @@ flowchart TD
 
 Quelques angles ouverts pour de nouvelles features :
 
-- **Méta post-match** : récompenses ou malus selon marge de victoire (K.O. vs points serrés)
-- **Objectifs de saison** : missions ligue, badges, quêtes de division
-- **Rivalités** : historique head-to-head, revanche
+- **Méta post-match** : récompenses ou malus selon marge de victoire (K.O. vs points serrés) — partiellement couvert par objectifs de cycle / upsets
+- **Objectifs de saison** : missions ligue, badges, quêtes de division (objectifs de cycle livrés)
+- **Rivalités** : némésis après 2 défaites d'affilée (livré)
 - **Événements cycle** : environnement imposé, tournoi inter-pools
 - **Identité Sensei** : cosmétique et profil public (Pack Élite — code prêt, feature désactivée)
 - **Coopération** : entraînement croisé, prêts temporaires
@@ -424,3 +397,4 @@ Quelques angles ouverts pour de nouvelles features :
 | 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |
 | 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |
 | 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais +1/+2 à la génération |
+| 2026-07-17 | Victoire pli = PV → plis ; débrief causal ; onboarding ; objectifs ; rivalités ; rumeur mid-cycle |
