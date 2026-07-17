@@ -48,6 +48,15 @@ async function seed() {
 
   await setUserPassword(user.id, 'demo');
   await query('UPDATE users SET is_admin = TRUE WHERE id = ?', [user.id]);
+  // Démo E2E / playtest : pas d'onboarding actif (évite soft-hide Académie etc.)
+  await query(
+    `UPDATE sensei
+     SET onboarding_dismissed = 1,
+         onboarding_deck_done = 1,
+         onboarding_mission_done = 1
+     WHERE user_id = ?`,
+    [user.id]
+  );
   console.log('🔑 Compte démo : demo_sensei / demo (admin)');
 
   const totalNinjas = 15;
