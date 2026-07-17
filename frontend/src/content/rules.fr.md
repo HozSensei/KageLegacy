@@ -650,7 +650,7 @@ En cas d'égalité de points : victoires, puis matchs joués.
 
 ### Mur de la ligue
 
-Fil de discussion **de toute la saison** entre les Sensei de votre pool. Pas de quota (messages courts, pagination). Reset automatique à la **nouvelle saison** (promotion / relégation).
+Fil de discussion **de toute la saison** entre les Sensei de votre pool. Pas de quota (messages courts, pagination). Reset automatique à la **nouvelle saison** (promotion / relégation). Une **modération minimale** FR/EN masque les gros mots (première lettre conservée, le reste en `*`).
 
 ### Face-à-face et némésis
 

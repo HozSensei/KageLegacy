@@ -723,7 +723,7 @@
     "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos.",
     "reconNotifLink": "Voir Missions",
     "wallTitle": "Mur de la ligue",
-    "wallLead": "Fil de discussion de la saison — reset à la promotion / relégation. Sans quota, avec pagination.",
+    "wallLead": "Fil de discussion de la saison — reset à la promotion / relégation. Sans quota, pagination. Gros mots masqués (m****).",
     "wallPlaceholder": "Écrire au reste de la ligue…",
     "wallPost": "Publier",
     "wallEmpty": "Aucun message pour l'instant — lancez la conversation.",

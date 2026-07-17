@@ -723,7 +723,7 @@
     "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos.",
     "reconNotifLink": "View Missions",
     "wallTitle": "League wall",
-    "wallLead": "Season-long discussion thread — resets on promotion / relegation. No quota, paginated.",
+    "wallLead": "Season-long discussion thread — resets on promotion / relegation. No quota, paginated. Swear words masked (f***).",
     "wallPlaceholder": "Write to the rest of the league…",
     "wallPost": "Post",
     "wallEmpty": "No posts yet — start the conversation.",

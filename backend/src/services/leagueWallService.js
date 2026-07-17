@@ -5,13 +5,14 @@
 
 import { query } from '../config/database.js';
 import { findUserPool } from './poolService.js';
+import { moderateWallText } from './wallModeration.js';
 
 const MAX_BODY = 280;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
 function normalizeBody(raw) {
-  const body = String(raw ?? '')
+  let body = String(raw ?? '')
     .replace(/\s+/g, ' ')
     .trim();
   if (body.length < 1) {
@@ -24,6 +25,7 @@ function normalizeBody(raw) {
     error.statusCode = 400;
     throw error;
   }
+  body = moderateWallText(body);
   return body;
 }
 
