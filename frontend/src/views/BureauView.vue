@@ -165,7 +165,7 @@ onMounted(async () => {
             />
           </ul>
 
-          <AcademyPanel v-if="!store.onboarding?.softHideSecondary" />
+          <AcademyPanel />
           <DispensaryPanel />
         </div>
       </section>

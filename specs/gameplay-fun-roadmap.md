@@ -6,7 +6,7 @@ Implémentation de l'audit fun : points 2 → 3 → 4 → 5 → 1.
 
 - **Débrief causal** (`combat/pli/causalDebrief.js`) : jusqu'à 3 causes post-match pour tous les participants (domaines, carte technique, forme, relais…).
 - **Preview matchup** (`deckMatchupPreview.js`) : dans le briefing d'opération dès que le deck adverse est visible.
-- **Onboarding cycle 1** : checklist Bureau (deck + mission), soft-hide Académie.
+- **Onboarding cycle 1** : checklist Bureau (deck, entraînement, mission, recon, ligue) — **sans** masquage de features.
 
 ## Point 3 — Creux mid-cycle
 
@@ -34,7 +34,7 @@ Implémentation de l'audit fun : points 2 → 3 → 4 → 5 → 1.
 
 ## Migration
 
-`061_gameplay_fun_roadmap.sql`
+`061_gameplay_fun_roadmap.sql` · `063_onboarding_complete.sql` (flags training / recon / ligue)
 
 ## API
 

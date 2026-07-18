@@ -68,6 +68,13 @@ export async function updateTrainingPlans(userId, { plans = [], globalTrainingTy
     ]);
   }
 
+  const trained =
+    (globalTrainingType !== undefined && globalTrainingType !== null) ||
+    plans.some((p) => p.preparationType);
+  if (trained) {
+    await query('UPDATE sensei SET onboarding_training_done = 1 WHERE user_id = ?', [userId]);
+  }
+
   return { plans, globalTrainingType };
 }
 

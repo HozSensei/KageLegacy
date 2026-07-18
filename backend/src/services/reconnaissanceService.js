@@ -634,6 +634,8 @@ export async function startMatchmaking(userId) {
     [cycleStartAt, userId]
   );
 
+  await query('UPDATE sensei SET onboarding_recon_done = 1 WHERE user_id = ?', [userId]);
+
   return {
     registrationId: insert.insertId,
     status: 'queued',
@@ -679,6 +681,8 @@ export async function createChallenge(challengerId, defenderId) {
      VALUES (?, ?, ?, 'pending')`,
     [cycleStartAt, challengerId, defenderId]
   );
+
+  await query('UPDATE sensei SET onboarding_recon_done = 1 WHERE user_id = ?', [challengerId]);
 
   const challengerName = await loadSenseiName(challengerId);
   await createSenseiNotification(defenderId, 'reconnaissance_challenge', {

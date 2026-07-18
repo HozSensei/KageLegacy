@@ -53,7 +53,10 @@ async function seed() {
     `UPDATE sensei
      SET onboarding_dismissed = 1,
          onboarding_deck_done = 1,
-         onboarding_mission_done = 1
+         onboarding_mission_done = 1,
+         onboarding_training_done = 1,
+         onboarding_recon_done = 1,
+         onboarding_league_done = 1
      WHERE user_id = ?`,
     [user.id]
   );
