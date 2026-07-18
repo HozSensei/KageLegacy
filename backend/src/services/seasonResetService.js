@@ -3,7 +3,7 @@
  */
 
 import { query, getConnection } from '../config/database.js';
-import { resetCycle, setCycleStartAt } from './gameClock.js';
+import { resetCycle, setCycleStartAt, getClockRow } from './gameClock.js';
 import { activateEliteFromStripe } from './eliteSubscriptionService.js';
 import { joinOrCreatePool } from './poolService.js';
 import { provisionStarterSquad } from './starterSquadService.js';
@@ -229,7 +229,9 @@ export async function hardSeasonReset({
   }
 
   const clock = cycleStartAt ? await setCycleStartAt(cycleStartAt) : await resetCycle();
-  await ensureCycleRivalry(clock.cycleStartAt);
+  // Utiliser la valeur DATETIME de game_clock, pas l'ISO renvoyé par getGameClock().
+  const clockRow = await getClockRow();
+  await ensureCycleRivalry(clockRow?.cycle_start_at);
   const playerResults = await reinitializeHumanPlayers(humans, seasonNumber);
   const eliteResults = await restoreEliteSubscriptions(eliteSnapshots, seasonNumber);
 
