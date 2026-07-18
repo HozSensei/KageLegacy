@@ -1,6 +1,5 @@
 import { query } from '../config/database.js';
 import { isTacticsLocked } from './gameClock.js';
-import { getClockRow } from './gameClock.js';
 import { isNinjaListed } from './playerMarketService.js';
 
 export const MIN_ROSTER_SIZE = 3;
@@ -49,19 +48,14 @@ export async function assertNinjaReleasable(userId, ninjaId) {
     throw error;
   }
 
-  const cycleRow = await getClockRow();
-  const cycleStartAt = cycleRow?.cycle_start_at;
-  if (cycleStartAt) {
-    const missionRows = await query(
-      `SELECT id FROM idle_missions
-       WHERE ninja_id = ? AND cycle_start_at = ? AND status IN ('active', 'completed')`,
-      [ninjaId, cycleStartAt]
-    );
-    if (missionRows.length) {
-      const error = new Error('Ce ninja est en mission ou a une récompense à collecter.');
-      error.statusCode = 409;
-      throw error;
-    }
+  const missionRows = await query(
+    `SELECT id FROM idle_missions WHERE ninja_id = ? AND status = 'active'`,
+    [ninjaId]
+  );
+  if (missionRows.length) {
+    const error = new Error('Ce ninja est en mission.');
+    error.statusCode = 409;
+    throw error;
   }
 
   const countRows = await query('SELECT COUNT(*) AS c FROM ninjas WHERE user_id = ?', [userId]);

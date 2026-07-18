@@ -37,12 +37,15 @@ describe('Missions — envoi de contrat (UI)', () => {
     cy.get('[data-testid="missions-active"]').contains(/En mission|On mission/);
     cy.get('[data-testid="missions-active"]').contains(/Mission — rang D|Mission — rank D/);
 
+    cy.get('[data-testid="missions-slots"]').should('contain.text', '1');
+
+    // Même rang D encore disponible tant qu'il reste un slot et un ninja libre.
     cy.get('[data-testid="missions-ninja-select"] option:not([disabled])')
       .not('[value="null"]')
       .eq(1)
       .then(($option) => {
         cy.get('[data-testid="missions-ninja-select"]').select($option.val());
       });
-    cy.get('[data-testid="missions-tier-select"] option[value="D"]').should('be.disabled');
+    cy.get('[data-testid="missions-tier-select"] option[value="D"]').should('not.be.disabled');
   });
 });

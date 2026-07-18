@@ -17,7 +17,7 @@ Manager shinobi asynchrone : vous êtes un **Jonin-Sensei**, vous gérez une esc
 | **Préparation** | H0 → H35 | Escouade, tactiques, entraînement, missions, magasin, Académie (jusqu’à H12), **mission de reconnaissance (H0–H36)** |
 | **Milieu de cycle** | H36 → H70 | Tendances adverses, rapport d'espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
-| **Clôture** | H72 | Examens Chunin, Vol d'Oiseau, missions, salaires, stagnation, entraînement, nouveau cycle |
+| **Clôture** | H72 | Examens Chunin, Vol d'Oiseau, filet missions encore actives, salaires, stagnation, entraînement, nouveau cycle |
 
 **À partir de H71**, tout est gelé : composition, deck d'opération, entraînement, missions, dispensaire, marché P2P.
 
@@ -168,8 +168,9 @@ Spec détaillée : [`specs/training-system.md`](../specs/training-system.md).
 ## 6. Missions idle (rangs D → A)
 
 - Réservées aux ninjas **au banc**
-- **1 mission par rang par cycle** (D, C, B, A — max 4)
-- Résolution H72 avec **jet de réussite**, collecte manuelle
+- **Cap total de 3 missions actives** (pas de limite par rang ; recyclage après résolution)
+- Durées : **D 4 h · C 8 h · B 24 h · A 48 h** (retour ≤ H72)
+- Résolution à l'heure due avec **jet de réussite**, collecte manuelle
 
 | Rang | Ryos (succès) | Note cible | Risques (si échec) |
 |--------|---------------|------------|---------------------|

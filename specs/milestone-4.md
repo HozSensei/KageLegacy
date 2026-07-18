@@ -17,7 +17,7 @@ Toutes les actions financières et logistiques s'alignent sur le cycle commun de
 
 ## 🗺️ 2. Les Missions Idle & Tables de Butin (Loot Tables)
 
-Les joueurs peuvent lancer **jusqu'à 4 missions par cycle** — **une par rang D/C/B/A**. Le serveur calcule le résultat au moment du traitement du cycle (**H72**) : jet de réussite selon la note globale, puis blessure/mort en cas d'échec. Voir [`mission-rank-system.md`](./mission-rank-system.md).
+Les joueurs peuvent avoir **jusqu'à 3 ninjas en mission** en parallèle (cap global). Chaque rang a une **durée propre** (D 4 h, C 8 h, B 24 h, A 48 h) ; le serveur résout à l'heure due avec un jet de réussite selon la note globale, puis blessure/mort en cas d'échec. Voir [`mission-rank-system.md`](./mission-rank-system.md).
 
 ### A. Fonctionnement de l'envoi
 * Le joueur sélectionne un ninja *hors escouade active*.

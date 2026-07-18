@@ -1,6 +1,6 @@
-# Missions idle — rangs D/C/B/A et probabilités
+# Missions idle — rangs D/C/B/A, durées et cap
 
-**Statut :** implémenté (migration 049, PR #100).
+**Statut :** implémenté (migrations 049 + 065).
 
 ---
 
@@ -10,6 +10,7 @@
 2. **Permettre toute mission dès le cycle 1** — avec un faible % de réussite si sous-qualifié — au lieu d'attendre ~15 cycles d'entraînement banc.
 3. **Compléter l'entraînement** avec des **gains de stat à la réussite**, bonus pour les remplaçants au banc.
 4. **Libellés uniformes** : « Mission — rang D/C/B/A » (pas de noms fantaisistes).
+5. **Rythme par durée** : la durée de mission dépend du rang (pas du cycle 72 h) ; jusqu'à **3 ninjas** en mission en parallèle.
 
 ---
 
@@ -18,25 +19,32 @@
 | Règle | Détail |
 | :--- | :--- |
 | **Qui** | Ninjas au **banc** uniquement (`squad_position IS NULL`) |
-| **Combien** | **1 mission par rang par cycle** (max 4 : D, C, B, A) |
-| **Fenêtre** | Assignation H0–H70 ; résolution **H72** |
+| **Combien** | **Cap total de 3 missions actives** (pas de limite par rang) |
+| **Durée** | Selon le rang : D 4 h · C 8 h · B 24 h · A 48 h |
+| **Fenêtre** | Assignation H0–H70 ; le retour doit tomber **≤ H72** |
+| **Résolution** | À l'heure due (`heure d'envoi + durée`) via le tick de cycle ; filet H72 |
 | **Coût** | Gratuit (`send_cost = 0`) |
 | **Collecte** | Manuelle après résolution |
+| **Recyclage** | Après résolution, le ninja peut repartir (même rang autorisé) |
 
-Garde-fous inchangés : pas en mission si examen Chunin / Vol d'Oiseau, objet cycle équipé, en vente P2P.
+Garde-fous : pas en mission si examen Chunin / Vol d'Oiseau, en vente P2P, ou déjà en mission active.
+
+Si `heure actuelle + durée > 72`, l'envoi est **refusé** (pas assez de temps dans le cycle).
 
 ---
 
 ## Les 4 rangs
 
-| Rang | Note cible (50 % réussite) | Ryos (succès) | Blessure base (échec) | Mort base (échec) | Gain stat (succès) | Bonus banc |
-| :--- | :---: | :--- | :---: | :---: | :---: | :---: |
-| **D** | 4 | 300–500 | 0 % | 0 % | +0,25 | ×1,5 |
-| **C** | 6 | 600–800 | 25 % légère | 0 % | +0,5 | ×1,5 |
-| **B** | 8 | 1 000 | 40 % grave | 5 % | +0,75 | ×1,25 |
-| **A** | 10 | 1 500–2 000 | 50 % grave | 10 % | +1,0 | ×1,0 |
+| Rang | Durée | Note cible (50 % réussite) | Ryos (succès) | Blessure base (échec) | Mort base (échec) | Gain stat (succès) | Bonus banc |
+| :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: |
+| **D** | 4 h | 4 | 300–500 | 0 % | 0 % | +0,25 | ×1,5 |
+| **C** | 8 h | 6 | 600–800 | 25 % légère | 0 % | +0,5 | ×1,5 |
+| **B** | 24 h | 8 | 1 000 | 40 % grave | 5 % | +0,75 | ×1,25 |
+| **A** | 48 h | 10 | 1 500–2 000 | 50 % grave | 10 % | +1,0 | ×1,0 |
 
 Alignement examen Chunin : note globale **≥ 8** = rang B à 50 % de réussite.
+
+Exemple : envoi rang D à H10 → résolution à **H14**.
 
 ---
 
@@ -50,7 +58,7 @@ blessure  = clamp(baseBlessure − delta × 8,  0, 80)   // si échec
 mort      = clamp(baseMort      − delta × 3,  0, 25)   // si échec
 ```
 
-### Résolution H72
+### Résolution
 
 1. **Jet de réussite** (`rollPercent() ≤ successChance`).
 2. **Si succès** : Ryos + loot + gain de stat (stat non plafonnée, aléatoire).
@@ -74,8 +82,6 @@ gain = arrondi(statGainOnSuccess × bonusBanc, 2 décimales)
 | **Remplaçant banc** | Bonus ×1,5 (D/C) ou ×1,25 (B) — compense l'entraînement global seul (coef 0,2) |
 | **Titulaire** (rare en mission) | Pas de bonus banc |
 
-Exemple : 3 missions D réussies par un Genin banc ≈ **+1,1 stat** cumulé — accélérateur en parallèle de l'entraînement.
-
 Le parchemin légendaire (loot rang B/A) reste un bonus **en plus** du gain de mission.
 
 ---
@@ -95,24 +101,34 @@ Loot tiré **uniquement sur succès**.
 ## UI
 
 - Libellé : `Mission — rang D` (FR) / `Mission — rank D` (EN).
-- Tableau : Ryos, gain stat, % réussite / blessure / mort selon le ninja sélectionné.
+- Tableau : Ryos, gain stat, durée, % réussite / blessure / mort selon le ninja sélectionné.
+- Compteur de slots `actifs / 3`.
 - Rang **recommandé** : réussite ≥ 50 %.
-- Tous les rangs restent **envoyables** (avertissement si < 50 %).
+- Tous les rangs restent **envoyables** s'il reste un slot et assez de temps (avertissement si < 50 %).
 
 ---
 
 ## API
 
-`GET /api/missions` — par ninja banc :
+`GET /api/missions` expose notamment :
 
 ```json
 {
-  "overallRating": 5,
-  "oddsByTier": {
-    "D": { "successChance": 62, "injuryChance": 0, "deathChance": 0, "targetRating": 4 },
-    "C": { "successChance": 38, "injuryChance": 17, "deathChance": 0, "targetRating": 6 }
-  },
-  "recommendedTiers": ["D"]
+  "maxActiveMissions": 3,
+  "activeCount": 1,
+  "slotsRemaining": 2,
+  "tiers": [
+    { "tier": "D", "durationHours": 4, "resolvesAtHour": 14, "fitsInCycle": true }
+  ],
+  "availableNinjas": [
+    {
+      "overallRating": 5,
+      "oddsByTier": {
+        "D": { "successChance": 62, "injuryChance": 0, "deathChance": 0, "targetRating": 4 }
+      },
+      "recommendedTiers": ["D"]
+    }
+  ]
 }
 ```
 
@@ -129,17 +145,21 @@ Loot tiré **uniquement sur succès**.
 
 Alias acceptés à l'assignation : `routine` → `D`, etc.
 
+Migration **065** : suppression des uniques `1 par rang / 1 par ninja et par cycle` ; cap applicatif de 3 actifs.
+
 ---
 
 ## Fichiers
 
 | Fichier | Rôle |
 | :--- | :--- |
-| `backend/src/services/missionRules.js` | Rangs, formules, `computeMissionOdds` |
+| `backend/src/services/missionRules.js` | Rangs, durées, formules, `computeMissionOdds` |
 | `backend/src/services/missionLootService.js` | Jet réussite, blessures, gains stat |
-| `backend/src/services/missionService.js` | API, mapping ninjas |
+| `backend/src/services/missionService.js` | API, cap, résolution due |
+| `backend/src/services/cycleJobs.js` | Tick : `resolveDueMissions` |
 | `backend/migrations/049_mission_rank_system.sql` | ENUM D/C/B/A |
-| `frontend/src/components/bureau/IdleMissionPanel.vue` | UI probabilités |
+| `backend/migrations/065_mission_duration_cap.sql` | Indexes + drop uniques cycle |
+| `frontend/src/components/bureau/IdleMissionPanel.vue` | UI probabilités / slots / durée |
 | `specs/training-system.md` | Entraînement (complément) |
 
 ---
@@ -149,6 +169,6 @@ Alias acceptés à l'assignation : `routine` → `D`, etc.
 ```bash
 node backend/scripts/testMissionRules.js
 node backend/scripts/testMissionLoot.js
-npm run playtest:missions --prefix backend   # H0→H72 + notifications
+npm run playtest:missions --prefix backend
 npm run test:e2e                             # Cypress missions + assign + collect
 ```

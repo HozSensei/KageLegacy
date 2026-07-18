@@ -29,19 +29,25 @@ const selectedOdds = computed(() => {
   return selectedNinja.value.oddsByTier?.[selectedTier.value] ?? null
 })
 
+const slotsFull = computed(
+  () => (missions.value?.slotsRemaining ?? 0) <= 0 && (missions.value?.activeCount ?? 0) > 0
+)
+
 const tierOptions = computed(() => {
   if (!missions.value?.tiers) return []
-  const used = new Set(missions.value.usedTiers ?? [])
+  const noSlots = (missions.value.slotsRemaining ?? 0) <= 0
   return missions.value.tiers.map((tier) => {
     const odds = selectedNinja.value?.oddsByTier?.[tier.tier]
     const recommended = selectedNinja.value?.recommendedTiers?.includes(tier.tier)
-    const alreadyUsed = used.has(tier.tier)
-    const disabled = !missions.value.windowOpen || alreadyUsed
+    const noTime = tier.fitsInCycle === false
+    const disabled = !missions.value.windowOpen || noSlots || noTime
     let disabledReason = null
     let warning = null
     if (!missions.value.windowOpen) disabledReason = t('missions.closed')
-    else if (alreadyUsed) disabledReason = t('missions.tierUsed')
-    else if (odds && odds.successChance < 50) {
+    else if (noSlots) disabledReason = t('missions.slotsFull', { max: missions.value.maxActiveMissions })
+    else if (noTime) {
+      disabledReason = t('missions.noTimeLeft', { hours: tier.durationHours })
+    } else if (odds && odds.successChance < 50) {
       warning = t('missions.lowSuccess', { pct: odds.successChance })
     }
     return { ...tier, odds, disabled, disabledReason, warning, recommended }
@@ -50,6 +56,7 @@ const tierOptions = computed(() => {
 
 const canAssign = computed(() => {
   if (!selectedNinjaId.value || !missions.value?.windowOpen) return false
+  if ((missions.value.slotsRemaining ?? 0) <= 0) return false
   const tier = tierOptions.value.find((entry) => entry.tier === selectedTier.value)
   return tier && !tier.disabled
 })
@@ -218,6 +225,17 @@ function hoursUntilResolve(mission) {
 
     <template v-else-if="missions">
       <p v-if="!missions.windowOpen" class="mt-4 text-sm text-fire">{{ t('missions.closed') }}</p>
+      <p v-else class="mt-4 text-xs text-ink-faint" data-testid="missions-slots">
+        {{
+          t('missions.slots', {
+            active: missions.activeCount ?? 0,
+            max: missions.maxActiveMissions ?? 3,
+          })
+        }}
+      </p>
+      <p v-if="slotsFull && missions.windowOpen" class="mt-2 text-sm text-fire">
+        {{ t('missions.slotsFull', { max: missions.maxActiveMissions }) }}
+      </p>
 
       <div
         v-if="missions.pendingCollection?.length"
@@ -311,7 +329,15 @@ function hoursUntilResolve(mission) {
                 </template>
                 <template v-else>—</template>
               </td>
-              <td class="py-2 tabular-nums">H{{ tier.resolvesAtHour }}</td>
+              <td class="py-2 tabular-nums">
+                {{ t('missions.durationHours', { count: tier.durationHours }) }}
+                <span v-if="tier.fitsInCycle && tier.resolvesAtHour != null" class="block text-[10px] text-ink-faint">
+                  → H{{ tier.resolvesAtHour }}
+                </span>
+                <span v-else-if="!tier.fitsInCycle" class="block text-[10px] text-fire">
+                  {{ t('missions.noTimeLeft', { hours: tier.durationHours }) }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>

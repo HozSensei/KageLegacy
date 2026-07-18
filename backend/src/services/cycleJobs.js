@@ -12,7 +12,7 @@ import { incrementPoolCycle } from './poolService.js';
 import { carryOperationDecksForPool } from './operationDeckService.js';
 import { deductSalariesForAllUsers } from './economyService.js';
 import { ensureVillageShopForAllUsers } from './villageShopService.js';
-import { resolveMissionsForCycle } from './missionService.js';
+import { resolveDueMissions } from './missionService.js';
 import { decrementFormeLocksForAllUsers } from './missionLootService.js';
 import { applyStagnationForAllUsers } from './stagnation.js';
 import { processAllCompletedSeasons } from './seasonService.js';
@@ -83,7 +83,8 @@ export async function runH71(cycleStartAt) {
 
 export async function runH72(cycleStartAt) {
   if (await hasJobRun(cycleStartAt, 'h72')) return { skipped: true };
-  const missionResults = await resolveMissionsForCycle(cycleStartAt, 72);
+  // Filet de sécurité : toute mission encore active se résout à la clôture.
+  const missionResults = await resolveDueMissions(cycleStartAt, 72);
   const matchResults = await applyAllPoolsMatchResults();
   const salaries = await deductSalariesForAllUsers();
   await decrementFormeLocksForAllUsers();
@@ -136,6 +137,16 @@ export async function processCycleTick() {
   const cycleStartAt = row.cycle_start_at;
   const hour = clock.hour;
   const actions = [];
+
+  // Résolution au fil de l'eau selon la durée du rang (D4 / C8 / B24 / A48).
+  // Idempotent : ne touche que les missions actives dont resolves_at_hour ≤ heure courante.
+  if (hour > 0 && hour < 72) {
+    const dueMissions = await resolveDueMissions(cycleStartAt, hour);
+    if (dueMissions.length) {
+      actions.push({ missionsResolved: dueMissions.length, results: dueMissions });
+      console.log(`[H${hour}] Missions résolues : ${dueMissions.length}`);
+    }
+  }
 
   if (hour >= 36 && !(await hasJobRun(cycleStartAt, 'h36'))) {
     actions.push(await runH36(cycleStartAt));
