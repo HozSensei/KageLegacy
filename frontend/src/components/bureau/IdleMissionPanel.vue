@@ -29,13 +29,25 @@ const selectedOdds = computed(() => {
   return selectedNinja.value.oddsByTier?.[selectedTier.value] ?? null
 })
 
-const slotsFull = computed(
-  () => (missions.value?.slotsRemaining ?? 0) <= 0 && (missions.value?.activeCount ?? 0) > 0
+const selectedTierConfig = computed(() =>
+  tierOptions.value.find((entry) => entry.tier === selectedTier.value)
 )
+
+const maxSlots = computed(() => missions.value?.maxActiveMissions ?? 3)
+const activeCount = computed(() => missions.value?.activeCount ?? 0)
+const slotsRemaining = computed(() => missions.value?.slotsRemaining ?? maxSlots.value)
+
+const slotsFull = computed(() => slotsRemaining.value <= 0 && activeCount.value > 0)
+
+const slotMarks = computed(() =>
+  Array.from({ length: maxSlots.value }, (_, index) => index < activeCount.value)
+)
+
+const currentHour = computed(() => missions.value?.gameClock?.hour ?? 0)
 
 const tierOptions = computed(() => {
   if (!missions.value?.tiers) return []
-  const noSlots = (missions.value.slotsRemaining ?? 0) <= 0
+  const noSlots = slotsRemaining.value <= 0
   return missions.value.tiers.map((tier) => {
     const odds = selectedNinja.value?.oddsByTier?.[tier.tier]
     const recommended = selectedNinja.value?.recommendedTiers?.includes(tier.tier)
@@ -44,10 +56,9 @@ const tierOptions = computed(() => {
     let disabledReason = null
     let warning = null
     if (!missions.value.windowOpen) disabledReason = t('missions.closed')
-    else if (noSlots) disabledReason = t('missions.slotsFull', { max: missions.value.maxActiveMissions })
-    else if (noTime) {
-      disabledReason = t('missions.noTimeLeft', { hours: tier.durationHours })
-    } else if (odds && odds.successChance < 50) {
+    else if (noSlots) disabledReason = t('missions.slotsFull', { max: maxSlots.value })
+    else if (noTime) disabledReason = t('missions.noTimeLeft', { hours: tier.durationHours })
+    else if (odds && odds.successChance < 50) {
       warning = t('missions.lowSuccess', { pct: odds.successChance })
     }
     return { ...tier, odds, disabled, disabledReason, warning, recommended }
@@ -56,9 +67,9 @@ const tierOptions = computed(() => {
 
 const canAssign = computed(() => {
   if (!selectedNinjaId.value || !missions.value?.windowOpen) return false
-  if ((missions.value.slotsRemaining ?? 0) <= 0) return false
-  const tier = tierOptions.value.find((entry) => entry.tier === selectedTier.value)
-  return tier && !tier.disabled
+  if (slotsRemaining.value <= 0) return false
+  const tier = selectedTierConfig.value
+  return Boolean(tier && !tier.disabled && !selectedNinja.value?.examBlocked)
 })
 
 watch(selectedNinjaId, (id) => {
@@ -66,7 +77,19 @@ watch(selectedNinjaId, (id) => {
   const ninja = missions.value?.availableNinjas?.find((n) => n.id === id)
   if (ninja?.examBlocked) {
     selectedTier.value = 'D'
+    return
   }
+  const recommended = ninja?.recommendedTiers?.[0]
+  if (recommended && tierOptions.value.some((tier) => tier.tier === recommended && !tier.disabled)) {
+    selectedTier.value = recommended
+  }
+})
+
+watch(tierOptions, (options) => {
+  const current = options.find((tier) => tier.tier === selectedTier.value)
+  if (current && !current.disabled) return
+  const fallback = options.find((tier) => !tier.disabled)
+  if (fallback) selectedTier.value = fallback.tier
 })
 
 onMounted(fetchMissions)
@@ -146,6 +169,11 @@ async function collect() {
   }
 }
 
+function selectTier(tier) {
+  if (tier.disabled) return
+  selectedTier.value = tier.tier
+}
+
 function ninjaBlockedReason(ninja) {
   if (ninja.examBlocked) return t('missions.examBlocked')
   return null
@@ -156,8 +184,6 @@ function ninjaOptionLabel(ninja) {
   if (ninja.grade) parts.push(t(`grades.${ninja.grade}`))
   if (ninja.overallRating != null) parts.push(`★${ninja.overallRating}`)
   if (ninja.element_affinity) parts.push(t(`elements.${ninja.element_affinity}`))
-  const prepType = ninja.preparation_type ?? ninja.preparationType
-  if (prepType) parts.push(t(`training.types.${prepType}`))
   const blocked = ninjaBlockedReason(ninja)
   if (blocked) parts.push(`(${blocked})`)
   return parts.join(' · ')
@@ -174,11 +200,6 @@ function statGainLabel(tier) {
   if (!base) return '—'
   const benchGain = Math.round(base * bonus * 100) / 100
   return t('missions.statGainBench', { gain: benchGain, bonus })
-}
-
-function oddsForTier(tierKey) {
-  if (!selectedNinja.value?.oddsByTier) return null
-  return selectedNinja.value.oddsByTier[tierKey]
 }
 
 function injuryLabel(type) {
@@ -203,10 +224,26 @@ function lootSummary(mission) {
 }
 
 function hoursUntilResolve(mission) {
-  const currentHour = missions.value?.gameClock?.hour ?? 0
-  const left = mission.resolves_at_hour - currentHour
+  const left = mission.resolves_at_hour - currentHour.value
   if (left <= 0) return t('missions.resolvesSoon')
   return t('missions.hoursLeft', { count: left })
+}
+
+function missionProgress(mission) {
+  const duration = Number(
+    missions.value?.tiers?.find((tier) => tier.tier === mission.mission_tier)?.durationHours
+  )
+  if (!duration || duration <= 0) return 0
+  const left = Math.max(0, mission.resolves_at_hour - currentHour.value)
+  const elapsed = Math.min(duration, Math.max(0, duration - left))
+  return Math.round((elapsed / duration) * 100)
+}
+
+function oddsTone(chance) {
+  if (chance == null) return 'text-ink-faint'
+  if (chance >= 70) return 'text-accent'
+  if (chance >= 50) return 'text-ink'
+  return 'text-fire'
 }
 </script>
 
@@ -224,50 +261,89 @@ function hoursUntilResolve(mission) {
     <p v-else-if="error" class="mt-4 text-sm text-fire">{{ error }}</p>
 
     <template v-else-if="missions">
-      <p v-if="!missions.windowOpen" class="mt-4 text-sm text-fire">{{ t('missions.closed') }}</p>
-      <p v-else class="mt-4 text-xs text-ink-faint" data-testid="missions-slots">
-        {{
-          t('missions.slots', {
-            active: missions.activeCount ?? 0,
-            max: missions.maxActiveMissions ?? 3,
-          })
-        }}
-      </p>
-      <p v-if="slotsFull && missions.windowOpen" class="mt-2 text-sm text-fire">
-        {{ t('missions.slotsFull', { max: missions.maxActiveMissions }) }}
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+            {{ t('missions.slotsLabel') }}
+          </p>
+          <p class="mt-1 text-sm text-ink" data-testid="missions-slots">
+            {{
+              t('missions.slots', {
+                active: activeCount,
+                max: maxSlots,
+              })
+            }}
+          </p>
+        </div>
+        <div class="flex items-center gap-1.5" aria-hidden="true">
+          <span
+            v-for="(filled, index) in slotMarks"
+            :key="`slot-${index}`"
+            class="h-2.5 w-8 border transition-colors"
+            :class="filled ? 'border-accent bg-accent/70' : 'border-line bg-transparent'"
+          />
+        </div>
+      </div>
+
+      <p v-if="!missions.windowOpen" class="mt-3 text-sm text-fire">{{ t('missions.closed') }}</p>
+      <p v-else-if="slotsFull" class="mt-3 text-sm text-fire">
+        {{ t('missions.slotsFull', { max: maxSlots }) }}
       </p>
 
       <div
         v-if="missions.pendingCollection?.length"
         class="mt-6 border-l-2 border-accent pl-4"
+        data-testid="missions-pending"
       >
-        <p class="text-sm text-ink-muted">
+        <p class="text-sm text-ink">
           {{ t('missions.pending', { count: missions.pendingCollection.length }) }}
         </p>
-        <ul class="mt-2 space-y-2 text-sm text-ink-muted">
+        <ul class="mt-3 space-y-3 text-sm text-ink-muted">
           <li v-for="m in missions.pendingCollection" :key="m.id">
-            {{ m.ninja_name }} — {{ t(`missions.tiers.${m.mission_tier}`) }}
-            <span v-if="m.reward_amount" class="text-accent">· {{ m.reward_amount }} Ryos</span>
-            <span v-else class="text-ink-faint">· {{ t('missions.missionFailed') }}</span>
-            <span v-if="lootSummary(m)" class="block text-xs text-ink-faint">{{ lootSummary(m) }}</span>
-            <span v-if="injuryLabel(m.injury_type)" class="block text-xs text-fire">{{ injuryLabel(m.injury_type) }}</span>
+            <p>
+              <span class="text-ink">{{ m.ninja_name }}</span>
+              — {{ t(`missions.tiers.${m.mission_tier}`) }}
+              <span v-if="m.reward_amount" class="text-accent">· {{ m.reward_amount }} Ryos</span>
+              <span v-else class="text-ink-faint">· {{ t('missions.missionFailed') }}</span>
+            </p>
+            <p v-if="lootSummary(m)" class="mt-0.5 text-xs text-ink-faint">{{ lootSummary(m) }}</p>
+            <p v-if="injuryLabel(m.injury_type)" class="mt-0.5 text-xs text-fire">
+              {{ injuryLabel(m.injury_type) }}
+            </p>
           </li>
         </ul>
-        <button type="button" class="btn-ghost mt-3" data-testid="missions-collect" :disabled="collecting" @click="collect">
+        <button
+          type="button"
+          class="btn-ghost mt-4"
+          data-testid="missions-collect"
+          :disabled="collecting"
+          @click="collect"
+        >
           {{ collecting ? t('missions.collecting') : t('missions.collect') }}
         </button>
       </div>
 
-      <div v-if="missions.activeMissions?.length" class="mt-6 space-y-3" data-testid="missions-active">
+      <div v-if="missions.activeMissions?.length" class="mt-8 space-y-3" data-testid="missions-active">
         <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">{{ t('missions.active') }}</p>
         <div
           v-for="m in missions.activeMissions"
           :key="m.id"
-          class="flex flex-wrap items-baseline justify-between gap-2 border border-line/60 px-4 py-3 text-sm"
+          class="border border-line/70 px-4 py-3"
         >
-          <span class="text-ink">{{ m.ninja_name }}</span>
-          <span class="text-ink-muted">{{ t(`missions.tiers.${m.mission_tier}`) }}</span>
-          <span class="text-xs text-accent">{{ hoursUntilResolve(m) }}</span>
+          <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+            <span class="text-ink">{{ m.ninja_name }}</span>
+            <span class="text-ink-muted">{{ t(`missions.tiers.${m.mission_tier}`) }}</span>
+            <span class="text-xs text-accent">{{ hoursUntilResolve(m) }}</span>
+          </div>
+          <div class="mt-3 h-1 overflow-hidden bg-bg-soft">
+            <div
+              class="h-full bg-accent/80 transition-[width] duration-500"
+              :style="{ width: `${missionProgress(m)}%` }"
+            />
+          </div>
+          <p class="mt-1.5 text-[10px] text-ink-faint">
+            {{ t('missions.returnsAt', { hour: m.resolves_at_hour }) }}
+          </p>
         </div>
       </div>
 
@@ -283,76 +359,89 @@ function hoursUntilResolve(mission) {
         </p>
       </div>
 
-      <div class="mt-8 overflow-x-auto">
-        <table class="w-full min-w-[40rem] text-left text-xs">
-          <thead>
-            <tr class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
-              <th class="pb-2 pr-4">{{ t('missions.pickTier') }}</th>
-              <th class="pb-2 pr-4">{{ t('missions.reward') }}</th>
-              <th class="pb-2 pr-4">{{ t('missions.statGain') }}</th>
-              <th class="pb-2 pr-4">{{ t('missions.success') }}</th>
-              <th class="pb-2 pr-4">{{ t('missions.injury') }}</th>
-              <th class="pb-2 pr-4">{{ t('missions.death') }}</th>
-              <th class="pb-2">{{ t('missions.resolve') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="tier in tierOptions"
-              :key="tier.tier"
-              class="border-t border-line/60 text-ink-muted"
-              :class="{ 'bg-accent/5': selectedTier === tier.tier && selectedNinja }"
-            >
-              <td class="py-2 pr-4">
-                <span class="text-ink">{{ t(`missions.tiers.${tier.tier}`) }}</span>
+      <div class="mt-10">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">
+              {{ t('missions.pickTier') }}
+            </p>
+            <p class="mt-1 text-xs text-ink-muted">{{ t('missions.rankPickHint') }}</p>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-2" data-testid="missions-tier-select">
+          <button
+            v-for="tier in tierOptions"
+            :key="tier.tier"
+            type="button"
+            class="w-full border px-4 py-3 text-left transition-colors"
+            :class="[
+              selectedTier === tier.tier
+                ? 'border-accent bg-accent/5'
+                : 'border-line/70 hover:border-ink-faint',
+              tier.disabled ? 'cursor-not-allowed opacity-45' : 'cursor-pointer',
+            ]"
+            :data-testid="`missions-tier-${tier.tier}`"
+            :disabled="tier.disabled"
+            @click="selectTier(tier)"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm text-ink">{{ t(`missions.tiers.${tier.tier}`) }}</p>
                 <p class="mt-0.5 text-[10px] text-ink-faint">
                   {{ t('missions.targetRating', { rating: tier.targetRating }) }}
+                  <span v-if="tier.recommended" class="text-accent">
+                    · {{ t('missions.recommended') }}
+                  </span>
                 </p>
-              </td>
-              <td class="py-2 pr-4 tabular-nums">{{ tierRewardLabel(tier) }}</td>
-              <td class="py-2 pr-4 tabular-nums text-[10px]">{{ statGainLabel(tier) }}</td>
-              <td class="py-2 pr-4 tabular-nums">
-                <template v-if="selectedNinja && oddsForTier(tier.tier)">
-                  {{ oddsForTier(tier.tier).successChance }} %
-                </template>
-                <template v-else>—</template>
-              </td>
-              <td class="py-2 pr-4 tabular-nums">
-                <template v-if="selectedNinja && oddsForTier(tier.tier)">
-                  {{ oddsForTier(tier.tier).injuryChance }} %
-                </template>
-                <template v-else>—</template>
-              </td>
-              <td class="py-2 pr-4 tabular-nums">
-                <template v-if="selectedNinja && oddsForTier(tier.tier)">
-                  {{ oddsForTier(tier.tier).deathChance }} %
-                </template>
-                <template v-else>—</template>
-              </td>
-              <td class="py-2 tabular-nums">
-                {{ t('missions.durationHours', { count: tier.durationHours }) }}
-                <span v-if="tier.fitsInCycle && tier.resolvesAtHour != null" class="block text-[10px] text-ink-faint">
+              </div>
+              <div class="text-right">
+                <p class="text-sm tabular-nums text-ink">
+                  {{ t('missions.durationHours', { count: tier.durationHours }) }}
+                </p>
+                <p v-if="tier.fitsInCycle && tier.resolvesAtHour != null" class="mt-0.5 text-[10px] text-ink-faint">
                   → H{{ tier.resolvesAtHour }}
-                </span>
-                <span v-else-if="!tier.fitsInCycle" class="block text-[10px] text-fire">
+                </p>
+                <p v-else class="mt-0.5 text-[10px] text-fire">
                   {{ t('missions.noTimeLeft', { hours: tier.durationHours }) }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-muted">
+              <span>{{ tierRewardLabel(tier) }}</span>
+              <span>{{ statGainLabel(tier) }}</span>
+              <span :class="oddsTone(tier.odds?.successChance)">
+                {{ t('missions.success') }}
+                <template v-if="tier.odds"> {{ tier.odds.successChance }} %</template>
+                <template v-else> —</template>
+              </span>
+              <span v-if="tier.odds">
+                {{ t('missions.injury') }} {{ tier.odds.injuryChance }} %
+                · {{ t('missions.death') }} {{ tier.odds.deathChance }} %
+              </span>
+            </div>
+
+            <p v-if="tier.disabledReason" class="mt-2 text-[10px] text-fire">
+              {{ tier.disabledReason }}
+            </p>
+            <p v-else-if="tier.warning" class="mt-2 text-[10px] text-fire">
+              {{ tier.warning }}
+            </p>
+          </button>
+        </div>
       </div>
 
       <p class="mt-4 text-xs text-ink-faint">{{ t('missions.lootHint', { bonus: '1,5' }) }}</p>
 
-      <div class="mt-8 grid gap-4 sm:grid-cols-2">
+      <div class="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <label class="block text-xs uppercase tracking-[0.14em] text-ink-faint">
           {{ t('missions.pickNinja') }}
           <select
             v-model="selectedNinjaId"
             class="strategy-select mt-2 w-full"
             data-testid="missions-ninja-select"
-            :disabled="!missions.windowOpen"
+            :disabled="!missions.windowOpen || slotsFull"
           >
             <option :value="null" disabled>{{ t('missions.pickNinja') }}</option>
             <option
@@ -366,43 +455,38 @@ function hoursUntilResolve(mission) {
           </select>
         </label>
 
-        <label class="block text-xs uppercase tracking-[0.14em] text-ink-faint">
-          {{ t('missions.pickTier') }}
-          <select
-            v-model="selectedTier"
-            class="strategy-select mt-2 w-full"
-            data-testid="missions-tier-select"
-            :disabled="!selectedNinjaId || !missions.windowOpen"
-          >
-            <option
-              v-for="tier in tierOptions"
-              :key="tier.tier"
-              :value="tier.tier"
-              :disabled="tier.disabled"
-            >
-              {{ t(`missions.tiers.${tier.tier}`) }}
-              <template v-if="tier.disabled"> — {{ tier.disabledReason }}</template>
-              <template v-else-if="tier.warning"> — {{ tier.warning }}</template>
-            </option>
-          </select>
-        </label>
-      </div>
-
-      <div
-        v-if="selectedNinja && selectedOdds && !selectedNinja.examBlocked"
-        class="mt-4 rounded border border-line/60 px-4 py-3 text-xs text-ink-muted"
-      >
-        <p>{{ t('missions.ninjaRating', { rating: selectedOdds.ninjaRating }) }}</p>
-        <p class="mt-1">
-          {{ t('missions.success') }} {{ selectedOdds.successChance }} %
-          · {{ t('missions.injury') }} {{ selectedOdds.injuryChance }} %
-          · {{ t('missions.death') }} {{ selectedOdds.deathChance }} %
-        </p>
-        <p v-if="selectedNinja.recommendedTiers?.length" class="mt-1 text-ink-faint">
-          {{ t('missions.eligible', {
-            ranks: selectedNinja.recommendedTiers.map((r) => t(`missions.tiersShort.${r}`)).join(', ')
-          }) }}
-        </p>
+        <div
+          class="border border-line/70 px-4 py-3 text-xs text-ink-muted"
+          data-testid="missions-odds"
+        >
+          <template v-if="selectedNinja && selectedOdds && !selectedNinja.examBlocked">
+            <p class="text-[10px] uppercase tracking-[0.12em] text-ink-faint">
+              {{ t(`missions.tiers.${selectedTier}`) }}
+            </p>
+            <p class="mt-2 text-sm text-ink">
+              {{ t('missions.ninjaRating', { rating: selectedOdds.ninjaRating }) }}
+            </p>
+            <p class="mt-2">
+              <span :class="oddsTone(selectedOdds.successChance)">
+                {{ t('missions.success') }} {{ selectedOdds.successChance }} %
+              </span>
+              · {{ t('missions.injury') }} {{ selectedOdds.injuryChance }} %
+              · {{ t('missions.death') }} {{ selectedOdds.deathChance }} %
+            </p>
+            <p v-if="selectedTierConfig" class="mt-2 text-ink-faint">
+              {{ t('missions.durationHours', { count: selectedTierConfig.durationHours }) }}
+              <template v-if="selectedTierConfig.resolvesAtHour != null">
+                · {{ t('missions.returnsAt', { hour: selectedTierConfig.resolvesAtHour }) }}
+              </template>
+            </p>
+            <p v-if="selectedNinja.recommendedTiers?.length" class="mt-2 text-ink-faint">
+              {{ t('missions.eligible', {
+                ranks: selectedNinja.recommendedTiers.map((r) => t(`missions.tiersShort.${r}`)).join(', ')
+              }) }}
+            </p>
+          </template>
+          <p v-else class="text-ink-faint">{{ t('missions.pickNinjaHint') }}</p>
+        </div>
       </div>
 
       <button

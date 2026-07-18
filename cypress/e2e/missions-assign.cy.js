@@ -23,7 +23,7 @@ describe('Missions — envoi de contrat (UI)', () => {
         cy.get('[data-testid="missions-ninja-select"]').select($option.val());
       });
 
-    cy.get('[data-testid="missions-tier-select"]').select('D');
+    cy.get('[data-testid="missions-tier-D"]').should('not.be.disabled').click();
     cy.intercept('POST', '/api/missions/assign').as('assignMission');
     cy.get('[data-testid="missions-send"]').should('not.be.disabled').click();
     cy.wait('@assignMission').then(({ response }) => {
@@ -46,6 +46,6 @@ describe('Missions — envoi de contrat (UI)', () => {
       .then(($option) => {
         cy.get('[data-testid="missions-ninja-select"]').select($option.val());
       });
-    cy.get('[data-testid="missions-tier-select"] option[value="D"]').should('not.be.disabled');
+    cy.get('[data-testid="missions-tier-D"]').should('not.be.disabled');
   });
 });

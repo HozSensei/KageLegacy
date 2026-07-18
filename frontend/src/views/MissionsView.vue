@@ -11,7 +11,8 @@ const { t } = useI18n()
 <template>
   <div class="page-shell page-shell--hero" data-testid="missions-page">
     <header>
-      <p class="page-lead">{{ t('missions.lead') }}</p>
+      <h1 class="page-title">{{ t('missions.title') }}</h1>
+      <p class="page-lead mt-2">{{ t('missions.lead') }}</p>
     </header>
 
     <ReconnaissancePanel />
