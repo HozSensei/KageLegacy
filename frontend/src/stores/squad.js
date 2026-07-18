@@ -27,6 +27,7 @@ export const useSquadStore = defineStore('squad', () => {
   const cycleObjectives = ref(null)
   const midcycle = ref(null)
   const rivalry = ref(null)
+  const villageRivalry = ref(null)
   let fetchPromise = null
 
   function applyPayload(data) {
@@ -50,6 +51,7 @@ export const useSquadStore = defineStore('squad', () => {
     cycleObjectives.value = data.cycleObjectives || null
     midcycle.value = data.midcycle || null
     rivalry.value = data.rivalry || null
+    villageRivalry.value = data.villageRivalry || null
   }
 
   /** Mise à jour partielle après mutation — préserve notifs/académie si absentes */
@@ -72,6 +74,7 @@ export const useSquadStore = defineStore('squad', () => {
     if (data.cycleObjectives !== undefined) cycleObjectives.value = data.cycleObjectives
     if (data.midcycle !== undefined) midcycle.value = data.midcycle
     if (data.rivalry !== undefined) rivalry.value = data.rivalry
+    if (data.villageRivalry !== undefined) villageRivalry.value = data.villageRivalry
     if (data.notifications) notifications.value = data.notifications
     if (data.notificationHistory) notificationHistory.value = data.notificationHistory
     if (data.activityFeed) activityFeed.value = data.activityFeed
@@ -298,6 +301,7 @@ export const useSquadStore = defineStore('squad', () => {
     cycleObjectives.value = null
     midcycle.value = null
     rivalry.value = null
+    villageRivalry.value = null
     fetchPromise = null
   }
 
@@ -324,6 +328,7 @@ export const useSquadStore = defineStore('squad', () => {
     cycleObjectives,
     midcycle,
     rivalry,
+    villageRivalry,
     fetchSquad,
     saveComposition,
     saveOperationDeck,

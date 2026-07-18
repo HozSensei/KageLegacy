@@ -9,6 +9,8 @@ export function fallbackIdentity(row) {
     isBot: Boolean(row.isBot),
     isGuest: Boolean(row.isGuest),
     isElite: false,
+    villageId: row.villageId || null,
+    villageTitle: row.villageTitle || null,
     gradeLabel: row.isBot ? 'bot' : row.isGuest ? 'guest' : 'jonin',
     title: null,
     titleSlug: null,

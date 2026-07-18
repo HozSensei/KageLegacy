@@ -80,6 +80,7 @@ export async function registerUser({
   senseiName,
   language = 'fr',
   invitePoolId,
+  villageId = 'leaf',
 }) {
   const existing = await findUserByUsername(username);
   if (existing) {
@@ -96,9 +97,9 @@ export async function registerUser({
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?)`,
-    [userId, senseiName, language]
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
+     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?, ?)`,
+    [userId, senseiName, language, villageId]
   );
 
   const numericInvite =
@@ -116,7 +117,7 @@ export async function registerUser({
   };
 }
 
-export async function registerGuestUser({ senseiName, language = 'fr' }) {
+export async function registerGuestUser({ senseiName, language = 'fr', villageId = 'leaf' }) {
   let username = guestUsername();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const existing = await findUserByUsername(username);
@@ -135,9 +136,9 @@ export async function registerGuestUser({ senseiName, language = 'fr' }) {
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?)`,
-    [userId, displayName, language]
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
+     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?, ?)`,
+    [userId, displayName, language, villageId]
   );
 
   const poolJoin = { pool: await joinOrCreatePool(userId), fallback: false, reason: 'guest' };

@@ -14,6 +14,7 @@ import MissionsView from '../views/MissionsView.vue'
 import ReconMissionView from '../views/ReconMissionView.vue'
 import TrainingView from '../views/TrainingView.vue'
 import ClanView from '../views/ClanView.vue'
+import VillageView from '../views/VillageView.vue'
 import RulesView from '../views/RulesView.vue'
 import LoginView from '../views/LoginView.vue'
 import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
@@ -63,6 +64,7 @@ const router = createRouter({
           meta: { hero: { image: HERO_VILLAGE, titleKey: 'missions.reconChronicleTitle' } },
         },
         { path: 'clan', name: 'clan', component: ClanView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.clan' } } },
+        { path: 'village', name: 'village', component: VillageView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.village' } } },
         { path: 'training', name: 'training', component: TrainingView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.training' } } },
         { path: 'league', name: 'league', component: LeagueView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.league' } } },
         { path: 'market', name: 'market', component: MarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.market' } } },

@@ -12,6 +12,7 @@ import { grantLeagueMatchLoot } from './combatLootService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 import { applyPostMatchSocial } from './postMatchSocial.js';
+import { recordVillageScore } from './villageService.js';
 
 function mapWinnerToDb(winner, homeUserId, awayUserId) {
   if (winner === 'home') return { result: 'home_win', winnerUserId: homeUserId };
@@ -213,6 +214,8 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
       await recordEliteQuestEvent(match.home_user_id, 'league_win');
       await recordEliteQuestEvent(match.home_user_id, 'league_match_played');
       await recordEliteQuestEvent(match.away_user_id, 'league_match_played');
+      await recordVillageScore(match.home_user_id, 'league_win');
+      await recordVillageScore(match.away_user_id, 'league_participate');
     } else if (match.result === 'away_win') {
       await applyStanding(poolId, match.away_user_id, 'win');
       await applyStanding(poolId, match.home_user_id, 'loss');
@@ -221,6 +224,8 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
       await recordEliteQuestEvent(match.away_user_id, 'league_win');
       await recordEliteQuestEvent(match.away_user_id, 'league_match_played');
       await recordEliteQuestEvent(match.home_user_id, 'league_match_played');
+      await recordVillageScore(match.away_user_id, 'league_win');
+      await recordVillageScore(match.home_user_id, 'league_participate');
     } else if (match.result === 'draw') {
       await applyStanding(poolId, match.home_user_id, 'draw');
       await applyStanding(poolId, match.away_user_id, 'draw');
@@ -228,6 +233,8 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
       await grantLeagueMatchLoot(match.away_user_id, 'draw');
       await recordEliteQuestEvent(match.home_user_id, 'league_match_played');
       await recordEliteQuestEvent(match.away_user_id, 'league_match_played');
+      await recordVillageScore(match.home_user_id, 'league_participate');
+      await recordVillageScore(match.away_user_id, 'league_participate');
     }
 
     let koNinjaIds = [];

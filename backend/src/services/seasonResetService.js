@@ -8,6 +8,7 @@ import { activateEliteFromStripe } from './eliteSubscriptionService.js';
 import { joinOrCreatePool } from './poolService.js';
 import { provisionStarterSquad } from './starterSquadService.js';
 import { grantStarterTacticCards } from './tacticCards/tacticCardService.js';
+import { ensureCycleRivalry } from './villageService.js';
 
 const SENSEI_RESET_SQL = `
   UPDATE sensei s
@@ -28,7 +29,9 @@ const SENSEI_RESET_SQL = `
     s.onboarding_training_done = 0,
     s.onboarding_recon_done = 0,
     s.onboarding_league_done = 0,
-    s.onboarding_dismissed = 0
+    s.onboarding_dismissed = 0,
+    s.village_retake_used = 0,
+    s.village_title = NULL
   WHERE u.is_bot = FALSE
 `;
 
@@ -120,6 +123,9 @@ async function purgeGameplayState(connection) {
   await exec(`DELETE FROM user_items`);
   await exec(`DELETE FROM ninjas`);
   await exec(`DELETE FROM cycle_job_runs`);
+  await exec(`DELETE FROM village_score_events`);
+  await exec(`DELETE FROM village_cycle_totals`);
+  await exec(`DELETE FROM village_rivalries`);
   await exec(`DELETE FROM pools`);
   await exec(`DELETE FROM users WHERE is_bot = TRUE`);
   await exec(SENSEI_RESET_SQL);
@@ -223,6 +229,7 @@ export async function hardSeasonReset({
   }
 
   const clock = cycleStartAt ? await setCycleStartAt(cycleStartAt) : await resetCycle();
+  await ensureCycleRivalry(clock.cycleStartAt);
   const playerResults = await reinitializeHumanPlayers(humans, seasonNumber);
   const eliteResults = await restoreEliteSubscriptions(eliteSnapshots, seasonNumber);
 

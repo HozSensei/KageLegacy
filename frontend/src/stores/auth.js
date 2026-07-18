@@ -63,11 +63,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register({ username, password, senseiName, language, invitePoolId }) {
+  async function register({ username, password, senseiName, language, invitePoolId, villageId }) {
     loading.value = true
     error.value = null
     try {
-      const payload = { username, password, senseiName, language }
+      const payload = { username, password, senseiName, language, villageId: villageId || 'leaf' }
       if (invitePoolId) payload.invitePoolId = invitePoolId
 
       const res = await fetch(`${API_BASE}/api/auth/register`, {
@@ -100,7 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
     checked.value = true
   }
 
-  async function loginAsGuest(senseiName) {
+  async function loginAsGuest(senseiName, villageId = 'leaf') {
     loading.value = true
     error.value = null
     try {
@@ -108,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senseiName, language: 'fr' }),
+        body: JSON.stringify({ senseiName, language: 'fr', villageId }),
       })
       const { ok, body } = await parseApiResponse(res)
       if (!ok) throw new Error(await readApiError(res, body))

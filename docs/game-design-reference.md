@@ -408,7 +408,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Économie** : contrats sponsors, paris spectateurs
 - **Progression** : voies Jonin, maîtrises d’élément, techniques nommées
 - **Social** : clans joueurs (max 12 Senseis), tableau Académie partagé, Puits de Chakra collectif — sans bonus de combat
-- **Villages** : 4 factions serveur, rivalité de cycle, score via actions solo — design C0 figé (`specs/village-rivalry-c0.md`), pas encore jouable
+- **Villages** : 4 factions serveur, rivalité de cycle, score via actions solo — **jouable** (`specs/village-rivalry-c0.md`)
 
 ---
 
@@ -416,6 +416,7 @@ Quelques angles ouverts pour de nouvelles features :
 
 | Date | Note |
 |------|------|
+| 2026-07-18 | Villages C0 **implémentés** (appartenance, score solo, rivalité H72, UI `/village`) |
 | 2026-07-18 | Villages C0 : design figé (4 villages, score solo, ligue inchangée) — `specs/village-rivalry-c0.md` |
 | 2026-07-18 | Onboarding enrichi (5 étapes) — plus de soft-hide Académie ; reset flags au hard reset |
 | 2026-07-17 | Victoire pli = PV → plis ; débrief causal ; onboarding ; objectifs ; rivalités ; rumeur mid-cycle |

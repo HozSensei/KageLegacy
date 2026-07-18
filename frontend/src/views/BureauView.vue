@@ -84,6 +84,25 @@ onMounted(async () => {
       <CycleObjectivesPanel />
       <MidcycleRumorPanel />
 
+      <router-link
+        v-if="store.villageRivalry"
+        to="/village"
+        class="mt-10 block border-l-2 border-accent pl-4 text-sm text-ink-muted transition hover:text-ink"
+        data-testid="village-rivalry-banner"
+      >
+        <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ t('village.rivalryTitle') }}</p>
+        <p class="mt-2">
+          {{
+            t('village.bannerLive', {
+              a: t(`village.names.${store.villageRivalry.villageA}`),
+              b: t(`village.names.${store.villageRivalry.villageB}`),
+              scoreA: store.villageRivalry.scoreA,
+              scoreB: store.villageRivalry.scoreB,
+            })
+          }}
+        </p>
+      </router-link>
+
       <div
         v-if="store.rivalry?.nemeses?.length"
         class="mt-10 border-l-2 border-fire pl-4 text-sm"

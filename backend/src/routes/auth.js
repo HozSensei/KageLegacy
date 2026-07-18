@@ -43,7 +43,14 @@ function serializeUser(user) {
 }
 
 function serializeSensei(sensei) {
-  return sensei ? { name: sensei.name, language: sensei.language } : null;
+  return sensei
+    ? {
+        name: sensei.name,
+        language: sensei.language,
+        villageId: sensei.village_id || 'leaf',
+        villageTitle: sensei.village_title || null,
+      }
+    : null;
 }
 
 router.post('/register', async (req, res, next) => {

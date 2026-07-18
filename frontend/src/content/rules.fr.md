@@ -26,6 +26,7 @@ C'est votre tableau de bord quotidien. Vous y trouvez :
 | Zone | Rôle |
 |------|------|
 | **Premiers pas** | Checklist early-career (deck, entraînement, mission, recon, ligue) — skippable, sans masquer le reste |
+| **Village** | Appartenance à l'un des 4 villages cachés + rivalité de cycle (score via actions solo, sans bonus combat) |
 | **Trésorerie** | Solde de Ryos, réputation, prévision salaires + entraînement à H72 |
 | **Escouade active** | Aperçu des 3 ninjas de terrain et accès rapide à leur fiche |
 | **Sceau de Chakra** | Rituel quotidien gratuit (minuit UTC) — voir § Académie et Sceau de Chakra |
@@ -36,6 +37,19 @@ C'est votre tableau de bord quotidien. Vous y trouvez :
 | **Dispensaire** | Soins des ninjas en forme Lamentable (hôpital) |
 
 Le Bureau concentre les actions de **gestion du cycle** : budget, recrutement, soins et inscriptions de carrière. Consultez-le en début de cycle et avant les jalons H54 / H71.
+
+### Village
+
+**Route :** `/village`
+
+Quatre **villages cachés** (Feuille, Sable, Brume, Roche) forment une rivalité de faction **globale**, orthogonale au clan joueur et à la ligue.
+
+- Choix à l'inscription (+ 1 retake early si vous n'avez pas encore scoré)
+- Points via actions solo (sceau, missions, recon, match ligue, examens, Vol d'Oiseau) — plafond par cycle
+- Chaque cycle : une **paire** en guerre ; à H72 le village en tête gagne un petit coffre Ryos pour ses contributeurs
+- **Aucun bonus de combat**
+
+La ligue (pools, match H71, promo/relégation) reste inchangée.
 
 ### Journal du cycle
 
