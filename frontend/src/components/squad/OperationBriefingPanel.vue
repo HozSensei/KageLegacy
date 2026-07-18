@@ -156,7 +156,7 @@ function potentialLabel(profile) {
 
     <RouterLink
       :to="rulesDeckLink"
-      class="mt-6 inline-block text-xs text-accent underline-offset-2 hover:underline"
+      class="btn-ghost mt-6 text-[10px]"
     >
       {{ t('briefing.rulesLink') }}
     </RouterLink>

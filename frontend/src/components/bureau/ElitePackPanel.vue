@@ -123,7 +123,7 @@ function questProgress(quest) {
 
       <RouterLink
         to="/elite/outils"
-        class="mt-6 inline-flex items-center gap-1.5 text-xs text-accent underline-offset-2 hover:underline"
+        class="btn-ghost mt-6 gap-1.5 text-[10px]"
         data-testid="elite-pack-tools-link"
       >
         <VerifiedIcon size="1rem" />

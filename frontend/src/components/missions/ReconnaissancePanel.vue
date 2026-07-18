@@ -174,7 +174,7 @@ function outcomeLabel(outcome) {
         </p>
         <RouterLink
           :to="{ name: 'recon-mission', params: { missionId: recon.lastMission.missionId } }"
-          class="mt-3 inline-block text-xs text-accent underline-offset-2 hover:underline"
+          class="btn-ghost mt-3 text-[10px]"
         >
           {{ t('missions.reconViewChronicle') }}
         </RouterLink>

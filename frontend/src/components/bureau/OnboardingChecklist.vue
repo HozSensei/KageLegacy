@@ -56,7 +56,7 @@ async function dismiss() {
       <button
         type="button"
         data-testid="onboarding-dismiss"
-        class="shrink-0 text-[10px] uppercase tracking-[0.14em] text-ink-faint hover:text-ink"
+        class="btn-ghost shrink-0 text-[10px]"
         :disabled="dismissing"
         @click="dismiss"
       >
@@ -91,7 +91,7 @@ async function dismiss() {
         <RouterLink
           v-if="!step.done"
           :to="step.route"
-          class="shrink-0 text-xs text-accent underline-offset-2 hover:underline"
+          class="btn-ghost shrink-0 text-[10px]"
         >
           {{ t('onboarding.go') }}
         </RouterLink>

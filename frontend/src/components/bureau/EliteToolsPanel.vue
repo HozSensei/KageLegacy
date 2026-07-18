@@ -207,7 +207,7 @@ async function runMatchup() {
         <p class="mt-2 text-xs leading-relaxed text-ink-muted">{{ t('eliteTools.matchupHint') }}</p>
         <RouterLink
           :to="rulesCompLink"
-          class="mt-2 inline-block text-xs text-accent underline-offset-2 hover:underline"
+          class="btn-ghost mt-3 text-[10px]"
           data-testid="elite-tools-rules-link"
         >
           {{ t('eliteTools.rulesCompLink') }}
@@ -220,7 +220,7 @@ async function runMatchup() {
             <div class="flex flex-wrap gap-2">
               <button
                 type="button"
-                class="border border-accent/50 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-accent hover:bg-accent/10"
+                class="btn-primary text-[10px]"
                 :disabled="!scoutPrefill?.available"
                 data-testid="elite-matchup-scout-prefill"
                 @click="fillFromScout"
@@ -231,7 +231,7 @@ async function runMatchup() {
                 v-for="preset in tools.opponentProfileOptions"
                 :key="preset.value"
                 type="button"
-                class="border border-line px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-ink-muted hover:border-accent hover:text-accent"
+                class="btn-ghost text-[10px]"
                 @click="fillPreset(preset.value)"
               >
                 {{ preset.label }}
@@ -362,7 +362,7 @@ async function runMatchup() {
             </ul>
             <RouterLink
               :to="rulesCompLink"
-              class="mt-3 inline-block text-xs text-accent underline-offset-2 hover:underline"
+              class="btn-ghost mt-3 text-[10px]"
             >
               {{ t('eliteTools.rulesCompLink') }}
             </RouterLink>

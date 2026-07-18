@@ -131,7 +131,7 @@ function potentialLabel(profile) {
       <RouterLink
         v-if="compact"
         to="/espionnage"
-        class="mt-4 inline-block text-xs text-accent underline-offset-2 hover:underline"
+        class="btn-ghost mt-4 text-[10px]"
       >
         {{ t('scout.openFull') }}
       </RouterLink>

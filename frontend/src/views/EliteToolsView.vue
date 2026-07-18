@@ -43,7 +43,7 @@ onMounted(async () => {
       data-testid="elite-tools-locked"
     >
       <p class="text-ink-muted">{{ t('eliteTools.subscribersOnly') }}</p>
-      <RouterLink to="/profil" class="mt-4 inline-block text-accent underline-offset-2 hover:underline">
+      <RouterLink to="/profil" class="btn-ghost mt-4 text-[10px]">
         {{ t('eliteTools.goProfile') }}
       </RouterLink>
     </div>

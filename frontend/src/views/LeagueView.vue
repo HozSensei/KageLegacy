@@ -242,7 +242,7 @@ async function challengeRecon(targetUserId) {
                 <button
                   v-if="row.canChallengeRecon"
                   type="button"
-                  class="text-[10px] uppercase tracking-[0.12em] text-accent underline-offset-2 hover:underline disabled:opacity-50"
+                  class="btn-ghost text-[10px]"
                   :disabled="challengeBusyId === row.userId || challengeAlreadySent(row.userId)"
                   :data-testid="`league-challenge-${row.userId}`"
                   @click="challengeRecon(row.userId)"
@@ -379,7 +379,7 @@ async function challengeRecon(targetUserId) {
             </div>
             <button
               type="button"
-              class="text-[10px] uppercase tracking-[0.12em] text-accent underline-offset-2 hover:underline disabled:opacity-50"
+              class="btn-ghost text-[10px]"
               :disabled="challengeBusyId === target.userId || challengeAlreadySent(target.userId)"
               :data-testid="`league-ext-challenge-${target.userId}`"
               @click="challengeRecon(target.userId)"
