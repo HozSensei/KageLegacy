@@ -30,6 +30,7 @@ const baseNavItems = [
   { name: 'profile', path: '/profil', label: 'nav.profile' },
   { name: 'squad', path: '/squad', label: 'nav.squad' },
   { name: 'clan', path: '/clan', label: 'nav.clan' },
+  { name: 'village', path: '/village', label: 'nav.village' },
   { name: 'missions', path: '/missions', label: 'nav.missions' },
   { name: 'reconnaissance', path: '/reconnaissance', label: 'nav.reconnaissance' },
   { name: 'training', path: '/training', label: 'nav.training' },

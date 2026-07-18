@@ -18,7 +18,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'squad',
         labelKey: 'nav.groups.squad',
-        items: pick('squad', 'training', 'clan'),
+        items: pick('squad', 'training', 'clan', 'village'),
       },
       {
         id: 'missions',

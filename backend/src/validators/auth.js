@@ -11,6 +11,7 @@ export const registerSchema = z.object({
   senseiName: z.string().trim().min(2).max(100),
   language: z.enum(['fr', 'en']).optional(),
   invitePoolId: z.coerce.number().int().positive().optional(),
+  villageId: z.enum(['leaf', 'sand', 'mist', 'stone']),
 });
 
 export const loginSchema = z.object({
@@ -21,6 +22,7 @@ export const loginSchema = z.object({
 export const guestRegisterSchema = z.object({
   senseiName: z.string().trim().min(2).max(100).optional(),
   language: z.enum(['fr', 'en']).optional(),
+  villageId: z.enum(['leaf', 'sand', 'mist', 'stone']).optional(),
 });
 
 export const convertGuestSchema = z.object({

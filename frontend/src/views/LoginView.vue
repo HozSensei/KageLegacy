@@ -15,6 +15,9 @@ const username = ref('')
 const password = ref('')
 const senseiName = ref('')
 const language = ref('fr')
+const villageId = ref('leaf')
+
+const villageOptions = ['leaf', 'sand', 'mist', 'stone']
 
 const title = computed(() =>
   mode.value === 'register' ? t('auth.registerTitle') : t('auth.loginTitle')
@@ -37,6 +40,7 @@ async function submit() {
           senseiName: senseiName.value.trim(),
           language: language.value,
           invitePoolId: invitePoolId.value || undefined,
+          villageId: villageId.value,
         })
   if (ok) router.push('/bureau')
 }
@@ -83,6 +87,21 @@ onMounted(() => {
             required
             class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-accent"
           />
+        </label>
+
+        <label v-if="mode === 'register'" class="block text-sm">
+          <span class="text-ink-muted">{{ t('auth.village') }}</span>
+          <select
+            v-model="villageId"
+            required
+            data-testid="register-village"
+            class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-accent"
+          >
+            <option v-for="id in villageOptions" :key="id" :value="id">
+              {{ t(`village.names.${id}`) }}
+            </option>
+          </select>
+          <span class="mt-1 block text-xs text-ink-faint">{{ t('auth.villageHint') }}</span>
         </label>
 
         <label class="block text-sm">

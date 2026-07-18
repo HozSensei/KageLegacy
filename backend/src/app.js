@@ -23,6 +23,7 @@ import stripeRouter from './routes/stripe.js';
 import reconnaissanceRouter from './routes/reconnaissance.js';
 import techniqueRefinementRouter from './routes/techniqueRefinement.js';
 import gameplayRouter from './routes/gameplay.js';
+import villageRouter from './routes/village.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -65,6 +66,7 @@ app.use('/api/matches', matchesRouter);
 app.use('/api/player-market', playerMarketRouter);
 app.use('/api/technique-refinement', techniqueRefinementRouter);
 app.use('/api/gameplay', gameplayRouter);
+app.use('/api/village', villageRouter);
 app.use('/api/elite', eliteRouter);
 app.use('/api/sensei', senseiRouter);
 app.use('/api/reconnaissance', reconnaissanceRouter);

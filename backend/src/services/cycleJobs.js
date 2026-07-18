@@ -19,6 +19,7 @@ import { processAllCompletedSeasons } from './seasonService.js';
 import { processBirdFlightsForAllUsers } from './birdFlightService.js';
 import { resolveReconnaissanceAtH36 } from './reconnaissanceService.js';
 import { createCycleCloseNotificationsForAllUsers } from './cycleCloseNotifications.js';
+import { ensureCycleRivalry, resolveCycleRivalry } from './villageService.js';
 
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
@@ -43,6 +44,7 @@ export async function resetCycleJobsFromHour(cycleStartAt, hour) {
   if (hour <= 54) jobs.push('h54');
   if (hour <= 71) jobs.push('h71');
   if (hour <= 72) jobs.push('h72');
+  if (hour <= 0) jobs.push('h0');
   for (const jobName of jobs) {
     await query('DELETE FROM cycle_job_runs WHERE cycle_start_at = ? AND job_name = ?', [
       cycleStartAt,
@@ -101,13 +103,15 @@ export async function runH72(cycleStartAt) {
   const stagnation = await applyStagnationForAllUsers();
   const training = await processTrainingBillingForAllUsers();
   await createCycleCloseNotificationsForAllUsers(salaries);
+  const villageRivalry = await resolveCycleRivalry(cycleStartAt);
   await markJobRun(cycleStartAt, 'h72');
   await resetCycle();
   const newRow = await getClockRow();
+  await ensureCycleRivalry(newRow.cycle_start_at);
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureVillageShopForAllUsers();
   console.log(
-    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · decks reconduits ${deckCarry.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s))`
+    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · decks reconduits ${deckCarry.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s)) · rivalité village ${villageRivalry.rivalry?.winner_village_id || 'nul'}`
   );
   return {
     missionResults,
@@ -120,6 +124,7 @@ export async function runH72(cycleStartAt) {
     stagnation,
     training,
     market,
+    villageRivalry,
   };
 }
 

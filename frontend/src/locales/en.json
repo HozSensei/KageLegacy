@@ -159,6 +159,8 @@
     "registerTitle": "Create account",
     "username": "Username",
     "senseiName": "Sensei name",
+    "village": "Hidden village",
+    "villageHint": "Faction belonging — no combat bonus. One early retake available.",
     "password": "Password",
     "login": "Sign in",
     "register": "Register",
@@ -263,6 +265,7 @@
     "journal": "Cycle journal",
     "squad": "Squad",
     "clan": "Clan",
+    "village": "Village",
     "missions": "Missions",
     "reconnaissance": "Reconnaissance",
     "training": "Training",
@@ -1293,5 +1296,54 @@
     "title": "Why this result?",
     "lead": "Three main causes from the plis — to prepare the next cycle.",
     "cause": "Cause {n}"
+  },
+  "village": {
+    "lead": "Four hidden villages compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
+    "yours": "Your village",
+    "rivalryTitle": "Cycle rivalry",
+    "rivalryLive": "{a} {scoreA} — {scoreB} {b}",
+    "rivalryWinner": "Winner: {name}",
+    "rivalryDraw": "Draw — no war chest this cycle.",
+    "bannerLive": "{a} {scoreA} — {scoreB} {b}",
+    "rewardHint": "+{ryos} Ryos chest if your village wins and you contributed ≥ {min} pts.",
+    "standingsTitle": "Standings",
+    "pointsCycle": "{n} cycle pts",
+    "pointsSeason": "{n} season",
+    "howToScore": "How to score",
+    "noCombatBonus": "No combat stat bonuses — cosmetics and Ryos only.",
+    "topContributors": "Top contributors (cycle)",
+    "contribution": "Your contribution: {pts} / {cap} pts this cycle",
+    "titlePrefix": "Title ·",
+    "retakeTitle": "Change village",
+    "retakeLead": "One free early-career retake, before you score this cycle.",
+    "names": {
+      "leaf": "Hidden Leaf",
+      "sand": "Hidden Sand",
+      "mist": "Hidden Mist",
+      "stone": "Hidden Stone"
+    },
+    "short": {
+      "leaf": "Leaf",
+      "sand": "Sand",
+      "mist": "Mist",
+      "stone": "Stone"
+    },
+    "tones": {
+      "leaf": "Discipline and tradition.",
+      "sand": "Endurance and pragmatism.",
+      "mist": "Shadow and precision.",
+      "stone": "Tenacity and defense."
+    },
+    "actions": {
+      "daily_seal": "Daily Chakra Seal",
+      "mission_assign": "Idle mission assigned",
+      "mission_c_plus_success": "C+ mission success",
+      "recon_win": "Recon win",
+      "recon_participate": "Recon (loss / draw)",
+      "league_win": "League win",
+      "league_participate": "League match (loss / draw)",
+      "chunin_success": "Chunin exam success",
+      "bird_flight_success": "Bird Flight success"
+    }
   }
 }

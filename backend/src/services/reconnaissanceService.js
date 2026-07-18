@@ -21,6 +21,7 @@ import { resolveSegmentText } from './narrative/narrativeI18n.js';
 import { mapChronicleSegmentForClient } from './narrative/pliExchangeView.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
+import { recordVillageScore } from './villageService.js';
 
 export const RECON_MIN_HOUR = 0;
 /** Inscriptions et défis jusqu'à H35 — résolution à H36. */
@@ -441,6 +442,10 @@ async function executeReconnaissanceFight({
     opponentName: awayName,
     ryos: homeRyos,
   });
+  await recordVillageScore(
+    homeUserId,
+    homeOutcome === 'win' ? 'recon_win' : 'recon_participate'
+  );
   if (!awayIsBot) {
     await notifyReconResult(awayUserId, {
       ...summaryPayload,
@@ -449,6 +454,10 @@ async function executeReconnaissanceFight({
       opponentName: homeName,
       ryos: awayRyos,
     });
+    await recordVillageScore(
+      awayUserId,
+      awayOutcome === 'win' ? 'recon_win' : 'recon_participate'
+    );
   }
 
   return {

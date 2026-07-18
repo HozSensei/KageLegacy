@@ -5,6 +5,7 @@ import { computeChuninPromotionRewards } from './chuninPromotionRewards.js';
 import { grantItemToUser } from './itemGrantService.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 import { recordCycleObjectiveEvent } from './cycleObjectiveService.js';
+import { recordVillageScore } from './villageService.js';
 
 export async function processChuninExamsForUser(userId) {
   const candidates = await query(
@@ -50,6 +51,7 @@ export async function processChuninExamsForUser(userId) {
         moralBoost: rewards.moralBoost,
       });
       await recordCycleObjectiveEvent(userId, 'chunin_promote');
+      await recordVillageScore(userId, 'chunin_success');
 
       results.push({
         ninjaId: ninja.id,

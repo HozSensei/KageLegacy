@@ -104,7 +104,23 @@ const profileTo = computed(() =>
         <span v-else-if="isGuest" class="sensei-identity__guest">
           {{ t('guest.badge') }}
         </span>
+
+        <span
+          v-if="identity.villageId"
+          class="sensei-identity__guest"
+          :title="t(`village.names.${identity.villageId}`)"
+        >
+          {{ t(`village.short.${identity.villageId}`) }}
+        </span>
       </div>
+
+      <p
+        v-if="identity.villageTitle && variant !== 'inline'"
+        class="sensei-identity__subtitle"
+      >
+        {{ t('village.titlePrefix') }}
+        {{ t(`village.names.${String(identity.villageTitle).replace(/^rivalry:/, '')}`) }}
+      </p>
 
       <p
         v-if="identity.title && variant !== 'inline'"

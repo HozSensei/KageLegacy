@@ -32,6 +32,7 @@ import { getCycleObjectivesPayload } from '../services/cycleObjectiveService.js'
 import { getMidcycleChoicePayload } from '../services/midcycleChoiceService.js';
 import { getRivalryPayload } from '../services/rivalryService.js';
 import { findUserPool } from '../services/poolService.js';
+import { getVillageBanner } from '../services/villageService.js';
 
 export { getGameClock };
 
@@ -93,8 +94,8 @@ export async function createDemoUser({ username, senseiName, language = 'fr', tr
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, ?, 15400, 120, 100, ?)`,
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
+     VALUES (?, ?, ?, 15400, 120, 100, ?, 'leaf')`,
     [userId, senseiName, trainingFocus, language]
   );
 
@@ -141,6 +142,7 @@ export async function getSquadPayload(userId) {
   const midcycle = await getMidcycleChoicePayload(userId);
   const pool = await findUserPool(userId);
   const rivalry = pool ? await getRivalryPayload(userId, pool.id) : { nemeses: [] };
+  const villageRivalry = await getVillageBanner(userId);
 
   return {
     is_bot: Boolean(userRows[0]?.is_bot),
@@ -153,6 +155,9 @@ export async function getSquadPayload(userId) {
       salaryDebt: Boolean(sensei.salary_debt),
       academyJackpotToken: Boolean(sensei.academy_jackpot_token),
       globalTrainingType: sensei.global_training_type ?? null,
+      villageId: sensei.village_id || 'leaf',
+      villageTitle: sensei.village_title || null,
+      villageRetakeUsed: Boolean(sensei.village_retake_used),
     },
     activeSquad,
     bench,
@@ -171,5 +176,6 @@ export async function getSquadPayload(userId) {
     cycleObjectives,
     midcycle,
     rivalry,
+    villageRivalry,
   };
 }

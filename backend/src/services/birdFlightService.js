@@ -12,6 +12,7 @@ import { collectIdentityKeys } from './ninjaNaming.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 import { createHeritageScroll, getDominantStat } from './heritageService.js';
+import { recordVillageScore } from './villageService.js';
 
 const MAJOR_STATS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
 
@@ -169,6 +170,7 @@ export async function processBirdFlightsForUser(userId) {
     };
 
     await createSenseiNotification(userId, 'bird_flight', payload);
+    await recordVillageScore(userId, 'bird_flight_success');
 
     results.push({
       ninjaId: ninja.id,

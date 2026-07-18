@@ -26,6 +26,7 @@ Your daily dashboard. You will find:
 | Area | Role |
 |------|------|
 | **First steps** | Early-career checklist (deck, training, mission, recon, league) — skippable, hides nothing |
+| **Village** | Belong to one of 4 hidden villages + cycle rivalry (solo-action score, no combat bonus) |
 | **Treasury** | Ryos balance, reputation, salary + training forecast at H72 |
 | **Active squad** | Overview of the 3 field ninjas and quick access to their profiles |
 | **Chakra Seal** | Free daily ritual (midnight UTC) — see § Academy and Chakra Seal |
@@ -36,6 +37,19 @@ Your daily dashboard. You will find:
 | **Dispensary** | Healing for ninjas in Lamentable form (hospital) |
 
 The Office concentrates **cycle management** actions: budget, recruitment, care, and career registrations. Check it at cycle start and before milestones H54 / H71.
+
+### Village
+
+**Route:** `/village`
+
+Four **hidden villages** (Leaf, Sand, Mist, Stone) form a **global** faction rivalry, orthogonal to player clans and the league.
+
+- Chosen at registration (+ 1 early retake if you have not scored yet)
+- Points from solo actions (seal, missions, recon, league match, exams, Bird Flight) — per-cycle cap
+- Each cycle: one **paired** rivalry; at H72 the leading village earns a small Ryos chest for contributors
+- **No combat bonus**
+
+The league (pools, H71 match, promotion/relegation) stays unchanged.
 
 ### Cycle journal
 

@@ -17,6 +17,7 @@ import { getMissionMoralGain } from './dispensaryService.js';
 import { isNinjaListed } from './playerMarketService.js';
 import { recordEliteQuestEvent } from './eliteSeasonPassService.js';
 import { ninjaOverallRating } from './ninjaStats.js';
+import { recordVillageScore } from './villageService.js';
 
 async function getCycleStartAt() {
   const row = await getClockRow();
@@ -192,6 +193,7 @@ export async function assignMission(userId, ninjaId, tier) {
   );
 
   await query('UPDATE sensei SET onboarding_mission_done = 1 WHERE user_id = ?', [userId]);
+  await recordVillageScore(userId, 'mission_assign');
 
   return {
     missionId: result.insertId,

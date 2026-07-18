@@ -159,6 +159,8 @@
     "registerTitle": "Créer un compte",
     "username": "Nom d'utilisateur",
     "senseiName": "Nom du Sensei",
+    "village": "Village caché",
+    "villageHint": "Appartenance de faction — sans bonus de combat. Un retake early possible.",
     "password": "Mot de passe",
     "login": "Se connecter",
     "register": "S'inscrire",
@@ -263,6 +265,7 @@
     "journal": "Journal du cycle",
     "squad": "Escouade",
     "clan": "Clan",
+    "village": "Village",
     "missions": "Missions",
     "reconnaissance": "Reconnaissance",
     "training": "Entraînement",
@@ -1293,5 +1296,54 @@
     "title": "Pourquoi ce résultat ?",
     "lead": "Trois causes principales tirées des plis — pour préparer le prochain cycle.",
     "cause": "Cause {n}"
+  },
+  "village": {
+    "lead": "Quatre villages cachés se disputent le prestige du serveur. Votre carrière solo alimente le score de faction — sans bonus de combat.",
+    "yours": "Votre village",
+    "rivalryTitle": "Rivalité de cycle",
+    "rivalryLive": "{a} {scoreA} — {scoreB} {b}",
+    "rivalryWinner": "Vainqueur : {name}",
+    "rivalryDraw": "Égalité — pas de coffre de guerre ce cycle.",
+    "bannerLive": "{a} {scoreA} — {scoreB} {b}",
+    "rewardHint": "Coffre +{ryos} Ryos si votre village gagne et que vous avez contribué ≥ {min} pts.",
+    "standingsTitle": "Classement",
+    "pointsCycle": "{n} pts cycle",
+    "pointsSeason": "{n} saison",
+    "howToScore": "Comment scorér",
+    "noCombatBonus": "Aucun bonus de stats en match — cosmétiques et Ryos seulement.",
+    "topContributors": "Meilleurs contributeurs (cycle)",
+    "contribution": "Votre contribution : {pts} / {cap} pts ce cycle",
+    "titlePrefix": "Titre ·",
+    "retakeTitle": "Changer de village",
+    "retakeLead": "Un seul retake gratuit en early career, avant d'avoir scoré ce cycle.",
+    "names": {
+      "leaf": "Village de la Feuille",
+      "sand": "Village du Sable",
+      "mist": "Village de la Brume",
+      "stone": "Village de la Roche"
+    },
+    "short": {
+      "leaf": "Feuille",
+      "sand": "Sable",
+      "mist": "Brume",
+      "stone": "Roche"
+    },
+    "tones": {
+      "leaf": "Discipline et tradition.",
+      "sand": "Endurance et pragmatisme.",
+      "mist": "Ombre et précision.",
+      "stone": "Tenacité et défense."
+    },
+    "actions": {
+      "daily_seal": "Sceau de Chakra quotidien",
+      "mission_assign": "Mission idle assignée",
+      "mission_c_plus_success": "Mission C+ réussie",
+      "recon_win": "Reconnaissance gagnée",
+      "recon_participate": "Reconnaissance (défaite / nul)",
+      "league_win": "Victoire de ligue",
+      "league_participate": "Match de ligue (défaite / nul)",
+      "chunin_success": "Examen Chunin réussi",
+      "bird_flight_success": "Vol d'Oiseau réussi"
+    }
   }
 }

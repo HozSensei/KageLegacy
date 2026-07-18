@@ -26,6 +26,7 @@
     "test:pli-combat": "node scripts/testPliCombat.js",
     "test:causal-debrief": "node scripts/testCausalDebrief.js",
     "test:league-wall": "node scripts/testLeagueWall.js",
+    "test:village-rivalry": "node scripts/testVillageRivalry.js",
     "test:domain-pli-effects": "node scripts/testDomainPliEffects.js",
     "test:tactic-cards": "node scripts/testTacticCards.js",
     "audit:imports": "node scripts/auditCrossImports.js",

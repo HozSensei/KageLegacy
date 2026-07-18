@@ -14,6 +14,7 @@ import {
 } from './missionRules.js';
 import { createSenseiNotification } from './senseiNotifications.js';
 import { recordCycleObjectiveEvent } from './cycleObjectiveService.js';
+import { recordVillageScore } from './villageService.js';
 import { buildMissionReportPayload } from './missionNarrative.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { grantItemToUser } from './itemGrantService.js';
@@ -324,6 +325,7 @@ export async function resolveMissionOutcome(mission, ninja) {
 
   if (success && injuryType !== 'death' && ['C', 'B', 'A'].includes(tier)) {
     await recordCycleObjectiveEvent(mission.user_id, 'mission_c_plus_success');
+    await recordVillageScore(mission.user_id, 'mission_c_plus_success');
   }
 
   return { missionId: mission.id, status, lootResult };
