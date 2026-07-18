@@ -44,6 +44,7 @@ async function dismiss() {
       </div>
       <button
         type="button"
+        data-testid="onboarding-dismiss"
         class="shrink-0 text-[10px] uppercase tracking-[0.14em] text-ink-faint hover:text-ink"
         :disabled="dismissing"
         @click="dismiss"
