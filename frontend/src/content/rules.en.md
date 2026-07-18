@@ -117,9 +117,10 @@ Details: see § Player clans.
 
 Send **idle missions** (ranks D, C, B, A) to **bench ninjas only**:
 
-- One mission per rank per cycle (up to 4 simultaneous).
+- Up to **3 ninjas** on mission at once (global cap, no per-rank limit).
+- Duration by rank: **D 4h · C 8h · B 24h · A 48h** (return must land before cycle end).
 - Success odds shown based on the ninja's overall rating.
-- Automatic resolution at **H72**; rewards must be **collected manually**.
+- Automatic resolution at the due hour; rewards must be **collected manually**.
 
 A **reconnaissance** panel is also accessible from this screen. Details: see § Idle missions.
 
@@ -254,7 +255,7 @@ Each cycle is a synchronized "game week" for all players on the server.
 | **Preparation** | H0 → H35 | Squad, deck, training, missions, shop, Academy, reconnaissance (H0–H36) |
 | **Mid-cycle** | H36 → H70 | Opponent tendencies, scouting, ongoing management |
 | **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
-| **Closure** | H72 | Mission resolution, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
+| **Closure** | H72 | Safety net for still-active missions, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
 
 ### Tactical lock
 
@@ -489,19 +490,21 @@ Missions are for **bench** ninjas only (not the active squad).
 
 ### General rules
 
-- **One mission per rank** per cycle (up to four: D, C, B, A).
-- Automatic resolution at **H72** with a **success roll**.
+- **Global cap of 3 ninjas** on mission at once (multiple missions of the same rank allowed).
+- Duration by rank (independent of the cycle); send is refused if there aren't enough hours left before H72.
+- Automatic resolution at the **return hour** with a **success roll** (H72 safety net).
+- After resolution, the ninja can **go out again**.
 - Rewards must be **collected manually** after resolution.
 - All ranks are **sendable**; the UI shows odds based on the ninja's **overall rating** (average of 6 stats, rounded).
 
 ### Ranks
 
-| Rank | Ryos (success) | Target rating (50% success) | Risks on failure |
-|------|----------------|----------------------------|------------------|
-| **D** | 300–500 | 4 | None |
-| **C** | 600–800 | 6 | Possible light injury |
-| **B** | 1,000 | 8 | Serious injury or death possible |
-| **A** | 1,500–2,000 | 10 | High serious injury or death |
+| Rank | Duration | Ryos (success) | Target rating (50% success) | Risks on failure |
+|------|----------|----------------|----------------------------|------------------|
+| **D** | 4h | 300–500 | 4 | None |
+| **C** | 8h | 600–800 | 6 | Possible light injury |
+| **B** | 24h | 1,000 | 8 | Serious injury or death possible |
+| **A** | 48h | 1,500–2,000 | 10 | High serious injury or death |
 
 **Success**, **injury**, and **death** percentages scale with the gap between ninja rating and rank target. On **success**: Ryos, bonus loot, and **stat gain** (training complement). On **failure**: 0 Ryos, no loot.
 
@@ -731,6 +734,7 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 
 | Date | Change |
 |------|--------|
+| 2026-07-18 | Idle missions: duration by rank (D 4h / C 8h / B 24h / A 48h), cap of 3 ninjas in parallel, resolve at due hour |
 | 2026-07-18 | Villages: player labels as lands (Hi / Kaze / Mizu / Tsuchi no Kuni); league bots spread across those lands |
 | 2026-07-17 | Pli combat rebalance: max HP × 5 (was × 10) and higher pli damage so KOs are reachable |
 | 2026-07-09 | Initial document (player rules, no exact formulas) |

@@ -17,12 +17,18 @@ export function normalizeMissionTier(tier) {
   return LEGACY_TIER_ALIASES[tier] ?? null;
 }
 
+/** Nombre max de ninjas simultanément en mission (slots actifs). */
+export const MAX_ACTIVE_MISSIONS = 3;
+
+/** Dernière heure de cycle où une mission peut encore se résoudre. */
+export const MISSION_CYCLE_END_HOUR = 72;
+
 export const MISSION_TIERS = {
   D: {
     tier: 'D',
     rank: 'D',
     targetRating: 4,
-    resolvesAtHour: 72,
+    durationHours: 4,
     baseRewardMin: 300,
     baseRewardMax: 500,
     baseInjuryChance: 0,
@@ -36,7 +42,7 @@ export const MISSION_TIERS = {
     tier: 'C',
     rank: 'C',
     targetRating: 6,
-    resolvesAtHour: 72,
+    durationHours: 8,
     baseRewardMin: 600,
     baseRewardMax: 800,
     baseInjuryChance: 25,
@@ -50,7 +56,7 @@ export const MISSION_TIERS = {
     tier: 'B',
     rank: 'B',
     targetRating: 8,
-    resolvesAtHour: 72,
+    durationHours: 24,
     baseRewardMin: 1000,
     baseRewardMax: 1000,
     baseInjuryChance: 40,
@@ -64,7 +70,7 @@ export const MISSION_TIERS = {
     tier: 'A',
     rank: 'A',
     targetRating: 10,
-    resolvesAtHour: 72,
+    durationHours: 48,
     baseRewardMin: 1500,
     baseRewardMax: 2000,
     baseInjuryChance: 50,
@@ -75,6 +81,20 @@ export const MISSION_TIERS = {
     moralGain: 2,
   },
 };
+
+/** Heure de résolution = heure d'envoi + durée du rang. */
+export function computeMissionResolvesAtHour(currentHour, tierOrConfig) {
+  const config =
+    typeof tierOrConfig === 'string' ? getMissionTierConfig(tierOrConfig) : tierOrConfig;
+  if (!config?.durationHours) return null;
+  const hour = Math.max(0, Number(currentHour) || 0);
+  return hour + config.durationHours;
+}
+
+export function missionFitsInCycle(currentHour, tierOrConfig) {
+  const resolvesAt = computeMissionResolvesAtHour(currentHour, tierOrConfig);
+  return resolvesAt != null && resolvesAt <= MISSION_CYCLE_END_HOUR;
+}
 
 const STAT_COLUMNS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 

@@ -117,9 +117,10 @@ Détails : voir § Clans de joueurs.
 
 Envoie de **missions idle** (rangs D, C, B, A) aux ninjas **du banc uniquement** :
 
-- Une mission par rang et par cycle (jusqu'à 4 simultanées).
+- Jusqu'à **3 ninjas** en mission en même temps (cap global, pas de limite par rang).
+- Durée selon le rang : **D 4 h · C 8 h · B 24 h · A 48 h** (le retour doit arriver avant la fin du cycle).
 - Probabilités de réussite affichées selon la note globale du ninja.
-- Résolution automatique à **H72** ; récompenses à **collecter manuellement**.
+- Résolution automatique à l'heure due ; récompenses à **collecter manuellement**.
 
 Un panneau de **reconnaissance** est aussi accessible depuis cet écran. Détails : voir § Missions idle.
 
@@ -254,7 +255,7 @@ Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs d
 | **Préparation** | H0 → H35 | Escouade, deck, entraînement, missions, magasin, Académie, reconnaissance (H0–H36) |
 | **Milieu de cycle** | H36 → H70 | Tendances adverses, espionnage, gestion continue |
 | **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
-| **Clôture** | H72 | Résolution missions, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
+| **Clôture** | H72 | Filet missions encore actives, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
 
 ### Gel tactique
 
@@ -489,19 +490,21 @@ Les missions sont réservées aux ninjas **au banc** (hors escouade active).
 
 ### Règles générales
 
-- **Une mission par rang** par cycle (maximum quatre : D, C, B, A).
-- Résolution automatique à **H72** avec **jet de réussite**.
+- **Cap total de 3 ninjas** en mission en même temps (plusieurs missions du même rang possibles).
+- Durée selon le rang (indépendante du cycle) ; l'envoi est refusé s'il ne reste pas assez d'heures avant H72.
+- Résolution automatique à l'**heure de retour** avec **jet de réussite** (filet de sécurité à H72).
+- Après résolution, le ninja peut **repartir** en mission.
 - Les récompenses doivent être **collectées manuellement** après résolution.
 - Tous les rangs sont **envoyables** ; l'interface affiche les probabilités selon la **note globale** du ninja (moyenne des 6 stats, arrondie).
 
 ### Rangs
 
-| Rang | Ryos (succès) | Note cible (50 % réussite) | Risques si échec |
-|------|---------------|----------------------------|------------------|
-| **D** | 300–500 | 4 | Aucun |
-| **C** | 600–800 | 6 | Blessure légère possible |
-| **B** | 1 000 | 8 | Blessure grave ou mort possible |
-| **A** | 1 500–2 000 | 10 | Blessure grave ou mort élevés |
+| Rang | Durée | Ryos (succès) | Note cible (50 % réussite) | Risques si échec |
+|------|-------|---------------|----------------------------|------------------|
+| **D** | 4 h | 300–500 | 4 | Aucun |
+| **C** | 8 h | 600–800 | 6 | Blessure légère possible |
+| **B** | 24 h | 1 000 | 8 | Blessure grave ou mort possible |
+| **A** | 48 h | 1 500–2 000 | 10 | Blessure grave ou mort élevés |
 
 Les pourcentages de **réussite**, **blessure** et **mort** évoluent avec l'écart entre la note du ninja et la note cible du rang. En cas de **succès** : Ryos, loot bonus et **gain de stat** (complément à l'entraînement). En cas d'**échec** : 0 Ryos, pas de loot.
 
@@ -731,6 +734,7 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 
 | Date | Changement |
 |------|------------|
+| 2026-07-18 | Missions idle : durées par rang (D 4 h / C 8 h / B 24 h / A 48 h), cap de 3 ninjas en parallèle, résolution à l'heure due |
 | 2026-07-18 | Villages : libellés joueur en pays (Hi / Kaze / Mizu / Tsuchi no Kuni) ; bots de ligue répartis sur ces pays |
 | 2026-07-17 | Rééquilibrage combat par plis : PV max × 5 (au lieu de × 10) et dégâts de pli relevés pour rendre les K.O. possibles |
 | 2026-07-09 | Création du document (règles joueur, sans formules exactes) |

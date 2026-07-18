@@ -1,5 +1,5 @@
 import { query } from '../config/database.js';
-import { getClockRow, isCompositionLocked, isTacticsLocked } from '../services/gameClock.js';
+import { isCompositionLocked, isTacticsLocked } from '../services/gameClock.js';
 import { isNinjaOnMission } from '../services/missionService.js';
 import { isNinjaListed } from '../services/playerMarketService.js';
 
@@ -28,11 +28,8 @@ export async function updateSquadComposition(userId, slots) {
     throw error;
   }
 
-  const cycleRow = await getClockRow();
-  const cycleStartAt = cycleRow?.cycle_start_at;
-
   for (const { ninjaId } of slots) {
-    if (cycleStartAt && (await isNinjaOnMission(ninjaId, cycleStartAt))) {
+    if (await isNinjaOnMission(ninjaId)) {
       const error = new Error('Un ninja en mission ne peut pas rejoindre l\'escouade active.');
       error.statusCode = 423;
       throw error;

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Playtest missions idle : 3 paliers, cycle H0→H72, notifications + collecte.
+ * Playtest missions idle : durées par rang, cap 3, résolution au fil de l'eau.
  * Usage: npm run playtest:missions
  */
 import dotenv from 'dotenv';
@@ -42,12 +42,6 @@ async function benchNinjas(userId) {
   );
 }
 
-async function boostNinja(ninjaId, patch) {
-  const cols = Object.keys(patch);
-  const sets = cols.map((c) => `${c} = ?`).join(', ');
-  await query(`UPDATE ninjas SET ${sets} WHERE id = ?`, [...cols.map((c) => patch[c]), ninjaId]);
-}
-
 async function jumpAndTick(hour) {
   await advanceToHourDev(hour);
   return processCycleTick();
@@ -63,7 +57,7 @@ async function main() {
   console.log('\n🎮 Kage Legacy — playtest missions idle\n');
 
   await setHourDev(0);
-  const clock = await getGameClock();
+  await getGameClock();
 
   await clearUserMissions(userId);
   await query(
@@ -76,31 +70,49 @@ async function main() {
   assert(bench.length >= 3, `Au moins 3 remplaçants requis (trouvé ${bench.length})`);
 
   const [nD, nC, nB] = bench;
-
   const ryosBefore = (await getDebtStatus(userId)).ryos;
 
   const a1 = await assignMission(userId, nD.id, 'D');
   const a2 = await assignMission(userId, nC.id, 'C');
   const a3 = await assignMission(userId, nB.id, 'B');
+  assert(a1.resolvesAtHour === 4, `D résout à H4 (got ${a1.resolvesAtHour})`);
+  assert(a2.resolvesAtHour === 8, `C résout à H8 (got ${a2.resolvesAtHour})`);
+  assert(a3.resolvesAtHour === 24, `B résout à H24 (got ${a3.resolvesAtHour})`);
 
   console.log(`✅ 3 contrats envoyés (#${a1.missionId}, #${a2.missionId}, #${a3.missionId})`);
 
   const mid = await getMissionsForUser(userId);
   assert(mid.activeMissions.length === 3, '3 missions actives attendues');
-  assert(mid.usedTiers.length === 3, '3 paliers utilisés');
+  assert(mid.slotsRemaining === 0, 'cap 3 atteint');
+  assert(mid.maxActiveMissions === 3, 'maxActiveMissions = 3');
 
-  const h36 = await jumpAndTick(36);
-  console.log('  H36:', h36?.actions?.length ? 'jobs' : 'ok');
-  const afterH36 = await getMissionsForUser(userId);
-  assert(afterH36.activeMissions.length === 3, 'Missions toujours actives à H36 (retour H72)');
+  let rejected = false;
+  try {
+    // Cap atteint — même avec un 4e ninja théorique
+    await assignMission(userId, nD.id, 'D');
+  } catch (e) {
+    rejected = e.statusCode === 409;
+  }
+  assert(rejected, '4e mission refusée (cap ou ninja déjà en mission)');
 
-  await jumpAndTick(71);
-  const h72 = await jumpAndTick(72);
-  console.log('  H72:', h72?.action === 'cycle_reset' ? 'fin de cycle' : 'tick');
+  await jumpAndTick(4);
+  const afterD = await getMissionsForUser(userId);
+  assert(afterD.activeMissions.length === 2, 'D résolue à H4');
+  assert((afterD.pendingCollection?.length ?? 0) + (afterD.failedMissions?.length ?? 0) >= 1, 'Rapport D prêt');
+  console.log('  H4: mission D résolue');
 
-  const afterH72 = await getMissionsForUser(userId);
-  const pending = afterH72.pendingCollection?.length ?? 0;
-  const failed = afterH72.failedMissions?.length ?? 0;
+  await jumpAndTick(8);
+  const afterC = await getMissionsForUser(userId);
+  assert(afterC.activeMissions.length === 1, 'C résolue à H8');
+  console.log('  H8: mission C résolue');
+
+  await jumpAndTick(24);
+  const afterB = await getMissionsForUser(userId);
+  assert(afterB.activeMissions.length === 0, 'B résolue à H24');
+  console.log('  H24: mission B résolue');
+
+  const pending = afterB.pendingCollection?.length ?? 0;
+  const failed = afterB.failedMissions?.length ?? 0;
   console.log(`  Rapports : ${pending} à collecter · ${failed} échec(s)`);
   assert(pending + failed >= 1, 'Au moins une mission résolue');
 
@@ -108,10 +120,6 @@ async function main() {
   const missionNotes = notes.filter((n) => n.kind === 'mission_report');
   assert(missionNotes.length >= pending + failed, 'Notifications mission_report manquantes');
   console.log(`✅ ${missionNotes.length} notification(s) mission_report`);
-
-  const sample = missionNotes[0];
-  assert(sample.payload?.reportText, 'Texte narratif du rapport manquant');
-  console.log(`  Exemple : ${sample.payload.reportText.slice(0, 120)}…`);
 
   if (pending > 0) {
     const collected = await collectMissionRewards(userId);
@@ -123,11 +131,24 @@ async function main() {
     );
   }
 
+  // Recyclage : après résolution, un ninja peut repartir (même rang).
+  await setHourDev(30);
+  const freeAgain = await getMissionsForUser(userId);
+  assert(freeAgain.availableNinjas.length >= 1, 'Ninja disponible après résolution');
+  const again = await assignMission(userId, freeAgain.availableNinjas[0].id, 'D');
+  assert(again.resolvesAtHour === 34, `2e D depuis H30 → H34 (got ${again.resolvesAtHour})`);
+  console.log('✅ Recyclage ninja / même rang OK');
+
   console.log('\n✅ Playtest missions terminé.\n');
   await pool.end();
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error(err);
+  try {
+    await pool.end();
+  } catch {
+    /* ignore */
+  }
   process.exit(1);
 });

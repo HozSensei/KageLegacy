@@ -1,8 +1,11 @@
 import {
   computeMissionOddsForTier,
+  computeMissionResolvesAtHour,
   getEligibleTiersForNinja,
   getRecommendedTiersForNinja,
+  MAX_ACTIVE_MISSIONS,
   meetsTierRequirement,
+  missionFitsInCycle,
   missionNetProfit,
   MISSION_TIERS,
   MISSION_TIER_ORDER,
@@ -60,5 +63,17 @@ console.assert(activeGain?.gain === 0.25, 'active D gain no bench bonus');
 const rolls = Array.from({ length: 1000 }, () => rollPercent());
 console.assert(rolls.every((r) => r >= 1 && r <= 100), 'rollPercent range');
 console.assert(MISSION_TIERS.B.baseDeathChance === 5, 'B base death');
+
+console.assert(MISSION_TIERS.D.durationHours === 4, 'D duration 4h');
+console.assert(MISSION_TIERS.C.durationHours === 8, 'C duration 8h');
+console.assert(MISSION_TIERS.B.durationHours === 24, 'B duration 24h');
+console.assert(MISSION_TIERS.A.durationHours === 48, 'A duration 48h');
+console.assert(MAX_ACTIVE_MISSIONS === 3, 'cap 3 active missions');
+console.assert(computeMissionResolvesAtHour(0, 'D') === 4, 'D from H0 → H4');
+console.assert(computeMissionResolvesAtHour(10, 'B') === 34, 'B from H10 → H34');
+console.assert(missionFitsInCycle(0, 'A'), 'A fits from H0');
+console.assert(!missionFitsInCycle(30, 'A'), 'A does not fit from H30');
+console.assert(missionFitsInCycle(68, 'D'), 'D fits from H68');
+console.assert(!missionFitsInCycle(69, 'D'), 'D does not fit from H69');
 
 console.log('missionRules OK');

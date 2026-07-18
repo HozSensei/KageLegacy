@@ -1,7 +1,7 @@
 import { query } from '../config/database.js';
 import { assertSpendingAllowed } from './economyDebt.js';
 import { createSenseiNotification } from './senseiNotifications.js';
-import { getGameClock, getClockRow } from './gameClock.js';
+import { getGameClock } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 import { buildSenseiIdentities } from './senseiIdentityService.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
@@ -348,8 +348,6 @@ export async function createNinjaListing(userId, ninjaId, price) {
   await assertListingCapacity(userId);
 
   const poolId = await optionalSellerPoolId(userId);
-  const cycleRow = await getClockRow();
-  const cycleStartAt = cycleRow?.cycle_start_at;
 
   const ninjaRows = await query(
     `SELECT n.*, c.is_noble AS clan_is_noble
@@ -375,17 +373,14 @@ export async function createNinjaListing(userId, ninjaId, price) {
     throw error;
   }
 
-  if (cycleStartAt) {
-    const missionRows = await query(
-      `SELECT id FROM idle_missions
-       WHERE ninja_id = ? AND cycle_start_at = ? AND status IN ('active', 'completed')`,
-      [ninjaId, cycleStartAt]
-    );
-    if (missionRows.length) {
-      const error = new Error('Ce ninja est en mission ou a une récompense à collecter.');
-      error.statusCode = 409;
-      throw error;
-    }
+  const missionRows = await query(
+    `SELECT id FROM idle_missions WHERE ninja_id = ? AND status = 'active'`,
+    [ninjaId]
+  );
+  if (missionRows.length) {
+    const error = new Error('Ce ninja est en mission.');
+    error.statusCode = 409;
+    throw error;
   }
 
   if (await isNinjaListed(ninjaId)) {
