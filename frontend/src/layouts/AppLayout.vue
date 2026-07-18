@@ -169,7 +169,7 @@ onMounted(async () => {
       class="border-b border-accent/30 bg-accent/5 px-4 py-2 text-center text-xs text-ink-muted sm:px-10"
     >
       {{ t('guest.banner', { days: guestDaysLeft ?? '?' }) }}
-      <button type="button" class="ml-2 text-accent underline-offset-4 hover:underline" @click="showConvert = true">
+      <button type="button" class="btn-ghost ml-2 text-[10px]" @click="showConvert = true">
         {{ t('guest.convertCta') }}
       </button>
     </div>

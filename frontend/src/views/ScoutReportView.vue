@@ -67,11 +67,11 @@ onMounted(async () => {
 
       <p v-else class="mt-10 text-sm text-ink-muted">{{ t('scout.unavailable') }}</p>
 
-      <div class="mt-10 flex flex-wrap gap-4 text-xs">
-        <RouterLink to="/reconnaissance" class="text-accent underline-offset-2 hover:underline">
+      <div class="mt-10 flex flex-wrap gap-3">
+        <RouterLink to="/reconnaissance" class="btn-primary text-[10px]">
           {{ t('scout.reconLink') }}
         </RouterLink>
-        <RouterLink to="/league" class="text-ink-muted underline-offset-2 hover:underline">
+        <RouterLink to="/league" class="btn-ghost text-[10px]">
           {{ t('scout.leagueLink') }}
         </RouterLink>
       </div>

@@ -178,7 +178,7 @@ onMounted(load)
             v-for="id in villageIds"
             :key="id"
             type="button"
-            class="border border-line px-3 py-2 text-xs uppercase tracking-[0.14em] transition hover:border-accent hover:text-accent disabled:opacity-40"
+            class="btn-ghost text-[10px]"
             :disabled="retaking || id === village.villageId"
             @click="retake(id)"
           >

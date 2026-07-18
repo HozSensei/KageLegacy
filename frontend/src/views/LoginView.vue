@@ -120,27 +120,27 @@ onMounted(() => {
         <button
           type="submit"
           data-testid="login-submit"
-          class="w-full border border-accent bg-accent/10 py-2.5 text-sm text-accent transition hover:bg-accent/20 disabled:opacity-50"
+          class="btn-primary w-full py-2.5 text-sm"
           :disabled="auth.loading"
         >
           {{ auth.loading ? t('auth.loading') : mode === 'register' ? t('auth.register') : t('auth.login') }}
         </button>
       </form>
 
-      <p class="mt-8 text-center text-sm text-ink-muted">
+      <div class="mt-8 flex flex-col items-center gap-3 text-center text-sm text-ink-muted">
         <template v-if="mode === 'login'">
-          {{ t('auth.noAccount') }}
-          <button type="button" class="text-accent underline-offset-4 hover:underline" @click="switchMode('register')">
+          <p>{{ t('auth.noAccount') }}</p>
+          <button type="button" class="btn-ghost text-[10px]" @click="switchMode('register')">
             {{ t('auth.createAccount') }}
           </button>
         </template>
         <template v-else>
-          {{ t('auth.hasAccount') }}
-          <button type="button" class="text-accent underline-offset-4 hover:underline" @click="switchMode('login')">
+          <p>{{ t('auth.hasAccount') }}</p>
+          <button type="button" class="btn-ghost text-[10px]" @click="switchMode('login')">
             {{ t('auth.signIn') }}
           </button>
         </template>
-      </p>
+      </div>
 
       <p v-if="showDemoHint" class="mt-6 text-center text-xs text-ink-faint">
         {{ t('auth.demoHint') }}

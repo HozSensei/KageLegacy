@@ -138,7 +138,7 @@ async function fetchProfile() {
         <RouterLink
           v-if="isEliteActive"
           to="/elite/outils"
-          class="inline-flex items-center gap-1.5 text-xs text-accent underline-offset-2 hover:underline"
+          class="btn-ghost gap-1.5 text-[10px]"
           data-testid="profile-elite-tools-link"
         >
           <VerifiedIcon size="1rem" />

@@ -195,7 +195,7 @@ onMounted(loadCards)
     <button
       v-if="canEdit"
       type="button"
-      class="mt-6 text-sm text-accent"
+      class="btn-primary mt-6"
       :disabled="loading"
       data-testid="deck-save"
       @click="save"

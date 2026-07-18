@@ -235,7 +235,7 @@ onMounted(() => {
       <div class="border-b border-line px-5 py-4">
         <router-link
           to="/profil"
-          class="flex w-full px-0 py-0 text-left text-sm text-ink-muted transition hover:text-accent"
+          class="btn-ghost w-full text-[10px]"
           data-testid="profile-sensei-link"
           @click="close"
         >
@@ -244,7 +244,7 @@ onMounted(() => {
         <router-link
           v-if="elite.featureEnabled && elite.subscription?.isActive"
           to="/elite/outils"
-          class="mt-2 flex items-center gap-1.5 text-sm text-accent transition hover:underline"
+          class="btn-ghost mt-2 w-full gap-1.5 text-[10px]"
           data-testid="profile-elite-tools-link"
           @click="close"
         >
@@ -256,7 +256,7 @@ onMounted(() => {
       <div class="border-b border-line px-5 py-4">
         <router-link
           to="/rules"
-          class="flex w-full px-0 py-0 text-left text-sm text-ink-muted transition hover:text-accent"
+          class="btn-ghost w-full text-[10px]"
           data-testid="profile-rules-link"
           @click="close"
         >

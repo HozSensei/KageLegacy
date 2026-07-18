@@ -16,11 +16,11 @@ const { t } = useI18n()
 
     <ReconnaissancePanel standalone />
 
-    <p class="mt-10 text-xs text-ink-faint">
-      {{ t('recon.afterHint') }}
-      <RouterLink to="/espionnage" class="text-accent underline-offset-2 hover:underline">
+    <div class="mt-10 flex flex-wrap items-center gap-3">
+      <p class="text-xs text-ink-faint">{{ t('recon.afterHint') }}</p>
+      <RouterLink to="/espionnage" class="btn-ghost text-[10px]">
         {{ t('recon.scoutLink') }}
       </RouterLink>
-    </p>
+    </div>
   </div>
 </template>

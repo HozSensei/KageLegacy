@@ -69,11 +69,11 @@ onMounted(async () => {
 
       <div
         v-if="showOperationBanner"
-        class="mt-10 border-l-2 border-accent pl-4 text-sm text-ink-muted"
+        class="mt-10 flex flex-wrap items-center gap-3 border-l-2 border-accent pl-4 text-sm text-ink-muted"
         :class="{ 'mt-6': debtFrozen }"
       >
-        {{ t('bureau.operationLive') }} —
-        <router-link to="/operation" class="text-accent underline-offset-4 hover:underline">
+        <span>{{ t('bureau.operationLive') }}</span>
+        <router-link to="/operation" class="btn-ghost text-[10px]">
           {{ t('bureau.operationLink') }}
         </router-link>
       </div>

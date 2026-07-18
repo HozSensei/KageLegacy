@@ -677,7 +677,11 @@
   }
 
   .btn-ghost {
-    @apply border border-line px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-ink-muted transition hover:border-ink-faint hover:text-ink;
+    @apply inline-flex items-center justify-center border border-line px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-ink-muted no-underline transition hover:border-ink-faint hover:text-ink disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center border border-accent/50 bg-accent/10 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-accent no-underline transition hover:border-accent hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-40;
   }
 
   .strategy-select {

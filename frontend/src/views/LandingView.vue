@@ -33,12 +33,12 @@ async function playAsGuest() {
   <div class="min-h-screen bg-bg" data-testid="landing-page">
     <header class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 sm:px-10">
       <p class="font-display text-xl text-ink">{{ t('app.name') }}</p>
-      <div class="flex items-center gap-4 text-[11px] uppercase tracking-[0.14em]">
-        <router-link to="/rules" class="text-ink-muted hover:text-ink" data-testid="landing-rules-link">
+      <div class="flex items-center gap-3 text-[11px] uppercase tracking-[0.14em]">
+        <router-link to="/rules" class="btn-ghost text-[10px]" data-testid="landing-rules-link">
           {{ t('rules.link') }}
         </router-link>
-        <router-link to="/login" class="text-ink-muted hover:text-ink">{{ t('auth.login') }}</router-link>
-        <router-link to="/register" class="text-accent hover:underline">{{ t('auth.register') }}</router-link>
+        <router-link to="/login" class="btn-ghost text-[10px]">{{ t('auth.login') }}</router-link>
+        <router-link to="/register" class="btn-primary text-[10px]">{{ t('auth.register') }}</router-link>
       </div>
     </header>
 
@@ -61,7 +61,7 @@ async function playAsGuest() {
           <div class="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               type="button"
-              class="border border-accent bg-accent/10 px-6 py-3 text-sm text-accent transition hover:bg-accent/20"
+              class="btn-primary px-6 py-3 text-sm"
               data-testid="landing-guest"
               :disabled="auth.loading"
               @click="playAsGuest"
