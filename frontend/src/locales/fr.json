@@ -1250,6 +1250,9 @@
     "maintenance": {
       "title": "Maintenance",
       "purgeGuests": "Purger les invités expirés",
+      "assignMissing": "Réassigner les ligues manquantes",
+      "assignMissingHint": "Pour les comptes humains sans ligue active (ex. après un reset interrompu).",
+      "assignMissingRun": "Réassigner maintenant",
       "repairPools": "Réparer les calendriers de ligue",
       "repairAll": "Toutes les ligues actives",
       "includePlayed": "Inclure les matchs déjà joués",

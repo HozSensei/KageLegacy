@@ -195,6 +195,25 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  async function assignMissingPools({ seasonNumber = 1 } = {}) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await adminFetch('/pools/assign-missing', {
+        method: 'POST',
+        body: JSON.stringify({ seasonNumber, withStarter: true }),
+      })
+      lastResult.value = data
+      await refreshGameClock()
+      return data
+    } catch (e) {
+      error.value = e.message
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     status,
     clock,
@@ -210,5 +229,6 @@ export const useAdminStore = defineStore('admin', () => {
     hardReset,
     purgeGuests,
     repairPools,
+    assignMissingPools,
   }
 })

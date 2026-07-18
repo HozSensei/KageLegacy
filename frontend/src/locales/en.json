@@ -1250,6 +1250,9 @@
     "maintenance": {
       "title": "Maintenance",
       "purgeGuests": "Purge expired guests",
+      "assignMissing": "Reassign missing leagues",
+      "assignMissingHint": "For human accounts without an active league (e.g. after an interrupted reset).",
+      "assignMissingRun": "Reassign now",
       "repairPools": "Repair league schedules",
       "repairAll": "All active leagues",
       "includePlayed": "Include already played matches",

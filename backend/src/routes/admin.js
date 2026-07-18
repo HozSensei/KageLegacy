@@ -15,8 +15,15 @@ import {
 } from '../validators/admin.js';
 import { hardSeasonReset } from '../services/seasonResetService.js';
 import { purgeExpiredGuestAccounts } from '../services/guestCleanupService.js';
-import { repairAllActivePoolSchedules, repairPoolSchedule } from '../services/poolService.js';
+import {
+  assignMissingHumanPools,
+  repairAllActivePoolSchedules,
+  repairPoolSchedule,
+} from '../services/poolService.js';
 import { isAdminUser, requireAdmin } from '../middleware/admin.js';
+import { ensureStarterSquad } from '../services/starterSquadService.js';
+import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
+import { query } from '../config/database.js';
 
 const router = Router();
 
@@ -138,6 +145,42 @@ router.post('/pools/repair-schedules', async (req, res, next) => {
       results: [],
       message: 'Spécifiez all=true ou poolId pour lancer une réparation.',
       clock,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Réassigne une ligue à tous les humains orphelins (rétroactif). */
+router.post('/pools/assign-missing', async (req, res, next) => {
+  try {
+    const seasonNumber = Number(req.body?.seasonNumber) || 1;
+    const withStarter = req.body?.withStarter !== false;
+    const assignment = await assignMissingHumanPools({ seasonNumber });
+
+    const starters = [];
+    if (withStarter) {
+      for (const row of assignment.results) {
+        if (!row.ok) continue;
+        try {
+          const languageRows = await query(
+            'SELECT language FROM sensei WHERE user_id = ? LIMIT 1',
+            [row.userId]
+          );
+          const language = languageRows[0]?.language || 'fr';
+          const squadCreated = await ensureStarterSquad(row.userId, language);
+          await ensureStarterTacticCards(row.userId);
+          starters.push({ userId: row.userId, squadCreated, ok: true });
+        } catch (error) {
+          starters.push({ userId: row.userId, ok: false, error: error.message });
+        }
+      }
+    }
+
+    res.json({
+      assignment,
+      starters,
+      clock: await getGameClock(),
     });
   } catch (error) {
     next(error);

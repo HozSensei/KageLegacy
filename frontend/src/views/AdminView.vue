@@ -83,6 +83,10 @@ async function handleRepairPools() {
     includePlayed: repairIncludePlayed.value,
   })
 }
+
+async function handleAssignMissingPools() {
+  await admin.assignMissingPools({ seasonNumber: seasonNumber.value })
+}
 </script>
 
 <template>
@@ -262,6 +266,20 @@ async function handleRepairPools() {
             @click="handlePurgeGuests"
           >
             {{ t('admin.maintenance.purgeGuests') }}
+          </button>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-sm font-medium">{{ t('admin.maintenance.assignMissing') }}</p>
+          <p class="mt-1 text-xs text-ink-muted">{{ t('admin.maintenance.assignMissingHint') }}</p>
+          <button
+            type="button"
+            class="mt-3 border border-line/60 px-3 py-1.5 text-sm hover:bg-bg-card"
+            :disabled="admin.loading"
+            data-testid="admin-assign-missing-pools"
+            @click="handleAssignMissingPools"
+          >
+            {{ t('admin.maintenance.assignMissingRun') }}
           </button>
         </div>
 

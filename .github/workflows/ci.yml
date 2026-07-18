@@ -39,6 +39,9 @@ jobs:
       - name: Smoke test calendrier ligue
         run: npm run test:pool-schedule --prefix backend
 
+      - name: Smoke test assignation ligue (ensure pool)
+        run: npm run test:ensure-user-pool --prefix backend
+
       - name: Smoke test villages C0
         run: npm run test:village-rivalry --prefix backend
 

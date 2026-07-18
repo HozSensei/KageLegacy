@@ -5,7 +5,11 @@
 import { query, getConnection } from '../config/database.js';
 import { resetCycle, setCycleStartAt, getClockRow } from './gameClock.js';
 import { activateEliteFromStripe } from './eliteSubscriptionService.js';
-import { joinOrCreatePool } from './poolService.js';
+import {
+  assignMissingHumanPools,
+  findUserPool,
+  joinOrCreatePool,
+} from './poolService.js';
 import { provisionStarterSquad } from './starterSquadService.js';
 import { grantStarterTacticCards } from './tacticCards/tacticCardService.js';
 import { ensureCycleRivalry } from './villageService.js';
@@ -133,22 +137,65 @@ async function purgeGameplayState(connection) {
   await exec(`DELETE FROM clan_academy_board WHERE recruited_by_user_id IS NULL`);
 }
 
+async function assignPoolWithRetry(userId, seasonNumber, attempts = 2) {
+  let lastError = null;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      const pool = await joinOrCreatePool(userId, { seasonNumber });
+      const verified = pool || (await findUserPool(userId));
+      if (verified) return verified;
+      lastError = new Error('Pool introuvable après assignation.');
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Échec d’assignation de ligue.');
+}
+
 async function reinitializeHumanPlayers(humans, seasonNumber) {
   const results = [];
 
+  // 1) Ligue d'abord pour tous — ne jamais laisser un humain orphelin si un autre step échoue.
   for (const human of humans) {
     try {
-      await joinOrCreatePool(human.user_id, { seasonNumber });
-      await provisionStarterSquad(human.user_id, human.language || 'fr');
-      await grantStarterTacticCards(human.user_id);
-      results.push({ userId: human.user_id, senseiName: human.sensei_name, ok: true });
+      const pool = await assignPoolWithRetry(human.user_id, seasonNumber);
+      results.push({
+        userId: human.user_id,
+        senseiName: human.sensei_name,
+        ok: true,
+        poolId: pool.id,
+        poolOk: true,
+        squadOk: false,
+        cardsOk: false,
+      });
     } catch (error) {
       results.push({
         userId: human.user_id,
         senseiName: human.sensei_name,
         ok: false,
+        poolOk: false,
+        squadOk: false,
+        cardsOk: false,
         error: error.message,
       });
+    }
+  }
+
+  // 2) Escouade + cartes (erreurs non bloquantes pour la ligue).
+  for (const result of results) {
+    if (!result.poolOk) continue;
+    const human = humans.find((row) => row.user_id === result.userId);
+    try {
+      await provisionStarterSquad(result.userId, human?.language || 'fr');
+      result.squadOk = true;
+    } catch (error) {
+      result.squadError = error.message;
+    }
+    try {
+      await grantStarterTacticCards(result.userId);
+      result.cardsOk = true;
+    } catch (error) {
+      result.cardsError = error.message;
     }
   }
 
@@ -229,11 +276,19 @@ export async function hardSeasonReset({
   }
 
   const clock = cycleStartAt ? await setCycleStartAt(cycleStartAt) : await resetCycle();
-  // Utiliser la valeur DATETIME de game_clock, pas l'ISO renvoyé par getGameClock().
-  const clockRow = await getClockRow();
-  await ensureCycleRivalry(clockRow?.cycle_start_at);
+  // Ligue d'abord : une erreur village/rivalité ne doit jamais bloquer l'assignation.
   const playerResults = await reinitializeHumanPlayers(humans, seasonNumber);
+  const backfill = await assignMissingHumanPools({ seasonNumber });
   const eliteResults = await restoreEliteSubscriptions(eliteSnapshots, seasonNumber);
+
+  let villageRivalry = null;
+  try {
+    const clockRow = await getClockRow();
+    villageRivalry = await ensureCycleRivalry(clockRow?.cycle_start_at);
+  } catch (error) {
+    console.error('[hard-reset] ensureCycleRivalry failed (non-fatal)', error.message);
+    villageRivalry = { error: error.message };
+  }
 
   const failedPlayers = playerResults.filter((row) => !row.ok);
   const failedElite = eliteResults.filter((row) => !row.ok);
@@ -257,10 +312,16 @@ export async function hardSeasonReset({
       succeeded: playerResults.length - failedPlayers.length,
       failed: failedPlayers,
     },
+    poolBackfill: {
+      total: backfill.total,
+      assigned: backfill.assigned,
+      failed: backfill.failed,
+    },
     elite: {
       total: eliteResults.length,
       succeeded: eliteResults.length - failedElite.length,
       failed: failedElite,
     },
+    villageRivalry,
   };
 }
