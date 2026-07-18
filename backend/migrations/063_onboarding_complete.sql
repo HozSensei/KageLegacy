@@ -1,4 +1,4 @@
--- Onboarding enrichi : étapes entraînement / recon / ligue ; plus de soft-hide features
+-- Onboarding enrichi: etapes training / recon / ligue, sans soft-hide
 
 ALTER TABLE sensei
   ADD COLUMN onboarding_training_done TINYINT(1) NOT NULL DEFAULT 0,
