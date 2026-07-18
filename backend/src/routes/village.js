@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { requireAuth } from '../middleware/auth.js';
+import { requireUser } from '../middleware/auth.js';
 import { getGameClock } from '../services/gameClock.js';
 import {
   getVillagePayload,
@@ -11,28 +11,30 @@ import {
 
 const router = Router();
 
-router.use(requireAuth);
+const retakeSchema = z.object({
+  villageId: z.enum(['leaf', 'sand', 'mist', 'stone']),
+});
 
 router.get('/', async (req, res, next) => {
   try {
-    const village = await getVillagePayload(req.user.id);
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const village = await getVillagePayload(user.id);
     res.json({ village, gameClock: await getGameClock(), villages: VILLAGE_IDS });
   } catch (error) {
     next(error);
   }
 });
 
-const retakeSchema = z.object({
-  villageId: z.enum(['leaf', 'sand', 'mist', 'stone']),
-});
-
 router.post('/retake', async (req, res, next) => {
   try {
+    const user = await requireUser(req, res);
+    if (!user) return;
     const { villageId } = retakeSchema.parse(req.body);
     if (!isValidVillageId(villageId)) {
       return res.status(400).json({ error: 'Village invalide.' });
     }
-    const village = await retakeVillage(req.user.id, villageId);
+    const village = await retakeVillage(user.id, villageId);
     res.json({ village, gameClock: await getGameClock() });
   } catch (error) {
     next(error);
