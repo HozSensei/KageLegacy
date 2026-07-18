@@ -11,14 +11,55 @@ import {
 
 import { rollCharacterTrait } from './characterTraits.js';
 
-const BOT_SENSEI_NAMES = ['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might'];
+const BOT_VILLAGE_IDS = ['leaf', 'sand', 'mist', 'stone'];
+
+/** Pays thématiques (style Naruto) liés aux villages C0. */
+export const VILLAGE_KUNI = {
+  leaf: 'Hi no Kuni',
+  sand: 'Kaze no Kuni',
+  mist: 'Mizu no Kuni',
+  stone: 'Tsuchi no Kuni',
+};
+
+/** Prénoms de sensei bots par village — sonorité shinobi, hors casting principal. */
+const BOT_GIVEN_NAMES = {
+  leaf: ['Torifu', 'Kazuma', 'Enzō', 'Hayato', 'Saruma', 'Jiraku'],
+  sand: ['Sajin', 'Raku', 'Temaru', 'Pakura', 'Baki', 'Arashi'],
+  mist: ['Kirisame', 'Aoiki', 'Zabu', 'Meiha', 'Suiren', 'Kagura'],
+  stone: ['Iwao', 'Dotaku', 'Kurogane', 'Ganseki', 'Tsuchi', 'Ōnoki'],
+};
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 
 const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
+const LEGACY_BOT_NAMES = new Set(['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might']);
+
 function pick(arr, index) {
   return arr[index % arr.length];
+}
+
+/**
+ * Profil d'identité bot : village réparti + prénom sensei (le pays « Xxx no Kuni »
+ * correspond au village, affiché via le badge — pas collé dans le nom).
+ */
+export function botIdentityForSlot(slotIndex) {
+  const villageId = BOT_VILLAGE_IDS[Math.abs(Number(slotIndex) || 0) % BOT_VILLAGE_IDS.length];
+  const kuni = VILLAGE_KUNI[villageId];
+  const names = BOT_GIVEN_NAMES[villageId];
+  const wave = Math.floor(Math.abs(Number(slotIndex) || 0) / BOT_VILLAGE_IDS.length);
+  const given = names[wave % names.length];
+  const senseiName = wave >= names.length ? `${given} ${wave + 1}` : given;
+  return { villageId, kuni, given, senseiName };
+}
+
+/** Noms à migrer : anciens (Gennai…) ou format confus « Torifu · Hi no Kuni ». */
+function needsBotNameRetune(name, expectedName) {
+  if (!name) return true;
+  if (name === expectedName) return false;
+  if (LEGACY_BOT_NAMES.has(name)) return true;
+  if (/\bno Kuni\b/.test(name) || name.includes('·')) return true;
+  return name !== expectedName;
 }
 
 async function createBotSquad(userId, slotIndex, clans) {
@@ -171,7 +212,7 @@ export async function findAvailableBotSlotIndex(poolId) {
 }
 
 export async function createBotUser(poolId, slotIndex) {
-  const senseiName = BOT_SENSEI_NAMES[slotIndex % BOT_SENSEI_NAMES.length];
+  const identity = botIdentityForSlot(slotIndex);
   const username = `bot_pool${poolId}_slot${slotIndex}`;
 
   const userResult = await query(
@@ -181,13 +222,72 @@ export async function createBotUser(poolId, slotIndex) {
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language)
-     VALUES (?, ?, 'Ninjutsu', 8000, 40, 80, 'fr')`,
-    [userId, senseiName]
+    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
+     VALUES (?, ?, 'Ninjutsu', 8000, 40, 80, 'fr', ?)`,
+    [userId, identity.senseiName, identity.villageId]
   );
 
   const clans = await findAllClanTraits();
   await createBotSquad(userId, slotIndex, clans);
 
-  return { userId, senseiName };
+  return { userId, senseiName: identity.senseiName, villageId: identity.villageId };
+}
+
+/**
+ * Rétroactif : répartit villages + noms « no Kuni » pour les bots d'une pool (ou tous).
+ */
+export async function retuneBotSenseiIdentities({ poolId = null, force = false } = {}) {
+  const params = [];
+  let sql = `
+    SELECT u.id AS user_id, u.username, s.name, s.village_id, pm.pool_id, pm.id AS member_id
+    FROM users u
+    JOIN sensei s ON s.user_id = u.id
+    JOIN pool_members pm ON pm.user_id = u.id
+    JOIN pools p ON p.id = pm.pool_id AND p.status = 'active'
+    WHERE u.is_bot = TRUE`;
+  if (poolId != null) {
+    sql += ' AND pm.pool_id = ?';
+    params.push(poolId);
+  }
+  sql += ' ORDER BY pm.pool_id ASC, pm.id ASC';
+
+  const rows = await query(sql, params);
+  let updated = 0;
+  let slotInPool = 0;
+  let lastPoolId = null;
+
+  for (const row of rows) {
+    if (row.pool_id !== lastPoolId) {
+      lastPoolId = row.pool_id;
+      slotInPool = 0;
+    }
+
+    // Préférer l'index du username bot_pool{N}_slot{K} s'il est valide
+    let slotIndex = slotInPool;
+    const match = String(row.username || '').match(/_slot(\d+)$/);
+    if (match) slotIndex = Number(match[1]);
+
+    const identity = botIdentityForSlot(slotIndex);
+    const needsVillage = force || row.village_id !== identity.villageId;
+    const needsName = force || needsBotNameRetune(row.name, identity.senseiName);
+
+    if (needsVillage || needsName) {
+      await query('UPDATE sensei SET village_id = ?, name = ? WHERE user_id = ?', [
+        identity.villageId,
+        identity.senseiName,
+        row.user_id,
+      ]);
+      updated += 1;
+    }
+
+    slotInPool += 1;
+  }
+
+  return { total: rows.length, updated };
+}
+
+/** Garantit les identités bots d'une ligue (appel léger depuis la page Ligue). */
+export async function ensurePoolBotIdentities(poolId) {
+  if (!poolId) return { total: 0, updated: 0 };
+  return retuneBotSenseiIdentities({ poolId, force: false });
 }

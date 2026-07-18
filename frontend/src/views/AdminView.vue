@@ -87,6 +87,10 @@ async function handleRepairPools() {
 async function handleAssignMissingPools() {
   await admin.assignMissingPools({ seasonNumber: seasonNumber.value })
 }
+
+async function handleRetuneBotIdentities() {
+  await admin.retuneBotIdentities({ force: true })
+}
 </script>
 
 <template>
@@ -280,6 +284,20 @@ async function handleAssignMissingPools() {
             @click="handleAssignMissingPools"
           >
             {{ t('admin.maintenance.assignMissingRun') }}
+          </button>
+        </div>
+
+        <div class="mt-6">
+          <p class="text-sm font-medium">{{ t('admin.maintenance.retuneBots') }}</p>
+          <p class="mt-1 text-xs text-ink-muted">{{ t('admin.maintenance.retuneBotsHint') }}</p>
+          <button
+            type="button"
+            class="mt-3 border border-line/60 px-3 py-1.5 text-sm hover:bg-bg-card"
+            :disabled="admin.loading"
+            data-testid="admin-retune-bots"
+            @click="handleRetuneBotIdentities"
+          >
+            {{ t('admin.maintenance.retuneBotsRun') }}
           </button>
         </div>
 

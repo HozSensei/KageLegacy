@@ -26,7 +26,7 @@ Your daily dashboard. You will find:
 | Area | Role |
 |------|------|
 | **First steps** | Early-career checklist (deck, training, mission, recon, league) — skippable, hides nothing |
-| **Village** | Belong to one of 4 hidden villages + cycle rivalry (solo-action score, no combat bonus) |
+| **Village** | Belong to one of 4 lands (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) + cycle rivalry (solo-action score, no combat bonus) |
 | **Treasury** | Ryos balance, reputation, salary + training forecast at H72 |
 | **Active squad** | Overview of the 3 field ninjas and quick access to their profiles |
 | **Chakra Seal** | Free daily ritual (midnight UTC) — see § Academy and Chakra Seal |
@@ -42,11 +42,11 @@ The Office concentrates **cycle management** actions: budget, recruitment, care,
 
 **Route:** `/village`
 
-Four **hidden villages** (Leaf, Sand, Mist, Stone) form a **global** faction rivalry, orthogonal to player clans and the league.
+Four **lands** (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) form a **global** faction rivalry, orthogonal to player clans and the league.
 
 - Chosen at registration (+ 1 early retake if you have not scored yet)
 - Points from solo actions (seal, missions, recon, league match, exams, Bird Flight) — per-cycle cap
-- Each cycle: one **paired** rivalry; at H72 the leading village earns a small Ryos chest for contributors
+- Each cycle: one **paired** rivalry; at H72 the leading **land** earns a small Ryos chest for contributors
 - **No combat bonus**
 
 The league (pools, H71 match, promotion/relegation) stays unchanged.
@@ -731,6 +731,7 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 
 | Date | Change |
 |------|--------|
+| 2026-07-18 | Villages: player labels as lands (Hi / Kaze / Mizu / Tsuchi no Kuni); league bots spread across those lands |
 | 2026-07-17 | Pli combat rebalance: max HP × 5 (was × 10) and higher pli damage so KOs are reachable |
 | 2026-07-09 | Initial document (player rules, no exact formulas) |
 | 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |

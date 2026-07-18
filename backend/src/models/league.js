@@ -4,6 +4,7 @@ import { getUserMatchForCycle } from '../services/matchService.js';
 import { generateScoutReport } from '../services/scouting.js';
 import { buildSenseiIdentities } from '../services/senseiIdentityService.js';
 import { getUserLanguage } from '../services/narrative/viewerLocale.js';
+import { ensurePoolBotIdentities } from '../services/botFactory.js';
 import {
   enrichStandingsSocial,
   enrichNextMatchSocial,
@@ -15,6 +16,8 @@ const DIVISION_ROMAN = { 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V' };
 export async function getLeaguePayload(userId) {
   const pool = await findUserPool(userId);
   if (!pool) return null;
+
+  await ensurePoolBotIdentities(pool.id);
 
   const standings = await query(
     `SELECT ps.*, s.name AS sensei_name, u.is_bot

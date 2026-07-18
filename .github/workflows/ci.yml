@@ -42,6 +42,9 @@ jobs:
       - name: Smoke test assignation ligue (ensure pool)
         run: npm run test:ensure-user-pool --prefix backend
 
+      - name: Smoke test identités bots (villages / no Kuni)
+        run: npm run test:bot-identities --prefix backend
+
       - name: Smoke test villages C0
         run: npm run test:village-rivalry --prefix backend
 

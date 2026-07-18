@@ -20,6 +20,7 @@ import {
   repairAllActivePoolSchedules,
   repairPoolSchedule,
 } from '../services/poolService.js';
+import { retuneBotSenseiIdentities } from '../services/botFactory.js';
 import { isAdminUser, requireAdmin } from '../middleware/admin.js';
 import { ensureStarterSquad } from '../services/starterSquadService.js';
 import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
@@ -182,6 +183,21 @@ router.post('/pools/assign-missing', async (req, res, next) => {
       starters,
       clock: await getGameClock(),
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Répartit villages + noms « Xxx no Kuni » sur les bots existants. */
+router.post('/bots/retune-identities', async (req, res, next) => {
+  try {
+    const force = Boolean(req.body?.force);
+    const poolId = req.body?.poolId != null ? Number(req.body.poolId) : null;
+    const result = await retuneBotSenseiIdentities({
+      poolId: Number.isFinite(poolId) ? poolId : null,
+      force,
+    });
+    res.json({ ...result, clock: await getGameClock() });
   } catch (error) {
     next(error);
   }

@@ -214,6 +214,24 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  async function retuneBotIdentities({ force = true } = {}) {
+    loading.value = true
+    error.value = null
+    try {
+      const data = await adminFetch('/bots/retune-identities', {
+        method: 'POST',
+        body: JSON.stringify({ force }),
+      })
+      lastResult.value = data
+      return data
+    } catch (e) {
+      error.value = e.message
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     status,
     clock,
@@ -230,5 +248,6 @@ export const useAdminStore = defineStore('admin', () => {
     purgeGuests,
     repairPools,
     assignMissingPools,
+    retuneBotIdentities,
   }
 })
