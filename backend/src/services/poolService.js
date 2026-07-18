@@ -178,6 +178,97 @@ export async function joinOrCreatePool(humanUserId, { seasonNumber = 1 } = {}) {
   return createPoolWithBots(humanUserId, { seasonNumber });
 }
 
+async function resolveActiveSeasonNumber(fallback = 1) {
+  const rows = await query(
+    `SELECT season_number FROM pools WHERE status = 'active' ORDER BY id DESC LIMIT 1`
+  );
+  return Number(rows[0]?.season_number || fallback);
+}
+
+/**
+ * Retire les appartenance à des pools non actives qui bloquent uq_user_single_pool.
+ */
+async function clearStalePoolMemberships(userId) {
+  await query(
+    `DELETE pm FROM pool_members pm
+     INNER JOIN pools p ON p.id = pm.pool_id
+     WHERE pm.user_id = ? AND p.status <> 'active'`,
+    [userId]
+  );
+}
+
+/**
+ * Garantit qu'un humain a une pool active (rétroactif après reset raté / orphelin).
+ * @returns {{ pool: object|null, created: boolean }}
+ */
+export async function ensureUserPool(userId, { seasonNumber } = {}) {
+  if (!userId) return { pool: null, created: false };
+
+  const existing = await findUserPool(userId);
+  if (existing) return { pool: existing, created: false };
+
+  await clearStalePoolMemberships(userId);
+
+  const season = seasonNumber ?? (await resolveActiveSeasonNumber(1));
+  const pool = await joinOrCreatePool(userId, { seasonNumber: season });
+  if (!pool) {
+    const error = new Error('Impossible d’assigner une ligue.');
+    error.statusCode = 500;
+    throw error;
+  }
+  return { pool, created: true };
+}
+
+/**
+ * Réassigne tous les humains sans pool active (backfill admin / fin de hard reset).
+ */
+export async function assignMissingHumanPools({ seasonNumber } = {}) {
+  const orphans = await query(
+    `SELECT u.id AS user_id, s.language, s.name AS sensei_name
+     FROM users u
+     JOIN sensei s ON s.user_id = u.id
+     WHERE u.is_bot = FALSE
+       AND NOT EXISTS (
+         SELECT 1
+         FROM pool_members pm
+         JOIN pools p ON p.id = pm.pool_id AND p.status = 'active'
+         WHERE pm.user_id = u.id
+       )
+     ORDER BY u.id ASC`
+  );
+
+  const season = seasonNumber ?? (await resolveActiveSeasonNumber(1));
+  const results = [];
+
+  for (const orphan of orphans) {
+    try {
+      const { pool, created } = await ensureUserPool(orphan.user_id, { seasonNumber: season });
+      results.push({
+        userId: orphan.user_id,
+        senseiName: orphan.sensei_name,
+        ok: true,
+        created,
+        poolId: pool?.id ?? null,
+      });
+    } catch (error) {
+      results.push({
+        userId: orphan.user_id,
+        senseiName: orphan.sensei_name,
+        ok: false,
+        error: error.message,
+      });
+    }
+  }
+
+  const failed = results.filter((row) => !row.ok);
+  return {
+    total: results.length,
+    assigned: results.length - failed.length,
+    failed,
+    results,
+  };
+}
+
 /**
  * Inscription via lien d'invitation (?invitePoolId=).
  * Si la pool est pleine, bascule sur join_or_create_pool.

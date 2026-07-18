@@ -23,7 +23,7 @@ import { ensureStarterSquad } from '../services/starterSquadService.js';
 import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
 import { alignPoolBotsToPoolAverage } from '../services/botFactory.js';
 import { saveOperationDeck } from '../services/operationDeckService.js';
-import { findUserPool } from '../services/poolService.js';
+import { ensureUserPool, findUserPool } from '../services/poolService.js';
 
 const router = Router();
 
@@ -42,8 +42,12 @@ router.get('/', async (req, res, next) => {
     if (!user) return;
 
     if (!user.is_bot) {
+      const { created } = await ensureUserPool(user.id);
       await ensureStarterSquad(user.id);
       await ensureStarterTacticCards(user.id);
+      if (created) {
+        await maybeRealignPoolBots(user.id);
+      }
     }
 
     const squad = await getSquadPayload(user.id);

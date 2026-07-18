@@ -36,9 +36,27 @@ async function testPreviewShape() {
   }
 }
 
+async function testHardResetAssignsPoolsBeforeRivalry() {
+  const { readFileSync } = await import('node:fs');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
+  const src = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '../src/services/seasonResetService.js'),
+    'utf8'
+  );
+  const hardFn = src.slice(src.indexOf('export async function hardSeasonReset'));
+  assert.ok(hardFn.includes('reinitializeHumanPlayers'));
+  assert.ok(hardFn.includes('assignMissingHumanPools'));
+  assert.ok(
+    hardFn.indexOf('reinitializeHumanPlayers') < hardFn.indexOf('ensureCycleRivalry'),
+    'pool assignment must run before village rivalry'
+  );
+}
+
 async function main() {
   testRoundRobinStillValidForNewPools();
   await testPreviewShape();
+  await testHardResetAssignsPoolsBeforeRivalry();
   console.log('test:season-hard-reset OK');
 }
 

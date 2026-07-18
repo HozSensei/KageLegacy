@@ -3,10 +3,12 @@ import { z } from 'zod';
 import { requireUser } from '../middleware/auth.js';
 import { getLeaguePayload } from '../models/league.js';
 import { getGameClock } from '../services/gameClock.js';
-import { findUserPool } from '../services/poolService.js';
+import { ensureUserPool } from '../services/poolService.js';
 import { createWallPost, listWallPosts } from '../services/leagueWallService.js';
 import { getPoolRosterCounts } from '../services/leagueSocialService.js';
 import { listExternalOpponents } from '../services/reconnaissanceService.js';
+import { ensureStarterSquad } from '../services/starterSquadService.js';
+import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
 
 const router = Router();
 
@@ -19,7 +21,7 @@ router.get('/invite', async (req, res, next) => {
     const user = await requireUser(req, res);
     if (!user) return;
 
-    const pool = await findUserPool(user.id);
+    const { pool } = await ensureUserPool(user.id);
     if (!pool) {
       return res.status(404).json({ error: 'Aucune pool active.' });
     }
@@ -86,6 +88,13 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
+
+    // Rétroactif : réassigne une ligue si le joueur en est orphelin (ex. hard reset interrompu).
+    const { pool, created } = await ensureUserPool(user.id);
+    if (created && pool) {
+      await ensureStarterSquad(user.id);
+      await ensureStarterTacticCards(user.id);
+    }
 
     const league = await getLeaguePayload(user.id);
     const gameClock = await getGameClock();
