@@ -1304,8 +1304,8 @@
     "cause": "Cause {n}"
   },
   "village": {
-    "lead": "Four hidden villages compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
-    "yours": "Your village",
+    "lead": "Four lands (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
+    "yours": "Your land",
     "rivalryTitle": "Cycle rivalry",
     "rivalryLive": "{a} {scoreA} — {scoreB} {b}",
     "rivalryWinner": "Winner: {name}",
