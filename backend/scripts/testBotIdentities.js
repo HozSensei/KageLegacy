@@ -1,5 +1,5 @@
 /**
- * Tests identité bots (villages répartis + noms « no Kuni »).
+ * Tests identité bots (villages répartis + prénom sensei).
  * Usage: npm run test:bot-identities
  */
 
@@ -13,13 +13,17 @@ function testSlotDistribution() {
     const identity = botIdentityForSlot(i);
     assert.ok(VILLAGE_KUNI[identity.villageId], `village ${identity.villageId}`);
     assert.equal(identity.kuni, VILLAGE_KUNI[identity.villageId]);
-    assert.match(identity.senseiName, /\bno Kuni\b/);
-    assert.ok(identity.senseiName.includes(identity.kuni));
+    assert.equal(identity.senseiName, identity.given);
+    assert.doesNotMatch(identity.senseiName, /\bno Kuni\b/);
+    assert.ok(!identity.senseiName.includes('·'));
     villages.add(identity.villageId);
     names.add(identity.senseiName);
   }
   assert.equal(villages.size, 4, 'first 4 slots cover all villages');
   assert.equal(names.size, 8, 'names unique across first 8 slots');
+  assert.equal(botIdentityForSlot(0).senseiName, 'Torifu');
+  assert.equal(botIdentityForSlot(0).kuni, 'Hi no Kuni');
+  assert.equal(botIdentityForSlot(0).villageId, 'leaf');
 }
 
 function testDeterministic() {

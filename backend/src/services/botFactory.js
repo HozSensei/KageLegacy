@@ -40,7 +40,8 @@ function pick(arr, index) {
 }
 
 /**
- * Profil d'identité bot : village réparti + nom « Prénom · Xxx no Kuni ».
+ * Profil d'identité bot : village réparti + prénom sensei (le pays « Xxx no Kuni »
+ * correspond au village, affiché via le badge — pas collé dans le nom).
  */
 export function botIdentityForSlot(slotIndex) {
   const villageId = BOT_VILLAGE_IDS[Math.abs(Number(slotIndex) || 0) % BOT_VILLAGE_IDS.length];
@@ -48,15 +49,17 @@ export function botIdentityForSlot(slotIndex) {
   const names = BOT_GIVEN_NAMES[villageId];
   const wave = Math.floor(Math.abs(Number(slotIndex) || 0) / BOT_VILLAGE_IDS.length);
   const given = names[wave % names.length];
-  const senseiName = wave >= names.length ? `${given} ${wave + 1} · ${kuni}` : `${given} · ${kuni}`;
+  const senseiName = wave >= names.length ? `${given} ${wave + 1}` : given;
   return { villageId, kuni, given, senseiName };
 }
 
-function isLegacyBotName(name) {
+/** Noms à migrer : anciens (Gennai…) ou format confus « Torifu · Hi no Kuni ». */
+function needsBotNameRetune(name, expectedName) {
   if (!name) return true;
+  if (name === expectedName) return false;
   if (LEGACY_BOT_NAMES.has(name)) return true;
-  // Ancien format sans « no Kuni »
-  return !/\bno Kuni\b/.test(name);
+  if (/\bno Kuni\b/.test(name) || name.includes('·')) return true;
+  return name !== expectedName;
 }
 
 async function createBotSquad(userId, slotIndex, clans) {
@@ -266,8 +269,7 @@ export async function retuneBotSenseiIdentities({ poolId = null, force = false }
 
     const identity = botIdentityForSlot(slotIndex);
     const needsVillage = force || row.village_id !== identity.villageId;
-    const needsName =
-      force || isLegacyBotName(row.name) || !String(row.name).includes(identity.kuni);
+    const needsName = force || needsBotNameRetune(row.name, identity.senseiName);
 
     if (needsVillage || needsName) {
       await query('UPDATE sensei SET village_id = ?, name = ? WHERE user_id = ?', [
