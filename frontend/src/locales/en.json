@@ -1254,7 +1254,7 @@
       "assignMissingHint": "For human accounts without an active league (e.g. after an interrupted reset).",
       "assignMissingRun": "Reassign now",
       "retuneBots": "Bot identities (villages)",
-      "retuneBotsHint": "Spread bots across Leaf, Sand, Mist, Stone with a sensei given name (e.g. Torifu). “Hi no Kuni” is the country behind the village badge.",
+      "retuneBotsHint": "Spread bots across Hi / Kaze / Mizu / Tsuchi no Kuni with a sensei given name (e.g. Torifu).",
       "retuneBotsRun": "Update bots",
       "repairPools": "Repair league schedules",
       "repairAll": "All active leagues",
@@ -1323,16 +1323,16 @@
     "retakeTitle": "Change village",
     "retakeLead": "One free early-career retake, before you score this cycle.",
     "names": {
-      "leaf": "Hidden Leaf",
-      "sand": "Hidden Sand",
-      "mist": "Hidden Mist",
-      "stone": "Hidden Stone"
+      "leaf": "Hi no Kuni",
+      "sand": "Kaze no Kuni",
+      "mist": "Mizu no Kuni",
+      "stone": "Tsuchi no Kuni"
     },
     "short": {
-      "leaf": "Leaf",
-      "sand": "Sand",
-      "mist": "Mist",
-      "stone": "Stone"
+      "leaf": "Hi no Kuni",
+      "sand": "Kaze no Kuni",
+      "mist": "Mizu no Kuni",
+      "stone": "Tsuchi no Kuni"
     },
     "tones": {
       "leaf": "Discipline and tradition.",

@@ -42,7 +42,7 @@ Le Bureau concentre les actions de **gestion du cycle** : budget, recrutement, s
 
 **Route :** `/village`
 
-Quatre **villages cachés** (Feuille, Sable, Brume, Roche) forment une rivalité de faction **globale**, orthogonale au clan joueur et à la ligue.
+Quatre **pays** (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) forment une rivalité de faction **globale**, orthogonale au clan joueur et à la ligue.
 
 - Choix à l'inscription (+ 1 retake early si vous n'avez pas encore scoré)
 - Points via actions solo (sceau, missions, recon, match ligue, examens, Vol d'Oiseau) — plafond par cycle

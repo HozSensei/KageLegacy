@@ -25,14 +25,14 @@ Le village n’ajoute **aucun bonus de combat**. Cosmétiques / titres / Ryos co
 
 ## 1. Les 4 villages
 
-| Id | Nom FR | Nom EN | Ton |
-|----|--------|--------|-----|
-| `leaf` | Village de la Feuille | Hidden Leaf | Discipline, tradition |
-| `sand` | Village du Sable | Hidden Sand | Endurance, pragmatisme |
-| `mist` | Village de la Brume | Hidden Mist | Ombre, précision |
-| `stone` | Village de la Roche | Hidden Stone | Tenacité, défense |
+| Id | Affichage | Ton |
+|----|-----------|-----|
+| `leaf` | Hi no Kuni | Discipline, tradition |
+| `sand` | Kaze no Kuni | Endurance, pragmatisme |
+| `mist` | Mizu no Kuni | Ombre, précision |
+| `stone` | Tsuchi no Kuni | Tenacité, défense |
 
-Pas de 5ᵉ village en C0 (évite les matchups asymétriques et le dilution).
+Libellés joueur en **« Xxx no Kuni »** (ambiance) — pas Konoha / Suna (marques plus exposées). Ids techniques inchangés (`leaf`…).
 
 ---
 

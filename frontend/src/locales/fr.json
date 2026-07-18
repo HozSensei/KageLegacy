@@ -1254,7 +1254,7 @@
       "assignMissingHint": "Pour les comptes humains sans ligue active (ex. après un reset interrompu).",
       "assignMissingRun": "Réassigner maintenant",
       "retuneBots": "Identités bots (villages)",
-      "retuneBotsHint": "Répartit les bots sur Feuille, Sable, Brume, Roche avec un prénom sensei (ex. Torifu). Le pays « Hi no Kuni » correspond au badge village.",
+      "retuneBotsHint": "Répartit les bots sur Hi / Kaze / Mizu / Tsuchi no Kuni avec un prénom sensei (ex. Torifu).",
       "retuneBotsRun": "Mettre à jour les bots",
       "repairPools": "Réparer les calendriers de ligue",
       "repairAll": "Toutes les ligues actives",
@@ -1323,16 +1323,16 @@
     "retakeTitle": "Changer de village",
     "retakeLead": "Un seul retake gratuit en early career, avant d'avoir scoré ce cycle.",
     "names": {
-      "leaf": "Village de la Feuille",
-      "sand": "Village du Sable",
-      "mist": "Village de la Brume",
-      "stone": "Village de la Roche"
+      "leaf": "Hi no Kuni",
+      "sand": "Kaze no Kuni",
+      "mist": "Mizu no Kuni",
+      "stone": "Tsuchi no Kuni"
     },
     "short": {
-      "leaf": "Feuille",
-      "sand": "Sable",
-      "mist": "Brume",
-      "stone": "Roche"
+      "leaf": "Hi no Kuni",
+      "sand": "Kaze no Kuni",
+      "mist": "Mizu no Kuni",
+      "stone": "Tsuchi no Kuni"
     },
     "tones": {
       "leaf": "Discipline et tradition.",

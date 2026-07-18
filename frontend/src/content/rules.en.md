@@ -42,7 +42,7 @@ The Office concentrates **cycle management** actions: budget, recruitment, care,
 
 **Route:** `/village`
 
-Four **hidden villages** (Leaf, Sand, Mist, Stone) form a **global** faction rivalry, orthogonal to player clans and the league.
+Four **lands** (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) form a **global** faction rivalry, orthogonal to player clans and the league.
 
 - Chosen at registration (+ 1 early retake if you have not scored yet)
 - Points from solo actions (seal, missions, recon, league match, exams, Bird Flight) — per-cycle cap
