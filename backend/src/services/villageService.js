@@ -3,7 +3,7 @@
  */
 
 import { query } from '../config/database.js';
-import { getGameClock } from './gameClock.js';
+import { getClockRow } from './gameClock.js';
 import { findUserPool } from './poolService.js';
 
 export const VILLAGE_IDS = ['leaf', 'sand', 'mist', 'stone'];
@@ -43,9 +43,21 @@ export function pickRivalryPair(seed) {
   return { village_a, village_b };
 }
 
+/**
+ * Ancre de cycle MySQL-safe (Date / DATETIME), jamais l'ISO de getGameClock().
+ * Les INSERT DATETIME rejettent `2026-07-18T07:00:00.000Z`.
+ */
 async function getCycleStartAt() {
-  const clock = await getGameClock();
-  return clock.cycleStartAt;
+  const row = await getClockRow();
+  return row?.cycle_start_at ?? null;
+}
+
+/** Normalise un cycleStartAt passé (ISO, string MySQL, Date) pour les binds DATETIME. */
+function toDbCycleStart(value) {
+  if (value == null) return null;
+  if (value instanceof Date) return value;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed;
 }
 
 async function getUserContribution(userId, cycleStartAt) {
@@ -79,6 +91,7 @@ export async function recordVillageScore(userId, actionKey) {
     const villageId = senseiRows[0].village_id;
 
     const cycleStartAt = await getCycleStartAt();
+    if (!cycleStartAt) return { recorded: false, reason: 'no_cycle' };
     const already = await getUserContribution(userId, cycleStartAt);
     if (already >= VILLAGE_CAP_PER_CYCLE) {
       return { recorded: false, reason: 'capped', contribution: already };
@@ -113,7 +126,8 @@ export async function recordVillageScore(userId, actionKey) {
 }
 
 export async function ensureCycleRivalry(cycleStartAt = null) {
-  const start = cycleStartAt || (await getCycleStartAt());
+  const start = toDbCycleStart(cycleStartAt) || (await getCycleStartAt());
+  if (!start) return null;
   const existing = await query(
     'SELECT cycle_start_at, village_a, village_b, winner_village_id FROM village_rivalries WHERE cycle_start_at = ?',
     [start]
@@ -144,7 +158,8 @@ export async function ensureCycleRivalry(cycleStartAt = null) {
 }
 
 export async function resolveCycleRivalry(cycleStartAt = null) {
-  const start = cycleStartAt || (await getCycleStartAt());
+  const start = toDbCycleStart(cycleStartAt) || (await getCycleStartAt());
+  if (!start) return { alreadyResolved: false, rivalry: null };
   const rivalry = await ensureCycleRivalry(start);
   if (rivalry.winner_village_id) {
     return { alreadyResolved: true, rivalry };
@@ -247,7 +262,9 @@ export async function retakeVillage(userId, villageId) {
 
 export async function getVillagePayload(userId) {
   const cycleStartAt = await getCycleStartAt();
-  await ensureCycleRivalry(cycleStartAt);
+  if (cycleStartAt) {
+    await ensureCycleRivalry(cycleStartAt);
+  }
 
   const senseiRows = await query(
     `SELECT village_id, village_retake_used, village_title, ryos
