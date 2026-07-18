@@ -279,6 +279,8 @@ export async function hardSeasonReset({
   // Ligue d'abord : une erreur village/rivalité ne doit jamais bloquer l'assignation.
   const playerResults = await reinitializeHumanPlayers(humans, seasonNumber);
   const backfill = await assignMissingHumanPools({ seasonNumber });
+  const { retuneBotSenseiIdentities } = await import('./botFactory.js');
+  const botIdentities = await retuneBotSenseiIdentities({ force: true });
   const eliteResults = await restoreEliteSubscriptions(eliteSnapshots, seasonNumber);
 
   let villageRivalry = null;
@@ -317,6 +319,7 @@ export async function hardSeasonReset({
       assigned: backfill.assigned,
       failed: backfill.failed,
     },
+    botIdentities,
     elite: {
       total: eliteResults.length,
       succeeded: eliteResults.length - failedElite.length,
