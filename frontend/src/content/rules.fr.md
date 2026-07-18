@@ -25,6 +25,7 @@ C'est votre tableau de bord quotidien. Vous y trouvez :
 
 | Zone | Rôle |
 |------|------|
+| **Premiers pas** | Checklist early-career (deck, entraînement, mission, recon, ligue) — skippable, sans masquer le reste |
 | **Trésorerie** | Solde de Ryos, réputation, prévision salaires + entraînement à H72 |
 | **Escouade active** | Aperçu des 3 ninjas de terrain et accès rapide à leur fiche |
 | **Sceau de Chakra** | Rituel quotidien gratuit (minuit UTC) — voir § Académie et Sceau de Chakra |

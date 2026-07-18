@@ -25,6 +25,7 @@ Your daily dashboard. You will find:
 
 | Area | Role |
 |------|------|
+| **First steps** | Early-career checklist (deck, training, mission, recon, league) — skippable, hides nothing |
 | **Treasury** | Ryos balance, reputation, salary + training forecast at H72 |
 | **Active squad** | Overview of the 3 field ninjas and quick access to their profiles |
 | **Chakra Seal** | Free daily ritual (midnight UTC) — see § Academy and Chakra Seal |

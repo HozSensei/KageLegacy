@@ -21,7 +21,14 @@ const SENSEI_RESET_SQL = `
     s.last_daily_seal_grant_date = NULL,
     s.academy_last_rotation_date = NULL,
     s.academy_jackpot_token = 0,
-    s.clan_board_recommended_cycle = NULL
+    s.clan_board_recommended_cycle = NULL,
+    s.midcycle_rumor_cycle = NULL,
+    s.onboarding_deck_done = 0,
+    s.onboarding_mission_done = 0,
+    s.onboarding_training_done = 0,
+    s.onboarding_recon_done = 0,
+    s.onboarding_league_done = 0,
+    s.onboarding_dismissed = 0
   WHERE u.is_bot = FALSE
 `;
 

@@ -7,9 +7,11 @@ import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
 import LeagueWallPanel from '../components/league/LeagueWallPanel.vue'
 import { resolveIdentity } from '../utils/senseiIdentity.js'
 import { readApiError } from '../utils/http.js'
+import { useSquadStore } from '../stores/squad'
 
 const { t } = useI18n()
 const API_BASE = import.meta.env.VITE_API_URL || ''
+const store = useSquadStore()
 
 const loading = ref(true)
 const error = ref(null)
@@ -26,6 +28,20 @@ const challengeSentIds = ref({})
 const externalTargets = ref([])
 
 const roster = computed(() => league.value?.pool?.roster || invite.value?.roster || null)
+
+async function markLeagueOnboarding() {
+  try {
+    if (!store.sensei) await store.fetchSquad()
+    const step = store.onboarding?.steps?.find((s) => s.key === 'league')
+    if (store.onboarding && (!store.onboarding.active || step?.done)) return
+    const res = await fetch(`${API_BASE}/api/gameplay/onboarding/league`, { method: 'POST' })
+    if (!res.ok) return
+    const data = await res.json()
+    store.applySquadMutation(data)
+  } catch {
+    /* ignore — onboarding is best-effort */
+  }
+}
 
 onMounted(async () => {
   try {
@@ -56,6 +72,8 @@ onMounted(async () => {
       const targets = await targetsRes.json()
       externalTargets.value = (targets.opponents || []).filter((o) => !o.samePool)
     }
+
+    await markLeagueOnboarding()
   } catch (e) {
     error.value = e.message
   } finally {

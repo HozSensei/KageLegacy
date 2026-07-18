@@ -369,7 +369,7 @@ flowchart TD
 
 | Écran | Fonction |
 |-------|----------|
-| **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie, onboarding, objectifs de cycle, rumeur mid-cycle |
+| **Bureau** | Hub : budget, examens, Vol d’Oiseau, dispensaire, Académie, onboarding (checklist), objectifs de cycle, rumeur mid-cycle |
 | **Escouade** | Composition, deck d'opération, swap actif/banc |
 | **Entraînement** | Préparation (actifs) + global gratuit, types groupés |
 | **Missions** | Contrats idle |
@@ -406,5 +406,6 @@ Quelques angles ouverts pour de nouvelles features :
 | 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |
 | 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |
 | 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais +1/+2 à la génération |
+| 2026-07-18 | Onboarding enrichi (5 étapes) — plus de soft-hide Académie ; reset flags au hard reset |
 | 2026-07-17 | Victoire pli = PV → plis ; débrief causal ; onboarding ; objectifs ; rivalités ; rumeur mid-cycle |
 | 2026-07-17 | Social ligue S1 : mur de saison, H2H, défis recon cross-ligue, invite polish |

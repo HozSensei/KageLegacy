@@ -8,15 +8,6 @@ describe('Bureau — panneaux clés', () => {
     cy.get('[data-testid="bureau-page"]', { timeout: 15000 }).should('be.visible');
     cy.contains('Bureau du Sensei').should('exist');
     cy.get('[data-testid="bureau-budget-panel"]').should('be.visible');
-
-    // L'onboarding early-career soft-hide l'Académie : on le passe si présent.
-    cy.get('body').then(($body) => {
-      if ($body.find('[data-testid="onboarding-checklist"]').length) {
-        cy.get('[data-testid="onboarding-dismiss"]').click();
-        cy.get('[data-testid="onboarding-checklist"]').should('not.exist');
-      }
-    });
-
     cy.get('[data-testid="bureau-academy-panel"]').should('be.visible');
   });
 
