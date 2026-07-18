@@ -245,6 +245,19 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 
 ---
 
+## 8ter. Villages cachés (rivalité C0 — design figé)
+
+**Appartenance globale** (4 villages : Feuille, Sable, Brume, Roche), orthogonale au clan joueur et aux clans ninja.
+
+- Choix à la création (+ 1 retake early) ; **pas de bonus combat**
+- Score via **actions solo** déjà dans le jeu (sceau, missions, recon, match ligue, examens, Vol d’Oiseau)
+- Chaque cycle : **une paire** en rivalité ; résolution H72 → titre + petit coffre Ryos aux contributeurs du village gagnant
+- **Ligue inchangée** (pools, H71, promo/relégation)
+
+Détail : [`specs/village-rivalry-c0.md`](../specs/village-rivalry-c0.md). Activité dédiée « village » = second temps.
+
+---
+
 ## 9. Ligue
 
 - Pool de **6 Sensei** (humains + bots remplacés à l’arrivée de joueurs)
@@ -395,6 +408,7 @@ Quelques angles ouverts pour de nouvelles features :
 - **Économie** : contrats sponsors, paris spectateurs
 - **Progression** : voies Jonin, maîtrises d’élément, techniques nommées
 - **Social** : clans joueurs (max 12 Senseis), tableau Académie partagé, Puits de Chakra collectif — sans bonus de combat
+- **Villages** : 4 factions serveur, rivalité de cycle, score via actions solo — design C0 figé (`specs/village-rivalry-c0.md`), pas encore jouable
 
 ---
 
@@ -402,10 +416,11 @@ Quelques angles ouverts pour de nouvelles features :
 
 | Date | Note |
 |------|------|
-| 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
-| 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |
-| 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |
-| 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais +1/+2 à la génération |
+| 2026-07-18 | Villages C0 : design figé (4 villages, score solo, ligue inchangée) — `specs/village-rivalry-c0.md` |
 | 2026-07-18 | Onboarding enrichi (5 étapes) — plus de soft-hide Académie ; reset flags au hard reset |
 | 2026-07-17 | Victoire pli = PV → plis ; débrief causal ; onboarding ; objectifs ; rivalités ; rumeur mid-cycle |
 | 2026-07-17 | Social ligue S1 : mur de saison, H2H, défis recon cross-ligue, invite polish |
+| 2026-07-17 | Alignement deck d'opération ; retrait consignes/postures/Assaut-Mur-Flux ; Pack Élite reporté |
+| 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais +1/+2 à la génération |
+| 2026-07-08 | Création initiale (référence fonctionnelle + calcul victoire opérations) |
+| 2026-07-08 | Clans joueurs : tableau Académie + Puits de Chakra (coop sans bonus combat) |
