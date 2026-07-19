@@ -29,16 +29,10 @@ const title = computed(() =>
     :aria-label="title"
     data-testid="h2h-score"
   >
-    <span>
-      <span class="text-ink">{{ wins }}</span><span class="font-medium text-win">{{ t('league.h2hWinLetter') }}</span>
-    </span>
+    <span class="font-medium text-win">{{ wins }}</span>
     <span class="text-ink-faint" aria-hidden="true">/</span>
-    <span>
-      <span class="text-ink">{{ draws }}</span><span class="text-ink-muted">{{ t('league.h2hDrawLetter') }}</span>
-    </span>
+    <span class="text-ink-muted">{{ draws }}</span>
     <span class="text-ink-faint" aria-hidden="true">/</span>
-    <span>
-      <span class="text-ink">{{ losses }}</span><span class="font-medium text-fire">{{ t('league.h2hLossLetter') }}</span>
-    </span>
+    <span class="font-medium text-fire">{{ losses }}</span>
   </span>
 </template>
