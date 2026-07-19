@@ -156,7 +156,7 @@ Compare tendencies (H36) and spotted unit (H54) to detect atypical formations. D
 
 Competitive view of your **pool** (6 Sensei):
 
-- Standings with **H2H** and **Nemesis** badge, schedule for the 10-cycle season.
+- Standings with **W/D/L** (record vs each opponent) and **Nemesis** badge, schedule for the 10-cycle season.
 - **Season wall** (free discussion, pagination; resets at season end).
 - Points (win 3, draw 1, loss 0) and promotion / relegation at season end.
 - **Invitation link** (human / bot counts) to replace a bot.
@@ -672,7 +672,7 @@ Season-long discussion thread for Sensei in your pool. No post quota (short mess
 
 ### Head-to-head and nemesis
 
-Standings show season **H2H** (wins–draws–losses) against each opponent. After **two consecutive losses** to the same Sensei, a **Nemesis** badge appears. A button can send a **reconnaissance challenge** (H0–H35) — the defender must accept.
+Standings show the season **W/D/L** record (wins / draws / losses) against each opponent. After **two consecutive losses** to the same Sensei, a **Nemesis** badge appears. A button can send a **reconnaissance challenge** (H0–H35) — the defender must accept.
 
 ### Invitation
 

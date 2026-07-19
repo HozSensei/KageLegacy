@@ -268,7 +268,7 @@ Détail : [`specs/village-rivalry-c0.md`](../specs/village-rivalry-c0.md). Activ
 ### Social de ligue (Vague S1)
 
 - **Mur de saison** : fil de discussion de la pool, sans quota, pagination ; reset à la promotion / relégation ; filtre de mots minimal FR/EN (1ʳᵉ lettre + `*`).
-- **H2H** : face-à-face saison affiché au classement (W–D–L).
+- **V/N/D** : face-à-face saison affiché au classement (victoires / nuls / défaites).
 - **Némésis** : badge après 2 défaites d’affilée vs le même Sensei (même pool).
 - **Défi recon** depuis le classement / profil / hors ligue (division proche) — le défenseur **accepte** ; combat à H36.
 - **Invite** : lien pour remplacer un bot ; compteur humains / bots restants.
