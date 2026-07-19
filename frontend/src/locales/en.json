@@ -108,7 +108,7 @@
     "moral": "Morale",
     "chuninProgress": "Chunin progress",
     "joninProgress": "Jonin progress",
-    "strategyBookBuff": "Strategy book",
+    "strategyBookBuff": "Strategy book (+15%)",
     "trainingWeightsBuff": "Training weights (+20%)",
     "profile": {
       "voie": "Path",
@@ -248,7 +248,6 @@
     "prepLabel": "Preparation type",
     "gainRangePreview": "{stat}: +{min} to +{max} this cycle",
     "allCapped": "Grade caps reached — promotion required.",
-    "lazyRisk": "Lazy trait: chance to skip training.",
     "types": {
       "Chakra": "Chakra (IQ, ninjutsu, genjutsu)",
       "Physique": "Physical (taijutsu, speed, medicine)",
@@ -322,7 +321,6 @@
     "trainingJournalGainReserve": "+{amount} {stat} (reserve)",
     "trainingJournalFocus": "Focus: {stat}",
     "trainingJournalNoGain": "No stat points applied this cycle",
-    "trainingJournalSkippedLazy": "Skipped — preferred napping under a tree",
     "trainingJournalSkippedCap": "{grade} cap reached for {type}",
     "scoutRosterTitle": "Scout report",
     "scoutRosterBody": "Opponent lineup for {opponent} revealed (tier {tier}).",

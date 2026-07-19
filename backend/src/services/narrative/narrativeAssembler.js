@@ -362,7 +362,7 @@ function actionSpecForLog(log) {
   }
   if (technique === 'genjutsu') {
     if (log.esquive) {
-      return { actionKey: 'combat.actions.genjutsu_faineant', reactionKey: null };
+      return { actionKey: 'combat.actions.genjutsu_esquive', reactionKey: null };
     }
     if (log.statut_consequence) {
       return { actionKey: 'combat.actions.strike.genjutsu_success', reactionKey: null };

@@ -57,7 +57,6 @@ export function previewTrainingSession(ninja, trainingType, mode) {
     mode,
     allCapped: statPreviews.every((preview) => preview.atCap),
     statPreviews,
-    lazyRisk: false,
   };
 }
 
@@ -95,6 +94,5 @@ export function combinePreviews(prepPreview, globalPreview) {
     mode: 'combined',
     allCapped: statPreviews.every((preview) => preview.atCap),
     statPreviews,
-    lazyRisk: prepPreview.lazyRisk || globalPreview.lazyRisk,
   };
 }

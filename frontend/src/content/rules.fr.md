@@ -428,7 +428,7 @@ Exemples : **Lame de chakra** (+15 %, sans prérequis), **Lame suiton** (+30 %, 
 
 ### Départ
 
-Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont deux actifs et trois au banc). Chaque trait de caractère est représenté une fois dans l'escouade de départ.
+Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont deux actifs et trois au banc). Les profils de caractère (Brute, Véloce, etc.) et les ninjas sans profil sont mélangés dans l'escouade de départ.
 
 ### Examen Chunin
 

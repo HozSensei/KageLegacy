@@ -377,6 +377,5 @@ export function previewTrainingSession(ninja, trainingType, mode) {
     mode,
     allCapped,
     statPreviews,
-    lazyRisk: false,
   };
 }
