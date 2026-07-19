@@ -30,7 +30,6 @@ export function useTrainingJournalDetails() {
 
     if (session.skipped) {
       const reasonKey = {
-        lazy: 'notifications.trainingJournalSkippedLazy',
         grade_cap: 'notifications.trainingJournalSkippedCap',
         no_gain: 'notifications.trainingJournalNoGain',
       }[session.skipReason] || 'notifications.trainingJournalNoGain'

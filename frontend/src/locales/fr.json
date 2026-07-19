@@ -108,7 +108,7 @@
     "moral": "Moral",
     "chuninProgress": "Progression Chunin",
     "joninProgress": "Progression Jonin",
-    "strategyBookBuff": "Livre de stratégie",
+    "strategyBookBuff": "Livre de stratégie (+15 %)",
     "trainingWeightsBuff": "Poids d'entraînement (+20 %)",
     "profile": {
       "voie": "Voie",
@@ -248,7 +248,6 @@
     "prepLabel": "Type de préparation",
     "gainRangePreview": "{stat} : +{min} à +{max} ce cycle",
     "allCapped": "Plafonds atteints pour ce grade — passage de grade requis.",
-    "lazyRisk": "Trait Fainéant : risque de sécher l'entraînement.",
     "types": {
       "Chakra": "Chakra (IQ, ninjutsu, genjutsu)",
       "Physique": "Physique (taijutsu, vitesse, médecine)",
@@ -322,7 +321,6 @@
     "trainingJournalGainReserve": "+{amount} {stat} (réserve)",
     "trainingJournalFocus": "Focus : {stat}",
     "trainingJournalNoGain": "Aucun point appliqué ce cycle",
-    "trainingJournalSkippedLazy": "Absent — préfère dormir sous un arbre",
     "trainingJournalSkippedCap": "Plafond {grade} atteint pour {type}",
     "scoutRosterTitle": "Rapport d'espionnage",
     "scoutRosterBody": "Composition adverse de {opponent} révélée (niveau {tier}).",

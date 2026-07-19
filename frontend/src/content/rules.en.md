@@ -428,7 +428,7 @@ Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suito
 
 ### Start
 
-You begin with **6 ninjas**: one active Chunin in the center, five Genin (two active, three on the bench). Each character trait appears once in the starting squad.
+You begin with **6 ninjas**: one active Chunin in the center, five Genin (two active, three on the bench). Character profiles (Brute, Swift, etc.) and profile-less ninjas are mixed in the starting squad.
 
 ### Chunin exam
 

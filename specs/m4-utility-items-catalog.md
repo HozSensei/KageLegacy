@@ -59,7 +59,7 @@ Usage depuis l'inventaire / Bureau. **Pas de slot combat.**
 | Slug | Nom | Effet | Prix |
 | :--- | :--- | :--- | :--- |
 | `pilule-recuperation` | Pilule de récupération | Remonte la **Forme** d'un ninja d'**un palier** (ex. Lamentable → Passable). Moins cher que le Dispensaire, usage unique. | 400 |
-| `livre-strategie` | Livre de stratégie | Prochain entraînement : **+3 Intelligence** pour le jet ; réduit le risque que le trait **Fainéant** annule la session. | 350 |
+| `livre-strategie` | Livre de stratégie | Prochain entraînement (préparation) : **+15 %** de gains. Consommé après usage. | 350 |
 | `bandage-rapide` | Bandage rapide | Soigne **15 % des PV max** hors match (entre deux cycles, ninja non KO). | 300 |
 
 *API : `POST /api/inventory/use` avec `userItemId` + `ninjaId`.*

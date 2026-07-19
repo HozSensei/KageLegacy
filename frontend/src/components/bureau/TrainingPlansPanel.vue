@@ -181,9 +181,6 @@ async function onGlobalChange() {
                     max: formatGain(statPreview.maxGain),
                   }) }}
                 </p>
-                <p v-if="trainingPreview(ninja, true).lazyRisk" class="mt-1 text-ink-faint">
-                  {{ t('training.lazyRisk') }}
-                </p>
               </template>
             </div>
           </template>
