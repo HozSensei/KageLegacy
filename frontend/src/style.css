@@ -15,6 +15,7 @@
   --color-accent: var(--kl-accent);
   --color-accent-soft: var(--kl-accent-soft);
   --color-fire: var(--kl-fire);
+  --color-win: var(--kl-win);
   --color-water: var(--kl-water);
   --color-earth: var(--kl-earth);
 }

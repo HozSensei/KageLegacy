@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import ScoutReportPanel from '../components/scout/ScoutReportPanel.vue'
 import SenseiIdentity from '../components/sensei/SenseiIdentity.vue'
+import H2hScore from '../components/league/H2hScore.vue'
 import LeagueWallPanel from '../components/league/LeagueWallPanel.vue'
 import { resolveIdentity } from '../utils/senseiIdentity.js'
 import { readApiError } from '../utils/http.js'
@@ -131,11 +132,6 @@ function matchStatusLabel(status) {
   return map[status] || status
 }
 
-function h2hLabel(h2h) {
-  if (!h2h) return null
-  return t('league.h2hScore', { w: h2h.wins, d: h2h.draws, l: h2h.losses })
-}
-
 function challengeAlreadySent(userId) {
   return Boolean(challengeSentIds.value[userId])
 }
@@ -197,7 +193,7 @@ async function challengeRecon(targetUserId) {
             <tr class="text-left text-[10px] uppercase tracking-[0.14em] text-ink-faint">
               <th class="pb-3 pr-4">#</th>
               <th class="pb-3">{{ t('league.sensei') }}</th>
-              <th class="pb-3 text-right">{{ t('league.h2h') }}</th>
+              <th class="pb-3 text-right" :title="t('league.h2hHint')">{{ t('league.h2h') }}</th>
               <th class="pb-3 text-right">{{ t('league.played') }}</th>
               <th class="pb-3 text-right">{{ t('league.points') }}</th>
               <th class="pb-3 text-right" />
@@ -232,8 +228,8 @@ async function challengeRecon(targetUserId) {
                   </span>
                 </div>
               </td>
-              <td class="py-3 text-right tabular-nums text-ink-muted">
-                <span v-if="row.h2h">{{ h2hLabel(row.h2h) }}</span>
+              <td class="py-3 text-right">
+                <H2hScore v-if="row.h2h" :h2h="row.h2h" />
                 <span v-else class="text-ink-faint">—</span>
               </td>
               <td class="py-3 text-right tabular-nums">{{ row.played }}</td>
@@ -325,9 +321,9 @@ async function challengeRecon(targetUserId) {
           </RouterLink>
 
           <div v-if="league.nextMatch.h2h || league.nextMatch.isNemesis" class="mt-4 border-t border-line pt-4 text-xs text-ink-muted">
-            <p v-if="league.nextMatch.h2h">
-              {{ t('league.h2hVs', { name: league.nextMatch.opponentName }) }}
-              · {{ h2hLabel(league.nextMatch.h2h) }}
+            <p v-if="league.nextMatch.h2h" class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span>{{ t('league.h2hVs', { name: league.nextMatch.opponentName }) }}</span>
+              <H2hScore :h2h="league.nextMatch.h2h" />
             </p>
             <p v-if="league.nextMatch.isNemesis" class="mt-1 text-fire">
               {{ t('league.nemesisHint', { count: league.nextMatch.consecutiveLosses }) }}

@@ -156,7 +156,7 @@ Comparez tendances (H36) et unité repérée (H54) pour détecter une formation 
 
 Vue compétitive de votre **pool** (6 Sensei) :
 
-- Classement avec **H2H** et badge **Némésis**, calendrier des 10 cycles de saison.
+- Classement avec **V/N/D** (bilan face à chaque adversaire) et badge **Némésis**, calendrier des 10 cycles de saison.
 - **Mur de saison** (discussion libre, pagination ; reset en fin de saison).
 - Points (victoire 3, nul 1, défaite 0) et promotions / relégations en fin de saison.
 - **Lien d'invitation** (compteur humains / bots) pour remplacer un bot.
@@ -672,7 +672,7 @@ Fil de discussion **de toute la saison** entre les Sensei de votre pool. Pas de 
 
 ### Face-à-face et némésis
 
-Le classement affiche le **H2H** de la saison (victoires–nuls–défaites) contre chaque adversaire. Après **deux défaites d'affilée** face au même Sensei, le badge **Némésis** apparaît. Un bouton permet d'envoyer un **défi de reconnaissance** (H0–H35) — le défenseur doit accepter.
+Le classement affiche le bilan **V/N/D** de la saison (victoires / nuls / défaites) contre chaque adversaire. Après **deux défaites d'affilée** face au même Sensei, le badge **Némésis** apparaît. Un bouton permet d'envoyer un **défi de reconnaissance** (H0–H35) — le défenseur doit accepter.
 
 ### Invitation
 
