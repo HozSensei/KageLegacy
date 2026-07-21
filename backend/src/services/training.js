@@ -50,12 +50,16 @@ export const TRAINING_TYPES = {
   },
 };
 
-/** Calibré juil. 2026 — progression Chunin ~10–12 cycles avec préparation + global. */
-export const PREP_COEF = 0.85;
-export const GLOBAL_COEF = 0.42;
+/**
+ * Calibré juil. 2026 — Genin→Chunin (prep + global alignés, âge 16, rotation types) :
+ * ordinaire ~5 · prometteur ~3 · prodige ~2 cycles.
+ * Écart potentiel volontairement large (talent = vitesse).
+ */
+export const PREP_COEF = 3.2;
+export const GLOBAL_COEF = 1.6;
 const PREP_RNG = [0.75, 1.25];
 const GLOBAL_RNG = [0.85, 1.15];
-const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.1, prodige: 1.25 };
+export const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.5, prodige: 2.2 };
 const FOCUS_STAT_BOOST = 1.5;
 const AGE_COEFF = { 15: 1.5, 16: 1.0, 17: 0.7, 18: 0.4 };
 
