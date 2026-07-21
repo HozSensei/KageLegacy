@@ -1,5 +1,10 @@
 /**
  * M7 — Vol d'Oiseau : départ Chunin → Jonin, prime Ryos/réputation, relève Genin.
+ *
+ * À la graduation, le Chunin est retiré du roster (DELETE) et un Genin roturier
+ * prend sa place (`squad_position` conservé si l'actif partait, sinon banc).
+ * Contrairement à la promotion Genin→Chunin (qui envoie le ninja au banc),
+ * le Vol d'Oiseau vide toujours le slot jouable puis le remplit.
  */
 
 import { query } from '../config/database.js';

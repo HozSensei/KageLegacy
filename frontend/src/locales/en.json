@@ -505,6 +505,8 @@
       "stagnationWarning": "Exam-ready but not registered — form and morale will drop at H72.",
       "successTitle": "Chunin promotion",
       "successBody": "{name} is promoted to Chunin (rating {average}): +{ryos} Ryos, +{reputation} reputation, form {forme}, morale {moral}.",
+      "successBodyLeftSquad": "{name} is promoted to Chunin (rating {average}): +{ryos} Ryos, +{reputation} reputation, form {forme}, morale {moral}. They leave the active squad for the bench.",
+      "successBodyWithReplacement": "{name} is promoted to Chunin (rating {average}): +{ryos} Ryos, +{reputation} reputation, form {forme}, morale {moral}. They leave the active squad — {replacement} takes their place.",
       "failureTitle": "Chunin exam failure",
       "failureBody": "{name} failed to convince the council (overall rating {average}/{required}). Morale: {moral}."
     }

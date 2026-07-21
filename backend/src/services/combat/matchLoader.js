@@ -14,6 +14,11 @@ export async function loadTeamForCombat(userId) {
      ORDER BY squad_position`,
     [userId]
   );
+  if (ninjas.length < 3) {
+    console.warn(
+      `[combat] Escouade incomplète user=${userId} : ${ninjas.length}/3 actif(s) — deck complété par relais.`
+    );
+  }
   const operationDeck = await getOperationDeck(userId);
 
   return {
