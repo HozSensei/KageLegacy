@@ -5,6 +5,7 @@ import {
   SECONDARY_STAT_COPIES,
   DOMAIN_LABELS,
   DOMAINS,
+  MAX_PLIS,
 } from './constants.js';
 
 function shuffleInPlace(arr) {
@@ -127,6 +128,11 @@ export function buildTeamDeck(
     for (let i = 0; i < SECONDARY_STAT_COPIES; i += 1) {
       pushDomainCards(cards, fighter, secondary);
     }
+  }
+
+  // Escouade incomplète (< 3 actifs) : complète jusqu'à MAX_PLIS avec des relais faibles.
+  while (cards.length < MAX_PLIS) {
+    cards.push(createRelaisFillerCard(team, null, { reason: 'incomplete_squad' }));
   }
 
   shuffleInPlace(cards);

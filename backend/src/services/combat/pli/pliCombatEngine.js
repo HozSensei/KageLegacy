@@ -256,6 +256,34 @@ function applyWinDamage(homeActor, awayActor, homeCard, awayCard, homePower, awa
 
 export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
   const env = options.environmentSlug ? getEnvironmentModifier(options.environmentSlug) : null;
+
+  const forfeitResult = (winner) => ({
+    logs: [],
+    endingTour: 0,
+    endReason: 'forfeit',
+    winner,
+    homeTeam,
+    awayTeam,
+    koNinjaIds: [],
+    consumedItemIds: [],
+    equipmentSummary: {},
+    environment: env ? { slug: env.slug, type: env.type } : null,
+    homeScorePct: teamTotalPv(homeTeam),
+    awayScorePct: teamTotalPv(awayTeam),
+    plisWon: { home: 0, away: 0 },
+    playedTechniqueCardIds: [],
+    playedElementCardIds: [],
+    possession: { home: 0, away: 0, homePct: 50, awayPct: 50 },
+  });
+
+  // Escouade vide = forfait immédiat (ex. slot non remplacé après promotion).
+  if (!homeTeam.fighters.length && !awayTeam.fighters.length) {
+    return forfeitResult('draw');
+  }
+  if (!homeTeam.fighters.length || !awayTeam.fighters.length) {
+    return forfeitResult(homeTeam.fighters.length ? 'home' : 'away');
+  }
+
   const homeDeck = buildTeamDeck(homeTeam, options.homeDeck || {});
   const awayDeck = buildTeamDeck(awayTeam, options.awayDeck || {});
 

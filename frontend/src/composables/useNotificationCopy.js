@@ -67,15 +67,20 @@ export function useNotificationCopy() {
           .filter(Boolean)
           .join(' ')
       }
-      case 'chunin_exam_success':
-        return t('bureau.chuninExam.successBody', {
+      case 'chunin_exam_success': {
+        let successKey = 'bureau.chuninExam.successBody'
+        if (p.replacementName) successKey = 'bureau.chuninExam.successBodyWithReplacement'
+        else if (p.leftActiveSquad) successKey = 'bureau.chuninExam.successBodyLeftSquad'
+        return t(successKey, {
           name: p.name?.split(' ')[0] || '—',
           average: p.overallRating ?? '—',
           ryos: (p.ryosReward ?? 0).toLocaleString(),
           reputation: p.reputationReward ?? 0,
           moral: p.moralAfter ?? '—',
           forme: p.formeAfter ?? '—',
+          replacement: p.replacementName?.split(' ')[0] || '—',
         })
+      }
       case 'chunin_exam_failure':
         return t('bureau.chuninExam.failureBody', {
           name: p.name?.split(' ')[0] || '—',

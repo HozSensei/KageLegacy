@@ -505,6 +505,8 @@
       "stagnationWarning": "Prêt pour l'examen mais non inscrit — forme et moral baisseront à H72.",
       "successTitle": "Promotion Chunin",
       "successBody": "{name} est promu Chunin (note {average}) : +{ryos} Ryos, +{reputation} réputation, forme {forme}, moral {moral}.",
+      "successBodyLeftSquad": "{name} est promu Chunin (note {average}) : +{ryos} Ryos, +{reputation} réputation, forme {forme}, moral {moral}. Il quitte l'escouade active pour le banc.",
+      "successBodyWithReplacement": "{name} est promu Chunin (note {average}) : +{ryos} Ryos, +{reputation} réputation, forme {forme}, moral {moral}. Il quitte l'escouade active — {replacement} prend sa place.",
       "failureTitle": "Échec à l'examen Chunin",
       "failureBody": "{name} n'a pas convaincu le conseil (note moyenne {average}/{required}). Moral : {moral}."
     }

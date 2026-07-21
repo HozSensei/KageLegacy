@@ -24,6 +24,7 @@
     "economy:calibrate": "node scripts/calibrateEconomy.js",
     "test:daily-seal": "node scripts/testDailySealImport.js",
     "test:pli-combat": "node scripts/testPliCombat.js",
+    "test:promotion-leave-squad": "node scripts/testPromotionLeaveSquad.js",
     "test:causal-debrief": "node scripts/testCausalDebrief.js",
     "test:league-wall": "node scripts/testLeagueWall.js",
     "test:village-rivalry": "node scripts/testVillageRivalry.js",
