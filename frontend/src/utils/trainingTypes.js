@@ -43,12 +43,13 @@ export const TRAINING_TYPES = {
   },
 }
 
-export const PREP_COEF = 0.85
-export const GLOBAL_COEF = 0.42
+/** Aligné sur backend/src/services/training.js — Genin→Chunin ~5 / ~3 / ~2 cycles. */
+export const PREP_COEF = 3.2
+export const GLOBAL_COEF = 1.6
 
 const PREP_RNG = [0.75, 1.25]
 const GLOBAL_RNG = [0.85, 1.15]
-const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.1, prodige: 1.25 }
+export const POTENTIAL_MULT = { ordinaire: 1, prometteur: 1.5, prodige: 2.2 }
 const AGE_COEFF = { 15: 1.5, 16: 1.0, 17: 0.7, 18: 0.4 }
 
 function ageCoefficient(age) {
