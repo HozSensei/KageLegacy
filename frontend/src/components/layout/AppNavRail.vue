@@ -55,8 +55,8 @@ const { t } = useI18n()
   align-items: center;
   width: var(--shell-rail);
   padding: 0.85rem 0 1.25rem;
-  background: var(--color-indigo);
-  color: #fffdf8;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
 }
 
 @media (min-width: 1024px) {
@@ -70,7 +70,7 @@ const { t } = useI18n()
   place-items: center;
   width: 2.75rem;
   height: 2.75rem;
-  color: #fffdf8;
+  color: var(--color-on-fill);
   transition: transform var(--dur-base) var(--ease-out-quint);
 }
 
@@ -90,7 +90,7 @@ const { t } = useI18n()
   flex-direction: column;
   gap: 0.2rem;
   padding-top: 0.6rem;
-  border-top: 1px solid color-mix(in srgb, #fffdf8 18%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-on-fill) 18%, transparent);
 }
 
 .nav-rail__link {
@@ -100,7 +100,7 @@ const { t } = useI18n()
   width: 2.75rem;
   height: 2.5rem;
   border-radius: var(--radius-sm);
-  color: color-mix(in srgb, #fffdf8 78%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 78%, transparent);
   transition:
     background-color var(--dur-fast) ease,
     color var(--dur-fast) ease;
@@ -108,19 +108,19 @@ const { t } = useI18n()
 
 .nav-rail__link:hover,
 .nav-rail__link:focus-visible {
-  background: color-mix(in srgb, #fffdf8 12%, transparent);
-  color: #fffdf8;
+  background: color-mix(in srgb, var(--color-on-fill) 12%, transparent);
+  color: var(--color-on-fill);
 }
 
 .nav-rail__link:focus-visible,
 .nav-rail__brand:focus-visible {
-  outline-color: #fffdf8;
+  outline-color: var(--color-on-fill);
 }
 
 .nav-rail__link--active,
 .nav-rail__link--active:hover {
   background: var(--color-vermilion);
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 /* Étiquette qui se déploie au survol */
@@ -136,7 +136,7 @@ const { t } = useI18n()
   font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
-  color: #fffdf8;
+  color: var(--color-on-ink);
   opacity: 0;
   pointer-events: none;
   transform: translate(-6px, -50%);
@@ -161,7 +161,7 @@ const { t } = useI18n()
 
 .nav-rail__vertical {
   margin-top: auto;
-  color: color-mix(in srgb, #fffdf8 62%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 62%, transparent);
 }
 
 @media (max-height: 640px) {

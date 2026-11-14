@@ -1911,5 +1911,9 @@
       "chunin_success": "Chunin exam success",
       "bird_flight_success": "Bird Flight success"
     }
+  },
+  "theme": {
+    "switchToDark": "Switch to dark theme",
+    "switchToLight": "Switch to light theme"
   }
 }

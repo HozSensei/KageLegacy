@@ -55,8 +55,8 @@ const { toasts, dismiss } = useToast()
   gap: 0.75rem;
   padding: 0.85rem 1rem;
   border-left: 5px solid var(--color-gold-fill);
-  background: var(--color-indigo);
-  color: #fffdf8;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
   pointer-events: auto;
 }
 
@@ -81,12 +81,12 @@ const { toasts, dismiss } = useToast()
 .toast__close {
   flex: none;
   padding: 0.15rem;
-  color: color-mix(in srgb, #fffdf8 75%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 75%, transparent);
   transition: color var(--dur-fast) ease;
 }
 
 .toast__close:hover {
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .toast-enter-active {

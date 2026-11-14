@@ -44,13 +44,15 @@ defineProps({
 
     <div v-if="image" class="page-header__visual" aria-hidden="true">
       <span class="page-header__block" />
-      <img
-        class="page-header__image"
-        :src="image"
-        alt=""
-        decoding="async"
-        :style="{ objectPosition: imagePosition }"
-      />
+      <span class="page-header__frame illustration">
+        <img
+          class="page-header__image"
+          :src="image"
+          alt=""
+          decoding="async"
+          :style="{ objectPosition: imagePosition }"
+        />
+      </span>
     </div>
 
     <div v-else-if="$slots.aside" class="page-header__aside">
@@ -135,13 +137,17 @@ defineProps({
   background: var(--tone-fill);
 }
 
+.page-header__frame {
+  width: 100%;
+  height: 100%;
+  animation: fade-in 600ms ease both;
+}
+
 .page-header__image {
-  position: relative;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: fade-in 600ms ease both;
 }
 
 .page-header__aside {
@@ -183,7 +189,7 @@ defineProps({
     animation: wipe-in 640ms var(--ease-out-quint) both;
   }
 
-  .page-header__image {
+  .page-header__frame {
     clip-path: polygon(9% 0, 100% 0, 100% 100%, 0 100%);
   }
 

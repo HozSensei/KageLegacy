@@ -88,7 +88,7 @@ function close() {
   align-items: center;
   gap: 0.85rem;
   padding: 1.25rem 1.25rem 1.1rem;
-  border-bottom: 1px solid color-mix(in srgb, #fffdf8 16%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-on-fill) 16%, transparent);
 }
 
 .nav-drawer__mark {
@@ -101,13 +101,13 @@ function close() {
   font-weight: 800;
   font-stretch: 80%;
   line-height: 1.1;
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .nav-drawer__hint {
   margin-top: 0.15rem;
   font-size: 0.75rem;
-  color: color-mix(in srgb, #fffdf8 70%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 70%, transparent);
 }
 
 .nav-drawer__close {
@@ -118,17 +118,17 @@ function close() {
   flex: none;
   margin-left: auto;
   border-radius: var(--radius-sm);
-  color: #fffdf8;
+  color: var(--color-on-fill);
   transition: background-color var(--dur-fast) ease;
 }
 
 .nav-drawer__close:hover {
-  background: color-mix(in srgb, #fffdf8 14%, transparent);
+  background: color-mix(in srgb, var(--color-on-fill) 14%, transparent);
 }
 
 .nav-drawer__close:focus-visible,
 .nav-drawer__link:focus-visible {
-  outline-color: #fffdf8;
+  outline-color: var(--color-on-fill);
 }
 
 .nav-drawer__nav {
@@ -162,7 +162,7 @@ function close() {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: color-mix(in srgb, #fffdf8 62%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 62%, transparent);
 }
 
 .nav-drawer__link {
@@ -171,7 +171,7 @@ function close() {
   gap: 0.85rem;
   padding: 0.5rem 0.6rem;
   border-radius: var(--radius-sm);
-  color: #fffdf8;
+  color: var(--color-on-fill);
   text-decoration: none;
   transition:
     background-color var(--dur-fast) ease,
@@ -179,7 +179,7 @@ function close() {
 }
 
 .nav-drawer__link:hover {
-  background: color-mix(in srgb, #fffdf8 10%, transparent);
+  background: color-mix(in srgb, var(--color-on-fill) 10%, transparent);
   transform: translateX(4px);
 }
 
@@ -199,11 +199,11 @@ function close() {
   font-weight: 700;
   font-stretch: 76%;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, #fffdf8 62%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 62%, transparent);
 }
 
 .nav-drawer__link--active .nav-drawer__index {
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .nav-drawer__label {

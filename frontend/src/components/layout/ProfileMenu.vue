@@ -344,8 +344,8 @@ onMounted(() => {
 <style scoped>
 .profile-trigger {
   border-radius: 50%;
-  background: var(--color-indigo);
-  color: #fffdf8;
+  background: var(--color-indigo-fill);
+  color: var(--color-on-fill);
 }
 
 .profile-trigger:hover {
@@ -371,7 +371,7 @@ onMounted(() => {
   font-size: 1.5rem;
   font-weight: 800;
   font-stretch: 80%;
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .profile-menu__name {
@@ -439,11 +439,12 @@ onMounted(() => {
   background: var(--color-ink);
   font-size: 0.875rem;
   font-weight: 600;
-  color: #fffdf8;
+  color: var(--color-on-ink);
   transition: background-color var(--dur-fast) ease;
 }
 
 .profile-menu__logout:hover {
-  background: var(--color-fire);
+  background: var(--color-fire-fill);
+  color: var(--color-on-fill);
 }
 </style>

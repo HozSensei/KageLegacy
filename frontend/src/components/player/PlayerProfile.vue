@@ -143,8 +143,8 @@ const elementLabel = computed(() => {
 .profile-id {
   display: flex;
   align-items: stretch;
-  background: var(--color-indigo);
-  color: #f6f1e6;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
   animation: rise-in 480ms var(--ease-out-quint) both;
 }
 
@@ -163,13 +163,13 @@ const elementLabel = computed(() => {
   height: clamp(3.5rem, 9vw, 5.5rem);
   flex-shrink: 0;
   place-items: center;
-  background: #f6f1e6;
+  background: var(--color-on-fill);
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3.25rem);
   font-weight: 800;
   font-stretch: 76%;
   line-height: 1;
-  color: var(--color-indigo);
+  color: var(--color-indigo-deep);
 }
 
 .profile-id__rank {
@@ -180,7 +180,7 @@ const elementLabel = computed(() => {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #f1c7a8;
+  color: var(--color-on-fill-warm);
 }
 
 .profile-id__rank .lozenge {
@@ -196,7 +196,7 @@ const elementLabel = computed(() => {
   font-stretch: 78%;
   line-height: 0.95;
   letter-spacing: -0.02em;
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .profile-id__tags {
@@ -211,10 +211,10 @@ const elementLabel = computed(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.25rem 0.6rem;
-  background: color-mix(in srgb, #fffdf8 14%, transparent);
+  background: color-mix(in srgb, var(--color-on-fill) 14%, transparent);
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .profile-id__tag .dot {
@@ -229,7 +229,7 @@ const elementLabel = computed(() => {
   gap: 0.75rem;
   padding: clamp(0.9rem, 2.5vw, 1.5rem);
   background: var(--color-vermilion);
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .profile-id__level-label {
@@ -317,7 +317,7 @@ const elementLabel = computed(() => {
   font-weight: 800;
   font-stretch: 76%;
   line-height: 1;
-  color: #10261a;
+  color: var(--color-on-leaf);
 }
 
 .profile-progress__points.is-empty .profile-progress__points-value {

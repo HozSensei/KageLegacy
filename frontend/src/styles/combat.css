@@ -342,7 +342,7 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #fffdf8;
+    color: var(--color-on-ink);
     animation: pop-in 320ms var(--ease-out-quint) both;
   }
 
@@ -437,7 +437,7 @@
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
-      color: #fffdf8;
+      color: var(--color-on-ink);
       transform: translate(-50%, -50%) rotate(45deg);
     }
 

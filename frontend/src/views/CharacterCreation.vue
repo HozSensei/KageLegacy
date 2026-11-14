@@ -232,8 +232,8 @@ async function submit() {
   overflow: hidden;
   margin-top: 0.75rem;
   padding: 5.5rem 1.5rem 1.5rem;
-  background: var(--color-indigo);
-  color: #fffdf8;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
 }
 
 .creation__card-band {
@@ -252,13 +252,13 @@ async function submit() {
   width: 4.5rem;
   height: 4.5rem;
   place-items: center;
-  background: #f6f1e6;
+  background: var(--color-on-fill);
   font-family: var(--font-display);
   font-size: 2.75rem;
   font-weight: 800;
   font-stretch: 76%;
   line-height: 1;
-  color: var(--color-indigo);
+  color: var(--color-indigo-deep);
   animation: pop-in 320ms var(--ease-out-quint) both;
 }
 
@@ -274,7 +274,7 @@ async function submit() {
 }
 
 .creation__name.is-empty {
-  color: color-mix(in srgb, #fffdf8 45%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 45%, transparent);
 }
 
 .creation__tags {
@@ -289,7 +289,7 @@ async function submit() {
   align-items: center;
   gap: 0.4rem;
   padding: 0.25rem 0.6rem;
-  background: color-mix(in srgb, #fffdf8 14%, transparent);
+  background: color-mix(in srgb, var(--color-on-fill) 14%, transparent);
   font-size: 0.8125rem;
   font-weight: 600;
 }
@@ -304,7 +304,7 @@ async function submit() {
   justify-content: space-between;
   margin-top: 2rem;
   padding-top: 0.9rem;
-  border-top: 1px solid color-mix(in srgb, #fffdf8 22%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--color-on-fill) 22%, transparent);
   font-size: var(--type-kicker);
   font-weight: 700;
   letter-spacing: 0.18em;

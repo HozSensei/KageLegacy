@@ -73,7 +73,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: color-mix(in srgb, var(--color-indigo) 45%, transparent);
+  background: var(--color-scrim);
 }
 
 .slide-panel {
@@ -99,8 +99,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 }
 
 .slide-panel--ink {
-  background: var(--color-indigo);
-  color: #fffdf8;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
 }
 
 .slide-panel__inner {

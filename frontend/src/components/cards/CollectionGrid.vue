@@ -115,7 +115,7 @@ const rarities = ['', 'common', 'rare', 'legendary', 'mythic']
 }
 
 .chip[aria-pressed='true'] .chip__mark {
-  color: #fffdf8;
+  color: var(--color-on-ink);
 }
 
 .collection-grid__list {

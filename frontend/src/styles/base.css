@@ -25,7 +25,7 @@
 
   ::selection {
     background: var(--color-vermilion);
-    color: #fffdf8;
+    color: var(--color-on-fill);
   }
 
   :focus-visible {

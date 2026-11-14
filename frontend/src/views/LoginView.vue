@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
+import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import gateImage from '../assets/illustrations/village-gate.jpg'
 
 defineOptions({ name: 'LoginView' })
@@ -61,7 +62,9 @@ onMounted(() => {
 <template>
   <div class="auth">
     <aside class="auth__side" aria-hidden="true">
-      <img class="auth__image" :src="gateImage" alt="" decoding="async" />
+      <span class="auth__frame illustration">
+        <img class="auth__image" :src="gateImage" alt="" decoding="async" />
+      </span>
       <div class="auth__side-text">
         <BrandMark size="2.5rem" />
         <p class="auth__slogan">{{ t('landing.title') }}</p>
@@ -69,6 +72,7 @@ onMounted(() => {
     </aside>
 
     <main class="auth__main">
+      <ThemeToggle class="auth__theme" />
       <div class="auth__card">
         <router-link to="/" class="auth__brand" :aria-label="t('auth.backHome')">
           <BrandMark size="1.5rem" class="text-vermilion" />
@@ -169,9 +173,16 @@ onMounted(() => {
 }
 
 .auth__main {
+  position: relative;
   display: grid;
   place-items: center;
   padding: 2rem var(--space-gutter) 3rem;
+}
+
+.auth__theme {
+  position: absolute;
+  top: 1rem;
+  right: var(--space-gutter);
 }
 
 .auth__card {
@@ -231,19 +242,24 @@ onMounted(() => {
     flex-direction: column;
     justify-content: flex-end;
     overflow: hidden;
-    background: var(--color-indigo);
-    color: #fffdf8;
+    background: var(--color-indigo-deep);
+    color: var(--color-on-fill);
+  }
+
+  .auth__frame {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 62%;
+    clip-path: polygon(0 0, 100% 0, 100% 82%, 0 100%);
+    animation: fade-in 700ms ease both;
   }
 
   .auth__image {
-    position: absolute;
-    inset: 0 0 auto 0;
+    display: block;
     width: 100%;
-    height: 62%;
+    height: 100%;
     object-fit: cover;
     object-position: 40% center;
-    clip-path: polygon(0 0, 100% 0, 100% 82%, 0 100%);
-    animation: fade-in 700ms ease both;
   }
 
   .auth__side-text {
@@ -261,7 +277,7 @@ onMounted(() => {
     font-stretch: 76%;
     line-height: 0.92;
     letter-spacing: -0.02em;
-    color: #fffdf8;
+    color: var(--color-on-fill);
     animation: rise-in 620ms var(--ease-out-quint) 120ms both;
   }
 }

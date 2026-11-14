@@ -1911,5 +1911,9 @@
     "levelLabel": "Niveau",
     "tracksLabel": "Pistes de récompenses",
     "questsTitle": "Quêtes"
+  },
+  "theme": {
+    "switchToDark": "Passer au thème sombre",
+    "switchToLight": "Passer au thème clair"
   }
 }

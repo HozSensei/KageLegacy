@@ -301,7 +301,7 @@ const outcomeKey = computed(() => {
 
 .pvp-outcome .btn-secondary {
   position: relative;
-  background: #fffdf8;
+  background: var(--color-bg-card);
   color: var(--color-ink);
 }
 </style>

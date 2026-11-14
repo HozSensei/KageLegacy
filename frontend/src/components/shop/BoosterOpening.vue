@@ -136,8 +136,8 @@ function cardName(entry) {
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  background: var(--color-indigo);
-  color: #f6f1e6;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
   font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 700;

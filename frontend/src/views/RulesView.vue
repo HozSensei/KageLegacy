@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import AppIcon from '../components/ui/AppIcon.vue'
 import BrandMark from '../components/ui/BrandMark.vue'
+import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import { renderMarkdown } from '../utils/renderMarkdown.js'
 import { addHeadingAnchors, parseRulesNav } from '../utils/parseRulesDoc.js'
 import rulesFr from '../content/rules.fr.md?raw'
@@ -113,9 +114,11 @@ onUnmounted(() => observer?.disconnect())
           {{ t('rules.pageTitle') }}
         </p>
 
+        <ThemeToggle class="ml-auto" />
+
         <button
           type="button"
-          class="btn-ghost btn-sm ml-auto lg:hidden"
+          class="btn-ghost btn-sm lg:hidden"
           data-testid="rules-sidebar-toggle"
           @click="sidebarOpen = !sidebarOpen"
         >

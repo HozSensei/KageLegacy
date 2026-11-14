@@ -54,7 +54,7 @@ function toggle() {
   font-size: 0.625rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #fffdf8;
+  color: var(--color-on-fill);
 }
 
 .bell-panel {

@@ -52,7 +52,7 @@
 .rules-layout__backdrop {
   @apply fixed inset-0 z-40 lg:hidden;
   top: 3.25rem;
-  background: color-mix(in srgb, var(--color-indigo) 55%, transparent);
+  background: var(--color-scrim);
 }
 
 .rules-layout__sidebar-inner {

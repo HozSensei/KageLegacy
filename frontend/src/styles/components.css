@@ -280,21 +280,22 @@
   }
 
   .btn-primary {
-    background: var(--color-accent);
-    color: #fffdf8;
+    background: var(--color-accent-strong);
+    color: var(--color-on-fill);
   }
 
   .btn-primary:not(:disabled):hover {
     background: var(--color-ink);
+    color: var(--color-on-ink);
   }
 
   .btn-secondary {
-    background: var(--color-indigo);
-    color: #fffdf8;
+    background: var(--color-indigo-fill);
+    color: var(--color-on-fill);
   }
 
   .btn-secondary:not(:disabled):hover {
-    background: var(--color-indigo-soft);
+    background: var(--color-indigo-fill-hover);
   }
 
   .btn-ghost {
@@ -315,9 +316,9 @@
   }
 
   .btn-danger:not(:disabled):hover {
-    border-color: var(--color-fire);
-    background: var(--color-fire);
-    color: #fffdf8;
+    border-color: var(--color-fire-fill);
+    background: var(--color-fire-fill);
+    color: var(--color-on-fill);
   }
 
   .btn-sm {
@@ -353,7 +354,7 @@
 
   .btn-icon:hover {
     background: var(--color-ink);
-    color: #fffdf8;
+    color: var(--color-on-ink);
   }
 
   /* Lien texte avec flèche */
@@ -440,7 +441,7 @@
     font-size: 0.6875rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: #fffdf8;
+    color: var(--color-on-fill);
   }
 
   /* ——— Pastilles de filtre ——— */
@@ -478,7 +479,7 @@
   .chip[aria-pressed='true'] {
     border-color: var(--color-ink);
     background: var(--color-ink);
-    color: #fffdf8;
+    color: var(--color-on-ink);
   }
 
   .chip__mark {
@@ -547,7 +548,7 @@
 
   .badge--ink {
     background: var(--color-ink);
-    color: #fffdf8;
+    color: var(--color-on-ink);
   }
 
   /* ——— Messages ——— */
@@ -671,6 +672,32 @@
     border-bottom: 1px solid var(--color-line);
   }
 
+  /*
+   * ——— Illustration ———
+   * Cadre des scènes de plein jour. En sombre, l'image est légèrement assombrie puis
+   * multipliée par un voile indigo uni : la scène passe à l'heure bleue sans perdre
+   * ses couleurs ni son dessin, et ses blancs ne percent plus le fond encre.
+   */
+
+  .illustration {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+
+  .illustration > img {
+    filter: var(--image-filter);
+  }
+
+  .illustration::after {
+    position: absolute;
+    inset: 0;
+    background: var(--image-veil);
+    content: '';
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
   /* ——— Fenêtre modale ——— */
 
   .modal-backdrop {
@@ -681,7 +708,7 @@
     place-items: center;
     overflow-y: auto;
     padding: 1.25rem;
-    background: color-mix(in srgb, var(--color-indigo) 55%, transparent);
+    background: var(--color-scrim);
     animation: fade-in var(--dur-base) ease both;
   }
 

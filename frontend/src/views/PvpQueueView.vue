@@ -216,7 +216,7 @@ async function onLeave() {
   width: 0.75rem;
   height: 0.75rem;
   flex-shrink: 0;
-  background: var(--color-indigo);
+  background: var(--color-indigo-deep);
   transform: rotate(45deg);
   animation: pulse-ring 1.6s ease-out infinite;
 }

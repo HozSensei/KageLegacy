@@ -394,10 +394,10 @@ const sizeValid = computed(
   height: 1.25rem;
   padding: 0 0.3rem;
   border-radius: 999px;
-  background: #fffdf8;
+  background: var(--color-on-fill);
   font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--color-indigo);
+  color: var(--color-indigo-deep);
 }
 
 @media (min-width: 768px) {

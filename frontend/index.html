@@ -6,6 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f0e6" />
     <title>Kage Legacy</title>
+    <script>
+      // Applique le thème avant le premier rendu (même règle que src/composables/useTheme.js).
+      ;(function () {
+        var theme = null
+        try {
+          theme = localStorage.getItem('kage-legacy-theme')
+        } catch (e) {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+        document.documentElement.setAttribute('data-theme', theme)
+        if (theme === 'dark') {
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', '#14182b')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

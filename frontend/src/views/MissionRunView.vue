@@ -416,13 +416,13 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 .run-node--cleared .run-node__index {
   background: var(--color-leaf-fill);
   box-shadow: none;
-  color: #10261a;
+  color: var(--color-on-leaf);
 }
 
 .run-node--failed .run-node__index {
   background: var(--color-ink);
   box-shadow: none;
-  color: #fffdf8;
+  color: var(--color-on-ink);
 }
 
 .run-node__title {

@@ -128,7 +128,7 @@ function formatBonus(bonus) {
   gap: 1rem;
   padding: 1rem 1.15rem;
   background: var(--color-leaf-fill);
-  color: #10261a;
+  color: var(--color-on-leaf);
 }
 
 .talent-sidebar__points--none {

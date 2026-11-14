@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
+import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import gateImage from '../assets/illustrations/village-gate.jpg'
 
 defineOptions({ name: 'LandingView' })
@@ -44,6 +45,7 @@ async function playAsGuest() {
         </router-link>
         <router-link to="/login" class="landing__nav-link">{{ t('auth.login') }}</router-link>
         <router-link to="/register" class="btn-secondary btn-sm">{{ t('auth.register') }}</router-link>
+        <ThemeToggle />
       </nav>
     </header>
 
@@ -81,7 +83,9 @@ async function playAsGuest() {
         <div class="landing__visual" aria-hidden="true">
           <span class="landing__block" />
           <span class="landing__disc" />
-          <img class="landing__image" :src="gateImage" alt="" decoding="async" />
+          <span class="landing__frame illustration">
+            <img class="landing__image" :src="gateImage" alt="" decoding="async" />
+          </span>
           <span class="landing__lozenge"><BrandMark size="100%" /></span>
         </div>
       </section>
@@ -254,13 +258,17 @@ async function playAsGuest() {
   margin-inline: calc(var(--space-gutter) * -1);
 }
 
+.landing__frame {
+  width: 100%;
+  height: 100%;
+  animation: fade-in 700ms ease both;
+}
+
 .landing__image {
-  position: relative;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  animation: fade-in 700ms ease both;
 }
 
 .landing__block,
@@ -320,8 +328,8 @@ async function playAsGuest() {
 .landing__pitch {
   position: relative;
   padding: clamp(1.5rem, 5vw, 2.75rem);
-  background: var(--color-indigo);
-  color: #fffdf8;
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
 }
 
 .landing__pitch-kicker {
@@ -424,8 +432,11 @@ async function playAsGuest() {
     animation: pop-in 620ms var(--ease-out-quint) 200ms both;
   }
 
-  .landing__image {
+  .landing__frame {
     clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .landing__image {
     object-position: 46% center;
   }
 
@@ -437,8 +448,8 @@ async function playAsGuest() {
     width: 5.5rem;
     height: 5.5rem;
     padding: 1.1rem;
-    background: var(--color-indigo);
-    color: #fffdf8;
+    background: var(--color-indigo-deep);
+    color: var(--color-on-fill);
     animation: pop-in 620ms var(--ease-out-quint) 340ms both;
   }
 

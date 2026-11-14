@@ -13,6 +13,7 @@ import ToastContainer from '../components/notifications/ToastContainer.vue'
 import ProfileMenu from '../components/layout/ProfileMenu.vue'
 import AppNavRail from '../components/layout/AppNavRail.vue'
 import BrandMark from '../components/ui/BrandMark.vue'
+import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import { sectionOf } from '../constants/sections'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
 defineOptions({ name: 'AppLayout' })
@@ -140,6 +141,7 @@ onMounted(async () => {
         </p>
 
         <div class="app-bar__tools">
+          <ThemeToggle />
           <NotificationBell v-if="auth.user" />
           <ProfileMenu
             v-if="auth.user"

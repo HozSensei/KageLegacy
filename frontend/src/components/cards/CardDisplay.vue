@@ -254,7 +254,7 @@ const figures = computed(() =>
   font-stretch: 100%;
   line-height: 1.5;
   vertical-align: 0.2em;
-  color: #fffdf8;
+  color: var(--color-on-ink);
 }
 
 .card-display__meta {
