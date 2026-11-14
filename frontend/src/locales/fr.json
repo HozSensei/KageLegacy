@@ -773,7 +773,14 @@
       "intelligence": "Intelligence",
       "dexterity": "Dextérité",
       "maxHp": "PV max"
-    }
+    },
+    "effect": "Effet actif",
+    "costLabel": "Coût",
+    "statDamage": "Dégâts",
+    "statBlock": "Armure",
+    "statHeal": "Soins",
+    "upgraded": "Amélioration +{level}",
+    "quantityLabel": "Exemplaires"
   },
   "shop": {
     "kicker": "Acquisition",

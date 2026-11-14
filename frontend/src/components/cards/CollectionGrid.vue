@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CardDisplay from './CardDisplay.vue'
+import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals'
 
 defineOptions({ name: 'CollectionGrid' })
 
@@ -33,28 +34,53 @@ const rarities = ['', 'common', 'rare', 'legendary', 'mythic']
 <template>
   <div class="collection-grid" data-testid="collection-grid">
     <div class="collection-grid__filters">
-      <label class="collection-grid__filter">
-        <span>{{ t('cards.filterType') }}</span>
-        <select v-model="typeFilter" class="input-field">
-          <option v-for="type in types" :key="type || 'all'" :value="type">
+      <div class="collection-grid__filter" role="group" :aria-label="t('cards.filterType')">
+        <span class="t-kicker">{{ t('cards.filterType') }}</span>
+        <div class="chip-row">
+          <button
+            v-for="type in types"
+            :key="type || 'all'"
+            type="button"
+            class="chip"
+            :aria-pressed="typeFilter === type"
+            :data-tone="type ? cardTypeVisual(type).tone : 'neutral'"
+            @click="typeFilter = type"
+          >
+            <span
+              v-if="type"
+              class="shape chip__mark"
+              :class="`shape--${cardTypeVisual(type).shape}`"
+              aria-hidden="true"
+            />
             {{ type ? t(`cards.types.${type}`) : t('cards.filterAll') }}
-          </option>
-        </select>
-      </label>
-      <label class="collection-grid__filter">
-        <span>{{ t('cards.filterRarity') }}</span>
-        <select v-model="rarityFilter" class="input-field">
-          <option v-for="rarity in rarities" :key="rarity || 'all'" :value="rarity">
+          </button>
+        </div>
+      </div>
+      <div class="collection-grid__filter" role="group" :aria-label="t('cards.filterRarity')">
+        <span class="t-kicker">{{ t('cards.filterRarity') }}</span>
+        <div class="chip-row">
+          <button
+            v-for="rarity in rarities"
+            :key="rarity || 'all'"
+            type="button"
+            class="chip"
+            :aria-pressed="rarityFilter === rarity"
+            :data-tone="rarity ? rarityVisual(rarity).tone : 'neutral'"
+            @click="rarityFilter = rarity"
+          >
+            <span v-if="rarity" class="collection-grid__pips chip__mark" aria-hidden="true">
+              <span v-for="n in rarityVisual(rarity).pips" :key="n" class="lozenge" />
+            </span>
             {{ rarity ? t(`cards.rarities.${rarity}`) : t('cards.filterAll') }}
-          </option>
-        </select>
-      </label>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <p v-if="loading" class="text-sm text-ink-muted">{{ t('common.loading') }}</p>
-    <p v-else-if="!filtered.length" class="text-sm text-ink-muted">{{ t('cards.emptyCollection') }}</p>
+    <p v-if="loading" class="text-ink-muted">{{ t('common.loading') }}</p>
+    <p v-else-if="!filtered.length" class="alert">{{ t('cards.emptyCollection') }}</p>
 
-    <div v-else class="collection-grid__list">
+    <div v-else class="collection-grid__list stagger">
       <CardDisplay
         v-for="entry in filtered"
         :key="entry.collectionId"
@@ -71,32 +97,31 @@ const rarities = ['', 'common', 'rare', 'legendary', 'mythic']
 <style scoped>
 .collection-grid__filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
 .collection-grid__filter {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted, #9aa3b2);
+  gap: 0.5rem;
 }
 
-.collection-grid__filter select {
-  min-width: 10rem;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: inherit;
-  padding: 0.4rem 0.6rem;
+.collection-grid__pips {
+  display: inline-flex;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.chip[aria-pressed='true'] .chip__mark {
+  color: #fffdf8;
 }
 
 .collection-grid__list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 1rem;
+  align-items: stretch;
 }
 </style>

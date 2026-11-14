@@ -205,6 +205,31 @@
     background: currentColor;
   }
 
+  /* Formes pleines : une par type de carte, de nœud, de case */
+  .shape {
+    display: inline-block;
+    flex: none;
+    width: 0.8em;
+    height: 0.8em;
+    background: currentColor;
+  }
+
+  .shape--circle {
+    border-radius: 50%;
+  }
+
+  .shape--triangle {
+    clip-path: polygon(50% 4%, 100% 96%, 0 96%);
+  }
+
+  .shape--lozenge {
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  }
+
+  .shape--hexagon {
+    clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%);
+  }
+
   /* ——— Boutons ——— */
 
   .btn-primary,

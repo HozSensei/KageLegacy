@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import DeckBuilder from '../components/cards/DeckBuilder.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
 import { useCollectionStore } from '../stores/collection'
 import { useDecksStore } from '../stores/decks'
 
@@ -74,15 +75,18 @@ async function onActivate(deckId) {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="deck-builder-page">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p class="page-kicker">{{ t('cards.deckKicker') }}</p>
-        <h1 class="page-title mt-2">{{ t('cards.deckBuilderTitle') }}</h1>
-        <p class="page-lead mt-3 max-w-xl">{{ t('cards.deckBuilderLead') }}</p>
-      </div>
-      <RouterLink to="/collection" class="btn-ghost text-xs">{{ t('cards.backToCollection') }}</RouterLink>
-    </div>
+  <div class="page-shell" data-testid="deck-builder-page">
+    <PageHeader
+      index="05"
+      tone="sky"
+      :kicker="t('cards.deckKicker')"
+      :title="t('cards.deckBuilderTitle')"
+      :lead="t('cards.deckBuilderLead')"
+    >
+      <template #actions>
+        <RouterLink to="/collection" class="btn-ghost">{{ t('cards.backToCollection') }}</RouterLink>
+      </template>
+    </PageHeader>
 
     <EmptyState
       v-if="!collection.loading && !decks.loading && !collection.entries.length"
@@ -96,26 +100,47 @@ async function onActivate(deckId) {
     />
 
     <template v-else>
-      <div class="mt-6 flex flex-wrap items-end gap-3">
-        <label class="flex flex-col gap-1 text-[11px] uppercase tracking-[0.12em] text-ink-muted">
-          {{ t('cards.newDeckName') }}
-          <input
-            v-model="newName"
-            type="text"
-            data-testid="deck-create-name"
-            class="border border-line bg-transparent px-3 py-2 text-sm text-ink"
-            :placeholder="t('cards.defaultDeckName')"
-          />
-        </label>
-        <button
-          type="button"
-          class="btn-primary text-xs"
-          data-testid="deck-create-submit"
-          :disabled="decks.actionLoading"
-          @click="onCreate"
+      <div class="deck-toolbar">
+        <div
+          v-if="decks.decks.length"
+          class="chip-row deck-toolbar__list"
+          data-testid="deck-list"
         >
-          {{ t('cards.createDeck') }}
-        </button>
+          <button
+            v-for="deck in decks.decks"
+            :key="deck.id"
+            type="button"
+            class="chip"
+            :aria-pressed="decks.editingDeck?.id === deck.id"
+            :data-testid="`deck-pick-${deck.id}`"
+            @click="onPickDeck(deck.id)"
+          >
+            <span v-if="deck.isActive" class="dot deck-toolbar__active" aria-hidden="true" />
+            {{ deck.name }}
+          </button>
+        </div>
+
+        <div class="deck-toolbar__create">
+          <label class="field deck-toolbar__field">
+            <span class="field__label">{{ t('cards.newDeckName') }}</span>
+            <input
+              v-model="newName"
+              type="text"
+              data-testid="deck-create-name"
+              class="input-field"
+              :placeholder="t('cards.defaultDeckName')"
+            />
+          </label>
+          <button
+            type="button"
+            class="btn-secondary deck-toolbar__submit"
+            data-testid="deck-create-submit"
+            :disabled="decks.actionLoading"
+            @click="onCreate"
+          >
+            {{ t('cards.createDeck') }}
+          </button>
+        </div>
       </div>
 
       <EmptyState
@@ -125,29 +150,10 @@ async function onActivate(deckId) {
         :lead="t('cards.emptyDecksLead')"
       />
 
-      <div v-if="decks.decks.length" class="mt-4 flex flex-wrap gap-2" data-testid="deck-list">
-        <button
-          v-for="deck in decks.decks"
-          :key="deck.id"
-          type="button"
-          class="border px-3 py-1.5 text-xs uppercase tracking-[0.1em] transition"
-          :class="
-            decks.editingDeck?.id === deck.id
-              ? 'border-accent text-accent'
-              : 'border-line text-ink-muted hover:border-accent/50'
-          "
-          :data-testid="`deck-pick-${deck.id}`"
-          @click="onPickDeck(deck.id)"
-        >
-          {{ deck.name }}
-          <span v-if="deck.isActive" class="ml-1 text-accent">●</span>
-        </button>
-      </div>
+      <p v-if="message" class="alert alert--success mt-5">{{ message }}</p>
+      <p v-if="decks.error && !message" class="alert alert--error mt-5">{{ decks.error }}</p>
 
-      <p v-if="message" class="mt-4 text-sm text-accent">{{ message }}</p>
-      <p v-if="decks.error && !message" class="mt-4 text-sm text-fire">{{ decks.error }}</p>
-
-      <div class="mt-8">
+      <div class="mt-10">
         <DeckBuilder
           :deck="decks.editingDeck"
           :collection="collection.entries"
@@ -161,3 +167,51 @@ async function onActivate(deckId) {
     </template>
   </div>
 </template>
+
+<style scoped>
+.deck-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.75rem;
+}
+
+.deck-toolbar__active {
+  color: var(--color-leaf-fill);
+}
+
+.deck-toolbar__create {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.deck-toolbar__field {
+  flex: 1 1 14rem;
+  max-width: 22rem;
+}
+
+.deck-toolbar__submit {
+  min-height: 2.75rem;
+}
+
+@media (min-width: 900px) {
+  .deck-toolbar {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .deck-toolbar__list {
+    flex: 1;
+    order: 0;
+  }
+
+  .deck-toolbar__create {
+    flex: none;
+    width: 24rem;
+    flex-wrap: nowrap;
+  }
+}
+</style>

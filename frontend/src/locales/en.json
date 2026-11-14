@@ -773,7 +773,14 @@
       "intelligence": "Intelligence",
       "dexterity": "Dexterity",
       "maxHp": "Max HP"
-    }
+    },
+    "effect": "Active effect",
+    "costLabel": "Cost",
+    "statDamage": "Damage",
+    "statBlock": "Block",
+    "statHeal": "Heal",
+    "upgraded": "Upgrade +{level}",
+    "quantityLabel": "Copies"
   },
   "shop": {
     "kicker": "Acquisition",
