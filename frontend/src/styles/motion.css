@@ -178,7 +178,7 @@
    Un enfant peut fixer son rang avec `style="--i: n"` (listes longues). */
 
 .stagger > * {
-  animation: rise-in 420ms var(--ease-out-quint) both;
+  animation: rise-in 420ms var(--ease-out-quint) backwards;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
 
@@ -196,7 +196,7 @@
 .stagger > :nth-child(n + 12) { --i: 11; }
 
 .anim-rise {
-  animation: rise-in 460ms var(--ease-out-quint) both;
+  animation: rise-in 460ms var(--ease-out-quint) backwards;
   animation-delay: var(--delay, 0ms);
 }
 

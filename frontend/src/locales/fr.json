@@ -171,7 +171,8 @@
     "hasAccount": "Déjà un compte ?",
     "signIn": "Se connecter",
     "demoHint": "Démo locale : demo_sensei / demo (après npm run db:seed)",
-    "inviteLead": "Invitation ligue — vous rejoindrez la pool #{poolId} à l'inscription."
+    "inviteLead": "Invitation ligue — vous rejoindrez la pool #{poolId} à l'inscription.",
+    "backHome": "Retour à l'accueil"
   },
   "landing": {
     "title": "Forge ton shinobi. Domine le deck.",
@@ -194,7 +195,9 @@
       "build": "Consulte ton deck starter, puis ajuste-le dans le constructeur.",
       "grow": "Dépense ton premier point dans l'arbre de talents.",
       "fight": "Lance une mission de combat — gagne XP, Ryos et nouvelles cartes."
-    }
+    },
+    "kicker": "Roguelike solo · Construction de deck",
+    "featuresTitle": "Ce qui t'attend"
   },
   "guest": {
     "banner": "Essai invité — {days} jour(s) restant(s).",
@@ -693,7 +696,13 @@
     "shortcutShop": "Boosters & cosmétiques",
     "shortcutBp": "Piste de saison & quêtes",
     "shortcutPvp": "File d'attente pour un duel",
-    "shortcutProfile": "Stats & spécialisation"
+    "shortcutProfile": "Stats & spécialisation",
+    "statLevel": "Niveau",
+    "statCards": "Cartes",
+    "statDeck": "Deck actif",
+    "statTalentPoints": "Points de talent",
+    "noDeck": "Aucun",
+    "shortcutsTitle": "Tout le jeu"
   },
   "cards": {
     "collectionKicker": "Techniques & objets",

@@ -171,7 +171,8 @@
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
     "demoHint": "Local demo: demo_sensei / demo (after npm run db:seed)",
-    "inviteLead": "League invite — you will join pool #{poolId} on registration."
+    "inviteLead": "League invite — you will join pool #{poolId} on registration.",
+    "backHome": "Back to home"
   },
   "landing": {
     "title": "Build your shinobi. Master the deck.",
@@ -194,7 +195,9 @@
       "build": "Review your starter deck, then tune it in the deck builder.",
       "grow": "Spend your first talent point on the tree.",
       "fight": "Launch a combat mission — earn XP, Ryos and new cards."
-    }
+    },
+    "kicker": "Solo roguelike · Deck building",
+    "featuresTitle": "What awaits you"
   },
   "guest": {
     "banner": "Guest trial — {days} day(s) left.",
@@ -693,7 +696,13 @@
     "shortcutShop": "Boosters & cosmetics",
     "shortcutBp": "Season track & quests",
     "shortcutPvp": "Queue for a duel",
-    "shortcutProfile": "Stats & specialization"
+    "shortcutProfile": "Stats & specialization",
+    "statLevel": "Level",
+    "statCards": "Cards",
+    "statDeck": "Active deck",
+    "statTalentPoints": "Talent points",
+    "noDeck": "None",
+    "shortcutsTitle": "The whole game"
   },
   "cards": {
     "collectionKicker": "Techniques & items",
