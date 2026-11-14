@@ -12,7 +12,7 @@ describe('Locale — FR/EN V2', () => {
     cy.openNavMenu();
     cy.get('[data-testid="nav-profile"]').should('contain', 'Profile');
     cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
-    cy.get('[data-testid="nav-home"]').should('contain', 'Home');
+    cy.get('[data-testid="nav-hub"]').should('contain', 'Home');
 
     cy.closeSlidePanel();
     cy.get('[data-testid="profile-menu-button"]').click();
@@ -22,6 +22,6 @@ describe('Locale — FR/EN V2', () => {
     cy.openNavMenu();
     cy.get('[data-testid="nav-profile"]').should('contain', 'Profil');
     cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
-    cy.get('[data-testid="nav-home"]').should('contain', 'Accueil');
+    cy.get('[data-testid="nav-hub"]').should('contain', 'Accueil');
   });
 });
