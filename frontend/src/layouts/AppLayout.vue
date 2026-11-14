@@ -26,21 +26,9 @@ const showConvert = ref(false)
 
 const baseNavItems = [
   { name: 'bureau', path: '/bureau', label: 'nav.bureau' },
-  { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
-  { name: 'squad', path: '/squad', label: 'nav.squad' },
-  { name: 'clan', path: '/clan', label: 'nav.clan' },
-  { name: 'village', path: '/village', label: 'nav.village' },
-  { name: 'missions', path: '/missions', label: 'nav.missions' },
-  { name: 'reconnaissance', path: '/reconnaissance', label: 'nav.reconnaissance' },
-  { name: 'training', path: '/training', label: 'nav.training' },
-  { name: 'league', path: '/league', label: 'nav.league' },
-  { name: 'scout', path: '/espionnage', label: 'nav.scout' },
-  { name: 'market', path: '/market', label: 'nav.market' },
-  { name: 'refinement', path: '/refinement', label: 'nav.refinement' },
-  { name: 'exchanges', path: '/exchanges', label: 'nav.exchanges' },
+  { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'inventory', path: '/inventory', label: 'nav.inventory' },
-  { name: 'operation', path: '/operation', label: 'nav.operation' },
 ]
 
 const eliteToolsNavItem = {
@@ -66,7 +54,7 @@ const navItems = computed(() => {
 
 function isActive(path) {
   if (path === '/profil') {
-    return route.path === '/profil' || (route.name === 'sensei-profile' && auth.user && String(route.params.userId) === String(auth.user.id))
+    return route.path === '/profil' || route.name === 'profile' || route.name === 'character-creation'
   }
   return route.path === path || route.path.startsWith(`${path}/`)
 }

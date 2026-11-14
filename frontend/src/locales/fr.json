@@ -662,6 +662,51 @@
     "comingSoon": "Bientôt disponible",
     "devMilestone": "Cette section sera disponible dans un prochain jalon de développement."
   },
+  "player": {
+    "profileTitle": "Profil ninja",
+    "createTitle": "Créer votre ninja",
+    "createLead": "Un seul personnage vous accompagne. Ses stats naîtront de l’arbre de talents et de votre deck.",
+    "createHint": "Aucune stat de base : chaque niveau donne 1 point de talent à dépenser plus tard.",
+    "createSubmit": "Entrer dans le village",
+    "nameLabel": "Nom du ninja",
+    "elementLabel": "Affinité élémentaire",
+    "clanLabel": "Lignée",
+    "statsTitle": "Stats calculées",
+    "statsLead": "Talents débloqués + bonus passifs du deck actif.",
+    "levelLabel": "Niveau {level}",
+    "xpLabel": "Expérience",
+    "maxLevel": "Niveau maximum",
+    "talentPoints": "{count} point de talent disponible | {count} points de talent disponibles",
+    "specializationTitle": "Choisir une spécialisation",
+    "specializationLead": "Disponible à partir du niveau 10. Choix définitif pour cette saison de progression.",
+    "levelUpTitle": "Niveau supérieur !",
+    "levelUpTitleMulti": "+{count} niveaux !",
+    "levelUpTalent": "+{count} point de talent | +{count} points de talent",
+    "levelUpNoStats": "Aucune stat n’augmente automatiquement — dépensez vos points dans l’arbre de talents.",
+    "elements": {
+      "Katon": "Katon",
+      "Suiton": "Suiton",
+      "Raiton": "Raiton",
+      "Doton": "Doton",
+      "Futon": "Fûton"
+    },
+    "specs": {
+      "Taijutsu": "Taijutsu",
+      "Ninjutsu": "Ninjutsu",
+      "Genjutsu": "Genjutsu",
+      "Medicine": "Médecine"
+    },
+    "stats": {
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medicine": "Médecine",
+      "vitesse": "Vitesse",
+      "intelligence": "Intelligence",
+      "dexterity": "Dextérité",
+      "maxHp": "PV max"
+    }
+  },
   "league": {
     "bot": "bot",
     "botParen": "(bot)",

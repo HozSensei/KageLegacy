@@ -662,6 +662,51 @@
     "comingSoon": "Coming soon",
     "devMilestone": "This section will be available in a future development milestone."
   },
+  "player": {
+    "profileTitle": "Ninja profile",
+    "createTitle": "Create your ninja",
+    "createLead": "You play as a single character. Stats come from the talent tree and your deck.",
+    "createHint": "No base stats: each level grants 1 talent point to spend later.",
+    "createSubmit": "Enter the village",
+    "nameLabel": "Ninja name",
+    "elementLabel": "Element affinity",
+    "clanLabel": "Lineage",
+    "statsTitle": "Computed stats",
+    "statsLead": "Unlocked talents + passive bonuses from the active deck.",
+    "levelLabel": "Level {level}",
+    "xpLabel": "Experience",
+    "maxLevel": "Max level",
+    "talentPoints": "{count} talent point available | {count} talent points available",
+    "specializationTitle": "Choose a specialization",
+    "specializationLead": "Available from level 10. Permanent choice for this progression path.",
+    "levelUpTitle": "Level up!",
+    "levelUpTitleMulti": "+{count} levels!",
+    "levelUpTalent": "+{count} talent point | +{count} talent points",
+    "levelUpNoStats": "No stats increase automatically — spend points in the talent tree.",
+    "elements": {
+      "Katon": "Katon",
+      "Suiton": "Suiton",
+      "Raiton": "Raiton",
+      "Doton": "Doton",
+      "Futon": "Futon"
+    },
+    "specs": {
+      "Taijutsu": "Taijutsu",
+      "Ninjutsu": "Ninjutsu",
+      "Genjutsu": "Genjutsu",
+      "Medicine": "Medicine"
+    },
+    "stats": {
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medicine": "Medicine",
+      "vitesse": "Speed",
+      "intelligence": "Intelligence",
+      "dexterity": "Dexterity",
+      "maxHp": "Max HP"
+    }
+  },
   "league": {
     "bot": "bot",
     "botParen": "(bot)",

@@ -13,22 +13,12 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'hub',
         labelKey: 'nav.groups.hub',
-        items: pick('bureau', 'journal', 'profile'),
-      },
-      {
-        id: 'squad',
-        labelKey: 'nav.groups.squad',
-        items: pick('squad', 'training', 'clan', 'village'),
-      },
-      {
-        id: 'missions',
-        labelKey: 'nav.groups.missions',
-        items: pick('missions', 'reconnaissance', 'scout', 'league', 'operation'),
+        items: pick('bureau', 'profile', 'journal'),
       },
       {
         id: 'economy',
         labelKey: 'nav.groups.economy',
-        items: pick('market', 'refinement', 'exchanges', 'inventory'),
+        items: pick('inventory'),
       },
       {
         id: 'extra',

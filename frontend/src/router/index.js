@@ -1,29 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '../layouts/AppLayout.vue'
 import LandingView from '../views/LandingView.vue'
-import BureauView from '../views/BureauView.vue'
-import CycleJournalView from '../views/CycleJournalView.vue'
-import SquadView from '../views/SquadView.vue'
-import LeagueView from '../views/LeagueView.vue'
-import MarketView from '../views/MarketView.vue'
-import PlayerMarketView from '../views/PlayerMarketView.vue'
-import TechniqueRefinementView from '../views/TechniqueRefinementView.vue'
-import InventoryView from '../views/InventoryView.vue'
-import OperationView from '../views/OperationView.vue'
-import MissionsView from '../views/MissionsView.vue'
-import ReconMissionView from '../views/ReconMissionView.vue'
-import TrainingView from '../views/TrainingView.vue'
-import ClanView from '../views/ClanView.vue'
-import VillageView from '../views/VillageView.vue'
-import RulesView from '../views/RulesView.vue'
 import LoginView from '../views/LoginView.vue'
-import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
-import SenseiProfileView from '../views/SenseiProfileView.vue'
-import ProfileRedirectView from '../views/ProfileRedirectView.vue'
-import EliteToolsView from '../views/EliteToolsView.vue'
-import ScoutReportView from '../views/ScoutReportView.vue'
-import ReconnaissanceView from '../views/ReconnaissanceView.vue'
-import AdminView from '../views/AdminView.vue'
+import RulesView from '../views/RulesView.vue'
+import PlaceholderView from '../views/PlaceholderView.vue'
+import Profile from '../views/Profile.vue'
+import CharacterCreation from '../views/CharacterCreation.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -40,84 +22,57 @@ const router = createRouter({
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
-        { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' } } },
-        { path: 'journal', name: 'journal', component: CycleJournalView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'journal.title' } } },
-        { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
-        { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
         {
-          path: 'reconnaissance',
-          name: 'reconnaissance',
-          component: ReconnaissanceView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.reconnaissance' } },
+          path: 'bureau',
+          name: 'bureau',
+          component: PlaceholderView,
+          props: { titleKey: 'nav.bureau' },
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' }, requiresCharacter: true },
         },
         {
-          path: 'espionnage',
-          name: 'scout',
-          component: ScoutReportView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.scout' } },
-        },
-        {
-          path: 'missions/recon/:missionId',
-          name: 'recon-mission',
-          component: ReconMissionView,
-          props: true,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'missions.reconChronicleTitle' } },
-        },
-        { path: 'clan', name: 'clan', component: ClanView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.clan' } } },
-        { path: 'village', name: 'village', component: VillageView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.village' } } },
-        { path: 'training', name: 'training', component: TrainingView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.training' } } },
-        { path: 'league', name: 'league', component: LeagueView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.league' } } },
-        { path: 'market', name: 'market', component: MarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.market' } } },
-        {
-          path: 'refinement',
-          name: 'refinement',
-          component: TechniqueRefinementView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'techniqueRefinement.title' } },
-        },
-        { path: 'exchanges', name: 'exchanges', component: PlayerMarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.exchanges' } } },
-        { path: 'inventory', name: 'inventory', component: InventoryView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.inventory' } } },
-        { path: 'operation', name: 'operation', component: OperationView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } } },
-        {
-          path: 'operation/match/:matchId',
-          name: 'operation-match',
-          component: OperationView,
-          props: true,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } },
-        },
-        {
-          path: 'design/elite-identity',
-          name: 'elite-identity-showcase',
-          component: EliteIdentityShowcase,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'eliteShowcase.title' } },
+          path: 'character-creation',
+          name: 'character-creation',
+          component: CharacterCreation,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'player.createTitle' } },
         },
         {
           path: 'profil',
           name: 'profile',
-          component: ProfileRedirectView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'senseiProfile.title' } },
-        },
-        {
-          path: 'elite/outils',
-          name: 'elite-tools',
-          component: EliteToolsView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'eliteTools.pageTitle' } },
-        },
-        {
-          path: 'sensei/:userId',
-          name: 'sensei-profile',
-          component: SenseiProfileView,
-          props: true,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'senseiProfile.title' } },
-        },
-        {
-          path: 'admin',
-          name: 'admin',
-          component: AdminView,
+          component: Profile,
           meta: {
-            requiresAdmin: true,
-            hero: { image: HERO_VILLAGE, titleKey: 'nav.admin' },
+            hero: { image: HERO_VILLAGE, titleKey: 'player.profileTitle' },
+            requiresCharacter: true,
           },
         },
+        // Routes legacy archivées → placeholder jusqu'aux phases suivantes
+        ...[
+          ['inventory', 'nav.inventory', 'nav.inventory'],
+          ['journal', 'nav.journal', 'journal.title'],
+          ['squad', 'nav.squad', 'nav.squad'],
+          ['missions', 'nav.missions', 'nav.missions'],
+          ['reconnaissance', 'nav.reconnaissance', 'nav.reconnaissance'],
+          ['espionnage', 'nav.scout', 'nav.scout', 'scout'],
+          ['clan', 'nav.clan', 'nav.clan'],
+          ['village', 'nav.village', 'nav.village'],
+          ['training', 'nav.training', 'nav.training'],
+          ['league', 'nav.league', 'nav.league'],
+          ['market', 'nav.market', 'nav.market'],
+          ['refinement', 'nav.refinement', 'techniqueRefinement.title'],
+          ['exchanges', 'nav.exchanges', 'nav.exchanges'],
+          ['operation', 'nav.operation', 'nav.operation'],
+          ['design/elite-identity', 'eliteShowcase.title', 'eliteShowcase.title', 'elite-identity-showcase'],
+          ['elite/outils', 'eliteTools.pageTitle', 'eliteTools.pageTitle', 'elite-tools'],
+          ['admin', 'nav.admin', 'nav.admin', 'admin'],
+        ].map(([path, titleKey, heroKey, name]) => ({
+          path,
+          name: name || path.replace(/\//g, '-'),
+          component: PlaceholderView,
+          props: { titleKey },
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: heroKey },
+            ...(path === 'admin' ? { requiresAdmin: true } : {}),
+          },
+        })),
       ],
     },
   ],
@@ -148,6 +103,18 @@ router.beforeEach(async (to) => {
       await elite.fetchElite()
     }
     if (!elite.featureEnabled) return { path: '/bureau' }
+  }
+
+  if (to.name !== 'character-creation') {
+    const { usePlayerStore } = await import('../stores/player')
+    const player = usePlayerStore()
+    if (!player.checked) await player.fetchPlayer()
+    if (!player.character && to.meta.requiresCharacter !== false) {
+      // Redirect to creation for authenticated pages that need a character
+      if (to.name !== 'character-creation') {
+        return { name: 'character-creation' }
+      }
+    }
   }
 
   return true
