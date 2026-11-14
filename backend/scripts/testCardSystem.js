@@ -84,21 +84,21 @@ assert(!tooBig.valid, 'reject oversized deck');
 const overCopies = validateDeck([{ quantity: 4, collectionId: 1, card: { nameFr: 'X' } }]);
 assert(!overCopies.valid, 'reject over copies');
 
-// Catalogue seed (~100 cartes)
+// Catalogue seed (~200 cartes, structure scalable vers 300)
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
-assert(ALL_CARDS.length >= 95 && ALL_CARDS.length <= 110, `catalog ~100, got ${ALL_CARDS.length}`);
+assert(ALL_CARDS.length >= 190 && ALL_CARDS.length <= 220, `catalog ~200, got ${ALL_CARDS.length}`);
 const catalog = validateCatalog(ALL_CARDS);
-assert(catalog.byType.attack >= 35, 'enough attacks');
-assert(catalog.byType.defense >= 18, 'enough defenses');
-assert(catalog.byType.skill >= 18, 'enough skills');
-assert(catalog.byType.item >= 10, 'enough items');
-assert(catalog.byType.summon >= 7, 'enough summons');
-assert(catalog.byRarity.common >= 50, 'enough commons');
-assert(catalog.byRarity.rare >= 25, 'enough rares');
-assert(catalog.byRarity.legendary >= 10, 'enough legendaries');
-assert((catalog.byRarity.mythic || 0) >= 2, 'some mythics');
+assert(catalog.byType.attack >= 70, 'enough attacks');
+assert(catalog.byType.defense >= 35, 'enough defenses');
+assert(catalog.byType.skill >= 35, 'enough skills');
+assert(catalog.byType.item >= 20, 'enough items');
+assert(catalog.byType.summon >= 14, 'enough summons');
+assert(catalog.byRarity.common >= 100, 'enough commons');
+assert(catalog.byRarity.rare >= 50, 'enough rares');
+assert(catalog.byRarity.legendary >= 20, 'enough legendaries');
+assert((catalog.byRarity.mythic || 0) >= 5, 'some mythics');
 for (const el of ['katon', 'suiton', 'raiton', 'doton', 'futon', 'null']) {
-  assert((catalog.byElement[el] || 0) >= 5, `element ${el} under-represented`);
+  assert((catalog.byElement[el] || 0) >= 10, `element ${el} under-represented`);
 }
 for (const card of ALL_CARDS) {
   assert(Object.keys(card.passiveBonus || {}).length > 0, `passive on ${card.slug}`);

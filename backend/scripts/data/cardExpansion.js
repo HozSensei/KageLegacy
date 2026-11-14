@@ -1,11 +1,15 @@
 /**
- * Expansion catalogue V2 (~78 cartes). Noms originaux — folklore ninja, pas de refs franchise.
+ * Expansion catalogue V2 — vague 1 (~78 cartes).
+ * Vague 2 : ./cardExpansionWave2.js (agrégée en EXPANSION_CARDS).
+ * Noms originaux — folklore ninja, pas de refs franchise.
  */
 import { defineCard } from '../lib/cardFactory.js';
+import { EXPANSION_WAVE2_CARDS } from './cardExpansionWave2.js';
 
 const c = defineCard;
 
-export const EXPANSION_CARDS = [
+/** Vague 1 uniquement (conservée pour imports / diffs). */
+export const EXPANSION_WAVE1_CARDS = [
   // ─── ATTACK (+33) ───────────────────────────────────────────────
   c({
     slug: 'lame-crespusculaire',
@@ -1550,3 +1554,8 @@ export const EXPANSION_CARDS = [
     },
   }),
 ];
+
+/** Catalogue expansion complet (vagues empilables vers ~300). */
+export const EXPANSION_CARDS = [...EXPANSION_WAVE1_CARDS, ...EXPANSION_WAVE2_CARDS];
+
+export { EXPANSION_WAVE2_CARDS };
