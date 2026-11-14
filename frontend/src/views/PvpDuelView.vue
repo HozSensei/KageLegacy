@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import PvpArena from '../components/pvp/PvpArena.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
 import { usePvpStore } from '../stores/pvp'
 
 defineOptions({ name: 'PvpDuelView' })
@@ -117,27 +118,31 @@ function backToQueue() {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="pvp-duel-page">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p class="page-kicker">{{ t('pvp.kicker') }}</p>
-        <h1 class="page-title mt-2">{{ t('pvp.duelTitle') }}</h1>
-        <p v-if="pvp.role" class="mt-2 text-sm text-ink-muted">
+  <div class="page-shell pvp-duel" data-testid="pvp-duel-page">
+    <div class="pvp-duel__head">
+      <div class="min-w-0">
+        <p class="page-kicker">
+          <span class="lozenge" aria-hidden="true" />
+          {{ t('pvp.kicker') }}
+        </p>
+        <h1 class="t-heading mt-1">{{ t('pvp.duelTitle') }}</h1>
+        <p v-if="pvp.role" class="mt-1 text-sm text-ink-muted">
           {{ pvp.isHost ? t('pvp.youAreHost') : t('pvp.youAreGuest') }}
         </p>
       </div>
-      <button type="button" class="btn-ghost text-xs" @click="backToQueue">
+      <button type="button" class="btn-ghost btn-sm" @click="backToQueue">
+        <AppIcon name="arrow-left" size="1rem" />
         {{ t('pvp.backToQueue') }}
       </button>
     </div>
 
-    <p v-if="pvp.error" class="mt-4 text-sm text-fire">{{ pvp.error }}</p>
+    <p v-if="pvp.error" class="alert alert--error mt-4">{{ pvp.error }}</p>
     <p v-if="pvp.loading && !arenaView" class="mt-8 text-ink-muted">
       {{ t('pvp.loading') }}
     </p>
     <p
       v-if="!arenaView && !pvp.loading && pvp.isGuest"
-      class="mt-8 text-ink-muted"
+      class="alert alert--info mt-8"
       data-testid="pvp-await-host"
     >
       {{ t('pvp.awaitHostState') }}
@@ -145,7 +150,7 @@ function backToQueue() {
 
     <PvpArena
       v-if="arenaView && pvp.role"
-      class="mt-4"
+      class="mt-5"
       :view="arenaView"
       :role="pvp.role"
       :logs="pvp.recentLogs"
@@ -161,3 +166,23 @@ function backToQueue() {
     />
   </div>
 </template>
+
+<style scoped>
+.pvp-duel__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.pvp-duel__head .page-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.pvp-duel__head .lozenge {
+  color: var(--color-vermilion);
+}
+</style>

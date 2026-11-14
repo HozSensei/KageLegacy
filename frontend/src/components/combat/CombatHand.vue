@@ -40,6 +40,14 @@ const fanStyle = computed(() => {
   const n = props.cards.length || 1
   return { '--hand-count': n }
 })
+/* Les cartes d'un duel PvP n'ont pas de type : on le déduit de leur effet, pour l'affichage seulement. */
+function displayType(card) {
+  if (card.type) return card.type
+  if (card.damage) return 'attack'
+  if (card.block) return 'defense'
+  if (card.heal) return 'skill'
+  return null
+}
 </script>
 
 <template>
@@ -59,12 +67,12 @@ const fanStyle = computed(() => {
       :class="{
         'hand-card--selected': selectedId === card.instanceId,
         'hand-card--unaffordable': !canAfford(card),
-        [`hand-card--${card.type}`]: true,
+        [`hand-card--${displayType(card) || 'untyped'}`]: true,
       }"
       :style="{ '--i': index, '--n': cards.length }"
       :disabled="disabled"
       :aria-pressed="selectedId === card.instanceId"
-      :data-tone="cardTypeVisual(card.type).tone"
+      :data-tone="cardTypeVisual(displayType(card)).tone"
       :data-testid="`hand-card-${card.slug}`"
       @click="emit('select', card)"
       @dblclick="canAfford(card) && emit('play', card)"
@@ -72,8 +80,8 @@ const fanStyle = computed(() => {
       <span class="hand-card__band">
         <span class="hand-card__cost" :title="t('combat.costLabel', { n: card.cost })">{{ card.cost }}</span>
         <span class="hand-card__type">
-          <span class="shape" :class="`shape--${cardTypeVisual(card.type).shape}`" aria-hidden="true" />
-          {{ t(`cards.types.${card.type}`, card.type) }}
+          <span class="shape" :class="`shape--${cardTypeVisual(displayType(card)).shape}`" aria-hidden="true" />
+          <template v-if="displayType(card)">{{ t(`cards.types.${displayType(card)}`, displayType(card)) }}</template>
         </span>
       </span>
       <span class="hand-card__body">

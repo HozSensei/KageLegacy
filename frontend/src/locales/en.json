@@ -1082,7 +1082,9 @@
       "victory": "Victory",
       "defeat": "Defeat",
       "forfeited": "Duel forfeited"
-    }
+    },
+    "rulesTitle": "How the duel works",
+    "queueSection": "Queue"
   },
   "battlePass": {
     "kicker": "Season",

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CombatHand from '../combat/CombatHand.vue'
 import CombatLog from '../combat/CombatLog.vue'
@@ -42,6 +42,47 @@ const canAct = computed(
     !props.busy
 )
 
+const isMyTurn = computed(() => props.view?.activeSeat === props.role)
+const turnNumber = computed(() => String(props.view?.turn ?? 0).padStart(2, '0'))
+
+const opponentPlayer = computed(() => ({
+  name: opponent.value?.name || t('pvp.opponent'),
+  hp: opponent.value?.hp,
+  maxHp: opponent.value?.maxHp,
+  block: opponent.value?.block,
+  chakra: opponent.value?.chakra,
+  maxChakra: opponent.value?.maxChakra,
+  statuses: opponent.value?.statuses || [],
+  hand: [],
+  drawCount: opponent.value?.drawCount,
+  discardCount: opponent.value?.discardCount,
+}))
+
+const selfPlayer = computed(() => ({
+  ...(self.value || {}),
+  name: self.value?.name || t('pvp.you'),
+}))
+
+/* Bandeau éphémère à chaque changement de main (affichage seul). */
+const banner = ref(false)
+let bannerTimer = null
+
+watch(
+  () => `${props.view?.turn}:${props.view?.activeSeat}`,
+  (next, prev) => {
+    if (!prev || next === prev || props.view?.status !== 'in_progress') return
+    banner.value = true
+    if (bannerTimer) clearTimeout(bannerTimer)
+    bannerTimer = setTimeout(() => {
+      banner.value = false
+    }, 900)
+  }
+)
+
+onBeforeUnmount(() => {
+  if (bannerTimer) clearTimeout(bannerTimer)
+})
+
 const outcomeKey = computed(() => {
   if (!isOver.value) return null
   if (props.view.winnerSeat === props.role) return 'victory'
@@ -51,34 +92,31 @@ const outcomeKey = computed(() => {
 </script>
 
 <template>
-  <div class="arena" data-testid="pvp-arena">
-    <div class="arena__bg" aria-hidden="true" />
-
+  <div class="arena arena--with-side" data-testid="pvp-arena">
     <header class="arena__top">
-      <div class="arena__meta">
-        <p class="arena__turn">
-          {{ t('pvp.turn', { n: view.turn }) }}
+      <div class="pvp-top">
+        <p class="arena__turn" :data-tone="isMyTurn ? 'indigo' : 'vermilion'">
+          <span class="sr-only">{{ t('pvp.turn', { n: view.turn }) }}</span>
+          <span class="arena__turn-label" aria-hidden="true">{{ t('combat.turnLabel') }}</span>
+          <span :key="view.turn" class="arena__turn-number" aria-hidden="true">{{ turnNumber }}</span>
           <span class="arena__phase">
-            ·
-            {{
-              view.activeSeat === role
-                ? t('pvp.yourTurn')
-                : t('pvp.opponentTurn')
-            }}
+            <span class="lozenge" aria-hidden="true" />
+            {{ isMyTurn ? t('pvp.yourTurn') : t('pvp.opponentTurn') }}
           </span>
         </p>
-        <p class="arena__role" data-testid="pvp-role-badge">
-          <span class="badge" :class="role === 'host' ? 'badge--host' : 'badge--guest'">
+        <p class="pvp-top__role" data-testid="pvp-role-badge">
+          <span class="badge badge--solid" :data-tone="role === 'host' ? 'vermilion' : 'sky'">
             {{ role === 'host' ? t('pvp.roleHost') : t('pvp.roleGuest') }}
           </span>
           <span class="peer" :class="{ 'peer--on': peerOnline }">
+            <span class="dot" aria-hidden="true" />
             {{ peerOnline ? t('pvp.peerOnline') : t('pvp.peerOffline') }}
           </span>
         </p>
       </div>
       <button
         type="button"
-        class="btn-ghost text-xs"
+        class="btn-danger btn-sm"
         :disabled="busy || view.status !== 'in_progress'"
         @click="emit('forfeit')"
       >
@@ -86,43 +124,54 @@ const outcomeKey = computed(() => {
       </button>
     </header>
 
-    <div v-if="isOver" class="arena__outcome" data-testid="pvp-outcome">
-      <p class="arena__outcome-title">{{ t(`pvp.outcome.${outcomeKey}`) }}</p>
-      <button type="button" class="btn-primary text-sm mt-3" @click="emit('dismiss-outcome')">
+    <div
+      v-if="isOver"
+      class="arena__outcome pvp-outcome"
+      :data-tone="outcomeKey === 'victory' ? 'leaf' : outcomeKey === 'defeat' ? 'vermilion' : 'ink'"
+      data-testid="pvp-outcome"
+    >
+      <span class="pvp-outcome__shape" aria-hidden="true" />
+      <p class="pvp-outcome__title">{{ t(`pvp.outcome.${outcomeKey}`) }}</p>
+      <button type="button" class="btn-secondary mt-4" @click="emit('dismiss-outcome')">
         {{ t('pvp.backToQueue') }}
       </button>
     </div>
 
-    <section class="arena__enemy">
-      <p class="arena__label">{{ opponent?.name || t('pvp.opponent') }}</p>
-      <PlayerStatus
-        :player="{
-          name: opponent?.name,
-          hp: opponent?.hp,
-          maxHp: opponent?.maxHp,
-          block: opponent?.block,
-          chakra: opponent?.chakra,
-          maxChakra: opponent?.maxChakra,
-          statuses: opponent?.statuses || [],
-          hand: [],
-          drawCount: opponent?.drawCount,
-          discardCount: opponent?.discardCount,
-        }"
-      />
-      <p class="arena__hand-hint">
-        {{ t('pvp.hiddenHand', { n: opponent?.handCount ?? 0 }) }}
-      </p>
-    </section>
+    <div class="arena__duel">
+      <section class="arena__seat">
+        <div class="pvp-seat">
+          <PlayerStatus :player="opponentPlayer" tone="vermilion" :role-label="t('pvp.opponent')" />
+          <p class="pvp-seat__hint">
+            {{ t('pvp.hiddenHand', { n: opponent?.handCount ?? 0 }) }}
+          </p>
+        </div>
+      </section>
 
-    <div class="arena__divider" aria-hidden="true" />
+      <span class="arena__vs" aria-hidden="true"><span>{{ t('common.vs') }}</span></span>
 
-    <section class="arena__player">
-      <p class="arena__label">{{ self?.name || t('pvp.you') }}</p>
-      <PlayerStatus :player="self || {}" />
-      <CombatLog class="arena__log" :logs="logs" />
-    </section>
+      <section class="arena__seat arena__seat--self">
+        <PlayerStatus :player="selfPlayer" />
+      </section>
+
+      <Transition name="turn-banner">
+        <p
+          v-if="banner"
+          class="arena__banner"
+          :data-tone="isMyTurn ? 'indigo' : 'vermilion'"
+          aria-hidden="true"
+        >
+          {{ isMyTurn ? t('pvp.yourTurn') : t('pvp.opponentTurn') }}
+          <span class="arena__banner-sub">{{ t('pvp.turn', { n: view.turn }) }}</span>
+        </p>
+      </Transition>
+    </div>
 
     <section class="arena__hand-wrap">
+      <div class="arena__hand-head">
+        <h3 class="t-kicker">{{ t('combat.handTitle') }} · {{ (self?.hand || []).length }}</h3>
+        <p class="arena__hand-hint">{{ t('combat.handHint') }}</p>
+      </div>
+
       <CombatHand
         :cards="self?.hand || []"
         :selected-id="selectedId"
@@ -135,7 +184,7 @@ const outcomeKey = computed(() => {
       <div class="arena__actions">
         <button
           type="button"
-          class="btn-secondary text-xs"
+          class="btn-ghost"
           :disabled="busy || !canAct || !selectedId || self?.discardedForChakra"
           @click="emit('discard-chakra')"
         >
@@ -143,7 +192,7 @@ const outcomeKey = computed(() => {
         </button>
         <button
           type="button"
-          class="btn-primary text-xs"
+          class="btn-primary btn-lg"
           :disabled="busy || !canAct || !selectedId"
           data-testid="pvp-play-card"
           @click="emit('play-card')"
@@ -152,7 +201,7 @@ const outcomeKey = computed(() => {
         </button>
         <button
           type="button"
-          class="btn-primary text-xs"
+          class="btn-secondary btn-lg"
           :disabled="busy || !canAct"
           data-testid="pvp-end-turn"
           @click="emit('end-turn')"
@@ -161,112 +210,98 @@ const outcomeKey = computed(() => {
         </button>
       </div>
     </section>
+
+    <CombatLog class="arena__side" :logs="logs" />
   </div>
 </template>
 
 <style scoped>
-.arena {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  min-height: 28rem;
-  padding: 1rem 1rem 1.25rem;
-  border: 1px solid color-mix(in oklab, var(--color-ink, #1a1520) 12%, transparent);
-  background: color-mix(in oklab, var(--color-surface, #0f1419) 88%, #1a2830);
-  overflow: hidden;
-}
-.arena__bg {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(180, 90, 40, 0.18), transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(40, 90, 120, 0.2), transparent 55%);
-}
-.arena__top,
-.arena__enemy,
-.arena__player,
-.arena__hand-wrap,
-.arena__outcome {
-  position: relative;
-  z-index: 1;
-}
-.arena__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-.arena__turn {
-  font-size: 0.85rem;
-  color: var(--color-ink-muted, #9aa3ad);
-}
-.arena__role {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-}
-.badge {
-  padding: 0.15rem 0.5rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  font-weight: 600;
-}
-.badge--host {
-  background: color-mix(in oklab, #c45c26 35%, transparent);
-  color: #f3d4c0;
-}
-.badge--guest {
-  background: color-mix(in oklab, #2a6f8f 40%, transparent);
-  color: #c5e4f2;
-}
-.peer {
-  opacity: 0.7;
-}
-.peer--on {
-  opacity: 1;
-  color: #7dba6f;
-}
-.arena__label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-ink-muted, #9aa3ad);
-  margin-bottom: 0.35rem;
-}
-.arena__hand-hint {
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--color-ink-muted, #9aa3ad);
-}
-.arena__divider {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in oklab, #c45c26 50%, transparent),
-    transparent
-  );
-}
-.arena__log {
-  margin-top: 0.5rem;
-}
-.arena__actions {
+.pvp-top {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  align-items: flex-end;
+  gap: 0.75rem 1.5rem;
 }
-.arena__outcome {
-  text-align: center;
-  padding: 1rem;
-  background: color-mix(in oklab, #000 35%, transparent);
+
+.pvp-top__role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.2rem;
 }
-.arena__outcome-title {
-  font-size: 1.25rem;
+
+.peer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
+.peer .dot {
+  color: var(--color-line-strong);
+}
+
+.peer--on {
+  color: var(--color-leaf);
+}
+
+.peer--on .dot {
+  color: var(--color-leaf-fill);
+}
+
+.pvp-seat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.pvp-seat > :deep(.fighter) {
+  flex: 1;
+}
+
+.pvp-seat__hint {
+  padding: 0.5rem 1rem;
+  background: var(--color-vermilion-tint);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.pvp-outcome {
+  position: relative;
+  overflow: hidden;
+  padding: 1.75rem 1.5rem;
+  background: var(--tone-fill);
+  color: var(--tone-on);
+  animation: rise-in 480ms var(--ease-out-quint) both;
+}
+
+.pvp-outcome__shape {
+  position: absolute;
+  top: -3rem;
+  right: -2rem;
+  width: 10rem;
+  height: 10rem;
+  background: color-mix(in srgb, var(--tone-on) 14%, transparent);
+  transform: rotate(45deg);
+}
+
+.pvp-outcome__title {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 1.8rem + 4vw, 4.5rem);
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+}
+
+.pvp-outcome .btn-secondary {
+  position: relative;
+  background: #fffdf8;
+  color: var(--color-ink);
 }
 </style>

@@ -1082,7 +1082,9 @@
       "victory": "Victoire",
       "defeat": "Défaite",
       "forfeited": "Duel abandonné"
-    }
+    },
+    "rulesTitle": "Comment se déroule le duel",
+    "queueSection": "File d'attente"
   },
   "player": {
     "profileTitle": "Profil ninja",

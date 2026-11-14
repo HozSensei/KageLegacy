@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { usePvpStore } from '../stores/pvp'
 import { useDecksStore } from '../stores/decks'
+import PageHeader from '../components/ui/PageHeader.vue'
+import bridgeImage from '../assets/illustrations/stone-bridge.jpg'
 
 defineOptions({ name: 'PvpQueueView' })
 
@@ -75,78 +77,152 @@ async function onLeave() {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="pvp-queue-page">
-    <div>
-      <p class="page-kicker">{{ t('pvp.kicker') }}</p>
-      <h1 class="page-title mt-2">{{ t('pvp.queueTitle') }}</h1>
-      <p class="page-lead mt-3 max-w-xl">{{ t('pvp.queueLead') }}</p>
-    </div>
+  <div class="page-shell" data-testid="pvp-queue-page">
+    <PageHeader
+      index="09"
+      tone="vermilion"
+      :kicker="t('pvp.kicker')"
+      :title="t('pvp.queueTitle')"
+      :lead="t('pvp.queueLead')"
+      :image="bridgeImage"
+      image-position="50% 60%"
+    />
 
-    <div class="pvp-panel mt-8">
-      <p class="text-sm text-ink-muted">
-        {{ t('combat.activeDeck') }} :
-        <span class="text-accent">{{ activeDeckLabel }}</span>
-      </p>
+    <div class="pvp-layout">
+      <section class="pvp-panel" :class="{ 'pvp-panel--queued': pvp.queueStatus === 'queued' }">
+        <p class="t-kicker">{{ t('pvp.queueSection') }}</p>
 
-      <label class="mt-4 block text-sm">
-        <span class="text-ink-muted">{{ t('pvp.levelWindow') }}</span>
-        <select v-model.number="levelWindow" class="mt-1 block input-field" data-testid="pvp-window">
-          <option :value="3">± 3</option>
-          <option :value="5">± 5</option>
-        </select>
-      </label>
+        <p class="pvp-deck">
+          <span class="pvp-deck__label">{{ t('combat.activeDeck') }}</span>
+          <span class="pvp-deck__name">{{ activeDeckLabel }}</span>
+        </p>
 
-      <p class="mt-4 text-sm text-ink-muted">{{ t('pvp.hostExplain') }}</p>
+        <label class="field pvp-window">
+          <span class="field__label">{{ t('pvp.levelWindow') }}</span>
+          <select v-model.number="levelWindow" class="input-field" data-testid="pvp-window">
+            <option :value="3">± 3</option>
+            <option :value="5">± 5</option>
+          </select>
+        </label>
 
-      <p v-if="localError || pvp.error" class="mt-4 text-sm text-fire">
-        {{ localError || pvp.error }}
-      </p>
+        <p v-if="localError || pvp.error" class="alert alert--error mt-4">
+          {{ localError || pvp.error }}
+        </p>
 
-      <div class="mt-6 flex flex-wrap gap-3">
-        <button
-          v-if="pvp.queueStatus !== 'queued'"
-          type="button"
-          class="btn-primary"
-          data-testid="pvp-join-queue"
-          :disabled="joining || pvp.loading"
-          @click="onJoin"
-        >
-          {{ joining ? t('pvp.searching') : t('pvp.joinQueue') }}
-        </button>
-        <button
-          v-else
-          type="button"
-          class="btn-ghost"
-          data-testid="pvp-leave-queue"
-          @click="onLeave"
-        >
-          {{ t('pvp.leaveQueue') }}
-        </button>
-      </div>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button
+            v-if="pvp.queueStatus !== 'queued'"
+            type="button"
+            class="btn-primary btn-lg"
+            data-testid="pvp-join-queue"
+            :disabled="joining || pvp.loading"
+            @click="onJoin"
+          >
+            {{ joining ? t('pvp.searching') : t('pvp.joinQueue') }}
+          </button>
+          <button
+            v-else
+            type="button"
+            class="btn-ghost"
+            data-testid="pvp-leave-queue"
+            @click="onLeave"
+          >
+            {{ t('pvp.leaveQueue') }}
+          </button>
+        </div>
 
-      <p v-if="pvp.queueStatus === 'queued'" class="mt-4 text-accent" data-testid="pvp-waiting">
-        {{ t('pvp.waiting') }}
-        <span v-if="pvp.queue?.level"> — {{ t('pvp.yourLevel', { n: pvp.queue.level }) }}</span>
-      </p>
+        <p v-if="pvp.queueStatus === 'queued'" class="pvp-waiting" data-testid="pvp-waiting">
+          <span class="pvp-waiting__pulse" data-tone="indigo" aria-hidden="true" />
+          <span>
+            {{ t('pvp.waiting') }}
+            <span v-if="pvp.queue?.level"> — {{ t('pvp.yourLevel', { n: pvp.queue.level }) }}</span>
+          </span>
+        </p>
+      </section>
+
+      <aside class="pvp-rules">
+        <h2 class="t-kicker">{{ t('pvp.rulesTitle') }}</h2>
+        <p class="mt-3 leading-relaxed text-ink-muted">{{ t('pvp.hostExplain') }}</p>
+      </aside>
     </div>
   </div>
 </template>
 
 <style scoped>
-.pvp-panel {
-  max-width: 32rem;
-  padding: 1.25rem 1.35rem;
-  border: 1px solid color-mix(in oklab, var(--color-ink, #1a1520) 12%, transparent);
-  background:
-    linear-gradient(160deg, rgba(40, 55, 70, 0.35), rgba(20, 24, 30, 0.5)),
-    color-mix(in oklab, var(--color-surface, #12161c) 90%, transparent);
+.pvp-layout {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
 }
-.input-field {
-  width: 100%;
-  max-width: 10rem;
-  padding: 0.4rem 0.55rem;
-  background: color-mix(in oklab, #000 25%, transparent);
-  border: 1px solid color-mix(in oklab, #fff 12%, transparent);
-  color: inherit;
+
+@media (min-width: 900px) {
+  .pvp-layout {
+    grid-template-columns: minmax(0, 32rem) minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+  }
+}
+
+.pvp-panel {
+  padding: 1.5rem 1.5rem 1.6rem;
+  border-top: 6px solid var(--color-vermilion);
+  background: var(--color-bg-card);
+  transition: border-color var(--dur-base) ease;
+}
+
+.pvp-panel--queued {
+  border-top-color: var(--color-indigo);
+}
+
+.pvp-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 1rem;
+}
+
+.pvp-deck__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
+.pvp-deck__name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1.1;
+  color: var(--color-ink);
+}
+
+.pvp-window {
+  max-width: 11rem;
+  margin-top: 1.25rem;
+}
+
+.pvp-waiting {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-indigo-tint);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.pvp-waiting__pulse {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+  background: var(--color-indigo);
+  transform: rotate(45deg);
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+.pvp-rules {
+  max-width: 34rem;
+  padding-top: 0.25rem;
 }
 </style>
