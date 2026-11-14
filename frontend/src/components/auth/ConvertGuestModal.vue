@@ -43,40 +43,37 @@ async function submit() {
 <template>
   <div
     v-if="open"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-6"
+    class="modal-backdrop"
     @click.self="emit('close')"
   >
-    <form
-      class="w-full max-w-md border border-line bg-bg-card p-8"
-      @submit.prevent="submit"
-    >
-      <h2 class="font-display text-2xl text-ink">{{ t('guest.convertTitle') }}</h2>
-      <p class="mt-3 text-sm text-ink-muted">{{ t('guest.convertLead') }}</p>
+    <form class="modal-panel" @submit.prevent="submit">
+      <h2 class="t-heading">{{ t('guest.convertTitle') }}</h2>
+      <p class="mt-3 text-ink-muted">{{ t('guest.convertLead') }}</p>
 
       <div class="mt-6 space-y-4">
-        <label class="block text-sm">
-          <span class="text-ink-muted">{{ t('auth.username') }}</span>
-          <input v-model="username" type="text" required class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink" />
+        <label class="field">
+          <span class="field__label">{{ t('auth.username') }}</span>
+          <input v-model="username" type="text" required class="input-field" />
         </label>
-        <label class="block text-sm">
-          <span class="text-ink-muted">{{ t('guest.email') }}</span>
-          <input v-model="email" type="email" class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink" />
+        <label class="field">
+          <span class="field__label">{{ t('guest.email') }}</span>
+          <input v-model="email" type="email" class="input-field" />
         </label>
-        <label class="block text-sm">
-          <span class="text-ink-muted">{{ t('auth.senseiName') }}</span>
-          <input v-model="senseiName" type="text" class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink" />
+        <label class="field">
+          <span class="field__label">{{ t('auth.senseiName') }}</span>
+          <input v-model="senseiName" type="text" class="input-field" />
         </label>
-        <label class="block text-sm">
-          <span class="text-ink-muted">{{ t('auth.password') }}</span>
-          <input v-model="password" type="password" required minlength="6" class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink" />
+        <label class="field">
+          <span class="field__label">{{ t('auth.password') }}</span>
+          <input v-model="password" type="password" required minlength="6" class="input-field" />
         </label>
       </div>
 
-      <p v-if="error" class="mt-4 text-sm text-fire">{{ error }}</p>
+      <p v-if="error" class="alert alert--error mt-4">{{ error }}</p>
 
       <div class="mt-6 flex gap-3">
         <button type="button" class="btn-ghost flex-1" @click="emit('close')">{{ t('guest.later') }}</button>
-        <button type="submit" class="btn-ghost flex-1 border-accent text-accent" :disabled="saving">
+        <button type="submit" class="btn-primary flex-1" :disabled="saving">
           {{ saving ? t('auth.loading') : t('guest.convert') }}
         </button>
       </div>

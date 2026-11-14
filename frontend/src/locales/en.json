@@ -1205,7 +1205,12 @@
       "intelligence": "Intelligence",
       "dexterity": "Dexterity",
       "maxHp": "Max HP"
-    }
+    },
+    "levelWord": "Level",
+    "createKicker": "New ninja",
+    "actionsLabel": "Profile shortcuts",
+    "previewLabel": "Preview",
+    "previewNamePlaceholder": "Your ninja"
   },
   "league": {
     "bot": "bot",

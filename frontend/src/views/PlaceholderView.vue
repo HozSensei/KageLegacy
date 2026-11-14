@@ -15,15 +15,15 @@ const { t } = useI18n()
   <div class="page-shell" data-testid="placeholder-page">
     <p class="page-kicker">{{ t('placeholders.kicker') }}</p>
     <h1 class="page-title mt-3" data-testid="placeholder-title">{{ t(titleKey) }}</h1>
-    <p class="page-lead">{{ t('placeholders.comingSoon') }}</p>
-    <div class="mt-10 max-w-md border-l-2 border-line pl-5 text-sm leading-7 text-ink-faint">
-      {{ t('placeholders.devMilestone') }}
+    <p class="page-lead mt-3">{{ t('placeholders.comingSoon') }}</p>
+    <div class="panel panel--band mt-10 max-w-xl" data-tone="gold">
+      <p class="leading-relaxed text-ink">{{ t('placeholders.devMilestone') }}</p>
+      <p class="mt-3 text-sm text-ink-muted">{{ t('placeholders.alphaHint') }}</p>
     </div>
-    <p class="mt-8 text-sm text-ink-muted">{{ t('placeholders.alphaHint') }}</p>
-    <div class="mt-5 flex flex-wrap gap-3">
-      <RouterLink to="/home" class="btn-primary text-xs">{{ t('placeholders.backHome') }}</RouterLink>
-      <RouterLink to="/missions" class="btn-ghost text-xs">{{ t('nav.missions') }}</RouterLink>
-      <RouterLink to="/talents" class="btn-ghost text-xs">{{ t('nav.talents') }}</RouterLink>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <RouterLink to="/home" class="btn-primary">{{ t('placeholders.backHome') }}</RouterLink>
+      <RouterLink to="/missions" class="btn-ghost">{{ t('nav.missions') }}</RouterLink>
+      <RouterLink to="/talents" class="btn-ghost">{{ t('nav.talents') }}</RouterLink>
     </div>
   </div>
 </template>

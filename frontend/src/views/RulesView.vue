@@ -3,6 +3,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import AppIcon from '../components/ui/AppIcon.vue'
+import BrandMark from '../components/ui/BrandMark.vue'
 import { renderMarkdown } from '../utils/renderMarkdown.js'
 import { addHeadingAnchors, parseRulesNav } from '../utils/parseRulesDoc.js'
 import rulesFr from '../content/rules.fr.md?raw'
@@ -93,26 +95,31 @@ onUnmounted(() => observer?.disconnect())
 </script>
 
 <template>
-  <div class="rules-layout min-h-screen bg-bg" data-testid="rules-page">
-    <header class="rules-layout__header sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-md">
-      <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-8">
+  <div class="rules-layout" data-testid="rules-page">
+    <header class="rules-layout__header">
+      <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-2.5 sm:px-8">
         <button
           type="button"
-          class="btn-ghost text-[10px]"
+          class="btn-ghost btn-sm"
           data-testid="rules-back"
           @click="goBack"
         >
-          ← {{ auth.user ? t('rules.backToGame') : t('rules.backHome') }}
+          <AppIcon name="arrow-left" size="1rem" />
+          {{ auth.user ? t('rules.backToGame') : t('rules.backHome') }}
         </button>
 
-        <p class="hidden font-display text-lg text-ink sm:block">{{ t('rules.pageTitle') }}</p>
+        <p class="rules-layout__title">
+          <BrandMark size="1.5rem" />
+          {{ t('rules.pageTitle') }}
+        </p>
 
         <button
           type="button"
-          class="btn-ghost ml-auto text-[10px] lg:hidden"
+          class="btn-ghost btn-sm ml-auto lg:hidden"
           data-testid="rules-sidebar-toggle"
           @click="sidebarOpen = !sidebarOpen"
         >
+          <AppIcon name="menu" size="1rem" />
           {{ t('rules.menu') }}
         </button>
       </div>

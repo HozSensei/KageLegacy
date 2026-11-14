@@ -27,11 +27,11 @@ async function onSpecialize(spec) {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="profile-page">
-    <p v-if="player.loading && !player.character" class="text-sm text-ink-muted">
+  <div class="page-shell" data-testid="profile-page">
+    <p v-if="player.loading && !player.character" class="text-ink-muted">
       {{ t('common.loading') }}
     </p>
-    <p v-else-if="player.error" class="text-sm text-fire" data-testid="profile-error">
+    <p v-else-if="player.error" class="alert alert--error" data-testid="profile-error">
       {{ player.error }}
     </p>
     <PlayerProfile
