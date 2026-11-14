@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS card_definitions (
   INDEX idx_card_stat_type (stat_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Collection du joueur (une ligne par définition ; quantity = copies)
+-- Collection du joueur (une ligne par définition, quantity = copies)
 CREATE TABLE IF NOT EXISTS user_card_collection (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
