@@ -25,7 +25,7 @@ function reset() {
 
 async function runReveal() {
   reset()
-  if (!props.active || !props.value.length) return
+  if (!props.active || !props.cards.length) return
 
   for (let i = 0; i < props.cards.length; i += 1) {
     await new Promise((r) => setTimeout(r, 280 + i * 40))
