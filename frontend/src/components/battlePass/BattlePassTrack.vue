@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../ui/AppIcon.vue'
 
 defineOptions({ name: 'BattlePassTrack' })
 
@@ -60,46 +61,55 @@ function statusClass(tier) {
 </script>
 
 <template>
-  <div class="bp-track" :data-track="trackType" data-testid="battle-pass-track">
+  <div
+    class="bp-track"
+    :data-track="trackType"
+    :data-tone="isPremiumTrack ? 'gold' : 'indigo'"
+    data-testid="battle-pass-track"
+  >
     <header class="bp-track__head">
-      <h2 class="font-display text-xl text-ink">
+      <h2 class="t-subheading">
         {{ isPremiumTrack ? t('battlePass.premiumTrack') : t('battlePass.freeTrack') }}
       </h2>
-      <p class="text-sm text-ink-muted mt-1">
+      <p class="mt-1 text-ink-muted">
         {{
           isPremiumTrack ? t('battlePass.premiumTrackLead') : t('battlePass.freeTrackLead')
         }}
       </p>
     </header>
 
-    <ol class="bp-track__list mt-6">
+    <ol class="bp-track__list">
       <li
         v-for="tier in track"
         :key="`${trackType}-${tier.level}`"
         class="bp-tier"
         :class="[
           statusClass(tier),
-          { 'bp-tier--current': tier.level === currentLevel },
+          { 'bp-tier--current': tier.level === currentLevel, 'bp-tier--passed': tier.level <= currentLevel },
         ]"
       >
-        <div class="bp-tier__level font-display">{{ tier.level }}</div>
+        <div class="bp-tier__marker">
+          <span class="bp-tier__level">{{ tier.level }}</span>
+        </div>
         <div class="bp-tier__body">
           <p class="bp-tier__rewards">{{ tierRewards(tier) || t('battlePass.noReward') }}</p>
-          <p class="bp-tier__meta text-ink-faint">
+          <p class="bp-tier__meta">
             {{ t('battlePass.xpNeeded', { n: tier.xpNeeded }) }}
           </p>
         </div>
         <div class="bp-tier__action">
           <span v-if="tier.claimed" class="bp-badge bp-badge--done">
+            <AppIcon name="check" size="0.95rem" :stroke-width="2.5" />
             {{ t('battlePass.claimed') }}
           </span>
           <span v-else-if="tier.locked" class="bp-badge bp-badge--locked">
+            <AppIcon name="lock" size="0.9rem" />
             {{ t('battlePass.premiumLocked') }}
           </span>
           <button
             v-else-if="tier.claimable"
             type="button"
-            class="btn-primary text-[10px]"
+            class="btn-primary btn-sm"
             :disabled="busy"
             :data-testid="`claim-${trackType}-${tier.level}`"
             @click="emit('claim', { level: tier.level, track: trackType })"
@@ -107,7 +117,10 @@ function statusClass(tier) {
             {{ t('battlePass.claim') }}
           </button>
           <span v-else-if="tier.reached" class="bp-badge">{{ t('battlePass.reached') }}</span>
-          <span v-else class="bp-badge bp-badge--locked">{{ t('battlePass.locked') }}</span>
+          <span v-else class="bp-badge bp-badge--locked">
+            <AppIcon name="lock" size="0.9rem" />
+            {{ t('battlePass.locked') }}
+          </span>
         </div>
       </li>
     </ol>
@@ -116,97 +129,151 @@ function statusClass(tier) {
 
 <style scoped>
 .bp-track__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
-  gap: 0.5rem;
-  max-height: 28rem;
+  max-height: 30rem;
+  margin: 1.25rem 0 0;
+  padding: 0 0.5rem 0 0;
   overflow-y: auto;
-  padding-right: 0.25rem;
+  list-style: none;
 }
 
 .bp-tier {
+  position: relative;
   display: grid;
-  grid-template-columns: 2.75rem 1fr auto;
-  gap: 0.75rem;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  gap: 0.9rem;
   align-items: center;
-  padding: 0.65rem 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--kl-line-mix) 18%, transparent);
-  transition: background 180ms ease, transform 180ms ease;
+  min-height: 4rem;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  transition: background var(--dur-base) ease;
 }
 
-.bp-tier--claimable {
-  background: color-mix(in srgb, var(--kl-accent) 10%, transparent);
+/* Rail vertical : un segment par palier, plein jusqu'au niveau atteint. */
+.bp-tier__marker {
+  position: relative;
+  display: grid;
+  align-self: stretch;
+  place-items: center;
 }
 
-.bp-tier--current {
-  box-shadow: inset 2px 0 0 var(--kl-accent);
+.bp-tier__marker::before {
+  content: '';
+  position: absolute;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  left: 50%;
+  width: 4px;
+  background: var(--color-line);
+  transform: translateX(-50%);
+  transition: background var(--dur-slow) ease;
 }
 
-.bp-tier--claimed {
-  opacity: 0.72;
+.bp-tier:first-child .bp-tier__marker::before {
+  top: 50%;
 }
 
-.bp-tier--locked {
-  opacity: 0.55;
+.bp-tier:last-child .bp-tier__marker::before {
+  bottom: 50%;
+}
+
+.bp-tier--passed .bp-tier__marker::before {
+  background: var(--tone-fill);
 }
 
 .bp-tier__level {
+  position: relative;
+  display: grid;
   width: 2.5rem;
   height: 2.5rem;
-  display: grid;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--kl-accent) 45%, transparent);
-  color: var(--kl-accent);
-  font-size: 1.05rem;
+  background: var(--color-bg);
+  box-shadow: inset 0 0 0 2px var(--color-line-strong);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+  transition:
+    background var(--dur-slow) ease,
+    color var(--dur-slow) ease,
+    box-shadow var(--dur-slow) ease;
+}
+
+.bp-track[data-track='premium'] .bp-tier__level {
+  border-radius: 999px;
+}
+
+.bp-tier--passed .bp-tier__level {
+  background: var(--tone-fill);
+  box-shadow: none;
+  color: var(--tone-on);
+}
+
+.bp-tier--current {
+  background: var(--color-bg-card);
+}
+
+.bp-tier--current .bp-tier__level {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+}
+
+.bp-tier--claimable {
+  background: var(--tone-tint);
 }
 
 .bp-tier--claimable .bp-tier__level {
-  background: color-mix(in srgb, var(--kl-accent) 18%, transparent);
-  animation: bp-pulse 1.8s ease-in-out infinite;
+  animation: pulse-ring 1.8s ease-out infinite;
 }
 
 .bp-tier__rewards {
-  font-size: 0.85rem;
-  color: var(--kl-ink);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-ink);
 }
 
 .bp-tier__meta {
-  font-size: 0.7rem;
-  margin-top: 0.15rem;
+  margin-top: 0.1rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
+.bp-tier--locked .bp-tier__rewards {
+  font-weight: 500;
+  color: var(--color-ink-muted);
 }
 
 .bp-badge {
-  font-size: 0.65rem;
-  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--kl-ink-muted);
+  color: var(--color-ink-muted);
 }
 
 .bp-badge--done {
-  color: var(--kl-win);
+  color: var(--color-leaf);
 }
 
 .bp-badge--locked {
-  color: var(--kl-ink-faint);
+  font-weight: 600;
+  color: var(--color-ink-faint);
 }
 
-@keyframes bp-pulse {
-  0%,
-  100% {
-    transform: scale(1);
+@media (max-width: 479px) {
+  .bp-tier {
+    grid-template-columns: 3rem minmax(0, 1fr);
   }
-  50% {
-    transform: scale(1.06);
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .bp-tier,
-  .bp-tier--claimable .bp-tier__level {
-    animation: none;
-    transition: none;
+  .bp-tier__action {
+    grid-column: 2;
+    margin-top: -0.4rem;
   }
 }
 </style>

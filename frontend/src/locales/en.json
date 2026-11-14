@@ -1151,7 +1151,10 @@
       "card_back": "card back",
       "emote": "emote",
       "card_effect": "card effect"
-    }
+    },
+    "levelLabel": "Level",
+    "tracksLabel": "Reward tracks",
+    "questsTitle": "Quests"
   },
   "player": {
     "profileTitle": "Ninja profile",

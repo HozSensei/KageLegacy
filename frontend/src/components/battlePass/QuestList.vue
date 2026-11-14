@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../ui/AppIcon.vue'
 
 defineOptions({ name: 'QuestList' })
 
@@ -26,32 +27,42 @@ function pct(quest) {
 
 <template>
   <section class="bp-quests" data-testid="quest-list">
-    <h2 class="font-display text-xl text-ink">{{ title }}</h2>
-    <p v-if="!quests.length" class="mt-3 text-sm text-ink-muted">{{ t('battlePass.noQuests') }}</p>
+    <div class="section-head">
+      <h2 class="section-head__title">{{ title }}</h2>
+      <span class="section-head__rule" aria-hidden="true" />
+    </div>
+    <p v-if="!quests.length" class="mt-3 text-ink-muted">{{ t('battlePass.noQuests') }}</p>
 
-    <ul class="mt-4 space-y-3">
+    <ul class="bp-quests__list">
       <li
         v-for="quest in quests"
         :key="quest.id"
         class="bp-quest"
+        :class="{
+          'bp-quest--ready': quest.progress?.isCompleted && !quest.progress?.isClaimed,
+          'bp-quest--done': quest.progress?.isClaimed,
+        }"
+        :data-tone="quest.progress?.isCompleted ? 'leaf' : 'gold'"
         :data-testid="`quest-${quest.questKey}`"
       >
-        <div class="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <p class="text-sm text-ink">{{ description(quest, locale) }}</p>
-            <p class="mt-1 text-xs text-ink-muted">
-              {{ t('battlePass.questProgress', {
-                current: quest.progress?.current || 0,
-                goal: quest.goalValue,
-              }) }}
-              · {{ t('battlePass.questXp', { n: quest.xpReward }) }}
+        <div class="bp-quest__main">
+          <div class="min-w-0">
+            <p class="bp-quest__desc">{{ description(quest, locale) }}</p>
+            <p class="bp-quest__meta">
+              <span class="bp-quest__count">
+                {{ t('battlePass.questProgress', {
+                  current: quest.progress?.current || 0,
+                  goal: quest.goalValue,
+                }) }}
+              </span>
+              <span class="badge">{{ t('battlePass.questXp', { n: quest.xpReward }) }}</span>
             </p>
           </div>
-          <div class="flex gap-2">
+          <div class="bp-quest__action">
             <button
               v-if="!quest.progress?.isCompleted"
               type="button"
-              class="btn-ghost text-[10px]"
+              class="btn-ghost btn-sm"
               :disabled="busy"
               @click="emit('stub-progress', quest)"
             >
@@ -60,20 +71,21 @@ function pct(quest) {
             <button
               v-else-if="!quest.progress?.isClaimed"
               type="button"
-              class="btn-primary text-[10px]"
+              class="btn-primary btn-sm"
               :disabled="busy"
               :data-testid="`claim-quest-${quest.id}`"
               @click="emit('claim', quest.id)"
             >
               {{ t('battlePass.claimQuest') }}
             </button>
-            <span v-else class="text-[10px] uppercase tracking-wide text-win">
+            <span v-else class="bp-quest__claimed">
+              <AppIcon name="check" size="0.95rem" :stroke-width="2.5" />
               {{ t('battlePass.claimed') }}
             </span>
           </div>
         </div>
-        <div class="bp-quest__bar mt-3" aria-hidden="true">
-          <span class="bp-quest__fill" :style="{ width: `${pct(quest)}%` }" />
+        <div class="meter meter--thin" aria-hidden="true">
+          <span class="meter__fill" :style="{ width: `${pct(quest)}%` }" />
         </div>
       </li>
     </ul>
@@ -81,27 +93,66 @@ function pct(quest) {
 </template>
 
 <style scoped>
+.bp-quests__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
 .bp-quest {
-  padding: 0.85rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--kl-line-mix) 16%, transparent);
+  padding: 0.9rem 0 1rem;
 }
 
-.bp-quest__bar {
-  height: 3px;
-  background: color-mix(in srgb, var(--kl-line-mix) 22%, transparent);
-  overflow: hidden;
+.bp-quest + .bp-quest {
+  border-top: 1px solid var(--color-line);
 }
 
-.bp-quest__fill {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--kl-accent), color-mix(in srgb, var(--kl-fire) 55%, var(--kl-accent)));
-  transition: width 320ms ease;
+.bp-quest__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.7rem;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bp-quest__fill {
-    transition: none;
-  }
+.bp-quest__desc {
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-ink);
+}
+
+.bp-quest__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.3rem;
+}
+
+.bp-quest__count {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.bp-quest__claimed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-leaf);
+}
+
+.bp-quest--done .bp-quest__desc {
+  font-weight: 500;
+  color: var(--color-ink-muted);
 }
 </style>

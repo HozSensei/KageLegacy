@@ -1898,6 +1898,9 @@
       "card_back": "dos de carte",
       "emote": "emote",
       "card_effect": "effet de carte"
-    }
+    },
+    "levelLabel": "Niveau",
+    "tracksLabel": "Pistes de récompenses",
+    "questsTitle": "Quêtes"
   }
 }
