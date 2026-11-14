@@ -1,6 +1,8 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../ui/AppIcon.vue'
+import { talentBranchTone, talentNodeShape } from '../../utils/talentVisuals'
 
 defineOptions({ name: 'TalentTreeCanvas' })
 
@@ -48,7 +50,11 @@ const transformStyle = computed(() => ({
   transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
   width: `${worldW.value}px`,
   height: `${worldH.value}px`,
+  /* Les libellés restent lisibles quel que soit le zoom. */
+  '--label-scale': Math.min(2, Math.max(1, 1 / scale.value)).toFixed(3),
 }))
+
+const zoomedOut = computed(() => scale.value < 0.7)
 
 function toLocal(n) {
   return {
@@ -56,6 +62,27 @@ function toLocal(n) {
     y: n.positionY - bounds.value.minY,
   }
 }
+
+/* Nœud tout juste débloqué : sert uniquement à jouer l'animation d'éclat. */
+const burstId = ref(null)
+let burstTimer = null
+
+watch(
+  () => props.unlockedSet,
+  (next, prev) => {
+    if (!prev || !next || next.size !== prev.size + 1) return
+    for (const id of next) {
+      if (!prev.has(id)) {
+        burstId.value = id
+        if (burstTimer) clearTimeout(burstTimer)
+        burstTimer = setTimeout(() => {
+          burstId.value = null
+        }, 900)
+        break
+      }
+    }
+  }
+)
 
 function nodeClass(node) {
   const unlocked = props.unlockedSet.has(node.nodeId)
@@ -68,6 +95,7 @@ function nodeClass(node) {
     unlocked && 'is-unlocked',
     unlockable && 'is-unlockable',
     selected && 'is-selected',
+    burstId.value === node.nodeId && 'is-burst',
   ]
 }
 
@@ -93,14 +121,18 @@ function onPointerDown(e) {
   dragging.value = true
   didDrag.value = false
   lastPointer.value = { x: e.clientX, y: e.clientY }
-  viewport.value?.setPointerCapture?.(e.pointerId)
 }
 
 function onPointerMove(e) {
   if (!dragging.value) return
   const dx = e.clientX - lastPointer.value.x
   const dy = e.clientY - lastPointer.value.y
-  if (Math.abs(dx) + Math.abs(dy) > 3) didDrag.value = true
+  if (!didDrag.value && Math.abs(dx) + Math.abs(dy) > 3) {
+    didDrag.value = true
+    /* Capture seulement une fois le glissement engagé : capturer dès l'appui
+       redirige le clic vers le canevas et empêche de sélectionner un nœud. */
+    viewport.value?.setPointerCapture?.(e.pointerId)
+  }
   panX.value += dx
   panY.value += dy
   lastPointer.value = { x: e.clientX, y: e.clientY }
@@ -130,10 +162,17 @@ function centerView() {
   const el = viewport.value
   if (!el) return
   const rect = el.getBoundingClientRect()
-  scale.value = 0.85
+  const fit = Math.min(rect.width / worldW.value, rect.height / worldH.value)
+  scale.value = Math.min(0.85, Math.max(0.45, fit))
   panX.value = rect.width / 2 - (worldW.value * scale.value) / 2
   panY.value = rect.height / 2 - (worldH.value * scale.value) / 2
 }
+
+/* L'arbre arrive après le montage (ou change avec le filtre) : on recadre la vue. */
+watch(
+  () => props.nodes.length,
+  () => nextTick(centerView)
+)
 
 function zoomIn() {
   scale.value = Math.min(2.2, scale.value * 1.15)
@@ -149,20 +188,35 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', centerView)
+  if (burstTimer) clearTimeout(burstTimer)
 })
 
 defineExpose({ centerView, zoomIn, zoomOut })
 </script>
 
 <template>
-  <div class="talent-canvas-wrap">
+  <div class="talent-canvas-wrap" :class="{ 'talent-canvas-wrap--far': zoomedOut }">
     <div class="talent-canvas-toolbar">
-      <button type="button" class="btn-ghost text-[10px]" @click="zoomOut">−</button>
-      <button type="button" class="btn-ghost text-[10px]" @click="centerView">
+      <button type="button" class="talent-tool" :aria-label="t('talents.zoomOut')" @click="zoomOut">
+        <AppIcon name="minus" size="1rem" :stroke-width="2.25" />
+      </button>
+      <button type="button" class="talent-tool talent-tool--text" @click="centerView">
         {{ t('talents.resetView') }}
       </button>
-      <button type="button" class="btn-ghost text-[10px]" @click="zoomIn">+</button>
+      <button type="button" class="talent-tool" :aria-label="t('talents.zoomIn')" @click="zoomIn">
+        <AppIcon name="plus" size="1rem" :stroke-width="2.25" />
+      </button>
     </div>
+
+    <ul class="talent-legend" aria-hidden="true">
+      <li><span class="talent-legend__shape talent-legend__shape--stat" />{{ t('talents.types.stat') }}</li>
+      <li><span class="talent-legend__shape talent-legend__shape--notable" />{{ t('talents.types.notable') }}</li>
+      <li><span class="talent-legend__shape talent-legend__shape--keystone" />{{ t('talents.types.keystone') }}</li>
+      <li class="talent-legend__sep" />
+      <li><span class="talent-legend__state" />{{ t('talents.legendLocked') }}</li>
+      <li><span class="talent-legend__state talent-legend__state--open" />{{ t('talents.legendUnlockable') }}</li>
+      <li><span class="talent-legend__state talent-legend__state--on" />{{ t('talents.legendUnlocked') }}</li>
+    </ul>
 
     <div
       ref="viewport"
@@ -202,12 +256,13 @@ defineExpose({ centerView, zoomIn, zoomOut })
             top: `${toLocal(node).y}px`,
           }"
           :title="nodeLabel(node)"
+          :data-tone="talentBranchTone(node.branch)"
           :data-testid="`talent-node-${node.nodeId}`"
           :data-node-id="node.nodeId"
           @click="onNodeClick(node, $event)"
           @dblclick="onNodeDblClick(node, $event)"
         >
-          <span class="talent-node__icon">{{ node.icon || '·' }}</span>
+          <span class="talent-node__icon" :class="`talent-node__icon--${talentNodeShape(node.type)}`" />
           <span class="talent-node__label">{{ nodeLabel(node) }}</span>
         </button>
       </div>
@@ -219,20 +274,12 @@ defineExpose({ centerView, zoomIn, zoomOut })
 .talent-canvas-wrap {
   position: relative;
   min-height: 28rem;
-  height: min(70vh, 40rem);
-  border: 1px solid color-mix(in srgb, var(--color-line, #3a4a40) 70%, transparent);
-  background:
-    radial-gradient(
-      ellipse at 50% 40%,
-      color-mix(in srgb, var(--color-accent, #c9a66b) 8%, transparent),
-      transparent 55%
-    ),
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--color-void, #0a0e0c) 90%, #1a221c),
-      color-mix(in srgb, var(--color-panel, #151a17) 95%, #0d1210)
-    );
+  height: min(72vh, 44rem);
   overflow: hidden;
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-card);
+  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 14%, transparent) 1px, transparent 1.5px);
+  background-size: 22px 22px;
 }
 
 .talent-canvas-toolbar {
@@ -241,7 +288,89 @@ defineExpose({ centerView, zoomIn, zoomOut })
   right: 0.75rem;
   z-index: 5;
   display: flex;
-  gap: 0.35rem;
+  gap: 2px;
+}
+
+.talent-tool {
+  display: grid;
+  place-items: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  background: var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fffdf8;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.talent-tool--text {
+  padding: 0 0.85rem;
+}
+
+.talent-tool:hover {
+  background: var(--color-vermilion);
+}
+
+.talent-legend {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.85rem;
+  max-width: calc(100% - 1.5rem);
+  margin: 0;
+  padding: 0.45rem 0.7rem;
+  list-style: none;
+  background: var(--color-bg);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+  pointer-events: none;
+}
+
+.talent-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.talent-legend__sep {
+  width: 1px;
+  height: 0.9rem;
+  background: var(--color-line-strong);
+}
+
+.talent-legend__shape,
+.talent-legend__state {
+  width: 0.7rem;
+  height: 0.7rem;
+  background: var(--color-ink);
+}
+
+.talent-legend__shape--stat {
+  border-radius: 50%;
+}
+
+.talent-legend__shape--keystone {
+  transform: rotate(45deg) scale(0.85);
+}
+
+.talent-legend__state {
+  border-radius: 50%;
+  background: var(--color-bg-card);
+  box-shadow: inset 0 0 0 2px var(--color-line-strong);
+}
+
+.talent-legend__state--open {
+  box-shadow: inset 0 0 0 2px var(--color-vermilion);
+}
+
+.talent-legend__state--on {
+  background: var(--color-vermilion);
+  box-shadow: none;
 }
 
 .talent-canvas {
@@ -270,140 +399,192 @@ defineExpose({ centerView, zoomIn, zoomOut })
 }
 
 .talent-edge {
-  stroke: color-mix(in srgb, var(--color-line, #3a4a40) 55%, transparent);
+  stroke: color-mix(in srgb, var(--color-ink) 22%, transparent);
   stroke-width: 2;
+  transition:
+    stroke var(--dur-slow) ease,
+    stroke-width var(--dur-slow) ease;
 }
 
 .talent-edge.is-partial {
-  stroke: color-mix(in srgb, var(--color-accent, #c9a66b) 45%, transparent);
-  stroke-dasharray: 4 4;
+  stroke: var(--color-ink-muted);
+  stroke-dasharray: 5 5;
 }
 
 .talent-edge.is-active {
-  stroke: color-mix(in srgb, var(--color-accent, #c9a66b) 85%, #fff);
-  stroke-width: 2.5;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-accent, #c9a66b) 40%, transparent));
+  stroke: var(--color-ink);
+  stroke-width: 3.5;
 }
+
+/* ——— Nœuds : forme = type, couleur = branche, remplissage = état ——— */
 
 .talent-node {
   position: absolute;
-  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.35rem;
   min-width: 2.2rem;
   padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-ink-muted, #8a9a8e);
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    color 0.18s ease;
+  color: var(--color-ink-muted);
+  transform: translate(-50%, -50%);
 }
 
 .talent-node__icon {
-  display: grid;
-  place-items: center;
-  width: 1.65rem;
-  height: 1.65rem;
-  border: 1px solid color-mix(in srgb, var(--color-line, #3a4a40) 80%, transparent);
-  background: color-mix(in srgb, var(--color-panel, #151a17) 90%, transparent);
-  font-size: 0.75rem;
-  line-height: 1;
+  position: relative;
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2.5px solid color-mix(in srgb, var(--tone-fill) 55%, var(--color-bg-card));
+  background: var(--color-bg-card);
   transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease;
+    background-color var(--dur-base) ease,
+    border-color var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out-quint);
 }
 
-.talent-node--notable .talent-node__icon {
+.talent-node__icon--circle {
+  border-radius: 50%;
+}
+
+.talent-node__icon--square {
   width: 2.1rem;
   height: 2.1rem;
-  border-radius: 2px;
 }
 
-.talent-node--keystone .talent-node__icon {
-  width: 2.6rem;
-  height: 2.6rem;
-  border-width: 2px;
-  border-color: color-mix(in srgb, var(--color-accent, #c9a66b) 70%, transparent);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+.talent-node__icon--lozenge {
+  width: 2.35rem;
+  height: 2.35rem;
+  margin: 0.45rem;
+  border-width: 3px;
+  transform: rotate(45deg);
+}
+
+.talent-node:hover .talent-node__icon {
+  border-color: var(--tone-fill);
+  transform: scale(1.14);
+}
+
+.talent-node:hover .talent-node__icon--lozenge {
+  transform: rotate(45deg) scale(1.14);
 }
 
 .talent-node__label {
-  max-width: 7rem;
-  font-size: 0.58rem;
+  max-width: 7.5rem;
+  padding: 0.05rem 0.25rem;
+  transform: scale(var(--label-scale, 1));
+  transform-origin: top center;
+  background: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
+  font-size: 0.6875rem;
+  font-weight: 600;
   line-height: 1.15;
   text-align: center;
-  opacity: 0.75;
+  color: var(--color-ink-muted);
   pointer-events: none;
 }
 
-.talent-node.is-unlocked {
-  color: var(--color-ink, #e8ece9);
+/* Les nœuds de stat n'affichent leur nom qu'au survol ou à la sélection */
+.talent-node--stat .talent-node__label {
+  position: absolute;
+  top: 100%;
+  width: max-content;
+  opacity: 0;
+  transition: opacity var(--dur-fast) ease;
 }
 
-.talent-node.is-unlocked .talent-node__icon {
-  border-color: var(--color-accent, #c9a66b);
-  background: color-mix(in srgb, var(--color-accent, #c9a66b) 22%, var(--color-panel, #151a17));
-  color: var(--color-accent, #c9a66b);
+.talent-node--stat:hover,
+.talent-node--stat.is-selected {
+  z-index: 3;
+}
+
+.talent-node--stat:hover .talent-node__label,
+.talent-node--stat.is-selected .talent-node__label {
+  opacity: 1;
+}
+
+.talent-node--keystone .talent-node__label {
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-ink);
 }
 
 .talent-node.is-unlockable .talent-node__icon {
-  border-color: color-mix(in srgb, var(--color-moss, #8fad9a) 80%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-moss, #8fad9a) 35%, transparent);
-  animation: unlockable-glow 1.8s ease-in-out infinite;
+  border-color: var(--tone-fill);
+  background: var(--tone-tint);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.talent-node.is-unlockable .talent-node__label {
+  color: var(--color-ink);
+}
+
+.talent-node.is-unlocked .talent-node__icon {
+  border-color: var(--tone-fill);
+  background: var(--tone-fill);
+}
+
+.talent-node.is-unlocked .talent-node__label {
+  color: var(--color-ink);
 }
 
 .talent-node.is-selected {
-  z-index: 2;
-  transform: translate(-50%, -50%) scale(1.08);
+  z-index: 4;
+}
+
+.talent-node.is-selected .talent-node__icon {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
 }
 
 .talent-node.is-selected .talent-node__label {
-  opacity: 1;
-  color: var(--color-ink, #e8ece9);
+  background: var(--color-ink);
+  color: #fffdf8;
 }
 
-.talent-node--taijutsu.is-unlocked .talent-node__icon {
-  border-color: #c97d5d;
-  color: #d49a5c;
+/* Vue d'ensemble : seuls les nœuds majeurs, accessibles ou sélectionnés gardent leur nom */
+.talent-canvas-wrap--far .talent-node--notable:not(.is-selected, .is-unlockable, :hover) .talent-node__label {
+  opacity: 0;
 }
 
-.talent-node--ninjutsu.is-unlocked .talent-node__icon {
-  border-color: #8eb4d4;
-  color: #8eb4d4;
+/* Éclat au déblocage */
+.talent-node.is-burst .talent-node__icon::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 3px solid var(--tone-fill);
+  border-radius: inherit;
+  animation: talent-burst 800ms var(--ease-out-quint) both;
 }
 
-.talent-node--genjutsu.is-unlocked .talent-node__icon {
-  border-color: #9eb0bc;
-  color: #9eb0bc;
+.talent-node.is-burst .talent-node__icon--circle,
+.talent-node.is-burst .talent-node__icon--square {
+  animation: pop-in 520ms var(--ease-out-quint) both;
 }
 
-.talent-node--medicine.is-unlocked .talent-node__icon {
-  border-color: #8fad9a;
-  color: #8fad9a;
-}
-
-@keyframes unlockable-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-moss, #8fad9a) 30%, transparent);
+@keyframes talent-burst {
+  from {
+    opacity: 1;
+    transform: scale(1);
   }
-  50% {
-    box-shadow: 0 0 10px 2px color-mix(in srgb, var(--color-moss, #8fad9a) 40%, transparent);
+  to {
+    opacity: 0;
+    transform: scale(2.6);
   }
 }
 
 @media (max-width: 640px) {
   .talent-canvas-wrap {
     min-height: 22rem;
-    height: 55vh;
+    height: 58vh;
   }
 
-  .talent-node__label {
+  .talent-node--notable .talent-node__label {
+    display: none;
+  }
+
+  .talent-legend__sep,
+  .talent-legend__sep ~ li {
     display: none;
   }
 }

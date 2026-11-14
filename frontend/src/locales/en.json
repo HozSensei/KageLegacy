@@ -912,7 +912,15 @@
       "intelligence": "Intelligence",
       "dexterity": "Dexterity",
       "maxHp": "Max HP"
-    }
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "legendLocked": "Locked",
+    "legendUnlockable": "Available",
+    "legendUnlocked": "Unlocked",
+    "filterLabel": "Branch",
+    "selectedNone": "Select a node to see its effect.",
+    "nodeUnlocked": "Unlocked"
   },
   "combat": {
     "kicker": "Arena",

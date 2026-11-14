@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n'
 import TalentTreeCanvas from '../components/talents/TalentTreeCanvas.vue'
 import TalentSidebar from '../components/talents/TalentSidebar.vue'
 import RespecModal from '../components/talents/RespecModal.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import { talentBranchTone } from '../utils/talentVisuals'
 import { useTalentTreeStore } from '../stores/talentTree'
 
 defineOptions({ name: 'TalentTreeView' })
@@ -57,34 +59,39 @@ function onSelect(nodeId) {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="talent-tree-page">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p class="page-kicker">{{ t('talents.kicker') }}</p>
-        <h1 class="page-title mt-2">{{ t('talents.title') }}</h1>
-        <p class="page-lead mt-3 max-w-xl">{{ t('talents.lead') }}</p>
-      </div>
+  <div class="page-shell" data-testid="talent-tree-page">
+    <PageHeader
+      index="03"
+      tone="leaf"
+      :kicker="t('talents.kicker')"
+      :title="t('talents.title')"
+      :lead="t('talents.lead')"
+    />
 
-      <div class="flex flex-wrap gap-2">
+    <div class="talent-filter" role="group" :aria-label="t('talents.filterLabel')">
+      <span class="t-kicker">{{ t('talents.filterLabel') }}</span>
+      <div class="chip-row">
         <button
           v-for="branch in BRANCHES"
           :key="branch || 'all'"
           type="button"
-          class="btn-ghost text-[10px]"
-          :class="{ 'ring-1 ring-accent/60': store.branchFilter === branch }"
+          class="chip"
+          :aria-pressed="store.branchFilter === branch"
+          :data-tone="branch ? talentBranchTone(branch) : 'neutral'"
           @click="store.setBranchFilter(branch)"
         >
+          <span v-if="branch" class="dot chip__mark" aria-hidden="true" />
           {{ branch ? t(`talents.branches.${branch}`) : t('talents.branchAll') }}
         </button>
       </div>
     </div>
 
-    <p v-if="store.error && !message" class="mt-4 text-sm text-fire">{{ store.error }}</p>
-    <p v-if="message" class="mt-4 text-sm text-accent">{{ message }}</p>
+    <p v-if="store.error && !message" class="alert alert--error mt-4">{{ store.error }}</p>
+    <p v-if="message" class="alert alert--success mt-4">{{ message }}</p>
 
-    <div class="mt-8 lg:grid lg:grid-cols-12 lg:gap-6">
-      <div class="lg:col-span-8">
-        <p v-if="store.loading && !store.nodes.length" class="text-sm text-ink-muted">
+    <div class="talent-layout">
+      <div class="min-w-0">
+        <p v-if="store.loading && !store.nodes.length" class="text-ink-muted">
           {{ t('talents.loading') }}
         </p>
         <TalentTreeCanvas
@@ -100,19 +107,17 @@ function onSelect(nodeId) {
         />
       </div>
 
-      <div class="mt-6 lg:col-span-4 lg:mt-0">
-        <TalentSidebar
-          :points="store.talentPointsAvailable"
-          :bonuses="store.bonuses"
-          :effects="store.effects"
-          :selected="store.selectedNode"
-          :can-unlock-selected="canUnlockSelected"
-          :action-loading="store.actionLoading"
-          :locale="locale"
-          @unlock="onUnlock"
-          @respec="showRespec = true"
-        />
-      </div>
+      <TalentSidebar
+        :points="store.talentPointsAvailable"
+        :bonuses="store.bonuses"
+        :effects="store.effects"
+        :selected="store.selectedNode"
+        :can-unlock-selected="canUnlockSelected"
+        :action-loading="store.actionLoading"
+        :locale="locale"
+        @unlock="onUnlock"
+        @respec="showRespec = true"
+      />
     </div>
 
     <RespecModal
@@ -125,3 +130,31 @@ function onSelect(nodeId) {
     />
   </div>
 </template>
+
+<style scoped>
+.talent-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-top: 1.5rem;
+}
+
+.chip[aria-pressed='true'] .chip__mark {
+  color: var(--tone-fill);
+}
+
+.talent-layout {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .talent-layout {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    gap: 1.75rem;
+    align-items: start;
+  }
+}
+</style>

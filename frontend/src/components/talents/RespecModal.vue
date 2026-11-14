@@ -25,30 +25,30 @@ const costLabel = computed(() => {
 <template>
   <div
     v-if="open"
-    class="respec-modal"
+    class="modal-backdrop"
     role="dialog"
     aria-modal="true"
     data-testid="respec-modal"
     @click.self="emit('close')"
   >
-    <div class="respec-modal__panel">
+    <div class="modal-panel">
       <p class="page-kicker">{{ t('talents.respecKicker') }}</p>
-      <h2 class="font-display text-2xl text-ink">{{ t('talents.respecTitle') }}</h2>
-      <p class="mt-3 text-sm text-ink-muted">
+      <h2 class="t-heading mt-2">{{ t('talents.respecTitle') }}</h2>
+      <p class="mt-4 leading-relaxed text-ink-muted">
         {{ t('talents.respecLead', { count: unlockedCount }) }}
       </p>
-      <p class="mt-4 text-sm text-accent">{{ costLabel }}</p>
-      <p class="mt-2 text-xs text-ink-muted">
+      <p class="respec-cost">{{ costLabel }}</p>
+      <p class="mt-2 text-sm text-ink-faint">
         {{ t('talents.respecHint', { n: respec?.everyLevels || 10 }) }}
       </p>
 
-      <div class="mt-6 flex flex-wrap gap-3">
-        <button type="button" class="btn-ghost text-xs" :disabled="loading" @click="emit('close')">
+      <div class="mt-6 flex flex-wrap justify-end gap-2">
+        <button type="button" class="btn-ghost" :disabled="loading" @click="emit('close')">
           {{ t('talents.cancel') }}
         </button>
         <button
           type="button"
-          class="btn-primary text-xs"
+          class="btn-primary"
           :disabled="loading || unlockedCount < 1"
           data-testid="respec-confirm"
           @click="emit('confirm')"
@@ -61,43 +61,13 @@ const costLabel = computed(() => {
 </template>
 
 <style scoped>
-.respec-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--color-void, #0a0e0c) 72%, transparent);
-  padding: 1.5rem;
-  animation: respec-fade 0.2s ease-out;
-}
-
-.respec-modal__panel {
-  width: min(28rem, 100%);
-  border: 1px solid color-mix(in srgb, var(--color-line, #3a4a40) 80%, transparent);
-  background: color-mix(in srgb, var(--color-panel, #151a17) 94%, transparent);
-  padding: 1.5rem 1.75rem;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  animation: respec-rise 0.28s ease-out;
-}
-
-@keyframes respec-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes respec-rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.respec-cost {
+  margin-top: 1rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--color-gold-tint);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
 }
 </style>

@@ -912,7 +912,15 @@
       "intelligence": "Intelligence",
       "dexterity": "Dextérité",
       "maxHp": "PV max"
-    }
+    },
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "legendLocked": "Verrouillé",
+    "legendUnlockable": "Accessible",
+    "legendUnlocked": "Débloqué",
+    "filterLabel": "Branche",
+    "selectedNone": "Sélectionnez un nœud pour voir son effet.",
+    "nodeUnlocked": "Débloqué"
   },
   "combat": {
     "kicker": "Arène",
