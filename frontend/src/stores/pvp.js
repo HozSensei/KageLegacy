@@ -42,11 +42,16 @@ export const usePvpStore = defineStore('pvp', () => {
   })
 
   async function fetchConfig() {
-    const res = await fetch(`${API_BASE}/api/pvp/config`, { credentials: 'include' })
-    const { ok, body } = await parseApiResponse(res)
-    if (!ok) throw new Error(await readApiError(res, body))
-    config.value = body
-    return body
+    try {
+      const res = await fetch(`${API_BASE}/api/pvp/config`, { credentials: 'include' })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      config.value = body
+      return body
+    } catch (e) {
+      error.value = e.message
+      return null
+    }
   }
 
   async function refreshQueue() {

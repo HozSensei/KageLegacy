@@ -106,7 +106,11 @@ async function onDebugXp() {
     <p v-if="store.loading && !store.season" class="mt-8 text-ink-muted">
       {{ t('battlePass.loading') }}
     </p>
-    <p v-else-if="!store.season && !store.loading" class="mt-8 text-fire">
+    <p
+      v-else-if="!store.season && !store.loading"
+      class="mt-8 text-fire"
+      data-testid="battle-pass-empty"
+    >
       {{ t('battlePass.noSeason') }}
     </p>
 

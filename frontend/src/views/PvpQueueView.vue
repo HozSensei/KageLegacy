@@ -24,7 +24,11 @@ const activeDeckLabel = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([pvp.fetchConfig(), decks.fetchDecks(), pvp.refreshQueue()])
+  try {
+    await Promise.all([pvp.fetchConfig(), decks.fetchDecks(), pvp.refreshQueue()])
+  } catch (e) {
+    localError.value = e.message || pvp.error
+  }
   if (pvp.config?.levelWindowDefault) {
     levelWindow.value = pvp.config.levelWindowDefault
   }

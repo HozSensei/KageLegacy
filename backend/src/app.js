@@ -13,6 +13,7 @@ import combatRouter from './routes/combat.js';
 import combatMissionsRouter from './routes/combatMissions.js';
 import battlePassRouter from './routes/battlePass.js';
 import shopRouter from './routes/shop.js';
+import pvpRouter from './routes/pvp.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/combat', combatRouter);
 app.use('/api/missions', combatMissionsRouter);
 app.use('/api/battle-pass', battlePassRouter);
 app.use('/api/shop', shopRouter);
+app.use('/api/pvp', pvpRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
