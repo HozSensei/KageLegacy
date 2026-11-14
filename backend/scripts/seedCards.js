@@ -335,8 +335,8 @@ const STARTER_CARDS = [
   },
   {
     slug: 'pilule-du-soldat',
-    nameFr: 'Pilule du soldat',
-    nameEn: 'Soldier Pill',
+    nameFr: 'Pilule fortifiante',
+    nameEn: 'Fortifying Pill',
     type: 'item',
     statType: 'medicine',
     element: null,

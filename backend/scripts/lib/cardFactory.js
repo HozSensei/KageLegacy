@@ -120,7 +120,7 @@ export function summarizeCatalog(cards) {
 }
 
 const FORBIDDEN_NAME_RE =
-  /\b(rasengan|sharingan|byakugan|chidori|konoha|uchiha|uzumaki|senju|hyuga|kakashi|naruto|sasuke|sakura|jiraiya|tsunade|orochimaru|madara|itachi|gaara|gamabunta|kage\s*bunshin|shadow\s*clone\s*jutsu)\b/i;
+  /\b(rasengan|sharingan|byakugan|rinnegan|chidori|raikiri|amaterasu|tsukuyomi|susanoo|kawarimi|konoha|akatsuki|uchiha|uchiwa|uzumaki|senju|hyuga|sarutobi|akimichi|yamanaka|hatake|kakashi|naruto|sasuke|sakura|jiraiya|tsunade|orochimaru|madara|itachi|gaara|gamabunta|hokage|kazekage|mizukage|raikage|tsuchikage|jinch[uū]+riki|no\s+kuni|kage\s*bunshin|shadow\s*clone\s*jutsu|chakra\s*scalpel|scalpel\s+de\s+chakra|soldier\s*pill|pilule\s+du\s+soldat|sand\s*tomb|tombeau\s+de\s+sable)\b/i;
 
 export function assertOriginalNaming(cards) {
   const hits = [];

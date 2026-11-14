@@ -194,8 +194,8 @@ export const EXPANSION_WAVE1_CARDS = [
     passive: { ninjutsu: 5 },
     descriptionFr: 'Inflige 16 dégâts et Brûlure 4.',
     descriptionEn: 'Deal 16 damage and Burn 4.',
-    loreFr: 'Technique secrète des forgerons du clan Kagetsu.',
-    loreEn: 'Secret technique of the Kagetsu clan smiths.',
+    loreFr: 'Technique secrète des forgerons du clan Hizuchi.',
+    loreEn: 'Secret technique of the Hizuchi clan smiths.',
     upgrades: {
       level_1: { damage: 5, passive: { ninjutsu: 2 } },
       level_2: { damage: 9, cost: -1, passive: { ninjutsu: 3 } },
@@ -363,8 +363,8 @@ export const EXPANSION_WAVE1_CARDS = [
   }),
   c({
     slug: 'tombeau-de-sable',
-    nameFr: 'Tombeau de sable',
-    nameEn: 'Sand Tomb',
+    nameFr: 'Dune engloutissante',
+    nameEn: 'Engulfing Dune',
     type: 'attack',
     statType: 'ninjutsu',
     element: 'doton',
@@ -481,8 +481,8 @@ export const EXPANSION_WAVE1_CARDS = [
   }),
   c({
     slug: 'oeil-du-mirroir',
-    nameFr: 'Œil du miroir',
-    nameEn: 'Mirror Eye',
+    nameFr: 'Reflet trompeur',
+    nameEn: 'Deceiving Reflection',
     type: 'attack',
     statType: 'genjutsu',
     rarity: 'legendary',
@@ -520,8 +520,8 @@ export const EXPANSION_WAVE1_CARDS = [
   }),
   c({
     slug: 'scalpel-de-chakra',
-    nameFr: 'Scalpel de chakra',
-    nameEn: 'Chakra Scalpel',
+    nameFr: 'Lame du guérisseur',
+    nameEn: "Healer's Edge",
     type: 'attack',
     statType: 'medicine',
     rarity: 'rare',
