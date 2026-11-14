@@ -30,9 +30,13 @@ import {
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
+  applyTalentCombatStart,
+  applyTalentEndOfPlayerTurn,
   applyTalentStartOfTurn,
   classifyTalentEffects,
   computeTalentDamageMods,
+  countDeckElements,
+  resolveCardPileDestination,
 } from './deckCombat/talentEffects.js';
 import {
   executeEnemyIntent,
@@ -422,16 +426,21 @@ export async function startCombat(userId, opts = {}) {
     discardedForChakra: false,
     ally: null,
     taijutsuPlayedThisTurn: 0,
+    ninjutsuPlayedThisTurn: 0,
     genjutsuPlayedThisTurn: 0,
+    cardsPlayedThisTurn: 0,
     elementsPlayedThisTurn: [],
     elementalFusionDrawnThisTurn: false,
     perfectTankUsed: false,
   };
 
+  const combatStart = applyTalentCombatStart(player, classified.applied);
+  player = combatStart.player;
+
   const drawn = drawCards(player, DRAW_PER_TURN);
   player = drawn.player;
 
-  const talentStart = applyTalentStartOfTurn(player, classified.applied);
+  const talentStart = applyTalentStartOfTurn(player, classified.applied, { turn: 1 });
   player = talentStart.player;
 
   const enemy = generateEnemyFromTemplate(templateId, difficulty);
@@ -503,6 +512,7 @@ export async function startCombat(userId, opts = {}) {
 
   const startLogs = [
     { type: 'combat_start', templateId, practiceDeck: deckInfo.practice, missionRunId },
+    ...combatStart.logs,
     { type: 'draw', count: drawn.drawn.length },
     ...talentStart.logs,
     { type: 'intent', intent: enemy.intent },
@@ -550,27 +560,46 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const card = (session.player.hand || []).find((c) => c.instanceId === handId);
   if (!card) throw httpError(404, 'Carte absente de la main.');
 
+  const deckElementCount = countDeckElements([
+    ...(session.player.hand || []),
+    ...(session.player.drawPile || []),
+    ...(session.player.discardPile || []),
+    ...(session.player.exhaustPile || []),
+  ]);
+  const statsWithBonus = {
+    ...session.stats,
+    vitesse:
+      (Number(session.stats?.vitesse) || 0) + (Number(session.player.combatSpeedBonus) || 0),
+  };
   const talentMods = computeTalentDamageMods(
     session.talentEffects.applied,
     session.player,
     card,
+    {
+      enemy: session.enemy,
+      deckElementCount,
+      cardsPlayedThisTurn: session.player.cardsPlayedThisTurn || 0,
+    },
   );
   const played = applyCardPlay({
     player: session.player,
     enemy: session.enemy,
     card,
-    stats: session.stats,
+    stats: statsWithBonus,
     talentMods,
+    talentCodes: session.talentEffects.applied,
   });
 
   let nextPlayer = played.player;
-  const nextEnemy = played.enemy;
+  let nextEnemy = played.enemy;
   const talentAfter = applyTalentAfterCardPlay(
     nextPlayer,
     card,
     session.talentEffects.applied,
+    { enemy: nextEnemy },
   );
   nextPlayer = talentAfter.player;
+  if (talentAfter.enemy) nextEnemy = talentAfter.enemy;
 
   if (talentAfter.extraDraw > 0) {
     const drawn = drawCards(nextPlayer, talentAfter.extraDraw);
@@ -581,7 +610,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const moved = moveCardFromHand(
     nextPlayer,
     handId,
-    card.exhaust || card.type === 'summon' ? 'exhaust' : 'discard',
+    resolveCardPileDestination(card, session.talentEffects.applied),
   );
 
   session.player = moved.player;
@@ -647,6 +676,10 @@ export async function endTurn(userId, combatId) {
 
   let logs = [];
 
+  const endTalent = applyTalentEndOfPlayerTurn(session.player, session.talentEffects.applied);
+  session.player = endTalent.player;
+  logs.push(...endTalent.logs);
+
   const playerEnd = resolveEndOfTurnStatuses(session.player, { persistBlock: true });
   session.player = playerEnd.entity;
   logs.push(...playerEnd.logs.map((l) => ({ ...l, side: 'player' })));
@@ -680,8 +713,18 @@ export async function endTurn(userId, combatId) {
   session.player = enemyAct.player;
   logs.push(...enemyAct.logs);
 
-  const tank = applyTalentAfterDamageTaken(session.player, session.talentEffects.applied);
+  if (enemyAct.phantomStepDraw > 0) {
+    const drawn = drawCards(session.player, enemyAct.phantomStepDraw);
+    session.player = drawn.player;
+    logs.push({ type: 'draw', count: drawn.drawn.length, reason: 'phantom_step' });
+  }
+
+  const tank = applyTalentAfterDamageTaken(session.player, session.talentEffects.applied, {
+    enemy: session.enemy,
+    damageDealt: enemyAct.damageTakenByPlayer || 0,
+  });
   session.player = tank.player;
+  if (tank.enemy) session.enemy = tank.enemy;
   logs.push(...tank.logs);
 
   if (checkVictory(session)) {
@@ -720,7 +763,9 @@ export async function endTurn(userId, combatId) {
   };
   logs.push(...playerStart.logs.map((l) => ({ ...l, side: 'player' })));
 
-  const talentStart = applyTalentStartOfTurn(session.player, session.talentEffects.applied);
+  const talentStart = applyTalentStartOfTurn(session.player, session.talentEffects.applied, {
+    turn: session.currentTurn,
+  });
   session.player = talentStart.player;
   logs.push(...talentStart.logs);
 

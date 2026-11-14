@@ -17,6 +17,10 @@ import {
 } from './typeAdvantage.js';
 import { applyStatus } from './statuses.js';
 import { drawCards } from './deckRuntime.js';
+import {
+  applyTalentAfterHeal,
+  applyTalentToStatusPayload,
+} from './talentEffects.js';
 
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';
@@ -85,23 +89,39 @@ export function computeCardBlock(card, stats, playerStatuses = [], talentMods = 
   if (talentMods.blockAllowed === false) return 0;
   let block = scaleBlock(Number(card.block) || 0, stats.medicine);
   block += getStatusValue(playerStatuses, 'dexterity');
-  return Math.max(0, block);
+  const mult = Number(talentMods.blockMult) || 1;
+  return Math.max(0, Math.round(block * mult));
 }
 
 export function computeCardHeal(card, stats, talentMods = {}) {
   const base = scaleHeal(Number(card.heal) || 0, stats.medicine);
+  const flat = Number(talentMods.healFlat) || 0;
   const mult = Number(talentMods.healMult) || 1;
-  return Math.round(base * mult);
+  return Math.round((base + flat) * mult);
 }
 
 /**
  * Applique une carte jouée.
  * @returns {{ player, enemy, logs, chakraSpent }}
  */
-export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng = Math.random }) {
+export function applyCardPlay({
+  player,
+  enemy,
+  card,
+  stats,
+  talentMods = {},
+  talentCodes = [],
+  rng = Math.random,
+}) {
   const logs = [];
   let nextPlayer = { ...player, statuses: [...(player.statuses || [])] };
   let nextEnemy = { ...enemy, statuses: [...(enemy.statuses || [])] };
+
+  if (talentMods.denyNonItem && card.type !== 'item') {
+    const err = new Error('Maître des Objets : seules les cartes Objet sont jouables.');
+    err.statusCode = 400;
+    throw err;
+  }
 
   const baseCost = Number(card.cost) || 0;
   const cost = Math.max(0, baseCost + (Number(talentMods.costDelta) || 0));
@@ -152,9 +172,10 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
     if (dmg.denied) {
       logs.push({ type: 'attack_denied', reason: 'intangible_keystone', card: card.slug });
     } else {
+      const armorIgnore = Number(talentMods.armorIgnore) || 0;
       let totalDealt = 0;
       for (let i = 0; i < dmg.hits; i += 1) {
-        const result = applyDamageThroughBlock(nextEnemy, dmg.perHit);
+        const result = applyDamageThroughBlock(nextEnemy, dmg.perHit, { armorIgnore });
         nextEnemy = { ...nextEnemy, hp: result.hp, block: result.block };
         totalDealt += result.damageDealt;
       }
@@ -168,6 +189,20 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
         enemyHp: nextEnemy.hp,
         enemyBlock: nextEnemy.block,
       });
+
+      // echo_cast : rejoue à X % des dégâts (1 hit)
+      const echoMult = Number(talentMods.echoReplayMult) || 0;
+      if (echoMult > 0 && dmg.perHit > 0) {
+        const echoDmg = Math.max(1, Math.round(dmg.perHit * echoMult));
+        const echo = applyDamageThroughBlock(nextEnemy, echoDmg, { armorIgnore });
+        nextEnemy = { ...nextEnemy, hp: echo.hp, block: echo.block };
+        logs.push({
+          type: 'talent',
+          effect: 'echo_cast',
+          amount: echo.damageDealt,
+          enemyHp: nextEnemy.hp,
+        });
+      }
     }
   }
 
@@ -187,7 +222,14 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
     const healAmt = computeCardHeal(card, stats, talentMods);
     const before = nextPlayer.hp;
     nextPlayer.hp = Math.min(nextPlayer.maxHp, nextPlayer.hp + healAmt);
-    logs.push({ type: 'heal', amount: nextPlayer.hp - before, hp: nextPlayer.hp });
+    const applied = nextPlayer.hp - before;
+    logs.push({ type: 'heal', amount: applied, hp: nextPlayer.hp });
+    const healTalent = applyTalentAfterHeal(nextPlayer, talentCodes, {
+      healAttempted: healAmt,
+      healApplied: applied,
+    });
+    nextPlayer = healTalent.player;
+    logs.push(...healTalent.logs);
   }
 
   // Effets additionnels
@@ -197,6 +239,7 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
       enemy: nextEnemy,
       card,
       stats,
+      talentCodes,
       rng,
     });
     nextPlayer = applied.player;
@@ -233,6 +276,7 @@ function applyExtraEffect(effect, ctx) {
   let { player, enemy } = ctx;
   const logs = [];
   const type = effect?.type;
+  const talentCodes = ctx.talentCodes || [];
 
   if (type === 'draw') {
     const drawn = drawCards(player, Number(effect.value) || 1, ctx.rng);
@@ -245,11 +289,23 @@ function applyExtraEffect(effect, ctx) {
     const target =
       effect.target === 'self' ? 'player' : effect.target === 'enemy' ? 'enemy' : guessStatusTarget(effect.status);
     const statusKey = normalizeStatusKey(effect.status);
-    const payload = {
+    let payload = {
       key: statusKey,
       value: Number(effect.value) || 1,
       duration: effect.duration != null ? Number(effect.duration) : Number(effect.value) || 1,
     };
+    const talentStatus = applyTalentToStatusPayload({
+      payload,
+      card: ctx.card,
+      player,
+      enemy,
+      effectCodes: talentCodes,
+      target,
+    });
+    payload = talentStatus.payload;
+    player = talentStatus.player;
+    enemy = talentStatus.enemy;
+    logs.push(...talentStatus.logs);
     if (target === 'player') {
       player = { ...player, statuses: applyStatus(player.statuses, payload) };
     } else {

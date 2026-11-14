@@ -5,6 +5,8 @@ import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
 import { applyDamageThroughBlock, getStatusValue, hasStatus } from './deckCombat/formulas.js';
 import { applyStatus } from './deckCombat/statuses.js';
 import { outgoingDamageMultiplier } from './deckCombat/formulas.js';
+import { applyTalentIncomingAttackMods } from './deckCombat/talentEffects.js';
+import { TALENT_EFFECT_MVP } from './deckCombat/constants.js';
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -96,16 +98,33 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
   const intent = nextEnemy.intent || { type: 'attack', damage: 6 };
   const talentCodes = new Set(opts.talentCodes || []);
 
+  let damageTakenByPlayer = 0;
+  let phantomStepDraw = 0;
+
   if (intent.type === 'attack') {
     let damage =
       (Number(intent.damage) || 0) + getStatusValue(nextEnemy.statuses, 'force');
     damage = Math.round(damage * outgoingDamageMultiplier(nextEnemy.statuses));
 
+    const incomingMods = applyTalentIncomingAttackMods(
+      damage,
+      nextPlayer,
+      nextEnemy,
+      opts.talentCodes || [],
+    );
+    damage = incomingMods.damage;
+
     // Évite ?
-    const evadeChance = getStatusValue(nextPlayer.statuses, 'evade');
+    const evadeChance =
+      getStatusValue(nextPlayer.statuses, 'evade') + (Number(incomingMods.evadeBonus) || 0);
     if (evadeChance > 0 && rng() < evadeChance) {
       logs.push({ type: 'evade', source: 'player' });
       nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'evade');
+      if (talentCodes.has('phantom_step') && !nextPlayer.phantomStepUsed) {
+        phantomStepDraw = TALENT_EFFECT_MVP.phantom_step.draw;
+        nextPlayer = { ...nextPlayer, phantomStepUsed: true };
+        logs.push({ type: 'talent', effect: 'phantom_step', draw: phantomStepDraw });
+      }
     } else {
       if (hasStatus(nextPlayer.statuses, 'vulnerable')) damage = Math.round(damage * 1.5);
       if (hasStatus(nextPlayer.statuses, 'intangible') || talentCodes.has('intangible')) {
@@ -132,6 +151,7 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
       if (damage > 0) {
         const result = applyDamageThroughBlock(nextPlayer, damage);
         nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
+        damageTakenByPlayer = result.hpAbsorbed || 0;
         logs.push({
           type: 'damage',
           source: 'enemy',
@@ -191,7 +211,13 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
   nextEnemy.intent = getNextIntent(nextEnemy, 0, rng);
   logs.push({ type: 'intent', intent: nextEnemy.intent });
 
-  return { enemy: nextEnemy, player: nextPlayer, logs };
+  return {
+    enemy: nextEnemy,
+    player: nextPlayer,
+    logs,
+    damageTakenByPlayer,
+    phantomStepDraw,
+  };
 }
 
 /** Alias roadmap */

@@ -45,14 +45,18 @@ export function rollCrit(vitesse, rng = Math.random) {
 
 /**
  * Applique les dégâts à une entité avec armure.
+ * @param {object} [opts]
+ * @param {number} [opts.armorIgnore] — armure ignorée (non consommée) pour ce coup
  * @returns {{ damageDealt: number, hp: number, block: number, overkill: number }}
  */
-export function applyDamageThroughBlock(entity, rawDamage) {
+export function applyDamageThroughBlock(entity, rawDamage, opts = {}) {
   const incoming = Math.max(0, Math.floor(Number(rawDamage) || 0));
   let block = Math.max(0, Number(entity.block) || 0);
   let hp = Math.max(0, Number(entity.hp) || 0);
+  const armorIgnore = Math.max(0, Number(opts.armorIgnore) || 0);
+  const effectiveBlock = Math.max(0, block - armorIgnore);
 
-  const absorbed = Math.min(block, incoming);
+  const absorbed = Math.min(effectiveBlock, incoming);
   block -= absorbed;
   const toHp = incoming - absorbed;
   const damageDealt = Math.min(hp, toHp);

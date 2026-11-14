@@ -27,9 +27,13 @@ import {
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
+  applyTalentCombatStart,
+  applyTalentEndOfPlayerTurn,
   applyTalentStartOfTurn,
   classifyTalentEffects,
   computeTalentDamageMods,
+  countDeckElements,
+  resolveCardPileDestination,
 } from './talentEffects.js';
 import {
   executeEnemyIntent,
@@ -164,28 +168,47 @@ function simPlayCard(session, instanceId, rng) {
   const card = (session.player.hand || []).find((c) => c.instanceId === instanceId);
   if (!card) return { session, logs };
 
+  const deckElementCount = countDeckElements([
+    ...(session.player.hand || []),
+    ...(session.player.drawPile || []),
+    ...(session.player.discardPile || []),
+    ...(session.player.exhaustPile || []),
+  ]);
+  const statsWithBonus = {
+    ...session.stats,
+    vitesse:
+      (Number(session.stats?.vitesse) || 0) + (Number(session.player.combatSpeedBonus) || 0),
+  };
   const talentMods = computeTalentDamageMods(
     session.talentEffects.applied,
     session.player,
     card,
+    {
+      enemy: session.enemy,
+      deckElementCount,
+      cardsPlayedThisTurn: session.player.cardsPlayedThisTurn || 0,
+    },
   );
   const played = applyCardPlay({
     player: session.player,
     enemy: session.enemy,
     card,
-    stats: session.stats,
+    stats: statsWithBonus,
     talentMods,
+    talentCodes: session.talentEffects.applied,
     rng,
   });
 
   let nextPlayer = played.player;
-  const nextEnemy = played.enemy;
+  let nextEnemy = played.enemy;
   const talentAfter = applyTalentAfterCardPlay(
     nextPlayer,
     card,
     session.talentEffects.applied,
+    { enemy: nextEnemy },
   );
   nextPlayer = talentAfter.player;
+  if (talentAfter.enemy) nextEnemy = talentAfter.enemy;
 
   if (talentAfter.extraDraw > 0) {
     const drawn = drawCards(nextPlayer, talentAfter.extraDraw, rng);
@@ -195,7 +218,7 @@ function simPlayCard(session, instanceId, rng) {
   const moved = moveCardFromHand(
     nextPlayer,
     instanceId,
-    card.exhaust || card.type === 'summon' ? 'exhaust' : 'discard',
+    resolveCardPileDestination(card, session.talentEffects.applied),
   );
 
   const next = {
@@ -264,6 +287,9 @@ export function simEndTurn(session, rng) {
   const logs = [];
   let s = { ...session, player: { ...session.player }, enemy: { ...session.enemy } };
 
+  const endTalent = applyTalentEndOfPlayerTurn(s.player, s.talentEffects.applied);
+  s.player = endTalent.player;
+
   const playerEnd = resolveEndOfTurnStatuses(s.player, { persistBlock: true });
   s.player = playerEnd.entity;
 
@@ -297,11 +323,20 @@ export function simEndTurn(session, rng) {
   s.player = enemyAct.player;
   logs.push(...enemyAct.logs);
 
+  if (enemyAct.phantomStepDraw > 0) {
+    const drawn = drawCards(s.player, enemyAct.phantomStepDraw, rng);
+    s.player = drawn.player;
+  }
+
   const damageTaken = Math.max(0, hpBefore - (Number(s.player.hp) || 0));
   s.damageTakenTotal = (Number(s.damageTakenTotal) || 0) + damageTaken;
 
-  const tank = applyTalentAfterDamageTaken(s.player, s.talentEffects.applied);
+  const tank = applyTalentAfterDamageTaken(s.player, s.talentEffects.applied, {
+    enemy: s.enemy,
+    damageDealt: enemyAct.damageTakenByPlayer || 0,
+  });
   s.player = tank.player;
+  if (tank.enemy) s.enemy = tank.enemy;
 
   outcome = checkOutcome(s);
   if (outcome) {
@@ -333,12 +368,11 @@ export function simEndTurn(session, rng) {
     chakra: s.player.maxChakra ?? BASE_CHAKRA,
     discardedForChakra: false,
     elementalFusionDrawnThisTurn: false,
-    taijutsuPlayedThisTurn: 0,
-    genjutsuPlayedThisTurn: 0,
-    elementsPlayedThisTurn: [],
   };
 
-  const talentStart = applyTalentStartOfTurn(s.player, s.talentEffects.applied);
+  const talentStart = applyTalentStartOfTurn(s.player, s.talentEffects.applied, {
+    turn: s.currentTurn,
+  });
   s.player = talentStart.player;
 
   const allyAct = resolveAllyAttack(s.player, s.enemy);
@@ -404,16 +438,21 @@ export function createSimSession({
     discardedForChakra: false,
     ally: null,
     taijutsuPlayedThisTurn: 0,
+    ninjutsuPlayedThisTurn: 0,
     genjutsuPlayedThisTurn: 0,
+    cardsPlayedThisTurn: 0,
     elementsPlayedThisTurn: [],
     elementalFusionDrawnThisTurn: false,
     perfectTankUsed: false,
   };
 
+  const combatStart = applyTalentCombatStart(player, classified.applied);
+  player = combatStart.player;
+
   const drawn = drawCards(player, DRAW_PER_TURN, rng);
   player = drawn.player;
 
-  const talentStart = applyTalentStartOfTurn(player, classified.applied);
+  const talentStart = applyTalentStartOfTurn(player, classified.applied, { turn: 1 });
   player = talentStart.player;
 
   const enemy = generateEnemyFromTemplate(templateId, difficulty);

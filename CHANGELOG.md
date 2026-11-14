@@ -47,7 +47,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 #### Added
 - **Récompenses de victoire** : XP (+ talent points via level-up), Ryos, chance de carte collection ; hook Battle Pass stub commenté
 - **Missions** : 11 missions Rang D→A, 11 templates ennemis originaux (`105_combat_missions_expand.sql`)
-- **Keystones / notables** branchés : immortal, overload, intangible, combo_master, blade_swift, elemental_mastery, elemental_fusion, shadow_feint, perfect_tank (+ MVP existants)
+- **Keystones / notables** branchés : 44/50 `effect_code` actifs en combat (dont illusion_master, item_master, void_channel, echo_cast, …) ; 6 reportés (collector, path_weaver, balanced_stance, four_paths, confusion_tax, steady_hands) — voir `docs/TALENT_EFFECTS.md`
 - **Summons MVP** : allié unique, auto-attaque début de tour, taunt optionnel
 - **UI** : écran `VictoryRewards` (XP / Ryos / carte / level-up)
 
