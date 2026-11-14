@@ -3,6 +3,7 @@
  * Module pur (pas de DB). Voir docs/BOSS_PHASES.md.
  */
 import { applyStatus } from './statuses.js';
+import { applyDamageThroughBlock } from './formulas.js';
 
 /**
  * Ratio PV courant (0–1). Sécurise division par zéro.
@@ -148,7 +149,7 @@ export function applyDamageThroughBarrier(
   entity,
   rawDamage,
   opts = {},
-  applyDamageThroughBlock,
+  damageFn = applyDamageThroughBlock,
 ) {
   const incoming = Math.max(0, Math.floor(Number(rawDamage) || 0));
   let barrier = Math.max(0, Number(entity.barrier) || 0);
@@ -172,7 +173,7 @@ export function applyDamageThroughBarrier(
     }
   }
 
-  const base = applyDamageThroughBlock(
+  const base = damageFn(
     { ...entity, barrier },
     remaining,
     opts,
@@ -209,7 +210,7 @@ export function canApplyStatus(entity, statusKey) {
 /**
  * Inflige des dégâts à l'ennemi : minion (taunt) → barrière → armure → PV, puis check phase.
  */
-export function hitEnemy(enemy, rawDamage, opts = {}, applyDamageThroughBlock) {
+export function hitEnemy(enemy, rawDamage, opts = {}, damageFn = applyDamageThroughBlock) {
   const logs = [];
   let next = {
     ...enemy,
@@ -241,7 +242,7 @@ export function hitEnemy(enemy, rawDamage, opts = {}, applyDamageThroughBlock) {
       next,
       remaining,
       opts,
-      applyDamageThroughBlock,
+      damageFn,
     );
     next = {
       ...next,
