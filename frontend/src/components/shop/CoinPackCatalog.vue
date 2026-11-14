@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import ShopBalances from './ShopBalances.vue'
 
 defineOptions({ name: 'CoinPackCatalog' })
 
@@ -21,37 +22,56 @@ function descOf(pack) { return locale.value === 'en' ? pack.descriptionEn : pack
 
 <template>
   <div class="coin-catalog" data-testid="coin-pack-catalog">
-    <div class="shop-balances">
-      <span>{{ t('shop.balanceRyos', { n: (balances.ryos || 0).toLocaleString() }) }}</span>
-      <span>{{ t('shop.balanceCoins', { n: (balances.kageCoins || 0).toLocaleString() }) }}</span>
-    </div>
-    <p v-if="metaNote" class="coin-catalog__note">{{ metaNote }}</p>
-    <p v-else class="coin-catalog__note">
+    <ShopBalances :balances="balances" />
+    <p v-if="metaNote" class="shop-note">{{ metaNote }}</p>
+    <p v-else class="shop-note">
       {{ stripeEnabled ? t('shop.currency.stripeNote') : t('shop.currency.stubNote') }}
     </p>
-    <ul class="shop-grid">
-      <li v-for="(pack, idx) in packs" :key="pack.id" class="shop-tile"
-        :style="{ animationDelay: `${0.05 + idx * 0.06}s` }" :data-testid="`coin-pack-${pack.id}`">
+    <ul class="shop-grid stagger">
+      <li
+        v-for="pack in packs"
+        :key="pack.id"
+        class="shop-tile"
+        data-tone="gold"
+        :data-testid="`coin-pack-${pack.id}`"
+      >
+        <span class="shop-tile__shape shop-tile__shape--lozenge" aria-hidden="true" />
         <p class="shop-tile__kicker">{{ t('shop.currency.packKicker') }}</p>
         <h3 class="shop-tile__name">{{ nameOf(pack) }}</h3>
         <p class="shop-tile__desc">{{ descOf(pack) }}</p>
         <p class="shop-tile__cost">
           {{ t('shop.currency.totalCoins', { n: pack.totalCoins }) }}
-          <template v-if="pack.bonusCoins"> · {{ t('shop.currency.bonus', { n: pack.bonusCoins }) }}</template>
+          <small v-if="pack.bonusCoins"> {{ t('shop.currency.bonus', { n: pack.bonusCoins }) }}</small>
         </p>
         <p class="shop-tile__meta">{{ t('shop.currency.priceEur', { n: pack.priceEur }) }}</p>
-        <div class="coin-catalog__actions">
-          <button v-if="stripeEnabled" type="button" class="btn-primary text-xs w-full"
-            :disabled="disabled || purchasing" data-testid="coin-pack-pay-btn"
-            @click="emit('purchase', pack.id, 'stripe')">
+        <div class="shop-tile__actions">
+          <button
+            v-if="stripeEnabled"
+            type="button"
+            class="btn-primary btn-block"
+            :disabled="disabled || purchasing"
+            data-testid="coin-pack-pay-btn"
+            @click="emit('purchase', pack.id, 'stripe')"
+          >
             {{ purchasing ? t('shop.purchasing') : t('shop.currency.buyStripe', { n: pack.priceEur }) }}
           </button>
-          <button v-if="canStub" type="button" class="btn-ghost text-xs w-full"
-            :disabled="disabled || purchasing" data-testid="coin-pack-buy-btn"
-            @click="emit('purchase', pack.id, 'stub')">
+          <button
+            v-if="canStub"
+            type="button"
+            class="btn-secondary btn-block"
+            :disabled="disabled || purchasing"
+            data-testid="coin-pack-buy-btn"
+            @click="emit('purchase', pack.id, 'stub')"
+          >
             {{ purchasing ? t('shop.purchasing') : t('shop.currency.buyStub') }}
           </button>
-          <button v-if="!stripeEnabled && !canStub" type="button" class="btn-primary text-xs w-full" disabled data-testid="coin-pack-buy-btn">
+          <button
+            v-if="!stripeEnabled && !canStub"
+            type="button"
+            class="btn-primary btn-block"
+            disabled
+            data-testid="coin-pack-buy-btn"
+          >
             {{ t('shop.currency.buyLocked') }}
           </button>
         </div>
@@ -59,8 +79,3 @@ function descOf(pack) { return locale.value === 'en' ? pack.descriptionEn : pack
     </ul>
   </div>
 </template>
-
-<style scoped>
-.coin-catalog__note { margin: 0 0 1.25rem; font-size: 0.78rem; color: var(--color-ink-faint); max-width: 42rem; }
-.coin-catalog__actions { display: flex; flex-direction: column; gap: 0.4rem; }
-</style>

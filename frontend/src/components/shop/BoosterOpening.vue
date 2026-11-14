@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CardDisplay from '../cards/CardDisplay.vue'
+import BrandMark from '../ui/BrandMark.vue'
+import { rarityVisual } from '../../utils/cardVisuals'
 
 defineOptions({ name: 'BoosterOpening' })
 
@@ -52,6 +54,7 @@ function cardName(entry) {
 <template>
   <div class="booster-opening" data-testid="booster-opening" aria-live="polite">
     <p class="booster-opening__status">
+      <span class="lozenge" aria-hidden="true" />
       {{
         done
           ? t('shop.revealDone')
@@ -68,8 +71,10 @@ function cardName(entry) {
           'booster-opening__slot--revealed': revealed.includes(index),
           [`booster-opening__slot--${entry.rarity}`]: true,
         }"
+        :data-tone="rarityVisual(entry.rarity).tone"
       >
         <div class="booster-opening__face booster-opening__face--back" aria-hidden="true">
+          <BrandMark size="2.75rem" />
           <span>{{ t('shop.sealedScroll') }}</span>
         </div>
         <div class="booster-opening__face booster-opening__face--front">
@@ -86,92 +91,110 @@ function cardName(entry) {
 
 <style scoped>
 .booster-opening__status {
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  font-size: var(--type-kicker);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+.booster-opening__status .lozenge {
+  color: var(--color-vermilion);
 }
 
 .booster-opening__grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .booster-opening__slot {
-  position: relative;
-  min-height: 210px;
+  display: grid;
   perspective: 900px;
 }
 
 .booster-opening__face {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
+  min-width: 0;
   backface-visibility: hidden;
-  transition: transform 0.55s ease, opacity 0.55s ease;
+  transition:
+    transform 520ms var(--ease-out-quint),
+    opacity 300ms ease;
 }
 
 .booster-opening__face--back {
   display: flex;
+  min-height: 15rem;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid color-mix(in srgb, var(--kl-accent) 35%, transparent);
-  background:
-    linear-gradient(145deg, var(--kl-bg-card), var(--kl-bg-soft)),
-    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--kl-accent) 18%, transparent), transparent 60%);
+  gap: 0.75rem;
+  background: var(--color-indigo);
+  color: #f6f1e6;
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: var(--color-accent);
-  transform: rotateY(0deg);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-stretch: 80%;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .booster-opening__face--front {
-  transform: rotateY(180deg);
-  opacity: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.4rem;
+  opacity: 0;
+  transform: rotateY(180deg);
 }
 
 .booster-opening__slot--revealed .booster-opening__face--back {
-  transform: rotateY(180deg);
   opacity: 0;
   pointer-events: none;
+  transform: rotateY(-180deg);
 }
 
 .booster-opening__slot--revealed .booster-opening__face--front {
-  transform: rotateY(0deg);
   opacity: 1;
-  animation: card-pop 0.45s ease;
+  transform: rotateY(0deg);
+}
+
+/* Les raretés hautes posent un filet plein sous la carte plutôt qu'un halo. */
+.booster-opening__slot--legendary.booster-opening__slot--revealed .booster-opening__face--front,
+.booster-opening__slot--mythic.booster-opening__slot--revealed .booster-opening__face--front {
+  padding-bottom: 0.4rem;
+  border-bottom: 6px solid var(--tone-fill);
+}
+
+.booster-opening__new,
+.booster-opening__dup {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .booster-opening__new {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-win);
+  color: var(--color-leaf);
 }
 
 .booster-opening__dup {
-  font-size: 0.7rem;
-  color: var(--color-ink-faint);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--color-ink-muted);
 }
 
-.booster-opening__slot--legendary.booster-opening__slot--revealed .booster-opening__face--front,
-.booster-opening__slot--mythic.booster-opening__slot--revealed .booster-opening__face--front {
-  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--kl-accent) 35%, transparent));
-}
-
-@keyframes card-pop {
-  from {
-    transform: rotateY(0deg) scale(0.92);
-  }
-  to {
-    transform: rotateY(0deg) scale(1);
+@media (prefers-reduced-motion: reduce) {
+  .booster-opening__face {
+    transition: opacity 200ms ease;
+    transform: none !important;
   }
 }
 </style>

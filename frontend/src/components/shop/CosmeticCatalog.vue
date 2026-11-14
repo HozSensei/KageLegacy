@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ShopBalances from './ShopBalances.vue'
+import { rarityVisual } from '../../utils/cardVisuals'
 
 defineOptions({ name: 'CosmeticCatalog' })
 
@@ -22,6 +24,8 @@ const groups = computed(() => {
     items: props.items.filter((i) => i.cosmeticType === type),
   }))
 })
+
+const TYPE_SHAPES = { avatar_frame: 'circle', card_back: 'square', title: 'lozenge' }
 
 function nameOf(item) {
   return locale.value === 'en' ? item.nameEn : item.nameFr
@@ -47,24 +51,28 @@ function canAfford(item) {
 
 <template>
   <div class="cosmetic-catalog" data-testid="cosmetic-catalog">
-    <div class="shop-balances">
-      <span>{{ t('shop.balanceRyos', { n: (balances.ryos || 0).toLocaleString() }) }}</span>
-      <span>{{ t('shop.balanceCoins', { n: (balances.kageCoins || 0).toLocaleString() }) }}</span>
-    </div>
+    <ShopBalances :balances="balances" />
 
-    <section v-for="group in groups" :key="group.type" class="cosmetic-group">
-      <h2 class="cosmetic-group__title">
-        {{ t(`shop.cosmetics.types.${group.type}`) }}
-      </h2>
-      <ul class="shop-grid">
+    <section v-for="(group, gi) in groups" :key="group.type" class="cosmetic-group">
+      <div class="section-head">
+        <span class="section-head__index">{{ String(gi + 1).padStart(2, '0') }}</span>
+        <h2 class="section-head__title">{{ t(`shop.cosmetics.types.${group.type}`) }}</h2>
+        <span class="section-head__rule" aria-hidden="true" />
+      </div>
+      <ul class="shop-grid stagger">
         <li
-          v-for="(item, idx) in group.items"
+          v-for="item in group.items"
           :key="item.key"
           class="shop-tile"
-          :class="{ 'shop-tile--owned': item.owned, 'shop-tile--equipped': item.equipped }"
-          :style="{ animationDelay: `${0.04 + idx * 0.05}s` }"
+          :class="{ 'shop-tile--owned': item.owned, 'shop-tile--active': item.equipped }"
+          :data-tone="rarityVisual(item.rarity).tone"
           :data-testid="`cosmetic-${item.key}`"
         >
+          <span
+            class="shop-tile__shape"
+            :class="`shop-tile__shape--${TYPE_SHAPES[group.type]}`"
+            aria-hidden="true"
+          />
           <p class="shop-tile__kicker">
             {{ t(`cards.rarities.${item.rarity}`, item.rarity) }}
             <span v-if="item.equipped"> · {{ t('shop.cosmetics.equipped') }}</span>
@@ -77,7 +85,7 @@ function canAfford(item) {
           <button
             v-if="!item.owned"
             type="button"
-            class="btn-primary text-xs w-full"
+            class="btn-primary btn-block"
             :disabled="disabled || purchasing || !canAfford(item)"
             data-testid="cosmetic-buy-btn"
             @click="emit('purchase', item.key)"
@@ -93,7 +101,7 @@ function canAfford(item) {
           <button
             v-else-if="!item.equipped"
             type="button"
-            class="btn-ghost text-xs w-full"
+            class="btn-secondary btn-block"
             :disabled="disabled || purchasing"
             data-testid="cosmetic-equip-btn"
             @click="emit('equip', item.key)"
@@ -109,21 +117,10 @@ function canAfford(item) {
 
 <style scoped>
 .cosmetic-group {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
-.cosmetic-group__title {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  color: var(--color-ink);
-  margin-bottom: 0.85rem;
-}
-
-.shop-tile--owned {
-  border-color: color-mix(in srgb, var(--kl-water) 40%, transparent);
-}
-
-.shop-tile--equipped {
-  border-color: color-mix(in srgb, var(--kl-accent) 55%, transparent);
+.cosmetic-group .section-head {
+  margin-bottom: 1rem;
 }
 </style>

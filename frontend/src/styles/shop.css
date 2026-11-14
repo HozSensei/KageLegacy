@@ -1,0 +1,183 @@
+/* Boutique : soldes, grille et tuiles partagés par les quatre onglets. */
+
+@layer components {
+  .shop-balances {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .shop-balances__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .shop-balances__mark {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    place-items: center;
+    background: var(--tone-fill);
+    color: var(--tone-on);
+  }
+
+  .shop-balances__item:first-child .shop-balances__mark {
+    border-radius: 999px;
+  }
+
+  .shop-balances__value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    font-stretch: 76%;
+    font-variant-numeric: tabular-nums;
+    line-height: 0.95;
+    color: var(--color-ink);
+  }
+
+  .shop-balances__label {
+    display: block;
+    font-size: var(--type-kicker);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .shop-note {
+    max-width: 42rem;
+    margin: 0 0 1.25rem;
+    font-size: 0.875rem;
+    color: var(--color-ink-muted);
+  }
+
+  .shop-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: minmax(0, 1fr);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 640px) {
+    .shop-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .shop-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .shop-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    overflow: hidden;
+    padding: 1.35rem 1.25rem 1.25rem;
+    border-top: 6px solid var(--tone-fill, var(--color-line-strong));
+    background: var(--color-bg-card);
+    transition: transform var(--dur-base) var(--ease-out-quint);
+  }
+
+  .shop-grid > .shop-tile:hover {
+    transform: translateY(-3px);
+  }
+
+  /* Forme en aplat, rognée dans l'angle : signe le type d'article. */
+  .shop-tile__shape {
+    position: absolute;
+    top: -1.75rem;
+    right: -1.75rem;
+    width: 6.5rem;
+    height: 6.5rem;
+    background: var(--tone-tint);
+    pointer-events: none;
+  }
+
+  .shop-tile__shape--circle {
+    border-radius: 999px;
+  }
+
+  .shop-tile__shape--lozenge {
+    top: -2.5rem;
+    right: -2.5rem;
+    transform: rotate(45deg);
+  }
+
+  .shop-tile > :not(.shop-tile__shape) {
+    position: relative;
+  }
+
+  .shop-tile__kicker {
+    font-size: var(--type-kicker);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tone, var(--color-ink-muted));
+  }
+
+  .shop-tile__name {
+    max-width: 14ch;
+    font-family: var(--font-display);
+    font-size: 1.625rem;
+    font-weight: 800;
+    font-stretch: 80%;
+    line-height: 1;
+    letter-spacing: -0.015em;
+    color: var(--color-ink);
+  }
+
+  .shop-tile__desc {
+    flex: 1;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-ink-muted);
+  }
+
+  .shop-tile__cost {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-stretch: 76%;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+    color: var(--color-ink);
+  }
+
+  .shop-tile__cost small {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-stretch: 100%;
+    color: var(--tone, var(--color-ink-muted));
+  }
+
+  .shop-tile__meta {
+    font-size: 0.8125rem;
+    color: var(--color-ink-muted);
+  }
+
+  .shop-tile__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.25rem;
+  }
+
+  .shop-tile--muted {
+    border-top-color: var(--color-line-strong);
+  }
+
+  .shop-tile--active {
+    background: var(--tone-tint);
+  }
+}

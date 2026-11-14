@@ -864,7 +864,11 @@
       "unavailableLead": "Revenez quand une saison Battle Pass sera ouverte.",
       "unlockStripe": "Payer {n} € (Stripe)"
     },
-    "checkoutCanceled": "Paiement annulé."
+    "checkoutCanceled": "Paiement annulé.",
+    "ryos": "Ryos",
+    "kageCoins": "Kage Coins",
+    "oddsTitle": "Probabilités",
+    "balancesLabel": "Vos soldes"
   },
   "talents": {
     "kicker": "Progression",

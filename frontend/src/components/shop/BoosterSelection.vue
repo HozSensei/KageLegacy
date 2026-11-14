@@ -1,6 +1,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ShopBalances from './ShopBalances.vue'
+import { elementTone, rarityVisual } from '../../utils/cardVisuals'
 
 defineOptions({ name: 'BoosterSelection' })
 
@@ -44,23 +46,34 @@ function pct(prob) {
 
 const rarityOrder = ['common', 'rare', 'legendary', 'mythic']
 
+const BOOSTER_VISUALS = {
+  standard: { tone: 'indigo', shape: 'square' },
+  elemental: { tone: 'sky', shape: 'circle' },
+  premium: { tone: 'gold', shape: 'lozenge' },
+}
+
+function boosterVisual(booster) {
+  const visual = BOOSTER_VISUALS[booster.type] || BOOSTER_VISUALS.standard
+  if (booster.elementalOnly && props.selectedElement) {
+    return { ...visual, tone: elementTone(props.selectedElement) }
+  }
+  return visual
+}
+
 const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOnly))
 </script>
 
 <template>
   <div class="booster-selection" data-testid="booster-selection">
-    <div class="booster-selection__balances">
-      <span>{{ t('shop.balanceRyos', { n: (balances.ryos || 0).toLocaleString() }) }}</span>
-      <span>{{ t('shop.balanceCoins', { n: (balances.kageCoins || 0).toLocaleString() }) }}</span>
-    </div>
+    <ShopBalances :balances="balances" />
 
     <div v-if="elementalBooster" class="booster-selection__elements">
-      <p class="booster-selection__elements-label">{{ t('shop.elementFilter') }}</p>
-      <div class="booster-selection__element-row">
+      <p class="t-kicker">{{ t('shop.elementFilter') }}</p>
+      <div class="chip-row">
         <button
           type="button"
-          class="btn-ghost text-[10px]"
-          :class="{ 'ring-1 ring-accent/60': !selectedElement }"
+          class="chip"
+          :aria-pressed="!selectedElement"
           @click="emit('select-element', null)"
         >
           {{ t('shop.elementAny') }}
@@ -69,45 +82,59 @@ const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOn
           v-for="el in elements"
           :key="el"
           type="button"
-          class="btn-ghost text-[10px]"
-          :class="{ 'ring-1 ring-accent/60': selectedElement === el }"
+          class="chip"
+          :aria-pressed="selectedElement === el"
+          :data-tone="elementTone(el)"
           @click="emit('select-element', el)"
         >
+          <span class="dot chip__mark" aria-hidden="true" />
           {{ t(`shop.elements.${el}`, el) }}
         </button>
       </div>
     </div>
 
-    <ul class="booster-selection__grid">
+    <ul class="shop-grid stagger">
       <li
         v-for="booster in boosters"
         :key="booster.type"
-        class="booster-card"
+        class="shop-tile booster-card"
         :class="`booster-card--${booster.type}`"
+        :data-tone="boosterVisual(booster).tone"
         :data-testid="`booster-${booster.type}`"
       >
-        <p class="booster-card__kicker">{{ t(`shop.types.${booster.type}`, booster.type) }}</p>
-        <h3 class="booster-card__name">{{ nameOf(booster) }}</h3>
-        <p class="booster-card__desc">{{ descOf(booster) }}</p>
-        <p class="booster-card__meta">
+        <span
+          class="shop-tile__shape"
+          :class="`shop-tile__shape--${boosterVisual(booster).shape}`"
+          aria-hidden="true"
+        />
+        <p class="shop-tile__kicker">{{ t(`shop.types.${booster.type}`, booster.type) }}</p>
+        <h3 class="shop-tile__name">{{ nameOf(booster) }}</h3>
+        <p class="shop-tile__desc">{{ descOf(booster) }}</p>
+        <p class="shop-tile__meta">
           {{ t('shop.cardCount', { n: booster.cardCount }) }}
           <template v-if="booster.guaranteedMinRarity">
             · {{ t('shop.guaranteed', { rarity: t(`cards.rarities.${booster.guaranteedMinRarity}`) }) }}
           </template>
         </p>
 
-        <ul class="booster-card__odds">
-          <li v-for="rarity in rarityOrder" :key="rarity">
-            <span>{{ t(`cards.rarities.${rarity}`) }}</span>
-            <span>{{ pct(booster.probabilities?.[rarity]) }}</span>
-          </li>
-        </ul>
+        <div class="booster-card__odds">
+          <p class="t-kicker">{{ t('shop.oddsTitle') }}</p>
+          <ul>
+            <li v-for="rarity in rarityOrder" :key="rarity" :data-tone="rarityVisual(rarity).tone">
+              <span class="booster-card__odds-label">{{ t(`cards.rarities.${rarity}`) }}</span>
+              <span class="booster-card__odds-bar" aria-hidden="true">
+                <span :style="{ width: pct(booster.probabilities?.[rarity]) }" />
+              </span>
+              <span class="booster-card__odds-value">{{ pct(booster.probabilities?.[rarity]) }}</span>
+            </li>
+          </ul>
+        </div>
 
-        <p class="booster-card__cost">{{ costLabel(booster) }}</p>
+        <p class="shop-tile__cost">{{ costLabel(booster) }}</p>
 
         <button
           type="button"
-          class="btn-primary text-xs w-full"
+          class="btn-primary btn-block"
           :disabled="disabled || opening || !canAfford(booster)"
           data-testid="booster-open-btn"
           @click="emit('open', booster.type)"
@@ -126,135 +153,64 @@ const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOn
 </template>
 
 <style scoped>
-.booster-selection__balances {
+.booster-selection__elements {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-  font-size: 0.85rem;
-  color: var(--color-ink-muted);
-}
-
-.booster-selection__balances span {
-  letter-spacing: 0.04em;
-}
-
-.booster-selection__elements {
+  align-items: center;
+  gap: 0.5rem 1rem;
   margin-bottom: 1.5rem;
 }
 
-.booster-selection__elements-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-  margin-bottom: 0.5rem;
-}
-
-.booster-selection__element-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.booster-selection__grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-  .booster-selection__grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.booster-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  padding: 1.25rem 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--kl-line-mix) 22%, transparent);
-  background:
-    linear-gradient(165deg, color-mix(in srgb, var(--kl-bg-card) 88%, transparent), var(--kl-bg-soft)),
-    radial-gradient(ellipse at top right, color-mix(in srgb, var(--kl-accent) 12%, transparent), transparent 55%);
-  animation: booster-in 0.45s ease both;
-}
-
-.booster-card--standard {
-  animation-delay: 0.05s;
-}
-.booster-card--elemental {
-  animation-delay: 0.12s;
-  border-color: color-mix(in srgb, var(--kl-water) 35%, transparent);
-}
-.booster-card--premium {
-  animation-delay: 0.2s;
-  border-color: color-mix(in srgb, var(--kl-accent) 45%, transparent);
-}
-
-.booster-card__kicker {
-  font-size: 0.65rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-
-.booster-card__name {
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  line-height: 1.15;
-  color: var(--color-ink);
-}
-
-.booster-card__desc {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: var(--color-ink-muted);
-  flex: 1;
-}
-
-.booster-card__meta {
-  font-size: 0.72rem;
-  color: var(--color-ink-faint);
-}
-
 .booster-card__odds {
-  list-style: none;
-  margin: 0;
-  padding: 0.55rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--kl-accent) 22%, transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--kl-accent) 22%, transparent);
+  padding: 0.75rem 0 0.25rem;
+  border-top: 1px solid var(--color-line);
+}
+
+.booster-card__odds ul {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.72rem;
-  color: var(--color-ink-muted);
+  gap: 0.3rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .booster-card__odds li {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) 3.25rem;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8125rem;
 }
 
-.booster-card__cost {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  color: var(--color-accent);
+.booster-card__odds-label {
+  font-weight: 500;
+  color: var(--color-ink-muted);
 }
 
-@keyframes booster-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.booster-card__odds-bar {
+  display: block;
+  height: 0.375rem;
+  background: var(--color-bg-soft);
+}
+
+.booster-card__odds-bar > span {
+  display: block;
+  min-width: 2px;
+  height: 100%;
+  background: var(--tone-fill);
+  transform-origin: left;
+  animation: bar-grow 600ms var(--ease-out-quint) 200ms backwards;
+}
+
+.booster-card__odds li[data-tone='neutral'] .booster-card__odds-bar > span {
+  background: var(--color-ink-faint);
+}
+
+.booster-card__odds-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--color-ink);
 }
 </style>

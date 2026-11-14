@@ -8,6 +8,8 @@ import BoosterResults from '../components/shop/BoosterResults.vue'
 import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue'
 import CosmeticCatalog from '../components/shop/CosmeticCatalog.vue'
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import marketImage from '../assets/illustrations/market-square.jpg'
 import { useShopStore } from '../stores/shop'
 import { useAuthStore } from '../stores/auth'
 
@@ -142,23 +144,24 @@ async function onUnlockBp(method) {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="shop-page">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p class="page-kicker">{{ t('shop.kicker') }}</p>
-        <h1 class="page-title mt-2">{{ t('shop.title') }}</h1>
-        <p class="page-lead mt-3 max-w-xl">{{ t('shop.lead') }}</p>
-      </div>
-    </div>
+  <div class="page-shell" data-testid="shop-page">
+    <PageHeader
+      index="06"
+      tone="gold"
+      :kicker="t('shop.kicker')"
+      :title="t('shop.title')"
+      :lead="t('shop.lead')"
+      :image="marketImage"
+      image-position="50% 62%"
+    />
 
-    <div class="shop-tabs mt-8" role="tablist" data-testid="shop-tabs">
+    <div class="tabs mt-8" role="tablist" data-testid="shop-tabs">
       <button
         v-for="tab in tabs"
         :key="tab.id"
         type="button"
         role="tab"
-        class="btn-ghost text-[10px]"
-        :class="{ 'ring-1 ring-accent/60': shop.activeTab === tab.id }"
+        class="tab"
         :aria-selected="shop.activeTab === tab.id"
         :data-testid="`shop-tab-${tab.id}`"
         @click="onSelectTab(tab.id)"
@@ -167,13 +170,13 @@ async function onUnlockBp(method) {
       </button>
     </div>
 
-    <p v-if="shop.error" class="mt-4 text-sm text-fire" data-testid="shop-error">{{ shop.error }}</p>
-    <p v-if="shop.lastMessage" class="mt-4 text-sm text-accent" data-testid="shop-message">
+    <p v-if="shop.error" class="alert alert--error mt-4" data-testid="shop-error">{{ shop.error }}</p>
+    <p v-if="shop.lastMessage" class="alert alert--success mt-4" data-testid="shop-message">
       {{ shop.lastMessage }}
     </p>
     <p
       v-if="shop.loading && phase === 'catalog'"
-      class="mt-6 text-sm text-ink-muted"
+      class="mt-6 text-ink-muted"
     >
       {{ t('shop.loading') }}
     </p>
@@ -244,96 +247,3 @@ async function onUnlockBp(method) {
     </div>
   </div>
 </template>
-
-<style scoped>
-.shop-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-</style>
-
-<style>
-.shop-balances {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-  font-size: 0.85rem;
-  color: var(--color-ink-muted);
-}
-
-.shop-balances span {
-  letter-spacing: 0.04em;
-}
-
-.shop-grid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-  .shop-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.shop-tile {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  padding: 1.25rem 1.15rem;
-  border: 1px solid color-mix(in srgb, var(--kl-line-mix) 22%, transparent);
-  background:
-    linear-gradient(165deg, color-mix(in srgb, var(--kl-bg-card) 88%, transparent), var(--kl-bg-soft)),
-    radial-gradient(ellipse at top right, color-mix(in srgb, var(--kl-accent) 12%, transparent), transparent 55%);
-  animation: shop-tile-in 0.45s ease both;
-}
-
-.shop-tile__kicker {
-  font-size: 0.65rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-accent);
-}
-
-.shop-tile__name {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  line-height: 1.15;
-  color: var(--color-ink);
-}
-
-.shop-tile__desc {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: var(--color-ink-muted);
-  flex: 1;
-}
-
-.shop-tile__cost {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  color: var(--color-accent);
-}
-
-.shop-tile__meta {
-  font-size: 0.72rem;
-  color: var(--color-ink-faint);
-}
-
-@keyframes shop-tile-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>

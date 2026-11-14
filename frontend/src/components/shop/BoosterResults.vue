@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
+import { rarityVisual } from '../../utils/cardVisuals'
 
 defineOptions({ name: 'BoosterResults' })
 
@@ -26,15 +27,15 @@ const rarityLines = computed(() => {
 
 <template>
   <div class="booster-results" data-testid="booster-results">
-    <h2 class="booster-results__title">{{ t('shop.resultsTitle') }}</h2>
-    <p class="booster-results__lead">
+    <h2 class="t-heading">{{ t('shop.resultsTitle') }}</h2>
+    <p class="mt-2 text-ink-muted">
       {{ t('shop.resultsLead', { newCount, dupCount }) }}
     </p>
 
     <ul class="booster-results__rarities">
-      <li v-for="line in rarityLines" :key="line.rarity">
-        <span>{{ t(`cards.rarities.${line.rarity}`) }}</span>
+      <li v-for="line in rarityLines" :key="line.rarity" :data-tone="rarityVisual(line.rarity).tone">
         <strong>×{{ line.n }}</strong>
+        <span>{{ t(`cards.rarities.${line.rarity}`) }}</span>
       </li>
     </ul>
 
@@ -49,13 +50,13 @@ const rarityLines = computed(() => {
     </p>
 
     <div class="booster-results__actions">
-      <button type="button" class="btn-primary text-xs" data-testid="booster-again" @click="$emit('again')">
+      <button type="button" class="btn-primary" data-testid="booster-again" @click="$emit('again')">
         {{ t('shop.openAnother') }}
       </button>
-      <RouterLink to="/collection" class="btn-ghost text-xs">
+      <RouterLink to="/collection" class="btn-secondary">
         {{ t('shop.viewCollection') }}
       </RouterLink>
-      <button type="button" class="btn-ghost text-xs" @click="$emit('close')">
+      <button type="button" class="btn-ghost" @click="$emit('close')">
         {{ t('shop.closeResults') }}
       </button>
     </div>
@@ -64,62 +65,55 @@ const rarityLines = computed(() => {
 
 <style scoped>
 .booster-results {
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid color-mix(in srgb, var(--kl-accent) 28%, transparent);
-  animation: results-in 0.4s ease both;
-}
-
-.booster-results__title {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  color: var(--color-ink);
-}
-
-.booster-results__lead {
-  margin-top: 0.4rem;
-  font-size: 0.9rem;
-  color: var(--color-ink-muted);
+  margin-top: 2rem;
+  padding: 1.5rem 1.25rem;
+  border-top: 6px solid var(--color-gold-fill);
+  background: var(--color-bg-card);
+  animation: rise-in 420ms var(--ease-out-quint) both;
 }
 
 .booster-results__rarities {
-  list-style: none;
-  margin: 1rem 0 0;
-  padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  font-size: 0.8rem;
+  gap: 0.75rem 2rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.booster-results__rarities li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--color-ink-muted);
 }
 
 .booster-results__rarities strong {
-  margin-left: 0.35rem;
-  color: var(--color-accent);
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 1;
+  color: var(--tone, var(--color-ink));
+}
+
+.booster-results__rarities li[data-tone='neutral'] strong {
+  color: var(--color-ink);
 }
 
 .booster-results__cost {
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  color: var(--color-ink-faint);
+  margin-top: 0.9rem;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
 }
 
 .booster-results__actions {
-  margin-top: 1.15rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-@keyframes results-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  margin-top: 1.25rem;
 }
 </style>
