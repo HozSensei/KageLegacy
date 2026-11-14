@@ -1,12 +1,44 @@
-# 🦅 Kage Legacy : Le Manager d'Escouade Shinobi
+# 🥷 Kage Legacy
 
-**Kage Legacy** est un jeu de gestion et de stratégie asynchrone par navigateur. Inspiré des mécaniques légendaires de *Hattrick*, le jeu plonge le joueur dans un univers de dark fantasy asiatique où la tactique, la formation et la gestion humaine l'emportent sur la puissance brute.
+> **⚠️ PROJET EN TRANSFORMATION**  
+> Ce projet évolue d'un jeu de gestion d'escouade (type Hattrick) vers un **jeu de deck-building roguelike solo** (type Slay the Spire).
 
 ---
 
-## 📜 Le Concept
+## 🎯 Nouvelle Vision
 
-Dans **Kage Legacy**, vous incarnez un **Jonin-Sensei**, mentor de votre propre escouade.
+**Kage Legacy** est un jeu de deck-building roguelike inspiré de **Slay the Spire** dans un univers ninja original.
+
+### Pitch
+> Forgez votre légende ninja en construisant le deck ultime. Collectionnez des techniques, affrontez des boss légendaires, et gravissez les rangs de Genin à Kage.
+
+### Changements Majeurs par rapport à l'ancienne version
+- ❌ **Avant** : Gestion d'escouade avec cycles de 72h (type Hattrick)
+- ✅ **Maintenant** : Deck-building solo avec collection de cartes permanente (type Slay the Spire)
+
+---
+
+## 📚 Documentation Complète
+
+**Toute la nouvelle documentation est dans [`/docs`](./docs/)** :
+
+| Document | Description |
+|----------|-------------|
+| **[📖 README](./docs/README.md)** | Guide complet du nouveau projet |
+| **[🎯 PROJECT_VISION](./docs/PROJECT_VISION.md)** | Vision, objectifs, game design |
+| **[📅 BATTLE_PASS](./docs/BATTLE_PASS.md)** | Système de saison (nouveau) |
+| **[⚔️ COMBAT_SYSTEM](./docs/COMBAT_SYSTEM.md)** | Mécanique de combat carte par carte |
+| **[🃏 CARD_SYSTEM](./docs/CARD_SYSTEM.md)** | Système de cartes (génération, collection) |
+| **[🏗️ TECHNICAL_ARCHITECTURE](./docs/TECHNICAL_ARCHITECTURE.md)** | Architecture technique |
+| **[🗺️ IMPLEMENTATION_ROADMAP](./docs/IMPLEMENTATION_ROADMAP.md)** | Roadmap complète (3-4 mois) |
+
+---
+
+## 🚀 Quick Start (Legacy Kage Legacy)
+
+**Version actuelle (legacy)** : Manager d'escouade Hattrick-like
+
+Dans **Kage Legacy** (version actuelle), vous incarnez un **Jonin-Sensei**, mentor de votre propre escouade.
 
 ### 🔄 La Boucle de Jeu (Cycle de 72h)
 
