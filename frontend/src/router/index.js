@@ -9,6 +9,8 @@ import CharacterCreation from '../views/CharacterCreation.vue'
 import CollectionView from '../views/CollectionView.vue'
 import DeckBuilderView from '../views/DeckBuilderView.vue'
 import TalentTreeView from '../views/TalentTreeView.vue'
+import MissionsCombatView from '../views/MissionsCombatView.vue'
+import CombatView from '../views/CombatView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -74,12 +76,28 @@ const router = createRouter({
             requiresCharacter: true,
           },
         },
+        {
+          path: 'missions',
+          name: 'missions',
+          component: MissionsCombatView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'combat.missionsTitle' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'combat/:id',
+          name: 'combat',
+          component: CombatView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
         // Routes legacy archivées → placeholder jusqu'aux phases suivantes
         ...[
           ['inventory', 'nav.inventory', 'nav.inventory'],
           ['journal', 'nav.journal', 'journal.title'],
           ['squad', 'nav.squad', 'nav.squad'],
-          ['missions', 'nav.missions', 'nav.missions'],
           ['reconnaissance', 'nav.reconnaissance', 'nav.reconnaissance'],
           ['espionnage', 'nav.scout', 'nav.scout', 'scout'],
           ['clan', 'nav.clan', 'nav.clan'],

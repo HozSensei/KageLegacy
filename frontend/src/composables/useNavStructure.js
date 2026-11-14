@@ -21,6 +21,11 @@ export function useNavStructure({ navItems, isActive, t }) {
         items: pick('collection', 'decks'),
       },
       {
+        id: 'missions',
+        labelKey: 'nav.groups.missions',
+        items: pick('missions'),
+      },
+      {
         id: 'economy',
         labelKey: 'nav.groups.economy',
         items: pick('inventory'),
