@@ -206,17 +206,8 @@
     "later": "Later",
     "badge": "Trial"
   },
-  "theme": {
-    "forest": "Forest",
-    "midnight": "Midnight",
-    "ember": "Ember",
-    "mist": "Mist",
-    "parchment": "Parchment"
-  },
   "profile": {
     "menu": "My profile",
-    "theme": "Theme",
-    "themeActive": "Active",
     "language": "Language",
     "changeEmail": "Change email",
     "changePassword": "Change password",

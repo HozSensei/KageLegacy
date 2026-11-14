@@ -19,8 +19,6 @@ import PvpQueueView from '../views/PvpQueueView.vue'
 import PvpDuelView from '../views/PvpDuelView.vue'
 import { useAuthStore } from '../stores/auth'
 
-const HERO_VILLAGE = '/images/hero-village.png'
-
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -37,7 +35,6 @@ const router = createRouter({
           path: 'home',
           name: 'hub',
           component: HubView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'hub.title' } },
         },
         {
           path: 'bureau',
@@ -47,14 +44,12 @@ const router = createRouter({
           path: 'character-creation',
           name: 'character-creation',
           component: CharacterCreation,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'player.createTitle' } },
         },
         {
           path: 'profil',
           name: 'profile',
           component: Profile,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'player.profileTitle' },
             requiresCharacter: true,
           },
         },
@@ -63,7 +58,6 @@ const router = createRouter({
           name: 'collection',
           component: CollectionView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'cards.collectionTitle' },
             requiresCharacter: true,
           },
         },
@@ -72,7 +66,6 @@ const router = createRouter({
           name: 'decks',
           component: DeckBuilderView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'cards.deckBuilderTitle' },
             requiresCharacter: true,
           },
         },
@@ -81,7 +74,6 @@ const router = createRouter({
           name: 'talents',
           component: TalentTreeView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'talents.title' },
             requiresCharacter: true,
           },
         },
@@ -90,7 +82,6 @@ const router = createRouter({
           name: 'missions',
           component: MissionsCombatView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'combat.missionsTitle' },
             requiresCharacter: true,
           },
         },
@@ -115,7 +106,6 @@ const router = createRouter({
           name: 'shop',
           component: ShopView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'shop.title' },
             requiresCharacter: true,
           },
         },
@@ -124,7 +114,6 @@ const router = createRouter({
           name: 'battle-pass',
           component: BattlePassView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'battlePass.title' },
             requiresCharacter: true,
           },
         },
@@ -133,7 +122,6 @@ const router = createRouter({
           name: 'pvp',
           component: PvpQueueView,
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: 'pvp.queueTitle' },
             requiresCharacter: true,
           },
         },
@@ -163,13 +151,12 @@ const router = createRouter({
           ['design/elite-identity', 'eliteShowcase.title', 'eliteShowcase.title', 'elite-identity-showcase'],
           ['elite/outils', 'eliteTools.pageTitle', 'eliteTools.pageTitle', 'elite-tools'],
           ['admin', 'nav.admin', 'nav.admin', 'admin'],
-        ].map(([path, titleKey, heroKey, name]) => ({
+        ].map(([path, titleKey, , name]) => ({
           path,
           name: name || path.replace(/\//g, '-'),
           component: PlaceholderView,
           props: { titleKey },
           meta: {
-            hero: { image: HERO_VILLAGE, titleKey: heroKey },
             ...(path === 'admin' ? { requiresAdmin: true } : {}),
           },
         })),

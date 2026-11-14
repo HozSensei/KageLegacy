@@ -3,10 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
-import { initTheme } from './stores/theme'
 import './style.css'
-
-initTheme()
 
 const nativeFetch = window.fetch.bind(window)
 window.fetch = (input, init = {}) =>

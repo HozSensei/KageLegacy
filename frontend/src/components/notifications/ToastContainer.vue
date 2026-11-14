@@ -1,38 +1,110 @@
 <script setup>
+import { useI18n } from 'vue-i18n'
 import { useToast } from '../../composables/useToast'
+import AppIcon from '../ui/AppIcon.vue'
 
 defineOptions({ name: 'ToastContainer' })
 
+const { t } = useI18n()
 const { toasts, dismiss } = useToast()
 </script>
 
 <template>
-  <div
-    class="pointer-events-none fixed bottom-6 right-4 z-50 flex max-w-sm flex-col gap-2"
+  <TransitionGroup
+    tag="div"
+    name="toast"
+    class="toast-stack"
     aria-live="polite"
     data-testid="toast-container"
   >
     <div
       v-for="toast in toasts"
       :key="toast.id"
-      class="pointer-events-auto border border-line bg-bg-card p-4 shadow-lg"
-      :class="toast.kind === 'event' ? 'border-l-2 border-l-accent' : ''"
+      class="toast"
+      :class="{ 'toast--event': toast.kind === 'event' }"
       data-testid="toast-item"
     >
-      <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0">
-          <p class="text-[10px] uppercase tracking-[0.14em] text-accent">{{ toast.title }}</p>
-          <p v-if="toast.body" class="mt-1 text-sm leading-relaxed text-ink">{{ toast.body }}</p>
-        </div>
-        <button
-          type="button"
-          class="shrink-0 text-ink-faint transition hover:text-ink"
-          aria-label="Fermer"
-          @click="dismiss(toast.id)"
-        >
-          ×
-        </button>
+      <div class="min-w-0">
+        <p class="toast__title">{{ toast.title }}</p>
+        <p v-if="toast.body" class="toast__body">{{ toast.body }}</p>
       </div>
+      <button type="button" class="toast__close" :aria-label="t('common.dismiss')" @click="dismiss(toast.id)">
+        <AppIcon name="close" size="1rem" :stroke-width="2" />
+      </button>
     </div>
-  </div>
+  </TransitionGroup>
 </template>
+
+<style scoped>
+.toast-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: 1.5rem;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(22rem, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-left: 5px solid var(--color-gold-fill);
+  background: var(--color-indigo);
+  color: #fffdf8;
+  pointer-events: auto;
+}
+
+.toast--event {
+  border-left-color: var(--color-vermilion);
+}
+
+.toast__title {
+  font-size: var(--type-kicker);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold-fill);
+}
+
+.toast__body {
+  margin-top: 0.3rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.toast__close {
+  flex: none;
+  padding: 0.15rem;
+  color: color-mix(in srgb, #fffdf8 75%, transparent);
+  transition: color var(--dur-fast) ease;
+}
+
+.toast__close:hover {
+  color: #fffdf8;
+}
+
+.toast-enter-active {
+  transition:
+    opacity var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out-quint);
+}
+
+.toast-leave-active {
+  transition: opacity var(--dur-fast) ease;
+}
+
+.toast-enter-from {
+  opacity: 0;
+  transform: translateX(1.5rem);
+}
+
+.toast-leave-to {
+  opacity: 0;
+}
+</style>

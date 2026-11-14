@@ -206,17 +206,8 @@
     "later": "Plus tard",
     "badge": "Essai"
   },
-  "theme": {
-    "forest": "Forêt",
-    "midnight": "Minuit",
-    "ember": "Braises",
-    "mist": "Brume",
-    "parchment": "Parchemin"
-  },
   "profile": {
     "menu": "Mon profil",
-    "theme": "Thème",
-    "themeActive": "Actif",
     "language": "Langue",
     "changeEmail": "Changer l'e-mail",
     "changePassword": "Changer le mot de passe",

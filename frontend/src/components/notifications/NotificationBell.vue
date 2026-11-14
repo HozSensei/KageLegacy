@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSquadStore } from '../../stores/squad'
+import AppIcon from '../ui/AppIcon.vue'
 
 defineOptions({ name: 'NotificationBell' })
 
@@ -20,25 +21,52 @@ function toggle() {
   <div class="relative">
     <button
       type="button"
-      class="relative border border-line px-2.5 py-1.5 text-ink-muted transition hover:border-accent hover:text-accent"
+      class="btn-icon relative"
       :aria-label="t('notifications.bell')"
+      :aria-expanded="open"
       data-testid="notification-bell"
       @click="toggle"
     >
-      <span class="text-xs uppercase tracking-[0.12em]">{{ t('notifications.bell') }}</span>
-      <span
-        v-if="unreadCount"
-        class="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-accent px-1 text-[10px] text-bg"
-      >
-        {{ unreadCount }}
-      </span>
+      <AppIcon name="bell" size="1.25rem" />
+      <span v-if="unreadCount" class="bell-count">{{ unreadCount }}</span>
     </button>
-    <div
-      v-if="open"
-      class="absolute right-0 z-40 mt-2 w-72 border border-line bg-bg-card p-4 text-sm text-ink-muted shadow-lg"
-    >
-      <p class="font-display text-ink">{{ t('notifications.panelTitle') }}</p>
-      <p class="mt-2 text-xs text-ink-faint">{{ t('placeholders.comingSoon') }}</p>
-    </div>
+    <Transition name="rise">
+      <div v-if="open" class="bell-panel">
+        <p class="t-subheading">{{ t('notifications.panelTitle') }}</p>
+        <p class="mt-2 text-sm text-ink-muted">{{ t('placeholders.comingSoon') }}</p>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.bell-count {
+  position: absolute;
+  top: 0.1rem;
+  right: 0.1rem;
+  display: grid;
+  place-items: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--color-vermilion);
+  font-size: 0.625rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fffdf8;
+}
+
+.bell-panel {
+  position: absolute;
+  right: 0;
+  z-index: 40;
+  width: 17rem;
+  max-width: calc(100vw - 2rem);
+  margin-top: 0.5rem;
+  padding: 1rem 1.1rem;
+  border-top: 4px solid var(--color-indigo);
+  background: var(--color-bg-card);
+  outline: 1px solid var(--color-line);
+}
+</style>
