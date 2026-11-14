@@ -15,6 +15,7 @@
     "db:seed-battle-pass": "node scripts/seedBattlePass.js",
     "test:card-system": "node scripts/testCardSystem.js",
     "test:boosters": "node scripts/testBoosters.js",
+    "test:shop": "node scripts/testShopCatalog.js",
     "test:economy": "node scripts/testEconomy.js",
     "test:talent-tree": "node scripts/testTalentTree.js",
     "test:combat-engine": "node scripts/testCombatEngine.js",
