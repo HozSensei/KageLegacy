@@ -7,6 +7,23 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Refonte visuelle de l'interface (2026-11-14)
+
+#### Changed
+- **Socle** : thème clair unique (papier crème, encre indigo, accent vermillon, vert feuillage, bleu ciel, bois, or), tokens Tailwind v4 dans `frontend/src/styles/`, formes en aplat et mécanisme `data-tone`
+- **Typographie** auto-hébergée (`@fontsource-variable`) : Bricolage Grotesque pour les titres et les chiffres, Inter pour le texte ; plus aucune police ni icône chargée depuis un CDN
+- **Icônes** : glyphes SVG (`AppIcon`) à la place des emojis et de Material Symbols ; losange emboîté comme motif de marque (`BrandMark`, favicon)
+- **Écrans** : coque et navigation, accueil public, connexion, hub, carte de jeu, collection, decks, combat, arbre de talents, boutique, passe de saison, missions et parcours, PvP, profil, création du ninja, règles
+- **Mouvement** : transitions de page, apparitions en cascade, retours de combat (dégâts, armure, changement de tour), progression du passe, déblocage de talent — CSS et transitions Vue, `prefers-reduced-motion` respecté
+- **Illustrations** : cinq visuels utilisés en bandeau d'en-tête (hub, accueil, missions, boutique, PvP)
+
+#### Removed
+- Sélecteur de thèmes (`stores/theme.js`, `themes/catalog.js`, `themes.css`) et anciennes images d'en-tête
+
+#### Fixed
+- Boutique : la révélation d'un parchemin ne démarrait jamais (`props.value` au lieu de `props.cards`)
+- Arbre de talents : un clic à la souris ne sélectionnait pas le nœud (capture du pointeur dès l'appui)
+
 ### Boss multi-phases (2026-11-14)
 
 #### Added
