@@ -6,6 +6,7 @@ import {
   serializeCardDefinition,
 } from '../src/services/cardService.js';
 import { validateDeck, DECK_MIN_SIZE, DECK_MAX_SIZE } from '../src/services/deckService.js';
+import { ALL_CARDS, STARTER_CARDS, validateCatalog } from './seedCards.js';
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -83,4 +84,27 @@ assert(!tooBig.valid, 'reject oversized deck');
 const overCopies = validateDeck([{ quantity: 4, collectionId: 1, card: { nameFr: 'X' } }]);
 assert(!overCopies.valid, 'reject over copies');
 
-console.log('✅ testCardSystem passed');
+// Catalogue seed (~100 cartes)
+assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
+assert(ALL_CARDS.length >= 95 && ALL_CARDS.length <= 110, `catalog ~100, got ${ALL_CARDS.length}`);
+const catalog = validateCatalog(ALL_CARDS);
+assert(catalog.byType.attack >= 35, 'enough attacks');
+assert(catalog.byType.defense >= 18, 'enough defenses');
+assert(catalog.byType.skill >= 18, 'enough skills');
+assert(catalog.byType.item >= 10, 'enough items');
+assert(catalog.byType.summon >= 7, 'enough summons');
+assert(catalog.byRarity.common >= 50, 'enough commons');
+assert(catalog.byRarity.rare >= 25, 'enough rares');
+assert(catalog.byRarity.legendary >= 10, 'enough legendaries');
+assert((catalog.byRarity.mythic || 0) >= 2, 'some mythics');
+for (const el of ['katon', 'suiton', 'raiton', 'doton', 'futon', 'null']) {
+  assert((catalog.byElement[el] || 0) >= 5, `element ${el} under-represented`);
+}
+for (const card of ALL_CARDS) {
+  assert(Object.keys(card.passiveBonus || {}).length > 0, `passive on ${card.slug}`);
+}
+
+console.log('✅ testCardSystem passed', `(catalog ${catalog.total})`);
+console.log('   types  ', catalog.byType);
+console.log('   rarity ', catalog.byRarity);
+console.log('   element', catalog.byElement);

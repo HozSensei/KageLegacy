@@ -1,9 +1,19 @@
 /**
- * Seed catalogue de cartes de départ (noms ORIGINAUX — pas de refs Naruto).
- * Usage: node scripts/seedCards.js
+ * Seed catalogue de cartes (noms ORIGINAUX — pas de refs franchise).
+ * Usage: npm run db:seed-cards  (depuis backend/)
+ *        node scripts/seedCards.js
+ *
+ * Idempotent : upsertCardDefinition met à jour si le slug existe déjà.
  */
 import { upsertCardDefinition } from '../src/services/cardService.js';
+import { EXPANSION_CARDS } from './data/cardExpansion.js';
+import {
+  assertOriginalNaming,
+  assertUniqueSlugs,
+  summarizeCatalog,
+} from './lib/cardFactory.js';
 
+/** Cartes de départ historiques (conservées telles quelles). */
 const STARTER_CARDS = [
   {
     slug: 'poing-rapide',
@@ -484,21 +494,56 @@ const STARTER_CARDS = [
   },
 ];
 
+/** Catalogue complet (starters + expansion V2). */
+export const ALL_CARDS = [...STARTER_CARDS, ...EXPANSION_CARDS];
+
+/** @deprecated Prefer ALL_CARDS — conservé pour imports existants. */
+export { STARTER_CARDS };
+
+export function validateCatalog(cards = ALL_CARDS) {
+  assertUniqueSlugs(cards);
+  assertOriginalNaming(cards);
+  for (const card of cards) {
+    if (!card.passiveBonus || typeof card.passiveBonus !== 'object') {
+      throw new Error(`Missing passiveBonus: ${card.slug}`);
+    }
+    if (!card.upgradeBonuses?.level_1 || !card.upgradeBonuses?.level_2) {
+      throw new Error(`Missing upgradeBonuses: ${card.slug}`);
+    }
+    if (!['attack', 'defense', 'skill', 'item', 'summon'].includes(card.type)) {
+      throw new Error(`Invalid type on ${card.slug}: ${card.type}`);
+    }
+    if (!['common', 'rare', 'legendary', 'mythic'].includes(card.rarity)) {
+      throw new Error(`Invalid rarity on ${card.slug}: ${card.rarity}`);
+    }
+  }
+  return summarizeCatalog(cards);
+}
+
 async function main() {
-  console.log(`Seeding ${STARTER_CARDS.length} cards…`);
+  const summary = validateCatalog(ALL_CARDS);
+  console.log(`Seeding ${summary.total} cards…`);
+  console.log('  by type   :', summary.byType);
+  console.log('  by rarity :', summary.byRarity);
+  console.log('  by element:', summary.byElement);
+
   let ok = 0;
-  for (const card of STARTER_CARDS) {
+  for (const card of ALL_CARDS) {
     const saved = await upsertCardDefinition(card);
     console.log(`  ✓ ${saved.slug} (#${saved.id}) [${saved.rarity}/${saved.type}]`);
     ok += 1;
   }
-  console.log(`Done: ${ok} cards.`);
+  console.log(`Done: ${ok} cards upserted.`);
   process.exit(0);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const isDirectRun =
+  process.argv[1] &&
+  (process.argv[1].endsWith('seedCards.js') || process.argv[1].includes('seedCards'));
 
-export { STARTER_CARDS };
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
