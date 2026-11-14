@@ -67,27 +67,34 @@ const lines = computed(() => {
   <div
     class="victory"
     :class="`victory--${state}`"
+    :data-tone="isVictory ? 'leaf' : 'vermilion'"
     data-testid="victory-rewards"
     role="dialog"
     :aria-label="title"
   >
-    <p class="victory__title">{{ title }}</p>
+    <span class="victory__shape" aria-hidden="true" />
+    <div class="victory__content">
+      <p class="victory__title">{{ title }}</p>
 
-    <p v-if="midRun && isVictory" class="victory__muted">
-      {{ t('combat.stepClearedHint') }}
-    </p>
+      <p v-if="midRun && isVictory" class="victory__muted">
+        {{ t('combat.stepClearedHint') }}
+      </p>
 
-    <ul v-else-if="isVictory && lines.length" class="victory__list">
-      <li v-for="line in lines" :key="line.key">{{ line.label }}</li>
-    </ul>
-    <p v-else-if="isVictory && rewards?.error" class="victory__muted">
-      {{ t('combat.rewardError') }}
-    </p>
-    <p v-else-if="isVictory && !rewards && !midRun" class="victory__muted">
-      {{ t('combat.rewardPending') }}
-    </p>
+      <ul v-else-if="isVictory && lines.length" class="victory__list stagger">
+        <li v-for="line in lines" :key="line.key">
+          <span class="lozenge" aria-hidden="true" />
+          {{ line.label }}
+        </li>
+      </ul>
+      <p v-else-if="isVictory && rewards?.error" class="victory__muted">
+        {{ t('combat.rewardError') }}
+      </p>
+      <p v-else-if="isVictory && !rewards && !midRun" class="victory__muted">
+        {{ t('combat.rewardPending') }}
+      </p>
+    </div>
 
-    <button type="button" class="btn-primary text-xs victory__cta" @click="emit('dismiss')">
+    <button type="button" class="btn-primary btn-lg victory__cta" @click="emit('dismiss')">
       {{ ctaLabel }}
     </button>
   </div>
@@ -95,68 +102,90 @@ const lines = computed(() => {
 
 <style scoped>
 .victory {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: grid;
+  gap: 1.25rem;
   align-items: center;
-  gap: 0.85rem;
-  padding: 1.25rem 1.5rem;
-  text-align: center;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
-  background: color-mix(in srgb, var(--color-bg-soft) 88%, transparent);
-  animation: victory-in 0.5s ease;
+  overflow: hidden;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border-radius: var(--radius-md);
+  background: var(--tone-tint);
+  animation: rise-in 480ms var(--ease-out-quint) both;
 }
 
-.victory--victory {
-  border-color: color-mix(in srgb, var(--color-win) 45%, transparent);
+.victory__shape {
+  position: absolute;
+  top: -3rem;
+  right: -3rem;
+  width: clamp(6.5rem, 22vw, 11rem);
+  height: clamp(6.5rem, 22vw, 11rem);
+  background: var(--tone-fill);
+  opacity: 0.9;
+  transform: rotate(45deg);
+  animation: pop-in 620ms var(--ease-out-quint) 120ms both;
 }
 
-.victory--defeat,
-.victory--forfeited {
-  border-color: color-mix(in srgb, var(--color-fire) 40%, transparent);
+.victory--defeat .victory__shape,
+.victory--forfeited .victory__shape {
+  border-radius: 50%;
+}
+
+.victory__content {
+  position: relative;
+  min-width: 0;
 }
 
 .victory__title {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  line-height: 1.1;
-}
-
-.victory--victory .victory__title {
-  color: var(--color-win);
-}
-
-.victory--defeat .victory__title,
-.victory--forfeited .victory__title {
-  color: var(--color-fire);
+  font-size: clamp(2.5rem, 1.6rem + 5vw, 4.5rem);
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+  color: var(--color-ink);
 }
 
 .victory__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-size: 0.95rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.victory__list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.victory__list .lozenge {
+  color: var(--tone-fill);
 }
 
 .victory__muted {
-  font-size: 0.85rem;
+  margin-top: 0.85rem;
+  max-width: 28rem;
   color: var(--color-ink-muted);
 }
 
 .victory__cta {
-  margin-top: 0.25rem;
+  position: relative;
+  justify-self: start;
 }
 
-@keyframes victory-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
+@media (min-width: 768px) {
+  .victory {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
   }
-  to {
-    opacity: 1;
-    transform: none;
+
+  .victory__cta {
+    align-self: end;
+    justify-self: end;
   }
 }
 </style>

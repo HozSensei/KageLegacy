@@ -60,7 +60,10 @@ function formatLog(log) {
 
 <template>
   <aside class="combat-log" data-testid="combat-log">
-    <h3 class="combat-log__title">{{ t('combat.logTitle') }}</h3>
+    <h3 class="combat-log__title">
+      <span class="lozenge" aria-hidden="true" />
+      {{ t('combat.logTitle') }}
+    </h3>
     <ul class="combat-log__list">
       <li v-for="line in lines" :key="line.key">{{ line.text }}</li>
       <li v-if="!lines.length" class="combat-log__empty">{{ t('combat.logEmpty') }}</li>
@@ -70,31 +73,58 @@ function formatLog(log) {
 
 <style scoped>
 .combat-log {
-  border: 1px solid color-mix(in srgb, var(--color-line) 80%, transparent);
-  background: color-mix(in srgb, var(--color-bg-soft) 70%, transparent);
-  padding: 0.85rem 1rem;
-  max-height: 14rem;
+  max-height: 16rem;
   overflow: auto;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-soft);
 }
 
 .combat-log__title {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: var(--type-kicker);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.combat-log__title .lozenge {
+  color: var(--color-vermilion);
 }
 
 .combat-log__list {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  color: var(--color-ink-muted);
-  list-style: none;
+  margin: 0.6rem 0 0;
   padding: 0;
-  margin: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-ink-muted);
+}
+
+.combat-log__list li {
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.combat-log__list li:first-child {
+  border-top: 0;
+  font-weight: 600;
+  color: var(--color-ink);
 }
 
 .combat-log__empty {
-  opacity: 0.6;
+  color: var(--color-ink-faint);
+}
+
+@media (min-width: 1120px) {
+  .combat-log {
+    max-height: 30rem;
+  }
 }
 </style>

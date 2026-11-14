@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import IntentDisplay from './IntentDisplay.vue'
 import StatusIcon from './StatusIcon.vue'
+import AppIcon from '../ui/AppIcon.vue'
+import { useDeltaFeed } from '../../composables/useDeltaFeed'
 
 defineOptions({ name: 'EnemyDisplay' })
 
@@ -20,135 +22,54 @@ const hpPct = computed(() => {
   const max = Math.max(1, props.enemy.maxHp || 1)
   return Math.max(0, Math.min(100, (100 * (props.enemy.hp || 0)) / max))
 })
+
+const initial = computed(() => String(name.value || '?').trim().charAt(0).toUpperCase())
+
+const { deltas, hit } = useDeltaFeed(() => props.enemy.hp)
 </script>
 
 <template>
-  <div class="enemy" data-testid="enemy-display">
+  <div class="fighter" :class="{ 'fighter--hit': hit }" data-tone="vermilion" data-testid="enemy-display">
+    <div class="fighter__head">
+      <span class="fighter__avatar fighter__avatar--lozenge" aria-hidden="true">{{ initial }}</span>
+      <div class="min-w-0 flex-1">
+        <p class="fighter__role">{{ enemy.boss ? t('combat.bossLabel') : t('combat.enemyLabel') }}</p>
+        <h2 class="fighter__name">{{ name }}</h2>
+      </div>
+    </div>
+
     <IntentDisplay :intent="enemy.intent" />
 
-    <div class="enemy__silhouette" aria-hidden="true">
-      <div class="enemy__aura" />
-      <div class="enemy__figure" />
+    <div class="fighter__hp">
+      <span
+        v-for="entry in deltas"
+        :key="entry.id"
+        class="float-num"
+        :class="entry.amount < 0 ? 'float-num--loss' : 'float-num--gain'"
+        aria-hidden="true"
+      >
+        {{ entry.amount > 0 ? '+' : '−' }}{{ Math.abs(entry.amount) }}
+      </span>
+      <p class="fighter__hp-row">
+        <span class="fighter__hp-value">{{ enemy.hp }}</span>
+        <span class="fighter__hp-max">
+          /{{ enemy.maxHp }}<span class="fighter__hp-unit">{{ t('combat.hpLabel') }}</span>
+        </span>
+      </p>
+      <div class="fighter__bar">
+        <span class="fighter__bar-fill" :style="{ width: `${hpPct}%` }" />
+      </div>
     </div>
 
-    <h2 class="enemy__name">{{ name }}</h2>
-
-    <div class="enemy__bars">
-      <div class="bar">
-        <div class="bar__fill" :style="{ width: `${hpPct}%` }" />
-        <span class="bar__label">{{ enemy.hp }}/{{ enemy.maxHp }}</span>
+    <div v-if="enemy.block || enemy.statuses?.length" class="fighter__row">
+      <span v-if="enemy.block" :key="enemy.block" class="armor-chip" :title="t('combat.block', { n: enemy.block })">
+        <AppIcon name="block" size="1rem" :stroke-width="2" />
+        <span class="armor-chip__value">{{ enemy.block }}</span>
+        {{ t('combat.blockLabel') }}
+      </span>
+      <div v-if="enemy.statuses?.length" class="fighter__statuses">
+        <StatusIcon v-for="(s, idx) in enemy.statuses" :key="`${s.key}-${idx}`" :status="s" />
       </div>
-      <div v-if="enemy.block" class="block-chip">
-        {{ t('combat.block', { n: enemy.block }) }}
-      </div>
-    </div>
-
-    <div v-if="enemy.statuses?.length" class="enemy__statuses">
-      <StatusIcon v-for="(s, idx) in enemy.statuses" :key="`${s.key}-${idx}`" :status="s" />
     </div>
   </div>
 </template>
-
-<style scoped>
-.enemy {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-}
-
-.enemy__silhouette {
-  position: relative;
-  width: 7.5rem;
-  height: 7.5rem;
-  margin-top: 0.25rem;
-}
-
-.enemy__aura {
-  position: absolute;
-  inset: 8%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-fire) 28%, transparent),
-    transparent 70%
-  );
-  animation: aura-breathe 3s ease-in-out infinite;
-}
-
-.enemy__figure {
-  position: absolute;
-  inset: 18% 28% 12%;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-ink-muted) 55%, transparent),
-    color-mix(in srgb, var(--color-bg-card) 90%, #1a1210)
-  );
-  clip-path: polygon(50% 0%, 85% 28%, 78% 100%, 22% 100%, 15% 28%);
-  border: 1px solid color-mix(in srgb, var(--color-line) 80%, transparent);
-}
-
-.enemy__name {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  line-height: 1.1;
-}
-
-.enemy__bars {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  width: min(18rem, 100%);
-}
-
-.bar {
-  position: relative;
-  flex: 1;
-  height: 1.15rem;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-fire) 35%, transparent);
-  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
-}
-
-.bar__fill {
-  height: 100%;
-  background: linear-gradient(90deg, #6b2e22, var(--color-fire));
-  transition: width 0.45s ease;
-}
-
-.bar__label {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-
-.block-chip {
-  padding: 0.2rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--color-water) 40%, transparent);
-  color: var(--color-water);
-  font-size: 0.75rem;
-}
-
-.enemy__statuses {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem;
-}
-
-@keyframes aura-breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.85;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-}
-</style>

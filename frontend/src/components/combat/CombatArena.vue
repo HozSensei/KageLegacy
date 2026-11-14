@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EnemyDisplay from './EnemyDisplay.vue'
 import PlayerStatus from './PlayerStatus.vue'
@@ -36,20 +36,47 @@ const isOver = computed(() =>
 const canAct = computed(
   () => props.combat.currentPhase === 'player_turn' && props.combat.state === 'in_progress'
 )
+
+const isPlayerTurn = computed(() => props.combat.currentPhase === 'player_turn')
+const turnNumber = computed(() => String(props.combat.currentTurn ?? 0).padStart(2, '0'))
+
+/* Bandeau éphémère à chaque changement de tour ou de phase (affichage seul). */
+const banner = ref(false)
+let bannerTimer = null
+
+watch(
+  () => `${props.combat.id}:${props.combat.currentTurn}:${props.combat.currentPhase}`,
+  (next, prev) => {
+    if (!prev || next.split(':')[0] !== prev.split(':')[0]) return
+    if (props.combat.state !== 'in_progress') return
+    banner.value = true
+    if (bannerTimer) clearTimeout(bannerTimer)
+    bannerTimer = setTimeout(() => {
+      banner.value = false
+    }, 900)
+  }
+)
+
+onBeforeUnmount(() => {
+  if (bannerTimer) clearTimeout(bannerTimer)
+})
 </script>
 
 <template>
-  <div class="arena" data-testid="combat-arena">
-    <div class="arena__bg" aria-hidden="true" />
-
+  <div class="arena arena--with-side" data-testid="combat-arena">
     <header class="arena__top">
-      <p class="arena__turn">
-        {{ t('combat.turn', { n: combat.currentTurn }) }}
-        <span class="arena__phase">· {{ t(`combat.phases.${combat.currentPhase}`) }}</span>
+      <p class="arena__turn" :data-tone="isPlayerTurn ? 'indigo' : 'vermilion'">
+        <span class="sr-only">{{ t('combat.turn', { n: combat.currentTurn }) }}</span>
+        <span class="arena__turn-label" aria-hidden="true">{{ t('combat.turnLabel') }}</span>
+        <span :key="combat.currentTurn" class="arena__turn-number" aria-hidden="true">{{ turnNumber }}</span>
+        <span class="arena__phase">
+          <span class="lozenge" aria-hidden="true" />
+          {{ t(`combat.phases.${combat.currentPhase}`) }}
+        </span>
       </p>
       <button
         type="button"
-        class="btn-ghost text-xs"
+        class="btn-danger btn-sm"
         :disabled="busy || combat.state !== 'in_progress'"
         @click="emit('forfeit')"
       >
@@ -59,25 +86,43 @@ const canAct = computed(
 
     <VictoryRewards
       v-if="isOver"
-      class="arena__rewards"
+      class="arena__outcome"
       :state="combat.state"
       :rewards="outcomeRewards ?? combat.rewards"
       :mid-run="midRun"
       @dismiss="emit('dismiss-outcome')"
     />
 
-    <section class="arena__enemy">
-      <EnemyDisplay :enemy="combat.enemy" />
-    </section>
+    <div class="arena__duel">
+      <section class="arena__seat">
+        <EnemyDisplay :key="`enemy-${combat.id}`" :enemy="combat.enemy" />
+      </section>
 
-    <div class="arena__divider" aria-hidden="true" />
+      <span class="arena__vs" aria-hidden="true"><span>{{ t('common.vs') }}</span></span>
 
-    <section class="arena__player">
-      <PlayerStatus :player="combat.player" />
-      <CombatLog class="arena__log" :logs="logs" />
-    </section>
+      <section class="arena__seat arena__seat--self">
+        <PlayerStatus :key="`player-${combat.id}`" :player="combat.player" />
+      </section>
+
+      <Transition name="turn-banner">
+        <p
+          v-if="banner"
+          class="arena__banner"
+          :data-tone="isPlayerTurn ? 'indigo' : 'vermilion'"
+          aria-hidden="true"
+        >
+          {{ t(`combat.phases.${combat.currentPhase}`) }}
+          <span class="arena__banner-sub">{{ t('combat.turn', { n: combat.currentTurn }) }}</span>
+        </p>
+      </Transition>
+    </div>
 
     <section class="arena__hand-wrap">
+      <div class="arena__hand-head">
+        <h3 class="t-kicker">{{ t('combat.handTitle') }} · {{ (combat.player.hand || []).length }}</h3>
+        <p class="arena__hand-hint">{{ t('combat.handHint') }}</p>
+      </div>
+
       <CombatHand
         :cards="combat.player.hand || []"
         :selected-id="selectedId"
@@ -90,7 +135,7 @@ const canAct = computed(
       <div class="arena__actions">
         <button
           type="button"
-          class="btn-secondary text-xs"
+          class="btn-ghost"
           :disabled="busy || !canAct || !selectedId || combat.player.discardedForChakra"
           @click="emit('discard-chakra')"
         >
@@ -98,7 +143,7 @@ const canAct = computed(
         </button>
         <button
           type="button"
-          class="btn-primary text-xs"
+          class="btn-primary btn-lg"
           :disabled="busy || !canAct || !selectedId"
           data-testid="play-card-btn"
           @click="emit('play-card')"
@@ -107,7 +152,7 @@ const canAct = computed(
         </button>
         <button
           type="button"
-          class="btn-primary text-xs"
+          class="btn-secondary btn-lg"
           :disabled="busy || !canAct"
           data-testid="end-turn-btn"
           @click="emit('end-turn')"
@@ -116,97 +161,7 @@ const canAct = computed(
         </button>
       </div>
     </section>
+
+    <CombatLog class="arena__side" :logs="logs" />
   </div>
 </template>
-
-<style scoped>
-.arena {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  min-height: 70vh;
-  padding: 1rem 0 1.5rem;
-}
-
-.arena__bg {
-  pointer-events: none;
-  position: absolute;
-  inset: -1rem -1.5rem;
-  z-index: -1;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 18%, color-mix(in srgb, var(--color-fire) 14%, transparent), transparent 60%),
-    radial-gradient(ellipse 70% 45% at 50% 88%, color-mix(in srgb, var(--color-accent-soft) 12%, transparent), transparent 55%),
-    linear-gradient(180deg, color-mix(in srgb, var(--color-bg-soft) 80%, transparent), var(--color-bg));
-  opacity: 0.95;
-}
-
-.arena__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-}
-
-.arena__turn {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-}
-
-.arena__phase {
-  color: var(--color-ink-muted);
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-}
-
-.arena__rewards {
-  margin: 0.25rem auto;
-  max-width: 28rem;
-  width: 100%;
-}
-
-.arena__enemy {
-  display: flex;
-  justify-content: center;
-  padding: 0.5rem 0 0.25rem;
-}
-
-.arena__divider {
-  height: 1px;
-  margin: 0.25rem 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--color-line-mix, var(--color-accent-soft)) 35%, transparent),
-    transparent
-  );
-}
-
-.arena__player {
-  display: grid;
-  gap: 1rem;
-}
-
-@media (min-width: 900px) {
-  .arena__player {
-    grid-template-columns: 1.4fr 1fr;
-    align-items: start;
-  }
-}
-
-.arena__hand-wrap {
-  margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
-}
-
-.arena__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.55rem;
-  margin-top: 0.85rem;
-}
-
-</style>

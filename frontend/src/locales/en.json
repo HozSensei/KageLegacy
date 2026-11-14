@@ -1020,7 +1020,21 @@
       "summon": "Summon: {name}",
       "allyAttack": "{name} deals {n} damage",
       "rewards": "Rewards granted"
-    }
+    },
+    "turnLabel": "Turn",
+    "hpLabel": "HP",
+    "blockLabel": "Block",
+    "chakraLabel": "Chakra",
+    "intentLabel": "Intent",
+    "handTitle": "Hand",
+    "handHint": "Select a card then \"Play\", or double-click it.",
+    "youLabel": "You",
+    "enemyLabel": "Opponent",
+    "bossLabel": "Boss",
+    "allyLabel": "Ally",
+    "allyAttackStat": "ATK {n}",
+    "allyTaunt": "Taunt",
+    "costLabel": "Cost {n}"
   },
   "pvp": {
     "kicker": "Duel",

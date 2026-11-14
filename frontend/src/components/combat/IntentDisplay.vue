@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../ui/AppIcon.vue'
 
 defineOptions({ name: 'IntentDisplay' })
 
@@ -26,58 +27,97 @@ const text = computed(() => {
 })
 
 const glyph = computed(() => {
-  const map = { attack: '⚔', defend: '🛡', buff: '▲', debuff: '▼', special: '✦' }
-  return map[kind.value] || '?'
+  const known = ['attack', 'defend', 'buff', 'debuff', 'special']
+  if (known.includes(kind.value)) return kind.value
+  return props.intent ? 'special' : 'unknown'
+})
+
+/** Valeur chiffrée mise en avant (dégâts ou armure annoncés). */
+const amount = computed(() => {
+  const i = props.intent
+  if (!i) return null
+  if (i.type === 'attack') return i.displayDamage ?? i.damage ?? null
+  if (i.type === 'defend') return i.block ?? null
+  return null
+})
+
+const tone = computed(() => {
+  if (kind.value === 'attack') return 'vermilion'
+  if (kind.value === 'defend') return 'indigo'
+  if (kind.value === 'buff') return 'gold'
+  return 'ink'
 })
 </script>
 
 <template>
-  <div class="intent" :class="`intent--${kind}`" data-testid="enemy-intent">
-    <span class="intent__glyph" aria-hidden="true">{{ glyph }}</span>
-    <span class="intent__text">{{ text }}</span>
+  <div class="intent" :class="`intent--${kind}`" :data-tone="tone" data-testid="enemy-intent">
+    <span class="intent__glyph" aria-hidden="true">
+      <AppIcon :name="glyph" size="1.125rem" :stroke-width="2" />
+    </span>
+    <span class="intent__body">
+      <span class="intent__label">{{ t('combat.intentLabel') }}</span>
+      <span class="intent__text">{{ text }}</span>
+    </span>
+    <span v-if="amount != null" :key="amount" class="intent__amount" aria-hidden="true">{{ amount }}</span>
   </div>
 </template>
 
 <style scoped>
 .intent {
   display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
-  background: linear-gradient(
-    120deg,
-    color-mix(in srgb, var(--color-bg-card) 90%, transparent),
-    color-mix(in srgb, var(--color-bg) 95%, transparent)
-  );
-  font-size: 0.8rem;
+  align-items: stretch;
+  max-width: 100%;
+  background: var(--color-bg-card);
   color: var(--color-ink);
-  animation: intent-pulse 2.4s ease-in-out infinite;
-}
-
-.intent--attack {
-  border-color: color-mix(in srgb, var(--color-fire) 45%, transparent);
-  color: var(--color-fire);
-}
-
-.intent--defend {
-  border-color: color-mix(in srgb, var(--color-water) 45%, transparent);
-  color: var(--color-water);
 }
 
 .intent__glyph {
-  font-size: 0.95rem;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  flex: none;
+  background: var(--tone-fill);
+  color: var(--tone-on);
 }
 
-@keyframes intent-pulse {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(-2px);
-    opacity: 0.92;
-  }
+.intent__glyph > * {
+  animation: nudge 2.4s ease-in-out infinite;
+}
+
+.intent__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 0.35rem 0.7rem;
+}
+
+.intent__label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.intent__text {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.intent__amount {
+  display: grid;
+  place-items: center;
+  min-width: 2.75rem;
+  padding: 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--tone);
+  animation: pop-in 320ms var(--ease-out-quint) both;
 }
 </style>

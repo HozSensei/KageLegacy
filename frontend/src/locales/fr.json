@@ -1020,7 +1020,21 @@
       "summon": "Invocation : {name}",
       "allyAttack": "{name} inflige {n} dégâts",
       "rewards": "Récompenses accordées"
-    }
+    },
+    "turnLabel": "Tour",
+    "hpLabel": "PV",
+    "blockLabel": "Armure",
+    "chakraLabel": "Chakra",
+    "intentLabel": "Intention",
+    "handTitle": "Main",
+    "handHint": "Sélectionnez une carte puis « Jouer », ou double-cliquez dessus.",
+    "youLabel": "Vous",
+    "enemyLabel": "Adversaire",
+    "bossLabel": "Boss",
+    "allyLabel": "Allié",
+    "allyAttackStat": "ATK {n}",
+    "allyTaunt": "Provocation",
+    "costLabel": "Coût {n}"
   },
   "pvp": {
     "kicker": "Duel",
