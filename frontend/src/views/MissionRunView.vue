@@ -5,6 +5,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMissionsStore } from '../stores/missions'
 import { useCombatStore } from '../stores/combat'
 import VictoryRewards from '../components/combat/VictoryRewards.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
+import { missionRankTone } from '../utils/missionVisuals'
 
 defineOptions({ name: 'MissionRunView' })
 
@@ -46,8 +49,19 @@ function nodeHint(node) {
   if (node.type === 'event') {
     return locale.value === 'en' ? node.descriptionEn : node.descriptionFr
   }
+  const enemy = (missions.enemies || []).find((e) => e.id === node.templateId)
+  if (enemy) return locale.value === 'en' ? enemy.nameEn : enemy.nameFr
   return node.templateId || ''
 }
+
+function nodeShape(node) {
+  if (node.boss) return 'lozenge'
+  return node.type === 'event' ? 'circle' : 'square'
+}
+
+const hpPct = computed(() =>
+  Math.max(0, Math.min(100, Math.round((player.value.hp / (player.value.maxHp || 1)) * 100)))
+)
 
 async function onEnter() {
   localError.value = null
@@ -92,19 +106,23 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="mission-run-page">
-    <div class="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <p class="page-kicker">{{ t('combat.runKicker') }}</p>
-        <h1 class="page-title mt-2">{{ missionTitle }}</h1>
-        <p class="page-lead mt-3 max-w-xl">{{ t('combat.runLead') }}</p>
-      </div>
-      <button type="button" class="btn-ghost text-xs" @click="backToMissions">
-        {{ t('combat.backToMissions') }}
-      </button>
-    </div>
+  <div class="page-shell" data-testid="mission-run-page">
+    <PageHeader
+      index="07"
+      :tone="run?.mission?.rank ? missionRankTone(run.mission.rank) : 'leaf'"
+      :kicker="t('combat.runKicker')"
+      :title="missionTitle"
+      :lead="t('combat.runLead')"
+    >
+      <template #actions>
+        <button type="button" class="btn-ghost" @click="backToMissions">
+          <AppIcon name="arrow-left" size="1rem" />
+          {{ t('combat.backToMissions') }}
+        </button>
+      </template>
+    </PageHeader>
 
-    <p v-if="missions.error || localError" class="mt-4 text-sm text-fire">
+    <p v-if="missions.error || localError" class="alert alert--error mt-4">
       {{ localError || missions.error }}
     </p>
 
@@ -113,16 +131,17 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
     </p>
 
     <template v-if="run">
-      <div class="run-status mt-6" data-testid="run-status">
+      <div class="run-status" data-testid="run-status">
         <div class="run-status__hp">
-          <span class="run-status__label">{{ t('combat.runHp') }}</span>
-          <div class="run-status__bar">
-            <div
-              class="run-status__fill"
-              :style="{ width: `${Math.round((player.hp / (player.maxHp || 1)) * 100)}%` }"
-            />
+          <div class="run-status__hp-row">
+            <span class="run-status__label">{{ t('combat.runHp') }}</span>
+            <span class="run-status__num">
+              <strong>{{ player.hp }}</strong> / {{ player.maxHp }}
+            </span>
           </div>
-          <span class="run-status__num">{{ player.hp }} / {{ player.maxHp }}</span>
+          <div class="run-status__bar">
+            <div class="run-status__fill" :style="{ width: `${hpPct}%` }" />
+          </div>
         </div>
         <p class="run-status__scrap">
           {{ t('combat.runScrap', { n: player.scrap || 0 }) }}
@@ -131,14 +150,14 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
       <VictoryRewards
         v-if="isOver"
-        class="mt-8 max-w-md mx-auto"
+        class="mt-8 max-w-xl"
         :state="run.state === 'victory' ? 'victory' : run.state === 'abandoned' ? 'forfeited' : 'defeat'"
         :rewards="run.rewards"
         :continue-label="t('combat.backToMissions')"
         @dismiss="backToMissions"
       />
 
-      <ol v-else class="run-path mt-8" data-testid="run-path">
+      <ol v-else class="run-path" data-testid="run-path">
         <li
           v-for="(node, i) in nodes"
           :key="node.id"
@@ -148,25 +167,38 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             `run-node--${node.type}`,
             { 'run-node--boss': node.boss },
           ]"
+          :data-tone="node.boss ? 'vermilion' : node.type === 'event' ? 'sky' : 'indigo'"
           :data-testid="`run-node-${i}`"
         >
-          <div class="run-node__index">{{ i + 1 }}</div>
+          <div class="run-node__marker">
+            <span class="run-node__index" :class="`run-node__index--${nodeShape(node)}`">
+              <span>{{ i + 1 }}</span>
+            </span>
+          </div>
           <div class="run-node__body">
             <p class="run-node__title">
               {{ nodeLabel(node) }}
-              <span v-if="node.boss" class="run-node__boss">{{ t('combat.bossTag') }}</span>
+              <span v-if="node.boss" class="badge badge--solid run-node__boss" data-tone="vermilion">
+                {{ t('combat.bossTag') }}
+              </span>
             </p>
             <p class="run-node__hint">{{ nodeHint(node) }}</p>
           </div>
-          <span class="run-node__status">{{ t(`combat.nodeStatus.${node.status}`) }}</span>
+          <span class="run-node__status">
+            <AppIcon v-if="node.status === 'cleared'" name="check" size="0.95rem" :stroke-width="2.5" />
+            <AppIcon v-else-if="node.status === 'locked'" name="lock" size="0.9rem" />
+            {{ t(`combat.nodeStatus.${node.status}`) }}
+          </span>
         </li>
       </ol>
 
       <section
         v-if="!isOver && missions.currentEvent"
-        class="run-event mt-8"
+        class="run-event"
+        data-tone="sky"
         data-testid="run-event"
       >
+        <span class="run-event__shape" aria-hidden="true" />
         <h2 class="run-event__title">
           {{
             locale === 'en'
@@ -186,7 +218,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             v-for="choice in eventChoices"
             :key="choice.id"
             type="button"
-            class="btn-secondary text-xs"
+            class="btn-secondary"
             :disabled="missions.actionLoading || choice.disabled"
             @click="onChoice(choice.id)"
           >
@@ -195,11 +227,11 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         </div>
       </section>
 
-      <div v-if="!isOver" class="run-actions mt-8">
+      <div v-if="!isOver" class="run-actions">
         <button
           v-if="!missions.currentEvent"
           type="button"
-          class="btn-primary text-xs"
+          class="btn-primary btn-lg"
           data-testid="run-enter-btn"
           :disabled="missions.actionLoading"
           @click="onEnter"
@@ -207,10 +239,11 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
           {{
             missions.actionLoading ? t('combat.starting') : t('combat.enterNode')
           }}
+          <AppIcon name="arrow-right" size="1.1rem" />
         </button>
         <button
           type="button"
-          class="btn-ghost text-xs"
+          class="btn-ghost"
           :disabled="missions.actionLoading"
           @click="onAbandon"
         >
@@ -225,219 +258,282 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 .run-status {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 1.25rem 2rem;
-  padding: 0.85rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
+  align-items: flex-end;
+  gap: 1rem 2.5rem;
+  margin-top: 1.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg-card);
 }
 
 .run-status__hp {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
+  min-width: 14rem;
+  max-width: 28rem;
   flex: 1;
-  min-width: 12rem;
+}
+
+.run-status__hp-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.4rem;
 }
 
 .run-status__label {
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: var(--type-kicker);
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
 }
 
+.run-status__num {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
+.run-status__num strong {
+  font-size: 2.25rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 0.9;
+  color: var(--color-ink);
+}
+
 .run-status__bar {
-  flex: 1;
-  height: 0.45rem;
-  max-width: 14rem;
-  background: color-mix(in srgb, var(--color-bg-soft) 80%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-line) 60%, transparent);
+  height: 0.75rem;
   overflow: hidden;
+  background: color-mix(in srgb, var(--color-ink) 10%, transparent);
 }
 
 .run-status__fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--color-fire) 70%, transparent),
-    color-mix(in srgb, var(--color-accent) 80%, transparent)
-  );
-  transition: width 0.45s ease;
-}
-
-.run-status__num {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.85rem;
+  background: var(--color-vermilion);
+  transition: width var(--dur-slow) var(--ease-out-quint);
 }
 
 .run-status__scrap {
-  font-size: 0.85rem;
-  color: var(--color-ink-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
 }
 
 .run-path {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  position: relative;
-}
-
-.run-path::before {
-  content: '';
-  position: absolute;
-  left: 1.15rem;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 1px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    color-mix(in srgb, var(--color-accent-soft) 40%, transparent),
-    transparent
-  );
-  pointer-events: none;
+  max-width: 44rem;
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .run-node {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.85rem;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
+  gap: 0.9rem;
   align-items: center;
-  padding: 0.85rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--color-line) 75%, transparent);
-  background: color-mix(in srgb, var(--color-bg-card) 70%, transparent);
-  opacity: 0.55;
-  transition: opacity 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  min-height: 4.5rem;
+  padding: 0.5rem 1rem 0.5rem 0;
+  transition:
+    background var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out-quint);
 }
 
-.run-node--available {
-  opacity: 1;
-  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
-  transform: translateX(4px);
-  animation: node-pulse 2.4s ease-in-out infinite;
+.run-node__marker {
+  position: relative;
+  display: grid;
+  align-self: stretch;
+  place-items: center;
 }
 
-.run-node--cleared {
-  opacity: 0.75;
+.run-node__marker::before {
+  content: '';
+  position: absolute;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  left: 50%;
+  width: 4px;
+  background: var(--color-line);
+  transform: translateX(-50%);
 }
 
-.run-node--failed {
-  opacity: 0.7;
-  border-color: color-mix(in srgb, var(--color-fire) 40%, transparent);
+.run-node:first-child .run-node__marker::before {
+  top: 50%;
 }
 
-.run-node--boss.run-node--available,
-.run-node--boss.run-node--locked {
-  border-color: color-mix(in srgb, var(--color-fire) 35%, transparent);
+.run-node:last-child .run-node__marker::before {
+  bottom: 50%;
+}
+
+.run-node--cleared .run-node__marker::before {
+  background: var(--color-leaf-fill);
 }
 
 .run-node__index {
   position: relative;
-  z-index: 1;
-  width: 1.75rem;
-  height: 1.75rem;
   display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
   place-items: center;
-  font-size: 0.75rem;
-  font-family: var(--font-display);
-  border: 1px solid color-mix(in srgb, var(--color-line) 80%, transparent);
   background: var(--color-bg);
+  box-shadow: inset 0 0 0 2px var(--color-line-strong);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-faint);
+}
+
+.run-node__index--circle {
+  border-radius: 999px;
+}
+
+.run-node__index--lozenge {
+  width: 2.1rem;
+  height: 2.1rem;
+  transform: rotate(45deg);
+}
+
+.run-node__index--lozenge > span {
+  transform: rotate(-45deg);
+}
+
+.run-node--available {
+  background: var(--color-bg-card);
+  transform: translateX(6px);
 }
 
 .run-node--available .run-node__index {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--tone-fill);
+  box-shadow: none;
+  color: var(--tone-on);
+  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.run-node--cleared .run-node__index {
+  background: var(--color-leaf-fill);
+  box-shadow: none;
+  color: #10261a;
+}
+
+.run-node--failed .run-node__index {
+  background: var(--color-ink);
+  box-shadow: none;
+  color: #fffdf8;
 }
 
 .run-node__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-display);
-  font-size: 1.05rem;
-  line-height: 1.2;
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1.1;
+  color: var(--color-ink);
 }
 
-.run-node__boss {
-  margin-left: 0.4rem;
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-fire);
-  vertical-align: middle;
+.run-node--locked .run-node__title {
+  color: var(--color-ink-muted);
 }
 
 .run-node__hint {
-  margin-top: 0.25rem;
-  font-size: 0.78rem;
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
   color: var(--color-ink-muted);
-  line-height: 1.35;
 }
 
 .run-node__status {
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-faint);
 }
 
+.run-node--available .run-node__status {
+  color: var(--tone);
+}
+
+.run-node--cleared .run-node__status {
+  color: var(--color-leaf);
+}
+
+.run-node--failed .run-node__status {
+  color: var(--color-vermilion);
+}
+
 .run-event {
-  padding: 1.25rem 1.35rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent-soft) 40%, transparent);
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--color-bg-soft) 90%, transparent),
-      color-mix(in srgb, var(--color-bg) 95%, transparent)
-    );
-  animation: event-in 0.4s ease;
+  position: relative;
+  max-width: 44rem;
+  overflow: hidden;
+  margin-top: 2rem;
+  padding: 1.5rem 1.5rem 1.5rem 1.75rem;
+  border-left: 6px solid var(--tone-fill);
+  background: var(--tone-tint);
+  animation: rise-in 420ms var(--ease-out-quint) both;
+}
+
+.run-event__shape {
+  position: absolute;
+  top: -2.5rem;
+  right: -2.5rem;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone-fill) 28%, transparent);
 }
 
 .run-event__title {
+  position: relative;
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.625rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1.05;
 }
 
 .run-event__desc {
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--color-ink-muted);
-  line-height: 1.45;
+  position: relative;
   max-width: 36rem;
+  margin-top: 0.6rem;
+  line-height: 1.5;
+  color: var(--color-ink);
 }
 
 .run-event__choices {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  margin-top: 1rem;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
 }
 
 .run-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
   align-items: center;
+  gap: 0.75rem;
+  margin-top: 2rem;
 }
 
-@keyframes node-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 transparent;
+@media (max-width: 479px) {
+  .run-node {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
   }
-  50% {
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 25%, transparent);
-  }
-}
 
-@keyframes event-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
+  .run-node__status {
+    grid-column: 2;
+    margin-top: -0.3rem;
   }
 }
 </style>

@@ -1046,7 +1046,9 @@
     "allyLabel": "Ally",
     "allyAttackStat": "ATK {n}",
     "allyTaunt": "Taunt",
-    "costLabel": "Cost {n}"
+    "costLabel": "Cost {n}",
+    "rankLabel": "Rank",
+    "missionsListTitle": "Available runs"
   },
   "pvp": {
     "kicker": "Duel",

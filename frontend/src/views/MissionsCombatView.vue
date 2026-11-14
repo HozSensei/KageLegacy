@@ -3,6 +3,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import EmptyState from '../components/ui/EmptyState.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import AppIcon from '../components/ui/AppIcon.vue'
+import forestImage from '../assets/illustrations/forest-path.jpg'
+import { missionRankTone } from '../utils/missionVisuals'
 import { useCombatStore } from '../stores/combat'
 import { useMissionsStore } from '../stores/missions'
 import { useDecksStore } from '../stores/decks'
@@ -76,16 +80,20 @@ async function startQuick(templateId) {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero" data-testid="missions-combat-page">
-    <div>
-      <p class="page-kicker">{{ t('combat.missionsKicker') }}</p>
-      <h1 class="page-title mt-2">{{ t('combat.missionsTitle') }}</h1>
-      <p class="page-lead mt-3 max-w-xl">{{ t('combat.missionsLead') }}</p>
-    </div>
+  <div class="page-shell" data-testid="missions-combat-page">
+    <PageHeader
+      index="07"
+      tone="leaf"
+      :kicker="t('combat.missionsKicker')"
+      :title="t('combat.missionsTitle')"
+      :lead="t('combat.missionsLead')"
+      :image="forestImage"
+      image-position="50% 55%"
+    />
 
-    <p class="mt-4 text-sm text-ink-muted">
-      {{ t('combat.activeDeck') }} :
-      <span class="text-accent">{{ activeDeckLabel }}</span>
+    <p class="missions-deck">
+      <span class="t-kicker">{{ t('combat.activeDeck') }}</span>
+      <span class="missions-deck__name">{{ activeDeckLabel }}</span>
     </p>
 
     <EmptyState
@@ -101,65 +109,97 @@ async function startQuick(templateId) {
 
     <div
       v-if="missions.activeRun"
-      class="active-run mt-6"
+      class="active-run"
       data-testid="active-run-banner"
     >
+      <span class="lozenge active-run__mark" aria-hidden="true" />
       <p class="active-run__text">{{ t('combat.activeRunHint') }}</p>
-      <button type="button" class="btn-primary text-xs" data-testid="resume-run" @click="resumeRun">
+      <button type="button" class="btn-primary" data-testid="resume-run" @click="resumeRun">
         {{ t('combat.resumeRun') }}
+        <AppIcon name="arrow-right" size="1rem" />
       </button>
     </div>
 
-    <p v-if="missions.error || localError" class="mt-4 text-sm text-fire">
+    <p v-if="missions.error || localError" class="alert alert--error mt-4">
       {{ localError || missions.error }}
     </p>
 
     <p v-if="missions.loading" class="mt-8 text-ink-muted">{{ t('combat.loading') }}</p>
 
-    <div class="mission-grid mt-8">
-      <article
-        v-for="mission in missions.missions"
-        :key="mission.id"
-        class="mission-card"
-        :data-testid="`mission-${mission.slug}`"
-      >
-        <div class="mission-card__rank">{{ mission.rank }}</div>
-        <h2 class="mission-card__title">{{ missionName(mission) }}</h2>
-        <p class="mission-card__desc">{{ missionDesc(mission) }}</p>
-        <p class="mission-card__meta">
-          {{ t('combat.encounterCount', { n: mission.encounterCount || mission.encounters?.length || 1 }) }}
-        </p>
-        <p v-if="mission.rewards" class="mission-card__rewards">
-          {{ t('combat.rewards', { xp: mission.rewards.xp || 0, ryos: mission.rewards.ryos || 0 }) }}
-        </p>
-        <button
-          type="button"
-          class="btn-primary text-xs mt-4"
-          data-testid="mission-start"
-          :disabled="startingId != null || Boolean(missions.activeRun)"
-          @click="startMission(mission)"
-        >
-          {{
-            startingId === mission.id ? t('combat.starting') : t('combat.startMission')
-          }}
-        </button>
-      </article>
-    </div>
+    <section class="page-section">
+      <div class="section-head">
+        <span class="section-head__index">01</span>
+        <h2 class="section-head__title">{{ t('combat.missionsListTitle') }}</h2>
+        <span class="section-head__rule" aria-hidden="true" />
+      </div>
 
-    <section class="mt-12" data-testid="quick-fight-section">
-      <h2 class="font-display text-xl text-ink">{{ t('combat.quickFight') }}</h2>
-      <p class="mt-2 text-sm text-ink-muted max-w-lg">{{ t('combat.quickFightLead') }}</p>
-      <div class="mt-4 flex flex-wrap gap-3">
+      <div class="mission-grid stagger">
+        <article
+          v-for="mission in missions.missions"
+          :key="mission.id"
+          class="mission-card"
+          :data-tone="missionRankTone(mission.rank)"
+          :data-testid="`mission-${mission.slug}`"
+        >
+          <div class="mission-card__rank" :title="`${t('combat.rankLabel')} ${mission.rank}`">
+            <span class="mission-card__rank-label">{{ t('combat.rankLabel') }}</span>
+            <span class="mission-card__rank-value">{{ mission.rank }}</span>
+          </div>
+          <div class="mission-card__body">
+            <h3 class="mission-card__title">{{ missionName(mission) }}</h3>
+            <p class="mission-card__desc">{{ missionDesc(mission) }}</p>
+            <p class="mission-card__meta">
+              <span class="mission-card__pips" aria-hidden="true">
+                <span
+                  v-for="n in (mission.encounterCount || mission.encounters?.length || 1)"
+                  :key="n"
+                  class="lozenge"
+                />
+              </span>
+              {{ t('combat.encounterCount', { n: mission.encounterCount || mission.encounters?.length || 1 }) }}
+            </p>
+            <p v-if="mission.rewards" class="mission-card__rewards">
+              {{ t('combat.rewards', { xp: mission.rewards.xp || 0, ryos: mission.rewards.ryos || 0 }) }}
+            </p>
+            <button
+              type="button"
+              class="btn-primary btn-sm mission-card__cta"
+              data-testid="mission-start"
+              :disabled="startingId != null || Boolean(missions.activeRun)"
+              @click="startMission(mission)"
+            >
+              {{
+                startingId === mission.id ? t('combat.starting') : t('combat.startMission')
+              }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="page-section" data-testid="quick-fight-section">
+      <div class="section-head">
+        <span class="section-head__index">02</span>
+        <h2 class="section-head__title">{{ t('combat.quickFight') }}</h2>
+        <span class="section-head__rule" aria-hidden="true" />
+      </div>
+      <p class="mt-2 max-w-xl text-ink-muted">{{ t('combat.quickFightLead') }}</p>
+      <div class="quick-grid">
         <button
           v-for="enemy in missions.enemies"
           :key="enemy.id"
           type="button"
-          class="btn-secondary text-xs"
+          class="quick-foe"
+          :class="{ 'quick-foe--boss': enemy.boss }"
           :data-testid="`quick-fight-${enemy.id}`"
           :disabled="startingId != null || Boolean(missions.activeRun)"
           @click="startQuick(enemy.id)"
         >
-          {{ locale === 'en' ? enemy.nameEn : enemy.nameFr }}
+          <span class="shape" :class="enemy.boss ? 'shape--lozenge' : 'shape--triangle'" aria-hidden="true" />
+          <span class="quick-foe__name">{{ locale === 'en' ? enemy.nameEn : enemy.nameFr }}</span>
+          <span v-if="enemy.hp" class="quick-foe__hp">
+            {{ enemy.hp }} <small>{{ t('combat.hpLabel') }}</small>
+          </span>
         </button>
       </div>
     </section>
@@ -167,84 +207,213 @@ async function startQuick(templateId) {
 </template>
 
 <style scoped>
+.missions-deck {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.missions-deck__name {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
 .active-run {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem 1.1rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
-  background: color-mix(in srgb, var(--color-bg-soft) 85%, transparent);
+  gap: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-left: 6px solid var(--color-vermilion);
+  background: var(--color-vermilion-tint);
+  animation: rise-in 420ms var(--ease-out-quint) both;
+}
+
+.active-run__mark {
+  color: var(--color-vermilion);
 }
 
 .active-run__text {
-  font-size: 0.9rem;
-  color: var(--color-ink-muted);
+  min-width: 12rem;
+  flex: 1;
+  font-weight: 500;
+  color: var(--color-ink);
 }
 
 .mission-grid {
   display: grid;
   gap: 1rem;
+  margin-top: 1.25rem;
 }
 
 @media (min-width: 768px) {
+  .mission-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
   .mission-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .mission-card {
-  position: relative;
-  padding: 1.25rem 1.2rem 1.35rem;
-  border: 1px solid color-mix(in srgb, var(--color-line) 85%, transparent);
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--color-bg-card) 88%, transparent),
-      color-mix(in srgb, var(--color-bg) 95%, transparent)
-    );
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  background: var(--color-bg-card);
+  transition: transform var(--dur-base) var(--ease-out-quint);
 }
 
 .mission-card:hover {
-  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .mission-card__rank {
-  display: inline-block;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 0.25rem 0.75rem;
+  background: var(--tone-fill);
+  color: var(--tone-on);
+}
+
+.mission-card__rank-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-accent);
-  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, transparent);
-  padding: 0.15rem 0.45rem;
+}
+
+.mission-card__rank-value {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 0.8;
+}
+
+.mission-card__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 1.1rem 1.15rem 1.15rem;
 }
 
 .mission-card__title {
-  margin-top: 0.75rem;
   font-family: var(--font-display);
-  font-size: 1.35rem;
-  line-height: 1.15;
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
 }
 
 .mission-card__desc {
-  margin-top: 0.55rem;
-  font-size: 0.85rem;
-  color: var(--color-ink-muted);
+  flex: 1;
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
   line-height: 1.45;
+  color: var(--color-ink-muted);
 }
 
 .mission-card__meta {
-  margin-top: 0.55rem;
-  font-size: 0.75rem;
-  color: var(--color-accent);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.mission-card__pips {
+  display: inline-flex;
+  gap: 0.3rem;
+  color: var(--tone-fill);
 }
 
 .mission-card__rewards {
-  margin-top: 0.35rem;
-  font-size: 0.75rem;
-  color: var(--color-ink-faint);
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
+.mission-card__cta {
+  align-self: flex-start;
+  margin-top: 0.9rem;
+}
+
+.quick-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  margin-top: 1.25rem;
+}
+
+.quick-foe {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  background: var(--color-bg-card);
+  text-align: left;
+  color: var(--color-vermilion);
+  transition:
+    background var(--dur-fast) ease,
+    transform var(--dur-base) var(--ease-out-quint);
+}
+
+.quick-foe--boss {
+  color: var(--color-indigo);
+}
+
+.quick-foe:hover:not(:disabled) {
+  background: var(--color-vermilion-tint);
+  transform: translateX(3px);
+}
+
+.quick-foe--boss:hover:not(:disabled) {
+  background: var(--color-indigo-tint);
+}
+
+.quick-foe:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.quick-foe__name {
+  min-width: 0;
+  flex: 1;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-ink);
+}
+
+.quick-foe__hp {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.quick-foe__hp small {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  font-stretch: 100%;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-muted);
 }
 </style>
