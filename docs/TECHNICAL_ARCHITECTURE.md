@@ -246,10 +246,12 @@ GET    /api/payments/cancel           # Callback annulation
 users
   └─ player_character (1:1)
        ├─ clan_trait (N:1)
-       └─ user_card_collection (1:N)
-            ├─ card_definitions (N:1)
-            └─ user_deck_cards (1:N)
-                 └─ user_decks (N:1)
+       ├─ user_card_collection (1:N)
+       │    ├─ card_definitions (N:1)
+       │    └─ user_deck_cards (1:N)
+       │         └─ user_decks (N:1)
+       └─ user_talents (1:N)
+            └─ talent_tree_nodes (N:1)
 
 users
   └─ user_battle_pass (1:N)
@@ -264,15 +266,24 @@ users
   └─ combat_sessions (1:N)
        ├─ combat_logs (1:N)
        └─ mission_definitions (N:1)
+
+talent_tree_nodes (statique, ~150 nœuds)
+  └─ user_talents (N:N via user_id)
+
+users
+  └─ user_talent_respec_history (1:N)
 ```
 
 ### Tables Principales (Nouvelles)
 
-**Voir CARD_SYSTEM.md et BATTLE_PASS.md pour les schémas complets**
+**Voir CARD_SYSTEM.md, TALENT_TREE.md et BATTLE_PASS.md pour les schémas complets**
 
 Tables critiques :
-- `player_character` : Personnage unique du joueur
-- `card_definitions` : Catalogue de cartes (300+)
+- `player_character` : Personnage unique du joueur (level, xp, talent_points)
+- `talent_tree_nodes` : Arbre de talents (statique, ~150 nœuds)
+- `user_talents` : Nœuds débloqués par joueur
+- `user_talent_respec_history` : Historique réinitialisations
+- `card_definitions` : Catalogue de cartes (300+) avec passive_bonus_json
 - `user_card_collection` : Cartes possédées + upgrades
 - `user_decks` : Decks construits
 - `user_deck_cards` : Contenu des decks
@@ -288,6 +299,8 @@ Tables critiques :
 -- 100_kage_legacy_v2_init.sql
 -- Ajoute les nouvelles tables sans toucher aux anciennes
 CREATE TABLE player_character ...;
+CREATE TABLE talent_tree_nodes ...;
+CREATE TABLE user_talents ...;
 CREATE TABLE card_definitions ...;
 -- etc.
 ```
