@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import EnemyDisplay from './EnemyDisplay.vue'
 import PlayerStatus from './PlayerStatus.vue'
-import Hand from './Hand.vue'
+import CombatHand from './CombatHand.vue'
 import CombatLog from './CombatLog.vue'
 
 defineOptions({ name: 'CombatArena' })
@@ -72,7 +72,7 @@ const canAct = computed(
     </section>
 
     <section class="arena__hand-wrap">
-      <Hand
+      <CombatHand
         :cards="combat.player.hand || []"
         :selected-id="selectedId"
         :disabled="busy || !canAct"

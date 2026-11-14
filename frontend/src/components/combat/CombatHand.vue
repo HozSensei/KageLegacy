@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineOptions({ name: 'Hand' })
+defineOptions({ name: 'CombatHand' })
 
 const props = defineProps({
   cards: { type: Array, default: () => [] },
