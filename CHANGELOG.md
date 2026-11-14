@@ -7,6 +7,20 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Thème sombre et finitions d'interface (2026-11-14)
+
+#### Added
+- **Thème sombre** en plus du clair : fonds indigo nuit (`#14182b`), texte crème, accent vermillon éclairci pour le texte, tons secondaires recalibrés — mêmes jetons (`frontend/src/styles/tokens.css`, bloc `[data-theme='dark']`), mêmes aplats et mêmes formes
+- **Bascule clair / sombre** (`ThemeToggle`, `data-testid="theme-toggle"`) dans la coque et sur les pages publiques (accueil, connexion, règles) ; choix mémorisé (`localStorage`, clé `kage-legacy-theme`), thème du système suivi tant qu'aucun choix n'est fait, thème posé avant le premier rendu (`index.html`)
+- **Illustrations** : voile « heure bleue » en thème sombre (`.illustration`), sans modifier les fichiers
+- **Journal de combat** : libellés lisibles FR/EN pour tous les événements du moteur (PvE et PvP), formulés du point de vue du joueur
+- **Test Cypress** `theme.cy.js` : thème du système, bascule, persistance après rechargement
+
+#### Changed
+- **Arbre de talents** : l'arbre entier tient dans le cadre au zoom par défaut (desktop et mobile) ; nœuds, liens et libellés compensent le dézoom
+- **PvP** : « Premier joueur / Second joueur » à la place de « Host / Guest » dans les textes visibles ; identifiants techniques inchangés
+- Couleurs en dur remplacées par des jetons dans les composants et feuilles de style concernés
+
 ### Refonte visuelle de l'interface (2026-11-14)
 
 #### Changed
