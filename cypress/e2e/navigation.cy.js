@@ -4,7 +4,7 @@ describe('Navigation — routes V2', () => {
     cy.visit('/bureau');
   });
 
-  const routes = ['bureau', 'profile', 'talents', 'collection', 'decks', 'inventory', 'journal'];
+  const routes = ['bureau', 'profile', 'talents', 'collection', 'decks', 'shop', 'inventory', 'journal'];
 
   routes.forEach((name) => {
     it(`ouvre la page ${name}`, () => {

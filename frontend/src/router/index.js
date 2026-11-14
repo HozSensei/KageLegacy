@@ -11,6 +11,7 @@ import DeckBuilderView from '../views/DeckBuilderView.vue'
 import TalentTreeView from '../views/TalentTreeView.vue'
 import MissionsCombatView from '../views/MissionsCombatView.vue'
 import CombatView from '../views/CombatView.vue'
+import ShopView from '../views/ShopView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -90,6 +91,15 @@ const router = createRouter({
           name: 'combat',
           component: CombatView,
           meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'shop',
+          name: 'shop',
+          component: ShopView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'shop.title' },
             requiresCharacter: true,
           },
         },

@@ -32,6 +32,7 @@ const baseNavItems = [
   { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },
   { name: 'decks', path: '/decks', label: 'nav.decks' },
+  { name: 'shop', path: '/shop', label: 'nav.shop' },
   { name: 'inventory', path: '/inventory', label: 'nav.inventory' },
 ]
 

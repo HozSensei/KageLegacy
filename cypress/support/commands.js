@@ -4,6 +4,7 @@ const NAV_PAGES = {
   talents: { testId: 'talent-tree-page', path: '/talents' },
   collection: { testId: 'collection-page', path: '/collection' },
   decks: { testId: 'deck-builder-page', path: '/decks' },
+  shop: { testId: 'shop-page', path: '/shop' },
   inventory: { testId: 'placeholder-page', path: '/inventory' },
   journal: { testId: 'placeholder-page', path: '/journal' },
 };

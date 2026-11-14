@@ -18,7 +18,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'cards',
         labelKey: 'nav.groups.cards',
-        items: pick('collection', 'decks'),
+        items: pick('collection', 'decks', 'shop'),
       },
       {
         id: 'missions',

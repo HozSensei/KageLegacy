@@ -279,6 +279,7 @@
     "talents": "Arbre de talents",
     "collection": "Collection",
     "decks": "Decks",
+    "shop": "Boutique",
     "eliteTools": "Outils Élite",
     "admin": "Administration",
     "groups": {
@@ -728,6 +729,46 @@
       "dexterity": "Dextérité",
       "maxHp": "PV max"
     }
+  },
+  "shop": {
+    "kicker": "Acquisition",
+    "title": "Boutique des parchemins",
+    "lead": "Dépensez Ryos ou Kage Coins pour ouvrir des parchemins scellés. Les tirages sont entièrement serveur.",
+    "loading": "Chargement de la boutique…",
+    "open": "Ouvrir",
+    "opening": "Ouverture…",
+    "insufficientFunds": "Fonds insuffisants",
+    "costRyos": "{n} Ryos",
+    "costCoins": "{n} Kage Coins",
+    "costFree": "Gratuit",
+    "balanceRyos": "Ryos : {n}",
+    "balanceCoins": "Kage Coins : {n}",
+    "cardCount": "{n} cartes",
+    "guaranteed": "1 {rarity}+ garantie",
+    "elementFilter": "Filtre élémentaire",
+    "elementAny": "Tous",
+    "elements": {
+      "katon": "Katon",
+      "suiton": "Suiton",
+      "raiton": "Raiton",
+      "doton": "Doton",
+      "futon": "Futon"
+    },
+    "types": {
+      "standard": "Standard",
+      "elemental": "Élémentaire",
+      "premium": "Premium"
+    },
+    "sealedScroll": "Parchemin",
+    "revealing": "Révélation {n}/{total}",
+    "revealDone": "Parchemin ouvert",
+    "newCard": "Nouvelle",
+    "duplicate": "Doublon · {name}",
+    "resultsTitle": "Butin du parchemin",
+    "resultsLead": "{newCount} nouvelle(s) · {dupCount} doublon(s)",
+    "openAnother": "Ouvrir un autre",
+    "viewCollection": "Voir la collection",
+    "closeResults": "Retour au catalogue"
   },
   "talents": {
     "kicker": "Progression",

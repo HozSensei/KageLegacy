@@ -13,6 +13,7 @@
     "db:seed-cards": "node scripts/seedCards.js",
     "db:seed-talents": "node scripts/seedTalentTree.js",
     "test:card-system": "node scripts/testCardSystem.js",
+    "test:boosters": "node scripts/testBoosters.js",
     "test:talent-tree": "node scripts/testTalentTree.js",
     "test:combat-engine": "node scripts/testCombatEngine.js",
     "clock:advance": "node scripts/advanceHour.js",

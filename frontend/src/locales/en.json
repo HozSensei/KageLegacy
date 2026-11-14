@@ -279,6 +279,7 @@
     "talents": "Talent tree",
     "collection": "Collection",
     "decks": "Decks",
+    "shop": "Shop",
     "eliteTools": "Elite tools",
     "admin": "Administration",
     "groups": {
@@ -728,6 +729,46 @@
       "dexterity": "Dexterity",
       "maxHp": "Max HP"
     }
+  },
+  "shop": {
+    "kicker": "Acquisition",
+    "title": "Scroll shop",
+    "lead": "Spend Ryos or Kage Coins to open sealed scrolls. All rolls happen on the server.",
+    "loading": "Loading the shop…",
+    "open": "Open",
+    "opening": "Opening…",
+    "insufficientFunds": "Insufficient funds",
+    "costRyos": "{n} Ryos",
+    "costCoins": "{n} Kage Coins",
+    "costFree": "Free",
+    "balanceRyos": "Ryos: {n}",
+    "balanceCoins": "Kage Coins: {n}",
+    "cardCount": "{n} cards",
+    "guaranteed": "1 {rarity}+ guaranteed",
+    "elementFilter": "Element filter",
+    "elementAny": "Any",
+    "elements": {
+      "katon": "Fire",
+      "suiton": "Water",
+      "raiton": "Lightning",
+      "doton": "Earth",
+      "futon": "Wind"
+    },
+    "types": {
+      "standard": "Standard",
+      "elemental": "Elemental",
+      "premium": "Premium"
+    },
+    "sealedScroll": "Scroll",
+    "revealing": "Revealing {n}/{total}",
+    "revealDone": "Scroll opened",
+    "newCard": "New",
+    "duplicate": "Duplicate · {name}",
+    "resultsTitle": "Scroll loot",
+    "resultsLead": "{newCount} new · {dupCount} duplicate(s)",
+    "openAnother": "Open another",
+    "viewCollection": "View collection",
+    "closeResults": "Back to catalogue"
   },
   "talents": {
     "kicker": "Progression",

@@ -11,6 +11,7 @@ import decksRouter from './routes/decks.js';
 import talentsRouter from './routes/talents.js';
 import combatRouter from './routes/combat.js';
 import combatMissionsRouter from './routes/combatMissions.js';
+import shopRouter from './routes/shop.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -39,6 +40,7 @@ app.use('/api/decks', decksRouter);
 app.use('/api/talents', talentsRouter);
 app.use('/api/combat', combatRouter);
 app.use('/api/missions', combatMissionsRouter);
+app.use('/api/shop', shopRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
