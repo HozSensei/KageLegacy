@@ -159,8 +159,8 @@
     "registerTitle": "Create account",
     "username": "Username",
     "senseiName": "Sensei name",
-    "village": "Land (no Kuni)",
-    "villageHint": "Hi / Kaze / Mizu / Tsuchi no Kuni — no combat bonus. One early retake available.",
+    "village": "Land",
+    "villageHint": "Midorihara / Kareno / Oborohama / Ishikura — no combat bonus. One early retake available.",
     "password": "Password",
     "login": "Sign in",
     "register": "Register",
@@ -1890,7 +1890,7 @@
       "assignMissingHint": "For human accounts without an active league (e.g. after an interrupted reset).",
       "assignMissingRun": "Reassign now",
       "retuneBots": "Bot identities (villages)",
-      "retuneBotsHint": "Spread bots across Hi / Kaze / Mizu / Tsuchi no Kuni with a sensei given name (e.g. Torifu).",
+      "retuneBotsHint": "Spread bots across Midorihara / Kareno / Oborohama / Ishikura with a sensei given name (e.g. Tadao).",
       "retuneBotsRun": "Update bots",
       "repairPools": "Repair league schedules",
       "repairAll": "All active leagues",
@@ -1940,7 +1940,7 @@
     "cause": "Cause {n}"
   },
   "village": {
-    "lead": "Four lands (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
+    "lead": "Four lands (Midorihara, Kareno, Oborohama, Ishikura) compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
     "yours": "Your land",
     "rivalryTitle": "Cycle rivalry",
     "rivalryLive": "{a} {scoreA} — {scoreB} {b}",
@@ -1959,16 +1959,16 @@
     "retakeTitle": "Change land",
     "retakeLead": "One free early-career retake, before you score this cycle.",
     "names": {
-      "leaf": "Hi no Kuni",
-      "sand": "Kaze no Kuni",
-      "mist": "Mizu no Kuni",
-      "stone": "Tsuchi no Kuni"
+      "leaf": "Midorihara",
+      "sand": "Kareno",
+      "mist": "Oborohama",
+      "stone": "Ishikura"
     },
     "short": {
-      "leaf": "Hi no Kuni",
-      "sand": "Kaze no Kuni",
-      "mist": "Mizu no Kuni",
-      "stone": "Tsuchi no Kuni"
+      "leaf": "Midorihara",
+      "sand": "Kareno",
+      "mist": "Oborohama",
+      "stone": "Ishikura"
     },
     "tones": {
       "leaf": "Discipline and tradition.",

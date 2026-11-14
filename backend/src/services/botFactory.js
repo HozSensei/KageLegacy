@@ -13,53 +13,47 @@ import { rollCharacterTrait } from './characterTraits.js';
 
 const BOT_VILLAGE_IDS = ['leaf', 'sand', 'mist', 'stone'];
 
-/** Pays thématiques (style Naruto) liés aux villages C0. */
-export const VILLAGE_KUNI = {
-  leaf: 'Hi no Kuni',
-  sand: 'Kaze no Kuni',
-  mist: 'Mizu no Kuni',
-  stone: 'Tsuchi no Kuni',
+/** Provinces (noms originaux) liées aux villages C0 — les ids techniques restent leaf/sand/mist/stone. */
+export const VILLAGE_PROVINCE = {
+  leaf: 'Midorihara',
+  sand: 'Kareno',
+  mist: 'Oborohama',
+  stone: 'Ishikura',
 };
 
-/** Prénoms de sensei bots par village — sonorité shinobi, hors casting principal. */
+/** Prénoms de sensei bots par village — prénoms japonais courants, sans lien avec une licence. */
 const BOT_GIVEN_NAMES = {
-  leaf: ['Torifu', 'Kazuma', 'Enzō', 'Hayato', 'Saruma', 'Jiraku'],
-  sand: ['Sajin', 'Raku', 'Temaru', 'Pakura', 'Baki', 'Arashi'],
-  mist: ['Kirisame', 'Aoiki', 'Zabu', 'Meiha', 'Suiren', 'Kagura'],
-  stone: ['Iwao', 'Dotaku', 'Kurogane', 'Ganseki', 'Tsuchi', 'Ōnoki'],
+  leaf: ['Tadao', 'Kazuma', 'Enzō', 'Hayato', 'Shigeru', 'Jinpei'],
+  sand: ['Sakyo', 'Raku', 'Tenma', 'Hideo', 'Banri', 'Arashi'],
+  mist: ['Minamo', 'Aoiki', 'Zenji', 'Mihane', 'Suiren', 'Kaname'],
+  stone: ['Iwao', 'Dotaku', 'Kengo', 'Ganseki', 'Tsutomu', 'Ōsuke'],
 };
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
 
 const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 
-const LEGACY_BOT_NAMES = new Set(['Gennai', 'Baki', 'Ibiki', 'Shizune', 'Might']);
-
 function pick(arr, index) {
   return arr[index % arr.length];
 }
 
 /**
- * Profil d'identité bot : village réparti + prénom sensei (le pays « Xxx no Kuni »
- * correspond au village, affiché via le badge — pas collé dans le nom).
+ * Profil d'identité bot : village réparti + prénom sensei (la province correspond
+ * au village, affichée via le badge — pas collée dans le nom).
  */
 export function botIdentityForSlot(slotIndex) {
   const villageId = BOT_VILLAGE_IDS[Math.abs(Number(slotIndex) || 0) % BOT_VILLAGE_IDS.length];
-  const kuni = VILLAGE_KUNI[villageId];
+  const province = VILLAGE_PROVINCE[villageId];
   const names = BOT_GIVEN_NAMES[villageId];
   const wave = Math.floor(Math.abs(Number(slotIndex) || 0) / BOT_VILLAGE_IDS.length);
   const given = names[wave % names.length];
   const senseiName = wave >= names.length ? `${given} ${wave + 1}` : given;
-  return { villageId, kuni, given, senseiName };
+  return { villageId, province, given, senseiName };
 }
 
-/** Noms à migrer : anciens (Gennai…) ou format confus « Torifu · Hi no Kuni ». */
+/** Tout nom différent du prénom attendu pour le slot est réaligné (anciens prénoms, anciens formats). */
 function needsBotNameRetune(name, expectedName) {
-  if (!name) return true;
-  if (name === expectedName) return false;
-  if (LEGACY_BOT_NAMES.has(name)) return true;
-  if (/\bno Kuni\b/.test(name) || name.includes('·')) return true;
-  return name !== expectedName;
+  return !name || name !== expectedName;
 }
 
 async function createBotSquad(userId, slotIndex, clans) {
@@ -234,7 +228,7 @@ export async function createBotUser(poolId, slotIndex) {
 }
 
 /**
- * Rétroactif : répartit villages + noms « no Kuni » pour les bots d'une pool (ou tous).
+ * Rétroactif : répartit villages + prénoms sensei pour les bots d'une pool (ou tous).
  */
 export async function retuneBotSenseiIdentities({ poolId = null, force = false } = {}) {
   const params = [];

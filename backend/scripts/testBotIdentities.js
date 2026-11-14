@@ -4,15 +4,15 @@
  */
 
 import assert from 'node:assert/strict';
-import { botIdentityForSlot, VILLAGE_KUNI } from '../src/services/botFactory.js';
+import { botIdentityForSlot, VILLAGE_PROVINCE } from '../src/services/botFactory.js';
 
 function testSlotDistribution() {
   const villages = new Set();
   const names = new Set();
   for (let i = 0; i < 8; i += 1) {
     const identity = botIdentityForSlot(i);
-    assert.ok(VILLAGE_KUNI[identity.villageId], `village ${identity.villageId}`);
-    assert.equal(identity.kuni, VILLAGE_KUNI[identity.villageId]);
+    assert.ok(VILLAGE_PROVINCE[identity.villageId], `village ${identity.villageId}`);
+    assert.equal(identity.province, VILLAGE_PROVINCE[identity.villageId]);
     assert.equal(identity.senseiName, identity.given);
     assert.doesNotMatch(identity.senseiName, /\bno Kuni\b/);
     assert.ok(!identity.senseiName.includes('·'));
@@ -21,8 +21,8 @@ function testSlotDistribution() {
   }
   assert.equal(villages.size, 4, 'first 4 slots cover all villages');
   assert.equal(names.size, 8, 'names unique across first 8 slots');
-  assert.equal(botIdentityForSlot(0).senseiName, 'Torifu');
-  assert.equal(botIdentityForSlot(0).kuni, 'Hi no Kuni');
+  assert.equal(botIdentityForSlot(0).senseiName, 'Tadao');
+  assert.equal(botIdentityForSlot(0).province, 'Midorihara');
   assert.equal(botIdentityForSlot(0).villageId, 'leaf');
 }
 

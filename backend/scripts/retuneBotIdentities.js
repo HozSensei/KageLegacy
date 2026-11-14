@@ -1,5 +1,5 @@
 /**
- * Répartit villages + noms « Xxx no Kuni » sur les bots.
+ * Répartit villages + prénoms sensei sur les bots.
  * Usage: node scripts/retuneBotIdentities.js [--force] [--pool=12]
  */
 

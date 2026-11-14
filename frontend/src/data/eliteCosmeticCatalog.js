@@ -51,7 +51,7 @@ export function mockSenseiIdentity(overrides = {}) {
 
   return {
     userId,
-    senseiName: overrides.senseiName ?? 'Kakashi_Hatake',
+    senseiName: overrides.senseiName ?? 'Renjiro_Sensei',
     isBot: overrides.isBot ?? false,
     isElite,
     gradeLabel: overrides.gradeLabel ?? (isElite ? 'jonin_elite' : 'jonin'),
@@ -74,7 +74,7 @@ export const SHOWCASE_IDENTITIES = {
   }),
   eliteMist: mockSenseiIdentity({
     userId: 42,
-    senseiName: 'Kakashi_Hatake',
+    senseiName: 'Renjiro_Sensei',
     isElite: true,
     titleSlug: 'shadow_architect',
     bannerSlug: 'mist',
@@ -82,7 +82,7 @@ export const SHOWCASE_IDENTITIES = {
   }),
   eliteEmbers: mockSenseiIdentity({
     userId: 7,
-    senseiName: 'Tsunade_Sama',
+    senseiName: 'Akane_Sama',
     isElite: true,
     titleSlug: 'veteran_league',
     bannerSlug: 'embers',
@@ -90,7 +90,7 @@ export const SHOWCASE_IDENTITIES = {
   }),
   eliteMoon: mockSenseiIdentity({
     userId: 13,
-    senseiName: 'Hinata_Byakugan',
+    senseiName: 'Mio_Kazamine',
     isElite: true,
     titleSlug: 'chronicle_keeper',
     bannerSlug: 'moonlight',
@@ -98,7 +98,7 @@ export const SHOWCASE_IDENTITIES = {
   }),
   bot: mockSenseiIdentity({
     userId: 0,
-    senseiName: 'Bot_Iwagakure',
+    senseiName: 'Bot_Ishikura',
     isBot: true,
     isElite: false,
     titleSlug: null,
