@@ -7,6 +7,21 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Economy tune — F2P loop (2026-11-14)
+
+#### Added
+- **`backend/src/config/economyConfig.js`** : constantes centrales (boosters, combat, dust/craft/upgrade, Battle Pass)
+- **`docs/ECONOMY.md`** : sources, sinks, ratios, invariants
+- **`npm run test:economy`** : verrouille ratios F2P (pack ≈ 3 wins D, craft/disenchant 5×, soft premium)
+- **Migration `107_economy_tune.sql`** : planchers rewards_json missions (bpPoints / ryos)
+
+#### Changed
+- Boosters : standard 500→**400** Ryos, élémentaire 800→**650** Ryos (premium 100 KC inchangé)
+- Combat défauts : 25/80/10 → **40 XP / 100 Ryos / 12 %** + **50 BP XP** ; planchers par rang
+- Dust désenchant : 5/20/100/500 → **10/40/200/1000** (ratio craft **5×**)
+- Upgrades early soft (common L1 500/20 → **300/15**)
+- Services branchés : `boosterService`, `cardService`, `combatRewardService`, `battlePassService`
+
 ### Phase 4 polish — Combat (2026-11-14)
 
 #### Added

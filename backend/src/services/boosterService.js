@@ -1,6 +1,7 @@
 /**
  * Boosters & Shop — Kage Legacy V2 Phase 5
  *
+ * Coûts monétaires : `../config/economyConfig.js` (standard 400 Ryos / élém. 650 / premium 100 KC).
  * Probabilités documentées (poids relatifs, somme = 1000) :
  *   Standard   : common 700 / rare 230 / legendary 55 / mythic 15
  *   Élémentaire: common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre élément)
@@ -9,6 +10,7 @@
  * Tout le tirage et le débit monétaire sont serveur (anti-triche).
  */
 import { query, getConnection } from '../config/database.js';
+import { BOOSTER_CARD_COUNT, BOOSTER_COSTS } from '../config/economyConfig.js';
 import { CARD_RARITIES, serializeCardDefinition } from './cardService.js';
 import { getCollectionEntry } from './collectionService.js';
 
@@ -20,7 +22,7 @@ function httpError(statusCode, message) {
 
 const RARITY_RANK = { common: 0, rare: 1, legendary: 2, mythic: 3 };
 
-/** Catalogue public des parchemins (boosters). Noms originaux — pas d’IP tierce. */
+/** Catalogue public des parchemins (boosters). Coûts ← economyConfig. */
 export const BOOSTER_CATALOG = {
   standard: {
     type: 'standard',
@@ -28,8 +30,8 @@ export const BOOSTER_CATALOG = {
     nameEn: 'Standard Scroll',
     descriptionFr: '5 techniques tirées selon les taux de rareté classiques.',
     descriptionEn: '5 techniques rolled with classic rarity rates.',
-    cardCount: 5,
-    cost: { ryos: 500, kageCoins: 0 },
+    cardCount: BOOSTER_CARD_COUNT,
+    cost: { ...BOOSTER_COSTS.standard },
     rarityWeights: { common: 700, rare: 230, legendary: 55, mythic: 15 },
     guaranteedMinRarity: null,
     elementalOnly: false,
@@ -40,8 +42,8 @@ export const BOOSTER_CATALOG = {
     nameEn: 'Elemental Scroll',
     descriptionFr: '5 techniques liées à un élément (Katon, Suiton, Raiton, Doton, Futon).',
     descriptionEn: '5 techniques tied to an element (Fire, Water, Lightning, Earth, Wind).',
-    cardCount: 5,
-    cost: { ryos: 800, kageCoins: 0 },
+    cardCount: BOOSTER_CARD_COUNT,
+    cost: { ...BOOSTER_COSTS.elemental },
     rarityWeights: { common: 650, rare: 260, legendary: 70, mythic: 20 },
     guaranteedMinRarity: null,
     elementalOnly: true,
@@ -52,8 +54,8 @@ export const BOOSTER_CATALOG = {
     nameEn: 'Premium Scroll',
     descriptionFr: '5 techniques avec taux améliorés et 1 rare (ou mieux) garantie.',
     descriptionEn: '5 techniques with improved rates and 1 rare-or-better guaranteed.',
-    cardCount: 5,
-    cost: { ryos: 0, kageCoins: 100 },
+    cardCount: BOOSTER_CARD_COUNT,
+    cost: { ...BOOSTER_COSTS.premium },
     rarityWeights: { common: 550, rare: 320, legendary: 100, mythic: 30 },
     guaranteedMinRarity: 'rare',
     elementalOnly: false,

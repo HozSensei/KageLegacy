@@ -317,18 +317,23 @@ CREATE TABLE combat_logs (
   - `grantBoosterRewards(userId, cards)` - Donne les cartes
 
 **Routes**
-- [ ] `GET /api/shop/boosters` - Catalogue boosters
-- [ ] `POST /api/shop/boosters/:type/open` - Ouvrir booster
+- [x] `GET /api/shop/boosters` - Catalogue boosters
+- [x] `POST /api/shop/boosters/:type/open` - Ouvrir booster
+- [x] `GET /api/shop` - Aperçu catalogue élargi
+- [x] `GET/POST /api/shop/coin-packs` - Packs Kage Coins (stub)
+- [x] `GET/POST /api/shop/cosmetics` - Cosmétiques + équipement profil
+- [x] `GET/POST /api/shop/battle-pass` - Offre / unlock premium depuis le shop
 
 #### Frontend
 
 **Composants**
-- [ ] `BoosterSelection.vue` - Choix du booster
-- [ ] `BoosterOpening.vue` - Animation d'ouverture (cartes qui se retournent)
-- [ ] `BoosterResults.vue` - Résultats (nouvelles cartes, doublons)
+- [x] `BoosterSelection.vue` - Choix du booster
+- [x] `BoosterOpening.vue` - Animation d'ouverture (cartes qui se retournent)
+- [x] `BoosterResults.vue` - Résultats (nouvelles cartes, doublons)
+- [x] `CoinPackCatalog.vue` / `CosmeticCatalog.vue` / `BattlePassOffer.vue`
 
 **Views**
-- [ ] `views/Shop.vue` - Boutique (boosters + cosmétiques)
+- [x] `views/ShopView.vue` - Boutique à onglets (Boosters | Cosmétiques | Monnaie | Battle Pass)
 
 #### Tests
 - [ ] Test probabilités de rareté

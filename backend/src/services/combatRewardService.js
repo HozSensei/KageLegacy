@@ -7,10 +7,16 @@
  * - Battle Pass : hook stub si table absente
  */
 import { query } from '../config/database.js';
+import {
+  COMBAT_DEFAULT_REWARDS,
+  COMBAT_RUN_BONUS_MULT_DEFAULT,
+  resolveCombatRewards,
+} from '../config/economyConfig.js';
 import { addXP } from './playerCharacterService.js';
 import { addCard } from './collectionService.js';
 
-const DEFAULT_REWARDS = { xp: 25, ryos: 80, cardChance: 10 };
+/** @deprecated Prefer COMBAT_DEFAULT_REWARDS from economyConfig — re-export pour tests. */
+const DEFAULT_REWARDS = { ...COMBAT_DEFAULT_REWARDS };
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -79,15 +85,15 @@ async function tryGrantBattlePassPoints(userId, points) {
 }
 
 /**
- * Charge rewards_json d'une mission (ou défaut).
+ * Charge rewards_json d'une mission (défauts + plancher rang via economyConfig).
  */
 export async function loadMissionRewards(missionId) {
-  if (missionId == null) return { ...DEFAULT_REWARDS };
+  if (missionId == null) return resolveCombatRewards(null, null);
   const rows = await query(
-    'SELECT rewards_json FROM mission_definitions WHERE id = ? LIMIT 1',
+    'SELECT rewards_json, `rank` AS mission_rank FROM mission_definitions WHERE id = ? LIMIT 1',
     [missionId],
   );
-  if (!rows[0]) return { ...DEFAULT_REWARDS };
+  if (!rows[0]) return resolveCombatRewards(null, null);
   let parsed = rows[0].rewards_json;
   if (typeof parsed === 'string') {
     try {
@@ -96,23 +102,18 @@ export async function loadMissionRewards(missionId) {
       parsed = null;
     }
   }
-  if (!parsed || typeof parsed !== 'object') return { ...DEFAULT_REWARDS };
-  return {
-    xp: Number(parsed.xp) || DEFAULT_REWARDS.xp,
-    ryos: Number(parsed.ryos) || DEFAULT_REWARDS.ryos,
-    cardChance: parsed.cardChance != null ? Number(parsed.cardChance) : 12,
-    bpPoints: Number(parsed.bpPoints) || 0,
-  };
+  const resolved = resolveCombatRewards(parsed, rows[0].mission_rank || null);
+  if (parsed && typeof parsed === 'object' && parsed.runBonusMult != null) {
+    resolved.runBonusMult = Number(parsed.runBonusMult) || undefined;
+  }
+  return resolved;
 }
 
 /**
- * Applique les récompenses de victoire une seule fois.
+ * Applique un paquet de récompenses (xp/ryos/carte/bp) selon une config.
  * @returns {Promise<object>} résumé pour l'UI
  */
-export async function grantVictoryRewards(userId, missionId, { rng = Math.random } = {}) {
-  if (!userId) throw httpError(400, 'userId requis.');
-
-  const cfg = await loadMissionRewards(missionId);
+async function applyRewardConfig(userId, cfg, { rng = Math.random, source = 'mission' } = {}) {
   const summary = {
     xp: 0,
     ryos: 0,
@@ -122,9 +123,9 @@ export async function grantVictoryRewards(userId, missionId, { rng = Math.random
     card: null,
     cardRolled: false,
     battlePass: null,
+    source,
   };
 
-  // XP
   if (cfg.xp > 0) {
     try {
       const xpResult = await addXP(userId, cfg.xp);
@@ -133,13 +134,11 @@ export async function grantVictoryRewards(userId, missionId, { rng = Math.random
       summary.leveledUp = xpResult.leveledUp;
       summary.talentPointsGained = xpResult.talentPointsGained;
     } catch (err) {
-      // Personnage absent (tests / guest partiel) : ne pas faire échouer le combat
       if (err.statusCode !== 404) throw err;
       summary.xpSkipped = 'no_character';
     }
   }
 
-  // Ryos
   if (cfg.ryos > 0) {
     const updated = await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [
       cfg.ryos,
@@ -148,7 +147,6 @@ export async function grantVictoryRewards(userId, missionId, { rng = Math.random
     if (updated.affectedRows > 0) summary.ryos = cfg.ryos;
   }
 
-  // Chance de carte
   const chance = Math.max(0, Math.min(100, Number(cfg.cardChance) || 0));
   if (chance > 0 && rollPercent(rng) <= chance) {
     summary.cardRolled = true;
@@ -156,7 +154,7 @@ export async function grantVictoryRewards(userId, missionId, { rng = Math.random
       if (await tableExists('card_definitions')) {
         const cardId = await pickRandomCardDefinitionId(rng);
         if (cardId) {
-          const entry = await addCard(userId, cardId, { quantity: 1, source: 'mission' });
+          const entry = await addCard(userId, cardId, { quantity: 1, source });
           summary.card = {
             collectionId: entry?.collectionId ?? null,
             definitionId: cardId,
@@ -171,9 +169,52 @@ export async function grantVictoryRewards(userId, missionId, { rng = Math.random
     }
   }
 
-  // Battle Pass hook (stub)
   summary.battlePass = await tryGrantBattlePassPoints(userId, cfg.bpPoints);
+  return summary;
+}
 
+/**
+ * Applique les récompenses de victoire une seule fois (duel / combat hors run).
+ * @returns {Promise<object>} résumé pour l'UI
+ */
+export async function grantVictoryRewards(userId, missionId, { rng = Math.random } = {}) {
+  if (!userId) throw httpError(400, 'userId requis.');
+  const cfg = await loadMissionRewards(missionId);
+  return applyRewardConfig(userId, cfg, { rng, source: 'mission' });
+}
+
+/**
+ * Récompenses de fin de parcours (meilleures qu'un single fight).
+ * Multiplie la config mission par runBonusMult (défaut 1.8) + bonus combats.
+ */
+export async function grantRunRewards(
+  userId,
+  missionId,
+  { combatsWon = 0, nodeCount = 0, rng = Math.random } = {},
+) {
+  if (!userId) throw httpError(400, 'userId requis.');
+
+  const base = await loadMissionRewards(missionId);
+  let mult = COMBAT_RUN_BONUS_MULT_DEFAULT;
+  if (base.runBonusMult != null) {
+    mult = Number(base.runBonusMult) || COMBAT_RUN_BONUS_MULT_DEFAULT;
+  }
+
+  // Bonus léger par combat remporté (au-delà du multiplicateur de base)
+  const combatBonus = 1 + Math.max(0, combatsWon - 1) * 0.08;
+  const scale = mult * combatBonus;
+
+  const cfg = {
+    xp: Math.round((base.xp || 0) * scale),
+    ryos: Math.round((base.ryos || 0) * scale),
+    cardChance: Math.min(85, Math.round((base.cardChance || 12) * Math.min(1.4, 1 + combatsWon * 0.05))),
+    bpPoints: Math.round((base.bpPoints || 0) * scale),
+  };
+
+  const summary = await applyRewardConfig(userId, cfg, { rng, source: 'mission_run' });
+  summary.runMult = Number(scale.toFixed(2));
+  summary.combatsWon = combatsWon;
+  summary.nodeCount = nodeCount;
   return summary;
 }
 

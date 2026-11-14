@@ -733,9 +733,10 @@
   },
   "shop": {
     "kicker": "Acquisition",
-    "title": "Boutique des parchemins",
-    "lead": "Dépensez Ryos ou Kage Coins pour ouvrir des parchemins scellés. Les tirages sont entièrement serveur.",
+    "title": "Boutique du Village",
+    "lead": "Parchemins, cosmétiques, Kage Coins et Passe de saison — tout depuis un même comptoir.",
     "loading": "Chargement de la boutique…",
+    "purchasing": "Achat…",
     "open": "Ouvrir",
     "opening": "Ouverture…",
     "insufficientFunds": "Fonds insuffisants",
@@ -769,7 +770,46 @@
     "resultsLead": "{newCount} nouvelle(s) · {dupCount} doublon(s)",
     "openAnother": "Ouvrir un autre",
     "viewCollection": "Voir la collection",
-    "closeResults": "Retour au catalogue"
+    "closeResults": "Retour au catalogue",
+    "tabs": {
+      "boosters": "Boosters",
+      "cosmetics": "Cosmétiques",
+      "currency": "Monnaie",
+      "battlePass": "Battle Pass"
+    },
+    "currency": {
+      "packKicker": "Pack Kage Coins",
+      "totalCoins": "{n} Kage Coins",
+      "bonus": "+{n} bonus",
+      "priceEur": "{n} €",
+      "buyStub": "Créditer (stub)",
+      "buyLocked": "Réservé admin / stub",
+      "stubNote": "Achat réel via Stripe à venir. En MVP, un admin (ou SHOP_COIN_STUB) peut créditer un pack."
+    },
+    "cosmetics": {
+      "buy": "Acheter",
+      "equip": "Équiper",
+      "owned": "Possédé",
+      "equipped": "Équipé",
+      "equippedHint": "Actuellement équipé sur le profil",
+      "types": {
+        "avatar_frame": "Cadres d’avatar",
+        "card_back": "Dos de carte",
+        "title": "Titres"
+      }
+    },
+    "battlePass": {
+      "kicker": "Saison",
+      "title": "Passe de saison Premium",
+      "lead": "Débloquez la piste premium depuis la boutique, ou ouvrez la page Battle Pass pour quêtes et récompenses.",
+      "premiumActive": "Premium actif cette saison",
+      "premiumLocked": "Piste gratuite — premium disponible",
+      "unlockCoins": "Débloquer ({n} Kage Coins)",
+      "unlockStub": "Unlock stub (admin)",
+      "openPage": "Ouvrir le Battle Pass",
+      "unavailableTitle": "Aucune saison active",
+      "unavailableLead": "Revenez quand une saison Battle Pass sera ouverte."
+    }
   },
   "talents": {
     "kicker": "Progression",

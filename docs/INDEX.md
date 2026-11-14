@@ -102,6 +102,18 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
+### 6b. 💰 [ECONOMY.md](./ECONOMY.md)
+**Tuning économique F2P**
+
+- Monnaies (Ryos, Dust, Essence, Kage Coins)
+- Coûts boosters, rewards combat, craft/upgrade, Battle Pass
+- Ratios verrouillés (`npm run test:economy`)
+- Source code : `backend/src/config/economyConfig.js`
+
+👉 **Référence** pour toute modification de montants / sinks / sources.
+
+---
+
 ### 7. 🏗️ [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md)
 **Architecture Technique**
 

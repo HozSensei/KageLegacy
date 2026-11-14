@@ -32,12 +32,12 @@ assert(BOOSTER_TYPES.includes('elemental'), 'elemental type');
 assert(BOOSTER_TYPES.includes('premium'), 'premium type');
 
 const standard = getBoosterDefinition('standard');
-assert(standard.cost.ryos === 500 && standard.cost.kageCoins === 0, 'standard cost');
+assert(standard.cost.ryos === 400 && standard.cost.kageCoins === 0, 'standard cost');
 assert(standard.cardCount === 5, 'standard card count');
 
 const elemental = getBoosterDefinition('elemental');
 assert(elemental.elementalOnly === true, 'elemental filter');
-assert(elemental.cost.ryos === 800, 'elemental cost');
+assert(elemental.cost.ryos === 650, 'elemental cost');
 
 const premium = getBoosterDefinition('premium');
 assert(premium.cost.kageCoins === 100 && premium.cost.ryos === 0, 'premium cost');

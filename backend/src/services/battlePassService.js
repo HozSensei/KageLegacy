@@ -2,14 +2,15 @@
  * Battle Pass — saisons, XP/tiers, claim free/premium, unlock premium (stub / Kage Coins).
  */
 import { query, getConnection } from '../config/database.js';
+import { BATTLE_PASS, DISENCHANT_DUST } from '../config/economyConfig.js';
 import { addCard } from './collectionService.js';
 import { getCardsByRarity, parseJsonSafe } from './cardService.js';
 
-export const PREMIUM_COST_KAGE_COINS = 500;
-export const LEVEL_COST_KAGE_COINS = 150;
-export const MAX_PURCHASABLE_LEVELS = 20;
-export const BUY_LEVELS_MIN_LEVEL = 30;
-export const PREMIUM_XP_MULTIPLIER = 1.2;
+export const PREMIUM_COST_KAGE_COINS = BATTLE_PASS.premiumCostKageCoins;
+export const LEVEL_COST_KAGE_COINS = BATTLE_PASS.levelCostKageCoins;
+export const MAX_PURCHASABLE_LEVELS = BATTLE_PASS.maxPurchasableLevels;
+export const BUY_LEVELS_MIN_LEVEL = BATTLE_PASS.buyLevelsMinLevel;
+export const PREMIUM_XP_MULTIPLIER = BATTLE_PASS.premiumXpMultiplier;
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -33,11 +34,11 @@ function parseRewards(raw) {
   };
 }
 
-/** XP requis pour atteindre `level` depuis level-1 (progressif +50 / 10 niv.). */
-export function getXPForLevel(level, baseXp = 1000) {
+/** XP requis pour atteindre `level` depuis level-1 (progressif +bump / tier). */
+export function getXPForLevel(level, baseXp = BATTLE_PASS.baseXpPerLevel) {
   const target = Math.max(1, Number(level) || 1);
-  const tier = Math.floor((target - 1) / 10);
-  return Number(baseXp) + tier * 50;
+  const tier = Math.floor((target - 1) / BATTLE_PASS.xpTierSize);
+  return Number(baseXp) + tier * BATTLE_PASS.xpTierBump;
 }
 
 export function serializeSeason(row) {
@@ -237,8 +238,10 @@ async function grantCardReward(userId, reward) {
   }
   const count = Math.max(1, Number(reward.count) || 1);
   if (!cardId) {
-    // Fallback dust if catalogue empty / rarity missing
-    const dust = reward.rarity === 'legendary' ? 100 : reward.rarity === 'mythic' ? 500 : 20;
+    // Fallback dust if catalogue empty / rarity missing (montants ← economyConfig)
+    const dust =
+      DISENCHANT_DUST[reward.rarity] ||
+      (reward.rarity === 'legendary' ? DISENCHANT_DUST.legendary : DISENCHANT_DUST.rare);
     await query('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [dust * count, userId]);
     return { type: 'dust', amount: dust * count, fallback: true, reason: 'no_card' };
   }

@@ -733,9 +733,10 @@
   },
   "shop": {
     "kicker": "Acquisition",
-    "title": "Scroll shop",
-    "lead": "Spend Ryos or Kage Coins to open sealed scrolls. All rolls happen on the server.",
+    "title": "Village shop",
+    "lead": "Scrolls, cosmetics, Kage Coins and the season Pass — one counter for all of it.",
     "loading": "Loading the shop…",
+    "purchasing": "Purchasing…",
     "open": "Open",
     "opening": "Opening…",
     "insufficientFunds": "Insufficient funds",
@@ -769,7 +770,46 @@
     "resultsLead": "{newCount} new · {dupCount} duplicate(s)",
     "openAnother": "Open another",
     "viewCollection": "View collection",
-    "closeResults": "Back to catalogue"
+    "closeResults": "Back to catalogue",
+    "tabs": {
+      "boosters": "Boosters",
+      "cosmetics": "Cosmetics",
+      "currency": "Currency",
+      "battlePass": "Battle Pass"
+    },
+    "currency": {
+      "packKicker": "Kage Coins pack",
+      "totalCoins": "{n} Kage Coins",
+      "bonus": "+{n} bonus",
+      "priceEur": "€{n}",
+      "buyStub": "Credit (stub)",
+      "buyLocked": "Admin / stub only",
+      "stubNote": "Real Stripe checkout coming later. In MVP, an admin (or SHOP_COIN_STUB) can credit a pack."
+    },
+    "cosmetics": {
+      "buy": "Buy",
+      "equip": "Equip",
+      "owned": "Owned",
+      "equipped": "Equipped",
+      "equippedHint": "Currently equipped on your profile",
+      "types": {
+        "avatar_frame": "Avatar frames",
+        "card_back": "Card backs",
+        "title": "Titles"
+      }
+    },
+    "battlePass": {
+      "kicker": "Season",
+      "title": "Premium season Pass",
+      "lead": "Unlock the premium track from the shop, or open the Battle Pass page for quests and rewards.",
+      "premiumActive": "Premium active this season",
+      "premiumLocked": "Free track — premium available",
+      "unlockCoins": "Unlock ({n} Kage Coins)",
+      "unlockStub": "Stub unlock (admin)",
+      "openPage": "Open Battle Pass",
+      "unavailableTitle": "No active season",
+      "unavailableLead": "Come back when a Battle Pass season is live."
+    }
   },
   "talents": {
     "kicker": "Progression",

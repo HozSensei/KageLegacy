@@ -2,41 +2,23 @@
  * Card definitions catalogue — Kage Legacy V2 Phase 2
  */
 import { query } from '../config/database.js';
+import {
+  CRAFT_DUST as ECONOMY_CRAFT_DUST,
+  DISENCHANT_DUST as ECONOMY_DISENCHANT_DUST,
+  UPGRADE_COSTS as ECONOMY_UPGRADE_COSTS,
+} from '../config/economyConfig.js';
 
 export const CARD_TYPES = ['attack', 'defense', 'skill', 'summon', 'item'];
 export const CARD_RARITIES = ['common', 'rare', 'legendary', 'mythic'];
 export const STAT_TYPES = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
 export const ELEMENTS = ['katon', 'suiton', 'raiton', 'doton', 'futon'];
 
-export const UPGRADE_COSTS = {
-  common: [
-    { ryos: 500, dust: 20, essence: 0 },
-    { ryos: 2000, dust: 100, essence: 0 },
-  ],
-  rare: [
-    { ryos: 1500, dust: 100, essence: 0 },
-    { ryos: 6000, dust: 500, essence: 0 },
-  ],
-  legendary: [
-    { ryos: 5000, dust: 500, essence: 0 },
-    { ryos: 20000, dust: 2000, essence: 10 },
-  ],
-  mythic: [{ ryos: 20000, dust: 2000, essence: 20 }],
-};
-
-export const DISENCHANT_DUST = {
-  common: 5,
-  rare: 20,
-  legendary: 100,
-  mythic: 500,
-};
-
-export const CRAFT_DUST = {
-  common: 50,
-  rare: 200,
-  legendary: 1000,
-  mythic: 5000,
-};
+/** @see ../config/economyConfig.js */
+export const UPGRADE_COSTS = ECONOMY_UPGRADE_COSTS;
+/** @see ../config/economyConfig.js */
+export const DISENCHANT_DUST = ECONOMY_DISENCHANT_DUST;
+/** @see ../config/economyConfig.js */
+export const CRAFT_DUST = ECONOMY_CRAFT_DUST;
 
 function httpError(statusCode, message) {
   const err = new Error(message);
