@@ -81,6 +81,8 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 - IA ennemie (3 niveaux)
 - Synergies et combos
 - Interface de combat
+- Tests d’équilibrage : [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md) (`test:combat-balance`)
+- Tests avantages type/élément : `npm run test:type-advantage`
 
 👉 **Référence technique** pour implémenter le combat.
 

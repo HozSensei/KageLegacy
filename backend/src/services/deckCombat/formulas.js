@@ -1,16 +1,16 @@
 /**
  * Formules de scaling combat (docs/COMBAT_SYSTEM.md).
  * Module pur — pas de DB.
+ *
+ * Triade / éléments : voir `typeAdvantage.js` (réexportés ici pour compat).
  */
-import {
-  CRIT_DAMAGE_MULT,
-  ELEMENT_ADVANTAGE_MULT,
-  ELEMENT_BEATS,
-  ELEMENT_DISADVANTAGE_MULT,
-  MAX_CRIT_CHANCE,
-  TYPE_ADVANTAGE,
-  TYPE_ADVANTAGE_MULTIPLIER,
-} from './constants.js';
+import { CRIT_DAMAGE_MULT, MAX_CRIT_CHANCE } from './constants.js';
+export {
+  elementMultiplier,
+  getElementAdvantage,
+  getTypeAdvantage,
+  typeAdvantageMultiplier,
+} from './typeAdvantage.js';
 
 /** Dégâts_Finaux = Dégâts_Base × (1 + Stat / 100) */
 export function scaleByStat(base, stat) {
@@ -41,23 +41,6 @@ export function rollCrit(vitesse, rng = Math.random) {
   const roll = typeof rng === 'function' ? rng() : Math.random();
   const isCrit = roll * 100 < chance;
   return { isCrit, chance, mult: isCrit ? CRIT_DAMAGE_MULT : 1 };
-}
-
-export function typeAdvantageMultiplier(attackerStatType, defenderPosture) {
-  if (!attackerStatType || !defenderPosture) return 1;
-  if (TYPE_ADVANTAGE[attackerStatType] === defenderPosture) {
-    return TYPE_ADVANTAGE_MULTIPLIER;
-  }
-  return 1;
-}
-
-export function elementMultiplier(attackerElement, defenderAffinity) {
-  if (!attackerElement || !defenderAffinity) return 1;
-  const atk = String(attackerElement).toLowerCase();
-  const def = String(defenderAffinity).toLowerCase();
-  if (ELEMENT_BEATS[atk] === def) return ELEMENT_ADVANTAGE_MULT;
-  if (ELEMENT_BEATS[def] === atk) return ELEMENT_DISADVANTAGE_MULT;
-  return 1;
 }
 
 /**

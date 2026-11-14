@@ -346,7 +346,11 @@ GENJUTSU ←→→→ NINJUTSU
 (Illusions)   (Techniques)
 ```
 
-**Bonus** : +20% dégâts si avantage de type
+**Bonus** : +20% dégâts si avantage de type (×**1.2**)
+
+> Implémentation : pas de malus réciproque sur la triade — hors avantage = ×1.
+> Code : `backend/src/services/deckCombat/typeAdvantage.js` (`getTypeAdvantage`).
+> Tests : `npm run test:type-advantage` · voir aussi [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md).
 
 **Exemple** :
 ```
@@ -380,6 +384,9 @@ KATON (Feu) 🔥
 - **Avantage** : ×1.5 dégâts
 - **Désavantage** : ×0.7 dégâts
 - **Neutre** : ×1.0
+
+> Code : `getElementAdvantage` / `elementMultiplier` dans `typeAdvantage.js`.
+> Appliqué dans `computeCardDamage` (cartes d’attaque) avec la triade.
 
 **Exemple** :
 ```
@@ -607,6 +614,13 @@ VOUS : Aiko Kagemori [Genin Niv.12]
 4. **Statuts** : Icônes animées au-dessus du personnage
 5. **Intention** : Bulle avec icône au-dessus de l'ennemi
 6. **Phase de boss** : Flash + dialogue + changement visuel
+
+---
+
+## Tests d’équilibrage
+
+Simulations déterministes (seed + politique greedy) : `docs/COMBAT_BALANCE_TESTS.md`  
+`npm run test:combat-balance` / `npm run test:combat-balance:report`
 
 ---
 

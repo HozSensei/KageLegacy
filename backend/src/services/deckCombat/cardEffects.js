@@ -2,7 +2,6 @@
  * Résolution des effets de cartes — module pur.
  */
 import {
-  elementMultiplier,
   getStatusValue,
   hasStatus,
   outgoingDamageMultiplier,
@@ -10,11 +9,14 @@ import {
   scaleBlock,
   scaleDamage,
   scaleHeal,
-  typeAdvantageMultiplier,
+  applyDamageThroughBlock,
 } from './formulas.js';
+import {
+  elementMultiplier,
+  typeAdvantageMultiplier,
+} from './typeAdvantage.js';
 import { applyStatus } from './statuses.js';
 import { drawCards } from './deckRuntime.js';
-import { applyDamageThroughBlock } from './formulas.js';
 
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';

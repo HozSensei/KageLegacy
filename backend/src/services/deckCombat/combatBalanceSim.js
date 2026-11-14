@@ -1,0 +1,534 @@
+/**
+ * Harness de simulation combat PvE — pur (sans HTTP/DB).
+ *
+ * Rejoue la boucle playCard / endTurn du moteur avec une politique joueur
+ * déterministe « greedy_damage_then_block » et un RNG seedé.
+ *
+ * @see docs/COMBAT_BALANCE_TESTS.md
+ */
+import { BASE_CHAKRA, BASE_MAX_HP, DRAW_PER_TURN } from './constants.js';
+import {
+  buildPracticeDeckEntries,
+  buildRuntimeDeck,
+  drawCards,
+  moveCardFromHand,
+  shuffle,
+} from './deckRuntime.js';
+import {
+  applyCardPlay,
+  computeCardBlock,
+  computeCardDamage,
+  resolveAllyAttack,
+} from './cardEffects.js';
+import {
+  resolveEndOfTurnStatuses,
+  resolveStartOfTurnStatuses,
+} from './statuses.js';
+import {
+  applyTalentAfterCardPlay,
+  applyTalentAfterDamageTaken,
+  applyTalentStartOfTurn,
+  classifyTalentEffects,
+  computeTalentDamageMods,
+} from './talentEffects.js';
+import {
+  executeEnemyIntent,
+  generateEnemyFromTemplate,
+  getNextIntent,
+} from '../combatAIService.js';
+import { createEmptyStats } from '../playerCharacterService.js';
+import { BALANCE_PROFILES, PLAYER_POLICY } from '../../config/combatBalanceConfig.js';
+
+/** Mulberry32 — RNG déterministe [0,1). */
+export function createSeededRng(seed) {
+  let t = (Number(seed) >>> 0) || 1;
+  return function rng() {
+    t += 0x6d2b79f5;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function mergeStats(partial) {
+  return { ...createEmptyStats(), ...(partial || {}) };
+}
+
+function checkOutcome(session) {
+  if ((session.enemy.hp || 0) <= 0) return 'victory';
+  if ((session.player.hp || 0) <= 0) return 'defeat';
+  return null;
+}
+
+function effectiveCost(card, talentMods) {
+  return Math.max(0, (Number(card.cost) || 0) + (Number(talentMods.costDelta) || 0));
+}
+
+function estimateIncomingDamage(enemy) {
+  const intent = enemy?.intent;
+  if (!intent || intent.type !== 'attack') return 0;
+  return Number(intent.displayDamage ?? intent.damage) || 0;
+}
+
+/**
+ * Score heuristique d'une carte pour la politique greedy.
+ * Plus haut = prioritaire.
+ */
+export function scoreCardForGreedy(card, session) {
+  const { player, enemy, stats, talentEffects } = session;
+  const talentMods = computeTalentDamageMods(talentEffects.applied, player, card);
+  const cost = effectiveCost(card, talentMods);
+  if (cost > (Number(player.chakra) || 0)) return -Infinity;
+
+  const incoming = estimateIncomingDamage(enemy);
+
+  if (card.type === 'attack' || (Number(card.damage) || 0) > 0) {
+    const dmg = computeCardDamage(card, {
+      stats,
+      playerStatuses: player.statuses || [],
+      enemyStatuses: enemy.statuses || [],
+      enemyPosture: enemy.posture,
+      enemyAffinity: enemy.elementAffinity,
+      talentMods,
+      // Score sans crit : rng haut → rollCrit ne proc pas
+      rng: () => 0.999,
+    });
+    const total = dmg.denied ? 0 : dmg.total;
+    const killBonus =
+      total >= (Number(enemy.hp) || 0) + (Number(enemy.block) || 0) ? 10_000 : 0;
+    return killBonus + total * 100 + (3 - cost) * 2;
+  }
+
+  if ((Number(card.block) || 0) > 0 || card.type === 'defense') {
+    const block = computeCardBlock(card, stats, player.statuses || []);
+    const threatWeight = incoming > (Number(player.block) || 0) ? 80 : 25;
+    return block * threatWeight + (3 - cost);
+  }
+
+  if ((Number(card.heal) || 0) > 0) {
+    const missing = (Number(player.maxHp) || 0) - (Number(player.hp) || 0);
+    if (missing <= 0) return -5;
+    return Math.min(missing, Number(card.heal) || 0) * 40;
+  }
+
+  if (card.type === 'summon' || card.summon) {
+    if (player.ally && (player.ally.hp || 0) > 0) return -20;
+    return 55 + (incoming > 8 ? 20 : 0);
+  }
+
+  if ((card.effects || []).some((e) => e.type === 'draw')) return 15;
+  return 1;
+}
+
+function tryDiscardForBetterPlay(session) {
+  const hand = [...(session.player.hand || [])];
+  if (!hand.length || session.player.discardedForChakra) return null;
+
+  let discardTarget = hand[0];
+  let worst = Infinity;
+  for (const card of hand) {
+    const intrinsic =
+      (Number(card.damage) || 0) * 10 +
+      (Number(card.block) || 0) * 3 +
+      (Number(card.heal) || 0) * 2;
+    if (intrinsic < worst) {
+      worst = intrinsic;
+      discardTarget = card;
+    }
+  }
+
+  const moved = moveCardFromHand(session.player, discardTarget.instanceId, 'discard');
+  const nextSession = {
+    ...session,
+    player: {
+      ...moved.player,
+      chakra: (Number(moved.player.chakra) || 0) + 1,
+      discardedForChakra: true,
+    },
+  };
+
+  let bestScore = -Infinity;
+  for (const card of nextSession.player.hand || []) {
+    bestScore = Math.max(bestScore, scoreCardForGreedy(card, nextSession));
+  }
+  if (bestScore < 50) return null;
+
+  return {
+    session: nextSession,
+    logs: [{ type: 'discard_for_chakra', instanceId: discardTarget.instanceId }],
+  };
+}
+
+function simPlayCard(session, instanceId, rng) {
+  const logs = [];
+  const card = (session.player.hand || []).find((c) => c.instanceId === instanceId);
+  if (!card) return { session, logs };
+
+  const talentMods = computeTalentDamageMods(
+    session.talentEffects.applied,
+    session.player,
+    card,
+  );
+  const played = applyCardPlay({
+    player: session.player,
+    enemy: session.enemy,
+    card,
+    stats: session.stats,
+    talentMods,
+    rng,
+  });
+
+  let nextPlayer = played.player;
+  const nextEnemy = played.enemy;
+  const talentAfter = applyTalentAfterCardPlay(
+    nextPlayer,
+    card,
+    session.talentEffects.applied,
+  );
+  nextPlayer = talentAfter.player;
+
+  if (talentAfter.extraDraw > 0) {
+    const drawn = drawCards(nextPlayer, talentAfter.extraDraw, rng);
+    nextPlayer = drawn.player;
+  }
+
+  const moved = moveCardFromHand(
+    nextPlayer,
+    instanceId,
+    card.exhaust || card.type === 'summon' ? 'exhaust' : 'discard',
+  );
+
+  const next = {
+    ...session,
+    player: moved.player,
+    enemy: nextEnemy,
+  };
+  const outcome = checkOutcome(next);
+  if (outcome) {
+    next.state = outcome;
+    next.currentPhase = 'game_over';
+  }
+
+  logs.push(...played.logs, ...talentAfter.logs);
+  return { session: next, logs };
+}
+
+/**
+ * Joue un tour joueur selon greedy_damage_then_block.
+ */
+export function playGreedyPlayerTurn(session, rng) {
+  const logs = [];
+  let s = session;
+  let safety = 0;
+
+  while (safety < 20 && s.state === 'in_progress' && s.currentPhase === 'player_turn') {
+    safety += 1;
+    const hand = s.player.hand || [];
+    if (!hand.length) break;
+
+    let best = null;
+    let bestScore = -Infinity;
+    for (const card of hand) {
+      const score = scoreCardForGreedy(card, s);
+      if (score > bestScore) {
+        bestScore = score;
+        best = card;
+      }
+    }
+
+    if ((!best || bestScore === -Infinity) && !s.player.discardedForChakra) {
+      const maybe = tryDiscardForBetterPlay(s);
+      if (maybe) {
+        s = maybe.session;
+        logs.push(...maybe.logs);
+        continue;
+      }
+      break;
+    }
+
+    if (!best || bestScore === -Infinity) break;
+
+    const played = simPlayCard(s, best.instanceId, rng);
+    s = played.session;
+    logs.push(...played.logs);
+    if (s.state !== 'in_progress') break;
+  }
+
+  return { session: s, logs };
+}
+
+/**
+ * Résout fin de tour joueur → tour ennemi → nouveau tour joueur (miroir endTurn).
+ */
+export function simEndTurn(session, rng) {
+  const logs = [];
+  let s = { ...session, player: { ...session.player }, enemy: { ...session.enemy } };
+
+  const playerEnd = resolveEndOfTurnStatuses(s.player, { persistBlock: true });
+  s.player = playerEnd.entity;
+
+  let outcome = checkOutcome(s);
+  if (outcome) {
+    s.state = outcome;
+    s.currentPhase = 'game_over';
+    return { session: s, logs };
+  }
+
+  s.currentPhase = 'enemy_turn';
+
+  if ((s.enemy.block || 0) > 0) {
+    s.enemy = { ...s.enemy, block: 0 };
+  }
+  const enemyStart = resolveStartOfTurnStatuses(s.enemy);
+  s.enemy = enemyStart.entity;
+
+  outcome = checkOutcome(s);
+  if (outcome) {
+    s.state = outcome;
+    s.currentPhase = 'game_over';
+    return { session: s, logs };
+  }
+
+  const hpBefore = Number(s.player.hp) || 0;
+  const enemyAct = executeEnemyIntent(s.enemy, s.player, rng, {
+    talentCodes: s.talentEffects.applied,
+  });
+  s.enemy = enemyAct.enemy;
+  s.player = enemyAct.player;
+  logs.push(...enemyAct.logs);
+
+  const damageTaken = Math.max(0, hpBefore - (Number(s.player.hp) || 0));
+  s.damageTakenTotal = (Number(s.damageTakenTotal) || 0) + damageTaken;
+
+  const tank = applyTalentAfterDamageTaken(s.player, s.talentEffects.applied);
+  s.player = tank.player;
+
+  outcome = checkOutcome(s);
+  if (outcome) {
+    s.state = outcome;
+    s.currentPhase = 'game_over';
+    return { session: s, logs };
+  }
+
+  const enemyEnd = resolveEndOfTurnStatuses(s.enemy, { persistBlock: true });
+  s.enemy = enemyEnd.entity;
+
+  outcome = checkOutcome(s);
+  if (outcome) {
+    s.state = outcome;
+    s.currentPhase = 'game_over';
+    return { session: s, logs };
+  }
+
+  s.currentTurn += 1;
+  s.currentPhase = 'player_turn';
+
+  if ((s.player.block || 0) > 0) {
+    s.player = { ...s.player, block: 0 };
+  }
+
+  const playerStart = resolveStartOfTurnStatuses(s.player);
+  s.player = {
+    ...playerStart.entity,
+    chakra: s.player.maxChakra ?? BASE_CHAKRA,
+    discardedForChakra: false,
+    elementalFusionDrawnThisTurn: false,
+    taijutsuPlayedThisTurn: 0,
+    genjutsuPlayedThisTurn: 0,
+    elementsPlayedThisTurn: [],
+  };
+
+  const talentStart = applyTalentStartOfTurn(s.player, s.talentEffects.applied);
+  s.player = talentStart.player;
+
+  const allyAct = resolveAllyAttack(s.player, s.enemy);
+  s.player = allyAct.player;
+  s.enemy = allyAct.enemy;
+
+  outcome = checkOutcome(s);
+  if (outcome) {
+    s.state = outcome;
+    s.currentPhase = 'game_over';
+    return { session: s, logs };
+  }
+
+  const leftover = s.player.hand || [];
+  s.player = {
+    ...s.player,
+    hand: [],
+    discardPile: [...(s.player.discardPile || []), ...leftover],
+  };
+  const drawn = drawCards(s.player, DRAW_PER_TURN, rng);
+  s.player = drawn.player;
+
+  return { session: s, logs };
+}
+
+/**
+ * Initialise une session de combat pure.
+ */
+export function createSimSession({
+  profileId = 'beginner',
+  templateId = 'ronin_bandit',
+  difficulty = 1,
+  seed = 1,
+  deckEntries = null,
+} = {}) {
+  const profile = BALANCE_PROFILES[profileId];
+  if (!profile) throw new Error(`Profil inconnu: ${profileId}`);
+
+  const rng = createSeededRng(seed);
+  const stats = mergeStats(profile.stats);
+  const classified = classifyTalentEffects([...profile.talentCodes]);
+  const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
+
+  const entries = deckEntries || buildPracticeDeckEntries();
+  const runtimeCards = buildRuntimeDeck(
+    entries,
+    (card, n) => `${card.slug || card.id}-${n}-s${seed}`,
+  );
+  const shuffled = shuffle(runtimeCards, rng);
+
+  let player = {
+    name: profile.label,
+    hp: maxHp,
+    maxHp,
+    block: 0,
+    chakra: BASE_CHAKRA,
+    maxChakra: BASE_CHAKRA,
+    statuses: [],
+    hand: [],
+    drawPile: shuffled,
+    discardPile: [],
+    exhaustPile: [],
+    discardedForChakra: false,
+    ally: null,
+    taijutsuPlayedThisTurn: 0,
+    genjutsuPlayedThisTurn: 0,
+    elementsPlayedThisTurn: [],
+    elementalFusionDrawnThisTurn: false,
+    perfectTankUsed: false,
+  };
+
+  const drawn = drawCards(player, DRAW_PER_TURN, rng);
+  player = drawn.player;
+
+  const talentStart = applyTalentStartOfTurn(player, classified.applied);
+  player = talentStart.player;
+
+  const enemy = generateEnemyFromTemplate(templateId, difficulty);
+  // Intent seedé (IA weighted) pour reproductibilité
+  enemy.intent = getNextIntent(enemy, 1, rng);
+
+  return {
+    state: 'in_progress',
+    currentTurn: 1,
+    currentPhase: 'player_turn',
+    player,
+    enemy,
+    stats,
+    talentEffects: {
+      codes: [...profile.talentCodes],
+      applied: classified.applied,
+      stubbed: classified.stubbed,
+    },
+    damageTakenTotal: 0,
+    profileId,
+    templateId,
+    seed,
+    policy: PLAYER_POLICY.id,
+    rng,
+  };
+}
+
+/**
+ * Simule un combat complet jusqu'à victoire / défaite / cap de tours.
+ */
+export function simulateCombat({
+  profileId,
+  templateId,
+  difficulty = 1,
+  seed,
+  maxTurns = 40,
+} = {}) {
+  let session = createSimSession({ profileId, templateId, difficulty, seed });
+  const rng = session.rng;
+
+  while (session.state === 'in_progress') {
+    const turn = playGreedyPlayerTurn(session, rng);
+    session = turn.session;
+    if (session.state !== 'in_progress') break;
+
+    const ended = simEndTurn(session, rng);
+    session = ended.session;
+
+    if (session.currentTurn > maxTurns && session.state === 'in_progress') {
+      session.state = 'defeat';
+      session.currentPhase = 'game_over';
+      session.timeout = true;
+    }
+  }
+
+  const won = session.state === 'victory';
+  return {
+    outcome: session.state,
+    won,
+    turns: session.currentTurn,
+    timeout: Boolean(session.timeout),
+    hpRemaining: won ? Number(session.player.hp) || 0 : 0,
+    maxHp: Number(session.player.maxHp) || 0,
+    damageTaken: Number(session.damageTakenTotal) || 0,
+    profileId,
+    templateId,
+    seed,
+  };
+}
+
+/**
+ * Agrège N combats seedés pour une cellule (profil × encounter).
+ */
+export function aggregateFights({
+  profileId,
+  templateId,
+  difficulty = 1,
+  baseSeed,
+  count,
+  maxTurns = 40,
+}) {
+  const fights = [];
+  for (let i = 0; i < count; i += 1) {
+    fights.push(
+      simulateCombat({
+        profileId,
+        templateId,
+        difficulty,
+        seed: (baseSeed + i * 9973) >>> 0,
+        maxTurns,
+      }),
+    );
+  }
+
+  const wins = fights.filter((f) => f.won);
+  const n = fights.length || 1;
+  const avg = (arr, key) =>
+    arr.length ? arr.reduce((s, x) => s + (Number(x[key]) || 0), 0) / arr.length : 0;
+
+  return {
+    profileId,
+    templateId,
+    difficulty,
+    fights: n,
+    winRate: wins.length / n,
+    avgTurns: avg(fights, 'turns'),
+    avgTurnsOnWin: avg(wins, 'turns'),
+    avgTurnsOnLoss: avg(
+      fights.filter((f) => !f.won),
+      'turns',
+    ),
+    avgHpRemainingOnWin: avg(wins, 'hpRemaining'),
+    avgDamageTaken: avg(fights, 'damageTaken'),
+    timeouts: fights.filter((f) => f.timeout).length,
+  };
+}
+
+export { PLAYER_POLICY };
