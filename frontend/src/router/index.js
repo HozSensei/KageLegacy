@@ -12,6 +12,7 @@ import TalentTreeView from '../views/TalentTreeView.vue'
 import MissionsCombatView from '../views/MissionsCombatView.vue'
 import CombatView from '../views/CombatView.vue'
 import ShopView from '../views/ShopView.vue'
+import BattlePassView from '../views/BattlePassView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -100,6 +101,15 @@ const router = createRouter({
           component: ShopView,
           meta: {
             hero: { image: HERO_VILLAGE, titleKey: 'shop.title' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'battle-pass',
+          name: 'battle-pass',
+          component: BattlePassView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'battlePass.title' },
             requiresCharacter: true,
           },
         },

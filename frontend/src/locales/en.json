@@ -289,7 +289,8 @@
       "missions": "Missions & league",
       "economy": "Economy",
       "extra": "Account & tools"
-    }
+    },
+    "battlePass": "Battle Pass"
   },
   "rules": {
     "pageTitle": "Game rules",
@@ -897,6 +898,77 @@
       "summon": "Summon: {name}",
       "allyAttack": "{name} deals {n} damage",
       "rewards": "Rewards granted"
+    }
+  },
+  "battlePass": {
+    "kicker": "Season",
+    "title": "Battle Pass",
+    "lead": "Progress on two tracks — free and premium — and claim ryos, dust, cards, and exclusive cosmetics.",
+    "loading": "Loading season…",
+    "noSeason": "No active season. Run the Battle Pass seed.",
+    "level": "Lv. {n}",
+    "xpToNext": "{current} / {next} XP",
+    "maxLevel": "Max level reached",
+    "premiumActive": "Premium track active (+20% XP)",
+    "freeActive": "Free track",
+    "freeTrack": "Free track",
+    "premiumTrack": "Premium track",
+    "freeTrackLead": "Available to every shinobi.",
+    "premiumTrackLead": "Unlocked with 500 Kage Coins (or admin stub).",
+    "claim": "Claim",
+    "claimed": "Claimed",
+    "reached": "Reached",
+    "locked": "Locked",
+    "premiumLocked": "Premium required",
+    "noReward": "—",
+    "xpNeeded": "{n} XP / level",
+    "claimSuccess": "Level {level} reward ({track}) claimed.",
+    "track": {
+      "free": "free",
+      "premium": "premium"
+    },
+    "unlockTitle": "Unlock Premium",
+    "unlockLead": "Access the premium track, exclusive cosmetics, and +20% XP for the whole season.",
+    "unlockCoins": "Unlock · {n} Kage Coins",
+    "unlockStub": "Admin stub",
+    "premiumUnlocked": "Premium Battle Pass unlocked.",
+    "debugXp": "+1000 XP (debug)",
+    "xpGained": "+{n} Battle Pass XP",
+    "dailyQuests": "Daily quests",
+    "weeklyQuests": "Weekly quests",
+    "milestoneQuests": "Season milestones",
+    "noQuests": "No active quests.",
+    "questProgress": "{current} / {goal}",
+    "questXp": "+{n} XP",
+    "claimQuest": "Claim XP",
+    "questClaimSuccess": "Quest claimed (+{xp} XP).",
+    "stubProgress": "Complete (stub)",
+    "stubProgressDone": "Quest progress updated.",
+    "reward": {
+      "ryos": "{n} Ryos",
+      "dust": "{n} Dust",
+      "essence": "{n} Essence",
+      "kageCoins": "{n} Kage Coins",
+      "card": "{n}× {rarity} card",
+      "booster": "{type} booster",
+      "cosmetic": "Cosmetic · {kind}"
+    },
+    "rarity": {
+      "common": "common",
+      "rare": "rare",
+      "legendary": "legendary",
+      "mythic": "mythic"
+    },
+    "booster": {
+      "standard": "standard",
+      "premium": "premium",
+      "legendary": "legendary"
+    },
+    "cosmetic": {
+      "avatar": "avatar",
+      "card_back": "card back",
+      "emote": "emote",
+      "card_effect": "card effect"
     }
   },
   "player": {

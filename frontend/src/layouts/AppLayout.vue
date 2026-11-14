@@ -29,6 +29,7 @@ const baseNavItems = [
   { name: 'profile', path: '/profil', label: 'nav.profile' },
   { name: 'talents', path: '/talents', label: 'nav.talents' },
   { name: 'missions', path: '/missions', label: 'nav.missions' },
+  { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
   { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },
   { name: 'decks', path: '/decks', label: 'nav.decks' },

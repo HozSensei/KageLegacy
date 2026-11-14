@@ -289,7 +289,8 @@
       "missions": "Missions & ligue",
       "economy": "Économie",
       "extra": "Compte & outils"
-    }
+    },
+    "battlePass": "Passe de saison"
   },
   "rules": {
     "pageTitle": "Règles du jeu",
@@ -1642,6 +1643,77 @@
       "league_participate": "Match de ligue (défaite / nul)",
       "chunin_success": "Examen Chunin réussi",
       "bird_flight_success": "Vol d'Oiseau réussi"
+    }
+  },
+  "battlePass": {
+    "kicker": "Saison",
+    "title": "Passe de saison",
+    "lead": "Progressez sur deux pistes — gratuite et premium — et réclamez ryos, poussière, cartes et cosmétiques exclusifs.",
+    "loading": "Chargement de la saison…",
+    "noSeason": "Aucune saison active. Lancez le seed Battle Pass.",
+    "level": "Niv. {n}",
+    "xpToNext": "{current} / {next} XP",
+    "maxLevel": "Niveau maximum atteint",
+    "premiumActive": "Piste Premium active (+20 % XP)",
+    "freeActive": "Piste gratuite",
+    "freeTrack": "Piste gratuite",
+    "premiumTrack": "Piste Premium",
+    "freeTrackLead": "Accessible à tous les shinobi.",
+    "premiumTrackLead": "Débloquée avec 500 Kage Coins (ou stub admin).",
+    "claim": "Réclamer",
+    "claimed": "Réclamé",
+    "reached": "Atteint",
+    "locked": "Verrouillé",
+    "premiumLocked": "Premium requis",
+    "noReward": "—",
+    "xpNeeded": "{n} XP / niveau",
+    "claimSuccess": "Récompense niveau {level} ({track}) récupérée.",
+    "track": {
+      "free": "gratuite",
+      "premium": "premium"
+    },
+    "unlockTitle": "Débloquer le Premium",
+    "unlockLead": "Accédez à la piste premium, cosmétiques exclusifs et +20 % d’XP pour toute la saison.",
+    "unlockCoins": "Débloquer · {n} Kage Coins",
+    "unlockStub": "Stub admin",
+    "premiumUnlocked": "Battle Pass Premium débloqué.",
+    "debugXp": "+1000 XP (debug)",
+    "xpGained": "+{n} XP Battle Pass",
+    "dailyQuests": "Quêtes journalières",
+    "weeklyQuests": "Quêtes hebdomadaires",
+    "milestoneQuests": "Jalons de saison",
+    "noQuests": "Aucune quête active.",
+    "questProgress": "{current} / {goal}",
+    "questXp": "+{n} XP",
+    "claimQuest": "Réclamer XP",
+    "questClaimSuccess": "Quête réclamée (+{xp} XP).",
+    "stubProgress": "Compléter (stub)",
+    "stubProgressDone": "Progression de quête mise à jour.",
+    "reward": {
+      "ryos": "{n} Ryos",
+      "dust": "{n} Dust",
+      "essence": "{n} Essence",
+      "kageCoins": "{n} Kage Coins",
+      "card": "{n}× carte {rarity}",
+      "booster": "Booster {type}",
+      "cosmetic": "Cosmétique · {kind}"
+    },
+    "rarity": {
+      "common": "commune",
+      "rare": "rare",
+      "legendary": "légendaire",
+      "mythic": "mythique"
+    },
+    "booster": {
+      "standard": "standard",
+      "premium": "premium",
+      "legendary": "légendaire"
+    },
+    "cosmetic": {
+      "avatar": "avatar",
+      "card_back": "dos de carte",
+      "emote": "emote",
+      "card_effect": "effet de carte"
     }
   }
 }

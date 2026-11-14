@@ -23,7 +23,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'missions',
         labelKey: 'nav.groups.missions',
-        items: pick('missions'),
+        items: pick('missions', 'battle-pass'),
       },
       {
         id: 'economy',
