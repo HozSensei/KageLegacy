@@ -43,18 +43,12 @@ CREATE TABLE player_character (
   xp INT DEFAULT 0,
   rank ENUM('Genin', 'Chunin', 'Jonin', 'ANBU', 'Kage') DEFAULT 'Genin',
   
-  taijutsu TINYINT DEFAULT 5,
-  ninjutsu TINYINT DEFAULT 5,
-  genjutsu TINYINT DEFAULT 5,
-  medicine TINYINT DEFAULT 5,
-  vitesse TINYINT DEFAULT 5,
-  intelligence TINYINT DEFAULT 5,
+  -- ⚠️ PAS de stats de base ici ! Elles viennent de l'arbre de talents + cartes
+  talent_points_available INT DEFAULT 1,  -- 1 point au niveau 1
   
   clan_trait_id INT,
   element_affinity ENUM('Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'),
   specialization ENUM('Taijutsu', 'Ninjutsu', 'Genjutsu', 'Medicine') NULL,
-  
-  stat_points_available INT DEFAULT 0,
   
   avatar_url VARCHAR(255),
   
@@ -71,15 +65,17 @@ ALTER TABLE sensei
 **Services**
 - [ ] `playerCharacterService.js`
   - `createCharacter(userId, { name, clan, element })`
-  - `getCharacter(userId)`
+  - `getCharacter(userId)` - Calcul des stats finales (talents + cartes)
   - `addXP(userId, amount)`
-  - `levelUp(userId, statToIncrease)`
+  - `levelUp(userId)` - +1 talent point, PAS de stat automatique
   - `chooseSpecialization(userId, spec)`
+  - `getComputedStats(userId)` - Stats = talents + bonus passifs cartes du deck
 
 **Routes**
 - [ ] `GET /api/player` - Récupérer le personnage
+- [ ] `GET /api/player/stats` - Stats calculées (talents + cartes)
 - [ ] `POST /api/player/create` - Créer le personnage (onboarding)
-- [ ] `PUT /api/player/level-up` - Dépenser points de stat
+- [ ] `POST /api/player/level-up` - Gagner XP (automatique → +1 talent point)
 - [ ] `PUT /api/player/specialization` - Choisir spécialisation (niveau 10)
 
 #### Frontend
@@ -188,9 +184,11 @@ CREATE TABLE user_deck_cards ...;
 
 ---
 
-### 🔴 Phase 3 : Moteur de Combat (Semaines 6-8)
+### 🔴 Phase 4 : Moteur de Combat (Semaines 8-10)
 
 **Objectif** : Combat carte par carte fonctionnel
+
+_(Anciennement Phase 3, décalée après Arbre de Talents)_
 
 #### Backend
 
@@ -306,7 +304,7 @@ CREATE TABLE combat_logs (
 
 ---
 
-### 🟣 Phase 4 : Boosters & Shop (Semaine 9)
+### 🟣 Phase 5 : Boosters & Shop (Semaine 11)
 
 **Objectif** : Système d'obtention de cartes
 
@@ -338,7 +336,7 @@ CREATE TABLE combat_logs (
 
 ---
 
-### 🔵 Phase 5 : Battle Pass (Semaines 10-11)
+### 🔵 Phase 6 : Battle Pass (Semaines 12-13)
 
 **Objectif** : Système de saison avec quêtes et récompenses
 
@@ -408,7 +406,7 @@ CREATE TABLE user_cosmetics ...;
 
 ---
 
-### ⚪ Phase 6 : Polish & Balancing (Semaine 12)
+### ⚪ Phase 7 : Polish & Balancing (Semaine 14)
 
 **Objectif** : Peaufiner l'expérience et équilibrer le jeu
 
@@ -444,7 +442,7 @@ CREATE TABLE user_cosmetics ...;
 
 ---
 
-### 🚀 Phase 7 : Lancement Alpha (Semaine 13)
+### 🚀 Phase 8 : Lancement Alpha (Semaine 15)
 
 **Objectif** : Alpha fermée avec 10-20 joueurs
 
@@ -472,7 +470,7 @@ CREATE TABLE user_cosmetics ...;
 
 ---
 
-### 🌟 Phase 8 : Beta & Lancement (Mois 4+)
+### 🌟 Phase 9 : Beta & Lancement (Mois 4+)
 
 **Beta Fermée** (1-2 mois)
 - [ ] 100+ joueurs

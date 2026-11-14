@@ -17,7 +17,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
   name_en: "Dragon Fist",
   
   // Classification
-  type: "attack",              // attack, defense, skill, summon, passive
+  type: "attack",              // attack, defense, skill, summon, item
   stat_type: "taijutsu",       // taijutsu, ninjutsu, genjutsu, medicine
   element: "katon",            // katon, suiton, raiton, doton, futon, null
   rarity: "common",            // common, rare, legendary, mythic
@@ -28,13 +28,20 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
   block: 0,                    // Armure (si défense)
   heal: 0,                     // Soins (si soutien)
   
-  // Effets
+  // Effets actifs (quand jouée)
   effects: [
     { type: 'draw', value: 1 }  // Effets additionnels
   ],
   
+  // 🆕 BONUS PASSIF (tant qu'elle est dans le deck)
+  passive_bonus: {
+    taijutsu: 3,               // +3 Taijutsu
+    vitesse: 1                 // +1 Vitesse
+  },
+  
   // Texte
   description_fr: "Inflige 8 dégâts. Piochez 1 carte.",
+  passive_description_fr: "Bonus passif : +3 Taijutsu, +1 Vitesse",
   description_en: "Deal 8 damage. Draw 1 card.",
   lore_fr: "Une technique ancestrale des maîtres de taijutsu.",
   lore_en: "An ancestral technique of taijutsu masters.",
@@ -43,8 +50,15 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
   upgradable: true,
   upgrade_level: 0,            // 0 = base, 1 = +, 2 = ++
   upgrade_bonuses: {
-    level_1: { damage: +4 },   // +50% dégâts
-    level_2: { damage: +8, cost: -1 }  // +100% dégâts, -1 coût
+    level_1: { 
+      damage: +4,              // Effet actif amélioré
+      passive: { taijutsu: +2, vitesse: +1 }  // Bonus passif amélioré aussi !
+    },
+    level_2: { 
+      damage: +8, 
+      cost: -1,
+      passive: { taijutsu: +4, vitesse: +2 }
+    }
   },
   
   // Visuels
