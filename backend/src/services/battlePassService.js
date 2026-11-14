@@ -91,6 +91,7 @@ export async function getSeasonRow(seasonId) {
 
 /**
  * Crée la ligne user_battle_pass si absente.
+ * Tolère les courses parallèles (GET /battle-pass + /quests via loadAll).
  */
 export async function getOrCreateUserBattlePass(userId, seasonId) {
   const existing = await query(
@@ -100,14 +101,24 @@ export async function getOrCreateUserBattlePass(userId, seasonId) {
   if (existing[0]) return serializeUserPass(existing[0]);
 
   const claimed = JSON.stringify({ free: [], premium: [] });
-  const result = await query(
-    `INSERT INTO user_battle_pass
-      (user_id, season_id, current_level, current_xp, is_premium, claimed_rewards_json)
-     VALUES (?, ?, 0, 0, FALSE, ?)`,
-    [userId, seasonId, claimed],
-  );
-  const rows = await query('SELECT * FROM user_battle_pass WHERE id = ? LIMIT 1', [result.insertId]);
-  return serializeUserPass(rows[0]);
+  try {
+    const result = await query(
+      `INSERT INTO user_battle_pass
+        (user_id, season_id, current_level, current_xp, is_premium, claimed_rewards_json)
+       VALUES (?, ?, 0, 0, FALSE, ?)`,
+      [userId, seasonId, claimed],
+    );
+    const rows = await query('SELECT * FROM user_battle_pass WHERE id = ? LIMIT 1', [result.insertId]);
+    return serializeUserPass(rows[0]);
+  } catch (err) {
+    if (err?.code !== 'ER_DUP_ENTRY' && err?.errno !== 1062) throw err;
+    const raced = await query(
+      'SELECT * FROM user_battle_pass WHERE user_id = ? AND season_id = ? LIMIT 1',
+      [userId, seasonId],
+    );
+    if (raced[0]) return serializeUserPass(raced[0]);
+    throw err;
+  }
 }
 
 export async function getBattlePassState(userId) {
