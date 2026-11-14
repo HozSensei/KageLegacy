@@ -113,7 +113,7 @@ assert(tickStatuses([{ key: 'force', value: 2, duration: 1 }]).length === 0, 'du
 console.log('\n=== Deck runtime ===');
 const entries = buildPracticeDeckEntries();
 const pile = buildRuntimeDeck(entries);
-assert(pile.length === 26, `practice deck size 26 (got ${pile.length})`);
+assert(pile.length === 19, `practice deck size 19 (got ${pile.length})`);
 assert(pile.some((c) => c.type === 'summon'), 'practice deck includes summon');
 const fixedRng = (() => {
   let i = 0;
@@ -136,7 +136,7 @@ let player = {
 };
 const drawn = drawCards(player, DRAW_PER_TURN, fixedRng);
 assert(drawn.player.hand.length === 5, 'draw 5');
-assert(drawn.player.drawPile.length === 21, 'draw pile reduced');
+assert(drawn.player.drawPile.length === 14, 'draw pile reduced');
 
 const moved = moveCardFromHand(drawn.player, drawn.player.hand[0].instanceId, 'discard');
 assert(moved.player.hand.length === 4 && moved.player.discardPile.length === 1, 'discard from hand');
@@ -484,11 +484,11 @@ console.log('\n=== Enemy catalog ===');
 const catalog = listEnemyTemplates();
 assert(catalog.length >= 10, `≥10 enemy templates (got ${catalog.length})`);
 const enemy = generateEnemyFromTemplate('ronin_bandit', 1);
-assert(enemy.hp === 42 && enemy.intent, 'ronin spawned with intent');
+assert(enemy.hp === 124 && enemy.intent, 'ronin spawned with intent');
 const captain = generateEnemyFromTemplate('ashen_captain');
 assert(captain.ai === 'pattern', 'captain uses pattern AI');
 const dusk = generateEnemyFromTemplate('duskblade_ronin');
-assert(dusk.hp === 140, 'duskblade A-rank hp');
+assert(dusk.hp === 290, 'duskblade A-rank hp');
 const i1 = getNextIntent({ ...captain, patternIndex: 0 });
 const i2 = getNextIntent({ ...captain, patternIndex: 1 });
 const i3 = getNextIntent({ ...captain, patternIndex: 2 });

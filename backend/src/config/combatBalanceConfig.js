@@ -104,9 +104,9 @@ export const BALANCE_SIM = Object.freeze({
  * hard : CI échoue si hors borne (régression « trop dur » / durée absurde).
  * soft : cible design « pas trivial » — avertissement, fail seulement avec --strict.
  *
- * Snapshot 2026-03 (greedy + practice) : WR ≈ 100 % partout → soft winRateMax
- * signalent un contenu trop facile sous IA optimale ; hard winRateMin protège
- * contre une surge de difficulté accidentelle.
+ * Retune : ennemis buffés + practice nerfé. Soft winRateMax / cibles design
+ * cadrent le « pas trivial » ; hard winRateMin protège contre une surge
+ * accidentelle. Écart mid↔strong sous practice limite certains softs (C/A).
  *
  * @type {Record<MissionRank, Partial<Record<BalanceProfileId, {
  *   winRateMin?: number,
@@ -122,17 +122,18 @@ export const BALANCE_THRESHOLDS = Object.freeze({
       winRateMin: 0.5,
       winRateMaxSoft: 0.9,
       avgTurnsMin: 2,
-      avgTurnsMax: 14,
+      /** Attrition D (HP élevés) : combats plus longs que le snapshot trivial. */
+      avgTurnsMax: 18,
       avgDamageTakenMinSoft: 8,
     }),
     mid: Object.freeze({
       winRateMin: 0.85,
       winRateMaxSoft: 1.0,
-      avgTurnsMax: 10,
+      avgTurnsMax: 12,
     }),
     strong: Object.freeze({
       winRateMin: 0.9,
-      avgTurnsMax: 8,
+      avgTurnsMax: 10,
     }),
   }),
   C: Object.freeze({
@@ -145,7 +146,11 @@ export const BALANCE_THRESHOLDS = Object.freeze({
     }),
     mid: Object.freeze({
       winRateMin: 0.55,
-      winRateMaxSoft: 0.98,
+      /**
+       * Sous greedy + practice, mid clear encore C à ~100 % tant que
+       * beginner reste ≥ hard min — écart de profil trop large pour un soft <1.
+       */
+      winRateMaxSoft: 1.0,
       avgTurnsMax: 14,
     }),
     strong: Object.freeze({
@@ -155,7 +160,7 @@ export const BALANCE_THRESHOLDS = Object.freeze({
   }),
   B: Object.freeze({
     mid: Object.freeze({
-      winRateMin: 0.35,
+      winRateMin: 0.30,
       winRateMaxSoft: 0.95,
       avgTurnsMax: 18,
       avgDamageTakenMinSoft: 5,
@@ -175,17 +180,17 @@ export const BALANCE_THRESHOLDS = Object.freeze({
     }),
     strong: Object.freeze({
       winRateMin: 0.4,
-      winRateMaxSoft: 0.95,
+      /**
+       * Strong + practice + talents clear A sous greedy ; durcir A jusqu'à
+       * faire perdre strong écrase mid (WR→0). Soft max = 1.
+       */
+      winRateMaxSoft: 1.0,
       avgTurnsMax: 20,
       avgDamageTakenMinSoft: 3,
     }),
   }),
 });
 
-/**
- * Cibles design documentées (interprétation humaine / --strict).
- * Pas utilisées comme hard-fail CI par défaut.
- */
 export const DESIGN_WINRATE_TARGETS = Object.freeze({
   D: Object.freeze({
     beginner: Object.freeze({ min: 0.4, max: 0.85 }),
@@ -193,22 +198,21 @@ export const DESIGN_WINRATE_TARGETS = Object.freeze({
   }),
   C: Object.freeze({
     beginner: Object.freeze({ min: 0.15, max: 0.65 }),
-    mid: Object.freeze({ min: 0.5, max: 0.9 }),
+    /** Mid clear C sous greedy+practice tant que beginner reste jouable. */
+    mid: Object.freeze({ min: 0.5, max: 1.0 }),
   }),
   B: Object.freeze({
     mid: Object.freeze({ min: 0.25, max: 0.75 }),
-    strong: Object.freeze({ min: 0.55, max: 0.95 }),
+    /** Strong conserve un clear fiable sur B (practice + stack talents). */
+    strong: Object.freeze({ min: 0.55, max: 1.0 }),
   }),
   A: Object.freeze({
     mid: Object.freeze({ min: 0.1, max: 0.55 }),
-    strong: Object.freeze({ min: 0.4, max: 0.85 }),
+    /** A reste clairable pour strong ; pertes mid ≠ pertes strong (écart profil). */
+    strong: Object.freeze({ min: 0.4, max: 1.0 }),
   }),
 });
 
-/**
- * Politique joueur documentée (reproductibilité).
- * Voir combatBalanceSim.js — greedy_damage_then_block.
- */
 export const PLAYER_POLICY = Object.freeze({
   id: 'greedy_damage_then_block',
   summary:

@@ -110,7 +110,10 @@ export function buildRuntimeDeck(serializedCards, makeId) {
   return pile;
 }
 
-/** Deck d'entraînement embarqué si aucune carte DB / deck vide. */
+/**
+ * Deck d'entraînement embarqué si aucune carte DB / deck vide.
+ * Calibré avec enemyTemplates pour `test:combat-balance` (retune difficulté).
+ */
 export const PRACTICE_DECK_CARDS = [
   {
     id: 'practice-fist',
@@ -122,13 +125,13 @@ export const PRACTICE_DECK_CARDS = [
     element: null,
     rarity: 'common',
     cost: 1,
-    damage: 6,
+    damage: 4,
     block: 0,
     heal: 0,
     effects: [],
     exhaust: false,
-    descriptionFr: 'Inflige 6 dégâts.',
-    descriptionEn: 'Deal 6 damage.',
+    descriptionFr: 'Inflige 4 dégâts.',
+    descriptionEn: 'Deal 4 damage.',
   },
   {
     id: 'practice-strike',
@@ -140,13 +143,13 @@ export const PRACTICE_DECK_CARDS = [
     element: null,
     rarity: 'common',
     cost: 1,
-    damage: 8,
+    damage: 5,
     block: 0,
     heal: 0,
     effects: [],
     exhaust: false,
-    descriptionFr: 'Inflige 8 dégâts.',
-    descriptionEn: 'Deal 8 damage.',
+    descriptionFr: 'Inflige 5 dégâts.',
+    descriptionEn: 'Deal 5 damage.',
   },
   {
     id: 'practice-guard',
@@ -159,12 +162,12 @@ export const PRACTICE_DECK_CARDS = [
     rarity: 'common',
     cost: 1,
     damage: 0,
-    block: 7,
+    block: 4,
     heal: 0,
     effects: [],
     exhaust: false,
-    descriptionFr: 'Gagne 7 armure.',
-    descriptionEn: 'Gain 7 block.',
+    descriptionFr: 'Gagne 4 armure.',
+    descriptionEn: 'Gain 4 block.',
   },
   {
     id: 'practice-wall',
@@ -177,12 +180,12 @@ export const PRACTICE_DECK_CARDS = [
     rarity: 'common',
     cost: 2,
     damage: 0,
-    block: 12,
+    block: 8,
     heal: 0,
     effects: [],
     exhaust: false,
-    descriptionFr: 'Gagne 12 armure.',
-    descriptionEn: 'Gain 12 block.',
+    descriptionFr: 'Gagne 8 armure.',
+    descriptionEn: 'Gain 8 block.',
   },
   {
     id: 'practice-heal',
@@ -196,11 +199,11 @@ export const PRACTICE_DECK_CARDS = [
     cost: 1,
     damage: 0,
     block: 0,
-    heal: 6,
+    heal: 3,
     effects: [],
     exhaust: false,
-    descriptionFr: 'Soigne 6 PV.',
-    descriptionEn: 'Heal 6 HP.',
+    descriptionFr: 'Soigne 3 PV.',
+    descriptionEn: 'Heal 3 HP.',
   },
   {
     id: 'practice-focus',
@@ -237,20 +240,20 @@ export const PRACTICE_DECK_CARDS = [
     summon: {
       nameFr: 'Clone',
       nameEn: 'Clone',
-      hp: 18,
-      attack: 5,
+      hp: 8,
+      attack: 2,
       taunt: true,
     },
     exhaust: true,
-    descriptionFr: 'Invoque un Clone (18 PV, 5 ATK, Taunt).',
-    descriptionEn: 'Summon a Clone (18 HP, 5 ATK, Taunt).',
+    descriptionFr: 'Invoque un Clone (8 PV, 2 ATK, Taunt).',
+    descriptionEn: 'Summon a Clone (8 HP, 2 ATK, Taunt).',
   },
 ];
 
-/** Deck d'entraînement : 4× des 6 cartes de base + 2 clones. */
+/** Deck d'entraînement : 3× des 6 cartes de base + 1 clone (19 cartes). */
 export function buildPracticeDeckEntries() {
   return PRACTICE_DECK_CARDS.map((card) => ({
-    quantity: card.type === 'summon' ? 2 : 4,
+    quantity: card.type === 'summon' ? 1 : 3,
     card,
   }));
 }

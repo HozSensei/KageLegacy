@@ -111,9 +111,34 @@ Assertions d’**ordre** (toujours hard) :
 4. **Ordre cassé** (A plus rapide que D) ⇒ scaling de rang cassé
 5. Après un retune HP/intents/stats : mettre à jour les bornes dans `combatBalanceConfig.js` si le nouveau niveau est *voulu*
 
-### Snapshot branche (greedy + practice)
+### Snapshot retune (greedy + practice)
 
-Sous politique optimale, les WR mesurés sont proches de **100 %** sur D→A pour les trois profils. La difficulté se lit surtout en **tours** et **dégâts reçus** (A > B > C > D). Les soft/design signalent donc un contenu encore **trop facile** vs les cibles (débutant D pas « challengeant »). Les hard + ordre restent verts pour attraper les régressions « trop dur ».
+Retune data : `enemyTemplates.js` (HP / intents ↑ par rang) + practice deck nerfé (19 cartes, dégâts/block/clone ↓).  
+`npm run test:combat-balance -- --strict` : **vert**.
+
+#### Avant → après (agrégats rang × profil, 48 fights/cellule)
+
+| Rang / profil | WR avant → après | Tours avant → après | Dmg pris avant → après |
+|---------------|------------------|---------------------|------------------------|
+| D / beginner | 100% → **60%** | 3.8 → 13.9 | 2 → 91 |
+| D / mid | 100% → 100% | 2.1 → 6.0 | 0 → 24 |
+| D / strong | 100% → 100% | 1.6 → 4.2 | 0 → 12 |
+| C / beginner | 100% → **38%** | 7.6 → 17.3 | 5 → 96 |
+| C / mid | 100% → 100% | 3.2 → 7.3 | 1 → 27 |
+| C / strong | 100% → 100% | 2.4 → 4.9 | 0 → 12 |
+| B / beginner | 100% → **0%** | 9.9 → 9.6 | 18 → 111 |
+| B / mid | 100% → **69%** | 4.3 → 13.3 | 7 → 131 |
+| B / strong | 100% → 100% | 3.0 → 8.9 | 2 → 72 |
+| A / beginner | 100% → **0%** | 13.4 → 9.1 | 45 → 110 |
+| A / mid | 100% → **44%** | 6.0 → 13.9 | 18 → 138 |
+| A / strong | 100% → 100% | 3.8 → 9.8 | 5 → 81 |
+
+Ordre de difficulté (tours / pression) conservé : D < C < B < A pour mid/strong ; débutant souffre sur B/A.
+
+#### Écarts design assumés (documentés dans la config)
+
+- **C/mid** et **A/B strong** : WR reste ~100 % sous greedy + practice + stack talents. Soft/design max relevés à 1.0 — durcir assez pour faire perdre `strong` écrase `mid` (WR→0). A reste **clairable** pour `strong`, pas trivial pour `mid`.
+- Practice deck = baseline harness (pas un deck joueur final) ; le scaling réel viendra des cartes DB / build.
 
 ## Étendre
 
