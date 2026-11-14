@@ -211,7 +211,7 @@ const outcomeKey = computed(() => {
       </div>
     </section>
 
-    <CombatLog class="arena__side" :logs="logs" />
+    <CombatLog class="arena__side" :logs="logs" :viewer-seat="role" />
   </div>
 </template>
 
