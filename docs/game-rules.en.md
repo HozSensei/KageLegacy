@@ -7,7 +7,8 @@ Content shown in the UI (`/rules`) is maintained here:
 
 ## Structure
 
-1. **Part 1 — The interface**: screen guide grouped like the navigation menu (Command center, Squad & progression, Missions & league, Economy, Account & tools).
-2. **Part 2 — Game systems**: detailed rules (cycle, ninjas, deck, training, missions, reconnaissance, economy, league, operation…).
+One section per system of the current game, in this order: At a glance, Your ninja, Cards, The deck, The talent tree, Combat, Missions and runs, The shop, The season pass, The PvP arena, Currencies and resources, Update history.
+
+Level-2 headings (`## `) build the page's table of contents. Both files must keep the same structure and the same numbers. The numbers come from the code (`backend/src/config/economyConfig.js`, `backend/src/services/`, `shared/pvp/`): when balance changes, update both languages.
 
 When updating rules, edit those files (they are included in the frontend Docker build).
