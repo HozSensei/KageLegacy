@@ -16,6 +16,11 @@ export function useNavStructure({ navItems, isActive, t }) {
         items: pick('bureau', 'profile', 'journal'),
       },
       {
+        id: 'cards',
+        labelKey: 'nav.groups.cards',
+        items: pick('collection', 'decks'),
+      },
+      {
         id: 'economy',
         labelKey: 'nav.groups.economy',
         items: pick('inventory'),

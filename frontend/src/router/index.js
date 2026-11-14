@@ -6,6 +6,8 @@ import RulesView from '../views/RulesView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
 import Profile from '../views/Profile.vue'
 import CharacterCreation from '../views/CharacterCreation.vue'
+import CollectionView from '../views/CollectionView.vue'
+import DeckBuilderView from '../views/DeckBuilderView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -41,6 +43,24 @@ const router = createRouter({
           component: Profile,
           meta: {
             hero: { image: HERO_VILLAGE, titleKey: 'player.profileTitle' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'collection',
+          name: 'collection',
+          component: CollectionView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'cards.collectionTitle' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'decks',
+          name: 'decks',
+          component: DeckBuilderView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'cards.deckBuilderTitle' },
             requiresCharacter: true,
           },
         },
