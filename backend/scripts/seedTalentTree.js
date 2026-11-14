@@ -1,14 +1,16 @@
 /**
- * Seed MVP de l'arbre de talents (~48 nœuds).
- * Branche Taijutsu complète + amorces Ninjutsu / Genjutsu / Médecine + 3 keystones.
- * Noms ORIGINAUX — pas de références Naruto.
+ * Seed Phase 2 de l'arbre de talents (~150 nœuds).
+ * Branches : center + taijutsu + ninjutsu + genjutsu + medicine.
+ * Noms ORIGINAUX — pas de références IP.
  *
- * Usage: node scripts/seedTalentTree.js
+ * Idempotent via ON DUPLICATE KEY UPDATE.
+ * Usage: node scripts/seedTalentTree.js  (ou npm run db:seed-talents)
  */
 import { query } from '../src/config/database.js';
+import { TALENT_NODE_DEFS } from './data/talentTreeNodes.js';
 
 /**
- * Helper nœud.
+ * Helper nœud → ligne SQL.
  * @param {object} n
  */
 function node(n) {
@@ -30,664 +32,76 @@ function node(n) {
   };
 }
 
+const NODES = TALENT_NODE_DEFS.map(node);
+
 /**
- * Layout (coordonnées UI) :
- *   Center (0,0)
- *   Taijutsu ↑ (y négatif)
- *   Ninjutsu → (x positif)
- *   Genjutsu ← (x négatif)
- *   Medicine ↓ (y positif)
+ * Valide unicité, prérequis et contraintes type avant upsert.
+ * @param {object[]} defs
  */
-const NODES = [
-  // ─── CENTRE ───────────────────────────────────────────
-  node({
-    id: 'center_root',
-    nameFr: 'Éveil du souffle',
-    nameEn: 'Breath Awakening',
-    descFr: 'Le premier pas. +1 à chaque voie principale.',
-    descEn: 'The first step. +1 to each main path.',
-    type: 'stat',
-    x: 0,
-    y: 0,
-    branch: 'center',
-    bonus: { taijutsu: 1, ninjutsu: 1, genjutsu: 1, medicine: 1 },
-    requires: [],
-    icon: '◇',
-  }),
+function validateDefs(defs) {
+  const ids = new Set();
+  const positions = new Map();
+  const byId = new Map();
 
-  // ─── TAIJUTSU (branche complète) ──────────────────────
-  // Tronc principal
-  node({
-    id: 'tai_5_a',
-    nameFr: 'Poings trempés',
-    nameEn: 'Tempered Fists',
-    type: 'stat',
-    x: 0,
-    y: -80,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 5 },
-    requires: ['center_root'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_5_b',
-    nameFr: 'Pas de combat',
-    nameEn: 'Fighting Step',
-    type: 'stat',
-    x: -50,
-    y: -140,
-    branch: 'taijutsu',
-    bonus: { vitesse: 5 },
-    requires: ['tai_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_5_c',
-    nameFr: 'Garde basse',
-    nameEn: 'Low Guard',
-    type: 'stat',
-    x: 50,
-    y: -140,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 3, maxHp: 5 },
-    requires: ['tai_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_10_a',
-    nameFr: 'Muscles de fer',
-    nameEn: 'Iron Muscle',
-    type: 'stat',
-    x: 0,
-    y: -200,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 10 },
-    requires: ['tai_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_5_d',
-    nameFr: 'Réflexe de parade',
-    nameEn: 'Parry Reflex',
-    type: 'stat',
-    x: -70,
-    y: -260,
-    branch: 'taijutsu',
-    bonus: { dexterity: 5 },
-    requires: ['tai_10_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_5_e',
-    nameFr: 'Frappe précise',
-    nameEn: 'Precise Strike',
-    type: 'stat',
-    x: 70,
-    y: -260,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 5, dexterity: 3 },
-    requires: ['tai_10_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_10_b',
-    nameFr: 'Enchaînement brut',
-    nameEn: 'Raw Chain',
-    type: 'stat',
-    x: 0,
-    y: -320,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 8, vitesse: 4 },
-    requires: ['tai_10_a'],
-    icon: '·',
-  }),
+  for (const n of defs) {
+    if (!n.id || typeof n.id !== 'string') throw new Error('Node missing id');
+    if (n.id.length > 50) throw new Error(`node_id trop long: ${n.id}`);
+    if (ids.has(n.id)) throw new Error(`Duplicate node_id: ${n.id}`);
+    ids.add(n.id);
+    byId.set(n.id, n);
 
-  // Notable : Maître des Combos
-  node({
-    id: 'combo_master',
-    nameFr: 'Maître des Combos',
-    nameEn: 'Combo Master',
-    descFr: 'Si vous jouez 3 cartes Taijutsu dans un tour : +2 Force (effet combat).',
-    descEn: 'Play 3 Taijutsu cards in a turn: +2 Force (combat effect).',
-    type: 'notable',
-    x: 0,
-    y: -400,
-    branch: 'taijutsu',
-    effect: 'combo_master',
-    bonus: { taijutsu: 5 },
-    requires: ['tai_10_b'],
-    icon: '◆',
-  }),
+    const posKey = `${n.x},${n.y}`;
+    if (positions.has(posKey)) {
+      throw new Error(`Position overlap ${posKey}: ${positions.get(posKey)} vs ${n.id}`);
+    }
+    positions.set(posKey, n.id);
 
-  // Branche gauche vitesse
-  node({
-    id: 'tai_spd_5',
-    nameFr: 'Élan vif',
-    nameEn: 'Swift Momentum',
-    type: 'stat',
-    x: -120,
-    y: -360,
-    branch: 'taijutsu',
-    bonus: { vitesse: 5 },
-    requires: ['tai_10_b'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_spd_10',
-    nameFr: 'Course du prédateur',
-    nameEn: 'Predator Sprint',
-    type: 'stat',
-    x: -160,
-    y: -440,
-    branch: 'taijutsu',
-    bonus: { vitesse: 10 },
-    requires: ['tai_spd_5'],
-    icon: '·',
-  }),
-  node({
-    id: 'blade_swift',
-    nameFr: 'Lame Rapide',
-    nameEn: 'Swift Blade',
-    descFr: 'Cartes Taijutsu à coût 0–1 : +3 dégâts.',
-    descEn: 'Taijutsu cards costing 0–1: +3 damage.',
-    type: 'notable',
-    x: -160,
-    y: -520,
-    branch: 'taijutsu',
-    effect: 'blade_swift',
-    bonus: { vitesse: 5 },
-    requires: ['tai_spd_10'],
-    icon: '◆',
-  }),
+    if (n.type === 'stat' && !n.bonus) {
+      throw new Error(`Stat node ${n.id} missing bonus`);
+    }
+    if ((n.type === 'notable' || n.type === 'keystone') && !n.effect) {
+      throw new Error(`${n.type} node ${n.id} missing effect`);
+    }
+    // Notables/keystones may also carry bonus (allowed by DB via effect_code).
+  }
 
-  // Branche droite puissance
-  node({
-    id: 'tai_pwr_5',
-    nameFr: 'Poing lourd',
-    nameEn: 'Heavy Fist',
-    type: 'stat',
-    x: 120,
-    y: -360,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 5 },
-    requires: ['tai_10_b'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_pwr_10',
-    nameFr: 'Impact sourd',
-    nameEn: 'Dull Impact',
-    type: 'stat',
-    x: 160,
-    y: -440,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 10 },
-    requires: ['tai_pwr_5'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_pwr_15',
-    nameFr: 'Os brisés',
-    nameEn: 'Bone Breaker',
-    type: 'stat',
-    x: 160,
-    y: -520,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 10, maxHp: 10 },
-    requires: ['tai_pwr_10'],
-    icon: '·',
-  }),
+  for (const n of defs) {
+    for (const req of n.requires || []) {
+      if (!ids.has(req)) {
+        throw new Error(`Node ${n.id} requires unknown ${req}`);
+      }
+    }
+  }
 
-  // Convergence vers keystone
-  node({
-    id: 'tai_20_x',
-    nameFr: 'Rage contenue',
-    nameEn: 'Contained Rage',
-    type: 'stat',
-    x: 0,
-    y: -500,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 12, vitesse: 5 },
-    requires: ['combo_master'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_25_gate',
-    nameFr: 'Seuil de la frénésie',
-    nameEn: 'Frenzy Threshold',
-    type: 'stat',
-    x: 0,
-    y: -580,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 8, dexterity: 5 },
-    requires: ['tai_20_x', 'blade_swift'],
-    icon: '·',
-  }),
-  node({
-    id: 'berserker',
-    nameFr: 'Berserker',
-    nameEn: 'Berserker',
-    descFr: 'Vos attaques font 2× dégâts mais vous ne pouvez pas gagner d’Armure.',
-    descEn: 'Your attacks deal 2× damage but you cannot gain Armor.',
-    type: 'keystone',
-    x: 0,
-    y: -680,
-    branch: 'taijutsu',
-    effect: 'berserker',
-    requires: ['tai_25_gate', 'tai_pwr_15'],
-    icon: '✦',
-    color: 'ember',
-  }),
+  // Acyclic requires (Kahn-ish)
+  const indeg = new Map([...ids].map((id) => [id, 0]));
+  for (const n of defs) {
+    for (const req of n.requires || []) {
+      indeg.set(n.id, (indeg.get(n.id) || 0) + 1);
+    }
+  }
+  const queue = [...ids].filter((id) => indeg.get(id) === 0);
+  let seen = 0;
+  const adj = new Map([...ids].map((id) => [id, []]));
+  for (const n of defs) {
+    for (const req of n.requires || []) {
+      adj.get(req).push(n.id);
+    }
+  }
+  while (queue.length) {
+    const id = queue.shift();
+    seen += 1;
+    for (const next of adj.get(id) || []) {
+      indeg.set(next, indeg.get(next) - 1);
+      if (indeg.get(next) === 0) queue.push(next);
+    }
+  }
+  if (seen !== ids.size) {
+    throw new Error('Cycle détecté dans requires_nodes_json');
+  }
 
-  // Petits nœuds complémentaires taijutsu
-  node({
-    id: 'tai_mix_a',
-    nameFr: 'Souplesse martiale',
-    nameEn: 'Martial Flexibility',
-    type: 'stat',
-    x: -90,
-    y: -200,
-    branch: 'taijutsu',
-    bonus: { taijutsu: 3, vitesse: 3 },
-    requires: ['tai_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_mix_b',
-    nameFr: 'Endurance de dojo',
-    nameEn: 'Dojo Endurance',
-    type: 'stat',
-    x: 90,
-    y: -200,
-    branch: 'taijutsu',
-    bonus: { maxHp: 10, medicine: 2 },
-    requires: ['tai_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'tai_hp_a',
-    nameFr: 'Peau durcie',
-    nameEn: 'Hardened Skin',
-    type: 'stat',
-    x: 200,
-    y: -320,
-    branch: 'taijutsu',
-    bonus: { maxHp: 15 },
-    requires: ['tai_pwr_5'],
-    icon: '·',
-  }),
-  node({
-    id: 'iron_guard',
-    nameFr: 'Garde de Fer',
-    nameEn: 'Iron Guard',
-    descFr: '+1 Armure quand vous jouez une carte Taijutsu défensive.',
-    descEn: '+1 Armor when you play a defensive Taijutsu card.',
-    type: 'notable',
-    x: 220,
-    y: -400,
-    branch: 'taijutsu',
-    effect: 'iron_guard',
-    bonus: { maxHp: 8 },
-    requires: ['tai_hp_a'],
-    icon: '◆',
-  }),
-
-  // ─── NINJUTSU (amorce) ────────────────────────────────
-  node({
-    id: 'nin_5_a',
-    nameFr: 'Sceau élémentaire',
-    nameEn: 'Elemental Seal',
-    type: 'stat',
-    x: 100,
-    y: 0,
-    branch: 'ninjutsu',
-    bonus: { ninjutsu: 5 },
-    requires: ['center_root'],
-    icon: '·',
-  }),
-  node({
-    id: 'nin_5_b',
-    nameFr: 'Flux de chakra',
-    nameEn: 'Chakra Flow',
-    type: 'stat',
-    x: 180,
-    y: -40,
-    branch: 'ninjutsu',
-    bonus: { ninjutsu: 5, intelligence: 3 },
-    requires: ['nin_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'nin_10_a',
-    nameFr: 'Réservoir élargi',
-    nameEn: 'Expanded Reservoir',
-    type: 'stat',
-    x: 260,
-    y: 0,
-    branch: 'ninjutsu',
-    bonus: { ninjutsu: 8, intelligence: 5 },
-    requires: ['nin_5_b'],
-    icon: '·',
-  }),
-  node({
-    id: 'nin_5_c',
-    nameFr: 'Étincelle contrôlée',
-    nameEn: 'Controlled Spark',
-    type: 'stat',
-    x: 180,
-    y: 50,
-    branch: 'ninjutsu',
-    bonus: { ninjutsu: 5 },
-    requires: ['nin_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'elemental_fusion',
-    nameFr: 'Fusion Élémentaire',
-    nameEn: 'Elemental Fusion',
-    descFr: 'Jouer 2 cartes d’éléments différents : piochez 1 carte.',
-    descEn: 'Play 2 cards of different elements: draw 1 card.',
-    type: 'notable',
-    x: 340,
-    y: -40,
-    branch: 'ninjutsu',
-    effect: 'elemental_fusion',
-    bonus: { ninjutsu: 5 },
-    requires: ['nin_10_a'],
-    icon: '◆',
-  }),
-  node({
-    id: 'nin_15_gate',
-    nameFr: 'Circuit saturé',
-    nameEn: 'Saturated Circuit',
-    type: 'stat',
-    x: 420,
-    y: 0,
-    branch: 'ninjutsu',
-    bonus: { ninjutsu: 10, intelligence: 5 },
-    requires: ['elemental_fusion'],
-    icon: '·',
-  }),
-  node({
-    id: 'overload',
-    nameFr: 'Surcharge',
-    nameEn: 'Overload',
-    descFr: 'Vos cartes Ninjutsu coûtent +1 Chakra mais font +100 % dégâts.',
-    descEn: 'Your Ninjutsu cards cost +1 Chakra but deal +100% damage.',
-    type: 'keystone',
-    x: 520,
-    y: 0,
-    branch: 'ninjutsu',
-    effect: 'overload',
-    requires: ['nin_15_gate'],
-    icon: '✦',
-    color: 'gold',
-  }),
-
-  // ─── GENJUTSU (amorce) ────────────────────────────────
-  node({
-    id: 'gen_5_a',
-    nameFr: 'Voile trompeur',
-    nameEn: 'Deceiving Veil',
-    type: 'stat',
-    x: -100,
-    y: 0,
-    branch: 'genjutsu',
-    bonus: { genjutsu: 5 },
-    requires: ['center_root'],
-    icon: '·',
-  }),
-  node({
-    id: 'gen_5_b',
-    nameFr: 'Pas fantôme',
-    nameEn: 'Ghost Step',
-    type: 'stat',
-    x: -180,
-    y: -40,
-    branch: 'genjutsu',
-    bonus: { genjutsu: 3, vitesse: 5 },
-    requires: ['gen_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'gen_10_a',
-    nameFr: 'Mirage persistant',
-    nameEn: 'Lingering Mirage',
-    type: 'stat',
-    x: -260,
-    y: 0,
-    branch: 'genjutsu',
-    bonus: { genjutsu: 10 },
-    requires: ['gen_5_b'],
-    icon: '·',
-  }),
-  node({
-    id: 'gen_5_c',
-    nameFr: 'Esprit agile',
-    nameEn: 'Agile Mind',
-    type: 'stat',
-    x: -180,
-    y: 50,
-    branch: 'genjutsu',
-    bonus: { intelligence: 5, genjutsu: 3 },
-    requires: ['gen_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'illusion_master',
-    nameFr: 'Maître des Illusions',
-    nameEn: 'Illusion Master',
-    descFr: 'Les débuffs Genjutsu durent +1 tour.',
-    descEn: 'Genjutsu debuffs last +1 turn.',
-    type: 'notable',
-    x: -340,
-    y: -40,
-    branch: 'genjutsu',
-    effect: 'illusion_master',
-    bonus: { genjutsu: 5 },
-    requires: ['gen_10_a'],
-    icon: '◆',
-  }),
-  node({
-    id: 'gen_dodge',
-    nameFr: 'Contour fluide',
-    nameEn: 'Fluid Contour',
-    type: 'stat',
-    x: -260,
-    y: 80,
-    branch: 'genjutsu',
-    bonus: { vitesse: 8, dexterity: 4 },
-    requires: ['gen_5_c'],
-    icon: '·',
-  }),
-  node({
-    id: 'gen_int_a',
-    nameFr: 'Lecture d’intention',
-    nameEn: 'Intent Reading',
-    type: 'stat',
-    x: -340,
-    y: 50,
-    branch: 'genjutsu',
-    bonus: { intelligence: 8, genjutsu: 4 },
-    requires: ['illusion_master'],
-    icon: '·',
-  }),
-  node({
-    id: 'shadow_feint',
-    nameFr: 'Feinte d’Ombre',
-    nameEn: 'Shadow Feint',
-    descFr: 'La première carte Genjutsu du tour coûte −1.',
-    descEn: 'The first Genjutsu card each turn costs −1.',
-    type: 'notable',
-    x: -420,
-    y: 0,
-    branch: 'genjutsu',
-    effect: 'shadow_feint',
-    bonus: { genjutsu: 5, vitesse: 3 },
-    requires: ['gen_int_a'],
-    icon: '◆',
-  }),
-
-  // ─── MÉDECINE (amorce) ────────────────────────────────
-  node({
-    id: 'med_5_a',
-    nameFr: 'Souffle régulier',
-    nameEn: 'Steady Breath',
-    type: 'stat',
-    x: 0,
-    y: 80,
-    branch: 'medicine',
-    bonus: { medicine: 5 },
-    requires: ['center_root'],
-    icon: '·',
-  }),
-  node({
-    id: 'med_5_b',
-    nameFr: 'Pouls fort',
-    nameEn: 'Strong Pulse',
-    type: 'stat',
-    x: -50,
-    y: 160,
-    branch: 'medicine',
-    bonus: { medicine: 5, maxHp: 8 },
-    requires: ['med_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'med_5_c',
-    nameFr: 'Peau cicatrisante',
-    nameEn: 'Mending Skin',
-    type: 'stat',
-    x: 50,
-    y: 160,
-    branch: 'medicine',
-    bonus: { medicine: 3, maxHp: 12 },
-    requires: ['med_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'med_10_a',
-    nameFr: 'Vitalité profonde',
-    nameEn: 'Deep Vitality',
-    type: 'stat',
-    x: 0,
-    y: 240,
-    branch: 'medicine',
-    bonus: { medicine: 10, maxHp: 10 },
-    requires: ['med_5_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'boosted_regen',
-    nameFr: 'Régénération Accrue',
-    nameEn: 'Boosted Regeneration',
-    descFr: '+50 % d’efficacité des soins et de la régénération.',
-    descEn: '+50% effectiveness of heals and regeneration.',
-    type: 'notable',
-    x: 0,
-    y: 320,
-    branch: 'medicine',
-    effect: 'boosted_regen',
-    bonus: { medicine: 5 },
-    requires: ['med_10_a'],
-    icon: '◆',
-  }),
-  node({
-    id: 'med_15_gate',
-    nameFr: 'Rempart organique',
-    nameEn: 'Organic Rampart',
-    type: 'stat',
-    x: 0,
-    y: 400,
-    branch: 'medicine',
-    bonus: { medicine: 10, maxHp: 20 },
-    requires: ['boosted_regen'],
-    icon: '·',
-  }),
-  node({
-    id: 'immortal',
-    nameFr: 'Immortel',
-    nameEn: 'Immortal',
-    descFr: 'Régénérez 2 % de vos PV max par tour. Vos attaques font −50 % dégâts.',
-    descEn: 'Regenerate 2% of max HP per turn. Your attacks deal −50% damage.',
-    type: 'keystone',
-    x: 0,
-    y: 500,
-    branch: 'medicine',
-    effect: 'immortal',
-    requires: ['med_15_gate'],
-    icon: '✦',
-    color: 'jade',
-  }),
-  node({
-    id: 'med_mix',
-    nameFr: 'Main soignante',
-    nameEn: 'Healing Hand',
-    type: 'stat',
-    x: 100,
-    y: 240,
-    branch: 'medicine',
-    bonus: { medicine: 5, intelligence: 3 },
-    requires: ['med_5_c'],
-    icon: '·',
-  }),
-  node({
-    id: 'med_tank_a',
-    nameFr: 'Carapace vivante',
-    nameEn: 'Living Carapace',
-    type: 'stat',
-    x: -100,
-    y: 320,
-    branch: 'medicine',
-    bonus: { maxHp: 20, medicine: 3 },
-    requires: ['med_10_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'perfect_tank',
-    nameFr: 'Rempart Vivant',
-    nameEn: 'Living Rampart',
-    descFr: 'Quand vos PV passent sous 30 % : gagnez 5 Armure (1×/combat).',
-    descEn: 'When HP falls below 30%: gain 5 Armor (once per combat).',
-    type: 'notable',
-    x: -100,
-    y: 400,
-    branch: 'medicine',
-    effect: 'perfect_tank',
-    bonus: { maxHp: 10 },
-    requires: ['med_tank_a'],
-    icon: '◆',
-  }),
-
-  // ─── NINJUTSU complément ──────────────────────────────
-  node({
-    id: 'nin_int_a',
-    nameFr: 'Grimoire ouvert',
-    nameEn: 'Open Grimoire',
-    type: 'stat',
-    x: 340,
-    y: 60,
-    branch: 'ninjutsu',
-    bonus: { intelligence: 8, ninjutsu: 3 },
-    requires: ['nin_10_a'],
-    icon: '·',
-  }),
-  node({
-    id: 'elemental_mastery',
-    nameFr: 'Maîtrise Élémentaire',
-    nameEn: 'Elemental Mastery',
-    descFr: '+25 % dégâts sur les cartes élémentaires.',
-    descEn: '+25% damage on elemental cards.',
-    type: 'notable',
-    x: 420,
-    y: 80,
-    branch: 'ninjutsu',
-    effect: 'elemental_mastery',
-    bonus: { ninjutsu: 5 },
-    requires: ['nin_int_a'],
-    icon: '◆',
-  }),
-];
+  return { byId, ids };
+}
 
 async function upsertNode(n) {
   await query(
@@ -729,32 +143,49 @@ async function upsertNode(n) {
   );
 }
 
-async function main() {
-  console.log(`Seeding talent tree (${NODES.length} nodes)…`);
-
+function summarize(defs) {
   const byType = { stat: 0, notable: 0, keystone: 0 };
   const byBranch = {};
+  const keystones = [];
+  for (const n of defs) {
+    byType[n.type] = (byType[n.type] || 0) + 1;
+    byBranch[n.branch] = (byBranch[n.branch] || 0) + 1;
+    if (n.type === 'keystone') {
+      keystones.push(`${n.id} (${n.branch}) — ${n.nameFr}`);
+    }
+  }
+  return { byType, byBranch, keystones };
+}
+
+async function main() {
+  validateDefs(TALENT_NODE_DEFS);
+  const { byType, byBranch, keystones } = summarize(TALENT_NODE_DEFS);
+
+  console.log(`Seeding talent tree (${NODES.length} nodes)…`);
+  console.log('By type:', byType);
+  console.log('By branch:', byBranch);
+  console.log('Keystones:');
+  for (const k of keystones) console.log(`  • ${k}`);
 
   for (const n of NODES) {
-    // Constraint: notables/keystones need effect_code; stats need bonus.
-    if (n.type === 'stat' && !n.stat_bonus_json) {
-      throw new Error(`Stat node ${n.node_id} missing bonus`);
-    }
-    if ((n.type === 'notable' || n.type === 'keystone') && !n.effect_code) {
-      throw new Error(`${n.type} node ${n.node_id} missing effect_code`);
-    }
     await upsertNode(n);
-    byType[n.type] += 1;
-    byBranch[n.branch] = (byBranch[n.branch] || 0) + 1;
   }
 
   console.log('Done.');
-  console.log('By type:', byType);
-  console.log('By branch:', byBranch);
   process.exit(0);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// Export pour tests / dry-run sans DB
+export { NODES, validateDefs, summarize, TALENT_NODE_DEFS };
+
+const isDirectRun =
+  process.argv[1] &&
+  (process.argv[1].endsWith('seedTalentTree.js') ||
+    process.argv[1].includes('seedTalentTree'));
+
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

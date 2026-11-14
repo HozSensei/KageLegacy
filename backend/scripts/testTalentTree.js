@@ -40,6 +40,28 @@ console.log('=== Talent tree unit ===');
 assert(FREE_RESPEC_EVERY_LEVELS === 10, 'free respec every 10 levels');
 assert(RESPEC_COST_RYOS === 2000, 'paid respec = 2000 Ryos');
 
+// Catalogue Phase 2 (~150) — validation offline (sans DB)
+{
+  const { TALENT_NODE_DEFS, validateDefs, summarize } = await import('./seedTalentTree.js');
+  try {
+    validateDefs(TALENT_NODE_DEFS);
+    assert(true, 'seed catalogue validateDefs OK');
+  } catch (e) {
+    assert(false, `seed catalogue validateDefs: ${e.message}`);
+  }
+  const summary = summarize(TALENT_NODE_DEFS);
+  assert(TALENT_NODE_DEFS.length >= 140, `catalogue ≥140 nœuds (got ${TALENT_NODE_DEFS.length})`);
+  assert(summary.byType.stat >= 90, `≥90 stats (got ${summary.byType.stat})`);
+  assert(summary.byType.notable >= 35, `≥35 notables (got ${summary.byType.notable})`);
+  assert(summary.byType.keystone >= 8, `≥8 keystones (got ${summary.byType.keystone})`);
+  assert(summary.byBranch.ninjutsu >= 25, `ninjutsu branch densified (got ${summary.byBranch.ninjutsu})`);
+  assert(summary.byBranch.genjutsu >= 25, `genjutsu branch densified (got ${summary.byBranch.genjutsu})`);
+  assert(summary.byBranch.medicine >= 25, `medicine branch densified (got ${summary.byBranch.medicine})`);
+  const ids = new Set(TALENT_NODE_DEFS.map((n) => n.id));
+  assert(ids.has('intangible'), 'keystone intangible present');
+  assert(ids.has('berserker') && ids.has('overload') && ids.has('immortal'), 'MVP keystones preserved');
+}
+
 async function dbAvailable() {
   try {
     await query('SELECT 1 AS ok');
@@ -58,7 +80,7 @@ async function dbAvailable() {
 async function ensureSeed() {
   const countRows = await query('SELECT COUNT(*) AS c FROM talent_tree_nodes');
   const nodeCount = Number(countRows[0]?.c) || 0;
-  if (nodeCount >= 40) return nodeCount;
+  if (nodeCount >= 140) return nodeCount;
 
   console.log(`  → seed (${nodeCount} nodes) — running seedTalentTree…`);
   const r = spawnSync(process.execPath, [path.join(__dirname, 'seedTalentTree.js')], {
@@ -73,16 +95,16 @@ async function ensureSeed() {
 async function testIntegration() {
   console.log('\n=== Talent tree integration ===');
   const n = await ensureSeed();
-  assert(n >= 40, `≥40 nœuds seeded (got ${n})`);
+  assert(n >= 140, `≥140 nœuds seeded (got ${n})`);
 
   const types = await query(`SELECT type, COUNT(*) AS c FROM talent_tree_nodes GROUP BY type`);
   const byType = Object.fromEntries(types.map((r) => [r.type, Number(r.c)]));
-  assert((byType.keystone || 0) >= 2, `≥2 keystones (got ${byType.keystone || 0})`);
-  assert((byType.notable || 0) >= 5, `≥5 notables (got ${byType.notable || 0})`);
-  assert((byType.stat || 0) >= 25, `≥25 stats (got ${byType.stat || 0})`);
+  assert((byType.keystone || 0) >= 8, `≥8 keystones (got ${byType.keystone || 0})`);
+  assert((byType.notable || 0) >= 35, `≥35 notables (got ${byType.notable || 0})`);
+  assert((byType.stat || 0) >= 90, `≥90 stats (got ${byType.stat || 0})`);
 
   const tree = await getTalentTree();
-  assert(tree.length >= 40, `getTalentTree → ${tree.length} nodes`);
+  assert(tree.length >= 140, `getTalentTree → ${tree.length} nodes`);
 
   const prefix = `talent_test_${Date.now()}`;
   const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
