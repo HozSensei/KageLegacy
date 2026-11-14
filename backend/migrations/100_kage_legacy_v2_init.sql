@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS player_character (
   -- Progression
   level INT UNSIGNED NOT NULL DEFAULT 1,
   xp INT UNSIGNED NOT NULL DEFAULT 0,
-  rank ENUM('Genin', 'Chunin', 'Jonin', 'ANBU', 'Kage') NOT NULL DEFAULT 'Genin',
+  `rank` ENUM('Genin', 'Chunin', 'Jonin', 'ANBU', 'Kage') NOT NULL DEFAULT 'Genin',
   
   -- Arbre de talents
   talent_points_available INT UNSIGNED NOT NULL DEFAULT 1,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS player_character (
 
 -- Index pour requêtes fréquentes
 CREATE INDEX idx_player_level ON player_character(level);
-CREATE INDEX idx_player_rank ON player_character(rank);
+CREATE INDEX idx_player_rank ON player_character(`rank`);
 
 -- Extension de la table sensei pour les nouvelles ressources
 ALTER TABLE sensei

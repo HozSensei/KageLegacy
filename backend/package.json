@@ -21,6 +21,7 @@
     "combat:tactic-cards": "node scripts/benchmarkPliDeck.js",
     "playtest:cycle": "node scripts/playtestCycle.js",
     "e2e:ensure-league": "node scripts/e2eEnsureLeagueFixtures.js",
+    "e2e:ensure-player": "node scripts/e2eEnsurePlayerCharacter.js",
     "playtest:multiplayer": "node scripts/playtestMultiplayer.js",
     "playtest:league": "node scripts/playtestLeague.js",
     "playtest:missions": "node scripts/playtestMissionsCycle.js",

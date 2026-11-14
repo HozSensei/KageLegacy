@@ -218,7 +218,7 @@ export async function createCharacter(userId, { name, clanTraitId, elementAffini
 
   await query(
     `INSERT INTO player_character
-      (user_id, name, avatar_url, level, xp, rank, talent_points_available, clan_trait_id, element_affinity, specialization)
+      (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
      VALUES (?, ?, ?, 1, 0, 'Genin', 1, ?, ?, NULL)`,
     [userId, trimmedName, avatar, clanId, elementAffinity],
   );
@@ -285,7 +285,7 @@ export async function addXP(userId, amount) {
   if (after.level !== before.level || after.xp !== before.xp) {
     await query(
       `UPDATE player_character
-       SET level = ?, xp = ?, rank = ?, talent_points_available = ?
+       SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
        WHERE user_id = ?`,
       [after.level, after.xp, after.rank, after.talentPointsAvailable, userId],
     );
@@ -322,7 +322,7 @@ export async function levelUp(userId) {
 
   await query(
     `UPDATE player_character
-     SET level = ?, xp = ?, rank = ?, talent_points_available = ?
+     SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
      WHERE user_id = ?`,
     [nextLevel, nextXp, nextRank, nextTalent, userId],
   );

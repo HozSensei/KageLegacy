@@ -27,7 +27,7 @@ async function onSpecialize(spec) {
 </script>
 
 <template>
-  <div class="page-shell page-shell--hero">
+  <div class="page-shell page-shell--hero" data-testid="profile-page">
     <p v-if="player.loading && !player.character" class="text-sm text-ink-muted">
       {{ t('common.loading') }}
     </p>

@@ -1,12 +1,10 @@
 const NAV_PAGES = {
-  bureau: { testId: 'bureau-page', path: '/bureau' },
-  squad: { testId: 'squad-page', path: '/squad' },
-  missions: { testId: 'missions-page', path: '/missions' },
-  league: { testId: 'league-page', path: '/league' },
-  market: { testId: 'market-page', path: '/market' },
-  exchanges: { testId: 'exchanges-page', path: '/exchanges' },
-  inventory: { testId: 'inventory-page', path: '/inventory' },
-  operation: { testId: 'operation-page', path: '/operation' },
+  bureau: { testId: 'placeholder-page', path: '/bureau' },
+  profile: { testId: 'profile-page', path: '/profil' },
+  collection: { testId: 'collection-page', path: '/collection' },
+  decks: { testId: 'deck-builder-page', path: '/decks' },
+  inventory: { testId: 'placeholder-page', path: '/inventory' },
+  journal: { testId: 'placeholder-page', path: '/journal' },
 };
 
 Cypress.Commands.add('loginDemo', () => {
@@ -52,6 +50,6 @@ Cypress.Commands.add('visitNav', (name) => {
     cy.openNavMenu();
     cy.get(`[data-testid="nav-${name}"]`).first().click();
   }
-  cy.url().should('include', page.path === '/bureau' ? '/bureau' : page.path);
+  cy.url().should('include', page.path);
   cy.get(`[data-testid="${page.testId}"]`, { timeout: 15000 }).should('be.visible');
 });

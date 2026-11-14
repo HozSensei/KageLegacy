@@ -1,8 +1,10 @@
-describe('Auth — connexion démo', () => {
-  it('redirige vers le Bureau après login', () => {
+describe('Auth — connexion démo (V2)', () => {
+  it('redirige hors login après connexion', () => {
     cy.loginDemo();
     cy.visit('/bureau');
-    cy.contains('Bureau du Sensei').should('exist');
+    cy.url().should('include', '/bureau');
+    cy.get('[data-testid="placeholder-page"]', { timeout: 15000 }).should('be.visible');
+    cy.contains(/Bureau/i).should('exist');
   });
 
   it('refuse des identifiants invalides', () => {
@@ -15,7 +17,7 @@ describe('Auth — connexion démo', () => {
     cy.url().should('include', '/login');
   });
 
-  it('déconnecte et retourne au login', () => {
+  it('déconnecte et retourne au landing', () => {
     cy.loginDemo();
     cy.visit('/bureau');
     cy.get('[data-testid="profile-menu-button"]').click();
