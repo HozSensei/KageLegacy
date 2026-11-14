@@ -4,6 +4,80 @@
 
 Le combat dans **Shinobi Ascension** est un système de **deck-building tactique** tour par tour inspiré de **Slay the Spire**. Le joueur gère une main de cartes, du Chakra (énergie), et doit anticiper les intentions de l'ennemi.
 
+## 📊 Stats du Personnage
+
+### Comment les Stats Affectent le Combat
+
+**Stats** proviennent de 2 sources :
+1. **Arbre de Talents** (100 points au niveau 100)
+2. **Cartes dans le deck** (bonus passifs)
+
+**Formule générale** :
+```javascript
+Stat_Finale = Talent_Bonus + Deck_Passive_Bonus + Buffs_Temporaires
+```
+
+**Exemple** :
+```
+Taijutsu = 75 (talents) + 45 (cartes) + 10 (buff Force) = 130 Taijutsu
+```
+
+---
+
+### 📈 Formules de Scaling des Cartes
+
+Les **stats du personnage boostent les cartes** selon leur `stat_type` :
+
+#### 1. Cartes d'Attaque (Taijutsu / Ninjutsu / Genjutsu)
+
+```javascript
+Dégâts_Finaux = Dégâts_Base × (1 + Stat / 100)
+```
+
+**Exemple** : Carte "Poing rapide" (6 dégâts, Taijutsu)
+- Sans stats : 6 dégâts
+- Avec 50 Taijutsu : 6 × 1.5 = **9 dégâts**
+- Avec 100 Taijutsu : 6 × 2 = **12 dégâts**
+- Avec 200 Taijutsu : 6 × 3 = **18 dégâts**
+
+#### 2. Cartes de Défense (Médecine)
+
+```javascript
+Armure_Finale = Armure_Base × (1 + Medicine / 100)
+```
+
+**Exemple** : Carte "Garde" (5 armure, Médecine)
+- Sans stats : 5 armure
+- Avec 100 Médecine : 5 × 2 = **10 armure**
+
+#### 3. Cartes de Soin (Médecine)
+
+```javascript
+Soin_Final = Soin_Base × (1 + Medicine / 100)
+```
+
+**Exemple** : Carte "Soin de combat" (8 PV, Médecine)
+- Sans stats : 8 PV
+- Avec 150 Médecine : 8 × 2.5 = **20 PV**
+
+#### 4. Stats Secondaires
+
+| Stat | Effet |
+|------|-------|
+| **Vitesse** | +1% chance de critique par 10 Vitesse (max 50%) |
+| **Intelligence** | +1% chance de proc d'effets spéciaux par 10 Int |
+| **Dextérité** | Réduit coût Chakra des cartes 0-1 coût (rare) |
+
+**Critique** :
+```javascript
+Dégâts_Crit = Dégâts_Finaux × 1.5
+Chance_Crit = min(50, Vitesse / 10) + Buffs
+```
+
+**Exemple** : 100 Vitesse → 10% crit chance
+
+---
+
 ## 🎴 Ressources du Combat
 
 ### 1. Chakra (Énergie)
@@ -27,7 +101,15 @@ Le combat dans **Shinobi Ascension** est un système de **deck-building tactique
 
 **Formule** :
 ```
-PV_max = 100 + (niveau × 2) + bonus_clan
+PV_max = 100 + bonus_from_talent_nodes + bonus_from_cards
+```
+
+**Exemple** :
+```
+PV_max = 100 (base)
+       + 50 (nœuds de talents avec +PV)
+       + 20 (cartes avec bonus passif +PV)
+       = 170 PV max
 ```
 
 ### 3. Armure (Block)
