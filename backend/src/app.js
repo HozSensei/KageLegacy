@@ -8,6 +8,7 @@ import playerRouter from './routes/player.js';
 import cardsRouter from './routes/cards.js';
 import collectionRouter from './routes/collection.js';
 import decksRouter from './routes/decks.js';
+import talentsRouter from './routes/talents.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -33,6 +34,7 @@ app.use('/api/player', playerRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/collection', collectionRouter);
 app.use('/api/decks', decksRouter);
+app.use('/api/talents', talentsRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

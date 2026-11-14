@@ -71,16 +71,6 @@ function httpError(statusCode, message) {
   return err;
 }
 
-function parseJsonSafe(value, fallback = null) {
-  if (value == null) return fallback;
-  if (typeof value === 'object') return value;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
-
 async function tableExists(tableName) {
   try {
     const rows = await query(
@@ -97,7 +87,7 @@ async function tableExists(tableName) {
 }
 
 /**
- * Bonus issus des nœuds de talents débloqués (user_talents + talent_tree_nodes).
+ * Bonus issus des nœuds de talents débloqués (délègue à talentTreeService).
  * Si les tables ne sont pas peuplées / absentes → {}.
  */
 export async function getTalentStatBonuses(userId) {
@@ -106,16 +96,9 @@ export async function getTalentStatBonuses(userId) {
   if (!hasTalents || !hasNodes) return createEmptyStats();
 
   try {
-    const rows = await query(
-      `SELECT n.stat_bonus_json
-       FROM user_talents ut
-       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
-       WHERE ut.user_id = ? AND n.stat_bonus_json IS NOT NULL`,
-      [userId],
-    );
-    return mergeStatBonuses(
-      ...rows.map((row) => parseJsonSafe(row.stat_bonus_json, null)).filter(Boolean),
-    );
+    const { computeTalentBonuses } = await import('./talentTreeService.js');
+    const { stats } = await computeTalentBonuses(userId);
+    return stats || createEmptyStats();
   } catch {
     return createEmptyStats();
   }
