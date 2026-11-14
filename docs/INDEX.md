@@ -52,7 +52,22 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 4. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md)
+### 4. 🌳 [TALENT_TREE.md](./TALENT_TREE.md)
+**Arbre de Talents (Path of Exile-like)**
+
+- Structure de l'arbre (~150 nœuds)
+- Types de nœuds (Stats, Notables, Keystones)
+- 4 branches principales
+- Exemples de builds complets
+- Système de respec
+- Structure DB
+- Interface visuelle
+
+👉 **Référence complète** pour le système de progression du personnage.
+
+---
+
+### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md)
 **Mécanique de Combat**
 
 - Ressources (Chakra, PV, Armure)
@@ -70,7 +85,7 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 5. 🃏 [CARD_SYSTEM.md](./CARD_SYSTEM.md)
+### 6. 🃏 [CARD_SYSTEM.md](./CARD_SYSTEM.md)
 **Système de Cartes**
 
 - Structure d'une carte (propriétés)
@@ -87,7 +102,7 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 6. 🏗️ [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md)
+### 7. 🏗️ [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md)
 **Architecture Technique**
 
 - Stack technologique (Backend & Frontend)
@@ -104,7 +119,7 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 7. 🗺️ [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)
+### 8. 🗺️ [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)
 **Roadmap d'Implémentation**
 
 - **8 Phases** de développement (3-4 mois)
@@ -125,7 +140,7 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 8. 🚀 [QUICK_START.md](./QUICK_START.md)
+### 9. 🚀 [QUICK_START.md](./QUICK_START.md)
 **Guide de Démarrage Rapide**
 
 - Prérequis
@@ -147,25 +162,28 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 ### Pour les Game Designers
 1. [README.md](./README.md) - Vue d'ensemble
 2. [PROJECT_VISION.md](./PROJECT_VISION.md) - Vision & Game Design
-3. [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) - Mécanique de combat
-4. [CARD_SYSTEM.md](./CARD_SYSTEM.md) - Système de cartes
-5. [BATTLE_PASS.md](./BATTLE_PASS.md) - Système de saison
+3. [TALENT_TREE.md](./TALENT_TREE.md) - Arbre de talents (progression)
+4. [CARD_SYSTEM.md](./CARD_SYSTEM.md) - Système de cartes (bonus passifs)
+5. [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) - Mécanique de combat
+6. [BATTLE_PASS.md](./BATTLE_PASS.md) - Système de saison
 
 ### Pour les Développeurs Backend
 1. [QUICK_START.md](./QUICK_START.md) - Installation
 2. [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md) - Architecture
 3. [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md) - Roadmap
-4. [CARD_SYSTEM.md](./CARD_SYSTEM.md) - Structure DB cartes
-5. [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) - Logique de combat
-6. [BATTLE_PASS.md](./BATTLE_PASS.md) - Structure DB Battle Pass
+4. [TALENT_TREE.md](./TALENT_TREE.md) - Structure DB arbre de talents
+5. [CARD_SYSTEM.md](./CARD_SYSTEM.md) - Structure DB cartes + bonus passifs
+6. [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) - Logique de combat
+7. [BATTLE_PASS.md](./BATTLE_PASS.md) - Structure DB Battle Pass
 
 ### Pour les Développeurs Frontend
 1. [QUICK_START.md](./QUICK_START.md) - Installation
 2. [README.md](./README.md) - Vue d'ensemble
 3. [TECHNICAL_ARCHITECTURE.md](./TECHNICAL_ARCHITECTURE.md) - API & Composants
-4. [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) - Interface de combat
-5. [CARD_SYSTEM.md](./CARD_SYSTEM.md) - Affichage des cartes
-6. [BATTLE_PASS.md](./BATTLE_PASS.md) - Interface Battle Pass
+4. [TALENT_TREE.md](./TALENT_TREE.md) - Interface arbre de talents (zoomable)
+5. [CARD_SYSTEM.md](./CARD_SYSTEM.md) - Affichage cartes + bonus passifs
+6. [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) - Interface de combat
+7. [BATTLE_PASS.md](./BATTLE_PASS.md) - Interface Battle Pass
 
 ### Pour les Investisseurs / Business
 1. [README.md](./README.md) - Vue d'ensemble
