@@ -60,7 +60,22 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 
 ## 🎨 Types de Cartes
 
-### 1. Attaque (Attack) — 70%
+### Double Fonction des Cartes
+
+**Chaque carte a 2 aspects** :
+
+1. **Effet actif** : Ce qu'elle fait quand jouée en combat
+2. **Bonus passif** : Stats ajoutées tant qu'elle est dans le deck
+
+**Exemple** : Kunai
+- Actif : Inflige 4 dégâts
+- Passif : +2 Dextérité (même si pas jouée)
+
+**Stratégie** : Choisir les cartes pour leur effet OU leurs stats (ou les deux !)
+
+---
+
+### 1. Attaque (Attack) — 50%
 
 **Fonction** : Infliger des dégâts
 
@@ -80,7 +95,8 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
   stat_type: "taijutsu",
   cost: 1,
   damage: 6,
-  effects: []
+  effects: [],
+  passive_bonus: { taijutsu: 2, vitesse: 1 }  // 🆕 Bonus passif
 }
 
 // Multi-frappe
@@ -109,7 +125,56 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 }
 ```
 
-### 2. Défense (Defense) — 15%
+### 2. Objet (Item) — 20%
+
+**Fonction** : Buffs, soins, manipulation (consommables)
+
+**Sous-types** :
+- **Consommable** : Usage unique (Exhaust)
+- **Permanent** : Effet persistant
+
+**Exemples** :
+
+```javascript
+// Objet : Kunai
+{
+  name_fr: "Kunai",
+  type: "item",
+  cost: 0,
+  damage: 4,
+  exhaust: true,  // Se retire après usage
+  passive_bonus: { dexterity: 2 },  // 🆕 Bonus passif
+  upgrade_bonuses: {
+    level_1: { damage: +2, passive: { dexterity: +1 } }
+  }
+}
+
+// Objet : Pilule du Soldat
+{
+  name_fr: "Pilule du soldat",
+  type: "item",
+  cost: 1,
+  effects: [
+    { type: 'apply_status', status: 'force', value: 3, duration: 3 }
+  ],
+  exhaust: true,
+  passive_bonus: { taijutsu: 1, vitesse: 1 }
+}
+
+// Objet : Parchemin de Scellement
+{
+  name_fr: "Parchemin de scellement",
+  type: "item",
+  cost: 2,
+  effects: [
+    { type: 'exile_enemy_card' }
+  ],
+  exhaust: true,
+  passive_bonus: { intelligence: 3 }
+}
+```
+
+### 3. Défense (Defense) — 15%
 
 **Fonction** : Gagner de l'Armure, esquiver
 
@@ -154,7 +219,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 }
 ```
 
-### 3. Soutien (Skill) — 10%
+### 4. Soutien (Skill) — 10%
 
 **Fonction** : Soins, buffs, manipulation
 
@@ -199,7 +264,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 }
 ```
 
-### 4. Invocation (Summon) — 5%
+### 5. Invocation (Summon) — 5%
 
 **Fonction** : Invoquer un allié persistent
 
@@ -234,7 +299,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 }
 ```
 
-### 5. Passive (Passive) — Traits Héréditaires
+**Note** : Les passifs ne sont plus des cartes mais des talents dans l'arbre !
 
 **Fonction** : Effets permanents (ne se pioche pas)
 

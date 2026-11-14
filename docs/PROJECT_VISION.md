@@ -26,16 +26,25 @@
 2. **Deck-Building Tactique**
    - Construire un deck de 20-30 cartes
    - Synergies entre cartes (éléments, types, effets)
+   - **Cartes donnent des bonus passifs de stats** (ex: Kunai = +2 Dextérité)
    - Multiples archétypes viables (Aggro, Control, Combo, DOT)
 
-3. **Combat Stratégique**
+3. **Arbre de Talents (Path of Exile-like)**
+   - Arbre massif de ~150 nœuds (stats + synergies)
+   - 1 point de talent par niveau
+   - Keystones puissants avec trade-offs
+   - Réorientation possible (respec)
+
+4. **Combat Stratégique**
    - Combat carte par carte avec gestion de ressources (Chakra)
+   - Stats du personnage boostent les cartes
    - Anticiper les intentions ennemies
    - Boss avec mécaniques uniques et phases
 
-4. **Méta-progression Permanente**
+5. **Méta-progression Permanente**
    - Niveau & Rangs (Genin → Kage)
    - Battle Pass avec récompenses exclusives
+   - Arbre de talents (choix stratégiques permanents)
    - Achievements et cosmétiques
 
 ## 🎨 Direction Artistique
@@ -98,7 +107,8 @@
 
 ```
 1. PRÉPARATION
-   └─ Construire/ajuster son deck (5 min)
+   ├─ Construire/ajuster son deck (5 min)
+   └─ Dépenser points de talents (arbre)
    
 2. MISSION
    ├─ Choisir une mission (Rang D à S)
@@ -107,19 +117,20 @@
    └─ Boss final (15-20 min)
    
 3. RÉCOMPENSES
-   ├─ XP de niveau
+   ├─ XP de niveau → +1 Point de Talent
    ├─ Ryos (monnaie)
    ├─ Cartes (1-3 selon difficulté)
-   ├─ Points de Battle Pass
-   └─ Reliques (objets passifs permanents)
+   └─ Points de Battle Pass
    
 4. FORGE
    ├─ Améliorer des cartes (Dust + Ryos)
+   │  → Bonus passifs augmentent aussi !
    ├─ Crafter de nouvelles cartes
    └─ Désenchanter les doublons
    
 5. PROGRESSION
-   ├─ Monter de niveau (débloquer clans)
+   ├─ Monter de niveau → +1 Point de Talent
+   ├─ Dépenser points dans l'arbre (stats + synergies)
    ├─ Avancer dans le Battle Pass
    └─ Compléter achievements
 ```
@@ -127,12 +138,19 @@
 ### Méta-progression Long Terme
 
 **Objectifs à 100h de jeu** :
-- 🎯 Niveau 100 (Rang Kage)
+- 🎯 Niveau 100 (Rang Kage) → 100 points de talents
+- 🌳 Arbre de talents optimisé (build théorycrafté)
 - 🃏 Collection complète (300 cartes)
-- ⬆️ 50+ cartes améliorées niveau 2
+- ⬆️ 50+ cartes améliorées niveau 2 (bonus passifs max)
 - 🏆 Tous les achievements débloqués
 - 👥 Tous les clans légendaires obtenus
 - 📅 Plusieurs saisons de Battle Pass complétées
+
+**Diversité de builds** :
+- Build Tank (stats Médecine/Défense via talents + cartes)
+- Build Burst (Taijutsu élevé + Keystones dégâts)
+- Build Élémentaire (Ninjutsu + cartes élémentaires)
+- Build Contrôle (Intelligence + cartes manipulation)
 
 ## 📊 Métriques de Succès
 
