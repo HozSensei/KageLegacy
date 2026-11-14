@@ -2,6 +2,28 @@
 
 Filet de régression pour savoir si un combat deck-building est **trop dur** ou **trop facile**, sans HTTP ni DB.
 
+## Triade & éléments (`test:type-advantage`)
+
+Couverture exhaustive (sans DB) de la **triade tactique** et de la **roue élémentaire**.
+
+```bash
+npm run test:type-advantage --prefix backend
+# racine : npm run test:type-advantage
+```
+
+### Multiplicateurs (source : `docs/COMBAT_SYSTEM.md`)
+
+| Système | Avantage | Désavantage | Neutre |
+|---------|----------|-------------|--------|
+| **Triade** Tai > Gen > Nin > Tai | ×**1.2** | — (pas de malus réciproque) | ×1 |
+| **Éléments** Katon > Futon > Raiton > Doton > Suiton > Katon | ×**1.5** | ×**0.7** | ×1 |
+
+Médecine = toujours neutre. Code : `backend/src/services/deckCombat/typeAdvantage.js` (`getTypeAdvantage`, `getElementAdvantage`). Branché dans `computeCardDamage`. Matrice 3×3 + 5×5 + intégration légère dans `backend/scripts/testTypeAdvantage.js`.
+
+---
+
+## Simulations win-rate
+
 ## Lancer
 
 ```bash
