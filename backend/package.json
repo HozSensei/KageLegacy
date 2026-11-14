@@ -10,6 +10,8 @@
     "format": "prettier --write \"src/**/*.{js,json}\"",
     "db:migrate": "node src/db/migrate.js",
     "db:seed": "node scripts/seedNinjas.js",
+    "db:seed-cards": "node scripts/seedCards.js",
+    "test:card-system": "node scripts/testCardSystem.js",
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
     "clock:set-start": "node scripts/setCycleStart.js",
