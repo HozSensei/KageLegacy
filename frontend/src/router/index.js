@@ -10,9 +10,12 @@ import CollectionView from '../views/CollectionView.vue'
 import DeckBuilderView from '../views/DeckBuilderView.vue'
 import TalentTreeView from '../views/TalentTreeView.vue'
 import MissionsCombatView from '../views/MissionsCombatView.vue'
+import MissionRunView from '../views/MissionRunView.vue'
 import CombatView from '../views/CombatView.vue'
 import ShopView from '../views/ShopView.vue'
 import BattlePassView from '../views/BattlePassView.vue'
+import PvpQueueView from '../views/PvpQueueView.vue'
+import PvpDuelView from '../views/PvpDuelView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -88,6 +91,14 @@ const router = createRouter({
           },
         },
         {
+          path: 'missions/run/:id',
+          name: 'mission-run',
+          component: MissionRunView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
           path: 'combat/:id',
           name: 'combat',
           component: CombatView,
@@ -110,6 +121,23 @@ const router = createRouter({
           component: BattlePassView,
           meta: {
             hero: { image: HERO_VILLAGE, titleKey: 'battlePass.title' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'pvp',
+          name: 'pvp',
+          component: PvpQueueView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'pvp.queueTitle' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'pvp/duel/:id',
+          name: 'pvp-duel',
+          component: PvpDuelView,
+          meta: {
             requiresCharacter: true,
           },
         },

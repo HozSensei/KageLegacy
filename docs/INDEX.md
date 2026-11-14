@@ -67,11 +67,12 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md)
-**Mécanique de Combat**
+### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) · [MISSION_RUNS.md](./MISSION_RUNS.md) · [PVP_SYSTEM.md](./PVP_SYSTEM.md)
+**Mécanique de Combat** (PvE), **parcours multi-combats**, et **PvP Host**
 
 - Ressources (Chakra, PV, Armure)
 - Déroulement d'un tour (3 phases)
+- Parcours de mission (3–5 combats + événements, PV persistants)
 - Système d'intentions
 - Types de cartes (Attaque, Défense, Soutien, Invocation, Passive)
 - Triangle tactique (Tai > Gen > Nin)

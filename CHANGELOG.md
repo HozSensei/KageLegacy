@@ -7,6 +7,26 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Phase 4 — Mission runs (2026-11-14)
+
+#### Added
+- **Parcours multi-combats** : `mission_runs` + migration `106_mission_runs.sql` ; 3–5 combats par mission, boss sur rangs B/A
+- **Événements MVP** : Sanctuaire de Mousse, Cache d’Éclaireur, Colporteur d’Ombre, Carrefour du Voile
+- **PV / ferraille persistants** entre combats ; mort ou abandon de combat = échec du run
+- **Récompenses de fin de run** (`grantRunRewards`, multiplicateur `runBonusMult`) — loot différé pendant les étapes
+- **API** : `/api/missions/:id/start` → run ; `/runs/:id/enter|resolve-event|abandon`
+- **UI** : `MissionRunView` (liste de nœuds), reprise de parcours, `VictoryRewards` étape / fin de run
+- **Doc** : `docs/MISSION_RUNS.md` (flux joueur)
+
+### PvP Host architecture (2026-11-14)
+
+#### Added
+- **Matchmaking ± niveau** : file `pvp_queue`, fenêtre configurable (±3 / ±5), namespace `pvp_*` / `shared/pvp/`
+- **Architecture Host** : un joueur simule le duel client-side ; Guest envoie des intentions ; serveur = queue + match + signaling WS (`/ws/pvp`) + checksum fin de match (`trust_host`)
+- **API** `/api/pvp/*` + migration `109_pvp_system.sql`
+- **Frontend** : file d’attente `/pvp`, arène `/pvp/duel/:id` avec badge Host/Guest
+- **Docs** `docs/PVP_SYSTEM.md` + tests `npm run test:pvp-matchmaking`
+
 ### Economy tune — F2P loop (2026-11-14)
 
 #### Added
