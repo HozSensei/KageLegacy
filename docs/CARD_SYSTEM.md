@@ -442,7 +442,7 @@ const RARITY_STATS = {
 
 2. **Boosters** (`/shop` onglet Boosters)
    - Parchemin Standard (500 Ryos) : 5 cartes, rareté normale
-   - Parchemin Élémentaire (800 Ryos) : 5 cartes filtrées par élément
+   - Parchemin Élémentaire (650 Ryos) : 5 cartes filtrées par élément
    - Parchemin Premium (100 KC) : 5 cartes, 1 rare garantie
    - API : `GET/POST /api/shop/boosters` — tirage 100 % serveur
 
