@@ -13,6 +13,7 @@ import combatRouter from './routes/combat.js';
 import combatMissionsRouter from './routes/combatMissions.js';
 import battlePassRouter from './routes/battlePass.js';
 import shopRouter from './routes/shop.js';
+import stripeRouter from './routes/stripe.js';
 import pvpRouter from './routes/pvp.js';
 import { attachUser } from './middleware/auth.js';
 
@@ -28,6 +29,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// Stripe webhooks need the raw body for signature verification (before json parser).
+app.use('/api/stripe', express.raw({ type: 'application/json' }), stripeRouter);
 
 app.use(express.json());
 app.use(attachUser);

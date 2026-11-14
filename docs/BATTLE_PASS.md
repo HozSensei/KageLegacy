@@ -237,7 +237,7 @@ Exemples :
 - 💎 Forge des Ombres — 1000 coins = 10€ (bonus : +150 coins)
 - 💎 Coffre du Kage — 5000 coins = 50€ (bonus : +1000 coins)
 
-Achat MVP : stub admin/dev (`SHOP_COIN_STUB=true`) via `POST /api/shop/coin-packs/:id/purchase`. Stripe Checkout reporté (patterns `eliteStripeService`).
+Achat : Stripe Checkout via `POST /api/shop/coin-packs/:id/purchase` (`method=stripe`) quand `STRIPE_SECRET_KEY` est défini — voir [STRIPE_V2.md](./STRIPE_V2.md). Stub admin/dev (`SHOP_COIN_STUB=true`) conservé en fallback.
 
 **Utilisations** :
 - Battle Pass (500 coins) — aussi depuis l’onglet Battle Pass du `/shop` (`POST /api/shop/battle-pass/unlock`)

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
 import BoosterSelection from '../components/shop/BoosterSelection.vue'
 import BoosterOpening from '../components/shop/BoosterOpening.vue'
 import BoosterResults from '../components/shop/BoosterResults.vue'
@@ -15,6 +16,8 @@ defineOptions({ name: 'ShopView' })
 const { t } = useI18n()
 const shop = useShopStore()
 const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 
 const phase = ref('catalog') // catalog | opening | results
 const revealDone = ref(false)
@@ -26,10 +29,40 @@ const tabs = [
   { id: 'battlePass', labelKey: 'shop.tabs.battlePass' },
 ]
 
-const canStub = computed(() => Boolean(auth.user?.isAdmin))
+const canStubCoins = computed(
+  () => Boolean(auth.user?.isAdmin) || Boolean(shop.payments?.coinStubEnabled),
+)
+const canStubBp = computed(
+  () => Boolean(auth.user?.isAdmin) || Boolean(shop.payments?.battlePassStubEnabled),
+)
+const stripeEnabled = computed(() => Boolean(shop.payments?.stripeEnabled))
 
-onMounted(() => {
-  shop.loadTab(shop.activeTab || 'boosters')
+onMounted(async () => {
+  const tab = String(route.query.tab || shop.activeTab || 'boosters')
+  if (['boosters', 'cosmetics', 'currency', 'battlePass'].includes(tab)) {
+    shop.setActiveTab(tab)
+  }
+  await shop.loadTab(shop.activeTab || 'boosters')
+
+  const checkout = String(route.query.checkout || '')
+  const sessionId = String(route.query.session_id || '')
+  if (checkout === 'success' && sessionId) {
+    try {
+      await shop.confirmCheckout(sessionId)
+    } catch {
+      /* error in store */
+    }
+  } else if (checkout === 'canceled') {
+    shop.lastMessage = t('shop.checkoutCanceled')
+  }
+
+  if (checkout || sessionId || route.query.tab) {
+    const nextQuery = { ...route.query }
+    delete nextQuery.checkout
+    delete nextQuery.session_id
+    delete nextQuery.tab
+    router.replace({ path: route.path, query: nextQuery })
+  }
 })
 
 watch(
@@ -75,9 +108,9 @@ function onCloseResults() {
   phase.value = 'catalog'
 }
 
-async function onBuyPack(packId) {
+async function onBuyPack(packId, method = 'stripe') {
   try {
-    await shop.purchaseCoinPack(packId, 'stub')
+    await shop.purchaseCoinPack(packId, method)
   } catch {
     /* error in store */
   }
@@ -193,7 +226,8 @@ async function onUnlockBp(method) {
         :purchasing="shop.purchasing"
         :disabled="shop.loading"
         :meta-note="shop.coinMeta?.purchaseNote"
-        :can-stub="canStub"
+        :can-stub="canStubCoins"
+        :stripe-enabled="stripeEnabled"
         @purchase="onBuyPack"
       />
     </div>
@@ -203,7 +237,8 @@ async function onUnlockBp(method) {
         :offer="shop.battlePassOffer"
         :purchasing="shop.purchasing"
         :disabled="shop.loading"
-        :can-stub="canStub"
+        :can-stub="canStubBp"
+        :stripe-enabled="stripeEnabled"
         @unlock="onUnlockBp"
       />
     </div>

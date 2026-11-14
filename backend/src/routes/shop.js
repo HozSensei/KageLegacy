@@ -22,6 +22,10 @@ import {
   unlockBattlePassFromShop,
   getSenseiBalances,
 } from '../services/shopService.js';
+import {
+  confirmShopCheckoutSession,
+  getShopPaymentMeta,
+} from '../services/shopStripeService.js';
 
 const router = Router();
 
@@ -30,11 +34,15 @@ const openSchema = z.object({
 });
 
 const coinPurchaseSchema = z.object({
-  method: z.enum(['stub', 'stripe']).default('stub'),
+  method: z.enum(['stub', 'stripe']).default('stripe'),
 });
 
 const unlockBpSchema = z.object({
-  method: z.enum(['stub', 'kage_coins']).default('kage_coins'),
+  method: z.enum(['stub', 'kage_coins', 'stripe']).default('kage_coins'),
+});
+
+const confirmSchema = z.object({
+  session_id: z.string().trim().min(1).max(255),
 });
 
 const unequipSchema = z.object({
@@ -107,12 +115,15 @@ router.get('/coin-packs', async (req, res, next) => {
     const user = await requireUser(req, res);
     if (!user) return;
     const balances = await getSenseiBalances(user.id);
+    const payments = getShopPaymentMeta();
     res.json({
       packs: listCoinPacks(),
       balances,
+      payments,
       meta: {
-        purchaseNote:
-          'Achat stub admin/dev (SHOP_COIN_STUB=true). Stripe Checkout packs reporté (patterns eliteStripeService).',
+        purchaseNote: payments.stripeEnabled
+          ? 'Paiement Stripe Checkout disponible pour les packs Kage Coins.'
+          : 'Stripe non configuré — achat stub admin/dev (SHOP_COIN_STUB=true).',
       },
     });
   } catch (error) {
@@ -140,7 +151,31 @@ router.post('/coin-packs/:packId/purchase', async (req, res, next) => {
       method: parsed.data.method,
       isAdmin: isAdminUser(user),
     });
-    res.status(201).json(result);
+    const status = result.mode === 'stripe_checkout' ? 200 : 201;
+    res.status(status).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/shop/checkout/confirm?session_id=
+ * Complète le fulfillment après redirect Stripe (idempotent avec le webhook).
+ */
+router.get('/checkout/confirm', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const parsed = confirmSchema.safeParse({
+      session_id: req.query.session_id || req.query.sessionId,
+    });
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'session_id requis.' });
+    }
+
+    const result = await confirmShopCheckoutSession(user.id, parsed.data.session_id);
+    res.json(result);
   } catch (error) {
     next(error);
   }

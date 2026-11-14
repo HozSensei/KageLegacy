@@ -17,6 +17,7 @@
     "test:starter-loadout": "node scripts/testStarterLoadout.js",
     "test:boosters": "node scripts/testBoosters.js",
     "test:shop": "node scripts/testShopCatalog.js",
+    "test:shop-stripe": "node scripts/testShopStripe.js",
     "test:economy": "node scripts/testEconomy.js",
     "test:talent-tree": "node scripts/testTalentTree.js",
     "test:combat-engine": "node scripts/testCombatEngine.js",

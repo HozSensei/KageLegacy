@@ -33,13 +33,20 @@ router.get('/', async (req, res, next) => {
     if (!user) return;
 
     const state = await getBattlePassState(user.id);
+    const { getShopPaymentMeta, BATTLE_PASS_PREMIUM_PRICE_EUR } = await import(
+      '../services/shopStripeService.js'
+    );
+    const payments = getShopPaymentMeta();
     res.json({
       ...state,
       meta: {
         premiumCostKageCoins: PREMIUM_COST_KAGE_COINS,
+        premiumPriceEur: BATTLE_PASS_PREMIUM_PRICE_EUR,
         levelCostKageCoins: LEVEL_COST_KAGE_COINS,
-        stripeNote:
-          'Stripe Checkout Battle Pass non branché en MVP — utiliser unlock-premium (kage_coins ou stub admin).',
+        payments,
+        stripeNote: payments.stripeEnabled
+          ? `Stripe Checkout disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) — ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`
+          : 'Stripe non configuré — unlock-premium via kage_coins ou stub admin/dev.',
       },
     });
   } catch (error) {
@@ -86,8 +93,8 @@ router.post('/claim/:level', async (req, res, next) => {
 
 /**
  * POST /api/battle-pass/unlock-premium
- * body { method: 'kage_coins' | 'stub' }
- * stub = admin ou BATTLE_PASS_STUB_UNLOCK=true (Stripe reporté)
+ * body { method: 'kage_coins' | 'stub' | 'stripe' }
+ * stripe → Checkout Session si STRIPE_SECRET_KEY ; stub = admin ou BATTLE_PASS_STUB_UNLOCK
  */
 router.post('/unlock-premium', async (req, res, next) => {
   try {
@@ -109,7 +116,9 @@ router.post('/buy', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    const method = req.body?.method === 'stub' ? 'stub' : 'kage_coins';
+    const raw = req.body?.method;
+    const method =
+      raw === 'stub' || raw === 'stripe' || raw === 'kage_coins' ? raw : 'kage_coins';
     const result = await unlockPremium(user.id, {
       method,
       isAdmin: isAdminUser(user),

@@ -10,7 +10,7 @@ export const addXpSchema = z.object({
 });
 
 export const unlockPremiumSchema = z.object({
-  method: z.enum(['stub', 'kage_coins']).default('stub'),
+  method: z.enum(['stub', 'kage_coins', 'stripe']).default('stub'),
 });
 
 export const buyLevelsSchema = z.object({

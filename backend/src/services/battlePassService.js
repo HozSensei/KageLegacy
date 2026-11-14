@@ -392,7 +392,8 @@ export async function claimReward(userId, level, trackType = 'free') {
 /**
  * Débloque le premium :
  * - method=kage_coins : débite 500 Kage Coins
- * - method=stub : admin/dev sans paiement (Stripe checkout reporté)
+ * - method=stripe : Checkout Session (5€) si clés présentes ; stub fallback en dev
+ * - method=stub : admin/dev sans paiement
  */
 export async function unlockPremium(userId, { method = 'stub', isAdmin = false } = {}) {
   const season = await getActiveSeason();
@@ -403,12 +404,38 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
     throw httpError(409, 'Battle Pass Premium déjà actif.');
   }
 
-  const mode = method === 'kage_coins' ? 'kage_coins' : 'stub';
+  let mode = 'stub';
+  if (method === 'kage_coins') mode = 'kage_coins';
+  else if (method === 'stripe') mode = 'stripe';
+
+  if (mode === 'stripe') {
+    const {
+      isStripeConfigured,
+      createBattlePassCheckoutSession,
+      isShopStripeDevFallbackAllowed,
+    } = await import('./shopStripeService.js');
+
+    if (isStripeConfigured()) {
+      return createBattlePassCheckoutSession(userId);
+    }
+
+    const allowStubFallback =
+      isAdmin ||
+      process.env.BATTLE_PASS_STUB_UNLOCK === 'true' ||
+      isShopStripeDevFallbackAllowed();
+    if (!allowStubFallback) {
+      throw httpError(
+        503,
+        'Paiement Stripe indisponible — STRIPE_SECRET_KEY non configuré.',
+      );
+    }
+    mode = 'stub';
+  }
 
   if (mode === 'stub' && !isAdmin && process.env.BATTLE_PASS_STUB_UNLOCK !== 'true') {
     throw httpError(
       403,
-      'Unlock stub réservé admin/dev (BATTLE_PASS_STUB_UNLOCK=true ou compte admin). Stripe checkout à venir.',
+      'Unlock stub réservé admin/dev (BATTLE_PASS_STUB_UNLOCK=true ou compte admin). Utilisez method=stripe ou kage_coins.',
     );
   }
 
@@ -455,7 +482,7 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
     method: mode,
     note:
       mode === 'stub'
-        ? 'Premium débloqué via stub admin/dev. Intégration Stripe Checkout prévue (réutiliser eliteStripeService patterns).'
+        ? 'Premium débloqué via stub admin/dev. Stripe Checkout actif si STRIPE_SECRET_KEY est défini.'
         : `Premium débloqué pour ${PREMIUM_COST_KAGE_COINS} Kage Coins.`,
   };
 }

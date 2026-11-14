@@ -15,6 +15,11 @@ export const useShopStore = defineStore('shop', () => {
   const loadout = ref({ avatarFrameKey: null, cardBackKey: null, titleKey: null })
   const battlePassOffer = ref(null)
   const coinMeta = ref(null)
+  const payments = ref({
+    stripeEnabled: false,
+    coinStubEnabled: false,
+    battlePassStubEnabled: false,
+  })
 
   const loading = ref(false)
   const opening = ref(false)
@@ -33,6 +38,15 @@ export const useShopStore = defineStore('shop', () => {
 
   function applyBalances(next) {
     if (next) balances.value = next
+  }
+
+  function applyPayments(next) {
+    if (!next || typeof next !== 'object') return
+    payments.value = {
+      stripeEnabled: Boolean(next.stripeEnabled),
+      coinStubEnabled: Boolean(next.coinStubEnabled),
+      battlePassStubEnabled: Boolean(next.battlePassStubEnabled),
+    }
   }
 
   async function fetchBoosters() {
@@ -63,6 +77,7 @@ export const useShopStore = defineStore('shop', () => {
       if (!ok) throw new Error(await readApiError(res, body))
       coinPacks.value = body.packs || []
       applyBalances(body.balances)
+      applyPayments(body.payments)
       coinMeta.value = body.meta || null
       return body
     } catch (e) {
@@ -101,6 +116,7 @@ export const useShopStore = defineStore('shop', () => {
       if (!ok) throw new Error(await readApiError(res, body))
       battlePassOffer.value = body
       applyBalances(body.balances)
+      applyPayments(body.payments)
       return body
     } catch (e) {
       error.value = e.message
@@ -145,7 +161,7 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
-  async function purchaseCoinPack(packId, method = 'stub') {
+  async function purchaseCoinPack(packId, method = 'stripe') {
     purchasing.value = true
     error.value = null
     lastMessage.value = null
@@ -161,6 +177,10 @@ export const useShopStore = defineStore('shop', () => {
       )
       const { ok, body } = await parseApiResponse(res)
       if (!ok) throw new Error(await readApiError(res, body))
+      if (body.mode === 'stripe_checkout' && body.url) {
+        window.location.href = body.url
+        return body
+      }
       applyBalances(body.balances)
       lastMessage.value = body.note || null
       return body
@@ -237,9 +257,45 @@ export const useShopStore = defineStore('shop', () => {
       })
       const { ok, body } = await parseApiResponse(res)
       if (!ok) throw new Error(await readApiError(res, body))
+      if (body.mode === 'stripe_checkout' && body.url) {
+        window.location.href = body.url
+        return body
+      }
       if (body.offer) battlePassOffer.value = body.offer
       applyBalances(body.offer?.balances || body.balances)
+      applyPayments(body.offer?.payments)
       lastMessage.value = body.note || null
+      return body
+    } catch (e) {
+      error.value = e.message
+      throw e
+    } finally {
+      purchasing.value = false
+    }
+  }
+
+  async function confirmCheckout(sessionId) {
+    if (!sessionId) return null
+    purchasing.value = true
+    error.value = null
+    lastMessage.value = null
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/shop/checkout/confirm?session_id=${encodeURIComponent(sessionId)}`,
+        { credentials: 'include' },
+      )
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      applyBalances(body.balances)
+      if (body.fulfilled) {
+        lastMessage.value =
+          body.product === 'battle_pass_premium'
+            ? 'Battle Pass Premium unlocked.'
+            : body.coinsGranted
+              ? `+${body.coinsGranted} Kage Coins credited.`
+              : 'Payment confirmed.'
+      }
+      await loadTab(activeTab.value)
       return body
     } catch (e) {
       error.value = e.message
@@ -275,6 +331,7 @@ export const useShopStore = defineStore('shop', () => {
     loadout,
     battlePassOffer,
     coinMeta,
+    payments,
     loading,
     opening,
     purchasing,
@@ -293,6 +350,7 @@ export const useShopStore = defineStore('shop', () => {
     purchaseCosmetic,
     equipCosmetic,
     unlockBattlePass,
+    confirmCheckout,
     clearResult,
     clearMessage,
     setSelectedElement,

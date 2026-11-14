@@ -219,8 +219,10 @@ export function getCoinPack(packId) {
 }
 
 /**
- * Achète un pack. MVP : stub (admin / SHOP_COIN_STUB=true / pas de Stripe).
- * Stripe Checkout réel reporté (patterns eliteStripeService).
+ * Achète un pack.
+ * - method=stripe + STRIPE_SECRET_KEY → Checkout Session
+ * - method=stripe sans clé → fallback stub en dev / admin / SHOP_COIN_STUB
+ * - method=stub → admin / SHOP_COIN_STUB
  */
 export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmin = false } = {}) {
   const pack = getCoinPack(packId);
@@ -228,16 +230,30 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
   const totalCoins = pack.coins + pack.bonusCoins;
 
   if (mode === 'stripe') {
-    throw httpError(
-      501,
-      'Stripe Checkout packs Kage Coins non branché — utiliser method=stub (admin/dev, SHOP_COIN_STUB=true).',
-    );
-  }
+    const {
+      isStripeConfigured,
+      createCoinPackCheckoutSession,
+      isShopStripeDevFallbackAllowed,
+    } = await import('./shopStripeService.js');
 
-  if (!isAdmin && process.env.SHOP_COIN_STUB !== 'true') {
+    if (isStripeConfigured()) {
+      return createCoinPackCheckoutSession(userId, packId);
+    }
+
+    const allowStubFallback =
+      isAdmin ||
+      process.env.SHOP_COIN_STUB === 'true' ||
+      isShopStripeDevFallbackAllowed();
+    if (!allowStubFallback) {
+      throw httpError(
+        503,
+        'Paiement Stripe indisponible — STRIPE_SECRET_KEY non configuré.',
+      );
+    }
+  } else if (!isAdmin && process.env.SHOP_COIN_STUB !== 'true') {
     throw httpError(
       403,
-      'Achat stub réservé admin/dev (SHOP_COIN_STUB=true ou compte admin). Stripe Checkout à venir.',
+      'Achat stub réservé admin/dev (SHOP_COIN_STUB=true ou compte admin). Utilisez method=stripe.',
     );
   }
 
@@ -266,7 +282,10 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
     pack: serializeCoinPack(pack),
     coinsGranted: totalCoins,
     method: 'stub',
-    note: 'Pack crédité via stub admin/dev. Intégration Stripe Checkout prévue (réutiliser eliteStripeService).',
+    note:
+      mode === 'stripe'
+        ? 'Pack crédité via stub (fallback dev — Stripe non configuré).'
+        : 'Pack crédité via stub admin/dev. Stripe Checkout actif si STRIPE_SECRET_KEY est défini.',
     balances,
   };
 }
@@ -426,22 +445,32 @@ export async function unequipCosmeticType(userId, cosmeticType) {
 export async function getBattlePassShopOffer(userId) {
   const state = await getBattlePassState(userId);
   const balances = await getSenseiBalances(userId);
+  const { getShopPaymentMeta, BATTLE_PASS_PREMIUM_PRICE_EUR } = await import(
+    './shopStripeService.js'
+  );
+  const payments = getShopPaymentMeta();
 
   if (!state.season) {
     return {
       available: false,
       reason: 'no_active_season',
       premiumCostKageCoins: PREMIUM_COST_KAGE_COINS,
+      premiumPriceEur: BATTLE_PASS_PREMIUM_PRICE_EUR,
       href: '/battle-pass',
+      payments,
       balances,
     };
   }
 
   const season = state.season;
+  const unlockMethods = ['kage_coins', 'stub'];
+  if (payments.stripeEnabled) unlockMethods.push('stripe');
+
   return {
     available: true,
     isPremium: Boolean(state.progress?.isPremium),
     premiumCostKageCoins: PREMIUM_COST_KAGE_COINS,
+    premiumPriceEur: BATTLE_PASS_PREMIUM_PRICE_EUR,
     season: {
       id: season.id,
       seasonNumber: season.seasonNumber,
@@ -449,9 +478,11 @@ export async function getBattlePassShopOffer(userId) {
       theme: season.theme,
     },
     href: '/battle-pass',
-    unlockMethods: ['kage_coins', 'stub'],
-    stripeNote:
-      'Stripe Checkout Battle Pass non branché — unlock via Kage Coins ou stub admin depuis le shop / Battle Pass.',
+    unlockMethods,
+    payments,
+    stripeNote: payments.stripeEnabled
+      ? `Paiement Stripe disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`
+      : 'Stripe non configuré — unlock via Kage Coins ou stub admin/dev.',
     balances,
   };
 }
@@ -461,11 +492,15 @@ export async function getBattlePassShopOffer(userId) {
  */
 export async function unlockBattlePassFromShop(userId, { method = 'kage_coins', isAdmin = false } = {}) {
   const result = await unlockPremium(userId, { method, isAdmin });
+  if (result?.mode === 'stripe_checkout') {
+    return result;
+  }
   const offer = await getBattlePassShopOffer(userId);
   return { ...result, offer };
 }
 
 export async function getShopOverview(userId) {
+  const { getShopPaymentMeta } = await import('./shopStripeService.js');
   const [balances, cosmetics, battlePass] = await Promise.all([
     getSenseiBalances(userId),
     listShopCosmetics(userId),
@@ -477,6 +512,7 @@ export async function getShopOverview(userId) {
     cosmetics: cosmetics.items,
     loadout: cosmetics.loadout,
     battlePass,
+    payments: getShopPaymentMeta(),
   };
 }
 

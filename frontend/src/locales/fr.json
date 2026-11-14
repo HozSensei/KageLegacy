@@ -827,8 +827,10 @@
       "bonus": "+{n} bonus",
       "priceEur": "{n} €",
       "buyStub": "Créditer (stub)",
-      "buyLocked": "Réservé admin / stub",
-      "stubNote": "Achat réel via Stripe à venir. En MVP, un admin (ou SHOP_COIN_STUB) peut créditer un pack."
+      "buyLocked": "Paiement indisponible",
+      "stubNote": "Stripe non configuré. Un admin (ou SHOP_COIN_STUB) peut créditer un pack en stub.",
+      "buyStripe": "Payer {n} €",
+      "stripeNote": "Paiement sécurisé via Stripe Checkout (mode test ou live selon les clés)."
     },
     "cosmetics": {
       "buy": "Acheter",
@@ -852,8 +854,10 @@
       "unlockStub": "Unlock stub (admin)",
       "openPage": "Ouvrir le Battle Pass",
       "unavailableTitle": "Aucune saison active",
-      "unavailableLead": "Revenez quand une saison Battle Pass sera ouverte."
-    }
+      "unavailableLead": "Revenez quand une saison Battle Pass sera ouverte.",
+      "unlockStripe": "Payer {n} € (Stripe)"
+    },
+    "checkoutCanceled": "Paiement annulé."
   },
   "talents": {
     "kicker": "Progression",

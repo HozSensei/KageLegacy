@@ -36,6 +36,9 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 ---
 
 ### 3. 📅 [BATTLE_PASS.md](./BATTLE_PASS.md)
+
+### 3b. 💳 [STRIPE_V2.md](./STRIPE_V2.md)
+Paiements Checkout (Kage Coins + Battle Pass Premium) — env vars, webhook, mode test.
 **Système de Saison**
 
 - Structure d'une saison (2 mois)
