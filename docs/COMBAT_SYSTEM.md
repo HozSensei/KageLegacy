@@ -248,7 +248,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Exemple** :
 ```javascript
 {
-  name: "Substitution (Kawarimi)",
+  name: "Esquive au leurre",
   type: "defense",
   cost: 1,
   block: 8,
@@ -270,7 +270,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Exemple** :
 ```javascript
 {
-  name: "Paume mystique",
+  name: "Paume apaisante",
   type: "skill",
   cost: 2,
   heal: 15,
@@ -477,7 +477,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
 
 ```javascript
 {
-  name: "Gaara du Désert",
+  name: "Seigneur des Dunes",
   hp: 280,
   phases: [
     {
@@ -485,7 +485,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
       pattern: [
         { action: "defend", block: 20 },
         { action: "attack", damage: 15, hits: 2 },
-        { action: "summon", minion: "Sable protecteur" }
+        { action: "summon", minion: "Rempart de sable" }
       ]
     },
     {
@@ -493,7 +493,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
       on_enter: { 
         action: "special", 
         effect: "full_heal_armor",
-        message: "Gaara se transforme !" 
+        message: "Le Seigneur des Dunes se transforme !" 
       },
       pattern: [
         { action: "heavy_attack", damage: 28 },
@@ -544,12 +544,12 @@ Tour 3 : Catalyseur (20 dégâts instantanés !)
 **Cartes clés** :
 - "Combo rapide" (0 Chakra, 3 dégâts + Pioche 1)
 - "Coup de poing" (1 Chakra, 6 dégâts)
-- "8 Portes (1ère)" (3 Chakra, +5 Force pendant 3 tours)
-- "Lotus avant" (2 Chakra, 14 dégâts, Exhaust)
+- "Souffle déchaîné" (3 Chakra, +5 Force pendant 3 tours)
+- "Chute tournoyante" (2 Chakra, 14 dégâts, Exhaust)
 
 **Combo** :
 ```
-Tour 1 : 8 Portes (+5 Force)
+Tour 1 : Souffle déchaîné (+5 Force)
 Tour 2 : Combo × 3 + Poing × 2 = Énorme burst
 ```
 
@@ -559,7 +559,7 @@ Tour 2 : Combo × 3 + Poing × 2 = Énorme burst
 
 **Cartes clés** :
 - "Mur Doton" (2 Chakra, 15 Armure)
-- "Paume mystique" (2 Chakra, 12 Soins + Regen 5)
+- "Paume apaisante" (2 Chakra, 12 Soins + Regen 5)
 - "Riposte" (1 Chakra, 6 Armure + Contre 8 dégâts)
 - "Régénération cellulaire" (3 Chakra, Regen 8 pendant 5 tours)
 

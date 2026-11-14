@@ -163,9 +163,9 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
   }
 }
 
-// Objet : Pilule du Soldat
+// Objet : Pilule fortifiante
 {
-  name_fr: "Pilule du soldat",
+  name_fr: "Pilule fortifiante",
   type: "item",
   cost: 1,
   effects: [
@@ -212,7 +212,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 
 // Évitement
 {
-  name_fr: "Substitution (Kawarimi)",
+  name_fr: "Esquive au leurre",
   type: "defense",
   cost: 1,
   block: 5,
@@ -248,7 +248,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 ```javascript
 // Soin
 {
-  name_fr: "Paume mystique",
+  name_fr: "Paume apaisante",
   type: "skill",
   stat_type: "medicine",
   cost: 2,
@@ -258,7 +258,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 
 // Buff
 {
-  name_fr: "Pilule du soldat",
+  name_fr: "Pilule fortifiante",
   type: "skill",
   cost: 1,
   effects: [
@@ -299,12 +299,12 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 }
 
 {
-  name_fr: "Invoquer Gamabunta",
+  name_fr: "Invoquer le Gardien de jade",
   type: "summon",
   cost: 5,
   rarity: "legendary",
   summon: {
-    name: "Gamabunta",
+    name: "Gardien de jade",
     hp: 40,
     attack: 10,
     abilities: ["taunt", "regen"],
@@ -353,7 +353,7 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
 |--------|-----------|---------|---------|----------|
 | **Commune** | 60% | Gris | Basique | Poing, Garde |
 | **Rare** | 30% | Bleu | Moyen | Boule de feu, Clone |
-| **Légendaire** | 9% | Or | Puissant | Chidori, Gamabunta |
+| **Légendaire** | 9% | Or | Puissant | Éclair perçant, Gardien de jade |
 | **Mythique** | 1% | Violet | Ultra-puissant | Boss signatures, Battle Pass 50 |
 
 ### Caractéristiques par Rareté
