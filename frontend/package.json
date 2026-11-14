@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src --max-warnings 0"
+    "lint": "eslint src --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{js,vue,css,json}\""
   },
   "dependencies": {
     "marked": "^15.0.12",
@@ -23,6 +24,7 @@
     "eslint": "^9.39.4",
     "eslint-plugin-vue": "^10.9.2",
     "globals": "^17.7.0",
+    "prettier": "^3.2.5",
     "tailwindcss": "^4.3.2",
     "vite": "^8.1.1",
     "vue-eslint-parser": "^10.4.1"
