@@ -19,12 +19,12 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const DEFAULT_CLANS = [
   { name: 'Roturier', intelligence_bonus: 0, speed_bonus: 0, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: false },
-  { name: 'Nara', intelligence_bonus: 4, speed_bonus: -2, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: true },
-  { name: 'Uchiwa', intelligence_bonus: 0, speed_bonus: 0, genjutsu_bonus: 3, ninjutsu_bonus: 3, moral_variance: 4, is_noble: true },
-  { name: 'Hyuga', intelligence_bonus: 2, speed_bonus: 2, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: true },
-  { name: 'Sarutobi', intelligence_bonus: 1, speed_bonus: 1, genjutsu_bonus: 1, ninjutsu_bonus: 1, moral_variance: 0, is_noble: false },
-  { name: 'Akimichi', intelligence_bonus: 0, speed_bonus: -1, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: false },
-  { name: 'Yamanaka', intelligence_bonus: 3, speed_bonus: 0, genjutsu_bonus: 2, ninjutsu_bonus: 0, moral_variance: 0, is_noble: false },
+  { name: 'Shizumori', intelligence_bonus: 4, speed_bonus: -2, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: true },
+  { name: 'Benigiri', intelligence_bonus: 0, speed_bonus: 0, genjutsu_bonus: 3, ninjutsu_bonus: 3, moral_variance: 4, is_noble: true },
+  { name: 'Kazamine', intelligence_bonus: 2, speed_bonus: 2, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: true },
+  { name: 'Nagihara', intelligence_bonus: 1, speed_bonus: 1, genjutsu_bonus: 1, ninjutsu_bonus: 1, moral_variance: 0, is_noble: false },
+  { name: 'Kumatani', intelligence_bonus: 0, speed_bonus: -1, genjutsu_bonus: 0, ninjutsu_bonus: 0, moral_variance: 0, is_noble: false },
+  { name: 'Yukisawa', intelligence_bonus: 3, speed_bonus: 0, genjutsu_bonus: 2, ninjutsu_bonus: 0, moral_variance: 0, is_noble: false },
 ];
 
 async function seed() {
@@ -37,7 +37,7 @@ async function seed() {
   if (!user) {
     user = await createDemoUser({
       username: 'demo_sensei',
-      senseiName: 'Kakashi',
+      senseiName: 'Renjiro',
       language: 'fr',
     });
     console.log('✅ Utilisateur démo créé');

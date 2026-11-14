@@ -2,12 +2,12 @@ import { pickClanForRecruitment, partitionClans } from '../src/services/clanRecr
 
 const clans = [
   { name: 'Roturier', is_noble: false },
-  { name: 'Nara', is_noble: true },
-  { name: 'Uchiwa', is_noble: true },
-  { name: 'Hyuga', is_noble: true },
-  { name: 'Sarutobi', is_noble: false },
-  { name: 'Akimichi', is_noble: false },
-  { name: 'Yamanaka', is_noble: false },
+  { name: 'Shizumori', is_noble: true },
+  { name: 'Benigiri', is_noble: true },
+  { name: 'Kazamine', is_noble: true },
+  { name: 'Nagihara', is_noble: false },
+  { name: 'Kumatani', is_noble: false },
+  { name: 'Yukisawa', is_noble: false },
 ];
 
 const counts = { roturier: 0, noble: 0, common: 0 };

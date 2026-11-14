@@ -11,41 +11,41 @@ import {
 } from '../src/services/ninjaNameGenerator.js';
 import { generateNinjaProfile } from '../src/services/ninjaGenerator.js';
 
-assert.equal(formatNinjaDisplayName('Ren Uchiwa'), 'Ren — Uchiwa');
+assert.equal(formatNinjaDisplayName('Ren Benigiri'), 'Ren — Benigiri');
 
-const roster = [{ name: 'Ren Uchiwa' }];
+const roster = [{ name: 'Ren Benigiri' }];
 assert.throws(
-  () => assertUniqueAmongRoster('Ren Uchiwa', roster),
+  () => assertUniqueAmongRoster('Ren Benigiri', roster),
   /fait déjà partie/
 );
 
-const uchiwaClan = { name: 'Uchiwa', is_noble: true };
+const nobleClan = { name: 'Benigiri', is_noble: true };
 const globalEmpty = new Set();
 const nobleName = pickUniqueCivName({
-  clan: uchiwaClan,
+  clan: nobleClan,
   globalForbiddenKeys: globalEmpty,
 });
-assert.ok(nobleName.endsWith(' Uchiwa'), `noble name should end with clan: ${nobleName}`);
+assert.ok(nobleName.endsWith(' Benigiri'), `noble name should end with clan: ${nobleName}`);
 
 const globalTaken = new Set([ninjaIdentityKey(nobleName)]);
 const nobleName2 = pickUniqueCivName({
-  clan: uchiwaClan,
+  clan: nobleClan,
   globalForbiddenKeys: globalTaken,
 });
 assert.notEqual(nobleName2, nobleName);
 
-const saturatedGlobal = enumerateAllIdentityKeysForClan(uchiwaClan);
-assert.equal(hasRemainingGlobalNames(saturatedGlobal, uchiwaClan), false);
+const saturatedGlobal = enumerateAllIdentityKeysForClan(nobleClan);
+assert.equal(hasRemainingGlobalNames(saturatedGlobal, nobleClan), false);
 
 const fallbackName = pickUniqueCivName({
-  clan: uchiwaClan,
+  clan: nobleClan,
   globalForbiddenKeys: saturatedGlobal,
 });
-assert.ok(fallbackName.endsWith(' Uchiwa'), 'fallback allows global duplicate when pool saturated');
+assert.ok(fallbackName.endsWith(' Benigiri'), 'fallback allows global duplicate when pool saturated');
 
 const mockClan = {
   id: 1,
-  name: 'Yamanaka',
+  name: 'Yukisawa',
   is_noble: false,
   genjutsu_bonus: 2,
   intelligence_bonus: 3,
@@ -59,6 +59,6 @@ const profile = await generateNinjaProfile({
   characterTrait: 'Brute',
   forbiddenGlobalKeys: globalEmpty,
 });
-assert.ok(profile.name.endsWith(' Yamanaka'), `profile uses clan surname: ${profile.name}`);
+assert.ok(profile.name.endsWith(' Yukisawa'), `profile uses clan surname: ${profile.name}`);
 
 console.log('ninjaNaming: OK');
