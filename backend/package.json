@@ -14,6 +14,7 @@
     "db:seed-talents": "node scripts/seedTalentTree.js",
     "test:card-system": "node scripts/testCardSystem.js",
     "test:talent-tree": "node scripts/testTalentTree.js",
+    "test:combat-engine": "node scripts/testCombatEngine.js",
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
     "clock:set-start": "node scripts/setCycleStart.js",

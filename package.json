@@ -19,6 +19,7 @@
     "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
     "format": "npm run format --prefix backend && npm run format --prefix frontend",
     "test:unit": "npm run audit:imports --prefix backend && npm run test:daily-seal --prefix backend && npm run test:pool-schedule --prefix backend && npm run test:narrative --prefix backend && npm run test:causal-debrief --prefix backend",
+    "test:combat-engine": "npm run test:combat-engine --prefix backend",
     "e2e:prepare": "npm run db:migrate && npm run db:seed && npm run e2e:ensure-player --prefix backend",
     "test:e2e": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress run\"",
     "test:e2e:open": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress open\"",
