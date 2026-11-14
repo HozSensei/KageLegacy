@@ -5,6 +5,7 @@ import EnemyDisplay from './EnemyDisplay.vue'
 import PlayerStatus from './PlayerStatus.vue'
 import CombatHand from './CombatHand.vue'
 import CombatLog from './CombatLog.vue'
+import VictoryRewards from './VictoryRewards.vue'
 
 defineOptions({ name: 'CombatArena' })
 
@@ -21,16 +22,14 @@ const emit = defineEmits([
   'end-turn',
   'discard-chakra',
   'forfeit',
+  'dismiss-outcome',
 ])
 
 const { t } = useI18n()
 
-const outcomeKey = computed(() => {
-  if (props.combat.state === 'victory') return 'combat.victory'
-  if (props.combat.state === 'defeat') return 'combat.defeat'
-  if (props.combat.state === 'forfeited') return 'combat.forfeited'
-  return null
-})
+const isOver = computed(() =>
+  ['victory', 'defeat', 'forfeited'].includes(props.combat.state)
+)
 
 const canAct = computed(
   () => props.combat.currentPhase === 'player_turn' && props.combat.state === 'in_progress'
@@ -56,9 +55,13 @@ const canAct = computed(
       </button>
     </header>
 
-    <div v-if="outcomeKey" class="arena__banner" :class="`arena__banner--${combat.state}`">
-      {{ t(outcomeKey) }}
-    </div>
+    <VictoryRewards
+      v-if="isOver"
+      class="arena__rewards"
+      :state="combat.state"
+      :rewards="combat.rewards"
+      @dismiss="emit('dismiss-outcome')"
+    />
 
     <section class="arena__enemy">
       <EnemyDisplay :enemy="combat.enemy" />
@@ -154,24 +157,10 @@ const canAct = computed(
   font-size: 0.8rem;
 }
 
-.arena__banner {
-  text-align: center;
-  padding: 0.85rem 1rem;
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
-  animation: banner-in 0.45s ease;
-}
-
-.arena__banner--victory {
-  color: var(--color-win);
-  border-color: color-mix(in srgb, var(--color-win) 40%, transparent);
-}
-
-.arena__banner--defeat,
-.arena__banner--forfeited {
-  color: var(--color-fire);
-  border-color: color-mix(in srgb, var(--color-fire) 40%, transparent);
+.arena__rewards {
+  margin: 0.25rem auto;
+  max-width: 28rem;
+  width: 100%;
 }
 
 .arena__enemy {
@@ -217,14 +206,4 @@ const canAct = computed(
   margin-top: 0.85rem;
 }
 
-@keyframes banner-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 </style>

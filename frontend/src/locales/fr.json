@@ -825,12 +825,19 @@
     "backToMissions": "Retour aux missions",
     "missionsKicker": "Opérations",
     "missionsTitle": "Missions de combat",
-    "missionsLead": "Choisissez une mission stub pour tester le moteur tour par tour. Sans deck valide, un jeu d’entraînement est fourni.",
+    "missionsLead": "Missions Rang D à A. Victoire : XP, Ryos, chance de carte. Sans deck valide, un jeu d’entraînement est fourni.",
     "activeDeck": "Deck actif",
     "practiceDeckHint": "Deck d’entraînement (aucune collection)",
     "startMission": "Engager le combat",
     "starting": "Lancement…",
     "rewards": "+{xp} XP · {ryos} Ryos",
+    "rewardXp": "+{n} XP",
+    "rewardRyos": "+{n} Ryos",
+    "rewardLevel": "Niveau +{n} · +{talent} point(s) de talent",
+    "rewardCard": "Carte obtenue : {name}",
+    "rewardNoCard": "Pas de carte cette fois",
+    "rewardError": "Récompenses indisponibles",
+    "rewardPending": "Calcul des récompenses…",
     "quickFight": "Duel rapide",
     "quickFightLead": "Lancez un ennemi directement, sans mission.",
     "turn": "Tour {n}",
@@ -886,7 +893,10 @@
       "forfeited": "Abandon",
       "intent": "Nouvelle intention ennemie",
       "discardChakra": "Carte défaussée → +1 Chakra",
-      "talent": "Talent : {effect}"
+      "talent": "Talent : {effect}",
+      "summon": "Invocation : {name}",
+      "allyAttack": "{name} inflige {n} dégâts",
+      "rewards": "Récompenses accordées"
     }
   },
   "player": {

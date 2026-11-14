@@ -100,6 +100,7 @@ function backToMissions() {
       @end-turn="onEndTurn"
       @discard-chakra="onDiscardChakra"
       @forfeit="onForfeit"
+      @dismiss-outcome="backToMissions"
     />
   </div>
 </template>

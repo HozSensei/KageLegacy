@@ -85,13 +85,16 @@ function scaleIntent(intent, enemy) {
 
 /**
  * Exécute l'intention courante de l'ennemi, puis tire la suivante.
+ * @param {object} [opts]
+ * @param {string[]} [opts.talentCodes] — keystones joueur (ex. intangible)
  * @returns {{ enemy, player, logs }}
  */
-export function executeEnemyIntent(enemy, player, rng = Math.random) {
+export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) {
   const logs = [];
   let nextEnemy = { ...enemy, statuses: [...(enemy.statuses || [])] };
   let nextPlayer = { ...player, statuses: [...(player.statuses || [])] };
   const intent = nextEnemy.intent || { type: 'attack', damage: 6 };
+  const talentCodes = new Set(opts.talentCodes || []);
 
   if (intent.type === 'attack') {
     let damage =
@@ -105,17 +108,38 @@ export function executeEnemyIntent(enemy, player, rng = Math.random) {
       nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'evade');
     } else {
       if (hasStatus(nextPlayer.statuses, 'vulnerable')) damage = Math.round(damage * 1.5);
-      if (hasStatus(nextPlayer.statuses, 'intangible')) damage = 1;
+      if (hasStatus(nextPlayer.statuses, 'intangible') || talentCodes.has('intangible')) {
+        damage = 1;
+      }
 
-      const result = applyDamageThroughBlock(nextPlayer, damage);
-      nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
-      logs.push({
-        type: 'damage',
-        source: 'enemy',
-        amount: result.damageDealt,
-        playerHp: nextPlayer.hp,
-        playerBlock: nextPlayer.block,
-      });
+      // Allié avec taunt absorbe avant le joueur
+      if (nextPlayer.ally && nextPlayer.ally.taunt && (nextPlayer.ally.hp || 0) > 0) {
+        const allyHp = Math.max(0, (Number(nextPlayer.ally.hp) || 0) - damage);
+        const overflow = Math.max(0, damage - (Number(nextPlayer.ally.hp) || 0));
+        nextPlayer = {
+          ...nextPlayer,
+          ally: allyHp > 0 ? { ...nextPlayer.ally, hp: allyHp } : null,
+        };
+        logs.push({
+          type: 'ally_damage',
+          amount: damage - overflow,
+          allyHp: allyHp > 0 ? allyHp : 0,
+          fallen: allyHp <= 0,
+        });
+        damage = overflow;
+      }
+
+      if (damage > 0) {
+        const result = applyDamageThroughBlock(nextPlayer, damage);
+        nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
+        logs.push({
+          type: 'damage',
+          source: 'enemy',
+          amount: result.damageDealt,
+          playerHp: nextPlayer.hp,
+          playerBlock: nextPlayer.block,
+        });
+      }
 
       // Contre-attaque
       const counter = getStatusValue(nextPlayer.statuses, 'counter');

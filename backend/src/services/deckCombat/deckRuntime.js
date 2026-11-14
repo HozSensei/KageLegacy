@@ -220,9 +220,37 @@ export const PRACTICE_DECK_CARDS = [
     descriptionFr: 'Piochez 1 carte.',
     descriptionEn: 'Draw 1 card.',
   },
+  {
+    id: 'practice-clone',
+    slug: 'practice-clone',
+    nameFr: 'Clone de combat',
+    nameEn: 'Combat Clone',
+    type: 'summon',
+    statType: 'ninjutsu',
+    element: null,
+    rarity: 'uncommon',
+    cost: 2,
+    damage: 0,
+    block: 0,
+    heal: 0,
+    effects: [],
+    summon: {
+      nameFr: 'Clone',
+      nameEn: 'Clone',
+      hp: 18,
+      attack: 5,
+      taunt: true,
+    },
+    exhaust: true,
+    descriptionFr: 'Invoque un Clone (18 PV, 5 ATK, Taunt).',
+    descriptionEn: 'Summon a Clone (18 HP, 5 ATK, Taunt).',
+  },
 ];
 
-/** 20 cartes = 4 copies de chaque pratique (taille min deck). */
+/** Deck d'entraînement : 4× des 6 cartes de base + 2 clones. */
 export function buildPracticeDeckEntries() {
-  return PRACTICE_DECK_CARDS.map((card) => ({ quantity: 4, card }));
+  return PRACTICE_DECK_CARDS.map((card) => ({
+    quantity: card.type === 'summon' ? 2 : 4,
+    card,
+  }));
 }

@@ -29,17 +29,22 @@ import {
   computeCardDamage,
   computeCardBlock,
   applyCardPlay,
+  resolveAllyAttack,
 } from '../src/services/deckCombat/cardEffects.js';
 import {
   applyTalentStartOfTurn,
+  applyTalentAfterCardPlay,
+  applyTalentAfterDamageTaken,
   classifyTalentEffects,
   computeTalentDamageMods,
+  applyIncomingTalentCap,
 } from '../src/services/deckCombat/talentEffects.js';
 import {
   generateEnemyFromTemplate,
   getNextIntent,
   executeEnemyIntent,
 } from '../src/services/combatAIService.js';
+import { listEnemyTemplates } from '../src/services/deckCombat/enemyTemplates.js';
 import { BASE_CHAKRA, DRAW_PER_TURN } from '../src/services/deckCombat/constants.js';
 
 let passed = 0;
@@ -99,7 +104,8 @@ assert(tickStatuses([{ key: 'force', value: 2, duration: 1 }]).length === 0, 'du
 console.log('\n=== Deck runtime ===');
 const entries = buildPracticeDeckEntries();
 const pile = buildRuntimeDeck(entries);
-assert(pile.length === 24, `practice deck size 24 (got ${pile.length})`);
+assert(pile.length === 26, `practice deck size 26 (got ${pile.length})`);
+assert(pile.some((c) => c.type === 'summon'), 'practice deck includes summon');
 const fixedRng = (() => {
   let i = 0;
   const seq = [0.1, 0.7, 0.3, 0.9, 0.2, 0.5, 0.4, 0.8, 0.6, 0.15];
@@ -121,7 +127,7 @@ let player = {
 };
 const drawn = drawCards(player, DRAW_PER_TURN, fixedRng);
 assert(drawn.player.hand.length === 5, 'draw 5');
-assert(drawn.player.drawPile.length === 19, 'draw pile reduced');
+assert(drawn.player.drawPile.length === 21, 'draw pile reduced');
 
 const moved = moveCardFromHand(drawn.player, drawn.player.hand[0].instanceId, 'discard');
 assert(moved.player.hand.length === 4 && moved.player.discardPile.length === 1, 'discard from hand');
@@ -172,23 +178,99 @@ const play = applyCardPlay({
 });
 assert(play.player.chakra === 2, 'chakra spent');
 assert(play.enemy.hp < 40, 'enemy took damage');
-// tai vs gen = 1.2 → 9 * 1.2 = 10.8 → 11
 assert(play.enemy.hp === 29, `tai advantage damage (got hp ${play.enemy.hp})`);
 
+console.log('\n=== Summon ===');
+const summonCard = {
+  slug: 'test-clone',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Clone', nameEn: 'Clone', hp: 20, attack: 6, taunt: true },
+};
+p = { ...p, chakra: 3, ally: null };
+const summoned = applyCardPlay({
+  player: p,
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: summonCard,
+  stats: {},
+});
+assert(summoned.player.ally?.hp === 20 && summoned.player.ally.attack === 6, 'ally summoned');
+const allyHit = resolveAllyAttack(summoned.player, { hp: 40, maxHp: 40, block: 0 });
+assert(allyHit.enemy.hp === 34, 'ally auto-attacks for 6');
+
 console.log('\n=== Talent effects ===');
-const classified = classifyTalentEffects(['iron_guard', 'berserker', 'combo_master']);
+const classified = classifyTalentEffects([
+  'iron_guard',
+  'berserker',
+  'combo_master',
+  'immortal',
+  'illusion_master',
+]);
 assert(classified.applied.includes('iron_guard'), 'iron_guard applied');
-assert(classified.stubbed.includes('combo_master'), 'combo_master stubbed');
-const tStart = applyTalentStartOfTurn({ hp: 50, maxHp: 100, block: 0 }, ['iron_guard', 'boosted_regen']);
-assert(tStart.player.block === 3 && tStart.player.hp === 53, 'talent start effects');
+assert(classified.applied.includes('combo_master'), 'combo_master applied');
+assert(classified.applied.includes('immortal'), 'immortal applied');
+assert(classified.stubbed.includes('illusion_master'), 'illusion_master stubbed');
+
+const tStart = applyTalentStartOfTurn(
+  { hp: 50, maxHp: 100, block: 0 },
+  ['iron_guard', 'boosted_regen', 'immortal'],
+);
+assert(tStart.player.block === 3, 'iron_guard block');
+assert(tStart.player.hp === 55, 'boosted_regen +3 and immortal +2% (2)');
+
 const mods = computeTalentDamageMods(['berserker'], { hp: 40, maxHp: 100 });
 assert(mods.damageMult === 1.25, 'berserker low hp');
 
-console.log('\n=== Enemy AI ===');
+const immortalMods = computeTalentDamageMods(['immortal'], { hp: 100, maxHp: 100 });
+assert(immortalMods.damageMult === 0.5, 'immortal halves damage');
+
+const overloadMods = computeTalentDamageMods(
+  ['overload'],
+  { hp: 100, maxHp: 100 },
+  { statType: 'ninjutsu', cost: 2, damage: 10 },
+);
+assert(overloadMods.costDelta === 1 && overloadMods.damageMult === 2, 'overload nin cost+dmg');
+
+const intangibleMods = computeTalentDamageMods(['intangible'], { hp: 100, maxHp: 100 });
+assert(intangibleMods.denyAttack && intangibleMods.incomingDamageCap === 1, 'intangible keystone');
+assert(applyIncomingTalentCap(18, ['intangible']) === 1, 'incoming cap 1');
+
+const bladeMods = computeTalentDamageMods(
+  ['blade_swift'],
+  { hp: 100, maxHp: 100 },
+  { statType: 'taijutsu', cost: 1, damage: 6 },
+);
+assert(bladeMods.damageFlat === 3, 'blade_swift +3 flat');
+
+let comboPlayer = { hp: 100, maxHp: 100, statuses: [], taijutsuPlayedThisTurn: 0 };
+for (let i = 0; i < 3; i += 1) {
+  const r = applyTalentAfterCardPlay(
+    comboPlayer,
+    { statType: 'taijutsu', cost: 1 },
+    ['combo_master'],
+  );
+  comboPlayer = r.player;
+}
+assert(
+  (comboPlayer.statuses || []).some((s) => s.key === 'force' && s.value === 2),
+  'combo_master grants force at 3 tai',
+);
+
+const tanked = applyTalentAfterDamageTaken(
+  { hp: 20, maxHp: 100, block: 0, perfectTankUsed: false },
+  ['perfect_tank'],
+);
+assert(tanked.player.block === 5 && tanked.player.perfectTankUsed, 'perfect_tank triggers');
+
+console.log('\n=== Enemy catalog ===');
+const catalog = listEnemyTemplates();
+assert(catalog.length >= 10, `≥10 enemy templates (got ${catalog.length})`);
 const enemy = generateEnemyFromTemplate('ronin_bandit', 1);
 assert(enemy.hp === 42 && enemy.intent, 'ronin spawned with intent');
 const captain = generateEnemyFromTemplate('ashen_captain');
 assert(captain.ai === 'pattern', 'captain uses pattern AI');
+const dusk = generateEnemyFromTemplate('duskblade_ronin');
+assert(dusk.hp === 140, 'duskblade A-rank hp');
 const i1 = getNextIntent({ ...captain, patternIndex: 0 });
 const i2 = getNextIntent({ ...captain, patternIndex: 1 });
 const i3 = getNextIntent({ ...captain, patternIndex: 2 });
@@ -207,6 +289,15 @@ const defendFoe = {
 };
 const defResolved = executeEnemyIntent(defendFoe, hero, () => 0.5);
 assert(defResolved.enemy.block === 8, 'enemy gains block');
+
+const intangibleHero = { hp: 100, maxHp: 100, block: 0, statuses: [] };
+const vsIntangible = executeEnemyIntent(
+  { ...enemy, intent: { type: 'attack', damage: 20 } },
+  intangibleHero,
+  () => 0.99,
+  { talentCodes: ['intangible'] },
+);
+assert(vsIntangible.player.hp === 99, 'keystone intangible caps enemy damage to 1');
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);

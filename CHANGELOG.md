@@ -7,6 +7,15 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Phase 4 polish — Combat (2026-11-14)
+
+#### Added
+- **Récompenses de victoire** : XP (+ talent points via level-up), Ryos, chance de carte collection ; hook Battle Pass stub commenté
+- **Missions** : 11 missions Rang D→A, 11 templates ennemis originaux (`105_combat_missions_expand.sql`)
+- **Keystones / notables** branchés : immortal, overload, intangible, combo_master, blade_swift, elemental_mastery, elemental_fusion, shadow_feint, perfect_tank (+ MVP existants)
+- **Summons MVP** : allié unique, auto-attaque début de tour, taunt optionnel
+- **UI** : écran `VictoryRewards` (XP / Ryos / carte / level-up)
+
 ### Phase 1 - Personnage unique (2026-11-14)
 
 #### Added

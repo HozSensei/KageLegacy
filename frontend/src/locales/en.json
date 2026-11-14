@@ -825,12 +825,19 @@
     "backToMissions": "Back to missions",
     "missionsKicker": "Operations",
     "missionsTitle": "Combat missions",
-    "missionsLead": "Pick a stub mission to test the turn-based engine. Without a valid deck, a training set is provided.",
+    "missionsLead": "Rank D to A missions. Victory: XP, Ryos, card chance. Without a valid deck, a training set is provided.",
     "activeDeck": "Active deck",
     "practiceDeckHint": "Training deck (no collection)",
     "startMission": "Start combat",
     "starting": "Starting…",
     "rewards": "+{xp} XP · {ryos} Ryos",
+    "rewardXp": "+{n} XP",
+    "rewardRyos": "+{n} Ryos",
+    "rewardLevel": "Level +{n} · +{talent} talent point(s)",
+    "rewardCard": "Card obtained: {name}",
+    "rewardNoCard": "No card this time",
+    "rewardError": "Rewards unavailable",
+    "rewardPending": "Calculating rewards…",
     "quickFight": "Quick duel",
     "quickFightLead": "Fight an enemy directly, no mission required.",
     "turn": "Turn {n}",
@@ -886,7 +893,10 @@
       "forfeited": "Forfeited",
       "intent": "New enemy intent",
       "discardChakra": "Card discarded → +1 Chakra",
-      "talent": "Talent: {effect}"
+      "talent": "Talent: {effect}",
+      "summon": "Summon: {name}",
+      "allyAttack": "{name} deals {n} damage",
+      "rewards": "Rewards granted"
     }
   },
   "player": {

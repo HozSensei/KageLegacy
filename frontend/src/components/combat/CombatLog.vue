@@ -46,6 +46,12 @@ function formatLog(log) {
       return t('combat.log.discardChakra')
     case 'talent':
       return t('combat.log.talent', { effect: log.effect })
+    case 'summon':
+      return t('combat.log.summon', { name: log.name })
+    case 'ally_attack':
+      return t('combat.log.allyAttack', { name: log.name, n: log.amount })
+    case 'rewards':
+      return t('combat.log.rewards')
     default:
       return log.type
   }

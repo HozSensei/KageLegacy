@@ -35,7 +35,13 @@ export function computeCardDamage(card, ctx) {
     rng = Math.random,
   } = ctx;
 
+  if (talentMods.denyAttack) {
+    return { perHit: 0, hits: 0, total: 0, isCrit: false, chance: 0, denied: true };
+  }
+
   let base = Number(card.damage) || 0;
+  base += Number(talentMods.damageFlat) || 0;
+
   const hitsEffect = (card.effects || []).find((e) => e.type === 'multi_strike');
   const hits = hitsEffect ? Math.max(1, Number(hitsEffect.hits) || 1) : 1;
 
@@ -63,7 +69,6 @@ export function computeCardDamage(card, ctx) {
   const crit = rollCrit(stats.vitesse, rng);
   if (crit.isCrit) perHit = Math.round(perHit * crit.mult);
 
-  // Vulnerable is applied on incoming side
   let incomingMult = 1;
   if (hasStatus(enemyStatuses, 'vulnerable')) incomingMult *= 1.5;
   if (hasStatus(enemyStatuses, 'intangible')) {
@@ -74,14 +79,17 @@ export function computeCardDamage(card, ctx) {
   return { perHit, hits, total: perHit * hits, isCrit: crit.isCrit, chance: crit.chance };
 }
 
-export function computeCardBlock(card, stats, playerStatuses = []) {
+export function computeCardBlock(card, stats, playerStatuses = [], talentMods = {}) {
+  if (talentMods.blockAllowed === false) return 0;
   let block = scaleBlock(Number(card.block) || 0, stats.medicine);
   block += getStatusValue(playerStatuses, 'dexterity');
   return Math.max(0, block);
 }
 
-export function computeCardHeal(card, stats) {
-  return scaleHeal(Number(card.heal) || 0, stats.medicine);
+export function computeCardHeal(card, stats, talentMods = {}) {
+  const base = scaleHeal(Number(card.heal) || 0, stats.medicine);
+  const mult = Number(talentMods.healMult) || 1;
+  return Math.round(base * mult);
 }
 
 /**
@@ -92,7 +100,9 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
   const logs = [];
   let nextPlayer = { ...player, statuses: [...(player.statuses || [])] };
   let nextEnemy = { ...enemy, statuses: [...(enemy.statuses || [])] };
-  const cost = Number(card.cost) || 0;
+
+  const baseCost = Number(card.cost) || 0;
+  const cost = Math.max(0, baseCost + (Number(talentMods.costDelta) || 0));
 
   if ((Number(nextPlayer.chakra) || 0) < cost) {
     const err = new Error('Pas assez de Chakra.');
@@ -101,8 +111,32 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
   }
   nextPlayer.chakra = (Number(nextPlayer.chakra) || 0) - cost;
 
+  // Invocation (1 allié max)
+  if (card.type === 'summon' || card.summon) {
+    const def = card.summon || {};
+    const hp = Math.max(1, Number(def.hp) || 20);
+    nextPlayer.ally = {
+      nameFr: def.nameFr || def.name || card.nameFr || 'Allié',
+      nameEn: def.nameEn || def.name || card.nameEn || 'Ally',
+      hp,
+      maxHp: hp,
+      attack: Math.max(0, Number(def.attack) || 6),
+      taunt: Boolean(def.taunt ?? def.ability?.toLowerCase?.().includes('taunt')),
+    };
+    logs.push({
+      type: 'summon',
+      name: nextPlayer.ally.nameFr,
+      hp: nextPlayer.ally.hp,
+      attack: nextPlayer.ally.attack,
+    });
+  }
+
   // Dégâts
-  if ((Number(card.damage) || 0) > 0 || (card.effects || []).some((e) => e.type === 'multi_strike')) {
+  const wantsAttack =
+    (Number(card.damage) || 0) > 0 ||
+    (card.effects || []).some((e) => e.type === 'multi_strike');
+
+  if (wantsAttack) {
     const dmg = computeCardDamage(card, {
       stats,
       playerStatuses: nextPlayer.statuses,
@@ -113,34 +147,42 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
       rng,
     });
 
-    let totalDealt = 0;
-    for (let i = 0; i < dmg.hits; i += 1) {
-      const result = applyDamageThroughBlock(nextEnemy, dmg.perHit);
-      nextEnemy = { ...nextEnemy, hp: result.hp, block: result.block };
-      totalDealt += result.damageDealt;
+    if (dmg.denied) {
+      logs.push({ type: 'attack_denied', reason: 'intangible_keystone', card: card.slug });
+    } else {
+      let totalDealt = 0;
+      for (let i = 0; i < dmg.hits; i += 1) {
+        const result = applyDamageThroughBlock(nextEnemy, dmg.perHit);
+        nextEnemy = { ...nextEnemy, hp: result.hp, block: result.block };
+        totalDealt += result.damageDealt;
+      }
+      logs.push({
+        type: 'damage',
+        source: 'player',
+        card: card.slug,
+        amount: totalDealt,
+        hits: dmg.hits,
+        isCrit: dmg.isCrit,
+        enemyHp: nextEnemy.hp,
+        enemyBlock: nextEnemy.block,
+      });
     }
-    logs.push({
-      type: 'damage',
-      source: 'player',
-      card: card.slug,
-      amount: totalDealt,
-      hits: dmg.hits,
-      isCrit: dmg.isCrit,
-      enemyHp: nextEnemy.hp,
-      enemyBlock: nextEnemy.block,
-    });
   }
 
   // Armure
   if ((Number(card.block) || 0) > 0) {
-    const blockGain = computeCardBlock(card, stats, nextPlayer.statuses);
-    nextPlayer.block = (Number(nextPlayer.block) || 0) + blockGain;
-    logs.push({ type: 'block', source: 'player', amount: blockGain, block: nextPlayer.block });
+    const blockGain = computeCardBlock(card, stats, nextPlayer.statuses, talentMods);
+    if (blockGain > 0) {
+      nextPlayer.block = (Number(nextPlayer.block) || 0) + blockGain;
+      logs.push({ type: 'block', source: 'player', amount: blockGain, block: nextPlayer.block });
+    } else if (talentMods.blockAllowed === false) {
+      logs.push({ type: 'block_denied', reason: 'talent' });
+    }
   }
 
   // Soin
   if ((Number(card.heal) || 0) > 0) {
-    const healAmt = computeCardHeal(card, stats);
+    const healAmt = computeCardHeal(card, stats, talentMods);
     const before = nextPlayer.hp;
     nextPlayer.hp = Math.min(nextPlayer.maxHp, nextPlayer.hp + healAmt);
     logs.push({ type: 'heal', amount: nextPlayer.hp - before, hp: nextPlayer.hp });
@@ -160,10 +202,29 @@ export function applyCardPlay({ player, enemy, card, stats, talentMods = {}, rng
     logs.push(...applied.logs);
   }
 
-  // Counter riposte passive (stockée pour le prochain coup ennemi)
-  // géré via status 'counter' value
-
   return { player: nextPlayer, enemy: nextEnemy, logs, chakraSpent: cost };
+}
+
+/**
+ * Attaque automatique de l'allié invoqué (début de tour joueur).
+ */
+export function resolveAllyAttack(player, enemy) {
+  const logs = [];
+  if (!player.ally || (player.ally.hp || 0) <= 0) {
+    return { player, enemy, logs };
+  }
+  const atk = Number(player.ally.attack) || 0;
+  if (atk <= 0) return { player, enemy, logs };
+
+  const result = applyDamageThroughBlock(enemy, atk);
+  const nextEnemy = { ...enemy, hp: result.hp, block: result.block };
+  logs.push({
+    type: 'ally_attack',
+    name: player.ally.nameFr || player.ally.nameEn,
+    amount: result.damageDealt,
+    enemyHp: nextEnemy.hp,
+  });
+  return { player, enemy: nextEnemy, logs };
 }
 
 function applyExtraEffect(effect, ctx) {
@@ -179,7 +240,8 @@ function applyExtraEffect(effect, ctx) {
     player = { ...player, chakra: (Number(player.chakra) || 0) + (Number(effect.value) || 0) };
     logs.push({ type: 'gain_chakra', amount: Number(effect.value) || 0, chakra: player.chakra });
   } else if (type === 'apply_status') {
-    const target = effect.target === 'self' ? 'player' : effect.target === 'enemy' ? 'enemy' : guessStatusTarget(effect.status);
+    const target =
+      effect.target === 'self' ? 'player' : effect.target === 'enemy' ? 'enemy' : guessStatusTarget(effect.status);
     const statusKey = normalizeStatusKey(effect.status);
     const payload = {
       key: statusKey,

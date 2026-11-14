@@ -52,16 +52,24 @@ export const STATUS_KEYS = {
 };
 
 /**
- * effect_code talents — MVP appliqué vs stub documenté.
- * Les codes non listés sont enregistrés mais inertes en combat.
+ * effect_code talents appliqués en combat.
+ * Codes absents de cette map → stubbed (listés dans combat.talentEffects).
  */
 export const TALENT_EFFECT_MVP = {
   iron_guard: { kind: 'start_block', value: 3 },
-  boosted_regen: { kind: 'start_heal', value: 3 },
+  boosted_regen: { kind: 'start_heal', value: 3, healMult: 1.5 },
   berserker: { kind: 'low_hp_damage', threshold: 0.5, mult: 1.25 },
-  // Stubs (présents pour discovery / UI, pas encore appliqués) :
-  // combo_master, blade_swift, elemental_fusion, overload,
-  // illusion_master, shadow_feint, immortal, perfect_tank, elemental_mastery
+  immortal: { kind: 'regen_pct', pct: 0.02, damageMult: 0.5 },
+  overload: { kind: 'nin_cost_damage', costDelta: 1, damageMult: 2 },
+  intangible: { kind: 'no_attack_cap_incoming', incomingCap: 1 },
+  combo_master: { kind: 'tai_combo_force', cardsNeeded: 3, force: 2, duration: 2 },
+  blade_swift: { kind: 'cheap_tai_flat', maxCost: 1, flat: 3 },
+  elemental_mastery: { kind: 'element_damage', mult: 1.25 },
+  elemental_fusion: { kind: 'dual_element_draw', draw: 1 },
+  shadow_feint: { kind: 'first_gen_discount', costDelta: -1 },
+  perfect_tank: { kind: 'low_hp_block', threshold: 0.3, block: 5 },
+  // Stubs restants (discovery / UI) :
+  // illusion_master, collector, item_master, perfect_tank siblings, etc.
 };
 
 export const INTENT_TYPES = ['attack', 'defend', 'buff', 'debuff', 'special'];

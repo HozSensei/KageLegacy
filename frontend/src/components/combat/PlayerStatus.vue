@@ -56,6 +56,15 @@ const chakraPips = computed(() => {
     <div v-if="player.statuses?.length" class="player-status__statuses">
       <StatusIcon v-for="(s, idx) in player.statuses" :key="`${s.key}-${idx}`" :status="s" />
     </div>
+
+    <div v-if="player.ally" class="ally" data-testid="combat-ally">
+      <p class="ally__name">{{ player.ally.nameFr || player.ally.nameEn }}</p>
+      <p class="ally__meta">
+        {{ player.ally.hp }}/{{ player.ally.maxHp }}
+        · ATK {{ player.ally.attack }}
+        <span v-if="player.ally.taunt">· Taunt</span>
+      </p>
+    </div>
   </div>
 </template>
 
@@ -74,6 +83,23 @@ const chakraPips = computed(() => {
 
 .player-status__meta {
   margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+.ally {
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-line) 60%, transparent);
+}
+
+.ally__name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.ally__meta {
+  margin-top: 0.1rem;
   font-size: 0.75rem;
   color: var(--color-ink-muted);
 }
