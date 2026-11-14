@@ -367,4 +367,17 @@ async function onDebugXp() {
   flex: 1;
   border-bottom: 0;
 }
+
+@media (max-width: 559px) {
+  .bp-tabs {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    border-bottom: 0;
+  }
+
+  .bp-tabs .tabs {
+    flex-basis: 100%;
+    border-bottom: 1px solid var(--color-line);
+  }
+}
 </style>

@@ -22,10 +22,6 @@
     @apply mt-1.5 text-[11px] uppercase tracking-[0.16em] text-ink-faint;
   }
 
-  .section-label {
-    @apply text-[11px] font-medium uppercase tracking-[0.2em] text-ink-faint;
-  }
-
   .ghost-link {
     @apply text-sm text-ink-muted transition hover:text-accent;
   }
