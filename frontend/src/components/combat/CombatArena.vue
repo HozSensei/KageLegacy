@@ -14,6 +14,8 @@ const props = defineProps({
   logs: { type: Array, default: () => [] },
   selectedId: { type: String, default: null },
   busy: { type: Boolean, default: false },
+  midRun: { type: Boolean, default: false },
+  outcomeRewards: { type: Object, default: null },
 })
 
 const emit = defineEmits([
@@ -59,7 +61,8 @@ const canAct = computed(
       v-if="isOver"
       class="arena__rewards"
       :state="combat.state"
-      :rewards="combat.rewards"
+      :rewards="outcomeRewards ?? combat.rewards"
+      :mid-run="midRun"
       @dismiss="emit('dismiss-outcome')"
     />
 

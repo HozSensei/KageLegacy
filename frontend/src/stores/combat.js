@@ -37,6 +37,12 @@ export const useCombatStore = defineStore('combat', () => {
     }
   }
 
+  /** Injecte un état combat déjà créé (ex. entrée nœud de run). */
+  function hydrateFrom(payload) {
+    recentLogs.value = []
+    applyCombat(payload)
+  }
+
   async function startCombat(body = {}) {
     loading.value = true
     error.value = null
@@ -196,5 +202,7 @@ export const useCombatStore = defineStore('combat', () => {
     discardForChakra,
     forfeit,
     clear,
+    applyCombat,
+    hydrateFrom,
   }
 })

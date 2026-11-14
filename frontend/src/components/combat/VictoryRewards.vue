@@ -7,6 +7,9 @@ defineOptions({ name: 'VictoryRewards' })
 const props = defineProps({
   rewards: { type: Object, default: null },
   state: { type: String, default: 'victory' },
+  /** Combat au sein d'un parcours : pas de loot immédiat */
+  midRun: { type: Boolean, default: false },
+  continueLabel: { type: String, default: null },
 })
 
 const emit = defineEmits(['dismiss'])
@@ -14,6 +17,19 @@ const emit = defineEmits(['dismiss'])
 const { t } = useI18n()
 
 const isVictory = computed(() => props.state === 'victory')
+
+const title = computed(() => {
+  if (props.midRun && isVictory.value) return t('combat.stepCleared')
+  if (isVictory.value) return t('combat.victory')
+  if (props.state === 'forfeited') return t('combat.forfeited')
+  return t('combat.defeat')
+})
+
+const ctaLabel = computed(
+  () =>
+    props.continueLabel ||
+    (props.midRun ? t('combat.continueRun') : t('combat.backToMissions'))
+)
 
 const lines = computed(() => {
   const r = props.rewards
@@ -40,6 +56,9 @@ const lines = computed(() => {
   } else if (r.cardRolled === false && (r.xp > 0 || r.ryos > 0)) {
     out.push({ key: 'no-card', label: t('combat.rewardNoCard') })
   }
+  if (r.runMult) {
+    out.push({ key: 'run', label: t('combat.rewardRunBonus', { n: r.runMult }) })
+  }
   return out
 })
 </script>
@@ -50,24 +69,26 @@ const lines = computed(() => {
     :class="`victory--${state}`"
     data-testid="victory-rewards"
     role="dialog"
-    :aria-label="isVictory ? t('combat.victory') : t('combat.defeat')"
+    :aria-label="title"
   >
-    <p class="victory__title">
-      {{ isVictory ? t('combat.victory') : state === 'forfeited' ? t('combat.forfeited') : t('combat.defeat') }}
+    <p class="victory__title">{{ title }}</p>
+
+    <p v-if="midRun && isVictory" class="victory__muted">
+      {{ t('combat.stepClearedHint') }}
     </p>
 
-    <ul v-if="isVictory && lines.length" class="victory__list">
+    <ul v-else-if="isVictory && lines.length" class="victory__list">
       <li v-for="line in lines" :key="line.key">{{ line.label }}</li>
     </ul>
     <p v-else-if="isVictory && rewards?.error" class="victory__muted">
       {{ t('combat.rewardError') }}
     </p>
-    <p v-else-if="isVictory && !rewards" class="victory__muted">
+    <p v-else-if="isVictory && !rewards && !midRun" class="victory__muted">
       {{ t('combat.rewardPending') }}
     </p>
 
     <button type="button" class="btn-primary text-xs victory__cta" @click="emit('dismiss')">
-      {{ t('combat.backToMissions') }}
+      {{ ctaLabel }}
     </button>
   </div>
 </template>

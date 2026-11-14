@@ -107,6 +107,7 @@ function hydrateSession(row) {
     id: row.id,
     userId: row.user_id,
     missionId: row.mission_id,
+    missionRunId: row.mission_run_id || null,
     deckId: row.deck_id,
     state: row.state,
     currentTurn: row.current_turn,
@@ -116,6 +117,7 @@ function hydrateSession(row) {
     stats: parseJson(row.stats_snapshot_json, createEmptyStats()),
     talentEffects: parseJson(row.talent_effects_json, { codes: [], applied: [], stubbed: [] }),
     rewards: parseJson(row.rewards_json, null),
+    suppressRewards: Boolean(row.mission_run_id),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -163,6 +165,7 @@ function publicState(session, extraLogs = []) {
   return {
     id: session.id,
     missionId: session.missionId,
+    missionRunId: session.missionRunId || null,
     deckId: session.deckId,
     state: session.state,
     currentTurn: session.currentTurn,
@@ -172,6 +175,8 @@ function publicState(session, extraLogs = []) {
     stats: session.stats,
     talentEffects: session.talentEffects,
     rewards: session.rewards || null,
+    suppressRewards: Boolean(session.suppressRewards || session.missionRunId),
+    run: session.runUpdate || null,
     logs: extraLogs,
   };
 }
@@ -234,9 +239,11 @@ function checkVictory(session) {
 
 /**
  * Si victoire et récompenses pas encore versées → grant + stocke sur la session.
+ * Les combats liés à un mission run différent les récompenses en fin de parcours.
  */
 async function maybeGrantVictoryRewards(session) {
   if (session.state !== 'victory') return null;
+  if (session.suppressRewards || session.missionRunId) return null;
   if (session.rewards) return session.rewards;
   try {
     const rewards = await grantVictoryRewards(session.userId, session.missionId);
@@ -246,6 +253,35 @@ async function maybeGrantVictoryRewards(session) {
     session.rewards = { error: true, message: err.message };
     return session.rewards;
   }
+}
+
+/**
+ * Notifie le service de run quand un combat de parcours se termine.
+ */
+async function maybeNotifyRunCombatFinished(session) {
+  if (!session.missionRunId) return;
+  if (!['victory', 'defeat', 'forfeited'].includes(session.state)) return;
+  try {
+    const { onRunCombatFinished } = await import('./missionRunService.js');
+    const run = await onRunCombatFinished(session);
+    if (run) session.runUpdate = run;
+  } catch {
+    /* ne pas faire échouer le combat si le hook run plante */
+  }
+}
+
+/**
+ * Grant récompenses (si applicable) + hook run + marque log outcome.
+ */
+async function finalizeCombatOutcome(session, logs = []) {
+  if (!['victory', 'defeat', 'forfeited'].includes(session.state)) return logs;
+  if (session.state === 'victory') {
+    const rewards = await maybeGrantVictoryRewards(session);
+    if (rewards) logs.push({ type: 'rewards', rewards });
+  }
+  await maybeNotifyRunCombatFinished(session);
+  logs.push({ type: session.state });
+  return logs;
 }
 
 async function resolveDeckCards(userId, deckId) {
@@ -304,7 +340,16 @@ async function loadPlayerName(userId) {
 /**
  * Démarre un combat.
  * @param {number} userId
- * @param {{ missionId?: number, deckId?: number, templateId?: string, difficulty?: number }} opts
+ * @param {{
+ *   missionId?: number,
+ *   deckId?: number,
+ *   templateId?: string,
+ *   difficulty?: number,
+ *   missionRunId?: string,
+ *   startingHp?: number,
+ *   startingMaxHp?: number,
+ *   suppressRewards?: boolean,
+ * }} opts
  */
 export async function startCombat(userId, opts = {}) {
   if (!userId) throw httpError(400, 'userId requis.');
@@ -321,10 +366,12 @@ export async function startCombat(userId, opts = {}) {
   }
 
   const missionId = opts.missionId != null ? Number(opts.missionId) : null;
+  const missionRunId = opts.missionRunId || null;
   let templateId = opts.templateId || null;
   let difficulty = opts.difficulty || 1;
 
-  if (missionId) {
+  // Hors run : mission → premier encounter. Dans un run, templateId est fourni explicitement.
+  if (missionId && !templateId) {
     const rows = await query(
       'SELECT * FROM mission_definitions WHERE id = ? AND is_active = 1 LIMIT 1',
       [missionId],
@@ -348,14 +395,21 @@ export async function startCombat(userId, opts = {}) {
   ]);
 
   const classified = classifyTalentEffects(effectCodes);
-  const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
+  const maxHp =
+    opts.startingMaxHp != null
+      ? Math.max(1, Number(opts.startingMaxHp))
+      : BASE_MAX_HP + (Number(stats.maxHp) || 0);
+  const startHp =
+    opts.startingHp != null
+      ? Math.max(1, Math.min(maxHp, Number(opts.startingHp)))
+      : maxHp;
 
   const runtimeCards = buildRuntimeDeck(deckInfo.cards, (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`);
   const shuffled = shuffle(runtimeCards);
 
   let player = {
     name: playerName,
-    hp: maxHp,
+    hp: startHp,
     maxHp,
     block: 0,
     chakra: BASE_CHAKRA,
@@ -390,7 +444,28 @@ export async function startCombat(userId, opts = {}) {
   };
 
   const hasRewardsCol = await columnExists('combat_sessions', 'rewards_json');
-  if (hasRewardsCol) {
+  const hasRunCol = await columnExists('combat_sessions', 'mission_run_id');
+  const suppressRewards = Boolean(opts.suppressRewards || missionRunId);
+
+  if (hasRewardsCol && hasRunCol) {
+    await query(
+      `INSERT INTO combat_sessions
+        (id, user_id, mission_id, mission_run_id, deck_id, state, player_state_json, enemy_state_json,
+         current_turn, current_phase, stats_snapshot_json, talent_effects_json, rewards_json)
+       VALUES (?, ?, ?, ?, ?, 'in_progress', ?, ?, 1, 'player_turn', ?, ?, NULL)`,
+      [
+        id,
+        userId,
+        missionId,
+        missionRunId,
+        deckInfo.deckId,
+        JSON.stringify(player),
+        JSON.stringify(enemy),
+        JSON.stringify(stats),
+        JSON.stringify(talentEffects),
+      ],
+    );
+  } else if (hasRewardsCol) {
     await query(
       `INSERT INTO combat_sessions
         (id, user_id, mission_id, deck_id, state, player_state_json, enemy_state_json,
@@ -427,7 +502,7 @@ export async function startCombat(userId, opts = {}) {
   }
 
   const startLogs = [
-    { type: 'combat_start', templateId, practiceDeck: deckInfo.practice },
+    { type: 'combat_start', templateId, practiceDeck: deckInfo.practice, missionRunId },
     { type: 'draw', count: drawn.drawn.length },
     ...talentStart.logs,
     { type: 'intent', intent: enemy.intent },
@@ -435,6 +510,7 @@ export async function startCombat(userId, opts = {}) {
   await appendLog(id, 1, 'combat_start', {
     templateId,
     missionId,
+    missionRunId,
     practiceDeck: deckInfo.practice,
   });
 
@@ -442,6 +518,7 @@ export async function startCombat(userId, opts = {}) {
     id,
     userId,
     missionId,
+    missionRunId,
     deckId: deckInfo.deckId,
     state: 'in_progress',
     currentTurn: 1,
@@ -451,6 +528,7 @@ export async function startCombat(userId, opts = {}) {
     stats,
     talentEffects,
     rewards: null,
+    suppressRewards,
   };
 
   return publicState(session, startLogs);
@@ -486,7 +564,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   });
 
   let nextPlayer = played.player;
-  let nextEnemy = played.enemy;
+  const nextEnemy = played.enemy;
   const talentAfter = applyTalentAfterCardPlay(
     nextPlayer,
     card,
@@ -515,6 +593,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
     const rewards = await maybeGrantVictoryRewards(session);
     if (rewards) rewardLogs = [{ type: 'rewards', rewards }];
   }
+  if (outcome) await maybeNotifyRunCombatFinished(session);
 
   await persistSession(session);
   await appendLog(combatId, session.currentTurn, 'play_card', {
@@ -566,19 +645,15 @@ export async function endTurn(userId, combatId) {
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
   if (session.currentPhase !== 'player_turn') throw httpError(400, 'Ce n\'est pas votre tour.');
 
-  const logs = [];
+  let logs = [];
 
   const playerEnd = resolveEndOfTurnStatuses(session.player, { persistBlock: true });
   session.player = playerEnd.entity;
   logs.push(...playerEnd.logs.map((l) => ({ ...l, side: 'player' })));
 
   if (checkVictory(session)) {
-    if (session.state === 'victory') {
-      const rewards = await maybeGrantVictoryRewards(session);
-      if (rewards) logs.push({ type: 'rewards', rewards });
-    }
+    logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
-    logs.push({ type: session.state });
     return publicState(session, logs);
   }
 
@@ -593,12 +668,8 @@ export async function endTurn(userId, combatId) {
   logs.push(...enemyStart.logs.map((l) => ({ ...l, side: 'enemy' })));
 
   if (checkVictory(session)) {
-    if (session.state === 'victory') {
-      const rewards = await maybeGrantVictoryRewards(session);
-      if (rewards) logs.push({ type: 'rewards', rewards });
-    }
+    logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
-    logs.push({ type: session.state });
     return publicState(session, logs);
   }
 
@@ -614,12 +685,8 @@ export async function endTurn(userId, combatId) {
   logs.push(...tank.logs);
 
   if (checkVictory(session)) {
-    if (session.state === 'victory') {
-      const rewards = await maybeGrantVictoryRewards(session);
-      if (rewards) logs.push({ type: 'rewards', rewards });
-    }
+    logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
-    logs.push({ type: session.state });
     await appendLog(combatId, session.currentTurn, 'end_turn', { logs, outcome: session.state });
     return publicState(session, logs);
   }
@@ -629,12 +696,8 @@ export async function endTurn(userId, combatId) {
   logs.push(...enemyEnd.logs.map((l) => ({ ...l, side: 'enemy' })));
 
   if (checkVictory(session)) {
-    if (session.state === 'victory') {
-      const rewards = await maybeGrantVictoryRewards(session);
-      if (rewards) logs.push({ type: 'rewards', rewards });
-    }
+    logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
-    logs.push({ type: session.state });
     await appendLog(combatId, session.currentTurn, 'end_turn', { logs, outcome: session.state });
     return publicState(session, logs);
   }
@@ -668,11 +731,7 @@ export async function endTurn(userId, combatId) {
   logs.push(...allyAct.logs);
 
   if (checkVictory(session)) {
-    if (session.state === 'victory') {
-      const rewards = await maybeGrantVictoryRewards(session);
-      if (rewards) logs.push({ type: 'rewards', rewards });
-    }
-    logs.push({ type: session.state });
+    logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
     await appendLog(combatId, session.currentTurn, 'end_turn', { logs, outcome: session.state });
     return publicState(session, logs);
@@ -689,11 +748,7 @@ export async function endTurn(userId, combatId) {
   logs.push({ type: 'draw', count: drawn.drawn.length });
 
   if (checkVictory(session)) {
-    if (session.state === 'victory') {
-      const rewards = await maybeGrantVictoryRewards(session);
-      if (rewards) logs.push({ type: 'rewards', rewards });
-    }
-    logs.push({ type: session.state });
+    logs = await finalizeCombatOutcome(session, logs);
   }
 
   await persistSession(session);
@@ -708,6 +763,7 @@ export async function forfeit(userId, combatId) {
 
   session.state = 'forfeited';
   session.currentPhase = 'game_over';
+  await maybeNotifyRunCombatFinished(session);
   await persistSession(session);
   await appendLog(combatId, session.currentTurn, 'forfeit', {});
 

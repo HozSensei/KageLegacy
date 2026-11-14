@@ -31,6 +31,7 @@
 | **[🎯 PROJECT_VISION](./docs/PROJECT_VISION.md)** | Vision, objectifs, game design |
 | **[📅 BATTLE_PASS](./docs/BATTLE_PASS.md)** | Système de saison (nouveau) |
 | **[⚔️ COMBAT_SYSTEM](./docs/COMBAT_SYSTEM.md)** | Mécanique de combat carte par carte |
+| **[🗺️ MISSION_RUNS](./docs/MISSION_RUNS.md)** | Parcours multi-combats + événements (boucle session) |
 | **[🃏 CARD_SYSTEM](./docs/CARD_SYSTEM.md)** | Système de cartes (génération, collection) |
 | **[🏗️ TECHNICAL_ARCHITECTURE](./docs/TECHNICAL_ARCHITECTURE.md)** | Architecture technique |
 | **[🗺️ IMPLEMENTATION_ROADMAP](./docs/IMPLEMENTATION_ROADMAP.md)** | Roadmap complète (3-4 mois) |

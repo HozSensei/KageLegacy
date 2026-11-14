@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import CombatArena from '../components/combat/CombatArena.vue'
 import { useCombatStore } from '../stores/combat'
+import { useMissionsStore } from '../stores/missions'
 
 defineOptions({ name: 'CombatView' })
 
@@ -11,8 +12,20 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const combat = useCombatStore()
+const missions = useMissionsStore()
 
 const combatId = computed(() => route.params.id)
+const isMidRunFight = computed(() => Boolean(combat.combat?.missionRunId))
+const outcomeRewards = computed(
+  () => combat.combat?.run?.rewards || combat.combat?.rewards || null
+)
+/** Victoire d'étape (parcours pas encore fini) : loot différé */
+const showMidRunVictory = computed(
+  () =>
+    isMidRunFight.value &&
+    combat.combat?.state === 'victory' &&
+    !outcomeRewards.value
+)
 
 onMounted(async () => {
   if (combatId.value) {
@@ -25,6 +38,13 @@ onMounted(async () => {
 watch(combatId, async (id) => {
   if (id) await combat.fetchState(id)
 })
+
+watch(
+  () => combat.combat?.run,
+  (run) => {
+    if (run) missions.applyRunUpdate(run)
+  }
+)
 
 function onSelect(card) {
   combat.selectedInstanceId = card?.instanceId || null
@@ -65,8 +85,13 @@ async function onForfeit() {
   }
 }
 
-function backToMissions() {
+function goToRunOrMissions() {
+  const runId = combat.combat?.missionRunId
   combat.clear()
+  if (runId) {
+    router.push({ name: 'mission-run', params: { id: runId } })
+    return
+  }
   router.push({ name: 'missions' })
 }
 </script>
@@ -78,8 +103,8 @@ function backToMissions() {
         <p class="page-kicker">{{ t('combat.kicker') }}</p>
         <h1 class="page-title mt-2">{{ t('combat.title') }}</h1>
       </div>
-      <button type="button" class="btn-ghost text-xs" @click="backToMissions">
-        {{ t('combat.backToMissions') }}
+      <button type="button" class="btn-ghost text-xs" @click="goToRunOrMissions">
+        {{ isMidRunFight ? t('combat.backToRun') : t('combat.backToMissions') }}
       </button>
     </div>
 
@@ -95,12 +120,14 @@ function backToMissions() {
       :logs="combat.recentLogs"
       :selected-id="combat.selectedInstanceId"
       :busy="combat.actionLoading"
+      :mid-run="showMidRunVictory"
+      :outcome-rewards="outcomeRewards"
       @select-card="onSelect"
       @play-card="onPlay"
       @end-turn="onEndTurn"
       @discard-chakra="onDiscardChakra"
       @forfeit="onForfeit"
-      @dismiss-outcome="backToMissions"
+      @dismiss-outcome="goToRunOrMissions"
     />
   </div>
 </template>

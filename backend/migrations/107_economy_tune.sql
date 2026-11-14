@@ -1,5 +1,5 @@
 -- Kage Legacy V2 — Alignement rewards_json missions sur economyConfig (planchers BP / ryos).
--- Structure des missions inchangée ; montants seulement.
+-- Structure des missions inchangée — montants seulement.
 
 -- Rang D : ~150 ryos, 100 BP XP (conserve xp/cardChance si déjà présents)
 UPDATE mission_definitions

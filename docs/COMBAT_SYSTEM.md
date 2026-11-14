@@ -99,6 +99,8 @@ Chance_Crit = min(50, Vitesse / 10) + Buffs
 - ❤️ Mort = Échec de la mission
 - ❤️ PV max augmentent avec le niveau du personnage
 
+> **Implémenté** : les missions deck-combat sont des **parcours** (`docs/MISSION_RUNS.md`) — 3–5 combats enchaînés, événements entre combats (Sanctuaire de Mousse, Cache d’Éclaireur, Colporteur d’Ombre, Carrefour du Voile), PV/scrap persistants, récompenses en fin de run.
+
 **Formule** :
 ```
 PV_max = 100 + bonus_from_talent_nodes + bonus_from_cards

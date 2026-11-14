@@ -40,15 +40,20 @@ async function startMission(mission) {
   localError.value = null
   combat.error = null
   try {
-    const result = await combat.startCombat({ missionId: mission.id })
-    if (result?.id) {
-      await router.push({ name: 'combat', params: { id: result.id } })
+    const run = await missions.startMission(mission.id)
+    if (run?.id) {
+      await router.push({ name: 'mission-run', params: { id: run.id } })
     }
   } catch (e) {
-    localError.value = e.message || combat.error
+    localError.value = e.message || missions.error
   } finally {
     startingId.value = null
   }
+}
+
+function resumeRun() {
+  if (!missions.activeRun?.id) return
+  router.push({ name: 'mission-run', params: { id: missions.activeRun.id } })
 }
 
 async function startQuick(templateId) {
@@ -80,6 +85,17 @@ async function startQuick(templateId) {
       <span class="text-accent">{{ activeDeckLabel }}</span>
     </p>
 
+    <div
+      v-if="missions.activeRun"
+      class="active-run mt-6"
+      data-testid="active-run-banner"
+    >
+      <p class="active-run__text">{{ t('combat.activeRunHint') }}</p>
+      <button type="button" class="btn-primary text-xs" @click="resumeRun">
+        {{ t('combat.resumeRun') }}
+      </button>
+    </div>
+
     <p v-if="missions.error || localError" class="mt-4 text-sm text-fire">
       {{ localError || missions.error }}
     </p>
@@ -96,13 +112,16 @@ async function startQuick(templateId) {
         <div class="mission-card__rank">{{ mission.rank }}</div>
         <h2 class="mission-card__title">{{ missionName(mission) }}</h2>
         <p class="mission-card__desc">{{ missionDesc(mission) }}</p>
+        <p class="mission-card__meta">
+          {{ t('combat.encounterCount', { n: mission.encounterCount || mission.encounters?.length || 1 }) }}
+        </p>
         <p v-if="mission.rewards" class="mission-card__rewards">
           {{ t('combat.rewards', { xp: mission.rewards.xp || 0, ryos: mission.rewards.ryos || 0 }) }}
         </p>
         <button
           type="button"
           class="btn-primary text-xs mt-4"
-          :disabled="startingId != null"
+          :disabled="startingId != null || Boolean(missions.activeRun)"
           @click="startMission(mission)"
         >
           {{
@@ -121,7 +140,7 @@ async function startQuick(templateId) {
           :key="enemy.id"
           type="button"
           class="btn-secondary text-xs"
-          :disabled="startingId != null"
+          :disabled="startingId != null || Boolean(missions.activeRun)"
           @click="startQuick(enemy.id)"
         >
           {{ locale === 'en' ? enemy.nameEn : enemy.nameFr }}
@@ -132,6 +151,22 @@ async function startQuick(templateId) {
 </template>
 
 <style scoped>
+.active-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--color-bg-soft) 85%, transparent);
+}
+
+.active-run__text {
+  font-size: 0.9rem;
+  color: var(--color-ink-muted);
+}
+
 .mission-grid {
   display: grid;
   gap: 1rem;
@@ -185,8 +220,14 @@ async function startQuick(templateId) {
   line-height: 1.45;
 }
 
+.mission-card__meta {
+  margin-top: 0.55rem;
+  font-size: 0.75rem;
+  color: var(--color-accent);
+}
+
 .mission-card__rewards {
-  margin-top: 0.75rem;
+  margin-top: 0.35rem;
   font-size: 0.75rem;
   color: var(--color-ink-faint);
 }
