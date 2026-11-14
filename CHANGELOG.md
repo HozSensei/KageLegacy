@@ -7,6 +7,19 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Noms originaux et nouvelle page des règles (2026-11-14)
+
+#### Changed
+- **Lignées** : Shizumori, Benigiri, Kazamine, Nagihara, Kumatani et Yukisawa remplacent les six anciens noms de clan ; bonus et identifiants inchangés
+- **Pays** affichés : Midorihara, Kareno, Oborohama, Ishikura ; identifiants internes `leaf` / `sand` / `mist` / `stone` inchangés
+- **Cartes** renommées, slugs et effets inchangés : Dune engloutissante, Reflet trompeur, Lame du guérisseur, Pilule fortifiante ; huit cartes de l'ancien catalogue tactique renommées de la même façon
+- **Sensei de bots et compte de démonstration** : prénoms originaux
+- **Page des règles** FR/EN réécrite pour le jeu actuel : ninja unique, deck de 20 à 30 cartes, arbre de talents, combat au tour par tour, parcours de mission, boutique, passe de saison, arène
+- Garde-fou de nommage des cartes (`backend/scripts/lib/cardFactory.js`) étendu à d'autres noms à ne pas reprendre
+
+#### Added
+- **Migration `114_original_names.sql`** : renomme en base les lignées, les ninjas qui portent un nom de lignée, les sensei de bots et les cartes concernées ; rejouable, aucun identifiant modifié
+
 ### Thème sombre et finitions d'interface (2026-11-14)
 
 #### Added
