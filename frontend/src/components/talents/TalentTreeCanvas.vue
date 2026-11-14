@@ -20,7 +20,10 @@ const emit = defineEmits(['select', 'unlock'])
 const { t } = useI18n()
 
 const viewport = ref(null)
+const legend = ref(null)
 const scale = ref(1)
+/* Échelle à laquelle l'arbre entier tient dans le cadre : vue par défaut et borne basse du zoom. */
+const fitScale = ref(0.45)
 const panX = ref(0)
 const panY = ref(0)
 const dragging = ref(false)
@@ -50,11 +53,18 @@ const transformStyle = computed(() => ({
   transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
   width: `${worldW.value}px`,
   height: `${worldH.value}px`,
-  /* Les libellés restent lisibles quel que soit le zoom. */
-  '--label-scale': Math.min(2, Math.max(1, 1 / scale.value)).toFixed(3),
+  /* Libellés, nœuds et liens gardent une taille lisible à l'écran quand la vue s'éloigne. */
+  '--label-scale': Math.min(4, Math.max(1, 0.95 / scale.value)).toFixed(3),
+  '--node-scale': Math.min(1.7, Math.max(1, 0.45 / scale.value)).toFixed(3),
+  '--edge-scale': Math.min(3.5, Math.max(1, 0.7 / scale.value)).toFixed(3),
 }))
 
+const MAX_SCALE = 2.2
+const minScale = computed(() => Math.min(0.45, fitScale.value))
+
 const zoomedOut = computed(() => scale.value < 0.7)
+/* Très petit cadre (mobile) : les noms ne tiendraient pas, seul le nœud choisi garde le sien. */
+const overview = computed(() => scale.value < 0.32)
 
 function toLocal(n) {
   return {
@@ -112,8 +122,7 @@ function edgeClass(edge) {
 function onWheel(e) {
   e.preventDefault()
   const delta = e.deltaY > 0 ? 0.9 : 1.1
-  const next = Math.min(2.2, Math.max(0.45, scale.value * delta))
-  scale.value = next
+  scale.value = Math.min(MAX_SCALE, Math.max(minScale.value, scale.value * delta))
 }
 
 function onPointerDown(e) {
@@ -162,10 +171,14 @@ function centerView() {
   const el = viewport.value
   if (!el) return
   const rect = el.getBoundingClientRect()
-  const fit = Math.min(rect.width / worldW.value, rect.height / worldH.value)
-  scale.value = Math.min(0.85, Math.max(0.45, fit))
+  if (!rect.width || !rect.height) return
+  /* La légende recouvre le bas du cadre : l'arbre se cale dans la hauteur restante. */
+  const legendHeight = legend.value ? legend.value.offsetHeight + 12 : 0
+  const freeHeight = Math.max(rect.height - legendHeight, rect.height / 2)
+  fitScale.value = Math.min(rect.width / worldW.value, freeHeight / worldH.value)
+  scale.value = Math.min(0.85, fitScale.value)
   panX.value = rect.width / 2 - (worldW.value * scale.value) / 2
-  panY.value = rect.height / 2 - (worldH.value * scale.value) / 2
+  panY.value = freeHeight / 2 - (worldH.value * scale.value) / 2
 }
 
 /* L'arbre arrive après le montage (ou change avec le filtre) : on recadre la vue. */
@@ -175,10 +188,10 @@ watch(
 )
 
 function zoomIn() {
-  scale.value = Math.min(2.2, scale.value * 1.15)
+  scale.value = Math.min(MAX_SCALE, scale.value * 1.15)
 }
 function zoomOut() {
-  scale.value = Math.max(0.45, scale.value / 1.15)
+  scale.value = Math.max(minScale.value, scale.value / 1.15)
 }
 
 onMounted(() => {
@@ -195,7 +208,10 @@ defineExpose({ centerView, zoomIn, zoomOut })
 </script>
 
 <template>
-  <div class="talent-canvas-wrap" :class="{ 'talent-canvas-wrap--far': zoomedOut }">
+  <div
+    class="talent-canvas-wrap"
+    :class="{ 'talent-canvas-wrap--far': zoomedOut, 'talent-canvas-wrap--overview': overview }"
+  >
     <div class="talent-canvas-toolbar">
       <button type="button" class="talent-tool" :aria-label="t('talents.zoomOut')" @click="zoomOut">
         <AppIcon name="minus" size="1rem" :stroke-width="2.25" />
@@ -208,7 +224,7 @@ defineExpose({ centerView, zoomIn, zoomOut })
       </button>
     </div>
 
-    <ul class="talent-legend" aria-hidden="true">
+    <ul ref="legend" class="talent-legend" aria-hidden="true">
       <li><span class="talent-legend__shape talent-legend__shape--stat" />{{ t('talents.types.stat') }}</li>
       <li><span class="talent-legend__shape talent-legend__shape--notable" />{{ t('talents.types.notable') }}</li>
       <li><span class="talent-legend__shape talent-legend__shape--keystone" />{{ t('talents.types.keystone') }}</li>
@@ -299,7 +315,7 @@ defineExpose({ centerView, zoomIn, zoomOut })
   background: var(--color-ink);
   font-size: 0.75rem;
   font-weight: 600;
-  color: #fffdf8;
+  color: var(--color-on-ink);
   transition: background-color var(--dur-fast) ease;
 }
 
@@ -399,8 +415,8 @@ defineExpose({ centerView, zoomIn, zoomOut })
 }
 
 .talent-edge {
-  stroke: color-mix(in srgb, var(--color-ink) 22%, transparent);
-  stroke-width: 2;
+  stroke: var(--color-line-strong);
+  stroke-width: calc(2px * var(--edge-scale, 1));
   transition:
     stroke var(--dur-slow) ease,
     stroke-width var(--dur-slow) ease;
@@ -413,7 +429,7 @@ defineExpose({ centerView, zoomIn, zoomOut })
 
 .talent-edge.is-active {
   stroke: var(--color-ink);
-  stroke-width: 3.5;
+  stroke-width: calc(3.5px * var(--edge-scale, 1));
 }
 
 /* ——— Nœuds : forme = type, couleur = branche, remplissage = état ——— */
@@ -433,9 +449,10 @@ defineExpose({ centerView, zoomIn, zoomOut })
 .talent-node__icon {
   position: relative;
   display: block;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 2.5px solid color-mix(in srgb, var(--tone-fill) 55%, var(--color-bg-card));
+  width: calc(1.5rem * var(--node-scale, 1));
+  height: calc(1.5rem * var(--node-scale, 1));
+  border: calc(2.5px * var(--node-scale, 1)) solid
+    color-mix(in srgb, var(--tone-fill) var(--mix-quiet), var(--color-bg-card));
   background: var(--color-bg-card);
   transition:
     background-color var(--dur-base) ease,
@@ -448,15 +465,15 @@ defineExpose({ centerView, zoomIn, zoomOut })
 }
 
 .talent-node__icon--square {
-  width: 2.1rem;
-  height: 2.1rem;
+  width: calc(2.1rem * var(--node-scale, 1));
+  height: calc(2.1rem * var(--node-scale, 1));
 }
 
 .talent-node__icon--lozenge {
-  width: 2.35rem;
-  height: 2.35rem;
-  margin: 0.45rem;
-  border-width: 3px;
+  width: calc(2.35rem * var(--node-scale, 1));
+  height: calc(2.35rem * var(--node-scale, 1));
+  margin: calc(0.45rem * var(--node-scale, 1));
+  border-width: calc(3px * var(--node-scale, 1));
   transform: rotate(45deg);
 }
 
@@ -502,6 +519,10 @@ defineExpose({ centerView, zoomIn, zoomOut })
   opacity: 1;
 }
 
+.talent-node--keystone {
+  z-index: 2;
+}
+
 .talent-node--keystone .talent-node__label {
   font-family: var(--font-display);
   font-size: 0.8125rem;
@@ -539,11 +560,15 @@ defineExpose({ centerView, zoomIn, zoomOut })
 
 .talent-node.is-selected .talent-node__label {
   background: var(--color-ink);
-  color: #fffdf8;
+  color: var(--color-on-ink);
 }
 
 /* Vue d'ensemble : seuls les nœuds majeurs, accessibles ou sélectionnés gardent leur nom */
 .talent-canvas-wrap--far .talent-node--notable:not(.is-selected, .is-unlockable, :hover) .talent-node__label {
+  opacity: 0;
+}
+
+.talent-canvas-wrap--overview .talent-node:not(.is-selected, :hover) .talent-node__label {
   opacity: 0;
 }
 
@@ -583,7 +608,7 @@ defineExpose({ centerView, zoomIn, zoomOut })
     display: none;
   }
 
-  .talent-legend__sep,
+  .talent-legend .talent-legend__sep,
   .talent-legend__sep ~ li {
     display: none;
   }
