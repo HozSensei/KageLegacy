@@ -1,7 +1,10 @@
 # 🥷 Kage Legacy
 
-> **⚠️ PROJET EN TRANSFORMATION**  
+> **⚠️ PROJET EN TRANSFORMATION - PHASE 0 COMPLÉTÉE**  
 > Ce projet évolue d'un jeu de gestion d'escouade (type Hattrick) vers un **jeu de deck-building roguelike solo** (type Slay the Spire).
+> 
+> **État actuel** : Phase 0 terminée (environnement préparé, legacy archivé, migrations créées)  
+> **Branche de développement** : `cursor/kage-legacy-v2-9fa6`
 
 ---
 
@@ -31,6 +34,28 @@
 | **[🃏 CARD_SYSTEM](./docs/CARD_SYSTEM.md)** | Système de cartes (génération, collection) |
 | **[🏗️ TECHNICAL_ARCHITECTURE](./docs/TECHNICAL_ARCHITECTURE.md)** | Architecture technique |
 | **[🗺️ IMPLEMENTATION_ROADMAP](./docs/IMPLEMENTATION_ROADMAP.md)** | Roadmap complète (3-4 mois) |
+
+---
+
+## 🔧 Développement V2
+
+### Nouvelles Ressources
+
+- **`CHANGELOG.md`** : Historique des modifications
+- **`CONTRIBUTING.md`** : Conventions de code et workflow
+- **`legacy/`** : Code archivé de l'ancienne version
+
+### Scripts Ajoutés
+
+```bash
+npm run lint      # Lint backend + frontend
+npm run format    # Format backend + frontend
+```
+
+### Migrations V2
+
+- **100_kage_legacy_v2_init.sql** : Table `player_character` et extension `sensei`
+- **101_talent_tree.sql** : Système d'arbre de talents
 
 ---
 
