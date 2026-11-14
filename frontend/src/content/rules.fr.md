@@ -154,7 +154,7 @@ Construire un deck, c'est donc arbitrer deux fois : ce que vous voulez **piocher
 
 ---
 
-## L'arbre de talents
+## Les talents
 
 L'arbre compte **150 nœuds** répartis en un **centre** et quatre branches : **Taijutsu**, **Ninjutsu**, **Genjutsu** et **Médecine**.
 
@@ -402,7 +402,7 @@ Chaque niveau atteint ouvre une récompense sur chaque piste : Ryos, poussière 
 
 ---
 
-## L'arène PvP
+## Le PvP en arène
 
 L'arène vous oppose à un autre joueur, en duel au tour par tour.
 
