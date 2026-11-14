@@ -1,15 +1,25 @@
 describe('Navigation — routes V2', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/bureau');
+    cy.visit('/home');
   });
 
-  const routes = ['bureau', 'profile', 'talents', 'collection', 'decks', 'shop', 'inventory', 'journal'];
+  const routes = [
+    'hub',
+    'profile',
+    'collection',
+    'decks',
+    'talents',
+    'missions',
+    'shop',
+    'battle-pass',
+    'pvp',
+  ];
 
   routes.forEach((name) => {
     it(`ouvre la page ${name}`, () => {
-      if (name !== 'bureau') cy.visitNav(name);
-      else cy.get('[data-testid="placeholder-page"]').should('be.visible');
+      if (name !== 'hub') cy.visitNav(name);
+      else cy.get('[data-testid="hub-page"]').should('be.visible');
     });
   });
 });

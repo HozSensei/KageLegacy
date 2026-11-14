@@ -70,9 +70,17 @@ const specs = ['Taijutsu', 'Ninjutsu', 'Genjutsu', 'Medicine']
       <p class="mt-4 text-sm text-ink">
         {{ t('player.talentPoints', { count: character.talentPointsAvailable }) }}
       </p>
-      <RouterLink to="/talents" class="btn-primary mt-4 inline-flex text-xs" data-testid="open-talents">
-        {{ t('talents.openFromProfile') }}
-      </RouterLink>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <RouterLink to="/talents" class="btn-primary inline-flex text-xs" data-testid="open-talents">
+          {{ t('talents.openFromProfile') }}
+        </RouterLink>
+        <RouterLink to="/missions" class="btn-ghost inline-flex text-xs" data-testid="open-missions">
+          {{ t('player.openMissions') }}
+        </RouterLink>
+        <RouterLink to="/decks" class="btn-ghost inline-flex text-xs" data-testid="open-decks">
+          {{ t('player.openDecks') }}
+        </RouterLink>
+      </div>
     </section>
 
     <PlayerStats :stats="character.stats" />

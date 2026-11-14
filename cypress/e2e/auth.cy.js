@@ -1,10 +1,16 @@
 describe('Auth — connexion démo (V2)', () => {
-  it('redirige hors login après connexion', () => {
+  it('redirige vers le hub après connexion', () => {
+    cy.loginDemo();
+    cy.visit('/home');
+    cy.url().should('include', '/home');
+    cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
+  });
+
+  it('redirige /bureau vers le hub', () => {
     cy.loginDemo();
     cy.visit('/bureau');
-    cy.url().should('include', '/bureau');
-    cy.get('[data-testid="placeholder-page"]', { timeout: 15000 }).should('be.visible');
-    cy.contains(/Bureau/i).should('exist');
+    cy.url().should('include', '/home');
+    cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
   });
 
   it('refuse des identifiants invalides', () => {
@@ -19,7 +25,7 @@ describe('Auth — connexion démo (V2)', () => {
 
   it('déconnecte et retourne au landing', () => {
     cy.loginDemo();
-    cy.visit('/bureau');
+    cy.visit('/home');
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-logout"]').click();
     cy.url().should('include', '/');

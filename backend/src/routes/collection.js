@@ -8,6 +8,7 @@ import {
   getCollectionEntry,
   upgradeCard,
 } from '../services/collectionService.js';
+import { ensureStarterLoadout } from '../services/starterLoadoutService.js';
 
 const router = Router();
 
@@ -16,6 +17,8 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
+    // Rattrapage alpha : personnages créés avant le grant starter.
+    await ensureStarterLoadout(user.id);
     const { type, rarity } = req.query;
     const collection = await getCollection(user.id, { type, rarity });
     res.json({ collection });

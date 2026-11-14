@@ -10,22 +10,22 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const features = [
-  'landing.features.cycle',
-  'landing.features.squad',
-  'landing.features.league',
-  'landing.features.chronicle',
+  'landing.features.character',
+  'landing.features.deck',
+  'landing.features.talents',
+  'landing.features.missions',
 ]
 
 const timeline = [
-  'landing.timeline.start',
-  'landing.timeline.mid',
-  'landing.timeline.operation',
-  'landing.timeline.end',
+  'landing.timeline.create',
+  'landing.timeline.build',
+  'landing.timeline.grow',
+  'landing.timeline.fight',
 ]
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest()
-  if (ok) router.push('/bureau')
+  if (ok) router.push('/home')
 }
 </script>
 

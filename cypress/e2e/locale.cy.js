@@ -11,7 +11,8 @@ describe('Locale — FR/EN V2', () => {
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
     cy.get('[data-testid="nav-profile"]').should('contain', 'Profile');
-    cy.get('[data-testid="nav-inventory"]').should('contain', 'Inventory');
+    cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
+    cy.get('[data-testid="nav-home"]').should('contain', 'Home');
 
     cy.closeSlidePanel();
     cy.get('[data-testid="profile-menu-button"]').click();
@@ -20,6 +21,7 @@ describe('Locale — FR/EN V2', () => {
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
     cy.get('[data-testid="nav-profile"]').should('contain', 'Profil');
-    cy.get('[data-testid="nav-inventory"]').should('contain', 'Inventaire');
+    cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
+    cy.get('[data-testid="nav-home"]').should('contain', 'Accueil');
   });
 });

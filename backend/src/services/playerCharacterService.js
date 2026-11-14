@@ -206,6 +206,14 @@ export async function createCharacter(userId, { name, clanTraitId, elementAffini
     [userId, trimmedName, avatar, clanId, elementAffinity],
   );
 
+  // Cartes de base + deck starter (best-effort — ne bloque pas la création).
+  try {
+    const { grantStarterLoadoutOnCreate } = await import('./starterLoadoutService.js');
+    await grantStarterLoadoutOnCreate(userId);
+  } catch {
+    /* ignore */
+  }
+
   return getCharacter(userId);
 }
 

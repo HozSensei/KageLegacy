@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import CollectionGrid from '../components/cards/CollectionGrid.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
 import { useCollectionStore } from '../stores/collection'
 
 defineOptions({ name: 'CollectionView' })
@@ -58,7 +59,18 @@ async function onDisenchant() {
     <p v-if="collection.error && !message" class="mt-4 text-sm text-fire">{{ collection.error }}</p>
     <p v-if="message" class="mt-4 text-sm text-accent">{{ message }}</p>
 
-    <div class="mt-8 lg:grid lg:grid-cols-12 lg:gap-8">
+    <EmptyState
+      v-if="!collection.loading && !collection.entries.length"
+      class="mt-8"
+      :title="t('cards.emptyCollectionTitle')"
+      :lead="t('cards.emptyCollectionLead')"
+      primary-to="/shop"
+      :primary-label="t('cards.emptyCollectionShop')"
+      secondary-to="/missions"
+      :secondary-label="t('cards.emptyCollectionMissions')"
+    />
+
+    <div v-else class="mt-8 lg:grid lg:grid-cols-12 lg:gap-8">
       <div class="lg:col-span-8">
         <CollectionGrid
           :entries="collection.entries"

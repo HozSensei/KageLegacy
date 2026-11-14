@@ -34,7 +34,7 @@ async function submit() {
     clanTraitId: clanTraitId.value || null,
     elementAffinity: elementAffinity.value,
   })
-  if (created) await router.push({ name: 'profile' })
+  if (created) await router.push({ name: 'hub' })
 }
 </script>
 

@@ -7,7 +7,6 @@ import { useAuthStore } from '../stores/auth'
 import { useEliteStore } from '../stores/elite'
 import { useNavStructure } from '../composables/useNavStructure'
 import { useNotificationWatcher } from '../composables/useNotificationWatcher'
-import CycleProgressBar from '../components/layout/CycleProgressBar.vue'
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue'
 import NotificationBell from '../components/notifications/NotificationBell.vue'
 import ToastContainer from '../components/notifications/ToastContainer.vue'
@@ -25,16 +24,15 @@ const elite = useEliteStore()
 const showConvert = ref(false)
 
 const baseNavItems = [
-  { name: 'bureau', path: '/bureau', label: 'nav.bureau' },
+  { name: 'hub', path: '/home', label: 'nav.home' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
-  { name: 'talents', path: '/talents', label: 'nav.talents' },
-  { name: 'missions', path: '/missions', label: 'nav.missions' },
-  { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
-  { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },
   { name: 'decks', path: '/decks', label: 'nav.decks' },
+  { name: 'talents', path: '/talents', label: 'nav.talents' },
+  { name: 'missions', path: '/missions', label: 'nav.missions' },
   { name: 'shop', path: '/shop', label: 'nav.shop' },
-  { name: 'inventory', path: '/inventory', label: 'nav.inventory' },
+  { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
+  { name: 'pvp', path: '/pvp', label: 'nav.pvp' },
 ]
 
 const eliteToolsNavItem = {
@@ -59,6 +57,9 @@ const navItems = computed(() => {
 })
 
 function isActive(path) {
+  if (path === '/home') {
+    return route.path === '/home' || route.path === '/bureau' || route.name === 'hub'
+  }
   if (path === '/profil') {
     return route.path === '/profil' || route.name === 'profile' || route.name === 'character-creation'
   }
@@ -118,7 +119,7 @@ onMounted(async () => {
       <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-10 sm:py-3.5">
         <AppNavDrawer v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
 
-        <router-link to="/bureau" class="shrink-0 font-display text-lg text-ink transition hover:text-accent sm:text-xl">
+        <router-link to="/home" class="shrink-0 font-display text-lg text-ink transition hover:text-accent sm:text-xl">
           {{ t('app.name') }}
         </router-link>
 
@@ -149,7 +150,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <CycleProgressBar v-if="auth.user && store.gameClock" />
     </header>
 
     <PageHero

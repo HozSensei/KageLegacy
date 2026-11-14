@@ -42,7 +42,7 @@ async function submit() {
           invitePoolId: invitePoolId.value || undefined,
           villageId: villageId.value,
         })
-  if (ok) router.push('/bureau')
+  if (ok) router.push('/home')
 }
 
 onMounted(() => {
@@ -85,6 +85,7 @@ onMounted(() => {
             v-model="senseiName"
             type="text"
             required
+            data-testid="register-sensei-name"
             class="mt-1.5 w-full border border-line bg-bg px-3 py-2 text-ink outline-none focus:border-accent"
           />
         </label>

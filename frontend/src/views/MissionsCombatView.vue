@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import EmptyState from '../components/ui/EmptyState.vue'
 import { useCombatStore } from '../stores/combat'
 import { useMissionsStore } from '../stores/missions'
 import { useDecksStore } from '../stores/decks'
@@ -20,6 +21,8 @@ const localError = ref(null)
 onMounted(async () => {
   await Promise.all([missions.fetchMissions(), decks.fetchDecks()])
 })
+
+const hasActiveDeck = computed(() => Boolean((decks.decks || []).find((d) => d.isActive)))
 
 const activeDeckLabel = computed(() => {
   const active = (decks.decks || []).find((d) => d.isActive)
@@ -85,13 +88,24 @@ async function startQuick(templateId) {
       <span class="text-accent">{{ activeDeckLabel }}</span>
     </p>
 
+    <EmptyState
+      v-if="!decks.loading && !hasActiveDeck"
+      class="mt-6"
+      :title="t('combat.noDeckTitle')"
+      :lead="t('combat.noDeckLead')"
+      primary-to="/decks"
+      :primary-label="t('combat.openDecks')"
+      secondary-to="/home"
+      :secondary-label="t('placeholders.backHome')"
+    />
+
     <div
       v-if="missions.activeRun"
       class="active-run mt-6"
       data-testid="active-run-banner"
     >
       <p class="active-run__text">{{ t('combat.activeRunHint') }}</p>
-      <button type="button" class="btn-primary text-xs" @click="resumeRun">
+      <button type="button" class="btn-primary text-xs" data-testid="resume-run" @click="resumeRun">
         {{ t('combat.resumeRun') }}
       </button>
     </div>
@@ -121,6 +135,7 @@ async function startQuick(templateId) {
         <button
           type="button"
           class="btn-primary text-xs mt-4"
+          data-testid="mission-start"
           :disabled="startingId != null || Boolean(missions.activeRun)"
           @click="startMission(mission)"
         >
@@ -131,7 +146,7 @@ async function startQuick(templateId) {
       </article>
     </div>
 
-    <section class="mt-12">
+    <section class="mt-12" data-testid="quick-fight-section">
       <h2 class="font-display text-xl text-ink">{{ t('combat.quickFight') }}</h2>
       <p class="mt-2 text-sm text-ink-muted max-w-lg">{{ t('combat.quickFightLead') }}</p>
       <div class="mt-4 flex flex-wrap gap-3">
@@ -140,6 +155,7 @@ async function startQuick(templateId) {
           :key="enemy.id"
           type="button"
           class="btn-secondary text-xs"
+          :data-testid="`quick-fight-${enemy.id}`"
           :disabled="startingId != null || Boolean(missions.activeRun)"
           @click="startQuick(enemy.id)"
         >

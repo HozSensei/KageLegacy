@@ -4,6 +4,7 @@ import LandingView from '../views/LandingView.vue'
 import LoginView from '../views/LoginView.vue'
 import RulesView from '../views/RulesView.vue'
 import PlaceholderView from '../views/PlaceholderView.vue'
+import HubView from '../views/HubView.vue'
 import Profile from '../views/Profile.vue'
 import CharacterCreation from '../views/CharacterCreation.vue'
 import CollectionView from '../views/CollectionView.vue'
@@ -33,11 +34,14 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
+          path: 'home',
+          name: 'hub',
+          component: HubView,
+          meta: { hero: { image: HERO_VILLAGE, titleKey: 'hub.title' } },
+        },
+        {
           path: 'bureau',
-          name: 'bureau',
-          component: PlaceholderView,
-          props: { titleKey: 'nav.bureau' },
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' }, requiresCharacter: true },
+          redirect: { name: 'hub' },
         },
         {
           path: 'character-creation',
@@ -182,14 +186,14 @@ router.beforeEach(async (to) => {
   if (PUBLIC_PATHS.has(to.path)) {
     if (!auth.checked) await auth.fetchMe()
     if (auth.user && (to.path === '/' || to.path === '/login' || to.path === '/register')) {
-      return { path: '/bureau' }
+      return { path: '/home' }
     }
     return true
   }
 
   if (!auth.checked) await auth.fetchMe()
   if (!auth.user) return { path: '/' }
-  if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/bureau' }
+  if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' }
 
   const eliteRouteNames = new Set(['elite-tools', 'elite-identity-showcase'])
   if (eliteRouteNames.has(to.name)) {
@@ -198,18 +202,17 @@ router.beforeEach(async (to) => {
     if (!elite.subscription && auth.user) {
       await elite.fetchElite()
     }
-    if (!elite.featureEnabled) return { path: '/bureau' }
+    if (!elite.featureEnabled) return { path: '/home' }
   }
 
-  if (to.name !== 'character-creation') {
+  // Hub + character creation are reachable without a character (empty-state / onboarding).
+  const allowWithoutCharacter = new Set(['hub', 'character-creation'])
+  if (!allowWithoutCharacter.has(to.name)) {
     const { usePlayerStore } = await import('../stores/player')
     const player = usePlayerStore()
     if (!player.checked) await player.fetchPlayer()
     if (!player.character && to.meta.requiresCharacter !== false) {
-      // Redirect to creation for authenticated pages that need a character
-      if (to.name !== 'character-creation') {
-        return { name: 'character-creation' }
-      }
+      return { name: 'character-creation' }
     }
   }
 

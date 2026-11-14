@@ -13,7 +13,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'hub',
         labelKey: 'nav.groups.hub',
-        items: pick('bureau', 'profile', 'talents', 'journal'),
+        items: pick('hub', 'profile', 'talents'),
       },
       {
         id: 'cards',
@@ -23,12 +23,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'missions',
         labelKey: 'nav.groups.missions',
-        items: pick('missions', 'battle-pass'),
-      },
-      {
-        id: 'economy',
-        labelKey: 'nav.groups.economy',
-        items: pick('inventory'),
+        items: pick('missions', 'battle-pass', 'pvp'),
       },
       {
         id: 'extra',

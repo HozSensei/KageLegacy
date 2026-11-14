@@ -16,6 +16,7 @@ import {
   DECK_MAX_SIZE,
   DECK_MIN_SIZE,
 } from '../services/deckService.js';
+import { ensureStarterLoadout } from '../services/starterLoadoutService.js';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
+    await ensureStarterLoadout(user.id);
     const decks = await listDecks(user.id);
     res.json({
       decks,
@@ -144,7 +146,7 @@ router.delete('/:id/cards/:collectionId', async (req, res, next) => {
       user.id,
       Number(req.params.id),
       Number(req.params.collectionId),
-      quantity
+      quantity,
     );
     res.json({ deck });
   } catch (error) {
