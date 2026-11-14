@@ -7,6 +7,20 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Phase 1 - Personnage unique (2026-11-14)
+
+#### Added
+- **Backend `playerCharacterService`** : création, XP, level-up (+1 talent point, aucune stat auto), spécialisation, stats calculées (talents + cartes)
+- **Routes `/api/player`** : GET `/`, `/stats`, `/clans` ; POST `/create`, `/xp`, `/level-up` ; PUT `/specialization`
+- **Frontend** : store Pinia `player`, vues `Profile` / `CharacterCreation`, composants `PlayerProfile`, `PlayerStats`, `LevelUpModal`
+- **Redirect onboarding** : joueur authentifié sans personnage → `/character-creation`
+- **Tests** : `npm run test:player-character` (helpers purs toujours ; intégration DB si MySQL)
+
+#### Changed
+- **Express `app.js`** : ne monte plus les routes legacy archivées ; auth / clock / player / health
+- **Auth register/guest** : plus de provision d’escouade / cartes tactiques (différé V2)
+- **Navigation** : hub recentré sur Bureau + Profil (autres sections en placeholder)
+
 ### Phase 0 - Préparation de Kage Legacy V2 (2026-11-14)
 
 #### Added

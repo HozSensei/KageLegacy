@@ -63,7 +63,7 @@ ALTER TABLE sensei
 ```
 
 **Services**
-- [ ] `playerCharacterService.js`
+- [x] `playerCharacterService.js`
   - `createCharacter(userId, { name, clan, element })`
   - `getCharacter(userId)` - Calcul des stats finales (talents + cartes)
   - `addXP(userId, amount)`
@@ -72,32 +72,32 @@ ALTER TABLE sensei
   - `getComputedStats(userId)` - Stats = talents + bonus passifs cartes du deck
 
 **Routes**
-- [ ] `GET /api/player` - Récupérer le personnage
-- [ ] `GET /api/player/stats` - Stats calculées (talents + cartes)
-- [ ] `POST /api/player/create` - Créer le personnage (onboarding)
-- [ ] `POST /api/player/level-up` - Gagner XP (automatique → +1 talent point)
-- [ ] `PUT /api/player/specialization` - Choisir spécialisation (niveau 10)
+- [x] `GET /api/player` - Récupérer le personnage
+- [x] `GET /api/player/stats` - Stats calculées (talents + cartes)
+- [x] `POST /api/player/create` - Créer le personnage (onboarding)
+- [x] `POST /api/player/xp` + `POST /api/player/level-up` - Gain XP / level-up (+1 talent point)
+- [x] `PUT /api/player/specialization` - Choisir spécialisation (niveau 10)
 
 #### Frontend
 
 **Stores**
-- [ ] `stores/player.js` (Pinia)
-  - State : `character`, `stats`, `progression`
-  - Actions : `fetchPlayer()`, `levelUp(stat)`, etc.
+- [x] `stores/player.js` (Pinia)
+  - State : `character`, `stats`, `loading`, `error`
+  - Actions : `fetchPlayer()`, `createCharacter()`, `fetchStats()`, `chooseSpecialization()`
 
 **Composants**
-- [ ] `PlayerProfile.vue` - Affichage profil complet
-- [ ] `PlayerStats.vue` - Stats avec barres de progression
-- [ ] `LevelUpModal.vue` - Choix de stat à augmenter
+- [x] `PlayerProfile.vue` - Affichage profil complet
+- [x] `PlayerStats.vue` - Stats avec barres de progression
+- [x] `LevelUpModal.vue` - Notification level-up (+1 talent point)
 
 **Views**
-- [ ] `views/Profile.vue` - Page profil joueur
-- [ ] `views/CharacterCreation.vue` - Onboarding nouveau joueur
+- [x] `views/Profile.vue` - Page profil joueur
+- [x] `views/CharacterCreation.vue` - Onboarding nouveau joueur
 
 #### Tests
-- [ ] Test création personnage
-- [ ] Test gain XP et level up
-- [ ] Test choix spécialisation
+- [x] Test création personnage (intégration DB si MySQL dispo)
+- [x] Test gain XP et level up (helpers purs + intégration)
+- [x] Test choix spécialisation
 
 ---
 
