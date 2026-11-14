@@ -70,12 +70,13 @@ Paiements Checkout (Kage Coins + Battle Pass Premium) — env vars, webhook, mod
 
 ---
 
-### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) · [MISSION_RUNS.md](./MISSION_RUNS.md) · [PVP_SYSTEM.md](./PVP_SYSTEM.md)
-**Mécanique de Combat** (PvE), **parcours multi-combats**, et **PvP Host**
+### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) · [MISSION_RUNS.md](./MISSION_RUNS.md) · [BOSS_PHASES.md](./BOSS_PHASES.md) · [PVP_SYSTEM.md](./PVP_SYSTEM.md)
+**Mécanique de Combat** (PvE), **parcours multi-combats**, **boss multi-phases**, et **PvP Host**
 
 - Ressources (Chakra, PV, Armure)
 - Déroulement d'un tour (3 phases)
 - Parcours de mission (3–5 combats + événements, PV persistants)
+- Boss multi-phases (seuils HP, charge, invoc, shield break) — [BOSS_PHASES.md](./BOSS_PHASES.md) (`test:boss-phases`)
 - Système d'intentions
 - Types de cartes (Attaque, Défense, Soutien, Invocation, Passive)
 - Triangle tactique (Tai > Gen > Nin)
