@@ -50,16 +50,16 @@ export const useSquadStore = defineStore('squad', {
   state: () => ({
     is_bot: true,
     sensei: {
-      name: 'Kakashi',
+      name: 'Renjiro',
       trainingFocus: 'Genjutsu',
       ryos: 15400,
       reputation: 120,
       chakraPool: 100
     },
     activeSquad: [
-      { id: 1, name: 'Sora Nara', age: 15, grade: 'Genin', character_trait: 'Faineant', element_affinity: 'Doton', taijutsu: 4, ninjutsu: 5, genjutsu: 3, medecine: 2, vitesse: 3, intelligence: 12, weekly_forme: 'Excellent', moral: 15 },
-      { id: 2, name: 'Rei Uchiwa', age: 16, grade: 'Chunin', character_trait: 'Egoiste', element_affinity: 'Katon', taijutsu: 6, ninjutsu: 11, genjutsu: 14, medecine: 1, vitesse: 9, intelligence: 10, weekly_forme: 'Passable', moral: 12 },
-      { id: 3, name: 'Hyuga Haru', age: 15, grade: 'Genin', character_trait: 'Discipline', element_affinity: 'Suiton', taijutsu: 9, ninjutsu: 3, genjutsu: 2, medecine: 7, vitesse: 8, intelligence: 6, weekly_forme: 'Divin', moral: 18 }
+      { id: 1, name: 'Sora Shizumori', age: 15, grade: 'Genin', character_trait: 'Faineant', element_affinity: 'Doton', taijutsu: 4, ninjutsu: 5, genjutsu: 3, medecine: 2, vitesse: 3, intelligence: 12, weekly_forme: 'Excellent', moral: 15 },
+      { id: 2, name: 'Rei Benigiri', age: 16, grade: 'Chunin', character_trait: 'Egoiste', element_affinity: 'Katon', taijutsu: 6, ninjutsu: 11, genjutsu: 14, medecine: 1, vitesse: 9, intelligence: 10, weekly_forme: 'Passable', moral: 12 },
+      { id: 3, name: 'Kazamine Haru', age: 15, grade: 'Genin', character_trait: 'Discipline', element_affinity: 'Suiton', taijutsu: 9, ninjutsu: 3, genjutsu: 2, medecine: 7, vitesse: 8, intelligence: 6, weekly_forme: 'Divin', moral: 18 }
     ]
   })
 })
@@ -70,10 +70,10 @@ export const useSquadStore = defineStore('squad', {
 ## 🗄️ 4. Spécifications du Script de Seeding (Données de Test)
 Pour tester l'interface sans attendre d'avoir codé tout le système de recrutement, le développeur a besoin d'un script server/scripts/seedNinjas.js.
 ### Logique algorithmique du générateur procédural :
- * **Noms :** Pioche aléatoire dans un tableau de prénoms (Haru, Sora, Rei, Kenji...) et de noms de clans (Nara, Uchiwa, Hyuga, Sarutobi...).
+ * **Noms :** Pioche aléatoire dans un tableau de prénoms (Haru, Sora, Rei, Kenji...) et de noms de clans (Shizumori, Benigiri, Kazamine, Nagihara...).
  * **Distribution des Traits de Clan (Multiplicateurs) :**
-   * Si le ninja appartient au clan **Nara** \rightarrow Intelligence de départ boostée (+4), Vitesse réduite (-2).
-   * Si le ninja appartient au clan **Uchiwa** \rightarrow Genjutsu et Ninjutsu boostés (+3), mais son Moral de départ subit une plus grande variance aléatoire.
+   * Si le ninja appartient au clan **Shizumori** \rightarrow Intelligence de départ boostée (+4), Vitesse réduite (-2).
+   * Si le ninja appartient au clan **Benigiri** \rightarrow Genjutsu et Ninjutsu boostés (+3), mais son Moral de départ subit une plus grande variance aléatoire.
  * **Distribution des Compétences :** Attribution de points de base (entre 2 et 8 pour un Genin) répartis aléatoirement sur les 6 compétences pour créer des profils uniques (ex: un soigneur pur, un guerrier physique).
  * **Distribution des Caractères :** Attribution équitable d'un des 5 traits (Egoiste, Altruiste, Faineant, Temeraire, Discipline) avec une probabilité égale de 20% pour chacun.
 

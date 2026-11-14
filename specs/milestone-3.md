@@ -55,7 +55,7 @@ $$\text{Gain} = \text{Gain de Base} \times \text{Coeff Âge} \times \text{Modifi
 
 ### B. L'Impact du Caractère (Le Fainéant)
 Avant d'enregistrer le gain, le script fait un test sur le trait `character_trait` du ninja :
-* Si le ninja est **Fainéant**, le script lance un dé de 1 à 100. S'il fait moins de 15 (15% de chances), le ninja sèche l'entraînement. Le gain pour ce cycle est égal à `0`. Un texte spécifique est loggé : *"Sora Nara a préféré dormir sous un arbre plutôt que de s'entraîner."*
+* Si le ninja est **Fainéant**, le script lance un dé de 1 à 100. S'il fait moins de 15 (15% de chances), le ninja sèche l'entraînement. Le gain pour ce cycle est égal à `0`. Un texte spécifique est loggé : *"Sora Shizumori a préféré dormir sous un arbre plutôt que de s'entraîner."*
 
 ---
 

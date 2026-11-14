@@ -24,7 +24,7 @@ $$\text{Gain\_{Ryos}} = \text{Base (3 000)} + (\text{Somme de toutes ses caract�
 ### B. La Formule de Prestige (Points de Réputation)
 C'est la donnée la plus importante, celle qui fait grimper le joueur dans le **Tableau de Renommée** mondial (Milestone 8) :
 * **Gain de base :** `+10 Points de Réputation`.
-* **Bonus de Talent :** `+5 Points` supplémentaires si le ninja possédait un trait de Clan (ex: *Uchiwa*, *Nara*), car former un membre de la noblesse shinobi apporte plus de prestige à votre Dojo.
+* **Bonus de Talent :** `+5 Points` supplémentaires si le ninja possédait un trait de Clan (ex: *Benigiri*, *Shizumori*), car former un membre de la noblesse shinobi apporte plus de prestige à votre Dojo.
 
 ---
 

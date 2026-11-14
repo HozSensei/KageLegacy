@@ -23,9 +23,9 @@ Les **résultats mécaniques** (points ligue, forme, salaires, Vol d'Oiseau) ne 
 {
   "tour": 3,
   "equipe_attaque": "Joueur A",
-  "attaquant_name": "Rei Uchiwa",
+  "attaquant_name": "Rei Benigiri",
   "technique_type": "Ninjutsu",
-  "cible_name": "Hyuga Haru",
+  "cible_name": "Kazamine Haru",
   "degats_pv": 45,
   "chakra_perdu_cible": 0,
   "statut_consequence": null,
@@ -45,8 +45,8 @@ Le rapport ne doit **pas** afficher d'horodatage brut (`[H71:08]`, numéro de to
 | Règle | Détail |
 | :--- | :--- |
 | **Un seul texte par match** | La chronique est générée **une fois** à H71 et stockée dans `match_narrative_segments` — les deux joueurs lisent le **même** récit. |
-| **Troisième personne neutre** | Pas de « votre », « vos », « vous » dans la chronique. Ex. : *« Kakashi intervient au bon moment… »* et non *« votre timing était parfait »*. |
-| **Libellés d'équipe** | Pas de noms de dojo fictifs (« Dojo des Corbeaux »). Utiliser **« l'équipe de {nom du Sensei} »** (ex. *l'équipe de Kakashi*). |
+| **Troisième personne neutre** | Pas de « votre », « vos », « vous » dans la chronique. Ex. : *« Renjiro intervient au bon moment… »* et non *« votre timing était parfait »*. |
+| **Libellés d'équipe** | Pas de noms de dojo fictifs (« Dojo des Corbeaux »). Utiliser **« l'équipe de {nom du Sensei} »** (ex. *l'équipe de Renjiro*). |
 | **Débriefing séparé** | Le ton analytique « conseil du Sensei » à H72 reste **personnalisé par joueur** (possession, stats) — ce n'est pas la chronique romancée. |
 
 ### Les 4 blocs narratifs
@@ -64,15 +64,15 @@ Si le joueur se connecte à **H71:45** (le match n'est pas encore terminé narra
 
 > **Le Rapport de l'Opération de Frontière**
 >
-> L'Opération se déroule cette semaine dans les gorges brumeuses de Shi no Kuni. Alors que le vent porte l'odeur de la pluie sur le terrain accidenté, personne ne bouge encore. Dans ce silence lourd, Rei Uchiwa ajuste son bandeau avec un sourire arrogant tandis qu'à ses côtés, le jeune Haru se place à l'avant, déterminé à protéger le groupe face au Dojo des Corbeaux.
+> L'Opération se déroule cette semaine dans les gorges brumeuses d'Oborohama. Alors que le vent porte l'odeur de la pluie sur le terrain accidenté, personne ne bouge encore. Dans ce silence lourd, Rei Benigiri ajuste son bandeau avec un sourire arrogant tandis qu'à ses côtés, le jeune Haru se place à l'avant, déterminé à protéger le groupe face au Dojo des Corbeaux.
 >
-> Le combat s'engage soudainement dans le fracas des armes. Profitant de la brume, Rei prend l'initiative et fond sur le flanc adverse avec une lame de chakra, coupant net l'élan de leur premier Genin. Les répliques sont immédiates. Un éclair fend le ciel alors que les techniques élémentaires se croisent, et l'équipe adverse tente de saturer le terrain sous un déluge de feu. Kakashi intervient au bon moment via une permutation et sauve Haru d'une brûlure critique, au prix d'une bonne partie de sa réserve de Chakra.
+> Le combat s'engage soudainement dans le fracas des armes. Profitant de la brume, Rei prend l'initiative et fond sur le flanc adverse avec une lame de chakra, coupant net l'élan de leur premier Genin. Les répliques sont immédiates. Un éclair fend le ciel alors que les techniques élémentaires se croisent, et l'équipe adverse tente de saturer le terrain sous un déluge de feu. Renjiro intervient au bon moment via une permutation et sauve Haru d'une brûlure critique, au prix d'une bonne partie de sa réserve de Chakra.
 >
 > *(Indicateur visuel discret : « Le combat fait rage… la suite des rapports arrive dans quelques minutes »)*
 
 Puis, à partir de **`ending_reveal_at`** (ex. H71:48), le paragraphe de conclusion se débloque et s'ajoute fluidement en dessous :
 
-> La pression constante de l'équipe de Kakashi finit par payer. Épuisés et acculés au fond de la gorge, les ninjas de l'équipe adverse finissent par plier et sonnent une retraite précipitée sous la pluie battante. Le retour au camp sera difficile ; Rei marche en tête, Haru doit être soutenu par ses camarades.
+> La pression constante de l'équipe de Renjiro finit par payer. Épuisés et acculés au fond de la gorge, les ninjas de l'équipe adverse finissent par plier et sonnent une retraite précipitée sous la pluie battante. Le retour au camp sera difficile ; Rei marche en tête, Haru doit être soutenu par ses camarades.
 
 ---
 

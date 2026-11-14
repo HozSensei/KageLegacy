@@ -141,7 +141,7 @@ Retourne le profil public visible par les autres joueurs.
   "recentMatch": {
     "id": 123,
     "result": "home_win",
-    "opponentName": "Orochimaru",
+    "opponentName": "Banri",
     "cycle": 4
   }
 }

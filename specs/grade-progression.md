@@ -29,7 +29,7 @@
 
 Dans le jeu, c'est la colonne `intelligence` (affichée **Intelligence** dans l'UI — pas un QI abstrait).
 
-- **Génération** : tirage à la création + bonus de clan (ex. Nara +4).
+- **Génération** : tirage à la création + bonus de clan (ex. Shizumori +4).
 - **Entraînement** : progresse à H72 **uniquement** si le focus Sensei du cycle est `Intelligence` (comme les autres stats via leur focus). Sinon elle reste figée sauf effets futurs (objets cycle, etc.).
 - **Plafonds** : Genin 10, Chunin 16, Jonin 20.
 
