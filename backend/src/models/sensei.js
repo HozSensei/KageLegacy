@@ -1,80 +1,7 @@
 import { query } from '../config/database.js';
 import { getGameClock } from '../services/gameClock.js';
-import {
-  GRADE_STAT_CAPS,
-  hasReachedTeachingPeak,
-  hasStagnationGrace,
-  isChuninStagnant,
-  isGeninStagnant,
-  meetsBirdFlightRequirements,
-} from '../services/gradeProgression.js';
-import { getBirdFlightProgress } from '../services/birdFlightExam.js';
-import { meetsChuninRequirements } from '../services/chuninExam.js';
-import { computeChuninPromotionRewards } from '../services/chuninPromotionRewards.js';
-import { describeNinjaProfile } from '../services/ninjaProfile.js';
-import {
-  getNotificationHistory,
-  getRecentActivity,
-  getUnreadNotifications,
-} from '../services/senseiNotifications.js';
-import { listDispensaryCandidates } from '../services/dispensaryService.js';
-import { getAcademyPayload } from '../services/academyService.js';
-import { getDailySealPayload } from '../services/dailySealService.js';
-import { getHeritagePayload } from '../services/heritageService.js';
-import { getClanPayload } from '../services/playerClanService.js';
-import { listClanAcademyBoard } from '../services/clanAcademyBoardService.js';
-import { getListedNinjaIdsForUser } from '../services/playerMarketService.js';
-import { computeTrainingCost } from '../services/training.js';
-import { getCycleBudgetPreview } from '../services/trainingBilling.js';
-import { getOperationDeck } from '../services/operationDeckService.js';
-import { getOnboardingPayload } from '../services/onboardingService.js';
-import { getCycleObjectivesPayload } from '../services/cycleObjectiveService.js';
-import { getMidcycleChoicePayload } from '../services/midcycleChoiceService.js';
-import { getRivalryPayload } from '../services/rivalryService.js';
-import { findUserPool } from '../services/poolService.js';
-import { getVillageBanner } from '../services/villageService.js';
 
 export { getGameClock };
-
-function enrichNinja(ninja) {
-  const language = ninja.language || 'fr';
-  const isActive = ninja.squad_position !== null;
-  const preparationCost =
-    isActive && ninja.preparation_type ? computeTrainingCost(ninja) : null;
-  return {
-    ...ninja,
-    isListed: Boolean(ninja.is_listed),
-    preparationType: ninja.preparation_type ?? null,
-    /** @deprecated */
-    trainingFocus: ninja.preparation_type ?? null,
-    preparationCost,
-    trainingCost: preparationCost,
-    chuninExamCost: null,
-    chuninPromotionRewards:
-      ninja.grade === 'Genin' && meetsChuninRequirements(ninja)
-        ? computeChuninPromotionRewards(ninja)
-        : null,
-    birdFlightProgress: ninja.grade === 'Chunin' ? getBirdFlightProgress(ninja) : null,
-    birdFlightReady: ninja.grade === 'Chunin' ? meetsBirdFlightRequirements(ninja) : false,
-    birdFlightPeak: ninja.grade === 'Chunin' ? hasReachedTeachingPeak(ninja) : false,
-    gradeStatCaps: GRADE_STAT_CAPS[ninja.grade] || GRADE_STAT_CAPS.Genin,
-    stagnationRisk:
-      ninja.grade === 'Genin'
-        ? isGeninStagnant(ninja)
-        : ninja.grade === 'Chunin'
-          ? isChuninStagnant(ninja)
-          : false,
-    stagnationGrace: hasStagnationGrace(ninja),
-    stagnationKind:
-      ninja.grade === 'Genin' && isGeninStagnant(ninja)
-        ? 'genin_exam'
-        : ninja.grade === 'Chunin' && isChuninStagnant(ninja)
-          ? 'chunin_jonin'
-          : null,
-    profile: describeNinjaProfile(ninja, language),
-    trainingBuff: ninja.training_buff ?? null,
-  };
-}
 
 export async function findSenseiByUserId(userId) {
   const rows = await query('SELECT * FROM sensei WHERE user_id = ?', [userId]);
@@ -86,96 +13,32 @@ export async function findDemoUser() {
   return rows[0] || null;
 }
 
-export async function createDemoUser({ username, senseiName, language = 'fr', trainingFocus = 'Genjutsu' }) {
-  const userResult = await query(
-    'INSERT INTO users (username, is_bot) VALUES (?, FALSE)',
-    [username]
-  );
+export async function createDemoUser({
+  username,
+  senseiName,
+  language = 'fr',
+  trainingFocus = 'Genjutsu',
+}) {
+  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
+    username,
+  ]);
   const userId = userResult.insertId;
 
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
      VALUES (?, ?, ?, 15400, 120, 100, ?, 'leaf')`,
-    [userId, senseiName, trainingFocus, language]
+    [userId, senseiName, trainingFocus, language],
   );
 
   return findDemoUser();
 }
 
-export async function getSquadPayload(userId) {
-  const senseiRows = await query('SELECT * FROM sensei WHERE user_id = ?', [userId]);
-  const sensei = senseiRows[0];
-  if (!sensei) return null;
-
-  const userRows = await query('SELECT is_bot FROM users WHERE id = ?', [userId]);
-  const listedNinjaIds = await getListedNinjaIdsForUser(userId);
-  const ninjas = await query(
-    `SELECT n.*, c.name AS clan_name, c.is_noble AS clan_is_noble
-     FROM ninjas n
-     JOIN clan_traits c ON c.id = n.clan_trait_id
-     WHERE n.user_id = ?
-     ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
-    [userId]
-  );
-
-  const activeSquad = ninjas
-    .filter((n) => n.squad_position !== null)
-    .map((n) => enrichNinja({ ...n, is_listed: listedNinjaIds.has(n.id) }));
-  const bench = ninjas
-    .filter((n) => n.squad_position === null)
-    .map((n) => enrichNinja({ ...n, is_listed: listedNinjaIds.has(n.id) }));
-  const [notifications, notificationHistory, activityFeed] = await Promise.all([
-    getUnreadNotifications(userId),
-    getNotificationHistory(userId, 15),
-    getRecentActivity(userId, 20),
-  ]);
-  const dispensaryCandidates = await listDispensaryCandidates(userId);
-  const cycleBudget = await getCycleBudgetPreview(userId);
-  const academy = await getAcademyPayload(userId);
-  const dailySeal = await getDailySealPayload(userId);
-  const heritage = await getHeritagePayload(userId, sensei.language || 'fr');
-  const clan = await getClanPayload(userId);
-  const clanBoard = await listClanAcademyBoard(userId);
-  const operationDeck = await getOperationDeck(userId);
-  const onboarding = await getOnboardingPayload(userId);
-  const cycleObjectives = await getCycleObjectivesPayload(userId, sensei.language || 'fr');
-  const midcycle = await getMidcycleChoicePayload(userId);
-  const pool = await findUserPool(userId);
-  const rivalry = pool ? await getRivalryPayload(userId, pool.id) : { nemeses: [] };
-  const villageRivalry = await getVillageBanner(userId);
-
-  return {
-    is_bot: Boolean(userRows[0]?.is_bot),
-    sensei: {
-      name: sensei.name,
-      ryos: sensei.ryos,
-      reputation: sensei.reputation,
-      chakraPool: sensei.chakra_pool,
-      language: sensei.language,
-      salaryDebt: Boolean(sensei.salary_debt),
-      academyJackpotToken: Boolean(sensei.academy_jackpot_token),
-      globalTrainingType: sensei.global_training_type ?? null,
-      villageId: sensei.village_id || 'leaf',
-      villageTitle: sensei.village_title || null,
-      villageRetakeUsed: Boolean(sensei.village_retake_used),
-    },
-    activeSquad,
-    bench,
-    notifications,
-    notificationHistory,
-    activityFeed,
-    dispensaryCandidates,
-    cycleBudget,
-    academy,
-    dailySeal,
-    heritage,
-    clan,
-    clanBoard,
-    operationDeck,
-    onboarding,
-    cycleObjectives,
-    midcycle,
-    rivalry,
-    villageRivalry,
-  };
+/**
+ * Legacy squad payload — désactivé en V2 (escouade archivée).
+ * Conservé pour compatibilité d'import ; les routes legacy ne sont plus montées.
+ */
+export async function getSquadPayload(_userId) {
+  const err = new Error('Le système d’escouade est désactivé (Kage Legacy V2).');
+  err.statusCode = 410;
+  throw err;
 }

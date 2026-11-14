@@ -55,7 +55,8 @@
     "test:operation-deck-carryover": "node scripts/testOperationDeckCarryover.js",
     "test:combat-loot": "node scripts/testCombatLoot.js",
     "test:training-system": "node scripts/testTrainingSystem.js",
-    "test:village-shop": "node scripts/testVillageShopCatalog.js"
+    "test:village-shop": "node scripts/testVillageShopCatalog.js",
+    "test:player-character": "node scripts/testPlayerCharacter.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

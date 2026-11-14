@@ -3,27 +3,11 @@ import cors from 'cors';
 import { formatZodError } from './utils/zodErrors.js';
 import healthRouter from './routes/health.js';
 import authRouter from './routes/auth.js';
-import squadRouter from './routes/squad.js';
 import clockRouter from './routes/clock.js';
-import devRouter from './routes/dev.js';
-import adminRouter from './routes/admin.js';
-import leagueRouter from './routes/league.js';
-import operationRouter from './routes/operation.js';
-import marketRouter from './routes/market.js';
-import inventoryRouter from './routes/inventory.js';
-import missionsRouter from './routes/missions.js';
-import academyRouter from './routes/academy.js';
-import bureauRouter from './routes/bureau.js';
-import clanRouter from './routes/clan.js';
-import matchesRouter from './routes/matches.js';
-import playerMarketRouter from './routes/playerMarket.js';
-import eliteRouter from './routes/elite.js';
-import senseiRouter from './routes/sensei.js';
-import stripeRouter from './routes/stripe.js';
-import reconnaissanceRouter from './routes/reconnaissance.js';
-import techniqueRefinementRouter from './routes/techniqueRefinement.js';
-import gameplayRouter from './routes/gameplay.js';
-import villageRouter from './routes/village.js';
+import playerRouter from './routes/player.js';
+import cardsRouter from './routes/cards.js';
+import collectionRouter from './routes/collection.js';
+import decksRouter from './routes/decks.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -36,13 +20,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || true,
     credentials: true,
-  })
-);
-
-app.use(
-  '/api/stripe',
-  express.raw({ type: 'application/json' }),
-  stripeRouter
+  }),
 );
 
 app.use(express.json());
@@ -50,26 +28,11 @@ app.use(attachUser);
 
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/squad', squadRouter);
 app.use('/api/clock', clockRouter);
-app.use('/api/dev', devRouter);
-app.use('/api/admin', adminRouter);
-app.use('/api/league', leagueRouter);
-app.use('/api/operation', operationRouter);
-app.use('/api/market', marketRouter);
-app.use('/api/inventory', inventoryRouter);
-app.use('/api/missions', missionsRouter);
-app.use('/api/academy', academyRouter);
-app.use('/api/bureau', bureauRouter);
-app.use('/api/clan', clanRouter);
-app.use('/api/matches', matchesRouter);
-app.use('/api/player-market', playerMarketRouter);
-app.use('/api/technique-refinement', techniqueRefinementRouter);
-app.use('/api/gameplay', gameplayRouter);
-app.use('/api/village', villageRouter);
-app.use('/api/elite', eliteRouter);
-app.use('/api/sensei', senseiRouter);
-app.use('/api/reconnaissance', reconnaissanceRouter);
+app.use('/api/player', playerRouter);
+app.use('/api/cards', cardsRouter);
+app.use('/api/collection', collectionRouter);
+app.use('/api/decks', decksRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
