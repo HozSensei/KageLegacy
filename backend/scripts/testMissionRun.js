@@ -32,6 +32,13 @@ assert(nodes[0].type === 'combat' && nodes[0].status === 'available', 'first com
 assert(nodes[1].type === 'event' && nodes[1].status === 'locked', 'event locked between fights');
 assert(nodes[2].type === 'combat' && nodes[2].status === 'locked', 'second combat locked');
 assert(EVENT_TYPES.includes(nodes[1].eventType), 'event type from MVP set');
+assert(EVENT_TYPES.length >= 10, `≥10 event types (got ${EVENT_TYPES.length})`);
+assert(EVENT_TYPES.includes('whisper_grove'), 'whisper_grove event');
+assert(EVENT_TYPES.includes('crow_perch'), 'crow_perch event');
+assert(EVENT_TYPES.includes('sealed_scroll'), 'sealed_scroll event');
+assert(EVENT_TYPES.includes('mist_bridge'), 'mist_bridge event');
+assert(EVENT_TYPES.includes('spirit_lantern'), 'spirit_lantern event');
+assert(EVENT_TYPES.includes('ash_camp'), 'ash_camp event');
 
 const bossPath = buildRunNodes(
   [

@@ -109,7 +109,19 @@ export async function addCard(userId, cardDefinitionId, { quantity = 1, source =
     [userId, cardDefinitionId, qty, source]
   );
 
-  return getCollectionEntry(userId, result.insertId);
+  const entry = await getCollectionEntry(userId, result.insertId);
+
+  // Quêtes BP « nouvelles cartes » — ignore starter / grants debug
+  if (!['starter', 'grant'].includes(String(source || ''))) {
+    try {
+      const { onBattlePassAction } = await import('./battlePassQuestService.js');
+      await onBattlePassAction(userId, 'card_collect', 1);
+    } catch {
+      /* BP optionnel */
+    }
+  }
+
+  return entry;
 }
 
 async function getSenseiResources(userId, connection = null) {
@@ -182,6 +194,14 @@ export async function upgradeCard(userId, collectionId) {
     await connection.commit();
 
     const updated = await getCollectionEntry(userId, collectionId);
+
+    try {
+      const { onBattlePassAction } = await import('./battlePassQuestService.js');
+      await onBattlePassAction(userId, 'card_upgrade', 1);
+    } catch {
+      /* BP optionnel */
+    }
+
     return {
       entry: updated,
       costPaid: cost,

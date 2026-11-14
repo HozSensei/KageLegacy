@@ -277,11 +277,24 @@ async function maybeNotifyRunCombatFinished(session) {
 /**
  * Grant récompenses (si applicable) + hook run + marque log outcome.
  */
+async function maybeProgressBattlePassCombatWin(session) {
+  if (session.state !== 'victory' || !session.userId) return;
+  if (session.bpCombatWinCounted) return;
+  session.bpCombatWinCounted = true;
+  try {
+    const { onBattlePassAction } = await import('./battlePassQuestService.js');
+    await onBattlePassAction(session.userId, 'combat_win', 1);
+  } catch {
+    /* BP optionnel */
+  }
+}
+
 async function finalizeCombatOutcome(session, logs = []) {
   if (!['victory', 'defeat', 'forfeited'].includes(session.state)) return logs;
   if (session.state === 'victory') {
     const rewards = await maybeGrantVictoryRewards(session);
     if (rewards) logs.push({ type: 'rewards', rewards });
+    await maybeProgressBattlePassCombatWin(session);
   }
   await maybeNotifyRunCombatFinished(session);
   logs.push({ type: session.state });
@@ -616,11 +629,26 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   session.player = moved.player;
   session.enemy = nextEnemy;
 
+  // Quêtes BP : carte jouée + dégâts infligés
+  try {
+    const { onBattlePassAction } = await import('./battlePassQuestService.js');
+    await onBattlePassAction(userId, 'play_card', 1);
+    const damageDealt = [...played.logs, ...talentAfter.logs]
+      .filter((l) => l && l.type === 'damage' && l.source === 'player')
+      .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+    if (damageDealt > 0) {
+      await onBattlePassAction(userId, 'deal_damage', damageDealt);
+    }
+  } catch {
+    /* BP optionnel */
+  }
+
   const outcome = checkVictory(session);
   let rewardLogs = [];
   if (outcome === 'victory') {
     const rewards = await maybeGrantVictoryRewards(session);
     if (rewards) rewardLogs = [{ type: 'rewards', rewards }];
+    await maybeProgressBattlePassCombatWin(session);
   }
   if (outcome) await maybeNotifyRunCombatFinished(session);
 

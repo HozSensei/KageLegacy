@@ -138,14 +138,41 @@ async function integration() {
 
   // Quests
   const { quests } = await getActiveQuests(userId);
-  assert(quests.length >= 3, '≥3 active quests');
-  const daily = quests.find((q) => q.questType === 'daily');
+  assert(quests.length >= 10, `≥10 active quests (got ${quests.length})`);
+  const dailies = quests.filter((q) => q.questType === 'daily');
+  const weeklies = quests.filter((q) => q.questType === 'weekly');
+  const milestones = quests.filter((q) => q.questType === 'milestone');
+  assert(dailies.length >= 5, `≥5 dailies (got ${dailies.length})`);
+  assert(weeklies.length >= 5, `≥5 weeklies (got ${weeklies.length})`);
+  assert(milestones.length >= 4, `≥4 milestones (got ${milestones.length})`);
+  assert(
+    quests.some((q) => q.questKey === 'open_1_booster'),
+    'daily booster quest seeded',
+  );
+  assert(
+    quests.some((q) => q.questKey === 'join_pvp_queue'),
+    'daily PvP queue quest seeded',
+  );
+  assert(
+    quests.some((q) => q.questKey === 'complete_1_run'),
+    'daily run quest seeded',
+  );
+
+  const daily = dailies[0];
   assert(Boolean(daily), 'daily quest present');
 
   await progressQuest(userId, daily.questKey, daily.goalValue);
   const claimedQuest = await claimQuestReward(userId, daily.id);
   assert(claimedQuest.xp.xpGained >= 200, 'quest XP granted (with premium mult)');
   assert(claimedQuest.quest.progress.isClaimed === true, 'quest marked claimed');
+
+  const { onBattlePassAction, isMissionRankBOrHigher } = await import(
+    '../src/services/battlePassQuestService.js'
+  );
+  assert(isMissionRankBOrHigher('B') && isMissionRankBOrHigher('A'), 'rank B+ helper');
+  assert(!isMissionRankBOrHigher('C'), 'rank C below B');
+  const hook = await onBattlePassAction(userId, 'booster_open', 1);
+  assert(Array.isArray(hook.results), 'onBattlePassAction returns results');
 
   // Stub unlock path for second user
   const userId2 = await ensureUser();

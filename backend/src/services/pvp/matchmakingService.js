@@ -133,6 +133,14 @@ export async function enqueue(userId, opts = {}) {
     };
   }
 
+  // Quête BP : entrée volontaire en file (pas already_matched)
+  try {
+    const { onBattlePassAction } = await import('../battlePassQuestService.js');
+    await onBattlePassAction(userId, 'pvp_queue', 1);
+  } catch {
+    /* BP optionnel */
+  }
+
   // Annuler d'anciennes entrées waiting
   await query(
     'UPDATE pvp_queue SET status = \'cancelled\' WHERE user_id = ? AND status = \'waiting\'',

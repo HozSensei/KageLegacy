@@ -1,6 +1,6 @@
 /**
- * Seed Battle Pass Saison 1 + quêtes stubs.
- * Idempotent : upsert saison, remplace quêtes daily/weekly de la fenêtre courante.
+ * Seed Battle Pass Saison 1 + quêtes (daily/weekly/milestone enrichies).
+ * Idempotent : upsert saison, remplace quêtes daily/weekly/milestone de la saison.
  * Usage: node scripts/seedBattlePass.js  (npm run db:seed-battle-pass)
  */
 import { query } from '../src/config/database.js';
@@ -15,7 +15,8 @@ function toMysqlDatetime(d) {
 }
 
 async function upsertSeason() {
-  const start = new Date('2026-12-01T00:00:00.000Z');
+  // Fenêtre couvrant le présent (dev / preview) — milestones disponibles dès is_active.
+  const start = new Date('2026-11-01T00:00:00.000Z');
   const end = new Date('2027-02-01T00:00:00.000Z');
   const rewards = buildSeason1Rewards();
 

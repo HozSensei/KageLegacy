@@ -1,5 +1,6 @@
 /**
- * Quêtes Battle Pass — daily / weekly / milestone (stubs MVP).
+ * Quêtes Battle Pass — daily / weekly / milestone.
+ * Progression via progressQuest (API) ou onBattlePassAction (hooks jeu).
  */
 import { query } from '../config/database.js';
 import {
@@ -10,10 +11,81 @@ import {
 } from './battlePassService.js';
 import { parseJsonSafe } from './cardService.js';
 
+/**
+ * Actions jeu → clés de quêtes seedées (idempotent si clé absente / déjà done).
+ * Garder aligné avec buildSeason1QuestDefs.
+ */
+export const BATTLE_PASS_QUEST_ACTIONS = Object.freeze({
+  combat_win: ['win_3_combats', 'win_15_combats', 'season_win_100_combats'],
+  play_card: ['play_20_cards'],
+  deal_damage: ['deal_500_damage'],
+  booster_open: ['open_1_booster', 'open_5_boosters', 'season_open_25_boosters'],
+  card_upgrade: ['upgrade_1_card', 'upgrade_5_cards', 'season_upgrade_20_cards'],
+  pvp_queue: ['join_pvp_queue', 'join_pvp_queue_5'],
+  mission_run: ['complete_1_run', 'complete_3_runs', 'season_complete_50_missions'],
+  mission_rank_b: ['complete_5_missions_b'],
+  card_collect: ['collect_10_cards', 'season_collect_50_cards'],
+});
+
+const RANK_ORDER = Object.freeze({ D: 0, C: 1, B: 2, A: 3, S: 4 });
+
 function httpError(statusCode, message) {
   const err = new Error(message);
   err.statusCode = statusCode;
   return err;
+}
+
+async function tableExists(tableName) {
+  try {
+    const rows = await query(
+      `SELECT 1 AS ok FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
+      [tableName],
+    );
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Hook silencieux : incrémente toutes les quêtes actives liées à une action jeu.
+ * Ne jette jamais (combat / shop / PvP ne doivent pas échouer si BP absent).
+ */
+export async function onBattlePassAction(userId, action, value = 1) {
+  if (!userId || !action) return { skipped: true, reason: 'bad_args' };
+  const keys = BATTLE_PASS_QUEST_ACTIONS[action];
+  if (!keys?.length) return { skipped: true, reason: 'unknown_action' };
+
+  const amount = Math.max(0, Math.floor(Number(value) || 0));
+  if (amount <= 0) return { skipped: true, reason: 'no_amount' };
+
+  try {
+    if (!(await tableExists('battle_pass_quests'))) {
+      return { skipped: true, reason: 'bp_table_missing' };
+    }
+  } catch {
+    return { skipped: true, reason: 'bp_check_failed' };
+  }
+
+  const results = [];
+  for (const questKey of keys) {
+    try {
+      results.push(await progressQuest(userId, questKey, amount));
+    } catch (err) {
+      if (err?.statusCode && err.statusCode !== 404) {
+        results.push({ questKey, error: err.message });
+      }
+      // 404 = pas de saison / pas de quête active pour cette clé — ignore
+    }
+  }
+  return { action, amount, results };
+}
+
+/** Helper rang mission B+ pour quête weekly. */
+export function isMissionRankBOrHigher(rank) {
+  const key = String(rank || '').toUpperCase();
+  return (RANK_ORDER[key] ?? -1) >= RANK_ORDER.B;
 }
 
 function serializeQuest(row, progress = null) {

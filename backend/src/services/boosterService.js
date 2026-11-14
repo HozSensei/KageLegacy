@@ -344,6 +344,18 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
     }
 
     const balances = await getSenseiBalances(userId);
+
+    try {
+      const { onBattlePassAction } = await import('./battlePassQuestService.js');
+      await onBattlePassAction(userId, 'booster_open', 1);
+      const newCount = grantedMeta.filter((m) => m.isNew).length;
+      if (newCount > 0) {
+        await onBattlePassAction(userId, 'card_collect', newCount);
+      }
+    } catch {
+      /* BP optionnel */
+    }
+
     return {
       boosterType: def.type,
       costPaid: { ryos: costRyos, kageCoins: costCoins },
