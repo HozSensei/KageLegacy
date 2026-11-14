@@ -7,6 +7,15 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Boss multi-phases (2026-11-14)
+
+#### Added
+- **Phases boss** : seuils HP → intents / buffs / immunités / barrière (`bossPhases.js`, `docs/BOSS_PHASES.md`)
+- **Mécaniques** : charge ennemie, invocation ennemie (minion taunt), shield break (barrière persistante)
+- **5 boss** B/A/S : Hollow Bell Warden, Embercoil Matron, Grave Orchid Seer, Mirrorfracture Colossus, Voidspire Regent
+- **Missions** : migration `112_boss_phases_missions.sql` (runs B/A retargetés + missions dédiées dont S)
+- **Tests** : `npm run test:boss-phases`
+
 ### Phase 4 — Mission runs (2026-11-14)
 
 #### Added

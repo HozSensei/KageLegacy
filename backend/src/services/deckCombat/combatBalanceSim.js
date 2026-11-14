@@ -39,6 +39,7 @@ import {
   executeEnemyIntent,
   generateEnemyFromTemplate,
   getNextIntent,
+  maybeAdvanceBossPhase,
 } from '../combatAIService.js';
 import { createEmptyStats } from '../playerCharacterService.js';
 import { BALANCE_PROFILES, PLAYER_POLICY } from '../../config/combatBalanceConfig.js';
@@ -308,6 +309,13 @@ export function simEndTurn(session, rng) {
   const enemyStart = resolveStartOfTurnStatuses(s.enemy);
   s.enemy = enemyStart.entity;
 
+  {
+    const phase = maybeAdvanceBossPhase(s.enemy, {
+      announceIntent: (e) => getNextIntent(e, 0, rng),
+    });
+    if (phase.changed) s.enemy = phase.enemy;
+  }
+
   outcome = checkOutcome(s);
   if (outcome) {
     s.state = outcome;
@@ -347,6 +355,13 @@ export function simEndTurn(session, rng) {
 
   const enemyEnd = resolveEndOfTurnStatuses(s.enemy, { persistBlock: true });
   s.enemy = enemyEnd.entity;
+
+  {
+    const phase = maybeAdvanceBossPhase(s.enemy, {
+      announceIntent: (e) => getNextIntent(e, 0, rng),
+    });
+    if (phase.changed) s.enemy = phase.enemy;
+  }
 
   outcome = checkOutcome(s);
   if (outcome) {

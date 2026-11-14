@@ -41,6 +41,8 @@ import {
 import {
   executeEnemyIntent,
   generateEnemyFromTemplate,
+  getNextIntent,
+  maybeAdvanceBossPhase,
 } from './combatAIService.js';
 import { createEmptyStats, getComputedStats } from './playerCharacterService.js';
 import { grantVictoryRewards } from './combatRewardService.js';
@@ -220,10 +222,26 @@ function sanitizeEnemy(enemy) {
     hp: enemy.hp,
     maxHp: enemy.maxHp,
     block: enemy.block || 0,
+    barrier: enemy.barrier || 0,
     statuses: enemy.statuses || [],
     posture: enemy.posture,
     elementAffinity: enemy.elementAffinity,
     intent: enemy.intent,
+    boss: Boolean(enemy.boss),
+    rank: enemy.rank || null,
+    phaseId: enemy.phaseId || 'base',
+    phaseIndex: Number.isFinite(Number(enemy.phaseIndex)) ? Number(enemy.phaseIndex) : -1,
+    immunities: enemy.immunities || [],
+    minion: enemy.minion
+      ? {
+          nameFr: enemy.minion.nameFr,
+          nameEn: enemy.minion.nameEn,
+          hp: enemy.minion.hp,
+          maxHp: enemy.minion.maxHp,
+          attack: enemy.minion.attack,
+          taunt: enemy.minion.taunt !== false,
+        }
+      : null,
   };
 }
 
@@ -728,6 +746,16 @@ export async function endTurn(userId, combatId) {
   session.enemy = enemyStart.entity;
   logs.push(...enemyStart.logs.map((l) => ({ ...l, side: 'enemy' })));
 
+  {
+    const phase = maybeAdvanceBossPhase(session.enemy, {
+      announceIntent: (e) => getNextIntent(e),
+    });
+    if (phase.changed) {
+      session.enemy = phase.enemy;
+      logs.push(...phase.logs);
+    }
+  }
+
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
@@ -765,6 +793,16 @@ export async function endTurn(userId, combatId) {
   const enemyEnd = resolveEndOfTurnStatuses(session.enemy, { persistBlock: true });
   session.enemy = enemyEnd.entity;
   logs.push(...enemyEnd.logs.map((l) => ({ ...l, side: 'enemy' })));
+
+  {
+    const phase = maybeAdvanceBossPhase(session.enemy, {
+      announceIntent: (e) => getNextIntent(e),
+    });
+    if (phase.changed) {
+      session.enemy = phase.enemy;
+      logs.push(...phase.logs);
+    }
+  }
 
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);

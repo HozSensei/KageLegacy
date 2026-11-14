@@ -482,7 +482,7 @@ assert(sovereignMods.blockAllowed === false, 'phantom_sovereign denies block');
 
 console.log('\n=== Enemy catalog ===');
 const catalog = listEnemyTemplates();
-assert(catalog.length >= 10, `≥10 enemy templates (got ${catalog.length})`);
+assert(catalog.length >= 15, `≥15 enemy templates incl. bosses (got ${catalog.length})`);
 const enemy = generateEnemyFromTemplate('ronin_bandit', 1);
 assert(enemy.hp === 124 && enemy.intent, 'ronin spawned with intent');
 const captain = generateEnemyFromTemplate('ashen_captain');

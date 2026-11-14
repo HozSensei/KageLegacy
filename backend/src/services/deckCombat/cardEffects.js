@@ -21,6 +21,8 @@ import {
   applyTalentAfterHeal,
   applyTalentToStatusPayload,
 } from './talentEffects.js';
+import { canApplyStatus, hitEnemy } from './bossPhases.js';
+import { getNextIntent } from './enemyIntent.js';
 
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';
@@ -174,10 +176,19 @@ export function applyCardPlay({
     } else {
       const armorIgnore = Number(talentMods.armorIgnore) || 0;
       let totalDealt = 0;
+      const hitOpts = {
+        armorIgnore,
+        announceIntent: (e) => getNextIntent(e),
+      };
+      const phaseLogTypes = new Set([
+        'boss_phase', 'shield_break', 'barrier_absorb', 'minion_damage',
+        'phase_buff', 'phase_barrier', 'phase_immunities', 'shield_break_vulnerable', 'intent',
+      ]);
       for (let i = 0; i < dmg.hits; i += 1) {
-        const result = applyDamageThroughBlock(nextEnemy, dmg.perHit, { armorIgnore });
-        nextEnemy = { ...nextEnemy, hp: result.hp, block: result.block };
-        totalDealt += result.damageDealt;
+        const hit = hitEnemy(nextEnemy, dmg.perHit, hitOpts, applyDamageThroughBlock);
+        nextEnemy = hit.enemy;
+        totalDealt += hit.damageDealt;
+        logs.push(...hit.logs.filter((l) => phaseLogTypes.has(l.type)));
       }
       logs.push({
         type: 'damage',
@@ -188,20 +199,22 @@ export function applyCardPlay({
         isCrit: dmg.isCrit,
         enemyHp: nextEnemy.hp,
         enemyBlock: nextEnemy.block,
+        enemyBarrier: nextEnemy.barrier || 0,
       });
 
       // echo_cast : rejoue à X % des dégâts (1 hit)
       const echoMult = Number(talentMods.echoReplayMult) || 0;
       if (echoMult > 0 && dmg.perHit > 0) {
         const echoDmg = Math.max(1, Math.round(dmg.perHit * echoMult));
-        const echo = applyDamageThroughBlock(nextEnemy, echoDmg, { armorIgnore });
-        nextEnemy = { ...nextEnemy, hp: echo.hp, block: echo.block };
+        const echo = hitEnemy(nextEnemy, echoDmg, hitOpts, applyDamageThroughBlock);
+        nextEnemy = echo.enemy;
         logs.push({
           type: 'talent',
           effect: 'echo_cast',
           amount: echo.damageDealt,
           enemyHp: nextEnemy.hp,
         });
+        logs.push(...echo.logs.filter((l) => l.type === 'boss_phase' || l.type === 'shield_break'));
       }
     }
   }
@@ -261,15 +274,21 @@ export function resolveAllyAttack(player, enemy) {
   const atk = Number(player.ally.attack) || 0;
   if (atk <= 0) return { player, enemy, logs };
 
-  const result = applyDamageThroughBlock(enemy, atk);
-  const nextEnemy = { ...enemy, hp: result.hp, block: result.block };
+  const hit = hitEnemy(
+    enemy,
+    atk,
+    { announceIntent: (e) => getNextIntent(e) },
+    applyDamageThroughBlock,
+  );
   logs.push({
     type: 'ally_attack',
     name: player.ally.nameFr || player.ally.nameEn,
-    amount: result.damageDealt,
-    enemyHp: nextEnemy.hp,
+    amount: hit.damageDealt,
+    enemyHp: hit.enemy.hp,
   });
-  return { player, enemy: nextEnemy, logs };
+  logs.push(...hit.logs.filter((l) =>
+    l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage'));
+  return { player, enemy: hit.enemy, logs };
 }
 
 function applyExtraEffect(effect, ctx) {
@@ -308,10 +327,13 @@ function applyExtraEffect(effect, ctx) {
     logs.push(...talentStatus.logs);
     if (target === 'player') {
       player = { ...player, statuses: applyStatus(player.statuses, payload) };
+      logs.push({ type: 'apply_status', target, status: payload });
+    } else if (!canApplyStatus(enemy, payload.key)) {
+      logs.push({ type: 'status_immune', target: 'enemy', status: payload.key });
     } else {
       enemy = { ...enemy, statuses: applyStatus(enemy.statuses, payload) };
+      logs.push({ type: 'apply_status', target, status: payload });
     }
-    logs.push({ type: 'apply_status', target, status: payload });
   } else if (type === 'evade_next') {
     player = {
       ...player,

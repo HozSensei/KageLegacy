@@ -1,12 +1,19 @@
 /**
- * IA ennemie — patterns Attack / Defend / Buff (MVP).
+ * IA ennemie — patterns Attack / Defend / Buff + boss phases / charge / summon / barrier.
  */
 import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
-import { applyDamageThroughBlock, getStatusValue, hasStatus } from './deckCombat/formulas.js';
+import { applyDamageThroughBlock, getStatusValue, hasStatus, outgoingDamageMultiplier } from './deckCombat/formulas.js';
 import { applyStatus } from './deckCombat/statuses.js';
-import { outgoingDamageMultiplier } from './deckCombat/formulas.js';
 import { applyTalentIncomingAttackMods } from './deckCombat/talentEffects.js';
 import { TALENT_EFFECT_MVP } from './deckCombat/constants.js';
+import {
+  canApplyStatus,
+  hitEnemy,
+  maybeAdvanceBossPhase,
+} from './deckCombat/bossPhases.js';
+import { getNextIntent, scaleIntent } from './deckCombat/enemyIntent.js';
+
+export { getNextIntent, scaleIntent };
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -32,6 +39,7 @@ export function generateEnemyFromTemplate(templateId, difficulty = 1) {
     hp: maxHp,
     maxHp,
     block: 0,
+    barrier: Math.max(0, Number(template.barrier) || 0),
     statuses: [],
     posture: template.posture,
     elementAffinity: template.elementAffinity,
@@ -40,6 +48,22 @@ export function generateEnemyFromTemplate(templateId, difficulty = 1) {
     pattern: template.pattern || null,
     patternIndex: 0,
     intent: null,
+    boss: Boolean(template.boss),
+    rank: template.rank || null,
+    phases: Array.isArray(template.phases)
+      ? template.phases.map((p) => ({
+          ...p,
+          onEnter: p.onEnter ? { ...p.onEnter } : undefined,
+          pattern: Array.isArray(p.pattern) ? p.pattern.map((x) => ({ ...x })) : undefined,
+          patterns: Array.isArray(p.patterns)
+            ? p.patterns.map((x) => ({ ...x, intent: x.intent ? { ...x.intent } : x.intent }))
+            : undefined,
+        }))
+      : null,
+    phaseIndex: -1,
+    phaseId: 'base',
+    immunities: Array.isArray(template.immunities) ? [...template.immunities] : [],
+    minion: null,
   };
 
   enemy.intent = getNextIntent(enemy, 1);
@@ -47,42 +71,44 @@ export function generateEnemyFromTemplate(templateId, difficulty = 1) {
 }
 
 /**
- * Choisit la prochaine intention (annoncée au joueur).
+ * Attaque du minion ennemi (si vivant) — avant l'intention principale.
  */
-export function getNextIntent(enemy, _turn = 1, rng = Math.random) {
-  if (enemy.ai === 'pattern' && Array.isArray(enemy.pattern) && enemy.pattern.length) {
-    const idx = Number(enemy.patternIndex) || 0;
-    const intent = { ...enemy.pattern[idx % enemy.pattern.length] };
-    return scaleIntent(intent, enemy);
+function resolveEnemyMinionAttack(enemy, player, rng, talentCodes) {
+  const logs = [];
+  if (!enemy.minion || (enemy.minion.hp || 0) <= 0) {
+    return { enemy, player, logs, damageTakenByPlayer: 0 };
   }
 
-  const patterns = enemy.patterns || [];
-  if (!patterns.length) {
-    return { type: 'attack', damage: 6 };
+  let nextPlayer = { ...player, statuses: [...(player.statuses || [])] };
+  let damage = Number(enemy.minion.attack) || 0;
+  if (damage <= 0) return { enemy, player: nextPlayer, logs, damageTakenByPlayer: 0 };
+
+  if (hasStatus(nextPlayer.statuses, 'vulnerable')) damage = Math.round(damage * 1.5);
+  if (hasStatus(nextPlayer.statuses, 'intangible') || talentCodes.has('intangible')) {
+    damage = 1;
   }
 
-  const total = patterns.reduce((sum, p) => sum + (Number(p.weight) || 0), 0);
-  let roll = rng() * total;
-  for (const p of patterns) {
-    roll -= Number(p.weight) || 0;
-    if (roll <= 0) return scaleIntent({ ...p.intent }, enemy);
+  const evadeChance = getStatusValue(nextPlayer.statuses, 'evade');
+  if (evadeChance > 0 && rng() < evadeChance) {
+    logs.push({ type: 'evade', source: 'player', reason: 'minion' });
+    nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'evade');
+    return { enemy, player: nextPlayer, logs, damageTakenByPlayer: 0 };
   }
-  return scaleIntent({ ...patterns[patterns.length - 1].intent }, enemy);
-}
 
-function scaleIntent(intent, enemy) {
-  // difficulty already baked into enemy via generateEnemyFromTemplate HP;
-  // damage stays as template values for MVP readability
-  if (intent.type === 'attack' && intent.damage != null) {
-    const force = getStatusValue(enemy.statuses, 'force');
-    return {
-      ...intent,
-      displayDamage: Math.round(
-        (Number(intent.damage) + force) * outgoingDamageMultiplier(enemy.statuses),
-      ),
-    };
-  }
-  return { ...intent };
+  const result = applyDamageThroughBlock(nextPlayer, damage);
+  nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
+  logs.push({
+    type: 'minion_attack',
+    name: enemy.minion.nameFr || enemy.minion.nameEn,
+    amount: result.damageDealt,
+    playerHp: nextPlayer.hp,
+  });
+  return {
+    enemy,
+    player: nextPlayer,
+    logs,
+    damageTakenByPlayer: result.hpAbsorbed || 0,
+  };
 }
 
 /**
@@ -93,13 +119,25 @@ function scaleIntent(intent, enemy) {
  */
 export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) {
   const logs = [];
-  let nextEnemy = { ...enemy, statuses: [...(enemy.statuses || [])] };
+  let nextEnemy = {
+    ...enemy,
+    statuses: [...(enemy.statuses || [])],
+    immunities: [...(enemy.immunities || [])],
+  };
   let nextPlayer = { ...player, statuses: [...(player.statuses || [])] };
   const intent = nextEnemy.intent || { type: 'attack', damage: 6 };
   const talentCodes = new Set(opts.talentCodes || []);
 
   let damageTakenByPlayer = 0;
   let phantomStepDraw = 0;
+
+  const minionAct = resolveEnemyMinionAttack(nextEnemy, nextPlayer, rng, talentCodes);
+  nextEnemy = minionAct.enemy;
+  nextPlayer = minionAct.player;
+  logs.push(...minionAct.logs);
+  damageTakenByPlayer += minionAct.damageTakenByPlayer || 0;
+
+  let forceChargedIntent = null;
 
   if (intent.type === 'attack') {
     let damage =
@@ -114,7 +152,6 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
     );
     damage = incomingMods.damage;
 
-    // Évite ?
     const evadeChance =
       getStatusValue(nextPlayer.statuses, 'evade') + (Number(incomingMods.evadeBonus) || 0);
     if (evadeChance > 0 && rng() < evadeChance) {
@@ -131,7 +168,6 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
         damage = 1;
       }
 
-      // Allié avec taunt absorbe avant le joueur
       if (nextPlayer.ally && nextPlayer.ally.taunt && (nextPlayer.ally.hp || 0) > 0) {
         const allyHp = Math.max(0, (Number(nextPlayer.ally.hp) || 0) - damage);
         const overflow = Math.max(0, damage - (Number(nextPlayer.ally.hp) || 0));
@@ -151,26 +187,33 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
       if (damage > 0) {
         const result = applyDamageThroughBlock(nextPlayer, damage);
         nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
-        damageTakenByPlayer = result.hpAbsorbed || 0;
+        damageTakenByPlayer += result.hpAbsorbed || 0;
         logs.push({
           type: 'damage',
           source: 'enemy',
           amount: result.damageDealt,
           playerHp: nextPlayer.hp,
           playerBlock: nextPlayer.block,
+          fromCharge: Boolean(intent.fromCharge),
         });
       }
 
-      // Contre-attaque
       const counter = getStatusValue(nextPlayer.statuses, 'counter');
       if (counter > 0) {
-        const cResult = applyDamageThroughBlock(nextEnemy, counter);
-        nextEnemy = { ...nextEnemy, hp: cResult.hp, block: cResult.block };
+        const hit = hitEnemy(
+          nextEnemy,
+          counter,
+          { announceIntent: (e) => getNextIntent(e, 0, rng) },
+          applyDamageThroughBlock,
+        );
+        nextEnemy = hit.enemy;
         logs.push({
           type: 'counter',
-          amount: cResult.damageDealt,
+          amount: hit.damageDealt,
           enemyHp: nextEnemy.hp,
         });
+        logs.push(...hit.logs.filter((l) =>
+          l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'barrier_absorb'));
         nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'counter');
       }
     }
@@ -186,15 +229,58 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
     });
     logs.push({ type: 'buff', source: 'enemy', status: intent.status, value: intent.value });
   } else if (intent.type === 'debuff') {
+    const statusKey = intent.status || 'weak';
     nextPlayer.statuses = applyStatus(nextPlayer.statuses, {
-      key: intent.status || 'weak',
+      key: statusKey,
       value: Number(intent.value) || 1,
       duration: Number(intent.duration) || 2,
     });
-    logs.push({ type: 'debuff', source: 'enemy', status: intent.status, value: intent.value });
+    logs.push({ type: 'debuff', source: 'enemy', status: statusKey, value: intent.value });
+  } else if (intent.type === 'charge') {
+    const releaseDamage =
+      Number(intent.releaseDamage) || Number(intent.damage) || 20;
+    forceChargedIntent = scaleIntent(
+      { type: 'attack', damage: releaseDamage, fromCharge: true },
+      nextEnemy,
+    );
+    logs.push({
+      type: 'charge',
+      source: 'enemy',
+      releaseDamage,
+      displayDamage: forceChargedIntent.displayDamage,
+    });
+  } else if (intent.type === 'summon') {
+    const def = intent.minion || {};
+    const hp = Math.max(1, Number(def.hp) || 24);
+    nextEnemy.minion = {
+      nameFr: def.nameFr || 'Ombre Liee',
+      nameEn: def.nameEn || 'Bound Shade',
+      hp,
+      maxHp: hp,
+      attack: Math.max(0, Number(def.attack) || 7),
+      taunt: def.taunt !== false,
+    };
+    logs.push({
+      type: 'enemy_summon',
+      source: 'enemy',
+      minion: {
+        nameFr: nextEnemy.minion.nameFr,
+        nameEn: nextEnemy.minion.nameEn,
+        hp: nextEnemy.minion.hp,
+        attack: nextEnemy.minion.attack,
+      },
+    });
+  } else if (intent.type === 'raise_barrier') {
+    const amount = Math.max(0, Number(intent.barrier) || 0);
+    nextEnemy.barrier = (Number(nextEnemy.barrier) || 0) + amount;
+    logs.push({
+      type: 'raise_barrier',
+      source: 'enemy',
+      amount,
+      barrier: nextEnemy.barrier,
+    });
   }
 
-  // Statut attaché à une attaque (ex. burn)
   if (intent.status && intent.type === 'attack') {
     nextPlayer.statuses = applyStatus(nextPlayer.statuses, {
       key: intent.status,
@@ -204,12 +290,25 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
     logs.push({ type: 'apply_status', target: 'player', status: intent.status });
   }
 
-  // Avance pattern + nouvelle intention
   if (nextEnemy.ai === 'pattern') {
-    nextEnemy.patternIndex = ((Number(nextEnemy.patternIndex) || 0) + 1) % (nextEnemy.pattern?.length || 1);
+    nextEnemy.patternIndex =
+      ((Number(nextEnemy.patternIndex) || 0) + 1) % (nextEnemy.pattern?.length || 1);
   }
-  nextEnemy.intent = getNextIntent(nextEnemy, 0, rng);
+
+  if (forceChargedIntent) {
+    nextEnemy.intent = forceChargedIntent;
+  } else {
+    nextEnemy.intent = getNextIntent(nextEnemy, 0, rng);
+  }
   logs.push({ type: 'intent', intent: nextEnemy.intent });
+
+  const phaseCheck = maybeAdvanceBossPhase(nextEnemy, {
+    announceIntent: (e) => getNextIntent(e, 0, rng),
+  });
+  if (phaseCheck.changed) {
+    nextEnemy = phaseCheck.enemy;
+    logs.push(...phaseCheck.logs);
+  }
 
   return {
     enemy: nextEnemy,
@@ -225,4 +324,4 @@ export function decideEnemyAction(enemy, player, rng = Math.random) {
   return executeEnemyIntent(enemy, player, rng);
 }
 
-export { ENEMY_TEMPLATES };
+export { ENEMY_TEMPLATES, canApplyStatus, hitEnemy, maybeAdvanceBossPhase };

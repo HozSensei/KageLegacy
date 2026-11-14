@@ -23,7 +23,7 @@ Boucle session riche : une mission n’est plus un combat unique, mais un **parc
 
 | Type | Nom FR | Effet |
 |------|--------|--------|
-| `combat` | Embuscade / Boss | Fight via `combatEngineService` |
+| `combat` | Embuscade / Boss | Fight via `combatEngineService` (boss multi-phases : [BOSS_PHASES.md](./BOSS_PHASES.md)) |
 | `rest` | Sanctuaire de Mousse | +30 % PV max |
 | `cache` | Cache d’Éclaireur | +12 % PV + 2 ferraille |
 | `merchant` | Colporteur d’Ombre | Bandage / tonique contre ferraille |
