@@ -276,6 +276,7 @@
     "inventory": "Inventaire",
     "operation": "Opération",
     "profile": "Profil",
+    "talents": "Arbre de talents",
     "collection": "Collection",
     "decks": "Decks",
     "eliteTools": "Outils Élite",
@@ -716,6 +717,54 @@
       "rare": "Rare",
       "legendary": "Légendaire",
       "mythic": "Mythique"
+    },
+    "stats": {
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medicine": "Médecine",
+      "vitesse": "Vitesse",
+      "intelligence": "Intelligence",
+      "dexterity": "Dextérité",
+      "maxHp": "PV max"
+    }
+  },
+  "talents": {
+    "kicker": "Progression",
+    "title": "Arbre de talents",
+    "lead": "Aucune stat automatique : chaque point dépensé sculpte votre build. Zoom et glissez pour explorer.",
+    "loading": "Chargement de l’arbre…",
+    "pointsLabel": "Points disponibles",
+    "statsTitle": "Bonus talents",
+    "effectsTitle": "Effets actifs",
+    "unlock": "Débloquer (1 pt)",
+    "unlockHint": "Sélectionnez un nœud accessible (prérequis OK + 1 point).",
+    "unlockSuccess": "Talent débloqué.",
+    "branchAll": "Toutes",
+    "resetView": "Recentrer",
+    "working": "…",
+    "cancel": "Annuler",
+    "respecOpen": "Réinitialiser l’arbre",
+    "respecKicker": "Respec",
+    "respecTitle": "Réinitialiser les talents",
+    "respecLead": "Tous les nœuds débloqués ({count}) seront rendus. Les points vous seront remboursés.",
+    "respecFree": "Gratuit (quota niveau)",
+    "respecCost": "Coût : {ryos} Ryos",
+    "respecHint": "1 respec gratuit tous les {n} niveaux ; au-delà, paiement en Ryos.",
+    "respecConfirm": "Confirmer le respec",
+    "respecSuccess": "{count} points remboursés.",
+    "openFromProfile": "Ouvrir l’arbre de talents",
+    "branches": {
+      "center": "Centre",
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medicine": "Médecine"
+    },
+    "types": {
+      "stat": "Stat",
+      "notable": "Notable",
+      "keystone": "Keystone"
     },
     "stats": {
       "taijutsu": "Taijutsu",

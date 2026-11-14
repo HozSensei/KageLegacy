@@ -276,6 +276,7 @@
     "inventory": "Inventory",
     "operation": "Operation",
     "profile": "Profile",
+    "talents": "Talent tree",
     "collection": "Collection",
     "decks": "Decks",
     "eliteTools": "Elite tools",
@@ -716,6 +717,54 @@
       "rare": "Rare",
       "legendary": "Legendary",
       "mythic": "Mythic"
+    },
+    "stats": {
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medicine": "Medicine",
+      "vitesse": "Speed",
+      "intelligence": "Intelligence",
+      "dexterity": "Dexterity",
+      "maxHp": "Max HP"
+    }
+  },
+  "talents": {
+    "kicker": "Progression",
+    "title": "Talent tree",
+    "lead": "No automatic stats: every spent point shapes your build. Zoom and drag to explore.",
+    "loading": "Loading the tree…",
+    "pointsLabel": "Points available",
+    "statsTitle": "Talent bonuses",
+    "effectsTitle": "Active effects",
+    "unlock": "Unlock (1 pt)",
+    "unlockHint": "Select a reachable node (prereqs OK + 1 point).",
+    "unlockSuccess": "Talent unlocked.",
+    "branchAll": "All",
+    "resetView": "Recenter",
+    "working": "…",
+    "cancel": "Cancel",
+    "respecOpen": "Reset the tree",
+    "respecKicker": "Respec",
+    "respecTitle": "Reset talents",
+    "respecLead": "All unlocked nodes ({count}) will be cleared. Points are refunded.",
+    "respecFree": "Free (level quota)",
+    "respecCost": "Cost: {ryos} Ryos",
+    "respecHint": "1 free respec every {n} levels; then pay in Ryos.",
+    "respecConfirm": "Confirm respec",
+    "respecSuccess": "{count} points refunded.",
+    "openFromProfile": "Open talent tree",
+    "branches": {
+      "center": "Center",
+      "taijutsu": "Taijutsu",
+      "ninjutsu": "Ninjutsu",
+      "genjutsu": "Genjutsu",
+      "medicine": "Medicine"
+    },
+    "types": {
+      "stat": "Stat",
+      "notable": "Notable",
+      "keystone": "Keystone"
     },
     "stats": {
       "taijutsu": "Taijutsu",

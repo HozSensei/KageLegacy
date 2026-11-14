@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import PlayerStats from './PlayerStats.vue'
 
@@ -69,6 +70,9 @@ const specs = ['Taijutsu', 'Ninjutsu', 'Genjutsu', 'Medicine']
       <p class="mt-4 text-sm text-ink">
         {{ t('player.talentPoints', { count: character.talentPointsAvailable }) }}
       </p>
+      <RouterLink to="/talents" class="btn-primary mt-4 inline-flex text-xs" data-testid="open-talents">
+        {{ t('talents.openFromProfile') }}
+      </RouterLink>
     </section>
 
     <PlayerStats :stats="character.stats" />

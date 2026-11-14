@@ -1,6 +1,7 @@
 const NAV_PAGES = {
   bureau: { testId: 'placeholder-page', path: '/bureau' },
   profile: { testId: 'profile-page', path: '/profil' },
+  talents: { testId: 'talent-tree-page', path: '/talents' },
   collection: { testId: 'collection-page', path: '/collection' },
   decks: { testId: 'deck-builder-page', path: '/decks' },
   inventory: { testId: 'placeholder-page', path: '/inventory' },

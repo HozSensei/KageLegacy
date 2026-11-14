@@ -27,6 +27,7 @@ const showConvert = ref(false)
 const baseNavItems = [
   { name: 'bureau', path: '/bureau', label: 'nav.bureau' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
+  { name: 'talents', path: '/talents', label: 'nav.talents' },
   { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },
   { name: 'decks', path: '/decks', label: 'nav.decks' },

@@ -8,6 +8,7 @@ import Profile from '../views/Profile.vue'
 import CharacterCreation from '../views/CharacterCreation.vue'
 import CollectionView from '../views/CollectionView.vue'
 import DeckBuilderView from '../views/DeckBuilderView.vue'
+import TalentTreeView from '../views/TalentTreeView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const HERO_VILLAGE = '/images/hero-village.png'
@@ -61,6 +62,15 @@ const router = createRouter({
           component: DeckBuilderView,
           meta: {
             hero: { image: HERO_VILLAGE, titleKey: 'cards.deckBuilderTitle' },
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'talents',
+          name: 'talents',
+          component: TalentTreeView,
+          meta: {
+            hero: { image: HERO_VILLAGE, titleKey: 'talents.title' },
             requiresCharacter: true,
           },
         },
