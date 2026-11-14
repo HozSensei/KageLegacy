@@ -120,7 +120,10 @@ async function testIntegration() {
   assert(created?.name === 'Naruto Test', 'création personnage');
   assert(created.level === 1, 'niveau initial 1');
   assert(created.talentPointsAvailable === 1, '1 talent point au niveau 1');
-  assert(created.stats?.total?.taijutsu === 0, 'stats initiales à 0 (pas de talents/cartes)');
+  // Starter loadout (cartes + deck) peut déjà contribuer aux passifs deck.
+  assert(created.stats?.breakdown?.talents?.taijutsu === 0, 'pas de bonus talents au départ');
+  assert(created.stats?.breakdown?.cards, 'breakdown cards présent (starter loadout)');
+  assert(typeof created.stats?.total?.taijutsu === 'number', 'stats.total numérique après création');
   assert(created.specialization === null, 'pas de spécialisation');
 
   let threw = false;
@@ -175,10 +178,17 @@ async function testIntegration() {
   assert(fetched?.id === created.id, 'getCharacter');
 
   const stats = await getComputedStats(userId);
-  assert(stats.total.taijutsu === 0, 'getComputedStats total à 0 sans talents/cartes');
+  assert(stats.breakdown.talents?.taijutsu === 0, 'getComputedStats talents à 0 sans talents');
   assert(stats.breakdown.talents && stats.breakdown.cards, 'breakdown talents + cards');
+  assert(typeof stats.total.taijutsu === 'number', 'getComputedStats total numérique');
 
-  // Cleanup
+  // Cleanup (decks / collection créés par starter loadout)
+  const deckIds = await query('SELECT id FROM user_decks WHERE user_id = ?', [userId]);
+  for (const deck of deckIds) {
+    await query('DELETE FROM user_deck_cards WHERE deck_id = ?', [deck.id]);
+  }
+  await query('DELETE FROM user_decks WHERE user_id = ?', [userId]);
+  await query('DELETE FROM user_card_collection WHERE user_id = ?', [userId]);
   await query('DELETE FROM player_character WHERE user_id = ?', [userId]);
   await query('DELETE FROM sensei WHERE user_id = ?', [userId]);
   await query('DELETE FROM users WHERE id = ?', [userId]);
