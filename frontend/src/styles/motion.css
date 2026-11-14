@@ -209,6 +209,13 @@
   animation: pop-in 380ms var(--ease-out-quint) both;
 }
 
+/* Changement de thème : bascule nette, sans fondu partiel (voir useTheme.js). */
+.theme-switching *:not(.theme-toggle *),
+.theme-switching *:not(.theme-toggle *)::before,
+.theme-switching *:not(.theme-toggle *)::after {
+  transition: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

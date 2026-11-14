@@ -46,7 +46,20 @@ function setTheme(value) {
   } catch {
     // Stockage indisponible (navigation privée stricte) : le choix vaut pour la session.
   }
-  applyTheme(value)
+  switchWithoutTransitions(() => applyTheme(value))
+}
+
+/*
+ * Sans cela, seuls les éléments dotés d'une transition de couleur fondent vers le nouveau
+ * thème pendant que le reste bascule d'un coup : on fige les transitions le temps d'un rendu.
+ */
+function switchWithoutTransitions(apply) {
+  const root = document.documentElement
+  root.classList.add('theme-switching')
+  apply()
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => root.classList.remove('theme-switching'))
+  })
 }
 
 function toggleTheme() {

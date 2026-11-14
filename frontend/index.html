@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f5f0e6" />
     <title>Kage Legacy</title>
+    <style>
+      /* Fond posé avant le chargement de la feuille de style : mêmes valeurs que --color-bg. */
+      html {
+        background: #f5f0e6;
+      }
+      html[data-theme='dark'] {
+        background: #14182b;
+        color-scheme: dark;
+      }
+    </style>
     <script>
       // Applique le thème avant le premier rendu (même règle que src/composables/useTheme.js).
       ;(function () {
