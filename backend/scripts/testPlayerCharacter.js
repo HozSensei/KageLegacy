@@ -113,11 +113,11 @@ async function testIntegration() {
   const clanTraitId = clanRows[0]?.id ?? null;
 
   const created = await createCharacter(userId, {
-    name: 'Naruto Test',
+    name: 'Hayato Test',
     clanTraitId,
     elementAffinity: 'Futon',
   });
-  assert(created?.name === 'Naruto Test', 'création personnage');
+  assert(created?.name === 'Hayato Test', 'création personnage');
   assert(created.level === 1, 'niveau initial 1');
   assert(created.talentPointsAvailable === 1, '1 talent point au niveau 1');
   // Starter loadout (cartes + deck) peut déjà contribuer aux passifs deck.

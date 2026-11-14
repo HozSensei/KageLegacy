@@ -54,7 +54,7 @@ assert(cosSer.owned && cosSer.equipped && cosSer.key === 'mist_ring', 'serialize
 
 threw = false;
 try {
-  getCosmeticDefinition('naruto_headband');
+  getCosmeticDefinition('unknown_headband');
 } catch (e) {
   threw = e.statusCode === 400;
 }

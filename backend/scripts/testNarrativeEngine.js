@@ -48,8 +48,8 @@ const combatLog = {
 
 const narrative = assembleNarrative({
   matchId: 145,
-  homeSensei: 'Kakashi',
-  awaySensei: 'Baki',
+  homeSensei: 'Renjiro',
+  awaySensei: 'Banri',
   homeNinjas: [{ name: 'Haru' }, { name: 'Sora' }],
   awayNinjas: [{ name: 'Rei' }, { name: 'Gen' }],
   combatLog,
@@ -63,8 +63,8 @@ const intro = narrative.segments.find((s) => s.block_type === 'intro');
 const introFr = resolveSegmentText('fr', intro);
 const introEn = resolveSegmentText('en', intro);
 
-if (!introFr.includes('Kakashi')) throw new Error('intro FR manquante');
-if (!introEn.includes('Kakashi')) throw new Error('intro EN manquante');
+if (!introFr.includes('Renjiro')) throw new Error('intro FR manquante');
+if (!introEn.includes('Renjiro')) throw new Error('intro EN manquante');
 if (introFr === introEn) throw new Error('intro FR/EN identiques');
 
 const rng1 = createNarrativeRng(145, 1);
@@ -134,7 +134,7 @@ const domainLog = {
 const domainNarrative = assembleNarrative({
   matchId: 146,
   homeSensei: 'HozÉlite',
-  awaySensei: 'Baki',
+  awaySensei: 'Banri',
   homeNinjas: [{ name: 'Noa Tachibana' }],
   awayNinjas: [{ name: 'Kenta Amagiri' }],
   combatLog: domainLog,
@@ -187,7 +187,7 @@ const relaisLog = {
 const relaisNarrative = assembleNarrative({
   matchId: 147,
   homeSensei: 'HozÉlite',
-  awaySensei: 'Baki',
+  awaySensei: 'Banri',
   homeNinjas: [{ name: 'Noa Tachibana' }, { name: 'Eiji Tsukimori' }],
   awayNinjas: [{ name: 'Kenta Amagiri' }],
   combatLog: relaisLog,

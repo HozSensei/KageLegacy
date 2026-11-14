@@ -47,9 +47,9 @@ export const TACTIC_CARD_FIXTURES = [
     narrative_key: 'card_chip',
   },
   {
-    slug: 'gen-kage-bunshin',
-    name_fr: 'Kage Bunshin no Jutsu',
-    name_en: 'Shadow Clone Jutsu',
+    slug: 'gen-voile-doubles',
+    name_fr: 'Voile de doubles',
+    name_en: 'Veil of Doubles',
     card_type: 'defense',
     stat_type: 'genjutsu',
     trigger_kind: 'targeted_twice_same_tour',
@@ -63,7 +63,7 @@ export const TACTIC_CARD_FIXTURES = [
   {
     slug: 'suiton-cage-aqueuse',
     name_fr: 'Suiton — Cage aqueuse',
-    name_en: 'Water Style — Aqua Prison',
+    name_en: 'Suiton — Aqua Cage',
     card_type: 'attack',
     stat_type: 'ninjutsu',
     element_affinity: 'Suiton',
@@ -78,7 +78,7 @@ export const TACTIC_CARD_FIXTURES = [
   {
     slug: 'katon-mur-braises',
     name_fr: 'Katon — Mur de braises',
-    name_en: 'Fire Style — Ember Wall',
+    name_en: 'Katon — Ember Wall',
     card_type: 'attack',
     stat_type: 'ninjutsu',
     element_affinity: 'Katon',
@@ -107,7 +107,7 @@ export const TACTIC_CARD_FIXTURES = [
   {
     slug: 'raiton-surcharge',
     name_fr: 'Raiton — Surcharge',
-    name_en: 'Lightning Style — Overcharge',
+    name_en: 'Raiton — Overcharge',
     card_type: 'attack',
     stat_type: 'ninjutsu',
     element_affinity: 'Raiton',
@@ -136,7 +136,7 @@ export const TACTIC_CARD_FIXTURES = [
   {
     slug: 'doton-racines',
     name_fr: "Doton — Racines d'ancrage",
-    name_en: 'Earth Style — Anchoring Roots',
+    name_en: 'Doton — Anchoring Roots',
     card_type: 'defense',
     stat_type: 'ninjutsu',
     element_affinity: 'Doton',
@@ -151,7 +151,7 @@ export const TACTIC_CARD_FIXTURES = [
   {
     slug: 'futon-lame-retour',
     name_fr: 'Futon — Lame de retour',
-    name_en: 'Wind Style — Returning Blade',
+    name_en: 'Futon — Returning Blade',
     card_type: 'attack',
     stat_type: 'ninjutsu',
     element_affinity: 'Futon',
@@ -165,8 +165,8 @@ export const TACTIC_CARD_FIXTURES = [
   },
   {
     slug: 'legende-suiton-dragon',
-    name_fr: 'Suiton — Dragon aqueux',
-    name_en: 'Water Style — Aqua Dragon',
+    name_fr: 'Suiton — Serpent des crues',
+    name_en: 'Suiton — Flood Serpent',
     card_type: 'attack',
     stat_type: 'ninjutsu',
     element_affinity: 'Suiton',
@@ -224,6 +224,6 @@ export function equipCardsOnSquad(ninjas, slugs) {
 
 export const STARTER_LOADOUT = ['tai-parade-ecole', 'med-pansement-rapide', 'nin-eclair-discret'];
 
-export const RARE_LOADOUT = ['gen-kage-bunshin', 'med-soin-zone', 'suiton-cage-aqueuse'];
+export const RARE_LOADOUT = ['gen-voile-doubles', 'med-soin-zone', 'suiton-cage-aqueuse'];
 
 export const MIXED_LOADOUT = ['tai-parade-ecole', 'raiton-surcharge', 'gen-illusion-mineure'];
