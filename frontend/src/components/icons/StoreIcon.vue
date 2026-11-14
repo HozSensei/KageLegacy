@@ -1,10 +1,9 @@
 <script setup>
+import AppIcon from '../ui/AppIcon.vue'
+
 defineOptions({ name: 'StoreIcon' })
 </script>
 
 <template>
-  <span
-    class="material-symbols-outlined material-symbols-filled squad-card-action__icon"
-    aria-hidden="true"
-  >storefront</span>
+  <AppIcon name="store" size="18px" class="squad-card-action__icon" />
 </template>

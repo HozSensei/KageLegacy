@@ -1,0 +1,226 @@
+/*
+ * Mouvement : sobre, court, en CSS et transitions Vue uniquement.
+ * Tout est neutralisé par `prefers-reduced-motion` en fin de fichier.
+ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Révélation d'un aplat : la forme se déploie depuis la gauche */
+@keyframes wipe-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tone-fill) 55%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-7px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.8);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.12);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-38px) scale(1);
+  }
+}
+
+@keyframes flash-tone {
+  0% {
+    background-color: var(--tone-fill);
+    color: var(--tone-on);
+  }
+}
+
+/* ——— Transition entre pages ——— */
+
+.page-enter-active {
+  transition:
+    opacity var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out-quint);
+}
+
+.page-leave-active {
+  transition: opacity 110ms ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-leave-to {
+  opacity: 0;
+}
+
+/* ——— Fondu simple (messages, panneaux conditionnels) ——— */
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--dur-base) ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.rise-enter-active {
+  transition:
+    opacity var(--dur-base) ease,
+    transform var(--dur-base) var(--ease-out-quint);
+}
+
+.rise-leave-active {
+  transition: opacity var(--dur-fast) ease;
+}
+
+.rise-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.rise-leave-to {
+  opacity: 0;
+}
+
+/* ——— Apparition décalée des listes ———
+   Poser `.stagger` sur le conteneur ; chaque enfant direct entre avec un léger retard.
+   Un enfant peut fixer son rang avec `style="--i: n"` (listes longues). */
+
+.stagger > * {
+  animation: rise-in 420ms var(--ease-out-quint) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+.stagger > :nth-child(1) { --i: 0; }
+.stagger > :nth-child(2) { --i: 1; }
+.stagger > :nth-child(3) { --i: 2; }
+.stagger > :nth-child(4) { --i: 3; }
+.stagger > :nth-child(5) { --i: 4; }
+.stagger > :nth-child(6) { --i: 5; }
+.stagger > :nth-child(7) { --i: 6; }
+.stagger > :nth-child(8) { --i: 7; }
+.stagger > :nth-child(9) { --i: 8; }
+.stagger > :nth-child(10) { --i: 9; }
+.stagger > :nth-child(11) { --i: 10; }
+.stagger > :nth-child(n + 12) { --i: 11; }
+
+.anim-rise {
+  animation: rise-in 460ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.anim-wipe {
+  animation: wipe-in 620ms var(--ease-out-quint) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.anim-pop {
+  animation: pop-in 380ms var(--ease-out-quint) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}

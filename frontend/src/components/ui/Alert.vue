@@ -12,14 +12,14 @@ defineProps({
 
 <template>
   <div
-    class="rounded-md p-4"
+    class="alert"
     :class="{
-      'bg-gray-800/80 ring-1 ring-white/10': variant === 'default',
-      'bg-green-500/10 ring-1 ring-green-500/20': variant === 'success',
-      'bg-yellow-500/10 ring-1 ring-yellow-500/20': variant === 'warning',
-      'bg-red-500/10 ring-1 ring-red-500/20': variant === 'danger',
-      'bg-orange-500/10 ring-1 ring-orange-500/20': variant === 'info',
+      'alert--success': variant === 'success',
+      'alert--warning': variant === 'warning',
+      'alert--error': variant === 'danger',
+      'alert--info': variant === 'info',
     }"
+    :role="variant === 'danger' ? 'alert' : 'status'"
   >
     <slot />
   </div>

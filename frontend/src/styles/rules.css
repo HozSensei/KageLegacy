@@ -1,0 +1,125 @@
+/* Document des règles du jeu (markdown rendu) */
+.rules-layout__header {
+  @apply shadow-sm;
+}
+
+.rules-layout__sidebar {
+  @apply fixed inset-y-0 left-0 z-50 w-72 -translate-x-full border-r border-line bg-bg-soft pt-[3.25rem] transition-transform duration-200 lg:static lg:z-0 lg:translate-x-0 lg:bg-transparent lg:pt-0;
+  top: 3.25rem;
+}
+
+.rules-layout__sidebar--open {
+  @apply translate-x-0;
+}
+
+.rules-layout__backdrop {
+  @apply fixed inset-0 z-40 bg-black/50 lg:hidden;
+  top: 3.25rem;
+}
+
+.rules-layout__sidebar-inner {
+  @apply sticky top-[3.25rem] max-h-[calc(100vh-3.25rem)] overflow-y-auto px-4 py-6 sm:px-5 lg:top-14 lg:max-h-[calc(100vh-3.5rem)] lg:py-8;
+}
+
+.rules-layout__sidebar-title {
+  @apply font-display text-lg text-ink lg:hidden;
+}
+
+.rules-layout__sidebar-lead {
+  @apply mt-1 text-xs leading-relaxed text-ink-faint lg:mt-0;
+}
+
+.rules-layout__nav {
+  @apply mt-5 flex flex-col gap-0.5 border-t border-line pt-4;
+}
+
+.rules-layout__nav-link {
+  @apply rounded-r border-l-2 border-transparent px-3 py-2 text-left text-sm leading-snug text-ink-muted transition hover:border-accent/40 hover:bg-bg-card hover:text-ink;
+}
+
+.rules-layout__nav-link--active {
+  @apply border-accent bg-bg-card text-accent;
+}
+
+.rules-layout__main {
+  @apply min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10 lg:px-12 lg:py-12;
+}
+
+.rules-doc {
+  @apply max-w-3xl text-sm leading-7 text-ink-muted;
+}
+
+.rules-doc > h1 {
+  @apply mb-3 text-3xl text-ink sm:text-4xl;
+}
+
+.rules-doc > p:first-of-type {
+  @apply text-base leading-8 text-ink-muted;
+}
+
+.rules-doc__heading {
+  @apply scroll-mt-24;
+}
+
+.rules-doc__anchor {
+  @apply text-inherit no-underline hover:text-accent;
+}
+
+.rules-doc h2,
+.rules-doc__h2 {
+  @apply mt-12 mb-4 border-b border-line pb-2 text-xl text-ink sm:text-2xl;
+}
+
+.rules-doc h3,
+.rules-doc__h3 {
+  @apply mt-8 mb-3 text-base font-medium text-ink sm:text-lg;
+}
+
+.rules-doc p {
+  @apply my-3;
+}
+
+.rules-doc strong {
+  @apply font-medium text-ink;
+}
+
+.rules-doc em {
+  @apply text-ink-faint not-italic;
+}
+
+.rules-doc hr {
+  @apply my-10 border-line;
+}
+
+.rules-doc ul {
+  @apply my-4 list-disc space-y-2 pl-5;
+}
+
+.rules-doc ol {
+  @apply my-4 list-decimal space-y-2 pl-5;
+}
+
+.rules-doc table {
+  @apply my-6 w-full overflow-hidden rounded border border-line text-left text-xs sm:text-sm;
+}
+
+.rules-doc th,
+.rules-doc td {
+  @apply border-b border-line px-3 py-2.5 align-top last:border-b-0;
+}
+
+.rules-doc th {
+  @apply bg-bg-soft font-medium text-ink;
+}
+
+.rules-doc tr:nth-child(even) td {
+  @apply bg-bg-card/40;
+}
+
+.rules-doc a {
+  @apply text-accent underline-offset-4 hover:underline;
+}
+
+.rules-doc > h1 + p + p em {
+  @apply block text-xs uppercase tracking-[0.12em] text-ink-faint;
+}

@@ -1,10 +1,9 @@
 <script setup>
+import AppIcon from '../ui/AppIcon.vue'
+
 defineOptions({ name: 'SyncIcon' })
 </script>
 
 <template>
-  <span
-    class="material-symbols-outlined material-symbols-filled squad-card-action__icon squad-card-action__icon--swap"
-    aria-hidden="true"
-  >sync</span>
+  <AppIcon name="sync" size="18px" class="squad-card-action__icon squad-card-action__icon--swap" />
 </template>
