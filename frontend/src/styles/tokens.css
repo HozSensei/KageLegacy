@@ -1,5 +1,10 @@
 /*
- * Socle visuel Kage Legacy — deux thèmes (clair par défaut, sombre sous `[data-theme='dark']`).
+ * Socle visuel Kage Legacy — trois thèmes :
+ *   - clair (`:root` / `data-theme='light'`)
+ *   - sombre indigo (`[data-theme='dark']`) — fonds indigo profond, accent vermillon clair
+ *   - sombre encre (`[data-theme='ink']`) — anthracite/brun-noir, crème, vermillon, bois/or
+ *     (pas d'indigo dominant)
+ *
  * Palette tirée des illustrations : papier crème, encre indigo, vermillon des bannières,
  * indigo des toits, vert feuillage, bleu ciel, bois chaud, or des lanternes.
  *
@@ -174,6 +179,65 @@
 
   --image-filter: brightness(0.92) saturate(0.92);
   --image-veil: #a4aedd;
+
+  --mix-quiet: 72%;
+
+  color-scheme: dark;
+}
+
+/*
+ * Thème sombre encre : anthracite / brun-noir, texte crème, accent vermillon (comme le clair),
+ * bois et or mis en avant. L'indigo reste disponible pour `data-tone='indigo'` mais n'imprègne
+ * ni les fonds ni l'accent de marque.
+ */
+[data-theme='ink'] {
+  --color-bg: #1a1614;
+  --color-bg-soft: #241f1c;
+  --color-bg-card: #2e2824;
+
+  --color-ink: #f3ecdd;
+  --color-ink-muted: #c9b9a6;
+  --color-ink-faint: #a89886;
+  --color-line: color-mix(in srgb, #f3ecdd 14%, transparent);
+  --color-line-strong: color-mix(in srgb, #f3ecdd 32%, transparent);
+
+  --color-on-ink: #1a1614;
+
+  --color-accent: #e85a3c;
+  --color-accent-strong: #bc3320;
+  --color-vermilion: #d13f27;
+  --color-vermilion-tint: #4a221c;
+
+  --color-indigo: #c4b8a8;
+  --color-indigo-fill: #5c534c;
+  --color-indigo-deep: #2a2420;
+  --color-indigo-fill-hover: #6e645b;
+  --color-indigo-soft: #9a8d7e;
+  --color-indigo-tint: #332c27;
+  --color-accent-soft: #e85a3c;
+
+  --color-leaf: #7fd197;
+  --color-leaf-tint: #1d3829;
+
+  --color-sky: #7cc4f3;
+  --color-sky-tint: #1e3038;
+
+  --color-wood: #e0aa77;
+  --color-wood-tint: #3b2c1e;
+
+  --color-gold: #f0c35f;
+  --color-gold-tint: #3f3417;
+
+  --color-fire: #ff9485;
+  --color-fire-fill: #b92f24;
+  --color-win: #7fd197;
+  --color-water: #7cc4f3;
+  --color-earth: #e0aa77;
+
+  --color-scrim: color-mix(in srgb, #0c0a08 72%, transparent);
+
+  --image-filter: brightness(0.93) saturate(0.95);
+  --image-veil: #c4a882;
 
   --mix-quiet: 72%;
 

@@ -1,15 +1,25 @@
 import { computed, readonly, ref } from 'vue'
 
 /*
- * Deux thèmes : clair et sombre. Le choix explicite est mémorisé ; sans choix,
- * on suit `prefers-color-scheme` et ses changements en direct.
+ * Trois thèmes : clair (`light`), sombre indigo (`dark`), sombre encre (`ink`).
+ *
+ * Persistance : choix explicite dans `localStorage` (clé `THEME_STORAGE_KEY`).
+ * Sans choix mémorisé, on suit `prefers-color-scheme` :
+ *   - système clair → `light`
+ *   - système sombre → `dark` (indigo actuel — conserve le comportement historique ;
+ *     `ink` n’est jamais choisi automatiquement)
  * Le script en ligne de `index.html` applique la même règle avant le premier rendu :
  * garder la clé et les valeurs synchronisées avec lui.
  */
 export const THEME_STORAGE_KEY = 'kage-legacy-theme'
-export const THEMES = ['light', 'dark']
+export const THEMES = ['light', 'dark', 'ink']
 
-const THEME_COLORS = { light: '#f5f0e6', dark: '#14182b' }
+const THEME_COLORS = {
+  light: '#f5f0e6',
+  dark: '#14182b',
+  ink: '#1a1614',
+}
+
 const systemQuery =
   typeof window !== 'undefined' && typeof window.matchMedia === 'function'
     ? window.matchMedia('(prefers-color-scheme: dark)')
@@ -24,6 +34,7 @@ function readStoredTheme() {
   }
 }
 
+/** Préférence système → clair ou sombre indigo (jamais `ink`). */
 function systemTheme() {
   return systemQuery?.matches ? 'dark' : 'light'
 }
@@ -62,8 +73,11 @@ function switchWithoutTransitions(apply) {
   })
 }
 
+/** Cycle Clair → Sombre indigo → Sombre encre → Clair. */
 function toggleTheme() {
-  setTheme(theme.value === 'dark' ? 'light' : 'dark')
+  const order = THEMES
+  const next = order[(order.indexOf(theme.value) + 1) % order.length]
+  setTheme(next)
 }
 
 let initialized = false
@@ -85,7 +99,8 @@ export function initTheme() {
 export function useTheme() {
   return {
     theme: readonly(theme),
-    isDark: computed(() => theme.value === 'dark'),
+    themes: THEMES,
+    isDark: computed(() => theme.value === 'dark' || theme.value === 'ink'),
     setTheme,
     toggleTheme,
   }

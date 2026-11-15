@@ -21,8 +21,15 @@ function expectTheme(theme) {
   cy.get('[data-testid="theme-toggle"]').should('have.attr', 'data-theme-current', theme);
 }
 
-describe('Thème — clair / sombre', () => {
-  it('suit le thème du système tant qu’aucun choix n’est mémorisé', () => {
+function pickTheme(theme) {
+  cy.get('[data-testid="theme-toggle"]').click();
+  cy.get('[data-testid="theme-picker-menu"]').should('be.visible');
+  cy.get(`[data-testid="theme-option-${theme}"]`).click();
+  expectTheme(theme);
+}
+
+describe('Thème — clair / sombre indigo / sombre encre', () => {
+  it('suit le thème du système tant qu’aucun choix n’est mémorisé (sombre → indigo)', () => {
     visitWithSystemTheme('/', true);
     cy.get('[data-testid="landing-page"]').should('be.visible');
     expectTheme('dark');
@@ -32,20 +39,22 @@ describe('Thème — clair / sombre', () => {
     expectTheme('light');
   });
 
-  it('bascule sur une page publique et conserve le choix après rechargement', () => {
+  it('propose les trois thèmes, persiste le choix et le conserve après rechargement', () => {
     visitWithSystemTheme('/', false);
     expectTheme('light');
 
-    cy.get('[data-testid="theme-toggle"]').click();
-    expectTheme('dark');
+    pickTheme('dark');
     cy.window().then((win) => expect(win.localStorage.getItem(STORAGE_KEY)).to.equal('dark'));
-
     cy.reload();
     cy.get('[data-testid="landing-page"]').should('be.visible');
     expectTheme('dark');
 
-    cy.get('[data-testid="theme-toggle"]').click();
-    expectTheme('light');
+    pickTheme('ink');
+    cy.window().then((win) => expect(win.localStorage.getItem(STORAGE_KEY)).to.equal('ink'));
+    cy.reload();
+    expectTheme('ink');
+
+    pickTheme('light');
     cy.reload();
     expectTheme('light');
   });
@@ -56,11 +65,10 @@ describe('Thème — clair / sombre', () => {
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
     expectTheme('light');
 
-    cy.get('[data-testid="theme-toggle"]').click();
-    expectTheme('dark');
+    pickTheme('ink');
 
     cy.visit('/collection');
     cy.get('[data-testid="collection-page"]', { timeout: 15000 }).should('be.visible');
-    expectTheme('dark');
+    expectTheme('ink');
   });
 });

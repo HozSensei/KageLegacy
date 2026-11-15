@@ -1989,6 +1989,10 @@
     "questsTitle": "Quêtes"
   },
   "theme": {
+    "choose": "Choisir le thème",
+    "light": "Clair",
+    "dark": "Sombre indigo",
+    "ink": "Sombre encre",
     "switchToDark": "Passer au thème sombre",
     "switchToLight": "Passer au thème clair"
   }
