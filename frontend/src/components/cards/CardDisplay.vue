@@ -13,6 +13,8 @@ const props = defineProps({
   card: { type: Object, required: true },
   quantity: { type: Number, default: null },
   upgradeLevel: { type: Number, default: 0 },
+  /** Numéro catalogue 1-based (#1…) — affiché en collection. */
+  catalogueNumber: { type: Number, default: null },
   selected: { type: Boolean, default: false },
   compact: { type: Boolean, default: false },
   /** Stats du ninja : si fournies, les figures affichent la valeur effective. */
@@ -198,6 +200,14 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
       :title="t('cards.upgraded', { level: upgradeLevel })"
     >
       +{{ upgradeLevel }}
+    </span>
+    <span
+      v-if="catalogueNumber != null"
+      class="card-display__catalogue-n"
+      data-testid="card-catalogue-number"
+      :title="t('cards.catalogueNumberLabel', { n: catalogueNumber })"
+    >
+      #{{ catalogueNumber }}
     </span>
   </button>
 </template>
@@ -533,6 +543,33 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   top: 0.35rem;
   left: 2rem;
   border: 1px solid color-mix(in srgb, var(--color-gold-fill) 70%, transparent);
+}
+
+.card-display__catalogue-n {
+  position: absolute;
+  z-index: 4;
+  /* Coin bas-gauche de la zone art, au-dessus du corps texte */
+  bottom: calc(5.6rem + 1.65rem + 0.35rem);
+  left: 0.45rem;
+  padding: 0.12rem 0.28rem;
+  border-radius: 0.15rem;
+  background: color-mix(in srgb, var(--color-ink) 55%, transparent);
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 700;
+  font-stretch: 85%;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--color-on-ink) 78%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.card-display--compact .card-display__catalogue-n {
+  bottom: calc(4.6rem + 1.35rem + 0.3rem);
+  left: 0.35rem;
+  font-size: 0.5rem;
 }
 
 .card-display--compact .card-display__body {

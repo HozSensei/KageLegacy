@@ -54,12 +54,16 @@ export const useCollectionStore = defineStore('collection', () => {
   const ownedUniqueCount = computed(() => entries.value.length)
   const catalogueTotal = computed(() => catalogue.value.length)
 
-  /** Grille catalogue : entrée possédée ou « trou » pour chaque définition. */
+  /**
+   * Grille catalogue : entrée possédée ou « trou » pour chaque définition.
+   * `catalogueNumber` = index 1-based dans le catalogue API (ordre seed / grille complète).
+   */
   const catalogueSlots = computed(() => {
     const byDefId = new Map(
       entries.value.map((entry) => [Number(entry.cardDefinitionId), entry])
     )
-    return catalogue.value.map((card) => {
+    return catalogue.value.map((card, index) => {
+      const catalogueNumber = index + 1
       const entry = byDefId.get(Number(card.id))
       if (entry) {
         return {
@@ -67,6 +71,7 @@ export const useCollectionStore = defineStore('collection', () => {
           key: `owned-${entry.collectionId}`,
           card: entry.card,
           entry,
+          catalogueNumber,
         }
       }
       return {
@@ -74,6 +79,7 @@ export const useCollectionStore = defineStore('collection', () => {
         key: `hole-${card.id}`,
         card,
         entry: null,
+        catalogueNumber,
       }
     })
   })
