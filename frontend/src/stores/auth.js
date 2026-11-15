@@ -100,15 +100,16 @@ export const useAuthStore = defineStore('auth', () => {
     checked.value = true
   }
 
-  async function loginAsGuest(senseiName, villageId = 'leaf') {
+  async function loginAsGuest({ senseiName, villageId = 'leaf', language = 'fr' } = {}) {
     loading.value = true
     error.value = null
     try {
+      const lang = language === 'en' ? 'en' : 'fr'
       const res = await fetch(`${API_BASE}/api/auth/guest`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senseiName, language: 'fr', villageId }),
+        body: JSON.stringify({ senseiName, language: lang, villageId }),
       })
       const { ok, body } = await parseApiResponse(res)
       if (!ok) throw new Error(await readApiError(res, body))

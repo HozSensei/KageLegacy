@@ -10,6 +10,10 @@
     "collapseSection": "Réduire",
     "expandSection": "Développer"
   },
+  "errors": {
+    "eliteRequired": "Pack Élite requis.",
+    "wsDisconnected": "WebSocket non connecté."
+  },
   "gameClock": {
     "label": "H{hour} · {phase}",
     "phases": {

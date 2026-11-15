@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useSquadStore } from '../../stores/squad'
 import { useEliteStore } from '../../stores/elite'
+import { writeStoredLocale } from '../../utils/localeStorage.js'
 import SlidePanel from './SlidePanel.vue'
 import VerifiedIcon from '../icons/VerifiedIcon.vue'
 import AppIcon from '../ui/AppIcon.vue'
@@ -69,7 +70,9 @@ async function setLanguage(lang) {
   const ok = await auth.updateLanguage(lang)
   if (ok) {
     locale.value = lang
+    writeStoredLocale(lang)
     if (squad.sensei) squad.sensei.language = lang
+    if (auth.sensei) auth.sensei.language = lang
     close()
   } else {
     formError.value = auth.error

@@ -10,6 +10,7 @@ import { missionRankTone } from '../utils/missionVisuals'
 import { useCombatStore } from '../stores/combat'
 import { useMissionsStore } from '../stores/missions'
 import { useDecksStore } from '../stores/decks'
+import { localizedDescription, localizedName } from '../utils/localeContent.js'
 
 defineOptions({ name: 'MissionsCombatView' })
 
@@ -35,11 +36,11 @@ const activeDeckLabel = computed(() => {
 })
 
 function missionName(m) {
-  return locale.value === 'en' ? m.nameEn : m.nameFr
+  return localizedName(m, locale.value)
 }
 
 function missionDesc(m) {
-  return locale.value === 'en' ? m.descriptionEn : m.descriptionFr
+  return localizedDescription(m, locale.value)
 }
 
 async function startMission(mission) {
@@ -196,7 +197,7 @@ async function startQuick(templateId) {
           @click="startQuick(enemy.id)"
         >
           <span class="shape" :class="enemy.boss ? 'shape--lozenge' : 'shape--triangle'" aria-hidden="true" />
-          <span class="quick-foe__name">{{ locale === 'en' ? enemy.nameEn : enemy.nameFr }}</span>
+          <span class="quick-foe__name">{{ localizedName(enemy, locale) }}</span>
           <span v-if="enemy.hp" class="quick-foe__hp">
             {{ enemy.hp }} <small>{{ t('combat.hpLabel') }}</small>
           </span>

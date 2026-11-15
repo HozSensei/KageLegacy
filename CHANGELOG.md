@@ -7,6 +7,19 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### i18n FR/EN complète (V2 shell + catalogues) (2026-11-15)
+
+#### Added
+- Helper `localizedName` / `localizedDescription` (`frontend/src/utils/localeContent.js`)
+- Persistance locale `localStorage` (`kage-locale`) + switcher landing/auth (`LocaleSwitcher`)
+- Champ langue à l’inscription ; invité hérite de la locale UI
+- Doc `docs/I18N.md` + audit `npm run audit:i18n --prefix backend`
+- Cypress locale étendu (landing + collection/missions)
+
+#### Fixed
+- Sélection EN pour allié combat, récompense de carte, erreurs Élite/WebSocket
+- Libellés EN « Bird Flight » (ex-Vol d’Oiseau restés en FR dans `en.json`)
+
 ### Seeds catalogues V2 au boot Docker (2026-11-15)
 
 #### Added

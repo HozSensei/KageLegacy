@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import i18n from '../i18n.js'
 import { readApiError } from '../utils/http.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
@@ -86,7 +87,7 @@ export const useEliteStore = defineStore('elite', () => {
 
   async function saveCosmetics(payload) {
     if (!subscription.value?.isActive) {
-      throw new Error('Pack Élite requis.');
+      throw new Error(i18n.global.t('errors.eliteRequired'))
     }
     const res = await fetch(`${API_BASE}/api/elite/cosmetics`, {
       method: 'PATCH',
@@ -173,7 +174,7 @@ export const useEliteStore = defineStore('elite', () => {
 
   async function simulateMatchup(opponentComposition, opponentLevel = 'similar', runs = 100, opponentDeck = null) {
     if (!subscription.value?.isActive) {
-      throw new Error('Pack Élite requis.')
+      throw new Error(i18n.global.t('errors.eliteRequired'))
     }
     const body = { opponentLevel, runs }
     if (opponentDeck) {

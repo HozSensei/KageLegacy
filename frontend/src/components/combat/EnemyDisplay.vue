@@ -5,6 +5,7 @@ import IntentDisplay from './IntentDisplay.vue'
 import StatusIcon from './StatusIcon.vue'
 import AppIcon from '../ui/AppIcon.vue'
 import { useDeltaFeed } from '../../composables/useDeltaFeed'
+import { localizedName } from '../../utils/localeContent.js'
 
 defineOptions({ name: 'EnemyDisplay' })
 
@@ -14,9 +15,7 @@ const props = defineProps({
 
 const { locale, t } = useI18n()
 
-const name = computed(() =>
-  locale.value === 'en' ? props.enemy.nameEn : props.enemy.nameFr
-)
+const name = computed(() => localizedName(props.enemy, locale.value))
 
 const hpPct = computed(() => {
   const max = Math.max(1, props.enemy.maxHp || 1)

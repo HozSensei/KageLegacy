@@ -5,11 +5,13 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
+import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue'
+import { writeStoredLocale } from '../utils/localeStorage.js'
 import gateImage from '../assets/illustrations/village-gate.webp'
 
 defineOptions({ name: 'LoginView' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -19,8 +21,15 @@ const invitePoolId = ref(route.query.invitePoolId ? Number(route.query.invitePoo
 const username = ref('')
 const password = ref('')
 const senseiName = ref('')
-const language = ref('fr')
+const language = ref(locale.value === 'en' ? 'en' : 'fr')
 const villageId = ref('leaf')
+
+function onLocaleChange(lang) {
+  const code = lang === 'en' ? 'en' : 'fr'
+  language.value = code
+  locale.value = code
+  writeStoredLocale(code)
+}
 
 const villageOptions = ['leaf', 'sand', 'mist', 'stone']
 
@@ -47,7 +56,17 @@ async function submit() {
           invitePoolId: invitePoolId.value || undefined,
           villageId: villageId.value,
         })
-  if (ok) router.push('/home')
+  if (ok) {
+    const lang =
+      mode.value === 'login'
+        ? auth.sensei?.language || locale.value
+        : language.value
+    if (lang === 'en' || lang === 'fr') {
+      locale.value = lang
+      writeStoredLocale(lang)
+    }
+    router.push('/home')
+  }
 }
 
 onMounted(() => {
@@ -72,7 +91,10 @@ onMounted(() => {
     </aside>
 
     <main class="auth__main">
-      <ThemeToggle class="auth__theme" />
+      <div class="auth__theme">
+        <LocaleSwitcher @change="onLocaleChange" />
+        <ThemeToggle />
+      </div>
       <div class="auth__card">
         <router-link to="/" class="auth__brand" :aria-label="t('auth.backHome')">
           <BrandMark size="1.5rem" class="text-vermilion" />
@@ -119,6 +141,20 @@ onMounted(() => {
               </option>
             </select>
             <span class="field__hint">{{ t('auth.villageHint') }}</span>
+          </label>
+
+          <label v-if="mode === 'register'" class="field">
+            <span class="field__label">{{ t('profile.language') }}</span>
+            <select
+              v-model="language"
+              required
+              data-testid="register-language"
+              class="input-field"
+              @change="onLocaleChange(language)"
+            >
+              <option value="fr">{{ t('locale.fr') }} — Français</option>
+              <option value="en">{{ t('locale.en') }} — English</option>
+            </select>
           </label>
 
           <label class="field">
@@ -183,6 +219,9 @@ onMounted(() => {
   position: absolute;
   top: 1rem;
   right: var(--space-gutter);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .auth__card {

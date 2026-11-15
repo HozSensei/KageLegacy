@@ -6,6 +6,7 @@ import CollectionGrid from '../components/cards/CollectionGrid.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import { cardTypeVisual } from '../utils/cardVisuals'
+import { localizedDescription, localizedName } from '../utils/localeContent.js'
 import { useCollectionStore } from '../stores/collection'
 
 defineOptions({ name: 'CollectionView' })
@@ -22,12 +23,12 @@ onMounted(() => {
 const selectedName = computed(() => {
   const card = selected.value?.card
   if (!card) return ''
-  return (locale.value === 'en' ? card.nameEn : card.nameFr) || card.nameFr
+  return localizedName(card, locale.value)
 })
 const selectedDescription = computed(() => {
   const card = selected.value?.card
   if (!card) return ''
-  return (locale.value === 'en' ? card.descriptionEn : card.descriptionFr) || card.descriptionFr
+  return localizedDescription(card, locale.value)
 })
 const selectedVisual = computed(() => cardTypeVisual(selected.value?.card?.type))
 

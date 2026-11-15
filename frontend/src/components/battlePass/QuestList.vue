@@ -1,6 +1,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../ui/AppIcon.vue'
+import { localizedDescription } from '../../utils/localeContent.js'
 
 defineOptions({ name: 'QuestList' })
 
@@ -16,7 +17,7 @@ const emit = defineEmits(['claim', 'stub-progress'])
 const { t } = useI18n()
 
 function description(quest, loc) {
-  return loc?.startsWith('en') ? quest.descriptionEn : quest.descriptionFr
+  return localizedDescription(quest, loc)
 }
 
 function pct(quest) {

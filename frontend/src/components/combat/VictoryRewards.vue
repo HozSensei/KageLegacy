@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { localizedName } from '../../utils/localeContent.js'
 
 defineOptions({ name: 'VictoryRewards' })
 
@@ -14,7 +15,7 @@ const props = defineProps({
 
 const emit = defineEmits(['dismiss'])
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isVictory = computed(() => props.state === 'victory')
 
@@ -50,7 +51,7 @@ const lines = computed(() => {
     out.push({
       key: 'card',
       label: t('combat.rewardCard', {
-        name: r.card.nameFr || r.card.nameEn || '…',
+        name: localizedName(r.card, locale.value, '…'),
       }),
     })
   } else if (r.cardRolled === false && (r.xp > 0 || r.ryos > 0)) {

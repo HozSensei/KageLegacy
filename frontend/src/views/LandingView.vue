@@ -4,11 +4,12 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
+import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue'
 import gateImage from '../assets/illustrations/village-gate.webp'
 
 defineOptions({ name: 'LandingView' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const auth = useAuthStore()
 
@@ -27,7 +28,7 @@ const timeline = [
 ]
 
 async function playAsGuest() {
-  const ok = await auth.loginAsGuest()
+  const ok = await auth.loginAsGuest({ language: locale.value === 'en' ? 'en' : 'fr' })
   if (ok) router.push('/home')
 }
 </script>
@@ -40,6 +41,7 @@ async function playAsGuest() {
         <span>{{ t('app.name') }}</span>
       </p>
       <nav class="landing__nav">
+        <LocaleSwitcher data-testid="landing-locale-switcher" />
         <router-link to="/rules" class="landing__nav-link" data-testid="landing-rules-link">
           {{ t('rules.link') }}
         </router-link>
