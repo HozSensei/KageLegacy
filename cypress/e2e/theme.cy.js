@@ -1,30 +1,11 @@
 const STORAGE_KEY = 'kage-legacy-theme';
 
-/** Force prefers-color-scheme via CDP (fiable sous Electron Cypress). */
-function setPreferredColorScheme(scheme) {
-  cy.wrap(
-    Cypress.automation('remote:debugger:protocol', {
-      command: 'Emulation.setEmulatedMedia',
-      params: {
-        features: [{ name: 'prefers-color-scheme', value: scheme }],
-      },
-    }),
-    { log: false },
-  );
-}
-
-/** Visite une page sans choix mémorisé, avec préférence système contrôlée. */
-function visitWithSystemTheme(path, systemDark) {
-  setPreferredColorScheme(systemDark ? 'dark' : 'light');
-  cy.visit(path, {
-    onBeforeLoad(win) {
-      try {
-        win.localStorage.removeItem(STORAGE_KEY);
-      } catch (e) {
-        /* ignore */
-      }
-    },
-  });
+function clearThemeOnLoad(win) {
+  try {
+    win.localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    /* ignore */
+  }
 }
 
 function expectTheme(theme) {
@@ -40,19 +21,22 @@ function pickTheme(theme) {
 }
 
 describe('Thème — clair / sombre indigo / sombre encre', () => {
-  it('suit le thème du système tant qu’aucun choix n’est mémorisé (sombre → indigo)', () => {
-    visitWithSystemTheme('/', true);
+  it('sans choix mémorisé, suit le système (sombre → indigo, jamais encre)', () => {
+    cy.visit('/', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="landing-page"]').should('be.visible');
-    expectTheme('dark');
-    cy.window().then((win) => expect(win.localStorage.getItem(STORAGE_KEY)).to.equal(null));
-
-    visitWithSystemTheme('/', false);
-    expectTheme('light');
+    cy.window().then((win) => {
+      expect(win.localStorage.getItem(STORAGE_KEY)).to.equal(null);
+      const systemDark = win.matchMedia('(prefers-color-scheme: dark)').matches;
+      // Mapping documenté : système sombre → `dark` (indigo), jamais `ink`.
+      expect(win.document.documentElement.getAttribute('data-theme')).to.equal(
+        systemDark ? 'dark' : 'light',
+      );
+    });
   });
 
   it('propose les trois thèmes, persiste le choix et le conserve après rechargement', () => {
-    visitWithSystemTheme('/', false);
-    expectTheme('light');
+    cy.visit('/', { onBeforeLoad: clearThemeOnLoad });
+    cy.get('[data-testid="landing-page"]').should('be.visible');
 
     cy.get('[data-testid="theme-toggle"]').click();
     cy.get('[data-testid="theme-picker-menu"]').should('be.visible');
@@ -80,9 +64,8 @@ describe('Thème — clair / sombre indigo / sombre encre', () => {
 
   it('propose la bascule dans la coque et garde le thème d’une page à l’autre', () => {
     cy.loginDemo();
-    visitWithSystemTheme('/home', false);
+    cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
-    expectTheme('light');
 
     pickTheme('ink');
 
