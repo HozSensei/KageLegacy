@@ -203,6 +203,10 @@
     "kicker": "Roguelike solo · Construction de deck",
     "featuresTitle": "Ce qui t'attend"
   },
+  "hero": {
+    "perspectiveHint": "Grille de cartes décorative",
+    "stageLabel": "Scène de cartes"
+  },
   "guest": {
     "banner": "Essai invité — {days} jour(s) restant(s).",
     "convertCta": "Sauvegarder mon compte",

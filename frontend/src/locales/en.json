@@ -203,6 +203,10 @@
     "kicker": "Solo roguelike · Deck building",
     "featuresTitle": "What awaits you"
   },
+  "hero": {
+    "perspectiveHint": "Decorative card grid",
+    "stageLabel": "Card stage"
+  },
   "guest": {
     "banner": "Guest trial — {days} day(s) left.",
     "convertCta": "Save my account",

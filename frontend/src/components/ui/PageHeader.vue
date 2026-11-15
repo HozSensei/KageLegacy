@@ -17,17 +17,44 @@ defineProps({
     default: 'title',
     validator: (v) => ['title', 'display'].includes(v),
   },
+  /**
+   * Composition :
+   * - `classic` — grille texte + image / formes
+   * - `stage` — panneau éditorial + scène perspective (cartes)
+   * - `overlay` — panneau sombre superposé à une image plein cadre (Kyoto)
+   */
+  layout: {
+    type: String,
+    default: 'classic',
+    validator: (v) => ['classic', 'stage', 'overlay'].includes(v),
+  },
 })
 </script>
 
 <template>
   <header
     class="page-header"
-    :class="{ 'page-header--visual': image, 'page-header--aside': !image && $slots.aside }"
+    :class="{
+      'page-header--visual': image && layout !== 'overlay',
+      'page-header--aside': !image && $slots.aside && layout === 'classic',
+      'page-header--stage': layout === 'stage',
+      'page-header--overlay': layout === 'overlay' && image,
+    }"
     :data-tone="tone"
     data-testid="page-hero"
   >
-    <div class="page-header__text">
+    <div v-if="layout === 'overlay' && image" class="page-header__bleed" aria-hidden="true">
+      <img
+        class="page-header__bleed-image"
+        :src="image"
+        alt=""
+        decoding="async"
+        :style="{ objectPosition: imagePosition }"
+      />
+      <span class="page-header__bleed-veil" />
+    </div>
+
+    <div class="page-header__text" :class="{ 'page-header__text--panel': layout === 'overlay' }">
       <p v-if="kicker || index" class="page-header__kicker">
         <span v-if="index" class="page-header__index">{{ index }}</span>
         <span class="lozenge page-header__mark" aria-hidden="true" />
@@ -42,7 +69,31 @@ defineProps({
       </div>
     </div>
 
-    <div v-if="image" class="page-header__visual" aria-hidden="true">
+    <div
+      v-if="layout === 'stage' && ($slots.aside || image)"
+      class="page-header__stage"
+      aria-hidden="true"
+    >
+      <span v-if="image" class="page-header__stage-backdrop illustration">
+        <img
+          class="page-header__stage-image"
+          :src="image"
+          alt=""
+          decoding="async"
+          :style="{ objectPosition: imagePosition }"
+        />
+      </span>
+      <span class="page-header__stage-wash" />
+      <div v-if="$slots.aside" class="page-header__stage-cards">
+        <slot name="aside" />
+      </div>
+    </div>
+
+    <div
+      v-else-if="image && layout === 'classic'"
+      class="page-header__visual"
+      aria-hidden="true"
+    >
       <span class="page-header__block" />
       <span class="page-header__frame illustration">
         <img
@@ -55,11 +106,11 @@ defineProps({
       </span>
     </div>
 
-    <div v-else-if="$slots.aside" class="page-header__aside">
+    <div v-else-if="layout === 'classic' && $slots.aside" class="page-header__aside">
       <slot name="aside" />
     </div>
 
-    <div v-else-if="index" class="page-header__shapes" aria-hidden="true">
+    <div v-else-if="layout === 'classic' && index" class="page-header__shapes" aria-hidden="true">
       <span class="page-header__disc" />
       <span class="page-header__numeral">{{ index }}</span>
       <span class="page-header__bar" />
@@ -124,7 +175,6 @@ defineProps({
   animation: rise-in 520ms var(--ease-out-quint) 130ms both;
 }
 
-/* Illustration : image nette, bord gauche biseauté, aplat décalé derrière */
 .page-header__visual {
   position: relative;
   order: -1;
@@ -154,9 +204,134 @@ defineProps({
   min-width: 0;
 }
 
-/* Sans illustration : composition de formes et grand numéro */
 .page-header__shapes {
   display: none;
+}
+
+.page-header--stage {
+  align-items: center;
+  gap: 1.75rem;
+  padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  border-bottom-color: transparent;
+}
+
+.page-header__stage {
+  position: relative;
+  order: -1;
+  display: grid;
+  place-items: center;
+  min-height: clamp(12rem, 38vw, 16rem);
+  margin-inline: calc(var(--space-gutter) * -1);
+  padding: 1.25rem var(--space-gutter) 1.25rem;
+  overflow: visible;
+  background: var(--color-bg-soft);
+}
+
+.page-header__stage-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.page-header__stage-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.55;
+  filter: var(--image-filter);
+}
+
+.page-header__stage-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      105deg,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-bg) 55%, transparent) 38%,
+      color-mix(in srgb, var(--tone-tint) 40%, transparent) 100%
+    ),
+    color-mix(in srgb, var(--tone-fill) 12%, transparent);
+  pointer-events: none;
+}
+
+.page-header__stage-cards {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  animation: fade-in 700ms ease both;
+  /* Aside slot is decorative (PerspectiveCardGrid); keep page actions clickable. */
+  pointer-events: none;
+}
+
+.page-header--overlay {
+  position: relative;
+  isolation: isolate;
+  align-items: stretch;
+  min-height: clamp(16rem, 48vw, 22rem);
+  padding: 0;
+  margin-inline: calc(var(--space-gutter) * -1);
+  border-bottom: 0;
+  overflow: hidden;
+}
+
+.page-header__bleed {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.page-header__bleed-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--image-filter);
+}
+
+.page-header__bleed-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--color-ink) 88%, transparent) 0%,
+      color-mix(in srgb, var(--color-ink) 55%, transparent) 42%,
+      color-mix(in srgb, var(--color-ink) 18%, transparent) 100%
+    );
+}
+
+.page-header__text--panel {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  max-width: 28rem;
+  margin: clamp(2rem, 6vw, 3.5rem) var(--space-gutter);
+  padding: 1.35rem 1.35rem 1.5rem;
+  background: color-mix(in srgb, var(--color-ink) 82%, transparent);
+  color: var(--color-on-ink);
+  animation: rise-in 560ms var(--ease-out-quint) both;
+}
+
+.page-header__text--panel .page-header__kicker {
+  color: color-mix(in srgb, var(--color-on-ink) 72%, transparent);
+}
+
+.page-header__text--panel .page-header__index,
+.page-header__text--panel .page-header__mark {
+  color: var(--tone-fill);
+}
+
+.page-header__text--panel .page-header__title,
+.page-header__text--panel .page-title,
+.page-header__text--panel .t-display {
+  color: var(--color-on-ink);
+}
+
+.page-header__text--panel .page-header__lead {
+  color: color-mix(in srgb, var(--color-on-ink) 78%, transparent);
 }
 
 @media (min-width: 768px) {
@@ -171,7 +346,23 @@ defineProps({
     gap: 2.5rem;
   }
 
-  .page-header:not(.page-header--visual, .page-header--aside):has(.page-header__shapes) {
+  .page-header--stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+    gap: 2rem 2.5rem;
+  }
+
+  .page-header--stage .page-header__stage {
+    order: 0;
+    min-height: 18.5rem;
+    margin: 0;
+    padding: 1.75rem 0.5rem 1.75rem 0;
+    overflow: visible;
+    border-radius: var(--radius-md);
+  }
+
+  .page-header:not(.page-header--visual, .page-header--aside, .page-header--stage, .page-header--overlay):has(
+      .page-header__shapes
+    ) {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
@@ -235,6 +426,32 @@ defineProps({
     background: var(--color-ink);
     transform-origin: bottom;
     animation: rise-in 520ms var(--ease-out-quint) 160ms both;
+  }
+
+  .page-header--overlay {
+    margin-inline: calc(var(--space-gutter) * -1);
+  }
+
+  .page-header__text--panel {
+    max-width: 26rem;
+    margin: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+    padding: 1.75rem 1.75rem 1.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-header__kicker,
+  .page-header__title,
+  .page-header__lead,
+  .page-header__actions,
+  .page-header__frame,
+  .page-header__block,
+  .page-header__disc,
+  .page-header__numeral,
+  .page-header__bar,
+  .page-header__stage-cards,
+  .page-header__text--panel {
+    animation: none !important;
   }
 }
 </style>

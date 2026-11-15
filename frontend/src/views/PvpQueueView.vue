@@ -5,6 +5,8 @@ import { useRouter } from 'vue-router'
 import { usePvpStore } from '../stores/pvp'
 import { useDecksStore } from '../stores/decks'
 import PageHeader from '../components/ui/PageHeader.vue'
+import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
+import { typeHeroTiles } from '../utils/heroTiles'
 import bridgeImage from '../assets/illustrations/stone-bridge.webp'
 
 defineOptions({ name: 'PvpQueueView' })
@@ -17,6 +19,7 @@ const decks = useDecksStore()
 const levelWindow = ref(3)
 const joining = ref(false)
 const localError = ref(null)
+const pvpTiles = typeHeroTiles(9)
 let pollTimer = null
 
 const activeDeckLabel = computed(() => {
@@ -81,12 +84,29 @@ async function onLeave() {
     <PageHeader
       index="09"
       tone="vermilion"
+      layout="stage"
       :kicker="t('pvp.kicker')"
       :title="t('pvp.queueTitle')"
       :lead="t('pvp.queueLead')"
       :image="bridgeImage"
       image-position="50% 60%"
-    />
+    >
+      <template #aside>
+        <PerspectiveCardGrid :tiles="pvpTiles" />
+      </template>
+      <template #actions>
+        <button
+          v-if="pvp.queueStatus !== 'queued'"
+          type="button"
+          class="btn-primary"
+          data-testid="pvp-hero-join"
+          :disabled="joining || pvp.loading"
+          @click="onJoin"
+        >
+          {{ joining ? t('common.loading') : t('pvp.joinQueue') }}
+        </button>
+      </template>
+    </PageHeader>
 
     <div class="pvp-layout">
       <section class="pvp-panel" :class="{ 'pvp-panel--queued': pvp.queueStatus === 'queued' }">
