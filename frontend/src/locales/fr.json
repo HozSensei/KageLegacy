@@ -793,6 +793,10 @@
     "statDamage": "Dégâts",
     "statBlock": "Armure",
     "statHeal": "Soins",
+    "scalesWith": "Scale avec {stat}",
+    "baseValue": "Base {n}",
+    "baseShort": "base {n}",
+    "statEffectiveAria": "{n} (base {base}, scale avec {stat})",
     "upgraded": "Amélioration +{level}",
     "quantityLabel": "Exemplaires"
   },

@@ -11,10 +11,10 @@ export const CARD_TYPE_VISUALS = {
 }
 
 export const RARITY_VISUALS = {
-  common: { pips: 1, tone: 'neutral' },
-  rare: { pips: 2, tone: 'sky' },
-  legendary: { pips: 3, tone: 'gold' },
-  mythic: { pips: 4, tone: 'vermilion' },
+  common: { pips: 1, tone: 'neutral', foil: false },
+  rare: { pips: 2, tone: 'sky', foil: true },
+  legendary: { pips: 3, tone: 'gold', foil: true },
+  mythic: { pips: 4, tone: 'vermilion', foil: true },
 }
 
 export const ELEMENT_TONES = {

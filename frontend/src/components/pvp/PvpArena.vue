@@ -177,6 +177,7 @@ const outcomeKey = computed(() => {
         :selected-id="selectedId"
         :disabled="busy || !canAct"
         :chakra="self?.chakra || 0"
+        :stats="self?.stats"
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
       />

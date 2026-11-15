@@ -793,6 +793,10 @@
     "statDamage": "Damage",
     "statBlock": "Block",
     "statHeal": "Heal",
+    "scalesWith": "Scales with {stat}",
+    "baseValue": "Base {n}",
+    "baseShort": "base {n}",
+    "statEffectiveAria": "{n} (base {base}, scales with {stat})",
     "upgraded": "Upgrade +{level}",
     "quantityLabel": "Copies"
   },
