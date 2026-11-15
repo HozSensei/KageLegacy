@@ -13,6 +13,16 @@ const FIGURE_I18N = {
   heal: 'cards.heal',
 }
 
+/** Statuts soutien en % (aligné combat StatusIcon / CombatLog). */
+const PCT_STATUS_KEYS = new Set([
+  'damage_pct',
+  'block_pct',
+  'heal_pct',
+  'taijutsu_pct',
+  'ninjutsu_pct',
+  'genjutsu_pct',
+])
+
 function statusLabel(t, te, statusKey) {
   const combatKey = `combat.statuses.${statusKey}`
   if (te(combatKey)) return t(combatKey)
@@ -35,14 +45,18 @@ export function formatStructuredEffect(effect, { t, te }, card = null) {
     const label = statusLabel(t, te, status)
     const amount = Number.isFinite(n) && n !== 0 ? n : 1
     const signed = amount > 0 ? `+${amount}` : String(amount)
+    const isPct = PCT_STATUS_KEYS.has(status)
     if (effect.duration != null && Number(effect.duration) > 0) {
-      return t('cards.effectStatusTimed', {
+      return t(isPct ? 'cards.effectStatusTimedPct' : 'cards.effectStatusTimed', {
         n: signed,
         status: label,
         turns: Number(effect.duration),
       })
     }
-    return t('cards.effectStatus', { n: signed, status: label })
+    return t(isPct ? 'cards.effectStatusPct' : 'cards.effectStatus', {
+      n: signed,
+      status: label,
+    })
   }
 
   if (type === 'draw') {
