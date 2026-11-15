@@ -712,9 +712,9 @@
     "shortcutsTitle": "The whole game"
   },
   "cards": {
-    "collectionKicker": "Techniques & items",
+    "collectionKicker": "Catalogue",
     "collectionTitle": "Collection",
-    "collectionLead": "Every card has an active combat effect and a passive bonus while it sits in your deck.",
+    "collectionLead": "Owned scrolls and holes in the catalogue.",
     "deckKicker": "Building",
     "deckBuilderTitle": "Deck builder",
     "deckBuilderLead": "Build a 20–30 card deck. Passive bonuses from the active deck feed your stats.",
@@ -797,6 +797,7 @@
     "statBlock": "Block",
     "statHeal": "Heal",
     "scalesWith": "Scales with {stat}",
+    "scaleStat": "{stat}",
     "baseValue": "Base {n}",
     "baseShort": "base {n}",
     "statEffectiveAria": "{n} (base {base}, scales with {stat})",
@@ -1260,7 +1261,9 @@
     "questsTitle": "Quests"
   },
   "player": {
-    "profileTitle": "Ninja profile",
+    "profileKicker": "Shinobi",
+    "profileTitle": "Profile",
+    "profileLead": "Identity, progression, and shortcuts to talents and decks.",
     "createTitle": "Create your ninja",
     "createLead": "You play as a single character. Stats come from the talent tree and your deck.",
     "createHint": "No base stats: each level grants 1 talent point to spend later.",

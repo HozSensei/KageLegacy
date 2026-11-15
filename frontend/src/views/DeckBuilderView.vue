@@ -79,9 +79,7 @@ async function onActivate(deckId) {
 <template>
   <div class="page-shell" data-testid="deck-builder-page">
     <PageHeader
-      index="05"
       tone="sky"
-      layout="overlay"
       :kicker="t('cards.deckKicker')"
       :title="t('cards.deckBuilderTitle')"
       :lead="t('cards.deckBuilderLead')"

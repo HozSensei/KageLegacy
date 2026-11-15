@@ -52,14 +52,9 @@ async function playAsGuest() {
     </header>
 
     <main>
-      <section class="landing__hero">
-        <p class="landing__vertical t-vertical" aria-hidden="true">{{ t('app.name') }} — {{ t('hub.kicker') }}</p>
-
+      <section class="landing__hero" data-testid="landing-hero">
         <div class="landing__intro">
-          <p class="landing__kicker">
-            <span class="lozenge" aria-hidden="true" />
-            {{ t('landing.kicker') }}
-          </p>
+          <p class="landing__kicker">{{ t('landing.kicker') }}</p>
           <h1 class="t-display landing__title">{{ t('landing.title') }}</h1>
           <p class="landing__lead">{{ t('landing.lead') }}</p>
 
@@ -83,14 +78,7 @@ async function playAsGuest() {
         </div>
 
         <div class="landing__visual" aria-hidden="true">
-          <span class="landing__orb landing__orb--a" />
-          <span class="landing__orb landing__orb--b" />
-          <span class="landing__block" />
-          <span class="landing__disc" />
-          <span class="landing__frame illustration">
-            <img class="landing__image" :src="gateImage" alt="" decoding="async" />
-          </span>
-          <span class="landing__lozenge"><BrandMark size="100%" /></span>
+          <img class="landing__image" :src="gateImage" alt="" decoding="async" />
         </div>
       </section>
 
@@ -148,7 +136,6 @@ async function playAsGuest() {
 }
 
 .landing__bar,
-.landing__hero,
 .landing__features,
 .landing__session {
   width: 100%;
@@ -195,46 +182,50 @@ async function playAsGuest() {
   color: var(--color-accent);
 }
 
-/* ——— Hero ——— */
+/* ——— Hero split (texte gauche / image droite) ——— */
 
 .landing__hero {
   position: relative;
   display: grid;
-  gap: 2rem;
-  padding-block: clamp(1rem, 4vw, 3.5rem) clamp(2.5rem, 6vw, 5rem);
+  gap: 0;
+  align-items: stretch;
+  min-height: clamp(16rem, 48vw, 24rem);
+  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+  border-bottom: 1px solid var(--color-line);
+  overflow: hidden;
+  background: var(--color-bg);
 }
 
-.landing__vertical {
-  display: none;
+.landing__intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: clamp(1.5rem, 4vw, 3rem) var(--space-gutter);
+  max-width: 38rem;
 }
 
 .landing__kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  margin: 0;
   font-size: var(--type-kicker);
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-ink-muted);
+  color: var(--color-ink-faint);
   animation: slide-in-left 480ms var(--ease-out-quint) both;
 }
 
-.landing__kicker .lozenge {
-  color: var(--color-vermilion);
-}
-
 .landing__title {
-  margin-top: 1.1rem;
-  max-width: 11ch;
+  margin-top: 0.85rem;
+  max-width: 12ch;
   animation: rise-in 620ms var(--ease-out-quint) 60ms both;
 }
 
 .landing__lead {
   max-width: 34rem;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   font-size: 1.0625rem;
-  line-height: 1.65;
+  line-height: 1.55;
   color: var(--color-ink-muted);
   animation: rise-in 620ms var(--ease-out-quint) 140ms both;
 }
@@ -243,7 +234,7 @@ async function playAsGuest() {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   animation: rise-in 620ms var(--ease-out-quint) 220ms both;
 }
 
@@ -258,42 +249,9 @@ async function playAsGuest() {
 .landing__visual {
   position: relative;
   order: -1;
-  aspect-ratio: 16 / 9;
-  margin-inline: calc(var(--space-gutter) * -1);
-}
-
-.landing__orb {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.landing__orb--a {
-  top: -10%;
-  right: 6%;
-  width: 38%;
-  aspect-ratio: 1;
-  background: color-mix(in srgb, var(--color-vermilion-tint) 65%, transparent);
-}
-
-.landing__orb--b {
-  bottom: -16%;
-  left: 2%;
-  width: 26%;
-  aspect-ratio: 1;
-  background: color-mix(in srgb, var(--color-gold-fill) 16%, transparent);
-}
-
-.landing__frame {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
+  min-height: clamp(11rem, 48vw, 16rem);
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  animation: fade-in 700ms ease both;
-  box-shadow: 0 14px 32px color-mix(in srgb, var(--color-ink) 16%, transparent);
+  pointer-events: none;
 }
 
 .landing__image {
@@ -302,12 +260,6 @@ async function playAsGuest() {
   height: 100%;
   object-fit: cover;
   filter: var(--image-filter);
-}
-
-.landing__block,
-.landing__disc,
-.landing__lozenge {
-  display: none;
 }
 
 /* ——— Promesses ——— */
@@ -421,71 +373,28 @@ async function playAsGuest() {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .landing__hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: 3rem;
-    align-items: center;
-  }
-
-  .landing__vertical {
-    position: absolute;
-    top: 3.5rem;
-    left: 0.35rem;
-    display: block;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .landing__intro {
-    padding-left: 1.75rem;
+    max-width: none;
+    padding-inline: clamp(1.5rem, 5vw, 4rem);
   }
 
   .landing__visual {
     order: 0;
-    aspect-ratio: 4 / 4.2;
-    margin: 0 1rem 1.5rem 0;
-  }
-
-  .landing__block {
-    position: absolute;
-    display: block;
-    inset: 1.5rem -1rem -1.5rem 3.5rem;
-    background: var(--color-vermilion);
-    animation: wipe-in 720ms var(--ease-out-quint) both;
-  }
-
-  .landing__disc {
-    position: absolute;
-    top: -2rem;
-    left: -2rem;
-    display: block;
-    width: 8.5rem;
-    height: 8.5rem;
-    border-radius: 50%;
-    background: var(--color-gold-fill);
-    animation: pop-in 620ms var(--ease-out-quint) 200ms both;
-  }
-
-  .landing__frame {
-    clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+    min-height: 0;
+    height: 100%;
   }
 
   .landing__image {
     object-position: 46% center;
   }
+}
 
-  .landing__lozenge {
-    position: absolute;
-    right: -1.75rem;
-    bottom: 0.25rem;
-    display: block;
-    width: 5.5rem;
-    height: 5.5rem;
-    padding: 1.1rem;
-    background: var(--color-indigo-deep);
-    color: var(--color-on-fill);
-    animation: pop-in 620ms var(--ease-out-quint) 340ms both;
-  }
-
+@media (min-width: 1024px) {
   .landing__feature-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }

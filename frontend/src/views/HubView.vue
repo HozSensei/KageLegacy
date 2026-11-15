@@ -90,9 +90,7 @@ const shortcuts = computed(() =>
 <template>
   <div class="page-shell" data-testid="hub-page">
     <PageHeader
-      index="01"
       tone="vermilion"
-      layout="overlay"
       size="display"
       :kicker="t('hub.kicker')"
       :title="t('hub.title')"

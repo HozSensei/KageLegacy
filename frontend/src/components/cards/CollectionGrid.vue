@@ -240,7 +240,9 @@ function onSelectSlot(slot) {
 .collection-grid__list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
-  gap: 1.15rem;
+  gap: 1.35rem 1.15rem;
   align-items: start;
+  /* Room for overflowing cost diamond */
+  padding: 0.45rem 0.45rem 0.2rem 0;
 }
 </style>

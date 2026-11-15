@@ -50,7 +50,7 @@ const elementLabel = computed(() => {
             <span class="lozenge" aria-hidden="true" />
             {{ character.rank }}
           </p>
-          <h1 class="profile-id__name">{{ character.name }}</h1>
+          <h2 class="profile-id__name">{{ character.name }}</h2>
           <p class="profile-id__tags">
             <span class="sr-only">{{ t('player.levelLabel', { level: character.level }) }}</span>
             <span

@@ -712,9 +712,9 @@
     "shortcutsTitle": "Tout le jeu"
   },
   "cards": {
-    "collectionKicker": "Techniques & objets",
+    "collectionKicker": "Catalogue",
     "collectionTitle": "Collection",
-    "collectionLead": "Chaque carte a un effet actif en combat et un bonus passif tant qu’elle est dans votre deck.",
+    "collectionLead": "Parchemins détenus et trous du catalogue.",
     "deckKicker": "Construction",
     "deckBuilderTitle": "Constructeur de deck",
     "deckBuilderLead": "Composez 20 à 30 cartes. Les bonus passifs du deck actif alimentent vos stats.",
@@ -750,7 +750,7 @@
     "filterType": "Type",
     "filterRarity": "Rareté",
     "filterAll": "Tous",
-    "damage": "{n} dégâts",
+    "damage": "{n} dommages",
     "block": "{n} armure",
     "heal": "{n} soins",
     "selectOrCreateDeck": "Créez ou sélectionnez un deck pour commencer.",
@@ -797,6 +797,7 @@
     "statBlock": "Armure",
     "statHeal": "Soins",
     "scalesWith": "Scale avec {stat}",
+    "scaleStat": "{stat}",
     "baseValue": "Base {n}",
     "baseShort": "base {n}",
     "statEffectiveAria": "{n} (base {base}, scale avec {stat})",
@@ -1186,7 +1187,9 @@
     "queueSection": "File d'attente"
   },
   "player": {
-    "profileTitle": "Profil ninja",
+    "profileKicker": "Shinobi",
+    "profileTitle": "Profil",
+    "profileLead": "Identité, progression et raccourcis vers talents et decks.",
     "createTitle": "Créer votre ninja",
     "createLead": "Un seul personnage vous accompagne. Ses stats naîtront de l’arbre de talents et de votre deck.",
     "createHint": "Aucune stat de base : chaque niveau donne 1 point de talent à dépenser plus tard.",

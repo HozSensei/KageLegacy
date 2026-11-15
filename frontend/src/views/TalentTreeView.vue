@@ -62,9 +62,7 @@ function onSelect(nodeId) {
 <template>
   <div class="page-shell" data-testid="talent-tree-page">
     <PageHeader
-      index="03"
       tone="leaf"
-      layout="classic"
       :kicker="t('talents.kicker')"
       :title="t('talents.title')"
       :lead="t('talents.lead')"
