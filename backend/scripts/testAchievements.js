@@ -20,7 +20,7 @@ async function main(){
   const prefix=`ach_${Date.now()}`;
   const ur=await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)',[prefix]);
   const userId=ur.insertId;
-  await query(`INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id, kage_coins, card_dust, card_essence) VALUES (?, ?, 'Equilibre', 5000, 0, 0, 'fr', 1, 0, 0, 0)`,[userId, prefix]);
+  await query(`INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id, kage_coins, card_dust, card_essence) VALUES (?, ?, 'Genjutsu', 5000, 0, 100, 'fr', 'leaf', 0, 0, 0)`,[userId, prefix]);
   await onAchievementAction(userId,'combat_win',3);
   const reg=await getAchievementRegistry(userId);
   const combat=reg.achievements.find(a=>a.key==='combat_wins');
