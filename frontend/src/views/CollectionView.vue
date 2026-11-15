@@ -13,28 +13,49 @@ defineOptions({ name: 'CollectionView' })
 
 const { t, locale } = useI18n()
 const collection = useCollectionStore()
-const selected = ref(null)
+/** Slot sélectionné : owned (entry) ou hole (card only). */
+const selectedSlot = ref(null)
 const message = ref(null)
 
 onMounted(() => {
-  collection.fetchCollection()
+  collection.fetchCollectionView()
 })
 
+const selected = computed(() => selectedSlot.value?.entry || null)
+const selectedCard = computed(() => selectedSlot.value?.card || null)
+const selectedKey = computed(() => selectedSlot.value?.key || null)
+const isHole = computed(() => selectedSlot.value?.kind === 'hole')
+
 const selectedName = computed(() => {
-  const card = selected.value?.card
+  const card = selectedCard.value
   if (!card) return ''
   return localizedName(card, locale.value)
 })
 const selectedDescription = computed(() => {
-  const card = selected.value?.card
+  const card = selectedCard.value
   if (!card) return ''
   return localizedDescription(card, locale.value)
 })
-const selectedVisual = computed(() => cardTypeVisual(selected.value?.card?.type))
+const selectedVisual = computed(() => cardTypeVisual(selectedCard.value?.type))
 
-function onSelect(entry) {
-  selected.value = entry
+const busy = computed(() => collection.loading || collection.catalogueLoading)
+/** EmptyState seulement en mode « possédées » sans cartes, ou catalogue + collection vides. */
+const showEmptyState = computed(() => {
+  if (busy.value) return false
+  if (collection.ownedOnly) return !collection.entries.length
+  return !collection.catalogueTotal && !collection.entries.length
+})
+
+function onSelect(slot) {
+  selectedSlot.value = slot
   message.value = null
+}
+
+function onOwnedOnlyUpdate(value) {
+  collection.setOwnedOnly(value)
+  if (value && selectedSlot.value?.kind === 'hole') {
+    selectedSlot.value = null
+  }
 }
 
 async function onUpgrade() {
@@ -42,7 +63,15 @@ async function onUpgrade() {
   try {
     await collection.upgrade(selected.value.collectionId)
     message.value = t('cards.upgradeSuccess')
-    selected.value = collection.findByCollectionId(selected.value.collectionId)
+    const next = collection.findByCollectionId(selected.value.collectionId)
+    if (next) {
+      selectedSlot.value = {
+        kind: 'owned',
+        key: `owned-${next.collectionId}`,
+        card: next.card,
+        entry: next,
+      }
+    }
   } catch {
     message.value = collection.error
   }
@@ -51,9 +80,25 @@ async function onUpgrade() {
 async function onDisenchant() {
   if (!selected.value) return
   try {
-    await collection.disenchant(selected.value.collectionId, 1)
+    const id = selected.value.collectionId
+    await collection.disenchant(id, 1)
     message.value = t('cards.disenchantSuccess')
-    selected.value = collection.findByCollectionId(selected.value.collectionId)
+    const next = collection.findByCollectionId(id)
+    if (next) {
+      selectedSlot.value = {
+        kind: 'owned',
+        key: `owned-${next.collectionId}`,
+        card: next.card,
+        entry: next,
+      }
+    } else {
+      const card =
+        collection.catalogue.find((c) => Number(c.id) === Number(selectedCard.value?.id)) ||
+        selectedCard.value
+      selectedSlot.value = card
+        ? { kind: 'hole', key: `hole-${card.id}`, card, entry: null }
+        : null
+    }
   } catch {
     message.value = collection.error
   }
@@ -70,6 +115,14 @@ async function onDisenchant() {
       :lead="t('cards.collectionLead')"
     >
       <template #actions>
+        <p class="collection-progress" data-testid="collection-header-count">
+          {{
+            t('cards.collectionProgress', {
+              owned: collection.ownedUniqueCount,
+              total: collection.catalogueTotal,
+            })
+          }}
+        </p>
         <RouterLink to="/decks" class="btn-primary">{{ t('cards.openDeckBuilder') }}</RouterLink>
       </template>
     </PageHeader>
@@ -78,7 +131,7 @@ async function onDisenchant() {
     <p v-if="message" class="alert alert--success mt-6">{{ message }}</p>
 
     <EmptyState
-      v-if="!collection.loading && !collection.entries.length"
+      v-if="showEmptyState"
       class="mt-8"
       :title="t('cards.emptyCollectionTitle')"
       :lead="t('cards.emptyCollectionLead')"
@@ -91,75 +144,92 @@ async function onDisenchant() {
     <div v-else class="collection-layout">
       <div class="min-w-0">
         <CollectionGrid
-          :entries="collection.entries"
-          :selected-id="selected?.collectionId"
-          :loading="collection.loading"
+          :slots="collection.catalogueSlots"
+          :selected-key="selectedKey"
+          :loading="busy"
+          :owned-only="collection.ownedOnly"
+          :owned-count="collection.ownedUniqueCount"
+          :catalogue-total="collection.catalogueTotal"
           @select="onSelect"
+          @update:owned-only="onOwnedOnlyUpdate"
         />
       </div>
 
-      <aside class="collection-detail" :data-tone="selected ? selectedVisual.tone : 'neutral'">
+      <aside class="collection-detail" :data-tone="selectedCard ? selectedVisual.tone : 'neutral'">
         <p class="collection-detail__kicker">
           <span
             class="shape"
-            :class="`shape--${selected ? selectedVisual.shape : 'lozenge'}`"
+            :class="`shape--${selectedCard ? selectedVisual.shape : 'lozenge'}`"
             aria-hidden="true"
           />
-          {{ selected ? t(`cards.types.${selected.card.type}`, selected.card.type) : t('cards.detailTitle') }}
+          {{
+            selectedCard
+              ? t(`cards.types.${selectedCard.type}`, selectedCard.type)
+              : t('cards.detailTitle')
+          }}
         </p>
         <h2 class="sr-only">{{ t('cards.detailTitle') }}</h2>
 
         <Transition name="rise" mode="out-in">
-          <div v-if="selected" :key="selected.collectionId" class="collection-detail__body">
+          <div v-if="selectedCard" :key="selectedKey" class="collection-detail__body">
             <p class="collection-detail__name">{{ selectedName }}</p>
+            <p v-if="isHole" class="collection-detail__missing">{{ t('cards.missingDetail') }}</p>
             <p class="mt-3 leading-relaxed text-ink">{{ selectedDescription }}</p>
 
-            <div class="collection-detail__passive">
+            <div v-if="selectedCard.passiveBonus" class="collection-detail__passive">
               <p class="t-kicker">{{ t('cards.passiveBonus') }}</p>
               <ul class="collection-detail__passive-list">
-                <li v-for="(value, key) in selected.card.passiveBonus" :key="key">
+                <li v-for="(value, key) in selectedCard.passiveBonus" :key="key">
                   <span class="figure figure--sm">+{{ value }}</span>
                   {{ t(`cards.stats.${key}`, key) }}
                 </li>
               </ul>
             </div>
 
-            <dl class="collection-detail__figures">
-              <div>
-                <dt class="t-kicker">{{ t('cards.quantityLabel') }}</dt>
-                <dd class="figure figure--md">×{{ selected.quantity }}</dd>
-              </div>
-              <div>
-                <dt class="t-small">{{ t('cards.upgradeLevel', { level: selected.upgradeLevel }) }}</dt>
-                <dd class="collection-detail__levels" aria-hidden="true">
-                  <span
-                    v-for="n in 2"
-                    :key="n"
-                    class="lozenge"
-                    :class="{ 'lozenge--hollow': n > selected.upgradeLevel }"
-                  />
-                </dd>
-              </div>
-            </dl>
+            <template v-if="selected && !isHole">
+              <dl class="collection-detail__figures">
+                <div>
+                  <dt class="t-kicker">{{ t('cards.quantityLabel') }}</dt>
+                  <dd class="figure figure--md">×{{ selected.quantity }}</dd>
+                </div>
+                <div>
+                  <dt class="t-small">{{ t('cards.upgradeLevel', { level: selected.upgradeLevel }) }}</dt>
+                  <dd class="collection-detail__levels" aria-hidden="true">
+                    <span
+                      v-for="n in 2"
+                      :key="n"
+                      class="lozenge"
+                      :class="{ 'lozenge--hollow': n > selected.upgradeLevel }"
+                    />
+                  </dd>
+                </div>
+              </dl>
 
-            <div class="mt-6 flex flex-col gap-2">
-              <button
-                type="button"
-                class="btn-primary btn-block"
-                :disabled="collection.actionLoading || selected.upgradeLevel >= 2"
-                @click="onUpgrade"
-              >
-                {{ t('cards.upgrade') }}
-              </button>
-              <button
-                type="button"
-                class="btn-ghost btn-block"
-                :disabled="collection.actionLoading"
-                @click="onDisenchant"
-              >
-                {{ t('cards.disenchant') }}
-              </button>
-            </div>
+              <div class="mt-6 flex flex-col gap-2">
+                <button
+                  type="button"
+                  class="btn-primary btn-block"
+                  :disabled="collection.actionLoading || selected.upgradeLevel >= 2"
+                  @click="onUpgrade"
+                >
+                  {{ t('cards.upgrade') }}
+                </button>
+                <button
+                  type="button"
+                  class="btn-ghost btn-block"
+                  :disabled="collection.actionLoading"
+                  @click="onDisenchant"
+                >
+                  {{ t('cards.disenchant') }}
+                </button>
+              </div>
+            </template>
+
+            <p v-else-if="isHole" class="mt-6">
+              <RouterLink to="/shop" class="btn-primary btn-block">{{
+                t('cards.emptyCollectionShop')
+              }}</RouterLink>
+            </p>
           </div>
           <p v-else class="mt-4 text-ink-muted">{{ t('cards.selectCardHint') }}</p>
         </Transition>
@@ -169,6 +239,17 @@ async function onDisenchant() {
 </template>
 
 <style scoped>
+.collection-progress {
+  margin: 0;
+  align-self: center;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
+}
+
 .collection-layout {
   display: grid;
   gap: 2rem;
@@ -203,6 +284,15 @@ async function onDisenchant() {
   line-height: 0.98;
   letter-spacing: -0.02em;
   overflow-wrap: anywhere;
+}
+
+.collection-detail__missing {
+  margin-top: 0.55rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
 }
 
 .collection-detail__passive {
