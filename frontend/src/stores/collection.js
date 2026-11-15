@@ -1,14 +1,41 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { readApiError, parseApiResponse } from '../utils/http.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
+export const COLLECTION_OWNED_ONLY_KEY = 'kage-legacy-collection-owned-only'
+
+function readOwnedOnlyPreference() {
+  try {
+    return window.localStorage.getItem(COLLECTION_OWNED_ONLY_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function writeOwnedOnlyPreference(value) {
+  try {
+    window.localStorage.setItem(COLLECTION_OWNED_ONLY_KEY, value ? '1' : '0')
+  } catch {
+    // Stockage indisponible : le choix vaut pour la session.
+  }
+}
 
 export const useCollectionStore = defineStore('collection', () => {
   const entries = ref([])
+  /** Catalogue complet (définitions), ordre API / seed. */
+  const catalogue = ref([])
   const loading = ref(false)
+  const catalogueLoading = ref(false)
   const error = ref(null)
   const actionLoading = ref(false)
+  const ownedOnly = ref(
+    typeof window !== 'undefined' ? readOwnedOnlyPreference() : false
+  )
+
+  watch(ownedOnly, (value) => {
+    writeOwnedOnlyPreference(value)
+  })
 
   const byType = computed(() => {
     const map = {}
@@ -23,6 +50,33 @@ export const useCollectionStore = defineStore('collection', () => {
   const totalCards = computed(() =>
     entries.value.reduce((sum, e) => sum + (e.quantity || 0), 0)
   )
+
+  const ownedUniqueCount = computed(() => entries.value.length)
+  const catalogueTotal = computed(() => catalogue.value.length)
+
+  /** Grille catalogue : entrée possédée ou « trou » pour chaque définition. */
+  const catalogueSlots = computed(() => {
+    const byDefId = new Map(
+      entries.value.map((entry) => [Number(entry.cardDefinitionId), entry])
+    )
+    return catalogue.value.map((card) => {
+      const entry = byDefId.get(Number(card.id))
+      if (entry) {
+        return {
+          kind: 'owned',
+          key: `owned-${entry.collectionId}`,
+          card: entry.card,
+          entry,
+        }
+      }
+      return {
+        kind: 'hole',
+        key: `hole-${card.id}`,
+        card,
+        entry: null,
+      }
+    })
+  })
 
   async function fetchCollection(params = {}) {
     loading.value = true
@@ -45,6 +99,35 @@ export const useCollectionStore = defineStore('collection', () => {
     } finally {
       loading.value = false
     }
+  }
+
+  async function fetchCatalogue(params = {}) {
+    catalogueLoading.value = true
+    try {
+      const query = new URLSearchParams()
+      if (params.type) query.set('type', params.type)
+      if (params.rarity) query.set('rarity', params.rarity)
+      const qs = query.toString()
+      const res = await fetch(`${API_BASE}/api/cards${qs ? `?${qs}` : ''}`, {
+        credentials: 'include',
+      })
+      const { ok, body } = await parseApiResponse(res)
+      if (!ok) throw new Error(await readApiError(res, body))
+      catalogue.value = body.cards || []
+      return catalogue.value
+    } catch (e) {
+      // Ne pas écraser une erreur collection déjà affichée ; garder le dernier catalogue.
+      if (!error.value) error.value = e.message
+      return catalogue.value
+    } finally {
+      catalogueLoading.value = false
+    }
+  }
+
+  /** Charge collection + catalogue en parallèle (vue Collection). */
+  async function fetchCollectionView() {
+    error.value = null
+    await Promise.all([fetchCollection(), fetchCatalogue()])
   }
 
   async function upgrade(collectionId) {
@@ -94,16 +177,29 @@ export const useCollectionStore = defineStore('collection', () => {
     return entries.value.find((e) => e.collectionId === Number(id)) || null
   }
 
+  function setOwnedOnly(value) {
+    ownedOnly.value = Boolean(value)
+  }
+
   return {
     entries,
+    catalogue,
     loading,
+    catalogueLoading,
     error,
     actionLoading,
+    ownedOnly,
     byType,
     totalCards,
+    ownedUniqueCount,
+    catalogueTotal,
+    catalogueSlots,
     fetchCollection,
+    fetchCatalogue,
+    fetchCollectionView,
     upgrade,
     disenchant,
     findByCollectionId,
+    setOwnedOnly,
   }
 })
