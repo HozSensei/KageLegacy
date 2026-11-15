@@ -15,10 +15,14 @@ import {
   normalizeLevelWindow,
 } from './config.js';
 import { buildMatchBootstrap } from './pvpDuelBootstrap.js';
+import { assertValidBootstrap } from './pvpBootstrapValidation.js';
+import { checkPvpRateLimit } from './pvpRateLimit.js';
+import { logPvpAnomaly } from './pvpAnomalyLog.js';
 
-function httpError(statusCode, message) {
+function httpError(statusCode, message, extra = {}) {
   const err = new Error(message);
   err.statusCode = statusCode;
+  Object.assign(err, extra);
   return err;
 }
 
@@ -89,6 +93,7 @@ function serializeMatch(row, { includeBootstrap = false } = {}) {
     winnerUserId: row.winner_user_id,
     winnerSeat: row.winner_seat,
     endReason: row.end_reason,
+    voided: row.end_reason === 'void_checksum_mismatch',
     antiCheatMode: row.anti_cheat_mode,
     hostChecksum: row.host_checksum,
     guestChecksum: row.guest_checksum,
@@ -111,6 +116,14 @@ function serializeMatch(row, { includeBootstrap = false } = {}) {
 export async function enqueue(userId, opts = {}) {
   await assertPvpTables();
   if (!userId) throw httpError(400, 'userId requis.');
+
+  const rate = checkPvpRateLimit('queue', userId);
+  if (!rate.allowed) {
+    logPvpAnomaly('rate_limit_queue', { userId, retryAfterMs: rate.retryAfterMs });
+    throw httpError(429, 'Trop d’entrées en file PvP — réessayez plus tard.', {
+      retryAfterMs: rate.retryAfterMs,
+    });
+  }
 
   const level = await loadPlayerLevel(userId);
   const levelWindow = normalizeLevelWindow(opts.levelWindow, DEFAULT_LEVEL_WINDOW);
@@ -324,6 +337,12 @@ async function createMatchFromPair({ userA, userB, levelWindow, queueIdA, queueI
     hostDeckId: host.deckId,
     guestDeckId: guest.deckId,
     seed,
+  });
+  assertValidBootstrap(bootstrap, {
+    hostUserId: Number(host.userId),
+    guestUserId: Number(guest.userId),
+    hostLevel: Number(host.level) || 1,
+    guestLevel: Number(guest.level) || 1,
   });
 
   const conn = await getConnection();

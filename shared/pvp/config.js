@@ -9,8 +9,11 @@ export const DEFAULT_LEVEL_WINDOW = 3;
 /** Alternates documentés : 3 ou 5. */
 export const ALLOWED_LEVEL_WINDOWS = [3, 5];
 
-/** Mode anti-triche MVP : confiance au Host + checksum fin de match. */
+/** Mode anti-triche MVP : confiance au Host + checksum fin de match + guest challenge. */
 export const ANTI_CHEAT_MODE = 'trust_host';
+
+/** Guest challenge actif : checksum différent → match void. */
+export const GUEST_CHALLENGE_ENABLED = true;
 
 export const PVP_MATCH_STATES = [
   'pending',

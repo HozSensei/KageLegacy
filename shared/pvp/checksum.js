@@ -1,6 +1,6 @@
 /**
  * Checksums / résumés de fin de match (anti-triche MVP).
- * Pas de crypto lourde : empreinte stable pour comparaison Host/Guest.
+ * Empreinte FNV-1a 64-bit (hex 16) sur JSON canonique — comparaison Host/Guest.
  */
 
 /**
@@ -26,8 +26,9 @@ export function duelSummary(state) {
     };
   };
 
-  return {
+  return normalizeResultSummary({
     matchId: state.matchId || null,
+    seed: state.seed || null,
     turn: state.turn || 0,
     activeSeat: state.activeSeat || null,
     phase: state.phase || null,
@@ -35,22 +36,67 @@ export function duelSummary(state) {
     winnerSeat: state.winnerSeat || null,
     host: summarizeFighter(fighters.host),
     guest: summarizeFighter(fighters.guest),
+  });
+}
+
+/**
+ * Normalise un summary de report (Host ou Guest) vers une forme stable.
+ * Accepte soit la forme duelSummary, soit { host, guest, turn, … } aplatie.
+ * @param {object} raw
+ * @param {{ matchId?: string, winnerSeat?: string|null }} [overrides]
+ * @returns {object}
+ */
+export function normalizeResultSummary(raw = {}, overrides = {}) {
+  const host = coerceFighterSummary(raw.host || raw.fighters?.host, 'host');
+  const guest = coerceFighterSummary(raw.guest || raw.fighters?.guest, 'guest');
+  return {
+    matchId: overrides.matchId ?? raw.matchId ?? null,
+    seed: raw.seed ?? null,
+    turn: Number(raw.turn) || 0,
+    activeSeat: raw.activeSeat || null,
+    phase: raw.phase || null,
+    status: raw.status || null,
+    winnerSeat: overrides.winnerSeat !== undefined ? overrides.winnerSeat : raw.winnerSeat || null,
+    host,
+    guest,
+  };
+}
+
+function coerceFighterSummary(f, seat) {
+  if (!f) return null;
+  return {
+    seat: f.seat || seat,
+    userId: f.userId != null ? Number(f.userId) : null,
+    hp: Number(f.hp),
+    maxHp: Number(f.maxHp),
+    block: Number(f.block) || 0,
+    chakra: f.chakra != null ? Number(f.chakra) : null,
+    handCount: Number(f.handCount != null ? f.handCount : (f.hand || []).length) || 0,
+    drawCount: Number(f.drawCount != null ? f.drawCount : (f.drawPile || []).length) || 0,
+    discardCount:
+      Number(f.discardCount != null ? f.discardCount : (f.discardPile || []).length) || 0,
   };
 }
 
 /**
- * Empreinte simple (FNV-1a 32-bit) d'un objet JSON canonique.
+ * Empreinte FNV-1a 64-bit (deux passes 32-bit) → hex 16 chars.
  * @param {unknown} value
- * @returns {string} hex 8 chars
+ * @returns {string}
  */
 export function fingerprint(value) {
   const json = canonicalize(value);
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < json.length; i += 1) {
-    hash ^= json.charCodeAt(i);
+  const h1 = fnv1a32(json, 0x811c9dc5);
+  const h2 = fnv1a32(json, 0x811c9dc5 ^ 0xa5a5a5a5);
+  return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0');
+}
+
+function fnv1a32(str, seed) {
+  let hash = seed >>> 0;
+  for (let i = 0; i < str.length; i += 1) {
+    hash ^= str.charCodeAt(i);
     hash = Math.imul(hash, 0x01000193);
   }
-  return (hash >>> 0).toString(16).padStart(8, '0');
+  return hash >>> 0;
 }
 
 /**

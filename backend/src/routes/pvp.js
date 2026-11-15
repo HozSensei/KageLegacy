@@ -48,13 +48,18 @@ router.get('/config', async (_req, res) => {
       'matchmaking',
       'match_create',
       'host_guest_designate',
+      'bootstrap_validation',
       'signaling_relay',
       'end_match_checksum',
+      'result_sanity_checks',
+      'guest_checksum_challenge',
+      'rate_limit_queue_report',
     ],
     serverDoesNot: [
       'authoritative_card_resolution',
       'continuous_pve_engine_truth',
     ],
+    guestChallenge: true,
   });
 });
 
