@@ -2,10 +2,17 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveCardArt } from '../../utils/cardArt'
+import { cardEffectParts } from '../../utils/cardEffectLine'
 import { cardFooterCells } from '../../utils/cardFooterStats'
-import { cardTypeVisual, elementLabelKey, elementTone, rarityVisual } from '../../utils/cardVisuals'
+import {
+  cardTypeVisual,
+  elementLabelKey,
+  elementTone,
+  rarityVisual,
+  statTone,
+} from '../../utils/cardVisuals'
 import { localizedName } from '../../utils/localeContent.js'
-import { previewCardFigures, scalingStatKey } from '../../utils/cardScaling'
+import { scalingStatKey } from '../../utils/cardScaling'
 
 defineOptions({ name: 'CardDisplay' })
 
@@ -40,36 +47,16 @@ const elementLabel = computed(() => {
   return te(key) ? t(key) : props.card.element
 })
 
-const showEffective = computed(() => Boolean(props.stats))
-
-const figures = computed(() =>
-  previewCardFigures(props.card, props.stats).map((entry) => {
-    const display = showEffective.value ? entry.effective : entry.base
-    const fullKey =
-      entry.key === 'damage'
-        ? 'cards.damage'
-        : entry.key === 'block'
-          ? 'cards.block'
-          : 'cards.heal'
-    return {
-      ...entry,
-      display,
-      text: t(fullKey, { n: display }),
-      aria:
-        showEffective.value && entry.scaled
-          ? t('cards.statEffectiveAria', {
-              n: entry.effective,
-              base: entry.base,
-              stat: t(`cards.stats.${entry.statKey}`, entry.statKey),
-            })
-          : t(fullKey, { n: display }),
-    }
-  })
+const effectParts = computed(() =>
+  cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }),
 )
 
-const effectLine = computed(() => figures.value.map((f) => f.text).join(' · '))
+const effectLine = computed(() => effectParts.value.texts.join(' · '))
 
-/** Stat de scaling — libellé sobre en haut à droite (hors zone texte). */
+/**
+ * Catégorie de scaling / chakra — capsule colorée à gauche.
+ * Préfère la stat qui scale une figure, sinon `statType` de la carte.
+ */
 const scaleStat = computed(() => {
   for (const key of ['damage', 'block', 'heal']) {
     if (!(Number(props.card[key]) > 0)) continue
@@ -78,9 +65,16 @@ const scaleStat = computed(() => {
     return {
       key: statKey,
       label: t('cards.scaleStat', { stat: t(`cards.stats.${statKey}`, statKey) }),
+      tone: statTone(statKey),
     }
   }
-  return null
+  const fallback = props.card.statType
+  if (!fallback) return null
+  return {
+    key: fallback,
+    label: t('cards.scaleStat', { stat: t(`cards.stats.${fallback}`, fallback) }),
+    tone: statTone(fallback),
+  }
 })
 
 const footerCells = computed(() => cardFooterCells(props.card))
@@ -100,6 +94,7 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
         'card-display--compact': compact,
         'card-display--foil': rarity.foil,
         'card-display--no-art': !artUrl,
+        'card-display--has-scale': Boolean(scaleStat),
       },
     ]"
     :data-tone="typeVisual.tone"
@@ -149,7 +144,7 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
         <p
           v-if="effectLine"
           class="card-display__effect"
-          :aria-label="figures.map((f) => f.aria).join(', ')"
+          :aria-label="effectParts.aria.join(', ')"
         >
           {{ effectLine }}
         </p>
@@ -181,11 +176,12 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
       <span class="card-display__cost-value">{{ cost }}</span>
     </span>
 
-    <!-- Stat de scaling — haut droite -->
+    <!-- Catégorie scaling — capsule gauche -->
     <span
       v-if="scaleStat"
       class="card-display__scale"
       data-testid="card-scale-hint"
+      :data-tone="scaleStat.tone"
       :title="t('cards.scalesWith', { stat: scaleStat.label })"
     >
       {{ scaleStat.label }}
@@ -420,7 +416,7 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   line-height: 1.3;
   color: var(--card-body-fg);
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -494,22 +490,26 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   color: #fff;
 }
 
-/* Libellé scaling — sous / près du losange */
+/* Capsule catégorie chakra — gauche, teinte de la stat */
 .card-display__scale {
   position: absolute;
-  top: 1.85rem;
-  right: 0.35rem;
+  top: 0.4rem;
+  left: 0.35rem;
   z-index: 4;
-  max-width: 4.5rem;
-  padding: 0.12rem 0.35rem;
-  border-radius: 0.15rem;
-  background: color-mix(in srgb, var(--color-ink) 72%, transparent);
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  max-width: 5.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--tone-fill, var(--color-neutral-fill));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-on-ink) 28%, transparent),
+    0 2px 6px color-mix(in srgb, var(--color-ink) 28%, transparent);
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  line-height: 1.2;
-  color: var(--color-on-ink);
+  line-height: 1.15;
+  color: #fff;
+  text-shadow: 0 1px 1px color-mix(in srgb, #000 40%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -543,6 +543,12 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   top: 0.35rem;
   left: 2rem;
   border: 1px solid color-mix(in srgb, var(--color-gold-fill) 70%, transparent);
+}
+
+/* Quantité / upgrade sous la capsule catégorie */
+.card-display--has-scale .card-display__qty,
+.card-display--has-scale .card-display__upgrade {
+  top: 2.05rem;
 }
 
 .card-display__catalogue-n {
@@ -598,10 +604,24 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
 }
 
 .card-display--compact .card-display__scale {
-  top: 1.45rem;
-  right: 0.25rem;
+  top: 0.3rem;
+  left: 0.25rem;
   font-size: 0.45rem;
-  max-width: 3.5rem;
+  max-width: 4.2rem;
+  padding: 0.14rem 0.4rem;
+}
+
+.card-display--compact .card-display__qty {
+  left: 0.25rem;
+}
+
+.card-display--compact .card-display__upgrade {
+  left: 1.7rem;
+}
+
+.card-display--compact.card-display--has-scale .card-display__qty,
+.card-display--compact.card-display--has-scale .card-display__upgrade {
+  top: 1.65rem;
 }
 
 .card-display--compact .card-display__footer {

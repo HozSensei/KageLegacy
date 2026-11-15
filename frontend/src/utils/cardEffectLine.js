@@ -1,0 +1,153 @@
+/**
+ * Libellés d’effet actif pour l’affichage carte (zone texte fixe).
+ * Combine figures damage/block/heal + effets structurés (buffs, pioche…)
+ * avec repli sur la description localisée.
+ */
+
+import { localizedDescription } from './localeContent.js'
+import { previewCardFigures } from './cardScaling.js'
+
+const FIGURE_I18N = {
+  damage: 'cards.damage',
+  block: 'cards.block',
+  heal: 'cards.heal',
+}
+
+function statusLabel(t, te, statusKey) {
+  const combatKey = `combat.statuses.${statusKey}`
+  if (te(combatKey)) return t(combatKey)
+  const cardsKey = `cards.stats.${statusKey}`
+  if (te(cardsKey)) return t(cardsKey)
+  return statusKey
+}
+
+/**
+ * Formate un effet structuré en courte phrase (ou null si non affichable / déjà couvert).
+ */
+export function formatStructuredEffect(effect, { t, te }, card = null) {
+  if (!effect?.type) return null
+  const type = effect.type
+  const n = Number(effect.value)
+
+  if (type === 'apply_status') {
+    const status = String(effect.status || '').toLowerCase()
+    if (!status) return null
+    const label = statusLabel(t, te, status)
+    const amount = Number.isFinite(n) && n !== 0 ? n : 1
+    const signed = amount > 0 ? `+${amount}` : String(amount)
+    if (effect.duration != null && Number(effect.duration) > 0) {
+      return t('cards.effectStatusTimed', {
+        n: signed,
+        status: label,
+        turns: Number(effect.duration),
+      })
+    }
+    return t('cards.effectStatus', { n: signed, status: label })
+  }
+
+  if (type === 'draw') {
+    const count = Number.isFinite(n) && n > 0 ? n : 1
+    return t('cards.effectDraw', { n: count })
+  }
+
+  if (type === 'gain_energy' || type === 'gain_chakra') {
+    const amount = Number.isFinite(n) && n !== 0 ? n : 1
+    return t('cards.effectChakra', { n: amount })
+  }
+
+  if (type === 'heal_self') {
+    if (Number(card?.heal) > 0) return null
+    const amount = Number.isFinite(n) && n > 0 ? n : 0
+    if (!amount) return null
+    return t('cards.heal', { n: amount })
+  }
+
+  if (type === 'gain_block') {
+    if (Number(card?.block) > 0) return null
+    const amount = Number.isFinite(n) && n > 0 ? n : 0
+    if (!amount) return null
+    return t('cards.block', { n: amount })
+  }
+
+  if (type === 'evade_next') {
+    const chance = Number(effect.chance)
+    const pct = Number.isFinite(chance) ? Math.round(chance * 100) : 0
+    if (pct <= 0) return null
+    return t('cards.effectEvade', { pct })
+  }
+
+  if (type === 'counter') {
+    const dmg = Number(effect.damage) || 0
+    if (dmg <= 0) return null
+    return t('cards.effectCounter', { n: dmg })
+  }
+
+  if (type === 'cleanse_self') {
+    return t('cards.effectCleanse')
+  }
+
+  if (type === 'aoe') {
+    return t('cards.effectAoe')
+  }
+
+  if (type === 'exile_enemy_card') {
+    return t('cards.effectExile')
+  }
+
+  // multi_strike / bonus_if : reflétés dans les figures de dégâts
+  return null
+}
+
+/**
+ * @returns {{ texts: string[], aria: string[], figures: object[] }}
+ */
+export function cardEffectParts(card, stats, { t, te, locale }) {
+  const figures = previewCardFigures(card, stats)
+  const showEffective = Boolean(stats)
+  const texts = []
+  const aria = []
+
+  for (const entry of figures) {
+    const display = showEffective ? entry.effective : entry.base
+    const fullKey = FIGURE_I18N[entry.key] || 'cards.damage'
+    const text = t(fullKey, { n: display })
+    texts.push(text)
+    aria.push(
+      showEffective && entry.scaled
+        ? t('cards.statEffectiveAria', {
+            n: entry.effective,
+            base: entry.base,
+            stat: t(`cards.stats.${entry.statKey}`, entry.statKey),
+          })
+        : text,
+    )
+  }
+
+  for (const effect of card?.effects || []) {
+    const line = formatStructuredEffect(effect, { t, te }, card)
+    if (line) {
+      texts.push(line)
+      aria.push(line)
+    }
+  }
+
+  if (card?.exhaust) {
+    const exhaust = t('cards.effectExhaust')
+    texts.push(exhaust)
+    aria.push(exhaust)
+  }
+
+  if (!texts.length) {
+    const desc = localizedDescription(card, locale, '').trim()
+    if (desc) {
+      texts.push(desc)
+      aria.push(desc)
+    }
+  }
+
+  return { texts, aria, figures }
+}
+
+export function cardEffectLine(card, stats, i18n) {
+  return cardEffectParts(card, stats, i18n).texts.join(' · ')
+}

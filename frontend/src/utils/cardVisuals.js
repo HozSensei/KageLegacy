@@ -25,6 +25,23 @@ export const ELEMENT_TONES = {
   futon: 'leaf',
 }
 
+/** Teintes des stats de combat / catégorie chakra (footer, capsule scaling). */
+export const STAT_TONES = {
+  taijutsu: 'vermilion',
+  ninjutsu: 'sky',
+  genjutsu: 'indigo',
+  medicine: 'leaf',
+  vitesse: 'gold',
+  intelligence: 'wood',
+  dexterity: 'gold',
+  force: 'vermilion',
+  maxHp: 'vermilion',
+}
+
+export function statTone(statKey) {
+  return STAT_TONES[statKey] || 'neutral'
+}
+
 export function cardTypeVisual(type) {
   return CARD_TYPE_VISUALS[type] || { tone: 'neutral', shape: 'square' }
 }

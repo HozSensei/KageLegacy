@@ -2,10 +2,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveCardArt } from '../../utils/cardArt'
+import { cardEffectParts } from '../../utils/cardEffectLine'
 import { cardFooterCells } from '../../utils/cardFooterStats'
-import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals'
+import { cardTypeVisual, rarityVisual, statTone } from '../../utils/cardVisuals'
 import { localizedName } from '../../utils/localeContent.js'
-import { previewCardFigures, scalingStatKey } from '../../utils/cardScaling'
+import { scalingStatKey } from '../../utils/cardScaling'
 
 defineOptions({ name: 'CombatHand' })
 
@@ -20,7 +21,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'play'])
 
-const { locale, t } = useI18n()
+const { locale, t, te } = useI18n()
 
 function cardName(card) {
   return localizedName(card, locale.value)
@@ -52,33 +53,16 @@ function displayType(card) {
   return null
 }
 
-function cardFigures(card) {
-  return previewCardFigures(card, props.stats).map((entry) => {
-    const fullKey =
-      entry.key === 'damage'
-        ? 'cards.damage'
-        : entry.key === 'block'
-          ? 'cards.block'
-          : 'cards.heal'
-    const title = entry.scaled
-      ? t('cards.statEffectiveAria', {
-          n: entry.effective,
-          base: entry.base,
-          stat: t(`cards.stats.${entry.statKey}`, entry.statKey),
-        })
-      : t(fullKey, { n: entry.effective })
-    return {
-      ...entry,
-      text: t(fullKey, { n: entry.effective }),
-      title,
-    }
-  })
+function effectParts(card) {
+  return cardEffectParts(card, props.stats, { t, te, locale: locale.value })
 }
 
 function effectLine(card) {
-  return cardFigures(card)
-    .map((f) => f.text)
-    .join(' · ')
+  return effectParts(card).texts.join(' · ')
+}
+
+function effectTitle(card) {
+  return effectParts(card).aria.join(' · ')
 }
 
 function scaleStat(card) {
@@ -86,9 +70,18 @@ function scaleStat(card) {
     if (!(Number(card[key]) > 0)) continue
     const statKey = scalingStatKey(card, key)
     if (!statKey) continue
-    return t(`cards.stats.${statKey}`, statKey)
+    return {
+      key: statKey,
+      label: t(`cards.stats.${statKey}`, statKey),
+      tone: statTone(statKey),
+    }
   }
-  return null
+  if (!card.statType) return null
+  return {
+    key: card.statType,
+    label: t(`cards.stats.${card.statType}`, card.statType),
+    tone: statTone(card.statType),
+  }
 }
 
 function rarityKey(card) {
@@ -124,6 +117,7 @@ function footerCells(card) {
         [`hand-card--${displayType(card) || 'untyped'}`]: true,
         [`hand-card--${rarityKey(card)}`]: true,
         'hand-card--foil': rarityVisual(card.rarity).foil,
+        'hand-card--has-scale': Boolean(scaleStat(card)),
       }"
       :style="{ '--i': index, '--n': cards.length }"
       :disabled="disabled"
@@ -162,7 +156,7 @@ function footerCells(card) {
           <span
             v-if="effectLine(card)"
             class="hand-card__effect"
-            :title="cardFigures(card).map((f) => f.title).join(' · ')"
+            :title="effectTitle(card)"
           >
             {{ effectLine(card) }}
           </span>
@@ -185,7 +179,14 @@ function footerCells(card) {
         <span class="hand-card__cost-value">{{ card.cost }}</span>
       </span>
 
-      <span v-if="scaleStat(card)" class="hand-card__scale">{{ scaleStat(card) }}</span>
+      <span
+        v-if="scaleStat(card)"
+        class="hand-card__scale"
+        :data-tone="scaleStat(card).tone"
+        :title="t('cards.scalesWith', { stat: scaleStat(card).label })"
+      >
+        {{ scaleStat(card).label }}
+      </span>
 
       <span
         v-if="card.upgradeLevel > 0"
@@ -395,9 +396,10 @@ function footerCells(card) {
   font-weight: 500;
   line-height: 1.2;
   color: var(--card-body-fg);
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .hand-card__footer {
@@ -460,19 +462,23 @@ function footerCells(card) {
 
 .hand-card__scale {
   position: absolute;
-  top: 1.4rem;
-  right: 0.2rem;
+  top: 0.25rem;
+  left: 0.25rem;
   z-index: 4;
-  max-width: 3.4rem;
-  padding: 0.08rem 0.22rem;
-  border-radius: 0.12rem;
-  background: color-mix(in srgb, var(--color-ink) 72%, transparent);
-  font-size: 0.4rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  max-width: 4.2rem;
+  padding: 0.12rem 0.38rem;
+  border-radius: 999px;
+  background: var(--tone-fill, var(--color-neutral-fill));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-on-ink) 25%, transparent),
+    0 1px 4px color-mix(in srgb, var(--color-ink) 25%, transparent);
+  font-size: 0.38rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   line-height: 1.15;
-  color: var(--color-on-ink);
+  color: #fff;
+  text-shadow: 0 1px 1px color-mix(in srgb, #000 40%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -496,6 +502,10 @@ function footerCells(card) {
   font-weight: 800;
   line-height: 1;
   color: var(--color-on-ink);
+}
+
+.hand-card--has-scale .hand-card__upgrade {
+  top: 1.55rem;
 }
 
 .hand-enter-active {

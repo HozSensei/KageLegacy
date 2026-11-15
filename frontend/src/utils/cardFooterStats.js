@@ -1,15 +1,17 @@
+import { STAT_TONES } from './cardVisuals.js'
+
 /**
  * Footer sobres des cartes — une case colorée par stat de combat.
  * Ordre et teintes alignés sur le croquis plein-bord
  * (rouge / bleu / vert / violet / orange / teal).
  */
 export const CARD_FOOTER_STATS = [
-  { key: 'taijutsu', tone: 'vermilion' },
-  { key: 'ninjutsu', tone: 'sky' },
-  { key: 'medicine', tone: 'leaf' },
-  { key: 'genjutsu', tone: 'indigo' },
-  { key: 'vitesse', tone: 'gold' },
-  { key: 'intelligence', tone: 'wood' },
+  { key: 'taijutsu', tone: STAT_TONES.taijutsu },
+  { key: 'ninjutsu', tone: STAT_TONES.ninjutsu },
+  { key: 'medicine', tone: STAT_TONES.medicine },
+  { key: 'genjutsu', tone: STAT_TONES.genjutsu },
+  { key: 'vitesse', tone: STAT_TONES.vitesse },
+  { key: 'intelligence', tone: STAT_TONES.intelligence },
 ]
 
 /** Cases footer pour une carte : valeur > 0 → chiffre, sinon case vide. */
