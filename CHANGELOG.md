@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Seeds catalogues V2 au boot Docker (2026-11-15)
+
+#### Added
+- **`db:seed-v2`** : meta-script idempotent (cartes + talents + battle pass) — pas de compte démo, rejouable
+- **Entrypoint Docker** : après migrations réussies, lance automatiquement `db:seed-v2` ; échappatoire `SKIP_V2_SEEDS=1`
+- Variable documentée dans `.env.prod.example`, `docker-compose.prod.yml`, README et QUICK_START
+
 ### Noms originaux et nouvelle page des règles (2026-11-14)
 
 #### Changed

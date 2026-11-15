@@ -13,6 +13,7 @@
     "db:migrate": "npm run db:migrate --prefix backend",
     "db:seed": "npm run db:seed --prefix backend",
     "db:seed-talents": "npm run db:seed-talents --prefix backend",
+    "db:seed-v2": "npm run db:seed-v2 --prefix backend",
     "clock:advance": "npm run clock:advance --prefix backend",
     "combat:benchmark": "npm run combat:benchmark --prefix backend",
     "economy:calibrate": "npm run economy:calibrate --prefix backend",

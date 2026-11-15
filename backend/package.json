@@ -13,6 +13,7 @@
     "db:seed-cards": "node scripts/seedCards.js",
     "db:seed-talents": "node scripts/seedTalentTree.js",
     "db:seed-battle-pass": "node scripts/seedBattlePass.js",
+    "db:seed-v2": "npm run db:seed-cards && npm run db:seed-talents && npm run db:seed-battle-pass",
     "test:card-system": "node scripts/testCardSystem.js",
     "test:starter-loadout": "node scripts/testStarterLoadout.js",
     "test:boosters": "node scripts/testBoosters.js",
