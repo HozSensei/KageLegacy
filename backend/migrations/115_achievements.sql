@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS user_achievements (
   user_id INT UNSIGNED NOT NULL,
   achievement_key VARCHAR(100) NOT NULL,
   current_progress INT UNSIGNED NOT NULL DEFAULT 0,
-  highest_tier INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Highest unlocked tier index (1-based); 0 = none',
+  highest_tier INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Highest unlocked tier index (1-based), 0 = none',
   claimed_tiers_json JSON NOT NULL,
   meta_json JSON NULL COMMENT 'streak counters, last sync, etc.',
   first_unlocked_at TIMESTAMP NULL,
