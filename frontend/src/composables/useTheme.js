@@ -1,23 +1,25 @@
 import { computed, readonly, ref } from 'vue'
 
 /*
- * Trois thèmes : clair (`light`), sombre indigo (`dark`), sombre encre (`ink`).
+ * Quatre thèmes : clair (`light`), sombre indigo (`dark`), sombre encre (`ink`),
+ * sombre ambre (`amber`).
  *
  * Persistance : choix explicite dans `localStorage` (clé `THEME_STORAGE_KEY`).
  * Sans choix mémorisé, on suit `prefers-color-scheme` :
  *   - système clair → `light`
  *   - système sombre → `dark` (indigo actuel — conserve le comportement historique ;
- *     `ink` n’est jamais choisi automatiquement)
+ *     `ink` / `amber` ne sont jamais choisis automatiquement)
  * Le script en ligne de `index.html` applique la même règle avant le premier rendu :
  * garder la clé et les valeurs synchronisées avec lui.
  */
 export const THEME_STORAGE_KEY = 'kage-legacy-theme'
-export const THEMES = ['light', 'dark', 'ink']
+export const THEMES = ['light', 'dark', 'ink', 'amber']
 
 const THEME_COLORS = {
   light: '#f5f0e6',
   dark: '#14182b',
   ink: '#1a1614',
+  amber: '#140c08',
 }
 
 const systemQuery =
@@ -34,7 +36,7 @@ function readStoredTheme() {
   }
 }
 
-/** Préférence système → clair ou sombre indigo (jamais `ink`). */
+/** Préférence système → clair ou sombre indigo (jamais `ink` / `amber`). */
 function systemTheme() {
   return systemQuery?.matches ? 'dark' : 'light'
 }
@@ -73,7 +75,7 @@ function switchWithoutTransitions(apply) {
   })
 }
 
-/** Cycle Clair → Sombre indigo → Sombre encre → Clair. */
+/** Cycle Clair → Sombre indigo → Sombre encre → Sombre ambre → Clair. */
 function toggleTheme() {
   const order = THEMES
   const next = order[(order.indexOf(theme.value) + 1) % order.length]
@@ -100,7 +102,7 @@ export function useTheme() {
   return {
     theme: readonly(theme),
     themes: THEMES,
-    isDark: computed(() => theme.value === 'dark' || theme.value === 'ink'),
+    isDark: computed(() => theme.value === 'dark' || theme.value === 'ink' || theme.value === 'amber'),
     setTheme,
     toggleTheme,
   }
