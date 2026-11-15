@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cardTypeVisual, elementLabelKey, elementTone, rarityVisual } from '../../utils/cardVisuals'
+import { localizedDescription, localizedField, localizedName } from '../../utils/localeContent.js'
 
 defineOptions({ name: 'CardDisplay' })
 
@@ -17,16 +18,10 @@ defineEmits(['select'])
 
 const { t, te, locale } = useI18n()
 
-const name = computed(() =>
-  locale.value === 'en' ? props.card.nameEn : props.card.nameFr
-)
-const description = computed(() =>
-  locale.value === 'en' ? props.card.descriptionEn : props.card.descriptionFr
-)
+const name = computed(() => localizedName(props.card, locale.value))
+const description = computed(() => localizedDescription(props.card, locale.value))
 const passiveDescription = computed(() =>
-  locale.value === 'en'
-    ? props.card.passiveDescriptionEn
-    : props.card.passiveDescriptionFr
+  localizedField(props.card, 'passiveDescription', locale.value)
 )
 
 const rarityClass = computed(() => `card-display--${props.card.rarity || 'common'}`)

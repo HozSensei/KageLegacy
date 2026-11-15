@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cardTypeVisual } from '../../utils/cardVisuals'
+import { localizedDescription, localizedName } from '../../utils/localeContent.js'
 
 defineOptions({ name: 'CombatHand' })
 
@@ -17,11 +18,11 @@ const emit = defineEmits(['select', 'play'])
 const { locale, t } = useI18n()
 
 function cardName(card) {
-  return locale.value === 'en' ? card.nameEn : card.nameFr
+  return localizedName(card, locale.value)
 }
 
 function cardDescription(card) {
-  return (locale.value === 'en' ? card.descriptionEn : card.descriptionFr) || ''
+  return localizedDescription(card, locale.value)
 }
 
 /** Fige la carte sortante à sa place pour que les autres glissent sans saut. */

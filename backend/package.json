@@ -52,6 +52,7 @@
     "test:domain-pli-effects": "node scripts/testDomainPliEffects.js",
     "test:tactic-cards": "node scripts/testTacticCards.js",
     "audit:imports": "node scripts/auditCrossImports.js",
+    "audit:i18n": "node scripts/auditCatalogI18n.js",
     "test:narrative": "node scripts/testNarrativeEngine.js",
     "test:pool-schedule": "node scripts/testPoolSchedule.js",
     "narrative:backfill": "node scripts/backfillNarrativeI18n.js",

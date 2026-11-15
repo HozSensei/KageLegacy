@@ -8,6 +8,11 @@ import VictoryRewards from '../components/combat/VictoryRewards.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { missionRankTone } from '../utils/missionVisuals'
+import {
+  localizedDescription,
+  localizedField,
+  localizedName,
+} from '../utils/localeContent.js'
 
 defineOptions({ name: 'MissionRunView' })
 
@@ -34,7 +39,7 @@ const isOver = computed(() =>
 const missionTitle = computed(() => {
   const m = run.value?.mission
   if (!m) return t('combat.runTitle')
-  return locale.value === 'en' ? m.nameEn : m.nameFr
+  return localizedName(m, locale.value, t('combat.runTitle'))
 })
 
 function nodeLabel(node) {
@@ -42,15 +47,15 @@ function nodeLabel(node) {
     if (node.boss) return t('combat.nodeBoss')
     return t('combat.nodeCombat')
   }
-  return locale.value === 'en' ? node.nameEn : node.nameFr
+  return localizedName(node, locale.value)
 }
 
 function nodeHint(node) {
   if (node.type === 'event') {
-    return locale.value === 'en' ? node.descriptionEn : node.descriptionFr
+    return localizedDescription(node, locale.value)
   }
   const enemy = (missions.enemies || []).find((e) => e.id === node.templateId)
-  if (enemy) return locale.value === 'en' ? enemy.nameEn : enemy.nameFr
+  if (enemy) return localizedName(enemy, locale.value)
   return node.templateId || ''
 }
 
@@ -200,18 +205,10 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
       >
         <span class="run-event__shape" aria-hidden="true" />
         <h2 class="run-event__title">
-          {{
-            locale === 'en'
-              ? missions.currentEvent.nameEn
-              : missions.currentEvent.nameFr
-          }}
+          {{ localizedName(missions.currentEvent, locale) }}
         </h2>
         <p class="run-event__desc">
-          {{
-            locale === 'en'
-              ? missions.currentEvent.descriptionEn
-              : missions.currentEvent.descriptionFr
-          }}
+          {{ localizedDescription(missions.currentEvent, locale) }}
         </p>
         <div class="run-event__choices">
           <button
@@ -222,7 +219,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             :disabled="missions.actionLoading || choice.disabled"
             @click="onChoice(choice.id)"
           >
-            {{ locale === 'en' ? choice.labelEn : choice.labelFr }}
+            {{ localizedField(choice, 'label', locale) }}
           </button>
         </div>
       </section>

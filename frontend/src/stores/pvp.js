@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import i18n from '../i18n.js'
 import { parseApiResponse, readApiError } from '../utils/http.js'
 import { connectPvpWs } from '../lib/pvpWs.js'
 import {
@@ -380,7 +381,7 @@ export const usePvpStore = defineStore('pvp', () => {
     actionLoading.value = true
     error.value = null
     try {
-      if (!wsClient) throw new Error('WebSocket non connecté.')
+      if (!wsClient) throw new Error(i18n.global.t('errors.wsDisconnected'))
       wsClient.send({ type: 'action', matchId: match.value.id, action })
     } catch (e) {
       error.value = e.message

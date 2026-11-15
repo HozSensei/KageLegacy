@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import StatusIcon from './StatusIcon.vue'
 import AppIcon from '../ui/AppIcon.vue'
 import { useDeltaFeed } from '../../composables/useDeltaFeed'
+import { localizedName } from '../../utils/localeContent.js'
 
 defineOptions({ name: 'PlayerStatus' })
 
@@ -15,7 +16,7 @@ const props = defineProps({
   roleLabel: { type: String, default: '' },
 })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const hpPct = computed(() => {
   const max = Math.max(1, props.player.maxHp || 1)
@@ -98,7 +99,7 @@ const { deltas, hit } = useDeltaFeed(() => props.player.hp)
       <span class="shape shape--hexagon ally__mark" aria-hidden="true" />
       <div class="min-w-0">
         <p class="ally__role">{{ t('combat.allyLabel') }}</p>
-        <p class="ally__name">{{ player.ally.nameFr || player.ally.nameEn }}</p>
+        <p class="ally__name">{{ localizedName(player.ally, locale) }}</p>
       </div>
       <p class="ally__meta">
         <strong>{{ player.ally.hp }}</strong>/{{ player.ally.maxHp }} {{ t('combat.hpLabel') }}

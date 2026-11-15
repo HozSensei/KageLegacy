@@ -17,6 +17,14 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 👉 **Commencez ici** si vous découvrez le projet.
 
+### 1b. 🌐 [I18N.md](./I18N.md)
+**Internationalisation FR / EN**
+
+- Couverture UI + catalogues
+- Locale switcher & persistance
+- Audit `npm run audit:i18n --prefix backend`
+- Gaps restants (erreurs API)
+
 ---
 
 ### 2. 🎯 [PROJECT_VISION.md](./PROJECT_VISION.md)

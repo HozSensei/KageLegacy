@@ -16,6 +16,7 @@ import BrandMark from '../components/ui/BrandMark.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import { sectionOf } from '../constants/sections'
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
+import { writeStoredLocale } from '../utils/localeStorage.js'
 defineOptions({ name: 'AppLayout' })
 
 const { t, locale } = useI18n()
@@ -110,6 +111,7 @@ onMounted(async () => {
   if (!auth.checked) await auth.fetchMe()
   if (auth.sensei?.language && ['fr', 'en'].includes(auth.sensei.language)) {
     locale.value = auth.sensei.language
+    writeStoredLocale(auth.sensei.language)
   }
   if (!store.sensei) store.fetchSquad()
   if (auth.user && !elite.subscription) elite.fetchElite()
