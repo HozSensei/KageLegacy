@@ -1993,6 +1993,7 @@
     "light": "Clair",
     "dark": "Sombre indigo",
     "ink": "Sombre encre",
+    "amber": "Sombre ambre",
     "switchToDark": "Passer au thème sombre",
     "switchToLight": "Passer au thème clair"
   }

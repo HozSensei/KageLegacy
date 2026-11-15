@@ -4,6 +4,7 @@
  *   - sombre indigo (`[data-theme='dark']`) — fonds indigo profond, accent vermillon clair
  *   - sombre encre (`[data-theme='ink']`) — anthracite/brun-noir, crème, vermillon, bois/or
  *     (pas d'indigo dominant)
+ *   - sombre ambre (`[data-theme='amber']`) — brun-noir chaud, crème chaude, orange/ambre/vermillon
  *
  * Palette tirée des illustrations : papier crème, encre indigo, vermillon des bannières,
  * indigo des toits, vert feuillage, bleu ciel, bois chaud, or des lanternes.
@@ -244,6 +245,64 @@
   color-scheme: dark;
 }
 
+/*
+ * Thème sombre ambre : brun-noir chaud, texte crème chaude, accents orange / ambre / vermillon.
+ * Distinct de `ink` (plus anthracite, vermillon) : ici le fond tire vers le bois brûlé et
+ * l'accent de marque est ambre-orangé plutôt que vermillon froid.
+ */
+[data-theme='amber'] {
+  --color-bg: #140c08;
+  --color-bg-soft: #1f140c;
+  --color-bg-card: #2a1a10;
+
+  --color-ink: #f7ebd4;
+  --color-ink-muted: #d4b896;
+  --color-ink-faint: #b8966e;
+  --color-line: color-mix(in srgb, #f7ebd4 14%, transparent);
+  --color-line-strong: color-mix(in srgb, #f7ebd4 32%, transparent);
+
+  --color-on-ink: #140c08;
+
+  --color-accent: #f0a040;
+  --color-accent-strong: #e05a28;
+  --color-vermilion: #e8782f;
+  --color-vermilion-tint: #4a2814;
+
+  --color-indigo: #d4b896;
+  --color-indigo-fill: #6b4a2e;
+  --color-indigo-deep: #2a1a10;
+  --color-indigo-fill-hover: #805836;
+  --color-indigo-soft: #b8966e;
+  --color-indigo-tint: #3a2414;
+  --color-accent-soft: #f0a040;
+
+  --color-leaf: #8fd4a0;
+  --color-leaf-tint: #1a3020;
+
+  --color-sky: #7cc4f3;
+  --color-sky-tint: #1a2830;
+
+  --color-wood: #e8b878;
+  --color-wood-tint: #3a2410;
+
+  --color-gold: #f5c85a;
+  --color-gold-tint: #3f2e0c;
+
+  --color-fire: #ff9a5c;
+  --color-fire-fill: #c84820;
+  --color-win: #8fd4a0;
+  --color-water: #7cc4f3;
+  --color-earth: #e8b878;
+
+  --color-scrim: color-mix(in srgb, #0a0604 74%, transparent);
+
+  --image-filter: brightness(0.94) saturate(1.05) sepia(0.12);
+  --image-veil: #d4a060;
+
+  --mix-quiet: 72%;
+
+  color-scheme: dark;
+}
 
 @media (min-width: 1024px) {
   :root {

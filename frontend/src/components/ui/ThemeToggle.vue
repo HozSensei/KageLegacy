@@ -21,6 +21,7 @@ const THEME_ICONS = {
   light: 'sun',
   dark: 'moon',
   ink: 'burn',
+  amber: 'special',
 }
 
 const options = computed(() =>

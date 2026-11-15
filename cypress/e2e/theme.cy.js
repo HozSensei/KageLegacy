@@ -20,21 +20,21 @@ function pickTheme(theme) {
   expectTheme(theme);
 }
 
-describe('Thème — clair / sombre indigo / sombre encre', () => {
-  it('sans choix mémorisé, suit le système (sombre → indigo, jamais encre)', () => {
+describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () => {
+  it('sans choix mémorisé, suit le système (sombre → indigo, jamais encre/ambre)', () => {
     cy.visit('/', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="landing-page"]').should('be.visible');
     cy.window().then((win) => {
       expect(win.localStorage.getItem(STORAGE_KEY)).to.equal(null);
       const systemDark = win.matchMedia('(prefers-color-scheme: dark)').matches;
-      // Mapping documenté : système sombre → `dark` (indigo), jamais `ink`.
+      // Mapping documenté : système sombre → `dark` (indigo), jamais `ink` / `amber`.
       expect(win.document.documentElement.getAttribute('data-theme')).to.equal(
         systemDark ? 'dark' : 'light',
       );
     });
   });
 
-  it('propose les trois thèmes, persiste le choix et le conserve après rechargement', () => {
+  it('propose les quatre thèmes, persiste le choix et le conserve après rechargement', () => {
     cy.visit('/', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="landing-page"]').should('be.visible');
 
@@ -43,7 +43,7 @@ describe('Thème — clair / sombre indigo / sombre encre', () => {
     cy.get('[data-testid="theme-option-light"]').should('exist');
     cy.get('[data-testid="theme-option-dark"]').should('exist');
     cy.get('[data-testid="theme-option-ink"]').should('exist');
-    cy.get('[data-testid="theme-option-amber"]').should('not.exist');
+    cy.get('[data-testid="theme-option-amber"]').should('exist');
     cy.get('[data-testid="theme-toggle"]').click();
 
     pickTheme('dark');
@@ -57,6 +57,11 @@ describe('Thème — clair / sombre indigo / sombre encre', () => {
     cy.reload();
     expectTheme('ink');
 
+    pickTheme('amber');
+    cy.window().then((win) => expect(win.localStorage.getItem(STORAGE_KEY)).to.equal('amber'));
+    cy.reload();
+    expectTheme('amber');
+
     pickTheme('light');
     cy.reload();
     expectTheme('light');
@@ -67,10 +72,10 @@ describe('Thème — clair / sombre indigo / sombre encre', () => {
     cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
 
-    pickTheme('ink');
+    pickTheme('amber');
 
     cy.visit('/collection');
     cy.get('[data-testid="collection-page"]', { timeout: 15000 }).should('be.visible');
-    expectTheme('ink');
+    expectTheme('amber');
   });
 });
