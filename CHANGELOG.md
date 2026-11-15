@@ -13,6 +13,9 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 49–60 (scalpel-de-chakra / Lame du guérisseur → ecran-de-vapeur)
 - Mapping étendu dans `frontend/src/utils/cardArt.js` (48 slugs)
 
+#### Fixed
+- Remplacé les assets 49–60 qui étaient une copie erronée de la grille 37–48 par la grille correcte (scalpel-de-chakra → ecran-de-vapeur)
+
 ### Cartes : illustrations 37–48 (2026-11-15)
 
 #### Added
