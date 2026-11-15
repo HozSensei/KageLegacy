@@ -13,8 +13,7 @@ import {
   setActiveDeck,
   updateDeck,
   validateDeck,
-  DECK_MAX_SIZE,
-  DECK_MIN_SIZE,
+  DECK_CONSTRAINTS,
 } from '../services/deckService.js';
 import { ensureStarterLoadout } from '../services/starterLoadoutService.js';
 
@@ -29,7 +28,7 @@ router.get('/', async (req, res, next) => {
     const decks = await listDecks(user.id);
     res.json({
       decks,
-      constraints: { min: DECK_MIN_SIZE, max: DECK_MAX_SIZE },
+      constraints: { ...DECK_CONSTRAINTS },
     });
   } catch (error) {
     next(error);

@@ -66,11 +66,12 @@ async function onRemove(collectionId) {
 }
 
 async function onActivate(deckId) {
+  message.value = null
   try {
     await decks.activateDeck(deckId)
     message.value = t('cards.deckActivated')
   } catch {
-    message.value = decks.error
+    // decks.error already holds the bilingual API validation message
   }
 }
 

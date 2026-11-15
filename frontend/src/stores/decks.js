@@ -9,7 +9,13 @@ export const useDecksStore = defineStore('decks', () => {
   const activeDeck = ref(null)
   const editingDeck = ref(null)
   const passiveBonuses = ref(null)
-  const constraints = ref({ min: 20, max: 30 })
+  const constraints = ref({
+    min: 20,
+    max: 30,
+    maxCopies: 3,
+    maxClan: 1,
+    maxLegendaryOrMythic: 3,
+  })
   const loading = ref(false)
   const error = ref(null)
   const actionLoading = ref(false)

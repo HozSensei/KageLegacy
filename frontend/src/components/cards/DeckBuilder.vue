@@ -9,7 +9,16 @@ defineOptions({ name: 'DeckBuilder' })
 const props = defineProps({
   deck: { type: Object, default: null },
   collection: { type: Array, default: () => [] },
-  constraints: { type: Object, default: () => ({ min: 20, max: 30 }) },
+  constraints: {
+    type: Object,
+    default: () => ({
+      min: 20,
+      max: 30,
+      maxCopies: 3,
+      maxClan: 1,
+      maxLegendaryOrMythic: 3,
+    }),
+  },
   busy: { type: Boolean, default: false },
 })
 
@@ -20,6 +29,48 @@ const { t, locale } = useI18n()
 const size = computed(() => props.deck?.size ?? 0)
 const validation = computed(() => props.deck?.validation)
 const passiveBonuses = computed(() => props.deck?.passiveBonuses || {})
+
+const maxCopies = computed(() => Number(props.constraints.maxCopies) || 3)
+const maxClan = computed(() => Number(props.constraints.maxClan) || 1)
+const maxLegendaryOrMythic = computed(
+  () => Number(props.constraints.maxLegendaryOrMythic) || 3
+)
+
+function isClanCard(card) {
+  if (!card) return false
+  if (typeof card.slug === 'string' && card.slug.startsWith('clan-')) return true
+  if (card.clan === true || card.clan === 1 || card.clan === 'clan') return true
+  if (Array.isArray(card.tags) && card.tags.map(String).includes('clan')) return true
+  return false
+}
+
+function isLegendaryOrMythic(card) {
+  return card?.rarity === 'legendary' || card?.rarity === 'mythic'
+}
+
+const clanCount = computed(() =>
+  (props.deck?.cards || []).reduce((sum, entry) => {
+    const qty = Number(entry.quantity) || 0
+    return isClanCard(entry.card) ? sum + qty : sum
+  }, 0)
+)
+
+const legendaryOrMythicCount = computed(() =>
+  (props.deck?.cards || []).reduce((sum, entry) => {
+    const qty = Number(entry.quantity) || 0
+    return isLegendaryOrMythic(entry.card) ? sum + qty : sum
+  }, 0)
+)
+
+const validationMessages = computed(() => {
+  const v = validation.value
+  if (!v || v.valid) return []
+  if (locale.value === 'en' && Array.isArray(v.errorsEn) && v.errorsEn.length) {
+    return v.errorsEn
+  }
+  if (Array.isArray(v.errors) && v.errors.length) return v.errors
+  return []
+})
 
 const passiveList = computed(() =>
   Object.entries(passiveBonuses.value)
@@ -45,7 +96,15 @@ function inDeckQty(collectionId) {
 
 function canAdd(entry) {
   const inDeck = inDeckQty(entry.collectionId)
-  return inDeck < 3 && inDeck < entry.quantity && size.value < props.constraints.max
+  if (inDeck >= maxCopies.value || inDeck >= entry.quantity) return false
+  if (size.value >= props.constraints.max) return false
+
+  const card = entry.card
+  if (isClanCard(card) && clanCount.value >= maxClan.value) return false
+  if (isLegendaryOrMythic(card) && legendaryOrMythicCount.value >= maxLegendaryOrMythic.value) {
+    return false
+  }
+  return true
 }
 
 function cardName(card) {
@@ -90,13 +149,23 @@ const sizeValid = computed(
             <span class="deck-builder__min" :style="{ left: `${minRatio}%` }" />
           </div>
           <p class="deck-builder__range">{{ constraints.min }}–{{ constraints.max }}</p>
+          <p class="deck-builder__limits">
+            {{
+              t('cards.deckRarityLimits', {
+                maxClan,
+                clanCount,
+                maxLegendary: maxLegendaryOrMythic,
+                legendaryCount: legendaryOrMythicCount,
+              })
+            }}
+          </p>
         </div>
 
         <button
           v-if="!deck.isActive"
           type="button"
           class="btn-primary"
-          :disabled="busy"
+          :disabled="busy || (validation && !validation.valid)"
           @click="emit('activate', deck.id)"
         >
           {{ t('cards.activateDeck') }}
@@ -104,11 +173,11 @@ const sizeValid = computed(
       </header>
 
       <p
-        v-if="validation && !validation.valid"
+        v-if="validationMessages.length"
         class="alert alert--error mt-4"
         data-testid="deck-validation"
       >
-        {{ validation.errors.join(' ') }}
+        {{ validationMessages.join(' ') }}
       </p>
 
       <section v-if="passiveList.length" class="deck-builder__passives">
@@ -242,6 +311,15 @@ const sizeValid = computed(
   letter-spacing: 0.1em;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink-faint);
+}
+
+.deck-builder__limits {
+  margin-top: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-muted);
 }
 
 .deck-builder__passives {
