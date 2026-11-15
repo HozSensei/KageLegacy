@@ -15,11 +15,50 @@ const label = computed(() =>
   t(`combat.statuses.${props.status.key}`, props.status.key)
 )
 
-const KNOWN = ['force', 'dexterity', 'regen', 'poison', 'burn', 'weak', 'vulnerable', 'intangible', 'evade', 'counter']
+const PCT_KEYS = new Set([
+  'damage_pct',
+  'block_pct',
+  'heal_pct',
+  'taijutsu_pct',
+  'ninjutsu_pct',
+  'genjutsu_pct',
+])
+const ICON_MAP = {
+  force: 'force',
+  damage_pct: 'force',
+  taijutsu_pct: 'force',
+  ninjutsu_pct: 'force',
+  genjutsu_pct: 'force',
+  dexterity: 'dexterity',
+  block_pct: 'dexterity',
+  heal_pct: 'regen',
+  regen: 'regen',
+  poison: 'poison',
+  burn: 'burn',
+  weak: 'weak',
+  vulnerable: 'vulnerable',
+  intangible: 'intangible',
+  evade: 'evade',
+  counter: 'counter',
+}
 const HARMFUL = ['poison', 'burn', 'weak', 'vulnerable']
-const HELPFUL = ['force', 'dexterity', 'regen']
+const HELPFUL = [
+  'force',
+  'dexterity',
+  'regen',
+  'damage_pct',
+  'block_pct',
+  'heal_pct',
+  'taijutsu_pct',
+  'ninjutsu_pct',
+  'genjutsu_pct',
+]
 
-const icon = computed(() => (KNOWN.includes(props.status.key) ? props.status.key : 'unknown'))
+const icon = computed(() => ICON_MAP[props.status.key] || 'unknown')
+const isPct = computed(() => PCT_KEYS.has(props.status.key))
+const displayValue = computed(() =>
+  isPct.value ? `+${props.status.value}%` : props.status.value
+)
 
 const tone = computed(() => {
   if (HARMFUL.includes(props.status.key)) return 'vermilion'
@@ -33,11 +72,11 @@ const tone = computed(() => {
     class="status-icon"
     :class="`status-icon--${status.key}`"
     :data-tone="tone"
-    :title="`${label} ${status.value}${status.duration != null ? ` (${status.duration})` : ''}`"
+    :title="`${label} ${displayValue}${status.duration != null ? ` (${status.duration})` : ''}`"
   >
     <AppIcon :name="icon" size="0.9rem" :stroke-width="2" class="status-icon__glyph" />
     <span class="status-icon__label">{{ label }}</span>
-    <span class="status-icon__value">{{ status.value }}</span>
+    <span class="status-icon__value">{{ displayValue }}</span>
     <span v-if="status.duration != null" class="status-icon__dur">{{ status.duration }}</span>
   </span>
 </template>

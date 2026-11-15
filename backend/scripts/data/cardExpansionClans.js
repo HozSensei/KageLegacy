@@ -87,10 +87,10 @@ export const CLAN_LEGENDARY_CARDS = [
     rarity: 'legendary',
     cost: 2,
     block: 14,
-    effects: [{ type: 'apply_status', status: 'strength', value: 1, duration: 2 }],
+    effects: [{ type: 'apply_status', target: 'self', status: 'taijutsu_pct', value: 15, duration: 2 }],
     passive: { taijutsu: 6, maxHp: 14, medicine: 3 },
-    descriptionFr: 'Gagne 14 d’armure. Force 1 (2 tours).',
-    descriptionEn: 'Gain 14 block. Strength 1 (2 turns).',
+    descriptionFr: 'Gagne 14 d’armure. +15 % dégâts Taijutsu (2 tours).',
+    descriptionEn: 'Gain 14 block. +15% Taijutsu damage (2 turns).',
     loreFr: 'Corps massifs et appétit de fer — le clan Kumatani ancre le front.',
     loreEn: 'Massive frames and iron appetite — Clan Kumatani anchors the front line.',
     upgrades: {

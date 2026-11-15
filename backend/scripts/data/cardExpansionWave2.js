@@ -970,10 +970,10 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: "taijutsu",
     rarity: "common",
     cost: 1,
-    effects: [{"type": "apply_status", "target": "self", "status": "dexterity", "value": 2, "duration": 2}],
+    effects: [{"type": "apply_status", "target": "self", "status": "block_pct", "value": 20, "duration": 2}],
     passive: {"vitesse": 2},
-    descriptionFr: "+2 Dextérité pendant 2 tours.",
-    descriptionEn: "+2 Dexterity for 2 turns.",
+    descriptionFr: "+20 % armure gagnée pendant 2 tours.",
+    descriptionEn: "+20% block gained for 2 turns.",
     upgrades: {"level_1": {"passive": {"vitesse": 1}}, "level_2": {"passive": {"vitesse": 2, "dexterity": 1}}}
   }),
   c({
@@ -984,10 +984,10 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: "taijutsu",
     rarity: "common",
     cost: 1,
-    effects: [{"type": "apply_status", "target": "self", "status": "force", "value": 2, "duration": 2}],
+    effects: [{"type": "apply_status", "target": "self", "status": "taijutsu_pct", "value": 20, "duration": 2}],
     passive: {"taijutsu": 2},
-    descriptionFr: "+2 Force pendant 2 tours.",
-    descriptionEn: "+2 Strength for 2 turns.",
+    descriptionFr: "+20 % dégâts Taijutsu pendant 2 tours.",
+    descriptionEn: "+20% Taijutsu damage for 2 turns.",
     upgrades: {"level_1": {"passive": {"taijutsu": 1}}, "level_2": {"passive": {"taijutsu": 2, "force": 1}}}
   }),
   c({
@@ -1029,10 +1029,10 @@ export const EXPANSION_WAVE2_CARDS = [
     element: "raiton",
     rarity: "common",
     cost: 0,
-    effects: [{"type": "gain_energy", "value": 1}, {"type": "apply_status", "target": "self", "status": "dexterity", "value": 1, "duration": 2}],
+    effects: [{"type": "gain_energy", "value": 1}, {"type": "apply_status", "target": "self", "status": "block_pct", "value": 15, "duration": 2}],
     passive: {"vitesse": 2},
-    descriptionFr: "Gagne 1 Chakra. +1 Dextérité (2 tours).",
-    descriptionEn: "Gain 1 Chakra. +1 Dexterity (2 turns).",
+    descriptionFr: "Gagne 1 Chakra. +15 % armure (2 tours).",
+    descriptionEn: "Gain 1 Chakra. +15% block (2 turns).",
     upgrades: {"level_1": {"passive": {"vitesse": 1}}, "level_2": {"passive": {"vitesse": 2, "ninjutsu": 1}}}
   }),
   c({
@@ -1059,10 +1059,10 @@ export const EXPANSION_WAVE2_CARDS = [
     element: "futon",
     rarity: "common",
     cost: 1,
-    effects: [{"type": "draw", "value": 1}, {"type": "apply_status", "target": "self", "status": "dexterity", "value": 1, "duration": 3}],
+    effects: [{"type": "draw", "value": 1}, {"type": "apply_status", "target": "self", "status": "block_pct", "value": 15, "duration": 3}],
     passive: {"vitesse": 2, "dexterity": 1},
-    descriptionFr: "Piochez 1. +1 Dextérité (3 tours).",
-    descriptionEn: "Draw 1. +1 Dexterity (3 turns).",
+    descriptionFr: "Piochez 1. +15 % armure (3 tours).",
+    descriptionEn: "Draw 1. +15% block (3 turns).",
     upgrades: {"level_1": {"passive": {"vitesse": 1}}, "level_2": {"passive": {"vitesse": 2, "dexterity": 1}}}
   }),
   c({
@@ -1116,10 +1116,10 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: "taijutsu",
     rarity: "rare",
     cost: 2,
-    effects: [{"type": "apply_status", "target": "self", "status": "force", "value": 3, "duration": 3}],
+    effects: [{"type": "apply_status", "target": "self", "status": "taijutsu_pct", "value": 25, "duration": 3}],
     passive: {"taijutsu": 3, "force": 1},
-    descriptionFr: "+3 Force pendant 3 tours.",
-    descriptionEn: "+3 Strength for 3 turns.",
+    descriptionFr: "+25 % dégâts Taijutsu pendant 3 tours.",
+    descriptionEn: "+25% Taijutsu damage for 3 turns.",
     upgrades: {"level_1": {"passive": {"taijutsu": 2}}, "level_2": {"cost": -1, "passive": {"taijutsu": 2, "force": 1}}}
   }),
   c({
@@ -1175,10 +1175,10 @@ export const EXPANSION_WAVE2_CARDS = [
     element: "futon",
     rarity: "rare",
     cost: 1,
-    effects: [{"type": "draw", "value": 2}, {"type": "apply_status", "target": "self", "status": "dexterity", "value": 2, "duration": 2}],
+    effects: [{"type": "draw", "value": 2}, {"type": "apply_status", "target": "self", "status": "block_pct", "value": 20, "duration": 2}],
     passive: {"vitesse": 3, "ninjutsu": 1},
-    descriptionFr: "Piochez 2. +2 Dextérité (2 tours).",
-    descriptionEn: "Draw 2. +2 Dexterity (2 turns).",
+    descriptionFr: "Piochez 2. +20 % armure (2 tours).",
+    descriptionEn: "Draw 2. +20% block (2 turns).",
     upgrades: {"level_1": {"passive": {"vitesse": 1}}, "level_2": {"passive": {"vitesse": 2, "ninjutsu": 1}}}
   }),
   c({
@@ -1189,10 +1189,10 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: "ninjutsu",
     rarity: "legendary",
     cost: 2,
-    effects: [{"type": "gain_energy", "value": 2}, {"type": "draw", "value": 2}, {"type": "apply_status", "target": "self", "status": "force", "value": 2, "duration": 2}],
+    effects: [{"type": "gain_energy", "value": 2}, {"type": "draw", "value": 2}, {"type": "apply_status", "target": "self", "status": "damage_pct", "value": 20, "duration": 2}],
     passive: {"intelligence": 4, "ninjutsu": 3},
-    descriptionFr: "Gagne 2 Chakra. Piochez 2. +2 Force (2 tours).",
-    descriptionEn: "Gain 2 Chakra. Draw 2. +2 Strength (2 turns).",
+    descriptionFr: "Gagne 2 Chakra. Piochez 2. +20 % dégâts (2 tours).",
+    descriptionEn: "Gain 2 Chakra. Draw 2. +20% damage (2 turns).",
     loreFr: "Rituel combiné des cinq écoles de frontière.",
     loreEn: "A combined ritual of the five border schools.",
     upgrades: {"level_1": {"passive": {"intelligence": 2}}, "level_2": {"cost": -1, "passive": {"intelligence": 2, "ninjutsu": 2}}}
@@ -1251,11 +1251,11 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: "medicine",
     rarity: "common",
     cost: 1,
-    effects: [{"type": "apply_status", "target": "self", "status": "force", "value": 2, "duration": 3}],
+    effects: [{"type": "apply_status", "target": "self", "status": "damage_pct", "value": 20, "duration": 3}],
     exhaust: true,
     passive: {"taijutsu": 1, "vitesse": 1},
-    descriptionFr: "+2 Force pendant 3 tours. Exhaust.",
-    descriptionEn: "+2 Strength for 3 turns. Exhaust.",
+    descriptionFr: "+20 % dégâts pendant 3 tours. Exhaust.",
+    descriptionEn: "+20% damage for 3 turns. Exhaust.",
     upgrades: {"level_1": {"passive": {"taijutsu": 1}}, "level_2": {"passive": {"taijutsu": 1, "vitesse": 1}}}
   }),
   c({
@@ -1374,11 +1374,11 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: "medicine",
     rarity: "rare",
     cost: 1,
-    effects: [{"type": "apply_status", "target": "self", "status": "force", "value": 3, "duration": 3}, {"type": "apply_status", "target": "self", "status": "dexterity", "value": 2, "duration": 3}],
+    effects: [{"type": "apply_status", "target": "self", "status": "damage_pct", "value": 25, "duration": 3}, {"type": "apply_status", "target": "self", "status": "block_pct", "value": 20, "duration": 3}],
     exhaust: true,
     passive: {"taijutsu": 2, "vitesse": 2},
-    descriptionFr: "+3 Force et +2 Dextérité (3 tours). Exhaust.",
-    descriptionEn: "+3 Strength and +2 Dexterity (3 turns). Exhaust.",
+    descriptionFr: "+25 % dégâts et +20 % armure (3 tours). Exhaust.",
+    descriptionEn: "+25% damage and +20% block (3 turns). Exhaust.",
     upgrades: {"level_1": {"passive": {"taijutsu": 1}}, "level_2": {"passive": {"taijutsu": 2, "vitesse": 1}}}
   }),
   c({

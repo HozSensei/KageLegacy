@@ -71,11 +71,43 @@ export function applyDamageThroughBlock(entity, rawDamage, opts = {}) {
   };
 }
 
-/** Multiplicateurs de statut sur dégâts sortants / entrants */
-export function outgoingDamageMultiplier(statuses = []) {
+const TYPED_DAMAGE_PCT_KEYS = {
+  taijutsu: 'taijutsu_pct',
+  ninjutsu: 'ninjutsu_pct',
+  genjutsu: 'genjutsu_pct',
+};
+
+/**
+ * Multiplicateurs de statut sur dégâts sortants.
+ * - weak : ×0.75
+ * - damage_pct : +X % tous types
+ * - {statType}_pct : +X % pour ce type (taijutsu/ninjutsu/genjutsu)
+ * @param {object} [opts]
+ * @param {string|null} [opts.statType]
+ */
+export function outgoingDamageMultiplier(statuses = [], opts = {}) {
   let mult = 1;
   if (hasStatus(statuses, 'weak')) mult *= 0.75;
+  const globalPct = getStatusValue(statuses, 'damage_pct');
+  if (globalPct) mult *= 1 + globalPct / 100;
+  const typedKey = TYPED_DAMAGE_PCT_KEYS[opts.statType];
+  if (typedKey) {
+    const typedPct = getStatusValue(statuses, typedKey);
+    if (typedPct) mult *= 1 + typedPct / 100;
+  }
   return mult;
+}
+
+/** +X % armure gagnée (block_pct). */
+export function outgoingBlockMultiplier(statuses = []) {
+  const pct = getStatusValue(statuses, 'block_pct');
+  return pct ? 1 + pct / 100 : 1;
+}
+
+/** +X % soins (heal_pct). */
+export function outgoingHealMultiplier(statuses = []) {
+  const pct = getStatusValue(statuses, 'heal_pct');
+  return pct ? 1 + pct / 100 : 1;
 }
 
 export function incomingDamageMultiplier(statuses = []) {
@@ -93,3 +125,5 @@ export function getStatusValue(statuses, key) {
   const found = (statuses || []).find((s) => s.key === key && (s.duration == null || s.duration > 0));
   return found ? Number(found.value) || 0 : 0;
 }
+
+export { TYPED_DAMAGE_PCT_KEYS };

@@ -49,10 +49,24 @@ function statusLabel(status) {
   return te(`combat.statuses.${key}`) ? t(`combat.statuses.${key}`) : humanize(key)
 }
 
+const PCT_STATUS_KEYS = new Set([
+  'damage_pct',
+  'block_pct',
+  'heal_pct',
+  'taijutsu_pct',
+  'ninjutsu_pct',
+  'genjutsu_pct',
+])
+
 function statusWithValue(status, value) {
+  const key = typeof status === 'string' ? status : status?.key
   const label = statusLabel(status)
   const n = Number(value ?? (typeof status === 'object' ? status?.value : 0)) || 0
-  return n > 0 ? t('combat.log.statusValue', { status: label, n }) : label
+  if (n === 0) return label
+  if (PCT_STATUS_KEYS.has(key)) {
+    return t('combat.log.statusPct', { status: label, n })
+  }
+  return t('combat.log.statusValue', { status: label, n })
 }
 
 function talentLabel(effect) {

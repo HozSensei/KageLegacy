@@ -281,7 +281,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 
 **Variantes** :
 - **Soin** : Restaure PV
-- **Buff** : +Force, +Dextérité
+- **Buff %** : +X % dégâts (global ou typé Tai/Nin/Gen), +X % armure, +X % soins — jamais de +2 plat sur l’échelle 0–100
 - **Pioche** : +X cartes
 - **Manipulation** : Exile, retour en main, coût réduit
 
@@ -401,8 +401,12 @@ Ennemi : Affinité Futon
 
 | Statut | Effet | Icône | Durée |
 |--------|-------|-------|-------|
-| **Force** | +X dégâts d'attaque | 💪 | X tours |
-| **Dextérité** | +X Armure gagnée | 🛡️ | X tours |
+| **Force** | +X dégâts plats (talents / IA ennemie) | 💪 | X tours |
+| **Dextérité** | +X Armure plate (legacy / talents) | 🛡️ | X tours |
+| **damage_pct** | +X % dégâts sortants (tous types) | 💪 | X tours |
+| **taijutsu_pct / ninjutsu_pct / genjutsu_pct** | +X % dégâts du type | 💪 | X tours |
+| **block_pct** | +X % armure gagnée | 🛡️ | X tours |
+| **heal_pct** | +X % soins | 💚 | X tours |
 | **Régénération** | +X PV début de tour | 💚 | X tours |
 | **Intangible** | Attaques = 1 dégât | 👻 | 1 tour |
 | **Rituel** | +X Force permanent | 🔮 | Permanent |

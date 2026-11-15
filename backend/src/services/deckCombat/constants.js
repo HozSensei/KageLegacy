@@ -43,6 +43,16 @@ export const MAX_CRIT_CHANCE = 50;
 export const STATUS_KEYS = {
   force: 'force',
   dexterity: 'dexterity',
+  /** +X % dégâts sortants (tous types) — buffs soutien */
+  damage_pct: 'damage_pct',
+  /** +X % armure gagnée */
+  block_pct: 'block_pct',
+  /** +X % soins */
+  heal_pct: 'heal_pct',
+  /** +X % dégâts du type indiqué */
+  taijutsu_pct: 'taijutsu_pct',
+  ninjutsu_pct: 'ninjutsu_pct',
+  genjutsu_pct: 'genjutsu_pct',
   regen: 'regen',
   poison: 'poison',
   burn: 'burn',

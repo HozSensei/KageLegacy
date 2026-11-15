@@ -4,7 +4,9 @@
 import {
   getStatusValue,
   hasStatus,
+  outgoingBlockMultiplier,
   outgoingDamageMultiplier,
+  outgoingHealMultiplier,
   rollCrit,
   scaleBlock,
   scaleDamage,
@@ -61,13 +63,14 @@ export function computeCardDamage(card, ctx) {
   }
 
   let perHit = scaleDamage(base, attackStatFor(card, stats));
+  // Flat Force (talents / ennemis) — les cartes soutien utilisent *_pct
   perHit += getStatusValue(playerStatuses, 'force');
 
   perHit = Math.round(
     perHit *
       typeAdvantageMultiplier(card.statType, enemyPosture) *
       elementMultiplier(card.element, enemyAffinity) *
-      outgoingDamageMultiplier(playerStatuses),
+      outgoingDamageMultiplier(playerStatuses, { statType: card.statType }),
   );
 
   if (talentMods.damageMult) {
@@ -90,16 +93,19 @@ export function computeCardDamage(card, ctx) {
 export function computeCardBlock(card, stats, playerStatuses = [], talentMods = {}) {
   if (talentMods.blockAllowed === false) return 0;
   let block = scaleBlock(Number(card.block) || 0, stats.medicine);
+  // Flat Dextérité (legacy / talents) — soutien : block_pct
   block += getStatusValue(playerStatuses, 'dexterity');
-  const mult = Number(talentMods.blockMult) || 1;
-  return Math.max(0, Math.round(block * mult));
+  const talentMult = Number(talentMods.blockMult) || 1;
+  const statusMult = outgoingBlockMultiplier(playerStatuses);
+  return Math.max(0, Math.round(block * talentMult * statusMult));
 }
 
-export function computeCardHeal(card, stats, talentMods = {}) {
+export function computeCardHeal(card, stats, talentMods = {}, playerStatuses = []) {
   const base = scaleHeal(Number(card.heal) || 0, stats.medicine);
   const flat = Number(talentMods.healFlat) || 0;
-  const mult = Number(talentMods.healMult) || 1;
-  return Math.round((base + flat) * mult);
+  const talentMult = Number(talentMods.healMult) || 1;
+  const statusMult = outgoingHealMultiplier(playerStatuses);
+  return Math.round((base + flat) * talentMult * statusMult);
 }
 
 /**
@@ -232,7 +238,7 @@ export function applyCardPlay({
 
   // Soin
   if ((Number(card.heal) || 0) > 0) {
-    const healAmt = computeCardHeal(card, stats, talentMods);
+    const healAmt = computeCardHeal(card, stats, talentMods, nextPlayer.statuses);
     const before = nextPlayer.hp;
     nextPlayer.hp = Math.min(nextPlayer.maxHp, nextPlayer.hp + healAmt);
     const applied = nextPlayer.hp - before;
@@ -304,6 +310,18 @@ function applyExtraEffect(effect, ctx) {
   } else if (type === 'gain_energy' || type === 'gain_chakra') {
     player = { ...player, chakra: (Number(player.chakra) || 0) + (Number(effect.value) || 0) };
     logs.push({ type: 'gain_chakra', amount: Number(effect.value) || 0, chakra: player.chakra });
+  } else if (type === 'gain_block') {
+    const raw = Math.max(0, Number(effect.value) || 0);
+    const scaled = scaleBlock(raw, ctx.stats?.medicine);
+    const withDex = scaled + getStatusValue(player.statuses, 'dexterity');
+    const blockGain = Math.max(
+      0,
+      Math.round(withDex * outgoingBlockMultiplier(player.statuses)),
+    );
+    if (blockGain > 0) {
+      player = { ...player, block: (Number(player.block) || 0) + blockGain };
+      logs.push({ type: 'block', source: 'player', amount: blockGain, block: player.block });
+    }
   } else if (type === 'apply_status') {
     const target =
       effect.target === 'self' ? 'player' : effect.target === 'enemy' ? 'enemy' : guessStatusTarget(effect.status);
@@ -366,7 +384,19 @@ function applyExtraEffect(effect, ctx) {
 }
 
 function guessStatusTarget(status) {
-  const selfKeys = new Set(['force', 'dexterity', 'regen', 'intangible', 'speed']);
+  const selfKeys = new Set([
+    'force',
+    'dexterity',
+    'regen',
+    'intangible',
+    'speed',
+    'damage_pct',
+    'block_pct',
+    'heal_pct',
+    'taijutsu_pct',
+    'ninjutsu_pct',
+    'genjutsu_pct',
+  ]);
   return selfKeys.has(normalizeStatusKey(status)) ? 'player' : 'enemy';
 }
 
@@ -384,6 +414,12 @@ function normalizeStatusKey(status) {
     dexterity: 'dexterity',
     regen: 'regen',
     regeneration: 'regen',
+    damage_pct: 'damage_pct',
+    block_pct: 'block_pct',
+    heal_pct: 'heal_pct',
+    taijutsu_pct: 'taijutsu_pct',
+    ninjutsu_pct: 'ninjutsu_pct',
+    genjutsu_pct: 'genjutsu_pct',
   };
   return map[String(status || '').toLowerCase()] || String(status || 'unknown');
 }

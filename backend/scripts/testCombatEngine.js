@@ -28,6 +28,7 @@ import {
 import {
   computeCardDamage,
   computeCardBlock,
+  computeCardHeal,
   applyCardPlay,
   resolveAllyAttack,
 } from '../src/services/deckCombat/cardEffects.js';
@@ -516,6 +517,113 @@ const vsIntangible = executeEnemyIntent(
   { talentCodes: ['intangible'] },
 );
 assert(vsIntangible.player.hp === 99, 'keystone intangible caps enemy damage to 1');
+
+// ── Percent support buffs (damage_pct / typed / block_pct / heal_pct) ──
+const baseTai = computeCardDamage(
+  { ...atkCard, damage: 10 },
+  { stats: { taijutsu: 0, vitesse: 0 }, rng: () => 0.99 },
+);
+assert(baseTai.total === 10, `baseline tai damage 10 (got ${baseTai.total})`);
+
+const pctTai = computeCardDamage(
+  { ...atkCard, damage: 10 },
+  {
+    stats: { taijutsu: 0, vitesse: 0 },
+    playerStatuses: [{ key: 'taijutsu_pct', value: 20, duration: 2 }],
+    rng: () => 0.99,
+  },
+);
+assert(pctTai.total === 12, `+20% taijutsu → 12 (got ${pctTai.total})`);
+
+const pctGlobal = computeCardDamage(
+  { ...atkCard, damage: 10, statType: 'ninjutsu' },
+  {
+    stats: { ninjutsu: 0, vitesse: 0 },
+    playerStatuses: [{ key: 'damage_pct', value: 25, duration: 2 }],
+    rng: () => 0.99,
+  },
+);
+assert(pctGlobal.total === 13, `+25% damage_pct → 13 (got ${pctGlobal.total})`);
+
+const typedMiss = computeCardDamage(
+  { ...atkCard, damage: 10, statType: 'ninjutsu' },
+  {
+    stats: { ninjutsu: 0, vitesse: 0 },
+    playerStatuses: [{ key: 'taijutsu_pct', value: 50, duration: 2 }],
+    rng: () => 0.99,
+  },
+);
+assert(typedMiss.total === 10, 'typed % only applies to matching statType');
+
+const blockPct = computeCardBlock(
+  { block: 10, statType: 'medicine' },
+  { medicine: 0 },
+  [{ key: 'block_pct', value: 20, duration: 2 }],
+);
+assert(blockPct === 12, `+20% block → 12 (got ${blockPct})`);
+
+const healPct = computeCardHeal(
+  { heal: 10 },
+  { medicine: 0 },
+  {},
+  [{ key: 'heal_pct', value: 15, duration: 2 }],
+);
+assert(healPct === 12, `+15% heal → 12 (got ${healPct})`);
+
+const supportPlay = applyCardPlay({
+  player: {
+    hp: 80,
+    maxHp: 100,
+    block: 0,
+    chakra: 3,
+    statuses: [],
+    hand: [],
+    drawPile: ['x'],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: {
+    slug: 'preparation-martiale',
+    type: 'skill',
+    statType: 'taijutsu',
+    cost: 1,
+    effects: [
+      { type: 'apply_status', target: 'self', status: 'taijutsu_pct', value: 20, duration: 2 },
+      { type: 'draw', value: 1 },
+    ],
+  },
+  stats: { taijutsu: 10 },
+  rng: () => 0.5,
+});
+assert(
+  (supportPlay.player.statuses || []).some((s) => s.key === 'taijutsu_pct' && s.value === 20),
+  'support card applies taijutsu_pct',
+);
+
+const gainBlockPlay = applyCardPlay({
+  player: {
+    hp: 100,
+    maxHp: 100,
+    block: 0,
+    chakra: 2,
+    statuses: [{ key: 'block_pct', value: 20, duration: 2 }],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: {
+    slug: 'ancrage-tellurique',
+    type: 'skill',
+    cost: 1,
+    effects: [{ type: 'gain_block', value: 5 }],
+  },
+  stats: { medicine: 0 },
+  rng: () => 0.5,
+});
+assert(gainBlockPlay.player.block === 6, `gain_block respects block_pct (got ${gainBlockPlay.player.block})`);
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);
