@@ -7,6 +7,7 @@ import {
 } from '../src/services/cardService.js';
 import { validateDeck, DECK_MIN_SIZE, DECK_MAX_SIZE } from '../src/services/deckService.js';
 import { ALL_CARDS, STARTER_CARDS, validateCatalog } from './seedCards.js';
+import { CLAN_LEGENDARY_CARDS } from './data/cardExpansionClans.js';
 
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
@@ -86,7 +87,7 @@ assert(!overCopies.valid, 'reject over copies');
 
 // Catalogue seed (~200 cartes, structure scalable vers 300)
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
-assert(ALL_CARDS.length >= 190 && ALL_CARDS.length <= 220, `catalog ~200, got ${ALL_CARDS.length}`);
+assert(ALL_CARDS.length >= 190 && ALL_CARDS.length <= 230, `catalog ~200+, got ${ALL_CARDS.length}`);
 const catalog = validateCatalog(ALL_CARDS);
 assert(catalog.byType.attack >= 70, 'enough attacks');
 assert(catalog.byType.defense >= 35, 'enough defenses');
@@ -102,6 +103,29 @@ for (const el of ['katon', 'suiton', 'raiton', 'doton', 'futon', 'null']) {
 }
 for (const card of ALL_CARDS) {
   assert(Object.keys(card.passiveBonus || {}).length > 0, `passive on ${card.slug}`);
+}
+
+// Clans = cartes légendaires à gros passifs de deck (pas un choix à la création).
+assert(CLAN_LEGENDARY_CARDS.length >= 3, 'at least 3 clan legendary cards');
+const STAT_KEYS = new Set([
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medicine',
+  'vitesse',
+  'intelligence',
+  'dexterity',
+  'maxHp',
+]);
+for (const card of CLAN_LEGENDARY_CARDS) {
+  assert(card.slug.startsWith('clan-'), `clan slug prefix: ${card.slug}`);
+  assert(card.rarity === 'legendary', `clan rarity: ${card.slug}`);
+  const passiveSum = Object.entries(card.passiveBonus || {}).reduce((s, [k, v]) => {
+    assert(STAT_KEYS.has(k), `clan passive key ${k} on ${card.slug} not aggregatable`);
+    return s + Number(v);
+  }, 0);
+  assert(passiveSum >= 12, `clan ${card.slug} needs large deck passive (sum=${passiveSum})`);
+  assert(ALL_CARDS.some((c) => c.slug === card.slug), `clan ${card.slug} in ALL_CARDS`);
 }
 
 console.log('✅ testCardSystem passed', `(catalog ${catalog.total})`);

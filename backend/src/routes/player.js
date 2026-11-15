@@ -51,7 +51,7 @@ router.get('/stats', async (req, res, next) => {
   }
 });
 
-/** GET /api/player/clans — clans disponibles à la création */
+/** GET /api/player/clans — lignées NPC (legacy). Pas un choix à la création joueur. */
 router.get('/clans', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);

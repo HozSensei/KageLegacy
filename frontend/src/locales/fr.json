@@ -182,7 +182,7 @@
     "title": "Forge ton shinobi. Domine le deck.",
     "lead": "Kage Legacy est un roguelike solo de construction de deck : crée ton personnage, compose 20–30 cartes, débloque des talents et enchaîne les missions de combat.",
     "features": {
-      "character": "Crée ton shinobi — élément, clan, et points de talent dès le niveau 1.",
+      "character": "Crée ton shinobi — élément et points de talent dès le niveau 1. Les cartes de clan légendaires donnent des passifs de deck.",
       "deck": "Une collection et un deck de départ pour combattre tout de suite, puis affiner le build.",
       "talents": "Un arbre dense : chaque niveau donne un point, jamais de stats gratuites.",
       "missions": "Parcours PvE avec combats, récompenses, boosters boutique et Passe de saison."
@@ -683,7 +683,7 @@
     "nextSteps": "Premiers pas",
     "nextStepsLead": "Rien n'est verrouillé — suis la checklist ou saute où tu veux.",
     "stepCharacter": "Créer ton personnage",
-    "hintCharacter": "Nom, élément et clan — tu reçois un point de talent au niveau 1.",
+    "hintCharacter": "Nom et élément — tu reçois un point de talent au niveau 1.",
     "stepDeck": "Récupérer ton deck de départ",
     "hintDeck": "Les cartes de base sont accordées automatiquement ; ouvre le constructeur pour l'ajuster.",
     "stepTalents": "Dépenser un point de talent",
@@ -1191,8 +1191,8 @@
     "profileTitle": "Profil",
     "profileLead": "Identité, progression et raccourcis vers talents et decks.",
     "createTitle": "Créer votre ninja",
-    "createLead": "Un seul personnage vous accompagne. Ses stats naîtront de l’arbre de talents et de votre deck.",
-    "createHint": "Aucune stat de base : chaque niveau donne 1 point de talent à dépenser plus tard.",
+    "createLead": "Un seul personnage vous accompagne. Ses stats naîtront de l’arbre de talents et de votre deck. Les héritages de clan sont des cartes légendaires à gros passifs.",
+    "createHint": "Aucune stat de base : chaque niveau donne 1 point de talent. La puissance de clan vient des cartes légendaires dans le deck actif.",
     "createSubmit": "Entrer dans le village",
     "nameLabel": "Nom du ninja",
     "elementLabel": "Affinité élémentaire",

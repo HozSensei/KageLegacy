@@ -5,6 +5,7 @@
  */
 import { defineCard } from '../lib/cardFactory.js';
 import { EXPANSION_WAVE2_CARDS } from './cardExpansionWave2.js';
+import { CLAN_LEGENDARY_CARDS } from './cardExpansionClans.js';
 
 const c = defineCard;
 
@@ -1556,6 +1557,10 @@ export const EXPANSION_WAVE1_CARDS = [
 ];
 
 /** Catalogue expansion complet (vagues empilables vers ~300). */
-export const EXPANSION_CARDS = [...EXPANSION_WAVE1_CARDS, ...EXPANSION_WAVE2_CARDS];
+export const EXPANSION_CARDS = [
+  ...EXPANSION_WAVE1_CARDS,
+  ...EXPANSION_WAVE2_CARDS,
+  ...CLAN_LEGENDARY_CARDS,
+];
 
-export { EXPANSION_WAVE2_CARDS };
+export { EXPANSION_WAVE2_CARDS, CLAN_LEGENDARY_CARDS };

@@ -7,7 +7,6 @@ const API_BASE = import.meta.env.VITE_API_URL || ''
 export const usePlayerStore = defineStore('player', () => {
   const character = ref(null)
   const stats = ref(null)
-  const clans = ref([])
   const loading = ref(false)
   const error = ref(null)
   const checked = ref(false)
@@ -67,21 +66,7 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
-  async function fetchClans() {
-    try {
-      const res = await fetch(`${API_BASE}/api/player/clans`, { credentials: 'include' })
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      clans.value = body.clans || []
-      return clans.value
-    } catch (e) {
-      error.value = e.message
-      clans.value = []
-      return []
-    }
-  }
-
-  async function createCharacter({ name, clanTraitId, elementAffinity, avatarUrl }) {
+  async function createCharacter({ name, elementAffinity, avatarUrl }) {
     loading.value = true
     error.value = null
     try {
@@ -91,7 +76,6 @@ export const usePlayerStore = defineStore('player', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          clanTraitId: clanTraitId || null,
           elementAffinity,
           avatarUrl: avatarUrl || null,
         }),
@@ -170,7 +154,6 @@ export const usePlayerStore = defineStore('player', () => {
   function reset() {
     character.value = null
     stats.value = null
-    clans.value = []
     error.value = null
     checked.value = false
     lastLevelUp.value = null
@@ -179,7 +162,6 @@ export const usePlayerStore = defineStore('player', () => {
   return {
     character,
     stats,
-    clans,
     loading,
     error,
     checked,
@@ -189,7 +171,6 @@ export const usePlayerStore = defineStore('player', () => {
     canSpecialize,
     fetchPlayer,
     fetchStats,
-    fetchClans,
     createCharacter,
     addXp,
     chooseSpecialization,

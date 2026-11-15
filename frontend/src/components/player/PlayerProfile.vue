@@ -61,7 +61,6 @@ const elementLabel = computed(() => {
               <span class="dot" aria-hidden="true" />
               {{ elementLabel }}
             </span>
-            <span v-if="character.clanName" class="profile-id__tag">{{ character.clanName }}</span>
             <span v-if="character.specialization" class="profile-id__tag">{{ character.specialization }}</span>
           </p>
         </div>
