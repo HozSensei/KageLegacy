@@ -114,8 +114,6 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 <template>
   <div class="page-shell" data-testid="mission-run-page">
     <PageHeader
-      index="07"
-      layout="overlay"
       :tone="run?.mission?.rank ? missionRankTone(run.mission.rank) : 'leaf'"
       :kicker="t('combat.runKicker')"
       :title="missionTitle"

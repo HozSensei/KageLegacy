@@ -83,9 +83,7 @@ async function startQuick(templateId) {
 <template>
   <div class="page-shell" data-testid="missions-combat-page">
     <PageHeader
-      index="07"
       tone="leaf"
-      layout="overlay"
       :kicker="t('combat.missionsKicker')"
       :title="t('combat.missionsTitle')"
       :lead="t('combat.missionsLead')"

@@ -7,6 +7,16 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : cartes et headers sobres (2026-11-15)
+
+#### Changed
+- **Cartes** (`CardDisplay`, `CardHole`, `CombatHand`) : silhouette plein bord — art et footer flush contre la bordure de rareté, losange de coût en débord haut-droit, zone texte fixe (titre / type·élément / effet sans « Scale avec… »), libellé de scaling en haut à droite, cases de stats colorées (chiffre si bonus > 0)
+- **Headers** (`PageHeader` + vues) : split unifié texte gauche / image droite ; suppression overlay à dalle translucide, orbes et grilles perspective ; Landing et Profil alignés
+
+#### Added
+- Utilitaire `frontend/src/utils/cardFooterStats.js` (6 cases de combat)
+- i18n `player.profileKicker` / `profileLead`, `cards.scaleStat`
+
 ### UI : passe visuelle TCG (2026-11-15)
 
 #### Changed

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { resolveCardArt } from '../../utils/cardArt'
+import { CARD_FOOTER_STATS } from '../../utils/cardFooterStats'
 import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals'
 
 defineOptions({ name: 'CardHole' })
@@ -27,6 +28,7 @@ const rarityLabel = computed(() => {
 })
 const artUrl = computed(() => resolveCardArt(props.card))
 const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
+const footerCells = CARD_FOOTER_STATS
 </script>
 
 <template>
@@ -35,14 +37,13 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
     class="card-hole"
     :class="{ 'card-hole--selected': selected }"
     :data-tone="typeVisual.tone"
+    :data-rarity="card.rarity || 'common'"
     :aria-pressed="selected"
     :aria-label="t('cards.missingCardAria', { name })"
     data-testid="card-hole"
     @click="$emit('select', card)"
   >
-    <span class="card-hole__frame" aria-hidden="true" />
-
-    <div class="card-hole__art-wrap">
+    <div class="card-hole__shell">
       <div class="card-hole__art" aria-hidden="true">
         <img
           v-if="artUrl"
@@ -58,77 +59,67 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
         </span>
         <span class="card-hole__veil" />
       </div>
-      <span class="card-hole__cost">?</span>
-      <span class="card-hole__lock">{{ t('cards.missingBadge') }}</span>
+
+      <div class="card-hole__body">
+        <p class="card-hole__name">{{ name }}</p>
+        <p class="card-hole__type">{{ typeLabel }}</p>
+        <p class="card-hole__hint">{{ t('cards.missingHint') }}</p>
+      </div>
+
+      <footer class="card-hole__footer" aria-hidden="true">
+        <span
+          v-for="cell in footerCells"
+          :key="cell.key"
+          class="card-hole__stat"
+          :data-tone="cell.tone"
+        />
+      </footer>
     </div>
 
-    <div class="card-hole__nameplate">
-      <span class="card-hole__type-icon" aria-hidden="true">
-        <span class="shape" :class="`shape--${typeVisual.shape}`" />
-      </span>
-      <p class="card-hole__name">{{ name }}</p>
-      <p class="card-hole__type">{{ typeLabel }}</p>
-    </div>
-
-    <div class="card-hole__rules">
-      <p class="card-hole__hint">{{ t('cards.missingHint') }}</p>
-      <p class="card-hole__cost-hint" aria-hidden="true">{{ cost }}</p>
-    </div>
-
-    <footer class="card-hole__footer" :data-tone="rarity.tone">
-      <span class="card-hole__gem" aria-hidden="true">
-        <span v-for="n in rarity.pips" :key="n" class="lozenge lozenge--hollow" />
-      </span>
-      <span class="card-hole__rarity">{{ rarityLabel }}</span>
-    </footer>
+    <span class="card-hole__cost" aria-hidden="true"><span>?</span></span>
+    <span class="card-hole__lock">{{ t('cards.missingBadge') }}</span>
+    <span class="card-hole__rarity" :data-tone="rarity.tone">{{ rarityLabel }}</span>
+    <span class="sr-only">{{ t('cards.costLabel') }} {{ cost }}</span>
   </button>
 </template>
 
 <style scoped>
 .card-hole {
+  --card-body-bg: color-mix(in srgb, var(--color-ink) 88%, var(--color-bg));
+  --card-body-fg: color-mix(in srgb, var(--color-on-ink) 72%, transparent);
+
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: block;
   width: 100%;
   min-width: 0;
   aspect-ratio: 2.5 / 3.5;
-  overflow: hidden;
-  padding: 0.42rem 0.42rem 0.5rem;
-  border: 0;
-  border-radius: 0.85rem;
-  background:
-    repeating-linear-gradient(
-      -18deg,
-      transparent,
-      transparent 6px,
-      color-mix(in srgb, var(--color-ink) 5%, transparent) 6px,
-      color-mix(in srgb, var(--color-ink) 5%, transparent) 7px
-    ),
-    color-mix(in srgb, var(--color-ink) 72%, var(--color-bg));
-  color: var(--color-ink-muted);
+  padding: 0;
+  border: 2.5px dashed color-mix(in srgb, var(--color-line-strong) 85%, transparent);
+  border-radius: 0.7rem;
+  background: var(--card-body-bg);
+  color: var(--card-body-fg);
   text-align: left;
-  opacity: 0.82;
+  opacity: 0.88;
+  overflow: visible;
   outline: 0 solid var(--color-ink);
-  box-shadow:
-    0 0 0 2px dashed color-mix(in srgb, var(--color-line-strong) 80%, transparent),
-    0 8px 18px color-mix(in srgb, var(--color-ink) 14%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--color-ink) 12%, transparent);
   transition:
     opacity var(--dur-fast) ease,
     outline-width var(--dur-fast) ease,
     transform var(--dur-base) var(--ease-out-quint);
 }
 
-.card-hole__frame {
-  position: absolute;
-  inset: 0.28rem;
-  z-index: 0;
-  border-radius: 0.62rem;
-  background: color-mix(in srgb, var(--color-bg-soft) 55%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--color-line-strong) 70%, transparent);
+.card-hole__shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: calc(0.7rem - 2.5px);
 }
 
 .card-hole:hover {
-  opacity: 0.95;
+  opacity: 0.96;
   transform: translateY(-2px);
 }
 
@@ -144,26 +135,12 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   outline-offset: 3px;
 }
 
-.card-hole__art-wrap,
-.card-hole__nameplate,
-.card-hole__rules,
-.card-hole__footer {
-  position: relative;
-  z-index: 1;
-}
-
-.card-hole__art-wrap {
-  position: relative;
-  margin: 0.12rem 0.12rem 0;
-}
-
 .card-hole__art {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
-  aspect-ratio: 1 / 0.92;
-  border: 2px solid color-mix(in srgb, var(--color-line-strong) 70%, transparent);
-  border-radius: 0.35rem 0.35rem 0.15rem 0.15rem;
-  background: color-mix(in srgb, var(--tone-fill) 18%, var(--color-bg-soft));
+  background: color-mix(in srgb, var(--tone-fill) 18%, var(--card-body-bg));
 }
 
 .card-hole__art-img {
@@ -172,7 +149,7 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   height: 100%;
   object-fit: cover;
   object-position: center top;
-  filter: grayscale(1) brightness(0.55) contrast(0.9);
+  filter: grayscale(1) brightness(0.5) contrast(0.9);
   user-select: none;
 }
 
@@ -184,7 +161,7 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   min-height: 6rem;
   font-size: 2.25rem;
   color: var(--tone-fill);
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .card-hole__veil {
@@ -200,29 +177,91 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
     );
 }
 
+.card-hole__body {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  height: 5.6rem;
+  padding: 0.5rem 0.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-on-ink) 10%, transparent);
+}
+
+.card-hole__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-stretch: 92%;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+  color: var(--card-body-fg);
+}
+
+.card-hole__type {
+  margin: 0;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-on-ink) 45%, transparent);
+}
+
+.card-hole__hint {
+  margin: 0.15rem 0 0;
+  padding-top: 0.3rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-on-ink) 10%, transparent);
+  font-size: 0.62rem;
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--color-on-ink) 42%, transparent);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-hole__footer {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  height: 1.65rem;
+  margin: 0;
+  padding: 0;
+}
+
+.card-hole__stat {
+  background: color-mix(in srgb, var(--tone-fill) 55%, var(--card-body-bg));
+  opacity: 0.55;
+}
+
 .card-hole__cost {
   position: absolute;
-  top: -0.3rem;
-  left: -0.3rem;
-  z-index: 2;
+  top: -0.4rem;
+  right: -0.4rem;
+  z-index: 3;
   display: grid;
   place-items: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-bg-card) 55%, transparent);
+  width: 2rem;
+  height: 2rem;
+  transform: rotate(45deg);
+  border-radius: 0.2rem;
   border: 2px dashed var(--color-line-strong);
+  background: color-mix(in srgb, var(--color-bg-card) 55%, transparent);
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--color-ink-faint);
+}
+
+.card-hole__cost > span {
+  transform: rotate(-45deg);
 }
 
 .card-hole__lock {
   position: absolute;
   top: 0.35rem;
-  right: 0.35rem;
-  z-index: 2;
+  left: 0.35rem;
+  z-index: 3;
   padding: 0.15rem 0.4rem;
   border-radius: 0.2rem;
   background: color-mix(in srgb, var(--color-ink) 72%, transparent);
@@ -233,102 +272,16 @@ const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
   color: var(--color-on-ink);
 }
 
-.card-hole__nameplate {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  gap: 0.05rem 0.4rem;
-  align-items: center;
-  margin: 0.35rem 0.12rem 0;
-  padding: 0.3rem 0.4rem;
-  border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--tone-fill) 28%, var(--color-bg-soft));
-  color: var(--color-ink-muted);
-}
-
-.card-hole__type-icon {
-  grid-row: 1 / span 2;
-  display: grid;
-  place-items: center;
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-ink) 12%, transparent);
-  font-size: 0.75rem;
-  opacity: 0.7;
-}
-
-.card-hole__name {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 0.88rem;
-  font-weight: 700;
-  font-stretch: 88%;
-  line-height: 1.05;
-  overflow-wrap: anywhere;
-}
-
-.card-hole__type {
-  margin: 0;
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-}
-
-.card-hole__rules {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: space-between;
-  margin: 0.3rem 0.12rem 0;
-  padding: 0.4rem 0.45rem;
-  border-radius: 0.2rem;
-  border: 1px dashed color-mix(in srgb, var(--color-line-strong) 65%, transparent);
-  background: color-mix(in srgb, var(--color-bg-soft) 40%, transparent);
-}
-
-.card-hole__hint {
-  margin: 0;
-  font-size: 0.68rem;
-  line-height: 1.35;
-  color: var(--color-ink-faint);
-}
-
-.card-hole__cost-hint {
-  margin: 0.4rem 0 0;
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-ink-faint) 70%, transparent);
-}
-
-.card-hole__footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  margin-top: 0.25rem;
-  padding: 0.1rem;
-}
-
-.card-hole__gem {
-  display: inline-flex;
-  gap: 0.12rem;
-  font-size: 0.5rem;
-  opacity: 0.55;
-  color: var(--tone-fill);
-}
-
 .card-hole__rarity {
-  font-size: 0.5rem;
+  position: absolute;
+  bottom: 1.85rem;
+  right: 0.5rem;
+  z-index: 3;
+  font-size: 0.45rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--tone);
-  opacity: 0.75;
+  opacity: 0.7;
 }
 </style>

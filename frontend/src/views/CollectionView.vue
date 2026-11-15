@@ -109,9 +109,7 @@ async function onDisenchant() {
 <template>
   <div class="page-shell" data-testid="collection-page">
     <PageHeader
-      index="04"
       tone="wood"
-      layout="overlay"
       :kicker="t('cards.collectionKicker')"
       :title="t('cards.collectionTitle')"
       :lead="t('cards.collectionLead')"

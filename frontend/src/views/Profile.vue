@@ -1,10 +1,12 @@
 <script setup>
 import { onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePlayerStore } from '../stores/player'
 import PlayerProfile from '../components/player/PlayerProfile.vue'
 import LevelUpModal from '../components/player/LevelUpModal.vue'
+import PageHeader from '../components/ui/PageHeader.vue'
+import forestImage from '../assets/illustrations/forest-path.webp'
 
 defineOptions({ name: 'ProfileView' })
 
@@ -28,14 +30,33 @@ async function onSpecialize(spec) {
 
 <template>
   <div class="page-shell" data-testid="profile-page">
-    <p v-if="player.loading && !player.character" class="text-ink-muted">
+    <PageHeader
+      tone="vermilion"
+      :kicker="t('player.profileKicker')"
+      :title="t('player.profileTitle')"
+      :lead="t('player.profileLead')"
+      :image="forestImage"
+      image-position="50% 35%"
+    >
+      <template v-if="player.character" #actions>
+        <RouterLink to="/talents" class="btn-primary" data-testid="profile-header-talents">
+          {{ t('talents.openFromProfile') }}
+        </RouterLink>
+        <RouterLink to="/decks" class="btn-ghost">
+          {{ t('player.openDecks') }}
+        </RouterLink>
+      </template>
+    </PageHeader>
+
+    <p v-if="player.loading && !player.character" class="mt-8 text-ink-muted">
       {{ t('common.loading') }}
     </p>
-    <p v-else-if="player.error" class="alert alert--error" data-testid="profile-error">
+    <p v-else-if="player.error" class="alert alert--error mt-6" data-testid="profile-error">
       {{ player.error }}
     </p>
     <PlayerProfile
       v-else-if="player.character"
+      class="mt-8"
       :character="player.character"
       @specialize="onSpecialize"
     />

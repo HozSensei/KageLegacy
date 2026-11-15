@@ -77,9 +77,7 @@ async function onDebugXp() {
 <template>
   <div class="page-shell" data-testid="battle-pass-page">
     <PageHeader
-      index="08"
       tone="gold"
-      layout="overlay"
       :kicker="t('battlePass.kicker')"
       :title="store.season?.name || t('battlePass.title')"
       :lead="t('battlePass.lead')"

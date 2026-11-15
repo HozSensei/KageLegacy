@@ -146,9 +146,7 @@ async function onUnlockBp(method) {
 <template>
   <div class="page-shell" data-testid="shop-page">
     <PageHeader
-      index="06"
       tone="gold"
-      layout="overlay"
       :kicker="t('shop.kicker')"
       :title="t('shop.title')"
       :lead="t('shop.lead')"

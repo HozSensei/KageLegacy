@@ -79,9 +79,7 @@ async function onLeave() {
 <template>
   <div class="page-shell" data-testid="pvp-queue-page">
     <PageHeader
-      index="09"
       tone="vermilion"
-      layout="overlay"
       :kicker="t('pvp.kicker')"
       :title="t('pvp.queueTitle')"
       :lead="t('pvp.queueLead')"
