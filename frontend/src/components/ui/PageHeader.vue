@@ -233,6 +233,8 @@ defineProps({
   position: absolute;
   inset: 0;
   z-index: 0;
+  /* Decorative full-bleed image must not cover page actions / Cypress targets */
+  pointer-events: none;
 }
 
 .page-header__bleed-image {
