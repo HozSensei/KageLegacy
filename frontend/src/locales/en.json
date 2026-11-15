@@ -233,8 +233,8 @@
     "deleteCancel": "Cancel"
   },
   "journal": {
-    "title": "Cycle journal",
-    "lead": "History of key events: training, operations, missions and cycle close."
+    "title": "Achievement registry",
+    "lead": "Permanent successes and tiers — separate from Battle Pass daily quests."
   },
   "training": {
     "lead": "Paid preparation for actives and free global training for the whole squad — gains at H72.",
@@ -263,7 +263,7 @@
     "menuHint": "Sections grouped by activity.",
     "home": "Home",
     "bureau": "Office",
-    "journal": "Cycle journal",
+    "journal": "Registry",
     "squad": "Squad",
     "clan": "Clan",
     "village": "Land",
@@ -711,7 +711,8 @@
     "statDeck": "Active deck",
     "statTalentPoints": "Talent points",
     "noDeck": "None",
-    "shortcutsTitle": "The whole game"
+    "shortcutsTitle": "The whole game",
+    "shortcutJournal": "Permanent achievements & tiers"
   },
   "cards": {
     "collectionKicker": "Catalogue",
@@ -2064,5 +2065,32 @@
     "prev": "Previous",
     "next": "Next",
     "pageOf": "Page {page} / {total}"
+  },
+  "achievements": {
+    "kicker": "Registry",
+    "title": "Achievement registry",
+    "lead": "Permanent tiered successes. Progress through combat, missions, collection and the arena — claim ryos, dust and XP.",
+    "unlocked": "Unlocked",
+    "claimable": "{n} reward(s) to claim",
+    "claim": "Claim",
+    "claimed": "Claimed",
+    "locked": "Locked",
+    "claimSuccess": "Achievement reward claimed.",
+    "progress": "{current} / {goal}",
+    "categories": {
+      "all": "All",
+      "combat": "Combat",
+      "missions": "Missions",
+      "collection": "Collection",
+      "pvp": "PvP",
+      "mastery": "Mastery",
+      "progression": "Progression"
+    },
+    "reward": {
+      "ryos": "{n} Ryos",
+      "dust": "{n} Dust",
+      "essence": "{n} Essence",
+      "xp": "{n} XP"
+    }
   }
 }

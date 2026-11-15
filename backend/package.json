@@ -28,6 +28,7 @@
     "test:type-advantage": "node scripts/testTypeAdvantage.js",
     "test:mission-run": "node scripts/testMissionRun.js",
     "test:battle-pass": "node scripts/testBattlePass.js",
+    "test:achievements": "node scripts/testAchievements.js",
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
     "clock:set-start": "node scripts/setCycleStart.js",

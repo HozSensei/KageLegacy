@@ -235,6 +235,11 @@ export async function unlockTalent(userId, nodeId) {
     computeTalentBonuses(userId),
   ]);
 
+  try {
+    const { onAchievementAction } = await import('./achievementService.js');
+    await onAchievementAction(userId, 'talent_spent', Number(talents?.unlockedNodeIds?.length) || 0);
+  } catch { /* exploits optionnels */ }
+
   return {
     unlocked: nodeId,
     node: check.node,

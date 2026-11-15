@@ -31,6 +31,7 @@ const ICONS = {
   shop: [{ d: 'M9 3h6M12 3v3M12 18v3' }, { d: 'M7 6h10l1.5 6L17 18H7l-1.5-6Z' }, { d: 'M12 10 14 12 12 14 10 12Z', f: true }],
   missions: [{ d: 'M5 21.5V3' }, { d: 'M5 4h13l-3.5 4.5L18 13H5Z', f: true }],
   'battle-pass': [{ d: 'M3.5 20.5v-6h5.5v-5h5.5v-5h6v16Z' }, { d: 'M14.5 4.5h6v16h-6Z', f: true }],
+  journal: [{ d: 'M5 3.5h11l3 3v14H5Z' }, { d: 'M8.5 9h7M8.5 12.5h7M8.5 16h5' }],
   pvp: [{ d: 'M3 5.5 10.5 12 3 18.5Z', f: true }, { d: 'M21 5.5 13.5 12 21 18.5Z' }],
   leaderboard: [
     { d: 'M4 20.5h16' },

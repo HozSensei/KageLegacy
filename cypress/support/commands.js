@@ -7,6 +7,7 @@ const NAV_PAGES = {
   missions: { testId: 'missions-combat-page', path: '/missions' },
   shop: { testId: 'shop-page', path: '/shop' },
   'battle-pass': { testId: 'battle-pass-page', path: '/battle-pass' },
+  journal: { testId: 'journal-page', path: '/journal' },
   pvp: { testId: 'pvp-queue-page', path: '/pvp' },
 };
 

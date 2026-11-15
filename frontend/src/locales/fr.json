@@ -233,8 +233,8 @@
     "deleteCancel": "Annuler"
   },
   "journal": {
-    "title": "Journal du cycle",
-    "lead": "Historique des événements marquants : entraînement, opérations, missions et clôture de cycle."
+    "title": "Registre des exploits",
+    "lead": "Succès permanents et paliers — distincts des quêtes journalières du Battle Pass."
   },
   "training": {
     "lead": "Préparation payante pour les actifs et entraînement global gratuit pour toute l'équipe — gains à H72.",
@@ -263,7 +263,7 @@
     "menuHint": "Sections regroupées par activité.",
     "home": "Accueil",
     "bureau": "Bureau",
-    "journal": "Journal du cycle",
+    "journal": "Registre",
     "squad": "Escouade",
     "clan": "Clan",
     "village": "Pays",
@@ -711,7 +711,8 @@
     "statDeck": "Deck actif",
     "statTalentPoints": "Points de talent",
     "noDeck": "Aucun",
-    "shortcutsTitle": "Tout le jeu"
+    "shortcutsTitle": "Tout le jeu",
+    "shortcutJournal": "Exploits permanents & paliers"
   },
   "cards": {
     "collectionKicker": "Catalogue",
@@ -2064,5 +2065,32 @@
     "prev": "Précédent",
     "next": "Suivant",
     "pageOf": "Page {page} / {total}"
+  },
+  "achievements": {
+    "kicker": "Registre",
+    "title": "Registre des exploits",
+    "lead": "Succès permanents à paliers. Progressez au combat, en mission, en collection et en arène — réclamez ryos, poussière et XP.",
+    "unlocked": "Débloqués",
+    "claimable": "{n} récompense(s) à réclamer",
+    "claim": "Réclamer",
+    "claimed": "Réclamé",
+    "locked": "Verrouillé",
+    "claimSuccess": "Récompense d’exploit récupérée.",
+    "progress": "{current} / {goal}",
+    "categories": {
+      "all": "Tous",
+      "combat": "Combat",
+      "missions": "Missions",
+      "collection": "Collection",
+      "pvp": "PvP",
+      "mastery": "Maîtrise",
+      "progression": "Progression"
+    },
+    "reward": {
+      "ryos": "{n} Ryos",
+      "dust": "{n} Dust",
+      "essence": "{n} Essence",
+      "xp": "{n} XP"
+    }
   }
 }

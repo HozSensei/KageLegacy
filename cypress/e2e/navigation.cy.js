@@ -13,6 +13,7 @@ describe('Navigation — routes V2', () => {
     'missions',
     'shop',
     'battle-pass',
+    'journal',
     'pvp',
   ];
 

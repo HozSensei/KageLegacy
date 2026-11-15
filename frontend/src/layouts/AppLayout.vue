@@ -36,6 +36,7 @@ const baseNavItems = [
   { name: 'missions', path: '/missions', label: 'nav.missions' },
   { name: 'shop', path: '/shop', label: 'nav.shop' },
   { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
+  { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'pvp', path: '/pvp', label: 'nav.pvp' },
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
 ]

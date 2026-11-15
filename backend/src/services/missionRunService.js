@@ -840,6 +840,11 @@ async function completeRunVictory(row) {
   } catch {
     /* BP optionnel */
   }
+
+  try {
+    const { onAchievementAction } = await import('./achievementService.js');
+    await onAchievementAction(row.user_id, 'mission_run', 1);
+  } catch { /* exploits optionnels */ }
 }
 
 /**

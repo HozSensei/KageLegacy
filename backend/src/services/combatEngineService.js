@@ -307,6 +307,16 @@ async function maybeProgressBattlePassCombatWin(session) {
   }
 }
 
+async function maybeRecordCombatAchievements(session) {
+  if (!session.userId || session.achievementsRecorded) return;
+  if (!['victory', 'defeat', 'forfeited'].includes(session.state)) return;
+  session.achievementsRecorded = true;
+  try {
+    const { recordCombatAchievements } = await import('./achievementService.js');
+    await recordCombatAchievements(session.userId, session, session.state);
+  } catch { /* exploits optionnels */ }
+}
+
 async function finalizeCombatOutcome(session, logs = []) {
   if (!['victory', 'defeat', 'forfeited'].includes(session.state)) return logs;
   if (session.state === 'victory') {
@@ -314,6 +324,7 @@ async function finalizeCombatOutcome(session, logs = []) {
     if (rewards) logs.push({ type: 'rewards', rewards });
     await maybeProgressBattlePassCombatWin(session);
   }
+  await maybeRecordCombatAchievements(session);
   await maybeNotifyRunCombatFinished(session);
   logs.push({ type: session.state });
   return logs;
@@ -442,6 +453,7 @@ export async function startCombat(userId, opts = {}) {
   const runtimeCards = buildRuntimeDeck(deckInfo.cards, (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`);
   const shuffled = shuffle(runtimeCards);
 
+  const { createCombatAchTrack } = await import('./achievementService.js');
   let player = {
     name: playerName,
     hp: startHp,
@@ -463,6 +475,7 @@ export async function startCombat(userId, opts = {}) {
     elementsPlayedThisTurn: [],
     elementalFusionDrawnThisTurn: false,
     perfectTankUsed: false,
+    _achTrack: createCombatAchTrack(),
   };
 
   const combatStart = applyTalentCombatStart(player, classified.applied);
@@ -647,6 +660,11 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   session.player = moved.player;
   session.enemy = nextEnemy;
 
+  try {
+    const { trackCardPlayForAchievements } = await import('./achievementService.js');
+    session.player = trackCardPlayForAchievements(session.player, card);
+  } catch { /* exploits optionnels */ }
+
   // Quêtes BP : carte jouée + dégâts infligés
   try {
     const { onBattlePassAction } = await import('./battlePassQuestService.js');
@@ -668,7 +686,10 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
     if (rewards) rewardLogs = [{ type: 'rewards', rewards }];
     await maybeProgressBattlePassCombatWin(session);
   }
-  if (outcome) await maybeNotifyRunCombatFinished(session);
+  if (outcome) {
+    await maybeRecordCombatAchievements(session);
+    await maybeNotifyRunCombatFinished(session);
+  }
 
   await persistSession(session);
   await appendLog(combatId, session.currentTurn, 'play_card', {
@@ -783,6 +804,11 @@ export async function endTurn(userId, combatId) {
   if (tank.enemy) session.enemy = tank.enemy;
   logs.push(...tank.logs);
 
+  try {
+    const { trackDamageTakenForAchievements } = await import('./achievementService.js');
+    session.player = trackDamageTakenForAchievements(session.player, enemyAct.damageTakenByPlayer || 0);
+  } catch { /* exploits optionnels */ }
+
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);
     await persistSession(session);
@@ -874,6 +900,7 @@ export async function forfeit(userId, combatId) {
 
   session.state = 'forfeited';
   session.currentPhase = 'game_over';
+  await maybeRecordCombatAchievements(session);
   await maybeNotifyRunCombatFinished(session);
   await persistSession(session);
   await appendLog(combatId, session.currentTurn, 'forfeit', {});
