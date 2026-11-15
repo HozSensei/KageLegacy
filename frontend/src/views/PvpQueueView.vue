@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import { usePvpStore } from '../stores/pvp'
 import { useDecksStore } from '../stores/decks'
 import PageHeader from '../components/ui/PageHeader.vue'
-import bridgeImage from '../assets/illustrations/stone-bridge.jpg'
+import bridgeImage from '../assets/illustrations/stone-bridge.webp'
 
 defineOptions({ name: 'PvpQueueView' })
 

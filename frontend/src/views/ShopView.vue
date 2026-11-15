@@ -9,7 +9,7 @@ import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue'
 import CosmeticCatalog from '../components/shop/CosmeticCatalog.vue'
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import marketImage from '../assets/illustrations/market-square.jpg'
+import marketImage from '../assets/illustrations/market-square.webp'
 import { useShopStore } from '../stores/shop'
 import { useAuthStore } from '../stores/auth'
 

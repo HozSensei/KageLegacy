@@ -40,6 +40,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Arbre de talents** : l'arbre entier tient dans le cadre au zoom par défaut (desktop et mobile) ; nœuds, liens et libellés compensent le dézoom
 - **PvP** : « Premier joueur / Second joueur » à la place de « Host / Guest » dans les textes visibles ; identifiants techniques inchangés
 - Couleurs en dur remplacées par des jetons dans les composants et feuilles de style concernés
+- **Bandeaux d'illustration** : JPEG remplacés par WebP (hub, accueil/connexion, missions, boutique, PvP) — ~1,25 Mo → ~0,67 Mo pour le NAS ; cibles navigateurs modernes, sans fallback JPEG
 
 ### Refonte visuelle de l'interface (2026-11-14)
 

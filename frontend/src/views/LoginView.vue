@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
-import gateImage from '../assets/illustrations/village-gate.jpg'
+import gateImage from '../assets/illustrations/village-gate.webp'
 
 defineOptions({ name: 'LoginView' })
 

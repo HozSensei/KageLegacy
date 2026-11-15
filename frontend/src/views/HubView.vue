@@ -10,7 +10,7 @@ import EmptyState from '../components/ui/EmptyState.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { sectionOf } from '../constants/sections'
-import hubImage from '../assets/illustrations/hub-office.jpg'
+import hubImage from '../assets/illustrations/hub-office.webp'
 
 defineOptions({ name: 'HubView' })
 
