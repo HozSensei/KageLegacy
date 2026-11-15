@@ -14,32 +14,22 @@ const player = usePlayerStore()
 
 const name = ref('')
 const elementAffinity = ref('Katon')
-const clanTraitId = ref(null)
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon']
 
 const previewName = computed(() => name.value.trim())
 const previewInitial = computed(() => (previewName.value.charAt(0) || '?').toUpperCase())
-const previewClan = computed(
-  () => player.clans.find((clan) => clan.id === clanTraitId.value)?.name || ''
-)
 
 onMounted(async () => {
   if (!player.checked) await player.fetchPlayer()
   if (player.character) {
     await router.replace({ name: 'profile' })
-    return
-  }
-  await player.fetchClans()
-  if (player.clans.length && clanTraitId.value == null) {
-    clanTraitId.value = player.clans[0].id
   }
 })
 
 async function submit() {
   const created = await player.createCharacter({
     name: name.value.trim(),
-    clanTraitId: clanTraitId.value || null,
     elementAffinity: elementAffinity.value,
   })
   if (created) await router.push({ name: 'hub' })
@@ -89,15 +79,6 @@ async function submit() {
             </div>
           </fieldset>
 
-          <label v-if="player.clans.length" class="field">
-            <span class="field__label">{{ t('player.clanLabel') }}</span>
-            <select v-model="clanTraitId" data-testid="create-clan" class="input-field">
-              <option v-for="clan in player.clans" :key="clan.id" :value="clan.id">
-                {{ clan.name }}
-              </option>
-            </select>
-          </label>
-
           <p class="creation__hint">
             {{ t('player.createHint') }}
           </p>
@@ -127,7 +108,6 @@ async function submit() {
               <span class="dot" />
               {{ t(`player.elements.${elementAffinity}`) }}
             </span>
-            <span v-if="previewClan" class="creation__tag">{{ previewClan }}</span>
           </p>
           <p class="creation__level">
             <span>{{ t('player.levelWord') }}</span>

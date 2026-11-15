@@ -5,7 +5,6 @@
  * ⚠️ Aucune stat automatique au level-up : uniquement +1 talent_points_available.
  */
 import { query } from '../config/database.js';
-import { findClanTraitById } from '../models/clanTrait.js';
 import { ELEMENTS, SPECIALIZATIONS } from '../validators/player.js';
 
 /** Niveau max du personnage. */
@@ -177,7 +176,11 @@ async function fetchCharacterRow(userId) {
   return rows[0] || null;
 }
 
-export async function createCharacter(userId, { name, clanTraitId, elementAffinity, avatarUrl }) {
+/**
+ * Création personnage. Les clans joueur sont des cartes légendaires (passifs de deck),
+ * pas un choix d'identité — `clanTraitId` est ignoré (rétrocompat body API / scripts).
+ */
+export async function createCharacter(userId, { name, clanTraitId: _clanTraitId, elementAffinity, avatarUrl }) {
   if (!userId) throw httpError(400, 'userId requis.');
 
   const existing = await fetchCharacterRow(userId);
@@ -190,20 +193,13 @@ export async function createCharacter(userId, { name, clanTraitId, elementAffini
     throw httpError(400, 'Affinité élémentaire invalide.');
   }
 
-  const clanId = clanTraitId != null ? Number(clanTraitId) : null;
-  if (clanId != null) {
-    if (!Number.isFinite(clanId) || clanId <= 0) throw httpError(400, 'clanTraitId invalide.');
-    const clan = await findClanTraitById(clanId);
-    if (!clan) throw httpError(400, 'Clan introuvable.');
-  }
-
   const avatar = avatarUrl && String(avatarUrl).trim() ? String(avatarUrl).trim() : null;
 
   await query(
     `INSERT INTO player_character
       (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
-     VALUES (?, ?, ?, 1, 0, 'Genin', 1, ?, ?, NULL)`,
-    [userId, trimmedName, avatar, clanId, elementAffinity],
+     VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL)`,
+    [userId, trimmedName, avatar, elementAffinity],
   );
 
   // Cartes de base + deck starter (best-effort — ne bloque pas la création).

@@ -182,7 +182,7 @@
     "title": "Build your shinobi. Master the deck.",
     "lead": "Kage Legacy is a solo deck-building roguelike: create your character, craft a 20–30 card deck, unlock talents, and clear combat missions.",
     "features": {
-      "character": "Create your shinobi — element, clan, and talent points from level one.",
+      "character": "Create your shinobi — element and talent points from level one. Legendary clan cards grant deck passives.",
       "deck": "A starter collection and deck so you can fight immediately, then refine your build.",
       "talents": "A deep talent tree: every level grants a point, never free stats.",
       "missions": "PvE mission runs with combat, rewards, shop boosters and a seasonal Battle Pass."
@@ -683,7 +683,7 @@
     "nextSteps": "First steps",
     "nextStepsLead": "Nothing is locked — follow the checklist or jump wherever you like.",
     "stepCharacter": "Create your character",
-    "hintCharacter": "Name, element and clan — you receive a talent point at level 1.",
+    "hintCharacter": "Name and element — you receive a talent point at level 1.",
     "stepDeck": "Claim your starter deck",
     "hintDeck": "Base cards are granted automatically; open the deck builder to tune it.",
     "stepTalents": "Spend a talent point",
@@ -1267,8 +1267,8 @@
     "profileTitle": "Profile",
     "profileLead": "Identity, progression, and shortcuts to talents and decks.",
     "createTitle": "Create your ninja",
-    "createLead": "You play as a single character. Stats come from the talent tree and your deck.",
-    "createHint": "No base stats: each level grants 1 talent point to spend later.",
+    "createLead": "You play as a single character. Stats come from the talent tree and your deck. Clan heritages are legendary cards with large deck passives.",
+    "createHint": "No base stats: each level grants 1 talent point. Clan power comes from legendary clan cards in your active deck.",
     "createSubmit": "Enter the village",
     "nameLabel": "Ninja name",
     "elementLabel": "Element affinity",
