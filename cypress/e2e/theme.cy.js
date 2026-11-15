@@ -1,34 +1,27 @@
 const STORAGE_KEY = 'kage-legacy-theme';
 
-/** Visite une page en simulant le thème du système (aucun choix mémorisé au départ). */
+/** Force prefers-color-scheme via CDP (fiable sous Electron Cypress). */
+function setPreferredColorScheme(scheme) {
+  cy.wrap(
+    Cypress.automation('remote:debugger:protocol', {
+      command: 'Emulation.setEmulatedMedia',
+      params: {
+        features: [{ name: 'prefers-color-scheme', value: scheme }],
+      },
+    }),
+    { log: false },
+  );
+}
+
+/** Visite une page sans choix mémorisé, avec préférence système contrôlée. */
 function visitWithSystemTheme(path, systemDark) {
+  setPreferredColorScheme(systemDark ? 'dark' : 'light');
   cy.visit(path, {
     onBeforeLoad(win) {
       try {
         win.localStorage.removeItem(STORAGE_KEY);
       } catch (e) {
         /* ignore */
-      }
-      const impl = (query) => ({
-        matches: Boolean(systemDark && String(query).includes('prefers-color-scheme: dark')),
-        media: query,
-        addEventListener() {},
-        removeEventListener() {},
-        addListener() {},
-        removeListener() {},
-        dispatchEvent() {
-          return false;
-        },
-        onchange: null,
-      });
-      try {
-        win.matchMedia = impl;
-      } catch (e) {
-        Object.defineProperty(win, 'matchMedia', {
-          configurable: true,
-          writable: true,
-          value: impl,
-        });
       }
     },
   });
