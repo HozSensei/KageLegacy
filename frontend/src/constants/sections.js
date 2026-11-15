@@ -12,8 +12,9 @@ export const SECTIONS = {
   missions: { index: '07', icon: 'missions', tone: 'leaf' },
   'battle-pass': { index: '08', icon: 'battle-pass', tone: 'gold' },
   pvp: { index: '09', icon: 'pvp', tone: 'vermilion' },
-  'elite-tools': { index: '10', icon: 'elite-tools', tone: 'gold' },
-  admin: { index: '11', icon: 'admin', tone: 'ink' },
+  leaderboard: { index: '10', icon: 'leaderboard', tone: 'indigo' },
+  'elite-tools': { index: '11', icon: 'elite-tools', tone: 'gold' },
+  admin: { index: '12', icon: 'admin', tone: 'ink' },
 }
 
 export function sectionOf(name) {

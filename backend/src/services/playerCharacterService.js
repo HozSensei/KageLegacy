@@ -5,6 +5,11 @@
  * ⚠️ Aucune stat automatique au level-up : uniquement +1 talent_points_available.
  */
 import { query } from '../config/database.js';
+import {
+  assignFactionFromSeed,
+  getFaction,
+  isValidFactionId,
+} from './factionCatalog.js';
 import { ELEMENTS, SPECIALIZATIONS } from '../validators/player.js';
 
 /** Niveau max du personnage. */
@@ -85,6 +90,23 @@ async function tableExists(tableName) {
   }
 }
 
+async function columnExists(tableName, columnName) {
+  try {
+    const rows = await query(
+      `SELECT 1 AS ok
+       FROM information_schema.columns
+       WHERE table_schema = DATABASE()
+         AND table_name = ?
+         AND column_name = ?
+       LIMIT 1`,
+      [tableName, columnName],
+    );
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Bonus issus des nœuds de talents débloqués (délègue à talentTreeService).
  * Si les tables ne sont pas peuplées / absentes → {}.
@@ -144,6 +166,7 @@ export async function getComputedStats(userId) {
 
 function serializeCharacter(row, extras = {}) {
   if (!row) return null;
+  const factionId = row.faction_id ?? extras.factionId ?? null;
   return {
     id: row.id,
     userId: row.user_id,
@@ -158,6 +181,9 @@ function serializeCharacter(row, extras = {}) {
     clanName: row.clan_name ?? extras.clanName ?? null,
     elementAffinity: row.element_affinity,
     specialization: row.specialization,
+    factionId,
+    faction: factionId ? getFaction(factionId) : null,
+    factionRetakeUsed: Boolean(row.faction_retake_used),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     ...extras,
@@ -180,7 +206,10 @@ async function fetchCharacterRow(userId) {
  * Création personnage. Les clans joueur sont des cartes légendaires (passifs de deck),
  * pas un choix d'identité — `clanTraitId` est ignoré (rétrocompat body API / scripts).
  */
-export async function createCharacter(userId, { name, clanTraitId: _clanTraitId, elementAffinity, avatarUrl }) {
+export async function createCharacter(
+  userId,
+  { name, clanTraitId: _clanTraitId, elementAffinity, avatarUrl, factionId },
+) {
   if (!userId) throw httpError(400, 'userId requis.');
 
   const existing = await fetchCharacterRow(userId);
@@ -193,14 +222,33 @@ export async function createCharacter(userId, { name, clanTraitId: _clanTraitId,
     throw httpError(400, 'Affinité élémentaire invalide.');
   }
 
+  let resolvedFaction = factionId || null;
+  if (resolvedFaction != null && !isValidFactionId(resolvedFaction)) {
+    throw httpError(400, 'Faction invalide.');
+  }
+  if (!resolvedFaction) {
+    resolvedFaction = assignFactionFromSeed(userId);
+  }
+
   const avatar = avatarUrl && String(avatarUrl).trim() ? String(avatarUrl).trim() : null;
 
-  await query(
-    `INSERT INTO player_character
-      (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
-     VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL)`,
-    [userId, trimmedName, avatar, elementAffinity],
-  );
+  const hasFactionCol = await columnExists('player_character', 'faction_id');
+
+  if (hasFactionCol) {
+    await query(
+      `INSERT INTO player_character
+        (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization, faction_id)
+       VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL, ?)`,
+      [userId, trimmedName, avatar, elementAffinity, resolvedFaction],
+    );
+  } else {
+    await query(
+      `INSERT INTO player_character
+        (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
+       VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL)`,
+      [userId, trimmedName, avatar, elementAffinity],
+    );
+  }
 
   // Cartes de base + deck starter (best-effort — ne bloque pas la création).
   try {

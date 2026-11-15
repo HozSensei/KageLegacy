@@ -269,6 +269,7 @@
     "village": "Pays",
     "missions": "Missions",
     "pvp": "Arène PvP",
+    "leaderboard": "Classement",
     "reconnaissance": "Reconnaissance",
     "training": "Entraînement",
     "league": "Ligue",
@@ -703,6 +704,7 @@
     "shortcutShop": "Boosters & cosmétiques",
     "shortcutBp": "Piste de saison & quêtes",
     "shortcutPvp": "File d'attente pour un duel",
+    "shortcutLeaderboard": "Classements niveau & PvP",
     "shortcutProfile": "Stats & spécialisation",
     "statLevel": "Niveau",
     "statCards": "Cartes",
@@ -2025,5 +2027,42 @@
     "amber": "Sombre ambre",
     "switchToDark": "Passer au thème sombre",
     "switchToLight": "Passer au thème clair"
+  },
+  "factions": {
+    "pickLabel": "Faction",
+    "pickTitle": "Choisis ton pays",
+    "pickLead": "Trois pays issus de l’ancienne rivalité — identité cosmétique, sans bonus de combat. Un retake gratuit ensuite.",
+    "names": {
+      "midorihara": "Midorihara",
+      "kareno": "Kareno",
+      "oborohama": "Oborohama"
+    },
+    "tones": {
+      "midorihara": "Discipline et tradition.",
+      "kareno": "Endurance et pragmatisme.",
+      "oborohama": "Ombre et précision."
+    }
+  },
+  "leaderboard": {
+    "kicker": "Rivalité",
+    "title": "Classement",
+    "lead": "Classements serveur basés sur la progression vérifiée — niveau et victoires PvP. Les totaux de faction additionnent les scores des membres.",
+    "boardLevel": "Niveau",
+    "boardPvp": "Victoires PvP",
+    "factionStandings": "Prestige des factions",
+    "factionStandingsLead": "Somme des niveaux des membres (ou des victoires PvP selon le board).",
+    "members": "{n} membres",
+    "filterFaction": "Filtrer par faction",
+    "allFactions": "Toutes les factions",
+    "yourRank": "Votre rang : #{rank} · score {score}",
+    "colRank": "Rang",
+    "colName": "Shinobi",
+    "colFaction": "Faction",
+    "colLevel": "Niveau",
+    "colPvpWins": "Victoires",
+    "empty": "Aucune entrée pour l’instant.",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "pageOf": "Page {page} / {total}"
   }
 }

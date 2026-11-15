@@ -37,6 +37,7 @@ const baseNavItems = [
   { name: 'shop', path: '/shop', label: 'nav.shop' },
   { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
   { name: 'pvp', path: '/pvp', label: 'nav.pvp' },
+  { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
 ]
 
 const eliteToolsNavItem = {

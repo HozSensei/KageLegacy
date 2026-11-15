@@ -66,7 +66,7 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
-  async function createCharacter({ name, elementAffinity, avatarUrl }) {
+  async function createCharacter({ name, elementAffinity, factionId, avatarUrl }) {
     loading.value = true
     error.value = null
     try {
@@ -77,6 +77,7 @@ export const usePlayerStore = defineStore('player', () => {
         body: JSON.stringify({
           name,
           elementAffinity,
+          factionId: factionId || null,
           avatarUrl: avatarUrl || null,
         }),
       })
