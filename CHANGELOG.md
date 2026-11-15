@@ -7,6 +7,12 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 13–24 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 13–24 (mirage-persistant → serres-de-fer, dont `pilule-du-soldat` et `lame-crespusculaire`)
+- Mapping étendu dans `frontend/src/utils/cardArt.js` (24 slugs)
+
 ### Cartes : illustrations starter 1–12 (2026-11-15)
 
 #### Added
