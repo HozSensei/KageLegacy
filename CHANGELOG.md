@@ -7,6 +7,15 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : hiérarchie visuelle et dégâts affichés (2026-11-15)
+
+#### Changed
+- **Collection / deck / shop** (`CardDisplay`) : rareté lisible (bordure, bandeau, foil CSS), type en bandeau fort, élément en pastille, upgrade visible, effet actif vs bonus passif séparés ; les chiffres restent les **valeurs de base** avec indication « Scale avec {stat} »
+- **Main de combat** (`CombatHand`) : affiche les **dégâts / armure / soins effectifs** via `Base × (1 + Stat/100)` à partir de `combat.stats` (PvE) ou `fighter.stats` (PvP) ; la base reste en secondaire quand elle diffère — hors critique / triade / éléments / buffs (résolus au play)
+
+#### Added
+- Utilitaire client `frontend/src/utils/cardScaling.js` aligné sur les formules backend
+
 ### i18n FR/EN complète (V2 shell + catalogues) (2026-11-15)
 
 #### Added

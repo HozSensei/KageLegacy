@@ -128,6 +128,7 @@ onBeforeUnmount(() => {
         :selected-id="selectedId"
         :disabled="busy || !canAct"
         :chakra="combat.player.chakra"
+        :stats="combat.stats"
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
       />
