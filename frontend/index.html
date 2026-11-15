@@ -19,18 +19,14 @@
         background: #1a1614;
         color-scheme: dark;
       }
-      html[data-theme='amber'] {
-        background: #140c08;
-        color-scheme: dark;
-      }
     </style>
     <script>
       // Applique le thème avant le premier rendu (même règle que src/composables/useTheme.js).
-      // Système sombre → `dark` (indigo), jamais `ink` / `amber` automatiquement.
+      // Système sombre → `dark` (indigo), jamais `ink` automatiquement.
       ;(function () {
         var theme = null
-        var allowed = { light: 1, dark: 1, ink: 1, amber: 1 }
-        var colors = { light: '#f5f0e6', dark: '#14182b', ink: '#1a1614', amber: '#140c08' }
+        var allowed = { light: 1, dark: 1, ink: 1 }
+        var colors = { light: '#f5f0e6', dark: '#14182b', ink: '#1a1614' }
         try {
           theme = localStorage.getItem('kage-legacy-theme')
         } catch (e) {}
