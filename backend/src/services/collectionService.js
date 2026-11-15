@@ -121,6 +121,12 @@ export async function addCard(userId, cardDefinitionId, { quantity = 1, source =
     }
   }
 
+  try {
+    const ownedRows = await query('SELECT COUNT(*) AS c FROM user_card_collection WHERE user_id = ?', [userId]);
+    const { onAchievementAction } = await import('./achievementService.js');
+    await onAchievementAction(userId, 'collection_owned', Number(ownedRows[0]?.c || 0));
+  } catch { /* exploits optionnels */ }
+
   return entry;
 }
 

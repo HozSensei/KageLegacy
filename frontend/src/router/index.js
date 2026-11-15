@@ -15,6 +15,7 @@ import MissionRunView from '../views/MissionRunView.vue'
 import CombatView from '../views/CombatView.vue'
 import ShopView from '../views/ShopView.vue'
 import BattlePassView from '../views/BattlePassView.vue'
+import JournalView from '../views/JournalView.vue'
 import PvpQueueView from '../views/PvpQueueView.vue'
 import PvpDuelView from '../views/PvpDuelView.vue'
 import LeaderboardView from '../views/LeaderboardView.vue'
@@ -119,6 +120,14 @@ const router = createRouter({
           },
         },
         {
+          path: 'journal',
+          name: 'journal',
+          component: JournalView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
           path: 'pvp',
           name: 'pvp',
           component: PvpQueueView,
@@ -145,7 +154,6 @@ const router = createRouter({
         // Routes legacy archivées → placeholder jusqu'aux phases suivantes
         ...[
           ['inventory', 'nav.inventory', 'nav.inventory'],
-          ['journal', 'nav.journal', 'journal.title'],
           ['squad', 'nav.squad', 'nav.squad'],
           ['reconnaissance', 'nav.reconnaissance', 'nav.reconnaissance'],
           ['espionnage', 'nav.scout', 'nav.scout', 'scout'],

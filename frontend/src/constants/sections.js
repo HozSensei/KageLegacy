@@ -11,10 +11,11 @@ export const SECTIONS = {
   shop: { index: '06', icon: 'shop', tone: 'gold' },
   missions: { index: '07', icon: 'missions', tone: 'leaf' },
   'battle-pass': { index: '08', icon: 'battle-pass', tone: 'gold' },
-  pvp: { index: '09', icon: 'pvp', tone: 'vermilion' },
-  leaderboard: { index: '10', icon: 'leaderboard', tone: 'indigo' },
-  'elite-tools': { index: '11', icon: 'elite-tools', tone: 'gold' },
-  admin: { index: '12', icon: 'admin', tone: 'ink' },
+  journal: { index: '09', icon: 'journal', tone: 'indigo' },
+  pvp: { index: '10', icon: 'pvp', tone: 'vermilion' },
+  leaderboard: { index: '11', icon: 'leaderboard', tone: 'indigo' },
+  'elite-tools': { index: '12', icon: 'elite-tools', tone: 'gold' },
+  admin: { index: '13', icon: 'admin', tone: 'ink' },
 }
 
 export function sectionOf(name) {

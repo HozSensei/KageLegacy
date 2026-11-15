@@ -362,6 +362,16 @@ export async function reportMatchResult(matchId, userId, body = {}) {
   );
 
   const updated = await loadMatch(matchId);
+  try {
+    if (updated?.status === 'completed' && row.status !== 'completed') {
+      const { onAchievementAction } = await import('../achievementService.js');
+      const hostId = updated.host_user_id ?? row.host_user_id;
+      const guestId = updated.guest_user_id ?? row.guest_user_id;
+      if (hostId) await onAchievementAction(hostId, 'pvp_match', 1);
+      if (guestId) await onAchievementAction(guestId, 'pvp_match', 1);
+      if (winnerUserId) await onAchievementAction(winnerUserId, 'pvp_win', 1);
+    }
+  } catch { /* exploits optionnels */ }
   return {
     match: serializeMatch(updated),
     role,

@@ -21,6 +21,14 @@ export async function processDailyRetentionTick() {
   const seals = await grantDailySealsForAllUsers();
   const academy = await ensureAcademyForAllUsers();
   const guestCleanup = await purgeExpiredGuestAccounts();
+  let battlePassQuests = null;
+  try {
+    const { ensureFreshQuestWindows } = await import('./battlePassQuestService.js');
+    battlePassQuests = await ensureFreshQuestWindows();
+  } catch (err) {
+    console.error('[DailyRetention] refresh BP quests failed:', err?.message || err);
+    battlePassQuests = { error: err?.message || String(err) };
+  }
   lastDailyRetentionDate = today;
 
   console.log(
@@ -34,7 +42,7 @@ export async function processDailyRetentionTick() {
     );
   }
 
-  return { date: today, seals, academy, guestCleanup };
+  return { date: today, seals, academy, guestCleanup, battlePassQuests };
 }
 
 export function resetDailyRetentionCacheForTests() {

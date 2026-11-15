@@ -7,6 +7,15 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Registre d’exploits + refresh quêtes daily (2026-11-15)
+
+#### Added
+- Achievements registry (15 families, tiers, claim rewards) — `GET/POST /api/achievements`, Journal UI `/journal`
+- Hooks: combat mastery, missions, collection, PvP, deck, talents
+
+#### Fixed
+- Battle Pass daily/weekly UTC windows auto-refresh when expired (`ensureFreshQuestWindows`)
+
 ### Factions + classement (2026-11-15)
 
 #### Added

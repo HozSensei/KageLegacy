@@ -7,9 +7,65 @@ import {
   addBattlePassXP,
   getActiveSeason,
   getOrCreateUserBattlePass,
+  getSeasonRow,
   grantBattlePassReward,
 } from './battlePassService.js';
 import { parseJsonSafe } from './cardService.js';
+
+function toMysqlDatetime(d) {
+  return new Date(d).toISOString().slice(0, 19).replace('T', ' ');
+}
+
+export async function ensureFreshQuestWindows(seasonId = null) {
+  let season = null;
+  if (seasonId) {
+    const row = await getSeasonRow(seasonId);
+    if (row) season = { id: row.id, startDate: row.start_date, endDate: row.end_date };
+  } else {
+    season = await getActiveSeason();
+  }
+  if (!season?.id) return { skipped: true, reason: 'no_season' };
+  if (!(await tableExists('battle_pass_quests'))) return { skipped: true, reason: 'bp_table_missing' };
+
+  const [dailyActive] = await query(
+    `SELECT COUNT(*) AS c FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'daily' AND available_from <= CURRENT_TIMESTAMP AND available_until >= CURRENT_TIMESTAMP`,
+    [season.id],
+  );
+  const [weeklyActive] = await query(
+    `SELECT COUNT(*) AS c FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'weekly' AND available_from <= CURRENT_TIMESTAMP AND available_until >= CURRENT_TIMESTAMP`,
+    [season.id],
+  );
+  const needDaily = Number(dailyActive?.c || 0) === 0;
+  const needWeekly = Number(weeklyActive?.c || 0) === 0;
+  if (!needDaily && !needWeekly) return { skipped: true, reason: 'windows_fresh', seasonId: season.id };
+
+  const { buildSeason1QuestDefs } = await import('../../scripts/data/battlePassSeason1.js');
+  const defs = buildSeason1QuestDefs(new Date(season.startDate || Date.now()), new Date(season.endDate || Date.now() + 90 * 86400000));
+  let insertedDaily = 0, insertedWeekly = 0;
+  if (needDaily) {
+    await query(`DELETE FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'daily'`, [season.id]);
+    for (const q of defs.filter((d) => d.quest_type === 'daily')) {
+      await query(
+        `INSERT INTO battle_pass_quests (season_id, quest_type, quest_key, description_fr, description_en, goal_value, xp_reward, bonus_reward_json, available_from, available_until)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [season.id, q.quest_type, q.quest_key, q.description_fr, q.description_en, q.goal_value, q.xp_reward, q.bonus_reward_json, toMysqlDatetime(q.available_from), toMysqlDatetime(q.available_until)],
+      );
+      insertedDaily += 1;
+    }
+  }
+  if (needWeekly) {
+    await query(`DELETE FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'weekly'`, [season.id]);
+    for (const q of defs.filter((d) => d.quest_type === 'weekly')) {
+      await query(
+        `INSERT INTO battle_pass_quests (season_id, quest_type, quest_key, description_fr, description_en, goal_value, xp_reward, bonus_reward_json, available_from, available_until)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [season.id, q.quest_type, q.quest_key, q.description_fr, q.description_en, q.goal_value, q.xp_reward, q.bonus_reward_json, toMysqlDatetime(q.available_from), toMysqlDatetime(q.available_until)],
+      );
+      insertedWeekly += 1;
+    }
+  }
+  return { seasonId: season.id, refreshedDaily: needDaily, refreshedWeekly: needWeekly, insertedDaily, insertedWeekly };
+}
 
 /**
  * Actions jeu → clés de quêtes seedées (idempotent si clé absente / déjà done).
@@ -136,6 +192,8 @@ async function getOrCreateQuestProgress(userId, questId) {
 export async function getActiveQuests(userId) {
   const season = await getActiveSeason();
   if (!season) return { season: null, quests: [] };
+
+  try { await ensureFreshQuestWindows(season.id); } catch (err) { console.error('[battle-pass] ensureFreshQuestWindows failed:', err?.message || err); }
 
   await getOrCreateUserBattlePass(userId, season.id);
 

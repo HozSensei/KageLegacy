@@ -465,7 +465,12 @@ export async function replaceDeckCards(userId, deckId, cards) {
     connection.release();
   }
 
-  return getDeck(userId, deckId);
+  const deck = await getDeck(userId, deckId);
+  try {
+    const { onAchievementAction } = await import('./achievementService.js');
+    await onAchievementAction(userId, 'deck_size', Number(deck?.size) || 0);
+  } catch { /* exploits optionnels */ }
+  return deck;
 }
 
 export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) {
