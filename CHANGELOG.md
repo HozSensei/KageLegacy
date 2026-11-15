@@ -7,6 +7,12 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 37–48 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 37–48 (chaine-d-eclairs → aiguillon-nerveux, dont `tombeau-de-sable` / Dune engloutissante et `oeil-du-mirroir` / Reflet trompeur)
+- Mapping étendu dans `frontend/src/utils/cardArt.js` (36 slugs)
+
 ### Cartes : illustrations 13–24 (2026-11-15)
 
 #### Added
