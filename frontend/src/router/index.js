@@ -1,32 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AppLayout from '../layouts/AppLayout.vue'
 import LandingView from '../views/LandingView.vue'
-import BureauView from '../views/BureauView.vue'
-import CycleJournalView from '../views/CycleJournalView.vue'
-import SquadView from '../views/SquadView.vue'
-import LeagueView from '../views/LeagueView.vue'
-import MarketView from '../views/MarketView.vue'
-import PlayerMarketView from '../views/PlayerMarketView.vue'
-import TechniqueRefinementView from '../views/TechniqueRefinementView.vue'
-import InventoryView from '../views/InventoryView.vue'
-import OperationView from '../views/OperationView.vue'
-import MissionsView from '../views/MissionsView.vue'
-import ReconMissionView from '../views/ReconMissionView.vue'
-import TrainingView from '../views/TrainingView.vue'
-import ClanView from '../views/ClanView.vue'
-import VillageView from '../views/VillageView.vue'
-import RulesView from '../views/RulesView.vue'
 import LoginView from '../views/LoginView.vue'
-import EliteIdentityShowcase from '../views/EliteIdentityShowcase.vue'
-import SenseiProfileView from '../views/SenseiProfileView.vue'
-import ProfileRedirectView from '../views/ProfileRedirectView.vue'
-import EliteToolsView from '../views/EliteToolsView.vue'
-import ScoutReportView from '../views/ScoutReportView.vue'
-import ReconnaissanceView from '../views/ReconnaissanceView.vue'
-import AdminView from '../views/AdminView.vue'
+import RulesView from '../views/RulesView.vue'
+import PlaceholderView from '../views/PlaceholderView.vue'
+import HubView from '../views/HubView.vue'
+import Profile from '../views/Profile.vue'
+import CharacterCreation from '../views/CharacterCreation.vue'
+import CollectionView from '../views/CollectionView.vue'
+import DeckBuilderView from '../views/DeckBuilderView.vue'
+import TalentTreeView from '../views/TalentTreeView.vue'
+import MissionsCombatView from '../views/MissionsCombatView.vue'
+import MissionRunView from '../views/MissionRunView.vue'
+import CombatView from '../views/CombatView.vue'
+import ShopView from '../views/ShopView.vue'
+import BattlePassView from '../views/BattlePassView.vue'
+import PvpQueueView from '../views/PvpQueueView.vue'
+import PvpDuelView from '../views/PvpDuelView.vue'
 import { useAuthStore } from '../stores/auth'
-
-const HERO_VILLAGE = '/images/hero-village.png'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -40,84 +31,135 @@ const router = createRouter({
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
-        { path: 'bureau', name: 'bureau', component: BureauView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'bureau.title' } } },
-        { path: 'journal', name: 'journal', component: CycleJournalView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'journal.title' } } },
-        { path: 'squad', name: 'squad', component: SquadView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.squad' } } },
-        { path: 'missions', name: 'missions', component: MissionsView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.missions' } } },
         {
-          path: 'reconnaissance',
-          name: 'reconnaissance',
-          component: ReconnaissanceView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.reconnaissance' } },
+          path: 'home',
+          name: 'hub',
+          component: HubView,
         },
         {
-          path: 'espionnage',
-          name: 'scout',
-          component: ScoutReportView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.scout' } },
+          path: 'bureau',
+          redirect: { name: 'hub' },
         },
         {
-          path: 'missions/recon/:missionId',
-          name: 'recon-mission',
-          component: ReconMissionView,
-          props: true,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'missions.reconChronicleTitle' } },
-        },
-        { path: 'clan', name: 'clan', component: ClanView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.clan' } } },
-        { path: 'village', name: 'village', component: VillageView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.village' } } },
-        { path: 'training', name: 'training', component: TrainingView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.training' } } },
-        { path: 'league', name: 'league', component: LeagueView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.league' } } },
-        { path: 'market', name: 'market', component: MarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.market' } } },
-        {
-          path: 'refinement',
-          name: 'refinement',
-          component: TechniqueRefinementView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'techniqueRefinement.title' } },
-        },
-        { path: 'exchanges', name: 'exchanges', component: PlayerMarketView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.exchanges' } } },
-        { path: 'inventory', name: 'inventory', component: InventoryView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.inventory' } } },
-        { path: 'operation', name: 'operation', component: OperationView, meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } } },
-        {
-          path: 'operation/match/:matchId',
-          name: 'operation-match',
-          component: OperationView,
-          props: true,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'nav.operation' } },
-        },
-        {
-          path: 'design/elite-identity',
-          name: 'elite-identity-showcase',
-          component: EliteIdentityShowcase,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'eliteShowcase.title' } },
+          path: 'character-creation',
+          name: 'character-creation',
+          component: CharacterCreation,
         },
         {
           path: 'profil',
           name: 'profile',
-          component: ProfileRedirectView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'senseiProfile.title' } },
-        },
-        {
-          path: 'elite/outils',
-          name: 'elite-tools',
-          component: EliteToolsView,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'eliteTools.pageTitle' } },
-        },
-        {
-          path: 'sensei/:userId',
-          name: 'sensei-profile',
-          component: SenseiProfileView,
-          props: true,
-          meta: { hero: { image: HERO_VILLAGE, titleKey: 'senseiProfile.title' } },
-        },
-        {
-          path: 'admin',
-          name: 'admin',
-          component: AdminView,
+          component: Profile,
           meta: {
-            requiresAdmin: true,
-            hero: { image: HERO_VILLAGE, titleKey: 'nav.admin' },
+            requiresCharacter: true,
           },
         },
+        {
+          path: 'collection',
+          name: 'collection',
+          component: CollectionView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'decks',
+          name: 'decks',
+          component: DeckBuilderView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'talents',
+          name: 'talents',
+          component: TalentTreeView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'missions',
+          name: 'missions',
+          component: MissionsCombatView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'missions/run/:id',
+          name: 'mission-run',
+          component: MissionRunView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'combat/:id',
+          name: 'combat',
+          component: CombatView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'shop',
+          name: 'shop',
+          component: ShopView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'battle-pass',
+          name: 'battle-pass',
+          component: BattlePassView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'pvp',
+          name: 'pvp',
+          component: PvpQueueView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'pvp/duel/:id',
+          name: 'pvp-duel',
+          component: PvpDuelView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        // Routes legacy archivées → placeholder jusqu'aux phases suivantes
+        ...[
+          ['inventory', 'nav.inventory', 'nav.inventory'],
+          ['journal', 'nav.journal', 'journal.title'],
+          ['squad', 'nav.squad', 'nav.squad'],
+          ['reconnaissance', 'nav.reconnaissance', 'nav.reconnaissance'],
+          ['espionnage', 'nav.scout', 'nav.scout', 'scout'],
+          ['clan', 'nav.clan', 'nav.clan'],
+          ['village', 'nav.village', 'nav.village'],
+          ['training', 'nav.training', 'nav.training'],
+          ['league', 'nav.league', 'nav.league'],
+          ['market', 'nav.market', 'nav.market'],
+          ['refinement', 'nav.refinement', 'techniqueRefinement.title'],
+          ['exchanges', 'nav.exchanges', 'nav.exchanges'],
+          ['operation', 'nav.operation', 'nav.operation'],
+          ['design/elite-identity', 'eliteShowcase.title', 'eliteShowcase.title', 'elite-identity-showcase'],
+          ['elite/outils', 'eliteTools.pageTitle', 'eliteTools.pageTitle', 'elite-tools'],
+          ['admin', 'nav.admin', 'nav.admin', 'admin'],
+        ].map(([path, titleKey, , name]) => ({
+          path,
+          name: name || path.replace(/\//g, '-'),
+          component: PlaceholderView,
+          props: { titleKey },
+          meta: {
+            ...(path === 'admin' ? { requiresAdmin: true } : {}),
+          },
+        })),
       ],
     },
   ],
@@ -131,14 +173,14 @@ router.beforeEach(async (to) => {
   if (PUBLIC_PATHS.has(to.path)) {
     if (!auth.checked) await auth.fetchMe()
     if (auth.user && (to.path === '/' || to.path === '/login' || to.path === '/register')) {
-      return { path: '/bureau' }
+      return { path: '/home' }
     }
     return true
   }
 
   if (!auth.checked) await auth.fetchMe()
   if (!auth.user) return { path: '/' }
-  if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/bureau' }
+  if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' }
 
   const eliteRouteNames = new Set(['elite-tools', 'elite-identity-showcase'])
   if (eliteRouteNames.has(to.name)) {
@@ -147,7 +189,18 @@ router.beforeEach(async (to) => {
     if (!elite.subscription && auth.user) {
       await elite.fetchElite()
     }
-    if (!elite.featureEnabled) return { path: '/bureau' }
+    if (!elite.featureEnabled) return { path: '/home' }
+  }
+
+  // Hub + character creation are reachable without a character (empty-state / onboarding).
+  const allowWithoutCharacter = new Set(['hub', 'character-creation'])
+  if (!allowWithoutCharacter.has(to.name)) {
+    const { usePlayerStore } = await import('../stores/player')
+    const player = usePlayerStore()
+    if (!player.checked) await player.fetchPlayer()
+    if (!player.character && to.meta.requiresCharacter !== false) {
+      return { name: 'character-creation' }
+    }
   }
 
   return true

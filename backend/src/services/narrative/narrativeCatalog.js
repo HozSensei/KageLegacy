@@ -1,8 +1,8 @@
 export const NARRATIVE_CATALOG = {
   fr: {
     terrains: [
-      'les gorges brumeuses de Shi no Kuni',
-      'la lisière rocailleuse de la frontière du Pays du Feu',
+      'les gorges brumeuses d\'Oborohama',
+      'la lisière rocailleuse de la frontière d\'Ishikura',
       'les ruines moussues d\'un avant-poste oublié',
       'la clairière silencieuse d\'une forêt de bambous',
       'les falaises battues par le vent au-dessus de la vallée',
@@ -452,8 +452,8 @@ export const NARRATIVE_CATALOG = {
             '{ninja_name} enchaîne avec sa carte tactique pour {card_damage} dégâts de chip.',
           ],
           card_bunshin: [
-            '{ninja_name} invoque des clones d\'ombre qui encaissent l\'assaut.',
-            'Kage Bunshin ! Les doubles de {ninja_name} absorbent la rafale adverse.',
+            '{ninja_name} projette des doubles qui encaissent l\'assaut.',
+            'Voile de doubles ! Les leurres de {ninja_name} absorbent la rafale adverse.',
             '{ninja_name} se dédouble — la carte tactique détourne les coups.',
           ],
           card_water_cage: [
@@ -492,7 +492,7 @@ export const NARRATIVE_CATALOG = {
             'La lame de retour de {ninja_name} touche {card_targets}.',
           ],
           card_water_dragon: [
-            '{ninja_name} invoque un dragon aqueux légendaire (+{card_damage} dégâts sur tous).',
+            '{ninja_name} déchaîne un serpent des crues légendaire (+{card_damage} dégâts sur tous).',
             'Suiton légendaire ! {ninja_name} déchaîne un déferlement sur l\'adversaire.',
             'La carte légendaire de {ninja_name} balaie le champ de bataille.',
           ],
@@ -717,8 +717,8 @@ export const NARRATIVE_CATALOG = {
 
   en: {
     terrains: [
-      'the misty gorges of Shi no Kuni',
-      'the rocky borderlands at the edge of the Land of Fire',
+      'the misty gorges of Oborohama',
+      'the rocky borderlands at the edge of Ishikura',
       'the moss-covered ruins of a forgotten outpost',
       'the silent clearing in a bamboo forest',
       'the wind-battered cliffs above the valley',
@@ -1168,18 +1168,18 @@ export const NARRATIVE_CATALOG = {
             '{ninja_name} chains a tactic card for {card_damage} chip damage.',
           ],
           card_bunshin: [
-            '{ninja_name} summons shadow clones that absorb the assault.',
-            'Kage Bunshin! {ninja_name}\'s doubles take the incoming barrage.',
+            '{ninja_name} casts decoy doubles that absorb the assault.',
+            'Veil of Doubles! {ninja_name}\'s decoys take the incoming barrage.',
             '{ninja_name} splits up — the tactic card diverts the blows.',
           ],
           card_water_cage: [
             'In riposte, {ninja_name} traps {card_targets} in an aqua cage — the attacker will lose initiative next turn.',
-            'Water Style! {ninja_name} binds {card_targets} with a tactic card, but this exchange still plays out.',
-            '{ninja_name} seals a water prison on {card_targets}; the full effect lands on the next turn.',
+            'Suiton! {ninja_name} binds {card_targets} with a tactic card, but this exchange still plays out.',
+            '{ninja_name} closes a cage of water around {card_targets}; the full effect lands on the next turn.',
           ],
           card_ember_wall: [
             '{ninja_name} raises an ember wall — incoming damage fades.',
-            'Fire Style! {ninja_name} shields behind a curtain of warm flames.',
+            'Katon! {ninja_name} shields behind a curtain of warm flames.',
             '{ninja_name}\'s card reduces the impact of received hits.',
           ],
           card_zone_heal: [
@@ -1189,7 +1189,7 @@ export const NARRATIVE_CATALOG = {
           ],
           card_lightning: [
             '{ninja_name} overloads the strike with lightning (+{card_damage} damage).',
-            'Lightning Style! {ninja_name} discharges {card_damage} damage on {card_targets}.',
+            'Raiton! {ninja_name} discharges {card_damage} damage on {card_targets}.',
             '{ninja_name} amplifies impact with an electric surge.',
           ],
           card_mind_haze: [
@@ -1199,17 +1199,17 @@ export const NARRATIVE_CATALOG = {
           ],
           card_earth_roots: [
             '{ninja_name} anchors with earth roots and holds the line.',
-            'Earth Style! {ninja_name} stabilizes under pressure.',
+            'Doton! {ninja_name} stabilizes under pressure.',
             '{ninja_name}\'s anchoring roots soften the assault.',
           ],
           card_wind_blade: [
             '{ninja_name} ripostes with a wind blade (+{card_damage} damage).',
-            'Wind Style! {ninja_name} returns the blow for {card_damage} damage.',
+            'Futon! {ninja_name} returns the blow for {card_damage} damage.',
             '{ninja_name}\'s returning blade hits {card_targets}.',
           ],
           card_water_dragon: [
-            '{ninja_name} summons a legendary aqua dragon (+{card_damage} damage to all).',
-            'Legendary Water Style! {ninja_name} unleashes a surge on the enemy.',
+            '{ninja_name} unleashes a legendary flood serpent (+{card_damage} damage to all).',
+            'Legendary Suiton! {ninja_name} unleashes a surge on the enemy.',
             '{ninja_name}\'s legendary card sweeps the battlefield.',
           ],
         },

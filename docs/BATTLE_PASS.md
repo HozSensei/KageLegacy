@@ -231,16 +231,18 @@ Exemples :
 
 ### Kage Coins (Monnaie Premium)
 
-**Bundles** :
-- 💎 100 coins = 1€
-- 💎 500 coins = 5€ (bonus : +50 coins)
-- 💎 1000 coins = 10€ (bonus : +150 coins)
-- 💎 5000 coins = 50€ (bonus : +1000 coins)
+**Bundles** (catalogue `/shop` onglet Monnaie — noms originaux) :
+- 💎 Éclat de Chakra — 100 coins = 1€
+- 💎 Braise du Village — 500 coins = 5€ (bonus : +50 coins)
+- 💎 Forge des Ombres — 1000 coins = 10€ (bonus : +150 coins)
+- 💎 Coffre du Kage — 5000 coins = 50€ (bonus : +1000 coins)
+
+Achat : Stripe Checkout via `POST /api/shop/coin-packs/:id/purchase` (`method=stripe`) quand `STRIPE_SECRET_KEY` est défini — voir [STRIPE_V2.md](./STRIPE_V2.md). Stub admin/dev (`SHOP_COIN_STUB=true`) conservé en fallback.
 
 **Utilisations** :
-- Battle Pass (500 coins)
+- Battle Pass (500 coins) — aussi depuis l’onglet Battle Pass du `/shop` (`POST /api/shop/battle-pass/unlock`)
 - Boosters Premium (100 coins)
-- Cosmétiques exclusifs (100-500 coins)
+- Cosmétiques boutique (Ryos et/ou coins)
 - Niveaux de Battle Pass (150 coins/niveau)
 
 ## 📊 Structure Base de Données

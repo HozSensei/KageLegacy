@@ -18,7 +18,7 @@ import {
 
 export { CHARACTER_TRAITS, distributeCharacterTraits } from './characterTraits.js';
 
-const CLAN_NAMES = ['Roturier', 'Nara', 'Uchiwa', 'Hyuga', 'Sarutobi', 'Akimichi', 'Yamanaka'];
+const CLAN_NAMES = ['Roturier', 'Shizumori', 'Benigiri', 'Kazamine', 'Nagihara', 'Kumatani', 'Yukisawa'];
 
 const FORMES = ['Passable', 'Excellent', 'Divin'];
 
@@ -49,12 +49,12 @@ const CHUNIN_BASE_SPREAD = 1;
 
 /** Biais de voie par nom de clan (poids relatifs). */
 const CLAN_ART_BIAS = {
-  Nara: { genjutsu: 3, intelligence: 2 },
-  Uchiwa: { ninjutsu: 3, genjutsu: 2 },
-  Hyuga: { taijutsu: 3, vitesse: 2 },
-  Sarutobi: { taijutsu: 1, ninjutsu: 1, genjutsu: 1, medecine: 1 },
-  Akimichi: { taijutsu: 4, medecine: 1 },
-  Yamanaka: { genjutsu: 4, intelligence: 2 },
+  Shizumori: { genjutsu: 3, intelligence: 2 },
+  Benigiri: { ninjutsu: 3, genjutsu: 2 },
+  Kazamine: { taijutsu: 3, vitesse: 2 },
+  Nagihara: { taijutsu: 1, ninjutsu: 1, genjutsu: 1, medecine: 1 },
+  Kumatani: { taijutsu: 4, medecine: 1 },
+  Yukisawa: { genjutsu: 4, intelligence: 2 },
 };
 
 export function pickRandom(array) {

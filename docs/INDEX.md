@@ -36,6 +36,9 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 ---
 
 ### 3. 📅 [BATTLE_PASS.md](./BATTLE_PASS.md)
+
+### 3b. 💳 [STRIPE_V2.md](./STRIPE_V2.md)
+Paiements Checkout (Kage Coins + Battle Pass Premium) — env vars, webhook, mode test.
 **Système de Saison**
 
 - Structure d'une saison (2 mois)
@@ -67,11 +70,13 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 
 ---
 
-### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md)
-**Mécanique de Combat**
+### 5. ⚔️ [COMBAT_SYSTEM.md](./COMBAT_SYSTEM.md) · [MISSION_RUNS.md](./MISSION_RUNS.md) · [BOSS_PHASES.md](./BOSS_PHASES.md) · [PVP_SYSTEM.md](./PVP_SYSTEM.md)
+**Mécanique de Combat** (PvE), **parcours multi-combats**, **boss multi-phases**, et **PvP Host**
 
 - Ressources (Chakra, PV, Armure)
 - Déroulement d'un tour (3 phases)
+- Parcours de mission (3–5 combats + événements, PV persistants)
+- Boss multi-phases (seuils HP, charge, invoc, shield break) — [BOSS_PHASES.md](./BOSS_PHASES.md) (`test:boss-phases`)
 - Système d'intentions
 - Types de cartes (Attaque, Défense, Soutien, Invocation, Passive)
 - Triangle tactique (Tai > Gen > Nin)
@@ -80,6 +85,8 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 - IA ennemie (3 niveaux)
 - Synergies et combos
 - Interface de combat
+- Tests d’équilibrage : [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md) (`test:combat-balance`)
+- Tests avantages type/élément : `npm run test:type-advantage`
 
 👉 **Référence technique** pour implémenter le combat.
 
@@ -99,6 +106,18 @@ Bienvenue dans la documentation complète de **Kage Legacy** (version 2.0) !
 - Structure DB complète
 
 👉 **Référence technique** pour tout ce qui concerne les cartes.
+
+---
+
+### 6b. 💰 [ECONOMY.md](./ECONOMY.md)
+**Tuning économique F2P**
+
+- Monnaies (Ryos, Dust, Essence, Kage Coins)
+- Coûts boosters, rewards combat, craft/upgrade, Battle Pass
+- Ratios verrouillés (`npm run test:economy`)
+- Source code : `backend/src/config/economyConfig.js`
+
+👉 **Référence** pour toute modification de montants / sinks / sources.
 
 ---
 

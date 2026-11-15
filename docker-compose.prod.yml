@@ -29,3 +29,5 @@ services:
       AUTH_DEMO_FALLBACK: ${AUTH_DEMO_FALLBACK:-false}
       CYCLE_START_AT: ${CYCLE_START_AT:-}
       CYCLE_START_AT_APPLY: ${CYCLE_START_AT_APPLY:-false}
+      # 1 = ne pas rejouer les seeds catalogues V2 au boot (défaut : seeds actifs)
+      SKIP_V2_SEEDS: ${SKIP_V2_SEEDS:-0}

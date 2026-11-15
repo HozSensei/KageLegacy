@@ -3,10 +3,8 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
-import { initTheme } from './stores/theme'
+import { initTheme } from './composables/useTheme.js'
 import './style.css'
-
-initTheme()
 
 const nativeFetch = window.fetch.bind(window)
 window.fetch = (input, init = {}) =>
@@ -14,6 +12,8 @@ window.fetch = (input, init = {}) =>
     credentials: 'include',
     ...init,
   })
+
+initTheme()
 
 const app = createApp(App)
 app.use(createPinia())

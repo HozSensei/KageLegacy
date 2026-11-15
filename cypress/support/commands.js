@@ -1,12 +1,13 @@
 const NAV_PAGES = {
-  bureau: { testId: 'bureau-page', path: '/bureau' },
-  squad: { testId: 'squad-page', path: '/squad' },
-  missions: { testId: 'missions-page', path: '/missions' },
-  league: { testId: 'league-page', path: '/league' },
-  market: { testId: 'market-page', path: '/market' },
-  exchanges: { testId: 'exchanges-page', path: '/exchanges' },
-  inventory: { testId: 'inventory-page', path: '/inventory' },
-  operation: { testId: 'operation-page', path: '/operation' },
+  hub: { testId: 'hub-page', path: '/home' },
+  profile: { testId: 'profile-page', path: '/profil' },
+  talents: { testId: 'talent-tree-page', path: '/talents' },
+  collection: { testId: 'collection-page', path: '/collection' },
+  decks: { testId: 'deck-builder-page', path: '/decks' },
+  missions: { testId: 'missions-combat-page', path: '/missions' },
+  shop: { testId: 'shop-page', path: '/shop' },
+  'battle-pass': { testId: 'battle-pass-page', path: '/battle-pass' },
+  pvp: { testId: 'pvp-queue-page', path: '/pvp' },
 };
 
 Cypress.Commands.add('loginDemo', () => {
@@ -46,12 +47,12 @@ Cypress.Commands.add('openNavMenu', () => {
 Cypress.Commands.add('visitNav', (name) => {
   const page = NAV_PAGES[name];
   if (!page) throw new Error(`visitNav: page inconnue « ${name} »`);
-  if (name === 'bureau') {
-    cy.visit('/bureau');
+  if (name === 'hub') {
+    cy.visit('/home');
   } else {
     cy.openNavMenu();
     cy.get(`[data-testid="nav-${name}"]`).first().click();
   }
-  cy.url().should('include', page.path === '/bureau' ? '/bureau' : page.path);
+  cy.url().should('include', page.path);
   cy.get(`[data-testid="${page.testId}"]`, { timeout: 15000 }).should('be.visible');
 });

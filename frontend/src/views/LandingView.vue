@@ -2,6 +2,9 @@
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../stores/auth'
+import BrandMark from '../components/ui/BrandMark.vue'
+import ThemeToggle from '../components/ui/ThemeToggle.vue'
+import gateImage from '../assets/illustrations/village-gate.webp'
 
 defineOptions({ name: 'LandingView' })
 
@@ -10,94 +13,460 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const features = [
-  'landing.features.cycle',
-  'landing.features.squad',
-  'landing.features.league',
-  'landing.features.chronicle',
+  { key: 'landing.features.character', tone: 'vermilion' },
+  { key: 'landing.features.deck', tone: 'sky' },
+  { key: 'landing.features.talents', tone: 'leaf' },
+  { key: 'landing.features.missions', tone: 'gold' },
 ]
 
 const timeline = [
-  'landing.timeline.start',
-  'landing.timeline.mid',
-  'landing.timeline.operation',
-  'landing.timeline.end',
+  'landing.timeline.create',
+  'landing.timeline.build',
+  'landing.timeline.grow',
+  'landing.timeline.fight',
 ]
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest()
-  if (ok) router.push('/bureau')
+  if (ok) router.push('/home')
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg" data-testid="landing-page">
-    <header class="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 sm:px-10">
-      <p class="font-display text-xl text-ink">{{ t('app.name') }}</p>
-      <div class="flex items-center gap-3 text-[11px] uppercase tracking-[0.14em]">
-        <router-link to="/rules" class="btn-ghost text-[10px]" data-testid="landing-rules-link">
+  <div class="landing" data-testid="landing-page">
+    <header class="landing__bar">
+      <p class="landing__brand">
+        <BrandMark size="1.625rem" class="text-vermilion" />
+        <span>{{ t('app.name') }}</span>
+      </p>
+      <nav class="landing__nav">
+        <router-link to="/rules" class="landing__nav-link" data-testid="landing-rules-link">
           {{ t('rules.link') }}
         </router-link>
-        <router-link to="/login" class="btn-ghost text-[10px]">{{ t('auth.login') }}</router-link>
-        <router-link to="/register" class="btn-primary text-[10px]">{{ t('auth.register') }}</router-link>
-      </div>
+        <router-link to="/login" class="landing__nav-link">{{ t('auth.login') }}</router-link>
+        <router-link to="/register" class="btn-secondary btn-sm">{{ t('auth.register') }}</router-link>
+        <ThemeToggle />
+      </nav>
     </header>
 
-    <main class="mx-auto max-w-5xl px-6 pb-20 pt-8 sm:px-10 sm:pt-16">
-      <section class="lg:grid lg:grid-cols-12 lg:gap-16">
-        <div class="lg:col-span-7">
-          <h1 class="page-title">{{ t('landing.title') }}</h1>
-          <p class="page-lead mt-6 max-w-xl">{{ t('landing.lead') }}</p>
+    <main>
+      <section class="landing__hero">
+        <p class="landing__vertical t-vertical" aria-hidden="true">{{ t('app.name') }} — {{ t('hub.kicker') }}</p>
 
-          <ul class="mt-10 space-y-4">
-            <li
-              v-for="key in features"
-              :key="key"
-              class="border-l-2 border-accent/50 pl-4 text-sm leading-7 text-ink-muted"
-            >
-              {{ t(key) }}
-            </li>
-          </ul>
+        <div class="landing__intro">
+          <p class="landing__kicker">
+            <span class="lozenge" aria-hidden="true" />
+            {{ t('landing.kicker') }}
+          </p>
+          <h1 class="t-display landing__title">{{ t('landing.title') }}</h1>
+          <p class="landing__lead">{{ t('landing.lead') }}</p>
 
-          <div class="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div class="landing__actions">
             <button
               type="button"
-              class="btn-primary px-6 py-3 text-sm"
+              class="btn-primary btn-lg"
               data-testid="landing-guest"
               :disabled="auth.loading"
               @click="playAsGuest"
             >
               {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
             </button>
-            <router-link
-              to="/register"
-              class="btn-ghost px-6 py-3 text-center text-sm"
-            >
+            <router-link to="/register" class="btn-ghost btn-lg">
               {{ t('landing.createAccount') }}
             </router-link>
           </div>
 
-          <p class="mt-4 text-xs text-ink-faint">{{ t('landing.guestHint') }}</p>
-          <p v-if="auth.error" class="mt-4 text-sm text-fire">{{ auth.error }}</p>
+          <p class="landing__hint">{{ t('landing.guestHint') }}</p>
+          <p v-if="auth.error" class="alert alert--error mt-4">{{ auth.error }}</p>
         </div>
 
-        <aside class="mt-14 border border-line bg-bg-card p-8 lg:col-span-5 lg:mt-0">
-          <p class="section-label">{{ t('landing.asideTitle') }}</p>
-          <p class="mt-4 text-sm leading-7 text-ink-muted">{{ t('landing.asideBody') }}</p>
-          <dl class="mt-8 space-y-4 text-sm">
-            <div>
-              <dt class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('landing.timelineTitle') }}</dt>
-              <dd class="mt-1 text-ink-muted">{{ t('landing.timelineRealtime') }}</dd>
-            </div>
-            <div
-              v-for="key in timeline"
-              :key="key"
-              class="border-l border-line/80 pl-4"
-            >
-              <dd class="text-ink-muted leading-relaxed">{{ t(key) }}</dd>
-            </div>
-          </dl>
-        </aside>
+        <div class="landing__visual" aria-hidden="true">
+          <span class="landing__block" />
+          <span class="landing__disc" />
+          <span class="landing__frame illustration">
+            <img class="landing__image" :src="gateImage" alt="" decoding="async" />
+          </span>
+          <span class="landing__lozenge"><BrandMark size="100%" /></span>
+        </div>
+      </section>
+
+      <section class="landing__features">
+        <div class="section-head">
+          <span class="section-head__index">01</span>
+          <h2 class="section-head__title">{{ t('landing.featuresTitle') }}</h2>
+          <span class="section-head__rule" />
+        </div>
+        <ul class="landing__feature-grid stagger">
+          <li
+            v-for="(feature, index) in features"
+            :key="feature.key"
+            class="landing__feature"
+            :data-tone="feature.tone"
+            :style="{ '--i': index }"
+          >
+            <span class="landing__feature-shape" aria-hidden="true" />
+            <p>{{ t(feature.key) }}</p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="landing__session">
+        <div class="landing__pitch">
+          <p class="landing__pitch-kicker">{{ t('landing.asideTitle') }}</p>
+          <p class="landing__pitch-body">{{ t('landing.asideBody') }}</p>
+        </div>
+
+        <div class="landing__timeline">
+          <div class="section-head">
+            <span class="section-head__index">02</span>
+            <h2 class="section-head__title">{{ t('landing.timelineTitle') }}</h2>
+            <span class="section-head__rule" />
+          </div>
+          <p class="mt-3 text-ink-muted">{{ t('landing.timelineRealtime') }}</p>
+          <ol class="landing__steps">
+            <li v-for="(key, index) in timeline" :key="key" class="landing__step">
+              <span class="landing__step-index" aria-hidden="true">{{ index + 1 }}</span>
+              <p>{{ t(key) }}</p>
+            </li>
+          </ol>
+        </div>
       </section>
     </main>
   </div>
 </template>
+
+<style scoped>
+.landing {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--color-bg);
+}
+
+.landing__bar,
+.landing__hero,
+.landing__features,
+.landing__session {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: var(--space-gutter);
+}
+
+.landing__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-block: 1rem;
+}
+
+.landing__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  letter-spacing: -0.01em;
+}
+
+.landing__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem 1.1rem;
+}
+
+.landing__nav-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: color var(--dur-fast) ease;
+}
+
+.landing__nav-link:hover {
+  color: var(--color-accent);
+}
+
+/* ——— Hero ——— */
+
+.landing__hero {
+  position: relative;
+  display: grid;
+  gap: 2rem;
+  padding-block: clamp(1rem, 4vw, 3.5rem) clamp(2.5rem, 6vw, 5rem);
+}
+
+.landing__vertical {
+  display: none;
+}
+
+.landing__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: var(--type-kicker);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  animation: slide-in-left 480ms var(--ease-out-quint) both;
+}
+
+.landing__kicker .lozenge {
+  color: var(--color-vermilion);
+}
+
+.landing__title {
+  margin-top: 1.1rem;
+  max-width: 11ch;
+  animation: rise-in 620ms var(--ease-out-quint) 60ms both;
+}
+
+.landing__lead {
+  max-width: 34rem;
+  margin-top: 1.5rem;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--color-ink-muted);
+  animation: rise-in 620ms var(--ease-out-quint) 140ms both;
+}
+
+.landing__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 2rem;
+  animation: rise-in 620ms var(--ease-out-quint) 220ms both;
+}
+
+.landing__hint {
+  max-width: 30rem;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--color-ink-faint);
+}
+
+.landing__visual {
+  position: relative;
+  order: -1;
+  aspect-ratio: 16 / 9;
+  margin-inline: calc(var(--space-gutter) * -1);
+}
+
+.landing__frame {
+  width: 100%;
+  height: 100%;
+  animation: fade-in 700ms ease both;
+}
+
+.landing__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.landing__block,
+.landing__disc,
+.landing__lozenge {
+  display: none;
+}
+
+/* ——— Promesses ——— */
+
+.landing__features {
+  padding-block: clamp(2rem, 5vw, 4rem);
+}
+
+.landing__feature-grid {
+  display: grid;
+  gap: 1.75rem;
+  margin-top: 2rem;
+}
+
+.landing__feature {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.landing__feature-shape {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  background: var(--tone-fill);
+}
+
+.landing__feature:nth-child(1) .landing__feature-shape {
+  transform: rotate(45deg) scale(0.82);
+}
+
+.landing__feature:nth-child(2) .landing__feature-shape {
+  border-radius: 50%;
+}
+
+.landing__feature:nth-child(3) .landing__feature-shape {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+/* ——— Pitch + première session ——— */
+
+.landing__session {
+  display: grid;
+  gap: 2.5rem;
+  padding-block: clamp(1rem, 4vw, 3rem) clamp(3rem, 8vw, 6rem);
+}
+
+.landing__pitch {
+  position: relative;
+  padding: clamp(1.5rem, 5vw, 2.75rem);
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
+}
+
+.landing__pitch-kicker {
+  font-size: var(--type-kicker);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-gold-fill);
+}
+
+.landing__pitch-body {
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.25rem);
+  font-weight: 700;
+  font-stretch: 88%;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.landing__steps {
+  margin-top: 1.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.landing__step {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding-block: 0.9rem;
+  border-top: 1px solid var(--color-line);
+  line-height: 1.55;
+}
+
+.landing__step-index {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 0.9;
+  color: var(--color-vermilion);
+}
+
+@media (min-width: 640px) {
+  .landing__actions {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .landing__feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing__hero {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .landing__vertical {
+    position: absolute;
+    top: 3.5rem;
+    left: 0.35rem;
+    display: block;
+  }
+
+  .landing__intro {
+    padding-left: 1.75rem;
+  }
+
+  .landing__visual {
+    order: 0;
+    aspect-ratio: 4 / 4.2;
+    margin: 0 1rem 1.5rem 0;
+  }
+
+  .landing__block {
+    position: absolute;
+    display: block;
+    inset: 1.5rem -1rem -1.5rem 3.5rem;
+    background: var(--color-vermilion);
+    animation: wipe-in 720ms var(--ease-out-quint) both;
+  }
+
+  .landing__disc {
+    position: absolute;
+    top: -2rem;
+    left: -2rem;
+    display: block;
+    width: 8.5rem;
+    height: 8.5rem;
+    border-radius: 50%;
+    background: var(--color-gold-fill);
+    animation: pop-in 620ms var(--ease-out-quint) 200ms both;
+  }
+
+  .landing__frame {
+    clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .landing__image {
+    object-position: 46% center;
+  }
+
+  .landing__lozenge {
+    position: absolute;
+    right: -1.75rem;
+    bottom: 0.25rem;
+    display: block;
+    width: 5.5rem;
+    height: 5.5rem;
+    padding: 1.1rem;
+    background: var(--color-indigo-deep);
+    color: var(--color-on-fill);
+    animation: pop-in 620ms var(--ease-out-quint) 340ms both;
+  }
+
+  .landing__feature-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .landing__feature {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 1.1rem;
+    border-top: 3px solid var(--tone-fill);
+  }
+
+  .landing__session {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 4rem;
+    align-items: start;
+  }
+}
+</style>

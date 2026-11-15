@@ -1,4 +1,6 @@
 <script setup>
+import AppIcon from '../ui/AppIcon.vue'
+
 defineOptions({ name: 'VerifiedIcon' })
 
 defineProps({
@@ -7,20 +9,11 @@ defineProps({
 </script>
 
 <template>
-  <span
-    class="material-symbols-outlined material-symbols-filled elite-verified-icon"
-    :style="{ fontSize: size }"
-    aria-hidden="true"
-  >verified</span>
+  <AppIcon name="verified" :size="size" class="elite-verified-icon" />
 </template>
 
 <style scoped>
 .elite-verified-icon {
-  color: var(--color-accent);
-  font-variation-settings:
-    'FILL' 1,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
+  color: var(--color-gold-fill);
 }
 </style>

@@ -60,8 +60,8 @@ const TECHNIQUE_STUBS = {
   },
   'med-scalpel-chakra': {
     slug: 'med-scalpel-chakra',
-    name_fr: 'Scalpel de chakra',
-    name_en: 'Chakra Scalpel',
+    name_fr: 'Lame du guérisseur',
+    name_en: "Healer's Edge",
     stat_type: 'medecine',
     pli_secondary_stat: 'taijutsu',
     pli_bonus_pct: 0.2,
@@ -69,8 +69,8 @@ const TECHNIQUE_STUBS = {
   },
   'nin-chidori': {
     slug: 'nin-chidori',
-    name_fr: 'Chidori',
-    name_en: 'Chidori',
+    name_fr: 'Éclair perçant',
+    name_en: 'Piercing Bolt',
     stat_type: 'ninjutsu',
     pli_secondary_stat: 'taijutsu',
     pli_bonus_pct: 0.32,

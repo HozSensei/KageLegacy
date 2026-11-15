@@ -6,8 +6,28 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "lint": "eslint src --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{js,json}\"",
     "db:migrate": "node src/db/migrate.js",
     "db:seed": "node scripts/seedNinjas.js",
+    "db:seed-cards": "node scripts/seedCards.js",
+    "db:seed-talents": "node scripts/seedTalentTree.js",
+    "db:seed-battle-pass": "node scripts/seedBattlePass.js",
+    "db:seed-v2": "npm run db:seed-cards && npm run db:seed-talents && npm run db:seed-battle-pass",
+    "test:card-system": "node scripts/testCardSystem.js",
+    "test:starter-loadout": "node scripts/testStarterLoadout.js",
+    "test:boosters": "node scripts/testBoosters.js",
+    "test:shop": "node scripts/testShopCatalog.js",
+    "test:shop-stripe": "node scripts/testShopStripe.js",
+    "test:economy": "node scripts/testEconomy.js",
+    "test:talent-tree": "node scripts/testTalentTree.js",
+    "test:combat-engine": "node scripts/testCombatEngine.js",
+    "test:boss-phases": "node scripts/testBossPhases.js",
+    "test:combat-balance": "node scripts/testCombatBalance.js",
+    "test:combat-balance:report": "node scripts/testCombatBalance.js --report",
+    "test:type-advantage": "node scripts/testTypeAdvantage.js",
+    "test:mission-run": "node scripts/testMissionRun.js",
+    "test:battle-pass": "node scripts/testBattlePass.js",
     "clock:advance": "node scripts/advanceHour.js",
     "clock:set": "node scripts/advanceHour.js",
     "clock:set-start": "node scripts/setCycleStart.js",
@@ -17,6 +37,7 @@
     "combat:tactic-cards": "node scripts/benchmarkPliDeck.js",
     "playtest:cycle": "node scripts/playtestCycle.js",
     "e2e:ensure-league": "node scripts/e2eEnsureLeagueFixtures.js",
+    "e2e:ensure-player": "node scripts/e2eEnsurePlayerCharacter.js",
     "playtest:multiplayer": "node scripts/playtestMultiplayer.js",
     "playtest:league": "node scripts/playtestLeague.js",
     "playtest:missions": "node scripts/playtestMissionsCycle.js",
@@ -53,7 +74,9 @@
     "test:operation-deck-carryover": "node scripts/testOperationDeckCarryover.js",
     "test:combat-loot": "node scripts/testCombatLoot.js",
     "test:training-system": "node scripts/testTrainingSystem.js",
-    "test:village-shop": "node scripts/testVillageShopCatalog.js"
+    "test:village-shop": "node scripts/testVillageShopCatalog.js",
+    "test:player-character": "node scripts/testPlayerCharacter.js",
+    "test:pvp-matchmaking": "node scripts/testPvpMatchmaking.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -61,6 +84,11 @@
     "express": "^4.21.2",
     "mysql2": "^3.12.0",
     "stripe": "^17.7.0",
+    "ws": "^8.23.0",
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.2.5"
   }
 }

@@ -1,732 +1,441 @@
 # Kage Legacy — Règles du jeu
 
-**Kage Legacy** est un manager shinobi asynchrone par navigateur. Vous incarnez un **Jonin-Sensei** : vous gérez une escouade de jeunes ninjas, votre budget en **Ryos**, et vous affrontez d'autres Sensei dans une **ligue par pools** sur des **cycles de 72 heures** (temps réel).
+**Kage Legacy** est un jeu de deck-building en solo dans un univers ninja. Vous incarnez **un seul ninja**. Sa puissance vient de deux sources seulement : les **cartes de votre deck** et votre **arbre de talents**. Vous affrontez des ennemis au **tour par tour**, mission après mission, et vous pouvez défier d'autres joueurs dans l'arène.
 
-Ce guide est organisé en **deux parties** :
+Ce guide décrit le jeu tel qu'il fonctionne aujourd'hui. Les chiffres donnés sont ceux appliqués par le jeu.
 
-1. **L'interface** — ce que fait chaque écran, regroupé comme dans le menu de navigation.
-2. **Les systèmes de jeu** — les règles détaillées (cycle, progression, combat, économie…).
-
-*Dernière mise à jour : juillet 2026*
+*Dernière mise à jour : novembre 2026*
 
 ---
 
-# Partie 1 — L'interface
+## En bref
 
-Le menu latéral regroupe les écrans en **cinq sections** : Centre de commande, Escouade & progression, Missions & ligue, Économie, et Compte & outils. La barre de progression en haut de l'écran indique l'heure du cycle en cours (H0 → H72).
+1. **Créez votre ninja** : un nom, une affinité élémentaire, une lignée.
+2. **Recevez votre deck de départ** : 22 cartes, déjà prêtes à jouer.
+3. **Lancez une mission** : un parcours de 3 à 5 combats entrecoupés d'événements.
+4. **Gagnez de l'expérience** : chaque niveau donne 1 point de talent.
+5. **Renforcez-vous** : dépensez vos points dans l'arbre, ouvrez des parchemins, améliorez vos cartes, ajustez votre deck.
 
-## Centre de commande
+Rien n'augmente tout seul : monter de niveau ne donne **aucune statistique**, uniquement un point de talent à placer.
 
-### Bureau
+---
 
-**Route :** `/bureau` — **Hub principal** du jeu.
+## Votre ninja
 
-C'est votre tableau de bord quotidien. Vous y trouvez :
+### Création
 
-| Zone | Rôle |
+Chaque compte possède **un seul ninja**. À la création, vous choisissez :
+
+- son **nom** (2 caractères au minimum) ;
+- son **affinité élémentaire** : Katon, Suiton, Raiton, Doton ou Futon ;
+- sa **lignée** : Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani ou Yukisawa.
+
+L'affinité et la lignée composent l'identité de votre ninja et s'affichent sur son profil. Elles ne donnent **aucun bonus chiffré** en combat.
+
+À l'inscription, vous choisissez aussi un **pays** (Midorihara, Kareno, Oborohama ou Ishikura). Il n'apporte aucun bonus de combat.
+
+Votre ninja commence au **niveau 1**, au rang **Genin**, avec **1 point de talent** et un deck de départ.
+
+### Niveau et rang
+
+Les victoires rapportent de l'expérience (XP). Passer du niveau *N* au niveau suivant demande **100 × N** XP : 100 XP pour atteindre le niveau 2, 200 XP pour le niveau 3, et ainsi de suite. Le niveau maximum est **100**.
+
+Chaque niveau gagné donne **1 point de talent**. Il ne donne rien d'autre.
+
+Le rang suit le niveau :
+
+| Niveau | Rang |
+|--------|------|
+| 1 à 19 | Genin |
+| 20 à 39 | Chunin |
+| 40 à 59 | Jonin |
+| 60 à 79 | ANBU |
+| 80 à 100 | Kage |
+
+Le rang est un titre : il n'ajoute pas de statistiques.
+
+### Statistiques
+
+Votre ninja n'a **aucune statistique de base**. Ses statistiques sont la somme de deux choses :
+
+- les bonus des **talents** débloqués ;
+- les **bonus passifs** des cartes de votre **deck actif**.
+
+Le profil affiche le détail de ces deux sources.
+
+| Statistique | Effet en combat |
+|-------------|-----------------|
+| **Taijutsu** | Augmente les dégâts des cartes Taijutsu |
+| **Ninjutsu** | Augmente les dégâts des cartes Ninjutsu |
+| **Genjutsu** | Augmente les dégâts des cartes Genjutsu |
+| **Médecine** | Augmente l'armure et les soins de toutes vos cartes, ainsi que les dégâts des cartes Médecine |
+| **Vitesse** | Donne 1 % de chance de coup critique par tranche de 10 points, jusqu'à 50 % |
+| **PV max** | S'ajoute aux 100 points de vie de départ |
+| **Intelligence**, **Dextérité** | Accordées par certains talents et cartes et affichées sur le profil. Elles n'entrent pas dans les calculs de combat actuels |
+
+Chaque point de Taijutsu, de Ninjutsu, de Genjutsu ou de Médecine vaut **+1 %** : avec 30 en Ninjutsu, une carte Ninjutsu à 10 dégâts en inflige 13.
+
+### Spécialisation
+
+À partir du **niveau 10**, vous pouvez choisir une spécialisation sur votre profil : Taijutsu, Ninjutsu, Genjutsu ou Médecine. Ce choix est **définitif**.
+
+---
+
+## Les cartes
+
+Le jeu compte **200 cartes**. Chaque carte a deux rôles :
+
+- un **effet actif**, quand vous la jouez en combat ;
+- un **bonus passif**, qui s'ajoute à vos statistiques tant que la carte est dans votre deck actif, même si vous ne la piochez jamais.
+
+### Types de cartes
+
+| Type | Rôle |
 |------|------|
-| **Premiers pas** | Checklist early-career (deck, entraînement, mission, recon, ligue) — skippable, sans masquer le reste |
-| **Village** | Appartenance à l'un des 4 pays (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) + rivalité de cycle (score via actions solo, sans bonus combat) |
-| **Trésorerie** | Solde de Ryos, réputation, prévision salaires + entraînement à H72 |
-| **Escouade active** | Aperçu des 3 ninjas de terrain et accès rapide à leur fiche |
-| **Sceau de Chakra** | Rituel quotidien gratuit (minuit UTC) — voir § Académie et Sceau de Chakra |
-| **Examen Chunin** | Inscrire un Genin éligible avant H72 |
-| **Vol d'Oiseau** | Inscrire un Chunin prêt au départ avant H72 |
-| **Stagnation** | Avertissements sur les ninjas éligibles à une montée non inscrits |
-| **Académie** | Vitrine des 3 aspirants Genin en rotation — recrutement payant |
-| **Dispensaire** | Soins des ninjas en forme Lamentable (hôpital) |
+| **Attaque** | Inflige des dégâts, parfois avec un statut |
+| **Défense** | Donne de l'armure |
+| **Soutien** | Soigne, fait piocher, rend du Chakra, applique des statuts |
+| **Invocation** | Appelle un allié qui combat à vos côtés |
+| **Objet** | Effet ponctuel ; la plupart s'épuisent après usage |
 
-Le Bureau concentre les actions de **gestion du cycle** : budget, recrutement, soins et inscriptions de carrière. Consultez-le en début de cycle et avant les jalons H54 / H71.
+Une carte peut être liée à une **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) et à un **élément** (Katon, Suiton, Raiton, Doton, Futon).
 
-### Village
+### Raretés
 
-**Route :** `/village`
+Quatre raretés : **Commune**, **Rare**, **Légendaire**, **Mythique**.
 
-Quatre **pays** (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) forment une rivalité de faction **globale**, orthogonale au clan joueur et à la ligue.
+### Coût et épuisement
 
-- Choix à l'inscription (+ 1 retake early si vous n'avez pas encore scoré)
-- Points via actions solo (sceau, missions, recon, match ligue, examens, Vol d'Oiseau) — plafond par cycle
-- Chaque cycle : une **paire** en guerre ; à H72 le **pays** en tête gagne un petit coffre Ryos pour ses contributeurs
-- **Aucun bonus de combat**
+Jouer une carte coûte du **Chakra** (de 0 à plusieurs points). Une carte marquée **Exhaust** est retirée du combat après avoir été jouée. Les invocations le sont toujours.
 
-La ligue (pools, match H71, promo/relégation) reste inchangée.
+### Amélioration
 
-### Journal du cycle
+Depuis la Collection, une carte peut être améliorée deux fois : niveau **+**, puis niveau **++**. Une carte mythique s'arrête au niveau +. L'amélioration renforce l'effet actif et le bonus passif.
 
-**Route :** `/journal`
+| Rareté | Niveau + | Niveau ++ |
+|--------|----------|-----------|
+| Commune | 300 Ryos, 15 poussière | 1 500 Ryos, 80 poussière |
+| Rare | 1 200 Ryos, 80 poussière | 5 000 Ryos, 400 poussière |
+| Légendaire | 4 500 Ryos, 400 poussière | 18 000 Ryos, 1 800 poussière, 10 essence |
+| Mythique | 18 000 Ryos, 1 800 poussière, 20 essence | — |
 
-Fil d'activité chronologique de votre cycle : gains d'entraînement, résultats de missions, clôture économique, messages de ligue, etc. Utile pour retracer ce qui s'est passé sans rouvrir chaque écran.
+### Désenchantement
 
-### Profil
+Vous pouvez détruire un exemplaire d'une carte pour obtenir de la **poussière de carte** :
 
-**Route :** `/profil`
+| Rareté | Poussière obtenue |
+|--------|-------------------|
+| Commune | 10 |
+| Rare | 40 |
+| Légendaire | 200 |
+| Mythique | 1 000 |
 
-Identité publique du Sensei : nom, mur d'héritage (parchemins laissés par les Chunin partis en Vol d'Oiseau). Les autres joueurs peuvent consulter votre profil via `/sensei/:id`.
+Une carte légendaire améliorée rend en plus 2 essence, une carte mythique améliorée 5 essence. Un exemplaire utilisé dans un deck ne peut pas être désenchanté.
 
----
+### Obtenir des cartes
 
-## Escouade & progression
-
-### Escouade
-
-**Route :** `/squad`
-
-Écran central de la **préparation tactique** :
-
-| Fonction | Détail |
-|----------|--------|
-| **Composition** | 3 ninjas actifs + banc de remplaçants ; échanges actif ↔ banc jusqu'à H54 |
-| **Deck d'opération** | Pour chaque actif : carte technique + domaines primaire/secondaire (6 cartes par ninja) — voir § Deck d'opération |
-| **Briefing** | Rappel de l'adversaire de ligue et du prochain match |
-| **Marché P2P** | Mettre un ninja du banc en vente ou le libérer |
-
-Un ninja est **indisponible** s'il est en mission, listé sur le marché entre joueurs, ou si la fenêtre tactique est fermée (H71+).
-
-### Entraînement
-
-**Route :** `/training`
-
-Configurez les plans d'entraînement du cycle :
-
-| Levier | Portée | Coût |
-|--------|--------|------|
-| **Préparation** | Un type par ninja actif (3 choix) | Payant en Ryos à H72 |
-| **Entraînement global** | Un type pour toute l'escouade | Gratuit |
-
-Six types disponibles (Chakra, Physique, Médical, Genjutsu, Ninjutsu, Équilibre). L'écran affiche la **prévision de coût** et les gains attendus. L'entraînement est **gelé à H54** (composition figée). Détails mécaniques : voir § Entraînement.
-
-### Clan
-
-**Route :** `/clan`
-
-Hub **coopératif sans bonus de combat** (jusqu'à 12 Senseis) :
-
-- **Créer ou rejoindre** un clan.
-- **Tableau d'affichage Académie** : recommander un aspirant de votre vitrine (1 fois par cycle).
-- **Puits de Chakra** : chaque Sceau quotidien alimente un seuil collectif → Sceau bonus pour tous les membres.
-
-Détails : voir § Clans de joueurs.
+- le **deck de départ**, offert à la création ;
+- les **parchemins** de la boutique ;
+- une **chance de carte** à la fin des missions ;
+- les récompenses du **passe de saison**.
 
 ---
 
-## Missions & ligue
+## Le deck
 
-### Missions
+Un deck contient **20 à 30 cartes**, avec **3 exemplaires au maximum** d'une même carte. Vous ne pouvez y mettre que des exemplaires que vous possédez.
 
-**Route :** `/missions`
+Vous pouvez créer plusieurs decks, mais un seul est **actif**. C'est le deck actif qui :
 
-Envoie de **missions idle** (rangs D, C, B, A) aux ninjas **du banc uniquement** :
+- est joué en mission et dans l'arène ;
+- fournit les bonus passifs comptés dans vos statistiques.
 
-- Jusqu'à **3 ninjas** en mission en même temps (cap global, pas de limite par rang).
-- Durée selon le rang : **D 4 h · C 8 h · B 24 h · A 48 h** (le retour doit arriver avant la fin du cycle).
-- Probabilités de réussite affichées selon la note globale du ninja.
-- Résolution automatique à l'heure due ; récompenses à **collecter manuellement**.
-
-Un panneau de **reconnaissance** est aussi accessible depuis cet écran. Détails : voir § Missions idle.
-
-### Reconnaissance
-
-**Route :** `/reconnaissance`
-
-Combat d'entraînement pour **tester votre composition** entre **H0 et H36** :
-
-| Mode | Fonctionnement |
-|------|----------------|
-| **Matchmaking** | Adversaire humain de division proche, sinon bot de ligue |
-| **Défi direct** | Défier un membre de votre pool ou d'une autre ligue (acceptation requise) |
-
-Une mission par cycle. Le résultat conditionne la **qualité de l'espionnage** (H36 / H54). Détails : voir § Reconnaissance.
-
-### Espionnage
-
-**Route :** `/espionnage`
-
-Rapport d'intel sur l'**adversaire de ligue** du cycle :
-
-| Jalon | Contenu |
-|-------|---------|
-| **H36** | Tendances sur les derniers matchs (nécessite une reconnaissance ce cycle) |
-| **H54** | Rapport complet figé sur les 3 ninjas adverses (partiel ou complet selon reconnaissance) |
-
-Comparez tendances (H36) et unité repérée (H54) pour détecter une formation atypique. Détails : voir § Le cycle de 72 heures.
-
-### Ligue
-
-**Route :** `/league`
-
-Vue compétitive de votre **pool** (6 Sensei) :
-
-- Classement avec **V/N/D** (bilan face à chaque adversaire) et badge **Némésis**, calendrier des 10 cycles de saison.
-- **Mur de saison** (discussion libre, pagination ; reset en fin de saison).
-- Points (victoire 3, nul 1, défaite 0) et promotions / relégations en fin de saison.
-- **Lien d'invitation** (compteur humains / bots) pour remplacer un bot.
-- Défis de reconnaissance : **même pool** ou **autre ligue** (division proche) — acceptation requise.
-
-Détails structure : voir § Ligue.
-
-### Opération
-
-**Route :** `/operation`
-
-Match de ligue du cycle (**H71 → H72**) :
-
-- **Chronique narrative** dévoilée progressivement (même rythme pour les deux adversaires).
-- **Débrief mécanique** : plis gagnés, scores PV, environnement.
-- Mode **spectateur** pour les matchs d'autres pools.
-
-Détails combat : voir § Opération de frontière.
+Construire un deck, c'est donc arbitrer deux fois : ce que vous voulez **piocher**, et ce que vous voulez **porter** pour ses bonus passifs. Trente cartes donnent plus de bonus passifs que vingt, mais vous piocherez moins souvent vos meilleures cartes.
 
 ---
 
-## Économie
+## Les talents
 
-### Magasin
+L'arbre compte **150 nœuds** répartis en un **centre** et quatre branches : **Taijutsu**, **Ninjutsu**, **Genjutsu** et **Médecine**.
 
-**Route :** `/market`
+- Débloquer un nœud coûte **1 point de talent**.
+- Un nœud n'est accessible que si ses **prérequis** sont déjà débloqués : on avance de proche en proche depuis le centre.
+- Avec 1 point au départ et 1 point par niveau, vous ne débloquerez jamais tout l'arbre : il faut choisir.
 
-**Magasin du village** — achats avec vos Ryos :
+Trois sortes de nœuds :
 
-- Objets utilitaires (bureau, cycle) par catégories.
-- **Offres de cartes technique** : 10 tirages aléatoires par réassort, nouveau bonus % à l'achat.
-- Promotions aléatoires chaque cycle ; catalogue personnel réassorti périodiquement.
+| Nœud | Ce qu'il apporte |
+|------|------------------|
+| **Stat** | Un bonus de statistique |
+| **Notable** | Un bonus de statistique et un effet spécial |
+| **Keystone** | Un effet puissant assorti d'une contrepartie. Il y en a 10 |
 
-Fermé en cas de **dette** ou pendant le gel **H71+**. Détails : voir § Économie.
+L'effet de chaque nœud est décrit dans l'arbre lorsque vous le sélectionnez.
 
-### Perfectionnement
+### Réinitialisation
 
-**Route :** `/refinement`
-
-**Atelier de perfectionnement** — retirage payant du **bonus %** d'une carte technique possédée :
-
-- Coût selon la rareté de la carte ; réduction possible via l'héritage magasin.
-- Bloqué si trésorerie négative ou carte listée sur le marché P2P.
-- Accessible aussi depuis l'**Inventaire**.
-
-Détails cartes : voir § Cartes technique ninja.
-
-### Échanges
-
-**Route :** `/exchanges`
-
-**Marché entre joueurs** (P2P) :
-
-- Vente de ninjas au banc ou d'objets / cartes non équipés.
-- Nombre limité d'annonces actives ; commission au vendeur.
-- Marché **global** (tous les Sensei humains du serveur).
-
-Fermé à partir de **H71** et en cas de dette.
-
-### Inventaire
-
-**Route :** `/inventory`
-
-Gestion de votre **stock** :
-
-| Catégorie | Usage |
-|-----------|--------|
-| **Cartes technique** | Assignation par ninja actif pour le deck d'opération |
-| **Consommables bureau** | Utilisation immédiate sur un ninja |
-| **Équipement cycle** | 1 par ninja pour tout le cycle |
-
-Actions : équiper, utiliser, lister sur le marché P2P, ouvrir le perfectionnement.
+Vous pouvez réinitialiser tout l'arbre : tous les points dépensés vous sont rendus. Vous avez droit à **une réinitialisation gratuite par tranche de 10 niveaux** atteinte. Au-delà, elle coûte **2 000 Ryos**.
 
 ---
 
-## Compte & outils
+## Le combat
 
-### Notifications
+Un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier.
 
-Icône **cloche** dans l'en-tête : fin de mission, résultats d'examen, clôture de cycle, début d'opération, rapport d'espionnage, Puits de clan, etc. Chaque notification propose un lien vers l'écran concerné.
+### Au départ
 
-### Règles du jeu
+- Vous avez **100 PV**, plus votre bonus de PV max.
+- Votre deck est mélangé et forme votre **pioche**.
+- Vous piochez **5 cartes**.
+- L'ennemi **annonce son intention** : vous savez ce qu'il fera à son prochain tour.
 
-**Route :** `/rules` — ce document, accessible aussi depuis le menu profil (thème, langue, déconnexion).
+### Votre tour
 
----
+- Vous disposez de **3 points de Chakra**.
+- Vous jouez autant de cartes que votre Chakra le permet, dans l'ordre de votre choix.
+- **Une fois par tour**, vous pouvez défausser une carte de votre main pour gagner **1 Chakra**.
+- Vous terminez votre tour quand vous le souhaitez.
 
-# Partie 2 — Les systèmes de jeu
+À la fin de votre tour, les cartes restées en main vont dans la défausse. Au tour suivant, votre Chakra revient à 3 et vous piochez 5 nouvelles cartes. Le Chakra non dépensé est perdu.
 
-## Le cycle de 72 heures
+Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse est mélangée et redevient la pioche.
 
-Chaque cycle est une « semaine de jeu » synchronisée entre tous les joueurs du serveur.
+### Le tour de l'ennemi
 
-| Phase | Période | Activités principales |
-|-------|---------|------------------------|
-| **Préparation** | H0 → H35 | Escouade, deck, entraînement, missions, magasin, Académie, reconnaissance (H0–H36) |
-| **Milieu de cycle** | H36 → H70 | Tendances adverses, espionnage, gestion continue |
-| **Opération** | H71 | Match de ligue simulé ; chronique narrative dévoilée progressivement |
-| **Clôture** | H72 | Filet missions encore actives, primes ligue, salaires, stagnation, Vol d'Oiseau, facturation entraînement, nouveau cycle |
+L'ennemi exécute l'intention qu'il avait annoncée, puis en annonce une nouvelle :
 
-### Gel tactique
-
-| Jalon | Effet |
-|-------|--------|
-| **H54** | **Composition figée** (3 ninjas actifs) ; entraînement gelé ; tendances H36 déjà disponibles ; **rapport complet** sur l'unité adverse |
-| **H54 → H70** | Deck encore modifiable |
-| **H71** | Gel total jusqu'au cycle suivant |
-
-### Espionnage (jalons)
-
-| Jalon | Contenu |
-|-------|---------|
-| **H36** | **Tendances** sur les derniers matchs de ligue de l'adversaire — nécessite une **reconnaissance** réussie ce cycle |
-| **H54** | **Rapport complet** figé sur la composition adverse (qualité partielle/complet selon votre reconnaissance) |
-| **H54 → H71** | Le rapport ne change plus ; comparez tendances vs unité repérée pour détecter une formation atypique |
-
-La mission de **reconnaissance** (H0–H36) conditionne l'accès et la qualité de l'intel — ce n'est pas un combat contre l'adversaire de ligue, mais une mission sur le terrain pour récolter des renseignements.
-
-Examens Chunin, soins et missions doivent être **réglés avant H54** pour éviter un trou dans la composition figée.
-
-### Jalons automatiques
-
-- **H0 → H36** : fenêtre de reconnaissance.
-- **H36** : tendances adverses (si reconnaissance effectuée) ; résolution des missions de reconnaissance en cours.
-- **H54** : gel de la composition + rapport d'espionnage complet figé.
-- **H71** : simulation du match de ligue ; gel final ; début de la chronique narrative.
-- **H72** : verdicts examens Chunin, Vol d'Oiseau, clôture économique, nouveau cycle.
-
----
-
-## Le Sensei (votre compte)
-
-### Ressources
-
-- **Ryos** : monnaie du village. Revenus (ligue, missions, Vol d'Oiseau…) et dépenses (salaires, entraînement, achats…) s'y cumulent.
-- **Réputation** : prestige lié notamment au Vol d'Oiseau.
-- **Chakra de match** : réserve limitée permettant d'intercepter des coups fatals pendant l'opération. Chaque interception consomme une part substantielle de cette réserve.
-
-### Identité du Sensei
-
-Votre **nom de Sensei** définit votre présence en ligue. Il n'y a pas de spécialité à choisir à la création du compte : la préparation passe par l'escouade et le deck d'opération.
-
-### Dette et gel administratif
-
-Si votre solde de Ryos devient **négatif** (salaires impayés, dépenses excessives), un **gel administratif** bloque les nouvelles dépenses : magasin, marché entre joueurs, examen Chunin, hôpital, perfectionnement, etc. Remettez votre trésorerie à l'équilibre pour reprendre vos achats.
-
-Un léger découvert peut exister ; la dette persistante entraîne des **intérêts** à la clôture du cycle, ce qui augmente la pression économique sans game over immédiat.
-
-### Compte invité
-
-Un **compte invité** permet d'essayer le jeu pendant une durée limitée, puis de le convertir en compte permanent.
-
----
-
-## Les ninjas
-
-### Grades
-
-Trois grades structurent la carrière : **Genin**, **Chunin**, **Jonin** (atteint via le départ en Vol d'Oiseau, pas en restant dans l'escouade).
-
-Chaque grade impose des **plafonds** sur les statistiques : un Genin ne peut pas s'entraîner indéfiniment ; il doit passer l'examen Chunin pour débloquer un plafond supérieur.
-
-### Les six statistiques
-
-| Catégorie | Stats |
+| Intention | Effet |
 |-----------|-------|
-| **Combat** | Taijutsu, Ninjutsu, Genjutsu, Médecine |
-| **Support** | Vitesse, Intelligence |
+| **Attaque** | Inflige les dégâts indiqués |
+| **Défense** | L'ennemi gagne de l'armure |
+| **Renforcement** | L'ennemi se donne un statut favorable |
+| **Affaiblissement** | L'ennemi vous inflige un statut défavorable |
+| **Action spéciale** | Charge, invocation ou barrière (voir Boss) |
 
-En match (combat par plis), la **robustesse** (PV) dépend de la note globale × 5 après Forme. Les domaines Taijutsu / Ninjutsu / Genjutsu / Médecine déterminent la puissance des cartes. Le chakra de match et l'interception Sensei ne s'appliquent plus au moteur pli.
+### Dégâts, armure et soins
 
-### Forme hebdomadaire
+- **Dégâts d'une carte** : dégâts de base, augmentés de 1 % par point dans la statistique de sa voie.
+- **Armure** : elle absorbe les dégâts avant vos PV. Elle vous protège pendant le tour de l'ennemi, puis disparaît au début de votre tour suivant. L'armure de l'ennemi disparaît de la même façon au début de son tour.
+- **Soins** : ils ne peuvent pas dépasser vos PV max.
+- **Coup critique** : vos attaques ont une chance de critique donnée par votre Vitesse. Un critique inflige **×1,5** dégâts.
 
-Chaque ninja possède une **forme** du cycle (de la meilleure à la pire : Divin → Excellent → Passable → Lamentable). Elle modifie **toutes** les stats de façon proportionnelle : une bonne forme amplifie les performances ; une mauvaise forme les pénalise fortement.
+### Avantages de voie et d'élément
 
-Après un match, les ninjas mis K.O. voient leur forme **baisser d'un palier**. À H72, les PV sont entièrement restaurés.
+Chaque ennemi a une **posture** (Taijutsu, Ninjutsu ou Genjutsu) et parfois une **affinité élémentaire**.
 
-### Profils de caractère
+**Voies** — une attaque d'une voie avantagée inflige **×1,2** dégâts :
 
-Chaque ninja peut avoir un **profil** qui biaise **légèrement** une stat à la génération (±1 ou ±2 déjà intégré dans la fiche). Environ un tiers des ninjas sont **sans profil**.
+- Taijutsu bat Genjutsu ;
+- Genjutsu bat Ninjutsu ;
+- Ninjutsu bat Taijutsu.
 
-| Profil | Stat favorisée |
-|--------|----------------|
-| **Brute** | Taijutsu |
-| **Canaliseur** | Ninjutsu |
-| **Illusionniste** | Genjutsu |
-| **Guérisseur** | Médecine |
-| **Véloce** | Vitesse |
-| **Stratège** | Intelligence |
-| **Sans profil** | Aucun biais |
+Il n'y a pas de malus dans l'autre sens. La Médecine est toujours neutre.
 
-L'intensité du biais (+1 ou +2) se lit à la **couleur** du libellé sur la fiche (plus marqué = +2) — le chiffre n'est pas affiché. Le profil est orthogonal à la **voie**, au **clan** et au **potentiel**.
+**Éléments** — une carte dont l'élément bat l'affinité de l'ennemi inflige **×1,5** dégâts. Dans le sens inverse, elle n'inflige que **×0,7** :
 
-### Éléments (affinité)
+- Katon bat Futon ;
+- Futon bat Raiton ;
+- Raiton bat Doton ;
+- Doton bat Suiton ;
+- Suiton bat Katon.
 
-Cinq éléments forment un **cercle d'avantages** : Katon bat Futon, Futon bat Doton, Doton bat Raiton, Raiton bat Suiton, Suiton bat Katon.
+Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 
-En duel, l'élément favorable **renforce** les dégâts ; l'élément défavorable les **atténue**. L'écart n'est jamais décisif à lui seul, mais il peut faire basculer un échange serré.
+### Statuts
 
-### Clans et lignées
+| Statut | Effet |
+|--------|-------|
+| **Force** | Ajoute sa valeur aux dégâts de chaque coup |
+| **Dextérité** | Ajoute sa valeur à l'armure gagnée par carte |
+| **Régénération** | Rend sa valeur en PV au début du tour |
+| **Poison** | Retire sa valeur en PV au début du tour |
+| **Brûlure** | Retire sa valeur en PV à la fin du tour |
+| **Faiblesse** | Dégâts infligés réduits de 25 % |
+| **Vulnérable** | Dégâts subis augmentés de 50 % |
+| **Intangible** | Les attaques subies n'infligent que 1 dégât |
 
-Sept lignées existent : Roturier, Nara, Uchiwa, Hyuga, Sarutobi, Akimichi, Yamanaka.
+Un statut appliqué de nouveau **cumule** sa valeur. Sa durée diminue de 1 à la fin de chaque tour de celui qui le porte.
 
-- Les **roturiers** sont les plus fréquents à l'Académie.
-- Les **clans du village** sont plus rares et orientent les stats.
-- Les **lignées nobles** sont les plus rares et les plus chères ; elles biaisent fortement la spécialisation.
+### Invocations
 
-Chaque clan influence la **voie** (art principal) et quelques bonus de stats à la génération.
+Une carte Invocation appelle un **allié**. Vous ne pouvez en avoir qu'**un seul** à la fois : une nouvelle invocation remplace la précédente.
 
-### Voie, potentiel et âge
+- Au début de chacun de vos tours, l'allié **attaque automatiquement** l'ennemi.
+- Un allié doté de **Provocation** encaisse les attaques ennemies à votre place tant qu'il lui reste des PV.
 
-- **Voie** : spécialisation de combat (Taijutsu, Ninjutsu, Genjutsu, Médecine). La majorité des points bonus se concentre sur cette voie.
-- **Potentiel** : Ordinaire, Prometteur ou Prodige. Plus le potentiel est élevé, plus le ninja part avec un profil marqué et progresse efficacement.
-- **Âge** (15–18 ans) : les plus jeunes apprennent **plus vite** à l'entraînement ; les aînés progressent plus lentement.
+### Fin du combat
 
-### Moral
+- **Victoire** : les PV de l'ennemi tombent à 0.
+- **Défaite** : vos PV tombent à 0.
+- **Abandon** : vous pouvez abandonner à tout moment. L'abandon compte comme une défaite.
 
-Le moral (échelle interne) influence la stabilité de l'escouade. Il baisse notamment en cas d'échec à l'examen Chunin, de salaires impayés, de **stagnation** (voir § Progression des grades), ou d'achat d'un ninja sur le marché entre joueurs.
+### Boss
 
----
+Les boss ferment les parcours de rang B, A et S. Ils ont des mécaniques propres :
 
-## L'escouade et le deck d'opération
-
-### Composition
-
-- **3 ninjas actifs** (postes de terrain) + un **banc** de remplaçants.
-- La composition est modifiable jusqu'à **H54** (gel des 3 ninjas actifs).
-
-### Deck d'opération (combat par plis)
-
-Chaque match se joue en **18 plis** : deck mélangé de **6 cartes par ninja actif** — **1 carte technique inventaire** + **2× carte stat primaire** + **3× carte stat secondaire** (domaines taijutsu, ninjutsu, genjutsu, médecine) + **relais** si emplacements vides.
-
-- **PV max** = note globale du ninja × 5 (moyenne des 6 stats).
-- Chaque pli : les deux camps retournent une carte ; comparaison domaine vs domaine (+20 % si avantage de type).
-- **Victoire** : plus de PV d'équipe en fin de match ; égalité → plis gagnés.
-- **Objets match** : retirés ; **cartes technique** assignées par ninja ; consommables bureau et équipement cycle hors combat.
-- **Reconduction** : chaque nouvelle journée, le deck est **recopié** (cartes des ninjas actifs avec charges restantes).
-
-### Quand composer votre escouade
-
-- Mélangez les **voies** (Taijutsu, Ninjutsu, Genjutsu, Médecine) pour couvrir les avantages de domaine en plis.
-- Priorisez un **deck cohérent** : carte technique alignée avec la voie du ninja, domaines primaire/secondaire solides.
-- Surveillez l'**espionnage** (H36 tendances, H54 composition) pour ajuster le deck avant H71.
+- **Phases** : quand ses PV passent sous un seuil, le boss change de comportement. Il peut se renforcer, lever une barrière ou devenir insensible à certains statuts. Une phase franchie ne revient jamais en arrière.
+- **Barrière** : elle absorbe les dégâts avant l'armure et ne disparaît pas d'un tour à l'autre. Briser une barrière rend le boss **Vulnérable** pendant 2 tours.
+- **Charge** : le boss annonce une charge et n'inflige rien ce tour-là. Au tour suivant, il libère une attaque lourde. Vous avez un tour pour vous préparer.
+- **Sbire** : un boss peut invoquer un sbire. Le sbire frappe avant le boss à chaque tour ennemi, et vos attaques le touchent en premier.
+- **Immunités** : certains statuts ne peuvent pas être appliqués à certains boss.
 
 ---
 
-## Cartes technique ninja
-
-Chaque ninja actif compose **6 cartes** dans le deck d'opération : **1 carte technique inventaire** + **2 exemplaires** de la stat primaire + **3 exemplaires** de la stat secondaire.
-
-| Règle | Détail |
-|-------|--------|
-| **Porteur** | La carte est jouée par le **ninja assigné**. |
-| **Puissance** | Stat principale (+ moyenne secondaire : domaine, vitesse ou intelligence) × **bonus % unique** tiré à l'acquisition. |
-| **Bonus variable** | Communes 1–20 % · avec synergie 5–25 % · rares 15–35 % · légendaires 30–50 %. |
-| **Prérequis** | Certaines cartes exigent l'élément du porteur (ex. Lame suiton → Suiton). |
-| **Charges** | 5 charges ; une consommée quand la carte est **tirée** dans un pli (usage quasi systématique chaque cycle). |
-| **Marché P2P** | L'**exemplaire** est transféré tel quel : **même bonus %**, mêmes charges — pas de nouveau tirage à l'achat. |
-| **Atelier de perfectionnement** | Retirage payant du bonus % sur une carte possédée (coût selon rareté ; réduction héritage magasin). |
-| **Magasin** | 10 offres tirées **au hasard** dans le catalogue à chaque réassort (répétitions possibles) ; **nouveau tirage** du bonus à l'achat. |
-| **Effets** | Certaines cartes ont un **effet de pli** (dégâts bonus, réduction, soin, malus adverse au pli suivant) — décrit sur la carte. |
-| **Éléments** | 16 cartes exigent l'élément du porteur — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (répartition équilibrée). |
-
-Exemples : **Lame de chakra** (+15 %, sans prérequis), **Lame suiton** (+30 %, porteur Suiton), **Scalpel de chakra** (médecine offensive).
-
----
-
-## Progression des grades
-
-### Départ
-
-Vous commencez avec **6 ninjas** : un Chunin actif au centre, cinq Genin (dont deux actifs et trois au banc). Les profils de caractère (Brute, Véloce, etc.) et les ninjas sans profil sont mélangés dans l'escouade de départ.
-
-### Examen Chunin
-
-- **Inscription** : avant H72 (pendant tout le cycle).
-- **Résolution** : automatique à H72.
-- **Prérequis** : **note moyenne globale** ≥ 8 (somme des 6 stats ÷ 6, arrondi).
-- **Inscription** : **gratuite**.
-- **Réussite** : prime 300–1 000 Ryos, +1 à +5 réputation, objet, forme remontée d'un palier, moral +2 à +5.
-- **Succès** : passage au grade Chunin et plafonds relevés.
-- **Échec** : le ninja reste Genin ; son moral chute.
-
-### Vol d'Oiseau (Chunin → départ)
-
-- **Inscription** : pendant le cycle, avant H72.
-- **Résolution** : à H72.
-- **Prérequis** : **note moyenne globale** ≥ 14 (même calcul que l'examen Chunin).
-- **Coût d'inscription** : gratuit.
-- **Prime** : importante, calculée à partir du niveau global du Chunin partant (+ réputation).
-- **Relève** : un **Genin roturier** de remplacement arrive (bonne forme et moral élevé).
-- **Héritage** : le Chunin laisse un **Parchemin mural d'héritage** — bonus permanent et cumulable selon sa stat dominante (réduction sur magasin, entraînement, hôpital ou objets de match, selon le profil du départ).
-
-### Stagnation
-
-À H72, un ninja **éligible** à une montée de grade (examen ou Vol d'Oiseau) mais **non inscrit** subit une pénalité après **un cycle de grâce** : d'abord un avertissement sans malus, puis sa forme descend d'un palier et son moral baisse. Le jeu pousse à faire évoluer la carrière ou à accepter le coût de garder un vétéran.
-
----
-
-## Entraînement
-
-Deux leviers complémentaires :
-
-| | **Préparation** (actifs) | **Entraînement global** (toute l'équipe) |
-|---|--------------------------|-------------------------------------------|
-| **Coût** | Payant en Ryos à H72 | **Gratuit** |
-| **Gain moyen** | Capital 0,4 / ninja / cycle | Capital 0,2 / ninja / cycle |
-| **Choix** | Un type par titulaire (3 actifs) | Un type pour toute l'équipe |
-
-### Types groupés (6)
-
-Chakra (IQ, ninjutsu, genjutsu) · Physique (taijutsu, vitesse) · Médical · Genjutsu · Ninjutsu · Équilibre (toutes les stats).
-
-### Capital de stat et chance
-
-Chaque ninja tire une **part** du pot (variance légère cycle par cycle). Les **prodiges** progressent plus vite (×1,25) ; les **prometteurs** ×1,1.
-
-### Cumul
-
-Un titulaire peut cumuler **préparation + global** (ex. les deux en Chakra) pour accélérer la montée en grade (~5 cycles ordinaire → Chunin, ~2–3 prodige).
-
-- Progression appliquée à **H72** ; préparation facturée si trésorerie suffisante.
-- L'âge modère l'efficacité ; une stat au **plafond du grade** ne progresse plus.
-- Le **Bureau** affiche la prévision (salaires + préparation, global gratuit).
-
----
-
-## Missions idle
-
-Les missions sont réservées aux ninjas **au banc** (hors escouade active).
-
-### Règles générales
-
-- **Cap total de 3 ninjas** en mission en même temps (plusieurs missions du même rang possibles).
-- Durée selon le rang (indépendante du cycle) ; l'envoi est refusé s'il ne reste pas assez d'heures avant H72.
-- Résolution automatique à l'**heure de retour** avec **jet de réussite** (filet de sécurité à H72).
-- Après résolution, le ninja peut **repartir** en mission.
-- Les récompenses doivent être **collectées manuellement** après résolution.
-- Tous les rangs sont **envoyables** ; l'interface affiche les probabilités selon la **note globale** du ninja (moyenne des 6 stats, arrondie).
+## Missions et parcours
 
 ### Rangs
 
-| Rang | Durée | Ryos (succès) | Note cible (50 % réussite) | Risques si échec |
-|------|-------|---------------|----------------------------|------------------|
-| **D** | 4 h | 300–500 | 4 | Aucun |
-| **C** | 8 h | 600–800 | 6 | Blessure légère possible |
-| **B** | 24 h | 1 000 | 8 | Blessure grave ou mort possible |
-| **A** | 48 h | 1 500–2 000 | 10 | Blessure grave ou mort élevés |
+Les missions sont classées en cinq rangs, du plus simple au plus difficile : **D**, **C**, **B**, **A**, **S**. Il y a 16 missions. Toutes sont accessibles dès le départ : à vous de juger si votre deck est prêt.
 
-Les pourcentages de **réussite**, **blessure** et **mort** évoluent avec l'écart entre la note du ninja et la note cible du rang. En cas de **succès** : Ryos, loot bonus et **gain de stat** (complément à l'entraînement). En cas d'**échec** : 0 Ryos, pas de loot.
+| Rang | Missions | Combats par parcours | Boss final |
+|------|----------|----------------------|------------|
+| D | 3 | 3 | Non |
+| C | 3 | 3 | Non |
+| B | 5 | 4 | Oui |
+| A | 4 | 5 | Oui |
+| S | 1 | 5 | Oui |
 
-### Progression via missions
+### Le parcours
 
-Chaque réussite accorde un petit gain sur une stat (ex. +0,25 à +1,0 selon le rang). Les **remplaçants au banc** bénéficient d'un **bonus** (×1,5 sur D/C) pour compenser l'entraînement global plus lent.
+Lancer une mission ouvre un **parcours** : une suite d'étapes à franchir dans l'ordre. Les combats alternent avec des **événements**.
 
-### Conséquences des blessures
+- Vos **PV ne remontent pas** entre deux combats. Seuls les événements permettent de se soigner.
+- Une **défaite** ou un **abandon** en combat fait échouer tout le parcours : vous ne touchez aucune récompense.
+- Vous ne pouvez avoir qu'**un parcours en cours**. Vous pouvez le quitter et le reprendre plus tard, ou l'abandonner.
 
-- **Légère** : forme Lamentable.
-- **Grave** : forme Lamentable + plusieurs cycles sans soin à l'hôpital.
-- **Mort** : le ninja est définitivement perdu.
+### Événements et ferraille
 
-### Butin
+Chaque combat gagné dans un parcours rapporte **2 ferrailles**. La ferraille ne sert que pendant le parcours en cours : elle est perdue à la fin.
 
-Sur **succès** uniquement : objets utilitaires (pansements, kits, fumigènes, parchemins…) ou, plus rarement, recrutement prodige sur les rangs B/A.
+Entre deux combats, un événement vous propose un choix. Par exemple :
 
-Spec détaillée : [`specs/mission-rank-system.md`](../../../specs/mission-rank-system.md).
+| Événement | Choix |
+|-----------|-------|
+| **Sanctuaire de Mousse** | Méditer : +30 % de vos PV max |
+| **Cache d'Éclaireur** | Fouiller : +12 % de vos PV max et 2 ferrailles |
+| **Colporteur d'Ombre** | Bandage : 3 ferrailles contre +25 % PV. Tonique : 5 ferrailles contre +50 % PV |
+| **Carrefour du Voile** | Soin de +25 % PV, ou 4 ferrailles |
 
----
+Les autres événements suivent le même principe : un soin, gratuit ou payé en ferraille, ou un gain de ferraille.
 
-## Reconnaissance
+### Récompenses
 
-Combat d'entraînement pour **tester votre composition** pendant la phase de préparation, avant le gel tactique de l'opération. **Une mission par cycle** par Sensei.
+Les récompenses sont versées **à la fin du parcours**, une fois le dernier combat gagné :
 
-| Mode | Fonctionnement |
-|------|----------------|
-| **Matchmaking** | Adversaire humain de division et puissance proches ; sinon un **bot** de la ligue. |
-| **Défi direct** | Depuis le menu Ligue : défier un membre de votre pool ou d'une autre ligue (division proche). Le défenseur doit **accepter**. |
+- de l'**XP** pour votre ninja ;
+- des **Ryos** ;
+- de l'**XP de passe de saison** ;
+- une **chance d'obtenir une carte** commune ou rare.
 
-**Conséquences** : moteur de combat réel (deck, environnement) ; les K.O. peuvent **baisser la forme** comme en match de ligue. **Butin** : Ryos + objet consommable aléatoire + chance de carte technique (y compris en défaite). N'affecte **pas** le classement de ligue.
+Chaque mission affiche ses récompenses de base. Elles sont multipliées par un **bonus de parcours**, de ×1,6 au rang D jusqu'à ×3 au rang S, auquel s'ajoutent 8 % par combat gagné au-delà du premier.
 
-**Résolution** : à **H36**. Le résultat détermine la qualité de l'espionnage (tendances H36, rapport H54).
+### Duel rapide
 
----
-
-## Économie
-
-### Revenus principaux
-
-| Source | Nature |
-|--------|--------|
-| **Ligue** | Prime selon victoire, nul ou défaite |
-| **Missions** | Missions idle par rang (D–A) |
-| **Vol d'Oiseau** | Prime de départ du Chunin |
-| **Reconnaissance** | Butin de combat (Ryos, objets, cartes) |
-
-### Dépenses principales
-
-| Poste | Moment |
-|-------|--------|
-| **Salaires** | H72 — escouade active uniquement |
-| **Entraînement** | H72 — préparation des actifs (payant) ; global gratuit pour toute l'équipe |
-| **Examen Chunin** | À l'inscription |
-| **Hôpital** | À la demande |
-| **Académie** | À l'achat d'un aspirant |
-| **Magasin du village** | Pendant le cycle |
-| **Perfectionnement** | À la demande (retirage bonus carte) |
-| **Marché entre joueurs** | À l'achat (commission au vendeur) |
-
-Les salaires augmentent avec le **niveau global** du ninja : une escouade expérimentée coûte cher à maintenir.
-
-### Objets (trois catégories)
-
-| Type | Usage |
-|------|-------|
-| **Bureau** | Consommé immédiatement depuis le Bureau (soins, cartes, parchemins…) |
-| **Match** | Un slot par ninja ; effet déclenché en opération si les conditions sont remplies |
-| **Cycle** | Effet sur tout le cycle (météo, salaires, forme…) |
-
-### Magasin du village
-
-- Catalogue **personnel**, réassort périodique (tous les quelques cycles de ligue).
-- Promotions aléatoires chaque cycle.
-- Fermé en cas de dette ou pendant le gel H71+.
-
-### Marché entre joueurs (Échanges)
-
-- Vente de ninjas au banc ou d'objets non équipés.
-- Nombre limité d'annonces actives simultanées.
-- Commission prélevée sur la vente (légèrement plus élevée pour les lignées nobles).
-- Marché **global** : tous les Sensei humains du serveur ; la ligue reste le cadre compétitif.
-- Fermé à partir de H71.
+Le duel rapide lance un combat unique contre l'ennemi de votre choix, hors parcours. La victoire verse tout de suite une récompense fixe : 40 XP, 100 Ryos, 12 % de chance de carte et 50 XP de passe de saison.
 
 ---
 
-## Académie et Sceau de Chakra
+## La boutique
 
-### Académie (recrutement)
+### Parchemins
 
-- **Trois aspirants Genin** sont visibles en permanence au Bureau.
-- Toutes les **24 heures (UTC)**, l'aspirant le plus ancien disparaît ; les autres glissent ; un nouveau arrive.
-- Recrutement possible tant que l'opération n'est pas gelée (avant H71).
-- Chaque aspirant affiche sa voie, son potentiel, sa lignée et un **prix** selon la rareté du profil.
-- Un seul recrutement payant par fenêtre de rotation (prendre ou laisser).
+Un parchemin contient **5 cartes**.
 
-### Sceau de Chakra (rituel quotidien)
+| Parchemin | Prix | Commune | Rare | Légendaire | Mythique |
+|-----------|------|---------|------|------------|----------|
+| **Standard** | 400 Ryos | 70 % | 23 % | 5,5 % | 1,5 % |
+| **Élémentaire** | 650 Ryos | 65 % | 26 % | 7 % | 2 % |
+| **Premium** | 100 Kage Coins | 55 % | 32 % | 10 % | 3 % |
 
-- **Un sceau gratuit par jour** (minuit UTC), avec un stock maximum limité.
-- Ouverture au Bureau : loot aléatoire (commun → rare → épique → jackpot très rare).
-- Le **jackpot** (Sceau d'Or) garantit que le **prochain** aspirant de l'Académie sera un Prodige ou une lignée noble.
+- Le parchemin **Élémentaire** ne contient que des cartes liées à un élément. Vous pouvez choisir lequel.
+- Le parchemin **Premium** garantit au moins une carte rare ou meilleure.
+- Une carte déjà possédée s'ajoute en exemplaire supplémentaire.
 
----
+Les cartes exclusives d'une saison ne sortent pas des parchemins.
 
-## Hôpital
+### Cosmétiques
 
-- Soigne les ninjas en forme **Lamentable** (hors convalescence prolongée après blessure grave).
-- Coût en Ryos selon le **grade** du ninja.
-- Les parchemins d'héritage peuvent réduire le coût.
-- Fermé pendant le gel H71+.
+Cadres d'avatar, dos de carte et titres. Ils s'achètent en Ryos, en Kage Coins ou avec les deux. Ils sont **purement visuels** et ne changent rien en combat.
 
----
+### Kage Coins
 
-## Clans de joueurs (coopération)
+Les Kage Coins s'achètent avec de l'argent réel, par paiement sécurisé :
 
-Hub **sans bonus de combat** — jusqu'à **12 Senseis** par clan.
+| Pack | Kage Coins | Prix |
+|------|------------|------|
+| Éclat de Chakra | 100 | 1 € |
+| Braise du Village | 500 + 50 offerts | 5 € |
+| Forge des Ombres | 1 000 + 150 offerts | 10 € |
+| Coffre du Kage | 5 000 + 1 000 offerts | 50 € |
 
-### Tableau d'affichage Académie
-
-- Chaque membre peut **recommander un aspirant** de sa vitrine sur le tableau du clan (une fois par cycle).
-- Visible par les alliés jusqu'à expiration de l'aspirant.
-- Chaque allié recrute avec **ses propres Ryos**.
-
-### Puits de Chakra collectif
-
-- Chaque Sceau de Chakra quotidien brisé ajoute une **goutte** au puits du clan.
-- À un seuil collectif, tous les membres reçoivent un **Sceau de Chakra bonus** (dans la limite du stock personnel).
+Les Kage Coins servent à ouvrir des parchemins Premium, à acheter certains cosmétiques et à débloquer la piste premium du passe de saison. Tout le contenu de jeu reste accessible sans en acheter.
 
 ---
 
-## Ligue
+## Le passe de saison
 
-### Structure
+Le passe de saison compte **50 niveaux** et **deux pistes** de récompenses :
 
-- **Pools** de 6 Sensei (humains et/ou bots).
-- **Saison** : 10 cycles en round-robin (chacun affronte chacun).
-- **5 divisions** : la 1ʳᵉ est l'élite, la 5ᵉ la plus basse.
+- la **piste gratuite**, ouverte à tous ;
+- la **piste premium**, débloquée pour **500 Kage Coins**. Elle donne aussi **+20 %** d'XP de passe pour toute la saison.
 
-### Intégration d'un nouveau joueur
+### Gagner de l'XP de passe
 
-- Tout nouvel humain commence en **division basse**.
-- S'il rejoint une pool avec un **bot**, il prend sa place dans le calendrier en cours.
-- Sinon, une nouvelle pool est créée (1 humain + bots de remplissage).
+- en terminant des **missions** : plus le rang est élevé, plus le gain est important ;
+- en accomplissant des **quêtes** :
 
-### Points et classement
+| Quête | XP de passe |
+|-------|-------------|
+| Journalière | 200 |
+| Hebdomadaire | 1 000 |
+| Jalon de saison | 5 000 |
 
-| Résultat match | Points |
-|----------------|--------|
-| Victoire | 3 |
-| Nul | 1 |
-| Défaite | 0 |
+Une quête terminée doit être **réclamée** pour créditer son XP.
 
-En cas d'égalité de points : victoires, puis matchs joués.
+### Niveaux
 
-### Fin de saison (cycle 10)
+Chaque niveau demande 1 000 XP de passe pour les niveaux 1 à 10, puis 50 XP de plus par tranche de dix niveaux : 1 050 pour les niveaux 11 à 20, jusqu'à 1 200 pour les niveaux 41 à 50.
 
-- **1er** : promotion de division.
-- **6ᵉ** : relégation.
-- Nouvelle pool et nouveau calendrier.
-- Le **mur de ligue** de la saison précédente n'est plus affiché.
+### Récompenses
 
-### Mur de la ligue
-
-Fil de discussion **de toute la saison** entre les Sensei de votre pool. Pas de quota (messages courts, pagination). Reset automatique à la **nouvelle saison** (promotion / relégation). Une **modération minimale** FR/EN masque les gros mots (première lettre conservée, le reste en `*`).
-
-### Face-à-face et némésis
-
-Le classement affiche le bilan **V/N/D** de la saison (victoires / nuls / défaites) contre chaque adversaire. Après **deux défaites d'affilée** face au même Sensei, le badge **Némésis** apparaît. Un bouton permet d'envoyer un **défi de reconnaissance** (H0–H35) — le défenseur doit accepter.
-
-### Invitation
-
-Un Sensei peut générer un **lien d'invitation** vers sa pool. L'écran indique combien d'**humains** et de **bots** restent : l'objectif est de remplacer un bot par un allié.
+Chaque niveau atteint ouvre une récompense sur chaque piste : Ryos, poussière de carte, essence, Kage Coins, cartes, parchemins ou cosmétiques. Une récompense doit être **réclamée** sur la page du passe. Celles de la piste premium demandent d'avoir débloqué le premium.
 
 ---
 
-## Opération de frontière (match de ligue)
+## Le PvP en arène
 
-### Déroulement visible
+L'arène vous oppose à un autre joueur, en duel au tour par tour.
 
-- **Rapport d'opération** : courte intro narrative, puis **échanges de plis en face-à-face** (vainqueur surligné, dégâts en **PV**), puis conclusion. Même présentation pour la **reconnaissance**.
-- **Débrief mécanique** : plis gagnés, PV restants, environnement — ton analytique personnalisé.
-- **Spectateur** : possibilité de suivre des matchs d'autres pools.
+### File d'attente
 
-### Structure d'un match
+Vous entrez dans la file avec votre **deck actif**. Le jeu cherche un adversaire de **niveau proche** : 3 niveaux d'écart au plus par défaut, ou 5 si vous élargissez la recherche. Entre plusieurs candidats, il choisit le plus proche en niveau, puis celui qui attend depuis le plus longtemps.
 
-- **Dix-huit plis maximum** (6 cartes × 3 ninjas actifs, mélangées).
-- Chaque pli : révélation simultanée des cartes, comparaison de puissance, dégâts sur le propriétaire perdant.
-- **Environnement** aléatoire (météo, terrain) avec modificateurs sur les domaines concernés ; les objets « counter terrain » sont retirés.
+Quand un adversaire est trouvé, le duel commence dès que les deux joueurs sont prêts.
 
-### Débrief causal
+### Le duel
 
-Après l'opération, chaque Sensei participant reçoit jusqu'à **3 causes** lisibles (avantage de domaine, carte technique décisive, forme Lamentable, deck incomplet…). Objectif : comprendre *pourquoi* le résultat, pas seulement le lire.
+Les bases sont celles du combat de mission : 100 PV plus votre bonus de PV max, 3 Chakra par tour, 5 cartes piochées par tour, une défausse par tour contre 1 Chakra. Chaque joueur joue à son tour et peut abandonner.
 
-### Preview matchup (espionnage)
+Le duel utilise une version **simplifiée** des règles :
 
-Dès que le deck adverse est visible via espionnage, un **aperçu matchup** indique les domaines où vous êtes fort ou faible avant H71.
+- les dégâts, l'armure et les soins des cartes sont calculés avec vos statistiques, coups critiques compris ;
+- les statuts, les avantages de voie et d'élément, les effets spéciaux des talents et les invocations ne s'y appliquent pas ;
+- les cartes non jouées **restent en main** d'un tour à l'autre, dans la limite de 10 ;
+- l'armure disparaît à la **fin de votre propre tour**.
 
-### Résolution des plis
+Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Entrer dans la file compte pour certaines quêtes du passe de saison.
 
-Chaque pli oppose deux cartes (domaine vs domaine) :
+---
 
-- bonus de type +20 % (Taijutsu > Genjutsu > Ninjutsu > Taijutsu) ;
-- Intelligence/Vitesse en support selon le domaine ;
-- effets Tai (+10 % équipe au pli suivant) et Gen (−10 % adverse) ;
-- Médecine : soin si victoire, 50 % dégâts si défaite ;
-- cartes **relais** si le propriétaire est K.O. (proxy aléatoire, stat dominante) **ou** si le deck est incomplet (technique non assignée, domaines non enregistrés).
+## Monnaies et ressources
 
-### Conditions de victoire
-
-1. **K.O. immédiat** : si tous les actifs d'une équipe sont à terre (PV ou chakra épuisé), l'adversaire gagne sur-le-champ.
-
-2. **Fin des plis** : si aucune équipe n'est totalement éliminée après les 18 plis joués, le vainqueur est celui qui a le plus de **PV d'équipe restants** ; à égalité, celui qui a remporté le plus de **plis**.
-
-Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne détermine pas** seul le vainqueur (les PV restants priment).
-
-### Conséquences (à H72)
-
-| Résultat | Points ligue | Prime Ryos (base) | Butin bonus |
-|----------|--------------|-------------------|-------------|
-| Victoire | 3 | 1 600 | Ryos supplémentaires + objet aléatoire + chance de carte |
-| Nul | 1 chacun | 800 | Idem (probabilités réduites) |
-| Défaite | 0 | 100 (consolation) | Idem (probabilités réduites) |
+| Ressource | Comment l'obtenir | À quoi elle sert |
+|-----------|-------------------|------------------|
+| **Ryos** | Missions, duels rapides, passe de saison | Parchemins Standard et Élémentaire, amélioration de cartes, cosmétiques, réinitialisation des talents |
+| **Kage Coins** | Achat en boutique, passe de saison | Parchemins Premium, cosmétiques, piste premium du passe |
+| **Poussière de carte** | Désenchantement, passe de saison | Amélioration de cartes |
+| **Essence** | Désenchantement de cartes légendaires ou mythiques améliorées, passe de saison | Dernières améliorations des cartes légendaires et mythiques |
+| **Ferraille** | Combats et événements d'un parcours | Soins pendant ce parcours uniquement |
 
 ---
 
@@ -734,13 +443,4 @@ Le ratio de **plis gagnés** alimente la narration et le débrief — il **ne d�
 
 | Date | Changement |
 |------|------------|
-| 2026-07-18 | Missions idle : durées par rang (D 4 h / C 8 h / B 24 h / A 48 h), cap de 3 ninjas en parallèle, résolution à l'heure due |
-| 2026-07-18 | Villages : libellés joueur en pays (Hi / Kaze / Mizu / Tsuchi no Kuni) ; bots de ligue répartis sur ces pays |
-| 2026-07-17 | Rééquilibrage combat par plis : PV max × 5 (au lieu de × 10) et dégâts de pli relevés pour rendre les K.O. possibles |
-| 2026-07-09 | Création du document (règles joueur, sans formules exactes) |
-| 2026-07-10 | Consignes renommées (Défensive / Protection), guide postures & cartes tactiques ; retrait du cercle Assaut/Mur/Flux |
-| 2026-07-15 | Refonte en deux parties : interface par menus, puis systèmes de jeu |
-| 2026-07-17 | Retrait Pack Élite (désactivé), consignes/postures et objets match obsolètes ; alignement sur le deck d'opération |
-| 2026-07-17 | Profils de caractère (Brute…Stratège / sans profil) — biais stats +1/+2 à la génération |
-| 2026-07-17 | Rapport d'opération / reconnaissance en face-à-face (dégâts en PV) |
-| 2026-07-17 | Social ligue S1 : mur de saison, H2H / némésis, défis cross-ligue, invite polish |
+| 2026-11-14 | Réécriture complète pour la version actuelle : un seul ninja, deck de 20 à 30 cartes, arbre de talents, combat au tour par tour, parcours de mission, boutique, passe de saison, arène |

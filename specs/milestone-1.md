@@ -13,7 +13,7 @@ Chaque ninja généré procéduralement par le serveur doit posséder les champs
 *   `name` : Chaîne de caractères (Nom généré de style asiatique/ninja).
 *   `age` : Entier. Démarre strictement à 15 ans.
 *   `grade` : Énumération (`Genin`, `Chunin`, `Jonin`).
-*   `clan_trait_id` : Clé étrangère vers les modificateurs génétiques (ex: *Uchiwa*, *Nara*).
+*   `clan_trait_id` : Clé étrangère vers les modificateurs génétiques (ex: *Benigiri*, *Shizumori*).
 *   `element_affinity` : Énumération (`Katon`, `Suiton`, `Raiton`, `Doton`, `Futon`).
 *   `character_trait` : Énumération (`Egoiste`, `Altruiste`, `Faineant`, `Temeraire`, `Discipline`). *Détermine les comportements bonus/malus en match et en gestion.*
 *   `salary_cost` : Entier. Calculé dynamiquement selon son grade et le niveau de ses compétences.

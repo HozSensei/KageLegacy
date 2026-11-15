@@ -1,8 +1,25 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { query } from '../config/database.js';
-import { joinOrCreatePool, joinPoolByInvite } from './poolService.js';
-import { provisionStarterSquad } from './starterSquadService.js';
-import { grantStarterTacticCards } from './tacticCards/tacticCardService.js';
+
+/**
+ * V2 : pools / escouade / cartes tactiques legacy sont différés.
+ * Les hooks restent pour ne pas casser le flux register/guest.
+ */
+async function joinOrCreatePool(_userId) {
+  return null;
+}
+
+async function joinPoolByInvite(_userId, _invitePoolId) {
+  return { pool: null, fallback: true, reason: 'v2_deferred' };
+}
+
+async function provisionStarterSquad(_userId, _language) {
+  /* no-op V2 — le joueur crée un personnage unique via /api/player/create */
+}
+
+async function grantStarterTacticCards(_userId) {
+  /* no-op V2 — système de cartes Phase 2 */
+}
 
 const SESSION_DAYS = 30;
 const GUEST_DAYS = 7;
@@ -69,7 +86,7 @@ export async function findUserById(userId) {
   const rows = await query(
     `SELECT id, username, is_bot, is_admin, is_guest, guest_expires_at, email, created_at
      FROM users WHERE id = ? LIMIT 1`,
-    [userId]
+    [userId],
   );
   return mapUserRow(rows[0]);
 }
@@ -92,14 +109,14 @@ export async function registerUser({
   const passwordHash = hashPassword(password);
   const userResult = await query(
     'INSERT INTO users (username, password_hash, is_bot) VALUES (?, ?, FALSE)',
-    [username, passwordHash]
+    [username, passwordHash],
   );
   const userId = userResult.insertId;
 
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
      VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?, ?)`,
-    [userId, senseiName, language, villageId]
+    [userId, senseiName, language, villageId],
   );
 
   const numericInvite =
@@ -131,14 +148,14 @@ export async function registerGuestUser({ senseiName, language = 'fr', villageId
   const userResult = await query(
     `INSERT INTO users (username, is_bot, is_guest, guest_expires_at)
      VALUES (?, FALSE, TRUE, ?)`,
-    [username, expiresAt]
+    [username, expiresAt],
   );
   const userId = userResult.insertId;
 
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
      VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?, ?)`,
-    [userId, displayName, language, villageId]
+    [userId, displayName, language, villageId],
   );
 
   const poolJoin = { pool: await joinOrCreatePool(userId), fallback: false, reason: 'guest' };
@@ -177,7 +194,7 @@ export async function convertGuestToAccount(userId, { username, password, email,
     `UPDATE users
      SET username = ?, password_hash = ?, email = ?, is_guest = FALSE, guest_expires_at = NULL
      WHERE id = ?`,
-    [username, passwordHash, email || null, userId]
+    [username, passwordHash, email || null, userId],
   );
 
   if (senseiName?.trim()) {
@@ -204,7 +221,7 @@ export async function createSession(userId) {
 
   await query(
     'INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-    [userId, tokenHash, expiresAt]
+    [userId, tokenHash, expiresAt],
   );
 
   return { token, expiresAt };
@@ -219,7 +236,7 @@ export async function getUserBySessionToken(token) {
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > UTC_TIMESTAMP()
      LIMIT 1`,
-    [tokenHash]
+    [tokenHash],
   );
   const user = mapUserRow(rows[0]);
   if (!user) return null;
@@ -246,7 +263,7 @@ export async function setUserPassword(userId, password) {
 export async function changeUserPassword(userId, currentPassword, newPassword) {
   const rows = await query(
     'SELECT password_hash, is_guest FROM users WHERE id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   const row = rows[0];
   if (!row) {

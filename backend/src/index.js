@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import app from './app.js';
 import { isSchedulerEnabled, startScheduler, stopScheduler } from './services/scheduler.js';
+import { attachPvpWebSocket } from './ws/pvpWs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -16,6 +17,8 @@ const server = app.listen(PORT, () => {
     startScheduler();
   }
 });
+
+attachPvpWebSocket(server);
 
 function shutdown(signal) {
   console.log(`\n${signal} — arrêt en cours…`);

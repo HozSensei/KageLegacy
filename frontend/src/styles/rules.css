@@ -1,0 +1,258 @@
+/* Page des règles : document long (markdown rendu) avec sommaire latéral. */
+
+.rules-layout {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.rules-layout__header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: 3.25rem;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.rules-layout__title {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  color: var(--color-ink);
+}
+
+@media (min-width: 640px) {
+  .rules-layout__title {
+    display: flex;
+  }
+}
+
+.rules-layout__sidebar {
+  @apply fixed inset-y-0 left-0 z-50 w-72 -translate-x-full transition-transform duration-200 lg:static lg:z-0 lg:translate-x-0;
+  top: 3.25rem;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-line);
+  background: var(--color-bg-soft);
+}
+
+@media (min-width: 1024px) {
+  .rules-layout__sidebar {
+    background: transparent;
+  }
+}
+
+.rules-layout__sidebar--open {
+  @apply translate-x-0;
+}
+
+.rules-layout__backdrop {
+  @apply fixed inset-0 z-40 lg:hidden;
+  top: 3.25rem;
+  background: var(--color-scrim);
+}
+
+.rules-layout__sidebar-inner {
+  @apply sticky max-h-[calc(100vh-3.25rem)] overflow-y-auto px-4 py-6 sm:px-5 lg:py-8;
+  top: 3.25rem;
+}
+
+.rules-layout__sidebar-title {
+  @apply lg:hidden;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  color: var(--color-ink);
+}
+
+.rules-layout__sidebar-lead {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+.rules-layout__nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-line);
+}
+
+.rules-layout__nav-link {
+  padding: 0.5rem 0.75rem;
+  border-left: 4px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--color-ink-muted);
+  transition:
+    background var(--dur-fast) ease,
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+
+.rules-layout__nav-link:hover {
+  background: var(--color-bg-card);
+  color: var(--color-ink);
+}
+
+.rules-layout__nav-link--active {
+  border-left-color: var(--color-vermilion);
+  background: var(--color-bg-card);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.rules-layout__main {
+  @apply min-w-0 flex-1 px-4 py-8 sm:px-8 sm:py-10 lg:px-14 lg:py-12;
+}
+
+.rules-doc {
+  max-width: 46rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+
+.rules-doc > h1 {
+  margin-bottom: 1rem;
+  font-size: var(--type-title);
+  font-weight: 800;
+  font-stretch: 78%;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.rules-doc > p:first-of-type {
+  font-size: var(--type-subheading);
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+}
+
+.rules-doc__heading {
+  scroll-margin-top: 5rem;
+}
+
+.rules-doc a.rules-doc__anchor {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rules-doc a.rules-doc__anchor:hover {
+  color: var(--color-vermilion);
+}
+
+.rules-doc h2,
+.rules-doc__h2 {
+  margin: 3.5rem 0 1rem;
+  padding-top: 1rem;
+  border-top: 4px solid var(--color-ink);
+  font-size: var(--type-heading);
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+}
+
+.rules-doc h3,
+.rules-doc__h3 {
+  margin: 2rem 0 0.6rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-ink);
+}
+
+.rules-doc p {
+  margin: 0.8rem 0;
+}
+
+.rules-doc strong {
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.rules-doc em {
+  font-style: normal;
+  color: var(--color-ink-muted);
+}
+
+.rules-doc hr {
+  margin: 2.5rem 0;
+  border-color: var(--color-line);
+}
+
+.rules-doc ul {
+  @apply my-4 list-disc space-y-2 pl-5;
+}
+
+.rules-doc ol {
+  @apply my-4 list-decimal space-y-2 pl-5;
+}
+
+.rules-doc li::marker {
+  color: var(--color-vermilion);
+}
+
+.rules-doc table {
+  display: block;
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.rules-doc th,
+.rules-doc td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: top;
+}
+
+.rules-doc th {
+  border-bottom: 2px solid var(--color-ink);
+  background: var(--color-bg-soft);
+  font-size: var(--type-kicker);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+
+.rules-doc tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--color-bg-card) 60%, transparent);
+}
+
+.rules-doc a {
+  color: var(--color-vermilion);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.rules-doc code {
+  padding: 0.1rem 0.35rem;
+  background: var(--color-bg-soft);
+  font-size: 0.9em;
+}
+
+.rules-doc > h1 + p + p em {
+  display: block;
+  font-size: var(--type-kicker);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}

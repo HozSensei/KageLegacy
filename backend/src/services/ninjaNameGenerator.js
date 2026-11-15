@@ -1,7 +1,7 @@
 import { buildFullName, ninjaIdentityKey } from './ninjaNaming.js';
 
 /**
- * Générateur de noms style Naruto (inspiré des générateurs type FantasyNameGenerators / wikiHow).
+ * Générateur de noms à consonance japonaise (prénoms courants + noms de famille composés).
  *
  * Unicité en deux paliers :
  * 1. Prénom|nom unique sur le serveur (tous les joueurs)
@@ -10,7 +10,7 @@ import { buildFullName, ninjaIdentityKey } from './ninjaNaming.js';
 
 const SHINOBI_GIVEN = [
   'Aiko', 'Akio', 'Asuka', 'Ayame', 'Daichi', 'Emi', 'Gen', 'Hana', 'Haruki', 'Hayato',
-  'Hikaru', 'Hinata', 'Hotaru', 'Isamu', 'Izumi', 'Jiro', 'Jun', 'Kaede', 'Kaito', 'Kana',
+  'Hikaru', 'Hinako', 'Hotaru', 'Isamu', 'Izumi', 'Jiro', 'Jun', 'Kaede', 'Kaito', 'Kana',
   'Kazuki', 'Kenji', 'Kenta', 'Kiyoshi', 'Koji', 'Makoto', 'Mari', 'Mei', 'Mio', 'Mizuki',
   'Naoki', 'Natsu', 'Noa', 'Noriko', 'Ren', 'Rei', 'Rin', 'Ryo', 'Saki', 'Satoshi',
   'Shin', 'Shiori', 'Sora', 'Sota', 'Takeshi', 'Taro', 'Tsubasa', 'Yui', 'Yuki', 'Yuna',

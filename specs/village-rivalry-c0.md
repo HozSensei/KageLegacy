@@ -27,12 +27,12 @@ Le village n’ajoute **aucun bonus de combat**. Cosmétiques / titres / Ryos co
 
 | Id | Affichage | Ton |
 |----|-----------|-----|
-| `leaf` | Hi no Kuni | Discipline, tradition |
-| `sand` | Kaze no Kuni | Endurance, pragmatisme |
-| `mist` | Mizu no Kuni | Ombre, précision |
-| `stone` | Tsuchi no Kuni | Tenacité, défense |
+| `leaf` | Midorihara | Discipline, tradition |
+| `sand` | Kareno | Endurance, pragmatisme |
+| `mist` | Oborohama | Ombre, précision |
+| `stone` | Ishikura | Tenacité, défense |
 
-Libellés joueur en **« Xxx no Kuni »** (ambiance) — pas Konoha / Suna (marques plus exposées). Ids techniques inchangés (`leaf`…).
+Libellés joueur : noms de pays originaux (Midorihara, Kareno, Oborohama, Ishikura), sans reprise d'un lieu d'une licence existante. Ids techniques inchangés (`leaf`…).
 
 ---
 
@@ -49,7 +49,7 @@ Libellés joueur en **« Xxx no Kuni »** (ambiance) — pas Konoha / Suna (marq
 - Pas de transfert mid-saison payant en C0.
 
 ### Orthogonalité
-- Village ≠ clan ninja (Uchiwa, Hyuga…)  
+- Village ≠ clan ninja (Benigiri, Kazamine…)  
 - Village ≠ clan joueur (`player_clans`)  
 - Un Sensei a exactement **un** village.
 

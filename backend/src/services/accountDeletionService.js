@@ -1,7 +1,5 @@
 import { query } from '../config/database.js';
-import { createBotUser, findAvailableBotSlotIndex } from './botFactory.js';
 import { findUserByUsername, verifyPassword } from './authService.js';
-import { handleClanOnAccountDeletion } from './playerClanService.js';
 
 async function verifyDeletePassword(user, password) {
   if (user.is_guest) return;
@@ -18,33 +16,10 @@ async function verifyDeletePassword(user, password) {
   }
 }
 
-async function replaceHumanWithBotInPool(poolId, humanUserId) {
-  const slotIndex = await findAvailableBotSlotIndex(poolId);
-  const { userId: botId } = await createBotUser(poolId, slotIndex);
-
-  await query('UPDATE pool_members SET user_id = ? WHERE pool_id = ? AND user_id = ?', [
-    botId,
-    poolId,
-    humanUserId,
-  ]);
-  await query('UPDATE pool_standings SET user_id = ? WHERE pool_id = ? AND user_id = ?', [
-    botId,
-    poolId,
-    humanUserId,
-  ]);
-  await query('UPDATE matches SET home_user_id = ? WHERE pool_id = ? AND home_user_id = ?', [
-    botId,
-    poolId,
-    humanUserId,
-  ]);
-  await query('UPDATE matches SET away_user_id = ? WHERE pool_id = ? AND away_user_id = ?', [
-    botId,
-    poolId,
-    humanUserId,
-  ]);
-  await query('UPDATE matches SET winner_user_id = NULL WHERE winner_user_id = ?', [humanUserId]);
-}
-
+/**
+ * Suppression de compte V2 — sans remplacement bot de pool / clans joueurs (legacy).
+ * player_character part via ON DELETE CASCADE.
+ */
 export async function deleteUserAccount(user, { password } = {}) {
   if (user.is_bot) {
     const err = new Error('Ce compte ne peut pas être supprimé.');
@@ -53,28 +28,6 @@ export async function deleteUserAccount(user, { password } = {}) {
   }
 
   await verifyDeletePassword(user, password);
-
-  await query(
-    `UPDATE player_listings SET status = 'cancelled'
-     WHERE seller_user_id = ? AND status = 'active'`,
-    [user.id]
-  );
-
-  const poolRows = await query(
-    `SELECT p.id AS pool_id FROM pools p
-     JOIN pool_members pm ON pm.pool_id = p.id
-     WHERE pm.user_id = ? AND p.status = 'active'
-     LIMIT 1`,
-    [user.id]
-  );
-
-  if (poolRows[0]) {
-    await replaceHumanWithBotInPool(poolRows[0].pool_id, user.id);
-  } else {
-    await query('DELETE FROM matches WHERE home_user_id = ? OR away_user_id = ?', [user.id, user.id]);
-  }
-
-  await handleClanOnAccountDeletion(user.id);
 
   await query('DELETE FROM user_sessions WHERE user_id = ?', [user.id]);
   await query('DELETE FROM users WHERE id = ?', [user.id]);

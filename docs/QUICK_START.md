@@ -96,12 +96,26 @@ npm run dev:api
 # Appliquer les migrations
 npm run db:migrate
 
-# Générer et seed les cartes (à venir)
+# Seed démo locale (compte demo_sensei — ne pas lancer en prod)
 npm run db:seed
 
-# Tester le moteur de combat (à venir)
-npm run test:combat
+# Catalogues V2 idempotents (cartes + talents + battle pass)
+npm run db:seed-v2
+
+# Tester le moteur de combat
+npm run test:combat-engine --prefix backend
 ```
+
+### Déploiement Docker (NAS / prod)
+
+`pull` + `up -d` suffit : au boot, après les migrations, le container exécute automatiquement `npm run db:seed-v2` (catalogues cartes / talents / battle pass). **Pas** de `db:seed` démo.
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+Échappatoire : `SKIP_V2_SEEDS=1` dans `.env.prod` pour sauter les seeds au démarrage.
 
 ### Frontend (`/frontend`)
 

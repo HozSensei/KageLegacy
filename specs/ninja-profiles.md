@@ -20,7 +20,7 @@ Le manager ne peut pas vraiment choisir « mon spécialiste genjutsu » vs « mo
 
 | Axe | Rôle | Exemple |
 | :--- | :--- | :--- |
-| **Clan** | ADN fixe, bonus plats — **rare** (noble ~10 %) | Uchiwa → feu/illusion ; roturier = majorité |
+| **Clan** | ADN fixe, bonus plats — **rare** (noble ~10 %) | Benigiri → feu/illusion ; roturier = majorité |
 | **Voie (art principal)** | Spécialisation de combat | Genjutsu, Taijutsu, Ninjutsu, Médecine |
 | **Potentiel** | Talent brut + vitesse de progression | Ordinaire / Prometteur / Prodige |
 | **Profil de caractère** | Petit biais d'**une** stat (+1/+2) ou **sans profil** | Brute → Taijutsu ; Véloce → Vitesse |
@@ -40,7 +40,7 @@ Chaque ninja naît avec une **voie** qui concentre ~60–70 % des points bonus :
 | **Genjutsu** | genjutsu, intelligence | taijutsu |
 | **Médecine** | médecine, intelligence | taijutsu |
 
-Le clan **biaise** le tirage de la voie (ex. Yamanaka → 50 % Genjutsu, Uchiwa → Ninjutsu/Genjutsu).
+Le clan **biaise** le tirage de la voie (ex. Yukisawa → 50 % Genjutsu, Benigiri → Ninjutsu/Genjutsu).
 
 ---
 
@@ -61,8 +61,8 @@ Le clan **biaise** le tirage de la voie (ex. Yamanaka → 50 % Genjutsu, Uchiwa 
 | Tier | Clans | Fréquence tirage |
 | :--- | :--- | :--- |
 | Roturier | Sans lignée | ~65 % |
-| Clan village | Sarutobi, Akimichi, Yamanaka | ~25 % |
-| Lignée noble | Nara, Uchiwa, Hyuga | ~10 % |
+| Clan village | Nagihara, Kumatani, Yukisawa | ~25 % |
+| Lignée noble | Shizumori, Benigiri, Kazamine | ~10 % |
 
 ---
 
@@ -76,7 +76,7 @@ Labels dérivés (pas besoin de deviner les chiffres) :
 | Potentiel | « Profil prometteur » / « Talent ordinaire » / « Prodige » |
 | Profil de caractère | « Brute » / « Véloce » / « Sans profil » — couleur = +1 ou +2 |
 | Élément | « Affinité Katon » (déjà en BDD) |
-| Clan | « Clan Nara » (déjà) |
+| Clan | « Clan Shizumori » (déjà) |
 
 **Rapport d'espionnage (H36)** : peut révéler le potentiel adverse de façon floue (« adversaire : spécialiste ninjutsu, niveau estimé élevé »).
 

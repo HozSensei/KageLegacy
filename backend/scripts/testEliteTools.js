@@ -154,7 +154,7 @@ async function main() {
   console.assert(isCustomOpponentDeckInput({ techniqueSlugsByNinja: [[]] }), 'detect custom input');
 
   const scoutConfig = buildScoutMatchupConfigFromReport(
-    { opponentName: 'Orochimaru' },
+    { opponentName: 'Banri' },
     {
       tier: 'full',
       techniqueCount: 2,

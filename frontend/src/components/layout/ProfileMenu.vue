@@ -4,9 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useSquadStore } from '../../stores/squad'
 import { useEliteStore } from '../../stores/elite'
-import { useThemeStore } from '../../stores/theme'
 import SlidePanel from './SlidePanel.vue'
 import VerifiedIcon from '../icons/VerifiedIcon.vue'
+import AppIcon from '../ui/AppIcon.vue'
 
 defineOptions({ name: 'ProfileMenu' })
 
@@ -16,7 +16,6 @@ const { t, locale } = useI18n()
 const auth = useAuthStore()
 const squad = useSquadStore()
 const elite = useEliteStore()
-const themeStore = useThemeStore()
 
 const open = ref(false)
 const section = ref(null)
@@ -75,10 +74,6 @@ async function setLanguage(lang) {
   } else {
     formError.value = auth.error
   }
-}
-
-function setTheme(themeId) {
-  themeStore.setTheme(themeId)
 }
 
 async function submitEmail() {
@@ -140,21 +135,13 @@ onMounted(() => {
   <div>
     <button
       type="button"
-      class="flex h-9 w-9 items-center justify-center rounded-full border border-line text-ink-muted transition hover:border-accent/40 hover:text-accent"
+      class="btn-icon profile-trigger"
       :aria-label="t('profile.menu')"
       :aria-expanded="open"
       data-testid="profile-menu-button"
       @click="toggle"
     >
-      <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.4 0-8 2.2-8 5v1h16v-1c0-2.8-3.6-5-8-5Z"
-          stroke="currentColor"
-          stroke-width="1.75"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <AppIcon name="profile" size="1.25rem" />
     </button>
 
     <SlidePanel
@@ -164,67 +151,37 @@ onMounted(() => {
       :aria-label="t('profile.menu')"
       panel-test-id="profile-menu-panel"
     >
-      <div class="border-b border-line px-5 py-4">
-        <p class="truncate text-sm font-medium text-ink">{{ displayName }}</p>
-        <p v-if="auth.user?.username && auth.sensei?.name" class="truncate text-xs text-ink-faint">
-          {{ auth.user.username }}
-        </p>
-        <p v-if="auth.user?.email" class="mt-1 truncate text-xs text-ink-muted">{{ auth.user.email }}</p>
+      <div class="profile-menu__head">
+        <span class="profile-menu__initial" aria-hidden="true">{{ displayName.charAt(0).toUpperCase() }}</span>
+        <div class="min-w-0 flex-1">
+          <p class="profile-menu__name">{{ displayName }}</p>
+          <p v-if="auth.user?.username && auth.sensei?.name" class="truncate text-xs text-ink-muted">
+            {{ auth.user.username }}
+          </p>
+          <p v-if="auth.user?.email" class="mt-0.5 truncate text-xs text-ink-muted">{{ auth.user.email }}</p>
+        </div>
+        <button type="button" class="btn-icon" :aria-label="t('common.dismiss')" @click="close">
+          <AppIcon name="close" size="1.125rem" :stroke-width="2" />
+        </button>
       </div>
 
-      <div class="border-b border-line px-5 py-4">
-        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.theme') }}</p>
-        <ul class="mt-3 space-y-2" role="list">
-          <li v-for="theme in themeStore.options" :key="theme.id">
-            <button
-              type="button"
-              class="flex w-full items-center gap-3 rounded border px-3 py-2.5 text-left text-sm transition"
-              :class="
-                themeStore.currentId === theme.id
-                  ? 'border-accent bg-bg text-ink'
-                  : 'border-line text-ink-muted hover:border-ink-faint hover:text-ink'
-              "
-              :data-testid="`profile-theme-${theme.id}`"
-              @click="setTheme(theme.id)"
-            >
-              <span class="flex shrink-0 gap-1" aria-hidden="true">
-                <span
-                  v-for="(color, index) in theme.preview"
-                  :key="`${theme.id}-${index}`"
-                  class="h-4 w-4 rounded-full border border-line/60"
-                  :style="{ backgroundColor: color }"
-                />
-              </span>
-              <span class="min-w-0 flex-1">{{ t(theme.labelKey) }}</span>
-              <span
-                v-if="themeStore.currentId === theme.id"
-                class="shrink-0 text-[10px] uppercase tracking-[0.12em] text-accent"
-              >
-                {{ t('profile.themeActive') }}
-              </span>
-            </button>
-          </li>
-        </ul>
-      </div>
-
-      <div class="border-b border-line px-5 py-4">
-        <p class="text-[10px] uppercase tracking-[0.14em] text-ink-faint">{{ t('profile.language') }}</p>
-        <div class="mt-2 flex gap-1 text-[11px] uppercase tracking-[0.14em]">
+      <div class="profile-menu__section">
+        <p class="t-kicker">{{ t('profile.language') }}</p>
+        <div class="mt-2.5 flex gap-1.5">
           <button
             type="button"
-            class="px-2 py-1 transition"
+            class="chip"
             data-testid="profile-locale-fr"
-            :class="locale === 'fr' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
+            :aria-pressed="locale === 'fr'"
             @click="setLanguage('fr')"
           >
             {{ t('locale.fr') }}
           </button>
-          <span class="text-ink-faint/40">/</span>
           <button
             type="button"
-            class="px-2 py-1 transition"
+            class="chip"
             data-testid="profile-locale-en"
-            :class="locale === 'en' ? 'text-accent' : 'text-ink-faint hover:text-ink-muted'"
+            :aria-pressed="locale === 'en'"
             @click="setLanguage('en')"
           >
             {{ t('locale.en') }}
@@ -232,68 +189,41 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="border-b border-line px-5 py-4">
-        <router-link
-          to="/profil"
-          class="btn-ghost w-full text-[10px]"
-          data-testid="profile-sensei-link"
-          @click="close"
-        >
+      <div class="profile-menu__section flex flex-col gap-2">
+        <router-link to="/profil" class="btn-ghost btn-block" data-testid="profile-sensei-link" @click="close">
           {{ t('nav.profile') }}
         </router-link>
         <router-link
           v-if="elite.featureEnabled && elite.subscription?.isActive"
           to="/elite/outils"
-          class="btn-ghost mt-2 w-full gap-1.5 text-[10px]"
+          class="btn-ghost btn-block"
           data-testid="profile-elite-tools-link"
           @click="close"
         >
           <VerifiedIcon size="1rem" />
           {{ t('nav.eliteTools') }}
         </router-link>
-      </div>
-
-      <div class="border-b border-line px-5 py-4">
-        <router-link
-          to="/rules"
-          class="btn-ghost w-full text-[10px]"
-          data-testid="profile-rules-link"
-          @click="close"
-        >
+        <router-link to="/rules" class="btn-ghost btn-block" data-testid="profile-rules-link" @click="close">
           {{ t('rules.link') }}
         </router-link>
       </div>
 
-      <div class="divide-y divide-line/60">
+      <div class="profile-menu__rows">
         <button
           type="button"
-          class="flex w-full items-center justify-between px-5 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-ink"
+          class="profile-menu__row"
           data-testid="profile-change-email"
           @click="toggleSection('email')"
         >
           {{ t('profile.changeEmail') }}
         </button>
 
-        <form
-          v-if="section === 'email'"
-          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-5 py-3"
-          @submit.prevent="submitEmail"
-        >
-          <label class="block text-xs">
-            <span class="text-ink-muted">{{ t('profile.email') }}</span>
-            <input
-              v-model="email"
-              type="email"
-              class="mt-1 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
-              data-testid="profile-email-input"
-            />
+        <form v-if="section === 'email'" class="profile-menu__form" @submit.prevent="submitEmail">
+          <label class="field">
+            <span class="field__label">{{ t('profile.email') }}</span>
+            <input v-model="email" type="email" class="input-field" data-testid="profile-email-input" />
           </label>
-          <button
-            type="submit"
-            class="btn-ghost w-full text-xs"
-            :disabled="saving"
-            data-testid="profile-email-submit"
-          >
+          <button type="submit" class="btn-secondary btn-block" :disabled="saving" data-testid="profile-email-submit">
             {{ saving ? t('auth.loading') : t('profile.save') }}
           </button>
         </form>
@@ -301,7 +231,7 @@ onMounted(() => {
         <button
           v-if="!isGuest"
           type="button"
-          class="flex w-full items-center justify-between px-5 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-ink"
+          class="profile-menu__row"
           data-testid="profile-change-password"
           @click="toggleSection('password')"
         >
@@ -310,33 +240,33 @@ onMounted(() => {
 
         <form
           v-if="section === 'password' && !isGuest"
-          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-5 py-3"
+          class="profile-menu__form"
           @submit.prevent="submitPassword"
         >
-          <label class="block text-xs">
-            <span class="text-ink-muted">{{ t('profile.currentPassword') }}</span>
+          <label class="field">
+            <span class="field__label">{{ t('profile.currentPassword') }}</span>
             <input
               v-model="currentPassword"
               type="password"
               required
-              class="mt-1 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
+              class="input-field"
               data-testid="profile-current-password"
             />
           </label>
-          <label class="block text-xs">
-            <span class="text-ink-muted">{{ t('profile.newPassword') }}</span>
+          <label class="field">
+            <span class="field__label">{{ t('profile.newPassword') }}</span>
             <input
               v-model="newPassword"
               type="password"
               required
               minlength="6"
-              class="mt-1 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
+              class="input-field"
               data-testid="profile-new-password"
             />
           </label>
           <button
             type="submit"
-            class="btn-ghost w-full text-xs"
+            class="btn-secondary btn-block"
             :disabled="saving"
             data-testid="profile-password-submit"
           >
@@ -347,7 +277,7 @@ onMounted(() => {
         <button
           v-if="isGuest"
           type="button"
-          class="flex w-full px-5 py-3 text-left text-sm text-accent transition hover:bg-bg-soft"
+          class="profile-menu__row profile-menu__row--accent"
           data-testid="profile-convert"
           @click="handleConvert"
         >
@@ -356,29 +286,26 @@ onMounted(() => {
 
         <button
           type="button"
-          class="flex w-full px-5 py-3 text-left text-sm text-fire transition hover:bg-bg-soft"
+          class="profile-menu__row profile-menu__row--danger"
           data-testid="profile-delete-account"
           @click="toggleSection('delete')"
         >
           {{ t('profile.deleteAccount') }}
         </button>
 
-        <div
-          v-if="section === 'delete'"
-          class="space-y-3 border-t border-line/60 bg-bg-soft/50 px-5 py-3"
-        >
-          <p class="text-xs leading-relaxed text-ink-muted">{{ t('profile.deleteWarning') }}</p>
-          <label v-if="!isGuest" class="block text-xs">
-            <span class="text-ink-muted">{{ t('profile.deletePassword') }}</span>
+        <div v-if="section === 'delete'" class="profile-menu__form">
+          <p class="text-sm leading-relaxed text-ink-muted">{{ t('profile.deleteWarning') }}</p>
+          <label v-if="!isGuest" class="field">
+            <span class="field__label">{{ t('profile.deletePassword') }}</span>
             <input
               v-model="deletePassword"
               type="password"
               required
-              class="mt-1 w-full border border-line bg-bg px-3 py-2 text-sm text-ink"
+              class="input-field"
               data-testid="profile-delete-password"
             />
           </label>
-          <label class="flex items-start gap-2 text-xs text-ink-muted">
+          <label class="flex items-start gap-2 text-sm text-ink-muted">
             <input
               v-model="deleteConfirmed"
               type="checkbox"
@@ -388,16 +315,12 @@ onMounted(() => {
             <span>{{ t('profile.deleteConfirmLabel') }}</span>
           </label>
           <div class="flex gap-2">
-            <button
-              type="button"
-              class="btn-ghost flex-1 text-xs"
-              @click="toggleSection(null)"
-            >
+            <button type="button" class="btn-ghost flex-1" @click="toggleSection(null)">
               {{ t('profile.deleteCancel') }}
             </button>
             <button
               type="button"
-              class="btn-ghost flex-1 border-fire text-fire text-xs"
+              class="btn-danger flex-1"
               :disabled="saving || !deleteConfirmed"
               data-testid="profile-delete-submit"
               @click="submitDelete"
@@ -408,16 +331,120 @@ onMounted(() => {
         </div>
       </div>
 
-      <p v-if="formError" class="border-t border-line px-5 py-2 text-xs text-fire">{{ formError }}</p>
+      <p v-if="formError" class="alert alert--error mx-5 mt-3">{{ formError }}</p>
 
-      <button
-        type="button"
-        class="mt-auto w-full border-t border-line px-5 py-3 text-left text-sm text-ink-muted transition hover:bg-bg-soft hover:text-fire"
-        data-testid="profile-logout"
-        @click="handleLogout"
-      >
+      <button type="button" class="profile-menu__logout" data-testid="profile-logout" @click="handleLogout">
         {{ t('auth.logout') }}
+        <AppIcon name="arrow-right" size="1rem" :stroke-width="2" />
       </button>
     </SlidePanel>
   </div>
 </template>
+
+<style scoped>
+.profile-trigger {
+  border-radius: 50%;
+  background: var(--color-indigo-fill);
+  color: var(--color-on-fill);
+}
+
+.profile-trigger:hover {
+  background: var(--color-vermilion);
+}
+
+.profile-menu__head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.profile-menu__initial {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  background: var(--color-vermilion);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  color: var(--color-on-fill);
+}
+
+.profile-menu__name {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-stretch: 88%;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-menu__section {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.profile-menu__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-menu__row {
+  display: flex;
+  width: 100%;
+  padding: 0.8rem 1.25rem;
+  border-bottom: 1px solid var(--color-line);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-ink);
+  transition: background-color var(--dur-fast) ease;
+}
+
+.profile-menu__row:hover {
+  background: var(--color-bg-soft);
+}
+
+.profile-menu__row--accent {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.profile-menu__row--danger {
+  color: var(--color-fire);
+}
+
+.profile-menu__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-bg-soft);
+}
+
+.profile-menu__logout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  background: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-on-ink);
+  transition: background-color var(--dur-fast) ease;
+}
+
+.profile-menu__logout:hover {
+  background: var(--color-fire-fill);
+  color: var(--color-on-fill);
+}
+</style>

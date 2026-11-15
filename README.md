@@ -1,7 +1,10 @@
 # 🥷 Kage Legacy
 
-> **⚠️ PROJET EN TRANSFORMATION**  
+> **⚠️ PROJET EN TRANSFORMATION - PHASE 0 COMPLÉTÉE**  
 > Ce projet évolue d'un jeu de gestion d'escouade (type Hattrick) vers un **jeu de deck-building roguelike solo** (type Slay the Spire).
+> 
+> **État actuel** : Phase 0 terminée (environnement préparé, legacy archivé, migrations créées)  
+> **Branche de développement** : `cursor/kage-legacy-v2-9fa6`
 
 ---
 
@@ -28,9 +31,32 @@
 | **[🎯 PROJECT_VISION](./docs/PROJECT_VISION.md)** | Vision, objectifs, game design |
 | **[📅 BATTLE_PASS](./docs/BATTLE_PASS.md)** | Système de saison (nouveau) |
 | **[⚔️ COMBAT_SYSTEM](./docs/COMBAT_SYSTEM.md)** | Mécanique de combat carte par carte |
+| **[🗺️ MISSION_RUNS](./docs/MISSION_RUNS.md)** | Parcours multi-combats + événements (boucle session) |
 | **[🃏 CARD_SYSTEM](./docs/CARD_SYSTEM.md)** | Système de cartes (génération, collection) |
 | **[🏗️ TECHNICAL_ARCHITECTURE](./docs/TECHNICAL_ARCHITECTURE.md)** | Architecture technique |
 | **[🗺️ IMPLEMENTATION_ROADMAP](./docs/IMPLEMENTATION_ROADMAP.md)** | Roadmap complète (3-4 mois) |
+
+---
+
+## 🔧 Développement V2
+
+### Nouvelles Ressources
+
+- **`CHANGELOG.md`** : Historique des modifications
+- **`CONTRIBUTING.md`** : Conventions de code et workflow
+- **`legacy/`** : Code archivé de l'ancienne version
+
+### Scripts Ajoutés
+
+```bash
+npm run lint      # Lint backend + frontend
+npm run format    # Format backend + frontend
+```
+
+### Migrations V2
+
+- **100_kage_legacy_v2_init.sql** : Table `player_character` et extension `sensei`
+- **101_talent_tree.sql** : Système d'arbre de talents
 
 ---
 
@@ -97,6 +123,7 @@ npm run dev
 | `npm run db:down` | Arrête les conteneurs Docker |
 | `npm run db:migrate` | Applique les migrations SQL |
 | `npm run db:seed` | Génère le joueur démo + 15 ninjas (**dev uniquement**) |
+| `npm run db:seed-v2` | Catalogues V2 idempotents (cartes, talents, battle pass) — **sûr en prod** |
 | `npm run dev` | API + front en parallèle |
 | `npm run dev:api` / `npm run dev:web` | API ou front seul |
 | `npm run lint` | ESLint frontend |
@@ -120,6 +147,10 @@ Les commandes **backend** détaillées ci-dessous se lancent avec `npm run <scri
 |----------|-----------|-------------|
 | `db:migrate` | — | Applique les migrations en attente |
 | `db:seed` | — | Compte `demo_sensei` / `demo` + escouade (**ne pas lancer en prod** sur une base existante) |
+| `db:seed-v2` | — | Catalogues V2 : cartes + talents + battle pass (idempotent ; lancé auto au boot Docker) |
+| `db:seed-cards` | — | Catalogue de cartes seul |
+| `db:seed-talents` | — | Arbre de talents seul |
+| `db:seed-battle-pass` | — | Saison Battle Pass + quêtes |
 
 ### Horloge du cycle (72 h)
 
@@ -306,7 +337,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
-Au démarrage, le container **attend MySQL**, applique les **migrations** (données joueurs conservées), puis lance l'API + Nginx.
+Au démarrage, le container **attend MySQL**, applique les **migrations** (données joueurs conservées), lance les **seeds catalogues V2** idempotents (`db:seed-v2` : cartes, talents, battle pass — **pas** le seed démo), puis démarre l'API + Nginx.
 
 | Variable | Rôle |
 |----------|------|
@@ -315,8 +346,9 @@ Au démarrage, le container **attend MySQL**, applique les **migrations** (donn�
 | `CORS_ORIGIN` | URL publique HTTPS du front |
 | `ENABLE_SCHEDULER` | `true` — horloge 72h |
 | `AUTH_DEMO_FALLBACK` | `false` en prod |
+| `SKIP_V2_SEEDS` | `1` pour **sauter** les seeds catalogues au boot (défaut : seeds actifs) |
 
-**Mise à jour** : `pull` + `up -d` — ne jamais lancer `db:seed` en prod sur une base existante.
+**Mise à jour** : `pull` + `up -d` — les catalogues se mettent à jour tout seuls. Ne jamais lancer `db:seed` (démo/ninjas) en prod sur une base existante. Override manuel uniquement si besoin : `docker exec -w /app/backend kage_app npm run db:seed-v2` ou `SKIP_V2_SEEDS=1` dans `.env.prod`.
 
 Pour l'horloge et le hard reset en prod, voir la section **Référence des commandes CLI** (horloge, `season:hard-reset`, variables `CYCLE_START_AT`).
 

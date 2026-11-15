@@ -403,9 +403,18 @@ export async function handleStripeWebhook(rawBody, signature) {
   }
 
   switch (event.type) {
-    case 'checkout.session.completed':
-      await fulfillCheckoutSession(event.data.object);
+    case 'checkout.session.completed': {
+      const session = event.data.object;
+      const { isShopCheckoutSession, fulfillShopCheckoutSession } = await import(
+        './shopStripeService.js'
+      );
+      if (isShopCheckoutSession(session)) {
+        await fulfillShopCheckoutSession(session);
+      } else {
+        await fulfillCheckoutSession(session);
+      }
       break;
+    }
     case 'customer.subscription.updated':
       await handleSubscriptionUpdated(event.data.object);
       break;

@@ -188,7 +188,7 @@ router.post('/pools/assign-missing', async (req, res, next) => {
   }
 });
 
-/** Répartit villages + noms « Xxx no Kuni » sur les bots existants. */
+/** Répartit villages + prénoms sensei sur les bots existants. */
 router.post('/bots/retune-identities', async (req, res, next) => {
   try {
     const force = Boolean(req.body?.force);

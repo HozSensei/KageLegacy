@@ -99,6 +99,8 @@ Chance_Crit = min(50, Vitesse / 10) + Buffs
 - ❤️ Mort = Échec de la mission
 - ❤️ PV max augmentent avec le niveau du personnage
 
+> **Implémenté** : les missions deck-combat sont des **parcours** (`docs/MISSION_RUNS.md`) — 3–5 combats enchaînés, événements entre combats (Sanctuaire de Mousse, Cache d’Éclaireur, Colporteur d’Ombre, Carrefour du Voile), PV/scrap persistants, récompenses en fin de run.
+
 **Formule** :
 ```
 PV_max = 100 + bonus_from_talent_nodes + bonus_from_cards
@@ -246,7 +248,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Exemple** :
 ```javascript
 {
-  name: "Substitution (Kawarimi)",
+  name: "Esquive au leurre",
   type: "defense",
   cost: 1,
   block: 8,
@@ -268,7 +270,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Exemple** :
 ```javascript
 {
-  name: "Paume mystique",
+  name: "Paume apaisante",
   type: "skill",
   cost: 2,
   heal: 15,
@@ -344,7 +346,11 @@ GENJUTSU ←→→→ NINJUTSU
 (Illusions)   (Techniques)
 ```
 
-**Bonus** : +20% dégâts si avantage de type
+**Bonus** : +20% dégâts si avantage de type (×**1.2**)
+
+> Implémentation : pas de malus réciproque sur la triade — hors avantage = ×1.
+> Code : `backend/src/services/deckCombat/typeAdvantage.js` (`getTypeAdvantage`).
+> Tests : `npm run test:type-advantage` · voir aussi [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md).
 
 **Exemple** :
 ```
@@ -378,6 +384,9 @@ KATON (Feu) 🔥
 - **Avantage** : ×1.5 dégâts
 - **Désavantage** : ×0.7 dégâts
 - **Neutre** : ×1.0
+
+> Code : `getElementAdvantage` / `elementMultiplier` dans `typeAdvantage.js`.
+> Appliqué dans `computeCardDamage` (cartes d’attaque) avec la triade.
 
 **Exemple** :
 ```
@@ -468,7 +477,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
 
 ```javascript
 {
-  name: "Gaara du Désert",
+  name: "Seigneur des Dunes",
   hp: 280,
   phases: [
     {
@@ -476,7 +485,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
       pattern: [
         { action: "defend", block: 20 },
         { action: "attack", damage: 15, hits: 2 },
-        { action: "summon", minion: "Sable protecteur" }
+        { action: "summon", minion: "Rempart de sable" }
       ]
     },
     {
@@ -484,7 +493,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
       on_enter: { 
         action: "special", 
         effect: "full_heal_armor",
-        message: "Gaara se transforme !" 
+        message: "Le Seigneur des Dunes se transforme !" 
       },
       pattern: [
         { action: "heavy_attack", damage: 28 },
@@ -535,12 +544,12 @@ Tour 3 : Catalyseur (20 dégâts instantanés !)
 **Cartes clés** :
 - "Combo rapide" (0 Chakra, 3 dégâts + Pioche 1)
 - "Coup de poing" (1 Chakra, 6 dégâts)
-- "8 Portes (1ère)" (3 Chakra, +5 Force pendant 3 tours)
-- "Lotus avant" (2 Chakra, 14 dégâts, Exhaust)
+- "Souffle déchaîné" (3 Chakra, +5 Force pendant 3 tours)
+- "Chute tournoyante" (2 Chakra, 14 dégâts, Exhaust)
 
 **Combo** :
 ```
-Tour 1 : 8 Portes (+5 Force)
+Tour 1 : Souffle déchaîné (+5 Force)
 Tour 2 : Combo × 3 + Poing × 2 = Énorme burst
 ```
 
@@ -550,7 +559,7 @@ Tour 2 : Combo × 3 + Poing × 2 = Énorme burst
 
 **Cartes clés** :
 - "Mur Doton" (2 Chakra, 15 Armure)
-- "Paume mystique" (2 Chakra, 12 Soins + Regen 5)
+- "Paume apaisante" (2 Chakra, 12 Soins + Regen 5)
 - "Riposte" (1 Chakra, 6 Armure + Contre 8 dégâts)
 - "Régénération cellulaire" (3 Chakra, Regen 8 pendant 5 tours)
 
@@ -605,6 +614,13 @@ VOUS : Aiko Kagemori [Genin Niv.12]
 4. **Statuts** : Icônes animées au-dessus du personnage
 5. **Intention** : Bulle avec icône au-dessus de l'ennemi
 6. **Phase de boss** : Flash + dialogue + changement visuel
+
+---
+
+## Tests d’équilibrage
+
+Simulations déterministes (seed + politique greedy) : `docs/COMBAT_BALANCE_TESTS.md`  
+`npm run test:combat-balance` / `npm run test:combat-balance:report`
 
 ---
 

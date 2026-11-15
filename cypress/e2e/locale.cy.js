@@ -1,48 +1,27 @@
-describe('Interface — locale', () => {
+describe('Locale — FR/EN V2', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/missions');
-    cy.get('[data-testid="missions-panel"]', { timeout: 15000 }).should('be.visible');
+    cy.visit('/profil');
+    cy.get('[data-testid="profile-page"]', { timeout: 15000 }).should('be.visible');
   });
 
-  it('bascule en anglais sur le Bureau', () => {
+  it('passe en anglais puis revient en français', () => {
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-locale-en"]').click();
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
-    cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
-    cy.get('[data-testid="missions-panel"]').contains('Mission rank');
-  });
+    cy.get('[data-testid="nav-profile"]').should('contain', 'Profile');
+    cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
+    cy.get('[data-testid="nav-hub"]').should('contain', 'Home');
 
-  it('revient en français', () => {
-    cy.get('[data-testid="profile-menu-button"]').click();
-    cy.get('[data-testid="profile-locale-en"]').click();
-    cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
-    cy.openNavMenu();
-    cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
     cy.closeSlidePanel();
     cy.get('[data-testid="profile-menu-button"]').click();
     cy.get('[data-testid="profile-menu-panel"]').should('be.visible');
     cy.get('[data-testid="profile-locale-fr"]').click();
     cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
     cy.openNavMenu();
-    cy.get('[data-testid="nav-squad"]').should('contain', 'Escouade');
-    cy.get('[data-testid="missions-panel"]').contains('Rang de mission');
-  });
-
-  it('affiche la chronique en anglais sur /operation', () => {
-    cy.task('getAppliedMatchE2E').then((result) => {
-      expect(result.ok).to.eq(true);
-      cy.get('[data-testid="profile-menu-button"]').click();
-      cy.get('[data-testid="profile-locale-en"]').click();
-      cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
-      cy.visit(
-        `/operation/match/${result.matchId}?poolId=${result.poolId}&cycle=${result.cycle}`
-      );
-      cy.get('[data-testid="operation-chronicle"]', { timeout: 15000 }).should('be.visible');
-      cy.get('[data-testid="operation-chronicle"]').invoke('text').should('have.length.gte', 20);
-      cy.openNavMenu();
-      cy.get('[data-testid="nav-squad"]').should('contain', 'Squad');
-    });
+    cy.get('[data-testid="nav-profile"]').should('contain', 'Profil');
+    cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
+    cy.get('[data-testid="nav-hub"]').should('contain', 'Accueil');
   });
 });

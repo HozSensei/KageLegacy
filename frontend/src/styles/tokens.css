@@ -1,0 +1,245 @@
+/*
+ * Socle visuel Kage Legacy — deux thèmes (clair par défaut, sombre sous `[data-theme='dark']`).
+ * Palette tirée des illustrations : papier crème, encre indigo, vermillon des bannières,
+ * indigo des toits, vert feuillage, bleu ciel, bois chaud, or des lanternes.
+ *
+ * Convention : chaque teinte a une variante « texte » (contraste ≥ 4,5:1 sur le fond du thème),
+ * une variante « -fill » pour les aplats et formes, et une variante « -tint » pour les fonds.
+ * Les variantes « texte » et « -tint » s'inversent en sombre ; les « -fill » restent des aplats
+ * saturés, donc le texte posé dessus (`--tone-on`, `--color-on-fill`) ne change pas de thème.
+ * Ne jamais écrire une couleur en dur dans un composant : passer par ces variables.
+ */
+
+@theme static {
+  --font-display: 'Bricolage Grotesque Variable', 'Arial Narrow', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Papier */
+  --color-bg: #f5f0e6;
+  --color-bg-soft: #ece5d6;
+  --color-bg-card: #fffdf8;
+
+  /* Encre */
+  --color-ink: #1b1f33;
+  --color-ink-muted: #4b5065;
+  --color-ink-faint: #5e6274;
+  --color-line: color-mix(in srgb, #1b1f33 14%, transparent);
+  --color-line-strong: color-mix(in srgb, #1b1f33 32%, transparent);
+
+  /* Texte posé sur un aplat : crème sur les aplats saturés, inverse de l'encre sur un fond encre */
+  --color-on-fill: #fffdf8;
+  --color-on-ink: #fffdf8;
+  --color-on-leaf: #10261a;
+  --color-on-fill-warm: #f1c7a8;
+
+  /* Vermillon (accent de marque) */
+  --color-accent: #bc3320;
+  --color-accent-strong: #bc3320;
+  --color-vermilion: #d13f27;
+  --color-vermilion-tint: #f8ddd4;
+
+  /* Indigo des toits */
+  --color-indigo: #27325e;
+  --color-indigo-fill: #27325e;
+  --color-indigo-deep: #27325e;
+  --color-indigo-fill-hover: #3b4a82;
+  --color-indigo-soft: #3b4a82;
+  --color-indigo-tint: #dde1f0;
+  --color-accent-soft: #3b4a82;
+
+  /* Feuillage */
+  --color-leaf: #27713a;
+  --color-leaf-fill: #3d9a55;
+  --color-leaf-tint: #dcebd9;
+
+  /* Ciel */
+  --color-sky: #1a6a9e;
+  --color-sky-fill: #4aa3df;
+  --color-sky-tint: #d8eaf6;
+
+  /* Bois */
+  --color-wood: #7f5024;
+  --color-wood-fill: #b37a45;
+  --color-wood-tint: #f0e1cb;
+
+  /* Or des lanternes */
+  --color-gold: #7d5a0c;
+  --color-gold-fill: #e3a93c;
+  --color-gold-tint: #f7e7bc;
+
+  /* Alias sémantiques (dégâts / succès / eau / terre) */
+  --color-fire: #a8241b;
+  --color-fire-fill: #a8241b;
+  --color-win: #27713a;
+  --color-water: #1a6a9e;
+  --color-earth: #7f5024;
+
+  /* Aplat neutre (rareté commune, formes sans teinte) et voile des fenêtres modales */
+  --color-neutral-fill: #8a8d9a;
+  --color-scrim: color-mix(in srgb, #27325e 55%, transparent);
+
+  /* Rayons : formes nettes, à peine adoucies */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root {
+  /* Échelle typographique */
+  --type-display: clamp(2.75rem, 1.6rem + 5.6vw, 5.75rem);
+  --type-title: clamp(2.25rem, 1.5rem + 3.6vw, 4rem);
+  --type-heading: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --type-subheading: 1.1875rem;
+  --type-body: 0.9375rem;
+  --type-small: 0.8125rem;
+  --type-kicker: 0.6875rem;
+
+  /* Espacements de structure */
+  --space-gutter: clamp(1rem, 4vw, 2.5rem);
+  --space-section: clamp(2.5rem, 5vw, 4rem);
+  --space-block: 1.5rem;
+
+  /* Durées */
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+  --dur-slow: 480ms;
+
+  --shell-rail: 0px;
+
+  /* Traitement des illustrations (scènes de plein jour) : neutre en clair. */
+  --image-filter: none;
+  --image-veil: transparent;
+
+  /* Part de teinte d'un contour « au repos » (nœud verrouillé) : plus forte sur fond sombre. */
+  --mix-quiet: 55%;
+
+  color-scheme: light;
+}
+
+/*
+ * Thème sombre : fonds encre et indigo profond (pas de noir pur), texte crème.
+ * Les aplats gardent leur saturation ; seules les variantes texte, les fonds teintés
+ * et l'indigo (trop proche du fond) sont recalibrés.
+ */
+[data-theme='dark'] {
+  --color-bg: #14182b;
+  --color-bg-soft: #1c2138;
+  --color-bg-card: #242a47;
+
+  --color-ink: #f3ecdd;
+  --color-ink-muted: #bcc0d0;
+  --color-ink-faint: #9da2b8;
+  --color-line: color-mix(in srgb, #f3ecdd 14%, transparent);
+  --color-line-strong: color-mix(in srgb, #f3ecdd 32%, transparent);
+
+  --color-on-ink: #14182b;
+
+  --color-accent: #ff8a6e;
+  --color-accent-strong: #c8391f;
+  --color-vermilion: #dc4a31;
+  --color-vermilion-tint: #47231f;
+
+  --color-indigo: #aab8f5;
+  --color-indigo-fill: #5a6ecb;
+  --color-indigo-deep: #2a3364;
+  --color-indigo-fill-hover: #4a5cb4;
+  --color-indigo-soft: #8494dd;
+  --color-indigo-tint: #2b3564;
+  --color-accent-soft: #8494dd;
+
+  --color-leaf: #7fd197;
+  --color-leaf-tint: #1d3829;
+
+  --color-sky: #7cc4f3;
+  --color-sky-tint: #19344d;
+
+  --color-wood: #e0aa77;
+  --color-wood-tint: #3b2c1e;
+
+  --color-gold: #f0c35f;
+  --color-gold-tint: #3f3417;
+
+  --color-fire: #ff9485;
+  --color-fire-fill: #b92f24;
+  --color-win: #7fd197;
+  --color-water: #7cc4f3;
+  --color-earth: #e0aa77;
+
+  --color-scrim: color-mix(in srgb, #080a14 72%, transparent);
+
+  --image-filter: brightness(0.92) saturate(0.92);
+  --image-veil: #a4aedd;
+
+  --mix-quiet: 72%;
+
+  color-scheme: dark;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --shell-rail: 4.5rem;
+  }
+}
+
+/* Teinte courante : un bloc pose `data-tone` et ses enfants lisent --tone / --tone-fill / --tone-tint. */
+:root,
+[data-tone='vermilion'] {
+  --tone: var(--color-accent);
+  --tone-fill: var(--color-vermilion);
+  --tone-tint: var(--color-vermilion-tint);
+  --tone-on: var(--color-on-fill);
+}
+
+[data-tone='indigo'] {
+  --tone: var(--color-indigo);
+  --tone-fill: var(--color-indigo-fill);
+  --tone-tint: var(--color-indigo-tint);
+  --tone-on: var(--color-on-fill);
+}
+
+[data-tone='leaf'] {
+  --tone: var(--color-leaf);
+  --tone-fill: var(--color-leaf-fill);
+  --tone-tint: var(--color-leaf-tint);
+  --tone-on: var(--color-on-leaf);
+}
+
+[data-tone='sky'] {
+  --tone: var(--color-sky);
+  --tone-fill: var(--color-sky-fill);
+  --tone-tint: var(--color-sky-tint);
+  --tone-on: #0c2233;
+}
+
+[data-tone='wood'] {
+  --tone: var(--color-wood);
+  --tone-fill: var(--color-wood-fill);
+  --tone-tint: var(--color-wood-tint);
+  --tone-on: #2a1a08;
+}
+
+[data-tone='gold'] {
+  --tone: var(--color-gold);
+  --tone-fill: var(--color-gold-fill);
+  --tone-tint: var(--color-gold-tint);
+  --tone-on: #2b2004;
+}
+
+[data-tone='ink'] {
+  --tone: var(--color-ink);
+  --tone-fill: var(--color-ink);
+  --tone-tint: var(--color-bg-soft);
+  --tone-on: var(--color-on-ink);
+}
+
+[data-tone='neutral'] {
+  --tone: var(--color-ink-muted);
+  --tone-fill: var(--color-neutral-fill);
+  --tone-tint: var(--color-bg-soft);
+  --tone-on: #14182b;
+}

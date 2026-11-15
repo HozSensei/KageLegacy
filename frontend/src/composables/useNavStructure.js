@@ -13,22 +13,17 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'hub',
         labelKey: 'nav.groups.hub',
-        items: pick('bureau', 'journal', 'profile'),
+        items: pick('hub', 'profile', 'talents'),
       },
       {
-        id: 'squad',
-        labelKey: 'nav.groups.squad',
-        items: pick('squad', 'training', 'clan', 'village'),
+        id: 'cards',
+        labelKey: 'nav.groups.cards',
+        items: pick('collection', 'decks', 'shop'),
       },
       {
         id: 'missions',
         labelKey: 'nav.groups.missions',
-        items: pick('missions', 'reconnaissance', 'scout', 'league', 'operation'),
-      },
-      {
-        id: 'economy',
-        labelKey: 'nav.groups.economy',
-        items: pick('market', 'refinement', 'exchanges', 'inventory'),
+        items: pick('missions', 'battle-pass', 'pvp'),
       },
       {
         id: 'extra',

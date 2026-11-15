@@ -90,11 +90,11 @@ Cercle : **Katon > Futon > Doton > Raiton > Suiton > Katon**
 
 ### Clans / lignées
 
-7 lignées : Roturier, Nara, Uchiwa, Hyuga, Sarutobi, Akimichi, Yamanaka.
+7 lignées : Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani, Yukisawa.
 
 Recrutement pondéré : roturier 65 %, clan commun 25 %, noble 10 %.
 
-Chaque clan oriente stats et voie dominante (ex. Hyuga → Taijutsu).
+Chaque clan oriente stats et voie dominante (ex. Kazamine → Taijutsu).
 
 ### Potentiel à la génération
 
@@ -248,7 +248,7 @@ Hub **sans bonus de combat** — max **12 Senseis** par clan.
 
 ## 8ter. Villages cachés (rivalité C0 — design figé)
 
-**Appartenance globale** (4 pays : Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni — ids `leaf`/`sand`/`mist`/`stone`), orthogonale au clan joueur et aux clans ninja.
+**Appartenance globale** (4 pays : Midorihara, Kareno, Oborohama, Ishikura — ids `leaf`/`sand`/`mist`/`stone`), orthogonale au clan joueur et aux clans ninja.
 
 - Choix à la création (+ 1 retake early) ; **pas de bonus combat**
 - Score via **actions solo** déjà dans le jeu (sceau, missions, recon, match ligue, examens, Vol d’Oiseau)

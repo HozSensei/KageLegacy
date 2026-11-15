@@ -1,19 +1,21 @@
-describe('En-tête — horloge et navigation', () => {
+describe('Header — navigation V2 alpha', () => {
   beforeEach(() => {
     cy.loginDemo();
-    cy.visit('/bureau');
+    cy.visit('/home');
   });
 
-  it('affiche l\'horloge du cycle', () => {
-    cy.get('[data-testid="cycle-progress-bar"]', { timeout: 15000 }).should('be.visible');
-    cy.get('[data-testid="header-game-clock"]').should('be.visible');
-    cy.get('[data-testid="header-game-clock"]').contains(/\d+h\d{2}:\d{2}/);
+  it('affiche le hub et le menu de navigation', () => {
+    cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
+    cy.get('[data-testid="nav-menu-button"]').should('be.visible').click();
+    cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
+    cy.get('[data-testid="nav-profile"]').should('be.visible');
+    cy.get('[data-testid="nav-missions"]').should('be.visible');
+    cy.get('[data-testid="nav-pvp"]').should('be.visible');
   });
 
-  it('déplie le détail du cycle', () => {
-    cy.get('[data-testid="cycle-progress-toggle"]').click();
-    cy.get('[data-testid="cycle-progress-detail"]').should('be.visible');
-    cy.get('[data-testid="cycle-step-start"]').should('be.visible');
-    cy.get('[data-testid="cycle-step-mid"]').should('be.visible');
+  it('masque les entrées legacy (journal, inventaire) du menu', () => {
+    cy.openNavMenu();
+    cy.get('[data-testid="nav-journal"]').should('not.exist');
+    cy.get('[data-testid="nav-inventory"]').should('not.exist');
   });
 });

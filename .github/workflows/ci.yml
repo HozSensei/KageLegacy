@@ -121,20 +121,11 @@ jobs:
       - name: Prepare database (migrate, seed, cycle H0→H72)
         run: npm run e2e:prepare
 
-      - name: Run Cypress E2E
+      - name: Run Cypress E2E (V2 surface)
         run: npm run test:e2e
 
-      - name: Test mission de reconnaissance
-        run: npm run test:reconnaissance --prefix backend
-
-      - name: Test scout cycle H36/H54
-        run: npm run test:scout-cycle --prefix backend
-
-      - name: Test gels de cycle H54/H71
-        run: npm run test:cycle-freezes --prefix backend
-
-      - name: Test briefing d'opération
-        run: npm run test:operation-briefing --prefix backend
+      - name: Smoke test player character
+        run: npm run test:player-character --prefix backend
 
       - name: Upload Cypress screenshots on failure
         if: failure()

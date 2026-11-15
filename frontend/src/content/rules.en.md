@@ -1,732 +1,441 @@
-# Kage Legacy — Game Rules
+# Kage Legacy — Game rules
 
-**Kage Legacy** is an asynchronous browser-based shinobi manager. You play a **Jonin-Sensei**: you manage a squad of young ninjas, your **Ryos** budget, and face other Sensei in **league pools** over **72-hour cycles** (real time).
+**Kage Legacy** is a solo deck-building game set in a ninja world. You play **a single ninja**. Their power comes from two sources only: the **cards in your deck** and your **talent tree**. You fight enemies in **turn-based** combat, mission after mission, and you can challenge other players in the arena.
 
-This guide is organized in **two parts**:
+This guide describes the game as it works today. The numbers given are the ones the game applies.
 
-1. **The interface** — what each screen does, grouped like the navigation menu.
-2. **Game systems** — detailed rules (cycle, progression, combat, economy…).
-
-*Last updated: July 2026*
+*Last updated: November 2026*
 
 ---
 
-# Part 1 — The interface
+## At a glance
 
-The side menu groups screens into **five sections**: Command center, Squad & progression, Missions & league, Economy, and Account & tools. The progress bar at the top shows the current cycle hour (H0 → H72).
+1. **Create your ninja**: a name, an elemental affinity, a lineage.
+2. **Receive your starter deck**: 22 cards, ready to play.
+3. **Start a mission**: a run of 3 to 5 fights with events in between.
+4. **Earn experience**: each level gives 1 talent point.
+5. **Grow stronger**: spend your points in the tree, open scrolls, upgrade your cards, tune your deck.
 
-## Command center
+Nothing grows on its own: levelling up gives **no stats**, only a talent point to place.
 
-### Office
+---
 
-**Route:** `/bureau` — main **hub** of the game.
+## Your ninja
 
-Your daily dashboard. You will find:
+### Creation
 
-| Area | Role |
+Each account has **a single ninja**. At creation you choose:
+
+- a **name** (at least 2 characters);
+- an **elemental affinity**: Katon, Suiton, Raiton, Doton or Futon;
+- a **lineage**: Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani or Yukisawa.
+
+Affinity and lineage make up your ninja's identity and are shown on the profile. They give **no numeric bonus** in combat.
+
+When you sign up, you also pick a **land** (Midorihara, Kareno, Oborohama or Ishikura). It gives no combat bonus.
+
+Your ninja starts at **level 1**, at the rank of **Genin**, with **1 talent point** and a starter deck.
+
+### Level and rank
+
+Victories grant experience (XP). Going from level *N* to the next one takes **100 × N** XP: 100 XP to reach level 2, 200 XP for level 3, and so on. The maximum level is **100**.
+
+Each level gained gives **1 talent point**. It gives nothing else.
+
+Rank follows level:
+
+| Level | Rank |
+|-------|------|
+| 1 to 19 | Genin |
+| 20 to 39 | Chunin |
+| 40 to 59 | Jonin |
+| 60 to 79 | ANBU |
+| 80 to 100 | Kage |
+
+Rank is a title: it adds no stats.
+
+### Stats
+
+Your ninja has **no base stats**. Their stats are the sum of two things:
+
+- bonuses from unlocked **talents**;
+- **passive bonuses** from the cards in your **active deck**.
+
+The profile shows the breakdown of both sources.
+
+| Stat | Effect in combat |
+|------|------------------|
+| **Taijutsu** | Increases the damage of Taijutsu cards |
+| **Ninjutsu** | Increases the damage of Ninjutsu cards |
+| **Genjutsu** | Increases the damage of Genjutsu cards |
+| **Medicine** | Increases the armor and healing of all your cards, and the damage of Medicine cards |
+| **Speed** | Gives 1% critical hit chance per 10 points, up to 50% |
+| **Max HP** | Added to the 100 starting hit points |
+| **Intelligence**, **Dexterity** | Granted by some talents and cards and shown on the profile. They are not used in current combat calculations |
+
+Each point of Taijutsu, Ninjutsu, Genjutsu or Medicine is worth **+1%**: with 30 Ninjutsu, a Ninjutsu card with 10 damage deals 13.
+
+### Specialization
+
+From **level 10**, you can choose a specialization on your profile: Taijutsu, Ninjutsu, Genjutsu or Medicine. This choice is **permanent**.
+
+---
+
+## Cards
+
+The game has **200 cards**. Every card plays two roles:
+
+- an **active effect**, when you play it in combat;
+- a **passive bonus**, added to your stats for as long as the card is in your active deck, even if you never draw it.
+
+### Card types
+
+| Type | Role |
 |------|------|
-| **First steps** | Early-career checklist (deck, training, mission, recon, league) — skippable, hides nothing |
-| **Village** | Belong to one of 4 lands (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) + cycle rivalry (solo-action score, no combat bonus) |
-| **Treasury** | Ryos balance, reputation, salary + training forecast at H72 |
-| **Active squad** | Overview of the 3 field ninjas and quick access to their profiles |
-| **Chakra Seal** | Free daily ritual (midnight UTC) — see § Academy and Chakra Seal |
-| **Chunin exam** | Register an eligible Genin before H72 |
-| **Bird Flight** | Register a Chunin ready to depart before H72 |
-| **Stagnation** | Warnings on eligible ninjas not registered for advancement |
-| **Academy** | Showcase of 3 Genin aspirants on rotation — paid recruitment |
-| **Dispensary** | Healing for ninjas in Lamentable form (hospital) |
+| **Attack** | Deals damage, sometimes with a status |
+| **Defense** | Grants armor |
+| **Skill** | Heals, draws cards, restores Chakra, applies statuses |
+| **Summon** | Calls an ally who fights at your side |
+| **Item** | One-off effect; most are exhausted after use |
 
-The Office concentrates **cycle management** actions: budget, recruitment, care, and career registrations. Check it at cycle start and before milestones H54 / H71.
+A card can be tied to a **path** (Taijutsu, Ninjutsu, Genjutsu, Medicine) and to an **element** (Katon, Suiton, Raiton, Doton, Futon).
 
-### Village
+### Rarities
 
-**Route:** `/village`
+Four rarities: **Common**, **Rare**, **Legendary**, **Mythic**.
 
-Four **lands** (Hi no Kuni, Kaze no Kuni, Mizu no Kuni, Tsuchi no Kuni) form a **global** faction rivalry, orthogonal to player clans and the league.
+### Cost and exhaust
 
-- Chosen at registration (+ 1 early retake if you have not scored yet)
-- Points from solo actions (seal, missions, recon, league match, exams, Bird Flight) — per-cycle cap
-- Each cycle: one **paired** rivalry; at H72 the leading **land** earns a small Ryos chest for contributors
-- **No combat bonus**
+Playing a card costs **Chakra** (from 0 to several points). A card marked **Exhaust** is removed from the fight after being played. Summons always are.
 
-The league (pools, H71 match, promotion/relegation) stays unchanged.
+### Upgrading
 
-### Cycle journal
+From the Collection, a card can be upgraded twice: level **+**, then level **++**. A mythic card stops at level +. Upgrading strengthens both the active effect and the passive bonus.
 
-**Route:** `/journal`
+| Rarity | Level + | Level ++ |
+|--------|---------|----------|
+| Common | 300 Ryos, 15 dust | 1,500 Ryos, 80 dust |
+| Rare | 1,200 Ryos, 80 dust | 5,000 Ryos, 400 dust |
+| Legendary | 4,500 Ryos, 400 dust | 18,000 Ryos, 1,800 dust, 10 essence |
+| Mythic | 18,000 Ryos, 1,800 dust, 20 essence | — |
 
-Chronological activity feed for your cycle: training gains, mission results, economic closure, league messages, etc. Useful to trace what happened without reopening every screen.
+### Disenchanting
 
-### Profile
+You can destroy one copy of a card to get **card dust**:
 
-**Route:** `/profil`
+| Rarity | Dust gained |
+|--------|-------------|
+| Common | 10 |
+| Rare | 40 |
+| Legendary | 200 |
+| Mythic | 1,000 |
 
-Public Sensei identity: name, heritage wall (scrolls left by Chunin who departed via Bird Flight). Other players can view your profile via `/sensei/:id`.
+An upgraded legendary card also returns 2 essence, an upgraded mythic card 5 essence. A copy used in a deck cannot be disenchanted.
 
----
+### Getting cards
 
-## Squad & progression
-
-### Squad
-
-**Route:** `/squad`
-
-Central screen for **tactical preparation**:
-
-| Feature | Detail |
-|---------|--------|
-| **Lineup** | 3 active ninjas + bench reserves; active ↔ bench swaps until H54 |
-| **Operation deck** | Per active: technique card + primary/secondary domains (6 cards per ninja) — see § Operation deck |
-| **Briefing** | Reminder of league opponent and next match |
-| **Player market** | List a bench ninja for sale or release them |
-
-A ninja is **unavailable** if on a mission, listed on the player market, or when the tactical window is closed (H71+).
-
-### Training
-
-**Route:** `/training`
-
-Configure training plans for the cycle:
-
-| Lever | Scope | Cost |
-|-------|-------|------|
-| **Preparation** | One type per active ninja (3 choices) | Billed in Ryos at H72 |
-| **Global training** | One type for the whole squad | Free |
-
-Six types available (Chakra, Physical, Medical, Genjutsu, Ninjutsu, Balanced). The screen shows **cost forecast** and expected gains. Training is **locked at H54** (lineup frozen). Mechanical details: see § Training.
-
-### Clan
-
-**Route:** `/clan`
-
-**Cooperative hub without combat bonuses** (up to 12 Sensei):
-
-- **Create or join** a clan.
-- **Academy display board**: recommend an aspirant from your showcase (once per cycle).
-- **Chakra well**: each daily seal feeds a collective threshold → bonus seal for all members.
-
-Details: see § Player clans.
+- the **starter deck**, granted at creation;
+- **scrolls** from the shop;
+- a **card chance** at the end of missions;
+- **season pass** rewards.
 
 ---
 
-## Missions & league
+## The deck
 
-### Missions
+A deck holds **20 to 30 cards**, with **at most 3 copies** of the same card. You can only include copies you own.
 
-**Route:** `/missions`
+You can build several decks, but only one is **active**. The active deck is the one that:
 
-Send **idle missions** (ranks D, C, B, A) to **bench ninjas only**:
+- is played in missions and in the arena;
+- provides the passive bonuses counted in your stats.
 
-- Up to **3 ninjas** on mission at once (global cap, no per-rank limit).
-- Duration by rank: **D 4h · C 8h · B 24h · A 48h** (return must land before cycle end).
-- Success odds shown based on the ninja's overall rating.
-- Automatic resolution at the due hour; rewards must be **collected manually**.
-
-A **reconnaissance** panel is also accessible from this screen. Details: see § Idle missions.
-
-### Reconnaissance
-
-**Route:** `/reconnaissance`
-
-Sparring combat to **test your lineup** between **H0 and H36**:
-
-| Mode | How it works |
-|------|----------------|
-| **Matchmaking** | Nearby-division human opponent, otherwise a league bot |
-| **Direct challenge** | Challenge a pool member or a nearby-division player (acceptance required) |
-
-One mission per cycle. The outcome gates **scouting quality** (H36 / H54). Details: see § Reconnaissance.
-
-### Scouting
-
-**Route:** `/espionnage`
-
-Intel report on your **league opponent** for the cycle:
-
-| Milestone | Content |
-|-----------|---------|
-| **H36** | Tendencies from recent matches (requires reconnaissance this cycle) |
-| **H54** | Full frozen report on the enemy trio (partial or full depending on reconnaissance) |
-
-Compare tendencies (H36) and spotted unit (H54) to detect atypical formations. Details: see § The 72-hour cycle.
-
-### League
-
-**Route:** `/league`
-
-Competitive view of your **pool** (6 Sensei):
-
-- Standings with **W/D/L** (record vs each opponent) and **Nemesis** badge, schedule for the 10-cycle season.
-- **Season wall** (free discussion, pagination; resets at season end).
-- Points (win 3, draw 1, loss 0) and promotion / relegation at season end.
-- **Invitation link** (human / bot counts) to replace a bot.
-- Recon challenges: **same pool** or **another league** (nearby division) — acceptance required.
-
-Structure details: see § League.
-
-### Operation
-
-**Route:** `/operation`
-
-League match for the cycle (**H71 → H72**):
-
-- **Narrative chronicle** revealed progressively (same pace for both opponents).
-- **Mechanical debrief**: plis won, HP scores, environment.
-- **Spectator** mode for other pools' matches.
-
-Combat details: see § Border operation.
+Building a deck therefore means deciding twice: what you want to **draw**, and what you want to **carry** for its passive bonuses. Thirty cards give more passive bonuses than twenty, but you will draw your best cards less often.
 
 ---
 
-## Economy
+## The talent tree
 
-### Shop
+The tree has **150 nodes** split between a **center** and four branches: **Taijutsu**, **Ninjutsu**, **Genjutsu** and **Medicine**.
 
-**Route:** `/market`
+- Unlocking a node costs **1 talent point**.
+- A node is only available once its **prerequisites** are unlocked: you progress step by step from the center.
+- With 1 point at the start and 1 point per level, you will never unlock the whole tree: you have to choose.
 
-**Village shop** — purchases with your Ryos:
+Three kinds of nodes:
 
-- Utility items (office, cycle) by category.
-- **Technique card offers**: 10 random draws per restock, fresh bonus % on purchase.
-- Random promotions each cycle; personal catalogue restocked periodically.
+| Node | What it gives |
+|------|---------------|
+| **Stat** | A stat bonus |
+| **Notable** | A stat bonus and a special effect |
+| **Keystone** | A powerful effect paired with a drawback. There are 10 of them |
 
-Closed when in **debt** or during **H71+** lock. Details: see § Economy.
+Each node's effect is described in the tree when you select it.
 
-### Refinement
+### Reset
 
-**Route:** `/refinement`
-
-**Refinement hall** — paid re-roll of a owned technique card's **% bonus**:
-
-- Cost by card rarity; possible discount via shop heritage.
-- Blocked if treasury is negative or card is listed on the player market.
-- Also accessible from **Inventory**.
-
-Card details: see § Ninja technique cards.
-
-### Exchanges
-
-**Route:** `/exchanges`
-
-**Player market** (P2P):
-
-- Sell bench ninjas or unequipped items / cards.
-- Limited number of active listings; commission on sale.
-- **Global** market (all human Sensei on the server).
-
-Closed from **H71** and when in debt.
-
-### Inventory
-
-**Route:** `/inventory`
-
-Manage your **stock**:
-
-| Category | Use |
-|----------|-----|
-| **Technique cards** | Assignment per active ninja for the operation deck |
-| **Office consumables** | Immediate use on a ninja |
-| **Cycle equipment** | 1 per ninja for the whole cycle |
-
-Actions: equip, use, list on player market, open refinement.
+You can reset the whole tree: every point spent is returned to you. You get **one free reset per 10 levels** reached. Beyond that, a reset costs **2,000 Ryos**.
 
 ---
 
-## Account & tools
+## Combat
 
-### Notifications
+A fight pits your ninja against one enemy, turn by turn. You always play first.
 
-**Bell** icon in the header: mission completion, exam results, cycle closure, operation start, scout report, clan well, etc. Each notification links to the relevant screen.
+### Setup
 
-### Game rules
+- You have **100 HP**, plus your max HP bonus.
+- Your deck is shuffled and becomes your **draw pile**.
+- You draw **5 cards**.
+- The enemy **announces its intent**: you know what it will do on its next turn.
 
-**Route:** `/rules` — this document, also accessible from the profile menu (theme, language, logout).
+### Your turn
 
----
+- You have **3 Chakra**.
+- You play as many cards as your Chakra allows, in any order.
+- **Once per turn**, you can discard a card from your hand to gain **1 Chakra**.
+- You end your turn whenever you want.
 
-# Part 2 — Game systems
+At the end of your turn, the cards left in your hand go to the discard pile. On the next turn, your Chakra is back to 3 and you draw 5 new cards. Unspent Chakra is lost.
 
-## The 72-hour cycle
+Your hand is limited to **10 cards**. When the draw pile is empty, the discard pile is shuffled and becomes the draw pile again.
 
-Each cycle is a synchronized "game week" for all players on the server.
+### The enemy's turn
 
-| Phase | Period | Main activities |
-|-------|--------|-----------------|
-| **Preparation** | H0 → H35 | Squad, deck, training, missions, shop, Academy, reconnaissance (H0–H36) |
-| **Mid-cycle** | H36 → H70 | Opponent tendencies, scouting, ongoing management |
-| **Operation** | H71 | League match simulated; narrative chronicle revealed progressively |
-| **Closure** | H72 | Safety net for still-active missions, league payouts, salaries, stagnation, Bird Flight, training billing, new cycle |
+The enemy carries out the intent it announced, then announces a new one:
 
-### Tactical lock
+| Intent | Effect |
+|--------|--------|
+| **Attack** | Deals the damage shown |
+| **Defend** | The enemy gains armor |
+| **Buff** | The enemy gives itself a beneficial status |
+| **Debuff** | The enemy inflicts a harmful status on you |
+| **Special action** | Charge, summon or barrier (see Bosses) |
 
-| Milestone | Effect |
-|-----------|--------|
-| **H54** | **Lineup locked** (active trio); training locked; H36 tendencies already available; **full scout report** on spotted enemy unit |
-| **H54 → H70** | Deck still editable |
-| **H71** | Full lock until next cycle |
+### Damage, armor and healing
 
-### Scouting (milestones)
+- **Card damage**: base damage, increased by 1% per point in the stat of its path.
+- **Armor**: it absorbs damage before your HP. It protects you during the enemy's turn, then disappears at the start of your next turn. The enemy's armor disappears the same way at the start of its turn.
+- **Healing**: it cannot exceed your max HP.
+- **Critical hit**: your attacks have a critical chance given by your Speed. A critical hit deals **×1.5** damage.
 
-| Milestone | Content |
-|-----------|---------|
-| **H36** | **Tendencies** from the opponent's recent league matches — requires a successful **reconnaissance** this cycle |
-| **H54** | **Full report** frozen on enemy lineup (partial/full quality depending on your reconnaissance) |
-| **H54 → H71** | Report no longer changes; compare tendencies vs spotted unit to detect atypical formations |
+### Path and element advantages
 
-The **reconnaissance** mission (H0–H36) gates access and quality of intel — it is not a fight against your league opponent, but a field mission to gather intelligence.
+Each enemy has a **stance** (Taijutsu, Ninjutsu or Genjutsu) and sometimes an **elemental affinity**.
 
-Chunin exams, healing, and missions should be **settled before H54** to avoid a hole in the frozen lineup.
+**Paths** — an attack from an advantaged path deals **×1.2** damage:
 
-### Automatic milestones
+- Taijutsu beats Genjutsu;
+- Genjutsu beats Ninjutsu;
+- Ninjutsu beats Taijutsu.
 
-- **H0 → H36**: reconnaissance window.
-- **H36**: opponent tendencies (if reconnaissance completed); resolution of ongoing reconnaissance missions.
-- **H54**: lineup freeze + frozen full scout report.
-- **H71**: league match simulation; final lock; narrative chronicle begins.
-- **H72**: Chunin exam verdicts, Bird Flight, economic closure, new cycle.
+There is no penalty the other way round. Medicine is always neutral.
 
----
+**Elements** — a card whose element beats the enemy's affinity deals **×1.5** damage. The other way round, it only deals **×0.7**:
 
-## The Sensei (your account)
+- Katon beats Futon;
+- Futon beats Raiton;
+- Raiton beats Doton;
+- Doton beats Suiton;
+- Suiton beats Katon.
 
-### Resources
+A card with no element, or an enemy with no affinity, stays neutral.
 
-- **Ryos**: village currency. Income (league, missions, Bird Flight…) and expenses (salaries, training, purchases…) accumulate here.
-- **Reputation**: prestige, notably from Bird Flight.
-- **Match chakra**: limited reserve to intercept fatal blows during the operation. Each interception consumes a substantial share of this reserve.
+### Statuses
 
-### Sensei identity
+| Status | Effect |
+|--------|--------|
+| **Strength** | Adds its value to the damage of each hit |
+| **Dexterity** | Adds its value to the armor gained per card |
+| **Regeneration** | Restores its value in HP at the start of the turn |
+| **Poison** | Removes its value in HP at the start of the turn |
+| **Burn** | Removes its value in HP at the end of the turn |
+| **Weak** | Damage dealt reduced by 25% |
+| **Vulnerable** | Damage taken increased by 50% |
+| **Intangible** | Incoming attacks deal only 1 damage |
 
-Your **Sensei name** defines your league presence. There is no specialty to pick at account creation: preparation comes from your squad and operation deck.
+A status applied again **stacks** its value. Its duration drops by 1 at the end of each turn of whoever carries it.
 
-### Debt and administrative freeze
+### Summons
 
-If your Ryos balance becomes **negative** (unpaid salaries, overspending), an **administrative freeze** blocks new spending: shop, player market, Chunin exam, hospital, refinement, etc. Restore your treasury to resume purchases.
+A Summon card calls an **ally**. You can only have **one** at a time: a new summon replaces the previous one.
 
-A small overdraft may be allowed; persistent debt incurs **interest** at cycle closure, increasing economic pressure without immediate game over.
+- At the start of each of your turns, the ally **attacks the enemy automatically**.
+- An ally with **Taunt** takes enemy attacks in your place for as long as it has HP left.
 
-### Guest account
+### End of the fight
 
-A **guest account** lets you try the game for a limited time, then convert to a permanent account.
+- **Victory**: the enemy's HP drops to 0.
+- **Defeat**: your HP drops to 0.
+- **Forfeit**: you can forfeit at any time. A forfeit counts as a defeat.
 
----
+### Bosses
 
-## Ninjas
+Bosses close the runs of rank B, A and S. They have mechanics of their own:
 
-### Grades
-
-Three grades structure a career: **Genin**, **Chunin**, **Jonin** (reached via Bird Flight departure, not by staying in the squad).
-
-Each grade imposes **stat caps**: a Genin cannot train forever; they must pass the Chunin exam to unlock a higher cap.
-
-### The six stats
-
-| Category | Stats |
-|----------|-------|
-| **Combat** | Taijutsu, Ninjutsu, Genjutsu, Medicine |
-| **Support** | Speed, Intelligence |
-
-In match, **physical toughness** depends mainly on Taijutsu; **chakra reserve** combines grade and Ninjutsu. **Initiative** and some Sensei techniques rely on Speed and Intelligence.
-
-### Weekly form
-
-Each ninja has **form** for the cycle (best to worst: Divine → Excellent → Passable → Lamentable). It proportionally modifies **all** stats: good form boosts performance; poor form heavily penalizes it.
-
-After a match, K.O.'d ninjas drop **one form tier**. At H72, HP and chakra are fully restored.
-
-### Character profiles
-
-Each ninja may have a **profile** that slightly biases **one** stat at generation (+1 or +2 already baked into the sheet). About one third of ninjas have **no profile**.
-
-| Profile | Favored stat |
-|---------|--------------|
-| **Brute** | Taijutsu |
-| **Channeler** | Ninjutsu |
-| **Illusionist** | Genjutsu |
-| **Healer** | Medicine |
-| **Swift** | Speed |
-| **Strategist** | Intelligence |
-| **No profile** | No bias |
-
-Boost intensity (+1 or +2) is shown by the **label color** on the sheet (stronger = +2) — the number is not written. Profile is orthogonal to **art**, **clan**, and **potential**.
-
-### Elements (affinity)
-
-Five elements form an **advantage circle**: Katon beats Futon, Futon beats Doton, Doton beats Raiton, Raiton beats Suiton, Suiton beats Katon.
-
-In duels, a favorable element **boosts** damage; an unfavorable one **reduces** it. The gap alone is never decisive, but it can tip a close exchange.
-
-### Clans and lineages
-
-Seven lineages exist: Commoner, Nara, Uchiha, Hyuga, Sarutobi, Akimichi, Yamanaka.
-
-- **Commoners** are most frequent at the Academy.
-- **Village clans** are rarer and orient stats.
-- **Noble lineages** are rarest and most expensive; they strongly bias specialization.
-
-Each clan influences **path** (main art) and some stat bonuses at generation.
-
-### Path, potential, and age
-
-- **Path**: combat specialization (Taijutsu, Ninjutsu, Genjutsu, Medicine). Most bonus points concentrate on this path.
-- **Potential**: Ordinary, Promising, or Prodigy. Higher potential means a sharper profile and more efficient progress.
-- **Age** (15–18): younger ninjas learn **faster** in training; older ones progress more slowly.
-
-### Morale
-
-Morale (internal scale) affects squad stability. It drops notably on Chunin exam failure, unpaid salaries, **stagnation** (see § Grade progression), or buying a ninja on the player market.
+- **Phases**: when its HP falls below a threshold, the boss changes behaviour. It can buff itself, raise a barrier or become immune to some statuses. A phase that has been crossed never reverts.
+- **Barrier**: it absorbs damage before armor and does not disappear from one turn to the next. Breaking a barrier makes the boss **Vulnerable** for 2 turns.
+- **Charge**: the boss announces a charge and deals nothing that turn. On the next turn, it releases a heavy attack. You have one turn to prepare.
+- **Minion**: a boss can summon a minion. The minion strikes before the boss on every enemy turn, and your attacks hit it first.
+- **Immunities**: some statuses cannot be applied to some bosses.
 
 ---
 
-## Squad and operation deck
-
-### Composition
-
-- **3 active ninjas** (field positions) + a **bench** of reserves.
-- Composition can be changed until **H54** (active trio locked).
-
-### Operation deck (pli combat)
-
-Each match plays out in **18 pli**: a shuffled deck of **6 cards per active ninja** — **1 inventory technique card** + **2× primary stat** + **3× secondary stat** (taijutsu, ninjutsu, genjutsu, medicine domains) + **relays** if slots are empty.
-
-- **Max HP** = ninja overall grade × 5 (average of 6 stats).
-- Each pli: both sides reveal a card; domain vs domain comparison (+20% if type advantage).
-- **Victory**: more team HP at match end; tie → most plis won.
-- **Match items** removed from combat; **technique cards** assigned per ninja; office consumables and cycle gear stay out of combat.
-- **Carry-over**: each new league matchday, your deck is **copied** from the previous one (techniques for active ninjas; charges preserved).
-
-### How to compose your squad
-
-- Mix **arts** (Taijutsu, Ninjutsu, Genjutsu, Medicine) to cover domain advantages across plis.
-- Prioritize a **coherent deck**: technique card aligned with the ninja's art, solid primary/secondary domains.
-- Watch **scouting** (H36 trends, H54 lineup) to tune the deck before H71.
-
----
-
-## Ninja technique cards
-
-Each active ninja contributes **6 cards** to the operation deck: **1 inventory technique card** + **2 copies** of the primary stat + **3 copies** of the secondary stat.
-
-| Rule | Detail |
-|------|--------|
-| **Bearer** | The card is played by the **assigned ninja**. |
-| **Power** | Primary stat (+ secondary average: domain, speed or intelligence) × **unique % bonus** rolled on acquisition. |
-| **Variable bonus** | Common 1–20% · with synergy 5–25% · rare 15–35% · legendary 30–50%. |
-| **Prerequisites** | Some cards require the bearer's element (e.g. Water Blade → Suiton). |
-| **Charges** | 5 charges; one spent when the card is **drawn** in a pli (near-guaranteed use each cycle). |
-| **Player market** | The **instance** transfers as-is: **same % bonus**, same charges — no re-roll on purchase. |
-| **Refinement hall** | Paid re-roll of the % bonus on an owned card (cost by rarity; shop heritage discount applies). |
-| **Shop** | **10 random offers** from the catalog each restock (repeats allowed); **fresh bonus roll** on purchase. |
-| **Effects** | Some cards have a **pli effect** (bonus damage, reduction, heal, opponent debuff next pli) — described on the card. |
-| **Elements** | 16 cards require the bearer's element — **4 Suiton, 4 Futon, 4 Raiton, 4 Doton, 3 Katon** (balanced spread). |
-
-Examples: **Chakra Blade** (+15%, no prerequisite), **Water Blade** (+30%, Suiton bearer), **Chakra Scalpel** (offensive medicine).
-
----
-
-## Grade progression
-
-### Start
-
-You begin with **6 ninjas**: one active Chunin in the center, five Genin (two active, three on the bench). Character profiles (Brute, Swift, etc.) and profile-less ninjas are mixed in the starting squad.
-
-### Chunin exam
-
-- **Registration**: before H72 (any time during the cycle).
-- **Resolution**: automatic at H72.
-- **Requirements**: **overall rating** ≥ 8 (sum of 6 stats ÷ 6, rounded).
-- **Registration**: **free**.
-- **Success**: 300–1,000 Ryos payout, +1 to +5 reputation, item, form +1 tier, morale +2 to +5.
-- **Success**: promotion to Chunin and raised caps.
-- **Failure**: ninja stays Genin; morale drops.
-
-### Bird Flight (Chunin → departure)
-
-- **Registration**: during the cycle, before H72.
-- **Resolution**: at H72.
-- **Requirements**: **overall rating** ≥ 14 (same formula as the Chunin exam).
-- **Registration cost**: free.
-- **Payout**: substantial, based on the departing Chunin's overall level (+ reputation).
-- **Relief**: a **commoner Genin** replacement arrives (good form and high morale).
-- **Heritage**: the Chunin leaves a **wall heritage scroll** — permanent, stackable bonus by dominant stat (discount on shop, training, hospital, or match items, depending on departure profile).
-
-### Stagnation
-
-At H72, a ninja **eligible** for grade advancement (exam or Bird Flight) but **not registered** is penalized after **one grace cycle**: first a warning with no malus, then form drops one tier and morale falls.
-
----
-
-## Training
-
-Two complementary levers:
-
-| | **Preparation** (actives) | **Global training** (whole squad) |
-|---|---------------------------|-----------------------------------|
-| **Cost** | Billed in Ryos at H72 | **Free** |
-| **Average gain** | 0.4 stat capital / ninja / cycle | 0.2 stat capital / ninja / cycle |
-| **Choice** | One type per starter (3 actives) | One type for the whole team |
-
-### Group types (6)
-
-Chakra (IQ, ninjutsu, genjutsu) · Physical (taijutsu, speed) · Medical · Genjutsu · Ninjutsu · Balanced (all stats).
-
-### Stat capital and variance
-
-Each ninja draws a **share** of the pot (light cycle-to-cycle variance). **Prodigies** progress faster (×1.25); **promising** ×1.1.
-
-### Stacking
-
-A starter can stack **preparation + global** (e.g. both Chakra) to reach Chunin faster (~5 cycles ordinary, ~2–3 prodigy).
-
-- Progress applies at **H72**; preparation billed if treasury allows.
-- Age moderates efficiency; stats at **grade cap** stop until promotion.
-- The **Office** shows forecast (salaries + preparation; global is free).
-
----
-
-## Idle missions
-
-Missions are for **bench** ninjas only (not the active squad).
-
-### General rules
-
-- **Global cap of 3 ninjas** on mission at once (multiple missions of the same rank allowed).
-- Duration by rank (independent of the cycle); send is refused if there aren't enough hours left before H72.
-- Automatic resolution at the **return hour** with a **success roll** (H72 safety net).
-- After resolution, the ninja can **go out again**.
-- Rewards must be **collected manually** after resolution.
-- All ranks are **sendable**; the UI shows odds based on the ninja's **overall rating** (average of 6 stats, rounded).
+## Missions and runs
 
 ### Ranks
 
-| Rank | Duration | Ryos (success) | Target rating (50% success) | Risks on failure |
-|------|----------|----------------|----------------------------|------------------|
-| **D** | 4h | 300–500 | 4 | None |
-| **C** | 8h | 600–800 | 6 | Possible light injury |
-| **B** | 24h | 1,000 | 8 | Serious injury or death possible |
-| **A** | 48h | 1,500–2,000 | 10 | High serious injury or death |
+Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**, **S**. There are 16 missions. All of them are available from the start: it is up to you to judge whether your deck is ready.
 
-**Success**, **injury**, and **death** percentages scale with the gap between ninja rating and rank target. On **success**: Ryos, bonus loot, and **stat gain** (training complement). On **failure**: 0 Ryos, no loot.
+| Rank | Missions | Fights per run | Final boss |
+|------|----------|----------------|------------|
+| D | 3 | 3 | No |
+| C | 3 | 3 | No |
+| B | 5 | 4 | Yes |
+| A | 4 | 5 | Yes |
+| S | 1 | 5 | Yes |
 
-### Progression via missions
+### The run
 
-Each success grants a small stat bump (e.g. +0.25 to +1.0 by rank). **Bench replacements** get a **bonus** (×1.5 on D/C) to offset slower global-only training.
+Starting a mission opens a **run**: a series of steps to clear in order. Fights alternate with **events**.
 
-### Injury consequences
+- Your **HP does not come back** between fights. Only events let you heal.
+- A **defeat** or a **forfeit** in a fight fails the whole run: you get no reward.
+- You can only have **one run in progress**. You can leave it and resume it later, or abandon it.
 
-- **Light**: Lamentable form.
-- **Serious**: Lamentable form + several cycles without hospital treatment.
-- **Death**: ninja is permanently lost.
+### Events and scrap
 
-### Loot
+Each fight won during a run gives **2 scrap**. Scrap is only used during the current run: it is lost at the end.
 
-On **success** only: utility items (bandages, kits, smoke bombs, scrolls…) or, more rarely, prodigy recruitment on ranks B/A.
+Between two fights, an event offers you a choice. For example:
 
-Detailed spec: [`specs/mission-rank-system.md`](../../../specs/mission-rank-system.md).
+| Event | Choice |
+|-------|--------|
+| **Moss Sanctuary** | Meditate: +30% of your max HP |
+| **Scout Cache** | Search: +12% of your max HP and 2 scrap |
+| **Shadow Peddler** | Bandage: 3 scrap for +25% HP. Tonic: 5 scrap for +50% HP |
+| **Veil Crossroads** | Heal +25% HP, or 4 scrap |
 
----
+The other events follow the same idea: a heal, free or paid for in scrap, or a scrap gain.
 
-## Reconnaissance
+### Rewards
 
-Sparring combat to **test your squad** during the preparation phase, before the operation tactical lock. **One mission per cycle** per Sensei.
+Rewards are paid out **at the end of the run**, once the last fight is won:
 
-| Mode | How it works |
-|------|----------------|
-| **Matchmaking** | Human opponent of similar division and power; otherwise a **league bot**. |
-| **Direct challenge** | From the League screen: challenge a pool member or a nearby-division player from another league. Defender must **accept**. |
+- **XP** for your ninja;
+- **Ryos**;
+- **season pass XP**;
+- a **chance to get a card**, common or rare.
 
-**Consequences**: real combat engine (deck, environment); K.O.s can **lower form** like league matches. **Loot**: Ryos + random consumable + technique card chance (even on a loss). Does **not** affect league standings.
+Each mission shows its base rewards. They are multiplied by a **run bonus**, from ×1.6 at rank D up to ×3 at rank S, plus 8% per fight won beyond the first.
 
-**Resolution**: at **H36**. The outcome determines scouting quality (H36 tendencies, H54 report).
+### Quick duel
 
----
-
-## Economy
-
-### Main income
-
-| Source | Nature |
-|--------|--------|
-| **League** | Payout by win, draw, or loss |
-| **Missions** | Idle missions by rank (D–A) |
-| **Bird Flight** | Departing Chunin payout |
-| **Reconnaissance** | Combat loot (Ryos, items, cards) |
-
-### Main expenses
-
-| Item | Timing |
-|------|--------|
-| **Salaries** | H72 — active squad only |
-| **Training** | H72 — active preparation (paid); global training free for whole squad |
-| **Chunin exam** | On registration |
-| **Hospital** | On demand |
-| **Academy** | On aspirant purchase |
-| **Village shop** | During the cycle |
-| **Refinement** | On demand (card bonus re-roll) |
-| **Player market** | On purchase (seller commission) |
-
-Salaries rise with a ninja's **overall level**: an experienced squad is expensive to maintain.
-
-### Items (three categories)
-
-| Type | Use |
-|------|-----|
-| **Office** | Consumed immediately from the Office (heals, maps, scrolls…) |
-| **Match** | One slot per ninja; effect triggers in operation if conditions are met |
-| **Cycle** | Effect for the whole cycle (weather, salaries, form…) |
-
-### Village shop
-
-- **Personal** catalogue, periodic restock (every few league cycles).
-- Random promotions each cycle.
-- Closed when in debt or during H71+ lock.
-
-### Player market (Exchanges)
-
-- Sell bench ninjas or unequipped items.
-- Limited number of active listings.
-- Commission on sale (slightly higher for noble lineages).
-- **Global** market: all human Sensei on the server; league remains the competitive frame.
-- Closed from H71.
+A quick duel starts a single fight against the enemy of your choice, outside any run. Victory immediately pays a fixed reward: 40 XP, 100 Ryos, a 12% card chance and 50 season pass XP.
 
 ---
 
-## Academy and Chakra Seal
+## The shop
 
-### Academy (recruitment)
+### Scrolls
 
-- **Three Genin aspirants** always visible at the Office.
-- Every **24 hours (UTC)**, the oldest aspirant expires; others shift; a new one appears.
-- Recruitment possible while the operation is not locked (before H71).
-- Each aspirant shows path, potential, lineage, and a **price** by profile rarity.
-- One paid recruitment per rotation window (take it or leave it).
+A scroll contains **5 cards**.
 
-### Chakra Seal (daily ritual)
+| Scroll | Price | Common | Rare | Legendary | Mythic |
+|--------|-------|--------|------|-----------|--------|
+| **Standard** | 400 Ryos | 70% | 23% | 5.5% | 1.5% |
+| **Elemental** | 650 Ryos | 65% | 26% | 7% | 2% |
+| **Premium** | 100 Kage Coins | 55% | 32% | 10% | 3% |
 
-- **One free seal per day** (midnight UTC), with a limited max stock.
-- Open at the Office: random loot (common → rare → epic → very rare jackpot).
-- The **jackpot** (Golden Seal) guarantees the **next** Academy aspirant will be a Prodigy or noble lineage.
+- The **Elemental** scroll only contains cards tied to an element. You can choose which one.
+- The **Premium** scroll guarantees at least one rare-or-better card.
+- A card you already own is added as an extra copy.
 
----
+Season-exclusive cards do not come out of scrolls.
 
-## Hospital
+### Cosmetics
 
-- Heals ninjas in **Lamentable** form (except extended convalescence after serious mission injury).
-- Ryos cost by ninja **grade**.
-- Heritage scrolls can reduce cost.
-- Closed during H71+ lock.
+Avatar frames, card backs and titles. They are bought with Ryos, Kage Coins or both. They are **purely visual** and change nothing in combat.
 
----
+### Kage Coins
 
-## Player clans (cooperation)
+Kage Coins are bought with real money, through secure payment:
 
-Hub **without combat bonuses** — up to **12 Sensei** per clan.
+| Pack | Kage Coins | Price |
+|------|------------|-------|
+| Chakra Spark | 100 | €1 |
+| Village Ember | 500 + 50 bonus | €5 |
+| Shadow Forge | 1,000 + 150 bonus | €10 |
+| Kage's Vault | 5,000 + 1,000 bonus | €50 |
 
-### Academy display board
-
-- Each member can **recommend an aspirant** from their showcase to the clan board (once per cycle).
-- Visible to allies until the aspirant expires.
-- Each ally recruits with **their own Ryos**.
-
-### Collective Chakra well
-
-- Each daily Chakra Seal broken adds a **drop** to the clan well.
-- At a collective threshold, all members receive a **bonus Chakra Seal** (within personal stock limit).
+Kage Coins are used to open Premium scrolls, buy some cosmetics and unlock the premium track of the season pass. All game content remains available without buying any.
 
 ---
 
-## League
+## The season pass
 
-### Structure
+The season pass has **50 levels** and **two reward tracks**:
 
-- **Pools** of 6 Sensei (humans and/or bots).
-- **Season**: 10 cycles round-robin (everyone plays everyone).
-- **5 divisions**: 1st is elite, 5th is lowest.
+- the **free track**, open to everyone;
+- the **premium track**, unlocked for **500 Kage Coins**. It also gives **+20%** pass XP for the whole season.
 
-### New player integration
+### Earning pass XP
 
-- Every new human starts in the **lowest division**.
-- If joining a pool with a **bot**, they take its place in the current schedule.
-- Otherwise, a new pool is created (1 human + filler bots).
+- by completing **missions**: the higher the rank, the larger the gain;
+- by completing **quests**:
 
-### Points and standings
+| Quest | Pass XP |
+|-------|---------|
+| Daily | 200 |
+| Weekly | 1,000 |
+| Season milestone | 5,000 |
 
-| Match result | Points |
-|--------------|--------|
-| Win | 3 |
-| Draw | 1 |
-| Loss | 0 |
+A completed quest must be **claimed** to credit its XP.
 
-Tie-breakers: wins, then matches played.
+### Levels
 
-### End of season (cycle 10)
+Each level takes 1,000 pass XP for levels 1 to 10, then 50 more XP per block of ten levels: 1,050 for levels 11 to 20, up to 1,200 for levels 41 to 50.
 
-- **1st**: division promotion.
-- **6th**: relegation.
-- New pool and new schedule.
-- The previous season's **league wall** is no longer shown.
+### Rewards
 
-### League wall
-
-Season-long discussion thread for Sensei in your pool. No post quota (short messages, pagination). Automatic reset on a **new season** (promotion / relegation). A minimal FR/EN **word filter** masks swear words (keeps the first letter, replaces the rest with `*`).
-
-### Head-to-head and nemesis
-
-Standings show the season **W/D/L** record (wins / draws / losses) against each opponent. After **two consecutive losses** to the same Sensei, a **Nemesis** badge appears. A button can send a **reconnaissance challenge** (H0–H35) — the defender must accept.
-
-### Invitation
-
-A Sensei can generate an **invitation link** to their pool. The screen shows how many **humans** and **bots** remain: the goal is to replace a bot with an ally.
+Each level reached opens a reward on each track: Ryos, card dust, essence, Kage Coins, cards, scrolls or cosmetics. A reward must be **claimed** on the pass page. Premium track rewards require the premium unlock.
 
 ---
 
-## Border operation (league match)
+## The PvP arena
 
-### What you see
+The arena pits you against another player in a turn-based duel.
 
-- **Operation report**: short narrative intro, then **face-to-face pli exchanges** (winner highlighted, damage in **HP**), then a closing line. Same layout for **reconnaissance**.
-- **Mechanical debrief**: plis won, remaining HP, environment — analytical tone, personalized per player.
-- **Spectator**: watch matches from other pools.
+### Queue
 
-### Match structure
+You enter the queue with your **active deck**. The game looks for an opponent of **similar level**: at most 3 levels apart by default, or 5 if you widen the search. Among several candidates, it picks the closest in level, then the one who has been waiting the longest.
 
-- **Eighteen pli maximum** (6 cards × 3 active ninjas, shuffled).
-- Each pli: simultaneous card reveal, power comparison, damage to the losing card's owner.
-- **Random environment** (weather, terrain) with modifiers on relevant domains; terrain-counter items removed.
+Once an opponent is found, the duel starts as soon as both players are ready.
 
-### Causal debrief
+### The duel
 
-After the operation, each participating Sensei gets up to **3 readable causes** (domain edge, decisive technique card, Wretched form, incomplete deck…). Goal: understand *why*, not only the result.
+The basics are those of mission combat: 100 HP plus your max HP bonus, 3 Chakra per turn, 5 cards drawn per turn, one discard per turn for 1 Chakra. Players take turns and can forfeit.
 
-### Matchup preview (scouting)
+The duel uses a **simplified** version of the rules:
 
-Once the enemy deck is visible via scouting, a **matchup preview** highlights domains where you are strong or weak before H71.
+- card damage, armor and healing are computed with your stats, critical hits included;
+- statuses, path and element advantages, talent special effects and summons do not apply;
+- unplayed cards **stay in hand** from one turn to the next, up to 10;
+- armor disappears at the **end of your own turn**.
 
-### Resolving plis
+For now there is **no ranking and no reward** specific to the arena. Entering the queue counts towards some season pass quests.
 
-Each pli pits two cards (domain vs domain):
+---
 
-- type bonus +20% (Taijutsu > Genjutsu > Ninjutsu > Taijutsu);
-- Intelligence/Speed as support depending on domain;
-- Tai effects (+10% team next pli) and Gen (−10% enemy);
-- Medicine: heal on win, 50% damage on loss;
-- **Relay** cards if the owner is K.O. (random proxy, dominant stat) **or** if the deck is incomplete (technique not assigned, domains not saved).
+## Currencies and resources
 
-### Victory conditions
-
-1. **Immediate K.O.**: if all actives on a team are down (HP or chakra depleted), the opponent wins outright.
-
-2. **End of plis**: if neither team is fully eliminated after all 18 pli, the winner is whoever has the most **team HP remaining**; on a tie, whoever won the most **plis**.
-
-The **plis won** ratio feeds narration and debrief — it does **not** alone determine the winner (remaining HP takes priority).
-
-### Consequences (at H72)
-
-| Result | League points | Base Ryos (H72) | Bonus loot |
-|--------|---------------|-----------------|------------|
-| Win | 3 | 1,600 | Extra Ryos + random consumable + tactic card chance |
-| Draw | 1 each | 800 each | Same (lower odds) |
-| Loss | 0 | 100 (consolation) | Same (lower odds) |
+| Resource | How to get it | What it is for |
+|----------|---------------|----------------|
+| **Ryos** | Missions, quick duels, season pass | Standard and Elemental scrolls, card upgrades, cosmetics, talent reset |
+| **Kage Coins** | Shop purchase, season pass | Premium scrolls, cosmetics, premium pass track |
+| **Card dust** | Disenchanting, season pass | Card upgrades |
+| **Essence** | Disenchanting upgraded legendary or mythic cards, season pass | Final upgrades of legendary and mythic cards |
+| **Scrap** | Fights and events during a run | Healing during that run only |
 
 ---
 
@@ -734,13 +443,4 @@ The **plis won** ratio feeds narration and debrief — it does **not** alone det
 
 | Date | Change |
 |------|--------|
-| 2026-07-18 | Idle missions: duration by rank (D 4h / C 8h / B 24h / A 48h), cap of 3 ninjas in parallel, resolve at due hour |
-| 2026-07-18 | Villages: player labels as lands (Hi / Kaze / Mizu / Tsuchi no Kuni); league bots spread across those lands |
-| 2026-07-17 | Pli combat rebalance: max HP × 5 (was × 10) and higher pli damage so KOs are reachable |
-| 2026-07-09 | Initial document (player rules, no exact formulas) |
-| 2026-07-10 | Orders renamed (Defensive / Protection), posture & tactic card guide; removed Assault/Wall/Flow circle |
-| 2026-07-15 | Restructured into two parts: interface by menus, then game systems |
-| 2026-07-17 | Removed Elite Pack (disabled), obsolete orders/postures and match items; aligned on operation deck |
-| 2026-07-17 | Character profiles (Brute…Strategist / no profile) — +1/+2 stat bias at generation |
-| 2026-07-17 | Operation / recon report as face-to-face plis (damage in HP) |
-| 2026-07-17 | League social S1: season wall, H2H / nemesis, cross-league challenges, invite polish |
+| 2026-11-14 | Full rewrite for the current version: single ninja, 20–30 card deck, talent tree, turn-based combat, mission runs, shop, season pass, arena |
