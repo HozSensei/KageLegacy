@@ -67,14 +67,18 @@ async function setLanguage(lang) {
     close()
     return
   }
+  const previous = locale.value === 'en' ? 'en' : 'fr'
+  // Optimistic UI + storage so the chrome updates before the PATCH settles
+  locale.value = lang
+  writeStoredLocale(lang)
   const ok = await auth.updateLanguage(lang)
   if (ok) {
-    locale.value = lang
-    writeStoredLocale(lang)
     if (squad.sensei) squad.sensei.language = lang
     if (auth.sensei) auth.sensei.language = lang
     close()
   } else {
+    locale.value = previous
+    writeStoredLocale(previous)
     formError.value = auth.error
   }
 }

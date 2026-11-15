@@ -5,9 +5,8 @@ import TalentTreeCanvas from '../components/talents/TalentTreeCanvas.vue'
 import TalentSidebar from '../components/talents/TalentSidebar.vue'
 import RespecModal from '../components/talents/RespecModal.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
-import { talentHeroTiles } from '../utils/heroTiles'
 import { talentBranchTone } from '../utils/talentVisuals'
+import forestImage from '../assets/illustrations/forest-path.webp'
 import { useTalentTreeStore } from '../stores/talentTree'
 
 defineOptions({ name: 'TalentTreeView' })
@@ -16,7 +15,6 @@ const { t, locale } = useI18n()
 const store = useTalentTreeStore()
 const showRespec = ref(false)
 const message = ref(null)
-const talentTiles = talentHeroTiles(8)
 
 const BRANCHES = ['', 'taijutsu', 'ninjutsu', 'genjutsu', 'medicine']
 
@@ -66,15 +64,13 @@ function onSelect(nodeId) {
     <PageHeader
       index="03"
       tone="leaf"
-      layout="stage"
+      layout="classic"
       :kicker="t('talents.kicker')"
       :title="t('talents.title')"
       :lead="t('talents.lead')"
-    >
-      <template #aside>
-        <PerspectiveCardGrid :tiles="talentTiles" intensity="soft" />
-      </template>
-    </PageHeader>
+      :image="forestImage"
+      image-position="50% 30%"
+    />
 
     <div class="talent-filter" role="group" :aria-label="t('talents.filterLabel')">
       <span class="t-kicker">{{ t('talents.filterLabel') }}</span>

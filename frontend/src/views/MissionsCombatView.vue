@@ -4,9 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import EmptyState from '../components/ui/EmptyState.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
-import { missionHeroTiles } from '../utils/heroTiles'
 import forestImage from '../assets/illustrations/forest-path.webp'
 import { missionRankTone } from '../utils/missionVisuals'
 import { useCombatStore } from '../stores/combat'
@@ -24,7 +22,6 @@ const decks = useDecksStore()
 
 const startingId = ref(null)
 const localError = ref(null)
-const missionTiles = missionHeroTiles(9)
 
 onMounted(async () => {
   await Promise.all([missions.fetchMissions(), decks.fetchDecks()])
@@ -88,17 +85,13 @@ async function startQuick(templateId) {
     <PageHeader
       index="07"
       tone="leaf"
-      layout="stage"
+      layout="overlay"
       :kicker="t('combat.missionsKicker')"
       :title="t('combat.missionsTitle')"
       :lead="t('combat.missionsLead')"
       :image="forestImage"
       image-position="50% 55%"
-    >
-      <template #aside>
-        <PerspectiveCardGrid :tiles="missionTiles" />
-      </template>
-    </PageHeader>
+    />
 
     <p class="missions-deck">
       <span class="t-kicker">{{ t('combat.activeDeck') }}</span>

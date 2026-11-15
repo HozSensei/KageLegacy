@@ -129,13 +129,28 @@ function cardArt(card) {
       @click="emit('select', card)"
       @dblclick="canAfford(card) && emit('play', card)"
     >
+      <span class="hand-card__frame" aria-hidden="true" />
       <span class="hand-card__foil" aria-hidden="true" />
-      <span class="hand-card__rarity-edge" aria-hidden="true" />
-      <span class="hand-card__band">
-        <span class="hand-card__cost" :title="t('combat.costLabel', { n: card.cost })">{{ card.cost }}</span>
-        <span class="hand-card__type">
-          <span class="shape" :class="`shape--${cardTypeVisual(displayType(card)).shape}`" aria-hidden="true" />
-          <template v-if="displayType(card)">{{ t(`cards.types.${displayType(card)}`, displayType(card)) }}</template>
+
+      <span class="hand-card__art-wrap">
+        <span v-if="cardArt(card)" class="hand-card__art" aria-hidden="true">
+          <img
+            class="hand-card__art-img"
+            :src="cardArt(card)"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            draggable="false"
+          />
+        </span>
+        <span v-else class="hand-card__art hand-card__art--placeholder" aria-hidden="true">
+          <span
+            class="shape"
+            :class="`shape--${cardTypeVisual(displayType(card)).shape}`"
+          />
+        </span>
+        <span class="hand-card__cost" :title="t('combat.costLabel', { n: card.cost })">
+          {{ card.cost }}
         </span>
         <span
           v-if="card.upgradeLevel > 0"
@@ -145,19 +160,18 @@ function cardArt(card) {
           +{{ card.upgradeLevel }}
         </span>
       </span>
-      <span
-        class="hand-card__rarity"
-        :data-tone="rarityVisual(card.rarity).tone"
-      >
-        <span class="hand-card__pips" aria-hidden="true">
-          <span v-for="n in rarityVisual(card.rarity).pips" :key="n" class="lozenge" />
-        </span>
-      </span>
-      <span class="hand-card__body">
-        <span v-if="cardArt(card)" class="hand-card__art" aria-hidden="true">
-          <img class="hand-card__art-img" :src="cardArt(card)" alt="" loading="lazy" decoding="async" draggable="false" />
+
+      <span class="hand-card__nameplate">
+        <span class="hand-card__type-icon" aria-hidden="true">
+          <span class="shape" :class="`shape--${cardTypeVisual(displayType(card)).shape}`" />
         </span>
         <strong class="hand-card__name">{{ cardName(card) }}</strong>
+        <span v-if="displayType(card)" class="hand-card__type">
+          {{ t(`cards.types.${displayType(card)}`, displayType(card)) }}
+        </span>
+      </span>
+
+      <span class="hand-card__rules">
         <span v-if="cardDescription(card)" class="hand-card__desc">{{ cardDescription(card) }}</span>
         <span class="hand-card__stats">
           <span
@@ -175,6 +189,12 @@ function cardArt(card) {
           </span>
         </span>
       </span>
+
+      <span class="hand-card__footer" :data-tone="rarityVisual(card.rarity).tone" aria-hidden="true">
+        <span class="hand-card__gem">
+          <span v-for="n in rarityVisual(card.rarity).pips" :key="n" class="lozenge" />
+        </span>
+      </span>
     </button>
   </TransitionGroup>
 </template>
@@ -183,9 +203,9 @@ function cardArt(card) {
 .hand {
   position: relative;
   display: flex;
-  align-items: stretch;
-  gap: 0.6rem;
-  min-height: 12.5rem;
+  align-items: flex-end;
+  gap: 0.55rem;
+  min-height: 14.5rem;
   margin-inline: calc(var(--space-gutter) * -1);
   padding: 1rem var(--space-gutter) 0.5rem;
   overflow-x: auto;
@@ -197,33 +217,46 @@ function cardArt(card) {
   --card-rarity: var(--color-neutral-fill);
   --card-rarity-soft: var(--color-bg-soft);
   --card-rarity-glow: transparent;
+  --card-frame: color-mix(in srgb, var(--color-ink) 88%, var(--card-rarity));
 
   position: relative;
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  width: 9.5rem;
-  min-height: 11.5rem;
+  width: 8.75rem;
+  aspect-ratio: 2.5 / 3.5;
   overflow: hidden;
-  border: 2px solid var(--card-rarity);
-  border-radius: var(--radius-md);
+  padding: 0.28rem 0.28rem 0.32rem;
+  border: 0;
+  border-radius: 0.7rem;
   background:
     linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--card-rarity-soft) 50%, var(--color-bg-card)) 0%,
-      var(--color-bg-card) 45%,
-      var(--color-bg-card) 100%
+      160deg,
+      color-mix(in srgb, var(--card-rarity) 55%, var(--card-frame)) 0%,
+      var(--card-frame) 40%,
+      color-mix(in srgb, var(--card-rarity) 30%, var(--card-frame)) 100%
     );
   color: var(--color-ink);
   text-align: left;
   outline: 0 solid var(--color-ink);
   scroll-snap-align: start;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-rarity) 24%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--card-rarity) 40%, transparent),
+    0 8px 16px color-mix(in srgb, var(--color-ink) 16%, transparent);
   transition:
     transform var(--dur-base) var(--ease-out-quint),
     opacity var(--dur-base) ease,
     box-shadow var(--dur-base) ease,
     outline-width var(--dur-fast) ease;
+}
+
+.hand-card__frame {
+  position: absolute;
+  inset: 0.18rem;
+  z-index: 0;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--color-bg-card) 92%, var(--card-rarity-soft));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-rarity) 22%, transparent);
 }
 
 .hand-card--common {
@@ -246,25 +279,26 @@ function cardArt(card) {
   --card-rarity: var(--color-vermilion);
   --card-rarity-soft: var(--color-vermilion-tint);
   --card-rarity-glow: color-mix(in srgb, var(--color-vermilion) 38%, transparent);
-  border-width: 3px;
 }
 
 .hand-card__foil {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   opacity: 0;
+  border-radius: inherit;
   background:
     linear-gradient(
       125deg,
       transparent 20%,
-      color-mix(in srgb, var(--card-rarity) 16%, transparent) 40%,
-      color-mix(in srgb, var(--color-bg-card) 50%, transparent) 50%,
-      color-mix(in srgb, var(--card-rarity) 20%, transparent) 60%,
+      color-mix(in srgb, var(--card-rarity) 18%, transparent) 40%,
+      color-mix(in srgb, var(--color-on-ink) 22%, transparent) 50%,
+      color-mix(in srgb, var(--card-rarity) 22%, transparent) 60%,
       transparent 80%
     );
   background-size: 220% 220%;
+  mix-blend-mode: soft-light;
 }
 
 .hand-card--foil .hand-card__foil {
@@ -273,33 +307,22 @@ function cardArt(card) {
 
 .hand-card--foil:hover .hand-card__foil,
 .hand-card--selected .hand-card__foil {
-  opacity: 0.8;
+  opacity: 0.85;
   animation: hand-foil-sweep 1.4s var(--ease-out-quint) 1;
 }
 
-.hand-card__rarity-edge {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  width: 0.22rem;
-  background: var(--card-rarity);
-  box-shadow: 0 0 10px var(--card-rarity-glow);
-}
-
 .hand-card:hover:not(:disabled) {
-  transform: translateY(-0.5rem);
+  transform: translateY(-0.55rem);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--card-rarity) 40%, transparent),
-    0 8px 16px color-mix(in srgb, var(--color-ink) 12%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--card-rarity) 55%, transparent),
+    0 12px 20px color-mix(in srgb, var(--color-ink) 20%, transparent),
+    0 0 14px var(--card-rarity-glow);
 }
 
 .hand-card--selected,
 .hand-card--selected:hover:not(:disabled) {
   outline-width: 3px;
-  transform: translateY(-0.75rem);
+  transform: translateY(-0.85rem);
 }
 
 .hand-card:disabled {
@@ -310,103 +333,40 @@ function cardArt(card) {
   opacity: 0.5;
 }
 
-.hand-card__band,
-.hand-card__rarity,
-.hand-card__body {
+.hand-card__art-wrap,
+.hand-card__nameplate,
+.hand-card__rules,
+.hand-card__footer {
   position: relative;
   z-index: 1;
 }
 
-.hand-card__band {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 2.25rem;
-  padding-right: 0.45rem;
-  background: var(--tone-fill);
-  color: var(--tone-on);
-}
-
-.hand-card__cost {
-  display: grid;
-  place-items: center;
-  align-self: stretch;
-  min-width: 2.25rem;
-  padding-right: 0.3rem;
-  background: var(--color-bg-card);
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
-  font-stretch: 76%;
-  line-height: 1;
-  color: var(--color-ink);
-  clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
-}
-
-.hand-card--unaffordable .hand-card__cost {
-  color: var(--color-fire);
-}
-
-.hand-card__type {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-width: 0;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.hand-card__upgrade {
-  margin-left: auto;
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.35rem;
-  height: 1.2rem;
-  padding: 0 0.25rem;
-  border: 1px solid color-mix(in srgb, var(--tone-on) 50%, transparent);
-  background: color-mix(in srgb, var(--color-ink) 50%, transparent);
-  font-family: var(--font-display);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--color-on-ink);
-}
-
-.hand-card__rarity {
-  display: flex;
-  align-items: center;
-  min-height: 0.85rem;
-  padding: 0.2rem 0.55rem 0.15rem 0.7rem;
-  background: color-mix(in srgb, var(--tone-fill) 20%, var(--color-bg-soft));
-  border-bottom: 1px solid color-mix(in srgb, var(--card-rarity) 30%, transparent);
-}
-
-.hand-card__pips {
-  display: inline-flex;
-  gap: 0.15rem;
-  font-size: 0.65rem;
-  color: var(--tone-fill);
-}
-
-.hand-card__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.55rem 0.6rem 0.6rem 0.7rem;
+.hand-card__art-wrap {
+  position: relative;
+  margin: 0.05rem 0.05rem 0;
 }
 
 .hand-card__art {
+  display: block;
   overflow: hidden;
-  margin: 0 -0.1rem;
-  border: 1px solid color-mix(in srgb, var(--card-rarity) 30%, var(--color-line));
-  border-radius: var(--radius-sm);
+  aspect-ratio: 1 / 0.88;
+  border: 1.5px solid color-mix(in srgb, var(--card-rarity) 50%, var(--color-ink));
+  border-radius: 0.28rem 0.28rem 0.1rem 0.1rem;
   background: var(--color-bg-soft);
-  aspect-ratio: 16 / 9;
-  flex-shrink: 0;
+}
+
+.hand-card__art--placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  color: var(--tone-fill);
+  opacity: 0.45;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--tone-fill) 30%, var(--color-bg-soft)),
+      var(--color-bg-soft)
+    );
 }
 
 .hand-card__art-img {
@@ -419,52 +379,140 @@ function cardArt(card) {
   pointer-events: none;
 }
 
+.hand-card__cost {
+  position: absolute;
+  top: -0.28rem;
+  left: -0.28rem;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--color-gold-fill) 85%, white), var(--color-gold) 55%, color-mix(in srgb, var(--color-ink) 55%, var(--color-gold)));
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--color-ink) 75%, transparent),
+    0 1px 4px color-mix(in srgb, var(--color-ink) 30%, transparent);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.hand-card--unaffordable .hand-card__cost {
+  color: var(--color-fire);
+  filter: saturate(0.7);
+}
+
+.hand-card__upgrade {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  z-index: 3;
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.05rem;
+  padding: 0 0.2rem;
+  border-radius: 0.2rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-fill) 70%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 70%, transparent);
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-on-ink);
+}
+
+.hand-card__nameplate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 0 0.3rem;
+  align-items: center;
+  margin: 0.22rem 0.05rem 0;
+  padding: 0.2rem 0.28rem 0.22rem;
+  border-radius: 0.15rem;
+  background: var(--tone-fill);
+  color: var(--tone-on);
+}
+
+.hand-card__type-icon {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-ink) 25%, transparent);
+  font-size: 0.6rem;
+}
+
 .hand-card__name {
   font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   font-stretch: 88%;
-  line-height: 1.1;
+  line-height: 1.05;
   overflow-wrap: anywhere;
+}
+
+.hand-card__type {
+  font-size: 0.45rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.hand-card__rules {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 0;
+  margin: 0.2rem 0.05rem 0;
+  padding: 0.25rem 0.3rem;
+  border-radius: 0.15rem;
+  background: color-mix(in srgb, var(--color-bg-soft) 75%, var(--card-rarity-soft));
+  border: 1px solid color-mix(in srgb, var(--card-rarity) 18%, var(--color-line));
 }
 
 .hand-card__desc {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 0.72rem;
-  line-height: 1.35;
+  font-size: 0.55rem;
+  line-height: 1.3;
   color: var(--color-ink-muted);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
 
-.hand-card:has(.hand-card__art) .hand-card__desc {
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-}
-
 .hand-card__stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.15rem 0.55rem;
+  gap: 0.1rem 0.4rem;
   margin-top: auto;
 }
 
 .hand-card__stat {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.25rem;
-  font-size: 0.625rem;
+  gap: 0.15rem;
+  font-size: 0.5rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
 }
 
 .hand-card__stat b {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 0.95rem;
   font-weight: 800;
   font-stretch: 76%;
   letter-spacing: 0;
@@ -474,12 +522,12 @@ function cardArt(card) {
 .hand-card__stat-label {
   display: inline-flex;
   flex-direction: column;
-  gap: 0.05rem;
-  line-height: 1.1;
+  gap: 0.02rem;
+  line-height: 1.05;
 }
 
 .hand-card__base {
-  font-size: 0.5625rem;
+  font-size: 0.45rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--color-ink-faint);
@@ -496,6 +544,24 @@ function cardArt(card) {
 
 .hand-card__stat--heal b {
   color: var(--color-leaf);
+}
+
+.hand-card__footer {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.15rem;
+  padding: 0.05rem;
+}
+
+.hand-card__gem {
+  display: inline-flex;
+  gap: 0.1rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--tone-fill) 90%, white), var(--tone-fill));
+  font-size: 0.4rem;
+  color: var(--tone-on, var(--color-on-ink));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-ink) 40%, transparent);
 }
 
 /* Distribution, carte jouée, glissement des cartes restantes */
@@ -552,7 +618,7 @@ function cardArt(card) {
 
 @media (max-width: 640px) {
   .hand-card {
-    width: 8.4rem;
+    width: 7.85rem;
   }
 }
 </style>

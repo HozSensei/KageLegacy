@@ -8,10 +8,8 @@ import { useDecksStore } from '../stores/decks'
 import { useTalentTreeStore } from '../stores/talentTree'
 import EmptyState from '../components/ui/EmptyState.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { sectionOf } from '../constants/sections'
-import { tilesFromCollection } from '../utils/heroTiles'
 import hubImage from '../assets/illustrations/hub-office.webp'
 
 defineOptions({ name: 'HubView' })
@@ -87,7 +85,6 @@ const shortcuts = computed(() =>
   ].map((link) => ({ ...link, section: sectionOf(link.name) }))
 )
 
-const heroTiles = computed(() => tilesFromCollection(collection.entries || [], 9))
 </script>
 
 <template>
@@ -95,16 +92,14 @@ const heroTiles = computed(() => tilesFromCollection(collection.entries || [], 9
     <PageHeader
       index="01"
       tone="vermilion"
-      layout="stage"
+      layout="overlay"
       size="display"
       :kicker="t('hub.kicker')"
       :title="t('hub.title')"
       :lead="t('hub.lead')"
       :image="hubImage"
+      image-position="50% 35%"
     >
-      <template #aside>
-        <PerspectiveCardGrid :tiles="heroTiles" />
-      </template>
       <template v-if="ready && hasCharacter && nextStep" #actions>
         <RouterLink :to="nextStep.to" class="btn-primary" data-testid="hub-hero-cta">
           {{ t('hub.continueCta', { step: nextStep.label }) }}

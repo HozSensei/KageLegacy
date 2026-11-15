@@ -7,6 +7,16 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : passe visuelle TCG (2026-11-15)
+
+#### Changed
+- **Headers** : suppression de `PerspectiveCardGrid` / layout `stage` ; héros en image importée (`overlay` / `classic`) sur collection, hub, boutique, missions, PvP, etc.
+- **Cartes** (`CardDisplay`, `CardHole`, `CombatHand`) : silhouette TCG portrait (~2.5×3.5), cadre rareté, fenêtre d’art, pip de coût, plaque nom/type, boîte de règles, gemme de rareté
+- **Boosters** (`BoosterSelection`) : rendu en packs verticaux (sertissage, fenêtre d’art, compteur de cartes) plutôt qu’en tuiles boutique
+
+#### Removed
+- `PerspectiveCardGrid.vue`, `utils/heroTiles.js`
+
 ### Cartes : illustrations 49–60 (2026-11-15)
 
 #### Added

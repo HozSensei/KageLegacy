@@ -49,9 +49,9 @@ describe('Locale — FR/EN V2', () => {
     it('persiste la locale et rafraîchit la collection', () => {
       cy.get('[data-testid="profile-menu-button"]').click();
       cy.get('[data-testid="profile-locale-en"]').click();
-      cy.window().then((win) => {
-        expect(win.localStorage.getItem('kage-locale')).to.eq('en');
-      });
+      // Attendre la fin du PATCH async (fermeture panneau) avant d'asserter le storage
+      cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
+      cy.window().its('localStorage').invoke('getItem', 'kage-locale').should('eq', 'en');
 
       cy.visitNav('collection');
       cy.get('[data-testid="collection-page"]').should('be.visible');
@@ -60,6 +60,7 @@ describe('Locale — FR/EN V2', () => {
 
       cy.get('[data-testid="profile-menu-button"]').click();
       cy.get('[data-testid="profile-locale-fr"]').click();
+      cy.get('[data-testid="profile-menu-panel"]').should('not.exist');
       cy.visitNav('missions');
       cy.get('[data-testid="missions-combat-page"]').should('be.visible');
       cy.contains(/mission|combat|deck/i).should('exist');

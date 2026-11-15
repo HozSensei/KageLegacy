@@ -239,8 +239,8 @@ function onSelectSlot(slot) {
 
 .collection-grid__list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-  gap: 1rem;
-  align-items: stretch;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+  gap: 1.15rem;
+  align-items: start;
 }
 </style>

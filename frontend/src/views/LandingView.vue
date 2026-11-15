@@ -5,8 +5,6 @@ import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
-import { typeHeroTiles } from '../utils/heroTiles'
 import gateImage from '../assets/illustrations/village-gate.webp'
 
 defineOptions({ name: 'LandingView' })
@@ -28,8 +26,6 @@ const timeline = [
   'landing.timeline.grow',
   'landing.timeline.fight',
 ]
-
-const heroTiles = typeHeroTiles(9)
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest({ language: locale.value === 'en' ? 'en' : 'fr' })
@@ -87,14 +83,13 @@ async function playAsGuest() {
         </div>
 
         <div class="landing__visual" aria-hidden="true">
+          <span class="landing__orb landing__orb--a" />
+          <span class="landing__orb landing__orb--b" />
           <span class="landing__block" />
           <span class="landing__disc" />
           <span class="landing__frame illustration">
             <img class="landing__image" :src="gateImage" alt="" decoding="async" />
           </span>
-          <div class="landing__cards">
-            <PerspectiveCardGrid :tiles="heroTiles" />
-          </div>
           <span class="landing__lozenge"><BrandMark size="100%" /></span>
         </div>
       </section>
@@ -267,10 +262,38 @@ async function playAsGuest() {
   margin-inline: calc(var(--space-gutter) * -1);
 }
 
+.landing__orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing__orb--a {
+  top: -10%;
+  right: 6%;
+  width: 38%;
+  aspect-ratio: 1;
+  background: color-mix(in srgb, var(--color-vermilion-tint) 65%, transparent);
+}
+
+.landing__orb--b {
+  bottom: -16%;
+  left: 2%;
+  width: 26%;
+  aspect-ratio: 1;
+  background: color-mix(in srgb, var(--color-gold-fill) 16%, transparent);
+}
+
 .landing__frame {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
   animation: fade-in 700ms ease both;
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--color-ink) 16%, transparent);
 }
 
 .landing__image {
@@ -278,15 +301,7 @@ async function playAsGuest() {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.landing__cards {
-  position: absolute;
-  inset: auto 4% 6% auto;
-  z-index: 2;
-  width: min(72%, 18rem);
-  pointer-events: none;
-  filter: drop-shadow(0 12px 0 color-mix(in srgb, var(--color-ink) 12%, transparent));
+  filter: var(--image-filter);
 }
 
 .landing__block,
@@ -469,11 +484,6 @@ async function playAsGuest() {
     background: var(--color-indigo-deep);
     color: var(--color-on-fill);
     animation: pop-in 620ms var(--ease-out-quint) 340ms both;
-  }
-
-  .landing__cards {
-    inset: auto -4% 8% auto;
-    width: min(88%, 20rem);
   }
 
   .landing__feature-grid {

@@ -4,8 +4,7 @@ import { useI18n } from 'vue-i18n'
 import BattlePassTrack from '../components/battlePass/BattlePassTrack.vue'
 import QuestList from '../components/battlePass/QuestList.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
-import { rarityHeroTiles } from '../utils/heroTiles'
+import marketImage from '../assets/illustrations/market-square.webp'
 import { useBattlePassStore } from '../stores/battlePass'
 import { useAuthStore } from '../stores/auth'
 
@@ -16,7 +15,6 @@ const store = useBattlePassStore()
 const auth = useAuthStore()
 const message = ref(null)
 const activeTab = ref('free')
-const bpHeroTiles = rarityHeroTiles(8)
 
 const canStubUnlock = computed(() => Boolean(auth.user?.isAdmin))
 
@@ -81,15 +79,13 @@ async function onDebugXp() {
     <PageHeader
       index="08"
       tone="gold"
-      layout="stage"
+      layout="overlay"
       :kicker="t('battlePass.kicker')"
       :title="store.season?.name || t('battlePass.title')"
       :lead="t('battlePass.lead')"
-    >
-      <template #aside>
-        <PerspectiveCardGrid :tiles="bpHeroTiles" intensity="soft" />
-      </template>
-    </PageHeader>
+      :image="marketImage"
+      image-position="50% 40%"
+    />
 
     <section v-if="store.progress" class="bp-summary" data-tone="gold">
       <div class="bp-summary__level">
