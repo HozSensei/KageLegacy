@@ -7,6 +7,8 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 COPY frontend/ ./
+# Vite alias @shared → ../shared (shared modules used by frontend build)
+COPY shared/ /app/shared/
 
 # Même origine : nginx proxy /api → API Node
 ENV VITE_API_URL=
@@ -23,6 +25,8 @@ COPY backend/package.json backend/package-lock.json ./backend/
 RUN npm ci --omit=dev --prefix backend
 
 COPY backend/ ./backend/
+# Backend imports ../../../../shared from src/services/pvp → /app/shared
+COPY shared/ ./shared/
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
