@@ -15,22 +15,34 @@
         background: #14182b;
         color-scheme: dark;
       }
+      html[data-theme='ink'] {
+        background: #1a1614;
+        color-scheme: dark;
+      }
+      html[data-theme='amber'] {
+        background: #140c08;
+        color-scheme: dark;
+      }
     </style>
     <script>
       // Applique le thème avant le premier rendu (même règle que src/composables/useTheme.js).
+      // Système sombre → `dark` (indigo), jamais `ink` / `amber` automatiquement.
       ;(function () {
         var theme = null
+        var allowed = { light: 1, dark: 1, ink: 1, amber: 1 }
+        var colors = { light: '#f5f0e6', dark: '#14182b', ink: '#1a1614', amber: '#140c08' }
         try {
           theme = localStorage.getItem('kage-legacy-theme')
         } catch (e) {}
-        if (theme !== 'light' && theme !== 'dark') {
-          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        if (!allowed[theme]) {
+          theme =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+              ? 'dark'
+              : 'light'
         }
         document.documentElement.setAttribute('data-theme', theme)
-        if (theme === 'dark') {
-          var meta = document.querySelector('meta[name="theme-color"]')
-          if (meta) meta.setAttribute('content', '#14182b')
-        }
+        var meta = document.querySelector('meta[name="theme-color"]')
+        if (meta) meta.setAttribute('content', colors[theme])
       })()
     </script>
   </head>

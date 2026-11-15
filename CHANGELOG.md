@@ -30,11 +30,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Thème sombre et finitions d'interface (2026-11-14)
 
 #### Added
-- **Thème sombre** en plus du clair : fonds indigo nuit (`#14182b`), texte crème, accent vermillon éclairci pour le texte, tons secondaires recalibrés — mêmes jetons (`frontend/src/styles/tokens.css`, bloc `[data-theme='dark']`), mêmes aplats et mêmes formes
-- **Bascule clair / sombre** (`ThemeToggle`, `data-testid="theme-toggle"`) dans la coque et sur les pages publiques (accueil, connexion, règles) ; choix mémorisé (`localStorage`, clé `kage-legacy-theme`), thème du système suivi tant qu'aucun choix n'est fait, thème posé avant le premier rendu (`index.html`)
+- **Thèmes sombres** en plus du clair : sombre indigo (`dark`, fonds `#14182b`), sombre encre (`ink`, anthracite/brun-noir `#1a1614`, accent vermillon, bois/or — pas d'indigo dominant) et sombre ambre (`amber`, brun-noir chaud `#140c08`, crème chaude, accents orange/ambre/vermillon) — jetons dans `frontend/src/styles/tokens.css`
+- **Sélecteur à 4 options** (`ThemeToggle` / menu `theme-picker-menu`, `data-testid="theme-toggle"`) : Clair | Sombre indigo | Sombre encre | Sombre ambre — coque et pages publiques ; `localStorage` clé `kage-legacy-theme` ; sans choix, système clair → `light`, système sombre → `dark` (jamais `ink` / `amber` auto) ; flash évité via `index.html`
 - **Illustrations** : voile « heure bleue » en thème sombre (`.illustration`), sans modifier les fichiers
 - **Journal de combat** : libellés lisibles FR/EN pour tous les événements du moteur (PvE et PvP), formulés du point de vue du joueur
-- **Test Cypress** `theme.cy.js` : thème du système, bascule, persistance après rechargement
+- **Test Cypress** `theme.cy.js` : thème du système, sélection des 4 thèmes, persistance après rechargement
 
 #### Changed
 - **Arbre de talents** : l'arbre entier tient dans le cadre au zoom par défaut (desktop et mobile) ; nœuds, liens et libellés compensent le dézoom

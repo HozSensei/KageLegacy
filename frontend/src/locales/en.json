@@ -1989,6 +1989,11 @@
     }
   },
   "theme": {
+    "choose": "Choose theme",
+    "light": "Light",
+    "dark": "Indigo dark",
+    "ink": "Ink dark",
+    "amber": "Amber dark",
     "switchToDark": "Switch to dark theme",
     "switchToLight": "Switch to light theme"
   }
