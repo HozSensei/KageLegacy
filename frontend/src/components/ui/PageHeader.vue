@@ -222,8 +222,8 @@ defineProps({
   place-items: center;
   min-height: clamp(12rem, 38vw, 16rem);
   margin-inline: calc(var(--space-gutter) * -1);
-  padding: 1.25rem var(--space-gutter) 0.5rem;
-  overflow: hidden;
+  padding: 1.25rem var(--space-gutter) 1.25rem;
+  overflow: visible;
   background: var(--color-bg-soft);
 }
 
@@ -351,9 +351,10 @@ defineProps({
 
   .page-header--stage .page-header__stage {
     order: 0;
-    min-height: 17rem;
+    min-height: 18.5rem;
     margin: 0;
-    padding: 1.5rem 1rem 1.5rem 0;
+    padding: 1.75rem 0.5rem 1.75rem 0;
+    overflow: visible;
     border-radius: var(--radius-md);
   }
 

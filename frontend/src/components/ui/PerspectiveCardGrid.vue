@@ -76,12 +76,12 @@ function tilePips(tile) {
 <style scoped>
 .perspective-stage {
   --persp: 920px;
-  --rx: 14deg;
-  --ry: -32deg;
-  --rz: 6deg;
+  --rx: 18deg;
+  --ry: -38deg;
+  --rz: 8deg;
   position: relative;
-  width: min(100%, 22rem);
-  height: clamp(11rem, 28vw, 15.5rem);
+  width: min(100%, 24rem);
+  height: clamp(12rem, 30vw, 17rem);
   margin-inline: auto;
   perspective: var(--persp);
   perspective-origin: 42% 45%;
