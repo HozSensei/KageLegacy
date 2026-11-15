@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { usePlayerStore } from '../stores/player'
+import { useLeaderboardStore } from '../stores/leaderboard'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { elementTone } from '../utils/cardVisuals'
 
@@ -11,19 +12,32 @@ defineOptions({ name: 'CharacterCreationView' })
 const { t } = useI18n()
 const router = useRouter()
 const player = usePlayerStore()
+const lb = useLeaderboardStore()
 
 const name = ref('')
 const elementAffinity = ref('Katon')
+const factionId = ref('midorihara')
 
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon']
 
 const previewName = computed(() => name.value.trim())
 const previewInitial = computed(() => (previewName.value.charAt(0) || '?').toUpperCase())
+const previewFaction = computed(() =>
+  factionId.value ? t(`factions.names.${factionId.value}`) : ''
+)
+const previewFactionAccent = computed(
+  () => lb.factions.find((f) => f.id === factionId.value)?.accentColor || '#2d6a4f'
+)
 
 onMounted(async () => {
   if (!player.checked) await player.fetchPlayer()
   if (player.character) {
     await router.replace({ name: 'profile' })
+    return
+  }
+  await lb.fetchFactions()
+  if (lb.factions.length && !lb.factions.some((f) => f.id === factionId.value)) {
+    factionId.value = lb.factions[0].id
   }
 })
 
@@ -31,6 +45,7 @@ async function submit() {
   const created = await player.createCharacter({
     name: name.value.trim(),
     elementAffinity: elementAffinity.value,
+    factionId: factionId.value || null,
   })
   if (created) await router.push({ name: 'hub' })
 }
@@ -79,6 +94,25 @@ async function submit() {
             </div>
           </fieldset>
 
+          <fieldset v-if="lb.factions.length" data-testid="create-faction">
+            <legend class="field__label">{{ t('factions.pickLabel') }}</legend>
+            <p class="creation__faction-hint">{{ t('factions.pickLead') }}</p>
+            <div class="creation__factions">
+              <label
+                v-for="f in lb.factions"
+                :key="f.id"
+                class="creation__faction"
+                :class="{ 'is-active': factionId === f.id }"
+                :style="{ '--faction-accent': f.accentColor }"
+              >
+                <input v-model="factionId" type="radio" class="sr-only" :value="f.id" />
+                <span class="creation__faction-banner" aria-hidden="true" />
+                <span class="creation__faction-name">{{ t(`factions.names.${f.id}`) }}</span>
+                <span class="creation__faction-tone">{{ t(`factions.tones.${f.id}`) }}</span>
+              </label>
+            </div>
+          </fieldset>
+
           <p class="creation__hint">
             {{ t('player.createHint') }}
           </p>
@@ -107,6 +141,13 @@ async function submit() {
             <span class="creation__tag creation__tag--tone">
               <span class="dot" />
               {{ t(`player.elements.${elementAffinity}`) }}
+            </span>
+            <span
+              v-if="previewFaction"
+              class="creation__tag"
+              :style="{ borderLeft: `3px solid ${previewFactionAccent}` }"
+            >
+              {{ previewFaction }}
             </span>
           </p>
           <p class="creation__level">
@@ -189,6 +230,64 @@ async function submit() {
   border-left: 4px solid var(--color-line-strong);
   font-size: 0.875rem;
   line-height: 1.55;
+  color: var(--color-ink-muted);
+}
+
+.creation__faction-hint {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+}
+
+.creation__factions {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 520px) {
+  .creation__factions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.creation__faction {
+  display: flex;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--faction-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--faction-accent) 10%, var(--color-bg-card));
+  transition:
+    border-color var(--dur-fast) ease,
+    transform var(--dur-base) var(--ease-out-quint);
+}
+
+.creation__faction:hover {
+  transform: translateY(-2px);
+}
+
+.creation__faction.is-active {
+  border-color: var(--faction-accent);
+  box-shadow: inset 0 0 0 1px var(--faction-accent);
+}
+
+.creation__faction-banner {
+  display: block;
+  height: 0.3rem;
+  margin-bottom: 0.35rem;
+  background: var(--faction-accent);
+}
+
+.creation__faction-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.creation__faction-tone {
+  font-size: 0.75rem;
   color: var(--color-ink-muted);
 }
 

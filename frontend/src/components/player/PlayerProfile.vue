@@ -61,6 +61,16 @@ const elementLabel = computed(() => {
               <span class="dot" aria-hidden="true" />
               {{ elementLabel }}
             </span>
+            <span
+              v-if="character.factionId"
+              class="profile-id__tag"
+              :style="{
+                borderLeft: `3px solid ${character.faction?.accentColor || 'currentColor'}`,
+              }"
+              data-testid="profile-faction"
+            >
+              {{ t(`factions.names.${character.factionId}`) }}
+            </span>
             <span v-if="character.specialization" class="profile-id__tag">{{ character.specialization }}</span>
           </p>
         </div>

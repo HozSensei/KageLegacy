@@ -81,6 +81,7 @@ const shortcuts = computed(() =>
     { name: 'shop', to: '/shop', label: t('nav.shop'), hint: t('hub.shortcutShop') },
     { name: 'battle-pass', to: '/battle-pass', label: t('nav.battlePass'), hint: t('hub.shortcutBp') },
     { name: 'pvp', to: '/pvp', label: t('nav.pvp'), hint: t('hub.shortcutPvp') },
+    { name: 'leaderboard', to: '/classement', label: t('nav.leaderboard'), hint: t('hub.shortcutLeaderboard') },
     { name: 'profile', to: '/profil', label: t('nav.profile'), hint: t('hub.shortcutProfile') },
   ].map((link) => ({ ...link, section: sectionOf(link.name) }))
 )

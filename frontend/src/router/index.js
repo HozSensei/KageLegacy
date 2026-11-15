@@ -17,6 +17,7 @@ import ShopView from '../views/ShopView.vue'
 import BattlePassView from '../views/BattlePassView.vue'
 import PvpQueueView from '../views/PvpQueueView.vue'
 import PvpDuelView from '../views/PvpDuelView.vue'
+import LeaderboardView from '../views/LeaderboardView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const router = createRouter({
@@ -129,6 +130,14 @@ const router = createRouter({
           path: 'pvp/duel/:id',
           name: 'pvp-duel',
           component: PvpDuelView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'classement',
+          name: 'leaderboard',
+          component: LeaderboardView,
           meta: {
             requiresCharacter: true,
           },

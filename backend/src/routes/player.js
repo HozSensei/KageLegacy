@@ -80,6 +80,7 @@ router.post('/create', async (req, res, next) => {
       name: parsed.name,
       clanTraitId: parsed.clanTraitId ?? null,
       elementAffinity: parsed.elementAffinity,
+      factionId: parsed.factionId ?? null,
       avatarUrl: parsed.avatarUrl || null,
     });
     res.status(201).json({ character });

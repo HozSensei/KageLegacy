@@ -269,6 +269,7 @@
     "village": "Land",
     "missions": "Missions",
     "pvp": "PvP Arena",
+    "leaderboard": "Standings",
     "reconnaissance": "Reconnaissance",
     "training": "Training",
     "league": "League",
@@ -703,6 +704,7 @@
     "shortcutShop": "Boosters & cosmetics",
     "shortcutBp": "Season track & quests",
     "shortcutPvp": "Queue for a duel",
+    "shortcutLeaderboard": "Level & PvP rankings",
     "shortcutProfile": "Stats & specialization",
     "statLevel": "Level",
     "statCards": "Cards",
@@ -2025,5 +2027,42 @@
     "amber": "Amber dark",
     "switchToDark": "Switch to dark theme",
     "switchToLight": "Switch to light theme"
+  },
+  "factions": {
+    "pickLabel": "Faction",
+    "pickTitle": "Choose your land",
+    "pickLead": "Three lands from the old rivalry — cosmetic identity only, no combat bonus. One free retake later.",
+    "names": {
+      "midorihara": "Midorihara",
+      "kareno": "Kareno",
+      "oborohama": "Oborohama"
+    },
+    "tones": {
+      "midorihara": "Discipline and tradition.",
+      "kareno": "Endurance and pragmatism.",
+      "oborohama": "Shadow and precision."
+    }
+  },
+  "leaderboard": {
+    "kicker": "Rivalry",
+    "title": "Standings",
+    "lead": "Server rankings from verified progression — level and PvP wins. Faction totals sum member scores.",
+    "boardLevel": "Level",
+    "boardPvp": "PvP wins",
+    "factionStandings": "Faction prestige",
+    "factionStandingsLead": "Aggregate of members’ levels (or PvP wins on that board).",
+    "members": "{n} members",
+    "filterFaction": "Filter by faction",
+    "allFactions": "All factions",
+    "yourRank": "Your rank: #{rank} · score {score}",
+    "colRank": "Rank",
+    "colName": "Shinobi",
+    "colFaction": "Faction",
+    "colLevel": "Level",
+    "colPvpWins": "Wins",
+    "empty": "No entries yet.",
+    "prev": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} / {total}"
   }
 }

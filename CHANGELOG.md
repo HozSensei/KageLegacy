@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Factions + classement (2026-11-15)
+
+#### Added
+- **3 factions jouables** (Midorihara, Kareno, Oborohama) — noms repris des villages C0 renommés (`leaf`/`sand`/`mist`) ; colonne `player_character.faction_id` + un retake
+- **Classements** serveur : niveau/XP et victoires PvP (`/api/leaderboard`), agrégats faction (`/api/leaderboard/factions`), pagination, stats lues uniquement en base
+- UI `/classement` + entrée nav FR/EN ; choix de faction à la création de personnage
+
 ### Changed
 - **Collection** : numéro catalogue stable `#1…` (index 1-based de l’ordre API / grille complète) sur les cartes possédées ; trous = silhouette vide + `#N` centré sans nom/type/rareté/art ; panneau détail d’un trou sans spoiler (« Carte #N manquante » + CTA boutique)
 

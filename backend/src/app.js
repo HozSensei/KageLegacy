@@ -15,6 +15,8 @@ import battlePassRouter from './routes/battlePass.js';
 import shopRouter from './routes/shop.js';
 import stripeRouter from './routes/stripe.js';
 import pvpRouter from './routes/pvp.js';
+import factionsRouter from './routes/factions.js';
+import leaderboardRouter from './routes/leaderboard.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -49,6 +51,8 @@ app.use('/api/missions', combatMissionsRouter);
 app.use('/api/battle-pass', battlePassRouter);
 app.use('/api/shop', shopRouter);
 app.use('/api/pvp', pvpRouter);
+app.use('/api/factions', factionsRouter);
+app.use('/api/leaderboard', leaderboardRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
