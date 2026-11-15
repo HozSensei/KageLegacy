@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { resolveCardArt } from '../../utils/cardArt'
 import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals'
 import { localizedDescription, localizedName } from '../../utils/localeContent.js'
 import { previewCardFigures } from '../../utils/cardScaling'
@@ -92,6 +93,10 @@ function cardFigures(card) {
 function rarityKey(card) {
   return card.rarity || 'common'
 }
+
+function cardArt(card) {
+  return resolveCardArt(card)
+}
 </script>
 
 <template>
@@ -149,6 +154,9 @@ function rarityKey(card) {
         </span>
       </span>
       <span class="hand-card__body">
+        <span v-if="cardArt(card)" class="hand-card__art" aria-hidden="true">
+          <img class="hand-card__art-img" :src="cardArt(card)" alt="" loading="lazy" decoding="async" draggable="false" />
+        </span>
         <strong class="hand-card__name">{{ cardName(card) }}</strong>
         <span v-if="cardDescription(card)" class="hand-card__desc">{{ cardDescription(card) }}</span>
         <span class="hand-card__stats">
@@ -391,6 +399,26 @@ function rarityKey(card) {
   padding: 0.55rem 0.6rem 0.6rem 0.7rem;
 }
 
+.hand-card__art {
+  overflow: hidden;
+  margin: 0 -0.1rem;
+  border: 1px solid color-mix(in srgb, var(--card-rarity) 30%, var(--color-line));
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-soft);
+  aspect-ratio: 16 / 9;
+  flex-shrink: 0;
+}
+
+.hand-card__art-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  user-select: none;
+  pointer-events: none;
+}
+
 .hand-card__name {
   font-family: var(--font-display);
   font-size: 1rem;
@@ -407,8 +435,13 @@ function rarityKey(card) {
   line-height: 1.35;
   color: var(--color-ink-muted);
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.hand-card:has(.hand-card__art) .hand-card__desc {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
 }
 
 .hand-card__stats {

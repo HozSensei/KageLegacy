@@ -7,6 +7,12 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations starter 1–12 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les 12 premières cartes starter
+- Mapping `frontend/src/utils/cardArt.js` (slug → asset) ; `CardDisplay` et `CombatHand` affichent l’illustration (`imageUrl` API prioritaire, sinon asset local)
+
 ### Cartes : hiérarchie visuelle et dégâts affichés (2026-11-15)
 
 #### Changed
