@@ -13,9 +13,10 @@ describe('Header — navigation V2 alpha', () => {
     cy.get('[data-testid="nav-pvp"]').should('be.visible');
   });
 
-  it('masque les entrées legacy (journal, inventaire) du menu', () => {
+  it('expose le registre (journal) et masque l’inventaire legacy', () => {
     cy.openNavMenu();
-    cy.get('[data-testid="nav-journal"]').should('not.exist');
+    cy.get('[data-testid="nav-journal"]').should('be.visible');
     cy.get('[data-testid="nav-inventory"]').should('not.exist');
   });
 });
+
