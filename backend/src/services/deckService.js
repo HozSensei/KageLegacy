@@ -11,6 +11,18 @@ import { applyUpgradeBonuses, parseJsonSafe, serializeCardDefinition } from './c
 export const DECK_MIN_SIZE = 20;
 export const DECK_MAX_SIZE = 30;
 export const MAX_COPIES_PER_CARD = 3;
+/** Hard limit: at most one lineage / clan legendary (`clan-*` slug) per deck. */
+export const MAX_CLAN_CARDS = 1;
+/** Hard limit: legendary + mythic copies combined (clan cards count). */
+export const MAX_LEGENDARY_OR_MYTHIC = 3;
+
+export const DECK_CONSTRAINTS = Object.freeze({
+  min: DECK_MIN_SIZE,
+  max: DECK_MAX_SIZE,
+  maxCopies: MAX_COPIES_PER_CARD,
+  maxClan: MAX_CLAN_CARDS,
+  maxLegendaryOrMythic: MAX_LEGENDARY_OR_MYTHIC,
+});
 
 const STAT_KEYS = [
   'taijutsu',
@@ -93,30 +105,142 @@ export function countDeckSize(cards) {
   return cards.reduce((sum, c) => sum + (Number(c.quantity) || 0), 0);
 }
 
+/** Resolve card meta whether the entry is nested (`card`) or flat (collection / SQL row). */
+function cardMeta(entry) {
+  const nested = entry?.card && typeof entry.card === 'object' ? entry.card : null;
+  return {
+    slug: nested?.slug ?? entry?.slug ?? '',
+    rarity: nested?.rarity ?? entry?.rarity ?? '',
+    clan: nested?.clan ?? entry?.clan,
+    tags: nested?.tags ?? entry?.tags,
+    nameFr: nested?.nameFr ?? entry?.nameFr,
+    nameEn: nested?.nameEn ?? entry?.nameEn,
+  };
+}
+
 /**
- * Valide la taille (20–30) et le max de copies.
- * @returns {{ valid: boolean, errors: string[], size: number }}
+ * Clan / lineage legendaries — slug `clan-*`, or explicit `clan` flag / tag
+ * (matches seed on cursor/clan-legendary-cards-4c1a).
+ */
+export function isClanCard(entry) {
+  const meta = cardMeta(entry);
+  if (typeof meta.slug === 'string' && meta.slug.startsWith('clan-')) return true;
+  if (meta.clan === true || meta.clan === 1 || meta.clan === 'clan') return true;
+  if (Array.isArray(meta.tags) && meta.tags.map(String).includes('clan')) return true;
+  return false;
+}
+
+export function isLegendaryOrMythic(entry) {
+  const rarity = cardMeta(entry).rarity;
+  return rarity === 'legendary' || rarity === 'mythic';
+}
+
+export function countClanCards(cards) {
+  return cards.reduce((sum, entry) => {
+    const qty = Number(entry.quantity) || 0;
+    return isClanCard(entry) ? sum + qty : sum;
+  }, 0);
+}
+
+export function countLegendaryOrMythic(cards) {
+  return cards.reduce((sum, entry) => {
+    const qty = Number(entry.quantity) || 0;
+    return isLegendaryOrMythic(entry) ? sum + qty : sum;
+  }, 0);
+}
+
+/**
+ * Valide taille (20–30), copies, max 1 clan, max 3 légendaire/mythique.
+ * @returns {{
+ *   valid: boolean,
+ *   errors: string[],
+ *   errorsEn: string[],
+ *   codes: string[],
+ *   size: number,
+ *   clanCount: number,
+ *   legendaryOrMythicCount: number
+ * }}
  */
 export function validateDeck(cards) {
   const errors = [];
+  const errorsEn = [];
+  const codes = [];
   const size = countDeckSize(cards);
+  const clanCount = countClanCards(cards);
+  const legendaryOrMythicCount = countLegendaryOrMythic(cards);
 
   if (size < DECK_MIN_SIZE) {
+    codes.push('deck_too_small');
     errors.push(`Deck trop petit (${size}/${DECK_MIN_SIZE} minimum).`);
+    errorsEn.push(`Deck too small (${size}/${DECK_MIN_SIZE} minimum).`);
   }
   if (size > DECK_MAX_SIZE) {
+    codes.push('deck_too_big');
     errors.push(`Deck trop grand (${size}/${DECK_MAX_SIZE} maximum).`);
+    errorsEn.push(`Deck too large (${size}/${DECK_MAX_SIZE} maximum).`);
   }
 
   for (const card of cards) {
     const qty = Number(card.quantity) || 0;
     if (qty > MAX_COPIES_PER_CARD) {
-      const name = card.card?.nameFr || card.cardDefinitionId || card.collectionId;
-      errors.push(`Trop de copies de « ${name} » (max ${MAX_COPIES_PER_CARD}).`);
+      const meta = cardMeta(card);
+      const nameFr = meta.nameFr || card.cardDefinitionId || card.collectionId;
+      const nameEn = meta.nameEn || meta.nameFr || card.cardDefinitionId || card.collectionId;
+      codes.push('over_copies');
+      errors.push(`Trop de copies de « ${nameFr} » (max ${MAX_COPIES_PER_CARD}).`);
+      errorsEn.push(`Too many copies of "${nameEn}" (max ${MAX_COPIES_PER_CARD}).`);
     }
   }
 
-  return { valid: errors.length === 0, errors, size };
+  if (clanCount > MAX_CLAN_CARDS) {
+    codes.push('too_many_clan');
+    errors.push(
+      `Maximum ${MAX_CLAN_CARDS} carte de clan par deck (actuellement ${clanCount}).`
+    );
+    errorsEn.push(
+      `Max ${MAX_CLAN_CARDS} clan card per deck (currently ${clanCount}).`
+    );
+  }
+
+  if (legendaryOrMythicCount > MAX_LEGENDARY_OR_MYTHIC) {
+    codes.push('too_many_legendary');
+    errors.push(
+      `Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques par deck (actuellement ${legendaryOrMythicCount}).`
+    );
+    errorsEn.push(
+      `Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic cards per deck (currently ${legendaryOrMythicCount}).`
+    );
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    errorsEn,
+    codes,
+    size,
+    clanCount,
+    legendaryOrMythicCount,
+  };
+}
+
+/** Hard build-time violations (size floor is activate-only). */
+function hardBuildErrors(validation) {
+  const blocked = new Set(['deck_too_big', 'over_copies', 'too_many_clan', 'too_many_legendary']);
+  const fr = [];
+  const en = [];
+  for (let i = 0; i < validation.codes.length; i += 1) {
+    if (!blocked.has(validation.codes[i])) continue;
+    fr.push(validation.errors[i]);
+    en.push(validation.errorsEn[i]);
+  }
+  return { fr, en };
+}
+
+function bilingualError(frMessages, enMessages) {
+  const fr = frMessages.filter(Boolean).join(' ');
+  const en = enMessages.filter(Boolean).join(' ');
+  if (fr && en && fr !== en) return `${fr} / ${en}`;
+  return fr || en || 'Deck invalide.';
 }
 
 export async function listDecks(userId) {
@@ -235,6 +359,12 @@ export async function deleteDeck(userId, deckId) {
 
 export async function setActiveDeck(userId, deckId) {
   await assertDeckOwner(deckId, userId);
+  const cards = await getDeckCards(deckId);
+  const validation = validateDeck(cards);
+  if (!validation.valid) {
+    throw httpError(400, bilingualError(validation.errors, validation.errorsEn));
+  }
+
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
@@ -255,7 +385,7 @@ export async function setActiveDeck(userId, deckId) {
 
 async function loadOwnedCollection(userId, collectionId) {
   const rows = await query(
-    `SELECT ucc.*, cd.rarity
+    `SELECT ucc.*, cd.rarity, cd.slug, cd.name_fr, cd.name_en
      FROM user_card_collection ucc
      JOIN card_definitions cd ON cd.id = ucc.card_definition_id
      WHERE ucc.id = ? AND ucc.user_id = ?
@@ -286,22 +416,31 @@ export async function replaceDeckCards(userId, deckId, cards) {
       collectionId,
       cardDefinitionId: owned.card_definition_id,
       quantity,
+      slug: owned.slug,
+      rarity: owned.rarity,
+      nameFr: owned.name_fr,
+      nameEn: owned.name_en,
     });
   }
 
   const preview = normalized.map((n) => ({
-    ...n,
-    card: { nameFr: `#${n.collectionId}` },
+    collectionId: n.collectionId,
+    cardDefinitionId: n.cardDefinitionId,
+    quantity: n.quantity,
+    slug: n.slug,
+    rarity: n.rarity,
+    card: {
+      slug: n.slug,
+      rarity: n.rarity,
+      nameFr: n.nameFr || `#${n.collectionId}`,
+      nameEn: n.nameEn || n.nameFr || `#${n.collectionId}`,
+    },
   }));
   const validation = validateDeck(preview);
-  // Allow incomplete decks while building — only hard-block oversize / over-copies
-  if (validation.size > DECK_MAX_SIZE) {
-    throw httpError(400, validation.errors.join(' '));
-  }
-  for (const n of normalized) {
-    if (n.quantity > MAX_COPIES_PER_CARD) {
-      throw httpError(400, `Max ${MAX_COPIES_PER_CARD} copies par carte.`);
-    }
+  // Allow incomplete decks while building — hard-block oversize / copies / clan / rarity caps
+  const blocked = hardBuildErrors(validation);
+  if (blocked.fr.length) {
+    throw httpError(400, bilingualError(blocked.fr, blocked.en));
   }
 
   const connection = await getConnection();
@@ -343,7 +482,13 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
   const currentQty = existing[0] ? Number(existing[0].quantity) : 0;
   const nextQty = currentQty + qty;
   if (nextQty > MAX_COPIES_PER_CARD) {
-    throw httpError(400, `Max ${MAX_COPIES_PER_CARD} copies par carte.`);
+    throw httpError(
+      400,
+      bilingualError(
+        [`Max ${MAX_COPIES_PER_CARD} copies par carte.`],
+        [`Max ${MAX_COPIES_PER_CARD} copies per card.`]
+      )
+    );
   }
   if (nextQty > owned.quantity) {
     throw httpError(400, 'Pas assez d’exemplaires dans la collection.');
@@ -352,7 +497,34 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
   const cards = await getDeckCards(deckId);
   const sizeWithout = countDeckSize(cards.filter((c) => c.collectionId !== collectionId));
   if (sizeWithout + nextQty > DECK_MAX_SIZE) {
-    throw httpError(400, `Deck limité à ${DECK_MAX_SIZE} cartes.`);
+    throw httpError(
+      400,
+      bilingualError(
+        [`Deck limité à ${DECK_MAX_SIZE} cartes.`],
+        [`Deck limited to ${DECK_MAX_SIZE} cards.`]
+      )
+    );
+  }
+
+  const preview = [
+    ...cards.filter((c) => c.collectionId !== collectionId),
+    {
+      collectionId,
+      quantity: nextQty,
+      slug: owned.slug,
+      rarity: owned.rarity,
+      card: {
+        slug: owned.slug,
+        rarity: owned.rarity,
+        nameFr: owned.name_fr,
+        nameEn: owned.name_en,
+      },
+    },
+  ];
+  const previewValidation = validateDeck(preview);
+  const blocked = hardBuildErrors(previewValidation);
+  if (blocked.fr.length) {
+    throw httpError(400, bilingualError(blocked.fr, blocked.en));
   }
 
   if (existing[0]) {

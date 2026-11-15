@@ -5,7 +5,14 @@ import {
   applyUpgradeBonuses,
   serializeCardDefinition,
 } from '../src/services/cardService.js';
-import { validateDeck, DECK_MIN_SIZE, DECK_MAX_SIZE } from '../src/services/deckService.js';
+import {
+  validateDeck,
+  isClanCard,
+  DECK_MIN_SIZE,
+  DECK_MAX_SIZE,
+  MAX_CLAN_CARDS,
+  MAX_LEGENDARY_OR_MYTHIC,
+} from '../src/services/deckService.js';
 import { ALL_CARDS, STARTER_CARDS, validateCatalog } from './seedCards.js';
 
 function assert(cond, msg) {
@@ -83,6 +90,79 @@ assert(!tooBig.valid, 'reject oversized deck');
 
 const overCopies = validateDeck([{ quantity: 4, collectionId: 1, card: { nameFr: 'X' } }]);
 assert(!overCopies.valid, 'reject over copies');
+
+assert(isClanCard({ slug: 'clan-shizumori', rarity: 'legendary' }), 'clan slug detected');
+assert(isClanCard({ card: { slug: 'clan-benigiri' } }), 'nested clan slug detected');
+assert(isClanCard({ tags: ['clan'], rarity: 'legendary' }), 'clan tag detected');
+assert(!isClanCard({ slug: 'nin-chidori', rarity: 'legendary' }), 'non-clan legendary');
+
+const baseCommons = Array.from({ length: DECK_MIN_SIZE - 2 }, (_, i) => ({
+  quantity: 1,
+  collectionId: i,
+  card: { slug: `common-${i}`, rarity: 'common', nameFr: `C${i}`, nameEn: `C${i}` },
+}));
+
+const twoClans = validateDeck([
+  ...baseCommons,
+  {
+    quantity: 1,
+    collectionId: 900,
+    card: { slug: 'clan-shizumori', rarity: 'legendary', nameFr: 'A', nameEn: 'A' },
+  },
+  {
+    quantity: 1,
+    collectionId: 901,
+    card: { slug: 'clan-benigiri', rarity: 'legendary', nameFr: 'B', nameEn: 'B' },
+  },
+]);
+assert(!twoClans.valid, 'reject two clan cards');
+assert(twoClans.codes.includes('too_many_clan'), 'clan code');
+assert(twoClans.errors.some((e) => e.includes(`Maximum ${MAX_CLAN_CARDS} carte de clan`)), 'clan FR');
+assert(twoClans.errorsEn.some((e) => e.includes(`Max ${MAX_CLAN_CARDS} clan card`)), 'clan EN');
+
+const fourLegendaries = validateDeck([
+  ...Array.from({ length: DECK_MIN_SIZE - 4 }, (_, i) => ({
+    quantity: 1,
+    collectionId: i,
+    card: { slug: `common-${i}`, rarity: 'common' },
+  })),
+  { quantity: 1, collectionId: 910, card: { slug: 'leg-1', rarity: 'legendary' } },
+  { quantity: 1, collectionId: 911, card: { slug: 'leg-2', rarity: 'legendary' } },
+  { quantity: 1, collectionId: 912, card: { slug: 'leg-3', rarity: 'mythic' } },
+  { quantity: 1, collectionId: 913, card: { slug: 'leg-4', rarity: 'legendary' } },
+]);
+assert(!fourLegendaries.valid, 'reject 4 legendary/mythic');
+assert(fourLegendaries.codes.includes('too_many_legendary'), 'legendary code');
+assert(
+  fourLegendaries.errors.some((e) =>
+    e.includes(`Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques`)
+  ),
+  'legendary FR'
+);
+assert(
+  fourLegendaries.errorsEn.some((e) =>
+    e.includes(`Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic`)
+  ),
+  'legendary EN'
+);
+
+const oneClanTwoLegs = validateDeck([
+  ...Array.from({ length: DECK_MIN_SIZE - 3 }, (_, i) => ({
+    quantity: 1,
+    collectionId: i,
+    card: { slug: `common-${i}`, rarity: 'common' },
+  })),
+  {
+    quantity: 1,
+    collectionId: 920,
+    card: { slug: 'clan-kazamine', rarity: 'legendary' },
+  },
+  { quantity: 1, collectionId: 921, card: { slug: 'leg-a', rarity: 'legendary' } },
+  { quantity: 1, collectionId: 922, card: { slug: 'myth-a', rarity: 'mythic' } },
+]);
+assert(oneClanTwoLegs.valid, 'accept 1 clan + 2 other legendary/mythic');
+assert(oneClanTwoLegs.clanCount === 1, 'clan count 1');
+assert(oneClanTwoLegs.legendaryOrMythicCount === 3, 'legendary count includes clan');
 
 // Catalogue seed (~200 cartes, structure scalable vers 300)
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
