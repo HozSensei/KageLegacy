@@ -138,12 +138,13 @@ function onSelectSlot(slot) {
           :card="slot.card"
           :quantity="slot.entry.quantity"
           :upgrade-level="slot.entry.upgradeLevel"
+          :catalogue-number="slot.catalogueNumber"
           :selected="selectedKey === slot.key"
           @select="onSelectSlot(slot)"
         />
         <CardHole
           v-else
-          :card="slot.card"
+          :catalogue-number="slot.catalogueNumber"
           :selected="selectedKey === slot.key"
           @select="onSelectSlot(slot)"
         />

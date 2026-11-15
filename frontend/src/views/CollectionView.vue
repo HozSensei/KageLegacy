@@ -59,20 +59,28 @@ function onOwnedOnlyUpdate(value) {
   }
 }
 
+function slotFromCatalogue(cardId, preferredCollectionId = null) {
+  const slots = collection.catalogueSlots
+  if (preferredCollectionId != null) {
+    const owned = slots.find(
+      (s) =>
+        s.kind === 'owned' && Number(s.entry?.collectionId) === Number(preferredCollectionId)
+    )
+    if (owned) return owned
+  }
+  return (
+    slots.find((s) => Number(s.card?.id) === Number(cardId)) || null
+  )
+}
+
 async function onUpgrade() {
   if (!selected.value) return
   try {
-    await collection.upgrade(selected.value.collectionId)
+    const collectionId = selected.value.collectionId
+    const cardId = selectedCard.value?.id
+    await collection.upgrade(collectionId)
     message.value = t('cards.upgradeSuccess')
-    const next = collection.findByCollectionId(selected.value.collectionId)
-    if (next) {
-      selectedSlot.value = {
-        kind: 'owned',
-        key: `owned-${next.collectionId}`,
-        card: next.card,
-        entry: next,
-      }
-    }
+    selectedSlot.value = slotFromCatalogue(cardId, collectionId)
   } catch {
     message.value = collection.error
   }
@@ -82,24 +90,10 @@ async function onDisenchant() {
   if (!selected.value) return
   try {
     const id = selected.value.collectionId
+    const cardId = selectedCard.value?.id
     await collection.disenchant(id, 1)
     message.value = t('cards.disenchantSuccess')
-    const next = collection.findByCollectionId(id)
-    if (next) {
-      selectedSlot.value = {
-        kind: 'owned',
-        key: `owned-${next.collectionId}`,
-        card: next.card,
-        entry: next,
-      }
-    } else {
-      const card =
-        collection.catalogue.find((c) => Number(c.id) === Number(selectedCard.value?.id)) ||
-        selectedCard.value
-      selectedSlot.value = card
-        ? { kind: 'hole', key: `hole-${card.id}`, card, entry: null }
-        : null
-    }
+    selectedSlot.value = slotFromCatalogue(cardId, id)
   } catch {
     message.value = collection.error
   }
@@ -157,25 +151,47 @@ async function onDisenchant() {
         />
       </div>
 
-      <aside class="collection-detail" :data-tone="selectedCard ? selectedVisual.tone : 'neutral'">
+      <aside
+        class="collection-detail"
+        :data-tone="selectedCard && !isHole ? selectedVisual.tone : 'neutral'"
+      >
         <p class="collection-detail__kicker">
           <span
             class="shape"
-            :class="`shape--${selectedCard ? selectedVisual.shape : 'lozenge'}`"
+            :class="`shape--${selectedCard && !isHole ? selectedVisual.shape : 'lozenge'}`"
             aria-hidden="true"
           />
           {{
-            selectedCard
-              ? t(`cards.types.${selectedCard.type}`, selectedCard.type)
-              : t('cards.detailTitle')
+            isHole
+              ? t('cards.missingBadge')
+              : selectedCard
+                ? t(`cards.types.${selectedCard.type}`, selectedCard.type)
+                : t('cards.detailTitle')
           }}
         </p>
         <h2 class="sr-only">{{ t('cards.detailTitle') }}</h2>
 
         <Transition name="rise" mode="out-in">
-          <div v-if="selectedCard" :key="selectedKey" class="collection-detail__body">
+          <div v-if="isHole && selectedSlot" :key="selectedKey" class="collection-detail__body">
+            <p class="collection-detail__name">
+              {{ t('cards.missingCardTitle', { n: selectedSlot.catalogueNumber }) }}
+            </p>
+            <p class="collection-detail__missing">{{ t('cards.missingDetail') }}</p>
+            <p class="mt-3 leading-relaxed text-ink-muted">{{ t('cards.missingHint') }}</p>
+            <p class="mt-6">
+              <RouterLink to="/shop" class="btn-primary btn-block">{{
+                t('cards.emptyCollectionShop')
+              }}</RouterLink>
+            </p>
+          </div>
+          <div v-else-if="selectedCard" :key="selectedKey" class="collection-detail__body">
             <p class="collection-detail__name">{{ selectedName }}</p>
-            <p v-if="isHole" class="collection-detail__missing">{{ t('cards.missingDetail') }}</p>
+            <p
+              v-if="selectedSlot?.catalogueNumber != null"
+              class="collection-detail__catalogue-n"
+            >
+              {{ t('cards.catalogueNumberLabel', { n: selectedSlot.catalogueNumber }) }}
+            </p>
             <p class="mt-3 leading-relaxed text-ink">{{ selectedDescription }}</p>
 
             <div v-if="selectedCard.passiveBonus" class="collection-detail__passive">
@@ -188,7 +204,7 @@ async function onDisenchant() {
               </ul>
             </div>
 
-            <template v-if="selected && !isHole">
+            <template v-if="selected">
               <dl class="collection-detail__figures">
                 <div>
                   <dt class="t-kicker">{{ t('cards.quantityLabel') }}</dt>
@@ -226,12 +242,6 @@ async function onDisenchant() {
                 </button>
               </div>
             </template>
-
-            <p v-else-if="isHole" class="mt-6">
-              <RouterLink to="/shop" class="btn-primary btn-block">{{
-                t('cards.emptyCollectionShop')
-              }}</RouterLink>
-            </p>
           </div>
           <p v-else class="mt-4 text-ink-muted">{{ t('cards.selectCardHint') }}</p>
         </Transition>
@@ -295,6 +305,16 @@ async function onDisenchant() {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.collection-detail__catalogue-n {
+  margin-top: 0.35rem;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-stretch: 85%;
+  font-variant-numeric: tabular-nums;
   color: var(--color-ink-faint);
 }
 

@@ -7,6 +7,9 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Changed
+- **Collection** : numéro catalogue stable `#1…` (index 1-based de l’ordre API / grille complète) sur les cartes possédées ; trous = silhouette vide + `#N` centré sans nom/type/rareté/art ; panneau détail d’un trou sans spoiler (« Carte #N manquante » + CTA boutique)
+
 ### UI : cartes et headers sobres (2026-11-15)
 
 #### Changed
