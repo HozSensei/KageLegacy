@@ -15,8 +15,12 @@ describe('Cartes — collection & decks V2', () => {
     cy.get('[data-testid="deck-builder"]').should('be.visible');
 
     const deckName = `E2E Deck ${Date.now()}`;
-    cy.get('[data-testid="deck-create-name"]').clear().type(deckName);
-    cy.get('[data-testid="deck-create-submit"]').click();
+    // Stage heroes are tall; scrollBehavior top would tuck the input under the sticky app bar.
+    cy.get('[data-testid="deck-create-name"]')
+      .scrollIntoView({ offset: { top: -96, left: 0 } })
+      .clear({ scrollBehavior: 'center' })
+      .type(deckName, { scrollBehavior: 'center' });
+    cy.get('[data-testid="deck-create-submit"]').click({ scrollBehavior: 'center' });
     cy.get('[data-testid="deck-list"]', { timeout: 15000 }).should('contain', deckName);
     cy.get('[data-testid="deck-builder"]').should('be.visible');
   });

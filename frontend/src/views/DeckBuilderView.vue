@@ -189,6 +189,8 @@ const heroTiles = computed(() => {
   flex-direction: column;
   gap: 1.25rem;
   margin-top: 1.75rem;
+  /* Keep create field clear of sticky app-bar when scrolled into view. */
+  scroll-margin-top: 4.5rem;
 }
 
 .deck-toolbar__active {

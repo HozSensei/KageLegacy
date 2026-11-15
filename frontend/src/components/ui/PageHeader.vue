@@ -262,6 +262,8 @@ defineProps({
   display: grid;
   place-items: center;
   animation: fade-in 700ms ease both;
+  /* Aside slot is decorative (PerspectiveCardGrid); keep page actions clickable. */
+  pointer-events: none;
 }
 
 .page-header--overlay {

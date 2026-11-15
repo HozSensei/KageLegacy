@@ -86,6 +86,8 @@ function tilePips(tile) {
   perspective: var(--persp);
   perspective-origin: 42% 45%;
   transform-style: preserve-3d;
+  /* Decorative only — stage overflow must not steal clicks from content below. */
+  pointer-events: none;
 }
 
 .perspective-stage--soft {
