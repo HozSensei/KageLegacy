@@ -75,7 +75,8 @@
     "test:combat-loot": "node scripts/testCombatLoot.js",
     "test:training-system": "node scripts/testTrainingSystem.js",
     "test:village-shop": "node scripts/testVillageShopCatalog.js",
-    "test:player-character": "node scripts/testPlayerCharacter.js"
+    "test:player-character": "node scripts/testPlayerCharacter.js",
+    "test:pvp-matchmaking": "node scripts/testPvpMatchmaking.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

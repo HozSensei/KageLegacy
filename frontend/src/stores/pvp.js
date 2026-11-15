@@ -8,6 +8,7 @@ import {
   publicDuelState,
 } from '@shared/pvp/duelEngine.js'
 import { duelChecksum } from '@shared/pvp/checksum.js'
+import { independentChecksumFromPublic } from '@shared/pvp/antiCheat.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
@@ -28,6 +29,7 @@ export const usePvpStore = defineStore('pvp', () => {
   const wsConnected = ref(false)
 
   let wsClient = null
+  let guestChallengeSent = false
 
   const isHost = computed(() => role.value === 'host')
   const isGuest = computed(() => role.value === 'guest')
@@ -245,12 +247,24 @@ export const usePvpStore = defineStore('pvp', () => {
               status: msg.state.status,
               winnerSeat: msg.state.winnerSeat,
             }
+            maybeGuestChallenge(msg.state)
           }
         }
         break
       case 'match_ended':
         if (msg.result) {
           match.value = { ...(match.value || {}), ...msg.result }
+        }
+        if (role.value === 'guest') {
+          maybeGuestChallenge(publicState.value)
+        }
+        break
+      case 'match_end':
+        if (msg.result) {
+          match.value = { ...(match.value || {}), status: msg.result.status, winnerSeat: msg.result.winnerSeat }
+        }
+        if (role.value === 'guest') {
+          maybeGuestChallenge(publicState.value, msg.checksum)
         }
         break
       case 'error':
@@ -321,6 +335,38 @@ export const usePvpStore = defineStore('pvp', () => {
     }
   }
 
+  /**
+   * Guest challenge : empreinte indépendante depuis la vue publique.
+   * Si elle diverge du report Host → le serveur void le match.
+   */
+  async function maybeGuestChallenge(state, hostChecksumHint = null) {
+    if (role.value !== 'guest' || !match.value?.id || guestChallengeSent) return
+    const independent = independentChecksumFromPublic(state)
+    const checksum =
+      independent?.checksum ||
+      state?.checksum ||
+      hostChecksumHint ||
+      null
+    if (!checksum) return
+    guestChallengeSent = true
+    try {
+      const body = await reportResult(match.value.id, {
+        confirmOnly: true,
+        checksum,
+        summary: independent?.summary || state?.summary || undefined,
+      })
+      if (body?.voided || body?.match?.voided) {
+        match.value = body.match || match.value
+        error.value = 'Match void — checksum Host/Guest divergent.'
+      } else if (body?.match) {
+        match.value = body.match
+      }
+    } catch (e) {
+      guestChallengeSent = false
+      error.value = e.message
+    }
+  }
+
   /** Action locale (Host joue) ou intention relayée (Guest). */
   async function sendAction(kind, instanceId = null) {
     if (!role.value || !match.value) return
@@ -346,6 +392,7 @@ export const usePvpStore = defineStore('pvp', () => {
 
   function clear() {
     disconnectWs()
+    guestChallengeSent = false
     queueStatus.value = 'idle'
     queue.value = null
     match.value = null
