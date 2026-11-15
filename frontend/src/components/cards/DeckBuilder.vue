@@ -372,7 +372,7 @@ const sizeValid = computed(
 
 .deck-builder__pool {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
   gap: 1rem 0.85rem;
   margin-top: 1.1rem;
 }

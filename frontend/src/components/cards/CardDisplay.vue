@@ -108,6 +108,7 @@ const scaleHints = computed(() => {
 })
 
 const artUrl = computed(() => resolveCardArt(props.card))
+const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
 </script>
 
 <template>
@@ -120,6 +121,7 @@ const artUrl = computed(() => resolveCardArt(props.card))
         'card-display--selected': selected,
         'card-display--compact': compact,
         'card-display--foil': rarity.foil,
+        'card-display--no-art': !artUrl,
       },
     ]"
     :data-tone="typeVisual.tone"
@@ -128,16 +130,37 @@ const artUrl = computed(() => resolveCardArt(props.card))
     data-testid="card-display"
     @click="$emit('select', card)"
   >
+    <span class="card-display__frame" aria-hidden="true" />
     <span class="card-display__foil" aria-hidden="true" />
-    <span class="card-display__rarity-edge" aria-hidden="true" />
 
-    <header class="card-display__header">
+    <!-- Fenêtre d'illustration + pip de coût -->
+    <div class="card-display__art-wrap">
+      <div
+        class="card-display__art"
+        :class="{ 'card-display__art--placeholder': !artUrl }"
+        data-testid="card-art"
+      >
+        <img
+          v-if="artUrl"
+          class="card-display__art-img"
+          :src="artUrl"
+          :alt="name"
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
+        <span v-else class="card-display__art-fallback" aria-hidden="true">
+          <span class="shape" :class="`shape--${typeVisual.shape}`" />
+        </span>
+      </div>
+
       <span class="card-display__cost" :title="t('cards.costLabel')">
-        {{ card.cost ?? card.baseCost ?? 0 }}
+        <span class="card-display__cost-ring" aria-hidden="true" />
+        <span class="card-display__cost-value">{{ cost }}</span>
       </span>
-      <span class="card-display__type">
-        <span class="shape" :class="`shape--${typeVisual.shape}`" aria-hidden="true" />
-        {{ typeLabel }}
+
+      <span v-if="quantity != null" class="card-display__qty" :title="t('cards.quantityLabel')">
+        ×{{ quantity }}
       </span>
       <span
         v-if="upgradeLevel > 0"
@@ -146,94 +169,86 @@ const artUrl = computed(() => resolveCardArt(props.card))
       >
         +{{ upgradeLevel }}
       </span>
-      <span v-if="quantity != null" class="card-display__qty" :title="t('cards.quantityLabel')">
-        ×{{ quantity }}
-      </span>
-    </header>
+    </div>
 
-    <div class="card-display__rarity-band" :data-tone="rarity.tone">
-      <span class="card-display__rarity-label">
-        <span class="card-display__pips" aria-hidden="true">
-          <span v-for="n in rarity.pips" :key="n" class="lozenge" />
-        </span>
-        {{ rarityLabel }}
+    <!-- Plaque nom + type / élément -->
+    <div class="card-display__nameplate" :data-tone="typeVisual.tone">
+      <span class="card-display__type-icon" aria-hidden="true">
+        <span class="shape" :class="`shape--${typeVisual.shape}`" />
       </span>
-      <span
-        v-if="elementLabel"
-        class="card-display__element"
-        :data-tone="elementTone(card.element)"
-      >
-        <span class="dot" aria-hidden="true" />
-        {{ elementLabel }}
+      <h3 class="card-display__name">{{ name }}</h3>
+      <span class="card-display__type-meta">
+        <span class="card-display__type-label">{{ typeLabel }}</span>
+        <span
+          v-if="elementLabel"
+          class="card-display__element"
+          :data-tone="elementTone(card.element)"
+        >
+          <span class="dot" aria-hidden="true" />
+          {{ elementLabel }}
+        </span>
       </span>
     </div>
 
-    <div class="card-display__body">
-      <h3 class="card-display__name">{{ name }}</h3>
+    <!-- Boîte de règles -->
+    <div class="card-display__rules">
+      <p v-if="!compact" class="card-display__desc">{{ description }}</p>
 
-      <div v-if="artUrl" class="card-display__art" data-testid="card-art">
-        <img
-          class="card-display__art-img"
-          :src="artUrl"
-          :alt="name"
-          loading="lazy"
-          decoding="async"
-          draggable="false"
-        />
-      </div>
-
-      <div class="card-display__effect">
-        <p v-if="!compact" class="card-display__label">{{ t('cards.effect') }}</p>
-        <p v-if="!compact" class="card-display__desc">{{ description }}</p>
-
-        <div v-if="figures.length" class="card-display__stats">
-          <span
-            v-for="entry in figures"
-            :key="entry.key"
-            class="card-display__stat"
-            :class="`card-display__stat--${entry.key}`"
-            :aria-label="entry.aria"
-          >
-            <span class="card-display__stat-value" aria-hidden="true">{{ entry.display }}</span>
-            <span class="card-display__stat-meta" aria-hidden="true">
-              <span class="card-display__stat-label">{{ entry.label }}</span>
-              <span
-                v-if="showEffective && entry.scaled"
-                class="card-display__stat-base"
-                :title="t('cards.baseValue', { n: entry.base })"
-              >
-                {{ t('cards.baseShort', { n: entry.base }) }}
-              </span>
+      <div v-if="figures.length" class="card-display__stats">
+        <span
+          v-for="entry in figures"
+          :key="entry.key"
+          class="card-display__stat"
+          :class="`card-display__stat--${entry.key}`"
+          :aria-label="entry.aria"
+        >
+          <span class="card-display__stat-value" aria-hidden="true">{{ entry.display }}</span>
+          <span class="card-display__stat-meta" aria-hidden="true">
+            <span class="card-display__stat-label">{{ entry.label }}</span>
+            <span
+              v-if="showEffective && entry.scaled"
+              class="card-display__stat-base"
+              :title="t('cards.baseValue', { n: entry.base })"
+            >
+              {{ t('cards.baseShort', { n: entry.base }) }}
             </span>
           </span>
-        </div>
+        </span>
+      </div>
 
-        <p
-          v-for="hint in scaleHints"
-          :key="hint.statKey"
-          class="card-display__scale"
-          data-testid="card-scale-hint"
-        >
-          {{ hint.label }}
+      <p
+        v-for="hint in scaleHints"
+        :key="hint.statKey"
+        class="card-display__scale"
+        data-testid="card-scale-hint"
+      >
+        {{ hint.label }}
+      </p>
+
+      <div v-if="passiveEntries.length" class="card-display__passive" data-testid="card-passive">
+        <p class="card-display__passive-label">
+          <span class="lozenge lozenge--hollow" aria-hidden="true" />
+          {{ t('cards.passiveBonus') }}
+        </p>
+        <ul class="card-display__passive-list">
+          <li v-for="entry in passiveEntries" :key="entry.key">
+            <span class="card-display__passive-value">+{{ entry.value }}</span>
+            {{ entry.label }}
+          </li>
+        </ul>
+        <p v-if="passiveDescription && !compact" class="card-display__passive-hint">
+          {{ passiveDescription }}
         </p>
       </div>
     </div>
 
-    <div v-if="passiveEntries.length" class="card-display__passive" data-testid="card-passive">
-      <p class="card-display__passive-label">
-        <span class="lozenge lozenge--hollow" aria-hidden="true" />
-        {{ t('cards.passiveBonus') }}
-      </p>
-      <ul class="card-display__passive-list">
-        <li v-for="entry in passiveEntries" :key="entry.key">
-          <span class="card-display__passive-value">+{{ entry.value }}</span>
-          {{ entry.label }}
-        </li>
-      </ul>
-      <p v-if="passiveDescription && !compact" class="card-display__passive-hint">
-        {{ passiveDescription }}
-      </p>
-    </div>
+    <!-- Gemme de rareté / marque de set -->
+    <footer class="card-display__footer" :data-tone="rarity.tone">
+      <span class="card-display__gem" aria-hidden="true">
+        <span v-for="n in rarity.pips" :key="n" class="lozenge" />
+      </span>
+      <span class="card-display__rarity-label">{{ rarityLabel }}</span>
+    </footer>
   </button>
 </template>
 
@@ -242,33 +257,47 @@ const artUrl = computed(() => resolveCardArt(props.card))
   --card-rarity: var(--color-line-strong);
   --card-rarity-soft: var(--color-bg-soft);
   --card-rarity-glow: transparent;
+  --card-frame: color-mix(in srgb, var(--color-ink) 88%, var(--card-rarity));
+  --card-inner: color-mix(in srgb, var(--color-bg-card) 92%, var(--card-rarity-soft));
 
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   min-width: 0;
+  aspect-ratio: 2.5 / 3.5;
   overflow: hidden;
-  border: 2px solid var(--card-rarity);
-  border-radius: var(--radius-md);
+  padding: 0.42rem 0.42rem 0.5rem;
+  border: 0;
+  border-radius: 0.85rem;
   background:
     linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--card-rarity-soft) 55%, var(--color-bg-card)) 0%,
-      var(--color-bg-card) 42%,
-      var(--color-bg-card) 100%
+      160deg,
+      color-mix(in srgb, var(--card-rarity) 55%, var(--card-frame)) 0%,
+      var(--card-frame) 38%,
+      color-mix(in srgb, var(--card-rarity) 35%, var(--card-frame)) 100%
     );
   color: var(--color-ink);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--card-rarity) 28%, transparent),
-    0 1px 0 color-mix(in srgb, var(--color-ink) 6%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--card-rarity) 45%, transparent),
+    0 10px 22px color-mix(in srgb, var(--color-ink) 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-on-ink) 18%, transparent);
   text-align: left;
   outline: 0 solid var(--color-ink);
   transition:
     transform var(--dur-base) var(--ease-out-quint),
     box-shadow var(--dur-base) ease,
-    border-color var(--dur-fast) ease,
     outline-width var(--dur-fast) ease;
+}
+
+.card-display__frame {
+  pointer-events: none;
+  position: absolute;
+  inset: 0.28rem;
+  z-index: 0;
+  border-radius: 0.62rem;
+  background: var(--card-inner);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-rarity) 28%, transparent);
 }
 
 .card-display--common {
@@ -292,25 +321,26 @@ const artUrl = computed(() => resolveCardArt(props.card))
   --card-rarity: var(--color-vermilion);
   --card-rarity-soft: var(--color-vermilion-tint);
   --card-rarity-glow: color-mix(in srgb, var(--color-vermilion) 42%, transparent);
-  border-width: 3px;
 }
 
 .card-display__foil {
   pointer-events: none;
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   opacity: 0;
+  border-radius: inherit;
   background:
     linear-gradient(
       125deg,
       transparent 18%,
-      color-mix(in srgb, var(--card-rarity) 18%, transparent) 36%,
-      color-mix(in srgb, var(--color-bg-card) 55%, transparent) 48%,
-      color-mix(in srgb, var(--card-rarity) 22%, transparent) 58%,
+      color-mix(in srgb, var(--card-rarity) 22%, transparent) 36%,
+      color-mix(in srgb, var(--color-on-ink) 28%, transparent) 48%,
+      color-mix(in srgb, var(--card-rarity) 26%, transparent) 58%,
       transparent 78%
     );
   background-size: 220% 220%;
+  mix-blend-mode: soft-light;
   transition: opacity var(--dur-base) ease;
 }
 
@@ -320,27 +350,16 @@ const artUrl = computed(() => resolveCardArt(props.card))
 
 .card-display--foil:hover .card-display__foil,
 .card-display--selected .card-display__foil {
-  opacity: 0.85;
+  opacity: 0.9;
   animation: card-foil-sweep 1.6s var(--ease-out-quint) 1;
 }
 
-.card-display__rarity-edge {
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  width: 0.28rem;
-  background: var(--card-rarity);
-  box-shadow: 0 0 12px var(--card-rarity-glow);
-}
-
 .card-display:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px) rotateX(2deg);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--card-rarity) 40%, transparent),
-    0 8px 18px color-mix(in srgb, var(--color-ink) 12%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--card-rarity) 55%, transparent),
+    0 16px 28px color-mix(in srgb, var(--color-ink) 22%, transparent),
+    0 0 18px var(--card-rarity-glow);
 }
 
 .card-display:active {
@@ -350,163 +369,46 @@ const artUrl = computed(() => resolveCardArt(props.card))
 .card-display--selected,
 .card-display--selected:hover {
   outline-width: 3px;
-  transform: translateY(-4px);
+  transform: translateY(-5px);
 }
 
 .card-display:focus-visible {
   outline: 3px solid var(--color-indigo);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-.card-display__header,
-.card-display__rarity-band,
-.card-display__body,
-.card-display__passive {
+.card-display__art-wrap,
+.card-display__nameplate,
+.card-display__rules,
+.card-display__footer {
   position: relative;
   z-index: 1;
 }
 
-/* Bandeau type : couleur + coût en grand */
-.card-display__header {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  min-height: 2.85rem;
-  padding: 0 0.75rem 0 0;
-  background: var(--tone-fill);
-  color: var(--tone-on);
-}
-
-.card-display__cost {
-  display: grid;
-  place-items: center;
-  align-self: stretch;
-  min-width: 2.85rem;
-  padding: 0 0.45rem;
-  background: var(--color-bg-card);
-  font-family: var(--font-display);
-  font-size: 1.85rem;
-  font-weight: 800;
-  font-stretch: 76%;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: var(--color-ink);
-  clip-path: polygon(0 0, 100% 0, 82% 100%, 0 100%);
-}
-
-.card-display__type {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.card-display__upgrade {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.65rem;
-  height: 1.45rem;
-  padding: 0 0.35rem;
-  border: 1.5px solid color-mix(in srgb, var(--tone-on) 55%, transparent);
-  background: color-mix(in srgb, var(--color-ink) 55%, transparent);
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-weight: 800;
-  font-stretch: 80%;
-  line-height: 1;
-  color: var(--color-on-ink);
-}
-
-.card-display__qty {
-  margin-left: auto;
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
-  font-weight: 800;
-  font-stretch: 80%;
-  font-variant-numeric: tabular-nums;
-}
-
-.card-display__rarity-band {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.35rem 0.75rem;
-  padding: 0.35rem 0.9rem 0.4rem 1.05rem;
-  background: color-mix(in srgb, var(--tone-fill) 22%, var(--color-bg-soft));
-  border-bottom: 1px solid color-mix(in srgb, var(--card-rarity) 35%, transparent);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-}
-
-.card-display__rarity-label,
-.card-display__element {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.card-display__rarity-label {
-  color: var(--tone);
-}
-
-.card-display__pips {
-  display: inline-flex;
-  gap: 0.18rem;
-  font-size: 0.75rem;
-  color: var(--tone-fill);
-}
-
-.card-display__element {
-  padding: 0.12rem 0.45rem;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--tone-fill) 18%, var(--color-bg-card));
-  color: var(--tone);
-}
-
-.card-display__element .dot {
-  font-size: 0.75rem;
-  color: var(--tone-fill);
-}
-
-.card-display__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 0.8rem 0.9rem 0.95rem 1.05rem;
-}
-
-.card-display__name {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 700;
-  font-stretch: 88%;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  overflow-wrap: anywhere;
+.card-display__art-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  margin: 0.12rem 0.12rem 0;
 }
 
 .card-display__art {
   position: relative;
   overflow: hidden;
-  margin: 0 -0.15rem;
-  border: 1px solid color-mix(in srgb, var(--card-rarity) 35%, var(--color-line));
-  border-radius: var(--radius-sm);
+  aspect-ratio: 1 / 0.92;
+  border: 2px solid color-mix(in srgb, var(--card-rarity) 55%, var(--color-ink));
+  border-radius: 0.35rem 0.35rem 0.15rem 0.15rem;
   background:
     linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--card-rarity-soft) 40%, var(--color-bg-soft)) 0%,
+      165deg,
+      color-mix(in srgb, var(--tone-fill) 35%, var(--color-bg-soft)) 0%,
       var(--color-bg-soft) 100%
     );
-  aspect-ratio: 598 / 562;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-ink) 35%, transparent);
+}
+
+.card-display__art--placeholder {
+  display: grid;
+  place-items: center;
 }
 
 .card-display__art-img {
@@ -518,43 +420,192 @@ const artUrl = computed(() => resolveCardArt(props.card))
   user-select: none;
 }
 
-.card-display__effect {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-top: 0.1rem;
+.card-display__art-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2.75rem;
+  color: var(--tone-fill);
+  opacity: 0.55;
 }
 
-.card-display__label {
-  font-size: 0.625rem;
+.card-display__cost {
+  position: absolute;
+  top: -0.35rem;
+  left: -0.35rem;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+}
+
+.card-display__cost-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--color-gold-fill) 85%, white), var(--color-gold) 55%, color-mix(in srgb, var(--color-ink) 55%, var(--color-gold)) 100%);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--color-ink) 75%, transparent),
+    0 2px 6px color-mix(in srgb, var(--color-ink) 35%, transparent);
+}
+
+.card-display__cost-value {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--color-ink);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--color-on-ink) 35%, transparent);
+}
+
+.card-display__qty,
+.card-display__upgrade {
+  position: absolute;
+  z-index: 3;
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.55rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--color-ink) 78%, transparent);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1;
+  color: var(--color-on-ink);
+}
+
+.card-display__qty {
+  top: 0.35rem;
+  right: 0.35rem;
+}
+
+.card-display__upgrade {
+  top: 0.35rem;
+  right: 2.15rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-fill) 70%, transparent);
+}
+
+.card-display__nameplate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 0.1rem 0.45rem;
+  align-items: center;
+  margin: 0.35rem 0.12rem 0;
+  padding: 0.35rem 0.45rem 0.4rem;
+  background: var(--tone-fill);
+  color: var(--tone-on);
+  border-radius: 0.2rem;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-ink) 25%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-on-ink) 18%, transparent);
+}
+
+.card-display__type-icon {
+  grid-row: 1 / span 2;
+  display: grid;
+  place-items: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-ink) 28%, transparent);
+  font-size: 0.85rem;
+}
+
+.card-display__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-stretch: 88%;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.card-display__type-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.45rem;
+  min-width: 0;
+  font-size: 0.5625rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--tone);
+  opacity: 0.92;
+}
+
+.card-display__element {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-ink) 22%, transparent);
+}
+
+.card-display__element .dot {
+  font-size: 0.55rem;
+  color: var(--tone-fill);
+}
+
+.card-display__rules {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 0;
+  margin: 0.35rem 0.12rem 0;
+  padding: 0.45rem 0.5rem 0.5rem;
+  border-radius: 0.2rem;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-bg-soft) 70%, var(--card-rarity-soft)) 0%,
+      color-mix(in srgb, var(--color-bg-card) 88%, var(--card-rarity-soft)) 100%
+    );
+  border: 1px solid color-mix(in srgb, var(--card-rarity) 22%, var(--color-line));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-ink) 6%, transparent);
 }
 
 .card-display__desc {
-  font-size: 0.875rem;
-  line-height: 1.45;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
   color: var(--color-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card-display__stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem 1.1rem;
-  margin-top: 0.2rem;
+  gap: 0.25rem 0.75rem;
+  margin-top: auto;
+  padding-top: 0.2rem;
 }
 
 .card-display__stat {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .card-display__stat-value {
   font-family: var(--font-display);
-  font-size: 1.85rem;
+  font-size: 1.25rem;
   font-weight: 800;
   font-stretch: 76%;
   font-variant-numeric: tabular-nums;
@@ -564,19 +615,19 @@ const artUrl = computed(() => resolveCardArt(props.card))
 .card-display__stat-meta {
   display: inline-flex;
   flex-direction: column;
-  gap: 0.05rem;
+  gap: 0.02rem;
 }
 
 .card-display__stat-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
 }
 
 .card-display__stat-base {
-  font-size: 0.625rem;
+  font-size: 0.5rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -596,36 +647,27 @@ const artUrl = computed(() => resolveCardArt(props.card))
 }
 
 .card-display__scale {
-  margin: 0.15rem 0 0;
-  font-size: 0.6875rem;
+  margin: 0;
+  font-size: 0.5625rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--color-ink-muted);
 }
 
-/* Bonus passif : bande distincte, typo plus discrète que l’effet actif */
 .card-display__passive {
-  margin-top: auto;
-  padding: 0.7rem 0.9rem 0.85rem 1.05rem;
-  border-top: 1px dashed var(--color-line-strong);
-  background:
-    repeating-linear-gradient(
-      -12deg,
-      transparent,
-      transparent 6px,
-      color-mix(in srgb, var(--color-indigo) 4%, transparent) 6px,
-      color-mix(in srgb, var(--color-indigo) 4%, transparent) 7px
-    ),
-    var(--color-bg-soft);
+  margin-top: 0.15rem;
+  padding-top: 0.3rem;
+  border-top: 1px dashed color-mix(in srgb, var(--color-line-strong) 70%, transparent);
 }
 
 .card-display__passive-label {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.625rem;
+  gap: 0.3rem;
+  margin: 0;
+  font-size: 0.5rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
 }
@@ -633,64 +675,100 @@ const artUrl = computed(() => resolveCardArt(props.card))
 .card-display__passive-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.1rem 0.9rem;
-  margin: 0.35rem 0 0;
+  gap: 0.05rem 0.55rem;
+  margin: 0.2rem 0 0;
   padding: 0;
   list-style: none;
-  font-size: 0.8125rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: var(--color-ink);
 }
 
 .card-display__passive-value {
   font-family: var(--font-display);
-  font-size: 1.0625rem;
+  font-size: 0.85rem;
   font-weight: 800;
   font-stretch: 80%;
   color: var(--color-indigo);
 }
 
 .card-display__passive-hint {
-  margin-top: 0.3rem;
-  font-size: 0.75rem;
+  margin: 0.15rem 0 0;
+  font-size: 0.62rem;
   font-style: italic;
-  line-height: 1.4;
+  line-height: 1.3;
   color: var(--color-ink-faint);
 }
 
-.card-display--compact .card-display__header {
-  min-height: 2.35rem;
+.card-display__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+  padding: 0.15rem 0.25rem 0.05rem;
+}
+
+.card-display__gem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.18rem 0.45rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--tone-fill) 90%, white), var(--tone-fill));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-ink) 45%, transparent),
+    0 1px 3px color-mix(in srgb, var(--color-ink) 25%, transparent);
+  font-size: 0.55rem;
+  color: var(--tone-on, var(--color-on-ink));
+}
+
+.card-display__rarity-label {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+
+.card-display--compact {
+  aspect-ratio: 2.5 / 3.5;
+  padding: 0.3rem 0.3rem 0.35rem;
 }
 
 .card-display--compact .card-display__cost {
-  min-width: 2.35rem;
-  font-size: 1.4rem;
+  width: 1.85rem;
+  height: 1.85rem;
 }
 
-.card-display--compact .card-display__rarity-band {
-  padding: 0.28rem 0.75rem 0.3rem 0.95rem;
-}
-
-.card-display--compact .card-display__body {
-  gap: 0.35rem;
-  padding: 0.6rem 0.75rem 0.7rem 0.95rem;
+.card-display--compact .card-display__cost-value {
+  font-size: 0.95rem;
 }
 
 .card-display--compact .card-display__name {
-  font-size: 1.0625rem;
+  font-size: 0.78rem;
 }
 
 .card-display--compact .card-display__art {
-  margin: 0;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 0.88;
+}
+
+.card-display--compact .card-display__desc {
+  -webkit-line-clamp: 2;
+  font-size: 0.62rem;
 }
 
 .card-display--compact .card-display__stat-value {
-  font-size: 1.4rem;
+  font-size: 1rem;
 }
 
-.card-display--compact .card-display__passive {
-  padding: 0.5rem 0.75rem 0.6rem 0.95rem;
+.card-display--compact .card-display__nameplate {
+  padding: 0.25rem 0.35rem 0.28rem;
+}
+
+.card-display--compact .card-display__rules {
+  padding: 0.3rem 0.35rem 0.35rem;
 }
 
 @keyframes card-foil-sweep {

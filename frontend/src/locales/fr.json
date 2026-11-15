@@ -204,8 +204,7 @@
     "featuresTitle": "Ce qui t'attend"
   },
   "hero": {
-    "perspectiveHint": "Grille de cartes décorative",
-    "stageLabel": "Scène de cartes"
+    "imageLabel": "Illustration de page"
   },
   "guest": {
     "banner": "Essai invité — {days} jour(s) restant(s).",
@@ -819,6 +818,8 @@
     "balanceRyos": "Ryos : {n}",
     "balanceCoins": "Kage Coins : {n}",
     "cardCount": "{n} cartes",
+    "boosterPackCount": "Booster {n} cartes",
+    "packBadge": "TCG",
     "guaranteed": "1 {rarity}+ garantie",
     "elementFilter": "Filtre élémentaire",
     "elementAny": "Tous",

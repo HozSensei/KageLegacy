@@ -6,10 +6,9 @@ import { useMissionsStore } from '../stores/missions'
 import { useCombatStore } from '../stores/combat'
 import VictoryRewards from '../components/combat/VictoryRewards.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
-import { missionHeroTiles } from '../utils/heroTiles'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { missionRankTone } from '../utils/missionVisuals'
+import forestImage from '../assets/illustrations/forest-path.webp'
 import {
   localizedDescription,
   localizedField,
@@ -25,7 +24,6 @@ const missions = useMissionsStore()
 const combat = useCombatStore()
 
 const localError = ref(null)
-const runTiles = missionHeroTiles(6)
 
 const runId = computed(() => route.params.id)
 
@@ -117,15 +115,14 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   <div class="page-shell" data-testid="mission-run-page">
     <PageHeader
       index="07"
-      layout="stage"
+      layout="overlay"
       :tone="run?.mission?.rank ? missionRankTone(run.mission.rank) : 'leaf'"
       :kicker="t('combat.runKicker')"
       :title="missionTitle"
       :lead="t('combat.runLead')"
+      :image="forestImage"
+      image-position="40% 60%"
     >
-      <template #aside>
-        <PerspectiveCardGrid :tiles="runTiles" intensity="soft" :count="6" />
-      </template>
       <template #actions>
         <button type="button" class="btn-ghost" @click="backToMissions">
           <AppIcon name="arrow-left" size="1rem" />

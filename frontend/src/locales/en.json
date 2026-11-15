@@ -204,8 +204,7 @@
     "featuresTitle": "What awaits you"
   },
   "hero": {
-    "perspectiveHint": "Decorative card grid",
-    "stageLabel": "Card stage"
+    "imageLabel": "Page illustration"
   },
   "guest": {
     "banner": "Guest trial — {days} day(s) left.",
@@ -819,6 +818,8 @@
     "balanceRyos": "Ryos: {n}",
     "balanceCoins": "Kage Coins: {n}",
     "cardCount": "{n} cards",
+    "boosterPackCount": "{n} cards booster pack",
+    "packBadge": "TCG",
     "guaranteed": "1 {rarity}+ guaranteed",
     "elementFilter": "Element filter",
     "elementAny": "Any",

@@ -5,10 +5,9 @@ import { RouterLink } from 'vue-router'
 import CollectionGrid from '../components/cards/CollectionGrid.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
-import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
 import { cardTypeVisual } from '../utils/cardVisuals'
 import { localizedDescription, localizedName } from '../utils/localeContent.js'
-import { tilesFromCollection } from '../utils/heroTiles'
+import forestImage from '../assets/illustrations/forest-path.webp'
 import { useCollectionStore } from '../stores/collection'
 
 defineOptions({ name: 'CollectionView' })
@@ -39,7 +38,6 @@ const selectedDescription = computed(() => {
   return localizedDescription(card, locale.value)
 })
 const selectedVisual = computed(() => cardTypeVisual(selectedCard.value?.type))
-const heroTiles = computed(() => tilesFromCollection(collection.entries || [], 9))
 
 const busy = computed(() => collection.loading || collection.catalogueLoading)
 /** EmptyState seulement en mode « possédées » sans cartes, ou catalogue + collection vides. */
@@ -113,14 +111,13 @@ async function onDisenchant() {
     <PageHeader
       index="04"
       tone="wood"
-      layout="stage"
+      layout="overlay"
       :kicker="t('cards.collectionKicker')"
       :title="t('cards.collectionTitle')"
       :lead="t('cards.collectionLead')"
+      :image="forestImage"
+      image-position="50% 40%"
     >
-      <template #aside>
-        <PerspectiveCardGrid :tiles="heroTiles" />
-      </template>
       <template #actions>
         <p class="collection-progress" data-testid="collection-header-count">
           {{
@@ -254,7 +251,8 @@ async function onDisenchant() {
   font-weight: 800;
   font-stretch: 80%;
   font-variant-numeric: tabular-nums;
-  color: var(--color-ink-muted);
+  color: inherit;
+  opacity: 0.85;
 }
 
 .collection-layout {

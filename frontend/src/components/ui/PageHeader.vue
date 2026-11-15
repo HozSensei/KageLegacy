@@ -20,13 +20,12 @@ defineProps({
   /**
    * Composition :
    * - `classic` — grille texte + image / formes
-   * - `stage` — panneau éditorial + scène perspective (cartes)
-   * - `overlay` — panneau sombre superposé à une image plein cadre (Kyoto)
+   * - `overlay` — panneau sombre superposé à une image plein cadre
    */
   layout: {
     type: String,
     default: 'classic',
-    validator: (v) => ['classic', 'stage', 'overlay'].includes(v),
+    validator: (v) => ['classic', 'overlay'].includes(v),
   },
 })
 </script>
@@ -37,7 +36,6 @@ defineProps({
     :class="{
       'page-header--visual': image && layout !== 'overlay',
       'page-header--aside': !image && $slots.aside && layout === 'classic',
-      'page-header--stage': layout === 'stage',
       'page-header--overlay': layout === 'overlay' && image,
     }"
     :data-tone="tone"
@@ -52,6 +50,7 @@ defineProps({
         :style="{ objectPosition: imagePosition }"
       />
       <span class="page-header__bleed-veil" />
+      <span class="page-header__bleed-wash" />
     </div>
 
     <div class="page-header__text" :class="{ 'page-header__text--panel': layout === 'overlay' }">
@@ -70,30 +69,12 @@ defineProps({
     </div>
 
     <div
-      v-if="layout === 'stage' && ($slots.aside || image)"
-      class="page-header__stage"
-      aria-hidden="true"
-    >
-      <span v-if="image" class="page-header__stage-backdrop illustration">
-        <img
-          class="page-header__stage-image"
-          :src="image"
-          alt=""
-          decoding="async"
-          :style="{ objectPosition: imagePosition }"
-        />
-      </span>
-      <span class="page-header__stage-wash" />
-      <div v-if="$slots.aside" class="page-header__stage-cards">
-        <slot name="aside" />
-      </div>
-    </div>
-
-    <div
-      v-else-if="image && layout === 'classic'"
+      v-if="image && layout === 'classic'"
       class="page-header__visual"
       aria-hidden="true"
     >
+      <span class="page-header__orb page-header__orb--a" />
+      <span class="page-header__orb page-header__orb--b" />
       <span class="page-header__block" />
       <span class="page-header__frame illustration">
         <img
@@ -178,8 +159,31 @@ defineProps({
 .page-header__visual {
   position: relative;
   order: -1;
-  height: clamp(8.5rem, 34vw, 12rem);
+  height: clamp(9rem, 36vw, 13rem);
   margin-inline: calc(var(--space-gutter) * -1);
+}
+
+.page-header__orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page-header__orb--a {
+  top: -12%;
+  right: 8%;
+  width: 42%;
+  aspect-ratio: 1;
+  background: color-mix(in srgb, var(--tone-tint) 70%, transparent);
+}
+
+.page-header__orb--b {
+  bottom: -18%;
+  left: 4%;
+  width: 28%;
+  aspect-ratio: 1;
+  background: color-mix(in srgb, var(--tone-fill) 18%, transparent);
 }
 
 .page-header__block {
@@ -188,9 +192,14 @@ defineProps({
 }
 
 .page-header__frame {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
   animation: fade-in 600ms ease both;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--color-ink) 14%, transparent);
 }
 
 .page-header__image {
@@ -198,6 +207,7 @@ defineProps({
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: var(--image-filter);
 }
 
 .page-header__aside {
@@ -206,64 +216,6 @@ defineProps({
 
 .page-header__shapes {
   display: none;
-}
-
-.page-header--stage {
-  align-items: center;
-  gap: 1.75rem;
-  padding-bottom: clamp(1.75rem, 4vw, 2.75rem);
-  border-bottom-color: transparent;
-}
-
-.page-header__stage {
-  position: relative;
-  order: -1;
-  display: grid;
-  place-items: center;
-  min-height: clamp(12rem, 38vw, 16rem);
-  margin-inline: calc(var(--space-gutter) * -1);
-  padding: 1.25rem var(--space-gutter) 1.25rem;
-  overflow: visible;
-  background: var(--color-bg-soft);
-}
-
-.page-header__stage-backdrop {
-  position: absolute;
-  inset: 0;
-}
-
-.page-header__stage-image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.55;
-  filter: var(--image-filter);
-}
-
-.page-header__stage-wash {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      105deg,
-      var(--color-bg) 0%,
-      color-mix(in srgb, var(--color-bg) 55%, transparent) 38%,
-      color-mix(in srgb, var(--tone-tint) 40%, transparent) 100%
-    ),
-    color-mix(in srgb, var(--tone-fill) 12%, transparent);
-  pointer-events: none;
-}
-
-.page-header__stage-cards {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  display: grid;
-  place-items: center;
-  animation: fade-in 700ms ease both;
-  /* Aside slot is decorative (PerspectiveCardGrid); keep page actions clickable. */
-  pointer-events: none;
 }
 
 .page-header--overlay {
@@ -301,6 +253,17 @@ defineProps({
       color-mix(in srgb, var(--color-ink) 55%, transparent) 42%,
       color-mix(in srgb, var(--color-ink) 18%, transparent) 100%
     );
+}
+
+.page-header__bleed-wash {
+  position: absolute;
+  inset: auto -8% -30% auto;
+  width: 48%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tone-fill) 28%, transparent);
+  filter: blur(2px);
+  pointer-events: none;
 }
 
 .page-header__text--panel {
@@ -346,21 +309,7 @@ defineProps({
     gap: 2.5rem;
   }
 
-  .page-header--stage {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
-    gap: 2rem 2.5rem;
-  }
-
-  .page-header--stage .page-header__stage {
-    order: 0;
-    min-height: 18.5rem;
-    margin: 0;
-    padding: 1.75rem 0.5rem 1.75rem 0;
-    overflow: visible;
-    border-radius: var(--radius-md);
-  }
-
-  .page-header:not(.page-header--visual, .page-header--aside, .page-header--stage, .page-header--overlay):has(
+  .page-header:not(.page-header--visual, .page-header--aside, .page-header--overlay):has(
       .page-header__shapes
     ) {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -377,11 +326,12 @@ defineProps({
     position: absolute;
     display: block;
     inset: 0.75rem -0.75rem -0.75rem 2.25rem;
+    border-radius: var(--radius-lg);
     animation: wipe-in 640ms var(--ease-out-quint) both;
   }
 
   .page-header__frame {
-    clip-path: polygon(9% 0, 100% 0, 100% 100%, 0 100%);
+    border-radius: var(--radius-lg);
   }
 
   .page-header__shapes {
@@ -449,7 +399,6 @@ defineProps({
   .page-header__disc,
   .page-header__numeral,
   .page-header__bar,
-  .page-header__stage-cards,
   .page-header__text--panel {
     animation: none !important;
   }
