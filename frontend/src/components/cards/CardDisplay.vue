@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { resolveCardArt } from '../../utils/cardArt'
 import { cardTypeVisual, elementLabelKey, elementTone, rarityVisual } from '../../utils/cardVisuals'
 import { localizedDescription, localizedField, localizedName } from '../../utils/localeContent.js'
 import { previewCardFigures, scalingStatKey } from '../../utils/cardScaling'
@@ -105,6 +106,8 @@ const scaleHints = computed(() => {
   }
   return hints
 })
+
+const artUrl = computed(() => resolveCardArt(props.card))
 </script>
 
 <template>
@@ -167,6 +170,17 @@ const scaleHints = computed(() => {
 
     <div class="card-display__body">
       <h3 class="card-display__name">{{ name }}</h3>
+
+      <div v-if="artUrl" class="card-display__art" data-testid="card-art">
+        <img
+          class="card-display__art-img"
+          :src="artUrl"
+          :alt="name"
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+        />
+      </div>
 
       <div class="card-display__effect">
         <p v-if="!compact" class="card-display__label">{{ t('cards.effect') }}</p>
@@ -480,6 +494,30 @@ const scaleHints = computed(() => {
   overflow-wrap: anywhere;
 }
 
+.card-display__art {
+  position: relative;
+  overflow: hidden;
+  margin: 0 -0.15rem;
+  border: 1px solid color-mix(in srgb, var(--card-rarity) 35%, var(--color-line));
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--card-rarity-soft) 40%, var(--color-bg-soft)) 0%,
+      var(--color-bg-soft) 100%
+    );
+  aspect-ratio: 598 / 562;
+}
+
+.card-display__art-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  user-select: none;
+}
+
 .card-display__effect {
   display: flex;
   flex-direction: column;
@@ -640,6 +678,11 @@ const scaleHints = computed(() => {
 
 .card-display--compact .card-display__name {
   font-size: 1.0625rem;
+}
+
+.card-display--compact .card-display__art {
+  margin: 0;
+  aspect-ratio: 16 / 10;
 }
 
 .card-display--compact .card-display__stat-value {

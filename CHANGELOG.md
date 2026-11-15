@@ -7,6 +7,33 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 49–60 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 49–60 (scalpel-de-chakra / Lame du guérisseur → ecran-de-vapeur)
+- Mapping étendu dans `frontend/src/utils/cardArt.js` (48 slugs)
+
+#### Fixed
+- Remplacé les assets 49–60 qui étaient une copie erronée de la grille 37–48 par la grille correcte (scalpel-de-chakra → ecran-de-vapeur)
+
+### Cartes : illustrations 37–48 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 37–48 (chaine-d-eclairs → aiguillon-nerveux, dont `tombeau-de-sable` / Dune engloutissante et `oeil-du-mirroir` / Reflet trompeur)
+- Mapping étendu dans `frontend/src/utils/cardArt.js` (36 slugs)
+
+### Cartes : illustrations 13–24 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 13–24 (mirage-persistant → serres-de-fer, dont `pilule-du-soldat` et `lame-crespusculaire`)
+- Mapping étendu dans `frontend/src/utils/cardArt.js` (24 slugs)
+
+### Cartes : illustrations starter 1–12 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les 12 premières cartes starter
+- Mapping `frontend/src/utils/cardArt.js` (slug → asset) ; `CardDisplay` et `CombatHand` affichent l’illustration (`imageUrl` API prioritaire, sinon asset local)
+
 ### Cartes : hiérarchie visuelle et dégâts affichés (2026-11-15)
 
 #### Changed
