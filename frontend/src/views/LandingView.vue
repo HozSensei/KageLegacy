@@ -5,6 +5,8 @@ import { useAuthStore } from '../stores/auth'
 import BrandMark from '../components/ui/BrandMark.vue'
 import ThemeToggle from '../components/ui/ThemeToggle.vue'
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue'
+import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
+import { typeHeroTiles } from '../utils/heroTiles'
 import gateImage from '../assets/illustrations/village-gate.webp'
 
 defineOptions({ name: 'LandingView' })
@@ -26,6 +28,8 @@ const timeline = [
   'landing.timeline.grow',
   'landing.timeline.fight',
 ]
+
+const heroTiles = typeHeroTiles(9)
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest({ language: locale.value === 'en' ? 'en' : 'fr' })
@@ -88,6 +92,9 @@ async function playAsGuest() {
           <span class="landing__frame illustration">
             <img class="landing__image" :src="gateImage" alt="" decoding="async" />
           </span>
+          <div class="landing__cards">
+            <PerspectiveCardGrid :tiles="heroTiles" />
+          </div>
           <span class="landing__lozenge"><BrandMark size="100%" /></span>
         </div>
       </section>
@@ -273,6 +280,15 @@ async function playAsGuest() {
   object-fit: cover;
 }
 
+.landing__cards {
+  position: absolute;
+  inset: auto 4% 6% auto;
+  z-index: 2;
+  width: min(72%, 18rem);
+  pointer-events: none;
+  filter: drop-shadow(0 12px 0 color-mix(in srgb, var(--color-ink) 12%, transparent));
+}
+
 .landing__block,
 .landing__disc,
 .landing__lozenge {
@@ -453,6 +469,11 @@ async function playAsGuest() {
     background: var(--color-indigo-deep);
     color: var(--color-on-fill);
     animation: pop-in 620ms var(--ease-out-quint) 340ms both;
+  }
+
+  .landing__cards {
+    inset: auto -4% 8% auto;
+    width: min(88%, 20rem);
   }
 
   .landing__feature-grid {

@@ -1,10 +1,12 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import DeckBuilder from '../components/cards/DeckBuilder.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
+import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
+import { tilesFromCollection } from '../utils/heroTiles'
 import { useCollectionStore } from '../stores/collection'
 import { useDecksStore } from '../stores/decks'
 
@@ -72,6 +74,15 @@ async function onActivate(deckId) {
     message.value = decks.error
   }
 }
+
+const heroTiles = computed(() => {
+  const fromDeck = (decks.editingDeck?.cards || []).map((c) => ({
+    collectionId: c.collectionId,
+    card: c.card || c,
+  }))
+  if (fromDeck.length) return tilesFromCollection(fromDeck, 9)
+  return tilesFromCollection(collection.entries || [], 9)
+})
 </script>
 
 <template>
@@ -79,10 +90,14 @@ async function onActivate(deckId) {
     <PageHeader
       index="05"
       tone="sky"
+      layout="stage"
       :kicker="t('cards.deckKicker')"
       :title="t('cards.deckBuilderTitle')"
       :lead="t('cards.deckBuilderLead')"
     >
+      <template #aside>
+        <PerspectiveCardGrid :tiles="heroTiles" />
+      </template>
       <template #actions>
         <RouterLink to="/collection" class="btn-ghost">{{ t('cards.backToCollection') }}</RouterLink>
       </template>

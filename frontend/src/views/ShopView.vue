@@ -9,6 +9,8 @@ import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue'
 import CosmeticCatalog from '../components/shop/CosmeticCatalog.vue'
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
+import PerspectiveCardGrid from '../components/ui/PerspectiveCardGrid.vue'
+import { rarityHeroTiles } from '../utils/heroTiles'
 import marketImage from '../assets/illustrations/market-square.webp'
 import { useShopStore } from '../stores/shop'
 import { useAuthStore } from '../stores/auth'
@@ -23,6 +25,7 @@ const router = useRouter()
 
 const phase = ref('catalog') // catalog | opening | results
 const revealDone = ref(false)
+const shopHeroTiles = rarityHeroTiles(9)
 
 const tabs = [
   { id: 'boosters', labelKey: 'shop.tabs.boosters' },
@@ -148,12 +151,17 @@ async function onUnlockBp(method) {
     <PageHeader
       index="06"
       tone="gold"
+      layout="stage"
       :kicker="t('shop.kicker')"
       :title="t('shop.title')"
       :lead="t('shop.lead')"
       :image="marketImage"
       image-position="50% 62%"
-    />
+    >
+      <template #aside>
+        <PerspectiveCardGrid :tiles="shopHeroTiles" />
+      </template>
+    </PageHeader>
 
     <div class="tabs mt-8" role="tablist" data-testid="shop-tabs">
       <button
