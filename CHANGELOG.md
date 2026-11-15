@@ -7,6 +7,12 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 73–84 (2026-11-15)
+
+#### Added
+- Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 73–84 (mains-de-lumiere → danse-du-sanglier)
+- Mapping étendu dans `frontend/src/utils/cardArt.js` (72 slugs)
+
 ### Cartes : illustrations 61–72 (2026-11-15)
 
 #### Added
