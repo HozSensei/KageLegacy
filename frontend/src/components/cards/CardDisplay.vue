@@ -466,7 +466,7 @@ watch(
  * Sur cartes étroites (mobile 2-col), on réduit l’art pour agrandir
  * la zone description (parchemin) et éviter le texte compressé. */
 .card-display__art {
-  height: 57.66%;
+  height: 50%;
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
@@ -476,7 +476,7 @@ watch(
 
 @container (max-width: 11.5rem) {
   .card-display__art {
-    height: 48%;
+    height: 44%;
   }
 
   .card-display__info {
@@ -533,14 +533,15 @@ watch(
   opacity: 0.45;
 }
 
-/* Type de carte — bandeau compact collé au bord supérieur */
+/* Type de carte — bandeau compact collé en haut à droite, derrière le chakra */
 .card-display__kind {
   position: absolute;
-  z-index: 13;
-  left: 0;
+  z-index: 11;
+  right: 0;
+  left: auto;
   top: 0;
-  max-width: calc(100% - 3.5rem);
-  padding: 0.22rem 0.55rem;
+  max-width: min(70%, 9rem);
+  padding: 0.22rem 0.7rem 0.22rem 0.55rem;
   background: var(--tone-fill, #697580);
   color: var(--tone-on, #fff);
   font-family: var(--font-display);
@@ -674,8 +675,8 @@ watch(
 
 .card-display__info-columns {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 58px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 8px;
   flex: 1;
   min-height: 0;
 }
@@ -727,27 +728,27 @@ watch(
   font-weight: 900;
 }
 
-/* Bonus passifs — carrés à plat */
+/* Bonus passifs — carrés à plat (−30 %) */
 .card-display__bonuses {
   border-left: 1px solid #c8b59d;
-  padding-left: 9px;
+  padding-left: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   justify-content: center;
   min-width: 0;
 }
 
 .card-display__bonus {
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 1.5rem;
+  height: 1.5rem;
   display: grid;
   place-items: center;
   background: var(--fill, #8c5c3e);
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(0.7rem, 4.8cqi, 0.95rem);
+  font-size: clamp(0.52rem, 3.4cqi, 0.68rem);
   font-weight: 900;
   line-height: 1;
 }
@@ -858,13 +859,13 @@ watch(
 }
 
 .card-display__qty {
-  right: 0.55rem;
-  left: auto;
+  left: 0.55rem;
+  right: auto;
 }
 
 .card-display__upgrade {
-  right: 2.2rem;
-  left: auto;
+  left: 2.2rem;
+  right: auto;
   border: 1px solid color-mix(in srgb, var(--color-gold-fill, #d4a84b) 70%, transparent);
 }
 
@@ -975,8 +976,8 @@ watch(
 }
 
 .card-display--compact .card-display__info-columns {
-  grid-template-columns: minmax(0, 1fr) 42px;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  gap: 5px;
 }
 
 .card-display--compact .card-display__info-columns:not(:has(.card-display__bonuses)) {
@@ -1002,9 +1003,9 @@ watch(
 }
 
 .card-display--compact .card-display__bonus {
-  width: 1.65rem;
-  height: 1.65rem;
-  font-size: 0.7rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 0.55rem;
 }
 
 .card-display--compact .card-display__footer {
