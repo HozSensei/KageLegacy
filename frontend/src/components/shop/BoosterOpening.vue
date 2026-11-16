@@ -39,6 +39,8 @@ let reduceMotion = false
 
 const total = computed(() => props.cards.length)
 
+const currentEntry = computed(() => props.cards[index.value] || null)
+
 const statusText = computed(() => {
   if (phase.value === 'sealed') return t('shop.tearHint')
   if (phase.value === 'opening') return t('shop.sealBroken')
@@ -46,7 +48,7 @@ const statusText = computed(() => {
     return t('shop.revealHint', { n: index.value + 1, total: total.value })
   }
   if (phase.value === 'revealed') {
-    const entry = props.cards[index.value]
+    const entry = currentEntry.value
     const rarity = entry?.rarity || 'common'
     if (rarity === 'mythic') return t('shop.revealMythic')
     if (rarity === 'legendary') return t('shop.revealLegendary')
@@ -64,20 +66,37 @@ const statusText = computed(() => {
 const actionLabel = computed(() => {
   if (phase.value === 'sealed') return t('shop.tearAction')
   if (phase.value === 'hidden') return t('shop.revealCard')
-  if (phase.value === 'done') return t('shop.revealDone')
+  if (phase.value === 'done') return t('shop.closeResults')
   return t('shop.revealCard')
 })
 
 const nextLabel = computed(() => {
-  if (index.value >= total.value - 1) return t('shop.seeResults')
+  if (index.value >= total.value - 1) return t('shop.closeResults')
   return t('shop.nextCard')
 })
+
+const showNewBadge = computed(
+  () => phase.value === 'revealed' && Boolean(currentEntry.value?.isNew),
+)
+
+const showDupBadge = computed(
+  () =>
+    phase.value === 'revealed' &&
+    currentEntry.value &&
+    !currentEntry.value.isNew,
+)
 
 const collectedCount = computed(() => {
   let n = revealedSet.value.size
   if (phase.value === 'revealed' && !revealedSet.value.has(index.value)) n += 1
   return Math.min(n, total.value)
 })
+
+const stageClickable = computed(
+  () =>
+    !busy.value &&
+    (phase.value === 'hidden' || phase.value === 'revealed'),
+)
 
 function cardName(entry) {
   if (!entry?.card) return ''
@@ -164,13 +183,17 @@ async function next() {
   busy.value = false
 }
 
+/** Progressive click: flip → next → … → catalogue. */
+function onStageActivate() {
+  if (busy.value) return
+  if (phase.value === 'hidden') reveal()
+  else if (phase.value === 'revealed') next()
+}
+
 function onAction() {
   if (phase.value === 'sealed') openPack()
   else if (phase.value === 'hidden') reveal()
-}
-
-function onStackActivate() {
-  if (phase.value === 'hidden') reveal()
+  else if (phase.value === 'done') emit('done')
 }
 
 function clearTearDrag() {
@@ -259,7 +282,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="booster-opening" data-testid="booster-opening" aria-live="polite">
-    <section class="booster-opening__demo" :aria-label="t('shop.openingStage')">
+    <section class="booster-opening__stage" :aria-label="t('shop.openingStage')">
       <div class="booster-opening__glow" aria-hidden="true" />
       <div
         class="booster-opening__burst"
@@ -319,8 +342,14 @@ onBeforeUnmount(() => {
 
       <div
         class="booster-opening__stack"
-        :class="{ 'booster-opening__stack--visible': stackVisible }"
+        :class="{
+          'booster-opening__stack--visible': stackVisible,
+          'booster-opening__stack--clickable': stageClickable,
+        }"
         data-testid="booster-stack"
+        @click="onStageActivate"
+        @keydown.enter.prevent="onStageActivate"
+        @keydown.space.prevent="onStageActivate"
       >
         <div
           v-for="(entry, i) in cards"
@@ -330,37 +359,45 @@ onBeforeUnmount(() => {
             'booster-opening__stack-card--current': isCurrent(i),
             'booster-opening__stack-card--revealed': revealedSet.has(i),
             'booster-opening__stack-card--gone': isGone(i),
-            [`booster-opening__stack-card--${entry.rarity}`]: true,
+            [`booster-opening__stack-card--${entry.rarity}`]: revealedSet.has(i),
           }"
           :style="{ zIndex: cards.length - i }"
-          :data-tone="rarityVisual(entry.rarity).tone"
         >
-          <button
-            v-if="isCurrent(i) && phase === 'hidden'"
-            type="button"
-            class="booster-opening__reveal-hit"
-            data-testid="booster-reveal-hit"
-            :aria-label="t('shop.revealCard')"
-            @click="onStackActivate"
-          />
           <CardDisplay :card="entry.card" :face="cardFace(i)" :compact="true" />
-          <p
-            v-if="revealedSet.has(i) && isCurrent(i)"
-            class="booster-opening__badge"
-            :class="entry.isNew ? 'booster-opening__badge--new' : 'booster-opening__badge--dup'"
-          >
-            {{ entry.isNew ? t('shop.newCard') : t('shop.duplicate', { name: cardName(entry) }) }}
-          </p>
         </div>
-      </div>
 
-      <p class="booster-opening__status" data-testid="booster-status">{{ statusText }}</p>
+        <button
+          v-if="stageClickable"
+          type="button"
+          class="booster-opening__stage-hit"
+          data-testid="booster-reveal-hit"
+          :aria-label="phase === 'hidden' ? t('shop.revealCard') : nextLabel"
+          @click.stop="onStageActivate"
+        />
+      </div>
     </section>
+
+    <!-- Captions hors des cartes (espace clair au-dessous) -->
+    <div class="booster-opening__captions" data-testid="booster-captions">
+      <p
+        v-if="showNewBadge"
+        class="booster-opening__badge booster-opening__badge--new"
+      >
+        {{ t('shop.newCard') }}
+      </p>
+      <p
+        v-else-if="showDupBadge"
+        class="booster-opening__badge booster-opening__badge--dup"
+      >
+        {{ t('shop.duplicate', { name: cardName(currentEntry) }) }}
+      </p>
+      <p class="booster-opening__status" data-testid="booster-status">{{ statusText }}</p>
+    </div>
 
     <div class="booster-opening__toolbar">
       <button
         type="button"
-        class="btn-primary"
+        class="btn-secondary"
         data-testid="booster-action"
         :disabled="busy || phase === 'revealed' || phase === 'opening' || phase === 'done'"
         @click="onAction"
@@ -418,56 +455,31 @@ onBeforeUnmount(() => {
   margin-top: 0.5rem;
 }
 
-.booster-opening__demo {
+/* Même fond que la page — pas de panneau contrasté. */
+.booster-opening__stage {
   position: relative;
   isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 36rem;
-  overflow: hidden;
-  margin: 0 0 1rem;
-  border: 1px solid color-mix(in srgb, var(--color-line-strong) 70%, transparent);
-  border-radius: 1rem;
-  background:
-    radial-gradient(
-      ellipse at center,
-      color-mix(in srgb, var(--color-indigo-soft) 28%, transparent),
-      transparent 64%
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 70px,
-      color-mix(in srgb, var(--color-on-ink) 4%, transparent) 71px 72px
-    ),
-    radial-gradient(
-      ellipse at 50% 32%,
-      color-mix(in srgb, var(--color-indigo) 35%, var(--color-bg)) 0%,
-      var(--color-bg) 52%,
-      color-mix(in srgb, var(--color-ink) 88%, black) 100%
-    );
-}
-
-.booster-opening__demo::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at center,
-    transparent 25%,
-    color-mix(in srgb, var(--color-ink) 55%, transparent) 100%
-  );
-  pointer-events: none;
+  min-height: 30rem;
+  padding: 1rem 0 1.5rem;
+  overflow: visible;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .booster-opening__glow {
   position: absolute;
-  width: 28rem;
-  height: 28rem;
+  width: 18rem;
+  height: 18rem;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-gold-fill) 18%, transparent);
-  filter: blur(80px);
+  background: color-mix(in srgb, var(--color-gold-fill) 8%, transparent);
+  filter: blur(90px);
   pointer-events: none;
+  opacity: 0.45;
 }
 
 .booster-opening__burst {
@@ -733,10 +745,11 @@ onBeforeUnmount(() => {
 }
 
 .booster-opening__stack {
-  position: absolute;
+  position: relative;
   z-index: 2;
   width: min(18.5rem, 86vw);
   aspect-ratio: 2.5 / 3.5;
+  margin: 0 auto;
   opacity: 0;
   transform: translateY(100px) scale(0.82);
   pointer-events: none;
@@ -748,7 +761,17 @@ onBeforeUnmount(() => {
 .booster-opening__stack--visible {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+.booster-opening__stack:not(.booster-opening__stack--visible) {
+  position: absolute;
+  inset: auto;
+  pointer-events: none;
+}
+
+.booster-opening__stack--clickable {
   pointer-events: auto;
+  cursor: pointer;
 }
 
 .booster-opening__stack-card {
@@ -758,6 +781,7 @@ onBeforeUnmount(() => {
     transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1),
     opacity 0.45s;
   filter: drop-shadow(0 18px 15px #0008);
+  pointer-events: none;
 }
 
 .booster-opening__stack-card:nth-child(1) {
@@ -799,10 +823,10 @@ onBeforeUnmount(() => {
   filter: drop-shadow(0 0 18px #f4c76b88) drop-shadow(0 20px 15px #0008);
 }
 
-.booster-opening__reveal-hit {
+.booster-opening__stage-hit {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 8;
   margin: 0;
   padding: 0;
   border: 0;
@@ -810,48 +834,54 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
+.booster-opening__captions {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  min-height: 4.25rem;
+  margin: 0.75rem 0 1.15rem;
+  padding: 0.5rem 0.75rem 0;
+  text-align: center;
+}
+
 .booster-opening__badge {
-  position: absolute;
-  z-index: 6;
-  left: 50%;
-  bottom: -1.6rem;
-  transform: translateX(-50%);
   margin: 0;
-  padding: 0.25rem 0.55rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-ink) 78%, transparent);
   font-size: 0.6875rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .booster-opening__badge--new {
+  background: color-mix(in srgb, var(--color-leaf-fill) 22%, transparent);
   color: var(--color-leaf-fill);
+  border: 1px solid color-mix(in srgb, var(--color-leaf-fill) 45%, transparent);
 }
 
 .booster-opening__badge--dup {
-  color: color-mix(in srgb, var(--color-on-ink) 75%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  color: var(--color-ink-muted);
+  border: 1px solid var(--color-line);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: none;
 }
 
 .booster-opening__status {
-  position: absolute;
-  z-index: 6;
-  bottom: 1.1rem;
-  left: 1rem;
-  right: 1rem;
   margin: 0;
-  text-align: center;
-  font-size: 0.8125rem;
+  max-width: 28rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.025em;
-  color: color-mix(in srgb, var(--color-on-ink) 88%, var(--color-gold-fill));
-  pointer-events: none;
-  text-shadow: 0 1px 8px color-mix(in srgb, var(--color-ink) 55%, transparent);
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--color-ink) 88%, var(--color-gold-fill));
 }
 
 .booster-opening__toolbar {
@@ -859,6 +889,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   flex-wrap: wrap;
   gap: 0.65rem;
+  opacity: 0.72;
 }
 
 .booster-opening__collection {
@@ -960,8 +991,8 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 650px) {
-  .booster-opening__demo {
-    min-height: 32rem;
+  .booster-opening__stage {
+    min-height: 30rem;
   }
 
   .booster-opening__collection-grid {
