@@ -5,13 +5,12 @@ export const DRAW_PER_TURN = 5;
 export const MAX_HAND_SIZE = 10;
 export const BASE_MAX_HP = 100;
 
+/** Stats de combat TCG : 4 arts (+ extras hors scaling de carte). */
 export const STAT_KEYS = [
   'taijutsu',
   'ninjutsu',
   'genjutsu',
   'medicine',
-  'vitesse',
-  'intelligence',
   'dexterity',
   'maxHp',
 ];
@@ -24,6 +23,8 @@ export const TYPE_ADVANTAGE = {
 };
 
 export const TYPE_ADVANTAGE_MULTIPLIER = 1.2;
+/** Hors avantage de triade (et non médecine) : léger malus anti-mono. */
+export const TYPE_DISADVANTAGE_MULTIPLIER = 0.85;
 
 /** Cycle élémentaire : katon > futon > raiton > doton > suiton > katon */
 export const ELEMENT_BEATS = {

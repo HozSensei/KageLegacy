@@ -7,6 +7,12 @@ import {
   DISENCHANT_DUST as ECONOMY_DISENCHANT_DUST,
   UPGRADE_COSTS as ECONOMY_UPGRADE_COSTS,
 } from '../config/economyConfig.js';
+import {
+  deriveCritChance,
+  normalizeArtKey,
+  remapAbandonedPassives,
+  resolveSecondaryArt,
+} from './deckCombat/combatArts.js';
 
 export const CARD_TYPES = ['attack', 'defense', 'skill', 'summon', 'item'];
 export const CARD_RARITIES = ['common', 'rare', 'legendary', 'mythic'];
@@ -45,12 +51,19 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
   const level = Math.max(0, Math.min(2, Number(upgradeLevel) || 0));
   const upgrades = parseJsonSafe(cardDef.upgrade_bonuses_json ?? cardDef.upgradeBonuses, {}) || {};
   const passiveBase = parseJsonSafe(cardDef.passive_bonus_json ?? cardDef.passiveBonus, {}) || {};
+  const slug = cardDef.slug || null;
+  const rawStat = cardDef.stat_type ?? cardDef.statType ?? 'taijutsu';
+  const primary = normalizeArtKey(rawStat) || String(rawStat).toLowerCase();
+  const secondary = resolveSecondaryArt(
+    slug,
+    cardDef.statTypeSecondary ?? cardDef.stat_type_secondary,
+  );
 
   let cost = Number(cardDef.base_cost ?? cardDef.baseCost ?? 0);
   let damage = Number(cardDef.base_damage ?? cardDef.baseDamage ?? 0);
   let block = Number(cardDef.base_block ?? cardDef.baseBlock ?? 0);
   let heal = Number(cardDef.base_heal ?? cardDef.baseHeal ?? 0);
-  const passive = { ...passiveBase };
+  const passiveMerged = { ...passiveBase };
 
   if (level > 0) {
     const bonus = upgrades[`level_${level}`] || {};
@@ -60,17 +73,29 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
     if (bonus.cost != null) cost += Number(bonus.cost) || 0;
     if (bonus.passive && typeof bonus.passive === 'object') {
       for (const [key, value] of Object.entries(bonus.passive)) {
-        passive[key] = (Number(passive[key]) || 0) + (Number(value) || 0);
+        passiveMerged[key] = (Number(passiveMerged[key]) || 0) + (Number(value) || 0);
       }
     }
   }
+
+  const critChance = deriveCritChance({
+    critChance: cardDef.critChance ?? cardDef.crit_chance,
+    passiveBeforeRemap: { ...passiveBase, ...((upgrades[`level_${level}`] || {}).passive || {}) },
+    type: cardDef.type,
+    damage: Number(cardDef.base_damage ?? cardDef.baseDamage ?? 0),
+  });
 
   return {
     cost: Math.max(0, cost),
     damage: Math.max(0, damage),
     block: Math.max(0, block),
     heal: Math.max(0, heal),
-    passiveBonus: passive,
+    critChance,
+    statTypeSecondary: secondary,
+    passiveBonus: remapAbandonedPassives(passiveMerged, {
+      statType: primary,
+      secondaryStatType: secondary,
+    }),
   };
 }
 
@@ -90,7 +115,8 @@ export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
     nameFr: `${row.name_fr}${suffix}`,
     nameEn: `${row.name_en}${suffix}`,
     type: row.type,
-    statType: row.stat_type,
+    statType: normalizeArtKey(row.stat_type) || row.stat_type,
+    statTypeSecondary: computed.statTypeSecondary,
     element: row.element,
     rarity: row.rarity,
     baseCost: row.base_cost,
@@ -101,6 +127,7 @@ export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
     damage: computed.damage,
     block: computed.block,
     heal: computed.heal,
+    critChance: computed.critChance || 0,
     effects,
     summon,
     exhaust: Boolean(row.exhaust),

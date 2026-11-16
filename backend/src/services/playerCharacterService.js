@@ -27,8 +27,6 @@ export const STAT_KEYS = [
   'ninjutsu',
   'genjutsu',
   'medicine',
-  'vitesse',
-  'intelligence',
   'dexterity',
   'maxHp',
 ];

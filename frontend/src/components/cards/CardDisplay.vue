@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import BrandMark from '../ui/BrandMark.vue'
 import { resolveCardArt } from '../../utils/cardArt'
 import { cardEffectParts } from '../../utils/cardEffectLine'
-import { cardBonusChips, cardFamilyKey } from '../../utils/cardBonusChips'
+import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips'
 import {
   cardTypeVisual,
   elementLabelKey,
@@ -88,6 +88,13 @@ const familyLabel = computed(() => {
 })
 
 const bonusChips = computed(() => cardBonusChips(props.card))
+
+const secondaryArt = computed(() => cardSecondaryArt(props.card))
+const secondaryArtLabel = computed(() => {
+  if (!secondaryArt.value) return ''
+  const key = `cards.stats.${secondaryArt.value}`
+  return te(key) ? t(key) : secondaryArt.value
+})
 
 const artUrl = computed(() => resolveCardArt(props.card))
 const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
@@ -203,6 +210,10 @@ watch(
               <h3 class="card-display__name">{{ name }}</h3>
               <p class="card-display__type">
                 <span>{{ typeLabel }}</span>
+                <template v-if="secondaryArtLabel">
+                  <span aria-hidden="true"> · </span>
+                  <span>{{ secondaryArtLabel }}</span>
+                </template>
                 <template v-if="elementLabel">
                   <span aria-hidden="true"> · </span>
                   <span :data-tone="elementTone(card.element)">{{ elementLabel }}</span>

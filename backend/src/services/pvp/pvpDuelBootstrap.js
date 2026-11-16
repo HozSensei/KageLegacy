@@ -76,6 +76,8 @@ function serializeRuntimeCards(deckCards) {
         block: Number(card.block ?? card.baseBlock ?? card.base_block) || 0,
         heal: Number(card.heal ?? card.baseHeal ?? card.base_heal) || 0,
         statType: (card.statType || card.stat_type || 'taijutsu').toLowerCase(),
+        statTypeSecondary: card.statTypeSecondary || card.stat_type_secondary || null,
+        critChance: Number(card.critChance ?? card.crit_chance) || 0,
         element: card.element || null,
         cardType: card.cardType || card.card_type || null,
         effects: card.effects_json

@@ -18,24 +18,13 @@ const props = defineProps({
 
 const { t } = useI18n()
 
-const STAT_ORDER = [
-  'taijutsu',
-  'ninjutsu',
-  'genjutsu',
-  'medicine',
-  'vitesse',
-  'intelligence',
-  'dexterity',
-  'maxHp',
-]
+const STAT_ORDER = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'dexterity', 'maxHp']
 
 const STAT_TONES = {
   taijutsu: 'vermilion',
   ninjutsu: 'sky',
   genjutsu: 'indigo',
   medicine: 'leaf',
-  vitesse: 'gold',
-  intelligence: 'wood',
   dexterity: 'gold',
   maxHp: 'vermilion',
 }

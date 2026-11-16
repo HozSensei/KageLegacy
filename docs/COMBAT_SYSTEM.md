@@ -60,21 +60,27 @@ Soin_Final = Soin_Base × (1 + Medicine / 100)
 - Sans stats : 8 PV
 - Avec 150 Médecine : 8 × 2.5 = **20 PV**
 
-#### 4. Stats Secondaires
+#### 4. Arts & critique
+
+Les **4 arts** de combat sont : Taijutsu, Ninjutsu, Genjutsu, Médecine.
+**Vitesse** et **Intelligence** ne sont plus des stats de combat TCG
+(passifs remappés ; critique = mot-clé de carte).
 
 | Stat | Effet |
 |------|-------|
-| **Vitesse** | +1% chance de critique par 10 Vitesse (max 50%) |
-| **Intelligence** | +1% chance de proc d'effets spéciaux par 10 Int |
-| **Dextérité** | Réduit coût Chakra des cartes 0-1 coût (rare) |
+| **Tai / Nin / Gen** | Scaling dégâts selon `statType` (+ triade ×1.2 / ×0.85) |
+| **Médecine** | Scaling armure / soins (neutre en triade) |
+| **Dextérité** | Legacy / talents (hors arts) |
+| **Critique** | Chance explicite sur la carte (`critChance`), max 50% |
 
 **Critique** :
 ```javascript
 Dégâts_Crit = Dégâts_Finaux × 1.5
-Chance_Crit = min(50, Vitesse / 10) + Buffs
+Chance_Crit = min(50, card.critChance)
 ```
 
-**Exemple** : 100 Vitesse → 10% crit chance
+**Cartes double type** : `statType` (primaire, scaling + avantage) +
+`statTypeSecondary` (affichage / passifs / pont 2-couleurs).
 
 ---
 
@@ -347,9 +353,9 @@ GENJUTSU ←→→→ NINJUTSU
 ```
 
 **Bonus** : +20% dégâts si avantage de type (×**1.2**)
+**Malus** : ×**0.85** si la posture adverse bat l’art attaquant
 
-> Implémentation : pas de malus réciproque sur la triade — hors avantage = ×1.
-> Code : `backend/src/services/deckCombat/typeAdvantage.js` (`getTypeAdvantage`).
+> Médecine reste neutre. Code : `typeAdvantage.js` (`getTypeAdvantage`).
 > Tests : `npm run test:type-advantage` · voir aussi [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md).
 
 **Exemple** :

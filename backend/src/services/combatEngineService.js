@@ -610,11 +610,6 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
     ...(session.player.discardPile || []),
     ...(session.player.exhaustPile || []),
   ]);
-  const statsWithBonus = {
-    ...session.stats,
-    vitesse:
-      (Number(session.stats?.vitesse) || 0) + (Number(session.player.combatSpeedBonus) || 0),
-  };
   const talentMods = computeTalentDamageMods(
     session.talentEffects.applied,
     session.player,
@@ -629,7 +624,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
     player: session.player,
     enemy: session.enemy,
     card,
-    stats: statsWithBonus,
+    stats: session.stats,
     talentMods,
     talentCodes: session.talentEffects.applied,
   });

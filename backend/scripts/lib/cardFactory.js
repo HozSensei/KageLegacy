@@ -1,6 +1,13 @@
 /**
  * Helpers pour définir des cartes catalogue de façon compacte et cohérente.
+ * Arts combat : taijutsu / ninjutsu / genjutsu / medicine (plus de Vit/Int).
  */
+import {
+  deriveCritChance,
+  normalizeArtKey,
+  remapAbandonedPassives,
+  resolveSecondaryArt,
+} from '../../src/services/deckCombat/combatArts.js';
 
 const STAT_LABELS_FR = {
   taijutsu: 'Taijutsu',
@@ -8,8 +15,6 @@ const STAT_LABELS_FR = {
   genjutsu: 'Genjutsu',
   medicine: 'Médecine',
   dexterity: 'Dextérité',
-  vitesse: 'Vitesse',
-  intelligence: 'Intelligence',
   maxHp: 'PV max',
   force: 'Force',
 };
@@ -20,8 +25,6 @@ const STAT_LABELS_EN = {
   genjutsu: 'Genjutsu',
   medicine: 'Medicine',
   dexterity: 'Dexterity',
-  vitesse: 'Speed',
-  intelligence: 'Intelligence',
   maxHp: 'max HP',
   force: 'Strength',
 };
@@ -42,6 +45,22 @@ export function formatPassiveEn(passive = {}) {
   return parts.length ? `Passive: ${parts.join(', ')}` : 'Passive: none';
 }
 
+function remapUpgradePassives(upgrades, { statType, secondaryStatType }) {
+  const out = {};
+  for (const [levelKey, bonus] of Object.entries(upgrades || {})) {
+    if (!bonus || typeof bonus !== 'object') {
+      out[levelKey] = bonus;
+      continue;
+    }
+    const next = { ...bonus };
+    if (bonus.passive && typeof bonus.passive === 'object') {
+      next.passive = remapAbandonedPassives(bonus.passive, { statType, secondaryStatType });
+    }
+    out[levelKey] = next;
+  }
+  return out;
+}
+
 /**
  * Définition compacte → objet seed upsertCardDefinition.
  */
@@ -51,6 +70,7 @@ export function defineCard({
   nameEn,
   type,
   statType,
+  statTypeSecondary = null,
   element = null,
   rarity = 'common',
   cost = 0,
@@ -61,6 +81,7 @@ export function defineCard({
   summon = null,
   exhaust = false,
   passive = {},
+  critChance = null,
   descriptionFr,
   descriptionEn,
   loreFr = null,
@@ -75,12 +96,31 @@ export function defineCard({
     throw new Error(`defineCard missing descriptions: ${slug}`);
   }
 
+  const primary = normalizeArtKey(statType) || String(statType).toLowerCase();
+  const secondary = resolveSecondaryArt(slug, statTypeSecondary);
+  const passiveBefore = { ...(passive || {}) };
+  const resolvedCrit = deriveCritChance({
+    critChance,
+    passiveBeforeRemap: passiveBefore,
+    type,
+    damage,
+  });
+  const remappedPassive = remapAbandonedPassives(passiveBefore, {
+    statType: primary,
+    secondaryStatType: secondary,
+  });
+  const remappedUpgrades = remapUpgradePassives(upgrades, {
+    statType: primary,
+    secondaryStatType: secondary,
+  });
+
   return {
     slug,
     nameFr,
     nameEn,
     type,
-    statType,
+    statType: primary,
+    statTypeSecondary: secondary,
     element,
     rarity,
     baseCost: cost,
@@ -90,17 +130,18 @@ export function defineCard({
     effects,
     summon: summon || undefined,
     exhaust: Boolean(exhaust),
-    passiveBonus: passive,
-    passiveDescriptionFr: formatPassiveFr(passive),
-    passiveDescriptionEn: formatPassiveEn(passive),
+    critChance: resolvedCrit,
+    passiveBonus: remappedPassive,
+    passiveDescriptionFr: formatPassiveFr(remappedPassive),
+    passiveDescriptionEn: formatPassiveEn(remappedPassive),
     descriptionFr,
     descriptionEn,
     loreFr,
     loreEn,
     upgradable,
     upgradeBonuses: {
-      level_1: upgrades.level_1 || {},
-      level_2: upgrades.level_2 || {},
+      level_1: remappedUpgrades.level_1 || {},
+      level_2: remappedUpgrades.level_2 || {},
     },
   };
 }

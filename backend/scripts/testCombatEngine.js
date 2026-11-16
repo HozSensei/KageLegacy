@@ -8,10 +8,13 @@ import {
   scaleBlock,
   scaleHeal,
   applyDamageThroughBlock,
-  critChanceFromSpeed,
+  clampCritChance,
+  rollCrit,
   typeAdvantageMultiplier,
   elementMultiplier,
 } from '../src/services/deckCombat/formulas.js';
+import { getTypeAdvantage } from '../src/services/deckCombat/typeAdvantage.js';
+import { remapAbandonedPassives, deriveCritChance } from '../src/services/deckCombat/combatArts.js';
 import {
   applyStatus,
   tickStatuses,
@@ -77,12 +80,23 @@ assert(scaleDamage(6, 100) === 12, 'damage 100 tai = ×2');
 assert(scaleDamage(6, 200) === 18, 'damage 200 tai = ×3');
 assert(scaleBlock(5, 100) === 10, 'block medicine 100 = ×2');
 assert(scaleHeal(8, 150) === 20, 'heal medicine 150 = ×2.5');
-assert(critChanceFromSpeed(100) === 10, 'crit chance 100 vitesse = 10%');
-assert(critChanceFromSpeed(600) === 50, 'crit chance capped at 50');
+assert(clampCritChance(10) === 10, 'crit chance passthrough');
+assert(clampCritChance(600) === 50, 'crit chance capped at 50');
+assert(rollCrit(0, () => 0).isCrit === false, '0% crit never procs');
+assert(rollCrit(100, () => 0).isCrit === true, '100% clamped crit procs on low roll');
 assert(typeAdvantageMultiplier('taijutsu', 'genjutsu') === 1.2, 'tai > gen');
-assert(typeAdvantageMultiplier('taijutsu', 'ninjutsu') === 1, 'tai vs nin neutral');
+assert(typeAdvantageMultiplier('taijutsu', 'ninjutsu') === 0.85, 'tai vs nin disadvantage');
+assert(getTypeAdvantage('ninjutsu', 'taijutsu').relation === 'advantage', 'nin > tai relation');
+assert(getTypeAdvantage('taijutsu', 'ninjutsu').relation === 'disadvantage', 'tai < nin relation');
 assert(elementMultiplier('katon', 'futon') === 1.5, 'katon > futon');
 assert(elementMultiplier('katon', 'suiton') === 0.7, 'katon < suiton');
+
+const remapped = remapAbandonedPassives(
+  { vitesse: 2, intelligence: 3, ninjutsu: 1 },
+  { statType: 'ninjutsu', secondaryStatType: 'genjutsu' },
+);
+assert(remapped.ninjutsu === 3 && remapped.genjutsu === 3 && remapped.vitesse == null, 'remap vit→nin int→gen');
+assert(deriveCritChance({ passiveBeforeRemap: { vitesse: 2 }, type: 'attack', damage: 4 }) === 15, 'crit from old vit');
 
 const blocked = applyDamageThroughBlock({ hp: 50, block: 10 }, 7);
 assert(blocked.hp === 50 && blocked.block === 3, 'armor absorbs first');

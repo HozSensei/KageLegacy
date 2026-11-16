@@ -57,21 +57,24 @@ const sampleDef = {
 
 const base = applyUpgradeBonuses(sampleDef, 0);
 assert(base.damage === 6, 'base damage');
-assert(base.passiveBonus.taijutsu === 2, 'base passive taijutsu');
+assert(base.passiveBonus.taijutsu === 3, 'base passive taijutsu (vit remapped)');
+assert(base.passiveBonus.vitesse == null, 'no vitesse after remap');
+assert(base.critChance === 10, 'critChance derived from old vitesse');
 
 const plus = applyUpgradeBonuses(sampleDef, 1);
 assert(plus.damage === 9, 'level1 damage');
-assert(plus.passiveBonus.taijutsu === 3, 'level1 passive');
+assert(plus.passiveBonus.taijutsu === 4, 'level1 passive remapped');
 
 const plusPlus = applyUpgradeBonuses(sampleDef, 2);
 assert(plusPlus.damage === 12, 'level2 damage');
 assert(plusPlus.cost === 0, 'level2 cost');
-assert(plusPlus.passiveBonus.taijutsu === 4, 'level2 passive taijutsu');
-assert(plusPlus.passiveBonus.vitesse === 2, 'level2 passive vitesse');
+assert(plusPlus.passiveBonus.taijutsu === 6, 'level2 passive taijutsu remapped');
+assert(plusPlus.passiveBonus.vitesse == null, 'level2 no vitesse');
 
 const serialized = serializeCardDefinition(sampleDef, { upgradeLevel: 1 });
 assert(serialized.nameFr === 'Poing rapide+', 'name suffix +');
-assert(serialized.passiveBonus.taijutsu === 3, 'serialized passive');
+assert(serialized.passiveBonus.taijutsu === 4, 'serialized passive remapped');
+assert(serialized.critChance === 10, 'serialized critChance');
 
 const tooSmall = validateDeck(Array.from({ length: 5 }, (_, i) => ({ quantity: 1, collectionId: i })));
 assert(!tooSmall.valid && tooSmall.size === 5, 'reject small deck');
@@ -192,10 +195,9 @@ const STAT_KEYS = new Set([
   'ninjutsu',
   'genjutsu',
   'medicine',
-  'vitesse',
-  'intelligence',
   'dexterity',
   'maxHp',
+  'force',
 ]);
 for (const card of CLAN_LEGENDARY_CARDS) {
   assert(card.slug.startsWith('clan-'), `clan slug prefix: ${card.slug}`);
@@ -206,6 +208,17 @@ for (const card of CLAN_LEGENDARY_CARDS) {
   }, 0);
   assert(passiveSum >= 12, `clan ${card.slug} needs large deck passive (sum=${passiveSum})`);
   assert(ALL_CARDS.some((c) => c.slug === card.slug), `clan ${card.slug} in ALL_CARDS`);
+}
+
+const dual = ALL_CARDS.find((c) => c.slug === 'harmonie-des-cinq-vents');
+assert(dual?.statTypeSecondary === 'genjutsu', 'harmonie is nin/gen dual');
+assert(!Object.keys(dual.passiveBonus || {}).includes('vitesse'), 'harmonie no vitesse passive');
+assert(!Object.keys(dual.passiveBonus || {}).includes('intelligence'), 'harmonie no intelligence passive');
+
+for (const card of ALL_CARDS) {
+  for (const key of Object.keys(card.passiveBonus || {})) {
+    assert(STAT_KEYS.has(key), `catalog passive ${key} on ${card.slug} must be combat art`);
+  }
 }
 
 console.log('✅ testCardSystem passed', `(catalog ${catalog.total})`);

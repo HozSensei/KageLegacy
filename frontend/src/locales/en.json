@@ -819,6 +819,7 @@
     "effectAoe": "AoE",
     "effectExile": "Exile a card",
     "effectExhaust": "Exhaust",
+    "effectCrit": "Crit {pct}%",
     "upgraded": "Upgrade +{level}",
     "quantityLabel": "Copies",
     "serialNumber": "No. {n} · KAGE LEGACY",

@@ -819,6 +819,7 @@
     "effectAoe": "Zone",
     "effectExile": "Exile une carte",
     "effectExhaust": "Épuisement",
+    "effectCrit": "Critique {pct} %",
     "upgraded": "Amélioration +{level}",
     "quantityLabel": "Exemplaires",
     "serialNumber": "N° {n} · KAGE LEGACY",

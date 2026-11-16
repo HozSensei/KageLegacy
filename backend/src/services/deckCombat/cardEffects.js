@@ -25,6 +25,7 @@ import {
 } from './talentEffects.js';
 import { canApplyStatus, hitEnemy } from './bossPhases.js';
 import { getNextIntent } from './enemyIntent.js';
+import { resolveCardCritChance } from './combatArts.js';
 
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';
@@ -77,7 +78,7 @@ export function computeCardDamage(card, ctx) {
     perHit = Math.round(perHit * talentMods.damageMult);
   }
 
-  const crit = rollCrit(stats.vitesse, rng);
+  const crit = rollCrit(resolveCardCritChance(card), rng);
   if (crit.isCrit) perHit = Math.round(perHit * crit.mult);
 
   let incomingMult = 1;
