@@ -15,7 +15,7 @@ import { useAuthStore } from '../stores/auth'
 
 defineOptions({ name: 'ShopView' })
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const shop = useShopStore()
 const auth = useAuthStore()
 const route = useRoute()
@@ -23,6 +23,20 @@ const router = useRouter()
 
 const phase = ref('catalog') // catalog | opening | results
 const revealDone = ref(false)
+/** Élément figé au moment de l’achat (pour le pack d’ouverture). */
+const openedElement = ref(null)
+
+const openedBooster = computed(() => {
+  const type = shop.lastResult?.boosterType
+  if (!type) return null
+  return shop.boosters.find((b) => b.type === type) || null
+})
+
+const openedBoosterName = computed(() => {
+  const booster = openedBooster.value
+  if (!booster) return ''
+  return locale.value === 'en' ? booster.nameEn : booster.nameFr
+})
 
 const tabs = [
   { id: 'boosters', labelKey: 'shop.tabs.boosters' },
@@ -85,12 +99,14 @@ async function onSelectTab(tab) {
 
 async function onOpen(type) {
   revealDone.value = false
+  const element = type === 'elemental' ? shop.selectedElement : null
+  openedElement.value = element
   try {
-    const element = type === 'elemental' ? shop.selectedElement : null
     await shop.openBooster(type, { element })
     phase.value = 'opening'
   } catch {
     phase.value = 'catalog'
+    openedElement.value = null
   }
 }
 
@@ -202,6 +218,10 @@ async function onUnlockBp(method) {
           v-if="shop.lastResult"
           :cards="shop.lastResult.cards"
           :active="phase === 'opening' || phase === 'results'"
+          :booster-type="shop.lastResult.boosterType || 'standard'"
+          :booster-name="openedBoosterName"
+          :element="openedElement"
+          :card-count="openedBooster?.cardCount || shop.lastResult.cards?.length || 5"
           @done="onRevealDone"
         />
         <BoosterResults

@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CardDisplay from '../cards/CardDisplay.vue'
-import BrandMark from '../ui/BrandMark.vue'
+import BoosterPackVisual from './BoosterPackVisual.vue'
 import { rarityVisual } from '../../utils/cardVisuals'
 import { resolveCardArt } from '../../utils/cardArt'
 import { localizedName } from '../../utils/localeContent.js'
@@ -12,6 +12,11 @@ defineOptions({ name: 'BoosterOpening' })
 const props = defineProps({
   cards: { type: Array, default: () => [] },
   active: { type: Boolean, default: false },
+  /** Type acheté — même pack que l’aperçu boutique. */
+  boosterType: { type: String, default: 'standard' },
+  boosterName: { type: String, default: '' },
+  element: { type: String, default: null },
+  cardCount: { type: Number, default: 0 },
 })
 
 const emit = defineEmits(['done'])
@@ -27,17 +32,14 @@ const packOpen = ref(false)
 const packLeaving = ref(false)
 const stackVisible = ref(false)
 const burstShow = ref(false)
-const tearOffset = ref(0)
-const tearFilter = ref(null)
 const gone = ref([])
 const revealedSet = ref(new Set())
 
 let openingToken = 0
-let drag = null
-let suppressClick = false
 let reduceMotion = false
 
 const total = computed(() => props.cards.length)
+const packCardCount = computed(() => props.cardCount || total.value || 5)
 
 const currentEntry = computed(() => props.cards[index.value] || null)
 
@@ -114,7 +116,6 @@ function wait(ms) {
 
 function resetCeremony() {
   openingToken += 1
-  clearTearDrag()
   phase.value = 'sealed'
   index.value = 0
   busy.value = false
@@ -123,8 +124,6 @@ function resetCeremony() {
   packLeaving.value = false
   stackVisible.value = false
   burstShow.value = false
-  tearOffset.value = 0
-  tearFilter.value = null
   gone.value = []
   revealedSet.value = new Set()
 }
@@ -196,55 +195,6 @@ function onAction() {
   else if (phase.value === 'done') emit('done')
 }
 
-function clearTearDrag() {
-  drag = null
-  tearOffset.value = 0
-  tearFilter.value = null
-}
-
-function onTearPointerDown(e) {
-  if (phase.value !== 'sealed' || e.button !== 0) return
-  e.preventDefault()
-  drag = { id: e.pointerId, x: e.clientX, dx: 0 }
-  e.currentTarget.setPointerCapture?.(e.pointerId)
-}
-
-function onTearPointerMove(e) {
-  if (!drag || e.pointerId !== drag.id || phase.value !== 'sealed') return
-  drag.dx = Math.max(0, e.clientX - drag.x)
-  const progress = Math.min(drag.dx / 115, 1)
-  tearOffset.value = Math.min(drag.dx, 115) * 0.48
-  tearFilter.value = `brightness(${1 + progress * 0.35})`
-}
-
-function onTearPointerUp(e) {
-  if (!drag || e.pointerId !== drag.id) return
-  const distance = Math.max(drag.dx, e.clientX - drag.x)
-  suppressClick = true
-  try {
-    e.currentTarget.releasePointerCapture?.(e.pointerId)
-  } catch {
-    /* ignore */
-  }
-  clearTearDrag()
-  if (distance >= 90) openPack()
-}
-
-function onTearClick(e) {
-  if (suppressClick) {
-    suppressClick = false
-    return
-  }
-  if (e.detail === 0) openPack()
-}
-
-function onTearKeydown(e) {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault()
-    openPack()
-  }
-}
-
 function cardFace(i) {
   return revealedSet.value.has(i) ? 'front' : 'back'
 }
@@ -290,55 +240,19 @@ onBeforeUnmount(() => {
         aria-hidden="true"
       />
 
-      <div
+      <BoosterPackVisual
         v-show="packVisible"
-        class="booster-opening__pack-zone"
-        :class="{
-          'booster-opening__pack-zone--open': packOpen,
-          'booster-opening__pack-zone--leaving': packLeaving,
-        }"
-        data-testid="booster-pack-zone"
-      >
-        <div class="booster-opening__pack">
-          <div class="booster-opening__foil">
-            <span class="booster-opening__crimp booster-opening__crimp--top" />
-            <span class="booster-opening__crimp booster-opening__crimp--bottom" />
-            <div class="booster-opening__pack-inner">
-              <BrandMark class="booster-opening__pack-logo" size="4.5rem" />
-              <div class="booster-opening__pack-name">{{ t('app.name') }}</div>
-              <div class="booster-opening__pack-sub">{{ t('cards.backSubtitle') }}</div>
-              <div class="booster-opening__pack-count">
-                {{ t('shop.boosterPackCount', { n: total }) }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="booster-opening__top-piece" aria-hidden="true">
-          <div class="booster-opening__top-crimp" />
-          <div class="booster-opening__top-metal" />
-        </div>
-
-        <div
-          class="booster-opening__tear"
-          role="button"
-          tabindex="0"
-          data-testid="booster-tear"
-          :aria-label="t('shop.tearAria')"
-          :style="{
-            transform: tearOffset ? `translateX(${tearOffset}px)` : undefined,
-            filter: tearFilter || undefined,
-          }"
-          @pointerdown="onTearPointerDown"
-          @pointermove="onTearPointerMove"
-          @pointerup="onTearPointerUp"
-          @pointercancel="clearTearDrag"
-          @click="onTearClick"
-          @keydown="onTearKeydown"
-        >
-          <span class="booster-opening__tear-label">{{ t('shop.tearLabel') }}</span>
-        </div>
-      </div>
+        class="booster-opening__pack-host"
+        :type="boosterType"
+        :element="element"
+        :name="boosterName"
+        :card-count="packCardCount"
+        mode="ceremony"
+        :open="packOpen"
+        :leaving="packLeaving"
+        :interactive="phase === 'sealed' && !busy"
+        @open="openPack"
+      />
 
       <div
         class="booster-opening__stack"
@@ -451,8 +365,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .booster-opening {
-  --pack-edge: #d3ae79;
   margin-top: 0.5rem;
+}
+
+.booster-opening__pack-host {
+  position: relative;
+  z-index: 3;
 }
 
 /* Même fond que la page — pas de panneau contrasté. */
@@ -494,254 +412,6 @@ onBeforeUnmount(() => {
 
 .booster-opening__burst--show {
   animation: booster-burst 0.95s ease-out;
-}
-
-.booster-opening__pack-zone {
-  position: relative;
-  z-index: 3;
-  width: 16.5rem;
-  height: 25.3rem;
-  perspective: 900px;
-}
-
-.booster-opening__pack {
-  position: absolute;
-  inset: 0;
-  filter: drop-shadow(0 22px 23px #000b);
-}
-
-.booster-opening__foil {
-  position: absolute;
-  inset: 0;
-  border: 2px solid var(--pack-edge);
-  border-radius: 7px;
-  overflow: hidden;
-  background: linear-gradient(
-    110deg,
-    #1c2836 0%,
-    #445466 18%,
-    #1b2734 29%,
-    #111a25 51%,
-    #43566b 79%,
-    #101923 100%
-  );
-  box-shadow:
-    inset 0 0 0 6px #090f18,
-    inset 0 0 0 7px #cba7788c;
-  transition: clip-path 0.15s;
-}
-
-.booster-opening__foil::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(100deg, transparent 0 10px, #ffffff08 11px 12px),
-    linear-gradient(115deg, transparent 18%, #ffffff27 34%, transparent 48%);
-  mix-blend-mode: screen;
-}
-
-.booster-opening__crimp {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1.5rem;
-  z-index: 5;
-  background: repeating-linear-gradient(90deg, #92795c 0 4px, #f5d5a0 5px 8px, #64533f 9px 12px);
-  box-shadow: 0 2px 6px #0008;
-}
-
-.booster-opening__crimp--top {
-  top: 0;
-}
-
-.booster-opening__crimp--bottom {
-  bottom: 0;
-}
-
-.booster-opening__pack-inner {
-  position: absolute;
-  inset: 1.9rem 0.8rem;
-  border: 1px solid #e7c89d66;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #f4e2c5;
-}
-
-.booster-opening__pack-logo {
-  color: #f4e2c5;
-  filter: drop-shadow(0 0 20px #ffd48b55);
-}
-
-.booster-opening__pack-name {
-  margin: 1.4rem 0 0.4rem;
-  font-family: var(--font-display);
-  font-size: 1.55rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1.05;
-}
-
-.booster-opening__pack-sub {
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.26em;
-  color: #d2ad7c;
-}
-
-.booster-opening__pack-count {
-  margin-top: 1.7rem;
-  padding: 0.55rem 0.9rem;
-  border: 1px solid #c7a77b8c;
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
-}
-
-.booster-opening__top-piece {
-  position: absolute;
-  z-index: 9;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4.125rem;
-  pointer-events: none;
-  opacity: 0;
-  filter: drop-shadow(0 3px 2px #0007);
-  transform-origin: 20% 50%;
-}
-
-.booster-opening__top-crimp {
-  height: 1.5rem;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: repeating-linear-gradient(90deg, #92795c 0 4px, #f5d5a0 5px 8px, #64533f 9px 12px);
-  border: 2px solid var(--pack-edge);
-  border-bottom: 0;
-  border-radius: 7px 7px 0 0;
-}
-
-.booster-opening__top-metal {
-  position: absolute;
-  top: 1.5rem;
-  left: 0;
-  right: 0;
-  height: 2.625rem;
-  background: linear-gradient(
-    110deg,
-    #1c2836,
-    #445466 18%,
-    #1b2734 29%,
-    #111a25 51%,
-    #43566b 79%,
-    #101923
-  );
-  border-left: 2px solid var(--pack-edge);
-  border-right: 2px solid var(--pack-edge);
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% 89%,
-    95% 96%,
-    89% 87%,
-    83% 100%,
-    76% 88%,
-    69% 98%,
-    60% 87%,
-    52% 99%,
-    44% 89%,
-    35% 99%,
-    27% 87%,
-    19% 98%,
-    11% 89%,
-    4% 99%,
-    0 89%
-  );
-}
-
-.booster-opening__tear {
-  position: absolute;
-  z-index: 14;
-  left: 0;
-  right: 0;
-  top: 1.55rem;
-  height: 2.375rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(180deg, #273b50 0%, #1b2a3b 50%, #101c29 100%);
-  border-top: 1px solid #d6b17d99;
-  border-bottom: 1px dashed #d6b17d99;
-  box-shadow:
-    inset 0 2px 5px #0006,
-    0 3px 6px #0005;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  transition: opacity 0.12s;
-}
-
-.booster-opening__tear:active {
-  cursor: grabbing;
-}
-
-.booster-opening__tear-label {
-  color: #e9c38b;
-  font-size: 0.5625rem;
-  font-weight: 900;
-  letter-spacing: 0.11em;
-  text-shadow: 0 1px 2px #000;
-}
-
-.booster-opening__pack-zone--open .booster-opening__foil {
-  clip-path: polygon(
-    0 16.1%,
-    4% 16.4%,
-    11% 15.3%,
-    19% 16.3%,
-    27% 15.5%,
-    35% 16.2%,
-    44% 15.3%,
-    52% 16.1%,
-    60% 15.5%,
-    69% 16.3%,
-    76% 15.4%,
-    83% 16.2%,
-    89% 15.5%,
-    95% 16.2%,
-    100% 15.5%,
-    100% 100%,
-    0 100%
-  );
-}
-
-.booster-opening__pack-zone--open .booster-opening__top-piece {
-  opacity: 1;
-  animation: booster-top-fly 0.75s cubic-bezier(0.2, 0.75, 0.25, 1) forwards;
-}
-
-.booster-opening__pack-zone--open .booster-opening__tear {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.booster-opening__pack-zone--open {
-  pointer-events: none;
-}
-
-.booster-opening__pack-zone--open.booster-opening__pack-zone--leaving .booster-opening__pack {
-  opacity: 0;
-  transform: translateY(105px) scale(0.94);
-  transition:
-    opacity 0.43s ease-in,
-    transform 0.43s ease-in;
 }
 
 .booster-opening__stack {
@@ -965,17 +635,6 @@ onBeforeUnmount(() => {
   color: var(--color-ink-muted);
 }
 
-@keyframes booster-top-fly {
-  from {
-    transform: translate(0, 0) rotate(0);
-    opacity: 1;
-  }
-  to {
-    transform: translate(155px, -175px) rotate(32deg);
-    opacity: 0;
-  }
-}
-
 @keyframes booster-burst {
   0% {
     opacity: 0;
@@ -1010,13 +669,9 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .booster-opening__pack-zone--open .booster-opening__top-piece,
   .booster-opening__burst--show,
   .booster-opening__stack,
-  .booster-opening__stack-card,
-  .booster-opening__pack-zone--open.booster-opening__pack-zone--leaving .booster-opening__pack,
-  .booster-opening__foil,
-  .booster-opening__tear {
+  .booster-opening__stack-card {
     animation: none !important;
     transition: none !important;
   }
