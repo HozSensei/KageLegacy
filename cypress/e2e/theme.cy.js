@@ -21,17 +21,14 @@ function pickTheme(theme) {
 }
 
 describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () => {
-  it('sans choix mémorisé, suit le système (sombre → indigo, jamais encre/ambre)', () => {
+  it('sans choix mémorisé, applique sombre encre par défaut', () => {
     cy.visit('/', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="landing-page"]').should('be.visible');
     cy.window().then((win) => {
       expect(win.localStorage.getItem(STORAGE_KEY)).to.equal(null);
-      const systemDark = win.matchMedia('(prefers-color-scheme: dark)').matches;
-      // Mapping documenté : système sombre → `dark` (indigo), jamais `ink` / `amber`.
-      expect(win.document.documentElement.getAttribute('data-theme')).to.equal(
-        systemDark ? 'dark' : 'light',
-      );
+      expect(win.document.documentElement.getAttribute('data-theme')).to.equal('ink');
     });
+    expectTheme('ink');
   });
 
   it('propose les quatre thèmes, persiste le choix et le conserve après rechargement', () => {
