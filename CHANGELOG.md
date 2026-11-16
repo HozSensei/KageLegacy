@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : cartes — bonus ancrés + texte (2026-11-16)
+
+#### Fixed
+- **CardDisplay** : avec 3 statistiques passives, les hex bonus sont ancrés au-dessus du footer et débordent vers l’illustration (plus de chevauchement du footer)
+- Zone parchemin élargie (art un peu plus bas) + typo titre/effet légèrement réduite pour limiter les troncatures
+- Serial footer raccourci (`N° {n}`) pour laisser de la place à la rareté
+
 ### UI : carte V5 fidèle au HTML (2026-11-16)
 
 #### Changed

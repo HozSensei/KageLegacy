@@ -821,7 +821,7 @@
     "effectExhaust": "Épuisement",
     "upgraded": "Amélioration +{level}",
     "quantityLabel": "Exemplaires",
-    "serialNumber": "N° {n} · KAGE LEGACY",
+    "serialNumber": "N° {n}",
     "serialBrand": "KAGE LEGACY",
     "backSubtitle": "SHINOBI CHRONICLES",
     "flipToBack": "Retourner la carte (dos)",

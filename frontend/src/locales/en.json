@@ -821,7 +821,7 @@
     "effectExhaust": "Exhaust",
     "upgraded": "Upgrade +{level}",
     "quantityLabel": "Copies",
-    "serialNumber": "No. {n} · KAGE LEGACY",
+    "serialNumber": "No. {n}",
     "serialBrand": "KAGE LEGACY",
     "backSubtitle": "SHINOBI CHRONICLES",
     "flipToBack": "Flip card (back)",

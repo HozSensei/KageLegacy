@@ -197,46 +197,48 @@ watch(
           <span class="card-display__chakra-number">{{ cost }}</span>
         </div>
 
-        <section class="card-display__info">
-          <div class="card-display__info-columns">
-            <div class="card-display__description">
-              <h3 class="card-display__name">{{ name }}</h3>
-              <p class="card-display__type">
-                <span>{{ typeLabel }}</span>
-                <template v-if="elementLabel">
-                  <span aria-hidden="true"> · </span>
-                  <span :data-tone="elementTone(card.element)">{{ elementLabel }}</span>
-                </template>
-              </p>
-              <div class="card-display__rule" aria-hidden="true" />
-              <p
-                v-if="effectParts.texts.length"
-                class="card-display__effect"
-                :aria-label="effectParts.aria.join(', ')"
-              >
-                <template v-for="(text, i) in effectParts.texts" :key="i">
-                  <span v-if="i > 0"> · </span>
-                  <strong v-if="i < effectParts.figures.length">{{ text }}</strong>
-                  <template v-else>{{ text }}</template>
-                </template>
-              </p>
-            </div>
-
-            <div
-              v-if="bonusChips.length"
-              class="card-display__bonuses"
-              :aria-label="t('cards.passiveBonus')"
+        <section
+          class="card-display__info"
+          :class="{ 'card-display__info--with-bonuses': bonusChips.length }"
+          :data-bonus-count="bonusChips.length || undefined"
+        >
+          <div class="card-display__description">
+            <h3 class="card-display__name">{{ name }}</h3>
+            <p class="card-display__type">
+              <span>{{ typeLabel }}</span>
+              <template v-if="elementLabel">
+                <span aria-hidden="true"> · </span>
+                <span :data-tone="elementTone(card.element)">{{ elementLabel }}</span>
+              </template>
+            </p>
+            <div class="card-display__rule" aria-hidden="true" />
+            <p
+              v-if="effectParts.texts.length"
+              class="card-display__effect"
+              :aria-label="effectParts.aria.join(', ')"
             >
-              <div
-                v-for="chip in bonusChips"
-                :key="chip.key"
-                class="card-display__bonus"
-                :style="{ '--light': chip.light, '--dark': chip.dark }"
-                :title="`${t(`cards.stats.${chip.key}`, chip.key)} ${chip.value > 0 ? '+' : ''}${chip.value}`"
-              >
-                <i aria-hidden="true" />
-                <span>{{ chip.value > 0 ? `+${chip.value}` : chip.value }}</span>
-              </div>
+              <template v-for="(text, i) in effectParts.texts" :key="i">
+                <span v-if="i > 0"> · </span>
+                <strong v-if="i < effectParts.figures.length">{{ text }}</strong>
+                <template v-else>{{ text }}</template>
+              </template>
+            </p>
+          </div>
+
+          <div
+            v-if="bonusChips.length"
+            class="card-display__bonuses"
+            :aria-label="t('cards.passiveBonus')"
+          >
+            <div
+              v-for="chip in bonusChips"
+              :key="chip.key"
+              class="card-display__bonus"
+              :style="{ '--light': chip.light, '--dark': chip.dark }"
+              :title="`${t(`cards.stats.${chip.key}`, chip.key)} ${chip.value > 0 ? '+' : ''}${chip.value}`"
+            >
+              <i aria-hidden="true" />
+              <span>{{ chip.value > 0 ? `+${chip.value}` : chip.value }}</span>
             </div>
           </div>
 
@@ -452,11 +454,11 @@ watch(
   border-color: #a3acb433;
 }
 
-/* Art — hauteur relative ≈ 256/444 du prototype.
- * Sur cartes étroites (mobile 2-col), on réduit l’art pour agrandir
- * la zone description (parchemin) et éviter le texte compressé. */
+/* Art — un peu moins haut que le proto HTML pour laisser plus
+ * de place au parchemin (titre / effet). Les bonus à 3+ chips
+ * remontent par-dessus l’illustration plutôt que le footer. */
 .card-display__art {
-  height: 57.66%;
+  height: 52%;
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
@@ -466,20 +468,45 @@ watch(
 
 @container (max-width: 11.5rem) {
   .card-display__art {
-    height: 48%;
+    height: 44%;
   }
 
   .card-display__info {
-    padding: 12px 12px 0;
+    --card-info-pad-x: 10px;
+    --card-footer-h: 26px;
+    --card-footer-gap: 6px;
+    --bonus-col: 2.65rem;
+    padding: 9px var(--card-info-pad-x) 0;
   }
 
   .card-display__rule {
-    margin: 8px 0 7px;
+    margin: 6px 0 5px;
+  }
+
+  .card-display__name {
+    font-size: clamp(0.68rem, 6.8cqi, 1.05rem);
+  }
+
+  .card-display__effect {
+    font-size: clamp(0.55rem, 3.4cqi, 0.66rem);
+    -webkit-line-clamp: 5;
+  }
+
+  .card-display__bonus {
+    width: 34px;
+    height: 27px;
+    font-size: 13px;
+    gap: 3px;
+  }
+
+  .card-display__bonus i {
+    width: 5px;
+    height: 5px;
   }
 
   .card-display__footer {
-    height: 26px;
-    margin: 6px -12px 0;
+    height: var(--card-footer-h);
+    margin: var(--card-footer-gap) calc(var(--card-info-pad-x) * -1) 0;
   }
 }
 
@@ -621,42 +648,47 @@ watch(
     0 0 8px #071d33;
 }
 
-/* Bloc info — fond parchemin */
+/* Bloc info — fond parchemin.
+ * Les bonus sont ancrés en bas (au-dessus du footer) et peuvent
+ * déborder vers le haut sur l’illustration si 3 chips. */
 .card-display__info {
+  --card-info-pad-x: 12px;
+  --card-footer-h: 29px;
+  --card-footer-gap: 8px;
+  --bonus-col: 3rem;
+
+  position: relative;
+  z-index: 2;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: visible;
   container-type: inline-size;
   background: linear-gradient(145deg, #f4e9d8, #e0d0b8);
   color: #27313b;
-  padding: 14px 15px 0;
-}
-
-.card-display__info-columns {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 58px;
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-}
-
-.card-display__info-columns:not(:has(.card-display__bonuses)) {
-  grid-template-columns: minmax(0, 1fr);
+  padding: 10px var(--card-info-pad-x) 0;
 }
 
 .card-display__description {
+  position: relative;
+  z-index: 1;
+  flex: 1;
   min-width: 0;
   min-height: 0;
+}
+
+.card-display__info--with-bonuses .card-display__description {
+  padding-right: calc(var(--bonus-col) + 0.35rem);
 }
 
 .card-display__name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(0.85rem, 8.4cqi, 1.5625rem);
+  font-size: clamp(0.78rem, 7.4cqi, 1.35rem);
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.015em;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
   color: #27313b;
   overflow-wrap: anywhere;
@@ -667,10 +699,10 @@ watch(
 }
 
 .card-display__type {
-  margin: 7px 0 0;
-  font-size: clamp(0.5rem, 3cqi, 0.5625rem);
+  margin: 5px 0 0;
+  font-size: clamp(0.48rem, 2.8cqi, 0.55rem);
   font-weight: 800;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   color: #98775a;
 }
@@ -678,17 +710,17 @@ watch(
 .card-display__rule {
   height: 1px;
   background: #bca78d;
-  margin: 11px 0 9px;
+  margin: 7px 0 6px;
 }
 
 .card-display__effect {
   margin: 0;
-  font-size: clamp(0.62rem, 4cqi, 0.75rem);
-  line-height: 1.45;
+  font-size: clamp(0.58rem, 3.6cqi, 0.7rem);
+  line-height: 1.35;
   font-weight: 600;
   color: #27313b;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -697,32 +729,59 @@ watch(
   font-weight: 900;
 }
 
-/* Bonus hex — colonne droite */
+/* Bonus hex — ancrés bas (au-dessus du footer), stack vers le haut.
+ * Avec 3 chips la colonne déborde volontairement sur l’art. */
 .card-display__bonuses {
-  border-left: 1px solid #c8b59d;
-  padding-left: 9px;
+  position: absolute;
+  z-index: 6;
+  right: 0.35rem;
+  bottom: calc(var(--card-footer-h) + var(--card-footer-gap) + 2px);
+  width: var(--bonus-col);
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
-  gap: 9px;
-  justify-content: center;
-  min-width: 0;
+  gap: 6px;
+  padding: 0 0 2px;
+  border: 0;
+  pointer-events: none;
 }
 
 .card-display__bonus {
-  width: 43px;
-  height: 35px;
+  width: 40px;
+  height: 32px;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 16px;
   font-weight: 900;
   color: #fff;
   text-shadow: 0 1px 2px #0008;
   filter: drop-shadow(1px 2px 1px #0004);
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+
+.card-display__info[data-bonus-count='3'] .card-display__bonuses {
+  gap: 5px;
+  /* Remonte la colonne pour chevaucher l’illustration, pas le footer */
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.card-display__info[data-bonus-count='3'] .card-display__bonus {
+  width: 38px;
+  height: 31px;
+  font-size: 15px;
+  gap: 3px;
+}
+
+.card-display__info[data-bonus-count='3'] .card-display__bonus i {
+  width: 5px;
+  height: 5px;
 }
 
 .card-display__bonus::before {
@@ -751,9 +810,11 @@ watch(
 
 /* Footer serial + rareté */
 .card-display__footer {
-  height: 29px;
-  margin: 8px -15px 0;
-  padding: 0 14px;
+  position: relative;
+  z-index: 7;
+  height: var(--card-footer-h);
+  margin: var(--card-footer-gap) calc(var(--card-info-pad-x) * -1) 0;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -962,56 +1023,55 @@ watch(
 }
 
 .card-display--compact .card-display__info {
-  padding: 10px 10px 0;
-}
-
-.card-display--compact .card-display__info-columns {
-  grid-template-columns: minmax(0, 1fr) 42px;
-  gap: 6px;
-}
-
-.card-display--compact .card-display__info-columns:not(:has(.card-display__bonuses)) {
-  grid-template-columns: minmax(0, 1fr);
+  --card-info-pad-x: 10px;
+  --card-footer-h: 24px;
+  --card-footer-gap: 6px;
+  --bonus-col: 2.5rem;
+  padding: 8px var(--card-info-pad-x) 0;
 }
 
 .card-display--compact .card-display__name {
-  font-size: clamp(0.7rem, 7cqi, 1.1rem);
+  font-size: clamp(0.66rem, 6.5cqi, 1rem);
 }
 
 .card-display--compact .card-display__type {
-  margin-top: 4px;
-  font-size: 0.5rem;
+  margin-top: 3px;
+  font-size: 0.48rem;
 }
 
 .card-display--compact .card-display__rule {
-  margin: 7px 0 6px;
+  margin: 5px 0 4px;
 }
 
 .card-display--compact .card-display__effect {
-  font-size: 0.62rem;
-  -webkit-line-clamp: 3;
+  font-size: 0.56rem;
+  -webkit-line-clamp: 4;
 }
 
 .card-display--compact .card-display__bonuses {
-  padding-left: 6px;
-  gap: 5px;
+  gap: 4px;
+  right: 0.3rem;
 }
 
 .card-display--compact .card-display__bonus {
-  width: 32px;
-  height: 26px;
-  font-size: 13px;
-  gap: 3px;
+  width: 30px;
+  height: 24px;
+  font-size: 12px;
+  gap: 2px;
 }
 
 .card-display--compact .card-display__bonus i {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
+}
+
+.card-display--compact .card-display__info[data-bonus-count='3'] .card-display__bonus {
+  width: 28px;
+  height: 22px;
+  font-size: 11px;
 }
 
 .card-display--compact .card-display__footer {
-  height: 24px;
-  margin: 6px -10px 0;
   padding: 0 10px;
 }
 
