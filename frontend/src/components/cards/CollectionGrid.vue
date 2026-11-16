@@ -241,10 +241,18 @@ function onSelectSlot(slot) {
 
 .collection-grid__list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
-  gap: 1.35rem 1.15rem;
+  /* Mobile: force 2 columns like the deck builder pool */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 0.75rem;
   align-items: start;
   /* Room for overflowing cost diamond */
   padding: 0.45rem 0.45rem 0.2rem 0;
+}
+
+@media (min-width: 640px) {
+  .collection-grid__list {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+    gap: 1.35rem 1.15rem;
+  }
 }
 </style>
