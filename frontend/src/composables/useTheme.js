@@ -5,15 +5,13 @@ import { computed, readonly, ref } from 'vue'
  * sombre ambre (`amber`).
  *
  * Persistance : choix explicite dans `localStorage` (clé `THEME_STORAGE_KEY`).
- * Sans choix mémorisé, on suit `prefers-color-scheme` :
- *   - système clair → `light`
- *   - système sombre → `dark` (indigo actuel — conserve le comportement historique ;
- *     `ink` / `amber` ne sont jamais choisis automatiquement)
+ * Sans choix mémorisé, le défaut est `ink` (sombre encre).
  * Le script en ligne de `index.html` applique la même règle avant le premier rendu :
  * garder la clé et les valeurs synchronisées avec lui.
  */
 export const THEME_STORAGE_KEY = 'kage-legacy-theme'
 export const THEMES = ['light', 'dark', 'ink', 'amber']
+export const DEFAULT_THEME = 'ink'
 
 const THEME_COLORS = {
   light: '#f5f0e6',
@@ -21,11 +19,6 @@ const THEME_COLORS = {
   ink: '#1a1614',
   amber: '#140c08',
 }
-
-const systemQuery =
-  typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-    ? window.matchMedia('(prefers-color-scheme: dark)')
-    : null
 
 function readStoredTheme() {
   try {
@@ -36,13 +29,12 @@ function readStoredTheme() {
   }
 }
 
-/** Préférence système → clair ou sombre indigo (jamais `ink` / `amber`). */
-function systemTheme() {
-  return systemQuery?.matches ? 'dark' : 'light'
+function resolveTheme(stored) {
+  return stored ?? DEFAULT_THEME
 }
 
 const storedTheme = ref(readStoredTheme())
-const theme = ref(storedTheme.value ?? systemTheme())
+const theme = ref(resolveTheme(storedTheme.value))
 
 function applyTheme(value) {
   theme.value = value
@@ -88,13 +80,10 @@ export function initTheme() {
   if (initialized) return
   initialized = true
   applyTheme(theme.value)
-  systemQuery?.addEventListener?.('change', () => {
-    if (!storedTheme.value) applyTheme(systemTheme())
-  })
   window.addEventListener('storage', (event) => {
     if (event.key !== THEME_STORAGE_KEY) return
     storedTheme.value = readStoredTheme()
-    applyTheme(storedTheme.value ?? systemTheme())
+    applyTheme(resolveTheme(storedTheme.value))
   })
 }
 

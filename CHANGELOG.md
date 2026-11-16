@@ -14,6 +14,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Bannière d’art** : rectangle simple (plus de clip-path) ; art secondaire sous le primaire
 - **Bonus passifs** : carrés à plat (plus d’hex) — plus d’espace pour le texte d’effet
 
+### Thème : sombre encre par défaut (2026-11-16)
+
+#### Changed
+- **Thème par défaut** : sans choix mémorisé dans `localStorage`, l’UI utilise `ink` (sombre encre) au lieu de suivre `prefers-color-scheme` — `useTheme.js` + script anti-flash `index.html` ; test Cypress aligné
+
 ### UI : boutique boosters alignée sur le pack de déchirure (2026-11-16)
 
 #### Changed
@@ -160,10 +165,10 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 #### Added
 - **Thèmes sombres** en plus du clair : sombre indigo (`dark`, fonds `#14182b`), sombre encre (`ink`, anthracite/brun-noir `#1a1614`, accent vermillon, bois/or — pas d'indigo dominant) et sombre ambre (`amber`, brun-noir chaud `#140c08`, crème chaude, accents orange/ambre/vermillon) — jetons dans `frontend/src/styles/tokens.css`
-- **Sélecteur à 4 options** (`ThemeToggle` / menu `theme-picker-menu`, `data-testid="theme-toggle"`) : Clair | Sombre indigo | Sombre encre | Sombre ambre — coque et pages publiques ; `localStorage` clé `kage-legacy-theme` ; sans choix, système clair → `light`, système sombre → `dark` (jamais `ink` / `amber` auto) ; flash évité via `index.html`
+- **Sélecteur à 4 options** (`ThemeToggle` / menu `theme-picker-menu`, `data-testid="theme-toggle"`) : Clair | Sombre indigo | Sombre encre | Sombre ambre — coque et pages publiques ; `localStorage` clé `kage-legacy-theme` ; sans choix → `ink` (sombre encre) ; flash évité via `index.html`
 - **Illustrations** : voile « heure bleue » en thème sombre (`.illustration`), sans modifier les fichiers
 - **Journal de combat** : libellés lisibles FR/EN pour tous les événements du moteur (PvE et PvP), formulés du point de vue du joueur
-- **Test Cypress** `theme.cy.js` : thème du système, sélection des 4 thèmes, persistance après rechargement
+- **Test Cypress** `theme.cy.js` : défaut `ink`, sélection des 4 thèmes, persistance après rechargement
 
 #### Changed
 - **Arbre de talents** : l'arbre entier tient dans le cadre au zoom par défaut (desktop et mobile) ; nœuds, liens et libellés compensent le dézoom
