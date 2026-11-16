@@ -140,7 +140,6 @@ function onSelectSlot(slot) {
           :upgrade-level="slot.entry.upgradeLevel"
           :catalogue-number="slot.catalogueNumber"
           :selected="selectedKey === slot.key"
-          :flippable="true"
           :tilt="true"
           @select="onSelectSlot(slot)"
         />

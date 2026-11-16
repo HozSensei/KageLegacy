@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : carte V5 fidèle au HTML (2026-11-16)
+
+#### Changed
+- **CardDisplay** : anatomie alignée sur le prototype HTML (`carte-ninja-v5`) — art fixe, ruban famille, gemme chakra, colonnes description|bonus hex, footer serial+losanges, cadres rareté ; dos/flip **uniquement** si `face` (booster)
+- **CollectionGrid** : plus de flip collection (face avant seule) ; deck builder inchangé (pas de `face`)
+- Utilitaire `cardBonusChips.js` pour les hex passifs non nuls
+
 ### UI : carte V5 + ouverture booster (2026-11-16)
 
 #### Changed
