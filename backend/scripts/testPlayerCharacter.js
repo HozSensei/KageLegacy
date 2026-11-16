@@ -38,7 +38,7 @@ function testPureHelpers() {
 
   const empty = createEmptyStats();
   assert(empty.taijutsu === 0 && empty.maxHp === 0, 'stats vides à 0');
-  assert(Object.keys(empty).length === 8, '8 clés de stats');
+  assert(Object.keys(empty).length === 6, '6 clés de stats (4 arts + dexterity + maxHp)');
 
   assert(xpRequiredForLevel(1) === 100, 'XP 1→2 = 100');
   assert(xpRequiredForLevel(5) === 500, 'XP 5→6 = 500');
@@ -50,9 +50,9 @@ function testPureHelpers() {
   assert(rankForLevel(60) === 'ANBU', 'rang ANBU');
   assert(rankForLevel(80) === 'Kage', 'rang Kage');
 
-  const merged = mergeStatBonuses({ taijutsu: 5 }, { taijutsu: 10, vitesse: 3 }, { ninjutsu: 7 });
+  const merged = mergeStatBonuses({ taijutsu: 5 }, { taijutsu: 10, dexterity: 3 }, { ninjutsu: 7 });
   assert(merged.taijutsu === 15, 'merge taijutsu');
-  assert(merged.vitesse === 3, 'merge vitesse');
+  assert(merged.dexterity === 3, 'merge dexterity');
   assert(merged.ninjutsu === 7, 'merge ninjutsu');
   assert(merged.genjutsu === 0, 'merge génjutsu reste 0');
 
