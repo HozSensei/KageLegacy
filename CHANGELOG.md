@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : carte — type, banners, bonus carrés (2026-11-16)
+
+#### Changed
+- **Type** de carte en bandeau compact collé au bord supérieur (aplat teinté)
+- **Bannière d’art** : rectangle simple (plus de clip-path) ; art secondaire sous le primaire
+- **Bonus passifs** : carrés à plat (plus d’hex) — plus d’espace pour le texte d’effet
+
 ### Thème : sombre encre par défaut (2026-11-16)
 
 #### Changed

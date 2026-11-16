@@ -4,11 +4,9 @@ import { useI18n } from 'vue-i18n'
 import BrandMark from '../ui/BrandMark.vue'
 import { resolveCardArt } from '../../utils/cardArt'
 import { cardEffectParts } from '../../utils/cardEffectLine'
-import { cardBonusChips, cardFamilyKey } from '../../utils/cardBonusChips'
+import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips'
 import {
   cardTypeVisual,
-  elementLabelKey,
-  elementTone,
   rarityVisual,
 } from '../../utils/cardVisuals'
 import { localizedName } from '../../utils/localeContent.js'
@@ -65,27 +63,27 @@ const rarityLevel = computed(() => rarity.value.pips || 1)
 const typeLabel = computed(() => t(`cards.types.${props.card.type}`, props.card.type))
 const typeVisual = computed(() => cardTypeVisual(props.card.type))
 
-const elementLabel = computed(() => {
-  const key = elementLabelKey(props.card.element)
-  if (!key) return ''
-  return te(key) ? t(key) : props.card.element
-})
-
 const effectParts = computed(() =>
   cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }),
 )
 
-const familyKey = computed(() => cardFamilyKey(props.card))
-const familyLabel = computed(() => {
-  if (familyKey.value === 'heredite') {
-    return te('cards.stats.medicine')
-      ? t('cards.stats.medicine')
-      : 'Hérédité'
+function artLabelForKey(key) {
+  if (key === 'heredite' || key === 'medicine') {
+    return te('cards.stats.medicine') ? t('cards.stats.medicine') : 'Médecine'
   }
-  return te(`cards.stats.${familyKey.value}`)
-    ? t(`cards.stats.${familyKey.value}`)
-    : familyKey.value
-})
+  return te(`cards.stats.${key}`) ? t(`cards.stats.${key}`) : key
+}
+
+const familyKey = computed(() => cardFamilyKey(props.card))
+const familyLabel = computed(() => artLabelForKey(familyKey.value))
+
+const secondaryArt = computed(() => cardSecondaryArt(props.card))
+const secondaryFamilyKey = computed(() =>
+  secondaryArt.value ? cardFamilyKey(secondaryArt.value) : null,
+)
+const secondaryArtLabel = computed(() =>
+  secondaryArt.value ? artLabelForKey(secondaryFamilyKey.value || secondaryArt.value) : '',
+)
 
 const bonusChips = computed(() => cardBonusChips(props.card))
 
@@ -165,6 +163,15 @@ watch(
         @click="onSelect"
       >
         <div
+          class="card-display__kind"
+          :data-tone="typeVisual.tone"
+          data-testid="card-type"
+          :title="typeLabel"
+        >
+          {{ typeLabel }}
+        </div>
+
+        <div
           class="card-display__art"
           :class="{ 'card-display__art--placeholder': !artUrl }"
           data-testid="card-art"
@@ -183,13 +190,23 @@ watch(
           </span>
         </div>
 
-        <div
-          class="card-display__category"
-          :class="`card-display__category--${familyKey}`"
-          data-testid="card-scale-hint"
-          :title="familyLabel"
-        >
-          {{ familyLabel }}
+        <div class="card-display__art-banners" data-testid="card-scale-hint">
+          <div
+            class="card-display__category"
+            :class="`card-display__category--${familyKey}`"
+            :title="familyLabel"
+          >
+            {{ familyLabel }}
+          </div>
+          <div
+            v-if="secondaryArtLabel"
+            class="card-display__category card-display__category--secondary"
+            :class="`card-display__category--${secondaryFamilyKey}`"
+            :title="secondaryArtLabel"
+            data-testid="card-secondary-art"
+          >
+            {{ secondaryArtLabel }}
+          </div>
         </div>
 
         <div class="card-display__chakra" :title="t('cards.costLabel')" data-testid="card-cost">
@@ -201,13 +218,6 @@ watch(
           <div class="card-display__info-columns">
             <div class="card-display__description">
               <h3 class="card-display__name">{{ name }}</h3>
-              <p class="card-display__type">
-                <span>{{ typeLabel }}</span>
-                <template v-if="elementLabel">
-                  <span aria-hidden="true"> · </span>
-                  <span :data-tone="elementTone(card.element)">{{ elementLabel }}</span>
-                </template>
-              </p>
               <div class="card-display__rule" aria-hidden="true" />
               <p
                 v-if="effectParts.texts.length"
@@ -231,10 +241,9 @@ watch(
                 v-for="chip in bonusChips"
                 :key="chip.key"
                 class="card-display__bonus"
-                :style="{ '--light': chip.light, '--dark': chip.dark }"
+                :style="{ '--fill': chip.fill }"
                 :title="`${t(`cards.stats.${chip.key}`, chip.key)} ${chip.value > 0 ? '+' : ''}${chip.value}`"
               >
-                <i aria-hidden="true" />
                 <span>{{ chip.value > 0 ? `+${chip.value}` : chip.value }}</span>
               </div>
             </div>
@@ -303,8 +312,9 @@ watch(
 
 <style scoped>
 /*
- * Anatomie fidèle à carte-ninja-v5-raretes HTML :
- * art fixe → ruban famille → gemme chakra → info (description | bonuses) → footer.
+ * Anatomie carte V5 :
+ * type (bandeau haut) → art → bannières arts (rectangles) → gemme chakra
+ * → info (description | bonus carrés) → footer.
  */
 .card-display {
   --edge: #aab3bc;
@@ -456,7 +466,7 @@ watch(
  * Sur cartes étroites (mobile 2-col), on réduit l’art pour agrandir
  * la zone description (parchemin) et éviter le texte compressé. */
 .card-display__art {
-  height: 57.66%;
+  height: 50%;
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
@@ -466,7 +476,7 @@ watch(
 
 @container (max-width: 11.5rem) {
   .card-display__art {
-    height: 48%;
+    height: 44%;
   }
 
   .card-display__info {
@@ -523,47 +533,77 @@ watch(
   opacity: 0.45;
 }
 
-/* Ruban famille — clip-path polygon prototype */
-.card-display__category {
+/* Type de carte — bandeau compact collé en haut à droite, derrière le chakra */
+.card-display__kind {
   position: absolute;
-  z-index: 10;
-  left: -9px;
-  top: 18px;
-  max-width: calc(100% - 4.5rem);
-  padding: 8px 18px 8px 16px;
-  clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-  background: linear-gradient(#ff9673 0%, #d8513d 47%, #8c302c 100%);
-  border: 1px solid #f5c5a4;
-  box-shadow:
-    3px 4px 0 #141820,
-    5px 7px 9px #0008;
-  color: #fff;
+  z-index: 11;
+  right: 0;
+  left: auto;
+  top: 0;
+  max-width: min(70%, 9rem);
+  padding: 0.22rem 0.7rem 0.22rem 0.55rem;
+  background: var(--tone-fill, #697580);
+  color: var(--tone-on, #fff);
   font-family: var(--font-display);
-  font-size: clamp(0.65rem, 4.7cqi, 0.875rem);
-  font-weight: 900;
-  letter-spacing: 0.1em;
+  font-size: clamp(0.5rem, 3.6cqi, 0.65rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  line-height: 1.1;
-  text-shadow: 0 1px 2px #0008;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
 }
 
+/* Bannières d’art (primaire + secondaire) — rectangles à plat */
+.card-display__art-banners {
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  top: 2.35rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.22rem;
+  max-width: calc(100% - 4.25rem);
+  pointer-events: none;
+}
+
+.card-display__category {
+  max-width: 100%;
+  padding: 0.35rem 0.7rem;
+  background: #d8513d;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(0.62rem, 4.4cqi, 0.8125rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-display__category--secondary {
+  padding: 0.22rem 0.55rem;
+  font-size: clamp(0.5rem, 3.6cqi, 0.68rem);
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  opacity: 0.95;
+}
+
 .card-display__category--ninjutsu {
-  background: linear-gradient(#8bc4e8, #3776af, #214b81);
-  border-color: #b8d9f0;
+  background: #3776af;
 }
 
 .card-display__category--genjutsu {
-  background: linear-gradient(#d6a4f1, #8653b4, #523274);
-  border-color: #e2c4f5;
+  background: #8653b4;
 }
 
 .card-display__category--heredite {
-  background: linear-gradient(#8acfae, #408b68, #255d49);
-  border-color: #b8e0cb;
+  background: #408b68;
 }
 
 /* Gemme chakra — coin haut droit débordant */
@@ -635,8 +675,8 @@ watch(
 
 .card-display__info-columns {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 58px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 8px;
   flex: 1;
   min-height: 0;
 }
@@ -666,19 +706,10 @@ watch(
   overflow: hidden;
 }
 
-.card-display__type {
-  margin: 7px 0 0;
-  font-size: clamp(0.5rem, 3cqi, 0.5625rem);
-  font-weight: 800;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: #98775a;
-}
-
 .card-display__rule {
   height: 1px;
   background: #bca78d;
-  margin: 11px 0 9px;
+  margin: 8px 0;
 }
 
 .card-display__effect {
@@ -688,7 +719,7 @@ watch(
   font-weight: 600;
   color: #27313b;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -697,56 +728,33 @@ watch(
   font-weight: 900;
 }
 
-/* Bonus hex — colonne droite */
+/* Bonus passifs — carrés à plat (−30 %) */
 .card-display__bonuses {
   border-left: 1px solid #c8b59d;
-  padding-left: 9px;
+  padding-left: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
+  gap: 4px;
   justify-content: center;
   min-width: 0;
 }
 
 .card-display__bonus {
-  width: 43px;
-  height: 35px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-weight: 900;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: grid;
+  place-items: center;
+  background: var(--fill, #8c5c3e);
   color: #fff;
-  text-shadow: 0 1px 2px #0008;
-  filter: drop-shadow(1px 2px 1px #0004);
-}
-
-.card-display__bonus::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border: 1px solid #fff7;
-  clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
-  background: linear-gradient(160deg, var(--light), var(--dark));
-}
-
-.card-display__bonus i {
-  position: relative;
-  width: 7px;
-  height: 7px;
-  transform: rotate(45deg);
-  background: #fff9;
+  font-family: var(--font-display);
+  font-size: clamp(0.52rem, 3.4cqi, 0.68rem);
+  font-weight: 900;
+  line-height: 1;
 }
 
 .card-display__bonus span {
-  position: relative;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
 }
 
 /* Footer serial + rareté */
@@ -833,8 +841,8 @@ watch(
 .card-display__qty,
 .card-display__upgrade {
   position: absolute;
-  z-index: 11;
-  top: 3.25rem;
+  z-index: 14;
+  top: 1.55rem;
   display: inline-grid;
   place-items: center;
   min-width: 1.45rem;
@@ -852,10 +860,12 @@ watch(
 
 .card-display__qty {
   left: 0.55rem;
+  right: auto;
 }
 
 .card-display__upgrade {
   left: 2.2rem;
+  right: auto;
   border: 1px solid color-mix(in srgb, var(--color-gold-fill, #d4a84b) 70%, transparent);
 }
 
@@ -966,8 +976,8 @@ watch(
 }
 
 .card-display--compact .card-display__info-columns {
-  grid-template-columns: minmax(0, 1fr) 42px;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  gap: 5px;
 }
 
 .card-display--compact .card-display__info-columns:not(:has(.card-display__bonuses)) {
@@ -978,35 +988,24 @@ watch(
   font-size: clamp(0.7rem, 7cqi, 1.1rem);
 }
 
-.card-display--compact .card-display__type {
-  margin-top: 4px;
-  font-size: 0.5rem;
-}
-
 .card-display--compact .card-display__rule {
-  margin: 7px 0 6px;
+  margin: 6px 0;
 }
 
 .card-display--compact .card-display__effect {
   font-size: 0.62rem;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 5;
 }
 
 .card-display--compact .card-display__bonuses {
   padding-left: 6px;
-  gap: 5px;
+  gap: 4px;
 }
 
 .card-display--compact .card-display__bonus {
-  width: 32px;
-  height: 26px;
-  font-size: 13px;
-  gap: 3px;
-}
-
-.card-display--compact .card-display__bonus i {
-  width: 5px;
-  height: 5px;
+  width: 1.15rem;
+  height: 1.15rem;
+  font-size: 0.55rem;
 }
 
 .card-display--compact .card-display__footer {
@@ -1019,11 +1018,25 @@ watch(
   display: none;
 }
 
+.card-display--compact .card-display__kind {
+  padding: 0.15rem 0.4rem;
+  font-size: clamp(0.42rem, 3.2cqi, 0.55rem);
+}
+
+.card-display--compact .card-display__art-banners {
+  top: 1.85rem;
+  gap: 0.15rem;
+  max-width: calc(100% - 3.5rem);
+}
+
 .card-display--compact .card-display__category {
-  left: -6px;
-  top: 12px;
-  padding: 5px 12px 5px 10px;
-  font-size: clamp(0.5rem, 4cqi, 0.7rem);
+  padding: 0.22rem 0.45rem;
+  font-size: clamp(0.48rem, 3.8cqi, 0.62rem);
+}
+
+.card-display--compact .card-display__category--secondary {
+  padding: 0.15rem 0.38rem;
+  font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
 }
 
 .card-display--compact .card-display__chakra {
