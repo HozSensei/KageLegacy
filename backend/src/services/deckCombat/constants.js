@@ -78,7 +78,7 @@ export const TALENT_EFFECT_MVP = {
   immortal: { kind: 'regen_pct', pct: 0.02, damageMult: 0.5 },
   overload: { kind: 'nin_cost_damage', costDelta: 1, damageMult: 2 },
   intangible: { kind: 'no_attack_cap_incoming', incomingCap: 1 },
-  combo_master: { kind: 'tai_combo_force', cardsNeeded: 3, force: 2, duration: 2 },
+  combo_master: { kind: 'tai_third_double', cardsNeeded: 3, damageMult: 2 },
   blade_swift: { kind: 'cheap_tai_flat', maxCost: 1, flat: 3 },
   elemental_mastery: { kind: 'element_damage', mult: 1.25 },
   elemental_fusion: { kind: 'dual_element_draw', draw: 1 },
@@ -90,7 +90,7 @@ export const TALENT_EFFECT_MVP = {
   finisher_blow: { kind: 'low_enemy_hp_tai', threshold: 0.25, mult: 1.5 },
   relentless_press: { kind: 'tai_stack_flat', flatPerCard: 1 },
   absolute_guard: { kind: 'block_mult_tai_cost', blockMult: 2, offensiveTaiCostDelta: 1 },
-  adrenaline_rush: { kind: 'low_hp_speed', threshold: 0.5, speed: 2 },
+  adrenaline_rush: { kind: 'low_hp_damage_flat', threshold: 0.5, flat: 3 },
   crushing_grip: { kind: 'heavy_tai_armor_ignore', minCost: 3, armorIgnore: 2 },
 
   // ── Ninjutsu ──
@@ -114,6 +114,7 @@ export const TALENT_EFFECT_MVP = {
   phantom_sovereign: { kind: 'gen_debuff_intensity_no_block', valueDelta: 1 },
   mirage_armor: { kind: 'combat_start_mirage_block', block: 2 },
   silent_cut: { kind: 'first_card_gen_flat', flat: 2 },
+  confusion_tax: { kind: 'gen_debuff_incoming_cut', cut: 2 },
 
   // ── Médecine ──
   triage_focus: { kind: 'first_heal_flat', flat: 5 },
@@ -128,9 +129,14 @@ export const TALENT_EFFECT_MVP = {
   },
   last_stand_heal: { kind: 'low_hp_heal_double', threshold: 0.2, healMult: 2 },
   vital_overflow: { kind: 'overheal_to_block', ratio: 0.5, maxBlock: 3 },
+  steady_hands: { kind: 'heal_flat', flat: 2 },
 
   // ── Centre / objets (combat) ──
   item_master: { kind: 'items_no_exhaust_deny_tech' },
+  item_armor: { kind: 'item_block_flat', flat: 2 },
+  item_damage: { kind: 'item_damage_flat', flat: 2 },
+  vital_satchel: { kind: 'item_pack_keystone', damageFlat: 1, blockFlat: 1 },
+  collector: { kind: 'unique_item_stats', perItem: 1 },
 };
 
 export const INTENT_TYPES = ['attack', 'defend', 'buff', 'debuff', 'special'];

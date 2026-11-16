@@ -227,9 +227,10 @@ const seededEffects = [
   ...new Set(TALENT_NODE_DEFS.filter((n) => n.effect).map((n) => n.effect)),
 ];
 const classifiedAll = classifyTalentEffects(seededEffects);
-assert(classifiedAll.applied.length >= 40, `≥40 effects applied (got ${classifiedAll.applied.length})`);
-assert(classifiedAll.stubbed.includes('collector'), 'collector still stubbed (meta)');
-assert(classifiedAll.stubbed.includes('four_paths'), 'four_paths stubbed (meta)');
+assert(classifiedAll.applied.length >= 44, `≥44 effects applied (got ${classifiedAll.applied.length})`);
+assert(classifiedAll.applied.includes('collector'), 'collector applied (item stats)');
+assert(classifiedAll.applied.includes('vital_satchel'), 'vital_satchel applied (center keystone)');
+assert(classifiedAll.stubbed.length === 0, `no stubbed seeded effects (got ${classifiedAll.stubbed.join(',')})`);
 assert(Object.keys(TALENT_EFFECT_MVP).length === classifiedAll.applied.length, 'MVP map matches applied');
 
 const classified = classifyTalentEffects([
@@ -244,7 +245,8 @@ assert(classified.applied.includes('iron_guard'), 'iron_guard applied');
 assert(classified.applied.includes('combo_master'), 'combo_master applied');
 assert(classified.applied.includes('immortal'), 'immortal applied');
 assert(classified.applied.includes('illusion_master'), 'illusion_master applied');
-assert(classified.stubbed.includes('collector'), 'collector stubbed');
+assert(classified.applied.includes('collector'), 'collector applied');
+assert(classified.stubbed.length === 0, 'no stubs in sample');
 
 const tStart = applyTalentStartOfTurn(
   { hp: 50, maxHp: 100, block: 0 },
@@ -277,19 +279,18 @@ const bladeMods = computeTalentDamageMods(
 );
 assert(bladeMods.damageFlat === 3, 'blade_swift +3 flat');
 
-let comboPlayer = { hp: 100, maxHp: 100, statuses: [], taijutsuPlayedThisTurn: 0 };
-for (let i = 0; i < 3; i += 1) {
-  const r = applyTalentAfterCardPlay(
-    comboPlayer,
-    { statType: 'taijutsu', cost: 1 },
-    ['combo_master'],
-  );
-  comboPlayer = r.player;
-}
-assert(
-  (comboPlayer.statuses || []).some((s) => s.key === 'force' && s.value === 2),
-  'combo_master grants force at 3 tai',
+const comboMods = computeTalentDamageMods(
+  ['combo_master'],
+  { hp: 100, maxHp: 100, taijutsuPlayedThisTurn: 2 },
+  { statType: 'taijutsu', cost: 1, damage: 8 },
 );
+assert(comboMods.damageMult === 2, 'combo_master 3rd tai ×2');
+const comboEarly = computeTalentDamageMods(
+  ['combo_master'],
+  { hp: 100, maxHp: 100, taijutsuPlayedThisTurn: 1 },
+  { statType: 'taijutsu', cost: 1, damage: 8 },
+);
+assert(comboEarly.damageMult === 1, 'combo_master not yet on 2nd tai');
 
 const tanked = applyTalentAfterDamageTaken(
   { hp: 20, maxHp: 100, block: 0, perfectTankUsed: false },
@@ -488,7 +489,13 @@ const adrenaline = applyTalentAfterDamageTaken(
   ['adrenaline_rush'],
   { damageDealt: 10 },
 );
-assert(adrenaline.player.combatSpeedBonus === 2, 'adrenaline_rush +2 speed');
+assert(adrenaline.player.adrenalineRushActive === true, 'adrenaline_rush arms damage flat');
+const adrMods = computeTalentDamageMods(
+  ['adrenaline_rush'],
+  adrenaline.player,
+  { statType: 'taijutsu', cost: 1, damage: 5 },
+);
+assert(adrMods.damageFlat === 3, 'adrenaline_rush +3 damage');
 
 assert(countDeckElements([{ element: 'katon' }, { element: 'suiton' }, {}]) === 2, 'countDeckElements');
 

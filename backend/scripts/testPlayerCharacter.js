@@ -38,7 +38,7 @@ function testPureHelpers() {
 
   const empty = createEmptyStats();
   assert(empty.taijutsu === 0 && empty.maxHp === 0, 'stats vides à 0');
-  assert(Object.keys(empty).length === 6, '6 clés de stats (4 arts + dexterity + maxHp)');
+  assert(Object.keys(empty).length === 7, '7 clés (4 arts + dexterity + maxHp + chakra)');
 
   assert(xpRequiredForLevel(1) === 100, 'XP 1→2 = 100');
   assert(xpRequiredForLevel(5) === 500, 'XP 5→6 = 500');

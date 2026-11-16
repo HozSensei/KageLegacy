@@ -45,6 +45,7 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     healFlat: 0,
     healMult: 1,
     blockMult: 1,
+    blockFlat: 0,
     blockAllowed: true,
     armorIgnore: 0,
     incomingDamageCap: null,
@@ -92,6 +93,36 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
   if (codes.has('item_master')) {
     mods.denyNonItem = true;
     mods.itemNoExhaust = true;
+  }
+
+  if (card?.type === 'item') {
+    if (codes.has('item_damage')) {
+      mods.damageFlat += TALENT_EFFECT_MVP.item_damage.flat;
+    }
+    if (codes.has('item_armor')) {
+      mods.blockFlat = (Number(mods.blockFlat) || 0) + TALENT_EFFECT_MVP.item_armor.flat;
+    }
+    if (codes.has('vital_satchel')) {
+      const cfg = TALENT_EFFECT_MVP.vital_satchel;
+      mods.damageFlat += cfg.damageFlat;
+      mods.blockFlat = (Number(mods.blockFlat) || 0) + cfg.blockFlat;
+    }
+  }
+
+  if (
+    codes.has('combo_master') &&
+    card?.statType === 'taijutsu' &&
+    (Number(player.taijutsuPlayedThisTurn) || 0) === TALENT_EFFECT_MVP.combo_master.cardsNeeded - 1
+  ) {
+    mods.damageMult *= TALENT_EFFECT_MVP.combo_master.damageMult;
+  }
+
+  if (codes.has('steady_hands')) {
+    mods.healFlat += TALENT_EFFECT_MVP.steady_hands.flat;
+  }
+
+  if (codes.has('adrenaline_rush') && player.adrenalineRushActive) {
+    mods.damageFlat += TALENT_EFFECT_MVP.adrenaline_rush.flat;
   }
 
   if (card && codes.has('overload') && card.statType === 'ninjutsu') {
@@ -409,21 +440,16 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
     next.elementalCycleBonus = false;
   }
 
-  if (codes.has('combo_master') && card?.statType === 'taijutsu') {
-    const cfg = TALENT_EFFECT_MVP.combo_master;
-    if ((Number(next.taijutsuPlayedThisTurn) || 0) === cfg.cardsNeeded) {
-      next.statuses = applyStatus(next.statuses || [], {
-        key: 'force',
-        value: cfg.force,
-        duration: cfg.duration,
-      });
-      logs.push({
-        type: 'talent',
-        effect: 'combo_master',
-        force: cfg.force,
-        duration: cfg.duration,
-      });
-    }
+  if (
+    codes.has('combo_master') &&
+    card?.statType === 'taijutsu' &&
+    (Number(next.taijutsuPlayedThisTurn) || 0) === TALENT_EFFECT_MVP.combo_master.cardsNeeded
+  ) {
+    logs.push({
+      type: 'talent',
+      effect: 'combo_master',
+      damageMult: TALENT_EFFECT_MVP.combo_master.damageMult,
+    });
   }
 
   if (codes.has('elemental_fusion') && card?.element) {
@@ -477,9 +503,9 @@ export function applyTalentAfterDamageTaken(player, effectCodes = [], { enemy = 
     const cfg = TALENT_EFFECT_MVP.adrenaline_rush;
     const ratio = (Number(next.hp) || 0) / Math.max(1, Number(next.maxHp) || 1);
     if (ratio < cfg.threshold && (Number(next.hp) || 0) > 0) {
-      next.combatSpeedBonus = (Number(next.combatSpeedBonus) || 0) + cfg.speed;
+      next.adrenalineRushActive = true;
       next.adrenalineRushUsed = true;
-      logs.push({ type: 'talent', effect: 'adrenaline_rush', speed: cfg.speed });
+      logs.push({ type: 'talent', effect: 'adrenaline_rush', flat: cfg.flat });
     }
   }
 
@@ -620,6 +646,10 @@ export function applyTalentIncomingAttackMods(damage, player, enemy, effectCodes
   if (codes.has('mind_trap')) {
     const cfg = TALENT_EFFECT_MVP.mind_trap;
     if (dmg >= cfg.minDamage) dmg = Math.max(1, dmg - cfg.cut);
+  }
+
+  if (codes.has('confusion_tax') && enemyHasGenjutsuDebuff(enemy)) {
+    dmg = Math.max(1, dmg - TALENT_EFFECT_MVP.confusion_tax.cut);
   }
 
   if (codes.has('veil_thick') && enemyHasGenjutsuDebuff(enemy)) {

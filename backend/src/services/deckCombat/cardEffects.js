@@ -107,6 +107,7 @@ export function computeCardBlock(card, stats, playerStatuses = [], talentMods = 
   let block = scaleBlock(Number(card.block) || 0, stats.medicine);
   // Flat Dextérité (legacy / talents) — soutien : block_pct
   block += getStatusValue(playerStatuses, 'dexterity');
+  block += Number(talentMods.blockFlat) || 0;
   const talentMult = Number(talentMods.blockMult) || 1;
   const statusMult = outgoingBlockMultiplier(playerStatuses);
   return Math.max(0, Math.round(block * talentMult * statusMult));
@@ -326,7 +327,8 @@ function applyExtraEffect(effect, ctx) {
   } else if (type === 'gain_block') {
     const raw = Math.max(0, Number(effect.value) || 0);
     const scaled = scaleBlock(raw, ctx.stats?.medicine);
-    const withDex = scaled + getStatusValue(player.statuses, 'dexterity');
+    const talentFlat = Number(ctx.talentMods?.blockFlat) || 0;
+    const withDex = scaled + getStatusValue(player.statuses, 'dexterity') + talentFlat;
     const blockGain = Math.max(
       0,
       Math.round(withDex * outgoingBlockMultiplier(player.statuses)),

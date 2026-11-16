@@ -31,9 +31,14 @@ export const STAT_KEYS = [
   'maxHp',
 ];
 
+/** Bonus hors arts (talents) : chakra max en combat. */
+export const EXTRA_BONUS_KEYS = ['chakra'];
+
 /** Stats de base documentées (Phase 1) : zéro — tout vient des talents + cartes. */
 export function createEmptyStats() {
-  return Object.fromEntries(STAT_KEYS.map((key) => [key, 0]));
+  return Object.fromEntries(
+    [...STAT_KEYS, ...EXTRA_BONUS_KEYS].map((key) => [key, 0]),
+  );
 }
 
 /**
@@ -57,9 +62,10 @@ export function rankForLevel(level) {
 
 export function mergeStatBonuses(...sources) {
   const result = createEmptyStats();
+  const keys = [...STAT_KEYS, ...EXTRA_BONUS_KEYS];
   for (const source of sources) {
     if (!source || typeof source !== 'object') continue;
-    for (const key of STAT_KEYS) {
+    for (const key of keys) {
       const value = Number(source[key]);
       if (Number.isFinite(value)) result[key] += value;
     }

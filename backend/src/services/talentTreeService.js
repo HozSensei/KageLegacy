@@ -262,7 +262,7 @@ export async function computeTalentBonuses(userId) {
     [userId],
   );
 
-  const stats = mergeStatBonuses(
+  let stats = mergeStatBonuses(
     ...rows.map((row) => parseJsonSafe(row.stat_bonus_json, null)).filter(Boolean),
   );
 
@@ -279,7 +279,37 @@ export async function computeTalentBonuses(userId) {
       color: row.color,
     }));
 
+  // Collectionneur : +1 aux 4 arts par objet unique du deck actif
+  if (effects.some((e) => e.effectCode === 'collector')) {
+    try {
+      const uniqueItems = await countUniqueItemsInActiveDeck(userId);
+      if (uniqueItems > 0) {
+        stats = mergeStatBonuses(stats, {
+          taijutsu: uniqueItems,
+          ninjutsu: uniqueItems,
+          genjutsu: uniqueItems,
+          medicine: uniqueItems,
+        });
+      }
+    } catch {
+      /* deck tables may be absent */
+    }
+  }
+
   return { stats, effects, unlockedCount: rows.length };
+}
+
+async function countUniqueItemsInActiveDeck(userId) {
+  const rows = await query(
+    `SELECT COUNT(DISTINCT cd.slug) AS n
+     FROM user_decks d
+     JOIN user_deck_cards udc ON udc.deck_id = d.id
+     JOIN user_card_collection ucc ON ucc.id = udc.user_card_collection_id
+     JOIN card_definitions cd ON cd.id = udc.card_definition_id
+     WHERE d.user_id = ? AND d.is_active = 1 AND cd.type = 'item'`,
+    [userId],
+  );
+  return Math.max(0, Number(rows?.[0]?.n) || 0);
 }
 
 /**

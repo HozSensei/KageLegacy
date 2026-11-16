@@ -7,6 +7,16 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Talents : redesign centre / combo / chakra branches (2026-11-16)
+
+#### Changed
+- Passifs Vit/Int/Dex remappés vers arts / maxHp ; **plus de Force** joueur via combo
+- **Combo** : 3ᵉ Tai du tour ×2 dégâts
+- **Centre** : Collectionneur actif ; objets (+dégâts / +armure) ; keystone PV ; pas de chakra
+- **+2 Chakra** par branche Tai/Nin/Gen/Méd (`bonus.chakra` → maxChakra combat)
+- Gen `confusion_tax` → −2 dégâts si débuff Gen ; Med `steady_hands` → +2 soins
+- Adrénaline : +3 dégâts sous 50 % PV (plus de Vitesse)
+
 ### Combat : effets stub + poison joueur (2026-11-16)
 
 #### Added
