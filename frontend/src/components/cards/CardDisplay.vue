@@ -4,16 +4,14 @@ import { useI18n } from 'vue-i18n'
 import BrandMark from '../ui/BrandMark.vue'
 import { resolveCardArt } from '../../utils/cardArt'
 import { cardEffectParts } from '../../utils/cardEffectLine'
-import { cardFooterCells } from '../../utils/cardFooterStats'
+import { cardBonusChips, cardFamilyKey } from '../../utils/cardBonusChips'
 import {
   cardTypeVisual,
   elementLabelKey,
   elementTone,
   rarityVisual,
-  statTone,
 } from '../../utils/cardVisuals'
 import { localizedName } from '../../utils/localeContent.js'
-import { scalingStatKey } from '../../utils/cardScaling'
 
 defineOptions({ name: 'CardDisplay' })
 
@@ -28,21 +26,22 @@ const props = defineProps({
   /** Stats du ninja : si fournies, les figures affichent la valeur effective. */
   stats: { type: Object, default: null },
   /**
-   * Face contrôlée : `front` | `back`. Si null, l’état interne s’applique
-   * (utile pour l’ouverture de booster).
+   * Face contrôlée (booster uniquement) : `front` | `back`.
+   * Si null → face avant seule, sans flip (collection / deck).
    */
-  face: { type: String, default: null, validator: (v) => v == null || v === 'front' || v === 'back' },
-  /** Affiche un bouton pour retourner la carte (collection). */
-  flippable: { type: Boolean, default: false },
-  /** Inclinaison 3D au survol (désactivée si reduced-motion). */
+  face: {
+    type: String,
+    default: null,
+    validator: (v) => v == null || v === 'front' || v === 'back',
+  },
+  /** Inclinaison 3D au survol (collection). Désactivée si reduced-motion. */
   tilt: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['select', 'flip'])
+const emit = defineEmits(['select'])
 
 const { t, te, locale } = useI18n()
 
-const internalFlipped = ref(false)
 const tiltStyle = ref(null)
 const reduceMotion = ref(false)
 
@@ -55,15 +54,6 @@ if (typeof window !== 'undefined' && window.matchMedia) {
   if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
   else if (typeof mq.addListener === 'function') mq.addListener(onChange)
 }
-
-watch(
-  () => props.face,
-  (next) => {
-    if (next === 'back') internalFlipped.value = true
-    else if (next === 'front') internalFlipped.value = false
-  },
-  { immediate: true },
-)
 
 const name = computed(() => localizedName(props.card, locale.value))
 
@@ -85,42 +75,27 @@ const effectParts = computed(() =>
   cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }),
 )
 
-const effectLine = computed(() => effectParts.value.texts.join(' · '))
-
-/**
- * Catégorie de scaling / chakra — capsule colorée à gauche.
- * Préfère la stat qui scale une figure, sinon `statType` de la carte.
- */
-const scaleStat = computed(() => {
-  for (const key of ['damage', 'block', 'heal']) {
-    if (!(Number(props.card[key]) > 0)) continue
-    const statKey = scalingStatKey(props.card, key)
-    if (!statKey) continue
-    return {
-      key: statKey,
-      label: t('cards.scaleStat', { stat: t(`cards.stats.${statKey}`, statKey) }),
-      tone: statTone(statKey),
-    }
+const familyKey = computed(() => cardFamilyKey(props.card))
+const familyLabel = computed(() => {
+  if (familyKey.value === 'heredite') {
+    return te('cards.stats.medicine')
+      ? t('cards.stats.medicine')
+      : 'Hérédité'
   }
-  const fallback = props.card.statType
-  if (!fallback) return null
-  return {
-    key: fallback,
-    label: t('cards.scaleStat', { stat: t(`cards.stats.${fallback}`, fallback) }),
-    tone: statTone(fallback),
-  }
+  return te(`cards.stats.${familyKey.value}`)
+    ? t(`cards.stats.${familyKey.value}`)
+    : familyKey.value
 })
 
-const footerCells = computed(() => cardFooterCells(props.card))
+const bonusChips = computed(() => cardBonusChips(props.card))
 
 const artUrl = computed(() => resolveCardArt(props.card))
 const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
 
-const isFlipped = computed(() => {
-  if (props.face === 'back') return true
-  if (props.face === 'front') return false
-  return internalFlipped.value
-})
+/** Flip structure only when booster controls `face`. */
+const enableFlip = computed(() => props.face != null)
+
+const isFlipped = computed(() => props.face === 'back')
 
 const serialLabel = computed(() => {
   if (props.catalogueNumber != null) {
@@ -131,14 +106,6 @@ const serialLabel = computed(() => {
 
 function onSelect() {
   emit('select', props.card)
-}
-
-function toggleFlip(event) {
-  event?.stopPropagation?.()
-  if (props.face != null) return
-  if (!props.flippable) return
-  internalFlipped.value = !internalFlipped.value
-  emit('flip', isFlipped.value ? 'back' : 'front')
 }
 
 function onPointerMove(event) {
@@ -156,6 +123,13 @@ function onPointerMove(event) {
 function onPointerLeave() {
   tiltStyle.value = null
 }
+
+watch(
+  () => props.face,
+  () => {
+    tiltStyle.value = null
+  },
+)
 </script>
 
 <template>
@@ -168,14 +142,14 @@ function onPointerLeave() {
         'card-display--compact': compact,
         'card-display--foil': rarity.foil,
         'card-display--no-art': !artUrl,
-        'card-display--has-scale': Boolean(scaleStat),
         'card-display--flipped': isFlipped,
-        'card-display--flippable': flippable,
+        'card-display--flip': enableFlip,
       },
     ]"
     :data-tone="typeVisual.tone"
     :data-rarity="rarityKey"
     :data-rarity-level="rarityLevel"
+    :data-family="familyKey"
     :aria-pressed="selected"
     data-testid="card-display"
     :style="tiltStyle"
@@ -183,122 +157,116 @@ function onPointerLeave() {
     @pointerleave="onPointerLeave"
   >
     <div class="card-display__flipper">
-      <!-- Face avant -->
+      <!-- Face avant — anatomie HTML V5 -->
       <button
         type="button"
         class="card-display__face card-display__face--front"
         data-testid="card-face-front"
         @click="onSelect"
       >
-        <span class="card-display__inner-ring" aria-hidden="true" />
+        <div
+          class="card-display__art"
+          :class="{ 'card-display__art--placeholder': !artUrl }"
+          data-testid="card-art"
+        >
+          <img
+            v-if="artUrl"
+            class="card-display__art-img"
+            :src="artUrl"
+            :alt="name"
+            loading="lazy"
+            decoding="async"
+            draggable="false"
+          />
+          <span v-else class="card-display__art-fallback" aria-hidden="true">
+            <span class="shape" :class="`shape--${typeVisual.shape}`" />
+          </span>
+        </div>
 
-        <div class="card-display__shell">
-          <div
-            class="card-display__art"
-            :class="{ 'card-display__art--placeholder': !artUrl }"
-            data-testid="card-art"
-          >
-            <img
-              v-if="artUrl"
-              class="card-display__art-img"
-              :src="artUrl"
-              :alt="name"
-              loading="lazy"
-              decoding="async"
-              draggable="false"
-            />
-            <span v-else class="card-display__art-fallback" aria-hidden="true">
-              <span class="shape" :class="`shape--${typeVisual.shape}`" />
-            </span>
-          </div>
+        <div
+          class="card-display__category"
+          :class="`card-display__category--${familyKey}`"
+          data-testid="card-scale-hint"
+          :title="familyLabel"
+        >
+          {{ familyLabel }}
+        </div>
 
-          <div class="card-display__body">
-            <div class="card-display__info">
+        <div class="card-display__chakra" :title="t('cards.costLabel')" data-testid="card-cost">
+          <span class="card-display__chakra-gem" aria-hidden="true" />
+          <span class="card-display__chakra-number">{{ cost }}</span>
+        </div>
+
+        <section class="card-display__info">
+          <div class="card-display__info-columns">
+            <div class="card-display__description">
               <h3 class="card-display__name">{{ name }}</h3>
-              <p class="card-display__meta">
-                <span class="card-display__type">{{ typeLabel }}</span>
+              <p class="card-display__type">
+                <span>{{ typeLabel }}</span>
                 <template v-if="elementLabel">
-                  <span class="card-display__meta-sep" aria-hidden="true">·</span>
-                  <span
-                    class="card-display__element"
-                    :data-tone="elementTone(card.element)"
-                  >
-                    {{ elementLabel }}
-                  </span>
+                  <span aria-hidden="true"> · </span>
+                  <span :data-tone="elementTone(card.element)">{{ elementLabel }}</span>
                 </template>
               </p>
+              <div class="card-display__rule" aria-hidden="true" />
               <p
-                v-if="effectLine"
+                v-if="effectParts.texts.length"
                 class="card-display__effect"
                 :aria-label="effectParts.aria.join(', ')"
               >
-                {{ effectLine }}
+                <template v-for="(text, i) in effectParts.texts" :key="i">
+                  <span v-if="i > 0"> · </span>
+                  <strong v-if="i < effectParts.figures.length">{{ text }}</strong>
+                  <template v-else>{{ text }}</template>
+                </template>
               </p>
             </div>
 
-            <div class="card-display__serial-row">
-              <span
-                v-if="catalogueNumber != null"
-                class="card-display__catalogue-n"
-                data-testid="card-catalogue-number"
-                :title="t('cards.catalogueNumberLabel', { n: catalogueNumber })"
+            <div
+              v-if="bonusChips.length"
+              class="card-display__bonuses"
+              :aria-label="t('cards.passiveBonus')"
+            >
+              <div
+                v-for="chip in bonusChips"
+                :key="chip.key"
+                class="card-display__bonus"
+                :style="{ '--light': chip.light, '--dark': chip.dark }"
+                :title="`${t(`cards.stats.${chip.key}`, chip.key)} ${chip.value > 0 ? '+' : ''}${chip.value}`"
               >
-                {{ serialLabel }}
-              </span>
-              <span v-else class="card-display__catalogue-n card-display__catalogue-n--brand">
-                {{ serialLabel }}
-              </span>
-              <span
-                class="card-display__rarity"
-                :aria-label="t(`cards.rarities.${rarityKey}`)"
-              >
-                <span class="card-display__rarity-name">{{ t(`cards.rarities.${rarityKey}`) }}</span>
-                <span class="card-display__rarity-pips" aria-hidden="true">
-                  <i
-                    v-for="n in rarityLevel"
-                    :key="n"
-                    class="card-display__diamond"
-                  />
-                </span>
-              </span>
+                <i aria-hidden="true" />
+                <span>{{ chip.value > 0 ? `+${chip.value}` : chip.value }}</span>
+              </div>
             </div>
           </div>
 
-          <footer class="card-display__footer" :aria-label="t('cards.passiveBonus')">
+          <footer class="card-display__footer">
             <span
-              v-for="cell in footerCells"
-              :key="cell.key"
-              class="card-display__stat"
-              :data-tone="cell.tone"
-              :data-stat="cell.key"
-              :title="t(`cards.stats.${cell.key}`, cell.key)"
-              :aria-label="
-                cell.show
-                  ? `${t(`cards.stats.${cell.key}`, cell.key)} +${cell.value}`
-                  : t(`cards.stats.${cell.key}`, cell.key)
+              class="card-display__serial"
+              data-testid="card-catalogue-number"
+              :title="
+                catalogueNumber != null
+                  ? t('cards.catalogueNumberLabel', { n: catalogueNumber })
+                  : undefined
               "
             >
-              <span v-if="cell.show" class="card-display__stat-value">{{ cell.value }}</span>
+              {{ serialLabel }}
             </span>
+            <div
+              class="card-display__rarity"
+              :aria-label="t(`cards.rarities.${rarityKey}`)"
+            >
+              <span class="card-display__rarity-name">{{ t(`cards.rarities.${rarityKey}`) }}</span>
+              <span class="card-display__rarity-pips" aria-hidden="true">
+                <i
+                  v-for="n in rarityLevel"
+                  :key="n"
+                  class="card-display__diamond"
+                />
+              </span>
+            </div>
           </footer>
-        </div>
-
-        <!-- Losange coût (déborde) -->
-        <span class="card-display__cost" :title="t('cards.costLabel')" data-testid="card-cost">
-          <span class="card-display__cost-gem" aria-hidden="true" />
-          <span class="card-display__cost-value">{{ cost }}</span>
-        </span>
-
-        <!-- Catégorie scaling — ruban gauche -->
-        <span
-          v-if="scaleStat"
-          class="card-display__scale"
-          data-testid="card-scale-hint"
-          :data-tone="scaleStat.tone"
-          :title="t('cards.scalesWith', { stat: scaleStat.label })"
-        >
-          {{ scaleStat.label }}
-        </span>
+        </section>
 
         <span v-if="quantity != null" class="card-display__qty" :title="t('cards.quantityLabel')">
           ×{{ quantity }}
@@ -314,59 +282,48 @@ function onPointerLeave() {
         <span class="card-display__sheen" aria-hidden="true" />
       </button>
 
-      <!-- Face arrière -->
+      <!-- Face arrière — booster uniquement -->
       <div
+        v-if="enableFlip"
         class="card-display__face card-display__face--back"
         data-testid="card-face-back"
         aria-hidden="true"
       >
         <span class="card-display__back-pattern" />
         <div class="card-display__back-inner">
-          <BrandMark class="card-display__back-logo" size="4.5rem" />
+          <BrandMark class="card-display__back-logo" size="7.875rem" />
           <div class="card-display__back-title">{{ t('app.name') }}</div>
           <div class="card-display__back-sub">{{ t('cards.backSubtitle') }}</div>
         </div>
         <span class="card-display__sheen" aria-hidden="true" />
       </div>
     </div>
-
-    <button
-      v-if="flippable && face == null"
-      type="button"
-      class="card-display__flip-btn"
-      data-testid="card-flip-btn"
-      :aria-label="isFlipped ? t('cards.flipToFront') : t('cards.flipToBack')"
-      :aria-pressed="isFlipped"
-      @click="toggleFlip"
-    >
-      {{ isFlipped ? t('cards.flipFrontShort') : t('cards.flipBackShort') }}
-    </button>
   </div>
 </template>
 
 <style scoped>
+/*
+ * Anatomie fidèle à carte-ninja-v5-raretes HTML :
+ * art fixe → ruban famille → gemme chakra → info (description | bonuses) → footer.
+ */
 .card-display {
-  /* Cadre rareté V5 — acier / saphir / améthyste / or */
   --edge: #aab3bc;
   --glint: #e6ebf0;
   --inner: #697580;
   --halo: transparent;
-  --card-body-bg: linear-gradient(145deg, #f4e9d8, #e0d0b8);
-  --card-body-fg: #27313b;
-  --card-body-muted: #98775a;
   --card-footer-bg: #d5c3aa;
   --card-footer-line: #c4b198;
-  --card-serial: #826c55;
-  --card-border: 2px;
 
   position: relative;
   display: block;
   width: 100%;
   min-width: 0;
-  aspect-ratio: 2.5 / 3.5;
+  aspect-ratio: 296 / 444;
   perspective: 1200px;
-  filter: drop-shadow(0 14px 16px color-mix(in srgb, var(--color-ink) 28%, transparent));
-  transition: transform var(--dur-fast) ease;
+  transform-style: preserve-3d;
+  container-type: inline-size;
+  filter: drop-shadow(0 24px 22px #0009);
+  transition: transform 0.14s ease;
 }
 
 .card-display--common {
@@ -407,6 +364,9 @@ function onPointerLeave() {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
+}
+
+.card-display--flip .card-display__flipper {
   transition: transform 0.7s cubic-bezier(0.2, 0.75, 0.2, 1);
 }
 
@@ -419,7 +379,7 @@ function onPointerLeave() {
   inset: 0;
   margin: 0;
   padding: 0;
-  border: var(--card-border) solid var(--edge);
+  border: 2px solid var(--edge);
   border-radius: 7px;
   background: #202935;
   color: inherit;
@@ -437,7 +397,29 @@ function onPointerLeave() {
 }
 
 .card-display__face--front {
-  display: block;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-display__face--front::before {
+  content: '';
+  position: absolute;
+  z-index: 7;
+  pointer-events: none;
+  inset: 5px;
+  border-radius: 3px;
+  border: 1px solid var(--glint);
+  opacity: 0.65;
+}
+
+.card-display--rare .card-display__face--front::before,
+.card-display--legendary .card-display__face--front::before,
+.card-display--mythic .card-display__face--front::before {
+  opacity: 0.9;
+}
+
+.card-display--mythic .card-display__face--front {
+  background: #30271b;
 }
 
 .card-display__face--back {
@@ -464,36 +446,11 @@ function onPointerLeave() {
   border-color: #a3acb433;
 }
 
-.card-display__inner-ring {
-  position: absolute;
-  z-index: 7;
-  pointer-events: none;
-  inset: 5px;
-  border-radius: 3px;
-  border: 1px solid color-mix(in srgb, var(--glint) 65%, transparent);
-}
-
-.card-display--rare .card-display__inner-ring,
-.card-display--legendary .card-display__inner-ring,
-.card-display--mythic .card-display__inner-ring {
-  opacity: 0.9;
-}
-
-.card-display__shell {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 5px;
-}
-
+/* Art — hauteur relative ≈ 256/444 du prototype */
 .card-display__art {
+  height: 57.66%;
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex-shrink: 0;
   overflow: hidden;
   border-radius: 5px 5px 0 0;
   background: #4e6578;
@@ -539,33 +496,142 @@ function onPointerLeave() {
   opacity: 0.45;
 }
 
-.card-display__body {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  background: var(--card-body-bg);
-  color: var(--card-body-fg);
-  padding: 0.7rem 0.75rem 0;
+/* Ruban famille — clip-path polygon prototype */
+.card-display__category {
+  position: absolute;
+  z-index: 10;
+  left: -9px;
+  top: 18px;
+  max-width: calc(100% - 4.5rem);
+  padding: 8px 18px 8px 16px;
+  clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+  background: linear-gradient(#ff9673 0%, #d8513d 47%, #8c302c 100%);
+  border: 1px solid #f5c5a4;
+  box-shadow:
+    3px 4px 0 #141820,
+    5px 7px 9px #0008;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(0.65rem, 4.7cqi, 0.875rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px #0008;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 
+.card-display__category--ninjutsu {
+  background: linear-gradient(#8bc4e8, #3776af, #214b81);
+  border-color: #b8d9f0;
+}
+
+.card-display__category--genjutsu {
+  background: linear-gradient(#d6a4f1, #8653b4, #523274);
+  border-color: #e2c4f5;
+}
+
+.card-display__category--heredite {
+  background: linear-gradient(#8acfae, #408b68, #255d49);
+  border-color: #b8e0cb;
+}
+
+/* Gemme chakra — coin haut droit débordant */
+.card-display__chakra {
+  position: absolute;
+  z-index: 12;
+  right: -12px;
+  top: -13px;
+  width: clamp(2.6rem, 24.7%, 4.5625rem);
+  aspect-ratio: 1;
+  filter: drop-shadow(3px 6px 3px #070b13a9);
+  pointer-events: none;
+}
+
+.card-display__chakra-gem {
+  position: absolute;
+  inset: 15%;
+  transform: rotate(45deg);
+  background: linear-gradient(
+    135deg,
+    #fff3d6 0%,
+    #b9d4e8 24%,
+    #3d648b 50%,
+    #162d4d 56%,
+    #a7d3ee 81%,
+    #fff0c3 100%
+  );
+  border: 2px solid #f7dbab;
+  box-shadow:
+    inset 0 0 0 3px #1b314b,
+    inset 0 0 12px #f4fcff;
+}
+
+.card-display__chakra-gem::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  background: linear-gradient(145deg, #fff8, transparent 50%, #071f4b80);
+  clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
+}
+
+.card-display__chakra-number {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 10cqi, 1.875rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: #fff;
+  text-shadow:
+    0 2px 4px #0d1a2a,
+    0 0 8px #071d33;
+}
+
+/* Bloc info — fond parchemin */
 .card-display__info {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  min-height: 4.6rem;
+  container-type: inline-size;
+  background: linear-gradient(145deg, #f4e9d8, #e0d0b8);
+  color: #27313b;
+  padding: 14px 15px 0;
+}
+
+.card-display__info-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.card-display__info-columns:not(:has(.card-display__bonuses)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.card-display__description {
+  min-width: 0;
+  min-height: 0;
 }
 
 .card-display__name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: clamp(0.85rem, 8.4cqi, 1.5625rem);
   font-weight: 800;
-  font-stretch: 92%;
   line-height: 1;
   letter-spacing: 0.015em;
   text-transform: uppercase;
-  color: var(--card-body-fg);
+  color: #27313b;
   overflow-wrap: anywhere;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -573,54 +639,109 @@ function onPointerLeave() {
   overflow: hidden;
 }
 
-.card-display__meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem 0.4rem;
-  margin: 0.35rem 0 0;
-  font-size: 0.5625rem;
+.card-display__type {
+  margin: 7px 0 0;
+  font-size: clamp(0.5rem, 3cqi, 0.5625rem);
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--card-body-muted);
+  color: #98775a;
 }
 
-.card-display__meta-sep {
-  opacity: 0.7;
+.card-display__rule {
+  height: 1px;
+  background: #bca78d;
+  margin: 11px 0 9px;
 }
 
 .card-display__effect {
-  margin: 0.45rem 0 0;
-  padding-top: 0.45rem;
-  border-top: 1px solid #bca78d;
-  font-size: 0.72rem;
+  margin: 0;
+  font-size: clamp(0.62rem, 4cqi, 0.75rem);
+  line-height: 1.45;
   font-weight: 600;
-  line-height: 1.35;
-  color: var(--card-body-fg);
+  color: #27313b;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.card-display__serial-row {
+.card-display__effect strong {
+  font-weight: 900;
+}
+
+/* Bonus hex — colonne droite */
+.card-display__bonuses {
+  border-left: 1px solid #c8b59d;
+  padding-left: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.card-display__bonus {
+  width: 43px;
+  height: 35px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 1px 2px #0008;
+  filter: drop-shadow(1px 2px 1px #0004);
+}
+
+.card-display__bonus::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 1px solid #fff7;
+  clip-path: polygon(10% 0, 90% 0, 100% 50%, 90% 100%, 10% 100%, 0 50%);
+  background: linear-gradient(160deg, var(--light), var(--dark));
+}
+
+.card-display__bonus i {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  background: #fff9;
+}
+
+.card-display__bonus span {
+  position: relative;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Footer serial + rareté */
+.card-display__footer {
+  height: 29px;
+  margin: 8px -15px 0;
+  padding: 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.4rem;
-  height: 1.55rem;
-  margin: 0.45rem -0.75rem 0;
-  padding: 0 0.7rem;
+  gap: 0.35rem;
   border-top: 1px solid var(--card-footer-line);
   background: var(--card-footer-bg);
+  border-radius: 0 0 5px 5px;
+  flex-shrink: 0;
 }
 
-.card-display__catalogue-n {
-  font-size: 0.5625rem;
+.card-display__serial {
+  font-size: 9px;
   font-weight: 800;
+  color: #826c55;
   letter-spacing: 0.06em;
-  color: var(--card-serial);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -628,17 +749,18 @@ function onPointerLeave() {
 
 .card-display__rarity {
   display: flex;
+  gap: 4px;
   align-items: center;
-  gap: 0.35rem;
   flex-shrink: 0;
 }
 
 .card-display__rarity-name {
-  font-size: 0.5625rem;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #655442;
+  margin-right: 7px;
 }
 
 .card-display__rarity-pips {
@@ -681,162 +803,33 @@ function onPointerLeave() {
   box-shadow: 0 0 7px #ffc44baa;
 }
 
-.card-display__footer {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  flex: 0 0 auto;
-  height: 1.55rem;
-  margin: 0;
-  padding: 0;
-  gap: 0;
-}
-
-.card-display__stat {
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  background: var(--tone-fill);
-  color: var(--tone-on, var(--color-on-ink));
-}
-
-.card-display__stat-value {
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  font-weight: 800;
-  font-stretch: 80%;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 1px 1px color-mix(in srgb, #000 45%, transparent);
-}
-
-/* Gemme de chakra — coin haut droit */
-.card-display__cost {
-  position: absolute;
-  z-index: 12;
-  top: -0.55rem;
-  right: -0.55rem;
-  display: grid;
-  place-items: center;
-  width: 3.15rem;
-  height: 3.15rem;
-  filter: drop-shadow(3px 6px 3px #070b13a9);
-  pointer-events: none;
-}
-
-.card-display__cost-gem {
-  position: absolute;
-  inset: 0.48rem;
-  transform: rotate(45deg);
-  background: linear-gradient(
-    135deg,
-    #fff3d6 0%,
-    #b9d4e8 24%,
-    #3d648b 50%,
-    #162d4d 56%,
-    #a7d3ee 81%,
-    #fff0c3 100%
-  );
-  border: 2px solid #f7dbab;
-  box-shadow:
-    inset 0 0 0 3px #1b314b,
-    inset 0 0 12px #f4fcff;
-}
-
-.card-display__cost-gem::after {
-  content: '';
-  position: absolute;
-  inset: 5px;
-  background: linear-gradient(145deg, #fff8, transparent 50%, #071f4b80);
-  clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
-}
-
-.card-display__cost-value {
-  position: relative;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 900;
-  font-stretch: 80%;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  color: #fff;
-  text-shadow:
-    0 2px 4px #0d1a2a,
-    0 0 8px #071d33;
-}
-
-/* Ruban scaling — gauche, style famille V5 */
-.card-display__scale {
-  position: absolute;
-  z-index: 10;
-  left: -0.45rem;
-  top: 1rem;
-  max-width: 6.5rem;
-  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
-  clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--tone-fill, var(--color-neutral-fill)) 88%, white),
-    var(--tone-fill, var(--color-neutral-fill)) 47%,
-    color-mix(in srgb, var(--tone-fill, var(--color-neutral-fill)) 70%, black)
-  );
-  border: 1px solid color-mix(in srgb, var(--color-on-ink) 55%, transparent);
-  box-shadow:
-    3px 4px 0 #141820,
-    5px 7px 9px #0008;
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  line-height: 1.1;
-  color: #fff;
-  text-shadow: 0 1px 2px #0008;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-}
-
 .card-display__qty,
 .card-display__upgrade {
   position: absolute;
   z-index: 11;
+  top: 3.25rem;
   display: inline-grid;
   place-items: center;
   min-width: 1.45rem;
   height: 1.25rem;
   padding: 0 0.28rem;
   border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-ink) 78%, transparent);
+  background: color-mix(in srgb, var(--color-ink, #111) 78%, transparent);
   font-family: var(--font-display);
   font-size: 0.7rem;
   font-weight: 800;
-  font-stretch: 80%;
   line-height: 1;
-  color: var(--color-on-ink);
+  color: var(--color-on-ink, #fff);
   pointer-events: none;
 }
 
 .card-display__qty {
-  top: 0.4rem;
-  left: 0.45rem;
-}
-
-.card-display__upgrade {
-  top: 0.4rem;
-  left: 2.1rem;
-  border: 1px solid color-mix(in srgb, var(--color-gold-fill) 70%, transparent);
-}
-
-.card-display--has-scale .card-display__qty,
-.card-display--has-scale .card-display__upgrade {
-  top: 3.1rem;
   left: 0.55rem;
 }
 
-.card-display--has-scale .card-display__upgrade {
+.card-display__upgrade {
   left: 2.2rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-fill, #d4a84b) 70%, transparent);
 }
 
 .card-display__sheen {
@@ -904,122 +897,126 @@ function onPointerLeave() {
 }
 
 .card-display__back-logo {
+  display: block;
   margin: 0 auto;
   color: #f2e7d5;
   filter: drop-shadow(0 0 15px #caa56d65);
 }
 
 .card-display__back-title {
-  margin-top: 1.1rem;
+  margin-top: 22px;
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: clamp(0.9rem, 9.5cqi, 1.75rem);
   font-weight: 900;
   letter-spacing: 0.2em;
 }
 
 .card-display__back-sub {
-  margin-top: 0.4rem;
-  font-size: 0.5625rem;
+  margin-top: 7px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.3em;
   color: #c7a77e;
 }
 
-.card-display__flip-btn {
-  position: absolute;
-  z-index: 20;
-  right: 0.35rem;
-  bottom: -0.85rem;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid var(--color-line-strong);
-  border-radius: 0.25rem;
-  background: var(--color-bg-card);
-  color: var(--color-ink);
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-ink) 18%, transparent);
-}
-
-.card-display__flip-btn:hover {
-  background: var(--color-wood-fill);
-  border-color: var(--color-gold-fill);
-  color: var(--color-ink);
-}
-
-.card-display__face:focus-visible,
-.card-display__flip-btn:focus-visible {
-  outline: 3px solid var(--color-indigo);
+.card-display__face:focus-visible {
+  outline: 3px solid var(--color-indigo, #5b6cff);
   outline-offset: 3px;
 }
 
 .card-display--selected .card-display__face--front {
-  outline: 3px solid var(--color-ink);
+  outline: 3px solid var(--color-ink, #111);
   outline-offset: 2px;
 }
 
+/* Compact (deck / booster stack) — même anatomie, typo réduite */
+.card-display--compact {
+  container-type: inline-size;
+}
+
 .card-display--compact .card-display__info {
-  min-height: 3.7rem;
+  padding: 10px 10px 0;
+}
+
+.card-display--compact .card-display__info-columns {
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 6px;
+}
+
+.card-display--compact .card-display__info-columns:not(:has(.card-display__bonuses)) {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .card-display--compact .card-display__name {
-  font-size: 0.82rem;
+  font-size: clamp(0.7rem, 7cqi, 1.1rem);
+}
+
+.card-display--compact .card-display__type {
+  margin-top: 4px;
+  font-size: 0.5rem;
+}
+
+.card-display--compact .card-display__rule {
+  margin: 7px 0 6px;
 }
 
 .card-display--compact .card-display__effect {
   font-size: 0.62rem;
+  -webkit-line-clamp: 3;
 }
 
-.card-display--compact .card-display__cost {
-  width: 2.45rem;
-  height: 2.45rem;
-  top: -0.4rem;
-  right: -0.4rem;
+.card-display--compact .card-display__bonuses {
+  padding-left: 6px;
+  gap: 5px;
 }
 
-.card-display--compact .card-display__cost-value {
-  font-size: 0.95rem;
+.card-display--compact .card-display__bonus {
+  width: 32px;
+  height: 26px;
+  font-size: 13px;
+  gap: 3px;
 }
 
-.card-display--compact .card-display__scale {
-  top: 0.7rem;
-  left: -0.35rem;
-  font-size: 0.55rem;
-  max-width: 4.8rem;
-  padding: 0.28rem 0.55rem 0.28rem 0.45rem;
+.card-display--compact .card-display__bonus i {
+  width: 5px;
+  height: 5px;
 }
 
-.card-display--compact .card-display__serial-row {
-  height: 1.3rem;
-  margin-top: 0.3rem;
+.card-display--compact .card-display__footer {
+  height: 24px;
+  margin: 6px -10px 0;
+  padding: 0 10px;
 }
 
 .card-display--compact .card-display__rarity-name {
   display: none;
 }
 
-.card-display--compact .card-display__footer {
-  height: 1.3rem;
+.card-display--compact .card-display__category {
+  left: -6px;
+  top: 12px;
+  padding: 5px 12px 5px 10px;
+  font-size: clamp(0.5rem, 4cqi, 0.7rem);
 }
 
-.card-display--compact .card-display__stat-value {
-  font-size: 0.66rem;
-}
-
-.card-display--compact .card-display__back-title {
-  font-size: 0.85rem;
+.card-display--compact .card-display__chakra {
+  right: -8px;
+  top: -9px;
 }
 
 .card-display--compact .card-display__back-logo {
-  width: 3.25rem !important;
-  height: 3.25rem !important;
+  width: 4.5rem !important;
+  height: 4.5rem !important;
+}
+
+.card-display--compact .card-display__back-title {
+  margin-top: 12px;
+  font-size: 0.85rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card-display,
-  .card-display__flipper,
+  .card-display--flip .card-display__flipper,
   .card-display__sheen {
     transition: none !important;
   }
