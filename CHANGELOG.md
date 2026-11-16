@@ -12,6 +12,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 #### Changed
 - **Thème par défaut** : sans choix mémorisé dans `localStorage`, l’UI utilise `ink` (sombre encre) au lieu de suivre `prefers-color-scheme` — `useTheme.js` + script anti-flash `index.html` ; test Cypress aligné
 
+### UI : boutique boosters alignée sur le pack de déchirure (2026-11-16)
+
+#### Changed
+- **BoosterPackVisual** : pack foil partagé (bande de déchirure, variants Standard / Élémentaire / Premium)
+- **BoosterSelection** : aperçu = le même pack que l’ouverture (plus d’art carte décoratif)
+- **BoosterOpening** / **ShopView** : la cérémonie ouvre le pack du type acheté (teint élémentaire inclus)
+
 ### UI : carte V5 fidèle au HTML (2026-11-16)
 
 #### Changed
