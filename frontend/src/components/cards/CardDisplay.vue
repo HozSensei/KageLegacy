@@ -422,12 +422,18 @@ watch(
   background: #30271b;
 }
 
+/* Dos neutre — même bordure pour toutes les raretés (pas de spoil). */
 .card-display__face--back {
   display: grid;
   place-items: center;
   transform: rotateY(180deg);
   overflow: hidden;
   background: radial-gradient(ellipse at 50% 45%, #303d4a, #171c24 65%, #0e1319);
+  border-color: #aab3bc;
+  box-shadow:
+    inset 0 0 0 2px #111b25,
+    inset 0 0 0 5px #a17c57,
+    0 0 0 1px #e6ebf066;
   pointer-events: none;
 }
 

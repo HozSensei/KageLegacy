@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import ShopBalances from './ShopBalances.vue'
 import BrandMark from '../ui/BrandMark.vue'
 import { elementTone, rarityVisual } from '../../utils/cardVisuals'
+import { CARD_ART_BY_SLUG } from '../../utils/cardArt'
 
 defineOptions({ name: 'BoosterSelection' })
 
@@ -19,6 +20,21 @@ const props = defineProps({
 const emit = defineEmits(['open', 'select-element'])
 
 const { t, locale } = useI18n()
+
+/** Art d’aperçu distincte par type de parchemin (et par élément sélectionné). */
+const ELEMENTAL_PREVIEW_SLUGS = {
+  katon: 'colonne-de-feu',
+  suiton: 'torrent-percant',
+  raiton: 'chaine-d-eclairs',
+  doton: 'bastion-tellurique',
+  futon: 'tranche-ventee',
+}
+
+const BOOSTER_PREVIEW_SLUGS = {
+  standard: 'poing-rapide',
+  elemental: 'harmonie-des-cinq-vents',
+  premium: 'aegis-ancestral',
+}
 
 function nameOf(booster) {
   return locale.value === 'en' ? booster.nameEn : booster.nameFr
@@ -43,6 +59,14 @@ function canAfford(booster) {
 
 function pct(prob) {
   return `${Math.round((prob || 0) * 1000) / 10}%`
+}
+
+function previewArt(booster) {
+  let slug = BOOSTER_PREVIEW_SLUGS[booster.type] || BOOSTER_PREVIEW_SLUGS.standard
+  if (booster.elementalOnly && props.selectedElement) {
+    slug = ELEMENTAL_PREVIEW_SLUGS[props.selectedElement] || slug
+  }
+  return CARD_ART_BY_SLUG[slug] || null
 }
 
 const rarityOrder = ['common', 'rare', 'legendary', 'mythic']
@@ -118,9 +142,17 @@ const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOn
             </h3>
 
             <div class="booster-pack__art" aria-hidden="true">
+              <img
+                v-if="previewArt(booster)"
+                class="booster-pack__art-img"
+                :src="previewArt(booster)"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
               <span class="booster-pack__art-glow" />
               <span class="booster-pack__art-seal">
-                <BrandMark size="2.25rem" />
+                <BrandMark size="1.65rem" />
               </span>
               <span class="booster-pack__set">{{ t(`shop.types.${booster.type}`, booster.type) }}</span>
             </div>
@@ -393,23 +425,65 @@ const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOn
     inset 0 0 24px color-mix(in srgb, var(--color-ink) 35%, transparent);
 }
 
+.booster-pack__art-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 28%;
+  filter: saturate(1.05) contrast(1.04);
+}
+
+.booster-pack__art-img::after {
+  content: none;
+}
+
+.booster-pack__art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, transparent 35%, color-mix(in srgb, var(--color-ink) 72%, transparent) 100%),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-ink) 28%, transparent), transparent 22%, transparent 78%, color-mix(in srgb, var(--color-ink) 28%, transparent));
+}
+
+.booster-pack--standard .booster-pack__art-img {
+  object-position: center 22%;
+}
+
+.booster-pack--elemental .booster-pack__art-img {
+  object-position: center 30%;
+}
+
+.booster-pack--premium .booster-pack__art-img {
+  object-position: center 18%;
+  filter: saturate(1.12) contrast(1.06) brightness(1.02);
+}
+
 .booster-pack__art-glow {
   position: absolute;
   inset: 12% 18% 28%;
+  z-index: 1;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-gold-fill) 35%, transparent);
+  background: color-mix(in srgb, var(--color-gold-fill) 22%, transparent);
   filter: blur(12px);
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .booster-pack__art-seal {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: 4.25rem;
-  height: 4.25rem;
+  width: 3.1rem;
+  height: 3.1rem;
+  margin-top: -2.5rem;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 55%, transparent);
   color: var(--color-on-ink);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-gold-fill) 55%, transparent);
 }
@@ -419,7 +493,7 @@ const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOn
   bottom: 0.55rem;
   left: 0.45rem;
   right: 0.45rem;
-  z-index: 1;
+  z-index: 2;
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 800;

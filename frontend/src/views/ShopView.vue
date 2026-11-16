@@ -95,8 +95,11 @@ async function onOpen(type) {
 }
 
 function onRevealDone() {
-  revealDone.value = true
-  phase.value = 'results'
+  // Progressive click on the last card returns to the booster catalogue.
+  revealDone.value = false
+  shop.clearResult()
+  phase.value = 'catalog'
+  shop.fetchBoosters()
 }
 
 function onAgain() {
