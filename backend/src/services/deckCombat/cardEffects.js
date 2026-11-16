@@ -17,7 +17,7 @@ import {
   elementMultiplier,
   typeAdvantageMultiplier,
 } from './typeAdvantage.js';
-import { applyStatus } from './statuses.js';
+import { applyStatus, PLAYER_DEBUFF_KEYS } from './statuses.js';
 import { drawCards } from './deckRuntime.js';
 import {
   applyTalentAfterHeal,
@@ -26,6 +26,11 @@ import {
 import { canApplyStatus, hitEnemy } from './bossPhases.js';
 import { getNextIntent } from './enemyIntent.js';
 import { resolveCardCritChance } from './combatArts.js';
+
+/** Multiplicateur « zone » → gros dégâts mono-cible (PvE 1 ennemi). */
+export const AOE_DAMAGE_MULT = 1.35;
+
+export { PLAYER_DEBUFF_KEYS };
 
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';
@@ -76,6 +81,12 @@ export function computeCardDamage(card, ctx) {
 
   if (talentMods.damageMult) {
     perHit = Math.round(perHit * talentMods.damageMult);
+  }
+
+  const aoeEffect = (card.effects || []).find((e) => e.type === 'aoe');
+  if (aoeEffect) {
+    const mult = Number(aoeEffect.mult) > 0 ? Number(aoeEffect.mult) : AOE_DAMAGE_MULT;
+    perHit = Math.round(perHit * mult);
   }
 
   const crit = rollCrit(resolveCardCritChance(card), rng);
@@ -260,6 +271,7 @@ export function applyCardPlay({
       card,
       stats,
       talentCodes,
+      talentMods,
       rng,
     });
     nextPlayer = applied.player;
@@ -373,10 +385,54 @@ function applyExtraEffect(effect, ctx) {
       }),
     };
     logs.push({ type: 'counter_ready', damage: Number(effect.damage) || 0 });
-  } else if (type === 'multi_strike' || type === 'bonus_if') {
-    // déjà traité dans computeCardDamage
-  } else if (type === 'exile_enemy_card') {
-    logs.push({ type: 'stub_effect', effect: type, note: 'MVP: effet ignoré' });
+  } else if (type === 'multi_strike' || type === 'bonus_if' || type === 'aoe') {
+    // multi_strike / bonus_if / aoe : déjà traités dans computeCardDamage
+  } else if (type === 'heal_self' || type === 'heal') {
+    const talentMods = ctx.talentMods || {};
+    const raw = Math.max(0, Number(effect.value) || 0);
+    const flat = Number(talentMods.healFlat) || 0;
+    const talentMult = Number(talentMods.healMult) || 1;
+    const healAmt = Math.round(
+      (scaleHeal(raw, ctx.stats?.medicine) + flat) *
+        talentMult *
+        outgoingHealMultiplier(player.statuses),
+    );
+    if (healAmt > 0) {
+      const before = player.hp;
+      const nextHp = Math.min(Number(player.maxHp) || before, (Number(player.hp) || 0) + healAmt);
+      const applied = nextHp - before;
+      player = { ...player, hp: nextHp };
+      logs.push({ type: 'heal', amount: applied, hp: player.hp, source: 'heal_self' });
+      const healTalent = applyTalentAfterHeal(player, talentCodes, {
+        healAttempted: healAmt,
+        healApplied: applied,
+      });
+      player = healTalent.player;
+      logs.push(...healTalent.logs);
+    }
+  } else if (type === 'cleanse_self') {
+    const idx = (player.statuses || []).findIndex((s) => PLAYER_DEBUFF_KEYS.has(s.key));
+    if (idx >= 0) {
+      const removed = player.statuses[idx];
+      player = {
+        ...player,
+        statuses: player.statuses.filter((_, i) => i !== idx),
+      };
+      logs.push({ type: 'cleanse', removed: removed.key });
+    } else {
+      logs.push({ type: 'cleanse', removed: null });
+    }
+  } else if (type === 'exile_enemy_card' || type === 'seal_intent') {
+    // PvE : pas de chakra ennemi — scelle l'intention annoncée (tour annulé).
+    const previous = enemy.intent ? { ...enemy.intent } : null;
+    enemy = {
+      ...enemy,
+      intent: { type: 'sealed', sealed: true },
+    };
+    logs.push({
+      type: 'intent_sealed',
+      previousType: previous?.type || null,
+    });
   } else {
     logs.push({ type: 'stub_effect', effect: type || 'unknown' });
   }

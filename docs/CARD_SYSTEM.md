@@ -175,13 +175,13 @@ Les cartes sont le cœur du gameplay. Le joueur collecte, améliore et combine d
   passive_bonus: { taijutsu: 1, vitesse: 1 }
 }
 
-// Objet : Parchemin de Scellement
+// Objet : Parchemin d'exil — scelle l'intention ennemie (PvE)
 {
-  name_fr: "Parchemin de scellement",
+  name_fr: "Parchemin d'exil",
   type: "item",
   cost: 2,
   effects: [
-    { type: 'exile_enemy_card' }
+    { type: 'exile_enemy_card' } // → intent sealed (pas de drain chakra)
   ],
   exhaust: true,
   passive_bonus: { intelligence: 3 }

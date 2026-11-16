@@ -639,6 +639,141 @@ const gainBlockPlay = applyCardPlay({
 });
 assert(gainBlockPlay.player.block === 6, `gain_block respects block_pct (got ${gainBlockPlay.player.block})`);
 
+console.log('\n=== Stub effects resolved ===');
+const healSelfPlay = applyCardPlay({
+  player: {
+    hp: 50,
+    maxHp: 100,
+    block: 0,
+    chakra: 3,
+    statuses: [],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: {
+    slug: 'scalpel-de-chakra',
+    type: 'attack',
+    statType: 'medicine',
+    cost: 2,
+    damage: 8,
+    effects: [{ type: 'heal_self', value: 4 }],
+  },
+  stats: { medicine: 0 },
+  rng: () => 0.99,
+});
+assert(healSelfPlay.player.hp === 54, `heal_self restores HP (got ${healSelfPlay.player.hp})`);
+assert(healSelfPlay.logs.some((l) => l.type === 'heal' && l.amount === 4), 'heal_self logs heal');
+assert(!healSelfPlay.logs.some((l) => l.type === 'stub_effect'), 'heal_self not stubbed');
+
+const cleansePlay = applyCardPlay({
+  player: {
+    hp: 80,
+    maxHp: 100,
+    block: 0,
+    chakra: 2,
+    statuses: [{ key: 'poison', value: 3, duration: 2 }],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: {
+    slug: 'purge-toxique',
+    type: 'skill',
+    statType: 'medicine',
+    cost: 1,
+    heal: 6,
+    effects: [{ type: 'cleanse_self' }],
+  },
+  stats: { medicine: 0 },
+  rng: () => 0.5,
+});
+assert(cleansePlay.player.statuses.length === 0, 'cleanse_self removes poison');
+assert(cleansePlay.logs.some((l) => l.type === 'cleanse' && l.removed === 'poison'), 'cleanse logs');
+
+const baseDmg = computeCardDamage(
+  { slug: 'x', damage: 10, statType: 'ninjutsu', effects: [] },
+  { stats: { ninjutsu: 0 }, rng: () => 0.99 },
+);
+const aoeDmg = computeCardDamage(
+  { slug: 'x', damage: 10, statType: 'ninjutsu', effects: [{ type: 'aoe' }] },
+  { stats: { ninjutsu: 0 }, rng: () => 0.99 },
+);
+assert(aoeDmg.perHit === Math.round(baseDmg.perHit * 1.35), `aoe amplifies damage (${aoeDmg.perHit} vs ${baseDmg.perHit})`);
+
+const exilePlay = applyCardPlay({
+  player: {
+    hp: 100,
+    maxHp: 100,
+    block: 0,
+    chakra: 3,
+    statuses: [],
+    hand: [],
+    drawPile: ['x'],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: {
+    hp: 40,
+    maxHp: 40,
+    block: 0,
+    statuses: [],
+    intent: { type: 'attack', damage: 12 },
+  },
+  card: {
+    slug: 'parchemin-d-exil',
+    type: 'item',
+    cost: 2,
+    exhaust: true,
+    effects: [{ type: 'exile_enemy_card' }, { type: 'draw', value: 1 }],
+  },
+  stats: {},
+  rng: () => 0.5,
+});
+assert(exilePlay.enemy.intent?.type === 'sealed', 'exile seals enemy intent');
+assert(exilePlay.logs.some((l) => l.type === 'intent_sealed'), 'exile logs intent_sealed');
+
+const sealedResolved = executeEnemyIntent(
+  { ...enemy, intent: { type: 'sealed', sealed: true }, block: 0 },
+  { hp: 100, maxHp: 100, block: 0, statuses: [] },
+  () => 0.5,
+);
+assert(sealedResolved.player.hp === 100, 'sealed intent deals no damage');
+assert(sealedResolved.logs.some((l) => l.type === 'intent_skipped'), 'sealed intent skipped log');
+
+const poisonPlay = applyCardPlay({
+  player: {
+    hp: 100,
+    maxHp: 100,
+    block: 0,
+    chakra: 2,
+    statuses: [],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: {
+    slug: 'aiguillon-nerveux',
+    type: 'attack',
+    statType: 'medicine',
+    cost: 1,
+    damage: 4,
+    effects: [{ type: 'apply_status', status: 'poison', value: 2, duration: 2 }],
+  },
+  stats: { medicine: 0 },
+  rng: () => 0.99,
+});
+assert(
+  (poisonPlay.enemy.statuses || []).some((s) => s.key === 'poison' && s.value === 2),
+  'player card applies poison',
+);
+
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);
 console.log('✅ testCombatEngine passed');

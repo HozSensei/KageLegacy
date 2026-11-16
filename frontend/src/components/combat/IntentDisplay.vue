@@ -23,10 +23,12 @@ const text = computed(() => {
   if (i.type === 'defend') return t('combat.intent.defend', { n: i.block ?? '?' })
   if (i.type === 'buff') return t('combat.intent.buff')
   if (i.type === 'debuff') return t('combat.intent.debuff')
+  if (i.type === 'sealed' || i.type === 'skip') return t('combat.intent.sealed')
   return t('combat.intent.special')
 })
 
 const glyph = computed(() => {
+  if (kind.value === 'sealed' || kind.value === 'skip') return 'debuff'
   const known = ['attack', 'defend', 'buff', 'debuff', 'special']
   if (known.includes(kind.value)) return kind.value
   return props.intent ? 'special' : 'unknown'

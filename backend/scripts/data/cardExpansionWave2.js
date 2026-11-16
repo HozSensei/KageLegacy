@@ -1362,8 +1362,8 @@ export const EXPANSION_WAVE2_CARDS = [
     effects: [{"type": "exile_enemy_card"}],
     exhaust: true,
     passive: {"intelligence": 3},
-    descriptionFr: "Exile une carte adverse. Exhaust.",
-    descriptionEn: "Exile an enemy card. Exhaust.",
+    descriptionFr: "Scelle l’intention ennemie. Exhaust.",
+    descriptionEn: "Seal the enemy intent. Exhaust.",
     upgrades: {"level_1": {"cost": -1, "passive": {"intelligence": 1}}, "level_2": {"passive": {"intelligence": 3}}}
   }),
   c({

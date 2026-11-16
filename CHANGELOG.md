@@ -7,6 +7,18 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Combat : effets stub + poison joueur (2026-11-16)
+
+#### Added
+- `heal_self` / `heal` : soin scalé médecine (ex. Lame du guérisseur)
+- `cleanse_self` : retire un malus (weak / vulnerable / poison / burn)
+- `aoe` : ×1.35 dégâts massifs mono-cible (PvE 1 ennemi)
+- `exile_enemy_card` : scelle l’intention ennemie (pas de drain chakra PvE)
+- Cartes poison joueur : `aiguillon-nerveux`, `senbon-empoisonne`, `pression-vitale`
+
+#### Changed
+- Libellés UI FR/EN (zone / exile / purge) + logs combat + intention scellée
+
 ### Combat / cartes : 4 arts, fin Vit/Int (2026-11-16)
 
 #### Changed

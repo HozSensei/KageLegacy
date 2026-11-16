@@ -113,6 +113,14 @@ function formatLog(log) {
     }
     case 'gain_chakra':
       return t('combat.log.gainChakra', { n })
+    case 'cleanse':
+      return log.removed
+        ? t('combat.log.cleanse', { status: statusLabel(log.removed) })
+        : t('combat.log.cleanseNone')
+    case 'intent_sealed':
+      return t('combat.log.intentSealed')
+    case 'intent_skipped':
+      return t('combat.log.intentSkipped')
     case 'poison':
       return t(log.side === 'enemy' ? 'combat.log.poisonEnemy' : 'combat.log.poisonYou', { n })
     case 'burn':

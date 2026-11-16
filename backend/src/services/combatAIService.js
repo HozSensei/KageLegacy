@@ -279,6 +279,8 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
       amount,
       barrier: nextEnemy.barrier,
     });
+  } else if (intent.type === 'sealed' || intent.type === 'skip') {
+    logs.push({ type: 'intent_skipped', reason: 'sealed' });
   }
 
   if (intent.status && intent.type === 'attack') {
