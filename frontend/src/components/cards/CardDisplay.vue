@@ -446,7 +446,9 @@ watch(
   border-color: #a3acb433;
 }
 
-/* Art — hauteur relative ≈ 256/444 du prototype */
+/* Art — hauteur relative ≈ 256/444 du prototype.
+ * Sur cartes étroites (mobile 2-col), on réduit l’art pour agrandir
+ * la zone description (parchemin) et éviter le texte compressé. */
 .card-display__art {
   height: 57.66%;
   position: relative;
@@ -454,6 +456,25 @@ watch(
   overflow: hidden;
   border-radius: 5px 5px 0 0;
   background: #4e6578;
+}
+
+@container (max-width: 11.5rem) {
+  .card-display__art {
+    height: 48%;
+  }
+
+  .card-display__info {
+    padding: 12px 12px 0;
+  }
+
+  .card-display__rule {
+    margin: 8px 0 7px;
+  }
+
+  .card-display__footer {
+    height: 26px;
+    margin: 6px -12px 0;
+  }
 }
 
 .card-display__art::after {
