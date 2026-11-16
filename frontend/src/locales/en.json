@@ -820,7 +820,14 @@
     "effectExile": "Exile a card",
     "effectExhaust": "Exhaust",
     "upgraded": "Upgrade +{level}",
-    "quantityLabel": "Copies"
+    "quantityLabel": "Copies",
+    "serialNumber": "No. {n} · KAGE LEGACY",
+    "serialBrand": "KAGE LEGACY",
+    "backSubtitle": "SHINOBI CHRONICLES",
+    "flipToBack": "Flip card (back)",
+    "flipToFront": "Flip card (front)",
+    "flipBackShort": "Back",
+    "flipFrontShort": "Front"
   },
   "shop": {
     "kicker": "Acquisition",
@@ -856,7 +863,7 @@
     },
     "sealedScroll": "Scroll",
     "revealing": "Revealing {n}/{total}",
-    "revealDone": "Scroll opened",
+    "revealDone": "Booster complete — your cards joined the collection.",
     "newCard": "New",
     "duplicate": "Duplicate · {name}",
     "resultsTitle": "Scroll loot",
@@ -910,7 +917,22 @@
     "ryos": "Ryos",
     "kageCoins": "Kage Coins",
     "oddsTitle": "Drop rates",
-    "balancesLabel": "Your balances"
+    "balancesLabel": "Your balances",
+    "openingStage": "Booster opening animation",
+    "tearHint": "Swipe the strip right to tear open the booster.",
+    "tearLabel": "✦ SWIPE RIGHT ✦",
+    "tearAria": "Tear open the booster",
+    "tearAction": "Open booster",
+    "sealBroken": "The seal is broken…",
+    "revealHint": "Card {n} of {total} — click to reveal",
+    "revealCard": "Reveal card",
+    "revealCommon": "Card {n} of {total} — {name}",
+    "revealRare": "◆ RARE — Nice find!",
+    "revealLegendary": "✦ LEGENDARY — An exceptional find!",
+    "revealMythic": "✦ MYTHIC — A once-in-a-lifetime pull!",
+    "nextCard": "Next card →",
+    "seeResults": "See results →",
+    "obtainedTitle": "Cards obtained"
   },
   "talents": {
     "kicker": "Progression",

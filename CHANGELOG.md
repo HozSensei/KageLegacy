@@ -7,6 +7,14 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : carte V5 + ouverture booster (2026-11-16)
+
+#### Changed
+- **CardDisplay** : double face (flip), cadres de rareté V5 (acier/saphir/améthyste/or), gemme de chakra, ruban de scaling, serial + losanges ; conserve coût, effets, footer stats et capsule scale
+- **BoosterOpening** : cérémonie d’ouverture (languette à glisser, sachet, pile, révélation une-à-une) branchée sur les récompenses API
+- i18n FR/EN + `prefers-reduced-motion`
+
+
 ### Cartes : illustrations 73–84 (2026-11-15)
 
 #### Added

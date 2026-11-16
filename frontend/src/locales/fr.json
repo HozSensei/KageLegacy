@@ -820,7 +820,14 @@
     "effectExile": "Exile une carte",
     "effectExhaust": "Épuisement",
     "upgraded": "Amélioration +{level}",
-    "quantityLabel": "Exemplaires"
+    "quantityLabel": "Exemplaires",
+    "serialNumber": "N° {n} · KAGE LEGACY",
+    "serialBrand": "KAGE LEGACY",
+    "backSubtitle": "SHINOBI CHRONICLES",
+    "flipToBack": "Retourner la carte (dos)",
+    "flipToFront": "Retourner la carte (face)",
+    "flipBackShort": "Dos",
+    "flipFrontShort": "Face"
   },
   "shop": {
     "kicker": "Acquisition",
@@ -856,7 +863,7 @@
     },
     "sealedScroll": "Parchemin",
     "revealing": "Révélation {n}/{total}",
-    "revealDone": "Parchemin ouvert",
+    "revealDone": "Booster terminé — tes cartes ont rejoint ta collection.",
     "newCard": "Nouvelle",
     "duplicate": "Doublon · {name}",
     "resultsTitle": "Butin du parchemin",
@@ -910,7 +917,22 @@
     "ryos": "Ryos",
     "kageCoins": "Kage Coins",
     "oddsTitle": "Probabilités",
-    "balancesLabel": "Vos soldes"
+    "balancesLabel": "Vos soldes",
+    "openingStage": "Animation d’ouverture du booster",
+    "tearHint": "Glisse la bande vers la droite pour déchirer le booster.",
+    "tearLabel": "✦ GLISSER VERS LA DROITE ✦",
+    "tearAria": "Déchirer le booster",
+    "tearAction": "Ouvrir le booster",
+    "sealBroken": "Le sceau est brisé…",
+    "revealHint": "Carte {n} sur {total} — clique pour révéler",
+    "revealCard": "Révéler la carte",
+    "revealCommon": "Carte {n} sur {total} — {name}",
+    "revealRare": "◆ RARE — Belle trouvaille !",
+    "revealLegendary": "✦ LÉGENDAIRE — Une découverte exceptionnelle !",
+    "revealMythic": "✦ MYTHIQUE — Une découverte unique !",
+    "nextCard": "Carte suivante →",
+    "seeResults": "Voir le résultat →",
+    "obtainedTitle": "Cartes obtenues"
   },
   "talents": {
     "kicker": "Progression",
