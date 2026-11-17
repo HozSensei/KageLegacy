@@ -85,7 +85,7 @@ assert(clampCritChance(600) === 50, 'crit chance capped at 50');
 assert(rollCrit(0, () => 0).isCrit === false, '0% crit never procs');
 assert(rollCrit(100, () => 0).isCrit === true, '100% clamped crit procs on low roll');
 assert(typeAdvantageMultiplier('taijutsu', 'genjutsu') === 1.2, 'tai > gen');
-assert(typeAdvantageMultiplier('taijutsu', 'ninjutsu') === 0.85, 'tai vs nin disadvantage');
+assert(typeAdvantageMultiplier('taijutsu', 'ninjutsu') === 0.9, 'tai vs nin disadvantage');
 assert(getTypeAdvantage('ninjutsu', 'taijutsu').relation === 'advantage', 'nin > tai relation');
 assert(getTypeAdvantage('taijutsu', 'ninjutsu').relation === 'disadvantage', 'tai < nin relation');
 assert(elementMultiplier('katon', 'futon') === 1.5, 'katon > futon');

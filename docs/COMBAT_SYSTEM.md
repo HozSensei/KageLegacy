@@ -370,7 +370,7 @@ GENJUTSU ←→→→ NINJUTSU
 
 **Bonus** : +20% dégâts si avantage de type (×**1.2**)
 
-**Malus** : ×**0.85** si désavantage de triade (hors Médecine).
+**Malus** : ×**0.9** si désavantage de triade (hors Médecine).
 
 > Code : `backend/src/services/deckCombat/typeAdvantage.js` (`getTypeAdvantage`).
 > Tests : `npm run test:type-advantage` · voir aussi [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md).

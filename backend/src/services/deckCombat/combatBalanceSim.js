@@ -77,15 +77,32 @@ function balanceUpgradeBonuses(card) {
 function applyBalanceDeckUpgrade(card, upgradeLevel) {
   const computed = applyUpgradeBonuses(
     {
+      slug: card.slug,
+      type: card.type,
+      stat_type: card.statType,
+      stat_type_secondary: card.statTypeSecondary,
+      crit_chance: card.critChance,
       base_cost: card.cost,
       base_damage: card.damage,
       base_block: card.block,
       base_heal: card.heal,
+      passive_bonus_json: card.passiveBonus || {},
       upgradeBonuses: balanceUpgradeBonuses(card),
     },
     upgradeLevel,
   );
-  return { ...card, ...computed, upgradeLevel };
+  // Ne pas écraser le reste de la carte avec un objet « computed » incomplet.
+  return {
+    ...card,
+    cost: computed.cost,
+    damage: computed.damage,
+    block: computed.block,
+    heal: computed.heal,
+    critChance: computed.critChance || 0,
+    statTypeSecondary: computed.statTypeSecondary ?? card.statTypeSecondary ?? null,
+    passiveBonus: computed.passiveBonus,
+    upgradeLevel,
+  };
 }
 
 function buildProfileDeckEntries(profile) {

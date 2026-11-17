@@ -4,7 +4,7 @@
  * Module pur — pas de DB / RNG.
  *
  * Multiplicateurs :
- * - Triade : avantage ×1.2, désavantage ×0.85, médecine neutre
+ * - Triade : avantage ×1.2, désavantage ×0.9, médecine neutre
  * - Éléments : avantage ×1.5, désavantage ×0.7, neutre ×1
  */
 import {
