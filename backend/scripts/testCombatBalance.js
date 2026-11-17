@@ -257,10 +257,11 @@ const starter = buildStarterFixture();
   assert(
     JSON.stringify(starter.profile.stats) ===
       JSON.stringify({
-        taijutsu: 8,
-        ninjutsu: 10,
-        genjutsu: 9,
-        medicine: 6,
+        // Remap Vit→art primaire / Int→secondaire|Gen (combatArts).
+        taijutsu: 11,
+        ninjutsu: 14,
+        genjutsu: 17,
+        medicine: 8,
         maxHp: 12,
         maxChakra: 0,
       }),
@@ -280,17 +281,17 @@ const starter = buildStarterFixture();
   const fist1 = serializeSeedCard(fistSeed, 1);
   const fist2 = serializeSeedCard(fistSeed, 2);
   assert(
-    fist1.damage === 9 && fist1.passiveBonus.taijutsu === 3,
+    fist1.damage === 9 && fist1.passiveBonus.taijutsu === 4,
     'starter seed : bonus L1 actifs et passifs'
   );
   assert(
-    fist2.damage === 12 && fist2.cost === 0 && fist2.passiveBonus.taijutsu === 4,
+    fist2.damage === 12 && fist2.cost === 0 && fist2.passiveBonus.taijutsu === 6,
     'starter seed : bonus L2 relatifs à la base'
   );
   const upgradedEntries = starter.entries.map(entry =>
     entry.card.slug === fistSeed.slug ? { ...entry, card: fist1 } : entry
   );
-  assert(starterStats(upgradedEntries).taijutsu === 9, 'bonus passif L1 ajouté aux stats du deck');
+  assert(starterStats(upgradedEntries).taijutsu === 12, 'bonus passif L1 ajouté aux stats du deck');
   const session = createSimSession({
     profileId: 'starter',
     profileOverride: starter.profile,

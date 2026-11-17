@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Fix CI balance après 4 arts (2026-11-17)
+
+#### Changed
+
+- Malus de triade ramené à ×**0.9** (le ×0.85 rendait beginner@C injouable sous greedy)
+- Assertions starter / docs alignées sur le remap Vit→arts
+
 ### Talents : centre objets + Gen/Méd (2026-11-17)
 
 #### Changed
@@ -31,7 +38,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 - Stats combat TCG limitées à **Taijutsu / Ninjutsu / Genjutsu / Médecine** (+ dexterity/maxHp)
 - Passifs `vitesse` / `intelligence` remappés vers les arts ; critique = `critChance` sur carte
-- Triade : désavantage ×0.85 (en plus de l’avantage ×1.2)
+- Triade : désavantage ×0.9 (en plus de l’avantage ×1.2)
 - Cartes **double type** (`statTypeSecondary`) pour ponts 2-couleurs
 
 #### Removed
