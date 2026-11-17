@@ -7,6 +7,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 81–96 (grille 6) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#81–96` (`ancrage-tellurique` → `corbeau-spectre`) par la grille régénérée `6d077fee…` (PNG + WebP 250×250, ordre de lecture — plus de permute e267)
+
 ### Cartes : illustrations 145–160 (grille 10) (2026-11-17)
 
 #### Changed
