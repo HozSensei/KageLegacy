@@ -222,6 +222,7 @@ watch(
           <div
             v-if="elementLabel"
             class="card-display__element"
+            :class="`card-display__element--${elementKey}`"
             :data-tone="elementToneName"
             :title="elementLabel"
             data-testid="card-element"
@@ -648,6 +649,26 @@ watch(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.card-display__element--katon {
+  background: #d8513d;
+}
+
+.card-display__element--suiton {
+  background: #3776af;
+}
+
+.card-display__element--raiton {
+  background: #c9a227;
+}
+
+.card-display__element--doton {
+  background: #8c5c3e;
+}
+
+.card-display__element--futon {
+  background: #408b68;
 }
 
 .card-display__element-dot {
