@@ -43,7 +43,7 @@ export async function getBoardRecommendationStatus(userId) {
 
   const senseiRows = await query(
     'SELECT clan_board_recommended_cycle FROM sensei WHERE user_id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   const usedCycle = senseiRows[0]?.clan_board_recommended_cycle;
   const usedThisCycle =
@@ -69,7 +69,7 @@ export async function listClanAcademyBoard(userId) {
   await query(
     `DELETE FROM clan_academy_board
      WHERE clan_id = ? AND recruited_by_user_id IS NULL AND expires_at <= UTC_TIMESTAMP()`,
-    [membership.clanId]
+    [membership.clanId],
   );
 
   const rows = await query(
@@ -78,7 +78,7 @@ export async function listClanAcademyBoard(userId) {
      JOIN sensei s ON s.user_id = cab.poster_user_id
      WHERE cab.clan_id = ?
      ORDER BY cab.expires_at ASC, cab.id ASC`,
-    [membership.clanId]
+    [membership.clanId],
   );
 
   return {
@@ -110,7 +110,7 @@ export async function recommendAspirantToClan(userId, drawId) {
 
   const drawRows = await query(
     'SELECT * FROM academy_draws WHERE id = ? AND user_id = ? AND purchased = FALSE LIMIT 1',
-    [drawId, userId]
+    [drawId, userId],
   );
   const draw = drawRows[0];
   if (!draw) {
@@ -140,7 +140,7 @@ export async function recommendAspirantToClan(userId, drawId) {
       draw.candidate_json,
       draw.price,
       expiresAt,
-    ]
+    ],
   );
 
   await query('UPDATE sensei SET clan_board_recommended_cycle = ? WHERE user_id = ?', [
@@ -171,7 +171,7 @@ export async function recruitFromClanBoard(userId, postId) {
      JOIN sensei s ON s.user_id = ?
      WHERE cab.id = ? AND cab.clan_id = ?
      LIMIT 1`,
-    [userId, postId, membership.clanId]
+    [userId, postId, membership.clanId],
   );
   const post = postRows[0];
   if (!post) {
@@ -199,7 +199,7 @@ export async function recruitFromClanBoard(userId, postId) {
     `UPDATE clan_academy_board
      SET recruited_by_user_id = ?, recruited_at = UTC_TIMESTAMP()
      WHERE id = ? AND recruited_by_user_id IS NULL`,
-    [userId, postId]
+    [userId, postId],
   );
   if (!claim.affectedRows) {
     const error = new Error('Cet aspirant a déjà été recruté.');
@@ -212,7 +212,7 @@ export async function recruitFromClanBoard(userId, postId) {
   if (ryos < post.price) {
     await query(
       'UPDATE clan_academy_board SET recruited_by_user_id = NULL, recruited_at = NULL WHERE id = ?',
-      [postId]
+      [postId],
     );
     const error = new Error('Ryos insuffisants.');
     error.statusCode = 402;
@@ -228,7 +228,7 @@ export async function recruitFromClanBoard(userId, postId) {
   } catch (error) {
     await query(
       'UPDATE clan_academy_board SET recruited_by_user_id = NULL, recruited_at = NULL WHERE id = ?',
-      [postId]
+      [postId],
     );
     throw error;
   }

@@ -19,7 +19,7 @@ export async function updateSquadComposition(userId, slots) {
   const placeholders = ninjaIds.map(() => '?').join(',');
   const owned = await query(
     `SELECT id FROM ninjas WHERE user_id = ? AND id IN (${placeholders})`,
-    [userId, ...ninjaIds]
+    [userId, ...ninjaIds],
   );
 
   if (owned.length !== 3) {

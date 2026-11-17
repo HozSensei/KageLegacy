@@ -76,10 +76,10 @@ export async function applyPostMatchSocial(match) {
     const winnerPower = squadPowerFromSnapshot(combatLog?.squadSnapshots?.[winnerSide]);
     const loserPower = squadPowerFromSnapshot(combatLog?.squadSnapshots?.[loserSide]);
     const winnerPv = Number(
-      winnerSide === 'home' ? combatLog?.homeScorePct : combatLog?.awayScorePct
+      winnerSide === 'home' ? combatLog?.homeScorePct : combatLog?.awayScorePct,
     );
     const loserPv = Number(
-      winnerSide === 'home' ? combatLog?.awayScorePct : combatLog?.homeScorePct
+      winnerSide === 'home' ? combatLog?.awayScorePct : combatLog?.homeScorePct,
     );
 
     const underdogBySpeed = loserPower > 0 && winnerPower > 0 && winnerPower <= loserPower * 0.85;

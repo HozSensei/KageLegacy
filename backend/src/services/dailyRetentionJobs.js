@@ -32,13 +32,13 @@ export async function processDailyRetentionTick() {
   lastDailyRetentionDate = today;
 
   console.log(
-    `[DailyRetention] ${today} — sceaux accordés à ${seals.filter((s) => s.granted > 0).length} joueur(s) · rotations académie ${academy.length} · invités purgés ${guestCleanup.purgedGuests} · sessions expirées ${guestCleanup.expiredSessionsRemoved}`
+    `[DailyRetention] ${today} — sceaux accordés à ${seals.filter((s) => s.granted > 0).length} joueur(s) · rotations académie ${academy.length} · invités purgés ${guestCleanup.purgedGuests} · sessions expirées ${guestCleanup.expiredSessionsRemoved}`,
   );
 
   if (guestCleanup.failedGuests > 0) {
     console.error(
       `[DailyRetention] ${today} — échec purge invités (${guestCleanup.failedGuests})`,
-      guestCleanup.failures
+      guestCleanup.failures,
     );
   }
 

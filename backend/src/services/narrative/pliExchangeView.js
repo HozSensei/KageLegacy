@@ -19,7 +19,7 @@ export function buildPliExchangeView(segment) {
   const outcomePart = parts.find(
     (p) =>
       String(p?.action_key || '').includes('outcome_win') ||
-      String(p?.action_key || '').includes('outcome_draw')
+      String(p?.action_key || '').includes('outcome_draw'),
   );
 
   let winner = 'draw';

@@ -17,7 +17,7 @@ export async function persistNarrativeSegments(matchId, segments) {
         seg.template_key ?? null,
         seg.template_index ?? null,
         seg.template_vars ? JSON.stringify(seg.template_vars) : null,
-      ]
+      ],
     );
   }
 }
@@ -38,7 +38,7 @@ export async function getNarrativeSegments(matchId) {
      FROM match_narrative_segments
      WHERE match_id = ?
      ORDER BY segment_order`,
-    [matchId]
+    [matchId],
   );
 
   return rows.map((row) => ({

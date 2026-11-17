@@ -21,7 +21,7 @@ export async function applyPostMatchRecovery(userId, koNinjaIds = []) {
       `UPDATE ninjas
        SET current_pv_match = ?, current_chakra_match = ?, weekly_forme = ?
        WHERE id = ?`,
-      [maxPv, maxChakra, weeklyForme, ninja.id]
+      [maxPv, maxChakra, weeklyForme, ninja.id],
     );
   }
 }

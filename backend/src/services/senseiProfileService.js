@@ -11,7 +11,7 @@ export async function getSenseiPublicProfile(targetUserId, viewerUserId = null) 
      JOIN users u ON u.id = s.user_id
      WHERE s.user_id = ?
      LIMIT 1`,
-    [targetUserId]
+    [targetUserId],
   );
   const sensei = senseiRows[0];
   if (!sensei) {
@@ -39,7 +39,7 @@ export async function getSenseiPublicProfile(targetUserId, viewerUserId = null) 
     const standingRows = await query(
       `SELECT points, played, wins, draws, losses FROM pool_standings
        WHERE pool_id = ? AND user_id = ? LIMIT 1`,
-      [pool.id, targetUserId]
+      [pool.id, targetUserId],
     );
     const standing = standingRows[0];
     publicStats = {
@@ -64,7 +64,7 @@ export async function getSenseiPublicProfile(targetUserId, viewerUserId = null) 
      WHERE (m.home_user_id = ? OR m.away_user_id = ?) AND m.status = 'applied'
      ORDER BY m.results_applied_at DESC
      LIMIT 1`,
-    [targetUserId, targetUserId]
+    [targetUserId, targetUserId],
   );
 
   const recent = recentRows[0];

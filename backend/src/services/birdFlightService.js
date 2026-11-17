@@ -78,7 +78,7 @@ export async function processBirdFlightsForUser(userId) {
      JOIN clan_traits c ON c.id = n.clan_trait_id
      JOIN sensei s ON s.user_id = n.user_id
      WHERE n.user_id = ? AND n.grade = 'Chunin' AND n.bird_flight_requested = TRUE`,
-    [userId]
+    [userId],
   );
 
   const results = [];
@@ -122,7 +122,7 @@ export async function processBirdFlightsForUser(userId) {
          AND (m.home_user_id = ? OR m.away_user_id = ?)
        ORDER BY m.season_cycle DESC, m.id DESC
        LIMIT 2`,
-      [userId, userId]
+      [userId, userId],
     );
 
     const matchHighlights = highlights.map((m) => {

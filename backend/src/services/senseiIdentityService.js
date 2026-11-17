@@ -30,7 +30,7 @@ async function loadPoolsForUsers(userIds, poolContext = null) {
      FROM pool_members pm
      JOIN pools p ON p.id = pm.pool_id
      WHERE pm.user_id IN (${placeholders})`,
-    userIds
+    userIds,
   );
   for (const row of rows) {
     poolByUser.set(row.user_id, row);
@@ -47,7 +47,7 @@ async function loadActiveSubscriptions(userIds) {
     `SELECT user_id, season_number, status, pool_id, current_period_end
      FROM sensei_elite_subscriptions
      WHERE user_id IN (${placeholders}) AND status = 'active'`,
-    userIds
+    userIds,
   );
   for (const row of rows) {
     subByUser.set(row.user_id, row);
@@ -87,7 +87,7 @@ export async function buildSenseiIdentities(userIds, locale = 'fr', poolContext 
        LEFT JOIN sensei_cosmetics sc ON sc.user_id = s.user_id
        LEFT JOIN elite_title_catalog tc ON tc.slug = sc.title_slug
        WHERE s.user_id IN (${placeholders})`,
-      uniqueIds
+      uniqueIds,
     ),
     loadPoolsForUsers(uniqueIds, poolContext),
     loadActiveSubscriptions(uniqueIds),

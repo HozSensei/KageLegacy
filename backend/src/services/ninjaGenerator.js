@@ -11,7 +11,6 @@ import { pickUniqueCivName } from './ninjaNameGenerator.js';
 import { loadGlobalIdentityKeySet } from '../models/ninja.js';
 import {
   applyTraitBoost,
-  distributeCharacterTraits,
   resolveTraitPayload,
   rollCharacterTrait,
 } from './characterTraits.js';
@@ -84,7 +83,7 @@ export function rollPotential(clan) {
   let weights = [...POTENTIAL_WEIGHTS];
   if (clan?.is_noble) {
     weights = weights.map((w) =>
-      w.tier === 'ordinaire' ? { ...w, weight: w.weight - 8 } : { ...w, weight: w.weight + 4 }
+      w.tier === 'ordinaire' ? { ...w, weight: w.weight - 8 } : { ...w, weight: w.weight + 4 },
     );
   }
   return rollWeighted(weights);
@@ -106,7 +105,7 @@ export function rollStatBases(grade = 'Genin') {
   const baseMin = grade === 'Genin' ? 2 : 4;
   const spread = grade === 'Genin' ? GENIN_BASE_SPREAD : CHUNIN_BASE_SPREAD;
   return Object.fromEntries(
-    STAT_KEYS.map((key) => [key, baseMin + Math.floor(Math.random() * (spread + 1))])
+    STAT_KEYS.map((key) => [key, baseMin + Math.floor(Math.random() * (spread + 1))]),
   );
 }
 

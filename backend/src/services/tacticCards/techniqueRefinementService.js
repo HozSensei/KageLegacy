@@ -36,7 +36,7 @@ export async function getTechniqueRefinementPayload(userId) {
 export async function refineTechniqueCard(userId, userTacticCardId) {
   await assertSpendingAllowed(
     userId,
-    'Gel administratif — remboursez votre dette avant de perfectionner une carte.'
+    'Gel administratif — remboursez votre dette avant de perfectionner une carte.',
   );
 
   const rows = await query(
@@ -49,7 +49,7 @@ export async function refineTechniqueCard(userId, userTacticCardId) {
      JOIN sensei s ON s.user_id = utc.user_id
      LEFT JOIN player_listings pl ON pl.user_tactic_card_id = utc.id AND pl.status = 'active'
      WHERE utc.id = ? AND utc.user_id = ?`,
-    [userTacticCardId, userId]
+    [userTacticCardId, userId],
   );
   const row = rows[0];
   if (!row) {

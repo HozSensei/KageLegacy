@@ -8,7 +8,7 @@ export async function findItemIdBySlug(slug) {
 export async function findItemDefinitionBySlug(slug) {
   const rows = await query(
     'SELECT slug, name_fr, name_en FROM item_definitions WHERE slug = ? LIMIT 1',
-    [slug]
+    [slug],
   );
   return rows[0] || null;
 }
@@ -20,7 +20,7 @@ export async function grantItemToUser(userId, slug, quantity = 1) {
   for (let i = 0; i < quantity; i += 1) {
     const result = await query(
       'INSERT INTO user_items (user_id, item_definition_id) VALUES (?, ?)',
-      [userId, itemId]
+      [userId, itemId],
     );
     granted.push({ userItemId: result.insertId, slug, quantity: 1 });
   }
@@ -33,7 +33,7 @@ export async function countUnconsumedItemsBySlug(userId, slug) {
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
      WHERE ui.user_id = ? AND idf.slug = ? AND ui.consumed = FALSE`,
-    [userId, slug]
+    [userId, slug],
   );
   return Number(rows[0]?.cnt ?? 0);
 }
@@ -46,7 +46,7 @@ export async function consumeOldestItemBySlug(userId, slug) {
      WHERE ui.user_id = ? AND idf.slug = ? AND ui.consumed = FALSE
      ORDER BY ui.acquired_at ASC, ui.id ASC
      LIMIT 1`,
-    [userId, slug]
+    [userId, slug],
   );
   const userItemId = rows[0]?.id;
   if (!userItemId) return null;

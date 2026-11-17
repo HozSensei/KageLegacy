@@ -1,4 +1,3 @@
-import { getUserLanguage } from './narrative/viewerLocale.js';
 import { assertActiveEliteSubscription } from './eliteSubscriptionService.js';
 import { loadMatchRow, assertViewerCanAccessMatch, isMatchParticipant } from './matchSpectatorService.js';
 import {
@@ -282,7 +281,7 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
   const deck = deckOrCounts?.deck ?? deckOrCounts;
   const techniqueCount = deck?.techniqueCount ?? Object.values(deck?.techniqueSlotsByNinjaId || {}).reduce(
     (sum, ids) => sum + (ids?.length || 0),
-    0
+    0,
   );
   const maxTechniques = 3;
 
@@ -290,24 +289,24 @@ export function buildOrdersAdvice(deckOrCounts, locale = 'fr') {
     tips.push(
       lang === 'en'
         ? `Deck has ${techniqueCount}/${maxTechniques} inventory technique cards — assign one per ninja before H71.`
-        : `Deck : ${techniqueCount}/${maxTechniques} cartes technique inventaire — assignez-en une par ninja avant H71.`
+        : `Deck : ${techniqueCount}/${maxTechniques} cartes technique inventaire — assignez-en une par ninja avant H71.`,
     );
   } else {
     tips.push(
       lang === 'en'
         ? 'Full 18-pli shuffle — 1 inventory card + 2× primary stat + 3× secondary stat per ninja.'
-        : 'Mélange complet à 18 plis — 1 carte inventaire + 2× stat primaire + 3× stat secondaire par ninja.'
+        : 'Mélange complet à 18 plis — 1 carte inventaire + 2× stat primaire + 3× stat secondaire par ninja.',
     );
   }
 
   const configuredNinjas = Object.values(deck?.techniqueSlotsByNinjaId || {}).filter(
-    (ids) => (ids?.length || 0) >= 1
+    (ids) => (ids?.length || 0) >= 1,
   ).length;
   if (configuredNinjas < 3) {
     tips.push(
       lang === 'en'
         ? 'Assign 1 inventory technique card on each active ninja.'
-        : 'Assignez 1 carte technique inventaire sur chaque ninja actif.'
+        : 'Assignez 1 carte technique inventaire sur chaque ninja actif.',
     );
   }
 
@@ -341,14 +340,14 @@ export function buildSimulationVerdict({
   factors.push(
     lang === 'en'
       ? `Reference opponent uses a ${oppLabel.toLowerCase()} at your power level (${opponentLevel}).`
-      : `Adversaire de référence avec un profil « ${oppLabel} », calibré sur votre puissance (${opponentLevel}).`
+      : `Adversaire de référence avec un profil « ${oppLabel} », calibré sur votre puissance (${opponentLevel}).`,
   );
 
   if (squadContext?.deckElements != null && squadContext.deckElements < 5) {
     factors.push(
       lang === 'en'
         ? `Only ${squadContext.deckElements}/5 deck elements selected on your side.`
-        : `Seulement ${squadContext.deckElements}/5 éléments de deck choisis de votre côté.`
+        : `Seulement ${squadContext.deckElements}/5 éléments de deck choisis de votre côté.`,
     );
   }
 
@@ -356,7 +355,7 @@ export function buildSimulationVerdict({
     factors.push(
       lang === 'en'
         ? `Reference opponent uses ${squadContext.opponentDeckElements}/5 element cards — relay plis expected.`
-        : `L'adversaire de référence n'a que ${squadContext.opponentDeckElements}/5 éléments — relais probables.`
+        : `L'adversaire de référence n'a que ${squadContext.opponentDeckElements}/5 éléments — relais probables.`,
     );
   }
 
@@ -364,7 +363,7 @@ export function buildSimulationVerdict({
     factors.push(
       lang === 'en'
         ? `Only ${squadContext.opponentTechniquesConfigured}/3 opponent ninjas have configured techniques.`
-        : `Seulement ${squadContext.opponentTechniquesConfigured}/3 ninjas adverses ont des techniques configurées.`
+        : `Seulement ${squadContext.opponentTechniquesConfigured}/3 ninjas adverses ont des techniques configurées.`,
     );
   }
 
@@ -392,19 +391,19 @@ export function buildSimulationVerdict({
   factors.push(
     lang === 'en'
       ? `Synthetic opponent deck — ${levelDescriptions[lang][levelKey]}, not a real player roster.`
-      : `Deck adverse synthétique — ${levelDescriptions.fr[levelKey]}, pas un vrai roster joueur.`
+      : `Deck adverse synthétique — ${levelDescriptions.fr[levelKey]}, pas un vrai roster joueur.`,
   );
 
   if (squadContext?.avgMoral != null && squadContext.avgMoral < 12 && winPct < 50) {
     factors.push(
       lang === 'en'
         ? `Low squad morale (avg ${squadContext.avgMoral.toFixed(1)}/20) drags performance in long fights.`
-        : `Moral d'escouade bas (moy. ${squadContext.avgMoral.toFixed(1)}/20) pénalise les combats longs.`
+        : `Moral d'escouade bas (moy. ${squadContext.avgMoral.toFixed(1)}/20) pénalise les combats longs.`,
     );
     advice.push(
       lang === 'en'
         ? 'Raise morale via Chakra Seals, dispensary, or bench rotation before committing to the operation.'
-        : 'Remontez le moral via sceaux chakra, dispensaire ou rotation du banc avant de verrouiller l\'opération.'
+        : 'Remontez le moral via sceaux chakra, dispensaire ou rotation du banc avant de verrouiller l\'opération.',
     );
   }
 
@@ -416,7 +415,7 @@ export function buildSimulationVerdict({
     advice.push(
       lang === 'en'
         ? 'Trend is positive — keep refining your operation deck and training focus.'
-        : 'La tendance est bonne — continuez à affiner votre deck d\'opération et votre entraînement.'
+        : 'La tendance est bonne — continuez à affiner votre deck d\'opération et votre entraînement.',
     );
   } else if (winPct <= 42) {
     tone = 'unfavorable';
@@ -426,7 +425,7 @@ export function buildSimulationVerdict({
     advice.push(
       lang === 'en'
         ? 'Small changes (one technique swap, one element card, or morale recovery) can flip this trend.'
-        : 'De petits ajustements (une technique, une carte élément ou du moral) peuvent renverser la tendance.'
+        : 'De petits ajustements (une technique, une carte élément ou du moral) peuvent renverser la tendance.',
     );
   }
 
@@ -434,7 +433,7 @@ export function buildSimulationVerdict({
     advice.push(
       lang === 'en'
         ? 'Complete your 5 deck elements and set primary/secondary techniques on every active ninja before H71.'
-        : 'Complétez vos 5 éléments de deck et définissez les techniques principal/secondaire sur chaque ninja actif avant H71.'
+        : 'Complétez vos 5 éléments de deck et définissez les techniques principal/secondaire sur chaque ninja actif avant H71.',
     );
   }
 
@@ -442,7 +441,7 @@ export function buildSimulationVerdict({
     advice.push(
       lang === 'en'
         ? 'Review your deck checklist and training ROI above, then re-run the simulator.'
-        : 'Revoyez la checklist deck et le ROI entraînement ci-dessus, puis relancez la simulation.'
+        : 'Revoyez la checklist deck et le ROI entraînement ci-dessus, puis relancez la simulation.',
     );
   }
 

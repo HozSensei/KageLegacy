@@ -30,7 +30,7 @@ export async function getMidcycleChoicePayload(userId) {
   const pool = await findUserPool(userId);
   const senseiRows = await query(
     'SELECT ryos, midcycle_rumor_cycle FROM sensei WHERE user_id = ?',
-    [userId]
+    [userId],
   );
   const sensei = senseiRows[0];
   if (!sensei || !pool) {
@@ -82,7 +82,7 @@ export async function purchaseMidcycleRumor(userId) {
 
   await query(
     'UPDATE sensei SET ryos = ryos - ?, midcycle_rumor_cycle = ? WHERE user_id = ? AND ryos >= ?',
-    [RUMOR_COST, pool.current_cycle, userId, RUMOR_COST]
+    [RUMOR_COST, pool.current_cycle, userId, RUMOR_COST],
   );
 
   const match = await getUserMatchForCycle(userId, pool.current_cycle);

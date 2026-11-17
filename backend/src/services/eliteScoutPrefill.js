@@ -24,7 +24,7 @@ function mapTechniqueSlugsByNinja(deckReport) {
     (slot.techniques || [])
       .map((t) => t.slug)
       .filter((slug) => slug && known.has(slug))
-      .slice(0, 1)
+      .slice(0, 1),
   );
   if (fromSlots.some((row) => row.length)) return fromSlots;
 

@@ -122,7 +122,7 @@ export function calibrateMatchPrizes({
       if (drawRyos > winRyos * 0.55) continue;
 
       const results = profileEntries.map((profile) =>
-        simulateProfile({ profile, cycles, startRyos, winRyos, drawRyos })
+        simulateProfile({ profile, cycles, startRyos, winRyos, drawRyos }),
       );
 
       const byId = Object.fromEntries(results.map((r) => [r.profileId, r]));
@@ -162,7 +162,7 @@ export function calibrateMatchPrizes({
   const current = grid.find(
     (r) =>
       r.winRyos === winCandidates.find((w) => w === 1500) &&
-      r.drawRyos === drawCandidates.find((d) => d === 500)
+      r.drawRyos === drawCandidates.find((d) => d === 500),
   ) || grid.find((r) => r.winRyos === 1500 && r.drawRyos === 500);
 
   return {

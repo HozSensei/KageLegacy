@@ -180,5 +180,5 @@ export const UTILITY_LOADOUTS = [
 ];
 
 export const UTILITY_LOADOUTS_BY_ID = Object.fromEntries(
-  UTILITY_LOADOUTS.map((l) => [l.id, l])
+  UTILITY_LOADOUTS.map((l) => [l.id, l]),
 );

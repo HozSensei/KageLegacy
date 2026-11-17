@@ -2,7 +2,6 @@ import { query } from '../config/database.js';
 import { getClockRow } from './gameClock.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { findUserPool } from './poolService.js';
-import { getUserReconMissionForCycle } from './reconnaissanceService.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { analyzeDomainMix, dominantElement, dominantArt } from './scoutSquadAnalysis.js';
 
@@ -70,7 +69,7 @@ export async function loadOpponentAppliedMatches(opponentId, poolId, limit = HIS
        AND (m.home_user_id = ? OR m.away_user_id = ?)
      ORDER BY m.season_cycle DESC
      LIMIT ${safeLimit}`,
-    [poolId, opponentId, opponentId]
+    [poolId, opponentId, opponentId],
   );
 }
 
@@ -129,21 +128,21 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
     lines.push(
       lang === 'en'
         ? 'Usually fields multiple Taijutsu specialists.'
-        : 'Dispose souvent de plusieurs spécialistes Taijutsu.'
+        : 'Dispose souvent de plusieurs spécialistes Taijutsu.',
     );
   }
   if (avgNinLean >= 1.2) {
     lines.push(
       lang === 'en'
         ? 'Often leans on Ninjutsu pressure.'
-        : 'S\'appuie souvent sur la pression Ninjutsu.'
+        : 'S\'appuie souvent sur la pression Ninjutsu.',
     );
   }
   if (avgMedLean >= 0.8) {
     lines.push(
       lang === 'en'
         ? 'Frequently includes Medicine-oriented ninjas.'
-        : 'Inclut fréquemment des ninjas orientés Médecine.'
+        : 'Inclut fréquemment des ninjas orientés Médecine.',
     );
   }
   if (art) {
@@ -154,23 +153,23 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
     lines.push(
       lang === 'en'
         ? `Dominant art across recent lineups: ${artLabel}.`
-        : `Voie dominante sur les dernières compositions : ${artLabel}.`
+        : `Voie dominante sur les dernières compositions : ${artLabel}.`,
     );
   }
   if (element) {
     lines.push(
       lang === 'en'
         ? `Recurring ${element} affinity in recent trios.`
-        : `Affinité ${element} récurrente dans les trios récents.`
+        : `Affinité ${element} récurrente dans les trios récents.`,
     );
   }
   if (avgSpeed >= 55) {
     lines.push(
-      lang === 'en' ? 'Historically fast tactical tempo.' : 'Tempo tactique historiquement rapide.'
+      lang === 'en' ? 'Historically fast tactical tempo.' : 'Tempo tactique historiquement rapide.',
     );
   } else   if (avgSpeed <= 40) {
     lines.push(
-      lang === 'en' ? 'Historically slow tactical tempo.' : 'Tempo tactique historiquement lent.'
+      lang === 'en' ? 'Historically slow tactical tempo.' : 'Tempo tactique historiquement lent.',
     );
   }
 
@@ -187,7 +186,7 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
       lines.push(
         lang === 'en'
           ? `Often fields ~${Math.round(avgElements)} deck element cards per match.`
-          : `Dispose souvent d'environ ${Math.round(avgElements)} éléments de deck par match.`
+          : `Dispose souvent d'environ ${Math.round(avgElements)} éléments de deck par match.`,
       );
     }
     if (dominantDeckDomain) {
@@ -202,7 +201,7 @@ export function buildHistoricalTendencies(opponentId, matchRows, lang = 'fr') {
       lines.push(
         lang === 'en'
           ? `Deck techniques often lean ${label} as primary domain.`
-          : `Les techniques de deck penchent souvent vers ${label} en domaine principal.`
+          : `Les techniques de deck penchent souvent vers ${label} en domaine principal.`,
       );
     }
   }
@@ -227,7 +226,7 @@ async function loadIntelRow(userId, poolId, seasonCycle, cycleStartAt) {
     `SELECT * FROM cycle_scout_intel
      WHERE viewer_user_id = ? AND pool_id = ? AND season_cycle = ? AND cycle_start_at = ?
      LIMIT 1`,
-    [userId, poolId, seasonCycle, cycleStartAt]
+    [userId, poolId, seasonCycle, cycleStartAt],
   );
   return rows[0] ?? null;
 }
@@ -280,7 +279,7 @@ async function upsertIntelRow({
         rosterReport ? JSON.stringify(rosterReport) : null,
         rosterFrozenAt ?? null,
         tendenciesGeneratedAt ?? null,
-      ]
+      ],
     );
     return;
   }
@@ -349,7 +348,7 @@ export async function generateTendenciesIntelForAllUsers() {
     `SELECT u.id FROM users u
      JOIN pool_members pm ON pm.user_id = u.id
      JOIN pools p ON p.id = pm.pool_id
-     WHERE u.is_bot = FALSE AND p.status = 'active'`
+     WHERE u.is_bot = FALSE AND p.status = 'active'`,
   );
   const results = [];
   for (const user of users) {
@@ -361,7 +360,7 @@ export async function generateTendenciesIntelForAllUsers() {
   return results;
 }
 
-export async function getIntelForUser(userId, seasonCycle, locale = 'fr') {
+export async function getIntelForUser(userId, seasonCycle, _locale = 'fr') {
   const pool = await findUserPool(userId);
   if (!pool) return null;
   const clockRow = await getClockRow();

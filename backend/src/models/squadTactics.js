@@ -38,7 +38,7 @@ export async function updateTrainingPlans(userId, { plans = [], globalTrainingTy
   const placeholders = ninjaIds.map(() => '?').join(',');
   const owned = await query(
     `SELECT id, squad_position FROM ninjas WHERE user_id = ? AND id IN (${placeholders})`,
-    [userId, ...ninjaIds]
+    [userId, ...ninjaIds],
   );
 
   if (owned.length !== plans.length) {
@@ -91,7 +91,7 @@ export async function requestChuninExam(userId, ninjaId) {
      FROM ninjas n
      JOIN sensei s ON s.user_id = n.user_id
      WHERE n.id = ? AND n.user_id = ? AND n.grade = 'Genin'`,
-    [ninjaId, userId]
+    [ninjaId, userId],
   );
   const ninja = rows[0];
   if (!ninja) {
@@ -119,7 +119,7 @@ export async function requestChuninExam(userId, ninjaId) {
 
   await query(
     'UPDATE ninjas SET chunin_exam_requested = TRUE, stagnant_cycles = 0 WHERE id = ?',
-    [ninjaId]
+    [ninjaId],
   );
 
   return { ninjaId, cost: 0 };
@@ -138,7 +138,7 @@ export async function requestBirdFlight(userId, ninjaId) {
      FROM ninjas n
      JOIN sensei s ON s.user_id = n.user_id
      WHERE n.id = ? AND n.user_id = ? AND n.grade = 'Chunin'`,
-    [ninjaId, userId]
+    [ninjaId, userId],
   );
   const ninja = rows[0];
   if (!ninja) {
@@ -166,7 +166,7 @@ export async function requestBirdFlight(userId, ninjaId) {
 
   await query(
     'UPDATE ninjas SET bird_flight_requested = TRUE, stagnant_cycles = 0 WHERE id = ?',
-    [ninjaId]
+    [ninjaId],
   );
 
   return { ninjaId };

@@ -57,7 +57,7 @@ export async function setFaction(userId, factionId) {
     throw httpError(409, 'Faction déjà choisie. Utilisez le retake si disponible.');
   }
 
-  await query(`UPDATE player_character SET faction_id = ? WHERE user_id = ?`, [
+  await query('UPDATE player_character SET faction_id = ? WHERE user_id = ?', [
     factionId,
     userId,
   ]);

@@ -71,18 +71,15 @@ export function getStrategiesForComposition(composition) {
 /**
  * Escouade adverse alignée sur le profil chiffré du joueur, avec consignes pures.
  */
-export function buildOpponentSquadFromPlayer(playerNinjas, composition, level = 'similar') {
+export function buildOpponentSquadFromPlayer(playerNinjas, _composition, level = 'similar') {
   const ordered = [...playerNinjas]
     .filter((n) => n.squad_position != null)
     .sort((a, b) => a.squad_position - b.squad_position)
     .slice(0, 3);
   const base = ordered.length >= 3 ? ordered : playerNinjas.slice(0, 3);
   const multiplier = getOpponentLevelMultiplier(level);
-  const strategies = getStrategiesForComposition(composition);
 
-  return base.map((ninja, index) =>
-    scaleNinjaStats({ ...ninja }, multiplier)
-  );
+  return base.map((ninja) => scaleNinjaStats({ ...ninja }, multiplier));
 }
 
 /**

@@ -17,7 +17,7 @@ export async function persistReconNarrativeSegments(missionId, segments) {
         seg.template_key ?? null,
         seg.template_index ?? null,
         seg.template_vars ? JSON.stringify(seg.template_vars) : null,
-      ]
+      ],
     );
   }
 }
@@ -38,7 +38,7 @@ export async function getReconNarrativeSegments(missionId) {
      FROM reconnaissance_narrative_segments
      WHERE mission_id = ?
      ORDER BY segment_order`,
-    [missionId]
+    [missionId],
   );
 
   return rows.map((row) => ({

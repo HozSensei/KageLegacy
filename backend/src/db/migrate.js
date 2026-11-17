@@ -22,7 +22,7 @@ async function migrate() {
     for (const file of files) {
       const [existing] = await connection.query(
         'SELECT id FROM schema_migrations WHERE filename = ?',
-        [file]
+        [file],
       );
       if (existing.length > 0) {
         console.log(`⏭  ${file} (déjà appliquée)`);

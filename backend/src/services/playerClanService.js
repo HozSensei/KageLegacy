@@ -14,7 +14,7 @@ export async function getClanMembership(userId) {
      JOIN player_clans pc ON pc.id = pcm.clan_id
      WHERE pcm.user_id = ?
      LIMIT 1`,
-    [userId]
+    [userId],
   );
   if (!rows[0]) return null;
   const row = rows[0];
@@ -38,7 +38,7 @@ export async function listClanMembers(clanId) {
      JOIN sensei s ON s.user_id = pcm.user_id
      WHERE pcm.clan_id = ?
      ORDER BY pcm.joined_at ASC`,
-    [clanId]
+    [clanId],
   );
   return rows.map((row) => ({
     userId: row.user_id,
@@ -72,7 +72,7 @@ export async function createPlayerClan(userId, name) {
   const clanResult = await query(
     `INSERT INTO player_clans (name, invite_code, leader_user_id, well_capacity)
      VALUES (?, ?, ?, ?)`,
-    [trimmed, inviteCode, userId, WELL_CAPACITY_DEFAULT]
+    [trimmed, inviteCode, userId, WELL_CAPACITY_DEFAULT],
   );
   const clanId = clanResult.insertId;
   await query('INSERT INTO player_clan_members (clan_id, user_id) VALUES (?, ?)', [clanId, userId]);
@@ -105,7 +105,7 @@ export async function joinPlayerClan(userId, inviteCode) {
 
   const countRows = await query(
     'SELECT COUNT(*) AS cnt FROM player_clan_members WHERE clan_id = ?',
-    [clan.id]
+    [clan.id],
   );
   if (Number(countRows[0]?.cnt ?? 0) >= MAX_CLAN_MEMBERS) {
     const error = new Error(`Ce clan est complet (${MAX_CLAN_MEMBERS} Senseis max).`);
@@ -155,7 +155,7 @@ export async function getClanPayload(userId) {
   const locale = await getUserLanguage(userId);
   const identityMap = await buildSenseiIdentities(
     members.map((member) => member.userId),
-    locale
+    locale,
   );
 
   return {

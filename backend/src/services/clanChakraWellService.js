@@ -12,13 +12,13 @@ export async function addChakraDropForSealOpen(userId) {
     `UPDATE player_clans
      SET well_drops = LEAST(well_capacity, well_drops + 1)
      WHERE id = ?`,
-    [membership.clanId]
+    [membership.clanId],
   );
   if (!update.affectedRows) return { contributed: false };
 
   const clanRows = await query(
     'SELECT well_drops, well_capacity, name FROM player_clans WHERE id = ? LIMIT 1',
-    [membership.clanId]
+    [membership.clanId],
   );
   const clan = clanRows[0];
   if (!clan) return { contributed: true, fused: false };

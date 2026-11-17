@@ -18,7 +18,7 @@ export async function buildPoolH2hMap(viewerUserId, poolId) {
      FROM matches
      WHERE pool_id = ? AND status = 'applied' AND result IN ('home_win', 'away_win', 'draw')
        AND (home_user_id = ? OR away_user_id = ?)`,
-    [poolId, viewerUserId, viewerUserId]
+    [poolId, viewerUserId, viewerUserId],
   );
 
   const map = new Map();
@@ -48,7 +48,7 @@ export async function buildNemesisMap(viewerUserId, poolId) {
       `SELECT rival_user_id, consecutive_losses, is_nemesis, last_result
        FROM sensei_rivalries
        WHERE user_id = ? AND pool_id = ?`,
-      [viewerUserId, poolId]
+      [viewerUserId, poolId],
     );
     return new Map(
       rows.map((r) => [
@@ -58,7 +58,7 @@ export async function buildNemesisMap(viewerUserId, poolId) {
           consecutiveLosses: r.consecutive_losses,
           lastResult: r.last_result,
         },
-      ])
+      ]),
     );
   } catch {
     // Table absente si migration 061 pas encore appliquée
@@ -140,7 +140,7 @@ export async function getPoolRosterCounts(poolId) {
      FROM pool_members pm
      JOIN users u ON u.id = pm.user_id
      WHERE pm.pool_id = ?`,
-    [poolId]
+    [poolId],
   );
   const row = rows[0] || {};
   return {

@@ -3,7 +3,7 @@ import { query } from '../config/database.js';
 export async function createSenseiNotification(userId, kind, payload) {
   const result = await query(
     'INSERT INTO sensei_notifications (user_id, kind, payload) VALUES (?, ?, ?)',
-    [userId, kind, JSON.stringify(payload)]
+    [userId, kind, JSON.stringify(payload)],
   );
   return result.insertId;
 }
@@ -25,7 +25,7 @@ export async function getUnreadNotifications(userId) {
      FROM sensei_notifications
      WHERE user_id = ? AND dismissed_at IS NULL
      ORDER BY created_at ASC`,
-    [userId]
+    [userId],
   );
   return rows.map(mapNotificationRow);
 }
@@ -39,7 +39,7 @@ export async function getNotificationHistory(userId, limit = 15) {
      WHERE user_id = ? AND dismissed_at IS NOT NULL
      ORDER BY dismissed_at DESC
      LIMIT ${safeLimit}`,
-    [userId]
+    [userId],
   );
   return rows.map(mapNotificationRow);
 }
@@ -53,7 +53,7 @@ export async function getRecentActivity(userId, limit = 20) {
      WHERE user_id = ?
      ORDER BY created_at DESC
      LIMIT ${safeLimit}`,
-    [userId]
+    [userId],
   );
   return rows.map(mapNotificationRow);
 }
@@ -61,7 +61,7 @@ export async function getRecentActivity(userId, limit = 20) {
 export async function dismissNotification(userId, notificationId) {
   const result = await query(
     'UPDATE sensei_notifications SET dismissed_at = UTC_TIMESTAMP() WHERE id = ? AND user_id = ? AND dismissed_at IS NULL',
-    [notificationId, userId]
+    [notificationId, userId],
   );
   return result.affectedRows > 0;
 }

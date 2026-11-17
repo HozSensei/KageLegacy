@@ -118,7 +118,7 @@ export function hasEnvironmentCounter(fighter, envSlug) {
   if (!env?.counterSlug) return false;
   return (fighter.equipment?.cycle || []).some(
     (effect) =>
-      effect.trigger === 'environment_counter' && effect.counter === env.slug
+      effect.trigger === 'environment_counter' && effect.counter === env.slug,
   );
 }
 

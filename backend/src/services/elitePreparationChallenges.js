@@ -44,6 +44,7 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
   const techniqueCount = operationDeck?.techniqueCount ?? 0;
   const maxTechniques = active.length * TECHNIQUE_CARDS_PER_NINJA;
   const rawSlots = operationDeck?.rawTechniqueSlotsByNinjaId ?? operationDeck?.techniqueSlotsByNinjaId ?? {};
+  const rawTechniques = operationDeck?.rawTechniquesByNinjaId ?? {};
 
   if (active.length >= 3 && techniqueCount < maxTechniques) {
     challenges.push(
@@ -54,8 +55,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         lang === 'en' ? 'Assign inventory technique cards' : 'Assigner les cartes technique inventaire',
         lang === 'en'
           ? `${techniqueCount}/${maxTechniques} cards assigned — empty slots become relay plis at H71.`
-          : `${techniqueCount}/${maxTechniques} cartes assignées — les emplacements vides deviennent des relais à H71.`
-      )
+          : `${techniqueCount}/${maxTechniques} cartes assignées — les emplacements vides deviennent des relais à H71.`,
+      ),
     );
   } else if (active.length >= 3) {
     challenges.push(
@@ -66,8 +67,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         lang === 'en' ? 'Technique deck complete' : 'Deck technique complet',
         lang === 'en'
         ? 'Full 18-pli shuffle — 1 inventory card + 2× primary stat + 3× secondary stat per ninja.'
-        : 'Mélange complet à 18 plis — 1 carte inventaire + 2× stat primaire + 3× stat secondaire par ninja.'
-      )
+        : 'Mélange complet à 18 plis — 1 carte inventaire + 2× stat primaire + 3× stat secondaire par ninja.',
+      ),
     );
   }
 
@@ -84,8 +85,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         lang === 'en' ? 'Fill technique slot per ninja' : 'Remplir la carte technique par ninja',
         lang === 'en'
           ? `${missingTechniques.length} active(s) without an inventory technique card — relay plis will fill those slots.`
-          : `${missingTechniques.length} actif(s) sans carte technique inventaire — des relais combleront ces emplacements.`
-      )
+          : `${missingTechniques.length} actif(s) sans carte technique inventaire — des relais combleront ces emplacements.`,
+      ),
     );
   }
 
@@ -99,8 +100,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         lang === 'en' ? 'Diversify combat arts' : 'Diversifier les voies de combat',
         lang === 'en'
           ? 'All actives share the same primary art — mixed arts cover more matchups.'
-          : 'Tous les actifs partagent la même voie — un mix Tai/Nin/Gen/Médecine couvre plus de matchups.'
-      )
+          : 'Tous les actifs partagent la même voie — un mix Tai/Nin/Gen/Médecine couvre plus de matchups.',
+      ),
     );
   } else if (active.length >= 3) {
     const artList = [...arts].map((a) => artLabels[a]).join(', ');
@@ -110,8 +111,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
         'done',
         'low',
         lang === 'en' ? 'Art diversity OK' : 'Diversité des voies OK',
-        lang === 'en' ? `Primary arts: ${artList}.` : `Voies principales : ${artList}.`
-      )
+        lang === 'en' ? `Primary arts: ${artList}.` : `Voies principales : ${artList}.`,
+      ),
     );
   }
 
@@ -131,8 +132,8 @@ export function buildPreparationChallenges({ ninjas, operationDeck = null, local
             : `${genNinja.name} a du Genjutsu dans son deck technique.`
           : lang === 'en'
             ? `Set a Genjutsu technique on ${genNinja.name} to exploit their stats.`
-            : `Placez une technique Genjutsu sur ${genNinja.name} pour exploiter ses stats.`
-      )
+            : `Placez une technique Genjutsu sur ${genNinja.name} pour exploiter ses stats.`,
+      ),
     );
   }
 

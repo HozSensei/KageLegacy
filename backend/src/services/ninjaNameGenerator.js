@@ -95,7 +95,7 @@ export function enumerateAllIdentityKeysForClan(clan) {
 }
 
 /** Reste-t-il des combinaisons jamais vues sur le serveur pour ce profil de clan ? */
-export function hasRemainingGlobalNames(globalForbiddenKeys, clan, samples = GLOBAL_PROBE_SAMPLES) {
+export function hasRemainingGlobalNames(globalForbiddenKeys, clan, _samples = GLOBAL_PROBE_SAMPLES) {
   const theoretical = enumerateAllIdentityKeysForClan(clan);
   for (const key of theoretical) {
     if (!globalForbiddenKeys.has(key)) return true;

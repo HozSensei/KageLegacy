@@ -33,7 +33,7 @@ async function loadTechniqueCardsByIds(userId, cardIds = []) {
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE utc.user_id = ? AND utc.id IN (${placeholders}) AND utc.charges_remaining > 0`,
-    [userId, ...ids]
+    [userId, ...ids],
   );
   const byId = {};
   for (const row of rows) {
@@ -71,7 +71,7 @@ async function loadActiveNinjas(userId) {
     `SELECT * FROM ninjas
      WHERE user_id = ? AND squad_position IS NOT NULL
      ORDER BY squad_position`,
-    [userId]
+    [userId],
   );
 }
 
@@ -124,7 +124,7 @@ async function filterValidTechniqueSlots(userId, slotsJson, ninjas) {
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE utc.user_id = ? AND utc.id IN (${placeholders}) AND utc.charges_remaining > 0`,
-    [userId, ...uniqueIds]
+    [userId, ...uniqueIds],
   );
   const validCards = Object.fromEntries(rows.map((r) => [Number(r.id), r]));
 
@@ -166,13 +166,13 @@ export async function ensureOperationDeckFromPreviousCycle(userId, targetCycle) 
 
   const existing = await query(
     'SELECT user_id FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
-    [userId, targetCycle]
+    [userId, targetCycle],
   );
   if (existing[0]) return null;
 
   const prevRows = await query(
     'SELECT techniques_json, technique_slots_json FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
-    [userId, targetCycle - 1]
+    [userId, targetCycle - 1],
   );
   if (!prevRows[0]) return null;
 
@@ -187,7 +187,7 @@ export async function ensureOperationDeckFromPreviousCycle(userId, targetCycle) 
   await query(
     `INSERT INTO operation_decks (user_id, season_cycle, techniques_json, element_card_ids_json, technique_slots_json)
      VALUES (?, ?, ?, '[]', ?)`,
-    [userId, targetCycle, JSON.stringify(techniques), JSON.stringify(techniqueSlots)]
+    [userId, targetCycle, JSON.stringify(techniques), JSON.stringify(techniqueSlots)],
   );
 
   const inventoryCount = Object.values(techniqueSlots).reduce((sum, ids) => sum + ids.length, 0);
@@ -214,13 +214,13 @@ export async function getOperationDeck(userId, seasonCycle = null) {
   const cycle = await resolveSeasonCycle(userId, seasonCycle);
   let rows = await query(
     'SELECT * FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
-    [userId, cycle]
+    [userId, cycle],
   );
   if (!rows[0] && cycle > 1) {
     await ensureOperationDeckFromPreviousCycle(userId, cycle);
     rows = await query(
       'SELECT * FROM operation_decks WHERE user_id = ? AND season_cycle = ?',
-      [userId, cycle]
+      [userId, cycle],
     );
   }
 
@@ -250,7 +250,7 @@ export async function getOperationDeck(userId, seasonCycle = null) {
   const techniqueCards = allCardIds.map((id) => cardsById[id]).filter(Boolean);
   const inventoryCount = Object.values(techniqueSlotsByNinjaId).reduce(
     (sum, ids) => sum + ids.length,
-    0
+    0,
   );
   const configuredPlis = countConfiguredPlis(ninjas, techniqueSlotsByNinjaId, rawTechniques);
 
@@ -293,7 +293,7 @@ export async function saveOperationDeck(userId, { techniquesByNinjaId, technique
        FROM user_tactic_cards utc
        JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
        WHERE utc.user_id = ? AND utc.id IN (${placeholders}) AND utc.charges_remaining > 0`,
-      [userId, ...ids]
+      [userId, ...ids],
     );
     if (rows.length !== ids.length) {
       const error = new Error('Carte technique invalide ou épuisée.');
@@ -338,7 +338,7 @@ export async function saveOperationDeck(userId, { techniquesByNinjaId, technique
      ON DUPLICATE KEY UPDATE
        techniques_json = VALUES(techniques_json),
        technique_slots_json = VALUES(technique_slots_json)`,
-    [userId, cycle, JSON.stringify(techniques), JSON.stringify(sanitizedSlots)]
+    [userId, cycle, JSON.stringify(techniques), JSON.stringify(sanitizedSlots)],
   );
 
   if (Object.keys(sanitizedSlots).length > 0) {
@@ -350,9 +350,8 @@ export async function saveOperationDeck(userId, { techniquesByNinjaId, technique
 
 export function deckConfigForCombat(deck) {
   const techniqueSlotsByNinjaId = deck.techniqueSlotsByNinjaId || {};
-  const allIds = Object.values(techniqueSlotsByNinjaId).flat();
   const techniqueCardsById = Object.fromEntries(
-    (deck.techniqueCards || []).map((card) => [card.userTacticCardId, card])
+    (deck.techniqueCards || []).map((card) => [card.userTacticCardId, card]),
   );
 
   return {

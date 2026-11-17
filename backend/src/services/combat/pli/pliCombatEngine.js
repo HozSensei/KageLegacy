@@ -34,10 +34,6 @@ function getFighter(team, id) {
   return team.fighters.find((f) => f.id === id);
 }
 
-function aliveFighters(team) {
-  return team.fighters.filter((f) => !f.ko && f.pv > 0);
-}
-
 function applyDamage(fighter, amount) {
   if (!fighter || fighter.ko) return 0;
   const dealt = Math.max(0, amount);
@@ -175,7 +171,7 @@ function resolveMedSide(team, sideKey, actor, power, oppPower, outcome, log, suf
     if (target && target.pv < target.maxPv) {
       const heal = applyHeal(
         target,
-        computeHealBonus(actor.fighter, combatCard, computeHealAmount(power))
+        computeHealBonus(actor.fighter, combatCard, computeHealAmount(power)),
       );
       log[`soins_pv${suffix}`] = heal;
       log[cibleKey] = target.name;
@@ -324,7 +320,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
       env,
       state,
       homeCard,
-      awayCard
+      awayCard,
     );
 
     let outcome = 'draw';
@@ -393,7 +389,7 @@ export function simulatePliCombat(homeTeam, awayTeam, options = {}) {
         homePower,
         awayPower,
         outcome,
-        log
+        log,
       );
       if (dmgOutcome === 'home') scheduleDomainEffect(homeDomain, 'home', homeActor.relais, state, log);
       else if (dmgOutcome === 'away') scheduleDomainEffect(awayDomain, 'away', awayActor.relais, state, log);

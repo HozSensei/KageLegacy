@@ -32,7 +32,7 @@ const POTENTIAL_LABELS_EN = {
 
 export function inferPrimaryArt(stats) {
   return COMBAT_STATS.reduce((best, stat) =>
-    stats[stat] > stats[best] ? stat : best
+    stats[stat] > stats[best] ? stat : best,
   );
 }
 

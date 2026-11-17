@@ -82,7 +82,7 @@ export async function getCollection(userId, filters = {}) {
     `${COLLECTION_SELECT}
      WHERE ${where.join(' AND ')}
      ORDER BY cd.rarity DESC, cd.type, cd.name_fr`,
-    params
+    params,
   );
   return rows.map(serializeCollectionEntry);
 }
@@ -92,7 +92,7 @@ export async function getCollectionEntry(userId, collectionId) {
     `${COLLECTION_SELECT}
      WHERE ucc.user_id = ? AND ucc.id = ?
      LIMIT 1`,
-    [userId, collectionId]
+    [userId, collectionId],
   );
   if (!rows[0]) throw httpError(404, 'Carte de collection introuvable.');
   return serializeCollectionEntry(rows[0]);
@@ -104,7 +104,7 @@ export async function getCollectionEntry(userId, collectionId) {
 export async function addCard(
   userId,
   cardDefinitionId,
-  { quantity = 1, source = 'grant', connection = null, runHooks = true } = {}
+  { quantity = 1, source = 'grant', connection = null, runHooks = true } = {},
 ) {
   const qty = Math.max(1, Number(quantity) || 1);
   const def = await getCardDefinitionRow(cardDefinitionId);
@@ -121,7 +121,7 @@ export async function addCard(
       `${COLLECTION_SELECT}
        WHERE ucc.user_id = ? AND ucc.id = ?
        LIMIT 1`,
-      [userId, collectionId]
+      [userId, collectionId],
     );
     if (!rows[0]) throw httpError(404, 'Carte de collection introuvable.');
     return serializeCollectionEntry(rows[0]);
@@ -130,7 +130,7 @@ export async function addCard(
   const existing = await run(
     `SELECT id, quantity FROM user_card_collection
      WHERE user_id = ? AND card_definition_id = ? LIMIT 1`,
-    [userId, cardDefinitionId]
+    [userId, cardDefinitionId],
   );
 
   let collectionId;
@@ -145,7 +145,7 @@ export async function addCard(
       `INSERT INTO user_card_collection
         (user_id, card_definition_id, upgrade_level, quantity, obtained_source)
        VALUES (?, ?, 0, ?, ?)`,
-      [userId, cardDefinitionId, qty, source]
+      [userId, cardDefinitionId, qty, source],
     );
     collectionId = result.insertId;
   }
@@ -169,7 +169,7 @@ export async function addCard(
   try {
     const ownedRows = await query(
       'SELECT COUNT(*) AS c FROM user_card_collection WHERE user_id = ?',
-      [userId]
+      [userId],
     );
     const { onAchievementAction } = await import('./achievementService.js');
     await onAchievementAction(userId, 'collection_owned', Number(ownedRows[0]?.c || 0));
@@ -190,7 +190,7 @@ async function getSenseiResources(userId, connection = null) {
 
   const rows = await run(
     'SELECT ryos, card_dust, card_essence, kage_coins FROM sensei WHERE user_id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   if (!rows[0]) throw httpError(404, 'Sensei introuvable.');
   return {
@@ -216,7 +216,7 @@ export async function upgradeCard(userId, collectionId) {
        JOIN card_definitions cd ON cd.id = ucc.card_definition_id
        WHERE ucc.id = ? AND ucc.user_id = ?
        LIMIT 1 FOR UPDATE`,
-      [collectionId, userId]
+      [collectionId, userId],
     );
     const entry = rows[0];
     if (!entry) throw httpError(404, 'Carte de collection introuvable.');
@@ -240,7 +240,7 @@ export async function upgradeCard(userId, collectionId) {
       `UPDATE sensei
        SET ryos = ryos - ?, card_dust = card_dust - ?, card_essence = card_essence - ?
        WHERE user_id = ?`,
-      [cost.ryos, cost.dust, cost.essence, userId]
+      [cost.ryos, cost.dust, cost.essence, userId],
     );
 
     await connection.execute('UPDATE user_card_collection SET upgrade_level = ? WHERE id = ?', [
@@ -288,7 +288,7 @@ export async function disenchantCard(userId, collectionId, { quantity = 1 } = {}
        JOIN card_definitions cd ON cd.id = ucc.card_definition_id
        WHERE ucc.id = ? AND ucc.user_id = ?
        LIMIT 1 FOR UPDATE`,
-      [collectionId, userId]
+      [collectionId, userId],
     );
     const entry = rows[0];
     if (!entry) throw httpError(404, 'Carte de collection introuvable.');
@@ -300,7 +300,7 @@ export async function disenchantCard(userId, collectionId, { quantity = 1 } = {}
        FROM user_deck_cards udc
        JOIN user_decks d ON d.id = udc.deck_id
        WHERE udc.user_card_collection_id = ? AND d.user_id = ?`,
-      [collectionId, userId]
+      [collectionId, userId],
     );
     const usedInDecks = Number(deckUsage[0]?.used) || 0;
     if (entry.quantity - qty < usedInDecks) {
@@ -318,13 +318,13 @@ export async function disenchantCard(userId, collectionId, { quantity = 1 } = {}
     } else {
       await connection.execute(
         'UPDATE user_card_collection SET quantity = quantity - ? WHERE id = ?',
-        [qty, collectionId]
+        [qty, collectionId],
       );
     }
 
     await connection.execute(
       'UPDATE sensei SET card_dust = card_dust + ?, card_essence = card_essence + ? WHERE user_id = ?',
-      [dustGain, essenceGain, userId]
+      [dustGain, essenceGain, userId],
     );
 
     await connection.commit();

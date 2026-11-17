@@ -33,7 +33,7 @@ export async function applyStagnationForUser(userId) {
     const { weeklyForme, moral } = applyStagnationPenalty(ninja);
     await query(
       'UPDATE ninjas SET weekly_forme = ?, moral = ?, stagnant_cycles = stagnant_cycles + 1 WHERE id = ?',
-      [weeklyForme, moral, ninja.id]
+      [weeklyForme, moral, ninja.id],
     );
 
     results.push({

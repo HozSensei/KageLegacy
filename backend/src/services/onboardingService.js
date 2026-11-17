@@ -19,14 +19,14 @@ const STEP_DEFS = [
 async function detectTrainingDone(userId) {
   const senseiRows = await query(
     'SELECT global_training_type FROM sensei WHERE user_id = ?',
-    [userId]
+    [userId],
   );
   if (senseiRows[0]?.global_training_type) return true;
 
   const prepRows = await query(
     `SELECT COUNT(*) AS c FROM ninjas
      WHERE user_id = ? AND preparation_type IS NOT NULL`,
-    [userId]
+    [userId],
   );
   return Number(prepRows[0]?.c || 0) > 0;
 }
@@ -37,14 +37,14 @@ async function detectReconDone(userId) {
      WHERE user_id = ? AND cycle_start_at = (
        SELECT cycle_start_at FROM game_clock WHERE id = 1
      )`,
-    [userId]
+    [userId],
   );
   if (Number(regRows[0]?.c || 0) > 0) return true;
 
   const challengeRows = await query(
     `SELECT COUNT(*) AS c FROM reconnaissance_challenges
      WHERE challenger_user_id = ? OR defender_user_id = ?`,
-    [userId, userId]
+    [userId, userId],
   );
   return Number(challengeRows[0]?.c || 0) > 0;
 }
@@ -54,7 +54,7 @@ export async function getOnboardingPayload(userId) {
     `SELECT onboarding_deck_done, onboarding_mission_done, onboarding_dismissed,
             onboarding_training_done, onboarding_recon_done, onboarding_league_done
      FROM sensei WHERE user_id = ?`,
-    [userId]
+    [userId],
   );
   const sensei = senseiRows[0];
   if (!sensei) return null;
@@ -73,7 +73,7 @@ export async function getOnboardingPayload(userId) {
      WHERE user_id = ? AND cycle_start_at = (
        SELECT cycle_start_at FROM game_clock WHERE id = 1
      )`,
-    [userId]
+    [userId],
   );
   const missionDone =
     Boolean(sensei.onboarding_mission_done) || Number(missionRows[0]?.c || 0) > 0;

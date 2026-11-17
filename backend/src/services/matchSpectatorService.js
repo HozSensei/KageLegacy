@@ -25,7 +25,7 @@ export async function loadMatchRow(matchId) {
      JOIN users au ON au.id = m.away_user_id
      JOIN pools p ON p.id = m.pool_id
      WHERE m.id = ?`,
-    [matchId]
+    [matchId],
   );
   return rows[0] || null;
 }
@@ -86,7 +86,7 @@ export async function browsePools(userId) {
             (SELECT COUNT(*) FROM pool_members pm WHERE pm.pool_id = p.id) AS member_count
      FROM pools p
      WHERE p.status IN ('active', 'completed')
-     ORDER BY p.division_level ASC, p.season_number DESC, p.id ASC`
+     ORDER BY p.division_level ASC, p.season_number DESC, p.id ASC`,
   );
 
   return pools.map((p) => ({

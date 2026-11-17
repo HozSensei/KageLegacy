@@ -17,7 +17,7 @@ export function computeClockState(cycleStartAt, now = new Date(), lastTickHour =
   const elapsedHours = Math.floor(elapsedMs / HOUR_MS);
   const hour = Math.min(
     CYCLE_HOURS,
-    Math.max(elapsedHours, lastTickHour == null ? 0 : Number(lastTickHour))
+    Math.max(elapsedHours, lastTickHour == null ? 0 : Number(lastTickHour)),
   );
 
   if (hour >= CYCLE_HOURS) {
@@ -47,7 +47,7 @@ export function computeClockState(cycleStartAt, now = new Date(), lastTickHour =
 
 export async function getGameClock() {
   const rows = await query(
-    'SELECT cycle_start_at, last_tick_hour FROM game_clock WHERE id = 1'
+    'SELECT cycle_start_at, last_tick_hour FROM game_clock WHERE id = 1',
   );
   const cycleStart = rows[0]?.cycle_start_at;
   if (!cycleStart) {
@@ -83,7 +83,7 @@ export async function isTrainingLocked() {
 export async function advanceHourDev() {
   const clock = await getGameClock();
   const newHour = Math.min(CYCLE_HOURS, clock.hour + 1);
-  await query(`UPDATE game_clock SET last_tick_hour = ? WHERE id = 1`, [newHour]);
+  await query('UPDATE game_clock SET last_tick_hour = ? WHERE id = 1', [newHour]);
   return getGameClock();
 }
 
@@ -94,7 +94,7 @@ export async function setHourDev(targetHour) {
     `UPDATE game_clock
      SET last_tick_hour = ?
      WHERE id = 1`,
-    [hour]
+    [hour],
   );
   return getGameClock();
 }
@@ -125,7 +125,7 @@ export async function setCycleStartAt(startAt) {
 
   await query(
     'UPDATE game_clock SET cycle_start_at = ?, last_tick_hour = ? WHERE id = 1',
-    [start, hour]
+    [start, hour],
   );
 
   return getGameClock();
@@ -134,7 +134,7 @@ export async function setCycleStartAt(startAt) {
 /** Réinitialise le cycle (après job H72) */
 export async function resetCycle() {
   await query(
-    'UPDATE game_clock SET cycle_start_at = UTC_TIMESTAMP(), last_tick_hour = 0 WHERE id = 1'
+    'UPDATE game_clock SET cycle_start_at = UTC_TIMESTAMP(), last_tick_hour = 0 WHERE id = 1',
   );
   return getGameClock();
 }

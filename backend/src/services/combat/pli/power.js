@@ -93,7 +93,7 @@ export function computeDamage(winnerPower, loserPower, { relais = false } = {}) 
   const edge = Math.abs(winnerPower - loserPower);
   let damage = Math.max(
     DAMAGE_MIN,
-    Math.floor(winnerPower * DAMAGE_POWER_FACTOR + edge * DAMAGE_EDGE_FACTOR)
+    Math.floor(winnerPower * DAMAGE_POWER_FACTOR + edge * DAMAGE_EDGE_FACTOR),
   );
   if (edge >= DECISIVE_EDGE) {
     damage = Math.floor(damage * DECISIVE_DAMAGE_MULT);
@@ -109,7 +109,7 @@ export function computeTieDamage(powerA, powerB) {
   const edge = Math.abs(powerA - powerB);
   return Math.max(
     TIE_DAMAGE_MIN,
-    Math.floor(avg * TIE_DAMAGE_POWER_FACTOR + edge * TIE_DAMAGE_EDGE_FACTOR)
+    Math.floor(avg * TIE_DAMAGE_POWER_FACTOR + edge * TIE_DAMAGE_EDGE_FACTOR),
   );
 }
 
@@ -124,7 +124,7 @@ export function computeMedFailDamage(fullDamage) {
 export function pickDominantDomain(fighter) {
   const domains = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
   return domains.reduce((best, d) =>
-    statBaseValue(fighter, d) > statBaseValue(fighter, best) ? d : best
+    statBaseValue(fighter, d) > statBaseValue(fighter, best) ? d : best,
   );
 }
 

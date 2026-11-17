@@ -104,21 +104,21 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
   }
   if (healAway > 0 && cibleAway) {
     parts.push(
-      lang === 'en' ? `healed ${cibleAway} for ${healAway} HP` : `soin de ${healAway} PV sur ${cibleAway}`
+      lang === 'en' ? `healed ${cibleAway} for ${healAway} HP` : `soin de ${healAway} PV sur ${cibleAway}`,
     );
   }
   if (healDrawHome > 0 && cible) {
     parts.push(
       lang === 'en'
         ? `draw heal of ${healDrawHome} HP on ${cible}`
-        : `soin d'égalité de ${healDrawHome} PV sur ${cible}`
+        : `soin d'égalité de ${healDrawHome} PV sur ${cible}`,
     );
   }
   if (healDrawAway > 0 && cibleAway) {
     parts.push(
       lang === 'en'
         ? `draw heal of ${healDrawAway} HP on ${cibleAway}`
-        : `soin d'égalité de ${healDrawAway} PV sur ${cibleAway}`
+        : `soin d'égalité de ${healDrawAway} PV sur ${cibleAway}`,
     );
   }
   if (healUseless || healUselessAway) {
@@ -126,7 +126,7 @@ export function formatPliImpactDetail(impactLog, locale = 'fr') {
   }
   if (medFail || medFailAway) {
     pushUnique(
-      lang === 'en' ? 'Medicine pli failed — damage halved' : 'Médecine en échec — dégâts réduits de moitié'
+      lang === 'en' ? 'Medicine pli failed — damage halved' : 'Médecine en échec — dégâts réduits de moitié',
     );
   }
   const domainHomeLine = formatDomainEffect(domainEffectHome, lang);
@@ -324,7 +324,7 @@ export function resolveSegmentText(locale, segment) {
     code,
     segment.template_key,
     segment.template_index ?? 0,
-    segment.template_vars || {}
+    segment.template_vars || {},
   );
 }
 

@@ -11,8 +11,8 @@ function normalizeLocale(locale) {
 
 export async function getUnlockedRewardSlugs(userId) {
   const rows = await query(
-    `SELECT reward_type, reward_slug FROM elite_unlocked_rewards WHERE user_id = ?`,
-    [userId]
+    'SELECT reward_type, reward_slug FROM elite_unlocked_rewards WHERE user_id = ?',
+    [userId],
   );
   const titles = new Set();
   const banners = new Set();
@@ -27,7 +27,7 @@ async function unlockReward(userId, rewardType, rewardSlug, questSlug = null) {
   await query(
     `INSERT IGNORE INTO elite_unlocked_rewards (user_id, reward_type, reward_slug, unlocked_via_quest_slug)
      VALUES (?, ?, ?, ?)`,
-    [userId, rewardType, rewardSlug, questSlug]
+    [userId, rewardType, rewardSlug, questSlug],
   );
 }
 
@@ -35,7 +35,7 @@ async function incrementQuestProgress(userId, seasonNumber, quest, amount) {
   const rows = await query(
     `SELECT current_progress, completed_at FROM elite_quest_progress
      WHERE user_id = ? AND season_number = ? AND quest_slug = ? LIMIT 1`,
-    [userId, seasonNumber, quest.slug]
+    [userId, seasonNumber, quest.slug],
   );
   const existing = rows[0];
   if (existing?.completed_at) return { completed: true, progress: quest.target_count };
@@ -50,7 +50,7 @@ async function incrementQuestProgress(userId, seasonNumber, quest, amount) {
            completed_at = IF(? AND completed_at IS NULL, UTC_TIMESTAMP(), completed_at),
            claimed_at = IF(? AND claimed_at IS NULL, UTC_TIMESTAMP(), claimed_at)
        WHERE user_id = ? AND season_number = ? AND quest_slug = ?`,
-      [nextProgress, completed, completed, userId, seasonNumber, quest.slug]
+      [nextProgress, completed, completed, userId, seasonNumber, quest.slug],
     );
   } else {
     await query(
@@ -64,7 +64,7 @@ async function incrementQuestProgress(userId, seasonNumber, quest, amount) {
         nextProgress,
         completed ? new Date() : null,
         completed ? new Date() : null,
-      ]
+      ],
     );
   }
 
@@ -80,19 +80,19 @@ async function syncLeaguePointsQuest(userId, pool) {
   if (!subscription) return;
 
   const standingRows = await query(
-    `SELECT points FROM pool_standings WHERE pool_id = ? AND user_id = ? LIMIT 1`,
-    [pool.id, userId]
+    'SELECT points FROM pool_standings WHERE pool_id = ? AND user_id = ? LIMIT 1',
+    [pool.id, userId],
   );
   const points = standingRows[0]?.points ?? 0;
 
   const quests = await query(
-    `SELECT * FROM elite_quest_catalog WHERE is_active = TRUE AND event_type = 'league_points'`
+    'SELECT * FROM elite_quest_catalog WHERE is_active = TRUE AND event_type = \'league_points\'',
   );
   for (const quest of quests) {
     const rows = await query(
       `SELECT current_progress, completed_at FROM elite_quest_progress
        WHERE user_id = ? AND season_number = ? AND quest_slug = ? LIMIT 1`,
-      [userId, pool.season_number, quest.slug]
+      [userId, pool.season_number, quest.slug],
     );
     if (rows[0]?.completed_at) continue;
 
@@ -114,7 +114,7 @@ async function syncLeaguePointsQuest(userId, pool) {
         nextProgress,
         nextProgress >= quest.target_count ? new Date() : null,
         quest.target_count,
-      ]
+      ],
     );
 
     if (nextProgress >= quest.target_count && !rows[0]?.completed_at) {
@@ -122,7 +122,7 @@ async function syncLeaguePointsQuest(userId, pool) {
       await query(
         `UPDATE elite_quest_progress SET claimed_at = UTC_TIMESTAMP()
          WHERE user_id = ? AND season_number = ? AND quest_slug = ?`,
-        [userId, pool.season_number, quest.slug]
+        [userId, pool.season_number, quest.slug],
       );
     }
   }
@@ -149,8 +149,8 @@ export async function recordEliteQuestEvent(userId, eventType, amount = 1) {
   }
 
   const quests = await query(
-    `SELECT * FROM elite_quest_catalog WHERE is_active = TRUE AND event_type = ?`,
-    [eventType]
+    'SELECT * FROM elite_quest_catalog WHERE is_active = TRUE AND event_type = ?',
+    [eventType],
   );
 
   for (const quest of quests) {
@@ -192,7 +192,7 @@ export async function getSeasonPassPayload(userId, locale = 'fr') {
       AND p.season_number = ?
      WHERE q.is_active = TRUE
      ORDER BY q.sort_order ASC`,
-    [userId, pool.season_number]
+    [userId, pool.season_number],
   );
 
   const unlocked = await getUnlockedRewardSlugs(userId);

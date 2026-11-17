@@ -75,7 +75,7 @@ export function buildDeckMatchupPreview(ownDeck, opponentDeck, locale = 'fr') {
       lines.push(
         lang === 'en'
           ? `Strong in ${domainLabel(lang, myDomain)} vs their ${domainLabel(lang, beats)}.`
-          : `Fort en ${domainLabel(lang, myDomain)} contre leur ${domainLabel(lang, beats)}.`
+          : `Fort en ${domainLabel(lang, myDomain)} contre leur ${domainLabel(lang, beats)}.`,
       );
     }
   }
@@ -89,7 +89,7 @@ export function buildDeckMatchupPreview(ownDeck, opponentDeck, locale = 'fr') {
       lines.push(
         lang === 'en'
           ? `Weak vs their ${domainLabel(lang, theirDomain)} — reinforce ${domainLabel(lang, beats)} or counter domains.`
-          : `Faible face à leur ${domainLabel(lang, theirDomain)} — renforcez ${domainLabel(lang, beats)} ou les contre-domaines.`
+          : `Faible face à leur ${domainLabel(lang, theirDomain)} — renforcez ${domainLabel(lang, beats)} ou les contre-domaines.`,
       );
     }
   }
@@ -98,7 +98,7 @@ export function buildDeckMatchupPreview(ownDeck, opponentDeck, locale = 'fr') {
     lines.push(
       lang === 'en'
         ? 'Medicine-heavy deck helps in long exchanges against their pressure.'
-        : 'Deck riche en Médecine : utile pour tenir face à leur pression.'
+        : 'Deck riche en Médecine : utile pour tenir face à leur pression.',
     );
   }
 
@@ -106,7 +106,7 @@ export function buildDeckMatchupPreview(ownDeck, opponentDeck, locale = 'fr') {
     lines.unshift(
       lang === 'en'
         ? 'Incomplete technique slots become weak relay plis — assign cards before H71.'
-        : 'Les emplacements technique vides deviennent des relais faibles — assignez vos cartes avant H71.'
+        : 'Les emplacements technique vides deviennent des relais faibles — assignez vos cartes avant H71.',
     );
   }
 
@@ -114,7 +114,7 @@ export function buildDeckMatchupPreview(ownDeck, opponentDeck, locale = 'fr') {
     lines.push(
       lang === 'en'
         ? 'Matchup looks balanced — lock composition and polish technique cards.'
-        : 'Matchup équilibré — verrouillez la composition et peaufinez les cartes technique.'
+        : 'Matchup équilibré — verrouillez la composition et peaufinez les cartes technique.',
     );
   }
 

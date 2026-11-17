@@ -65,7 +65,7 @@ async function getUserContribution(userId, cycleStartAt) {
     `SELECT COALESCE(SUM(points), 0) AS pts
      FROM village_score_events
      WHERE user_id = ? AND cycle_start_at = ?`,
-    [userId, cycleStartAt]
+    [userId, cycleStartAt],
   );
   return Number(rows[0]?.pts || 0);
 }
@@ -83,7 +83,7 @@ export async function recordVillageScore(userId, actionKey) {
        FROM sensei s
        JOIN users u ON u.id = s.user_id
        WHERE s.user_id = ?`,
-      [userId]
+      [userId],
     );
     if (!senseiRows[0] || senseiRows[0].is_bot) {
       return { recorded: false, reason: 'no_village' };
@@ -103,13 +103,13 @@ export async function recordVillageScore(userId, actionKey) {
     await query(
       `INSERT INTO village_score_events (user_id, village_id, cycle_start_at, action_key, points)
        VALUES (?, ?, ?, ?, ?)`,
-      [userId, villageId, cycleStartAt, actionKey, granted]
+      [userId, villageId, cycleStartAt, actionKey, granted],
     );
     await query(
       `INSERT INTO village_cycle_totals (village_id, cycle_start_at, points)
        VALUES (?, ?, ?)
        ON DUPLICATE KEY UPDATE points = points + VALUES(points)`,
-      [villageId, cycleStartAt, granted]
+      [villageId, cycleStartAt, granted],
     );
 
     return {
@@ -130,12 +130,12 @@ export async function ensureCycleRivalry(cycleStartAt = null) {
   if (!start) return null;
   const existing = await query(
     'SELECT cycle_start_at, village_a, village_b, winner_village_id FROM village_rivalries WHERE cycle_start_at = ?',
-    [start]
+    [start],
   );
   if (existing[0]) return existing[0];
 
   const pools = await query(
-    `SELECT season_number, current_cycle FROM pools WHERE status = 'active' LIMIT 1`
+    'SELECT season_number, current_cycle FROM pools WHERE status = \'active\' LIMIT 1',
   );
   const seasonNumber = Number(pools[0]?.season_number || 1);
   const currentCycle = Number(pools[0]?.current_cycle || 1);
@@ -146,7 +146,7 @@ export async function ensureCycleRivalry(cycleStartAt = null) {
     `INSERT INTO village_rivalries (cycle_start_at, village_a, village_b)
      VALUES (?, ?, ?)
      ON DUPLICATE KEY UPDATE village_a = village_a`,
-    [start, pair.village_a, pair.village_b]
+    [start, pair.village_a, pair.village_b],
   );
 
   return {
@@ -166,8 +166,8 @@ export async function resolveCycleRivalry(cycleStartAt = null) {
   }
 
   const totals = await query(
-    `SELECT village_id, points FROM village_cycle_totals WHERE cycle_start_at = ?`,
-    [start]
+    'SELECT village_id, points FROM village_cycle_totals WHERE cycle_start_at = ?',
+    [start],
   );
   const byId = Object.fromEntries(totals.map((r) => [r.village_id, Number(r.points)]));
   const scoreA = byId[rivalry.village_a] || 0;
@@ -181,7 +181,7 @@ export async function resolveCycleRivalry(cycleStartAt = null) {
     `UPDATE village_rivalries
      SET winner_village_id = ?, resolved_at = UTC_TIMESTAMP()
      WHERE cycle_start_at = ?`,
-    [winner, start]
+    [winner, start],
   );
 
   const rewardedUserIds = [];
@@ -193,7 +193,7 @@ export async function resolveCycleRivalry(cycleStartAt = null) {
        WHERE village_id = ? AND cycle_start_at = ?
        GROUP BY user_id
        HAVING pts >= ?`,
-      [winner, start, VILLAGE_REWARD_MIN_POINTS]
+      [winner, start, VILLAGE_REWARD_MIN_POINTS],
     );
 
     for (const row of contributors) {
@@ -218,8 +218,8 @@ export async function resolveCycleRivalry(cycleStartAt = null) {
 
 export async function canRetakeVillage(userId) {
   const senseiRows = await query(
-    `SELECT village_id, village_retake_used FROM sensei WHERE user_id = ?`,
-    [userId]
+    'SELECT village_id, village_retake_used FROM sensei WHERE user_id = ?',
+    [userId],
   );
   const sensei = senseiRows[0];
   if (!sensei) return { allowed: false, reason: 'no_sensei' };
@@ -254,8 +254,8 @@ export async function retakeVillage(userId, villageId) {
   }
 
   await query(
-    `UPDATE sensei SET village_id = ?, village_retake_used = 1 WHERE user_id = ?`,
-    [villageId, userId]
+    'UPDATE sensei SET village_id = ?, village_retake_used = 1 WHERE user_id = ?',
+    [villageId, userId],
   );
   return getVillagePayload(userId);
 }
@@ -269,17 +269,17 @@ export async function getVillagePayload(userId) {
   const senseiRows = await query(
     `SELECT village_id, village_retake_used, village_title, ryos
      FROM sensei WHERE user_id = ?`,
-    [userId]
+    [userId],
   );
   const sensei = senseiRows[0];
   if (!sensei) return null;
 
   const totals = await query(
-    `SELECT village_id, points FROM village_cycle_totals WHERE cycle_start_at = ?`,
-    [cycleStartAt]
+    'SELECT village_id, points FROM village_cycle_totals WHERE cycle_start_at = ?',
+    [cycleStartAt],
   );
   const cycleScores = Object.fromEntries(
-    VILLAGE_IDS.map((id) => [id, 0])
+    VILLAGE_IDS.map((id) => [id, 0]),
   );
   for (const row of totals) {
     cycleScores[row.village_id] = Number(row.points);
@@ -288,7 +288,7 @@ export async function getVillagePayload(userId) {
   const seasonRows = await query(
     `SELECT village_id, SUM(points) AS pts
      FROM village_cycle_totals
-     GROUP BY village_id`
+     GROUP BY village_id`,
   );
   const seasonScores = Object.fromEntries(VILLAGE_IDS.map((id) => [id, 0]));
   for (const row of seasonRows) {
@@ -298,7 +298,7 @@ export async function getVillagePayload(userId) {
   const rivalryRows = await query(
     `SELECT village_a, village_b, winner_village_id, resolved_at
      FROM village_rivalries WHERE cycle_start_at = ?`,
-    [cycleStartAt]
+    [cycleStartAt],
   );
   const rivalry = rivalryRows[0] || null;
 
@@ -319,7 +319,7 @@ export async function getVillagePayload(userId) {
      GROUP BY e.user_id, s.name
      ORDER BY points DESC
      LIMIT 5`,
-    [sensei.village_id, cycleStartAt]
+    [sensei.village_id, cycleStartAt],
   );
 
   return {

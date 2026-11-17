@@ -35,13 +35,13 @@ export async function ensureCycleObjectives(userId) {
   const existing = await query(
     `SELECT * FROM sensei_cycle_objectives
      WHERE user_id = ? AND pool_id = ? AND season_cycle = ?`,
-    [userId, pool.id, pool.current_cycle]
+    [userId, pool.id, pool.current_cycle],
   );
   if (existing.length) return existing;
 
   const ninjas = await query(
-    `SELECT * FROM ninjas WHERE user_id = ? AND grade = 'Genin'`,
-    [userId]
+    'SELECT * FROM ninjas WHERE user_id = ? AND grade = \'Genin\'',
+    [userId],
   );
   const hasEligibleGenin = ninjas.some((n) => meetsChuninRequirements(n));
   const keys = pickObjectivesForUser({
@@ -55,14 +55,14 @@ export async function ensureCycleObjectives(userId) {
       `INSERT IGNORE INTO sensei_cycle_objectives
        (user_id, pool_id, season_cycle, objective_key, target_value, reward_ryos)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, pool.id, pool.current_cycle, key, def.target, def.reward]
+      [userId, pool.id, pool.current_cycle, key, def.target, def.reward],
     );
   }
 
   return query(
     `SELECT * FROM sensei_cycle_objectives
      WHERE user_id = ? AND pool_id = ? AND season_cycle = ?`,
-    [userId, pool.id, pool.current_cycle]
+    [userId, pool.id, pool.current_cycle],
   );
 }
 
@@ -107,7 +107,7 @@ async function bumpObjective(userId, objectiveKey, amount = 1) {
   const rows = await query(
     `SELECT * FROM sensei_cycle_objectives
      WHERE user_id = ? AND pool_id = ? AND season_cycle = ? AND objective_key = ? AND status = 'active'`,
-    [userId, pool.id, pool.current_cycle, objectiveKey]
+    [userId, pool.id, pool.current_cycle, objectiveKey],
   );
   const row = rows[0];
   if (!row) return null;
@@ -118,7 +118,7 @@ async function bumpObjective(userId, objectiveKey, amount = 1) {
     `UPDATE sensei_cycle_objectives
      SET progress_value = ?, status = ?, completed_at = IF(?, UTC_TIMESTAMP(), completed_at)
      WHERE id = ?`,
-    [progress, completed ? 'completed' : 'active', completed ? 1 : 0, row.id]
+    [progress, completed ? 'completed' : 'active', completed ? 1 : 0, row.id],
   );
 
   if (completed) {
@@ -156,6 +156,6 @@ export async function expireCycleObjectivesForPool(poolId, seasonCycle) {
     `UPDATE sensei_cycle_objectives
      SET status = 'expired'
      WHERE pool_id = ? AND season_cycle = ? AND status = 'active'`,
-    [poolId, seasonCycle]
+    [poolId, seasonCycle],
   );
 }

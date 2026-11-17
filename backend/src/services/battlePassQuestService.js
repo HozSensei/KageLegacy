@@ -29,12 +29,12 @@ export async function ensureFreshQuestWindows(seasonId = null) {
     return { skipped: true, reason: 'bp_table_missing' };
 
   const [dailyActive] = await query(
-    `SELECT COUNT(*) AS c FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'daily' AND available_from <= CURRENT_TIMESTAMP AND available_until >= CURRENT_TIMESTAMP`,
-    [season.id]
+    'SELECT COUNT(*) AS c FROM battle_pass_quests WHERE season_id = ? AND quest_type = \'daily\' AND available_from <= CURRENT_TIMESTAMP AND available_until >= CURRENT_TIMESTAMP',
+    [season.id],
   );
   const [weeklyActive] = await query(
-    `SELECT COUNT(*) AS c FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'weekly' AND available_from <= CURRENT_TIMESTAMP AND available_until >= CURRENT_TIMESTAMP`,
-    [season.id]
+    'SELECT COUNT(*) AS c FROM battle_pass_quests WHERE season_id = ? AND quest_type = \'weekly\' AND available_from <= CURRENT_TIMESTAMP AND available_until >= CURRENT_TIMESTAMP',
+    [season.id],
   );
   const needDaily = Number(dailyActive?.c || 0) === 0;
   const needWeekly = Number(weeklyActive?.c || 0) === 0;
@@ -44,12 +44,12 @@ export async function ensureFreshQuestWindows(seasonId = null) {
   const { buildSeason1QuestDefs } = await import('../../scripts/data/battlePassSeason1.js');
   const defs = buildSeason1QuestDefs(
     new Date(season.startDate || Date.now()),
-    new Date(season.endDate || Date.now() + 90 * 86400000)
+    new Date(season.endDate || Date.now() + 90 * 86400000),
   );
   let insertedDaily = 0,
     insertedWeekly = 0;
   if (needDaily) {
-    await query(`DELETE FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'daily'`, [
+    await query('DELETE FROM battle_pass_quests WHERE season_id = ? AND quest_type = \'daily\'', [
       season.id,
     ]);
     for (const q of defs.filter(d => d.quest_type === 'daily')) {
@@ -67,13 +67,13 @@ export async function ensureFreshQuestWindows(seasonId = null) {
           q.bonus_reward_json,
           toMysqlDatetime(q.available_from),
           toMysqlDatetime(q.available_until),
-        ]
+        ],
       );
       insertedDaily += 1;
     }
   }
   if (needWeekly) {
-    await query(`DELETE FROM battle_pass_quests WHERE season_id = ? AND quest_type = 'weekly'`, [
+    await query('DELETE FROM battle_pass_quests WHERE season_id = ? AND quest_type = \'weekly\'', [
       season.id,
     ]);
     for (const q of defs.filter(d => d.quest_type === 'weekly')) {
@@ -91,7 +91,7 @@ export async function ensureFreshQuestWindows(seasonId = null) {
           q.bonus_reward_json,
           toMysqlDatetime(q.available_from),
           toMysqlDatetime(q.available_until),
-        ]
+        ],
       );
       insertedWeekly += 1;
     }
@@ -134,7 +134,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName]
+      [tableName],
     );
     return rows.length > 0;
   } catch {
@@ -186,7 +186,7 @@ function nonCosmeticBonus(raw) {
   const bonus = parseJsonSafe(raw, null);
   if (!bonus) return null;
   const rewards = (Array.isArray(bonus) ? bonus : [bonus]).filter(
-    reward => reward?.type !== 'cosmetic'
+    reward => reward?.type !== 'cosmetic',
   );
   return Array.isArray(bonus) ? rewards : (rewards[0] ?? null);
 }
@@ -218,14 +218,14 @@ function serializeQuest(row, progress = null) {
 async function getOrCreateQuestProgress(userId, questId) {
   const existing = await query(
     'SELECT * FROM user_battle_pass_quests WHERE user_id = ? AND quest_id = ? LIMIT 1',
-    [userId, questId]
+    [userId, questId],
   );
   if (existing[0]) return existing[0];
 
   const result = await query(
     `INSERT INTO user_battle_pass_quests (user_id, quest_id, current_progress)
      VALUES (?, ?, 0)`,
-    [userId, questId]
+    [userId, questId],
   );
   const rows = await query('SELECT * FROM user_battle_pass_quests WHERE id = ? LIMIT 1', [
     result.insertId,
@@ -256,7 +256,7 @@ export async function getActiveQuests(userId) {
      ORDER BY
        FIELD(quest_type, 'daily', 'weekly', 'milestone'),
        id ASC`,
-    [season.id]
+    [season.id],
   );
 
   const quests = [];
@@ -288,7 +288,7 @@ export async function progressQuest(userId, questKey, value = 1) {
        AND available_from <= CURRENT_TIMESTAMP
        AND available_until >= CURRENT_TIMESTAMP
      ORDER BY id DESC`,
-    [season.id, questKey]
+    [season.id, questKey],
   );
   if (!quests.length) {
     throw httpError(404, `Aucune quête active pour la clé ${questKey}.`);
@@ -310,7 +310,7 @@ export async function progressQuest(userId, questKey, value = 1) {
            is_completed = ?,
            completed_at = CASE WHEN ? THEN CURRENT_TIMESTAMP ELSE completed_at END
        WHERE id = ?`,
-      [next, completed, completed, progress.id]
+      [next, completed, completed, progress.id],
     );
     const refreshed = await query('SELECT * FROM user_battle_pass_quests WHERE id = ? LIMIT 1', [
       progress.id,
@@ -330,7 +330,7 @@ export async function claimQuestReward(userId, questId) {
 
   const questRows = await query(
     'SELECT * FROM battle_pass_quests WHERE id = ? AND season_id = ? LIMIT 1',
-    [id, season.id]
+    [id, season.id],
   );
   if (!questRows[0]) throw httpError(404, 'Quête introuvable.');
   const quest = questRows[0];
@@ -357,14 +357,14 @@ export async function claimQuestReward(userId, questId) {
     await query(
       `UPDATE user_battle_pass SET missions_completed = missions_completed + 1
        WHERE user_id = ? AND season_id = ?`,
-      [userId, season.id]
+      [userId, season.id],
     );
   }
   if (quest.quest_key.includes('combat') || quest.quest_key.includes('win')) {
     await query(
       `UPDATE user_battle_pass SET combats_won = combats_won + ?
        WHERE user_id = ? AND season_id = ?`,
-      [quest.goal_value, userId, season.id]
+      [quest.goal_value, userId, season.id],
     );
   }
 

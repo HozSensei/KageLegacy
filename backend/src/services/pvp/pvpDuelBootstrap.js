@@ -61,7 +61,7 @@ async function loadFighterProfile(userId) {
   const rows = await query(
     `SELECT user_id, name, level, \`rank\`, element_affinity
      FROM player_character WHERE user_id = ? LIMIT 1`,
-    [userId]
+    [userId],
   );
   if (!rows[0]) throw httpError(400, `Personnage requis pour le joueur #${userId}.`);
   return rows[0];

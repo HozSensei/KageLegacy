@@ -15,7 +15,7 @@ async function findActiveEliteSubscriptionRow(userId, pool) {
     `SELECT * FROM sensei_elite_subscriptions
      WHERE user_id = ? AND season_number = ? AND status = 'active'
      LIMIT 1`,
-    [userId, pool.season_number]
+    [userId, pool.season_number],
   );
   return rows[0] ?? null;
 }
@@ -32,7 +32,7 @@ export async function ensureSeasonPass(userId, pool) {
   await query(
     `INSERT IGNORE INTO elite_season_passes (user_id, pool_id, season_number)
      VALUES (?, ?, ?)`,
-    [userId, pool.id, pool.season_number]
+    [userId, pool.id, pool.season_number],
   );
 
   return subscription;
@@ -74,7 +74,7 @@ export async function activateEliteFromStripe({
     const dup = await query(
       `SELECT id FROM sensei_elite_subscriptions
        WHERE stripe_checkout_session_id = ? LIMIT 1`,
-      [stripeCheckoutSessionId]
+      [stripeCheckoutSessionId],
     );
     if (dup[0]) {
       const poolRows = await query('SELECT * FROM pools WHERE id = ? LIMIT 1', [poolId]);
@@ -103,13 +103,13 @@ export async function activateEliteFromStripe({
       stripeCustomerId,
       stripeSubscriptionId,
       stripeCheckoutSessionId,
-    ]
+    ],
   );
 
   await query(
     `INSERT IGNORE INTO elite_season_passes (user_id, pool_id, season_number)
      VALUES (?, ?, ?)`,
-    [userId, poolId, seasonNumber]
+    [userId, poolId, seasonNumber],
   );
 
   const pool = (await query('SELECT * FROM pools WHERE id = ? LIMIT 1', [poolId]))[0];
@@ -126,7 +126,7 @@ export async function revokeEliteSubscription(subscriptionId, status = 'canceled
     `UPDATE sensei_elite_subscriptions
      SET status = ?, updated_at = UTC_TIMESTAMP()
      WHERE id = ?`,
-    [nextStatus, subscriptionId]
+    [nextStatus, subscriptionId],
   );
 }
 
@@ -135,7 +135,7 @@ export async function expireEliteSubscriptionsForSeason(seasonNumber) {
     `UPDATE sensei_elite_subscriptions
      SET status = 'expired'
      WHERE season_number = ? AND status = 'active'`,
-    [seasonNumber]
+    [seasonNumber],
   );
 }
 

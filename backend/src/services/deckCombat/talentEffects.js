@@ -19,7 +19,7 @@ export function classifyTalentEffects(effectCodes = []) {
 
 export function enemyHasGenjutsuDebuff(enemy) {
   return (enemy?.statuses || []).some(
-    s => GENJUTSU_DEBUFF_KEYS.has(s.key) && (s.duration == null || s.duration > 0)
+    s => GENJUTSU_DEBUFF_KEYS.has(s.key) && (s.duration == null || s.duration > 0),
   );
 }
 
@@ -463,7 +463,7 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
 export function applyTalentAfterDamageTaken(
   player,
   effectCodes = [],
-  { enemy = null, damageDealt = 0 } = {}
+  { enemy = null, damageDealt = 0 } = {},
 ) {
   const logs = [];
   const codes = new Set(effectCodes || []);
@@ -584,7 +584,7 @@ export function applyTalentToStatusPayload({
 export function applyTalentAfterHeal(
   player,
   effectCodes = [],
-  { healAttempted = 0, healApplied = 0 } = {}
+  { healAttempted = 0, healApplied = 0 } = {},
 ) {
   const logs = [];
   const codes = new Set(effectCodes || []);

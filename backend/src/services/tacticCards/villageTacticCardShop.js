@@ -21,7 +21,7 @@ async function ensureCardStock(userId, restockPeriod) {
     await query(
       `INSERT IGNORE INTO village_shop_card_stock (user_id, restock_period, tactic_card_definition_id, stock_remaining)
        VALUES (?, ?, ?, 1)`,
-      [userId, restockPeriod, defId]
+      [userId, restockPeriod, defId],
     );
   }
 }
@@ -43,7 +43,7 @@ export async function getVillageTacticCardOffers(userId) {
      JOIN tactic_card_definitions tcd ON tcd.id = vscs.tactic_card_definition_id
      WHERE vscs.user_id = ? AND vscs.restock_period = ?
      ORDER BY tcd.catalog_price ASC`,
-    [userId, restockPeriod]
+    [userId, restockPeriod],
   );
 
   return {
@@ -81,7 +81,7 @@ export async function getVillageTacticCardOffers(userId) {
 export async function purchaseVillageTacticCard(userId, stockId) {
   await assertSpendingAllowed(
     userId,
-    'Gel administratif — remboursez votre dette avant d\'acheter au magasin du village.'
+    'Gel administratif — remboursez votre dette avant d\'acheter au magasin du village.',
   );
 
   const rows = await query(
@@ -90,7 +90,7 @@ export async function purchaseVillageTacticCard(userId, stockId) {
      JOIN tactic_card_definitions tcd ON tcd.id = vscs.tactic_card_definition_id
      JOIN sensei s ON s.user_id = vscs.user_id
      WHERE vscs.id = ? AND vscs.user_id = ?`,
-    [stockId, userId]
+    [stockId, userId],
   );
   const row = rows[0];
   if (!row) {

@@ -24,7 +24,7 @@ import { ensureCycleRivalry, resolveCycleRivalry } from './villageService.js';
 async function hasJobRun(cycleStartAt, jobName) {
   const rows = await query(
     'SELECT id FROM cycle_job_runs WHERE cycle_start_at = ? AND job_name = ?',
-    [cycleStartAt, jobName]
+    [cycleStartAt, jobName],
   );
   return rows.length > 0;
 }
@@ -32,7 +32,7 @@ async function hasJobRun(cycleStartAt, jobName) {
 async function markJobRun(cycleStartAt, jobName) {
   await query(
     'INSERT IGNORE INTO cycle_job_runs (cycle_start_at, job_name) VALUES (?, ?)',
-    [cycleStartAt, jobName]
+    [cycleStartAt, jobName],
   );
 }
 
@@ -59,7 +59,7 @@ export async function runH36(cycleStartAt) {
   const tendencies = await generateTendenciesIntelForAllUsers();
   await markJobRun(cycleStartAt, 'h36');
   console.log(
-    `[H36] Reconnaissance : ${reconMissions.length} mission(s) · Tendances espionnage : ${tendencies.length}`
+    `[H36] Reconnaissance : ${reconMissions.length} mission(s) · Tendances espionnage : ${tendencies.length}`,
   );
   return { reconMissions, tendencies };
 }
@@ -90,7 +90,7 @@ export async function runH72(cycleStartAt) {
   await decrementFormeLocksForAllUsers();
   const poolCycles = [];
   const deckCarry = [];
-  const pools = await query(`SELECT id FROM pools WHERE status = 'active'`);
+  const pools = await query('SELECT id FROM pools WHERE status = \'active\'');
   for (const pool of pools) {
     const cycleResult = await incrementPoolCycle(pool.id);
     poolCycles.push(cycleResult);
@@ -112,7 +112,7 @@ export async function runH72(cycleStartAt) {
   await query('UPDATE sensei SET scout_env_confirmed_cycle = NULL');
   const market = await ensureVillageShopForAllUsers();
   console.log(
-    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · decks reconduits ${deckCarry.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s)) · rivalité village ${villageRivalry.rivalry?.winner_village_id || 'nul'}`
+    `[H72] Missions ${missionResults.length} · Examens Chunin ${chuninExams.length} · Vol d'Oiseau ${birdFlights.length} · stagnation ${stagnation.length} · saisons ${seasonTransitions.length} · decks reconduits ${deckCarry.length} · salaires · entraînement (${training.length} joueur(s)) · magasin (${market} joueur(s)) · rivalité village ${villageRivalry.rivalry?.winner_village_id || 'nul'}`,
   );
   return {
     missionResults,

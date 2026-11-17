@@ -52,7 +52,7 @@ export async function createHeritageScroll(userId, ninja) {
     `INSERT INTO heritage_scrolls
       (user_id, ninja_name, dominant_stat, peak_value, bonus_type, bonus_percent)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    [userId, ninja.name, dominantStat, peakValue, meta.bonusType, HERITAGE_BONUS_PER_SCROLL]
+    [userId, ninja.name, dominantStat, peakValue, meta.bonusType, HERITAGE_BONUS_PER_SCROLL],
   );
 }
 
@@ -62,7 +62,7 @@ export async function listHeritageScrolls(userId) {
      FROM heritage_scrolls
      WHERE user_id = ?
      ORDER BY departed_at DESC, id DESC`,
-    [userId]
+    [userId],
   );
   return rows.map((row) => ({
     id: row.id,
@@ -81,7 +81,7 @@ export async function getHeritageBonuses(userId) {
      FROM heritage_scrolls
      WHERE user_id = ?
      GROUP BY bonus_type`,
-    [userId]
+    [userId],
   );
 
   const totals = Object.fromEntries(rows.map((r) => [r.bonus_type, Number(r.total)]));
@@ -95,7 +95,7 @@ export async function getHeritageBonuses(userId) {
     dispensaryDiscountPct: clampBonusPercent(totals.dispensary_discount || 0),
     bureauShopDiscountPct: clampBonusPercent(totals.bureau_shop_discount || 0),
     matchShopDiscountPct: clampBonusPercent(
-      (totals.match_shop_discount || 0) + (totals.scout_insight || 0)
+      (totals.match_shop_discount || 0) + (totals.scout_insight || 0),
     ),
     scrollCount,
   };

@@ -70,7 +70,7 @@ async function voidMatchForConfirmationTimeout(matchId, row) {
          result_summary_json = ?,
          ended_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [JSON.stringify(payload), matchId]
+    [JSON.stringify(payload), matchId],
   );
   return loadMatch(matchId);
 }
@@ -104,7 +104,7 @@ export async function markReady(matchId, userId) {
       `UPDATE pvp_matches
        SET status = 'in_progress', started_at = COALESCE(started_at, CURRENT_TIMESTAMP)
        WHERE id = ?`,
-      [matchId]
+      [matchId],
     );
   }
 
@@ -143,7 +143,7 @@ async function voidMatchForChecksumMismatch(matchId, row, detail = {}) {
          result_summary_json = ?,
          ended_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [JSON.stringify(payload), matchId]
+    [JSON.stringify(payload), matchId],
   );
   return loadMatch(matchId);
 }
@@ -199,7 +199,7 @@ async function finalizeConfirmedResult(matchId, row, resultPayload = null) {
          result_summary_json = ?,
          ended_at = CURRENT_TIMESTAMP
      WHERE id = ? AND status = 'in_progress'`,
-    [winnerSeat, winnerUserId, pending.endReason, JSON.stringify(finalPayload), matchId]
+    [winnerSeat, winnerUserId, pending.endReason, JSON.stringify(finalPayload), matchId],
   );
   const completed = await loadMatch(matchId);
   if (result.affectedRows === 1) {
@@ -322,7 +322,7 @@ export async function reportMatchResult(matchId, userId, body = {}) {
         checksum,
         summary ? JSON.stringify(summary) : null,
         matchId,
-      ]
+      ],
     );
     // Si l’autre checksum est déjà là et mismatch → void
     const after = await loadMatch(matchId);
@@ -445,7 +445,7 @@ export async function reportMatchResult(matchId, userId, body = {}) {
     `UPDATE pvp_matches
      SET host_checksum = ?, result_summary_json = ?
      WHERE id = ? AND status = 'in_progress'`,
-    [checksum, JSON.stringify(resultPayload), matchId]
+    [checksum, JSON.stringify(resultPayload), matchId],
   );
   const pending = await loadMatch(matchId);
   if (getConfirmation(pending).state === 'confirmed') {
@@ -488,7 +488,7 @@ export async function cancelMatch(matchId, userId) {
   await query(
     `UPDATE pvp_matches SET status = 'cancelled', end_reason = 'cancel', ended_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [matchId]
+    [matchId],
   );
   const updated = await loadMatch(matchId);
   return { match: serializeMatch(updated), role };

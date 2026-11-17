@@ -92,21 +92,21 @@ export async function getMissionsForUser(userId) {
            FROM idle_missions im
            JOIN ninjas n ON n.id = im.ninja_id
            WHERE im.user_id = ? AND im.cycle_start_at = ? AND im.status = 'active'`,
-          [userId, cycleStartAt]
+          [userId, cycleStartAt],
         ),
         query(
           `SELECT im.*, n.name AS ninja_name
            FROM idle_missions im
            JOIN ninjas n ON n.id = im.ninja_id
            WHERE im.user_id = ? AND im.status = 'completed'`,
-          [userId]
+          [userId],
         ),
         query(
           `SELECT im.*, n.name AS ninja_name
            FROM idle_missions im
            JOIN ninjas n ON n.id = im.ninja_id
            WHERE im.user_id = ? AND im.cycle_start_at = ? AND im.status = 'failed'`,
-          [userId, cycleStartAt]
+          [userId, cycleStartAt],
         ),
       ])
     : [[], [], []];
@@ -122,7 +122,7 @@ export async function getMissionsForUser(userId) {
      FROM ninjas n
      LEFT JOIN idle_missions im ON im.ninja_id = n.id AND im.status = 'active'
      WHERE n.user_id = ? AND n.squad_position IS NULL AND im.id IS NULL`,
-    [userId]
+    [userId],
   );
 
   return {
@@ -162,7 +162,7 @@ export async function assignMission(userId, ninjaId, tier) {
 
   if (!missionFitsInCycle(currentHour, config)) {
     const error = new Error(
-      `Pas assez de temps dans ce cycle pour une mission rang ${normalizedTier} (${config.durationHours} h). Envoyez plus tôt ou choisissez un rang plus court.`
+      `Pas assez de temps dans ce cycle pour une mission rang ${normalizedTier} (${config.durationHours} h). Envoyez plus tôt ou choisissez un rang plus court.`,
     );
     error.statusCode = 409;
     throw error;
@@ -173,7 +173,7 @@ export async function assignMission(userId, ninjaId, tier) {
      FROM ninjas n
      JOIN sensei s ON s.user_id = n.user_id
      WHERE n.id = ? AND n.user_id = ? AND n.squad_position IS NULL`,
-    [ninjaId, userId]
+    [ninjaId, userId],
   );
   const ninja = ninjaRows[0];
   if (!ninja) {
@@ -199,8 +199,8 @@ export async function assignMission(userId, ninjaId, tier) {
   }
 
   const existingNinja = await query(
-    `SELECT id FROM idle_missions WHERE ninja_id = ? AND status = 'active'`,
-    [ninjaId]
+    'SELECT id FROM idle_missions WHERE ninja_id = ? AND status = \'active\'',
+    [ninjaId],
   );
   if (existingNinja.length) {
     const error = new Error('Ce ninja est déjà en mission.');
@@ -209,13 +209,13 @@ export async function assignMission(userId, ninjaId, tier) {
   }
 
   const activeCountRows = await query(
-    `SELECT COUNT(*) AS c FROM idle_missions WHERE user_id = ? AND status = 'active'`,
-    [userId]
+    'SELECT COUNT(*) AS c FROM idle_missions WHERE user_id = ? AND status = \'active\'',
+    [userId],
   );
   const activeCount = Number(activeCountRows[0]?.c ?? 0);
   if (activeCount >= MAX_ACTIVE_MISSIONS) {
     const error = new Error(
-      `Cap atteint : ${MAX_ACTIVE_MISSIONS} ninjas maximum en mission en même temps.`
+      `Cap atteint : ${MAX_ACTIVE_MISSIONS} ninjas maximum en mission en même temps.`,
     );
     error.statusCode = 409;
     throw error;
@@ -227,7 +227,7 @@ export async function assignMission(userId, ninjaId, tier) {
     `INSERT INTO idle_missions
      (user_id, ninja_id, cycle_start_at, mission_tier, send_cost, reward_amount, resolves_at_hour)
      VALUES (?, ?, ?, ?, 0, ?, ?)`,
-    [userId, ninjaId, cycleStartAt, normalizedTier, guaranteed.max, resolvesAtHour]
+    [userId, ninjaId, cycleStartAt, normalizedTier, guaranteed.max, resolvesAtHour],
   );
 
   await query('UPDATE sensei SET onboarding_mission_done = 1 WHERE user_id = ?', [userId]);
@@ -259,7 +259,7 @@ export async function resolveDueMissions(cycleStartAt, currentHour) {
          FROM idle_missions im
          JOIN ninjas n ON n.id = im.ninja_id
          WHERE im.cycle_start_at = ? AND im.status = 'active'`,
-        [cycleStartAt]
+        [cycleStartAt],
       )
     : await query(
         `SELECT im.*, n.taijutsu, n.ninjutsu, n.genjutsu, n.medecine, n.vitesse, n.intelligence,
@@ -267,7 +267,7 @@ export async function resolveDueMissions(cycleStartAt, currentHour) {
          FROM idle_missions im
          JOIN ninjas n ON n.id = im.ninja_id
          WHERE im.cycle_start_at = ? AND im.status = 'active' AND im.resolves_at_hour <= ?`,
-        [cycleStartAt, hour]
+        [cycleStartAt, hour],
       );
 
   const results = [];
@@ -288,7 +288,7 @@ export async function collectMissionRewards(userId) {
      FROM idle_missions im
      LEFT JOIN ninjas n ON n.id = im.ninja_id
      WHERE im.user_id = ? AND im.status = 'completed'`,
-    [userId]
+    [userId],
   );
 
   if (!missions.length) return { collected: 0, totalRyos: 0, loot: [] };
@@ -315,7 +315,7 @@ export async function collectMissionRewards(userId) {
       ...granted,
       lootResult: parseLootResult(mission),
     });
-    await query(`UPDATE idle_missions SET status = 'collected' WHERE id = ?`, [mission.id]);
+    await query('UPDATE idle_missions SET status = \'collected\' WHERE id = ?', [mission.id]);
   }
 
   if (total > 0) {
@@ -333,7 +333,7 @@ export async function isNinjaOnMission(ninjaId) {
   const rows = await query(
     `SELECT id FROM idle_missions
      WHERE ninja_id = ? AND status = 'active'`,
-    [ninjaId]
+    [ninjaId],
   );
   return rows.length > 0;
 }

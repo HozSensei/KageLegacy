@@ -28,7 +28,7 @@ function fuzzyPotentialHint(potential, lang) {
   return map[lang]?.[potential] || potential;
 }
 
-function speedBand(speed, lang) {
+function speedBand(speed, _lang) {
   if (speed >= 55) return 'fast';
   if (speed <= 40) return 'slow';
   return 'medium';
@@ -67,18 +67,18 @@ function buildProfileSummaryLines(profiles, lang) {
     lines.push(
       lang === 'en'
         ? `Estimated squad profiles: ${parts.join(', ')}.`
-        : `Profils estimés dans l'escouade adverse : ${parts.join(', ')}.`
+        : `Profils estimés dans l'escouade adverse : ${parts.join(', ')}.`,
     );
   }
 
   const highPotential = profiles.filter(
-    (p) => p.potentialHint === 'élevé' || p.potentialHint === 'high' || p.potentialHint === 'très élevé' || p.potentialHint === 'very high'
+    (p) => p.potentialHint === 'élevé' || p.potentialHint === 'high' || p.potentialHint === 'très élevé' || p.potentialHint === 'very high',
   ).length;
   if (highPotential >= 1) {
     lines.push(
       lang === 'en'
         ? `${highPotential} member(s) show high estimated potential (promising or prodigy).`
-        : `${highPotential} membre(s) affichent un potentiel estimé élevé (prometteur ou prodige).`
+        : `${highPotential} membre(s) affichent un potentiel estimé élevé (prometteur ou prodige).`,
     );
   }
 
@@ -91,41 +91,41 @@ function buildTendencyLines(domains, speed, element, lang) {
     lines.push(
       lang === 'en'
         ? 'Heavy Taijutsu lean — expect close-range plis.'
-        : 'Forte orientation Taijutsu — plis de mêlée probables.'
+        : 'Forte orientation Taijutsu — plis de mêlée probables.',
     );
   }
   if (domains.ninjutsu >= 2) {
     lines.push(
       lang === 'en'
         ? 'Ninjutsu-heavy lineup — elemental pressure likely.'
-        : 'Composition Ninjutsu marquée — pression élémentaire probable.'
+        : 'Composition Ninjutsu marquée — pression élémentaire probable.',
     );
   }
   if (domains.medecine >= 1) {
     lines.push(
       lang === 'en'
         ? 'Medicine domain spotted — healing plis possible.'
-        : 'Domaine Médecine repéré — plis de soin possibles.'
+        : 'Domaine Médecine repéré — plis de soin possibles.',
     );
   }
   if (speedBand(speed, lang) === 'fast') {
     lines.push(
       lang === 'en'
         ? 'Very fast squad — watch initiative.'
-        : 'Escouade très rapide — attention à l\'initiative.'
+        : 'Escouade très rapide — attention à l\'initiative.',
     );
   } else if (speedBand(speed, lang) === 'slow') {
     lines.push(
       lang === 'en'
         ? 'Modest tactical speed — slower match likely.'
-        : 'Vitesse tactique modeste — match probablement lent.'
+        : 'Vitesse tactique modeste — match probablement lent.',
     );
   }
   if (element) {
     lines.push(
       lang === 'en'
         ? `Dominant ${element} affinity in the trio.`
-        : `Affinité ${element} dominante dans le trio.`
+        : `Affinité ${element} dominante dans le trio.`,
     );
   }
   return lines;
@@ -165,7 +165,7 @@ function buildPartialRosterReport(fullReport, lang) {
     lines.push(
       lang === 'en'
         ? 'Fragmentary intel — the recon mission did not yield a clear picture.'
-        : 'Renseignements fragmentaires — la reconnaissance n\'a pas donné une image nette.'
+        : 'Renseignements fragmentaires — la reconnaissance n\'a pas donné une image nette.',
     );
   }
   const profiles = fullReport.profiles
@@ -192,7 +192,7 @@ async function buildRosterReportFromNinjas(userId, opponentId, opponentName, opp
     const clockRow = await getClockRow();
     const senseiRows = await query(
       'SELECT scout_env_confirmed_cycle FROM sensei WHERE user_id = ?',
-      [userId]
+      [userId],
     );
     const confirmed =
       senseiRows[0]?.scout_env_confirmed_cycle &&
@@ -229,7 +229,7 @@ async function loadOpponentNinjas(opponentId) {
      LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.user_id = ? AND n.squad_position IS NOT NULL
      ORDER BY n.squad_position`,
-    [opponentId]
+    [opponentId],
   );
 }
 
@@ -255,7 +255,7 @@ export async function buildAndPersistRosterIntel(userId, seasonCycle, locale = '
   const opponentName =
     match.home_user_id === userId ? match.away_sensei : match.home_sensei;
   const opponentIsBot = Boolean(
-    match.home_user_id === userId ? match.away_is_bot : match.home_is_bot
+    match.home_user_id === userId ? match.away_is_bot : match.home_is_bot,
   );
 
   const reconMission = await getUserReconMissionForCycle(userId, cycleStartAt);
@@ -269,7 +269,7 @@ export async function buildAndPersistRosterIntel(userId, seasonCycle, locale = '
     opponentIsBot,
     match,
     ninjas,
-    lang
+    lang,
   );
 
   const rosterReport =
@@ -301,7 +301,7 @@ export async function generateRosterIntelForAllUsers() {
     `SELECT u.id FROM users u
      JOIN pool_members pm ON pm.user_id = u.id
      JOIN pools p ON p.id = pm.pool_id
-     WHERE u.is_bot = FALSE AND p.status = 'active'`
+     WHERE u.is_bot = FALSE AND p.status = 'active'`,
   );
   const results = [];
   for (const user of users) {
@@ -333,21 +333,21 @@ function compareRosterToHistory(rosterReport, historicalTendencies, lang) {
     flags.push(
       lang === 'en'
         ? 'Current lineup looks less Tai-focused than recent habits.'
-        : 'La composition actuelle paraît moins orientée Tai que les habitudes récentes.'
+        : 'La composition actuelle paraît moins orientée Tai que les habitudes récentes.',
     );
   }
   if (hist.avgTaiLean < 0.5 && (current.taiLean ?? current.taijutsu ?? 0) >= 2) {
     flags.push(
       lang === 'en'
         ? 'Sudden Tai spread — atypical vs recent league matches.'
-        : 'Montée soudaine du Tai — atypique par rapport aux derniers matchs de ligue.'
+        : 'Montée soudaine du Tai — atypique par rapport aux derniers matchs de ligue.',
     );
   }
   if (hist.dominantElement && current.dominantElement && hist.dominantElement !== current.dominantElement) {
     flags.push(
       lang === 'en'
         ? `Element shift: usually ${hist.dominantElement}, now ${current.dominantElement}.`
-        : `Changement d'élément : habituellement ${hist.dominantElement}, désormais ${current.dominantElement}.`
+        : `Changement d'élément : habituellement ${hist.dominantElement}, désormais ${current.dominantElement}.`,
     );
   }
 
@@ -362,7 +362,7 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
   const opponentName =
     match.home_user_id === userId ? match.away_sensei : match.home_sensei;
   const opponentIsBot = Boolean(
-    match.home_user_id === userId ? match.away_is_bot : match.home_is_bot
+    match.home_user_id === userId ? match.away_is_bot : match.home_is_bot,
   );
 
   const clock = await getGameClock();
@@ -438,7 +438,7 @@ export async function generateScoutReport(userId, seasonCycle, locale = 'fr') {
 
   let deckReport = rosterReport?.deckReport ?? null;
   let deckPending = hour < 71;
-  let deckFrozen = Boolean(rosterReport?.deckFrozenAt);
+  const deckFrozen = Boolean(rosterReport?.deckFrozenAt);
 
   if (hour >= 54 && rosterReport) {
     const opponentId =

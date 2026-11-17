@@ -126,7 +126,7 @@ async function persistNinjaStats(ninja) {
       current_pv_match,
       current_chakra_match,
       ninja.id,
-    ]
+    ],
   );
 }
 
@@ -139,7 +139,7 @@ export async function computePoolHumansAveragePower(poolId) {
      FROM pool_members pm
      JOIN users u ON u.id = pm.user_id
      WHERE pm.pool_id = ? AND u.is_bot = FALSE`,
-    [poolId]
+    [poolId],
   );
   if (!humans.length) return 0;
 
@@ -147,8 +147,8 @@ export async function computePoolHumansAveragePower(poolId) {
   let count = 0;
   for (const human of humans) {
     const ninjas = await query(
-      `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-      [human.user_id]
+      'SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position',
+      [human.user_id],
     );
     if (ninjas.length < 3) continue;
     sum += squadAveragePower(ninjas);
@@ -169,14 +169,14 @@ export async function alignPoolBotsToPoolAverage(poolId) {
      FROM pool_members pm
      JOIN users u ON u.id = pm.user_id
      WHERE pm.pool_id = ? AND u.is_bot = TRUE`,
-    [poolId]
+    [poolId],
   );
 
   let aligned = 0;
   for (const bot of bots) {
     const botNinjas = await query(
-      `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-      [bot.user_id]
+      'SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position',
+      [bot.user_id],
     );
     if (botNinjas.length < 3) continue;
 
@@ -211,14 +211,14 @@ export async function createBotUser(poolId, slotIndex) {
 
   const userResult = await query(
     'INSERT INTO users (username, is_bot) VALUES (?, TRUE)',
-    [username]
+    [username],
   );
   const userId = userResult.insertId;
 
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
      VALUES (?, ?, 'Ninjutsu', 8000, 40, 80, 'fr', ?)`,
-    [userId, identity.senseiName, identity.villageId]
+    [userId, identity.senseiName, identity.villageId],
   );
 
   const clans = await findAllClanTraits();

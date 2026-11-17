@@ -27,7 +27,7 @@ export async function getPoolStandingsOrdered(poolId) {
      JOIN sensei s ON s.user_id = ps.user_id
      WHERE ps.pool_id = ?
      ORDER BY ps.points DESC, ps.wins DESC, ps.played ASC, ps.user_id ASC`,
-    [poolId]
+    [poolId],
   );
 }
 
