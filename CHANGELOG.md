@@ -7,6 +7,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 97–112 (grille 7) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#97–112` (`serpent-d-eau` → `aiguille-d-orage`) par la grille régénérée `29a0e9f1…` (PNG + WebP 250×250, ordre de lecture)
+
 ### Cartes : illustrations 81–96 (grille 6) (2026-11-17)
 
 #### Changed
