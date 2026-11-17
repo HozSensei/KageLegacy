@@ -30,7 +30,7 @@ function testCatalog() {
     FACTION_IDS.includes('midorihara') &&
       FACTION_IDS.includes('kareno') &&
       FACTION_IDS.includes('oborohama'),
-    'noms Midorihara / Kareno / Oborohama',
+    'noms Midorihara / Kareno / Oborohama'
   );
   assert(!FACTION_IDS.includes('ishikura'), 'Ishikura hors des 3 factions V2');
   assert(isValidFactionId('kareno'), 'kareno valide');
@@ -59,41 +59,33 @@ async function testDb() {
     `SELECT COLUMN_NAME AS name
      FROM information_schema.columns
      WHERE table_schema = DATABASE()
-       AND table_name = 'player_character'
-       AND column_name IN ('faction_id', 'faction_retake_used')`,
+       AND table_name = 'player_profiles'
+       AND column_name IN ('character_faction_id', 'character_faction_retake_used')`
   );
-  const names = new Set(cols.map((c) => c.name));
-  if (!names.has('faction_id')) {
+  const names = new Set(cols.map(c => c.name));
+  if (!names.has('character_faction_id')) {
     console.log('SKIP: migration 120_factions_leaderboard non appliquée');
     return;
   }
-  assert(names.has('faction_id'), 'colonne faction_id');
-  assert(names.has('faction_retake_used'), 'colonne faction_retake_used');
+  assert(names.has('character_faction_id'), 'colonne character_faction_id');
+  assert(names.has('character_faction_retake_used'), 'colonne character_faction_retake_used');
 
-  const {
-    createCharacter,
-    getCharacter,
-  } = await import('../src/services/playerCharacterService.js');
-  const {
-    setFaction,
-    retakeFaction,
-    getPlayerFaction,
-  } = await import('../src/services/factionService.js');
-  const { getLeaderboard, getFactionStandings } = await import(
-    '../src/services/leaderboardService.js'
-  );
+  const { createCharacter, getCharacter } =
+    await import('../src/services/playerCharacterService.js');
+  const { setFaction, retakeFaction, getPlayerFaction } =
+    await import('../src/services/factionService.js');
+  const { getLeaderboard, getFactionStandings } =
+    await import('../src/services/leaderboardService.js');
 
   const prefix = `fac_lb_${Date.now()}`;
   const users = [];
   for (let i = 0; i < 3; i += 1) {
-    const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
-      `${prefix}_${i}`,
-    ]);
+    const userResult = await query('INSERT INTO users (username) VALUES (?)', [`${prefix}_${i}`]);
     const userId = userResult.insertId;
     await query(
-      `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
-       VALUES (?, ?, 'Genjutsu', 500, 0, 100, 'fr', 'leaf')`,
-      [userId, `${prefix}_${i}`],
+      `INSERT INTO player_profiles (user_id, display_name, ryos, language)
+       VALUES (?, ?, 500, 'fr')`,
+      [userId, `${prefix}_${i}`]
     );
     const factionId = FACTION_IDS[i];
     const character = await createCharacter(userId, {
@@ -102,30 +94,27 @@ async function testDb() {
       factionId,
     });
     assert(character.factionId === factionId, `création avec faction ${factionId}`);
-    await query('UPDATE player_character SET level = ?, xp = ? WHERE user_id = ?', [
-      10 - i,
-      50 * i,
-      userId,
-    ]);
+    await query(
+      'UPDATE player_profiles SET character_level = ?, character_xp = ? WHERE user_id = ?',
+      [10 - i, 50 * i, userId]
+    );
     users.push(userId);
   }
 
   // Personnage sans faction → join + retake
-  const bare = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
-    `${prefix}_bare`,
-  ]);
+  const bare = await query('INSERT INTO users (username) VALUES (?)', [`${prefix}_bare`]);
   const bareId = bare.insertId;
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
-     VALUES (?, ?, 'Taijutsu', 100, 0, 100, 'fr', 'sand')`,
-    [bareId, `${prefix}_bare`],
+    `INSERT INTO player_profiles (user_id, display_name, ryos, language)
+     VALUES (?, ?, 100, 'fr')`,
+    [bareId, `${prefix}_bare`]
   );
   await createCharacter(bareId, {
     name: 'Sans Choix',
     elementAffinity: 'Suiton',
     factionId: 'midorihara',
   });
-  await query('UPDATE player_character SET faction_id = NULL WHERE user_id = ?', [bareId]);
+  await query('UPDATE player_profiles SET character_faction_id = NULL WHERE user_id = ?', [bareId]);
   const joined = await setFaction(bareId, 'kareno');
   assert(joined.factionId === 'kareno', 'join kareno');
   const retaken = await retakeFaction(bareId, 'oborohama');
@@ -139,7 +128,12 @@ async function testDb() {
   }
   assert(threw, 'second retake → 403');
 
-  const board = await getLeaderboard({ board: 'level', page: 1, limit: 10, viewerUserId: users[0] });
+  const board = await getLeaderboard({
+    board: 'level',
+    page: 1,
+    limit: 10,
+    viewerUserId: users[0],
+  });
   assert(board.entries.length >= 1, 'leaderboard level non vide');
   assert(board.me?.userId === users[0], 'me présent sur board level');
   assert(board.entries[0].rank === 1, 'rang 1 en tête');
@@ -150,8 +144,8 @@ async function testDb() {
   const standings = await getFactionStandings({ board: 'level' });
   assert(standings.standings.length === 3, '3 lignes faction');
   assert(
-    standings.standings.every((s) => typeof s.score === 'number'),
-    'scores faction numériques',
+    standings.standings.every(s => typeof s.score === 'number'),
+    'scores faction numériques'
   );
 
   const mine = await getPlayerFaction(bareId);
@@ -160,8 +154,7 @@ async function testDb() {
 
   // Cleanup
   for (const uid of [...users, bareId]) {
-    await query('DELETE FROM player_character WHERE user_id = ?', [uid]);
-    await query('DELETE FROM sensei WHERE user_id = ?', [uid]);
+    await query('DELETE FROM player_profiles WHERE user_id = ?', [uid]);
     await query('DELETE FROM users WHERE id = ?', [uid]);
   }
 }
@@ -172,7 +165,7 @@ testDb()
     console.log(failed ? `\n${failed} failure(s)` : '\nAll tests passed');
     process.exit(failed ? 1 : 0);
   })
-  .catch((err) => {
+  .catch(err => {
     console.error(err);
     process.exit(1);
   });

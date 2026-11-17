@@ -3,7 +3,7 @@ import cors from 'cors';
 import { formatZodError } from './utils/zodErrors.js';
 import healthRouter from './routes/health.js';
 import authRouter from './routes/auth.js';
-import clockRouter from './routes/clock.js';
+
 import playerRouter from './routes/player.js';
 import cardsRouter from './routes/cards.js';
 import collectionRouter from './routes/collection.js';
@@ -42,7 +42,7 @@ app.use(attachUser);
 
 app.use('/api/health', healthRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/clock', clockRouter);
+
 app.use('/api/player', playerRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/collection', collectionRouter);

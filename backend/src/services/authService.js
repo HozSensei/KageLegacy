@@ -1,25 +1,6 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { query } from '../config/database.js';
-
-/**
- * V2 : pools / escouade / cartes tactiques legacy sont différés.
- * Les hooks restent pour ne pas casser le flux register/guest.
- */
-async function joinOrCreatePool(_userId) {
-  return null;
-}
-
-async function joinPoolByInvite(_userId, _invitePoolId) {
-  return { pool: null, fallback: true, reason: 'v2_deferred' };
-}
-
-async function provisionStarterSquad(_userId, _language) {
-  /* no-op V2 — le joueur crée un personnage unique via /api/player/create */
-}
-
-async function grantStarterTacticCards(_userId) {
-  /* no-op V2 — système de cartes Phase 2 */
-}
+import { createCharacter } from './playerCharacterService.js';
 
 const SESSION_DAYS = 30;
 const GUEST_DAYS = 7;
@@ -63,12 +44,31 @@ function guestUsername() {
   return `invite_${randomBytes(4).toString('hex')}`;
 }
 
+function accountUsername() {
+  return `account_${randomBytes(10).toString('hex')}`;
+}
+
+function duplicateEmailError() {
+  const err = new Error('Cette adresse e-mail est déjà utilisée.');
+  err.statusCode = 409;
+  return err;
+}
+
+async function assertEmailAvailable(email, excludeUserId = null) {
+  const rows = await query(
+    `SELECT id FROM users
+     WHERE LOWER(email) = LOWER(?) AND (? IS NULL OR id <> ?)
+     LIMIT 1`,
+    [email, excludeUserId, excludeUserId],
+  );
+  if (rows[0]) throw duplicateEmailError();
+}
+
 function mapUserRow(row) {
   if (!row) return null;
   return {
     id: row.id,
     username: row.username,
-    is_bot: Boolean(row.is_bot),
     is_admin: Boolean(row.is_admin),
     is_guest: Boolean(row.is_guest),
     guest_expires_at: row.guest_expires_at,
@@ -82,9 +82,13 @@ export async function findUserByUsername(username) {
   return rows[0] || null;
 }
 
+export async function findDemoAccount() {
+  return findUserByUsername('demo_sensei');
+}
+
 export async function findUserById(userId) {
   const rows = await query(
-    `SELECT id, username, is_bot, is_admin, is_guest, guest_expires_at, email, created_at
+    `SELECT id, username, is_admin, is_guest, guest_expires_at, email, created_at
      FROM users WHERE id = ? LIMIT 1`,
     [userId],
   );
@@ -92,49 +96,55 @@ export async function findUserById(userId) {
 }
 
 export async function registerUser({
-  username,
+  username: requestedUsername,
+  email,
   password,
-  senseiName,
+  characterName,
   language = 'fr',
-  invitePoolId,
-  villageId = 'leaf',
 }) {
-  const existing = await findUserByUsername(username);
-  if (existing) {
-    const err = new Error('Ce nom d\'utilisateur est déjà pris.');
+  const normalizedEmail = email.trim().toLowerCase();
+  await assertEmailAvailable(normalizedEmail);
+
+  let username = requestedUsername || accountUsername();
+  if (requestedUsername && (await findUserByUsername(requestedUsername))) {
+    const err = new Error("Ce nom d'utilisateur interne est déjà pris.");
     err.statusCode = 409;
     throw err;
   }
+  for (let attempt = 0; !requestedUsername && attempt < 5; attempt += 1) {
+    if (!(await findUserByUsername(username))) break;
+    username = accountUsername();
+  }
 
   const passwordHash = hashPassword(password);
-  const userResult = await query(
-    'INSERT INTO users (username, password_hash, is_bot) VALUES (?, ?, FALSE)',
-    [username, passwordHash],
-  );
+  let userResult;
+  try {
+    userResult = await query(
+      'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+      [username, normalizedEmail, passwordHash],
+    );
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') throw duplicateEmailError();
+    throw error;
+  }
   const userId = userResult.insertId;
 
-  await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
-     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?, ?)`,
-    [userId, senseiName, language, villageId],
-  );
+  try {
+    await query(
+      `INSERT INTO player_profiles (user_id, display_name, ryos, language)
+       VALUES (?, ?, 10000, ?)`,
+      [userId, characterName, language],
+    );
+    await createCharacter(userId, { name: characterName });
+  } catch (error) {
+    await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
+    throw error;
+  }
 
-  const numericInvite =
-    invitePoolId != null && invitePoolId !== '' ? Number(invitePoolId) : null;
-  const poolJoin = numericInvite
-    ? await joinPoolByInvite(userId, numericInvite)
-    : { pool: await joinOrCreatePool(userId), fallback: false, reason: 'standard' };
-
-  await provisionStarterSquad(userId, language);
-  await grantStarterTacticCards(userId);
-
-  return {
-    user: await findUserById(userId),
-    poolJoin,
-  };
+  return { user: await findUserById(userId) };
 }
 
-export async function registerGuestUser({ senseiName, language = 'fr', villageId = 'leaf' }) {
+export async function registerGuestUser({ characterName, language = 'fr' }) {
   let username = guestUsername();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const existing = await findUserByUsername(username);
@@ -143,69 +153,74 @@ export async function registerGuestUser({ senseiName, language = 'fr', villageId
   }
 
   const expiresAt = guestExpiry();
-  const displayName = senseiName?.trim() || `Invité ${username.slice(-6)}`;
+  const playerDisplayName = characterName.trim();
 
   const userResult = await query(
-    `INSERT INTO users (username, is_bot, is_guest, guest_expires_at)
-     VALUES (?, FALSE, TRUE, ?)`,
+    `INSERT INTO users (username, is_guest, guest_expires_at)
+     VALUES (?, TRUE, ?)`,
     [username, expiresAt],
   );
   const userId = userResult.insertId;
 
-  await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
-     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, ?, ?)`,
-    [userId, displayName, language, villageId],
-  );
-
-  const poolJoin = { pool: await joinOrCreatePool(userId), fallback: false, reason: 'guest' };
-  await provisionStarterSquad(userId, language);
-  await grantStarterTacticCards(userId);
+  try {
+    await query(
+      `INSERT INTO player_profiles (user_id, display_name, ryos, language)
+       VALUES (?, ?, 10000, ?)`,
+      [userId, playerDisplayName, language],
+    );
+    await createCharacter(userId, { name: playerDisplayName });
+  } catch (error) {
+    await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
+    throw error;
+  }
 
   return {
     user: await findUserById(userId),
-    poolJoin,
     guestExpiresAt: expiresAt,
   };
 }
 
-export async function convertGuestToAccount(userId, { username, password, email, senseiName }) {
+export async function convertGuestToAccount(userId, { password, email }) {
   const user = await findUserById(userId);
   if (!user?.is_guest) {
-    const err = new Error('Ce compte n\'est pas un essai invité.');
+    const err = new Error("Ce compte n'est pas un essai invité.");
     err.statusCode = 400;
     throw err;
   }
   if (user.guest_expires_at && new Date(user.guest_expires_at) < new Date()) {
-    const err = new Error('L\'essai invité a expiré — créez un nouveau compte.');
+    const err = new Error("L'essai invité a expiré — créez un nouveau compte.");
     err.statusCode = 410;
     throw err;
   }
 
-  const existing = await findUserByUsername(username);
-  if (existing && existing.id !== userId) {
-    const err = new Error('Ce nom d\'utilisateur est déjà pris.');
-    err.statusCode = 409;
-    throw err;
-  }
+  const normalizedEmail = email.trim().toLowerCase();
+  await assertEmailAvailable(normalizedEmail, userId);
 
   const passwordHash = hashPassword(password);
-  await query(
-    `UPDATE users
-     SET username = ?, password_hash = ?, email = ?, is_guest = FALSE, guest_expires_at = NULL
-     WHERE id = ?`,
-    [username, passwordHash, email || null, userId],
-  );
-
-  if (senseiName?.trim()) {
-    await query('UPDATE sensei SET name = ? WHERE user_id = ?', [senseiName.trim(), userId]);
+  try {
+    await query(
+      `UPDATE users
+       SET password_hash = ?, email = ?, is_guest = FALSE, guest_expires_at = NULL
+       WHERE id = ?`,
+      [passwordHash, normalizedEmail, userId],
+    );
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') throw duplicateEmailError();
+    throw error;
   }
 
   return findUserById(userId);
 }
 
-export async function authenticateUser(username, password) {
-  const user = await findUserByUsername(username);
+export async function authenticateUser(identifier, password) {
+  const normalizedIdentifier = identifier.trim();
+  const rows = await query(
+    `SELECT * FROM users
+     WHERE username = ? OR LOWER(email) = LOWER(?)
+     LIMIT 1`,
+    [normalizedIdentifier, normalizedIdentifier],
+  );
+  const user = rows[0] || null;
   if (!user?.password_hash || !verifyPassword(password, user.password_hash)) {
     const err = new Error('Identifiants invalides.');
     err.statusCode = 401;
@@ -219,10 +234,11 @@ export async function createSession(userId) {
   const tokenHash = sessionTokenHash(token);
   const expiresAt = sessionExpiry();
 
-  await query(
-    'INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
-    [userId, tokenHash, expiresAt],
-  );
+  await query('INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)', [
+    userId,
+    tokenHash,
+    expiresAt,
+  ]);
 
   return { token, expiresAt };
 }
@@ -231,7 +247,7 @@ export async function getUserBySessionToken(token) {
   if (!token) return null;
   const tokenHash = sessionTokenHash(token);
   const rows = await query(
-    `SELECT u.id, u.username, u.is_bot, u.is_admin, u.is_guest, u.guest_expires_at, u.email, u.created_at
+    `SELECT u.id, u.username, u.is_admin, u.is_guest, u.guest_expires_at, u.email, u.created_at
      FROM user_sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > UTC_TIMESTAMP()
@@ -261,10 +277,9 @@ export async function setUserPassword(userId, password) {
 }
 
 export async function changeUserPassword(userId, currentPassword, newPassword) {
-  const rows = await query(
-    'SELECT password_hash, is_guest FROM users WHERE id = ? LIMIT 1',
-    [userId],
-  );
+  const rows = await query('SELECT password_hash, is_guest FROM users WHERE id = ? LIMIT 1', [
+    userId,
+  ]);
   const row = rows[0];
   if (!row) {
     const err = new Error('Utilisateur introuvable.');
@@ -272,7 +287,7 @@ export async function changeUserPassword(userId, currentPassword, newPassword) {
     throw err;
   }
   if (row.is_guest) {
-    const err = new Error('Compte invité : convertissez d\'abord votre essai.');
+    const err = new Error("Compte invité : convertissez d'abord votre essai.");
     err.statusCode = 400;
     throw err;
   }
@@ -291,14 +306,29 @@ export async function updateUserEmail(userId, email) {
     err.statusCode = 404;
     throw err;
   }
-  await query('UPDATE users SET email = ? WHERE id = ?', [email || null, userId]);
+  const normalizedEmail = email?.trim().toLowerCase() || null;
+  if (!normalizedEmail && !user.is_guest && user.email) {
+    const err = new Error('Une adresse e-mail est requise pour ce compte.');
+    err.statusCode = 400;
+    throw err;
+  }
+  if (normalizedEmail) await assertEmailAvailable(normalizedEmail, userId);
+  try {
+    await query('UPDATE users SET email = ? WHERE id = ?', [normalizedEmail, userId]);
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') throw duplicateEmailError();
+    throw error;
+  }
   return findUserById(userId);
 }
 
-export async function updateSenseiLanguage(userId, language) {
-  const result = await query('UPDATE sensei SET language = ? WHERE user_id = ?', [language, userId]);
+export async function updatePlayerProfileLanguage(userId, language) {
+  const result = await query('UPDATE player_profiles SET language = ? WHERE user_id = ?', [
+    language,
+    userId,
+  ]);
   if (!result.affectedRows) {
-    const err = new Error('Sensei introuvable.');
+    const err = new Error('Profil joueur introuvable.');
     err.statusCode = 404;
     throw err;
   }

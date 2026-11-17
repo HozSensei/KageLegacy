@@ -45,7 +45,8 @@ router.get('/players', async (req, res, next) => {
       .trim()
       .slice(0, 80);
     const rows = await query(
-      `SELECT u.id, u.username, u.is_admin, pc.name AS character_name,
+      `SELECT u.id, COALESCE(s.character_name, s.display_name, u.username) AS username,
+              u.is_admin, s.character_name,
               COALESCE(s.ryos, 0) AS ryos,
               COALESCE(s.kage_coins, 0) AS kage_coins,
               COALESCE(s.card_dust, 0) AS card_dust,
@@ -53,13 +54,12 @@ router.get('/players', async (req, res, next) => {
               (SELECT COUNT(*) FROM user_card_collection c WHERE c.user_id = u.id) AS collection_count,
               (SELECT COUNT(*) FROM user_decks d WHERE d.user_id = u.id) AS deck_count
        FROM users u
-       LEFT JOIN sensei s ON s.user_id = u.id
-       LEFT JOIN player_character pc ON pc.user_id = u.id
-       WHERE u.is_bot = FALSE AND u.is_guest = FALSE
-         AND (? = '' OR u.username LIKE ? OR pc.name LIKE ?)
-       ORDER BY u.username
+       LEFT JOIN player_profiles s ON s.user_id = u.id
+       WHERE u.is_guest = FALSE AND u.password_hash IS NOT NULL
+         AND (? = '' OR u.username LIKE ? OR s.display_name LIKE ? OR s.character_name LIKE ?)
+       ORDER BY username
        LIMIT 100`,
-      [search, `%${search}%`, `%${search}%`],
+      [search, `%${search}%`, `%${search}%`, `%${search}%`],
     );
     res.json({ players: rows });
   } catch (error) {
@@ -85,8 +85,8 @@ router.post('/players/:id/resources', async (req, res, next) => {
     await connection.beginTransaction();
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
-       JOIN sensei s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_bot = FALSE AND u.is_guest = FALSE AND u.is_admin = FALSE
+       JOIN player_profiles s ON s.user_id = u.id
+       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL AND u.is_admin = FALSE
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
@@ -98,15 +98,15 @@ router.post('/players/:id/resources', async (req, res, next) => {
     for (const [key, column] of Object.entries(resourceFields)) {
       const amount = parsed.data[key] || 0;
       if (amount > 0) {
-        await connection.execute(`UPDATE sensei SET ${column} = ${column} + ? WHERE user_id = ?`, [
-          amount,
-          userId,
-        ]);
+        await connection.execute(
+          `UPDATE player_profiles SET ${column} = ${column} + ? WHERE user_id = ?`,
+          [amount, userId],
+        );
       }
     }
     await connection.commit();
     const [resources] = await connection.execute(
-      'SELECT ryos, kage_coins, card_dust, card_essence FROM sensei WHERE user_id = ? LIMIT 1',
+      'SELECT ryos, kage_coins, card_dust, card_essence FROM player_profiles WHERE user_id = ? LIMIT 1',
       [userId],
     );
     res.json({ resources: resources[0] });
@@ -137,8 +137,8 @@ router.post('/players/:id/reset', async (req, res, next) => {
     await connection.beginTransaction();
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
-       JOIN sensei s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_bot = FALSE AND u.is_guest = FALSE AND u.is_admin = FALSE
+       JOIN player_profiles s ON s.user_id = u.id
+       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL AND u.is_admin = FALSE
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
@@ -181,16 +181,18 @@ router.post('/players/:id/reset', async (req, res, next) => {
     if (selected.kageCoins) resourceResets.push('kage_coins = 0');
     if (selected.cardMaterials) resourceResets.push('card_dust = 0', 'card_essence = 0');
     if (resourceResets.length) {
-      await connection.execute(`UPDATE sensei SET ${resourceResets.join(', ')} WHERE user_id = ?`, [
-        userId,
-      ]);
+      await connection.execute(
+        `UPDATE player_profiles SET ${resourceResets.join(', ')} WHERE user_id = ?`,
+        [userId],
+      );
     }
 
     if (selected.level) {
       await connection.execute(
-        `UPDATE player_character
-         SET level = 1, xp = 0, \`rank\` = 'Genin'
-         WHERE user_id = ?`,
+        `UPDATE player_profiles
+         SET character_level = 1, character_xp = 0, character_rank = 'Genin',
+             character_updated_at = UTC_TIMESTAMP()
+         WHERE user_id = ? AND character_name IS NOT NULL`,
         [userId],
       );
     }
@@ -200,9 +202,10 @@ router.post('/players/:id/reset', async (req, res, next) => {
         userId,
       ]);
       await connection.execute(
-        `UPDATE player_character pc
-         SET pc.talent_points_available = pc.level
-         WHERE pc.user_id = ?`,
+        `UPDATE player_profiles
+         SET character_talent_points_available = character_level,
+             character_updated_at = UTC_TIMESTAMP()
+         WHERE user_id = ? AND character_name IS NOT NULL`,
         [userId],
       );
     }

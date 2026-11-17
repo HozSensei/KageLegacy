@@ -342,10 +342,11 @@ async function loadTalentEffectCodes(userId) {
 
 async function loadPlayerName(userId) {
   try {
-    const rows = await query('SELECT name FROM player_character WHERE user_id = ? LIMIT 1', [
-      userId,
-    ]);
-    return rows[0]?.name || 'Shinobi';
+    const rows = await query(
+      'SELECT character_name FROM player_profiles WHERE user_id = ? AND character_name IS NOT NULL LIMIT 1',
+      [userId],
+    );
+    return rows[0]?.character_name || 'Shinobi';
   } catch {
     return 'Shinobi';
   }

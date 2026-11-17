@@ -1,35 +1,40 @@
 <script setup>
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth'
-import BrandMark from '../components/ui/BrandMark.vue'
-import ThemeToggle from '../components/ui/ThemeToggle.vue'
-import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue'
-import gateImage from '../assets/illustrations/village-gate.webp'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '../stores/auth';
+import BrandMark from '../components/ui/BrandMark.vue';
+import ThemeToggle from '../components/ui/ThemeToggle.vue';
+import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
+import gateImage from '../assets/illustrations/village-gate.webp';
 
-defineOptions({ name: 'LandingView' })
+defineOptions({ name: 'LandingView' });
 
-const { t, locale } = useI18n()
-const router = useRouter()
-const auth = useAuthStore()
+const { t, locale } = useI18n();
+const router = useRouter();
+const auth = useAuthStore();
+const characterName = ref('');
 
 const features = [
   { key: 'landing.features.character', tone: 'vermilion' },
   { key: 'landing.features.deck', tone: 'sky' },
   { key: 'landing.features.talents', tone: 'leaf' },
   { key: 'landing.features.missions', tone: 'gold' },
-]
+];
 
 const timeline = [
   'landing.timeline.create',
   'landing.timeline.build',
   'landing.timeline.grow',
   'landing.timeline.fight',
-]
+];
 
 async function playAsGuest() {
-  const ok = await auth.loginAsGuest({ language: locale.value === 'en' ? 'en' : 'fr' })
-  if (ok) router.push('/home')
+  const ok = await auth.loginAsGuest({
+    characterName: characterName.value.trim(),
+    language: locale.value === 'en' ? 'en' : 'fr',
+  });
+  if (ok) router.push('/home');
 }
 </script>
 
@@ -46,7 +51,9 @@ async function playAsGuest() {
           {{ t('rules.link') }}
         </router-link>
         <router-link to="/login" class="landing__nav-link">{{ t('auth.login') }}</router-link>
-        <router-link to="/register" class="btn-secondary btn-sm">{{ t('auth.register') }}</router-link>
+        <router-link to="/register" class="btn-secondary btn-sm">{{
+          t('auth.register')
+        }}</router-link>
         <ThemeToggle />
       </nav>
     </header>
@@ -59,15 +66,28 @@ async function playAsGuest() {
           <p class="landing__lead">{{ t('landing.lead') }}</p>
 
           <div class="landing__actions">
-            <button
-              type="button"
-              class="btn-primary btn-lg"
-              data-testid="landing-guest"
-              :disabled="auth.loading"
-              @click="playAsGuest"
-            >
-              {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
-            </button>
+            <form class="landing__guest-form" @submit.prevent="playAsGuest">
+              <label class="field">
+                <span class="field__label">{{ t('player.nameLabel') }}</span>
+                <input
+                  v-model="characterName"
+                  type="text"
+                  required
+                  minlength="2"
+                  maxlength="100"
+                  data-testid="landing-guest-name"
+                  class="input-field"
+                />
+              </label>
+              <button
+                type="submit"
+                class="btn-primary btn-lg"
+                data-testid="landing-guest"
+                :disabled="auth.loading || characterName.trim().length < 2"
+              >
+                {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
+              </button>
+            </form>
             <router-link to="/register" class="btn-ghost btn-lg">
               {{ t('landing.createAccount') }}
             </router-link>
@@ -236,6 +256,13 @@ async function playAsGuest() {
   gap: 0.6rem;
   margin-top: 1.5rem;
   animation: rise-in 620ms var(--ease-out-quint) 220ms both;
+}
+
+.landing__guest-form {
+  display: grid;
+  flex: 1;
+  gap: 0.6rem;
+  max-width: 24rem;
 }
 
 .landing__hint {

@@ -58,6 +58,21 @@ async function onPickDeck(id) {
   }
 }
 
+async function onDeleteDeck(deck) {
+  if (decks.actionLoading || !window.confirm(t('cards.confirmDeleteDeck', { name: deck.name }))) {
+    return;
+  }
+  message.value = null;
+  try {
+    await decks.deleteDeck(deck.id);
+    message.value = decks.error
+      ? { type: 'error', key: 'cards.refreshFailed' }
+      : { type: 'success', key: 'cards.deckDeleted' };
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
+  }
+}
+
 async function onAdd(collectionId) {
   if (!decks.editingDeck) return;
   message.value = null;
@@ -148,18 +163,35 @@ async function onActivate(deckId) {
     <template v-else>
       <div class="deck-toolbar">
         <div v-if="decks.decks.length" class="chip-row deck-toolbar__list" data-testid="deck-list">
-          <button
+          <div
             v-for="deck in decks.decks"
             :key="deck.id"
-            type="button"
-            class="chip"
-            :aria-pressed="decks.editingDeck?.id === deck.id"
-            :data-testid="`deck-pick-${deck.id}`"
-            @click="onPickDeck(deck.id)"
+            class="deck-toolbar__deck-option"
+            :class="{ 'deck-toolbar__deck-option--selected': decks.editingDeck?.id === deck.id }"
           >
-            <span v-if="deck.isActive" class="dot deck-toolbar__active" aria-hidden="true" />
-            {{ deck.name }}
-          </button>
+            <button
+              type="button"
+              class="chip deck-toolbar__pick"
+              :aria-pressed="decks.editingDeck?.id === deck.id"
+              :data-testid="`deck-pick-${deck.id}`"
+              :disabled="decks.actionLoading"
+              @click="onPickDeck(deck.id)"
+            >
+              <span v-if="deck.isActive" class="dot deck-toolbar__active" aria-hidden="true" />
+              {{ deck.name }}
+            </button>
+            <button
+              type="button"
+              class="deck-toolbar__delete"
+              :aria-label="t('cards.deleteDeck', { name: deck.name })"
+              :title="t('cards.deleteDeck', { name: deck.name })"
+              :data-testid="`deck-delete-${deck.id}`"
+              :disabled="decks.actionLoading"
+              @click="onDeleteDeck(deck)"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         <div class="deck-toolbar__create">
@@ -219,6 +251,57 @@ async function onActivate(deckId) {
 
 .deck-toolbar__active {
   color: var(--color-leaf-fill);
+}
+
+.deck-toolbar__deck-option {
+  display: inline-flex;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-bg-soft);
+}
+
+.deck-toolbar__deck-option--selected {
+  border-color: var(--color-indigo);
+}
+
+.deck-toolbar__pick.chip {
+  border: 0;
+  border-radius: 999px 0 0 999px;
+}
+
+.deck-toolbar__delete {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  border: 0;
+  border-left: 1px solid var(--color-line);
+  background: transparent;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.deck-toolbar__deck-option--selected .deck-toolbar__delete {
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+}
+
+.deck-toolbar__delete:hover:not(:disabled) {
+  background: var(--color-bg);
+  color: var(--color-vermilion);
+}
+
+.deck-toolbar__deck-option--selected .deck-toolbar__delete:hover:not(:disabled) {
+  background: var(--color-vermilion);
+  color: var(--color-on-fill);
+}
+
+.deck-toolbar__delete:disabled,
+.deck-toolbar__pick:disabled {
+  cursor: not-allowed;
 }
 
 .deck-toolbar__create {

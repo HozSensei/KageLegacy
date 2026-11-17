@@ -59,8 +59,12 @@ function serializeRuntimeCards(deckCards) {
 
 async function loadFighterProfile(userId) {
   const rows = await query(
-    `SELECT user_id, name, level, \`rank\`, element_affinity
-     FROM player_character WHERE user_id = ? LIMIT 1`,
+    `SELECT user_id, character_name AS name, character_level AS level,
+            character_rank AS \`rank\`,
+            character_element_affinity AS element_affinity
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL
+     LIMIT 1`,
     [userId],
   );
   if (!rows[0]) throw httpError(400, `Personnage requis pour le joueur #${userId}.`);

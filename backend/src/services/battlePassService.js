@@ -263,7 +263,7 @@ async function grantCardReward(userId, reward, connection = null) {
       DISENCHANT_DUST[reward.rarity] ||
       (reward.rarity === 'legendary' ? DISENCHANT_DUST.legendary : DISENCHANT_DUST.rare);
     const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
-    await executor.execute('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [
+    await executor.execute('UPDATE player_profiles SET card_dust = card_dust + ? WHERE user_id = ?', [
       dust * count,
       userId,
     ]);
@@ -330,7 +330,7 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
     case 'ryos': {
       const amount = Math.max(0, Number(reward.amount) || 0);
       const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
-      await executor.execute('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [
+      await executor.execute('UPDATE player_profiles SET ryos = ryos + ? WHERE user_id = ?', [
         amount,
         userId,
       ]);
@@ -339,7 +339,7 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
     case 'dust': {
       const amount = Math.max(0, Number(reward.amount) || 0);
       const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
-      await executor.execute('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [
+      await executor.execute('UPDATE player_profiles SET card_dust = card_dust + ? WHERE user_id = ?', [
         amount,
         userId,
       ]);
@@ -349,7 +349,7 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
       const amount = Math.max(0, Number(reward.amount) || 0);
       const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
       await executor.execute(
-        'UPDATE sensei SET card_essence = card_essence + ? WHERE user_id = ?',
+        'UPDATE player_profiles SET card_essence = card_essence + ? WHERE user_id = ?',
         [amount, userId],
       );
       return { type, amount };
@@ -357,7 +357,7 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
     case 'kage_coins': {
       const amount = Math.max(0, Number(reward.amount) || 0);
       const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
-      await executor.execute('UPDATE sensei SET kage_coins = kage_coins + ? WHERE user_id = ?', [
+      await executor.execute('UPDATE player_profiles SET kage_coins = kage_coins + ? WHERE user_id = ?', [
         amount,
         userId,
       ]);
@@ -488,18 +488,18 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
     await connection.beginTransaction();
 
     if (mode === 'kage_coins') {
-      const [senseiRows] = await connection.execute(
-        'SELECT kage_coins FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
+      const [profileRows] = await connection.execute(
+        'SELECT kage_coins FROM player_profiles WHERE user_id = ? LIMIT 1 FOR UPDATE',
         [userId],
       );
-      if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
-      if (Number(senseiRows[0].kage_coins) < PREMIUM_COST_KAGE_COINS) {
+      if (!profileRows[0]) throw httpError(404, 'Profil joueur introuvable.');
+      if (Number(profileRows[0].kage_coins) < PREMIUM_COST_KAGE_COINS) {
         throw httpError(
           400,
-          `Kage Coins insuffisants (${senseiRows[0].kage_coins}/${PREMIUM_COST_KAGE_COINS}).`,
+          `Kage Coins insuffisants (${profileRows[0].kage_coins}/${PREMIUM_COST_KAGE_COINS}).`,
         );
       }
-      await connection.execute('UPDATE sensei SET kage_coins = kage_coins - ? WHERE user_id = ?', [
+      await connection.execute('UPDATE player_profiles SET kage_coins = kage_coins - ? WHERE user_id = ?', [
         PREMIUM_COST_KAGE_COINS,
         userId,
       ]);
@@ -554,15 +554,15 @@ export async function purchaseLevels(userId, count) {
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    const [senseiRows] = await connection.execute(
-      'SELECT kage_coins FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
+    const [profileRows] = await connection.execute(
+      'SELECT kage_coins FROM player_profiles WHERE user_id = ? LIMIT 1 FOR UPDATE',
       [userId],
     );
-    if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
-    if (Number(senseiRows[0].kage_coins) < cost) {
-      throw httpError(400, `Kage Coins insuffisants (${senseiRows[0].kage_coins}/${cost}).`);
+    if (!profileRows[0]) throw httpError(404, 'Profil joueur introuvable.');
+    if (Number(profileRows[0].kage_coins) < cost) {
+      throw httpError(400, `Kage Coins insuffisants (${profileRows[0].kage_coins}/${cost}).`);
     }
-    await connection.execute('UPDATE sensei SET kage_coins = kage_coins - ? WHERE user_id = ?', [
+    await connection.execute('UPDATE player_profiles SET kage_coins = kage_coins - ? WHERE user_id = ?', [
       cost,
       userId,
     ]);

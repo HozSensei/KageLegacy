@@ -1,10 +1,9 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import CardDisplay from './CardDisplay.vue'
-import { cardTypeVisual } from '../../utils/cardVisuals'
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import CardDisplay from './CardDisplay.vue';
 
-defineOptions({ name: 'DeckBuilder' })
+defineOptions({ name: 'DeckBuilder' });
 
 const props = defineProps({
   deck: { type: Object, default: null },
@@ -20,57 +19,56 @@ const props = defineProps({
     }),
   },
   busy: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['add', 'remove', 'activate'])
+const emit = defineEmits(['add', 'remove', 'activate']);
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
+const recapOpen = ref(false);
 
-const size = computed(() => props.deck?.size ?? 0)
-const validation = computed(() => props.deck?.validation)
-const passiveBonuses = computed(() => props.deck?.passiveBonuses || {})
+const size = computed(() => props.deck?.size ?? 0);
+const validation = computed(() => props.deck?.validation);
+const passiveBonuses = computed(() => props.deck?.passiveBonuses || {});
 
-const maxCopies = computed(() => Number(props.constraints.maxCopies) || 3)
-const maxClan = computed(() => Number(props.constraints.maxClan) || 1)
-const maxLegendaryOrMythic = computed(
-  () => Number(props.constraints.maxLegendaryOrMythic) || 3
-)
+const maxCopies = computed(() => Number(props.constraints.maxCopies) || 3);
+const maxClan = computed(() => Number(props.constraints.maxClan) || 1);
+const maxLegendaryOrMythic = computed(() => Number(props.constraints.maxLegendaryOrMythic) || 3);
 
 function isClanCard(card) {
-  if (!card) return false
-  if (typeof card.slug === 'string' && card.slug.startsWith('clan-')) return true
-  if (card.clan === true || card.clan === 1 || card.clan === 'clan') return true
-  if (Array.isArray(card.tags) && card.tags.map(String).includes('clan')) return true
-  return false
+  if (!card) return false;
+  if (typeof card.slug === 'string' && card.slug.startsWith('clan-')) return true;
+  if (card.clan === true || card.clan === 1 || card.clan === 'clan') return true;
+  if (Array.isArray(card.tags) && card.tags.map(String).includes('clan')) return true;
+  return false;
 }
 
 function isLegendaryOrMythic(card) {
-  return card?.rarity === 'legendary' || card?.rarity === 'mythic'
+  return card?.rarity === 'legendary' || card?.rarity === 'mythic';
 }
 
 const clanCount = computed(() =>
   (props.deck?.cards || []).reduce((sum, entry) => {
-    const qty = Number(entry.quantity) || 0
-    return isClanCard(entry.card) ? sum + qty : sum
+    const qty = Number(entry.quantity) || 0;
+    return isClanCard(entry.card) ? sum + qty : sum;
   }, 0)
-)
+);
 
 const legendaryOrMythicCount = computed(() =>
   (props.deck?.cards || []).reduce((sum, entry) => {
-    const qty = Number(entry.quantity) || 0
-    return isLegendaryOrMythic(entry.card) ? sum + qty : sum
+    const qty = Number(entry.quantity) || 0;
+    return isLegendaryOrMythic(entry.card) ? sum + qty : sum;
   }, 0)
-)
+);
 
 const validationMessages = computed(() => {
-  const v = validation.value
-  if (!v || v.valid) return []
+  const v = validation.value;
+  if (!v || v.valid) return [];
   if (locale.value === 'en' && Array.isArray(v.errorsEn) && v.errorsEn.length) {
-    return v.errorsEn
+    return v.errorsEn;
   }
-  if (Array.isArray(v.errors) && v.errors.length) return v.errors
-  return []
-})
+  if (Array.isArray(v.errors) && v.errors.length) return v.errors;
+  return [];
+});
 
 const passiveList = computed(() =>
   Object.entries(passiveBonuses.value)
@@ -80,48 +78,52 @@ const passiveList = computed(() =>
       value: Number(value),
       label: t(`cards.stats.${key}`, key),
     }))
-)
+);
 
 const deckCollectionIds = computed(() => {
-  const map = new Map()
+  const map = new Map();
   for (const c of props.deck?.cards || []) {
-    map.set(c.collectionId, c.quantity)
+    map.set(c.collectionId, Number(c.quantity) || 0);
   }
-  return map
-})
+  return map;
+});
 
 function inDeckQty(collectionId) {
-  return deckCollectionIds.value.get(collectionId) || 0
+  return deckCollectionIds.value.get(collectionId) || 0;
+}
+
+function addEntry(entry) {
+  if (!props.busy && canAdd(entry)) emit('add', entry.collectionId);
 }
 
 function canAdd(entry) {
-  const inDeck = inDeckQty(entry.collectionId)
-  if (inDeck >= maxCopies.value || inDeck >= entry.quantity) return false
-  if (size.value >= props.constraints.max) return false
+  const inDeck = inDeckQty(entry.collectionId);
+  if (inDeck >= maxCopies.value || inDeck >= entry.quantity) return false;
+  if (size.value >= props.constraints.max) return false;
 
-  const card = entry.card
-  if (isClanCard(card) && clanCount.value >= maxClan.value) return false
+  const card = entry.card;
+  if (isClanCard(card) && clanCount.value >= maxClan.value) return false;
   if (isLegendaryOrMythic(card) && legendaryOrMythicCount.value >= maxLegendaryOrMythic.value) {
-    return false
+    return false;
   }
-  return true
+  return true;
 }
 
 function cardName(card) {
-  return locale.value === 'en' ? card.nameEn : card.nameFr
+  return locale.value === 'en' ? card.nameEn : card.nameFr;
 }
 
 const sizeRatio = computed(() => {
-  const max = Number(props.constraints.max) || 1
-  return Math.min(100, Math.round((size.value / max) * 100))
-})
+  const max = Number(props.constraints.max) || 1;
+  return Math.min(100, Math.round((size.value / max) * 100));
+});
 const minRatio = computed(() => {
-  const max = Number(props.constraints.max) || 1
-  return Math.min(100, Math.round((Number(props.constraints.min) / max) * 100))
-})
+  const max = Number(props.constraints.max) || 1;
+  return Math.min(100, Math.round((Number(props.constraints.min) / max) * 100));
+});
 const sizeValid = computed(
   () => size.value >= props.constraints.min && size.value <= props.constraints.max
-)
+);
 </script>
 
 <template>
@@ -132,7 +134,9 @@ const sizeValid = computed(
       <header class="deck-builder__header">
         <div class="min-w-0">
           <p class="t-kicker flex items-center gap-2">
-            <span v-if="deck.isActive" class="badge badge--solid" data-tone="leaf">{{ t('cards.activeDeck') }}</span>
+            <span v-if="deck.isActive" class="badge badge--solid" data-tone="leaf">{{
+              t('cards.activeDeck')
+            }}</span>
             <span class="sr-only">
               {{ t('cards.deckSize', { size, min: constraints.min, max: constraints.max }) }}
             </span>
@@ -140,7 +144,11 @@ const sizeValid = computed(
           <h2 class="deck-builder__name">{{ deck.name }}</h2>
         </div>
 
-        <div class="deck-builder__size" :data-tone="sizeValid ? 'leaf' : 'vermilion'" aria-hidden="true">
+        <div
+          class="deck-builder__size"
+          :data-tone="sizeValid ? 'leaf' : 'vermilion'"
+          aria-hidden="true"
+        >
           <p class="figure figure--lg">
             {{ size }}<span class="figure__max"> / {{ constraints.max }}</span>
           </p>
@@ -193,75 +201,85 @@ const sizeValid = computed(
         </ul>
       </section>
 
-      <div class="deck-builder__panels">
-        <section>
-          <div class="section-head">
-            <span class="section-head__index">A</span>
-            <h3 class="section-head__title">{{ t('cards.inDeck') }}</h3>
-            <span class="section-head__rule" />
-          </div>
-          <p v-if="!deck.cards?.length" class="mt-4 text-ink-muted">{{ t('cards.deckEmpty') }}</p>
-          <TransitionGroup v-else tag="ul" name="deck-row" class="deck-builder__rows">
-            <li
-              v-for="entry in deck.cards"
-              :key="entry.deckCardId"
-              class="deck-row"
-              :data-tone="cardTypeVisual(entry.card?.type).tone"
+      <section class="deck-builder__recap">
+        <button
+          type="button"
+          class="btn-secondary"
+          data-testid="deck-recap-toggle"
+          :aria-expanded="recapOpen"
+          @click="recapOpen = !recapOpen"
+        >
+          {{ t(recapOpen ? 'cards.hideDeckRecap' : 'cards.deckRecap') }}
+        </button>
+        <div v-if="recapOpen" class="deck-builder__recap-content" data-testid="deck-recap">
+          <h3 class="t-kicker">{{ t('cards.deckRecapTitle') }}</h3>
+          <p v-if="!deck.cards?.length" class="mt-3 text-ink-muted">{{ t('cards.deckEmpty') }}</p>
+          <ul v-else class="deck-builder__recap-list">
+            <li v-for="entry in deck.cards" :key="entry.deckCardId">
+              <span>{{ cardName(entry.card) }}</span>
+              <span class="deck-builder__recap-type">
+                {{ t(`cards.types.${entry.card?.type}`, entry.card?.type || '') }}
+              </span>
+              <span class="deck-builder__recap-qty">×{{ entry.quantity }}</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="deck-builder__collection">
+        <div class="section-head">
+          <span class="section-head__index">A</span>
+          <h3 class="section-head__title">{{ t('cards.deckCardPool') }}</h3>
+          <span class="section-head__rule" />
+        </div>
+        <div class="deck-builder__pool">
+          <div
+            v-for="entry in collection"
+            :key="entry.collectionId"
+            class="deck-builder__pool-item"
+            :class="{ 'deck-builder__pool-item--in-deck': inDeckQty(entry.collectionId) > 0 }"
+            :data-testid="`deck-card-${entry.collectionId}`"
+          >
+            <CardDisplay
+              :card="entry.card"
+              :quantity="entry.quantity"
+              :upgrade-level="entry.upgradeLevel"
+              :selected="inDeckQty(entry.collectionId) > 0"
+              compact
+              @select="addEntry(entry)"
+            />
+            <div
+              class="deck-builder__quantity"
+              :data-tone="inDeckQty(entry.collectionId) ? 'leaf' : 'neutral'"
             >
-              <span class="deck-row__cost">{{ entry.card?.cost ?? entry.card?.baseCost ?? 0 }}</span>
-              <div class="min-w-0 flex-1">
-                <p class="deck-row__name">{{ cardName(entry.card) }}</p>
-                <p class="deck-row__type">
-                  <span
-                    class="shape"
-                    :class="`shape--${cardTypeVisual(entry.card?.type).shape}`"
-                    aria-hidden="true"
-                  />
-                  {{ t(`cards.types.${entry.card?.type}`, entry.card?.type || '') }}
-                </p>
-              </div>
-              <span class="deck-row__qty">×{{ entry.quantity }}</span>
               <button
                 type="button"
-                class="btn-ghost btn-sm"
-                :disabled="busy"
+                class="deck-builder__quantity-button"
+                :aria-label="t('cards.removeOneFromDeck', { name: cardName(entry.card) })"
+                :disabled="busy || inDeckQty(entry.collectionId) < 1"
                 @click="emit('remove', entry.collectionId)"
               >
-                {{ t('cards.remove') }}
+                −
               </button>
-            </li>
-          </TransitionGroup>
-        </section>
-
-        <section>
-          <div class="section-head">
-            <span class="section-head__index">B</span>
-            <h3 class="section-head__title">{{ t('cards.fromCollection') }}</h3>
-            <span class="section-head__rule" />
-          </div>
-          <div class="deck-builder__pool">
-            <div v-for="entry in collection" :key="entry.collectionId" class="deck-builder__pool-item">
-              <CardDisplay
-                :card="entry.card"
-                :quantity="entry.quantity"
-                :upgrade-level="entry.upgradeLevel"
-                compact
-              />
+              <span
+                class="deck-builder__quantity-value"
+                :aria-label="t('cards.cardsInDeck', { count: inDeckQty(entry.collectionId) })"
+              >
+                {{ inDeckQty(entry.collectionId) }}
+              </span>
               <button
                 type="button"
-                class="btn-secondary btn-sm btn-block"
+                class="deck-builder__quantity-button"
+                :aria-label="t('cards.addOneToDeck', { name: cardName(entry.card) })"
                 :disabled="busy || !canAdd(entry)"
                 @click="emit('add', entry.collectionId)"
               >
-                {{ t('cards.addToDeck') }}
-                <span v-if="inDeckQty(entry.collectionId)" class="deck-builder__in-deck">
-                  {{ inDeckQty(entry.collectionId) }}
-                </span>
+                +
               </button>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </template>
   </div>
 </template>
@@ -353,99 +371,46 @@ const sizeValid = computed(
   color: var(--color-ink-muted);
 }
 
-.deck-builder__panels {
-  display: grid;
-  gap: 2.5rem;
-  margin-top: var(--space-block);
+.deck-builder__recap {
+  margin-top: 1.5rem;
 }
 
-.deck-builder__rows {
-  position: relative;
-  margin: 1.1rem 0 0;
+.deck-builder__recap-content {
+  margin-top: 0.75rem;
+  padding: 1rem 1.1rem;
+  background: var(--color-bg-soft);
+}
+
+.deck-builder__recap-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.8rem 0 0;
   padding: 0;
   list-style: none;
 }
 
-.deck-row {
-  display: flex;
-  align-items: center;
+.deck-builder__recap-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: baseline;
   gap: 0.75rem;
-  padding: 0.5rem 0;
+  padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--color-line);
 }
 
-.deck-row__cost {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  flex: none;
-  background: var(--tone-fill);
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  font-stretch: 76%;
-  color: var(--tone-on);
+.deck-builder__recap-type {
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
 }
 
-.deck-row__name {
-  overflow: hidden;
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.deck-row__type {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: 0.1rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tone);
-}
-
-.deck-row__qty {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
-  font-stretch: 80%;
+.deck-builder__recap-qty {
+  min-width: 2rem;
+  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.deck-row-enter-active {
-  transition:
-    opacity var(--dur-base) ease,
-    transform var(--dur-base) var(--ease-out-quint),
-    background-color 900ms ease;
-}
-
-.deck-row-leave-active {
-  position: absolute;
-  width: 100%;
-  transition:
-    opacity var(--dur-fast) ease,
-    transform var(--dur-fast) ease;
-}
-
-.deck-row-move {
-  transition: transform var(--dur-base) var(--ease-out-quint);
-}
-
-.deck-row-enter-from {
-  opacity: 0;
-  background-color: var(--tone-tint);
-  transform: translateX(-14px);
-}
-
-.deck-row-leave-to {
-  opacity: 0;
-  transform: translateX(14px);
+.deck-builder__collection {
+  margin-top: var(--space-block);
 }
 
 .deck-builder__pool {
@@ -458,24 +423,59 @@ const sizeValid = computed(
 .deck-builder__pool-item {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  opacity: 0.4;
+  transition: opacity var(--dur-base) ease;
+}
+
+.deck-builder__pool-item--in-deck {
+  opacity: 1;
 }
 
 .deck-builder__pool-item > :first-child {
   flex: 1;
 }
 
-.deck-builder__in-deck {
-  display: inline-grid;
+.deck-builder__quantity {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(2rem, 1fr) 2.5rem;
+  align-items: center;
+  justify-items: center;
+  min-height: 2.5rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-bg-soft);
+}
+
+.deck-builder__quantity-button {
+  display: grid;
   place-items: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.3rem;
-  border-radius: 999px;
-  background: var(--color-on-fill);
-  font-size: 0.6875rem;
+  width: 100%;
+  height: 100%;
+  min-height: 2.5rem;
+  border: 0;
+  background: transparent;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--color-indigo-deep);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.deck-builder__quantity-button:hover:not(:disabled) {
+  background: var(--color-bg);
+}
+
+.deck-builder__quantity-button:disabled {
+  color: var(--color-ink-faint);
+  cursor: not-allowed;
+}
+
+.deck-builder__quantity-value {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--tone);
 }
 
 @media (min-width: 768px) {

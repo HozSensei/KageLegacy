@@ -52,7 +52,7 @@ function serializeNode(row) {
 
 function buildRespecQuote(level, respecRows) {
   const freeAllowed = Math.floor(Number(level) / FREE_RESPEC_EVERY_LEVELS);
-  const freeUsed = respecRows.filter((row) => Number(row.cost_ryos) === 0).length;
+  const freeUsed = respecRows.filter(row => Number(row.cost_ryos) === 0).length;
   const freeRemaining = Math.max(0, freeAllowed - freeUsed);
   const isFree = freeRemaining > 0;
   return {
@@ -83,9 +83,10 @@ export async function getTalentTree() {
 export async function getUserTalents(userId) {
   const [characterRows, unlockedRows, respecRows] = await Promise.all([
     query(
-      `SELECT level, talent_points_available
-       FROM player_character
-       WHERE user_id = ?
+      `SELECT character_level AS level,
+              character_talent_points_available AS talent_points_available
+       FROM player_profiles
+       WHERE user_id = ? AND character_name IS NOT NULL
        LIMIT 1`,
       [userId],
     ),
@@ -110,10 +111,10 @@ export async function getUserTalents(userId) {
   const character = characterRows[0];
   if (!character) throw httpError(404, 'Personnage introuvable.');
 
-  const unlockedNodeIds = unlockedRows.map((row) => row.node_id);
+  const unlockedNodeIds = unlockedRows.map(row => row.node_id);
   const effects = unlockedRows
-    .filter((row) => row.effect_code)
-    .map((row) => ({
+    .filter(row => row.effect_code)
+    .map(row => ({
       nodeId: row.node_id,
       effectCode: row.effect_code,
       type: row.type,
@@ -131,7 +132,7 @@ export async function getUserTalents(userId) {
     unlockedCount: unlockedNodeIds.length,
     effects,
     respec: buildRespecQuote(character.level, respecRows),
-    history: respecRows.map((row) => ({
+    history: respecRows.map(row => ({
       id: row.id,
       respecAt: row.respec_at,
       costRyos: row.cost_ryos,
@@ -164,7 +165,7 @@ export async function canUnlock(userId, nodeId) {
     return { ok: false, reason: 'Aucun point de talent disponible.', code: 'NO_POINTS', node };
   }
 
-  const missing = (node.requires || []).filter((req) => !user.unlockedNodeIds.includes(req));
+  const missing = (node.requires || []).filter(req => !user.unlockedNodeIds.includes(req));
   if (missing.length > 0) {
     return {
       ok: false,
@@ -193,9 +194,9 @@ export async function unlockTalent(userId, nodeId) {
     await connection.beginTransaction();
 
     const [charRows] = await connection.execute(
-      `SELECT id, talent_points_available
-       FROM player_character
-       WHERE user_id = ?
+      `SELECT id, character_talent_points_available AS talent_points_available
+       FROM player_profiles
+       WHERE user_id = ? AND character_name IS NOT NULL
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
@@ -216,9 +217,10 @@ export async function unlockTalent(userId, nodeId) {
       nodeId,
     ]);
     await connection.execute(
-      `UPDATE player_character
-       SET talent_points_available = talent_points_available - 1
-       WHERE user_id = ?`,
+      `UPDATE player_profiles
+       SET character_talent_points_available = character_talent_points_available - 1,
+           character_updated_at = UTC_TIMESTAMP()
+       WHERE user_id = ? AND character_name IS NOT NULL`,
       [userId],
     );
 
@@ -237,8 +239,14 @@ export async function unlockTalent(userId, nodeId) {
 
   try {
     const { onAchievementAction } = await import('./achievementService.js');
-    await onAchievementAction(userId, 'talent_spent', Number(talents?.unlockedNodeIds?.length) || 0);
-  } catch { /* exploits optionnels */ }
+    await onAchievementAction(
+      userId,
+      'talent_spent',
+      Number(talents?.unlockedNodeIds?.length) || 0,
+    );
+  } catch {
+    /* exploits optionnels */
+  }
 
   return {
     unlocked: nodeId,
@@ -263,12 +271,12 @@ export async function computeTalentBonuses(userId) {
   );
 
   const stats = mergeStatBonuses(
-    ...rows.map((row) => parseJsonSafe(row.stat_bonus_json, null)).filter(Boolean),
+    ...rows.map(row => parseJsonSafe(row.stat_bonus_json, null)).filter(Boolean),
   );
 
   const effects = rows
-    .filter((row) => row.effect_code)
-    .map((row) => ({
+    .filter(row => row.effect_code)
+    .map(row => ({
       nodeId: row.node_id,
       effectCode: row.effect_code,
       type: row.type,
@@ -294,9 +302,10 @@ export async function respecTalents(userId) {
     await connection.beginTransaction();
 
     const [charRows] = await connection.execute(
-      `SELECT id, level, talent_points_available
-       FROM player_character
-       WHERE user_id = ?
+      `SELECT id, character_level AS level,
+              character_talent_points_available AS talent_points_available
+       FROM player_profiles
+       WHERE user_id = ? AND character_name IS NOT NULL
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
@@ -320,15 +329,15 @@ export async function respecTalents(userId) {
     costRyos = quote.costRyos;
 
     if (costRyos > 0) {
-      const [senseiRows] = await connection.execute(
-        'SELECT ryos FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
+      const [profileRows] = await connection.execute(
+        'SELECT ryos FROM player_profiles WHERE user_id = ? LIMIT 1 FOR UPDATE',
         [userId],
       );
-      if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
-      if (Number(senseiRows[0].ryos) < costRyos) {
-        throw httpError(400, `Ryos insuffisants (${senseiRows[0].ryos}/${costRyos}).`);
+      if (!profileRows[0]) throw httpError(404, 'Profil joueur introuvable.');
+      if (Number(profileRows[0].ryos) < costRyos) {
+        throw httpError(400, `Ryos insuffisants (${profileRows[0].ryos}/${costRyos}).`);
       }
-      await connection.execute('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [
+      await connection.execute('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [
         costRyos,
         userId,
       ]);
@@ -336,9 +345,10 @@ export async function respecTalents(userId) {
 
     await connection.execute('DELETE FROM user_talents WHERE user_id = ?', [userId]);
     await connection.execute(
-      `UPDATE player_character
-       SET talent_points_available = talent_points_available + ?
-       WHERE user_id = ?`,
+      `UPDATE player_profiles
+       SET character_talent_points_available = character_talent_points_available + ?,
+           character_updated_at = UTC_TIMESTAMP()
+       WHERE user_id = ? AND character_name IS NOT NULL`,
       [pointsRefunded, userId],
     );
     await connection.execute(

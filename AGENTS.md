@@ -42,13 +42,13 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 - Connexion DB via `backend/src/config/database.js` et variables d'environnement; schéma via les migrations.
 - Économie et coûts : `backend/src/config/economyConfig.js`.
 - Seuils et profils de tests d'équilibrage combat : `backend/src/config/combatBalanceConfig.js`.
-- Ordre de démarrage local et paramètres des conteneurs : `docker-compose.yml`, `Dockerfile`, scripts racine. Le scheduler intégré conserve la rétention et la purge des invités, mais n'exécute plus automatiquement le cycle legacy ; `cycle:tick` reste une commande manuelle historique.
+- Ordre de démarrage local et paramètres des conteneurs : `docker-compose.yml`, `Dockerfile`, scripts racine. Le scheduler intégré conserve la purge des invités et le rafraîchissement des quêtes Battle Pass ; l'horloge et le tick de cycle legacy ne sont plus exposés. Des services et scripts historiques restent à retirer.
 - Les statistiques et effets de carte sont définis dans le code des services/catalogues et seeds. Vérifier leur implémentation avant de modifier les chiffres ou de documenter leurs règles; ne pas s'appuyer sur les anciennes valeurs d'un document de conception.
 
 ## Commandes usuelles
 
 - `npm run dev` : backend et frontend.
 - `npm run lint` : lint backend puis frontend.
-- `npm run db:up`, `npm run db:migrate`, `npm run db:seed-v2` : base locale et données TCG. `db:seed` et `setup` utilisent encore un seed legacy destructif pour les ninjas du compte démo, jamais en production.
+- `npm run db:up`, `npm run db:migrate`, `npm run db:seed` : base locale et données TCG. `db:seed` utilise le catalogue TCG (cartes, talents et Battle Pass).
 - `npm run test:combat-engine`, `npm run test:combat-balance`, `npm run test:card-system --prefix backend` : tests ciblés disponibles (voir `backend/package.json`).
 - `npm run e2e:prepare` puis `npm run test:e2e` : tests Cypress dans une base vide dédiée, sous réserve des garde-fous et variables décrits dans `docs/QUICK_START.md`.

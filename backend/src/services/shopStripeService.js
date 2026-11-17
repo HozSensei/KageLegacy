@@ -8,7 +8,7 @@ import { findUserById } from './authService.js';
 import {
   COIN_PACK_CATALOG,
   getCoinPack,
-  getSenseiBalances,
+  getPlayerBalances,
   serializeCoinPack,
 } from './shopService.js';
 import {
@@ -274,7 +274,7 @@ async function fulfillKageCoinsSession(session) {
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute('UPDATE sensei SET kage_coins = kage_coins + ? WHERE user_id = ?', [
+    await connection.execute('UPDATE player_profiles SET kage_coins = kage_coins + ? WHERE user_id = ?', [
       totalCoins,
       userId,
     ]);
@@ -431,7 +431,7 @@ export async function confirmShopCheckoutSession(userId, sessionId) {
   }
 
   const result = await fulfillShopCheckoutSession(session);
-  const balances = await getSenseiBalances(userId);
+  const balances = await getPlayerBalances(userId);
 
   return {
     ok: true,

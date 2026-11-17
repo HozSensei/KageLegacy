@@ -68,13 +68,11 @@ async function dbAvailable() {
 
 async function integration() {
   const PREFIX = `shop_stripe_${Date.now()}`;
-  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
-    `${PREFIX}_u`,
-  ]);
+  const userResult = await query('INSERT INTO users (username) VALUES (?)', [`${PREFIX}_u`]);
   const userId = userResult.insertId;
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, kage_coins)
-     VALUES (?, ?, 'Genjutsu', 10000, 0, 100, 'fr', 0)`,
+    `INSERT INTO player_profiles (user_id, display_name, ryos, language, kage_coins)
+     VALUES (?, ?, 10000, 'fr', 0)`,
     [userId, `${PREFIX}_s`]
   );
   const session = {
@@ -93,8 +91,10 @@ async function integration() {
   assert(first.fulfilled && first.coinsGranted === 550, 'first fulfill');
   const second = await fulfillShopCheckoutSession(session);
   assert(second.reason === 'already_fulfilled', 'idempotent');
-  const sensei = await query('SELECT kage_coins FROM sensei WHERE user_id = ?', [userId]);
-  assert(Number(sensei[0].kage_coins) === 550, 'no double credit');
+  const profileRows = await query('SELECT kage_coins FROM player_profiles WHERE user_id = ?', [
+    userId,
+  ]);
+  assert(Number(profileRows[0].kage_coins) === 550, 'no double credit');
 
   const seasons = await query(
     'SELECT id FROM battle_pass_seasons WHERE is_active = TRUE ORDER BY id DESC LIMIT 1'
@@ -130,7 +130,7 @@ async function integration() {
   }
 
   await query('DELETE FROM shop_coin_pack_purchases WHERE user_id = ?', [userId]);
-  await query('DELETE FROM sensei WHERE user_id = ?', [userId]);
+  await query('DELETE FROM player_profiles WHERE user_id = ?', [userId]);
   await query('DELETE FROM users WHERE id = ?', [userId]);
   console.log('testShopStripe fulfillment: OK');
 }

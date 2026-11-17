@@ -2,14 +2,13 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { useSquadStore } from '../stores/squad';
+
 import { useAuthStore } from '../stores/auth';
-import { useEliteStore } from '../stores/elite';
+
 import { useNavStructure } from '../composables/useNavStructure';
-import { useNotificationWatcher } from '../composables/useNotificationWatcher';
+
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
-import NotificationBell from '../components/notifications/NotificationBell.vue';
-import ToastContainer from '../components/notifications/ToastContainer.vue';
+
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
 import AppNavRail from '../components/layout/AppNavRail.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
@@ -24,9 +23,9 @@ defineOptions({ name: 'AppLayout' });
 const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
-const store = useSquadStore();
+
 const auth = useAuthStore();
-const elite = useEliteStore();
+
 const shop = useShopStore();
 const showConvert = ref(false);
 
@@ -44,13 +43,6 @@ const baseNavItems = [
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
 ];
 
-const eliteToolsNavItem = {
-  name: 'elite-tools',
-  path: '/elite/outils',
-  label: 'nav.eliteTools',
-  elite: true,
-};
-
 const adminNavItem = {
   name: 'admin',
   path: '/admin',
@@ -60,14 +52,14 @@ const adminNavItem = {
 
 const navItems = computed(() => {
   const items = [...baseNavItems];
-  if (elite.featureEnabled && elite.subscription?.isActive) items.push(eliteToolsNavItem);
+
   if (auth.user?.isAdmin) items.push(adminNavItem);
   return items;
 });
 
 function isActive(path) {
   if (path === '/home') {
-    return route.path === '/home' || route.path === '/bureau' || route.name === 'hub';
+    return route.path === '/home' || route.name === 'hub';
   }
   if (path === '/profil') {
     return (
@@ -83,8 +75,6 @@ const { groups: navGroups, currentSectionLabel } = useNavStructure({
   t,
 });
 
-useNotificationWatcher();
-
 const guestDaysLeft = computed(() => {
   if (!auth.user?.guestExpiresAt) return null;
   const ms = new Date(auth.user.guestExpiresAt) - Date.now();
@@ -99,9 +89,9 @@ const currentSection = computed(() => {
 
 async function onAccountDeleted() {
   auth.user = null;
-  auth.sensei = null;
+  auth.profile = null;
   auth.checked = true;
-  store.clearSquad();
+
   await router.replace({ name: 'home' });
   if (router.currentRoute.value.name !== 'home') {
     window.location.assign('/');
@@ -110,18 +100,17 @@ async function onAccountDeleted() {
 
 async function logout() {
   await auth.logout();
-  store.sensei = null;
+
   router.push('/');
 }
 
 onMounted(async () => {
   if (!auth.checked) await auth.fetchMe();
-  if (auth.sensei?.language && ['fr', 'en'].includes(auth.sensei.language)) {
-    locale.value = auth.sensei.language;
-    writeStoredLocale(auth.sensei.language);
+  if (auth.profile?.language && ['fr', 'en'].includes(auth.profile.language)) {
+    locale.value = auth.profile.language;
+    writeStoredLocale(auth.profile.language);
   }
-  if (!store.sensei) store.fetchSquad();
-  if (auth.user && !elite.subscription) elite.fetchElite();
+
   if (auth.user) await shop.fetchBalances();
 });
 </script>
@@ -183,7 +172,7 @@ onMounted(async () => {
             </div>
           </dl>
           <ThemeToggle />
-          <NotificationBell v-if="auth.user" />
+
           <ProfileMenu
             v-if="auth.user"
             @logout="logout"
@@ -218,13 +207,7 @@ onMounted(async () => {
       </router-view>
     </main>
 
-    <ToastContainer v-if="auth.user" />
-
-    <ConvertGuestModal
-      :open="showConvert"
-      @close="showConvert = false"
-      @converted="store.fetchSquad()"
-    />
+    <ConvertGuestModal :open="showConvert" @close="showConvert = false" />
   </div>
 </template>
 

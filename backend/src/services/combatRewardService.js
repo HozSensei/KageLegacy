@@ -2,7 +2,7 @@
  * Récompenses de victoire (missions deck-combat Phase 4+).
  *
  * - XP → addXP (level-up existant → talent points)
- * - Ryos → sensei.ryos
+ * - Ryos → player_profiles.ryos
  * - Chance de carte → collection (source: mission)
  * - Battle Pass : hook stub si table absente
  */
@@ -140,7 +140,7 @@ async function applyRewardConfig(userId, cfg, { rng = Math.random, source = 'mis
   }
 
   if (cfg.ryos > 0) {
-    const updated = await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [
+    const updated = await query('UPDATE player_profiles SET ryos = ryos + ? WHERE user_id = ?', [
       cfg.ryos,
       userId,
     ]);
@@ -207,7 +207,10 @@ export async function grantRunRewards(
   const cfg = {
     xp: Math.round((base.xp || 0) * scale),
     ryos: Math.round((base.ryos || 0) * scale),
-    cardChance: Math.min(85, Math.round((base.cardChance || 12) * Math.min(1.4, 1 + combatsWon * 0.05))),
+    cardChance: Math.min(
+      85,
+      Math.round((base.cardChance || 12) * Math.min(1.4, 1 + combatsWon * 0.05)),
+    ),
     bpPoints: Math.round((base.bpPoints || 0) * scale),
   };
 

@@ -10,7 +10,7 @@ import {
   listCoinPacks,
   purchaseCoinPack,
   unlockBattlePassFromShop,
-  getSenseiBalances,
+  getPlayerBalances,
 } from '../services/shopService.js';
 import { confirmShopCheckoutSession, getShopPaymentMeta } from '../services/shopStripeService.js';
 
@@ -49,7 +49,7 @@ router.get('/balances', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    res.json({ balances: await getSenseiBalances(user.id) });
+    res.json({ balances: await getPlayerBalances(user.id) });
   } catch (error) {
     next(error);
   }
@@ -108,7 +108,7 @@ router.get('/coin-packs', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    const balances = await getSenseiBalances(user.id);
+    const balances = await getPlayerBalances(user.id);
     const payments = getShopPaymentMeta();
     res.json({
       packs: listCoinPacks(),

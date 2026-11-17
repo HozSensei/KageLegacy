@@ -137,11 +137,11 @@ async function grantAchievementReward(userId, reward) {
   const type = reward.type;
   const amount = Math.max(0, Number(reward.amount) || 0);
   if (type === 'ryos' && amount) {
-    await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [amount, userId]);
+    await query('UPDATE player_profiles SET ryos = ryos + ? WHERE user_id = ?', [amount, userId]);
   } else if (type === 'dust' && amount) {
-    await query('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [amount, userId]);
+    await query('UPDATE player_profiles SET card_dust = card_dust + ? WHERE user_id = ?', [amount, userId]);
   } else if (type === 'essence' && amount) {
-    await query('UPDATE sensei SET card_essence = card_essence + ? WHERE user_id = ?', [
+    await query('UPDATE player_profiles SET card_essence = card_essence + ? WHERE user_id = ?', [
       amount,
       userId,
     ]);

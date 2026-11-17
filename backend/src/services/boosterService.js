@@ -214,7 +214,7 @@ export async function loadBoosterPools({ elementalOnly = false, element = null }
   return { pools, total: rows.length };
 }
 
-async function getSenseiBalances(userId, connection = null) {
+async function getPlayerBalances(userId, connection = null) {
   const run = connection
     ? async (sql, params) => {
         const [rows] = await connection.execute(sql, params);
@@ -223,10 +223,10 @@ async function getSenseiBalances(userId, connection = null) {
     : query;
 
   const rows = await run(
-    'SELECT ryos, card_dust, card_essence, kage_coins FROM sensei WHERE user_id = ? LIMIT 1',
+    'SELECT ryos, card_dust, card_essence, kage_coins FROM player_profiles WHERE user_id = ? LIMIT 1',
     [userId],
   );
-  if (!rows[0]) throw httpError(404, 'Sensei introuvable.');
+  if (!rows[0]) throw httpError(404, 'Profil joueur introuvable.');
   return {
     ryos: Number(rows[0].ryos) || 0,
     dust: Number(rows[0].card_dust) || 0,
@@ -267,7 +267,7 @@ async function grantCardInTx(connection, userId, cardDefinitionId) {
 }
 
 export async function listBoosters(userId) {
-  const balances = await getSenseiBalances(userId);
+  const balances = await getPlayerBalances(userId);
   return {
     boosters: BOOSTER_TYPES.map((t) => serializeBooster(BOOSTER_CATALOG[t])),
     balances,
@@ -302,14 +302,14 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
   try {
     await connection.beginTransaction();
 
-    const [senseiRows] = await connection.execute(
-      'SELECT ryos, kage_coins, card_dust, card_essence FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
+    const [profileRows] = await connection.execute(
+      'SELECT ryos, kage_coins, card_dust, card_essence FROM player_profiles WHERE user_id = ? LIMIT 1 FOR UPDATE',
       [userId],
     );
-    if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
+    if (!profileRows[0]) throw httpError(404, 'Profil joueur introuvable.');
 
-    const ryos = Number(senseiRows[0].ryos) || 0;
-    const kageCoins = Number(senseiRows[0].kage_coins) || 0;
+    const ryos = Number(profileRows[0].ryos) || 0;
+    const kageCoins = Number(profileRows[0].kage_coins) || 0;
     const costRyos = def.cost.ryos || 0;
     const costCoins = def.cost.kageCoins || 0;
 
@@ -318,7 +318,7 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
 
     if (costRyos > 0 || costCoins > 0) {
       await connection.execute(
-        'UPDATE sensei SET ryos = ryos - ?, kage_coins = kage_coins - ? WHERE user_id = ?',
+        'UPDATE player_profiles SET ryos = ryos - ?, kage_coins = kage_coins - ? WHERE user_id = ?',
         [costRyos, costCoins, userId],
       );
     }
@@ -343,7 +343,7 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
       });
     }
 
-    const balances = await getSenseiBalances(userId);
+    const balances = await getPlayerBalances(userId);
 
     try {
       const { onBattlePassAction } = await import('./battlePassQuestService.js');

@@ -1,141 +1,132 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../../stores/auth'
-import { useSquadStore } from '../../stores/squad'
-import { useEliteStore } from '../../stores/elite'
-import { writeStoredLocale } from '../../utils/localeStorage.js'
-import SlidePanel from './SlidePanel.vue'
-import VerifiedIcon from '../icons/VerifiedIcon.vue'
-import AppIcon from '../ui/AppIcon.vue'
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '../../stores/auth';
+import { writeStoredLocale } from '../../utils/localeStorage.js';
+import SlidePanel from './SlidePanel.vue';
 
-defineOptions({ name: 'ProfileMenu' })
+import AppIcon from '../ui/AppIcon.vue';
 
-const emit = defineEmits(['logout', 'convert', 'deleted'])
+defineOptions({ name: 'ProfileMenu' });
 
-const { t, locale } = useI18n()
-const auth = useAuthStore()
-const squad = useSquadStore()
-const elite = useEliteStore()
+const emit = defineEmits(['logout', 'convert', 'deleted']);
 
-const open = ref(false)
-const section = ref(null)
+const { t, locale } = useI18n();
+const auth = useAuthStore();
 
-const currentPassword = ref('')
-const newPassword = ref('')
-const email = ref('')
-const deletePassword = ref('')
-const deleteConfirmed = ref(false)
-const formError = ref(null)
-const saving = ref(false)
+const open = ref(false);
+const section = ref(null);
 
-const displayName = computed(() => auth.sensei?.name || auth.user?.username || '')
-const isGuest = computed(() => Boolean(auth.user?.isGuest))
+const currentPassword = ref('');
+const newPassword = ref('');
+const email = ref('');
+const deletePassword = ref('');
+const deleteConfirmed = ref(false);
+const formError = ref(null);
+const saving = ref(false);
 
-watch(open, (isOpen) => {
+const displayName = computed(() => auth.profile?.displayName || auth.user?.email || '');
+const isGuest = computed(() => Boolean(auth.user?.isGuest));
+
+watch(open, isOpen => {
   if (isOpen) {
-    email.value = auth.user?.email || ''
-    section.value = null
-    formError.value = null
-    currentPassword.value = ''
-    newPassword.value = ''
-    deletePassword.value = ''
-    deleteConfirmed.value = false
+    email.value = auth.user?.email || '';
+    section.value = null;
+    formError.value = null;
+    currentPassword.value = '';
+    newPassword.value = '';
+    deletePassword.value = '';
+    deleteConfirmed.value = false;
   }
-})
+});
 
 function toggle() {
-  open.value = !open.value
+  open.value = !open.value;
 }
 
 function close() {
-  open.value = false
+  open.value = false;
 }
 
 function toggleSection(name) {
   if (name == null) {
-    section.value = null
-    formError.value = null
-    return
+    section.value = null;
+    formError.value = null;
+    return;
   }
-  section.value = section.value === name ? null : name
-  formError.value = null
+  section.value = section.value === name ? null : name;
+  formError.value = null;
 }
 
 async function setLanguage(lang) {
   if (locale.value === lang) {
-    close()
-    return
+    close();
+    return;
   }
-  const previous = locale.value === 'en' ? 'en' : 'fr'
+  const previous = locale.value === 'en' ? 'en' : 'fr';
   // Optimistic UI + storage so the chrome updates before the PATCH settles
-  locale.value = lang
-  writeStoredLocale(lang)
-  const ok = await auth.updateLanguage(lang)
+  locale.value = lang;
+  writeStoredLocale(lang);
+  const ok = await auth.updateLanguage(lang);
   if (ok) {
-    if (squad.sensei) squad.sensei.language = lang
-    if (auth.sensei) auth.sensei.language = lang
-    close()
+    if (auth.profile) auth.profile.language = lang;
+    close();
   } else {
-    locale.value = previous
-    writeStoredLocale(previous)
-    formError.value = auth.error
+    locale.value = previous;
+    writeStoredLocale(previous);
+    formError.value = auth.error;
   }
 }
 
 async function submitEmail() {
-  saving.value = true
-  formError.value = null
-  const ok = await auth.updateEmail(email.value)
-  saving.value = false
-  if (ok) section.value = null
-  else formError.value = auth.error
+  saving.value = true;
+  formError.value = null;
+  const ok = await auth.updateEmail(email.value);
+  saving.value = false;
+  if (ok) section.value = null;
+  else formError.value = auth.error;
 }
 
 async function submitPassword() {
-  saving.value = true
-  formError.value = null
-  const ok = await auth.changePassword(currentPassword.value, newPassword.value)
-  saving.value = false
+  saving.value = true;
+  formError.value = null;
+  const ok = await auth.changePassword(currentPassword.value, newPassword.value);
+  saving.value = false;
   if (ok) {
-    currentPassword.value = ''
-    newPassword.value = ''
-    section.value = null
+    currentPassword.value = '';
+    newPassword.value = '';
+    section.value = null;
   } else {
-    formError.value = auth.error
+    formError.value = auth.error;
   }
 }
 
 async function submitDelete() {
   if (!deleteConfirmed.value) {
-    formError.value = t('profile.deleteConfirmLabel')
-    return
+    formError.value = t('profile.deleteConfirmLabel');
+    return;
   }
-  saving.value = true
-  formError.value = null
-  const ok = await auth.deleteAccount(isGuest.value ? undefined : deletePassword.value)
-  saving.value = false
+  saving.value = true;
+  formError.value = null;
+  const ok = await auth.deleteAccount(isGuest.value ? undefined : deletePassword.value);
+  saving.value = false;
   if (ok) {
-    close()
-    emit('deleted')
+    close();
+    emit('deleted');
   } else {
-    formError.value = auth.error
+    formError.value = auth.error;
   }
 }
 
 function handleLogout() {
-  close()
-  emit('logout')
+  close();
+  emit('logout');
 }
 
 function handleConvert() {
-  close()
-  emit('convert')
+  close();
+  emit('convert');
 }
-
-onMounted(() => {
-  if (auth.user && !elite.subscription) void elite.fetchElite()
-})
 </script>
 
 <template>
@@ -159,13 +150,15 @@ onMounted(() => {
       panel-test-id="profile-menu-panel"
     >
       <div class="profile-menu__head">
-        <span class="profile-menu__initial" aria-hidden="true">{{ displayName.charAt(0).toUpperCase() }}</span>
+        <span class="profile-menu__initial" aria-hidden="true">{{
+          displayName.charAt(0).toUpperCase()
+        }}</span>
         <div class="min-w-0 flex-1">
           <p class="profile-menu__name">{{ displayName }}</p>
-          <p v-if="auth.user?.username && auth.sensei?.name" class="truncate text-xs text-ink-muted">
-            {{ auth.user.username }}
+
+          <p v-if="auth.user?.email" class="mt-0.5 truncate text-xs text-ink-muted">
+            {{ auth.user.email }}
           </p>
-          <p v-if="auth.user?.email" class="mt-0.5 truncate text-xs text-ink-muted">{{ auth.user.email }}</p>
         </div>
         <button type="button" class="btn-icon" :aria-label="t('common.dismiss')" @click="close">
           <AppIcon name="close" size="1.125rem" :stroke-width="2" />
@@ -197,20 +190,21 @@ onMounted(() => {
       </div>
 
       <div class="profile-menu__section flex flex-col gap-2">
-        <router-link to="/profil" class="btn-ghost btn-block" data-testid="profile-sensei-link" @click="close">
-          {{ t('nav.profile') }}
-        </router-link>
         <router-link
-          v-if="elite.featureEnabled && elite.subscription?.isActive"
-          to="/elite/outils"
+          to="/profil"
           class="btn-ghost btn-block"
-          data-testid="profile-elite-tools-link"
+          data-testid="profile-player-link"
           @click="close"
         >
-          <VerifiedIcon size="1rem" />
-          {{ t('nav.eliteTools') }}
+          {{ t('nav.profile') }}
         </router-link>
-        <router-link to="/rules" class="btn-ghost btn-block" data-testid="profile-rules-link" @click="close">
+
+        <router-link
+          to="/rules"
+          class="btn-ghost btn-block"
+          data-testid="profile-rules-link"
+          @click="close"
+        >
           {{ t('rules.link') }}
         </router-link>
       </div>
@@ -228,9 +222,19 @@ onMounted(() => {
         <form v-if="section === 'email'" class="profile-menu__form" @submit.prevent="submitEmail">
           <label class="field">
             <span class="field__label">{{ t('profile.email') }}</span>
-            <input v-model="email" type="email" class="input-field" data-testid="profile-email-input" />
+            <input
+              v-model="email"
+              type="email"
+              class="input-field"
+              data-testid="profile-email-input"
+            />
           </label>
-          <button type="submit" class="btn-secondary btn-block" :disabled="saving" data-testid="profile-email-submit">
+          <button
+            type="submit"
+            class="btn-secondary btn-block"
+            :disabled="saving"
+            data-testid="profile-email-submit"
+          >
             {{ saving ? t('auth.loading') : t('profile.save') }}
           </button>
         </form>
@@ -340,7 +344,12 @@ onMounted(() => {
 
       <p v-if="formError" class="alert alert--error mx-5 mt-3">{{ formError }}</p>
 
-      <button type="button" class="profile-menu__logout" data-testid="profile-logout" @click="handleLogout">
+      <button
+        type="button"
+        class="profile-menu__logout"
+        data-testid="profile-logout"
+        @click="handleLogout"
+      >
         {{ t('auth.logout') }}
         <AppIcon name="arrow-right" size="1rem" :stroke-width="2" />
       </button>

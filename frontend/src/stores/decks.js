@@ -1,43 +1,43 @@
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { readApiError, parseApiResponse } from '../utils/http.js'
+import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import { readApiError, parseApiResponse } from '../utils/http.js';
 
-const API_BASE = import.meta.env.VITE_API_URL || ''
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const useDecksStore = defineStore('decks', () => {
-  const decks = ref([])
-  const activeDeck = ref(null)
-  const editingDeck = ref(null)
-  const passiveBonuses = ref(null)
+  const decks = ref([]);
+  const activeDeck = ref(null);
+  const editingDeck = ref(null);
+  const passiveBonuses = ref(null);
   const constraints = ref({
     min: 20,
     max: 30,
     maxCopies: 3,
     maxClan: 1,
     maxLegendaryOrMythic: 3,
-  })
-  const loading = ref(false)
-  const error = ref(null)
-  const actionLoading = ref(false)
+  });
+  const loading = ref(false);
+  const error = ref(null);
+  const actionLoading = ref(false);
 
-  const deckSize = computed(() => editingDeck.value?.size ?? 0)
+  const deckSize = computed(() => editingDeck.value?.size ?? 0);
 
   async function fetchDecks() {
-    loading.value = true
-    error.value = null
+    loading.value = true;
+    error.value = null;
     try {
-      const res = await fetch(`${API_BASE}/api/decks`, { credentials: 'include' })
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      decks.value = body.decks || []
-      if (body.constraints) constraints.value = body.constraints
-      activeDeck.value = decks.value.find((d) => d.isActive) || null
-      return decks.value
+      const res = await fetch(`${API_BASE}/api/decks`, { credentials: 'include' });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      decks.value = body.decks || [];
+      if (body.constraints) constraints.value = body.constraints;
+      activeDeck.value = decks.value.find(d => d.isActive) || null;
+      return decks.value;
     } catch (e) {
-      error.value = e.message
-      return []
+      error.value = e.message;
+      return [];
     } finally {
-      loading.value = false
+      loading.value = false;
     }
   }
 
@@ -45,109 +45,139 @@ export const useDecksStore = defineStore('decks', () => {
     try {
       const res = await fetch(`${API_BASE}/api/decks/passive-bonuses`, {
         credentials: 'include',
-      })
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      passiveBonuses.value = body.bonuses || null
-      return passiveBonuses.value
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      passiveBonuses.value = body.bonuses || null;
+      return passiveBonuses.value;
     } catch (e) {
-      error.value = e.message
-      return null
+      error.value = e.message;
+      return null;
     }
   }
 
   async function createDeck(name, archetype = 'midrange') {
-    actionLoading.value = true
-    error.value = null
+    actionLoading.value = true;
+    error.value = null;
     try {
       const res = await fetch(`${API_BASE}/api/decks`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, archetype }),
-      })
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      await fetchDecks()
-      editingDeck.value = body.deck
-      return body.deck
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      await fetchDecks();
+      editingDeck.value = body.deck;
+      return body.deck;
     } catch (e) {
-      error.value = e.message
-      throw e
+      error.value = e.message;
+      throw e;
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
   }
 
   async function selectDeck(deckId) {
-    const res = await fetch(`${API_BASE}/api/decks/${deckId}`, { credentials: 'include' })
-    const { ok, body } = await parseApiResponse(res)
-    if (!ok) throw new Error(await readApiError(res, body))
-    editingDeck.value = body.deck
-    return body.deck
+    const res = await fetch(`${API_BASE}/api/decks/${deckId}`, { credentials: 'include' });
+    const { ok, body } = await parseApiResponse(res);
+    if (!ok) throw new Error(await readApiError(res, body));
+    editingDeck.value = body.deck;
+    return body.deck;
+  }
+
+  async function deleteDeck(deckId) {
+    actionLoading.value = true;
+    error.value = null;
+    const wasSelected = Number(editingDeck.value?.id) === Number(deckId);
+    try {
+      const res = await fetch(`${API_BASE}/api/decks/${deckId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      await fetchDecks();
+      if (error.value) throw new Error(error.value);
+
+      if (wasSelected) {
+        const nextDeck = activeDeck.value || decks.value[0] || null;
+        editingDeck.value = nextDeck ? await selectDeck(nextDeck.id) : null;
+      } else if (editingDeck.value) {
+        editingDeck.value = await selectDeck(editingDeck.value.id);
+      }
+      await fetchPassiveBonuses();
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      actionLoading.value = false;
+    }
   }
 
   async function activateDeck(deckId) {
-    actionLoading.value = true
+    actionLoading.value = true;
     try {
       const res = await fetch(`${API_BASE}/api/decks/${deckId}/activate`, {
         method: 'POST',
         credentials: 'include',
-      })
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      await fetchDecks()
-      await fetchPassiveBonuses()
-      return body.deck
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      await fetchDecks();
+      await fetchPassiveBonuses();
+      return body.deck;
     } catch (e) {
-      error.value = e.message
-      throw e
+      error.value = e.message;
+      throw e;
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
   }
 
   async function addCard(deckId, collectionId, quantity = 1) {
-    actionLoading.value = true
-    error.value = null
+    actionLoading.value = true;
+    error.value = null;
     try {
       const res = await fetch(`${API_BASE}/api/decks/${deckId}/cards`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ collectionId, quantity }),
-      })
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      editingDeck.value = body.deck
-      await fetchDecks()
-      return body.deck
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      editingDeck.value = body.deck;
+      await fetchDecks();
+      return body.deck;
     } catch (e) {
-      error.value = e.message
-      throw e
+      error.value = e.message;
+      throw e;
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
   }
 
   async function removeCard(deckId, collectionId, quantity = 1) {
-    actionLoading.value = true
-    error.value = null
+    actionLoading.value = true;
+    error.value = null;
     try {
       const res = await fetch(
         `${API_BASE}/api/decks/${deckId}/cards/${collectionId}?quantity=${quantity}`,
         { method: 'DELETE', credentials: 'include' }
-      )
-      const { ok, body } = await parseApiResponse(res)
-      if (!ok) throw new Error(await readApiError(res, body))
-      editingDeck.value = body.deck
-      await fetchDecks()
-      return body.deck
+      );
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      editingDeck.value = body.deck;
+      await fetchDecks();
+      return body.deck;
     } catch (e) {
-      error.value = e.message
-      throw e
+      error.value = e.message;
+      throw e;
     } finally {
-      actionLoading.value = false
+      actionLoading.value = false;
     }
   }
 
@@ -165,8 +195,9 @@ export const useDecksStore = defineStore('decks', () => {
     fetchPassiveBonuses,
     createDeck,
     selectDeck,
+    deleteDeck,
     activateDeck,
     addCard,
     removeCard,
-  }
-})
+  };
+});

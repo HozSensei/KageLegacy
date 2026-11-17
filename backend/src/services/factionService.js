@@ -1,5 +1,5 @@
 /**
- * Appartenance faction du player_character (V2).
+ * Appartenance faction du personnage stockée dans player_profiles.
  */
 import { query } from '../config/database.js';
 import {
@@ -20,9 +20,10 @@ export { FACTION_IDS, getFaction, isValidFactionId, listFactions, assignFactionF
 
 export async function getPlayerFaction(userId) {
   const rows = await query(
-    `SELECT faction_id, faction_retake_used
-     FROM player_character
-     WHERE user_id = ?
+    `SELECT character_faction_id AS faction_id,
+            character_faction_retake_used AS faction_retake_used
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`,
     [userId],
   );
@@ -45,9 +46,10 @@ export async function setFaction(userId, factionId) {
   }
 
   const rows = await query(
-    `SELECT id, faction_id, faction_retake_used
-     FROM player_character
-     WHERE user_id = ?
+    `SELECT id, character_faction_id AS faction_id,
+            character_faction_retake_used AS faction_retake_used
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`,
     [userId],
   );
@@ -57,7 +59,7 @@ export async function setFaction(userId, factionId) {
     throw httpError(409, 'Faction déjà choisie. Utilisez le retake si disponible.');
   }
 
-  await query('UPDATE player_character SET faction_id = ? WHERE user_id = ?', [
+  await query('UPDATE player_profiles SET character_faction_id = ? WHERE user_id = ?', [
     factionId,
     userId,
   ]);
@@ -74,9 +76,10 @@ export async function retakeFaction(userId, factionId) {
   }
 
   const rows = await query(
-    `SELECT id, faction_id, faction_retake_used
-     FROM player_character
-     WHERE user_id = ?
+    `SELECT id, character_faction_id AS faction_id,
+            character_faction_retake_used AS faction_retake_used
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`,
     [userId],
   );
@@ -92,8 +95,8 @@ export async function retakeFaction(userId, factionId) {
   }
 
   await query(
-    `UPDATE player_character
-     SET faction_id = ?, faction_retake_used = 1
+    `UPDATE player_profiles
+     SET character_faction_id = ?, character_faction_retake_used = 1
      WHERE user_id = ?`,
     [factionId, userId],
   );

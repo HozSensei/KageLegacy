@@ -3,7 +3,7 @@ import AppLayout from '../layouts/AppLayout.vue';
 import LandingView from '../views/LandingView.vue';
 import LoginView from '../views/LoginView.vue';
 import RulesView from '../views/RulesView.vue';
-import PlaceholderView from '../views/PlaceholderView.vue';
+
 import HubView from '../views/HubView.vue';
 import Profile from '../views/Profile.vue';
 import CharacterCreation from '../views/CharacterCreation.vue';
@@ -39,10 +39,7 @@ const router = createRouter({
           name: 'hub',
           component: HubView,
         },
-        {
-          path: 'bureau',
-          redirect: { name: 'hub' },
-        },
+
         {
           path: 'character-creation',
           name: 'character-creation',
@@ -152,37 +149,12 @@ const router = createRouter({
             requiresCharacter: true,
           },
         },
-        // Routes legacy archivées → placeholder jusqu'aux phases suivantes
-        ...[
-          ['inventory', 'nav.inventory', 'nav.inventory'],
-          ['squad', 'nav.squad', 'nav.squad'],
-          ['reconnaissance', 'nav.reconnaissance', 'nav.reconnaissance'],
-          ['espionnage', 'nav.scout', 'nav.scout', 'scout'],
-          ['clan', 'nav.clan', 'nav.clan'],
-          ['village', 'nav.village', 'nav.village'],
-          ['training', 'nav.training', 'nav.training'],
-          ['league', 'nav.league', 'nav.league'],
-          ['market', 'nav.market', 'nav.market'],
-          ['refinement', 'nav.refinement', 'techniqueRefinement.title'],
-          ['exchanges', 'nav.exchanges', 'nav.exchanges'],
-          ['operation', 'nav.operation', 'nav.operation'],
-          [
-            'design/elite-identity',
-            'eliteShowcase.title',
-            'eliteShowcase.title',
-            'elite-identity-showcase',
-          ],
-          ['elite/outils', 'eliteTools.pageTitle', 'eliteTools.pageTitle', 'elite-tools'],
-          ['admin', 'nav.admin', 'nav.admin', 'admin'],
-        ].map(([path, titleKey, , name]) => ({
-          path,
-          name: name || path.replace(/\//g, '-'),
-          component: path === 'admin' ? AdminView : PlaceholderView,
-          props: path === 'admin' ? {} : { titleKey },
-          meta: {
-            ...(path === 'admin' ? { requiresAdmin: true } : {}),
-          },
-        })),
+        {
+          path: 'admin',
+          name: 'admin',
+          component: AdminView,
+          meta: { requiresAdmin: true },
+        },
       ],
     },
   ],
@@ -204,16 +176,6 @@ router.beforeEach(async to => {
   if (!auth.checked) await auth.fetchMe();
   if (!auth.user) return { path: '/' };
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' };
-
-  const eliteRouteNames = new Set(['elite-tools', 'elite-identity-showcase']);
-  if (eliteRouteNames.has(to.name)) {
-    const { useEliteStore } = await import('../stores/elite');
-    const elite = useEliteStore();
-    if (!elite.subscription && auth.user) {
-      await elite.fetchElite();
-    }
-    if (!elite.featureEnabled) return { path: '/home' };
-  }
 
   // Hub + character creation are reachable without a character (empty-state / onboarding).
   const allowWithoutCharacter = new Set(['hub', 'character-creation', 'admin']);

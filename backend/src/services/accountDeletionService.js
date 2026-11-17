@@ -16,17 +16,8 @@ async function verifyDeletePassword(user, password) {
   }
 }
 
-/**
- * Suppression de compte V2 — sans remplacement bot de pool / clans joueurs (legacy).
- * player_character part via ON DELETE CASCADE.
- */
+/** Supprime le compte et ses données associées via les clés étrangères. */
 export async function deleteUserAccount(user, { password } = {}) {
-  if (user.is_bot) {
-    const err = new Error('Ce compte ne peut pas être supprimé.');
-    err.statusCode = 403;
-    throw err;
-  }
-
   await verifyDeletePassword(user, password);
 
   await query('DELETE FROM user_sessions WHERE user_id = ?', [user.id]);

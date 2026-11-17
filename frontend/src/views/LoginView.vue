@@ -1,81 +1,65 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '../stores/auth'
-import BrandMark from '../components/ui/BrandMark.vue'
-import ThemeToggle from '../components/ui/ThemeToggle.vue'
-import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue'
-import { writeStoredLocale } from '../utils/localeStorage.js'
-import gateImage from '../assets/illustrations/village-gate.webp'
+import { ref, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useAuthStore } from '../stores/auth';
+import BrandMark from '../components/ui/BrandMark.vue';
+import ThemeToggle from '../components/ui/ThemeToggle.vue';
+import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
+import { writeStoredLocale } from '../utils/localeStorage.js';
+import gateImage from '../assets/illustrations/village-gate.webp';
 
-defineOptions({ name: 'LoginView' })
+defineOptions({ name: 'LoginView' });
 
-const { t, locale } = useI18n()
-const route = useRoute()
-const router = useRouter()
-const auth = useAuthStore()
+const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const auth = useAuthStore();
 
-const mode = ref(route.path.includes('register') ? 'register' : 'login')
-const invitePoolId = ref(route.query.invitePoolId ? Number(route.query.invitePoolId) : null)
-const username = ref('')
-const password = ref('')
-const senseiName = ref('')
-const language = ref(locale.value === 'en' ? 'en' : 'fr')
-const villageId = ref('leaf')
+const mode = ref(route.path.includes('register') ? 'register' : 'login');
+
+const email = ref('');
+const password = ref('');
+const characterName = ref('');
+const language = ref(locale.value === 'en' ? 'en' : 'fr');
 
 function onLocaleChange(lang) {
-  const code = lang === 'en' ? 'en' : 'fr'
-  language.value = code
-  locale.value = code
-  writeStoredLocale(code)
+  const code = lang === 'en' ? 'en' : 'fr';
+  language.value = code;
+  locale.value = code;
+  writeStoredLocale(code);
 }
-
-const villageOptions = ['leaf', 'sand', 'mist', 'stone']
 
 const title = computed(() =>
   mode.value === 'register' ? t('auth.registerTitle') : t('auth.loginTitle')
-)
-const showDemoHint = !import.meta.env.PROD
+);
+const showDemoHint = !import.meta.env.PROD;
 
 function switchMode(next) {
-  mode.value = next
-  auth.error = null
-  router.replace(next === 'register' ? '/register' : '/login')
+  mode.value = next;
+  auth.error = null;
+  router.replace(next === 'register' ? '/register' : '/login');
 }
 
 async function submit() {
   const ok =
     mode.value === 'login'
-      ? await auth.login(username.value.trim(), password.value)
+      ? await auth.login(email.value.trim(), password.value)
       : await auth.register({
-          username: username.value.trim(),
+          email: email.value.trim(),
           password: password.value,
-          senseiName: senseiName.value.trim(),
+          characterName: characterName.value.trim(),
           language: language.value,
-          invitePoolId: invitePoolId.value || undefined,
-          villageId: villageId.value,
-        })
+        });
   if (ok) {
-    const lang =
-      mode.value === 'login'
-        ? auth.sensei?.language || locale.value
-        : language.value
+    const lang = mode.value === 'login' ? auth.profile?.language || locale.value : language.value;
     if (lang === 'en' || lang === 'fr') {
-      locale.value = lang
-      writeStoredLocale(lang)
+      locale.value = lang;
+      writeStoredLocale(lang);
     }
-    router.push('/home')
+    router.push('/home');
   }
 }
-
-onMounted(() => {
-  if (route.path.includes('register')) mode.value = 'register'
-  if (route.query.invitePoolId) {
-    mode.value = 'register'
-    invitePoolId.value = Number(route.query.invitePoolId)
-  }
-})
 </script>
 
 <template>
@@ -103,19 +87,19 @@ onMounted(() => {
 
         <h1 class="page-title auth__title">{{ title }}</h1>
 
-        <p v-if="mode === 'register' && invitePoolId" class="alert alert--info mt-6">
-          {{ t('auth.inviteLead', { poolId: invitePoolId }) }}
+        <p v-if="auth.error" class="alert alert--error mt-6" data-testid="login-error">
+          {{ auth.error }}
         </p>
-
-        <p v-if="auth.error" class="alert alert--error mt-6" data-testid="login-error">{{ auth.error }}</p>
 
         <form class="auth__form" data-testid="login-form" @submit.prevent="submit">
           <label class="field">
-            <span class="field__label">{{ t('auth.username') }}</span>
+            <span class="field__label">{{
+              mode === 'register' ? t('auth.email') : t('auth.emailOrUsername')
+            }}</span>
             <input
-              v-model="username"
-              type="text"
-              autocomplete="username"
+              v-model="email"
+              :type="mode === 'register' ? 'email' : 'text'"
+              :autocomplete="mode === 'register' ? 'email' : 'username'"
               required
               data-testid="login-username"
               class="input-field"
@@ -123,24 +107,16 @@ onMounted(() => {
           </label>
 
           <label v-if="mode === 'register'" class="field">
-            <span class="field__label">{{ t('auth.senseiName') }}</span>
+            <span class="field__label">{{ t('player.nameLabel') }}</span>
             <input
-              v-model="senseiName"
+              v-model="characterName"
               type="text"
               required
-              data-testid="register-sensei-name"
+              minlength="2"
+              maxlength="100"
+              data-testid="register-character-name"
               class="input-field"
             />
-          </label>
-
-          <label v-if="mode === 'register'" class="field">
-            <span class="field__label">{{ t('auth.village') }}</span>
-            <select v-model="villageId" required data-testid="register-village" class="input-field">
-              <option v-for="id in villageOptions" :key="id" :value="id">
-                {{ t(`village.names.${id}`) }}
-              </option>
-            </select>
-            <span class="field__hint">{{ t('auth.villageHint') }}</span>
           </label>
 
           <label v-if="mode === 'register'" class="field">
@@ -170,8 +146,19 @@ onMounted(() => {
             />
           </label>
 
-          <button type="submit" data-testid="login-submit" class="btn-primary btn-lg btn-block" :disabled="auth.loading">
-            {{ auth.loading ? t('auth.loading') : mode === 'register' ? t('auth.register') : t('auth.login') }}
+          <button
+            type="submit"
+            data-testid="login-submit"
+            class="btn-primary btn-lg btn-block"
+            :disabled="auth.loading"
+          >
+            {{
+              auth.loading
+                ? t('auth.loading')
+                : mode === 'register'
+                  ? t('auth.register')
+                  : t('auth.login')
+            }}
           </button>
         </form>
 

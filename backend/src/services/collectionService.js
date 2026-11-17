@@ -180,7 +180,7 @@ export async function addCard(
   return entry;
 }
 
-async function getSenseiResources(userId, connection = null) {
+async function getPlayerResources(userId, connection = null) {
   const run = connection
     ? async (sql, params) => {
         const [rows] = await connection.execute(sql, params);
@@ -189,10 +189,10 @@ async function getSenseiResources(userId, connection = null) {
     : query;
 
   const rows = await run(
-    'SELECT ryos, card_dust, card_essence, kage_coins FROM sensei WHERE user_id = ? LIMIT 1',
+    'SELECT ryos, card_dust, card_essence, kage_coins FROM player_profiles WHERE user_id = ? LIMIT 1',
     [userId],
   );
-  if (!rows[0]) throw httpError(404, 'Sensei introuvable.');
+  if (!rows[0]) throw httpError(404, 'Profil joueur introuvable.');
   return {
     ryos: Number(rows[0].ryos) || 0,
     dust: Number(rows[0].card_dust) || 0,
@@ -231,13 +231,13 @@ export async function upgradeCard(userId, collectionId) {
     const cost = costs?.[nextLevel - 1];
     if (!cost) throw httpError(400, 'Amélioration indisponible pour cette rareté.');
 
-    const resources = await getSenseiResources(userId, connection);
+    const resources = await getPlayerResources(userId, connection);
     if (resources.ryos < cost.ryos) throw httpError(400, 'Ryos insuffisants.');
     if (resources.dust < cost.dust) throw httpError(400, 'Poussière de carte insuffisante.');
     if (resources.essence < cost.essence) throw httpError(400, 'Essence insuffisante.');
 
     await connection.execute(
-      `UPDATE sensei
+      `UPDATE player_profiles
        SET ryos = ryos - ?, card_dust = card_dust - ?, card_essence = card_essence - ?
        WHERE user_id = ?`,
       [cost.ryos, cost.dust, cost.essence, userId],
@@ -263,7 +263,7 @@ export async function upgradeCard(userId, collectionId) {
       entry: updated,
       costPaid: cost,
       computed: applyUpgradeBonuses(entry, nextLevel),
-      resources: await getSenseiResources(userId),
+      resources: await getPlayerResources(userId),
     };
   } catch (error) {
     await connection.rollback();
@@ -323,13 +323,13 @@ export async function disenchantCard(userId, collectionId, { quantity = 1 } = {}
     }
 
     await connection.execute(
-      'UPDATE sensei SET card_dust = card_dust + ?, card_essence = card_essence + ? WHERE user_id = ?',
+      'UPDATE player_profiles SET card_dust = card_dust + ?, card_essence = card_essence + ? WHERE user_id = ?',
       [dustGain, essenceGain, userId],
     );
 
     await connection.commit();
 
-    const resources = await getSenseiResources(userId);
+    const resources = await getPlayerResources(userId);
     return {
       dustGained: dustGain,
       essenceGained: essenceGain,

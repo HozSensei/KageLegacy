@@ -7,7 +7,7 @@ function mapGuestRow(row) {
   return {
     id: row.id,
     username: row.username,
-    is_bot: Boolean(row.is_bot),
+
     is_guest: Boolean(row.is_guest),
     guest_expires_at: row.guest_expires_at,
   };
@@ -16,7 +16,7 @@ function mapGuestRow(row) {
 export async function findExpiredGuestUsers(limit = DEFAULT_BATCH_SIZE) {
   const safeLimit = Math.max(1, Math.min(Number(limit) || DEFAULT_BATCH_SIZE, 500));
   const rows = await query(
-    `SELECT id, username, is_bot, is_guest, guest_expires_at
+    `SELECT id, username, is_guest, guest_expires_at
      FROM users
      WHERE is_guest = TRUE AND guest_expires_at < UTC_TIMESTAMP()
      ORDER BY guest_expires_at ASC

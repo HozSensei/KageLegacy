@@ -6,13 +6,6 @@ describe('Auth — connexion démo (V2)', () => {
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
   });
 
-  it('redirige /bureau vers le hub', () => {
-    cy.loginDemo();
-    cy.visit('/bureau');
-    cy.url().should('include', '/home');
-    cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
-  });
-
   it('refuse des identifiants invalides', () => {
     Cypress.session.clearAllSavedSessions();
     cy.visit('/login');

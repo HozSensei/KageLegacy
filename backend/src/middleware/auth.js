@@ -1,5 +1,4 @@
-import { findDemoUser } from '../models/sensei.js';
-import { getUserBySessionToken } from '../services/authService.js';
+import { findDemoAccount, getUserBySessionToken } from '../services/authService.js';
 
 const SESSION_COOKIE = 'kage_session';
 
@@ -38,7 +37,7 @@ export async function requireUser(req, res) {
   if (req.user) return req.user;
 
   if (isDemoFallbackEnabled()) {
-    const demo = await findDemoUser();
+    const demo = await findDemoAccount();
     if (demo) return demo;
   }
 

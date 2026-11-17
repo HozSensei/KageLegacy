@@ -61,7 +61,7 @@ export const COIN_PACK_CATALOG = {
 
 export const COIN_PACK_IDS = Object.keys(COIN_PACK_CATALOG);
 
-export async function getSenseiBalances(userId, connection = null) {
+export async function getPlayerBalances(userId, connection = null) {
   const run = connection
     ? async (sql, params) => {
         const [rows] = await connection.execute(sql, params);
@@ -70,10 +70,10 @@ export async function getSenseiBalances(userId, connection = null) {
     : query;
 
   const rows = await run(
-    'SELECT ryos, card_dust, card_essence, kage_coins FROM sensei WHERE user_id = ? LIMIT 1',
+    'SELECT ryos, card_dust, card_essence, kage_coins FROM player_profiles WHERE user_id = ? LIMIT 1',
     [userId],
   );
-  if (!rows[0]) throw httpError(404, 'Sensei introuvable.');
+  if (!rows[0]) throw httpError(404, 'Profil joueur introuvable.');
   return {
     ryos: Number(rows[0].ryos) || 0,
     dust: Number(rows[0].card_dust) || 0,
@@ -143,7 +143,7 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute('UPDATE sensei SET kage_coins = kage_coins + ? WHERE user_id = ?', [
+    await connection.execute('UPDATE player_profiles SET kage_coins = kage_coins + ? WHERE user_id = ?', [
       totalCoins,
       userId,
     ]);
@@ -160,7 +160,7 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
     connection.release();
   }
 
-  const balances = await getSenseiBalances(userId);
+  const balances = await getPlayerBalances(userId);
   return {
     pack: serializeCoinPack(pack),
     coinsGranted: totalCoins,
@@ -178,7 +178,7 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
  */
 export async function getBattlePassShopOffer(userId) {
   const state = await getBattlePassState(userId);
-  const balances = await getSenseiBalances(userId);
+  const balances = await getPlayerBalances(userId);
   const { getShopPaymentMeta, BATTLE_PASS_PREMIUM_PRICE_EUR } =
     await import('./shopStripeService.js');
   const payments = getShopPaymentMeta();
@@ -238,7 +238,7 @@ export async function unlockBattlePassFromShop(
 export async function getShopOverview(userId) {
   const { getShopPaymentMeta } = await import('./shopStripeService.js');
   const [balances, battlePass] = await Promise.all([
-    getSenseiBalances(userId),
+    getPlayerBalances(userId),
     getBattlePassShopOffer(userId),
   ]);
   return {

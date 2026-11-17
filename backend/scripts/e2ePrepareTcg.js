@@ -10,24 +10,25 @@ async function main() {
   await assertE2eDatabase();
   let user = await findUserByUsername('demo_sensei');
   if (user) {
-    if (user.is_bot || user.is_guest || !verifyPassword('demo', user.password_hash)) {
+    if (user.is_guest || !verifyPassword('demo', user.password_hash)) {
       throw new Error(
-        'Le compte demo_sensei existant ne correspond pas à la fixture E2E ; il est conservé sans modification.',
+        'Le compte demo_sensei existant ne correspond pas à la fixture E2E ; il est conservé sans modification.'
       );
     }
   } else {
     ({ user } = await registerUser({
       username: 'demo_sensei',
+      email: 'demo_sensei@kage.local',
       password: 'demo',
-      senseiName: 'Renjiro',
+      characterName: 'Renjiro',
       language: 'fr',
     }));
   }
 
-  const sensei = await query('SELECT id FROM sensei WHERE user_id = ?', [user.id]);
-  if (!sensei.length)
+  const profile = await query('SELECT id FROM player_profiles WHERE user_id = ?', [user.id]);
+  if (!profile.length)
     throw new Error(
-      'Profil demo_sensei incomplet ; aucune donnée existante ne sera réinitialisée.',
+      'Profil demo_sensei incomplet ; aucune donnée existante ne sera réinitialisée.'
     );
 
   let character = await getCharacter(user.id);
@@ -46,7 +47,7 @@ async function main() {
       characterId: character.id,
       name: character.name,
       level: character.level,
-    })}`,
+    })}`
   );
 }
 

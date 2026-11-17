@@ -59,7 +59,7 @@ function serializeEntry(row, rank, board) {
   return {
     rank,
     userId: row.user_id,
-    senseiName: row.sensei_name || null,
+    playerName: row.player_name || null,
     characterName: row.character_name,
     level: Number(row.level) || 1,
     xp: Number(row.xp) || 0,
@@ -72,36 +72,35 @@ function serializeEntry(row, rank, board) {
 }
 
 /**
- * Classement niveau / XP — source : player_character uniquement.
+ * Classement niveau / XP — source : personnage stocké dans player_profiles.
  */
 async function fetchLevelBoard({ limit, offset, factionId }) {
-  const hasFaction = await columnExists('player_character', 'faction_id');
-  const factionSelect = hasFaction ? 'pc.faction_id' : 'NULL AS faction_id';
+  const hasFaction = await columnExists('player_profiles', 'character_faction_id');
+  const factionSelect = hasFaction ? 'pc.character_faction_id AS faction_id' : 'NULL AS faction_id';
   const factionFilter =
-    hasFaction && isValidFactionId(factionId) ? 'AND pc.faction_id = ?' : '';
+    hasFaction && isValidFactionId(factionId) ? 'AND pc.character_faction_id = ?' : '';
   const params = [];
   if (hasFaction && isValidFactionId(factionId)) params.push(factionId);
 
   const countRows = await query(
     `SELECT COUNT(*) AS total
-     FROM player_character pc
-     WHERE 1=1 ${factionFilter}`,
+     FROM player_profiles pc
+     WHERE pc.character_name IS NOT NULL ${factionFilter}`,
     params,
   );
   const total = Number(countRows[0]?.total) || 0;
 
   const rows = await query(
     `SELECT pc.user_id,
-            pc.name AS character_name,
-            pc.level,
-            pc.xp,
-            pc.\`rank\` AS player_rank,
+            pc.character_name,
+            pc.character_level AS level,
+            pc.character_xp AS xp,
+            pc.character_rank AS player_rank,
             ${factionSelect},
-            s.name AS sensei_name
-     FROM player_character pc
-     LEFT JOIN sensei s ON s.user_id = pc.user_id
-     WHERE 1=1 ${factionFilter}
-     ORDER BY pc.level DESC, pc.xp DESC, pc.id ASC
+            pc.display_name AS player_name
+     FROM player_profiles pc
+     WHERE pc.character_name IS NOT NULL ${factionFilter}
+     ORDER BY pc.character_level DESC, pc.character_xp DESC, pc.id ASC
      LIMIT ${Number(limit)} OFFSET ${Number(offset)}`,
     params,
   );
@@ -118,10 +117,10 @@ async function fetchPvpBoard({ limit, offset, factionId }) {
     return { total: 0, rows: [] };
   }
 
-  const hasFaction = await columnExists('player_character', 'faction_id');
-  const factionSelect = hasFaction ? 'pc.faction_id' : 'NULL AS faction_id';
+  const hasFaction = await columnExists('player_profiles', 'character_faction_id');
+  const factionSelect = hasFaction ? 'pc.character_faction_id AS faction_id' : 'NULL AS faction_id';
   const factionFilter =
-    hasFaction && isValidFactionId(factionId) ? 'AND pc.faction_id = ?' : '';
+    hasFaction && isValidFactionId(factionId) ? 'AND pc.character_faction_id = ?' : '';
   const params = [];
   if (hasFaction && isValidFactionId(factionId)) params.push(factionId);
 
@@ -130,9 +129,10 @@ async function fetchPvpBoard({ limit, offset, factionId }) {
      FROM (
        SELECT pm.winner_user_id
        FROM pvp_matches pm
-       INNER JOIN player_character pc ON pc.user_id = pm.winner_user_id
+       INNER JOIN player_profiles pc ON pc.user_id = pm.winner_user_id
        WHERE pm.status = 'completed'
          AND pm.winner_user_id IS NOT NULL
+         AND pc.character_name IS NOT NULL
          ${factionFilter}
        GROUP BY pm.winner_user_id
      ) t`,
@@ -142,23 +142,22 @@ async function fetchPvpBoard({ limit, offset, factionId }) {
 
   const rows = await query(
     `SELECT pc.user_id,
-            pc.name AS character_name,
-            pc.level,
-            pc.xp,
-            pc.\`rank\` AS player_rank,
+            pc.character_name,
+            pc.character_level AS level,
+            pc.character_xp AS xp,
+            pc.character_rank AS player_rank,
             ${factionSelect},
-            s.name AS sensei_name,
+            pc.display_name AS player_name,
             COUNT(*) AS pvp_wins
      FROM pvp_matches pm
-     INNER JOIN player_character pc ON pc.user_id = pm.winner_user_id
-     LEFT JOIN sensei s ON s.user_id = pc.user_id
+     INNER JOIN player_profiles pc ON pc.user_id = pm.winner_user_id
      WHERE pm.status = 'completed'
        AND pm.winner_user_id IS NOT NULL
+       AND pc.character_name IS NOT NULL
        ${factionFilter}
-     GROUP BY pc.user_id, pc.name, pc.level, pc.xp, pc.\`rank\`, ${
-       hasFaction ? 'pc.faction_id,' : ''
-     } s.name
-     ORDER BY pvp_wins DESC, pc.level DESC, pc.id ASC
+     GROUP BY pc.user_id, pc.character_name, pc.character_level, pc.character_xp,
+              pc.character_rank, ${hasFaction ? 'pc.character_faction_id,' : ''} pc.display_name
+     ORDER BY pvp_wins DESC, pc.character_level DESC, pc.id ASC
      LIMIT ${Number(limit)} OFFSET ${Number(offset)}`,
     params,
   );
@@ -178,10 +177,7 @@ export async function getLeaderboard({
   }
 
   const pagination = clampPagination({ page, limit });
-  const fetch =
-    board === 'pvp'
-      ? fetchPvpBoard
-      : fetchLevelBoard;
+  const fetch = board === 'pvp' ? fetchPvpBoard : fetchLevelBoard;
 
   const { total, rows } = await fetch({
     limit: pagination.limit,
@@ -211,15 +207,14 @@ export async function getLeaderboard({
 }
 
 async function getViewerRank({ board, userId, factionId }) {
-  const hasFaction = await columnExists('player_character', 'faction_id');
+  const hasFaction = await columnExists('player_profiles', 'character_faction_id');
   const rows = await query(
-    `SELECT pc.user_id, pc.name AS character_name, pc.level, pc.xp,
-            pc.\`rank\` AS player_rank,
-            ${hasFaction ? 'pc.faction_id' : 'NULL AS faction_id'},
-            s.name AS sensei_name
-     FROM player_character pc
-     LEFT JOIN sensei s ON s.user_id = pc.user_id
-     WHERE pc.user_id = ?
+    `SELECT pc.user_id, pc.character_name, pc.character_level AS level,
+            pc.character_xp AS xp, pc.character_rank AS player_rank,
+            ${hasFaction ? 'pc.character_faction_id AS faction_id' : 'NULL AS faction_id'},
+            pc.display_name AS player_name
+     FROM player_profiles pc
+     WHERE pc.user_id = ? AND pc.character_name IS NOT NULL
      LIMIT 1`,
     [userId],
   );
@@ -235,25 +230,19 @@ async function getViewerRank({ board, userId, factionId }) {
   if (board === 'level') {
     const ahead = await query(
       `SELECT COUNT(*) AS n
-       FROM player_character pc
-       WHERE (
-            (pc.level > ?)
-         OR (pc.level = ? AND pc.xp > ?)
-         OR (pc.level = ? AND pc.xp = ? AND pc.id < (
-               SELECT id FROM player_character WHERE user_id = ? LIMIT 1
-             ))
-       )
-       ${isValidFactionId(factionId) && hasFaction ? 'AND pc.faction_id = ?' : ''}`,
+       FROM player_profiles pc
+       WHERE pc.character_name IS NOT NULL
+         AND (
+              (pc.character_level > ?)
+           OR (pc.character_level = ? AND pc.character_xp > ?)
+           OR (pc.character_level = ? AND pc.character_xp = ? AND pc.id < (
+                 SELECT id FROM player_profiles
+                 WHERE user_id = ? AND character_name IS NOT NULL LIMIT 1
+               ))
+         )
+         ${isValidFactionId(factionId) && hasFaction ? 'AND pc.character_faction_id = ?' : ''}`,
       isValidFactionId(factionId) && hasFaction
-        ? [
-            rows[0].level,
-            rows[0].level,
-            rows[0].xp,
-            rows[0].level,
-            rows[0].xp,
-            userId,
-            factionId,
-          ]
+        ? [rows[0].level, rows[0].level, rows[0].xp, rows[0].level, rows[0].xp, userId, factionId]
         : [rows[0].level, rows[0].level, rows[0].xp, rows[0].level, rows[0].xp, userId],
     );
     rank = Number(ahead[0]?.n) + 1;
@@ -273,20 +262,20 @@ async function getViewerRank({ board, userId, factionId }) {
          FROM (
            SELECT pm.winner_user_id AS uid, COUNT(*) AS wins
            FROM pvp_matches pm
-           INNER JOIN player_character pc ON pc.user_id = pm.winner_user_id
-           WHERE pm.status = 'completed' AND pm.winner_user_id IS NOT NULL
-             ${
-               isValidFactionId(factionId) && hasFaction
-                 ? 'AND pc.faction_id = ?'
-                 : ''
-             }
+           INNER JOIN player_profiles pc ON pc.user_id = pm.winner_user_id
+           WHERE pm.status = 'completed'
+             AND pm.winner_user_id IS NOT NULL
+             AND pc.character_name IS NOT NULL
+             ${isValidFactionId(factionId) && hasFaction ? 'AND pc.character_faction_id = ?' : ''}
            GROUP BY pm.winner_user_id
            HAVING wins > ?
                OR (wins = ? AND (
-                    SELECT level FROM player_character WHERE user_id = uid
+                    SELECT character_level FROM player_profiles
+                    WHERE user_id = uid AND character_name IS NOT NULL
                   ) > ?)
                OR (wins = ? AND (
-                    SELECT level FROM player_character WHERE user_id = uid
+                    SELECT character_level FROM player_profiles
+                    WHERE user_id = uid AND character_name IS NOT NULL
                   ) = ? AND uid < ?)
          ) t`,
         isValidFactionId(factionId) && hasFaction
@@ -300,8 +289,7 @@ async function getViewerRank({ board, userId, factionId }) {
     }
   }
 
-  const entry = serializeEntry({ ...rows[0], pvp_wins: pvpWins }, rank, board);
-  return entry;
+  return serializeEntry({ ...rows[0], pvp_wins: pvpWins }, rank, board);
 }
 
 /**
@@ -313,11 +301,11 @@ export async function getFactionStandings({ board = 'level' } = {}) {
     throw httpError(400, `Board invalide. Utilisez : ${LEADERBOARD_BOARDS.join(', ')}`);
   }
 
-  const hasFaction = await columnExists('player_character', 'faction_id');
+  const hasFaction = await columnExists('player_profiles', 'character_faction_id');
   if (!hasFaction) {
     return {
       board,
-      standings: listFactions().map((f) => ({
+      standings: listFactions().map(f => ({
         factionId: f.id,
         faction: f,
         memberCount: 0,
@@ -328,16 +316,16 @@ export async function getFactionStandings({ board = 'level' } = {}) {
 
   if (board === 'level') {
     const rows = await query(
-      `SELECT faction_id,
+      `SELECT character_faction_id AS faction_id,
               COUNT(*) AS member_count,
-              COALESCE(SUM(level), 0) AS score
-       FROM player_character
-       WHERE faction_id IS NOT NULL
-       GROUP BY faction_id`,
+              COALESCE(SUM(character_level), 0) AS score
+       FROM player_profiles
+       WHERE character_name IS NOT NULL AND character_faction_id IS NOT NULL
+       GROUP BY character_faction_id`,
     );
-    const byId = new Map(rows.map((r) => [r.faction_id, r]));
+    const byId = new Map(rows.map(r => [r.faction_id, r]));
     const standings = listFactions()
-      .map((f) => {
+      .map(f => {
         const row = byId.get(f.id);
         return {
           factionId: f.id,
@@ -355,7 +343,7 @@ export async function getFactionStandings({ board = 'level' } = {}) {
   if (!hasPvp) {
     return {
       board,
-      standings: listFactions().map((f) => ({
+      standings: listFactions().map(f => ({
         factionId: f.id,
         faction: f,
         memberCount: 0,
@@ -365,26 +353,27 @@ export async function getFactionStandings({ board = 'level' } = {}) {
   }
 
   const members = await query(
-    `SELECT faction_id, COUNT(*) AS member_count
-     FROM player_character
-     WHERE faction_id IS NOT NULL
-     GROUP BY faction_id`,
+    `SELECT character_faction_id AS faction_id, COUNT(*) AS member_count
+     FROM player_profiles
+     WHERE character_name IS NOT NULL AND character_faction_id IS NOT NULL
+     GROUP BY character_faction_id`,
   );
-  const memberMap = new Map(members.map((r) => [r.faction_id, Number(r.member_count) || 0]));
+  const memberMap = new Map(members.map(r => [r.faction_id, Number(r.member_count) || 0]));
 
   const wins = await query(
-    `SELECT pc.faction_id, COUNT(*) AS score
+    `SELECT pc.character_faction_id AS faction_id, COUNT(*) AS score
      FROM pvp_matches pm
-     INNER JOIN player_character pc ON pc.user_id = pm.winner_user_id
+     INNER JOIN player_profiles pc ON pc.user_id = pm.winner_user_id
      WHERE pm.status = 'completed'
        AND pm.winner_user_id IS NOT NULL
-       AND pc.faction_id IS NOT NULL
-     GROUP BY pc.faction_id`,
+       AND pc.character_name IS NOT NULL
+       AND pc.character_faction_id IS NOT NULL
+     GROUP BY pc.character_faction_id`,
   );
-  const winMap = new Map(wins.map((r) => [r.faction_id, Number(r.score) || 0]));
+  const winMap = new Map(wins.map(r => [r.faction_id, Number(r.score) || 0]));
 
   const standings = listFactions()
-    .map((f) => ({
+    .map(f => ({
       factionId: f.id,
       faction: f,
       memberCount: memberMap.get(f.id) || 0,

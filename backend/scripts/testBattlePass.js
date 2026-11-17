@@ -119,20 +119,17 @@ async function ensureSeed() {
 
 async function ensureUser() {
   const prefix = `bp_test_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
-    prefix,
-  ]);
+  const userResult = await query('INSERT INTO users (username) VALUES (?)', [prefix]);
   const userId = userResult.insertId;
   testUserIds.push(userId);
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id, kage_coins, card_dust, card_essence)
-     VALUES (?, ?, 'Genjutsu', 5000, 0, 100, 'fr', 'leaf', 600, 0, 0)`,
+    `INSERT INTO player_profiles (user_id, display_name, ryos, language, kage_coins, card_dust, card_essence)
+     VALUES (?, ?, 5000, 'fr', 600, 0, 0)`,
     [userId, prefix]
   );
   try {
     await createCharacter(userId, {
       name: `Ninja ${prefix}`,
-      clanTraitId: null,
       elementAffinity: 'Katon',
     });
   } catch (e) {
@@ -172,7 +169,7 @@ async function integration() {
   const unlock = await unlockPremium(userId, { method: 'kage_coins', isAdmin: false });
   assert(unlock.progress.isPremium === true, 'premium via kage coins');
 
-  const coins = await query('SELECT kage_coins FROM sensei WHERE user_id = ?', [userId]);
+  const coins = await query('SELECT kage_coins FROM player_profiles WHERE user_id = ?', [userId]);
   assert(Number(coins[0].kage_coins) === 100, '600-500 = 100 coins left');
 
   const claimPrem = await claimReward(userId, 1, 'premium');

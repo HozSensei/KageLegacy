@@ -91,9 +91,15 @@ async function dbAvailable() {
     const tables = await query(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = DATABASE()
-         AND table_name IN ('talent_tree_nodes', 'user_talents', 'player_character')`
+         AND table_name IN ('talent_tree_nodes', 'user_talents')`
     );
-    return tables.length >= 3;
+    const characterColumns = await query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = DATABASE()
+         AND table_name = 'player_profiles'
+         AND column_name = 'character_name'`
+    );
+    return tables.length >= 2 && characterColumns.length > 0;
   } catch (e) {
     console.warn(`DB indisponible (${e.message}) — tests d'intégration ignorés.`);
     return false;
@@ -130,20 +136,18 @@ async function testIntegration() {
   assert(tree.length >= 140, `getTalentTree → ${tree.length} nodes`);
 
   const prefix = `talent_test_${Date.now()}`;
-  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
-    prefix,
-  ]);
+  const userResult = await query('INSERT INTO users (username) VALUES (?)', [prefix]);
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
-     VALUES (?, ?, 'Genjutsu', 5000, 0, 100, 'fr', 'leaf')`,
+    `INSERT INTO player_profiles (user_id, display_name, ryos, language)
+     VALUES (?, ?, 5000, 'fr')`,
     [userId, prefix]
   );
 
   await createCharacter(userId, {
     name: 'TalentRunner',
-    clanTraitId: null,
+
     elementAffinity: 'Katon',
   });
 
@@ -183,8 +187,8 @@ async function testIntegration() {
 
   await query('DELETE FROM user_talent_respec_history WHERE user_id = ?', [userId]);
   await query('DELETE FROM user_talents WHERE user_id = ?', [userId]);
-  await query('DELETE FROM player_character WHERE user_id = ?', [userId]);
-  await query('DELETE FROM sensei WHERE user_id = ?', [userId]);
+
+  await query('DELETE FROM player_profiles WHERE user_id = ?', [userId]);
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 

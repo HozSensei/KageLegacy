@@ -52,7 +52,17 @@ function testPureHelpers() {
   assert(empty.taijutsu === 0 && empty.maxHp === 0, 'stats vides à 0');
   assert(
     JSON.stringify(Object.keys(empty).sort()) ===
-      JSON.stringify(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock'].sort()),
+      JSON.stringify(
+        [
+          'taijutsu',
+          'ninjutsu',
+          'genjutsu',
+          'medicine',
+          'maxHp',
+          'maxChakra',
+          'startingBlock',
+        ].sort()
+      ),
     'sept clés de stats de combat'
   );
 
@@ -66,7 +76,11 @@ function testPureHelpers() {
   assert(rankForLevel(60) === 'ANBU', 'rang ANBU');
   assert(rankForLevel(80) === 'Kage', 'rang Kage');
 
-  const merged = mergeStatBonuses({ taijutsu: 5 }, { taijutsu: 10, vitesse: 3, maxChakra: 2, startingBlock: 4 }, { ninjutsu: 7 });
+  const merged = mergeStatBonuses(
+    { taijutsu: 5 },
+    { taijutsu: 10, vitesse: 3, maxChakra: 2, startingBlock: 4 },
+    { ninjutsu: 7 }
+  );
   assert(merged.taijutsu === 15, 'merge taijutsu');
   assert(!Object.hasOwn(merged, 'vitesse'), 'les anciennes stats ne sont pas ajoutées');
   assert(merged.ninjutsu === 7, 'merge ninjutsu');
@@ -101,11 +115,13 @@ function testPureHelpers() {
 async function dbAvailable() {
   try {
     await query('SELECT 1 AS ok');
-    const tables = await query(
-      `SELECT table_name FROM information_schema.tables
-       WHERE table_schema = DATABASE() AND table_name = 'player_character'`
+    const columns = await query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = DATABASE()
+         AND table_name = 'player_profiles'
+         AND column_name = 'character_name'`
     );
-    return tables.length > 0;
+    return columns.length > 0;
   } catch (e) {
     console.warn(`DB indisponible (${e.message}) — tests d'intégration ignorés.`);
     return false;
@@ -115,23 +131,17 @@ async function dbAvailable() {
 async function testIntegration() {
   console.log('\n=== Integration DB ===');
   const prefix = `pc_test_${Date.now()}`;
-  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
-    prefix,
-  ]);
+  const userResult = await query('INSERT INTO users (username) VALUES (?)', [prefix]);
   const userId = userResult.insertId;
 
   await query(
-    `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
-     VALUES (?, ?, 'Genjutsu', 1000, 0, 100, 'fr', 'leaf')`,
+    `INSERT INTO player_profiles (user_id, display_name, ryos, language)
+     VALUES (?, ?, 1000, 'fr')`,
     [userId, prefix]
   );
 
-  const clanRows = await query('SELECT id FROM clan_traits ORDER BY id LIMIT 1');
-  const clanTraitId = clanRows[0]?.id ?? null;
-
   const created = await createCharacter(userId, {
     name: 'Hayato Test',
-    clanTraitId,
   });
   assert(created?.name === 'Hayato Test', 'création personnage sans affinité élémentaire');
   assert(created.level === 1, 'niveau initial 1');
@@ -160,7 +170,7 @@ async function testIntegration() {
   assert(xpResult.talentPointsGained === 1, 'talentPointsGained = 1');
 
   // Préparer un level-up manuel
-  await query('UPDATE player_character SET xp = ? WHERE user_id = ?', [
+  await query('UPDATE player_profiles SET character_xp = ? WHERE user_id = ?', [
     xpRequiredForLevel(2),
     userId,
   ]);
@@ -169,18 +179,11 @@ async function testIntegration() {
   assert(lu.character.level === 3, 'niveau 3');
   assert(lu.talentPointsGained === 1, 'levelUp → +1 talent point, pas de stats');
 
-  // Une valeur historique en base ne doit ni être exposée ni apporter de bonus.
-  const statsBeforeLegacyValue = await getComputedStats(userId);
-  await query('UPDATE player_character SET specialization = ? WHERE user_id = ?', [
-    'Ninjutsu',
-    userId,
-  ]);
   const fetched = await getCharacter(userId);
   assert(fetched?.id === created.id, 'getCharacter');
-  assert(!Object.hasOwn(fetched, 'specialization'), 'valeur historique non exposée');
   assert(
-    JSON.stringify(fetched.stats) === JSON.stringify(statsBeforeLegacyValue),
-    'valeur historique sans bonus de stats'
+    !Object.hasOwn(fetched, 'specialization'),
+    'champ de spécialisation absent du personnage TCG'
   );
 
   const stats = await getComputedStats(userId);
@@ -195,8 +198,8 @@ async function testIntegration() {
   }
   await query('DELETE FROM user_decks WHERE user_id = ?', [userId]);
   await query('DELETE FROM user_card_collection WHERE user_id = ?', [userId]);
-  await query('DELETE FROM player_character WHERE user_id = ?', [userId]);
-  await query('DELETE FROM sensei WHERE user_id = ?', [userId]);
+
+  await query('DELETE FROM player_profiles WHERE user_id = ?', [userId]);
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 

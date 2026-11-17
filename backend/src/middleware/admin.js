@@ -3,7 +3,7 @@
  */
 
 export function isAdminUser(user) {
-  return Boolean(user?.is_admin) && !user?.is_bot && !user?.is_guest;
+  return Boolean(user?.is_admin) && !user?.is_guest;
 }
 
 export function requireAdmin(req, res, next) {

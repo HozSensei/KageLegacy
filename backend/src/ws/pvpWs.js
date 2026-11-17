@@ -5,7 +5,7 @@
 import { WebSocketServer } from 'ws';
 import { isDemoFallbackEnabled, parseCookies } from '../middleware/auth.js';
 import { getUserBySessionToken } from '../services/authService.js';
-import { findDemoUser } from '../models/sensei.js';
+import { findDemoAccount } from '../services/authService.js';
 import { PVP_WS_PATH } from '../services/pvp/config.js';
 import {
   attachPvpSocket,
@@ -23,7 +23,7 @@ async function resolveUserFromUpgrade(req) {
     if (user) return user;
   }
   if (isDemoFallbackEnabled()) {
-    return findDemoUser();
+    return findDemoAccount();
   }
   return null;
 }

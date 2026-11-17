@@ -10,11 +10,11 @@ import {
   registerGuestUser,
   registerUser,
   revokeSession,
-  updateSenseiLanguage,
+  updatePlayerProfileLanguage,
   updateUserEmail,
 } from '../services/authService.js';
 import { deleteUserAccount } from '../services/accountDeletionService.js';
-import { findSenseiByUserId } from '../models/sensei.js';
+import { findPlayerProfileByUserId } from '../models/playerProfile.js';
 import { getSessionToken } from '../middleware/auth.js';
 import {
   changePasswordSchema,
@@ -35,19 +35,17 @@ function serializeUser(user) {
     id: user.id,
     username: user.username,
     isGuest: Boolean(user.is_guest),
-    isAdmin: Boolean(user.is_admin) && !user.is_bot && !user.is_guest,
+    isAdmin: Boolean(user.is_admin) && !user.is_guest,
     guestExpiresAt: user.guest_expires_at || null,
     email: user.email || null,
   };
 }
 
-function serializeSensei(sensei) {
-  return sensei
+function serializePlayerProfile(profile) {
+  return profile
     ? {
-        name: sensei.name,
-        language: sensei.language,
-        villageId: sensei.village_id || 'leaf',
-        villageTitle: sensei.village_title || null,
+        displayName: profile.display_name,
+        language: profile.language,
       }
     : null;
 }
@@ -55,21 +53,14 @@ function serializeSensei(sensei) {
 router.post('/register', async (req, res, next) => {
   try {
     const parsed = registerSchema.parse(req.body);
-    const { user, poolJoin } = await registerUser(parsed);
+    const { user } = await registerUser(parsed);
     const { token, expiresAt } = await createSession(user.id);
 
     res.setHeader('Set-Cookie', buildSessionCookie(token, expiresAt));
-    const sensei = await findSenseiByUserId(user.id);
+    const profile = await findPlayerProfileByUserId(user.id);
     res.status(201).json({
       user: serializeUser(user),
-      sensei: serializeSensei(sensei),
-      pool: poolJoin.pool
-        ? {
-            id: poolJoin.pool.id,
-            inviteFallback: poolJoin.fallback,
-            inviteReason: poolJoin.reason,
-          }
-        : null,
+      profile: serializePlayerProfile(profile),
     });
   } catch (error) {
     next(error);
@@ -79,16 +70,15 @@ router.post('/register', async (req, res, next) => {
 router.post('/guest', async (req, res, next) => {
   try {
     const parsed = guestRegisterSchema.parse(req.body);
-    const { user, poolJoin, guestExpiresAt } = await registerGuestUser(parsed);
+    const { user, guestExpiresAt } = await registerGuestUser(parsed);
     const { token, expiresAt } = await createSession(user.id);
 
     res.setHeader('Set-Cookie', buildSessionCookie(token, expiresAt));
-    const sensei = await findSenseiByUserId(user.id);
+    const profile = await findPlayerProfileByUserId(user.id);
     res.status(201).json({
       user: serializeUser(user),
-      sensei: serializeSensei(sensei),
+      profile: serializePlayerProfile(profile),
       guestExpiresAt,
-      pool: poolJoin.pool ? { id: poolJoin.pool.id } : null,
     });
   } catch (error) {
     next(error);
@@ -104,13 +94,13 @@ router.post('/convert', async (req, res, next) => {
     }
 
     const parsed = convertGuestSchema.parse(req.body);
-    const email = parsed.email?.trim() || null;
+    const email = parsed.email.trim().toLowerCase();
     const user = await convertGuestToAccount(current.id, { ...parsed, email });
-    const sensei = await findSenseiByUserId(user.id);
+    const profile = await findPlayerProfileByUserId(user.id);
 
     res.json({
       user: serializeUser(user),
-      sensei: serializeSensei(sensei),
+      profile: serializePlayerProfile(profile),
     });
   } catch (error) {
     next(error);
@@ -124,10 +114,10 @@ router.post('/login', async (req, res, next) => {
     const { token, expiresAt } = await createSession(user.id);
 
     res.setHeader('Set-Cookie', buildSessionCookie(token, expiresAt));
-    const sensei = await findSenseiByUserId(user.id);
+    const profile = await findPlayerProfileByUserId(user.id);
     res.json({
       user: serializeUser(user),
-      sensei: serializeSensei(sensei),
+      profile: serializePlayerProfile(profile),
     });
   } catch (error) {
     next(error);
@@ -176,10 +166,10 @@ router.patch('/profile/email', async (req, res, next) => {
     const parsed = updateEmailSchema.parse(req.body);
     const email = parsed.email?.trim() || null;
     const updated = await updateUserEmail(user.id, email);
-    const sensei = await findSenseiByUserId(user.id);
+    const profile = await findPlayerProfileByUserId(user.id);
     res.json({
       user: serializeUser(updated),
-      sensei: serializeSensei(sensei),
+      profile: serializePlayerProfile(profile),
     });
   } catch (error) {
     next(error);
@@ -192,11 +182,11 @@ router.patch('/profile/language', async (req, res, next) => {
     if (!user) return;
 
     const parsed = updateLanguageSchema.parse(req.body);
-    await updateSenseiLanguage(user.id, parsed.language);
-    const sensei = await findSenseiByUserId(user.id);
+    await updatePlayerProfileLanguage(user.id, parsed.language);
+    const profile = await findPlayerProfileByUserId(user.id);
     res.json({
       user: serializeUser(user),
-      sensei: serializeSensei(sensei),
+      profile: serializePlayerProfile(profile),
     });
   } catch (error) {
     next(error);
@@ -228,10 +218,10 @@ router.get('/me', async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ error: 'Non authentifié.' });
     }
-    const sensei = await findSenseiByUserId(user.id);
+    const profile = await findPlayerProfileByUserId(user.id);
     res.json({
       user: serializeUser(user),
-      sensei: serializeSensei(sensei),
+      profile: serializePlayerProfile(profile),
     });
   } catch (error) {
     next(error);

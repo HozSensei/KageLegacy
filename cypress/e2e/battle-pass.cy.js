@@ -5,7 +5,7 @@ describe('Battle Pass', () => {
   let guestCreated = false;
 
   beforeEach(() => {
-    cy.request('POST', '/api/auth/guest', { senseiName: 'Cypress Battle Pass' }).then(
+    cy.request('POST', '/api/auth/guest', { displayName: 'Cypress Battle Pass' }).then(
       ({ body }) => {
         guestCreated = true;
         expect(body.user.isGuest).to.equal(true);

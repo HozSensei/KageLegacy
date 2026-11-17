@@ -14,10 +14,9 @@ export const SECTIONS = {
   journal: { index: '09', icon: 'journal', tone: 'indigo' },
   pvp: { index: '10', icon: 'pvp', tone: 'vermilion' },
   leaderboard: { index: '11', icon: 'leaderboard', tone: 'indigo' },
-  'elite-tools': { index: '12', icon: 'elite-tools', tone: 'gold' },
-  admin: { index: '13', icon: 'admin', tone: 'ink' },
-}
+  admin: { index: '12', icon: 'admin', tone: 'ink' },
+};
 
 export function sectionOf(name) {
-  return SECTIONS[name] || { index: '', icon: 'hub', tone: 'vermilion' }
+  return SECTIONS[name] || { index: '', icon: 'hub', tone: 'vermilion' };
 }

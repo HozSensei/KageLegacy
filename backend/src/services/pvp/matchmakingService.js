@@ -50,9 +50,10 @@ async function assertInviteTable() {
 }
 
 async function loadPlayerLevel(userId) {
-  const rows = await query('SELECT level FROM player_character WHERE user_id = ? LIMIT 1', [
-    userId,
-  ]);
+  const rows = await query(
+    'SELECT character_level AS level FROM player_profiles WHERE user_id = ? AND character_name IS NOT NULL LIMIT 1',
+    [userId],
+  );
   if (!rows[0]) throw httpError(400, 'Créez un personnage avant le PvP.');
   return Number(rows[0].level) || 1;
 }

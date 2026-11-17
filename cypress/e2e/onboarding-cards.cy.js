@@ -39,8 +39,6 @@ function setupApp(language = 'fr') {
   cy.intercept('GET', '/api/shop/balances', {
     balances: { ryos: 50000, dust: 5000, essence: 20, kageCoins: 0 },
   });
-  cy.intercept('GET', '/api/elite/me', { subscription: null, featureEnabled: false });
-  cy.intercept('GET', '/api/clock', {});
 }
 
 function visit(path, language = 'fr') {

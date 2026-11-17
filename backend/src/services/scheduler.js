@@ -9,11 +9,6 @@ export function isSchedulerEnabled() {
   return process.env.ENABLE_SCHEDULER !== 'false';
 }
 
-export async function runCycleTickOnce() {
-  const { processCycleTick } = await import('./cycleJobs.js');
-  return processCycleTick();
-}
-
 export function startScheduler() {
   if (!isSchedulerEnabled()) {
     console.log('⏱  Scheduler intégré désactivé (ENABLE_SCHEDULER=false)');

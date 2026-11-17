@@ -12,19 +12,16 @@ export const FACTION_CATALOG = {
     id: 'midorihara',
     accentColor: '#2d6a4f',
     bannerTone: 'leaf',
-    legacyVillageId: 'leaf',
   },
   kareno: {
     id: 'kareno',
     accentColor: '#b5651d',
     bannerTone: 'gold',
-    legacyVillageId: 'sand',
   },
   oborohama: {
     id: 'oborohama',
     accentColor: '#1d4e89',
     bannerTone: 'sky',
-    legacyVillageId: 'mist',
   },
 };
 
@@ -33,7 +30,7 @@ export function isValidFactionId(factionId) {
 }
 
 export function listFactions() {
-  return FACTION_IDS.map((id) => ({ ...FACTION_CATALOG[id] }));
+  return FACTION_IDS.map(id => ({ ...FACTION_CATALOG[id] }));
 }
 
 export function getFaction(factionId) {

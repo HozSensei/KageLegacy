@@ -6,7 +6,7 @@ export { FACTION_IDS };
 
 export const createCharacterSchema = z.object({
   name: z.string().trim().min(2, 'Minimum 2 caractères.').max(100),
-  clanTraitId: z.coerce.number().int().positive().nullable().optional(),
+
   elementAffinity: z
     .enum(ELEMENTS, {
       errorMap: () => ({ message: 'Élément invalide.' }),

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { requireUser } from '../middleware/auth.js';
-import { findAllClanTraits } from '../models/clanTrait.js';
+
 import {
   createCharacter,
   getCharacter,
@@ -47,24 +47,6 @@ router.get('/stats', async (req, res, next) => {
   }
 });
 
-/** GET /api/player/clans — lignées NPC (legacy). Pas un choix à la création joueur. */
-router.get('/clans', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-    const clans = await findAllClanTraits();
-    res.json({
-      clans: clans.map(c => ({
-        id: c.id,
-        name: c.name,
-        isNoble: Boolean(c.is_noble),
-      })),
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
 /** POST /api/player/create — onboarding */
 router.post('/create', async (req, res, next) => {
   try {
@@ -74,7 +56,7 @@ router.post('/create', async (req, res, next) => {
     const parsed = createCharacterSchema.parse(req.body);
     const character = await createCharacter(user.id, {
       name: parsed.name,
-      clanTraitId: parsed.clanTraitId ?? null,
+
       elementAffinity: parsed.elementAffinity,
       factionId: parsed.factionId ?? null,
       avatarUrl: parsed.avatarUrl || null,

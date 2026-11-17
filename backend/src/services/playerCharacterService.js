@@ -15,7 +15,15 @@ export const MAX_LEVEL = 100;
  * Clés de stats combat (docs/COMBAT_SYSTEM.md).
  * Phase 1 : toutes à 0 tant que talents/cartes ne sont pas branchés.
  */
-export const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock'];
+export const STAT_KEYS = [
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medicine',
+  'maxHp',
+  'maxChakra',
+  'startingBlock',
+];
 
 /** Stats de base documentées (Phase 1) : zéro — tout vient des talents + cartes. */
 export function createEmptyStats() {
@@ -67,23 +75,6 @@ async function tableExists(tableName) {
        WHERE table_schema = DATABASE() AND table_name = ?
        LIMIT 1`,
       [tableName],
-    );
-    return rows.length > 0;
-  } catch {
-    return false;
-  }
-}
-
-async function columnExists(tableName, columnName) {
-  try {
-    const rows = await query(
-      `SELECT 1 AS ok
-       FROM information_schema.columns
-       WHERE table_schema = DATABASE()
-         AND table_name = ?
-         AND column_name = ?
-       LIMIT 1`,
-      [tableName, columnName],
     );
     return rows.length > 0;
   } catch {
@@ -161,8 +152,6 @@ function serializeCharacter(row, extras = {}) {
     xpToNextLevel: row.level >= MAX_LEVEL ? null : xpRequiredForLevel(row.level),
     rank: row.rank,
     talentPointsAvailable: row.talent_points_available,
-    clanTraitId: row.clan_trait_id ?? null,
-    clanName: row.clan_name ?? extras.clanName ?? null,
     elementAffinity: row.element_affinity,
     factionId,
     faction: factionId ? getFaction(factionId) : null,
@@ -175,10 +164,18 @@ function serializeCharacter(row, extras = {}) {
 
 async function fetchCharacterRow(userId) {
   const rows = await query(
-    `SELECT pc.*, ct.name AS clan_name
-     FROM player_character pc
-     LEFT JOIN clan_traits ct ON ct.id = pc.clan_trait_id
-     WHERE pc.user_id = ?
+    `SELECT id, user_id, character_name AS name,
+            character_avatar_url AS avatar_url,
+            character_level AS level, character_xp AS xp,
+            character_rank AS \`rank\`,
+            character_talent_points_available AS talent_points_available,
+            character_element_affinity AS element_affinity,
+            character_faction_id AS faction_id,
+            character_faction_retake_used AS faction_retake_used,
+            character_created_at AS created_at,
+            character_updated_at AS updated_at
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`,
     [userId],
   );
@@ -186,13 +183,11 @@ async function fetchCharacterRow(userId) {
 }
 
 /**
- * Création personnage. Les clans joueur sont des cartes légendaires (passifs de deck),
- * pas un choix d'identité — `clanTraitId` est ignoré (rétrocompat body API / scripts).
- * L'affinité par défaut est conservée pour la colonne historique obligatoire en base.
+ * Création d'un personnage TCG : son identité est définie par sa faction et son affinité.
  */
 export async function createCharacter(
   userId,
-  { name, clanTraitId: _clanTraitId, elementAffinity = 'Katon', avatarUrl, factionId },
+  { name, elementAffinity = 'Katon', avatarUrl, factionId },
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
 
@@ -215,24 +210,24 @@ export async function createCharacter(
   }
 
   const avatar = avatarUrl && String(avatarUrl).trim() ? String(avatarUrl).trim() : null;
+  const profiles = await query(
+    'SELECT character_name FROM player_profiles WHERE user_id = ? LIMIT 1',
+    [userId],
+  );
+  if (!profiles[0]) throw httpError(404, 'Profil joueur introuvable.');
+  if (profiles[0].character_name) throw httpError(409, 'Un personnage existe déjà pour ce compte.');
 
-  const hasFactionCol = await columnExists('player_character', 'faction_id');
-
-  if (hasFactionCol) {
-    await query(
-      `INSERT INTO player_character
-        (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization, faction_id)
-       VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL, ?)`,
-      [userId, trimmedName, avatar, elementAffinity, resolvedFaction],
-    );
-  } else {
-    await query(
-      `INSERT INTO player_character
-        (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
-       VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL)`,
-      [userId, trimmedName, avatar, elementAffinity],
-    );
-  }
+  const result = await query(
+    `UPDATE player_profiles
+     SET character_name = ?, character_avatar_url = ?, character_level = 1,
+         character_xp = 0, character_rank = 'Genin',
+         character_talent_points_available = 1, character_element_affinity = ?,
+         character_faction_id = ?, character_faction_retake_used = 0,
+         character_created_at = UTC_TIMESTAMP(), character_updated_at = UTC_TIMESTAMP()
+     WHERE user_id = ? AND character_name IS NULL`,
+    [trimmedName, avatar, elementAffinity, resolvedFaction, userId],
+  );
+  if (!result.affectedRows) throw httpError(409, 'Un personnage existe déjà pour ce compte.');
 
   // Cartes de base + deck starter (best-effort — ne bloque pas la création).
   try {
@@ -303,9 +298,10 @@ export async function addXP(userId, amount) {
 
   if (after.level !== before.level || after.xp !== before.xp) {
     await query(
-      `UPDATE player_character
-       SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
-       WHERE user_id = ?`,
+      `UPDATE player_profiles
+         SET character_level = ?, character_xp = ?, character_rank = ?,
+             character_talent_points_available = ?, character_updated_at = UTC_TIMESTAMP()
+         WHERE user_id = ? AND character_name IS NOT NULL`,
       [after.level, after.xp, after.rank, after.talentPointsAvailable, userId],
     );
   }
@@ -340,9 +336,10 @@ export async function levelUp(userId) {
   const nextRank = rankForLevel(nextLevel);
 
   await query(
-    `UPDATE player_character
-     SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
-     WHERE user_id = ?`,
+    `UPDATE player_profiles
+     SET character_level = ?, character_xp = ?, character_rank = ?,
+         character_talent_points_available = ?, character_updated_at = UTC_TIMESTAMP()
+     WHERE user_id = ? AND character_name IS NOT NULL`,
     [nextLevel, nextXp, nextRank, nextTalent, userId],
   );
 
