@@ -179,8 +179,9 @@ function onTearKeydown(e) {
   margin-inline: auto;
 }
 
+/* L'ouverture conserve une échelle proche des cartes de collection. */
 .booster-pack-visual--ceremony {
-  width: 16.5rem;
+  width: 13.5rem;
 }
 
 .booster-pack-visual--standard {
@@ -299,7 +300,7 @@ function onTearKeydown(e) {
 .booster-pack-visual__zone {
   position: relative;
   width: 100%;
-  height: 25.3rem;
+  aspect-ratio: 16.5 / 25.3;
   perspective: 900px;
 }
 

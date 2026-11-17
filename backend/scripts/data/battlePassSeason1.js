@@ -59,17 +59,11 @@ export function buildSeason1Rewards() {
     tier(47, [{ type: 'ryos', amount: 900 }]),
     tier(48, [{ type: 'essence', amount: 5 }]),
     tier(49, [{ type: 'dust', amount: 100 }]),
-    tier(50, [
-      { type: 'cosmetic', cosmeticType: 'avatar', key: 'shadow_awaken_free' },
-      { type: 'card', rarity: 'legendary', count: 1 },
-    ]),
+    tier(50, [{ type: 'card', rarity: 'legendary', count: 1 }]),
   ];
 
   const premiumEntries = [
-    tier(1, [
-      { type: 'card', rarity: 'rare', count: 2 },
-      { type: 'cosmetic', cosmeticType: 'card_back', key: 'ancestral_shadows' },
-    ]),
+    tier(1, [{ type: 'card', rarity: 'rare', count: 2 }]),
     tier(2, [{ type: 'ryos', amount: 750 }]),
     tier(3, [{ type: 'dust', amount: 75 }]),
     tier(4, [{ type: 'kage_coins', amount: 25 }]),
@@ -86,7 +80,7 @@ export function buildSeason1Rewards() {
     tier(12, [{ type: 'ryos', amount: 600 }]),
     tier(13, [{ type: 'essence', amount: 5 }]),
     tier(14, [{ type: 'dust', amount: 90 }]),
-    tier(15, [{ type: 'cosmetic', cosmeticType: 'avatar', key: 'animated_shadow_veil' }]),
+
     tier(16, [{ type: 'ryos', amount: 700 }]),
     tier(17, [{ type: 'dust', amount: 100 }]),
     tier(18, [{ type: 'kage_coins', amount: 25 }]),
@@ -101,10 +95,7 @@ export function buildSeason1Rewards() {
     tier(27, [{ type: 'kage_coins', amount: 50 }]),
     tier(28, [{ type: 'ryos', amount: 900 }]),
     tier(29, [{ type: 'dust', amount: 120 }]),
-    tier(30, [
-      { type: 'card', rarity: 'legendary', count: 3 },
-      { type: 'cosmetic', cosmeticType: 'emote', key: 'too_easy' },
-    ]),
+    tier(30, [{ type: 'card', rarity: 'legendary', count: 3 }]),
     tier(31, [{ type: 'ryos', amount: 1000 }]),
     tier(32, [{ type: 'dust', amount: 130 }]),
     tier(33, [{ type: 'essence', amount: 10 }]),
@@ -122,12 +113,9 @@ export function buildSeason1Rewards() {
     tier(45, [{ type: 'booster', boosterType: 'legendary' }]),
     tier(46, [{ type: 'essence', amount: 15 }]),
     tier(47, [{ type: 'ryos', amount: 1500 }]),
-    tier(48, [{ type: 'cosmetic', cosmeticType: 'emote', key: 'on_fire' }]),
+
     tier(49, [{ type: 'dust', amount: 200 }]),
-    tier(50, [
-      { type: 'card', rarity: 'mythic', count: 1 },
-      { type: 'cosmetic', cosmeticType: 'card_effect', key: 'golden_particles' },
-    ]),
+    tier(50, [{ type: 'card', rarity: 'mythic', count: 1 }]),
   ];
 
   const freeTrack = {};
@@ -221,7 +209,7 @@ export function buildSeason1QuestDefs(seasonStart, seasonEnd) {
       goal_value: 1,
       xp_reward: 200,
     },
-  ].map((q) => ({
+  ].map(q => ({
     ...q,
     available_from: dayStart,
     available_until: dayEnd,
@@ -287,7 +275,7 @@ export function buildSeason1QuestDefs(seasonStart, seasonEnd) {
       goal_value: 5,
       xp_reward: 1000,
     },
-  ].map((q) => ({
+  ].map(q => ({
     ...q,
     available_from: weekStart,
     available_until: weekEnd,

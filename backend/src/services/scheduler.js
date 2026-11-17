@@ -1,18 +1,17 @@
-import { processCycleTick } from './cycleJobs.js';
 import { processDailyRetentionTick } from './dailyRetentionJobs.js';
 import { msUntilNextUtcMidnight } from './dailyUtc.js';
 
-const TICK_MS = Number(process.env.SCHEDULER_TICK_MS || 60 * 1000);
-let intervalId = null;
 let midnightTimeoutId = null;
+let schedulerGeneration = 0;
+let running = false;
 
 export function isSchedulerEnabled() {
   return process.env.ENABLE_SCHEDULER !== 'false';
 }
 
 export async function runCycleTickOnce() {
-  const result = await processCycleTick();
-  return result;
+  const { processCycleTick } = await import('./cycleJobs.js');
+  return processCycleTick();
 }
 
 export function startScheduler() {
@@ -20,24 +19,16 @@ export function startScheduler() {
     console.log('⏱  Scheduler intégré désactivé (ENABLE_SCHEDULER=false)');
     return;
   }
-  if (intervalId) return;
+  if (running) return;
 
-  intervalId = setInterval(async () => {
-    try {
-      await processCycleTick();
-    } catch (error) {
-      console.error('[scheduler] Erreur cycle tick:', error);
-    }
-  }, TICK_MS);
+  running = true;
+  schedulerGeneration += 1;
+  scheduleUtcMidnightRetention(schedulerGeneration);
 
-  scheduleUtcMidnightRetention();
-
-  console.log(
-    `⏱  Scheduler cycle 72h démarré (tick ${TICK_MS / 1000}s) · rétention + purge invités à minuit UTC`
-  );
+  console.log('⏱  Scheduler rétention + purge invités démarré (minuit UTC)');
 }
 
-function scheduleUtcMidnightRetention() {
+function scheduleUtcMidnightRetention(generation) {
   if (midnightTimeoutId) {
     clearTimeout(midnightTimeoutId);
     midnightTimeoutId = null;
@@ -50,19 +41,20 @@ function scheduleUtcMidnightRetention() {
     } catch (error) {
       console.error('[scheduler] Erreur rétention minuit UTC:', error);
     } finally {
-      scheduleUtcMidnightRetention();
+      if (running && generation === schedulerGeneration) {
+        scheduleUtcMidnightRetention(generation);
+      }
     }
   }, delay);
 }
 
 export function stopScheduler() {
+  if (!running) return;
+  running = false;
+  schedulerGeneration += 1;
   if (midnightTimeoutId) {
     clearTimeout(midnightTimeoutId);
     midnightTimeoutId = null;
   }
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-    console.log('⏱  Scheduler arrêté');
-  }
+  console.log('⏱  Scheduler arrêté');
 }

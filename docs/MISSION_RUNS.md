@@ -21,13 +21,13 @@ Boucle session riche : une mission n’est plus un combat unique, mais un **parc
 
 ## Nœuds MVP
 
-| Type | Nom FR | Effet |
-|------|--------|--------|
-| `combat` | Embuscade / Boss | Fight via `combatEngineService` (boss multi-phases : [BOSS_PHASES.md](./BOSS_PHASES.md)) |
-| `rest` | Sanctuaire de Mousse | +30 % PV max |
-| `cache` | Cache d’Éclaireur | +12 % PV + 2 ferraille |
-| `merchant` | Colporteur d’Ombre | Bandage / tonique contre ferraille |
-| `crossroads` | Carrefour du Voile | Soin **ou** ferraille |
+| Type         | Nom FR               | Effet                                                                                    |
+| ------------ | -------------------- | ---------------------------------------------------------------------------------------- |
+| `combat`     | Embuscade / Boss     | Fight via `combatEngineService` (boss multi-phases : [BOSS_PHASES.md](./BOSS_PHASES.md)) |
+| `rest`       | Sanctuaire de Mousse | +30 % PV max                                                                             |
+| `cache`      | Cache d’Éclaireur    | +12 % PV + 2 ferraille                                                                   |
+| `merchant`   | Colporteur d’Ombre   | Bandage / tonique contre ferraille                                                       |
+| `crossroads` | Carrefour du Voile   | Soin **ou** ferraille                                                                    |
 
 ## État persisté (`mission_runs`)
 
@@ -38,14 +38,14 @@ Boucle session riche : une mission n’est plus un combat unique, mais un **parc
 
 ## API
 
-| Méthode | Route | Rôle |
-|---------|-------|------|
-| POST | `/api/missions/:id/start` | Démarre un run |
-| GET | `/api/missions/runs/active` | Run en cours |
-| GET | `/api/missions/runs/:runId` | Détail |
-| POST | `/api/missions/runs/:runId/enter` | Entre dans le nœud disponible |
-| POST | `/api/missions/runs/:runId/resolve-event` | Résout un événement `{ choiceId }` |
-| POST | `/api/missions/runs/:runId/abandon` | Abandonne le parcours |
+| Méthode | Route                                     | Rôle                               |
+| ------- | ----------------------------------------- | ---------------------------------- |
+| POST    | `/api/missions/:id/start`                 | Démarre un run                     |
+| GET     | `/api/missions/runs/active`               | Run en cours                       |
+| GET     | `/api/missions/runs/:runId`               | Détail                             |
+| POST    | `/api/missions/runs/:runId/enter`         | Entre dans le nœud disponible      |
+| POST    | `/api/missions/runs/:runId/resolve-event` | Résout un événement `{ choiceId }` |
+| POST    | `/api/missions/runs/:runId/abandon`       | Abandonne le parcours              |
 
 ## Frontend
 
@@ -53,7 +53,7 @@ Boucle session riche : une mission n’est plus un combat unique, mais un **parc
 - `MissionRunView` — carte linéaire des nœuds + événements
 - `CombatView` / `VictoryRewards` — étape franchie (loot différé) ou loot de fin de run
 
-## Règles design (alignées PROJECT_VISION / COMBAT_SYSTEM)
+## Règles de parcours
 
 - PV **ne régénèrent pas** entre combats (sauf événements)
 - Mort = échec de mission

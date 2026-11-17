@@ -1,11 +1,11 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import CombatHand from '../combat/CombatHand.vue'
-import CombatLog from '../combat/CombatLog.vue'
-import PlayerStatus from '../combat/PlayerStatus.vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import CombatHand from '../combat/CombatHand.vue';
+import CombatLog from '../combat/CombatLog.vue';
+import PlayerStatus from '../combat/PlayerStatus.vue';
 
-defineOptions({ name: 'PvpArena' })
+defineOptions({ name: 'PvpArena' });
 
 const props = defineProps({
   view: { type: Object, required: true },
@@ -14,7 +14,7 @@ const props = defineProps({
   selectedId: { type: String, default: null },
   busy: { type: Boolean, default: false },
   peerOnline: { type: Boolean, default: false },
-})
+});
 
 const emit = defineEmits([
   'select-card',
@@ -23,27 +23,22 @@ const emit = defineEmits([
   'discard-chakra',
   'forfeit',
   'dismiss-outcome',
-])
+]);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const self = computed(() => props.view?.fighters?.[props.role] || null)
-const opponentSeat = computed(() => (props.role === 'host' ? 'guest' : 'host'))
-const opponent = computed(() => props.view?.fighters?.[opponentSeat.value] || null)
+const self = computed(() => props.view?.fighters?.[props.role] || null);
+const opponentSeat = computed(() => (props.role === 'host' ? 'guest' : 'host'));
+const opponent = computed(() => props.view?.fighters?.[opponentSeat.value] || null);
 
-const isOver = computed(() =>
-  ['completed', 'forfeited'].includes(props.view?.status)
-)
+const isOver = computed(() => ['completed', 'forfeited'].includes(props.view?.status));
 
 const canAct = computed(
-  () =>
-    props.view?.status === 'in_progress' &&
-    props.view?.activeSeat === props.role &&
-    !props.busy
-)
+  () => props.view?.status === 'in_progress' && props.view?.activeSeat === props.role && !props.busy
+);
 
-const isMyTurn = computed(() => props.view?.activeSeat === props.role)
-const turnNumber = computed(() => String(props.view?.turn ?? 0).padStart(2, '0'))
+const isMyTurn = computed(() => props.view?.activeSeat === props.role);
+const turnNumber = computed(() => String(props.view?.turn ?? 0).padStart(2, '0'));
 
 const opponentPlayer = computed(() => ({
   name: opponent.value?.name || t('pvp.opponent'),
@@ -53,42 +48,43 @@ const opponentPlayer = computed(() => ({
   chakra: opponent.value?.chakra,
   maxChakra: opponent.value?.maxChakra,
   statuses: opponent.value?.statuses || [],
+  ally: opponent.value?.ally || null,
   hand: [],
   drawCount: opponent.value?.drawCount,
   discardCount: opponent.value?.discardCount,
-}))
+}));
 
 const selfPlayer = computed(() => ({
   ...(self.value || {}),
   name: self.value?.name || t('pvp.you'),
-}))
+}));
 
 /* Bandeau éphémère à chaque changement de main (affichage seul). */
-const banner = ref(false)
-let bannerTimer = null
+const banner = ref(false);
+let bannerTimer = null;
 
 watch(
   () => `${props.view?.turn}:${props.view?.activeSeat}`,
   (next, prev) => {
-    if (!prev || next === prev || props.view?.status !== 'in_progress') return
-    banner.value = true
-    if (bannerTimer) clearTimeout(bannerTimer)
+    if (!prev || next === prev || props.view?.status !== 'in_progress') return;
+    banner.value = true;
+    if (bannerTimer) clearTimeout(bannerTimer);
     bannerTimer = setTimeout(() => {
-      banner.value = false
-    }, 900)
+      banner.value = false;
+    }, 900);
   }
-)
+);
 
 onBeforeUnmount(() => {
-  if (bannerTimer) clearTimeout(bannerTimer)
-})
+  if (bannerTimer) clearTimeout(bannerTimer);
+});
 
 const outcomeKey = computed(() => {
-  if (!isOver.value) return null
-  if (props.view.winnerSeat === props.role) return 'victory'
-  if (props.view.status === 'forfeited') return 'forfeited'
-  return 'defeat'
-})
+  if (!isOver.value) return null;
+  if (props.view.winnerSeat === props.role) return 'victory';
+  if (props.view.status === 'forfeited') return 'forfeited';
+  return 'defeat';
+});
 </script>
 
 <template>
@@ -98,7 +94,9 @@ const outcomeKey = computed(() => {
         <p class="arena__turn" :data-tone="isMyTurn ? 'indigo' : 'vermilion'">
           <span class="sr-only">{{ t('pvp.turn', { n: view.turn }) }}</span>
           <span class="arena__turn-label" aria-hidden="true">{{ t('combat.turnLabel') }}</span>
-          <span :key="view.turn" class="arena__turn-number" aria-hidden="true">{{ turnNumber }}</span>
+          <span :key="view.turn" class="arena__turn-number" aria-hidden="true">{{
+            turnNumber
+          }}</span>
           <span class="arena__phase">
             <span class="lozenge" aria-hidden="true" />
             {{ isMyTurn ? t('pvp.yourTurn') : t('pvp.opponentTurn') }}
@@ -147,7 +145,9 @@ const outcomeKey = computed(() => {
         </div>
       </section>
 
-      <span class="arena__vs" aria-hidden="true"><span>{{ t('common.vs') }}</span></span>
+      <span class="arena__vs" aria-hidden="true"
+        ><span>{{ t('common.vs') }}</span></span
+      >
 
       <section class="arena__seat arena__seat--self">
         <PlayerStatus :player="selfPlayer" />

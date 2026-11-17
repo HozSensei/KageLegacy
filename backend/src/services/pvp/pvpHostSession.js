@@ -229,6 +229,8 @@ function relayMatchEnd(ws, meta, msg) {
     result: msg.result || null,
     checksum: msg.checksum || null,
     fromRole: meta.role,
+    confirmationRequired: true,
+    confirmationEndpoint: `/api/pvp/matches/${meta.matchId}/report`,
   };
   send(session.host, payload);
   send(session.guest, payload);

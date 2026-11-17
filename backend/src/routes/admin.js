@@ -1,205 +1,219 @@
 import { Router } from 'express';
-import {
-  advanceHourDev,
-  getClockRow,
-  getGameClock,
-  setCycleStartAt,
-  setHourDev,
-} from '../services/gameClock.js';
-import { processCycleTick, resetCycleJobsFromHour } from '../services/cycleJobs.js';
-import { setHourSchema } from '../validators/squadTactics.js';
-import {
-  hardResetSchema,
-  repairPoolsSchema,
-  setCycleStartSchema,
-} from '../validators/admin.js';
-import { hardSeasonReset } from '../services/seasonResetService.js';
-import { purgeExpiredGuestAccounts } from '../services/guestCleanupService.js';
-import {
-  assignMissingHumanPools,
-  repairAllActivePoolSchedules,
-  repairPoolSchedule,
-} from '../services/poolService.js';
-import { retuneBotSenseiIdentities } from '../services/botFactory.js';
-import { isAdminUser, requireAdmin } from '../middleware/admin.js';
-import { ensureStarterSquad } from '../services/starterSquadService.js';
-import { ensureStarterTacticCards } from '../services/tacticCards/tacticCardService.js';
-import { query } from '../config/database.js';
+import { z } from 'zod';
+import { getConnection, query } from '../config/database.js';
+import { requireAdmin } from '../middleware/admin.js';
 
 const router = Router();
-
-router.get('/status', (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Non authentifié.', isAdmin: false });
-  }
-
-  res.json({
-    isAdmin: isAdminUser(req.user),
-    username: req.user.username,
-  });
+const resourceFields = Object.freeze({
+  ryos: 'ryos',
+  kageCoins: 'kage_coins',
+  cardDust: 'card_dust',
+  cardEssence: 'card_essence',
 });
+const grantSchema = z
+  .object({
+    ryos: z.number().int().min(0).max(1_000_000_000).optional(),
+    kageCoins: z.number().int().min(0).max(1_000_000_000).optional(),
+    cardDust: z.number().int().min(0).max(1_000_000_000).optional(),
+    cardEssence: z.number().int().min(0).max(1_000_000_000).optional(),
+  })
+  .strict()
+  .refine(value => Object.values(value).some(amount => amount > 0), {
+    message: 'Indiquez au moins une quantité supérieure à zéro.',
+  });
+const resetSchema = z
+  .object({
+    collection: z.boolean().optional(),
+    combats: z.boolean().optional(),
+    missions: z.boolean().optional(),
+    ryos: z.boolean().optional(),
+    kageCoins: z.boolean().optional(),
+    cardMaterials: z.boolean().optional(),
+    level: z.boolean().optional(),
+    talents: z.boolean().optional(),
+  })
+  .strict()
+  .refine(value => Object.values(value).some(Boolean), {
+    message: 'Sélectionnez au moins un élément à réinitialiser.',
+  });
 
 router.use(requireAdmin);
 
-router.get('/clock', async (_req, res, next) => {
+router.get('/players', async (req, res, next) => {
   try {
-    const clock = await getGameClock();
-    res.json({ clock });
+    const search = String(req.query.q || '')
+      .trim()
+      .slice(0, 80);
+    const rows = await query(
+      `SELECT u.id, u.username, u.is_admin, pc.name AS character_name,
+              COALESCE(s.ryos, 0) AS ryos,
+              COALESCE(s.kage_coins, 0) AS kage_coins,
+              COALESCE(s.card_dust, 0) AS card_dust,
+              COALESCE(s.card_essence, 0) AS card_essence,
+              (SELECT COUNT(*) FROM user_card_collection c WHERE c.user_id = u.id) AS collection_count,
+              (SELECT COUNT(*) FROM user_decks d WHERE d.user_id = u.id) AS deck_count
+       FROM users u
+       LEFT JOIN sensei s ON s.user_id = u.id
+       LEFT JOIN player_character pc ON pc.user_id = u.id
+       WHERE u.is_bot = FALSE AND u.is_guest = FALSE
+         AND (? = '' OR u.username LIKE ? OR pc.name LIKE ?)
+       ORDER BY u.username
+       LIMIT 100`,
+      [search, `%${search}%`, `%${search}%`],
+    );
+    res.json({ players: rows });
   } catch (error) {
     next(error);
   }
 });
 
-router.post('/clock/advance-hour', async (_req, res, next) => {
-  try {
-    const clock = await advanceHourDev();
-    const tick = await processCycleTick();
-    res.json({ clock, tick });
-  } catch (error) {
-    next(error);
+router.post('/players/:id/resources', async (req, res, next) => {
+  const parsed = grantSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ error: parsed.error.issues[0]?.message || 'Montants invalides.' });
   }
-});
 
-router.post('/clock/set-hour', async (req, res, next) => {
-  try {
-    const { hour } = setHourSchema.parse(req.body);
-    const row = await getClockRow();
-    if (row?.cycle_start_at) {
-      await resetCycleJobsFromHour(row.cycle_start_at, hour);
-    }
-    const clock = await setHourDev(hour);
-    const tick = await processCycleTick();
-    res.json({ clock, tick });
-  } catch (error) {
-    next(error);
+  const userId = Number(req.params.id);
+  if (!Number.isSafeInteger(userId) || userId < 1) {
+    return res.status(400).json({ error: 'Identifiant joueur invalide.' });
   }
-});
 
-router.post('/clock/set-start', async (req, res, next) => {
+  const connection = await getConnection();
   try {
-    const { at } = setCycleStartSchema.parse(req.body);
-    const clock = await setCycleStartAt(at);
-    res.json({ clock });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/clock/tick', async (_req, res, next) => {
-  try {
-    const tick = await processCycleTick();
-    const clock = await getGameClock();
-    res.json({ clock, tick });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/season/hard-reset', async (req, res, next) => {
-  try {
-    const { seasonNumber, cycleStartAt, dryRun, confirm } = hardResetSchema.parse(req.body);
-
-    if (!dryRun && !confirm) {
-      return res.status(400).json({
-        error: 'Opération destructive : envoyez dryRun=true pour prévisualiser ou confirm=true pour exécuter.',
-      });
+    await connection.beginTransaction();
+    const [players] = await connection.execute(
+      `SELECT u.id FROM users u
+       JOIN sensei s ON s.user_id = u.id
+       WHERE u.id = ? AND u.is_bot = FALSE AND u.is_guest = FALSE AND u.is_admin = FALSE
+       LIMIT 1 FOR UPDATE`,
+      [userId],
+    );
+    if (!players[0]) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Joueur introuvable ou administrateur.' });
     }
 
-    const result = await hardSeasonReset({
-      seasonNumber,
-      cycleStartAt: cycleStartAt || null,
-      dryRun: dryRun || !confirm,
-    });
-
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/guest/purge', async (_req, res, next) => {
-  try {
-    const result = await purgeExpiredGuestAccounts();
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.post('/pools/repair-schedules', async (req, res, next) => {
-  try {
-    const { all, poolId, includePlayed } = repairPoolsSchema.parse(req.body);
-    const options = { onlyScheduled: !includePlayed };
-
-    if (poolId) {
-      const result = await repairPoolSchedule(poolId, options);
-      return res.json({ results: [result] });
-    }
-
-    if (all) {
-      const results = await repairAllActivePoolSchedules(options);
-      return res.json({ results });
-    }
-
-    const clock = await getGameClock();
-    res.json({
-      results: [],
-      message: 'Spécifiez all=true ou poolId pour lancer une réparation.',
-      clock,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** Réassigne une ligue à tous les humains orphelins (rétroactif). */
-router.post('/pools/assign-missing', async (req, res, next) => {
-  try {
-    const seasonNumber = Number(req.body?.seasonNumber) || 1;
-    const withStarter = req.body?.withStarter !== false;
-    const assignment = await assignMissingHumanPools({ seasonNumber });
-
-    const starters = [];
-    if (withStarter) {
-      for (const row of assignment.results) {
-        if (!row.ok) continue;
-        try {
-          const languageRows = await query(
-            'SELECT language FROM sensei WHERE user_id = ? LIMIT 1',
-            [row.userId]
-          );
-          const language = languageRows[0]?.language || 'fr';
-          const squadCreated = await ensureStarterSquad(row.userId, language);
-          await ensureStarterTacticCards(row.userId);
-          starters.push({ userId: row.userId, squadCreated, ok: true });
-        } catch (error) {
-          starters.push({ userId: row.userId, ok: false, error: error.message });
-        }
+    for (const [key, column] of Object.entries(resourceFields)) {
+      const amount = parsed.data[key] || 0;
+      if (amount > 0) {
+        await connection.execute(`UPDATE sensei SET ${column} = ${column} + ? WHERE user_id = ?`, [
+          amount,
+          userId,
+        ]);
       }
     }
-
-    res.json({
-      assignment,
-      starters,
-      clock: await getGameClock(),
-    });
+    await connection.commit();
+    const [resources] = await connection.execute(
+      'SELECT ryos, kage_coins, card_dust, card_essence FROM sensei WHERE user_id = ? LIMIT 1',
+      [userId],
+    );
+    res.json({ resources: resources[0] });
   } catch (error) {
+    await connection.rollback();
     next(error);
+  } finally {
+    connection.release();
   }
 });
 
-/** Répartit villages + prénoms sensei sur les bots existants. */
-router.post('/bots/retune-identities', async (req, res, next) => {
+router.post('/players/:id/reset', async (req, res, next) => {
+  const parsed = resetSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res
+      .status(400)
+      .json({ error: parsed.error.issues[0]?.message || 'Sélection de reset invalide.' });
+  }
+
+  const userId = Number(req.params.id);
+  if (!Number.isSafeInteger(userId) || userId < 1) {
+    return res.status(400).json({ error: 'Identifiant joueur invalide.' });
+  }
+
+  const selected = parsed.data;
+  const connection = await getConnection();
   try {
-    const force = Boolean(req.body?.force);
-    const poolId = req.body?.poolId != null ? Number(req.body.poolId) : null;
-    const result = await retuneBotSenseiIdentities({
-      poolId: Number.isFinite(poolId) ? poolId : null,
-      force,
-    });
-    res.json({ ...result, clock: await getGameClock() });
+    await connection.beginTransaction();
+    const [players] = await connection.execute(
+      `SELECT u.id FROM users u
+       JOIN sensei s ON s.user_id = u.id
+       WHERE u.id = ? AND u.is_bot = FALSE AND u.is_guest = FALSE AND u.is_admin = FALSE
+       LIMIT 1 FOR UPDATE`,
+      [userId],
+    );
+    if (!players[0]) {
+      await connection.rollback();
+      return res.status(404).json({ error: 'Joueur introuvable ou administrateur.' });
+    }
+
+    if (selected.missions) {
+      await connection.execute(
+        `DELETE FROM combat_sessions
+         WHERE user_id = ? AND mission_run_id IN (
+           SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress'
+         )`,
+        [userId, userId],
+      );
+      await connection.execute(
+        "DELETE FROM mission_runs WHERE user_id = ? AND state = 'in_progress'",
+        [userId],
+      );
+    }
+    if (selected.combats) {
+      await connection.execute(
+        `DELETE FROM combat_sessions
+         WHERE user_id = ? AND state = 'in_progress' AND mission_run_id IS NULL`,
+        [userId],
+      );
+    }
+    if (selected.collection) {
+      await connection.execute('DELETE FROM user_decks WHERE user_id = ?', [userId]);
+      await connection.execute('DELETE FROM user_card_collection WHERE user_id = ?', [userId]);
+      await connection.execute(
+        'UPDATE users SET starter_loadout_reset_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [userId],
+      );
+    }
+
+    const resourceResets = [];
+    if (selected.ryos) resourceResets.push('ryos = 0');
+    if (selected.kageCoins) resourceResets.push('kage_coins = 0');
+    if (selected.cardMaterials) resourceResets.push('card_dust = 0', 'card_essence = 0');
+    if (resourceResets.length) {
+      await connection.execute(`UPDATE sensei SET ${resourceResets.join(', ')} WHERE user_id = ?`, [
+        userId,
+      ]);
+    }
+
+    if (selected.level) {
+      await connection.execute(
+        `UPDATE player_character
+         SET level = 1, xp = 0, \`rank\` = 'Genin'
+         WHERE user_id = ?`,
+        [userId],
+      );
+    }
+    if (selected.talents) {
+      await connection.execute('DELETE FROM user_talents WHERE user_id = ?', [userId]);
+      await connection.execute('DELETE FROM user_talent_respec_history WHERE user_id = ?', [
+        userId,
+      ]);
+      await connection.execute(
+        `UPDATE player_character pc
+         SET pc.talent_points_available = pc.level
+         WHERE pc.user_id = ?`,
+        [userId],
+      );
+    }
+
+    await connection.commit();
+    res.json({ success: true, reset: selected });
   } catch (error) {
+    await connection.rollback();
     next(error);
+  } finally {
+    connection.release();
   }
 });
 

@@ -20,10 +20,7 @@ import {
   computeCardDamage,
   resolveAllyAttack,
 } from './cardEffects.js';
-import {
-  resolveEndOfTurnStatuses,
-  resolveStartOfTurnStatuses,
-} from './statuses.js';
+import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './statuses.js';
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
@@ -41,12 +38,13 @@ import {
   getNextIntent,
   maybeAdvanceBossPhase,
 } from '../combatAIService.js';
-import { createEmptyStats } from '../playerCharacterService.js';
+import { applyUpgradeBonuses } from '../cardService.js';
+import { createEmptyStats, rankForLevel } from '../playerCharacterService.js';
 import { BALANCE_PROFILES, PLAYER_POLICY } from '../../config/combatBalanceConfig.js';
 
 /** Mulberry32 — RNG déterministe [0,1). */
 export function createSeededRng(seed) {
-  let t = (Number(seed) >>> 0) || 1;
+  let t = Number(seed) >>> 0 || 1;
   return function rng() {
     t += 0x6d2b79f5;
     let r = Math.imul(t ^ (t >>> 15), 1 | t);
@@ -57,6 +55,50 @@ export function createSeededRng(seed) {
 
 function mergeStats(partial) {
   return { ...createEmptyStats(), ...(partial || {}) };
+}
+
+/**
+ * Représentation sans DB des améliorations de collection. Les valeurs sont
+ * appliquées par le même `applyUpgradeBonuses` que les cartes persistées.
+ */
+function balanceUpgradeBonuses(card) {
+  if ((Number(card.damage) || 0) > 0) {
+    return { level_1: { damage: 1 }, level_2: { damage: 2 } };
+  }
+  if ((Number(card.block) || 0) > 0) {
+    return { level_1: { block: 1 }, level_2: { block: 2 } };
+  }
+  if ((Number(card.heal) || 0) > 0) {
+    return { level_1: { heal: 1 }, level_2: { heal: 2 } };
+  }
+  return {};
+}
+
+function applyBalanceDeckUpgrade(card, upgradeLevel) {
+  const computed = applyUpgradeBonuses(
+    {
+      base_cost: card.cost,
+      base_damage: card.damage,
+      base_block: card.block,
+      base_heal: card.heal,
+      upgradeBonuses: balanceUpgradeBonuses(card),
+    },
+    upgradeLevel,
+  );
+  return { ...card, ...computed, upgradeLevel };
+}
+
+function buildProfileDeckEntries(profile) {
+  if (profile.deck !== 'practice') {
+    throw new Error(`Deck de balance inconnu: ${profile.deck}`);
+  }
+  return buildPracticeDeckEntries().map(entry => ({
+    ...entry,
+    card: applyBalanceDeckUpgrade(
+      entry.card,
+      profile.deckUpgradeSlugs?.includes(entry.card.slug) ? profile.deckUpgradeLevel || 0 : 0,
+    ),
+  }));
 }
 
 function checkOutcome(session) {
@@ -99,8 +141,7 @@ export function scoreCardForGreedy(card, session) {
       rng: () => 0.999,
     });
     const total = dmg.denied ? 0 : dmg.total;
-    const killBonus =
-      total >= (Number(enemy.hp) || 0) + (Number(enemy.block) || 0) ? 10_000 : 0;
+    const killBonus = total >= (Number(enemy.hp) || 0) + (Number(enemy.block) || 0) ? 10_000 : 0;
     return killBonus + total * 100 + (3 - cost) * 2;
   }
 
@@ -121,7 +162,7 @@ export function scoreCardForGreedy(card, session) {
     return 55 + (incoming > 8 ? 20 : 0);
   }
 
-  if ((card.effects || []).some((e) => e.type === 'draw')) return 15;
+  if ((card.effects || []).some(e => e.type === 'draw')) return 15;
   return 1;
 }
 
@@ -166,7 +207,7 @@ function tryDiscardForBetterPlay(session) {
 
 function simPlayCard(session, instanceId, rng) {
   const logs = [];
-  const card = (session.player.hand || []).find((c) => c.instanceId === instanceId);
+  const card = (session.player.hand || []).find(c => c.instanceId === instanceId);
   if (!card) return { session, logs };
 
   const deckElementCount = countDeckElements([
@@ -175,21 +216,12 @@ function simPlayCard(session, instanceId, rng) {
     ...(session.player.discardPile || []),
     ...(session.player.exhaustPile || []),
   ]);
-  const statsWithBonus = {
-    ...session.stats,
-    vitesse:
-      (Number(session.stats?.vitesse) || 0) + (Number(session.player.combatSpeedBonus) || 0),
-  };
-  const talentMods = computeTalentDamageMods(
-    session.talentEffects.applied,
-    session.player,
-    card,
-    {
-      enemy: session.enemy,
-      deckElementCount,
-      cardsPlayedThisTurn: session.player.cardsPlayedThisTurn || 0,
-    },
-  );
+  const statsWithBonus = session.stats;
+  const talentMods = computeTalentDamageMods(session.talentEffects.applied, session.player, card, {
+    enemy: session.enemy,
+    deckElementCount,
+    cardsPlayedThisTurn: session.player.cardsPlayedThisTurn || 0,
+  });
   const played = applyCardPlay({
     player: session.player,
     enemy: session.enemy,
@@ -202,12 +234,9 @@ function simPlayCard(session, instanceId, rng) {
 
   let nextPlayer = played.player;
   let nextEnemy = played.enemy;
-  const talentAfter = applyTalentAfterCardPlay(
-    nextPlayer,
-    card,
-    session.talentEffects.applied,
-    { enemy: nextEnemy },
-  );
+  const talentAfter = applyTalentAfterCardPlay(nextPlayer, card, session.talentEffects.applied, {
+    enemy: nextEnemy,
+  });
   nextPlayer = talentAfter.player;
   if (talentAfter.enemy) nextEnemy = talentAfter.enemy;
 
@@ -284,15 +313,18 @@ export function playGreedyPlayerTurn(session, rng) {
 /**
  * Résout fin de tour joueur → tour ennemi → nouveau tour joueur (miroir endTurn).
  */
-export function simEndTurn(session, rng) {
+export function simEndTurn(session, rng, maxTurns = Infinity) {
   const logs = [];
-  let s = { ...session, player: { ...session.player }, enemy: { ...session.enemy } };
+  const s = { ...session, player: { ...session.player }, enemy: { ...session.enemy } };
 
   const endTalent = applyTalentEndOfPlayerTurn(s.player, s.talentEffects.applied);
   s.player = endTalent.player;
 
+  const hpBeforePlayerEnd = Number(s.player.hp) || 0;
   const playerEnd = resolveEndOfTurnStatuses(s.player, { persistBlock: true });
   s.player = playerEnd.entity;
+  s.damageTakenTotal =
+    (Number(s.damageTakenTotal) || 0) + Math.max(0, hpBeforePlayerEnd - s.player.hp);
 
   let outcome = checkOutcome(s);
   if (outcome) {
@@ -311,7 +343,7 @@ export function simEndTurn(session, rng) {
 
   {
     const phase = maybeAdvanceBossPhase(s.enemy, {
-      announceIntent: (e) => getNextIntent(e, 0, rng),
+      announceIntent: e => getNextIntent(e, 0, rng),
     });
     if (phase.changed) s.enemy = phase.enemy;
   }
@@ -358,7 +390,7 @@ export function simEndTurn(session, rng) {
 
   {
     const phase = maybeAdvanceBossPhase(s.enemy, {
-      announceIntent: (e) => getNextIntent(e, 0, rng),
+      announceIntent: e => getNextIntent(e, 0, rng),
     });
     if (phase.changed) s.enemy = phase.enemy;
   }
@@ -370,6 +402,13 @@ export function simEndTurn(session, rng) {
     return { session: s, logs };
   }
 
+  if (s.currentTurn >= maxTurns) {
+    s.state = 'defeat';
+    s.currentPhase = 'game_over';
+    s.timeout = true;
+    return { session: s, logs };
+  }
+
   s.currentTurn += 1;
   s.currentPhase = 'player_turn';
 
@@ -377,7 +416,13 @@ export function simEndTurn(session, rng) {
     s.player = { ...s.player, block: 0 };
   }
 
+  const hpBeforePlayerStart = Number(s.player.hp) || 0;
   const playerStart = resolveStartOfTurnStatuses(s.player);
+  const poison = playerStart.logs.find(log => log.type === 'poison');
+  if (poison) {
+    s.damageTakenTotal =
+      (Number(s.damageTakenTotal) || 0) + Math.max(0, hpBeforePlayerStart - poison.hp);
+  }
   s.player = {
     ...playerStart.entity,
     chakra: s.player.maxChakra ?? BASE_CHAKRA,
@@ -422,16 +467,20 @@ export function createSimSession({
   difficulty = 1,
   seed = 1,
   deckEntries = null,
+  profileOverride = null,
 } = {}) {
-  const profile = BALANCE_PROFILES[profileId];
+  const profile = profileOverride || BALANCE_PROFILES[profileId];
   if (!profile) throw new Error(`Profil inconnu: ${profileId}`);
+  if (profileOverride && (profile.id !== profileId || !deckEntries)) {
+    throw new Error('Un profil externe doit correspondre à profileId et fournir son deck.');
+  }
 
   const rng = createSeededRng(seed);
   const stats = mergeStats(profile.stats);
   const classified = classifyTalentEffects([...profile.talentCodes]);
   const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
 
-  const entries = deckEntries || buildPracticeDeckEntries();
+  const entries = deckEntries || buildProfileDeckEntries(profile);
   const runtimeCards = buildRuntimeDeck(
     entries,
     (card, n) => `${card.slug || card.id}-${n}-s${seed}`,
@@ -443,8 +492,8 @@ export function createSimSession({
     hp: maxHp,
     maxHp,
     block: 0,
-    chakra: BASE_CHAKRA,
-    maxChakra: BASE_CHAKRA,
+    chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
+    maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     statuses: [],
     hand: [],
     drawPile: shuffled,
@@ -488,6 +537,10 @@ export function createSimSession({
     },
     damageTakenTotal: 0,
     profileId,
+    profileLevel: profile.level,
+    profileRank: rankForLevel(profile.level),
+    deck: profile.deck,
+    deckUpgradeLevel: profile.deckUpgradeLevel || 0,
     templateId,
     seed,
     policy: PLAYER_POLICY.id,
@@ -504,8 +557,17 @@ export function simulateCombat({
   difficulty = 1,
   seed,
   maxTurns = 40,
+  profileOverride = null,
+  deckEntries = null,
 } = {}) {
-  let session = createSimSession({ profileId, templateId, difficulty, seed });
+  let session = createSimSession({
+    profileId,
+    templateId,
+    difficulty,
+    seed,
+    profileOverride,
+    deckEntries,
+  });
   const rng = session.rng;
 
   while (session.state === 'in_progress') {
@@ -513,14 +575,8 @@ export function simulateCombat({
     session = turn.session;
     if (session.state !== 'in_progress') break;
 
-    const ended = simEndTurn(session, rng);
+    const ended = simEndTurn(session, rng, maxTurns);
     session = ended.session;
-
-    if (session.currentTurn > maxTurns && session.state === 'in_progress') {
-      session.state = 'defeat';
-      session.currentPhase = 'game_over';
-      session.timeout = true;
-    }
   }
 
   const won = session.state === 'victory';
@@ -533,6 +589,10 @@ export function simulateCombat({
     maxHp: Number(session.player.maxHp) || 0,
     damageTaken: Number(session.damageTakenTotal) || 0,
     profileId,
+    profileLevel: session.profileLevel,
+    profileRank: session.profileRank,
+    deck: session.deck,
+    deckUpgradeLevel: session.deckUpgradeLevel,
     templateId,
     seed,
   };
@@ -548,6 +608,8 @@ export function aggregateFights({
   baseSeed,
   count,
   maxTurns = 40,
+  profileOverride = null,
+  deckEntries = null,
 }) {
   const fights = [];
   for (let i = 0; i < count; i += 1) {
@@ -558,11 +620,13 @@ export function aggregateFights({
         difficulty,
         seed: (baseSeed + i * 9973) >>> 0,
         maxTurns,
+        profileOverride,
+        deckEntries,
       }),
     );
   }
 
-  const wins = fights.filter((f) => f.won);
+  const wins = fights.filter(f => f.won);
   const n = fights.length || 1;
   const avg = (arr, key) =>
     arr.length ? arr.reduce((s, x) => s + (Number(x[key]) || 0), 0) / arr.length : 0;
@@ -572,16 +636,17 @@ export function aggregateFights({
     templateId,
     difficulty,
     fights: n,
+    wins: wins.length,
     winRate: wins.length / n,
     avgTurns: avg(fights, 'turns'),
     avgTurnsOnWin: avg(wins, 'turns'),
     avgTurnsOnLoss: avg(
-      fights.filter((f) => !f.won),
+      fights.filter(f => !f.won),
       'turns',
     ),
-    avgHpRemainingOnWin: avg(wins, 'hpRemaining'),
+    avgHpRemainingOnWin: wins.length ? avg(wins, 'hpRemaining') : null,
     avgDamageTaken: avg(fights, 'damageTaken'),
-    timeouts: fights.filter((f) => f.timeout).length,
+    timeouts: fights.filter(f => f.timeout).length,
   };
 }
 

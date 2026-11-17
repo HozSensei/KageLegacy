@@ -8,11 +8,7 @@
  */
 import { upsertCardDefinition } from '../src/services/cardService.js';
 import { EXPANSION_CARDS } from './data/cardExpansion.js';
-import {
-  assertOriginalNaming,
-  assertUniqueSlugs,
-  summarizeCatalog,
-} from './lib/cardFactory.js';
+import { assertOriginalNaming, assertUniqueSlugs, summarizeCatalog } from './lib/cardFactory.js';
 
 /** Cartes de départ historiques (conservées telles quelles). */
 const STARTER_CARDS = [
@@ -300,7 +296,9 @@ const STARTER_CARDS = [
     element: 'futon',
     rarity: 'common',
     baseCost: 1,
-    effects: [{ type: 'apply_status', target: 'self', status: 'block_pct', value: 20, duration: 3 }],
+    effects: [
+      { type: 'apply_status', target: 'self', status: 'block_pct', value: 20, duration: 3 },
+    ],
     passiveBonus: { vitesse: 2 },
     passiveDescriptionFr: 'Bonus passif : +2 Vitesse',
     passiveDescriptionEn: 'Passive: +2 Speed',
@@ -343,7 +341,9 @@ const STARTER_CARDS = [
     rarity: 'common',
     baseCost: 1,
     exhaust: true,
-    effects: [{ type: 'apply_status', target: 'self', status: 'damage_pct', value: 25, duration: 3 }],
+    effects: [
+      { type: 'apply_status', target: 'self', status: 'damage_pct', value: 25, duration: 3 },
+    ],
     passiveBonus: { taijutsu: 1, vitesse: 1 },
     passiveDescriptionFr: 'Bonus passif : +1 Taijutsu, +1 Vitesse',
     passiveDescriptionEn: 'Passive: +1 Taijutsu, +1 Speed',
@@ -409,6 +409,7 @@ const STARTER_CARDS = [
       name: 'Clone',
       hp: 20,
       attack: 6,
+      duration: 2,
       abilities: ['taunt'],
       description: 'Taunt : Absorbe les dégâts à votre place',
     },
@@ -416,8 +417,8 @@ const STARTER_CARDS = [
     passiveBonus: { ninjutsu: 2, maxHp: 3 },
     passiveDescriptionFr: 'Bonus passif : +2 Ninjutsu, +3 PV max',
     passiveDescriptionEn: 'Passive: +2 Ninjutsu, +3 max HP',
-    descriptionFr: 'Invoque un clone (20 PV, 6 ATK, Taunt).',
-    descriptionEn: 'Summon a clone (20 HP, 6 ATK, Taunt).',
+    descriptionFr: 'Invoque un clone (20 PV, 6 ATK, Taunt, 2 tours en PvP).',
+    descriptionEn: 'Summon a clone (20 HP, 6 ATK, Taunt, 2 turns in PvP).',
     upgradeBonuses: {
       level_1: { passive: { maxHp: 3 } },
       level_2: { cost: -1, passive: { ninjutsu: 2, maxHp: 3 } },
@@ -436,6 +437,7 @@ const STARTER_CARDS = [
       name: 'Renard spectral',
       hp: 28,
       attack: 8,
+      duration: 2,
       abilities: ['evade', 'regen'],
       description: 'Régénère 3 PV par tour',
     },
@@ -443,8 +445,8 @@ const STARTER_CARDS = [
     passiveBonus: { genjutsu: 4, intelligence: 2 },
     passiveDescriptionFr: 'Bonus passif : +4 Genjutsu, +2 Intelligence',
     passiveDescriptionEn: 'Passive: +4 Genjutsu, +2 Intelligence',
-    descriptionFr: 'Invoque un esprit renard (28 PV, 8 ATK).',
-    descriptionEn: 'Summon a fox spirit (28 HP, 8 ATK).',
+    descriptionFr: 'Invoque un esprit renard (28 PV, 8 ATK, 2 tours en PvP).',
+    descriptionEn: 'Summon a fox spirit (28 HP, 8 ATK, 2 turns in PvP).',
     upgradeBonuses: {
       level_1: { passive: { genjutsu: 2 } },
       level_2: { cost: -1, passive: { genjutsu: 3, intelligence: 2 } },
@@ -543,7 +545,7 @@ const isDirectRun =
   (process.argv[1].endsWith('seedCards.js') || process.argv[1].includes('seedCards'));
 
 if (isDirectRun) {
-  main().catch((err) => {
+  main().catch(err => {
     console.error(err);
     process.exit(1);
   });

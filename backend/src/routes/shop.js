@@ -2,30 +2,17 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireUser } from '../middleware/auth.js';
 import { isAdminUser } from '../middleware/admin.js';
-import {
-  BOOSTER_TYPES,
-  ELEMENTS,
-  listBoosters,
-  openBooster,
-} from '../services/boosterService.js';
+import { BOOSTER_TYPES, ELEMENTS, listBoosters, openBooster } from '../services/boosterService.js';
 import {
   COIN_PACK_IDS,
-  COSMETIC_SHOP_KEYS,
-  equipCosmetic,
   getBattlePassShopOffer,
   getShopOverview,
   listCoinPacks,
-  listShopCosmetics,
   purchaseCoinPack,
-  purchaseCosmetic,
-  unequipCosmeticType,
   unlockBattlePassFromShop,
   getSenseiBalances,
 } from '../services/shopService.js';
-import {
-  confirmShopCheckoutSession,
-  getShopPaymentMeta,
-} from '../services/shopStripeService.js';
+import { confirmShopCheckoutSession, getShopPaymentMeta } from '../services/shopStripeService.js';
 
 const router = Router();
 
@@ -45,17 +32,24 @@ const confirmSchema = z.object({
   session_id: z.string().trim().min(1).max(255),
 });
 
-const unequipSchema = z.object({
-  cosmeticType: z.enum(['avatar_frame', 'card_back', 'title']),
-});
-
-/** GET /api/shop — aperçu catalogue (coins, cosmétiques, BP) + soldes */
+/** GET /api/shop — aperçu catalogue (coins, BP) + soldes */
 router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
     const overview = await getShopOverview(user.id);
     res.json(overview);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** GET /api/shop/balances — soldes utilisés dans l’en-tête global. */
+router.get('/balances', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    res.json({ balances: await getSenseiBalances(user.id) });
   } catch (error) {
     next(error);
   }
@@ -175,72 +169,6 @@ router.get('/checkout/confirm', async (req, res, next) => {
     }
 
     const result = await confirmShopCheckoutSession(user.id, parsed.data.session_id);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** GET /api/shop/cosmetics */
-router.get('/cosmetics', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-    const payload = await listShopCosmetics(user.id);
-    res.json(payload);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** POST /api/shop/cosmetics/:key/purchase */
-router.post('/cosmetics/:key/purchase', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-
-    const key = String(req.params.key || '').toLowerCase();
-    if (!COSMETIC_SHOP_KEYS.includes(key)) {
-      return res.status(400).json({ error: 'Cosmétique invalide.', allowed: COSMETIC_SHOP_KEYS });
-    }
-
-    const result = await purchaseCosmetic(user.id, key);
-    res.status(201).json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** POST /api/shop/cosmetics/:key/equip */
-router.post('/cosmetics/:key/equip', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-
-    const key = String(req.params.key || '').toLowerCase();
-    if (!COSMETIC_SHOP_KEYS.includes(key)) {
-      return res.status(400).json({ error: 'Cosmétique invalide.', allowed: COSMETIC_SHOP_KEYS });
-    }
-
-    const result = await equipCosmetic(user.id, key);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** POST /api/shop/cosmetics/unequip — body { cosmeticType } */
-router.post('/cosmetics/unequip', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-
-    const parsed = unequipSchema.safeParse(req.body || {});
-    if (!parsed.success) {
-      return res.status(400).json({ error: 'Requête invalide.', details: parsed.error.flatten() });
-    }
-
-    const result = await unequipCosmeticType(user.id, parsed.data.cosmeticType);
     res.json(result);
   } catch (error) {
     next(error);

@@ -2,25 +2,17 @@ import { Router } from 'express';
 import { requireUser } from '../middleware/auth.js';
 import { isAdminUser } from '../middleware/admin.js';
 import {
-  addBattlePassXP,
   claimReward,
   getBattlePassState,
-  getUserCosmetics,
   purchaseLevels,
   unlockPremium,
   PREMIUM_COST_KAGE_COINS,
   LEVEL_COST_KAGE_COINS,
 } from '../services/battlePassService.js';
+import { claimQuestReward, getActiveQuests } from '../services/battlePassQuestService.js';
 import {
-  claimQuestReward,
-  getActiveQuests,
-  progressQuest,
-} from '../services/battlePassQuestService.js';
-import {
-  addXpSchema,
   buyLevelsSchema,
   claimRewardSchema,
-  progressQuestSchema,
   unlockPremiumSchema,
 } from '../validators/battlePass.js';
 
@@ -33,9 +25,8 @@ router.get('/', async (req, res, next) => {
     if (!user) return;
 
     const state = await getBattlePassState(user.id);
-    const { getShopPaymentMeta, BATTLE_PASS_PREMIUM_PRICE_EUR } = await import(
-      '../services/shopStripeService.js'
-    );
+    const { getShopPaymentMeta, BATTLE_PASS_PREMIUM_PRICE_EUR } =
+      await import('../services/shopStripeService.js');
     const payments = getShopPaymentMeta();
     res.json({
       ...state,
@@ -61,18 +52,6 @@ router.get('/quests', async (req, res, next) => {
     if (!user) return;
     const result = await getActiveQuests(user.id);
     res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** GET /api/battle-pass/cosmetics */
-router.get('/cosmetics', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-    const cosmetics = await getUserCosmetics(user.id);
-    res.json({ cosmetics });
   } catch (error) {
     next(error);
   }
@@ -117,8 +96,7 @@ router.post('/buy', async (req, res, next) => {
     const user = await requireUser(req, res);
     if (!user) return;
     const raw = req.body?.method;
-    const method =
-      raw === 'stub' || raw === 'stripe' || raw === 'kage_coins' ? raw : 'kage_coins';
+    const method = raw === 'stub' || raw === 'stripe' || raw === 'kage_coins' ? raw : 'kage_coins';
     const result = await unlockPremium(user.id, {
       method,
       isAdmin: isAdminUser(user),
@@ -136,32 +114,6 @@ router.post('/buy-levels', async (req, res, next) => {
     if (!user) return;
     const parsed = buyLevelsSchema.parse(req.body || {});
     const result = await purchaseLevels(user.id, parsed.count);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** POST /api/battle-pass/xp — debug / hooks futurs */
-router.post('/xp', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-    const parsed = addXpSchema.parse(req.body || {});
-    const result = await addBattlePassXP(user.id, parsed.amount, parsed.source || 'api');
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** POST /api/battle-pass/quests/progress — stub progression */
-router.post('/quests/progress', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-    const parsed = progressQuestSchema.parse(req.body || {});
-    const result = await progressQuest(user.id, parsed.questKey, parsed.value);
     res.json(result);
   } catch (error) {
     next(error);

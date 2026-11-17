@@ -15,48 +15,19 @@ function httpError(statusCode, message) {
 }
 
 async function resolveDeckCards(userId, deckId) {
-  const { getDeck, getActiveDeck } = await import('../deckService.js');
-
-  let deck = null;
-  if (deckId) {
-    deck = await getDeck(userId, Number(deckId));
-  } else {
-    deck = await getActiveDeck(userId);
-  }
-
-  if (deck && deck.cards?.length) {
-    return { deckId: deck.id, cards: deck.cards, practice: false };
-  }
-
-  try {
-    const { getAllCards } = await import('../cardService.js');
-    const catalog = await getAllCards({});
-    if (catalog.length >= 6) {
-      const picked = catalog.slice(0, 8).map((card) => ({
-        quantity: 3,
-        card,
-      }));
-      return { deckId: null, cards: picked, practice: true };
-    }
-  } catch {
-    /* ignore */
-  }
-
-  return {
-    deckId: null,
-    cards: buildFallbackCards(),
-    practice: true,
-  };
+  const { getPlayableDeckForCombat } = await import('../deckService.js');
+  const deck = await getPlayableDeckForCombat(userId, deckId);
+  return { deckId: deck.id, cards: deck.cards, practice: false };
 }
 
-function buildFallbackCards() {
-  const stubs = [
-    { slug: 'pvp-strike', nameFr: 'Frappe rapide', nameEn: 'Quick Strike', cost: 1, damage: 6, block: 0, heal: 0, statType: 'taijutsu' },
-    { slug: 'pvp-guard', nameFr: 'Garde de brume', nameEn: 'Mist Guard', cost: 1, damage: 0, block: 5, heal: 0, statType: 'medicine' },
-    { slug: 'pvp-heal', nameFr: 'Souffle soignant', nameEn: 'Healing Breath', cost: 1, damage: 0, block: 0, heal: 6, statType: 'medicine' },
-    { slug: 'pvp-blow', nameFr: 'Coup lourd', nameEn: 'Heavy Blow', cost: 2, damage: 10, block: 0, heal: 0, statType: 'taijutsu' },
-  ];
-  return stubs.map((card) => ({ quantity: 3, card: { ...card, id: card.slug } }));
+function parseJsonSafe(value, fallback) {
+  if (value == null) return fallback;
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
 }
 
 function serializeRuntimeCards(deckCards) {
@@ -77,12 +48,9 @@ function serializeRuntimeCards(deckCards) {
         heal: Number(card.heal ?? card.baseHeal ?? card.base_heal) || 0,
         statType: (card.statType || card.stat_type || 'taijutsu').toLowerCase(),
         element: card.element || null,
-        cardType: card.cardType || card.card_type || null,
-        effects: card.effects_json
-          ? typeof card.effects_json === 'string'
-            ? JSON.parse(card.effects_json)
-            : card.effects_json
-          : card.effects || [],
+        cardType: card.cardType || card.card_type || card.type || null,
+        summon: parseJsonSafe(card.summon_json, card.summon || null),
+        effects: parseJsonSafe(card.effects_json, card.effects || []),
       });
     }
   }
@@ -93,7 +61,7 @@ async function loadFighterProfile(userId) {
   const rows = await query(
     `SELECT user_id, name, level, \`rank\`, element_affinity
      FROM player_character WHERE user_id = ? LIMIT 1`,
-    [userId],
+    [userId]
   );
   if (!rows[0]) throw httpError(400, `Personnage requis pour le joueur #${userId}.`);
   return rows[0];
@@ -123,9 +91,10 @@ async function buildFighter(userId, deckId, seat) {
     hp: maxHp,
     maxHp,
     block: 0,
-    chakra: BASE_CHAKRA,
-    maxChakra: BASE_CHAKRA,
+    chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
+    maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     statuses: [],
+    ally: null,
     hand: [],
     drawPile: cards,
     discardPile: [],

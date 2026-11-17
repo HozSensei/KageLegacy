@@ -1,75 +1,86 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import BattlePassTrack from '../components/battlePass/BattlePassTrack.vue'
-import QuestList from '../components/battlePass/QuestList.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import marketImage from '../assets/illustrations/market-square.webp'
-import { useBattlePassStore } from '../stores/battlePass'
-import { useAuthStore } from '../stores/auth'
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import BattlePassTrack from '../components/battlePass/BattlePassTrack.vue';
+import QuestList from '../components/battlePass/QuestList.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import CardDisplay from '../components/cards/CardDisplay.vue';
+import BoosterOpening from '../components/shop/BoosterOpening.vue';
+import marketImage from '../assets/illustrations/market-square.webp';
+import { useBattlePassStore } from '../stores/battlePass';
+import { useAuthStore } from '../stores/auth';
 
-defineOptions({ name: 'BattlePassView' })
+defineOptions({ name: 'BattlePassView' });
 
-const { t, locale } = useI18n()
-const store = useBattlePassStore()
-const auth = useAuthStore()
-const message = ref(null)
-const activeTab = ref('free')
+const { t, locale } = useI18n();
+const store = useBattlePassStore();
+const auth = useAuthStore();
+const message = ref(null);
+const claimedCards = ref([]);
+const isOpeningRewardBooster = ref(false);
+const rewardBooster = ref({ type: 'standard', cards: [] });
+const activeTab = ref('free');
 
-const canStubUnlock = computed(() => Boolean(auth.user?.isAdmin))
+const canStubUnlock = computed(() => Boolean(auth.user?.isAdmin));
 
 onMounted(async () => {
-  await store.loadAll()
-})
+  await store.loadAll();
+});
 
 async function onClaim({ level, track }) {
-  message.value = null
-  const result = await store.claimReward(level, track)
+  message.value = null;
+  claimedCards.value = [];
+  isOpeningRewardBooster.value = false;
+  const result = await store.claimReward(level, track);
   if (result) {
-    message.value = t('battlePass.claimSuccess', { level, track: t(`battlePass.track.${track}`) })
+    message.value = t('battlePass.claimSuccess', { level, track: t(`battlePass.track.${track}`) });
+    const rewards = result.rewards || [];
+    const boosterReward = rewards.find(reward => reward.type === 'booster');
+    const directCardEntries = rewards
+      .filter(reward => reward.type === 'card')
+      .flatMap(reward => reward.entries || []);
+    const boosterCardEntries = (boosterReward?.cards || []).flatMap(reward => reward.entries || []);
+    const cardRewards = [...directCardEntries, ...boosterCardEntries];
+
+    if (boosterReward && cardRewards.length) {
+      const type = ['standard', 'elemental', 'premium'].includes(boosterReward.boosterType)
+        ? boosterReward.boosterType
+        : 'standard';
+      rewardBooster.value = {
+        type,
+        cards: cardRewards.map(entry => ({ ...entry, rarity: entry.card?.rarity })),
+      };
+      isOpeningRewardBooster.value = true;
+    } else {
+      claimedCards.value = cardRewards;
+    }
   } else if (store.error) {
-    message.value = store.error
+    message.value = store.error;
   }
 }
 
+function onRewardBoosterDone() {
+  isOpeningRewardBooster.value = false;
+  rewardBooster.value = { type: 'standard', cards: [] };
+}
+
 async function onUnlock(method) {
-  message.value = null
-  const result = await store.unlockPremium(method)
+  message.value = null;
+  const result = await store.unlockPremium(method);
   if (result) {
-    message.value = result.note || t('battlePass.premiumUnlocked')
+    message.value = result.note || t('battlePass.premiumUnlocked');
   } else if (store.error) {
-    message.value = store.error
+    message.value = store.error;
   }
 }
 
 async function onClaimQuest(questId) {
-  message.value = null
-  const result = await store.claimQuest(questId)
+  message.value = null;
+  const result = await store.claimQuest(questId);
   if (result) {
-    message.value = t('battlePass.questClaimSuccess', { xp: result.xp?.xpGained || 0 })
+    message.value = t('battlePass.questClaimSuccess', { xp: result.xp?.xpGained || 0 });
   } else if (store.error) {
-    message.value = store.error
-  }
-}
-
-async function onStubProgress(quest) {
-  message.value = null
-  const remaining = Math.max(1, (quest.goalValue || 1) - (quest.progress?.current || 0))
-  const result = await store.progressQuest(quest.questKey, remaining)
-  if (result) {
-    message.value = t('battlePass.stubProgressDone')
-  } else if (store.error) {
-    message.value = store.error
-  }
-}
-
-async function onDebugXp() {
-  message.value = null
-  const result = await store.addXp(1000, 'debug_ui')
-  if (result) {
-    message.value = t('battlePass.xpGained', { n: result.xpGained })
-  } else if (store.error) {
-    message.value = store.error
+    message.value = store.error;
   }
 }
 </script>
@@ -88,7 +99,11 @@ async function onDebugXp() {
     <section v-if="store.progress" class="bp-summary" data-tone="gold">
       <div class="bp-summary__level">
         <span class="bp-summary__level-label">{{ t('battlePass.levelLabel') }}</span>
-        <span :key="store.currentLevel" class="bp-summary__level-value" :title="t('battlePass.level', { n: store.currentLevel })">
+        <span
+          :key="store.currentLevel"
+          class="bp-summary__level-value"
+          :title="t('battlePass.level', { n: store.currentLevel })"
+        >
           {{ store.currentLevel }}
         </span>
       </div>
@@ -130,121 +145,136 @@ async function onDebugXp() {
       <p v-if="store.error && !message" class="alert alert--error mt-4">{{ store.error }}</p>
       <p v-if="message" class="alert alert--success mt-4">{{ message }}</p>
 
-      <div v-if="!store.isPremium" class="bp-premium-cta" data-tone="gold">
-        <span class="bp-premium-cta__shape" aria-hidden="true" />
-        <div class="bp-premium-cta__text">
-          <h2 class="t-subheading">{{ t('battlePass.unlockTitle') }}</h2>
-          <p class="mt-2 max-w-lg text-ink">{{ t('battlePass.unlockLead') }}</p>
-          <p v-if="store.meta?.stripeNote" class="mt-2 text-sm text-ink-muted">{{ store.meta.stripeNote }}</p>
+      <BoosterOpening
+        v-if="isOpeningRewardBooster"
+        class="mt-6"
+        :cards="rewardBooster.cards"
+        :active="isOpeningRewardBooster"
+        :booster-type="rewardBooster.type"
+        :booster-name="t(`shop.types.${rewardBooster.type}`)"
+        :card-count="rewardBooster.cards.length"
+        :show-collection-status="false"
+        @done="onRewardBoosterDone"
+      />
+
+      <section v-else-if="claimedCards.length" class="bp-claimed-cards mt-6">
+        <h2 class="t-subheading">{{ t('shop.obtainedTitle') }}</h2>
+        <ul class="bp-claimed-cards__grid">
+          <li v-for="(entry, index) in claimedCards" :key="`${entry.collectionId}-${index}`">
+            <CardDisplay :card="entry.card" />
+          </li>
+        </ul>
+      </section>
+
+      <div v-show="!isOpeningRewardBooster">
+        <div v-if="!store.isPremium" class="bp-premium-cta" data-tone="gold">
+          <span class="bp-premium-cta__shape" aria-hidden="true" />
+          <div class="bp-premium-cta__text">
+            <h2 class="t-subheading">{{ t('battlePass.unlockTitle') }}</h2>
+            <p class="mt-2 max-w-lg text-ink">{{ t('battlePass.unlockLead') }}</p>
+            <p v-if="store.meta?.stripeNote" class="mt-2 text-sm text-ink-muted">
+              {{ store.meta.stripeNote }}
+            </p>
+          </div>
+          <div class="bp-premium-cta__actions">
+            <button
+              type="button"
+              class="btn-primary"
+              :disabled="store.actionLoading"
+              data-testid="unlock-premium-coins"
+              @click="onUnlock('kage_coins')"
+            >
+              {{
+                t('battlePass.unlockCoins', {
+                  n: store.meta?.premiumCostKageCoins || 500,
+                })
+              }}
+            </button>
+            <button
+              v-if="canStubUnlock"
+              type="button"
+              class="btn-ghost"
+              :disabled="store.actionLoading"
+              data-testid="unlock-premium-stub"
+              @click="onUnlock('stub')"
+            >
+              {{ t('battlePass.unlockStub') }}
+            </button>
+          </div>
         </div>
-        <div class="bp-premium-cta__actions">
-          <button
-            type="button"
-            class="btn-primary"
-            :disabled="store.actionLoading"
-            data-testid="unlock-premium-coins"
-            @click="onUnlock('kage_coins')"
-          >
-            {{
-              t('battlePass.unlockCoins', {
-                n: store.meta?.premiumCostKageCoins || 500,
-              })
-            }}
-          </button>
-          <button
-            v-if="canStubUnlock"
-            type="button"
-            class="btn-ghost"
-            :disabled="store.actionLoading"
-            data-testid="unlock-premium-stub"
-            @click="onUnlock('stub')"
-          >
-            {{ t('battlePass.unlockStub') }}
-          </button>
+
+        <div class="bp-tabs">
+          <div class="tabs" role="tablist" :aria-label="t('battlePass.tracksLabel')">
+            <button
+              type="button"
+              role="tab"
+              class="tab"
+              :aria-selected="activeTab === 'free'"
+              @click="activeTab = 'free'"
+            >
+              {{ t('battlePass.freeTrack') }}
+              <span v-if="store.claimableFree" class="tab__count">{{ store.claimableFree }}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="tab"
+              :aria-selected="activeTab === 'premium'"
+              @click="activeTab = 'premium'"
+            >
+              {{ t('battlePass.premiumTrack') }}
+              <span v-if="store.claimablePremium" class="tab__count">{{
+                store.claimablePremium
+              }}</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="bp-tabs">
-        <div class="tabs" role="tablist" :aria-label="t('battlePass.tracksLabel')">
-          <button
-            type="button"
-            role="tab"
-            class="tab"
-            :aria-selected="activeTab === 'free'"
-            @click="activeTab = 'free'"
-          >
-            {{ t('battlePass.freeTrack') }}
-            <span v-if="store.claimableFree" class="tab__count">{{ store.claimableFree }}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            class="tab"
-            :aria-selected="activeTab === 'premium'"
-            @click="activeTab = 'premium'"
-          >
-            {{ t('battlePass.premiumTrack') }}
-            <span v-if="store.claimablePremium" class="tab__count">{{ store.claimablePremium }}</span>
-          </button>
+        <div class="mt-6">
+          <BattlePassTrack
+            v-if="activeTab === 'free'"
+            track-type="free"
+            :track="store.tracks?.free || []"
+            :current-level="store.currentLevel"
+            :busy="store.actionLoading"
+            @claim="onClaim"
+          />
+          <BattlePassTrack
+            v-else
+            track-type="premium"
+            :track="store.tracks?.premium || []"
+            :current-level="store.currentLevel"
+            :busy="store.actionLoading"
+            @claim="onClaim"
+          />
         </div>
-        <button
-          type="button"
-          class="btn-ghost btn-sm"
-          :disabled="store.actionLoading"
-          data-testid="debug-bp-xp"
-          @click="onDebugXp"
-        >
-          {{ t('battlePass.debugXp') }}
-        </button>
-      </div>
 
-      <div class="mt-6">
-        <BattlePassTrack
-          v-if="activeTab === 'free'"
-          track-type="free"
-          :track="store.tracks?.free || []"
-          :current-level="store.currentLevel"
-          :busy="store.actionLoading"
-          @claim="onClaim"
-        />
-        <BattlePassTrack
-          v-else
-          track-type="premium"
-          :track="store.tracks?.premium || []"
-          :current-level="store.currentLevel"
-          :busy="store.actionLoading"
-          @claim="onClaim"
-        />
-      </div>
+        <div class="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-2">
+          <QuestList
+            :title="t('battlePass.dailyQuests')"
+            :quests="store.dailyQuests"
+            :locale="locale"
+            :busy="store.actionLoading"
+            @claim="onClaimQuest"
+          />
+          <QuestList
+            :title="t('battlePass.weeklyQuests')"
+            :quests="store.weeklyQuests"
+            :locale="locale"
+            :busy="store.actionLoading"
+            @claim="onClaimQuest"
+          />
+        </div>
 
-      <div class="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-2">
-        <QuestList
-          :title="t('battlePass.dailyQuests')"
-          :quests="store.dailyQuests"
-          :locale="locale"
-          :busy="store.actionLoading"
-          @claim="onClaimQuest"
-          @stub-progress="onStubProgress"
-        />
-        <QuestList
-          :title="t('battlePass.weeklyQuests')"
-          :quests="store.weeklyQuests"
-          :locale="locale"
-          :busy="store.actionLoading"
-          @claim="onClaimQuest"
-          @stub-progress="onStubProgress"
-        />
-      </div>
-
-      <div class="mt-10">
-        <QuestList
-          :title="t('battlePass.milestoneQuests')"
-          :quests="store.milestoneQuests"
-          :locale="locale"
-          :busy="store.actionLoading"
-          @claim="onClaimQuest"
-          @stub-progress="onStubProgress"
-        />
+        <div class="mt-10">
+          <QuestList
+            :title="t('battlePass.milestoneQuests')"
+            :quests="store.milestoneQuests"
+            :locale="locale"
+            :busy="store.actionLoading"
+            @claim="onClaimQuest"
+          />
+        </div>
       </div>
     </template>
   </div>
@@ -368,6 +398,15 @@ async function onDebugXp() {
   min-width: 0;
   flex: 1;
   border-bottom: 0;
+}
+
+.bp-claimed-cards__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 1rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 @media (max-width: 559px) {

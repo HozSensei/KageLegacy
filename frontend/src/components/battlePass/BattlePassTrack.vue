@@ -1,62 +1,62 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import AppIcon from '../ui/AppIcon.vue'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import AppIcon from '../ui/AppIcon.vue';
 
-defineOptions({ name: 'BattlePassTrack' })
+defineOptions({ name: 'BattlePassTrack' });
 
 const props = defineProps({
   track: { type: Array, default: () => [] },
   trackType: { type: String, default: 'free' },
   currentLevel: { type: Number, default: 0 },
   busy: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['claim'])
+const emit = defineEmits(['claim']);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const isPremiumTrack = computed(() => props.trackType === 'premium')
+const isPremiumTrack = computed(() => props.trackType === 'premium');
 
 function rewardLabel(reward) {
-  if (!reward) return ''
+  if (!reward) return '';
   switch (reward.type) {
     case 'ryos':
-      return t('battlePass.reward.ryos', { n: reward.amount })
+      return t('battlePass.reward.ryos', { n: reward.amount });
     case 'dust':
-      return t('battlePass.reward.dust', { n: reward.amount })
+      return t('battlePass.reward.dust', { n: reward.amount });
     case 'essence':
-      return t('battlePass.reward.essence', { n: reward.amount })
+      return t('battlePass.reward.essence', { n: reward.amount });
     case 'kage_coins':
-      return t('battlePass.reward.kageCoins', { n: reward.amount })
+      return t('battlePass.reward.kageCoins', { n: reward.amount });
     case 'card':
       return t('battlePass.reward.card', {
         rarity: t(`battlePass.rarity.${reward.rarity || 'rare'}`),
         n: reward.count || 1,
-      })
+      });
     case 'booster':
       return t('battlePass.reward.booster', {
         type: t(`battlePass.booster.${reward.boosterType || 'standard'}`),
-      })
-    case 'cosmetic':
-      return t('battlePass.reward.cosmetic', {
-        kind: t(`battlePass.cosmetic.${reward.cosmeticType || 'avatar'}`),
-      })
+      });
+
     default:
-      return reward.type
+      return reward.type;
   }
 }
 
 function tierRewards(tier) {
-  return (tier.rewards || []).map(rewardLabel).join(' · ')
+  return (tier.rewards || [])
+    .filter(reward => reward.type !== 'cosmetic')
+    .map(rewardLabel)
+    .join(' · ');
 }
 
 function statusClass(tier) {
-  if (tier.claimed) return 'bp-tier--claimed'
-  if (tier.claimable) return 'bp-tier--claimable'
-  if (tier.locked) return 'bp-tier--locked'
-  if (tier.reached) return 'bp-tier--reached'
-  return 'bp-tier--locked'
+  if (tier.claimed) return 'bp-tier--claimed';
+  if (tier.claimable) return 'bp-tier--claimable';
+  if (tier.locked) return 'bp-tier--locked';
+  if (tier.reached) return 'bp-tier--reached';
+  return 'bp-tier--locked';
 }
 </script>
 
@@ -72,9 +72,7 @@ function statusClass(tier) {
         {{ isPremiumTrack ? t('battlePass.premiumTrack') : t('battlePass.freeTrack') }}
       </h2>
       <p class="mt-1 text-ink-muted">
-        {{
-          isPremiumTrack ? t('battlePass.premiumTrackLead') : t('battlePass.freeTrackLead')
-        }}
+        {{ isPremiumTrack ? t('battlePass.premiumTrackLead') : t('battlePass.freeTrackLead') }}
       </p>
     </header>
 
@@ -85,7 +83,10 @@ function statusClass(tier) {
         class="bp-tier"
         :class="[
           statusClass(tier),
-          { 'bp-tier--current': tier.level === currentLevel, 'bp-tier--passed': tier.level <= currentLevel },
+          {
+            'bp-tier--current': tier.level === currentLevel,
+            'bp-tier--passed': tier.level <= currentLevel,
+          },
         ]"
       >
         <div class="bp-tier__marker">

@@ -180,7 +180,7 @@
   },
   "landing": {
     "title": "Build your shinobi. Master the deck.",
-    "lead": "Kage Legacy is a solo deck-building roguelike: create your character, craft a 20–30 card deck, unlock talents, and clear combat missions.",
+    "lead": "Kage Legacy is a solo deck-building roguelike: create your character, build a 20–30 card deck, unlock talents, and clear combat missions.",
     "features": {
       "character": "Create your shinobi — element and talent points from level one. Legendary clan cards grant deck passives.",
       "deck": "A starter collection and deck so you can fight immediately, then refine your build.",
@@ -685,27 +685,31 @@
     "nextStepsLead": "Nothing is locked — follow the checklist or jump wherever you like.",
     "stepCharacter": "Create your character",
     "hintCharacter": "Name and element — you receive a talent point at level 1.",
-    "stepDeck": "Claim your starter deck",
+    "stepDeck": "Activate a valid deck",
     "hintDeck": "Base cards are granted automatically; open the deck builder to tune it.",
     "stepTalents": "Spend a talent point",
     "hintTalents": "Every level grants +1 point — no free stats.",
-    "stepMission": "Run a combat mission",
+    "stepMission": "Win a mission run",
     "hintMission": "Fight with your deck, earn XP, Ryos and cards.",
     "go": "Go",
     "done": "Done",
     "continueCta": "Continue — {step}",
     "noCharacterTitle": "No character yet",
     "noCharacterLead": "Create your shinobi to unlock collection, decks, talents and missions.",
+    "playerLoadErrorTitle": "Unable to load your character",
+    "playerLoadErrorLead": "Check your connection and try again. Onboarding will not be offered until the absence is confirmed.",
+    "retry": "Retry",
+    "progressLoadError": "Unable to load progress. Retry to see your first steps.",
     "createCharacter": "Create character",
     "shortcutMissions": "Combat runs & rewards",
     "shortcutTalents": "Spend talent points",
     "shortcutDecks": "Build your 20–30 card deck",
     "shortcutCollection": "Browse owned cards",
-    "shortcutShop": "Boosters & cosmetics",
+    "shortcutShop": "Boosters & Kage Coins",
     "shortcutBp": "Season track & quests",
     "shortcutPvp": "Queue for a duel",
     "shortcutLeaderboard": "Level & PvP rankings",
-    "shortcutProfile": "Stats & specialization",
+    "shortcutProfile": "Stats & talents",
     "statLevel": "Level",
     "statCards": "Cards",
     "statDeck": "Active deck",
@@ -713,6 +717,13 @@
     "noDeck": "None",
     "shortcutsTitle": "The whole game",
     "shortcutJournal": "Permanent achievements & tiers"
+  },
+  "resources": {
+    "balancesLabel": "Your resources",
+    "ryos": "Ryos: {n}",
+    "kageCoins": "Kage Coins: {n}",
+    "dust": "Card dust: {n}",
+    "essence": "Card essence: {n}"
   },
   "cards": {
     "collectionKicker": "Catalogue",
@@ -730,6 +741,20 @@
     "disenchant": "Disenchant",
     "upgradeSuccess": "Card upgraded.",
     "disenchantSuccess": "Card disenchanted.",
+    "upgradeUnavailable": "This card cannot be upgraded.",
+    "upgradeMaxLevel": "This card has reached its maximum upgrade level.",
+    "upgradeMythicMax": "Mythic cards can only be upgraded once.",
+    "requestFailed": "The request failed. Please try again.",
+    "refreshFailed": "Action completed, but the refresh failed. Reload the page before continuing.",
+    "cardNotFound": "Collection card not found.",
+    "insufficientRyos": "Not enough Ryos.",
+    "insufficientDust": "Not enough card dust.",
+    "insufficientEssence": "Not enough essence.",
+    "insufficientQuantity": "Not enough copies in your collection.",
+    "cardInDeck": "Cannot disenchant: copies are used in a deck.",
+    "deckNotFound": "Deck not found.",
+    "deckNameRequired": "A deck name is required.",
+    "cardNotInDeck": "Card not found in the deck.",
     "upgradeLevel": "Upgrade level: {level}",
     "emptyCollection": "No cards in your collection.",
     "emptyCollectionTitle": "Empty collection",
@@ -739,7 +764,7 @@
     "emptyDecksTitle": "No deck yet",
     "emptyDecksLead": "Create a deck above, or wait for the starter loadout to finish granting cards.",
     "emptyDeckNoCardsTitle": "No cards to build with",
-    "emptyDeckNoCardsLead": "Your collection is empty — claim starters from the hub, buy a booster, or finish a mission.",
+    "emptyDeckNoCardsLead": "Your collection is empty — buy a booster or finish a mission to get cards.",
     "collectionProgress": "{owned} / {total} owned",
     "showOwnedOnly": "Show owned cards only",
     "missingBadge": "Missing",
@@ -774,6 +799,8 @@
     "createDeck": "Create",
     "deckCreated": "Deck created.",
     "deckActivated": "Deck activated.",
+    "cardAddedToDeck": "Card added to deck.",
+    "cardRemovedFromDeck": "Card removed from deck.",
     "types": {
       "attack": "Attack",
       "defense": "Defense",
@@ -832,7 +859,7 @@
   "shop": {
     "kicker": "Acquisition",
     "title": "Village shop",
-    "lead": "Scrolls, cosmetics, Kage Coins and the season Pass — one counter for all of it.",
+    "lead": "Scrolls, Kage Coins and the season Pass — one counter for all of it.",
     "loading": "Loading the shop…",
     "purchasing": "Purchasing…",
     "open": "Open",
@@ -866,14 +893,10 @@
     "revealDone": "Booster complete — your cards joined the collection.",
     "newCard": "New",
     "duplicate": "Duplicate · {name}",
-    "resultsTitle": "Scroll loot",
-    "resultsLead": "{newCount} new · {dupCount} duplicate(s)",
-    "openAnother": "Open another",
-    "viewCollection": "View collection",
     "closeResults": "Back to catalogue",
     "tabs": {
       "boosters": "Boosters",
-      "cosmetics": "Cosmetics",
+
       "currency": "Currency",
       "battlePass": "Battle Pass"
     },
@@ -888,18 +911,7 @@
       "buyStripe": "Pay €{n}",
       "stripeNote": "Secure payment via Stripe Checkout (test or live depending on keys)."
     },
-    "cosmetics": {
-      "buy": "Buy",
-      "equip": "Equip",
-      "owned": "Owned",
-      "equipped": "Equipped",
-      "equippedHint": "Currently equipped on your profile",
-      "types": {
-        "avatar_frame": "Avatar frames",
-        "card_back": "Card backs",
-        "title": "Titles"
-      }
-    },
+
     "battlePass": {
       "kicker": "Season",
       "title": "Premium season Pass",
@@ -976,10 +988,8 @@
       "ninjutsu": "Ninjutsu",
       "genjutsu": "Genjutsu",
       "medicine": "Medicine",
-      "vitesse": "Speed",
-      "intelligence": "Intelligence",
-      "dexterity": "Dexterity",
-      "maxHp": "Max HP"
+      "maxHp": "Max HP",
+      "maxChakra": "Max Chakra"
     },
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
@@ -1093,6 +1103,15 @@
       "talent": "Talent: {effect}",
       "summon": "Summon: {name}",
       "allyAttack": "{name} deals {n} damage",
+      "pvpSummon": "You summon {name} ({n} turns)",
+      "pvpAllyAttackYou": "Your summon {name} deals {n} damage",
+      "pvpAllyAttackOpponent": "Your opponent's summon {name} deals {n} damage",
+      "pvpAllyDamageYou": "Your summon takes {n} damage",
+      "pvpAllyDamageOpponent": "Your opponent's summon takes {n} damage",
+      "pvpAllyFallenYou": "Your summon falls in battle",
+      "pvpAllyFallenOpponent": "Your opponent's summon falls in battle",
+      "pvpAllyExpiredYou": "Your summon expires",
+      "pvpAllyExpiredOpponent": "Your opponent's summon expires",
       "rewards": "Rewards granted",
       "combatStart": "The fight begins",
       "duelStart": "The duel begins",
@@ -1193,6 +1212,7 @@
     "allyLabel": "Ally",
     "allyAttackStat": "ATK {n}",
     "allyTaunt": "Taunt",
+    "allyTurns": "{n} turns left",
     "costLabel": "Cost {n}",
     "rankLabel": "Rank",
     "missionsListTitle": "Available runs"
@@ -1231,12 +1251,21 @@
       "forfeited": "Duel forfeited"
     },
     "rulesTitle": "How the duel works",
-    "queueSection": "Queue"
+    "queueSection": "Queue",
+    "inviteTitle": "Invite a friend",
+    "inviteLead": "Create a private code and share the link with your friend. They can join your duel from their account.",
+    "createInvite": "Create an invite code",
+    "copyInvite": "Copy link",
+    "copyFailed": "Could not copy the link. You can share the displayed code instead.",
+    "inviteExpiry": "This code expires after 30 minutes and can only be used once.",
+    "inviteCodeLabel": "Join with a code",
+    "inviteCodePlaceholder": "8-character code",
+    "acceptInvite": "Join duel"
   },
   "battlePass": {
     "kicker": "Season",
     "title": "Battle Pass",
-    "lead": "Progress on two tracks — free and premium — and claim ryos, dust, cards, and exclusive cosmetics.",
+    "lead": "Progress on two tracks — free and premium — and claim ryos, dust, cards, and scrolls.",
     "loading": "Loading season…",
     "noSeason": "No active season. Run the Battle Pass seed.",
     "level": "Lv. {n}",
@@ -1261,7 +1290,7 @@
       "premium": "premium"
     },
     "unlockTitle": "Unlock Premium",
-    "unlockLead": "Access the premium track, exclusive cosmetics, and +20% XP for the whole season.",
+    "unlockLead": "Access the premium track and +20% XP for the whole season.",
     "unlockCoins": "Unlock · {n} Kage Coins",
     "unlockStub": "Admin stub",
     "premiumUnlocked": "Premium Battle Pass unlocked.",
@@ -1283,8 +1312,7 @@
       "essence": "{n} Essence",
       "kageCoins": "{n} Kage Coins",
       "card": "{n}× {rarity} card",
-      "booster": "{type} booster",
-      "cosmetic": "Cosmetic · {kind}"
+      "booster": "{type} booster"
     },
     "rarity": {
       "common": "common",
@@ -1297,12 +1325,7 @@
       "premium": "premium",
       "legendary": "legendary"
     },
-    "cosmetic": {
-      "avatar": "avatar",
-      "card_back": "card back",
-      "emote": "emote",
-      "card_effect": "card effect"
-    },
+
     "levelLabel": "Level",
     "tracksLabel": "Reward tracks",
     "questsTitle": "Quests"
@@ -1326,8 +1349,7 @@
     "talentPoints": "{count} talent point available | {count} talent points available",
     "openMissions": "Go to missions",
     "openDecks": "Open decks",
-    "specializationTitle": "Choose a specialization",
-    "specializationLead": "Available from level 10. Permanent choice for this progression path.",
+
     "levelUpTitle": "Level up!",
     "levelUpTitleMulti": "+{count} levels!",
     "levelUpTalent": "+{count} talent point | +{count} talent points",
@@ -1339,12 +1361,7 @@
       "Doton": "Doton",
       "Futon": "Futon"
     },
-    "specs": {
-      "Taijutsu": "Taijutsu",
-      "Ninjutsu": "Ninjutsu",
-      "Genjutsu": "Genjutsu",
-      "Medicine": "Medicine"
-    },
+
     "stats": {
       "taijutsu": "Taijutsu",
       "ninjutsu": "Ninjutsu",
@@ -1780,7 +1797,7 @@
   },
   "eliteShowcase": {
     "title": "Elite Pack — identity",
-    "lead": "SenseiIdentity component mockup: cosmetics visible to other players.",
+    "lead": "SenseiIdentity component mockup: identity visible to other players.",
     "hint": "Elite Pack subscribers become Elite Jonin — colored name, customizable title, and animated banner.",
     "editorTitle": "Identity editor (preview)",
     "editorHint": "Preview of what players will configure in their profile once Elite Pack is active.",
@@ -1914,19 +1931,58 @@
     "ownHint": "Customize your identity and manage the Elite Pack below.",
     "ownBadge": "Your public profile",
     "eliteSectionTitle": "Elite Pack",
-    "eliteSectionLead": "Custom identity, season pass, and cosmetic rewards.",
+    "eliteSectionLead": "Custom identity and season pass rewards.",
     "heritageSectionTitle": "Heritage wall",
     "reconChallengeSent": "Reconnaissance challenge sent to {name} — awaiting acceptance."
   },
   "admin": {
     "title": "Administration",
-    "lead": "Operations tools: clock, season reset, and maintenance.",
+    "lead": "Manage player accounts, grant resources, and reset TCG progression.",
     "loginRequired": "Sign in to access the admin panel.",
     "goLogin": "Sign in",
     "forbidden": "Your account does not have administrator rights.",
     "forbiddenHint": "Ask an admin to run: UPDATE users SET is_admin = TRUE WHERE username = 'your_account';",
     "connectedAs": "Signed in as {username}.",
     "lastResult": "Last result",
+    "players": {
+      "title": "Player management",
+      "lead": "Grant resources and choose exactly which data to reset for the selected player. Their account and character identity are kept.",
+      "refresh": "Refresh",
+      "search": "Find a player",
+      "searchPlaceholder": "Account or character name",
+      "select": "Player",
+      "choose": "Choose a player",
+      "empty": "No players found.",
+      "noCharacter": "No character",
+      "collectionCount": "{count} cards in collection",
+      "deckCount": "{count} decks",
+      "ryos": "Ryos to grant",
+      "kageCoins": "Kage Coins to grant",
+      "cardDust": "Card dust to grant",
+      "cardEssence": "Card essence to grant",
+      "current": "Current balance",
+      "grant": "Grant resources",
+      "granting": "Granting…",
+      "grantAmountRequired": "Enter at least one amount greater than zero.",
+      "grantSuccess": "Resources granted to {name}.",
+      "resetTitle": "Reset this player",
+      "resetWarning": "Check only the items you want to clear. The account and character identity are kept. Level and talents change only when their options are checked.",
+      "resetCollection": "Collection and decks (clear all; no starter cards)",
+      "resetCombats": "In-progress combats outside missions",
+      "resetMissions": "In-progress missions and their combats",
+      "resetRyos": "Ryos",
+      "resetKageCoins": "Kage Coins",
+      "resetCardMaterials": "Upgrade materials (dust and essence)",
+      "resetLevel": "Level, XP, and rank (back to level 1)",
+      "resetTalents": "Unlocked talents (refund points)",
+      "resetSelectionRequired": "Select at least one item to reset.",
+      "adminRole": "Administrator",
+      "adminCannotReset": "Administrator accounts are protected from grants and resets.",
+      "reset": "Reset selected items",
+      "resetting": "Resetting…",
+      "resetConfirm": "Reset the selected items for {name}?",
+      "resetSuccess": "The selected items for {name} have been reset."
+    },
     "clock": {
       "title": "Game clock",
       "anchor": "H0 anchor:",
@@ -2025,7 +2081,7 @@
     "pointsCycle": "{n} cycle pts",
     "pointsSeason": "{n} season",
     "howToScore": "How to score",
-    "noCombatBonus": "No combat stat bonuses — cosmetics and Ryos only.",
+    "noCombatBonus": "No combat stat bonuses — Ryos only.",
     "topContributors": "Top contributors (cycle)",
     "contribution": "Your contribution: {pts} / {cap} pts this cycle",
     "titlePrefix": "Title ·",
@@ -2073,7 +2129,7 @@
   "factions": {
     "pickLabel": "Faction",
     "pickTitle": "Choose your land",
-    "pickLead": "Three lands from the old rivalry — cosmetic identity only, no combat bonus. One free retake later.",
+    "pickLead": "Three lands from the old rivalry — identity only, no combat bonus. One free retake later.",
     "names": {
       "midorihara": "Midorihara",
       "kareno": "Kareno",

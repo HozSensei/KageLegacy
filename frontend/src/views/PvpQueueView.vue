@@ -1,77 +1,124 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import { usePvpStore } from '../stores/pvp'
-import { useDecksStore } from '../stores/decks'
-import PageHeader from '../components/ui/PageHeader.vue'
-import bridgeImage from '../assets/illustrations/stone-bridge.webp'
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import { usePvpStore } from '../stores/pvp';
+import { useDecksStore } from '../stores/decks';
+import PageHeader from '../components/ui/PageHeader.vue';
+import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 
-defineOptions({ name: 'PvpQueueView' })
+defineOptions({ name: 'PvpQueueView' });
 
-const { t } = useI18n()
-const router = useRouter()
-const pvp = usePvpStore()
-const decks = useDecksStore()
+const { t } = useI18n();
+const router = useRouter();
+const route = useRoute();
+const pvp = usePvpStore();
+const decks = useDecksStore();
 
-const levelWindow = ref(3)
-const joining = ref(false)
-const localError = ref(null)
-let pollTimer = null
+const levelWindow = ref(3);
+const joining = ref(false);
+const inviteBusy = ref(false);
+const inviteCode = ref('');
+const sharedInviteCode = ref('');
+const localError = ref(null);
+let pollTimer = null;
 
 const activeDeckLabel = computed(() => {
-  const active = (decks.decks || []).find((d) => d.isActive)
-  if (!active) return t('combat.practiceDeckHint')
-  return active.name
-})
+  const active = (decks.decks || []).find(d => d.isActive);
+  if (!active) return t('combat.practiceDeckHint');
+  return active.name;
+});
 
 onMounted(async () => {
+  if (typeof route.query.invite === 'string') {
+    inviteCode.value = route.query.invite.trim().toUpperCase();
+  }
   try {
-    await Promise.all([pvp.fetchConfig(), decks.fetchDecks(), pvp.refreshQueue()])
+    await Promise.all([pvp.fetchConfig(), decks.fetchDecks(), pvp.refreshQueue()]);
   } catch (e) {
-    localError.value = e.message || pvp.error
+    localError.value = e.message || pvp.error;
   }
   if (pvp.config?.levelWindowDefault) {
-    levelWindow.value = pvp.config.levelWindowDefault
+    levelWindow.value = pvp.config.levelWindowDefault;
   }
   if (pvp.match?.id && ['pending', 'ready', 'in_progress'].includes(pvp.match.status)) {
-    await router.push({ name: 'pvp-duel', params: { id: pvp.match.id } })
-    return
+    await router.push({ name: 'pvp-duel', params: { id: pvp.match.id } });
+    return;
   }
   pollTimer = setInterval(async () => {
-    if (pvp.queueStatus !== 'queued') return
-    await pvp.refreshQueue()
+    if (pvp.queueStatus !== 'queued' && !sharedInviteCode.value) return;
+    await pvp.refreshQueue();
     if (pvp.match?.id) {
-      await router.push({ name: 'pvp-duel', params: { id: pvp.match.id } })
+      await router.push({ name: 'pvp-duel', params: { id: pvp.match.id } });
     }
-  }, 2500)
-})
+  }, 2500);
+});
 
 onUnmounted(() => {
-  if (pollTimer) clearInterval(pollTimer)
-})
+  if (pollTimer) clearInterval(pollTimer);
+});
 
 async function onJoin() {
-  joining.value = true
-  localError.value = null
+  joining.value = true;
+  localError.value = null;
   try {
-    const result = await pvp.joinQueue({ levelWindow: levelWindow.value })
+    const result = await pvp.joinQueue({ levelWindow: levelWindow.value });
     if (result?.match?.id) {
-      await router.push({ name: 'pvp-duel', params: { id: result.match.id } })
+      await router.push({ name: 'pvp-duel', params: { id: result.match.id } });
     }
   } catch (e) {
-    localError.value = e.message || pvp.error
+    localError.value = e.message || pvp.error;
   } finally {
-    joining.value = false
+    joining.value = false;
+  }
+}
+
+async function onCreateInvitation() {
+  inviteBusy.value = true;
+  localError.value = null;
+  try {
+    const invitation = await pvp.createInvitation({ levelWindow: levelWindow.value });
+    sharedInviteCode.value = invitation.code;
+  } catch (e) {
+    localError.value = e.message;
+  } finally {
+    inviteBusy.value = false;
+  }
+}
+
+async function onAcceptInvitation() {
+  inviteBusy.value = true;
+  localError.value = null;
+  try {
+    const result = await pvp.acceptInvitation(inviteCode.value.trim().toUpperCase());
+    if (result?.match?.id) {
+      await router.push({ name: 'pvp-duel', params: { id: result.match.id } });
+    }
+  } catch (e) {
+    localError.value = e.message;
+  } finally {
+    inviteBusy.value = false;
+  }
+}
+
+async function onCopyInvitation() {
+  const inviteUrl = new URL(
+    router.resolve({ name: 'pvp', query: { invite: sharedInviteCode.value } }).href,
+    window.location.origin
+  );
+  try {
+    await navigator.clipboard.writeText(inviteUrl.href);
+  } catch {
+    localError.value = t('pvp.copyFailed');
   }
 }
 
 async function onLeave() {
-  localError.value = null
+  localError.value = null;
   try {
-    await pvp.leaveQueue()
+    await pvp.leaveQueue();
   } catch (e) {
-    localError.value = e.message
+    localError.value = e.message;
   }
 }
 </script>
@@ -150,6 +197,53 @@ async function onLeave() {
             <span v-if="pvp.queue?.level"> — {{ t('pvp.yourLevel', { n: pvp.queue.level }) }}</span>
           </span>
         </p>
+
+        <div class="pvp-invite">
+          <h2 class="t-kicker">{{ t('pvp.inviteTitle') }}</h2>
+          <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ t('pvp.inviteLead') }}</p>
+          <button
+            type="button"
+            class="btn-secondary mt-4"
+            data-testid="pvp-create-invite"
+            :disabled="inviteBusy || pvp.loading"
+            @click="onCreateInvitation"
+          >
+            {{ inviteBusy ? t('common.loading') : t('pvp.createInvite') }}
+          </button>
+          <div v-if="sharedInviteCode" class="pvp-invite__code" data-testid="pvp-invite-code">
+            <span>{{ sharedInviteCode }}</span>
+            <button type="button" class="btn-ghost btn-sm" @click="onCopyInvitation">
+              {{ t('pvp.copyInvite') }}
+            </button>
+          </div>
+          <p v-if="sharedInviteCode" class="mt-2 text-xs text-ink-muted">
+            {{ t('pvp.inviteExpiry') }}
+          </p>
+
+          <label class="field mt-5">
+            <span class="field__label">{{ t('pvp.inviteCodeLabel') }}</span>
+            <input
+              v-model="inviteCode"
+              class="input-field"
+              type="text"
+              maxlength="8"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              :placeholder="t('pvp.inviteCodePlaceholder')"
+              data-testid="pvp-accept-invite-code"
+            />
+          </label>
+          <button
+            type="button"
+            class="btn-ghost mt-3"
+            data-testid="pvp-accept-invite"
+            :disabled="inviteBusy || inviteCode.trim().length !== 8"
+            @click="onAcceptInvitation"
+          >
+            {{ inviteBusy ? t('common.loading') : t('pvp.acceptInvite') }}
+          </button>
+        </div>
       </section>
 
       <aside class="pvp-rules">
@@ -211,6 +305,27 @@ async function onLeave() {
 .pvp-window {
   max-width: 11rem;
   margin-top: 1.25rem;
+}
+
+.pvp-invite {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border, currentColor);
+}
+
+.pvp-invite__code {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-indigo-tint);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
 }
 
 .pvp-waiting {

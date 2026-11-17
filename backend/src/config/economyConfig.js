@@ -1,16 +1,15 @@
 /**
  * Économie centrale — Kage Legacy V2
  *
- * Source unique des constantes tunables (boosters, combat, dust/craft, Battle Pass).
+ * Source unique des constantes tunables (boosters, combat, dust, Battle Pass).
  * Les services doivent importer ici plutôt que hardcoder des montants.
  *
  * Principes F2P (voir docs/ECONOMY.md) :
  * - Progression gratuite viable via missions + dust
  * - Premium (Kage Coins / BP) accélère, ne gate pas la puissance
- * - Sinks (boosters, craft, upgrades) > sources pour éviter l’inflation
+ * - Sinks (boosters, upgrades) > sources pour éviter l’inflation
  */
 
-/** @typedef {'common'|'rare'|'legendary'|'mythic'} CardRarity */
 /** @typedef {'D'|'C'|'B'|'A'|'S'} MissionRank */
 
 // ---------------------------------------------------------------------------
@@ -61,26 +60,15 @@ export const COMBAT_REWARDS_BY_RANK = Object.freeze({
 });
 
 // ---------------------------------------------------------------------------
-// Dust / craft / upgrade
+// Dust / upgrade
 // ---------------------------------------------------------------------------
 
-/**
- * Dust rendu au désenchantement (1 exemplaire niveau 0).
- * Ratio craft/disenchant cible ≈ 5× (F2P-friendly ; était 10×).
- */
+/** Dust rendu au désenchantement (1 exemplaire niveau 0). */
 export const DISENCHANT_DUST = Object.freeze({
   common: 10,
   rare: 40,
   legendary: 200,
   mythic: 1000,
-});
-
-/** Coût craft (création depuis le catalogue). */
-export const CRAFT_DUST = Object.freeze({
-  common: 50,
-  rare: 200,
-  legendary: 1000,
-  mythic: 5000,
 });
 
 /**
@@ -102,10 +90,6 @@ export const UPGRADE_COSTS = Object.freeze({
   ]),
   mythic: Object.freeze([Object.freeze({ ryos: 18000, dust: 1800, essence: 20 })]),
 });
-
-/** Ratio craft ÷ disenchant attendu (borne tests). */
-export const CRAFT_DISENCHANT_RATIO_MIN = 4;
-export const CRAFT_DISENCHANT_RATIO_MAX = 6;
 
 // ---------------------------------------------------------------------------
 // Battle Pass
@@ -139,17 +123,6 @@ export const BATTLE_PASS_QUEST_XP = Object.freeze({
 // ---------------------------------------------------------------------------
 // Helpers / invariants
 // ---------------------------------------------------------------------------
-
-/**
- * Ratio craft / disenchant pour une rareté.
- * @param {CardRarity} rarity
- */
-export function craftToDisenchantRatio(rarity) {
-  const craft = CRAFT_DUST[rarity];
-  const dust = DISENCHANT_DUST[rarity];
-  if (!craft || !dust) return null;
-  return craft / dust;
-}
 
 /**
  * Nombre de victoires rang `rank` pour un booster standard (arrondi haut).
@@ -218,20 +191,6 @@ export function validateEconomyInvariants() {
     errors.push(`standard pack should cost 2–4 D wins (got ${dWins})`);
   }
 
-  // Dust ratios
-  for (const rarity of Object.keys(CRAFT_DUST)) {
-    const ratio = craftToDisenchantRatio(rarity);
-    if (ratio == null) {
-      errors.push(`missing dust pair for ${rarity}`);
-      continue;
-    }
-    if (ratio < CRAFT_DISENCHANT_RATIO_MIN || ratio > CRAFT_DISENCHANT_RATIO_MAX) {
-      errors.push(
-        `${rarity} craft/disenchant ratio ${ratio} outside ${CRAFT_DISENCHANT_RATIO_MIN}–${CRAFT_DISENCHANT_RATIO_MAX}`,
-      );
-    }
-  }
-
   // BP soft premium
   if (BATTLE_PASS.premiumXpMultiplier > BATTLE_PASS.maxPremiumXpMultiplier) {
     errors.push('premium XP multiplier too high (P2W)');
@@ -262,13 +221,9 @@ export default {
   COMBAT_DEFAULT_REWARDS,
   COMBAT_REWARDS_BY_RANK,
   DISENCHANT_DUST,
-  CRAFT_DUST,
   UPGRADE_COSTS,
-  CRAFT_DISENCHANT_RATIO_MIN,
-  CRAFT_DISENCHANT_RATIO_MAX,
   BATTLE_PASS,
   BATTLE_PASS_QUEST_XP,
-  craftToDisenchantRatio,
   winsForStandardBooster,
   resolveCombatRewards,
   validateEconomyInvariants,

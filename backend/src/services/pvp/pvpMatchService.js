@@ -7,9 +7,10 @@ import { query } from '../../config/database.js';
 import { fingerprint, normalizeResultSummary } from '../../../../shared/pvp/checksum.js';
 import {
   compareHostGuestChecksums,
+  evaluateResultConfirmation,
   validateMatchResultReport,
 } from '../../../../shared/pvp/antiCheat.js';
-import { ANTI_CHEAT_MODE } from './config.js';
+import { ANTI_CHEAT_MODE, RESULT_CONFIRMATION_TIMEOUT_MS } from './config.js';
 import { roleForUser, serializeMatch } from './matchmakingService.js';
 import { logPvpAnomaly } from './pvpAnomalyLog.js';
 import { checkPvpRateLimit } from './pvpRateLimit.js';
@@ -32,6 +33,51 @@ function parseSummaryJson(row) {
   return typeof row.result_summary_json === 'string'
     ? JSON.parse(row.result_summary_json)
     : row.result_summary_json;
+}
+
+function getPendingConfirmation(row) {
+  return parseSummaryJson(row)?.pendingConfirmation || null;
+}
+
+function getConfirmation(row, now = Date.now()) {
+  return evaluateResultConfirmation({
+    hostChecksum: row.host_checksum,
+    guestChecksum: row.guest_checksum,
+    confirmationExpiresAt: getPendingConfirmation(row)?.expiresAt,
+    now,
+  });
+}
+
+async function voidMatchForConfirmationTimeout(matchId, row) {
+  const existing = parseSummaryJson(row) || {};
+  const payload = {
+    ...existing,
+    voided: true,
+    voidReason: 'confirmation_timeout',
+    pendingConfirmation: undefined,
+  };
+  logPvpAnomaly('result_confirmation_timeout', {
+    matchId,
+    hostUserId: row.host_user_id,
+    guestUserId: row.guest_user_id,
+  });
+  await query(
+    `UPDATE pvp_matches
+     SET status = 'cancelled',
+         end_reason = 'void_confirmation_timeout',
+         winner_seat = NULL,
+         winner_user_id = NULL,
+         result_summary_json = ?,
+         ended_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [JSON.stringify(payload), matchId]
+  );
+  return loadMatch(matchId);
+}
+
+async function expirePendingConfirmation(matchId, row) {
+  if (!getPendingConfirmation(row) || getConfirmation(row).state !== 'expired') return null;
+  return voidMatchForConfirmationTimeout(matchId, row);
 }
 
 /**
@@ -58,7 +104,7 @@ export async function markReady(matchId, userId) {
       `UPDATE pvp_matches
        SET status = 'in_progress', started_at = COALESCE(started_at, CURRENT_TIMESTAMP)
        WHERE id = ?`,
-      [matchId],
+      [matchId]
     );
   }
 
@@ -78,9 +124,7 @@ async function voidMatchForChecksumMismatch(matchId, row, detail = {}) {
     ...existing,
     voided: true,
     voidReason: 'checksum_host_guest_mismatch',
-    anomalyFlags: [
-      ...new Set([...(existing.anomalyFlags || []), 'checksum_host_guest_mismatch']),
-    ],
+    anomalyFlags: [...new Set([...(existing.anomalyFlags || []), 'checksum_host_guest_mismatch'])],
     guestChallenge: detail,
   };
   logPvpAnomaly('checksum_host_guest_mismatch', {
@@ -99,7 +143,7 @@ async function voidMatchForChecksumMismatch(matchId, row, detail = {}) {
          result_summary_json = ?,
          ended_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [JSON.stringify(payload), matchId],
+    [JSON.stringify(payload), matchId]
   );
   return loadMatch(matchId);
 }
@@ -109,18 +153,66 @@ async function voidMatchForChecksumMismatch(matchId, row, detail = {}) {
  * @returns {{ voided: boolean, match: object, compared: object }}
  */
 async function applyGuestChecksum(matchId, row, checksum) {
+  if (!checksum) throw httpError(400, 'checksum Guest requis pour confirmer le résultat.');
   await query('UPDATE pvp_matches SET guest_checksum = ? WHERE id = ?', [checksum, matchId]);
-  const hostCs = row.host_checksum;
-  const compared = compareHostGuestChecksums(hostCs, checksum);
-  if (compared.voidMatch) {
-    const voided = await voidMatchForChecksumMismatch(matchId, row, {
-      hostChecksum: hostCs,
+  const updated = await loadMatch(matchId);
+  const confirmation = getConfirmation(updated);
+  if (confirmation.state === 'checksum_mismatch') {
+    const voided = await voidMatchForChecksumMismatch(matchId, updated, {
+      hostChecksum: updated.host_checksum,
       guestChecksum: checksum,
     });
-    return { voided: true, match: voided, compared };
+    return { voided: true, match: voided, compared: confirmation.compared };
   }
-  const updated = await loadMatch(matchId);
-  return { voided: false, match: updated, compared };
+  if (confirmation.state === 'expired') {
+    const voided = await voidMatchForConfirmationTimeout(matchId, updated);
+    return { voided: true, match: voided, compared: confirmation.compared, expired: true };
+  }
+  if (confirmation.state === 'confirmed' && getPendingConfirmation(updated)) {
+    const completed = await finalizeConfirmedResult(matchId, updated);
+    return { voided: false, match: completed, compared: confirmation.compared, completed: true };
+  }
+  return { voided: false, match: updated, compared: confirmation.compared };
+}
+
+async function finalizeConfirmedResult(matchId, row, resultPayload = null) {
+  const pending = getPendingConfirmation(row);
+  const winnerSeat = pending?.winnerSeat;
+  if (!pending || !winnerSeat) {
+    throw httpError(409, 'Aucun résultat PvP en attente de confirmation.');
+  }
+  const winnerUserId = winnerSeat === 'host' ? row.host_user_id : row.guest_user_id;
+  const payload = resultPayload || parseSummaryJson(row) || {};
+  const finalPayload = { ...payload };
+  delete finalPayload.pendingConfirmation;
+  finalPayload.confirmation = {
+    hostChecksum: row.host_checksum,
+    guestChecksum: row.guest_checksum,
+    confirmedAt: new Date().toISOString(),
+  };
+  const result = await query(
+    `UPDATE pvp_matches
+     SET status = 'completed',
+         winner_seat = ?,
+         winner_user_id = ?,
+         end_reason = ?,
+         result_summary_json = ?,
+         ended_at = CURRENT_TIMESTAMP
+     WHERE id = ? AND status = 'in_progress'`,
+    [winnerSeat, winnerUserId, pending.endReason, JSON.stringify(finalPayload), matchId]
+  );
+  const completed = await loadMatch(matchId);
+  if (result.affectedRows === 1) {
+    try {
+      const { onAchievementAction } = await import('../achievementService.js');
+      await onAchievementAction(completed.host_user_id, 'pvp_match', 1);
+      await onAchievementAction(completed.guest_user_id, 'pvp_match', 1);
+      await onAchievementAction(winnerUserId, 'pvp_win', 1);
+    } catch {
+      /* exploits optionnels */
+    }
+  }
+  return completed;
 }
 
 /**
@@ -143,6 +235,17 @@ export async function reportMatchResult(matchId, userId, body = {}) {
   const row = await loadMatch(matchId);
   const role = roleForUser(row, userId);
   if (!role) throw httpError(403, 'Pas participant.');
+
+  const expired = await expirePendingConfirmation(matchId, row);
+  if (expired) {
+    return {
+      match: serializeMatch(expired),
+      role,
+      voided: true,
+      expired: true,
+      antiCheatMode: ANTI_CHEAT_MODE,
+    };
+  }
 
   if (['completed', 'forfeited', 'cancelled'].includes(row.status)) {
     // Guest challenge tardif : si match completed et guest confirme checksum différent → void
@@ -175,17 +278,20 @@ export async function reportMatchResult(matchId, userId, body = {}) {
 
   const checksum = body.checksum ? String(body.checksum).slice(0, 32) : null;
   const summary = body.summary || body.resultSummary || null;
-  const winnerSeat = body.winnerSeat === 'host' || body.winnerSeat === 'guest' ? body.winnerSeat : null;
+  const winnerSeat =
+    body.winnerSeat === 'host' || body.winnerSeat === 'guest' ? body.winnerSeat : null;
   const endReason = body.endReason ? String(body.endReason).slice(0, 40) : 'report';
 
-  // Guest : confirmation checksum seulement (ne clôture pas seul sauf forfeit)
+  // Guest : checksum de confirmation uniquement. Il ne choisit jamais le résultat.
   if (role === 'guest' && body.confirmOnly) {
     const applied = await applyGuestChecksum(matchId, row, checksum);
     return {
       match: serializeMatch(applied.match),
       role,
-      confirmed: true,
+      confirmed: applied.completed === true,
+      awaitingHostReport: applied.match.status === 'in_progress' && !applied.match.host_checksum,
       voided: applied.voided,
+      expired: applied.expired === true,
       guestChallenge: applied.compared,
       antiCheatMode: ANTI_CHEAT_MODE,
     };
@@ -216,7 +322,7 @@ export async function reportMatchResult(matchId, userId, body = {}) {
         checksum,
         summary ? JSON.stringify(summary) : null,
         matchId,
-      ],
+      ]
     );
     // Si l’autre checksum est déjà là et mismatch → void
     const after = await loadMatch(matchId);
@@ -239,21 +345,24 @@ export async function reportMatchResult(matchId, userId, body = {}) {
     return { match: serializeMatch(after), role, antiCheatMode: ANTI_CHEAT_MODE };
   }
 
-  // Clôture normale : Host (trust-host) ; Guest sans winnerSeat = checksum only
+  // Guest : seulement la confirmation checksum, jamais un résultat déclaré.
   if (role !== 'host' && row.anti_cheat_mode === 'trust_host') {
-    if (!winnerSeat) {
-      const applied = await applyGuestChecksum(matchId, row, checksum);
-      return {
-        match: serializeMatch(applied.match),
-        role,
-        message: applied.voided
-          ? 'Checksum guest ≠ host — match void.'
-          : 'Checksum guest enregistré — en attente du report Host.',
-        voided: applied.voided,
-        guestChallenge: applied.compared,
-        antiCheatMode: ANTI_CHEAT_MODE,
-      };
-    }
+    if (winnerSeat) throw httpError(403, 'Seul le Host peut déclarer le résultat normal.');
+    const applied = await applyGuestChecksum(matchId, row, checksum);
+    return {
+      match: serializeMatch(applied.match),
+      role,
+      message: applied.voided
+        ? 'Checksum Guest différent — match annulé.'
+        : applied.completed
+          ? 'Résultat confirmé par les deux joueurs.'
+          : 'Checksum Guest enregistré — en attente du report Host.',
+      confirmed: applied.completed === true,
+      voided: applied.voided,
+      expired: applied.expired === true,
+      guestChallenge: applied.compared,
+      antiCheatMode: ANTI_CHEAT_MODE,
+    };
   }
 
   if (role === 'host' && !winnerSeat) {
@@ -286,38 +395,27 @@ export async function reportMatchResult(matchId, userId, body = {}) {
     });
   }
 
-  // Checksum guest déjà présent → comparer avant clôture
-  const guestCs = row.guest_checksum;
-  const hostCs = role === 'host' ? checksum : row.host_checksum;
-  const compared = compareHostGuestChecksums(hostCs, guestCs);
-  if (compared.voidMatch) {
-    await query(
-      `UPDATE pvp_matches
-       SET host_checksum = COALESCE(?, host_checksum),
-           guest_checksum = COALESCE(guest_checksum, ?)
-       WHERE id = ?`,
-      [role === 'host' ? checksum : null, role === 'guest' ? checksum : null, matchId],
-    );
-    const voided = await voidMatchForChecksumMismatch(matchId, row, {
-      hostChecksum: hostCs,
-      guestChecksum: guestCs,
+  // Le Host propose le résultat validé, puis le Guest doit confirmer le même checksum.
+  const confirmation = evaluateResultConfirmation({
+    hostChecksum: checksum,
+    guestChecksum: row.guest_checksum,
+  });
+  if (confirmation.state === 'checksum_mismatch') {
+    await query('UPDATE pvp_matches SET host_checksum = ? WHERE id = ?', [checksum, matchId]);
+    const persisted = await loadMatch(matchId);
+    const voided = await voidMatchForChecksumMismatch(matchId, persisted, {
+      hostChecksum: checksum,
+      guestChecksum: row.guest_checksum,
     });
     return {
       match: serializeMatch(voided),
       role,
       voided: true,
-      validation: {
-        mode: ANTI_CHEAT_MODE,
-        checksumOk: false,
-        flags: compared.flags,
-      },
-      guestChallenge: compared,
+      validation: { mode: ANTI_CHEAT_MODE, checksumOk: false, flags: confirmation.compared.flags },
+      guestChallenge: confirmation.compared,
       antiCheatMode: ANTI_CHEAT_MODE,
     };
   }
-
-  const winnerUserId =
-    effectiveWinnerSeat === 'host' ? row.host_user_id : row.guest_user_id;
 
   const normalized = validation.normalized;
   const checksumOk =
@@ -326,60 +424,55 @@ export async function reportMatchResult(matchId, userId, body = {}) {
         fingerprint(summary) === String(checksum).slice(0, 16) ||
         fingerprint(summary) === String(checksum)
       : null;
-
+  const expiresAt = new Date(Date.now() + RESULT_CONFIRMATION_TIMEOUT_MS).toISOString();
   const resultPayload = {
     ...(normalized || summary || {}),
     validation: {
       mode: ANTI_CHEAT_MODE,
       checksumOk,
       flags: validation.flags,
-      guestChecksumMatch: compared.match,
+      guestChecksumMatch: confirmation.compared.match,
+    },
+    pendingConfirmation: {
+      winnerSeat: effectiveWinnerSeat,
+      endReason,
+      requestedAt: new Date().toISOString(),
+      expiresAt,
     },
   };
 
   await query(
     `UPDATE pvp_matches
-     SET status = 'completed',
-         winner_seat = ?,
-         winner_user_id = ?,
-         end_reason = ?,
-         host_checksum = CASE WHEN ? = 'host' THEN COALESCE(?, host_checksum) ELSE host_checksum END,
-         guest_checksum = CASE WHEN ? = 'guest' THEN COALESCE(?, guest_checksum) ELSE guest_checksum END,
-         result_summary_json = COALESCE(?, result_summary_json),
-         ended_at = CURRENT_TIMESTAMP
-     WHERE id = ?`,
-    [
-      effectiveWinnerSeat,
-      winnerUserId,
-      endReason,
-      role,
-      checksum,
-      role,
-      checksum,
-      JSON.stringify(resultPayload),
-      matchId,
-    ],
+     SET host_checksum = ?, result_summary_json = ?
+     WHERE id = ? AND status = 'in_progress'`,
+    [checksum, JSON.stringify(resultPayload), matchId]
   );
-
-  const updated = await loadMatch(matchId);
-  try {
-    if (updated?.status === 'completed' && row.status !== 'completed') {
-      const { onAchievementAction } = await import('../achievementService.js');
-      const hostId = updated.host_user_id ?? row.host_user_id;
-      const guestId = updated.guest_user_id ?? row.guest_user_id;
-      if (hostId) await onAchievementAction(hostId, 'pvp_match', 1);
-      if (guestId) await onAchievementAction(guestId, 'pvp_match', 1);
-      if (winnerUserId) await onAchievementAction(winnerUserId, 'pvp_win', 1);
-    }
-  } catch { /* exploits optionnels */ }
+  const pending = await loadMatch(matchId);
+  if (getConfirmation(pending).state === 'confirmed') {
+    const completed = await finalizeConfirmedResult(matchId, pending, resultPayload);
+    return {
+      match: serializeMatch(completed),
+      role,
+      confirmed: true,
+      validation: {
+        mode: ANTI_CHEAT_MODE,
+        checksumOk,
+        flags: validation.flags,
+        guestChecksumMatch: true,
+      },
+      antiCheatMode: ANTI_CHEAT_MODE,
+    };
+  }
   return {
-    match: serializeMatch(updated),
+    match: serializeMatch(pending),
     role,
+    awaitingGuestConfirmation: true,
+    confirmationExpiresAt: expiresAt,
     validation: {
       mode: ANTI_CHEAT_MODE,
       checksumOk,
       flags: validation.flags,
-      guestChecksumMatch: compared.match,
+      guestChecksumMatch: null,
     },
     antiCheatMode: ANTI_CHEAT_MODE,
   };
@@ -395,7 +488,7 @@ export async function cancelMatch(matchId, userId) {
   await query(
     `UPDATE pvp_matches SET status = 'cancelled', end_reason = 'cancel', ended_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [matchId],
+    [matchId]
   );
   const updated = await loadMatch(matchId);
   return { match: serializeMatch(updated), role };

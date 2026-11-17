@@ -2,22 +2,25 @@
 
 ## 🎯 Vue d'Ensemble
 
-Le combat dans **Shinobi Ascension** est un système de **deck-building tactique** tour par tour inspiré de **Slay the Spire**. Le joueur gère une main de cartes, du Chakra (énergie), et doit anticiper les intentions de l'ennemi.
+Le combat PvE du TCG est un système tactique au tour par tour fondé sur le jeu de cartes. Le joueur gère sa main, son Chakra et ses points de vie, et doit anticiper les intentions de l'ennemi. Pour les statistiques et effets actuellement appliqués, vérifier l'implémentation backend : cette page peut conserver des détails de conception antérieurs.
 
 ## 📊 Stats du Personnage
 
 ### Comment les Stats Affectent le Combat
 
 **Stats** proviennent de 2 sources :
+
 1. **Arbre de Talents** (100 points au niveau 100)
 2. **Cartes dans le deck** (bonus passifs)
 
 **Formule générale** :
+
 ```javascript
-Stat_Finale = Talent_Bonus + Deck_Passive_Bonus + Buffs_Temporaires
+Stat_Finale = Talent_Bonus + Deck_Passive_Bonus + Buffs_Temporaires;
 ```
 
 **Exemple** :
+
 ```
 Taijutsu = 75 (talents) + 45 (cartes) + 10 (buff Force) = 130 Taijutsu
 ```
@@ -35,6 +38,7 @@ Dégâts_Finaux = Dégâts_Base × (1 + Stat / 100)
 ```
 
 **Exemple** : Carte "Poing rapide" (6 dégâts, Taijutsu)
+
 - Sans stats : 6 dégâts
 - Avec 50 Taijutsu : 6 × 1.5 = **9 dégâts**
 - Avec 100 Taijutsu : 6 × 2 = **12 dégâts**
@@ -47,6 +51,7 @@ Armure_Finale = Armure_Base × (1 + Medicine / 100)
 ```
 
 **Exemple** : Carte "Garde" (5 armure, Médecine)
+
 - Sans stats : 5 armure
 - Avec 100 Médecine : 5 × 2 = **10 armure**
 
@@ -57,18 +62,20 @@ Soin_Final = Soin_Base × (1 + Medicine / 100)
 ```
 
 **Exemple** : Carte "Soin de combat" (8 PV, Médecine)
+
 - Sans stats : 8 PV
 - Avec 150 Médecine : 8 × 2.5 = **20 PV**
 
 #### 4. Stats Secondaires
 
-| Stat | Effet |
-|------|-------|
-| **Vitesse** | +1% chance de critique par 10 Vitesse (max 50%) |
+| Stat             | Effet                                           |
+| ---------------- | ----------------------------------------------- |
+| **Vitesse**      | +1% chance de critique par 10 Vitesse (max 50%) |
 | **Intelligence** | +1% chance de proc d'effets spéciaux par 10 Int |
-| **Dextérité** | Réduit coût Chakra des cartes 0-1 coût (rare) |
+| **Dextérité**    | Réduit coût Chakra des cartes 0-1 coût (rare)   |
 
 **Critique** :
+
 ```javascript
 Dégâts_Crit = Dégâts_Finaux × 1.5
 Chance_Crit = min(50, Vitesse / 10) + Buffs
@@ -83,11 +90,13 @@ Chance_Crit = min(50, Vitesse / 10) + Buffs
 ### 1. Chakra (Énergie)
 
 **Mécanique** :
+
 - 🔷 **3 Chakra par tour** (réinitialisation complète)
 - 🔷 Peut être augmenté avec certaines reliques (+1 max)
 - 🔷 Action spéciale : Défausser 1 carte = +1 Chakra (1 fois/tour)
 
 **Variante avancée** (pour plus tard) :
+
 - Chakra persistant (ne se réinitialise pas)
 - Maximum : 10 Chakra
 - Permet des combos explosifs
@@ -95,6 +104,7 @@ Chance_Crit = min(50, Vitesse / 10) + Buffs
 ### 2. Points de Vie (PV)
 
 **Mécanique** :
+
 - ❤️ Ne régénèrent PAS entre les combats (sauf objets/repos)
 - ❤️ Mort = Échec de la mission
 - ❤️ PV max augmentent avec le niveau du personnage
@@ -102,11 +112,13 @@ Chance_Crit = min(50, Vitesse / 10) + Buffs
 > **Implémenté** : les missions deck-combat sont des **parcours** (`docs/MISSION_RUNS.md`) — 3–5 combats enchaînés, événements entre combats (Sanctuaire de Mousse, Cache d’Éclaireur, Colporteur d’Ombre, Carrefour du Voile), PV/scrap persistants, récompenses en fin de run.
 
 **Formule** :
+
 ```
 PV_max = 100 + bonus_from_talent_nodes + bonus_from_cards
 ```
 
 **Exemple** :
+
 ```
 PV_max = 100 (base)
        + 50 (nœuds de talents avec +PV)
@@ -117,11 +129,13 @@ PV_max = 100 (base)
 ### 3. Armure (Block)
 
 **Mécanique** :
+
 - 🛡️ Absorbe les dégâts avant les PV
 - 🛡️ **Disparaît à la fin du tour** (temporaire)
 - 🛡️ Certaines reliques la rendent persistante
 
 **Formule des dégâts** :
+
 ```
 Dégâts réels = max(0, Dégâts bruts - Armure)
 Armure restante = max(0, Armure - Dégâts bruts)
@@ -170,10 +184,10 @@ Armure restante = max(0, Armure - Dégâts bruts)
    - 🛡️ Défense : Gagne X Armure
    - 💀 Spécial : Capacité unique
    - ⚡ Combo : Attaque multiple
-   
+
 2. ✅ Résout ses effets de statut
    - Poison, Brûlure, etc.
-   
+
 3. ✅ Prépare sa prochaine intention (affichée)
 
 4. ✅ Passe au tour suivant (retour Phase 1)
@@ -190,14 +204,14 @@ Armure restante = max(0, Armure - Dégâts bruts)
 
 ### Types d'Intentions
 
-| Icône | Type | Description | Couleur |
-|-------|------|-------------|---------|
-| 🗡️ | Attaque | Va infliger X dégâts | Rouge |
-| 🛡️ | Défense | Va gagner X Armure | Bleu |
-| 💪 | Buff | Va augmenter ses stats | Vert |
-| ☠️ | Débuff | Va appliquer Poison/Faiblesse | Violet |
-| ⚡ | Combo | Attaque X fois pour Y dégâts | Rouge vif |
-| ❓ | Inconnu | ??? (boss uniquement) | Gris |
+| Icône | Type    | Description                   | Couleur   |
+| ----- | ------- | ----------------------------- | --------- |
+| 🗡️    | Attaque | Va infliger X dégâts          | Rouge     |
+| 🛡️    | Défense | Va gagner X Armure            | Bleu      |
+| 💪    | Buff    | Va augmenter ses stats        | Vert      |
+| ☠️    | Débuff  | Va appliquer Poison/Faiblesse | Violet    |
+| ⚡    | Combo   | Attaque X fois pour Y dégâts  | Rouge vif |
+| ❓    | Inconnu | ??? (boss uniquement)         | Gris      |
 
 ### Affichage UI
 
@@ -212,6 +226,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 ```
 
 **Avantage tactique** :
+
 - Le joueur peut préparer sa défense
 - Anticiper et bloquer l'attaque
 - Débuffer l'ennemi avant qu'il attaque
@@ -223,6 +238,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Fonction** : Infliger des dégâts à l'ennemi
 
 **Exemple** :
+
 ```javascript
 {
   name: "Poing du dragon",
@@ -236,6 +252,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 ```
 
 **Variantes** :
+
 - **Attaque simple** : Dégâts directs
 - **Multi-frappe** : Attaque X fois pour Y dégâts
 - **AOE** : Attaque tous les ennemis (si plusieurs)
@@ -246,6 +263,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Fonction** : Gagner de l'Armure, esquiver, réduire dégâts
 
 **Exemple** :
+
 ```javascript
 {
   name: "Esquive au leurre",
@@ -258,6 +276,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 ```
 
 **Variantes** :
+
 - **Block** : Armure temporaire
 - **Évitement** : % d'esquiver
 - **Réduction** : -X% dégâts reçus ce tour
@@ -268,6 +287,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Fonction** : Soins, buffs, pioche, manipulation deck
 
 **Exemple** :
+
 ```javascript
 {
   name: "Paume apaisante",
@@ -280,6 +300,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 ```
 
 **Variantes** :
+
 - **Soin** : Restaure PV
 - **Buff %** : +X % dégâts (global ou typé Tai/Nin/Gen), +X % armure, +X % soins — jamais de +2 plat sur l’échelle 0–100
 - **Pioche** : +X cartes
@@ -290,6 +311,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Fonction** : Invoquer un allié qui reste en jeu
 
 **Exemple** :
+
 ```javascript
 {
   name: "Invoquer clone de combat",
@@ -306,6 +328,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 ```
 
 **Mécanique** :
+
 - L'allié reste en jeu jusqu'à destruction
 - Attaque automatiquement chaque tour
 - Peut avoir Taunt (absorbe les dégâts)
@@ -316,6 +339,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 **Fonction** : Effets permanents pendant tout le combat
 
 **Exemple** :
+
 ```javascript
 {
   name: "Oeil de Kagemori",
@@ -328,6 +352,7 @@ Armure restante = max(0, Armure - Dégâts bruts)
 ```
 
 **Mécanique** :
+
 - Ne se pioche PAS (toujours actif)
 - Consomme 1-2 slots du deck (trade-off)
 - Maximum 2 passifs par deck
@@ -353,6 +378,7 @@ GENJUTSU ←→→→ NINJUTSU
 > Tests : `npm run test:type-advantage` · voir aussi [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md).
 
 **Exemple** :
+
 ```
 Joueur joue "Poing du dragon" (Taijutsu, 10 dégâts)
 Ennemi a posture Genjutsu
@@ -389,6 +415,7 @@ KATON (Feu) 🔥
 > Appliqué dans `computeCardDamage` (cartes d’attaque) avec la triade.
 
 **Exemple** :
+
 ```
 Joueur : "Boule de feu" (Katon, 10 dégâts)
 Ennemi : Affinité Futon
@@ -399,35 +426,36 @@ Ennemi : Affinité Futon
 
 ### Statuts Positifs (Buffs)
 
-| Statut | Effet | Icône | Durée |
-|--------|-------|-------|-------|
-| **Force** | +X dégâts plats (talents / IA ennemie) | 💪 | X tours |
-| **Dextérité** | +X Armure plate (legacy / talents) | 🛡️ | X tours |
-| **damage_pct** | +X % dégâts sortants (tous types) | 💪 | X tours |
-| **taijutsu_pct / ninjutsu_pct / genjutsu_pct** | +X % dégâts du type | 💪 | X tours |
-| **block_pct** | +X % armure gagnée | 🛡️ | X tours |
-| **heal_pct** | +X % soins | 💚 | X tours |
-| **Régénération** | +X PV début de tour | 💚 | X tours |
-| **Intangible** | Attaques = 1 dégât | 👻 | 1 tour |
-| **Rituel** | +X Force permanent | 🔮 | Permanent |
-| **Vitesse** | Pioche +X cartes | ⚡ | X tours |
+| Statut                                         | Effet                                  | Icône | Durée     |
+| ---------------------------------------------- | -------------------------------------- | ----- | --------- |
+| **Force**                                      | +X dégâts plats (talents / IA ennemie) | 💪    | X tours   |
+| **Dextérité**                                  | +X Armure plate (legacy / talents)     | 🛡️    | X tours   |
+| **damage_pct**                                 | +X % dégâts sortants (tous types)      | 💪    | X tours   |
+| **taijutsu_pct / ninjutsu_pct / genjutsu_pct** | +X % dégâts du type                    | 💪    | X tours   |
+| **block_pct**                                  | +X % armure gagnée                     | 🛡️    | X tours   |
+| **heal_pct**                                   | +X % soins                             | 💚    | X tours   |
+| **Régénération**                               | +X PV début de tour                    | 💚    | X tours   |
+| **Intangible**                                 | Attaques = 1 dégât                     | 👻    | 1 tour    |
+| **Rituel**                                     | +X Force permanent                     | 🔮    | Permanent |
+| **Vitesse**                                    | Pioche +X cartes                       | ⚡    | X tours   |
 
 ### Statuts Négatifs (Debuffs)
 
-| Statut | Effet | Icône | Durée |
-|--------|-------|-------|-------|
-| **Poison** | -X PV début de tour | ☠️ | X tours |
-| **Brûlure** | -X PV fin de tour | 🔥 | X tours |
-| **Faiblesse** | -25% dégâts infligés | 🥀 | X tours |
-| **Vulnérable** | +50% dégâts reçus | 💔 | X tours |
-| **Paralysie** | Perd 1 tour | ⚡ | 1 tour |
-| **Confusion** | Cartes coûtent +1 | 🌀 | X tours |
+| Statut         | Effet                | Icône | Durée   |
+| -------------- | -------------------- | ----- | ------- |
+| **Poison**     | -X PV début de tour  | ☠️    | X tours |
+| **Brûlure**    | -X PV fin de tour    | 🔥    | X tours |
+| **Faiblesse**  | -25% dégâts infligés | 🥀    | X tours |
+| **Vulnérable** | +50% dégâts reçus    | 💔    | X tours |
+| **Paralysie**  | Perd 1 tour          | ⚡    | 1 tour  |
+| **Confusion**  | Cartes coûtent +1    | 🌀    | X tours |
 
 ### Mécanique de Stack
 
 **Cumul** : Les statuts s'empilent
 
 **Exemple** :
+
 ```
 Tour 1 : Applique Poison 5 (3 tours)
 Tour 2 : Applique Poison 3 (2 tours)
@@ -494,10 +522,10 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
     },
     {
       hp_threshold: 50,   // HP < 50% (Phase 2 - Enragé)
-      on_enter: { 
-        action: "special", 
+      on_enter: {
+        action: "special",
         effect: "full_heal_armor",
-        message: "Le Seigneur des Dunes se transforme !" 
+        message: "Le Seigneur des Dunes se transforme !"
       },
       pattern: [
         { action: "heavy_attack", damage: 28 },
@@ -506,7 +534,7 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
       ]
     }
   ],
-  
+
   passives: [
     {
       trigger: "on_damage_taken",
@@ -529,12 +557,14 @@ Début Tour 5 : Perd 3 PV, Poison → 0 (expiré)
 **Stratégie** : Empiler du Poison, survivre
 
 **Cartes clés** :
+
 - "Aiguille empoisonnée" (1 Chakra, 4 dégâts + Poison 5)
 - "Amplifier poison" (2 Chakra, double le Poison)
 - "Catalyseur" (2 Chakra, déclenche tout le Poison immédiatement)
 - "Substitution" (1 Chakra, 8 Armure + Évitement 50%)
 
 **Combo** :
+
 ```
 Tour 1 : Aiguille × 2 (Poison 10)
 Tour 2 : Amplifier poison (Poison 20)
@@ -546,12 +576,14 @@ Tour 3 : Catalyseur (20 dégâts instantanés !)
 **Stratégie** : Cartes low-cost, burst rapide
 
 **Cartes clés** :
+
 - "Combo rapide" (0 Chakra, 3 dégâts + Pioche 1)
 - "Coup de poing" (1 Chakra, 6 dégâts)
 - "Souffle déchaîné" (3 Chakra, +5 Force pendant 3 tours)
 - "Chute tournoyante" (2 Chakra, 14 dégâts, Exhaust)
 
 **Combo** :
+
 ```
 Tour 1 : Souffle déchaîné (+5 Force)
 Tour 2 : Combo × 3 + Poing × 2 = Énorme burst
@@ -562,12 +594,14 @@ Tour 2 : Combo × 3 + Poing × 2 = Énorme burst
 **Stratégie** : Soigner, tanker, épuiser
 
 **Cartes clés** :
+
 - "Mur Doton" (2 Chakra, 15 Armure)
 - "Paume apaisante" (2 Chakra, 12 Soins + Regen 5)
 - "Riposte" (1 Chakra, 6 Armure + Contre 8 dégâts)
 - "Régénération cellulaire" (3 Chakra, Regen 8 pendant 5 tours)
 
 **Combo** :
+
 ```
 Tour 1 : Régénération cellulaire (Regen 8 × 5 = 40 PV)
 Tous les tours : Mur + Riposte (tank + damage)

@@ -685,27 +685,31 @@
     "nextStepsLead": "Rien n'est verrouillé — suis la checklist ou saute où tu veux.",
     "stepCharacter": "Créer ton personnage",
     "hintCharacter": "Nom et élément — tu reçois un point de talent au niveau 1.",
-    "stepDeck": "Récupérer ton deck de départ",
+    "stepDeck": "Activer un deck valide",
     "hintDeck": "Les cartes de base sont accordées automatiquement ; ouvre le constructeur pour l'ajuster.",
     "stepTalents": "Dépenser un point de talent",
     "hintTalents": "Chaque niveau donne +1 point — jamais de stats gratuites.",
-    "stepMission": "Lancer une mission de combat",
+    "stepMission": "Remporter un parcours de mission",
     "hintMission": "Combat avec ton deck, gagne XP, Ryos et cartes.",
     "go": "Y aller",
     "done": "Fait",
     "continueCta": "Continuer — {step}",
     "noCharacterTitle": "Aucun personnage",
     "noCharacterLead": "Crée ton shinobi pour débloquer collection, decks, talents et missions.",
+    "playerLoadErrorTitle": "Impossible de charger le personnage",
+    "playerLoadErrorLead": "Vérifie ta connexion puis réessaie. Aucun onboarding ne sera proposé tant que son absence n’est pas confirmée.",
+    "retry": "Réessayer",
+    "progressLoadError": "Impossible de charger la progression. Réessaie pour afficher les premiers pas.",
     "createCharacter": "Créer un personnage",
     "shortcutMissions": "Parcours de combat & récompenses",
     "shortcutTalents": "Dépenser des points de talent",
     "shortcutDecks": "Construire ton deck 20–30 cartes",
     "shortcutCollection": "Parcourir tes cartes",
-    "shortcutShop": "Boosters & cosmétiques",
+    "shortcutShop": "Boosters & Kage Coins",
     "shortcutBp": "Piste de saison & quêtes",
     "shortcutPvp": "File d'attente pour un duel",
     "shortcutLeaderboard": "Classements niveau & PvP",
-    "shortcutProfile": "Stats & spécialisation",
+    "shortcutProfile": "Stats & talents",
     "statLevel": "Niveau",
     "statCards": "Cartes",
     "statDeck": "Deck actif",
@@ -713,6 +717,13 @@
     "noDeck": "Aucun",
     "shortcutsTitle": "Tout le jeu",
     "shortcutJournal": "Exploits permanents & paliers"
+  },
+  "resources": {
+    "balancesLabel": "Vos ressources",
+    "ryos": "Ryos : {n}",
+    "kageCoins": "Kage Coins : {n}",
+    "dust": "Poussière de carte : {n}",
+    "essence": "Essence de carte : {n}"
   },
   "cards": {
     "collectionKicker": "Catalogue",
@@ -730,6 +741,20 @@
     "disenchant": "Désenchanter",
     "upgradeSuccess": "Carte améliorée.",
     "disenchantSuccess": "Carte désenchantée.",
+    "upgradeUnavailable": "Cette carte ne peut pas être améliorée.",
+    "upgradeMaxLevel": "Cette carte a atteint son niveau d’amélioration maximal.",
+    "upgradeMythicMax": "Les cartes mythiques ne peuvent être améliorées qu’une fois.",
+    "requestFailed": "La requête a échoué. Réessayez.",
+    "refreshFailed": "Action effectuée, mais actualisation impossible. Rechargez la page avant de continuer.",
+    "cardNotFound": "Carte de collection introuvable.",
+    "insufficientRyos": "Ryos insuffisants.",
+    "insufficientDust": "Poussière de carte insuffisante.",
+    "insufficientEssence": "Essence insuffisante.",
+    "insufficientQuantity": "Pas assez d’exemplaires dans la collection.",
+    "cardInDeck": "Impossible de désenchanter : exemplaires utilisés dans un deck.",
+    "deckNotFound": "Deck introuvable.",
+    "deckNameRequired": "Nom du deck requis.",
+    "cardNotInDeck": "Carte absente du deck.",
     "upgradeLevel": "Niveau d’amélioration : {level}",
     "emptyCollection": "Aucune carte dans votre collection.",
     "emptyCollectionTitle": "Collection vide",
@@ -739,7 +764,7 @@
     "emptyDecksTitle": "Aucun deck",
     "emptyDecksLead": "Crée un deck ci-dessus, ou attends que le loadout de départ finisse d'accorder les cartes.",
     "emptyDeckNoCardsTitle": "Pas de cartes pour construire",
-    "emptyDeckNoCardsLead": "Ta collection est vide — récupère les starters depuis le hub, achète un booster, ou termine une mission.",
+    "emptyDeckNoCardsLead": "Ta collection est vide — achète un booster ou termine une mission pour obtenir des cartes.",
     "collectionProgress": "{owned} / {total} possédées",
     "showOwnedOnly": "Voir uniquement les cartes possédées",
     "missingBadge": "Manquante",
@@ -774,6 +799,8 @@
     "createDeck": "Créer",
     "deckCreated": "Deck créé.",
     "deckActivated": "Deck activé.",
+    "cardAddedToDeck": "Carte ajoutée au deck.",
+    "cardRemovedFromDeck": "Carte retirée du deck.",
     "types": {
       "attack": "Attaque",
       "defense": "Défense",
@@ -832,7 +859,7 @@
   "shop": {
     "kicker": "Acquisition",
     "title": "Boutique du Village",
-    "lead": "Parchemins, cosmétiques, Kage Coins et Passe de saison — tout depuis un même comptoir.",
+    "lead": "Parchemins, Kage Coins et Passe de saison — tout depuis un même comptoir.",
     "loading": "Chargement de la boutique…",
     "purchasing": "Achat…",
     "open": "Ouvrir",
@@ -866,14 +893,10 @@
     "revealDone": "Booster terminé — tes cartes ont rejoint ta collection.",
     "newCard": "Nouvelle",
     "duplicate": "Doublon · {name}",
-    "resultsTitle": "Butin du parchemin",
-    "resultsLead": "{newCount} nouvelle(s) · {dupCount} doublon(s)",
-    "openAnother": "Ouvrir un autre",
-    "viewCollection": "Voir la collection",
     "closeResults": "Retour au catalogue",
     "tabs": {
       "boosters": "Boosters",
-      "cosmetics": "Cosmétiques",
+
       "currency": "Monnaie",
       "battlePass": "Battle Pass"
     },
@@ -888,18 +911,7 @@
       "buyStripe": "Payer {n} €",
       "stripeNote": "Paiement sécurisé via Stripe Checkout (mode test ou live selon les clés)."
     },
-    "cosmetics": {
-      "buy": "Acheter",
-      "equip": "Équiper",
-      "owned": "Possédé",
-      "equipped": "Équipé",
-      "equippedHint": "Actuellement équipé sur le profil",
-      "types": {
-        "avatar_frame": "Cadres d’avatar",
-        "card_back": "Dos de carte",
-        "title": "Titres"
-      }
-    },
+
     "battlePass": {
       "kicker": "Saison",
       "title": "Passe de saison Premium",
@@ -976,10 +988,8 @@
       "ninjutsu": "Ninjutsu",
       "genjutsu": "Genjutsu",
       "medicine": "Médecine",
-      "vitesse": "Vitesse",
-      "intelligence": "Intelligence",
-      "dexterity": "Dextérité",
-      "maxHp": "PV max"
+      "maxHp": "PV max",
+      "maxChakra": "Chakra max"
     },
     "zoomIn": "Zoomer",
     "zoomOut": "Dézoomer",
@@ -1093,6 +1103,15 @@
       "talent": "Talent : {effect}",
       "summon": "Invocation : {name}",
       "allyAttack": "{name} inflige {n} dégâts",
+      "pvpSummon": "Vous invoquez {name} ({n} tours)",
+      "pvpAllyAttackYou": "Votre invocation {name} inflige {n} dégâts",
+      "pvpAllyAttackOpponent": "L'invocation adverse {name} inflige {n} dégâts",
+      "pvpAllyDamageYou": "Votre invocation encaisse {n} dégâts",
+      "pvpAllyDamageOpponent": "L'invocation adverse encaisse {n} dégâts",
+      "pvpAllyFallenYou": "Votre invocation tombe au combat",
+      "pvpAllyFallenOpponent": "L'invocation adverse tombe au combat",
+      "pvpAllyExpiredYou": "Votre invocation disparaît à la fin de sa durée",
+      "pvpAllyExpiredOpponent": "L'invocation adverse disparaît à la fin de sa durée",
       "rewards": "Récompenses accordées",
       "combatStart": "Le combat commence",
       "duelStart": "Le duel commence",
@@ -1193,6 +1212,7 @@
     "allyLabel": "Allié",
     "allyAttackStat": "ATK {n}",
     "allyTaunt": "Provocation",
+    "allyTurns": "{n} tours restants",
     "costLabel": "Coût {n}",
     "rankLabel": "Rang",
     "missionsListTitle": "Parcours disponibles"
@@ -1231,7 +1251,16 @@
       "forfeited": "Duel abandonné"
     },
     "rulesTitle": "Comment se déroule le duel",
-    "queueSection": "File d'attente"
+    "queueSection": "File d'attente",
+    "inviteTitle": "Inviter un ami",
+    "inviteLead": "Créez un code privé et partagez le lien à votre ami. Il pourra rejoindre votre duel depuis son compte.",
+    "createInvite": "Créer un code d’invitation",
+    "copyInvite": "Copier le lien",
+    "copyFailed": "Impossible de copier le lien. Vous pouvez partager le code affiché.",
+    "inviteExpiry": "Ce code expire après 30 minutes et ne peut être utilisé qu’une fois.",
+    "inviteCodeLabel": "Rejoindre avec un code",
+    "inviteCodePlaceholder": "Code à 8 caractères",
+    "acceptInvite": "Rejoindre le duel"
   },
   "player": {
     "profileKicker": "Shinobi",
@@ -1252,8 +1281,7 @@
     "talentPoints": "{count} point de talent disponible | {count} points de talent disponibles",
     "openMissions": "Aller aux missions",
     "openDecks": "Ouvrir les decks",
-    "specializationTitle": "Choisir une spécialisation",
-    "specializationLead": "Disponible à partir du niveau 10. Choix définitif pour cette saison de progression.",
+
     "levelUpTitle": "Niveau supérieur !",
     "levelUpTitleMulti": "+{count} niveaux !",
     "levelUpTalent": "+{count} point de talent | +{count} points de talent",
@@ -1265,12 +1293,7 @@
       "Doton": "Doton",
       "Futon": "Fûton"
     },
-    "specs": {
-      "Taijutsu": "Taijutsu",
-      "Ninjutsu": "Ninjutsu",
-      "Genjutsu": "Genjutsu",
-      "Medicine": "Médecine"
-    },
+
     "stats": {
       "taijutsu": "Taijutsu",
       "ninjutsu": "Ninjutsu",
@@ -1706,7 +1729,7 @@
   },
   "eliteShowcase": {
     "title": "Pack Élite — identité",
-    "lead": "Maquette du composant SenseiIdentity : cosmétiques visibles par les autres joueurs.",
+    "lead": "Maquette du composant SenseiIdentity : identité visible par les autres joueurs.",
     "hint": "Les abonnés Pack Élite deviennent Jonin Élite — pseudo coloré, titre personnalisable et bannière animée.",
     "editorTitle": "Éditeur d'identité (preview)",
     "editorHint": "Simulation de ce que le joueur configurera dans son profil une fois le Pack Élite actif.",
@@ -1840,19 +1863,58 @@
     "ownHint": "Personnalisez votre identité et gérez le Pack Élite ci-dessous.",
     "ownBadge": "Votre profil public",
     "eliteSectionTitle": "Pack Élite",
-    "eliteSectionLead": "Identité personnalisée, season pass et récompenses cosmétiques.",
+    "eliteSectionLead": "Identité personnalisée et récompenses du passe de saison.",
     "heritageSectionTitle": "Mur de l'héritage",
     "reconChallengeSent": "Défi de reconnaissance envoyé à {name} — en attente d'acceptation."
   },
   "admin": {
     "title": "Administration",
-    "lead": "Outils d'exploitation : horloge, reset de saison et maintenance.",
+    "lead": "Administration des comptes joueurs, attribution de ressources et réinitialisation de progression TCG.",
     "loginRequired": "Connectez-vous pour accéder au panneau admin.",
     "goLogin": "Se connecter",
     "forbidden": "Votre compte n'a pas les droits administrateur.",
     "forbiddenHint": "Demandez à un admin d'exécuter : UPDATE users SET is_admin = TRUE WHERE username = 'votre_compte';",
     "connectedAs": "Connecté en tant que {username}.",
     "lastResult": "Dernier résultat",
+    "players": {
+      "title": "Gestion des joueurs",
+      "lead": "Attribuez des ressources et choisissez précisément les données à réinitialiser pour le joueur sélectionné. Le compte et l’identité du personnage sont conservés.",
+      "refresh": "Actualiser",
+      "search": "Rechercher un joueur",
+      "searchPlaceholder": "Nom de compte ou personnage",
+      "select": "Joueur",
+      "choose": "Choisir un joueur",
+      "empty": "Aucun joueur trouvé.",
+      "noCharacter": "Aucun personnage",
+      "collectionCount": "{count} cartes dans la collection",
+      "deckCount": "{count} decks",
+      "ryos": "Ryos à ajouter",
+      "kageCoins": "Kage Coins à ajouter",
+      "cardDust": "Poussière à ajouter",
+      "cardEssence": "Essence à ajouter",
+      "current": "Solde actuel",
+      "grant": "Attribuer les ressources",
+      "granting": "Attribution…",
+      "grantAmountRequired": "Saisissez au moins une quantité supérieure à zéro.",
+      "grantSuccess": "Ressources attribuées à {name}.",
+      "resetTitle": "Réinitialiser ce joueur",
+      "resetWarning": "Cochez uniquement les éléments à effacer. Le compte et l’identité du personnage sont conservés. Les changements de niveau et de talents ne s’appliquent que si leurs cases sont cochées.",
+      "resetCollection": "Collection et decks (tout vider, sans cartes de départ)",
+      "resetCombats": "Combats en cours hors missions",
+      "resetMissions": "Missions en cours et combats associés",
+      "resetRyos": "Ryos",
+      "resetKageCoins": "Kage Coins",
+      "resetCardMaterials": "Matériaux d’amélioration (poussière et essence)",
+      "resetLevel": "Niveau, XP et rang (retour au niveau 1)",
+      "resetTalents": "Talents débloqués (points rendus)",
+      "resetSelectionRequired": "Cochez au moins un élément à réinitialiser.",
+      "adminRole": "Administrateur",
+      "adminCannotReset": "Les comptes administrateur sont protégés contre l’attribution et le reset.",
+      "reset": "Réinitialiser la sélection",
+      "resetting": "Réinitialisation…",
+      "resetConfirm": "Confirmer la réinitialisation de {name} pour les éléments sélectionnés ?",
+      "resetSuccess": "Les éléments sélectionnés de {name} ont été réinitialisés."
+    },
     "clock": {
       "title": "Horloge de jeu",
       "anchor": "Ancre H0 :",
@@ -1951,7 +2013,7 @@
     "pointsCycle": "{n} pts cycle",
     "pointsSeason": "{n} saison",
     "howToScore": "Comment scorér",
-    "noCombatBonus": "Aucun bonus de stats en match — cosmétiques et Ryos seulement.",
+    "noCombatBonus": "Aucun bonus de stats en match — Ryos seulement.",
     "topContributors": "Meilleurs contributeurs (cycle)",
     "contribution": "Votre contribution : {pts} / {cap} pts ce cycle",
     "titlePrefix": "Titre ·",
@@ -1990,7 +2052,7 @@
   "battlePass": {
     "kicker": "Saison",
     "title": "Passe de saison",
-    "lead": "Progressez sur deux pistes — gratuite et premium — et réclamez ryos, poussière, cartes et cosmétiques exclusifs.",
+    "lead": "Progressez sur deux pistes — gratuite et premium — et réclamez ryos, poussière, cartes et parchemins.",
     "loading": "Chargement de la saison…",
     "noSeason": "Aucune saison active. Lancez le seed Battle Pass.",
     "level": "Niv. {n}",
@@ -2015,7 +2077,7 @@
       "premium": "premium"
     },
     "unlockTitle": "Débloquer le Premium",
-    "unlockLead": "Accédez à la piste premium, cosmétiques exclusifs et +20 % d’XP pour toute la saison.",
+    "unlockLead": "Accédez à la piste premium et +20 % d’XP pour toute la saison.",
     "unlockCoins": "Débloquer · {n} Kage Coins",
     "unlockStub": "Stub admin",
     "premiumUnlocked": "Battle Pass Premium débloqué.",
@@ -2037,8 +2099,7 @@
       "essence": "{n} Essence",
       "kageCoins": "{n} Kage Coins",
       "card": "{n}× carte {rarity}",
-      "booster": "Booster {type}",
-      "cosmetic": "Cosmétique · {kind}"
+      "booster": "Booster {type}"
     },
     "rarity": {
       "common": "commune",
@@ -2051,12 +2112,7 @@
       "premium": "premium",
       "legendary": "légendaire"
     },
-    "cosmetic": {
-      "avatar": "avatar",
-      "card_back": "dos de carte",
-      "emote": "emote",
-      "card_effect": "effet de carte"
-    },
+
     "levelLabel": "Niveau",
     "tracksLabel": "Pistes de récompenses",
     "questsTitle": "Quêtes"
@@ -2073,7 +2129,7 @@
   "factions": {
     "pickLabel": "Faction",
     "pickTitle": "Choisis ton pays",
-    "pickLead": "Trois pays issus de l’ancienne rivalité — identité cosmétique, sans bonus de combat. Un retake gratuit ensuite.",
+    "pickLead": "Trois pays issus de l’ancienne rivalité — identité sans bonus de combat. Un retake gratuit ensuite.",
     "names": {
       "midorihara": "Midorihara",
       "kareno": "Kareno",

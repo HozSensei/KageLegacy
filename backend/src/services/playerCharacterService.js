@@ -5,37 +5,21 @@
  * ⚠️ Aucune stat automatique au level-up : uniquement +1 talent_points_available.
  */
 import { query } from '../config/database.js';
-import {
-  assignFactionFromSeed,
-  getFaction,
-  isValidFactionId,
-} from './factionCatalog.js';
-import { ELEMENTS, SPECIALIZATIONS } from '../validators/player.js';
+import { assignFactionFromSeed, getFaction, isValidFactionId } from './factionCatalog.js';
+import { ELEMENTS } from '../validators/player.js';
 
 /** Niveau max du personnage. */
 export const MAX_LEVEL = 100;
-
-/** Niveau minimum pour choisir une spécialisation. */
-export const SPECIALIZATION_MIN_LEVEL = 10;
 
 /**
  * Clés de stats combat (docs/COMBAT_SYSTEM.md).
  * Phase 1 : toutes à 0 tant que talents/cartes ne sont pas branchés.
  */
-export const STAT_KEYS = [
-  'taijutsu',
-  'ninjutsu',
-  'genjutsu',
-  'medicine',
-  'vitesse',
-  'intelligence',
-  'dexterity',
-  'maxHp',
-];
+export const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'];
 
 /** Stats de base documentées (Phase 1) : zéro — tout vient des talents + cartes. */
 export function createEmptyStats() {
-  return Object.fromEntries(STAT_KEYS.map((key) => [key, 0]));
+  return Object.fromEntries(STAT_KEYS.map(key => [key, 0]));
 }
 
 /**
@@ -82,7 +66,7 @@ async function tableExists(tableName) {
        FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ?
        LIMIT 1`,
-      [tableName],
+      [tableName]
     );
     return rows.length > 0;
   } catch {
@@ -99,7 +83,7 @@ async function columnExists(tableName, columnName) {
          AND table_name = ?
          AND column_name = ?
        LIMIT 1`,
-      [tableName, columnName],
+      [tableName, columnName]
     );
     return rows.length > 0;
   } catch {
@@ -180,7 +164,6 @@ function serializeCharacter(row, extras = {}) {
     clanTraitId: row.clan_trait_id ?? null,
     clanName: row.clan_name ?? extras.clanName ?? null,
     elementAffinity: row.element_affinity,
-    specialization: row.specialization,
     factionId,
     faction: factionId ? getFaction(factionId) : null,
     factionRetakeUsed: Boolean(row.faction_retake_used),
@@ -197,7 +180,7 @@ async function fetchCharacterRow(userId) {
      LEFT JOIN clan_traits ct ON ct.id = pc.clan_trait_id
      WHERE pc.user_id = ?
      LIMIT 1`,
-    [userId],
+    [userId]
   );
   return rows[0] || null;
 }
@@ -205,10 +188,11 @@ async function fetchCharacterRow(userId) {
 /**
  * Création personnage. Les clans joueur sont des cartes légendaires (passifs de deck),
  * pas un choix d'identité — `clanTraitId` est ignoré (rétrocompat body API / scripts).
+ * L'affinité par défaut est conservée pour la colonne historique obligatoire en base.
  */
 export async function createCharacter(
   userId,
-  { name, clanTraitId: _clanTraitId, elementAffinity, avatarUrl, factionId },
+  { name, clanTraitId: _clanTraitId, elementAffinity = 'Katon', avatarUrl, factionId }
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
 
@@ -239,14 +223,14 @@ export async function createCharacter(
       `INSERT INTO player_character
         (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization, faction_id)
        VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL, ?)`,
-      [userId, trimmedName, avatar, elementAffinity, resolvedFaction],
+      [userId, trimmedName, avatar, elementAffinity, resolvedFaction]
     );
   } else {
     await query(
       `INSERT INTO player_character
         (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
        VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL)`,
-      [userId, trimmedName, avatar, elementAffinity],
+      [userId, trimmedName, avatar, elementAffinity]
     );
   }
 
@@ -322,7 +306,7 @@ export async function addXP(userId, amount) {
       `UPDATE player_character
        SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
        WHERE user_id = ?`,
-      [after.level, after.xp, after.rank, after.talentPointsAvailable, userId],
+      [after.level, after.xp, after.rank, after.talentPointsAvailable, userId]
     );
   }
 
@@ -359,7 +343,7 @@ export async function levelUp(userId) {
     `UPDATE player_character
      SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
      WHERE user_id = ?`,
-    [nextLevel, nextXp, nextRank, nextTalent, userId],
+    [nextLevel, nextXp, nextRank, nextTalent, userId]
   );
 
   const character = await getCharacter(userId);
@@ -369,31 +353,4 @@ export async function levelUp(userId) {
     leveledUp: true,
     talentPointsGained: 1,
   };
-}
-
-export async function chooseSpecialization(userId, specialization) {
-  if (!SPECIALIZATIONS.includes(specialization)) {
-    throw httpError(400, 'Spécialisation invalide.');
-  }
-
-  const row = await fetchCharacterRow(userId);
-  if (!row) throw httpError(404, 'Personnage introuvable.');
-
-  if (row.level < SPECIALIZATION_MIN_LEVEL) {
-    throw httpError(
-      400,
-      `Spécialisation disponible à partir du niveau ${SPECIALIZATION_MIN_LEVEL}.`,
-    );
-  }
-
-  if (row.specialization) {
-    throw httpError(409, 'Une spécialisation a déjà été choisie.');
-  }
-
-  await query('UPDATE player_character SET specialization = ? WHERE user_id = ?', [
-    specialization,
-    userId,
-  ]);
-
-  return getCharacter(userId);
 }

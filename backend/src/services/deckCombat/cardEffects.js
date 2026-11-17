@@ -7,22 +7,15 @@ import {
   outgoingBlockMultiplier,
   outgoingDamageMultiplier,
   outgoingHealMultiplier,
-  rollCrit,
   scaleBlock,
   scaleDamage,
   scaleHeal,
   applyDamageThroughBlock,
 } from './formulas.js';
-import {
-  elementMultiplier,
-  typeAdvantageMultiplier,
-} from './typeAdvantage.js';
+import { elementMultiplier, typeAdvantageMultiplier } from './typeAdvantage.js';
 import { applyStatus } from './statuses.js';
 import { drawCards } from './deckRuntime.js';
-import {
-  applyTalentAfterHeal,
-  applyTalentToStatusPayload,
-} from './talentEffects.js';
+import { applyTalentAfterHeal, applyTalentToStatusPayload } from './talentEffects.js';
 import { canApplyStatus, hitEnemy } from './bossPhases.js';
 import { getNextIntent } from './enemyIntent.js';
 
@@ -42,7 +35,6 @@ export function computeCardDamage(card, ctx) {
     enemyPosture = null,
     enemyAffinity = null,
     talentMods = {},
-    rng = Math.random,
   } = ctx;
 
   if (talentMods.denyAttack) {
@@ -52,12 +44,12 @@ export function computeCardDamage(card, ctx) {
   let base = Number(card.damage) || 0;
   base += Number(talentMods.damageFlat) || 0;
 
-  const hitsEffect = (card.effects || []).find((e) => e.type === 'multi_strike');
+  const hitsEffect = (card.effects || []).find(e => e.type === 'multi_strike');
   const hits = hitsEffect ? Math.max(1, Number(hitsEffect.hits) || 1) : 1;
 
-  if ((card.effects || []).some((e) => e.type === 'bonus_if' && e.condition === 'enemy_vulnerable')) {
+  if ((card.effects || []).some(e => e.type === 'bonus_if' && e.condition === 'enemy_vulnerable')) {
     if (hasStatus(enemyStatuses, 'vulnerable')) {
-      const bonus = (card.effects || []).find((e) => e.type === 'bonus_if');
+      const bonus = (card.effects || []).find(e => e.type === 'bonus_if');
       base += Number(bonus?.value) || 0;
     }
   }
@@ -70,15 +62,14 @@ export function computeCardDamage(card, ctx) {
     perHit *
       typeAdvantageMultiplier(card.statType, enemyPosture) *
       elementMultiplier(card.element, enemyAffinity) *
-      outgoingDamageMultiplier(playerStatuses, { statType: card.statType }),
+      outgoingDamageMultiplier(playerStatuses, { statType: card.statType })
   );
 
   if (talentMods.damageMult) {
     perHit = Math.round(perHit * talentMods.damageMult);
   }
 
-  const crit = rollCrit(stats.vitesse, rng);
-  if (crit.isCrit) perHit = Math.round(perHit * crit.mult);
+  const crit = { isCrit: false, chance: 0 };
 
   let incomingMult = 1;
   if (hasStatus(enemyStatuses, 'vulnerable')) incomingMult *= 1.5;
@@ -93,7 +84,7 @@ export function computeCardDamage(card, ctx) {
 export function computeCardBlock(card, stats, playerStatuses = [], talentMods = {}) {
   if (talentMods.blockAllowed === false) return 0;
   let block = scaleBlock(Number(card.block) || 0, stats.medicine);
-  // Flat Dextérité (legacy / talents) — soutien : block_pct
+
   block += getStatusValue(playerStatuses, 'dexterity');
   const talentMult = Number(talentMods.blockMult) || 1;
   const statusMult = outgoingBlockMultiplier(playerStatuses);
@@ -163,8 +154,7 @@ export function applyCardPlay({
 
   // Dégâts
   const wantsAttack =
-    (Number(card.damage) || 0) > 0 ||
-    (card.effects || []).some((e) => e.type === 'multi_strike');
+    (Number(card.damage) || 0) > 0 || (card.effects || []).some(e => e.type === 'multi_strike');
 
   if (wantsAttack) {
     const dmg = computeCardDamage(card, {
@@ -184,17 +174,24 @@ export function applyCardPlay({
       let totalDealt = 0;
       const hitOpts = {
         armorIgnore,
-        announceIntent: (e) => getNextIntent(e),
+        announceIntent: e => getNextIntent(e),
       };
       const phaseLogTypes = new Set([
-        'boss_phase', 'shield_break', 'barrier_absorb', 'minion_damage',
-        'phase_buff', 'phase_barrier', 'phase_immunities', 'shield_break_vulnerable', 'intent',
+        'boss_phase',
+        'shield_break',
+        'barrier_absorb',
+        'minion_damage',
+        'phase_buff',
+        'phase_barrier',
+        'phase_immunities',
+        'shield_break_vulnerable',
+        'intent',
       ]);
       for (let i = 0; i < dmg.hits; i += 1) {
         const hit = hitEnemy(nextEnemy, dmg.perHit, hitOpts, applyDamageThroughBlock);
         nextEnemy = hit.enemy;
         totalDealt += hit.damageDealt;
-        logs.push(...hit.logs.filter((l) => phaseLogTypes.has(l.type)));
+        logs.push(...hit.logs.filter(l => phaseLogTypes.has(l.type)));
       }
       logs.push({
         type: 'damage',
@@ -220,7 +217,7 @@ export function applyCardPlay({
           amount: echo.damageDealt,
           enemyHp: nextEnemy.hp,
         });
-        logs.push(...echo.logs.filter((l) => l.type === 'boss_phase' || l.type === 'shield_break'));
+        logs.push(...echo.logs.filter(l => l.type === 'boss_phase' || l.type === 'shield_break'));
       }
     }
   }
@@ -283,8 +280,8 @@ export function resolveAllyAttack(player, enemy) {
   const hit = hitEnemy(
     enemy,
     atk,
-    { announceIntent: (e) => getNextIntent(e) },
-    applyDamageThroughBlock,
+    { announceIntent: e => getNextIntent(e) },
+    applyDamageThroughBlock
   );
   logs.push({
     type: 'ally_attack',
@@ -292,8 +289,11 @@ export function resolveAllyAttack(player, enemy) {
     amount: hit.damageDealt,
     enemyHp: hit.enemy.hp,
   });
-  logs.push(...hit.logs.filter((l) =>
-    l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage'));
+  logs.push(
+    ...hit.logs.filter(
+      l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage'
+    )
+  );
   return { player, enemy: hit.enemy, logs };
 }
 
@@ -314,17 +314,18 @@ function applyExtraEffect(effect, ctx) {
     const raw = Math.max(0, Number(effect.value) || 0);
     const scaled = scaleBlock(raw, ctx.stats?.medicine);
     const withDex = scaled + getStatusValue(player.statuses, 'dexterity');
-    const blockGain = Math.max(
-      0,
-      Math.round(withDex * outgoingBlockMultiplier(player.statuses)),
-    );
+    const blockGain = Math.max(0, Math.round(withDex * outgoingBlockMultiplier(player.statuses)));
     if (blockGain > 0) {
       player = { ...player, block: (Number(player.block) || 0) + blockGain };
       logs.push({ type: 'block', source: 'player', amount: blockGain, block: player.block });
     }
   } else if (type === 'apply_status') {
     const target =
-      effect.target === 'self' ? 'player' : effect.target === 'enemy' ? 'enemy' : guessStatusTarget(effect.status);
+      effect.target === 'self'
+        ? 'player'
+        : effect.target === 'enemy'
+          ? 'enemy'
+          : guessStatusTarget(effect.status);
     const statusKey = normalizeStatusKey(effect.status);
     let payload = {
       key: statusKey,

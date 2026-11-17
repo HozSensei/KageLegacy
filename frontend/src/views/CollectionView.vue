@@ -1,101 +1,127 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
-import CollectionGrid from '../components/cards/CollectionGrid.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import { cardTypeVisual } from '../utils/cardVisuals'
-import { localizedDescription, localizedName } from '../utils/localeContent.js'
-import forestImage from '../assets/illustrations/forest-path.webp'
-import { useCollectionStore } from '../stores/collection'
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { RouterLink } from 'vue-router';
+import CollectionGrid from '../components/cards/CollectionGrid.vue';
+import EmptyState from '../components/ui/EmptyState.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
+import { cardTypeVisual } from '../utils/cardVisuals';
+import { localizedDescription, localizedName } from '../utils/localeContent.js';
+import { cardActionError } from '../utils/cardActionErrors.js';
+import forestImage from '../assets/illustrations/forest-path.webp';
+import { useCollectionStore } from '../stores/collection';
+import { useShopStore } from '../stores/shop';
 
-defineOptions({ name: 'CollectionView' })
+defineOptions({ name: 'CollectionView' });
 
-const { t, locale } = useI18n()
-const collection = useCollectionStore()
+const { t, locale } = useI18n();
+const collection = useCollectionStore();
+const shop = useShopStore();
 /** Slot sélectionné : owned (entry) ou hole (card only). */
-const selectedSlot = ref(null)
-const message = ref(null)
+const selectedSlot = ref(null);
+const message = ref(null);
 
 onMounted(() => {
-  collection.fetchCollectionView()
-})
+  collection.fetchCollectionView();
+});
 
-const selected = computed(() => selectedSlot.value?.entry || null)
-const selectedCard = computed(() => selectedSlot.value?.card || null)
-const selectedKey = computed(() => selectedSlot.value?.key || null)
-const isHole = computed(() => selectedSlot.value?.kind === 'hole')
+const selected = computed(() => selectedSlot.value?.entry || null);
+const selectedCard = computed(() => selectedSlot.value?.card || null);
+const selectedKey = computed(() => selectedSlot.value?.key || null);
+const isHole = computed(() => selectedSlot.value?.kind === 'hole');
 
 const selectedName = computed(() => {
-  const card = selectedCard.value
-  if (!card) return ''
-  return localizedName(card, locale.value)
-})
+  const card = selectedCard.value;
+  if (!card) return '';
+  return localizedName(card, locale.value);
+});
 const selectedDescription = computed(() => {
-  const card = selectedCard.value
-  if (!card) return ''
-  return localizedDescription(card, locale.value)
-})
-const selectedVisual = computed(() => cardTypeVisual(selectedCard.value?.type))
+  const card = selectedCard.value;
+  if (!card) return '';
+  return localizedDescription(card, locale.value);
+});
+const selectedVisual = computed(() => cardTypeVisual(selectedCard.value?.type));
 
-const busy = computed(() => collection.loading || collection.catalogueLoading)
-/** EmptyState seulement en mode « possédées » sans cartes, ou catalogue + collection vides. */
+const busy = computed(() => collection.loading || collection.catalogueLoading);
+const upgradeCost = computed(() => selected.value?.actionPreview?.upgradeCost || null);
+const canUpgrade = computed(() => Boolean(upgradeCost.value));
+const upgradeUnavailableReason = computed(() => {
+  if (!selected.value || canUpgrade.value) return null;
+  if (!selectedCard.value?.upgradable) return t('cards.upgradeUnavailable');
+  if (selectedCard.value?.rarity === 'mythic' && selected.value.upgradeLevel >= 1) {
+    return t('cards.upgradeMythicMax');
+  }
+  if (selected.value.upgradeLevel >= 2) return t('cards.upgradeMaxLevel');
+  return t('cards.upgradeUnavailable');
+});
+/** Garder les filtres accessibles tant que le catalogue contient des cartes. */
 const showEmptyState = computed(() => {
-  if (busy.value) return false
-  if (collection.ownedOnly) return !collection.entries.length
-  return !collection.catalogueTotal && !collection.entries.length
-})
+  if (busy.value || collection.error) return false;
+  return !collection.catalogueTotal && !collection.entries.length;
+});
 
 function onSelect(slot) {
-  selectedSlot.value = slot
-  message.value = null
+  selectedSlot.value = slot;
+  message.value = null;
 }
 
 function onOwnedOnlyUpdate(value) {
-  collection.setOwnedOnly(value)
+  collection.setOwnedOnly(value);
   if (value && selectedSlot.value?.kind === 'hole') {
-    selectedSlot.value = null
+    selectedSlot.value = null;
   }
 }
 
 function slotFromCatalogue(cardId, preferredCollectionId = null) {
-  const slots = collection.catalogueSlots
+  const slots = collection.catalogueSlots;
   if (preferredCollectionId != null) {
     const owned = slots.find(
-      (s) =>
-        s.kind === 'owned' && Number(s.entry?.collectionId) === Number(preferredCollectionId)
-    )
-    if (owned) return owned
+      s => s.kind === 'owned' && Number(s.entry?.collectionId) === Number(preferredCollectionId)
+    );
+    if (owned) return owned;
   }
-  return (
-    slots.find((s) => Number(s.card?.id) === Number(cardId)) || null
-  )
+  const slot = slots.find(s => Number(s.card?.id) === Number(cardId)) || null;
+  return collection.ownedOnly && slot?.kind === 'hole' ? null : slot;
 }
 
 async function onUpgrade() {
-  if (!selected.value) return
+  if (!selected.value) return;
   try {
-    const collectionId = selected.value.collectionId
-    const cardId = selectedCard.value?.id
-    await collection.upgrade(collectionId)
-    message.value = t('cards.upgradeSuccess')
-    selectedSlot.value = slotFromCatalogue(cardId, collectionId)
-  } catch {
-    message.value = collection.error
+    const collectionId = selected.value.collectionId;
+    const cardId = selectedCard.value?.id;
+    const result = await collection.upgrade(collectionId);
+    const balances = result.resources || (await shop.fetchBalances());
+    if (result.resources) shop.balances = result.resources;
+    if (collection.error || !balances) {
+      selectedSlot.value = null;
+      message.value = { type: 'error', key: 'cards.refreshFailed' };
+    } else {
+      message.value = { type: 'success', key: 'cards.upgradeSuccess' };
+      selectedSlot.value = slotFromCatalogue(cardId, collectionId);
+    }
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
   }
 }
 
 async function onDisenchant() {
-  if (!selected.value) return
+  if (!selected.value) return;
   try {
-    const id = selected.value.collectionId
-    const cardId = selectedCard.value?.id
-    await collection.disenchant(id, 1)
-    message.value = t('cards.disenchantSuccess')
-    selectedSlot.value = slotFromCatalogue(cardId, id)
-  } catch {
-    message.value = collection.error
+    const id = selected.value.collectionId;
+    const cardId = selectedCard.value?.id;
+    const result = await collection.disenchant(id, 1);
+    const balances = result.resources || (await shop.fetchBalances());
+    if (result.resources) shop.balances = result.resources;
+    if (collection.error || !balances) {
+      selectedSlot.value = null;
+      message.value = { type: 'error', key: 'cards.refreshFailed' };
+    } else {
+      message.value = { type: 'success', key: 'cards.disenchantSuccess' };
+      selectedSlot.value = slotFromCatalogue(cardId, id);
+    }
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
   }
 }
 </script>
@@ -123,8 +149,15 @@ async function onDisenchant() {
       </template>
     </PageHeader>
 
-    <p v-if="collection.error && !message" class="alert alert--error mt-6">{{ collection.error }}</p>
-    <p v-if="message" class="alert alert--success mt-6">{{ message }}</p>
+    <div v-if="collection.error && !message" class="alert alert--error mt-6" role="alert">
+      <p>{{ cardActionError(collection.error, locale, t) }}</p>
+      <button type="button" class="btn-ghost" @click="collection.fetchCollectionView()">
+        {{ t('hub.retry') }}
+      </button>
+    </div>
+    <p v-if="message" class="alert mt-6" :class="`alert--${message.type}`" role="status">
+      {{ message.key ? t(message.key) : cardActionError(message.error, locale, t) }}
+    </p>
 
     <EmptyState
       v-if="showEmptyState"
@@ -172,7 +205,11 @@ async function onDisenchant() {
         <h2 class="sr-only">{{ t('cards.detailTitle') }}</h2>
 
         <Transition name="rise" mode="out-in">
-          <div v-if="isHole && selectedSlot" :key="selectedKey" class="collection-detail__body">
+          <div
+            v-if="isHole && selectedSlot"
+            :key="`hole-${selectedKey}`"
+            class="collection-detail__body"
+          >
             <p class="collection-detail__name">
               {{ t('cards.missingCardTitle', { n: selectedSlot.catalogueNumber }) }}
             </p>
@@ -184,12 +221,13 @@ async function onDisenchant() {
               }}</RouterLink>
             </p>
           </div>
-          <div v-else-if="selectedCard" :key="selectedKey" class="collection-detail__body">
+          <div
+            v-else-if="selectedCard"
+            :key="`card-${selectedKey}`"
+            class="collection-detail__body"
+          >
             <p class="collection-detail__name">{{ selectedName }}</p>
-            <p
-              v-if="selectedSlot?.catalogueNumber != null"
-              class="collection-detail__catalogue-n"
-            >
+            <p v-if="selectedSlot?.catalogueNumber != null" class="collection-detail__catalogue-n">
               {{ t('cards.catalogueNumberLabel', { n: selectedSlot.catalogueNumber }) }}
             </p>
             <p class="mt-3 leading-relaxed text-ink">{{ selectedDescription }}</p>
@@ -211,7 +249,9 @@ async function onDisenchant() {
                   <dd class="figure figure--md">×{{ selected.quantity }}</dd>
                 </div>
                 <div>
-                  <dt class="t-small">{{ t('cards.upgradeLevel', { level: selected.upgradeLevel }) }}</dt>
+                  <dt class="t-small">
+                    {{ t('cards.upgradeLevel', { level: selected.upgradeLevel }) }}
+                  </dt>
                   <dd class="collection-detail__levels" aria-hidden="true">
                     <span
                       v-for="n in 2"
@@ -227,18 +267,94 @@ async function onDisenchant() {
                 <button
                   type="button"
                   class="btn-primary btn-block"
-                  :disabled="collection.actionLoading || selected.upgradeLevel >= 2"
+                  :disabled="collection.actionLoading || !canUpgrade"
                   @click="onUpgrade"
                 >
-                  {{ t('cards.upgrade') }}
+                  <span>{{ t('cards.upgrade') }}</span>
+                  <span v-if="upgradeCost" class="collection-detail__action-cost">
+                    <span
+                      v-if="upgradeCost.ryos"
+                      :title="t('resources.ryos', { n: upgradeCost.ryos.toLocaleString(locale) })"
+                      ><AppIcon name="ryos" size="0.9rem" /><span class="sr-only">{{
+                        t('resources.ryos', { n: upgradeCost.ryos.toLocaleString(locale) })
+                      }}</span
+                      ><span aria-hidden="true">{{
+                        upgradeCost.ryos.toLocaleString(locale)
+                      }}</span></span
+                    >
+                    <span
+                      v-if="upgradeCost.dust"
+                      :title="t('resources.dust', { n: upgradeCost.dust.toLocaleString(locale) })"
+                      ><AppIcon name="dust" size="0.9rem" /><span class="sr-only">{{
+                        t('resources.dust', { n: upgradeCost.dust.toLocaleString(locale) })
+                      }}</span
+                      ><span aria-hidden="true">{{
+                        upgradeCost.dust.toLocaleString(locale)
+                      }}</span></span
+                    >
+                    <span
+                      v-if="upgradeCost.essence"
+                      :title="
+                        t('resources.essence', { n: upgradeCost.essence.toLocaleString(locale) })
+                      "
+                      ><AppIcon name="essence" size="0.9rem" /><span class="sr-only">{{
+                        t('resources.essence', { n: upgradeCost.essence.toLocaleString(locale) })
+                      }}</span
+                      ><span aria-hidden="true">{{
+                        upgradeCost.essence.toLocaleString(locale)
+                      }}</span></span
+                    >
+                  </span>
+                  <span v-else class="sr-only">{{ t('cards.upgradeUnavailable') }}</span>
                 </button>
+                <p v-if="upgradeUnavailableReason" class="collection-detail__action-hint">
+                  {{ upgradeUnavailableReason }}
+                </p>
                 <button
                   type="button"
                   class="btn-ghost btn-block"
                   :disabled="collection.actionLoading"
                   @click="onDisenchant"
                 >
-                  {{ t('cards.disenchant') }}
+                  <span>{{ t('cards.disenchant') }}</span>
+                  <span class="collection-detail__action-cost" data-gain="true">
+                    <span
+                      v-if="selected.actionPreview?.disenchantGain?.dust"
+                      :title="
+                        t('resources.dust', {
+                          n: selected.actionPreview.disenchantGain.dust.toLocaleString(locale),
+                        })
+                      "
+                      ><AppIcon name="dust" size="0.9rem" /><span class="sr-only">{{
+                        t('resources.dust', {
+                          n: selected.actionPreview.disenchantGain.dust.toLocaleString(locale),
+                        })
+                      }}</span
+                      ><span aria-hidden="true"
+                        >+{{
+                          selected.actionPreview.disenchantGain.dust.toLocaleString(locale)
+                        }}</span
+                      ></span
+                    >
+                    <span
+                      v-if="selected.actionPreview?.disenchantGain?.essence"
+                      :title="
+                        t('resources.essence', {
+                          n: selected.actionPreview.disenchantGain.essence.toLocaleString(locale),
+                        })
+                      "
+                      ><AppIcon name="essence" size="0.9rem" /><span class="sr-only">{{
+                        t('resources.essence', {
+                          n: selected.actionPreview.disenchantGain.essence.toLocaleString(locale),
+                        })
+                      }}</span
+                      ><span aria-hidden="true"
+                        >+{{
+                          selected.actionPreview.disenchantGain.essence.toLocaleString(locale)
+                        }}</span
+                      ></span
+                    >
+                  </span>
                 </button>
               </div>
             </template>
@@ -349,6 +465,33 @@ async function onDisenchant() {
 
 .collection-detail__figures dd {
   margin-top: 0.5rem;
+}
+
+.collection-detail__action-hint {
+  margin: -0.2rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-ink-muted);
+}
+
+.collection-detail__action-cost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.collection-detail__action-cost span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.collection-detail__action-cost[data-gain='true'] {
+  color: var(--color-leaf);
 }
 
 .collection-detail__levels {

@@ -67,7 +67,7 @@ export async function ensureStarterDeck(userId, { name = STARTER_DECK_NAME_FR } 
 
   const decks = await listDecks(userId);
   if (decks.length > 0) {
-    return { created: false, deck: decks.find((d) => d.isActive) || decks[0] };
+    return { created: false, deck: decks.find(d => d.isActive) || decks[0] };
   }
 
   const collection = await getCollection(userId);
@@ -75,7 +75,7 @@ export async function ensureStarterDeck(userId, { name = STARTER_DECK_NAME_FR } 
     return { created: false, deck: null };
   }
 
-  const cards = collection.map((entry) => ({
+  const cards = collection.map(entry => ({
     collectionId: entry.collectionId,
     quantity: Math.min(3, Math.max(1, Number(entry.quantity) || 1)),
   }));
@@ -88,6 +88,18 @@ export async function ensureStarterDeck(userId, { name = STARTER_DECK_NAME_FR } 
  * Pipeline complet : collection vide → grant starters → deck starter.
  */
 export async function ensureStarterLoadout(userId) {
+  const resetRows = await query('SELECT starter_loadout_reset_at FROM users WHERE id = ? LIMIT 1', [
+    userId,
+  ]);
+  if (resetRows[0]?.starter_loadout_reset_at) {
+    return {
+      collectionGranted: false,
+      collectionCount: (await getCollection(userId)).length,
+      deckCreated: false,
+      deck: null,
+    };
+  }
+
   const collectionResult = await ensureStarterCollection(userId);
   const deckResult = await ensureStarterDeck(userId);
   return {
@@ -105,7 +117,13 @@ export async function grantStarterLoadoutOnCreate(userId) {
   } catch (error) {
     // Character creation must not fail if cards are not seeded yet.
     console.warn('[starterLoadout] grant on create skipped:', error.message);
-    return { collectionGranted: false, collectionCount: 0, deckCreated: false, deck: null, error: error.message };
+    return {
+      collectionGranted: false,
+      collectionCount: 0,
+      deckCreated: false,
+      deck: null,
+      error: error.message,
+    };
   }
 }
 

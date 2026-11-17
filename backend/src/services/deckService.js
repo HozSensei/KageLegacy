@@ -42,7 +42,7 @@ function httpError(statusCode, message) {
 }
 
 function emptyStats() {
-  return Object.fromEntries(STAT_KEYS.map((key) => [key, 0]));
+  return Object.fromEntries(STAT_KEYS.map(key => [key, 0]));
 }
 
 function mergeStats(...sources) {
@@ -72,10 +72,10 @@ function serializeDeckCard(row) {
 }
 
 async function assertDeckOwner(deckId, userId) {
-  const rows = await query(
-    `SELECT * FROM user_decks WHERE id = ? AND user_id = ? LIMIT 1`,
-    [deckId, userId]
-  );
+  const rows = await query('SELECT * FROM user_decks WHERE id = ? AND user_id = ? LIMIT 1', [
+    deckId,
+    userId,
+  ]);
   if (!rows[0]) throw httpError(404, 'Deck introuvable.');
   return rows[0];
 }
@@ -194,12 +194,8 @@ export function validateDeck(cards) {
 
   if (clanCount > MAX_CLAN_CARDS) {
     codes.push('too_many_clan');
-    errors.push(
-      `Maximum ${MAX_CLAN_CARDS} carte de clan par deck (actuellement ${clanCount}).`
-    );
-    errorsEn.push(
-      `Max ${MAX_CLAN_CARDS} clan card per deck (currently ${clanCount}).`
-    );
+    errors.push(`Maximum ${MAX_CLAN_CARDS} carte de clan par deck (actuellement ${clanCount}).`);
+    errorsEn.push(`Max ${MAX_CLAN_CARDS} clan card per deck (currently ${clanCount}).`);
   }
 
   if (legendaryOrMythicCount > MAX_LEGENDARY_OR_MYTHIC) {
@@ -245,7 +241,7 @@ function bilingualError(frMessages, enMessages) {
 
 export async function listDecks(userId) {
   const decks = await query(
-    `SELECT * FROM user_decks WHERE user_id = ? ORDER BY is_active DESC, updated_at DESC`,
+    'SELECT * FROM user_decks WHERE user_id = ? ORDER BY is_active DESC, updated_at DESC',
     [userId]
   );
 
@@ -287,26 +283,52 @@ export async function getDeck(userId, deckId) {
 }
 
 export async function getActiveDeck(userId) {
-  const rows = await query(
-    `SELECT * FROM user_decks WHERE user_id = ? AND is_active = 1 LIMIT 1`,
-    [userId]
-  );
+  const rows = await query('SELECT * FROM user_decks WHERE user_id = ? AND is_active = 1 LIMIT 1', [
+    userId,
+  ]);
   if (!rows[0]) return null;
   return getDeck(userId, rows[0].id);
+}
+
+/**
+ * Resolve the deck that will actually be used in a combat and enforce every
+ * active deck constraint immediately before the combat starts.
+ */
+export async function getPlayableDeckForCombat(userId, deckId = null) {
+  const deck = deckId != null ? await getDeck(userId, Number(deckId)) : await getActiveDeck(userId);
+
+  if (!deck) {
+    throw httpError(
+      400,
+      'Aucun deck actif. Créez puis activez un deck valide de 20 à 30 cartes avant de lancer un combat.'
+    );
+  }
+
+  const validation = deck.validation || validateDeck(deck.cards || []);
+  if (!validation.valid) {
+    throw httpError(
+      400,
+      `Le deck « ${deck.name} » ne peut pas être utilisé : ${bilingualError(
+        validation.errors,
+        validation.errorsEn
+      )} Corrigez-le avant de lancer un combat.`
+    );
+  }
+
+  return deck;
 }
 
 export async function createDeck(userId, { name, archetype = 'midrange', cards = [] } = {}) {
   const trimmed = String(name || '').trim();
   if (trimmed.length < 1) throw httpError(400, 'Nom du deck requis.');
 
-  const existingCount = await query(
-    `SELECT COUNT(*) AS c FROM user_decks WHERE user_id = ?`,
-    [userId]
-  );
+  const existingCount = await query('SELECT COUNT(*) AS c FROM user_decks WHERE user_id = ?', [
+    userId,
+  ]);
   const isFirst = Number(existingCount[0]?.c) === 0;
 
   const result = await query(
-    `INSERT INTO user_decks (user_id, name, is_active, archetype) VALUES (?, ?, ?, ?)`,
+    'INSERT INTO user_decks (user_id, name, is_active, archetype) VALUES (?, ?, ?, ?)',
     [userId, trimmed, isFirst ? 1 : 0, archetype]
   );
 
@@ -342,15 +364,15 @@ export async function updateDeck(userId, deckId, { name, archetype } = {}) {
 
 export async function deleteDeck(userId, deckId) {
   const deck = await assertDeckOwner(deckId, userId);
-  await query(`DELETE FROM user_decks WHERE id = ? AND user_id = ?`, [deckId, userId]);
+  await query('DELETE FROM user_decks WHERE id = ? AND user_id = ?', [deckId, userId]);
 
   if (deck.is_active) {
     const others = await query(
-      `SELECT id FROM user_decks WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1`,
+      'SELECT id FROM user_decks WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1',
       [userId]
     );
     if (others[0]) {
-      await query(`UPDATE user_decks SET is_active = 1 WHERE id = ?`, [others[0].id]);
+      await query('UPDATE user_decks SET is_active = 1 WHERE id = ?', [others[0].id]);
     }
   }
 
@@ -368,8 +390,8 @@ export async function setActiveDeck(userId, deckId) {
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute(`UPDATE user_decks SET is_active = 0 WHERE user_id = ?`, [userId]);
-    await connection.execute(`UPDATE user_decks SET is_active = 1 WHERE id = ? AND user_id = ?`, [
+    await connection.execute('UPDATE user_decks SET is_active = 0 WHERE user_id = ?', [userId]);
+    await connection.execute('UPDATE user_decks SET is_active = 1 WHERE id = ? AND user_id = ?', [
       deckId,
       userId,
     ]);
@@ -423,7 +445,7 @@ export async function replaceDeckCards(userId, deckId, cards) {
     });
   }
 
-  const preview = normalized.map((n) => ({
+  const preview = normalized.map(n => ({
     collectionId: n.collectionId,
     cardDefinitionId: n.cardDefinitionId,
     quantity: n.quantity,
@@ -446,7 +468,7 @@ export async function replaceDeckCards(userId, deckId, cards) {
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute(`DELETE FROM user_deck_cards WHERE deck_id = ?`, [deckId]);
+    await connection.execute('DELETE FROM user_deck_cards WHERE deck_id = ?', [deckId]);
     let position = 0;
     for (const n of normalized) {
       position += 1;
@@ -469,7 +491,9 @@ export async function replaceDeckCards(userId, deckId, cards) {
   try {
     const { onAchievementAction } = await import('./achievementService.js');
     await onAchievementAction(userId, 'deck_size', Number(deck?.size) || 0);
-  } catch { /* exploits optionnels */ }
+  } catch {
+    /* exploits optionnels */
+  }
   return deck;
 }
 
@@ -480,7 +504,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
   if (!owned) throw httpError(404, 'Carte de collection introuvable.');
 
   const existing = await query(
-    `SELECT * FROM user_deck_cards WHERE deck_id = ? AND user_card_collection_id = ? LIMIT 1`,
+    'SELECT * FROM user_deck_cards WHERE deck_id = ? AND user_card_collection_id = ? LIMIT 1',
     [deckId, collectionId]
   );
 
@@ -500,7 +524,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
   }
 
   const cards = await getDeckCards(deckId);
-  const sizeWithout = countDeckSize(cards.filter((c) => c.collectionId !== collectionId));
+  const sizeWithout = countDeckSize(cards.filter(c => c.collectionId !== collectionId));
   if (sizeWithout + nextQty > DECK_MAX_SIZE) {
     throw httpError(
       400,
@@ -512,7 +536,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
   }
 
   const preview = [
-    ...cards.filter((c) => c.collectionId !== collectionId),
+    ...cards.filter(c => c.collectionId !== collectionId),
     {
       collectionId,
       quantity: nextQty,
@@ -533,7 +557,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
   }
 
   if (existing[0]) {
-    await query(`UPDATE user_deck_cards SET quantity = ? WHERE id = ?`, [nextQty, existing[0].id]);
+    await query('UPDATE user_deck_cards SET quantity = ? WHERE id = ?', [nextQty, existing[0].id]);
   } else {
     await query(
       `INSERT INTO user_deck_cards
@@ -550,16 +574,16 @@ export async function removeCardFromDeck(userId, deckId, collectionId, quantity 
   await assertDeckOwner(deckId, userId);
   const qty = Math.max(1, Number(quantity) || 1);
   const existing = await query(
-    `SELECT * FROM user_deck_cards WHERE deck_id = ? AND user_card_collection_id = ? LIMIT 1`,
+    'SELECT * FROM user_deck_cards WHERE deck_id = ? AND user_card_collection_id = ? LIMIT 1',
     [deckId, collectionId]
   );
   if (!existing[0]) throw httpError(404, 'Carte absente du deck.');
 
   const nextQty = Number(existing[0].quantity) - qty;
   if (nextQty <= 0) {
-    await query(`DELETE FROM user_deck_cards WHERE id = ?`, [existing[0].id]);
+    await query('DELETE FROM user_deck_cards WHERE id = ?', [existing[0].id]);
   } else {
-    await query(`UPDATE user_deck_cards SET quantity = ? WHERE id = ?`, [nextQty, existing[0].id]);
+    await query('UPDATE user_deck_cards SET quantity = ? WHERE id = ?', [nextQty, existing[0].id]);
   }
 
   return getDeck(userId, deckId);

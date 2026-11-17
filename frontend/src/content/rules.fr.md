@@ -4,13 +4,13 @@
 
 Ce guide décrit le jeu tel qu'il fonctionne aujourd'hui. Les chiffres donnés sont ceux appliqués par le jeu.
 
-*Dernière mise à jour : novembre 2026*
+_Dernière mise à jour : novembre 2026_
 
 ---
 
 ## En bref
 
-1. **Créez votre ninja** : un nom, une affinité élémentaire, une lignée.
+1. **Créez votre ninja** : un nom, une lignée.
 2. **Recevez votre deck de départ** : 22 cartes, déjà prêtes à jouer.
 3. **Lancez une mission** : un parcours de 3 à 5 combats entrecoupés d'événements.
 4. **Gagnez de l'expérience** : chaque niveau donne 1 point de talent.
@@ -27,10 +27,9 @@ Rien n'augmente tout seul : monter de niveau ne donne **aucune statistique**, un
 Chaque compte possède **un seul ninja**. À la création, vous choisissez :
 
 - son **nom** (2 caractères au minimum) ;
-- son **affinité élémentaire** : Katon, Suiton, Raiton, Doton ou Futon ;
 - sa **lignée** : Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani ou Yukisawa.
 
-L'affinité et la lignée composent l'identité de votre ninja et s'affichent sur son profil. Elles ne donnent **aucun bonus chiffré** en combat.
+La lignée compose l'identité de votre ninja et s'affiche sur son profil. Elle ne donne **aucun bonus chiffré** en combat.
 
 À l'inscription, vous choisissez aussi un **pays** (Midorihara, Kareno, Oborohama ou Ishikura). Il n'apporte aucun bonus de combat.
 
@@ -38,19 +37,19 @@ Votre ninja commence au **niveau 1**, au rang **Genin**, avec **1 point de talen
 
 ### Niveau et rang
 
-Les victoires rapportent de l'expérience (XP). Passer du niveau *N* au niveau suivant demande **100 × N** XP : 100 XP pour atteindre le niveau 2, 200 XP pour le niveau 3, et ainsi de suite. Le niveau maximum est **100**.
+Les victoires rapportent de l'expérience (XP). Passer du niveau _N_ au niveau suivant demande **100 × N** XP : 100 XP pour atteindre le niveau 2, 200 XP pour le niveau 3, et ainsi de suite. Le niveau maximum est **100**.
 
 Chaque niveau gagné donne **1 point de talent**. Il ne donne rien d'autre.
 
 Le rang suit le niveau :
 
-| Niveau | Rang |
-|--------|------|
-| 1 à 19 | Genin |
-| 20 à 39 | Chunin |
-| 40 à 59 | Jonin |
-| 60 à 79 | ANBU |
-| 80 à 100 | Kage |
+| Niveau   | Rang   |
+| -------- | ------ |
+| 1 à 19   | Genin  |
+| 20 à 39  | Chunin |
+| 40 à 59  | Jonin  |
+| 60 à 79  | ANBU   |
+| 80 à 100 | Kage   |
 
 Le rang est un titre : il n'ajoute pas de statistiques.
 
@@ -63,21 +62,17 @@ Votre ninja n'a **aucune statistique de base**. Ses statistiques sont la somme d
 
 Le profil affiche le détail de ces deux sources.
 
-| Statistique | Effet en combat |
-|-------------|-----------------|
-| **Taijutsu** | Augmente les dégâts des cartes Taijutsu |
-| **Ninjutsu** | Augmente les dégâts des cartes Ninjutsu |
-| **Genjutsu** | Augmente les dégâts des cartes Genjutsu |
-| **Médecine** | Augmente l'armure et les soins de toutes vos cartes, ainsi que les dégâts des cartes Médecine |
-| **Vitesse** | Donne 1 % de chance de coup critique par tranche de 10 points, jusqu'à 50 % |
-| **PV max** | S'ajoute aux 100 points de vie de départ |
+| Statistique                     | Effet en combat                                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Taijutsu**                    | Augmente les dégâts des cartes Taijutsu                                                                                     |
+| **Ninjutsu**                    | Augmente les dégâts des cartes Ninjutsu                                                                                     |
+| **Genjutsu**                    | Augmente les dégâts des cartes Genjutsu                                                                                     |
+| **Médecine**                    | Augmente l'armure et les soins de toutes vos cartes, ainsi que les dégâts des cartes Médecine                               |
+| **Vitesse**                     | Donne 1 % de chance de coup critique par tranche de 10 points, jusqu'à 50 %                                                 |
+| **PV max**                      | S'ajoute aux 100 points de vie de départ                                                                                    |
 | **Intelligence**, **Dextérité** | Accordées par certains talents et cartes et affichées sur le profil. Elles n'entrent pas dans les calculs de combat actuels |
 
 Chaque point de Taijutsu, de Ninjutsu, de Genjutsu ou de Médecine vaut **+1 %** : avec 30 en Ninjutsu, une carte Ninjutsu à 10 dégâts en inflige 13.
-
-### Spécialisation
-
-À partir du **niveau 10**, vous pouvez choisir une spécialisation sur votre profil : Taijutsu, Ninjutsu, Genjutsu ou Médecine. Ce choix est **définitif**.
 
 ---
 
@@ -90,13 +85,13 @@ Le jeu compte **200 cartes**. Chaque carte a deux rôles :
 
 ### Types de cartes
 
-| Type | Rôle |
-|------|------|
-| **Attaque** | Inflige des dégâts, parfois avec un statut |
-| **Défense** | Donne de l'armure |
-| **Soutien** | Soigne, fait piocher, rend du Chakra, applique des statuts |
-| **Invocation** | Appelle un allié qui combat à vos côtés |
-| **Objet** | Effet ponctuel ; la plupart s'épuisent après usage |
+| Type           | Rôle                                                       |
+| -------------- | ---------------------------------------------------------- |
+| **Attaque**    | Inflige des dégâts, parfois avec un statut                 |
+| **Défense**    | Donne de l'armure                                          |
+| **Soutien**    | Soigne, fait piocher, rend du Chakra, applique des statuts |
+| **Invocation** | Appelle un allié qui combat à vos côtés                    |
+| **Objet**      | Effet ponctuel ; la plupart s'épuisent après usage         |
 
 Une carte peut être liée à une **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) et à un **élément** (Katon, Suiton, Raiton, Doton, Futon).
 
@@ -112,23 +107,23 @@ Jouer une carte coûte du **Chakra** (de 0 à plusieurs points). Une carte marqu
 
 Depuis la Collection, une carte peut être améliorée deux fois : niveau **+**, puis niveau **++**. Une carte mythique s'arrête au niveau +. L'amélioration renforce l'effet actif et le bonus passif.
 
-| Rareté | Niveau + | Niveau ++ |
-|--------|----------|-----------|
-| Commune | 300 Ryos, 15 poussière | 1 500 Ryos, 80 poussière |
-| Rare | 1 200 Ryos, 80 poussière | 5 000 Ryos, 400 poussière |
-| Légendaire | 4 500 Ryos, 400 poussière | 18 000 Ryos, 1 800 poussière, 10 essence |
-| Mythique | 18 000 Ryos, 1 800 poussière, 20 essence | — |
+| Rareté     | Niveau +                                 | Niveau ++                                |
+| ---------- | ---------------------------------------- | ---------------------------------------- |
+| Commune    | 300 Ryos, 15 poussière                   | 1 500 Ryos, 80 poussière                 |
+| Rare       | 1 200 Ryos, 80 poussière                 | 5 000 Ryos, 400 poussière                |
+| Légendaire | 4 500 Ryos, 400 poussière                | 18 000 Ryos, 1 800 poussière, 10 essence |
+| Mythique   | 18 000 Ryos, 1 800 poussière, 20 essence | —                                        |
 
 ### Désenchantement
 
 Vous pouvez détruire un exemplaire d'une carte pour obtenir de la **poussière de carte** :
 
-| Rareté | Poussière obtenue |
-|--------|-------------------|
-| Commune | 10 |
-| Rare | 40 |
-| Légendaire | 200 |
-| Mythique | 1 000 |
+| Rareté     | Poussière obtenue |
+| ---------- | ----------------- |
+| Commune    | 10                |
+| Rare       | 40                |
+| Légendaire | 200               |
+| Mythique   | 1 000             |
 
 Une carte légendaire améliorée rend en plus 2 essence, une carte mythique améliorée 5 essence. Un exemplaire utilisé dans un deck ne peut pas être désenchanté.
 
@@ -164,10 +159,10 @@ L'arbre compte **150 nœuds** répartis en un **centre** et quatre branches : **
 
 Trois sortes de nœuds :
 
-| Nœud | Ce qu'il apporte |
-|------|------------------|
-| **Stat** | Un bonus de statistique |
-| **Notable** | Un bonus de statistique et un effet spécial |
+| Nœud         | Ce qu'il apporte                                           |
+| ------------ | ---------------------------------------------------------- |
+| **Stat**     | Un bonus de statistique                                    |
+| **Notable**  | Un bonus de statistique et un effet spécial                |
 | **Keystone** | Un effet puissant assorti d'une contrepartie. Il y en a 10 |
 
 L'effet de chaque nœud est décrit dans l'arbre lorsque vous le sélectionnez.
@@ -204,13 +199,13 @@ Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse
 
 L'ennemi exécute l'intention qu'il avait annoncée, puis en annonce une nouvelle :
 
-| Intention | Effet |
-|-----------|-------|
-| **Attaque** | Inflige les dégâts indiqués |
-| **Défense** | L'ennemi gagne de l'armure |
-| **Renforcement** | L'ennemi se donne un statut favorable |
+| Intention           | Effet                                       |
+| ------------------- | ------------------------------------------- |
+| **Attaque**         | Inflige les dégâts indiqués                 |
+| **Défense**         | L'ennemi gagne de l'armure                  |
+| **Renforcement**    | L'ennemi se donne un statut favorable       |
 | **Affaiblissement** | L'ennemi vous inflige un statut défavorable |
-| **Action spéciale** | Charge, invocation ou barrière (voir Boss) |
+| **Action spéciale** | Charge, invocation ou barrière (voir Boss)  |
 
 ### Dégâts, armure et soins
 
@@ -243,16 +238,16 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 
 ### Statuts
 
-| Statut | Effet |
-|--------|-------|
-| **Force** | Ajoute sa valeur aux dégâts de chaque coup |
-| **Dextérité** | Ajoute sa valeur à l'armure gagnée par carte |
-| **Régénération** | Rend sa valeur en PV au début du tour |
-| **Poison** | Retire sa valeur en PV au début du tour |
-| **Brûlure** | Retire sa valeur en PV à la fin du tour |
-| **Faiblesse** | Dégâts infligés réduits de 25 % |
-| **Vulnérable** | Dégâts subis augmentés de 50 % |
-| **Intangible** | Les attaques subies n'infligent que 1 dégât |
+| Statut           | Effet                                        |
+| ---------------- | -------------------------------------------- |
+| **Force**        | Ajoute sa valeur aux dégâts de chaque coup   |
+| **Dextérité**    | Ajoute sa valeur à l'armure gagnée par carte |
+| **Régénération** | Rend sa valeur en PV au début du tour        |
+| **Poison**       | Retire sa valeur en PV au début du tour      |
+| **Brûlure**      | Retire sa valeur en PV à la fin du tour      |
+| **Faiblesse**    | Dégâts infligés réduits de 25 %              |
+| **Vulnérable**   | Dégâts subis augmentés de 50 %               |
+| **Intangible**   | Les attaques subies n'infligent que 1 dégât  |
 
 Un statut appliqué de nouveau **cumule** sa valeur. Sa durée diminue de 1 à la fin de chaque tour de celui qui le porte.
 
@@ -288,12 +283,12 @@ Les boss ferment les parcours de rang B, A et S. Ils ont des mécaniques propres
 Les missions sont classées en cinq rangs, du plus simple au plus difficile : **D**, **C**, **B**, **A**, **S**. Il y a 16 missions. Toutes sont accessibles dès le départ : à vous de juger si votre deck est prêt.
 
 | Rang | Missions | Combats par parcours | Boss final |
-|------|----------|----------------------|------------|
-| D | 3 | 3 | Non |
-| C | 3 | 3 | Non |
-| B | 5 | 4 | Oui |
-| A | 4 | 5 | Oui |
-| S | 1 | 5 | Oui |
+| ---- | -------- | -------------------- | ---------- |
+| D    | 3        | 3                    | Non        |
+| C    | 3        | 3                    | Non        |
+| B    | 5        | 4                    | Oui        |
+| A    | 4        | 5                    | Oui        |
+| S    | 1        | 5                    | Oui        |
 
 ### Le parcours
 
@@ -309,12 +304,12 @@ Chaque combat gagné dans un parcours rapporte **2 ferrailles**. La ferraille ne
 
 Entre deux combats, un événement vous propose un choix. Par exemple :
 
-| Événement | Choix |
-|-----------|-------|
-| **Sanctuaire de Mousse** | Méditer : +30 % de vos PV max |
-| **Cache d'Éclaireur** | Fouiller : +12 % de vos PV max et 2 ferrailles |
-| **Colporteur d'Ombre** | Bandage : 3 ferrailles contre +25 % PV. Tonique : 5 ferrailles contre +50 % PV |
-| **Carrefour du Voile** | Soin de +25 % PV, ou 4 ferrailles |
+| Événement                | Choix                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------ |
+| **Sanctuaire de Mousse** | Méditer : +30 % de vos PV max                                                  |
+| **Cache d'Éclaireur**    | Fouiller : +12 % de vos PV max et 2 ferrailles                                 |
+| **Colporteur d'Ombre**   | Bandage : 3 ferrailles contre +25 % PV. Tonique : 5 ferrailles contre +50 % PV |
+| **Carrefour du Voile**   | Soin de +25 % PV, ou 4 ferrailles                                              |
 
 Les autres événements suivent le même principe : un soin, gratuit ou payé en ferraille, ou un gain de ferraille.
 
@@ -341,11 +336,11 @@ Le duel rapide lance un combat unique contre l'ennemi de votre choix, hors parco
 
 Un parchemin contient **5 cartes**.
 
-| Parchemin | Prix | Commune | Rare | Légendaire | Mythique |
-|-----------|------|---------|------|------------|----------|
-| **Standard** | 400 Ryos | 70 % | 23 % | 5,5 % | 1,5 % |
-| **Élémentaire** | 650 Ryos | 65 % | 26 % | 7 % | 2 % |
-| **Premium** | 100 Kage Coins | 55 % | 32 % | 10 % | 3 % |
+| Parchemin       | Prix           | Commune | Rare | Légendaire | Mythique |
+| --------------- | -------------- | ------- | ---- | ---------- | -------- |
+| **Standard**    | 400 Ryos       | 70 %    | 23 % | 5,5 %      | 1,5 %    |
+| **Élémentaire** | 650 Ryos       | 65 %    | 26 % | 7 %        | 2 %      |
+| **Premium**     | 100 Kage Coins | 55 %    | 32 % | 10 %       | 3 %      |
 
 - Le parchemin **Élémentaire** ne contient que des cartes liées à un élément. Vous pouvez choisir lequel.
 - Le parchemin **Premium** garantit au moins une carte rare ou meilleure.
@@ -353,22 +348,18 @@ Un parchemin contient **5 cartes**.
 
 Les cartes exclusives d'une saison ne sortent pas des parchemins.
 
-### Cosmétiques
-
-Cadres d'avatar, dos de carte et titres. Ils s'achètent en Ryos, en Kage Coins ou avec les deux. Ils sont **purement visuels** et ne changent rien en combat.
-
 ### Kage Coins
 
 Les Kage Coins s'achètent avec de l'argent réel, par paiement sécurisé :
 
-| Pack | Kage Coins | Prix |
-|------|------------|------|
-| Éclat de Chakra | 100 | 1 € |
-| Braise du Village | 500 + 50 offerts | 5 € |
-| Forge des Ombres | 1 000 + 150 offerts | 10 € |
-| Coffre du Kage | 5 000 + 1 000 offerts | 50 € |
+| Pack              | Kage Coins            | Prix |
+| ----------------- | --------------------- | ---- |
+| Éclat de Chakra   | 100                   | 1 €  |
+| Braise du Village | 500 + 50 offerts      | 5 €  |
+| Forge des Ombres  | 1 000 + 150 offerts   | 10 € |
+| Coffre du Kage    | 5 000 + 1 000 offerts | 50 € |
 
-Les Kage Coins servent à ouvrir des parchemins Premium, à acheter certains cosmétiques et à débloquer la piste premium du passe de saison. Tout le contenu de jeu reste accessible sans en acheter.
+Les Kage Coins servent à ouvrir des parchemins Premium et à débloquer la piste premium du passe de saison. Tout le contenu de jeu reste accessible sans en acheter.
 
 ---
 
@@ -384,11 +375,11 @@ Le passe de saison compte **50 niveaux** et **deux pistes** de récompenses :
 - en terminant des **missions** : plus le rang est élevé, plus le gain est important ;
 - en accomplissant des **quêtes** :
 
-| Quête | XP de passe |
-|-------|-------------|
-| Journalière | 200 |
-| Hebdomadaire | 1 000 |
-| Jalon de saison | 5 000 |
+| Quête           | XP de passe |
+| --------------- | ----------- |
+| Journalière     | 200         |
+| Hebdomadaire    | 1 000       |
+| Jalon de saison | 5 000       |
 
 Une quête terminée doit être **réclamée** pour créditer son XP.
 
@@ -398,7 +389,7 @@ Chaque niveau demande 1 000 XP de passe pour les niveaux 1 à 10, puis 50 XP de 
 
 ### Récompenses
 
-Chaque niveau atteint ouvre une récompense sur chaque piste : Ryos, poussière de carte, essence, Kage Coins, cartes, parchemins ou cosmétiques. Une récompense doit être **réclamée** sur la page du passe. Celles de la piste premium demandent d'avoir débloqué le premium.
+Chaque niveau atteint ouvre une récompense sur chaque piste : Ryos, poussière de carte, essence, Kage Coins, cartes ou parchemins. Une récompense doit être **réclamée** sur la page du passe. Celles de la piste premium demandent d'avoir débloqué le premium.
 
 ---
 
@@ -419,7 +410,10 @@ Les bases sont celles du combat de mission : 100 PV plus votre bonus de PV max, 
 Le duel utilise une version **simplifiée** des règles :
 
 - les dégâts, l'armure et les soins des cartes sont calculés avec vos statistiques, coups critiques compris ;
-- les statuts, les avantages de voie et d'élément, les effets spéciaux des talents et les invocations ne s'y appliquent pas ;
+- les statuts, les avantages de voie et d'élément et les effets spéciaux des talents ne s'y appliquent pas ;
+- les invocations attaquent automatiquement à la fin du tour de leur propriétaire et disparaissent après la durée indiquée sur leur carte ;
+- une invocation avec **Provocation** encaisse automatiquement les dégâts à la place de son propriétaire jusqu'à sa mort ou son expiration ;
+- les autres capacités spéciales des invocations ne s'appliquent pas en PvP pour l'instant ;
 - les cartes non jouées **restent en main** d'un tour à l'autre, dans la limite de 10 ;
 - l'armure disparaît à la **fin de votre propre tour**.
 
@@ -429,18 +423,18 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 
 ## Monnaies et ressources
 
-| Ressource | Comment l'obtenir | À quoi elle sert |
-|-----------|-------------------|------------------|
-| **Ryos** | Missions, duels rapides, passe de saison | Parchemins Standard et Élémentaire, amélioration de cartes, cosmétiques, réinitialisation des talents |
-| **Kage Coins** | Achat en boutique, passe de saison | Parchemins Premium, cosmétiques, piste premium du passe |
-| **Poussière de carte** | Désenchantement, passe de saison | Amélioration de cartes |
-| **Essence** | Désenchantement de cartes légendaires ou mythiques améliorées, passe de saison | Dernières améliorations des cartes légendaires et mythiques |
-| **Ferraille** | Combats et événements d'un parcours | Soins pendant ce parcours uniquement |
+| Ressource              | Comment l'obtenir                                                              | À quoi elle sert                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| **Ryos**               | Missions, duels rapides, passe de saison                                       | Parchemins Standard et Élémentaire, amélioration de cartes, réinitialisation des talents |
+| **Kage Coins**         | Achat en boutique, passe de saison                                             | Parchemins Premium, piste premium du passe                                               |
+| **Poussière de carte** | Désenchantement, passe de saison                                               | Amélioration de cartes                                                                   |
+| **Essence**            | Désenchantement de cartes légendaires ou mythiques améliorées, passe de saison | Dernières améliorations des cartes légendaires et mythiques                              |
+| **Ferraille**          | Combats et événements d'un parcours                                            | Soins pendant ce parcours uniquement                                                     |
 
 ---
 
 ## Historique des mises à jour
 
-| Date | Changement |
-|------|------------|
+| Date       | Changement                                                                                                                                                                             |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-11-14 | Réécriture complète pour la version actuelle : un seul ninja, deck de 20 à 30 cartes, arbre de talents, combat au tour par tour, parcours de mission, boutique, passe de saison, arène |

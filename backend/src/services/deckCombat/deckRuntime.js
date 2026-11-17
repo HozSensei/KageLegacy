@@ -55,7 +55,7 @@ export function drawCards(player, count, rng = Math.random) {
 
 export function moveCardFromHand(player, instanceId, destination = 'discard') {
   const hand = [...(player.hand || [])];
-  const idx = hand.findIndex((c) => c.instanceId === instanceId);
+  const idx = hand.findIndex(c => c.instanceId === instanceId);
   if (idx === -1) return { player, card: null };
 
   const [card] = hand.splice(idx, 1);
@@ -118,7 +118,7 @@ export const PRACTICE_DECK_CARDS = [
   {
     id: 'practice-fist',
     slug: 'practice-fist',
-    nameFr: 'Poing d\'entraînement',
+    nameFr: "Poing d'entraînement",
     nameEn: 'Training Fist',
     type: 'attack',
     statType: 'taijutsu',
@@ -242,17 +242,18 @@ export const PRACTICE_DECK_CARDS = [
       nameEn: 'Clone',
       hp: 8,
       attack: 2,
+      duration: 2,
       taunt: true,
     },
     exhaust: true,
-    descriptionFr: 'Invoque un Clone (8 PV, 2 ATK, Taunt).',
-    descriptionEn: 'Summon a Clone (8 HP, 2 ATK, Taunt).',
+    descriptionFr: 'Invoque un Clone (8 PV, 2 ATK, Taunt, 2 tours en PvP).',
+    descriptionEn: 'Summon a Clone (8 HP, 2 ATK, Taunt, 2 turns in PvP).',
   },
 ];
 
 /** Deck d'entraînement : 3× des 6 cartes de base + 1 clone (19 cartes). */
 export function buildPracticeDeckEntries() {
-  return PRACTICE_DECK_CARDS.map((card) => ({
+  return PRACTICE_DECK_CARDS.map(card => ({
     quantity: card.type === 'summon' ? 1 : 3,
     card,
   }));

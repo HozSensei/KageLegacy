@@ -41,7 +41,11 @@ export function validateBootstrap(bootstrap, expected = {}) {
   const flags = [];
 
   if (!bootstrap?.fighters?.host || !bootstrap?.fighters?.guest) {
-    return { ok: false, errors: ['bootstrap.fighters host/guest requis'], flags: ['bootstrap_missing_fighters'] };
+    return {
+      ok: false,
+      errors: ['bootstrap.fighters host/guest requis'],
+      flags: ['bootstrap_missing_fighters'],
+    };
   }
 
   for (const seat of ['host', 'guest']) {
@@ -60,14 +64,22 @@ export function validateBootstrap(bootstrap, expected = {}) {
     }
 
     const level = Number(f.level);
-    if (!Number.isFinite(level) || level < PVP_AC_LIMITS.minLevel || level > PVP_AC_LIMITS.maxLevel) {
+    if (
+      !Number.isFinite(level) ||
+      level < PVP_AC_LIMITS.minLevel ||
+      level > PVP_AC_LIMITS.maxLevel
+    ) {
       errors.push(`${label}.level hors plage`);
       flags.push('bootstrap_level_bounds');
     }
 
     const maxHp = Number(f.maxHp);
     const hp = Number(f.hp);
-    if (!Number.isFinite(maxHp) || maxHp < PVP_AC_LIMITS.minMaxHp || maxHp > PVP_AC_LIMITS.maxMaxHp) {
+    if (
+      !Number.isFinite(maxHp) ||
+      maxHp < PVP_AC_LIMITS.minMaxHp ||
+      maxHp > PVP_AC_LIMITS.maxMaxHp
+    ) {
       errors.push(`${label}.maxHp hors plage`);
       flags.push('bootstrap_maxhp_bounds');
     }
@@ -281,7 +293,10 @@ function validateFighterSummary(f, seat, errors, flags) {
     flags.push('block_absurd');
   }
   const chakra = Number(f.chakra);
-  if (f.chakra != null && (!Number.isFinite(chakra) || chakra < 0 || chakra > PVP_AC_LIMITS.maxChakra)) {
+  if (
+    f.chakra != null &&
+    (!Number.isFinite(chakra) || chakra < 0 || chakra > PVP_AC_LIMITS.maxChakra)
+  ) {
     errors.push(`${seat}.chakra absurde`);
     flags.push('chakra_absurd');
   }
@@ -314,6 +329,27 @@ export function compareHostGuestChecksums(hostChecksum, guestChecksum) {
     voidMatch: true,
     flags: ['checksum_host_guest_mismatch'],
   };
+}
+
+/**
+ * État pur de la confirmation bilatérale d'un résultat normal.
+ * Le checksum du Host porte le résultat validé par le serveur ; celui du Guest
+ * ne peut que confirmer ce même état, jamais le remplacer.
+ */
+export function evaluateResultConfirmation({
+  hostChecksum,
+  guestChecksum,
+  confirmationExpiresAt = null,
+  now = Date.now(),
+} = {}) {
+  const compared = compareHostGuestChecksums(hostChecksum, guestChecksum);
+  if (compared.voidMatch) return { state: 'checksum_mismatch', compared };
+  if (!hostChecksum) return { state: 'awaiting_host_report', compared };
+  if (compared.match) return { state: 'confirmed', compared };
+  if (confirmationExpiresAt && new Date(confirmationExpiresAt).getTime() <= now) {
+    return { state: 'expired', compared };
+  }
+  return { state: 'awaiting_guest_confirmation', compared };
 }
 
 /**
@@ -357,7 +393,7 @@ export function independentChecksumFromPublic(publicState) {
       host: summarize(fighters.host, 'host'),
       guest: summarize(fighters.guest, 'guest'),
     },
-    {},
+    {}
   );
   return { checksum: fingerprint(summary), summary };
 }

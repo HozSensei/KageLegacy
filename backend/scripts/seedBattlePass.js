@@ -112,6 +112,12 @@ async function seedQuests(seasonId, start, end) {
 }
 
 async function main() {
+  if (process.argv.includes('--if-empty')) {
+    const { seedE2eBattlePass } = await import('./lib/e2eBattlePass.js');
+    await seedE2eBattlePass();
+    process.exit(0);
+  }
+
   try {
     await query('SELECT 1 FROM battle_pass_seasons LIMIT 1');
   } catch (e) {

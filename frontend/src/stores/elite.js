@@ -85,26 +85,6 @@ export const useEliteStore = defineStore('elite', () => {
     }
   }
 
-  async function saveCosmetics(payload) {
-    if (!subscription.value?.isActive) {
-      throw new Error(i18n.global.t('errors.eliteRequired'))
-    }
-    const res = await fetch(`${API_BASE}/api/elite/cosmetics`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error(await readApiError(res))
-    const data = await res.json()
-    identity.value = data.identity
-    equipped.value = {
-      titleSlug: data.equipped?.title_slug ?? data.equipped?.titleSlug,
-      bannerSlug: data.equipped?.banner_slug ?? data.equipped?.bannerSlug,
-      nameColor: data.equipped?.name_color ?? data.equipped?.nameColor,
-    }
-    return data
-  }
-
   async function activateDevPack() {
     const res = await fetch(`${API_BASE}/api/dev/grant-elite`, { method: 'POST' })
     if (!res.ok) throw new Error(await readApiError(res))
@@ -202,7 +182,6 @@ export const useEliteStore = defineStore('elite', () => {
     identity,
     equipped,
     fetchElite,
-    saveCosmetics,
     activateDevPack,
     startCheckout,
     confirmCheckout,

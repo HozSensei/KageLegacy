@@ -17,6 +17,7 @@ const props = defineProps({
   boosterName: { type: String, default: '' },
   element: { type: String, default: null },
   cardCount: { type: Number, default: 0 },
+  showCollectionStatus: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['done'])
@@ -78,14 +79,16 @@ const nextLabel = computed(() => {
 })
 
 const showNewBadge = computed(
-  () => phase.value === 'revealed' && Boolean(currentEntry.value?.isNew),
+  () =>
+    props.showCollectionStatus && phase.value === 'revealed' && Boolean(currentEntry.value?.isNew)
 )
 
 const showDupBadge = computed(
   () =>
+    props.showCollectionStatus &&
     phase.value === 'revealed' &&
     currentEntry.value &&
-    !currentEntry.value.isNew,
+    !currentEntry.value.isNew
 )
 
 const collectedCount = computed(() => {
@@ -95,9 +98,7 @@ const collectedCount = computed(() => {
 })
 
 const stageClickable = computed(
-  () =>
-    !busy.value &&
-    (phase.value === 'hidden' || phase.value === 'revealed'),
+  () => !busy.value && (phase.value === 'hidden' || phase.value === 'revealed')
 )
 
 function cardName(entry) {
@@ -111,7 +112,7 @@ function miniArt(entry) {
 
 function wait(ms) {
   if (reduceMotion) return Promise.resolve()
-  return new Promise((r) => setTimeout(r, ms))
+  return new Promise(r => setTimeout(r, ms))
 }
 
 function resetCeremony() {
@@ -222,7 +223,7 @@ watch(
   () => [props.active, props.cards],
   () => {
     if (props.active && props.cards.length) resetCeremony()
-  },
+  }
 )
 
 onBeforeUnmount(() => {
@@ -293,16 +294,10 @@ onBeforeUnmount(() => {
 
     <!-- Captions hors des cartes (espace clair au-dessous) -->
     <div class="booster-opening__captions" data-testid="booster-captions">
-      <p
-        v-if="showNewBadge"
-        class="booster-opening__badge booster-opening__badge--new"
-      >
+      <p v-if="showNewBadge" class="booster-opening__badge booster-opening__badge--new">
         {{ t('shop.newCard') }}
       </p>
-      <p
-        v-else-if="showDupBadge"
-        class="booster-opening__badge booster-opening__badge--dup"
-      >
+      <p v-else-if="showDupBadge" class="booster-opening__badge booster-opening__badge--dup">
         {{ t('shop.duplicate', { name: cardName(currentEntry) }) }}
       </p>
       <p class="booster-opening__status" data-testid="booster-status">{{ statusText }}</p>
@@ -380,7 +375,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 30rem;
+  min-height: 24rem;
   padding: 1rem 0 1.5rem;
   overflow: visible;
   margin: 0;
@@ -417,7 +412,7 @@ onBeforeUnmount(() => {
 .booster-opening__stack {
   position: relative;
   z-index: 2;
-  width: min(18.5rem, 86vw);
+  width: min(13.5rem, 76vw);
   aspect-ratio: 2.5 / 3.5;
   margin: 0 auto;
   opacity: 0;
@@ -651,7 +646,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 650px) {
   .booster-opening__stage {
-    min-height: 30rem;
+    min-height: 24rem;
   }
 
   .booster-opening__collection-grid {

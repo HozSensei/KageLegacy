@@ -1,10 +1,9 @@
 /**
- * User card collection — grant, upgrade, disenchant, craft
+ * User card collection — grant, upgrade, disenchant
  */
 import { query, getConnection } from '../config/database.js';
 import {
   applyUpgradeBonuses,
-  CRAFT_DUST,
   DISENCHANT_DUST,
   getCardDefinitionRow,
   serializeCardDefinition,
@@ -19,16 +18,35 @@ function httpError(statusCode, message) {
 
 function serializeCollectionEntry(row) {
   const card = serializeCardDefinition(row, { upgradeLevel: row.upgrade_level });
+  const rarity = row.rarity;
+  const upgradeLevel = Number(row.upgrade_level) || 0;
+  const canUpgrade =
+    card.upgradable && upgradeLevel < 2 && !(rarity === 'mythic' && upgradeLevel >= 1);
+  const upgradeCost = canUpgrade ? UPGRADE_COSTS[rarity]?.[upgradeLevel] || null : null;
+  const essenceGain =
+    (rarity === 'legendary' || rarity === 'mythic') && upgradeLevel > 0
+      ? rarity === 'mythic'
+        ? 5
+        : 2
+      : 0;
+
   return {
     collectionId: row.collection_id,
     userId: row.user_id,
     cardDefinitionId: row.card_definition_id,
-    upgradeLevel: row.upgrade_level,
+    upgradeLevel,
     quantity: row.quantity,
     obtainedAt: row.obtained_at,
     obtainedSource: row.obtained_source,
     timesPlayed: row.times_played,
     card,
+    actionPreview: {
+      upgradeCost,
+      disenchantGain: {
+        dust: DISENCHANT_DUST[rarity] || 0,
+        essence: essenceGain,
+      },
+    },
   };
 }
 
@@ -83,33 +101,60 @@ export async function getCollectionEntry(userId, collectionId) {
 /**
  * Ajoute une carte (ou +quantity si déjà possédée).
  */
-export async function addCard(userId, cardDefinitionId, { quantity = 1, source = 'grant' } = {}) {
+export async function addCard(
+  userId,
+  cardDefinitionId,
+  { quantity = 1, source = 'grant', connection = null, runHooks = true } = {}
+) {
   const qty = Math.max(1, Number(quantity) || 1);
   const def = await getCardDefinitionRow(cardDefinitionId);
   if (!def) throw httpError(404, 'Définition de carte introuvable.');
 
-  const existing = await query(
+  const run = connection
+    ? async (sql, params) => {
+        const [rows] = await connection.execute(sql, params);
+        return rows;
+      }
+    : query;
+  const getEntry = async collectionId => {
+    const rows = await run(
+      `${COLLECTION_SELECT}
+       WHERE ucc.user_id = ? AND ucc.id = ?
+       LIMIT 1`,
+      [userId, collectionId]
+    );
+    if (!rows[0]) throw httpError(404, 'Carte de collection introuvable.');
+    return serializeCollectionEntry(rows[0]);
+  };
+
+  const existing = await run(
     `SELECT id, quantity FROM user_card_collection
      WHERE user_id = ? AND card_definition_id = ? LIMIT 1`,
     [userId, cardDefinitionId]
   );
 
+  let collectionId;
   if (existing[0]) {
-    await query('UPDATE user_card_collection SET quantity = quantity + ? WHERE id = ?', [
+    await run('UPDATE user_card_collection SET quantity = quantity + ? WHERE id = ?', [
       qty,
       existing[0].id,
     ]);
-    return getCollectionEntry(userId, existing[0].id);
+    collectionId = existing[0].id;
+  } else {
+    const result = await run(
+      `INSERT INTO user_card_collection
+        (user_id, card_definition_id, upgrade_level, quantity, obtained_source)
+       VALUES (?, ?, 0, ?, ?)`,
+      [userId, cardDefinitionId, qty, source]
+    );
+    collectionId = result.insertId;
   }
 
-  const result = await query(
-    `INSERT INTO user_card_collection
-      (user_id, card_definition_id, upgrade_level, quantity, obtained_source)
-     VALUES (?, ?, 0, ?, ?)`,
-    [userId, cardDefinitionId, qty, source]
-  );
+  const entry = await getEntry(collectionId);
 
-  const entry = await getCollectionEntry(userId, result.insertId);
+  // Les hooks externes utilisent leur propre connexion et ne peuvent pas être
+  // exécutés avant le commit d'une attribution transactionnelle.
+  if (!runHooks) return entry;
 
   // Quêtes BP « nouvelles cartes » — ignore starter / grants debug
   if (!['starter', 'grant'].includes(String(source || ''))) {
@@ -122,10 +167,15 @@ export async function addCard(userId, cardDefinitionId, { quantity = 1, source =
   }
 
   try {
-    const ownedRows = await query('SELECT COUNT(*) AS c FROM user_card_collection WHERE user_id = ?', [userId]);
+    const ownedRows = await query(
+      'SELECT COUNT(*) AS c FROM user_card_collection WHERE user_id = ?',
+      [userId]
+    );
     const { onAchievementAction } = await import('./achievementService.js');
     await onAchievementAction(userId, 'collection_owned', Number(ownedRows[0]?.c || 0));
-  } catch { /* exploits optionnels */ }
+  } catch {
+    /* exploits optionnels */
+  }
 
   return entry;
 }
@@ -139,7 +189,7 @@ async function getSenseiResources(userId, connection = null) {
     : query;
 
   const rows = await run(
-    `SELECT ryos, card_dust, card_essence FROM sensei WHERE user_id = ? LIMIT 1`,
+    'SELECT ryos, card_dust, card_essence, kage_coins FROM sensei WHERE user_id = ? LIMIT 1',
     [userId]
   );
   if (!rows[0]) throw httpError(404, 'Sensei introuvable.');
@@ -147,6 +197,7 @@ async function getSenseiResources(userId, connection = null) {
     ryos: Number(rows[0].ryos) || 0,
     dust: Number(rows[0].card_dust) || 0,
     essence: Number(rows[0].card_essence) || 0,
+    kageCoins: Number(rows[0].kage_coins) || 0,
   };
 }
 
@@ -192,10 +243,10 @@ export async function upgradeCard(userId, collectionId) {
       [cost.ryos, cost.dust, cost.essence, userId]
     );
 
-    await connection.execute(
-      `UPDATE user_card_collection SET upgrade_level = ? WHERE id = ?`,
-      [nextLevel, collectionId]
-    );
+    await connection.execute('UPDATE user_card_collection SET upgrade_level = ? WHERE id = ?', [
+      nextLevel,
+      collectionId,
+    ]);
 
     await connection.commit();
 
@@ -212,6 +263,7 @@ export async function upgradeCard(userId, collectionId) {
       entry: updated,
       costPaid: cost,
       computed: applyUpgradeBonuses(entry, nextLevel),
+      resources: await getSenseiResources(userId),
     };
   } catch (error) {
     await connection.rollback();
@@ -257,24 +309,21 @@ export async function disenchantCard(userId, collectionId, { quantity = 1 } = {}
 
     const dustGain = (DISENCHANT_DUST[entry.rarity] || 0) * qty;
     let essenceGain = 0;
-    if (
-      (entry.rarity === 'legendary' || entry.rarity === 'mythic') &&
-      entry.upgrade_level > 0
-    ) {
+    if ((entry.rarity === 'legendary' || entry.rarity === 'mythic') && entry.upgrade_level > 0) {
       essenceGain = entry.rarity === 'mythic' ? 5 * qty : 2 * qty;
     }
 
     if (entry.quantity === qty) {
       await connection.execute('DELETE FROM user_card_collection WHERE id = ?', [collectionId]);
     } else {
-      await connection.execute('UPDATE user_card_collection SET quantity = quantity - ? WHERE id = ?', [
-        qty,
-        collectionId,
-      ]);
+      await connection.execute(
+        'UPDATE user_card_collection SET quantity = quantity - ? WHERE id = ?',
+        [qty, collectionId]
+      );
     }
 
     await connection.execute(
-      `UPDATE sensei SET card_dust = card_dust + ?, card_essence = card_essence + ? WHERE user_id = ?`,
+      'UPDATE sensei SET card_dust = card_dust + ?, card_essence = card_essence + ? WHERE user_id = ?',
       [dustGain, essenceGain, userId]
     );
 
@@ -286,64 +335,6 @@ export async function disenchantCard(userId, collectionId, { quantity = 1 } = {}
       essenceGained: essenceGain,
       resources,
       remaining: entry.quantity === qty ? null : await getCollectionEntry(userId, collectionId),
-    };
-  } catch (error) {
-    await connection.rollback();
-    throw error;
-  } finally {
-    connection.release();
-  }
-}
-
-/**
- * Craft une carte depuis le catalogue (coût dust).
- */
-export async function craftCard(userId, cardDefinitionId) {
-  const def = await getCardDefinitionRow(cardDefinitionId);
-  if (!def) throw httpError(404, 'Définition de carte introuvable.');
-  if (def.is_exclusive) throw httpError(400, 'Cette carte exclusive ne peut pas être craftée.');
-
-  const dustCost = CRAFT_DUST[def.rarity];
-  if (dustCost == null) throw httpError(400, 'Craft indisponible.');
-
-  const connection = await getConnection();
-  try {
-    await connection.beginTransaction();
-    const resources = await getSenseiResources(userId, connection);
-    if (resources.dust < dustCost) throw httpError(400, 'Poussière de carte insuffisante.');
-
-    await connection.execute(`UPDATE sensei SET card_dust = card_dust - ? WHERE user_id = ?`, [
-      dustCost,
-      userId,
-    ]);
-
-    const [existing] = await connection.execute(
-      `SELECT id, quantity FROM user_card_collection
-       WHERE user_id = ? AND card_definition_id = ? LIMIT 1 FOR UPDATE`,
-      [userId, cardDefinitionId]
-    );
-
-    let collectionId;
-    if (existing[0]) {
-      await connection.execute('UPDATE user_card_collection SET quantity = quantity + 1 WHERE id = ?', [
-        existing[0].id,
-      ]);
-      collectionId = existing[0].id;
-    } else {
-      const [result] = await connection.execute(
-        `INSERT INTO user_card_collection
-          (user_id, card_definition_id, upgrade_level, quantity, obtained_source)
-         VALUES (?, ?, 0, 1, 'craft')`,
-        [userId, cardDefinitionId]
-      );
-      collectionId = result.insertId;
-    }
-
-    await connection.commit();
-    return {
-      entry: await getCollectionEntry(userId, collectionId),
-      dustSpent: dustCost,
-      resources: await getSenseiResources(userId),
     };
   } catch (error) {
     await connection.rollback();

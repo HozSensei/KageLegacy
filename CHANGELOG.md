@@ -7,29 +7,41 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Sécurité : progression et authentification
+
+#### Changed
+
+- Les routes publiques d’attribution directe de cartes, XP personnage, XP Battle Pass et progression de quête Battle Pass ont été retirées ; seuls les gains déclenchés par la logique métier serveur restent autorisés.
+- Le repli d’authentification démo est désactivé par défaut pour HTTP et WebSocket ; il nécessite désormais `AUTH_DEMO_FALLBACK=true`.
+
 ### Cartes : illustrations 161–176 (grille 11) (2026-11-17)
 
 #### Changed
+
 - Remplacé les assets `#161–176` (`souffle-calibre` → `brouillard-persistant`) par la grille régénérée `65afc719…` (PNG + WebP 250×250, ordre de lecture)
 
 ### Cartes : illustrations 97–112 (grille 7) (2026-11-17)
 
 #### Changed
+
 - Remplacé les assets `#97–112` (`serpent-d-eau` → `aiguille-d-orage`) par la grille régénérée `29a0e9f1…` (PNG + WebP 250×250, ordre de lecture)
 
 ### Cartes : illustrations 81–96 (grille 6) (2026-11-17)
 
 #### Changed
+
 - Remplacé les assets `#81–96` (`ancrage-tellurique` → `corbeau-spectre`) par la grille régénérée `6d077fee…` (PNG + WebP 250×250, ordre de lecture — plus de permute e267)
 
 ### Cartes : illustrations 145–160 (grille 10) (2026-11-17)
 
 #### Changed
+
 - Remplacé les assets `#145–160` (`grille-d-eclairs` → `rempart-des-ancetres`) par la grille régénérée `6be42b39…` (PNG + WebP 250×250)
 
 ### UI : carte — art collé + type noir (2026-11-17)
 
 #### Changed
+
 - Art collé au bas de la zone illustration (`object-position: bottom`, plus de fondu bas)
 - Type de carte (bandeau derrière le chakra) : fond **noir**, `padding-right` élargi pour ne plus masquer le texte
 - Pile coin haut gauche : exemplaires → élément (petit) → art secondaire → art primaire
@@ -38,6 +50,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### UI : carte — type, banners, bonus carrés (2026-11-16)
 
 #### Changed
+
 - **Type** de carte en bandeau compact collé au bord supérieur (aplat teinté)
 - **Bannière d’art** : rectangle simple (plus de clip-path) ; art secondaire sous le primaire
 - **Bonus passifs** : carrés à plat (plus d’hex) — plus d’espace pour le texte d’effet
@@ -45,11 +58,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Thème : sombre encre par défaut (2026-11-16)
 
 #### Changed
+
 - **Thème par défaut** : sans choix mémorisé dans `localStorage`, l’UI utilise `ink` (sombre encre) au lieu de suivre `prefers-color-scheme` — `useTheme.js` + script anti-flash `index.html` ; test Cypress aligné
 
 ### UI : boutique boosters alignée sur le pack de déchirure (2026-11-16)
 
 #### Changed
+
 - **BoosterPackVisual** : pack foil partagé (bande de déchirure, variants Standard / Élémentaire / Premium)
 - **BoosterSelection** : aperçu = le même pack que l’ouverture (plus d’art carte décoratif)
 - **BoosterOpening** / **ShopView** : la cérémonie ouvre le pack du type acheté (teint élémentaire inclus)
@@ -57,6 +72,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### UI : carte V5 fidèle au HTML (2026-11-16)
 
 #### Changed
+
 - **CardDisplay** : anatomie alignée sur le prototype HTML (`carte-ninja-v5`) — art fixe, ruban famille, gemme chakra, colonnes description|bonus hex, footer serial+losanges, cadres rareté ; dos/flip **uniquement** si `face` (booster)
 - **CollectionGrid** : plus de flip collection (face avant seule) ; deck builder inchangé (pas de `face`)
 - Utilitaire `cardBonusChips.js` pour les hex passifs non nuls
@@ -64,101 +80,119 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### UI : carte V5 + ouverture booster (2026-11-16)
 
 #### Changed
+
 - **CardDisplay** : double face (flip), cadres de rareté V5 (acier/saphir/améthyste/or), gemme de chakra, ruban de scaling, serial + losanges ; conserve coût, effets, footer stats et capsule scale
 - **BoosterOpening** : cérémonie d’ouverture (languette à glisser, sachet, pile, révélation une-à-une) branchée sur les récompenses API
 - i18n FR/EN + `prefers-reduced-motion`
 
-
 ### Cartes : illustrations 73–84 (2026-11-15)
 
 #### Added
+
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 73–84 (mains-de-lumiere → danse-du-sanglier)
 - Mapping étendu dans `frontend/src/utils/cardArt.js` (72 slugs)
 
 ### Cartes : illustrations 61–72 (2026-11-15)
 
 #### Added
+
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 61–72 (rempart-d-eau → respiration-profonde, dont `aegis-ancestral` / Égide ancestrale)
 - Mapping étendu dans `frontend/src/utils/cardArt.js` (60 slugs)
 
 ### Registre d’exploits + refresh quêtes daily (2026-11-15)
 
 #### Added
+
 - Achievements registry (15 families, tiers, claim rewards) — `GET/POST /api/achievements`, Journal UI `/journal`
 - Hooks: combat mastery, missions, collection, PvP, deck, talents
 
 #### Fixed
+
 - Battle Pass daily/weekly UTC windows auto-refresh when expired (`ensureFreshQuestWindows`)
 
 ### Factions + classement (2026-11-15)
 
 #### Added
+
 - **3 factions jouables** (Midorihara, Kareno, Oborohama) — noms repris des villages C0 renommés (`leaf`/`sand`/`mist`) ; colonne `player_character.faction_id` + un retake
 - **Classements** serveur : niveau/XP et victoires PvP (`/api/leaderboard`), agrégats faction (`/api/leaderboard/factions`), pagination, stats lues uniquement en base
 - UI `/classement` + entrée nav FR/EN ; choix de faction à la création de personnage
 
 ### Changed
+
 - **Collection** : numéro catalogue stable `#1…` (index 1-based de l’ordre API / grille complète) sur les cartes possédées ; trous = silhouette vide + `#N` centré sans nom/type/rareté/art ; panneau détail d’un trou sans spoiler (« Carte #N manquante » + CTA boutique)
 
 ### UI : cartes et headers sobres (2026-11-15)
 
 #### Changed
+
 - **Cartes** (`CardDisplay`, `CardHole`, `CombatHand`) : silhouette plein bord — art et footer flush contre la bordure de rareté, losange de coût en débord haut-droit, zone texte fixe (titre / type·élément / effet sans « Scale avec… »), libellé de scaling en haut à droite, cases de stats colorées (chiffre si bonus > 0)
 - **Headers** (`PageHeader` + vues) : split unifié texte gauche / image droite ; suppression overlay à dalle translucide, orbes et grilles perspective ; Landing et Profil alignés
 
 #### Added
+
 - Utilitaire `frontend/src/utils/cardFooterStats.js` (6 cases de combat)
 - i18n `player.profileKicker` / `profileLead`, `cards.scaleStat`
 
 ### UI : passe visuelle TCG (2026-11-15)
 
 #### Changed
+
 - **Headers** : suppression de `PerspectiveCardGrid` / layout `stage` ; héros en image importée (`overlay` / `classic`) sur collection, hub, boutique, missions, PvP, etc.
 - **Cartes** (`CardDisplay`, `CardHole`, `CombatHand`) : silhouette TCG portrait (~2.5×3.5), cadre rareté, fenêtre d’art, pip de coût, plaque nom/type, boîte de règles, gemme de rareté
 - **Boosters** (`BoosterSelection`) : rendu en packs verticaux (sertissage, fenêtre d’art, compteur de cartes) plutôt qu’en tuiles boutique
 
 #### Removed
+
 - `PerspectiveCardGrid.vue`, `utils/heroTiles.js`
 
 ### Cartes : illustrations 49–60 (2026-11-15)
 
 #### Added
+
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 49–60 (scalpel-de-chakra / Lame du guérisseur → ecran-de-vapeur)
 - Mapping étendu dans `frontend/src/utils/cardArt.js` (48 slugs)
 
 #### Fixed
+
 - Remplacé les assets 49–60 qui étaient une copie erronée de la grille 37–48 par la grille correcte (scalpel-de-chakra → ecran-de-vapeur)
 
 ### Cartes : illustrations 37–48 (2026-11-15)
 
 #### Added
+
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 37–48 (chaine-d-eclairs → aiguillon-nerveux, dont `tombeau-de-sable` / Dune engloutissante et `oeil-du-mirroir` / Reflet trompeur)
 - Mapping étendu dans `frontend/src/utils/cardArt.js` (36 slugs)
 
 ### Cartes : illustrations 13–24 (2026-11-15)
 
 #### Added
+
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les cartes 13–24 (mirage-persistant → serres-de-fer, dont `pilule-du-soldat` et `lame-crespusculaire`)
 - Mapping étendu dans `frontend/src/utils/cardArt.js` (24 slugs)
 
 ### Cartes : illustrations starter 1–12 (2026-11-15)
 
 #### Added
+
 - Assets `frontend/src/assets/cards/{slug}.webp` (+ `.png`) pour les 12 premières cartes starter
 - Mapping `frontend/src/utils/cardArt.js` (slug → asset) ; `CardDisplay` et `CombatHand` affichent l’illustration (`imageUrl` API prioritaire, sinon asset local)
 
 ### Cartes : hiérarchie visuelle et dégâts affichés (2026-11-15)
 
 #### Changed
+
 - **Collection / deck / shop** (`CardDisplay`) : rareté lisible (bordure, bandeau, foil CSS), type en bandeau fort, élément en pastille, upgrade visible, effet actif vs bonus passif séparés ; les chiffres restent les **valeurs de base** avec indication « Scale avec {stat} »
 - **Main de combat** (`CombatHand`) : affiche les **dégâts / armure / soins effectifs** via `Base × (1 + Stat/100)` à partir de `combat.stats` (PvE) ou `fighter.stats` (PvP) ; la base reste en secondaire quand elle diffère — hors critique / triade / éléments / buffs (résolus au play)
 
 #### Added
+
 - Utilitaire client `frontend/src/utils/cardScaling.js` aligné sur les formules backend
 
 ### i18n FR/EN complète (V2 shell + catalogues) (2026-11-15)
 
 #### Added
+
 - Helper `localizedName` / `localizedDescription` (`frontend/src/utils/localeContent.js`)
 - Persistance locale `localStorage` (`kage-locale`) + switcher landing/auth (`LocaleSwitcher`)
 - Champ langue à l’inscription ; invité hérite de la locale UI
@@ -166,12 +200,14 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - Cypress locale étendu (landing + collection/missions)
 
 #### Fixed
+
 - Sélection EN pour allié combat, récompense de carte, erreurs Élite/WebSocket
 - Libellés EN « Bird Flight » (ex-Vol d’Oiseau restés en FR dans `en.json`)
 
 ### Seeds catalogues V2 au boot Docker (2026-11-15)
 
 #### Added
+
 - **`db:seed-v2`** : meta-script idempotent (cartes + talents + battle pass) — pas de compte démo, rejouable
 - **Entrypoint Docker** : après migrations réussies, lance automatiquement `db:seed-v2` ; échappatoire `SKIP_V2_SEEDS=1`
 - Variable documentée dans `.env.prod.example`, `docker-compose.prod.yml`, README et QUICK_START
@@ -179,6 +215,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Noms originaux et nouvelle page des règles (2026-11-14)
 
 #### Changed
+
 - **Lignées** : Shizumori, Benigiri, Kazamine, Nagihara, Kumatani et Yukisawa remplacent les six anciens noms de clan ; bonus et identifiants inchangés
 - **Pays** affichés : Midorihara, Kareno, Oborohama, Ishikura ; identifiants internes `leaf` / `sand` / `mist` / `stone` inchangés
 - **Cartes** renommées, slugs et effets inchangés : Dune engloutissante, Reflet trompeur, Lame du guérisseur, Pilule fortifiante ; huit cartes de l'ancien catalogue tactique renommées de la même façon
@@ -187,11 +224,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - Garde-fou de nommage des cartes (`backend/scripts/lib/cardFactory.js`) étendu à d'autres noms à ne pas reprendre
 
 #### Added
+
 - **Migration `114_original_names.sql`** : renomme en base les lignées, les ninjas qui portent un nom de lignée, les sensei de bots et les cartes concernées ; rejouable, aucun identifiant modifié
 
 ### Thème sombre et finitions d'interface (2026-11-14)
 
 #### Added
+
 - **Thèmes sombres** en plus du clair : sombre indigo (`dark`, fonds `#14182b`), sombre encre (`ink`, anthracite/brun-noir `#1a1614`, accent vermillon, bois/or — pas d'indigo dominant) et sombre ambre (`amber`, brun-noir chaud `#140c08`, crème chaude, accents orange/ambre/vermillon) — jetons dans `frontend/src/styles/tokens.css`
 - **Sélecteur à 4 options** (`ThemeToggle` / menu `theme-picker-menu`, `data-testid="theme-toggle"`) : Clair | Sombre indigo | Sombre encre | Sombre ambre — coque et pages publiques ; `localStorage` clé `kage-legacy-theme` ; sans choix → `ink` (sombre encre) ; flash évité via `index.html`
 - **Illustrations** : voile « heure bleue » en thème sombre (`.illustration`), sans modifier les fichiers
@@ -199,6 +238,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Test Cypress** `theme.cy.js` : défaut `ink`, sélection des 4 thèmes, persistance après rechargement
 
 #### Changed
+
 - **Arbre de talents** : l'arbre entier tient dans le cadre au zoom par défaut (desktop et mobile) ; nœuds, liens et libellés compensent le dézoom
 - **PvP** : « Premier joueur / Second joueur » à la place de « Host / Guest » dans les textes visibles ; identifiants techniques inchangés
 - Couleurs en dur remplacées par des jetons dans les composants et feuilles de style concernés
@@ -207,6 +247,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Refonte visuelle de l'interface (2026-11-14)
 
 #### Changed
+
 - **Socle** : thème clair unique (papier crème, encre indigo, accent vermillon, vert feuillage, bleu ciel, bois, or), tokens Tailwind v4 dans `frontend/src/styles/`, formes en aplat et mécanisme `data-tone`
 - **Typographie** auto-hébergée (`@fontsource-variable`) : Bricolage Grotesque pour les titres et les chiffres, Inter pour le texte ; plus aucune police ni icône chargée depuis un CDN
 - **Icônes** : glyphes SVG (`AppIcon`) à la place des emojis et de Material Symbols ; losange emboîté comme motif de marque (`BrandMark`, favicon)
@@ -215,15 +256,18 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Illustrations** : cinq visuels utilisés en bandeau d'en-tête (hub, accueil, missions, boutique, PvP)
 
 #### Removed
+
 - Sélecteur de thèmes (`stores/theme.js`, `themes/catalog.js`, `themes.css`) et anciennes images d'en-tête
 
 #### Fixed
+
 - Boutique : la révélation d'un parchemin ne démarrait jamais (`props.value` au lieu de `props.cards`)
 - Arbre de talents : un clic à la souris ne sélectionnait pas le nœud (capture du pointeur dès l'appui)
 
 ### Boss multi-phases (2026-11-14)
 
 #### Added
+
 - **Phases boss** : seuils HP → intents / buffs / immunités / barrière (`bossPhases.js`, `docs/BOSS_PHASES.md`)
 - **Mécaniques** : charge ennemie, invocation ennemie (minion taunt), shield break (barrière persistante)
 - **5 boss** B/A/S : Hollow Bell Warden, Embercoil Matron, Grave Orchid Seer, Mirrorfracture Colossus, Voidspire Regent
@@ -233,6 +277,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Phase 4 — Mission runs (2026-11-14)
 
 #### Added
+
 - **Parcours multi-combats** : `mission_runs` + migration `106_mission_runs.sql` ; 3–5 combats par mission, boss sur rangs B/A
 - **Événements MVP** : Sanctuaire de Mousse, Cache d’Éclaireur, Colporteur d’Ombre, Carrefour du Voile
 - **PV / ferraille persistants** entre combats ; mort ou abandon de combat = échec du run
@@ -244,6 +289,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### PvP Host architecture (2026-11-14)
 
 #### Added
+
 - **Matchmaking ± niveau** : file `pvp_queue`, fenêtre configurable (±3 / ±5), namespace `pvp_*` / `shared/pvp/`
 - **Architecture Host** : un joueur simule le duel client-side ; Guest envoie des intentions ; serveur = queue + match + signaling WS (`/ws/pvp`) + checksum fin de match (`trust_host`)
 - **API** `/api/pvp/*` + migration `109_pvp_system.sql`
@@ -253,12 +299,14 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Economy tune — F2P loop (2026-11-14)
 
 #### Added
+
 - **`backend/src/config/economyConfig.js`** : constantes centrales (boosters, combat, dust/craft/upgrade, Battle Pass)
 - **`docs/ECONOMY.md`** : sources, sinks, ratios, invariants
 - **`npm run test:economy`** : verrouille ratios F2P (pack ≈ 3 wins D, craft/disenchant 5×, soft premium)
 - **Migration `107_economy_tune.sql`** : planchers rewards_json missions (bpPoints / ryos)
 
 #### Changed
+
 - Boosters : standard 500→**400** Ryos, élémentaire 800→**650** Ryos (premium 100 KC inchangé)
 - Combat défauts : 25/80/10 → **40 XP / 100 Ryos / 12 %** + **50 BP XP** ; planchers par rang
 - Dust désenchant : 5/20/100/500 → **10/40/200/1000** (ratio craft **5×**)
@@ -268,6 +316,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Phase 4 polish — Combat (2026-11-14)
 
 #### Added
+
 - **Récompenses de victoire** : XP (+ talent points via level-up), Ryos, chance de carte collection ; hook Battle Pass stub commenté
 - **Missions** : 11 missions Rang D→A, 11 templates ennemis originaux (`105_combat_missions_expand.sql`)
 - **Keystones / notables** branchés : 44/50 `effect_code` actifs en combat (dont illusion_master, item_master, void_channel, echo_cast, …) ; 6 reportés (collector, path_weaver, balanced_stance, four_paths, confusion_tax, steady_hands) — voir `docs/TALENT_EFFECTS.md`
@@ -277,6 +326,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Phase 1 - Personnage unique (2026-11-14)
 
 #### Added
+
 - **Backend `playerCharacterService`** : création, XP, level-up (+1 talent point, aucune stat auto), spécialisation, stats calculées (talents + cartes)
 - **Routes `/api/player`** : GET `/`, `/stats`, `/clans` ; POST `/create`, `/xp`, `/level-up` ; PUT `/specialization`
 - **Frontend** : store Pinia `player`, vues `Profile` / `CharacterCreation`, composants `PlayerProfile`, `PlayerStats`, `LevelUpModal`
@@ -284,6 +334,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Tests** : `npm run test:player-character` (helpers purs toujours ; intégration DB si MySQL)
 
 #### Changed
+
 - **Express `app.js`** : ne monte plus les routes legacy archivées ; auth / clock / player / health
 - **Auth register/guest** : plus de provision d’escouade / cartes tactiques (différé V2)
 - **Navigation** : hub recentré sur Bureau + Profil (autres sections en placeholder)
@@ -291,6 +342,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ### Phase 0 - Préparation de Kage Legacy V2 (2026-11-14)
 
 #### Added
+
 - **Arborescence restructurée** : Dossiers backend et frontend organisés
 - **Legacy code archivé** : Ancien système d'escouade déplacé vers `/legacy`
 - **ESLint et Prettier configurés** : Configuration pour backend (Node.js) et frontend (Vue 3)
@@ -304,11 +356,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
   - `legacy/README.md` : Explication de l'archivage
 
 #### Changed
+
 - **Branche de développement** : Création de `cursor/kage-legacy-v2-9fa6`
 - **Package.json** : Ajout des scripts `lint` et `format` dans backend et frontend
 - **Architecture** : Passage d'un système de gestion d'escouade à un deck-building roguelike
 
 #### Removed
+
 - **Ancien système déplacé** :
   - Routes : squad, market, academy, bureau, operations, missions, league, etc.
   - Services : ninja generation, training, combat (ancien), operations, reconnaissance
@@ -320,9 +374,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 ## [0.1.0] - Version Legacy (Avant V2)
 
 ### Description
+
 Version originale de Kage Legacy : système de gestion d'escouade asynchrone de ninjas.
 
 ### Features principales
+
 - Gestion d'une escouade de 3 ninjas
 - Recrutement et formation via l'Académie
 - Système de combat au tour par tour (Hattrick)
@@ -333,6 +389,7 @@ Version originale de Kage Legacy : système de gestion d'escouade asynchrone de 
 - Système d'examens (Bird Flight, Chunin)
 
 ### Stack technique
+
 - Backend : Express.js, MySQL
 - Frontend : Vue 3, Pinia, Tailwind CSS
 - Tests : Cypress (E2E)
@@ -344,26 +401,33 @@ Version originale de Kage Legacy : système de gestion d'escouade asynchrone de 
 ### [X.Y.Z] - YYYY-MM-DD
 
 #### Added
+
 - Nouvelles fonctionnalités
 
 #### Changed
+
 - Modifications de fonctionnalités existantes
 
 #### Deprecated
+
 - Fonctionnalités dépréciées (bientôt supprimées)
 
 #### Removed
+
 - Fonctionnalités supprimées
 
 #### Fixed
+
 - Corrections de bugs
 
 #### Security
+
 - Correctifs de sécurité
 
 ---
 
 **Légende des phases V2** :
+
 - Phase 0 : Préparation
 - Phase 1 : Personnage unique
 - Phase 2 : Système de cartes

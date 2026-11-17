@@ -1,9 +1,9 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { talentBranchTone, talentNodeShape } from '../../utils/talentVisuals'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { talentBranchTone, talentNodeShape } from '../../utils/talentVisuals';
 
-defineOptions({ name: 'TalentSidebar' })
+defineOptions({ name: 'TalentSidebar' });
 
 const props = defineProps({
   points: { type: Number, default: 0 },
@@ -13,43 +13,34 @@ const props = defineProps({
   canUnlockSelected: { type: Boolean, default: false },
   actionLoading: { type: Boolean, default: false },
   locale: { type: String, default: 'fr' },
-})
+});
 
-const emit = defineEmits(['unlock', 'respec'])
+const emit = defineEmits(['unlock', 'respec']);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const STAT_KEYS = [
-  'taijutsu',
-  'ninjutsu',
-  'genjutsu',
-  'medicine',
-  'vitesse',
-  'intelligence',
-  'dexterity',
-  'maxHp',
-]
+const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'];
 
-const stats = computed(() => props.bonuses?.stats || {})
+const stats = computed(() => props.bonuses?.stats || {});
 
 function nodeName(node) {
-  if (!node) return ''
-  return props.locale === 'en' ? node.nameEn : node.nameFr
+  if (!node) return '';
+  return props.locale === 'en' ? node.nameEn : node.nameFr;
 }
 
 function nodeDesc(node) {
-  if (!node) return ''
-  return props.locale === 'en' ? node.descriptionEn : node.descriptionFr
+  if (!node) return '';
+  return props.locale === 'en' ? node.descriptionEn : node.descriptionFr;
 }
 
-const selectedTone = computed(() => talentBranchTone(props.selected?.branch))
-const selectedShape = computed(() => talentNodeShape(props.selected?.type))
+const selectedTone = computed(() => talentBranchTone(props.selected?.branch));
+const selectedShape = computed(() => talentNodeShape(props.selected?.type));
 
 function formatBonus(bonus) {
-  if (!bonus) return ''
+  if (!bonus) return '';
   return Object.entries(bonus)
     .map(([k, v]) => `+${v} ${t(`talents.stats.${k}`)}`)
-    .join(', ')
+    .join(', ');
 }
 </script>
 
@@ -57,7 +48,9 @@ function formatBonus(bonus) {
   <aside class="talent-sidebar" data-testid="talent-sidebar">
     <div class="talent-sidebar__points" :class="{ 'talent-sidebar__points--none': !points }">
       <p class="talent-sidebar__points-label">{{ t('talents.pointsLabel') }}</p>
-      <p :key="points" class="talent-sidebar__points-value" data-testid="talent-points">{{ points }}</p>
+      <p :key="points" class="talent-sidebar__points-value" data-testid="talent-points">
+        {{ points }}
+      </p>
     </div>
 
     <section class="talent-sidebar__selected" :data-tone="selected ? selectedTone : 'neutral'">
@@ -65,10 +58,13 @@ function formatBonus(bonus) {
         <div v-if="selected" :key="selected.nodeId">
           <p class="talent-sidebar__type">
             <span class="shape" :class="`shape--${selectedShape}`" aria-hidden="true" />
-            {{ t(`talents.types.${selected.type}`) }} · {{ t(`talents.branches.${selected.branch}`) }}
+            {{ t(`talents.types.${selected.type}`) }} ·
+            {{ t(`talents.branches.${selected.branch}`) }}
           </p>
           <h3 class="talent-sidebar__name">{{ nodeName(selected) }}</h3>
-          <p v-if="nodeDesc(selected)" class="mt-2 leading-relaxed text-ink">{{ nodeDesc(selected) }}</p>
+          <p v-if="nodeDesc(selected)" class="mt-2 leading-relaxed text-ink">
+            {{ nodeDesc(selected) }}
+          </p>
           <p v-if="selected.statBonus" class="talent-sidebar__bonus">
             {{ formatBonus(selected.statBonus) }}
           </p>
@@ -109,7 +105,12 @@ function formatBonus(bonus) {
       </ul>
     </section>
 
-    <button type="button" class="btn-ghost btn-block mt-6" data-testid="open-respec" @click="emit('respec')">
+    <button
+      type="button"
+      class="btn-ghost btn-block mt-6"
+      data-testid="open-respec"
+      @click="emit('respec')"
+    >
       {{ t('talents.respecOpen') }}
     </button>
   </aside>

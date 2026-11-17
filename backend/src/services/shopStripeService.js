@@ -43,11 +43,7 @@ function normalizePublicUrl(raw) {
 }
 
 export function getPublicAppUrl() {
-  const candidates = [
-    process.env.APP_PUBLIC_URL,
-    process.env.CORS_ORIGIN,
-    'http://localhost:5173',
-  ];
+  const candidates = [process.env.APP_PUBLIC_URL, process.env.CORS_ORIGIN, 'http://localhost:5173'];
 
   for (const candidate of candidates) {
     const normalized = normalizePublicUrl(candidate);
@@ -89,7 +85,9 @@ function getStripeClient() {
 }
 
 export function coinPackPriceEnvKey(packId) {
-  return `STRIPE_PRICE_ID_COIN_${String(packId || '').trim().toUpperCase()}`;
+  return `STRIPE_PRICE_ID_COIN_${String(packId || '')
+    .trim()
+    .toUpperCase()}`;
 }
 
 export function buildCoinPackLineItems(pack) {
@@ -161,11 +159,8 @@ export function isShopCheckoutSession(session) {
 }
 
 function sessionPaid(session) {
-  return (
-    session?.payment_status === 'paid' ||
-    session?.status === 'complete' ||
-    session?.status === 'paid'
-  );
+  // Checkout can be complete while an asynchronous payment is still pending.
+  return session?.payment_status === 'paid';
 }
 
 async function createCheckoutSession({ userId, lineItems, metadata, successPath, cancelPath }) {
@@ -179,7 +174,7 @@ async function createCheckoutSession({ userId, lineItems, metadata, successPath,
   if (!/^https?:\/\//i.test(baseUrl)) {
     throw httpError(
       'APP_PUBLIC_URL invalide — utilisez une URL complète (ex. https://kagelegacy.example.com).',
-      503,
+      503
     );
   }
 
@@ -221,8 +216,8 @@ export async function createCoinPackCheckoutSession(userId, packId) {
       pack_id: pack.id,
       coins_granted: String(totalCoins),
     },
-    successPath: `/shop?tab=currency&checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancelPath: `/shop?tab=currency&checkout=canceled`,
+    successPath: '/shop?tab=currency&checkout=success&session_id={CHECKOUT_SESSION_ID}',
+    cancelPath: '/shop?tab=currency&checkout=canceled',
   });
 }
 
@@ -246,8 +241,8 @@ export async function createBattlePassCheckoutSession(userId) {
       season_id: String(season.id),
       season_number: String(season.seasonNumber),
     },
-    successPath: `/shop?tab=battlePass&checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancelPath: `/shop?tab=battlePass&checkout=canceled`,
+    successPath: '/shop?tab=battlePass&checkout=success&session_id={CHECKOUT_SESSION_ID}',
+    cancelPath: '/shop?tab=battlePass&checkout=canceled',
   });
 }
 
@@ -262,8 +257,8 @@ async function fulfillKageCoinsSession(session) {
   const totalCoins = Number(session.metadata?.coins_granted) || pack.coins + pack.bonusCoins;
 
   const existing = await query(
-    `SELECT id FROM shop_coin_pack_purchases WHERE stripe_session_id = ? LIMIT 1`,
-    [session.id],
+    'SELECT id FROM shop_coin_pack_purchases WHERE stripe_session_id = ? LIMIT 1',
+    [session.id]
   );
   if (existing[0]) {
     return {
@@ -287,7 +282,7 @@ async function fulfillKageCoinsSession(session) {
       await connection.execute(
         `INSERT INTO shop_coin_pack_purchases (user_id, pack_id, coins_granted, method, stripe_session_id)
          VALUES (?, ?, ?, 'stripe', ?)`,
-        [userId, pack.id, totalCoins, session.id],
+        [userId, pack.id, totalCoins, session.id]
       );
     } catch (error) {
       if (error?.code === 'ER_DUP_ENTRY') {
@@ -335,8 +330,8 @@ async function fulfillBattlePassSession(session) {
   }
 
   const priorSession = await query(
-    `SELECT id, user_id, season_id FROM battle_pass_stripe_purchases WHERE stripe_session_id = ? LIMIT 1`,
-    [session.id],
+    'SELECT id, user_id, season_id FROM battle_pass_stripe_purchases WHERE stripe_session_id = ? LIMIT 1',
+    [session.id]
   );
   if (priorSession[0]) {
     return {
@@ -358,7 +353,7 @@ async function fulfillBattlePassSession(session) {
         `UPDATE user_battle_pass
          SET is_premium = TRUE, premium_purchased_at = CURRENT_TIMESTAMP
          WHERE id = ?`,
-        [userPass.id],
+        [userPass.id]
       );
     }
 
@@ -367,7 +362,7 @@ async function fulfillBattlePassSession(session) {
         `INSERT INTO battle_pass_stripe_purchases
            (user_id, season_id, stripe_session_id, amount_eur_cents)
          VALUES (?, ?, ?, ?)`,
-        [userId, seasonId, session.id, Math.round(BATTLE_PASS_PREMIUM_PRICE_EUR * 100)],
+        [userId, seasonId, session.id, Math.round(BATTLE_PASS_PREMIUM_PRICE_EUR * 100)]
       );
     } catch (error) {
       if (error?.code === 'ER_DUP_ENTRY') {

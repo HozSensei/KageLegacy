@@ -5,7 +5,7 @@
  */
 import { __test } from '../src/services/missionRunService.js';
 
-const { buildRunNodes, unlockNext, healPercent, EVENT_TYPES } = __test;
+const { buildRunNodes, unlockNext, healPercent, getCurrentEvent, EVENT_TYPES } = __test;
 
 let passed = 0;
 let failed = 0;
@@ -47,16 +47,34 @@ const bossPath = buildRunNodes(
     { templateId: 'stormcaller_adept', difficulty: 1 },
     { templateId: 'duskblade_ronin', difficulty: 1, boss: true },
   ],
-  { rng: () => 0 },
+  { rng: () => 0 }
 );
-assert(bossPath.filter((n) => n.type === 'combat').length === 4, '4 combats on B/A path');
+assert(bossPath.filter(n => n.type === 'combat').length === 4, '4 combats on B/A path');
 assert(bossPath[bossPath.length - 1].boss === true, 'last combat marked boss');
-assert(bossPath.filter((n) => n.type === 'event').length === 3, '3 events interleaved');
+assert(bossPath.filter(n => n.type === 'event').length === 3, '3 events interleaved');
 
 console.log('=== unlockNext ===');
 const unlocked = unlockNext(nodes, 0);
 assert(unlocked[0].status === 'cleared', 'cleared current');
 assert(unlocked[1].status === 'available', 'next unlocked');
+
+console.log('=== current event persistence ===');
+const eventRun = {
+  state: 'in_progress',
+  current_node_index: 1,
+};
+const eventNodes = [
+  { id: 'combat-0', type: 'combat', status: 'cleared' },
+  { id: 'event-0', type: 'event', eventType: 'rest', status: 'available', eventOpen: true },
+];
+const restoredEvent = getCurrentEvent(eventRun, eventNodes, { hp: 40, maxHp: 100, scrap: 0 });
+assert(restoredEvent?.eventType === 'rest', 'opened event is restored with its choices');
+assert(restoredEvent?.choices?.[0]?.id === 'meditate', 'restored event exposes its choice');
+assert(
+  getCurrentEvent(eventRun, [{ ...eventNodes[0] }, { ...eventNodes[1], eventOpen: false }], {}) ===
+    null,
+  'available but unopened event is not restored'
+);
 
 console.log('=== healPercent ===');
 const healed = healPercent({ hp: 40, maxHp: 100 }, 0.3);

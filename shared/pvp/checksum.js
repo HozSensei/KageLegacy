@@ -11,7 +11,7 @@
 export function duelSummary(state) {
   if (!state) return { empty: true };
   const fighters = state.fighters || {};
-  const summarizeFighter = (f) => {
+  const summarizeFighter = f => {
     if (!f) return null;
     return {
       seat: f.seat,
@@ -23,6 +23,7 @@ export function duelSummary(state) {
       handCount: (f.hand || []).length,
       drawCount: (f.drawPile || []).length,
       discardCount: (f.discardPile || []).length,
+      ally: summarizeAlly(f.ally),
     };
   };
 
@@ -62,6 +63,17 @@ export function normalizeResultSummary(raw = {}, overrides = {}) {
   };
 }
 
+function summarizeAlly(ally) {
+  if (!ally) return null;
+  return {
+    hp: Number(ally.hp) || 0,
+    maxHp: Number(ally.maxHp) || 0,
+    attack: Number(ally.attack) || 0,
+    taunt: Boolean(ally.taunt),
+    remainingTurns: Number(ally.remainingTurns) || 0,
+  };
+}
+
 function coerceFighterSummary(f, seat) {
   if (!f) return null;
   return {
@@ -75,6 +87,7 @@ function coerceFighterSummary(f, seat) {
     drawCount: Number(f.drawCount != null ? f.drawCount : (f.drawPile || []).length) || 0,
     discardCount:
       Number(f.discardCount != null ? f.discardCount : (f.discardPile || []).length) || 0,
+    ally: summarizeAlly(f.ally),
   };
 }
 

@@ -18,6 +18,7 @@ import stripeRouter from './routes/stripe.js';
 import pvpRouter from './routes/pvp.js';
 import factionsRouter from './routes/factions.js';
 import leaderboardRouter from './routes/leaderboard.js';
+import adminRouter from './routes/admin.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -55,6 +56,7 @@ app.use('/api/shop', shopRouter);
 app.use('/api/pvp', pvpRouter);
 app.use('/api/factions', factionsRouter);
 app.use('/api/leaderboard', leaderboardRouter);
+app.use('/api/admin', adminRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

@@ -11,6 +11,9 @@ import {
   getActiveSeason,
   getBattlePassState,
   getXPForLevel,
+  serializeSeason,
+  buildTrackView,
+  grantBattlePassReward,
   unlockPremium,
   PREMIUM_COST_KAGE_COINS,
 } from '../src/services/battlePassService.js';
@@ -20,11 +23,13 @@ import {
   progressQuest,
 } from '../src/services/battlePassQuestService.js';
 import { createCharacter } from '../src/services/playerCharacterService.js';
+import { buildSeason1Rewards } from './data/battlePassSeason1.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let passed = 0;
 let failed = 0;
+const testUserIds = [];
 
 function assert(cond, msg) {
   if (cond) {
@@ -42,6 +47,48 @@ assert(getXPForLevel(10) === 1000, 'level 10 = 1000 XP');
 assert(getXPForLevel(11) === 1050, 'level 11 = 1050 XP');
 assert(getXPForLevel(21) === 1100, 'level 21 = 1100 XP');
 assert(PREMIUM_COST_KAGE_COINS === 500, 'premium = 500 Kage Coins');
+const rewards = buildSeason1Rewards();
+assert(
+  Object.values(rewards)
+    .flatMap(track => Object.values(track))
+    .flat()
+    .every(r => r.type !== 'cosmetic'),
+  'seed contains no cosmetic rewards'
+);
+const historical = serializeSeason({
+  id: 1,
+  max_level: 2,
+  rewards_json: JSON.stringify({
+    free: {
+      1: [
+        { type: 'cosmetic', key: 'old' },
+        { type: 'ryos', amount: 25 },
+      ],
+    },
+    premium: { 2: [{ type: 'cosmetic', key: 'old' }] },
+  }),
+});
+assert(
+  historical.rewards.free[1].length === 1 && historical.rewards.free[1][0].type === 'ryos',
+  'historical mixed tier keeps currency'
+);
+assert(historical.rewards.premium[2].length === 0, 'historical cosmetic-only tier hidden');
+const tracks = buildTrackView(historical, {
+  currentLevel: 2,
+  isPremium: true,
+  claimedRewards: { free: [], premium: [] },
+});
+assert(
+  tracks.free[0].claimable && !tracks.premium[1].claimable,
+  'only non-cosmetic tiers claimable'
+);
+let cosmeticRejected = false;
+try {
+  await grantBattlePassReward(1, { type: 'cosmetic', key: 'old' });
+} catch (e) {
+  cosmeticRejected = e.statusCode === 400;
+}
+assert(cosmeticRejected, 'cosmetic reward cannot be granted');
 
 async function dbAvailable() {
   try {
@@ -51,10 +98,10 @@ async function dbAvailable() {
        WHERE table_schema = DATABASE()
          AND table_name IN (
            'battle_pass_seasons', 'user_battle_pass',
-           'battle_pass_quests', 'user_battle_pass_quests', 'user_cosmetics'
+           'battle_pass_quests', 'user_battle_pass_quests'
          )`
     );
-    return tables.length >= 5;
+    return tables.length >= 4;
   } catch (e) {
     console.warn(`DB indisponible (${e.message}) — tests d'intégration ignorés.`);
     return false;
@@ -76,6 +123,7 @@ async function ensureUser() {
     prefix,
   ]);
   const userId = userResult.insertId;
+  testUserIds.push(userId);
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id, kage_coins, card_dust, card_essence)
      VALUES (?, ?, 'Genjutsu', 5000, 0, 100, 'fr', 'leaf', 600, 0, 0)`,
@@ -130,32 +178,31 @@ async function integration() {
   const claimPrem = await claimReward(userId, 1, 'premium');
   assert(claimPrem.rewards.length >= 1, 'premium reward claimed');
 
-  const cosmetics = await query(
-    'SELECT * FROM user_cosmetics WHERE user_id = ? AND cosmetic_key = ?',
-    [userId, 'ancestral_shadows']
+  assert(
+    claimPrem.rewards.every(reward => reward.type !== 'cosmetic'),
+    'premium claim grants cards only'
   );
-  assert(cosmetics.length === 1, 'card_back cosmetic granted');
 
   // Quests
   const { quests } = await getActiveQuests(userId);
   assert(quests.length >= 10, `≥10 active quests (got ${quests.length})`);
-  const dailies = quests.filter((q) => q.questType === 'daily');
-  const weeklies = quests.filter((q) => q.questType === 'weekly');
-  const milestones = quests.filter((q) => q.questType === 'milestone');
+  const dailies = quests.filter(q => q.questType === 'daily');
+  const weeklies = quests.filter(q => q.questType === 'weekly');
+  const milestones = quests.filter(q => q.questType === 'milestone');
   assert(dailies.length >= 5, `≥5 dailies (got ${dailies.length})`);
   assert(weeklies.length >= 5, `≥5 weeklies (got ${weeklies.length})`);
   assert(milestones.length >= 4, `≥4 milestones (got ${milestones.length})`);
   assert(
-    quests.some((q) => q.questKey === 'open_1_booster'),
-    'daily booster quest seeded',
+    quests.some(q => q.questKey === 'open_1_booster'),
+    'daily booster quest seeded'
   );
   assert(
-    quests.some((q) => q.questKey === 'join_pvp_queue'),
-    'daily PvP queue quest seeded',
+    quests.some(q => q.questKey === 'join_pvp_queue'),
+    'daily PvP queue quest seeded'
   );
   assert(
-    quests.some((q) => q.questKey === 'complete_1_run'),
-    'daily run quest seeded',
+    quests.some(q => q.questKey === 'complete_1_run'),
+    'daily run quest seeded'
   );
 
   const daily = dailies[0];
@@ -166,9 +213,8 @@ async function integration() {
   assert(claimedQuest.xp.xpGained >= 200, 'quest XP granted (with premium mult)');
   assert(claimedQuest.quest.progress.isClaimed === true, 'quest marked claimed');
 
-  const { onBattlePassAction, isMissionRankBOrHigher } = await import(
-    '../src/services/battlePassQuestService.js'
-  );
+  const { onBattlePassAction, isMissionRankBOrHigher } =
+    await import('../src/services/battlePassQuestService.js');
   assert(isMissionRankBOrHigher('B') && isMissionRankBOrHigher('A'), 'rank B+ helper');
   assert(!isMissionRankBOrHigher('C'), 'rank C below B');
   const hook = await onBattlePassAction(userId, 'booster_open', 1);
@@ -176,7 +222,19 @@ async function integration() {
 
   // Stub unlock path for second user
   const userId2 = await ensureUser();
-  await addBattlePassXP(userId2, 500, 'test');
+  await addBattlePassXP(userId2, 1000, 'test');
+  const concurrentClaims = await Promise.allSettled([
+    claimReward(userId2, 1, 'free'),
+    claimReward(userId2, 1, 'free'),
+  ]);
+  assert(
+    concurrentClaims.filter(result => result.status === 'fulfilled').length === 1 &&
+      concurrentClaims.some(
+        result => result.status === 'rejected' && result.reason?.statusCode === 409
+      ),
+    'concurrent claim grants a tier once'
+  );
+
   const stub = await unlockPremium(userId2, { method: 'stub', isAdmin: true });
   assert(stub.progress.isPremium === true, 'admin stub unlock');
   assert(String(stub.note || '').includes('Stripe'), 'stub notes Stripe deferral');
@@ -189,6 +247,15 @@ if (ok) {
   } catch (e) {
     failed += 1;
     console.error('  ✗ integration error:', e);
+  } finally {
+    for (const userId of testUserIds) {
+      try {
+        await query('DELETE FROM users WHERE id = ?', [userId]);
+      } catch (e) {
+        failed += 1;
+        console.error(`  ✗ cleanup user ${userId}:`, e);
+      }
+    }
   }
 } else {
   console.log('\n(intégration sautée)');

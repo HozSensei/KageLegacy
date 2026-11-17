@@ -10,23 +10,15 @@
  */
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
+import { BASE_CHAKRA, BASE_MAX_HP, DRAW_PER_TURN } from './deckCombat/constants.js';
 import {
-  BASE_CHAKRA,
-  BASE_MAX_HP,
-  DRAW_PER_TURN,
-} from './deckCombat/constants.js';
-import {
-  buildPracticeDeckEntries,
   buildRuntimeDeck,
   drawCards,
   moveCardFromHand,
   shuffle,
 } from './deckCombat/deckRuntime.js';
 import { applyCardPlay, resolveAllyAttack } from './deckCombat/cardEffects.js';
-import {
-  resolveEndOfTurnStatuses,
-  resolveStartOfTurnStatuses,
-} from './deckCombat/statuses.js';
+import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './deckCombat/statuses.js';
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
@@ -68,7 +60,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName],
+      [tableName]
     );
     return rows.length > 0;
   } catch {
@@ -82,7 +74,7 @@ async function columnExists(tableName, columnName) {
       `SELECT 1 AS ok FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
        LIMIT 1`,
-      [tableName, columnName],
+      [tableName, columnName]
     );
     return rows.length > 0;
   } catch {
@@ -95,15 +87,15 @@ async function appendLog(combatId, turn, actionType, actionData) {
   await query(
     `INSERT INTO combat_logs (combat_session_id, turn, action_type, action_data_json)
      VALUES (?, ?, ?, ?)`,
-    [combatId, turn, actionType, JSON.stringify(actionData || {})],
+    [combatId, turn, actionType, JSON.stringify(actionData || {})]
   );
 }
 
 async function loadSession(combatId, userId) {
-  const rows = await query(
-    'SELECT * FROM combat_sessions WHERE id = ? AND user_id = ? LIMIT 1',
-    [combatId, userId],
-  );
+  const rows = await query('SELECT * FROM combat_sessions WHERE id = ? AND user_id = ? LIMIT 1', [
+    combatId,
+    userId,
+  ]);
   if (!rows[0]) throw httpError(404, 'Combat introuvable.');
   return hydrateSession(rows[0]);
 }
@@ -146,7 +138,7 @@ async function persistSession(session) {
         session.rewards != null ? JSON.stringify(session.rewards) : null,
         session.id,
         session.userId,
-      ],
+      ]
     );
   } else {
     await query(
@@ -162,7 +154,7 @@ async function persistSession(session) {
         session.currentPhase,
         session.id,
         session.userId,
-      ],
+      ]
     );
   }
 }
@@ -314,7 +306,9 @@ async function maybeRecordCombatAchievements(session) {
   try {
     const { recordCombatAchievements } = await import('./achievementService.js');
     await recordCombatAchievements(session.userId, session, session.state);
-  } catch { /* exploits optionnels */ }
+  } catch {
+    /* exploits optionnels */
+  }
 }
 
 async function finalizeCombatOutcome(session, logs = []) {
@@ -331,41 +325,16 @@ async function finalizeCombatOutcome(session, logs = []) {
 }
 
 async function resolveDeckCards(userId, deckId) {
-  const { getDeck, getActiveDeck } = await import('./deckService.js');
-
-  let deck = null;
-  if (deckId) {
-    deck = await getDeck(userId, Number(deckId));
-  } else {
-    deck = await getActiveDeck(userId);
-  }
-
-  if (deck && deck.cards?.length) {
-    return { deckId: deck.id, cards: deck.cards, practice: false };
-  }
-
-  try {
-    const { getAllCards } = await import('./cardService.js');
-    const catalog = await getAllCards({});
-    if (catalog.length >= 6) {
-      const picked = catalog.slice(0, 8).map((card) => ({
-        quantity: 3,
-        card,
-      }));
-      return { deckId: null, cards: picked, practice: true };
-    }
-  } catch {
-    /* ignore */
-  }
-
-  return { deckId: null, cards: buildPracticeDeckEntries(), practice: true };
+  const { getPlayableDeckForCombat } = await import('./deckService.js');
+  const deck = await getPlayableDeckForCombat(userId, deckId);
+  return { deckId: deck.id, cards: deck.cards, practice: false };
 }
 
 async function loadTalentEffectCodes(userId) {
   try {
     const { computeTalentBonuses } = await import('./talentTreeService.js');
     const bonuses = await computeTalentBonuses(userId);
-    return (bonuses.effects || []).map((e) => e.effectCode).filter(Boolean);
+    return (bonuses.effects || []).map(e => e.effectCode).filter(Boolean);
   } catch {
     return [];
   }
@@ -373,10 +342,9 @@ async function loadTalentEffectCodes(userId) {
 
 async function loadPlayerName(userId) {
   try {
-    const rows = await query(
-      'SELECT name FROM player_character WHERE user_id = ? LIMIT 1',
-      [userId],
-    );
+    const rows = await query('SELECT name FROM player_character WHERE user_id = ? LIMIT 1', [
+      userId,
+    ]);
     return rows[0]?.name || 'Shinobi';
   } catch {
     return 'Shinobi';
@@ -404,8 +372,8 @@ export async function startCombat(userId, opts = {}) {
   }
 
   const active = await query(
-    'SELECT id FROM combat_sessions WHERE user_id = ? AND state = \'in_progress\' LIMIT 1',
-    [userId],
+    "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
+    [userId]
   );
   if (active[0]) {
     throw httpError(409, `Combat déjà en cours (${active[0].id}). Abandonnez-le ou terminez-le.`);
@@ -420,7 +388,7 @@ export async function startCombat(userId, opts = {}) {
   if (missionId && !templateId) {
     const rows = await query(
       'SELECT * FROM mission_definitions WHERE id = ? AND is_active = 1 LIMIT 1',
-      [missionId],
+      [missionId]
     );
     const mission = rows[0];
     if (!mission) throw httpError(404, 'Mission introuvable.');
@@ -446,11 +414,12 @@ export async function startCombat(userId, opts = {}) {
       ? Math.max(1, Number(opts.startingMaxHp))
       : BASE_MAX_HP + (Number(stats.maxHp) || 0);
   const startHp =
-    opts.startingHp != null
-      ? Math.max(1, Math.min(maxHp, Number(opts.startingHp)))
-      : maxHp;
+    opts.startingHp != null ? Math.max(1, Math.min(maxHp, Number(opts.startingHp))) : maxHp;
 
-  const runtimeCards = buildRuntimeDeck(deckInfo.cards, (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`);
+  const runtimeCards = buildRuntimeDeck(
+    deckInfo.cards,
+    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`
+  );
   const shuffled = shuffle(runtimeCards);
 
   const { createCombatAchTrack } = await import('./achievementService.js');
@@ -459,8 +428,8 @@ export async function startCombat(userId, opts = {}) {
     hp: startHp,
     maxHp,
     block: 0,
-    chakra: BASE_CHAKRA,
-    maxChakra: BASE_CHAKRA,
+    chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
+    maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     statuses: [],
     hand: [],
     drawPile: shuffled,
@@ -516,7 +485,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   } else if (hasRewardsCol) {
     await query(
@@ -533,7 +502,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   } else {
     await query(
@@ -550,7 +519,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   }
 
@@ -596,12 +565,12 @@ export async function getCombatState(userId, combatId) {
 export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const session = await loadSession(combatId, userId);
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
-  if (session.currentPhase !== 'player_turn') throw httpError(400, 'Ce n\'est pas votre tour.');
+  if (session.currentPhase !== 'player_turn') throw httpError(400, "Ce n'est pas votre tour.");
 
   const handId = instanceId || cardId;
   if (!handId) throw httpError(400, 'instanceId requis.');
 
-  const card = (session.player.hand || []).find((c) => c.instanceId === handId);
+  const card = (session.player.hand || []).find(c => c.instanceId === handId);
   if (!card) throw httpError(404, 'Carte absente de la main.');
 
   const deckElementCount = countDeckElements([
@@ -610,21 +579,12 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
     ...(session.player.discardPile || []),
     ...(session.player.exhaustPile || []),
   ]);
-  const statsWithBonus = {
-    ...session.stats,
-    vitesse:
-      (Number(session.stats?.vitesse) || 0) + (Number(session.player.combatSpeedBonus) || 0),
-  };
-  const talentMods = computeTalentDamageMods(
-    session.talentEffects.applied,
-    session.player,
-    card,
-    {
-      enemy: session.enemy,
-      deckElementCount,
-      cardsPlayedThisTurn: session.player.cardsPlayedThisTurn || 0,
-    },
-  );
+  const statsWithBonus = session.stats;
+  const talentMods = computeTalentDamageMods(session.talentEffects.applied, session.player, card, {
+    enemy: session.enemy,
+    deckElementCount,
+    cardsPlayedThisTurn: session.player.cardsPlayedThisTurn || 0,
+  });
   const played = applyCardPlay({
     player: session.player,
     enemy: session.enemy,
@@ -636,12 +596,9 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
 
   let nextPlayer = played.player;
   let nextEnemy = played.enemy;
-  const talentAfter = applyTalentAfterCardPlay(
-    nextPlayer,
-    card,
-    session.talentEffects.applied,
-    { enemy: nextEnemy },
-  );
+  const talentAfter = applyTalentAfterCardPlay(nextPlayer, card, session.talentEffects.applied, {
+    enemy: nextEnemy,
+  });
   nextPlayer = talentAfter.player;
   if (talentAfter.enemy) nextEnemy = talentAfter.enemy;
 
@@ -654,7 +611,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const moved = moveCardFromHand(
     nextPlayer,
     handId,
-    resolveCardPileDestination(card, session.talentEffects.applied),
+    resolveCardPileDestination(card, session.talentEffects.applied)
   );
 
   session.player = moved.player;
@@ -663,14 +620,16 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   try {
     const { trackCardPlayForAchievements } = await import('./achievementService.js');
     session.player = trackCardPlayForAchievements(session.player, card);
-  } catch { /* exploits optionnels */ }
+  } catch {
+    /* exploits optionnels */
+  }
 
   // Quêtes BP : carte jouée + dégâts infligés
   try {
     const { onBattlePassAction } = await import('./battlePassQuestService.js');
     await onBattlePassAction(userId, 'play_card', 1);
     const damageDealt = [...played.logs, ...talentAfter.logs]
-      .filter((l) => l && l.type === 'damage' && l.source === 'player')
+      .filter(l => l && l.type === 'damage' && l.source === 'player')
       .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
     if (damageDealt > 0) {
       await onBattlePassAction(userId, 'deal_damage', damageDealt);
@@ -713,7 +672,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
 export async function discardForChakra(userId, combatId, { instanceId } = {}) {
   const session = await loadSession(combatId, userId);
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
-  if (session.currentPhase !== 'player_turn') throw httpError(400, 'Ce n\'est pas votre tour.');
+  if (session.currentPhase !== 'player_turn') throw httpError(400, "Ce n'est pas votre tour.");
   if (session.player.discardedForChakra) {
     throw httpError(400, 'Déjà utilisé ce tour (défausse → Chakra).');
   }
@@ -739,7 +698,7 @@ export async function discardForChakra(userId, combatId, { instanceId } = {}) {
 export async function endTurn(userId, combatId) {
   const session = await loadSession(combatId, userId);
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
-  if (session.currentPhase !== 'player_turn') throw httpError(400, 'Ce n\'est pas votre tour.');
+  if (session.currentPhase !== 'player_turn') throw httpError(400, "Ce n'est pas votre tour.");
 
   let logs = [];
 
@@ -749,7 +708,7 @@ export async function endTurn(userId, combatId) {
 
   const playerEnd = resolveEndOfTurnStatuses(session.player, { persistBlock: true });
   session.player = playerEnd.entity;
-  logs.push(...playerEnd.logs.map((l) => ({ ...l, side: 'player' })));
+  logs.push(...playerEnd.logs.map(l => ({ ...l, side: 'player' })));
 
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);
@@ -765,11 +724,11 @@ export async function endTurn(userId, combatId) {
   }
   const enemyStart = resolveStartOfTurnStatuses(session.enemy);
   session.enemy = enemyStart.entity;
-  logs.push(...enemyStart.logs.map((l) => ({ ...l, side: 'enemy' })));
+  logs.push(...enemyStart.logs.map(l => ({ ...l, side: 'enemy' })));
 
   {
     const phase = maybeAdvanceBossPhase(session.enemy, {
-      announceIntent: (e) => getNextIntent(e),
+      announceIntent: e => getNextIntent(e),
     });
     if (phase.changed) {
       session.enemy = phase.enemy;
@@ -806,8 +765,13 @@ export async function endTurn(userId, combatId) {
 
   try {
     const { trackDamageTakenForAchievements } = await import('./achievementService.js');
-    session.player = trackDamageTakenForAchievements(session.player, enemyAct.damageTakenByPlayer || 0);
-  } catch { /* exploits optionnels */ }
+    session.player = trackDamageTakenForAchievements(
+      session.player,
+      enemyAct.damageTakenByPlayer || 0
+    );
+  } catch {
+    /* exploits optionnels */
+  }
 
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);
@@ -818,11 +782,11 @@ export async function endTurn(userId, combatId) {
 
   const enemyEnd = resolveEndOfTurnStatuses(session.enemy, { persistBlock: true });
   session.enemy = enemyEnd.entity;
-  logs.push(...enemyEnd.logs.map((l) => ({ ...l, side: 'enemy' })));
+  logs.push(...enemyEnd.logs.map(l => ({ ...l, side: 'enemy' })));
 
   {
     const phase = maybeAdvanceBossPhase(session.enemy, {
-      announceIntent: (e) => getNextIntent(e),
+      announceIntent: e => getNextIntent(e),
     });
     if (phase.changed) {
       session.enemy = phase.enemy;
@@ -853,7 +817,7 @@ export async function endTurn(userId, combatId) {
     discardedForChakra: false,
     elementalFusionDrawnThisTurn: false,
   };
-  logs.push(...playerStart.logs.map((l) => ({ ...l, side: 'player' })));
+  logs.push(...playerStart.logs.map(l => ({ ...l, side: 'player' })));
 
   const talentStart = applyTalentStartOfTurn(session.player, session.talentEffects.applied, {
     turn: session.currentTurn,

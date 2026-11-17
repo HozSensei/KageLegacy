@@ -1,80 +1,102 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
-import DeckBuilder from '../components/cards/DeckBuilder.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import bridgeImage from '../assets/illustrations/stone-bridge.webp'
-import { useCollectionStore } from '../stores/collection'
-import { useDecksStore } from '../stores/decks'
+import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { RouterLink } from 'vue-router';
+import DeckBuilder from '../components/cards/DeckBuilder.vue';
+import EmptyState from '../components/ui/EmptyState.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import bridgeImage from '../assets/illustrations/stone-bridge.webp';
+import { useCollectionStore } from '../stores/collection';
+import { useDecksStore } from '../stores/decks';
+import { cardActionError } from '../utils/cardActionErrors.js';
 
-defineOptions({ name: 'DeckBuilderView' })
+defineOptions({ name: 'DeckBuilderView' });
 
-const { t } = useI18n()
-const collection = useCollectionStore()
-const decks = useDecksStore()
-const newName = ref('')
-const message = ref(null)
+const { t, locale } = useI18n();
+const collection = useCollectionStore();
+const decks = useDecksStore();
+const newName = ref('');
+const message = ref(null);
 
-onMounted(async () => {
-  await Promise.all([collection.fetchCollection(), decks.fetchDecks()])
-  if (decks.activeDeck) {
-    await decks.selectDeck(decks.activeDeck.id)
-  } else if (decks.decks[0]) {
-    await decks.selectDeck(decks.decks[0].id)
+async function loadDeckBuilder() {
+  message.value = null;
+  decks.editingDeck = null;
+  await Promise.all([collection.fetchCollection(), decks.fetchDecks()]);
+  if (collection.error || decks.error) return;
+  const deck = decks.activeDeck || decks.decks[0];
+  if (deck) {
+    try {
+      await decks.selectDeck(deck.id);
+    } catch (error) {
+      message.value = { type: 'error', error: error.message };
+    }
   }
-  await decks.fetchPassiveBonuses()
-})
+}
+
+onMounted(loadDeckBuilder);
 
 async function onCreate() {
-  message.value = null
+  message.value = null;
   try {
-    await decks.createDeck(newName.value || t('cards.defaultDeckName'))
-    newName.value = ''
-    message.value = t('cards.deckCreated')
-  } catch {
+    await decks.createDeck(newName.value || t('cards.defaultDeckName'));
+    newName.value = '';
     message.value = decks.error
+      ? { type: 'error', key: 'cards.refreshFailed' }
+      : { type: 'success', key: 'cards.deckCreated' };
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
   }
 }
 
 async function onPickDeck(id) {
-  message.value = null
+  message.value = null;
+  decks.error = null;
   try {
-    await decks.selectDeck(id)
+    await decks.selectDeck(id);
   } catch (e) {
-    message.value = e.message
+    message.value = { type: 'error', error: e.message };
   }
 }
 
 async function onAdd(collectionId) {
-  if (!decks.editingDeck) return
+  if (!decks.editingDeck) return;
+  message.value = null;
   try {
-    await decks.addCard(decks.editingDeck.id, collectionId)
-  } catch {
+    await decks.addCard(decks.editingDeck.id, collectionId);
     message.value = decks.error
+      ? { type: 'error', key: 'cards.refreshFailed' }
+      : { type: 'success', key: 'cards.cardAddedToDeck' };
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
   }
 }
 
 async function onRemove(collectionId) {
-  if (!decks.editingDeck) return
+  if (!decks.editingDeck) return;
+  message.value = null;
   try {
-    await decks.removeCard(decks.editingDeck.id, collectionId)
-  } catch {
+    await decks.removeCard(decks.editingDeck.id, collectionId);
     message.value = decks.error
+      ? { type: 'error', key: 'cards.refreshFailed' }
+      : { type: 'success', key: 'cards.cardRemovedFromDeck' };
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
   }
 }
 
 async function onActivate(deckId) {
-  message.value = null
+  message.value = null;
+  decks.error = null;
   try {
-    await decks.activateDeck(deckId)
-    message.value = t('cards.deckActivated')
-  } catch {
-    // decks.error already holds the bilingual API validation message
+    const activated = await decks.activateDeck(deckId);
+    decks.editingDeck = activated;
+    message.value = decks.error
+      ? { type: 'error', key: 'cards.refreshFailed' }
+      : { type: 'success', key: 'cards.deckActivated' };
+  } catch (error) {
+    message.value = { type: 'error', error: error.message };
   }
 }
-
 </script>
 
 <template>
@@ -88,12 +110,32 @@ async function onActivate(deckId) {
       image-position="50% 45%"
     >
       <template #actions>
-        <RouterLink to="/collection" class="btn-ghost">{{ t('cards.backToCollection') }}</RouterLink>
+        <RouterLink to="/collection" class="btn-ghost">{{
+          t('cards.backToCollection')
+        }}</RouterLink>
       </template>
     </PageHeader>
 
+    <p v-if="message" class="alert mt-5" :class="`alert--${message.type}`" role="status">
+      {{ message.key ? t(message.key) : cardActionError(message.error, locale, t) }}
+    </p>
+    <div
+      v-if="(collection.error || decks.error) && !message"
+      class="alert alert--error mt-5"
+      role="alert"
+    >
+      <p>{{ cardActionError(collection.error || decks.error, locale, t) }}</p>
+      <button type="button" class="btn-ghost" @click="loadDeckBuilder">{{ t('hub.retry') }}</button>
+    </div>
+
     <EmptyState
-      v-if="!collection.loading && !decks.loading && !collection.entries.length"
+      v-if="
+        !collection.loading &&
+        !decks.loading &&
+        !collection.error &&
+        !decks.error &&
+        !collection.entries.length
+      "
       class="mt-8"
       :title="t('cards.emptyDeckNoCardsTitle')"
       :lead="t('cards.emptyDeckNoCardsLead')"
@@ -105,11 +147,7 @@ async function onActivate(deckId) {
 
     <template v-else>
       <div class="deck-toolbar">
-        <div
-          v-if="decks.decks.length"
-          class="chip-row deck-toolbar__list"
-          data-testid="deck-list"
-        >
+        <div v-if="decks.decks.length" class="chip-row deck-toolbar__list" data-testid="deck-list">
           <button
             v-for="deck in decks.decks"
             :key="deck.id"
@@ -148,14 +186,11 @@ async function onActivate(deckId) {
       </div>
 
       <EmptyState
-        v-if="!decks.loading && !decks.decks.length"
+        v-if="!decks.loading && !decks.error && !decks.decks.length"
         class="mt-6"
         :title="t('cards.emptyDecksTitle')"
         :lead="t('cards.emptyDecksLead')"
       />
-
-      <p v-if="message" class="alert alert--success mt-5">{{ message }}</p>
-      <p v-if="decks.error && !message" class="alert alert--error mt-5">{{ decks.error }}</p>
 
       <div class="mt-10">
         <DeckBuilder

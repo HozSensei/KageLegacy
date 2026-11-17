@@ -1,12 +1,12 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import StatusIcon from './StatusIcon.vue'
-import AppIcon from '../ui/AppIcon.vue'
-import { useDeltaFeed } from '../../composables/useDeltaFeed'
-import { localizedName } from '../../utils/localeContent.js'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import StatusIcon from './StatusIcon.vue';
+import AppIcon from '../ui/AppIcon.vue';
+import { useDeltaFeed } from '../../composables/useDeltaFeed';
+import { localizedName } from '../../utils/localeContent.js';
 
-defineOptions({ name: 'PlayerStatus' })
+defineOptions({ name: 'PlayerStatus' });
 
 const props = defineProps({
   player: { type: Object, required: true },
@@ -14,28 +14,38 @@ const props = defineProps({
   tone: { type: String, default: 'indigo' },
   /** Libellé au-dessus du nom ; par défaut « Vous ». */
   roleLabel: { type: String, default: '' },
-})
+});
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 const hpPct = computed(() => {
-  const max = Math.max(1, props.player.maxHp || 1)
-  return Math.max(0, Math.min(100, (100 * (props.player.hp || 0)) / max))
-})
+  const max = Math.max(1, props.player.maxHp || 1);
+  return Math.max(0, Math.min(100, (100 * (props.player.hp || 0)) / max));
+});
 
 const chakraPips = computed(() => {
-  const max = props.player.maxChakra ?? 3
-  const cur = props.player.chakra ?? 0
-  return Array.from({ length: max }, (_, i) => i < cur)
-})
+  const max = props.player.maxChakra ?? 3;
+  const cur = props.player.chakra ?? 0;
+  return Array.from({ length: max }, (_, i) => i < cur);
+});
 
-const initial = computed(() => String(props.player.name || '?').trim().charAt(0).toUpperCase())
+const initial = computed(() =>
+  String(props.player.name || '?')
+    .trim()
+    .charAt(0)
+    .toUpperCase()
+);
 
-const { deltas, hit } = useDeltaFeed(() => props.player.hp)
+const { deltas, hit } = useDeltaFeed(() => props.player.hp);
 </script>
 
 <template>
-  <div class="fighter" :class="{ 'fighter--hit': hit }" :data-tone="tone" data-testid="player-status">
+  <div
+    class="fighter"
+    :class="{ 'fighter--hit': hit }"
+    :data-tone="tone"
+    data-testid="player-status"
+  >
     <div class="fighter__head">
       <span class="fighter__avatar" aria-hidden="true">{{ initial }}</span>
       <div class="min-w-0 flex-1">
@@ -70,7 +80,10 @@ const { deltas, hit } = useDeltaFeed(() => props.player.hp)
     </div>
 
     <div class="fighter__row">
-      <div class="chakra" :aria-label="t('combat.chakra', { n: player.chakra, max: player.maxChakra })">
+      <div
+        class="chakra"
+        :aria-label="t('combat.chakra', { n: player.chakra, max: player.maxChakra })"
+      >
         <span class="chakra__pips" aria-hidden="true">
           <span
             v-for="(on, i) in chakraPips"
@@ -84,7 +97,12 @@ const { deltas, hit } = useDeltaFeed(() => props.player.hp)
         </span>
       </div>
 
-      <span v-if="player.block" :key="player.block" class="armor-chip" :title="t('combat.block', { n: player.block })">
+      <span
+        v-if="player.block"
+        :key="player.block"
+        class="armor-chip"
+        :title="t('combat.block', { n: player.block })"
+      >
         <AppIcon name="block" size="1rem" :stroke-width="2" />
         <span class="armor-chip__value">{{ player.block }}</span>
         {{ t('combat.blockLabel') }}
@@ -102,9 +120,12 @@ const { deltas, hit } = useDeltaFeed(() => props.player.hp)
         <p class="ally__name">{{ localizedName(player.ally, locale) }}</p>
       </div>
       <p class="ally__meta">
-        <strong>{{ player.ally.hp }}</strong>/{{ player.ally.maxHp }} {{ t('combat.hpLabel') }}
-        · {{ t('combat.allyAttackStat', { n: player.ally.attack }) }}
+        <strong>{{ player.ally.hp }}</strong>/{{ player.ally.maxHp }} {{ t('combat.hpLabel') }} ·
+        {{ t('combat.allyAttackStat', { n: player.ally.attack }) }}
         <span v-if="player.ally.taunt">· {{ t('combat.allyTaunt') }}</span>
+        <span v-if="player.ally.remainingTurns != null"
+          >· {{ t('combat.allyTurns', { n: player.ally.remainingTurns }) }}</span
+        >
       </p>
     </div>
   </div>

@@ -5,16 +5,7 @@ export const DRAW_PER_TURN = 5;
 export const MAX_HAND_SIZE = 10;
 export const BASE_MAX_HP = 100;
 
-export const STAT_KEYS = [
-  'taijutsu',
-  'ninjutsu',
-  'genjutsu',
-  'medicine',
-  'vitesse',
-  'intelligence',
-  'dexterity',
-  'maxHp',
-];
+export const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'];
 
 /** Triangle tactique : Tai > Gen > Nin > Tai. Médecine neutre. */
 export const TYPE_ADVANTAGE = {
@@ -77,7 +68,7 @@ export const TALENT_EFFECT_MVP = {
   immortal: { kind: 'regen_pct', pct: 0.02, damageMult: 0.5 },
   overload: { kind: 'nin_cost_damage', costDelta: 1, damageMult: 2 },
   intangible: { kind: 'no_attack_cap_incoming', incomingCap: 1 },
-  combo_master: { kind: 'tai_combo_force', cardsNeeded: 3, force: 2, duration: 2 },
+  combo_master: { kind: 'third_tai_double_damage', cardsBeforeTrigger: 2, damageMult: 2 },
   blade_swift: { kind: 'cheap_tai_flat', maxCost: 1, flat: 3 },
   elemental_mastery: { kind: 'element_damage', mult: 1.25 },
   elemental_fusion: { kind: 'dual_element_draw', draw: 1 },
@@ -89,7 +80,7 @@ export const TALENT_EFFECT_MVP = {
   finisher_blow: { kind: 'low_enemy_hp_tai', threshold: 0.25, mult: 1.5 },
   relentless_press: { kind: 'tai_stack_flat', flatPerCard: 1 },
   absolute_guard: { kind: 'block_mult_tai_cost', blockMult: 2, offensiveTaiCostDelta: 1 },
-  adrenaline_rush: { kind: 'low_hp_speed', threshold: 0.5, speed: 2 },
+  adrenaline_rush: { kind: 'low_hp_tai_flat', threshold: 0.5, flat: 3 },
   crushing_grip: { kind: 'heavy_tai_armor_ignore', minCost: 3, armorIgnore: 2 },
 
   // ── Ninjutsu ──

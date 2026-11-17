@@ -19,7 +19,7 @@ export function classifyTalentEffects(effectCodes = []) {
 
 export function enemyHasGenjutsuDebuff(enemy) {
   return (enemy?.statuses || []).some(
-    (s) => GENJUTSU_DEBUFF_KEYS.has(s.key) && (s.duration == null || s.duration > 0),
+    s => GENJUTSU_DEBUFF_KEYS.has(s.key) && (s.duration == null || s.duration > 0)
   );
 }
 
@@ -100,6 +100,13 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     mods.damageMult *= cfg.damageMult;
   }
 
+  if (card && codes.has('combo_master') && card.statType === 'taijutsu') {
+    const cfg = TALENT_EFFECT_MVP.combo_master;
+    if ((Number(player.taijutsuPlayedThisTurn) || 0) === cfg.cardsBeforeTrigger) {
+      mods.damageMult *= cfg.damageMult;
+    }
+  }
+
   if (card && codes.has('blade_swift') && card.statType === 'taijutsu') {
     const cfg = TALENT_EFFECT_MVP.blade_swift;
     const baseCost = Number(card.cost) || 0;
@@ -119,7 +126,12 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     mods.costDelta += TALENT_EFFECT_MVP.shadow_feint.costDelta;
   }
 
-  if (card && codes.has('counter_strike') && card.statType === 'taijutsu' && player.counterStrikeReady) {
+  if (
+    card &&
+    codes.has('counter_strike') &&
+    card.statType === 'taijutsu' &&
+    player.counterStrikeReady
+  ) {
     mods.damageFlat += TALENT_EFFECT_MVP.counter_strike.flat;
   }
 
@@ -136,8 +148,7 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
 
   if (card && codes.has('absolute_guard') && card.statType === 'taijutsu') {
     const wantsAttack =
-      (Number(card.damage) || 0) > 0 ||
-      (card.effects || []).some((e) => e.type === 'multi_strike');
+      (Number(card.damage) || 0) > 0 || (card.effects || []).some(e => e.type === 'multi_strike');
     if (wantsAttack) {
       mods.costDelta += TALENT_EFFECT_MVP.absolute_guard.offensiveTaiCostDelta;
     }
@@ -146,6 +157,12 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
   if (card && codes.has('crushing_grip') && card.statType === 'taijutsu') {
     const cfg = TALENT_EFFECT_MVP.crushing_grip;
     if ((Number(card.cost) || 0) >= cfg.minCost) mods.armorIgnore += cfg.armorIgnore;
+  }
+
+  if (card && codes.has('adrenaline_rush') && card.statType === 'taijutsu') {
+    const cfg = TALENT_EFFECT_MVP.adrenaline_rush;
+    const ratio = (Number(player.hp) || 0) / Math.max(1, Number(player.maxHp) || 1);
+    if (ratio < cfg.threshold) mods.damageFlat += cfg.flat;
   }
 
   if (card && codes.has('void_channel') && card.statType === 'ninjutsu') {
@@ -162,7 +179,12 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     }
   }
 
-  if (card && codes.has('overcharge_spark') && card.statType === 'ninjutsu' && player.overchargeReady) {
+  if (
+    card &&
+    codes.has('overcharge_spark') &&
+    card.statType === 'ninjutsu' &&
+    player.overchargeReady
+  ) {
     mods.damageFlat += TALENT_EFFECT_MVP.overcharge_spark.flat;
   }
 
@@ -180,8 +202,7 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     codes.has('echo_cast') &&
     card.statType === 'ninjutsu' &&
     !player.echoCastUsed &&
-    ((Number(card.damage) || 0) > 0 ||
-      (card.effects || []).some((e) => e.type === 'multi_strike'))
+    ((Number(card.damage) || 0) > 0 || (card.effects || []).some(e => e.type === 'multi_strike'))
   ) {
     mods.echoReplayMult = TALENT_EFFECT_MVP.echo_cast.damageMult;
   }
@@ -195,8 +216,7 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     codes.has('silent_cut') &&
     card.statType === 'genjutsu' &&
     cardsPlayedThisTurn === 0 &&
-    ((Number(card.damage) || 0) > 0 ||
-      (card.effects || []).some((e) => e.type === 'multi_strike'))
+    ((Number(card.damage) || 0) > 0 || (card.effects || []).some(e => e.type === 'multi_strike'))
   ) {
     mods.damageFlat += TALENT_EFFECT_MVP.silent_cut.flat;
   }
@@ -205,7 +225,10 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     if (codes.has('triage_focus') && !player.triageFocusUsed) {
       mods.healFlat += TALENT_EFFECT_MVP.triage_focus.flat;
     }
-    if (codes.has('field_surgeon') && (Number(card.cost) || 0) >= TALENT_EFFECT_MVP.field_surgeon.minCost) {
+    if (
+      codes.has('field_surgeon') &&
+      (Number(card.cost) || 0) >= TALENT_EFFECT_MVP.field_surgeon.minCost
+    ) {
       mods.healFlat += TALENT_EFFECT_MVP.field_surgeon.flat;
     }
     if (codes.has('last_stand_heal') && !player.lastStandHealUsed) {
@@ -224,7 +247,7 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
  */
 export function applyTalentCombatStart(player, effectCodes = []) {
   const logs = [];
-  let next = { ...player };
+  const next = { ...player };
   const codes = new Set(effectCodes || []);
 
   if (codes.has('void_channel')) {
@@ -308,7 +331,7 @@ export function applyTalentStartOfTurn(player, effectCodes = [], { turn = 1 } = 
 
   if (codes.has('purify') && !next.purifyUsed) {
     const playerDebuffKeys = new Set(['weak', 'vulnerable', 'poison', 'burn']);
-    const idx = (next.statuses || []).findIndex((s) => playerDebuffKeys.has(s.key));
+    const idx = (next.statuses || []).findIndex(s => playerDebuffKeys.has(s.key));
     if (idx >= 0) {
       const removed = next.statuses[idx];
       next.statuses = next.statuses.filter((_, i) => i !== idx);
@@ -352,11 +375,11 @@ export function applyTalentEndOfPlayerTurn(player, effectCodes = []) {
  */
 export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy = null } = {}) {
   const logs = [];
-  let next = {
+  const next = {
     ...player,
     cardsPlayedThisTurn: (Number(player.cardsPlayedThisTurn) || 0) + 1,
   };
-  let nextEnemy = enemy;
+  const nextEnemy = enemy;
   const codes = new Set(effectCodes || []);
   let extraDraw = 0;
 
@@ -393,9 +416,7 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
   }
 
   if (card?.element) {
-    const prev = Array.isArray(next.elementsPlayedThisTurn)
-      ? [...next.elementsPlayedThisTurn]
-      : [];
+    const prev = Array.isArray(next.elementsPlayedThisTurn) ? [...next.elementsPlayedThisTurn] : [];
     const last = prev[prev.length - 1];
     if (codes.has('elemental_cycle') && last && last !== card.element) {
       next.elementalCycleBonus = true;
@@ -408,23 +429,6 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
     next.elementsPlayedThisTurn = prev;
   } else if (codes.has('elemental_cycle') && player.elementalCycleBonus) {
     next.elementalCycleBonus = false;
-  }
-
-  if (codes.has('combo_master') && card?.statType === 'taijutsu') {
-    const cfg = TALENT_EFFECT_MVP.combo_master;
-    if ((Number(next.taijutsuPlayedThisTurn) || 0) === cfg.cardsNeeded) {
-      next.statuses = applyStatus(next.statuses || [], {
-        key: 'force',
-        value: cfg.force,
-        duration: cfg.duration,
-      });
-      logs.push({
-        type: 'talent',
-        effect: 'combo_master',
-        force: cfg.force,
-        duration: cfg.duration,
-      });
-    }
   }
 
   if (codes.has('elemental_fusion') && card?.element) {
@@ -456,7 +460,11 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
  * adrenaline, echo_pain, mirage_armor.
  * @returns {{ player, enemy, logs }}
  */
-export function applyTalentAfterDamageTaken(player, effectCodes = [], { enemy = null, damageDealt = 0 } = {}) {
+export function applyTalentAfterDamageTaken(
+  player,
+  effectCodes = [],
+  { enemy = null, damageDealt = 0 } = {}
+) {
   const logs = [];
   const codes = new Set(effectCodes || []);
   let next = { ...player };
@@ -472,16 +480,6 @@ export function applyTalentAfterDamageTaken(player, effectCodes = [], { enemy = 
   if ((Number(damageDealt) || 0) > 0 && codes.has('counter_strike')) {
     next.counterStrikeReady = true;
     logs.push({ type: 'talent', effect: 'counter_strike', armed: true });
-  }
-
-  if (codes.has('adrenaline_rush') && !next.adrenalineRushUsed) {
-    const cfg = TALENT_EFFECT_MVP.adrenaline_rush;
-    const ratio = (Number(next.hp) || 0) / Math.max(1, Number(next.maxHp) || 1);
-    if (ratio < cfg.threshold && (Number(next.hp) || 0) > 0) {
-      next.combatSpeedBonus = (Number(next.combatSpeedBonus) || 0) + cfg.speed;
-      next.adrenalineRushUsed = true;
-      logs.push({ type: 'talent', effect: 'adrenaline_rush', speed: cfg.speed });
-    }
   }
 
   if (
@@ -537,7 +535,7 @@ export function applyTalentToStatusPayload({
 }) {
   const logs = [];
   const codes = new Set(effectCodes || []);
-  let nextPayload = { ...payload };
+  const nextPayload = { ...payload };
   let nextPlayer = player;
   let nextEnemy = enemy;
 
@@ -553,7 +551,8 @@ export function applyTalentToStatusPayload({
       logs.push({ type: 'talent', effect: 'illusion_master', durationDelta: d });
     }
     if (codes.has('phantom_sovereign')) {
-      nextPayload.value = (Number(nextPayload.value) || 0) + TALENT_EFFECT_MVP.phantom_sovereign.valueDelta;
+      nextPayload.value =
+        (Number(nextPayload.value) || 0) + TALENT_EFFECT_MVP.phantom_sovereign.valueDelta;
       logs.push({
         type: 'talent',
         effect: 'phantom_sovereign',
@@ -582,10 +581,14 @@ export function applyTalentToStatusPayload({
  * Post-soin : blood_bond, vital_overflow.
  * @returns {{ player, logs }}
  */
-export function applyTalentAfterHeal(player, effectCodes = [], { healAttempted = 0, healApplied = 0 } = {}) {
+export function applyTalentAfterHeal(
+  player,
+  effectCodes = [],
+  { healAttempted = 0, healApplied = 0 } = {}
+) {
   const logs = [];
   const codes = new Set(effectCodes || []);
-  let next = { ...player };
+  const next = { ...player };
 
   if (codes.has('blood_bond') && healApplied > 0) {
     const cfg = TALENT_EFFECT_MVP.blood_bond;

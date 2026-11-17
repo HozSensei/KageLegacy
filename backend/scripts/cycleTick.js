@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Point d'entrée cron prod : exécute un tick de cycle (H36/H71/H72 selon l'horloge réelle).
- * Usage: npm run cycle:tick
- * Planification suggérée : toutes les minutes (systemd, k8s CronJob, etc.)
+ * Commande historique du jeu d'escouade : exécute un tick de cycle H36/H71/H72.
+ * Usage manuel : npm run cycle:tick
+ * Ne pas planifier pour le TCG ; désactiver tout ancien cron externe.
  */
 import dotenv from 'dotenv';
 import path from 'path';
@@ -30,7 +30,7 @@ async function main() {
   await pool.end();
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });

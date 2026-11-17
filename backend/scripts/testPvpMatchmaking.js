@@ -14,10 +14,12 @@ import {
   normalizeLevelWindow,
   ALLOWED_LEVEL_WINDOWS,
   GUEST_CHALLENGE_ENABLED,
+  RESULT_CONFIRMATION_TIMEOUT_MS,
 } from '../../shared/pvp/config.js';
 import { duelChecksum, fingerprint, normalizeResultSummary } from '../../shared/pvp/checksum.js';
 import {
   compareHostGuestChecksums,
+  evaluateResultConfirmation,
   independentChecksumFromPublic,
   PVP_AC_LIMITS,
   validateBootstrap,
@@ -57,6 +59,7 @@ assert(normalizeLevelWindow(4) === 4, 'normalize custom 4 (0–20)');
 assert(normalizeLevelWindow(25) === DEFAULT_LEVEL_WINDOW, 'hors plage → défaut');
 assert(normalizeLevelWindow(undefined) === 3, 'undefined → 3');
 assert(GUEST_CHALLENGE_ENABLED === true, 'guest challenge activé');
+assert(RESULT_CONFIRMATION_TIMEOUT_MS === 5 * 60 * 1000, 'confirmation limitée à 5 min');
 
 console.log('\n=== isLevelInWindow ===');
 assert(isLevelInWindow(10, 10, 3) === true, 'même niveau');
@@ -73,12 +76,11 @@ const seeker = { userId: 1, level: 10, enqueuedAt: 1000 };
 assert(findBestMatch(seeker, []) === null, 'file vide');
 assert(
   findBestMatch(seeker, [{ userId: 1, level: 10, enqueuedAt: 500 }]) === null,
-  'ignore soi-même',
+  'ignore soi-même'
 );
 assert(
-  findBestMatch(seeker, [{ userId: 2, level: 20, enqueuedAt: 500 }], { levelWindow: 3 }) ===
-    null,
-  'hors fenêtre',
+  findBestMatch(seeker, [{ userId: 2, level: 20, enqueuedAt: 500 }], { levelWindow: 3 }) === null,
+  'hors fenêtre'
 );
 
 const best = findBestMatch(
@@ -88,7 +90,7 @@ const best = findBestMatch(
     { userId: 3, level: 11, enqueuedAt: 3000 },
     { userId: 4, level: 11, enqueuedAt: 1500 },
   ],
-  { levelWindow: 3 },
+  { levelWindow: 3 }
 );
 assert(best?.userId === 4, 'plus proche niveau puis plus ancien (11@1500)');
 
@@ -98,7 +100,7 @@ const tied = findBestMatch(
     { userId: 5, level: 10, enqueuedAt: 4000 },
     { userId: 6, level: 10, enqueuedAt: 1000 },
   ],
-  { levelWindow: 3 },
+  { levelWindow: 3 }
 );
 assert(tied?.userId === 6, 'même niveau → plus ancien en file');
 
@@ -231,7 +233,10 @@ assert(duel.fighters.guest.hand.length > 0, 'Guest a une main');
 const cardId = duel.fighters.host.hand[0].instanceId;
 const played = applyDuelAction(duel, { kind: 'play_card', seat: 'host', instanceId: cardId });
 assert(!played.error, 'play_card ok');
-assert(played.state.fighters.host.hand.length === duel.fighters.host.hand.length - 1, 'carte retirée');
+assert(
+  played.state.fighters.host.hand.length === duel.fighters.host.hand.length - 1,
+  'carte retirée'
+);
 
 const pubGuest = publicDuelState(played.state, 'guest');
 assert(pubGuest.fighters.guest.hand != null, 'guest voit sa main');
@@ -241,6 +246,110 @@ const { checksum, summary } = duelChecksum(played.state);
 assert(typeof checksum === 'string' && checksum.length === 16, 'checksum hex 16');
 assert(fingerprint(summary) === checksum, 'fingerprint stable');
 assert(fingerprint(normalizeResultSummary(summary)) === checksum, 'normalize stable');
+
+console.log('\n=== Invocations PvP ===');
+const summonDuel = createDuelFromBootstrap({
+  matchId: 'summon-match',
+  seed: 'summon-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      name: 'Akira',
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [
+        {
+          instanceId: 'summon-1',
+          cardType: 'summon',
+          cost: 1,
+          summon: { nameFr: 'Clone', hp: 10, attack: 3, duration: 2, abilities: ['taunt'] },
+        },
+      ],
+      drawPile: [],
+    },
+    guest: {
+      userId: 2,
+      name: 'Ren',
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [{ instanceId: 'heavy-hit', cost: 0, damage: 14, statType: 'taijutsu' }],
+      drawPile: [],
+    },
+  },
+});
+const summoned = applyDuelAction(summonDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'summon-1',
+});
+assert(
+  summoned.state.fighters.host.ally?.remainingTurns === 2,
+  'la carte invoque un allié avec sa durée'
+);
+assert(summoned.state.fighters.host.ally?.taunt === true, 'Taunt est lu depuis les capacités');
+const publicSummon = publicDuelState(summoned.state, 'guest');
+assert(publicSummon.fighters.host.ally?.hp === 10, 'l’invocation adverse est visible');
+const finishingState = structuredClone(summoned.state);
+finishingState.fighters.guest.hp = 3;
+const finishingTurn = applyDuelAction(finishingState, { kind: 'end_turn', seat: 'host' });
+assert(finishingTurn.state.status === 'completed', 'une invocation peut terminer le duel');
+const hostEnd = applyDuelAction(summoned.state, { kind: 'end_turn', seat: 'host' });
+assert(hostEnd.state.fighters.guest.hp === 97, 'l’invocation attaque à la fin du tour');
+const guestHit = applyDuelAction(hostEnd.state, {
+  kind: 'play_card',
+  seat: 'guest',
+  instanceId: 'heavy-hit',
+});
+assert(
+  guestHit.state.fighters.host.ally === null,
+  'Taunt absorbe les dégâts et l’invocation meurt'
+);
+assert(guestHit.state.fighters.host.hp === 96, 'les dégâts excédentaires passent au joueur');
+
+const expiringDuel = createDuelFromBootstrap({
+  matchId: 'expiry-match',
+  seed: 'expiry-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      hand: [
+        {
+          instanceId: 'short-summon',
+          cardType: 'summon',
+          cost: 0,
+          summon: { name: 'Esprit', hp: 5, attack: 0, duration: 2 },
+        },
+      ],
+      drawPile: [],
+    },
+    guest: { userId: 2, hp: 100, maxHp: 100, chakra: 3, hand: [], drawPile: [] },
+  },
+});
+let expiryState = applyDuelAction(expiringDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'short-summon',
+}).state;
+expiryState = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'host' }).state;
+expiryState = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'guest' }).state;
+assert(
+  expiryState.fighters.host.ally?.remainingTurns === 1,
+  'la durée diminue après le tour adverse'
+);
+expiryState = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'host' }).state;
+const expired = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'guest' });
+assert(expired.state.fighters.host.ally === null, 'l’invocation disparaît à expiration');
+assert(
+  expired.logs.some(log => log.type === 'ally_expired'),
+  'expiration inscrite dans le journal'
+);
 
 console.log('\n=== validateBootstrap ===');
 const bootOk = validateBootstrap(bootstrap, {
@@ -286,8 +395,28 @@ const goodSummary = {
   turn: 12,
   status: 'completed',
   winnerSeat: 'host',
-  host: { seat: 'host', userId: 1, hp: 40, maxHp: BASE_MAX_HP, block: 0, chakra: 2, handCount: 2, drawCount: 3, discardCount: 5 },
-  guest: { seat: 'guest', userId: 2, hp: 0, maxHp: BASE_MAX_HP, block: 0, chakra: 1, handCount: 1, drawCount: 2, discardCount: 6 },
+  host: {
+    seat: 'host',
+    userId: 1,
+    hp: 40,
+    maxHp: BASE_MAX_HP,
+    block: 0,
+    chakra: 2,
+    handCount: 2,
+    drawCount: 3,
+    discardCount: 5,
+  },
+  guest: {
+    seat: 'guest',
+    userId: 2,
+    hp: 0,
+    maxHp: BASE_MAX_HP,
+    block: 0,
+    chakra: 1,
+    handCount: 1,
+    drawCount: 2,
+    discardCount: 6,
+  },
 };
 const goodCs = fingerprint(normalizeResultSummary(goodSummary));
 const goodReport = validateMatchResultReport({
@@ -322,7 +451,7 @@ const badWinner = validateMatchResultReport({
     normalizeResultSummary({
       ...goodSummary,
       guest: { ...goodSummary.guest, hp: 50 },
-    }),
+    })
   ),
   summary: { ...goodSummary, guest: { ...goodSummary.guest, hp: 50 } },
 });
@@ -361,7 +490,7 @@ const wrongUser = validateMatchResultReport({
     normalizeResultSummary({
       ...goodSummary,
       host: { ...goodSummary.host, userId: 99 },
-    }),
+    })
   ),
   summary: { ...goodSummary, host: { ...goodSummary.host, userId: 99 } },
 });
@@ -374,6 +503,25 @@ const cmpBad = compareHostGuestChecksums('aaaabbbbccccdddd', 'ffffeeee11112222')
 assert(cmpBad.match === false && cmpBad.voidMatch === true, 'mismatch → void');
 assert(cmpBad.flags.includes('checksum_host_guest_mismatch'), 'flag mismatch');
 assert(compareHostGuestChecksums('abc', null).match === null, 'guest absent → null');
+assert(
+  evaluateResultConfirmation({ hostChecksum: 'aaaabbbbccccdddd' }).state ===
+    'awaiting_guest_confirmation',
+  'checksum Host seul → confirmation Guest requise'
+);
+assert(
+  evaluateResultConfirmation({
+    hostChecksum: 'aaaabbbbccccdddd',
+    guestChecksum: 'aaaabbbbccccdddd',
+  }).state === 'confirmed',
+  'checksums identiques → résultat confirmable'
+);
+assert(
+  evaluateResultConfirmation({
+    hostChecksum: 'aaaabbbbccccdddd',
+    confirmationExpiresAt: new Date(Date.now() - 1).toISOString(),
+  }).state === 'expired',
+  'confirmation dépassant le délai → expirée'
+);
 
 const indep = independentChecksumFromPublic(pubGuest);
 assert(indep && indep.checksum.length === 16, 'empreinte indépendante publique');

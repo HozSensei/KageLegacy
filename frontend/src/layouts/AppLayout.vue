@@ -1,31 +1,34 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import { useSquadStore } from '../stores/squad'
-import { useAuthStore } from '../stores/auth'
-import { useEliteStore } from '../stores/elite'
-import { useNavStructure } from '../composables/useNavStructure'
-import { useNotificationWatcher } from '../composables/useNotificationWatcher'
-import AppNavDrawer from '../components/layout/AppNavDrawer.vue'
-import NotificationBell from '../components/notifications/NotificationBell.vue'
-import ToastContainer from '../components/notifications/ToastContainer.vue'
-import ProfileMenu from '../components/layout/ProfileMenu.vue'
-import AppNavRail from '../components/layout/AppNavRail.vue'
-import BrandMark from '../components/ui/BrandMark.vue'
-import ThemeToggle from '../components/ui/ThemeToggle.vue'
-import { sectionOf } from '../constants/sections'
-import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue'
-import { writeStoredLocale } from '../utils/localeStorage.js'
-defineOptions({ name: 'AppLayout' })
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import { useSquadStore } from '../stores/squad';
+import { useAuthStore } from '../stores/auth';
+import { useEliteStore } from '../stores/elite';
+import { useNavStructure } from '../composables/useNavStructure';
+import { useNotificationWatcher } from '../composables/useNotificationWatcher';
+import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
+import NotificationBell from '../components/notifications/NotificationBell.vue';
+import ToastContainer from '../components/notifications/ToastContainer.vue';
+import ProfileMenu from '../components/layout/ProfileMenu.vue';
+import AppNavRail from '../components/layout/AppNavRail.vue';
+import BrandMark from '../components/ui/BrandMark.vue';
+import ThemeToggle from '../components/ui/ThemeToggle.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
+import { useShopStore } from '../stores/shop';
+import { sectionOf } from '../constants/sections';
+import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue';
+import { writeStoredLocale } from '../utils/localeStorage.js';
+defineOptions({ name: 'AppLayout' });
 
-const { t, locale } = useI18n()
-const route = useRoute()
-const router = useRouter()
-const store = useSquadStore()
-const auth = useAuthStore()
-const elite = useEliteStore()
-const showConvert = ref(false)
+const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const store = useSquadStore();
+const auth = useAuthStore();
+const elite = useEliteStore();
+const shop = useShopStore();
+const showConvert = ref(false);
 
 const baseNavItems = [
   { name: 'hub', path: '/home', label: 'nav.home' },
@@ -39,85 +42,88 @@ const baseNavItems = [
   { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'pvp', path: '/pvp', label: 'nav.pvp' },
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
-]
+];
 
 const eliteToolsNavItem = {
   name: 'elite-tools',
   path: '/elite/outils',
   label: 'nav.eliteTools',
   elite: true,
-}
+};
 
 const adminNavItem = {
   name: 'admin',
   path: '/admin',
   label: 'nav.admin',
   admin: true,
-}
+};
 
 const navItems = computed(() => {
-  const items = [...baseNavItems]
-  if (elite.featureEnabled && elite.subscription?.isActive) items.push(eliteToolsNavItem)
-  if (auth.user?.isAdmin) items.push(adminNavItem)
-  return items
-})
+  const items = [...baseNavItems];
+  if (elite.featureEnabled && elite.subscription?.isActive) items.push(eliteToolsNavItem);
+  if (auth.user?.isAdmin) items.push(adminNavItem);
+  return items;
+});
 
 function isActive(path) {
   if (path === '/home') {
-    return route.path === '/home' || route.path === '/bureau' || route.name === 'hub'
+    return route.path === '/home' || route.path === '/bureau' || route.name === 'hub';
   }
   if (path === '/profil') {
-    return route.path === '/profil' || route.name === 'profile' || route.name === 'character-creation'
+    return (
+      route.path === '/profil' || route.name === 'profile' || route.name === 'character-creation'
+    );
   }
-  return route.path === path || route.path.startsWith(`${path}/`)
+  return route.path === path || route.path.startsWith(`${path}/`);
 }
 
 const { groups: navGroups, currentSectionLabel } = useNavStructure({
   navItems,
   isActive,
   t,
-})
+});
 
-useNotificationWatcher()
+useNotificationWatcher();
 
 const guestDaysLeft = computed(() => {
-  if (!auth.user?.guestExpiresAt) return null
-  const ms = new Date(auth.user.guestExpiresAt) - Date.now()
-  if (ms <= 0) return 0
-  return Math.ceil(ms / (1000 * 60 * 60 * 24))
-})
+  if (!auth.user?.guestExpiresAt) return null;
+  const ms = new Date(auth.user.guestExpiresAt) - Date.now();
+  if (ms <= 0) return 0;
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+});
 
 const currentSection = computed(() => {
-  const active = navItems.value.find((item) => isActive(item.path))
-  return active ? sectionOf(active.name) : null
-})
+  const active = navItems.value.find(item => isActive(item.path));
+  return active ? sectionOf(active.name) : null;
+});
 
 async function onAccountDeleted() {
-  auth.user = null
-  auth.sensei = null
-  auth.checked = true
-  store.clearSquad()
-  await router.replace({ name: 'home' })
+  auth.user = null;
+  auth.sensei = null;
+  auth.checked = true;
+  store.clearSquad();
+  await router.replace({ name: 'home' });
   if (router.currentRoute.value.name !== 'home') {
-    window.location.assign('/')
+    window.location.assign('/');
   }
 }
 
 async function logout() {
-  await auth.logout()
-  store.sensei = null
-  router.push('/')
+  await auth.logout();
+  store.sensei = null;
+  router.push('/');
 }
 
 onMounted(async () => {
-  if (!auth.checked) await auth.fetchMe()
+  if (!auth.checked) await auth.fetchMe();
   if (auth.sensei?.language && ['fr', 'en'].includes(auth.sensei.language)) {
-    locale.value = auth.sensei.language
-    writeStoredLocale(auth.sensei.language)
+    locale.value = auth.sensei.language;
+    writeStoredLocale(auth.sensei.language);
   }
-  if (!store.sensei) store.fetchSquad()
-  if (auth.user && !elite.subscription) elite.fetchElite()
-})
+  if (!store.sensei) store.fetchSquad();
+  if (auth.user && !elite.subscription) elite.fetchElite();
+  if (auth.user) await shop.fetchBalances();
+});
 </script>
 
 <template>
@@ -145,6 +151,37 @@ onMounted(async () => {
         </p>
 
         <div class="app-bar__tools">
+          <dl v-if="auth.user" class="app-bar__balances" :aria-label="t('resources.balancesLabel')">
+            <div
+              v-for="resource in [
+                { key: 'ryos', icon: 'ryos', tone: 'wood' },
+                { key: 'kageCoins', icon: 'coins', tone: 'gold' },
+                { key: 'dust', icon: 'dust', tone: 'indigo' },
+                { key: 'essence', icon: 'essence', tone: 'vermilion' },
+              ]"
+              :key="resource.key"
+              class="app-bar__balance"
+              :data-tone="resource.tone"
+              :title="
+                t(`resources.${resource.key}`, {
+                  n: (shop.balances[resource.key] || 0).toLocaleString(),
+                })
+              "
+            >
+              <dt class="sr-only">
+                {{
+                  t(`resources.${resource.key}`, {
+                    n: (shop.balances[resource.key] || 0).toLocaleString(),
+                  })
+                }}
+              </dt>
+              <dd>
+                <AppIcon :name="resource.icon" size="1rem" aria-hidden="true" />{{
+                  (shop.balances[resource.key] || 0).toLocaleString()
+                }}
+              </dd>
+            </div>
+          </dl>
           <ThemeToggle />
           <NotificationBell v-if="auth.user" />
           <ProfileMenu
@@ -153,7 +190,12 @@ onMounted(async () => {
             @convert="showConvert = true"
             @deleted="onAccountDeleted"
           />
-          <router-link v-else to="/register" class="btn-primary btn-sm" data-testid="header-register-cta">
+          <router-link
+            v-else
+            to="/register"
+            class="btn-primary btn-sm"
+            data-testid="header-register-cta"
+          >
             {{ t('auth.register') }}
           </router-link>
         </div>
@@ -178,7 +220,11 @@ onMounted(async () => {
 
     <ToastContainer v-if="auth.user" />
 
-    <ConvertGuestModal :open="showConvert" @close="showConvert = false" @converted="store.fetchSquad()" />
+    <ConvertGuestModal
+      :open="showConvert"
+      @close="showConvert = false"
+      @converted="store.fetchSquad()"
+    />
   </div>
 </template>
 
@@ -266,6 +312,39 @@ onMounted(async () => {
   margin-left: auto;
 }
 
+.app-bar__balances {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0 0.2rem 0 0;
+}
+
+.app-bar__balance dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--color-line);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tone);
+}
+
+.app-bar__balance[data-tone='wood'] {
+  --tone: var(--color-wood);
+}
+.app-bar__balance[data-tone='gold'] {
+  --tone: var(--color-gold-fill);
+}
+.app-bar__balance[data-tone='indigo'] {
+  --tone: var(--color-indigo);
+}
+.app-bar__balance[data-tone='vermilion'] {
+  --tone: var(--color-vermilion);
+}
+
 .guest-band {
   display: flex;
   flex-wrap: wrap;
@@ -306,8 +385,23 @@ onMounted(async () => {
   }
 }
 
+@media (max-width: 700px) {
+  .app-bar__balance dd {
+    gap: 0;
+    padding-inline: 0.3rem;
+  }
+
+  .app-bar__balance svg {
+    display: none;
+  }
+}
+
 @media (max-width: 380px) {
   .app-bar__wordmark {
+    display: none;
+  }
+
+  .app-bar__balance:nth-child(n + 3) {
     display: none;
   }
 }

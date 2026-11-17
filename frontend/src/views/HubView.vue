@@ -1,42 +1,58 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { usePlayerStore } from '../stores/player'
-import { useCollectionStore } from '../stores/collection'
-import { useDecksStore } from '../stores/decks'
-import { useTalentTreeStore } from '../stores/talentTree'
-import EmptyState from '../components/ui/EmptyState.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import AppIcon from '../components/ui/AppIcon.vue'
-import { sectionOf } from '../constants/sections'
-import hubImage from '../assets/illustrations/hub-office.webp'
+import { computed, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { usePlayerStore } from '../stores/player';
+import { useCollectionStore } from '../stores/collection';
+import { useDecksStore } from '../stores/decks';
+import { useTalentTreeStore } from '../stores/talentTree';
 
-defineOptions({ name: 'HubView' })
+import { useAchievementsStore } from '../stores/achievements';
+import EmptyState from '../components/ui/EmptyState.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
+import { sectionOf } from '../constants/sections';
+import hubImage from '../assets/illustrations/hub-office.webp';
 
-const { t } = useI18n()
-const player = usePlayerStore()
-const collection = useCollectionStore()
-const decks = useDecksStore()
-const talents = useTalentTreeStore()
-const ready = ref(false)
+defineOptions({ name: 'HubView' });
 
-onMounted(async () => {
-  await Promise.all([
+const { t } = useI18n();
+const player = usePlayerStore();
+const collection = useCollectionStore();
+const decks = useDecksStore();
+const talents = useTalentTreeStore();
+
+const achievements = useAchievementsStore();
+const ready = ref(false);
+const progressLoadError = ref(false);
+
+async function loadHub() {
+  ready.value = false;
+  progressLoadError.value = false;
+  const [, , , talentData, achievementData] = await Promise.all([
     player.fetchPlayer(),
     collection.fetchCollection(),
     decks.fetchDecks(),
-    talents.loadAll().catch(() => null),
-  ])
-  ready.value = true
-})
+    talents.fetchMe(),
+    achievements.fetchRegistry(),
+  ]);
+  progressLoadError.value = Boolean(decks.error || !talentData || !achievementData);
+  ready.value = true;
+}
 
-const hasCharacter = computed(() => Boolean(player.character))
-const cardCount = computed(() => collection.entries?.length || 0)
-const hasDeck = computed(() => (decks.decks || []).length > 0)
-const activeDeck = computed(() => (decks.decks || []).find((d) => d.isActive) || decks.decks?.[0])
-const talentPoints = computed(() => player.character?.talentPointsAvailable ?? 0)
-const unlockedTalents = computed(() => talents.unlockedNodeIds?.length ?? 0)
+onMounted(loadHub);
+
+const hasCharacter = computed(() => Boolean(player.character));
+const hasConfirmedCharacterAbsence = computed(() => player.hasConfirmedCharacterAbsence);
+const hasPlayerLoadError = computed(() => player.characterState === 'error');
+const cardCount = computed(() => collection.entries?.length || 0);
+
+const activeDeck = computed(() => (decks.decks || []).find(d => d.isActive));
+const talentPoints = computed(() => player.character?.talentPointsAvailable ?? 0);
+const unlockedTalents = computed(() => talents.unlockedNodeIds?.length ?? 0);
+const hasCompletedMission = computed(() =>
+  achievements.achievements.some(a => a.key === 'mission_runs' && a.progress > 0)
+);
 
 const steps = computed(() => [
   {
@@ -48,45 +64,63 @@ const steps = computed(() => [
   },
   {
     key: 'deck',
-    done: hasDeck.value && cardCount.value > 0,
+    done: Boolean(activeDeck.value?.validation?.valid),
     label: t('hub.stepDeck'),
     hint: t('hub.hintDeck'),
     to: '/decks',
   },
   {
     key: 'talents',
-    done: unlockedTalents.value > 0 || talentPoints.value === 0,
+    done: unlockedTalents.value > 0,
     label: t('hub.stepTalents'),
     hint: t('hub.hintTalents'),
     to: '/talents',
   },
   {
     key: 'mission',
-    done: false,
-    soft: true,
+    done: hasCompletedMission.value,
     label: t('hub.stepMission'),
     hint: t('hub.hintMission'),
     to: '/missions',
   },
-])
+]);
 
-const nextStep = computed(() => steps.value.find((s) => !s.done && !s.soft) || steps.value.find((s) => !s.done))
+const nextStep = computed(() => steps.value.find(s => !s.done));
 
 const shortcuts = computed(() =>
   [
-    { name: 'missions', to: '/missions', label: t('nav.missions'), hint: t('hub.shortcutMissions') },
+    {
+      name: 'missions',
+      to: '/missions',
+      label: t('nav.missions'),
+      hint: t('hub.shortcutMissions'),
+    },
     { name: 'talents', to: '/talents', label: t('nav.talents'), hint: t('hub.shortcutTalents') },
     { name: 'decks', to: '/decks', label: t('nav.decks'), hint: t('hub.shortcutDecks') },
-    { name: 'collection', to: '/collection', label: t('nav.collection'), hint: t('hub.shortcutCollection') },
+    {
+      name: 'collection',
+      to: '/collection',
+      label: t('nav.collection'),
+      hint: t('hub.shortcutCollection'),
+    },
     { name: 'shop', to: '/shop', label: t('nav.shop'), hint: t('hub.shortcutShop') },
-    { name: 'battle-pass', to: '/battle-pass', label: t('nav.battlePass'), hint: t('hub.shortcutBp') },
+    {
+      name: 'battle-pass',
+      to: '/battle-pass',
+      label: t('nav.battlePass'),
+      hint: t('hub.shortcutBp'),
+    },
     { name: 'journal', to: '/journal', label: t('nav.journal'), hint: t('hub.shortcutJournal') },
     { name: 'pvp', to: '/pvp', label: t('nav.pvp'), hint: t('hub.shortcutPvp') },
-    { name: 'leaderboard', to: '/classement', label: t('nav.leaderboard'), hint: t('hub.shortcutLeaderboard') },
+    {
+      name: 'leaderboard',
+      to: '/classement',
+      label: t('nav.leaderboard'),
+      hint: t('hub.shortcutLeaderboard'),
+    },
     { name: 'profile', to: '/profil', label: t('nav.profile'), hint: t('hub.shortcutProfile') },
-  ].map((link) => ({ ...link, section: sectionOf(link.name) }))
-)
-
+  ].map(link => ({ ...link, section: sectionOf(link.name) }))
+);
 </script>
 
 <template>
@@ -100,13 +134,13 @@ const shortcuts = computed(() =>
       :image="hubImage"
       image-position="50% 35%"
     >
-      <template v-if="ready && hasCharacter && nextStep" #actions>
+      <template v-if="ready && hasCharacter && !progressLoadError && nextStep" #actions>
         <RouterLink :to="nextStep.to" class="btn-primary" data-testid="hub-hero-cta">
           {{ t('hub.continueCta', { step: nextStep.label }) }}
           <AppIcon name="arrow-right" size="1.125rem" :stroke-width="2" />
         </RouterLink>
       </template>
-      <template v-else-if="ready && !hasCharacter" #actions>
+      <template v-else-if="ready && hasConfirmedCharacterAbsence" #actions>
         <RouterLink to="/character-creation" class="btn-primary" data-testid="hub-hero-create">
           {{ t('hub.createCharacter') }}
         </RouterLink>
@@ -117,7 +151,19 @@ const shortcuts = computed(() =>
 
     <template v-else>
       <EmptyState
-        v-if="!hasCharacter"
+        v-if="hasPlayerLoadError"
+        class="mt-10"
+        :title="t('hub.playerLoadErrorTitle')"
+        :lead="t('hub.playerLoadErrorLead')"
+        data-testid="hub-player-load-error"
+      >
+        <button class="btn-primary" type="button" :disabled="player.loading" @click="loadHub">
+          {{ t('hub.retry') }}
+        </button>
+      </EmptyState>
+
+      <EmptyState
+        v-else-if="hasConfirmedCharacterAbsence"
         class="mt-10"
         :title="t('hub.noCharacterTitle')"
         :lead="t('hub.noCharacterLead')"
@@ -125,7 +171,7 @@ const shortcuts = computed(() =>
         :primary-label="t('hub.createCharacter')"
       />
 
-      <template v-else>
+      <template v-else-if="hasCharacter">
         <section class="hub-welcome" data-testid="hub-welcome">
           <div class="hub-welcome__who">
             <p class="t-kicker hub-welcome__kicker">
@@ -136,7 +182,9 @@ const shortcuts = computed(() =>
             <p class="sr-only">
               {{ t('player.levelLabel', { level: player.character.level }) }} ·
               {{ t('hub.cardsOwned', { n: cardCount }) }}
-              <template v-if="activeDeck"> · {{ t('hub.activeDeck', { name: activeDeck.name }) }}</template>
+              <template v-if="activeDeck">
+                · {{ t('hub.activeDeck', { name: activeDeck.name }) }}</template
+              >
             </p>
           </div>
 
@@ -160,7 +208,16 @@ const shortcuts = computed(() =>
           </dl>
         </section>
 
-        <section class="page-section" data-testid="hub-checklist">
+        <div
+          v-if="progressLoadError"
+          class="alert alert--error mt-6"
+          role="alert"
+          data-testid="hub-progress-error"
+        >
+          <p>{{ t('hub.progressLoadError') }}</p>
+          <button type="button" class="btn-ghost" @click="loadHub">{{ t('hub.retry') }}</button>
+        </div>
+        <section v-else class="page-section" data-testid="hub-checklist">
           <div class="section-head">
             <span class="section-head__index">02</span>
             <h2 class="section-head__title">{{ t('hub.nextSteps') }}</h2>

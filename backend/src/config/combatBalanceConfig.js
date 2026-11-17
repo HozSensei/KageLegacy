@@ -15,54 +15,56 @@
 /** @typedef {'D'|'C'|'B'|'A'} MissionRank */
 
 /**
- * Profils joueur synthétiques (hors DB).
- * Stats = talents + passifs deck agrégés (formule Base × (1 + Stat/100)).
+ * Profils de progression reproductibles, hors DB.
+ *
+ * `level` est volontairement distinct des stats : le backend n'accorde aucune
+ * stat automatique au passage de niveau. Les stats sont des valeurs agrégées
+ * hypothétiques, non vérifiées contre un arbre de talents ou une collection.
+ * `deckUpgradeLevel` suit les niveaux 0–2 de `applyUpgradeBonuses`.
  */
 export const BALANCE_PROFILES = Object.freeze({
   beginner: Object.freeze({
     id: 'beginner',
-    label: 'Débutant',
-    /** Peu/pas de talents — deck practice. */
+    label: 'Genin débutant',
+    level: 8,
     stats: Object.freeze({
       taijutsu: 5,
       ninjutsu: 0,
       genjutsu: 0,
       medicine: 5,
-      vitesse: 0,
-      intelligence: 0,
-      dexterity: 0,
       maxHp: 0,
     }),
     talentCodes: Object.freeze([]),
     deck: 'practice',
+    deckUpgradeLevel: 0,
+    deckUpgradeSlugs: Object.freeze([]),
   }),
   mid: Object.freeze({
     id: 'mid',
-    label: 'Milieu',
+    label: 'Chunin établi',
+    level: 32,
     stats: Object.freeze({
       taijutsu: 45,
       ninjutsu: 30,
       genjutsu: 20,
       medicine: 35,
-      vitesse: 40,
-      intelligence: 20,
-      dexterity: 10,
       maxHp: 25,
     }),
     talentCodes: Object.freeze(['iron_guard', 'blade_swift']),
     deck: 'practice',
+    deckUpgradeLevel: 1,
+    // Collection partiellement améliorée : une carte commune en trois exemplaires.
+    deckUpgradeSlugs: Object.freeze(['practice-fist']),
   }),
   strong: Object.freeze({
     id: 'strong',
-    label: 'Fort',
+    label: 'Jonin confirmé',
+    level: 55,
     stats: Object.freeze({
       taijutsu: 110,
       ninjutsu: 80,
       genjutsu: 60,
       medicine: 70,
-      vitesse: 90,
-      intelligence: 50,
-      dexterity: 30,
       maxHp: 60,
     }),
     talentCodes: Object.freeze([
@@ -73,6 +75,14 @@ export const BALANCE_PROFILES = Object.freeze({
       'boosted_regen',
     ]),
     deck: 'practice',
+    deckUpgradeLevel: 2,
+    deckUpgradeSlugs: Object.freeze([
+      'practice-fist',
+      'practice-strike',
+      'practice-guard',
+      'practice-wall',
+      'practice-heal',
+    ]),
   }),
 });
 
@@ -119,7 +129,7 @@ export const BALANCE_SIM = Object.freeze({
 export const BALANCE_THRESHOLDS = Object.freeze({
   D: Object.freeze({
     beginner: Object.freeze({
-      winRateMin: 0.5,
+      winRateMin: 0.4,
       winRateMaxSoft: 0.9,
       avgTurnsMin: 2,
       /** Attrition D (HP élevés) : combats plus longs que le snapshot trivial. */
@@ -160,7 +170,7 @@ export const BALANCE_THRESHOLDS = Object.freeze({
   }),
   B: Object.freeze({
     mid: Object.freeze({
-      winRateMin: 0.30,
+      winRateMin: 0.3,
       winRateMaxSoft: 0.95,
       avgTurnsMax: 18,
       avgDamageTakenMinSoft: 5,
@@ -216,5 +226,5 @@ export const DESIGN_WINRATE_TARGETS = Object.freeze({
 export const PLAYER_POLICY = Object.freeze({
   id: 'greedy_damage_then_block',
   summary:
-    'Joue la carte affordable au plus haut score (kill > dégâts > block si menace > heal > summon > draw) ; défausse→chakra si ça débloque une attaque ; sinon end turn.',
+    'Joue la carte payable au plus haut score (létalité, dégâts, armure, soin, invocation, pioche) ; défausse→chakra si aucune carte payable et une carte restante est utile ; sinon fin de tour.',
 });

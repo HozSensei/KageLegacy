@@ -4,13 +4,13 @@
 
 This guide describes the game as it works today. The numbers given are the ones the game applies.
 
-*Last updated: November 2026*
+_Last updated: November 2026_
 
 ---
 
 ## At a glance
 
-1. **Create your ninja**: a name, an elemental affinity, a lineage.
+1. **Create your ninja**: a name, a lineage.
 2. **Receive your starter deck**: 22 cards, ready to play.
 3. **Start a mission**: a run of 3 to 5 fights with events in between.
 4. **Earn experience**: each level gives 1 talent point.
@@ -27,10 +27,9 @@ Nothing grows on its own: levelling up gives **no stats**, only a talent point t
 Each account has **a single ninja**. At creation you choose:
 
 - a **name** (at least 2 characters);
-- an **elemental affinity**: Katon, Suiton, Raiton, Doton or Futon;
 - a **lineage**: Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani or Yukisawa.
 
-Affinity and lineage make up your ninja's identity and are shown on the profile. They give **no numeric bonus** in combat.
+Lineage is part of your ninja's identity and is shown on the profile. It gives **no numeric bonus** in combat.
 
 When you sign up, you also pick a **land** (Midorihara, Kareno, Oborohama or Ishikura). It gives no combat bonus.
 
@@ -38,19 +37,19 @@ Your ninja starts at **level 1**, at the rank of **Genin**, with **1 talent poin
 
 ### Level and rank
 
-Victories grant experience (XP). Going from level *N* to the next one takes **100 × N** XP: 100 XP to reach level 2, 200 XP for level 3, and so on. The maximum level is **100**.
+Victories grant experience (XP). Going from level _N_ to the next one takes **100 × N** XP: 100 XP to reach level 2, 200 XP for level 3, and so on. The maximum level is **100**.
 
 Each level gained gives **1 talent point**. It gives nothing else.
 
 Rank follows level:
 
-| Level | Rank |
-|-------|------|
-| 1 to 19 | Genin |
-| 20 to 39 | Chunin |
-| 40 to 59 | Jonin |
-| 60 to 79 | ANBU |
-| 80 to 100 | Kage |
+| Level     | Rank   |
+| --------- | ------ |
+| 1 to 19   | Genin  |
+| 20 to 39  | Chunin |
+| 40 to 59  | Jonin  |
+| 60 to 79  | ANBU   |
+| 80 to 100 | Kage   |
 
 Rank is a title: it adds no stats.
 
@@ -63,21 +62,17 @@ Your ninja has **no base stats**. Their stats are the sum of two things:
 
 The profile shows the breakdown of both sources.
 
-| Stat | Effect in combat |
-|------|------------------|
-| **Taijutsu** | Increases the damage of Taijutsu cards |
-| **Ninjutsu** | Increases the damage of Ninjutsu cards |
-| **Genjutsu** | Increases the damage of Genjutsu cards |
-| **Medicine** | Increases the armor and healing of all your cards, and the damage of Medicine cards |
-| **Speed** | Gives 1% critical hit chance per 10 points, up to 50% |
-| **Max HP** | Added to the 100 starting hit points |
+| Stat                            | Effect in combat                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Taijutsu**                    | Increases the damage of Taijutsu cards                                                                       |
+| **Ninjutsu**                    | Increases the damage of Ninjutsu cards                                                                       |
+| **Genjutsu**                    | Increases the damage of Genjutsu cards                                                                       |
+| **Medicine**                    | Increases the armor and healing of all your cards, and the damage of Medicine cards                          |
+| **Speed**                       | Gives 1% critical hit chance per 10 points, up to 50%                                                        |
+| **Max HP**                      | Added to the 100 starting hit points                                                                         |
 | **Intelligence**, **Dexterity** | Granted by some talents and cards and shown on the profile. They are not used in current combat calculations |
 
 Each point of Taijutsu, Ninjutsu, Genjutsu or Medicine is worth **+1%**: with 30 Ninjutsu, a Ninjutsu card with 10 damage deals 13.
-
-### Specialization
-
-From **level 10**, you can choose a specialization on your profile: Taijutsu, Ninjutsu, Genjutsu or Medicine. This choice is **permanent**.
 
 ---
 
@@ -90,13 +85,13 @@ The game has **200 cards**. Every card plays two roles:
 
 ### Card types
 
-| Type | Role |
-|------|------|
-| **Attack** | Deals damage, sometimes with a status |
-| **Defense** | Grants armor |
-| **Skill** | Heals, draws cards, restores Chakra, applies statuses |
-| **Summon** | Calls an ally who fights at your side |
-| **Item** | One-off effect; most are exhausted after use |
+| Type        | Role                                                  |
+| ----------- | ----------------------------------------------------- |
+| **Attack**  | Deals damage, sometimes with a status                 |
+| **Defense** | Grants armor                                          |
+| **Skill**   | Heals, draws cards, restores Chakra, applies statuses |
+| **Summon**  | Calls an ally who fights at your side                 |
+| **Item**    | One-off effect; most are exhausted after use          |
 
 A card can be tied to a **path** (Taijutsu, Ninjutsu, Genjutsu, Medicine) and to an **element** (Katon, Suiton, Raiton, Doton, Futon).
 
@@ -112,23 +107,23 @@ Playing a card costs **Chakra** (from 0 to several points). A card marked **Exha
 
 From the Collection, a card can be upgraded twice: level **+**, then level **++**. A mythic card stops at level +. Upgrading strengthens both the active effect and the passive bonus.
 
-| Rarity | Level + | Level ++ |
-|--------|---------|----------|
-| Common | 300 Ryos, 15 dust | 1,500 Ryos, 80 dust |
-| Rare | 1,200 Ryos, 80 dust | 5,000 Ryos, 400 dust |
-| Legendary | 4,500 Ryos, 400 dust | 18,000 Ryos, 1,800 dust, 10 essence |
-| Mythic | 18,000 Ryos, 1,800 dust, 20 essence | — |
+| Rarity    | Level +                             | Level ++                            |
+| --------- | ----------------------------------- | ----------------------------------- |
+| Common    | 300 Ryos, 15 dust                   | 1,500 Ryos, 80 dust                 |
+| Rare      | 1,200 Ryos, 80 dust                 | 5,000 Ryos, 400 dust                |
+| Legendary | 4,500 Ryos, 400 dust                | 18,000 Ryos, 1,800 dust, 10 essence |
+| Mythic    | 18,000 Ryos, 1,800 dust, 20 essence | —                                   |
 
 ### Disenchanting
 
 You can destroy one copy of a card to get **card dust**:
 
-| Rarity | Dust gained |
-|--------|-------------|
-| Common | 10 |
-| Rare | 40 |
-| Legendary | 200 |
-| Mythic | 1,000 |
+| Rarity    | Dust gained |
+| --------- | ----------- |
+| Common    | 10          |
+| Rare      | 40          |
+| Legendary | 200         |
+| Mythic    | 1,000       |
 
 An upgraded legendary card also returns 2 essence, an upgraded mythic card 5 essence. A copy used in a deck cannot be disenchanted.
 
@@ -164,10 +159,10 @@ The tree has **150 nodes** split between a **center** and four branches: **Taiju
 
 Three kinds of nodes:
 
-| Node | What it gives |
-|------|---------------|
-| **Stat** | A stat bonus |
-| **Notable** | A stat bonus and a special effect |
+| Node         | What it gives                                                  |
+| ------------ | -------------------------------------------------------------- |
+| **Stat**     | A stat bonus                                                   |
+| **Notable**  | A stat bonus and a special effect                              |
 | **Keystone** | A powerful effect paired with a drawback. There are 10 of them |
 
 Each node's effect is described in the tree when you select it.
@@ -204,13 +199,13 @@ Your hand is limited to **10 cards**. When the draw pile is empty, the discard p
 
 The enemy carries out the intent it announced, then announces a new one:
 
-| Intent | Effect |
-|--------|--------|
-| **Attack** | Deals the damage shown |
-| **Defend** | The enemy gains armor |
-| **Buff** | The enemy gives itself a beneficial status |
-| **Debuff** | The enemy inflicts a harmful status on you |
-| **Special action** | Charge, summon or barrier (see Bosses) |
+| Intent             | Effect                                     |
+| ------------------ | ------------------------------------------ |
+| **Attack**         | Deals the damage shown                     |
+| **Defend**         | The enemy gains armor                      |
+| **Buff**           | The enemy gives itself a beneficial status |
+| **Debuff**         | The enemy inflicts a harmful status on you |
+| **Special action** | Charge, summon or barrier (see Bosses)     |
 
 ### Damage, armor and healing
 
@@ -243,16 +238,16 @@ A card with no element, or an enemy with no affinity, stays neutral.
 
 ### Statuses
 
-| Status | Effect |
-|--------|--------|
-| **Strength** | Adds its value to the damage of each hit |
-| **Dexterity** | Adds its value to the armor gained per card |
+| Status           | Effect                                            |
+| ---------------- | ------------------------------------------------- |
+| **Strength**     | Adds its value to the damage of each hit          |
+| **Dexterity**    | Adds its value to the armor gained per card       |
 | **Regeneration** | Restores its value in HP at the start of the turn |
-| **Poison** | Removes its value in HP at the start of the turn |
-| **Burn** | Removes its value in HP at the end of the turn |
-| **Weak** | Damage dealt reduced by 25% |
-| **Vulnerable** | Damage taken increased by 50% |
-| **Intangible** | Incoming attacks deal only 1 damage |
+| **Poison**       | Removes its value in HP at the start of the turn  |
+| **Burn**         | Removes its value in HP at the end of the turn    |
+| **Weak**         | Damage dealt reduced by 25%                       |
+| **Vulnerable**   | Damage taken increased by 50%                     |
+| **Intangible**   | Incoming attacks deal only 1 damage               |
 
 A status applied again **stacks** its value. Its duration drops by 1 at the end of each turn of whoever carries it.
 
@@ -288,12 +283,12 @@ Bosses close the runs of rank B, A and S. They have mechanics of their own:
 Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**, **S**. There are 16 missions. All of them are available from the start: it is up to you to judge whether your deck is ready.
 
 | Rank | Missions | Fights per run | Final boss |
-|------|----------|----------------|------------|
-| D | 3 | 3 | No |
-| C | 3 | 3 | No |
-| B | 5 | 4 | Yes |
-| A | 4 | 5 | Yes |
-| S | 1 | 5 | Yes |
+| ---- | -------- | -------------- | ---------- |
+| D    | 3        | 3              | No         |
+| C    | 3        | 3              | No         |
+| B    | 5        | 4              | Yes        |
+| A    | 4        | 5              | Yes        |
+| S    | 1        | 5              | Yes        |
 
 ### The run
 
@@ -309,12 +304,12 @@ Each fight won during a run gives **2 scrap**. Scrap is only used during the cur
 
 Between two fights, an event offers you a choice. For example:
 
-| Event | Choice |
-|-------|--------|
-| **Moss Sanctuary** | Meditate: +30% of your max HP |
-| **Scout Cache** | Search: +12% of your max HP and 2 scrap |
-| **Shadow Peddler** | Bandage: 3 scrap for +25% HP. Tonic: 5 scrap for +50% HP |
-| **Veil Crossroads** | Heal +25% HP, or 4 scrap |
+| Event               | Choice                                                   |
+| ------------------- | -------------------------------------------------------- |
+| **Moss Sanctuary**  | Meditate: +30% of your max HP                            |
+| **Scout Cache**     | Search: +12% of your max HP and 2 scrap                  |
+| **Shadow Peddler**  | Bandage: 3 scrap for +25% HP. Tonic: 5 scrap for +50% HP |
+| **Veil Crossroads** | Heal +25% HP, or 4 scrap                                 |
 
 The other events follow the same idea: a heal, free or paid for in scrap, or a scrap gain.
 
@@ -341,11 +336,11 @@ A quick duel starts a single fight against the enemy of your choice, outside any
 
 A scroll contains **5 cards**.
 
-| Scroll | Price | Common | Rare | Legendary | Mythic |
-|--------|-------|--------|------|-----------|--------|
-| **Standard** | 400 Ryos | 70% | 23% | 5.5% | 1.5% |
-| **Elemental** | 650 Ryos | 65% | 26% | 7% | 2% |
-| **Premium** | 100 Kage Coins | 55% | 32% | 10% | 3% |
+| Scroll        | Price          | Common | Rare | Legendary | Mythic |
+| ------------- | -------------- | ------ | ---- | --------- | ------ |
+| **Standard**  | 400 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
+| **Elemental** | 650 Ryos       | 65%    | 26%  | 7%        | 2%     |
+| **Premium**   | 100 Kage Coins | 55%    | 32%  | 10%       | 3%     |
 
 - The **Elemental** scroll only contains cards tied to an element. You can choose which one.
 - The **Premium** scroll guarantees at least one rare-or-better card.
@@ -353,22 +348,18 @@ A scroll contains **5 cards**.
 
 Season-exclusive cards do not come out of scrolls.
 
-### Cosmetics
-
-Avatar frames, card backs and titles. They are bought with Ryos, Kage Coins or both. They are **purely visual** and change nothing in combat.
-
 ### Kage Coins
 
 Kage Coins are bought with real money, through secure payment:
 
-| Pack | Kage Coins | Price |
-|------|------------|-------|
-| Chakra Spark | 100 | €1 |
-| Village Ember | 500 + 50 bonus | €5 |
-| Shadow Forge | 1,000 + 150 bonus | €10 |
-| Kage's Vault | 5,000 + 1,000 bonus | €50 |
+| Pack          | Kage Coins          | Price |
+| ------------- | ------------------- | ----- |
+| Chakra Spark  | 100                 | €1    |
+| Village Ember | 500 + 50 bonus      | €5    |
+| Shadow Forge  | 1,000 + 150 bonus   | €10   |
+| Kage's Vault  | 5,000 + 1,000 bonus | €50   |
 
-Kage Coins are used to open Premium scrolls, buy some cosmetics and unlock the premium track of the season pass. All game content remains available without buying any.
+Kage Coins are used to open Premium scrolls and unlock the premium track of the season pass. All game content remains available without buying any.
 
 ---
 
@@ -384,11 +375,11 @@ The season pass has **50 levels** and **two reward tracks**:
 - by completing **missions**: the higher the rank, the larger the gain;
 - by completing **quests**:
 
-| Quest | Pass XP |
-|-------|---------|
-| Daily | 200 |
-| Weekly | 1,000 |
-| Season milestone | 5,000 |
+| Quest            | Pass XP |
+| ---------------- | ------- |
+| Daily            | 200     |
+| Weekly           | 1,000   |
+| Season milestone | 5,000   |
 
 A completed quest must be **claimed** to credit its XP.
 
@@ -398,7 +389,7 @@ Each level takes 1,000 pass XP for levels 1 to 10, then 50 more XP per block of 
 
 ### Rewards
 
-Each level reached opens a reward on each track: Ryos, card dust, essence, Kage Coins, cards, scrolls or cosmetics. A reward must be **claimed** on the pass page. Premium track rewards require the premium unlock.
+Each level reached opens a reward on each track: Ryos, card dust, essence, Kage Coins, cards or scrolls. A reward must be **claimed** on the pass page. Premium track rewards require the premium unlock.
 
 ---
 
@@ -419,7 +410,10 @@ The basics are those of mission combat: 100 HP plus your max HP bonus, 3 Chakra 
 The duel uses a **simplified** version of the rules:
 
 - card damage, armor and healing are computed with your stats, critical hits included;
-- statuses, path and element advantages, talent special effects and summons do not apply;
+- statuses, path and element advantages, and talent special effects do not apply;
+- summons attack automatically at the end of their owner's turn and disappear after the duration shown on their card;
+- a summon with **Taunt** automatically takes damage in its owner's place until it dies or expires;
+- other summon special abilities do not apply in PvP for now;
 - unplayed cards **stay in hand** from one turn to the next, up to 10;
 - armor disappears at the **end of your own turn**.
 
@@ -429,18 +423,18 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 
 ## Currencies and resources
 
-| Resource | How to get it | What it is for |
-|----------|---------------|----------------|
-| **Ryos** | Missions, quick duels, season pass | Standard and Elemental scrolls, card upgrades, cosmetics, talent reset |
-| **Kage Coins** | Shop purchase, season pass | Premium scrolls, cosmetics, premium pass track |
-| **Card dust** | Disenchanting, season pass | Card upgrades |
-| **Essence** | Disenchanting upgraded legendary or mythic cards, season pass | Final upgrades of legendary and mythic cards |
-| **Scrap** | Fights and events during a run | Healing during that run only |
+| Resource       | How to get it                                                 | What it is for                                              |
+| -------------- | ------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Ryos**       | Missions, quick duels, season pass                            | Standard and Elemental scrolls, card upgrades, talent reset |
+| **Kage Coins** | Shop purchase, season pass                                    | Premium scrolls, premium pass track                         |
+| **Card dust**  | Disenchanting, season pass                                    | Card upgrades                                               |
+| **Essence**    | Disenchanting upgraded legendary or mythic cards, season pass | Final upgrades of legendary and mythic cards                |
+| **Scrap**      | Fights and events during a run                                | Healing during that run only                                |
 
 ---
 
 ## Update history
 
-| Date | Change |
-|------|--------|
+| Date       | Change                                                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-11-14 | Full rewrite for the current version: single ninja, 20–30 card deck, talent tree, turn-based combat, mission runs, shop, season pass, arena |

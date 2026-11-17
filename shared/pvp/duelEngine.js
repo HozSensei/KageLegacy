@@ -65,7 +65,7 @@ export function applyDuelAction(state, action, opts = {}) {
   }
 
   const rng = createSeededRng(
-    `${opts.seed || state.seed || state.matchId}-${state.turn}-${action.kind}-${action.instanceId || ''}`,
+    `${opts.seed || state.seed || state.matchId}-${state.turn}-${action.kind}-${action.instanceId || ''}`
   );
 
   let next = cloneState(state);
@@ -131,6 +131,7 @@ export function publicDuelState(state, viewerSeat) {
       chakra: fighter.chakra,
       maxChakra: fighter.maxChakra ?? BASE_CHAKRA,
       statuses: fighter.statuses || [],
+      ally: fighter.ally || null,
       hand: isSelf ? fighter.hand || [] : undefined,
       handCount: (fighter.hand || []).length,
       drawCount: (fighter.drawPile || []).length,
@@ -186,6 +187,7 @@ function hydrateFighter(raw, seat, rng) {
     chakra: raw.chakra != null ? Number(raw.chakra) : BASE_CHAKRA,
     maxChakra: raw.maxChakra != null ? Number(raw.maxChakra) : BASE_CHAKRA,
     statuses: raw.statuses || [],
+    ally: raw.ally || null,
     hand,
     drawPile,
     discardPile,
@@ -201,7 +203,7 @@ function playCard(state, seat, instanceId, rng) {
   const opponent = state.fighters[opponentSeat];
   if (!fighter || !opponent) throw new Error('Combattants manquants.');
 
-  const idx = (fighter.hand || []).findIndex((c) => c.instanceId === instanceId);
+  const idx = (fighter.hand || []).findIndex(c => c.instanceId === instanceId);
   if (idx < 0) throw new Error('Carte absente de la main.');
 
   const card = fighter.hand[idx];
@@ -229,15 +231,24 @@ function playCard(state, seat, instanceId, rng) {
     },
   ];
 
-  const damage = computeDamage(card, nextFighter.stats, rng);
+  const summon = normalizeSummon(card);
+  if (summon) {
+    nextFighter.ally = summon;
+    logs.push({
+      type: 'summon',
+      seat,
+      name: summon.nameFr,
+      nameFr: summon.nameFr,
+      nameEn: summon.nameEn,
+      duration: summon.remainingTurns,
+    });
+  }
+
+  const damage = summon ? 0 : computeDamage(card, nextFighter.stats, rng);
   if (damage > 0) {
-    const absorbed = Math.min(nextOpponent.block || 0, damage);
-    const hpLoss = damage - absorbed;
-    nextOpponent = {
-      ...nextOpponent,
-      block: (nextOpponent.block || 0) - absorbed,
-      hp: Math.max(0, nextOpponent.hp - hpLoss),
-    };
+    const result = applyIncomingDamage(nextOpponent, damage, seat);
+    nextOpponent = result.fighter;
+    logs.push(...result.logs);
     logs.push({ type: 'damage', source: seat, target: opponentSeat, amount: damage });
   }
 
@@ -273,7 +284,7 @@ function discardForChakra(state, seat, instanceId) {
   if (!fighter) throw new Error('Combattant manquant.');
   if (fighter.discardedForChakra) throw new Error('Déjà défaussé pour Chakra ce tour.');
 
-  const idx = (fighter.hand || []).findIndex((c) => c.instanceId === instanceId);
+  const idx = (fighter.hand || []).findIndex(c => c.instanceId === instanceId);
   if (idx < 0) throw new Error('Carte absente de la main.');
 
   const hand = [...fighter.hand];
@@ -305,11 +316,39 @@ function endTurn(state, seat, rng) {
 
   const opponentSeat = seat === 'host' ? 'guest' : 'host';
   let nextOpponent = { ...state.fighters[opponentSeat] };
+  const logs = [{ type: 'end_turn', seat }];
+
+  const allyAttack = resolveAllyAttack(nextFighter, nextOpponent, seat);
+  nextFighter = allyAttack.attacker;
+  nextOpponent = allyAttack.target;
+  logs.push(...allyAttack.logs);
+
+  if (nextOpponent.ally) {
+    const remainingTurns = Math.max(0, (Number(nextOpponent.ally.remainingTurns) || 1) - 1);
+    if (remainingTurns === 0) {
+      nextOpponent.ally = null;
+      logs.push({ type: 'ally_expired', seat: opponentSeat });
+    } else {
+      nextOpponent.ally = { ...nextOpponent.ally, remainingTurns };
+    }
+  }
+
+  state.fighters = {
+    ...state.fighters,
+    [seat]: nextFighter,
+    [opponentSeat]: nextOpponent,
+  };
+
+  const over = checkVictory(state);
+  if (over) {
+    logs.push({ type: over, winnerSeat: state.winnerSeat });
+    return { state, logs };
+  }
 
   // Début de tour adversaire : refill chakra + pioche
   nextOpponent = {
-    ...nextOpponent,
-    chakra: nextOpponent.maxChakra ?? BASE_CHAKRA,
+    ...state.fighters[opponentSeat],
+    chakra: state.fighters[opponentSeat].maxChakra ?? BASE_CHAKRA,
     discardedForChakra: false,
   };
   const drawn = drawFromPile(
@@ -317,7 +356,7 @@ function endTurn(state, seat, rng) {
     [...(nextOpponent.discardPile || [])],
     [...(nextOpponent.hand || [])],
     DRAW_PER_TURN,
-    rng,
+    rng
   );
   nextOpponent = {
     ...nextOpponent,
@@ -325,22 +364,11 @@ function endTurn(state, seat, rng) {
     discardPile: drawn.discardPile,
     hand: drawn.hand,
   };
-
-  state.fighters = {
-    ...state.fighters,
-    [seat]: nextFighter,
-    [opponentSeat]: nextOpponent,
-  };
+  state.fighters = { ...state.fighters, [opponentSeat]: nextOpponent };
   state.activeSeat = opponentSeat;
   state.turn = (state.turn || 1) + 1;
-
-  return {
-    state,
-    logs: [
-      { type: 'end_turn', seat },
-      { type: 'draw', seat: opponentSeat, count: drawn.drawnCount },
-    ],
-  };
+  logs.push({ type: 'draw', seat: opponentSeat, count: drawn.drawnCount });
+  return { state, logs };
 }
 
 function forfeit(state, seat) {
@@ -371,6 +399,78 @@ function checkVictory(state) {
     return 'victory';
   }
   return null;
+}
+
+function normalizeSummon(card) {
+  if (card?.cardType !== 'summon' && !card?.summon) return null;
+  const def = card.summon || {};
+  const abilities = Array.isArray(def.abilities)
+    ? def.abilities.map(ability => String(ability).toLowerCase())
+    : [];
+  const taunt = Boolean(def.taunt ?? abilities.includes('taunt'));
+  const hp = Math.max(1, Number(def.hp) || 20);
+  const duration = Math.max(1, Math.floor(Number(def.duration) || (taunt ? 2 : 3)));
+  return {
+    nameFr: def.nameFr || def.name || card.nameFr || 'Allié',
+    nameEn: def.nameEn || def.name || card.nameEn || 'Ally',
+    hp,
+    maxHp: hp,
+    attack: Math.max(0, Number(def.attack) || 0),
+    taunt,
+    remainingTurns: duration,
+  };
+}
+
+function applyIncomingDamage(target, damage, sourceSeat) {
+  let fighter = { ...target };
+  let remaining = Math.max(0, Number(damage) || 0);
+  const logs = [];
+
+  if (fighter.ally?.taunt && fighter.ally.hp > 0 && remaining > 0) {
+    const absorbed = Math.min(fighter.ally.hp, remaining);
+    const hp = fighter.ally.hp - absorbed;
+    remaining -= absorbed;
+    fighter.ally = hp > 0 ? { ...fighter.ally, hp } : null;
+    logs.push({
+      type: 'ally_damage',
+      seat: fighter.seat,
+      source: sourceSeat,
+      amount: absorbed,
+      allyHp: hp,
+      fallen: hp <= 0,
+    });
+  }
+
+  if (remaining > 0) {
+    const blockAbsorbed = Math.min(fighter.block || 0, remaining);
+    fighter.block = (fighter.block || 0) - blockAbsorbed;
+    fighter.hp = Math.max(0, fighter.hp - (remaining - blockAbsorbed));
+  }
+
+  return { fighter, logs };
+}
+
+function resolveAllyAttack(attacker, target, seat) {
+  const ally = attacker.ally;
+  if (!ally || ally.hp <= 0 || ally.attack <= 0) {
+    return { attacker, target, logs: [] };
+  }
+  const result = applyIncomingDamage(target, ally.attack, seat);
+  return {
+    attacker,
+    target: result.fighter,
+    logs: [
+      {
+        type: 'ally_attack',
+        seat,
+        name: ally.nameFr,
+        nameFr: ally.nameFr,
+        nameEn: ally.nameEn,
+        amount: ally.attack,
+      },
+      ...result.logs,
+    ],
+  };
 }
 
 function computeDamage(card, stats, rng) {

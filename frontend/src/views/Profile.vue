@@ -1,31 +1,25 @@
 <script setup>
-import { onMounted, computed } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { usePlayerStore } from '../stores/player'
-import PlayerProfile from '../components/player/PlayerProfile.vue'
-import LevelUpModal from '../components/player/LevelUpModal.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import forestImage from '../assets/illustrations/forest-path.webp'
+import { onMounted } from 'vue';
+import { RouterLink, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { usePlayerStore } from '../stores/player';
+import PlayerProfile from '../components/player/PlayerProfile.vue';
 
-defineOptions({ name: 'ProfileView' })
+import PageHeader from '../components/ui/PageHeader.vue';
+import forestImage from '../assets/illustrations/forest-path.webp';
 
-const { t } = useI18n()
-const router = useRouter()
-const player = usePlayerStore()
+defineOptions({ name: 'ProfileView' });
 
-const showLevelUp = computed(() => Boolean(player.lastLevelUp))
+const { t } = useI18n();
+const router = useRouter();
+const player = usePlayerStore();
 
 onMounted(async () => {
-  await player.fetchPlayer()
-  if (!player.character) {
-    await router.replace({ name: 'character-creation' })
+  await player.fetchPlayer();
+  if (player.hasConfirmedCharacterAbsence) {
+    await router.replace({ name: 'character-creation' });
   }
-})
-
-async function onSpecialize(spec) {
-  await player.chooseSpecialization(spec)
-}
+});
 </script>
 
 <template>
@@ -54,19 +48,6 @@ async function onSpecialize(spec) {
     <p v-else-if="player.error" class="alert alert--error mt-6" data-testid="profile-error">
       {{ player.error }}
     </p>
-    <PlayerProfile
-      v-else-if="player.character"
-      class="mt-8"
-      :character="player.character"
-      @specialize="onSpecialize"
-    />
-
-    <LevelUpModal
-      :open="showLevelUp"
-      :levels-gained="player.lastLevelUp?.levelsGained || 1"
-      :talent-points-gained="player.lastLevelUp?.talentPointsGained || 1"
-      :level="player.lastLevelUp?.level"
-      @close="player.clearLevelUp()"
-    />
+    <PlayerProfile v-else-if="player.character" class="mt-8" :character="player.character" />
   </div>
 </template>

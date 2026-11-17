@@ -6,17 +6,14 @@ import {
   BOOSTER_COSTS,
   COMBAT_DEFAULT_REWARDS,
   COMBAT_REWARDS_BY_RANK,
-  CRAFT_DUST,
   DISENCHANT_DUST,
   UPGRADE_COSTS,
-  craftToDisenchantRatio,
   resolveCombatRewards,
   validateEconomyInvariants,
   winsForStandardBooster,
 } from '../src/config/economyConfig.js';
 import { BOOSTER_CATALOG } from '../src/services/boosterService.js';
 import {
-  CRAFT_DUST as CARD_CRAFT,
   DISENCHANT_DUST as CARD_DISENCHANT,
   UPGRADE_COSTS as CARD_UPGRADE,
 } from '../src/services/cardService.js';
@@ -40,13 +37,21 @@ if (!check.ok) {
 console.log('✓ validateEconomyInvariants');
 
 // Boosters wired
-assert(BOOSTER_CATALOG.standard.cost.ryos === BOOSTER_COSTS.standard.ryos, 'booster standard wired');
-assert(BOOSTER_CATALOG.elemental.cost.ryos === BOOSTER_COSTS.elemental.ryos, 'booster elemental wired');
-assert(BOOSTER_CATALOG.premium.cost.kageCoins === BOOSTER_COSTS.premium.kageCoins, 'booster premium wired');
+assert(
+  BOOSTER_CATALOG.standard.cost.ryos === BOOSTER_COSTS.standard.ryos,
+  'booster standard wired'
+);
+assert(
+  BOOSTER_CATALOG.elemental.cost.ryos === BOOSTER_COSTS.elemental.ryos,
+  'booster elemental wired'
+);
+assert(
+  BOOSTER_CATALOG.premium.cost.kageCoins === BOOSTER_COSTS.premium.kageCoins,
+  'booster premium wired'
+);
 console.log('✓ boosterService ← economyConfig');
 
 // Card dust/upgrade wired
-assert(CARD_CRAFT.common === CRAFT_DUST.common, 'craft wired');
 assert(CARD_DISENCHANT.rare === DISENCHANT_DUST.rare, 'disenchant wired');
 assert(CARD_UPGRADE.common[0].ryos === UPGRADE_COSTS.common[0].ryos, 'upgrade wired');
 console.log('✓ cardService ← economyConfig');
@@ -57,20 +62,22 @@ assert(PREMIUM_XP_MULTIPLIER === BATTLE_PASS.premiumXpMultiplier, 'BP XP mult wi
 console.log('✓ battlePassService ← economyConfig');
 
 // Combat defaults wired
-assert(combatRewardTest.DEFAULT_REWARDS.ryos === COMBAT_DEFAULT_REWARDS.ryos, 'combat default ryos');
-assert(combatRewardTest.DEFAULT_REWARDS.bpPoints === COMBAT_DEFAULT_REWARDS.bpPoints, 'combat default bp');
+assert(
+  combatRewardTest.DEFAULT_REWARDS.ryos === COMBAT_DEFAULT_REWARDS.ryos,
+  'combat default ryos'
+);
+assert(
+  combatRewardTest.DEFAULT_REWARDS.bpPoints === COMBAT_DEFAULT_REWARDS.bpPoints,
+  'combat default bp'
+);
 console.log('✓ combatRewardService ← economyConfig');
 
-// Key ratios
+// Booster affordability
 const dWins = winsForStandardBooster('D');
 assert(dWins >= 2 && dWins <= 4, `D wins for pack = ${dWins}`);
-console.log(`✓ standard pack ≈ ${dWins} D wins (${BOOSTER_COSTS.standard.ryos} / ${COMBAT_REWARDS_BY_RANK.D.ryos})`);
-
-for (const rarity of Object.keys(CRAFT_DUST)) {
-  const ratio = craftToDisenchantRatio(rarity);
-  assert(ratio === 5, `${rarity} craft/disenchant = 5 (got ${ratio})`);
-}
-console.log('✓ craft/disenchant = 5× all rarities');
+console.log(
+  `✓ standard pack ≈ ${dWins} D wins (${BOOSTER_COSTS.standard.ryos} / ${COMBAT_REWARDS_BY_RANK.D.ryos})`
+);
 
 // Rank floor raises stale seeds (bp was 2–10 pre-tune)
 {

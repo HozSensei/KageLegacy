@@ -7,11 +7,13 @@ const buckets = new Map();
 
 const DEFAULTS = {
   queue: { limit: 8, windowMs: 60_000 },
+  invite: { limit: 5, windowMs: 60_000 },
+  inviteAccept: { limit: 8, windowMs: 60_000 },
   report: { limit: 12, windowMs: 60_000 },
 };
 
 /**
- * @param {string} action — 'queue' | 'report'
+ * @param {string} action — 'queue' | 'invite' | 'inviteAccept' | 'report'
  * @param {number|string} userId
  * @param {{ limit?: number, windowMs?: number }} [opts]
  * @returns {{ allowed: boolean, retryAfterMs: number, remaining: number }}

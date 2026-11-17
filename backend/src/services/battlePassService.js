@@ -28,9 +28,18 @@ function parseClaimed(raw) {
 
 function parseRewards(raw) {
   const parsed = parseJsonSafe(raw, { free: {}, premium: {} }) || { free: {}, premium: {} };
+  const withoutCosmetics = track =>
+    Object.fromEntries(
+      Object.entries(track && typeof track === 'object' ? track : {}).map(([level, rewards]) => [
+        level,
+        (Array.isArray(rewards) ? rewards : [rewards]).filter(
+          reward => reward?.type !== 'cosmetic'
+        ),
+      ])
+    );
   return {
-    free: parsed.free && typeof parsed.free === 'object' ? parsed.free : {},
-    premium: parsed.premium && typeof parsed.premium === 'object' ? parsed.premium : {},
+    free: withoutCosmetics(parsed.free),
+    premium: withoutCosmetics(parsed.premium),
   };
 }
 
@@ -79,7 +88,7 @@ export async function getActiveSeason() {
     `SELECT * FROM battle_pass_seasons
      WHERE is_active = TRUE
      ORDER BY season_number DESC
-     LIMIT 1`,
+     LIMIT 1`
   );
   return rows[0] ? serializeSeason(rows[0]) : null;
 }
@@ -96,7 +105,7 @@ export async function getSeasonRow(seasonId) {
 export async function getOrCreateUserBattlePass(userId, seasonId) {
   const existing = await query(
     'SELECT * FROM user_battle_pass WHERE user_id = ? AND season_id = ? LIMIT 1',
-    [userId, seasonId],
+    [userId, seasonId]
   );
   if (existing[0]) return serializeUserPass(existing[0]);
 
@@ -106,15 +115,17 @@ export async function getOrCreateUserBattlePass(userId, seasonId) {
       `INSERT INTO user_battle_pass
         (user_id, season_id, current_level, current_xp, is_premium, claimed_rewards_json)
        VALUES (?, ?, 0, 0, FALSE, ?)`,
-      [userId, seasonId, claimed],
+      [userId, seasonId, claimed]
     );
-    const rows = await query('SELECT * FROM user_battle_pass WHERE id = ? LIMIT 1', [result.insertId]);
+    const rows = await query('SELECT * FROM user_battle_pass WHERE id = ? LIMIT 1', [
+      result.insertId,
+    ]);
     return serializeUserPass(rows[0]);
   } catch (err) {
     if (err?.code !== 'ER_DUP_ENTRY' && err?.errno !== 1062) throw err;
     const raced = await query(
       'SELECT * FROM user_battle_pass WHERE user_id = ? AND season_id = ? LIMIT 1',
-      [userId, seasonId],
+      [userId, seasonId]
     );
     if (raced[0]) return serializeUserPass(raced[0]);
     throw err;
@@ -150,21 +161,27 @@ export function buildTrackView(season, progress) {
   for (let level = 1; level <= max; level += 1) {
     const xpNeeded = getXPForLevel(level, season.baseXpPerLevel);
     const reached = progress.currentLevel >= level;
+    const freeRewards = rewardsForLevel(season.rewards.free, level);
+    const premiumRewards = rewardsForLevel(season.rewards.premium, level);
     free.push({
       level,
       xpNeeded,
-      rewards: rewardsForLevel(season.rewards.free, level),
+      rewards: freeRewards,
       reached,
       claimed: claimed.free.includes(level),
-      claimable: reached && !claimed.free.includes(level),
+      claimable: reached && freeRewards.length > 0 && !claimed.free.includes(level),
     });
     premium.push({
       level,
       xpNeeded,
-      rewards: rewardsForLevel(season.rewards.premium, level),
+      rewards: premiumRewards,
       reached,
       claimed: claimed.premium.includes(level),
-      claimable: progress.isPremium && reached && !claimed.premium.includes(level),
+      claimable:
+        progress.isPremium &&
+        reached &&
+        premiumRewards.length > 0 &&
+        !claimed.premium.includes(level),
       locked: !progress.isPremium,
     });
   }
@@ -207,7 +224,7 @@ export async function addBattlePassXP(userId, xpAmount, source = 'unknown') {
     `UPDATE user_battle_pass
      SET current_level = ?, current_xp = ?
      WHERE user_id = ? AND season_id = ?`,
-    [newLevel, newXP, userId, season.id],
+    [newLevel, newXP, userId, season.id]
   );
 
   return {
@@ -221,16 +238,6 @@ export async function addBattlePassXP(userId, xpAmount, source = 'unknown') {
   };
 }
 
-async function grantCosmetic(userId, cosmeticType, cosmeticKey, seasonId) {
-  await query(
-    `INSERT INTO user_cosmetics (user_id, cosmetic_type, cosmetic_key, season_obtained)
-     VALUES (?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE obtained_at = obtained_at`,
-    [userId, cosmeticType, cosmeticKey, seasonId],
-  );
-  return { type: 'cosmetic', cosmeticType, cosmeticKey };
-}
-
 async function pickRandomCardId(rarity) {
   const cards = await getCardsByRarity(rarity);
   if (!cards.length) return null;
@@ -238,10 +245,12 @@ async function pickRandomCardId(rarity) {
   return pick.id;
 }
 
-async function grantCardReward(userId, reward) {
+async function grantCardReward(userId, reward, connection = null) {
   let cardId = reward.cardDefinitionId || reward.cardId || null;
   if (!cardId && reward.slug) {
-    const rows = await query('SELECT id FROM card_definitions WHERE slug = ? LIMIT 1', [reward.slug]);
+    const rows = await query('SELECT id FROM card_definitions WHERE slug = ? LIMIT 1', [
+      reward.slug,
+    ]);
     cardId = rows[0]?.id || null;
   }
   if (!cardId && reward.rarity) {
@@ -253,37 +262,55 @@ async function grantCardReward(userId, reward) {
     const dust =
       DISENCHANT_DUST[reward.rarity] ||
       (reward.rarity === 'legendary' ? DISENCHANT_DUST.legendary : DISENCHANT_DUST.rare);
-    await query('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [dust * count, userId]);
+    const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
+    await executor.execute('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [
+      dust * count,
+      userId,
+    ]);
     return { type: 'dust', amount: dust * count, fallback: true, reason: 'no_card' };
   }
   const granted = [];
   for (let i = 0; i < count; i += 1) {
-    granted.push(await addCard(userId, cardId, { quantity: 1, source: 'battle_pass' }));
+    granted.push(
+      await addCard(userId, cardId, {
+        quantity: 1,
+        source: 'battle_pass',
+        connection,
+        runHooks: !connection,
+      })
+    );
   }
-  await query(
+  const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
+  await executor.execute(
     `UPDATE user_battle_pass ubp
      JOIN battle_pass_seasons s ON s.id = ubp.season_id AND s.is_active = TRUE
      SET ubp.cards_obtained = ubp.cards_obtained + ?
      WHERE ubp.user_id = ?`,
-    [count, userId],
+    [count, userId]
   );
   return { type: 'card', cardDefinitionId: cardId, count, entries: granted };
 }
 
-async function grantBoosterStub(userId, reward) {
+async function grantBoosterStub(userId, reward, connection = null) {
   // Shop/boosters géré ailleurs — MVP : 5 cartes (rareté selon type) ou dust.
   const boosterType = reward.boosterType || reward.booster || 'standard';
   const rolls =
     boosterType === 'legendary'
-      ? [{ rarity: 'legendary', count: 1 }, { rarity: 'rare', count: 2 }]
+      ? [
+          { rarity: 'legendary', count: 1 },
+          { rarity: 'rare', count: 2 },
+        ]
       : boosterType === 'premium'
-        ? [{ rarity: 'rare', count: 1 }, { rarity: 'common', count: 4 }]
+        ? [
+            { rarity: 'rare', count: 1 },
+            { rarity: 'common', count: 4 },
+          ]
         : [{ rarity: 'common', count: 5 }];
 
   const cards = [];
   for (const roll of rolls) {
     for (let i = 0; i < roll.count; i += 1) {
-      const result = await grantCardReward(userId, { rarity: roll.rarity, count: 1 });
+      const result = await grantCardReward(userId, { rarity: roll.rarity, count: 1 }, connection);
       cards.push(result);
     }
   }
@@ -291,9 +318,9 @@ async function grantBoosterStub(userId, reward) {
 }
 
 /**
- * Applique une récompense individuelle (ryos, dust, essence, kage_coins, card, booster, cosmetic).
+ * Applique une récompense individuelle (ryos, dust, essence, kage_coins, card, booster).
  */
-export async function grantBattlePassReward(userId, reward, seasonId) {
+export async function grantBattlePassReward(userId, reward, connection = null) {
   if (!reward || typeof reward !== 'object') {
     throw httpError(400, 'Récompense invalide.');
   }
@@ -302,41 +329,45 @@ export async function grantBattlePassReward(userId, reward, seasonId) {
   switch (type) {
     case 'ryos': {
       const amount = Math.max(0, Number(reward.amount) || 0);
-      await query('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [amount, userId]);
-      return { type, amount };
-    }
-    case 'dust': {
-      const amount = Math.max(0, Number(reward.amount) || 0);
-      await query('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [amount, userId]);
-      return { type, amount };
-    }
-    case 'essence': {
-      const amount = Math.max(0, Number(reward.amount) || 0);
-      await query('UPDATE sensei SET card_essence = card_essence + ? WHERE user_id = ?', [
+      const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
+      await executor.execute('UPDATE sensei SET ryos = ryos + ? WHERE user_id = ?', [
         amount,
         userId,
       ]);
       return { type, amount };
     }
+    case 'dust': {
+      const amount = Math.max(0, Number(reward.amount) || 0);
+      const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
+      await executor.execute('UPDATE sensei SET card_dust = card_dust + ? WHERE user_id = ?', [
+        amount,
+        userId,
+      ]);
+      return { type, amount };
+    }
+    case 'essence': {
+      const amount = Math.max(0, Number(reward.amount) || 0);
+      const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
+      await executor.execute(
+        'UPDATE sensei SET card_essence = card_essence + ? WHERE user_id = ?',
+        [amount, userId]
+      );
+      return { type, amount };
+    }
     case 'kage_coins': {
       const amount = Math.max(0, Number(reward.amount) || 0);
-      await query('UPDATE sensei SET kage_coins = kage_coins + ? WHERE user_id = ?', [
+      const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
+      await executor.execute('UPDATE sensei SET kage_coins = kage_coins + ? WHERE user_id = ?', [
         amount,
         userId,
       ]);
       return { type, amount };
     }
     case 'card':
-      return grantCardReward(userId, reward);
+      return grantCardReward(userId, reward, connection);
     case 'booster':
-      return grantBoosterStub(userId, reward);
-    case 'cosmetic':
-      return grantCosmetic(
-        userId,
-        reward.cosmeticType || reward.cosmetic_type || 'avatar',
-        reward.key || reward.cosmeticKey || reward.cosmetic_key,
-        seasonId,
-      );
+      return grantBoosterStub(userId, reward, connection);
+
     default:
       throw httpError(400, `Type de récompense inconnu: ${type}`);
   }
@@ -352,38 +383,59 @@ export async function claimReward(userId, level, trackType = 'free') {
   const season = await getActiveSeason();
   if (!season) throw httpError(404, 'Aucune saison Battle Pass active.');
 
-  const userPass = await getOrCreateUserBattlePass(userId, season.id);
+  // Ensure the row exists before acquiring its exclusive lock. Concurrent claims
+  // then serialize on this row and cannot grant the same tier twice.
+  await getOrCreateUserBattlePass(userId, season.id);
+  const connection = await getConnection();
+  let granted;
+  try {
+    await connection.beginTransaction();
+    const [rows] = await connection.execute(
+      `SELECT * FROM user_battle_pass
+       WHERE user_id = ? AND season_id = ?
+       LIMIT 1 FOR UPDATE`,
+      [userId, season.id]
+    );
+    const userPass = serializeUserPass(rows[0]);
+    if (!userPass) throw httpError(404, 'Progression Battle Pass introuvable.');
 
-  if (track === 'premium' && !userPass.isPremium) {
-    throw httpError(403, 'Battle Pass Premium requis.');
-  }
-  if (userPass.currentLevel < targetLevel) {
-    throw httpError(400, 'Niveau non atteint.');
-  }
-  if (targetLevel > season.maxLevel) {
-    throw httpError(400, 'Niveau hors saison.');
-  }
+    if (track === 'premium' && !userPass.isPremium) {
+      throw httpError(403, 'Battle Pass Premium requis.');
+    }
+    if (userPass.currentLevel < targetLevel) {
+      throw httpError(400, 'Niveau non atteint.');
+    }
+    if (targetLevel > season.maxLevel) {
+      throw httpError(400, 'Niveau hors saison.');
+    }
 
-  const claimed = { ...userPass.claimedRewards };
-  if (claimed[track].includes(targetLevel)) {
-    throw httpError(409, 'Récompense déjà réclamée.');
-  }
+    const claimed = { ...userPass.claimedRewards };
+    if (claimed[track].includes(targetLevel)) {
+      throw httpError(409, 'Récompense déjà réclamée.');
+    }
 
-  const rewards = rewardsForLevel(season.rewards[track], targetLevel);
-  if (!rewards.length) {
-    throw httpError(404, 'Aucune récompense à ce niveau.');
-  }
+    const rewards = rewardsForLevel(season.rewards[track], targetLevel);
+    if (!rewards.length) {
+      throw httpError(404, 'Aucune récompense à ce niveau.');
+    }
 
-  const granted = [];
-  for (const reward of rewards) {
-    granted.push(await grantBattlePassReward(userId, reward, season.id));
-  }
+    granted = [];
+    for (const reward of rewards) {
+      granted.push(await grantBattlePassReward(userId, reward, connection));
+    }
 
-  claimed[track] = [...claimed[track], targetLevel].sort((a, b) => a - b);
-  await query('UPDATE user_battle_pass SET claimed_rewards_json = ? WHERE id = ?', [
-    JSON.stringify(claimed),
-    userPass.id,
-  ]);
+    claimed[track] = [...claimed[track], targetLevel].sort((a, b) => a - b);
+    await connection.execute('UPDATE user_battle_pass SET claimed_rewards_json = ? WHERE id = ?', [
+      JSON.stringify(claimed),
+      userPass.id,
+    ]);
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
 
   const progress = await getOrCreateUserBattlePass(userId, season.id);
   return { level: targetLevel, track, rewards: granted, progress };
@@ -409,25 +461,17 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
   else if (method === 'stripe') mode = 'stripe';
 
   if (mode === 'stripe') {
-    const {
-      isStripeConfigured,
-      createBattlePassCheckoutSession,
-      isShopStripeDevFallbackAllowed,
-    } = await import('./shopStripeService.js');
+    const { isStripeConfigured, createBattlePassCheckoutSession, isShopStripeDevFallbackAllowed } =
+      await import('./shopStripeService.js');
 
     if (isStripeConfigured()) {
       return createBattlePassCheckoutSession(userId);
     }
 
     const allowStubFallback =
-      isAdmin ||
-      process.env.BATTLE_PASS_STUB_UNLOCK === 'true' ||
-      isShopStripeDevFallbackAllowed();
+      isAdmin || process.env.BATTLE_PASS_STUB_UNLOCK === 'true' || isShopStripeDevFallbackAllowed();
     if (!allowStubFallback) {
-      throw httpError(
-        503,
-        'Paiement Stripe indisponible — STRIPE_SECRET_KEY non configuré.',
-      );
+      throw httpError(503, 'Paiement Stripe indisponible — STRIPE_SECRET_KEY non configuré.');
     }
     mode = 'stub';
   }
@@ -435,7 +479,7 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
   if (mode === 'stub' && !isAdmin && process.env.BATTLE_PASS_STUB_UNLOCK !== 'true') {
     throw httpError(
       403,
-      'Unlock stub réservé admin/dev (BATTLE_PASS_STUB_UNLOCK=true ou compte admin). Utilisez method=stripe ou kage_coins.',
+      'Unlock stub réservé admin/dev (BATTLE_PASS_STUB_UNLOCK=true ou compte admin). Utilisez method=stripe ou kage_coins.'
     );
   }
 
@@ -446,13 +490,13 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
     if (mode === 'kage_coins') {
       const [senseiRows] = await connection.execute(
         'SELECT kage_coins FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
-        [userId],
+        [userId]
       );
       if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
       if (Number(senseiRows[0].kage_coins) < PREMIUM_COST_KAGE_COINS) {
         throw httpError(
           400,
-          `Kage Coins insuffisants (${senseiRows[0].kage_coins}/${PREMIUM_COST_KAGE_COINS}).`,
+          `Kage Coins insuffisants (${senseiRows[0].kage_coins}/${PREMIUM_COST_KAGE_COINS}).`
         );
       }
       await connection.execute('UPDATE sensei SET kage_coins = kage_coins - ? WHERE user_id = ?', [
@@ -465,7 +509,7 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
       `UPDATE user_battle_pass
        SET is_premium = TRUE, premium_purchased_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [userPass.id],
+      [userPass.id]
     );
 
     await connection.commit();
@@ -512,7 +556,7 @@ export async function purchaseLevels(userId, count) {
     await connection.beginTransaction();
     const [senseiRows] = await connection.execute(
       'SELECT kage_coins FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
-      [userId],
+      [userId]
     );
     if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
     if (Number(senseiRows[0].kage_coins) < cost) {
@@ -524,7 +568,7 @@ export async function purchaseLevels(userId, count) {
     ]);
     await connection.execute(
       'UPDATE user_battle_pass SET current_level = current_level + ?, current_xp = 0 WHERE id = ?',
-      [levelsToBuy, userPass.id],
+      [levelsToBuy, userPass.id]
     );
     await connection.commit();
   } catch (error) {
@@ -536,18 +580,4 @@ export async function purchaseLevels(userId, count) {
 
   const progress = await getOrCreateUserBattlePass(userId, season.id);
   return { levelsPurchased: levelsToBuy, costKageCoins: cost, progress };
-}
-
-export async function getUserCosmetics(userId) {
-  const rows = await query(
-    `SELECT cosmetic_type, cosmetic_key, season_obtained, obtained_at
-     FROM user_cosmetics WHERE user_id = ? ORDER BY obtained_at DESC`,
-    [userId],
-  );
-  return rows.map((r) => ({
-    cosmeticType: r.cosmetic_type,
-    cosmeticKey: r.cosmetic_key,
-    seasonObtained: r.season_obtained,
-    obtainedAt: r.obtained_at,
-  }));
 }

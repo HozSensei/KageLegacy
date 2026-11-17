@@ -15,6 +15,9 @@ export const ANTI_CHEAT_MODE = 'trust_host';
 /** Guest challenge actif : checksum différent → match void. */
 export const GUEST_CHALLENGE_ENABLED = true;
 
+/** Délai accordé au second joueur pour confirmer le résultat normal. */
+export const RESULT_CONFIRMATION_TIMEOUT_MS = 5 * 60 * 1000;
+
 export const PVP_MATCH_STATES = [
   'pending',
   'ready',

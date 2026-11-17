@@ -17,63 +17,31 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: |
-            package-lock.json
             backend/package-lock.json
             frontend/package-lock.json
 
       - name: Install dependencies
+        id: install
         run: |
-          npm ci
           npm ci --prefix backend
           npm ci --prefix frontend
 
+      - name: ESLint backend
+        run: npm run lint --prefix backend
+
       - name: ESLint frontend
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run lint --prefix frontend
 
-      - name: Audit imports backend (cross-exports)
+      - name: Build frontend
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run build --prefix frontend
+
+      - name: Audit imports backend
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run audit:imports --prefix backend
 
-      - name: Smoke test sceau chakra
-        run: npm run test:daily-seal --prefix backend
-
-      - name: Smoke test calendrier ligue
-        run: npm run test:pool-schedule --prefix backend
-
-      - name: Smoke test assignation ligue (ensure pool)
-        run: npm run test:ensure-user-pool --prefix backend
-
-      - name: Smoke test identités bots (villages / no Kuni)
-        run: npm run test:bot-identities --prefix backend
-
-      - name: Smoke test villages C0
-        run: npm run test:village-rivalry --prefix backend
-
-      - name: Smoke test butin combat
-        run: npm run test:combat-loot --prefix backend
-
-      - name: Smoke test moteur narratif
-        run: npm run test:narrative --prefix backend
-
-      - name: Smoke test système entraînement
-        run: npm run test:training-system --prefix backend
-
-      - name: Smoke test progression grades
-        run: node scripts/testGradeProgression.js
-        working-directory: backend
-
-      - name: Calibrage économie (analytique)
-        run: npm run economy:calibrate --prefix backend
-
-      - name: Benchmark combat (smoke)
-        run: npm run combat:benchmark --prefix backend -- --runs=100
-
-      - name: Smoke test combat par plis
-        run: npm run test:pli-combat --prefix backend
-
-      - name: Benchmark combat par plis (smoke)
-        run: npm run combat:pli-deck --prefix backend -- --runs=100
-
-  e2e:
+  tcg-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -81,7 +49,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: kage_legacy
+          MYSQL_DATABASE: kage_legacy_e2e
           MYSQL_USER: kage
           MYSQL_PASSWORD: kage
         ports:
@@ -96,7 +64,9 @@ jobs:
       DB_PORT: 3306
       DB_USER: kage
       DB_PASSWORD: kage
-      DB_NAME: kage_legacy
+      DB_NAME: kage_legacy_e2e
+      E2E_ALLOW_SEED: 'true'
+      ENABLE_SCHEDULER: 'false'
     steps:
       - uses: actions/checkout@v4
 
@@ -110,25 +80,84 @@ jobs:
             frontend/package-lock.json
 
       - name: Install dependencies
+        id: install
+        env:
+          CYPRESS_INSTALL_BINARY: '0'
         run: |
           npm ci
           npm ci --prefix backend
           npm ci --prefix frontend
 
-      - name: Install Cypress binary
-        run: npx cypress install
+      - name: Card system
+        run: npm run test:card-system --prefix backend
 
-      - name: Prepare database (migrate, seed, cycle H0→H72)
+      - name: Economy and shop
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          npm run test:economy --prefix backend
+          npm run test:boosters --prefix backend
+          npm run test:shop --prefix backend
+
+      - name: Starter loadout
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:starter-loadout --prefix backend
+
+      - name: Scheduler and E2E guard
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          npm run test:scheduler --prefix backend
+          npm run test:e2e-guard --prefix backend
+          node backend/scripts/testE2eBattlePass.js
+
+      - name: Combat engine
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:combat-engine --prefix backend
+
+      - name: Combat balance
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:combat-balance --prefix backend
+
+      - name: Mission runs
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:mission-run --prefix backend
+
+      - name: PvP matchmaking
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:pvp-matchmaking --prefix backend
+
+      - name: Prepare TCG database
+        id: prepare
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run e2e:prepare
 
-      - name: Run Cypress E2E (V2 surface)
-        run: npm run test:e2e
-
-      - name: Smoke test player character
+      - name: Player character
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
         run: npm run test:player-character --prefix backend
 
+      - name: Talents
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        run: npm run test:talent-tree --prefix backend
+
+      - name: Battle Pass
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        run: npm run test:battle-pass --prefix backend
+
+      - name: Shop Stripe
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        run: npm run test:shop-stripe --prefix backend
+
+      - name: Install Cypress binary
+        id: cypress
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' }}
+        run: npx cypress install
+
+      - name: Run Cypress E2E
+        id: e2e
+        if: ${{ !cancelled() && steps.prepare.outcome == 'success' && steps.cypress.outcome == 'success' }}
+        run: npm run test:e2e
+
       - name: Upload Cypress screenshots on failure
-        if: failure()
+        if: ${{ !cancelled() && steps.e2e.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: cypress-screenshots

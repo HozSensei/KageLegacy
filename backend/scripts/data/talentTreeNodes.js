@@ -32,9 +32,9 @@ export function defineNode(n) {
   };
 }
 
-const s = (partial) => defineNode({ type: 'stat', icon: '·', ...partial });
-const note = (partial) => defineNode({ type: 'notable', icon: '◆', ...partial });
-const key = (partial) => defineNode({ type: 'keystone', icon: '✦', ...partial });
+const s = partial => defineNode({ type: 'stat', icon: '·', ...partial });
+const note = partial => defineNode({ type: 'notable', icon: '◆', ...partial });
+const key = partial => defineNode({ type: 'keystone', icon: '✦', ...partial });
 
 // ═══════════════════════════════════════════════════════════
 // CENTRE — hub + voie objets / équilibre
@@ -70,7 +70,7 @@ const CENTER = [
     x: -40,
     y: 40,
     branch: 'center',
-    bonus: { vitesse: 4 },
+    bonus: { maxHp: 4 },
     requires: ['center_root'],
   }),
   s({
@@ -80,7 +80,7 @@ const CENTER = [
     x: 40,
     y: -40,
     branch: 'center',
-    bonus: { intelligence: 4 },
+    bonus: { maxHp: 4 },
     requires: ['center_root'],
   }),
   s({
@@ -90,7 +90,7 @@ const CENTER = [
     x: -40,
     y: -40,
     branch: 'center',
-    bonus: { dexterity: 4 },
+    bonus: { maxHp: 4 },
     requires: ['center_root'],
   }),
   s({
@@ -110,7 +110,7 @@ const CENTER = [
     x: 80,
     y: -80,
     branch: 'center',
-    bonus: { intelligence: 8 },
+    bonus: { maxHp: 8 },
     requires: ['center_int_a'],
   }),
   s({
@@ -120,7 +120,7 @@ const CENTER = [
     x: 120,
     y: -120,
     branch: 'center',
-    bonus: { intelligence: 10, dexterity: 3 },
+    bonus: { maxHp: 13 },
     requires: ['int_10_a'],
   }),
   note({
@@ -133,7 +133,7 @@ const CENTER = [
     y: -160,
     branch: 'center',
     effect: 'collector',
-    bonus: { intelligence: 5 },
+    bonus: { maxHp: 5 },
     requires: ['int_15_b'],
   }),
   s({
@@ -143,7 +143,7 @@ const CENTER = [
     x: 200,
     y: -200,
     branch: 'center',
-    bonus: { dexterity: 5, maxHp: 5 },
+    bonus: { maxHp: 10 },
     requires: ['collector'],
   }),
   s({
@@ -153,14 +153,15 @@ const CENTER = [
     x: 250,
     y: -240,
     branch: 'center',
-    bonus: { intelligence: 12, dexterity: 5 },
+    bonus: { maxHp: 17 },
     requires: ['center_pack_a'],
   }),
   key({
     id: 'item_master',
     nameFr: 'Maître des Objets',
     nameEn: 'Item Master',
-    descFr: 'Les cartes Objet ne s’épuisent plus (2 usages). Vous ne pouvez pas jouer de Techniques.',
+    descFr:
+      'Les cartes Objet ne s’épuisent plus (2 usages). Vous ne pouvez pas jouer de Techniques.',
     descEn: 'Item cards no longer exhaust (2 uses). You cannot play Techniques.',
     x: 300,
     y: -280,
@@ -176,7 +177,7 @@ const CENTER = [
     x: -70,
     y: -70,
     branch: 'center',
-    bonus: { taijutsu: 3, vitesse: 2 },
+    bonus: { taijutsu: 3, maxHp: 2 },
     requires: ['center_dex_a'],
   }),
   s({
@@ -186,7 +187,7 @@ const CENTER = [
     x: 90,
     y: 30,
     branch: 'center',
-    bonus: { ninjutsu: 3, intelligence: 2 },
+    bonus: { ninjutsu: 3, maxHp: 2 },
     requires: ['center_int_a'],
   }),
   note({
@@ -199,7 +200,7 @@ const CENTER = [
     y: -50,
     branch: 'center',
     effect: 'path_weaver',
-    bonus: { intelligence: 3, dexterity: 3 },
+    bonus: { maxHp: 6 },
     requires: ['center_mix_a', 'center_bridge_tai'],
   }),
   note({
@@ -247,12 +248,12 @@ const TAIJUTSU = [
   }),
   s({
     id: 'tai_5_b',
-    nameFr: 'Pas de combat',
-    nameEn: 'Fighting Step',
+    nameFr: 'Respiration concentrée',
+    nameEn: 'Focused Breath',
     x: -50,
     y: -140,
     branch: 'taijutsu',
-    bonus: { vitesse: 5 },
+    bonus: { maxChakra: 1 },
     requires: ['tai_5_a'],
   }),
   s({
@@ -277,12 +278,12 @@ const TAIJUTSU = [
   }),
   s({
     id: 'tai_5_d',
-    nameFr: 'Réflexe de parade',
-    nameEn: 'Parry Reflex',
+    nameFr: 'Porte ouverte',
+    nameEn: 'Open Gate',
     x: -70,
     y: -260,
     branch: 'taijutsu',
-    bonus: { dexterity: 5 },
+    bonus: { maxChakra: 1 },
     requires: ['tai_10_a'],
   }),
   s({
@@ -292,7 +293,7 @@ const TAIJUTSU = [
     x: 70,
     y: -260,
     branch: 'taijutsu',
-    bonus: { taijutsu: 5, dexterity: 3 },
+    bonus: { taijutsu: 8 },
     requires: ['tai_10_a'],
   }),
   s({
@@ -302,15 +303,15 @@ const TAIJUTSU = [
     x: 0,
     y: -320,
     branch: 'taijutsu',
-    bonus: { taijutsu: 8, vitesse: 4 },
+    bonus: { taijutsu: 12 },
     requires: ['tai_10_a'],
   }),
   note({
     id: 'combo_master',
     nameFr: 'Maître des Combos',
     nameEn: 'Combo Master',
-    descFr: 'Si vous jouez 3 cartes Taijutsu dans un tour : +2 Force (effet combat).',
-    descEn: 'Play 3 Taijutsu cards in a turn: +2 Force (combat effect).',
+    descFr: 'La troisième carte Taijutsu jouée dans un tour inflige 2× dégâts.',
+    descEn: 'The third Taijutsu card played in a turn deals 2× damage.',
     x: 0,
     y: -400,
     branch: 'taijutsu',
@@ -325,7 +326,7 @@ const TAIJUTSU = [
     x: -120,
     y: -360,
     branch: 'taijutsu',
-    bonus: { vitesse: 5 },
+    bonus: { taijutsu: 5 },
     requires: ['tai_10_b'],
   }),
   s({
@@ -335,7 +336,7 @@ const TAIJUTSU = [
     x: -160,
     y: -440,
     branch: 'taijutsu',
-    bonus: { vitesse: 10 },
+    bonus: { taijutsu: 10 },
     requires: ['tai_spd_5'],
   }),
   note({
@@ -348,7 +349,7 @@ const TAIJUTSU = [
     y: -520,
     branch: 'taijutsu',
     effect: 'blade_swift',
-    bonus: { vitesse: 5 },
+    bonus: { taijutsu: 5 },
     requires: ['tai_spd_10'],
   }),
   s({
@@ -388,7 +389,7 @@ const TAIJUTSU = [
     x: 0,
     y: -500,
     branch: 'taijutsu',
-    bonus: { taijutsu: 12, vitesse: 5 },
+    bonus: { taijutsu: 17 },
     requires: ['combo_master'],
   }),
   s({
@@ -398,7 +399,7 @@ const TAIJUTSU = [
     x: 0,
     y: -580,
     branch: 'taijutsu',
-    bonus: { taijutsu: 8, dexterity: 5 },
+    bonus: { taijutsu: 13 },
     requires: ['tai_20_x', 'blade_swift'],
   }),
   key({
@@ -421,7 +422,7 @@ const TAIJUTSU = [
     x: -90,
     y: -200,
     branch: 'taijutsu',
-    bonus: { taijutsu: 3, vitesse: 3 },
+    bonus: { taijutsu: 6 },
     requires: ['tai_5_a'],
   }),
   s({
@@ -465,7 +466,7 @@ const TAIJUTSU = [
     x: -130,
     y: -280,
     branch: 'taijutsu',
-    bonus: { dexterity: 6, taijutsu: 2 },
+    bonus: { taijutsu: 8 },
     requires: ['tai_5_d'],
   }),
   s({
@@ -475,7 +476,7 @@ const TAIJUTSU = [
     x: -180,
     y: -320,
     branch: 'taijutsu',
-    bonus: { dexterity: 8 },
+    bonus: { taijutsu: 8 },
     requires: ['tai_dex_a'],
   }),
   note({
@@ -488,7 +489,7 @@ const TAIJUTSU = [
     y: -380,
     branch: 'taijutsu',
     effect: 'counter_strike',
-    bonus: { taijutsu: 5, dexterity: 3 },
+    bonus: { taijutsu: 8 },
     requires: ['tai_dex_b'],
   }),
   s({
@@ -531,7 +532,7 @@ const TAIJUTSU = [
     x: -200,
     y: -580,
     branch: 'taijutsu',
-    bonus: { vitesse: 12, dexterity: 4 },
+    bonus: { taijutsu: 16 },
     requires: ['blade_swift'],
   }),
   s({
@@ -541,7 +542,7 @@ const TAIJUTSU = [
     x: -100,
     y: -480,
     branch: 'taijutsu',
-    bonus: { vitesse: 5, maxHp: 8 },
+    bonus: { maxHp: 8, taijutsu: 5 },
     requires: ['tai_spd_5', 'combo_master'],
   }),
   s({
@@ -564,7 +565,7 @@ const TAIJUTSU = [
     y: -640,
     branch: 'taijutsu',
     effect: 'relentless_press',
-    bonus: { taijutsu: 6, vitesse: 3 },
+    bonus: { taijutsu: 9 },
     requires: ['tai_20_x', 'tai_pwr_20'],
   }),
   s({
@@ -594,13 +595,13 @@ const TAIJUTSU = [
     id: 'adrenaline_rush',
     nameFr: 'Poussée d’Adrénaline',
     nameEn: 'Adrenaline Rush',
-    descFr: 'Sous 50 % PV : +2 Vitesse pour le reste du combat (1×).',
-    descEn: 'Under 50% HP: +2 Speed for the rest of combat (once).',
+    descFr: 'Sous 50 % PV : vos cartes Taijutsu infligent +3 dégâts.',
+    descEn: 'Under 50% HP: your Taijutsu cards deal +3 damage.',
     x: -120,
     y: -620,
     branch: 'taijutsu',
     effect: 'adrenaline_rush',
-    bonus: { vitesse: 5, taijutsu: 3 },
+    bonus: { taijutsu: 8 },
     requires: ['tai_spd_15', 'tai_mix_c'],
   }),
   note({
@@ -639,7 +640,7 @@ const NINJUTSU = [
     x: 180,
     y: -40,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 5, intelligence: 3 },
+    bonus: { maxChakra: 1 },
     requires: ['nin_5_a'],
   }),
   s({
@@ -649,7 +650,7 @@ const NINJUTSU = [
     x: 260,
     y: 0,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 8, intelligence: 5 },
+    bonus: { ninjutsu: 13 },
     requires: ['nin_5_b'],
   }),
   s({
@@ -682,7 +683,7 @@ const NINJUTSU = [
     x: 420,
     y: 0,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 10, intelligence: 5 },
+    bonus: { ninjutsu: 15 },
     requires: ['elemental_fusion'],
   }),
   key({
@@ -705,7 +706,7 @@ const NINJUTSU = [
     x: 340,
     y: 60,
     branch: 'ninjutsu',
-    bonus: { intelligence: 8, ninjutsu: 3 },
+    bonus: { ninjutsu: 11 },
     requires: ['nin_10_a'],
   }),
   note({
@@ -729,7 +730,7 @@ const NINJUTSU = [
     x: 140,
     y: -80,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 4, intelligence: 4 },
+    bonus: { ninjutsu: 8 },
     requires: ['nin_5_a'],
   }),
   s({
@@ -759,7 +760,7 @@ const NINJUTSU = [
     x: 220,
     y: 100,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 6, intelligence: 4 },
+    bonus: { ninjutsu: 10 },
     requires: ['nin_5_e'],
   }),
   s({
@@ -769,17 +770,17 @@ const NINJUTSU = [
     x: 300,
     y: -100,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 5, intelligence: 5 },
+    bonus: { ninjutsu: 10 },
     requires: ['nin_10_b'],
   }),
   s({
     id: 'nin_mix_b',
-    nameFr: 'Anneau de focus',
-    nameEn: 'Focus Ring',
+    nameFr: 'Anneau de chakra',
+    nameEn: 'Chakra Ring',
     x: 300,
     y: 120,
     branch: 'ninjutsu',
-    bonus: { intelligence: 10 },
+    bonus: { maxChakra: 1 },
     requires: ['nin_10_c'],
   }),
   note({
@@ -792,7 +793,7 @@ const NINJUTSU = [
     y: -120,
     branch: 'ninjutsu',
     effect: 'chakra_surge',
-    bonus: { ninjutsu: 4, intelligence: 4 },
+    bonus: { ninjutsu: 8 },
     requires: ['nin_mix_a'],
   }),
   note({
@@ -815,7 +816,7 @@ const NINJUTSU = [
     x: 460,
     y: -80,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 10, intelligence: 6 },
+    bonus: { ninjutsu: 16 },
     requires: ['chakra_surge', 'elemental_fusion'],
   }),
   s({
@@ -835,7 +836,7 @@ const NINJUTSU = [
     x: 500,
     y: -140,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 10, vitesse: 3 },
+    bonus: { ninjutsu: 13 },
     requires: ['nin_15_a'],
   }),
   note({
@@ -848,7 +849,7 @@ const NINJUTSU = [
     y: -80,
     branch: 'ninjutsu',
     effect: 'echo_cast',
-    bonus: { ninjutsu: 5, intelligence: 5 },
+    bonus: { ninjutsu: 10 },
     requires: ['nin_20_a'],
   }),
   s({
@@ -881,7 +882,7 @@ const NINJUTSU = [
     x: 560,
     y: 80,
     branch: 'ninjutsu',
-    bonus: { intelligence: 10, ninjutsu: 5 },
+    bonus: { ninjutsu: 15 },
     requires: ['nin_15_b', 'elemental_mastery'],
   }),
   s({
@@ -891,7 +892,7 @@ const NINJUTSU = [
     x: 600,
     y: 40,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 10, intelligence: 8 },
+    bonus: { ninjutsu: 18 },
     requires: ['nin_void_a'],
   }),
   s({
@@ -901,7 +902,7 @@ const NINJUTSU = [
     x: 640,
     y: 0,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 12, intelligence: 6 },
+    bonus: { ninjutsu: 18 },
     requires: ['nin_void_b', 'echo_cast'],
   }),
   key({
@@ -924,7 +925,7 @@ const NINJUTSU = [
     x: 400,
     y: -160,
     branch: 'ninjutsu',
-    bonus: { ninjutsu: 7, dexterity: 3 },
+    bonus: { ninjutsu: 10 },
     requires: ['chakra_surge'],
   }),
   s({
@@ -960,7 +961,7 @@ const NINJUTSU = [
     y: 160,
     branch: 'ninjutsu',
     effect: 'focus_burn',
-    bonus: { ninjutsu: 5, intelligence: 3 },
+    bonus: { ninjutsu: 8 },
     requires: ['nin_20_b', 'nin_void_a'],
   }),
   note({
@@ -986,7 +987,7 @@ const NINJUTSU = [
     y: 120,
     branch: 'ninjutsu',
     effect: 'mana_well',
-    bonus: { intelligence: 6, ninjutsu: 4 },
+    bonus: { ninjutsu: 10 },
     requires: ['nin_hp_a', 'nin_void_a'],
   }),
 ];
@@ -1012,7 +1013,7 @@ const GENJUTSU = [
     x: -180,
     y: -40,
     branch: 'genjutsu',
-    bonus: { genjutsu: 3, vitesse: 5 },
+    bonus: { genjutsu: 8 },
     requires: ['gen_5_a'],
   }),
   s({
@@ -1027,12 +1028,12 @@ const GENJUTSU = [
   }),
   s({
     id: 'gen_5_c',
-    nameFr: 'Esprit agile',
-    nameEn: 'Agile Mind',
+    nameFr: 'Réserve mentale',
+    nameEn: 'Mental Reserve',
     x: -180,
     y: 50,
     branch: 'genjutsu',
-    bonus: { intelligence: 5, genjutsu: 3 },
+    bonus: { maxChakra: 1 },
     requires: ['gen_5_a'],
   }),
   note({
@@ -1050,12 +1051,12 @@ const GENJUTSU = [
   }),
   s({
     id: 'gen_dodge',
-    nameFr: 'Contour fluide',
-    nameEn: 'Fluid Contour',
+    nameFr: 'Canal mental',
+    nameEn: 'Mental Channel',
     x: -260,
     y: 80,
     branch: 'genjutsu',
-    bonus: { vitesse: 8, dexterity: 4 },
+    bonus: { maxChakra: 1 },
     requires: ['gen_5_c'],
   }),
   s({
@@ -1065,7 +1066,7 @@ const GENJUTSU = [
     x: -340,
     y: 50,
     branch: 'genjutsu',
-    bonus: { intelligence: 8, genjutsu: 4 },
+    bonus: { genjutsu: 12 },
     requires: ['illusion_master'],
   }),
   note({
@@ -1078,7 +1079,7 @@ const GENJUTSU = [
     y: 0,
     branch: 'genjutsu',
     effect: 'shadow_feint',
-    bonus: { genjutsu: 5, vitesse: 3 },
+    bonus: { genjutsu: 8 },
     requires: ['gen_int_a'],
   }),
   // Densification
@@ -1099,7 +1100,7 @@ const GENJUTSU = [
     x: -140,
     y: 90,
     branch: 'genjutsu',
-    bonus: { genjutsu: 4, intelligence: 3 },
+    bonus: { genjutsu: 7 },
     requires: ['gen_5_c'],
   }),
   s({
@@ -1109,7 +1110,7 @@ const GENJUTSU = [
     x: -220,
     y: -100,
     branch: 'genjutsu',
-    bonus: { genjutsu: 8, vitesse: 3 },
+    bonus: { genjutsu: 11 },
     requires: ['gen_5_d', 'gen_5_b'],
   }),
   s({
@@ -1119,7 +1120,7 @@ const GENJUTSU = [
     x: -220,
     y: 130,
     branch: 'genjutsu',
-    bonus: { genjutsu: 6, intelligence: 5 },
+    bonus: { genjutsu: 11 },
     requires: ['gen_5_e'],
   }),
   s({
@@ -1139,7 +1140,7 @@ const GENJUTSU = [
     x: -300,
     y: 140,
     branch: 'genjutsu',
-    bonus: { genjutsu: 5, intelligence: 7 },
+    bonus: { genjutsu: 12 },
     requires: ['gen_10_c', 'gen_dodge'],
   }),
   note({
@@ -1152,7 +1153,7 @@ const GENJUTSU = [
     y: -120,
     branch: 'genjutsu',
     effect: 'veil_thick',
-    bonus: { genjutsu: 5, vitesse: 4 },
+    bonus: { genjutsu: 9 },
     requires: ['gen_mix_a', 'illusion_master'],
   }),
   note({
@@ -1165,7 +1166,7 @@ const GENJUTSU = [
     y: 140,
     branch: 'genjutsu',
     effect: 'mind_trap',
-    bonus: { genjutsu: 6, intelligence: 4 },
+    bonus: { genjutsu: 10 },
     requires: ['gen_mix_b'],
   }),
   s({
@@ -1175,7 +1176,7 @@ const GENJUTSU = [
     x: -460,
     y: -80,
     branch: 'genjutsu',
-    bonus: { genjutsu: 10, vitesse: 5 },
+    bonus: { genjutsu: 15 },
     requires: ['veil_thick', 'shadow_feint'],
   }),
   s({
@@ -1185,7 +1186,7 @@ const GENJUTSU = [
     x: -460,
     y: 80,
     branch: 'genjutsu',
-    bonus: { genjutsu: 10, intelligence: 5 },
+    bonus: { genjutsu: 15 },
     requires: ['mind_trap', 'shadow_feint'],
   }),
   s({
@@ -1195,7 +1196,7 @@ const GENJUTSU = [
     x: -520,
     y: -40,
     branch: 'genjutsu',
-    bonus: { genjutsu: 12, vitesse: 6 },
+    bonus: { genjutsu: 18 },
     requires: ['gen_15_a'],
   }),
   s({
@@ -1205,7 +1206,7 @@ const GENJUTSU = [
     x: -520,
     y: 60,
     branch: 'genjutsu',
-    bonus: { genjutsu: 10, intelligence: 8 },
+    bonus: { genjutsu: 18 },
     requires: ['gen_15_b'],
   }),
   note({
@@ -1231,7 +1232,7 @@ const GENJUTSU = [
     y: -140,
     branch: 'genjutsu',
     effect: 'phantom_step',
-    bonus: { vitesse: 6, genjutsu: 4 },
+    bonus: { genjutsu: 10 },
     requires: ['gen_15_a', 'veil_thick'],
   }),
   s({
@@ -1241,7 +1242,7 @@ const GENJUTSU = [
     x: -580,
     y: 0,
     branch: 'genjutsu',
-    bonus: { genjutsu: 15, vitesse: 5 },
+    bonus: { genjutsu: 20 },
     requires: ['gen_20_a', 'gen_20_b'],
   }),
   key({
@@ -1287,7 +1288,7 @@ const GENJUTSU = [
     x: -560,
     y: 100,
     branch: 'genjutsu',
-    bonus: { intelligence: 8, genjutsu: 6 },
+    bonus: { genjutsu: 14 },
     requires: ['gen_20_b', 'echo_pain'],
   }),
   s({
@@ -1297,7 +1298,7 @@ const GENJUTSU = [
     x: -620,
     y: -80,
     branch: 'genjutsu',
-    bonus: { genjutsu: 10, vitesse: 8 },
+    bonus: { genjutsu: 18 },
     requires: ['gen_mix_c', 'fear_seed'],
   }),
   key({
@@ -1346,7 +1347,7 @@ const GENJUTSU = [
     y: 80,
     branch: 'genjutsu',
     effect: 'confusion_tax',
-    bonus: { genjutsu: 6, intelligence: 4 },
+    bonus: { genjutsu: 10 },
     requires: ['gen_mix_d', 'gen_15_b'],
   }),
   note({
@@ -1359,7 +1360,7 @@ const GENJUTSU = [
     y: -200,
     branch: 'genjutsu',
     effect: 'silent_cut',
-    bonus: { genjutsu: 5, dexterity: 3 },
+    bonus: { genjutsu: 8 },
     requires: ['phantom_step', 'fear_seed'],
   }),
 ];
@@ -1451,7 +1452,7 @@ const MEDICINE = [
     x: 100,
     y: 240,
     branch: 'medicine',
-    bonus: { medicine: 5, intelligence: 3 },
+    bonus: { medicine: 8 },
     requires: ['med_5_c'],
   }),
   s({
@@ -1480,12 +1481,12 @@ const MEDICINE = [
   // Densification
   s({
     id: 'med_5_d',
-    nameFr: 'Tendons souples',
-    nameEn: 'Supple Tendons',
+    nameFr: 'Canal curatif',
+    nameEn: 'Healing Channel',
     x: -80,
     y: 120,
     branch: 'medicine',
-    bonus: { medicine: 4, vitesse: 3 },
+    bonus: { maxChakra: 1 },
     requires: ['med_5_a'],
   }),
   s({
@@ -1510,12 +1511,12 @@ const MEDICINE = [
   }),
   s({
     id: 'med_10_c',
-    nameFr: 'Nerfs calmes',
-    nameEn: 'Calm Nerves',
+    nameFr: 'Rythme intérieur',
+    nameEn: 'Inner Rhythm',
     x: 140,
     y: 200,
     branch: 'medicine',
-    bonus: { medicine: 8, intelligence: 4 },
+    bonus: { maxChakra: 1 },
     requires: ['med_5_e', 'med_mix'],
   }),
   s({
@@ -1525,7 +1526,7 @@ const MEDICINE = [
     x: 160,
     y: 280,
     branch: 'medicine',
-    bonus: { medicine: 7, dexterity: 3 },
+    bonus: { medicine: 10 },
     requires: ['med_10_c'],
   }),
   s({
@@ -1561,7 +1562,7 @@ const MEDICINE = [
     y: 360,
     branch: 'medicine',
     effect: 'purify',
-    bonus: { medicine: 5, intelligence: 3 },
+    bonus: { medicine: 8 },
     requires: ['med_mix', 'boosted_regen'],
   }),
   s({
@@ -1693,7 +1694,7 @@ const MEDICINE = [
     x: 160,
     y: 160,
     branch: 'medicine',
-    bonus: { intelligence: 6, medicine: 4 },
+    bonus: { medicine: 10 },
     requires: ['med_5_c'],
   }),
   note({
@@ -1719,7 +1720,7 @@ const MEDICINE = [
     y: 320,
     branch: 'medicine',
     effect: 'steady_hands',
-    bonus: { medicine: 5, dexterity: 3 },
+    bonus: { medicine: 8 },
     requires: ['med_mix_b', 'med_int_a'],
   }),
 ];

@@ -54,12 +54,35 @@ assert(RESPEC_COST_RYOS === 2000, 'paid respec = 2000 Ryos');
   assert(summary.byType.stat >= 90, `≥90 stats (got ${summary.byType.stat})`);
   assert(summary.byType.notable >= 35, `≥35 notables (got ${summary.byType.notable})`);
   assert(summary.byType.keystone >= 8, `≥8 keystones (got ${summary.byType.keystone})`);
-  assert(summary.byBranch.ninjutsu >= 25, `ninjutsu branch densified (got ${summary.byBranch.ninjutsu})`);
-  assert(summary.byBranch.genjutsu >= 25, `genjutsu branch densified (got ${summary.byBranch.genjutsu})`);
-  assert(summary.byBranch.medicine >= 25, `medicine branch densified (got ${summary.byBranch.medicine})`);
-  const ids = new Set(TALENT_NODE_DEFS.map((n) => n.id));
+  assert(
+    summary.byBranch.ninjutsu >= 25,
+    `ninjutsu branch densified (got ${summary.byBranch.ninjutsu})`
+  );
+  assert(
+    summary.byBranch.genjutsu >= 25,
+    `genjutsu branch densified (got ${summary.byBranch.genjutsu})`
+  );
+  assert(
+    summary.byBranch.medicine >= 25,
+    `medicine branch densified (got ${summary.byBranch.medicine})`
+  );
+  const ids = new Set(TALENT_NODE_DEFS.map(n => n.id));
+  const legacyStatKeys = new Set(['vitesse', 'intelligence', 'dexterity']);
+  const hasLegacyBonus = TALENT_NODE_DEFS.some(node =>
+    Object.keys(node.bonus || {}).some(key => legacyStatKeys.has(key))
+  );
+  assert(!hasLegacyBonus, 'legacy stats removed from node bonuses');
+  for (const branch of ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']) {
+    const chakraNodes = TALENT_NODE_DEFS.filter(
+      node => node.branch === branch && Number(node.bonus?.maxChakra) === 1
+    );
+    assert(chakraNodes.length === 2, `${branch} has two +1 max Chakra nodes`);
+  }
   assert(ids.has('intangible'), 'keystone intangible present');
-  assert(ids.has('berserker') && ids.has('overload') && ids.has('immortal'), 'MVP keystones preserved');
+  assert(
+    ids.has('berserker') && ids.has('overload') && ids.has('immortal'),
+    'MVP keystones preserved'
+  );
 }
 
 async function dbAvailable() {
@@ -68,7 +91,7 @@ async function dbAvailable() {
     const tables = await query(
       `SELECT table_name FROM information_schema.tables
        WHERE table_schema = DATABASE()
-         AND table_name IN ('talent_tree_nodes', 'user_talents', 'player_character')`,
+         AND table_name IN ('talent_tree_nodes', 'user_talents', 'player_character')`
     );
     return tables.length >= 3;
   } catch (e) {
@@ -97,8 +120,8 @@ async function testIntegration() {
   const n = await ensureSeed();
   assert(n >= 140, `≥140 nœuds seeded (got ${n})`);
 
-  const types = await query(`SELECT type, COUNT(*) AS c FROM talent_tree_nodes GROUP BY type`);
-  const byType = Object.fromEntries(types.map((r) => [r.type, Number(r.c)]));
+  const types = await query('SELECT type, COUNT(*) AS c FROM talent_tree_nodes GROUP BY type');
+  const byType = Object.fromEntries(types.map(r => [r.type, Number(r.c)]));
   assert((byType.keystone || 0) >= 8, `≥8 keystones (got ${byType.keystone || 0})`);
   assert((byType.notable || 0) >= 35, `≥35 notables (got ${byType.notable || 0})`);
   assert((byType.stat || 0) >= 90, `≥90 stats (got ${byType.stat || 0})`);
@@ -115,7 +138,7 @@ async function testIntegration() {
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, village_id)
      VALUES (?, ?, 'Genjutsu', 5000, 0, 100, 'fr', 'leaf')`,
-    [userId, prefix],
+    [userId, prefix]
   );
 
   await createCharacter(userId, {
@@ -143,7 +166,7 @@ async function testIntegration() {
   const computed = await getComputedStats(userId);
   assert(
     computed.breakdown.talents.taijutsu === bonuses.stats.taijutsu,
-    'getComputedStats wired to talent bonuses',
+    'getComputedStats wired to talent bonuses'
   );
 
   await addXP(userId, 5000);

@@ -7,10 +7,10 @@ export function parseCookies(req) {
   const header = req.headers.cookie;
   if (!header) return {};
   return Object.fromEntries(
-    header.split(';').map((part) => {
+    header.split(';').map(part => {
       const [key, ...rest] = part.trim().split('=');
       return [key, decodeURIComponent(rest.join('='))];
-    })
+    }),
   );
 }
 
@@ -28,11 +28,16 @@ export async function attachUser(req, _res, next) {
   }
 }
 
-/** Résout le joueur courant : session, puis repli démo si activé. */
+/** Le repli démo est désactivé par défaut et requiert une activation explicite. */
+export function isDemoFallbackEnabled() {
+  return process.env.AUTH_DEMO_FALLBACK === 'true';
+}
+
+/** Résout le joueur courant : session, puis repli démo explicitement activé. */
 export async function requireUser(req, res) {
   if (req.user) return req.user;
 
-  if (process.env.AUTH_DEMO_FALLBACK !== 'false') {
+  if (isDemoFallbackEnabled()) {
     const demo = await findDemoUser();
     if (demo) return demo;
   }

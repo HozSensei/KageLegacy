@@ -6,7 +6,6 @@
  * Les tests d'intégration DB sont exécutés si MySQL répond.
  */
 import {
-  SPECIALIZATION_MIN_LEVEL,
   applyXpGain,
   createEmptyStats,
   mergeStatBonuses,
@@ -16,11 +15,11 @@ import {
   getCharacter,
   addXP,
   levelUp,
-  chooseSpecialization,
   getComputedStats,
   MAX_LEVEL,
 } from '../src/services/playerCharacterService.js';
 import { query } from '../src/config/database.js';
+import { createCharacterSchema } from '../src/validators/player.js';
 
 let failed = 0;
 
@@ -36,9 +35,26 @@ function assert(condition, message) {
 function testPureHelpers() {
   console.log('\n=== Pure helpers ===');
 
+  const creation = createCharacterSchema.safeParse({ name: 'Hayato Test' });
+  assert(creation.success, 'validation de la création sans affinité élémentaire');
+  const legacyCreation = createCharacterSchema.safeParse({
+    name: 'Hayato Test',
+    elementAffinity: 'Futon',
+  });
+  assert(legacyCreation.success, 'affinité historique valide acceptée');
+  const invalidCreation = createCharacterSchema.safeParse({
+    name: 'Hayato Test',
+    elementAffinity: 'Invalide',
+  });
+  assert(!invalidCreation.success, 'affinité historique invalide refusée');
+
   const empty = createEmptyStats();
   assert(empty.taijutsu === 0 && empty.maxHp === 0, 'stats vides à 0');
-  assert(Object.keys(empty).length === 8, '8 clés de stats');
+  assert(
+    JSON.stringify(Object.keys(empty).sort()) ===
+      JSON.stringify(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'].sort()),
+    'six clés de stats de combat'
+  );
 
   assert(xpRequiredForLevel(1) === 100, 'XP 1→2 = 100');
   assert(xpRequiredForLevel(5) === 500, 'XP 5→6 = 500');
@@ -52,7 +68,7 @@ function testPureHelpers() {
 
   const merged = mergeStatBonuses({ taijutsu: 5 }, { taijutsu: 10, vitesse: 3 }, { ninjutsu: 7 });
   assert(merged.taijutsu === 15, 'merge taijutsu');
-  assert(merged.vitesse === 3, 'merge vitesse');
+  assert(!Object.hasOwn(merged, 'vitesse'), 'les anciennes stats ne sont pas ajoutées');
   assert(merged.ninjutsu === 7, 'merge ninjutsu');
   assert(merged.genjutsu === 0, 'merge génjutsu reste 0');
 
@@ -115,20 +131,22 @@ async function testIntegration() {
   const created = await createCharacter(userId, {
     name: 'Hayato Test',
     clanTraitId,
-    elementAffinity: 'Futon',
   });
-  assert(created?.name === 'Hayato Test', 'création personnage');
+  assert(created?.name === 'Hayato Test', 'création personnage sans affinité élémentaire');
   assert(created.level === 1, 'niveau initial 1');
   assert(created.talentPointsAvailable === 1, '1 talent point au niveau 1');
   // Starter loadout (cartes + deck) peut déjà contribuer aux passifs deck.
   assert(created.stats?.breakdown?.talents?.taijutsu === 0, 'pas de bonus talents au départ');
   assert(created.stats?.breakdown?.cards, 'breakdown cards présent (starter loadout)');
-  assert(typeof created.stats?.total?.taijutsu === 'number', 'stats.total numérique après création');
-  assert(created.specialization === null, 'pas de spécialisation');
+  assert(
+    typeof created.stats?.total?.taijutsu === 'number',
+    'stats.total numérique après création'
+  );
+  assert(!Object.hasOwn(created, 'specialization'), 'spécialisation absente du personnage');
 
   let threw = false;
   try {
-    await createCharacter(userId, { name: 'Dup', elementAffinity: 'Katon' });
+    await createCharacter(userId, { name: 'Dup' });
   } catch (e) {
     threw = e.statusCode === 409;
   }
@@ -150,32 +168,19 @@ async function testIntegration() {
   assert(lu.character.level === 3, 'niveau 3');
   assert(lu.talentPointsGained === 1, 'levelUp → +1 talent point, pas de stats');
 
-  // Spécialisation trop tôt
-  threw = false;
-  try {
-    await chooseSpecialization(userId, 'Taijutsu');
-  } catch (e) {
-    threw = e.statusCode === 400 && e.message.includes(String(SPECIALIZATION_MIN_LEVEL));
-  }
-  assert(threw, `spécialisation refusée avant niveau ${SPECIALIZATION_MIN_LEVEL}`);
-
-  await query('UPDATE player_character SET level = ? WHERE user_id = ?', [
-    SPECIALIZATION_MIN_LEVEL,
+  // Une valeur historique en base ne doit ni être exposée ni apporter de bonus.
+  const statsBeforeLegacyValue = await getComputedStats(userId);
+  await query('UPDATE player_character SET specialization = ? WHERE user_id = ?', [
+    'Ninjutsu',
     userId,
   ]);
-  const withSpec = await chooseSpecialization(userId, 'Ninjutsu');
-  assert(withSpec.specialization === 'Ninjutsu', 'spécialisation Ninjutsu');
-
-  threw = false;
-  try {
-    await chooseSpecialization(userId, 'Taijutsu');
-  } catch (e) {
-    threw = e.statusCode === 409;
-  }
-  assert(threw, 'spécialisation déjà choisie → 409');
-
   const fetched = await getCharacter(userId);
   assert(fetched?.id === created.id, 'getCharacter');
+  assert(!Object.hasOwn(fetched, 'specialization'), 'valeur historique non exposée');
+  assert(
+    JSON.stringify(fetched.stats) === JSON.stringify(statsBeforeLegacyValue),
+    'valeur historique sans bonus de stats'
+  );
 
   const stats = await getComputedStats(userId);
   assert(stats.breakdown.talents?.taijutsu === 0, 'getComputedStats talents à 0 sans talents');
@@ -205,7 +210,7 @@ async function main() {
   process.exit(failed === 0 ? 0 : 1);
 }
 
-main().catch((err) => {
+main().catch(err => {
   console.error(err);
   process.exit(1);
 });

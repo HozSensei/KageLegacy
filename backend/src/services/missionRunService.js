@@ -63,8 +63,7 @@ const EVENT_META = {
     nameEn: 'Whisper Grove',
     descriptionFr:
       'Des feuilles chuchotent des noms oubliés. Écoutez pour soigner, ou cueillez pour la route.',
-    descriptionEn:
-      'Leaves whisper forgotten names. Listen to heal, or gather for the road.',
+    descriptionEn: 'Leaves whisper forgotten names. Listen to heal, or gather for the road.',
   },
   crow_perch: {
     id: 'crow_perch',
@@ -72,8 +71,7 @@ const EVENT_META = {
     nameEn: 'Crow Perch',
     descriptionFr:
       'Un corbeau marqué d’encre observe. Offrez de la ferraille pour sa faveur, ou partez enrichi.',
-    descriptionEn:
-      'An ink-marked crow watches. Offer scrap for its favor, or leave richer.',
+    descriptionEn: 'An ink-marked crow watches. Offer scrap for its favor, or leave richer.',
   },
   sealed_scroll: {
     id: 'sealed_scroll',
@@ -81,8 +79,7 @@ const EVENT_META = {
     nameEn: 'Sealed Scroll',
     descriptionFr:
       'Un sceau de cire noire pulse encore. Lisez-le pour calmer le chakra, ou brisez-le pour le butin.',
-    descriptionEn:
-      'Black wax still pulses. Read it to calm your chakra, or break it for loot.',
+    descriptionEn: 'Black wax still pulses. Read it to calm your chakra, or break it for loot.',
   },
   mist_bridge: {
     id: 'mist_bridge',
@@ -90,8 +87,7 @@ const EVENT_META = {
     nameEn: 'Mist Bridge',
     descriptionFr:
       'Des planches disparaissant dans le brouillard. Traversez avec soin, ou courez vers l’autre rive.',
-    descriptionEn:
-      'Planks vanishing into fog. Cross carefully, or sprint to the far bank.',
+    descriptionEn: 'Planks vanishing into fog. Cross carefully, or sprint to the far bank.',
   },
   spirit_lantern: {
     id: 'spirit_lantern',
@@ -108,8 +104,7 @@ const EVENT_META = {
     nameEn: 'Ash Camp',
     descriptionFr:
       'Des braises froides et des sacs abandonnés. Reposez-vous près du foyer, ou fouillez les cendres.',
-    descriptionEn:
-      'Cold embers and abandoned packs. Rest by the hearth, or sift the ashes.',
+    descriptionEn: 'Cold embers and abandoned packs. Rest by the hearth, or sift the ashes.',
   },
 };
 
@@ -134,7 +129,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName],
+      [tableName]
     );
     return rows.length > 0;
   } catch {
@@ -155,9 +150,10 @@ function pickEventType(index, rng = Math.random) {
  * Construit le parcours : combat → event → combat → … (+ boss flag déjà sur encounters).
  */
 export function buildRunNodes(encounters, { rng = Math.random } = {}) {
-  const fights = Array.isArray(encounters) && encounters.length
-    ? encounters
-    : [{ templateId: 'ronin_bandit', difficulty: 1 }];
+  const fights =
+    Array.isArray(encounters) && encounters.length
+      ? encounters
+      : [{ templateId: 'ronin_bandit', difficulty: 1 }];
 
   const nodes = [];
   let eventSlot = 0;
@@ -197,8 +193,8 @@ export function buildRunNodes(encounters, { rng = Math.random } = {}) {
 }
 
 function findAvailableIndex(nodes) {
-  const idx = nodes.findIndex((n) => n.status === 'available');
-  return idx >= 0 ? idx : nodes.findIndex((n) => n.status === 'locked');
+  const idx = nodes.findIndex(n => n.status === 'available');
+  return idx >= 0 ? idx : nodes.findIndex(n => n.status === 'locked');
 }
 
 function unlockNext(nodes, clearedIndex) {
@@ -234,15 +230,27 @@ async function loadTalentEffectCodes(userId) {
   try {
     const { computeTalentBonuses } = await import('./talentTreeService.js');
     const bonuses = await computeTalentBonuses(userId);
-    return (bonuses.effects || []).map((e) => e.effectCode).filter(Boolean);
+    return (bonuses.effects || []).map(e => e.effectCode).filter(Boolean);
   } catch {
     return [];
   }
 }
 
+function getCurrentEvent(row, nodes, player) {
+  if (row.state !== 'in_progress') return null;
+
+  const node = nodes[Number(row.current_node_index)];
+  if (node?.type !== 'event' || node.status !== 'available' || !node.eventOpen) {
+    return null;
+  }
+
+  return buildEventPayload(node, player);
+}
+
 function serializeRun(row, extras = {}) {
   if (!row) return null;
   const nodes = parseJson(row.nodes_json, []);
+  const player = parseJson(row.player_run_state_json, {});
   return {
     id: row.id,
     userId: row.user_id,
@@ -251,7 +259,8 @@ function serializeRun(row, extras = {}) {
     state: row.state,
     currentNodeIndex: row.current_node_index,
     nodes,
-    player: parseJson(row.player_run_state_json, {}),
+    player,
+    currentEvent: getCurrentEvent(row, nodes, player),
     stats: parseJson(row.stats_snapshot_json, createEmptyStats()),
     talentEffects: parseJson(row.talent_effects_json, { codes: [], applied: [], stubbed: [] }),
     currentCombatId: row.current_combat_id || null,
@@ -263,10 +272,10 @@ function serializeRun(row, extras = {}) {
 }
 
 async function loadRunRow(runId, userId) {
-  const rows = await query(
-    'SELECT * FROM mission_runs WHERE id = ? AND user_id = ? LIMIT 1',
-    [runId, userId],
-  );
+  const rows = await query('SELECT * FROM mission_runs WHERE id = ? AND user_id = ? LIMIT 1', [
+    runId,
+    userId,
+  ]);
   if (!rows[0]) throw httpError(404, 'Parcours introuvable.');
   return rows[0];
 }
@@ -286,7 +295,7 @@ async function persistRun(row) {
       row.rewards_json != null ? JSON.stringify(row.rewards_json) : null,
       row.id,
       row.user_id,
-    ],
+    ]
   );
 }
 
@@ -300,8 +309,8 @@ export async function startRun(userId, missionId, deckId = null) {
   }
 
   const active = await query(
-    'SELECT id FROM mission_runs WHERE user_id = ? AND state = \'in_progress\' LIMIT 1',
-    [userId],
+    "SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
+    [userId]
   );
   if (active[0]) {
     throw httpError(409, `Parcours déjà en cours (${active[0].id}). Terminez-le ou abandonnez-le.`);
@@ -309,8 +318,8 @@ export async function startRun(userId, missionId, deckId = null) {
 
   // Bloquer aussi un combat orphelin (duel rapide)
   const activeCombat = await query(
-    'SELECT id FROM combat_sessions WHERE user_id = ? AND state = \'in_progress\' LIMIT 1',
-    [userId],
+    "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
+    [userId]
   );
   if (activeCombat[0]) {
     throw httpError(409, `Combat déjà en cours (${activeCombat[0].id}).`);
@@ -326,16 +335,9 @@ export async function startRun(userId, missionId, deckId = null) {
   const classified = classifyTalentEffects(effectCodes);
   const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
 
-  let resolvedDeckId = deckId;
-  if (!resolvedDeckId) {
-    try {
-      const { getActiveDeck } = await import('./deckService.js');
-      const deck = await getActiveDeck(userId);
-      resolvedDeckId = deck?.id ?? null;
-    } catch {
-      resolvedDeckId = null;
-    }
-  }
+  const { getPlayableDeckForCombat } = await import('./deckService.js');
+  const deck = await getPlayableDeckForCombat(userId, deckId);
+  const resolvedDeckId = deck.id;
 
   const nodes = buildRunNodes(mission.encounters);
   const id = randomUUID();
@@ -365,7 +367,7 @@ export async function startRun(userId, missionId, deckId = null) {
       JSON.stringify(player),
       JSON.stringify(stats),
       JSON.stringify(talentEffects),
-    ],
+    ]
   );
 
   const row = await loadRunRow(id, userId);
@@ -406,8 +408,8 @@ export async function getRun(userId, runId) {
 export async function getActiveRun(userId) {
   if (!(await tableExists('mission_runs'))) return null;
   const rows = await query(
-    'SELECT * FROM mission_runs WHERE user_id = ? AND state = \'in_progress\' ORDER BY created_at DESC LIMIT 1',
-    [userId],
+    "SELECT * FROM mission_runs WHERE user_id = ? AND state = 'in_progress' ORDER BY created_at DESC LIMIT 1",
+    [userId]
   );
   if (!rows[0]) return null;
   return getRun(userId, rows[0].id);
@@ -433,7 +435,7 @@ export async function enterNode(userId, runId) {
     if (row.current_combat_id) {
       const existing = await query(
         'SELECT id, state FROM combat_sessions WHERE id = ? AND user_id = ? LIMIT 1',
-        [row.current_combat_id, userId],
+        [row.current_combat_id, userId]
       );
       if (existing[0]?.state === 'in_progress') {
         const { getCombatState } = await import('./combatEngineService.js');
@@ -463,11 +465,12 @@ export async function enterNode(userId, runId) {
     return { run: serializeRun(row), combat, node };
   }
 
-  // Événement : exposer options
-  const eventPayload = buildEventPayload(node, parseJson(row.player_run_state_json, {}));
+  // Événement : persister son ouverture pour pouvoir restaurer les choix après rechargement.
+  nodes[idx] = { ...node, eventOpen: true };
+  const eventPayload = buildEventPayload(nodes[idx], parseJson(row.player_run_state_json, {}));
   row.nodes_json = nodes;
   await persistRun(row);
-  return { run: serializeRun(row), combat: null, node, event: eventPayload };
+  return { run: serializeRun(row), combat: null, node: nodes[idx], event: eventPayload };
 }
 
 function buildEventPayload(node, player) {
@@ -495,7 +498,11 @@ function buildEventPayload(node, player) {
     return {
       ...base,
       choices: [
-        { id: 'search', labelFr: 'Fouiller (soin léger + ferraille)', labelEn: 'Search (light heal + scrap)' },
+        {
+          id: 'search',
+          labelFr: 'Fouiller (soin léger + ferraille)',
+          labelEn: 'Search (light heal + scrap)',
+        },
       ],
     };
   }
@@ -529,7 +536,11 @@ function buildEventPayload(node, player) {
     return {
       ...base,
       choices: [
-        { id: 'heal_path', labelFr: 'Sentier de soins (+25 % PV)', labelEn: 'Healing path (+25% HP)' },
+        {
+          id: 'heal_path',
+          labelFr: 'Sentier de soins (+25 % PV)',
+          labelEn: 'Healing path (+25% HP)',
+        },
         { id: 'scrap_path', labelFr: 'Sentier de ferraille (+4)', labelEn: 'Scrap path (+4)' },
       ],
     };
@@ -642,7 +653,11 @@ function buildEventPayload(node, player) {
   return {
     ...base,
     choices: [
-      { id: 'heal_path', labelFr: 'Sentier de soins (+25 % PV)', labelEn: 'Healing path (+25% HP)' },
+      {
+        id: 'heal_path',
+        labelFr: 'Sentier de soins (+25 % PV)',
+        labelEn: 'Healing path (+25% HP)',
+      },
       { id: 'scrap_path', labelFr: 'Sentier de ferraille (+4)', labelEn: 'Scrap path (+4)' },
     ],
   };
@@ -658,7 +673,7 @@ export async function resolveEvent(userId, runId, choiceId) {
   const nodes = parseJson(row.nodes_json, []);
   const idx = Number(row.current_node_index) || 0;
   const node = nodes[idx];
-  if (!node || node.type !== 'event' || node.status !== 'available') {
+  if (!node || node.type !== 'event' || node.status !== 'available' || !node.eventOpen) {
     throw httpError(400, 'Aucun événement à résoudre.');
   }
   if (!choiceId) throw httpError(400, 'choiceId requis.');
@@ -796,8 +811,8 @@ export async function resolveEvent(userId, runId, choiceId) {
   delete player.lastHeal;
   nodes[idx] = { ...node, resolved: log };
   const nextNodes = unlockNext(nodes, idx);
-  const availableIdx = nextNodes.findIndex((n) => n.status === 'available');
-  const allCleared = nextNodes.every((n) => n.status === 'cleared');
+  const availableIdx = nextNodes.findIndex(n => n.status === 'available');
+  const allCleared = nextNodes.every(n => n.status === 'cleared');
 
   row.nodes_json = nextNodes;
   row.player_run_state_json = player;
@@ -829,9 +844,8 @@ async function completeRunVictory(row) {
 
   // Quêtes BP : parcours terminé (+ rang B+ si applicable)
   try {
-    const { onBattlePassAction, isMissionRankBOrHigher } = await import(
-      './battlePassQuestService.js'
-    );
+    const { onBattlePassAction, isMissionRankBOrHigher } =
+      await import('./battlePassQuestService.js');
     await onBattlePassAction(row.user_id, 'mission_run', 1);
     const mission = await getMission(row.mission_id);
     if (isMissionRankBOrHigher(mission?.rank)) {
@@ -844,7 +858,9 @@ async function completeRunVictory(row) {
   try {
     const { onAchievementAction } = await import('./achievementService.js');
     await onAchievementAction(row.user_id, 'mission_run', 1);
-  } catch { /* exploits optionnels */ }
+  } catch {
+    /* exploits optionnels */
+  }
 }
 
 /**
@@ -887,8 +903,8 @@ export async function onRunCombatFinished(session) {
     row.player_run_state_json = player;
     row.current_combat_id = null;
 
-    const availableIdx = nextNodes.findIndex((n) => n.status === 'available');
-    const allCleared = nextNodes.every((n) => n.status === 'cleared');
+    const availableIdx = nextNodes.findIndex(n => n.status === 'available');
+    const allCleared = nextNodes.every(n => n.status === 'cleared');
 
     if (allCleared || availableIdx < 0) {
       row.current_node_index = idx;
@@ -944,6 +960,7 @@ export const __test = {
   buildRunNodes,
   unlockNext,
   healPercent,
+  getCurrentEvent,
   EVENT_TYPES,
   EVENT_META,
 };

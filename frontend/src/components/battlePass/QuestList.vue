@@ -1,28 +1,28 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
-import AppIcon from '../ui/AppIcon.vue'
-import { localizedDescription } from '../../utils/localeContent.js'
+import { useI18n } from 'vue-i18n';
+import AppIcon from '../ui/AppIcon.vue';
+import { localizedDescription } from '../../utils/localeContent.js';
 
-defineOptions({ name: 'QuestList' })
+defineOptions({ name: 'QuestList' });
 
 defineProps({
   title: { type: String, required: true },
   quests: { type: Array, default: () => [] },
   locale: { type: String, default: 'fr' },
   busy: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['claim', 'stub-progress'])
+const emit = defineEmits(['claim']);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 function description(quest, loc) {
-  return localizedDescription(quest, loc)
+  return localizedDescription(quest, loc);
 }
 
 function pct(quest) {
-  const goal = Math.max(1, quest.goalValue || 1)
-  return Math.min(100, Math.round(((quest.progress?.current || 0) / goal) * 100))
+  const goal = Math.max(1, quest.goalValue || 1);
+  return Math.min(100, Math.round(((quest.progress?.current || 0) / goal) * 100));
 }
 </script>
 
@@ -51,26 +51,19 @@ function pct(quest) {
             <p class="bp-quest__desc">{{ description(quest, locale) }}</p>
             <p class="bp-quest__meta">
               <span class="bp-quest__count">
-                {{ t('battlePass.questProgress', {
-                  current: quest.progress?.current || 0,
-                  goal: quest.goalValue,
-                }) }}
+                {{
+                  t('battlePass.questProgress', {
+                    current: quest.progress?.current || 0,
+                    goal: quest.goalValue,
+                  })
+                }}
               </span>
               <span class="badge">{{ t('battlePass.questXp', { n: quest.xpReward }) }}</span>
             </p>
           </div>
           <div class="bp-quest__action">
             <button
-              v-if="!quest.progress?.isCompleted"
-              type="button"
-              class="btn-ghost btn-sm"
-              :disabled="busy"
-              @click="emit('stub-progress', quest)"
-            >
-              {{ t('battlePass.stubProgress') }}
-            </button>
-            <button
-              v-else-if="!quest.progress?.isClaimed"
+              v-if="quest.progress?.isCompleted && !quest.progress?.isClaimed"
               type="button"
               class="btn-primary btn-sm"
               :disabled="busy"
@@ -79,7 +72,7 @@ function pct(quest) {
             >
               {{ t('battlePass.claimQuest') }}
             </button>
-            <span v-else class="bp-quest__claimed">
+            <span v-else-if="quest.progress?.isClaimed" class="bp-quest__claimed">
               <AppIcon name="check" size="0.95rem" :stroke-width="2.5" />
               {{ t('battlePass.claimed') }}
             </span>

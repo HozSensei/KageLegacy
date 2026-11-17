@@ -3,7 +3,6 @@
  */
 import { query } from '../config/database.js';
 import {
-  CRAFT_DUST as ECONOMY_CRAFT_DUST,
   DISENCHANT_DUST as ECONOMY_DISENCHANT_DUST,
   UPGRADE_COSTS as ECONOMY_UPGRADE_COSTS,
 } from '../config/economyConfig.js';
@@ -17,8 +16,6 @@ export const ELEMENTS = ['katon', 'suiton', 'raiton', 'doton', 'futon'];
 export const UPGRADE_COSTS = ECONOMY_UPGRADE_COSTS;
 /** @see ../config/economyConfig.js */
 export const DISENCHANT_DUST = ECONOMY_DISENCHANT_DUST;
-/** @see ../config/economyConfig.js */
-export const CRAFT_DUST = ECONOMY_CRAFT_DUST;
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -160,7 +157,7 @@ export async function getAllCards(filters = {}) {
     `SELECT * FROM card_definitions ${clause} ORDER BY rarity, type, name_fr`,
     params
   );
-  return rows.map((row) => serializeCardDefinition(row));
+  return rows.map(row => serializeCardDefinition(row));
 }
 
 export async function getCardsByRarity(rarity) {
@@ -198,7 +195,9 @@ export async function getCardDefinitionRow(cardId) {
 export async function upsertCardDefinition(card) {
   if (!card?.slug) throw httpError(400, 'slug requis.');
 
-  const existing = await query('SELECT id FROM card_definitions WHERE slug = ? LIMIT 1', [card.slug]);
+  const existing = await query('SELECT id FROM card_definitions WHERE slug = ? LIMIT 1', [
+    card.slug,
+  ]);
 
   const payload = [
     card.name_fr ?? card.nameFr,
@@ -212,9 +211,7 @@ export async function upsertCardDefinition(card) {
     card.base_block ?? card.baseBlock ?? 0,
     card.base_heal ?? card.baseHeal ?? 0,
     JSON.stringify(card.effects_json ?? card.effects ?? []),
-    (card.summon_json ?? card.summon)
-      ? JSON.stringify(card.summon_json ?? card.summon)
-      : null,
+    (card.summon_json ?? card.summon) ? JSON.stringify(card.summon_json ?? card.summon) : null,
     card.exhaust ? 1 : 0,
     JSON.stringify(card.passive_bonus_json ?? card.passiveBonus ?? {}),
     card.passive_description_fr ?? card.passiveDescriptionFr ?? null,

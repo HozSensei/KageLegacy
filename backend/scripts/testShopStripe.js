@@ -27,7 +27,10 @@ assert(buildCoinPackLineItems(getCoinPack('vault'))[0].price_data.unit_amount ==
 
 const prev = process.env.STRIPE_PRICE_ID_COIN_SPARK;
 process.env.STRIPE_PRICE_ID_COIN_SPARK = 'price_test_spark';
-assert(buildCoinPackLineItems(getCoinPack('spark'))[0].price === 'price_test_spark', 'price override');
+assert(
+  buildCoinPackLineItems(getCoinPack('spark'))[0].price === 'price_test_spark',
+  'price override'
+);
 if (prev === undefined) delete process.env.STRIPE_PRICE_ID_COIN_SPARK;
 else process.env.STRIPE_PRICE_ID_COIN_SPARK = prev;
 
@@ -38,21 +41,41 @@ const coinMeta = { metadata: { product: SHOP_PRODUCT.KAGE_COINS, pack_id: 'ember
 assert(resolveShopProductFromSession(coinMeta) === SHOP_PRODUCT.KAGE_COINS, 'resolve');
 assert(isShopCheckoutSession(coinMeta), 'is shop');
 assert(!isShopCheckoutSession({ metadata: { product: 'elite_season' } }), 'not elite');
-assert(Object.values(COIN_PACK_CATALOG).every((p) => p.priceEur > 0 && p.coins > 0), 'catalog');
+assert(
+  Object.values(COIN_PACK_CATALOG).every(p => p.priceEur > 0 && p.coins > 0),
+  'catalog'
+);
+assert(
+  (
+    await fulfillShopCheckoutSession({
+      status: 'complete',
+      payment_status: 'unpaid',
+      metadata: { product: SHOP_PRODUCT.KAGE_COINS },
+    })
+  ).reason === 'not_paid',
+  'complete checkout without confirmed payment is rejected'
+);
 console.log('testShopStripe mapping: OK');
 
 async function dbAvailable() {
-  try { await query('SELECT 1'); return true; } catch { return false; }
+  try {
+    await query('SELECT 1');
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 async function integration() {
   const PREFIX = `shop_stripe_${Date.now()}`;
-  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [`${PREFIX}_u`]);
+  const userResult = await query('INSERT INTO users (username, is_bot) VALUES (?, FALSE)', [
+    `${PREFIX}_u`,
+  ]);
   const userId = userResult.insertId;
   await query(
     `INSERT INTO sensei (user_id, name, training_focus, ryos, reputation, chakra_pool, language, kage_coins)
      VALUES (?, ?, 'Genjutsu', 10000, 0, 100, 'fr', 0)`,
-    [userId, `${PREFIX}_s`],
+    [userId, `${PREFIX}_s`]
   );
   const session = {
     id: `cs_test_${PREFIX}`,
@@ -73,14 +96,16 @@ async function integration() {
   const sensei = await query('SELECT kage_coins FROM sensei WHERE user_id = ?', [userId]);
   assert(Number(sensei[0].kage_coins) === 550, 'no double credit');
 
-  const seasons = await query('SELECT id FROM battle_pass_seasons WHERE is_active = TRUE ORDER BY id DESC LIMIT 1');
+  const seasons = await query(
+    'SELECT id FROM battle_pass_seasons WHERE is_active = TRUE ORDER BY id DESC LIMIT 1'
+  );
   if (seasons[0]) {
     const seasonId = seasons[0].id;
     await query(
       `INSERT INTO user_battle_pass (user_id, season_id, current_level, current_xp, is_premium, claimed_rewards_json)
        VALUES (?, ?, 0, 0, FALSE, '{"free":[],"premium":[]}')
        ON DUPLICATE KEY UPDATE is_premium = FALSE`,
-      [userId, seasonId],
+      [userId, seasonId]
     );
     const bpSession = {
       id: `cs_test_bp_${PREFIX}`,
@@ -94,7 +119,10 @@ async function integration() {
       },
     };
     assert((await fulfillShopCheckoutSession(bpSession)).fulfilled, 'BP fulfill');
-    assert((await fulfillShopCheckoutSession(bpSession)).reason === 'already_fulfilled', 'BP idempotent');
+    assert(
+      (await fulfillShopCheckoutSession(bpSession)).reason === 'already_fulfilled',
+      'BP idempotent'
+    );
     await query('DELETE FROM battle_pass_stripe_purchases WHERE user_id = ?', [userId]);
     await query('DELETE FROM user_battle_pass WHERE user_id = ?', [userId]);
   } else {

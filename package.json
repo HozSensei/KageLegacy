@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Kage Legacy — Manager d'escouade shinobi asynchrone",
+  "description": "Kage Legacy — TCG shinobi dans le navigateur",
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "dev:api": "npm run dev --prefix backend",
@@ -24,7 +24,7 @@
     "test:combat-balance": "npm run test:combat-balance --prefix backend",
     "test:combat-balance:report": "npm run test:combat-balance:report --prefix backend",
     "test:type-advantage": "npm run test:type-advantage --prefix backend",
-    "e2e:prepare": "npm run db:migrate && npm run db:seed && npm run db:seed-cards --prefix backend && npm run db:seed-battle-pass --prefix backend && npm run e2e:ensure-player --prefix backend",
+    "e2e:prepare": "npm run e2e:preflight --prefix backend && npm run db:migrate && npm run db:seed-cards --prefix backend && npm run db:seed-talents --prefix backend && npm run e2e:seed-battle-pass --prefix backend && npm run e2e:prepare-tcg --prefix backend",
     "test:e2e": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress run\"",
     "test:e2e:open": "node scripts/killDevPorts.js && start-server-and-test \"npm run dev\" http://localhost:5173 \"cypress open\"",
     "setup": "npm install && npm install --prefix backend && npm install --prefix frontend && npm run db:up && sleep 8 && npm run db:migrate && npm run db:seed"

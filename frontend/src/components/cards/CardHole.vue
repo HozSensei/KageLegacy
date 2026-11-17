@@ -38,7 +38,8 @@ const numberLabel = computed(() => `#${props.catalogueNumber}`)
   place-items: center;
   width: 100%;
   min-width: 0;
-  aspect-ratio: 2.5 / 3.5;
+  /* Même ratio que CardDisplay afin d'aligner tous les emplacements de la grille. */
+  aspect-ratio: 296 / 444;
   padding: 0;
   border: 2.5px dashed color-mix(in srgb, var(--color-line-strong) 78%, transparent);
   border-radius: 0.7rem;

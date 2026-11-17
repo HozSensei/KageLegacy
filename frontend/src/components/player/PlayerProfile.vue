@@ -1,43 +1,33 @@
 <script setup>
-import { computed } from 'vue'
-import { RouterLink } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import PlayerStats from './PlayerStats.vue'
-import AppIcon from '../ui/AppIcon.vue'
-import { elementLabelKey, elementTone } from '../../utils/cardVisuals'
-import { talentBranchTone } from '../../utils/talentVisuals'
+import { computed } from 'vue';
+import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import PlayerStats from './PlayerStats.vue';
+import AppIcon from '../ui/AppIcon.vue';
 
-defineOptions({ name: 'PlayerProfile' })
+defineOptions({ name: 'PlayerProfile' });
 
 const props = defineProps({
   character: {
     type: Object,
     required: true,
   },
-})
+});
 
-const emit = defineEmits(['specialize'])
-
-const { t, te } = useI18n()
+const { t } = useI18n();
 
 const xpProgress = computed(() => {
-  const need = props.character.xpToNextLevel
-  if (!need) return 100
-  return Math.min(100, Math.round((props.character.xp / need) * 100))
-})
+  const need = props.character.xpToNextLevel;
+  if (!need) return 100;
+  return Math.min(100, Math.round((props.character.xp / need) * 100));
+});
 
-const canSpecialize = computed(
-  () => props.character.level >= 10 && !props.character.specialization
-)
-
-const specs = ['Taijutsu', 'Ninjutsu', 'Genjutsu', 'Medicine']
-
-const initial = computed(() => String(props.character.name || '?').trim().charAt(0).toUpperCase())
-
-const elementLabel = computed(() => {
-  const key = elementLabelKey(props.character.elementAffinity)
-  return key && te(key) ? t(key) : props.character.elementAffinity
-})
+const initial = computed(() =>
+  String(props.character.name || '?')
+    .trim()
+    .charAt(0)
+    .toUpperCase()
+);
 </script>
 
 <template>
@@ -53,14 +43,7 @@ const elementLabel = computed(() => {
           <h2 class="profile-id__name">{{ character.name }}</h2>
           <p class="profile-id__tags">
             <span class="sr-only">{{ t('player.levelLabel', { level: character.level }) }}</span>
-            <span
-              v-if="character.elementAffinity"
-              class="profile-id__tag"
-              :data-tone="elementTone(character.elementAffinity)"
-            >
-              <span class="dot" aria-hidden="true" />
-              {{ elementLabel }}
-            </span>
+
             <span
               v-if="character.factionId"
               class="profile-id__tag"
@@ -71,7 +54,6 @@ const elementLabel = computed(() => {
             >
               {{ t(`factions.names.${character.factionId}`) }}
             </span>
-            <span v-if="character.specialization" class="profile-id__tag">{{ character.specialization }}</span>
           </p>
         </div>
       </div>
@@ -99,7 +81,12 @@ const elementLabel = computed(() => {
 
       <p class="profile-progress__points" :class="{ 'is-empty': !character.talentPointsAvailable }">
         <span class="profile-progress__points-value">{{ character.talentPointsAvailable }}</span>
-        <span>{{ t('player.talentPoints', { count: character.talentPointsAvailable }).replace(/^\d+\s*/, '') }}</span>
+        <span>{{
+          t('player.talentPoints', { count: character.talentPointsAvailable }).replace(
+            /^\d+\s*/,
+            ''
+          )
+        }}</span>
       </p>
 
       <nav class="profile-progress__actions" :aria-label="t('player.actionsLabel')">
@@ -117,28 +104,6 @@ const elementLabel = computed(() => {
     </section>
 
     <PlayerStats :stats="character.stats" />
-
-    <section v-if="canSpecialize" class="profile-spec" data-testid="specialization-picker">
-      <div class="section-head">
-        <span class="section-head__index">02</span>
-        <h2 class="section-head__title">{{ t('player.specializationTitle') }}</h2>
-        <span class="section-head__rule" aria-hidden="true" />
-      </div>
-      <p class="mt-2 max-w-xl text-ink-muted">{{ t('player.specializationLead') }}</p>
-      <div class="profile-spec__grid">
-        <button
-          v-for="spec in specs"
-          :key="spec"
-          type="button"
-          class="profile-spec__option"
-          :data-tone="talentBranchTone(spec.toLowerCase())"
-          @click="emit('specialize', spec)"
-        >
-          <span class="shape shape--lozenge" aria-hidden="true" />
-          {{ t(`player.specs.${spec}`) }}
-        </button>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -224,10 +189,6 @@ const elementLabel = computed(() => {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--color-on-fill);
-}
-
-.profile-id__tag .dot {
-  color: var(--tone-fill);
 }
 
 .profile-id__level {
@@ -338,41 +299,6 @@ const elementLabel = computed(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
-}
-
-.profile-spec__grid {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-}
-
-@media (min-width: 640px) {
-  .profile-spec__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.profile-spec__option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.15rem;
-  border-left: 6px solid var(--tone-fill);
-  background: var(--color-bg-card);
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  font-stretch: 80%;
-  text-align: left;
-  color: var(--tone);
-  transition:
-    background var(--dur-fast) ease,
-    transform var(--dur-base) var(--ease-out-quint);
-}
-
-.profile-spec__option:hover {
-  background: var(--tone-tint);
-  transform: translateX(4px);
 }
 
 @media (max-width: 479px) {

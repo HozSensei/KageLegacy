@@ -1,53 +1,48 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { usePlayerStore } from '../stores/player'
-import { useLeaderboardStore } from '../stores/leaderboard'
-import AppIcon from '../components/ui/AppIcon.vue'
-import { elementTone } from '../utils/cardVisuals'
+import { computed, onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { usePlayerStore } from '../stores/player';
+import { useLeaderboardStore } from '../stores/leaderboard';
+import AppIcon from '../components/ui/AppIcon.vue';
 
-defineOptions({ name: 'CharacterCreationView' })
+defineOptions({ name: 'CharacterCreationView' });
 
-const { t } = useI18n()
-const router = useRouter()
-const player = usePlayerStore()
-const lb = useLeaderboardStore()
+const { t } = useI18n();
+const router = useRouter();
+const player = usePlayerStore();
+const lb = useLeaderboardStore();
 
-const name = ref('')
-const elementAffinity = ref('Katon')
-const factionId = ref('midorihara')
+const name = ref('');
+const factionId = ref('midorihara');
 
-const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon']
-
-const previewName = computed(() => name.value.trim())
-const previewInitial = computed(() => (previewName.value.charAt(0) || '?').toUpperCase())
+const previewName = computed(() => name.value.trim());
+const previewInitial = computed(() => (previewName.value.charAt(0) || '?').toUpperCase());
 const previewFaction = computed(() =>
   factionId.value ? t(`factions.names.${factionId.value}`) : ''
-)
+);
 const previewFactionAccent = computed(
-  () => lb.factions.find((f) => f.id === factionId.value)?.accentColor || '#2d6a4f'
-)
+  () => lb.factions.find(f => f.id === factionId.value)?.accentColor || '#2d6a4f'
+);
 
 onMounted(async () => {
-  if (!player.checked) await player.fetchPlayer()
+  if (!player.checked) await player.fetchPlayer();
   if (player.character) {
-    await router.replace({ name: 'profile' })
-    return
+    await router.replace({ name: 'profile' });
+    return;
   }
-  await lb.fetchFactions()
-  if (lb.factions.length && !lb.factions.some((f) => f.id === factionId.value)) {
-    factionId.value = lb.factions[0].id
+  await lb.fetchFactions();
+  if (lb.factions.length && !lb.factions.some(f => f.id === factionId.value)) {
+    factionId.value = lb.factions[0].id;
   }
-})
+});
 
 async function submit() {
   const created = await player.createCharacter({
     name: name.value.trim(),
-    elementAffinity: elementAffinity.value,
     factionId: factionId.value || null,
-  })
-  if (created) await router.push({ name: 'hub' })
+  });
+  if (created) await router.push({ name: 'hub' });
 }
 </script>
 
@@ -76,23 +71,6 @@ async function submit() {
               class="input-field"
             />
           </label>
-
-          <fieldset>
-            <legend class="field__label">{{ t('player.elementLabel') }}</legend>
-            <div class="creation__elements">
-              <label
-                v-for="el in ELEMENTS"
-                :key="el"
-                class="creation__element"
-                :class="{ 'is-active': elementAffinity === el }"
-                :data-tone="elementTone(el)"
-              >
-                <input v-model="elementAffinity" type="radio" class="sr-only" :value="el" />
-                <span class="shape shape--circle" aria-hidden="true" />
-                {{ t(`player.elements.${el}`) }}
-              </label>
-            </div>
-          </fieldset>
 
           <fieldset v-if="lb.factions.length" data-testid="create-faction">
             <legend class="field__label">{{ t('factions.pickLabel') }}</legend>
@@ -131,17 +109,13 @@ async function submit() {
 
       <aside class="creation__preview" aria-hidden="true">
         <p class="t-kicker">{{ t('player.previewLabel') }}</p>
-        <div class="creation__card" :data-tone="elementTone(elementAffinity)">
+        <div class="creation__card">
           <span class="creation__card-band" />
           <span :key="previewInitial" class="creation__avatar">{{ previewInitial }}</span>
           <p class="creation__name" :class="{ 'is-empty': !previewName }">
             {{ previewName || t('player.previewNamePlaceholder') }}
           </p>
           <p class="creation__tags">
-            <span class="creation__tag creation__tag--tone">
-              <span class="dot" />
-              {{ t(`player.elements.${elementAffinity}`) }}
-            </span>
             <span
               v-if="previewFaction"
               class="creation__tag"
@@ -172,56 +146,6 @@ async function submit() {
     gap: 4rem;
     align-items: start;
   }
-}
-
-.creation__elements {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.6rem;
-}
-
-@media (min-width: 520px) {
-  .creation__elements {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-
-.creation__element {
-  display: flex;
-  cursor: pointer;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 0.75rem 0.8rem;
-  border-bottom: 4px solid transparent;
-  background: var(--color-bg-card);
-  font-weight: 700;
-  color: var(--color-ink);
-  transition:
-    background var(--dur-fast) ease,
-    border-color var(--dur-fast) ease,
-    transform var(--dur-base) var(--ease-out-quint);
-}
-
-.creation__element .shape {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: var(--tone-fill);
-}
-
-.creation__element:hover {
-  transform: translateY(-2px);
-}
-
-.creation__element.is-active {
-  border-bottom-color: var(--tone-fill);
-  background: var(--tone-tint);
-}
-
-.creation__element:focus-within {
-  outline: 2px solid var(--color-indigo);
-  outline-offset: 2px;
 }
 
 .creation__hint {
@@ -319,8 +243,7 @@ async function submit() {
   position: absolute;
   inset: 0 0 auto 0;
   height: 3.75rem;
-  background: var(--tone-fill);
-  transition: background var(--dur-base) ease;
+  background: var(--color-vermilion);
 }
 
 .creation__avatar {
@@ -371,10 +294,6 @@ async function submit() {
   background: color-mix(in srgb, var(--color-on-fill) 14%, transparent);
   font-size: 0.8125rem;
   font-weight: 600;
-}
-
-.creation__tag--tone .dot {
-  color: var(--tone-fill);
 }
 
 .creation__level {
