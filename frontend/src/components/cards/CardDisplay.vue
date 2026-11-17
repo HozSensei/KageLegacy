@@ -204,20 +204,23 @@ watch(
 
         <div class="card-display__art-banners" data-testid="card-scale-hint">
           <div
-            class="card-display__category"
-            :class="`card-display__category--${familyKey}`"
-            :title="familyLabel"
+            v-if="quantity != null || upgradeLevel > 0"
+            class="card-display__top-left"
           >
-            {{ familyLabel }}
-          </div>
-          <div
-            v-if="secondaryArtLabel"
-            class="card-display__category card-display__category--secondary"
-            :class="`card-display__category--${secondaryFamilyKey}`"
-            :title="secondaryArtLabel"
-            data-testid="card-secondary-art"
-          >
-            {{ secondaryArtLabel }}
+            <span
+              v-if="quantity != null"
+              class="card-display__qty"
+              :title="t('cards.quantityLabel')"
+            >
+              ×{{ quantity }}
+            </span>
+            <span
+              v-if="upgradeLevel > 0"
+              class="card-display__upgrade"
+              :title="t('cards.upgraded', { level: upgradeLevel })"
+            >
+              +{{ upgradeLevel }}
+            </span>
           </div>
           <div
             v-if="elementLabel"
@@ -229,6 +232,22 @@ watch(
           >
             <span class="card-display__element-dot" aria-hidden="true" />
             {{ elementLabel }}
+          </div>
+          <div
+            v-if="secondaryArtLabel"
+            class="card-display__category card-display__category--secondary"
+            :class="`card-display__category--${secondaryFamilyKey}`"
+            :title="secondaryArtLabel"
+            data-testid="card-secondary-art"
+          >
+            {{ secondaryArtLabel }}
+          </div>
+          <div
+            class="card-display__category"
+            :class="`card-display__category--${familyKey}`"
+            :title="familyLabel"
+          >
+            {{ familyLabel }}
           </div>
         </div>
 
@@ -299,17 +318,6 @@ watch(
             </div>
           </footer>
         </section>
-
-        <span v-if="quantity != null" class="card-display__qty" :title="t('cards.quantityLabel')">
-          ×{{ quantity }}
-        </span>
-        <span
-          v-if="upgradeLevel > 0"
-          class="card-display__upgrade"
-          :title="t('cards.upgraded', { level: upgradeLevel })"
-        >
-          +{{ upgradeLevel }}
-        </span>
 
         <span class="card-display__sheen" aria-hidden="true" />
       </button>
@@ -581,18 +589,25 @@ watch(
   pointer-events: none;
 }
 
-/* Bannières d’art (primaire + secondaire) — rectangles à plat */
+/* Coin haut gauche : qty → élément → art secondaire → art primaire
+ * (pile haute pour laisser le bas de l’illustration libre) */
 .card-display__art-banners {
   position: absolute;
   z-index: 10;
   left: 0;
-  top: 2.35rem;
+  top: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.22rem;
+  gap: 0.18rem;
   max-width: calc(100% - 4.25rem);
   pointer-events: none;
+}
+
+.card-display__top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
 }
 
 .card-display__category {
@@ -631,17 +646,17 @@ watch(
   background: #408b68;
 }
 
-/* Élément (Katon, Raiton…) — pastille sous les bannières d’art */
+/* Élément (Katon, Raiton…) — pastille petite au-dessus des arts */
 .card-display__element {
   display: inline-flex;
   align-items: center;
-  gap: 0.28rem;
+  gap: 0.22rem;
   max-width: 100%;
-  padding: 0.18rem 0.5rem 0.18rem 0.35rem;
+  padding: 0.12rem 0.4rem 0.12rem 0.28rem;
   background: var(--tone-fill, #697580);
   color: #fff;
   font-family: var(--font-display);
-  font-size: clamp(0.48rem, 3.4cqi, 0.62rem);
+  font-size: clamp(0.42rem, 3cqi, 0.55rem);
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -673,8 +688,8 @@ watch(
 
 .card-display__element-dot {
   flex-shrink: 0;
-  width: 0.42rem;
-  height: 0.42rem;
+  width: 0.35rem;
+  height: 0.35rem;
   border-radius: 1px;
   background: #fff;
   opacity: 0.9;
@@ -914,32 +929,22 @@ watch(
 
 .card-display__qty,
 .card-display__upgrade {
-  position: absolute;
-  z-index: 14;
-  top: 1.55rem;
   display: inline-grid;
   place-items: center;
-  min-width: 1.45rem;
-  height: 1.25rem;
+  min-width: 1.35rem;
+  height: 1.15rem;
   padding: 0 0.28rem;
-  border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-ink, #111) 78%, transparent);
+  border-radius: 0.15rem;
+  background: #000;
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
   line-height: 1;
-  color: var(--color-on-ink, #fff);
+  color: #fff;
   pointer-events: none;
 }
 
-.card-display__qty {
-  left: 0.55rem;
-  right: auto;
-}
-
 .card-display__upgrade {
-  left: 2.2rem;
-  right: auto;
   border: 1px solid color-mix(in srgb, var(--color-gold-fill, #d4a84b) 70%, transparent);
 }
 
@@ -1100,8 +1105,8 @@ watch(
 }
 
 .card-display--compact .card-display__art-banners {
-  top: 1.85rem;
-  gap: 0.15rem;
+  top: 0;
+  gap: 0.12rem;
   max-width: calc(100% - 3.5rem);
 }
 

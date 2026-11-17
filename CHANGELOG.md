@@ -12,7 +12,8 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 #### Changed
 - Art collé au bas de la zone illustration (`object-position: bottom`, plus de fondu bas)
 - Type de carte (bandeau derrière le chakra) : fond **noir**, `padding-right` élargi pour ne plus masquer le texte
-- Élément (Katon / Suiton / Raiton / …) réaffiché en pastille sous les bannières d’art
+- Pile coin haut gauche : exemplaires → élément (petit) → art secondaire → art primaire
+- Bas de l’illustration laissé libre pour coller l’art
 
 ### UI : carte — type, banners, bonus carrés (2026-11-16)
 
