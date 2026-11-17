@@ -7,6 +7,26 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 161–176 (grille 11) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#161–176` (`souffle-calibre` → `brouillard-persistant`) par la grille régénérée `65afc719…` (PNG + WebP 250×250, ordre de lecture)
+
+### Cartes : illustrations 97–112 (grille 7) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#97–112` (`serpent-d-eau` → `aiguille-d-orage`) par la grille régénérée `29a0e9f1…` (PNG + WebP 250×250, ordre de lecture)
+
+### Cartes : illustrations 81–96 (grille 6) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#81–96` (`ancrage-tellurique` → `corbeau-spectre`) par la grille régénérée `6d077fee…` (PNG + WebP 250×250, ordre de lecture — plus de permute e267)
+
+### Cartes : illustrations 145–160 (grille 10) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#145–160` (`grille-d-eclairs` → `rempart-des-ancetres`) par la grille régénérée `6be42b39…` (PNG + WebP 250×250)
+
 ### UI : carte — art collé + type noir (2026-11-17)
 
 #### Changed
