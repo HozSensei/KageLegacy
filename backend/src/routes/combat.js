@@ -7,6 +7,7 @@ import {
   forfeit,
   getCombatState,
   playCard,
+  reserveCard,
   startCombat,
 } from '../services/combatEngineService.js';
 
@@ -73,6 +74,19 @@ router.post('/:id/discard-for-chakra', async (req, res, next) => {
     if (!user) return;
     const body = discardSchema.parse(req.body || {});
     const combat = await discardForChakra(user.id, req.params.id, body);
+    res.json({ combat });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/combat/:id/reserve-card */
+router.post('/:id/reserve-card', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const body = discardSchema.parse(req.body || {});
+    const combat = await reserveCard(user.id, req.params.id, body);
     res.json({ combat });
   } catch (error) {
     next(error);

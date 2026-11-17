@@ -25,6 +25,7 @@
     "test:economy": "node scripts/testEconomy.js",
     "test:talent-tree": "node scripts/testTalentTree.js",
     "test:combat-engine": "node scripts/testCombatEngine.js",
+    "test:card-combos": "node scripts/testCardCombos.js",
     "test:boss-phases": "node scripts/testBossPhases.js",
     "test:combat-balance": "node scripts/testCombatBalance.js",
     "test:combat-balance:report": "node scripts/testCombatBalance.js --report",

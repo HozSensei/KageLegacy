@@ -123,6 +123,12 @@ export function applyDuelAction(state, action, opts = {}) {
         logs.push(...result.logs);
         break;
       }
+      case 'reserve_card': {
+        const result = reserveCard(next, action.seat, action.instanceId);
+        next = result.state;
+        logs.push(...result.logs);
+        break;
+      }
       case 'end_turn': {
         const result = endTurn(next, action.seat, rng);
         next = result.state;
@@ -176,6 +182,10 @@ export function publicDuelState(state, viewerSeat) {
       discardCount: (fighter.discardPile || []).length,
       exhaustCount: (fighter.exhaustPile || []).length,
       discardedForChakra: Boolean(fighter.discardedForChakra),
+      reservedThisTurn: Boolean(fighter.reservedThisTurn),
+      reservedCard: isSelf ? fighter.reservedCard || null : undefined,
+      hasReservedCard: Boolean(fighter.reservedCard),
+      chakraCarry: fighter.chakraCarry || 0,
       stats: isSelf ? fighter.stats : undefined,
     };
   };
@@ -193,7 +203,13 @@ export function publicDuelState(state, viewerSeat) {
       host: sanitize(state.fighters.host, 'host'),
       guest: sanitize(state.fighters.guest, 'guest'),
     },
-    logs: (state.logs || []).slice(-20),
+    logs: (state.logs || []).slice(-20).map(log => {
+      if (log.seat === viewerSeat || (log.type !== 'draw' && log.type !== 'discard_chakra')) {
+        return log;
+      }
+      const { instanceId, instanceIds, ...visible } = log;
+      return visible;
+    }),
     checksum,
     summary,
   };
@@ -232,6 +248,9 @@ function hydrateFighter(raw, seat, rng) {
     discardPile,
     exhaustPile: raw.exhaustPile || [],
     discardedForChakra: Boolean(raw.discardedForChakra),
+    reservedThisTurn: Boolean(raw.reservedThisTurn),
+    reservedCard: raw.reservedCard || null,
+    chakraCarry: Math.min(1, Math.max(0, Number(raw.chakraCarry) || 0)),
     stats,
     talentCodes: Array.isArray(raw.talentCodes) ? raw.talentCodes : [],
     turnsPlayed: Number(raw.turnsPlayed) || 0,
@@ -266,6 +285,7 @@ function playCard(state, seat, instanceId, rng) {
     ...(fighter.drawPile || []),
     ...(fighter.discardPile || []),
     ...(fighter.exhaustPile || []),
+    ...(fighter.reservedCard ? [fighter.reservedCard] : []),
   ]);
   const talentMods = computeTalentDamageMods(talentCodes, fighter, normalizedCard, {
     enemy: opponent,
@@ -403,7 +423,9 @@ function playCard(state, seat, instanceId, rng) {
 function discardForChakra(state, seat, instanceId) {
   const fighter = state.fighters[seat];
   if (!fighter) throw new Error('Combattant manquant.');
-  if (fighter.discardedForChakra) throw new Error('Déjà défaussé pour Chakra ce tour.');
+  if (fighter.discardedForChakra || fighter.reservedThisTurn) {
+    throw new Error('Défausse pour Chakra ou réserve déjà utilisée ce tour.');
+  }
 
   const idx = (fighter.hand || []).findIndex(c => c.instanceId === instanceId);
   if (idx < 0) throw new Error('Carte absente de la main.');
@@ -414,7 +436,7 @@ function discardForChakra(state, seat, instanceId) {
     ...fighter,
     hand,
     discardPile: [...(fighter.discardPile || []), card],
-    chakra: Math.min(fighter.maxChakra ?? BASE_CHAKRA, fighter.chakra + 1),
+    chakra: (Number(fighter.chakra) || 0) + 1,
     discardedForChakra: true,
   };
   state.fighters = { ...state.fighters, [seat]: next };
@@ -422,6 +444,24 @@ function discardForChakra(state, seat, instanceId) {
     state,
     logs: [{ type: 'discard_chakra', seat, instanceId }],
   };
+}
+
+function reserveCard(state, seat, instanceId) {
+  const fighter = state.fighters[seat];
+  if (!fighter) throw new Error('Combattant manquant.');
+  if (fighter.discardedForChakra || fighter.reservedThisTurn || fighter.reservedCard) {
+    throw new Error('Défausse pour Chakra ou réserve déjà utilisée ce tour.');
+  }
+  const idx = (fighter.hand || []).findIndex(c => c.instanceId === instanceId);
+  if (idx < 0) throw new Error('Carte absente de la main.');
+
+  const hand = [...fighter.hand];
+  const [reservedCard] = hand.splice(idx, 1);
+  state.fighters = {
+    ...state.fighters,
+    [seat]: { ...fighter, hand, reservedCard, reservedThisTurn: true },
+  };
+  return { state, logs: [{ type: 'reserve_card', seat }] };
 }
 
 function endTurn(state, seat, rng) {
@@ -436,6 +476,8 @@ function endTurn(state, seat, rng) {
     ...playerEnd.entity,
     block: 0,
     discardedForChakra: false,
+    reservedThisTurn: false,
+    chakraCarry: Math.min(1, Math.max(0, Number(playerEnd.entity.chakra) || 0)),
     hand: [],
     discardPile: [...(fighter.discardPile || []), ...(fighter.hand || [])],
   };
@@ -469,8 +511,12 @@ function endTurn(state, seat, rng) {
   const nextOwnerTurn = (Number(nextOpponent.turnsPlayed) || 0) + 1;
   const preparedOpponent = {
     ...opponentStart.entity,
-    chakra: nextOpponent.maxChakra ?? BASE_CHAKRA,
+    chakra:
+      (nextOpponent.maxChakra ?? BASE_CHAKRA) +
+      Math.min(1, Math.max(0, Number(nextOpponent.chakraCarry) || 0)),
+    chakraCarry: 0,
     discardedForChakra: false,
+    reservedThisTurn: false,
     elementalFusionDrawnThisTurn: false,
   };
   const startTalent = applyTalentStartOfTurn(preparedOpponent, preparedOpponent.talentCodes, {
@@ -505,6 +551,13 @@ function endTurn(state, seat, rng) {
     return { state, logs };
   }
 
+  if (nextOpponent.reservedCard) {
+    const hand = [...(nextOpponent.hand || [])];
+    const discardPile = [...(nextOpponent.discardPile || [])];
+    while (hand.length >= MAX_HAND_SIZE) discardPile.push(hand.pop());
+    hand.push(nextOpponent.reservedCard);
+    nextOpponent = { ...nextOpponent, hand, discardPile, reservedCard: null };
+  }
   const drawn = drawCards(nextOpponent, DRAW_PER_TURN, rng);
   nextOpponent = drawn.player;
   state.fighters = { ...state.fighters, [opponentSeat]: nextOpponent };

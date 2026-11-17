@@ -1,23 +1,23 @@
 <script setup>
-import { computed, onMounted, onUnmounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import PvpArena from '../components/pvp/PvpArena.vue'
-import AppIcon from '../components/ui/AppIcon.vue'
-import { usePvpStore } from '../stores/pvp'
+import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import PvpArena from '../components/pvp/PvpArena.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
+import { usePvpStore } from '../stores/pvp';
 
-defineOptions({ name: 'PvpDuelView' })
+defineOptions({ name: 'PvpDuelView' });
 
-const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
-const pvp = usePvpStore()
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const pvp = usePvpStore();
 
-const matchId = computed(() => route.params.id)
+const matchId = computed(() => route.params.id);
 
 const arenaView = computed(() => {
-  if (pvp.isHost && pvp.publicState) return pvp.publicState
-  if (pvp.isGuest && pvp.publicState) return pvp.publicState
+  if (pvp.isHost && pvp.publicState) return pvp.publicState;
+  if (pvp.isGuest && pvp.publicState) return pvp.publicState;
   if (pvp.isHost && pvp.duel) {
     return {
       ...pvp.duel,
@@ -38,49 +38,49 @@ const arenaView = computed(() => {
         },
       },
       viewerSeat: 'host',
-    }
+    };
   }
-  return null
-})
+  return null;
+});
 
 onMounted(async () => {
-  if (!matchId.value) return
-  await pvp.fetchMatch(matchId.value)
-  if (!pvp.match) return
+  if (!matchId.value) return;
+  await pvp.fetchMatch(matchId.value);
+  if (!pvp.match) return;
 
   try {
-    await pvp.markReady(matchId.value)
+    await pvp.markReady(matchId.value);
   } catch {
     /* ready optional if already in progress */
   }
 
-  pvp.connectWs(matchId.value)
+  pvp.connectWs(matchId.value);
 
   if (pvp.isHost && pvp.match.bootstrap && !pvp.duel) {
-    pvp.initDuelFromMatch(pvp.match)
+    pvp.initDuelFromMatch(pvp.match);
   }
-})
+});
 
-watch(matchId, async (id) => {
-  if (!id) return
-  pvp.clear()
-  await pvp.fetchMatch(id)
-  pvp.connectWs(id)
-})
+watch(matchId, async id => {
+  if (!id) return;
+  pvp.clear();
+  await pvp.fetchMatch(id);
+  pvp.connectWs(id);
+});
 
 onUnmounted(() => {
-  pvp.disconnectWs()
-})
+  pvp.disconnectWs();
+});
 
 function onSelect(card) {
-  pvp.selectedInstanceId = card?.instanceId || null
+  pvp.selectedInstanceId = card?.instanceId || null;
 }
 
 async function onPlay(card) {
-  const id = card?.instanceId || pvp.selectedInstanceId
-  if (!id) return
+  const id = card?.instanceId || pvp.selectedInstanceId;
+  if (!id) return;
   try {
-    await pvp.sendAction('play_card', id)
+    await pvp.sendAction('play_card', id);
   } catch {
     /* store */
   }
@@ -88,16 +88,27 @@ async function onPlay(card) {
 
 async function onEndTurn() {
   try {
-    await pvp.sendAction('end_turn')
+    await pvp.sendAction('end_turn');
   } catch {
     /* store */
   }
 }
 
-async function onDiscardChakra() {
-  if (!pvp.selectedInstanceId) return
+async function onDiscardChakra(instanceId) {
+  const id = instanceId || pvp.selectedInstanceId;
+  if (!id) return;
   try {
-    await pvp.sendAction('discard_chakra', pvp.selectedInstanceId)
+    await pvp.sendAction('discard_chakra', id);
+  } catch {
+    /* store */
+  }
+}
+
+async function onReserveCard(instanceId) {
+  const id = instanceId || pvp.selectedInstanceId;
+  if (!id) return;
+  try {
+    await pvp.sendAction('reserve_card', id);
   } catch {
     /* store */
   }
@@ -105,15 +116,15 @@ async function onDiscardChakra() {
 
 async function onForfeit() {
   try {
-    await pvp.sendAction('forfeit')
+    await pvp.sendAction('forfeit');
   } catch {
     /* store */
   }
 }
 
 function backToQueue() {
-  pvp.clear()
-  router.push({ name: 'pvp' })
+  pvp.clear();
+  router.push({ name: 'pvp' });
 }
 </script>
 
@@ -161,6 +172,7 @@ function backToQueue() {
       @play-card="onPlay"
       @end-turn="onEndTurn"
       @discard-chakra="onDiscardChakra"
+      @reserve-card="onReserveCard"
       @forfeit="onForfeit"
       @dismiss-outcome="backToQueue"
     />

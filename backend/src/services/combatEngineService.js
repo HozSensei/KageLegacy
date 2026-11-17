@@ -10,7 +10,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
-import { BASE_CHAKRA, BASE_MAX_HP, DRAW_PER_TURN } from './deckCombat/constants.js';
+import { BASE_CHAKRA, BASE_MAX_HP, DRAW_PER_TURN, MAX_HAND_SIZE } from './deckCombat/constants.js';
 import {
   buildRuntimeDeck,
   drawCards,
@@ -193,6 +193,7 @@ function sanitizePlayer(player) {
     discardCount: (player.discardPile || []).length,
     exhaustCount: (player.exhaustPile || []).length,
     discardedForChakra: Boolean(player.discardedForChakra),
+    reservedCard: player.reserveCard || null,
     ally: player.ally
       ? {
           nameFr: player.ally.nameFr,
@@ -437,6 +438,7 @@ export async function startCombat(userId, opts = {}) {
     discardPile: [],
     exhaustPile: [],
     discardedForChakra: false,
+    reserveCard: null,
     ally: null,
     taijutsuPlayedThisTurn: 0,
     ninjutsuPlayedThisTurn: 0,
@@ -579,6 +581,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
     ...(session.player.drawPile || []),
     ...(session.player.discardPile || []),
     ...(session.player.exhaustPile || []),
+    ...(session.player.reserveCard ? [session.player.reserveCard] : []),
   ]);
   const statsWithBonus = session.stats;
   const talentMods = computeTalentDamageMods(session.talentEffects.applied, session.player, card, {
@@ -670,23 +673,35 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
 /**
  * Défausse 1 carte pour +1 Chakra (1×/tour).
  */
-export async function discardForChakra(userId, combatId, { instanceId } = {}) {
-  const session = await loadSession(combatId, userId);
+function useCardTurnAction(session, instanceId, reserve = false) {
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
   if (session.currentPhase !== 'player_turn') throw httpError(400, "Ce n'est pas votre tour.");
-  if (session.player.discardedForChakra) {
-    throw httpError(400, 'Déjà utilisé ce tour (défausse → Chakra).');
+  if (session.player.discardedForChakra || session.player.reserveCard) {
+    throw httpError(400, 'Défausse pour Chakra ou réserve déjà utilisée ce tour.');
   }
   if (!instanceId) throw httpError(400, 'instanceId requis.');
 
+  const card = (session.player.hand || []).find(c => c.instanceId === instanceId);
+  if (!card) throw httpError(404, 'Carte absente de la main.');
+  if (reserve) {
+    return {
+      ...session.player,
+      hand: session.player.hand.filter(c => c.instanceId !== instanceId),
+      reserveCard: card,
+      discardedForChakra: true,
+    };
+  }
   const moved = moveCardFromHand(session.player, instanceId, 'discard');
-  if (!moved.card) throw httpError(404, 'Carte absente de la main.');
-
-  session.player = {
+  return {
     ...moved.player,
     chakra: (Number(moved.player.chakra) || 0) + 1,
     discardedForChakra: true,
   };
+}
+
+export async function discardForChakra(userId, combatId, { instanceId } = {}) {
+  const session = await loadSession(combatId, userId);
+  session.player = useCardTurnAction(session, instanceId);
 
   await persistSession(session);
   await appendLog(combatId, session.currentTurn, 'discard_for_chakra', { instanceId });
@@ -694,6 +709,38 @@ export async function discardForChakra(userId, combatId, { instanceId } = {}) {
   return publicState(session, [
     { type: 'discard_for_chakra', instanceId, chakra: session.player.chakra },
   ]);
+}
+
+export async function reserveCard(userId, combatId, { instanceId } = {}) {
+  const session = await loadSession(combatId, userId);
+  session.player = useCardTurnAction(session, instanceId, true);
+  await persistSession(session);
+  await appendLog(combatId, session.currentTurn, 'reserve_card', { instanceId });
+  return publicState(session, [{ type: 'reserve_card', instanceId }]);
+}
+
+function chakraCarryover(player) {
+  return Math.min(1, Math.max(0, Number(player.chakra) || 0));
+}
+
+function returnReservedCard(player) {
+  if (!player.reserveCard) return { player, logs: [] };
+  const card = player.reserveCard;
+  const hand = player.hand || [];
+  const kept = hand.slice(0, MAX_HAND_SIZE - 1);
+  const overflow = hand.slice(MAX_HAND_SIZE - 1);
+  return {
+    player: {
+      ...player,
+      hand: [...kept, card],
+      discardPile: [...(player.discardPile || []), ...overflow],
+      reserveCard: null,
+    },
+    logs: [
+      { type: 'reserve_return', instanceId: card.instanceId },
+      ...overflow.map(c => ({ type: 'discard', instanceId: c.instanceId, reason: 'hand_full' })),
+    ],
+  };
 }
 
 export async function endTurn(userId, combatId) {
@@ -717,6 +764,7 @@ export async function endTurn(userId, combatId) {
     return publicState(session, logs);
   }
 
+  const carriedChakra = chakraCarryover(session.player);
   session.currentPhase = 'enemy_turn';
 
   if ((session.enemy.block || 0) > 0) {
@@ -814,11 +862,12 @@ export async function endTurn(userId, combatId) {
   const playerStart = resolveStartOfTurnStatuses(session.player);
   session.player = {
     ...playerStart.entity,
-    chakra: session.player.maxChakra ?? BASE_CHAKRA,
+    chakra: (session.player.maxChakra ?? BASE_CHAKRA) + carriedChakra,
     discardedForChakra: false,
     elementalFusionDrawnThisTurn: false,
   };
   logs.push(...playerStart.logs.map(l => ({ ...l, side: 'player' })));
+  logs.push({ type: 'chakra_carryover', amount: carriedChakra, chakra: session.player.chakra });
 
   const talentStart = applyTalentStartOfTurn(session.player, session.talentEffects.applied, {
     turn: session.currentTurn,
@@ -845,6 +894,9 @@ export async function endTurn(userId, combatId) {
     hand: [],
     discardPile: [...(session.player.discardPile || []), ...leftover],
   };
+  const returned = returnReservedCard(session.player);
+  session.player = returned.player;
+  logs.push(...returned.logs);
   const drawn = drawCards(session.player, DRAW_PER_TURN);
   session.player = drawn.player;
   logs.push({ type: 'draw', count: drawn.drawn.length });
@@ -878,4 +930,7 @@ export const __test = {
   checkVictory,
   publicState,
   hydrateSession,
+  useCardTurnAction,
+  chakraCarryover,
+  returnReservedCard,
 };

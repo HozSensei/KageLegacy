@@ -1,11 +1,12 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import CardDisplay from './CardDisplay.vue'
-import CardHole from './CardHole.vue'
-import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals'
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import CardDisplay from './CardDisplay.vue';
+import CardHole from './CardHole.vue';
+import CardFilters from './CardFilters.vue';
+import { cardMatchesArt } from '../../utils/cardBonusChips';
 
-defineOptions({ name: 'CollectionGrid' })
+defineOptions({ name: 'CollectionGrid' });
 
 const props = defineProps({
   /** Slots catalogue : { kind, key, card, entry } */
@@ -15,43 +16,42 @@ const props = defineProps({
   ownedOnly: { type: Boolean, default: false },
   ownedCount: { type: Number, default: 0 },
   catalogueTotal: { type: Number, default: 0 },
-})
+});
 
-const emit = defineEmits(['select', 'update:ownedOnly'])
+const emit = defineEmits(['select', 'update:ownedOnly']);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const typeFilter = ref('')
-const rarityFilter = ref('')
-const search = ref('')
+const typeFilter = ref('');
+const rarityFilter = ref('');
+const artFilter = ref('');
+const search = ref('');
 
 const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  return props.slots.filter((slot) => {
-    if (props.ownedOnly && slot.kind !== 'owned') return false
-    const card = slot.card
-    if (!card) return false
-    if (typeFilter.value && card.type !== typeFilter.value) return false
-    if (rarityFilter.value && card.rarity !== rarityFilter.value) return false
+  const q = search.value.trim().toLowerCase();
+  return props.slots.filter(slot => {
+    if (props.ownedOnly && slot.kind !== 'owned') return false;
+    const card = slot.card;
+    if (!card) return false;
+    if (typeFilter.value && card.type !== typeFilter.value) return false;
+    if (rarityFilter.value && card.rarity !== rarityFilter.value) return false;
+    if (!cardMatchesArt(card, artFilter.value)) return false;
     if (q) {
-      const fr = String(card.nameFr || '').toLowerCase()
-      const en = String(card.nameEn || '').toLowerCase()
-      const slug = String(card.slug || '').toLowerCase()
-      if (!fr.includes(q) && !en.includes(q) && !slug.includes(q)) return false
+      const fr = String(card.nameFr || '').toLowerCase();
+      const en = String(card.nameEn || '').toLowerCase();
+      const slug = String(card.slug || '').toLowerCase();
+      if (!fr.includes(q) && !en.includes(q) && !slug.includes(q)) return false;
     }
-    return true
-  })
-})
-
-const types = ['', 'attack', 'defense', 'skill', 'item', 'summon']
-const rarities = ['', 'common', 'rare', 'legendary', 'mythic']
+    return true;
+  });
+});
 
 function onOwnedOnlyChange(event) {
-  emit('update:ownedOnly', event.target.checked)
+  emit('update:ownedOnly', event.target.checked);
 }
 
 function onSelectSlot(slot) {
-  emit('select', slot)
+  emit('select', slot);
 }
 </script>
 
@@ -72,59 +72,15 @@ function onSelectSlot(slot) {
       </label>
     </div>
 
-    <div class="collection-grid__filters">
-      <div class="collection-grid__filter" role="group" :aria-label="t('cards.filterType')">
-        <span class="t-kicker">{{ t('cards.filterType') }}</span>
-        <div class="chip-row">
-          <button
-            v-for="type in types"
-            :key="type || 'all'"
-            type="button"
-            class="chip"
-            :aria-pressed="typeFilter === type"
-            :data-tone="type ? cardTypeVisual(type).tone : 'neutral'"
-            @click="typeFilter = type"
-          >
-            <span
-              v-if="type"
-              class="shape chip__mark"
-              :class="`shape--${cardTypeVisual(type).shape}`"
-              aria-hidden="true"
-            />
-            {{ type ? t(`cards.types.${type}`) : t('cards.filterAll') }}
-          </button>
-        </div>
-      </div>
-      <div class="collection-grid__filter" role="group" :aria-label="t('cards.filterRarity')">
-        <span class="t-kicker">{{ t('cards.filterRarity') }}</span>
-        <div class="chip-row">
-          <button
-            v-for="rarity in rarities"
-            :key="rarity || 'all'"
-            type="button"
-            class="chip"
-            :aria-pressed="rarityFilter === rarity"
-            :data-tone="rarity ? rarityVisual(rarity).tone : 'neutral'"
-            @click="rarityFilter = rarity"
-          >
-            <span v-if="rarity" class="collection-grid__pips chip__mark" aria-hidden="true">
-              <span v-for="n in rarityVisual(rarity).pips" :key="n" class="lozenge" />
-            </span>
-            {{ rarity ? t(`cards.rarities.${rarity}`) : t('cards.filterAll') }}
-          </button>
-        </div>
-      </div>
-      <label class="collection-grid__search">
-        <span class="t-kicker">{{ t('cards.filterSearch') }}</span>
-        <input
-          v-model="search"
-          type="search"
-          class="collection-grid__search-input"
-          data-testid="collection-search"
-          :placeholder="t('cards.filterSearchPlaceholder')"
-        />
-      </label>
-    </div>
+    <CardFilters
+      v-model:type-filter="typeFilter"
+      v-model:rarity-filter="rarityFilter"
+      v-model:art-filter="artFilter"
+      v-model:search="search"
+      :result-count="filtered.length"
+      :total-count="slots.length"
+      search-test-id="collection-search"
+    />
 
     <p v-if="loading" class="text-ink-muted">{{ t('common.loading') }}</p>
     <p v-else-if="!filtered.length" class="alert" data-testid="collection-empty-filter">
@@ -191,52 +147,6 @@ function onSelectSlot(slot) {
   height: 1.05rem;
   accent-color: var(--color-vermilion);
   cursor: pointer;
-}
-
-.collection-grid__filters {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.75rem;
-}
-
-.collection-grid__filter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.collection-grid__search {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  max-width: 22rem;
-}
-
-.collection-grid__search-input {
-  width: 100%;
-  min-height: 2.5rem;
-  padding: 0.45rem 0.75rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-sm, 0.35rem);
-  background: var(--color-bg-card);
-  color: var(--color-ink);
-  font: inherit;
-}
-
-.collection-grid__search-input:focus-visible {
-  outline: 2px solid var(--color-indigo);
-  outline-offset: 1px;
-}
-
-.collection-grid__pips {
-  display: inline-flex;
-  gap: 0.2rem;
-  font-size: 0.8rem;
-}
-
-.chip[aria-pressed='true'] .chip__mark {
-  color: var(--color-on-ink);
 }
 
 .collection-grid__list {

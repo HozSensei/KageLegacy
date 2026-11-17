@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from './CardDisplay.vue';
+import CardFilters from './CardFilters.vue';
+import { cardMatchesArt } from '../../utils/cardBonusChips';
 
 defineOptions({ name: 'DeckBuilder' });
 
@@ -25,6 +27,28 @@ const emit = defineEmits(['add', 'remove', 'activate']);
 
 const { t, locale } = useI18n();
 const recapOpen = ref(false);
+const typeFilter = ref('');
+const rarityFilter = ref('');
+const artFilter = ref('');
+const search = ref('');
+
+const filteredCollection = computed(() => {
+  const query = search.value.trim().toLowerCase();
+  return props.collection.filter(({ card }) => {
+    if (!card) return false;
+    if (typeFilter.value && card.type !== typeFilter.value) return false;
+    if (rarityFilter.value && card.rarity !== rarityFilter.value) return false;
+    if (!cardMatchesArt(card, artFilter.value)) return false;
+    return (
+      !query ||
+      [card.nameFr, card.nameEn, card.slug].some(value =>
+        String(value || '')
+          .toLowerCase()
+          .includes(query)
+      )
+    );
+  });
+});
 
 const size = computed(() => props.deck?.size ?? 0);
 const validation = computed(() => props.deck?.validation);
@@ -232,9 +256,19 @@ const sizeValid = computed(
           <h3 class="section-head__title">{{ t('cards.deckCardPool') }}</h3>
           <span class="section-head__rule" />
         </div>
+        <CardFilters
+          v-model:type-filter="typeFilter"
+          v-model:rarity-filter="rarityFilter"
+          v-model:art-filter="artFilter"
+          v-model:search="search"
+          :result-count="filteredCollection.length"
+          :total-count="collection.length"
+          search-test-id="deck-search"
+        />
+        <p v-if="!filteredCollection.length" class="alert">{{ t('cards.emptyFilter') }}</p>
         <div class="deck-builder__pool">
           <div
-            v-for="entry in collection"
+            v-for="entry in filteredCollection"
             :key="entry.collectionId"
             class="deck-builder__pool-item"
             :class="{ 'deck-builder__pool-item--in-deck': inDeckQty(entry.collectionId) > 0 }"

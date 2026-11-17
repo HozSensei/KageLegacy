@@ -69,8 +69,8 @@ Le profil affiche le détail de ces deux sources.
 | **Genjutsu**         | Augmente les dégâts des cartes Genjutsu                                  |
 | **Médecine**         | Augmente l'armure et les soins, ainsi que les dégâts des cartes Médecine |
 | **PV max**           | S'ajoute aux 100 points de vie de départ                                 |
-| **Chakra max**       | Augmente la réserve maximale de chakra                                   |
-| **Armure de départ** | Ajoute de l'armure au début du combat (elle disparaît en fin de tour)    |
+| **Chakra max**       | Augmente le Chakra reçu au début de chaque tour                          |
+| **Armure de départ** | Ajoute de l'armure au début du combat                                    |
 
 Chaque point de Taijutsu, de Ninjutsu, de Genjutsu ou de Médecine vaut **+1 %** : avec 30 en Ninjutsu, une carte Ninjutsu à 10 dégâts en inflige 13.
 
@@ -78,7 +78,7 @@ Chaque point de Taijutsu, de Ninjutsu, de Genjutsu ou de Médecine vaut **+1 %**
 
 ## Les cartes
 
-Le jeu compte **200 cartes**. Chaque carte a deux rôles :
+Chaque carte a deux rôles :
 
 - un **effet actif**, quand vous la jouez en combat ;
 - un **bonus passif**, qui s'ajoute à vos statistiques tant que la carte est dans votre deck actif, même si vous ne la piochez jamais.
@@ -138,7 +138,7 @@ Une carte légendaire améliorée rend en plus 2 essence, une carte mythique am�
 
 ## Le deck
 
-Un deck contient **20 à 30 cartes**, avec **3 exemplaires au maximum** d'une même carte. Vous ne pouvez y mettre que des exemplaires que vous possédez.
+Un deck jouable contient **20 à 30 cartes**, avec **3 exemplaires au maximum** d'une même carte. Il ne peut contenir que des exemplaires que vous possédez. Parmi eux, il faut respecter deux limites supplémentaires : **3 cartes légendaires ou mythiques au total**, dont **1 carte de clan au maximum**. Les exemplaires de clan légendaires ou mythiques comptent dans les deux limites.
 
 Vous pouvez créer plusieurs decks, mais un seul est **actif**. C'est le deck actif qui :
 
@@ -175,7 +175,7 @@ Vous pouvez réinitialiser tout l'arbre : tous les points dépensés vous sont r
 
 ## Le combat
 
-Un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier.
+En PvE, un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier. Pour les différences en arène, voir « Le PvP en arène ».
 
 ### Au départ
 
@@ -186,12 +186,14 @@ Un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours
 
 ### Votre tour
 
-- Vous disposez de **3 points de Chakra**.
+- Vous disposez de **3 Chakra de base**, augmentés par vos bonus de Chakra max et éventuellement par des effets de talents.
 - Vous jouez autant de cartes que votre Chakra le permet, dans l'ordre de votre choix.
-- **Une fois par tour**, vous pouvez défausser une carte de votre main pour gagner **1 Chakra**.
+- **Une fois par tour**, vous pouvez soit défausser une carte de votre main pour gagner **1 Chakra**, soit la réserver pour votre prochain tour. Ces deux actions sont exclusives.
 - Vous terminez votre tour quand vous le souhaitez.
 
-À la fin de votre tour, les cartes restées en main vont dans la défausse. Au tour suivant, votre Chakra revient à 3 et vous piochez 5 nouvelles cartes. Le Chakra non dépensé est perdu.
+Sélectionnez une carte puis utilisez les boutons pour la jouer, la défausser ou la réserver ; vous pouvez aussi la glisser dans la zone correspondante. La carte réservée quitte immédiatement votre main et ne peut plus être jouée ce tour-ci.
+
+Les cartes restées en main sont défaussées avant la prochaine pioche, sauf la carte réservée. Au tour suivant, vous recevez votre Chakra de base et vos bonus de Chakra max, plus jusqu'à **1 Chakra non dépensé** automatiquement reporté. La carte réservée revient en main, puis vous piochez jusqu'à 5 cartes ; les cartes et talents peuvent modifier ces ressources.
 
 Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse est mélangée et redevient la pioche.
 
@@ -212,7 +214,7 @@ L'ennemi exécute l'intention qu'il avait annoncée, puis en annonce une nouvell
 - **Dégâts d'une carte** : dégâts de base, augmentés de 1 % par point dans la statistique de sa voie.
 - **Armure** : elle absorbe les dégâts avant vos PV. Elle vous protège pendant le tour de l'ennemi, puis disparaît au début de votre tour suivant. L'armure de l'ennemi disparaît de la même façon au début de son tour.
 - **Soins** : ils ne peuvent pas dépasser vos PV max.
-- **Coup critique** : vos attaques ont une chance de critique donnée par votre Vitesse. Un critique inflige **×1,5** dégâts.
+- **Coup critique** : certaines cartes ou leurs mots-clés donnent une chance de critique, plafonnée à 50 %. Un critique applique **×1,5** aux dégâts ; la Vitesse ne détermine pas cette chance.
 
 ### Avantages de voie et d'élément
 
@@ -224,7 +226,7 @@ Chaque ennemi a une **posture** (Taijutsu, Ninjutsu ou Genjutsu) et parfois une 
 - Genjutsu bat Ninjutsu ;
 - Ninjutsu bat Taijutsu.
 
-Il n'y a pas de malus dans l'autre sens. La Médecine est toujours neutre.
+Dans le sens inverse, le désavantage applique **×0,9**. La Médecine est toujours neutre.
 
 **Éléments** — une carte dont l'élément bat l'affinité de l'ennemi inflige **×1,5** dégâts. Dans le sens inverse, elle n'inflige que **×0,7** :
 
@@ -249,7 +251,7 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 | **Vulnérable**   | Dégâts subis augmentés de 50 %               |
 | **Intangible**   | Les attaques subies n'infligent que 1 dégât  |
 
-Un statut appliqué de nouveau **cumule** sa valeur. Sa durée diminue de 1 à la fin de chaque tour de celui qui le porte.
+Un statut appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Les durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut ; certains effets peuvent être consommés plus tôt. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
 
 ### Invocations
 
@@ -405,17 +407,11 @@ Quand un adversaire est trouvé, le duel commence dès que les deux joueurs sont
 
 ### Le duel
 
-Les bases sont celles du combat de mission : 100 PV plus votre bonus de PV max, 3 Chakra par tour, 5 cartes piochées par tour, une défausse par tour contre 1 Chakra. Chaque joueur joue à son tour et peut abandonner.
+Les bases sont celles du combat de mission : 100 PV plus votre bonus de PV max, 3 Chakra de base plus les bonus de Chakra max, report automatique d'au plus 1 Chakra, pioche de 5 cartes par tour et, une fois par tour, une défausse contre 1 Chakra ou une carte réservée. Chaque joueur joue à son tour et peut abandonner. Les cartes non jouées sont défaussées en fin de tour ; la carte réservée revient avant la prochaine pioche, dans la limite de 10 cartes en main.
 
-Le duel utilise une version **simplifiée** des règles :
+Le duel utilise une partie des calculs PvE pour les cartes, les statuts et les talents, **sans garantir une parité complète** : seuls les effets et données transmis et pris en charge en PvP s'appliquent. Les dégâts utilisent notamment les statistiques et les avantages de voie ; la voie dominante de l'adversaire sert de posture. L'affinité élémentaire du joueur adverse n'est actuellement pas transmise au moteur du duel : les attaques restent donc neutres vis-à-vis de cette affinité. Les invocations ont cependant une gestion adaptée au duel : une seule à la fois, elles attaquent au début du tour de leur propriétaire et expirent selon leur durée. Une invocation avec **Provocation** intercepte les dégâts, l'éventuel surplus atteignant son propriétaire ; leurs autres capacités ne sont pas toutes reproduites. Le marqueur d'épuisement des cartes ordinaires n'est actuellement pas transmis au duel : elles vont donc normalement dans la défausse après usage, contrairement aux invocations.
 
-- les dégâts, l'armure et les soins des cartes sont calculés avec vos statistiques, coups critiques compris ;
-- les statuts, les avantages de voie et d'élément et les effets spéciaux des talents ne s'y appliquent pas ;
-- les invocations attaquent automatiquement à la fin du tour de leur propriétaire et disparaissent après la durée indiquée sur leur carte ;
-- une invocation avec **Provocation** encaisse automatiquement les dégâts à la place de son propriétaire jusqu'à sa mort ou son expiration ;
-- les autres capacités spéciales des invocations ne s'appliquent pas en PvP pour l'instant ;
-- les cartes non jouées **restent en main** d'un tour à l'autre, dans la limite de 10 ;
-- l'armure disparaît à la **fin de votre propre tour**.
+**Attention : en PvP, l'armure restante disparaît à la fin du tour de son propriétaire**, contrairement au PvE où elle protège pendant le tour ennemi. Les informations de la main et de la carte réservée sont cachées à l'adversaire.
 
 Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Entrer dans la file compte pour certaines quêtes du passe de saison.
 

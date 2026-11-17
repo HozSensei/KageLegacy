@@ -21,6 +21,7 @@ const emit = defineEmits([
   'play-card',
   'end-turn',
   'discard-chakra',
+  'reserve-card',
   'forfeit',
   'dismiss-outcome',
 ]);
@@ -36,6 +37,26 @@ const isOver = computed(() => ['completed', 'forfeited'].includes(props.view?.st
 const canAct = computed(
   () => props.view?.status === 'in_progress' && props.view?.activeSeat === props.role && !props.busy
 );
+
+function isDropDisabled(action) {
+  return (
+    !canAct.value ||
+    (action !== 'play' && (self.value?.discardedForChakra || !!self.value?.reservedCard))
+  );
+}
+
+function onDropIntent(intent) {
+  const action = intent?.action;
+  if (!['play', 'discard', 'reserve'].includes(action) || isDropDisabled(action)) return;
+  const instanceId = intent?.card?.instanceId;
+  if (!instanceId) return;
+  const card = (self.value?.hand || []).find(item => item.instanceId === instanceId);
+  if (!card) return;
+  emit(
+    action === 'play' ? 'play-card' : action === 'discard' ? 'discard-chakra' : 'reserve-card',
+    action === 'play' ? card : card.instanceId
+  );
+}
 
 const isMyTurn = computed(() => props.view?.activeSeat === props.role);
 const turnNumber = computed(() => String(props.view?.turn ?? 0).padStart(2, '0'));
@@ -88,7 +109,7 @@ const outcomeKey = computed(() => {
 </script>
 
 <template>
-  <div class="arena arena--with-side" data-testid="pvp-arena">
+  <div class="arena arena--with-side" data-testid="pvp-arena" data-combat-drop-root>
     <header class="arena__top">
       <div class="pvp-top">
         <p class="arena__turn" :data-tone="isMyTurn ? 'indigo' : 'vermilion'">
@@ -166,6 +187,28 @@ const outcomeKey = computed(() => {
       </Transition>
     </div>
 
+    <div class="arena-drop-board">
+      <div
+        v-for="zone in ['play', 'discard', 'reserve']"
+        :key="zone"
+        class="arena-drop-zone"
+        :class="{ 'arena-drop-zone--disabled': isDropDisabled(zone) }"
+        :data-combat-drop-zone="zone"
+        :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
+        :data-testid="`drop-zone-${zone}`"
+      >
+        {{
+          t(
+            zone === 'play'
+              ? 'combat.playCard'
+              : zone === 'discard'
+                ? 'combat.discardForChakra'
+                : 'combat.reserveCard'
+          )
+        }}
+      </div>
+    </div>
+
     <section class="arena__hand-wrap">
       <div class="arena__hand-head">
         <h3 class="t-kicker">{{ t('combat.handTitle') }} · {{ (self?.hand || []).length }}</h3>
@@ -180,16 +223,34 @@ const outcomeKey = computed(() => {
         :stats="self?.stats"
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
+        @drop-intent="onDropIntent"
       />
 
+      <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
+      <p v-if="self?.reservedCard" class="arena__hand-hint" role="status">
+        {{ t('combat.cardReserved') }}
+      </p>
       <div class="arena__actions">
         <button
           type="button"
           class="btn-ghost"
-          :disabled="busy || !canAct || !selectedId || self?.discardedForChakra"
+          :disabled="
+            busy || !canAct || !selectedId || self?.discardedForChakra || !!self?.reservedCard
+          "
           @click="emit('discard-chakra')"
         >
           {{ t('combat.discardForChakra') }}
+        </button>
+        <button
+          type="button"
+          class="btn-ghost"
+          :disabled="
+            busy || !canAct || !selectedId || self?.discardedForChakra || !!self?.reservedCard
+          "
+          data-testid="pvp-reserve-card"
+          @click="emit('reserve-card')"
+        >
+          {{ t('combat.reserveCard') }}
         </button>
         <button
           type="button"
@@ -217,6 +278,27 @@ const outcomeKey = computed(() => {
 </template>
 
 <style scoped>
+.arena-drop-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.arena-drop-zone {
+  display: grid;
+  place-items: center;
+  min-height: 5rem;
+  padding: 0.75rem;
+  border: 2px dashed var(--color-line-strong);
+  color: var(--color-ink);
+  text-align: center;
+}
+
+.arena-drop-zone--disabled {
+  opacity: 0.45;
+}
+
 .pvp-top {
   display: flex;
   flex-wrap: wrap;

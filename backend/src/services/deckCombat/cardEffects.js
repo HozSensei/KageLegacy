@@ -26,6 +26,17 @@ export const AOE_DAMAGE_MULT = 1.35;
 
 export { PLAYER_DEBUFF_KEYS };
 
+const COMBO_STAT_TYPES = new Set(['taijutsu', 'ninjutsu', 'genjutsu']);
+
+// Combo conditions always inspect the immediately preceding card in this turn.
+function matchesPreviousCard(effect, previousCardStatType) {
+  return (
+    (effect.condition === 'previous_card_stat_type' || effect.type === 'combo_previous') &&
+    COMBO_STAT_TYPES.has(effect.statType) &&
+    effect.statType === previousCardStatType
+  );
+}
+
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';
   return Number(stats?.[key]) || 0;
@@ -43,6 +54,7 @@ export function computeCardDamage(card, ctx) {
     enemyAffinity = null,
     talentMods = {},
     cardsPlayedThisTurn = 0,
+    previousCardStatType = null,
     rng = Math.random,
   } = ctx;
 
@@ -64,6 +76,12 @@ export function computeCardDamage(card, ctx) {
     return false;
   });
   if (conditionalBonus) base += Number(conditionalBonus.value) || 0;
+  for (const effect of card.effects || []) {
+    if (matchesPreviousCard(effect, previousCardStatType)) {
+      if (effect.type === 'bonus_if') base += Number(effect.value) || 0;
+      if (effect.type === 'combo_previous') base += Math.max(0, Number(effect.damage) || 0);
+    }
+  }
 
   let perHit = scaleDamage(base, attackStatFor(card, stats));
   // Flat Force (talents / ennemis) — les cartes soutien utilisent *_pct
@@ -185,6 +203,7 @@ export function applyCardPlay({
       enemyAffinity: nextEnemy.elementAffinity,
       talentMods,
       cardsPlayedThisTurn: Number(nextPlayer.cardsPlayedThisTurn) || 0,
+      previousCardStatType: nextPlayer.previousCardStatType,
       rng,
     });
 
@@ -329,7 +348,29 @@ function applyExtraEffect(effect, ctx) {
   const type = effect?.type;
   const talentCodes = ctx.talentCodes || [];
 
-  if (type === 'draw') {
+  if (
+    (type === 'draw' || type === 'gain_energy' || type === 'gain_chakra') &&
+    effect.condition != null &&
+    !matchesPreviousCard(effect, player.previousCardStatType)
+  ) {
+    return { player, enemy, logs };
+  }
+
+  if (type === 'combo_previous') {
+    if (matchesPreviousCard(effect, player.previousCardStatType)) {
+      const count = Math.max(0, Math.floor(Number(effect.draw) || 0));
+      const chakra = Math.max(0, Number(effect.chakra) || 0);
+      if (count > 0) {
+        const drawn = drawCards(player, count, ctx.rng);
+        player = drawn.player;
+        logs.push({ type: 'draw', count: drawn.drawn.length, instanceIds: drawn.drawn });
+      }
+      if (chakra > 0) {
+        player = { ...player, chakra: (Number(player.chakra) || 0) + chakra };
+        logs.push({ type: 'gain_chakra', amount: chakra, chakra: player.chakra });
+      }
+    }
+  } else if (type === 'draw') {
     const drawn = drawCards(player, Number(effect.value) || 1, ctx.rng);
     player = drawn.player;
     logs.push({ type: 'draw', count: drawn.drawn.length, instanceIds: drawn.drawn });

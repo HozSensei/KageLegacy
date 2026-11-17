@@ -1,14 +1,14 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { resolveCardArt } from '../../utils/cardArt'
-import { cardEffectParts } from '../../utils/cardEffectLine'
-import { cardFooterCells } from '../../utils/cardFooterStats'
-import { cardTypeVisual, rarityVisual, statTone } from '../../utils/cardVisuals'
-import { localizedName } from '../../utils/localeContent.js'
-import { scalingStatKey } from '../../utils/cardScaling'
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { resolveCardArt } from '../../utils/cardArt';
+import { cardEffectParts } from '../../utils/cardEffectLine';
+import { cardFooterCells } from '../../utils/cardFooterStats';
+import { cardTypeVisual, rarityVisual, statTone } from '../../utils/cardVisuals';
+import { localizedName } from '../../utils/localeContent.js';
+import { scalingStatKey } from '../../utils/cardScaling';
 
-defineOptions({ name: 'CombatHand' })
+defineOptions({ name: 'CombatHand' });
 
 const props = defineProps({
   cards: { type: Array, default: () => [] },
@@ -17,83 +17,189 @@ const props = defineProps({
   chakra: { type: Number, default: 0 },
   /** Snapshot stats combat — figures affichées en valeur effective. */
   stats: { type: Object, default: null },
-})
+});
 
-const emit = defineEmits(['select', 'play'])
+const emit = defineEmits(['select', 'play', 'drop-intent']);
 
-const { locale, t, te } = useI18n()
+const { locale, t, te } = useI18n();
+
+// Within the nearest [data-combat-drop-root], zones declare data-combat-drop-zone
+// as play/discard/reserve and data-combat-drop-disabled="true" when unavailable.
+// A valid drop emits only drop-intent({ card, action }); the consumer validates it.
+const drag = ref(null);
+let suppressClick = false;
+let clickTimer;
+
+function startDrag(event, card) {
+  if (drag.value || props.disabled || !event.isPrimary || event.button !== 0) return;
+  suppressClick = false;
+  clearTimeout(clickTimer);
+  const rect = event.currentTarget.getBoundingClientRect();
+  drag.value = {
+    card,
+    left: rect.left,
+    top: rect.top,
+    width: event.currentTarget.offsetWidth,
+    height: event.currentTarget.offsetHeight,
+    pointerId: event.pointerId,
+    element: event.currentTarget,
+    x: event.clientX,
+    y: event.clientY,
+    dx: 0,
+    dy: 0,
+    moved: false,
+  };
+  event.currentTarget.setPointerCapture(event.pointerId);
+}
+
+function moveDrag(event) {
+  const current = drag.value;
+  if (!current || current.pointerId !== event.pointerId) return;
+  const dx = event.clientX - current.x;
+  const dy = event.clientY - current.y;
+  if (!current.moved && Math.hypot(dx, dy) < 8) return;
+  drag.value = { ...current, dx, dy, moved: true };
+}
+
+function endDrag(event, cancelled = false) {
+  const current = drag.value;
+  if (!current || current.pointerId !== event.pointerId) return;
+  if (current.moved) {
+    suppressClick = true;
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(() => {
+      suppressClick = false;
+    }, 500);
+    const target = document.elementFromPoint(event.clientX, event.clientY);
+    const zone = target?.closest('[data-combat-drop-zone]');
+    const root = current.element.closest('[data-combat-drop-root]');
+    const action = zone?.dataset.combatDropZone;
+    const card = props.cards.find(item => item.instanceId === current.card.instanceId);
+    if (
+      !cancelled &&
+      root &&
+      zone &&
+      root.contains(zone) &&
+      zone.closest('[data-combat-drop-root]') === root &&
+      !current.element.parentElement?.contains(zone) &&
+      zone.dataset.combatDropDisabled !== 'true' &&
+      ['play', 'discard', 'reserve'].includes(action) &&
+      !props.disabled &&
+      card &&
+      (action !== 'play' || canAfford(card))
+    ) {
+      emit('drop-intent', { card, action });
+    }
+  }
+  drag.value = null;
+  if (current.element.hasPointerCapture(event.pointerId))
+    current.element.releasePointerCapture(event.pointerId);
+}
+
+function mountDragPreview(container) {
+  if (!container || container.firstChild || !drag.value) return;
+  const preview = drag.value.element.cloneNode(true);
+  preview.classList.remove('hand-card--dragging');
+  preview.removeAttribute('data-testid');
+  preview.style.width = `${drag.value.width}px`;
+  preview.style.height = `${drag.value.height}px`;
+  container.appendChild(preview);
+}
+
+function selectCard(event, card) {
+  if (suppressClick && event.detail !== 0) return;
+  emit('select', card);
+}
+
+watch(
+  () => props.disabled,
+  value => {
+    if (value && drag.value) {
+      const current = drag.value;
+      drag.value = null;
+      if (current.element.hasPointerCapture(current.pointerId))
+        current.element.releasePointerCapture(current.pointerId);
+    }
+  }
+);
+onBeforeUnmount(() => {
+  clearTimeout(clickTimer);
+  if (drag.value?.element.hasPointerCapture(drag.value.pointerId)) {
+    drag.value.element.releasePointerCapture(drag.value.pointerId);
+  }
+});
 
 function cardName(card) {
-  return localizedName(card, locale.value)
+  return localizedName(card, locale.value);
 }
 
 /** Fige la carte sortante à sa place pour que les autres glissent sans saut. */
 function pinLeaving(el) {
-  el.style.left = `${el.offsetLeft}px`
-  el.style.top = `${el.offsetTop}px`
-  el.style.width = `${el.offsetWidth}px`
-  el.style.height = `${el.offsetHeight}px`
+  el.style.left = `${el.offsetLeft}px`;
+  el.style.top = `${el.offsetTop}px`;
+  el.style.width = `${el.offsetWidth}px`;
+  el.style.height = `${el.offsetHeight}px`;
 }
 
 function canAfford(card) {
-  return (Number(card.cost) || 0) <= props.chakra
+  return (Number(card.cost) || 0) <= props.chakra;
 }
 
 const fanStyle = computed(() => {
-  const n = props.cards.length || 1
-  return { '--hand-count': n }
-})
+  const n = props.cards.length || 1;
+  return { '--hand-count': n };
+});
 
 /* Les cartes d'un duel PvP n'ont pas de type : on le déduit de leur effet, pour l'affichage seulement. */
 function displayType(card) {
-  if (card.type) return card.type
-  if (card.damage) return 'attack'
-  if (card.block) return 'defense'
-  if (card.heal) return 'skill'
-  return null
+  if (card.type) return card.type;
+  if (card.damage) return 'attack';
+  if (card.block) return 'defense';
+  if (card.heal) return 'skill';
+  return null;
 }
 
 function effectParts(card) {
-  return cardEffectParts(card, props.stats, { t, te, locale: locale.value })
+  return cardEffectParts(card, props.stats, { t, te, locale: locale.value });
 }
 
 function effectLine(card) {
-  return effectParts(card).texts.join(' · ')
+  return effectParts(card).texts.join(' · ');
 }
 
 function effectTitle(card) {
-  return effectParts(card).aria.join(' · ')
+  return effectParts(card).aria.join(' · ');
 }
 
 function scaleStat(card) {
   for (const key of ['damage', 'block', 'heal']) {
-    if (!(Number(card[key]) > 0)) continue
-    const statKey = scalingStatKey(card, key)
-    if (!statKey) continue
+    if (!(Number(card[key]) > 0)) continue;
+    const statKey = scalingStatKey(card, key);
+    if (!statKey) continue;
     return {
       key: statKey,
       label: t(`cards.stats.${statKey}`, statKey),
       tone: statTone(statKey),
-    }
+    };
   }
-  if (!card.statType) return null
+  if (!card.statType) return null;
   return {
     key: card.statType,
     label: t(`cards.stats.${card.statType}`, card.statType),
     tone: statTone(card.statType),
-  }
+  };
 }
 
 function rarityKey(card) {
-  return card.rarity || 'common'
+  return card.rarity || 'common';
 }
 
 function cardArt(card) {
-  return resolveCardArt(card)
+  return resolveCardArt(card);
 }
 
 function footerCells(card) {
-  return cardFooterCells(card)
+  return cardFooterCells(card);
 }
 </script>
 
@@ -113,20 +219,35 @@ function footerCells(card) {
       class="hand-card"
       :class="{
         'hand-card--selected': selectedId === card.instanceId,
+        'hand-card--dragging': drag?.card === card && drag.moved,
         'hand-card--unaffordable': !canAfford(card),
         [`hand-card--${displayType(card) || 'untyped'}`]: true,
         [`hand-card--${rarityKey(card)}`]: true,
         'hand-card--foil': rarityVisual(card.rarity).foil,
         'hand-card--has-scale': Boolean(scaleStat(card)),
       }"
-      :style="{ '--i': index, '--n': cards.length }"
+      :style="{
+        '--i': index,
+        '--angle': `${(index - (cards.length - 1) / 2) * Math.min(4, 24 / Math.max(cards.length - 1, 1))}deg`,
+        '--lift': `${Math.abs(index - (cards.length - 1) / 2) * Math.min(3, 18 / Math.max(cards.length - 1, 1))}px`,
+        '--drag-x': `${drag?.card === card ? drag.dx : 0}px`,
+        '--drag-y': `${drag?.card === card ? drag.dy : 0}px`,
+      }"
       :disabled="disabled"
+      draggable="false"
       :aria-pressed="selectedId === card.instanceId"
+      aria-keyshortcuts="Shift+Enter"
       :data-tone="cardTypeVisual(displayType(card)).tone"
       :data-rarity="rarityKey(card)"
       :data-testid="`hand-card-${card.slug}`"
-      @click="emit('select', card)"
-      @dblclick="canAfford(card) && emit('play', card)"
+      @pointerdown="startDrag($event, card)"
+      @pointermove="moveDrag"
+      @pointerup="endDrag($event)"
+      @pointercancel="endDrag($event, true)"
+      @lostpointercapture="endDrag($event, true)"
+      @click="selectCard($event, card)"
+      @dblclick="!suppressClick && canAfford(card) && emit('play', card)"
+      @keydown.enter.shift.prevent="canAfford(card) && emit('play', card)"
     >
       <span class="hand-card__foil" aria-hidden="true" />
 
@@ -142,10 +263,7 @@ function footerCells(card) {
           />
         </span>
         <span v-else class="hand-card__art hand-card__art--placeholder" aria-hidden="true">
-          <span
-            class="shape"
-            :class="`shape--${cardTypeVisual(displayType(card)).shape}`"
-          />
+          <span class="shape" :class="`shape--${cardTypeVisual(displayType(card)).shape}`" />
         </span>
 
         <span class="hand-card__body">
@@ -153,11 +271,7 @@ function footerCells(card) {
           <span v-if="displayType(card)" class="hand-card__type">
             {{ t(`cards.types.${displayType(card)}`, displayType(card)) }}
           </span>
-          <span
-            v-if="effectLine(card)"
-            class="hand-card__effect"
-            :title="effectTitle(card)"
-          >
+          <span v-if="effectLine(card)" class="hand-card__effect" :title="effectTitle(card)">
             {{ effectLine(card) }}
           </span>
         </span>
@@ -197,6 +311,16 @@ function footerCells(card) {
       </span>
     </button>
   </TransitionGroup>
+  <Teleport to="body">
+    <div
+      v-if="drag?.moved"
+      :ref="mountDragPreview"
+      class="hand-drag-preview"
+      :style="{ left: `${drag.left + drag.dx}px`, top: `${drag.top + drag.dy}px` }"
+      aria-hidden="true"
+      inert
+    />
+  </Teleport>
 </template>
 
 <style scoped>
@@ -204,13 +328,14 @@ function footerCells(card) {
   position: relative;
   display: flex;
   align-items: flex-end;
-  gap: 0.55rem;
+  gap: 0;
   min-height: 14.5rem;
   margin-inline: calc(var(--space-gutter) * -1);
   padding: 1rem var(--space-gutter) 0.75rem;
   overflow-x: auto;
   scroll-padding-inline: var(--space-gutter);
   scroll-snap-type: x proximity;
+  isolation: isolate;
 }
 
 .hand-card {
@@ -234,6 +359,9 @@ function footerCells(card) {
   outline: 0 solid var(--color-ink);
   overflow: visible;
   scroll-snap-align: start;
+  transform: translateY(var(--lift)) rotate(var(--angle));
+  transform-origin: center bottom;
+  touch-action: none;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--card-rarity) 35%, transparent),
     0 8px 16px color-mix(in srgb, var(--color-ink) 16%, transparent);
@@ -242,6 +370,36 @@ function footerCells(card) {
     opacity var(--dur-base) ease,
     box-shadow var(--dur-base) ease,
     outline-width var(--dur-fast) ease;
+}
+
+.hand-card + .hand-card {
+  margin-left: -2.5rem;
+}
+
+.hand-card--dragging {
+  z-index: 10;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--drag-x), var(--drag-y));
+  transition: none;
+}
+
+.hand-drag-preview {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.hand-drag-preview > .hand-card {
+  margin: 0;
+  transform: none;
+  transition: none;
+}
+
+.hand-card:focus-visible {
+  z-index: 5;
+  outline: 3px solid var(--color-on-ink);
+  outline-offset: 2px;
 }
 
 .hand-card__shell {
@@ -279,15 +437,14 @@ function footerCells(card) {
   z-index: 2;
   opacity: 0;
   border-radius: inherit;
-  background:
-    linear-gradient(
-      125deg,
-      transparent 20%,
-      color-mix(in srgb, var(--card-rarity) 18%, transparent) 40%,
-      color-mix(in srgb, var(--color-on-ink) 22%, transparent) 50%,
-      color-mix(in srgb, var(--card-rarity) 22%, transparent) 60%,
-      transparent 80%
-    );
+  background: linear-gradient(
+    125deg,
+    transparent 20%,
+    color-mix(in srgb, var(--card-rarity) 18%, transparent) 40%,
+    color-mix(in srgb, var(--color-on-ink) 22%, transparent) 50%,
+    color-mix(in srgb, var(--card-rarity) 22%, transparent) 60%,
+    transparent 80%
+  );
   background-size: 220% 220%;
   mix-blend-mode: soft-light;
 }
@@ -303,7 +460,8 @@ function footerCells(card) {
 }
 
 .hand-card:hover:not(:disabled) {
-  transform: translateY(-0.55rem);
+  z-index: 5;
+  transform: translateY(calc(var(--lift) - 0.55rem)) rotate(var(--angle));
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--card-rarity) 55%, transparent),
     0 12px 20px color-mix(in srgb, var(--color-ink) 20%, transparent),
@@ -313,7 +471,15 @@ function footerCells(card) {
 .hand-card--selected,
 .hand-card--selected:hover:not(:disabled) {
   outline-width: 3px;
-  transform: translateY(-0.85rem);
+  z-index: 4;
+  transform: translateY(calc(var(--lift) - 0.85rem)) rotate(var(--angle));
+}
+
+.hand-card--dragging,
+.hand-card--dragging:hover:not(:disabled),
+.hand-card--dragging.hand-card--selected {
+  z-index: 10;
+  transform: translate(var(--drag-x), var(--drag-y));
 }
 
 .hand-card:disabled {
@@ -338,12 +504,11 @@ function footerCells(card) {
   font-size: 1.5rem;
   color: var(--tone-fill);
   opacity: 0.4;
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--tone-fill) 30%, var(--card-body-bg)),
-      var(--card-body-bg)
-    );
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--tone-fill) 30%, var(--card-body-bg)),
+    var(--card-body-bg)
+  );
 }
 
 .hand-card__art-img {
@@ -435,12 +600,11 @@ function footerCells(card) {
   inset: 0;
   transform: rotate(45deg);
   border-radius: 0.15rem;
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--color-ink) 55%, var(--color-bg-soft)),
-      color-mix(in srgb, var(--color-ink) 88%, black)
-    );
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--color-ink) 55%, var(--color-bg-soft)),
+    color-mix(in srgb, var(--color-ink) 88%, black)
+  );
   box-shadow:
     0 0 0 1.5px color-mix(in srgb, var(--card-rarity) 70%, var(--color-on-ink)),
     0 1px 4px color-mix(in srgb, var(--color-ink) 30%, transparent);
@@ -547,6 +711,13 @@ function footerCells(card) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hand-card,
+  .hand-enter-active,
+  .hand-leave-active,
+  .hand-move {
+    transition: none;
+  }
+
   .hand-card--foil:hover .hand-card__foil,
   .hand-card--selected .hand-card__foil {
     animation: none;

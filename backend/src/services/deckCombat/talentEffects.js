@@ -320,6 +320,7 @@ export function applyTalentStartOfTurn(player, effectCodes = [], { turn = 1 } = 
     ninjutsuPlayedThisTurn: 0,
     genjutsuPlayedThisTurn: 0,
     cardsPlayedThisTurn: 0,
+    previousCardStatType: null,
     elementsPlayedThisTurn: [],
     stormWeaveReady: false,
     elementalCycleBonus: false,
@@ -349,7 +350,7 @@ export function applyTalentStartOfTurn(player, effectCodes = [], { turn = 1 } = 
   }
 
   if (codes.has('purify') && !next.purifyUsed) {
-    const idx = (next.statuses || []).findIndex((s) => PLAYER_DEBUFF_KEYS.has(s.key));
+    const idx = (next.statuses || []).findIndex(s => PLAYER_DEBUFF_KEYS.has(s.key));
     if (idx >= 0) {
       const removed = next.statuses[idx];
       next.statuses = next.statuses.filter((_, i) => i !== idx);
@@ -396,6 +397,7 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
   const next = {
     ...player,
     cardsPlayedThisTurn: (Number(player.cardsPlayedThisTurn) || 0) + 1,
+    previousCardStatType: card?.statType || null,
   };
   const nextEnemy = enemy;
   const codes = new Set(effectCodes || []);

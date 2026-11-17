@@ -204,12 +204,24 @@ export const usePvpStore = defineStore('pvp', () => {
     return state;
   }
 
+  function applyPublicState(state) {
+    publicState.value = state;
+    const hand = state?.fighters?.[role.value]?.hand;
+    if (
+      selectedInstanceId.value != null &&
+      Array.isArray(hand) &&
+      !hand.some(card => card?.instanceId === selectedInstanceId.value)
+    ) {
+      selectedInstanceId.value = null;
+    }
+  }
+
   function refreshPublicView() {
     if (!duel.value || !role.value) {
       publicState.value = null;
       return;
     }
-    publicState.value = publicDuelState(duel.value, role.value);
+    applyPublicState(publicDuelState(duel.value, role.value));
   }
 
   function connectWs(matchId) {
@@ -249,7 +261,7 @@ export const usePvpStore = defineStore('pvp', () => {
           broadcastState();
         }
         if (role.value === 'guest' && msg.lastState) {
-          publicState.value = msg.lastState;
+          applyPublicState(msg.lastState);
         }
         break;
       case 'peer_joined':
@@ -265,7 +277,7 @@ export const usePvpStore = defineStore('pvp', () => {
         break;
       case 'state':
         if (role.value === 'guest') {
-          publicState.value = msg.state;
+          applyPublicState(msg.state);
           if (msg.state?.logs?.length) {
             recentLogs.value = [...msg.state.logs].reverse().slice(0, 40);
           }

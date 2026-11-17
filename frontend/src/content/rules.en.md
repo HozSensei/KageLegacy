@@ -62,15 +62,15 @@ Your ninja has **no base stats**. Their stats are the sum of two things:
 
 The profile shows the breakdown of both sources.
 
-| Stat               | Effect in combat                                                 |
-| ------------------ | ---------------------------------------------------------------- |
-| **Taijutsu**       | Increases the damage of Taijutsu cards                           |
-| **Ninjutsu**       | Increases the damage of Ninjutsu cards                           |
-| **Genjutsu**       | Increases the damage of Genjutsu cards                           |
-| **Medicine**       | Increases armor and healing, and the damage of Medicine cards    |
-| **Max HP**         | Added to the 100 starting hit points                             |
-| **Max Chakra**     | Increases the maximum Chakra reserve                             |
-| **Starting Armor** | Adds block at the start of combat (it disappears at end of turn) |
+| Stat               | Effect in combat                                              |
+| ------------------ | ------------------------------------------------------------- |
+| **Taijutsu**       | Increases the damage of Taijutsu cards                        |
+| **Ninjutsu**       | Increases the damage of Ninjutsu cards                        |
+| **Genjutsu**       | Increases the damage of Genjutsu cards                        |
+| **Medicine**       | Increases armor and healing, and the damage of Medicine cards |
+| **Max HP**         | Added to the 100 starting hit points                          |
+| **Max Chakra**     | Increases the Chakra received at the start of each turn       |
+| **Starting Armor** | Adds block at the start of combat                             |
 
 Each point of Taijutsu, Ninjutsu, Genjutsu or Medicine is worth **+1%**: with 30 Ninjutsu, a Ninjutsu card with 10 damage deals 13.
 
@@ -78,7 +78,7 @@ Each point of Taijutsu, Ninjutsu, Genjutsu or Medicine is worth **+1%**: with 30
 
 ## Cards
 
-The game has **200 cards**. Every card plays two roles:
+Every card plays two roles:
 
 - an **active effect**, when you play it in combat;
 - a **passive bonus**, added to your stats for as long as the card is in your active deck, even if you never draw it.
@@ -138,7 +138,7 @@ An upgraded legendary card also returns 2 essence, an upgraded mythic card 5 ess
 
 ## The deck
 
-A deck holds **20 to 30 cards**, with **at most 3 copies** of the same card. You can only include copies you own.
+A playable deck holds **20 to 30 cards**, with **at most 3 copies** of the same card. You can only include copies you own. Two further limits apply: **3 legendary or mythic cards combined**, including **at most 1 clan card**. Legendary or mythic clan copies count toward both limits.
 
 You can build several decks, but only one is **active**. The active deck is the one that:
 
@@ -175,7 +175,7 @@ You can reset the whole tree: every point spent is returned to you. You get **on
 
 ## Combat
 
-A fight pits your ninja against one enemy, turn by turn. You always play first.
+In PvE, a fight pits your ninja against one enemy, turn by turn. You always play first. For arena differences, see “The PvP arena”.
 
 ### Setup
 
@@ -186,12 +186,14 @@ A fight pits your ninja against one enemy, turn by turn. You always play first.
 
 ### Your turn
 
-- You have **3 Chakra**.
+- You have **3 base Chakra**, increased by max Chakra bonuses and potentially by talent effects.
 - You play as many cards as your Chakra allows, in any order.
-- **Once per turn**, you can discard a card from your hand to gain **1 Chakra**.
+- **Once per turn**, you can either discard a card from your hand to gain **1 Chakra** or reserve it for your next turn. You cannot do both.
 - You end your turn whenever you want.
 
-At the end of your turn, the cards left in your hand go to the discard pile. On the next turn, your Chakra is back to 3 and you draw 5 new cards. Unspent Chakra is lost.
+Select a card and use the buttons to play, discard or reserve it; you can also drag it to the corresponding zone. A reserved card immediately leaves your hand and cannot be played that turn.
+
+Cards left in your hand are discarded before the next draw, except the reserved card. On your next turn, you receive your base Chakra and max Chakra bonuses, plus up to **1 unspent Chakra** carried over automatically. The reserved card returns to your hand, then you draw up to 5 cards; cards and talents can modify these resources.
 
 Your hand is limited to **10 cards**. When the draw pile is empty, the discard pile is shuffled and becomes the draw pile again.
 
@@ -212,7 +214,7 @@ The enemy carries out the intent it announced, then announces a new one:
 - **Card damage**: base damage, increased by 1% per point in the stat of its path.
 - **Armor**: it absorbs damage before your HP. It protects you during the enemy's turn, then disappears at the start of your next turn. The enemy's armor disappears the same way at the start of its turn.
 - **Healing**: it cannot exceed your max HP.
-- **Critical hit**: your attacks have a critical chance given by your Speed. A critical hit deals **×1.5** damage.
+- **Critical hit**: some cards or their keywords grant a critical chance, capped at 50%. A critical hit applies **×1.5** to damage; Speed does not determine this chance.
 
 ### Path and element advantages
 
@@ -224,7 +226,7 @@ Each enemy has a **stance** (Taijutsu, Ninjutsu or Genjutsu) and sometimes an **
 - Genjutsu beats Ninjutsu;
 - Ninjutsu beats Taijutsu.
 
-There is no penalty the other way round. Medicine is always neutral.
+The reverse matchup applies a **×0.9** disadvantage. Medicine is always neutral.
 
 **Elements** — a card whose element beats the enemy's affinity deals **×1.5** damage. The other way round, it only deals **×0.7**:
 
@@ -249,7 +251,7 @@ A card with no element, or an enemy with no affinity, stays neutral.
 | **Vulnerable**   | Damage taken increased by 50%                     |
 | **Intangible**   | Incoming attacks deal only 1 damage               |
 
-A status applied again **stacks** its value. Its duration drops by 1 at the end of each turn of whoever carries it.
+A status applied again **stacks** its value and keeps the longer duration. Limited durations drop by 1 at the end of the affected combatant's turn; some effects can be consumed earlier. Weak and Vulnerable apply their multiplier once even when their values stack.
 
 ### Summons
 
@@ -405,17 +407,11 @@ Once an opponent is found, the duel starts as soon as both players are ready.
 
 ### The duel
 
-The basics are those of mission combat: 100 HP plus your max HP bonus, 3 Chakra per turn, 5 cards drawn per turn, one discard per turn for 1 Chakra. Players take turns and can forfeit.
+The basics are those of mission combat: 100 HP plus your max HP bonus, 3 base Chakra plus max Chakra bonuses, up to 1 Chakra carried over automatically, 5 cards drawn per turn, and once per turn either a discard for 1 Chakra or a reserved card. Players take turns and can forfeit. Unplayed cards are discarded at the end of the turn; the reserved card returns before the next draw, subject to the 10-card hand limit.
 
-The duel uses a **simplified** version of the rules:
+The duel uses some PvE calculations for cards, statuses, and talents, **without guaranteeing full parity**: only effects and data passed to and supported by PvP apply. Damage notably uses stats and path advantages; the opponent's dominant path acts as their stance. The opposing player's elemental affinity is currently not passed to the duel engine, so attacks remain neutral against that affinity. Summons have duel-specific handling: only one at a time, they attack at the start of their owner's turn and expire according to their duration. A summon with **Taunt** intercepts damage, with any excess reaching its owner; not all other summon abilities are reproduced. Ordinary cards' exhaust flag is currently not passed to the duel, so they normally go to the discard pile after use, unlike summons.
 
-- card damage, armor and healing are computed with your stats, critical hits included;
-- statuses, path and element advantages, and talent special effects do not apply;
-- summons attack automatically at the end of their owner's turn and disappear after the duration shown on their card;
-- a summon with **Taunt** automatically takes damage in its owner's place until it dies or expires;
-- other summon special abilities do not apply in PvP for now;
-- unplayed cards **stay in hand** from one turn to the next, up to 10;
-- armor disappears at the **end of your own turn**.
+**In PvP, remaining armor disappears at the end of its owner's turn**, unlike PvE where it protects during the enemy turn. Your hand and reserved card are hidden from your opponent.
 
 For now there is **no ranking and no reward** specific to the arena. Entering the queue counts towards some season pass quests.
 

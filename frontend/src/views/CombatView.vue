@@ -1,60 +1,57 @@
 <script setup>
-import { computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import CombatArena from '../components/combat/CombatArena.vue'
-import { useCombatStore } from '../stores/combat'
-import { useMissionsStore } from '../stores/missions'
+import { computed, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import CombatArena from '../components/combat/CombatArena.vue';
+import { useCombatStore } from '../stores/combat';
+import { useMissionsStore } from '../stores/missions';
 
-defineOptions({ name: 'CombatView' })
+defineOptions({ name: 'CombatView' });
 
-const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
-const combat = useCombatStore()
-const missions = useMissionsStore()
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const combat = useCombatStore();
+const missions = useMissionsStore();
 
-const combatId = computed(() => route.params.id)
-const isMidRunFight = computed(() => Boolean(combat.combat?.missionRunId))
+const combatId = computed(() => route.params.id);
+const isMidRunFight = computed(() => Boolean(combat.combat?.missionRunId));
 const outcomeRewards = computed(
   () => combat.combat?.run?.rewards || combat.combat?.rewards || null
-)
+);
 /** Victoire d'étape (parcours pas encore fini) : loot différé */
 const showMidRunVictory = computed(
-  () =>
-    isMidRunFight.value &&
-    combat.combat?.state === 'victory' &&
-    !outcomeRewards.value
-)
+  () => isMidRunFight.value && combat.combat?.state === 'victory' && !outcomeRewards.value
+);
 
 onMounted(async () => {
   if (combatId.value) {
     if (!combat.combat || combat.combat.id !== combatId.value) {
-      await combat.fetchState(combatId.value)
+      await combat.fetchState(combatId.value);
     }
   }
-})
+});
 
-watch(combatId, async (id) => {
-  if (id) await combat.fetchState(id)
-})
+watch(combatId, async id => {
+  if (id) await combat.fetchState(id);
+});
 
 watch(
   () => combat.combat?.run,
-  (run) => {
-    if (run) missions.applyRunUpdate(run)
+  run => {
+    if (run) missions.applyRunUpdate(run);
   }
-)
+);
 
 function onSelect(card) {
-  combat.selectedInstanceId = card?.instanceId || null
+  combat.selectedInstanceId = card?.instanceId || null;
 }
 
 async function onPlay(card) {
-  const id = card?.instanceId || combat.selectedInstanceId
-  if (!id) return
+  const id = card?.instanceId || combat.selectedInstanceId;
+  if (!id) return;
   try {
-    await combat.playCard(id)
+    await combat.playCard(id);
   } catch {
     /* error surfaced via store */
   }
@@ -62,16 +59,27 @@ async function onPlay(card) {
 
 async function onEndTurn() {
   try {
-    await combat.endTurn()
+    await combat.endTurn();
   } catch {
     /* store */
   }
 }
 
-async function onDiscardChakra() {
-  if (!combat.selectedInstanceId) return
+async function onDiscardChakra(instanceId) {
+  const id = instanceId || combat.selectedInstanceId;
+  if (!id) return;
   try {
-    await combat.discardForChakra(combat.selectedInstanceId)
+    await combat.discardForChakra(id);
+  } catch {
+    /* store */
+  }
+}
+
+async function onReserveCard(instanceId) {
+  const id = instanceId || combat.selectedInstanceId;
+  if (!id) return;
+  try {
+    await combat.reserveCard(id);
   } catch {
     /* store */
   }
@@ -79,20 +87,20 @@ async function onDiscardChakra() {
 
 async function onForfeit() {
   try {
-    await combat.forfeit()
+    await combat.forfeit();
   } catch {
     /* store */
   }
 }
 
 function goToRunOrMissions() {
-  const runId = combat.combat?.missionRunId
-  combat.clear()
+  const runId = combat.combat?.missionRunId;
+  combat.clear();
   if (runId) {
-    router.push({ name: 'mission-run', params: { id: runId } })
-    return
+    router.push({ name: 'mission-run', params: { id: runId } });
+    return;
   }
-  router.push({ name: 'missions' })
+  router.push({ name: 'missions' });
 }
 </script>
 
@@ -129,6 +137,7 @@ function goToRunOrMissions() {
       @play-card="onPlay"
       @end-turn="onEndTurn"
       @discard-chakra="onDiscardChakra"
+      @reserve-card="onReserveCard"
       @forfeit="onForfeit"
       @dismiss-outcome="goToRunOrMissions"
     />

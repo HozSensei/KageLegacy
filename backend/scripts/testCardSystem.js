@@ -1,10 +1,7 @@
 /**
  * Smoke tests unitaires (sans DB) pour le système de cartes.
  */
-import {
-  applyUpgradeBonuses,
-  serializeCardDefinition,
-} from '../src/services/cardService.js';
+import { applyUpgradeBonuses, serializeCardDefinition } from '../src/services/cardService.js';
 import {
   validateDeck,
   isClanCard,
@@ -78,15 +75,34 @@ assert(serialized.passiveBonus.taijutsu === 4, 'serialized passive');
 
 const characterBonuses = applyUpgradeBonuses({
   ...sampleDef,
-  passive_bonus_json: JSON.stringify({ maxHp: 5, maxChakra: 2, startingBlock: 3, dexterity: 8, force: 4 }),
+  passive_bonus_json: JSON.stringify({
+    maxHp: 5,
+    maxChakra: 2,
+    startingBlock: 3,
+    dexterity: 8,
+    force: 4,
+  }),
 });
 assert(characterBonuses.passiveBonus.maxHp === 5, 'max HP passive survives normalization');
 assert(characterBonuses.passiveBonus.maxChakra === 2, 'max Chakra passive survives normalization');
-assert(characterBonuses.passiveBonus.startingBlock === 3, 'starting Armor passive survives normalization');
-assert(!characterBonuses.passiveBonus.dexterity && !characterBonuses.passiveBonus.force, 'obsolete passives are discarded');
-assert(['maxHp', 'maxChakra', 'startingBlock'].every(key => Object.hasOwn(createEmptyPassiveStats(), key)), 'deck aggregation accepts character bonuses');
+assert(
+  characterBonuses.passiveBonus.startingBlock === 3,
+  'starting Armor passive survives normalization'
+);
+assert(
+  !characterBonuses.passiveBonus.dexterity && !characterBonuses.passiveBonus.force,
+  'obsolete passives are discarded'
+);
+assert(
+  ['maxHp', 'maxChakra', 'startingBlock'].every(key =>
+    Object.hasOwn(createEmptyPassiveStats(), key)
+  ),
+  'deck aggregation accepts character bonuses'
+);
 
-const tooSmall = validateDeck(Array.from({ length: 5 }, (_, i) => ({ quantity: 1, collectionId: i })));
+const tooSmall = validateDeck(
+  Array.from({ length: 5 }, (_, i) => ({ quantity: 1, collectionId: i }))
+);
 assert(!tooSmall.valid && tooSmall.size === 5, 'reject small deck');
 
 const okCards = Array.from({ length: DECK_MIN_SIZE }, (_, i) => ({
@@ -131,8 +147,14 @@ const twoClans = validateDeck([
 ]);
 assert(!twoClans.valid, 'reject two clan cards');
 assert(twoClans.codes.includes('too_many_clan'), 'clan code');
-assert(twoClans.errors.some((e) => e.includes(`Maximum ${MAX_CLAN_CARDS} carte de clan`)), 'clan FR');
-assert(twoClans.errorsEn.some((e) => e.includes(`Max ${MAX_CLAN_CARDS} clan card`)), 'clan EN');
+assert(
+  twoClans.errors.some(e => e.includes(`Maximum ${MAX_CLAN_CARDS} carte de clan`)),
+  'clan FR'
+);
+assert(
+  twoClans.errorsEn.some(e => e.includes(`Max ${MAX_CLAN_CARDS} clan card`)),
+  'clan EN'
+);
 
 const fourLegendaries = validateDeck([
   ...Array.from({ length: DECK_MIN_SIZE - 4 }, (_, i) => ({
@@ -148,13 +170,13 @@ const fourLegendaries = validateDeck([
 assert(!fourLegendaries.valid, 'reject 4 legendary/mythic');
 assert(fourLegendaries.codes.includes('too_many_legendary'), 'legendary code');
 assert(
-  fourLegendaries.errors.some((e) =>
+  fourLegendaries.errors.some(e =>
     e.includes(`Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques`)
   ),
   'legendary FR'
 );
 assert(
-  fourLegendaries.errorsEn.some((e) =>
+  fourLegendaries.errorsEn.some(e =>
     e.includes(`Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic`)
   ),
   'legendary EN'
@@ -180,7 +202,10 @@ assert(oneClanTwoLegs.legendaryOrMythicCount === 3, 'legendary count includes cl
 
 // Catalogue seed (~200 cartes, structure scalable vers 300)
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
-assert(ALL_CARDS.length >= 190 && ALL_CARDS.length <= 230, `catalog ~200+, got ${ALL_CARDS.length}`);
+assert(
+  ALL_CARDS.length >= 190 && ALL_CARDS.length <= 230,
+  `catalog ~200+, got ${ALL_CARDS.length}`
+);
 const catalog = validateCatalog(ALL_CARDS);
 assert(catalog.byType.attack >= 70, 'enough attacks');
 assert(catalog.byType.defense >= 35, 'enough defenses');
@@ -194,11 +219,53 @@ assert((catalog.byRarity.mythic || 0) >= 5, 'some mythics');
 for (const el of ['katon', 'suiton', 'raiton', 'doton', 'futon', 'null']) {
   assert((catalog.byElement[el] || 0) >= 10, `element ${el} under-represented`);
 }
-const STAT_KEYS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock']);
+const STAT_KEYS = new Set([
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medicine',
+  'maxHp',
+  'maxChakra',
+  'startingBlock',
+]);
 for (const card of ALL_CARDS) {
   for (const key of Object.keys(card.passiveBonus || {})) {
     assert(STAT_KEYS.has(key), `valid passive ${key} on ${card.slug}`);
   }
+}
+
+const catalogBySlug = new Map(ALL_CARDS.map(card => [card.slug, card]));
+for (const [slug, statType, damage, draw] of [
+  ['frappe-de-pause', 'taijutsu', 2, 0],
+  ['relecture-tactique', 'genjutsu', 0, 1],
+]) {
+  const card = catalogBySlug.get(slug);
+  const combo = card.effects.find(effect => effect.type === 'combo_previous');
+  assert(
+    JSON.stringify(combo) ===
+      JSON.stringify({ type: 'combo_previous', statType, damage, draw, chakra: 0 }),
+    `combo payload ${slug}`
+  );
+  assert(card.rarity === 'common' && card.baseCost === 0, `combo rarity and cost ${slug}`);
+}
+const emberEdge = catalogBySlug.get('lame-de-braise');
+assert(
+  emberEdge.baseDamage === 8 &&
+    emberEdge.effects.some(effect => effect.status === 'burn' && effect.value === 2),
+  'ember edge burn tradeoff'
+);
+const sleepBlade = catalogBySlug.get('lame-du-sommeil');
+assert(
+  sleepBlade.effects.some(
+    effect =>
+      effect.type === 'bonus_if' && effect.condition === 'enemy_vulnerable' && effect.value === 4
+  ),
+  'sleep blade illusion payoff'
+);
+for (const slug of ['lame-de-braise', 'lame-du-sommeil', 'frappe-de-pause', 'relecture-tactique']) {
+  const card = catalogBySlug.get(slug);
+  assert(card.upgradeBonuses.level_1 && card.upgradeBonuses.level_2, `upgrades present ${slug}`);
+  assert(card.descriptionFr && card.descriptionEn, `bilingual descriptions ${slug}`);
 }
 
 // Clans = cartes légendaires à gros passifs de deck (pas un choix à la création).
@@ -212,13 +279,19 @@ for (const card of CLAN_LEGENDARY_CARDS) {
     return s + Number(v);
   }, 0);
   assert(passiveSum >= 12, `clan ${card.slug} needs large deck passive (sum=${passiveSum})`);
-  assert(ALL_CARDS.some((c) => c.slug === card.slug), `clan ${card.slug} in ALL_CARDS`);
+  assert(
+    ALL_CARDS.some(c => c.slug === card.slug),
+    `clan ${card.slug} in ALL_CARDS`
+  );
 }
 
-const dual = ALL_CARDS.find((c) => c.slug === 'harmonie-des-cinq-vents');
+const dual = ALL_CARDS.find(c => c.slug === 'harmonie-des-cinq-vents');
 assert(dual?.statTypeSecondary === 'genjutsu', 'harmonie is nin/gen dual');
 assert(!Object.keys(dual.passiveBonus || {}).includes('vitesse'), 'harmonie no vitesse passive');
-assert(!Object.keys(dual.passiveBonus || {}).includes('intelligence'), 'harmonie no intelligence passive');
+assert(
+  !Object.keys(dual.passiveBonus || {}).includes('intelligence'),
+  'harmonie no intelligence passive'
+);
 
 for (const card of ALL_CARDS) {
   for (const key of Object.keys(card.passiveBonus || {})) {

@@ -23,11 +23,44 @@ const activeSectionId = ref('');
 const contentRef = ref(null);
 let observer = null;
 
+// Canonical section IDs are language-independent; keep both localized slugs as aliases.
+const sectionIds = [
+  ['overview', 'en-bref', 'at-a-glance'],
+  ['ninja', 'votre-ninja', 'your-ninja'],
+  ['cards', 'les-cartes', 'cards'],
+  ['deck', 'le-deck', 'the-deck'],
+  ['talents', 'les-talents', 'the-talent-tree'],
+  ['combat', 'le-combat', 'combat'],
+  ['missions', 'missions-et-parcours', 'missions-and-runs'],
+  ['shop', 'la-boutique', 'the-shop'],
+  ['season-pass', 'le-passe-de-saison', 'the-season-pass'],
+  ['pvp', 'le-pvp-en-arene', 'the-pvp-arena'],
+  ['resources', 'monnaies-et-ressources', 'currencies-and-resources'],
+  ['update-history', 'historique-des-mises-a-jour', 'update-history'],
+];
+const canonicalIds = new Map(
+  sectionIds.flatMap(([id, ...aliases]) => [id, ...aliases].map(alias => [alias, id]))
+);
+const canonicalId = id => canonicalIds.get(id) || id;
+
 const markdown = computed(() => (locale.value === 'en' ? rulesEn : rulesFr));
 
-const navSections = computed(() => parseRulesNav(markdown.value));
+const navSections = computed(() =>
+  parseRulesNav(markdown.value).map(section => ({
+    ...section,
+    id: canonicalId(section.id),
+  }))
+);
 
-const html = computed(() => addHeadingAnchors(renderMarkdown(markdown.value)));
+const html = computed(() =>
+  addHeadingAnchors(renderMarkdown(markdown.value)).replace(
+    /<h2 id="([^"]+)"([^>]*)><a class="rules-doc__anchor" href="#[^"]+">/g,
+    (_match, id, attributes) => {
+      const canonical = canonicalId(id);
+      return `<h2 id="${canonical}"${attributes}><a class="rules-doc__anchor" href="#${canonical}">`;
+    }
+  )
+);
 
 function goBack() {
   if (auth.user) {
@@ -38,11 +71,27 @@ function goBack() {
 }
 
 function scrollToSection(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   sidebarOpen.value = false;
-  router.replace({ hash: `#${id}` });
+  if (route.hash === `#${id}`) {
+    applyRouteHash();
+  } else {
+    router.push({ hash: `#${id}` });
+  }
+}
+
+function handleContentClick(event) {
+  const link = event.target.closest('a.rules-doc__anchor');
+  if (
+    !link ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
+    return;
+  event.preventDefault();
+  scrollToSection(link.getAttribute('href').slice(1));
 }
 
 function setupObserver() {
@@ -72,18 +121,22 @@ function applyRouteHash() {
   const hash = route.hash?.replace(/^#/, '');
   if (!hash) return;
   requestAnimationFrame(() => {
-    const el = document.getElementById(hash);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    activeSectionId.value = hash;
+    const id = canonicalId(hash);
+    const el = document.getElementById(id);
+    if (!el || !contentRef.value?.contains(el)) return;
+    el.scrollIntoView({ block: 'start' });
+    activeSectionId.value = el.closest('h2')?.id || id;
   });
 }
 
-watch(html, () => {
-  requestAnimationFrame(() => {
+watch(
+  html,
+  () => {
     setupObserver();
     applyRouteHash();
-  });
-});
+  },
+  { flush: 'post' }
+);
 
 watch(() => route.hash, applyRouteHash);
 
@@ -156,7 +209,13 @@ onUnmounted(() => observer?.disconnect());
       />
 
       <main class="rules-layout__main">
-        <article ref="contentRef" class="rules-doc" data-testid="rules-content" v-html="html" />
+        <article
+          ref="contentRef"
+          class="rules-doc"
+          data-testid="rules-content"
+          @click="handleContentClick"
+          v-html="html"
+        />
       </main>
     </div>
   </div>
