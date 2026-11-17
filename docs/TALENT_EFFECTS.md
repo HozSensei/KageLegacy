@@ -53,16 +53,26 @@ Codes absents de `TALENT_EFFECT_MVP` → listés dans `combat.talentEffects.stub
 | `vital_overflow` | Med | Surplus de soin → 50 % en Armure (max 3) |
 | `item_master` | Centre | Objets → défausse (pas exhaust) ; hors-objet interdit |
 
-## Reportés (6)
+## Reportés (1)
 
 | Code | Raison |
 |------|--------|
 | `collector` | Bonus stats selon objets uniques du deck → couche stats / build, pas le moteur de résolution |
-| `path_weaver` | Meta arbre (≥1 talent dans 3 branches) |
-| `balanced_stance` | Meta arbre (équilibre des stats principales) |
-| `four_paths` | Meta arbre (+ voies ; lock keystones de branche) |
-| `confusion_tax` | Les ennemis n’ont pas de « cartes » / coûts jouables |
-| `steady_hands` | Pas de système de contre/interruption sur les soins |
+
+## Centre (objets / PV)
+
+| Code | Effet combat |
+|------|----------------|
+| `item_armor` (nœud `path_weaver`) | Cartes Objet : +2 armure gagnée |
+| `item_damage` (nœud `balanced_stance`) | Cartes Objet : +2 dégâts |
+| `vital_satchel` (nœud `four_paths`) | +20 PV max (bonus talent) ; Objets : +1 dégât et +1 armure |
+
+## Genjutsu / Médecine (rattrapage)
+
+| Code | Effet |
+|------|--------|
+| `confusion_tax` | Attaques ennemies −2 si débuff Gen sur l’ennemi |
+| `steady_hands` | +2 PV sur chaque soin |
 
 ## Hooks
 
