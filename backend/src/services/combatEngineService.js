@@ -427,7 +427,7 @@ export async function startCombat(userId, opts = {}) {
     name: playerName,
     hp: startHp,
     maxHp,
-    block: 0,
+    block: Math.max(0, Number(stats.startingBlock) || 0),
     chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     statuses: [],

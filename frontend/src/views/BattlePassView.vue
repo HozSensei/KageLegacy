@@ -157,14 +157,37 @@ async function onClaimQuest(questId) {
         @done="onRewardBoosterDone"
       />
 
-      <section v-else-if="claimedCards.length" class="bp-claimed-cards mt-6">
-        <h2 class="t-subheading">{{ t('shop.obtainedTitle') }}</h2>
-        <ul class="bp-claimed-cards__grid">
-          <li v-for="(entry, index) in claimedCards" :key="`${entry.collectionId}-${index}`">
-            <CardDisplay :card="entry.card" />
-          </li>
-        </ul>
-      </section>
+      <Teleport to="body">
+        <Transition name="fade">
+          <div
+            v-if="claimedCards.length && !isOpeningRewardBooster"
+            class="modal-backdrop"
+            data-testid="battle-pass-card-reward-modal"
+            @click.self="claimedCards = []"
+          >
+            <section
+              class="modal-panel bp-reward-modal"
+              role="dialog"
+              aria-modal="true"
+              :aria-label="t('shop.obtainedTitle')"
+            >
+              <h2 class="t-subheading">{{ t('shop.obtainedTitle') }}</h2>
+              <ul class="bp-reward-modal__grid">
+                <li
+                  v-for="(entry, index) in claimedCards"
+                  :key="`${entry.collectionId}-${index}`"
+                  class="bp-reward-modal__card"
+                >
+                  <CardDisplay :card="entry.card" />
+                </li>
+              </ul>
+              <button type="button" class="btn-primary btn-block mt-6" @click="claimedCards = []">
+                {{ t('common.dismiss') }}
+              </button>
+            </section>
+          </div>
+        </Transition>
+      </Teleport>
 
       <div v-show="!isOpeningRewardBooster">
         <div v-if="!store.isPremium" class="bp-premium-cta" data-tone="gold">
@@ -400,13 +423,25 @@ async function onClaimQuest(questId) {
   border-bottom: 0;
 }
 
-.bp-claimed-cards__grid {
+.bp-reward-modal {
+  width: min(46rem, 100%);
+  max-height: calc(100dvh - 2.5rem);
+  overflow-y: auto;
+  border-top-color: var(--color-gold-fill);
+}
+
+.bp-reward-modal__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 12.5rem));
+  justify-content: center;
   gap: 1rem;
   margin: 1rem 0 0;
   padding: 0;
   list-style: none;
+}
+
+.bp-reward-modal__card {
+  min-width: 0;
 }
 
 @media (max-width: 559px) {

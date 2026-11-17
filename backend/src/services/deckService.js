@@ -29,8 +29,9 @@ const STAT_KEYS = [
   'ninjutsu',
   'genjutsu',
   'medicine',
-  'dexterity',
   'maxHp',
+  'maxChakra',
+  'startingBlock',
 ];
 
 function httpError(statusCode, message) {

@@ -52,8 +52,8 @@ function testPureHelpers() {
   assert(empty.taijutsu === 0 && empty.maxHp === 0, 'stats vides à 0');
   assert(
     JSON.stringify(Object.keys(empty).sort()) ===
-      JSON.stringify(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'].sort()),
-    'six clés de stats de combat'
+      JSON.stringify(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock'].sort()),
+    'sept clés de stats de combat'
   );
 
   assert(xpRequiredForLevel(1) === 100, 'XP 1→2 = 100');
@@ -66,10 +66,11 @@ function testPureHelpers() {
   assert(rankForLevel(60) === 'ANBU', 'rang ANBU');
   assert(rankForLevel(80) === 'Kage', 'rang Kage');
 
-  const merged = mergeStatBonuses({ taijutsu: 5 }, { taijutsu: 10, vitesse: 3 }, { ninjutsu: 7 });
+  const merged = mergeStatBonuses({ taijutsu: 5 }, { taijutsu: 10, vitesse: 3, maxChakra: 2, startingBlock: 4 }, { ninjutsu: 7 });
   assert(merged.taijutsu === 15, 'merge taijutsu');
   assert(!Object.hasOwn(merged, 'vitesse'), 'les anciennes stats ne sont pas ajoutées');
   assert(merged.ninjutsu === 7, 'merge ninjutsu');
+  assert(merged.maxChakra === 2 && merged.startingBlock === 4, 'merge character bonuses');
   assert(merged.genjutsu === 0, 'merge génjutsu reste 0');
 
   const oneLevel = applyXpGain({ level: 1, xp: 0, talentPointsAvailable: 1 }, 100);

@@ -40,8 +40,10 @@ const STAT_TONES = {
 
 function statValue(total, key) {
   if (key === 'armor') {
+    const fromStartingBlock = Number(total.startingBlock)
     const fromBlock = Number(total.block)
     const fromArmor = Number(total.armor)
+    if (Number.isFinite(fromStartingBlock) && fromStartingBlock > 0) return fromStartingBlock
     if (Number.isFinite(fromBlock) && fromBlock > 0) return fromBlock
     if (Number.isFinite(fromArmor) && fromArmor > 0) return fromArmor
     return 0

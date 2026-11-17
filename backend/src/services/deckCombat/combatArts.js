@@ -7,8 +7,8 @@ export const COMBAT_ARTS = Object.freeze(['taijutsu', 'ninjutsu', 'genjutsu', 'm
 
 export const COMBAT_ART_SET = new Set(COMBAT_ARTS);
 
-/** Passifs encore autorisés hors arts (legacy / talents plus tard). */
-export const EXTRA_PASSIVE_KEYS = Object.freeze(['dexterity', 'maxHp', 'force']);
+/** Bonus hors arts ; le Chakra max doit rester très rare dans le catalogue. */
+export const EXTRA_PASSIVE_KEYS = Object.freeze(['maxHp', 'maxChakra', 'startingBlock']);
 
 /**
  * Cartes double type (primaire = statType, secondaire ici).
@@ -27,7 +27,7 @@ export const DUAL_TYPE_SECONDARY = Object.freeze({
   'barrage-de-lames': 'ninjutsu',
   'mains-de-lumiere': 'genjutsu',
   'pilier-de-flammes': 'taijutsu',
-  'concentration': 'genjutsu',
+  concentration: 'genjutsu',
   'vent-porteur': 'medicine',
   'serpente-d-eau': 'medicine',
   'serpent-d-eau': 'medicine',
@@ -52,16 +52,20 @@ export function resolveSecondaryArt(slug, explicitSecondary = null) {
 }
 
 /**
- * Remap vitesse / intelligence → arts.
+ * Remap vitesse / intelligence vers les arts et ignore la Dextérité héritée.
  * - vitesse → art primaire (tempo physique / même école)
  * - intelligence → secondaire si dual, sinon genjutsu (esprit), ou medicine si primaire médical
  */
-export function remapAbandonedPassives(passive = {}, { statType = null, secondaryStatType = null } = {}) {
+export function remapAbandonedPassives(
+  passive = {},
+  { statType = null, secondaryStatType = null } = {}
+) {
   const raw = passive && typeof passive === 'object' ? { ...passive } : {};
   const vit = Number(raw.vitesse) || 0;
   const intel = Number(raw.intelligence) || 0;
   delete raw.vitesse;
   delete raw.intelligence;
+  delete raw.dexterity;
 
   if (raw.medecine != null) {
     raw.medicine = (Number(raw.medicine) || 0) + (Number(raw.medecine) || 0);
@@ -121,7 +125,7 @@ export function resolveCardCritChance(card) {
   if (!card) return 0;
   if (card.critChance != null) return Math.max(0, Math.min(50, Number(card.critChance) || 0));
   const effects = card.effects || [];
-  const innate = effects.find((e) => e && (e.type === 'innate_crit' || e.type === 'crit'));
+  const innate = effects.find(e => e && (e.type === 'innate_crit' || e.type === 'crit'));
   if (innate) return Math.max(0, Math.min(50, Number(innate.chance ?? innate.value) || 0));
   return 0;
 }

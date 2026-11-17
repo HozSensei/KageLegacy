@@ -12,6 +12,7 @@ import {
   rollCrit,
   typeAdvantageMultiplier,
   elementMultiplier,
+  outgoingDamageMultiplier,
 } from '../src/services/deckCombat/formulas.js';
 import { getTypeAdvantage } from '../src/services/deckCombat/typeAdvantage.js';
 import { remapAbandonedPassives, deriveCritChance } from '../src/services/deckCombat/combatArts.js';
@@ -90,12 +91,14 @@ assert(getTypeAdvantage('ninjutsu', 'taijutsu').relation === 'advantage', 'nin >
 assert(getTypeAdvantage('taijutsu', 'ninjutsu').relation === 'disadvantage', 'tai < nin relation');
 assert(elementMultiplier('katon', 'futon') === 1.5, 'katon > futon');
 assert(elementMultiplier('katon', 'suiton') === 0.7, 'katon < suiton');
+assert(outgoingDamageMultiplier([{ key: 'weak', value: 1 }]) === 0.75, 'weak reduces damage by 25%');
+assert(outgoingDamageMultiplier([{ key: 'weak', value: 2 }]) === 0.75, 'weak value does not increase the penalty');
 
 const remapped = remapAbandonedPassives(
-  { vitesse: 2, intelligence: 3, ninjutsu: 1 },
+  { vitesse: 2, intelligence: 3, ninjutsu: 1, dexterity: 2 },
   { statType: 'ninjutsu', secondaryStatType: 'genjutsu' },
 );
-assert(remapped.ninjutsu === 3 && remapped.genjutsu === 3 && remapped.vitesse == null, 'remap vit→nin int→gen');
+assert(remapped.ninjutsu === 3 && remapped.genjutsu === 3 && remapped.vitesse == null && remapped.dexterity == null, 'remap old stats and discard dexterity');
 assert(deriveCritChance({ passiveBeforeRemap: { vitesse: 2 }, type: 'attack', damage: 4 }) === 15, 'crit from old vit');
 
 const blocked = applyDamageThroughBlock({ hp: 50, block: 10 }, 7);

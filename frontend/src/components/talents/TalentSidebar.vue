@@ -19,7 +19,7 @@ const emit = defineEmits(['unlock', 'respec']);
 
 const { t } = useI18n();
 
-const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'];
+const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock'];
 
 const stats = computed(() => props.bonuses?.stats || {});
 

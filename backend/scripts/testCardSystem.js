@@ -8,6 +8,7 @@ import {
 import {
   validateDeck,
   isClanCard,
+  createEmptyPassiveStats,
   DECK_MIN_SIZE,
   DECK_MAX_SIZE,
   MAX_CLAN_CARDS,
@@ -74,6 +75,16 @@ assert(plusPlus.critChance === 10, 'level2 crit from historic vitesse passive');
 const serialized = serializeCardDefinition(sampleDef, { upgradeLevel: 1 });
 assert(serialized.nameFr === 'Poing rapide+', 'name suffix +');
 assert(serialized.passiveBonus.taijutsu === 4, 'serialized passive');
+
+const characterBonuses = applyUpgradeBonuses({
+  ...sampleDef,
+  passive_bonus_json: JSON.stringify({ maxHp: 5, maxChakra: 2, startingBlock: 3, dexterity: 8, force: 4 }),
+});
+assert(characterBonuses.passiveBonus.maxHp === 5, 'max HP passive survives normalization');
+assert(characterBonuses.passiveBonus.maxChakra === 2, 'max Chakra passive survives normalization');
+assert(characterBonuses.passiveBonus.startingBlock === 3, 'starting Armor passive survives normalization');
+assert(!characterBonuses.passiveBonus.dexterity && !characterBonuses.passiveBonus.force, 'obsolete passives are discarded');
+assert(['maxHp', 'maxChakra', 'startingBlock'].every(key => Object.hasOwn(createEmptyPassiveStats(), key)), 'deck aggregation accepts character bonuses');
 
 const tooSmall = validateDeck(Array.from({ length: 5 }, (_, i) => ({ quantity: 1, collectionId: i })));
 assert(!tooSmall.valid && tooSmall.size === 5, 'reject small deck');
@@ -183,21 +194,16 @@ assert((catalog.byRarity.mythic || 0) >= 5, 'some mythics');
 for (const el of ['katon', 'suiton', 'raiton', 'doton', 'futon', 'null']) {
   assert((catalog.byElement[el] || 0) >= 10, `element ${el} under-represented`);
 }
+const STAT_KEYS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock']);
 for (const card of ALL_CARDS) {
-  assert(Object.keys(card.passiveBonus || {}).length > 0, `passive on ${card.slug}`);
+  for (const key of Object.keys(card.passiveBonus || {})) {
+    assert(STAT_KEYS.has(key), `valid passive ${key} on ${card.slug}`);
+  }
 }
 
 // Clans = cartes légendaires à gros passifs de deck (pas un choix à la création).
 assert(CLAN_LEGENDARY_CARDS.length >= 3, 'at least 3 clan legendary cards');
-const STAT_KEYS = new Set([
-  'taijutsu',
-  'ninjutsu',
-  'genjutsu',
-  'medicine',
-  'dexterity',
-  'maxHp',
-  'force',
-]);
+
 for (const card of CLAN_LEGENDARY_CARDS) {
   assert(card.slug.startsWith('clan-'), `clan slug prefix: ${card.slug}`);
   assert(card.rarity === 'legendary', `clan rarity: ${card.slug}`);

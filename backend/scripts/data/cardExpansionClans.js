@@ -68,14 +68,14 @@ export const CLAN_LEGENDARY_CARDS = [
       { type: 'multi_strike', hits: 2 },
       { type: 'apply_status', status: 'vulnerable', value: 1 },
     ],
-    passive: { taijutsu: 7, vitesse: 7, dexterity: 3 },
+    passive: { taijutsu: 7, vitesse: 7 },
     descriptionFr: 'Inflige 10 dégâts deux fois. Vulnérable.',
     descriptionEn: 'Deal 10 damage twice. Vulnerable.',
     loreFr: 'Vue perçante et pas légers — la lignée Kazamine frappe avant l’ombre.',
     loreEn: 'Keen sight and light steps — the Kazamine line strikes before the shadow.',
     upgrades: {
       level_1: { damage: 3, passive: { vitesse: 2 } },
-      level_2: { damage: 5, cost: -1, passive: { taijutsu: 2, vitesse: 2, dexterity: 1 } },
+      level_2: { damage: 5, cost: -1, passive: { taijutsu: 2, vitesse: 2 } },
     },
   }),
   c({
@@ -111,14 +111,14 @@ export const CLAN_LEGENDARY_CARDS = [
       { type: 'apply_status', status: 'vulnerable', value: 1 },
       { type: 'draw', value: 1 },
     ],
-    passive: { genjutsu: 8, intelligence: 7, dexterity: 2 },
+    passive: { genjutsu: 8, intelligence: 7 },
     descriptionFr: 'Faiblesse 2 (2 tours), Vulnérable. Piochez 1.',
     descriptionEn: 'Weak 2 (2 turns), Vulnerable. Draw 1.',
     loreFr: 'Murmures de neige — le clan Yukisawa lit les pensées avant qu’elles naissent.',
     loreEn: 'Snow whispers — Clan Yukisawa reads thoughts before they form.',
     upgrades: {
       level_1: { passive: { genjutsu: 2, intelligence: 1 } },
-      level_2: { cost: -1, passive: { genjutsu: 3, intelligence: 2, dexterity: 1 } },
+      level_2: { cost: -1, passive: { genjutsu: 3, intelligence: 2 } },
     },
   }),
   c({

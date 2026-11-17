@@ -62,15 +62,15 @@ Votre ninja n'a **aucune statistique de base**. Ses statistiques sont la somme d
 
 Le profil affiche le détail de ces deux sources.
 
-| Statistique                     | Effet en combat                                                                                                             |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **Taijutsu**                    | Augmente les dégâts des cartes Taijutsu                                                                                     |
-| **Ninjutsu**                    | Augmente les dégâts des cartes Ninjutsu                                                                                     |
-| **Genjutsu**                    | Augmente les dégâts des cartes Genjutsu                                                                                     |
-| **Médecine**                    | Augmente l'armure et les soins de toutes vos cartes, ainsi que les dégâts des cartes Médecine                               |
-| **Vitesse**                     | Donne 1 % de chance de coup critique par tranche de 10 points, jusqu'à 50 %                                                 |
-| **PV max**                      | S'ajoute aux 100 points de vie de départ                                                                                    |
-| **Intelligence**, **Dextérité** | Accordées par certains talents et cartes et affichées sur le profil. Elles n'entrent pas dans les calculs de combat actuels |
+| Statistique          | Effet en combat                                                          |
+| -------------------- | ------------------------------------------------------------------------ |
+| **Taijutsu**         | Augmente les dégâts des cartes Taijutsu                                  |
+| **Ninjutsu**         | Augmente les dégâts des cartes Ninjutsu                                  |
+| **Genjutsu**         | Augmente les dégâts des cartes Genjutsu                                  |
+| **Médecine**         | Augmente l'armure et les soins, ainsi que les dégâts des cartes Médecine |
+| **PV max**           | S'ajoute aux 100 points de vie de départ                                 |
+| **Chakra max**       | Augmente la réserve maximale de chakra                                   |
+| **Armure de départ** | Ajoute de l'armure au début du combat (elle disparaît en fin de tour)    |
 
 Chaque point de Taijutsu, de Ninjutsu, de Genjutsu ou de Médecine vaut **+1 %** : avec 30 en Ninjutsu, une carte Ninjutsu à 10 dégâts en inflige 13.
 

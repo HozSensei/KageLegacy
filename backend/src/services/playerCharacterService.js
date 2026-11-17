@@ -15,7 +15,7 @@ export const MAX_LEVEL = 100;
  * Clés de stats combat (docs/COMBAT_SYSTEM.md).
  * Phase 1 : toutes à 0 tant que talents/cartes ne sont pas branchés.
  */
-export const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra'];
+export const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock'];
 
 /** Stats de base documentées (Phase 1) : zéro — tout vient des talents + cartes. */
 export function createEmptyStats() {

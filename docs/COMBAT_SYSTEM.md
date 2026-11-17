@@ -66,12 +66,13 @@ Soin_Final = Soin_Base × (1 + Medicine / 100)
 - Sans stats : 8 PV
 - Avec 150 Médecine : 8 × 2.5 = **20 PV**
 
-#### 4. Stats hors arts (deck / buffs)
+#### 4. Bonus de caractéristique hors arts (deck / talents)
 
-| Stat          | Effet                                              |
-| ------------- | -------------------------------------------------- |
-| **Dextérité** | Bonus ponctuel armure (statut / passif carte rare) |
-| **maxHp**     | PV max (talents, cartes)                           |
+| Stat              | Effet                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| **maxHp**         | Augmente les PV max au début du combat                               |
+| **maxChakra**     | Augmente la réserve maximale de Chakra (bonus prévu très rare)       |
+| **startingBlock** | Donne de l'armure au début du combat ; elle disparaît en fin de tour |
 
 **Critique (TCG)** : chance portée par la **carte** (`critChance`, max 50 %), plus de scaling via Vitesse. Les anciens passifs `vitesse` du catalogue sont remappés vers l’art primaire ; l’ancien passif Vit peut encore alimenter un `critChance` dérivé au seed.
 

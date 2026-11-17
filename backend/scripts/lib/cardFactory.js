@@ -14,9 +14,9 @@ const STAT_LABELS_FR = {
   ninjutsu: 'Ninjutsu',
   genjutsu: 'Genjutsu',
   medicine: 'Médecine',
-  dexterity: 'Dextérité',
   maxHp: 'PV max',
-  force: 'Force',
+  maxChakra: 'Chakra max',
+  startingBlock: 'Armure de départ',
 };
 
 const STAT_LABELS_EN = {
@@ -24,9 +24,9 @@ const STAT_LABELS_EN = {
   ninjutsu: 'Ninjutsu',
   genjutsu: 'Genjutsu',
   medicine: 'Medicine',
-  dexterity: 'Dexterity',
   maxHp: 'max HP',
-  force: 'Strength',
+  maxChakra: 'max Chakra',
+  startingBlock: 'Starting armor',
 };
 
 export function formatPassiveFr(passive = {}) {

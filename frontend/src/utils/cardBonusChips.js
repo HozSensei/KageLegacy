@@ -8,17 +8,20 @@ export const BONUS_CHIP_PALETTE = {
   ninjutsu: { fill: '#3776af' },
   medicine: { fill: '#408b68' },
   genjutsu: { fill: '#8653b4' },
-  force: { fill: '#d8513d' },
-  dexterity: { fill: '#8c5c3e' },
-  maxHp: { fill: '#8c5c3e' },
+  maxHp: { fill: '#d8513d' },
+  maxChakra: { fill: '#3776af' },
+  startingBlock: { fill: '#8c5c3e' },
 }
 
-/** Ordre d’affichage aligné sur les 4 arts (+ extras). */
+/** Ordre des quatre arts et bonus de caractéristique. */
 export const BONUS_CHIP_ORDER = [
   'taijutsu',
   'ninjutsu',
   'medicine',
   'genjutsu',
+  'maxHp',
+  'maxChakra',
+  'startingBlock',
 ]
 
 /**
@@ -30,14 +33,7 @@ export function cardBonusChips(card) {
   for (const key of BONUS_CHIP_ORDER) {
     const value = Number(bonus[key]) || 0
     if (value === 0) continue
-    const palette = BONUS_CHIP_PALETTE[key] || BONUS_CHIP_PALETTE.dexterity
-    chips.push({ key, value, fill: palette.fill })
-  }
-  for (const [key, raw] of Object.entries(bonus)) {
-    if (BONUS_CHIP_ORDER.includes(key)) continue
-    const value = Number(raw) || 0
-    if (value === 0) continue
-    const palette = BONUS_CHIP_PALETTE[key] || BONUS_CHIP_PALETTE.dexterity
+    const palette = BONUS_CHIP_PALETTE[key]
     chips.push({ key, value, fill: palette.fill })
   }
   return chips

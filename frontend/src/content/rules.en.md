@@ -62,15 +62,15 @@ Your ninja has **no base stats**. Their stats are the sum of two things:
 
 The profile shows the breakdown of both sources.
 
-| Stat                            | Effect in combat                                                                                             |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Taijutsu**                    | Increases the damage of Taijutsu cards                                                                       |
-| **Ninjutsu**                    | Increases the damage of Ninjutsu cards                                                                       |
-| **Genjutsu**                    | Increases the damage of Genjutsu cards                                                                       |
-| **Medicine**                    | Increases the armor and healing of all your cards, and the damage of Medicine cards                          |
-| **Speed**                       | Gives 1% critical hit chance per 10 points, up to 50%                                                        |
-| **Max HP**                      | Added to the 100 starting hit points                                                                         |
-| **Intelligence**, **Dexterity** | Granted by some talents and cards and shown on the profile. They are not used in current combat calculations |
+| Stat               | Effect in combat                                                 |
+| ------------------ | ---------------------------------------------------------------- |
+| **Taijutsu**       | Increases the damage of Taijutsu cards                           |
+| **Ninjutsu**       | Increases the damage of Ninjutsu cards                           |
+| **Genjutsu**       | Increases the damage of Genjutsu cards                           |
+| **Medicine**       | Increases armor and healing, and the damage of Medicine cards    |
+| **Max HP**         | Added to the 100 starting hit points                             |
+| **Max Chakra**     | Increases the maximum Chakra reserve                             |
+| **Starting Armor** | Adds block at the start of combat (it disappears at end of turn) |
 
 Each point of Taijutsu, Ninjutsu, Genjutsu or Medicine is worth **+1%**: with 30 Ninjutsu, a Ninjutsu card with 10 damage deals 13.
 

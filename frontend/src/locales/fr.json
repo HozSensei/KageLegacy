@@ -779,6 +779,8 @@
     "filterSearchPlaceholder": "Nom ou slug…",
     "filterType": "Type",
     "filterRarity": "Rareté",
+    "filterArt": "Art",
+    "filterResults": "{count} sur {total} résultats",
     "filterAll": "Tous",
     "damage": "{n} dommages",
     "block": "{n} armure",
@@ -821,8 +823,9 @@
       "medicine": "Médecine",
       "vitesse": "Vitesse",
       "intelligence": "Intelligence",
-      "dexterity": "Dextérité",
-      "maxHp": "PV max"
+      "maxHp": "PV max",
+      "maxChakra": "Chakra max",
+      "startingBlock": "Armure de départ"
     },
     "effect": "Effet actif",
     "costLabel": "Coût",
@@ -989,7 +992,8 @@
       "genjutsu": "Genjutsu",
       "medicine": "Médecine",
       "maxHp": "PV max",
-      "maxChakra": "Chakra max"
+      "maxChakra": "Chakra max",
+      "startingBlock": "Armure de départ"
     },
     "zoomIn": "Zoomer",
     "zoomOut": "Dézoomer",

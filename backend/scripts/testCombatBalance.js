@@ -237,6 +237,18 @@ console.log('=== Profils de progression ===');
       `${profileId}: talents de profil appliqués`
     );
   }
+
+  const [profileId, profile] = Object.entries(BALANCE_PROFILES)[0];
+  const armorSession = createSimSession({
+    profileId,
+    profileOverride: {
+      ...profile,
+      stats: { ...profile.stats, maxChakra: 2, startingBlock: 4 },
+    },
+    deckEntries: [],
+  });
+  assert(armorSession.player.block === 4, 'starting armor is present at combat start');
+  assert(armorSession.player.maxChakra === 5, 'max Chakra passive increases the reserve');
 }
 
 // --- Starter de collection, séparé du filet practice historique ---
@@ -264,6 +276,7 @@ const starter = buildStarterFixture();
         medicine: 8,
         maxHp: 12,
         maxChakra: 0,
+        startingBlock: 0,
       }),
     'starter : passifs filtrés et agrégés comme getComputedStats'
   );

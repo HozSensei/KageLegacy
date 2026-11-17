@@ -468,5 +468,10 @@
     .arena--with-side > .arena__hand-wrap {
       grid-column: 1;
     }
+
+    .arena--with-side > .arena__hand-wrap .hand {
+      margin-inline: 0;
+      padding-inline: 0.75rem;
+    }
   }
 }

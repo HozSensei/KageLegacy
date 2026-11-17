@@ -41,12 +41,12 @@ export const EXPANSION_WAVE1_CARDS = [
     cost: 2,
     damage: 5,
     effects: [{ type: 'multi_strike', hits: 2 }],
-    passive: { dexterity: 2, taijutsu: 1 },
+    passive: { taijutsu: 1 },
     descriptionFr: 'Inflige 5 dégâts, deux fois.',
     descriptionEn: 'Deal 5 damage, twice.',
     upgrades: {
-      level_1: { damage: 2, passive: { dexterity: 1 } },
-      level_2: { damage: 3, passive: { dexterity: 2, taijutsu: 1 } },
+      level_1: { damage: 2, passive: {} },
+      level_2: { damage: 3, passive: { taijutsu: 1 } },
     },
   }),
   c({
@@ -77,12 +77,12 @@ export const EXPANSION_WAVE1_CARDS = [
     cost: 1,
     damage: 3,
     effects: [{ type: 'multi_strike', hits: 3 }],
-    passive: { dexterity: 2 },
+    passive: {},
     descriptionFr: 'Inflige 3 dégâts, trois fois.',
     descriptionEn: 'Deal 3 damage, three times.',
     upgrades: {
-      level_1: { damage: 1, passive: { dexterity: 1 } },
-      level_2: { damage: 2, passive: { dexterity: 2, vitesse: 1 } },
+      level_1: { damage: 1, passive: {} },
+      level_2: { damage: 2, passive: { vitesse: 1 } },
     },
   }),
   c({
@@ -114,12 +114,12 @@ export const EXPANSION_WAVE1_CARDS = [
     cost: 2,
     damage: 4,
     effects: [{ type: 'multi_strike', hits: 4 }],
-    passive: { dexterity: 3, vitesse: 1 },
+    passive: { vitesse: 1 },
     descriptionFr: 'Inflige 4 dégâts, quatre fois.',
     descriptionEn: 'Deal 4 damage, four times.',
     upgrades: {
-      level_1: { damage: 1, passive: { dexterity: 1 } },
-      level_2: { damage: 2, passive: { dexterity: 2, vitesse: 1 } },
+      level_1: { damage: 1, passive: {} },
+      level_2: { damage: 2, passive: { vitesse: 1 } },
     },
   }),
   c({
@@ -710,12 +710,12 @@ export const EXPANSION_WAVE1_CARDS = [
     cost: 2,
     block: 8,
     effects: [{ type: 'counter', damage: 8 }],
-    passive: { taijutsu: 2, dexterity: 1 },
+    passive: { taijutsu: 2 },
     descriptionFr: 'Gagne 8 d’armure. Renvoie 8 dégâts.',
     descriptionEn: 'Gain 8 block. Reflect 8 damage.',
     upgrades: {
       level_1: { block: 4, passive: { taijutsu: 1 } },
-      level_2: { block: 6, passive: { taijutsu: 2, dexterity: 1 } },
+      level_2: { block: 6, passive: { taijutsu: 2 } },
     },
   }),
   c({
@@ -729,12 +729,12 @@ export const EXPANSION_WAVE1_CARDS = [
     cost: 1,
     block: 6,
     effects: [{ type: 'evade_next', chance: 0.35 }],
-    passive: { ninjutsu: 1, dexterity: 1 },
+    passive: { ninjutsu: 1 },
     descriptionFr: 'Gagne 6 d’armure. 35% d’esquiver la prochaine attaque.',
     descriptionEn: 'Gain 6 block. 35% chance to evade the next attack.',
     upgrades: {
-      level_1: { block: 3, passive: { dexterity: 1 } },
-      level_2: { block: 5, passive: { ninjutsu: 1, dexterity: 1 } },
+      level_1: { block: 3, passive: {} },
+      level_2: { block: 5, passive: { ninjutsu: 1 } },
     },
   }),
   c({
@@ -828,7 +828,7 @@ export const EXPANSION_WAVE1_CARDS = [
     descriptionEn: 'Gain 5 block. 40% chance to evade the next attack.',
     upgrades: {
       level_1: { block: 3, passive: { vitesse: 1 } },
-      level_2: { block: 5, passive: { vitesse: 2, dexterity: 1 } },
+      level_2: { block: 5, passive: { vitesse: 2 } },
     },
   }),
   c({
@@ -865,7 +865,7 @@ export const EXPANSION_WAVE1_CARDS = [
     descriptionEn: 'Gain 6 block. 45% chance to evade the next attack.',
     upgrades: {
       level_1: { block: 3, passive: { genjutsu: 1 } },
-      level_2: { block: 5, passive: { genjutsu: 2, dexterity: 1 } },
+      level_2: { block: 5, passive: { genjutsu: 2 } },
     },
   }),
   c({
@@ -1075,12 +1075,12 @@ export const EXPANSION_WAVE1_CARDS = [
     effects: [
       { type: 'apply_status', target: 'self', status: 'block_pct', value: 20, duration: 2 },
     ],
-    passive: { vitesse: 2, dexterity: 1 },
+    passive: { vitesse: 2 },
     descriptionFr: '+20 % armure gagnée pendant 2 tours.',
     descriptionEn: '+20% block gained for 2 turns.',
     upgrades: {
       level_1: { passive: { vitesse: 1 } },
-      level_2: { passive: { vitesse: 2, dexterity: 1 } },
+      level_2: { passive: { vitesse: 2 } },
     },
   }),
   c({
@@ -1280,12 +1280,12 @@ export const EXPANSION_WAVE1_CARDS = [
     damage: 3,
     exhaust: true,
     effects: [{ type: 'apply_status', status: 'poison', value: 3, duration: 3 }],
-    passive: { dexterity: 2 },
+    passive: {},
     descriptionFr: 'Inflige 3 dégâts. Poison 3 (3 tours). Exhaust.',
     descriptionEn: 'Deal 3 damage. Poison 3 (3 turns). Exhaust.',
     upgrades: {
-      level_1: { damage: 2, passive: { dexterity: 1 } },
-      level_2: { damage: 3, passive: { dexterity: 2 } },
+      level_1: { damage: 2, passive: {} },
+      level_2: { damage: 3, passive: {} },
     },
   }),
   c({
@@ -1301,12 +1301,12 @@ export const EXPANSION_WAVE1_CARDS = [
       { type: 'gain_block', value: 6 },
       { type: 'evade_next', chance: 0.7 },
     ],
-    passive: { dexterity: 1, vitesse: 1 },
+    passive: { vitesse: 1 },
     descriptionFr: 'Gagne 6 d’armure. 70% d’esquive. Exhaust.',
     descriptionEn: 'Gain 6 block. 70% evade. Exhaust.',
     upgrades: {
       level_1: { passive: { vitesse: 1 } },
-      level_2: { passive: { dexterity: 1, vitesse: 1 } },
+      level_2: { passive: { vitesse: 1 } },
     },
   }),
   c({
@@ -1368,7 +1368,7 @@ export const EXPANSION_WAVE1_CARDS = [
     descriptionEn: 'Vulnerable. Draw 1. Exhaust.',
     upgrades: {
       level_1: { passive: { vitesse: 1 } },
-      level_2: { passive: { vitesse: 2, dexterity: 1 } },
+      level_2: { passive: { vitesse: 2 } },
     },
   }),
   c({
