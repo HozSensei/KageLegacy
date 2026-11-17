@@ -1238,6 +1238,7 @@
     "allyTaunt": "Taunt",
     "allyTurns": "{n} turns left",
     "costLabel": "Cost {n}",
+    "insufficientChakra": "Not enough Chakra to play this card",
     "rankLabel": "Rank",
     "missionsListTitle": "Available runs"
   },

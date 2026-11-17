@@ -1238,6 +1238,7 @@
     "allyTaunt": "Provocation",
     "allyTurns": "{n} tours restants",
     "costLabel": "Coût {n}",
+    "insufficientChakra": "Chakra insuffisant pour jouer cette carte",
     "rankLabel": "Rang",
     "missionsListTitle": "Parcours disponibles"
   },

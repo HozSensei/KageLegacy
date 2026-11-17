@@ -307,6 +307,10 @@ function footerCells(card) {
       <span class="hand-card__cost" :title="t('combat.costLabel', { n: card.cost })">
         <span class="hand-card__cost-face" aria-hidden="true" />
         <span class="hand-card__cost-value">{{ card.cost }}</span>
+        <span v-if="!canAfford(card)" class="hand-card__cost-warning" aria-hidden="true">!</span>
+        <span v-if="!canAfford(card)" class="hand-card__sr-only">{{
+          t('combat.insufficientChakra')
+        }}</span>
       </span>
 
       <span
@@ -341,17 +345,15 @@ function footerCells(card) {
 
 <style scoped>
 .hand {
-  --card-width: 8.75rem;
+  --card-width: 9.5rem;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   gap: 0;
-  min-height: 14.5rem;
   container-type: inline-size;
   margin-inline: calc(var(--space-gutter) * -1);
-  padding: 1rem var(--space-gutter) 0.75rem;
-  overflow: clip;
+  padding: 2rem var(--space-gutter);
   isolation: isolate;
 }
 
@@ -392,7 +394,7 @@ function footerCells(card) {
 .hand-card + .hand-card {
   margin-left: clamp(
     calc(-1 * var(--card-width)),
-    calc((100cqi - 1rem) * var(--hand-step) - var(--card-width) * var(--hand-width-factor)),
+    calc((100cqi - 4rem) * var(--hand-step) - var(--card-width) * var(--hand-width-factor)),
     -2.5rem
   );
 }
@@ -497,10 +499,6 @@ function footerCells(card) {
 
 .hand-card:disabled {
   cursor: default;
-}
-
-.hand-card--unaffordable {
-  opacity: 0.5;
 }
 
 .hand-card__art {
@@ -637,6 +635,34 @@ function footerCells(card) {
   color: var(--color-fire);
 }
 
+.hand-card__cost-warning {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.35rem;
+  display: grid;
+  place-items: center;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  background: var(--color-fire);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.hand-card__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .hand-card__scale {
   position: absolute;
   top: 0.25rem;
@@ -739,7 +765,7 @@ function footerCells(card) {
 
 @media (max-width: 640px) {
   .hand {
-    --card-width: 7.85rem;
+    --card-width: 8.5rem;
   }
 }
 </style>
