@@ -7,6 +7,12 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : carte — art collé + type noir (2026-11-17)
+
+#### Changed
+- Art collé au bas de la zone illustration (`object-position: bottom`, plus de fondu bas)
+- Type de carte (bandeau derrière le chakra) : fond **noir**, `padding-right` élargi pour ne plus masquer le texte
+
 ### UI : carte — type, banners, bonus carrés (2026-11-16)
 
 #### Changed

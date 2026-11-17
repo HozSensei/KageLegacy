@@ -470,7 +470,9 @@ watch(
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
+  /* coins haut seulement — bas collé au parchemin, sans espace */
   border-radius: 5px 5px 0 0;
+  margin: 0;
   background: #4e6578;
 }
 
@@ -498,15 +500,12 @@ watch(
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(0deg, #18212c 0%, transparent 18%),
-    linear-gradient(90deg, #111a2633, transparent 24%, transparent 75%, #111a2633);
+  /* Pas de fondu bas : l’art doit coller le bord du parchemin */
+  background: linear-gradient(90deg, #111a2633, transparent 24%, transparent 75%, #111a2633);
 }
 
 .card-display--mythic .card-display__art::after {
-  background:
-    linear-gradient(0deg, #2e2418 0%, transparent 18%),
-    linear-gradient(90deg, #d5a75320, transparent 24%, transparent 75%, #d5a75320);
+  background: linear-gradient(90deg, #d5a75320, transparent 24%, transparent 75%, #d5a75320);
 }
 
 .card-display__art--placeholder {
@@ -515,11 +514,13 @@ watch(
 }
 
 .card-display__art-img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 26%;
+  object-position: center bottom;
   user-select: none;
 }
 
@@ -533,7 +534,7 @@ watch(
   opacity: 0.45;
 }
 
-/* Type de carte — bandeau compact collé en haut à droite, derrière le chakra */
+/* Type de carte — bandeau noir collé en haut à droite, derrière le chakra */
 .card-display__kind {
   position: absolute;
   z-index: 11;
@@ -541,9 +542,10 @@ watch(
   left: auto;
   top: 0;
   max-width: min(70%, 9rem);
-  padding: 0.22rem 0.7rem 0.22rem 0.55rem;
-  background: var(--tone-fill, #697580);
-  color: var(--tone-on, #fff);
+  /* padding-right sous la gemme : le libellé reste entièrement lisible */
+  padding: 0.22rem 2.75rem 0.22rem 0.55rem;
+  background: #000;
+  color: #fff;
   font-family: var(--font-display);
   font-size: clamp(0.5rem, 3.6cqi, 0.65rem);
   font-weight: 800;
@@ -1019,8 +1021,10 @@ watch(
 }
 
 .card-display--compact .card-display__kind {
-  padding: 0.15rem 0.4rem;
+  padding: 0.15rem 1.85rem 0.15rem 0.4rem;
   font-size: clamp(0.42rem, 3.2cqi, 0.55rem);
+  background: #000;
+  color: #fff;
 }
 
 .card-display--compact .card-display__art-banners {
