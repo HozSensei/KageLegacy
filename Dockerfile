@@ -9,6 +9,8 @@ RUN npm ci
 COPY frontend/ ./
 # Vite alias @shared → ../shared (shared modules used by frontend build)
 COPY shared/ /app/shared/
+# Le moteur PvP partagé réutilise les modules purs de combat PvE.
+COPY backend/src/services/deckCombat/ /app/backend/src/services/deckCombat/
 
 # Même origine : nginx proxy /api → API Node
 ENV VITE_API_URL=
