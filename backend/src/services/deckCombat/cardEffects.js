@@ -42,6 +42,7 @@ export function computeCardDamage(card, ctx) {
     enemyPosture = null,
     enemyAffinity = null,
     talentMods = {},
+    cardsPlayedThisTurn = 0,
     rng = Math.random,
   } = ctx;
 
@@ -55,12 +56,14 @@ export function computeCardDamage(card, ctx) {
   const hitsEffect = (card.effects || []).find(e => e.type === 'multi_strike');
   const hits = hitsEffect ? Math.max(1, Number(hitsEffect.hits) || 1) : 1;
 
-  if ((card.effects || []).some(e => e.type === 'bonus_if' && e.condition === 'enemy_vulnerable')) {
-    if (hasStatus(enemyStatuses, 'vulnerable')) {
-      const bonus = (card.effects || []).find(e => e.type === 'bonus_if');
-      base += Number(bonus?.value) || 0;
-    }
-  }
+  const conditionalBonus = (card.effects || []).find(effect => {
+    if (effect.type !== 'bonus_if') return false;
+    if (effect.condition === 'enemy_vulnerable') return hasStatus(enemyStatuses, 'vulnerable');
+    if (effect.condition === 'enemy_weak') return hasStatus(enemyStatuses, 'weak');
+    if (effect.condition === 'first_card') return Number(cardsPlayedThisTurn) === 0;
+    return false;
+  });
+  if (conditionalBonus) base += Number(conditionalBonus.value) || 0;
 
   let perHit = scaleDamage(base, attackStatFor(card, stats));
   // Flat Force (talents / ennemis) — les cartes soutien utilisent *_pct
@@ -77,7 +80,7 @@ export function computeCardDamage(card, ctx) {
     perHit = Math.round(perHit * talentMods.damageMult);
   }
 
-  const aoeEffect = (card.effects || []).find((e) => e.type === 'aoe');
+  const aoeEffect = (card.effects || []).find(e => e.type === 'aoe');
   if (aoeEffect) {
     const mult = Number(aoeEffect.mult) > 0 ? Number(aoeEffect.mult) : AOE_DAMAGE_MULT;
     perHit = Math.round(perHit * mult);
@@ -126,6 +129,7 @@ export function applyCardPlay({
   stats,
   talentMods = {},
   talentCodes = [],
+  incomingDamageModifier = null,
   rng = Math.random,
 }) {
   const logs = [];
@@ -180,6 +184,7 @@ export function applyCardPlay({
       enemyPosture: nextEnemy.posture,
       enemyAffinity: nextEnemy.elementAffinity,
       talentMods,
+      cardsPlayedThisTurn: Number(nextPlayer.cardsPlayedThisTurn) || 0,
       rng,
     });
 
@@ -204,7 +209,11 @@ export function applyCardPlay({
         'intent',
       ]);
       for (let i = 0; i < dmg.hits; i += 1) {
-        const hit = hitEnemy(nextEnemy, dmg.perHit, hitOpts, applyDamageThroughBlock);
+        const rawHit =
+          typeof incomingDamageModifier === 'function'
+            ? incomingDamageModifier(dmg.perHit, i)
+            : dmg.perHit;
+        const hit = hitEnemy(nextEnemy, rawHit, hitOpts, applyDamageThroughBlock);
         nextEnemy = hit.enemy;
         totalDealt += hit.damageDealt;
         logs.push(...hit.logs.filter(l => phaseLogTypes.has(l.type)));
@@ -377,7 +386,7 @@ function applyExtraEffect(effect, ctx) {
       statuses: applyStatus(player.statuses, {
         key: 'evade',
         value: Number(effect.chance) || 0.5,
-        duration: 1,
+        duration: null,
       }),
     };
     logs.push({ type: 'evade_ready', chance: Number(effect.chance) || 0.5 });
@@ -387,7 +396,7 @@ function applyExtraEffect(effect, ctx) {
       statuses: applyStatus(player.statuses, {
         key: 'counter',
         value: Number(effect.damage) || 0,
-        duration: 1,
+        duration: null,
       }),
     };
     logs.push({ type: 'counter_ready', damage: Number(effect.damage) || 0 });
@@ -417,7 +426,7 @@ function applyExtraEffect(effect, ctx) {
       logs.push(...healTalent.logs);
     }
   } else if (type === 'cleanse_self') {
-    const idx = (player.statuses || []).findIndex((s) => PLAYER_DEBUFF_KEYS.has(s.key));
+    const idx = (player.statuses || []).findIndex(s => PLAYER_DEBUFF_KEYS.has(s.key));
     if (idx >= 0) {
       const removed = player.statuses[idx];
       player = {

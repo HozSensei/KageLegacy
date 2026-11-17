@@ -276,7 +276,7 @@ const summonDuel = createDuelFromBootstrap({
       maxHp: 100,
       chakra: 3,
       stats: {},
-      hand: [{ instanceId: 'heavy-hit', cost: 0, damage: 14, statType: 'taijutsu' }],
+      hand: [{ instanceId: 'heavy-hit', cost: 0, damage: 6, statType: 'taijutsu' }],
       drawPile: [],
     },
   },
@@ -296,19 +296,189 @@ assert(publicSummon.fighters.host.ally?.hp === 10, 'l’invocation adverse est v
 const finishingState = structuredClone(summoned.state);
 finishingState.fighters.guest.hp = 3;
 const finishingTurn = applyDuelAction(finishingState, { kind: 'end_turn', seat: 'host' });
-assert(finishingTurn.state.status === 'completed', 'une invocation peut terminer le duel');
+assert(finishingTurn.state.status === 'in_progress', 'l’invocation n’attaque pas avant son tour');
 const hostEnd = applyDuelAction(summoned.state, { kind: 'end_turn', seat: 'host' });
-assert(hostEnd.state.fighters.guest.hp === 97, 'l’invocation attaque à la fin du tour');
+assert(hostEnd.state.fighters.guest.hp === 100, 'l’invocation attend le début du prochain tour');
 const guestHit = applyDuelAction(hostEnd.state, {
   kind: 'play_card',
   seat: 'guest',
   instanceId: 'heavy-hit',
 });
+assert(guestHit.state.fighters.host.ally?.hp === 4, 'Taunt détourne les dégâts vers l’invocation');
+assert(guestHit.state.fighters.host.hp === 100, 'la provocation protège les PV du joueur');
+const hostTurn = applyDuelAction(guestHit.state, { kind: 'end_turn', seat: 'guest' });
 assert(
-  guestHit.state.fighters.host.ally === null,
-  'Taunt absorbe les dégâts et l’invocation meurt'
+  hostTurn.state.fighters.guest.hp === 97,
+  'l’invocation attaque au début du tour propriétaire'
 );
-assert(guestHit.state.fighters.host.hp === 96, 'les dégâts excédentaires passent au joueur');
+
+console.log('\n=== Effets de carte PvP alignés sur PvE ===');
+const effectDuel = createDuelFromBootstrap({
+  matchId: 'effect-match',
+  seed: 'effect-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      maxChakra: 3,
+      stats: { taijutsu: 0 },
+      hand: [
+        {
+          instanceId: 'poison-strike',
+          type: 'attack',
+          cost: 0,
+          damage: 4,
+          statType: 'taijutsu',
+          effects: [
+            { type: 'apply_status', target: 'enemy', status: 'poison', value: 2, duration: 2 },
+            { type: 'draw', value: 1 },
+          ],
+          exhaust: true,
+        },
+      ],
+      drawPile: [{ instanceId: 'drawn-card', type: 'skill', cost: 0 }],
+    },
+    guest: { userId: 2, hp: 100, maxHp: 100, chakra: 3, stats: {} },
+  },
+});
+const poisonPlayed = applyDuelAction(effectDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'poison-strike',
+});
+assert(poisonPlayed.state.fighters.guest.hp === 96, 'dégâts de base résolus');
+assert(poisonPlayed.state.fighters.guest.statuses[0]?.key === 'poison', 'statut ennemi appliqué');
+assert(poisonPlayed.state.fighters.host.exhaustPile.length === 1, 'carte Exhaust retirée du cycle');
+assert(
+  poisonPlayed.state.fighters.host.hand[0]?.instanceId === 'drawn-card',
+  'effet Pioche résolu'
+);
+const poisonTurn = applyDuelAction(poisonPlayed.state, { kind: 'end_turn', seat: 'host' });
+assert(poisonTurn.state.fighters.guest.hp === 94, 'Poison tick au début du tour adverse');
+
+const reactionDuel = createDuelFromBootstrap({
+  matchId: 'reaction-match',
+  seed: 'reaction-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [
+        {
+          instanceId: 'evade-card',
+          type: 'skill',
+          cost: 0,
+          effects: [{ type: 'evade_next', chance: 1 }],
+        },
+      ],
+      drawPile: [],
+    },
+    guest: {
+      userId: 2,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [{ instanceId: 'attack-card', type: 'attack', cost: 0, damage: 8 }],
+      drawPile: [],
+    },
+  },
+});
+let reactionState = applyDuelAction(reactionDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'evade-card',
+}).state;
+assert(
+  reactionState.fighters.host.statuses.find(status => status.key === 'evade')?.duration === null,
+  'esquive reste active pendant le tour adverse'
+);
+reactionState = applyDuelAction(reactionState, { kind: 'end_turn', seat: 'host' }).state;
+const evadedAttack = applyDuelAction(reactionState, {
+  kind: 'play_card',
+  seat: 'guest',
+  instanceId: 'attack-card',
+});
+assert(evadedAttack.state.fighters.host.hp === 100, 'esquive annule l’attaque PvP');
+assert(
+  !evadedAttack.state.fighters.host.statuses.some(status => status.key === 'evade'),
+  'esquive consommée après la prochaine attaque'
+);
+
+const counterDuel = createDuelFromBootstrap({
+  matchId: 'counter-match',
+  seed: 'counter-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [
+        {
+          instanceId: 'counter-card',
+          type: 'skill',
+          cost: 0,
+          effects: [{ type: 'counter', damage: 5 }],
+        },
+      ],
+      drawPile: [],
+    },
+    guest: {
+      userId: 2,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [{ instanceId: 'counter-target', type: 'attack', cost: 0, damage: 8 }],
+      drawPile: [],
+    },
+  },
+});
+let counterState = applyDuelAction(counterDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'counter-card',
+}).state;
+counterState = applyDuelAction(counterState, { kind: 'end_turn', seat: 'host' }).state;
+const counteredAttack = applyDuelAction(counterState, {
+  kind: 'play_card',
+  seat: 'guest',
+  instanceId: 'counter-target',
+});
+assert(counteredAttack.state.fighters.guest.hp === 95, 'contre inflige ses dégâts au PvP');
+
+const talentDuel = createDuelFromBootstrap({
+  matchId: 'talent-match',
+  seed: 'talent-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      talentCodes: ['blade_swift'],
+      hand: [
+        { instanceId: 'talent-strike', type: 'attack', cost: 1, damage: 4, statType: 'taijutsu' },
+      ],
+      drawPile: [],
+    },
+    guest: { userId: 2, hp: 100, maxHp: 100, chakra: 3, stats: {} },
+  },
+});
+const talentStrike = applyDuelAction(talentDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'talent-strike',
+});
+assert(talentStrike.state.fighters.guest.hp === 93, 'talent de combat appliqué au PvP');
 
 const expiringDuel = createDuelFromBootstrap({
   matchId: 'expiry-match',
@@ -341,10 +511,9 @@ expiryState = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'host' }).s
 expiryState = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'guest' }).state;
 assert(
   expiryState.fighters.host.ally?.remainingTurns === 1,
-  'la durée diminue après le tour adverse'
+  'la durée diminue à la fin du tour propriétaire'
 );
-expiryState = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'host' }).state;
-const expired = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'guest' });
+const expired = applyDuelAction(expiryState, { kind: 'end_turn', seat: 'host' });
 assert(expired.state.fighters.host.ally === null, 'l’invocation disparaît à expiration');
 assert(
   expired.logs.some(log => log.type === 'ally_expired'),

@@ -2,15 +2,16 @@
  * IA ennemie — patterns Attack / Defend / Buff + boss phases / charge / summon / barrier.
  */
 import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
-import { applyDamageThroughBlock, getStatusValue, hasStatus, outgoingDamageMultiplier } from './deckCombat/formulas.js';
+import {
+  applyDamageThroughBlock,
+  getStatusValue,
+  hasStatus,
+  outgoingDamageMultiplier,
+} from './deckCombat/formulas.js';
 import { applyStatus } from './deckCombat/statuses.js';
 import { applyTalentIncomingAttackMods } from './deckCombat/talentEffects.js';
 import { TALENT_EFFECT_MVP } from './deckCombat/constants.js';
-import {
-  canApplyStatus,
-  hitEnemy,
-  maybeAdvanceBossPhase,
-} from './deckCombat/bossPhases.js';
+import { canApplyStatus, hitEnemy, maybeAdvanceBossPhase } from './deckCombat/bossPhases.js';
 import { getNextIntent, scaleIntent } from './deckCombat/enemyIntent.js';
 
 export { getNextIntent, scaleIntent };
@@ -51,12 +52,12 @@ export function generateEnemyFromTemplate(templateId, difficulty = 1) {
     boss: Boolean(template.boss),
     rank: template.rank || null,
     phases: Array.isArray(template.phases)
-      ? template.phases.map((p) => ({
+      ? template.phases.map(p => ({
           ...p,
           onEnter: p.onEnter ? { ...p.onEnter } : undefined,
-          pattern: Array.isArray(p.pattern) ? p.pattern.map((x) => ({ ...x })) : undefined,
+          pattern: Array.isArray(p.pattern) ? p.pattern.map(x => ({ ...x })) : undefined,
           patterns: Array.isArray(p.patterns)
-            ? p.patterns.map((x) => ({ ...x, intent: x.intent ? { ...x.intent } : x.intent }))
+            ? p.patterns.map(x => ({ ...x, intent: x.intent ? { ...x.intent } : x.intent }))
             : undefined,
         }))
       : null,
@@ -89,9 +90,12 @@ function resolveEnemyMinionAttack(enemy, player, rng, talentCodes) {
   }
 
   const evadeChance = getStatusValue(nextPlayer.statuses, 'evade');
-  if (evadeChance > 0 && rng() < evadeChance) {
+  const evaded = evadeChance > 0 && rng() < evadeChance;
+  if (evadeChance > 0) {
+    nextPlayer.statuses = (nextPlayer.statuses || []).filter(s => s.key !== 'evade');
+  }
+  if (evaded) {
     logs.push({ type: 'evade', source: 'player', reason: 'minion' });
-    nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'evade');
     return { enemy, player: nextPlayer, logs, damageTakenByPlayer: 0 };
   }
 
@@ -140,8 +144,7 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
   let forceChargedIntent = null;
 
   if (intent.type === 'attack') {
-    let damage =
-      (Number(intent.damage) || 0) + getStatusValue(nextEnemy.statuses, 'force');
+    let damage = (Number(intent.damage) || 0) + getStatusValue(nextEnemy.statuses, 'force');
     damage = Math.round(damage * outgoingDamageMultiplier(nextEnemy.statuses));
 
     const incomingMods = applyTalentIncomingAttackMods(
@@ -154,9 +157,12 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
 
     const evadeChance =
       getStatusValue(nextPlayer.statuses, 'evade') + (Number(incomingMods.evadeBonus) || 0);
-    if (evadeChance > 0 && rng() < evadeChance) {
+    const evaded = evadeChance > 0 && rng() < evadeChance;
+    if (getStatusValue(nextPlayer.statuses, 'evade') > 0) {
+      nextPlayer.statuses = (nextPlayer.statuses || []).filter(s => s.key !== 'evade');
+    }
+    if (evaded) {
       logs.push({ type: 'evade', source: 'player' });
-      nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'evade');
       if (talentCodes.has('phantom_step') && !nextPlayer.phantomStepUsed) {
         phantomStepDraw = TALENT_EFFECT_MVP.phantom_step.draw;
         nextPlayer = { ...nextPlayer, phantomStepUsed: true };
@@ -203,7 +209,7 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
         const hit = hitEnemy(
           nextEnemy,
           counter,
-          { announceIntent: (e) => getNextIntent(e, 0, rng) },
+          { announceIntent: e => getNextIntent(e, 0, rng) },
           applyDamageThroughBlock,
         );
         nextEnemy = hit.enemy;
@@ -212,9 +218,12 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
           amount: hit.damageDealt,
           enemyHp: nextEnemy.hp,
         });
-        logs.push(...hit.logs.filter((l) =>
-          l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'barrier_absorb'));
-        nextPlayer.statuses = (nextPlayer.statuses || []).filter((s) => s.key !== 'counter');
+        logs.push(
+          ...hit.logs.filter(
+            l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'barrier_absorb',
+          ),
+        );
+        nextPlayer.statuses = (nextPlayer.statuses || []).filter(s => s.key !== 'counter');
       }
     }
   } else if (intent.type === 'defend') {
@@ -237,8 +246,7 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
     });
     logs.push({ type: 'debuff', source: 'enemy', status: statusKey, value: intent.value });
   } else if (intent.type === 'charge') {
-    const releaseDamage =
-      Number(intent.releaseDamage) || Number(intent.damage) || 20;
+    const releaseDamage = Number(intent.releaseDamage) || Number(intent.damage) || 20;
     forceChargedIntent = scaleIntent(
       { type: 'attack', damage: releaseDamage, fromCharge: true },
       nextEnemy,
@@ -305,7 +313,7 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
   logs.push({ type: 'intent', intent: nextEnemy.intent });
 
   const phaseCheck = maybeAdvanceBossPhase(nextEnemy, {
-    announceIntent: (e) => getNextIntent(e, 0, rng),
+    announceIntent: e => getNextIntent(e, 0, rng),
   });
   if (phaseCheck.changed) {
     nextEnemy = phaseCheck.enemy;

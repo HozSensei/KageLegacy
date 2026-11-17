@@ -91,15 +91,30 @@ assert(getTypeAdvantage('ninjutsu', 'taijutsu').relation === 'advantage', 'nin >
 assert(getTypeAdvantage('taijutsu', 'ninjutsu').relation === 'disadvantage', 'tai < nin relation');
 assert(elementMultiplier('katon', 'futon') === 1.5, 'katon > futon');
 assert(elementMultiplier('katon', 'suiton') === 0.7, 'katon < suiton');
-assert(outgoingDamageMultiplier([{ key: 'weak', value: 1 }]) === 0.75, 'weak reduces damage by 25%');
-assert(outgoingDamageMultiplier([{ key: 'weak', value: 2 }]) === 0.75, 'weak value does not increase the penalty');
+assert(
+  outgoingDamageMultiplier([{ key: 'weak', value: 1 }]) === 0.75,
+  'weak reduces damage by 25%'
+);
+assert(
+  outgoingDamageMultiplier([{ key: 'weak', value: 2 }]) === 0.75,
+  'weak value does not increase the penalty'
+);
 
 const remapped = remapAbandonedPassives(
   { vitesse: 2, intelligence: 3, ninjutsu: 1, dexterity: 2 },
-  { statType: 'ninjutsu', secondaryStatType: 'genjutsu' },
+  { statType: 'ninjutsu', secondaryStatType: 'genjutsu' }
 );
-assert(remapped.ninjutsu === 3 && remapped.genjutsu === 3 && remapped.vitesse == null && remapped.dexterity == null, 'remap old stats and discard dexterity');
-assert(deriveCritChance({ passiveBeforeRemap: { vitesse: 2 }, type: 'attack', damage: 4 }) === 15, 'crit from old vit');
+assert(
+  remapped.ninjutsu === 3 &&
+    remapped.genjutsu === 3 &&
+    remapped.vitesse == null &&
+    remapped.dexterity == null,
+  'remap old stats and discard dexterity'
+);
+assert(
+  deriveCritChance({ passiveBeforeRemap: { vitesse: 2 }, type: 'attack', damage: 4 }) === 15,
+  'crit from old vit'
+);
 
 const blocked = applyDamageThroughBlock({ hp: 50, block: 10 }, 7);
 assert(blocked.hp === 50 && blocked.block === 3, 'armor absorbs first');
@@ -208,6 +223,44 @@ const play = applyCardPlay({
 assert(play.player.chakra === 2, 'chakra spent');
 assert(play.enemy.hp < 40, 'enemy took damage');
 assert(play.enemy.hp === 29, `tai advantage damage (got hp ${play.enemy.hp})`);
+
+const conditionalCard = {
+  ...atkCard,
+  damage: 4,
+  effects: [{ type: 'bonus_if', condition: 'first_card', value: 6 }],
+};
+assert(
+  computeCardDamage(conditionalCard, { cardsPlayedThisTurn: 0, stats: {}, rng: () => 0.99 })
+    .total === 10,
+  'first_card bonus is applied'
+);
+assert(
+  computeCardDamage(
+    { ...conditionalCard, effects: [{ type: 'bonus_if', condition: 'enemy_weak', value: 8 }] },
+    { enemyStatuses: [{ key: 'weak', value: 1, duration: 2 }], stats: {}, rng: () => 0.99 }
+  ).total === 12,
+  'enemy_weak bonus is applied'
+);
+const evadeReady = applyCardPlay({
+  player: p,
+  enemy: e,
+  card: { cost: 0, effects: [{ type: 'evade_next', chance: 0.5 }] },
+  stats: {},
+});
+assert(
+  evadeReady.player.statuses.find(status => status.key === 'evade')?.duration === null,
+  'evade survives until an incoming attack consumes it'
+);
+const counterReady = applyCardPlay({
+  player: p,
+  enemy: e,
+  card: { cost: 0, effects: [{ type: 'counter', damage: 5 }] },
+  stats: {},
+});
+assert(
+  counterReady.player.statuses.find(status => status.key === 'counter')?.duration === null,
+  'counter survives until an incoming attack consumes it'
+);
 
 console.log('\n=== Summon ===');
 const summonCard = {
@@ -679,8 +732,11 @@ const healSelfPlay = applyCardPlay({
   rng: () => 0.99,
 });
 assert(healSelfPlay.player.hp === 54, `heal_self restores HP (got ${healSelfPlay.player.hp})`);
-assert(healSelfPlay.logs.some((l) => l.type === 'heal' && l.amount === 4), 'heal_self logs heal');
-assert(!healSelfPlay.logs.some((l) => l.type === 'stub_effect'), 'heal_self not stubbed');
+assert(
+  healSelfPlay.logs.some(l => l.type === 'heal' && l.amount === 4),
+  'heal_self logs heal'
+);
+assert(!healSelfPlay.logs.some(l => l.type === 'stub_effect'), 'heal_self not stubbed');
 
 const cleansePlay = applyCardPlay({
   player: {
@@ -705,7 +761,10 @@ const cleansePlay = applyCardPlay({
   rng: () => 0.5,
 });
 assert(cleansePlay.player.statuses.length === 0, 'cleanse removes debuff');
-assert(cleansePlay.logs.some((l) => l.type === 'cleanse' && l.removed === 'weak'), 'cleanse log');
+assert(
+  cleansePlay.logs.some(l => l.type === 'cleanse' && l.removed === 'weak'),
+  'cleanse log'
+);
 
 const sealPlay = applyCardPlay({
   player: {
@@ -736,7 +795,10 @@ const sealPlay = applyCardPlay({
   rng: () => 0.5,
 });
 assert(sealPlay.enemy.intent?.type === 'sealed', 'exile seals intent');
-assert(sealPlay.logs.some((l) => l.type === 'intent_sealed'), 'intent_sealed log');
+assert(
+  sealPlay.logs.some(l => l.type === 'intent_sealed'),
+  'intent_sealed log'
+);
 
 const aoePlay = applyCardPlay({
   player: {
@@ -762,7 +824,7 @@ const aoePlay = applyCardPlay({
   stats: { ninjutsu: 0 },
   rng: () => 0.99,
 });
-const aoeDmg = aoePlay.logs.find((l) => l.type === 'damage' && l.source === 'player');
+const aoeDmg = aoePlay.logs.find(l => l.type === 'damage' && l.source === 'player');
 assert(aoeDmg && aoeDmg.amount > 9, `aoe mult applied (got ${aoeDmg?.amount})`);
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===`);

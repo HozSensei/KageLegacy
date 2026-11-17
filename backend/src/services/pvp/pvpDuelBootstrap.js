@@ -48,7 +48,9 @@ function serializeRuntimeCards(deckCards) {
         heal: Number(card.heal ?? card.baseHeal ?? card.base_heal) || 0,
         statType: (card.statType || card.stat_type || 'taijutsu').toLowerCase(),
         element: card.element || null,
+        type: card.cardType || card.card_type || card.type || null,
         cardType: card.cardType || card.card_type || card.type || null,
+        critChance: Number(card.critChance ?? card.crit_chance) || 0,
         summon: parseJsonSafe(card.summon_json, card.summon || null),
         effects: parseJsonSafe(card.effects_json, card.effects || []),
       });
@@ -74,11 +76,22 @@ async function loadFighterProfile(userId) {
 /**
  * Construit un combattant bootstrap (pioche non mélangée — le Host shuffle via seed).
  */
+async function loadTalentEffectCodes(userId) {
+  try {
+    const { computeTalentBonuses } = await import('../talentTreeService.js');
+    const bonuses = await computeTalentBonuses(userId);
+    return (bonuses.effects || []).map(effect => effect.effectCode).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 async function buildFighter(userId, deckId, seat) {
-  const [profile, statsResult, deckInfo] = await Promise.all([
+  const [profile, statsResult, deckInfo, talentCodes] = await Promise.all([
     loadFighterProfile(userId),
     getComputedStats(userId),
     resolveDeckCards(userId, deckId),
+    loadTalentEffectCodes(userId),
   ]);
 
   const stats = statsResult?.total || statsResult || {};
@@ -94,7 +107,7 @@ async function buildFighter(userId, deckId, seat) {
     elementAffinity: profile.element_affinity,
     hp: maxHp,
     maxHp,
-    block: 0,
+    block: Math.max(0, Number(stats.startingBlock) || 0),
     chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
     statuses: [],
@@ -105,6 +118,7 @@ async function buildFighter(userId, deckId, seat) {
     exhaustPile: [],
     discardedForChakra: false,
     stats,
+    talentCodes,
     deckId: deckInfo.deckId,
     practiceDeck: deckInfo.practice,
   };

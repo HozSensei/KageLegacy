@@ -10,6 +10,28 @@
 
 import { createSeededRng } from './seededRng.js';
 import { duelChecksum } from './checksum.js';
+import { applyCardPlay } from '../../backend/src/services/deckCombat/cardEffects.js';
+import {
+  resolveEndOfTurnStatuses,
+  resolveStartOfTurnStatuses,
+} from '../../backend/src/services/deckCombat/statuses.js';
+import { drawCards, moveCardFromHand } from '../../backend/src/services/deckCombat/deckRuntime.js';
+import {
+  applyDamageThroughBlock,
+  getStatusValue,
+} from '../../backend/src/services/deckCombat/formulas.js';
+import {
+  applyTalentAfterCardPlay,
+  applyTalentAfterDamageTaken,
+  applyTalentCombatStart,
+  applyTalentEndOfPlayerTurn,
+  applyTalentIncomingAttackMods,
+  applyTalentStartOfTurn,
+  applyIncomingTalentCap,
+  computeTalentDamageMods,
+  countDeckElements,
+  resolveCardPileDestination,
+} from '../../backend/src/services/deckCombat/talentEffects.js';
 
 export const BASE_CHAKRA = 3;
 export const DRAW_PER_TURN = 5;
@@ -27,8 +49,24 @@ export function createDuelFromBootstrap(bootstrap) {
 
   const rng = createSeededRng(bootstrap.seed || bootstrap.matchId || 'pvp');
 
-  const host = hydrateFighter(bootstrap.fighters.host, 'host', rng);
-  const guest = hydrateFighter(bootstrap.fighters.guest, 'guest', rng);
+  let host = hydrateFighter(bootstrap.fighters.host, 'host', rng);
+  let guest = hydrateFighter(bootstrap.fighters.guest, 'guest', rng);
+  const startLogs = [{ type: 'duel_start', turn: 1 }];
+
+  for (const [seat, fighter] of [
+    ['host', host],
+    ['guest', guest],
+  ]) {
+    const combatStart = applyTalentCombatStart(fighter, fighter.talentCodes);
+    const turnStart = applyTalentStartOfTurn(combatStart.player, fighter.talentCodes, { turn: 1 });
+    const initializedFighter = { ...turnStart.player, turnsPlayed: 1 };
+    if (seat === 'host') host = initializedFighter;
+    else guest = initializedFighter;
+    startLogs.push(
+      ...combatStart.logs.map(log => ({ ...log, seat })),
+      ...turnStart.logs.map(log => ({ ...log, seat }))
+    );
+  }
 
   // Le Host commence (siège host).
   return {
@@ -41,7 +79,7 @@ export function createDuelFromBootstrap(bootstrap) {
     winnerSeat: null,
     forfeitSeat: null,
     fighters: { host, guest },
-    logs: [{ type: 'duel_start', turn: 1 }],
+    logs: startLogs,
     antiCheatMode: bootstrap.antiCheatMode || 'trust_host',
   };
 }
@@ -136,6 +174,7 @@ export function publicDuelState(state, viewerSeat) {
       handCount: (fighter.hand || []).length,
       drawCount: (fighter.drawPile || []).length,
       discardCount: (fighter.discardPile || []).length,
+      exhaustCount: (fighter.exhaustPile || []).length,
       discardedForChakra: Boolean(fighter.discardedForChakra),
       stats: isSelf ? fighter.stats : undefined,
     };
@@ -194,6 +233,8 @@ function hydrateFighter(raw, seat, rng) {
     exhaustPile: raw.exhaustPile || [],
     discardedForChakra: Boolean(raw.discardedForChakra),
     stats,
+    talentCodes: Array.isArray(raw.talentCodes) ? raw.talentCodes : [],
+    turnsPlayed: Number(raw.turnsPlayed) || 0,
   };
 }
 
@@ -203,68 +244,148 @@ function playCard(state, seat, instanceId, rng) {
   const opponent = state.fighters[opponentSeat];
   if (!fighter || !opponent) throw new Error('Combattants manquants.');
 
-  const idx = (fighter.hand || []).findIndex(c => c.instanceId === instanceId);
-  if (idx < 0) throw new Error('Carte absente de la main.');
+  const card = (fighter.hand || []).find(c => c.instanceId === instanceId);
+  if (!card) throw new Error('Carte absente de la main.');
 
-  const card = fighter.hand[idx];
-  const cost = Math.max(0, Number(card.cost) || 0);
-  if (fighter.chakra < cost) throw new Error('Chakra insuffisant.');
-
-  const hand = [...fighter.hand];
-  hand.splice(idx, 1);
-
-  let nextFighter = {
-    ...fighter,
-    hand,
-    chakra: fighter.chakra - cost,
-    discardPile: [...(fighter.discardPile || []), card],
+  const normalizedCard = { ...card, type: card.type || card.cardType };
+  const opponentEntity = {
+    ...opponent,
+    posture: opponent.posture || dominantCombatArt(opponent.stats),
+    minion: opponent.ally ? { ...opponent.ally } : null,
   };
-  let nextOpponent = { ...opponent };
+  const talentCodes = fighter.talentCodes || [];
+  const defenderTalentCodes = opponent.talentCodes || [];
+  const attackIntent =
+    (Number(normalizedCard.damage) || 0) > 0 ||
+    (normalizedCard.effects || []).some(effect => effect.type === 'multi_strike');
+  const incomingMods = applyTalentIncomingAttackMods(0, opponent, fighter, defenderTalentCodes);
+  const evadeChance = getStatusValue(opponent.statuses, 'evade') + incomingMods.evadeBonus;
+  const evaded = attackIntent && evadeChance > 0 && rng() < evadeChance;
+  const deckElementCount = countDeckElements([
+    ...(fighter.hand || []),
+    ...(fighter.drawPile || []),
+    ...(fighter.discardPile || []),
+    ...(fighter.exhaustPile || []),
+  ]);
+  const talentMods = computeTalentDamageMods(talentCodes, fighter, normalizedCard, {
+    enemy: opponent,
+    deckElementCount,
+    cardsPlayedThisTurn: fighter.cardsPlayedThisTurn || 0,
+  });
+  const played = applyCardPlay({
+    player: fighter,
+    enemy: opponentEntity,
+    card: normalizedCard,
+    stats: fighter.stats,
+    talentMods: { ...talentMods, denyAttack: evaded },
+    talentCodes,
+    incomingDamageModifier: damage => {
+      const adjusted = applyTalentIncomingAttackMods(
+        damage,
+        opponent,
+        fighter,
+        defenderTalentCodes
+      ).damage;
+      return applyIncomingTalentCap(adjusted, defenderTalentCodes);
+    },
+    rng,
+  });
+
+  const talentAfterCard = applyTalentAfterCardPlay(played.player, normalizedCard, talentCodes, {
+    enemy: played.enemy,
+  });
+  let nextFighter = talentAfterCard.player;
+  let resolvedOpponent = talentAfterCard.enemy || played.enemy;
+  if (talentAfterCard.extraDraw > 0) {
+    const drawn = drawCards(nextFighter, talentAfterCard.extraDraw, rng);
+    nextFighter = drawn.player;
+    talentAfterCard.logs.push({
+      type: 'draw',
+      count: drawn.drawn.length,
+      reason: 'elemental_fusion',
+    });
+  }
+
+  const summon = normalizeSummon(normalizedCard);
+  if (summon && nextFighter.ally) {
+    nextFighter = {
+      ...nextFighter,
+      ally: {
+        ...nextFighter.ally,
+        ...summon,
+        remainingTurns: summon.remainingTurns,
+      },
+    };
+  }
+  let nextOpponent = {
+    ...resolvedOpponent,
+    ally: resolvedOpponent.minion || null,
+  };
+  delete nextOpponent.minion;
+  if (attackIntent && evadeChance > 0) {
+    nextOpponent.statuses = (nextOpponent.statuses || []).filter(status => status.key !== 'evade');
+  }
+  if (evaded) {
+    if (defenderTalentCodes.includes('phantom_step') && !nextOpponent.phantomStepUsed) {
+      const drawn = drawCards(nextOpponent, 1, rng);
+      nextOpponent = { ...drawn.player, phantomStepUsed: true };
+      talentAfterCard.logs.push({
+        type: 'talent',
+        effect: 'phantom_step',
+        seat: opponentSeat,
+      });
+      talentAfterCard.logs.push({
+        type: 'draw',
+        count: drawn.drawn.length,
+        reason: 'phantom_step',
+      });
+    }
+  }
+
+  const damageTaken = Math.max(0, (Number(opponent.hp) || 0) - (Number(nextOpponent.hp) || 0));
+  if (attackIntent && !evaded) {
+    const afterDamageTalent = applyTalentAfterDamageTaken(nextOpponent, defenderTalentCodes, {
+      enemy: nextFighter,
+      damageDealt: damageTaken,
+    });
+    nextOpponent = afterDamageTalent.player;
+    if (afterDamageTalent.enemy) nextFighter = afterDamageTalent.enemy;
+    talentAfterCard.logs.push(...afterDamageTalent.logs);
+  }
+
+  const pileDestination = resolveCardPileDestination(normalizedCard, talentCodes);
+  const moved = moveCardFromHand(nextFighter, instanceId, pileDestination);
+  nextFighter = moved.player;
+
   const logs = [
     {
       type: 'play_card',
       seat,
-      cardId: card.id || card.slug,
-      nameFr: card.nameFr,
-      nameEn: card.nameEn,
-      cost,
+      cardId: normalizedCard.id || normalizedCard.slug,
+      nameFr: normalizedCard.nameFr,
+      nameEn: normalizedCard.nameEn,
+      cost: played.chakraSpent,
     },
+    ...played.logs.map(log => mapCardLog(log, seat, opponentSeat)),
+    ...talentAfterCard.logs.map(log => ({ ...log, seat: log.seat || seat })),
   ];
-
-  const summon = normalizeSummon(card);
-  if (summon) {
-    nextFighter.ally = summon;
-    logs.push({
-      type: 'summon',
-      seat,
-      name: summon.nameFr,
-      nameFr: summon.nameFr,
-      nameEn: summon.nameEn,
-      duration: summon.remainingTurns,
-    });
+  if (evaded) {
+    const deniedIndex = logs.findIndex(log => log.type === 'attack_denied');
+    if (deniedIndex >= 0) logs.splice(deniedIndex, 1);
+    logs.push({ type: 'evade', seat: opponentSeat });
   }
 
-  const damage = summon ? 0 : computeDamage(card, nextFighter.stats, rng);
-  if (damage > 0) {
-    const result = applyIncomingDamage(nextOpponent, damage, seat);
-    nextOpponent = result.fighter;
-    logs.push(...result.logs);
-    logs.push({ type: 'damage', source: seat, target: opponentSeat, amount: damage });
-  }
-
-  const blockGain = computeBlock(card, nextFighter.stats);
-  if (blockGain > 0) {
-    nextFighter = { ...nextFighter, block: (nextFighter.block || 0) + blockGain };
-    logs.push({ type: 'block', seat, amount: blockGain });
-  }
-
-  const heal = computeHeal(card, nextFighter.stats);
-  if (heal > 0) {
-    nextFighter = {
-      ...nextFighter,
-      hp: Math.min(nextFighter.maxHp, nextFighter.hp + heal),
-    };
-    logs.push({ type: 'heal', seat, amount: heal });
+  if (attackIntent && !evaded && nextOpponent.hp > 0) {
+    const counter = getStatusValue(nextOpponent.statuses, 'counter');
+    if (counter > 0) {
+      const result = applyIncomingDamage(nextFighter, counter, opponentSeat);
+      nextFighter = {
+        ...result.fighter,
+        statuses: (result.fighter.statuses || []).filter(status => status.key !== 'counter'),
+      };
+      logs.push(...result.logs);
+      logs.push({ type: 'counter', seat: opponentSeat, amount: counter });
+    }
   }
 
   state.fighters = {
@@ -307,67 +428,89 @@ function endTurn(state, seat, rng) {
   const fighter = state.fighters[seat];
   if (!fighter) throw new Error('Combattant manquant.');
 
-  // Fade armure fin de tour
+  const opponentSeat = seat === 'host' ? 'guest' : 'host';
+  const logs = [{ type: 'end_turn', seat }];
+  const endTalent = applyTalentEndOfPlayerTurn(fighter, fighter.talentCodes);
+  const playerEnd = resolveEndOfTurnStatuses(endTalent.player);
   let nextFighter = {
-    ...fighter,
+    ...playerEnd.entity,
     block: 0,
     discardedForChakra: false,
+    hand: [],
+    discardPile: [...(fighter.discardPile || []), ...(fighter.hand || [])],
   };
+  logs.push(
+    ...endTalent.logs.map(log => ({ ...log, seat })),
+    ...playerEnd.logs.map(log => ({ ...log, seat }))
+  );
 
-  const opponentSeat = seat === 'host' ? 'guest' : 'host';
-  let nextOpponent = { ...state.fighters[opponentSeat] };
-  const logs = [{ type: 'end_turn', seat }];
-
-  const allyAttack = resolveAllyAttack(nextFighter, nextOpponent, seat);
-  nextFighter = allyAttack.attacker;
-  nextOpponent = allyAttack.target;
-  logs.push(...allyAttack.logs);
-
-  if (nextOpponent.ally) {
-    const remainingTurns = Math.max(0, (Number(nextOpponent.ally.remainingTurns) || 1) - 1);
+  if (nextFighter.ally) {
+    const remainingTurns = Math.max(0, (Number(nextFighter.ally.remainingTurns) || 1) - 1);
     if (remainingTurns === 0) {
-      nextOpponent.ally = null;
-      logs.push({ type: 'ally_expired', seat: opponentSeat });
+      nextFighter.ally = null;
+      logs.push({ type: 'ally_expired', seat });
     } else {
-      nextOpponent.ally = { ...nextOpponent.ally, remainingTurns };
+      nextFighter.ally = { ...nextFighter.ally, remainingTurns };
     }
   }
 
+  state.fighters = { ...state.fighters, [seat]: nextFighter };
+  let over = checkVictory(state);
+  if (over) {
+    logs.push({ type: over, winnerSeat: state.winnerSeat });
+    return { state, logs };
+  }
+
+  let nextOpponent = state.fighters[opponentSeat];
+  if (nextOpponent.block > 0) {
+    logs.push({ type: 'block_fade', seat: opponentSeat, value: nextOpponent.block });
+  }
+  const opponentStart = resolveStartOfTurnStatuses({ ...nextOpponent, block: 0 });
+  const nextOwnerTurn = (Number(nextOpponent.turnsPlayed) || 0) + 1;
+  const preparedOpponent = {
+    ...opponentStart.entity,
+    chakra: nextOpponent.maxChakra ?? BASE_CHAKRA,
+    discardedForChakra: false,
+    elementalFusionDrawnThisTurn: false,
+  };
+  const startTalent = applyTalentStartOfTurn(preparedOpponent, preparedOpponent.talentCodes, {
+    turn: nextOwnerTurn,
+  });
+  nextOpponent = { ...startTalent.player, turnsPlayed: nextOwnerTurn };
+  logs.push(
+    ...opponentStart.logs.map(log => ({ ...log, seat: opponentSeat })),
+    ...startTalent.logs.map(log => ({ ...log, seat: opponentSeat }))
+  );
+  state.fighters = { ...state.fighters, [opponentSeat]: nextOpponent };
+
+  over = checkVictory(state);
+  if (over) {
+    logs.push({ type: over, winnerSeat: state.winnerSeat });
+    return { state, logs };
+  }
+
+  const allyAttack = resolveAllyAttack(nextOpponent, nextFighter, opponentSeat);
+  nextOpponent = allyAttack.attacker;
+  nextFighter = allyAttack.target;
+  logs.push(...allyAttack.logs);
   state.fighters = {
     ...state.fighters,
     [seat]: nextFighter,
     [opponentSeat]: nextOpponent,
   };
 
-  const over = checkVictory(state);
+  over = checkVictory(state);
   if (over) {
     logs.push({ type: over, winnerSeat: state.winnerSeat });
     return { state, logs };
   }
 
-  // Début de tour adversaire : refill chakra + pioche
-  nextOpponent = {
-    ...state.fighters[opponentSeat],
-    chakra: state.fighters[opponentSeat].maxChakra ?? BASE_CHAKRA,
-    discardedForChakra: false,
-  };
-  const drawn = drawFromPile(
-    [...(nextOpponent.drawPile || [])],
-    [...(nextOpponent.discardPile || [])],
-    [...(nextOpponent.hand || [])],
-    DRAW_PER_TURN,
-    rng
-  );
-  nextOpponent = {
-    ...nextOpponent,
-    drawPile: drawn.drawPile,
-    discardPile: drawn.discardPile,
-    hand: drawn.hand,
-  };
+  const drawn = drawCards(nextOpponent, DRAW_PER_TURN, rng);
+  nextOpponent = drawn.player;
   state.fighters = { ...state.fighters, [opponentSeat]: nextOpponent };
   state.activeSeat = opponentSeat;
   state.turn = (state.turn || 1) + 1;
-  logs.push({ type: 'draw', seat: opponentSeat, count: drawn.drawnCount });
+  logs.push({ type: 'draw', seat: opponentSeat, count: drawn.drawn.length });
   return { state, logs };
 }
 
@@ -442,9 +585,8 @@ function applyIncomingDamage(target, damage, sourceSeat) {
   }
 
   if (remaining > 0) {
-    const blockAbsorbed = Math.min(fighter.block || 0, remaining);
-    fighter.block = (fighter.block || 0) - blockAbsorbed;
-    fighter.hp = Math.max(0, fighter.hp - (remaining - blockAbsorbed));
+    const result = applyDamageThroughBlock(fighter, remaining);
+    fighter = { ...fighter, hp: result.hp, block: result.block };
   }
 
   return { fighter, logs };
@@ -473,30 +615,30 @@ function resolveAllyAttack(attacker, target, seat) {
   };
 }
 
-function computeDamage(card, stats, rng) {
-  const base = Number(card.damage) || 0;
-  if (base <= 0) return 0;
-  const key = card.statType || 'taijutsu';
-  const stat = Number(stats?.[key]) || 0;
-  let dmg = Math.round(base * (1 + stat / 100));
-  const vitesse = Number(stats?.vitesse) || 0;
-  const critChance = Math.min(50, Math.floor(vitesse / 10));
-  if (rng() * 100 < critChance) dmg = Math.round(dmg * 1.5);
-  return Math.max(0, dmg);
+function dominantCombatArt(stats = {}) {
+  return ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'].reduce(
+    (best, key) => ((Number(stats[key]) || 0) > (Number(stats[best]) || 0) ? key : best),
+    'taijutsu'
+  );
 }
 
-function computeBlock(card, stats) {
-  const base = Number(card.block) || 0;
-  if (base <= 0) return 0;
-  const med = Number(stats?.medicine) || 0;
-  return Math.max(0, Math.round(base * (1 + med / 100)));
-}
-
-function computeHeal(card, stats) {
-  const base = Number(card.heal) || 0;
-  if (base <= 0) return 0;
-  const med = Number(stats?.medicine) || 0;
-  return Math.max(0, Math.round(base * (1 + med / 100)));
+function mapCardLog(log, seat, opponentSeat) {
+  const mapped = { ...log };
+  if (mapped.source === 'player') mapped.source = seat;
+  if (mapped.type === 'block' && mapped.source === seat) mapped.seat = seat;
+  if (mapped.type === 'damage' && mapped.source === seat) mapped.targetSeat = opponentSeat;
+  if (mapped.type === 'heal' || mapped.type === 'draw' || mapped.type === 'gain_chakra') {
+    mapped.seat = seat;
+  }
+  if (mapped.type === 'apply_status') {
+    mapped.targetSeat = mapped.target === 'player' ? seat : opponentSeat;
+  }
+  if (mapped.type === 'summon') {
+    mapped.seat = seat;
+    mapped.nameFr = mapped.nameFr || mapped.name;
+  }
+  if (mapped.type === 'ally_attack') mapped.seat = seat;
+  return mapped;
 }
 
 function drawFromPile(drawPile, discardPile, hand, count, rng) {

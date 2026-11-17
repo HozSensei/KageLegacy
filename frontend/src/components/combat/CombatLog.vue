@@ -43,6 +43,11 @@ function isMine(value) {
   return value !== 'enemy';
 }
 
+function isOpponentSide(log) {
+  if (isSeat(log.seat)) return log.seat !== props.viewerSeat;
+  return log.side === 'enemy';
+}
+
 function statusLabel(status) {
   const key = typeof status === 'string' ? status : status?.key;
   if (!key) return '';
@@ -109,9 +114,16 @@ function formatLog(log) {
     case 'phase_block':
       return t('combat.log.blockEnemy', { n: log.block ?? 0 });
     case 'block_fade':
-      return t(log.side === 'enemy' ? 'combat.log.blockFadeEnemy' : 'combat.log.blockFadeYou', {
-        n,
-      });
+      return t(
+        isSeat(log.seat)
+          ? isMine(log.seat)
+            ? 'combat.log.blockFadeYou'
+            : 'combat.log.blockFadeEnemy'
+          : log.side === 'enemy'
+            ? 'combat.log.blockFadeEnemy'
+            : 'combat.log.blockFadeYou',
+        { n }
+      );
     case 'block_denied':
       return t('combat.log.blockDenied');
     case 'heal':
@@ -136,15 +148,22 @@ function formatLog(log) {
     case 'intent_skipped':
       return t('combat.log.intentSkipped');
     case 'poison':
-      return t(log.side === 'enemy' ? 'combat.log.poisonEnemy' : 'combat.log.poisonYou', { n });
+      return t(isOpponentSide(log) ? 'combat.log.poisonEnemy' : 'combat.log.poisonYou', { n });
     case 'burn':
-      return t(log.side === 'enemy' ? 'combat.log.burnEnemy' : 'combat.log.burnYou', { n });
+      return t(isOpponentSide(log) ? 'combat.log.burnEnemy' : 'combat.log.burnYou', { n });
     case 'regen':
-      return t(log.side === 'enemy' ? 'combat.log.regenEnemy' : 'combat.log.regenYou', { n });
+      return t(isOpponentSide(log) ? 'combat.log.regenEnemy' : 'combat.log.regenYou', { n });
     case 'apply_status':
-      return t(log.target === 'enemy' ? 'combat.log.statusEnemy' : 'combat.log.statusYou', {
-        status: statusLabel(log.status),
-      });
+      return t(
+        isSeat(log.targetSeat)
+          ? log.targetSeat === props.viewerSeat
+            ? 'combat.log.statusYou'
+            : 'combat.log.statusEnemy'
+          : log.target === 'enemy'
+            ? 'combat.log.statusEnemy'
+            : 'combat.log.statusYou',
+        { status: statusLabel(log.status) }
+      );
     case 'buff':
     case 'phase_buff':
       return t('combat.log.buffEnemy', { status: statusWithValue(log.status, log.value) });
