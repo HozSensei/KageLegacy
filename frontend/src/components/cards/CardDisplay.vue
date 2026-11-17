@@ -7,6 +7,8 @@ import { cardEffectParts } from '../../utils/cardEffectLine'
 import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips'
 import {
   cardTypeVisual,
+  elementLabelKey,
+  elementTone,
   rarityVisual,
 } from '../../utils/cardVisuals'
 import { localizedName } from '../../utils/localeContent.js'
@@ -62,6 +64,16 @@ const rarityLevel = computed(() => rarity.value.pips || 1)
 
 const typeLabel = computed(() => t(`cards.types.${props.card.type}`, props.card.type))
 const typeVisual = computed(() => cardTypeVisual(props.card.type))
+
+const elementKey = computed(() => String(props.card.element || '').toLowerCase())
+const elementLabel = computed(() => {
+  if (!elementKey.value) return ''
+  const key = elementLabelKey(elementKey.value)
+  if (key && te(key)) return t(key)
+  if (te(`shop.elements.${elementKey.value}`)) return t(`shop.elements.${elementKey.value}`)
+  return props.card.element
+})
+const elementToneName = computed(() => elementTone(elementKey.value))
 
 const effectParts = computed(() =>
   cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }),
@@ -206,6 +218,16 @@ watch(
             data-testid="card-secondary-art"
           >
             {{ secondaryArtLabel }}
+          </div>
+          <div
+            v-if="elementLabel"
+            class="card-display__element"
+            :data-tone="elementToneName"
+            :title="elementLabel"
+            data-testid="card-element"
+          >
+            <span class="card-display__element-dot" aria-hidden="true" />
+            {{ elementLabel }}
           </div>
         </div>
 
@@ -606,6 +628,35 @@ watch(
 
 .card-display__category--heredite {
   background: #408b68;
+}
+
+/* Élément (Katon, Raiton…) — pastille sous les bannières d’art */
+.card-display__element {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  max-width: 100%;
+  padding: 0.18rem 0.5rem 0.18rem 0.35rem;
+  background: var(--tone-fill, #697580);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(0.48rem, 3.4cqi, 0.62rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-display__element-dot {
+  flex-shrink: 0;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 1px;
+  background: #fff;
+  opacity: 0.9;
 }
 
 /* Gemme chakra — coin haut droit débordant */
@@ -1041,6 +1092,17 @@ watch(
 .card-display--compact .card-display__category--secondary {
   padding: 0.15rem 0.38rem;
   font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+}
+
+.card-display--compact .card-display__element {
+  padding: 0.12rem 0.38rem 0.12rem 0.28rem;
+  font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+  gap: 0.2rem;
+}
+
+.card-display--compact .card-display__element-dot {
+  width: 0.35rem;
+  height: 0.35rem;
 }
 
 .card-display--compact .card-display__chakra {
