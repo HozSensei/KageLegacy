@@ -1,0 +1,658 @@
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `battle_pass_quests` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `season_id` int unsigned NOT NULL,
+  `quest_type` enum('daily','weekly','milestone') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `quest_key` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description_fr` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description_en` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `goal_value` int unsigned NOT NULL,
+  `xp_reward` int unsigned NOT NULL,
+  `bonus_reward_json` json DEFAULT NULL,
+  `available_from` timestamp NOT NULL,
+  `available_until` timestamp NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_bpq_season_type` (`season_id`,`quest_type`),
+  KEY `idx_bpq_window` (`available_from`,`available_until`),
+  KEY `idx_bpq_key` (`quest_key`),
+  CONSTRAINT `fk_bpq_season` FOREIGN KEY (`season_id`) REFERENCES `battle_pass_seasons` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `battle_pass_quests` WRITE;
+/*!40000 ALTER TABLE `battle_pass_quests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `battle_pass_quests` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `battle_pass_seasons` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `season_number` int unsigned NOT NULL,
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `theme` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `start_date` timestamp NOT NULL,
+  `end_date` timestamp NOT NULL,
+  `max_level` int unsigned NOT NULL DEFAULT '50',
+  `base_xp_per_level` int unsigned NOT NULL DEFAULT '1000',
+  `is_active` tinyint(1) NOT NULL DEFAULT '0',
+  `rewards_json` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_bp_season_number` (`season_number`),
+  KEY `idx_bp_seasons_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `battle_pass_seasons` WRITE;
+/*!40000 ALTER TABLE `battle_pass_seasons` DISABLE KEYS */;
+/*!40000 ALTER TABLE `battle_pass_seasons` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `battle_pass_stripe_purchases` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `season_id` int unsigned NOT NULL,
+  `stripe_session_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `amount_eur_cents` int unsigned NOT NULL DEFAULT '500',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_bps_stripe_session` (`stripe_session_id`),
+  KEY `idx_bps_user` (`user_id`),
+  KEY `idx_bps_season` (`season_id`),
+  CONSTRAINT `fk_bps_season` FOREIGN KEY (`season_id`) REFERENCES `battle_pass_seasons` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bps_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `battle_pass_stripe_purchases` WRITE;
+/*!40000 ALTER TABLE `battle_pass_stripe_purchases` DISABLE KEYS */;
+/*!40000 ALTER TABLE `battle_pass_stripe_purchases` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `card_definitions` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name_fr` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name_en` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `type` enum('attack','defense','skill','summon','item') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `stat_type` enum('taijutsu','ninjutsu','genjutsu','medicine') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `element` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'katon, suiton, raiton, doton, futon, null',
+  `rarity` enum('common','rare','legendary','mythic') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `base_cost` int NOT NULL DEFAULT '0',
+  `base_damage` int NOT NULL DEFAULT '0',
+  `base_block` int NOT NULL DEFAULT '0',
+  `base_heal` int NOT NULL DEFAULT '0',
+  `effects_json` json DEFAULT NULL,
+  `summon_json` json DEFAULT NULL,
+  `exhaust` tinyint(1) NOT NULL DEFAULT '0',
+  `passive_bonus_json` json DEFAULT NULL,
+  `passive_description_fr` text COLLATE utf8mb4_unicode_ci,
+  `passive_description_en` text COLLATE utf8mb4_unicode_ci,
+  `description_fr` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description_en` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `lore_fr` text COLLATE utf8mb4_unicode_ci,
+  `lore_en` text COLLATE utf8mb4_unicode_ci,
+  `upgradable` tinyint(1) NOT NULL DEFAULT '1',
+  `upgrade_bonuses_json` json DEFAULT NULL,
+  `image_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `artist` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Generated',
+  `season_introduced` int unsigned DEFAULT NULL,
+  `is_exclusive` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_card_definitions_slug` (`slug`),
+  KEY `idx_card_rarity` (`rarity`),
+  KEY `idx_card_type` (`type`),
+  KEY `idx_card_element` (`element`),
+  KEY `idx_card_stat_type` (`stat_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `card_definitions` WRITE;
+/*!40000 ALTER TABLE `card_definitions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `card_definitions` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `combat_logs` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `combat_session_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `turn` int unsigned NOT NULL DEFAULT '1',
+  `action_type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `action_data_json` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_combat_logs_session` (`combat_session_id`,`turn`),
+  CONSTRAINT `fk_combat_logs_session` FOREIGN KEY (`combat_session_id`) REFERENCES `combat_sessions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `combat_logs` WRITE;
+/*!40000 ALTER TABLE `combat_logs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `combat_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `combat_sessions` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'UUID',
+  `user_id` int unsigned NOT NULL,
+  `mission_id` int unsigned DEFAULT NULL,
+  `mission_run_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Run de mission parent (récompenses en fin de parcours)',
+  `deck_id` int unsigned DEFAULT NULL,
+  `state` enum('in_progress','victory','defeat','forfeited') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'in_progress',
+  `player_state_json` json NOT NULL,
+  `enemy_state_json` json NOT NULL,
+  `current_turn` int unsigned NOT NULL DEFAULT '1',
+  `current_phase` enum('player_turn','enemy_turn','game_over') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'player_turn',
+  `stats_snapshot_json` json DEFAULT NULL,
+  `talent_effects_json` json DEFAULT NULL,
+  `rewards_json` json DEFAULT NULL COMMENT 'Résumé récompenses de victoire (xp/ryos/carte)',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_combat_sessions_user` (`user_id`,`state`),
+  KEY `idx_combat_sessions_mission` (`mission_id`),
+  KEY `idx_combat_sessions_run` (`mission_run_id`),
+  CONSTRAINT `fk_combat_sessions_mission` FOREIGN KEY (`mission_id`) REFERENCES `mission_definitions` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_combat_sessions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `combat_sessions` WRITE;
+/*!40000 ALTER TABLE `combat_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `combat_sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mission_definitions` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `slug` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name_fr` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name_en` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description_fr` text COLLATE utf8mb4_unicode_ci,
+  `description_en` text COLLATE utf8mb4_unicode_ci,
+  `rank` enum('D','C','B','A','S') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'D',
+  `encounters_json` json NOT NULL,
+  `rewards_json` json DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `sort_order` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_mission_definitions_slug` (`slug`),
+  KEY `idx_mission_rank` (`rank`),
+  KEY `idx_mission_active` (`is_active`,`sort_order`)
+) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `mission_definitions` WRITE;
+/*!40000 ALTER TABLE `mission_definitions` DISABLE KEYS */;
+INSERT INTO `mission_definitions` VALUES (1,'patrol-mist-road','Patrouille — Route des Brumes','Patrol — Mist Road','Éliminez un rônin isolé qui rançonne les voyageurs.','Clear a lone ronin shaking down travelers.','D','[{\"difficulty\": 1, \"templateId\": \"ronin_bandit\"}, {\"difficulty\": 1, \"templateId\": \"marsh_cutpurse\"}, {\"difficulty\": 1, \"templateId\": \"scrapyard_dog\"}]','{\"xp\": \"90\", \"ryos\": \"280\", \"bpPoints\": \"5\", \"cardChance\": \"22\", \"runBonusMult\": 1.6}',1,10,'2026-11-17 14:04:24'),(2,'secure-ash-outpost','Sécuriser l\'avant-poste de Cendre','Secure the Ash Outpost','Un éclaireur du clan Kurogane bloque le col. Anticipez ses intentions.','A Kurogane scout blocks the pass. Anticipate their intents.','C','[{\"difficulty\": 1, \"templateId\": \"kurogane_scout\"}, {\"difficulty\": 1, \"templateId\": \"tide_sentinel\"}, {\"difficulty\": 1, \"templateId\": \"mirror_adept\"}]','{\"xp\": \"90\", \"ryos\": \"520\", \"bpPoints\": \"8\", \"cardChance\": \"28\", \"runBonusMult\": 1.8}',1,20,'2026-11-17 14:04:24'),(3,'duel-ashen-captain','Duel — Capitaine Cendré','Duel — Ashen Captain','Affrontez un capitaine d\'élite au pattern prévisible. Préparez votre armure.','Face an elite captain with a predictable pattern. Prep your block.','B','[{\"difficulty\": 1, \"templateId\": \"kurogane_scout\"}, {\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"difficulty\": 1, \"templateId\": \"ironroot_warden\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"hollow_bell_warden\"}]','{\"xp\": \"320\", \"ryos\": \"980\", \"bpPoints\": \"350\", \"cardChance\": \"36\", \"runBonusMult\": 2.0}',1,30,'2026-11-17 14:04:24'),(4,'drain-marsh-cutpurse','Assèchement — Coupe-bourse','Drain — Cutpurse','Un voleur des marais empoisonne les sentiers. Coupez court.','A marsh thief poisons the trails. Cut him short.','D','[{\"difficulty\": 1, \"templateId\": \"marsh_cutpurse\"}, {\"difficulty\": 1, \"templateId\": \"ronin_bandit\"}, {\"difficulty\": 1, \"templateId\": \"scrapyard_dog\"}]','{\"xp\": \"50\", \"ryos\": \"300\", \"bpPoints\": \"5\", \"cardChance\": \"24\", \"runBonusMult\": 1.6}',1,12,'2026-11-17 14:04:24'),(5,'scrapyard-hound','Chasse — Chien de la Ferraille','Hunt — Scrapyard Hound','Une bête dressée garde un dépôt abandonné. Frappez vite.','A trained beast guards an abandoned depot. Strike fast.','D','[{\"difficulty\": 1, \"templateId\": \"scrapyard_dog\"}, {\"difficulty\": 1, \"templateId\": \"ronin_bandit\"}, {\"difficulty\": 1, \"templateId\": \"marsh_cutpurse\"}]','{\"xp\": \"50\", \"ryos\": \"320\", \"bpPoints\": \"6\", \"cardChance\": \"24\", \"runBonusMult\": 1.6}',1,14,'2026-11-17 14:04:24'),(6,'hold-tide-gate','Tenir la Porte de Marée','Hold the Tide Gate','La sentinelle suit un rythme défensif. Brisez sa garde.','The sentinel follows a defensive rhythm. Break the guard.','C','[{\"difficulty\": 1, \"templateId\": \"tide_sentinel\"}, {\"difficulty\": 1, \"templateId\": \"kurogane_scout\"}, {\"difficulty\": 1, \"templateId\": \"mirror_adept\"}]','{\"xp\": \"90\", \"ryos\": \"540\", \"bpPoints\": \"8\", \"cardChance\": \"28\", \"runBonusMult\": 1.8}',1,22,'2026-11-17 14:04:24'),(7,'shatter-mirror-adept','Briser l\'Adepte du Miroir','Shatter the Mirror Adept','Illusions et vulnérabilité : préparez vos ripostes.','Illusions and vulnerability: prepare your counters.','C','[{\"difficulty\": 1, \"templateId\": \"mirror_adept\"}, {\"difficulty\": 1, \"templateId\": \"tide_sentinel\"}, {\"difficulty\": 1, \"templateId\": \"kurogane_scout\"}]','{\"xp\": \"90\", \"ryos\": \"560\", \"bpPoints\": \"9\", \"cardChance\": \"30\", \"runBonusMult\": 1.8}',1,24,'2026-11-17 14:04:24'),(8,'ironroot-siege','Siège — Racine-de-Fer','Siege — Ironroot','Le gardien enchaîne garde et coups lourds. Patience.','The warden chains block and heavy hits. Be patient.','B','[{\"difficulty\": 1, \"templateId\": \"tide_sentinel\"}, {\"difficulty\": 1, \"templateId\": \"ironroot_warden\"}, {\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"embercoil_matron\"}]','{\"xp\": \"340\", \"ryos\": \"520\", \"bpPoints\": \"350\", \"cardChance\": \"36\", \"runBonusMult\": 2.0}',1,32,'2026-11-17 14:04:24'),(9,'stormcaller-trial','Épreuve — Mandeciel','Trial — Stormcaller','Foudre et brûlures en boucle. Gérez vos PV.','Lightning and burns on a loop. Manage your HP.','B','[{\"difficulty\": 1, \"templateId\": \"mirror_adept\"}, {\"difficulty\": 1, \"templateId\": \"stormcaller_adept\"}, {\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"hollow_bell_warden\"}]','{\"xp\": \"360\", \"ryos\": \"520\", \"bpPoints\": \"350\", \"cardChance\": \"38\", \"runBonusMult\": 2.0}',1,34,'2026-11-17 14:04:24'),(10,'duskblade-challenge','Défi — Lame-Crépuscule','Challenge — Duskblade','Un rônin d\'élite frappe fort. Survives le burst.','An elite ronin hits hard. Survive the burst.','A','[{\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"difficulty\": 1, \"templateId\": \"ironroot_warden\"}, {\"difficulty\": 1, \"templateId\": \"stormcaller_adept\"}, {\"difficulty\": 1, \"templateId\": \"veil_archivist\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"grave_orchid_seer\"}]','{\"xp\": \"520\", \"ryos\": \"850\", \"bpPoints\": \"500\", \"cardChance\": \"48\", \"runBonusMult\": 2.4}',1,40,'2026-11-17 14:04:24'),(11,'veil-archive-breach','Intrusion — Archives du Voile','Breach — Veil Archives','L\'archiviste empile débuffs. Purgez ou tuez vite.','The archivist stacks debuffs. Cleanse or kill fast.','A','[{\"difficulty\": 1, \"templateId\": \"mirror_adept\"}, {\"difficulty\": 1, \"templateId\": \"stormcaller_adept\"}, {\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"difficulty\": 1, \"templateId\": \"duskblade_ronin\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"mirrorfracture_colossus\"}]','{\"xp\": \"560\", \"ryos\": \"850\", \"bpPoints\": \"500\", \"cardChance\": \"50\", \"runBonusMult\": 2.4}',1,42,'2026-11-17 14:04:24'),(15,'toll-hollow-bell','Glas — Cloche Creuse','Toll — Hollow Bell','Le Gardien de la Cloche Creuse dresse une barrière vivante. Brisez-la avant le glas.','The Hollow Bell Warden raises a living barrier. Shatter it before the toll.','B','[{\"difficulty\": 1, \"templateId\": \"kurogane_scout\"}, {\"difficulty\": 1, \"templateId\": \"ironroot_warden\"}, {\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"hollow_bell_warden\"}]','{\"xp\": 380, \"ryos\": 1100, \"bpPoints\": 14, \"cardChance\": 38, \"runBonusMult\": 2.1}',1,36,'2026-11-17 14:04:24'),(16,'embercoil-ascent','Ascension — Spiralebraise','Ascent — Embercoil','La Matrone Spiralebraise charge ses coups. Interrompez le vent de braise.','Embercoil Matron winds up crushing blows. Interrupt the ember gale.','B','[{\"difficulty\": 1, \"templateId\": \"tide_sentinel\"}, {\"difficulty\": 1, \"templateId\": \"stormcaller_adept\"}, {\"difficulty\": 1, \"templateId\": \"kurogane_scout\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"embercoil_matron\"}]','{\"xp\": 390, \"ryos\": 1120, \"bpPoints\": 14, \"cardChance\": 38, \"runBonusMult\": 2.1}',1,37,'2026-11-17 14:04:24'),(17,'orchid-grave-vigil','Veillee — Orchidee-Tombe','Vigil — Grave Orchid','La Voyante invoque des petales funebres. Coupez ses ombres avant le fletrissement.','The Seer summons funeral petals. Cut down her shades before the wilt.','A','[{\"difficulty\": 1, \"templateId\": \"mirror_adept\"}, {\"difficulty\": 1, \"templateId\": \"veil_archivist\"}, {\"difficulty\": 1, \"templateId\": \"stormcaller_adept\"}, {\"difficulty\": 1, \"templateId\": \"duskblade_ronin\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"grave_orchid_seer\"}]','{\"xp\": 580, \"ryos\": 1750, \"bpPoints\": 22, \"cardChance\": 50, \"runBonusMult\": 2.5}',1,44,'2026-11-17 14:04:24'),(18,'fracturemire-siege','Siege — Fracturemire','Siege — Mirrorfracture','Le Colosse Fracturemire empile barrieres et eclats. Brisez le prisme.','Mirrorfracture Colossus stacks barriers and shards. Shatter the prism.','A','[{\"difficulty\": 1, \"templateId\": \"ashen_captain\"}, {\"difficulty\": 1, \"templateId\": \"ironroot_warden\"}, {\"difficulty\": 1, \"templateId\": \"duskblade_ronin\"}, {\"difficulty\": 1, \"templateId\": \"veil_archivist\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"mirrorfracture_colossus\"}]','{\"xp\": 600, \"ryos\": 1800, \"bpPoints\": 24, \"cardChance\": 52, \"runBonusMult\": 2.5}',1,46,'2026-11-17 14:04:24'),(19,'voidspire-regency','Regence — Fleche-Vide','Regency — Voidspire','Le Regent de la Fleche-Vide bascule en trois phases. Survivez a l eclipse.','The Voidspire Regent shifts through three phases. Survive the eclipse.','S','[{\"difficulty\": 1, \"templateId\": \"stormcaller_adept\"}, {\"difficulty\": 1, \"templateId\": \"duskblade_ronin\"}, {\"difficulty\": 1, \"templateId\": \"grave_orchid_seer\"}, {\"difficulty\": 1, \"templateId\": \"mirrorfracture_colossus\"}, {\"boss\": true, \"difficulty\": 1, \"templateId\": \"voidspire_regent\"}]','{\"xp\": 900, \"ryos\": 2800, \"bpPoints\": 35, \"cardChance\": 60, \"runBonusMult\": 3.0}',1,50,'2026-11-17 14:04:24');
+/*!40000 ALTER TABLE `mission_definitions` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `mission_runs` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'UUID',
+  `user_id` int unsigned NOT NULL,
+  `mission_id` int unsigned NOT NULL,
+  `deck_id` int unsigned DEFAULT NULL,
+  `state` enum('in_progress','victory','defeat','abandoned') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'in_progress',
+  `current_node_index` int unsigned NOT NULL DEFAULT '0',
+  `nodes_json` json NOT NULL,
+  `player_run_state_json` json NOT NULL,
+  `stats_snapshot_json` json DEFAULT NULL,
+  `talent_effects_json` json DEFAULT NULL,
+  `current_combat_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Combat en cours lié à ce run',
+  `rewards_json` json DEFAULT NULL COMMENT 'Récompenses de fin de run',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_mission_runs_user_state` (`user_id`,`state`),
+  KEY `idx_mission_runs_mission` (`mission_id`),
+  CONSTRAINT `fk_mission_runs_mission` FOREIGN KEY (`mission_id`) REFERENCES `mission_definitions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mission_runs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `mission_runs` WRITE;
+/*!40000 ALTER TABLE `mission_runs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `mission_runs` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `player_profiles` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `display_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `character_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `character_avatar_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `character_level` int unsigned NOT NULL DEFAULT '1',
+  `character_xp` int unsigned NOT NULL DEFAULT '0',
+  `character_rank` enum('Genin','Chunin','Jonin','ANBU','Kage') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Genin',
+  `character_talent_points_available` int unsigned NOT NULL DEFAULT '1',
+  `character_element_affinity` enum('Katon','Suiton','Raiton','Doton','Futon') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Katon',
+  `character_faction_id` enum('midorihara','kareno','oborohama') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `character_faction_retake_used` tinyint(1) NOT NULL DEFAULT '0',
+  `character_created_at` timestamp NULL DEFAULT NULL,
+  `character_updated_at` timestamp NULL DEFAULT NULL,
+  `ryos` int NOT NULL DEFAULT '10000',
+  `language` enum('fr','en') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'fr',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `card_dust` int unsigned NOT NULL DEFAULT '0' COMMENT 'Poussière de carte (désenchantement)',
+  `card_essence` int unsigned NOT NULL DEFAULT '0' COMMENT 'Essence de carte (craft)',
+  `kage_coins` int unsigned NOT NULL DEFAULT '0' COMMENT 'Monnaie premium (Battle Pass)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  KEY `idx_sensei_card_resources` (`card_dust`,`card_essence`),
+  KEY `idx_profile_character_level` (`character_level`),
+  KEY `idx_profile_character_rank` (`character_rank`),
+  KEY `idx_profile_character_faction` (`character_faction_id`),
+  KEY `idx_profile_character_level_xp` (`character_level` DESC,`character_xp` DESC),
+  CONSTRAINT `fk_player_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `player_profiles` WRITE;
+/*!40000 ALTER TABLE `player_profiles` DISABLE KEYS */;
+/*!40000 ALTER TABLE `player_profiles` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pvp_invites` (
+  `code` char(8) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` int unsigned NOT NULL,
+  `player_level` smallint unsigned NOT NULL DEFAULT '1',
+  `deck_id` int unsigned DEFAULT NULL,
+  `level_window` tinyint unsigned NOT NULL DEFAULT '3',
+  `status` enum('pending','accepted','cancelled','expired') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `match_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`),
+  KEY `idx_pvp_invites_user_status` (`user_id`,`status`),
+  KEY `idx_pvp_invites_expiry` (`status`,`expires_at`),
+  CONSTRAINT `fk_pvp_invites_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pvp_invites` WRITE;
+/*!40000 ALTER TABLE `pvp_invites` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pvp_invites` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pvp_matches` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'UUID',
+  `host_user_id` int unsigned NOT NULL,
+  `guest_user_id` int unsigned NOT NULL,
+  `host_level` smallint unsigned NOT NULL DEFAULT '1',
+  `guest_level` smallint unsigned NOT NULL DEFAULT '1',
+  `level_window` tinyint unsigned NOT NULL DEFAULT '3',
+  `status` enum('pending','ready','in_progress','completed','cancelled','forfeited') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `seed` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `host_deck_id` int unsigned DEFAULT NULL,
+  `guest_deck_id` int unsigned DEFAULT NULL,
+  `bootstrap_json` json NOT NULL,
+  `host_ready` tinyint(1) NOT NULL DEFAULT '0',
+  `guest_ready` tinyint(1) NOT NULL DEFAULT '0',
+  `winner_user_id` int unsigned DEFAULT NULL,
+  `winner_seat` enum('host','guest') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `end_reason` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'hp|forfeit|report|timeout',
+  `anti_cheat_mode` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'trust_host',
+  `host_checksum` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `guest_checksum` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `result_summary_json` json DEFAULT NULL,
+  `started_at` timestamp NULL DEFAULT NULL,
+  `ended_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_pvp_matches_host` (`host_user_id`,`status`),
+  KEY `idx_pvp_matches_guest` (`guest_user_id`,`status`),
+  KEY `idx_pvp_matches_status` (`status`,`created_at`),
+  CONSTRAINT `fk_pvp_matches_guest` FOREIGN KEY (`guest_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pvp_matches_host` FOREIGN KEY (`host_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pvp_matches` WRITE;
+/*!40000 ALTER TABLE `pvp_matches` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pvp_matches` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pvp_queue` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `player_level` smallint unsigned NOT NULL DEFAULT '1',
+  `deck_id` int unsigned DEFAULT NULL,
+  `level_window` tinyint unsigned NOT NULL DEFAULT '3' COMMENT 'Fenêtre ±N niveaux',
+  `status` enum('waiting','matched','cancelled') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'waiting',
+  `matched_match_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `enqueued_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_pvp_queue_waiting` (`status`,`player_level`,`enqueued_at`),
+  KEY `idx_pvp_queue_user_status` (`user_id`,`status`),
+  CONSTRAINT `fk_pvp_queue_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `pvp_queue` WRITE;
+/*!40000 ALTER TABLE `pvp_queue` DISABLE KEYS */;
+/*!40000 ALTER TABLE `pvp_queue` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_coin_pack_purchases` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `pack_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `coins_granted` int unsigned NOT NULL,
+  `method` enum('stub','stripe') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'stub',
+  `stripe_session_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_scp_stripe_session` (`stripe_session_id`),
+  KEY `idx_scp_user` (`user_id`),
+  KEY `idx_scp_pack` (`pack_id`),
+  CONSTRAINT `fk_scp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_coin_pack_purchases` WRITE;
+/*!40000 ALTER TABLE `shop_coin_pack_purchases` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_coin_pack_purchases` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `talent_tree_nodes` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `node_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Ex: tai_5_a, nin_keystone_berserker',
+  `name_fr` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name_en` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description_fr` text COLLATE utf8mb4_unicode_ci,
+  `description_en` text COLLATE utf8mb4_unicode_ci,
+  `type` enum('stat','notable','keystone') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `position_x` int NOT NULL COMMENT 'Coordonnée X dans l''arbre',
+  `position_y` int NOT NULL COMMENT 'Coordonnée Y dans l''arbre',
+  `branch` enum('taijutsu','ninjutsu','genjutsu','medicine','center') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `stat_bonus_json` json DEFAULT NULL,
+  `effect_code` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Code interne pour appliquer l''effet',
+  `requires_nodes_json` json DEFAULT NULL,
+  `icon` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Emoji ou classe CSS',
+  `color` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Couleur pour les Keystones',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `node_id` (`node_id`),
+  KEY `idx_talent_node_type` (`type`),
+  KEY `idx_talent_node_branch` (`branch`),
+  KEY `idx_talent_node_position` (`position_x`,`position_y`),
+  CONSTRAINT `chk_stat_bonus_or_effect` CHECK ((((`type` = _utf8mb4'stat') and (`stat_bonus_json` is not null)) or ((`type` in (_utf8mb4'notable',_utf8mb4'keystone')) and (`effect_code` is not null))))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `talent_tree_nodes` WRITE;
+/*!40000 ALTER TABLE `talent_tree_nodes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `talent_tree_nodes` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_achievements` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `achievement_key` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `current_progress` int unsigned NOT NULL DEFAULT '0',
+  `highest_tier` int unsigned NOT NULL DEFAULT '0' COMMENT 'Highest unlocked tier index (1-based), 0 = none',
+  `claimed_tiers_json` json NOT NULL,
+  `meta_json` json DEFAULT NULL COMMENT 'streak counters, last sync, etc.',
+  `first_unlocked_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_achievement` (`user_id`,`achievement_key`),
+  KEY `idx_ua_user` (`user_id`),
+  KEY `idx_ua_key` (`achievement_key`),
+  CONSTRAINT `fk_ua_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_achievements` WRITE;
+/*!40000 ALTER TABLE `user_achievements` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_achievements` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_battle_pass` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `season_id` int unsigned NOT NULL,
+  `current_level` int unsigned NOT NULL DEFAULT '0',
+  `current_xp` int unsigned NOT NULL DEFAULT '0',
+  `is_premium` tinyint(1) NOT NULL DEFAULT '0',
+  `premium_purchased_at` timestamp NULL DEFAULT NULL,
+  `claimed_rewards_json` json NOT NULL,
+  `missions_completed` int unsigned NOT NULL DEFAULT '0',
+  `combats_won` int unsigned NOT NULL DEFAULT '0',
+  `cards_obtained` int unsigned NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_season` (`user_id`,`season_id`),
+  KEY `idx_ubp_user` (`user_id`),
+  KEY `idx_ubp_season` (`season_id`),
+  CONSTRAINT `fk_ubp_season` FOREIGN KEY (`season_id`) REFERENCES `battle_pass_seasons` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ubp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_battle_pass` WRITE;
+/*!40000 ALTER TABLE `user_battle_pass` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_battle_pass` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_battle_pass_quests` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `quest_id` int unsigned NOT NULL,
+  `current_progress` int unsigned NOT NULL DEFAULT '0',
+  `is_completed` tinyint(1) NOT NULL DEFAULT '0',
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `is_claimed` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_quest` (`user_id`,`quest_id`),
+  KEY `idx_ubpq_user` (`user_id`),
+  KEY `idx_ubpq_quest` (`quest_id`),
+  CONSTRAINT `fk_ubpq_quest` FOREIGN KEY (`quest_id`) REFERENCES `battle_pass_quests` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ubpq_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_battle_pass_quests` WRITE;
+/*!40000 ALTER TABLE `user_battle_pass_quests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_battle_pass_quests` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_card_collection` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `card_definition_id` int unsigned NOT NULL,
+  `upgrade_level` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '0=base, 1=+, 2=++',
+  `quantity` int unsigned NOT NULL DEFAULT '1',
+  `obtained_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `obtained_source` enum('mission','booster','craft','battle_pass','event','starter','grant') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'grant',
+  `times_played` int unsigned NOT NULL DEFAULT '0',
+  `total_damage_dealt` int unsigned NOT NULL DEFAULT '0',
+  `total_block_gained` int unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_card_def` (`user_id`,`card_definition_id`),
+  KEY `fk_ucc_card` (`card_definition_id`),
+  KEY `idx_ucc_user` (`user_id`),
+  KEY `idx_ucc_upgrade` (`upgrade_level`),
+  CONSTRAINT `fk_ucc_card` FOREIGN KEY (`card_definition_id`) REFERENCES `card_definitions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ucc_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_ucc_quantity` CHECK ((`quantity` >= 1)),
+  CONSTRAINT `chk_upgrade_level` CHECK ((`upgrade_level` between 0 and 2))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_card_collection` WRITE;
+/*!40000 ALTER TABLE `user_card_collection` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_card_collection` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_deck_cards` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `deck_id` int unsigned NOT NULL,
+  `user_card_collection_id` int unsigned NOT NULL,
+  `card_definition_id` int unsigned NOT NULL,
+  `quantity` int unsigned NOT NULL DEFAULT '1',
+  `position` int unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_deck_collection` (`deck_id`,`user_card_collection_id`),
+  KEY `fk_udc_collection` (`user_card_collection_id`),
+  KEY `idx_udc_deck` (`deck_id`),
+  KEY `idx_udc_card_def` (`card_definition_id`),
+  CONSTRAINT `fk_udc_card_def` FOREIGN KEY (`card_definition_id`) REFERENCES `card_definitions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_udc_collection` FOREIGN KEY (`user_card_collection_id`) REFERENCES `user_card_collection` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_udc_deck` FOREIGN KEY (`deck_id`) REFERENCES `user_decks` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_udc_quantity` CHECK ((`quantity` >= 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_deck_cards` WRITE;
+/*!40000 ALTER TABLE `user_deck_cards` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_deck_cards` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_decks` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT '0',
+  `archetype` enum('aggro','control','combo','midrange') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'midrange',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_decks_active` (`user_id`,`is_active`),
+  CONSTRAINT `fk_user_decks_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_decks` WRITE;
+/*!40000 ALTER TABLE `user_decks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_decks` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_sessions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `token_hash` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_session_token` (`token_hash`),
+  KEY `idx_session_user` (`user_id`),
+  KEY `idx_session_expires` (`expires_at`),
+  CONSTRAINT `fk_session_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_sessions` WRITE;
+/*!40000 ALTER TABLE `user_sessions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_sessions` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_talent_respec_history` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `respec_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `cost_ryos` int unsigned NOT NULL DEFAULT '0',
+  `cost_dust` int unsigned NOT NULL DEFAULT '0',
+  `points_refunded` int unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_respec_history_user_date` (`user_id`,`respec_at`),
+  CONSTRAINT `fk_respec_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_talent_respec_history` WRITE;
+/*!40000 ALTER TABLE `user_talent_respec_history` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_talent_respec_history` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_talents` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `node_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `unlocked_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_talent` (`user_id`,`node_id`),
+  KEY `fk_user_talents_node` (`node_id`),
+  KEY `idx_user_talents_user` (`user_id`),
+  CONSTRAINT `fk_user_talents_node` FOREIGN KEY (`node_id`) REFERENCES `talent_tree_nodes` (`node_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_user_talents_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `user_talents` WRITE;
+/*!40000 ALTER TABLE `user_talents` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_talents` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password_hash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_admin` tinyint(1) NOT NULL DEFAULT '0',
+  `is_guest` tinyint(1) NOT NULL DEFAULT '0',
+  `guest_expires_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `starter_loadout_reset_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `uq_users_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
