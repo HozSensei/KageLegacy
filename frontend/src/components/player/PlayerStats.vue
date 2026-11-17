@@ -25,6 +25,7 @@ const STAT_ORDER = [
   'medicine',
   'maxHp',
   'maxChakra',
+  'armor',
 ]
 
 const STAT_TONES = {
@@ -34,12 +35,24 @@ const STAT_TONES = {
   medicine: 'leaf',
   maxHp: 'vermilion',
   maxChakra: 'sky',
+  armor: 'wood',
+}
+
+function statValue(total, key) {
+  if (key === 'armor') {
+    const fromBlock = Number(total.block)
+    const fromArmor = Number(total.armor)
+    if (Number.isFinite(fromBlock) && fromBlock > 0) return fromBlock
+    if (Number.isFinite(fromArmor) && fromArmor > 0) return fromArmor
+    return 0
+  }
+  return Number(total[key]) || 0
 }
 
 const rows = computed(() => {
   const total = props.stats?.total || props.stats || {}
   return STAT_ORDER.map((key) => {
-    const value = Number(total[key]) || 0
+    const value = statValue(total, key)
     const pct = Math.min(100, Math.round((value / props.scaleMax) * 100))
     return { key, value, pct, tone: STAT_TONES[key] || 'neutral' }
   })
