@@ -15,6 +15,8 @@ export const TYPE_ADVANTAGE = {
 };
 
 export const TYPE_ADVANTAGE_MULTIPLIER = 1.2;
+/** Hors avantage de triade (et non médecine) : léger malus anti-mono. */
+export const TYPE_DISADVANTAGE_MULTIPLIER = 0.85;
 
 /** Cycle élémentaire : katon > futon > raiton > doton > suiton > katon */
 export const ELEMENT_BEATS = {

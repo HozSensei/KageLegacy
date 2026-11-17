@@ -1299,10 +1299,9 @@
       "ninjutsu": "Ninjutsu",
       "genjutsu": "Genjutsu",
       "medicine": "Médecine",
-      "vitesse": "Vitesse",
-      "intelligence": "Intelligence",
-      "dexterity": "Dextérité",
-      "maxHp": "PV max"
+      "maxHp": "PV max",
+      "maxChakra": "Chakra max",
+      "armor": "Armure"
     },
     "levelWord": "Niveau",
     "createKicker": "Nouveau ninja",

@@ -10,8 +10,6 @@ export const CARD_FOOTER_STATS = [
   { key: 'ninjutsu', tone: STAT_TONES.ninjutsu },
   { key: 'medicine', tone: STAT_TONES.medicine },
   { key: 'genjutsu', tone: STAT_TONES.genjutsu },
-  { key: 'vitesse', tone: STAT_TONES.vitesse },
-  { key: 'intelligence', tone: STAT_TONES.intelligence },
 ]
 
 /** Cases footer pour une carte : valeur > 0 → chiffre, sinon case vide. */

@@ -3,8 +3,8 @@
  *
  * Module pur — pas de DB / RNG.
  *
- * Multiplicateurs (choix documenté = valeurs du design doc) :
- * - Triade : avantage ×1.2, sinon ×1 (pas de malus réciproque)
+ * Multiplicateurs :
+ * - Triade : avantage ×1.2, désavantage ×0.85, médecine neutre
  * - Éléments : avantage ×1.5, désavantage ×0.7, neutre ×1
  */
 import {
@@ -13,6 +13,7 @@ import {
   ELEMENT_DISADVANTAGE_MULT,
   TYPE_ADVANTAGE,
   TYPE_ADVANTAGE_MULTIPLIER,
+  TYPE_DISADVANTAGE_MULTIPLIER,
 } from './constants.js';
 
 const TYPE_KEYS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
@@ -26,7 +27,7 @@ function normalizeKey(value) {
 /**
  * @param {string|null|undefined} attackerStatType
  * @param {string|null|undefined} defenderPosture
- * @returns {{ relation: 'advantage'|'neutral', multiplier: number, attacker: string|null, defender: string|null }}
+ * @returns {{ relation: 'advantage'|'disadvantage'|'neutral', multiplier: number, attacker: string|null, defender: string|null }}
  */
 export function getTypeAdvantage(attackerStatType, defenderPosture) {
   const attacker = normalizeKey(attackerStatType);
@@ -43,6 +44,15 @@ export function getTypeAdvantage(attackerStatType, defenderPosture) {
     return {
       relation: 'advantage',
       multiplier: TYPE_ADVANTAGE_MULTIPLIER,
+      attacker,
+      defender,
+    };
+  }
+  // Défenseur bat l’attaquant dans la triade → léger malus.
+  if (TYPE_ADVANTAGE[defender] === attacker) {
+    return {
+      relation: 'disadvantage',
+      multiplier: TYPE_DISADVANTAGE_MULTIPLIER,
       attacker,
       defender,
     };

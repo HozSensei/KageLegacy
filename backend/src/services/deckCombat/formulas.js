@@ -31,15 +31,23 @@ export function scaleHeal(baseHeal, medicine) {
   return scaleByStat(baseHeal, medicine);
 }
 
-/** Chance crit = min(50, Vitesse / 10) */
-export function critChanceFromSpeed(vitesse) {
-  return Math.min(MAX_CRIT_CHANCE, Math.floor((Number(vitesse) || 0) / 10));
+/**
+ * Critique basé sur une chance explicite (mot-clé / carte), plus sur Vitesse.
+ * @param {number} chancePercent 0–50
+ */
+export function clampCritChance(chancePercent) {
+  return Math.min(MAX_CRIT_CHANCE, Math.max(0, Math.floor(Number(chancePercent) || 0)));
 }
 
-export function rollCrit(vitesse, rng = Math.random) {
-  const chance = critChanceFromSpeed(vitesse);
+/** @deprecated Alias — l’ancienne formule Vitesse/10 n’est plus utilisée. */
+export function critChanceFromSpeed(vitesse) {
+  return clampCritChance(Math.floor((Number(vitesse) || 0) / 10));
+}
+
+export function rollCrit(chancePercent, rng = Math.random) {
+  const chance = clampCritChance(chancePercent);
   const roll = typeof rng === 'function' ? rng() : Math.random();
-  const isCrit = roll * 100 < chance;
+  const isCrit = chance > 0 && roll * 100 < chance;
   return { isCrit, chance, mult: isCrit ? CRIT_DAMAGE_MULT : 1 };
 }
 
