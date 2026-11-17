@@ -232,7 +232,11 @@ assert(
   `≥40 effects applied (got ${classifiedAll.applied.length})`
 );
 assert(classifiedAll.stubbed.includes('collector'), 'collector still stubbed (meta)');
-assert(classifiedAll.stubbed.includes('four_paths'), 'four_paths stubbed (meta)');
+assert(classifiedAll.applied.includes('vital_satchel'), 'vital_satchel applied (center keystone)');
+assert(classifiedAll.applied.includes('item_armor'), 'item_armor applied');
+assert(classifiedAll.applied.includes('item_damage'), 'item_damage applied');
+assert(classifiedAll.applied.includes('confusion_tax'), 'confusion_tax applied');
+assert(classifiedAll.applied.includes('steady_hands'), 'steady_hands applied');
 assert(
   Object.keys(TALENT_EFFECT_MVP).length === classifiedAll.applied.length,
   'MVP map matches applied'

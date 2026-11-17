@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Talents : centre objets + Gen/Méd (2026-11-17)
+
+#### Changed
+
+- Centre : `path_weaver` / `balanced_stance` / `four_paths` → boosts objets + `vital_satchel` (+20 PV)
+- `confusion_tax` et `steady_hands` branchés en combat
+
 ### Combat : effets stub + poison joueur (2026-11-17)
 
 #### Added

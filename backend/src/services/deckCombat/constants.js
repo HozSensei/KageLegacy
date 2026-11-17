@@ -121,8 +121,17 @@ export const TALENT_EFFECT_MVP = {
   last_stand_heal: { kind: 'low_hp_heal_double', threshold: 0.2, healMult: 2 },
   vital_overflow: { kind: 'overheal_to_block', ratio: 0.5, maxBlock: 3 },
 
+  // ── Genjutsu (précédemment reporté) ──
+  confusion_tax: { kind: 'gen_debuff_incoming_cut', cut: 2 },
+
+  // ── Médecine (précédemment reporté) ──
+  steady_hands: { kind: 'heal_flat', flat: 2 },
+
   // ── Centre / objets (combat) ──
   item_master: { kind: 'items_no_exhaust_deny_tech' },
+  item_armor: { kind: 'item_block_flat', flat: 2 },
+  item_damage: { kind: 'item_damage_flat', flat: 2 },
+  vital_satchel: { kind: 'item_pack_keystone', damageFlat: 1, blockFlat: 1 },
 };
 
 export const INTENT_TYPES = ['attack', 'defend', 'buff', 'debuff', 'special'];

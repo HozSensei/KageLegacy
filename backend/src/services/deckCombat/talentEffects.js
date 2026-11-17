@@ -45,6 +45,7 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
     healFlat: 0,
     healMult: 1,
     blockMult: 1,
+    blockFlat: 0,
     blockAllowed: true,
     armorIgnore: 0,
     incomingDamageCap: null,
@@ -92,6 +93,24 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
   if (codes.has('item_master')) {
     mods.denyNonItem = true;
     mods.itemNoExhaust = true;
+  }
+
+  if (card?.type === 'item') {
+    if (codes.has('item_damage')) {
+      mods.damageFlat += TALENT_EFFECT_MVP.item_damage.flat;
+    }
+    if (codes.has('item_armor')) {
+      mods.blockFlat = (Number(mods.blockFlat) || 0) + TALENT_EFFECT_MVP.item_armor.flat;
+    }
+    if (codes.has('vital_satchel')) {
+      const cfg = TALENT_EFFECT_MVP.vital_satchel;
+      mods.damageFlat += cfg.damageFlat;
+      mods.blockFlat = (Number(mods.blockFlat) || 0) + cfg.blockFlat;
+    }
+  }
+
+  if (codes.has('steady_hands')) {
+    mods.healFlat += TALENT_EFFECT_MVP.steady_hands.flat;
   }
 
   if (card && codes.has('overload') && card.statType === 'ninjutsu') {
@@ -623,6 +642,10 @@ export function applyTalentIncomingAttackMods(damage, player, enemy, effectCodes
   if (codes.has('mind_trap')) {
     const cfg = TALENT_EFFECT_MVP.mind_trap;
     if (dmg >= cfg.minDamage) dmg = Math.max(1, dmg - cfg.cut);
+  }
+
+  if (codes.has('confusion_tax') && enemyHasGenjutsuDebuff(enemy)) {
+    dmg = Math.max(1, dmg - TALENT_EFFECT_MVP.confusion_tax.cut);
   }
 
   if (codes.has('veil_thick') && enemyHasGenjutsuDebuff(enemy)) {
