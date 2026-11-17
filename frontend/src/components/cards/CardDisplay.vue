@@ -7,6 +7,8 @@ import { cardEffectParts } from '../../utils/cardEffectLine'
 import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips'
 import {
   cardTypeVisual,
+  elementLabelKey,
+  elementTone,
   rarityVisual,
 } from '../../utils/cardVisuals'
 import { localizedName } from '../../utils/localeContent.js'
@@ -62,6 +64,16 @@ const rarityLevel = computed(() => rarity.value.pips || 1)
 
 const typeLabel = computed(() => t(`cards.types.${props.card.type}`, props.card.type))
 const typeVisual = computed(() => cardTypeVisual(props.card.type))
+
+const elementKey = computed(() => String(props.card.element || '').toLowerCase())
+const elementLabel = computed(() => {
+  if (!elementKey.value) return ''
+  const key = elementLabelKey(elementKey.value)
+  if (key && te(key)) return t(key)
+  if (te(`shop.elements.${elementKey.value}`)) return t(`shop.elements.${elementKey.value}`)
+  return props.card.element
+})
+const elementToneName = computed(() => elementTone(elementKey.value))
 
 const effectParts = computed(() =>
   cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }),
@@ -192,11 +204,34 @@ watch(
 
         <div class="card-display__art-banners" data-testid="card-scale-hint">
           <div
-            class="card-display__category"
-            :class="`card-display__category--${familyKey}`"
-            :title="familyLabel"
+            v-if="quantity != null || upgradeLevel > 0"
+            class="card-display__top-left"
           >
-            {{ familyLabel }}
+            <span
+              v-if="quantity != null"
+              class="card-display__qty"
+              :title="t('cards.quantityLabel')"
+            >
+              ×{{ quantity }}
+            </span>
+            <span
+              v-if="upgradeLevel > 0"
+              class="card-display__upgrade"
+              :title="t('cards.upgraded', { level: upgradeLevel })"
+            >
+              +{{ upgradeLevel }}
+            </span>
+          </div>
+          <div
+            v-if="elementLabel"
+            class="card-display__element"
+            :class="`card-display__element--${elementKey}`"
+            :data-tone="elementToneName"
+            :title="elementLabel"
+            data-testid="card-element"
+          >
+            <span class="card-display__element-dot" aria-hidden="true" />
+            {{ elementLabel }}
           </div>
           <div
             v-if="secondaryArtLabel"
@@ -206,6 +241,13 @@ watch(
             data-testid="card-secondary-art"
           >
             {{ secondaryArtLabel }}
+          </div>
+          <div
+            class="card-display__category"
+            :class="`card-display__category--${familyKey}`"
+            :title="familyLabel"
+          >
+            {{ familyLabel }}
           </div>
         </div>
 
@@ -276,17 +318,6 @@ watch(
             </div>
           </footer>
         </section>
-
-        <span v-if="quantity != null" class="card-display__qty" :title="t('cards.quantityLabel')">
-          ×{{ quantity }}
-        </span>
-        <span
-          v-if="upgradeLevel > 0"
-          class="card-display__upgrade"
-          :title="t('cards.upgraded', { level: upgradeLevel })"
-        >
-          +{{ upgradeLevel }}
-        </span>
 
         <span class="card-display__sheen" aria-hidden="true" />
       </button>
@@ -470,7 +501,9 @@ watch(
   position: relative;
   flex-shrink: 0;
   overflow: hidden;
+  /* coins haut seulement — bas collé au parchemin, sans espace */
   border-radius: 5px 5px 0 0;
+  margin: 0;
   background: #4e6578;
 }
 
@@ -498,15 +531,12 @@ watch(
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    linear-gradient(0deg, #18212c 0%, transparent 18%),
-    linear-gradient(90deg, #111a2633, transparent 24%, transparent 75%, #111a2633);
+  /* Pas de fondu bas : l’art doit coller le bord du parchemin */
+  background: linear-gradient(90deg, #111a2633, transparent 24%, transparent 75%, #111a2633);
 }
 
 .card-display--mythic .card-display__art::after {
-  background:
-    linear-gradient(0deg, #2e2418 0%, transparent 18%),
-    linear-gradient(90deg, #d5a75320, transparent 24%, transparent 75%, #d5a75320);
+  background: linear-gradient(90deg, #d5a75320, transparent 24%, transparent 75%, #d5a75320);
 }
 
 .card-display__art--placeholder {
@@ -515,11 +545,13 @@ watch(
 }
 
 .card-display__art-img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 26%;
+  object-position: center bottom;
   user-select: none;
 }
 
@@ -533,7 +565,7 @@ watch(
   opacity: 0.45;
 }
 
-/* Type de carte — bandeau compact collé en haut à droite, derrière le chakra */
+/* Type de carte — bandeau noir collé en haut à droite, derrière le chakra */
 .card-display__kind {
   position: absolute;
   z-index: 11;
@@ -541,9 +573,10 @@ watch(
   left: auto;
   top: 0;
   max-width: min(70%, 9rem);
-  padding: 0.22rem 0.7rem 0.22rem 0.55rem;
-  background: var(--tone-fill, #697580);
-  color: var(--tone-on, #fff);
+  /* padding-right sous la gemme : le libellé reste entièrement lisible */
+  padding: 0.22rem 2.75rem 0.22rem 0.55rem;
+  background: #000;
+  color: #fff;
   font-family: var(--font-display);
   font-size: clamp(0.5rem, 3.6cqi, 0.65rem);
   font-weight: 800;
@@ -556,18 +589,25 @@ watch(
   pointer-events: none;
 }
 
-/* Bannières d’art (primaire + secondaire) — rectangles à plat */
+/* Coin haut gauche : qty → élément → art secondaire → art primaire
+ * (pile haute pour laisser le bas de l’illustration libre) */
 .card-display__art-banners {
   position: absolute;
   z-index: 10;
   left: 0;
-  top: 2.35rem;
+  top: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.22rem;
+  gap: 0.18rem;
   max-width: calc(100% - 4.25rem);
   pointer-events: none;
+}
+
+.card-display__top-left {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
 }
 
 .card-display__category {
@@ -604,6 +644,55 @@ watch(
 
 .card-display__category--heredite {
   background: #408b68;
+}
+
+/* Élément (Katon, Raiton…) — pastille petite au-dessus des arts */
+.card-display__element {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  max-width: 100%;
+  padding: 0.12rem 0.4rem 0.12rem 0.28rem;
+  background: var(--tone-fill, #697580);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: clamp(0.42rem, 3cqi, 0.55rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-display__element--katon {
+  background: #d8513d;
+}
+
+.card-display__element--suiton {
+  background: #3776af;
+}
+
+.card-display__element--raiton {
+  background: #c9a227;
+}
+
+.card-display__element--doton {
+  background: #8c5c3e;
+}
+
+.card-display__element--futon {
+  background: #408b68;
+}
+
+.card-display__element-dot {
+  flex-shrink: 0;
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 1px;
+  background: #fff;
+  opacity: 0.9;
 }
 
 /* Gemme chakra — coin haut droit débordant */
@@ -840,32 +929,22 @@ watch(
 
 .card-display__qty,
 .card-display__upgrade {
-  position: absolute;
-  z-index: 14;
-  top: 1.55rem;
   display: inline-grid;
   place-items: center;
-  min-width: 1.45rem;
-  height: 1.25rem;
+  min-width: 1.35rem;
+  height: 1.15rem;
   padding: 0 0.28rem;
-  border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-ink, #111) 78%, transparent);
+  border-radius: 0.15rem;
+  background: #000;
   font-family: var(--font-display);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
   line-height: 1;
-  color: var(--color-on-ink, #fff);
+  color: #fff;
   pointer-events: none;
 }
 
-.card-display__qty {
-  left: 0.55rem;
-  right: auto;
-}
-
 .card-display__upgrade {
-  left: 2.2rem;
-  right: auto;
   border: 1px solid color-mix(in srgb, var(--color-gold-fill, #d4a84b) 70%, transparent);
 }
 
@@ -1019,13 +1098,15 @@ watch(
 }
 
 .card-display--compact .card-display__kind {
-  padding: 0.15rem 0.4rem;
+  padding: 0.15rem 1.85rem 0.15rem 0.4rem;
   font-size: clamp(0.42rem, 3.2cqi, 0.55rem);
+  background: #000;
+  color: #fff;
 }
 
 .card-display--compact .card-display__art-banners {
-  top: 1.85rem;
-  gap: 0.15rem;
+  top: 0;
+  gap: 0.12rem;
   max-width: calc(100% - 3.5rem);
 }
 
@@ -1037,6 +1118,17 @@ watch(
 .card-display--compact .card-display__category--secondary {
   padding: 0.15rem 0.38rem;
   font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+}
+
+.card-display--compact .card-display__element {
+  padding: 0.12rem 0.38rem 0.12rem 0.28rem;
+  font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
+  gap: 0.2rem;
+}
+
+.card-display--compact .card-display__element-dot {
+  width: 0.35rem;
+  height: 0.35rem;
 }
 
 .card-display--compact .card-display__chakra {
