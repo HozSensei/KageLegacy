@@ -130,7 +130,7 @@ function backToQueue() {
 
 <template>
   <div class="page-shell pvp-duel" data-testid="pvp-duel-page">
-    <div class="pvp-duel__head">
+    <div v-if="!arenaView || !pvp.role" class="pvp-duel__head">
       <div class="min-w-0">
         <p class="page-kicker">
           <span class="lozenge" aria-hidden="true" />
@@ -161,7 +161,6 @@ function backToQueue() {
 
     <PvpArena
       v-if="arenaView && pvp.role"
-      class="mt-5"
       :view="arenaView"
       :role="pvp.role"
       :logs="pvp.recentLogs"

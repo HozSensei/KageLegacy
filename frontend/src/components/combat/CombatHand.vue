@@ -19,16 +19,46 @@ const props = defineProps({
   stats: { type: Object, default: null },
 });
 
-const emit = defineEmits(['select', 'play', 'drop-intent']);
+const emit = defineEmits(['select', 'play', 'drop-intent', 'drag-zone-change']);
 
 const { locale, t, te } = useI18n();
 
 // Within the nearest [data-combat-drop-root], zones declare data-combat-drop-zone
 // as play/discard/reserve and data-combat-drop-disabled="true" when unavailable.
-// A valid drop emits only drop-intent({ card, action }); the consumer validates it.
+// Hover changes emit drag-zone-change with an available action or null.
+// A valid drop emits drop-intent({ card, action }); the consumer validates it.
 const drag = ref(null);
 let suppressClick = false;
 let clickTimer;
+let dragZone = null;
+
+function setDragZone(zone) {
+  if (zone === dragZone) return;
+  dragZone = zone;
+  emit('drag-zone-change', zone);
+}
+
+function dropZoneAt(current, x, y) {
+  const target = document.elementFromPoint(x, y);
+  const zone = target?.closest('[data-combat-drop-zone]');
+  const root = current.element.closest('[data-combat-drop-root]');
+  const action = zone?.dataset.combatDropZone;
+  const card = props.cards.find(item => item.instanceId === current.card.instanceId);
+  if (
+    root &&
+    zone &&
+    root.contains(zone) &&
+    zone.closest('[data-combat-drop-root]') === root &&
+    !current.element.parentElement?.contains(zone) &&
+    zone.dataset.combatDropDisabled !== 'true' &&
+    ['play', 'discard', 'reserve'].includes(action) &&
+    !props.disabled &&
+    card &&
+    (action !== 'play' || canAfford(card))
+  )
+    return action;
+  return null;
+}
 
 function startDrag(event, card) {
   if (drag.value || props.disabled || !event.isPrimary || event.button !== 0) return;
@@ -59,6 +89,7 @@ function moveDrag(event) {
   const dy = event.clientY - current.y;
   if (!current.moved && Math.hypot(dx, dy) < 8) return;
   drag.value = { ...current, dx, dy, moved: true };
+  setDragZone(dropZoneAt(current, event.clientX, event.clientY));
 }
 
 function endDrag(event, cancelled = false) {
@@ -70,28 +101,12 @@ function endDrag(event, cancelled = false) {
     clickTimer = setTimeout(() => {
       suppressClick = false;
     }, 500);
-    const target = document.elementFromPoint(event.clientX, event.clientY);
-    const zone = target?.closest('[data-combat-drop-zone]');
-    const root = current.element.closest('[data-combat-drop-root]');
-    const action = zone?.dataset.combatDropZone;
+    const action = cancelled ? null : dropZoneAt(current, event.clientX, event.clientY);
     const card = props.cards.find(item => item.instanceId === current.card.instanceId);
-    if (
-      !cancelled &&
-      root &&
-      zone &&
-      root.contains(zone) &&
-      zone.closest('[data-combat-drop-root]') === root &&
-      !current.element.parentElement?.contains(zone) &&
-      zone.dataset.combatDropDisabled !== 'true' &&
-      ['play', 'discard', 'reserve'].includes(action) &&
-      !props.disabled &&
-      card &&
-      (action !== 'play' || canAfford(card))
-    ) {
-      emit('drop-intent', { card, action });
-    }
+    if (action && card) emit('drop-intent', { card, action });
   }
   drag.value = null;
+  setDragZone(null);
   if (current.element.hasPointerCapture(event.pointerId))
     current.element.releasePointerCapture(event.pointerId);
 }
@@ -117,6 +132,7 @@ watch(
     if (value && drag.value) {
       const current = drag.value;
       drag.value = null;
+      setDragZone(null);
       if (current.element.hasPointerCapture(current.pointerId))
         current.element.releasePointerCapture(current.pointerId);
     }
@@ -124,6 +140,7 @@ watch(
 );
 onBeforeUnmount(() => {
   clearTimeout(clickTimer);
+  setDragZone(null);
   if (drag.value?.element.hasPointerCapture(drag.value.pointerId)) {
     drag.value.element.releasePointerCapture(drag.value.pointerId);
   }
@@ -147,7 +164,8 @@ function canAfford(card) {
 
 const fanStyle = computed(() => {
   const n = props.cards.length || 1;
-  return { '--hand-count': n };
+  const gaps = Math.max(n - 1, 1);
+  return { '--hand-step': 1 / gaps, '--hand-width-factor': n / gaps };
 });
 
 /* Les cartes d'un duel PvP n'ont pas de type : on le déduit de leur effet, pour l'affichage seulement. */
@@ -230,8 +248,6 @@ function footerCells(card) {
         '--i': index,
         '--angle': `${(index - (cards.length - 1) / 2) * Math.min(4, 24 / Math.max(cards.length - 1, 1))}deg`,
         '--lift': `${Math.abs(index - (cards.length - 1) / 2) * Math.min(3, 18 / Math.max(cards.length - 1, 1))}px`,
-        '--drag-x': `${drag?.card === card ? drag.dx : 0}px`,
-        '--drag-y': `${drag?.card === card ? drag.dy : 0}px`,
       }"
       :disabled="disabled"
       draggable="false"
@@ -325,16 +341,17 @@ function footerCells(card) {
 
 <style scoped>
 .hand {
+  --card-width: 8.75rem;
   position: relative;
   display: flex;
+  justify-content: center;
   align-items: flex-end;
   gap: 0;
   min-height: 14.5rem;
+  container-type: inline-size;
   margin-inline: calc(var(--space-gutter) * -1);
   padding: 1rem var(--space-gutter) 0.75rem;
-  overflow-x: auto;
-  scroll-padding-inline: var(--space-gutter);
-  scroll-snap-type: x proximity;
+  overflow: clip;
   isolation: isolate;
 }
 
@@ -348,7 +365,7 @@ function footerCells(card) {
   position: relative;
   display: block;
   flex: 0 0 auto;
-  width: 8.75rem;
+  width: min(var(--card-width), 100cqi);
   aspect-ratio: 2.5 / 3.5;
   padding: 0;
   border: 2px solid var(--card-rarity);
@@ -358,7 +375,7 @@ function footerCells(card) {
   text-align: left;
   outline: 0 solid var(--color-ink);
   overflow: visible;
-  scroll-snap-align: start;
+
   transform: translateY(var(--lift)) rotate(var(--angle));
   transform-origin: center bottom;
   touch-action: none;
@@ -373,14 +390,17 @@ function footerCells(card) {
 }
 
 .hand-card + .hand-card {
-  margin-left: -2.5rem;
+  margin-left: clamp(
+    calc(-1 * var(--card-width)),
+    calc((100cqi - 1rem) * var(--hand-step) - var(--card-width) * var(--hand-width-factor)),
+    -2.5rem
+  );
 }
 
 .hand-card--dragging {
   z-index: 10;
   opacity: 0;
   pointer-events: none;
-  transform: translate(var(--drag-x), var(--drag-y));
   transition: none;
 }
 
@@ -473,13 +493,6 @@ function footerCells(card) {
   outline-width: 3px;
   z-index: 4;
   transform: translateY(calc(var(--lift) - 0.85rem)) rotate(var(--angle));
-}
-
-.hand-card--dragging,
-.hand-card--dragging:hover:not(:disabled),
-.hand-card--dragging.hand-card--selected {
-  z-index: 10;
-  transform: translate(var(--drag-x), var(--drag-y));
 }
 
 .hand-card:disabled {
@@ -724,15 +737,9 @@ function footerCells(card) {
   }
 }
 
-@media (min-width: 900px) {
-  .hand {
-    justify-content: center;
-  }
-}
-
 @media (max-width: 640px) {
-  .hand-card {
-    width: 7.85rem;
+  .hand {
+    --card-width: 7.85rem;
   }
 }
 </style>

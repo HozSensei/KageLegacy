@@ -23,6 +23,7 @@ defineOptions({ name: 'AppLayout' });
 const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const isCombatLayout = computed(() => route.meta.combatLayout === true);
 
 const auth = useAuthStore();
 
@@ -116,10 +117,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="app-shell" :class="{ 'app-shell--rail': auth.user }">
-    <AppNavRail v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
+  <div class="app-shell" :class="{ 'app-shell--rail': auth.user && !isCombatLayout }">
+    <AppNavRail v-if="auth.user && !isCombatLayout" :nav-groups="navGroups" :is-active="isActive" />
 
-    <header class="app-bar">
+    <header v-if="!isCombatLayout" class="app-bar">
       <div class="app-bar__inner">
         <AppNavDrawer v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
 
@@ -191,7 +192,7 @@ onMounted(async () => {
       </div>
     </header>
 
-    <div v-if="auth.user?.isGuest" class="guest-band">
+    <div v-if="auth.user?.isGuest && !isCombatLayout" class="guest-band">
       <span class="lozenge" aria-hidden="true" />
       <span>{{ t('guest.banner', { days: guestDaysLeft ?? '?' }) }}</span>
       <button type="button" class="guest-band__cta" @click="showConvert = true">
@@ -199,7 +200,7 @@ onMounted(async () => {
       </button>
     </div>
 
-    <main class="app-main">
+    <main class="app-main" :class="{ 'app-main--combat': isCombatLayout }">
       <router-view v-slot="{ Component }">
         <Transition name="page" mode="out-in">
           <component :is="Component" />
@@ -207,7 +208,7 @@ onMounted(async () => {
       </router-view>
     </main>
 
-    <ConvertGuestModal :open="showConvert" @close="showConvert = false" />
+    <ConvertGuestModal v-if="!isCombatLayout" :open="showConvert" @close="showConvert = false" />
   </div>
 </template>
 
@@ -360,6 +361,12 @@ onMounted(async () => {
 .app-main {
   position: relative;
   padding-bottom: 3rem;
+}
+
+.app-main--combat {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 0;
 }
 
 @media (min-width: 640px) {

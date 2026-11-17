@@ -26,14 +26,18 @@ const showMidRunVictory = computed(
 
 onMounted(async () => {
   if (combatId.value) {
-    if (!combat.combat || combat.combat.id !== combatId.value) {
+    if (!combat.combat || String(combat.combat.id) !== String(combatId.value)) {
+      combat.clear();
       await combat.fetchState(combatId.value);
     }
   }
 });
 
 watch(combatId, async id => {
-  if (id) await combat.fetchState(id);
+  if (id) {
+    combat.clear();
+    await combat.fetchState(id);
+  }
 });
 
 watch(
@@ -106,18 +110,15 @@ function goToRunOrMissions() {
 
 <template>
   <div class="page-shell combat-shell" data-testid="combat-page">
-    <header class="combat-head">
-      <div class="combat-head__title">
-        <p class="page-kicker flex items-center gap-2">
-          <span class="lozenge text-vermilion" aria-hidden="true" />
-          {{ t('combat.kicker') }}
-        </p>
-        <h1 class="t-heading">{{ t('combat.title') }}</h1>
-      </div>
-      <button type="button" class="btn-ghost btn-sm" @click="goToRunOrMissions">
-        {{ isMidRunFight ? t('combat.backToRun') : t('combat.backToMissions') }}
-      </button>
-    </header>
+    <h1 class="sr-only">{{ t('combat.title') }}</h1>
+    <button
+      v-if="!combat.combat && !combat.loading"
+      type="button"
+      class="btn-ghost btn-sm"
+      @click="goToRunOrMissions"
+    >
+      {{ isMidRunFight ? t('combat.backToRun') : t('combat.backToMissions') }}
+    </button>
 
     <p v-if="combat.error" class="alert alert--error mt-4">{{ combat.error }}</p>
     <p v-if="combat.loading && !combat.combat" class="mt-8 text-ink-muted">
@@ -126,7 +127,6 @@ function goToRunOrMissions() {
 
     <CombatArena
       v-if="combat.combat"
-      class="mt-5"
       :combat="combat.combat"
       :logs="combat.recentLogs"
       :selected-id="combat.selectedInstanceId"
@@ -146,23 +146,6 @@ function goToRunOrMissions() {
 
 <style scoped>
 .combat-shell {
-  padding-top: clamp(1rem, 2.5vw, 1.75rem);
-}
-
-.combat-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding-bottom: 0.9rem;
-  border-bottom: 1px solid var(--color-line);
-}
-
-.combat-head__title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 1rem;
+  padding-top: 0.75rem;
 }
 </style>

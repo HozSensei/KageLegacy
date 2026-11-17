@@ -45,6 +45,8 @@ function isDropDisabled(action) {
   );
 }
 
+const hoveredZone = ref(null);
+
 function onDropIntent(intent) {
   const action = intent?.action;
   if (!['play', 'discard', 'reserve'].includes(action) || isDropDisabled(action)) return;
@@ -100,6 +102,11 @@ onBeforeUnmount(() => {
   if (bannerTimer) clearTimeout(bannerTimer);
 });
 
+function confirmForfeit() {
+  if (props.view?.status !== 'in_progress' || props.busy) return;
+  if (window.confirm(`${t('pvp.forfeit')} ?\n${t('pvp.outcome.defeat')}`)) emit('forfeit');
+}
+
 const outcomeKey = computed(() => {
   if (!isOver.value) return null;
   if (props.view.winnerSeat === props.role) return 'victory';
@@ -133,14 +140,22 @@ const outcomeKey = computed(() => {
           </span>
         </p>
       </div>
-      <button
-        type="button"
-        class="btn-danger btn-sm"
-        :disabled="busy || view.status !== 'in_progress'"
-        @click="emit('forfeit')"
-      >
-        {{ t('pvp.forfeit') }}
-      </button>
+      <details class="pvp-menu">
+        <summary :aria-label="t('nav.menu')">☰</summary>
+        <div class="pvp-menu__content">
+          <RouterLink :to="{ name: 'rules' }" target="_blank" rel="noopener noreferrer">
+            {{ t('rules.link') }} ↗
+          </RouterLink>
+          <button
+            type="button"
+            class="btn-danger"
+            :disabled="busy || view.status !== 'in_progress'"
+            @click="confirmForfeit"
+          >
+            {{ t('pvp.forfeit') }}
+          </button>
+        </div>
+      </details>
     </header>
 
     <div
@@ -192,7 +207,10 @@ const outcomeKey = computed(() => {
         v-for="zone in ['play', 'discard', 'reserve']"
         :key="zone"
         class="arena-drop-zone"
-        :class="{ 'arena-drop-zone--disabled': isDropDisabled(zone) }"
+        :class="{
+          'arena-drop-zone--disabled': isDropDisabled(zone),
+          'arena-drop-zone--active': hoveredZone === zone && !isDropDisabled(zone),
+        }"
         :data-combat-drop-zone="zone"
         :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
         :data-testid="`drop-zone-${zone}`"
@@ -224,6 +242,7 @@ const outcomeKey = computed(() => {
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
         @drop-intent="onDropIntent"
+        @drag-zone-change="hoveredZone = $event"
       />
 
       <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
@@ -273,26 +292,125 @@ const outcomeKey = computed(() => {
       </div>
     </section>
 
-    <CombatLog class="arena__side" :logs="logs" :viewer-seat="role" />
+    <details class="arena__side pvp-log">
+      <summary>{{ t('combat.logTitle') }} <span aria-hidden="true">⌄</span></summary>
+      <CombatLog :logs="logs" :viewer-seat="role" />
+    </details>
   </div>
 </template>
 
 <style scoped>
+.arena {
+  gap: 0.75rem;
+}
+.arena__top {
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+}
+.arena__turn-number {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.arena__turn-label {
+  padding-bottom: 0;
+}
+.pvp-menu {
+  position: relative;
+  margin-left: auto;
+}
+.pvp-menu summary {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  list-style: none;
+}
+.pvp-menu summary::-webkit-details-marker,
+.pvp-log > summary::-webkit-details-marker {
+  display: none;
+}
+.pvp-menu__content {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  display: grid;
+  min-width: 12rem;
+  padding: 0.4rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 15%);
+}
+.pvp-menu__content a,
+.pvp-menu__content button {
+  padding: 0.75rem;
+  text-align: left;
+}
+.pvp-menu__content button:disabled {
+  opacity: 0.45;
+}
+.pvp-log {
+  align-self: start;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-soft);
+}
+.pvp-log > summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.pvp-log[open] > summary span {
+  transform: rotate(180deg);
+}
+.pvp-log :deep(.combat-log__title) {
+  display: none;
+}
 .arena-drop-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.75rem;
-  padding: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  padding: 0.65rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-soft);
 }
 
 .arena-drop-zone {
   display: grid;
   place-items: center;
-  min-height: 5rem;
-  padding: 0.75rem;
+  min-width: 0;
+  min-height: 4.5rem;
+  padding: 0.4rem;
   border: 2px dashed var(--color-line-strong);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
   color: var(--color-ink);
   text-align: center;
+}
+
+.arena-drop-zone--active {
+  border-color: var(--color-indigo);
+  background: var(--color-indigo-tint);
+  box-shadow: 0 0 1rem color-mix(in srgb, var(--color-indigo) 40%, transparent);
+}
+
+@media (min-width: 1120px) {
+  .arena--with-side > .arena-drop-board {
+    grid-column: 1;
+  }
 }
 
 .arena-drop-zone--disabled {
@@ -302,16 +420,16 @@ const outcomeKey = computed(() => {
 .pvp-top {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem 1.5rem;
+  align-items: center;
+  gap: 0.35rem 0.85rem;
 }
 
 .pvp-top__role {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 0.2rem;
+  gap: 0.4rem;
+  padding-bottom: 0;
 }
 
 .peer {

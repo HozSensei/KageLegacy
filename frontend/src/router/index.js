@@ -24,6 +24,11 @@ import { useAuthStore } from '../stores/auth';
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    if (to.meta.combatLayout) return { top: 0 };
+    return false;
+  },
   routes: [
     { path: '/', name: 'home', component: LandingView },
     { path: '/rules', name: 'rules', component: RulesView },
@@ -99,6 +104,7 @@ const router = createRouter({
           component: CombatView,
           meta: {
             requiresCharacter: true,
+            combatLayout: true,
           },
         },
         {
@@ -139,6 +145,7 @@ const router = createRouter({
           component: PvpDuelView,
           meta: {
             requiresCharacter: true,
+            combatLayout: true,
           },
         },
         {

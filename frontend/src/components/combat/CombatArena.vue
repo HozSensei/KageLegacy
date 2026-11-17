@@ -28,7 +28,17 @@ const emit = defineEmits([
   'dismiss-outcome',
 ]);
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+
+function confirmForfeit() {
+  const message =
+    locale.value === 'en'
+      ? 'Forfeit this fight? This cannot be undone.'
+      : 'Abandonner ce combat ? Cette action est irréversible.';
+  if (!props.busy && props.combat.state === 'in_progress' && window.confirm(message)) {
+    emit('forfeit');
+  }
+}
 
 const isOver = computed(() => ['victory', 'defeat', 'forfeited'].includes(props.combat.state));
 
@@ -46,6 +56,8 @@ function isDropDisabled(action) {
     (action !== 'play' && (props.combat.player.discardedForChakra || !!reservedCard.value))
   );
 }
+
+const hoveredZone = ref(null);
 
 function onDropIntent(intent) {
   const action = intent?.action;
@@ -99,14 +111,27 @@ onBeforeUnmount(() => {
           {{ t(`combat.phases.${combat.currentPhase}`) }}
         </span>
       </p>
-      <button
-        type="button"
-        class="btn-danger btn-sm"
-        :disabled="busy || combat.state !== 'in_progress'"
-        @click="emit('forfeit')"
-      >
-        {{ t('combat.forfeit') }}
-      </button>
+      <details class="arena__menu">
+        <summary class="btn-ghost btn-sm">{{ t('nav.menu') }}</summary>
+        <div class="arena__menu-content">
+          <router-link
+            :to="{ name: 'rules' }"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-ghost btn-sm"
+          >
+            {{ t('rules.link') }} ↗
+          </router-link>
+          <button
+            type="button"
+            class="btn-danger btn-sm"
+            :disabled="busy || combat.state !== 'in_progress'"
+            @click="confirmForfeit"
+          >
+            {{ t('combat.forfeit') }}
+          </button>
+        </div>
+      </details>
     </header>
 
     <VictoryRewards
@@ -149,7 +174,10 @@ onBeforeUnmount(() => {
         v-for="zone in ['play', 'discard', 'reserve']"
         :key="zone"
         class="arena-drop-zone"
-        :class="{ 'arena-drop-zone--disabled': isDropDisabled(zone) }"
+        :class="{
+          'arena-drop-zone--disabled': isDropDisabled(zone),
+          'arena-drop-zone--active': hoveredZone === zone && !isDropDisabled(zone),
+        }"
         :data-combat-drop-zone="zone"
         :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
         :data-testid="`drop-zone-${zone}`"
@@ -183,6 +211,7 @@ onBeforeUnmount(() => {
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
         @drop-intent="onDropIntent"
+        @drag-zone-change="hoveredZone = $event"
       />
 
       <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
@@ -232,26 +261,96 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
-    <CombatLog class="arena__side" :logs="logs" />
+    <details class="arena__side arena__log">
+      <summary>{{ t('combat.logTitle') }}</summary>
+      <CombatLog :logs="logs" />
+    </details>
   </div>
 </template>
 
 <style scoped>
+.arena {
+  gap: 0.75rem;
+}
+
+.arena__top,
+.arena__turn {
+  align-items: center;
+}
+
+.arena__turn {
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.arena__turn-label,
+.arena__phase {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.arena__turn-number {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.arena__menu {
+  position: relative;
+  flex: none;
+}
+
+.arena__menu summary,
+.arena__log summary {
+  cursor: pointer;
+}
+
+.arena__menu-content {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  display: grid;
+  gap: 0.5rem;
+  min-width: 12rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-bg);
+}
+
+.arena__log summary {
+  padding: 0.75rem;
+  background: var(--color-bg-soft);
+  font-weight: 700;
+}
+
 .arena-drop-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.75rem;
-  padding: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0;
 }
 
 .arena-drop-zone {
   display: grid;
   place-items: center;
-  min-height: 5rem;
-  padding: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.35rem;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
   border: 2px dashed var(--color-line-strong);
   color: var(--color-ink);
   text-align: center;
+}
+
+.arena-drop-zone--active {
+  border-color: var(--color-indigo);
+  background: var(--color-indigo-tint);
+  box-shadow: 0 0 1rem color-mix(in srgb, var(--color-indigo) 40%, transparent);
+}
+
+@media (min-width: 1120px) {
+  .arena--with-side > .arena-drop-board {
+    grid-column: 1;
+  }
 }
 
 .arena-drop-zone--disabled {
