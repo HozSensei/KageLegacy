@@ -1,19 +1,19 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import BrandMark from '../ui/BrandMark.vue'
-import { resolveCardArt } from '../../utils/cardArt'
-import { cardEffectParts } from '../../utils/cardEffectLine'
-import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips'
+import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import BrandMark from '../ui/BrandMark.vue';
+import { resolveCardArt } from '../../utils/cardArt';
+import { cardEffectParts } from '../../utils/cardEffectLine';
+import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips';
 import {
   cardTypeVisual,
   elementLabelKey,
   elementTone,
   rarityVisual,
-} from '../../utils/cardVisuals'
-import { localizedName } from '../../utils/localeContent.js'
+} from '../../utils/cardVisuals';
+import { localizedName } from '../../utils/localeContent.js';
 
-defineOptions({ name: 'CardDisplay' })
+defineOptions({ name: 'CardDisplay' });
 
 const props = defineProps({
   card: { type: Object, required: true },
@@ -32,114 +32,114 @@ const props = defineProps({
   face: {
     type: String,
     default: null,
-    validator: (v) => v == null || v === 'front' || v === 'back',
+    validator: v => v == null || v === 'front' || v === 'back',
   },
   /** Inclinaison 3D au survol (collection). Désactivée si reduced-motion. */
   tilt: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select']);
 
-const { t, te, locale } = useI18n()
+const { t, te, locale } = useI18n();
 
-const tiltStyle = ref(null)
-const reduceMotion = ref(false)
+const tiltStyle = ref(null);
+const reduceMotion = ref(false);
 
 if (typeof window !== 'undefined' && window.matchMedia) {
-  const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
-  reduceMotion.value = mq.matches
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  reduceMotion.value = mq.matches;
   const onChange = () => {
-    reduceMotion.value = mq.matches
-  }
-  if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange)
-  else if (typeof mq.addListener === 'function') mq.addListener(onChange)
+    reduceMotion.value = mq.matches;
+  };
+  if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onChange);
+  else if (typeof mq.addListener === 'function') mq.addListener(onChange);
 }
 
-const name = computed(() => localizedName(props.card, locale.value))
+const name = computed(() => localizedName(props.card, locale.value));
 
-const rarityKey = computed(() => props.card.rarity || 'common')
-const rarityClass = computed(() => `card-display--${rarityKey.value}`)
-const rarity = computed(() => rarityVisual(props.card.rarity))
-const rarityLevel = computed(() => rarity.value.pips || 1)
+const rarityKey = computed(() => props.card.rarity || 'common');
+const rarityClass = computed(() => `card-display--${rarityKey.value}`);
+const rarity = computed(() => rarityVisual(props.card.rarity));
+const rarityLevel = computed(() => rarity.value.pips || 1);
 
-const typeLabel = computed(() => t(`cards.types.${props.card.type}`, props.card.type))
-const typeVisual = computed(() => cardTypeVisual(props.card.type))
+const typeLabel = computed(() => t(`cards.types.${props.card.type}`, props.card.type));
+const typeVisual = computed(() => cardTypeVisual(props.card.type));
 
-const elementKey = computed(() => String(props.card.element || '').toLowerCase())
+const elementKey = computed(() => String(props.card.element || '').toLowerCase());
 const elementLabel = computed(() => {
-  if (!elementKey.value) return ''
-  const key = elementLabelKey(elementKey.value)
-  if (key && te(key)) return t(key)
-  if (te(`shop.elements.${elementKey.value}`)) return t(`shop.elements.${elementKey.value}`)
-  return props.card.element
-})
-const elementToneName = computed(() => elementTone(elementKey.value))
+  if (!elementKey.value) return '';
+  const key = elementLabelKey(elementKey.value);
+  if (key && te(key)) return t(key);
+  if (te(`shop.elements.${elementKey.value}`)) return t(`shop.elements.${elementKey.value}`);
+  return props.card.element;
+});
+const elementToneName = computed(() => elementTone(elementKey.value));
 
 const effectParts = computed(() =>
-  cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }),
-)
+  cardEffectParts(props.card, props.stats, { t, te, locale: locale.value })
+);
 
 function artLabelForKey(key) {
   if (key === 'heredite' || key === 'medicine') {
-    return te('cards.stats.medicine') ? t('cards.stats.medicine') : 'Médecine'
+    return te('cards.stats.medicine') ? t('cards.stats.medicine') : 'Médecine';
   }
-  return te(`cards.stats.${key}`) ? t(`cards.stats.${key}`) : key
+  return te(`cards.stats.${key}`) ? t(`cards.stats.${key}`) : key;
 }
 
-const familyKey = computed(() => cardFamilyKey(props.card))
-const familyLabel = computed(() => artLabelForKey(familyKey.value))
+const familyKey = computed(() => cardFamilyKey(props.card));
+const familyLabel = computed(() => artLabelForKey(familyKey.value));
 
-const secondaryArt = computed(() => cardSecondaryArt(props.card))
+const secondaryArt = computed(() => cardSecondaryArt(props.card));
 const secondaryFamilyKey = computed(() =>
-  secondaryArt.value ? cardFamilyKey(secondaryArt.value) : null,
-)
+  secondaryArt.value ? cardFamilyKey(secondaryArt.value) : null
+);
 const secondaryArtLabel = computed(() =>
-  secondaryArt.value ? artLabelForKey(secondaryFamilyKey.value || secondaryArt.value) : '',
-)
+  secondaryArt.value ? artLabelForKey(secondaryFamilyKey.value || secondaryArt.value) : ''
+);
 
-const bonusChips = computed(() => cardBonusChips(props.card))
+const bonusChips = computed(() => cardBonusChips(props.card));
 
-const artUrl = computed(() => resolveCardArt(props.card))
-const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0)
+const artUrl = computed(() => resolveCardArt(props.card));
+const cost = computed(() => props.card.cost ?? props.card.baseCost ?? 0);
 
 /** Flip structure only when booster controls `face`. */
-const enableFlip = computed(() => props.face != null)
+const enableFlip = computed(() => props.face != null);
 
-const isFlipped = computed(() => props.face === 'back')
+const isFlipped = computed(() => props.face === 'back');
 
 const serialLabel = computed(() => {
   if (props.catalogueNumber != null) {
-    return t('cards.serialNumber', { n: String(props.catalogueNumber).padStart(3, '0') })
+    return t('cards.serialNumber', { n: String(props.catalogueNumber).padStart(3, '0') });
   }
-  return t('cards.serialBrand')
-})
+  return t('cards.serialBrand');
+});
 
 function onSelect() {
-  emit('select', props.card)
+  emit('select', props.card);
 }
 
 function onPointerMove(event) {
-  if (!props.tilt || reduceMotion.value || isFlipped.value) return
-  if (event.pointerType === 'touch') return
-  const el = event.currentTarget
-  const r = el.getBoundingClientRect()
-  const x = (event.clientX - r.left) / r.width - 0.5
-  const y = (event.clientY - r.top) / r.height - 0.5
+  if (!props.tilt || reduceMotion.value || isFlipped.value) return;
+  if (event.pointerType === 'touch') return;
+  const el = event.currentTarget;
+  const r = el.getBoundingClientRect();
+  const x = (event.clientX - r.left) / r.width - 0.5;
+  const y = (event.clientY - r.top) / r.height - 0.5;
   tiltStyle.value = {
     transform: `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`,
-  }
+  };
 }
 
 function onPointerLeave() {
-  tiltStyle.value = null
+  tiltStyle.value = null;
 }
 
 watch(
   () => props.face,
   () => {
-    tiltStyle.value = null
-  },
-)
+    tiltStyle.value = null;
+  }
+);
 </script>
 
 <template>
@@ -203,10 +203,7 @@ watch(
         </div>
 
         <div class="card-display__art-banners" data-testid="card-scale-hint">
-          <div
-            v-if="quantity != null || upgradeLevel > 0"
-            class="card-display__top-left"
-          >
+          <div v-if="quantity != null || upgradeLevel > 0" class="card-display__top-left">
             <span
               v-if="quantity != null"
               class="card-display__qty"
@@ -303,17 +300,10 @@ watch(
             >
               {{ serialLabel }}
             </span>
-            <div
-              class="card-display__rarity"
-              :aria-label="t(`cards.rarities.${rarityKey}`)"
-            >
+            <div class="card-display__rarity" :aria-label="t(`cards.rarities.${rarityKey}`)">
               <span class="card-display__rarity-name">{{ t(`cards.rarities.${rarityKey}`) }}</span>
               <span class="card-display__rarity-pips" aria-hidden="true">
-                <i
-                  v-for="n in rarityLevel"
-                  :key="n"
-                  class="card-display__diamond"
-                />
+                <i v-for="n in rarityLevel" :key="n" class="card-display__diamond" />
               </span>
             </div>
           </footer>
@@ -965,7 +955,13 @@ watch(
 }
 
 .card-display--rare .card-display__sheen {
-  background: linear-gradient(112deg, transparent 15%, #a8e5ff19 37%, #d6f5ff4d 47%, transparent 60%);
+  background: linear-gradient(
+    112deg,
+    transparent 15%,
+    #a8e5ff19 37%,
+    #d6f5ff4d 47%,
+    transparent 60%
+  );
   opacity: 0.7;
 }
 
@@ -1098,7 +1094,7 @@ watch(
 }
 
 .card-display--compact .card-display__kind {
-  padding: 0.15rem 1.85rem 0.15rem 0.4rem;
+  padding: 0.15rem 2.85rem 0.15rem 0.4rem;
   font-size: clamp(0.42rem, 3.2cqi, 0.55rem);
   background: #000;
   color: #fff;
