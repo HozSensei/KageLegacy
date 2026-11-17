@@ -2,13 +2,13 @@ import { query } from '../config/database.js';
 import { findUserPool } from './poolService.js';
 import { getUserMatchForCycle } from './matchService.js';
 import { getScoutEnvironmentLine } from './matchEnvironment.js';
-import { getClockRow, getGameClock, isTacticsLocked } from './gameClock.js';
+import { getClockRow, getGameClock } from './gameClock.js';
 import { generateScoutReport } from './scouting.js';
 import { getUserLanguage } from './narrative/viewerLocale.js';
 import { describeNinjaProfile } from './ninjaProfile.js';
 import { dominantElement } from './scoutSquadAnalysis.js';
 import { getOperationDeck } from './operationDeckService.js';
-import { DOMAIN_LABELS, MAX_PLIS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
+import { MAX_PLIS, TECHNIQUE_CARDS_PER_NINJA } from './combat/pli/constants.js';
 import { buildDeckMatchupPreview } from './deckMatchupPreview.js';
 
 async function loadOwnActiveSquad(userId) {
@@ -18,7 +18,7 @@ async function loadOwnActiveSquad(userId) {
      LEFT JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.user_id = ? AND n.squad_position IS NOT NULL
      ORDER BY n.squad_position`,
-    [userId]
+    [userId],
   );
 }
 
@@ -26,7 +26,7 @@ function buildDeckSummary(ninjas, deck, lang) {
   const speed = ninjas.reduce((s, n) => s + Number(n.vitesse) + Number(n.intelligence), 0);
   const element = dominantElement(ninjas);
   const cardsById = Object.fromEntries(
-    (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c])
+    (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c]),
   );
   const members = ninjas.map((n) => {
     const profile = describeNinjaProfile(n, lang);
@@ -83,7 +83,7 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     tips.push(
       lang === 'en'
         ? 'Assign 1 inventory technique card per active ninja before H71 — empty slots become relay plis.'
-        : 'Assignez 1 carte technique inventaire par ninja actif avant H71 — les emplacements vides deviennent des relais.'
+        : 'Assignez 1 carte technique inventaire par ninja actif avant H71 — les emplacements vides deviennent des relais.',
     );
   }
 
@@ -91,7 +91,7 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     tips.push(
       lang === 'en'
         ? 'Fast opponent — favor Tai or Med elements to survive tempo.'
-        : 'Adversaire rapide — privilégiez des éléments Tai ou Médecine pour tenir le tempo.'
+        : 'Adversaire rapide — privilégiez des éléments Tai ou Médecine pour tenir le tempo.',
     );
   }
 
@@ -99,7 +99,7 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     tips.push(
       lang === 'en'
         ? `Enemy leans ${tendencies.dominantElement} — check cycle gear and your deck affinities.`
-        : `L'adversaire penche ${tendencies.dominantElement} — vérifiez objets cycle et affinités du deck.`
+        : `L'adversaire penche ${tendencies.dominantElement} — vérifiez objets cycle et affinités du deck.`,
     );
   }
 
@@ -108,14 +108,14 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     tips.push(
       lang === 'en'
         ? 'Enemy deck favors Medicine plis — prepare Tai or Gen counters.'
-        : 'Le deck adverse privilégie la Médecine — prévoyez des contre-plis Tai ou Gen.'
+        : 'Le deck adverse privilégie la Médecine — prévoyez des contre-plis Tai ou Gen.',
     );
   }
   if (deck?.techniqueCount >= 7) {
     tips.push(
       lang === 'en'
         ? 'Dense technique deck spotted — expect strong pli power swings.'
-        : 'Deck technique dense repéré — anticipez des écarts de puissance marqués.'
+        : 'Deck technique dense repéré — anticipez des écarts de puissance marqués.',
     );
   }
 
@@ -126,13 +126,13 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
         p.potentialHint === 'very_high' ||
         p.potentialHint === 'high' ||
         p.potentialHint === 'très élevé' ||
-        p.potentialHint === 'élevé'
+        p.potentialHint === 'élevé',
     )
   ) {
     tips.push(
       lang === 'en'
         ? 'Scout reports high potential profiles — Med plis help in long exchanges.'
-        : 'L\'espionnage signale des profils à fort potentiel — les plis Médecine aident dans les échanges longs.'
+        : 'L\'espionnage signale des profils à fort potentiel — les plis Médecine aident dans les échanges longs.',
     );
   }
 
@@ -140,7 +140,7 @@ function buildAdvice({ ownDeck, scout, environmentSlug, lang }) {
     tips.push(
       lang === 'en'
         ? 'Deck looks coherent — lock composition and deck before H71.'
-        : 'Deck cohérent — verrouillez composition et deck avant H71.'
+        : 'Deck cohérent — verrouillez composition et deck avant H71.',
     );
   }
 
@@ -167,7 +167,7 @@ export async function getOperationBriefing(userId, locale = 'fr') {
   if (match?.environment_slug) {
     const senseiRows = await query(
       'SELECT scout_env_confirmed_cycle FROM sensei WHERE user_id = ?',
-      [userId]
+      [userId],
     );
     const confirmed =
       senseiRows[0]?.scout_env_confirmed_cycle &&
@@ -201,7 +201,7 @@ export async function getOperationBriefing(userId, locale = 'fr') {
           status: match.status,
           opponentName,
           opponentIsBot: Boolean(
-            match.home_user_id === userId ? match.away_is_bot : match.home_is_bot
+            match.home_user_id === userId ? match.away_is_bot : match.home_is_bot,
           ),
           isHome: match.home_user_id === userId,
         }

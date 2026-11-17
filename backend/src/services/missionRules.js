@@ -143,7 +143,7 @@ export function computeMissionOddsForTier(ninja, tier) {
 
 export function computeMissionOdds(ninja) {
   return Object.fromEntries(
-    MISSION_TIER_ORDER.map((tier) => [tier, computeMissionOddsForTier(ninja, tier)])
+    MISSION_TIER_ORDER.map((tier) => [tier, computeMissionOddsForTier(ninja, tier)]),
   );
 }
 

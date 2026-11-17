@@ -17,7 +17,7 @@ export async function grantTacticCard(userId, slug, charges = TACTIC_CARD_MAX_CH
   const result = await query(
     `INSERT INTO user_tactic_cards (user_id, tactic_card_definition_id, charges_remaining, pli_bonus_pct)
      VALUES (?, ?, ?, ?)`,
-    [userId, def.id, safeCharges, rolledBonus]
+    [userId, def.id, safeCharges, rolledBonus],
   );
   return {
     userTacticCardId: result.insertId,
@@ -88,7 +88,7 @@ export async function grantRandomTacticCard(userId, { rarity = 'common' } = {}) 
 export async function ensureStarterTacticCards(userId) {
   const rows = await query(
     'SELECT COUNT(*) AS count FROM user_tactic_cards WHERE user_id = ?',
-    [userId]
+    [userId],
   );
   if (Number(rows[0]?.count) > 0) return false;
   await grantStarterTacticCards(userId);
@@ -180,7 +180,7 @@ export async function getTacticCardsForUser(userId) {
      LEFT JOIN player_listings pl ON pl.user_tactic_card_id = utc.id AND pl.status = 'active'
      WHERE utc.user_id = ? AND utc.charges_remaining > 0
      ORDER BY utc.acquired_at DESC, utc.id DESC`,
-    [userId]
+    [userId],
   );
   return dedupeUserCards(rows.map(mapUserCard).filter(Boolean));
 }

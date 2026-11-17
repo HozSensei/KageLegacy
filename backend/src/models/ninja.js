@@ -21,7 +21,7 @@ export async function findNinjasByUserId(userId) {
      JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.user_id = ?
      ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
-    [userId]
+    [userId],
   );
 }
 
@@ -31,7 +31,7 @@ export async function findNinjaById(id) {
      FROM ninjas n
      JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.id = ?`,
-    [id]
+    [id],
   );
   return rows[0] || null;
 }
@@ -48,7 +48,7 @@ export async function createNinja(data) {
     const clan = { name: clanRows[0]?.name };
     if (hasRemainingGlobalNames(globalKeys, clan)) {
       const error = new Error(
-        `Le nom « ${formatNinjaDisplayName(validated.name)} » est déjà utilisé par un autre sensei sur le serveur.`
+        `Le nom « ${formatNinjaDisplayName(validated.name)} » est déjà utilisé par un autre sensei sur le serveur.`,
       );
       error.statusCode = 409;
       throw error;
@@ -88,7 +88,7 @@ export async function createNinja(data) {
       current_pv_match,
       current_chakra_match,
       validated.squad_position ?? null,
-    ]
+    ],
   );
 
   return findNinjaById(result.insertId);

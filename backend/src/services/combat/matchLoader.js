@@ -12,11 +12,11 @@ export async function loadTeamForCombat(userId) {
   const ninjas = await query(
     `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL
      ORDER BY squad_position`,
-    [userId]
+    [userId],
   );
   if (ninjas.length < 3) {
     console.warn(
-      `[combat] Escouade incomplète user=${userId} : ${ninjas.length}/3 actif(s) — deck complété par relais.`
+      `[combat] Escouade incomplète user=${userId} : ${ninjas.length}/3 actif(s) — deck complété par relais.`,
     );
   }
   const operationDeck = await getOperationDeck(userId);

@@ -1,5 +1,4 @@
 import { randomBytes } from 'node:crypto';
-import { query } from '../config/database.js';
 import { createNinja, findNinjasByUserId, loadGlobalIdentityKeySet } from '../models/ninja.js';
 import { collectIdentityKeys, ninjaIdentityKey } from './ninjaNaming.js';
 import { pickUniqueCivName, hasRemainingGlobalNames } from './ninjaNameGenerator.js';

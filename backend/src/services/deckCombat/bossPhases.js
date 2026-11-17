@@ -37,7 +37,7 @@ export function findTargetPhaseIndex(enemy) {
  * Applique onEnter d'une définition de phase (buffs, barrière, immunités, AI).
  */
 export function applyPhaseEnter(enemy, phaseDef) {
-  let next = {
+  const next = {
     ...enemy,
     statuses: [...(enemy.statuses || [])],
     immunities: [...(enemy.immunities || [])],

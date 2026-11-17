@@ -39,7 +39,7 @@ export function assertUniqueAmongRoster(name, existingNinjas) {
   const collision = existingNinjas.find((n) => ninjaIdentityKey(n.name) === key);
   if (collision) {
     const error = new Error(
-      `Un ninja nommé « ${formatNinjaDisplayName(name)} » fait déjà partie de votre effectif.`
+      `Un ninja nommé « ${formatNinjaDisplayName(name)} » fait déjà partie de votre effectif.`,
     );
     error.statusCode = 409;
     throw error;

@@ -35,7 +35,7 @@ export function assertDispensaryHealEligible(ninja) {
 
   if (Number(ninja.forme_lock_cycles) > 0) {
     const error = new Error(
-      'Ce ninja est sous surveillance médicale prolongée (blessure grave de mission).'
+      'Ce ninja est sous surveillance médicale prolongée (blessure grave de mission).',
     );
     error.statusCode = 400;
     throw error;
@@ -67,7 +67,7 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
      FROM ninjas n
      JOIN sensei s ON s.user_id = n.user_id
      WHERE n.id = ? AND n.user_id = ?`,
-    [ninjaId, userId]
+    [ninjaId, userId],
   );
   const ninja = rows[0];
   if (!ninja) {
@@ -90,7 +90,7 @@ export async function treatNinjaAtDispensary(userId, ninjaId) {
 
   await assertSpendingAllowed(
     userId,
-    'Gel administratif — remboursez votre dette avant d\'utiliser l\'hôpital.'
+    'Gel administratif — remboursez votre dette avant d\'utiliser l\'hôpital.',
   );
 
   if (ninja.ryos < cost) {
@@ -112,7 +112,7 @@ export async function listDispensaryCandidates(userId) {
      FROM ninjas
      WHERE user_id = ? AND weekly_forme = 'Lamentable'
      ORDER BY squad_position IS NULL, squad_position, id`,
-    [userId]
+    [userId],
   );
 
   return ninjas

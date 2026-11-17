@@ -12,7 +12,7 @@ export async function recordRivalryResult(userId, rivalUserId, poolId, outcome) 
   const rows = await query(
     `SELECT * FROM sensei_rivalries
      WHERE user_id = ? AND rival_user_id = ? AND pool_id = ?`,
-    [userId, rivalUserId, poolId]
+    [userId, rivalUserId, poolId],
   );
 
   let consecutiveLosses = 0;
@@ -34,7 +34,7 @@ export async function recordRivalryResult(userId, rivalUserId, poolId, outcome) 
        consecutive_losses = VALUES(consecutive_losses),
        is_nemesis = VALUES(is_nemesis),
        last_result = VALUES(last_result)`,
-    [userId, rivalUserId, poolId, consecutiveLosses, isNemesis ? 1 : 0, outcome]
+    [userId, rivalUserId, poolId, consecutiveLosses, isNemesis ? 1 : 0, outcome],
   );
 
   return { consecutiveLosses, isNemesis, becameNemesis: isNemesis && consecutiveLosses === NEMESIS_THRESHOLD };

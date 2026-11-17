@@ -60,7 +60,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName]
+      [tableName],
     );
     return rows.length > 0;
   } catch {
@@ -74,7 +74,7 @@ async function columnExists(tableName, columnName) {
       `SELECT 1 AS ok FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
        LIMIT 1`,
-      [tableName, columnName]
+      [tableName, columnName],
     );
     return rows.length > 0;
   } catch {
@@ -87,7 +87,7 @@ async function appendLog(combatId, turn, actionType, actionData) {
   await query(
     `INSERT INTO combat_logs (combat_session_id, turn, action_type, action_data_json)
      VALUES (?, ?, ?, ?)`,
-    [combatId, turn, actionType, JSON.stringify(actionData || {})]
+    [combatId, turn, actionType, JSON.stringify(actionData || {})],
   );
 }
 
@@ -138,7 +138,7 @@ async function persistSession(session) {
         session.rewards != null ? JSON.stringify(session.rewards) : null,
         session.id,
         session.userId,
-      ]
+      ],
     );
   } else {
     await query(
@@ -154,7 +154,7 @@ async function persistSession(session) {
         session.currentPhase,
         session.id,
         session.userId,
-      ]
+      ],
     );
   }
 }
@@ -373,7 +373,7 @@ export async function startCombat(userId, opts = {}) {
 
   const active = await query(
     "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId]
+    [userId],
   );
   if (active[0]) {
     throw httpError(409, `Combat déjà en cours (${active[0].id}). Abandonnez-le ou terminez-le.`);
@@ -388,7 +388,7 @@ export async function startCombat(userId, opts = {}) {
   if (missionId && !templateId) {
     const rows = await query(
       'SELECT * FROM mission_definitions WHERE id = ? AND is_active = 1 LIMIT 1',
-      [missionId]
+      [missionId],
     );
     const mission = rows[0];
     if (!mission) throw httpError(404, 'Mission introuvable.');
@@ -418,7 +418,7 @@ export async function startCombat(userId, opts = {}) {
 
   const runtimeCards = buildRuntimeDeck(
     deckInfo.cards,
-    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`
+    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`,
   );
   const shuffled = shuffle(runtimeCards);
 
@@ -485,7 +485,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ]
+      ],
     );
   } else if (hasRewardsCol) {
     await query(
@@ -502,7 +502,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ]
+      ],
     );
   } else {
     await query(
@@ -519,7 +519,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ]
+      ],
     );
   }
 
@@ -611,7 +611,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const moved = moveCardFromHand(
     nextPlayer,
     handId,
-    resolveCardPileDestination(card, session.talentEffects.applied)
+    resolveCardPileDestination(card, session.talentEffects.applied),
   );
 
   session.player = moved.player;
@@ -767,7 +767,7 @@ export async function endTurn(userId, combatId) {
     const { trackDamageTakenForAchievements } = await import('./achievementService.js');
     session.player = trackDamageTakenForAchievements(
       session.player,
-      enemyAct.damageTakenByPlayer || 0
+      enemyAct.damageTakenByPlayer || 0,
     );
   } catch {
     /* exploits optionnels */

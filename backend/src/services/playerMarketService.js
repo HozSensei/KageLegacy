@@ -85,8 +85,8 @@ function assetLabelFromRow(row) {
 
 export async function isNinjaListed(ninjaId) {
   const rows = await query(
-    `SELECT id FROM player_listings WHERE ninja_id = ? AND status = 'active'`,
-    [ninjaId]
+    'SELECT id FROM player_listings WHERE ninja_id = ? AND status = \'active\'',
+    [ninjaId],
   );
   return rows.length > 0;
 }
@@ -95,7 +95,7 @@ export async function getListedNinjaIdsForUser(userId) {
   const rows = await query(
     `SELECT ninja_id FROM player_listings
      WHERE seller_user_id = ? AND status = 'active' AND ninja_id IS NOT NULL`,
-    [userId]
+    [userId],
   );
   return new Set(rows.map((r) => r.ninja_id));
 }
@@ -104,7 +104,7 @@ async function assertListingCapacity(userId) {
   const activeCount = await query(
     `SELECT COUNT(*) AS c FROM player_listings
      WHERE seller_user_id = ? AND status = 'active'`,
-    [userId]
+    [userId],
   );
   if (activeCount[0]?.c >= MAX_ACTIVE_LISTINGS) {
     const error = new Error(`Maximum ${MAX_ACTIVE_LISTINGS} annonces actives.`);
@@ -199,7 +199,7 @@ export async function getMarketHistory(userId, limit = MARKET_HISTORY_LIMIT) {
        AND (pl.seller_user_id = ? OR pl.buyer_user_id = ?)
      ORDER BY pl.sold_at DESC
      LIMIT ${safeLimit}`,
-    [userId, userId]
+    [userId, userId],
   );
   return rows.map((row) => mapHistoryEntry(row, userId));
 }
@@ -212,7 +212,7 @@ export async function getPlayerMarketPayload(userId) {
     `SELECT ${LISTING_SELECT}
      ${LISTING_JOINS}
      WHERE pl.status = 'active' AND u_seller.is_bot = FALSE
-     ORDER BY pl.price ASC, pl.id ASC`
+     ORDER BY pl.price ASC, pl.id ASC`,
   );
 
   const myListings = listings.filter((l) => l.seller_user_id === userId);
@@ -249,7 +249,7 @@ export async function createItemListing(userId, userItemId, price) {
      FROM user_items ui
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
      WHERE ui.id = ? AND ui.user_id = ? AND ui.consumed = FALSE`,
-    [userItemId, userId]
+    [userItemId, userId],
   );
   const item = itemRows[0];
   if (!item) {
@@ -264,8 +264,8 @@ export async function createItemListing(userId, userItemId, price) {
   }
 
   const listed = await query(
-    `SELECT id FROM player_listings WHERE user_item_id = ? AND status = 'active'`,
-    [userItemId]
+    'SELECT id FROM player_listings WHERE user_item_id = ? AND status = \'active\'',
+    [userItemId],
   );
   if (listed.length) {
     const error = new Error('Cet objet est déjà en vente.');
@@ -285,7 +285,7 @@ export async function createItemListing(userId, userItemId, price) {
   const result = await query(
     `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, user_item_id, price)
      VALUES (?, ?, 'item', ?, ?)`,
-    [poolId, userId, userItemId, numericPrice]
+    [poolId, userId, userItemId, numericPrice],
   );
 
   return { listingId: result.insertId, price: numericPrice };
@@ -304,7 +304,7 @@ export async function createTacticCardListing(userId, userTacticCardId, price) {
      FROM user_tactic_cards utc
      JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE utc.id = ? AND utc.user_id = ? AND utc.charges_remaining > 0`,
-    [userTacticCardId, userId]
+    [userTacticCardId, userId],
   );
   const card = cardRows[0];
   if (!card) {
@@ -314,8 +314,8 @@ export async function createTacticCardListing(userId, userTacticCardId, price) {
   }
 
   const listed = await query(
-    `SELECT id FROM player_listings WHERE user_tactic_card_id = ? AND status = 'active'`,
-    [userTacticCardId]
+    'SELECT id FROM player_listings WHERE user_tactic_card_id = ? AND status = \'active\'',
+    [userTacticCardId],
   );
   if (listed.length) {
     const error = new Error('Cette carte est déjà en vente.');
@@ -335,7 +335,7 @@ export async function createTacticCardListing(userId, userTacticCardId, price) {
   const result = await query(
     `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, user_tactic_card_id, price)
      VALUES (?, ?, 'tactic_card', ?, ?)`,
-    [poolId, userId, userTacticCardId, numericPrice]
+    [poolId, userId, userTacticCardId, numericPrice],
   );
 
   return { listingId: result.insertId, price: numericPrice };
@@ -354,7 +354,7 @@ export async function createNinjaListing(userId, ninjaId, price) {
      FROM ninjas n
      JOIN clan_traits c ON c.id = n.clan_trait_id
      WHERE n.id = ? AND n.user_id = ?`,
-    [ninjaId, userId]
+    [ninjaId, userId],
   );
   const ninja = ninjaRows[0];
   if (!ninja) {
@@ -374,8 +374,8 @@ export async function createNinjaListing(userId, ninjaId, price) {
   }
 
   const missionRows = await query(
-    `SELECT id FROM idle_missions WHERE ninja_id = ? AND status = 'active'`,
-    [ninjaId]
+    'SELECT id FROM idle_missions WHERE ninja_id = ? AND status = \'active\'',
+    [ninjaId],
   );
   if (missionRows.length) {
     const error = new Error('Ce ninja est en mission.');
@@ -399,7 +399,7 @@ export async function createNinjaListing(userId, ninjaId, price) {
   const result = await query(
     `INSERT INTO player_listings (pool_id, seller_user_id, listing_type, ninja_id, price)
      VALUES (?, ?, 'ninja', ?, ?)`,
-    [poolId, userId, ninjaId, numericPrice]
+    [poolId, userId, ninjaId, numericPrice],
   );
 
   return { listingId: result.insertId, price: numericPrice };
@@ -408,15 +408,15 @@ export async function createNinjaListing(userId, ninjaId, price) {
 export async function cancelListing(userId, listingId) {
   await assertHumanPlayer(userId);
   const rows = await query(
-    `SELECT * FROM player_listings WHERE id = ? AND seller_user_id = ? AND status = 'active'`,
-    [listingId, userId]
+    'SELECT * FROM player_listings WHERE id = ? AND seller_user_id = ? AND status = \'active\'',
+    [listingId, userId],
   );
   if (!rows[0]) {
     const error = new Error('Annonce introuvable.');
     error.statusCode = 404;
     throw error;
   }
-  await query(`UPDATE player_listings SET status = 'cancelled' WHERE id = ?`, [listingId]);
+  await query('UPDATE player_listings SET status = \'cancelled\' WHERE id = ?', [listingId]);
   return { listingId };
 }
 
@@ -429,7 +429,7 @@ async function notifySellerOfSale(listing, buyerUserId, sellerProceeds, commissi
      LEFT JOIN user_items ui ON ui.id = pl.user_item_id
      LEFT JOIN item_definitions idf ON idf.id = ui.item_definition_id
      WHERE pl.id = ?`,
-    [listing.id]
+    [listing.id],
   );
   const asset = assetRows[0];
   await createSenseiNotification(listing.seller_user_id, 'market_sale', {
@@ -450,7 +450,7 @@ export async function buyListing(userId, listingId) {
 
   await assertSpendingAllowed(
     userId,
-    'Gel administratif — remboursez votre dette avant d\'acheter sur le marché entre joueurs.'
+    'Gel administratif — remboursez votre dette avant d\'acheter sur le marché entre joueurs.',
   );
 
   const rows = await query(
@@ -467,7 +467,7 @@ export async function buyListing(userId, listingId) {
      LEFT JOIN user_tactic_cards utc ON utc.id = pl.user_tactic_card_id
      LEFT JOIN tactic_card_definitions tcd ON tcd.id = utc.tactic_card_definition_id
      WHERE pl.id = ? AND pl.status = 'active'`,
-    [userId, listingId]
+    [userId, listingId],
   );
   const listing = rows[0];
   if (!listing) {
@@ -507,7 +507,7 @@ export async function buyListing(userId, listingId) {
        SET user_id = ?, squad_position = NULL,
            moral = GREATEST(1, moral - ?)
        WHERE id = ?`,
-      [userId, NINJA_RESALE_MORAL_PENALTY, listing.ninja_id]
+      [userId, NINJA_RESALE_MORAL_PENALTY, listing.ninja_id],
     );
   } else if (listing.listing_type === 'tactic_card') {
     // Transfert de la ligne user_tactic_cards : bonus % et charges conservés (pas de nouveau tirage).
@@ -523,7 +523,7 @@ export async function buyListing(userId, listingId) {
     `UPDATE player_listings
      SET status = 'sold', buyer_user_id = ?, sold_at = UTC_TIMESTAMP()
      WHERE id = ?`,
-    [userId, listingId]
+    [userId, listingId],
   );
 
   await notifySellerOfSale(listing, userId, sellerProceeds, commissionPct);

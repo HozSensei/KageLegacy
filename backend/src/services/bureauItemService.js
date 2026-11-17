@@ -50,7 +50,7 @@ async function applyBureauEffect({ trigger, bureau, userId, ninjaId, ninja, exec
     case 'forme_upgrade': {
       if (Number(ninja.forme_lock_cycles) > 0) {
         const error = new Error(
-          'Ce ninja ne peut pas être soigné tant que sa blessure grave n\'est pas cicatrisée.'
+          'Ce ninja ne peut pas être soigné tant que sa blessure grave n\'est pas cicatrisée.',
         );
         error.statusCode = 400;
         throw error;
@@ -158,7 +158,7 @@ export async function useBureauItem(userId, userItemId, ninjaId = null) {
      JOIN item_definitions idf ON idf.id = ui.item_definition_id
      LEFT JOIN player_listings pl ON pl.user_item_id = ui.id AND pl.status = 'active'
      WHERE ui.id = ? AND ui.user_id = ? AND ui.consumed = FALSE`,
-    [userItemId, userId]
+    [userItemId, userId],
   );
   const item = itemRows[0];
   if (!item) {

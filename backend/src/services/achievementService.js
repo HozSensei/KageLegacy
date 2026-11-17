@@ -180,7 +180,7 @@ export async function claimAchievementTier(userId, achievementKey, tierIndex) {
   claimed.push(tier);
   claimed.sort((a, b) => a - b);
   await query(
-    `UPDATE user_achievements SET claimed_tiers_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+    'UPDATE user_achievements SET claimed_tiers_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
     [JSON.stringify(claimed), row.id],
   );
   const refreshed = await query('SELECT * FROM user_achievements WHERE id = ? LIMIT 1', [row.id]);
@@ -281,7 +281,7 @@ export async function recordCombatAchievements(userId, session, outcome) {
       const streakRow = await getOrCreateProgress(userId, 'win_streak');
       const streakMeta = metaOf(streakRow);
       await query(
-        `UPDATE user_achievements SET meta_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+        'UPDATE user_achievements SET meta_json = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [
           JSON.stringify({
             ...streakMeta,

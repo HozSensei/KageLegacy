@@ -20,7 +20,7 @@ export async function findExpiredGuestUsers(limit = DEFAULT_BATCH_SIZE) {
      FROM users
      WHERE is_guest = TRUE AND guest_expires_at < UTC_TIMESTAMP()
      ORDER BY guest_expires_at ASC
-     LIMIT ${safeLimit}`
+     LIMIT ${safeLimit}`,
   );
   return rows.map(mapGuestRow);
 }
@@ -33,10 +33,8 @@ export async function purgeExpiredGuestAccounts({ batchSize = DEFAULT_BATCH_SIZE
   const deleted = [];
   const failed = [];
 
-  while (true) {
-    const batch = await findExpiredGuestUsers(batchSize);
-    if (!batch.length) break;
-
+  let batch = await findExpiredGuestUsers(batchSize);
+  while (batch.length) {
     for (const user of batch) {
       try {
         await deleteUserAccount(user, {});
@@ -51,6 +49,7 @@ export async function purgeExpiredGuestAccounts({ batchSize = DEFAULT_BATCH_SIZE
     }
 
     if (batch.length < batchSize) break;
+    batch = await findExpiredGuestUsers(batchSize);
   }
 
   const sessionResult = await query('DELETE FROM user_sessions WHERE expires_at < UTC_TIMESTAMP()');

@@ -69,11 +69,11 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
   const maxTechniques = ninjas.length * TECHNIQUE_CARDS_PER_NINJA;
   const inventoryAssigned = countInventoryAssigned(deck.techniqueSlotsByNinjaId || {}, ninjas);
   const domainsConfigured = ninjas.filter((ninja) =>
-    isDomainConfigured(deck.rawTechniquesByNinjaId, ninja.id)
+    isDomainConfigured(deck.rawTechniquesByNinjaId, ninja.id),
   ).length;
   const relaisInventory = Math.max(0, maxTechniques - inventoryAssigned);
   const cardsById = Object.fromEntries(
-    (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c])
+    (deck.techniqueCards || []).map((c) => [c.userTacticCardId, c]),
   );
   const domainCounts = countDomainsFromDeck(deck, ninjas);
 
@@ -106,20 +106,20 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
     lines.push(
       lang === 'en'
         ? `Fragmentary deck intel — ${inventoryAssigned}/${maxTechniques} inventory technique cards assigned.`
-        : `Renseignements deck fragmentaires — ${inventoryAssigned}/${maxTechniques} cartes technique inventaire assignées.`
+        : `Renseignements deck fragmentaires — ${inventoryAssigned}/${maxTechniques} cartes technique inventaire assignées.`,
     );
     const summary = domainSummaryLines(domainCounts, lang);
     if (summary.length) {
       lines.push(
         lang === 'en'
           ? `Technique lean (confirmed): ${summary.join(', ')}.`
-          : `Orientation des techniques (confirmée) : ${summary.join(', ')}.`
+          : `Orientation des techniques (confirmée) : ${summary.join(', ')}.`,
       );
     } else if (inventoryAssigned === 0) {
       lines.push(
         lang === 'en'
           ? 'No inventory cards assigned — relay plis expected for empty slots.'
-          : 'Aucune carte inventaire assignée — relais de comblement attendus sur les emplacements vides.'
+          : 'Aucune carte inventaire assignée — relais de comblement attendus sur les emplacements vides.',
       );
     }
     return {
@@ -143,13 +143,13 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
   lines.push(
     lang === 'en'
       ? `Spotted deck: ${inventoryAssigned}/${ninjas.length} inventory technique cards · ${domainsConfigured}/${ninjas.length} ninjas with saved stat domains · ${MAX_PLIS} plis per match.`
-      : `Deck repéré : ${inventoryAssigned}/${ninjas.length} cartes technique inventaire · ${domainsConfigured}/${ninjas.length} ninjas avec domaines enregistrés · ${MAX_PLIS} plis par match.`
+      : `Deck repéré : ${inventoryAssigned}/${ninjas.length} cartes technique inventaire · ${domainsConfigured}/${ninjas.length} ninjas avec domaines enregistrés · ${MAX_PLIS} plis par match.`,
   );
   if (relaisInventory > 0) {
     lines.push(
       lang === 'en'
         ? `${relaisInventory} empty inventory slot(s) — relay padding plis expected.`
-        : `${relaisInventory} emplacement(s) inventaire vide(s) — relais de comblement attendus.`
+        : `${relaisInventory} emplacement(s) inventaire vide(s) — relais de comblement attendus.`,
     );
   }
   const summary = domainSummaryLines(domainCounts, lang);
@@ -157,7 +157,7 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
     lines.push(
       lang === 'en'
         ? `Techniques in deck (confirmed): ${summary.join(', ')}.`
-        : `Techniques dans le deck (confirmées) : ${summary.join(', ')}.`
+        : `Techniques dans le deck (confirmées) : ${summary.join(', ')}.`,
     );
   }
   for (const slot of slots) {
@@ -165,7 +165,7 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
       lines.push(
         lang === 'en'
           ? `Slot ${slot.slot} (${slot.artLabel}): no inventory card — relay plis expected.`
-          : `Emplacement ${slot.slot} (${slot.artLabel}) : pas de carte inventaire — relais de comblement attendus.`
+          : `Emplacement ${slot.slot} (${slot.artLabel}) : pas de carte inventaire — relais de comblement attendus.`,
       );
       continue;
     }
@@ -177,7 +177,7 @@ export function buildDeckReportFromDeck(deck, ninjas, lang, tier = 'full') {
     lines.push(
       lang === 'en'
         ? `Slot ${slot.slot} (${slot.artLabel}): ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}${domainSuffix}.`
-        : `Emplacement ${slot.slot} (${slot.artLabel}) : ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}${domainSuffix}.`
+        : `Emplacement ${slot.slot} (${slot.artLabel}) : ${slot.techniques.map((t) => t.name).join(', ') || '—'} · ${DOMAIN_LABELS[slot.primaryDomain] || slot.primaryDomain}/${DOMAIN_LABELS[slot.secondaryDomain] || slot.secondaryDomain}${domainSuffix}.`,
     );
   }
 
@@ -207,7 +207,7 @@ export async function buildDeckReport(opponentId, seasonCycle, ninjas, lang, tie
   return buildDeckReportFromDeck(deck, ninjas, lang, tier);
 }
 
-export function buildPartialDeckReport(fullReport, lang) {
+export function buildPartialDeckReport(fullReport, _lang) {
   return {
     ...fullReport,
     tier: 'partial',
@@ -225,7 +225,7 @@ async function loadIntelRow(userId, poolId, seasonCycle, cycleStartAt) {
     `SELECT id, roster_report_json FROM cycle_scout_intel
      WHERE viewer_user_id = ? AND pool_id = ? AND season_cycle = ? AND cycle_start_at = ?
      LIMIT 1`,
-    [userId, poolId, seasonCycle, cycleStartAt]
+    [userId, poolId, seasonCycle, cycleStartAt],
   );
   return rows[0] ?? null;
 }
@@ -256,7 +256,7 @@ export async function freezeDeckIntelForAllUsers() {
     `SELECT u.id FROM users u
      JOIN pool_members pm ON pm.user_id = u.id
      JOIN pools p ON p.id = pm.pool_id
-     WHERE u.is_bot = FALSE AND p.status = 'active'`
+     WHERE u.is_bot = FALSE AND p.status = 'active'`,
   );
   const results = [];
   for (const user of users) {
@@ -273,7 +273,7 @@ export async function freezeDeckIntelForAllUsers() {
     const ninjas = await query(
       `SELECT id, element_affinity, taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence, grade
        FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-      [opponentId]
+      [opponentId],
     );
     const tier = intel.rosterReport.tier === 'full' ? 'full' : 'partial';
     const fullDeck = await buildDeckReport(opponentId, pool.current_cycle, ninjas, 'fr', tier);

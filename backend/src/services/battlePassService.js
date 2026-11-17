@@ -33,9 +33,9 @@ function parseRewards(raw) {
       Object.entries(track && typeof track === 'object' ? track : {}).map(([level, rewards]) => [
         level,
         (Array.isArray(rewards) ? rewards : [rewards]).filter(
-          reward => reward?.type !== 'cosmetic'
+          reward => reward?.type !== 'cosmetic',
         ),
-      ])
+      ]),
     );
   return {
     free: withoutCosmetics(parsed.free),
@@ -88,7 +88,7 @@ export async function getActiveSeason() {
     `SELECT * FROM battle_pass_seasons
      WHERE is_active = TRUE
      ORDER BY season_number DESC
-     LIMIT 1`
+     LIMIT 1`,
   );
   return rows[0] ? serializeSeason(rows[0]) : null;
 }
@@ -105,7 +105,7 @@ export async function getSeasonRow(seasonId) {
 export async function getOrCreateUserBattlePass(userId, seasonId) {
   const existing = await query(
     'SELECT * FROM user_battle_pass WHERE user_id = ? AND season_id = ? LIMIT 1',
-    [userId, seasonId]
+    [userId, seasonId],
   );
   if (existing[0]) return serializeUserPass(existing[0]);
 
@@ -115,7 +115,7 @@ export async function getOrCreateUserBattlePass(userId, seasonId) {
       `INSERT INTO user_battle_pass
         (user_id, season_id, current_level, current_xp, is_premium, claimed_rewards_json)
        VALUES (?, ?, 0, 0, FALSE, ?)`,
-      [userId, seasonId, claimed]
+      [userId, seasonId, claimed],
     );
     const rows = await query('SELECT * FROM user_battle_pass WHERE id = ? LIMIT 1', [
       result.insertId,
@@ -125,7 +125,7 @@ export async function getOrCreateUserBattlePass(userId, seasonId) {
     if (err?.code !== 'ER_DUP_ENTRY' && err?.errno !== 1062) throw err;
     const raced = await query(
       'SELECT * FROM user_battle_pass WHERE user_id = ? AND season_id = ? LIMIT 1',
-      [userId, seasonId]
+      [userId, seasonId],
     );
     if (raced[0]) return serializeUserPass(raced[0]);
     throw err;
@@ -224,7 +224,7 @@ export async function addBattlePassXP(userId, xpAmount, source = 'unknown') {
     `UPDATE user_battle_pass
      SET current_level = ?, current_xp = ?
      WHERE user_id = ? AND season_id = ?`,
-    [newLevel, newXP, userId, season.id]
+    [newLevel, newXP, userId, season.id],
   );
 
   return {
@@ -277,7 +277,7 @@ async function grantCardReward(userId, reward, connection = null) {
         source: 'battle_pass',
         connection,
         runHooks: !connection,
-      })
+      }),
     );
   }
   const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
@@ -286,7 +286,7 @@ async function grantCardReward(userId, reward, connection = null) {
      JOIN battle_pass_seasons s ON s.id = ubp.season_id AND s.is_active = TRUE
      SET ubp.cards_obtained = ubp.cards_obtained + ?
      WHERE ubp.user_id = ?`,
-    [count, userId]
+    [count, userId],
   );
   return { type: 'card', cardDefinitionId: cardId, count, entries: granted };
 }
@@ -350,7 +350,7 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
       const executor = connection || { execute: async (sql, params) => [await query(sql, params)] };
       await executor.execute(
         'UPDATE sensei SET card_essence = card_essence + ? WHERE user_id = ?',
-        [amount, userId]
+        [amount, userId],
       );
       return { type, amount };
     }
@@ -394,7 +394,7 @@ export async function claimReward(userId, level, trackType = 'free') {
       `SELECT * FROM user_battle_pass
        WHERE user_id = ? AND season_id = ?
        LIMIT 1 FOR UPDATE`,
-      [userId, season.id]
+      [userId, season.id],
     );
     const userPass = serializeUserPass(rows[0]);
     if (!userPass) throw httpError(404, 'Progression Battle Pass introuvable.');
@@ -479,7 +479,7 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
   if (mode === 'stub' && !isAdmin && process.env.BATTLE_PASS_STUB_UNLOCK !== 'true') {
     throw httpError(
       403,
-      'Unlock stub réservé admin/dev (BATTLE_PASS_STUB_UNLOCK=true ou compte admin). Utilisez method=stripe ou kage_coins.'
+      'Unlock stub réservé admin/dev (BATTLE_PASS_STUB_UNLOCK=true ou compte admin). Utilisez method=stripe ou kage_coins.',
     );
   }
 
@@ -490,13 +490,13 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
     if (mode === 'kage_coins') {
       const [senseiRows] = await connection.execute(
         'SELECT kage_coins FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
-        [userId]
+        [userId],
       );
       if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
       if (Number(senseiRows[0].kage_coins) < PREMIUM_COST_KAGE_COINS) {
         throw httpError(
           400,
-          `Kage Coins insuffisants (${senseiRows[0].kage_coins}/${PREMIUM_COST_KAGE_COINS}).`
+          `Kage Coins insuffisants (${senseiRows[0].kage_coins}/${PREMIUM_COST_KAGE_COINS}).`,
         );
       }
       await connection.execute('UPDATE sensei SET kage_coins = kage_coins - ? WHERE user_id = ?', [
@@ -509,7 +509,7 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
       `UPDATE user_battle_pass
        SET is_premium = TRUE, premium_purchased_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [userPass.id]
+      [userPass.id],
     );
 
     await connection.commit();
@@ -556,7 +556,7 @@ export async function purchaseLevels(userId, count) {
     await connection.beginTransaction();
     const [senseiRows] = await connection.execute(
       'SELECT kage_coins FROM sensei WHERE user_id = ? LIMIT 1 FOR UPDATE',
-      [userId]
+      [userId],
     );
     if (!senseiRows[0]) throw httpError(404, 'Sensei introuvable.');
     if (Number(senseiRows[0].kage_coins) < cost) {
@@ -568,7 +568,7 @@ export async function purchaseLevels(userId, count) {
     ]);
     await connection.execute(
       'UPDATE user_battle_pass SET current_level = current_level + ?, current_xp = 0 WHERE id = ?',
-      [levelsToBuy, userPass.id]
+      [levelsToBuy, userPass.id],
     );
     await connection.commit();
   } catch (error) {

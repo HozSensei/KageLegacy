@@ -21,14 +21,14 @@ export async function leaveActiveSquadAfterChuninPromotion(userId, ninja) {
 
   await query(
     'UPDATE ninjas SET squad_position = NULL, preparation_type = NULL WHERE id = ? AND user_id = ?',
-    [ninja.id, userId]
+    [ninja.id, userId],
   );
 
   const candidates = await query(
     `SELECT id, name FROM ninjas
      WHERE user_id = ? AND grade = 'Genin' AND squad_position IS NULL AND id != ?
      ORDER BY id ASC`,
-    [userId, ninja.id]
+    [userId, ninja.id],
   );
 
   for (const candidate of candidates) {
@@ -53,7 +53,7 @@ export async function processChuninExamsForUser(userId) {
   const candidates = await query(
     `SELECT * FROM ninjas
      WHERE user_id = ? AND grade = 'Genin' AND chunin_exam_requested = TRUE`,
-    [userId]
+    [userId],
   );
 
   const results = [];
@@ -74,14 +74,14 @@ export async function processChuninExamsForUser(userId) {
              moral = ?,
              weekly_forme = ?
          WHERE id = ?`,
-        [salary_cost, current_chakra_match, rewards.newMoral, rewards.newForme, ninja.id]
+        [salary_cost, current_chakra_match, rewards.newMoral, rewards.newForme, ninja.id],
       );
 
       const squadUpdate = await leaveActiveSquadAfterChuninPromotion(userId, ninja);
 
       await query(
         'UPDATE sensei SET ryos = ryos + ?, reputation = reputation + ? WHERE user_id = ?',
-        [rewards.ryos, rewards.reputation, userId]
+        [rewards.ryos, rewards.reputation, userId],
       );
 
       await createSenseiNotification(userId, 'chunin_exam_success', {
@@ -115,7 +115,7 @@ export async function processChuninExamsForUser(userId) {
       const moral = clampStat(ninja.moral - 5);
       await query(
         'UPDATE ninjas SET moral = ?, chunin_exam_requested = FALSE WHERE id = ?',
-        [moral, ninja.id]
+        [moral, ninja.id],
       );
       await createSenseiNotification(userId, 'chunin_exam_failure', {
         ninjaId: ninja.id,

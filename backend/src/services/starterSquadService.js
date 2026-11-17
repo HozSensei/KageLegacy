@@ -61,7 +61,7 @@ export async function provisionStarterSquad(userId, language = 'fr') {
 export async function ensureStarterSquad(userId, language = 'fr') {
   const rows = await query(
     'SELECT COUNT(*) AS count FROM ninjas WHERE user_id = ?',
-    [userId]
+    [userId],
   );
   if (Number(rows[0]?.count) > 0) return false;
   await provisionStarterSquad(userId, language);

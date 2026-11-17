@@ -16,7 +16,7 @@ export async function assertSpendingAllowed(userId, message) {
   const status = await getDebtStatus(userId);
   if (status.debtBlocksSpending) {
     const error = new Error(
-      message || 'Gel administratif — remboursez votre dette avant toute nouvelle dépense.'
+      message || 'Gel administratif — remboursez votre dette avant toute nouvelle dépense.',
     );
     error.statusCode = 402;
     throw error;

@@ -44,7 +44,7 @@ export async function snapshotActiveEliteSubscriptions() {
     `SELECT user_id, stripe_customer_id, stripe_subscription_id, stripe_checkout_session_id,
             current_period_start, current_period_end
      FROM sensei_elite_subscriptions
-     WHERE status = 'active'`
+     WHERE status = 'active'`,
   );
 }
 
@@ -54,7 +54,7 @@ export async function listHumanPlayers() {
      FROM users u
      JOIN sensei s ON s.user_id = u.id
      WHERE u.is_bot = FALSE
-     ORDER BY u.id ASC`
+     ORDER BY u.id ASC`,
   );
 }
 
@@ -106,35 +106,35 @@ async function purgeGameplayState(connection) {
   const exec = (sql, params = []) => connection.execute(sql, params);
 
   await exec(
-    `UPDATE player_listings SET status = 'cancelled' WHERE status = 'active'`
+    'UPDATE player_listings SET status = \'cancelled\' WHERE status = \'active\'',
   );
-  await exec(`DELETE FROM idle_missions`);
-  await exec(`DELETE FROM academy_draws`);
-  await exec(`DELETE FROM market_offers`);
-  await exec(`DELETE FROM village_shop_stock`);
-  await exec(`DELETE FROM village_shop_promos`);
-  await exec(`DELETE FROM village_shop_card_stock`);
-  await exec(`DELETE FROM sensei_notifications`);
-  await exec(`DELETE FROM reconnaissance_registrations`);
-  await exec(`DELETE FROM reconnaissance_missions`);
-  await exec(`DELETE FROM reconnaissance_challenges`);
-  await exec(`DELETE FROM cycle_scout_intel`);
-  await exec(`DELETE FROM elite_quest_progress`);
-  await exec(`DELETE FROM elite_season_passes`);
-  await exec(`DELETE FROM operation_decks`);
-  await exec(`DELETE FROM player_listings`);
-  await exec(`DELETE FROM user_tactic_cards`);
-  await exec(`DELETE FROM user_items`);
-  await exec(`DELETE FROM ninjas`);
-  await exec(`DELETE FROM cycle_job_runs`);
-  await exec(`DELETE FROM village_score_events`);
-  await exec(`DELETE FROM village_cycle_totals`);
-  await exec(`DELETE FROM village_rivalries`);
-  await exec(`DELETE FROM pools`);
-  await exec(`DELETE FROM users WHERE is_bot = TRUE`);
+  await exec('DELETE FROM idle_missions');
+  await exec('DELETE FROM academy_draws');
+  await exec('DELETE FROM market_offers');
+  await exec('DELETE FROM village_shop_stock');
+  await exec('DELETE FROM village_shop_promos');
+  await exec('DELETE FROM village_shop_card_stock');
+  await exec('DELETE FROM sensei_notifications');
+  await exec('DELETE FROM reconnaissance_registrations');
+  await exec('DELETE FROM reconnaissance_missions');
+  await exec('DELETE FROM reconnaissance_challenges');
+  await exec('DELETE FROM cycle_scout_intel');
+  await exec('DELETE FROM elite_quest_progress');
+  await exec('DELETE FROM elite_season_passes');
+  await exec('DELETE FROM operation_decks');
+  await exec('DELETE FROM player_listings');
+  await exec('DELETE FROM user_tactic_cards');
+  await exec('DELETE FROM user_items');
+  await exec('DELETE FROM ninjas');
+  await exec('DELETE FROM cycle_job_runs');
+  await exec('DELETE FROM village_score_events');
+  await exec('DELETE FROM village_cycle_totals');
+  await exec('DELETE FROM village_rivalries');
+  await exec('DELETE FROM pools');
+  await exec('DELETE FROM users WHERE is_bot = TRUE');
   await exec(SENSEI_RESET_SQL);
-  await exec(`UPDATE player_clans SET well_drops = 0`);
-  await exec(`DELETE FROM clan_academy_board WHERE recruited_by_user_id IS NULL`);
+  await exec('UPDATE player_clans SET well_drops = 0');
+  await exec('DELETE FROM clan_academy_board WHERE recruited_by_user_id IS NULL');
 }
 
 async function assignPoolWithRetry(userId, seasonNumber, attempts = 2) {
@@ -211,7 +211,7 @@ async function restoreEliteSubscriptions(eliteSnapshots, seasonNumber) {
        JOIN pool_members pm ON pm.pool_id = p.id
        WHERE pm.user_id = ? AND p.status = 'active'
        LIMIT 1`,
-      [sub.user_id]
+      [sub.user_id],
     );
     const poolId = poolRows[0]?.id;
     if (!poolId) {

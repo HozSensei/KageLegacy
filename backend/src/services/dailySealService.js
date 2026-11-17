@@ -1,4 +1,3 @@
-import { randomInt } from 'node:crypto';
 import { query } from '../config/database.js';
 import { utcDateString } from './dailyUtc.js';
 import { grantItemToUser, countUnconsumedItemsBySlug, consumeOldestItemBySlug } from './itemGrantService.js';
@@ -21,7 +20,7 @@ function daysBetweenUtcDates(fromDate, toDate) {
 export async function grantDailySealsForUser(userId) {
   const rows = await query(
     'SELECT last_daily_seal_grant_date FROM sensei WHERE user_id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   const sensei = rows[0];
   if (!sensei) return { granted: 0, pending: 0 };
@@ -80,7 +79,7 @@ async function pickBenchNinja(userId, ninjaId = null) {
   if (ninjaId) {
     const rows = await query(
       'SELECT * FROM ninjas WHERE id = ? AND user_id = ? AND squad_position IS NULL LIMIT 1',
-      [ninjaId, userId]
+      [ninjaId, userId],
     );
     return rows[0] || null;
   }
@@ -88,7 +87,7 @@ async function pickBenchNinja(userId, ninjaId = null) {
     `SELECT * FROM ninjas
      WHERE user_id = ? AND squad_position IS NULL
      ORDER BY RAND() LIMIT 1`,
-    [userId]
+    [userId],
   );
   return rows[0] || null;
 }

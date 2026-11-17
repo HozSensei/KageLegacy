@@ -4,7 +4,7 @@
  */
 
 import { DOMAIN_BEATS, DOMAIN_LABELS } from './constants.js';
-import { isPliLog, pliWinnerSide, winningTechniqueLabel } from './combatLogMetrics.js';
+import { isPliLog, pliWinnerSide } from './combatLogMetrics.js';
 
 const DOMAIN_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine'];
 
@@ -24,7 +24,7 @@ function normalizeDomain(raw) {
   if (lower === 'médecine' || lower === 'medecine') return 'medecine';
   if (DOMAIN_KEYS.includes(lower)) return lower;
   const labeled = Object.entries(DOMAIN_LABELS).find(
-    ([, label]) => label.toLowerCase() === lower
+    ([, label]) => label.toLowerCase() === lower,
   );
   return labeled ? labeled[0] : null;
 }
@@ -88,10 +88,10 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
     const winner = pliWinnerSide(log);
     if (!winner || winner === 'draw') continue;
     const myDomain = normalizeDomain(
-      side === 'home' ? log.technique_type_home : log.technique_type_away
+      side === 'home' ? log.technique_type_home : log.technique_type_away,
     );
     const theirDomain = normalizeDomain(
-      side === 'home' ? log.technique_type_away : log.technique_type_home
+      side === 'home' ? log.technique_type_away : log.technique_type_home,
     );
     if (winner === side) {
       if (myDomain) domainWins[myDomain] += 1;
@@ -116,7 +116,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Vous avez remporté {n} pli(s) grâce à un avantage Tai > Gen > Nin.',
         'You won {n} pli(s) thanks to a Tai > Gen > Nin type edge.',
-        { n: typeWins }
+        { n: typeWins },
       ),
     });
   }
@@ -130,7 +130,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'L\'adversaire a gagné {n} pli(s) avec un avantage de type contre vous.',
         'The opponent won {n} pli(s) with a type advantage against you.',
-        { n: typeLosses }
+        { n: typeLosses },
       ),
     });
   }
@@ -147,7 +147,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Vos plis {domain} ont fait la différence ({n} gagnés).',
         'Your {domain} plis made the difference ({n} won).',
-        { domain: domainLabel(lang, topWinDomain[0]), n: topWinDomain[1] }
+        { domain: domainLabel(lang, topWinDomain[0]), n: topWinDomain[1] },
       ),
     });
   }
@@ -161,7 +161,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Vous avez cédé {n} pli(s) face au {domain} adverse.',
         'You lost {n} pli(s) to the opponent\'s {domain}.',
-        { domain: domainLabel(lang, topLossDomain[0]), n: topLossDomain[1] }
+        { domain: domainLabel(lang, topLossDomain[0]), n: topLossDomain[1] },
       ),
     });
   }
@@ -188,7 +188,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
     }
   }
   const bestTech = [...techSwing.entries()].sort(
-    (a, b) => b[1].wins * 10 + b[1].edge - (a[1].wins * 10 + a[1].edge)
+    (a, b) => b[1].wins * 10 + b[1].edge - (a[1].wins * 10 + a[1].edge),
   )[0];
   if (bestTech && bestTech[1].wins >= 1 && bestTech[1].edge >= 8) {
     candidates.push({
@@ -200,7 +200,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         '« {card} » a basculé {n} pli(s) avec un écart de puissance net.',
         '"{card}" swung {n} pli(s) with a clear power edge.',
-        { card: bestTech[0], n: bestTech[1].wins }
+        { card: bestTech[0], n: bestTech[1].wins },
       ),
     });
   }
@@ -228,7 +228,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         '{n} pli(s) relais ont affaibli votre pression — assignez vos cartes technique.',
         '{n} relay pli(s) weakened your pressure — assign your technique cards.',
-        { n: Math.max(myPadding, myRelais) }
+        { n: Math.max(myPadding, myRelais) },
       ),
     });
   }
@@ -253,13 +253,13 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
             lang,
             '{names} combattai(en)t en forme Lamentable (−25 % stats).',
             '{names} fought in Wretched form (−25% stats).',
-            { names }
+            { names },
           )
         : copy(
             lang,
             '{n} ninja(s) en forme Lamentable ont pesé sur le match.',
             '{n} ninja(s) in Wretched form weighed on the match.',
-            { n: lame.length }
+            { n: lame.length },
           ),
     });
   }
@@ -273,7 +273,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         '{n} ninja(s) en forme Divine ont amplifié vos plis (+15 % stats).',
         '{n} ninja(s) in Divine form amplified your plis (+15% stats).',
-        { n: divine.length }
+        { n: divine.length },
       ),
     });
   }
@@ -293,7 +293,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Écart de PV restants : {delta} (vous {mine} / adversaire {theirs}).',
         'Remaining HP gap: {delta} (you {mine} / opponent {theirs}).',
-        { delta: Math.round(pvDelta), mine: Math.round(myPv), theirs: Math.round(theirPv) }
+        { delta: Math.round(pvDelta), mine: Math.round(myPv), theirs: Math.round(theirPv) },
       ),
     });
   }
@@ -309,7 +309,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Plis remportés {mine}–{theirs}.',
         'Plis won {mine}–{theirs}.',
-        { mine: Math.round(myPlis), theirs: Math.round(theirPlis) }
+        { mine: Math.round(myPlis), theirs: Math.round(theirPlis) },
       ),
     });
   }
@@ -333,7 +333,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Votre Ninjutsu a exploité l\'élément adverse sur {n} pli(s).',
         'Your Ninjutsu exploited the enemy element on {n} pli(s).',
-        { n: elemAdv }
+        { n: elemAdv },
       ),
     });
   }
@@ -347,7 +347,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Votre Ninjutsu a subi un désavantage élémentaire sur {n} pli(s).',
         'Your Ninjutsu suffered an elemental disadvantage on {n} pli(s).',
-        { n: elemDis }
+        { n: elemDis },
       ),
     });
   }
@@ -364,7 +364,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
         lang,
         'Match terminé avant les 18 plis — K.O. ({mine} / {theirs}).',
         'Match ended before 18 plis — K.O. ({mine} / {theirs}).',
-        { mine: myKo, theirs: theirKo }
+        { mine: myKo, theirs: theirKo },
       ),
     });
   }
@@ -380,7 +380,7 @@ export function buildCausalDebrief(match, userId, combatLog, locale = 'fr') {
       detail: copy(
         lang,
         'Aucun levier n\'a nettement dominé — ajustez le deck selon l\'espionnage du prochain cycle.',
-        'No single lever clearly dominated — adjust the deck from next cycle\'s scout report.'
+        'No single lever clearly dominated — adjust the deck from next cycle\'s scout report.',
       ),
     });
   }

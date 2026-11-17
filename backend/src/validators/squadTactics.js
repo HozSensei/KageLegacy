@@ -18,7 +18,7 @@ export const updateTrainingPlansSchema = z.object({
       z.object({
         ninjaId: z.number().int().positive(),
         preparationType: z.enum(TRAINING_TYPE_VALUES).nullable(),
-      })
+      }),
     )
     .max(20)
     .optional(),

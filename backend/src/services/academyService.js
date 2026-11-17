@@ -29,7 +29,7 @@ function priceForCandidate(clanTier, potential) {
 async function hasJackpotToken(userId) {
   const rows = await query(
     'SELECT academy_jackpot_token FROM sensei WHERE user_id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   return Boolean(rows[0]?.academy_jackpot_token);
 }
@@ -75,7 +75,7 @@ async function buildRandomAspirant(clans, userId, { forceJackpot = false } = {})
     price,
     displayProfile: describeNinjaProfile(
       { ...profile, clan_name: clan?.name, clan_is_noble: clan?.is_noble },
-      profile.language
+      profile.language,
     ),
   };
 }
@@ -113,7 +113,7 @@ export async function listAcademyDraws(userId) {
     `SELECT * FROM academy_draws
      WHERE user_id = ? AND purchased = FALSE
      ORDER BY slot_index ASC`,
-    [userId]
+    [userId],
   );
   return rows;
 }
@@ -128,7 +128,7 @@ async function insertAspirant(userId, slotIndex, aspirant) {
       slotIndex,
       JSON.stringify({ ...profile, clanTier, clanName, displayProfile, jackpotForced: aspirant.jackpotForced }),
       price,
-    ]
+    ],
   );
 }
 
@@ -169,7 +169,7 @@ export async function rotateAcademyForUser(userId) {
   const today = utcDateString();
   const senseiRows = await query(
     'SELECT academy_last_rotation_date FROM sensei WHERE user_id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   const lastRotation = senseiRows[0]?.academy_last_rotation_date
     ? utcDateString(new Date(senseiRows[0].academy_last_rotation_date))
@@ -238,7 +238,7 @@ export async function recruitAcademyAspirant(userId, drawId) {
 
   const drawRows = await query(
     'SELECT * FROM academy_draws WHERE id = ? AND user_id = ? LIMIT 1',
-    [drawId, userId]
+    [drawId, userId],
   );
   const draw = drawRows[0];
   if (!draw) {
@@ -254,7 +254,7 @@ export async function recruitAcademyAspirant(userId, drawId) {
 
   const claim = await query(
     'UPDATE academy_draws SET purchased = TRUE WHERE id = ? AND purchased = FALSE',
-    [draw.id]
+    [draw.id],
   );
   if (!claim.affectedRows) {
     const error = new Error('Cet aspirant a déjà rejoint votre effectif.');

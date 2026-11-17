@@ -62,7 +62,7 @@ export function computeCardDamage(card, ctx) {
     perHit *
       typeAdvantageMultiplier(card.statType, enemyPosture) *
       elementMultiplier(card.element, enemyAffinity) *
-      outgoingDamageMultiplier(playerStatuses, { statType: card.statType })
+      outgoingDamageMultiplier(playerStatuses, { statType: card.statType }),
   );
 
   if (talentMods.damageMult) {
@@ -281,7 +281,7 @@ export function resolveAllyAttack(player, enemy) {
     enemy,
     atk,
     { announceIntent: e => getNextIntent(e) },
-    applyDamageThroughBlock
+    applyDamageThroughBlock,
   );
   logs.push({
     type: 'ally_attack',
@@ -291,8 +291,8 @@ export function resolveAllyAttack(player, enemy) {
   });
   logs.push(
     ...hit.logs.filter(
-      l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage'
-    )
+      l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage',
+    ),
   );
   return { player, enemy: hit.enemy, logs };
 }

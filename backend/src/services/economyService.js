@@ -9,7 +9,7 @@ export async function deductSalariesForAllUsers() {
     const ninjas = await query(
       `SELECT id, grade, taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence, salary_cost
        FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL`,
-      [user.id]
+      [user.id],
     );
 
     let total = 0;
@@ -39,7 +39,7 @@ export async function deductSalariesForAllUsers() {
       await query(
         `UPDATE ninjas SET moral = GREATEST(1, FLOOR(moral * 0.8))
          WHERE user_id = ? AND squad_position IS NOT NULL`,
-        [user.id]
+        [user.id],
       );
     }
 

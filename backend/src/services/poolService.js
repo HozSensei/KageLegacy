@@ -15,7 +15,7 @@ export async function findUserPool(userId) {
      JOIN pool_members pm ON pm.pool_id = p.id
      WHERE pm.user_id = ? AND p.status = 'active'
      LIMIT 1`,
-    [userId]
+    [userId],
   );
   return rows[0] || null;
 }
@@ -24,7 +24,7 @@ async function addMemberToPool(poolId, userId) {
   await query('INSERT INTO pool_members (pool_id, user_id) VALUES (?, ?)', [poolId, userId]);
   await query(
     'INSERT INTO pool_standings (pool_id, user_id) VALUES (?, ?)',
-    [poolId, userId]
+    [poolId, userId],
   );
 }
 
@@ -35,19 +35,19 @@ async function insertSchedule(poolId, memberIds) {
     await query(
       `INSERT INTO matches (pool_id, season_cycle, home_user_id, away_user_id, environment_slug, environment_type)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [poolId, entry.seasonCycle, entry.homeUserId, entry.awayUserId, env.slug, env.type]
+      [poolId, entry.seasonCycle, entry.homeUserId, entry.awayUserId, env.slug, env.type],
     );
   }
 }
 
 async function createPoolWithBots(
   humanUserId,
-  { divisionLevel = LOWEST_DIVISION, seasonNumber = 1 } = {}
+  { divisionLevel = LOWEST_DIVISION, seasonNumber = 1 } = {},
 ) {
   const poolResult = await query(
     `INSERT INTO pools (division_level, season_number, current_cycle, status)
      VALUES (?, ?, 1, 'active')`,
-    [divisionLevel, seasonNumber]
+    [divisionLevel, seasonNumber],
   );
   const poolId = poolResult.insertId;
 
@@ -67,12 +67,12 @@ async function createPoolWithBots(
 async function replaceBotInPool(poolId, botUserId, humanUserId) {
   await query(
     'DELETE FROM reconnaissance_missions WHERE home_user_id = ? OR away_user_id = ?',
-    [botUserId, botUserId]
+    [botUserId, botUserId],
   );
   await query(
     `DELETE FROM reconnaissance_challenges
      WHERE challenger_user_id = ? OR defender_user_id = ?`,
-    [botUserId, botUserId]
+    [botUserId, botUserId],
   );
   await query('DELETE FROM reconnaissance_registrations WHERE user_id = ?', [botUserId]);
   await query('UPDATE pool_members SET user_id = ? WHERE pool_id = ? AND user_id = ?', [
@@ -86,12 +86,12 @@ async function replaceBotInPool(poolId, botUserId, humanUserId) {
     botUserId,
   ]);
   await query(
-    `UPDATE matches SET home_user_id = ? WHERE pool_id = ? AND home_user_id = ?`,
-    [humanUserId, poolId, botUserId]
+    'UPDATE matches SET home_user_id = ? WHERE pool_id = ? AND home_user_id = ?',
+    [humanUserId, poolId, botUserId],
   );
   await query(
-    `UPDATE matches SET away_user_id = ? WHERE pool_id = ? AND away_user_id = ?`,
-    [humanUserId, poolId, botUserId]
+    'UPDATE matches SET away_user_id = ? WHERE pool_id = ? AND away_user_id = ?',
+    [humanUserId, poolId, botUserId],
   );
   await query('DELETE FROM ninjas WHERE user_id = ?', [botUserId]);
   await query('DELETE FROM sensei WHERE user_id = ?', [botUserId]);
@@ -109,7 +109,7 @@ async function findPoolWithBotSlot(divisionLevel = LOWEST_DIVISION) {
        AND u.is_bot = TRUE
      ORDER BY p.id
      LIMIT 1`,
-    [divisionLevel]
+    [divisionLevel],
   );
   return rows[0] || null;
 }
@@ -121,7 +121,7 @@ async function findBotInPool(poolId) {
      JOIN users u ON u.id = pm.user_id
      WHERE pm.pool_id = ? AND u.is_bot = TRUE
      LIMIT 1`,
-    [poolId]
+    [poolId],
   );
   return rows[0] || null;
 }
@@ -136,7 +136,7 @@ export async function deleteBotsFromPool(poolId) {
      FROM pool_members pm
      JOIN users u ON u.id = pm.user_id
      WHERE pm.pool_id = ? AND u.is_bot = TRUE`,
-    [poolId]
+    [poolId],
   );
 
   for (const bot of bots) {
@@ -180,7 +180,7 @@ export async function joinOrCreatePool(humanUserId, { seasonNumber = 1 } = {}) {
 
 async function resolveActiveSeasonNumber(fallback = 1) {
   const rows = await query(
-    `SELECT season_number FROM pools WHERE status = 'active' ORDER BY id DESC LIMIT 1`
+    'SELECT season_number FROM pools WHERE status = \'active\' ORDER BY id DESC LIMIT 1',
   );
   return Number(rows[0]?.season_number || fallback);
 }
@@ -193,7 +193,7 @@ async function clearStalePoolMemberships(userId) {
     `DELETE pm FROM pool_members pm
      INNER JOIN pools p ON p.id = pm.pool_id
      WHERE pm.user_id = ? AND p.status <> 'active'`,
-    [userId]
+    [userId],
   );
 }
 
@@ -234,7 +234,7 @@ export async function assignMissingHumanPools({ seasonNumber } = {}) {
          JOIN pools p ON p.id = pm.pool_id AND p.status = 'active'
          WHERE pm.user_id = u.id
        )
-     ORDER BY u.id ASC`
+     ORDER BY u.id ASC`,
   );
 
   const season = seasonNumber ?? (await resolveActiveSeasonNumber(1));
@@ -312,7 +312,7 @@ export async function getPoolMemberIds(poolId) {
      JOIN sensei s ON s.user_id = pm.user_id
      WHERE pm.pool_id = ?
      ORDER BY pm.id`,
-    [poolId]
+    [poolId],
   );
   return rows;
 }
@@ -323,7 +323,7 @@ export async function incrementPoolCycle(poolId) {
   const { expireCycleObjectivesForPool } = await import('./cycleObjectiveService.js');
   await expireCycleObjectivesForPool(poolId, cycle);
   if (cycle >= SEASON_CYCLES) {
-    await query(`UPDATE pools SET status = 'completed', current_cycle = ? WHERE id = ?`, [
+    await query('UPDATE pools SET status = \'completed\', current_cycle = ? WHERE id = ?', [
       SEASON_CYCLES,
       poolId,
     ]);
@@ -358,7 +358,7 @@ export async function repairPoolSchedule(poolId, { onlyScheduled = true } = {}) 
      FROM matches
      WHERE pool_id = ?
      ORDER BY season_cycle ASC, id ASC`,
-    [poolId]
+    [poolId],
   );
 
   const expectedByCycle = new Map();
@@ -384,7 +384,7 @@ export async function repairPoolSchedule(poolId, { onlyScheduled = true } = {}) 
     const cycleExisting = existingByCycle.get(cycle) || [];
     if (cycleExisting.length !== cycleExpected.length) {
       const error = new Error(
-        `Journée ${cycle} : ${cycleExisting.length} match(s) en base, ${cycleExpected.length} attendu(s).`
+        `Journée ${cycle} : ${cycleExisting.length} match(s) en base, ${cycleExpected.length} attendu(s).`,
       );
       error.statusCode = 409;
       throw error;
@@ -416,7 +416,7 @@ export async function repairPoolSchedule(poolId, { onlyScheduled = true } = {}) 
 }
 
 export async function repairAllActivePoolSchedules(options = {}) {
-  const pools = await query(`SELECT id FROM pools WHERE status = 'active' ORDER BY id ASC`);
+  const pools = await query('SELECT id FROM pools WHERE status = \'active\' ORDER BY id ASC');
   const results = [];
 
   for (const pool of pools) {

@@ -31,7 +31,7 @@ export function pickClanForRecruitment(clans, options = {}) {
   if (options.forceRoturier && roturier.length) return roturier[0];
 
   const roll = Math.random() * 100;
-  const { clan_noble, clan_commun, roturier: wRot } = RECRUITMENT_WEIGHTS;
+  const { clan_noble, clan_commun } = RECRUITMENT_WEIGHTS;
 
   if (roll < clan_noble && noble.length) return pickRandom(noble);
   if (roll < clan_noble + clan_commun && common.length) return pickRandom(common);

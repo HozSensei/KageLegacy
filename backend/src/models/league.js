@@ -26,7 +26,7 @@ export async function getLeaguePayload(userId) {
      JOIN users u ON u.id = ps.user_id
      WHERE ps.pool_id = ?
      ORDER BY ps.points DESC, ps.wins DESC, ps.played ASC`,
-    [pool.id]
+    [pool.id],
   );
 
   const nextMatch = await getUserMatchForCycle(userId, pool.current_cycle);
@@ -39,7 +39,7 @@ export async function getLeaguePayload(userId) {
      WHERE m.pool_id = ? AND m.status = 'applied'
      ORDER BY m.season_cycle DESC
      LIMIT 5`,
-    [pool.id]
+    [pool.id],
   );
 
   const scoutReport =
@@ -49,7 +49,7 @@ export async function getLeaguePayload(userId) {
   const identityMap = await buildSenseiIdentities(
     standings.map((row) => row.user_id),
     locale,
-    pool
+    pool,
   );
 
   let nextMatchPayload = null;
@@ -57,7 +57,7 @@ export async function getLeaguePayload(userId) {
     const matchIdentityMap = await buildSenseiIdentities(
       [nextMatch.home_user_id, nextMatch.away_user_id],
       locale,
-      pool
+      pool,
     );
     nextMatchPayload = {
       id: nextMatch.id,

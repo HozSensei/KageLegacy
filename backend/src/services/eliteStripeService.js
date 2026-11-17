@@ -108,7 +108,7 @@ export async function createEliteCheckoutSession(userId) {
   if (!/^https?:\/\//i.test(baseUrl)) {
     throw stripeHttpError(
       'APP_PUBLIC_URL invalide — utilisez une URL complète (ex. https://kagelegacy.jeromedessy.be).',
-      503
+      503,
     );
   }
   const checkoutMode = await resolveCheckoutMode(stripe, priceId);
@@ -238,7 +238,7 @@ async function findSubscriptionByStripeRef({ customerId, subscriptionId }) {
     const rows = await query(
       `SELECT * FROM sensei_elite_subscriptions
        WHERE stripe_subscription_id = ? ORDER BY id DESC LIMIT 1`,
-      [subscriptionId]
+      [subscriptionId],
     );
     if (rows[0]) return rows[0];
   }
@@ -246,7 +246,7 @@ async function findSubscriptionByStripeRef({ customerId, subscriptionId }) {
     const rows = await query(
       `SELECT * FROM sensei_elite_subscriptions
        WHERE stripe_customer_id = ? ORDER BY id DESC LIMIT 1`,
-      [customerId]
+      [customerId],
     );
     if (rows[0]) return rows[0];
   }
@@ -256,8 +256,8 @@ async function findSubscriptionByStripeRef({ customerId, subscriptionId }) {
 async function setEliteSubscriptionStatus(subscriptionRow, status) {
   if (!subscriptionRow) return;
   await query(
-    `UPDATE sensei_elite_subscriptions SET status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?`,
-    [status, subscriptionRow.id]
+    'UPDATE sensei_elite_subscriptions SET status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ?',
+    [status, subscriptionRow.id],
   );
 }
 
@@ -276,7 +276,7 @@ async function handleSubscriptionUpdated(subscription) {
            current_period_end = FROM_UNIXTIME(?),
            updated_at = UTC_TIMESTAMP()
        WHERE id = ?`,
-      [subscription.current_period_start, subscription.current_period_end, row.id]
+      [subscription.current_period_start, subscription.current_period_end, row.id],
     );
     return;
   }
@@ -347,7 +347,7 @@ export async function revokeEliteForChargeRefund(charge, { stripe = null } = {})
           `SELECT * FROM sensei_elite_subscriptions
            WHERE stripe_checkout_session_id = ?
            ORDER BY id DESC LIMIT 1`,
-          [sessionId]
+          [sessionId],
         );
         row = rows[0] ?? null;
       }
@@ -362,7 +362,7 @@ export async function revokeEliteForChargeRefund(charge, { stripe = null } = {})
        WHERE stripe_customer_id = ? AND status IN ('active', 'past_due')
        ORDER BY updated_at DESC, id DESC
        LIMIT 1`,
-      [customerId]
+      [customerId],
     );
     row = rows[0] ?? null;
   }

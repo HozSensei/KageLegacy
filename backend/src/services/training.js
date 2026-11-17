@@ -100,7 +100,7 @@ function resolvePotential(ninja) {
       vitesse: ninja.vitesse,
       intelligence: ninja.intelligence,
     },
-    ninja.grade
+    ninja.grade,
   );
 }
 
@@ -137,7 +137,7 @@ export function distributePart(part, trainingType, ninja, mode, { rng = Math.ran
   }
 
   let weights = config.stats.map((stat, index) =>
-    isStatAtGradeCap(ninja, stat) ? 0 : config.weights[index]
+    isStatAtGradeCap(ninja, stat) ? 0 : config.weights[index],
   );
   const weightSum = weights.reduce((sum, weight) => sum + weight, 0);
   if (weightSum <= 0) {
@@ -281,7 +281,7 @@ async function applyGainsToNinja(ninja, session) {
 
 export async function applyTrainingForUser(
   userId,
-  { mode = 'preparation', onlyNinjaIds = null, globalTrainingType = null } = {}
+  { mode = 'preparation', onlyNinjaIds = null, globalTrainingType = null } = {},
 ) {
   const ninjas = await query('SELECT * FROM ninjas WHERE user_id = ?', [userId]);
   if (!ninjas.length) return { logs: [], sessions: [] };

@@ -71,7 +71,7 @@ export async function getSenseiBalances(userId, connection = null) {
 
   const rows = await run(
     'SELECT ryos, card_dust, card_essence, kage_coins FROM sensei WHERE user_id = ? LIMIT 1',
-    [userId]
+    [userId],
   );
   if (!rows[0]) throw httpError(404, 'Sensei introuvable.');
   return {
@@ -136,7 +136,7 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
   } else if (!isAdmin && process.env.SHOP_COIN_STUB !== 'true') {
     throw httpError(
       403,
-      'Achat stub réservé admin/dev (SHOP_COIN_STUB=true ou compte admin). Utilisez method=stripe.'
+      'Achat stub réservé admin/dev (SHOP_COIN_STUB=true ou compte admin). Utilisez method=stripe.',
     );
   }
 
@@ -150,7 +150,7 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
     await connection.execute(
       `INSERT INTO shop_coin_pack_purchases (user_id, pack_id, coins_granted, method)
        VALUES (?, ?, ?, 'stub')`,
-      [userId, pack.id, totalCoins]
+      [userId, pack.id, totalCoins],
     );
     await connection.commit();
   } catch (error) {
@@ -225,7 +225,7 @@ export async function getBattlePassShopOffer(userId) {
  */
 export async function unlockBattlePassFromShop(
   userId,
-  { method = 'kage_coins', isAdmin = false } = {}
+  { method = 'kage_coins', isAdmin = false } = {},
 ) {
   const result = await unlockPremium(userId, { method, isAdmin });
   if (result?.mode === 'stripe_checkout') {

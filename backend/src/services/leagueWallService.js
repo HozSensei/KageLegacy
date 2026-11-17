@@ -32,7 +32,7 @@ function normalizeBody(raw) {
 async function assertPoolMember(userId, poolId) {
   const rows = await query(
     'SELECT 1 FROM pool_members WHERE pool_id = ? AND user_id = ? LIMIT 1',
-    [poolId, userId]
+    [poolId, userId],
   );
   if (!rows.length) {
     const error = new Error('Vous n\'êtes pas membre de cette ligue.');
@@ -112,7 +112,7 @@ export async function createWallPost(userId, bodyRaw) {
   const result = await query(
     `INSERT INTO pool_wall_posts (pool_id, season_number, author_user_id, body)
      VALUES (?, ?, ?, ?)`,
-    [pool.id, pool.season_number, userId, body]
+    [pool.id, pool.season_number, userId, body],
   );
 
   const rows = await query(
@@ -120,7 +120,7 @@ export async function createWallPost(userId, bodyRaw) {
      FROM pool_wall_posts w
      JOIN sensei s ON s.user_id = w.author_user_id
      WHERE w.id = ?`,
-    [result.insertId]
+    [result.insertId],
   );
   const row = rows[0];
 

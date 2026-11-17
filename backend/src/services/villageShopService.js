@@ -53,8 +53,8 @@ async function getAllCatalogItems() {
 
 async function ensureStockForPeriod(userId, restockPeriod) {
   const existing = await query(
-    `SELECT COUNT(*) AS c FROM village_shop_stock WHERE user_id = ? AND restock_period = ?`,
-    [userId, restockPeriod]
+    'SELECT COUNT(*) AS c FROM village_shop_stock WHERE user_id = ? AND restock_period = ?',
+    [userId, restockPeriod],
   );
   if (existing[0]?.c > 0) return;
 
@@ -65,7 +65,7 @@ async function ensureStockForPeriod(userId, restockPeriod) {
       `INSERT INTO village_shop_stock
        (user_id, restock_period, item_definition_id, stock_initial, stock_remaining)
        VALUES (?, ?, ?, ?, ?)`,
-      [userId, restockPeriod, item.id, stock, stock]
+      [userId, restockPeriod, item.id, stock, stock],
     );
   }
 }
@@ -79,7 +79,7 @@ async function pickPromoItems(userId, cycleStartAt, eligibleItems, count = PROMO
      WHERE user_id = ? AND cycle_start_at < ?
      ORDER BY cycle_start_at DESC
      LIMIT ${PROMOS_PER_CYCLE}`,
-    [userId, cycleStartAt]
+    [userId, cycleStartAt],
   );
   const avoidIds = new Set(prevPromos.map((p) => p.item_definition_id));
 
@@ -103,7 +103,7 @@ async function pruneInvalidPromos(userId, cycleStartAt) {
      LEFT JOIN item_definitions idf ON idf.id = vsp.item_definition_id
      WHERE vsp.user_id = ? AND vsp.cycle_start_at = ?
        AND (idf.id IS NULL OR idf.price <= 0 OR idf.promo_eligible = FALSE)`,
-    [userId, cycleStartAt]
+    [userId, cycleStartAt],
   );
 }
 
@@ -117,11 +117,11 @@ async function ensurePromosForCycle(userId, cycleStartAt) {
   const currentRows = await query(
     `SELECT item_definition_id FROM village_shop_promos
      WHERE user_id = ? AND cycle_start_at = ?`,
-    [userId, cycleStartAt]
+    [userId, cycleStartAt],
   );
   const eligibleIds = new Set(eligibleItems.map((item) => item.id));
   const activeIds = new Set(
-    currentRows.map((row) => row.item_definition_id).filter((id) => eligibleIds.has(id))
+    currentRows.map((row) => row.item_definition_id).filter((id) => eligibleIds.has(id)),
   );
 
   if (activeIds.size >= PROMOS_PER_CYCLE) return;
@@ -133,7 +133,7 @@ async function ensurePromosForCycle(userId, cycleStartAt) {
     await query(
       `INSERT INTO village_shop_promos (user_id, cycle_start_at, item_definition_id, discount_pct)
        VALUES (?, ?, ?, ?)`,
-      [userId, cycleStartAt, item.id, PROMO_DISCOUNT_PCT]
+      [userId, cycleStartAt, item.id, PROMO_DISCOUNT_PCT],
     );
   }
 }
@@ -192,11 +192,11 @@ export async function getVillageShopForUser(userId) {
     ? await query(
         `SELECT item_definition_id, discount_pct FROM village_shop_promos
          WHERE user_id = ? AND cycle_start_at = ?`,
-        [userId, cycleStartAt]
+        [userId, cycleStartAt],
       )
     : [];
   const promoByItem = new Map(
-    promoRows.map((p) => [Number(p.item_definition_id), Number(p.discount_pct)])
+    promoRows.map((p) => [Number(p.item_definition_id), Number(p.discount_pct)]),
   );
   const heritage = await getHeritageBonuses(userId);
 
@@ -207,7 +207,7 @@ export async function getVillageShopForUser(userId) {
      JOIN item_definitions idf ON idf.id = vss.item_definition_id
      WHERE vss.user_id = ? AND vss.restock_period = ?
      ORDER BY idf.category, idf.id`,
-    [userId, restockPeriod]
+    [userId, restockPeriod],
   );
 
   const items = stockRows
@@ -216,8 +216,8 @@ export async function getVillageShopForUser(userId) {
         row,
         promoByItem,
         heritage.matchShopDiscountPct,
-        heritage.bureauShopDiscountPct
-      )
+        heritage.bureauShopDiscountPct,
+      ),
     )
     .filter((item) => item.category !== 'match');
 
@@ -234,7 +234,7 @@ export async function getVillageShopForUser(userId) {
 export async function purchaseVillageShopItem(userId, stockId) {
   await assertSpendingAllowed(
     userId,
-    'Gel administratif — remboursez votre dette avant d\'acheter au magasin du village.'
+    'Gel administratif — remboursez votre dette avant d\'acheter au magasin du village.',
   );
 
   const rows = await query(
@@ -248,7 +248,7 @@ export async function purchaseVillageShopItem(userId, stockId) {
       AND vsp.item_definition_id = vss.item_definition_id
       AND vsp.cycle_start_at = (SELECT cycle_start_at FROM game_clock WHERE id = 1)
      WHERE vss.id = ? AND vss.user_id = ?`,
-    [stockId, userId]
+    [stockId, userId],
   );
   const row = rows[0];
   if (!row) {
@@ -281,11 +281,11 @@ export async function purchaseVillageShopItem(userId, stockId) {
   await query('UPDATE sensei SET ryos = ryos - ? WHERE user_id = ?', [finalPrice, userId]);
   const itemResult = await query(
     'INSERT INTO user_items (user_id, item_definition_id) VALUES (?, ?)',
-    [userId, row.item_definition_id]
+    [userId, row.item_definition_id],
   );
   await query(
     'UPDATE village_shop_stock SET stock_remaining = stock_remaining - 1 WHERE id = ?',
-    [stockId]
+    [stockId],
   );
 
   return {

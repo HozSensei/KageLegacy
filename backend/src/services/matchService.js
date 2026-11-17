@@ -30,8 +30,8 @@ function mapScores(winner, endReason) {
 async function loadNarrativeContext(userId) {
   const senseiRows = await query('SELECT name FROM sensei WHERE user_id = ?', [userId]);
   const ninjas = await query(
-    `SELECT name FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-    [userId]
+    'SELECT name FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position',
+    [userId],
   );
   return { senseiName: senseiRows[0]?.name || 'Sensei', ninjas };
 }
@@ -39,7 +39,7 @@ async function loadNarrativeContext(userId) {
 async function notifyOperationStart(homeUserId, awayUserId, matchId, homeSensei, awaySensei) {
   const users = await query(
     'SELECT id, is_bot FROM users WHERE id IN (?, ?)',
-    [homeUserId, awayUserId]
+    [homeUserId, awayUserId],
   );
   const botIds = new Set(users.filter((u) => u.is_bot).map((u) => u.id));
 
@@ -61,7 +61,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
   const matches = await query(
     `SELECT * FROM matches
      WHERE pool_id = ? AND season_cycle = ? AND status = 'scheduled'`,
-    [poolId, seasonCycle]
+    [poolId, seasonCycle],
   );
 
   const results = [];
@@ -74,14 +74,14 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       environmentType = env.type;
       await query(
         'UPDATE matches SET environment_slug = ?, environment_type = ? WHERE id = ?',
-        [environmentSlug, environmentType, match.id]
+        [environmentSlug, environmentType, match.id],
       );
     }
 
     const combat = await simulateMatchCombat(
       match.home_user_id,
       match.away_user_id,
-      environmentSlug
+      environmentSlug,
     );
     const [homeTeamData, awayTeamData] = await Promise.all([
       loadTeamForCombat(match.home_user_id),
@@ -91,7 +91,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
     const { result, winnerUserId } = mapWinnerToDb(
       combat.winner,
       match.home_user_id,
-      match.away_user_id
+      match.away_user_id,
     );
     const scores = mapScores(combat.winner, combat.endReason);
 
@@ -136,7 +136,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
     await persistNarrativeSegments(match.id, narrative.segments);
 
     const endingReveal = new Date(
-      now.getTime() + narrative.endingRevealMinutes * 60 * 1000
+      now.getTime() + narrative.endingRevealMinutes * 60 * 1000,
     );
 
     await query(
@@ -155,7 +155,7 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
         now,
         endingReveal,
         match.id,
-      ]
+      ],
     );
 
     results.push({
@@ -171,14 +171,14 @@ export async function simulateMatchesForCycle(poolId, seasonCycle) {
       match.away_user_id,
       match.id,
       homeCtx.senseiName,
-      awayCtx.senseiName
+      awayCtx.senseiName,
     );
   }
   return results;
 }
 
 export async function simulateAllPoolsCurrentCycle() {
-  const pools = await query(`SELECT id, current_cycle FROM pools WHERE status = 'active'`);
+  const pools = await query('SELECT id, current_cycle FROM pools WHERE status = \'active\'');
   const all = [];
   for (const pool of pools) {
     const simulated = await simulateMatchesForCycle(pool.id, pool.current_cycle);
@@ -194,7 +194,7 @@ async function applyStanding(poolId, userId, result) {
     `UPDATE pool_standings
      SET points = points + ?, played = played + 1, ${col} = ${col} + 1
      WHERE pool_id = ? AND user_id = ?`,
-    [points, poolId, userId]
+    [points, poolId, userId],
   );
 }
 
@@ -202,7 +202,7 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
   const matches = await query(
     `SELECT * FROM matches
      WHERE pool_id = ? AND season_cycle = ? AND status IN ('simulated', 'revealing')`,
-    [poolId, seasonCycle]
+    [poolId, seasonCycle],
   );
 
   for (const match of matches) {
@@ -246,8 +246,8 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
     await applyPostMatchSocial(match);
 
     await query(
-      `UPDATE matches SET status = 'applied', results_applied_at = UTC_TIMESTAMP() WHERE id = ?`,
-      [match.id]
+      'UPDATE matches SET status = \'applied\', results_applied_at = UTC_TIMESTAMP() WHERE id = ?',
+      [match.id],
     );
   }
 
@@ -255,7 +255,7 @@ export async function applyMatchResultsForPool(poolId, seasonCycle) {
 }
 
 export async function applyAllPoolsMatchResults() {
-  const pools = await query(`SELECT id, current_cycle FROM pools WHERE status = 'active'`);
+  const pools = await query('SELECT id, current_cycle FROM pools WHERE status = \'active\'');
   const summary = [];
   for (const pool of pools) {
     const applied = await applyMatchResultsForPool(pool.id, pool.current_cycle);
@@ -279,7 +279,7 @@ export async function getUserMatchForCycle(userId, seasonCycle) {
      JOIN pools p ON p.id = m.pool_id
      WHERE (m.home_user_id = ? OR m.away_user_id = ?) AND m.season_cycle = ?
      LIMIT 1`,
-    [userId, userId, seasonCycle]
+    [userId, userId, seasonCycle],
   );
   return rows[0] || null;
 }

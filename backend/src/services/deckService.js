@@ -96,7 +96,7 @@ export async function getDeckCards(deckId) {
      JOIN card_definitions cd ON cd.id = udc.card_definition_id
      WHERE udc.deck_id = ?
      ORDER BY udc.position IS NULL, udc.position, cd.name_fr`,
-    [deckId]
+    [deckId],
   );
   return rows.map(serializeDeckCard);
 }
@@ -201,10 +201,10 @@ export function validateDeck(cards) {
   if (legendaryOrMythicCount > MAX_LEGENDARY_OR_MYTHIC) {
     codes.push('too_many_legendary');
     errors.push(
-      `Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques par deck (actuellement ${legendaryOrMythicCount}).`
+      `Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques par deck (actuellement ${legendaryOrMythicCount}).`,
     );
     errorsEn.push(
-      `Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic cards per deck (currently ${legendaryOrMythicCount}).`
+      `Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic cards per deck (currently ${legendaryOrMythicCount}).`,
     );
   }
 
@@ -242,7 +242,7 @@ function bilingualError(frMessages, enMessages) {
 export async function listDecks(userId) {
   const decks = await query(
     'SELECT * FROM user_decks WHERE user_id = ? ORDER BY is_active DESC, updated_at DESC',
-    [userId]
+    [userId],
   );
 
   const result = [];
@@ -300,7 +300,7 @@ export async function getPlayableDeckForCombat(userId, deckId = null) {
   if (!deck) {
     throw httpError(
       400,
-      'Aucun deck actif. Créez puis activez un deck valide de 20 à 30 cartes avant de lancer un combat.'
+      'Aucun deck actif. Créez puis activez un deck valide de 20 à 30 cartes avant de lancer un combat.',
     );
   }
 
@@ -310,8 +310,8 @@ export async function getPlayableDeckForCombat(userId, deckId = null) {
       400,
       `Le deck « ${deck.name} » ne peut pas être utilisé : ${bilingualError(
         validation.errors,
-        validation.errorsEn
-      )} Corrigez-le avant de lancer un combat.`
+        validation.errorsEn,
+      )} Corrigez-le avant de lancer un combat.`,
     );
   }
 
@@ -329,7 +329,7 @@ export async function createDeck(userId, { name, archetype = 'midrange', cards =
 
   const result = await query(
     'INSERT INTO user_decks (user_id, name, is_active, archetype) VALUES (?, ?, ?, ?)',
-    [userId, trimmed, isFirst ? 1 : 0, archetype]
+    [userId, trimmed, isFirst ? 1 : 0, archetype],
   );
 
   const deckId = result.insertId;
@@ -369,7 +369,7 @@ export async function deleteDeck(userId, deckId) {
   if (deck.is_active) {
     const others = await query(
       'SELECT id FROM user_decks WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1',
-      [userId]
+      [userId],
     );
     if (others[0]) {
       await query('UPDATE user_decks SET is_active = 1 WHERE id = ?', [others[0].id]);
@@ -412,7 +412,7 @@ async function loadOwnedCollection(userId, collectionId) {
      JOIN card_definitions cd ON cd.id = ucc.card_definition_id
      WHERE ucc.id = ? AND ucc.user_id = ?
      LIMIT 1`,
-    [collectionId, userId]
+    [collectionId, userId],
   );
   return rows[0] || null;
 }
@@ -476,7 +476,7 @@ export async function replaceDeckCards(userId, deckId, cards) {
         `INSERT INTO user_deck_cards
           (deck_id, user_card_collection_id, card_definition_id, quantity, position)
          VALUES (?, ?, ?, ?, ?)`,
-        [deckId, n.collectionId, n.cardDefinitionId, n.quantity, position]
+        [deckId, n.collectionId, n.cardDefinitionId, n.quantity, position],
       );
     }
     await connection.commit();
@@ -505,7 +505,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
 
   const existing = await query(
     'SELECT * FROM user_deck_cards WHERE deck_id = ? AND user_card_collection_id = ? LIMIT 1',
-    [deckId, collectionId]
+    [deckId, collectionId],
   );
 
   const currentQty = existing[0] ? Number(existing[0].quantity) : 0;
@@ -515,8 +515,8 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
       400,
       bilingualError(
         [`Max ${MAX_COPIES_PER_CARD} copies par carte.`],
-        [`Max ${MAX_COPIES_PER_CARD} copies per card.`]
-      )
+        [`Max ${MAX_COPIES_PER_CARD} copies per card.`],
+      ),
     );
   }
   if (nextQty > owned.quantity) {
@@ -530,8 +530,8 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
       400,
       bilingualError(
         [`Deck limité à ${DECK_MAX_SIZE} cartes.`],
-        [`Deck limited to ${DECK_MAX_SIZE} cards.`]
-      )
+        [`Deck limited to ${DECK_MAX_SIZE} cards.`],
+      ),
     );
   }
 
@@ -563,7 +563,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
       `INSERT INTO user_deck_cards
         (deck_id, user_card_collection_id, card_definition_id, quantity, position)
        VALUES (?, ?, ?, ?, ?)`,
-      [deckId, collectionId, owned.card_definition_id, nextQty, cards.length + 1]
+      [deckId, collectionId, owned.card_definition_id, nextQty, cards.length + 1],
     );
   }
 
@@ -575,7 +575,7 @@ export async function removeCardFromDeck(userId, deckId, collectionId, quantity 
   const qty = Math.max(1, Number(quantity) || 1);
   const existing = await query(
     'SELECT * FROM user_deck_cards WHERE deck_id = ? AND user_card_collection_id = ? LIMIT 1',
-    [deckId, collectionId]
+    [deckId, collectionId],
   );
   if (!existing[0]) throw httpError(404, 'Carte absente du deck.');
 
@@ -621,7 +621,7 @@ export async function getDeckPassiveBonuses(userId) {
      JOIN user_card_collection ucc ON ucc.id = udc.user_card_collection_id
      JOIN card_definitions cd ON cd.id = udc.card_definition_id
      WHERE d.user_id = ? AND d.is_active = 1`,
-    [userId]
+    [userId],
   );
 
   if (!rows.length) return emptyStats();
@@ -637,7 +637,7 @@ export async function getDeckPassiveBonuses(userId) {
         base_block: row.base_block,
         base_heal: row.base_heal,
       },
-      row.upgrade_level
+      row.upgrade_level,
     );
     const qty = Number(row.quantity) || 1;
     for (let i = 0; i < qty; i += 1) {

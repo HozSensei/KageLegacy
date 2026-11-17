@@ -16,7 +16,7 @@ export async function getInventoryForUser(userId) {
        LEFT JOIN player_listings pl ON pl.user_item_id = ui.id AND pl.status = 'active'
        WHERE ui.user_id = ? AND ui.consumed = FALSE
        ORDER BY ui.acquired_at DESC`,
-      [userId]
+      [userId],
     ),
     query(
       `SELECT n.id, n.name, n.squad_position, n.grade, n.element_affinity, n.preparation_type,
@@ -25,7 +25,7 @@ export async function getInventoryForUser(userId) {
        FROM ninjas n
        WHERE n.user_id = ?
        ORDER BY n.squad_position IS NULL, n.squad_position, n.id`,
-      [userId]
+      [userId],
     ),
     getClockRow(),
     isTacticsLocked(),
@@ -67,7 +67,7 @@ export async function consumeUserItem(userItemId, connection = null) {
 
     const [updateResult] = await connection.execute(
       'UPDATE user_items SET consumed = TRUE WHERE id = ? AND consumed = FALSE',
-      [userItemId]
+      [userItemId],
     );
     if (updateResult.affectedRows === 0) {
       const error = new Error('Objet introuvable ou déjà consommé.');

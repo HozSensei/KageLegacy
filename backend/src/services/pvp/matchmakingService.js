@@ -29,7 +29,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName]
+      [tableName],
     );
     return rows.length > 0;
   } catch {
@@ -147,7 +147,7 @@ export async function enqueue(userId, opts = {}) {
      WHERE (host_user_id = ? OR guest_user_id = ?)
        AND status IN ('pending', 'ready', 'in_progress')
      ORDER BY created_at DESC LIMIT 1`,
-    [userId, userId]
+    [userId, userId],
   );
   if (activeMatch[0]) {
     return {
@@ -174,12 +174,12 @@ export async function enqueue(userId, opts = {}) {
   // Annuler d'anciennes entrées waiting
   await query(
     "UPDATE pvp_queue SET status = 'cancelled' WHERE user_id = ? AND status = 'waiting'",
-    [userId]
+    [userId],
   );
 
   const waiting = await query(
     "SELECT * FROM pvp_queue WHERE status = 'waiting' AND user_id <> ? ORDER BY enqueued_at ASC",
-    [userId]
+    [userId],
   );
 
   const seeker = { userId, level, enqueuedAt: Date.now() };
@@ -199,7 +199,7 @@ export async function enqueue(userId, opts = {}) {
     const result = await query(
       `INSERT INTO pvp_queue (user_id, player_level, deck_id, level_window, status)
        VALUES (?, ?, ?, ?, 'waiting')`,
-      [userId, level, deckId, levelWindow]
+      [userId, level, deckId, levelWindow],
     );
     const rows = await query('SELECT * FROM pvp_queue WHERE id = ?', [result.insertId]);
     return {
@@ -216,7 +216,7 @@ export async function enqueue(userId, opts = {}) {
     const result = await query(
       `INSERT INTO pvp_queue (user_id, player_level, deck_id, level_window, status)
        VALUES (?, ?, ?, ?, 'waiting')`,
-      [userId, level, deckId, levelWindow]
+      [userId, level, deckId, levelWindow],
     );
     const rows = await query('SELECT * FROM pvp_queue WHERE id = ?', [result.insertId]);
     return {
@@ -263,7 +263,7 @@ export async function createInvitation(userId, opts = {}) {
      WHERE (host_user_id = ? OR guest_user_id = ?)
        AND status IN ('pending', 'ready', 'in_progress')
      LIMIT 1`,
-    [userId, userId]
+    [userId, userId],
   );
   if (activeMatch[0]) throw httpError(409, 'Vous avez déjà un duel PvP en cours.');
 
@@ -273,11 +273,11 @@ export async function createInvitation(userId, opts = {}) {
 
   await query(
     "UPDATE pvp_queue SET status = 'cancelled' WHERE user_id = ? AND status = 'waiting'",
-    [userId]
+    [userId],
   );
   await query(
     "UPDATE pvp_invites SET status = 'cancelled' WHERE user_id = ? AND status = 'pending'",
-    [userId]
+    [userId],
   );
 
   let code;
@@ -287,7 +287,7 @@ export async function createInvitation(userId, opts = {}) {
       await query(
         `INSERT INTO pvp_invites (code, user_id, player_level, deck_id, level_window, expires_at)
          VALUES (?, ?, ?, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 30 MINUTE))`,
-        [code, userId, level, deck.id, levelWindow]
+        [code, userId, level, deck.id, levelWindow],
       );
       break;
     } catch (error) {
@@ -311,7 +311,7 @@ export async function acceptInvitation(userId, rawCode) {
   const inviteRows = await query(
     `SELECT *, (expires_at <= UTC_TIMESTAMP()) AS is_expired
      FROM pvp_invites WHERE code = ? LIMIT 1`,
-    [code]
+    [code],
   );
   const invitation = inviteRows[0];
   if (!invitation || invitation.status !== 'pending') {
@@ -332,7 +332,7 @@ export async function acceptInvitation(userId, rawCode) {
      WHERE (host_user_id IN (?, ?) OR guest_user_id IN (?, ?))
        AND status IN ('pending', 'ready', 'in_progress')
      LIMIT 1`,
-    [invitation.user_id, invitation.user_id, userId, userId]
+    [invitation.user_id, invitation.user_id, userId, userId],
   );
   if (activeMatches[0]) throw httpError(409, 'Un des joueurs a déjà un duel PvP en cours.');
 
@@ -360,7 +360,7 @@ export async function leaveQueue(userId) {
   await assertPvpTables();
   await query(
     "UPDATE pvp_queue SET status = 'cancelled' WHERE user_id = ? AND status = 'waiting'",
-    [userId]
+    [userId],
   );
   return { ok: true };
 }
@@ -373,7 +373,7 @@ export async function getQueueStatus(userId) {
      WHERE (host_user_id = ? OR guest_user_id = ?)
        AND status IN ('pending', 'ready', 'in_progress')
      ORDER BY created_at DESC LIMIT 1`,
-    [userId, userId]
+    [userId, userId],
   );
   if (activeMatch[0]) {
     return {
@@ -387,7 +387,7 @@ export async function getQueueStatus(userId) {
   const waiting = await query(
     `SELECT * FROM pvp_queue WHERE user_id = ? AND status = 'waiting'
      ORDER BY enqueued_at DESC LIMIT 1`,
-    [userId]
+    [userId],
   );
   if (waiting[0]) {
     // Tenter un rematch si quelqu'un a rejoint entre-temps
@@ -414,7 +414,7 @@ export async function getQueueStatus(userId) {
 async function tryMatchWaitingEntry(row) {
   const others = await query(
     "SELECT * FROM pvp_queue WHERE status = 'waiting' AND user_id <> ? ORDER BY enqueued_at ASC",
-    [row.user_id]
+    [row.user_id],
   );
   const seeker = {
     userId: row.user_id,
@@ -486,14 +486,14 @@ async function createMatchFromPair({
       const [claim] = await conn.execute(
         `UPDATE pvp_invites SET status = 'accepted', match_id = ?
          WHERE code = ? AND status = 'pending' AND expires_at > UTC_TIMESTAMP()`,
-        [matchId, invitationCode]
+        [matchId, invitationCode],
       );
       if (claim.affectedRows !== 1) {
         throw httpError(409, 'Cette invitation a déjà été utilisée ou a expiré.');
       }
       await conn.execute(
         "UPDATE pvp_queue SET status = 'cancelled' WHERE user_id IN (?, ?) AND status = 'waiting'",
-        [userA.userId, userB.userId]
+        [userA.userId, userB.userId],
       );
     }
     await conn.execute(
@@ -513,19 +513,19 @@ async function createMatchFromPair({
         guest.deckId || null,
         JSON.stringify(bootstrap),
         ANTI_CHEAT_MODE,
-      ]
+      ],
     );
 
     if (queueIdA) {
       await conn.execute(
         "UPDATE pvp_queue SET status = 'matched', matched_match_id = ? WHERE id = ?",
-        [matchId, queueIdA]
+        [matchId, queueIdA],
       );
     }
     if (queueIdB) {
       await conn.execute(
         "UPDATE pvp_queue SET status = 'matched', matched_match_id = ? WHERE id = ?",
-        [matchId, queueIdB]
+        [matchId, queueIdB],
       );
     }
     // Entrée seeker si pas encore en queue (cas enqueue immédiat)
@@ -533,7 +533,7 @@ async function createMatchFromPair({
       await conn.execute(
         `INSERT INTO pvp_queue (user_id, player_level, deck_id, level_window, status, matched_match_id)
          VALUES (?, ?, ?, ?, 'matched', ?)`,
-        [userA.userId, userA.level, userA.deckId, levelWindow, matchId]
+        [userA.userId, userA.level, userA.deckId, levelWindow, matchId],
       );
     }
 

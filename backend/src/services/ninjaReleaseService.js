@@ -32,7 +32,7 @@ export async function assertNinjaReleasable(userId, ninjaId) {
   }
   if (ninja.squad_position !== null) {
     const error = new Error(
-      'Retirez ce ninja de l\'escouade active (banc) avant de le libérer — seuls les remplaçants peuvent partir.'
+      'Retirez ce ninja de l\'escouade active (banc) avant de le libérer — seuls les remplaçants peuvent partir.',
     );
     error.statusCode = 400;
     throw error;
@@ -49,8 +49,8 @@ export async function assertNinjaReleasable(userId, ninjaId) {
   }
 
   const missionRows = await query(
-    `SELECT id FROM idle_missions WHERE ninja_id = ? AND status = 'active'`,
-    [ninjaId]
+    'SELECT id FROM idle_missions WHERE ninja_id = ? AND status = \'active\'',
+    [ninjaId],
   );
   if (missionRows.length) {
     const error = new Error('Ce ninja est en mission.');
@@ -61,7 +61,7 @@ export async function assertNinjaReleasable(userId, ninjaId) {
   const countRows = await query('SELECT COUNT(*) AS c FROM ninjas WHERE user_id = ?', [userId]);
   if (Number(countRows[0]?.c ?? 0) <= MIN_ROSTER_SIZE) {
     const error = new Error(
-      `Effectif minimum : conservez au moins ${MIN_ROSTER_SIZE} ninjas dans votre équipe.`
+      `Effectif minimum : conservez au moins ${MIN_ROSTER_SIZE} ninjas dans votre équipe.`,
     );
     error.statusCode = 400;
     throw error;

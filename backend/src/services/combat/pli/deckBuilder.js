@@ -85,10 +85,10 @@ export function buildTeamDeck(
   team,
   {
     techniquesByNinjaId = {},
-    rawTechniquesByNinjaId = null,
+    rawTechniquesByNinjaId: _rawTechniquesByNinjaId = null,
     techniqueSlotsByNinjaId = {},
     techniqueCardsById = {},
-  } = {}
+  } = {},
 ) {
   const cards = [];
 

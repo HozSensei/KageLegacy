@@ -6,7 +6,6 @@ import {
   clearSessionCookie,
   convertGuestToAccount,
   createSession,
-  findUserById,
   getUserBySessionToken,
   registerGuestUser,
   registerUser,

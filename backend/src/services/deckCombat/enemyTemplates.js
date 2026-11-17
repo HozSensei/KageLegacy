@@ -38,7 +38,7 @@ export const ENEMY_TEMPLATES = {
     patterns: [
       { weight: 50, intent: { type: 'attack', damage: 15 } },
       { weight: 15, intent: { type: 'debuff', status: 'weak', value: 1, duration: 2 } },
-      { weight: 35, intent: { type: 'attack', damage: 12, status: 'poison', statusValue: 3, statusDuration: 3 } },
+      { weight: 35, intent: { type: 'attack', damage: 12, status: 'poison', statusValue: 2, statusDuration: 3 } },
     ],
   },
   scrapyard_dog: {

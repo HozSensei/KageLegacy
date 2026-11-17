@@ -66,8 +66,8 @@ function parseJsonField(value) {
 
 async function getUserSquadPower(userId) {
   const ninjas = await query(
-    `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-    [userId]
+    'SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position',
+    [userId],
   );
   return squadAveragePower(ninjas);
 }
@@ -76,7 +76,7 @@ export async function assertReconnaissanceWindow() {
   const clock = await getGameClock();
   if (clock.hour < RECON_MIN_HOUR || clock.hour > RECON_REGISTRATION_MAX_HOUR) {
     const error = new Error(
-      `Mission de reconnaissance : inscriptions et défis entre H${RECON_MIN_HOUR} et H${RECON_REGISTRATION_MAX_HOUR} (résolution à H${RECON_RESOLVE_HOUR}).`
+      `Mission de reconnaissance : inscriptions et défis entre H${RECON_MIN_HOUR} et H${RECON_REGISTRATION_MAX_HOUR} (résolution à H${RECON_RESOLVE_HOUR}).`,
     );
     error.statusCode = 403;
     throw error;
@@ -89,7 +89,7 @@ export async function hasPlayedReconThisCycle(userId, cycleStartAt) {
     `SELECT id FROM reconnaissance_missions
      WHERE cycle_start_at = ? AND (home_user_id = ? OR away_user_id = ?)
      LIMIT 1`,
-    [cycleStartAt, userId, userId]
+    [cycleStartAt, userId, userId],
   );
   return rows.length > 0;
 }
@@ -102,7 +102,7 @@ export async function isCommittedToRecon(userId, cycleStartAt, { exceptChallenge
     `SELECT id FROM reconnaissance_registrations
      WHERE cycle_start_at = ? AND user_id = ? AND status = 'queued'
      LIMIT 1`,
-    [cycleStartAt, userId]
+    [cycleStartAt, userId],
   );
   if (reg.length) return true;
 
@@ -139,7 +139,7 @@ export async function getUserReconMissionForCycle(userId, cycleStartAt) {
      WHERE cycle_start_at = ? AND (home_user_id = ? OR away_user_id = ?)
      ORDER BY created_at DESC
      LIMIT 1`,
-    [cycleStartAt, userId, userId]
+    [cycleStartAt, userId, userId],
   );
   if (!rows[0]) return null;
 
@@ -203,8 +203,8 @@ async function loadSenseiName(userId) {
 async function loadNarrativeContext(userId) {
   const senseiRows = await query('SELECT name FROM sensei WHERE user_id = ?', [userId]);
   const ninjas = await query(
-    `SELECT name FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-    [userId]
+    'SELECT name FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position',
+    [userId],
   );
   return { senseiName: senseiRows[0]?.name || 'Sensei', ninjas };
 }
@@ -249,7 +249,7 @@ export async function findMatchmakingOpponent(userId, cycleStartAt, { excludeUse
          WHERE rr.cycle_start_at = ? AND rr.user_id = u.id AND rr.status = 'queued'
        )
      HAVING avg_power IS NOT NULL`,
-    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt]
+    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt],
   );
 
   const filtered = candidates.filter((row) => {
@@ -264,7 +264,7 @@ export async function findMatchmakingOpponent(userId, cycleStartAt, { excludeUse
 
   filtered.sort(
     (a, b) =>
-      Math.abs(Number(a.avg_power) - myPower) - Math.abs(Number(b.avg_power) - myPower)
+      Math.abs(Number(a.avg_power) - myPower) - Math.abs(Number(b.avg_power) - myPower),
   );
   const top = filtered.slice(0, Math.min(12, filtered.length));
   return top[randomInt(top.length)];
@@ -278,7 +278,7 @@ export async function pickBotOpponent(userId, poolId) {
      WHERE pm.pool_id = ? AND u.is_bot = TRUE
      ORDER BY u.id
      LIMIT 1`,
-    [poolId]
+    [poolId],
   );
   if (poolBots[0]) return { userId: poolBots[0].user_id, isBot: true };
 
@@ -292,7 +292,7 @@ export async function pickBotOpponent(userId, poolId) {
      WHERE u.is_bot = TRUE AND p.status = 'active' AND p.division_level = ?
      ORDER BY RAND()
      LIMIT 1`,
-    [divisionLevel]
+    [divisionLevel],
   );
   if (fallback[0]) return { userId: fallback[0].user_id, isBot: true };
   return null;
@@ -406,7 +406,7 @@ async function executeReconnaissanceFight({
       awayRyos,
       homeLoot ? JSON.stringify(homeLoot) : null,
       awayLoot ? JSON.stringify(awayLoot) : null,
-    ]
+    ],
   );
 
   const missionId = insert.insertId;
@@ -444,7 +444,7 @@ async function executeReconnaissanceFight({
   });
   await recordVillageScore(
     homeUserId,
-    homeOutcome === 'win' ? 'recon_win' : 'recon_participate'
+    homeOutcome === 'win' ? 'recon_win' : 'recon_participate',
   );
   if (!awayIsBot) {
     await notifyReconResult(awayUserId, {
@@ -456,7 +456,7 @@ async function executeReconnaissanceFight({
     });
     await recordVillageScore(
       awayUserId,
-      awayOutcome === 'win' ? 'recon_win' : 'recon_participate'
+      awayOutcome === 'win' ? 'recon_win' : 'recon_participate',
     );
   }
 
@@ -482,7 +482,7 @@ async function markRegistrationResolved(userId, cycleStartAt, missionId) {
     `UPDATE reconnaissance_registrations
      SET status = 'resolved', mission_id = ?, resolved_at = UTC_TIMESTAMP()
      WHERE cycle_start_at = ? AND user_id = ? AND status IN ('queued', 'matched')`,
-    [missionId, cycleStartAt, userId]
+    [missionId, cycleStartAt, userId],
   );
 }
 
@@ -528,7 +528,7 @@ export async function resolveReconnaissanceAtH36(cycleStartAt) {
     `SELECT * FROM reconnaissance_challenges
      WHERE cycle_start_at = ? AND status = 'accepted' AND mission_id IS NULL
      ORDER BY created_at ASC`,
-    [cycleStartAt]
+    [cycleStartAt],
   );
 
   for (const challenge of acceptedChallenges) {
@@ -542,8 +542,8 @@ export async function resolveReconnaissanceAtH36(cycleStartAt) {
     });
 
     await query(
-      `UPDATE reconnaissance_challenges SET mission_id = ? WHERE id = ?`,
-      [fight.missionId, challenge.id]
+      'UPDATE reconnaissance_challenges SET mission_id = ? WHERE id = ?',
+      [fight.missionId, challenge.id],
     );
 
     await markRegistrationResolved(challenge.challenger_user_id, cycleStartAt, fight.missionId);
@@ -555,11 +555,11 @@ export async function resolveReconnaissanceAtH36(cycleStartAt) {
     `SELECT * FROM reconnaissance_registrations
      WHERE cycle_start_at = ? AND status = 'queued'
      ORDER BY created_at ASC`,
-    [cycleStartAt]
+    [cycleStartAt],
   );
 
   const challengeUserIds = new Set(
-    acceptedChallenges.flatMap((c) => [c.challenger_user_id, c.defender_user_id])
+    acceptedChallenges.flatMap((c) => [c.challenger_user_id, c.defender_user_id]),
   );
   const eligibleQueue = queued.filter((row) => !challengeUserIds.has(row.user_id));
 
@@ -586,7 +586,7 @@ export async function resolveReconnaissanceAtH36(cycleStartAt) {
       await query(
         `UPDATE reconnaissance_registrations SET status = 'cancelled', resolved_at = UTC_TIMESTAMP()
          WHERE id = ?`,
-        [reg.id]
+        [reg.id],
       );
       continue;
     }
@@ -607,7 +607,7 @@ export async function resolveReconnaissanceAtH36(cycleStartAt) {
     `UPDATE reconnaissance_challenges
      SET status = 'expired', responded_at = UTC_TIMESTAMP()
      WHERE cycle_start_at = ? AND status = 'pending'`,
-    [cycleStartAt]
+    [cycleStartAt],
   );
 
   return results;
@@ -629,7 +629,7 @@ export async function startMatchmaking(userId) {
   const existing = await query(
     `SELECT id FROM reconnaissance_registrations
      WHERE cycle_start_at = ? AND user_id = ? AND status = 'queued'`,
-    [cycleStartAt, userId]
+    [cycleStartAt, userId],
   );
   if (existing.length) {
     const error = new Error('Vous êtes déjà inscrit à la file de reconnaissance.');
@@ -640,7 +640,7 @@ export async function startMatchmaking(userId) {
   const insert = await query(
     `INSERT INTO reconnaissance_registrations (cycle_start_at, user_id, status)
      VALUES (?, ?, 'queued')`,
-    [cycleStartAt, userId]
+    [cycleStartAt, userId],
   );
 
   await query('UPDATE sensei SET onboarding_recon_done = 1 WHERE user_id = ?', [userId]);
@@ -676,7 +676,7 @@ export async function createChallenge(challengerId, defenderId) {
     `SELECT id FROM reconnaissance_challenges
      WHERE cycle_start_at = ? AND challenger_user_id = ? AND defender_user_id = ?
        AND status = 'pending'`,
-    [cycleStartAt, challengerId, defenderId]
+    [cycleStartAt, challengerId, defenderId],
   );
   if (existing.length) {
     const error = new Error('Un défi est déjà en attente pour cet adversaire.');
@@ -688,7 +688,7 @@ export async function createChallenge(challengerId, defenderId) {
     `INSERT INTO reconnaissance_challenges
        (cycle_start_at, challenger_user_id, defender_user_id, status)
      VALUES (?, ?, ?, 'pending')`,
-    [cycleStartAt, challengerId, defenderId]
+    [cycleStartAt, challengerId, defenderId],
   );
 
   await query('UPDATE sensei SET onboarding_recon_done = 1 WHERE user_id = ?', [challengerId]);
@@ -732,8 +732,8 @@ export async function acceptChallenge(challengeId, defenderId) {
   }
   if (new Date(challenge.cycle_start_at).getTime() !== new Date(cycleStartAt).getTime()) {
     await query(
-      `UPDATE reconnaissance_challenges SET status = 'expired', responded_at = UTC_TIMESTAMP() WHERE id = ?`,
-      [challengeId]
+      'UPDATE reconnaissance_challenges SET status = \'expired\', responded_at = UTC_TIMESTAMP() WHERE id = ?',
+      [challengeId],
     );
     const error = new Error('Ce défi a expiré (nouveau cycle).');
     error.statusCode = 410;
@@ -761,14 +761,14 @@ export async function acceptChallenge(challengeId, defenderId) {
   await query(
     `UPDATE reconnaissance_registrations SET status = 'cancelled', resolved_at = UTC_TIMESTAMP()
      WHERE cycle_start_at = ? AND user_id IN (?, ?) AND status = 'queued'`,
-    [cycleStartAt, challenge.challenger_user_id, defenderId]
+    [cycleStartAt, challenge.challenger_user_id, defenderId],
   );
 
   await query(
     `UPDATE reconnaissance_challenges
      SET status = 'accepted', responded_at = UTC_TIMESTAMP()
      WHERE id = ?`,
-    [challengeId]
+    [challengeId],
   );
 
   const [challengerName, defenderName] = await Promise.all([
@@ -812,8 +812,8 @@ export async function declineChallenge(challengeId, defenderId) {
   }
 
   await query(
-    `UPDATE reconnaissance_challenges SET status = 'declined', responded_at = UTC_TIMESTAMP() WHERE id = ?`,
-    [challengeId]
+    'UPDATE reconnaissance_challenges SET status = \'declined\', responded_at = UTC_TIMESTAMP() WHERE id = ?',
+    [challengeId],
   );
   return { challengeId, status: 'declined' };
 }
@@ -858,7 +858,7 @@ export async function listExternalOpponents(userId, limit = 20) {
        )
      ORDER BY p.division_level ASC, s.name ASC
      LIMIT ${safeLimit}`,
-    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt]
+    [userId, minDiv, maxDiv, cycleStartAt, cycleStartAt, cycleStartAt],
   );
 
   return rows.map((row) => ({
@@ -897,7 +897,7 @@ export async function getReconnaissanceMission(missionId, userId) {
      JOIN sensei hs ON hs.user_id = rm.home_user_id
      JOIN sensei aws ON aws.user_id = rm.away_user_id
      WHERE rm.id = ?`,
-    [missionId]
+    [missionId],
   );
   const row = rows[0];
   if (!row) {
@@ -914,19 +914,19 @@ export async function getReconnaissanceMission(missionId, userId) {
   const viewerLocale = await getUserLanguage(userId);
   const segments = await getReconNarrativeSegments(missionId);
   const chronicle = segments.map((s) =>
-    mapChronicleSegmentForClient(s, (seg) => resolveSegmentText(viewerLocale, seg))
+    mapChronicleSegmentForClient(s, (seg) => resolveSegmentText(viewerLocale, seg)),
   );
 
   const identityMap = await buildSenseiIdentities(
     [row.home_user_id, row.away_user_id],
-    viewerLocale
+    viewerLocale,
   );
 
   const ninjaRows = await query(
     `SELECT name FROM ninjas
      WHERE user_id IN (?, ?) AND squad_position IS NOT NULL
      ORDER BY user_id, squad_position`,
-    [row.home_user_id, row.away_user_id]
+    [row.home_user_id, row.away_user_id],
   );
 
   const formatted = formatMissionRow(row, userId);
@@ -985,7 +985,7 @@ export async function getReconnaissanceState(userId) {
       `SELECT id, status, created_at FROM reconnaissance_registrations
        WHERE cycle_start_at = ? AND user_id = ? AND status = 'queued'
        LIMIT 1`,
-      [cycleStartAt, userId]
+      [cycleStartAt, userId],
     );
     if (regRows[0]) {
       registration = {
@@ -1008,7 +1008,7 @@ export async function getReconnaissanceState(userId) {
          AND rc.mission_id IS NULL
          AND (rc.challenger_user_id = ? OR rc.defender_user_id = ?)
        LIMIT 1`,
-      [cycleStartAt, userId, userId]
+      [cycleStartAt, userId, userId],
     );
     if (scheduled[0]) {
       const ch = scheduled[0];
@@ -1032,7 +1032,7 @@ export async function getReconnaissanceState(userId) {
          AND (rm.home_user_id = ? OR rm.away_user_id = ?)
        ORDER BY rm.created_at DESC
        LIMIT 1`,
-      [cycleStartAt, userId, userId]
+      [cycleStartAt, userId, userId],
     );
     if (missionRows[0]) {
       const row = missionRows[0];
@@ -1051,7 +1051,7 @@ export async function getReconnaissanceState(userId) {
        JOIN sensei s ON s.user_id = rc.challenger_user_id
        WHERE rc.cycle_start_at = ? AND rc.defender_user_id = ? AND rc.status = 'pending'
        ORDER BY rc.created_at ASC`,
-      [cycleStartAt, userId]
+      [cycleStartAt, userId],
     );
     pendingIncoming = incoming.map((row) => ({
       challengeId: row.id,
@@ -1067,7 +1067,7 @@ export async function getReconnaissanceState(userId) {
        WHERE rc.cycle_start_at = ? AND rc.challenger_user_id = ? AND rc.status = 'pending'
        ORDER BY rc.created_at DESC
        LIMIT 1`,
-      [cycleStartAt, userId]
+      [cycleStartAt, userId],
     );
     if (outgoing[0]) {
       pendingOutgoing = {

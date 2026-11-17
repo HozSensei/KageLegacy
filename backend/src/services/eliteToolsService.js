@@ -71,8 +71,8 @@ function dbNinjaToSim(ninja) {
 
 async function loadActiveSquad(userId) {
   const ninjas = await query(
-    `SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position`,
-    [userId]
+    'SELECT * FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL ORDER BY squad_position',
+    [userId],
   );
   return { ninjas };
 }
@@ -86,7 +86,7 @@ async function getSeasonMatchStats(userId, pool) {
      WHERE m.pool_id = ? AND m.status = 'applied'
        AND (m.home_user_id = ? OR m.away_user_id = ?)
      ORDER BY m.season_cycle ASC`,
-    [pool.id, userId, userId]
+    [pool.id, userId, userId],
   );
 
   let wins = 0;
@@ -211,7 +211,7 @@ export async function getEliteToolsPayload(userId, locale = 'fr') {
 
   const defaultPreset = getPresetDeckConfig(ninjas, 'complete');
   const presets = Object.fromEntries(
-    OPPONENT_DECK_PROFILE_IDS.map((id) => [id, getPresetDeckConfig(ninjas, id)])
+    OPPONENT_DECK_PROFILE_IDS.map((id) => [id, getPresetDeckConfig(ninjas, id)]),
   );
 
   return {
@@ -250,7 +250,7 @@ export async function simulateEliteMatchup(
     opponentLevel,
     runs = 100,
     locale = 'fr',
-  } = {}
+  } = {},
 ) {
   await assertEliteToolsAccess(userId);
 
@@ -326,7 +326,7 @@ export async function simulateEliteMatchup(
         deckTechniques: operationDeck?.techniqueCount ?? 0,
         opponentDeckTechniques: Object.values(awayDeck.techniqueSlotsByNinjaId || {}).reduce(
           (sum, ids) => sum + (ids?.length || 0),
-          0
+          0,
         ),
         opponentTechniquesConfigured: Object.keys(awayDeck.techniqueSlotsByNinjaId || {}).length,
         avgMoral: summarizeSquadMoral(ninjas),

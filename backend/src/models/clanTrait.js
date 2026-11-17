@@ -29,7 +29,7 @@ export async function upsertClanTraits(clans) {
         clan.ninjutsu_bonus,
         clan.moral_variance,
         clan.is_noble,
-      ]
+      ],
     );
   }
 }

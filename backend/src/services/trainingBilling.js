@@ -15,7 +15,7 @@ export async function computeSalaryTotalForUser(userId) {
   const ninjas = await query(
     `SELECT id, grade, taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence, salary_cost
      FROM ninjas WHERE user_id = ? AND squad_position IS NOT NULL`,
-    [userId]
+    [userId],
   );
 
   let total = 0;
@@ -41,7 +41,7 @@ export async function computeSalaryTotalForUser(userId) {
 export async function getCycleBudgetPreview(userId) {
   const senseiRows = await query(
     'SELECT ryos, global_training_type FROM sensei WHERE user_id = ?',
-    [userId]
+    [userId],
   );
   const ryos = senseiRows[0]?.ryos ?? 0;
   const globalTrainingType = senseiRows[0]?.global_training_type ?? null;
@@ -50,7 +50,7 @@ export async function getCycleBudgetPreview(userId) {
     `SELECT id, name, grade, preparation_type, squad_position,
             taijutsu, ninjutsu, genjutsu, medecine, vitesse, intelligence
      FROM ninjas WHERE user_id = ?`,
-    [userId]
+    [userId],
   );
 
   const { total: salariesTotal, lines: salaryLines } = await computeSalaryTotalForUser(userId);
@@ -62,7 +62,7 @@ export async function getCycleBudgetPreview(userId) {
     if (!ninja.squad_position || !ninja.preparation_type) continue;
     const amount = applyPercentDiscount(
       computeTrainingCost(ninja),
-      heritage.trainingDiscountPct
+      heritage.trainingDiscountPct,
     );
     trainingTotal += amount;
     trainingLines.push({
@@ -108,7 +108,7 @@ function applyInterest(balance) {
 export async function processTrainingBillingForUser(userId) {
   const senseiRows = await query(
     'SELECT ryos, global_training_type FROM sensei WHERE user_id = ?',
-    [userId]
+    [userId],
   );
   let balance = senseiRows[0]?.ryos ?? 0;
   const globalTrainingType = senseiRows[0]?.global_training_type ?? null;
@@ -120,7 +120,7 @@ export async function processTrainingBillingForUser(userId) {
      FROM ninjas
      WHERE user_id = ? AND squad_position IS NOT NULL AND preparation_type IS NOT NULL
      ORDER BY id`,
-    [userId]
+    [userId],
   );
 
   const heritage = await getHeritageBonuses(userId);
@@ -132,7 +132,7 @@ export async function processTrainingBillingForUser(userId) {
     const after = balance - cost;
     if (after < OVERDRAFT_LIMIT) {
       billingLogs.push(
-        `${ninja.name} : préparation ${ninja.preparation_type} annulée (Ryos insuffisants, découvert max ${OVERDRAFT_LIMIT}).`
+        `${ninja.name} : préparation ${ninja.preparation_type} annulée (Ryos insuffisants, découvert max ${OVERDRAFT_LIMIT}).`,
       );
       continue;
     }

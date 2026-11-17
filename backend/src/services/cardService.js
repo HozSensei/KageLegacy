@@ -76,7 +76,6 @@ export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
   const effects = parseJsonSafe(row.effects_json, []);
   const summon = parseJsonSafe(row.summon_json, null);
   const upgradeBonuses = parseJsonSafe(row.upgrade_bonuses_json, {});
-  const passiveBonus = parseJsonSafe(row.passive_bonus_json, {});
   const computed = applyUpgradeBonuses(row, upgradeLevel);
 
   const suffix = upgradeLevel === 1 ? '+' : upgradeLevel === 2 ? '++' : '';
@@ -155,7 +154,7 @@ export async function getAllCards(filters = {}) {
   const { clause, params } = buildFilters(filters);
   const rows = await query(
     `SELECT * FROM card_definitions ${clause} ORDER BY rarity, type, name_fr`,
-    params
+    params,
   );
   return rows.map(row => serializeCardDefinition(row));
 }
@@ -240,7 +239,7 @@ export async function upsertCardDefinition(card) {
         upgradable=?, upgrade_bonuses_json=?, image_url=?, artist=?,
         season_introduced=?, is_exclusive=?
        WHERE slug=?`,
-      payload
+      payload,
     );
     return getCardBySlug(card.slug);
   }
@@ -255,7 +254,7 @@ export async function upsertCardDefinition(card) {
       upgradable, upgrade_bonuses_json, image_url, artist,
       season_introduced, is_exclusive, slug
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    payload
+    payload,
   );
   return getCardBySlug(card.slug);
 }

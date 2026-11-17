@@ -129,7 +129,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName]
+      [tableName],
     );
     return rows.length > 0;
   } catch {
@@ -295,7 +295,7 @@ async function persistRun(row) {
       row.rewards_json != null ? JSON.stringify(row.rewards_json) : null,
       row.id,
       row.user_id,
-    ]
+    ],
   );
 }
 
@@ -310,7 +310,7 @@ export async function startRun(userId, missionId, deckId = null) {
 
   const active = await query(
     "SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId]
+    [userId],
   );
   if (active[0]) {
     throw httpError(409, `Parcours déjà en cours (${active[0].id}). Terminez-le ou abandonnez-le.`);
@@ -319,7 +319,7 @@ export async function startRun(userId, missionId, deckId = null) {
   // Bloquer aussi un combat orphelin (duel rapide)
   const activeCombat = await query(
     "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId]
+    [userId],
   );
   if (activeCombat[0]) {
     throw httpError(409, `Combat déjà en cours (${activeCombat[0].id}).`);
@@ -367,7 +367,7 @@ export async function startRun(userId, missionId, deckId = null) {
       JSON.stringify(player),
       JSON.stringify(stats),
       JSON.stringify(talentEffects),
-    ]
+    ],
   );
 
   const row = await loadRunRow(id, userId);
@@ -409,7 +409,7 @@ export async function getActiveRun(userId) {
   if (!(await tableExists('mission_runs'))) return null;
   const rows = await query(
     "SELECT * FROM mission_runs WHERE user_id = ? AND state = 'in_progress' ORDER BY created_at DESC LIMIT 1",
-    [userId]
+    [userId],
   );
   if (!rows[0]) return null;
   return getRun(userId, rows[0].id);
@@ -435,7 +435,7 @@ export async function enterNode(userId, runId) {
     if (row.current_combat_id) {
       const existing = await query(
         'SELECT id, state FROM combat_sessions WHERE id = ? AND user_id = ? LIMIT 1',
-        [row.current_combat_id, userId]
+        [row.current_combat_id, userId],
       );
       if (existing[0]?.state === 'in_progress') {
         const { getCombatState } = await import('./combatEngineService.js');

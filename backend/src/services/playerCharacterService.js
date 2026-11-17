@@ -66,7 +66,7 @@ async function tableExists(tableName) {
        FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ?
        LIMIT 1`,
-      [tableName]
+      [tableName],
     );
     return rows.length > 0;
   } catch {
@@ -83,7 +83,7 @@ async function columnExists(tableName, columnName) {
          AND table_name = ?
          AND column_name = ?
        LIMIT 1`,
-      [tableName, columnName]
+      [tableName, columnName],
     );
     return rows.length > 0;
   } catch {
@@ -180,7 +180,7 @@ async function fetchCharacterRow(userId) {
      LEFT JOIN clan_traits ct ON ct.id = pc.clan_trait_id
      WHERE pc.user_id = ?
      LIMIT 1`,
-    [userId]
+    [userId],
   );
   return rows[0] || null;
 }
@@ -192,7 +192,7 @@ async function fetchCharacterRow(userId) {
  */
 export async function createCharacter(
   userId,
-  { name, clanTraitId: _clanTraitId, elementAffinity = 'Katon', avatarUrl, factionId }
+  { name, clanTraitId: _clanTraitId, elementAffinity = 'Katon', avatarUrl, factionId },
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
 
@@ -223,14 +223,14 @@ export async function createCharacter(
       `INSERT INTO player_character
         (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization, faction_id)
        VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL, ?)`,
-      [userId, trimmedName, avatar, elementAffinity, resolvedFaction]
+      [userId, trimmedName, avatar, elementAffinity, resolvedFaction],
     );
   } else {
     await query(
       `INSERT INTO player_character
         (user_id, name, avatar_url, level, xp, \`rank\`, talent_points_available, clan_trait_id, element_affinity, specialization)
        VALUES (?, ?, ?, 1, 0, 'Genin', 1, NULL, ?, NULL)`,
-      [userId, trimmedName, avatar, elementAffinity]
+      [userId, trimmedName, avatar, elementAffinity],
     );
   }
 
@@ -306,7 +306,7 @@ export async function addXP(userId, amount) {
       `UPDATE player_character
        SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
        WHERE user_id = ?`,
-      [after.level, after.xp, after.rank, after.talentPointsAvailable, userId]
+      [after.level, after.xp, after.rank, after.talentPointsAvailable, userId],
     );
   }
 
@@ -343,7 +343,7 @@ export async function levelUp(userId) {
     `UPDATE player_character
      SET level = ?, xp = ?, \`rank\` = ?, talent_points_available = ?
      WHERE user_id = ?`,
-    [nextLevel, nextXp, nextRank, nextTalent, userId]
+    [nextLevel, nextXp, nextRank, nextTalent, userId],
   );
 
   const character = await getCharacter(userId);

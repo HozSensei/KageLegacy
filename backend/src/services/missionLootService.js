@@ -211,7 +211,7 @@ async function applyInjury(ninjaId, injuryType) {
   if (injuryType === 'grave') {
     await query(
       'UPDATE ninjas SET weekly_forme = ?, forme_lock_cycles = GREATEST(forme_lock_cycles, 2) WHERE id = ?',
-      ['Lamentable', ninjaId]
+      ['Lamentable', ninjaId],
     );
   }
 }
@@ -307,7 +307,7 @@ export async function resolveMissionOutcome(mission, ninja) {
     `UPDATE idle_missions
      SET status = ?, reward_amount = ?, loot_result = ?, injury_type = ?, resolved_at = UTC_TIMESTAMP()
      WHERE id = ?`,
-    [status, baseRyos, JSON.stringify(lootResult), injuryType, mission.id]
+    [status, baseRyos, JSON.stringify(lootResult), injuryType, mission.id],
   );
 
   const locale = await getUserLanguage(mission.user_id);
@@ -371,7 +371,7 @@ export async function decrementFormeLocksForAllUsers() {
   await query(
     `UPDATE ninjas
      SET forme_lock_cycles = GREATEST(0, forme_lock_cycles - 1)
-     WHERE forme_lock_cycles > 0`
+     WHERE forme_lock_cycles > 0`,
   );
 }
 

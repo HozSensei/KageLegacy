@@ -16,16 +16,10 @@ import {
   UTILITY_LOADOUTS,
 } from './utilityLoadouts.js';
 
-const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medecine', 'vitesse', 'intelligence'];
 const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
-const TRAITS = ['Brute', 'Canaliseur', 'Illusionniste', 'Guerisseur', 'Veloce', 'Stratege'];
 
 function pick(arr, i = 0) {
   return arr[i % arr.length];
-}
-
-function ninjaBySlot(ninjas, position, fallbackIndex = 0) {
-  return ninjas.find((n) => n.squad_position === position) || ninjas[fallbackIndex];
 }
 
 export function cloneNinja(ninja) {
@@ -255,17 +249,17 @@ export function runMonteCarlo({
   slotBNinjas,
   runs = 500,
   favoriteSide = 'slotA',
-  slotAEquipment = {},
-  slotBEquipment = {},
-  slotATacticCards = {},
-  slotBTacticCards = {},
+  slotAEquipment: _slotAEquipment = {},
+  slotBEquipment: _slotBEquipment = {},
+  slotATacticCards: _slotATacticCards = {},
+  slotBTacticCards: _slotBTacticCards = {},
   homeDeck = null,
   awayDeck = null,
 }) {
   const counter = initOutcomeCounter();
   const slotASensei = { name: 'Sensei A', chakra_pool: 100, training_focus: 'Ninjutsu' };
   const slotBSensei = { name: 'Sensei B', chakra_pool: 100, training_focus: 'Taijutsu' };
-  let consumablesTriggered = 0;
+  const consumablesTriggered = 0;
   let cardProcs = 0;
   let matchesWithCardProc = 0;
   let errors = 0;
@@ -278,7 +272,7 @@ export function runMonteCarlo({
         slotBNinjas.map(cloneNinja),
         slotASensei,
         slotBSensei,
-        decks
+        decks,
       );
       recordOutcome(counter, result, favoriteSide);
       const elementPlays = result.logs.filter((l) => l.type === 'element').length;
@@ -372,12 +366,6 @@ function trainingTypeFromSensei(sensei) {
   return LEGACY_FOCUS_TO_TYPE[raw] ?? raw;
 }
 
-const COMPOSITION_STRATEGY = {
-  assaut: 'assaut',
-  mur: 'mur',
-  flux: 'flux',
-};
-
 /** Escouade pure (2+ même profil) pour le cercle Assaut/Flux/Mur. */
 export function createPureCompositionSquad(prefix, composition, idOffset = 0, statScale = 1) {
   return createBalancedSquad(prefix, idOffset, statScale).map((n) => cloneNinja(n));
@@ -425,7 +413,7 @@ export function runSymmetricCompositionMatchup(compA, compB, runs = 600) {
           squad.map(cloneNinja),
           squad.map((n) => cloneNinja({ ...n, id: n.id + 100 })),
           NEUTRAL_SENSEI,
-          NEUTRAL_SENSEI
+          NEUTRAL_SENSEI,
         );
         if (result.winner === 'draw') draws += 1;
         else if (result.winner === COMBAT_SLOT_A) slotAWins += 1;
@@ -440,7 +428,7 @@ export function runSymmetricCompositionMatchup(compA, compB, runs = 600) {
         swapped.map((n) => cloneNinja({ ...n, id: n.id + 100 })),
         swapped.map(cloneNinja),
         NEUTRAL_SENSEI,
-        NEUTRAL_SENSEI
+        NEUTRAL_SENSEI,
       );
       if (result.winner === 'draw') draws += 1;
       else if (result.winner === COMBAT_SLOT_A) slotBWins += 1;
@@ -470,7 +458,7 @@ export function runSymmetricCompositionMatchup(compA, compB, runs = 600) {
         first.map(cloneNinja),
         second.map(cloneNinja),
         NEUTRAL_SENSEI,
-        NEUTRAL_SENSEI
+        NEUTRAL_SENSEI,
       );
       if (result.winner === 'draw') wins.draw += 1;
       else if (result.winner === COMBAT_SLOT_A) wins[firstComp] += 1;
@@ -535,12 +523,6 @@ export function runCompositionMatrix({ runs = 600 } = {}) {
 
   return results;
 }
-
-const DECK_PRESETS = {
-  normal: {},
-  balanced: {},
-  aggressive: {},
-};
 
 export function applyDeckPreset(ninjas, preset) {
   void preset;

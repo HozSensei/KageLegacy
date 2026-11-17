@@ -210,7 +210,7 @@ export function getSimulatorTechniqueOptions(locale = 'fr') {
 }
 
 /** @deprecated — simulateur Élite utilise les slugs de techniques */
-export function getSimulatorDomainOptions(locale = 'fr') {
+export function getSimulatorDomainOptions(_locale = 'fr') {
   return DOMAINS.map((value) => ({
     value,
     label: DOMAIN_LABELS[value] || value,
@@ -249,7 +249,7 @@ export function describeOpponentDeck(deck, locale = 'fr') {
   const lang = locale === 'en' ? 'en' : 'fr';
   const configured = Object.values(deck?.techniqueSlotsByNinjaId || {}).reduce(
     (sum, ids) => sum + (ids?.length || 0),
-    0
+    0,
   );
   return lang === 'en'
     ? `Custom deck · ${configured}/3 technique cards`

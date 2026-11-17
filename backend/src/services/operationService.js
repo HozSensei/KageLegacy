@@ -11,7 +11,6 @@ import {
   browsePools,
   getPoolMatches,
   getViewerPoolId,
-  isMatchParticipant,
   loadMatchRow,
 } from './matchSpectatorService.js';
 import { findUserPool } from './poolService.js';
@@ -29,7 +28,7 @@ async function loadChronicleCast(match) {
     `SELECT name FROM ninjas
      WHERE user_id IN (?, ?) AND squad_position IS NOT NULL
      ORDER BY user_id, squad_position`,
-    [match.home_user_id, match.away_user_id]
+    [match.home_user_id, match.away_user_id],
   );
   return {
     senseis: [match.home_sensei, match.away_sensei].filter(Boolean),
@@ -72,7 +71,7 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
   const chronicle = allSegments
     .filter((s) => revealComplete || Number(s.unlock_minutes) <= unlockedMinutes)
     .map((s) =>
-      mapChronicleSegmentForClient(s, (seg) => resolveSegmentText(viewerLocale, seg))
+      mapChronicleSegmentForClient(s, (seg) => resolveSegmentText(viewerLocale, seg)),
     );
 
   const hasDenouement = chronicle.some((s) => s.blockType === 'denouement');
@@ -123,7 +122,7 @@ export async function buildMatchOperationPayload(match, viewerUserId, access) {
   const identityMap = await buildSenseiIdentities(
     [match.home_user_id, match.away_user_id],
     viewerLocale,
-    poolContext
+    poolContext,
   );
   const homeIdentity = identityMap.get(match.home_user_id) ?? null;
   const awayIdentity = identityMap.get(match.away_user_id) ?? null;
