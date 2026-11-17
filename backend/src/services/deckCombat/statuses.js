@@ -3,6 +3,9 @@
  */
 import { getStatusValue, hasStatus } from './formulas.js';
 
+/** Malus purifiables (cartes cleanse_self + talent purify). */
+export const PLAYER_DEBUFF_KEYS = new Set(['weak', 'vulnerable', 'poison', 'burn']);
+
 /**
  * Empile un statut : valeur cumulée, durée = max des durées.
  */

@@ -7,6 +7,17 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Combat : effets stub + poison joueur (2026-11-17)
+
+#### Added
+
+- `heal_self` / `heal`, `cleanse_self`, `aoe` (×1.35 mono-cible), `exile_enemy_card` → sceau d’intention
+- Poison sur `aiguillon-nerveux`, `senbon-empoisonne`, `pression-vitale`
+
+#### Changed
+
+- Libellés UI FR/EN (zone / exile / purge) + logs combat
+
 ### Combat / cartes : 4 arts, fin Vit/Int (2026-11-17)
 
 #### Changed
