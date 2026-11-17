@@ -7,6 +7,7 @@ import {
   outgoingBlockMultiplier,
   outgoingDamageMultiplier,
   outgoingHealMultiplier,
+  rollCrit,
   scaleBlock,
   scaleDamage,
   scaleHeal,
@@ -18,6 +19,7 @@ import { drawCards } from './deckRuntime.js';
 import { applyTalentAfterHeal, applyTalentToStatusPayload } from './talentEffects.js';
 import { canApplyStatus, hitEnemy } from './bossPhases.js';
 import { getNextIntent } from './enemyIntent.js';
+import { resolveCardCritChance } from './combatArts.js';
 
 function attackStatFor(card, stats) {
   const key = card.statType || 'taijutsu';
@@ -35,6 +37,7 @@ export function computeCardDamage(card, ctx) {
     enemyPosture = null,
     enemyAffinity = null,
     talentMods = {},
+    rng = Math.random,
   } = ctx;
 
   if (talentMods.denyAttack) {
@@ -69,7 +72,8 @@ export function computeCardDamage(card, ctx) {
     perHit = Math.round(perHit * talentMods.damageMult);
   }
 
-  const crit = { isCrit: false, chance: 0 };
+  const crit = rollCrit(resolveCardCritChance(card), rng);
+  if (crit.isCrit) perHit = Math.round(perHit * crit.mult);
 
   let incomingMult = 1;
   if (hasStatus(enemyStatuses, 'vulnerable')) incomingMult *= 1.5;

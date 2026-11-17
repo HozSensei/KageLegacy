@@ -23,10 +23,8 @@ const STAT_ORDER = [
   'ninjutsu',
   'genjutsu',
   'medicine',
-  'vitesse',
-  'intelligence',
-  'dexterity',
   'maxHp',
+  'maxChakra',
 ]
 
 const STAT_TONES = {
@@ -34,10 +32,8 @@ const STAT_TONES = {
   ninjutsu: 'sky',
   genjutsu: 'indigo',
   medicine: 'leaf',
-  vitesse: 'gold',
-  intelligence: 'wood',
-  dexterity: 'gold',
   maxHp: 'vermilion',
+  maxChakra: 'sky',
 }
 
 const rows = computed(() => {

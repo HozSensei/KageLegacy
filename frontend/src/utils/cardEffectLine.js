@@ -151,6 +151,15 @@ export function cardEffectParts(card, stats, { t, te, locale }) {
     aria.push(exhaust)
   }
 
+  const critChance = Number(card?.critChance) || 0
+  if (critChance > 0) {
+    const crit = te('cards.effectCrit')
+      ? t('cards.effectCrit', { pct: critChance })
+      : `Critique ${critChance} %`
+    texts.push(crit)
+    aria.push(crit)
+  }
+
   if (!texts.length) {
     const desc = localizedDescription(card, locale, '').trim()
     if (desc) {

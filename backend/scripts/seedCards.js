@@ -8,7 +8,41 @@
  */
 import { upsertCardDefinition } from '../src/services/cardService.js';
 import { EXPANSION_CARDS } from './data/cardExpansion.js';
-import { assertOriginalNaming, assertUniqueSlugs, summarizeCatalog } from './lib/cardFactory.js';
+import {
+  assertOriginalNaming,
+  assertUniqueSlugs,
+  defineCard,
+  summarizeCatalog,
+} from './lib/cardFactory.js';
+
+/** Starters historiques (objets plats) → même pipeline que defineCard. */
+function normalizeStarterCard(raw) {
+  return defineCard({
+    slug: raw.slug,
+    nameFr: raw.nameFr,
+    nameEn: raw.nameEn,
+    type: raw.type,
+    statType: raw.statType,
+    statTypeSecondary: raw.statTypeSecondary,
+    element: raw.element ?? null,
+    rarity: raw.rarity,
+    cost: raw.baseCost ?? raw.cost ?? 0,
+    damage: raw.baseDamage ?? raw.damage ?? 0,
+    block: raw.baseBlock ?? raw.block ?? 0,
+    heal: raw.baseHeal ?? raw.heal ?? 0,
+    effects: raw.effects || [],
+    summon: raw.summon || null,
+    exhaust: Boolean(raw.exhaust),
+    passive: raw.passiveBonus || raw.passive || {},
+    critChance: raw.critChance,
+    descriptionFr: raw.descriptionFr,
+    descriptionEn: raw.descriptionEn,
+    loreFr: raw.loreFr,
+    loreEn: raw.loreEn,
+    upgrades: raw.upgradeBonuses || raw.upgrades || {},
+    upgradable: raw.upgradable !== false,
+  });
+}
 
 /** Cartes de départ historiques (conservées telles quelles). */
 const STARTER_CARDS = [
@@ -498,7 +532,7 @@ const STARTER_CARDS = [
 ];
 
 /** Catalogue complet (starters + expansions V2 empilables). */
-export const ALL_CARDS = [...STARTER_CARDS, ...EXPANSION_CARDS];
+export const ALL_CARDS = [...STARTER_CARDS.map(normalizeStarterCard), ...EXPANSION_CARDS];
 
 /** @deprecated Prefer ALL_CARDS — conservé pour imports existants. */
 export { STARTER_CARDS };

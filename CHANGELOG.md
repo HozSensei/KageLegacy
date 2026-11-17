@@ -7,6 +7,19 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Combat / cartes : 4 arts, fin Vit/Int (2026-11-17)
+
+#### Changed
+
+- Stats combat TCG limitées à **Taijutsu / Ninjutsu / Genjutsu / Médecine** (+ dexterity/maxHp)
+- Passifs `vitesse` / `intelligence` remappés vers les arts ; critique = `critChance` sur carte
+- Triade : désavantage ×0.85 (en plus de l’avantage ×1.2)
+- Cartes **double type** (`statTypeSecondary`) pour ponts 2-couleurs
+
+#### Removed
+
+- Scaling critique global via Vitesse ; proc Intelligence (jamais branché)
+
 ### Sécurité : progression et authentification
 
 #### Changed

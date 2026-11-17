@@ -66,22 +66,19 @@ Soin_Final = Soin_Base × (1 + Medicine / 100)
 - Sans stats : 8 PV
 - Avec 150 Médecine : 8 × 2.5 = **20 PV**
 
-#### 4. Stats Secondaires
+#### 4. Stats hors arts (deck / buffs)
 
-| Stat             | Effet                                           |
-| ---------------- | ----------------------------------------------- |
-| **Vitesse**      | +1% chance de critique par 10 Vitesse (max 50%) |
-| **Intelligence** | +1% chance de proc d'effets spéciaux par 10 Int |
-| **Dextérité**    | Réduit coût Chakra des cartes 0-1 coût (rare)   |
+| Stat          | Effet                                              |
+| ------------- | -------------------------------------------------- |
+| **Dextérité** | Bonus ponctuel armure (statut / passif carte rare) |
+| **maxHp**     | PV max (talents, cartes)                           |
 
-**Critique** :
+**Critique (TCG)** : chance portée par la **carte** (`critChance`, max 50 %), plus de scaling via Vitesse. Les anciens passifs `vitesse` du catalogue sont remappés vers l’art primaire ; l’ancien passif Vit peut encore alimenter un `critChance` dérivé au seed.
 
 ```javascript
 Dégâts_Crit = Dégâts_Finaux × 1.5
-Chance_Crit = min(50, Vitesse / 10) + Buffs
+Chance_Crit = min(50, critChance_carte)
 ```
-
-**Exemple** : 100 Vitesse → 10% crit chance
 
 ---
 
@@ -373,7 +370,8 @@ GENJUTSU ←→→→ NINJUTSU
 
 **Bonus** : +20% dégâts si avantage de type (×**1.2**)
 
-> Implémentation : pas de malus réciproque sur la triade — hors avantage = ×1.
+**Malus** : ×**0.85** si désavantage de triade (hors Médecine).
+
 > Code : `backend/src/services/deckCombat/typeAdvantage.js` (`getTypeAdvantage`).
 > Tests : `npm run test:type-advantage` · voir aussi [COMBAT_BALANCE_TESTS.md](./COMBAT_BALANCE_TESTS.md).
 

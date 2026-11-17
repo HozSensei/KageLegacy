@@ -8,8 +8,6 @@ export const BONUS_CHIP_PALETTE = {
   ninjutsu: { fill: '#3776af' },
   medicine: { fill: '#408b68' },
   genjutsu: { fill: '#8653b4' },
-  vitesse: { fill: '#214b81' },
-  intelligence: { fill: '#ad7c27' },
   force: { fill: '#d8513d' },
   dexterity: { fill: '#8c5c3e' },
   maxHp: { fill: '#8c5c3e' },
@@ -21,8 +19,6 @@ export const BONUS_CHIP_ORDER = [
   'ninjutsu',
   'medicine',
   'genjutsu',
-  'vitesse',
-  'intelligence',
 ]
 
 /**
