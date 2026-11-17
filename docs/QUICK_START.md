@@ -31,7 +31,7 @@ npm run test:combat-balance
 npm run test:e2e
 ```
 
-`db:seed` est un seed **legacy** de développement : il réinitialise notamment les ninjas du compte démo. Ne pas l'utiliser en production. Le script `setup` l'exécute également ; les données TCG (cartes, talents et Battle Pass) sont initialisées séparément par `npm run db:seed-v2`.
+`npm run db:migrate` installe le schéma initial complet et exige une base vide ; il ne met pas à niveau une base existante. En cas d'échec au milieu de l'installation, recréez la base avant de réessayer. `db:seed` initialise les données TCG (cartes, talents et Battle Pass).
 
 ### Tests E2E
 

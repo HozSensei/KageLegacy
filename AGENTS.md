@@ -14,7 +14,7 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 - `src/models/` : modèles d'accès aux données; certains modèles shinobi/escouade sont hérités.
 - `src/validators/` : validation des entrées.
 - `src/config/` : paramètres transversaux, notamment `combatBalanceConfig.js`, `economyConfig.js`, `starterLoadout.js` et `database.js`.
-- `migrations/` : migrations SQL versionnées, à appliquer dans l'ordre avec `npm run db:migrate`.
+- `schema.sql` : schéma initial complet ; `npm run db:migrate` l'applique une seule fois sur une base vide. Les évolutions incrémentales ne sont pas prises en charge.
 - `scripts/` : seeds, tâches opérationnelles, tests/scripts de simulation et audits.
 
 ### Frontend (`frontend/`)
@@ -39,7 +39,7 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 ## Configuration importante
 
 - Ne jamais committer de secrets. Utiliser les fichiers `.env*.example` comme modèles et garder les valeurs réelles dans les fichiers locaux ignorés.
-- Connexion DB via `backend/src/config/database.js` et variables d'environnement; schéma via les migrations.
+- Connexion DB via `backend/src/config/database.js` et variables d'environnement; schéma initial via `backend/schema.sql`.
 - Économie et coûts : `backend/src/config/economyConfig.js`.
 - Seuils et profils de tests d'équilibrage combat : `backend/src/config/combatBalanceConfig.js`.
 - Ordre de démarrage local et paramètres des conteneurs : `docker-compose.yml`, `Dockerfile`, scripts racine. Le scheduler intégré conserve la purge des invités et le rafraîchissement des quêtes Battle Pass ; l'horloge et le tick de cycle legacy ne sont plus exposés. Des services et scripts historiques restent à retirer.
@@ -49,6 +49,6 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 
 - `npm run dev` : backend et frontend.
 - `npm run lint` : lint backend puis frontend.
-- `npm run db:up`, `npm run db:migrate`, `npm run db:seed` : base locale et données TCG. `db:seed` utilise le catalogue TCG (cartes, talents et Battle Pass).
+- `npm run db:up`, `npm run db:migrate`, `npm run db:seed` : installer le schéma initial sur une base vide puis initialiser les données TCG. `db:seed` utilise le catalogue TCG (cartes, talents et Battle Pass).
 - `npm run test:combat-engine`, `npm run test:combat-balance`, `npm run test:card-system --prefix backend` : tests ciblés disponibles (voir `backend/package.json`).
 - `npm run e2e:prepare` puis `npm run test:e2e` : tests Cypress dans une base vide dédiée, sous réserve des garde-fous et variables décrits dans `docs/QUICK_START.md`.

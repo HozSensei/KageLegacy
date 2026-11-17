@@ -27,8 +27,8 @@ Merci de contribuer à **Kage Legacy V2** ! Ce document décrit les conventions 
 │   │   ├── models/         # (Optionnel) Modèles DB
 │   │   ├── utils/          # Utilitaires réutilisables
 │   │   ├── config/         # Configuration
-│   │   └── db/             # Connexion DB et migrations
-│   ├── migrations/         # Migrations SQL
+│   │   └── db/             # Connexion DB et installation du schéma
+│   ├── schema.sql          # Schéma initial complet
 │   ├── scripts/            # Scripts de développement et tests
 │   └── package.json
 ├── frontend/
@@ -53,6 +53,7 @@ Merci de contribuer à **Kage Legacy V2** ! Ce document décrit les conventions 
 ### Backend (Node.js / Express)
 
 #### Style
+
 - **ES Modules** : Utiliser `import/export` (pas de `require`)
 - **Async/Await** : Préférer `async/await` aux Promises `.then()`
 - **Arrow functions** : Pour les callbacks et fonctions courtes
@@ -71,14 +72,15 @@ export const getProfile = async (req, res) => {
 // ❌ Éviter
 const userService = require('../services/userService.js');
 
-exports.getProfile = function(req, res) {
-  userService.getUserById(req.params.userId).then(function(user) {
+exports.getProfile = function (req, res) {
+  userService.getUserById(req.params.userId).then(function (user) {
     res.json(user);
   });
 };
 ```
 
 #### Gestion des erreurs
+
 - Toujours utiliser `try/catch` dans les routes
 - Renvoyer des codes HTTP appropriés (200, 201, 400, 404, 500)
 - Logger les erreurs avec `console.error`
@@ -97,6 +99,7 @@ export const createCharacter = async (req, res) => {
 ```
 
 #### Naming
+
 - **Services** : `camelCase`, noms descriptifs (`playerCharacterService.js`)
 - **Routes** : `kebab-case` dans l'URL (`/api/player-character`)
 - **Fonctions** : Verbes d'action (`createCharacter`, `getUserStats`)
@@ -107,6 +110,7 @@ export const createCharacter = async (req, res) => {
 ### Frontend (Vue 3)
 
 #### Style
+
 - **Composition API** : Utiliser `<script setup>` (pas Options API)
 - **Single File Components** : Un composant = un fichier `.vue`
 - **PascalCase** : Pour les noms de composants (`PlayerProfile.vue`)
@@ -130,6 +134,7 @@ const stats = computed(() => playerStore.computedStats);
 ```
 
 #### Stores (Pinia)
+
 - Un store par domaine métier (`player.js`, `cards.js`, `combat.js`)
 - Utiliser `computed` pour les getters
 - Actions asynchrones avec `async/await`
@@ -141,16 +146,16 @@ import { ref, computed } from 'vue';
 
 export const usePlayerStore = defineStore('player', () => {
   const character = ref(null);
-  
+
   const computedStats = computed(() => {
     // Calcul des stats depuis talents + cartes
   });
-  
+
   async function fetchCharacter() {
     const res = await fetch('/api/player');
     character.value = await res.json();
   }
-  
+
   return { character, computedStats, fetchCharacter };
 });
 ```
@@ -160,6 +165,7 @@ export const usePlayerStore = defineStore('player', () => {
 ### Linting et Formatting
 
 #### Lancer le linter
+
 ```bash
 npm run lint              # Backend + Frontend
 npm run lint --prefix backend
@@ -167,6 +173,7 @@ npm run lint --prefix frontend
 ```
 
 #### Formater le code
+
 ```bash
 npm run format            # Backend + Frontend
 npm run format --prefix backend
@@ -174,6 +181,7 @@ npm run format --prefix frontend
 ```
 
 #### Règles principales
+
 - **Point-virgules** : Obligatoires
 - **Guillemets** : Simples (`'string'`)
 - **Indentation** : 2 espaces
@@ -190,11 +198,13 @@ npm run format --prefix frontend
 - `cursor/feature-name-9fa6` : Branches de fonctionnalités
 
 **Convention de nommage** :
+
 ```
 cursor/<description>-9fa6
 ```
 
 Exemples :
+
 - `cursor/player-character-9fa6`
 - `cursor/card-system-9fa6`
 - `cursor/talent-tree-9fa6`
@@ -202,6 +212,7 @@ Exemples :
 ### Commits
 
 **Format** :
+
 ```
 <type>(<scope>): <description>
 
@@ -209,6 +220,7 @@ Exemples :
 ```
 
 **Types** :
+
 - `feat` : Nouvelle fonctionnalité
 - `fix` : Correction de bug
 - `docs` : Documentation
@@ -218,6 +230,7 @@ Exemples :
 - `chore` : Tâches de maintenance
 
 **Exemples** :
+
 ```bash
 git commit -m "feat(player): add player character creation endpoint"
 git commit -m "fix(combat): resolve card draw bug when deck is empty"
@@ -227,17 +240,20 @@ git commit -m "docs(readme): update setup instructions"
 ### Workflow de développement
 
 1. **Créer une branche** :
+
    ```bash
    git checkout -b cursor/ma-feature-9fa6
    ```
 
 2. **Développer et commiter régulièrement** :
+
    ```bash
    git add .
    git commit -m "feat(scope): description"
    ```
 
 3. **Pousser la branche** :
+
    ```bash
    git push -u origin cursor/ma-feature-9fa6
    ```
@@ -251,37 +267,17 @@ git commit -m "docs(readme): update setup instructions"
 
 ## 🗄️ Base de données
 
-### Migrations
+### Schéma de base de données
 
-**Fichiers** : `/workspace/backend/migrations/XXX_description.sql`
+Le schéma complet est maintenu dans `/workspace/backend/schema.sql`. Il sert uniquement à initialiser une base vide ; les mises à niveau incrémentales ne sont pas prises en charge.
 
-**Nommage** : `100_description_descriptive.sql`
+Pour installer le schéma :
 
-**Règles** :
-- **Additive only** : Ne jamais supprimer de colonnes existantes
-- **Safe defaults** : Toujours fournir des valeurs par défaut
-- **Foreign keys** : Toujours définir les contraintes
-- **Indexes** : Ajouter des index sur les colonnes fréquemment requêtées
-
-**Exemple** :
-```sql
--- 102_example_feature.sql
-
-CREATE TABLE IF NOT EXISTS example_table (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  user_id INT UNSIGNED NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
-  CONSTRAINT fk_example_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE INDEX idx_example_user ON example_table(user_id);
-```
-
-**Lancer les migrations** :
 ```bash
 npm run db:migrate
 ```
+
+Après un échec partiel, recréer la base vide avant de relancer la commande. Ne pas lancer le bootstrap sur une base contenant des données à conserver.
 
 ---
 
@@ -290,11 +286,13 @@ npm run db:migrate
 ### Backend
 
 **Tests unitaires** : Services isolés
+
 ```bash
 npm run test:unit --prefix backend
 ```
 
 **Tests E2E** : Parcours complets
+
 ```bash
 npm run test:e2e
 ```
@@ -302,6 +300,7 @@ npm run test:e2e
 ### Frontend
 
 **Tests Cypress** :
+
 ```bash
 npm run test:e2e:open   # Mode interactif
 npm run test:e2e        # Headless
@@ -324,6 +323,7 @@ npm run test:e2e        # Headless
 - **README dans les dossiers** : Si nécessaire (ex: `/backend/services/README.md`)
 
 **Exemple JSDoc** :
+
 ```javascript
 /**
  * Calculate final player stats from talents and equipped cards

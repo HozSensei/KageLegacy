@@ -13,8 +13,8 @@ Cette page décrit l'organisation actuellement présente dans le dépôt. Pour l
 - `backend/src/index.js` démarre le serveur; `backend/src/app.js` configure middleware et routes.
 - `backend/src/routes/` contient les endpoints. `app.js` monte actuellement les routes health, auth, clock, player, cards, collection, decks, talents, combat, missions, battle-pass, achievements, shop, PvP, factions et leaderboard.
 - `backend/src/services/` contient les services métier. Les domaines combat deck, missions, cartes, économie, progression, PvP et narratif y sont organisés, avec quelques fichiers hérités.
-- `backend/src/models/`, `validators/`, `config/` et `db/` contiennent respectivement modèles, validation, configuration et accès/migrations DB.
-- `backend/migrations/` est versionné; appliquer dans l'ordre avec `npm run db:migrate`.
+- `backend/src/models/`, `validators/`, `config/` et `db/` contiennent respectivement modèles, validation, configuration et accès à la base.
+- `backend/schema.sql` est le schéma initial complet. `npm run db:migrate` l'installe une seule fois sur une base vide ; les mises à niveau incrémentales ne sont pas prises en charge.
 
 ## Frontend
 
