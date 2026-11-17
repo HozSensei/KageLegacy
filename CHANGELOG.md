@@ -7,6 +7,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 161–176 (grille 11) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#161–176` (`souffle-calibre` → `brouillard-persistant`) par la grille régénérée `65afc719…` (PNG + WebP 250×250, ordre de lecture)
+
 ### Cartes : illustrations 97–112 (grille 7) (2026-11-17)
 
 #### Changed
