@@ -646,6 +646,118 @@ assert(
   `gain_block respects block_pct (got ${gainBlockPlay.player.block})`
 );
 
+console.log('\n=== Stub effects resolved ===');
+const healSelfPlay = applyCardPlay({
+  player: {
+    hp: 50,
+    maxHp: 100,
+    block: 0,
+    chakra: 3,
+    statuses: [],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: {
+    slug: 'scalpel-de-chakra',
+    type: 'attack',
+    statType: 'medicine',
+    cost: 2,
+    damage: 8,
+    effects: [{ type: 'heal_self', value: 4 }],
+  },
+  stats: { medicine: 0 },
+  rng: () => 0.99,
+});
+assert(healSelfPlay.player.hp === 54, `heal_self restores HP (got ${healSelfPlay.player.hp})`);
+assert(healSelfPlay.logs.some((l) => l.type === 'heal' && l.amount === 4), 'heal_self logs heal');
+assert(!healSelfPlay.logs.some((l) => l.type === 'stub_effect'), 'heal_self not stubbed');
+
+const cleansePlay = applyCardPlay({
+  player: {
+    hp: 80,
+    maxHp: 100,
+    block: 0,
+    chakra: 2,
+    statuses: [{ key: 'weak', value: 1, duration: 2 }],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [], intent: { type: 'attack', damage: 10 } },
+  card: {
+    slug: 'purge-test',
+    type: 'skill',
+    cost: 1,
+    effects: [{ type: 'cleanse_self' }],
+  },
+  stats: { medicine: 0 },
+  rng: () => 0.5,
+});
+assert(cleansePlay.player.statuses.length === 0, 'cleanse removes debuff');
+assert(cleansePlay.logs.some((l) => l.type === 'cleanse' && l.removed === 'weak'), 'cleanse log');
+
+const sealPlay = applyCardPlay({
+  player: {
+    hp: 80,
+    maxHp: 100,
+    block: 0,
+    chakra: 3,
+    statuses: [],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: {
+    hp: 40,
+    maxHp: 40,
+    block: 0,
+    statuses: [],
+    intent: { type: 'attack', damage: 12 },
+  },
+  card: {
+    slug: 'sceau-test',
+    type: 'item',
+    cost: 2,
+    effects: [{ type: 'exile_enemy_card' }],
+  },
+  stats: { taijutsu: 0 },
+  rng: () => 0.5,
+});
+assert(sealPlay.enemy.intent?.type === 'sealed', 'exile seals intent');
+assert(sealPlay.logs.some((l) => l.type === 'intent_sealed'), 'intent_sealed log');
+
+const aoePlay = applyCardPlay({
+  player: {
+    hp: 80,
+    maxHp: 100,
+    block: 0,
+    chakra: 3,
+    statuses: [],
+    hand: [],
+    drawPile: [],
+    discardPile: [],
+    exhaustPile: [],
+  },
+  enemy: { hp: 100, maxHp: 100, block: 0, statuses: [], posture: 'genjutsu' },
+  card: {
+    slug: 'pilier-de-flammes',
+    type: 'attack',
+    statType: 'ninjutsu',
+    cost: 2,
+    damage: 9,
+    effects: [{ type: 'aoe' }],
+  },
+  stats: { ninjutsu: 0 },
+  rng: () => 0.99,
+});
+const aoeDmg = aoePlay.logs.find((l) => l.type === 'damage' && l.source === 'player');
+assert(aoeDmg && aoeDmg.amount > 9, `aoe mult applied (got ${aoeDmg?.amount})`);
+
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);
 console.log('✅ testCombatEngine passed');

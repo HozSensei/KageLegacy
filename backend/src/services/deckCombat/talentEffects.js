@@ -4,7 +4,7 @@
  * Catalogue : docs/TALENT_EFFECTS.md
  */
 import { GENJUTSU_DEBUFF_KEYS, TALENT_EFFECT_MVP } from './constants.js';
-import { applyStatus } from './statuses.js';
+import { applyStatus, PLAYER_DEBUFF_KEYS } from './statuses.js';
 
 export function classifyTalentEffects(effectCodes = []) {
   const applied = [];
@@ -330,8 +330,7 @@ export function applyTalentStartOfTurn(player, effectCodes = [], { turn = 1 } = 
   }
 
   if (codes.has('purify') && !next.purifyUsed) {
-    const playerDebuffKeys = new Set(['weak', 'vulnerable', 'poison', 'burn']);
-    const idx = (next.statuses || []).findIndex(s => playerDebuffKeys.has(s.key));
+    const idx = (next.statuses || []).findIndex((s) => PLAYER_DEBUFF_KEYS.has(s.key));
     if (idx >= 0) {
       const removed = next.statuses[idx];
       next.statuses = next.statuses.filter((_, i) => i !== idx);
