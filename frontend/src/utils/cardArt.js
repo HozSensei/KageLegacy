@@ -6,7 +6,7 @@
  * Source grids (UUID filenames in assets/) → catalogue ranges:
  *   756f59f6… #1–16 · 6c84a1bb… #17–32 · 4a2ad300… #33–48 · 67ea9443… #49–64
  *   76d31954… #65–80 · e2677e03… #81–96 (cell permute) · a7260e15… #97–112
- *   0a3032e5… #113–128 · b82647f5… #129–144 · 1e535173… #145–160
+ *   0a3032e5… #113–128 · b82647f5… #129–144 · 6be42b39… #145–160
  *   548a6317… #161–176 · 072b1be0… #177–192 · af4d0467… #193–206
  */
 import abysseDArgent from '../assets/cards/abysse-d-argent.webp'

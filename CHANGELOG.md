@@ -7,6 +7,11 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### Cartes : illustrations 145–160 (grille 10) (2026-11-17)
+
+#### Changed
+- Remplacé les assets `#145–160` (`grille-d-eclairs` → `rempart-des-ancetres`) par la grille régénérée `6be42b39…` (PNG + WebP 250×250)
+
 ### UI : carte — art collé + type noir (2026-11-17)
 
 #### Changed
