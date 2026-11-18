@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRoute } from 'vue-router';
 import CollectionGrid from '../components/cards/CollectionGrid.vue';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -16,6 +16,7 @@ import { useShopStore } from '../stores/shop';
 defineOptions({ name: 'CollectionView' });
 
 const { t, locale } = useI18n();
+const route = useRoute();
 const collection = useCollectionStore();
 const shop = useShopStore();
 /** Slot sélectionné : owned (entry) ou hole (card only). */
@@ -40,6 +41,10 @@ const selectedDescription = computed(() => {
   const card = selectedCard.value;
   if (!card) return '';
   return localizedDescription(card, locale.value);
+});
+const collectionSearch = computed(() => {
+  const value = route.query.search;
+  return String(Array.isArray(value) ? value[0] || '' : value || '');
 });
 const selectedVisual = computed(() => cardTypeVisual(selectedCard.value?.type));
 
@@ -179,6 +184,7 @@ async function onDisenchant() {
           :owned-only="collection.ownedOnly"
           :owned-count="collection.ownedUniqueCount"
           :catalogue-total="collection.catalogueTotal"
+          :initial-search="collectionSearch"
           @select="onSelect"
           @update:owned-only="onOwnedOnlyUpdate"
         />

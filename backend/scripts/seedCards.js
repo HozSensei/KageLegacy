@@ -550,6 +550,14 @@ export function validateCatalog(cards = ALL_CARDS) {
     if (!['attack', 'defense', 'skill', 'item', 'summon'].includes(card.type)) {
       throw new Error(`Invalid type on ${card.slug}: ${card.type}`);
     }
+    if (!['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'common'].includes(card.statType)) {
+      throw new Error(`Invalid stat type on ${card.slug}: ${card.statType}`);
+    }
+    const requiresCommon =
+      card.type === 'item' || card.type === 'summon' || card.slug.startsWith('clan-');
+    if (requiresCommon && card.statType !== 'common') {
+      throw new Error(`Common card assigned to combat art: ${card.slug}`);
+    }
     if (!['common', 'rare', 'legendary', 'mythic'].includes(card.rarity)) {
       throw new Error(`Invalid rarity on ${card.slug}: ${card.rarity}`);
     }

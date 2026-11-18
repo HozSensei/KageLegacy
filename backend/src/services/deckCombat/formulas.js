@@ -1,5 +1,5 @@
 /**
- * Formules de scaling combat (docs/COMBAT_SYSTEM.md).
+ * Formules de scaling combat (docs/CARDS_AND_COMBAT.md).
  * Module pur — pas de DB.
  *
  * Triade / éléments : voir `typeAdvantage.js` (réexportés ici pour compat).
@@ -126,11 +126,11 @@ export function incomingDamageMultiplier(statuses = []) {
 }
 
 export function hasStatus(statuses, key) {
-  return (statuses || []).some((s) => s.key === key && (s.duration == null || s.duration > 0));
+  return (statuses || []).some(s => s.key === key && (s.duration == null || s.duration > 0));
 }
 
 export function getStatusValue(statuses, key) {
-  const found = (statuses || []).find((s) => s.key === key && (s.duration == null || s.duration > 0));
+  const found = (statuses || []).find(s => s.key === key && (s.duration == null || s.duration > 0));
   return found ? Number(found.value) || 0 : 0;
 }
 

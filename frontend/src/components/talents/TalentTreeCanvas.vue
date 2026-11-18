@@ -1,616 +1,353 @@
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import AppIcon from '../ui/AppIcon.vue'
-import { talentBranchTone, talentNodeShape } from '../../utils/talentVisuals'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { talentBranchTone } from '../../utils/talentVisuals';
 
-defineOptions({ name: 'TalentTreeCanvas' })
+defineOptions({ name: 'TalentTreeCanvas' });
 
 const props = defineProps({
   nodes: { type: Array, default: () => [] },
   edges: { type: Array, default: () => [] },
-  unlockedSet: { type: Object, default: () => new Set() },
+  nodeRanks: { type: Object, default: () => ({}) },
+  branchPoints: { type: Object, default: () => ({}) },
   selectedNodeId: { type: String, default: null },
   isUnlockable: { type: Function, default: () => false },
   locale: { type: String, default: 'fr' },
-})
+});
 
-const emit = defineEmits(['select', 'unlock'])
+const emit = defineEmits(['select', 'unlock']);
+const { t } = useI18n();
+const BRANCHES = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
 
-const { t } = useI18n()
+const pillars = computed(() =>
+  BRANCHES.map(branch => ({
+    branch,
+    points: Number(props.branchPoints[branch]) || 0,
+    tiers: [1, 2, 3, 4, 5, 6]
+      .map(tier =>
+        props.nodes
+          .filter(node => node.branch === branch && node.tier === tier)
+          .sort((a, b) => a.positionX - b.positionX)
+      )
+      .filter(nodes => nodes.length),
+  })).filter(pillar => pillar.tiers.length)
+);
 
-const viewport = ref(null)
-const legend = ref(null)
-const scale = ref(1)
-/* Échelle à laquelle l'arbre entier tient dans le cadre : vue par défaut et borne basse du zoom. */
-const fitScale = ref(0.45)
-const panX = ref(0)
-const panY = ref(0)
-const dragging = ref(false)
-const lastPointer = ref({ x: 0, y: 0 })
-const didDrag = ref(false)
-
-const bounds = computed(() => {
-  if (!props.nodes.length) return { minX: -200, maxX: 200, minY: -200, maxY: 200 }
-  let minX = Infinity
-  let maxX = -Infinity
-  let minY = Infinity
-  let maxY = -Infinity
-  for (const n of props.nodes) {
-    minX = Math.min(minX, n.positionX)
-    maxX = Math.max(maxX, n.positionX)
-    minY = Math.min(minY, n.positionY)
-    maxY = Math.max(maxY, n.positionY)
-  }
-  const pad = 80
-  return { minX: minX - pad, maxX: maxX + pad, minY: minY - pad, maxY: maxY + pad }
-})
-
-const worldW = computed(() => bounds.value.maxX - bounds.value.minX)
-const worldH = computed(() => bounds.value.maxY - bounds.value.minY)
-
-const transformStyle = computed(() => ({
-  transform: `translate(${panX.value}px, ${panY.value}px) scale(${scale.value})`,
-  width: `${worldW.value}px`,
-  height: `${worldH.value}px`,
-  /* Libellés, nœuds et liens gardent une taille lisible à l'écran quand la vue s'éloigne. */
-  '--label-scale': Math.min(4, Math.max(1, 0.95 / scale.value)).toFixed(3),
-  '--node-scale': Math.min(1.7, Math.max(1, 0.45 / scale.value)).toFixed(3),
-  '--edge-scale': Math.min(3.5, Math.max(1, 0.7 / scale.value)).toFixed(3),
-}))
-
-const MAX_SCALE = 2.2
-const minScale = computed(() => Math.min(0.45, fitScale.value))
-
-const zoomedOut = computed(() => scale.value < 0.7)
-/* Très petit cadre (mobile) : les noms ne tiendraient pas, seul le nœud choisi garde le sien. */
-const overview = computed(() => scale.value < 0.32)
-
-function toLocal(n) {
-  return {
-    x: n.positionX - bounds.value.minX,
-    y: n.positionY - bounds.value.minY,
-  }
-}
-
-/* Nœud tout juste débloqué : sert uniquement à jouer l'animation d'éclat. */
-const burstId = ref(null)
-let burstTimer = null
-
-watch(
-  () => props.unlockedSet,
-  (next, prev) => {
-    if (!prev || !next || next.size !== prev.size + 1) return
-    for (const id of next) {
-      if (!prev.has(id)) {
-        burstId.value = id
-        if (burstTimer) clearTimeout(burstTimer)
-        burstTimer = setTimeout(() => {
-          burstId.value = null
-        }, 900)
-        break
-      }
-    }
-  }
-)
-
-function nodeClass(node) {
-  const unlocked = props.unlockedSet.has(node.nodeId)
-  const unlockable = props.isUnlockable(node)
-  const selected = props.selectedNodeId === node.nodeId
-  return [
-    'talent-node',
-    `talent-node--${node.type}`,
-    `talent-node--${node.branch}`,
-    unlocked && 'is-unlocked',
-    unlockable && 'is-unlockable',
-    selected && 'is-selected',
-    burstId.value === node.nodeId && 'is-burst',
-  ]
+function rankOf(node) {
+  return Number(props.nodeRanks[node.nodeId]) || 0;
 }
 
 function nodeLabel(node) {
-  return props.locale === 'en' ? node.nameEn : node.nameFr
+  return props.locale === 'en' ? node.nameEn : node.nameFr;
 }
 
-function edgeClass(edge) {
-  const fromOk = props.unlockedSet.has(edge.from.nodeId)
-  const toOk = props.unlockedSet.has(edge.to.nodeId)
-  return ['talent-edge', fromOk && toOk && 'is-active', fromOk && !toOk && 'is-partial']
+function nodeClass(node) {
+  const rank = rankOf(node);
+  return [
+    'talent-node',
+    `talent-node--${node.type}`,
+    rank > 0 && 'is-unlocked',
+    rank >= node.maxRank && 'is-complete',
+    props.isUnlockable(node) && 'is-unlockable',
+    props.selectedNodeId === node.nodeId && 'is-selected',
+  ];
 }
 
-function onWheel(e) {
-  e.preventDefault()
-  const delta = e.deltaY > 0 ? 0.9 : 1.1
-  scale.value = Math.min(MAX_SCALE, Math.max(minScale.value, scale.value * delta))
+function tierRequirement(nodes) {
+  return Number(nodes[0]?.requiredBranchPoints) || 0;
 }
 
-function onPointerDown(e) {
-  if (e.button !== 0) return
-  dragging.value = true
-  didDrag.value = false
-  lastPointer.value = { x: e.clientX, y: e.clientY }
+function tierLocked(nodes, branch) {
+  return (Number(props.branchPoints[branch]) || 0) < tierRequirement(nodes);
 }
 
-function onPointerMove(e) {
-  if (!dragging.value) return
-  const dx = e.clientX - lastPointer.value.x
-  const dy = e.clientY - lastPointer.value.y
-  if (!didDrag.value && Math.abs(dx) + Math.abs(dy) > 3) {
-    didDrag.value = true
-    /* Capture seulement une fois le glissement engagé : capturer dès l'appui
-       redirige le clic vers le canevas et empêche de sélectionner un nœud. */
-    viewport.value?.setPointerCapture?.(e.pointerId)
-  }
-  panX.value += dx
-  panY.value += dy
-  lastPointer.value = { x: e.clientX, y: e.clientY }
+function rankLabel(node) {
+  return `${rankOf(node)}/${node.maxRank}`;
 }
 
-function onPointerUp(e) {
-  dragging.value = false
-  try {
-    viewport.value?.releasePointerCapture?.(e.pointerId)
-  } catch {
-    /* ignore */
-  }
+function selectNode(node) {
+  emit('select', node.nodeId);
 }
 
-function onNodeClick(node, e) {
-  e.stopPropagation()
-  if (didDrag.value) return
-  emit('select', node.nodeId)
+function unlockNode(node) {
+  if (props.isUnlockable(node)) emit('unlock', node.nodeId);
 }
-
-function onNodeDblClick(node, e) {
-  e.stopPropagation()
-  if (props.isUnlockable(node)) emit('unlock', node.nodeId)
-}
-
-function centerView() {
-  const el = viewport.value
-  if (!el) return
-  const rect = el.getBoundingClientRect()
-  if (!rect.width || !rect.height) return
-  /* La légende recouvre le bas du cadre : l'arbre se cale dans la hauteur restante. */
-  const legendHeight = legend.value ? legend.value.offsetHeight + 12 : 0
-  const freeHeight = Math.max(rect.height - legendHeight, rect.height / 2)
-  fitScale.value = Math.min(rect.width / worldW.value, freeHeight / worldH.value)
-  scale.value = Math.min(0.85, fitScale.value)
-  panX.value = rect.width / 2 - (worldW.value * scale.value) / 2
-  panY.value = freeHeight / 2 - (worldH.value * scale.value) / 2
-}
-
-/* L'arbre arrive après le montage (ou change avec le filtre) : on recadre la vue. */
-watch(
-  () => props.nodes.length,
-  () => nextTick(centerView)
-)
-
-function zoomIn() {
-  scale.value = Math.min(MAX_SCALE, scale.value * 1.15)
-}
-function zoomOut() {
-  scale.value = Math.max(minScale.value, scale.value / 1.15)
-}
-
-onMounted(() => {
-  centerView()
-  window.addEventListener('resize', centerView)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', centerView)
-  if (burstTimer) clearTimeout(burstTimer)
-})
-
-defineExpose({ centerView, zoomIn, zoomOut })
 </script>
 
 <template>
-  <div
-    class="talent-canvas-wrap"
-    :class="{ 'talent-canvas-wrap--far': zoomedOut, 'talent-canvas-wrap--overview': overview }"
-  >
-    <div class="talent-canvas-toolbar">
-      <button type="button" class="talent-tool" :aria-label="t('talents.zoomOut')" @click="zoomOut">
-        <AppIcon name="minus" size="1rem" :stroke-width="2.25" />
-      </button>
-      <button type="button" class="talent-tool talent-tool--text" @click="centerView">
-        {{ t('talents.resetView') }}
-      </button>
-      <button type="button" class="talent-tool" :aria-label="t('talents.zoomIn')" @click="zoomIn">
-        <AppIcon name="plus" size="1rem" :stroke-width="2.25" />
-      </button>
-    </div>
-
-    <ul ref="legend" class="talent-legend" aria-hidden="true">
-      <li><span class="talent-legend__shape talent-legend__shape--stat" />{{ t('talents.types.stat') }}</li>
-      <li><span class="talent-legend__shape talent-legend__shape--notable" />{{ t('talents.types.notable') }}</li>
-      <li><span class="talent-legend__shape talent-legend__shape--keystone" />{{ t('talents.types.keystone') }}</li>
-      <li class="talent-legend__sep" />
-      <li><span class="talent-legend__state" />{{ t('talents.legendLocked') }}</li>
-      <li><span class="talent-legend__state talent-legend__state--open" />{{ t('talents.legendUnlockable') }}</li>
-      <li><span class="talent-legend__state talent-legend__state--on" />{{ t('talents.legendUnlocked') }}</li>
-    </ul>
-
-    <div
-      ref="viewport"
-      class="talent-canvas"
-      data-testid="talent-canvas"
-      @wheel="onWheel"
-      @pointerdown="onPointerDown"
-      @pointermove="onPointerMove"
-      @pointerup="onPointerUp"
-      @pointercancel="onPointerUp"
+  <div class="talent-pillars" data-testid="talent-canvas">
+    <section
+      v-for="pillar in pillars"
+      :key="pillar.branch"
+      class="talent-pillar"
+      :data-tone="talentBranchTone(pillar.branch)"
     >
-      <div class="talent-canvas__world" :style="transformStyle">
-        <svg
-          class="talent-canvas__edges"
-          :width="worldW"
-          :height="worldH"
-          :viewBox="`0 0 ${worldW} ${worldH}`"
-        >
-          <line
-            v-for="(edge, i) in edges"
-            :key="i"
-            :class="edgeClass(edge)"
-            :x1="toLocal(edge.from).x"
-            :y1="toLocal(edge.from).y"
-            :x2="toLocal(edge.to).x"
-            :y2="toLocal(edge.to).y"
-          />
-        </svg>
+      <header class="talent-pillar__header">
+        <span class="talent-pillar__sigil" aria-hidden="true">◆</span>
+        <div>
+          <p class="talent-pillar__branch">{{ t(`talents.branches.${pillar.branch}`) }}</p>
+          <p class="talent-pillar__points">
+            {{ t('talents.branchPoints', { count: pillar.points }) }}
+          </p>
+        </div>
+      </header>
 
-        <button
-          v-for="node in nodes"
-          :key="node.nodeId"
-          type="button"
-          :class="nodeClass(node)"
-          :style="{
-            left: `${toLocal(node).x}px`,
-            top: `${toLocal(node).y}px`,
-          }"
-          :title="nodeLabel(node)"
-          :data-tone="talentBranchTone(node.branch)"
-          :data-testid="`talent-node-${node.nodeId}`"
-          :data-node-id="node.nodeId"
-          @click="onNodeClick(node, $event)"
-          @dblclick="onNodeDblClick(node, $event)"
+      <div class="talent-pillar__tiers">
+        <section
+          v-for="(tierNodes, tierIndex) in pillar.tiers"
+          :key="tierNodes[0]?.nodeId"
+          class="talent-tier"
+          :class="{ 'is-locked': tierLocked(tierNodes, pillar.branch) }"
         >
-          <span class="talent-node__icon" :class="`talent-node__icon--${talentNodeShape(node.type)}`" />
-          <span class="talent-node__label">{{ nodeLabel(node) }}</span>
-        </button>
+          <div class="talent-tier__gate">
+            <span>{{ t('talents.tier', { tier: tierIndex + 1 }) }}</span>
+            <span v-if="tierIndex > 0">
+              {{ t('talents.tierRequirement', { count: tierRequirement(tierNodes) }) }}
+            </span>
+          </div>
+
+          <div class="talent-tier__nodes">
+            <button
+              v-for="node in tierNodes"
+              :key="node.nodeId"
+              type="button"
+              :class="nodeClass(node)"
+              :aria-pressed="selectedNodeId === node.nodeId"
+              :aria-label="`${nodeLabel(node)}, ${rankLabel(node)}`"
+              :data-testid="`talent-node-${node.nodeId}`"
+              :data-node-id="node.nodeId"
+              @click="selectNode(node)"
+              @dblclick="unlockNode(node)"
+            >
+              <span v-if="node.requires.length" class="talent-node__link" aria-hidden="true" />
+              <span class="talent-node__mark" aria-hidden="true" />
+              <span class="talent-node__name">{{ nodeLabel(node) }}</span>
+              <span class="talent-node__ranks" :aria-label="rankLabel(node)">
+                <i
+                  v-for="rank in node.maxRank"
+                  :key="rank"
+                  :class="{ 'is-filled': rank <= rankOf(node) }"
+                />
+              </span>
+              <span class="talent-node__rank">{{ rankLabel(node) }}</span>
+            </button>
+          </div>
+        </section>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.talent-canvas-wrap {
-  position: relative;
-  min-height: 28rem;
-  height: min(72vh, 44rem);
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  background-color: var(--color-bg-card);
-  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 14%, transparent) 1px, transparent 1.5px);
-  background-size: 22px 22px;
-}
-
-.talent-canvas-toolbar {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 5;
-  display: flex;
-  gap: 2px;
-}
-
-.talent-tool {
+.talent-pillars {
   display: grid;
-  place-items: center;
-  min-width: 2.25rem;
-  height: 2.25rem;
-  background: var(--color-ink);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-on-ink);
-  transition: background-color var(--dur-fast) ease;
+  grid-template-columns: repeat(4, minmax(15rem, 1fr));
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-color: var(--color-line-strong) transparent;
 }
 
-.talent-tool--text {
-  padding: 0 0.85rem;
+.talent-pillar {
+  position: relative;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--tone-fill) 50%, var(--color-line));
+  border-top: 0.35rem solid var(--tone-fill);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--tone-fill) 13%, transparent),
+      transparent 10rem
+    ),
+    var(--color-bg-card);
 }
 
-.talent-tool:hover {
-  background: var(--color-vermilion);
-}
-
-.talent-legend {
+.talent-pillar::after {
+  content: '';
   position: absolute;
-  bottom: 0.75rem;
-  left: 0.75rem;
-  z-index: 5;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.3rem 0.85rem;
-  max-width: calc(100% - 1.5rem);
-  margin: 0;
-  padding: 0.45rem 0.7rem;
-  list-style: none;
-  background: var(--color-bg);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--color-ink-muted);
-  pointer-events: none;
-}
-
-.talent-legend li {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.talent-legend__sep {
+  inset: 4.5rem auto 0 50%;
   width: 1px;
-  height: 0.9rem;
-  background: var(--color-line-strong);
-}
-
-.talent-legend__shape,
-.talent-legend__state {
-  width: 0.7rem;
-  height: 0.7rem;
-  background: var(--color-ink);
-}
-
-.talent-legend__shape--stat {
-  border-radius: 50%;
-}
-
-.talent-legend__shape--keystone {
-  transform: rotate(45deg) scale(0.85);
-}
-
-.talent-legend__state {
-  border-radius: 50%;
-  background: var(--color-bg-card);
-  box-shadow: inset 0 0 0 2px var(--color-line-strong);
-}
-
-.talent-legend__state--open {
-  box-shadow: inset 0 0 0 2px var(--color-vermilion);
-}
-
-.talent-legend__state--on {
-  background: var(--color-vermilion);
-  box-shadow: none;
-}
-
-.talent-canvas {
-  width: 100%;
-  height: 100%;
-  cursor: grab;
-  touch-action: none;
-  overflow: hidden;
-}
-
-.talent-canvas:active {
-  cursor: grabbing;
-}
-
-.talent-canvas__world {
-  position: relative;
-  transform-origin: 0 0;
-  will-change: transform;
-}
-
-.talent-canvas__edges {
-  position: absolute;
-  inset: 0;
+  background: color-mix(in srgb, var(--tone-fill) 32%, transparent);
   pointer-events: none;
-  overflow: visible;
 }
 
-.talent-edge {
-  stroke: var(--color-line-strong);
-  stroke-width: calc(2px * var(--edge-scale, 1));
-  transition:
-    stroke var(--dur-slow) ease,
-    stroke-width var(--dur-slow) ease;
-}
-
-.talent-edge.is-partial {
-  stroke: var(--color-ink-muted);
-  stroke-dasharray: 5 5;
-}
-
-.talent-edge.is-active {
-  stroke: var(--color-ink);
-  stroke-width: calc(3.5px * var(--edge-scale, 1));
-}
-
-/* ——— Nœuds : forme = type, couleur = branche, remplissage = état ——— */
-
-.talent-node {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-  min-width: 2.2rem;
-  padding: 0;
-  color: var(--color-ink-muted);
-  transform: translate(-50%, -50%);
-}
-
-.talent-node__icon {
+.talent-pillar__header {
   position: relative;
-  display: block;
-  width: calc(1.5rem * var(--node-scale, 1));
-  height: calc(1.5rem * var(--node-scale, 1));
-  border: calc(2.5px * var(--node-scale, 1)) solid
-    color-mix(in srgb, var(--tone-fill) var(--mix-quiet), var(--color-bg-card));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4.5rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--color-line);
   background: var(--color-bg-card);
-  transition:
-    background-color var(--dur-base) ease,
-    border-color var(--dur-base) ease,
-    transform var(--dur-base) var(--ease-out-quint);
 }
 
-.talent-node__icon--circle {
-  border-radius: 50%;
-}
-
-.talent-node__icon--square {
-  width: calc(2.1rem * var(--node-scale, 1));
-  height: calc(2.1rem * var(--node-scale, 1));
-}
-
-.talent-node__icon--lozenge {
-  width: calc(2.35rem * var(--node-scale, 1));
-  height: calc(2.35rem * var(--node-scale, 1));
-  margin: calc(0.45rem * var(--node-scale, 1));
-  border-width: calc(3px * var(--node-scale, 1));
+.talent-pillar__sigil {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--tone-fill);
+  color: var(--tone-fill);
   transform: rotate(45deg);
 }
 
-.talent-node:hover .talent-node__icon {
+.talent-pillar__branch {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tone);
+}
+
+.talent-pillar__points {
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.talent-pillar__tiers {
+  position: relative;
+  z-index: 1;
+  padding: 0.4rem 0.7rem 0.9rem;
+}
+
+.talent-tier + .talent-tier {
+  margin-top: 0.75rem;
+}
+
+.talent-tier__gate {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.15rem;
+  font-size: 0.625rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.talent-tier.is-locked .talent-tier__gate {
+  color: var(--color-vermilion);
+}
+
+.talent-tier__nodes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.talent-node {
+  position: relative;
+  display: flex;
+  min-height: 7.25rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.7rem 0.3rem 0.45rem;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-bg-soft);
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast),
+    background var(--dur-fast),
+    transform var(--dur-fast),
+    opacity var(--dur-fast);
+}
+
+.talent-node:hover,
+.talent-node.is-selected {
   border-color: var(--tone-fill);
-  transform: scale(1.14);
+  transform: translateY(-2px);
 }
 
-.talent-node:hover .talent-node__icon--lozenge {
-  transform: rotate(45deg) scale(1.14);
+.talent-node.is-unlockable {
+  border-color: var(--tone-fill);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tone-fill) 35%, transparent);
+  color: var(--color-ink);
 }
 
-.talent-node__label {
-  max-width: 7.5rem;
-  padding: 0.05rem 0.25rem;
-  transform: scale(var(--label-scale, 1));
-  transform-origin: top center;
-  background: color-mix(in srgb, var(--color-bg-card) 88%, transparent);
-  font-size: 0.6875rem;
-  font-weight: 600;
+.talent-node.is-unlocked {
+  background: color-mix(in srgb, var(--tone-fill) 15%, var(--color-bg-card));
+  color: var(--color-ink);
+}
+
+.talent-node.is-complete {
+  border-color: var(--tone-fill);
+  background: color-mix(in srgb, var(--tone-fill) 25%, var(--color-bg-card));
+}
+
+.talent-node__link {
+  position: absolute;
+  bottom: calc(100% + 1px);
+  left: 50%;
+  width: 1px;
+  height: 1.35rem;
+  background: color-mix(in srgb, var(--tone-fill) 65%, var(--color-line));
+}
+
+.talent-node__mark {
+  display: block;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-bottom: 0.45rem;
+  border: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.talent-node--notable .talent-node__mark {
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone-fill) 18%, transparent);
+}
+
+.talent-node__name {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
   line-height: 1.15;
   text-align: center;
-  color: var(--color-ink-muted);
-  pointer-events: none;
+  -webkit-box-orient: vertical;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
 }
 
-/* Les nœuds de stat n'affichent leur nom qu'au survol ou à la sélection */
-.talent-node--stat .talent-node__label {
-  position: absolute;
-  top: 100%;
-  width: max-content;
-  opacity: 0;
-  transition: opacity var(--dur-fast) ease;
+.talent-node__ranks {
+  display: flex;
+  gap: 0.2rem;
+  margin-top: auto;
 }
 
-.talent-node--stat:hover,
-.talent-node--stat.is-selected {
-  z-index: 3;
+.talent-node__ranks i {
+  width: 0.4rem;
+  height: 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
 }
 
-.talent-node--stat:hover .talent-node__label,
-.talent-node--stat.is-selected .talent-node__label {
-  opacity: 1;
-}
-
-.talent-node--keystone {
-  z-index: 2;
-}
-
-.talent-node--keystone .talent-node__label {
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--color-ink);
-}
-
-.talent-node.is-unlockable .talent-node__icon {
-  border-color: var(--tone-fill);
-  background: var(--tone-tint);
-  animation: pulse-ring 1.8s ease-out infinite;
-}
-
-.talent-node.is-unlockable .talent-node__label {
-  color: var(--color-ink);
-}
-
-.talent-node.is-unlocked .talent-node__icon {
-  border-color: var(--tone-fill);
+.talent-node__ranks i.is-filled {
   background: var(--tone-fill);
+  border-color: var(--tone-fill);
 }
 
-.talent-node.is-unlocked .talent-node__label {
-  color: var(--color-ink);
+.talent-node__rank {
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: var(--tone);
 }
 
-.talent-node.is-selected {
-  z-index: 4;
-}
-
-.talent-node.is-selected .talent-node__icon {
-  outline: 3px solid var(--color-ink);
-  outline-offset: 3px;
-}
-
-.talent-node.is-selected .talent-node__label {
-  background: var(--color-ink);
-  color: var(--color-on-ink);
-}
-
-/* Vue d'ensemble : seuls les nœuds majeurs, accessibles ou sélectionnés gardent leur nom */
-.talent-canvas-wrap--far .talent-node--notable:not(.is-selected, .is-unlockable, :hover) .talent-node__label {
-  opacity: 0;
-}
-
-.talent-canvas-wrap--overview .talent-node:not(.is-selected, :hover) .talent-node__label {
-  opacity: 0;
-}
-
-/* Éclat au déblocage */
-.talent-node.is-burst .talent-node__icon::after {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border: 3px solid var(--tone-fill);
-  border-radius: inherit;
-  animation: talent-burst 800ms var(--ease-out-quint) both;
-}
-
-.talent-node.is-burst .talent-node__icon--circle,
-.talent-node.is-burst .talent-node__icon--square {
-  animation: pop-in 520ms var(--ease-out-quint) both;
-}
-
-@keyframes talent-burst {
-  from {
-    opacity: 1;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(2.6);
-  }
-}
-
-@media (max-width: 640px) {
-  .talent-canvas-wrap {
-    min-height: 22rem;
-    height: 58vh;
-  }
-
-  .talent-node--notable .talent-node__label {
-    display: none;
-  }
-
-  .talent-legend .talent-legend__sep,
-  .talent-legend__sep ~ li {
-    display: none;
+@media (max-width: 720px) {
+  .talent-pillars {
+    grid-template-columns: repeat(4, minmax(14rem, 1fr));
   }
 }
 </style>

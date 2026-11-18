@@ -200,12 +200,9 @@ assert(oneClanTwoLegs.valid, 'accept 1 clan + 2 other legendary/mythic');
 assert(oneClanTwoLegs.clanCount === 1, 'clan count 1');
 assert(oneClanTwoLegs.legendaryOrMythicCount === 3, 'legendary count includes clan');
 
-// Catalogue seed (~200 cartes, structure scalable vers 300)
+// Catalogue seed : palier 250 cartes
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
-assert(
-  ALL_CARDS.length >= 190 && ALL_CARDS.length <= 230,
-  `catalog ~200+, got ${ALL_CARDS.length}`
-);
+assert(ALL_CARDS.length === 250, `catalog target 250, got ${ALL_CARDS.length}`);
 const catalog = validateCatalog(ALL_CARDS);
 assert(catalog.byType.attack >= 70, 'enough attacks');
 assert(catalog.byType.defense >= 35, 'enough defenses');
@@ -274,6 +271,7 @@ assert(CLAN_LEGENDARY_CARDS.length >= 3, 'at least 3 clan legendary cards');
 for (const card of CLAN_LEGENDARY_CARDS) {
   assert(card.slug.startsWith('clan-'), `clan slug prefix: ${card.slug}`);
   assert(card.rarity === 'legendary', `clan rarity: ${card.slug}`);
+  assert(card.heldEffect?.type, `clan held effect: ${card.slug}`);
   const passiveSum = Object.entries(card.passiveBonus || {}).reduce((s, [k, v]) => {
     assert(STAT_KEYS.has(k), `clan passive key ${k} on ${card.slug} not aggregatable`);
     return s + Number(v);
@@ -293,9 +291,39 @@ assert(
   'harmonie no intelligence passive'
 );
 
+const rarityPassiveBudgets = {
+  common: [0, 5],
+  rare: [5, 10],
+  legendary: [10, 15],
+  mythic: [15, 20],
+};
 for (const card of ALL_CARDS) {
   for (const key of Object.keys(card.passiveBonus || {})) {
     assert(STAT_KEYS.has(key), `catalog passive ${key} on ${card.slug} must be combat art`);
+  }
+  const requiresCommon = ['item', 'summon'].includes(card.type) || card.slug.startsWith('clan-');
+  assert(
+    !requiresCommon || card.statType === 'common',
+    `${card.slug} must use the common scaling route`
+  );
+  const [min, max] = rarityPassiveBudgets[card.rarity];
+  for (const level of [0, 1, 2]) {
+    const passive = { ...(card.passiveBonus || {}) };
+    if (level > 0) {
+      for (const [key, value] of Object.entries(
+        card.upgradeBonuses?.[`level_${level}`]?.passive || {}
+      )) {
+        passive[key] = (Number(passive[key]) || 0) + (Number(value) || 0);
+      }
+    }
+    const total = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'].reduce(
+      (sum, key) => sum + Number(passive[key] || 0),
+      0
+    );
+    assert(
+      total >= min && total <= max,
+      `${card.slug} passive L${level} outside ${min}-${max}: ${total}`
+    );
   }
 }
 

@@ -104,6 +104,7 @@ export function buildRuntimeDeck(serializedCards, makeId) {
         block: Number(card.block) || 0,
         heal: Number(card.heal) || 0,
         effects: Array.isArray(card.effects) ? card.effects : [],
+        heldEffect: card.heldEffect || null,
         summon: card.summon || null,
         exhaust: Boolean(card.exhaust),
         upgradeLevel: card.upgradeLevel || 0,

@@ -1,6 +1,4 @@
-/**
- * Tests purs + intégration (si MySQL dispo) pour l'arbre de talents.
- */
+/** Tests purs + intégration de l'arbre de talents V3. */
 import { query } from '../src/config/database.js';
 import {
   FREE_RESPEC_EVERY_LEVELS,
@@ -22,66 +20,47 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 let passed = 0;
 let failed = 0;
 
-function assert(cond, msg) {
-  if (cond) {
+function assert(condition, message) {
+  if (condition) {
     passed += 1;
-    console.log(`  ✓ ${msg}`);
+    console.log(`  ✓ ${message}`);
   } else {
     failed += 1;
-    console.error(`  ✗ ${msg}`);
+    console.error(`  ✗ ${message}`);
   }
 }
 
 console.log('=== Talent tree unit ===');
-assert(FREE_RESPEC_EVERY_LEVELS === 10, 'free respec every 10 levels');
-assert(RESPEC_COST_RYOS === 2000, 'paid respec = 2000 Ryos');
+assert(FREE_RESPEC_EVERY_LEVELS === 10, 'respec gratuit tous les 10 niveaux');
+assert(RESPEC_COST_RYOS === 2000, 'respec payant = 2000 Ryos');
 
-// Catalogue Phase 2 (~150) — validation offline (sans DB)
 {
   const { TALENT_NODE_DEFS, validateDefs, summarize } = await import('./seedTalentTree.js');
   try {
     validateDefs(TALENT_NODE_DEFS);
-    assert(true, 'seed catalogue validateDefs OK');
-  } catch (e) {
-    assert(false, `seed catalogue validateDefs: ${e.message}`);
+    assert(true, 'catalogue V3 valide');
+  } catch (error) {
+    assert(false, `catalogue V3 valide: ${error.message}`);
   }
   const summary = summarize(TALENT_NODE_DEFS);
-  assert(TALENT_NODE_DEFS.length >= 140, `catalogue ≥140 nœuds (got ${TALENT_NODE_DEFS.length})`);
-  assert(summary.byType.stat >= 90, `≥90 stats (got ${summary.byType.stat})`);
-  assert(summary.byType.notable >= 35, `≥35 notables (got ${summary.byType.notable})`);
-  assert(summary.byType.keystone >= 8, `≥8 keystones (got ${summary.byType.keystone})`);
-  assert(
-    summary.byBranch.ninjutsu >= 25,
-    `ninjutsu branch densified (got ${summary.byBranch.ninjutsu})`
-  );
-  assert(
-    summary.byBranch.genjutsu >= 25,
-    `genjutsu branch densified (got ${summary.byBranch.genjutsu})`
-  );
-  assert(
-    summary.byBranch.medicine >= 25,
-    `medicine branch densified (got ${summary.byBranch.medicine})`
-  );
-  const ids = new Set(TALENT_NODE_DEFS.map(n => n.id));
-  const legacyStatKeys = new Set(['vitesse', 'intelligence', 'dexterity']);
-  const hasLegacyBonus = TALENT_NODE_DEFS.some(node =>
-    Object.keys(node.bonus || {}).some(key => legacyStatKeys.has(key))
-  );
-  assert(!hasLegacyBonus, 'legacy stats removed from node bonuses');
+  assert(TALENT_NODE_DEFS.length === 72, `72 talents (got ${TALENT_NODE_DEFS.length})`);
+  assert(summary.points > 80, 'le catalogue entier coûte plus que les 80 points disponibles');
+  assert(!summary.byType.keystone, 'aucun Keystone');
   for (const branch of ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']) {
-    const chakraNodes = TALENT_NODE_DEFS.filter(
-      node => node.branch === branch && Number(node.bonus?.maxChakra) === 1
-    );
-    assert(chakraNodes.length === 2, `${branch} has two +1 max Chakra nodes`);
+    const rows = TALENT_NODE_DEFS.filter(node => node.branch === branch);
+    assert(rows.length === 18, `${branch} contient 18 talents`);
+    assert(new Set(rows.map(node => node.tier)).size === 6, `${branch} contient 6 paliers`);
   }
-  assert(ids.has('intangible'), 'keystone intangible present');
+  const hasChakraTalent = TALENT_NODE_DEFS.some(
+    node => node.bonus?.maxChakra || /chakra/i.test(`${node.descFr} ${node.descEn}`),
+  );
+  assert(!hasChakraTalent, 'aucun talent ne modifie ni ne conditionne le Chakra');
   assert(
-    ids.has('berserker') && ids.has('overload') && ids.has('immortal'),
-    'MVP keystones preserved'
+    TALENT_NODE_DEFS.every(node => node.maxRank >= 1 && node.maxRank <= 3),
+    'rangs limités à 1–3',
   );
 }
 
@@ -90,113 +69,79 @@ async function dbAvailable() {
     await query('SELECT 1 AS ok');
     const tables = await query(
       `SELECT table_name FROM information_schema.tables
-       WHERE table_schema = DATABASE()
-         AND table_name IN ('talent_tree_nodes', 'user_talents')`
+       WHERE table_schema = DATABASE() AND table_name IN ('talent_tree_nodes', 'user_talents')`,
     );
-    const characterColumns = await query(
-      `SELECT column_name FROM information_schema.columns
-       WHERE table_schema = DATABASE()
-         AND table_name = 'player_profiles'
-         AND column_name = 'character_name'`
-    );
-    return tables.length >= 2 && characterColumns.length > 0;
-  } catch (e) {
-    console.warn(`DB indisponible (${e.message}) — tests d'intégration ignorés.`);
+    return tables.length >= 2;
+  } catch (error) {
+    console.warn(`DB indisponible (${error.message}) — intégration ignorée.`);
     return false;
   }
 }
 
-async function ensureSeed() {
-  const countRows = await query('SELECT COUNT(*) AS c FROM talent_tree_nodes');
-  const nodeCount = Number(countRows[0]?.c) || 0;
-  if (nodeCount >= 140) return nodeCount;
-
-  console.log(`  → seed (${nodeCount} nodes) — running seedTalentTree…`);
-  const r = spawnSync(process.execPath, [path.join(__dirname, 'seedTalentTree.js')], {
+async function seed() {
+  const result = spawnSync(process.execPath, [path.join(__dirname, 'seedTalentTree.js')], {
     cwd: path.join(__dirname, '..'),
     stdio: 'inherit',
   });
-  assert(r.status === 0, 'seedTalentTree exit 0');
-  const after = await query('SELECT COUNT(*) AS c FROM talent_tree_nodes');
-  return Number(after[0].c);
+  assert(result.status === 0, 'seedTalentTree terminé');
 }
 
 async function testIntegration() {
   console.log('\n=== Talent tree integration ===');
-  const n = await ensureSeed();
-  assert(n >= 140, `≥140 nœuds seeded (got ${n})`);
-
-  const types = await query('SELECT type, COUNT(*) AS c FROM talent_tree_nodes GROUP BY type');
-  const byType = Object.fromEntries(types.map(r => [r.type, Number(r.c)]));
-  assert((byType.keystone || 0) >= 8, `≥8 keystones (got ${byType.keystone || 0})`);
-  assert((byType.notable || 0) >= 35, `≥35 notables (got ${byType.notable || 0})`);
-  assert((byType.stat || 0) >= 90, `≥90 stats (got ${byType.stat || 0})`);
-
+  await seed();
   const tree = await getTalentTree();
-  assert(tree.length >= 140, `getTalentTree → ${tree.length} nodes`);
+  assert(tree.length === 72, 'API catalogue → 72 talents actuels');
+  assert(
+    tree.every(node => node.tier > 0),
+    'aucun talent legacy exposé',
+  );
 
   const prefix = `talent_test_${Date.now()}`;
   const userResult = await query('INSERT INTO users (username) VALUES (?)', [prefix]);
   const userId = userResult.insertId;
-
   await query(
     `INSERT INTO player_profiles (user_id, display_name, ryos, language)
      VALUES (?, ?, 5000, 'fr')`,
-    [userId, prefix]
+    [userId, prefix],
   );
+  await createCharacter(userId, { name: 'TalentRunner', elementAffinity: 'Katon' });
 
-  await createCharacter(userId, {
-    name: 'TalentRunner',
+  const first = await canUnlock(userId, 'taijutsu_stance');
+  assert(first.ok, 'premier talent accessible au départ');
+  const finalTier = await canUnlock(userId, 'taijutsu_mastery');
+  assert(!finalTier.ok, 'dernier palier verrouillé au départ');
 
-    elementAffinity: 'Katon',
-  });
-
-  const rootCheck = await canUnlock(userId, 'center_root');
-  assert(rootCheck.ok === true, 'canUnlock center_root at start');
-
-  const locked = await canUnlock(userId, 'berserker');
-  assert(locked.ok === false, 'cannot unlock berserker without prereqs');
-
-  await unlockTalent(userId, 'center_root');
+  await unlockTalent(userId, 'taijutsu_stance');
   let talents = await getUserTalents(userId);
-  assert(talents.unlockedNodeIds.includes('center_root'), 'center_root unlocked');
-  assert(talents.talentPointsAvailable === 0, '0 points after first unlock');
+  assert(talents.nodeRanks.taijutsu_stance === 1, 'rang 1 enregistré');
+  assert(talents.spentPoints === 1, 'un point comptabilisé');
 
   await addXP(userId, 100);
-  await unlockTalent(userId, 'tai_5_a');
+  await unlockTalent(userId, 'taijutsu_stance');
+  talents = await getUserTalents(userId);
+  assert(talents.nodeRanks.taijutsu_stance === 2, 'même talent amélioré au rang 2');
   const bonuses = await computeTalentBonuses(userId);
-  assert(bonuses.stats.taijutsu >= 6, `taijutsu from talents ≥6 (got ${bonuses.stats.taijutsu})`);
+  assert(bonuses.stats.taijutsu === 4, 'bonus multiplié par le rang');
 
   const computed = await getComputedStats(userId);
   assert(
     computed.breakdown.talents.taijutsu === bonuses.stats.taijutsu,
-    'getComputedStats wired to talent bonuses'
+    'stats talents raccordées au personnage',
   );
 
   await addXP(userId, 5000);
-  talents = await getUserTalents(userId);
-  assert(talents.talentPointsAvailable >= 1, 'points after XP');
-
   const respec = await respecTalents(userId);
-  assert(respec.pointsRefunded >= 2, `respec refunded ≥2 (got ${respec.pointsRefunded})`);
-  assert(respec.talents.unlockedCount === 0, 'no talents after respec');
-  if (respec.talents.level < 10) {
-    assert(respec.wasFree === false, 'respec paid under level 10');
-    assert(respec.costPaid.ryos === RESPEC_COST_RYOS, 'paid 2000 Ryos');
-  }
+  assert(respec.pointsRefunded === 2, 'respec rembourse chaque rang');
+  assert(respec.talents.unlockedCount === 0, 'aucun talent après respec');
 
   await query('DELETE FROM user_talent_respec_history WHERE user_id = ?', [userId]);
   await query('DELETE FROM user_talents WHERE user_id = ?', [userId]);
-
   await query('DELETE FROM player_profiles WHERE user_id = ?', [userId]);
   await query('DELETE FROM users WHERE id = ?', [userId]);
 }
 
-if (await dbAvailable()) {
-  await testIntegration();
-} else {
-  console.log('(intégration ignorée)');
-}
+if (await dbAvailable()) await testIntegration();
+else console.log('(intégration ignorée)');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

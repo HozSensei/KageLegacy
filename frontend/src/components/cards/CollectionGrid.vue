@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from './CardDisplay.vue';
 import CardHole from './CardHole.vue';
@@ -16,6 +16,7 @@ const props = defineProps({
   ownedOnly: { type: Boolean, default: false },
   ownedCount: { type: Number, default: 0 },
   catalogueTotal: { type: Number, default: 0 },
+  initialSearch: { type: String, default: '' },
 });
 
 const emit = defineEmits(['select', 'update:ownedOnly']);
@@ -25,7 +26,14 @@ const { t } = useI18n();
 const typeFilter = ref('');
 const rarityFilter = ref('');
 const artFilter = ref('');
-const search = ref('');
+const search = ref(props.initialSearch);
+
+watch(
+  () => props.initialSearch,
+  value => {
+    search.value = value;
+  }
+);
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase();

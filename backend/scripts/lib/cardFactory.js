@@ -19,6 +19,14 @@ const STAT_LABELS_FR = {
   startingBlock: 'Armure de départ',
 };
 
+const PASSIVE_BUDGETS = {
+  common: [0, 5],
+  rare: [5, 10],
+  legendary: [10, 15],
+  mythic: [15, 20],
+};
+const ART_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
+
 const STAT_LABELS_EN = {
   taijutsu: 'Taijutsu',
   ninjutsu: 'Ninjutsu',
@@ -43,6 +51,59 @@ export function formatPassiveEn(passive = {}) {
     return `+${v} ${label}`;
   });
   return parts.length ? `Passive: ${parts.join(', ')}` : 'Passive: none';
+}
+
+function trimPassiveToTotal(passive, target, preferredArt) {
+  const next = { ...(passive || {}) };
+  const total = ART_KEYS.reduce((sum, key) => sum + Math.max(0, Number(next[key]) || 0), 0);
+  if (total < target) {
+    const art = ART_KEYS.includes(preferredArt) ? preferredArt : 'medicine';
+    next[art] = (Number(next[art]) || 0) + (target - total);
+    return next;
+  }
+  if (total <= target) return next;
+
+  let overflow = total - target;
+  for (const key of [...ART_KEYS].reverse()) {
+    const removable = Math.min(Math.max(0, Number(next[key]) || 0), overflow);
+    if (removable > 0) next[key] = Number(next[key]) - removable;
+    overflow -= removable;
+    if (overflow === 0) break;
+  }
+  return next;
+}
+
+function normalizePassiveBudgets(passive, upgrades, { rarity, statType }) {
+  const [min, max] = PASSIVE_BUDGETS[rarity] || PASSIVE_BUDGETS.common;
+  const preferredArt = ART_KEYS.includes(statType)
+    ? statType
+    : ART_KEYS.reduce(
+        (best, key) => ((Number(passive[key]) || 0) > (Number(passive[best]) || 0) ? key : best),
+        'medicine'
+      );
+  const baseTotal = ART_KEYS.reduce((sum, key) => sum + Math.max(0, Number(passive[key]) || 0), 0);
+  const baseTarget = baseTotal < min ? min : Math.min(max, baseTotal);
+  const safeBase = trimPassiveToTotal(passive, baseTarget, preferredArt);
+  const base = ART_KEYS.reduce((sum, key) => sum + Math.max(0, Number(safeBase[key]) || 0), 0);
+  const normalizedUpgrades = {};
+
+  for (const levelKey of ['level_1', 'level_2']) {
+    const original = upgrades[levelKey] || {};
+    const passiveBonus = { ...(original.passive || {}) };
+    const bonusTotal = ART_KEYS.reduce(
+      (sum, key) => sum + Math.max(0, Number(passiveBonus[key]) || 0),
+      0
+    );
+    const allowedBonus = Math.max(min - base, Math.min(max - base, bonusTotal));
+    const normalizedBonus = trimPassiveToTotal(passiveBonus, allowedBonus, preferredArt);
+    for (const key of ART_KEYS) {
+      const value = Math.max(0, Number(normalizedBonus[key]) || 0);
+      if (value > 0) passiveBonus[key] = value;
+      else delete passiveBonus[key];
+    }
+    normalizedUpgrades[levelKey] = { ...original, passive: passiveBonus };
+  }
+  return { passive: safeBase, upgrades: normalizedUpgrades, base };
 }
 
 function remapUpgradePassives(upgrades, { statType, secondaryStatType }) {
@@ -78,6 +139,7 @@ export function defineCard({
   block = 0,
   heal = 0,
   effects = [],
+  heldEffect = null,
   summon = null,
   exhaust = false,
   passive = {},
@@ -96,8 +158,10 @@ export function defineCard({
     throw new Error(`defineCard missing descriptions: ${slug}`);
   }
 
-  const primary = normalizeArtKey(statType) || String(statType).toLowerCase();
-  const secondary = resolveSecondaryArt(slug, statTypeSecondary);
+  const isCommonCard = type === 'item' || type === 'summon' || slug.startsWith('clan-');
+  const requestedPrimary = normalizeArtKey(statType) || String(statType).toLowerCase();
+  const primary = isCommonCard ? 'common' : requestedPrimary;
+  const secondary = isCommonCard ? null : resolveSecondaryArt(slug, statTypeSecondary);
   const passiveBefore = { ...(passive || {}) };
   const resolvedCrit = deriveCritChance({
     critChance,
@@ -112,6 +176,10 @@ export function defineCard({
   const remappedUpgrades = remapUpgradePassives(upgrades, {
     statType: primary,
     secondaryStatType: secondary,
+  });
+  const normalized = normalizePassiveBudgets(remappedPassive, remappedUpgrades, {
+    rarity,
+    statType: primary,
   });
 
   return {
@@ -128,20 +196,21 @@ export function defineCard({
     baseBlock: block,
     baseHeal: heal,
     effects,
+    heldEffect,
     summon: summon || undefined,
     exhaust: Boolean(exhaust),
     critChance: resolvedCrit,
-    passiveBonus: remappedPassive,
-    passiveDescriptionFr: formatPassiveFr(remappedPassive),
-    passiveDescriptionEn: formatPassiveEn(remappedPassive),
+    passiveBonus: normalized.passive,
+    passiveDescriptionFr: formatPassiveFr(normalized.passive),
+    passiveDescriptionEn: formatPassiveEn(normalized.passive),
     descriptionFr,
     descriptionEn,
     loreFr,
     loreEn,
     upgradable,
     upgradeBonuses: {
-      level_1: remappedUpgrades.level_1 || {},
-      level_2: remappedUpgrades.level_2 || {},
+      level_1: normalized.upgrades.level_1 || {},
+      level_2: normalized.upgrades.level_2 || {},
     },
   };
 }

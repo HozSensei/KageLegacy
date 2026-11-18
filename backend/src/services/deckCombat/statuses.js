@@ -61,7 +61,7 @@ export function resolveStartOfTurnStatuses(entity) {
   }
 
   const regen = getStatusValue(statuses, 'regen');
-  if (regen > 0) {
+  if (regen > 0 && hp > 0) {
     const before = hp;
     hp = Math.min(maxHp, hp + regen);
     logs.push({ type: 'regen', value: hp - before, hp });

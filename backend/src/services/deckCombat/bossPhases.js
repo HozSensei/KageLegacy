@@ -1,6 +1,6 @@
 /**
  * Boss multi-phases — seuils HP → intents / buffs / immunités / barrière.
- * Module pur (pas de DB). Voir docs/BOSS_PHASES.md.
+ * Module pur (pas de DB). Voir docs/CARDS_AND_COMBAT.md.
  */
 import { applyStatus } from './statuses.js';
 import { applyDamageThroughBlock } from './formulas.js';
@@ -84,11 +84,11 @@ export function applyPhaseEnter(enemy, phaseDef) {
 
   if (phaseDef.ai) next.ai = phaseDef.ai;
   if (Array.isArray(phaseDef.pattern)) {
-    next.pattern = phaseDef.pattern.map((p) => ({ ...p }));
+    next.pattern = phaseDef.pattern.map(p => ({ ...p }));
     next.patternIndex = 0;
   }
   if (Array.isArray(phaseDef.patterns)) {
-    next.patterns = phaseDef.patterns.map((p) => ({
+    next.patterns = phaseDef.patterns.map(p => ({
       ...p,
       intent: p.intent ? { ...p.intent } : p.intent,
     }));
@@ -107,9 +107,7 @@ export function maybeAdvanceBossPhase(enemy, { announceIntent } = {}) {
     return { enemy, logs: [], changed: false };
   }
 
-  const current = Number.isFinite(Number(enemy.phaseIndex))
-    ? Number(enemy.phaseIndex)
-    : -1;
+  const current = Number.isFinite(Number(enemy.phaseIndex)) ? Number(enemy.phaseIndex) : -1;
   const target = findTargetPhaseIndex(enemy);
   if (target <= current) {
     return { enemy, logs: [], changed: false };
@@ -149,7 +147,7 @@ export function applyDamageThroughBarrier(
   entity,
   rawDamage,
   opts = {},
-  damageFn = applyDamageThroughBlock,
+  damageFn = applyDamageThroughBlock
 ) {
   const incoming = Math.max(0, Math.floor(Number(rawDamage) || 0));
   let barrier = Math.max(0, Number(entity.barrier) || 0);
@@ -173,11 +171,7 @@ export function applyDamageThroughBarrier(
     }
   }
 
-  const base = damageFn(
-    { ...entity, barrier },
-    remaining,
-    opts,
-  );
+  const base = damageFn({ ...entity, barrier }, remaining, opts);
 
   let statuses = [...(entity.statuses || [])];
   if (barrierBroken && opts.shieldBreakVulnerable !== false) {
@@ -238,12 +232,7 @@ export function hitEnemy(enemy, rawDamage, opts = {}, damageFn = applyDamageThro
   }
 
   if (remaining > 0) {
-    const result = applyDamageThroughBarrier(
-      next,
-      remaining,
-      opts,
-      damageFn,
-    );
+    const result = applyDamageThroughBarrier(next, remaining, opts, damageFn);
     next = {
       ...next,
       hp: result.hp,

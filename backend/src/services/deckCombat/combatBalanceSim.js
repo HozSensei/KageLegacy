@@ -4,7 +4,7 @@
  * Rejoue la boucle playCard / endTurn du moteur avec une politique joueur
  * déterministe « greedy_damage_then_block » et un RNG seedé.
  *
- * @see docs/COMBAT_BALANCE_TESTS.md
+ * @see docs/TESTING.md
  */
 import { BASE_CHAKRA, BASE_MAX_HP, DRAW_PER_TURN } from './constants.js';
 import {
@@ -18,9 +18,11 @@ import {
   applyCardPlay,
   computeCardBlock,
   computeCardDamage,
+  effectiveCardCost,
   resolveAllyAttack,
 } from './cardEffects.js';
 import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './statuses.js';
+import { applyHeldTurnStart } from './heldEffects.js';
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
@@ -89,7 +91,7 @@ function applyBalanceDeckUpgrade(card, upgradeLevel) {
       passive_bonus_json: card.passiveBonus || {},
       upgradeBonuses: balanceUpgradeBonuses(card),
     },
-    upgradeLevel,
+    upgradeLevel
   );
   // Ne pas écraser le reste de la carte avec un objet « computed » incomplet.
   return {
@@ -113,7 +115,7 @@ function buildProfileDeckEntries(profile) {
     ...entry,
     card: applyBalanceDeckUpgrade(
       entry.card,
-      profile.deckUpgradeSlugs?.includes(entry.card.slug) ? profile.deckUpgradeLevel || 0 : 0,
+      profile.deckUpgradeSlugs?.includes(entry.card.slug) ? profile.deckUpgradeLevel || 0 : 0
     ),
   }));
 }
@@ -124,8 +126,8 @@ function checkOutcome(session) {
   return null;
 }
 
-function effectiveCost(card, talentMods) {
-  return Math.max(0, (Number(card.cost) || 0) + (Number(talentMods.costDelta) || 0));
+function effectiveCost(card, talentMods, player = {}) {
+  return effectiveCardCost(card, talentMods, player).cost;
 }
 
 function estimateIncomingDamage(enemy) {
@@ -141,7 +143,7 @@ function estimateIncomingDamage(enemy) {
 export function scoreCardForGreedy(card, session) {
   const { player, enemy, stats, talentEffects } = session;
   const talentMods = computeTalentDamageMods(talentEffects.applied, player, card);
-  const cost = effectiveCost(card, talentMods);
+  const cost = effectiveCost(card, talentMods, player);
   if (cost > (Number(player.chakra) || 0)) return -Infinity;
 
   const incoming = estimateIncomingDamage(enemy);
@@ -154,6 +156,7 @@ export function scoreCardForGreedy(card, session) {
       enemyPosture: enemy.posture,
       enemyAffinity: enemy.elementAffinity,
       talentMods,
+      player,
       // Score sans crit : rng haut → rollCrit ne proc pas
       rng: () => 0.999,
     });
@@ -265,7 +268,7 @@ function simPlayCard(session, instanceId, rng) {
   const moved = moveCardFromHand(
     nextPlayer,
     instanceId,
-    resolveCardPileDestination(card, session.talentEffects.applied),
+    resolveCardPileDestination(card, session.talentEffects.applied)
   );
 
   const next = {
@@ -450,7 +453,7 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
   const talentStart = applyTalentStartOfTurn(s.player, s.talentEffects.applied, {
     turn: s.currentTurn,
   });
-  s.player = talentStart.player;
+  s.player = applyHeldTurnStart(talentStart.player).player;
 
   const allyAct = resolveAllyAttack(s.player, s.enemy);
   s.player = allyAct.player;
@@ -500,7 +503,7 @@ export function createSimSession({
   const entries = deckEntries || buildProfileDeckEntries(profile);
   const runtimeCards = buildRuntimeDeck(
     entries,
-    (card, n) => `${card.slug || card.id}-${n}-s${seed}`,
+    (card, n) => `${card.slug || card.id}-${n}-s${seed}`
   );
   const shuffled = shuffle(runtimeCards, rng);
 
@@ -534,7 +537,7 @@ export function createSimSession({
   player = drawn.player;
 
   const talentStart = applyTalentStartOfTurn(player, classified.applied, { turn: 1 });
-  player = talentStart.player;
+  player = applyHeldTurnStart(talentStart.player).player;
 
   const enemy = generateEnemyFromTemplate(templateId, difficulty);
   // Intent seedé (IA weighted) pour reproductibilité
@@ -639,7 +642,7 @@ export function aggregateFights({
         maxTurns,
         profileOverride,
         deckEntries,
-      }),
+      })
     );
   }
 
@@ -659,7 +662,7 @@ export function aggregateFights({
     avgTurnsOnWin: avg(wins, 'turns'),
     avgTurnsOnLoss: avg(
       fights.filter(f => !f.won),
-      'turns',
+      'turns'
     ),
     avgHpRemainingOnWin: wins.length ? avg(wins, 'hpRemaining') : null,
     avgDamageTaken: avg(fights, 'damageTaken'),

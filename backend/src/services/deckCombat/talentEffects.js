@@ -1,7 +1,7 @@
 /**
  * Application des effect_code talents (keystones / notables) en combat.
  *
- * Catalogue : docs/TALENT_EFFECTS.md
+ * Catalogue : docs/PROGRESSION.md et backend/src/config/
  */
 import { GENJUTSU_DEBUFF_KEYS, TALENT_EFFECT_MVP } from './constants.js';
 import { applyStatus, PLAYER_DEBUFF_KEYS } from './statuses.js';
@@ -19,7 +19,7 @@ export function classifyTalentEffects(effectCodes = []) {
 
 export function enemyHasGenjutsuDebuff(enemy) {
   return (enemy?.statuses || []).some(
-    s => GENJUTSU_DEBUFF_KEYS.has(s.key) && (s.duration == null || s.duration > 0),
+    s => GENJUTSU_DEBUFF_KEYS.has(s.key) && (s.duration == null || s.duration > 0)
   );
 }
 
@@ -397,7 +397,9 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
   const next = {
     ...player,
     cardsPlayedThisTurn: (Number(player.cardsPlayedThisTurn) || 0) + 1,
-    previousCardStatType: card?.statType || null,
+    previousCardStatType: ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'].includes(card?.statType)
+      ? card.statType
+      : null,
   };
   const nextEnemy = enemy;
   const codes = new Set(effectCodes || []);
@@ -483,7 +485,7 @@ export function applyTalentAfterCardPlay(player, card, effectCodes = [], { enemy
 export function applyTalentAfterDamageTaken(
   player,
   effectCodes = [],
-  { enemy = null, damageDealt = 0 } = {},
+  { enemy = null, damageDealt = 0 } = {}
 ) {
   const logs = [];
   const codes = new Set(effectCodes || []);
@@ -604,7 +606,7 @@ export function applyTalentToStatusPayload({
 export function applyTalentAfterHeal(
   player,
   effectCodes = [],
-  { healAttempted = 0, healApplied = 0 } = {},
+  { healAttempted = 0, healApplied = 0 } = {}
 ) {
   const logs = [];
   const codes = new Set(effectCodes || []);

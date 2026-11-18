@@ -1,61 +1,53 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import TalentTreeCanvas from '../components/talents/TalentTreeCanvas.vue'
-import TalentSidebar from '../components/talents/TalentSidebar.vue'
-import RespecModal from '../components/talents/RespecModal.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import { talentBranchTone } from '../utils/talentVisuals'
-import forestImage from '../assets/illustrations/forest-path.webp'
-import { useTalentTreeStore } from '../stores/talentTree'
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import TalentTreeCanvas from '../components/talents/TalentTreeCanvas.vue';
+import TalentSidebar from '../components/talents/TalentSidebar.vue';
+import RespecModal from '../components/talents/RespecModal.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import { talentBranchTone } from '../utils/talentVisuals';
+import forestImage from '../assets/illustrations/forest-path.webp';
+import { useTalentTreeStore } from '../stores/talentTree';
 
-defineOptions({ name: 'TalentTreeView' })
+defineOptions({ name: 'TalentTreeView' });
 
-const { t, locale } = useI18n()
-const store = useTalentTreeStore()
-const showRespec = ref(false)
-const message = ref(null)
+const { t, locale } = useI18n();
+const store = useTalentTreeStore();
+const showRespec = ref(false);
+const message = ref(null);
 
-const BRANCHES = ['', 'taijutsu', 'ninjutsu', 'genjutsu', 'medicine']
+const BRANCHES = ['', 'taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
 
-const canUnlockSelected = computed(() => store.isUnlockable(store.selectedNode))
+const canUnlockSelected = computed(() => store.isUnlockable(store.selectedNode));
 
-const visibleNodes = computed(() =>
-  store.branchFilter ? store.filteredNodes : store.nodes
-)
-
-const visibleEdges = computed(() => {
-  if (!store.branchFilter) return store.edges
-  const ids = new Set(visibleNodes.value.map((n) => n.nodeId))
-  return store.edges.filter((e) => ids.has(e.from.nodeId) && ids.has(e.to.nodeId))
-})
+const visibleNodes = computed(() => (store.branchFilter ? store.filteredNodes : store.nodes));
 
 onMounted(async () => {
-  await store.loadAll()
-})
+  await store.loadAll();
+});
 
 async function onUnlock(nodeId) {
-  message.value = null
-  const result = await store.unlock(nodeId)
+  message.value = null;
+  const result = await store.unlock(nodeId);
   if (result) {
-    message.value = t('talents.unlockSuccess')
+    message.value = t('talents.unlockSuccess');
   } else if (store.error) {
-    message.value = store.error
+    message.value = store.error;
   }
 }
 
 async function onRespecConfirm() {
-  message.value = null
-  const result = await store.respecTree()
+  message.value = null;
+  const result = await store.respecTree();
   if (result) {
-    showRespec.value = false
-    message.value = t('talents.respecSuccess', { count: result.pointsRefunded })
+    showRespec.value = false;
+    message.value = t('talents.respecSuccess', { count: result.pointsRefunded });
   }
 }
 
 function onSelect(nodeId) {
-  store.selectNode(nodeId)
-  message.value = null
+  store.selectNode(nodeId);
+  message.value = null;
 }
 </script>
 
@@ -99,8 +91,8 @@ function onSelect(nodeId) {
         <TalentTreeCanvas
           v-else
           :nodes="visibleNodes"
-          :edges="visibleEdges"
-          :unlocked-set="store.unlockedSet"
+          :node-ranks="store.nodeRanks"
+          :branch-points="store.branchPoints"
           :selected-node-id="store.selectedNodeId"
           :is-unlockable="store.isUnlockable"
           :locale="locale"
@@ -125,7 +117,7 @@ function onSelect(nodeId) {
     <RespecModal
       :open="showRespec"
       :respec="store.respec"
-      :unlocked-count="store.unlockedNodeIds.length"
+      :unlocked-count="store.spentPoints"
       :loading="store.actionLoading"
       @close="showRespec = false"
       @confirm="onRespecConfirm"

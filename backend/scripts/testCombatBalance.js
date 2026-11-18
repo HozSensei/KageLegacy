@@ -9,7 +9,7 @@
  * Soft (trop trivial) : warning ; fail seulement avec --strict.
  * Mode rapport (--report) : tableau lisible, exit 0 sauf erreur fatale.
  *
- * @see docs/COMBAT_BALANCE_TESTS.md
+ * @see docs/TESTING.md
  */
 import {
   BALANCE_ENCOUNTERS,
@@ -270,10 +270,10 @@ const starter = buildStarterFixture();
     JSON.stringify(starter.profile.stats) ===
       JSON.stringify({
         // Remap Vit→art primaire / Int→secondaire|Gen (combatArts).
-        taijutsu: 11,
-        ninjutsu: 14,
-        genjutsu: 17,
-        medicine: 8,
+        taijutsu: 17,
+        ninjutsu: 28,
+        genjutsu: 29,
+        medicine: 6,
         maxHp: 12,
         maxChakra: 0,
         startingBlock: 0,
@@ -298,13 +298,13 @@ const starter = buildStarterFixture();
     'starter seed : bonus L1 actifs et passifs'
   );
   assert(
-    fist2.damage === 12 && fist2.cost === 0 && fist2.passiveBonus.taijutsu === 6,
+    fist2.damage === 12 && fist2.cost === 0 && fist2.passiveBonus.taijutsu === 5,
     'starter seed : bonus L2 relatifs à la base'
   );
   const upgradedEntries = starter.entries.map(entry =>
     entry.card.slug === fistSeed.slug ? { ...entry, card: fist1 } : entry
   );
-  assert(starterStats(upgradedEntries).taijutsu === 12, 'bonus passif L1 ajouté aux stats du deck');
+  assert(starterStats(upgradedEntries).taijutsu === 18, 'bonus passif L1 ajouté aux stats du deck');
   const session = createSimSession({
     profileId: 'starter',
     profileOverride: starter.profile,

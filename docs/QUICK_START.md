@@ -1,15 +1,13 @@
-# Démarrage rapide
-
-Kage Legacy est un TCG shinobi dans le navigateur. Ce guide décrit les commandes présentes dans les scripts du dépôt; les systèmes d'escouade/cycles mentionnés dans d'anciens documents ne font pas partie du jeu actuel.
+# Démarrage local
 
 ## Prérequis
 
-- Node.js compatible avec les versions précisées dans les manifestes `package.json`.
-- Docker et Docker Compose pour MySQL local.
+- Node.js 22 recommandé ;
+- npm ;
+- Docker avec Docker Compose ;
+- MySQL local fourni par `docker-compose.yml`.
 
-## Installation et lancement
-
-À la racine du dépôt :
+## Première installation
 
 ```sh
 cp .env.example .env
@@ -17,41 +15,75 @@ npm run setup
 npm run dev
 ```
 
-Le frontend est accessible à `http://localhost:5173`, l'API à `http://localhost:3000`. Consultez les scripts de `package.json` à la racine et dans `backend/` pour leur comportement exact.
+`setup` installe les dépendances, démarre MySQL, applique le schéma initial puis exécute les seeds.
 
-## Commandes courantes
+Adresses par défaut :
+
+- frontend : `http://localhost:5173` ;
+- API : `http://localhost:3000` ;
+- WebSocket PvP : `ws://localhost:3000/ws/pvp`.
+
+## Installation manuelle
 
 ```sh
-npm run lint
+npm install
+npm install --prefix backend
+npm install --prefix frontend
 npm run db:up
 npm run db:migrate
 npm run db:seed
-npm run test:combat-engine
-npm run test:combat-balance
-npm run test:e2e
+npm run dev
 ```
 
-`npm run db:migrate` installe le schéma initial complet et exige une base vide ; il ne met pas à niveau une base existante. En cas d'échec au milieu de l'installation, recréez la base avant de réessayer. `db:seed` initialise les données TCG (cartes, talents et Battle Pass).
+## Base de données
 
-### Tests E2E
+Le schéma est initial uniquement : `backend/schema.sql` doit être appliqué sur une base vide avec `npm run db:migrate`. Il n'existe pas de système de migrations incrémentales.
 
-Créer d'abord une base MySQL **vide et dédiée** dont le nom se termine par `_e2e`, et donner à l'utilisateur configuré les droits nécessaires. `e2e:prepare` refuse une base préexistante non marquée, un nom différent, la production ou l'absence de consentement explicite. Exemple pour un shell POSIX, avec `DB_HOST`, `DB_PORT`, `DB_USER` et `DB_PASSWORD` configurés pour cette base :
+Pour repartir de zéro :
 
 ```sh
-export DB_NAME=kage_legacy_e2e
-export E2E_ALLOW_SEED=true
-export ENABLE_SCHEDULER=false
+npm run db:down
+docker volume rm kagelegacy_mysql_data
+npm run db:up
+npm run db:migrate
+npm run db:seed
+```
+
+Le nom exact du volume Docker peut varier selon le nom du projet Compose. Vérifier avec `docker volume ls` avant toute suppression.
+
+## Commandes utiles
+
+```sh
+npm run dev
+npm run lint
+npm run test:unit
+npm run test:combat-engine
+npm run test:combat-balance
+npm run test:type-advantage
+npm run audit:card-balance --prefix backend
+npm run test:held-effects --prefix backend
+```
+
+## Tests E2E
+
+Les tests E2E exigent une base dédiée et les garde-fous décrits dans `backend/scripts/e2ePreflight.js`.
+
+```sh
 npm run e2e:prepare
 npm run test:e2e
 ```
 
-Sous PowerShell, utiliser `$env:DB_NAME = 'kage_legacy_e2e'`, `$env:E2E_ALLOW_SEED = 'true'` et `$env:ENABLE_SCHEDULER = 'false'` à la place des `export`. Conserver ces variables pour lancer les serveurs et Cypress : ils doivent utiliser la même base. La préparation ajoute les cartes, talents, une saison de test et un compte `demo_sensei` / `demo`, uniquement pour cette base dédiée. Si la saison ou sa quête hebdomadaire expire, recréer une base E2E vide avant de relancer. Ne jamais utiliser ces identifiants en production.
+`e2e:prepare` vérifie d'abord l'environnement, applique le schéma, seed les cartes/talents et prépare les données TCG dédiées. Ne pas exécuter cette commande contre une base de production.
 
-## Repères dans le code
+## Développement séparé
 
-- Cartographie du dépôt et fichiers de configuration : [`../AGENTS.md`](../AGENTS.md).
-- Backend : `backend/src/routes/` (API), `backend/src/services/` (métier), `backend/src/config/` (configuration).
-- Frontend : `frontend/src/views/`, `frontend/src/components/`, `frontend/src/stores/`.
-- Règles visibles en jeu : `frontend/src/content/rules.fr.md` et `rules.en.md`.
+```sh
+npm run dev:api
+npm run dev:web
+```
 
-Pour les effets de cartes, statistiques des ninjas et coûts, vérifier les catalogues et implémentations utilisés par le backend : les anciennes valeurs de documentation peuvent être dépassées.
+En développement, Vite proxifie `/api` vers l'API, mais pas `/ws`. Pour le PvP local, `VITE_API_URL` doit pointer vers l'origine de l'API afin que le client construise aussi l'URL WebSocket correcte.
+
+## Secrets
+
+Ne jamais committer de valeur réelle. Copier les fichiers `.env.example` et `.env.prod.example` puis conserver les fichiers locaux ignorés. Voir [Exploitation](OPERATIONS.md).

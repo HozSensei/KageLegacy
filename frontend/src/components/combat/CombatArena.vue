@@ -31,6 +31,14 @@ const emit = defineEmits([
 
 const { t, locale } = useI18n();
 
+function confirmEndTurn() {
+  if (!canAct.value || props.busy) return;
+  const chakra = Number(props.combat.player.chakra) || 0;
+  if (chakra <= 1 || window.confirm(t('combat.endTurnConfirm', { n: chakra }))) {
+    emit('end-turn');
+  }
+}
+
 function confirmForfeit() {
   const message =
     locale.value === 'en'
@@ -198,6 +206,7 @@ onBeforeUnmount(() => {
         :selected-id="selectedId"
         :disabled="busy || !canAct"
         :chakra="combat.player.chakra"
+        :cost-reduction="combat.player.nextCardCostReduction || 0"
         :stats="combat.stats"
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
@@ -246,7 +255,7 @@ onBeforeUnmount(() => {
           class="btn-secondary btn-lg"
           :disabled="busy || !canAct"
           data-testid="end-turn-btn"
-          @click="emit('end-turn')"
+          @click="confirmEndTurn"
         >
           {{ t('combat.endTurn') }}
         </button>

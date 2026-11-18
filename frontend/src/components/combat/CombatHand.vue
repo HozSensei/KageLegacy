@@ -10,6 +10,7 @@ const props = defineProps({
   selectedId: { type: String, default: null },
   disabled: { type: Boolean, default: false },
   chakra: { type: Number, default: 0 },
+  costReduction: { type: Number, default: 0 },
   /** Snapshot stats combat — figures affichées en valeur effective. */
   stats: { type: Object, default: null },
 });
@@ -160,7 +161,8 @@ function pinLeaving(el) {
 }
 
 function canAfford(card) {
-  return (Number(card.cost ?? card.baseCost) || 0) <= props.chakra;
+  const baseCost = Number(card.cost ?? card.baseCost) || 0;
+  return Math.max(0, baseCost - (Number(props.costReduction) || 0)) <= props.chakra;
 }
 
 const fanStyle = computed(() => {
@@ -174,7 +176,9 @@ const displayCards = computed(() =>
   props.cards.map(card => {
     const type =
       card.type || (card.damage ? 'attack' : card.block ? 'defense' : card.heal ? 'skill' : null);
-    return type === card.type ? card : { ...card, type };
+    const baseCost = Number(card.cost ?? card.baseCost) || 0;
+    const displayCost = Math.max(0, baseCost - (Number(props.costReduction) || 0));
+    return { ...card, type: type || card.type, cost: displayCost };
   })
 );
 </script>

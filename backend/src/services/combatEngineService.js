@@ -4,7 +4,7 @@
  * API publique :
  *   startCombat, getCombatState, playCard, endTurn, forfeit, discardForChakra
  *
- * Formules : docs/COMBAT_SYSTEM.md
+ * Formules : docs/CARDS_AND_COMBAT.md
  *   Dégâts = Base × (1 + Stat/100)
  *   Chakra 3/tour, pioche 5, armure fade en fin de tour joueur
  */
@@ -19,6 +19,7 @@ import {
 } from './deckCombat/deckRuntime.js';
 import { applyCardPlay, resolveAllyAttack } from './deckCombat/cardEffects.js';
 import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './deckCombat/statuses.js';
+import { applyHeldTurnStart } from './deckCombat/heldEffects.js';
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
@@ -60,7 +61,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName],
+      [tableName]
     );
     return rows.length > 0;
   } catch {
@@ -74,7 +75,7 @@ async function columnExists(tableName, columnName) {
       `SELECT 1 AS ok FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
        LIMIT 1`,
-      [tableName, columnName],
+      [tableName, columnName]
     );
     return rows.length > 0;
   } catch {
@@ -87,7 +88,7 @@ async function appendLog(combatId, turn, actionType, actionData) {
   await query(
     `INSERT INTO combat_logs (combat_session_id, turn, action_type, action_data_json)
      VALUES (?, ?, ?, ?)`,
-    [combatId, turn, actionType, JSON.stringify(actionData || {})],
+    [combatId, turn, actionType, JSON.stringify(actionData || {})]
   );
 }
 
@@ -138,7 +139,7 @@ async function persistSession(session) {
         session.rewards != null ? JSON.stringify(session.rewards) : null,
         session.id,
         session.userId,
-      ],
+      ]
     );
   } else {
     await query(
@@ -154,7 +155,7 @@ async function persistSession(session) {
         session.currentPhase,
         session.id,
         session.userId,
-      ],
+      ]
     );
   }
 }
@@ -345,7 +346,7 @@ async function loadPlayerName(userId) {
   try {
     const rows = await query(
       'SELECT character_name FROM player_profiles WHERE user_id = ? AND character_name IS NOT NULL LIMIT 1',
-      [userId],
+      [userId]
     );
     return rows[0]?.character_name || 'Shinobi';
   } catch {
@@ -375,7 +376,7 @@ export async function startCombat(userId, opts = {}) {
 
   const active = await query(
     "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId],
+    [userId]
   );
   if (active[0]) {
     throw httpError(409, `Combat déjà en cours (${active[0].id}). Abandonnez-le ou terminez-le.`);
@@ -390,7 +391,7 @@ export async function startCombat(userId, opts = {}) {
   if (missionId && !templateId) {
     const rows = await query(
       'SELECT * FROM mission_definitions WHERE id = ? AND is_active = 1 LIMIT 1',
-      [missionId],
+      [missionId]
     );
     const mission = rows[0];
     if (!mission) throw httpError(404, 'Mission introuvable.');
@@ -420,7 +421,7 @@ export async function startCombat(userId, opts = {}) {
 
   const runtimeCards = buildRuntimeDeck(
     deckInfo.cards,
-    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`,
+    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`
   );
   const shuffled = shuffle(runtimeCards);
 
@@ -458,6 +459,8 @@ export async function startCombat(userId, opts = {}) {
 
   const talentStart = applyTalentStartOfTurn(player, classified.applied, { turn: 1 });
   player = talentStart.player;
+  const heldStart = applyHeldTurnStart(player);
+  player = heldStart.player;
 
   const enemy = generateEnemyFromTemplate(templateId, difficulty);
 
@@ -488,7 +491,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   } else if (hasRewardsCol) {
     await query(
@@ -505,7 +508,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   } else {
     await query(
@@ -522,7 +525,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   }
 
@@ -531,6 +534,7 @@ export async function startCombat(userId, opts = {}) {
     ...combatStart.logs,
     { type: 'draw', count: drawn.drawn.length },
     ...talentStart.logs,
+    ...heldStart.logs,
     { type: 'intent', intent: enemy.intent },
   ];
   await appendLog(id, 1, 'combat_start', {
@@ -615,7 +619,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const moved = moveCardFromHand(
     nextPlayer,
     handId,
-    resolveCardPileDestination(card, session.talentEffects.applied),
+    resolveCardPileDestination(card, session.talentEffects.applied)
   );
 
   session.player = moved.player;
@@ -816,7 +820,7 @@ export async function endTurn(userId, combatId) {
     const { trackDamageTakenForAchievements } = await import('./achievementService.js');
     session.player = trackDamageTakenForAchievements(
       session.player,
-      enemyAct.damageTakenByPlayer || 0,
+      enemyAct.damageTakenByPlayer || 0
     );
   } catch {
     /* exploits optionnels */
@@ -860,13 +864,22 @@ export async function endTurn(userId, combatId) {
   }
 
   const playerStart = resolveStartOfTurnStatuses(session.player);
+  session.player = playerStart.entity;
+  logs.push(...playerStart.logs.map(l => ({ ...l, side: 'player' })));
+
+  if (checkVictory(session)) {
+    logs = await finalizeCombatOutcome(session, logs);
+    await persistSession(session);
+    await appendLog(combatId, session.currentTurn, 'end_turn', { logs, outcome: session.state });
+    return publicState(session, logs);
+  }
+
   session.player = {
     ...playerStart.entity,
     chakra: (session.player.maxChakra ?? BASE_CHAKRA) + carriedChakra,
     discardedForChakra: false,
     elementalFusionDrawnThisTurn: false,
   };
-  logs.push(...playerStart.logs.map(l => ({ ...l, side: 'player' })));
   logs.push({ type: 'chakra_carryover', amount: carriedChakra, chakra: session.player.chakra });
 
   const talentStart = applyTalentStartOfTurn(session.player, session.talentEffects.applied, {
@@ -874,6 +887,9 @@ export async function endTurn(userId, combatId) {
   });
   session.player = talentStart.player;
   logs.push(...talentStart.logs);
+  const heldStart = applyHeldTurnStart(session.player);
+  session.player = heldStart.player;
+  logs.push(...heldStart.logs);
 
   // Allié attaque automatiquement
   const allyAct = resolveAllyAttack(session.player, session.enemy);

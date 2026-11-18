@@ -1,223 +1,308 @@
 /**
  * Illustrations locales des cartes (slug → asset Vite).
  * Préférence WebP ; fallback PNG pour les builds / previews hors Vite.
- * Full catalogue: 206 cards (STARTER + wave1 + wave2 + clan legendaries).
+ * Full catalogue: 250 cards (STARTER + wave1 + wave2 + wave3 + clan legendaries).
  *
- * Source grids (UUID filenames in assets/) → catalogue ranges:
- *   756f59f6… #1–16 · 6c84a1bb… #17–32 · 4a2ad300… #33–48 · 67ea9443… #49–64
- *   76d31954… #65–80 · 6d077fee… #81–96 · 29a0e9f1… #97–112
- *   0a3032e5… #113–128 · b82647f5… #129–144 · 6be42b39… #145–160
- *   65afc719… #161–176 · 072b1be0… #177–192 · af4d0467… #193–206
+ * Wave 3 source grids in assets/ → card ranges:
+ *   1-16.png #1–16 · 17-32.png #17–32 · 33-44.png #33–44
  */
-import abysseDArgent from '../assets/cards/abysse-d-argent.webp'
-import abysseSilencieux from '../assets/cards/abysse-silencieux.webp'
-import aegisAncestral from '../assets/cards/aegis-ancestral.webp'
-import aegisDuMirage from '../assets/cards/aegis-du-mirage.webp'
-import aiguilleDOrage from '../assets/cards/aiguille-d-orage.webp'
-import aiguillonNerveux from '../assets/cards/aiguillon-nerveux.webp'
-import ampouleDeChakra from '../assets/cards/ampoule-de-chakra.webp'
-import ampouleVive from '../assets/cards/ampoule-vive.webp'
-import ancrageProfond from '../assets/cards/ancrage-profond.webp'
-import ancrageTellurique from '../assets/cards/ancrage-tellurique.webp'
-import arcStatique from '../assets/cards/arc-statique.webp'
-import armureDeMagma from '../assets/cards/armure-de-magma.webp'
-import assautDeLAube from '../assets/cards/assaut-de-l-aube.webp'
-import assautDuCol from '../assets/cards/assaut-du-col.webp'
-import attelleVive from '../assets/cards/attelle-vive.webp'
-import bainDeSources from '../assets/cards/bain-de-sources.webp'
-import balayageDeGenou from '../assets/cards/balayage-de-genou.webp'
-import bandageRenforce from '../assets/cards/bandage-renforce.webp'
-import bandeDeSoie from '../assets/cards/bande-de-soie.webp'
-import barrageDeLames from '../assets/cards/barrage-de-lames.webp'
-import barriereStatique from '../assets/cards/barriere-statique.webp'
-import bastionTellurique from '../assets/cards/bastion-tellurique.webp'
-import bouclierDeBois from '../assets/cards/bouclier-de-bois.webp'
-import bouclierDeCendres from '../assets/cards/bouclier-de-cendres.webp'
-import bouclierDuChirurgien from '../assets/cards/bouclier-du-chirurgien.webp'
-import braiseInterieure from '../assets/cards/braise-interieure.webp'
-import brouillageLeger from '../assets/cards/brouillage-leger.webp'
-import brouillardPersistant from '../assets/cards/brouillard-persistant.webp'
-import carapaceDeFer from '../assets/cards/carapace-de-fer.webp'
-import carapaceDuColosse from '../assets/cards/carapace-du-colosse.webp'
-import cascadePercee from '../assets/cards/cascade-percee.webp'
-import cauchemarAigu from '../assets/cards/cauchemar-aigu.webp'
-import cendreSpiralee from '../assets/cards/cendre-spiralee.webp'
-import chaineDEclairs from '../assets/cards/chaine-d-eclairs.webp'
-import chantDuGuerisseur from '../assets/cards/chant-du-guerisseur.webp'
-import chargeElectrique from '../assets/cards/charge-electrique.webp'
-import chargeVive from '../assets/cards/charge-vive.webp'
-import chauffeMusculaire from '../assets/cards/chauffe-musculaire.webp'
-import citadelleDePierre from '../assets/cards/citadelle-de-pierre.webp'
-import clanBenigiri from '../assets/cards/clan-benigiri.webp'
-import clanKazamine from '../assets/cards/clan-kazamine.webp'
-import clanKumatani from '../assets/cards/clan-kumatani.webp'
-import clanNagihara from '../assets/cards/clan-nagihara.webp'
-import clanShizumori from '../assets/cards/clan-shizumori.webp'
-import clanYukisawa from '../assets/cards/clan-yukisawa.webp'
-import cloneDeCombat from '../assets/cards/clone-de-combat.webp'
-import coeurDeBraise from '../assets/cards/coeur-de-braise.webp'
-import colonneDeFeu from '../assets/cards/colonne-de-feu.webp'
-import compresseChaude from '../assets/cards/compresse-chaude.webp'
-import concentration from '../assets/cards/concentration.webp'
-import contreTranchant from '../assets/cards/contre-tranchant.webp'
-import coquilleDeTerre from '../assets/cards/coquille-de-terre.webp'
-import corbeauSpectre from '../assets/cards/corbeau-spectre.webp'
-import cordeDeRappel from '../assets/cards/corde-de-rappel.webp'
-import coupDeCoude from '../assets/cards/coup-de-coude.webp'
-import coupDeTalon from '../assets/cards/coup-de-talon.webp'
-import coupeVenteuse from '../assets/cards/coupe-venteuse.webp'
-import courantPorteur from '../assets/cards/courant-porteur.webp'
-import courantTranchant from '../assets/cards/courant-tranchant.webp'
-import crochetDuSentinelle from '../assets/cards/crochet-du-sentinelle.webp'
-import crochetDuVeilleur from '../assets/cards/crochet-du-veilleur.webp'
-import cuirasseLegere from '../assets/cards/cuirasse-legere.webp'
-import dagueFantome from '../assets/cards/dague-fantome.webp'
-import danseDesLames from '../assets/cards/danse-des-lames.webp'
-import danseDesPoings from '../assets/cards/danse-des-poings.webp'
-import danseDuSanglier from '../assets/cards/danse-du-sanglier.webp'
-import domeDEau from '../assets/cards/dome-d-eau.webp'
-import dragonDeNuage from '../assets/cards/dragon-de-nuage.webp'
-import echoHypnotique from '../assets/cards/echo-hypnotique.webp'
-import eclatDeGalet from '../assets/cards/eclat-de-galet.webp'
-import eclatDeRoche from '../assets/cards/eclat-de-roche.webp'
-import eclipseDuSeuil from '../assets/cards/eclipse-du-seuil.webp'
-import ecranDeVapeur from '../assets/cards/ecran-de-vapeur.webp'
-import elixirClair from '../assets/cards/elixir-clair.webp'
-import elixirDeGuerre from '../assets/cards/elixir-de-guerre.webp'
-import espritDuRenard from '../assets/cards/esprit-du-renard.webp'
-import estocadeBasse from '../assets/cards/estocade-basse.webp'
-import etincelleSeche from '../assets/cards/etincelle-seche.webp'
-import etincelleVive from '../assets/cards/etincelle-vive.webp'
-import failleSismique from '../assets/cards/faille-sismique.webp'
-import fauconDeFoudre from '../assets/cards/faucon-de-foudre.webp'
-import fioleStimulante from '../assets/cards/fiole-stimulante.webp'
-import fluxClair from '../assets/cards/flux-clair.webp'
-import forteresseVivante from '../assets/cards/forteresse-vivante.webp'
-import fouetDeCorde from '../assets/cards/fouet-de-corde.webp'
-import fouetElectrique from '../assets/cards/fouet-electrique.webp'
-import frappeDePause from '../assets/cards/frappe-de-pause.webp'
-import frappeDuSeuil from '../assets/cards/frappe-du-seuil.webp'
-import frappeDuSoleilNoir from '../assets/cards/frappe-du-soleil-noir.webp'
-import frappeOpportuniste from '../assets/cards/frappe-opportuniste.webp'
-import fumigeneDeFuite from '../assets/cards/fumigene-de-fuite.webp'
-import furetDesOmbres from '../assets/cards/furet-des-ombres.webp'
-import galetRunique from '../assets/cards/galet-runique.webp'
-import gardeCroisee from '../assets/cards/garde-croisee.webp'
-import gardeDuMedecin from '../assets/cards/garde-du-medecin.webp'
-import gardeHaute from '../assets/cards/garde-haute.webp'
-import gardienDeJade from '../assets/cards/gardien-de-jade.webp'
-import gardienDuSanctuaire from '../assets/cards/gardien-du-sanctuaire.webp'
-import gouttePerforante from '../assets/cards/goutte-perforante.webp'
-import goutteTranchante from '../assets/cards/goutte-tranchante.webp'
-import grilleDEclairs from '../assets/cards/grille-d-eclairs.webp'
-import harmonieDesCinqVents from '../assets/cards/harmonie-des-cinq-vents.webp'
-import harmonieDuVide from '../assets/cards/harmonie-du-vide.webp'
-import illusionCoupante from '../assets/cards/illusion-coupante.webp'
-import illusionTranchante from '../assets/cards/illusion-tranchante.webp'
-import incisionVitale from '../assets/cards/incision-vitale.webp'
-import javelotDuCiel from '../assets/cards/javelot-du-ciel.webp'
-import jugementDuCielBrise from '../assets/cards/jugement-du-ciel-brise.webp'
-import kunaiDeFer from '../assets/cards/kunai-de-fer.webp'
-import lameCrespusculaire from '../assets/cards/lame-crespusculaire.webp'
-import lameDeBraise from '../assets/cards/lame-de-braise.webp'
-import lameDeGranit from '../assets/cards/lame-de-granit.webp'
-import lameDuRafale from '../assets/cards/lame-du-rafale.webp'
-import lameDuSommeil from '../assets/cards/lame-du-sommeil.webp'
-import lameDuTyphon from '../assets/cards/lame-du-typhon.webp'
-import lanceDeFoudre from '../assets/cards/lance-de-foudre.webp'
-import lienMental from '../assets/cards/lien-mental.webp'
-import loupDePierre from '../assets/cards/loup-de-pierre.webp'
-import lucioleGuide from '../assets/cards/luciole-guide.webp'
-import mainsDeLumiere from '../assets/cards/mains-de-lumiere.webp'
-import marteauDuRoc from '../assets/cards/marteau-du-roc.webp'
-import marteauDuSentier from '../assets/cards/marteau-du-sentier.webp'
-import masqueDeBrume from '../assets/cards/masque-de-brume.webp'
-import meditationDeGuerre from '../assets/cards/meditation-de-guerre.webp'
-import meditationDuSceau from '../assets/cards/meditation-du-sceau.webp'
-import miragePersistant from '../assets/cards/mirage-persistant.webp'
-import mirageProtecteur from '../assets/cards/mirage-protecteur.webp'
-import miroirBrise from '../assets/cards/miroir-brise.webp'
-import miroirDePoche from '../assets/cards/miroir-de-poche.webp'
-import murDeGalets from '../assets/cards/mur-de-galets.webp'
-import murDePierre from '../assets/cards/mur-de-pierre.webp'
-import murmureTranchant from '../assets/cards/murmure-tranchant.webp'
-import oeilDuMirroir from '../assets/cards/oeil-du-mirroir.webp'
-import ombrePliee from '../assets/cards/ombre-pliee.webp'
-import ondeDeChoc from '../assets/cards/onde-de-choc.webp'
-import orageDuPic from '../assets/cards/orage-du-pic.webp'
-import orbeDeTonnerre from '../assets/cards/orbe-de-tonnerre.webp'
-import pacteDuSerpentBlanc from '../assets/cards/pacte-du-serpent-blanc.webp'
-import paradeBasse from '../assets/cards/parade-basse.webp'
-import paradeHaute from '../assets/cards/parade-haute.webp'
-import parcheminDExil from '../assets/cards/parchemin-d-exil.webp'
-import parcheminDeScellement from '../assets/cards/parchemin-de-scellement.webp'
-import pasGlissant from '../assets/cards/pas-glissant.webp'
-import paumeApaisante from '../assets/cards/paume-apaisante.webp'
-import pilierDeFlammes from '../assets/cards/pilier-de-flammes.webp'
-import piluleDuSoldat from '../assets/cards/pilule-du-soldat.webp'
-import piqurePrecise from '../assets/cards/piqure-precise.webp'
-import pluieDeSenbon from '../assets/cards/pluie-de-senbon.webp'
-import poingDeSable from '../assets/cards/poing-de-sable.webp'
-import poingDuDragon from '../assets/cards/poing-du-dragon.webp'
-import poingRapide from '../assets/cards/poing-rapide.webp'
-import poingSismique from '../assets/cards/poing-sismique.webp'
-import poudreAveuglante from '../assets/cards/poudre-aveuglante.webp'
-import poudreDeFlash from '../assets/cards/poudre-de-flash.webp'
-import pousseeDAir from '../assets/cards/poussee-d-air.webp'
-import preparationMartiale from '../assets/cards/preparation-martiale.webp'
-import pressionVitale from '../assets/cards/pression-vitale.webp'
-import purgeToxique from '../assets/cards/purge-toxique.webp'
-import rafaleDeShuriken from '../assets/cards/rafale-de-shuriken.webp'
-import rationDeCampagne from '../assets/cards/ration-de-campagne.webp'
-import relectureTactique from '../assets/cards/relecture-tactique.webp'
-import rempartDEau from '../assets/cards/rempart-d-eau.webp'
-import rempartDeBraise from '../assets/cards/rempart-de-braise.webp'
-import rempartDesAncetres from '../assets/cards/rempart-des-ancetres.webp'
-import renardAuxNeufVents from '../assets/cards/renard-aux-neuf-vents.webp'
-import respirationProfonde from '../assets/cards/respiration-profonde.webp'
-import revesBrises from '../assets/cards/reves-brises.webp'
-import rideauDEau from '../assets/cards/rideau-d-eau.webp'
-import riposteEclair from '../assets/cards/riposte-eclair.webp'
-import rituelDeBraise from '../assets/cards/rituel-de-braise.webp'
-import rituelDeForce from '../assets/cards/rituel-de-force.webp'
-import salamandreArdente from '../assets/cards/salamandre-ardente.webp'
-import sangDeBraise from '../assets/cards/sang-de-braise.webp'
-import scalpelDeChakra from '../assets/cards/scalpel-de-chakra.webp'
-import scalpelVif from '../assets/cards/scalpel-vif.webp'
-import scarabeeDePierre from '../assets/cards/scarabee-de-pierre.webp'
-import sceauDeRetention from '../assets/cards/sceau-de-retention.webp'
-import sceauDesCinqVoies from '../assets/cards/sceau-des-cinq-voies.webp'
-import senbonEmpoisonne from '../assets/cards/senbon-empoisonne.webp'
-import serpentDEau from '../assets/cards/serpent-d-eau.webp'
-import serresDeFer from '../assets/cards/serres-de-fer.webp'
-import shurikenLeste from '../assets/cards/shuriken-leste.webp'
-import soleilDeVerre from '../assets/cards/soleil-de-verre.webp'
-import souffleArdent from '../assets/cards/souffle-ardent.webp'
-import souffleCalibre from '../assets/cards/souffle-calibre.webp'
-import souffleCoupant from '../assets/cards/souffle-coupant.webp'
-import souffleTonique from '../assets/cards/souffle-tonique.webp'
-import soupirDuVide from '../assets/cards/soupir-du-vide.webp'
-import sutureRapide from '../assets/cards/suture-rapide.webp'
-import talismanDeBraise from '../assets/cards/talisman-de-braise.webp'
-import talismanDeFoudre from '../assets/cards/talisman-de-foudre.webp'
-import tempeteDePoings from '../assets/cards/tempete-de-poings.webp'
-import tigreDeBraise from '../assets/cards/tigre-de-braise.webp'
-import tombeauDeSable from '../assets/cards/tombeau-de-sable.webp'
-import torrentPercant from '../assets/cards/torrent-percant.webp'
-import tortueDeMaree from '../assets/cards/tortue-de-maree.webp'
-import trancheVentee from '../assets/cards/tranche-ventee.webp'
-import vagueBrumeuse from '../assets/cards/vague-brumeuse.webp'
-import ventDeReprise from '../assets/cards/vent-de-reprise.webp'
-import ventPorteur from '../assets/cards/vent-porteur.webp'
-import visionClaire from '../assets/cards/vision-claire.webp'
-import voileDOmbre from '../assets/cards/voile-d-ombre.webp'
-import voileDeBrise from '../assets/cards/voile-de-brise.webp'
-import voileDeMensonge from '../assets/cards/voile-de-mensonge.webp'
-import voileDePoussiere from '../assets/cards/voile-de-poussiere.webp'
-import voileSpectral from '../assets/cards/voile-spectral.webp'
+import abysseDArgent from '../assets/cards/abysse-d-argent.webp';
+import abysseSilencieux from '../assets/cards/abysse-silencieux.webp';
+import aegisAncestral from '../assets/cards/aegis-ancestral.webp';
+import aegisDuMirage from '../assets/cards/aegis-du-mirage.webp';
+import aiguilleDOrage from '../assets/cards/aiguille-d-orage.webp';
+import aiguillonNerveux from '../assets/cards/aiguillon-nerveux.webp';
+import ampouleDeChakra from '../assets/cards/ampoule-de-chakra.webp';
+import ampouleVive from '../assets/cards/ampoule-vive.webp';
+import ancrageProfond from '../assets/cards/ancrage-profond.webp';
+import ancrageTellurique from '../assets/cards/ancrage-tellurique.webp';
+import arcStatique from '../assets/cards/arc-statique.webp';
+import armureDeMagma from '../assets/cards/armure-de-magma.webp';
+import assautDeLAube from '../assets/cards/assaut-de-l-aube.webp';
+import assautDuCol from '../assets/cards/assaut-du-col.webp';
+import attelleVive from '../assets/cards/attelle-vive.webp';
+import bainDeSources from '../assets/cards/bain-de-sources.webp';
+import balayageDeGenou from '../assets/cards/balayage-de-genou.webp';
+import bandageRenforce from '../assets/cards/bandage-renforce.webp';
+import bandeDeSoie from '../assets/cards/bande-de-soie.webp';
+import barrageDeLames from '../assets/cards/barrage-de-lames.webp';
+import barriereStatique from '../assets/cards/barriere-statique.webp';
+import bastionTellurique from '../assets/cards/bastion-tellurique.webp';
+import bouclierDeBois from '../assets/cards/bouclier-de-bois.webp';
+import bouclierDeCendres from '../assets/cards/bouclier-de-cendres.webp';
+import bouclierDuChirurgien from '../assets/cards/bouclier-du-chirurgien.webp';
+import braiseInterieure from '../assets/cards/braise-interieure.webp';
+import brouillageLeger from '../assets/cards/brouillage-leger.webp';
+import brouillardPersistant from '../assets/cards/brouillard-persistant.webp';
+import carapaceDeFer from '../assets/cards/carapace-de-fer.webp';
+import carapaceDuColosse from '../assets/cards/carapace-du-colosse.webp';
+import cascadePercee from '../assets/cards/cascade-percee.webp';
+import cauchemarAigu from '../assets/cards/cauchemar-aigu.webp';
+import cendreSpiralee from '../assets/cards/cendre-spiralee.webp';
+import chaineDEclairs from '../assets/cards/chaine-d-eclairs.webp';
+import chantDuGuerisseur from '../assets/cards/chant-du-guerisseur.webp';
+import chargeElectrique from '../assets/cards/charge-electrique.webp';
+import chargeVive from '../assets/cards/charge-vive.webp';
+import chauffeMusculaire from '../assets/cards/chauffe-musculaire.webp';
+import citadelleDePierre from '../assets/cards/citadelle-de-pierre.webp';
+import clanBenigiri from '../assets/cards/clan-benigiri.webp';
+import clanKazamine from '../assets/cards/clan-kazamine.webp';
+import clanKumatani from '../assets/cards/clan-kumatani.webp';
+import clanNagihara from '../assets/cards/clan-nagihara.webp';
+import clanShizumori from '../assets/cards/clan-shizumori.webp';
+import clanYukisawa from '../assets/cards/clan-yukisawa.webp';
+import cloneDeCombat from '../assets/cards/clone-de-combat.webp';
+import coeurDeBraise from '../assets/cards/coeur-de-braise.webp';
+import colonneDeFeu from '../assets/cards/colonne-de-feu.webp';
+import compresseChaude from '../assets/cards/compresse-chaude.webp';
+import concentration from '../assets/cards/concentration.webp';
+import contreTranchant from '../assets/cards/contre-tranchant.webp';
+import coquilleDeTerre from '../assets/cards/coquille-de-terre.webp';
+import corbeauSpectre from '../assets/cards/corbeau-spectre.webp';
+import cordeDeRappel from '../assets/cards/corde-de-rappel.webp';
+import coupDeCoude from '../assets/cards/coup-de-coude.webp';
+import coupDeTalon from '../assets/cards/coup-de-talon.webp';
+import coupeVenteuse from '../assets/cards/coupe-venteuse.webp';
+import courantPorteur from '../assets/cards/courant-porteur.webp';
+import courantTranchant from '../assets/cards/courant-tranchant.webp';
+import crochetDuSentinelle from '../assets/cards/crochet-du-sentinelle.webp';
+import crochetDuVeilleur from '../assets/cards/crochet-du-veilleur.webp';
+import cuirasseLegere from '../assets/cards/cuirasse-legere.webp';
+import dagueFantome from '../assets/cards/dague-fantome.webp';
+import danseDesLames from '../assets/cards/danse-des-lames.webp';
+import danseDesPoings from '../assets/cards/danse-des-poings.webp';
+import danseDuSanglier from '../assets/cards/danse-du-sanglier.webp';
+import domeDEau from '../assets/cards/dome-d-eau.webp';
+import dragonDeNuage from '../assets/cards/dragon-de-nuage.webp';
+import echoHypnotique from '../assets/cards/echo-hypnotique.webp';
+import eclatDeGalet from '../assets/cards/eclat-de-galet.webp';
+import eclatDeRoche from '../assets/cards/eclat-de-roche.webp';
+import eclipseDuSeuil from '../assets/cards/eclipse-du-seuil.webp';
+import ecranDeVapeur from '../assets/cards/ecran-de-vapeur.webp';
+import elixirClair from '../assets/cards/elixir-clair.webp';
+import elixirDeGuerre from '../assets/cards/elixir-de-guerre.webp';
+import espritDuRenard from '../assets/cards/esprit-du-renard.webp';
+import estocadeBasse from '../assets/cards/estocade-basse.webp';
+import etincelleSeche from '../assets/cards/etincelle-seche.webp';
+import etincelleVive from '../assets/cards/etincelle-vive.webp';
+import failleSismique from '../assets/cards/faille-sismique.webp';
+import fauconDeFoudre from '../assets/cards/faucon-de-foudre.webp';
+import fioleStimulante from '../assets/cards/fiole-stimulante.webp';
+import fluxClair from '../assets/cards/flux-clair.webp';
+import forteresseVivante from '../assets/cards/forteresse-vivante.webp';
+import fouetDeCorde from '../assets/cards/fouet-de-corde.webp';
+import fouetElectrique from '../assets/cards/fouet-electrique.webp';
+import frappeDePause from '../assets/cards/frappe-de-pause.webp';
+import frappeDuSeuil from '../assets/cards/frappe-du-seuil.webp';
+import frappeDuSoleilNoir from '../assets/cards/frappe-du-soleil-noir.webp';
+import frappeOpportuniste from '../assets/cards/frappe-opportuniste.webp';
+import fumigeneDeFuite from '../assets/cards/fumigene-de-fuite.webp';
+import furetDesOmbres from '../assets/cards/furet-des-ombres.webp';
+import galetRunique from '../assets/cards/galet-runique.webp';
+import gardeCroisee from '../assets/cards/garde-croisee.webp';
+import gardeDuMedecin from '../assets/cards/garde-du-medecin.webp';
+import gardeHaute from '../assets/cards/garde-haute.webp';
+import gardienDeJade from '../assets/cards/gardien-de-jade.webp';
+import gardienDuSanctuaire from '../assets/cards/gardien-du-sanctuaire.webp';
+import gouttePerforante from '../assets/cards/goutte-perforante.webp';
+import goutteTranchante from '../assets/cards/goutte-tranchante.webp';
+import grilleDEclairs from '../assets/cards/grille-d-eclairs.webp';
+import harmonieDesCinqVents from '../assets/cards/harmonie-des-cinq-vents.webp';
+import harmonieDuVide from '../assets/cards/harmonie-du-vide.webp';
+import illusionCoupante from '../assets/cards/illusion-coupante.webp';
+import illusionTranchante from '../assets/cards/illusion-tranchante.webp';
+import incisionVitale from '../assets/cards/incision-vitale.webp';
+import javelotDuCiel from '../assets/cards/javelot-du-ciel.webp';
+import jugementDuCielBrise from '../assets/cards/jugement-du-ciel-brise.webp';
+import kunaiDeFer from '../assets/cards/kunai-de-fer.webp';
+import lameCrespusculaire from '../assets/cards/lame-crespusculaire.webp';
+import lameDeBraise from '../assets/cards/lame-de-braise.webp';
+import lameDeGranit from '../assets/cards/lame-de-granit.webp';
+import lameDuRafale from '../assets/cards/lame-du-rafale.webp';
+import lameDuSommeil from '../assets/cards/lame-du-sommeil.webp';
+import lameDuTyphon from '../assets/cards/lame-du-typhon.webp';
+import lanceDeFoudre from '../assets/cards/lance-de-foudre.webp';
+import lienMental from '../assets/cards/lien-mental.webp';
+import loupDePierre from '../assets/cards/loup-de-pierre.webp';
+import lucioleGuide from '../assets/cards/luciole-guide.webp';
+import mainsDeLumiere from '../assets/cards/mains-de-lumiere.webp';
+import marteauDuRoc from '../assets/cards/marteau-du-roc.webp';
+import marteauDuSentier from '../assets/cards/marteau-du-sentier.webp';
+import masqueDeBrume from '../assets/cards/masque-de-brume.webp';
+import meditationDeGuerre from '../assets/cards/meditation-de-guerre.webp';
+import meditationDuSceau from '../assets/cards/meditation-du-sceau.webp';
+import miragePersistant from '../assets/cards/mirage-persistant.webp';
+import mirageProtecteur from '../assets/cards/mirage-protecteur.webp';
+import miroirBrise from '../assets/cards/miroir-brise.webp';
+import miroirDePoche from '../assets/cards/miroir-de-poche.webp';
+import murDeGalets from '../assets/cards/mur-de-galets.webp';
+import murDePierre from '../assets/cards/mur-de-pierre.webp';
+import murmureTranchant from '../assets/cards/murmure-tranchant.webp';
+import oeilDuMirroir from '../assets/cards/oeil-du-mirroir.webp';
+import ombrePliee from '../assets/cards/ombre-pliee.webp';
+import ondeDeChoc from '../assets/cards/onde-de-choc.webp';
+import orageDuPic from '../assets/cards/orage-du-pic.webp';
+import orbeDeTonnerre from '../assets/cards/orbe-de-tonnerre.webp';
+import pacteDuSerpentBlanc from '../assets/cards/pacte-du-serpent-blanc.webp';
+import paradeBasse from '../assets/cards/parade-basse.webp';
+import paradeHaute from '../assets/cards/parade-haute.webp';
+import parcheminDExil from '../assets/cards/parchemin-d-exil.webp';
+import parcheminDeScellement from '../assets/cards/parchemin-de-scellement.webp';
+import pasGlissant from '../assets/cards/pas-glissant.webp';
+import paumeApaisante from '../assets/cards/paume-apaisante.webp';
+import pilierDeFlammes from '../assets/cards/pilier-de-flammes.webp';
+import piluleDuSoldat from '../assets/cards/pilule-du-soldat.webp';
+import piqurePrecise from '../assets/cards/piqure-precise.webp';
+import pluieDeSenbon from '../assets/cards/pluie-de-senbon.webp';
+import poingDeSable from '../assets/cards/poing-de-sable.webp';
+import poingDuDragon from '../assets/cards/poing-du-dragon.webp';
+import poingRapide from '../assets/cards/poing-rapide.webp';
+import poingSismique from '../assets/cards/poing-sismique.webp';
+import poudreAveuglante from '../assets/cards/poudre-aveuglante.webp';
+import poudreDeFlash from '../assets/cards/poudre-de-flash.webp';
+import pousseeDAir from '../assets/cards/poussee-d-air.webp';
+import preparationMartiale from '../assets/cards/preparation-martiale.webp';
+import pressionVitale from '../assets/cards/pression-vitale.webp';
+import purgeToxique from '../assets/cards/purge-toxique.webp';
+import rafaleDeShuriken from '../assets/cards/rafale-de-shuriken.webp';
+import rationDeCampagne from '../assets/cards/ration-de-campagne.webp';
+import relectureTactique from '../assets/cards/relecture-tactique.webp';
+import rempartDEau from '../assets/cards/rempart-d-eau.webp';
+import rempartDeBraise from '../assets/cards/rempart-de-braise.webp';
+import rempartDesAncetres from '../assets/cards/rempart-des-ancetres.webp';
+import renardAuxNeufVents from '../assets/cards/renard-aux-neuf-vents.webp';
+import respirationProfonde from '../assets/cards/respiration-profonde.webp';
+import revesBrises from '../assets/cards/reves-brises.webp';
+import rideauDEau from '../assets/cards/rideau-d-eau.webp';
+import riposteEclair from '../assets/cards/riposte-eclair.webp';
+import rituelDeBraise from '../assets/cards/rituel-de-braise.webp';
+import rituelDeForce from '../assets/cards/rituel-de-force.webp';
+import salamandreArdente from '../assets/cards/salamandre-ardente.webp';
+import sangDeBraise from '../assets/cards/sang-de-braise.webp';
+import scalpelDeChakra from '../assets/cards/scalpel-de-chakra.webp';
+import scalpelVif from '../assets/cards/scalpel-vif.webp';
+import scarabeeDePierre from '../assets/cards/scarabee-de-pierre.webp';
+import sceauDeRetention from '../assets/cards/sceau-de-retention.webp';
+import sceauDesCinqVoies from '../assets/cards/sceau-des-cinq-voies.webp';
+import senbonEmpoisonne from '../assets/cards/senbon-empoisonne.webp';
+import serpentDEau from '../assets/cards/serpent-d-eau.webp';
+import serresDeFer from '../assets/cards/serres-de-fer.webp';
+import shurikenLeste from '../assets/cards/shuriken-leste.webp';
+import soleilDeVerre from '../assets/cards/soleil-de-verre.webp';
+import souffleArdent from '../assets/cards/souffle-ardent.webp';
+import souffleCalibre from '../assets/cards/souffle-calibre.webp';
+import souffleCoupant from '../assets/cards/souffle-coupant.webp';
+import souffleTonique from '../assets/cards/souffle-tonique.webp';
+import soupirDuVide from '../assets/cards/soupir-du-vide.webp';
+import sutureRapide from '../assets/cards/suture-rapide.webp';
+import talismanDeBraise from '../assets/cards/talisman-de-braise.webp';
+import talismanDeFoudre from '../assets/cards/talisman-de-foudre.webp';
+import tempeteDePoings from '../assets/cards/tempete-de-poings.webp';
+import tigreDeBraise from '../assets/cards/tigre-de-braise.webp';
+import tombeauDeSable from '../assets/cards/tombeau-de-sable.webp';
+import torrentPercant from '../assets/cards/torrent-percant.webp';
+import tortueDeMaree from '../assets/cards/tortue-de-maree.webp';
+import trancheVentee from '../assets/cards/tranche-ventee.webp';
+import vagueBrumeuse from '../assets/cards/vague-brumeuse.webp';
+import ventDeReprise from '../assets/cards/vent-de-reprise.webp';
+import ventPorteur from '../assets/cards/vent-porteur.webp';
+import visionClaire from '../assets/cards/vision-claire.webp';
+import voileDOmbre from '../assets/cards/voile-d-ombre.webp';
+import voileDeBrise from '../assets/cards/voile-de-brise.webp';
+import voileDeMensonge from '../assets/cards/voile-de-mensonge.webp';
+import voileDePoussiere from '../assets/cards/voile-de-poussiere.webp';
+import voileSpectral from '../assets/cards/voile-spectral.webp';
+import wave3Art1 from '../assets/cards/gravure-des-phalanges.jpg';
+import wave3Art2 from '../assets/cards/danse-du-genou-brise.jpg';
+import wave3Art3 from '../assets/cards/rafale-de-l-epervier.jpg';
+import wave3Art4 from '../assets/cards/pas-du-silex.jpg';
+import wave3Art5 from '../assets/cards/chasse-nerfs.jpg';
+import wave3Art6 from '../assets/cards/frappe-en-cascade.jpg';
+import wave3Art7 from '../assets/cards/serment-des-cent-coups.jpg';
+import wave3Art8 from '../assets/cards/elan-sans-retour.jpg';
+import wave3Art9 from '../assets/cards/poing-du-sol-rouge.jpg';
+import wave3Art10 from '../assets/cards/derniere-enjambee.jpg';
+import wave3Art11 from '../assets/cards/orbe-du-tonnerre-blanc.jpg';
+import wave3Art12 from '../assets/cards/brasier-suspendu.jpg';
+import wave3Art13 from '../assets/cards/lance-des-marees.jpg';
+import wave3Art14 from '../assets/cards/avalanche-interieure.jpg';
+import wave3Art15 from '../assets/cards/jugement-des-quatre-vents.jpg';
+import wave3Art16 from '../assets/cards/detonation-du-voile.jpg';
+import wave3Art17 from '../assets/cards/murmure-des-doubles.jpg';
+import wave3Art18 from '../assets/cards/prison-du-reflet.jpg';
+import wave3Art19 from '../assets/cards/brouillard-de-souvenance.jpg';
+import wave3Art20 from '../assets/cards/oeil-du-crepuscule.jpg';
+import wave3Art21 from '../assets/cards/labyrinthe-immobile.jpg';
+import wave3Art22 from '../assets/cards/echo-de-l-absence.jpg';
+import wave3Art23 from '../assets/cards/voile-des-faux-pas.jpg';
+import wave3Art24 from '../assets/cards/presage-inverse.jpg';
+import wave3Art25 from '../assets/cards/nuit-sans-horizon.jpg';
+import wave3Art26 from '../assets/cards/mirages-croises.jpg';
+import wave3Art27 from '../assets/cards/pacte-des-ombres-fines.jpg';
+import wave3Art28 from '../assets/cards/silence-du-temoin.jpg';
+import wave3Art29 from '../assets/cards/souffle-de-sauge.jpg';
+import wave3Art30 from '../assets/cards/suture-du-lotus.jpg';
+import wave3Art31 from '../assets/cards/elixir-de-l-aube.jpg';
+import wave3Art32 from '../assets/cards/compresse-des-sources.jpg';
+import wave3Art33 from '../assets/cards/baume-de-cendre.jpg';
+import wave3Art34 from '../assets/cards/rituel-du-pouls-calme.jpg';
+import wave3Art35 from '../assets/cards/infusion-des-trois-racines.jpg';
+import wave3Art36 from '../assets/cards/remede-du-dernier-souffle.jpg';
+import wave3Art37 from '../assets/cards/pont-de-regeneration.jpg';
+import wave3Art38 from '../assets/cards/vigilance-du-guerisseur.jpg';
+import wave3Art39 from '../assets/cards/lanternes-de-secours.jpg';
+import wave3Art40 from '../assets/cards/corde-a-eclairs.jpg';
+import wave3Art41 from '../assets/cards/grimoire-de-poche.jpg';
+import wave3Art42 from '../assets/cards/molosse-de-cuivre.jpg';
+import wave3Art43 from '../assets/cards/cigale-de-brume.jpg';
+import wave3Art44 from '../assets/cards/sceau-du-compagnon-perdu.jpg';
 
 /** @type {Record<string, string>} */
 export const CARD_ART_BY_SLUG = {
+  'gravure-des-phalanges': wave3Art1,
+  'danse-du-genou-brise': wave3Art2,
+  'rafale-de-l-epervier': wave3Art3,
+  'pas-du-silex': wave3Art4,
+  'chasse-nerfs': wave3Art5,
+  'frappe-en-cascade': wave3Art6,
+  'serment-des-cent-coups': wave3Art7,
+  'elan-sans-retour': wave3Art8,
+  'poing-du-sol-rouge': wave3Art9,
+  'derniere-enjambee': wave3Art10,
+  'orbe-du-tonnerre-blanc': wave3Art11,
+  'brasier-suspendu': wave3Art12,
+  'lance-des-marees': wave3Art13,
+  'avalanche-interieure': wave3Art14,
+  'jugement-des-quatre-vents': wave3Art15,
+  'detonation-du-voile': wave3Art16,
+  'murmure-des-doubles': wave3Art17,
+  'prison-du-reflet': wave3Art18,
+  'brouillard-de-souvenance': wave3Art19,
+  'oeil-du-crepuscule': wave3Art20,
+  'labyrinthe-immobile': wave3Art21,
+  'echo-de-l-absence': wave3Art22,
+  'voile-des-faux-pas': wave3Art23,
+  'presage-inverse': wave3Art24,
+  'nuit-sans-horizon': wave3Art25,
+  'mirages-croises': wave3Art26,
+  'pacte-des-ombres-fines': wave3Art27,
+  'silence-du-temoin': wave3Art28,
+  'souffle-de-sauge': wave3Art29,
+  'suture-du-lotus': wave3Art30,
+  'elixir-de-l-aube': wave3Art31,
+  'compresse-des-sources': wave3Art32,
+  'baume-de-cendre': wave3Art33,
+  'rituel-du-pouls-calme': wave3Art34,
+  'infusion-des-trois-racines': wave3Art35,
+  'remede-du-dernier-souffle': wave3Art36,
+  'pont-de-regeneration': wave3Art37,
+  'vigilance-du-guerisseur': wave3Art38,
+  'lanternes-de-secours': wave3Art39,
+  'corde-a-eclairs': wave3Art40,
+  'grimoire-de-poche': wave3Art41,
+  'molosse-de-cuivre': wave3Art42,
+  'cigale-de-brume': wave3Art43,
+  'sceau-du-compagnon-perdu': wave3Art44,
   'abysse-d-argent': abysseDArgent,
   'abysse-silencieux': abysseSilencieux,
   'aegis-ancestral': aegisAncestral,
@@ -424,7 +509,7 @@ export const CARD_ART_BY_SLUG = {
   'voile-de-mensonge': voileDeMensonge,
   'voile-de-poussiere': voileDePoussiere,
   'voile-spectral': voileSpectral,
-}
+};
 
 /**
  * Résout l’URL d’illustration d’une carte.
@@ -434,13 +519,13 @@ export const CARD_ART_BY_SLUG = {
  * @returns {string|null}
  */
 export function resolveCardArt(card) {
-  if (!card) return null
-  const remote = card.imageUrl ?? card.image_url
+  if (!card) return null;
+  const remote = card.imageUrl ?? card.image_url;
   if (typeof remote === 'string' && remote.trim()) {
-    const url = remote.trim()
-    if (/^(https?:|data:|blob:|\/)/i.test(url)) return url
+    const url = remote.trim();
+    if (/^(https?:|data:|blob:|\/)/i.test(url)) return url;
   }
-  const slug = card.slug
-  if (!slug) return null
-  return CARD_ART_BY_SLUG[slug] || null
+  const slug = card.slug;
+  if (!slug) return null;
+  return CARD_ART_BY_SLUG[slug] || null;
 }

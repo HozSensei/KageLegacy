@@ -19,7 +19,7 @@ const emit = defineEmits(['unlock', 'respec']);
 
 const { t } = useI18n();
 
-const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'startingBlock'];
+const STAT_KEYS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'startingBlock'];
 
 const stats = computed(() => props.bonuses?.stats || {});
 
@@ -62,6 +62,9 @@ function formatBonus(bonus) {
             {{ t(`talents.branches.${selected.branch}`) }}
           </p>
           <h3 class="talent-sidebar__name">{{ nodeName(selected) }}</h3>
+          <p class="talent-sidebar__rank">
+            {{ t('talents.nodeRank', { rank: selected.currentRank || 0, max: selected.maxRank }) }}
+          </p>
           <p v-if="nodeDesc(selected)" class="mt-2 leading-relaxed text-ink">
             {{ nodeDesc(selected) }}
           </p>
@@ -76,7 +79,7 @@ function formatBonus(bonus) {
             :disabled="actionLoading"
             @click="emit('unlock', selected.nodeId)"
           >
-            {{ actionLoading ? t('talents.working') : t('talents.unlock') }}
+            {{ actionLoading ? t('talents.working') : t('talents.invest') }}
           </button>
           <p v-else class="mt-3 text-sm text-ink-muted">{{ t('talents.unlockHint') }}</p>
         </div>
@@ -183,6 +186,15 @@ function formatBonus(bonus) {
   font-stretch: 80%;
   line-height: 1;
   letter-spacing: -0.015em;
+}
+
+.talent-sidebar__rank {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tone);
 }
 
 .talent-sidebar__bonus {

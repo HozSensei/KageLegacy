@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { RouterLink } from 'vue-router';
 import { localizedName } from '../../utils/localeContent.js';
 
 defineOptions({ name: 'VictoryRewards' });
@@ -46,11 +47,11 @@ const lines = computed(() => {
     });
   }
   if (r.card) {
+    const name = localizedName(r.card, locale.value, '…');
     out.push({
       key: 'card',
-      label: t('combat.rewardCard', {
-        name: localizedName(r.card, locale.value, '…'),
-      }),
+      label: t('combat.rewardCard', { name }),
+      to: name === '…' ? null : { name: 'collection', query: { search: name } },
     });
   } else if (r.cardRolled === false && (r.xp > 0 || r.ryos > 0)) {
     out.push({ key: 'no-card', label: t('combat.rewardNoCard') });
@@ -83,7 +84,10 @@ const lines = computed(() => {
       <ul v-else-if="isVictory && lines.length" class="victory__list stagger">
         <li v-for="line in lines" :key="line.key">
           <span class="lozenge" aria-hidden="true" />
-          {{ line.label }}
+          <RouterLink v-if="line.to" :to="line.to" class="victory__reward-link">
+            {{ line.label }}
+          </RouterLink>
+          <span v-else>{{ line.label }}</span>
         </li>
       </ul>
       <p v-else-if="isVictory && rewards?.error" class="victory__muted">
@@ -164,6 +168,17 @@ const lines = computed(() => {
 
 .victory__list .lozenge {
   color: var(--tone-fill);
+}
+
+.victory__reward-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--tone-fill);
+  text-underline-offset: 0.2em;
+}
+
+.victory__reward-link:hover {
+  text-decoration-thickness: 0.12em;
 }
 
 .victory__muted {

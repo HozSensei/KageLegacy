@@ -1,6 +1,6 @@
 <script setup>
-import { useI18n } from 'vue-i18n'
-import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals'
+import { useI18n } from 'vue-i18n';
+import { cardTypeVisual, rarityVisual } from '../../utils/cardVisuals';
 
 defineProps({
   typeFilter: { type: String, default: '' },
@@ -10,20 +10,20 @@ defineProps({
   resultCount: { type: Number, default: 0 },
   totalCount: { type: Number, default: 0 },
   searchTestId: { type: String, default: 'card-filter-search' },
-})
+});
 
 const emit = defineEmits([
   'update:typeFilter',
   'update:rarityFilter',
   'update:artFilter',
   'update:search',
-])
+]);
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const types = ['', 'attack', 'defense', 'skill', 'item', 'summon']
-const rarities = ['', 'common', 'rare', 'legendary', 'mythic']
-const arts = ['', 'taijutsu', 'ninjutsu', 'genjutsu', 'medicine']
+const types = ['', 'attack', 'defense', 'skill', 'item', 'summon'];
+const rarities = ['', 'common', 'rare', 'legendary', 'mythic'];
+const arts = ['', 'taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'common'];
 </script>
 
 <template>

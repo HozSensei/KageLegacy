@@ -1,10 +1,12 @@
 /**
  * Expansion catalogue V2 — vague 1 (~78 cartes).
- * Vague 2 : ./cardExpansionWave2.js (agrégée en EXPANSION_CARDS).
+ * Vague 2 : ./cardExpansionWave2.js.
+ * Vague 3 : ./cardExpansionWave3.js.
  * Noms originaux — folklore ninja, pas de refs franchise.
  */
 import { defineCard } from '../lib/cardFactory.js';
 import { EXPANSION_WAVE2_CARDS } from './cardExpansionWave2.js';
+import { EXPANSION_WAVE3_CARDS } from './cardExpansionWave3.js';
 import { CLAN_LEGENDARY_CARDS } from './cardExpansionClans.js';
 
 const c = defineCard;
@@ -76,10 +78,13 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'common',
     cost: 1,
     damage: 3,
-    effects: [{ type: 'multi_strike', hits: 3 }],
+    effects: [
+      { type: 'multi_strike', hits: 3 },
+      { type: 'combo_previous', statType: 'taijutsu', damage: 1 },
+    ],
     passive: {},
-    descriptionFr: 'Inflige 3 dégâts, trois fois.',
-    descriptionEn: 'Deal 3 damage, three times.',
+    descriptionFr: 'Inflige 3 dégâts, trois fois. Après Taijutsu : +1 dégât par frappe.',
+    descriptionEn: 'Deal 3 damage, three times. After Taijutsu: +1 damage per hit.',
     upgrades: {
       level_1: { damage: 1, passive: {} },
       level_2: { damage: 2, passive: { vitesse: 1 } },
@@ -113,10 +118,13 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'rare',
     cost: 2,
     damage: 4,
-    effects: [{ type: 'multi_strike', hits: 4 }],
+    effects: [
+      { type: 'multi_strike', hits: 4 },
+      { type: 'combo_previous', statType: 'taijutsu', damage: 1 },
+    ],
     passive: { vitesse: 1 },
-    descriptionFr: 'Inflige 4 dégâts, quatre fois.',
-    descriptionEn: 'Deal 4 damage, four times.',
+    descriptionFr: 'Inflige 4 dégâts, quatre fois. Après Taijutsu : +1 dégât par frappe.',
+    descriptionEn: 'Deal 4 damage, four times. After Taijutsu: +1 damage per hit.',
     upgrades: {
       level_1: { damage: 1, passive: {} },
       level_2: { damage: 2, passive: { vitesse: 1 } },
@@ -188,10 +196,13 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'rare',
     cost: 3,
     damage: 16,
-    effects: [{ type: 'apply_status', status: 'burn', value: 4 }],
+    effects: [
+      { type: 'apply_status', status: 'burn', value: 2 },
+      { type: 'combo_previous', statType: 'medicine', chakra: 1 },
+    ],
     passive: { ninjutsu: 5 },
-    descriptionFr: 'Inflige 16 dégâts et Brûlure 4.',
-    descriptionEn: 'Deal 16 damage and Burn 4.',
+    descriptionFr: 'Inflige 16 dégâts et Brûlure 2. Après Médecine : +1 Chakra.',
+    descriptionEn: 'Deal 16 damage and Burn 2. After Medicine: +1 Chakra.',
     loreFr: 'Technique secrète des forgerons du clan Hizuchi.',
     loreEn: 'Secret technique of the Hizuchi clan smiths.',
     upgrades: {
@@ -309,10 +320,14 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'mythic',
     cost: 4,
     damage: 24,
-    effects: [{ type: 'aoe' }, { type: 'apply_status', status: 'vulnerable', value: 2 }],
+    effects: [
+      { type: 'aoe' },
+      { type: 'apply_status', status: 'vulnerable', value: 2 },
+      { type: 'combo_previous', statType: 'medicine', chakra: 2 },
+    ],
     passive: { ninjutsu: 6, vitesse: 3 },
-    descriptionFr: 'Inflige 24 dégâts massifs (zone). Vulnérable 2.',
-    descriptionEn: 'Deal 24 massive (AoE) damage. Vulnerable 2.',
+    descriptionFr: 'Inflige 24 dégâts massifs (zone). Vulnérable 2. Après Médecine : +2 Chakra.',
+    descriptionEn: 'Deal 24 massive (AoE) damage. Vulnerable 2. After Medicine: +2 Chakra.',
     loreFr: 'On dit que le ciel lui-même obéit à ce sceau.',
     loreEn: 'They say the sky itself obeys this seal.',
     upgrades: {
@@ -348,9 +363,10 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'common',
     cost: 2,
     damage: 11,
+    effects: [{ type: 'combo_previous', statType: 'ninjutsu', damage: 3 }],
     passive: { ninjutsu: 2, maxHp: 2 },
-    descriptionFr: 'Inflige 11 dégâts.',
-    descriptionEn: 'Deal 11 damage.',
+    descriptionFr: 'Inflige 11 dégâts. Après Ninjutsu : +3 dégâts.',
+    descriptionEn: 'Deal 11 damage. After Ninjutsu: +3 damage.',
     upgrades: {
       level_1: { damage: 4, passive: { ninjutsu: 1 } },
       level_2: { damage: 7, passive: { ninjutsu: 2, maxHp: 3 } },
@@ -499,54 +515,54 @@ export const EXPANSION_WAVE1_CARDS = [
     slug: 'aiguillon-nerveux',
     nameFr: 'Aiguillon nerveux',
     nameEn: 'Nerve Sting',
-    type: 'attack',
+    type: 'skill',
     statType: 'medicine',
     rarity: 'common',
     cost: 1,
-    damage: 4,
-    effects: [{ type: 'apply_status', status: 'poison', value: 2, duration: 2 }],
+    heal: 4,
+    effects: [{ type: 'apply_status', target: 'self', status: 'regen', value: 2, duration: 2 }],
     passive: { medicine: 2 },
-    descriptionFr: 'Inflige 4 dégâts. Poison 2 (2 tours).',
-    descriptionEn: 'Deal 4 damage. Poison 2 (2 turns).',
+    descriptionFr: 'Restaure 4 PV. Régénération 2 (2 tours).',
+    descriptionEn: 'Restore 4 HP. Regen 2 (2 turns).',
     upgrades: {
-      level_1: { damage: 2, passive: { medicine: 1 } },
-      level_2: { damage: 4, passive: { medicine: 2 } },
+      level_1: { heal: 2, passive: { medicine: 1 } },
+      level_2: { heal: 4, passive: { medicine: 2 } },
     },
   }),
   c({
     slug: 'scalpel-de-chakra',
     nameFr: 'Lame du guérisseur',
     nameEn: "Healer's Edge",
-    type: 'attack',
+    type: 'skill',
     statType: 'medicine',
     rarity: 'rare',
     cost: 2,
-    damage: 8,
-    effects: [{ type: 'heal_self', value: 4 }],
+    heal: 9,
+    effects: [{ type: 'combo_previous', statType: 'ninjutsu', chakra: 1, costReduction: 0 }],
     passive: { medicine: 3 },
-    descriptionFr: 'Inflige 8 dégâts. Restaure 4 PV.',
-    descriptionEn: 'Deal 8 damage. Restore 4 HP.',
+    descriptionFr: 'Restaure 9 PV. Après Ninjutsu : gagnez 1 Chakra.',
+    descriptionEn: 'Restore 9 HP. After Ninjutsu: gain 1 Chakra.',
     upgrades: {
-      level_1: { damage: 3, passive: { medicine: 1 } },
-      level_2: { damage: 5, passive: { medicine: 3 } },
+      level_1: { heal: 3, passive: { medicine: 1 } },
+      level_2: { heal: 5, passive: { medicine: 3 } },
     },
   }),
   c({
     slug: 'pression-vitale',
     nameFr: 'Pression vitale',
     nameEn: 'Vital Pressure',
-    type: 'attack',
+    type: 'skill',
     statType: 'medicine',
     rarity: 'common',
     cost: 1,
-    damage: 5,
-    effects: [{ type: 'apply_status', status: 'poison', value: 2, duration: 2 }],
+    heal: 3,
+    effects: [{ type: 'apply_status', target: 'self', status: 'heal_pct', value: 20, duration: 2 }],
     passive: { medicine: 1, intelligence: 1 },
-    descriptionFr: 'Inflige 5 dégâts. Poison 2 (2 tours).',
-    descriptionEn: 'Deal 5 damage. Poison 2 (2 turns).',
+    descriptionFr: 'Restaure 3 PV. +20 % soins pendant 2 tours.',
+    descriptionEn: 'Restore 3 HP. +20% healing for 2 turns.',
     upgrades: {
-      level_1: { damage: 3, passive: { medicine: 1 } },
-      level_2: { damage: 5, passive: { medicine: 1, intelligence: 1 } },
+      level_1: { heal: 2, passive: { medicine: 1 } },
+      level_2: { heal: 4, passive: { medicine: 1, intelligence: 1 } },
     },
   }),
   c({
@@ -635,10 +651,11 @@ export const EXPANSION_WAVE1_CARDS = [
     effects: [
       { type: 'apply_status', status: 'vulnerable', value: 2 },
       { type: 'apply_status', status: 'burn', value: 3 },
+      { type: 'combo_previous', statType: 'genjutsu', damage: 10 },
     ],
     passive: { ninjutsu: 7, intelligence: 3 },
-    descriptionFr: 'Inflige 30 dégâts. Vulnérable 2 et Brûlure 3.',
-    descriptionEn: 'Deal 30 damage. Vulnerable 2 and Burn 3.',
+    descriptionFr: 'Inflige 30 dégâts. Vulnérable 2 et Brûlure 3. Après Genjutsu : +10 dégâts.',
+    descriptionEn: 'Deal 30 damage. Vulnerable 2 and Burn 3. After Genjutsu: +10 damage.',
     loreFr: 'Seul un héritier du sceau céleste ose tracer ce mudra.',
     loreEn: 'Only an heir of the celestial seal dares this mudra.',
     upgrades: {
@@ -723,7 +740,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Écran de vapeur',
     nameEn: 'Steam Screen',
     type: 'defense',
-    statType: 'ninjutsu',
+    statType: 'genjutsu',
     element: 'suiton',
     rarity: 'common',
     cost: 1,
@@ -742,7 +759,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Rempart d’eau',
     nameEn: 'Water Rampart',
     type: 'defense',
-    statType: 'ninjutsu',
+    statType: 'medicine',
     element: 'suiton',
     rarity: 'common',
     cost: 2,
@@ -798,7 +815,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Forteresse vivante',
     nameEn: 'Living Fortress',
     type: 'defense',
-    statType: 'ninjutsu',
+    statType: 'medicine',
     element: 'doton',
     rarity: 'legendary',
     cost: 3,
@@ -817,7 +834,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Voile de brise',
     nameEn: 'Breeze Veil',
     type: 'defense',
-    statType: 'ninjutsu',
+    statType: 'genjutsu',
     element: 'futon',
     rarity: 'common',
     cost: 1,
@@ -930,7 +947,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Égide ancestrale',
     nameEn: 'Ancestral Aegis',
     type: 'defense',
-    statType: 'ninjutsu',
+    statType: 'genjutsu',
     rarity: 'rare',
     cost: 3,
     block: 18,
@@ -1068,7 +1085,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Souffle tonique',
     nameEn: 'Tonic Breath',
     type: 'skill',
-    statType: 'ninjutsu',
+    statType: 'medicine',
     element: 'futon',
     rarity: 'common',
     cost: 1,
@@ -1130,7 +1147,7 @@ export const EXPANSION_WAVE1_CARDS = [
     nameFr: 'Ancrage tellurique',
     nameEn: 'Telluric Anchor',
     type: 'skill',
-    statType: 'ninjutsu',
+    statType: 'medicine',
     element: 'doton',
     rarity: 'common',
     cost: 1,
@@ -1568,7 +1585,8 @@ export const EXPANSION_WAVE1_CARDS = [
 export const EXPANSION_CARDS = [
   ...EXPANSION_WAVE1_CARDS,
   ...EXPANSION_WAVE2_CARDS,
+  ...EXPANSION_WAVE3_CARDS,
   ...CLAN_LEGENDARY_CARDS,
 ];
 
-export { EXPANSION_WAVE2_CARDS, CLAN_LEGENDARY_CARDS };
+export { EXPANSION_WAVE2_CARDS, EXPANSION_WAVE3_CARDS, CLAN_LEGENDARY_CARDS };

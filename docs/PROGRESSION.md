@@ -1,0 +1,108 @@
+# Économie et progression
+
+## Monnaies
+
+Le profil possède :
+
+- Ryos ;
+- poussière de cartes ;
+- essence de cartes ;
+- Kage Coins.
+
+Ryos, poussière et essence sont produits par le jeu. Les Kage Coins servent notamment aux boosters premium, aux niveaux premium et aux paiements de boutique.
+
+## Boosters
+
+Chaque booster contient 5 cartes.
+
+| Booster     |           Coût | Poids commun / rare / légendaire / mythique |
+| ----------- | -------------: | ------------------------------------------: |
+| Standard    |       400 Ryos |                         700 / 230 / 55 / 15 |
+| Élémentaire |       650 Ryos |                         650 / 260 / 70 / 20 |
+| Premium     | 100 Kage Coins |                        550 / 320 / 100 / 30 |
+
+Le booster premium garantit une rare ou mieux. Le booster élémentaire accepte un élément optionnel. Les cartes d'une autre saison marquées exclusives sont écartées du tirage.
+
+Le serveur décide le tirage et prélève le coût. Les listes de cartes envoyées par le client ne sont pas utilisées.
+
+## Packs de Kage Coins
+
+| Identifiant | Coins reçus | Prix EUR |
+| ----------- | ----------: | -------: |
+| `spark`     |         100 |        1 |
+| `ember`     |         550 |        5 |
+| `forge`     |        1150 |       10 |
+| `vault`     |        6000 |       50 |
+
+Le paiement Stripe est documenté dans [Exploitation](OPERATIONS.md).
+
+## Désenchantement et amélioration
+
+Désenchantement :
+
+- commune : 10 poussière ;
+- rare : 40 poussière ;
+- légendaire : 200 poussière ;
+- mythique : 1000 poussière.
+
+Les coûts d'amélioration sont centralisés dans `backend/src/config/economyConfig.js`. Le niveau maximum courant est 2, avec des restrictions possibles par rareté.
+
+## Talents
+
+Le catalogue comprend 72 talents, répartis en quatre piliers de six paliers : Taijutsu, Ninjutsu, Genjutsu et Médecine. Il n'existe plus de branche centrale ni de catégorie Keystone. Un talent progressif possède jusqu'à trois rangs ; une technique puissante se débloque en un seul rang.
+
+Le niveau maximal est 80 et chaque passage de niveau donne un point. Les 138 points nécessaires pour compléter tout le catalogue dépassent volontairement ce plafond. Aucun talent n'ajoute de Chakra maximal, ne rend de Chakra ni ne modifie le coût des cartes.
+
+Chaque palier exige un minimum de points investis dans son pilier. Certains nœuds imposent en plus le talent lié du palier précédent. Le reset rembourse chaque rang investi ; il reste gratuit une fois tous les 10 niveaux atteints, sinon il coûte 2000 Ryos.
+
+Le seed convertit les investissements de l'ancien arbre vers les nouveaux nœuds : chaque point historique devient un rang dans le pilier correspondant, sans être perdu. Le moteur n'active que les effets reconnus par `talentEffects.js`.
+
+## Battle Pass
+
+Saison seedée actuelle : saison 1, « L'Éveil des Ombres », 50 niveaux.
+
+- XP de base : 1000 par niveau, avec une hausse de 50 par tranche de 10 niveaux ;
+- premium : 500 Kage Coins ou 5 EUR ;
+- bonus d'XP premium : `×1,2` ;
+- achat de niveau : 150 Kage Coins, disponible à partir du niveau 30, 20 niveaux maximum par opération ;
+- récompenses gratuites et premium réclamées séparément.
+
+Les quêtes comprennent des cycles journaliers, hebdomadaires et des jalons. L'inventaire exact est seedé dans `backend/scripts/data/battlePassSeason1.js`.
+
+Les récompenses cosmétiques sont filtrées. Les récompenses de type booster du Battle Pass accordent aujourd'hui un lot fixe de cartes ; elles ne lancent pas le système complet de tirage de boosters.
+
+## Succès
+
+15 succès existent dans six catégories : combat, missions, collection, PvP, maîtrise et progression. Chaque succès possède plusieurs paliers et ses récompenses sont réclamées manuellement.
+
+Récompenses possibles : Ryos, poussière, essence ou XP.
+
+Les hooks actifs suivent notamment : victoires, bosses, séries, défis de combat, runs terminés, collection, taille de deck, talents dépensés et matchs PvP.
+
+## Missions et récompenses
+
+16 missions sont initialisées dans le schéma. Elles couvrent les rangs D à S et se jouent en runs de combats et événements.
+
+La récompense de rang part d'un plancher :
+
+| Rang |  XP | Ryos | Chance carte | XP Battle Pass |
+| ---- | --: | ---: | -----------: | -------------: |
+| D    |  50 |  150 |         12 % |            100 |
+| C    |  85 |  280 |         15 % |            160 |
+| B    | 130 |  430 |         20 % |            250 |
+| A    | 220 |  750 |         30 % |            400 |
+| S    | 320 | 1100 |         35 % |            600 |
+
+Le run applique ensuite son multiplicateur et un bonus progressif par combat gagné. La chance de carte finale est plafonnée à 85 %.
+
+Une défaite, un abandon ou un combat abandonné ne paye pas la récompense de run.
+
+## Factions et classement
+
+Les factions sont cosmétiques et donnent seulement une identité visuelle. L'affectation est automatique si aucune faction n'est choisie. Un changement gratuit est autorisé.
+
+Classements :
+
+- niveau puis XP ;
+- victoires PvP de matchs terminés ;
+- vue agrégée par faction.

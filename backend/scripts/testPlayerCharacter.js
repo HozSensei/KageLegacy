@@ -68,7 +68,7 @@ function testPureHelpers() {
 
   assert(xpRequiredForLevel(1) === 100, 'XP 1→2 = 100');
   assert(xpRequiredForLevel(5) === 500, 'XP 5→6 = 500');
-  assert(xpRequiredForLevel(100) === 10000, 'XP au cap documentée');
+  assert(xpRequiredForLevel(MAX_LEVEL) === 8000, 'XP au cap documentée');
 
   assert(rankForLevel(1) === 'Genin', 'rang Genin');
   assert(rankForLevel(20) === 'Chunin', 'rang Chunin');
@@ -108,7 +108,7 @@ function testPureHelpers() {
   assert(noAutoStats.talentPointsAvailable === 20, '+1 talent only');
 
   const atCap = applyXpGain({ level: MAX_LEVEL, xp: 0, talentPointsAvailable: 100 }, 9999);
-  assert(atCap.level === MAX_LEVEL, 'cap niveau 100');
+  assert(atCap.level === MAX_LEVEL, 'cap niveau 80');
   assert(atCap.levelsGained === 0, 'pas de level-up au cap');
 }
 

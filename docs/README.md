@@ -1,20 +1,35 @@
-# Documentation
+# Documentation Kage Legacy
 
-Kage Legacy est un TCG shinobi jouable dans le navigateur, avec collection et amélioration de cartes, deck builder, combats PvE, missions, progression, Battle Pass et PvP.
+Cette documentation décrit le produit actuellement implémenté. Elle remplace les anciens audits, spécifications V2/V3 et rapports ponctuels.
 
-Les pages de ce dossier ont été rédigées à différents moments du développement. Les règles, chiffres et descriptions détaillées ne sont pas nécessairement à jour : pour les statistiques de ninja, effets de cartes, coûts et comportements, vérifier en priorité les catalogues, seeds, services et configurations actuellement utilisés par le backend. Les anciennes descriptions de gestion d'escouade et de cycles de 72 h concernent le jeu legacy et ne décrivent pas le TCG actuel.
+Kage Legacy est un TCG shinobi jouable dans le navigateur, centré sur la collection, les améliorations, la construction de decks, les combats PvE, les missions, le PvP et la progression.
 
-## Documents
+## Index
 
-- [`CARD_SYSTEM.md`](./CARD_SYSTEM.md) et [`CARD_CATALOGUE.md`](./CARD_CATALOGUE.md) : système et catalogue de cartes.
-- [`COMBAT_SYSTEM.md`](./COMBAT_SYSTEM.md), [`BOSS_PHASES.md`](./BOSS_PHASES.md) et [`COMBAT_BALANCE_TESTS.md`](./COMBAT_BALANCE_TESTS.md) : combat et validation d'équilibrage.
-- [`MISSION_RUNS.md`](./MISSION_RUNS.md) : parcours de missions.
-- [`TALENT_TREE.md`](./TALENT_TREE.md) et [`TALENT_EFFECTS.md`](./TALENT_EFFECTS.md) : talents.
-- [`BATTLE_PASS.md`](./BATTLE_PASS.md), [`ECONOMY.md`](./ECONOMY.md) et [`STRIPE_V2.md`](./STRIPE_V2.md) : progression saisonnière et économie.
-- [`PVP_SYSTEM.md`](./PVP_SYSTEM.md) : PvP.
-- [`I18N.md`](./I18N.md) : internationalisation.
-- [`TECHNICAL_ARCHITECTURE.md`](./TECHNICAL_ARCHITECTURE.md) : architecture (à recouper avec le code pour les détails d'API et d'infrastructure).
-- [`QUICK_START.md`](./QUICK_START.md) : démarrage.
-- [`AUDIT_2026-11-17.md`](./AUDIT_2026-11-17.md) : état vérifié, retraits appliqués et améliorations prioritaires.
+- [Démarrage local](QUICK_START.md) : installation, base de données, développement, E2E.
+- [Architecture](ARCHITECTURE.md) : structure du dépôt, API, données et frontières frontend/backend.
+- [Règles du jeu](GAME_RULES.md) : règles joueur et progression.
+- [Cartes et combat](CARDS_AND_COMBAT.md) : voies, effets, combos, héritages, tours et simulation.
+- [Économie et progression](PROGRESSION.md) : collection, decks, talents, monnaies, boutique, Battle Pass et récompenses.
+- [PvP](PVP.md) : matchmaking, architecture host-authoritative, WebSocket et limites.
+- [Tests et équilibrage](TESTING.md) : validations disponibles et commande d'audit du catalogue.
+- [Exploitation](OPERATIONS.md) : variables d'environnement, Docker, production, Stripe et scheduler.
+- [Décisions de conception](DESIGN.md) : choix de la refonte des voies, raretés, combos et héritages.
 
-Les documents de conception et jalons dans [`../specs/`](../specs/) décrivent parfois des intentions ou l'historique du projet, pas nécessairement des fonctionnalités livrées. Pour la cartographie des fichiers, la configuration et les commandes, consulter [`../AGENTS.md`](../AGENTS.md).
+## Sources de vérité
+
+En cas de divergence, vérifier dans cet ordre :
+
+1. le code monté dans `backend/src/app.js` et exposé par les vues de `frontend/src` ;
+2. les données des 250 cartes dans `backend/scripts/seedCards.js`, `backend/scripts/data/` et `backend/schema.sql` ;
+3. les tests ciblés de `backend/scripts/` et `shared/pvp/duelEngine.test.js` ;
+4. cette documentation ;
+5. le contenu historique de `specs/`, qui n'est pas une garantie de livraison.
+
+Les règles affichées aux joueurs sont conservées dans `frontend/src/content/rules.fr.md` et `rules.en.md`. Une modification de règle doit mettre à jour ces fichiers et la documentation concernée.
+
+## Périmètre actuel
+
+Actifs et exposés : collection, decks, talents, combats PvE, missions à nœuds, boutique, Battle Pass, succès, factions cosmétiques, classement, PvP et administration.
+
+Non actifs : gestion d'escouade, cycle asynchrone de 72 h, tactiques de cycle ou toute fonctionnalité ancienne uniquement retrouvée dans `specs/` ou dans des chaînes mortes.

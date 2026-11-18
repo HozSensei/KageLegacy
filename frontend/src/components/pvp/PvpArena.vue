@@ -104,6 +104,14 @@ onBeforeUnmount(() => {
   if (bannerTimer) clearTimeout(bannerTimer);
 });
 
+function confirmEndTurn() {
+  if (!canAct.value) return;
+  const chakra = Number(self.value?.chakra) || 0;
+  if (chakra <= 1 || window.confirm(t('combat.endTurnConfirm', { n: chakra }))) {
+    emit('end-turn');
+  }
+}
+
 function confirmForfeit() {
   if (props.view?.status !== 'in_progress' || props.busy) return;
   if (window.confirm(`${t('pvp.forfeit')} ?\n${t('pvp.outcome.defeat')}`)) emit('forfeit');
@@ -221,6 +229,7 @@ const outcomeKey = computed(() => {
         :selected-id="selectedId"
         :disabled="busy || !canAct"
         :chakra="self?.chakra || 0"
+        :cost-reduction="self?.nextCardCostReduction || 0"
         :stats="self?.stats"
         @select="emit('select-card', $event)"
         @play="emit('play-card', $event)"
@@ -269,7 +278,7 @@ const outcomeKey = computed(() => {
           class="btn-secondary btn-lg"
           :disabled="busy || !canAct"
           data-testid="pvp-end-turn"
-          @click="emit('end-turn')"
+          @click="confirmEndTurn"
         >
           {{ t('combat.endTurn') }}
         </button>

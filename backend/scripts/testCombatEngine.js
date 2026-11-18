@@ -127,7 +127,7 @@ statuses = applyStatus(statuses, { key: 'poison', value: 5, duration: 3 });
 statuses = applyStatus(statuses, { key: 'poison', value: 3, duration: 2 });
 assert(statuses[0].value === 8 && statuses[0].duration === 3, 'poison stacks value, max duration');
 
-let entity = { hp: 40, maxHp: 40, block: 5, statuses };
+const entity = { hp: 40, maxHp: 40, block: 5, statuses };
 const start = resolveStartOfTurnStatuses(entity);
 assert(start.entity.hp === 32, 'poison deals at start');
 const end = resolveEndOfTurnStatuses({
@@ -159,7 +159,7 @@ const fixedRng = (() => {
 const shuffled = shuffle([1, 2, 3, 4, 5], fixedRng);
 assert(shuffled.length === 5 && shuffled.includes(1), 'shuffle preserves items');
 
-let player = {
+const player = {
   hp: 100,
   maxHp: 100,
   block: 0,
@@ -212,7 +212,7 @@ let p = {
   discardPile: [],
   exhaustPile: [],
 };
-let e = { hp: 40, maxHp: 40, block: 0, statuses: [], posture: 'genjutsu' };
+const e = { hp: 40, maxHp: 40, block: 0, statuses: [], posture: 'genjutsu' };
 const play = applyCardPlay({
   player: p,
   enemy: e,
@@ -284,18 +284,15 @@ console.log('\n=== Talent effects ===');
 const seededEffects = [...new Set(TALENT_NODE_DEFS.filter(n => n.effect).map(n => n.effect))];
 const classifiedAll = classifyTalentEffects(seededEffects);
 assert(
-  classifiedAll.applied.length >= 40,
-  `≥40 effects applied (got ${classifiedAll.applied.length})`
+  classifiedAll.applied.length >= 20,
+  `≥20 effets de l'arbre V3 appliqués (got ${classifiedAll.applied.length})`
 );
-assert(classifiedAll.stubbed.includes('collector'), 'collector still stubbed (meta)');
-assert(classifiedAll.applied.includes('vital_satchel'), 'vital_satchel applied (center keystone)');
-assert(classifiedAll.applied.includes('item_armor'), 'item_armor applied');
-assert(classifiedAll.applied.includes('item_damage'), 'item_damage applied');
-assert(classifiedAll.applied.includes('confusion_tax'), 'confusion_tax applied');
-assert(classifiedAll.applied.includes('steady_hands'), 'steady_hands applied');
+assert(classifiedAll.stubbed.length === 0, 'aucun effet du nouvel arbre non implémenté');
+assert(classifiedAll.applied.includes('confusion_tax'), 'confusion_tax appliqué');
+assert(classifiedAll.applied.includes('steady_hands'), 'steady_hands appliqué');
 assert(
-  Object.keys(TALENT_EFFECT_MVP).length === classifiedAll.applied.length,
-  'MVP map matches applied'
+  Object.keys(TALENT_EFFECT_MVP).length >= classifiedAll.applied.length,
+  'les effets V3 sont couverts par la configuration combat'
 );
 
 const classified = classifyTalentEffects([
@@ -578,7 +575,7 @@ const i2 = getNextIntent({ ...captain, patternIndex: 1 });
 const i3 = getNextIntent({ ...captain, patternIndex: 2 });
 assert(i1.type === 'attack' && i2.type === 'attack' && i3.type === 'defend', 'pattern loop');
 
-let hero = { hp: 100, maxHp: 100, block: 10, statuses: [] };
+const hero = { hp: 100, maxHp: 100, block: 10, statuses: [] };
 const foe = { ...enemy, intent: { type: 'attack', damage: 8 } };
 const resolved = executeEnemyIntent(foe, hero, () => 0.99);
 assert(resolved.player.hp === 100 && resolved.player.block === 2, 'enemy attack vs block');

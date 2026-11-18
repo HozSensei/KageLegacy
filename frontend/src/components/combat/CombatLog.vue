@@ -139,6 +139,17 @@ function formatLog(log) {
     }
     case 'gain_chakra':
       return t('combat.log.gainChakra', { n });
+    case 'next_card_cost_ready':
+      return t('combat.log.nextCardCostReady', { n });
+    case 'held_gain_chakra':
+      return t('combat.log.heldGainChakra', { n });
+    case 'held_gain_block':
+      return t('combat.log.heldGainBlock', { n });
+    case 'next_card_cost_reduction':
+      return t('combat.log.nextCardCostReduction', {
+        n: Number(log.applied) || 0,
+        cost: Number(log.cost) || 0,
+      });
     case 'cleanse':
       return log.removed
         ? t('combat.log.cleanse', { status: statusLabel(log.removed) })

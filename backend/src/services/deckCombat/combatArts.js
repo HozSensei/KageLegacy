@@ -4,6 +4,7 @@
  */
 
 export const COMBAT_ARTS = Object.freeze(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
+export const COMMON_ART = 'common';
 
 export const COMBAT_ART_SET = new Set(COMBAT_ARTS);
 
@@ -39,9 +40,16 @@ export const DUAL_TYPE_SECONDARY = Object.freeze({
 export function normalizeArtKey(value) {
   if (value == null || value === '') return null;
   const key = String(value).trim().toLowerCase();
-  if (key === 'medecine' || key === 'heredite' || key === 'héritage') return 'medicine';
-  if (COMBAT_ART_SET.has(key)) return key;
+  if (key === 'medecine') return 'medicine';
+  if (key === COMMON_ART || COMBAT_ART_SET.has(key)) return key;
   return null;
+}
+
+export function resolveScalingStat(statType, stats = {}) {
+  if (statType === COMMON_ART) {
+    return Math.max(0, ...COMBAT_ARTS.map(key => Number(stats?.[key]) || 0));
+  }
+  return Number(stats?.[statType]) || 0;
 }
 
 export function resolveSecondaryArt(slug, explicitSecondary = null) {
@@ -58,7 +66,7 @@ export function resolveSecondaryArt(slug, explicitSecondary = null) {
  */
 export function remapAbandonedPassives(
   passive = {},
-  { statType = null, secondaryStatType = null } = {},
+  { statType = null, secondaryStatType = null } = {}
 ) {
   const raw = passive && typeof passive === 'object' ? { ...passive } : {};
   const vit = Number(raw.vitesse) || 0;
@@ -73,10 +81,17 @@ export function remapAbandonedPassives(
   }
 
   const primary = normalizeArtKey(statType) || 'taijutsu';
-  const secondary = normalizeArtKey(secondaryStatType);
+  const secondary = primary === COMMON_ART ? null : normalizeArtKey(secondaryStatType);
 
   if (vit > 0) {
-    raw[primary] = (Number(raw[primary]) || 0) + vit;
+    const legacySpeedTarget =
+      primary === COMMON_ART
+        ? COMBAT_ARTS.reduce(
+            (best, key) => ((Number(raw[key]) || 0) > (Number(raw[best]) || 0) ? key : best),
+            'taijutsu'
+          )
+        : primary;
+    raw[legacySpeedTarget] = (Number(raw[legacySpeedTarget]) || 0) + vit;
   }
   if (intel > 0) {
     let target = secondary;

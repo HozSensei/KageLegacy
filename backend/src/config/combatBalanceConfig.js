@@ -2,7 +2,7 @@
  * Seuils d’équilibrage combat PvE (deck-building).
  *
  * Utilisé par `npm run test:combat-balance` et le mode rapport.
- * Voir docs/COMBAT_BALANCE_TESTS.md.
+ * Voir docs/TESTING.md.
  *
  * Win rates exprimés en fractions [0, 1].
  *

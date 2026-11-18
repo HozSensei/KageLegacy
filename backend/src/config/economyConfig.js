@@ -4,7 +4,7 @@
  * Source unique des constantes tunables (boosters, combat, dust, Battle Pass).
  * Les services doivent importer ici plutôt que hardcoder des montants.
  *
- * Principes F2P (voir docs/ECONOMY.md) :
+ * Principes F2P (voir docs/PROGRESSION.md) :
  * - Progression gratuite viable via missions + dust
  * - Premium (Kage Coins / BP) accélère, ne gate pas la puissance
  * - Sinks (boosters, upgrades) > sources pour éviter l’inflation
@@ -49,7 +49,7 @@ export const COMBAT_RUN_BONUS_MULT_DEFAULT = 1.8;
 
 /**
  * Cibles par rang (utilisées comme plancher runtime + seeds).
- * bpPoints calés sur docs/BATTLE_PASS.md (100–500 selon rang).
+ * bpPoints calés sur docs/PROGRESSION.md (100–500 selon rang).
  */
 export const COMBAT_REWARDS_BY_RANK = Object.freeze({
   D: Object.freeze({ xp: 50, ryos: 150, cardChance: 12, bpPoints: 100 }),

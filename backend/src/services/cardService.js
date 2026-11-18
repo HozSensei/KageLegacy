@@ -15,7 +15,7 @@ import {
 
 export const CARD_TYPES = ['attack', 'defense', 'skill', 'summon', 'item'];
 export const CARD_RARITIES = ['common', 'rare', 'legendary', 'mythic'];
-export const STAT_TYPES = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
+export const STAT_TYPES = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'common'];
 export const ELEMENTS = ['katon', 'suiton', 'raiton', 'doton', 'futon'];
 
 /** @see ../config/economyConfig.js */
@@ -50,11 +50,17 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
   const passiveBase = parseJsonSafe(cardDef.passive_bonus_json ?? cardDef.passiveBonus, {}) || {};
   const slug = cardDef.slug || null;
   const rawStat = cardDef.stat_type ?? cardDef.statType ?? 'taijutsu';
-  const primary = normalizeArtKey(rawStat) || String(rawStat).toLowerCase();
-  const secondary = resolveSecondaryArt(
-    slug,
-    cardDef.statTypeSecondary ?? cardDef.stat_type_secondary,
-  );
+  const requiresCommon =
+    cardDef.type === 'item' ||
+    cardDef.type === 'summon' ||
+    String(cardDef.slug || '').startsWith('clan-');
+  const primary = requiresCommon
+    ? 'common'
+    : normalizeArtKey(rawStat) || String(rawStat).toLowerCase();
+  const secondary =
+    primary === 'common'
+      ? null
+      : resolveSecondaryArt(slug, cardDef.statTypeSecondary ?? cardDef.stat_type_secondary);
 
   let cost = Number(cardDef.base_cost ?? cardDef.baseCost ?? 0);
   let damage = Number(cardDef.base_damage ?? cardDef.baseDamage ?? 0);
@@ -99,6 +105,7 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
 export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
   if (!row) return null;
   const effects = parseJsonSafe(row.effects_json, []);
+  const heldEffect = parseJsonSafe(row.held_effect_json, null);
   const summon = parseJsonSafe(row.summon_json, null);
   const upgradeBonuses = parseJsonSafe(row.upgrade_bonuses_json, {});
   const computed = applyUpgradeBonuses(row, upgradeLevel);
@@ -111,7 +118,10 @@ export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
     nameFr: `${row.name_fr}${suffix}`,
     nameEn: `${row.name_en}${suffix}`,
     type: row.type,
-    statType: normalizeArtKey(row.stat_type) || row.stat_type,
+    statType:
+      row.type === 'item' || row.type === 'summon' || String(row.slug || '').startsWith('clan-')
+        ? 'common'
+        : normalizeArtKey(row.stat_type) || row.stat_type,
     statTypeSecondary: computed.statTypeSecondary,
     element: row.element,
     rarity: row.rarity,
@@ -125,6 +135,7 @@ export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
     heal: computed.heal,
     critChance: computed.critChance || 0,
     effects,
+    heldEffect,
     summon,
     exhaust: Boolean(row.exhaust),
     passiveBonus: computed.passiveBonus,
@@ -181,7 +192,7 @@ export async function getAllCards(filters = {}) {
   const { clause, params } = buildFilters(filters);
   const rows = await query(
     `SELECT * FROM card_definitions ${clause} ORDER BY rarity, type, name_fr`,
-    params,
+    params
   );
   return rows.map(row => serializeCardDefinition(row));
 }
@@ -237,6 +248,9 @@ export async function upsertCardDefinition(card) {
     card.base_block ?? card.baseBlock ?? 0,
     card.base_heal ?? card.baseHeal ?? 0,
     JSON.stringify(card.effects_json ?? card.effects ?? []),
+    (card.held_effect_json ?? card.heldEffect)
+      ? JSON.stringify(card.held_effect_json ?? card.heldEffect)
+      : null,
     (card.summon_json ?? card.summon) ? JSON.stringify(card.summon_json ?? card.summon) : null,
     card.exhaust ? 1 : 0,
     JSON.stringify(card.passive_bonus_json ?? card.passiveBonus ?? {}),
@@ -260,13 +274,13 @@ export async function upsertCardDefinition(card) {
       `UPDATE card_definitions SET
         name_fr=?, name_en=?, type=?, stat_type=?, element=?, rarity=?,
         base_cost=?, base_damage=?, base_block=?, base_heal=?,
-        effects_json=?, summon_json=?, exhaust=?,
+        effects_json=?, held_effect_json=?, summon_json=?, exhaust=?,
         passive_bonus_json=?, passive_description_fr=?, passive_description_en=?,
         description_fr=?, description_en=?, lore_fr=?, lore_en=?,
         upgradable=?, upgrade_bonuses_json=?, image_url=?, artist=?,
         season_introduced=?, is_exclusive=?
        WHERE slug=?`,
-      payload,
+      payload
     );
     return getCardBySlug(card.slug);
   }
@@ -275,13 +289,13 @@ export async function upsertCardDefinition(card) {
     `INSERT INTO card_definitions (
       name_fr, name_en, type, stat_type, element, rarity,
       base_cost, base_damage, base_block, base_heal,
-      effects_json, summon_json, exhaust,
+      effects_json, held_effect_json, summon_json, exhaust,
       passive_bonus_json, passive_description_fr, passive_description_en,
       description_fr, description_en, lore_fr, lore_en,
       upgradable, upgrade_bonuses_json, image_url, artist,
       season_introduced, is_exclusive, slug
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    payload,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    payload
   );
   return getCardBySlug(card.slug);
 }

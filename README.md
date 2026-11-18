@@ -7,7 +7,7 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 ## Documentation
 
 - [`AGENTS.md`](./AGENTS.md) : cartographie du dépôt, configuration et commandes courantes.
-- [`docs/`](./docs/) : documentation fonctionnelle et technique; vérifier les implémentations avant de s'appuyer sur des valeurs de gameplay.
+- [`docs/`](./docs/) : documentation officielle reconstruite depuis l'état implémenté.
 - [`specs/`](./specs/) : spécifications et jalons de conception, qui ne garantissent pas que chaque élément soit livré.
 - Règles du jeu affichées dans l'application : [`frontend/src/content/rules.fr.md`](./frontend/src/content/rules.fr.md) et [`frontend/src/content/rules.en.md`](./frontend/src/content/rules.en.md).
 
@@ -35,6 +35,6 @@ Commandes usuelles (voir les manifestes `package.json` pour la liste complète) 
 - `npm run db:up` / `npm run db:down` : démarrer/arrêter MySQL.
 - `npm run db:migrate` : installer le schéma initial depuis `backend/schema.sql` (base vide requise ; aucune mise à niveau d'une base existante).
 - `npm run db:seed` : initialiser les cartes, talents et données Battle Pass.
-- `npm run test:combat-engine`, `npm run test:combat-balance`, `npm run test:e2e` : tests ciblés. Les tests E2E exigent une base dédiée : voir [Démarrage rapide](docs/QUICK_START.md#tests-e2e).
+- `npm run test:combat-engine`, `npm run test:combat-balance`, `npm run test:e2e` : tests ciblés. Les tests E2E exigent une base dédiée : voir [Démarrage rapide](docs/QUICK_START.md).
 
 Ne jamais committer de secrets. Utiliser les fichiers `.env*.example` comme modèles et conserver les valeurs réelles dans des fichiers locaux ignorés.

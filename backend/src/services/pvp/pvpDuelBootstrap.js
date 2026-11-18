@@ -63,6 +63,7 @@ export function serializeRuntimeCards(deckCards) {
         // Ne pas propager exhaust : le moteur l'utilise pour déplacer la carte.
         summon: parseJsonSafe(card.summon_json, card.summon || null),
         effects: parseJsonSafe(card.effects_json, card.effects || []),
+        heldEffect: parseJsonSafe(card.held_effect_json, card.heldEffect || null),
       });
     }
   }
@@ -77,7 +78,7 @@ async function loadFighterProfile(userId) {
      FROM player_profiles
      WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`,
-    [userId],
+    [userId]
   );
   if (!rows[0]) throw httpError(400, `Personnage requis pour le joueur #${userId}.`);
   return rows[0];

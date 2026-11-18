@@ -8,11 +8,11 @@ import { query } from '../config/database.js';
 import { assignFactionFromSeed, getFaction, isValidFactionId } from './factionCatalog.js';
 import { ELEMENTS } from '../validators/player.js';
 
-/** Niveau max du personnage. */
-export const MAX_LEVEL = 100;
+/** Niveau max du personnage : 80 points au total, quatre arbres non remplissables. */
+export const MAX_LEVEL = 80;
 
 /**
- * Clés de stats combat (docs/COMBAT_SYSTEM.md).
+ * Clés de stats combat (docs/CARDS_AND_COMBAT.md).
  * Phase 1 : toutes à 0 tant que talents/cartes ne sont pas branchés.
  */
 export const STAT_KEYS = [
@@ -74,7 +74,7 @@ async function tableExists(tableName) {
        FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ?
        LIMIT 1`,
-      [tableName],
+      [tableName]
     );
     return rows.length > 0;
   } catch {
@@ -177,7 +177,7 @@ async function fetchCharacterRow(userId) {
      FROM player_profiles
      WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`,
-    [userId],
+    [userId]
   );
   return rows[0] || null;
 }
@@ -187,7 +187,7 @@ async function fetchCharacterRow(userId) {
  */
 export async function createCharacter(
   userId,
-  { name, elementAffinity = 'Katon', avatarUrl, factionId },
+  { name, elementAffinity = 'Katon', avatarUrl, factionId }
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
 
@@ -212,7 +212,7 @@ export async function createCharacter(
   const avatar = avatarUrl && String(avatarUrl).trim() ? String(avatarUrl).trim() : null;
   const profiles = await query(
     'SELECT character_name FROM player_profiles WHERE user_id = ? LIMIT 1',
-    [userId],
+    [userId]
   );
   if (!profiles[0]) throw httpError(404, 'Profil joueur introuvable.');
   if (profiles[0].character_name) throw httpError(409, 'Un personnage existe déjà pour ce compte.');
@@ -225,7 +225,7 @@ export async function createCharacter(
          character_faction_id = ?, character_faction_retake_used = 0,
          character_created_at = UTC_TIMESTAMP(), character_updated_at = UTC_TIMESTAMP()
      WHERE user_id = ? AND character_name IS NULL`,
-    [trimmedName, avatar, elementAffinity, resolvedFaction, userId],
+    [trimmedName, avatar, elementAffinity, resolvedFaction, userId]
   );
   if (!result.affectedRows) throw httpError(409, 'Un personnage existe déjà pour ce compte.');
 
@@ -302,7 +302,7 @@ export async function addXP(userId, amount) {
          SET character_level = ?, character_xp = ?, character_rank = ?,
              character_talent_points_available = ?, character_updated_at = UTC_TIMESTAMP()
          WHERE user_id = ? AND character_name IS NOT NULL`,
-      [after.level, after.xp, after.rank, after.talentPointsAvailable, userId],
+      [after.level, after.xp, after.rank, after.talentPointsAvailable, userId]
     );
   }
 
@@ -340,7 +340,7 @@ export async function levelUp(userId) {
      SET character_level = ?, character_xp = ?, character_rank = ?,
          character_talent_points_available = ?, character_updated_at = UTC_TIMESTAMP()
      WHERE user_id = ? AND character_name IS NOT NULL`,
-    [nextLevel, nextXp, nextRank, nextTalent, userId],
+    [nextLevel, nextXp, nextRank, nextTalent, userId]
   );
 
   const character = await getCharacter(userId);

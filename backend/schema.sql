@@ -91,7 +91,7 @@ CREATE TABLE `card_definitions` (
   `name_fr` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
   `name_en` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
   `type` enum('attack','defense','skill','summon','item') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `stat_type` enum('taijutsu','ninjutsu','genjutsu','medicine') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `stat_type` enum('taijutsu','ninjutsu','genjutsu','medicine','common') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `element` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'katon, suiton, raiton, doton, futon, null',
   `rarity` enum('common','rare','legendary','mythic') COLLATE utf8mb4_unicode_ci NOT NULL,
   `base_cost` int NOT NULL DEFAULT '0',
@@ -99,6 +99,7 @@ CREATE TABLE `card_definitions` (
   `base_block` int NOT NULL DEFAULT '0',
   `base_heal` int NOT NULL DEFAULT '0',
   `effects_json` json DEFAULT NULL,
+  `held_effect_json` json DEFAULT NULL,
   `summon_json` json DEFAULT NULL,
   `exhaust` tinyint(1) NOT NULL DEFAULT '0',
   `passive_bonus_json` json DEFAULT NULL,
@@ -393,6 +394,9 @@ CREATE TABLE `talent_tree_nodes` (
   `position_x` int NOT NULL COMMENT 'Coordonnée X dans l''arbre',
   `position_y` int NOT NULL COMMENT 'Coordonnée Y dans l''arbre',
   `branch` enum('taijutsu','ninjutsu','genjutsu','medicine','center') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tier` tinyint unsigned NOT NULL DEFAULT '0' COMMENT 'Palier vertical, 0 pour les nœuds legacy archivés',
+  `max_rank` tinyint unsigned NOT NULL DEFAULT '1',
+  `required_branch_points` int unsigned NOT NULL DEFAULT '0',
   `stat_bonus_json` json DEFAULT NULL,
   `effect_code` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Code interne pour appliquer l''effet',
   `requires_nodes_json` json DEFAULT NULL,
@@ -610,6 +614,7 @@ CREATE TABLE `user_talents` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `user_id` int unsigned NOT NULL,
   `node_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `points_spent` tinyint unsigned NOT NULL DEFAULT '1' COMMENT 'Rang acheté sur ce nœud',
   `unlocked_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_user_talent` (`user_id`,`node_id`),
@@ -655,4 +660,3 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-

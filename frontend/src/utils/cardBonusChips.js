@@ -47,6 +47,7 @@ export function cardFamilyKey(cardOrStat) {
   const raw = String(
     typeof cardOrStat === 'string' ? cardOrStat : cardOrStat?.statType || ''
   ).toLowerCase();
+  if (raw === 'common') return 'common';
   if (raw === 'ninjutsu') return 'ninjutsu';
   if (raw === 'genjutsu') return 'genjutsu';
   if (raw === 'medicine' || raw === 'medecine' || raw === 'heredite' || raw === 'héritage') {

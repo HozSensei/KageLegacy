@@ -631,6 +631,10 @@ watch(
   opacity: 0.95;
 }
 
+.card-display__category--common {
+  background: #6b7280;
+}
+
 .card-display__category--ninjutsu {
   background: #3776af;
 }

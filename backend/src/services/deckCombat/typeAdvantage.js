@@ -1,5 +1,5 @@
 /**
- * Triade tactique + roue élémentaire (docs/COMBAT_SYSTEM.md).
+ * Triade tactique + roue élémentaire (docs/CARDS_AND_COMBAT.md).
  *
  * Module pur — pas de DB / RNG.
  *

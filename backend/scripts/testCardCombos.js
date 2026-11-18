@@ -96,10 +96,10 @@ assert.equal(cumulative.player.hand.length, 3);
 assert.equal(cumulative.player.chakra, 6);
 assert.equal(cumulative.logs.filter(log => log.type === 'draw').length, 3);
 const invalid = play(
-  { ...player, previousCardStatType: 'medicine' },
+  { ...player, previousCardStatType: 'common' },
   {
     damage: 10,
-    effects: [{ type: 'combo_previous', statType: 'medicine', damage: 5, draw: 1, chakra: 1 }],
+    effects: [{ type: 'combo_previous', statType: 'common', damage: 5, draw: 1, chakra: 1 }],
   }
 );
 assert.equal(invalid.enemy.hp, 90);
@@ -135,7 +135,7 @@ assert.equal(
     { ...player, previousCardStatType: 'medicine' },
     { effects: [effect('gain_chakra', 'medicine', 2)] }
   ).player.chakra,
-  3
+  5
 );
 assert.equal(
   play(player, {
@@ -204,4 +204,63 @@ assert.ok(state.fighters.host.hand.some(card => card.instanceId === 'pvp-draw'))
 state = action(state, 'end_turn', 'host');
 state = action(state, 'end_turn', 'guest');
 assert.equal(state.fighters.host.previousCardStatType, null);
+
+const commonStats = { taijutsu: 20, ninjutsu: 80, genjutsu: 40, medicine: 10 };
+assert.equal(
+  computeCardDamage({ damage: 10, statType: 'common' }, { stats: commonStats, rng }).perHit,
+  18
+);
+const commonBreaksChain = applyTalentAfterCardPlay(
+  { ...player, previousCardStatType: 'taijutsu' },
+  { statType: 'common' }
+).player;
+assert.equal(commonBreaksChain.previousCardStatType, null);
+const medicineCombo = play(
+  { ...player, previousCardStatType: 'medicine' },
+  { effects: [{ type: 'combo_previous', statType: 'medicine', chakra: 1, costReduction: 2 }] }
+);
+assert.equal(medicineCombo.player.chakra, 4);
+assert.equal(medicineCombo.player.nextCardCostReduction, 2);
+
+const discounted = applyCardPlay({
+  player: { ...player, chakra: 2, nextCardCostReduction: 3 },
+  enemy,
+  card: { cost: 4, statType: 'common', effects: [{ type: 'reduce_next_card_cost', value: 1 }] },
+  stats: commonStats,
+  rng,
+});
+assert.equal(discounted.chakraSpent, 1);
+assert.equal(discounted.player.chakra, 1);
+assert.equal(discounted.player.nextCardCostReduction, 1);
+const stacked = play(
+  { ...player, nextCardCostReduction: 1 },
+  { effects: [{ type: 'reduce_next_card_cost', value: 2 }] }
+);
+assert.equal(stacked.player.nextCardCostReduction, 2);
+
+const heritagePlayer = {
+  ...player,
+  chakra: 3,
+  block: 0,
+  hand: [
+    {
+      instanceId: 'held-taijutsu',
+      slug: 'clan-kazamine',
+      heldEffect: { type: 'art_damage_percent', statType: 'taijutsu', value: 20 },
+    },
+  ],
+};
+assert.equal(
+  computeCardDamage(
+    { damage: 10, statType: 'taijutsu' },
+    { stats: {}, player: heritagePlayer, rng }
+  ).total,
+  12
+);
+const reservedEvade = {
+  ...player,
+  reserveCard: { instanceId: 'held-genjutsu', heldEffect: { type: 'evade_percent', value: 15 } },
+};
+assert.equal(reservedEvade.reserveCard.heldEffect.value, 15);
+assert.throws(() => play({ ...player, chakra: 0, nextCardCostReduction: 2 }, { cost: 3 }));
 console.log('Card combo tests passed');

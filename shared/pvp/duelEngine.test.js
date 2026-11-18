@@ -43,6 +43,23 @@ test('report automatique limité à un chakra et consommé au prochain tour', ()
   assert.equal(state.fighters.host.chakra, 3);
 });
 
+test('un poison létal ne peut pas être annulé par la régénération de début de tour', () => {
+  let state = duel();
+  state.fighters.guest.hp = 1;
+  state.fighters.guest.statuses = [
+    { key: 'poison', value: 2, duration: 2 },
+    { key: 'regen', value: 3, duration: 2 },
+  ];
+  state.fighters.guest.talentCodes = ['boosted_regen'];
+
+  state = act(state, 'end_turn', 'host');
+
+  assert.equal(state.fighters.guest.hp, 0);
+  assert.equal(state.status, 'completed');
+  assert.equal(state.winnerSeat, 'host');
+  assert.equal(state.phase, 'game_over');
+});
+
 test('réserve exclusive, secrète et rendue en plus de la pioche', () => {
   let state = duel();
   const card = state.fighters.host.hand[0];

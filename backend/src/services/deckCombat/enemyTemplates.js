@@ -5,7 +5,7 @@
  *   - weighted : random pondéré (mobs)
  *   - pattern  : boucle fixe (élites / boss)
  *
- * Boss multi-phases : champ `phases[]` (seuils hpPctBelow) — docs/BOSS_PHASES.md.
+ * Boss multi-phases : champ `phases[]` (seuils hpPctBelow) — docs/CARDS_AND_COMBAT.md.
  *
  * Balance (retune) : HP / intents calibrés pour greedy + practice deck
  * (`npm run test:combat-balance`). Ordre de rang D < C < B < A < S.
@@ -38,7 +38,10 @@ export const ENEMY_TEMPLATES = {
     patterns: [
       { weight: 50, intent: { type: 'attack', damage: 15 } },
       { weight: 15, intent: { type: 'debuff', status: 'weak', value: 1, duration: 2 } },
-      { weight: 35, intent: { type: 'attack', damage: 12, status: 'poison', statusValue: 2, statusDuration: 3 } },
+      {
+        weight: 35,
+        intent: { type: 'attack', damage: 12, status: 'poison', statusValue: 2, statusDuration: 3 },
+      },
     ],
   },
   scrapyard_dog: {
@@ -66,7 +69,10 @@ export const ENEMY_TEMPLATES = {
     ai: 'weighted',
     patterns: [
       { weight: 45, intent: { type: 'attack', damage: 16 } },
-      { weight: 30, intent: { type: 'attack', damage: 11, status: 'burn', statusValue: 3, statusDuration: 2 } },
+      {
+        weight: 30,
+        intent: { type: 'attack', damage: 11, status: 'burn', statusValue: 3, statusDuration: 2 },
+      },
       { weight: 15, intent: { type: 'defend', block: 8 } },
       { weight: 10, intent: { type: 'debuff', status: 'weak', value: 1, duration: 2 } },
     ],
@@ -279,7 +285,10 @@ export const ENEMY_TEMPLATES = {
     elementAffinity: 'suiton',
     ai: 'pattern',
     pattern: [
-      { type: 'summon', minion: { nameFr: 'Petale Funebre', nameEn: 'Funeral Petal', hp: 28, attack: 8 } },
+      {
+        type: 'summon',
+        minion: { nameFr: 'Petale Funebre', nameEn: 'Funeral Petal', hp: 28, attack: 8 },
+      },
       { type: 'debuff', status: 'vulnerable', value: 1, duration: 2 },
       { type: 'attack', damage: 24 },
       { type: 'defend', block: 9 },
@@ -461,7 +470,7 @@ export const ENEMY_TEMPLATES = {
 };
 
 export function listEnemyTemplates() {
-  return Object.values(ENEMY_TEMPLATES).map((t) => ({
+  return Object.values(ENEMY_TEMPLATES).map(t => ({
     id: t.id,
     nameFr: t.nameFr,
     nameEn: t.nameEn,
@@ -475,5 +484,5 @@ export function listEnemyTemplates() {
 
 /** Boss multi-phases uniquement */
 export function listBossTemplates() {
-  return listEnemyTemplates().filter((t) => t.boss);
+  return listEnemyTemplates().filter(t => t.boss);
 }

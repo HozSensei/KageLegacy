@@ -12,6 +12,10 @@ import { createSeededRng } from './seededRng.js';
 import { duelChecksum } from './checksum.js';
 import { applyCardPlay } from '../../backend/src/services/deckCombat/cardEffects.js';
 import {
+  applyHeldTurnStart,
+  heldEffectMods,
+} from '../../backend/src/services/deckCombat/heldEffects.js';
+import {
   resolveEndOfTurnStatuses,
   resolveStartOfTurnStatuses,
 } from '../../backend/src/services/deckCombat/statuses.js';
@@ -59,12 +63,17 @@ export function createDuelFromBootstrap(bootstrap) {
   ]) {
     const combatStart = applyTalentCombatStart(fighter, fighter.talentCodes);
     const turnStart = applyTalentStartOfTurn(combatStart.player, fighter.talentCodes, { turn: 1 });
-    const initializedFighter = { ...turnStart.player, turnsPlayed: 1 };
+    const heldStart =
+      seat === 'host'
+        ? applyHeldTurnStart(turnStart.player)
+        : { player: turnStart.player, logs: [] };
+    const initializedFighter = { ...heldStart.player, turnsPlayed: 1 };
     if (seat === 'host') host = initializedFighter;
     else guest = initializedFighter;
     startLogs.push(
       ...combatStart.logs.map(log => ({ ...log, seat })),
-      ...turnStart.logs.map(log => ({ ...log, seat }))
+      ...turnStart.logs.map(log => ({ ...log, seat })),
+      ...heldStart.logs.map(log => ({ ...log, seat }))
     );
   }
 
@@ -186,6 +195,7 @@ export function publicDuelState(state, viewerSeat) {
       reservedCard: isSelf ? fighter.reservedCard || null : undefined,
       hasReservedCard: Boolean(fighter.reservedCard),
       chakraCarry: fighter.chakraCarry || 0,
+      nextCardCostReduction: isSelf ? fighter.nextCardCostReduction || 0 : undefined,
       stats: isSelf ? fighter.stats : undefined,
     };
   };
@@ -250,6 +260,7 @@ function hydrateFighter(raw, seat, rng) {
     discardedForChakra: Boolean(raw.discardedForChakra),
     reservedThisTurn: Boolean(raw.reservedThisTurn),
     reservedCard: raw.reservedCard || null,
+    nextCardCostReduction: Math.max(0, Number(raw.nextCardCostReduction) || 0),
     chakraCarry: Math.min(1, Math.max(0, Number(raw.chakraCarry) || 0)),
     stats,
     talentCodes: Array.isArray(raw.talentCodes) ? raw.talentCodes : [],
@@ -279,7 +290,8 @@ function playCard(state, seat, instanceId, rng) {
     (normalizedCard.effects || []).some(effect => effect.type === 'multi_strike');
   const incomingMods = applyTalentIncomingAttackMods(0, opponent, fighter, defenderTalentCodes);
   const evadeChance = getStatusValue(opponent.statuses, 'evade') + incomingMods.evadeBonus;
-  const evaded = attackIntent && evadeChance > 0 && rng() < evadeChance;
+  const heldEvade = heldEffectMods(opponent).evadeChance;
+  const evaded = attackIntent && evadeChance + heldEvade > 0 && rng() < evadeChance + heldEvade;
   const deckElementCount = countDeckElements([
     ...(fighter.hand || []),
     ...(fighter.drawPile || []),
@@ -508,6 +520,15 @@ function endTurn(state, seat, rng) {
     logs.push({ type: 'block_fade', seat: opponentSeat, value: nextOpponent.block });
   }
   const opponentStart = resolveStartOfTurnStatuses({ ...nextOpponent, block: 0 });
+  state.fighters = { ...state.fighters, [opponentSeat]: opponentStart.entity };
+  logs.push(...opponentStart.logs.map(log => ({ ...log, seat: opponentSeat })));
+
+  over = checkVictory(state);
+  if (over) {
+    logs.push({ type: over, winnerSeat: state.winnerSeat });
+    return { state, logs };
+  }
+
   const nextOwnerTurn = (Number(nextOpponent.turnsPlayed) || 0) + 1;
   const preparedOpponent = {
     ...opponentStart.entity,
@@ -522,10 +543,11 @@ function endTurn(state, seat, rng) {
   const startTalent = applyTalentStartOfTurn(preparedOpponent, preparedOpponent.talentCodes, {
     turn: nextOwnerTurn,
   });
-  nextOpponent = { ...startTalent.player, turnsPlayed: nextOwnerTurn };
+  const heldStart = applyHeldTurnStart(startTalent.player);
+  nextOpponent = { ...heldStart.player, turnsPlayed: nextOwnerTurn };
   logs.push(
-    ...opponentStart.logs.map(log => ({ ...log, seat: opponentSeat })),
-    ...startTalent.logs.map(log => ({ ...log, seat: opponentSeat }))
+    ...startTalent.logs.map(log => ({ ...log, seat: opponentSeat })),
+    ...heldStart.logs.map(log => ({ ...log, seat: opponentSeat }))
   );
   state.fighters = { ...state.fighters, [opponentSeat]: nextOpponent };
 

@@ -1,4 +1,4 @@
-/** Constantes combat deck-building (docs/COMBAT_SYSTEM.md) */
+/** Constantes combat deck-building (docs/CARDS_AND_COMBAT.md) */
 
 export const BASE_CHAKRA = 3;
 export const DRAW_PER_TURN = 5;
@@ -60,7 +60,7 @@ export const GENJUTSU_DEBUFF_KEYS = new Set(['weak', 'vulnerable', 'poison', 'bu
 /**
  * effect_code talents appliqués en combat.
  * Codes absents de cette map → stubbed (listés dans combat.talentEffects).
- * Voir docs/TALENT_EFFECTS.md pour actifs vs reportés.
+ * Voir docs/PROGRESSION.md et le code pour les actifs vs reportés.
  */
 export const TALENT_EFFECT_MVP = {
   // ── MVP historiques ──
