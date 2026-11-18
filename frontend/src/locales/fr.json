@@ -908,7 +908,9 @@
     "revealDone": "Booster terminé — tes cartes ont rejoint ta collection.",
     "newCard": "Nouvelle",
     "duplicate": "Doublon · {name}",
+    "duplicateCard": "Doublon",
     "closeResults": "Retour au catalogue",
+    "buyAnotherBooster": "Racheter un booster",
     "tabs": {
       "boosters": "Boosters",
 

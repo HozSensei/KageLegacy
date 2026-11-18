@@ -131,7 +131,6 @@ export const useShopStore = defineStore('shop', () => {
   async function openBooster(type, { element = null } = {}) {
     opening.value = true;
     error.value = null;
-    lastResult.value = null;
     try {
       const payload = {};
       if (element) payload.element = element;

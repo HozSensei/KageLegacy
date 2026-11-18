@@ -104,8 +104,13 @@ async function onOpen(type) {
   }
 }
 
+async function onRepurchase() {
+  const type = shop.lastResult?.boosterType;
+  if (!type) return;
+  await onOpen(type);
+}
+
 function onRevealDone() {
-  // The reveal is terminal: return directly to the booster catalogue.
   isOpeningBooster.value = false;
   openedElement.value = null;
   shop.clearResult();
@@ -188,7 +193,10 @@ async function onUnlockBp(method) {
           :booster-name="openedBoosterName"
           :element="openedElement"
           :card-count="openedBooster?.cardCount || shop.lastResult.cards?.length || 5"
+          :can-repurchase="true"
+          :repurchasing="shop.opening"
           @done="onRevealDone"
+          @repurchase="onRepurchase"
         />
       </div>
     </div>

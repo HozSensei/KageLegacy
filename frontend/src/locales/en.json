@@ -908,7 +908,9 @@
     "revealDone": "Booster complete — your cards joined the collection.",
     "newCard": "New",
     "duplicate": "Duplicate · {name}",
+    "duplicateCard": "Duplicate",
     "closeResults": "Back to catalogue",
+    "buyAnotherBooster": "Buy another booster",
     "tabs": {
       "boosters": "Boosters",
 

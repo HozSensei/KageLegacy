@@ -1,13 +1,11 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import CardDisplay from '../cards/CardDisplay.vue'
-import BoosterPackVisual from './BoosterPackVisual.vue'
-import { rarityVisual } from '../../utils/cardVisuals'
-import { resolveCardArt } from '../../utils/cardArt'
-import { localizedName } from '../../utils/localeContent.js'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import CardDisplay from '../cards/CardDisplay.vue';
+import BoosterPackVisual from './BoosterPackVisual.vue';
+import { localizedName } from '../../utils/localeContent.js';
 
-defineOptions({ name: 'BoosterOpening' })
+defineOptions({ name: 'BoosterOpening' });
 
 const props = defineProps({
   cards: { type: Array, default: () => [] },
@@ -18,70 +16,72 @@ const props = defineProps({
   element: { type: String, default: null },
   cardCount: { type: Number, default: 0 },
   showCollectionStatus: { type: Boolean, default: true },
-})
+  canRepurchase: { type: Boolean, default: false },
+  repurchasing: { type: Boolean, default: false },
+});
 
-const emit = defineEmits(['done'])
+const emit = defineEmits(['done', 'repurchase']);
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 /** sealed | opening | hidden | revealed | done */
-const phase = ref('sealed')
-const index = ref(0)
-const busy = ref(false)
-const packVisible = ref(true)
-const packOpen = ref(false)
-const packLeaving = ref(false)
-const stackVisible = ref(false)
-const burstShow = ref(false)
-const gone = ref([])
-const revealedSet = ref(new Set())
+const phase = ref('sealed');
+const index = ref(0);
+const busy = ref(false);
+const packVisible = ref(true);
+const packOpen = ref(false);
+const packLeaving = ref(false);
+const stackVisible = ref(false);
+const burstShow = ref(false);
+const gone = ref([]);
+const revealedSet = ref(new Set());
 
-let openingToken = 0
-let reduceMotion = false
+let openingToken = 0;
+let reduceMotion = false;
 
-const total = computed(() => props.cards.length)
-const packCardCount = computed(() => props.cardCount || total.value || 5)
+const total = computed(() => props.cards.length);
+const packCardCount = computed(() => props.cardCount || total.value || 5);
 
-const currentEntry = computed(() => props.cards[index.value] || null)
+const currentEntry = computed(() => props.cards[index.value] || null);
 
 const statusText = computed(() => {
-  if (phase.value === 'sealed') return t('shop.tearHint')
-  if (phase.value === 'opening') return t('shop.sealBroken')
+  if (phase.value === 'sealed') return t('shop.tearHint');
+  if (phase.value === 'opening') return t('shop.sealBroken');
   if (phase.value === 'hidden') {
-    return t('shop.revealHint', { n: index.value + 1, total: total.value })
+    return t('shop.revealHint', { n: index.value + 1, total: total.value });
   }
   if (phase.value === 'revealed') {
-    const entry = currentEntry.value
-    const rarity = entry?.rarity || 'common'
-    if (rarity === 'mythic') return t('shop.revealMythic')
-    if (rarity === 'legendary') return t('shop.revealLegendary')
-    if (rarity === 'rare') return t('shop.revealRare')
+    const entry = currentEntry.value;
+    const rarity = entry?.rarity || 'common';
+    if (rarity === 'mythic') return t('shop.revealMythic');
+    if (rarity === 'legendary') return t('shop.revealLegendary');
+    if (rarity === 'rare') return t('shop.revealRare');
     return t('shop.revealCommon', {
       n: index.value + 1,
       total: total.value,
       name: cardName(entry),
-    })
+    });
   }
-  if (phase.value === 'done') return t('shop.revealDone')
-  return ''
-})
+  if (phase.value === 'done') return t('shop.revealDone');
+  return '';
+});
 
 const actionLabel = computed(() => {
-  if (phase.value === 'sealed') return t('shop.tearAction')
-  if (phase.value === 'hidden') return t('shop.revealCard')
-  if (phase.value === 'done') return t('shop.closeResults')
-  return t('shop.revealCard')
-})
+  if (phase.value === 'sealed') return t('shop.tearAction');
+  if (phase.value === 'hidden') return t('shop.revealCard');
+  if (phase.value === 'done') return t('shop.closeResults');
+  return t('shop.revealCard');
+});
 
 const nextLabel = computed(() => {
-  if (index.value >= total.value - 1) return t('shop.closeResults')
-  return t('shop.nextCard')
-})
+  if (index.value >= total.value - 1) return t('shop.seeResults');
+  return t('shop.nextCard');
+});
 
 const showNewBadge = computed(
   () =>
     props.showCollectionStatus && phase.value === 'revealed' && Boolean(currentEntry.value?.isNew)
-)
+);
 
 const showDupBadge = computed(
   () =>
@@ -89,153 +89,148 @@ const showDupBadge = computed(
     phase.value === 'revealed' &&
     currentEntry.value &&
     !currentEntry.value.isNew
-)
+);
 
 const collectedCount = computed(() => {
-  let n = revealedSet.value.size
-  if (phase.value === 'revealed' && !revealedSet.value.has(index.value)) n += 1
-  return Math.min(n, total.value)
-})
+  let n = revealedSet.value.size;
+  if (phase.value === 'revealed' && !revealedSet.value.has(index.value)) n += 1;
+  return Math.min(n, total.value);
+});
 
 const stageClickable = computed(
   () => !busy.value && (phase.value === 'hidden' || phase.value === 'revealed')
-)
+);
 
 function cardName(entry) {
-  if (!entry?.card) return ''
-  return localizedName(entry.card, locale.value)
-}
-
-function miniArt(entry) {
-  return resolveCardArt(entry?.card)
+  if (!entry?.card) return '';
+  return localizedName(entry.card, locale.value);
 }
 
 function wait(ms) {
-  if (reduceMotion) return Promise.resolve()
-  return new Promise(r => setTimeout(r, ms))
+  if (reduceMotion) return Promise.resolve();
+  return new Promise(r => setTimeout(r, ms));
 }
 
 function resetCeremony() {
-  openingToken += 1
-  phase.value = 'sealed'
-  index.value = 0
-  busy.value = false
-  packVisible.value = true
-  packOpen.value = false
-  packLeaving.value = false
-  stackVisible.value = false
-  burstShow.value = false
-  gone.value = []
-  revealedSet.value = new Set()
+  openingToken += 1;
+  phase.value = 'sealed';
+  index.value = 0;
+  busy.value = false;
+  packVisible.value = true;
+  packOpen.value = false;
+  packLeaving.value = false;
+  stackVisible.value = false;
+  burstShow.value = false;
+  gone.value = [];
+  revealedSet.value = new Set();
 }
 
 async function openPack() {
-  if (phase.value !== 'sealed' || busy.value) return
-  const token = ++openingToken
-  busy.value = true
-  phase.value = 'opening'
-  packOpen.value = true
+  if (phase.value !== 'sealed' || busy.value) return;
+  const token = ++openingToken;
+  busy.value = true;
+  phase.value = 'opening';
+  packOpen.value = true;
 
-  await wait(580)
-  if (token !== openingToken) return
-  packLeaving.value = true
-  await wait(460)
-  if (token !== openingToken) return
+  await wait(580);
+  if (token !== openingToken) return;
+  packLeaving.value = true;
+  await wait(460);
+  if (token !== openingToken) return;
 
-  packVisible.value = false
-  stackVisible.value = true
-  phase.value = 'hidden'
-  busy.value = false
+  packVisible.value = false;
+  stackVisible.value = true;
+  phase.value = 'hidden';
+  busy.value = false;
 }
 
 async function reveal() {
-  if (phase.value !== 'hidden' || busy.value) return
-  busy.value = true
-  const next = new Set(revealedSet.value)
-  next.add(index.value)
-  revealedSet.value = next
-  phase.value = 'revealed'
+  if (phase.value !== 'hidden' || busy.value) return;
+  busy.value = true;
+  const next = new Set(revealedSet.value);
+  next.add(index.value);
+  revealedSet.value = next;
+  phase.value = 'revealed';
 
-  await wait(530)
-  const rarity = props.cards[index.value]?.rarity
+  await wait(530);
+  const rarity = props.cards[index.value]?.rarity;
   if (rarity === 'rare' || rarity === 'legendary' || rarity === 'mythic') {
-    burstShow.value = false
-    await wait(20)
-    burstShow.value = true
+    burstShow.value = false;
+    await wait(20);
+    burstShow.value = true;
   }
-  busy.value = false
+  busy.value = false;
 }
 
 async function next() {
-  if (phase.value !== 'revealed' || busy.value) return
-  busy.value = true
-  gone.value = [...gone.value, index.value]
-  await wait(420)
-  index.value += 1
+  if (phase.value !== 'revealed' || busy.value) return;
+  busy.value = true;
+  gone.value = [...gone.value, index.value];
+  await wait(420);
+  index.value += 1;
   if (index.value >= props.cards.length) {
-    phase.value = 'done'
-    stackVisible.value = false
-    busy.value = false
-    emit('done')
-    return
+    phase.value = 'done';
+    stackVisible.value = false;
+    busy.value = false;
+    return;
   }
-  phase.value = 'hidden'
-  busy.value = false
+  phase.value = 'hidden';
+  busy.value = false;
 }
 
-/** Progressive click: flip → next → … → catalogue. */
+/** Progressive click: flip → next → … → final results. */
 function onStageActivate() {
-  if (busy.value) return
-  if (phase.value === 'hidden') reveal()
-  else if (phase.value === 'revealed') next()
+  if (busy.value) return;
+  if (phase.value === 'hidden') reveal();
+  else if (phase.value === 'revealed') next();
 }
 
 function revealAll() {
-  if (busy.value || !['hidden', 'revealed'].includes(phase.value)) return
-  revealedSet.value = new Set(props.cards.map((_, i) => i))
-  phase.value = 'done'
-  stackVisible.value = false
+  if (busy.value || !['hidden', 'revealed'].includes(phase.value)) return;
+  revealedSet.value = new Set(props.cards.map((_, i) => i));
+  phase.value = 'done';
+  stackVisible.value = false;
 }
 
 function onAction() {
-  if (phase.value === 'sealed') openPack()
-  else if (phase.value === 'hidden') reveal()
-  else if (phase.value === 'done') emit('done')
+  if (phase.value === 'sealed') openPack();
+  else if (phase.value === 'hidden') reveal();
+  else if (phase.value === 'done') emit('done');
 }
 
 function cardFace(i) {
-  return revealedSet.value.has(i) ? 'front' : 'back'
+  return revealedSet.value.has(i) ? 'front' : 'back';
 }
 
 function isCurrent(i) {
-  return i === index.value && (phase.value === 'hidden' || phase.value === 'revealed')
+  return i === index.value && (phase.value === 'hidden' || phase.value === 'revealed');
 }
 
 function isGone(i) {
-  return gone.value.includes(i)
+  return gone.value.includes(i);
 }
 
 function isCollected(i) {
-  return revealedSet.value.has(i) || (phase.value === 'revealed' && i === index.value)
+  return revealedSet.value.has(i) || (phase.value === 'revealed' && i === index.value);
 }
 
 onMounted(() => {
   if (typeof window !== 'undefined' && window.matchMedia) {
-    reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
-  if (props.active && props.cards.length) resetCeremony()
-})
+  if (props.active && props.cards.length) resetCeremony();
+});
 
 watch(
   () => [props.active, props.cards],
   () => {
-    if (props.active && props.cards.length) resetCeremony()
+    if (props.active && props.cards.length) resetCeremony();
   }
-)
+);
 
 onBeforeUnmount(() => {
-  openingToken += 1
-})
+  openingToken += 1;
+});
 </script>
 
 <template>
@@ -315,7 +310,7 @@ onBeforeUnmount(() => {
         type="button"
         class="btn-secondary"
         data-testid="booster-action"
-        :disabled="busy || phase === 'revealed' || phase === 'opening' || phase === 'done'"
+        :disabled="busy || phase === 'revealed' || phase === 'opening' || repurchasing"
         @click="onAction"
       >
         {{ actionLabel }}
@@ -331,13 +326,24 @@ onBeforeUnmount(() => {
         {{ t('shop.revealAll') }}
       </button>
       <button
+        v-if="phase === 'revealed'"
         type="button"
         class="btn-secondary"
         data-testid="booster-next"
-        :disabled="busy || phase !== 'revealed'"
+        :disabled="busy"
         @click="next"
       >
         {{ nextLabel }}
+      </button>
+      <button
+        v-if="phase === 'done' && canRepurchase"
+        type="button"
+        class="btn-primary"
+        data-testid="booster-repurchase"
+        :disabled="repurchasing"
+        @click="emit('repurchase')"
+      >
+        {{ t('shop.buyAnotherBooster') }}
       </button>
     </div>
 
@@ -349,26 +355,22 @@ onBeforeUnmount(() => {
       <ul class="booster-opening__collection-grid">
         <li
           v-for="(entry, i) in cards"
-          :key="`mini-${entry.collectionId || i}`"
-          class="booster-opening__mini"
-          :class="{ 'booster-opening__mini--empty': !isCollected(i) }"
-          :data-tone="isCollected(i) ? rarityVisual(entry.rarity).tone : undefined"
+          :key="`result-${entry.collectionId || entry.card?.slug || i}-${i}`"
+          class="booster-opening__result-card"
         >
           <template v-if="isCollected(i)">
-            <img
-              v-if="miniArt(entry)"
-              class="booster-opening__mini-art"
-              :src="miniArt(entry)"
-              :alt="cardName(entry)"
-              loading="lazy"
-            />
-            <span class="booster-opening__mini-name">{{ cardName(entry) }}</span>
-            <span class="booster-opening__mini-sub">
-              {{ '◆'.repeat(rarityVisual(entry.rarity).pips) }} ·
-              {{ t(`cards.rarities.${entry.rarity}`) }}
+            <CardDisplay :card="entry.card" />
+            <span
+              v-if="showCollectionStatus"
+              class="booster-opening__result-badge"
+              :class="entry.isNew ? 'booster-opening__result-badge--new' : ''"
+            >
+              {{ entry.isNew ? t('shop.newCard') : t('shop.duplicateCard') }}
             </span>
           </template>
-          <span v-else>{{ i + 1 }}</span>
+          <div v-else class="booster-opening__result-placeholder">
+            <span>{{ i + 1 }}</span>
+          </div>
         </li>
       </ul>
     </section>
@@ -597,54 +599,61 @@ onBeforeUnmount(() => {
 
 .booster-opening__collection-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 0.75rem;
   margin: 0;
-  padding: 0;
+  padding: 0.35rem;
   list-style: none;
 }
 
-.booster-opening__mini {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-height: 8.5rem;
-  border: 1px solid var(--color-line-strong);
-  border-radius: 0.45rem;
-  background: linear-gradient(145deg, var(--color-bg-card), var(--color-bg-soft));
-  padding: 0.45rem;
-  overflow: hidden;
+.booster-opening__result-card {
+  position: relative;
+  min-width: 0;
+  animation: booster-result-in 320ms var(--ease-out-quint) both;
 }
 
-.booster-opening__mini--empty {
+.booster-opening__result-placeholder {
   display: grid;
   place-items: center;
+  aspect-ratio: 2.5 / 3.5;
+  border: 1px dashed var(--color-line-strong);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--color-bg-soft) 65%, transparent);
   color: var(--color-ink-faint);
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 900;
 }
 
-.booster-opening__mini-art {
-  width: 100%;
-  aspect-ratio: 1.2;
-  object-fit: cover;
+.booster-opening__result-badge {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  z-index: 2;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-line-strong);
   border-radius: 0.2rem;
-}
-
-.booster-opening__mini-name {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--color-ink);
-}
-
-.booster-opening__mini-sub {
-  font-size: 0.5625rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
   color: var(--color-ink-muted);
+  font-size: 0.625rem;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.booster-opening__result-badge--new {
+  border-color: var(--color-leaf-fill);
+  color: var(--color-leaf-fill);
+}
+
+@keyframes booster-result-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes booster-burst {
@@ -667,16 +676,13 @@ onBeforeUnmount(() => {
   }
 
   .booster-opening__collection-grid {
-    gap: 0.35rem;
+    gap: 0.65rem;
   }
+}
 
-  .booster-opening__mini {
-    min-height: 5.5rem;
-    padding: 0.25rem;
-  }
-
-  .booster-opening__mini-name {
-    font-size: 0.5625rem;
+@media (min-width: 640px) {
+  .booster-opening__collection-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
   }
 }
 
