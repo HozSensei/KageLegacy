@@ -1,12 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { resolveCardArt } from '../../utils/cardArt';
-import { cardEffectParts } from '../../utils/cardEffectLine';
-import { cardFooterCells } from '../../utils/cardFooterStats';
-import { cardTypeVisual, rarityVisual, statTone } from '../../utils/cardVisuals';
-import { localizedName } from '../../utils/localeContent.js';
-import { scalingStatKey } from '../../utils/cardScaling';
+import CardDisplay from '../cards/CardDisplay.vue';
 
 defineOptions({ name: 'CombatHand' });
 
@@ -21,7 +16,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'play', 'drop-intent', 'drag-zone-change']);
 
-const { locale, t, te } = useI18n();
+const { t } = useI18n();
 
 // Within the nearest [data-combat-drop-root], zones declare data-combat-drop-zone
 // as play/discard/reserve and data-combat-drop-disabled="true" when unavailable.
@@ -122,7 +117,7 @@ function mountDragPreview(container) {
 }
 
 function selectCard(event, card) {
-  if (suppressClick && event.detail !== 0) return;
+  if (props.disabled || (suppressClick && event.detail !== 0)) return;
   emit('select', card);
 }
 
@@ -146,10 +141,6 @@ onBeforeUnmount(() => {
   }
 });
 
-function cardName(card) {
-  return localizedName(card, locale.value);
-}
-
 /** Fige la carte sortante à sa place pour que les autres glissent sans saut. */
 function pinLeaving(el) {
   el.style.left = `${el.offsetLeft}px`;
@@ -159,7 +150,7 @@ function pinLeaving(el) {
 }
 
 function canAfford(card) {
-  return (Number(card.cost) || 0) <= props.chakra;
+  return (Number(card.cost ?? card.baseCost) || 0) <= props.chakra;
 }
 
 const fanStyle = computed(() => {
@@ -169,56 +160,13 @@ const fanStyle = computed(() => {
 });
 
 /* Les cartes d'un duel PvP n'ont pas de type : on le déduit de leur effet, pour l'affichage seulement. */
-function displayType(card) {
-  if (card.type) return card.type;
-  if (card.damage) return 'attack';
-  if (card.block) return 'defense';
-  if (card.heal) return 'skill';
-  return null;
-}
-
-function effectParts(card) {
-  return cardEffectParts(card, props.stats, { t, te, locale: locale.value });
-}
-
-function effectLine(card) {
-  return effectParts(card).texts.join(' · ');
-}
-
-function effectTitle(card) {
-  return effectParts(card).aria.join(' · ');
-}
-
-function scaleStat(card) {
-  for (const key of ['damage', 'block', 'heal']) {
-    if (!(Number(card[key]) > 0)) continue;
-    const statKey = scalingStatKey(card, key);
-    if (!statKey) continue;
-    return {
-      key: statKey,
-      label: t(`cards.stats.${statKey}`, statKey),
-      tone: statTone(statKey),
-    };
-  }
-  if (!card.statType) return null;
-  return {
-    key: card.statType,
-    label: t(`cards.stats.${card.statType}`, card.statType),
-    tone: statTone(card.statType),
-  };
-}
-
-function rarityKey(card) {
-  return card.rarity || 'common';
-}
-
-function cardArt(card) {
-  return resolveCardArt(card);
-}
-
-function footerCells(card) {
-  return cardFooterCells(card);
-}
+const displayCards = computed(() =>
+  props.cards.map(card => {
+    const type =
+      card.type || (card.damage ? 'attack' : card.block ? 'defense' : card.heal ? 'skill' : null);
+    return type === card.type ? card : { ...card, type };
+  })
+);
 </script>
 
 <template>
@@ -230,31 +178,21 @@ function footerCells(card) {
     data-testid="combat-hand"
     @before-leave="pinLeaving"
   >
-    <button
+    <div
       v-for="(card, index) in cards"
       :key="card.instanceId"
-      type="button"
       class="hand-card"
       :class="{
         'hand-card--selected': selectedId === card.instanceId,
         'hand-card--dragging': drag?.card === card && drag.moved,
         'hand-card--unaffordable': !canAfford(card),
-        [`hand-card--${displayType(card) || 'untyped'}`]: true,
-        [`hand-card--${rarityKey(card)}`]: true,
-        'hand-card--foil': rarityVisual(card.rarity).foil,
-        'hand-card--has-scale': Boolean(scaleStat(card)),
       }"
       :style="{
         '--i': index,
         '--angle': `${(index - (cards.length - 1) / 2) * Math.min(4, 24 / Math.max(cards.length - 1, 1))}deg`,
         '--lift': `${Math.abs(index - (cards.length - 1) / 2) * Math.min(3, 18 / Math.max(cards.length - 1, 1))}px`,
       }"
-      :disabled="disabled"
       draggable="false"
-      :aria-pressed="selectedId === card.instanceId"
-      aria-keyshortcuts="Shift+Enter"
-      :data-tone="cardTypeVisual(displayType(card)).tone"
-      :data-rarity="rarityKey(card)"
       :data-testid="`hand-card-${card.slug}`"
       @pointerdown="startDrag($event, card)"
       @pointermove="moveDrag"
@@ -262,74 +200,28 @@ function footerCells(card) {
       @pointercancel="endDrag($event, true)"
       @lostpointercapture="endDrag($event, true)"
       @click="selectCard($event, card)"
-      @dblclick="!suppressClick && canAfford(card) && emit('play', card)"
-      @keydown.enter.shift.prevent="canAfford(card) && emit('play', card)"
+      @dblclick="!disabled && !suppressClick && canAfford(card) && emit('play', card)"
+      @keydown.enter.shift.prevent="!disabled && canAfford(card) && emit('play', card)"
     >
-      <span class="hand-card__foil" aria-hidden="true" />
-
-      <span class="hand-card__shell">
-        <span v-if="cardArt(card)" class="hand-card__art" aria-hidden="true">
-          <img
-            class="hand-card__art-img"
-            :src="cardArt(card)"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            draggable="false"
-          />
-        </span>
-        <span v-else class="hand-card__art hand-card__art--placeholder" aria-hidden="true">
-          <span class="shape" :class="`shape--${cardTypeVisual(displayType(card)).shape}`" />
-        </span>
-
-        <span class="hand-card__body">
-          <strong class="hand-card__name">{{ cardName(card) }}</strong>
-          <span v-if="displayType(card)" class="hand-card__type">
-            {{ t(`cards.types.${displayType(card)}`, displayType(card)) }}
-          </span>
-          <span v-if="effectLine(card)" class="hand-card__effect" :title="effectTitle(card)">
-            {{ effectLine(card) }}
-          </span>
-        </span>
-
-        <span class="hand-card__footer" aria-hidden="true">
-          <span
-            v-for="cell in footerCells(card)"
-            :key="cell.key"
-            class="hand-card__stat"
-            :data-tone="cell.tone"
-          >
-            <span v-if="cell.show">{{ cell.value }}</span>
-          </span>
-        </span>
-      </span>
-
-      <span class="hand-card__cost" :title="t('combat.costLabel', { n: card.cost })">
-        <span class="hand-card__cost-face" aria-hidden="true" />
-        <span class="hand-card__cost-value">{{ card.cost }}</span>
-        <span v-if="!canAfford(card)" class="hand-card__cost-warning" aria-hidden="true">!</span>
-        <span v-if="!canAfford(card)" class="hand-card__sr-only">{{
-          t('combat.insufficientChakra')
-        }}</span>
-      </span>
-
+      <CardDisplay
+        :card="displayCards[index]"
+        :selected="selectedId === card.instanceId"
+        compact
+        :stats="stats"
+        :upgrade-level="card.upgradeLevel || 0"
+        :disabled="disabled"
+        :pressed="selectedId === card.instanceId"
+        :description="!canAfford(card) ? t('combat.insufficientChakra') : null"
+        keyshortcuts="Shift+Enter"
+      />
       <span
-        v-if="scaleStat(card)"
-        class="hand-card__scale"
-        :data-tone="scaleStat(card).tone"
-        :title="t('cards.scalesWith', { stat: scaleStat(card).label })"
+        v-if="!canAfford(card)"
+        class="hand-card__warning"
+        :title="t('combat.insufficientChakra')"
+        aria-hidden="true"
+        >!</span
       >
-        {{ scaleStat(card).label }}
-      </span>
-
-      <span
-        v-if="card.upgradeLevel > 0"
-        class="hand-card__upgrade"
-        :title="t('cards.upgraded', { level: card.upgradeLevel })"
-      >
-        +{{ card.upgradeLevel }}
-      </span>
-    </button>
+    </div>
   </TransitionGroup>
   <Teleport to="body">
     <div
@@ -345,7 +237,8 @@ function footerCells(card) {
 
 <style scoped>
 .hand {
-  --card-width: 9.5rem;
+  --card-width: clamp(11rem, 20vw, 15rem);
+  --hand-card-width: min(var(--card-width), 100cqi);
   position: relative;
   display: flex;
   justify-content: center;
@@ -367,12 +260,12 @@ function footerCells(card) {
   position: relative;
   display: block;
   flex: 0 0 auto;
-  width: min(var(--card-width), 100cqi);
-  aspect-ratio: 2.5 / 3.5;
+  width: var(--hand-card-width);
+  aspect-ratio: 296 / 444;
   padding: 0;
-  border: 2px solid var(--card-rarity);
+  border: 0;
   border-radius: 0.55rem;
-  background: var(--card-body-bg);
+  background: transparent;
   color: var(--card-body-fg);
   text-align: left;
   outline: 0 solid var(--color-ink);
@@ -393,8 +286,8 @@ function footerCells(card) {
 
 .hand-card + .hand-card {
   margin-left: clamp(
-    calc(-1 * var(--card-width)),
-    calc((100cqi - 4rem) * var(--hand-step) - var(--card-width) * var(--hand-width-factor)),
+    calc(-1 * var(--hand-card-width)),
+    calc((100cqi - 4rem) * var(--hand-step) - var(--hand-card-width) * var(--hand-width-factor)),
     -2.5rem
   );
 }
@@ -418,297 +311,32 @@ function footerCells(card) {
   transition: none;
 }
 
-.hand-card:focus-visible {
+.hand-card:focus-within {
   z-index: 5;
   outline: 3px solid var(--color-on-ink);
   outline-offset: 2px;
 }
 
-.hand-card__shell {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: calc(0.55rem - 2px);
-}
-
-.hand-card--common {
-  --card-rarity: var(--color-neutral-fill);
-}
-
-.hand-card--rare {
-  --card-rarity: var(--color-sky-fill);
-  --card-rarity-glow: color-mix(in srgb, var(--color-sky-fill) 30%, transparent);
-}
-
-.hand-card--legendary {
-  --card-rarity: var(--color-gold-fill);
-  --card-rarity-glow: color-mix(in srgb, var(--color-gold-fill) 35%, transparent);
-}
-
-.hand-card--mythic {
-  --card-rarity: var(--color-vermilion);
-  --card-rarity-glow: color-mix(in srgb, var(--color-vermilion) 38%, transparent);
-}
-
-.hand-card__foil {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  opacity: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    125deg,
-    transparent 20%,
-    color-mix(in srgb, var(--card-rarity) 18%, transparent) 40%,
-    color-mix(in srgb, var(--color-on-ink) 22%, transparent) 50%,
-    color-mix(in srgb, var(--card-rarity) 22%, transparent) 60%,
-    transparent 80%
-  );
-  background-size: 220% 220%;
-  mix-blend-mode: soft-light;
-}
-
-.hand-card--foil .hand-card__foil {
-  opacity: 0.45;
-}
-
-.hand-card--foil:hover .hand-card__foil,
-.hand-card--selected .hand-card__foil {
-  opacity: 0.8;
-  animation: hand-foil-sweep 1.4s var(--ease-out-quint) 1;
-}
-
-.hand-card:hover:not(:disabled) {
+.hand-card:hover:not(:has(button:disabled)),
+.hand-card:focus-within,
+.hand-card--selected {
   z-index: 5;
-  transform: translateY(calc(var(--lift) - 0.55rem)) rotate(var(--angle));
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--card-rarity) 55%, transparent),
-    0 12px 20px color-mix(in srgb, var(--color-ink) 20%, transparent),
-    0 0 14px var(--card-rarity-glow);
+  transform: translateY(-1.2rem) rotate(0deg);
 }
-
-.hand-card--selected,
-.hand-card--selected:hover:not(:disabled) {
-  outline-width: 3px;
-  z-index: 4;
-  transform: translateY(calc(var(--lift) - 0.85rem)) rotate(var(--angle));
+.hand-card--unaffordable :deep(.card-display__chakra-number) {
+  color: #ffb5a9;
 }
-
-.hand-card:disabled {
-  cursor: default;
-}
-
-.hand-card__art {
-  display: block;
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  background: var(--card-body-bg);
-}
-
-.hand-card__art--placeholder {
-  display: grid;
-  place-items: center;
-  font-size: 1.5rem;
-  color: var(--tone-fill);
-  opacity: 0.4;
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--tone-fill) 30%, var(--card-body-bg)),
-    var(--card-body-bg)
-  );
-}
-
-.hand-card__art-img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  user-select: none;
-  pointer-events: none;
-}
-
-.hand-card__body {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
-  height: 3.85rem;
-  padding: 0.32rem 0.4rem 0.35rem;
-  border-top: 1px solid color-mix(in srgb, var(--color-on-ink) 12%, transparent);
-  background: var(--card-body-bg);
-}
-
-.hand-card__name {
-  font-family: var(--font-display);
-  font-size: 0.68rem;
-  font-weight: 700;
-  font-stretch: 92%;
-  line-height: 1.05;
-  overflow-wrap: anywhere;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.hand-card__type {
-  font-size: 0.42rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--card-body-muted);
-}
-
-.hand-card__effect {
-  margin-top: 0.08rem;
-  padding-top: 0.18rem;
-  border-top: 1px solid color-mix(in srgb, var(--color-on-ink) 12%, transparent);
-  font-size: 0.55rem;
-  font-weight: 500;
-  line-height: 1.2;
-  color: var(--card-body-fg);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.hand-card__footer {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  height: 1.1rem;
-}
-
-.hand-card__stat {
-  display: grid;
-  place-items: center;
-  background: var(--tone-fill);
-  font-family: var(--font-display);
-  font-size: 0.55rem;
-  font-weight: 800;
-  line-height: 1;
-  color: #fff;
-}
-
-.hand-card__cost {
+.hand-card__warning {
   position: absolute;
-  top: -0.35rem;
-  right: -0.35rem;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  width: 1.65rem;
-  height: 1.65rem;
-}
-
-.hand-card__cost-face {
-  position: absolute;
-  inset: 0;
-  transform: rotate(45deg);
-  border-radius: 0.15rem;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--color-ink) 55%, var(--color-bg-soft)),
-    color-mix(in srgb, var(--color-ink) 88%, black)
-  );
-  box-shadow:
-    0 0 0 1.5px color-mix(in srgb, var(--card-rarity) 70%, var(--color-on-ink)),
-    0 1px 4px color-mix(in srgb, var(--color-ink) 30%, transparent);
-}
-
-.hand-card__cost-value {
-  position: relative;
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 800;
-  font-stretch: 76%;
-  line-height: 1;
-  color: #fff;
-}
-
-.hand-card--unaffordable .hand-card__cost-value {
-  color: var(--color-fire);
-}
-
-.hand-card__cost-warning {
-  position: absolute;
-  top: -0.25rem;
-  right: -0.35rem;
-  display: grid;
-  place-items: center;
-  width: 0.85rem;
-  height: 0.85rem;
+  right: 0.2rem;
+  top: 2.5rem;
+  z-index: 3;
   border-radius: 50%;
-  background: var(--color-fire);
-  color: #fff;
-  font-size: 0.65rem;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.hand-card__sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.hand-card__scale {
-  position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
-  z-index: 4;
-  max-width: 4.2rem;
-  padding: 0.12rem 0.38rem;
-  border-radius: 999px;
-  background: var(--tone-fill, var(--color-neutral-fill));
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--color-on-ink) 25%, transparent),
-    0 1px 4px color-mix(in srgb, var(--color-ink) 25%, transparent);
-  font-size: 0.38rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1.15;
-  color: #fff;
-  text-shadow: 0 1px 1px color-mix(in srgb, #000 40%, transparent);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hand-card__upgrade {
-  position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
-  z-index: 4;
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.1rem;
-  height: 1rem;
-  padding: 0 0.18rem;
-  border-radius: 0.15rem;
-  border: 1px solid color-mix(in srgb, var(--color-gold-fill) 70%, transparent);
-  background: color-mix(in srgb, var(--color-ink) 70%, transparent);
-  font-family: var(--font-display);
-  font-size: 0.55rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--color-on-ink);
-}
-
-.hand-card--has-scale .hand-card__upgrade {
-  top: 1.55rem;
+  background: #a52121;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  font-weight: bold;
+  pointer-events: none;
 }
 
 .hand-enter-active {

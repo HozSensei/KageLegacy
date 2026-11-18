@@ -36,6 +36,10 @@ const props = defineProps({
   },
   /** Inclinaison 3D au survol (collection). Désactivée si reduced-motion. */
   tilt: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
+  pressed: { type: Boolean, default: null },
+  keyshortcuts: { type: String, default: null },
+  description: { type: String, default: null },
 });
 
 const emit = defineEmits(['select']);
@@ -45,7 +49,7 @@ const { t, te, locale } = useI18n();
 const tiltStyle = ref(null);
 const reduceMotion = ref(false);
 
-if (typeof window !== 'undefined' && window.matchMedia) {
+if (props.tilt && typeof window !== 'undefined' && window.matchMedia) {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
   reduceMotion.value = mq.matches;
   const onChange = () => {
@@ -160,7 +164,6 @@ watch(
     :data-rarity="rarityKey"
     :data-rarity-level="rarityLevel"
     :data-family="familyKey"
-    :aria-pressed="selected"
     data-testid="card-display"
     :style="tiltStyle"
     @pointermove="onPointerMove"
@@ -172,6 +175,10 @@ watch(
         type="button"
         class="card-display__face card-display__face--front"
         data-testid="card-face-front"
+        :disabled="disabled"
+        :aria-pressed="pressed == null ? selected : pressed"
+        :aria-keyshortcuts="keyshortcuts"
+        :aria-description="description"
         @click="onSelect"
       >
         <div

@@ -30,7 +30,7 @@ function parseJsonSafe(value, fallback) {
   }
 }
 
-function serializeRuntimeCards(deckCards) {
+export function serializeRuntimeCards(deckCards) {
   const pile = [];
   for (const entry of deckCards) {
     const card = entry.card || entry;
@@ -51,6 +51,16 @@ function serializeRuntimeCards(deckCards) {
         type: card.cardType || card.card_type || card.type || null,
         cardType: card.cardType || card.card_type || card.type || null,
         critChance: Number(card.critChance ?? card.crit_chance) || 0,
+        rarity: card.rarity,
+        upgradeLevel: card.upgradeLevel ?? entry.upgradeLevel,
+        passiveBonus: card.passiveBonus,
+        statTypeSecondary: card.statTypeSecondary,
+        imageUrl: card.imageUrl,
+        descriptionFr: card.descriptionFr,
+        descriptionEn: card.descriptionEn,
+        passiveDescriptionFr: card.passiveDescriptionFr,
+        passiveDescriptionEn: card.passiveDescriptionEn,
+        // Ne pas propager exhaust : le moteur l'utilise pour déplacer la carte.
         summon: parseJsonSafe(card.summon_json, card.summon || null),
         effects: parseJsonSafe(card.effects_json, card.effects || []),
       });
