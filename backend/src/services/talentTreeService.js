@@ -267,6 +267,88 @@ export async function unlockTalent(userId, nodeId) {
   };
 }
 
+export async function removeTalentRank(userId, nodeId) {
+  const connection = await getConnection();
+  try {
+    await connection.beginTransaction();
+    const [ownedRows] = await connection.execute(
+      `SELECT ut.points_spent, n.branch, n.required_branch_points
+       FROM user_talents ut
+       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
+       WHERE ut.user_id = ? AND ut.node_id = ?
+       LIMIT 1 FOR UPDATE`,
+      [userId, nodeId],
+    );
+    const owned = ownedRows[0];
+    if (!owned) throw httpError(400, 'Aucun point investi dans ce talent.');
+
+    const nextRank = Number(owned.points_spent) - 1;
+    if (nextRank === 0) {
+      const [dependentRows] = await connection.execute(
+        `SELECT COUNT(*) AS count
+         FROM user_talents ut
+         JOIN talent_tree_nodes n ON n.node_id = ut.node_id
+         WHERE ut.user_id = ? AND JSON_CONTAINS(n.requires_nodes_json, JSON_QUOTE(?))`,
+        [userId, nodeId],
+      );
+      if (Number(dependentRows[0]?.count) > 0) {
+        throw httpError(400, 'Ce rang est requis par un autre talent investi.');
+      }
+    }
+
+    const [branchRows] = await connection.execute(
+      `SELECT SUM(ut.points_spent) AS points
+       FROM user_talents ut
+       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
+       WHERE ut.user_id = ? AND n.branch = ?`,
+      [userId, owned.branch],
+    );
+    const remainingBranchPoints = Math.max(0, Number(branchRows[0]?.points) - 1);
+    const [thresholdRows] = await connection.execute(
+      `SELECT n.node_id, n.required_branch_points
+       FROM user_talents ut
+       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
+       WHERE ut.user_id = ? AND n.branch = ? AND n.required_branch_points > ?
+         AND (ut.node_id <> ? OR ut.points_spent > 1)`,
+      [userId, owned.branch, remainingBranchPoints, nodeId],
+    );
+    if (thresholdRows.length > 0) {
+      throw httpError(400, 'Ce rang maintient un palier déjà débloqué.');
+    }
+
+    if (nextRank > 0) {
+      await connection.execute(
+        'UPDATE user_talents SET points_spent = ? WHERE user_id = ? AND node_id = ?',
+        [nextRank, userId, nodeId],
+      );
+    } else {
+      await connection.execute('DELETE FROM user_talents WHERE user_id = ? AND node_id = ?', [
+        userId,
+        nodeId,
+      ]);
+    }
+    await connection.execute(
+      `UPDATE player_profiles
+       SET character_talent_points_available = character_talent_points_available + 1,
+           character_updated_at = UTC_TIMESTAMP()
+       WHERE user_id = ? AND character_name IS NOT NULL`,
+      [userId],
+    );
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  const [talents, bonuses] = await Promise.all([
+    getUserTalents(userId),
+    computeTalentBonuses(userId),
+  ]);
+  return { removed: nodeId, rank: talents.nodeRanks[nodeId] || 0, talents, bonuses };
+}
+
 export async function computeTalentBonuses(userId) {
   const rows = await query(
     `SELECT n.node_id, n.type, n.stat_bonus_json, n.effect_code,

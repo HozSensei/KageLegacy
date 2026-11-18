@@ -6,6 +6,7 @@ import {
   getTalentTree,
   getUserTalents,
   unlockTalent,
+  removeTalentRank,
   computeTalentBonuses,
   respecTalents,
 } from '../services/talentTreeService.js';
@@ -66,6 +67,20 @@ router.post('/unlock', async (req, res, next) => {
 
     const parsed = unlockSchema.parse(req.body);
     const result = await unlockTalent(user.id, parsed.nodeId);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/talents/remove — retirer un rang et rembourser 1 point */
+router.post('/remove', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const parsed = unlockSchema.parse(req.body);
+    const result = await removeTalentRank(user.id, parsed.nodeId);
     res.json(result);
   } catch (error) {
     next(error);

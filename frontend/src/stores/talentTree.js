@@ -137,6 +137,30 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
     }
   }
 
+  async function remove(nodeId) {
+    actionLoading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/talents/remove`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeId }),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      applyTalentPayload(body.talents, body.bonuses);
+      const player = usePlayerStore();
+      await player.fetchPlayer();
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
   async function respecTree() {
     actionLoading.value = true;
     error.value = null;
@@ -208,6 +232,7 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
     fetchMe,
     loadAll,
     unlock,
+    remove,
     respecTree,
     selectNode,
     setBranchFilter,
