@@ -190,6 +190,13 @@ function onStageActivate() {
   else if (phase.value === 'revealed') next()
 }
 
+function revealAll() {
+  if (busy.value || !['hidden', 'revealed'].includes(phase.value)) return
+  revealedSet.value = new Set(props.cards.map((_, i) => i))
+  phase.value = 'done'
+  stackVisible.value = false
+}
+
 function onAction() {
   if (phase.value === 'sealed') openPack()
   else if (phase.value === 'hidden') reveal()
@@ -312,6 +319,16 @@ onBeforeUnmount(() => {
         @click="onAction"
       >
         {{ actionLabel }}
+      </button>
+      <button
+        v-if="phase === 'hidden' || phase === 'revealed'"
+        type="button"
+        class="btn-secondary"
+        data-testid="booster-reveal-all"
+        :disabled="busy"
+        @click="revealAll"
+      >
+        {{ t('shop.revealAll') }}
       </button>
       <button
         type="button"

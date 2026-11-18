@@ -14,7 +14,13 @@ const props = defineProps({
   stats: { type: Object, default: null },
 });
 
-const emit = defineEmits(['select', 'play', 'drop-intent', 'drag-zone-change']);
+const emit = defineEmits([
+  'select',
+  'play',
+  'drop-intent',
+  'drag-zone-change',
+  'drag-state-change',
+]);
 
 const { t } = useI18n();
 
@@ -84,6 +90,7 @@ function moveDrag(event) {
   const dy = event.clientY - current.y;
   if (!current.moved && Math.hypot(dx, dy) < 8) return;
   drag.value = { ...current, dx, dy, moved: true };
+  if (!current.moved) emit('drag-state-change', true);
   setDragZone(dropZoneAt(current, event.clientX, event.clientY));
 }
 
@@ -101,6 +108,7 @@ function endDrag(event, cancelled = false) {
     if (action && card) emit('drop-intent', { card, action });
   }
   drag.value = null;
+  emit('drag-state-change', false);
   setDragZone(null);
   if (current.element.hasPointerCapture(event.pointerId))
     current.element.releasePointerCapture(event.pointerId);
@@ -127,6 +135,7 @@ watch(
     if (value && drag.value) {
       const current = drag.value;
       drag.value = null;
+      emit('drag-state-change', false);
       setDragZone(null);
       if (current.element.hasPointerCapture(current.pointerId))
         current.element.releasePointerCapture(current.pointerId);
@@ -135,6 +144,7 @@ watch(
 );
 onBeforeUnmount(() => {
   clearTimeout(clickTimer);
+  emit('drag-state-change', false);
   setDragZone(null);
   if (drag.value?.element.hasPointerCapture(drag.value.pointerId)) {
     drag.value.element.releasePointerCapture(drag.value.pointerId);

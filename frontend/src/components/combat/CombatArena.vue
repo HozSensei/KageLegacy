@@ -58,6 +58,7 @@ function isDropDisabled(action) {
 }
 
 const hoveredZone = ref(null);
+const isDraggingCard = ref(false);
 
 function onDropIntent(intent) {
   const action = intent?.action;
@@ -98,7 +99,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="arena arena--with-side" data-testid="combat-arena" data-combat-drop-root>
+  <div
+    class="arena arena--with-side"
+    data-testid="combat-arena"
+    data-combat-drop-root
+    :inert="isOver"
+  >
     <header class="arena__top">
       <p class="arena__turn" :data-tone="isPlayerTurn ? 'indigo' : 'vermilion'">
         <span class="sr-only">{{ t('combat.turn', { n: combat.currentTurn }) }}</span>
@@ -134,14 +140,17 @@ onBeforeUnmount(() => {
       </details>
     </header>
 
-    <VictoryRewards
-      v-if="isOver"
-      class="arena__outcome"
-      :state="combat.state"
-      :rewards="outcomeRewards ?? combat.rewards"
-      :mid-run="midRun"
-      @dismiss="emit('dismiss-outcome')"
-    />
+    <Teleport to="body">
+      <div v-if="isOver" class="arena__outcome-backdrop" data-testid="combat-outcome-overlay">
+        <VictoryRewards
+          class="arena__outcome"
+          :state="combat.state"
+          :rewards="outcomeRewards ?? combat.rewards"
+          :mid-run="midRun"
+          @dismiss="emit('dismiss-outcome')"
+        />
+      </div>
+    </Teleport>
 
     <div class="arena__duel">
       <section class="arena__seat">
@@ -167,9 +176,34 @@ onBeforeUnmount(() => {
           <span class="arena__banner-sub">{{ t('combat.turn', { n: combat.currentTurn }) }}</span>
         </p>
       </Transition>
+
+      <div v-if="isDraggingCard" class="arena-drop-board arena-drop-board--overlay">
+        <div
+          v-for="zone in ['play', 'discard', 'reserve']"
+          :key="zone"
+          class="arena-drop-zone"
+          :class="{
+            'arena-drop-zone--disabled': isDropDisabled(zone),
+            'arena-drop-zone--active': hoveredZone === zone && !isDropDisabled(zone),
+          }"
+          :data-combat-drop-zone="zone"
+          :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
+          :data-testid="`drop-zone-${zone}`"
+        >
+          {{
+            t(
+              zone === 'play'
+                ? 'combat.playCard'
+                : zone === 'discard'
+                  ? 'combat.discardForChakra'
+                  : 'combat.reserveCard'
+            )
+          }}
+        </div>
+      </div>
     </div>
 
-    <div class="arena-drop-board">
+    <div v-if="!isDraggingCard" class="arena-drop-board">
       <div
         v-for="zone in ['play', 'discard', 'reserve']"
         :key="zone"
@@ -212,6 +246,7 @@ onBeforeUnmount(() => {
         @play="emit('play-card', $event)"
         @drop-intent="onDropIntent"
         @drag-zone-change="hoveredZone = $event"
+        @drag-state-change="isDraggingCard = $event"
       />
 
       <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
@@ -273,6 +308,24 @@ onBeforeUnmount(() => {
   gap: 0.75rem;
 }
 
+.arena__outcome-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1rem;
+  background: var(--color-scrim);
+}
+
+.arena__outcome {
+  width: min(48rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  box-shadow: 0 1rem 4rem color-mix(in srgb, var(--color-ink) 30%, transparent);
+}
+
 .arena__top,
 .arena__turn {
   align-items: center;
@@ -332,13 +385,32 @@ onBeforeUnmount(() => {
 .arena-drop-zone {
   display: grid;
   place-items: center;
-  min-height: 3.5rem;
-  padding: 0.35rem;
-  font-size: 0.75rem;
+  min-height: 5.5rem;
+  padding: 0.5rem;
+  font-size: 0.8rem;
   overflow-wrap: anywhere;
   border: 2px dashed var(--color-line-strong);
   color: var(--color-ink);
   text-align: center;
+}
+
+.arena-drop-board--overlay {
+  position: absolute;
+  z-index: 8;
+  inset: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-scrim);
+}
+
+.arena-drop-board--overlay .arena-drop-zone {
+  min-height: 0;
+  padding: 0.75rem 0.5rem;
+  font-size: 0.9rem;
+  background: var(--color-bg-card);
+  box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--color-ink) 25%, transparent);
 }
 
 .arena-drop-zone--active {

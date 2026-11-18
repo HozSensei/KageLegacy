@@ -1,11 +1,11 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import ShopBalances from './ShopBalances.vue'
-import BoosterPackVisual from './BoosterPackVisual.vue'
-import { elementTone, rarityVisual } from '../../utils/cardVisuals'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import ShopBalances from './ShopBalances.vue';
+import BoosterPackVisual from './BoosterPackVisual.vue';
+import { elementTone, rarityVisual } from '../../utils/cardVisuals';
 
-defineOptions({ name: 'BoosterSelection' })
+defineOptions({ name: 'BoosterSelection' });
 
 const props = defineProps({
   boosters: { type: Array, default: () => [] },
@@ -14,46 +14,46 @@ const props = defineProps({
   selectedElement: { type: String, default: null },
   opening: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
-})
+});
 
-const emit = defineEmits(['open', 'select-element'])
+const emit = defineEmits(['open', 'select-element']);
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
 function nameOf(booster) {
-  return locale.value === 'en' ? booster.nameEn : booster.nameFr
+  return locale.value === 'en' ? booster.nameEn : booster.nameFr;
 }
 
 function descOf(booster) {
-  return locale.value === 'en' ? booster.descriptionEn : booster.descriptionFr
+  return locale.value === 'en' ? booster.descriptionEn : booster.descriptionFr;
 }
 
 function costLabel(booster) {
-  const parts = []
-  if (booster.cost?.ryos) parts.push(t('shop.costRyos', { n: booster.cost.ryos }))
-  if (booster.cost?.kageCoins) parts.push(t('shop.costCoins', { n: booster.cost.kageCoins }))
-  return parts.join(' · ') || t('shop.costFree')
+  const parts = [];
+  if (booster.cost?.ryos) parts.push(t('shop.costRyos', { n: booster.cost.ryos }));
+  if (booster.cost?.kageCoins) parts.push(t('shop.costCoins', { n: booster.cost.kageCoins }));
+  return parts.join(' · ') || t('shop.costFree');
 }
 
 function canAfford(booster) {
-  const ryos = props.balances.ryos || 0
-  const coins = props.balances.kageCoins || 0
-  return ryos >= (booster.cost?.ryos || 0) && coins >= (booster.cost?.kageCoins || 0)
+  const ryos = props.balances.ryos || 0;
+  const coins = props.balances.kageCoins || 0;
+  return ryos >= (booster.cost?.ryos || 0) && coins >= (booster.cost?.kageCoins || 0);
 }
 
 function pct(prob) {
-  return `${Math.round((prob || 0) * 1000) / 10}%`
+  return `${Math.round((prob || 0) * 1000) / 10}%`;
 }
 
-const rarityOrder = ['common', 'rare', 'legendary', 'mythic']
+const rarityOrder = ['common', 'rare', 'legendary', 'mythic'];
 
-const elementalBooster = computed(() => props.boosters.find((b) => b.elementalOnly))
+const elementalBooster = computed(() => props.boosters.find(b => b.elementalOnly));
 
 /** Étalage stable : standard → élémentaire → premium. */
 const orderedBoosters = computed(() => {
-  const rank = { standard: 0, elemental: 1, premium: 2 }
-  return [...props.boosters].sort((a, b) => (rank[a.type] ?? 99) - (rank[b.type] ?? 99))
-})
+  const rank = { standard: 0, elemental: 1, premium: 2 };
+  return [...props.boosters].sort((a, b) => (rank[a.type] ?? 99) - (rank[b.type] ?? 99));
+});
 </script>
 
 <template>
@@ -110,6 +110,7 @@ const orderedBoosters = computed(() => {
               })
             }}
           </p>
+          <p v-else class="booster-offer__guarantee">-</p>
 
           <div class="booster-offer__odds">
             <p class="t-kicker">{{ t('shop.oddsTitle') }}</p>
@@ -123,7 +124,9 @@ const orderedBoosters = computed(() => {
                 <span class="booster-offer__odds-bar" aria-hidden="true">
                   <span :style="{ width: pct(booster.probabilities?.[rarity]) }" />
                 </span>
-                <span class="booster-offer__odds-value">{{ pct(booster.probabilities?.[rarity]) }}</span>
+                <span class="booster-offer__odds-value">{{
+                  pct(booster.probabilities?.[rarity])
+                }}</span>
               </li>
             </ul>
           </div>

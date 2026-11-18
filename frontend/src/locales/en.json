@@ -953,6 +953,7 @@
     "sealBroken": "The seal is broken…",
     "revealHint": "Card {n} of {total} — click to reveal",
     "revealCard": "Reveal card",
+    "revealAll": "Reveal all",
     "revealCommon": "Card {n} of {total} — {name}",
     "revealRare": "◆ RARE — Nice find!",
     "revealLegendary": "✦ LEGENDARY — An exceptional find!",

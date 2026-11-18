@@ -1,9 +1,9 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { localizedName } from '../../utils/localeContent.js'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { localizedName } from '../../utils/localeContent.js';
 
-defineOptions({ name: 'VictoryRewards' })
+defineOptions({ name: 'VictoryRewards' });
 
 const props = defineProps({
   rewards: { type: Object, default: null },
@@ -11,33 +11,31 @@ const props = defineProps({
   /** Combat au sein d'un parcours : pas de loot immédiat */
   midRun: { type: Boolean, default: false },
   continueLabel: { type: String, default: null },
-})
+});
 
-const emit = defineEmits(['dismiss'])
+const emit = defineEmits(['dismiss']);
 
-const { t, locale } = useI18n()
+const { t, locale } = useI18n();
 
-const isVictory = computed(() => props.state === 'victory')
+const isVictory = computed(() => props.state === 'victory');
 
 const title = computed(() => {
-  if (props.midRun && isVictory.value) return t('combat.stepCleared')
-  if (isVictory.value) return t('combat.victory')
-  if (props.state === 'forfeited') return t('combat.forfeited')
-  return t('combat.defeat')
-})
+  if (props.midRun && isVictory.value) return t('combat.stepCleared');
+  if (isVictory.value) return t('combat.victory');
+  if (props.state === 'forfeited') return t('combat.forfeited');
+  return t('combat.defeat');
+});
 
 const ctaLabel = computed(
-  () =>
-    props.continueLabel ||
-    (props.midRun ? t('combat.continueRun') : t('combat.backToMissions'))
-)
+  () => props.continueLabel || (props.midRun ? t('combat.continueRun') : t('combat.backToMissions'))
+);
 
 const lines = computed(() => {
-  const r = props.rewards
-  if (!r || r.error) return []
-  const out = []
-  if (r.xp > 0) out.push({ key: 'xp', label: t('combat.rewardXp', { n: r.xp }) })
-  if (r.ryos > 0) out.push({ key: 'ryos', label: t('combat.rewardRyos', { n: r.ryos }) })
+  const r = props.rewards;
+  if (!r || r.error) return [];
+  const out = [];
+  if (r.xp > 0) out.push({ key: 'xp', label: t('combat.rewardXp', { n: r.xp }) });
+  if (r.ryos > 0) out.push({ key: 'ryos', label: t('combat.rewardRyos', { n: r.ryos }) });
   if (r.leveledUp) {
     out.push({
       key: 'level',
@@ -45,7 +43,7 @@ const lines = computed(() => {
         n: r.levelsGained,
         talent: r.talentPointsGained || 0,
       }),
-    })
+    });
   }
   if (r.card) {
     out.push({
@@ -53,15 +51,15 @@ const lines = computed(() => {
       label: t('combat.rewardCard', {
         name: localizedName(r.card, locale.value, '…'),
       }),
-    })
+    });
   } else if (r.cardRolled === false && (r.xp > 0 || r.ryos > 0)) {
-    out.push({ key: 'no-card', label: t('combat.rewardNoCard') })
+    out.push({ key: 'no-card', label: t('combat.rewardNoCard') });
   }
   if (r.runMult) {
-    out.push({ key: 'run', label: t('combat.rewardRunBonus', { n: r.runMult }) })
+    out.push({ key: 'run', label: t('combat.rewardRunBonus', { n: r.runMult }) });
   }
-  return out
-})
+  return out;
+});
 </script>
 
 <template>
@@ -71,6 +69,7 @@ const lines = computed(() => {
     :data-tone="isVictory ? 'leaf' : 'vermilion'"
     data-testid="victory-rewards"
     role="dialog"
+    aria-modal="true"
     :aria-label="title"
   >
     <span class="victory__shape" aria-hidden="true" />

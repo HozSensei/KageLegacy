@@ -953,6 +953,7 @@
     "sealBroken": "Le sceau est brisé…",
     "revealHint": "Carte {n} sur {total} — clique pour révéler",
     "revealCard": "Révéler la carte",
+    "revealAll": "Tout révéler",
     "revealCommon": "Carte {n} sur {total} — {name}",
     "revealRare": "◆ RARE — Belle trouvaille !",
     "revealLegendary": "✦ LÉGENDAIRE — Une découverte exceptionnelle !",

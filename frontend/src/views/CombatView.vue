@@ -48,7 +48,8 @@ watch(
 );
 
 function onSelect(card) {
-  combat.selectedInstanceId = card?.instanceId || null;
+  const instanceId = card?.instanceId || null;
+  combat.selectedInstanceId = combat.selectedInstanceId === instanceId ? null : instanceId;
 }
 
 async function onPlay(card) {
