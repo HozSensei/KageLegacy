@@ -24,6 +24,33 @@ const COMPATIBILITY_COLUMNS = [
   ],
 ];
 
+async function ensureCardStatType(connection) {
+  const [rows] = await connection.query(
+    `SELECT column_type
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE()
+       AND table_name = 'card_definitions'
+       AND column_name = 'stat_type'
+     LIMIT 1`,
+  );
+  if (rows.length === 0 || String(rows[0].column_type).includes("'common'")) return;
+
+  // Les anciennes valeurs abandonnées sont remises à NULL avant le changement
+  // d'ENUM ; le seed idempotent les remplace par la valeur actuelle aussitôt après.
+  await connection.query(
+    `UPDATE card_definitions
+     SET stat_type = NULL
+     WHERE stat_type IS NOT NULL
+       AND stat_type NOT IN ('taijutsu','ninjutsu','genjutsu','medicine')`,
+  );
+  await connection.query(
+    `ALTER TABLE card_definitions
+     MODIFY COLUMN stat_type
+       ENUM('taijutsu','ninjutsu','genjutsu','medicine','common') DEFAULT NULL`,
+  );
+  console.log('🔧 Enum étendu : card_definitions.stat_type accepte common');
+}
+
 async function ensureCompatibilityColumns(connection) {
   for (const [table, column, definition, after] of COMPATIBILITY_COLUMNS) {
     const [rows] = await connection.query(
@@ -47,6 +74,7 @@ async function ensureCompatibilityColumns(connection) {
     );
     console.log(`🔧 Colonne de compatibilité ajoutée : ${table}.${column}`);
   }
+  await ensureCardStatType(connection);
 }
 
 function splitSqlStatements(sql) {
