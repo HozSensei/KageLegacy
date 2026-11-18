@@ -58,7 +58,7 @@ export function resolveSecondaryArt(slug, explicitSecondary = null) {
  */
 export function remapAbandonedPassives(
   passive = {},
-  { statType = null, secondaryStatType = null } = {}
+  { statType = null, secondaryStatType = null } = {},
 ) {
   const raw = passive && typeof passive === 'object' ? { ...passive } : {};
   const vit = Number(raw.vitesse) || 0;

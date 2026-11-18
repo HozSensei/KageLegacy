@@ -96,7 +96,6 @@ function onSelectSlot(slot) {
           :upgrade-level="slot.entry.upgradeLevel"
           :catalogue-number="slot.catalogueNumber"
           :selected="selectedKey === slot.key"
-          :tilt="true"
           @select="onSelectSlot(slot)"
         />
         <CardHole

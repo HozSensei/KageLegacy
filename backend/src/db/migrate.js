@@ -81,7 +81,7 @@ async function migrate() {
       `SELECT COUNT(*) AS count
        FROM information_schema.tables
        WHERE table_schema = DATABASE()
-         AND table_name <> 'schema_migrations'`,
+         AND table_name NOT IN ('schema_migrations', 'e2e_fixture_guard')`,
     );
     if (Number(tableRows[0].count) > 0) {
       throw new Error(

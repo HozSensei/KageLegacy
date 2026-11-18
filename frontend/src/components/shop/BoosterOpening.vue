@@ -363,7 +363,11 @@ onBeforeUnmount(() => {
             <span
               v-if="showCollectionStatus"
               class="booster-opening__result-badge"
-              :class="entry.isNew ? 'booster-opening__result-badge--new' : ''"
+              :class="
+                entry.isNew
+                  ? 'booster-opening__result-badge--new'
+                  : 'booster-opening__result-badge--duplicate'
+              "
             >
               {{ entry.isNew ? t('shop.newCard') : t('shop.duplicateCard') }}
             </span>
@@ -627,22 +631,33 @@ onBeforeUnmount(() => {
 
 .booster-opening__result-badge {
   position: absolute;
-  top: 0.45rem;
+  top: 3.1rem;
   right: 0.45rem;
-  z-index: 2;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid var(--color-line-strong);
+  z-index: 13;
+  min-width: 4.25rem;
+  padding: 0.35rem 0.55rem;
+  border: 2px solid;
   border-radius: 0.2rem;
-  background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
-  color: var(--color-ink-muted);
+  box-shadow: 0 3px 8px #0008;
   font-size: 0.625rem;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
   pointer-events: none;
 }
 
 .booster-opening__result-badge--new {
-  border-color: var(--color-leaf-fill);
-  color: var(--color-leaf-fill);
+  border-color: #d9f4c8;
+  background: var(--color-leaf-fill);
+  color: #fff;
+}
+
+.booster-opening__result-badge--duplicate {
+  border-color: #c9c9c9;
+  background: #343434;
+  color: #fff;
 }
 
 @keyframes booster-result-in {

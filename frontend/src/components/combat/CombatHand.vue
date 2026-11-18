@@ -224,13 +224,6 @@ const displayCards = computed(() =>
         :description="!canAfford(card) ? t('combat.insufficientChakra') : null"
         keyshortcuts="Shift+Enter"
       />
-      <span
-        v-if="!canAfford(card)"
-        class="hand-card__warning"
-        :title="t('combat.insufficientChakra')"
-        aria-hidden="true"
-        >!</span
-      >
     </div>
   </TransitionGroup>
   <Teleport to="body">
@@ -334,20 +327,18 @@ const displayCards = computed(() =>
   z-index: 5;
   transform: translateY(-1.2rem) rotate(0deg);
 }
-.hand-card--unaffordable :deep(.card-display__chakra-number) {
-  color: #ffb5a9;
+.hand-card--unaffordable :deep(.card-display__chakra-gem) {
+  border-color: #ffb7aa;
+  background: linear-gradient(135deg, #ffb7aa 0%, #e44336 40%, #7b1212 70%, #f07868 100%);
+  box-shadow:
+    inset 0 0 0 3px #6b1010,
+    inset 0 0 12px #ffd1c8,
+    0 0 12px #e4433688;
 }
-.hand-card__warning {
-  position: absolute;
-  right: 0.2rem;
-  top: 2.5rem;
-  z-index: 3;
-  border-radius: 50%;
-  background: #a52121;
-  color: white;
-  padding: 0.1rem 0.4rem;
-  font-weight: bold;
-  pointer-events: none;
+
+.hand-card--unaffordable :deep(.card-display__chakra-number) {
+  color: #fff;
+  text-shadow: 0 2px 4px #4d0606;
 }
 
 .hand-enter-active {
