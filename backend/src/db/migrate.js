@@ -6,6 +6,49 @@ import pool from '../config/database.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASELINE_FILENAME = 'baseline.sql';
 
+const COMPATIBILITY_COLUMNS = [
+  ['card_definitions', 'held_effect_json', 'JSON NULL', 'effects_json'],
+  [
+    'talent_tree_nodes',
+    'tier',
+    "TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = legacy archivé'",
+    'branch',
+  ],
+  ['talent_tree_nodes', 'max_rank', 'TINYINT UNSIGNED NOT NULL DEFAULT 1', 'tier'],
+  ['talent_tree_nodes', 'required_branch_points', 'INT UNSIGNED NOT NULL DEFAULT 0', 'max_rank'],
+  [
+    'user_talents',
+    'points_spent',
+    "TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'Rang acheté sur ce nœud'",
+    'node_id',
+  ],
+];
+
+async function ensureCompatibilityColumns(connection) {
+  for (const [table, column, definition, after] of COMPATIBILITY_COLUMNS) {
+    const [rows] = await connection.query(
+      `SELECT 1
+       FROM information_schema.columns
+       WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
+       LIMIT 1`,
+      [table, column],
+    );
+    if (rows.length > 0) continue;
+
+    const [tables] = await connection.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
+      [table],
+    );
+    if (tables.length === 0) continue;
+
+    await connection.query(
+      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition} AFTER \`${after}\``,
+    );
+    console.log(`🔧 Colonne de compatibilité ajoutée : ${table}.${column}`);
+  }
+}
+
 function splitSqlStatements(sql) {
   const statements = [];
   let statement = '';
@@ -66,6 +109,7 @@ async function migrate() {
     );
     if (baselineRows.length > 0) {
       console.log('⏭  Schéma initial déjà appliqué.');
+      await ensureCompatibilityColumns(connection);
       return;
     }
 
@@ -97,6 +141,7 @@ async function migrate() {
     await connection.query('INSERT INTO schema_migrations (filename) VALUES (?)', [
       BASELINE_FILENAME,
     ]);
+    await ensureCompatibilityColumns(connection);
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
     console.error('Erreur d’initialisation de la base :', error.message);

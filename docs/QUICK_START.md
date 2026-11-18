@@ -37,7 +37,7 @@ npm run dev
 
 ## Base de données
 
-Le schéma est initial uniquement : `backend/schema.sql` doit être appliqué sur une base vide avec `npm run db:migrate`. Il n'existe pas de système de migrations incrémentales.
+`backend/schema.sql` est le schéma initial et doit être appliqué sur une base vide avec `npm run db:migrate`. Il n'existe pas de système général de migrations incrémentales. Au redémarrage, le migrateur complète toutefois idempotemment les quelques colonnes de compatibilité attendues par les catalogues courants (`held_effect_json` et rangs d'arbres de talents), afin qu'une base déjà marquée comme initialisée puisse continuer à recevoir les seeds.
 
 Pour repartir de zéro :
 

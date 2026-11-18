@@ -32,12 +32,13 @@ function node(n) {
 const NODES = TALENT_NODE_DEFS.map(node);
 const NODE_IDS = new Set(TALENT_NODE_DEFS.map(n => n.id));
 
+// Le migrateur Docker assure ces colonnes ; ce filet reste utile pour un seed manuel.
 async function ensureColumn(table, column, definition) {
   const rows = await query(
     `SELECT 1 AS present
      FROM information_schema.columns
      WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?`,
-    [table, column],
+    [table, column]
   );
   if (!rows.length) await query(`ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`);
 }
@@ -46,13 +47,13 @@ async function ensureSchema() {
   await ensureColumn(
     'talent_tree_nodes',
     'tier',
-    "TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = legacy archivé'",
+    "TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = legacy archivé'"
   );
   await ensureColumn('talent_tree_nodes', 'max_rank', 'TINYINT UNSIGNED NOT NULL DEFAULT 1');
   await ensureColumn(
     'talent_tree_nodes',
     'required_branch_points',
-    'INT UNSIGNED NOT NULL DEFAULT 0',
+    'INT UNSIGNED NOT NULL DEFAULT 0'
   );
   await ensureColumn('user_talents', 'points_spent', 'TINYINT UNSIGNED NOT NULL DEFAULT 1');
 }
@@ -131,7 +132,7 @@ async function upsertNode(n) {
       n.requires_nodes_json,
       n.icon,
       n.color,
-    ],
+    ]
   );
 }
 
@@ -142,7 +143,7 @@ async function migrateLegacyInvestments() {
      FROM user_talents ut
      JOIN talent_tree_nodes n ON n.node_id = ut.node_id
      WHERE ut.node_id NOT IN (${[...NODE_IDS].map(() => '?').join(',')})`,
-    [...NODE_IDS],
+    [...NODE_IDS]
   );
   if (!oldRows.length) return 0;
 
@@ -169,7 +170,7 @@ async function migrateLegacyInvestments() {
              LEFT JOIN user_talents ut ON ut.node_id = n.node_id AND ut.user_id = ?
              WHERE n.branch = ? AND n.tier > 0
              ORDER BY n.tier, n.position_x`,
-            [userId, branch],
+            [userId, branch]
           );
           const target = current.find(row => Number(row.points_spent) < Number(row.max_rank));
           if (!target) continue;
@@ -177,7 +178,7 @@ async function migrateLegacyInvestments() {
             `INSERT INTO user_talents (user_id, node_id, points_spent)
              VALUES (?, ?, 1)
              ON DUPLICATE KEY UPDATE points_spent = points_spent + 1`,
-            [userId, target.node_id],
+            [userId, target.node_id]
           );
           remaining -= 1;
           assigned = true;
@@ -214,7 +215,7 @@ async function main() {
   for (const n of NODES) await upsertNode(n);
   const migratedPoints = await migrateLegacyInvestments();
   console.log(
-    `Talent tree V3: ${NODES.length} nodes, ${points} points (${migratedPoints} legacy points converted)`,
+    `Talent tree V3: ${NODES.length} nodes, ${points} points (${migratedPoints} legacy points converted)`
   );
   console.log('By type:', byType);
   console.log('By branch:', byBranch);
