@@ -39,6 +39,26 @@ export function formatStructuredEffect(effect, { t, te }, card = null) {
   const type = effect.type;
   const n = Number(effect.value);
 
+  if (type === 'combo_previous') {
+    const art = t(`cards.stats.${effect.statType}`, effect.statType);
+    const rewards = [];
+    const rewardKeys = [
+      ['damage', 'cards.effectComboDamage'],
+      ['heal', 'cards.effectComboHeal'],
+      ['block', 'cards.effectComboBlock'],
+      ['statusValue', 'cards.effectComboStatus'],
+      ['draw', 'cards.effectDraw'],
+      ['chakra', 'cards.effectChakra'],
+      ['costReduction', 'cards.effectNextCostReduction'],
+    ];
+    for (const [key, labelKey] of rewardKeys) {
+      const value = Number(effect[key]) || 0;
+      if (value > 0) rewards.push(t(labelKey, { n: value }));
+    }
+    if (!rewards.length) return null;
+    return t('cards.effectComboPrevious', { art, reward: rewards.join(' · ') });
+  }
+
   if (type === 'apply_status') {
     const status = String(effect.status || '').toLowerCase();
     if (!status) return null;

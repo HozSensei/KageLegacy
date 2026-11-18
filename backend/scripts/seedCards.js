@@ -8,6 +8,7 @@
  */
 import { upsertCardDefinition } from '../src/services/cardService.js';
 import { EXPANSION_CARDS } from './data/cardExpansion.js';
+import { addCardChains } from './data/cardChains.js';
 import {
   assertOriginalNaming,
   assertUniqueSlugs,
@@ -532,7 +533,10 @@ const STARTER_CARDS = [
 ];
 
 /** Catalogue complet (starters + expansions V2 empilables). */
-export const ALL_CARDS = [...STARTER_CARDS.map(normalizeStarterCard), ...EXPANSION_CARDS];
+export const ALL_CARDS = addCardChains([
+  ...STARTER_CARDS.map(normalizeStarterCard),
+  ...EXPANSION_CARDS,
+]);
 
 /** @deprecated Prefer ALL_CARDS — conservé pour imports existants. */
 export { STARTER_CARDS };

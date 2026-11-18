@@ -93,27 +93,27 @@ assert(elementMultiplier('katon', 'futon') === 1.5, 'katon > futon');
 assert(elementMultiplier('katon', 'suiton') === 0.7, 'katon < suiton');
 assert(
   outgoingDamageMultiplier([{ key: 'weak', value: 1 }]) === 0.75,
-  'weak reduces damage by 25%'
+  'weak reduces damage by 25%',
 );
 assert(
   outgoingDamageMultiplier([{ key: 'weak', value: 2 }]) === 0.75,
-  'weak value does not increase the penalty'
+  'weak value does not increase the penalty',
 );
 
 const remapped = remapAbandonedPassives(
   { vitesse: 2, intelligence: 3, ninjutsu: 1, dexterity: 2 },
-  { statType: 'ninjutsu', secondaryStatType: 'genjutsu' }
+  { statType: 'ninjutsu', secondaryStatType: 'genjutsu' },
 );
 assert(
   remapped.ninjutsu === 3 &&
     remapped.genjutsu === 3 &&
     remapped.vitesse == null &&
     remapped.dexterity == null,
-  'remap old stats and discard dexterity'
+  'remap old stats and discard dexterity',
 );
 assert(
   deriveCritChance({ passiveBeforeRemap: { vitesse: 2 }, type: 'attack', damage: 4 }) === 15,
-  'crit from old vit'
+  'crit from old vit',
 );
 
 const blocked = applyDamageThroughBlock({ hp: 50, block: 10 }, 7);
@@ -138,7 +138,7 @@ assert(end.entity.hp === 28, 'burn deals at end');
 assert(end.entity.block === 0, 'block fades end of turn');
 const persist = resolveEndOfTurnStatuses(
   { hp: 40, maxHp: 40, block: 12, statuses: [] },
-  { persistBlock: true }
+  { persistBlock: true },
 );
 assert(persist.entity.block === 12, 'persistBlock keeps armor (StS-style)');
 assert(tickStatuses([{ key: 'force', value: 2, duration: 1 }]).length === 0, 'duration 1 expires');
@@ -149,7 +149,7 @@ const pile = buildRuntimeDeck(entries);
 assert(pile.length === 19, `practice deck size 19 (got ${pile.length})`);
 assert(
   pile.some(c => c.type === 'summon'),
-  'practice deck includes summon'
+  'practice deck includes summon',
 );
 const fixedRng = (() => {
   let i = 0;
@@ -177,7 +177,7 @@ assert(drawn.player.drawPile.length === 14, 'draw pile reduced');
 const moved = moveCardFromHand(drawn.player, drawn.player.hand[0].instanceId, 'discard');
 assert(
   moved.player.hand.length === 4 && moved.player.discardPile.length === 1,
-  'discard from hand'
+  'discard from hand',
 );
 
 console.log('\n=== Card effects ===');
@@ -232,14 +232,14 @@ const conditionalCard = {
 assert(
   computeCardDamage(conditionalCard, { cardsPlayedThisTurn: 0, stats: {}, rng: () => 0.99 })
     .total === 10,
-  'first_card bonus is applied'
+  'first_card bonus is applied',
 );
 assert(
   computeCardDamage(
     { ...conditionalCard, effects: [{ type: 'bonus_if', condition: 'enemy_weak', value: 8 }] },
-    { enemyStatuses: [{ key: 'weak', value: 1, duration: 2 }], stats: {}, rng: () => 0.99 }
+    { enemyStatuses: [{ key: 'weak', value: 1, duration: 2 }], stats: {}, rng: () => 0.99 },
   ).total === 12,
-  'enemy_weak bonus is applied'
+  'enemy_weak bonus is applied',
 );
 const evadeReady = applyCardPlay({
   player: p,
@@ -249,7 +249,7 @@ const evadeReady = applyCardPlay({
 });
 assert(
   evadeReady.player.statuses.find(status => status.key === 'evade')?.duration === null,
-  'evade survives until an incoming attack consumes it'
+  'evade survives until an incoming attack consumes it',
 );
 const counterReady = applyCardPlay({
   player: p,
@@ -259,7 +259,88 @@ const counterReady = applyCardPlay({
 });
 assert(
   counterReady.player.statuses.find(status => status.key === 'counter')?.duration === null,
-  'counter survives until an incoming attack consumes it'
+  'counter survives until an incoming attack consumes it',
+);
+
+const noChainDamage = applyCardPlay({
+  player: { ...p, previousCardStatType: 'taijutsu' },
+  enemy: e,
+  card: { ...atkCard, effects: [], damage: 3 },
+  stats: {},
+  rng: () => 0.99,
+});
+assert(noChainDamage.enemy.hp === 36, 'no card effect means no automatic chain bonus');
+
+const chainDamage = applyCardPlay({
+  player: { ...p, previousCardStatType: 'taijutsu' },
+  enemy: e,
+  card: {
+    ...atkCard,
+    damage: 3,
+    effects: [{ type: 'combo_previous', statType: 'taijutsu', damage: 2 }],
+  },
+  stats: {},
+  rng: () => 0.99,
+});
+assert(chainDamage.enemy.hp === 34, 'card-defined damage chain applies');
+assert(
+  chainDamage.logs.some(log => log.type === 'card_combo' && log.statType === 'taijutsu'),
+  'card-defined chain is logged',
+);
+
+const chainHeal = applyCardPlay({
+  player: { ...p, hp: 50, previousCardStatType: 'medicine' },
+  enemy: e,
+  card: {
+    slug: 'chain-heal',
+    type: 'skill',
+    statType: 'medicine',
+    cost: 0,
+    heal: 5,
+    effects: [{ type: 'combo_previous', statType: 'medicine', heal: 2 }],
+  },
+  stats: {},
+  rng: () => 0.99,
+});
+assert(chainHeal.player.hp === 57, 'card-defined heal chain applies');
+
+const chainBlock = applyCardPlay({
+  player: { ...p, previousCardStatType: 'genjutsu' },
+  enemy: e,
+  card: {
+    slug: 'chain-block',
+    type: 'skill',
+    statType: 'genjutsu',
+    cost: 0,
+    effects: [
+      { type: 'gain_block', value: 4 },
+      { type: 'combo_previous', statType: 'genjutsu', block: 2 },
+    ],
+  },
+  stats: {},
+  rng: () => 0.99,
+});
+assert(chainBlock.player.block === 6, 'card-defined block chain applies');
+
+const chainStatus = applyCardPlay({
+  player: { ...p, previousCardStatType: 'medicine' },
+  enemy: e,
+  card: {
+    slug: 'chain-status',
+    type: 'skill',
+    statType: 'genjutsu',
+    cost: 0,
+    effects: [
+      { type: 'apply_status', target: 'enemy', status: 'weak', value: 1, duration: 1 },
+      { type: 'combo_previous', statType: 'medicine', statusValue: 1 },
+    ],
+  },
+  stats: {},
+  rng: () => 0.99,
+});
+assert(
+  chainStatus.enemy.statuses.find(status => status.key === 'weak')?.value === 2,
+  'card-defined status chain increases effect intensity',
 );
 
 console.log('\n=== Summon ===');
@@ -285,14 +366,14 @@ const seededEffects = [...new Set(TALENT_NODE_DEFS.filter(n => n.effect).map(n =
 const classifiedAll = classifyTalentEffects(seededEffects);
 assert(
   classifiedAll.applied.length >= 20,
-  `≥20 effets de l'arbre V3 appliqués (got ${classifiedAll.applied.length})`
+  `≥20 effets de l'arbre V3 appliqués (got ${classifiedAll.applied.length})`,
 );
 assert(classifiedAll.stubbed.length === 0, 'aucun effet du nouvel arbre non implémenté');
 assert(classifiedAll.applied.includes('confusion_tax'), 'confusion_tax appliqué');
 assert(classifiedAll.applied.includes('steady_hands'), 'steady_hands appliqué');
 assert(
   Object.keys(TALENT_EFFECT_MVP).length >= classifiedAll.applied.length,
-  'les effets V3 sont couverts par la configuration combat'
+  'les effets V3 sont couverts par la configuration combat',
 );
 
 const classified = classifyTalentEffects([
@@ -326,7 +407,7 @@ assert(immortalMods.damageMult === 0.5, 'immortal halves damage');
 const overloadMods = computeTalentDamageMods(
   ['overload'],
   { hp: 100, maxHp: 100 },
-  { statType: 'ninjutsu', cost: 2, damage: 10 }
+  { statType: 'ninjutsu', cost: 2, damage: 10 },
 );
 assert(overloadMods.costDelta === 1 && overloadMods.damageMult === 2, 'overload nin cost+dmg');
 
@@ -337,20 +418,20 @@ assert(applyIncomingTalentCap(18, ['intangible']) === 1, 'incoming cap 1');
 const bladeMods = computeTalentDamageMods(
   ['blade_swift'],
   { hp: 100, maxHp: 100 },
-  { statType: 'taijutsu', cost: 1, damage: 6 }
+  { statType: 'taijutsu', cost: 1, damage: 6 },
 );
 assert(bladeMods.damageFlat === 3, 'blade_swift +3 flat');
 
 const comboMods = computeTalentDamageMods(
   ['combo_master'],
   { hp: 100, maxHp: 100, taijutsuPlayedThisTurn: 2 },
-  { statType: 'taijutsu', cost: 1 }
+  { statType: 'taijutsu', cost: 1 },
 );
 assert(comboMods.damageMult === 2, 'combo_master doubles the third Taijutsu card');
 
 const tanked = applyTalentAfterDamageTaken(
   { hp: 20, maxHp: 100, block: 0, perfectTankUsed: false },
-  ['perfect_tank']
+  ['perfect_tank'],
 );
 assert(tanked.player.block === 5 && tanked.player.perfectTankUsed, 'perfect_tank triggers');
 
@@ -360,7 +441,7 @@ console.log('\n=== Talent effects (wave 2) ===');
 const counterArmed = applyTalentAfterDamageTaken(
   { hp: 80, maxHp: 100, block: 0 },
   ['counter_strike'],
-  { damageDealt: 5 }
+  { damageDealt: 5 },
 );
 assert(counterArmed.player.counterStrikeReady, 'counter_strike arms');
 const counterMods = computeTalentDamageMods(['counter_strike'], counterArmed.player, {
@@ -374,21 +455,21 @@ const finishMods = computeTalentDamageMods(
   ['finisher_blow'],
   { hp: 100, maxHp: 100 },
   { statType: 'taijutsu', cost: 2, damage: 8 },
-  { enemy: { hp: 20, maxHp: 100 } }
+  { enemy: { hp: 20, maxHp: 100 } },
 );
 assert(finishMods.damageMult === 1.5, 'finisher_blow ×1.5');
 
 const pressMods = computeTalentDamageMods(
   ['relentless_press'],
   { hp: 100, maxHp: 100, taijutsuPlayedThisTurn: 2 },
-  { statType: 'taijutsu', cost: 1, damage: 4 }
+  { statType: 'taijutsu', cost: 1, damage: 4 },
 );
 assert(pressMods.damageFlat === 2, 'relentless_press stacks');
 
 const absMods = computeTalentDamageMods(
   ['absolute_guard'],
   { hp: 100, maxHp: 100 },
-  { statType: 'taijutsu', cost: 1, damage: 5 }
+  { statType: 'taijutsu', cost: 1, damage: 5 },
 );
 assert(absMods.blockMult === 2 && absMods.costDelta === 1, 'absolute_guard block×2 +tai cost');
 
@@ -398,7 +479,7 @@ assert(grip.damageDealt === 1 && grip.block === 2, 'crushing_grip armor ignore')
 const gripMods = computeTalentDamageMods(
   ['crushing_grip'],
   { hp: 100, maxHp: 100 },
-  { statType: 'taijutsu', cost: 3, damage: 10 }
+  { statType: 'taijutsu', cost: 3, damage: 10 },
 );
 assert(gripMods.armorIgnore === 2, 'crushing_grip sets ignore');
 
@@ -436,14 +517,14 @@ assert(stormMods.costDelta === -1, 'storm_weave discount');
 const echoMods = computeTalentDamageMods(
   ['echo_cast'],
   { hp: 100, maxHp: 100, echoCastUsed: false },
-  { statType: 'ninjutsu', cost: 1, damage: 10 }
+  { statType: 'ninjutsu', cost: 1, damage: 10 },
 );
 assert(echoMods.echoReplayMult === 0.5, 'echo_cast replay');
 
 const cycleArmed = applyTalentAfterCardPlay(
   { hp: 100, maxHp: 100, elementsPlayedThisTurn: ['katon'] },
   { statType: 'ninjutsu', element: 'suiton' },
-  ['elemental_cycle']
+  ['elemental_cycle'],
 );
 assert(cycleArmed.player.elementalCycleBonus, 'elemental_cycle arms');
 const cycleMods = computeTalentDamageMods(['elemental_cycle'], cycleArmed.player, {
@@ -467,7 +548,7 @@ assert(overMods.damageFlat === 3, 'overcharge_spark +3');
 const focusMods = computeTalentDamageMods(
   ['focus_burn'],
   { hp: 100, maxHp: 100, ninjutsuPlayedThisTurn: 0 },
-  { statType: 'ninjutsu', cost: 1, damage: 5 }
+  { statType: 'ninjutsu', cost: 1, damage: 5 },
 );
 assert(focusMods.damageFlat === 4, 'focus_burn solo nin');
 
@@ -475,7 +556,7 @@ const dualMods = computeTalentDamageMods(
   ['dual_element'],
   { hp: 100, maxHp: 100 },
   { statType: 'ninjutsu', cost: 1, damage: 5 },
-  { deckElementCount: 2 }
+  { deckElementCount: 2 },
 );
 assert(Math.abs(dualMods.damageMult - 1.1) < 1e-9, 'dual_element ×1.1');
 
@@ -494,7 +575,7 @@ assert(illu.payload.duration === 3, 'illusion_master +1 duration');
 assert(illu.payload.value === 2, 'phantom_sovereign +1 intensity');
 assert(
   (illu.enemy.statuses || []).some(s => s.key === 'force' && s.value === -2),
-  'fear_seed −2 force'
+  'fear_seed −2 force',
 );
 
 const mind = applyTalentIncomingAttackMods(8, {}, { statuses: [{ key: 'weak', duration: 1 }] }, [
@@ -506,7 +587,7 @@ assert(mind.damage === 7 && mind.evadeBonus === 0.1, 'mind_trap −1 and veil_th
 const echoPain = applyTalentAfterDamageTaken(
   { hp: 90, maxHp: 100, echoPainUsedThisTurn: false },
   ['echo_pain'],
-  { enemy: { hp: 40, maxHp: 40 }, damageDealt: 4 }
+  { enemy: { hp: 40, maxHp: 40 }, damageDealt: 4 },
 );
 assert(echoPain.enemy.hp === 39, 'echo_pain reflects 1');
 
@@ -514,20 +595,20 @@ const silentMods = computeTalentDamageMods(
   ['silent_cut'],
   { hp: 100, maxHp: 100 },
   { statType: 'genjutsu', cost: 1, damage: 4 },
-  { cardsPlayedThisTurn: 0 }
+  { cardsPlayedThisTurn: 0 },
 );
 assert(silentMods.damageFlat === 2, 'silent_cut first card');
 
 const purify = applyTalentStartOfTurn(
   { hp: 100, maxHp: 100, statuses: [{ key: 'poison', value: 3, duration: 2 }], purifyUsed: false },
-  ['purify']
+  ['purify'],
 );
 assert(purify.player.statuses.length === 0 && purify.player.purifyUsed, 'purify cleanses');
 
 const triageMods = computeTalentDamageMods(
   ['triage_focus', 'field_surgeon', 'last_stand_heal'],
   { hp: 10, maxHp: 100, triageFocusUsed: false, lastStandHealUsed: false },
-  { heal: 6, cost: 2, statType: 'medicine' }
+  { heal: 6, cost: 2, statType: 'medicine' },
 );
 assert(triageMods.healFlat === 8, 'triage + field flat');
 assert(triageMods.healMult === 2, 'last_stand doubles heal');
@@ -535,13 +616,13 @@ assert(triageMods.healMult === 2, 'last_stand doubles heal');
 const bond = applyTalentAfterHeal(
   { hp: 50, maxHp: 100, block: 0, bloodBondUsed: 0 },
   ['blood_bond', 'vital_overflow'],
-  { healAttempted: 20, healApplied: 10 }
+  { healAttempted: 20, healApplied: 10 },
 );
 assert(bond.player.block === 1 + 3, 'blood_bond + vital_overflow armor');
 
 assert(
   resolveCardPileDestination({ type: 'item', exhaust: true }, ['item_master']) === 'discard',
-  'item_master no exhaust'
+  'item_master no exhaust',
 );
 const itemDeny = computeTalentDamageMods(['item_master'], { hp: 100, maxHp: 100 });
 assert(itemDeny.denyNonItem && itemDeny.itemNoExhaust, 'item_master deny tech');
@@ -549,13 +630,13 @@ assert(itemDeny.denyNonItem && itemDeny.itemNoExhaust, 'item_master deny tech');
 const adrenalineMods = computeTalentDamageMods(
   ['adrenaline_rush'],
   { hp: 40, maxHp: 100 },
-  { statType: 'taijutsu', cost: 1 }
+  { statType: 'taijutsu', cost: 1 },
 );
 assert(adrenalineMods.damageFlat === 3, 'adrenaline_rush adds 3 Taijutsu damage at low HP');
 
 assert(
   countDeckElements([{ element: 'katon' }, { element: 'suiton' }, {}]) === 2,
-  'countDeckElements'
+  'countDeckElements',
 );
 
 const sovereignMods = computeTalentDamageMods(['phantom_sovereign'], { hp: 100, maxHp: 100 });
@@ -594,14 +675,14 @@ const vsIntangible = executeEnemyIntent(
   { ...enemy, intent: { type: 'attack', damage: 20 } },
   intangibleHero,
   () => 0.99,
-  { talentCodes: ['intangible'] }
+  { talentCodes: ['intangible'] },
 );
 assert(vsIntangible.player.hp === 99, 'keystone intangible caps enemy damage to 1');
 
 // ── Percent support buffs (damage_pct / typed / block_pct / heal_pct) ──
 const baseTai = computeCardDamage(
   { ...atkCard, damage: 10 },
-  { stats: { taijutsu: 0, vitesse: 0 }, rng: () => 0.99 }
+  { stats: { taijutsu: 0, vitesse: 0 }, rng: () => 0.99 },
 );
 assert(baseTai.total === 10, `baseline tai damage 10 (got ${baseTai.total})`);
 
@@ -611,7 +692,7 @@ const pctTai = computeCardDamage(
     stats: { taijutsu: 0, vitesse: 0 },
     playerStatuses: [{ key: 'taijutsu_pct', value: 20, duration: 2 }],
     rng: () => 0.99,
-  }
+  },
 );
 assert(pctTai.total === 12, `+20% taijutsu → 12 (got ${pctTai.total})`);
 
@@ -621,7 +702,7 @@ const pctGlobal = computeCardDamage(
     stats: { ninjutsu: 0, vitesse: 0 },
     playerStatuses: [{ key: 'damage_pct', value: 25, duration: 2 }],
     rng: () => 0.99,
-  }
+  },
 );
 assert(pctGlobal.total === 13, `+25% damage_pct → 13 (got ${pctGlobal.total})`);
 
@@ -631,7 +712,7 @@ const typedMiss = computeCardDamage(
     stats: { ninjutsu: 0, vitesse: 0 },
     playerStatuses: [{ key: 'taijutsu_pct', value: 50, duration: 2 }],
     rng: () => 0.99,
-  }
+  },
 );
 assert(typedMiss.total === 10, 'typed % only applies to matching statType');
 
@@ -673,7 +754,7 @@ const supportPlay = applyCardPlay({
 });
 assert(
   (supportPlay.player.statuses || []).some(s => s.key === 'taijutsu_pct' && s.value === 20),
-  'support card applies taijutsu_pct'
+  'support card applies taijutsu_pct',
 );
 
 const gainBlockPlay = applyCardPlay({
@@ -700,7 +781,7 @@ const gainBlockPlay = applyCardPlay({
 });
 assert(
   gainBlockPlay.player.block === 6,
-  `gain_block respects block_pct (got ${gainBlockPlay.player.block})`
+  `gain_block respects block_pct (got ${gainBlockPlay.player.block})`,
 );
 
 console.log('\n=== Stub effects resolved ===');
@@ -731,7 +812,7 @@ const healSelfPlay = applyCardPlay({
 assert(healSelfPlay.player.hp === 54, `heal_self restores HP (got ${healSelfPlay.player.hp})`);
 assert(
   healSelfPlay.logs.some(l => l.type === 'heal' && l.amount === 4),
-  'heal_self logs heal'
+  'heal_self logs heal',
 );
 assert(!healSelfPlay.logs.some(l => l.type === 'stub_effect'), 'heal_self not stubbed');
 
@@ -760,7 +841,7 @@ const cleansePlay = applyCardPlay({
 assert(cleansePlay.player.statuses.length === 0, 'cleanse removes debuff');
 assert(
   cleansePlay.logs.some(l => l.type === 'cleanse' && l.removed === 'weak'),
-  'cleanse log'
+  'cleanse log',
 );
 
 const sealPlay = applyCardPlay({
@@ -794,7 +875,7 @@ const sealPlay = applyCardPlay({
 assert(sealPlay.enemy.intent?.type === 'sealed', 'exile seals intent');
 assert(
   sealPlay.logs.some(l => l.type === 'intent_sealed'),
-  'intent_sealed log'
+  'intent_sealed log',
 );
 
 const aoePlay = applyCardPlay({

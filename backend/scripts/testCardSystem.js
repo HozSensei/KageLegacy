@@ -87,21 +87,21 @@ assert(characterBonuses.passiveBonus.maxHp === 5, 'max HP passive survives norma
 assert(characterBonuses.passiveBonus.maxChakra === 2, 'max Chakra passive survives normalization');
 assert(
   characterBonuses.passiveBonus.startingBlock === 3,
-  'starting Armor passive survives normalization'
+  'starting Armor passive survives normalization',
 );
 assert(
   !characterBonuses.passiveBonus.dexterity && !characterBonuses.passiveBonus.force,
-  'obsolete passives are discarded'
+  'obsolete passives are discarded',
 );
 assert(
   ['maxHp', 'maxChakra', 'startingBlock'].every(key =>
-    Object.hasOwn(createEmptyPassiveStats(), key)
+    Object.hasOwn(createEmptyPassiveStats(), key),
   ),
-  'deck aggregation accepts character bonuses'
+  'deck aggregation accepts character bonuses',
 );
 
 const tooSmall = validateDeck(
-  Array.from({ length: 5 }, (_, i) => ({ quantity: 1, collectionId: i }))
+  Array.from({ length: 5 }, (_, i) => ({ quantity: 1, collectionId: i })),
 );
 assert(!tooSmall.valid && tooSmall.size === 5, 'reject small deck');
 
@@ -114,7 +114,7 @@ const ok = validateDeck(okCards);
 assert(ok.valid && ok.size === DECK_MIN_SIZE, 'accept min deck');
 
 const tooBig = validateDeck(
-  Array.from({ length: DECK_MAX_SIZE + 1 }, (_, i) => ({ quantity: 1, collectionId: i }))
+  Array.from({ length: DECK_MAX_SIZE + 1 }, (_, i) => ({ quantity: 1, collectionId: i })),
 );
 assert(!tooBig.valid, 'reject oversized deck');
 
@@ -149,11 +149,11 @@ assert(!twoClans.valid, 'reject two clan cards');
 assert(twoClans.codes.includes('too_many_clan'), 'clan code');
 assert(
   twoClans.errors.some(e => e.includes(`Maximum ${MAX_CLAN_CARDS} carte de clan`)),
-  'clan FR'
+  'clan FR',
 );
 assert(
   twoClans.errorsEn.some(e => e.includes(`Max ${MAX_CLAN_CARDS} clan card`)),
-  'clan EN'
+  'clan EN',
 );
 
 const fourLegendaries = validateDeck([
@@ -171,15 +171,15 @@ assert(!fourLegendaries.valid, 'reject 4 legendary/mythic');
 assert(fourLegendaries.codes.includes('too_many_legendary'), 'legendary code');
 assert(
   fourLegendaries.errors.some(e =>
-    e.includes(`Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques`)
+    e.includes(`Maximum ${MAX_LEGENDARY_OR_MYTHIC} cartes légendaires ou mythiques`),
   ),
-  'legendary FR'
+  'legendary FR',
 );
 assert(
   fourLegendaries.errorsEn.some(e =>
-    e.includes(`Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic`)
+    e.includes(`Max ${MAX_LEGENDARY_OR_MYTHIC} legendary or mythic`),
   ),
-  'legendary EN'
+  'legendary EN',
 );
 
 const oneClanTwoLegs = validateDeck([
@@ -203,6 +203,31 @@ assert(oneClanTwoLegs.legendaryOrMythicCount === 3, 'legendary count includes cl
 // Catalogue seed : palier 250 cartes
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
 assert(ALL_CARDS.length === 250, `catalog target 250, got ${ALL_CARDS.length}`);
+const chainCards = ALL_CARDS.filter(card =>
+  (card.effects || []).some(effect => effect.type === 'combo_previous'),
+);
+assert(chainCards.length === 80, `80 chain cards expected, got ${chainCards.length}`);
+for (const art of ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']) {
+  assert(
+    chainCards.filter(card => card.statType === art).length === 20,
+    `20 ${art} chain cards expected`,
+  );
+}
+for (const card of chainCards) {
+  const chainEffects = card.effects.filter(effect => effect.type === 'combo_previous');
+  assert(
+    chainEffects.every(effect => effect.statType !== 'common'),
+    `chain art on ${card.slug}`,
+  );
+  assert(
+    chainEffects.every(effect =>
+      ['damage', 'heal', 'block', 'statusValue', 'draw', 'chakra', 'costReduction'].some(
+        key => Number(effect[key]) > 0,
+      ),
+    ),
+    `chain reward on ${card.slug}`,
+  );
+}
 const catalog = validateCatalog(ALL_CARDS);
 assert(catalog.byType.attack >= 70, 'enough attacks');
 assert(catalog.byType.defense >= 35, 'enough defenses');
@@ -241,7 +266,7 @@ for (const [slug, statType, damage, draw] of [
   assert(
     JSON.stringify(combo) ===
       JSON.stringify({ type: 'combo_previous', statType, damage, draw, chakra: 0 }),
-    `combo payload ${slug}`
+    `combo payload ${slug}`,
   );
   assert(card.rarity === 'common' && card.baseCost === 0, `combo rarity and cost ${slug}`);
 }
@@ -249,15 +274,15 @@ const emberEdge = catalogBySlug.get('lame-de-braise');
 assert(
   emberEdge.baseDamage === 8 &&
     emberEdge.effects.some(effect => effect.status === 'burn' && effect.value === 2),
-  'ember edge burn tradeoff'
+  'ember edge burn tradeoff',
 );
 const sleepBlade = catalogBySlug.get('lame-du-sommeil');
 assert(
   sleepBlade.effects.some(
     effect =>
-      effect.type === 'bonus_if' && effect.condition === 'enemy_vulnerable' && effect.value === 4
+      effect.type === 'bonus_if' && effect.condition === 'enemy_vulnerable' && effect.value === 4,
   ),
-  'sleep blade illusion payoff'
+  'sleep blade illusion payoff',
 );
 for (const slug of ['lame-de-braise', 'lame-du-sommeil', 'frappe-de-pause', 'relecture-tactique']) {
   const card = catalogBySlug.get(slug);
@@ -279,7 +304,7 @@ for (const card of CLAN_LEGENDARY_CARDS) {
   assert(passiveSum >= 12, `clan ${card.slug} needs large deck passive (sum=${passiveSum})`);
   assert(
     ALL_CARDS.some(c => c.slug === card.slug),
-    `clan ${card.slug} in ALL_CARDS`
+    `clan ${card.slug} in ALL_CARDS`,
   );
 }
 
@@ -288,7 +313,7 @@ assert(dual?.statTypeSecondary === 'genjutsu', 'harmonie is nin/gen dual');
 assert(!Object.keys(dual.passiveBonus || {}).includes('vitesse'), 'harmonie no vitesse passive');
 assert(
   !Object.keys(dual.passiveBonus || {}).includes('intelligence'),
-  'harmonie no intelligence passive'
+  'harmonie no intelligence passive',
 );
 
 const rarityPassiveBudgets = {
@@ -304,25 +329,25 @@ for (const card of ALL_CARDS) {
   const requiresCommon = ['item', 'summon'].includes(card.type) || card.slug.startsWith('clan-');
   assert(
     !requiresCommon || card.statType === 'common',
-    `${card.slug} must use the common scaling route`
+    `${card.slug} must use the common scaling route`,
   );
   const [min, max] = rarityPassiveBudgets[card.rarity];
   for (const level of [0, 1, 2]) {
     const passive = { ...(card.passiveBonus || {}) };
     if (level > 0) {
       for (const [key, value] of Object.entries(
-        card.upgradeBonuses?.[`level_${level}`]?.passive || {}
+        card.upgradeBonuses?.[`level_${level}`]?.passive || {},
       )) {
         passive[key] = (Number(passive[key]) || 0) + (Number(value) || 0);
       }
     }
     const total = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'].reduce(
       (sum, key) => sum + Number(passive[key] || 0),
-      0
+      0,
     );
     assert(
       total >= min && total <= max,
-      `${card.slug} passive L${level} outside ${min}-${max}: ${total}`
+      `${card.slug} passive L${level} outside ${min}-${max}: ${total}`,
     );
   }
 }

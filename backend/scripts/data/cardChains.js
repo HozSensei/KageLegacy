@@ -1,0 +1,101 @@
+const ARTS = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
+const TARGET_PER_ART = 20;
+
+const ART_LABELS = {
+  fr: { taijutsu: 'Taijutsu', ninjutsu: 'Ninjutsu', genjutsu: 'Genjutsu', medicine: 'Médecine' },
+  en: { taijutsu: 'Taijutsu', ninjutsu: 'Ninjutsu', genjutsu: 'Genjutsu', medicine: 'Medicine' },
+};
+
+const PREVIOUS_ORDER = {
+  taijutsu: ['taijutsu', 'genjutsu', 'taijutsu', 'medicine'],
+  ninjutsu: ['ninjutsu', 'medicine', 'ninjutsu', 'genjutsu'],
+  genjutsu: ['genjutsu', 'taijutsu', 'genjutsu', 'medicine'],
+  medicine: ['medicine', 'ninjutsu', 'medicine', 'genjutsu'],
+};
+
+function rarityValue(rarity) {
+  if (rarity === 'mythic') return 3;
+  if (rarity === 'legendary' || rarity === 'rare') return 2;
+  return 1;
+}
+
+function chainReward(card, previousArt) {
+  const crossed = previousArt !== card.statType;
+  const value = rarityValue(card.rarity) + (crossed ? 1 : 0);
+  if (Number(card.baseDamage ?? card.damage) > 0) return { damage: value };
+  if (Number(card.baseHeal ?? card.heal) > 0) return { heal: value };
+  if (
+    Number(card.baseBlock ?? card.block) > 0 ||
+    (card.effects || []).some(effect => effect.type === 'gain_block')
+  ) {
+    return { block: value };
+  }
+  if ((card.effects || []).some(effect => effect.type === 'apply_status'))
+    return { statusValue: 1 };
+  if (card.rarity === 'common') return crossed ? { chakra: 1 } : { draw: 1 };
+  return crossed ? { draw: 1 } : { costReduction: 1 };
+}
+
+function rewardFr(reward) {
+  if (reward.damage) return `+${reward.damage} dégâts`;
+  if (reward.heal) return `+${reward.heal} PV`;
+  if (reward.block) return `+${reward.block} Armure`;
+  if (reward.statusValue) return `+${reward.statusValue} à l’intensité de l’effet`;
+  if (reward.draw) return `piochez ${reward.draw} carte`;
+  if (reward.chakra) return `gagnez ${reward.chakra} Chakra`;
+  if (reward.costReduction)
+    return `la prochaine carte coûte ${reward.costReduction} Chakra de moins`;
+  return '';
+}
+
+function rewardEn(reward) {
+  if (reward.damage) return `+${reward.damage} damage`;
+  if (reward.heal) return `+${reward.heal} HP`;
+  if (reward.block) return `+${reward.block} Armor`;
+  if (reward.statusValue) return `+${reward.statusValue} effect intensity`;
+  if (reward.draw) return `draw ${reward.draw} card`;
+  if (reward.chakra) return `gain ${reward.chakra} Chakra`;
+  if (reward.costReduction) return `the next card costs ${reward.costReduction} less Chakra`;
+  return '';
+}
+
+function addChain(card, index) {
+  const previousArt = PREVIOUS_ORDER[card.statType][index % 4];
+  const reward = chainReward(card, previousArt);
+  const effect = {
+    type: 'combo_previous',
+    statType: previousArt,
+    ...reward,
+  };
+  const prefixFr = `${ART_LABELS.fr[previousArt]} → ${rewardFr(reward)}.`;
+  const prefixEn = `${ART_LABELS.en[previousArt]} → ${rewardEn(reward)}.`;
+  return {
+    ...card,
+    effects: [...(card.effects || []), effect],
+    descriptionFr: `${card.descriptionFr} Après ${prefixFr}`,
+    descriptionEn: `${card.descriptionEn} After ${prefixEn}`,
+  };
+}
+
+/**
+ * Ajoute des effets de chaîne à des cartes déterminées du catalogue.
+ * Les cartes déjà dotées d'un combo restent intactes ; le total visé est 80.
+ */
+export function addCardChains(cards) {
+  const result = cards.map(card => ({ ...card, effects: [...(card.effects || [])] }));
+  const counts = Object.fromEntries(ARTS.map(art => [art, 0]));
+  for (const card of result) {
+    if ((card.effects || []).some(effect => effect.type === 'combo_previous'))
+      counts[card.statType] += 1;
+  }
+
+  for (let index = 0; index < result.length; index += 1) {
+    const card = result[index];
+    if (!ARTS.includes(card.statType)) continue;
+    if ((counts[card.statType] || 0) >= TARGET_PER_ART) continue;
+    if ((card.effects || []).some(effect => effect.type === 'combo_previous')) continue;
+    result[index] = addChain(card, counts[card.statType]);
+    counts[card.statType] += 1;
+  }
+  return result;
+}

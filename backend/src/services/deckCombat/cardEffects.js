@@ -38,6 +38,13 @@ function matchesPreviousCard(effect, previousCardStatType) {
   );
 }
 
+function comboValue(card, previousCardStatType, key) {
+  return (card.effects || []).reduce((total, effect) => {
+    if (!matchesPreviousCard(effect, previousCardStatType)) return total;
+    return total + Math.max(0, Number(effect[key]) || 0);
+  }, 0);
+}
+
 function attackStatFor(card, stats) {
   return resolveScalingStat(card.statType || 'taijutsu', stats);
 }
@@ -102,7 +109,7 @@ export function computeCardDamage(card, ctx) {
     perHit *
       typeAdvantageMultiplier(card.statType, enemyPosture) *
       elementMultiplier(card.element, enemyAffinity) *
-      outgoingDamageMultiplier(playerStatuses, { statType: card.statType })
+      outgoingDamageMultiplier(playerStatuses, { statType: card.statType }),
   );
 
   if (talentMods.damageMult) {
@@ -145,7 +152,7 @@ export function computeCardHeal(card, stats, talentMods = {}, playerStatuses = [
   const scalingStat =
     card.statType === 'common' ? resolveScalingStat('common', stats) : Number(stats.medicine) || 0;
   const base = Math.round(
-    scaleHeal(Number(card.heal) || 0, scalingStat) * (1 + (Number(talentMods.heldHealPct) || 0))
+    scaleHeal(Number(card.heal) || 0, scalingStat) * (1 + (Number(talentMods.heldHealPct) || 0)),
   );
   const flat = Number(talentMods.healFlat) || 0;
   const talentMult = Number(talentMods.healMult) || 1;
@@ -302,7 +309,9 @@ export function applyCardPlay({
 
   // Armure
   if ((Number(card.block) || 0) > 0) {
-    const blockGain = computeCardBlock(card, stats, nextPlayer.statuses, talentMods);
+    const blockGain =
+      computeCardBlock(card, stats, nextPlayer.statuses, talentMods) +
+      comboValue(card, nextPlayer.previousCardStatType, 'block');
     if (blockGain > 0) {
       nextPlayer.block = (Number(nextPlayer.block) || 0) + blockGain;
       logs.push({ type: 'block', source: 'player', amount: blockGain, block: nextPlayer.block });
@@ -313,12 +322,13 @@ export function applyCardPlay({
 
   // Soin
   if ((Number(card.heal) || 0) > 0) {
-    const healAmt = computeCardHeal(
-      card,
-      stats,
-      { ...talentMods, heldHealPct: heldEffectMods(resolutionPlayer, card).healPct },
-      nextPlayer.statuses
-    );
+    const healAmt =
+      computeCardHeal(
+        card,
+        stats,
+        { ...talentMods, heldHealPct: heldEffectMods(resolutionPlayer, card).healPct },
+        nextPlayer.statuses,
+      ) + comboValue(card, nextPlayer.previousCardStatType, 'heal');
     const before = nextPlayer.hp;
     nextPlayer.hp = Math.min(nextPlayer.maxHp, nextPlayer.hp + healAmt);
     const applied = nextPlayer.hp - before;
@@ -366,7 +376,7 @@ export function resolveAllyAttack(player, enemy) {
     enemy,
     atk,
     { announceIntent: e => getNextIntent(e) },
-    applyDamageThroughBlock
+    applyDamageThroughBlock,
   );
   logs.push({
     type: 'ally_attack',
@@ -376,8 +386,8 @@ export function resolveAllyAttack(player, enemy) {
   });
   logs.push(
     ...hit.logs.filter(
-      l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage'
-    )
+      l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage',
+    ),
   );
   return { player, enemy: hit.enemy, logs };
 }
@@ -405,6 +415,18 @@ function applyExtraEffect(effect, ctx) {
 
   if (type === 'combo_previous') {
     if (matchesPreviousCard(effect, player.previousCardStatType)) {
+      logs.push({
+        type: 'card_combo',
+        statType: effect.statType,
+        damage: Number(effect.damage) || 0,
+        heal: Number(effect.heal) || 0,
+        block: Number(effect.block) || 0,
+        draw: Number(effect.draw) || 0,
+        chakra: Number(effect.chakra) || 0,
+        costReduction: Number(effect.costReduction) || 0,
+        statusValue: Number(effect.statusValue) || 0,
+        card: ctx.card?.slug,
+      });
       const count = Math.max(0, Math.floor(Number(effect.draw) || 0));
       const chakra = Math.max(0, Number(effect.chakra) || 0);
       const costReduction = Math.max(0, Math.floor(Number(effect.costReduction) || 0));
@@ -442,7 +464,11 @@ function applyExtraEffect(effect, ctx) {
     player = { ...player, chakra: (Number(player.chakra) || 0) + (Number(effect.value) || 0) };
     logs.push({ type: 'gain_chakra', amount: Number(effect.value) || 0, chakra: player.chakra });
   } else if (type === 'gain_block') {
-    const raw = Math.max(0, Number(effect.value) || 0);
+    const raw =
+      Math.max(0, Number(effect.value) || 0) +
+      ((Number(ctx.card?.block) || 0) === 0
+        ? comboValue(ctx.card, player.previousCardStatType, 'block')
+        : 0);
     const scalingStat =
       ctx.card?.statType === 'common'
         ? resolveScalingStat('common', ctx.stats)
@@ -465,7 +491,11 @@ function applyExtraEffect(effect, ctx) {
     const statusKey = normalizeStatusKey(effect.status);
     let payload = {
       key: statusKey,
-      value: Number(effect.value) || 1,
+      value:
+        (Number(effect.value) || 1) +
+        (effect === (ctx.card?.effects || []).find(item => item.type === 'apply_status')
+          ? comboValue(ctx.card, player.previousCardStatType, 'statusValue')
+          : 0),
       duration: effect.duration != null ? Number(effect.duration) : Number(effect.value) || 1,
     };
     const talentStatus = applyTalentToStatusPayload({
@@ -524,7 +554,7 @@ function applyExtraEffect(effect, ctx) {
       (scaleHeal(raw, scalingStat) + flat) *
         talentMult *
         (1 + heldEffectMods(ctx.resolutionPlayer || player, ctx.card).healPct) *
-        outgoingHealMultiplier(player.statuses)
+        outgoingHealMultiplier(player.statuses),
     );
     if (healAmt > 0) {
       const before = player.hp;

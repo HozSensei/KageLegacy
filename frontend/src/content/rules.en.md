@@ -197,6 +197,8 @@ Cards left in your hand are discarded before the next draw, except the reserved 
 
 Your hand is limited to **10 cards**. When the draw pile is empty, the discard pile is shuffled and becomes the draw pile again.
 
+Some cards display a chain effect, such as “After Taijutsu: +2 damage” or “After Medicine: draw 1 card.” It activates only on the card that carries it and only when the immediately preceding card belongs to the listed art. A `Common` card interrupts that condition. Chain rewards may grant damage, healing, Armor, effect intensity, draw, Chakra, or next-card cost reduction. Cards without a chain effect receive no automatic bonus.
+
 ### The enemy's turn
 
 The enemy carries out the intent it announced, then announces a new one:

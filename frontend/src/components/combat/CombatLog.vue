@@ -80,6 +80,15 @@ function talentLabel(effect) {
     : humanize(effect);
 }
 
+function comboRewardLabel(log) {
+  const rewards = [];
+  for (const key of ['damage', 'heal', 'block', 'draw', 'chakra', 'costReduction', 'statusValue']) {
+    const value = Number(log[key]) || 0;
+    if (value > 0) rewards.push(t(`combat.log.comboRewards.${key}`, { n: value }));
+  }
+  return rewards.join(' · ');
+}
+
 function localName(source, fallback = '') {
   if (!source) return fallback;
   return (
@@ -137,6 +146,12 @@ function formatLog(log) {
         isSeat(log.seat) && !isMine(log.seat) ? 'combat.log.drawOpponent' : 'combat.log.drawYou';
       return t(key, { n: count }, count);
     }
+
+    case 'card_combo':
+      return t('combat.log.cardCombo', {
+        art: t(`talents.branches.${log.statType}`),
+        reward: comboRewardLabel(log),
+      });
     case 'gain_chakra':
       return t('combat.log.gainChakra', { n });
     case 'next_card_cost_ready':

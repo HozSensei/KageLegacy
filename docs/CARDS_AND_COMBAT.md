@@ -2,12 +2,12 @@
 
 ## Les quatre voies
 
-| Voie | Identité attendue |
-|---|---|
-| Taijutsu | Harcèlement : coût modéré à faible, multicoups et chaînes |
+| Voie     | Identité attendue                                             |
+| -------- | ------------------------------------------------------------- |
+| Taijutsu | Harcèlement : coût modéré à faible, multicoups et chaînes     |
 | Ninjutsu | Burst : dégâts concentrés, coût plus élevé et impact immédiat |
-| Genjutsu | Contrôle : esquive, Faiblesse, Vulnérable et préparation |
-| Médecine | Support : soin, régénération, purification, armure ciblée |
+| Genjutsu | Contrôle : esquive, Faiblesse, Vulnérable et préparation      |
+| Médecine | Support : soin, régénération, purification, armure ciblée     |
 
 Les effets secondaires restent possibles, mais ne doivent pas effacer cette identité.
 
@@ -35,12 +35,12 @@ Une carte `common` interrompt la chaîne de combos. Un élément thématique ne 
 
 Le budget inclusif des statistiques passives est contrôlé aux niveaux 0, 1 et 2 :
 
-| Rareté | Points de voies |
-|---|---:|
-| Commune | 0 à 5 |
-| Rare | 5 à 10 |
-| Légendaire | 10 à 15 |
-| Mythique | 15 à 20 |
+| Rareté     | Points de voies |
+| ---------- | --------------: |
+| Commune    |           0 à 5 |
+| Rare       |          5 à 10 |
+| Légendaire |         10 à 15 |
+| Mythique   |         15 à 20 |
 
 Les bornes sont inclusives. Ce budget ne transforme pas PV max, Chakra max ou armure initiale en points de voie sans règle explicite. Une amélioration reste soumise à la borne de rareté.
 
@@ -99,7 +99,9 @@ Un combo inspecte la voie de la carte immédiatement précédente, jouée avec s
 - un jeu refusé ne modifie pas la chaîne ;
 - les combos croisés sont autorisés à être plus puissants que les combos mono-voie, car ils exigent davantage de préparation.
 
-`combo_previous` peut actuellement fournir dégâts, pioche, Chakra et réduction du coût suivant. D'autres effets conditionnels par voie précédente sont résolus par leurs propres branches de résolution.
+Le catalogue contient 80 cartes de chaîne : 20 par voie. Chaque effet est inscrit explicitement sur sa carte sous `combo_previous`; rien ne se déclenche par défaut selon la combinaison jouée.
+
+Selon la carte, la condition peut fournir : dégâts, soins, Armure, intensité d'effet, pioche, Chakra ou réduction du coût suivant. Les cartes croisées doivent expliciter leur voie précédente et peuvent proposer une récompense supérieure aux chaînes mono-voie. Une carte sans champ `combo_previous` ne reçoit aucun bonus de chaîne.
 
 ## Réduction du prochain coût
 
@@ -115,14 +117,14 @@ Un combo inspecte la voie de la carte immédiatement précédente, jouée avec s
 
 Les six héritages ont un `heldEffect` actif en main ou en réserve :
 
-| Héritage | Effet |
-|---|---|
-| Shizumori | +15 % esquive |
-| Benigiri | +20 % dégâts Ninjutsu |
-| Kazamine | +20 % dégâts Taijutsu |
-| Kumatani | +6 armure au début du tour |
-| Yukisawa | +2 Chakra au début du tour |
-| Nagihara | +20 % soins |
+| Héritage  | Effet                      |
+| --------- | -------------------------- |
+| Shizumori | +15 % esquive              |
+| Benigiri  | +20 % dégâts Ninjutsu      |
+| Kazamine  | +20 % dégâts Taijutsu      |
+| Kumatani  | +6 armure au début du tour |
+| Yukisawa  | +2 Chakra au début du tour |
+| Nagihara  | +20 % soins                |
 
 Chakra et armure sont accordés une fois au début du tour du porteur. Les bonus en pourcentage sont dynamiques et cessent si la carte quitte la main ou la réserve. Une carte jouée ne s'applique pas son propre effet.
 

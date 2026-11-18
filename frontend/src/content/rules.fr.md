@@ -197,6 +197,8 @@ Les cartes restées en main sont défaussées avant la prochaine pioche, sauf la
 
 Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse est mélangée et redevient la pioche.
 
+Certaines cartes affichent un effet de chaîne, par exemple « Après Taijutsu : +2 dégâts » ou « Après Médecine : piochez 1 carte ». Cet effet s'active uniquement sur la carte qui le porte et uniquement si la carte jouée immédiatement avant est de la voie indiquée. Une carte `Common` interrompt cette condition. Les récompenses de chaîne peuvent être des dégâts, des soins, de l'Armure, une intensité d'effet, une pioche, du Chakra ou une réduction du coût suivant. Il n'existe aucun bonus automatique aux cartes sans effet de chaîne.
+
 ### Le tour de l'ennemi
 
 L'ennemi exécute l'intention qu'il avait annoncée, puis en annonce une nouvelle :
