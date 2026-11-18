@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TalentTreeCanvas from '../components/talents/TalentTreeCanvas.vue';
+import TalentSidebar from '../components/talents/TalentSidebar.vue';
 import RespecModal from '../components/talents/RespecModal.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import { talentBranchTone } from '../utils/talentVisuals';
@@ -14,8 +15,9 @@ const { t, locale } = useI18n();
 const store = useTalentTreeStore();
 const showRespec = ref(false);
 const message = ref(null);
+store.setBranchFilter('');
 
-const BRANCHES = ['', 'taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
+const BRANCHES = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
 
 const visibleNodes = computed(() => (store.branchFilter ? store.filteredNodes : store.nodes));
 
@@ -23,20 +25,20 @@ onMounted(async () => {
   await store.loadAll();
 });
 
-async function onUnlock(nodeId) {
+function onAdd(nodeId) {
   message.value = null;
-  const result = await store.unlock(nodeId);
-  if (result) {
-    message.value = t('talents.unlockSuccess');
-  } else if (store.error) {
-    message.value = store.error;
-  }
+  store.addPending(nodeId);
 }
 
-async function onRemove(nodeId) {
+function onRemove(nodeId) {
   message.value = null;
-  const result = await store.remove(nodeId);
-  if (result) message.value = t('talents.removeSuccess');
+  if (!store.removePending(nodeId)) message.value = t('talents.removePendingBlocked');
+}
+
+async function onCommit() {
+  message.value = null;
+  const result = await store.commitPending();
+  if (result) message.value = t('talents.unlockSuccess', { count: result.committed });
   else if (store.error) message.value = store.error;
 }
 
@@ -72,7 +74,7 @@ function onSelect(nodeId) {
         <div class="chip-row">
           <button
             v-for="branch in BRANCHES"
-            :key="branch || 'all'"
+            :key="branch"
             type="button"
             class="chip"
             :aria-pressed="store.branchFilter === branch"
@@ -89,9 +91,6 @@ function onSelect(nodeId) {
           {{ t('talents.pointsLabel') }} <strong>{{ store.talentPointsAvailable }}</strong>
         </span>
         <span>{{ t('talents.pointsInvested', { count: store.spentPoints }) }}</span>
-        <button type="button" class="btn-ghost" @click="showRespec = true">
-          {{ t('talents.respecOpen') }}
-        </button>
       </div>
     </div>
 
@@ -103,21 +102,37 @@ function onSelect(nodeId) {
         <p v-if="store.loading && !store.nodes.length" class="text-ink-muted">
           {{ t('talents.loading') }}
         </p>
+        <section v-else-if="!store.branchFilter" class="talent-empty" data-testid="talent-empty">
+          <span aria-hidden="true">◇</span>
+          <h2>{{ t('talents.chooseTreeTitle') }}</h2>
+          <p>{{ t('talents.chooseTreeHint') }}</p>
+        </section>
         <TalentTreeCanvas
           v-else
           :nodes="visibleNodes"
-          :node-ranks="store.nodeRanks"
-          :branch-points="store.branchPoints"
-          :points-available="store.talentPointsAvailable"
+          :node-ranks="store.effectiveRanks"
+          :pending-ranks="store.pendingRanks"
+          :branch-points="store.effectiveBranchPoints"
+          :points-available="store.remainingPoints"
           :action-loading="store.actionLoading"
           :selected-node-id="store.selectedNodeId"
           :is-unlockable="store.isUnlockable"
           :locale="locale"
           @select="onSelect"
-          @unlock="onUnlock"
+          @add="onAdd"
           @remove="onRemove"
         />
       </div>
+      <TalentSidebar
+        :selected="store.selectedNode"
+        :points-available="store.talentPointsAvailable"
+        :pending-count="store.pendingSequence.length"
+        :pending-points="store.pendingSequence.length"
+        :action-loading="store.actionLoading"
+        :locale="locale"
+        @commit="onCommit"
+        @respec="showRespec = true"
+      />
     </div>
 
     <RespecModal
@@ -177,5 +192,40 @@ function onSelect(nodeId) {
   display: grid;
   gap: 1.5rem;
   margin-top: 1rem;
+}
+
+.talent-empty {
+  display: grid;
+  min-height: 24rem;
+  place-content: center;
+  padding: 2rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
+  text-align: center;
+}
+
+.talent-empty > span {
+  font-size: 3rem;
+  color: var(--color-line-strong);
+}
+
+.talent-empty h2 {
+  margin-top: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 850;
+}
+
+.talent-empty p {
+  max-width: 32rem;
+  margin-top: 0.5rem;
+  color: var(--color-ink-muted);
+}
+
+@media (min-width: 1024px) {
+  .talent-layout {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    align-items: start;
+  }
 }
 </style>

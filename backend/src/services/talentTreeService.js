@@ -267,72 +267,90 @@ export async function unlockTalent(userId, nodeId) {
   };
 }
 
-export async function removeTalentRank(userId, nodeId) {
+export async function commitTalentInvestments(userId, nodeIds) {
+  if (!Array.isArray(nodeIds) || nodeIds.length === 0) {
+    throw httpError(400, 'Aucun investissement à valider.');
+  }
+
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    const [ownedRows] = await connection.execute(
-      `SELECT ut.points_spent, n.branch, n.required_branch_points
-       FROM user_talents ut
-       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
-       WHERE ut.user_id = ? AND ut.node_id = ?
+    const [charRows] = await connection.execute(
+      `SELECT character_talent_points_available AS talent_points_available
+       FROM player_profiles
+       WHERE user_id = ? AND character_name IS NOT NULL
        LIMIT 1 FOR UPDATE`,
-      [userId, nodeId],
+      [userId],
     );
-    const owned = ownedRows[0];
-    if (!owned) throw httpError(400, 'Aucun point investi dans ce talent.');
+    const character = charRows[0];
+    if (!character) throw httpError(404, 'Personnage introuvable.');
+    if (Number(character.talent_points_available) < nodeIds.length) {
+      throw httpError(400, 'Points de talent insuffisants.');
+    }
 
-    const nextRank = Number(owned.points_spent) - 1;
-    if (nextRank === 0) {
-      const [dependentRows] = await connection.execute(
-        `SELECT COUNT(*) AS count
-         FROM user_talents ut
-         JOIN talent_tree_nodes n ON n.node_id = ut.node_id
-         WHERE ut.user_id = ? AND JSON_CONTAINS(n.requires_nodes_json, JSON_QUOTE(?))`,
-        [userId, nodeId],
-      );
-      if (Number(dependentRows[0]?.count) > 0) {
-        throw httpError(400, 'Ce rang est requis par un autre talent investi.');
+    const [nodeRows] = await connection.execute(
+      `SELECT * FROM talent_tree_nodes WHERE tier > 0
+       AND branch IN ('taijutsu','ninjutsu','genjutsu','medicine')`,
+    );
+    const nodesById = new Map(nodeRows.map(row => [row.node_id, serializeNode(row)]));
+    const [ownedRows] = await connection.execute(
+      `SELECT ut.node_id, ut.points_spent, n.branch
+       FROM user_talents ut
+       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
+       WHERE ut.user_id = ? FOR UPDATE`,
+      [userId],
+    );
+
+    const ranks = Object.fromEntries(
+      ownedRows.map(row => [row.node_id, Number(row.points_spent) || 1]),
+    );
+    const branchPoints = Object.fromEntries(CURRENT_BRANCHES.map(branch => [branch, 0]));
+    for (const row of ownedRows) {
+      branchPoints[row.branch] = (branchPoints[row.branch] || 0) + (Number(row.points_spent) || 1);
+    }
+
+    const additions = {};
+    for (const nodeId of nodeIds) {
+      const node = nodesById.get(nodeId);
+      if (!node) throw httpError(400, 'Talent invalide.');
+      const currentRank = Number(ranks[nodeId]) || 0;
+      if (currentRank >= node.maxRank)
+        throw httpError(400, `Rang maximum atteint : ${node.nameFr}.`);
+      if ((branchPoints[node.branch] || 0) < node.requiredBranchPoints) {
+        throw httpError(
+          400,
+          `${node.requiredBranchPoints} points requis dans la voie ${node.branch}.`,
+        );
       }
+      const missing = (node.requires || []).filter(required => !(Number(ranks[required]) > 0));
+      if (missing.length > 0) {
+        throw httpError(400, `Prérequis manquants pour ${node.nameFr}.`);
+      }
+      ranks[nodeId] = currentRank + 1;
+      branchPoints[node.branch] += 1;
+      additions[nodeId] = (additions[nodeId] || 0) + 1;
     }
 
-    const [branchRows] = await connection.execute(
-      `SELECT SUM(ut.points_spent) AS points
-       FROM user_talents ut
-       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
-       WHERE ut.user_id = ? AND n.branch = ?`,
-      [userId, owned.branch],
-    );
-    const remainingBranchPoints = Math.max(0, Number(branchRows[0]?.points) - 1);
-    const [thresholdRows] = await connection.execute(
-      `SELECT n.node_id, n.required_branch_points
-       FROM user_talents ut
-       JOIN talent_tree_nodes n ON n.node_id = ut.node_id
-       WHERE ut.user_id = ? AND n.branch = ? AND n.required_branch_points > ?
-         AND (ut.node_id <> ? OR ut.points_spent > 1)`,
-      [userId, owned.branch, remainingBranchPoints, nodeId],
-    );
-    if (thresholdRows.length > 0) {
-      throw httpError(400, 'Ce rang maintient un palier déjà débloqué.');
-    }
-
-    if (nextRank > 0) {
-      await connection.execute(
-        'UPDATE user_talents SET points_spent = ? WHERE user_id = ? AND node_id = ?',
-        [nextRank, userId, nodeId],
-      );
-    } else {
-      await connection.execute('DELETE FROM user_talents WHERE user_id = ? AND node_id = ?', [
-        userId,
-        nodeId,
-      ]);
+    for (const [nodeId, amount] of Object.entries(additions)) {
+      const hadRank = ownedRows.some(row => row.node_id === nodeId);
+      if (hadRank) {
+        await connection.execute(
+          'UPDATE user_talents SET points_spent = points_spent + ? WHERE user_id = ? AND node_id = ?',
+          [amount, userId, nodeId],
+        );
+      } else {
+        await connection.execute(
+          'INSERT INTO user_talents (user_id, node_id, points_spent) VALUES (?, ?, ?)',
+          [userId, nodeId, amount],
+        );
+      }
     }
     await connection.execute(
       `UPDATE player_profiles
-       SET character_talent_points_available = character_talent_points_available + 1,
+       SET character_talent_points_available = character_talent_points_available - ?,
            character_updated_at = UTC_TIMESTAMP()
        WHERE user_id = ? AND character_name IS NOT NULL`,
-      [userId],
+      [nodeIds.length, userId],
     );
     await connection.commit();
   } catch (error) {
@@ -346,7 +364,13 @@ export async function removeTalentRank(userId, nodeId) {
     getUserTalents(userId),
     computeTalentBonuses(userId),
   ]);
-  return { removed: nodeId, rank: talents.nodeRanks[nodeId] || 0, talents, bonuses };
+  try {
+    const { onAchievementAction } = await import('./achievementService.js');
+    await onAchievementAction(userId, 'talent_spent', talents.spentPoints);
+  } catch {
+    // Les succès restent optionnels.
+  }
+  return { committed: nodeIds.length, talents, bonuses };
 }
 
 export async function computeTalentBonuses(userId) {

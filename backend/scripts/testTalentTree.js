@@ -5,7 +5,7 @@ import {
   RESPEC_COST_RYOS,
   getTalentTree,
   canUnlock,
-  unlockTalent,
+  commitTalentInvestments,
   computeTalentBonuses,
   respecTalents,
   getUserTalents,
@@ -111,13 +111,14 @@ async function testIntegration() {
   const finalTier = await canUnlock(userId, 'taijutsu_mastery');
   assert(!finalTier.ok, 'dernier palier verrouillé au départ');
 
-  await unlockTalent(userId, 'taijutsu_stance');
+  const firstCommit = await commitTalentInvestments(userId, ['taijutsu_stance']);
+  assert(firstCommit.committed === 1, 'lot valide une allocation');
   let talents = await getUserTalents(userId);
   assert(talents.nodeRanks.taijutsu_stance === 1, 'rang 1 enregistré');
   assert(talents.spentPoints === 1, 'un point comptabilisé');
 
   await addXP(userId, 100);
-  await unlockTalent(userId, 'taijutsu_stance');
+  await commitTalentInvestments(userId, ['taijutsu_stance']);
   talents = await getUserTalents(userId);
   assert(talents.nodeRanks.taijutsu_stance === 2, 'même talent amélioré au rang 2');
   const bonuses = await computeTalentBonuses(userId);

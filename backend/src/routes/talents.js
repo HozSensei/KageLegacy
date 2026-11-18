@@ -5,16 +5,15 @@ import {
   canUnlock,
   getTalentTree,
   getUserTalents,
-  unlockTalent,
-  removeTalentRank,
+  commitTalentInvestments,
   computeTalentBonuses,
   respecTalents,
 } from '../services/talentTreeService.js';
 
 const router = Router();
 
-const unlockSchema = z.object({
-  nodeId: z.string().min(1).max(50),
+const commitSchema = z.object({
+  nodeIds: z.array(z.string().min(1).max(50)).min(1).max(80),
 });
 
 /** GET /api/talents/tree — catalogue de l'arbre */
@@ -59,28 +58,14 @@ router.get('/can-unlock/:nodeId', async (req, res, next) => {
   }
 });
 
-/** POST /api/talents/unlock — débloquer un nœud */
-router.post('/unlock', async (req, res, next) => {
+/** POST /api/talents/commit — appliquer atomiquement un lot d'investissements */
+router.post('/commit', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
 
-    const parsed = unlockSchema.parse(req.body);
-    const result = await unlockTalent(user.id, parsed.nodeId);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
-
-/** POST /api/talents/remove — retirer un rang et rembourser 1 point */
-router.post('/remove', async (req, res, next) => {
-  try {
-    const user = await requireUser(req, res);
-    if (!user) return;
-
-    const parsed = unlockSchema.parse(req.body);
-    const result = await removeTalentRank(user.id, parsed.nodeId);
+    const parsed = commitSchema.parse(req.body);
+    const result = await commitTalentInvestments(user.id, parsed.nodeIds);
     res.json(result);
   } catch (error) {
     next(error);

@@ -21,45 +21,94 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
   const error = ref(null);
   const selectedNodeId = ref(null);
   const branchFilter = ref('');
+  const pendingSequence = ref([]);
 
-  const unlockedSet = computed(() => new Set(unlockedNodeIds.value));
-
-  const selectedNode = computed(() => {
-    const node = nodes.value.find(n => n.nodeId === selectedNodeId.value) || null;
-    return node ? { ...node, currentRank: rankOf(node.nodeId) } : null;
+  const pendingRanks = computed(() => {
+    const result = {};
+    for (const nodeId of pendingSequence.value) result[nodeId] = (result[nodeId] || 0) + 1;
+    return result;
   });
-
-  const filteredNodes = computed(() => {
-    if (!branchFilter.value) return nodes.value;
-    return nodes.value.filter(n => n.branch === branchFilter.value || n.branch === 'center');
-  });
-
-  const edges = computed(() => {
-    const byId = new Map(nodes.value.map(n => [n.nodeId, n]));
-    const list = [];
-    for (const n of nodes.value) {
-      for (const req of n.requires || []) {
-        const from = byId.get(req);
-        if (from) list.push({ from, to: n });
-      }
+  const effectiveRanks = computed(() => {
+    const result = { ...nodeRanks.value };
+    for (const [nodeId, rank] of Object.entries(pendingRanks.value)) {
+      result[nodeId] = (Number(result[nodeId]) || 0) + rank;
     }
-    return list;
+    return result;
   });
-
-  function isUnlocked(nodeId) {
-    return (Number(nodeRanks.value[nodeId]) || 0) > 0;
-  }
+  const effectiveBranchPoints = computed(() => {
+    const result = { ...branchPoints.value };
+    for (const [nodeId, rank] of Object.entries(pendingRanks.value)) {
+      const node = nodes.value.find(item => item.nodeId === nodeId);
+      if (node) result[node.branch] = (Number(result[node.branch]) || 0) + rank;
+    }
+    return result;
+  });
+  const remainingPoints = computed(() =>
+    Math.max(0, talentPointsAvailable.value - pendingSequence.value.length)
+  );
+  const unlockedSet = computed(() => new Set(Object.keys(effectiveRanks.value)));
+  const selectedNode = computed(() => {
+    const node = nodes.value.find(item => item.nodeId === selectedNodeId.value) || null;
+    return node
+      ? {
+          ...node,
+          currentRank: rankOf(node.nodeId),
+          savedRank: Number(nodeRanks.value[node.nodeId]) || 0,
+          pendingRank: Number(pendingRanks.value[node.nodeId]) || 0,
+        }
+      : null;
+  });
+  const filteredNodes = computed(() =>
+    branchFilter.value ? nodes.value.filter(node => node.branch === branchFilter.value) : []
+  );
 
   function rankOf(nodeId) {
-    return Number(nodeRanks.value[nodeId]) || 0;
+    return Number(effectiveRanks.value[nodeId]) || 0;
+  }
+
+  function isUnlocked(nodeId) {
+    return rankOf(nodeId) > 0;
   }
 
   function isUnlockable(node) {
     if (!node || rankOf(node.nodeId) >= node.maxRank) return false;
-    if (talentPointsAvailable.value < 1) return false;
-    if ((Number(branchPoints.value[node.branch]) || 0) < (node.requiredBranchPoints || 0))
+    if (remainingPoints.value < 1) return false;
+    if ((Number(effectiveBranchPoints.value[node.branch]) || 0) < node.requiredBranchPoints)
       return false;
-    return (node.requires || []).every(req => isUnlocked(req));
+    return (node.requires || []).every(required => isUnlocked(required));
+  }
+
+  function addPending(nodeId) {
+    const node = nodes.value.find(item => item.nodeId === nodeId);
+    if (!node || !isUnlockable(node)) return false;
+    pendingSequence.value.push(nodeId);
+    selectedNodeId.value = nodeId;
+    return true;
+  }
+
+  function removePending(nodeId) {
+    const index = pendingSequence.value.lastIndexOf(nodeId);
+    if (index < 0) return false;
+    const candidate = [...pendingSequence.value];
+    candidate.splice(index, 1);
+
+    const ranks = { ...nodeRanks.value };
+    const points = { ...branchPoints.value };
+    for (const pendingId of candidate) {
+      const node = nodes.value.find(item => item.nodeId === pendingId);
+      if (!node) return false;
+      if ((Number(ranks[pendingId]) || 0) >= node.maxRank) return false;
+      if ((Number(points[node.branch]) || 0) < node.requiredBranchPoints) return false;
+      if (!(node.requires || []).every(required => Number(ranks[required]) > 0)) return false;
+      ranks[pendingId] = (Number(ranks[pendingId]) || 0) + 1;
+      points[node.branch] = (Number(points[node.branch]) || 0) + 1;
+    }
+    pendingSequence.value = candidate;
+    return true;
+  }
+
+  function canRemovePending(nodeId) {
+    return Number(pendingRanks.value[nodeId]) > 0;
   }
 
   async function fetchTree() {
@@ -71,8 +120,8 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
       if (!ok) throw new Error(await readApiError(res, body));
       nodes.value = body.nodes || [];
       return nodes.value;
-    } catch (e) {
-      error.value = e.message;
+    } catch (errorValue) {
+      error.value = errorValue.message;
       return [];
     } finally {
       loading.value = false;
@@ -88,8 +137,8 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
       if (!ok) throw new Error(await readApiError(res, body));
       applyTalentPayload(body.talents, body.bonuses);
       return body;
-    } catch (e) {
-      error.value = e.message;
+    } catch (errorValue) {
+      error.value = errorValue.message;
       return null;
     } finally {
       loading.value = false;
@@ -113,48 +162,25 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
     await Promise.all([fetchTree(), fetchMe()]);
   }
 
-  async function unlock(nodeId) {
+  async function commitPending() {
+    if (pendingSequence.value.length === 0) return null;
     actionLoading.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${API_BASE}/api/talents/unlock`, {
+      const res = await fetch(`${API_BASE}/api/talents/commit`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId }),
+        body: JSON.stringify({ nodeIds: pendingSequence.value }),
       });
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
       applyTalentPayload(body.talents, body.bonuses);
-      const player = usePlayerStore();
-      await player.fetchPlayer();
+      pendingSequence.value = [];
+      await usePlayerStore().fetchPlayer();
       return body;
-    } catch (e) {
-      error.value = e.message;
-      return null;
-    } finally {
-      actionLoading.value = false;
-    }
-  }
-
-  async function remove(nodeId) {
-    actionLoading.value = true;
-    error.value = null;
-    try {
-      const res = await fetch(`${API_BASE}/api/talents/remove`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId }),
-      });
-      const { ok, body } = await parseApiResponse(res);
-      if (!ok) throw new Error(await readApiError(res, body));
-      applyTalentPayload(body.talents, body.bonuses);
-      const player = usePlayerStore();
-      await player.fetchPlayer();
-      return body;
-    } catch (e) {
-      error.value = e.message;
+    } catch (errorValue) {
+      error.value = errorValue.message;
       return null;
     } finally {
       actionLoading.value = false;
@@ -172,11 +198,11 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
       applyTalentPayload(body.talents, body.bonuses);
-      const player = usePlayerStore();
-      await player.fetchPlayer();
+      pendingSequence.value = [];
+      await usePlayerStore().fetchPlayer();
       return body;
-    } catch (e) {
-      error.value = e.message;
+    } catch (errorValue) {
+      error.value = errorValue.message;
       return null;
     } finally {
       actionLoading.value = false;
@@ -189,6 +215,7 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
 
   function setBranchFilter(branch) {
     branchFilter.value = branch || '';
+    selectedNodeId.value = null;
   }
 
   function reset() {
@@ -203,6 +230,8 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
     respec.value = null;
     error.value = null;
     selectedNodeId.value = null;
+    branchFilter.value = '';
+    pendingSequence.value = [];
   }
 
   return {
@@ -221,18 +250,24 @@ export const useTalentTreeStore = defineStore('talentTree', () => {
     error,
     selectedNodeId,
     branchFilter,
+    pendingSequence,
+    pendingRanks,
+    effectiveRanks,
+    effectiveBranchPoints,
+    remainingPoints,
     unlockedSet,
     selectedNode,
     filteredNodes,
-    edges,
     isUnlocked,
     rankOf,
     isUnlockable,
+    addPending,
+    removePending,
+    canRemovePending,
     fetchTree,
     fetchMe,
     loadAll,
-    unlock,
-    remove,
+    commitPending,
     respecTree,
     selectNode,
     setBranchFilter,

@@ -8,6 +8,7 @@ defineOptions({ name: 'TalentTreeCanvas' });
 const props = defineProps({
   nodes: { type: Array, default: () => [] },
   nodeRanks: { type: Object, default: () => ({}) },
+  pendingRanks: { type: Object, default: () => ({}) },
   branchPoints: { type: Object, default: () => ({}) },
   pointsAvailable: { type: Number, default: 0 },
   actionLoading: { type: Boolean, default: false },
@@ -16,7 +17,7 @@ const props = defineProps({
   locale: { type: String, default: 'fr' },
 });
 
-const emit = defineEmits(['select', 'unlock', 'remove']);
+const emit = defineEmits(['select', 'add', 'remove']);
 const { t } = useI18n();
 const BRANCHES = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
 
@@ -59,7 +60,7 @@ function canIncrease(node) {
 }
 
 function canDecrease(node) {
-  return !props.actionLoading && rankOf(node) > 0;
+  return !props.actionLoading && (Number(props.pendingRanks[node.nodeId]) || 0) > 0;
 }
 
 function nodeClass(node) {
@@ -111,8 +112,8 @@ function nodeClass(node) {
               :class="nodeClass(node)"
               :data-testid="`talent-node-${node.nodeId}`"
               tabindex="0"
-              @mouseenter="emit('select', node.nodeId)"
-              @focusin="emit('select', node.nodeId)"
+              @click="emit('select', node.nodeId)"
+              @keydown.enter="emit('select', node.nodeId)"
             >
               <div class="talent-node__symbol" aria-hidden="true">
                 <span>{{ node.type === 'notable' ? '◆' : '◇' }}</span>
@@ -120,6 +121,10 @@ function nodeClass(node) {
 
               <div class="talent-node__body">
                 <h3>{{ nodeName(node) }}</h3>
+                <p class="talent-node__subtitle">
+                  {{ t(`talents.types.${node.type}`) }} · {{ t(`talents.branches.${node.branch}`) }}
+                </p>
+                <p class="talent-node__effect">{{ nodeDescription(node) }}</p>
                 <div class="talent-node__progress">
                   <span class="talent-node__dots" :aria-label="rankLabel(node)">
                     <i
@@ -128,7 +133,9 @@ function nodeClass(node) {
                       :class="{ 'is-filled': rank <= rankOf(node) }"
                     />
                   </span>
-                  <strong>{{ rankLabel(node) }}</strong>
+                  <strong>{{
+                    t('talents.nodeRank', { rank: rankOf(node), max: node.maxRank })
+                  }}</strong>
                 </div>
               </div>
 
@@ -145,22 +152,10 @@ function nodeClass(node) {
                   type="button"
                   :disabled="!canIncrease(node)"
                   :aria-label="t('talents.addRank', { name: nodeName(node) })"
-                  @click.stop="emit('unlock', node.nodeId)"
+                  @click.stop="emit('add', node.nodeId)"
                 >
                   +
                 </button>
-              </div>
-
-              <div class="talent-tooltip" role="tooltip">
-                <span
-                  >{{ t(`talents.types.${node.type}`) }} ·
-                  {{ t(`talents.branches.${node.branch}`) }}</span
-                >
-                <strong>{{ nodeName(node) }}</strong>
-                <p>{{ nodeDescription(node) }}</p>
-                <small>{{
-                  t('talents.nodeRank', { rank: rankOf(node), max: node.maxRank })
-                }}</small>
               </div>
             </article>
           </div>
@@ -172,16 +167,11 @@ function nodeClass(node) {
 
 <style scoped>
 .talent-pillars {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(18rem, 1fr));
-  gap: 1.25rem;
-  overflow-x: auto;
   padding: 1rem 0 1.5rem;
 }
 
 .talent-pillar {
   position: relative;
-  min-width: 18rem;
   border: 1px solid color-mix(in srgb, var(--tone-fill) 45%, var(--color-line));
   border-top: 0.4rem solid var(--tone-fill);
   background:
@@ -306,7 +296,7 @@ function nodeClass(node) {
 }
 
 .talent-node__body {
-  min-height: 7.6rem;
+  min-height: 13rem;
   padding: 1.45rem 0.45rem 0.75rem;
   border: 1px solid var(--color-line-strong);
   background: color-mix(in srgb, var(--color-bg-soft) 92%, transparent);
@@ -321,6 +311,23 @@ function nodeClass(node) {
   font-size: 0.85rem;
   font-weight: 750;
   line-height: 1.25;
+  color: var(--color-ink-muted);
+}
+
+.talent-node__subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+
+.talent-node__effect {
+  min-height: 4rem;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
   color: var(--color-ink-muted);
 }
 
@@ -405,76 +412,9 @@ function nodeClass(node) {
   color: var(--color-on-leaf);
 }
 
-.talent-tooltip {
-  position: absolute;
-  z-index: 20;
-  top: 2rem;
-  left: calc(100% + 0.7rem);
-  width: 17rem;
-  padding: 1rem;
-  border-left: 0.3rem solid var(--tone-fill);
-  background: var(--color-bg-card);
-  box-shadow: 0 0.8rem 2.5rem rgb(0 0 0 / 32%);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateX(-0.4rem);
-  transition:
-    opacity var(--dur-fast),
-    transform var(--dur-fast),
-    visibility var(--dur-fast);
-}
-
-.talent-pillar:last-child .talent-tooltip,
-.talent-pillar:nth-child(3) .talent-tooltip {
-  right: calc(100% + 0.7rem);
-  left: auto;
-}
-
-.talent-node:hover .talent-tooltip,
-.talent-node:focus-within .talent-tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(0);
-}
-
-.talent-tooltip > span {
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--tone);
-}
-
-.talent-tooltip strong {
-  display: block;
-  margin-top: 0.35rem;
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  line-height: 1.1;
-}
-
-.talent-tooltip p {
-  margin-top: 0.65rem;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  color: var(--color-ink-muted);
-}
-
-.talent-tooltip small {
-  display: block;
-  margin-top: 0.7rem;
-  font-weight: 750;
-  color: var(--tone);
-}
-
-@media (min-width: 1280px) {
-  .talent-pillars {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .talent-pillar {
-    min-width: 0;
+@media (max-width: 900px) {
+  .talent-tier__nodes {
+    grid-template-columns: 1fr;
   }
 }
 </style>
