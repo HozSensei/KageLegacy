@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CombatHand from '../combat/CombatHand.vue';
 import CombatLog from '../combat/CombatLog.vue';
+import CombatDropZones from '../combat/CombatDropZones.vue';
 import PlayerStatus from '../combat/PlayerStatus.vue';
 
 defineOptions({ name: 'PvpArena' });
@@ -46,6 +47,7 @@ function isDropDisabled(action) {
 }
 
 const hoveredZone = ref(null);
+const isDraggingCard = ref(false);
 
 function onDropIntent(intent) {
   const action = intent?.action;
@@ -200,31 +202,12 @@ const outcomeKey = computed(() => {
           <span class="arena__banner-sub">{{ t('pvp.turn', { n: view.turn }) }}</span>
         </p>
       </Transition>
-    </div>
 
-    <div class="arena-drop-board">
-      <div
-        v-for="zone in ['play', 'discard', 'reserve']"
-        :key="zone"
-        class="arena-drop-zone"
-        :class="{
-          'arena-drop-zone--disabled': isDropDisabled(zone),
-          'arena-drop-zone--active': hoveredZone === zone && !isDropDisabled(zone),
-        }"
-        :data-combat-drop-zone="zone"
-        :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
-        :data-testid="`drop-zone-${zone}`"
-      >
-        {{
-          t(
-            zone === 'play'
-              ? 'combat.playCard'
-              : zone === 'discard'
-                ? 'combat.discardForChakra'
-                : 'combat.reserveCard'
-          )
-        }}
-      </div>
+      <CombatDropZones
+        v-if="isDraggingCard"
+        :disabled-actions="['play', 'discard', 'reserve'].filter(isDropDisabled)"
+        :hovered-zone="hoveredZone"
+      />
     </div>
 
     <section class="arena__hand-wrap">
@@ -243,11 +226,12 @@ const outcomeKey = computed(() => {
         @play="emit('play-card', $event)"
         @drop-intent="onDropIntent"
         @drag-zone-change="hoveredZone = $event"
+        @drag-state-change="isDraggingCard = $event"
       />
 
       <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
-      <p v-if="self?.reservedCard" class="arena__hand-hint" role="status">
-        {{ t('combat.cardReserved') }}
+      <p class="arena__hand-hint arena__reserve-status" role="status">
+        <span v-if="self?.reservedCard">{{ t('combat.cardReserved') }}</span>
       </p>
       <div class="arena__actions">
         <button
@@ -376,45 +360,6 @@ const outcomeKey = computed(() => {
 }
 .pvp-log :deep(.combat-log__title) {
   display: none;
-}
-.arena-drop-board {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.4rem;
-  padding: 0.65rem;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-soft);
-}
-
-.arena-drop-zone {
-  display: grid;
-  place-items: center;
-  min-width: 0;
-  min-height: 4.5rem;
-  padding: 0.4rem;
-  border: 2px dashed var(--color-line-strong);
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  overflow-wrap: anywhere;
-  color: var(--color-ink);
-  text-align: center;
-}
-
-.arena-drop-zone--active {
-  border-color: var(--color-indigo);
-  background: var(--color-indigo-tint);
-  box-shadow: 0 0 1rem color-mix(in srgb, var(--color-indigo) 40%, transparent);
-}
-
-@media (min-width: 1120px) {
-  .arena--with-side > .arena-drop-board {
-    grid-column: 1;
-  }
-}
-
-.arena-drop-zone--disabled {
-  opacity: 0.45;
 }
 
 .pvp-top {

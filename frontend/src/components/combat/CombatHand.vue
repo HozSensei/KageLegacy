@@ -255,6 +255,7 @@ const displayCards = computed(() =>
   align-items: flex-end;
   gap: 0;
   container-type: inline-size;
+  min-height: calc(clamp(16.5rem, 30vw, 22.5rem) + 4rem);
   margin-inline: calc(var(--space-gutter) * -1);
   padding: 2rem var(--space-gutter);
   isolation: isolate;
@@ -404,6 +405,7 @@ const displayCards = computed(() =>
 @media (max-width: 640px) {
   .hand {
     --card-width: 8.5rem;
+    min-height: 16.75rem;
   }
 }
 </style>

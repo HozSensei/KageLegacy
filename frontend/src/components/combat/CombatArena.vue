@@ -5,6 +5,7 @@ import EnemyDisplay from './EnemyDisplay.vue';
 import PlayerStatus from './PlayerStatus.vue';
 import CombatHand from './CombatHand.vue';
 import CombatLog from './CombatLog.vue';
+import CombatDropZones from './CombatDropZones.vue';
 import VictoryRewards from './VictoryRewards.vue';
 
 defineOptions({ name: 'CombatArena' });
@@ -177,55 +178,11 @@ onBeforeUnmount(() => {
         </p>
       </Transition>
 
-      <div v-if="isDraggingCard" class="arena-drop-board arena-drop-board--overlay">
-        <div
-          v-for="zone in ['play', 'discard', 'reserve']"
-          :key="zone"
-          class="arena-drop-zone"
-          :class="{
-            'arena-drop-zone--disabled': isDropDisabled(zone),
-            'arena-drop-zone--active': hoveredZone === zone && !isDropDisabled(zone),
-          }"
-          :data-combat-drop-zone="zone"
-          :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
-          :data-testid="`drop-zone-${zone}`"
-        >
-          {{
-            t(
-              zone === 'play'
-                ? 'combat.playCard'
-                : zone === 'discard'
-                  ? 'combat.discardForChakra'
-                  : 'combat.reserveCard'
-            )
-          }}
-        </div>
-      </div>
-    </div>
-
-    <div v-if="!isDraggingCard" class="arena-drop-board">
-      <div
-        v-for="zone in ['play', 'discard', 'reserve']"
-        :key="zone"
-        class="arena-drop-zone"
-        :class="{
-          'arena-drop-zone--disabled': isDropDisabled(zone),
-          'arena-drop-zone--active': hoveredZone === zone && !isDropDisabled(zone),
-        }"
-        :data-combat-drop-zone="zone"
-        :data-combat-drop-disabled="isDropDisabled(zone) ? 'true' : 'false'"
-        :data-testid="`drop-zone-${zone}`"
-      >
-        {{
-          t(
-            zone === 'play'
-              ? 'combat.playCard'
-              : zone === 'discard'
-                ? 'combat.discardForChakra'
-                : 'combat.reserveCard'
-          )
-        }}
-      </div>
+      <CombatDropZones
+        v-if="isDraggingCard"
+        :disabled-actions="['play', 'discard', 'reserve'].filter(isDropDisabled)"
+        :hovered-zone="hoveredZone"
+      />
     </div>
 
     <section class="arena__hand-wrap">
@@ -250,8 +207,8 @@ onBeforeUnmount(() => {
       />
 
       <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
-      <p v-if="reservedCard" class="arena__hand-hint" role="status">
-        {{ t('combat.cardReserved') }}
+      <p class="arena__hand-hint arena__reserve-status" role="status">
+        <span v-if="reservedCard">{{ t('combat.cardReserved') }}</span>
       </p>
       <div class="arena__actions">
         <button
@@ -373,59 +330,5 @@ onBeforeUnmount(() => {
   padding: 0.75rem;
   background: var(--color-bg-soft);
   font-weight: 700;
-}
-
-.arena-drop-board {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem;
-  padding: 0;
-}
-
-.arena-drop-zone {
-  display: grid;
-  place-items: center;
-  min-height: 5.5rem;
-  padding: 0.5rem;
-  font-size: 0.8rem;
-  overflow-wrap: anywhere;
-  border: 2px dashed var(--color-line-strong);
-  color: var(--color-ink);
-  text-align: center;
-}
-
-.arena-drop-board--overlay {
-  position: absolute;
-  z-index: 8;
-  inset: 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: stretch;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: var(--color-scrim);
-}
-
-.arena-drop-board--overlay .arena-drop-zone {
-  min-height: 0;
-  padding: 0.75rem 0.5rem;
-  font-size: 0.9rem;
-  background: var(--color-bg-card);
-  box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--color-ink) 25%, transparent);
-}
-
-.arena-drop-zone--active {
-  border-color: var(--color-indigo);
-  background: var(--color-indigo-tint);
-  box-shadow: 0 0 1rem color-mix(in srgb, var(--color-indigo) 40%, transparent);
-}
-
-@media (min-width: 1120px) {
-  .arena--with-side > .arena-drop-board {
-    grid-column: 1;
-  }
-}
-
-.arena-drop-zone--disabled {
-  opacity: 0.45;
 }
 </style>
