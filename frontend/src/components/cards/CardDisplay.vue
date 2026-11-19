@@ -268,7 +268,10 @@ watch(
             :class="`card-display__figure--${figure.key}`"
             :title="`${t(`cards.${figure.key}`, { n: stats ? figure.effective : figure.base })}${figure.scaled && stats ? ` · ${t('cards.baseValue', { n: figure.base })}` : ''}`"
           >
-            <span>{{ stats ? figure.effective : figure.base }}</span>
+            <span class="card-display__chakra-gem" aria-hidden="true" />
+            <span class="card-display__chakra-number">{{
+              stats ? figure.effective : figure.base
+            }}</span>
           </div>
         </div>
 
@@ -298,11 +301,7 @@ watch(
                 :style="{ '--fill': chip.fill }"
                 :title="`${t(`cards.stats.${chip.key}`, chip.key)} ${chip.value > 0 ? '+' : ''}${chip.value}`"
               >
-                <i
-                  class="card-display__bonus-icon"
-                  :style="{ maskImage: `url(${chip.icon})` }"
-                  aria-hidden="true"
-                />
+                <img class="card-display__bonus-icon" :src="chip.icon" alt="" />
                 <span>{{ chip.value > 0 ? `+${chip.value}` : chip.value }}</span>
               </div>
             </div>
@@ -727,16 +726,16 @@ watch(
   transform: rotate(45deg);
   background: linear-gradient(
     135deg,
-    #fff3d6 0%,
-    #b9d4e8 24%,
-    #3d648b 50%,
-    #162d4d 56%,
-    #a7d3ee 81%,
-    #fff0c3 100%
+    var(--gem-light, #fff3d6) 0%,
+    var(--gem-highlight, #b9d4e8) 24%,
+    var(--gem-mid, #3d648b) 50%,
+    var(--gem-shadow, #162d4d) 56%,
+    var(--gem-highlight, #a7d3ee) 81%,
+    var(--gem-light, #fff0c3) 100%
   );
   border: 2px solid #f7dbab;
   box-shadow:
-    inset 0 0 0 3px #1b314b,
+    inset 0 0 0 3px var(--gem-shadow, #1b314b),
     inset 0 0 12px #f4fcff;
 }
 
@@ -752,7 +751,7 @@ watch(
   position: absolute;
   z-index: 13;
   top: clamp(3.15rem, 20cqi, 4.35rem);
-  right: -11px;
+  right: -12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -763,48 +762,30 @@ watch(
 
 .card-display__figure {
   position: relative;
-  display: grid;
-  width: 100%;
+  width: 84%;
   aspect-ratio: 1;
-  place-items: center;
   filter: drop-shadow(2px 4px 3px #070b1380);
-  font-family: var(--font-display);
-  font-size: clamp(0.95rem, 9cqi, 1.65rem);
-  font-weight: 900;
-  line-height: 1;
-  color: #fff;
-  text-shadow: 0 1px 3px #0009;
 }
 
 .card-display__figure--damage {
-  border: 2px solid #ffd3c9;
-  border-radius: 60% 40% 65% 35% / 65% 45% 55% 35%;
-  background: linear-gradient(145deg, #ef725f, #a9272d 72%);
-  transform: rotate(45deg);
-}
-
-.card-display__figure--damage span {
-  transform: rotate(-45deg);
-}
-
-.card-display__figure--block,
-.card-display__figure--heal {
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  --gem-light: #ffd3c9;
+  --gem-highlight: #ef9a8a;
+  --gem-mid: #a9272d;
+  --gem-shadow: #591820;
 }
 
 .card-display__figure--block {
-  background-image: url('../../assets/icons/armor.svg');
-  background-color: #376f99;
-  mask: url('../../assets/icons/armor.svg') center / contain no-repeat;
+  --gem-light: #ddf4ff;
+  --gem-highlight: #85cee5;
+  --gem-mid: #28748d;
+  --gem-shadow: #144153;
 }
 
 .card-display__figure--heal {
-  border-radius: 50%;
-  background-image: url('../../assets/icons/life.svg');
-  background-color: #3d936a;
-  mask: url('../../assets/icons/life.svg') center / contain no-repeat;
+  --gem-light: #e2f6d5;
+  --gem-highlight: #9bdbad;
+  --gem-mid: #3d936a;
+  --gem-shadow: #20513b;
 }
 
 .card-display__chakra-number {
@@ -821,6 +802,10 @@ watch(
   text-shadow:
     0 2px 4px #0d1a2a,
     0 0 8px #071d33;
+}
+
+.card-display__figure .card-display__chakra-number {
+  font-size: clamp(0.85rem, 8.4cqi, 1.575rem);
 }
 
 /* Bloc info — fond parchemin */
@@ -887,27 +872,13 @@ watch(
   color: #27313b;
 }
 
-.card-display__effects li {
-  position: relative;
-  padding-left: 0.72rem;
-}
-
-.card-display__effects li::before {
-  content: '◆';
-  position: absolute;
-  left: 0;
-  top: 0.08rem;
-  color: #a43c34;
-  font-size: 0.42rem;
-}
-
 /* Bonus passifs — icône de statistique + valeur */
 .card-display__bonuses {
   border-left: 1px solid #c8b59d;
   padding-left: 6px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
   justify-content: center;
   min-width: 0;
@@ -918,7 +889,7 @@ watch(
   min-width: 2.15rem;
   height: 1.5rem;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.18rem;
   color: var(--fill, #8c5c3e);
   font-family: var(--font-display);
@@ -931,11 +902,7 @@ watch(
   width: 0.95rem;
   height: 0.95rem;
   flex: none;
-  background: currentColor;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-size: contain;
-  opacity: 0.92;
+  object-fit: contain;
 }
 
 .card-display__bonus span {
@@ -1182,7 +1149,6 @@ watch(
   top: 3.25rem;
   right: -8px;
   gap: 0.14rem;
-  width: 2.35rem;
 }
 
 .card-display--compact .card-display__bonuses {
