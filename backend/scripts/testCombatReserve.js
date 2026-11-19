@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { __test } from '../src/services/combatEngineService.js';
 import { drawCards } from '../src/services/deckCombat/deckRuntime.js';
+import { executeEnemyIntent, generateEnemyFromTemplate } from '../src/services/combatAIService.js';
 
 const { useCardTurnAction, chakraCarryover, returnReservedCard, hydrateSession, publicState } =
   __test;
@@ -73,4 +74,50 @@ assert.deepEqual(fullReturn.logs, [
   { type: 'discard', instanceId: 'h9', reason: 'hand_full' },
 ]);
 assert.deepEqual(returnReservedCard({ hand: [] }).logs, []);
-console.log('Combat reserve and chakra carryover tests passed');
+const enemy = __test.configurePrototypeEnemy(generateEnemyFromTemplate('ronin_bandit', 1));
+const persistent = {
+  ...session.player,
+  turnPrototype: 'persistent',
+  hp: 100,
+  maxHp: 100,
+  drawPile: Array.from({ length: 5 }, (_, i) => ({ instanceId: `p${i}` })),
+};
+const attempt = (player, id, draw = false) =>
+  useCardTurnAction({ ...session, player }, id, false, draw);
+const exchanged = attempt(persistent, 'one', true);
+assert.deepEqual(
+  exchanged.hand.map(c => c.instanceId),
+  ['two', 'p0']
+);
+assert.deepEqual(exchanged.discardPile, [card]);
+assert.throws(() => attempt({ ...persistent, drawPile: [] }, 'one', true), /Aucune autre/);
+assert.throws(() => attempt(session.player, 'one', true), /réservée/);
+assert.throws(
+  () => useCardTurnAction({ ...session, player: persistent }, 'one', true),
+  /conservée/
+);
+const paid = attempt(exchanged, 'two');
+assert.equal(paid.chakra, 3);
+assert.equal(chakraCarryover(paid), 0);
+assert.throws(() => attempt(paid, 'p0', true), /Quota/);
+assert.throws(() => attempt(attempt(persistent, 'one'), 'two'), /déjà gagné/);
+const reloaded = hydrateSession({
+  player_state_json: JSON.stringify(paid),
+  enemy_state_json: JSON.stringify(enemy),
+});
+const snapshot = publicState(reloaded);
+assert.equal(snapshot.suppressRewards, true);
+assert.equal(snapshot.player.discardsRemaining, 0);
+assert.equal(snapshot.player.chakraDiscardAvailable, false);
+assert.equal(snapshot.enemy.intent.type, 'attack');
+assert.deepEqual(snapshot.enemy.nextIntent, { type: 'defend' });
+assert.equal(
+  executeEnemyIntent(enemy, persistent).enemy.intent.type,
+  snapshot.enemy.nextIntent.type
+);
+const refreshed = __test.refreshHand({ ...paid, discardedForChakra: false }).player;
+assert.equal(refreshed.hand.length, 5);
+assert.equal(refreshed.hand[0].instanceId, 'p0');
+assert.equal(publicState({ player: refreshed, enemy }).player.discardsRemaining, 2);
+assert.equal(publicState({ player: refreshed, enemy }).player.chakraDiscardAvailable, true);
+console.log('Combat reserve, chakra carryover and turn prototype tests passed');

@@ -1077,6 +1077,25 @@
     "rewardRunBonus": "Run bonus ×{n}",
     "quickFight": "Quick duel",
     "quickFightLead": "Fight an enemy directly, no run (immediate rewards if mission-linked).",
+    "turnPrototype": {
+      "title": "Training comparison (PvE prototype)",
+      "lead": "Two modes outside missions, against the same opponent and with 5 Chakra to start.",
+      "classic": {
+        "label": "Classic",
+        "start": "Start Classic",
+        "help": "Draw a new hand each turn. You can reserve a card or discard one to gain Chakra."
+      },
+      "persistent": {
+        "label": "Persistent hand",
+        "start": "Start Persistent hand",
+        "help": "Keep unplayed cards between turns, with no reserve. Select a card to discard it for a draw or for Chakra, depending on which actions are available."
+      },
+      "discardForDraw": "Discard to draw",
+      "discardsRemaining": "Discards remaining: {n}",
+      "nextIntent": "Following intent",
+      "attackType": "Attack",
+      "defendType": "Defend"
+    },
     "encounterCount": "{n} chained fights",
     "activeRunHint": "A run is in progress. Resume or abandon it before starting another.",
     "resumeRun": "Resume run",
@@ -1280,6 +1299,7 @@
     "chakraLabel": "Chakra",
     "intentLabel": "Intent",
     "handTitle": "Hand",
+    "comboReady": "Combo ready",
     "handHint": "Select a card then \"Play\", or double-click it.",
     "youLabel": "You",
     "enemyLabel": "Opponent",

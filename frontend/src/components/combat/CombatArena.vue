@@ -24,6 +24,7 @@ const emit = defineEmits([
   'play-card',
   'end-turn',
   'discard-chakra',
+  'discard-draw',
   'reserve-card',
   'forfeit',
   'dismiss-outcome',
@@ -55,15 +56,28 @@ const canAct = computed(
   () => props.combat.currentPhase === 'player_turn' && props.combat.state === 'in_progress'
 );
 
+const isPersistent = computed(() => props.combat.turnPrototype === 'persistent');
+const isPrototype = computed(() => isPersistent.value || props.combat.turnPrototype === 'classic');
 const reservedCard = computed(
   () => props.combat.player.reservedCard ?? props.combat.player.reserveCard
 );
+const dropActions = computed(() => [
+  'play',
+  'discard',
+  isPersistent.value ? 'discard-for-draw' : 'reserve',
+]);
+
 function isDropDisabled(action) {
-  return (
-    props.busy ||
-    !canAct.value ||
-    (action !== 'play' && (props.combat.player.discardedForChakra || !!reservedCard.value))
-  );
+  if (props.busy || !canAct.value || !dropActions.value.includes(action)) return true;
+  if (action === 'play') return false;
+  const player = props.combat.player;
+  if (isPersistent.value) {
+    if (action === 'discard-for-draw') {
+      return !(player.discardsRemaining > 0 && (player.drawCount > 0 || player.discardCount > 0));
+    }
+    return player.chakraDiscardAvailable !== true;
+  }
+  return Boolean(player.discardedForChakra || reservedCard.value);
 }
 
 const hoveredZone = ref(null);
@@ -71,15 +85,15 @@ const isDraggingCard = ref(false);
 
 function onDropIntent(intent) {
   const action = intent?.action;
-  if (!['play', 'discard', 'reserve'].includes(action) || isDropDisabled(action)) return;
+  if (isDropDisabled(action)) return;
   const instanceId = intent?.card?.instanceId;
   if (!instanceId) return;
   const card = (props.combat.player.hand || []).find(item => item.instanceId === instanceId);
   if (!card) return;
-  emit(
-    action === 'play' ? 'play-card' : action === 'discard' ? 'discard-chakra' : 'reserve-card',
-    action === 'play' ? card : card.instanceId
-  );
+  if (action === 'play') emit('play-card', card);
+  else if (action === 'discard') emit('discard-chakra', instanceId);
+  else if (action === 'discard-for-draw') emit('discard-draw', instanceId);
+  else if (action === 'reserve') emit('reserve-card', instanceId);
 }
 
 const isPlayerTurn = computed(() => props.combat.currentPhase === 'player_turn');
@@ -125,6 +139,9 @@ onBeforeUnmount(() => {
           <span class="lozenge" aria-hidden="true" />
           {{ t(`combat.phases.${combat.currentPhase}`) }}
         </span>
+        <span v-if="isPrototype" class="t-kicker">
+          {{ t(`combat.turnPrototype.${combat.turnPrototype}.label`) }}
+        </span>
       </p>
       <details class="arena__menu">
         <summary class="btn-ghost btn-sm">{{ t('nav.menu') }}</summary>
@@ -163,7 +180,11 @@ onBeforeUnmount(() => {
 
     <div class="arena__duel">
       <section class="arena__seat">
-        <EnemyDisplay :key="`enemy-${combat.id}`" :enemy="combat.enemy" />
+        <EnemyDisplay
+          :key="`enemy-${combat.id}`"
+          :enemy="combat.enemy"
+          :show-next-intent="isPrototype"
+        />
       </section>
 
       <span class="arena__vs" aria-hidden="true"
@@ -188,7 +209,8 @@ onBeforeUnmount(() => {
 
       <CombatDropZones
         v-if="isDraggingCard"
-        :disabled-actions="['play', 'discard', 'reserve'].filter(isDropDisabled)"
+        :actions="dropActions"
+        :disabled-actions="dropActions.filter(isDropDisabled)"
         :hovered-zone="hoveredZone"
       />
     </div>
@@ -203,6 +225,7 @@ onBeforeUnmount(() => {
 
       <CombatHand
         :cards="combat.player.hand || []"
+        :previous-card-stat-type="combat.player.previousCardStatType"
         :selected-id="selectedId"
         :disabled="busy || !canAct"
         :chakra="combat.player.chakra"
@@ -215,27 +238,45 @@ onBeforeUnmount(() => {
         @drag-state-change="isDraggingCard = $event"
       />
 
-      <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
-      <p class="arena__hand-hint arena__reserve-status" role="status">
-        <span v-if="reservedCard">{{ t('combat.cardReserved') }}</span>
-      </p>
+      <template v-if="isPersistent">
+        <p class="arena__hand-hint">{{ t('combat.turnPrototype.persistent.help') }}</p>
+        <p class="arena__hand-hint" role="status" data-testid="discards-remaining">
+          {{
+            t('combat.turnPrototype.discardsRemaining', { n: combat.player.discardsRemaining ?? 0 })
+          }}
+        </p>
+      </template>
+      <template v-else>
+        <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
+        <p class="arena__hand-hint arena__reserve-status" role="status">
+          <span v-if="reservedCard">{{ t('combat.cardReserved') }}</span>
+        </p>
+      </template>
       <div class="arena__actions">
         <button
           type="button"
           class="btn-ghost"
-          :disabled="
-            busy || !canAct || !selectedId || combat.player.discardedForChakra || !!reservedCard
-          "
+          :disabled="!selectedId || isDropDisabled('discard')"
+          data-testid="discard-chakra-btn"
           @click="emit('discard-chakra')"
         >
           {{ t('combat.discardForChakra') }}
         </button>
         <button
+          v-if="isPersistent"
           type="button"
           class="btn-ghost"
-          :disabled="
-            busy || !canAct || !selectedId || combat.player.discardedForChakra || !!reservedCard
-          "
+          :disabled="!selectedId || isDropDisabled('discard-for-draw')"
+          data-testid="discard-draw-btn"
+          @click="emit('discard-draw')"
+        >
+          {{ t('combat.turnPrototype.discardForDraw') }}
+        </button>
+        <button
+          v-else
+          type="button"
+          class="btn-ghost"
+          :disabled="!selectedId || isDropDisabled('reserve')"
           data-testid="reserve-card-btn"
           @click="emit('reserve-card')"
         >

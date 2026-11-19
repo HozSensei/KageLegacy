@@ -11,6 +11,7 @@ defineOptions({ name: 'PvpArena' });
 const props = defineProps({
   view: { type: Object, required: true },
   role: { type: String, required: true },
+  previousCardStatType: { type: String, default: null },
   logs: { type: Array, default: () => [] },
   selectedId: { type: String, default: null },
   busy: { type: Boolean, default: false },
@@ -226,6 +227,7 @@ const outcomeKey = computed(() => {
 
       <CombatHand
         :cards="self?.hand || []"
+        :previous-card-stat-type="previousCardStatType"
         :selected-id="selectedId"
         :disabled="busy || !canAct"
         :chakra="self?.chakra || 0"

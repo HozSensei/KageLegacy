@@ -5,6 +5,17 @@
 
 import { previewCardFigures } from './cardScaling.js';
 
+const COMBO_ARTS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
+
+/** Affiche les bonus déclarés, pas un résultat de combat simulé. */
+export function activeComboLines(card, previousCardStatType, i18n) {
+  if (!COMBO_ARTS.has(previousCardStatType)) return [];
+  return (card?.effects || [])
+    .filter(effect => effect?.type === 'combo_previous' && effect.statType === previousCardStatType)
+    .map(effect => formatStructuredEffect(effect, i18n))
+    .filter(Boolean);
+}
+
 /** Statuts soutien en % (aligné combat StatusIcon / CombatLog). */
 const PCT_STATUS_KEYS = new Set([
   'damage_pct',

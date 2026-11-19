@@ -5,44 +5,49 @@ import AppIcon from '../ui/AppIcon.vue';
 defineOptions({ name: 'CombatDropZones' });
 
 defineProps({
+  actions: { type: Array, default: () => ['play', 'discard', 'reserve'] },
   disabledActions: { type: Array, default: () => [] },
   hoveredZone: { type: String, default: null },
 });
 
 const { t } = useI18n();
 
-const zones = [
-  { action: 'play', icon: 'attack', label: 'combat.playCard', tone: 'vermilion' },
-  { action: 'discard', icon: 'essence', label: 'combat.discardForChakra', tone: 'gold' },
-  { action: 'reserve', icon: 'decks', label: 'combat.reserveCard', tone: 'indigo' },
-];
+const zones = {
+  play: { icon: 'attack', label: 'combat.playCard', tone: 'vermilion' },
+  discard: { icon: 'essence', label: 'combat.discardForChakra', tone: 'gold' },
+  'discard-for-draw': {
+    icon: 'decks',
+    label: 'combat.turnPrototype.discardForDraw',
+    tone: 'indigo',
+  },
+  reserve: { icon: 'decks', label: 'combat.reserveCard', tone: 'indigo' },
+};
 </script>
 
 <template>
   <div class="arena-drop-board">
     <div class="arena-drop-board__cards">
       <div
-        v-for="(zone, index) in zones"
-        :key="zone.action"
+        v-for="(action, index) in actions"
+        :key="action"
         class="arena-drop-zone"
         :class="{
-          'arena-drop-zone--disabled': disabledActions.includes(zone.action),
-          'arena-drop-zone--active':
-            hoveredZone === zone.action && !disabledActions.includes(zone.action),
+          'arena-drop-zone--disabled': disabledActions.includes(action),
+          'arena-drop-zone--active': hoveredZone === action && !disabledActions.includes(action),
         }"
-        :data-tone="zone.tone"
-        :data-combat-drop-zone="zone.action"
-        :data-combat-drop-disabled="disabledActions.includes(zone.action) ? 'true' : 'false'"
-        :data-testid="`drop-zone-${zone.action}`"
+        :data-tone="zones[action].tone"
+        :data-combat-drop-zone="action"
+        :data-combat-drop-disabled="disabledActions.includes(action) ? 'true' : 'false'"
+        :data-testid="`drop-zone-${action}`"
       >
         <span class="arena-drop-zone__number" aria-hidden="true">0{{ index + 1 }}</span>
         <AppIcon
           class="arena-drop-zone__icon"
-          :name="zone.icon"
+          :name="zones[action].icon"
           size="2.5rem"
           :stroke-width="1.5"
         />
-        <span class="arena-drop-zone__label">{{ t(zone.label) }}</span>
+        <span class="arena-drop-zone__label">{{ t(zones[action].label) }}</span>
       </div>
     </div>
   </div>

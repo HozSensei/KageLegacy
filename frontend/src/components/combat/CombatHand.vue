@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from '../cards/CardDisplay.vue';
+import { activeComboLines } from '../../utils/cardEffectLine.js';
 
 defineOptions({ name: 'CombatHand' });
 
@@ -10,6 +11,7 @@ const props = defineProps({
   selectedId: { type: String, default: null },
   disabled: { type: Boolean, default: false },
   chakra: { type: Number, default: 0 },
+  previousCardStatType: { type: String, default: null },
   costReduction: { type: Number, default: 0 },
   /** Snapshot stats combat — figures affichées en valeur effective. */
   stats: { type: Object, default: null },
@@ -23,10 +25,17 @@ const emit = defineEmits([
   'drag-state-change',
 ]);
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+const comboPreviews = computed(() =>
+  props.cards.map(card => {
+    if (props.disabled || !canAfford(card)) return null;
+    const lines = activeComboLines(card, props.previousCardStatType, { t, te });
+    return lines.length ? lines.join(' · ') : null;
+  })
+);
 
 // Within the nearest [data-combat-drop-root], zones declare data-combat-drop-zone
-// as play/discard/reserve and data-combat-drop-disabled="true" when unavailable.
+// as play/discard/discard-for-draw/reserve and data-combat-drop-disabled="true" when unavailable.
 // Hover changes emit drag-zone-change with an available action or null.
 // A valid drop emits drop-intent({ card, action }); the consumer validates it.
 const drag = ref(null);
@@ -53,7 +62,7 @@ function dropZoneAt(current, x, y) {
     zone.closest('[data-combat-drop-root]') === root &&
     !current.element.parentElement?.contains(zone) &&
     zone.dataset.combatDropDisabled !== 'true' &&
-    ['play', 'discard', 'reserve'].includes(action) &&
+    ['play', 'discard', 'discard-for-draw', 'reserve'].includes(action) &&
     !props.disabled &&
     card &&
     (action !== 'play' || canAfford(card))
@@ -225,9 +234,19 @@ const displayCards = computed(() =>
         :upgrade-level="card.upgradeLevel || 0"
         :disabled="disabled"
         :pressed="selectedId === card.instanceId"
-        :description="!canAfford(card) ? t('combat.insufficientChakra') : null"
+        :description="
+          comboPreviews[index]
+            ? `${t('combat.comboReady')} — ${comboPreviews[index]}`
+            : !canAfford(card)
+              ? t('combat.insufficientChakra')
+              : null
+        "
         keyshortcuts="Shift+Enter"
       />
+      <span v-if="comboPreviews[index]" class="hand-card__combo" aria-hidden="true">
+        <strong>{{ t('combat.comboReady') }}</strong>
+        <span>{{ comboPreviews[index] }}</span>
+      </span>
     </div>
   </TransitionGroup>
   <Teleport to="body">
@@ -290,6 +309,28 @@ const displayCards = computed(() =>
     opacity var(--dur-base) ease,
     box-shadow var(--dur-base) ease,
     outline-width var(--dur-fast) ease;
+}
+
+.hand-card__combo {
+  position: absolute;
+  inset: 0.15rem auto auto 0.15rem;
+  max-width: calc(100% - 0.3rem);
+  padding: 0.2rem 0.35rem;
+  border-radius: 0.35rem;
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+.hand-card__combo span {
+  display: none;
+}
+
+.hand-card:hover .hand-card__combo span,
+.hand-card:focus-within .hand-card__combo span,
+.hand-card--selected .hand-card__combo span {
+  display: block;
 }
 
 .hand-card + .hand-card {

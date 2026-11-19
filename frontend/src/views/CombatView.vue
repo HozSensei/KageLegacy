@@ -80,6 +80,16 @@ async function onDiscardChakra(instanceId) {
   }
 }
 
+async function onDiscardDraw(instanceId) {
+  const id = instanceId || combat.selectedInstanceId;
+  if (!id) return;
+  try {
+    await combat.discardForDraw(id);
+  } catch {
+    /* store */
+  }
+}
+
 async function onReserveCard(instanceId) {
   const id = instanceId || combat.selectedInstanceId;
   if (!id) return;
@@ -138,6 +148,7 @@ function goToRunOrMissions() {
       @play-card="onPlay"
       @end-turn="onEndTurn"
       @discard-chakra="onDiscardChakra"
+      @discard-draw="onDiscardDraw"
       @reserve-card="onReserveCard"
       @forfeit="onForfeit"
       @dismiss-outcome="goToRunOrMissions"

@@ -162,6 +162,7 @@ function backToQueue() {
     <PvpArena
       v-if="arenaView && pvp.role"
       :view="arenaView"
+      :previous-card-stat-type="pvp.isHost ? pvp.duel?.fighters?.host?.previousCardStatType : null"
       :role="pvp.role"
       :logs="pvp.recentLogs"
       :selected-id="pvp.selectedInstanceId"

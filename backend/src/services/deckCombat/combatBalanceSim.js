@@ -283,13 +283,17 @@ function simPlayCard(session, instanceId, rng) {
   }
 
   logs.push(...played.logs, ...talentAfter.logs);
-  return { session: next, logs };
+  return {
+    session: next,
+    logs,
+    chakraPaid: effectiveCardCost(card, talentMods, session.player).cost,
+  };
 }
 
 /**
  * Joue un tour joueur selon greedy_damage_then_block.
  */
-export function playGreedyPlayerTurn(session, rng) {
+export function playGreedyPlayerTurn(session, rng, onCardPlayed) {
   const logs = [];
   let s = session;
   let safety = 0;
@@ -322,6 +326,11 @@ export function playGreedyPlayerTurn(session, rng) {
     if (!best || bestScore === -Infinity) break;
 
     const played = simPlayCard(s, best.instanceId, rng);
+    onCardPlayed?.({
+      card: best,
+      chakraPaid: played.chakraPaid,
+      enemyHpLost: Math.max(0, s.enemy.hp - Math.max(0, played.session.enemy.hp)),
+    });
     s = played.session;
     logs.push(...played.logs);
     if (s.state !== 'in_progress') break;

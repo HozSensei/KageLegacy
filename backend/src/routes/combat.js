@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireUser } from '../middleware/auth.js';
 import {
   discardForChakra,
+  discardForDraw,
   endTurn,
   forfeit,
   getCombatState,
@@ -18,6 +19,7 @@ const startSchema = z.object({
   deckId: z.number().int().positive().optional(),
   templateId: z.string().min(1).max(80).optional(),
   difficulty: z.number().positive().max(5).optional(),
+  turnPrototype: z.enum(['classic', 'persistent']).optional(),
 });
 
 const playSchema = z.object({
@@ -74,6 +76,18 @@ router.post('/:id/discard-for-chakra', async (req, res, next) => {
     if (!user) return;
     const body = discardSchema.parse(req.body || {});
     const combat = await discardForChakra(user.id, req.params.id, body);
+    res.json({ combat });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/:id/discard-for-draw', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const body = discardSchema.parse(req.body || {});
+    const combat = await discardForDraw(user.id, req.params.id, body);
     res.json({ combat });
   } catch (error) {
     next(error);

@@ -1077,6 +1077,25 @@
     "rewardRunBonus": "Bonus de parcours ×{n}",
     "quickFight": "Duel rapide",
     "quickFightLead": "Lancez un ennemi directement, sans parcours (récompenses immédiates si mission liée).",
+    "turnPrototype": {
+      "title": "Entraînement comparatif (prototype PvE)",
+      "lead": "Deux variantes hors mission, face au même adversaire et avec 5 points de Chakra au départ.",
+      "classic": {
+        "label": "Classique",
+        "start": "Lancer en classique",
+        "help": "Piochez une nouvelle main à chaque tour. Vous pouvez réserver une carte ou en défausser une pour gagner du Chakra."
+      },
+      "persistent": {
+        "label": "Main persistante",
+        "start": "Lancer en main persistante",
+        "help": "Gardez vos cartes non jouées d’un tour à l’autre, sans réserve. Sélectionnez une carte pour la défausser et piocher ou gagner du Chakra, selon les actions disponibles."
+      },
+      "discardForDraw": "Défausser pour piocher",
+      "discardsRemaining": "Défausses restantes : {n}",
+      "nextIntent": "Intention suivante",
+      "attackType": "Attaque",
+      "defendType": "Défense"
+    },
     "encounterCount": "{n} combats enchaînés",
     "activeRunHint": "Un parcours est en cours. Reprenez-le ou abandonnez-le avant d’en lancer un autre.",
     "resumeRun": "Reprendre le parcours",
@@ -1280,6 +1299,7 @@
     "chakraLabel": "Chakra",
     "intentLabel": "Intention",
     "handTitle": "Main",
+    "comboReady": "Combo prêt",
     "handHint": "Sélectionnez une carte puis « Jouer », ou double-cliquez dessus.",
     "youLabel": "Vous",
     "enemyLabel": "Adversaire",

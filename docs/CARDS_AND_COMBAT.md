@@ -11,6 +11,27 @@
 
 Les effets secondaires restent possibles, mais ne doivent pas effacer cette identité.
 
+## Prototype d’équilibrage des duos
+
+Ce prototype ne change ni le chakra de base en jeu ni la validation des decks. La cible à tester est **5 chakras et exactement deux voies principales**, avec au moins 25 % de chaque voie parmi les cartes non neutres. L’audit fixe deux neutres par deck et arrondit le quota minoritaire vers le haut. Il compare 25/75, 50/50 et 75/25 de 20 à 30 cartes ; les monos servent uniquement à isoler une voie. Le Genjutsu doit pouvoir conclure avec des dégâts préparés ; la Médecine sert surtout à donner à l’autre voie le temps de jouer son tour fort.
+
+Lancer `npm --prefix backend run audit:card-balance -- --simulate --summary`. Retirer `--summary` pour voir la classification de chaque carte et les résultats par taille. Les rôles sont déduits des effets actifs : une carte peut remplir plusieurs rôles. Le budget de rareté des passifs et les effets en main restent séparés : un bon passif ne doit pas masquer une carte décevante à jouer.
+
+Le scénario `prototype` conserve les coûts Taijutsu. Côté Ninjutsu, les amorces bon marché qui piochent ou rendent du chakra perdent 2 dégâts (minimum 1), les attaques standard visent 3 chakras et le burst 4–5 selon son coût de base. Les attaques monocoup devenues plus chères gagnent des dégâts de base ; certains bursts gagnent en plus un bonus contre une cible déjà Vulnérable. Les multicoups n’obtiennent pas ce bonus plat, qui risquerait d’être multiplié par les frappes. Les passifs et le catalogue live sont inchangés.
+
+Au niveau 0, le duo Taijutsu/Ninjutsu 50/50 passe de 22,47 à 25,41 dégâts immédiats par tour par rapport au `+2` uniforme, contre 28,04 à 5 chakras sans retarifage. C’est un compromis de départ, pas une validation de la méta : l’IA joue carte par carte contre deux adversaires PvE. Il reste à tester des séquences planifiées et des combats où contrôle et survie peuvent changer l’issue.
+
+En combat, l’aperçu « Combo prêt » indique qu’une carte jouable peut déclencher un enchaînement existant après la voie précédente. Il ne prédit pas les dégâts finaux. Il est disponible en PvE et pour l’hôte PvP ; l’invité ne reçoit pas actuellement la voie précédente dans son état public.
+
+## Entraînement comparatif : main et intentions (PvE)
+
+Dans **Missions → Duel rapide → Entraînement comparatif**, choisir **Classique** ou **Main persistante**. Les deux utilisent le deck actif, 5 chakras de base (avant les bonus du personnage) et le même Rônin à séquence fixe : attaque forte, défense, attaque. L’interface montre l’intention actuelle et le type de la suivante, sans recommander de carte. Le deck est mélangé à chaque lancement ; le duel ne donne ni récompense, ni progression de Battle Pass, ni exploit.
+
+- **Classique** : la main restante est défaussée et cinq cartes sont piochées. Garder une carte en réserve et défausser pour du chakra partagent la même action ; jusqu’à 1 chakra inutilisé est reporté.
+- **Main persistante** : les cartes restent en main et la pioche de début de tour complète jusqu’à cinq. Les cartes supplémentaires obtenues par des effets restent en main, dans la limite habituelle. Deux défausses volontaires par tour, au choix pour piocher une autre carte ou gagner 1 chakra ; cette dernière option ne peut être utilisée qu’une fois par tour. Pas de réserve ni de report de chakra.
+
+Pour comparer, garder le même deck et noter quand l’intention suivante justifie de conserver une carte plutôt que de la jouer ou de l’échanger, ainsi que les tours où la main reste bloquée. Le prototype ne modifie ni les missions, ni le PvP, ni le catalogue.
+
 ## Voie `common`
 
 Objets, invocations et héritages n'appartiennent à aucune des quatre voies. Ils utilisent `common`.

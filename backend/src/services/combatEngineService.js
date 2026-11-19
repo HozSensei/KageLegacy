@@ -61,7 +61,7 @@ async function tableExists(tableName) {
     const rows = await query(
       `SELECT 1 AS ok FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [tableName],
+      [tableName]
     );
     return rows.length > 0;
   } catch {
@@ -75,7 +75,7 @@ async function columnExists(tableName, columnName) {
       `SELECT 1 AS ok FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
        LIMIT 1`,
-      [tableName, columnName],
+      [tableName, columnName]
     );
     return rows.length > 0;
   } catch {
@@ -88,7 +88,7 @@ async function appendLog(combatId, turn, actionType, actionData) {
   await query(
     `INSERT INTO combat_logs (combat_session_id, turn, action_type, action_data_json)
      VALUES (?, ?, ?, ?)`,
-    [combatId, turn, actionType, JSON.stringify(actionData || {})],
+    [combatId, turn, actionType, JSON.stringify(actionData || {})]
   );
 }
 
@@ -102,6 +102,7 @@ async function loadSession(combatId, userId) {
 }
 
 function hydrateSession(row) {
+  const player = parseJson(row.player_state_json, {});
   return {
     id: row.id,
     userId: row.user_id,
@@ -111,12 +112,12 @@ function hydrateSession(row) {
     state: row.state,
     currentTurn: row.current_turn,
     currentPhase: row.current_phase,
-    player: parseJson(row.player_state_json, {}),
+    player,
     enemy: parseJson(row.enemy_state_json, {}),
     stats: parseJson(row.stats_snapshot_json, createEmptyStats()),
     talentEffects: parseJson(row.talent_effects_json, { codes: [], applied: [], stubbed: [] }),
     rewards: parseJson(row.rewards_json, null),
-    suppressRewards: Boolean(row.mission_run_id),
+    suppressRewards: Boolean(row.mission_run_id || player.turnPrototype),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -139,7 +140,7 @@ async function persistSession(session) {
         session.rewards != null ? JSON.stringify(session.rewards) : null,
         session.id,
         session.userId,
-      ],
+      ]
     );
   } else {
     await query(
@@ -155,7 +156,7 @@ async function persistSession(session) {
         session.currentPhase,
         session.id,
         session.userId,
-      ],
+      ]
     );
   }
 }
@@ -169,8 +170,9 @@ function publicState(session, extraLogs = []) {
     state: session.state,
     currentTurn: session.currentTurn,
     currentPhase: session.currentPhase,
+    turnPrototype: session.player.turnPrototype || null,
     player: sanitizePlayer(session.player),
-    enemy: sanitizeEnemy(session.enemy),
+    enemy: sanitizeEnemy(session.enemy, session.player.turnPrototype),
     stats: session.stats,
     talentEffects: session.talentEffects,
     rewards: session.rewards || null,
@@ -196,6 +198,10 @@ function sanitizePlayer(player) {
     discardedForChakra: Boolean(player.discardedForChakra),
     previousCardStatType: player.previousCardStatType || null,
     reservedCard: player.reserveCard || null,
+    ...(player.turnPrototype === 'persistent' && {
+      discardsRemaining: Math.max(0, 2 - (player.voluntaryDiscards || 0)),
+      chakraDiscardAvailable: !player.discardedForChakra && (player.voluntaryDiscards || 0) < 2,
+    }),
     ally: player.ally
       ? {
           nameFr: player.ally.nameFr,
@@ -209,7 +215,24 @@ function sanitizePlayer(player) {
   };
 }
 
-function sanitizeEnemy(enemy) {
+function configurePrototypeEnemy(enemy) {
+  enemy.ai = 'pattern';
+  enemy.patternIndex = 0;
+  enemy.pattern = [
+    { type: 'attack', damage: 26 },
+    { type: 'defend', block: 5 },
+    { type: 'attack', damage: 16 },
+  ];
+  enemy.intent = getNextIntent(enemy);
+  return enemy;
+}
+
+function previewNextIntent(enemy) {
+  const next = enemy.pattern?.[((enemy.patternIndex || 0) + 1) % enemy.pattern.length];
+  return next ? { type: next.type } : null;
+}
+
+function sanitizeEnemy(enemy, turnPrototype) {
   return {
     templateId: enemy.templateId,
     nameFr: enemy.nameFr,
@@ -222,6 +245,7 @@ function sanitizeEnemy(enemy) {
     posture: enemy.posture,
     elementAffinity: enemy.elementAffinity,
     intent: enemy.intent,
+    ...(turnPrototype && { nextIntent: previewNextIntent(enemy) }),
     boss: Boolean(enemy.boss),
     rank: enemy.rank || null,
     phaseId: enemy.phaseId || 'base',
@@ -291,7 +315,7 @@ async function maybeNotifyRunCombatFinished(session) {
  * Grant récompenses (si applicable) + hook run + marque log outcome.
  */
 async function maybeProgressBattlePassCombatWin(session) {
-  if (session.state !== 'victory' || !session.userId) return;
+  if (session.state !== 'victory' || !session.userId || session.player.turnPrototype) return;
   if (session.bpCombatWinCounted) return;
   session.bpCombatWinCounted = true;
   try {
@@ -303,7 +327,7 @@ async function maybeProgressBattlePassCombatWin(session) {
 }
 
 async function maybeRecordCombatAchievements(session) {
-  if (!session.userId || session.achievementsRecorded) return;
+  if (!session.userId || session.achievementsRecorded || session.player.turnPrototype) return;
   if (!['victory', 'defeat', 'forfeited'].includes(session.state)) return;
   session.achievementsRecorded = true;
   try {
@@ -347,7 +371,7 @@ async function loadPlayerName(userId) {
   try {
     const rows = await query(
       'SELECT character_name FROM player_profiles WHERE user_id = ? AND character_name IS NOT NULL LIMIT 1',
-      [userId],
+      [userId]
     );
     return rows[0]?.character_name || 'Shinobi';
   } catch {
@@ -371,13 +395,20 @@ async function loadPlayerName(userId) {
  */
 export async function startCombat(userId, opts = {}) {
   if (!userId) throw httpError(400, 'userId requis.');
+  const turnPrototype = opts.turnPrototype || null;
+  if (
+    turnPrototype &&
+    (!['classic', 'persistent'].includes(turnPrototype) || opts.missionId || opts.missionRunId)
+  ) {
+    throw httpError(400, 'Prototype réservé à l’entraînement hors mission.');
+  }
   if (!(await tableExists('combat_sessions'))) {
     throw httpError(503, 'Tables combat absentes — lancez les migrations (103).');
   }
 
   const active = await query(
     "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId],
+    [userId]
   );
   if (active[0]) {
     throw httpError(409, `Combat déjà en cours (${active[0].id}). Abandonnez-le ou terminez-le.`);
@@ -392,7 +423,7 @@ export async function startCombat(userId, opts = {}) {
   if (missionId && !templateId) {
     const rows = await query(
       'SELECT * FROM mission_definitions WHERE id = ? AND is_active = 1 LIMIT 1',
-      [missionId],
+      [missionId]
     );
     const mission = rows[0];
     if (!mission) throw httpError(404, 'Mission introuvable.');
@@ -403,6 +434,10 @@ export async function startCombat(userId, opts = {}) {
     difficulty = first.difficulty || 1;
   }
 
+  if (turnPrototype) {
+    templateId = 'ronin_bandit';
+    difficulty = 1;
+  }
   if (!templateId) templateId = 'ronin_bandit';
 
   const [{ total: stats }, effectCodes, playerName, deckInfo] = await Promise.all([
@@ -422,7 +457,7 @@ export async function startCombat(userId, opts = {}) {
 
   const runtimeCards = buildRuntimeDeck(
     deckInfo.cards,
-    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`,
+    (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`
   );
   const shuffled = shuffle(runtimeCards);
 
@@ -432,8 +467,9 @@ export async function startCombat(userId, opts = {}) {
     hp: startHp,
     maxHp,
     block: Math.max(0, Number(stats.startingBlock) || 0),
-    chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
-    maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
+    chakra: (turnPrototype ? 5 : BASE_CHAKRA) + (Number(stats.maxChakra) || 0),
+    maxChakra: (turnPrototype ? 5 : BASE_CHAKRA) + (Number(stats.maxChakra) || 0),
+    ...(turnPrototype && { turnPrototype, voluntaryDiscards: 0 }),
     statuses: [],
     hand: [],
     drawPile: shuffled,
@@ -465,6 +501,7 @@ export async function startCombat(userId, opts = {}) {
   player = heldStart.player;
 
   const enemy = generateEnemyFromTemplate(templateId, difficulty);
+  if (turnPrototype) configurePrototypeEnemy(enemy);
 
   const id = randomUUID();
   const talentEffects = {
@@ -475,7 +512,7 @@ export async function startCombat(userId, opts = {}) {
 
   const hasRewardsCol = await columnExists('combat_sessions', 'rewards_json');
   const hasRunCol = await columnExists('combat_sessions', 'mission_run_id');
-  const suppressRewards = Boolean(opts.suppressRewards || missionRunId);
+  const suppressRewards = Boolean(opts.suppressRewards || missionRunId || turnPrototype);
 
   if (hasRewardsCol && hasRunCol) {
     await query(
@@ -493,7 +530,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   } else if (hasRewardsCol) {
     await query(
@@ -510,7 +547,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   } else {
     await query(
@@ -527,7 +564,7 @@ export async function startCombat(userId, opts = {}) {
         JSON.stringify(enemy),
         JSON.stringify(stats),
         JSON.stringify(talentEffects),
-      ],
+      ]
     );
   }
 
@@ -621,7 +658,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
   const moved = moveCardFromHand(
     nextPlayer,
     handId,
-    resolveCardPileDestination(card, session.talentEffects.applied),
+    resolveCardPileDestination(card, session.talentEffects.applied)
   );
 
   session.player = moved.player;
@@ -679,9 +716,27 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
 /**
  * Défausse 1 carte pour +1 Chakra (1×/tour).
  */
-function useCardTurnAction(session, instanceId, reserve = false) {
+function useCardTurnAction(session, instanceId, reserve = false, forDraw = false) {
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
   if (session.currentPhase !== 'player_turn') throw httpError(400, "Ce n'est pas votre tour.");
+  const player = session.player;
+  if (player.turnPrototype === 'persistent') {
+    if (reserve) throw httpError(400, 'La main est déjà conservée dans ce mode.');
+    if ((player.voluntaryDiscards || 0) >= 2) throw httpError(400, 'Quota de défausses atteint.');
+    if (!forDraw && player.discardedForChakra)
+      throw httpError(400, 'Chakra de défausse déjà gagné.');
+    if (!instanceId) throw httpError(400, 'instanceId requis.');
+    const moved = moveCardFromHand(player, instanceId, 'discard');
+    if (!moved.card) throw httpError(404, 'Carte absente de la main.');
+    const next = { ...moved.player, voluntaryDiscards: (player.voluntaryDiscards || 0) + 1 };
+    if (!forDraw)
+      return { ...next, chakra: (Number(player.chakra) || 0) + 1, discardedForChakra: true };
+    // Exclude the exchanged card from the immediate reshuffle.
+    const drawn = drawCards({ ...next, discardPile: player.discardPile || [] }, 1);
+    if (!drawn.drawn.length) throw httpError(400, 'Aucune autre carte à piocher.');
+    return { ...drawn.player, discardPile: [...drawn.player.discardPile, moved.card] };
+  }
+  if (forDraw) throw httpError(400, 'Défausse pour pioche réservée à la main persistante.');
   if (session.player.discardedForChakra || session.player.reserveCard) {
     throw httpError(400, 'Défausse pour Chakra ou réserve déjà utilisée ce tour.');
   }
@@ -717,6 +772,17 @@ export async function discardForChakra(userId, combatId, { instanceId } = {}) {
   ]);
 }
 
+export async function discardForDraw(userId, combatId, { instanceId } = {}) {
+  const session = await loadSession(combatId, userId);
+  session.player = useCardTurnAction(session, instanceId, false, true);
+  await persistSession(session);
+  await appendLog(combatId, session.currentTurn, 'discard_for_draw', { instanceId });
+  return publicState(session, [
+    { type: 'discard_for_draw', instanceId },
+    { type: 'draw', count: 1 },
+  ]);
+}
+
 export async function reserveCard(userId, combatId, { instanceId } = {}) {
   const session = await loadSession(combatId, userId);
   session.player = useCardTurnAction(session, instanceId, true);
@@ -726,6 +792,7 @@ export async function reserveCard(userId, combatId, { instanceId } = {}) {
 }
 
 function chakraCarryover(player) {
+  if (player.turnPrototype === 'persistent') return 0;
   return Math.min(1, Math.max(0, Number(player.chakra) || 0));
 }
 
@@ -822,7 +889,7 @@ export async function endTurn(userId, combatId) {
     const { trackDamageTakenForAchievements } = await import('./achievementService.js');
     session.player = trackDamageTakenForAchievements(
       session.player,
-      enemyAct.damageTakenByPlayer || 0,
+      enemyAct.damageTakenByPlayer || 0
     );
   } catch {
     /* exploits optionnels */
@@ -906,18 +973,9 @@ export async function endTurn(userId, combatId) {
     return publicState(session, logs);
   }
 
-  const leftover = session.player.hand || [];
-  session.player = {
-    ...session.player,
-    hand: [],
-    discardPile: [...(session.player.discardPile || []), ...leftover],
-  };
-  const returned = returnReservedCard(session.player);
-  session.player = returned.player;
-  logs.push(...returned.logs);
-  const drawn = drawCards(session.player, DRAW_PER_TURN);
-  session.player = drawn.player;
-  logs.push({ type: 'draw', count: drawn.drawn.length });
+  const refreshed = refreshHand(session.player);
+  session.player = refreshed.player;
+  logs.push(...refreshed.logs);
 
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);
@@ -927,6 +985,26 @@ export async function endTurn(userId, combatId) {
   await appendLog(combatId, session.currentTurn, 'end_turn', { logs });
 
   return publicState(session, logs);
+}
+
+function refreshHand(player) {
+  const hand = player.hand || [];
+  const persistent = player.turnPrototype === 'persistent';
+  const prepared = persistent
+    ? { player: { ...player, voluntaryDiscards: 0 }, logs: [] }
+    : returnReservedCard({
+        ...player,
+        hand: [],
+        discardPile: [...(player.discardPile || []), ...hand],
+      });
+  const drawn = drawCards(
+    prepared.player,
+    persistent ? Math.max(0, DRAW_PER_TURN - hand.length) : DRAW_PER_TURN
+  );
+  return {
+    player: drawn.player,
+    logs: [...prepared.logs, { type: 'draw', count: drawn.drawn.length }],
+  };
 }
 
 export async function forfeit(userId, combatId) {
@@ -951,4 +1029,6 @@ export const __test = {
   useCardTurnAction,
   chakraCarryover,
   returnReservedCard,
+  configurePrototypeEnemy,
+  refreshHand,
 };

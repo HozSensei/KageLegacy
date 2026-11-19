@@ -1,81 +1,83 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-import EmptyState from '../components/ui/EmptyState.vue'
-import PageHeader from '../components/ui/PageHeader.vue'
-import AppIcon from '../components/ui/AppIcon.vue'
-import forestImage from '../assets/illustrations/forest-path.webp'
-import { missionRankTone } from '../utils/missionVisuals'
-import { useCombatStore } from '../stores/combat'
-import { useMissionsStore } from '../stores/missions'
-import { useDecksStore } from '../stores/decks'
-import { localizedDescription, localizedName } from '../utils/localeContent.js'
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+import EmptyState from '../components/ui/EmptyState.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
+import forestImage from '../assets/illustrations/forest-path.webp';
+import { missionRankTone } from '../utils/missionVisuals';
+import { useCombatStore } from '../stores/combat';
+import { useMissionsStore } from '../stores/missions';
+import { useDecksStore } from '../stores/decks';
+import { localizedDescription, localizedName } from '../utils/localeContent.js';
 
-defineOptions({ name: 'MissionsCombatView' })
+defineOptions({ name: 'MissionsCombatView' });
 
-const { t, locale } = useI18n()
-const router = useRouter()
-const missions = useMissionsStore()
-const combat = useCombatStore()
-const decks = useDecksStore()
+const { t, locale } = useI18n();
+const router = useRouter();
+const missions = useMissionsStore();
+const combat = useCombatStore();
+const decks = useDecksStore();
 
-const startingId = ref(null)
-const localError = ref(null)
+const startingId = ref(null);
+const localError = ref(null);
+const turnPrototypes = ['classic', 'persistent'];
 
 onMounted(async () => {
-  await Promise.all([missions.fetchMissions(), decks.fetchDecks()])
-})
+  await Promise.all([missions.fetchMissions(), decks.fetchDecks()]);
+});
 
-const hasActiveDeck = computed(() => Boolean((decks.decks || []).find((d) => d.isActive)))
+const hasActiveDeck = computed(() => Boolean((decks.decks || []).find(d => d.isActive)));
 
 const activeDeckLabel = computed(() => {
-  const active = (decks.decks || []).find((d) => d.isActive)
-  if (!active) return t('combat.practiceDeckHint')
-  return active.name
-})
+  const active = (decks.decks || []).find(d => d.isActive);
+  if (!active) return t('combat.practiceDeckHint');
+  return active.name;
+});
 
 function missionName(m) {
-  return localizedName(m, locale.value)
+  return localizedName(m, locale.value);
 }
 
 function missionDesc(m) {
-  return localizedDescription(m, locale.value)
+  return localizedDescription(m, locale.value);
 }
 
 async function startMission(mission) {
-  startingId.value = mission.id
-  localError.value = null
-  combat.error = null
+  startingId.value = mission.id;
+  localError.value = null;
+  combat.error = null;
   try {
-    const run = await missions.startMission(mission.id)
+    const run = await missions.startMission(mission.id);
     if (run?.id) {
-      await router.push({ name: 'mission-run', params: { id: run.id } })
+      await router.push({ name: 'mission-run', params: { id: run.id } });
     }
   } catch (e) {
-    localError.value = e.message || missions.error
+    localError.value = e.message || missions.error;
   } finally {
-    startingId.value = null
+    startingId.value = null;
   }
 }
 
 function resumeRun() {
-  if (!missions.activeRun?.id) return
-  router.push({ name: 'mission-run', params: { id: missions.activeRun.id } })
+  if (!missions.activeRun?.id) return;
+  router.push({ name: 'mission-run', params: { id: missions.activeRun.id } });
 }
 
-async function startQuick(templateId) {
-  startingId.value = templateId
-  localError.value = null
+async function startQuick(body) {
+  if (startingId.value != null || missions.activeRun) return;
+  startingId.value = body.turnPrototype ?? body.templateId;
+  localError.value = null;
   try {
-    const result = await combat.startCombat({ templateId })
+    const result = await combat.startCombat(body);
     if (result?.id) {
-      await router.push({ name: 'combat', params: { id: result.id } })
+      await router.push({ name: 'combat', params: { id: result.id } });
     }
   } catch (e) {
-    localError.value = e.message || combat.error
+    localError.value = e.message || combat.error;
   } finally {
-    startingId.value = null
+    startingId.value = null;
   }
 }
 </script>
@@ -107,11 +109,7 @@ async function startQuick(templateId) {
       :secondary-label="t('placeholders.backHome')"
     />
 
-    <div
-      v-if="missions.activeRun"
-      class="active-run"
-      data-testid="active-run-banner"
-    >
+    <div v-if="missions.activeRun" class="active-run" data-testid="active-run-banner">
       <span class="lozenge active-run__mark" aria-hidden="true" />
       <p class="active-run__text">{{ t('combat.activeRunHint') }}</p>
       <button type="button" class="btn-primary" data-testid="resume-run" @click="resumeRun">
@@ -151,15 +149,24 @@ async function startQuick(templateId) {
             <p class="mission-card__meta">
               <span class="mission-card__pips" aria-hidden="true">
                 <span
-                  v-for="n in (mission.encounterCount || mission.encounters?.length || 1)"
+                  v-for="n in mission.encounterCount || mission.encounters?.length || 1"
                   :key="n"
                   class="lozenge"
                 />
               </span>
-              {{ t('combat.encounterCount', { n: mission.encounterCount || mission.encounters?.length || 1 }) }}
+              {{
+                t('combat.encounterCount', {
+                  n: mission.encounterCount || mission.encounters?.length || 1,
+                })
+              }}
             </p>
             <p v-if="mission.rewards" class="mission-card__rewards">
-              {{ t('combat.rewards', { xp: mission.rewards.xp || 0, ryos: mission.rewards.ryos || 0 }) }}
+              {{
+                t('combat.rewards', {
+                  xp: mission.rewards.xp || 0,
+                  ryos: mission.rewards.ryos || 0,
+                })
+              }}
             </p>
             <button
               type="button"
@@ -168,9 +175,7 @@ async function startQuick(templateId) {
               :disabled="startingId != null || Boolean(missions.activeRun)"
               @click="startMission(mission)"
             >
-              {{
-                startingId === mission.id ? t('combat.starting') : t('combat.startMission')
-              }}
+              {{ startingId === mission.id ? t('combat.starting') : t('combat.startMission') }}
             </button>
           </div>
         </article>
@@ -184,6 +189,29 @@ async function startQuick(templateId) {
         <span class="section-head__rule" aria-hidden="true" />
       </div>
       <p class="mt-2 max-w-xl text-ink-muted">{{ t('combat.quickFightLead') }}</p>
+
+      <section class="mt-5" aria-labelledby="turn-prototype-title" data-testid="turn-prototype">
+        <h3 id="turn-prototype-title" class="t-kicker">{{ t('combat.turnPrototype.title') }}</h3>
+        <p class="mt-2 max-w-xl text-ink-muted">{{ t('combat.turnPrototype.lead') }}</p>
+        <div class="quick-grid">
+          <article v-for="mode in turnPrototypes" :key="mode" class="turn-prototype-mode">
+            <h4 class="font-bold">{{ t(`combat.turnPrototype.${mode}.label`) }}</h4>
+            <p class="text-sm text-ink-muted">{{ t(`combat.turnPrototype.${mode}.help`) }}</p>
+            <button
+              type="button"
+              class="btn-secondary btn-sm self-start"
+              :disabled="startingId != null || Boolean(missions.activeRun)"
+              :data-testid="`start-turn-prototype-${mode}`"
+              @click="startQuick({ turnPrototype: mode })"
+            >
+              {{
+                startingId === mode ? t('combat.starting') : t(`combat.turnPrototype.${mode}.start`)
+              }}
+            </button>
+          </article>
+        </div>
+      </section>
+
       <div class="quick-grid">
         <button
           v-for="enemy in missions.enemies"
@@ -193,9 +221,13 @@ async function startQuick(templateId) {
           :class="{ 'quick-foe--boss': enemy.boss }"
           :data-testid="`quick-fight-${enemy.id}`"
           :disabled="startingId != null || Boolean(missions.activeRun)"
-          @click="startQuick(enemy.id)"
+          @click="startQuick({ templateId: enemy.id })"
         >
-          <span class="shape" :class="enemy.boss ? 'shape--lozenge' : 'shape--triangle'" aria-hidden="true" />
+          <span
+            class="shape"
+            :class="enemy.boss ? 'shape--lozenge' : 'shape--triangle'"
+            aria-hidden="true"
+          />
           <span class="quick-foe__name">{{ localizedName(enemy, locale) }}</span>
           <span v-if="enemy.hp" class="quick-foe__hp">
             {{ enemy.hp }} <small>{{ t('combat.hpLabel') }}</small>
@@ -358,6 +390,18 @@ async function startQuick(templateId) {
   gap: 0.6rem;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   margin-top: 1.25rem;
+}
+
+.turn-prototype-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  background: var(--color-bg-card);
+}
+
+.turn-prototype-mode > p {
+  flex: 1;
 }
 
 .quick-foe {

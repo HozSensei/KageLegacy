@@ -1,66 +1,80 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import AppIcon from '../ui/AppIcon.vue'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import AppIcon from '../ui/AppIcon.vue';
 
-defineOptions({ name: 'IntentDisplay' })
+defineOptions({ name: 'IntentDisplay' });
 
 const props = defineProps({
   intent: { type: Object, default: null },
-})
+  preview: { type: Boolean, default: false },
+});
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const kind = computed(() => props.intent?.type || 'unknown')
+const kind = computed(() => props.intent?.type || 'unknown');
 
 const text = computed(() => {
-  const i = props.intent
-  if (!i) return t('combat.intent.unknown')
+  const i = props.intent;
+  if (!i) return t('combat.intent.unknown');
   if (i.type === 'attack') {
-    const dmg = i.displayDamage ?? i.damage ?? '?'
-    return t('combat.intent.attack', { n: dmg })
+    if (props.preview) return t('combat.turnPrototype.attackType');
+    const dmg = i.displayDamage ?? i.damage ?? '?';
+    return t('combat.intent.attack', { n: dmg });
   }
-  if (i.type === 'defend') return t('combat.intent.defend', { n: i.block ?? '?' })
-  if (i.type === 'buff') return t('combat.intent.buff')
-  if (i.type === 'debuff') return t('combat.intent.debuff')
-  if (i.type === 'sealed' || i.type === 'skip') return t('combat.intent.sealed')
-  return t('combat.intent.special')
-})
+  if (i.type === 'defend') {
+    if (props.preview) return t('combat.turnPrototype.defendType');
+    return t('combat.intent.defend', { n: i.block ?? '?' });
+  }
+  if (i.type === 'buff') return t('combat.intent.buff');
+  if (i.type === 'debuff') return t('combat.intent.debuff');
+  if (i.type === 'sealed' || i.type === 'skip') return t('combat.intent.sealed');
+  return t('combat.intent.special');
+});
 
 const glyph = computed(() => {
-  if (kind.value === 'sealed' || kind.value === 'skip') return 'debuff'
-  const known = ['attack', 'defend', 'buff', 'debuff', 'special']
-  if (known.includes(kind.value)) return kind.value
-  return props.intent ? 'special' : 'unknown'
-})
+  if (kind.value === 'sealed' || kind.value === 'skip') return 'debuff';
+  const known = ['attack', 'defend', 'buff', 'debuff', 'special'];
+  if (known.includes(kind.value)) return kind.value;
+  return props.intent ? 'special' : 'unknown';
+});
 
 /** Valeur chiffrée mise en avant (dégâts ou armure annoncés). */
 const amount = computed(() => {
-  const i = props.intent
-  if (!i) return null
-  if (i.type === 'attack') return i.displayDamage ?? i.damage ?? null
-  if (i.type === 'defend') return i.block ?? null
-  return null
-})
+  const i = props.intent;
+  if (props.preview || !i) return null;
+  if (i.type === 'attack') return i.displayDamage ?? i.damage ?? null;
+  if (i.type === 'defend') return i.block ?? null;
+  return null;
+});
 
 const tone = computed(() => {
-  if (kind.value === 'attack') return 'vermilion'
-  if (kind.value === 'defend') return 'indigo'
-  if (kind.value === 'buff') return 'gold'
-  return 'ink'
-})
+  if (kind.value === 'attack') return 'vermilion';
+  if (kind.value === 'defend') return 'indigo';
+  if (kind.value === 'buff') return 'gold';
+  return 'ink';
+});
 </script>
 
 <template>
-  <div class="intent" :class="`intent--${kind}`" :data-tone="tone" data-testid="enemy-intent">
+  <div
+    class="intent"
+    :class="`intent--${kind}`"
+    :data-tone="tone"
+    :data-testid="preview ? 'enemy-next-intent' : 'enemy-intent'"
+  >
     <span class="intent__glyph" aria-hidden="true">
       <AppIcon :name="glyph" size="1.125rem" :stroke-width="2" />
     </span>
     <span class="intent__body">
-      <span class="intent__label">{{ t('combat.intentLabel') }}</span>
+      <span class="intent__label">{{
+        t(preview ? 'combat.turnPrototype.nextIntent' : 'combat.intentLabel')
+      }}</span>
       <span class="intent__text">{{ text }}</span>
     </span>
-    <span v-if="amount != null" :key="amount" class="intent__amount" aria-hidden="true">{{ amount }}</span>
+    <span v-if="amount != null" :key="amount" class="intent__amount" aria-hidden="true">{{
+      amount
+    }}</span>
   </div>
 </template>
 

@@ -127,12 +127,20 @@ export const useCombatStore = defineStore('combat', () => {
     }
   }
 
-  async function discardForChakra(instanceId) {
-    if (!combat.value?.id || !instanceId) return null;
+  function discardForChakra(instanceId) {
+    return discardCard(instanceId, 'discard-for-chakra');
+  }
+
+  function discardForDraw(instanceId) {
+    return discardCard(instanceId, 'discard-for-draw');
+  }
+
+  async function discardCard(instanceId, action) {
+    if (!combat.value?.id || !instanceId || actionLoading.value) return null;
     actionLoading.value = true;
     error.value = null;
     try {
-      const res = await fetch(`${API_BASE}/api/combat/${combat.value.id}/discard-for-chakra`, {
+      const res = await fetch(`${API_BASE}/api/combat/${combat.value.id}/${action}`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -218,6 +226,7 @@ export const useCombatStore = defineStore('combat', () => {
     playCard,
     endTurn,
     discardForChakra,
+    discardForDraw,
     reserveCard,
     forfeit,
     clear,
