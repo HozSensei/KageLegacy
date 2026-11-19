@@ -30,19 +30,18 @@ Un seul deck est actif à la fois. Les passifs des cartes et améliorations du d
 Début standard :
 
 - 100 PV de base ;
-- 3 Chakra de base ;
-- 5 cartes piochées ;
+- 5 Chakra de base, avant les bonus ;
+- 5 cartes au départ, puis conservation de la main et pioche jusqu’à 5 au début de chaque tour ;
 - main plafonnée à 10 cartes.
 
 Pendant son tour, le joueur peut :
 
 - jouer plusieurs cartes tant que le Chakra le permet ;
-- défausser une carte une fois par tour pour gagner du Chakra ;
-- réserver une carte une fois par tour ;
+- défausser jusqu’à deux cartes par tour : chaque défausse permet de piocher une autre carte ou de gagner 1 Chakra, ce gain étant limité à une fois par tour ;
 - terminer le tour ;
 - abandonner le combat.
 
-Une carte réservée revient en plus de la pioche du tour suivant. Une partie du Chakra inutilisé peut être reportée selon la limite du moteur.
+Le Chakra inutilisé n’est pas reporté. L’interface affiche l’intention ennemie actuelle et le type de la suivante. Une charge ou un changement de phase peut modifier la prévision.
 
 ## PvE rapide
 
@@ -89,8 +88,16 @@ Le reset rembourse chaque rang investi. Il est gratuit une fois tous les 10 nive
 - Les factions sont cosmétiques et n'accordent aucun bonus de combat.
 - Le classement propose les classements par niveau et victoires PvP, avec vue par faction.
 
+## Combat coop en ligne
+
+Dans **Co-op**, créer une salle et partager son code avec un autre joueur. Chacun apporte son deck actif valide. Les deux jouent à tour de rôle, puis l’ennemi agit. Les deux intentions indiquent qui est visé. Chaque joueur conserve sa main et son chakra séparément.
+
+La zone et le bouton **Allié** permettent de jouer certains soins, protections et purifications sur le partenaire. Un effet offensif compatible exige une confirmation explicite. Les cartes au ciblage ambigu sont refusées sans être dépensées. Le combat ne donne pas de récompense et n’a pas de matchmaking.
+
+Les salles de cette première version sont stockées en mémoire sur une seule instance du serveur et ne survivent pas à un redémarrage. Une invitation en attente expire après 30 minutes.
+
 ## PvP
 
-Le PvP nécessite un deck valide. Les joueurs sont rapprochés selon leur niveau et leur fenêtre de recherche. Il ne fournit ni ELO, ni saison, ni récompense directe actuellement.
+Le duel PvP est masqué par défaut. Son code et son historique sont conservés ; le frontend peut être réactivé avec `VITE_PVP_ENABLED=true`.
 
 Les comptes invités expirent après 7 jours et peuvent être convertis en comptes complets.

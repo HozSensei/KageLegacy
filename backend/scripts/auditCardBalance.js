@@ -3,6 +3,8 @@ import { prototypeCard } from './data/cardBalancePrototype.js';
 import { applyUpgradeBonuses } from '../src/services/cardService.js';
 import { validateDeck } from '../src/services/deckService.js';
 import { BASE_CHAKRA } from '../src/services/deckCombat/constants.js';
+import { applySoloCardBalance } from '../src/services/deckCombat/soloCardBalance.js';
+import { mergeStatBonuses } from '../src/services/playerCharacterService.js';
 import { shuffle } from '../src/services/deckCombat/deckRuntime.js';
 import {
   createSeededRng,
@@ -136,6 +138,7 @@ const SCENARIOS = [
   { id: 'five_unchanged', chakra: 5 },
   { id: 'five_repriced', chakra: 5, reprice: true },
   { id: 'prototype', chakra: 5 },
+  { id: 'solo_live', chakra: 5, persistentHand: true, deckPassives: true },
 ];
 const SIZES = Array.from({ length: 11 }, (_, i) => 20 + i);
 const ENCOUNTERS = ['ronin_bandit', 'kurogane_scout'];
@@ -156,15 +159,46 @@ function runtimeCard(definition, level) {
 }
 
 function scenarioCard(card, scenario) {
+  if (scenario.id === 'solo_live') return applySoloCardBalance(card);
   if (scenario.id === 'prototype') return prototypeCard(structuredClone(card));
   if (!scenario.reprice || card.statType !== 'ninjutsu' || !isAttack(card)) return card;
   return { ...card, cost: Math.max(card.cost, Math.min(5, Math.max(3, card.cost + 2))) };
 }
 
 const costCurves = {};
+const soloReview = { cards: ALL_CARDS.length, levelsReviewed: 0, changedCards: 0, byArt: {} };
 for (const definition of ALL_CARDS) {
+  const art = (soloReview.byArt[definition.statType] ??= { reviewed: 0, changed: 0, roles: {} });
+  art.reviewed++;
+  let changed = false;
+  const entry = byArt[definition.statType].find(card => card.slug === definition.slug);
+  entry.solo = [];
   for (const level of [0, 1, 2]) {
     const card = runtimeCard(definition, level);
+    const solo = applySoloCardBalance(card);
+    const activeChanges = ['cost', 'damage', 'block', 'heal', 'effects'].filter(
+      key => JSON.stringify(card[key]) !== JSON.stringify(solo[key])
+    );
+    changed ||= activeChanges.length > 0;
+    soloReview.levelsReviewed++;
+    if (level === 0) art.roles[solo.combatRole] = (art.roles[solo.combatRole] || 0) + 1;
+    entry.solo.push({
+      level,
+      role: solo.combatRole,
+      cost: solo.cost,
+      damagePerHit: solo.damage,
+      hits: solo.effects?.find(effect => effect.type === 'multi_strike')?.hits ?? 1,
+      block: solo.block,
+      heal: solo.heal,
+      effects: solo.effects,
+      activeChanges,
+      appliedPassive: solo.passiveBonus,
+    });
+    const concerns = [];
+    if (solo.cost > 5) concerns.push('requires_bonus_chakra');
+    if (solo.cost === 0 && solo.damage > 0) concerns.push('free_damage');
+    if (solo.statType === 'medicine' && solo.damage > 0) concerns.push('medicine_direct_damage');
+    if (concerns.length) findings.push({ kind: 'solo_review', slug: solo.slug, level, concerns });
     for (const scenario of SCENARIOS) {
       const adjusted = scenarioCard(card, scenario);
       const key = `${scenario.id}/${card.statType}/${isAttack(adjusted) ? 'damage' : 'utility'}/L${level}`;
@@ -203,6 +237,10 @@ for (const definition of ALL_CARDS) {
           return { scenario: scenario.id, cost, remaining: scenario.chakra - cost };
         }),
       });
+  }
+  if (changed) {
+    soloReview.changedCards++;
+    art.changed++;
   }
 }
 
@@ -250,12 +288,18 @@ function sampleDeck(slots, seen, rng) {
 const neutralProfile = { id: 'audit', label: 'Audit', level: 1, talentCodes: [], stats: {} };
 
 function runFight(deckEntries, scenario, templateId, seed, totals) {
+  const passives = scenario.deckPassives
+    ? mergeStatBonuses(
+        ...deckEntries.flatMap(({ card, quantity }) => Array(quantity).fill(card.passiveBonus))
+      )
+    : {};
   let session = createSimSession({
     profileId: neutralProfile.id,
     profileOverride: {
       ...neutralProfile,
-      stats: { maxChakra: scenario.chakra - BASE_CHAKRA },
+      stats: { ...passives, maxChakra: scenario.chakra - BASE_CHAKRA + (passives.maxChakra || 0) },
     },
+    persistentHand: scenario.persistentHand,
     deckEntries,
     templateId,
     seed,
@@ -410,6 +454,7 @@ const summary = {
   byArt: Object.fromEntries(Object.entries(byArt).map(([key, cards]) => [key, cards.length])),
   roles: roleCounts,
   costCurves,
+  soloReview,
   byRarity: ALL_CARDS.reduce((out, card) => {
     out[card.rarity] = (out[card.rarity] || 0) + 1;
     return out;

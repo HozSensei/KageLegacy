@@ -6,11 +6,14 @@ describe('Header — navigation V2 alpha', () => {
 
   it('affiche le hub et le menu de navigation', () => {
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
+    cy.get('.nav-rail a[href="/coop"]').should('be.visible');
+    cy.get('.nav-rail a[href^="/pvp"]').should('not.exist');
     cy.get('[data-testid="nav-menu-button"]').should('be.visible').click();
     cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
     cy.get('[data-testid="nav-profile"]').should('be.visible');
     cy.get('[data-testid="nav-missions"]').should('be.visible');
-    cy.get('[data-testid="nav-pvp"]').should('be.visible');
+    cy.get('[data-testid="nav-coop"]').should('be.visible');
+    cy.get('[data-testid="nav-pvp"]').should('not.exist');
   });
 
   it('expose le registre (journal) et masque l’inventaire legacy', () => {
@@ -19,4 +22,3 @@ describe('Header — navigation V2 alpha', () => {
     cy.get('[data-testid="nav-inventory"]').should('not.exist');
   });
 });
-

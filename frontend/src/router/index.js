@@ -13,6 +13,8 @@ import TalentTreeView from '../views/TalentTreeView.vue';
 import MissionsCombatView from '../views/MissionsCombatView.vue';
 import MissionRunView from '../views/MissionRunView.vue';
 import CombatView from '../views/CombatView.vue';
+import CoopView from '../views/CoopView.vue';
+import { PVP_ENABLED } from '../constants/featureFlags';
 import ShopView from '../views/ShopView.vue';
 import BattlePassView from '../views/BattlePassView.vue';
 import JournalView from '../views/JournalView.vue';
@@ -108,6 +110,12 @@ const router = createRouter({
           },
         },
         {
+          path: 'coop',
+          name: 'coop',
+          component: CoopView,
+          meta: { requiresCharacter: true },
+        },
+        {
           path: 'shop',
           name: 'shop',
           component: ShopView,
@@ -182,6 +190,9 @@ router.beforeEach(async to => {
 
   if (!auth.checked) await auth.fetchMe();
   if (!auth.user) return { path: '/' };
+  if (!PVP_ENABLED && (to.name === 'pvp' || to.name === 'pvp-duel')) {
+    return { name: 'coop', replace: true };
+  }
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' };
 
   // Hub + character creation are reachable without a character (empty-state / onboarding).

@@ -22,7 +22,6 @@ const decks = useDecksStore();
 
 const startingId = ref(null);
 const localError = ref(null);
-const turnPrototypes = ['classic', 'persistent'];
 
 onMounted(async () => {
   await Promise.all([missions.fetchMissions(), decks.fetchDecks()]);
@@ -65,12 +64,12 @@ function resumeRun() {
   router.push({ name: 'mission-run', params: { id: missions.activeRun.id } });
 }
 
-async function startQuick(body) {
+async function startQuick(templateId) {
   if (startingId.value != null || missions.activeRun) return;
-  startingId.value = body.turnPrototype ?? body.templateId;
+  startingId.value = templateId;
   localError.value = null;
   try {
-    const result = await combat.startCombat(body);
+    const result = await combat.startCombat({ templateId });
     if (result?.id) {
       await router.push({ name: 'combat', params: { id: result.id } });
     }
@@ -190,28 +189,6 @@ async function startQuick(body) {
       </div>
       <p class="mt-2 max-w-xl text-ink-muted">{{ t('combat.quickFightLead') }}</p>
 
-      <section class="mt-5" aria-labelledby="turn-prototype-title" data-testid="turn-prototype">
-        <h3 id="turn-prototype-title" class="t-kicker">{{ t('combat.turnPrototype.title') }}</h3>
-        <p class="mt-2 max-w-xl text-ink-muted">{{ t('combat.turnPrototype.lead') }}</p>
-        <div class="quick-grid">
-          <article v-for="mode in turnPrototypes" :key="mode" class="turn-prototype-mode">
-            <h4 class="font-bold">{{ t(`combat.turnPrototype.${mode}.label`) }}</h4>
-            <p class="text-sm text-ink-muted">{{ t(`combat.turnPrototype.${mode}.help`) }}</p>
-            <button
-              type="button"
-              class="btn-secondary btn-sm self-start"
-              :disabled="startingId != null || Boolean(missions.activeRun)"
-              :data-testid="`start-turn-prototype-${mode}`"
-              @click="startQuick({ turnPrototype: mode })"
-            >
-              {{
-                startingId === mode ? t('combat.starting') : t(`combat.turnPrototype.${mode}.start`)
-              }}
-            </button>
-          </article>
-        </div>
-      </section>
-
       <div class="quick-grid">
         <button
           v-for="enemy in missions.enemies"
@@ -221,7 +198,7 @@ async function startQuick(body) {
           :class="{ 'quick-foe--boss': enemy.boss }"
           :data-testid="`quick-fight-${enemy.id}`"
           :disabled="startingId != null || Boolean(missions.activeRun)"
-          @click="startQuick({ templateId: enemy.id })"
+          @click="startQuick(enemy.id)"
         >
           <span
             class="shape"
@@ -390,18 +367,6 @@ async function startQuick(body) {
   gap: 0.6rem;
   grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
   margin-top: 1.25rem;
-}
-
-.turn-prototype-mode {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.8rem 1rem;
-  background: var(--color-bg-card);
-}
-
-.turn-prototype-mode > p {
-  flex: 1;
 }
 
 .quick-foe {

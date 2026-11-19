@@ -1,29 +1,33 @@
 const ART_KEYS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
 
-function heldCards(player = {}) {
+function heldCards(player, playedCard = null) {
   const cards = [...(player.hand || [])];
   if (player.reserveCard) cards.push(player.reserveCard);
   if (player.reservedCard) cards.push(player.reservedCard);
   const unique = new Map();
   for (const card of cards) {
-    if (card?.heldEffect) {
-      const key = card.instanceId || card.slug || card.id;
-      if (!unique.has(key)) unique.set(key, card);
-    }
+    if (!card?.heldEffect) continue;
+    // The caller moves the played card after resolving it. Ignore that instance in every zone.
+    const isPlayed =
+      card === playedCard ||
+      (playedCard?.instanceId != null && card.instanceId === playedCard.instanceId);
+    if (isPlayed) continue;
+    const key = card.instanceId || card.slug || card.id;
+    if (!unique.has(key)) unique.set(key, card);
   }
   return [...unique.values()];
 }
 
-export function heldEffectMods(player = {}, card = null) {
+export function heldEffectMods(player = {}, playedCard = null) {
   const mods = { evadeChance: 0, artDamagePct: 0, healPct: 0 };
-  for (const held of heldCards(player)) {
+  for (const held of heldCards(player, playedCard)) {
     const effect = held.heldEffect;
     if (effect.type === 'evade_percent') {
       mods.evadeChance += Math.max(0, Number(effect.value) || 0) / 100;
     } else if (
       effect.type === 'art_damage_percent' &&
       ART_KEYS.has(effect.statType) &&
-      effect.statType === card?.statType
+      effect.statType === playedCard?.statType
     ) {
       mods.artDamagePct += Math.max(0, Number(effect.value) || 0) / 100;
     } else if (effect.type === 'heal_percent') {

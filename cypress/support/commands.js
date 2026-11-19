@@ -8,7 +8,7 @@ const NAV_PAGES = {
   shop: { testId: 'shop-page', path: '/shop' },
   'battle-pass': { testId: 'battle-pass-page', path: '/battle-pass' },
   journal: { testId: 'journal-page', path: '/journal' },
-  pvp: { testId: 'pvp-queue-page', path: '/pvp' },
+  coop: { testId: 'coop-page', path: '/coop' },
 };
 
 Cypress.Commands.add('loginDemo', () => {
@@ -24,14 +24,16 @@ Cypress.Commands.add('loginDemo', () => {
     {
       cacheAcrossSpecs: true,
       validate() {
-        cy.request({ url: '/api/auth/me', failOnStatusCode: false }).its('status').should('eq', 200);
+        cy.request({ url: '/api/auth/me', failOnStatusCode: false })
+          .its('status')
+          .should('eq', 200);
       },
     }
   );
 });
 
 Cypress.Commands.add('closeSlidePanel', () => {
-  cy.get('body').then(($body) => {
+  cy.get('body').then($body => {
     if ($body.find('[data-testid="slide-panel-backdrop"]').length) {
       cy.get('[data-testid="slide-panel-backdrop"]').click();
     }
@@ -45,7 +47,7 @@ Cypress.Commands.add('openNavMenu', () => {
   cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
 });
 
-Cypress.Commands.add('visitNav', (name) => {
+Cypress.Commands.add('visitNav', name => {
   const page = NAV_PAGES[name];
   if (!page) throw new Error(`visitNav: page inconnue « ${name} »`);
   if (name === 'hub') {

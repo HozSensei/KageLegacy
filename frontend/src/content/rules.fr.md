@@ -175,25 +175,27 @@ Vous pouvez réinitialiser tout l'arbre : tous les points dépensés vous sont r
 
 ## Le combat
 
-En PvE, un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier. Pour les différences en arène, voir « Le PvP en arène ».
+En PvE, un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier. La **main persistante** est la règle par défaut en mission et en duel rapide. Pour les différences en arène, voir « Le PvP en arène ».
 
 ### Au départ
 
 - Vous avez **100 PV**, plus votre bonus de PV max.
 - Votre deck est mélangé et forme votre **pioche**.
 - Vous piochez **5 cartes**.
-- L'ennemi **annonce son intention** : vous savez ce qu'il fera à son prochain tour.
+- L'ennemi **annonce son intention actuelle**, celle qu'il exécutera à son prochain tour. Lorsqu'elle est disponible, l'**intention suivante** indique le type d'action prévu pour le tour ennemi d'après, sans valeur chiffrée.
 
 ### Votre tour
 
-- Vous disposez de **3 Chakra de base**, augmentés par vos bonus de Chakra max et éventuellement par des effets de talents.
+- Votre Chakra revient à son maximum en début de tour. Le Chakra non dépensé n'est **pas reporté**. Les cartes et talents peuvent modifier vos ressources.
 - Vous jouez autant de cartes que votre Chakra le permet, dans l'ordre de votre choix.
-- **Une fois par tour**, vous pouvez soit défausser une carte de votre main pour gagner **1 Chakra**, soit la réserver pour votre prochain tour. Ces deux actions sont exclusives.
+- Vous pouvez défausser **jusqu'à 2 cartes par tour**. Chaque défausse permet de piocher une autre carte s'il en reste une à piocher, ou de gagner **1 Chakra**. Le gain de Chakra n'est possible qu'**une fois par tour** et compte dans le même quota.
 - Vous terminez votre tour quand vous le souhaitez.
 
-Sélectionnez une carte puis utilisez les boutons pour la jouer, la défausser ou la réserver ; vous pouvez aussi la glisser dans la zone correspondante. La carte réservée quitte immédiatement votre main et ne peut plus être jouée ce tour-ci.
+Sélectionnez une carte puis utilisez les boutons pour la jouer ou la défausser ; vous pouvez aussi la glisser dans la zone correspondante.
 
-Les cartes restées en main sont défaussées avant la prochaine pioche, sauf la carte réservée. Au tour suivant, vous recevez votre Chakra de base et vos bonus de Chakra max, plus jusqu'à **1 Chakra non dépensé** automatiquement reporté. La carte réservée revient en main, puis vous piochez jusqu'à 5 cartes ; les cartes et talents peuvent modifier ces ressources.
+Les cartes non jouées **restent dans votre main** : il n'y a pas de réserve. Au début de votre prochain tour, vous piochez de quoi compléter votre main **jusqu'à 5 cartes**. Si vous en avez déjà 5 ou plus, vous les gardez sans piocher à cette étape.
+
+Certaines cartes affichent un rôle de combat. Ce libellé décrit la carte, sans recommander laquelle jouer.
 
 Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse est mélangée et redevient la pioche.
 
@@ -201,7 +203,7 @@ Certaines cartes affichent un effet de chaîne, par exemple « Après Taijutsu :
 
 ### Le tour de l'ennemi
 
-L'ennemi exécute l'intention qu'il avait annoncée, puis en annonce une nouvelle :
+L'ennemi exécute son intention actuelle, puis les intentions affichées sont mises à jour :
 
 | Intention           | Effet                                       |
 | ------------------- | ------------------------------------------- |
@@ -409,7 +411,7 @@ Quand un adversaire est trouvé, le duel commence dès que les deux joueurs sont
 
 ### Le duel
 
-Les bases sont celles du combat de mission : 100 PV plus votre bonus de PV max, 3 Chakra de base plus les bonus de Chakra max, report automatique d'au plus 1 Chakra, pioche de 5 cartes par tour et, une fois par tour, une défausse contre 1 Chakra ou une carte réservée. Chaque joueur joue à son tour et peut abandonner. Les cartes non jouées sont défaussées en fin de tour ; la carte réservée revient avant la prochaine pioche, dans la limite de 10 cartes en main.
+Le PvP ne suit pas les règles de la main persistante. Vous commencez avec 100 PV plus votre bonus de PV max et 3 Chakra de base plus vos bonus de Chakra max. Vous piochez 5 cartes par tour, avec un report automatique d'au plus 1 Chakra. Une fois par tour, vous pouvez soit défausser une carte pour gagner 1 Chakra, soit en réserver une. Chaque joueur joue à son tour et peut abandonner. Les cartes non jouées sont défaussées en fin de tour ; la carte réservée revient avant la prochaine pioche, dans la limite de 10 cartes en main.
 
 Le duel utilise une partie des calculs PvE pour les cartes, les statuts et les talents, **sans garantir une parité complète** : seuls les effets et données transmis et pris en charge en PvP s'appliquent. Les dégâts utilisent notamment les statistiques et les avantages de voie ; la voie dominante de l'adversaire sert de posture. L'affinité élémentaire du joueur adverse n'est actuellement pas transmise au moteur du duel : les attaques restent donc neutres vis-à-vis de cette affinité. Les invocations ont cependant une gestion adaptée au duel : une seule à la fois, elles attaquent au début du tour de leur propriétaire et expirent selon leur durée. Une invocation avec **Provocation** intercepte les dégâts, l'éventuel surplus atteignant son propriétaire ; leurs autres capacités ne sont pas toutes reproduites. Le marqueur d'épuisement des cartes ordinaires n'est actuellement pas transmis au duel : elles vont donc normalement dans la défausse après usage, contrairement aux invocations.
 

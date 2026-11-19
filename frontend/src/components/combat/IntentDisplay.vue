@@ -8,6 +8,7 @@ defineOptions({ name: 'IntentDisplay' });
 const props = defineProps({
   intent: { type: Object, default: null },
   preview: { type: Boolean, default: false },
+  targetLabel: { type: String, default: '' },
 });
 
 const { t } = useI18n();
@@ -18,12 +19,12 @@ const text = computed(() => {
   const i = props.intent;
   if (!i) return t('combat.intent.unknown');
   if (i.type === 'attack') {
-    if (props.preview) return t('combat.turnPrototype.attackType');
+    if (props.preview) return t('combat.intent.attackType');
     const dmg = i.displayDamage ?? i.damage ?? '?';
     return t('combat.intent.attack', { n: dmg });
   }
   if (i.type === 'defend') {
-    if (props.preview) return t('combat.turnPrototype.defendType');
+    if (props.preview) return t('combat.intent.defendType');
     return t('combat.intent.defend', { n: i.block ?? '?' });
   }
   if (i.type === 'buff') return t('combat.intent.buff');
@@ -68,9 +69,12 @@ const tone = computed(() => {
     </span>
     <span class="intent__body">
       <span class="intent__label">{{
-        t(preview ? 'combat.turnPrototype.nextIntent' : 'combat.intentLabel')
+        t(preview ? 'combat.nextIntentLabel' : 'combat.intentLabel')
       }}</span>
       <span class="intent__text">{{ text }}</span>
+      <span v-if="targetLabel" class="intent__text">{{
+        t('coop.intentTarget', { name: targetLabel })
+      }}</span>
     </span>
     <span v-if="amount != null" :key="amount" class="intent__amount" aria-hidden="true">{{
       amount

@@ -14,6 +14,8 @@ const props = defineProps({
   tone: { type: String, default: 'indigo' },
   /** Libellé au-dessus du nom ; par défaut « Vous ». */
   roleLabel: { type: String, default: '' },
+  hidePiles: { type: Boolean, default: false },
+  showZeroBlock: { type: Boolean, default: false },
 });
 
 const { t, locale } = useI18n();
@@ -52,7 +54,7 @@ const { deltas, hit } = useDeltaFeed(() => props.player.hp);
         <p class="fighter__role">{{ roleLabel || t('combat.youLabel') }}</p>
         <h2 class="fighter__name">{{ player.name }}</h2>
       </div>
-      <p class="fighter__meta text-right">
+      <p v-if="!hidePiles" class="fighter__meta text-right">
         {{ t('combat.drawPile', { n: player.drawCount ?? 0 }) }}<br />
         {{ t('combat.discardPile', { n: player.discardCount ?? 0 }) }}
       </p>
@@ -98,13 +100,13 @@ const { deltas, hit } = useDeltaFeed(() => props.player.hp);
       </div>
 
       <span
-        v-if="player.block"
+        v-if="showZeroBlock || player.block"
         :key="player.block"
         class="armor-chip"
-        :title="t('combat.block', { n: player.block })"
+        :title="t('combat.block', { n: player.block ?? 0 })"
       >
         <AppIcon name="block" size="1rem" :stroke-width="2" />
-        <span class="armor-chip__value">{{ player.block }}</span>
+        <span class="armor-chip__value">{{ player.block ?? 0 }}</span>
         {{ t('combat.blockLabel') }}
       </span>
     </div>

@@ -120,4 +120,30 @@ assert.equal(refreshed.hand.length, 5);
 assert.equal(refreshed.hand[0].instanceId, 'p0');
 assert.equal(publicState({ player: refreshed, enemy }).player.discardsRemaining, 2);
 assert.equal(publicState({ player: refreshed, enemy }).player.chakraDiscardAvailable, true);
-console.log('Combat reserve, chakra carryover and turn prototype tests passed');
+// A regular solo session persists its forecast and retains progression.
+const solo = { ...persistent, ruleset: 'persistent', turnPrototype: undefined, chakra: 5 };
+const weighted = generateEnemyFromTemplate('ronin_bandit', 1);
+const planned = __test.queueSoloIntent(
+  { ...weighted, intent: { type: 'defend', block: 5 } },
+  () => 0.8
+);
+const soloSession = hydrateSession({
+  player_state_json: JSON.stringify(solo),
+  enemy_state_json: JSON.stringify(planned),
+});
+const soloSnapshot = publicState(soloSession);
+assert.equal(soloSnapshot.ruleset, 'persistent');
+assert.equal(soloSnapshot.suppressRewards, false);
+assert.equal(soloSnapshot.player.discardsRemaining, 2);
+assert.deepEqual(soloSnapshot.enemy.nextIntent, { type: 'defend' });
+assert.equal(attempt(solo, 'one').chakra, 6);
+assert.equal(chakraCarryover(solo), 0);
+const execute = current =>
+  executeEnemyIntent(current, solo, () => 0, { queuedIntent: current.queuedIntent });
+assert.equal(execute(soloSession.enemy).enemy.intent.type, 'defend');
+const shifted = { ...planned, phaseIndex: 0 };
+assert.equal(execute(shifted).enemy.intent.type, 'attack');
+const charge = { ...planned, intent: { type: 'charge', releaseDamage: 20 } };
+assert.deepEqual(publicState({ player: solo, enemy: charge }).enemy.nextIntent, { type: 'attack' });
+assert.equal(execute(charge).enemy.intent.fromCharge, true);
+console.log('Combat reserve, persistent hand and enemy forecast tests passed');

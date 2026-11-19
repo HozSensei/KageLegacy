@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import EnemyDisplay from './EnemyDisplay.vue';
 import PlayerStatus from './PlayerStatus.vue';
 import CombatHand from './CombatHand.vue';
-import CombatLog from './CombatLog.vue';
+import CombatHeaderLog from './CombatHeaderLog.vue';
 import CombatDropZones from './CombatDropZones.vue';
 import VictoryRewards from './VictoryRewards.vue';
 
@@ -17,11 +17,14 @@ const props = defineProps({
   busy: { type: Boolean, default: false },
   midRun: { type: Boolean, default: false },
   outcomeRewards: { type: Object, default: null },
+  // Null preserves the solo turn rules; coop supplies whether the viewer owns this turn.
+  coopTurn: { type: Boolean, default: null },
 });
 
 const emit = defineEmits([
   'select-card',
   'play-card',
+  'play-on-ally',
   'end-turn',
   'discard-chakra',
   'discard-draw',
@@ -52,17 +55,43 @@ function confirmForfeit() {
 
 const isOver = computed(() => ['victory', 'defeat', 'forfeited'].includes(props.combat.state));
 
-const canAct = computed(
-  () => props.combat.currentPhase === 'player_turn' && props.combat.state === 'in_progress'
-);
+const canAct = computed(() => isPlayerTurn.value && props.combat.state === 'in_progress');
 
-const isPersistent = computed(() => props.combat.turnPrototype === 'persistent');
-const isPrototype = computed(() => isPersistent.value || props.combat.turnPrototype === 'classic');
+const isPersistent = computed(
+  () => props.combat.ruleset === 'persistent' || props.combat.turnPrototype === 'persistent'
+);
 const reservedCard = computed(
   () => props.combat.player.reservedCard ?? props.combat.player.reserveCard
 );
+const ally = computed(() => (props.coopTurn !== null ? props.combat.ally : null));
+const allyStatus = computed(() => {
+  if (!ally.value) return null;
+  const { name, hp, maxHp, block, chakra, maxChakra, statuses } = ally.value;
+  return {
+    name: name || t('combat.allyLabel'),
+    hp: hp ?? 0,
+    maxHp: maxHp ?? 0,
+    block: block ?? 0,
+    chakra: chakra ?? 0,
+    maxChakra: maxChakra ?? 3,
+    statuses: Array.isArray(statuses) ? statuses : [],
+  };
+});
+const intentTargets = computed(() =>
+  props.coopTurn !== null ? [props.combat.player, ally.value] : null
+);
+const selectedCard = computed(() =>
+  props.combat.player.hand?.find(card => card.instanceId === props.selectedId)
+);
+const canAffordSelected = computed(() => {
+  if (!selectedCard.value) return false;
+  const { player } = props.combat;
+  const cost = Number(selectedCard.value.cost ?? selectedCard.value.baseCost) || 0;
+  return Math.max(0, cost - (Number(player.nextCardCostReduction) || 0)) <= player.chakra;
+});
 const dropActions = computed(() => [
   'play',
+  ...(ally.value ? ['play-ally'] : []),
   'discard',
   isPersistent.value ? 'discard-for-draw' : 'reserve',
 ]);
@@ -70,6 +99,7 @@ const dropActions = computed(() => [
 function isDropDisabled(action) {
   if (props.busy || !canAct.value || !dropActions.value.includes(action)) return true;
   if (action === 'play') return false;
+  if (action === 'play-ally') return !(ally.value?.hp > 0);
   const player = props.combat.player;
   if (isPersistent.value) {
     if (action === 'discard-for-draw') {
@@ -91,12 +121,21 @@ function onDropIntent(intent) {
   const card = (props.combat.player.hand || []).find(item => item.instanceId === instanceId);
   if (!card) return;
   if (action === 'play') emit('play-card', card);
+  else if (action === 'play-ally') emit('play-on-ally', card);
   else if (action === 'discard') emit('discard-chakra', instanceId);
   else if (action === 'discard-for-draw') emit('discard-draw', instanceId);
   else if (action === 'reserve') emit('reserve-card', instanceId);
 }
 
-const isPlayerTurn = computed(() => props.combat.currentPhase === 'player_turn');
+const isPlayerTurn = computed(
+  () => props.combat.currentPhase === 'player_turn' && props.coopTurn !== false
+);
+const phaseText = computed(() => {
+  if (props.coopTurn === false && props.combat.activePlayerId != null) {
+    return t('coop.allyTurn');
+  }
+  return t(`combat.phases.${props.combat.currentPhase}`);
+});
 const turnNumber = computed(() => String(props.combat.currentTurn ?? 0).padStart(2, '0'));
 
 /* Bandeau éphémère à chaque changement de tour ou de phase (affichage seul). */
@@ -104,7 +143,8 @@ const banner = ref(false);
 let bannerTimer = null;
 
 watch(
-  () => `${props.combat.id}:${props.combat.currentTurn}:${props.combat.currentPhase}`,
+  () =>
+    `${props.combat.id}:${props.combat.currentTurn}:${props.combat.currentPhase}:${props.coopTurn}`,
   (next, prev) => {
     if (!prev || next.split(':')[0] !== prev.split(':')[0]) return;
     if (props.combat.state !== 'in_progress') return;
@@ -123,7 +163,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="arena arena--with-side"
+    class="arena"
+    :class="{ 'arena--duo': ally }"
     data-testid="combat-arena"
     data-combat-drop-root
     :inert="isOver"
@@ -137,10 +178,7 @@ onBeforeUnmount(() => {
         }}</span>
         <span class="arena__phase">
           <span class="lozenge" aria-hidden="true" />
-          {{ t(`combat.phases.${combat.currentPhase}`) }}
-        </span>
-        <span v-if="isPrototype" class="t-kicker">
-          {{ t(`combat.turnPrototype.${combat.turnPrototype}.label`) }}
+          {{ phaseText }}
         </span>
       </p>
       <details class="arena__menu">
@@ -166,6 +204,8 @@ onBeforeUnmount(() => {
       </details>
     </header>
 
+    <CombatHeaderLog :logs="logs" />
+
     <Teleport to="body">
       <div v-if="isOver" class="arena__outcome-backdrop" data-testid="combat-outcome-overlay">
         <VictoryRewards
@@ -173,6 +213,8 @@ onBeforeUnmount(() => {
           :state="combat.state"
           :rewards="outcomeRewards ?? combat.rewards"
           :mid-run="midRun"
+          :continue-label="coopTurn === null ? null : t('coop.backToLobby')"
+          :show-pending-rewards="coopTurn === null"
           @dismiss="emit('dismiss-outcome')"
         />
       </div>
@@ -183,7 +225,7 @@ onBeforeUnmount(() => {
         <EnemyDisplay
           :key="`enemy-${combat.id}`"
           :enemy="combat.enemy"
-          :show-next-intent="isPrototype"
+          :intent-targets="intentTargets"
         />
       </section>
 
@@ -202,7 +244,7 @@ onBeforeUnmount(() => {
           :data-tone="isPlayerTurn ? 'indigo' : 'vermilion'"
           aria-hidden="true"
         >
-          {{ t(`combat.phases.${combat.currentPhase}`) }}
+          {{ phaseText }}
           <span class="arena__banner-sub">{{ t('combat.turn', { n: combat.currentTurn }) }}</span>
         </p>
       </Transition>
@@ -214,6 +256,18 @@ onBeforeUnmount(() => {
         :hovered-zone="hoveredZone"
       />
     </div>
+
+    <PlayerStatus
+      v-if="allyStatus"
+      :key="`ally-${combat.id}`"
+      :player="allyStatus"
+      :role-label="t('combat.allyLabel')"
+      class="arena__teammate"
+      data-testid="coop-ally"
+      tone="wood"
+      hide-piles
+      show-zero-block
+    />
 
     <section class="arena__hand-wrap">
       <div class="arena__hand-head">
@@ -239,11 +293,14 @@ onBeforeUnmount(() => {
       />
 
       <template v-if="isPersistent">
-        <p class="arena__hand-hint">{{ t('combat.turnPrototype.persistent.help') }}</p>
-        <p class="arena__hand-hint" role="status" data-testid="discards-remaining">
-          {{
-            t('combat.turnPrototype.discardsRemaining', { n: combat.player.discardsRemaining ?? 0 })
-          }}
+        <p class="arena__hand-hint">{{ t('combat.persistentHand.help') }}</p>
+        <p
+          v-if="combat.player.discardsRemaining != null"
+          class="arena__hand-hint"
+          role="status"
+          data-testid="discards-remaining"
+        >
+          {{ t('combat.persistentHand.discardsRemaining', { n: combat.player.discardsRemaining }) }}
         </p>
       </template>
       <template v-else>
@@ -270,7 +327,7 @@ onBeforeUnmount(() => {
           data-testid="discard-draw-btn"
           @click="emit('discard-draw')"
         >
-          {{ t('combat.turnPrototype.discardForDraw') }}
+          {{ t('combat.discardForDraw') }}
         </button>
         <button
           v-else
@@ -289,7 +346,17 @@ onBeforeUnmount(() => {
           data-testid="play-card-btn"
           @click="emit('play-card')"
         >
-          {{ t('combat.playCard') }}
+          {{ t(coopTurn === null ? 'combat.playCard' : 'coop.playOnEnemy') }}
+        </button>
+        <button
+          v-if="ally"
+          type="button"
+          class="btn-secondary"
+          :disabled="!canAffordSelected || isDropDisabled('play-ally')"
+          data-testid="play-on-ally-btn"
+          @click="emit('play-on-ally', selectedCard)"
+        >
+          {{ t('coop.playOnAlly') }}
         </button>
         <button
           type="button"
@@ -302,11 +369,6 @@ onBeforeUnmount(() => {
         </button>
       </div>
     </section>
-
-    <details class="arena__side arena__log">
-      <summary>{{ t('combat.logTitle') }}</summary>
-      <CombatLog :logs="logs" />
-    </details>
   </div>
 </template>
 
@@ -359,8 +421,7 @@ onBeforeUnmount(() => {
   flex: none;
 }
 
-.arena__menu summary,
-.arena__log summary {
+.arena__menu summary {
   cursor: pointer;
 }
 
@@ -376,9 +437,36 @@ onBeforeUnmount(() => {
   background: var(--color-bg);
 }
 
-.arena__log summary {
-  padding: 0.75rem;
-  background: var(--color-bg-soft);
-  font-weight: 700;
+@media (min-width: 1120px) {
+  .arena--duo {
+    grid-template-columns: minmax(0, 1fr) 17rem;
+    grid-template-areas:
+      'top top'
+      'duel ally'
+      'hand ally';
+    column-gap: 1.25rem;
+  }
+
+  .arena--duo > .arena__top {
+    grid-area: top;
+  }
+
+  .arena--duo > .arena__duel {
+    grid-area: duel;
+  }
+
+  .arena--duo > .arena__teammate {
+    grid-area: ally;
+    align-self: start;
+  }
+
+  .arena--duo > .arena__hand-wrap {
+    grid-area: hand;
+  }
+
+  .arena--duo > .arena__hand-wrap :deep(.hand) {
+    margin-inline: 0;
+    padding-inline: 0.75rem;
+  }
 }
 </style>

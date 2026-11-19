@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CombatHand from '../combat/CombatHand.vue';
-import CombatLog from '../combat/CombatLog.vue';
+import CombatHeaderLog from '../combat/CombatHeaderLog.vue';
 import CombatDropZones from '../combat/CombatDropZones.vue';
 import PlayerStatus from '../combat/PlayerStatus.vue';
 
@@ -127,7 +127,7 @@ const outcomeKey = computed(() => {
 </script>
 
 <template>
-  <div class="arena arena--with-side" data-testid="pvp-arena" data-combat-drop-root>
+  <div class="arena" data-testid="pvp-arena" data-combat-drop-root>
     <header class="arena__top">
       <div class="pvp-top">
         <p class="arena__turn" :data-tone="isMyTurn ? 'indigo' : 'vermilion'">
@@ -287,10 +287,7 @@ const outcomeKey = computed(() => {
       </div>
     </section>
 
-    <details class="arena__side pvp-log">
-      <summary>{{ t('combat.logTitle') }} <span aria-hidden="true">⌄</span></summary>
-      <CombatLog :logs="logs" :viewer-seat="role" />
-    </details>
+    <CombatHeaderLog :logs="logs" :viewer-seat="role" />
   </div>
 </template>
 
@@ -327,8 +324,7 @@ const outcomeKey = computed(() => {
   cursor: pointer;
   list-style: none;
 }
-.pvp-menu summary::-webkit-details-marker,
-.pvp-log > summary::-webkit-details-marker {
+.pvp-menu summary::-webkit-details-marker {
   display: none;
 }
 .pvp-menu__content {
@@ -350,27 +346,6 @@ const outcomeKey = computed(() => {
 }
 .pvp-menu__content button:disabled {
   opacity: 0.45;
-}
-.pvp-log {
-  align-self: start;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-soft);
-}
-.pvp-log > summary {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  list-style: none;
-}
-.pvp-log[open] > summary span {
-  transform: rotate(180deg);
-}
-.pvp-log :deep(.combat-log__title) {
-  display: none;
 }
 
 .pvp-top {

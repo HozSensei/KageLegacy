@@ -148,16 +148,24 @@ export function computeCardBlock(card, stats, playerStatuses = [], talentMods = 
   return Math.max(0, Math.round(block * talentMult * statusMult));
 }
 
-export function computeCardHeal(card, stats, talentMods = {}, playerStatuses = []) {
+export function computeCardHeal(
+  card,
+  stats = {},
+  talentMods = {},
+  playerStatuses = [],
+  comboHeal = 0,
+) {
   const scalingStat =
     card.statType === 'common' ? resolveScalingStat('common', stats) : Number(stats.medicine) || 0;
-  const base = Math.round(
-    scaleHeal(Number(card.heal) || 0, scalingStat) * (1 + (Number(talentMods.heldHealPct) || 0)),
-  );
+  const base = scaleHeal(Number(card.heal) || 0, scalingStat);
   const flat = Number(talentMods.healFlat) || 0;
   const talentMult = Number(talentMods.healMult) || 1;
   const statusMult = outgoingHealMultiplier(playerStatuses);
-  return Math.round((base + flat) * talentMult * statusMult);
+  const heal = (base + flat) * talentMult * statusMult;
+  const heldHealPct = Number(talentMods.heldHealPct) || 0;
+  return heldHealPct
+    ? Math.round((heal + comboHeal) * (1 + heldHealPct))
+    : Math.round(heal) + comboHeal;
 }
 
 /**
@@ -177,12 +185,6 @@ export function applyCardPlay({
   const logs = [];
   let nextPlayer = { ...player, statuses: [...(player.statuses || [])] };
   let nextEnemy = { ...enemy, statuses: [...(enemy.statuses || [])] };
-  const resolutionPlayer = card?.heldEffect
-    ? {
-        ...nextPlayer,
-        hand: (nextPlayer.hand || []).filter(item => item.instanceId !== card.instanceId),
-      }
-    : nextPlayer;
 
   if (talentMods.denyNonItem && card.type !== 'item') {
     const err = new Error('Maître des Objets : seules les cartes Objet sont jouables.');
@@ -244,7 +246,7 @@ export function applyCardPlay({
       talentMods,
       cardsPlayedThisTurn: Number(nextPlayer.cardsPlayedThisTurn) || 0,
       previousCardStatType: nextPlayer.previousCardStatType,
-      player: resolutionPlayer,
+      player: nextPlayer,
       rng,
     });
 
@@ -322,13 +324,13 @@ export function applyCardPlay({
 
   // Soin
   if ((Number(card.heal) || 0) > 0) {
-    const healAmt =
-      computeCardHeal(
-        card,
-        stats,
-        { ...talentMods, heldHealPct: heldEffectMods(resolutionPlayer, card).healPct },
-        nextPlayer.statuses,
-      ) + comboValue(card, nextPlayer.previousCardStatType, 'heal');
+    const healAmt = computeCardHeal(
+      card,
+      stats,
+      { ...talentMods, heldHealPct: heldEffectMods(nextPlayer, card).healPct },
+      nextPlayer.statuses,
+      comboValue(card, nextPlayer.previousCardStatType, 'heal'),
+    );
     const before = nextPlayer.hp;
     nextPlayer.hp = Math.min(nextPlayer.maxHp, nextPlayer.hp + healAmt);
     const applied = nextPlayer.hp - before;
@@ -348,7 +350,6 @@ export function applyCardPlay({
       enemy: nextEnemy,
       card,
       stats,
-      resolutionPlayer,
       talentCodes,
       talentMods,
       rng,
@@ -431,7 +432,7 @@ function applyExtraEffect(effect, ctx) {
       const chakra = Math.max(0, Number(effect.chakra) || 0);
       const costReduction = Math.max(0, Math.floor(Number(effect.costReduction) || 0));
       if (count > 0) {
-        const drawn = drawCards(player, count, ctx.rng);
+        const drawn = drawCards(player, count, ctx.rng, { playingInstanceId: ctx.card.instanceId });
         player = drawn.player;
         logs.push({ type: 'draw', count: drawn.drawn.length, instanceIds: drawn.drawn });
       }
@@ -457,7 +458,9 @@ function applyExtraEffect(effect, ctx) {
       logs.push({ type: 'next_card_cost_ready', amount });
     }
   } else if (type === 'draw') {
-    const drawn = drawCards(player, Number(effect.value) || 1, ctx.rng);
+    const drawn = drawCards(player, Number(effect.value) || 1, ctx.rng, {
+      playingInstanceId: ctx.card.instanceId,
+    });
     player = drawn.player;
     logs.push({ type: 'draw', count: drawn.drawn.length, instanceIds: drawn.drawn });
   } else if (type === 'gain_energy' || type === 'gain_chakra') {
@@ -542,19 +545,11 @@ function applyExtraEffect(effect, ctx) {
   } else if (type === 'multi_strike' || type === 'bonus_if' || type === 'aoe') {
     // multi_strike / bonus_if / aoe : déjà traités dans computeCardDamage
   } else if (type === 'heal_self' || type === 'heal') {
-    const talentMods = ctx.talentMods || {};
-    const raw = Math.max(0, Number(effect.value) || 0);
-    const flat = Number(talentMods.healFlat) || 0;
-    const talentMult = Number(talentMods.healMult) || 1;
-    const scalingStat =
-      ctx.card?.statType === 'common'
-        ? resolveScalingStat('common', ctx.stats)
-        : Number(ctx.stats?.medicine) || 0;
-    const healAmt = Math.round(
-      (scaleHeal(raw, scalingStat) + flat) *
-        talentMult *
-        (1 + heldEffectMods(ctx.resolutionPlayer || player, ctx.card).healPct) *
-        outgoingHealMultiplier(player.statuses),
+    const healAmt = computeCardHeal(
+      { statType: ctx.card.statType, heal: effect.value },
+      ctx.stats,
+      { ...ctx.talentMods, heldHealPct: heldEffectMods(player, ctx.card).healPct },
+      player.statuses,
     );
     if (healAmt > 0) {
       const before = player.hp;

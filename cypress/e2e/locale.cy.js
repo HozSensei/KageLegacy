@@ -5,12 +5,12 @@ describe('Locale — FR/EN V2', () => {
     cy.get('[data-testid="landing-page"]').should('be.visible');
     cy.get('[data-testid="locale-switch-en"]').click();
     cy.get('[data-testid="landing-guest"]').should('contain', 'guest');
-    cy.window().then((win) => {
+    cy.window().then(win => {
       expect(win.localStorage.getItem('kage-locale')).to.eq('en');
     });
     cy.get('[data-testid="locale-switch-fr"]').click();
     cy.get('[data-testid="landing-guest"]').should('contain', 'invité');
-    cy.window().then((win) => {
+    cy.window().then(win => {
       expect(win.localStorage.getItem('kage-locale')).to.eq('fr');
     });
   });
@@ -32,7 +32,7 @@ describe('Locale — FR/EN V2', () => {
       cy.get('[data-testid="nav-hub"]').should('contain', 'Home');
       cy.get('[data-testid="nav-shop"]').should('contain', 'Shop');
       cy.get('[data-testid="nav-battle-pass"]').should('contain', 'Battle Pass');
-      cy.get('[data-testid="nav-pvp"]').should('contain', 'PvP');
+      cy.get('[data-testid="nav-coop"]').should('contain', 'Co-op combat');
 
       cy.closeSlidePanel();
       cy.get('[data-testid="profile-menu-button"]').click();
@@ -44,6 +44,7 @@ describe('Locale — FR/EN V2', () => {
       cy.get('[data-testid="nav-missions"]').should('contain', 'Missions');
       cy.get('[data-testid="nav-hub"]').should('contain', 'Accueil');
       cy.get('[data-testid="nav-shop"]').should('contain', 'Boutique');
+      cy.get('[data-testid="nav-coop"]').should('contain', 'Combat coopératif');
     });
 
     it('persiste la locale et rafraîchit la collection', () => {

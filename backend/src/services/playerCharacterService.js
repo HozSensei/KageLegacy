@@ -101,31 +101,23 @@ export async function getTalentStatBonuses(userId) {
 }
 
 /**
- * Bonus passifs des cartes du deck actif (Phase 2 — tables pas encore créées).
- * Préparé pour : user_decks (is_active) → user_deck_cards → card_definitions.passive_bonus_json
- */
-/**
- * Délègue à deckService (Phase 2) pour upgrades + quantités.
- * Fallback vide si les tables cartes n’existent pas encore.
+ * Bonus passifs du deck actif, améliorations et quantités incluses.
+ * Si le schéma des cartes manque, le personnage peut encore être lu sans ces bonus.
  */
 export async function getDeckPassiveBonuses(userId) {
-  const hasDecks = await tableExists('user_decks');
-  const hasDeckCards = await tableExists('user_deck_cards');
-  const hasDefs = await tableExists('card_definitions');
-  if (!hasDecks || !hasDeckCards || !hasDefs) return createEmptyStats();
-
   try {
     const { getDeckPassiveBonuses: fromDeckService } = await import('./deckService.js');
-    return fromDeckService(userId);
-  } catch {
-    return createEmptyStats();
+    return await fromDeckService(userId);
+  } catch (error) {
+    if (error.code === 'ER_NO_SUCH_TABLE') return createEmptyStats();
+    throw error;
   }
 }
 
-export async function getComputedStats(userId) {
+export async function getComputedStats(userId, { deckPassives } = {}) {
   const [fromTalents, fromCards] = await Promise.all([
     getTalentStatBonuses(userId),
-    getDeckPassiveBonuses(userId),
+    deckPassives ?? getDeckPassiveBonuses(userId),
   ]);
   const total = mergeStatBonuses(fromTalents, fromCards);
   return {

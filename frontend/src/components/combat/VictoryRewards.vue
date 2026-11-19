@@ -12,6 +12,7 @@ const props = defineProps({
   /** Combat au sein d'un parcours : pas de loot immédiat */
   midRun: { type: Boolean, default: false },
   continueLabel: { type: String, default: null },
+  showPendingRewards: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(['dismiss']);
@@ -93,7 +94,7 @@ const lines = computed(() => {
       <p v-else-if="isVictory && rewards?.error" class="victory__muted">
         {{ t('combat.rewardError') }}
       </p>
-      <p v-else-if="isVictory && !rewards && !midRun" class="victory__muted">
+      <p v-else-if="isVictory && !rewards && !midRun && showPendingRewards" class="victory__muted">
         {{ t('combat.rewardPending') }}
       </p>
     </div>

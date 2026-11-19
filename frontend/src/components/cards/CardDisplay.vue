@@ -68,6 +68,12 @@ const rarityLevel = computed(() => rarity.value.pips || 1);
 
 const typeLabel = computed(() => t(`cards.types.${props.card.type}`, props.card.type));
 const typeVisual = computed(() => cardTypeVisual(props.card.type));
+const combatRoleLabel = computed(() => {
+  const role = props.card.combatRole;
+  if (typeof role !== 'string' || !role) return null;
+  const key = `cards.combatRoles.${role}`;
+  return te(key) ? t(key) : null;
+});
 
 const elementKey = computed(() => String(props.card.element || '').toLowerCase());
 const elementLabel = computed(() => {
@@ -308,6 +314,7 @@ watch(
 
           <footer class="card-display__footer">
             <span
+              v-if="catalogueNumber != null || !combatRoleLabel"
               class="card-display__serial"
               data-testid="card-catalogue-number"
               :title="
@@ -317,6 +324,13 @@ watch(
               "
             >
               {{ serialLabel }}
+            </span>
+            <span
+              v-if="combatRoleLabel"
+              class="card-display__combat-role"
+              :title="t('cards.combatRoleLabel', { role: combatRoleLabel })"
+            >
+              {{ combatRoleLabel }}
             </span>
             <div class="card-display__rarity" :aria-label="t(`cards.rarities.${rarityKey}`)">
               <span class="card-display__rarity-name">{{ t(`cards.rarities.${rarityKey}`) }}</span>
@@ -910,7 +924,7 @@ watch(
   font-variant-numeric: tabular-nums;
 }
 
-/* Footer serial + rareté */
+/* Footer : numéro de catalogue, rôle de combat et rareté */
 .card-display__footer {
   height: 29px;
   margin: 8px -15px 0;
@@ -930,6 +944,15 @@ watch(
   font-weight: 800;
   color: #826c55;
   letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-display__combat-role {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #655442;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

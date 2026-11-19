@@ -35,7 +35,7 @@ const comboPreviews = computed(() =>
 );
 
 // Within the nearest [data-combat-drop-root], zones declare data-combat-drop-zone
-// as play/discard/discard-for-draw/reserve and data-combat-drop-disabled="true" when unavailable.
+// and data-combat-drop-disabled="true" when unavailable.
 // Hover changes emit drag-zone-change with an available action or null.
 // A valid drop emits drop-intent({ card, action }); the consumer validates it.
 const drag = ref(null);
@@ -62,10 +62,10 @@ function dropZoneAt(current, x, y) {
     zone.closest('[data-combat-drop-root]') === root &&
     !current.element.parentElement?.contains(zone) &&
     zone.dataset.combatDropDisabled !== 'true' &&
-    ['play', 'discard', 'discard-for-draw', 'reserve'].includes(action) &&
+    ['play', 'play-ally', 'discard', 'discard-for-draw', 'reserve'].includes(action) &&
     !props.disabled &&
     card &&
-    (action !== 'play' || canAfford(card))
+    (!['play', 'play-ally'].includes(action) || canAfford(card))
   )
     return action;
   return null;
@@ -207,7 +207,7 @@ const displayCards = computed(() =>
       class="hand-card"
       :class="{
         'hand-card--selected': selectedId === card.instanceId,
-        'hand-card--dragging': drag?.card === card && drag.moved,
+        'hand-card--dragging': drag?.card.instanceId === card.instanceId && drag.moved,
         'hand-card--unaffordable': !canAfford(card),
       }"
       :style="{

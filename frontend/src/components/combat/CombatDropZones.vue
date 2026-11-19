@@ -4,7 +4,7 @@ import AppIcon from '../ui/AppIcon.vue';
 
 defineOptions({ name: 'CombatDropZones' });
 
-defineProps({
+const props = defineProps({
   actions: { type: Array, default: () => ['play', 'discard', 'reserve'] },
   disabledActions: { type: Array, default: () => [] },
   hoveredZone: { type: String, default: null },
@@ -14,19 +14,29 @@ const { t } = useI18n();
 
 const zones = {
   play: { icon: 'attack', label: 'combat.playCard', tone: 'vermilion' },
+  'play-ally': { icon: 'profile', label: 'coop.playOnAlly', tone: 'leaf' },
   discard: { icon: 'essence', label: 'combat.discardForChakra', tone: 'gold' },
   'discard-for-draw': {
     icon: 'decks',
-    label: 'combat.turnPrototype.discardForDraw',
+    label: 'combat.discardForDraw',
     tone: 'indigo',
   },
   reserve: { icon: 'decks', label: 'combat.reserveCard', tone: 'indigo' },
 };
+
+function zoneLabel(action) {
+  return action === 'play' && props.actions.includes('play-ally')
+    ? 'coop.playOnEnemy'
+    : zones[action].label;
+}
 </script>
 
 <template>
   <div class="arena-drop-board">
-    <div class="arena-drop-board__cards">
+    <div
+      class="arena-drop-board__cards"
+      :class="{ 'arena-drop-board__cards--coop': actions.includes('play-ally') }"
+    >
       <div
         v-for="(action, index) in actions"
         :key="action"
@@ -47,7 +57,7 @@ const zones = {
           size="2.5rem"
           :stroke-width="1.5"
         />
-        <span class="arena-drop-zone__label">{{ t(zones[action].label) }}</span>
+        <span class="arena-drop-zone__label">{{ t(zoneLabel(action)) }}</span>
       </div>
     </div>
   </div>
@@ -70,6 +80,11 @@ const zones = {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(0.4rem, 1.2vw, 1rem);
   width: min(39rem, 100%);
+}
+
+.arena-drop-board__cards--coop {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(48rem, 100%);
 }
 
 .arena-drop-zone {
@@ -134,6 +149,17 @@ const zones = {
     0 0 0 0.2rem var(--tone),
     0 0.75rem 1.75rem color-mix(in srgb, var(--tone) 30%, transparent);
   transform: translateY(-0.35rem);
+}
+
+@media (max-width: 560px) {
+  .arena-drop-board__cards--coop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .arena-drop-board__cards--coop .arena-drop-zone {
+    aspect-ratio: auto;
+    min-height: 6rem;
+  }
 }
 
 .arena-drop-zone--disabled {

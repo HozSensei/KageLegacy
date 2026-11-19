@@ -44,6 +44,8 @@ import { applyUpgradeBonuses } from '../cardService.js';
 import { createEmptyStats, rankForLevel } from '../playerCharacterService.js';
 import { BALANCE_PROFILES, PLAYER_POLICY } from '../../config/combatBalanceConfig.js';
 
+const MAX_VOLUNTARY_DISCARDS = 2;
+
 /** Mulberry32 — RNG déterministe [0,1). */
 export function createSeededRng(seed) {
   let t = Number(seed) >>> 0 || 1;
@@ -186,10 +188,7 @@ export function scoreCardForGreedy(card, session) {
   return 1;
 }
 
-function tryDiscardForBetterPlay(session) {
-  const hand = [...(session.player.hand || [])];
-  if (!hand.length || session.player.discardedForChakra) return null;
-
+function weakestCard(hand) {
   let discardTarget = hand[0];
   let worst = Infinity;
   for (const card of hand) {
@@ -203,13 +202,26 @@ function tryDiscardForBetterPlay(session) {
     }
   }
 
-  const moved = moveCardFromHand(session.player, discardTarget.instanceId, 'discard');
+  return discardTarget;
+}
+
+function tryDiscardForBetterPlay(session) {
+  const { player, persistentHand } = session;
+  const used = player.voluntaryDiscards || 0;
+  if (player.discardedForChakra || (persistentHand && used >= MAX_VOLUNTARY_DISCARDS)) {
+    return null;
+  }
+  const discardTarget = weakestCard(player.hand || []);
+  if (!discardTarget) return null;
+
+  const moved = moveCardFromHand(player, discardTarget.instanceId, 'discard');
   const nextSession = {
     ...session,
     player: {
       ...moved.player,
       chakra: (Number(moved.player.chakra) || 0) + 1,
       discardedForChakra: true,
+      ...(persistentHand && { voluntaryDiscards: used + 1 }),
     },
   };
 
@@ -222,6 +234,31 @@ function tryDiscardForBetterPlay(session) {
   return {
     session: nextSession,
     logs: [{ type: 'discard_for_chakra', instanceId: discardTarget.instanceId }],
+  };
+}
+
+function tryDiscardForDraw(session, rng) {
+  const { player } = session;
+  const used = player.voluntaryDiscards || 0;
+  if (!session.persistentHand || used >= MAX_VOLUNTARY_DISCARDS) return null;
+  const discardTarget = weakestCard(player.hand || []);
+  if (!discardTarget) return null;
+
+  const moved = moveCardFromHand(player, discardTarget.instanceId, 'discard');
+  // N'inclut pas la carte échangée dans le remélange de cette pioche.
+  const drawn = drawCards({ ...moved.player, discardPile: player.discardPile }, 1, rng);
+  if (!drawn.drawn.length) return null;
+
+  return {
+    session: {
+      ...session,
+      player: {
+        ...drawn.player,
+        discardPile: [...drawn.player.discardPile, moved.card],
+        voluntaryDiscards: used + 1,
+      },
+    },
+    logs: [{ type: 'discard_for_draw', instanceId: discardTarget.instanceId }],
   };
 }
 
@@ -313,17 +350,13 @@ export function playGreedyPlayerTurn(session, rng, onCardPlayed) {
       }
     }
 
-    if ((!best || bestScore === -Infinity) && !s.player.discardedForChakra) {
-      const maybe = tryDiscardForBetterPlay(s);
-      if (maybe) {
-        s = maybe.session;
-        logs.push(...maybe.logs);
-        continue;
-      }
-      break;
+    if (!best || bestScore === -Infinity) {
+      const action = tryDiscardForBetterPlay(s) || tryDiscardForDraw(s, rng);
+      if (!action) break;
+      s = action.session;
+      logs.push(...action.logs);
+      continue;
     }
-
-    if (!best || bestScore === -Infinity) break;
 
     const played = simPlayCard(s, best.instanceId, rng);
     onCardPlayed?.({
@@ -456,13 +489,14 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
     ...playerStart.entity,
     chakra: s.player.maxChakra ?? BASE_CHAKRA,
     discardedForChakra: false,
+    ...(s.persistentHand && { voluntaryDiscards: 0 }),
     elementalFusionDrawnThisTurn: false,
   };
 
   const talentStart = applyTalentStartOfTurn(s.player, s.talentEffects.applied, {
     turn: s.currentTurn,
   });
-  s.player = applyHeldTurnStart(talentStart.player).player;
+  s.player = s.persistentHand ? talentStart.player : applyHeldTurnStart(talentStart.player).player;
 
   const allyAct = resolveAllyAttack(s.player, s.enemy);
   s.player = allyAct.player;
@@ -476,6 +510,13 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
   }
 
   const leftover = s.player.hand || [];
+  if (s.persistentHand) {
+    const missing = Math.max(0, DRAW_PER_TURN - leftover.length);
+    const drawn = drawCards(s.player, missing, rng);
+    s.player = applyHeldTurnStart(drawn.player).player;
+    return { session: s, logs };
+  }
+
   s.player = {
     ...s.player,
     hand: [],
@@ -488,7 +529,7 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
 }
 
 /**
- * Initialise une session de combat pure.
+ * Initialise une session de combat pure, avec main persistante en opt-in.
  */
 export function createSimSession({
   profileId = 'beginner',
@@ -497,6 +538,7 @@ export function createSimSession({
   seed = 1,
   deckEntries = null,
   profileOverride = null,
+  persistentHand = false,
 } = {}) {
   const profile = profileOverride || BALANCE_PROFILES[profileId];
   if (!profile) throw new Error(`Profil inconnu: ${profileId}`);
@@ -529,6 +571,7 @@ export function createSimSession({
     discardPile: [],
     exhaustPile: [],
     discardedForChakra: false,
+    ...(persistentHand && { voluntaryDiscards: 0 }),
     ally: null,
     taijutsuPlayedThisTurn: 0,
     ninjutsuPlayedThisTurn: 0,
@@ -572,6 +615,7 @@ export function createSimSession({
     deckUpgradeLevel: profile.deckUpgradeLevel || 0,
     templateId,
     seed,
+    persistentHand,
     policy: PLAYER_POLICY.id,
     rng,
   };

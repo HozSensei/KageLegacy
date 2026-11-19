@@ -18,6 +18,7 @@ import {
   shuffle,
 } from './deckCombat/deckRuntime.js';
 import { applyCardPlay, resolveAllyAttack } from './deckCombat/cardEffects.js';
+import { applySoloCardBalance } from './deckCombat/soloCardBalance.js';
 import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './deckCombat/statuses.js';
 import { applyHeldTurnStart } from './deckCombat/heldEffects.js';
 import {
@@ -171,8 +172,9 @@ function publicState(session, extraLogs = []) {
     currentTurn: session.currentTurn,
     currentPhase: session.currentPhase,
     turnPrototype: session.player.turnPrototype || null,
+    ruleset: session.player.ruleset || session.player.turnPrototype || 'classic',
     player: sanitizePlayer(session.player),
-    enemy: sanitizeEnemy(session.enemy, session.player.turnPrototype),
+    enemy: sanitizeEnemy(session.enemy, session.player.ruleset || session.player.turnPrototype),
     stats: session.stats,
     talentEffects: session.talentEffects,
     rewards: session.rewards || null,
@@ -198,7 +200,7 @@ function sanitizePlayer(player) {
     discardedForChakra: Boolean(player.discardedForChakra),
     previousCardStatType: player.previousCardStatType || null,
     reservedCard: player.reserveCard || null,
-    ...(player.turnPrototype === 'persistent' && {
+    ...(usesPersistentHand(player) && {
       discardsRemaining: Math.max(0, 2 - (player.voluntaryDiscards || 0)),
       chakraDiscardAvailable: !player.discardedForChakra && (player.voluntaryDiscards || 0) < 2,
     }),
@@ -227,8 +229,30 @@ function configurePrototypeEnemy(enemy) {
   return enemy;
 }
 
+function usesPersistentHand(player) {
+  return (player.ruleset || player.turnPrototype) === 'persistent';
+}
+
+function queueSoloIntent(enemy, rng = Math.random) {
+  const upcoming = { ...enemy, patternIndex: (Number(enemy.patternIndex) || 0) + 1 };
+  return {
+    ...enemy,
+    queuedIntent: { phaseIndex: enemy.phaseIndex ?? -1, intent: getNextIntent(upcoming, 0, rng) },
+  };
+}
+
+function syncSoloIntent(session) {
+  if (session.player.ruleset !== 'persistent') return;
+  if (session.enemy.queuedIntent?.phaseIndex !== (session.enemy.phaseIndex ?? -1)) {
+    session.enemy = queueSoloIntent(session.enemy);
+  }
+}
+
 function previewNextIntent(enemy) {
-  const next = enemy.pattern?.[((enemy.patternIndex || 0) + 1) % enemy.pattern.length];
+  if (enemy.intent?.type === 'charge') return { type: 'attack' };
+  const next =
+    enemy.queuedIntent?.intent ??
+    enemy.pattern?.[((enemy.patternIndex || 0) + 1) % enemy.pattern.length];
   return next ? { type: next.type } : null;
 }
 
@@ -354,7 +378,7 @@ async function finalizeCombatOutcome(session, logs = []) {
 async function resolveDeckCards(userId, deckId) {
   const { getPlayableDeckForCombat } = await import('./deckService.js');
   const deck = await getPlayableDeckForCombat(userId, deckId);
-  return { deckId: deck.id, cards: deck.cards, practice: false };
+  return { deckId: deck.id, cards: deck.cards, deckPassives: deck.passiveBonuses, practice: false };
 }
 
 async function loadTalentEffectCodes(userId) {
@@ -440,12 +464,12 @@ export async function startCombat(userId, opts = {}) {
   }
   if (!templateId) templateId = 'ronin_bandit';
 
-  const [{ total: stats }, effectCodes, playerName, deckInfo] = await Promise.all([
-    getComputedStats(userId),
+  const [effectCodes, playerName, deckInfo] = await Promise.all([
     loadTalentEffectCodes(userId),
     loadPlayerName(userId),
     resolveDeckCards(userId, opts.deckId),
   ]);
+  const { total: stats } = await getComputedStats(userId, { deckPassives: deckInfo.deckPassives });
 
   const classified = classifyTalentEffects(effectCodes);
   const maxHp =
@@ -455,8 +479,15 @@ export async function startCombat(userId, opts = {}) {
   const startHp =
     opts.startingHp != null ? Math.max(1, Math.min(maxHp, Number(opts.startingHp))) : maxHp;
 
+  const ruleset = turnPrototype || 'persistent';
+  const entries = !turnPrototype
+    ? deckInfo.cards.map(entry => ({
+        ...entry,
+        card: applySoloCardBalance(entry.card || entry),
+      }))
+    : deckInfo.cards;
   const runtimeCards = buildRuntimeDeck(
-    deckInfo.cards,
+    entries,
     (card, n) => `${card.slug || card.id}-${n}-${randomUUID().slice(0, 8)}`
   );
   const shuffled = shuffle(runtimeCards);
@@ -467,9 +498,11 @@ export async function startCombat(userId, opts = {}) {
     hp: startHp,
     maxHp,
     block: Math.max(0, Number(stats.startingBlock) || 0),
-    chakra: (turnPrototype ? 5 : BASE_CHAKRA) + (Number(stats.maxChakra) || 0),
-    maxChakra: (turnPrototype ? 5 : BASE_CHAKRA) + (Number(stats.maxChakra) || 0),
-    ...(turnPrototype && { turnPrototype, voluntaryDiscards: 0 }),
+    chakra: 5 + (Number(stats.maxChakra) || 0),
+    maxChakra: 5 + (Number(stats.maxChakra) || 0),
+    ruleset,
+    voluntaryDiscards: 0,
+    ...(turnPrototype && { turnPrototype }),
     statuses: [],
     hand: [],
     drawPile: shuffled,
@@ -500,8 +533,10 @@ export async function startCombat(userId, opts = {}) {
   const heldStart = applyHeldTurnStart(player);
   player = heldStart.player;
 
-  const enemy = generateEnemyFromTemplate(templateId, difficulty);
-  if (turnPrototype) configurePrototypeEnemy(enemy);
+  const generatedEnemy = generateEnemyFromTemplate(templateId, difficulty);
+  const enemy = turnPrototype
+    ? configurePrototypeEnemy(generatedEnemy)
+    : queueSoloIntent(generatedEnemy);
 
   const id = randomUUID();
   const talentEffects = {
@@ -663,6 +698,7 @@ export async function playCard(userId, combatId, { instanceId, cardId } = {}) {
 
   session.player = moved.player;
   session.enemy = nextEnemy;
+  syncSoloIntent(session);
 
   try {
     const { trackCardPlayForAchievements } = await import('./achievementService.js');
@@ -720,7 +756,7 @@ function useCardTurnAction(session, instanceId, reserve = false, forDraw = false
   if (session.state !== 'in_progress') throw httpError(400, 'Combat terminé.');
   if (session.currentPhase !== 'player_turn') throw httpError(400, "Ce n'est pas votre tour.");
   const player = session.player;
-  if (player.turnPrototype === 'persistent') {
+  if (usesPersistentHand(player)) {
     if (reserve) throw httpError(400, 'La main est déjà conservée dans ce mode.');
     if ((player.voluntaryDiscards || 0) >= 2) throw httpError(400, 'Quota de défausses atteint.');
     if (!forDraw && player.discardedForChakra)
@@ -792,7 +828,7 @@ export async function reserveCard(userId, combatId, { instanceId } = {}) {
 }
 
 function chakraCarryover(player) {
-  if (player.turnPrototype === 'persistent') return 0;
+  if (usesPersistentHand(player)) return 0;
   return Math.min(1, Math.max(0, Number(player.chakra) || 0));
 }
 
@@ -864,10 +900,13 @@ export async function endTurn(userId, combatId) {
     return publicState(session, logs);
   }
 
+  syncSoloIntent(session);
+  const solo = session.player.ruleset === 'persistent' && !session.player.turnPrototype;
   const enemyAct = executeEnemyIntent(session.enemy, session.player, Math.random, {
     talentCodes: session.talentEffects.applied,
+    queuedIntent: solo ? session.enemy.queuedIntent : null,
   });
-  session.enemy = enemyAct.enemy;
+  session.enemy = solo ? queueSoloIntent(enemyAct.enemy) : enemyAct.enemy;
   session.player = enemyAct.player;
   logs.push(...enemyAct.logs);
 
@@ -956,9 +995,11 @@ export async function endTurn(userId, combatId) {
   });
   session.player = talentStart.player;
   logs.push(...talentStart.logs);
-  const heldStart = applyHeldTurnStart(session.player);
-  session.player = heldStart.player;
-  logs.push(...heldStart.logs);
+  if (!usesPersistentHand(session.player)) {
+    const heldStart = applyHeldTurnStart(session.player);
+    session.player = heldStart.player;
+    logs.push(...heldStart.logs);
+  }
 
   // Allié attaque automatiquement
   const allyAct = resolveAllyAttack(session.player, session.enemy);
@@ -973,9 +1014,15 @@ export async function endTurn(userId, combatId) {
     return publicState(session, logs);
   }
 
+  syncSoloIntent(session);
   const refreshed = refreshHand(session.player);
   session.player = refreshed.player;
   logs.push(...refreshed.logs);
+  if (usesPersistentHand(session.player)) {
+    const heldStart = applyHeldTurnStart(session.player);
+    session.player = heldStart.player;
+    logs.push(...heldStart.logs);
+  }
 
   if (checkVictory(session)) {
     logs = await finalizeCombatOutcome(session, logs);
@@ -989,7 +1036,7 @@ export async function endTurn(userId, combatId) {
 
 function refreshHand(player) {
   const hand = player.hand || [];
-  const persistent = player.turnPrototype === 'persistent';
+  const persistent = usesPersistentHand(player);
   const prepared = persistent
     ? { player: { ...player, voluntaryDiscards: 0 }, logs: [] }
     : returnReservedCard({
@@ -1030,5 +1077,7 @@ export const __test = {
   chakraCarryover,
   returnReservedCard,
   configurePrototypeEnemy,
+  queueSoloIntent,
+  syncSoloIntent,
   refreshHand,
 };

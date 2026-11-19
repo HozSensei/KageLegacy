@@ -11,7 +11,7 @@ defineOptions({ name: 'EnemyDisplay' });
 
 const props = defineProps({
   enemy: { type: Object, required: true },
-  showNextIntent: { type: Boolean, default: false },
+  intentTargets: { type: Array, default: null },
 });
 
 const { locale, t } = useI18n();
@@ -31,6 +31,17 @@ const initial = computed(() =>
 );
 
 const { deltas, hit } = useDeltaFeed(() => props.enemy.hp);
+
+function targetLabel(intent) {
+  if (!props.intentTargets || !intent) return '';
+  return (
+    intent.targetName ||
+    props.intentTargets.find(
+      target => target?.id != null && String(target.id) === String(intent.targetId)
+    )?.name ||
+    ''
+  );
+}
 </script>
 
 <template>
@@ -50,10 +61,11 @@ const { deltas, hit } = useDeltaFeed(() => props.enemy.hp);
       </div>
     </div>
 
-    <IntentDisplay :intent="enemy.intent" />
+    <IntentDisplay :intent="enemy.intent" :target-label="targetLabel(enemy.intent)" />
     <IntentDisplay
-      v-if="showNextIntent && enemy.nextIntent?.type"
+      v-if="enemy.nextIntent?.type"
       :intent="enemy.nextIntent"
+      :target-label="targetLabel(enemy.nextIntent)"
       preview
     />
 

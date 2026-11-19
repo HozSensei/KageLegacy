@@ -316,7 +316,11 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
   if (forceChargedIntent) {
     nextEnemy.intent = forceChargedIntent;
   } else {
-    nextEnemy.intent = getNextIntent(nextEnemy, 0, rng);
+    const queued = opts.queuedIntent;
+    nextEnemy.intent =
+      queued && queued.phaseIndex === (nextEnemy.phaseIndex ?? -1)
+        ? scaleIntent(queued.intent, nextEnemy)
+        : getNextIntent(nextEnemy, 0, rng);
   }
   logs.push({ type: 'intent', intent: nextEnemy.intent });
 

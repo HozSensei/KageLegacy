@@ -125,7 +125,24 @@ export function formatStructuredEffect(effect, { t, te }) {
   }
 
   if (type === 'multi_strike') return t('cards.effectMultiStrike', { n: effect.hits });
-  if (type === 'bonus_if') return null;
+
+  if (type === 'bonus_if' && Number.isFinite(n) && n !== 0) {
+    const signed = n > 0 ? `+${n}` : String(n);
+    switch (effect.condition) {
+      case 'enemy_vulnerable':
+        return t('cards.effectBonusIf.enemyVulnerable', { n: signed });
+      case 'enemy_weak':
+        return t('cards.effectBonusIf.enemyWeak', { n: signed });
+      case 'first_card':
+        return t('cards.effectBonusIf.firstCard', { n: signed });
+      case 'previous_card_stat_type':
+        if (!COMBO_ARTS.has(effect.statType)) return null;
+        return t('cards.effectBonusIf.previousCardStatType', {
+          n: signed,
+          art: t(`cards.stats.${effect.statType}`, effect.statType),
+        });
+    }
+  }
   return null;
 }
 

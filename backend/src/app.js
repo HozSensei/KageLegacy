@@ -10,6 +10,7 @@ import collectionRouter from './routes/collection.js';
 import decksRouter from './routes/decks.js';
 import talentsRouter from './routes/talents.js';
 import combatRouter from './routes/combat.js';
+import coopRouter from './routes/coop.js';
 import combatMissionsRouter from './routes/combatMissions.js';
 import battlePassRouter from './routes/battlePass.js';
 import achievementsRouter from './routes/achievements.js';
@@ -31,7 +32,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || true,
     credentials: true,
-  }),
+  })
 );
 
 // Stripe webhooks need the raw body for signature verification (before json parser).
@@ -49,6 +50,7 @@ app.use('/api/collection', collectionRouter);
 app.use('/api/decks', decksRouter);
 app.use('/api/talents', talentsRouter);
 app.use('/api/combat', combatRouter);
+app.use('/api/coop', coopRouter);
 app.use('/api/missions', combatMissionsRouter);
 app.use('/api/battle-pass', battlePassRouter);
 app.use('/api/achievements', achievementsRouter);

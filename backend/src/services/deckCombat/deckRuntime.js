@@ -17,10 +17,14 @@ export function shuffle(array, rng = Math.random) {
  * Pioche `count` cartes. Recycle la défausse si besoin.
  * Au-delà de MAX_HAND_SIZE → surplus va en défausse.
  */
-export function drawCards(player, count, rng = Math.random) {
+export function drawCards(player, count, rng = Math.random, { playingInstanceId } = {}) {
   let drawPile = [...(player.drawPile || [])];
   let discardPile = [...(player.discardPile || [])];
   const hand = [...(player.hand || [])];
+  // A played card stays in hand until its destination is resolved, but no longer occupies a slot.
+  const playingFromHand =
+    playingInstanceId != null && hand.some(card => card.instanceId === playingInstanceId);
+  const handLimit = MAX_HAND_SIZE + (playingFromHand ? 1 : 0);
   const exhaustPile = [...(player.exhaustPile || [])];
   const drawn = [];
   const autoDiscarded = [];
@@ -37,7 +41,7 @@ export function drawCards(player, count, rng = Math.random) {
     if (!card) break;
     remaining -= 1;
 
-    if (hand.length >= MAX_HAND_SIZE) {
+    if (hand.length >= handLimit) {
       discardPile.push(card);
       autoDiscarded.push(card.instanceId);
     } else {
@@ -108,6 +112,7 @@ export function buildRuntimeDeck(serializedCards, makeId) {
         summon: card.summon || null,
         exhaust: Boolean(card.exhaust),
         upgradeLevel: card.upgradeLevel || 0,
+        ...(card.combatRole && { combatRole: card.combatRole }),
         descriptionFr: card.descriptionFr,
         descriptionEn: card.descriptionEn,
       });

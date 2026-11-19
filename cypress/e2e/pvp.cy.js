@@ -1,16 +1,15 @@
-/**
- * PvP queue V2 — smoke page load uniquement.
- * Matchmaking complet (2 users) hors CI standard.
- */
-describe('PvP queue V2', () => {
+describe('PvP masqué par défaut', () => {
   beforeEach(() => {
     cy.loginDemo();
   });
 
-  it('charge la file d’attente', () => {
-    cy.visit('/pvp');
-    cy.get('[data-testid="pvp-queue-page"]', { timeout: 15000 }).should('be.visible');
-    cy.get('[data-testid="pvp-window"]').should('be.visible');
-    cy.get('[data-testid="pvp-join-queue"]').should('be.visible');
+  ['/pvp', '/pvp?invite=TESTCODE', '/pvp/duel/42'].forEach(path => {
+    it(`redirige ${path} sans monter la vue PvP`, () => {
+      cy.visit(path);
+      cy.location('pathname').should('be.oneOf', ['/home', '/coop']);
+      cy.location('search').should('eq', '');
+      cy.get('[data-testid="hub-page"], [data-testid="coop-page"]').should('be.visible');
+      cy.get('[data-testid="pvp-queue-page"], [data-testid="pvp-duel-page"]').should('not.exist');
+    });
   });
 });

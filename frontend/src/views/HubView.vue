@@ -11,6 +11,7 @@ import { useAchievementsStore } from '../stores/achievements';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
+import { PVP_ENABLED } from '../constants/featureFlags';
 import { sectionOf } from '../constants/sections';
 import hubImage from '../assets/illustrations/hub-office.webp';
 
@@ -95,6 +96,7 @@ const shortcuts = computed(() =>
       label: t('nav.missions'),
       hint: t('hub.shortcutMissions'),
     },
+    { name: 'coop', to: '/coop', label: t('coop.title'), hint: t('coop.lead') },
     { name: 'talents', to: '/talents', label: t('nav.talents'), hint: t('hub.shortcutTalents') },
     { name: 'decks', to: '/decks', label: t('nav.decks'), hint: t('hub.shortcutDecks') },
     {
@@ -111,13 +113,16 @@ const shortcuts = computed(() =>
       hint: t('hub.shortcutBp'),
     },
     { name: 'journal', to: '/journal', label: t('nav.journal'), hint: t('hub.shortcutJournal') },
-    { name: 'pvp', to: '/pvp', label: t('nav.pvp'), hint: t('hub.shortcutPvp') },
+    ...(PVP_ENABLED
+      ? [{ name: 'pvp', to: '/pvp', label: t('nav.pvp'), hint: t('hub.shortcutPvp') }]
+      : []),
     {
       name: 'leaderboard',
       to: '/classement',
       label: t('nav.leaderboard'),
       hint: t('hub.shortcutLeaderboard'),
     },
+
     { name: 'profile', to: '/profil', label: t('nav.profile'), hint: t('hub.shortcutProfile') },
   ].map(link => ({ ...link, section: sectionOf(link.name) }))
 );

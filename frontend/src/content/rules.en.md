@@ -175,25 +175,27 @@ You can reset the whole tree: every point spent is returned to you. You get **on
 
 ## Combat
 
-In PvE, a fight pits your ninja against one enemy, turn by turn. You always play first. For arena differences, see “The PvP arena”.
+In PvE, a fight pits your ninja against one enemy, turn by turn. You always play first. **Persistent hands** are the default in missions and quick duels. For arena differences, see “The PvP arena”.
 
 ### Setup
 
 - You have **100 HP**, plus your max HP bonus.
 - Your deck is shuffled and becomes your **draw pile**.
 - You draw **5 cards**.
-- The enemy **announces its intent**: you know what it will do on its next turn.
+- The enemy **announces its current intent**, which it will carry out on its next turn. When available, the **following intent** previews the type of action planned for the enemy turn after that, without numbers.
 
 ### Your turn
 
-- You have **3 base Chakra**, increased by max Chakra bonuses and potentially by talent effects.
+- Your Chakra refills to its maximum at the start of your turn. Unspent Chakra **does not carry over**. Cards and talents can modify your resources.
 - You play as many cards as your Chakra allows, in any order.
-- **Once per turn**, you can either discard a card from your hand to gain **1 Chakra** or reserve it for your next turn. You cannot do both.
+- You can discard **up to 2 cards per turn**. Each discard lets you draw another card if one is available, or gain **1 Chakra**. You can gain Chakra this way **once per turn**, and it counts toward the same limit.
 - You end your turn whenever you want.
 
-Select a card and use the buttons to play, discard or reserve it; you can also drag it to the corresponding zone. A reserved card immediately leaves your hand and cannot be played that turn.
+Select a card and use the buttons to play or discard it; you can also drag it to the corresponding zone.
 
-Cards left in your hand are discarded before the next draw, except the reserved card. On your next turn, you receive your base Chakra and max Chakra bonuses, plus up to **1 unspent Chakra** carried over automatically. The reserved card returns to your hand, then you draw up to 5 cards; cards and talents can modify these resources.
+Unplayed cards **stay in your hand**: there is no reserve. At the start of your next turn, you draw until you have **5 cards** in hand. If you already have 5 or more, you keep them without drawing at this step.
+
+Some cards display a combat role. This label describes the card without recommending what to play.
 
 Your hand is limited to **10 cards**. When the draw pile is empty, the discard pile is shuffled and becomes the draw pile again.
 
@@ -201,7 +203,7 @@ Some cards display a chain effect, such as “After Taijutsu: +2 damage” or �
 
 ### The enemy's turn
 
-The enemy carries out the intent it announced, then announces a new one:
+The enemy carries out its current intent, then the displayed intents are updated:
 
 | Intent             | Effect                                     |
 | ------------------ | ------------------------------------------ |
@@ -409,7 +411,7 @@ Once an opponent is found, the duel starts as soon as both players are ready.
 
 ### The duel
 
-The basics are those of mission combat: 100 HP plus your max HP bonus, 3 base Chakra plus max Chakra bonuses, up to 1 Chakra carried over automatically, 5 cards drawn per turn, and once per turn either a discard for 1 Chakra or a reserved card. Players take turns and can forfeit. Unplayed cards are discarded at the end of the turn; the reserved card returns before the next draw, subject to the 10-card hand limit.
+PvP does not use persistent hands. You start with 100 HP plus your max HP bonus and 3 base Chakra plus your max Chakra bonuses. You draw 5 cards each turn and automatically carry over up to 1 Chakra. Once per turn, you can either discard a card for 1 Chakra or reserve a card. Players take turns and can forfeit. Unplayed cards are discarded at the end of the turn; the reserved card returns before the next draw, subject to the 10-card hand limit.
 
 The duel uses some PvE calculations for cards, statuses, and talents, **without guaranteeing full parity**: only effects and data passed to and supported by PvP apply. Damage notably uses stats and path advantages; the opponent's dominant path acts as their stance. The opposing player's elemental affinity is currently not passed to the duel engine, so attacks remain neutral against that affinity. Summons have duel-specific handling: only one at a time, they attack at the start of their owner's turn and expire according to their duration. A summon with **Taunt** intercepts damage, with any excess reaching its owner; not all other summon abilities are reproduced. Ordinary cards' exhaust flag is currently not passed to the duel, so they normally go to the discard pile after use, unlike summons.
 

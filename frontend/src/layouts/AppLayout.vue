@@ -15,6 +15,7 @@ import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
+import { PVP_ENABLED } from '../constants/featureFlags';
 import { sectionOf } from '../constants/sections';
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue';
 import { writeStoredLocale } from '../utils/localeStorage.js';
@@ -40,8 +41,9 @@ const baseNavItems = [
   { name: 'shop', path: '/shop', label: 'nav.shop' },
   { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
   { name: 'journal', path: '/journal', label: 'nav.journal' },
-  { name: 'pvp', path: '/pvp', label: 'nav.pvp' },
+  ...(PVP_ENABLED ? [{ name: 'pvp', path: '/pvp', label: 'nav.pvp' }] : []),
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
+  { name: 'coop', path: '/coop', label: 'coop.title' },
 ];
 
 const adminNavItem = {
@@ -117,20 +119,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="app-shell" :class="{ 'app-shell--rail': auth.user && !isCombatLayout }">
+  <div
+    class="app-shell"
+    :class="{
+      'app-shell--rail': auth.user && !isCombatLayout,
+      'app-shell--combat': isCombatLayout,
+    }"
+  >
     <AppNavRail v-if="auth.user && !isCombatLayout" :nav-groups="navGroups" :is-active="isActive" />
 
-    <header v-if="!isCombatLayout" class="app-bar">
+    <header class="app-bar">
       <div class="app-bar__inner">
         <AppNavDrawer v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
 
-        <router-link to="/home" class="app-bar__brand">
+        <router-link to="/home" class="app-bar__brand" :aria-label="t('app.name')">
           <BrandMark size="1.5rem" class="app-bar__mark" />
           <span class="app-bar__wordmark">{{ t('app.name') }}</span>
         </router-link>
 
         <p
-          v-if="auth.user && currentSectionLabel"
+          v-if="auth.user && !isCombatLayout && currentSectionLabel"
           class="app-bar__section"
           :data-tone="currentSection?.tone"
         >
@@ -141,7 +149,11 @@ onMounted(async () => {
         </p>
 
         <div class="app-bar__tools">
-          <dl v-if="auth.user" class="app-bar__balances" :aria-label="t('resources.balancesLabel')">
+          <dl
+            v-if="auth.user && !isCombatLayout"
+            class="app-bar__balances"
+            :aria-label="t('resources.balancesLabel')"
+          >
             <div
               v-for="resource in [
                 { key: 'ryos', icon: 'ryos', tone: 'wood' },
@@ -172,22 +184,26 @@ onMounted(async () => {
               </dd>
             </div>
           </dl>
-          <ThemeToggle />
+          <template v-if="!isCombatLayout">
+            <ThemeToggle />
 
-          <ProfileMenu
-            v-if="auth.user"
-            @logout="logout"
-            @convert="showConvert = true"
-            @deleted="onAccountDeleted"
-          />
-          <router-link
-            v-else
-            to="/register"
-            class="btn-primary btn-sm"
-            data-testid="header-register-cta"
-          >
-            {{ t('auth.register') }}
-          </router-link>
+            <ProfileMenu
+              v-if="auth.user"
+              @logout="logout"
+              @convert="showConvert = true"
+              @deleted="onAccountDeleted"
+            />
+            <router-link
+              v-else
+              to="/register"
+              class="btn-primary btn-sm"
+              data-testid="header-register-cta"
+            >
+              {{ t('auth.register') }}
+            </router-link>
+          </template>
+
+          <div v-if="auth.user" id="combat-header-tools" class="app-bar__combat-tools" />
         </div>
       </div>
     </header>
@@ -223,6 +239,11 @@ onMounted(async () => {
   padding-left: var(--shell-rail);
 }
 
+.app-shell--combat {
+  display: flex;
+  flex-direction: column;
+}
+
 .app-bar {
   position: sticky;
   top: 0;
@@ -232,6 +253,7 @@ onMounted(async () => {
 }
 
 .app-bar__inner {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -294,6 +316,10 @@ onMounted(async () => {
   gap: 0.35rem;
   flex: none;
   margin-left: auto;
+}
+
+.app-bar__combat-tools:not(:has(> *)) {
+  display: none;
 }
 
 .app-bar__balances {
@@ -364,8 +390,7 @@ onMounted(async () => {
 }
 
 .app-main--combat {
-  min-height: 100vh;
-  min-height: 100dvh;
+  flex: 1 0 auto;
   padding-bottom: 0;
 }
 
@@ -382,6 +407,23 @@ onMounted(async () => {
   }
 
   .app-bar__balance svg {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .app-bar__inner:has(.app-bar__combat-tools > *) .app-bar__brand {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .app-bar__inner:has(.app-bar__combat-tools > *) .app-bar__wordmark {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-bar__tools:has(.app-bar__combat-tools > *) .app-bar__balance:nth-child(n + 3) {
     display: none;
   }
 }

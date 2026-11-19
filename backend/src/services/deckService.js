@@ -609,12 +609,11 @@ export async function getDeckPassiveBonuses(userId) {
     `SELECT
        udc.quantity,
        ucc.upgrade_level,
+       cd.slug,
+       cd.type,
+       cd.stat_type,
        cd.passive_bonus_json,
-       cd.upgrade_bonuses_json,
-       cd.base_cost,
-       cd.base_damage,
-       cd.base_block,
-       cd.base_heal
+       cd.upgrade_bonuses_json
      FROM user_decks d
      JOIN user_deck_cards udc ON udc.deck_id = d.id
      JOIN user_card_collection ucc ON ucc.id = udc.user_card_collection_id
@@ -627,17 +626,7 @@ export async function getDeckPassiveBonuses(userId) {
 
   const bonuses = [];
   for (const row of rows) {
-    const computed = applyUpgradeBonuses(
-      {
-        passive_bonus_json: row.passive_bonus_json,
-        upgrade_bonuses_json: row.upgrade_bonuses_json,
-        base_cost: row.base_cost,
-        base_damage: row.base_damage,
-        base_block: row.base_block,
-        base_heal: row.base_heal,
-      },
-      row.upgrade_level,
-    );
+    const computed = applyUpgradeBonuses(row, row.upgrade_level);
     const qty = Number(row.quantity) || 1;
     for (let i = 0; i < qty; i += 1) {
       bonuses.push(computed.passiveBonus);
