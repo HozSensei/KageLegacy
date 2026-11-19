@@ -255,12 +255,11 @@ watch(
           </div>
         </div>
 
-        <div class="card-display__chakra" :title="t('cards.costLabel')" data-testid="card-cost">
-          <span class="card-display__chakra-gem" aria-hidden="true" />
-          <span class="card-display__chakra-number">{{ cost }}</span>
-        </div>
-
-        <div v-if="effectParts.figures.length" class="card-display__figures">
+        <div class="card-display__figures">
+          <div class="card-display__chakra" :title="t('cards.costLabel')" data-testid="card-cost">
+            <span class="card-display__chakra-gem" aria-hidden="true" />
+            <span class="card-display__chakra-number">{{ cost }}</span>
+          </div>
           <div
             v-for="figure in effectParts.figures"
             :key="figure.key"
@@ -710,14 +709,10 @@ watch(
 
 /* Gemme chakra — coin haut droit débordant */
 .card-display__chakra {
-  position: absolute;
-  z-index: 12;
-  right: -12px;
-  top: -13px;
-  width: clamp(2.6rem, 24.7%, 4.5625rem);
+  position: relative;
+  width: 100%;
   aspect-ratio: 1;
   filter: drop-shadow(3px 6px 3px #070b13a9);
-  pointer-events: none;
 }
 
 .card-display__chakra-gem {
@@ -733,10 +728,10 @@ watch(
     var(--gem-highlight, #a7d3ee) 81%,
     var(--gem-light, #fff0c3) 100%
   );
-  border: 2px solid #f7dbab;
+  border: 2px solid var(--gem-border, #f7dbab);
   box-shadow:
     inset 0 0 0 3px var(--gem-shadow, #1b314b),
-    inset 0 0 12px #f4fcff;
+    inset 0 0 12px var(--gem-glow, #f4fcff);
 }
 
 .card-display__chakra-gem::after {
@@ -750,12 +745,12 @@ watch(
 .card-display__figures {
   position: absolute;
   z-index: 13;
-  top: clamp(3.15rem, 20cqi, 4.35rem);
+  top: -13px;
   right: -12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
+  gap: 2px;
   width: clamp(2.6rem, 24.7%, 4.5625rem);
   pointer-events: none;
 }
@@ -768,24 +763,30 @@ watch(
 }
 
 .card-display__figure--damage {
-  --gem-light: #ffd3c9;
-  --gem-highlight: #ef9a8a;
-  --gem-mid: #a9272d;
-  --gem-shadow: #591820;
+  --gem-light: #ff898d;
+  --gem-highlight: #ed313d;
+  --gem-mid: #c61525;
+  --gem-shadow: #730c1b;
+  --gem-border: #ff838c;
+  --gem-glow: #ff5664;
 }
 
 .card-display__figure--block {
-  --gem-light: #ddf4ff;
-  --gem-highlight: #85cee5;
-  --gem-mid: #28748d;
-  --gem-shadow: #144153;
+  --gem-light: #a6a6a6;
+  --gem-highlight: #656565;
+  --gem-mid: #414141;
+  --gem-shadow: #232323;
+  --gem-border: #bdbdbd;
+  --gem-glow: #858585;
 }
 
 .card-display__figure--heal {
-  --gem-light: #e2f6d5;
-  --gem-highlight: #9bdbad;
-  --gem-mid: #3d936a;
-  --gem-shadow: #20513b;
+  --gem-light: #82ee92;
+  --gem-highlight: #26c44f;
+  --gem-mid: #148532;
+  --gem-shadow: #07511e;
+  --gem-border: #84ef98;
+  --gem-glow: #3ad361;
 }
 
 .card-display__chakra-number {
@@ -1146,9 +1147,8 @@ watch(
 }
 
 .card-display--compact .card-display__figures {
-  top: 3.25rem;
+  top: -9px;
   right: -8px;
-  gap: 0.14rem;
 }
 
 .card-display--compact .card-display__bonuses {
@@ -1204,11 +1204,6 @@ watch(
 .card-display--compact .card-display__element-dot {
   width: 0.35rem;
   height: 0.35rem;
-}
-
-.card-display--compact .card-display__chakra {
-  right: -8px;
-  top: -9px;
 }
 
 .card-display--compact .card-display__back-logo {
