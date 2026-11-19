@@ -37,26 +37,67 @@ function chainReward(card, previousArt) {
 }
 
 function rewardFr(reward) {
-  if (reward.damage) return `+${reward.damage} dégâts`;
-  if (reward.heal) return `+${reward.heal} PV`;
-  if (reward.block) return `+${reward.block} Armure`;
-  if (reward.statusValue) return `+${reward.statusValue} à l’intensité de l’effet`;
+  if (reward.damage) return `${reward.damage} dégâts`;
+  if (reward.heal) return `${reward.heal} soins`;
+  if (reward.block) return `${reward.block} Armure`;
+  if (reward.statusValue) return `+${reward.statusValue} effet`;
   if (reward.draw) return `piochez ${reward.draw} carte`;
-  if (reward.chakra) return `gagnez ${reward.chakra} Chakra`;
+  if (reward.chakra) return `${reward.chakra} Chakra`;
   if (reward.costReduction)
     return `la prochaine carte coûte ${reward.costReduction} Chakra de moins`;
   return '';
 }
 
 function rewardEn(reward) {
-  if (reward.damage) return `+${reward.damage} damage`;
-  if (reward.heal) return `+${reward.heal} HP`;
-  if (reward.block) return `+${reward.block} Armor`;
-  if (reward.statusValue) return `+${reward.statusValue} effect intensity`;
+  if (reward.damage) return `${reward.damage} damage`;
+  if (reward.heal) return `${reward.heal} healing`;
+  if (reward.block) return `${reward.block} Armor`;
+  if (reward.statusValue) return `+${reward.statusValue} effect`;
   if (reward.draw) return `draw ${reward.draw} card`;
-  if (reward.chakra) return `gain ${reward.chakra} Chakra`;
+  if (reward.chakra) return `${reward.chakra} Chakra`;
   if (reward.costReduction) return `the next card costs ${reward.costReduction} less Chakra`;
   return '';
+}
+
+function describeChainEffect(effect, locale, card) {
+  const art = ART_LABELS[locale][effect.statType];
+  const reward = rewardForLocale(effect, locale, card);
+  return locale === 'fr' ? `Enchaînement ${art} : ${reward}.` : `Chain ${art}: ${reward}.`;
+}
+
+function rewardForLocale(effect, locale, card) {
+  const reward = {
+    damage: effect.damage,
+    heal: effect.heal,
+    block: effect.block,
+    statusValue: effect.statusValue,
+    draw: effect.draw,
+    chakra: effect.chakra,
+    costReduction: effect.costReduction,
+  };
+  const text = locale === 'fr' ? rewardFr(reward) : rewardEn(reward);
+  if (effect.damage && (card.effects || []).some(item => item.type === 'multi_strike')) {
+    return locale === 'fr' ? `${text} par frappe` : `${text} per hit`;
+  }
+  return text;
+}
+
+function normalizeDescriptions(card) {
+  const effects = (card.effects || []).filter(effect => effect.type === 'combo_previous');
+  if (!effects.length) return card;
+  const descriptionFr = String(card.descriptionFr || '')
+    .replace(/\s(?:Après|Enchaînement) .+$/i, '')
+    .trim();
+  const descriptionEn = String(card.descriptionEn || '')
+    .replace(/\s(?:After|Chain) .+$/i, '')
+    .trim();
+  return {
+    ...card,
+    descriptionFr:
+      `${descriptionFr} ${effects.map(effect => describeChainEffect(effect, 'fr', card)).join(' ')}`.trim(),
+    descriptionEn:
+      `${descriptionEn} ${effects.map(effect => describeChainEffect(effect, 'en', card)).join(' ')}`.trim(),
+  };
 }
 
 function addChain(card, index) {
@@ -67,13 +108,13 @@ function addChain(card, index) {
     statType: previousArt,
     ...reward,
   };
-  const prefixFr = `${ART_LABELS.fr[previousArt]} → ${rewardFr(reward)}.`;
-  const prefixEn = `${ART_LABELS.en[previousArt]} → ${rewardEn(reward)}.`;
+  const prefixFr = `${ART_LABELS.fr[previousArt]} : ${rewardFr(reward)}.`;
+  const prefixEn = `${ART_LABELS.en[previousArt]}: ${rewardEn(reward)}.`;
   return {
     ...card,
     effects: [...(card.effects || []), effect],
-    descriptionFr: `${card.descriptionFr} Après ${prefixFr}`,
-    descriptionEn: `${card.descriptionEn} After ${prefixEn}`,
+    descriptionFr: `${card.descriptionFr} Enchaînement ${prefixFr}`,
+    descriptionEn: `${card.descriptionEn} Chain ${prefixEn}`,
   };
 }
 
@@ -97,5 +138,5 @@ export function addCardChains(cards) {
     result[index] = addChain(card, counts[card.statType]);
     counts[card.statType] += 1;
   }
-  return result;
+  return result.map(normalizeDescriptions);
 }

@@ -51,7 +51,16 @@ export function previewFigure(card, figureKey, stats = null) {
 }
 
 export function previewCardFigures(card, stats = null) {
-  return ['damage', 'block', 'heal']
-    .map(key => previewFigure(card, key, stats))
-    .filter(entry => entry.base > 0);
+  const figures = ['damage', 'block', 'heal'].map(key => previewFigure(card, key, stats));
+  const effects = card?.effects || [];
+
+  for (const effect of effects) {
+    if (effect.type === 'gain_block' && figures[1].base === 0) {
+      figures[1] = previewFigure({ ...card, block: effect.value }, 'block', stats);
+    }
+    if (effect.type === 'heal_self' && figures[2].base === 0) {
+      figures[2] = previewFigure({ ...card, heal: effect.value }, 'heal', stats);
+    }
+  }
+  return figures.filter(entry => entry.base > 0);
 }

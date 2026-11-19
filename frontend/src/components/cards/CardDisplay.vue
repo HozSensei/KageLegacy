@@ -260,22 +260,30 @@ watch(
           <span class="card-display__chakra-number">{{ cost }}</span>
         </div>
 
+        <div v-if="effectParts.figures.length" class="card-display__figures">
+          <div
+            v-for="figure in effectParts.figures"
+            :key="figure.key"
+            class="card-display__figure"
+            :class="`card-display__figure--${figure.key}`"
+            :title="`${t(`cards.${figure.key}`, { n: stats ? figure.effective : figure.base })}${figure.scaled && stats ? ` · ${t('cards.baseValue', { n: figure.base })}` : ''}`"
+          >
+            <span>{{ stats ? figure.effective : figure.base }}</span>
+          </div>
+        </div>
+
         <section class="card-display__info">
           <div class="card-display__info-columns">
             <div class="card-display__description">
               <h3 class="card-display__name">{{ name }}</h3>
               <div class="card-display__rule" aria-hidden="true" />
-              <p
+              <ul
                 v-if="effectParts.texts.length"
-                class="card-display__effect"
+                class="card-display__effects"
                 :aria-label="effectParts.aria.join(', ')"
               >
-                <template v-for="(text, i) in effectParts.texts" :key="i">
-                  <span v-if="i > 0"> · </span>
-                  <strong v-if="i < effectParts.figures.length">{{ text }}</strong>
-                  <template v-else>{{ text }}</template>
-                </template>
-              </p>
+                <li v-for="(text, i) in effectParts.texts" :key="i">{{ text }}</li>
+              </ul>
             </div>
 
             <div
@@ -290,6 +298,11 @@ watch(
                 :style="{ '--fill': chip.fill }"
                 :title="`${t(`cards.stats.${chip.key}`, chip.key)} ${chip.value > 0 ? '+' : ''}${chip.value}`"
               >
+                <i
+                  class="card-display__bonus-icon"
+                  :style="{ maskImage: `url(${chip.icon})` }"
+                  aria-hidden="true"
+                />
                 <span>{{ chip.value > 0 ? `+${chip.value}` : chip.value }}</span>
               </div>
             </div>
@@ -735,6 +748,65 @@ watch(
   clip-path: polygon(0 0, 100% 0, 50% 50%, 100% 100%, 0 100%, 50% 50%);
 }
 
+.card-display__figures {
+  position: absolute;
+  z-index: 13;
+  top: clamp(3.15rem, 20cqi, 4.35rem);
+  right: -11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: clamp(2.6rem, 24.7%, 4.5625rem);
+  pointer-events: none;
+}
+
+.card-display__figure {
+  position: relative;
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  filter: drop-shadow(2px 4px 3px #070b1380);
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 9cqi, 1.65rem);
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 3px #0009;
+}
+
+.card-display__figure--damage {
+  border: 2px solid #ffd3c9;
+  border-radius: 60% 40% 65% 35% / 65% 45% 55% 35%;
+  background: linear-gradient(145deg, #ef725f, #a9272d 72%);
+  transform: rotate(45deg);
+}
+
+.card-display__figure--damage span {
+  transform: rotate(-45deg);
+}
+
+.card-display__figure--block,
+.card-display__figure--heal {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.card-display__figure--block {
+  background-image: url('../../assets/icons/armor.svg');
+  background-color: #376f99;
+  mask: url('../../assets/icons/armor.svg') center / contain no-repeat;
+}
+
+.card-display__figure--heal {
+  border-radius: 50%;
+  background-image: url('../../assets/icons/life.svg');
+  background-color: #3d936a;
+  mask: url('../../assets/icons/life.svg') center / contain no-repeat;
+}
+
 .card-display__chakra-number {
   position: absolute;
   inset: 0;
@@ -802,23 +874,34 @@ watch(
   margin: 8px 0;
 }
 
-.card-display__effect {
+.card-display__effects {
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
   margin: 0;
-  font-size: clamp(0.62rem, 4cqi, 0.75rem);
-  line-height: 1.45;
-  font-weight: 600;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(0.6rem, 3.8cqi, 0.72rem);
+  font-weight: 700;
+  line-height: 1.35;
   color: #27313b;
-  display: -webkit-box;
-  -webkit-line-clamp: 6;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.card-display__effect strong {
-  font-weight: 900;
+.card-display__effects li {
+  position: relative;
+  padding-left: 0.72rem;
 }
 
-/* Bonus passifs — carrés à plat (−30 %) */
+.card-display__effects li::before {
+  content: '◆';
+  position: absolute;
+  left: 0;
+  top: 0.08rem;
+  color: #a43c34;
+  font-size: 0.42rem;
+}
+
+/* Bonus passifs — icône de statistique + valeur */
 .card-display__bonuses {
   border-left: 1px solid #c8b59d;
   padding-left: 6px;
@@ -831,16 +914,28 @@ watch(
 }
 
 .card-display__bonus {
-  width: 1.5rem;
+  display: inline-flex;
+  min-width: 2.15rem;
   height: 1.5rem;
-  display: grid;
-  place-items: center;
-  background: var(--fill, #8c5c3e);
-  color: #fff;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  color: var(--fill, #8c5c3e);
   font-family: var(--font-display);
   font-size: clamp(0.52rem, 3.4cqi, 0.68rem);
   font-weight: 900;
   line-height: 1;
+}
+
+.card-display__bonus-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: none;
+  background: currentColor;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  opacity: 0.92;
 }
 
 .card-display__bonus span {
@@ -1078,9 +1173,16 @@ watch(
   margin: 6px 0;
 }
 
-.card-display--compact .card-display__effect {
-  font-size: 0.62rem;
-  -webkit-line-clamp: 5;
+.card-display--compact .card-display__effects {
+  gap: 0.2rem;
+  font-size: 0.6rem;
+}
+
+.card-display--compact .card-display__figures {
+  top: 3.25rem;
+  right: -8px;
+  gap: 0.14rem;
+  width: 2.35rem;
 }
 
 .card-display--compact .card-display__bonuses {
@@ -1089,7 +1191,7 @@ watch(
 }
 
 .card-display--compact .card-display__bonus {
-  width: 1.15rem;
+  min-width: 1.8rem;
   height: 1.15rem;
   font-size: 0.55rem;
 }

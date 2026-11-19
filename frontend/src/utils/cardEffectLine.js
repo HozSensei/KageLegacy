@@ -1,17 +1,9 @@
 /**
  * Libellés d’effet actif pour l’affichage carte (zone texte fixe).
- * Combine figures damage/block/heal + effets structurés (buffs, pioche…)
- * avec repli sur la description localisée.
+ * Sépare les figures damage/block/heal des mots-clés secondaires.
  */
 
-import { localizedDescription } from './localeContent.js';
 import { previewCardFigures } from './cardScaling.js';
-
-const FIGURE_I18N = {
-  damage: 'cards.damage',
-  block: 'cards.block',
-  heal: 'cards.heal',
-};
 
 /** Statuts soutien en % (aligné combat StatusIcon / CombatLog). */
 const PCT_STATUS_KEYS = new Set([
@@ -34,7 +26,7 @@ function statusLabel(t, te, statusKey) {
 /**
  * Formate un effet structuré en courte phrase (ou null si non affichable / déjà couvert).
  */
-export function formatStructuredEffect(effect, { t, te }, card = null) {
+export function formatStructuredEffect(effect, { t, te }) {
   if (!effect?.type) return null;
   const type = effect.type;
   const n = Number(effect.value);
@@ -48,7 +40,7 @@ export function formatStructuredEffect(effect, { t, te }, card = null) {
       ['block', 'cards.effectComboBlock'],
       ['statusValue', 'cards.effectComboStatus'],
       ['draw', 'cards.effectDraw'],
-      ['chakra', 'cards.effectChakra'],
+      ['chakra', 'cards.effectComboChakra'],
       ['costReduction', 'cards.effectNextCostReduction'],
     ];
     for (const [key, labelKey] of rewardKeys) {
@@ -94,19 +86,7 @@ export function formatStructuredEffect(effect, { t, te }, card = null) {
     return t('cards.effectNextCostReduction', { n: amount });
   }
 
-  if (type === 'heal_self') {
-    if (Number(card?.heal) > 0) return null;
-    const amount = Number.isFinite(n) && n > 0 ? n : 0;
-    if (!amount) return null;
-    return t('cards.heal', { n: amount });
-  }
-
-  if (type === 'gain_block') {
-    if (Number(card?.block) > 0) return null;
-    const amount = Number.isFinite(n) && n > 0 ? n : 0;
-    if (!amount) return null;
-    return t('cards.block', { n: amount });
-  }
+  if (type === 'heal_self' || type === 'gain_block') return null;
 
   if (type === 'evade_next') {
     const chance = Number(effect.chance);
@@ -133,32 +113,30 @@ export function formatStructuredEffect(effect, { t, te }, card = null) {
     return t('cards.effectExile');
   }
 
-  // multi_strike / bonus_if : reflétés dans les figures de dégâts
+  if (type === 'multi_strike') return t('cards.effectMultiStrike', { n: effect.hits });
+  if (type === 'bonus_if') return null;
   return null;
 }
 
 /**
  * @returns {{ texts: string[], aria: string[], figures: object[] }}
  */
-export function cardEffectParts(card, stats, { t, te, locale }) {
+export function cardEffectParts(card, stats, { t, te }) {
   const figures = previewCardFigures(card, stats);
-  const showEffective = Boolean(stats);
   const texts = [];
   const aria = [];
 
   for (const entry of figures) {
-    const display = showEffective ? entry.effective : entry.base;
-    const fullKey = FIGURE_I18N[entry.key] || 'cards.damage';
-    const text = t(fullKey, { n: display });
-    texts.push(text);
+    const display = stats ? entry.effective : entry.base;
+    const figureText = t(`cards.${entry.key}`, { n: display });
     aria.push(
-      showEffective && entry.scaled
+      stats && entry.scaled
         ? t('cards.statEffectiveAria', {
             n: entry.effective,
             base: entry.base,
             stat: t(`cards.stats.${entry.statKey}`, entry.statKey),
           })
-        : text
+        : figureText
     );
   }
 
@@ -186,7 +164,7 @@ export function cardEffectParts(card, stats, { t, te, locale }) {
   }
 
   for (const effect of card?.effects || []) {
-    const line = formatStructuredEffect(effect, { t, te }, card);
+    const line = formatStructuredEffect(effect, { t, te });
     if (line) {
       texts.push(line);
       aria.push(line);
@@ -206,14 +184,6 @@ export function cardEffectParts(card, stats, { t, te, locale }) {
       : `Critique ${critChance} %`;
     texts.push(crit);
     aria.push(crit);
-  }
-
-  if (!texts.length) {
-    const desc = localizedDescription(card, locale, '').trim();
-    if (desc) {
-      texts.push(desc);
-      aria.push(desc);
-    }
   }
 
   return { texts, aria, figures };

@@ -1,17 +1,15 @@
 /**
- * Bonus passifs (colonne droite) — aplats de couleur (carrés).
+ * Bonus passifs (colonne droite) — icônes de statistique + valeur.
  * Seules les valeurs non nulles sont affichées.
  */
 
-export const BONUS_CHIP_PALETTE = {
-  taijutsu: { fill: '#d8513d' },
-  ninjutsu: { fill: '#3776af' },
-  medicine: { fill: '#408b68' },
-  genjutsu: { fill: '#8653b4' },
-  maxHp: { fill: '#d8513d' },
-  maxChakra: { fill: '#3776af' },
-  startingBlock: { fill: '#8c5c3e' },
-};
+import { statVisual } from './statIcons.js';
+
+export const BONUS_CHIP_PALETTE = Object.fromEntries(
+  ['taijutsu', 'ninjutsu', 'medicine', 'genjutsu', 'maxHp', 'maxChakra', 'startingBlock'].map(
+    key => [key, statVisual(key)]
+  )
+);
 
 /** Ordre des quatre arts et bonus de caractéristique. */
 export const BONUS_CHIP_ORDER = [
@@ -34,7 +32,7 @@ export function cardBonusChips(card) {
     const value = Number(bonus[key]) || 0;
     if (value === 0) continue;
     const palette = BONUS_CHIP_PALETTE[key];
-    chips.push({ key, value, fill: palette.fill });
+    chips.push({ key, value, fill: palette.fill, icon: palette.icon });
   }
   return chips;
 }

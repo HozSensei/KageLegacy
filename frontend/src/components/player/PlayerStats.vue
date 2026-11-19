@@ -1,8 +1,9 @@
 <script setup>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { statVisual } from '../../utils/statIcons.js';
 
-defineOptions({ name: 'PlayerStats' })
+defineOptions({ name: 'PlayerStats' });
 
 const props = defineProps({
   stats: {
@@ -14,19 +15,11 @@ const props = defineProps({
     type: Number,
     default: 100,
   },
-})
+});
 
-const { t } = useI18n()
+const { t } = useI18n();
 
-const STAT_ORDER = [
-  'taijutsu',
-  'ninjutsu',
-  'genjutsu',
-  'medicine',
-  'maxHp',
-  'maxChakra',
-  'armor',
-]
+const STAT_ORDER = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine', 'maxHp', 'maxChakra', 'armor'];
 
 const STAT_TONES = {
   taijutsu: 'vermilion',
@@ -36,29 +29,29 @@ const STAT_TONES = {
   maxHp: 'vermilion',
   maxChakra: 'sky',
   armor: 'wood',
-}
+};
 
 function statValue(total, key) {
   if (key === 'armor') {
-    const fromStartingBlock = Number(total.startingBlock)
-    const fromBlock = Number(total.block)
-    const fromArmor = Number(total.armor)
-    if (Number.isFinite(fromStartingBlock) && fromStartingBlock > 0) return fromStartingBlock
-    if (Number.isFinite(fromBlock) && fromBlock > 0) return fromBlock
-    if (Number.isFinite(fromArmor) && fromArmor > 0) return fromArmor
-    return 0
+    const fromStartingBlock = Number(total.startingBlock);
+    const fromBlock = Number(total.block);
+    const fromArmor = Number(total.armor);
+    if (Number.isFinite(fromStartingBlock) && fromStartingBlock > 0) return fromStartingBlock;
+    if (Number.isFinite(fromBlock) && fromBlock > 0) return fromBlock;
+    if (Number.isFinite(fromArmor) && fromArmor > 0) return fromArmor;
+    return 0;
   }
-  return Number(total[key]) || 0
+  return Number(total[key]) || 0;
 }
 
 const rows = computed(() => {
-  const total = props.stats?.total || props.stats || {}
-  return STAT_ORDER.map((key) => {
-    const value = statValue(total, key)
-    const pct = Math.min(100, Math.round((value / props.scaleMax) * 100))
-    return { key, value, pct, tone: STAT_TONES[key] || 'neutral' }
-  })
-})
+  const total = props.stats?.total || props.stats || {};
+  return STAT_ORDER.map(key => {
+    const value = statValue(total, key);
+    const pct = Math.min(100, Math.round((value / props.scaleMax) * 100));
+    return { key, value, pct, tone: STAT_TONES[key] || 'neutral', visual: statVisual(key) };
+  });
+});
 </script>
 
 <template>
@@ -73,15 +66,20 @@ const rows = computed(() => {
     </header>
 
     <ul class="stat-grid stagger">
-      <li v-for="row in rows" :key="row.key" class="stat-row" :data-tone="row.tone">
+      <li
+        v-for="row in rows"
+        :key="row.key"
+        class="stat-row"
+        :data-tone="row.tone"
+        :style="{ '--stat-fill': row.visual.fill }"
+      >
+        <span class="stat-row__icon" aria-hidden="true">
+          <i :style="{ maskImage: `url(${row.visual.icon})` }" />
+        </span>
         <span class="stat-row__value">{{ row.value }}</span>
         <span class="stat-row__label">{{ t(`player.stats.${row.key}`) }}</span>
         <div class="meter stat-row__meter">
-          <div
-            class="meter__fill"
-            :style="{ width: `${row.pct}%` }"
-            :data-stat="row.key"
-          />
+          <div class="meter__fill" :style="{ width: `${row.pct}%` }" :data-stat="row.key" />
         </div>
       </li>
     </ul>
@@ -111,11 +109,28 @@ const rows = computed(() => {
 
 .stat-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr);
   align-items: baseline;
   gap: 0.35rem 0.75rem;
   padding: 0.9rem 0 1rem;
   border-top: 1px solid var(--color-line);
+}
+
+.stat-row__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  color: var(--stat-fill);
+}
+
+.stat-row__icon i {
+  width: 1.7rem;
+  height: 1.7rem;
+  background: var(--stat-fill);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
 }
 
 .stat-row__value {
