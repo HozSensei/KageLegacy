@@ -44,7 +44,7 @@ const { t } = useI18n()
 
     <div class="nav-rail__footer">
       <HeaderWallet variant="rail" />
-      <ThemeToggle variant="onFill" menu-placement="top" />
+      <ThemeToggle variant="onFill" />
     </div>
 
     <p class="nav-rail__vertical t-vertical" aria-hidden="true">{{ t('app.name') }}</p>
@@ -62,6 +62,7 @@ const { t } = useI18n()
   align-items: center;
   width: var(--shell-rail);
   padding: 0.85rem 0 1.25rem;
+  /* Pas d’overflow ici : le menu ThemeToggle s’ouvre hors du footer. */
   background: var(--color-indigo-deep);
   color: var(--color-on-fill);
 }
@@ -74,6 +75,7 @@ const { t } = useI18n()
 
 .nav-rail__brand {
   display: grid;
+  flex-shrink: 0;
   place-items: center;
   width: 2.75rem;
   height: 2.75rem;
@@ -87,9 +89,14 @@ const { t } = useI18n()
 
 .nav-rail__groups {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 0.6rem;
+  min-height: 0;
   margin-top: 1.1rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .nav-rail__group {
@@ -168,6 +175,7 @@ const { t } = useI18n()
 
 .nav-rail__footer {
   display: grid;
+  flex-shrink: 0;
   justify-items: center;
   gap: 0.55rem;
   width: 100%;
@@ -177,11 +185,13 @@ const { t } = useI18n()
 }
 
 .nav-rail__vertical {
+  flex-shrink: 0;
   margin-top: 0.75rem;
   color: color-mix(in srgb, var(--color-on-fill) 62%, transparent);
 }
 
-@media (max-height: 640px) {
+/* À 720 px (Cypress / laptop) le wallet + thème doivent rester dans le viewport. */
+@media (max-height: 760px) {
   .nav-rail__vertical {
     display: none;
   }

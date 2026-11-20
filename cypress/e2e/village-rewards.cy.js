@@ -78,6 +78,7 @@ describe('Village rewards and header wallet', () => {
       .should('be.visible')
       .and('contain', '400')
       .and('contain', 'Card essence');
+    cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
     cy.then(() => expect(reads).to.equal(0));
 
     cy.get(bell).focus();

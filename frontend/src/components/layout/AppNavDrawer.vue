@@ -89,7 +89,7 @@ function close() {
       <HeaderWallet variant="panel" />
       <div class="nav-drawer__theme">
         <p class="nav-drawer__group-label">{{ t('theme.choose') }}</p>
-        <ThemeToggle variant="onFill" menu-placement="top" />
+        <ThemeToggle variant="onFill" />
       </div>
     </div>
   </SlidePanel>

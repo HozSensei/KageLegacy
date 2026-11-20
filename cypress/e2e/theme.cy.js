@@ -80,15 +80,7 @@ describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () =>
     cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
 
-    // Sur desktop le rail expose déjà le sélecteur ; ouvrir le drawer le masque derrière le voile.
-    cy.get('body').then($body => {
-      if ($body.find('[data-testid="theme-toggle"]:visible').length === 0) {
-        cy.openNavMenu();
-        cy.get('[data-testid="nav-menu-panel"] [data-testid="theme-toggle"]')
-          .scrollIntoView()
-          .should('be.visible');
-      }
-    });
+    // Rail desktop : footer (wallet + thème) ancré en bas ; menu onFill ouvert vers le haut.
     pickTheme('amber');
 
     cy.visit('/collection');
