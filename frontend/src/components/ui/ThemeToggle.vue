@@ -176,6 +176,12 @@ onBeforeUnmount(() => {
   box-shadow: 0 8px 24px color-mix(in srgb, var(--color-ink) 12%, transparent);
 }
 
+/* Rail / drawer : le trigger est en bas — ouvrir vers le haut pour rester visible. */
+.theme-picker--on-fill .theme-picker__menu {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
+}
+
 .theme-picker__option {
   display: flex;
   align-items: center;

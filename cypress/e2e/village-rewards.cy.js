@@ -64,12 +64,6 @@ describe('Village rewards and header wallet', () => {
     cy.get(bell).should('have.attr', 'aria-label', 'Village rewards — 1 unread reward');
     cy.get(panelBalances).should('not.exist');
     cy.get(`${balances}:visible`).should('not.exist');
-    cy.openNavMenu();
-    cy.get(panelBalances)
-      .scrollIntoView()
-      .should('be.visible')
-      .and('contain', '400')
-      .and('contain', 'Card essence');
     cy.get('[data-testid="nav-menu-button"]').should('be.visible');
     cy.get('[data-testid="profile-menu-button"]').should('be.visible');
     cy.document()
@@ -77,6 +71,13 @@ describe('Village rewards and header wallet', () => {
       .should(root => {
         expect(root.scrollWidth).to.equal(root.clientWidth);
       });
+    cy.openNavMenu();
+    cy.get(panelBalances)
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', '400')
+      .and('contain', 'Card essence');
+    cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
     cy.then(() => expect(reads).to.equal(0));
 
     cy.get(bell).focus();
