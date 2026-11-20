@@ -64,6 +64,7 @@ describe('Village rewards and header wallet', () => {
     cy.get(bell).should('have.attr', 'aria-label', 'Village rewards — 1 unread reward');
     cy.get(panelBalances).should('not.exist');
     cy.get(`${balances}:visible`).should('not.exist');
+    // Header chrome must fit before the drawer covers the hamburger.
     cy.get('[data-testid="nav-menu-button"]').should('be.visible');
     cy.get('[data-testid="profile-menu-button"]').should('be.visible');
     cy.document()

@@ -10,7 +10,7 @@ import { missionRankTone } from '../utils/missionVisuals';
 import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
 import { useDecksStore } from '../stores/decks';
-import { localizedDescription, localizedField, localizedName } from '../utils/localeContent.js';
+import { localizedField, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'MissionsCombatView' });
 
@@ -39,16 +39,17 @@ function missionName(m) {
   return localizedName(m, locale.value);
 }
 
-function missionDesc(m) {
-  return localizedDescription(m, locale.value);
-}
-
 function missionChapter(m) {
   return localizedField(m, 'chapter', locale.value) || '';
 }
 
-function missionBrief(m) {
-  return localizedField(m, 'brief', locale.value) || missionDesc(m);
+function missionPathMeta(m) {
+  const fights = m.encounterCount || 0;
+  const mysteryMax = m.mysteryCountMax ?? 0;
+  if (mysteryMax > 0) {
+    return t('combat.randomPathMeta', { fights, mystery: mysteryMax });
+  }
+  return t('combat.encounterCount', { n: fights });
 }
 
 function missionLocked(mission) {
@@ -204,20 +205,16 @@ async function startQuick(templateId) {
             <p v-if="missionChapter(mission)" class="mission-card__chapter">
               {{ missionChapter(mission) }}
             </p>
-            <p class="mission-card__desc">{{ missionBrief(mission) }}</p>
+            <p class="mission-card__desc">{{ t('combat.randomPathHint') }}</p>
             <p class="mission-card__meta">
               <span class="mission-card__pips" aria-hidden="true">
                 <span
-                  v-for="n in mission.encounterCount || mission.encounters?.length || 1"
+                  v-for="n in mission.encounterCount || 1"
                   :key="n"
                   class="lozenge"
                 />
               </span>
-              {{
-                t('combat.encounterCount', {
-                  n: mission.encounterCount || mission.encounters?.length || 1,
-                })
-              }}
+              {{ missionPathMeta(mission) }}
             </p>
             <p v-if="mission.rewards" class="mission-card__rewards">
               {{

@@ -19,8 +19,15 @@ function expectTheme(theme) {
 
 function pickTheme(theme) {
   visibleThemeToggle().click();
-  cy.get('[data-testid="theme-picker-menu"]:visible').should('be.visible');
-  cy.get(`[data-testid="theme-option-${theme}"]:visible`).click();
+  cy.get('[data-testid="theme-picker-menu"]')
+    .filter(':visible')
+    .first()
+    .scrollIntoView()
+    .should('be.visible');
+  cy.get(`[data-testid="theme-option-${theme}"]`)
+    .filter(':visible')
+    .first()
+    .click();
   expectTheme(theme);
 }
 

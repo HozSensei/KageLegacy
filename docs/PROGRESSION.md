@@ -85,7 +85,7 @@ Les hooks actifs suivent notamment : victoires, bosses, séries, défis de comba
 
 ## Missions et récompenses
 
-16 missions sont initialisées dans le schéma. Elles couvrent les rangs D à S et se jouent en runs de combats et événements.
+5 missions (une par rang D–S) sont initialisées dans le schéma. Chaque lancement génère un parcours aléatoire (combats + nœuds « ? »).
 
 Accès cumulatif selon le rang du personnage : Aspirant/Genin → D+C ; Chunin/Jonin → +B+A ; ANBU/Kage → +S. Les difficultés d’encounter montent dans le run (voir `missionEncounterDifficulties.js`) ; D est dur au deck de départ, C exige une première progression.
 

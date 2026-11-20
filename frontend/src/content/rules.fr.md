@@ -20,7 +20,7 @@ Vous servez **votre village**. Les missions sont des opérations (routes, agents
 
 1. **Créez votre ninja** : choisissez un nom et un portrait de ninja aspirant.
 2. **Recevez votre deck de départ** : 22 cartes, déjà prêtes à jouer.
-3. **Lancez une mission** : un parcours de 3 à 5 combats entrecoupés d'événements.
+3. **Lancez une mission** : un parcours aléatoire de 3 à 5 combats et de nœuds « ? ».
 4. **Gagnez de l'expérience** : chaque niveau donne 1 point de talent.
 5. **Renforcez-vous** : dépensez vos points dans l'arbre, ouvrez des parchemins, améliorez vos cartes, ajustez votre deck.
 
@@ -368,7 +368,7 @@ Les boss ferment les parcours de rang B, A et S. Ils ont des mécaniques propres
 
 ### Rangs
 
-Les missions sont classées en cinq rangs, du plus simple au plus difficile : **D**, **C**, **B**, **A**, **S**. Il y a 16 missions. L’accès dépend du **rang de votre personnage** (cumulatif) :
+Les missions sont classées en cinq rangs, du plus simple au plus difficile : **D**, **C**, **B**, **A**, **S**. Une mission active par rang ; chaque lancement tire un parcours différent. L’accès dépend du **rang de votre personnage** (cumulatif) :
 
 | Rang perso | Missions ouvertes |
 | ---------- | ----------------- |
@@ -378,36 +378,34 @@ Les missions sont classées en cinq rangs, du plus simple au plus difficile : **
 
 Le rang **D** est exigeant avec le deck de départ. Le rang **C** est presque inaccessible sans quelques niveaux, talents et cartes gagnés en farmant le D.
 
-| Rang | Missions | Combats par parcours | Boss final |
-| ---- | -------- | -------------------- | ---------- |
-| D    | 3        | 3                    | Non        |
-| C    | 3        | 3                    | Non        |
-| B    | 5        | 4                    | Oui        |
-| A    | 4        | 5                    | Oui        |
-| S    | 1        | 5                    | Oui        |
+| Rang | Entrées | Combats | Nœuds « ? » | Boss final |
+| ---- | ------- | ------- | ----------- | ---------- |
+| D    | 1       | 3       | 1–2         | Non        |
+| C    | 1       | 3       | 1–2         | Non        |
+| B    | 1       | 4       | 1–2         | Oui        |
+| A    | 1       | 5       | 1–2         | Oui        |
+| S    | 1       | 5       | 2           | Oui        |
 
 ### Le parcours
 
-Lancer une mission ouvre un **parcours** : une suite d'étapes à franchir dans l'ordre. Les combats alternent avec des **événements**.
+Lancer une mission ouvre un **parcours généré** : combats tirés dans le pool du rang, plus un ou deux nœuds **« ? »**. Le briefing immersif s’affiche au lancement, pas sur la liste des missions.
 
-- Vos **PV ne remontent pas** entre deux combats. Seuls les événements permettent de se soigner.
-- Une **défaite** ou un **abandon** en combat fait échouer tout le parcours : vous ne touchez aucune récompense.
+- Vos **PV ne remontent pas** entre deux combats.
+- Une **défaite** ou un **abandon** fait échouer tout le parcours : aucune récompense de complétion.
 - Vous ne pouvez avoir qu'**un parcours en cours**. Vous pouvez le quitter et le reprendre plus tard, ou l'abandonner.
 
-### Événements et ferraille
+### Nœuds « ? » et ferraille
 
-Chaque combat gagné dans un parcours rapporte **2 ferrailles**. La ferraille ne sert que pendant le parcours en cours : elle est perdue à la fin.
+Chaque combat gagné rapporte **2 ferrailles** (utilisables seulement pendant ce parcours).
 
-Entre deux combats, un événement vous propose un choix. Par exemple :
+Un nœud **« ? »** se révèle à l’entrée :
 
-| Événement                | Choix                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------ |
-| **Sanctuaire de Mousse** | Méditer : +30 % de vos PV max                                                  |
-| **Cache d'Éclaireur**    | Fouiller : +12 % de vos PV max et 2 ferrailles                                 |
-| **Colporteur d'Ombre**   | Bandage : 3 ferrailles contre +25 % PV. Tonique : 5 ferrailles contre +50 % PV |
-| **Carrefour du Voile**   | Soin de +25 % PV, ou 4 ferrailles                                              |
-
-Les autres événements suivent le même principe : un soin, gratuit ou payé en ferraille, ou un gain de ferraille.
+| Issue     | Effet typique                          |
+| --------- | -------------------------------------- |
+| **Soin**  | Repos (+30 % PV max)                   |
+| **Butin** | Ferraille + léger soin                 |
+| **Rien**  | Flavour uniquement, la route continue  |
+| **Combat**| Embuscade surprise                     |
 
 ### Récompenses
 
@@ -519,7 +517,7 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 | **Kage Coins**         | Achat en boutique, passe de saison                                             | Parchemins Premium, piste premium du passe                                               |
 | **Poussière de carte** | Désenchantement, passe de saison                                               | Amélioration de cartes                                                                   |
 | **Essence**            | Désenchantement de cartes légendaires ou mythiques améliorées, passe de saison | Dernières améliorations des cartes légendaires et mythiques                              |
-| **Ferraille**          | Combats et événements d'un parcours                                            | Soins pendant ce parcours uniquement                                                     |
+| **Ferraille**          | Combats et nœuds « ? » d'un parcours                                           | Soins pendant ce parcours uniquement                                                     |
 
 ---
 

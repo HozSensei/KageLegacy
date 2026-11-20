@@ -59,15 +59,22 @@ const missionEpilogue = computed(() => {
 })
 
 function nodeLabel(node) {
+  if (node.type === 'mystery' && !node.revealed) {
+    return t('combat.nodeMystery')
+  }
   if (node.type === 'combat') {
     if (node.boss) return t('combat.nodeBoss')
+    if (node.fromMystery) return t('combat.nodeMysteryCombat')
     return t('combat.nodeCombat')
   }
-  return localizedName(node, locale.value)
+  return localizedName(node, locale.value) || t('combat.nodeEvent')
 }
 
 function nodeHint(node) {
-  if (node.type === 'event') {
+  if (node.type === 'mystery' && !node.revealed) {
+    return t('combat.nodeMysteryHint')
+  }
+  if (node.type === 'event' || (node.type === 'mystery' && node.revealed)) {
     return localizedDescription(node, locale.value)
   }
   const enemy = (missions.enemies || []).find((e) => e.id === node.templateId)
@@ -77,7 +84,8 @@ function nodeHint(node) {
 
 function nodeShape(node) {
   if (node.boss) return 'lozenge'
-  return node.type === 'event' ? 'circle' : 'square'
+  if (node.type === 'mystery' || node.type === 'event') return 'circle'
+  return 'square'
 }
 
 const hpPct = computed(() =>
@@ -200,14 +208,20 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
           :class="[
             `run-node--${node.status}`,
             `run-node--${node.type}`,
-            { 'run-node--boss': node.boss },
+            { 'run-node--boss': node.boss, 'run-node--mystery': node.type === 'mystery' && !node.revealed },
           ]"
-          :data-tone="node.boss ? 'vermilion' : node.type === 'event' ? 'sky' : 'indigo'"
+          :data-tone="
+            node.boss
+              ? 'vermilion'
+              : node.type === 'event' || node.type === 'mystery'
+                ? 'sky'
+                : 'indigo'
+          "
           :data-testid="`run-node-${i}`"
         >
           <div class="run-node__marker">
             <span class="run-node__index" :class="`run-node__index--${nodeShape(node)}`">
-              <span>{{ i + 1 }}</span>
+              <span>{{ node.type === 'mystery' && !node.revealed ? '?' : i + 1 }}</span>
             </span>
           </div>
           <div class="run-node__body">

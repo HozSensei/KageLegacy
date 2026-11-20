@@ -2,14 +2,20 @@
  * Mission runs — parcours multi-combats type roguelike léger.
  *
  * Flux :
- *   startRun → carte de nœuds (combats + événements)
- *   enterNode → combat (startCombat lié) ou détail événement
+ *   startRun → path aléatoire (combats + nœuds « ? »)
+ *   enterNode → combat, révélation « ? », ou détail événement legacy
  *   resolveEvent → applique effet, débloque le nœud suivant
  *   onRunCombatFinished (hook moteur) → PV persistants ; mort = échec run
  *   Fin de parcours → grantRunRewards (meilleures que single fight)
+ *
+ * À terme : embranchements (route courte sans surprise vs longue plus risquée).
  */
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
+import {
+  getRankPathConfig,
+  MYSTERY_OUTCOME_WEIGHTS,
+} from '../config/missionPathConfig.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
 import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
 import { grantRunRewards } from './combatRewardService.js';
@@ -18,7 +24,9 @@ import {
   canPlayMissionRank,
   requiredCharacterRankForMission,
 } from './missionRankAccess.js';
+import { pickRankVignette } from '../../scripts/data/missionLore.js';
 
+/** Types d’événements legacy (runs déjà en cours). */
 const EVENT_TYPES = [
   'rest',
   'cache',
@@ -30,6 +38,9 @@ const EVENT_TYPES = [
   'mist_bridge',
   'spirit_lantern',
   'ash_camp',
+  'mystery_heal',
+  'mystery_loot',
+  'mystery_nothing',
 ];
 
 const EVENT_META = {
@@ -110,6 +121,27 @@ const EVENT_META = {
       'Des braises froides et des sacs abandonnés. Reposez-vous près du foyer, ou fouillez les cendres.',
     descriptionEn: 'Cold embers and abandoned packs. Rest by the hearth, or sift the ashes.',
   },
+  mystery_heal: {
+    id: 'mystery_heal',
+    nameFr: 'Halte providentielle',
+    nameEn: 'Fortunate Halt',
+    descriptionFr: 'Un abri discret. Vous pouvez reprendre votre souffle.',
+    descriptionEn: 'A discreet shelter. You can catch your breath.',
+  },
+  mystery_loot: {
+    id: 'mystery_loot',
+    nameFr: 'Cache improvisée',
+    nameEn: 'Improvised Stash',
+    descriptionFr: 'Quelqu’un a laissé de la ferraille utile sur le bord du sentier.',
+    descriptionEn: 'Someone left useful scrap by the path.',
+  },
+  mystery_nothing: {
+    id: 'mystery_nothing',
+    nameFr: 'Sentier tranquille',
+    nameEn: 'Quiet Path',
+    descriptionFr: 'Rien d’autre que le vent dans les pins. La route continue.',
+    descriptionEn: 'Nothing but wind in the pines. The road goes on.',
+  },
 };
 
 function httpError(statusCode, message) {
@@ -141,17 +173,163 @@ async function tableExists(tableName) {
   }
 }
 
-function pickEventType(index, rng = Math.random) {
-  // Rotation déterministe + léger bruit pour variété MVP
-  const base = EVENT_TYPES[index % EVENT_TYPES.length];
-  if (rng() < 0.25) {
-    return EVENT_TYPES[Math.floor(rng() * EVENT_TYPES.length)];
+function pickWeighted(weights, rng = Math.random) {
+  const entries = Object.entries(weights);
+  const total = entries.reduce((sum, [, w]) => sum + Number(w), 0);
+  let roll = rng() * total;
+  for (const [key, weight] of entries) {
+    roll -= Number(weight);
+    if (roll <= 0) return key;
   }
-  return base;
+  return entries[entries.length - 1]?.[0];
+}
+
+function shuffleCopy(list, rng = Math.random) {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function pickMysteryCount(range, rng = Math.random) {
+  const [min, max] = range;
+  if (min === max) return min;
+  return min + Math.floor(rng() * (max - min + 1));
+}
+
+function pickEncountersForRank(rank, rng = Math.random) {
+  const cfg = getRankPathConfig(rank);
+  if (!cfg) {
+    return [{ templateId: 'ronin_bandit', difficulty: 1 }];
+  }
+
+  const count = cfg.fightCount;
+  const difficulties = cfg.difficulties;
+  const regularPool = shuffleCopy(cfg.pool, rng);
+  const fights = [];
+
+  for (let i = 0; i < count; i += 1) {
+    const isLast = i === count - 1;
+    const useBoss = Boolean(cfg.bossLast && isLast && cfg.bossPool?.length);
+    const pool = useBoss ? cfg.bossPool : regularPool;
+    const templateId = pool[i % pool.length] || pool[0] || 'ronin_bandit';
+    fights.push({
+      templateId,
+      difficulty: difficulties[i] ?? difficulties[difficulties.length - 1] ?? 1,
+      boss: useBoss,
+    });
+  }
+
+  return fights;
+}
+
+function buildMysteryOutcome(rank, rng = Math.random) {
+  const kind = pickWeighted(MYSTERY_OUTCOME_WEIGHTS, rng);
+  if (kind !== 'combat') {
+    return { kind };
+  }
+
+  const cfg = getRankPathConfig(rank);
+  const pool = cfg?.pool?.length ? cfg.pool : ['ronin_bandit'];
+  const templateId = pool[Math.floor(rng() * pool.length)] || pool[0];
+  const midDiff =
+    cfg?.difficulties?.[Math.floor((cfg.difficulties.length - 1) / 2)] ??
+    cfg?.difficulties?.[0] ??
+    1.3;
+
+  return {
+    kind: 'combat',
+    templateId,
+    difficulty: midDiff,
+    boss: false,
+  };
+}
+
+function mysteryEventType(kind) {
+  if (kind === 'heal') return 'mystery_heal';
+  if (kind === 'loot') return 'mystery_loot';
+  return 'mystery_nothing';
 }
 
 /**
- * Construit le parcours : combat → event → combat → … (+ boss flag déjà sur encounters).
+ * Masque le contenu des « ? » non révélés pour le client.
+ */
+export function sanitizeNodesForClient(nodes) {
+  if (!Array.isArray(nodes)) return [];
+  return nodes.map(node => {
+    if (node?.type === 'mystery' && !node.revealed) {
+      return {
+        id: node.id,
+        type: 'mystery',
+        status: node.status,
+        revealed: false,
+      };
+    }
+    if (node?.type === 'mystery' && node.revealed) {
+      const rest = { ...node };
+      delete rest.outcome;
+      return rest;
+    }
+    return node;
+  });
+}
+
+/**
+ * Construit un parcours aléatoire pour un rang : combats + 1–2 nœuds « ? ».
+ * Les issues des « ? » (soin / loot / rien / combat) sont tirées à la génération
+ * mais masquées jusqu’à enterNode.
+ *
+ * @param {string} rank
+ * @param {{ rng?: () => number }} [opts]
+ */
+export function buildRandomRunPath(rank, { rng = Math.random } = {}) {
+  const cfg = getRankPathConfig(rank);
+  const fights = pickEncountersForRank(rank, rng);
+  const gaps = Math.max(0, fights.length - 1);
+  const mysteryWanted = cfg ? pickMysteryCount(cfg.mysteryCount, rng) : 1;
+  const mysteryCount = Math.min(gaps, mysteryWanted);
+
+  const gapIndexes = shuffleCopy(
+    Array.from({ length: gaps }, (_, i) => i),
+    rng,
+  ).slice(0, mysteryCount);
+  const mysteryGaps = new Set(gapIndexes);
+
+  const nodes = [];
+  let mysterySlot = 0;
+
+  for (let i = 0; i < fights.length; i += 1) {
+    const fight = fights[i];
+    nodes.push({
+      id: `combat-${i}`,
+      type: 'combat',
+      status: i === 0 ? 'available' : 'locked',
+      templateId: fight.templateId,
+      difficulty: fight.difficulty || 1,
+      boss: Boolean(fight.boss),
+    });
+
+    if (i < fights.length - 1 && mysteryGaps.has(i)) {
+      const outcome = buildMysteryOutcome(rank, rng);
+      nodes.push({
+        id: `mystery-${mysterySlot}`,
+        type: 'mystery',
+        status: 'locked',
+        revealed: false,
+        outcome,
+      });
+      mysterySlot += 1;
+    }
+  }
+
+  return nodes;
+}
+
+/**
+ * @deprecated Prefer buildRandomRunPath(rank). Conservé pour tests / runs legacy.
+ * Intercale des events nommés entre des encounters fournis.
  */
 export function buildRunNodes(encounters, { rng = Math.random } = {}) {
   const fights =
@@ -160,8 +338,6 @@ export function buildRunNodes(encounters, { rng = Math.random } = {}) {
       : [{ templateId: 'ronin_bandit', difficulty: 1 }];
 
   const nodes = [];
-  let eventSlot = 0;
-
   for (let i = 0; i < fights.length; i += 1) {
     const fight = fights[i];
     nodes.push({
@@ -176,19 +352,13 @@ export function buildRunNodes(encounters, { rng = Math.random } = {}) {
     });
 
     if (i < fights.length - 1) {
-      const eventType = pickEventType(eventSlot, rng);
-      eventSlot += 1;
-      const meta = EVENT_META[eventType];
+      const outcome = buildMysteryOutcome('D', rng);
       nodes.push({
-        id: `event-${i}`,
-        type: 'event',
+        id: `mystery-${i}`,
+        type: 'mystery',
         status: 'locked',
-        eventType,
-        nameFr: meta.nameFr,
-        nameEn: meta.nameEn,
-        descriptionFr: meta.descriptionFr,
-        descriptionEn: meta.descriptionEn,
-        resolved: null,
+        revealed: false,
+        outcome,
       });
     }
   }
@@ -240,13 +410,18 @@ async function loadTalentEffectCodes(userId) {
   }
 }
 
+function isOpenEventNode(node) {
+  if (!node || node.status !== 'available' || !node.eventOpen) return false;
+  if (node.type === 'event') return true;
+  if (node.type === 'mystery' && node.revealed && node.outcome?.kind !== 'combat') return true;
+  return false;
+}
+
 function getCurrentEvent(row, nodes, player) {
   if (row.state !== 'in_progress') return null;
 
   const node = nodes[Number(row.current_node_index)];
-  if (node?.type !== 'event' || node.status !== 'available' || !node.eventOpen) {
-    return null;
-  }
+  if (!isOpenEventNode(node)) return null;
 
   return buildEventPayload(node, player);
 }
@@ -255,6 +430,20 @@ function serializeRun(row, extras = {}) {
   if (!row) return null;
   const nodes = parseJson(row.nodes_json, []);
   const player = parseJson(row.player_run_state_json, {});
+  const lore = player.lore || null;
+  const missionExtra = extras.mission
+    ? {
+        ...extras.mission,
+        briefFr: lore?.briefFr || extras.mission.briefFr || null,
+        briefEn: lore?.briefEn || extras.mission.briefEn || null,
+        epilogueFr: lore?.epilogueFr || extras.mission.epilogueFr || null,
+        epilogueEn: lore?.epilogueEn || extras.mission.epilogueEn || null,
+      }
+    : extras.mission;
+
+  const restExtras = { ...extras };
+  delete restExtras.mission;
+
   return {
     id: row.id,
     userId: row.user_id,
@@ -262,7 +451,7 @@ function serializeRun(row, extras = {}) {
     deckId: row.deck_id,
     state: row.state,
     currentNodeIndex: row.current_node_index,
-    nodes,
+    nodes: sanitizeNodesForClient(nodes),
     player,
     currentEvent: getCurrentEvent(row, nodes, player),
     stats: parseJson(row.stats_snapshot_json, createEmptyStats()),
@@ -271,7 +460,8 @@ function serializeRun(row, extras = {}) {
     rewards: parseJson(row.rewards_json, null),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    ...extras,
+    ...(missionExtra ? { mission: missionExtra } : {}),
+    ...restExtras,
   };
 }
 
@@ -354,13 +544,15 @@ export async function startRun(userId, missionId, deckId = null) {
 
   const resolvedDeckId = deck.id;
 
-  const nodes = buildRunNodes(mission.encounters);
+  const nodes = buildRandomRunPath(mission.rank);
+  const vignette = pickRankVignette(mission.rank);
   const id = randomUUID();
   const player = {
     hp: maxHp,
     maxHp,
     scrap: 0,
     combatsWon: 0,
+    lore: vignette,
   };
   const talentEffects = {
     codes: effectCodes,
@@ -448,7 +640,47 @@ export async function enterNode(userId, runId) {
 
   row.current_node_index = idx;
 
-  if (node.type === 'combat') {
+  if (node.type === 'mystery' && !node.revealed) {
+    const outcome = node.outcome || { kind: 'nothing' };
+    if (outcome.kind === 'combat') {
+      nodes[idx] = {
+        id: node.id,
+        type: 'combat',
+        status: 'available',
+        templateId: outcome.templateId || 'ronin_bandit',
+        difficulty: outcome.difficulty || 1,
+        boss: Boolean(outcome.boss),
+        revealed: true,
+        fromMystery: true,
+      };
+    } else {
+      const eventType = mysteryEventType(outcome.kind);
+      const meta = EVENT_META[eventType];
+      nodes[idx] = {
+        ...node,
+        revealed: true,
+        eventOpen: true,
+        eventType,
+        nameFr: meta.nameFr,
+        nameEn: meta.nameEn,
+        descriptionFr: meta.descriptionFr,
+        descriptionEn: meta.descriptionEn,
+      };
+      row.nodes_json = nodes;
+      await persistRun(row);
+      const eventPayload = buildEventPayload(nodes[idx], parseJson(row.player_run_state_json, {}));
+      return {
+        run: serializeRun(row),
+        combat: null,
+        node: sanitizeNodesForClient([nodes[idx]])[0],
+        event: eventPayload,
+      };
+    }
+  }
+
+  const activeNode = nodes[idx];
+
+  if (activeNode.type === 'combat') {
     if (row.current_combat_id) {
       const existing = await query(
         'SELECT id, state FROM combat_sessions WHERE id = ? AND user_id = ? LIMIT 1',
@@ -457,8 +689,13 @@ export async function enterNode(userId, runId) {
       if (existing[0]?.state === 'in_progress') {
         const { getCombatState } = await import('./combatEngineService.js');
         const combat = await getCombatState(userId, row.current_combat_id);
+        row.nodes_json = nodes;
         await persistRun(row);
-        return { run: serializeRun(row), combat, node };
+        return {
+          run: serializeRun(row),
+          combat,
+          node: sanitizeNodesForClient([activeNode])[0],
+        };
       }
     }
 
@@ -467,8 +704,8 @@ export async function enterNode(userId, runId) {
     const combat = await startCombat(userId, {
       missionId: row.mission_id,
       deckId: row.deck_id,
-      templateId: node.templateId,
-      difficulty: node.difficulty || 1,
+      templateId: activeNode.templateId,
+      difficulty: activeNode.difficulty || 1,
       missionRunId: row.id,
       startingHp: player.hp,
       startingMaxHp: player.maxHp,
@@ -479,21 +716,33 @@ export async function enterNode(userId, runId) {
     row.nodes_json = nodes;
     await persistRun(row);
 
-    return { run: serializeRun(row), combat, node };
+    return {
+      run: serializeRun(row),
+      combat,
+      node: sanitizeNodesForClient([activeNode])[0],
+    };
   }
 
-  // Événement : persister son ouverture pour pouvoir restaurer les choix après rechargement.
-  nodes[idx] = { ...node, eventOpen: true };
+  // Événement (legacy ou mystère déjà ouvert) : persister pour restauration après reload.
+  nodes[idx] = { ...activeNode, eventOpen: true };
   const eventPayload = buildEventPayload(nodes[idx], parseJson(row.player_run_state_json, {}));
   row.nodes_json = nodes;
   await persistRun(row);
-  return { run: serializeRun(row), combat: null, node: nodes[idx], event: eventPayload };
+  return {
+    run: serializeRun(row),
+    combat: null,
+    node: sanitizeNodesForClient([nodes[idx]])[0],
+    event: eventPayload,
+  };
 }
 
 function buildEventPayload(node, player) {
-  const meta = EVENT_META[node.eventType] || EVENT_META.rest;
+  const eventType =
+    node.eventType ||
+    (node.type === 'mystery' ? mysteryEventType(node.outcome?.kind || 'nothing') : 'rest');
+  const meta = EVENT_META[eventType] || EVENT_META.rest;
   const base = {
-    eventType: node.eventType,
+    eventType,
     nameFr: meta.nameFr,
     nameEn: meta.nameEn,
     descriptionFr: meta.descriptionFr,
@@ -502,6 +751,35 @@ function buildEventPayload(node, player) {
     hp: player.hp,
     maxHp: player.maxHp,
   };
+
+  if (eventType === 'mystery_heal') {
+    return {
+      ...base,
+      choices: [
+        { id: 'rest_here', labelFr: 'Se reposer (+30 % PV max)', labelEn: 'Rest (+30% max HP)' },
+      ],
+    };
+  }
+  if (eventType === 'mystery_loot') {
+    return {
+      ...base,
+      choices: [
+        {
+          id: 'take_scrap',
+          labelFr: 'Ramasser (+4 ferraille, +10 % PV)',
+          labelEn: 'Take it (+4 scrap, +10% HP)',
+        },
+      ],
+    };
+  }
+  if (eventType === 'mystery_nothing') {
+    return {
+      ...base,
+      choices: [
+        { id: 'continue', labelFr: 'Continuer la route', labelEn: 'Continue on the road' },
+      ],
+    };
+  }
 
   if (node.eventType === 'rest') {
     return {
@@ -690,15 +968,34 @@ export async function resolveEvent(userId, runId, choiceId) {
   const nodes = parseJson(row.nodes_json, []);
   const idx = Number(row.current_node_index) || 0;
   const node = nodes[idx];
-  if (!node || node.type !== 'event' || node.status !== 'available' || !node.eventOpen) {
+  if (!isOpenEventNode(node)) {
     throw httpError(400, 'Aucun événement à résoudre.');
   }
   if (!choiceId) throw httpError(400, 'choiceId requis.');
 
   let player = parseJson(row.player_run_state_json, {});
-  const log = { choiceId, eventType: node.eventType };
+  const eventType =
+    node.eventType ||
+    (node.type === 'mystery' ? mysteryEventType(node.outcome?.kind || 'nothing') : 'rest');
+  const log = { choiceId, eventType };
 
-  switch (node.eventType) {
+  switch (eventType) {
+    case 'mystery_heal': {
+      player = healPercent(player, 0.3);
+      log.heal = player.lastHeal;
+      break;
+    }
+    case 'mystery_loot': {
+      player = healPercent(player, 0.1);
+      player = { ...player, scrap: (player.scrap || 0) + 4 };
+      log.heal = player.lastHeal;
+      log.scrapGained = 4;
+      break;
+    }
+    case 'mystery_nothing': {
+      log.skipped = true;
+      break;
+    }
     case 'rest': {
       player = healPercent(player, 0.3);
       log.heal = player.lastHeal;
@@ -975,9 +1272,13 @@ export async function abandonRun(userId, runId) {
 
 export const __test = {
   buildRunNodes,
+  buildRandomRunPath,
+  sanitizeNodesForClient,
   unlockNext,
   healPercent,
   getCurrentEvent,
   EVENT_TYPES,
   EVENT_META,
+  pickEncountersForRank,
+  buildMysteryOutcome,
 };

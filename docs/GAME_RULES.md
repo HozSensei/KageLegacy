@@ -58,9 +58,9 @@ Hors mission, un combat rapide peut être lancé contre un template avec une dif
 
 ## Missions
 
-Un run alterne combats et événements. Les PV persistent entre combats. Une défaite ou un abandon termine le run sans récompenses de complétion.
+Une mission active par rang (D, C, B, A, S). Chaque lancement génère un parcours aléatoire : combats tirés dans un pool du rang, plus un ou deux nœuds « ? » (soin, butin, rien ou embuscade). Le briefing immersif est révélé au départ, pas sur la liste.
 
-Les récompenses sont distribuées à la fin du run, avec un multiplicateur dépendant du nombre de combats gagnés. Le dernier combat d'un run assez long peut devenir un boss selon la définition de mission.
+Les PV persistent entre combats. Une défaite ou un abandon termine le run sans récompenses de complétion. Les récompenses sont versées à la fin du run, avec un multiplicateur selon les combats gagnés. Les rangs B+ peuvent terminer sur un boss.
 
 ## Collection et amélioration
 

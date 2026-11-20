@@ -5,7 +5,15 @@
  */
 import { __test } from '../src/services/missionRunService.js';
 
-const { buildRunNodes, unlockNext, healPercent, getCurrentEvent, EVENT_TYPES } = __test;
+const {
+  buildRunNodes,
+  buildRandomRunPath,
+  sanitizeNodesForClient,
+  unlockNext,
+  healPercent,
+  getCurrentEvent,
+  EVENT_TYPES,
+} = __test;
 
 let passed = 0;
 let failed = 0;
@@ -20,38 +28,58 @@ function assert(cond, msg) {
   }
 }
 
-console.log('=== buildRunNodes ===');
+function makeRng(seq) {
+  let i = 0;
+  return () => {
+    const v = seq[i % seq.length];
+    i += 1;
+    return v;
+  };
+}
+
+console.log('=== buildRandomRunPath ===');
+const pathD = buildRandomRunPath('D', { rng: makeRng([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]) });
+const combatsD = pathD.filter(n => n.type === 'combat');
+const mysteriesD = pathD.filter(n => n.type === 'mystery');
+assert(combatsD.length === 3, `D: 3 combats (got ${combatsD.length})`);
+assert(mysteriesD.length >= 1 && mysteriesD.length <= 2, `D: 1–2 mystery (got ${mysteriesD.length})`);
+assert(pathD[0].type === 'combat' && pathD[0].status === 'available', 'first combat available');
+assert(
+  mysteriesD.every(m => m.revealed === false && m.outcome?.kind),
+  'mysteries hidden with pre-rolled outcome',
+);
+assert(
+  mysteriesD.every(m => ['heal', 'loot', 'nothing', 'combat'].includes(m.outcome.kind)),
+  'mystery outcomes in {heal,loot,nothing,combat}',
+);
+
+const pathB = buildRandomRunPath('B', { rng: makeRng([0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85]) });
+assert(pathB.filter(n => n.type === 'combat').length === 4, 'B: 4 combats');
+assert(pathB.filter(n => n.type === 'combat').at(-1)?.boss === true, 'B: last combat boss');
+assert(pathB.filter(n => n.type === 'mystery').length >= 1, 'B: at least one mystery');
+
+const pathS = buildRandomRunPath('S', { rng: () => 0.2 });
+assert(pathS.filter(n => n.type === 'combat').length === 5, 'S: 5 combats');
+assert(pathS.filter(n => n.type === 'mystery').length === 2, 'S: exactly 2 mysteries');
+
+console.log('=== sanitizeNodesForClient ===');
+const sanitized = sanitizeNodesForClient(pathD);
+const hidden = sanitized.find(n => n.type === 'mystery');
+assert(hidden && !hidden.outcome && hidden.revealed === false, 'client does not see mystery outcome');
+
+console.log('=== buildRunNodes (compat) ===');
 const encounters = [
   { templateId: 'ronin_bandit', difficulty: 1 },
   { templateId: 'marsh_cutpurse', difficulty: 1 },
   { templateId: 'scrapyard_dog', difficulty: 1 },
 ];
 const nodes = buildRunNodes(encounters, { rng: () => 0 });
-assert(nodes.length === 5, `3 combats + 2 events = 5 nodes (got ${nodes.length})`);
-assert(nodes[0].type === 'combat' && nodes[0].status === 'available', 'first combat available');
-assert(nodes[1].type === 'event' && nodes[1].status === 'locked', 'event locked between fights');
-assert(nodes[2].type === 'combat' && nodes[2].status === 'locked', 'second combat locked');
-assert(EVENT_TYPES.includes(nodes[1].eventType), 'event type from MVP set');
-assert(EVENT_TYPES.length >= 10, `≥10 event types (got ${EVENT_TYPES.length})`);
-assert(EVENT_TYPES.includes('whisper_grove'), 'whisper_grove event');
-assert(EVENT_TYPES.includes('crow_perch'), 'crow_perch event');
-assert(EVENT_TYPES.includes('sealed_scroll'), 'sealed_scroll event');
-assert(EVENT_TYPES.includes('mist_bridge'), 'mist_bridge event');
-assert(EVENT_TYPES.includes('spirit_lantern'), 'spirit_lantern event');
-assert(EVENT_TYPES.includes('ash_camp'), 'ash_camp event');
-
-const bossPath = buildRunNodes(
-  [
-    { templateId: 'ashen_captain', difficulty: 1 },
-    { templateId: 'ironroot_warden', difficulty: 1 },
-    { templateId: 'stormcaller_adept', difficulty: 1 },
-    { templateId: 'duskblade_ronin', difficulty: 1, boss: true },
-  ],
-  { rng: () => 0 }
-);
-assert(bossPath.filter(n => n.type === 'combat').length === 4, '4 combats on B/A path');
-assert(bossPath[bossPath.length - 1].boss === true, 'last combat marked boss');
-assert(bossPath.filter(n => n.type === 'event').length === 3, '3 events interleaved');
+assert(nodes.length === 5, `3 combats + 2 mystery = 5 nodes (got ${nodes.length})`);
+assert(nodes[0].type === 'combat' && nodes[0].status === 'available', 'compat first combat');
+assert(nodes[1].type === 'mystery', 'compat mystery between fights');
+assert(EVENT_TYPES.includes('mystery_heal'), 'mystery_heal event type');
+assert(EVENT_TYPES.includes('mystery_loot'), 'mystery_loot event type');
+assert(EVENT_TYPES.includes('mystery_nothing'), 'mystery_nothing event type');
 
 console.log('=== unlockNext ===');
 const unlocked = unlockNext(nodes, 0);
@@ -65,16 +93,19 @@ const eventRun = {
 };
 const eventNodes = [
   { id: 'combat-0', type: 'combat', status: 'cleared' },
-  { id: 'event-0', type: 'event', eventType: 'rest', status: 'available', eventOpen: true },
+  {
+    id: 'mystery-0',
+    type: 'mystery',
+    eventType: 'mystery_heal',
+    status: 'available',
+    eventOpen: true,
+    revealed: true,
+    outcome: { kind: 'heal' },
+  },
 ];
 const restoredEvent = getCurrentEvent(eventRun, eventNodes, { hp: 40, maxHp: 100, scrap: 0 });
-assert(restoredEvent?.eventType === 'rest', 'opened event is restored with its choices');
-assert(restoredEvent?.choices?.[0]?.id === 'meditate', 'restored event exposes its choice');
-assert(
-  getCurrentEvent(eventRun, [{ ...eventNodes[0] }, { ...eventNodes[1], eventOpen: false }], {}) ===
-    null,
-  'available but unopened event is not restored'
-);
+assert(restoredEvent?.eventType === 'mystery_heal', 'opened mystery heal restored');
+assert(restoredEvent?.choices?.[0]?.id === 'rest_here', 'heal choice exposed');
 
 console.log('=== healPercent ===');
 const healed = healPercent({ hp: 40, maxHp: 100 }, 0.3);
