@@ -10,7 +10,7 @@ import { missionRankTone } from '../utils/missionVisuals';
 import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
 import { useDecksStore } from '../stores/decks';
-import { localizedDescription, localizedName } from '../utils/localeContent.js';
+import { localizedDescription, localizedField, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'MissionsCombatView' });
 
@@ -43,7 +43,25 @@ function missionDesc(m) {
   return localizedDescription(m, locale.value);
 }
 
+function missionChapter(m) {
+  return localizedField(m, 'chapter', locale.value) || '';
+}
+
+function missionBrief(m) {
+  return localizedField(m, 'brief', locale.value) || missionDesc(m);
+}
+
+function missionLocked(mission) {
+  return mission?.playable === false;
+}
+
+function missionLockLabel(mission) {
+  if (!missionLocked(mission)) return '';
+  return t('combat.missionLockedRank', { rank: mission.requiredCharacterRank || '—' });
+}
+
 async function startMission(mission) {
+  if (launchBlocked.value || missionLocked(mission)) return;
   startingId.value = mission.id;
   localError.value = null;
   combat.error = null;
@@ -53,28 +71,49 @@ async function startMission(mission) {
       await router.push({ name: 'mission-run', params: { id: run.id } });
     }
   } catch (e) {
-    localError.value = e.message || missions.error;
+    const message = e.message || missions.error;
+    localError.value = message;
+    const combatId = parseActiveCombatId(message);
+    if (combatId) missions.activeCombat = { id: combatId, missionRunId: null };
   } finally {
     startingId.value = null;
   }
 }
+
+const launchBlocked = computed(
+  () => Boolean(missions.activeRun) || Boolean(missions.activeCombat)
+);
 
 function resumeRun() {
   if (!missions.activeRun?.id) return;
   router.push({ name: 'mission-run', params: { id: missions.activeRun.id } });
 }
 
+function resumeCombat() {
+  if (!missions.activeCombat?.id) return;
+  router.push({ name: 'combat', params: { id: missions.activeCombat.id } });
+}
+
+function parseActiveCombatId(message) {
+  const match = String(message || '').match(/Combat déjà en cours \(([^)]+)\)/i);
+  return match?.[1] || null;
+}
+
 async function startQuick(templateId) {
-  if (startingId.value != null || missions.activeRun) return;
+  if (startingId.value != null || launchBlocked.value) return;
   startingId.value = templateId;
   localError.value = null;
   try {
     const result = await combat.startCombat({ templateId });
     if (result?.id) {
+      missions.activeCombat = { id: result.id, missionRunId: null };
       await router.push({ name: 'combat', params: { id: result.id } });
     }
   } catch (e) {
-    localError.value = e.message || combat.error;
+    const message = e.message || combat.error;
+    localError.value = message;
+    const combatId = parseActiveCombatId(message);
+    if (combatId) missions.activeCombat = { id: combatId, missionRunId: null };
   } finally {
     startingId.value = null;
   }
@@ -108,7 +147,24 @@ async function startQuick(templateId) {
       :secondary-label="t('placeholders.backHome')"
     />
 
-    <div v-if="missions.activeRun" class="active-run" data-testid="active-run-banner">
+    <div
+      v-if="missions.activeCombat"
+      class="active-run"
+      data-testid="active-combat-banner"
+    >
+      <span class="lozenge active-run__mark" aria-hidden="true" />
+      <p class="active-run__text">{{ t('combat.activeCombatHint') }}</p>
+      <button type="button" class="btn-primary" data-testid="resume-combat" @click="resumeCombat">
+        {{ t('combat.resumeCombat') }}
+        <AppIcon name="arrow-right" size="1rem" />
+      </button>
+    </div>
+
+    <div
+      v-else-if="missions.activeRun"
+      class="active-run"
+      data-testid="active-run-banner"
+    >
       <span class="lozenge active-run__mark" aria-hidden="true" />
       <p class="active-run__text">{{ t('combat.activeRunHint') }}</p>
       <button type="button" class="btn-primary" data-testid="resume-run" @click="resumeRun">
@@ -135,6 +191,7 @@ async function startQuick(templateId) {
           v-for="mission in missions.missions"
           :key="mission.id"
           class="mission-card"
+          :class="{ 'mission-card--locked': missionLocked(mission) }"
           :data-tone="missionRankTone(mission.rank)"
           :data-testid="`mission-${mission.slug}`"
         >
@@ -144,7 +201,10 @@ async function startQuick(templateId) {
           </div>
           <div class="mission-card__body">
             <h3 class="mission-card__title">{{ missionName(mission) }}</h3>
-            <p class="mission-card__desc">{{ missionDesc(mission) }}</p>
+            <p v-if="missionChapter(mission)" class="mission-card__chapter">
+              {{ missionChapter(mission) }}
+            </p>
+            <p class="mission-card__desc">{{ missionBrief(mission) }}</p>
             <p class="mission-card__meta">
               <span class="mission-card__pips" aria-hidden="true">
                 <span
@@ -167,14 +227,23 @@ async function startQuick(templateId) {
                 })
               }}
             </p>
+            <p v-if="missionLocked(mission)" class="mission-card__lock">
+              {{ missionLockLabel(mission) }}
+            </p>
             <button
               type="button"
               class="btn-primary btn-sm mission-card__cta"
               data-testid="mission-start"
-              :disabled="startingId != null || Boolean(missions.activeRun)"
+              :disabled="startingId != null || launchBlocked || missionLocked(mission)"
               @click="startMission(mission)"
             >
-              {{ startingId === mission.id ? t('combat.starting') : t('combat.startMission') }}
+              {{
+                startingId === mission.id
+                  ? t('combat.starting')
+                  : missionLocked(mission)
+                    ? t('combat.missionLocked')
+                    : t('combat.startMission')
+              }}
             </button>
           </div>
         </article>
@@ -197,7 +266,7 @@ async function startQuick(templateId) {
           class="quick-foe"
           :class="{ 'quick-foe--boss': enemy.boss }"
           :data-testid="`quick-fight-${enemy.id}`"
-          :disabled="startingId != null || Boolean(missions.activeRun)"
+          :disabled="startingId != null || launchBlocked"
           @click="startQuick(enemy.id)"
         >
           <span
@@ -283,6 +352,21 @@ async function startQuick(templateId) {
   transform: translateY(-3px);
 }
 
+.mission-card--locked {
+  opacity: 0.72;
+}
+
+.mission-card--locked:hover {
+  transform: none;
+}
+
+.mission-card__lock {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-ink-muted);
+}
+
 .mission-card__rank {
   display: flex;
   flex-direction: column;
@@ -348,6 +432,15 @@ async function startQuick(templateId) {
   display: inline-flex;
   gap: 0.3rem;
   color: var(--tone-fill);
+}
+
+.mission-card__chapter {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-vermilion);
 }
 
 .mission-card__rewards {

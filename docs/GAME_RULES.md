@@ -1,6 +1,10 @@
 # Règles du jeu
 
-Ce document résume les règles visibles pour un joueur. Les détails mécaniques sont dans [Cartes et combat](CARDS_AND_COMBAT.md).
+Ce document résume les règles visibles pour un joueur. Les détails mécaniques sont dans [Cartes et combat](CARDS_AND_COMBAT.md). La version joueur complète (héritages, enchaînements, ordre des dégâts, glossaire d’effets) est dans `frontend/src/content/rules.fr.md` et `rules.en.md`, affichée sur `/rules`.
+
+## Monde
+
+Trois villages (Midorihara, Kareno, Oborohama) sont en guerre froide après un pacte trahi. Voir [Lore](LORE.md). Les missions sont des opérations pour son camp ; le village n’accorde aucun bonus de combat.
 
 ## Création et progression
 

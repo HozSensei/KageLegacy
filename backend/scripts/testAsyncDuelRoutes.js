@@ -150,9 +150,11 @@ test('HTTP : ami hors ligne, deck figé, reprise et écriture versionnée', asyn
     backgroundId: 'joueur-1',
     nicknameId: 'genin',
   });
+  assert.equal(duel.player.factionId, 'midorihara');
+  assert.equal(duel.enemy.factionId, 'kareno');
   assert.doesNotMatch(
     JSON.stringify(duel),
-    /secret-2|rngState|drawPile|unlockedNicknameIds|factionId/
+    /secret-2|rngState|drawPile|unlockedNicknameIds/
   );
   assert.equal((await call(2, `/${duel.id}`)).status, 404);
   assert.equal((await call(1, '')).data.activeDuelId, duel.id);

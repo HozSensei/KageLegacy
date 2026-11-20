@@ -6,6 +6,7 @@ import {
   discardForDraw,
   endTurn,
   forfeit,
+  getActiveCombat,
   getCombatState,
   playCard,
   reserveCard,
@@ -39,6 +40,18 @@ router.post('/start', async (req, res, next) => {
     const body = startSchema.parse(req.body || {});
     const combat = await startCombat(user.id, body);
     res.status(201).json({ combat });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** GET /api/combat/active — combat orphelin ou nœud de parcours en cours. */
+router.get('/active', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const combat = await getActiveCombat(user.id);
+    res.json({ combat });
   } catch (error) {
     next(error);
   }

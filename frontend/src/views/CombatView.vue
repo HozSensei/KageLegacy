@@ -30,6 +30,7 @@ onMounted(async () => {
       combat.clear();
       await combat.fetchState(combatId.value);
     }
+    syncActiveCombat();
   }
 });
 
@@ -37,6 +38,7 @@ watch(combatId, async id => {
   if (id) {
     combat.clear();
     await combat.fetchState(id);
+    syncActiveCombat();
   }
 });
 
@@ -46,6 +48,29 @@ watch(
     if (run) missions.applyRunUpdate(run);
   }
 );
+
+watch(
+  () => combat.combat?.state,
+  state => {
+    if (['victory', 'defeat', 'forfeited'].includes(state)) {
+      missions.clearActiveCombat();
+    } else {
+      syncActiveCombat();
+    }
+  }
+);
+
+function syncActiveCombat() {
+  const current = combat.combat;
+  if (!current?.id || ['victory', 'defeat', 'forfeited'].includes(current.state)) {
+    missions.clearActiveCombat();
+    return;
+  }
+  missions.activeCombat = {
+    id: current.id,
+    missionRunId: current.missionRunId || null,
+  };
+}
 
 function onSelect(card) {
   const instanceId = card?.instanceId || null;
@@ -110,6 +135,7 @@ async function onForfeit() {
 
 function goToRunOrMissions() {
   const runId = combat.combat?.missionRunId;
+  missions.clearActiveCombat();
   combat.clear();
   if (runId) {
     router.push({ name: 'mission-run', params: { id: runId } });

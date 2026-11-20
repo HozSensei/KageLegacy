@@ -10,6 +10,7 @@ import { renderMarkdown } from '../utils/renderMarkdown.js';
 import { addHeadingAnchors, parseRulesNav } from '../utils/parseRulesDoc.js';
 import rulesFr from '../content/rules.fr.md?raw';
 import rulesEn from '../content/rules.en.md?raw';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 
 defineOptions({ name: 'RulesView' });
 
@@ -17,6 +18,7 @@ const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+useOnboardingVisit('visit_rules');
 
 const sidebarOpen = ref(false);
 const activeSectionId = ref('');

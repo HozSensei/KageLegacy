@@ -179,7 +179,7 @@ assert.equal(soloSnapshot.player.level, 1);
 assert.deepEqual(soloSnapshot.player.profile, expectedProfile);
 assert.equal(soloSnapshot.player.hp, 100);
 assert.equal(soloSnapshot.player.chakra, 5);
-assert.equal(soloSnapshot.player.factionId, undefined);
+assert.equal(soloSnapshot.player.factionId, 'kareno');
 assert.equal(soloSnapshot.enemy.chakra, undefined);
 assert.equal(soloSnapshot.enemy.maxChakra, undefined);
 const missionSnapshot = publicState({ ...soloSession, missionId: 3, missionRunId: 'run' });

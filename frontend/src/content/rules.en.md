@@ -4,7 +4,15 @@
 
 This guide describes the game as it works today. The numbers given are the ones the game applies.
 
-_Last updated: November 2026_
+_Last updated: 20 November 2026_
+
+---
+
+## The world
+
+Three villages — **Midorihara**, **Kareno**, **Oborohama** — fight over prestige and the title of Kage. An old **pact** between them was betrayed: murder, theft, lies. No one confesses. Official peace hides a **cold war**.
+
+You serve **your village**. Missions are operations (roads, agents, proof). Inter-village duels feed a weekly prestige standing. Your village grants **no combat bonus**.
 
 ---
 
@@ -47,7 +55,7 @@ Rank follows level:
 
 ### Profile cosmetics
 
-In your profile, you can change your **portrait**, customize the **border and background colors**, and equip an unlocked **nickname**. Portrait collections unlock at their matching rank, from Aspirant through ANBU. You keep access to portraits from lower ranks; Kage can use all collections and has no separate portrait collection.
+In your profile, you can change your **portrait**, choose an illustrated **card background**, and equip an unlocked **nickname**. Portrait collections unlock at their matching rank, from Aspirant through ANBU. You keep access to portraits from lower ranks; Kage can use all collections and has no separate portrait collection.
 
 Each promotion from Genin to Kage unlocks the nickname listed above. Earned nicknames stay available even if your level is reset. Ranks and cosmetics do not grant combat bonuses.
 
@@ -91,7 +99,43 @@ Every card plays two roles:
 | **Summon**  | Calls an ally who fights at your side                 |
 | **Item**    | One-off effect; most are exhausted after use          |
 
-A card can be tied to a **path** (Taijutsu, Ninjutsu, Genjutsu, Medicine) and to an **element** (Katon, Suiton, Raiton, Doton, Futon).
+A card can be tied to a **path** (Taijutsu, Ninjutsu, Genjutsu, Medicine) and to an **element** (Katon, Suiton, Raiton, Doton, Futon). Cards with no path (items, summons, some heritages) are **neutral**: they do not count toward the deck’s 25% / 25% split and **break** a chain.
+
+### Common active effects
+
+Each card shows **its own text** in the collection and in combat. These are the effect types you may see:
+
+| Effect | What it does |
+| ------ | ------------ |
+| **Damage / Armor / Healing** | Main figures, boosted by the path stat (or the best path for a neutral card) |
+| **Multi-hit** | Several strikes; one critical roll for the whole card |
+| **AoE** | Multiplies the card’s damage (×1.35), even against a single enemy |
+| **Status** | Applies a status (see “Statuses”) |
+| **Draw / Chakra** | Draws cards or restores Chakra |
+| **Chain** | Bonus if the previous card matches the listed path |
+| **Next card −N Chakra** | Reduces the cost of the next successfully played card |
+| **Evade** | Chance to cancel the next attack taken |
+| **Counter** | Deals damage to the attacker after you are hit |
+| **Cleanse** | Removes harmful statuses |
+| **Exhaust** | Removes the card from the fight after use |
+| **Bonus if…** | Extra damage when a condition is true (e.g. enemy Vulnerable, first card of the turn) |
+
+Exact numbers are always those written on the card.
+
+### Heritages (held effects)
+
+Some clan legendary cards carry a **heritage**: an effect that applies **while the card is in hand** (and in **reserve** in the PvP arena). Playing the card does not grant its own heritage to itself.
+
+| Heritage | Effect |
+| -------- | ------ |
+| **Shizumori** | +15% evade |
+| **Benigiri** | +20% Ninjutsu damage |
+| **Kazamine** | +20% Taijutsu damage |
+| **Kumatani** | +6 armor at the start of your turn |
+| **Yukisawa** | +2 Chakra at the start of your turn |
+| **Nagihara** | +20% healing |
+
+Heritage Chakra and armor are granted **once** at the start of your turn. Percentage bonuses apply while the card stays in hand (or reserve). The same copy counted twice still contributes only once. Heritage evade is capped at **75%**.
 
 ### Rarities
 
@@ -199,7 +243,26 @@ Some cards display a combat role. This label describes the card without recommen
 
 Your hand is limited to **10 cards**. When the draw pile is empty, the discard pile is shuffled and becomes the draw pile again.
 
-Some cards display a chain effect, such as “After Taijutsu: +2 damage” or “After Medicine: draw 1 card.” It activates only on the card that carries it and only when the immediately preceding card belongs to the listed art. A `Common` card interrupts that condition. Chain rewards may grant damage, healing, Armor, effect intensity, draw, Chakra, or next-card cost reduction. Cards without a chain effect receive no automatic bonus.
+### Chains
+
+Some cards carry text like “Chain Taijutsu: +2 damage.” This is **not** an automatic bonus from path order: only the card that writes it can trigger it.
+
+- Only the **immediately previous card** in the **same turn** is checked.
+- That previous card must belong to one of the four paths (Taijutsu, Ninjutsu, Genjutsu, Medicine).
+- A **neutral** card (item, summon, etc.) **breaks** the chain.
+- At the start of your turn, the chain is **reset**.
+- A refused play (not enough Chakra, etc.) does not change the chain.
+
+Possible rewards, depending on the card: damage, healing, Armor, effect intensity, draw, Chakra, or next-card cost reduction. A card with no chain text receives no chain bonus.
+
+### Next-card cost reduction
+
+Some cards (or chain rewards) say “Next card: −N Chakra.”
+
+- Reductions **stack**.
+- When you **successfully** play a card, its cost is reduced to a minimum of 0, then **all** stacked reduction is consumed — even if the card cost 0, even if you did not use every point.
+- If you play no further card, the reduction **carries to the next turn**.
+- A refused play does not consume the reduction.
 
 ### The enemy's turn
 
@@ -215,10 +278,26 @@ The enemy carries out its current intent, then the displayed intents are updated
 
 ### Damage, armor and healing
 
-- **Card damage**: base damage, increased by 1% per point in the stat of its path.
+- **Card damage**: base damage, increased by 1% per point in the stat of its path (best path for a neutral card).
 - **Armor**: it absorbs damage before your HP. It protects you during the enemy's turn, then disappears at the start of your next turn. The enemy's armor disappears the same way at the start of its turn.
 - **Healing**: it cannot exceed your max HP.
-- **Critical hit**: some cards or their keywords grant a critical chance, capped at 50%. A critical hit applies **×1.5** to damage; Speed does not determine this chance.
+- **Critical hit**: some cards or their keywords grant a critical chance, capped at 50%. A critical hit applies **×1.5** to damage; Speed does not determine this chance. On a multi-hit card, one critical roll applies to every hit.
+
+### Damage resolution order
+
+When an attack card resolves, the game applies modifiers in this order:
+
+1. base damage and flat talent bonuses;
+2. conditional (“if…”) bonuses and chain bonuses;
+3. path scaling (+1% per point);
+4. active heritage bonus for that path, if any;
+5. Strength (adds its value to each hit);
+6. path advantage, elemental advantage, and outgoing status penalties (e.g. Weak);
+7. talent multipliers;
+8. AoE modifier (×1.35), if present on the card;
+9. critical hit (×1.5);
+10. Vulnerable on the target (+50% damage taken);
+11. absorption: Taunt ally, then barrier, then armor, then HP.
 
 ### Path and element advantages
 
@@ -244,18 +323,21 @@ A card with no element, or an enemy with no affinity, stays neutral.
 
 ### Statuses
 
-| Status           | Effect                                            |
-| ---------------- | ------------------------------------------------- |
-| **Strength**     | Adds its value to the damage of each hit          |
-| **Dexterity**    | Adds its value to the armor gained per card       |
+| Status | Effect |
+| ------ | ------ |
+| **Strength** | Adds its value to the damage of each hit |
+| **Dexterity** | Adds its value to the armor gained per card |
 | **Regeneration** | Restores its value in HP at the start of the turn |
-| **Poison**       | Removes its value in HP at the start of the turn  |
-| **Burn**         | Removes its value in HP at the end of the turn    |
-| **Weak**         | Damage dealt reduced by 25%                       |
-| **Vulnerable**   | Damage taken increased by 50%                     |
-| **Intangible**   | Incoming attacks deal only 1 damage               |
+| **Poison** | Removes its value in HP at the start of the turn |
+| **Burn** | Removes its value in HP at the end of the turn |
+| **Weak** | Damage dealt reduced by 25% |
+| **Vulnerable** | Damage taken increased by 50% |
+| **Intangible** | Incoming attacks deal only 1 damage |
+| **Evade** | Chance to cancel the next attack taken; then evade is consumed |
+| **Counter** | After being hit, deals its damage value to the attacker, then disappears |
+| **% bonuses** (damage, armor, healing, paths) | Multiply the relevant figure while the status lasts |
 
-A status applied again **stacks** its value and keeps the longer duration. Limited durations drop by 1 at the end of the affected combatant's turn; some effects can be consumed earlier. Weak and Vulnerable apply their multiplier once even when their values stack.
+A status applied again **stacks** its value and keeps the longer duration. Limited durations drop by 1 at the end of the affected combatant's turn. Evade and Counter are usually **consumed** when they trigger. Weak and Vulnerable apply their multiplier once even when their values stack.
 
 ### Summons
 
@@ -286,7 +368,15 @@ Bosses close the runs of rank B, A and S. They have mechanics of their own:
 
 ### Ranks
 
-Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**, **S**. There are 16 missions. All of them are available from the start: it is up to you to judge whether your deck is ready.
+Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**, **S**. There are 16 missions. Access depends on your **character rank** (cumulative):
+
+| Character rank | Missions unlocked |
+| -------------- | ----------------- |
+| Aspirant ninja / Genin | **D** and **C** |
+| Chunin / Jonin | **D**, **C**, **B**, **A** |
+| ANBU / Kage | all ranks, including **S** |
+
+Rank **D** is demanding with the starter deck. Rank **C** is nearly unreachable without some levels, talents, and cards earned by farming D.
 
 | Rank | Missions | Fights per run | Final boss |
 | ---- | -------- | -------------- | ---------- |
@@ -437,4 +527,5 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 
 | Date       | Change                                                                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-20 | Mission gates by character rank; D hard / C demanding; combat detail (heritages, chains, glossary) |
 | 2026-11-14 | Full rewrite for the current version: single ninja, 20–30 card deck, talent tree, turn-based combat, mission runs, shop, season pass, arena |

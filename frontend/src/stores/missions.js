@@ -8,6 +8,7 @@ export const useMissionsStore = defineStore('missions', () => {
   const missions = ref([]);
   const enemies = ref([]);
   const activeRun = ref(null);
+  const activeCombat = ref(null);
   const currentRun = ref(null);
   const currentEvent = ref(null);
   const loading = ref(false);
@@ -24,6 +25,7 @@ export const useMissionsStore = defineStore('missions', () => {
       missions.value = body.missions || [];
       enemies.value = body.enemies || [];
       activeRun.value = body.activeRun || null;
+      activeCombat.value = body.activeCombat || null;
       return missions.value;
     } catch (e) {
       error.value = e.message;
@@ -157,10 +159,15 @@ export const useMissionsStore = defineStore('missions', () => {
     currentEvent.value = null;
   }
 
+  function clearActiveCombat() {
+    activeCombat.value = null;
+  }
+
   return {
     missions,
     enemies,
     activeRun,
+    activeCombat,
     currentRun,
     currentEvent,
     loading,
@@ -174,5 +181,6 @@ export const useMissionsStore = defineStore('missions', () => {
     abandonRun,
     applyRunUpdate,
     clearRun,
+    clearActiveCombat,
   };
 });

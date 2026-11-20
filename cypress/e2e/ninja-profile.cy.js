@@ -16,6 +16,8 @@ function mockProfile(name = 'Yori') {
     name,
     level: 5,
     rank: 'Genin',
+    factionId: 'midorihara',
+    faction: { id: 'midorihara', accentColor: '#2d6a4f' },
     xp: 10,
     xpToNextLevel: 500,
     talentPointsAvailable: 2,
@@ -40,6 +42,7 @@ describe('Ninja identity card', () => {
     cy.visit('/profil');
     card().should('have.attr', 'data-variant', 'ninja');
     card().should('have.attr', 'data-avatar-id', 'aspirant-1-1');
+    card().find(byTestId('ninja-card-village')).should('have.text', 'Midorihara');
     card().find(byTestId('ninja-card-hp')).should('have.text', '112/112');
     card().find(byTestId('ninja-card-armor')).should('have.text', '4');
     card().find(byTestId('ninja-card-chakra')).should('have.text', '6/6');

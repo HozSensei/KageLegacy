@@ -52,6 +52,7 @@ const chain = computed(() => {
       :rank="rank"
       :level="fighter.level"
       :profile="fighter.profile"
+      :faction-id="fighter.factionId"
       :stats="stats"
       :arts="arts ?? fighter.stats"
       :background="background"

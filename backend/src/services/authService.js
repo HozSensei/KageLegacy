@@ -1,5 +1,6 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { query } from '../config/database.js';
+import { STARTING_RYOS } from '../config/economyConfig.js';
 import { createCharacter } from './playerCharacterService.js';
 
 const SESSION_DAYS = 30;
@@ -133,8 +134,8 @@ export async function registerUser({
   try {
     await query(
       `INSERT INTO player_profiles (user_id, display_name, ryos, language)
-       VALUES (?, ?, 10000, ?)`,
-      [userId, characterName, language],
+       VALUES (?, ?, ?, ?)`,
+      [userId, characterName, STARTING_RYOS, language],
     );
     await createCharacter(userId, { name: characterName, avatarId });
   } catch (error) {
@@ -166,8 +167,8 @@ export async function registerGuestUser({ characterName, avatarId, language = 'f
   try {
     await query(
       `INSERT INTO player_profiles (user_id, display_name, ryos, language)
-       VALUES (?, ?, 10000, ?)`,
-      [userId, playerDisplayName, language],
+       VALUES (?, ?, ?, ?)`,
+      [userId, playerDisplayName, STARTING_RYOS, language],
     );
     await createCharacter(userId, { name: playerDisplayName, avatarId });
   } catch (error) {

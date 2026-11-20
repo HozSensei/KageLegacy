@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDeltaFeed } from '../../composables/useDeltaFeed.js';
+import { factionAccentColor } from '../../constants/factions.js';
 import { ninjaCardBackgroundUrl } from '../../constants/ninjaCardBackgrounds.js';
 import { ninjaNicknameLabel } from '../../utils/ninjaProfile.js';
 import { statVisual } from '../../utils/statIcons.js';
@@ -23,6 +24,10 @@ const props = defineProps({
   level: { type: Number, default: null },
   profile: { type: Object, default: null },
   stats: { type: Object, required: true },
+  /** Identifiant de village / faction (`midorihara`, `kareno`, `oborohama`). */
+  factionId: { type: String, default: null },
+  /** Couleur d’accent du village ; à défaut, celle du catalogue local. */
+  factionAccent: { type: String, default: null },
   /** Valeurs des quatre arts (`taijutsu`, `ninjutsu`, `genjutsu`, `medicine`). */
   arts: { type: Object, default: null },
   /** Illustration de fond explicite (adversaires PvE). Sinon le profil joueur fournit `backgroundId`. */
@@ -34,6 +39,16 @@ const isNinja = computed(() => props.variant === 'ninja');
 const nickname = computed(() => {
   const id = props.profile?.nicknameId;
   return isNinja.value && typeof id === 'string' && id ? ninjaNicknameLabel(id, t, te) : '';
+});
+const village = computed(() => {
+  if (!isNinja.value || !props.factionId) return null;
+  const key = `factions.names.${props.factionId}`;
+  if (!te(key)) return null;
+  return {
+    id: props.factionId,
+    label: t(key),
+    accent: props.factionAccent || factionAccentColor(props.factionId) || undefined,
+  };
 });
 const artEntries = computed(() => {
   if (!isNinja.value || !props.arts) return [];
@@ -95,6 +110,14 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
           }}</span>
         </div>
         <p v-if="isNinja && rank" class="ninja-card__rank">{{ rank }}</p>
+        <p
+          v-if="village"
+          class="ninja-card__village"
+          :style="{ '--village-accent': village.accent }"
+          data-testid="ninja-card-village"
+        >
+          {{ village.label }}
+        </p>
         <p v-if="nickname" class="ninja-card__nickname" data-testid="ninja-card-nickname">
           {{ nickname }}
         </p>
@@ -359,6 +382,19 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   color: var(--color-gold-fill);
 }
 
+.ninja-card__village {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding-left: 0.55rem;
+  border-left: 3px solid var(--village-accent, var(--color-gold-fill));
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
 .ninja-card__nickname {
   font-size: 0.875rem;
   font-style: italic;
@@ -473,7 +509,8 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   width: 1.25rem;
   height: 1.25rem;
   flex: none;
-  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
+  /* SVG sombre → blanc lisible sur fond uni ou illustration. */
+  filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgb(0 0 0 / 0.65));
 }
 
 .ninja-card__armor-value {

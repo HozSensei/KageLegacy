@@ -11,9 +11,7 @@ import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
 
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
 import AppNavRail from '../components/layout/AppNavRail.vue';
-import HeaderWallet from '../components/layout/HeaderWallet.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
-import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
 import { useVillageRewardsStore } from '../stores/villageRewards.js';
@@ -202,7 +200,6 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
 
         <div class="app-bar__tools">
           <template v-if="!isCombatLayout">
-            <HeaderWallet v-if="auth.user" />
             <router-link
               v-if="auth.user"
               :to="rewardsRoute"
@@ -220,7 +217,6 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
                 aria-hidden="true"
               />
             </router-link>
-            <ThemeToggle />
 
             <ProfileMenu
               v-if="auth.user"

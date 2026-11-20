@@ -679,12 +679,16 @@
   "hub": {
     "kicker": "Alpha",
     "title": "Command hub",
-    "lead": "Your shinobi path starts here: character, starter deck, talents, then missions.",
+    "lead": "Your village is waiting: character, deck, talents, then cold-war operations.",
     "welcomeBack": "Welcome back",
     "cardsOwned": "{n} cards in collection",
     "activeDeck": "Active deck: {name}",
-    "nextSteps": "First steps",
-    "nextStepsLead": "Nothing is locked — follow the checklist or jump wherever you like.",
+    "nextSteps": "Novice guide",
+    "nextStepsLead": "Ten actions to learn the game. Each completed step grants a small claimable reward (Ryos and XP).",
+    "onboardingProgress": "{done} / {total} steps",
+    "claimReward": "Claim",
+    "onboardingClaimed": "Reward claimed: {reward}",
+    "onboardingClaimError": "Could not claim this reward.",
     "stepCharacter": "Create your character",
     "hintCharacter": "Name and element — you receive a talent point at level 1.",
     "stepDeck": "Activate a valid deck",
@@ -1113,13 +1117,18 @@
     "backToMissions": "Back to missions",
     "missionsKicker": "Operations",
     "missionsTitle": "Combat missions",
-    "missionsLead": "Each mission is a 3–5 fight run with events between battles. HP persists; death fails the run. Rewards are paid at the end.",
+    "missionsLead": "Operations for your village in a three-way cold war. Each mission: 3 to 5 fights, events, persistent HP. Death fails the run.",
+    "missionChapter": "Chapter",
+    "missionBrief": "Briefing",
+    "missionEpilogue": "After the operation",
     "activeDeck": "Active deck",
     "practiceDeckHint": "Training deck (no collection)",
     "noDeckTitle": "No active deck",
     "noDeckLead": "Activate a deck before launching a mission. New characters receive a starter deck automatically.",
     "openDecks": "Open deck builder",
     "startMission": "Start the run",
+    "missionLocked": "Locked",
+    "missionLockedRank": "{rank} rank required",
     "starting": "Starting…",
     "rewards": "+{xp} XP · {ryos} Ryos (end of run)",
     "rewardXp": "+{n} XP",
@@ -1139,7 +1148,9 @@
     "discardForDraw": "Discard to draw",
     "encounterCount": "{n} chained fights",
     "activeRunHint": "A run is in progress. Resume or abandon it before starting another.",
+    "activeCombatHint": "A fight is in progress. Resume or forfeit it before starting another.",
     "resumeRun": "Resume run",
+    "resumeCombat": "Resume fight",
     "runKicker": "Run",
     "runTitle": "Mission run",
     "runLead": "Advance node by node. Fights, rests, caches, and crossroads — HP does not regenerate on its own.",
@@ -1184,8 +1195,6 @@
       "game_over": "Over"
     },
     "intent": {
-      "attack": "Attack: {n} damage",
-      "defend": "Defend: {n} block",
       "attackType": "Attack",
       "defendType": "Defend",
       "buff": "Buff",
@@ -2395,7 +2404,7 @@
   },
   "village": {
     "title": "Village",
-    "pageLead": "Find players, manage friends and requests, and see the weekly faction standings.",
+    "pageLead": "Friends, requests, and the prestige war between Midorihara, Kareno, and Oborohama — weekly village standings.",
     "weeklyStandings": {
       "title": "Weekly faction standings",
       "loadFailed": "Could not load the faction standings. Select Refresh to try again.",
@@ -2412,7 +2421,7 @@
       "settled": "Results finalized.",
       "pending": "Results are not yet finalized."
     },
-    "lead": "Four lands (Midorihara, Kareno, Oborohama, Ishikura) compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
+    "lead": "Three villages fight for prestige after a broken pact. Inter-village duels feed the weekly standings — with no combat bonus.",
     "yours": "Your land",
     "rivalryTitle": "Cycle rivalry",
     "rivalryLive": "{a} {scoreA} — {scoreB} {b}",
@@ -2470,19 +2479,20 @@
     "switchToLight": "Switch to light theme"
   },
   "factions": {
-    "pickLabel": "Faction",
-    "pickTitle": "Choose your land",
-    "pickLead": "Three lands from the old rivalry — identity only, no combat bonus. One free retake later.",
+    "pickLabel": "Village",
+    "pickTitle": "Choose your village",
+    "pickLead": "Three villages in a cold war after a betrayed pact. Identity and side — no combat bonus. One free switch later.",
     "names": {
       "midorihara": "Midorihara",
       "kareno": "Kareno",
       "oborohama": "Oborohama"
     },
     "tones": {
-      "midorihara": "Discipline and tradition.",
-      "kareno": "Endurance and pragmatism.",
-      "oborohama": "Shadow and precision."
-    }
+      "midorihara": "Order and tradition — they say they rewrote the pact’s history.",
+      "kareno": "Pragmatism of the dunes — they say they sell alliances to the highest bidder.",
+      "oborohama": "Mist and secrets — they say they knew… and said nothing."
+    },
+    "rumorHint": "What people whisper"
   },
   "leaderboard": {
     "kicker": "Rivalry",

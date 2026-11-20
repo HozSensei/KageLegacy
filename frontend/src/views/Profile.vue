@@ -4,6 +4,7 @@ import { RouterLink, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { usePlayerStore } from '../stores/player';
 import PlayerProfile from '../components/player/PlayerProfile.vue';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 
 import PageHeader from '../components/ui/PageHeader.vue';
 import forestImage from '../assets/illustrations/forest-path.webp';
@@ -13,6 +14,7 @@ defineOptions({ name: 'ProfileView' });
 const { t } = useI18n();
 const router = useRouter();
 const player = usePlayerStore();
+useOnboardingVisit('visit_profile');
 
 onMounted(async () => {
   await player.fetchPlayer();

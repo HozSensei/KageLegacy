@@ -9,12 +9,14 @@ import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import marketImage from '../assets/illustrations/market-square.webp';
 import { useBattlePassStore } from '../stores/battlePass';
 import { useAuthStore } from '../stores/auth';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 
 defineOptions({ name: 'BattlePassView' });
 
 const { t, locale } = useI18n();
 const store = useBattlePassStore();
 const auth = useAuthStore();
+useOnboardingVisit('visit_battle_pass');
 const message = ref(null);
 const claimedCards = ref([]);
 const isOpeningRewardBooster = ref(false);

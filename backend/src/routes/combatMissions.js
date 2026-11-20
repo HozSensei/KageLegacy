@@ -18,6 +18,9 @@ import {
   getRun,
   resolveEvent,
 } from '../services/missionRunService.js';
+import { getActiveCombat } from '../services/combatEngineService.js';
+import { getCharacter } from '../services/playerCharacterService.js';
+import { ASPIRANT_RANK } from '../services/characterAppearance.js';
 
 const router = Router();
 
@@ -34,11 +37,13 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    const [missions, activeRun] = await Promise.all([
-      listMissions(),
+    const character = await getCharacter(user.id);
+    const [missions, activeRun, activeCombat] = await Promise.all([
+      listMissions(character?.rank || ASPIRANT_RANK),
       getActiveRun(user.id),
+      getActiveCombat(user.id),
     ]);
-    res.json({ missions, enemies: getEnemyCatalog(), activeRun });
+    res.json({ missions, enemies: getEnemyCatalog(), activeRun, activeCombat });
   } catch (error) {
     next(error);
   }

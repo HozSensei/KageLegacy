@@ -2,6 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../config/database.js';
+import { MISSION_ENCOUNTER_DIFFICULTIES } from '../config/missionEncounterDifficulties.js';
+import { ensureOnboardingTable } from '../services/onboardingService.js';
 import { UTC_WEEK_START } from '../services/asyncDuelWeeklyRewards.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -119,13 +121,14 @@ async function ensureCharacterProfile(connection) {
     await connection.query(
       `ALTER TABLE \`player_profiles\`
          ADD COLUMN \`character_avatar_id\` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'aspirant-1-1' AFTER \`character_avatar_url\`,
-         ADD COLUMN \`character_border_color\` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_avatar_id\`,
-         ADD COLUMN \`character_background_color\` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_border_color\`,
-         ADD COLUMN \`character_nickname_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_background_color\`,
+         ADD COLUMN \`character_background_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_avatar_id\`,
+         ADD COLUMN \`character_nickname_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_background_id\`,
          ADD COLUMN \`character_highest_level\` int unsigned NOT NULL DEFAULT '1' AFTER \`character_level\`,
          MODIFY COLUMN \`character_rank\` enum('Genin','Chunin','Jonin','ANBU','Kage','Aspirant ninja') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aspirant ninja'`
     );
   }
+
+  await dropLegacyProfileColorColumns(connection);
 
   // Répéter ces mises à niveau de données est sans effet après leur première application.
   await connection.beginTransaction();
@@ -146,7 +149,24 @@ async function ensureCharacterProfile(connection) {
     throw error;
   }
   if (needsSchemaUpgrade) {
-    console.log('🔧 Profil de personnage migré : portrait, couleurs, surnom, rang Aspirant ninja.');
+    console.log('🔧 Profil de personnage migré : portrait, fond de carte, surnom, rang Aspirant ninja.');
+  }
+}
+
+async function dropLegacyProfileColorColumns(connection) {
+  for (const column of ['character_border_color', 'character_background_color']) {
+    const [rows] = await connection.query(
+      `SELECT 1
+       FROM information_schema.columns
+       WHERE table_schema = DATABASE()
+         AND table_name = 'player_profiles'
+         AND column_name = ?
+       LIMIT 1`,
+      [column]
+    );
+    if (rows.length === 0) continue;
+    await connection.query(`ALTER TABLE \`player_profiles\` DROP COLUMN \`${column}\``);
+    console.log(`🔧 Colonne legacy retirée : player_profiles.${column}`);
   }
 }
 
@@ -280,6 +300,30 @@ async function installWeeklyVillageRewards(connection) {
   }
 }
 
+async function ensureMissionEncounterDifficulties(connection) {
+  const [tables] = await connection.query(
+    `SELECT 1 AS ok
+     FROM information_schema.tables
+     WHERE table_schema = DATABASE() AND table_name = 'mission_definitions'
+     LIMIT 1`,
+  );
+  if (!tables.length) return;
+
+  let updated = 0;
+  for (const [slug, encounters] of Object.entries(MISSION_ENCOUNTER_DIFFICULTIES)) {
+    const [result] = await connection.query(
+      `UPDATE mission_definitions
+       SET encounters_json = CAST(? AS JSON)
+       WHERE slug = ?`,
+      [JSON.stringify(encounters), slug],
+    );
+    if (result.affectedRows > 0) updated += 1;
+  }
+  if (updated > 0) {
+    console.log(`✓ Difficultés missions mises à jour (${updated} slugs).`);
+  }
+}
+
 async function migrate() {
   const schemaPath = path.join(__dirname, '../../schema.sql');
   const connection = await pool.getConnection();
@@ -304,6 +348,8 @@ async function migrate() {
       await ensureCharacterProfile(connection);
       await ensureAsyncDuelTables(connection, statements);
       await installWeeklyVillageRewards(connection);
+      await ensureMissionEncounterDifficulties(connection);
+      await ensureOnboardingTable();
       return;
     }
 
@@ -336,6 +382,8 @@ async function migrate() {
     ]);
     await ensureCompatibilityColumns(connection);
     await installWeeklyVillageRewards(connection);
+    await ensureMissionEncounterDifficulties(connection);
+    await ensureOnboardingTable();
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
     console.error('Erreur d’initialisation de la base :', error.message);

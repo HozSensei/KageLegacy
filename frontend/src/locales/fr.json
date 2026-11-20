@@ -679,12 +679,16 @@
   "hub": {
     "kicker": "Alpha",
     "title": "Centre de commande",
-    "lead": "Ton parcours shinobi commence ici : personnage, deck de départ, talents, puis missions.",
+    "lead": "Ton village t’attend : personnage, deck, talents, puis les opérations de la guerre froide.",
     "welcomeBack": "Bon retour",
     "cardsOwned": "{n} cartes en collection",
     "activeDeck": "Deck actif : {name}",
-    "nextSteps": "Premiers pas",
-    "nextStepsLead": "Rien n'est verrouillé — suis la checklist ou saute où tu veux.",
+    "nextSteps": "Guide du novice",
+    "nextStepsLead": "Dix gestes pour découvrir le jeu. Chaque étape terminée donne une petite récompense à réclamer (Ryos et XP).",
+    "onboardingProgress": "{done} / {total} étapes",
+    "claimReward": "Réclamer",
+    "onboardingClaimed": "Récompense reçue : {reward}",
+    "onboardingClaimError": "Impossible de réclamer cette récompense.",
     "stepCharacter": "Créer ton personnage",
     "hintCharacter": "Nom et élément — tu reçois un point de talent au niveau 1.",
     "stepDeck": "Activer un deck valide",
@@ -1113,13 +1117,18 @@
     "backToMissions": "Retour aux missions",
     "missionsKicker": "Opérations",
     "missionsTitle": "Missions de combat",
-    "missionsLead": "Chaque mission est un parcours de 3 à 5 combats avec événements entre les affrontements. Les PV persistent ; la mort échoue le parcours. Récompenses en fin de run.",
+    "missionsLead": "Opérations pour ton village dans une guerre froide à trois camps. Chaque mission : 3 à 5 combats, événements, PV persistants. La mort échoue le parcours.",
+    "missionChapter": "Chapitre",
+    "missionBrief": "Briefing",
+    "missionEpilogue": "Après l’opération",
     "activeDeck": "Deck actif",
     "practiceDeckHint": "Deck d’entraînement (aucune collection)",
     "noDeckTitle": "Aucun deck actif",
     "noDeckLead": "Active un deck avant de lancer une mission. Les nouveaux personnages reçoivent un deck de départ automatiquement.",
     "openDecks": "Ouvrir le constructeur",
     "startMission": "Lancer le parcours",
+    "missionLocked": "Verrouillé",
+    "missionLockedRank": "Rang {rank} requis",
     "starting": "Lancement…",
     "rewards": "+{xp} XP · {ryos} Ryos (fin de run)",
     "rewardXp": "+{n} XP",
@@ -1139,7 +1148,9 @@
     "discardForDraw": "Défausser pour piocher",
     "encounterCount": "{n} combats enchaînés",
     "activeRunHint": "Un parcours est en cours. Reprenez-le ou abandonnez-le avant d’en lancer un autre.",
+    "activeCombatHint": "Un combat est en cours. Reprenez-le ou abandonnez-le avant d’en lancer un autre.",
     "resumeRun": "Reprendre le parcours",
+    "resumeCombat": "Reprendre le combat",
     "runKicker": "Parcours",
     "runTitle": "Parcours de mission",
     "runLead": "Avancez nœud par nœud. Combats, repos, caches et carrefours — vos PV ne se régénèrent pas seuls.",
@@ -1184,8 +1195,6 @@
       "game_over": "Terminé"
     },
     "intent": {
-      "attack": "Attaque : {n} dégâts",
-      "defend": "Défense : {n} armure",
       "attackType": "Attaque",
       "defendType": "Défense",
       "buff": "Renforcement",
@@ -2327,7 +2336,7 @@
   },
   "village": {
     "title": "Village",
-    "pageLead": "Cherchez des joueurs, gérez vos amis et vos demandes, et consultez le classement hebdomadaire des factions.",
+    "pageLead": "Amis, demandes, et la guerre de prestige entre Midorihara, Kareno et Oborohama — classement hebdomadaire des villages.",
     "weeklyStandings": {
       "title": "Classement hebdomadaire des factions",
       "loadFailed": "Impossible de charger le classement des factions. Actualisez pour réessayer.",
@@ -2344,7 +2353,7 @@
       "settled": "Résultats définitifs.",
       "pending": "Les résultats ne sont pas encore définitifs."
     },
-    "lead": "Quatre pays (Midorihara, Kareno, Oborohama, Ishikura) se disputent le prestige du serveur. Votre carrière solo alimente le score de faction — sans bonus de combat.",
+    "lead": "Trois villages se disputent le prestige après un pacte brisé. Les duels entre villages alimentent le classement de la semaine — sans bonus de combat.",
     "yours": "Votre pays",
     "rivalryTitle": "Rivalité de cycle",
     "rivalryLive": "{a} {scoreA} — {scoreB} {b}",
@@ -2470,19 +2479,20 @@
     "switchToLight": "Passer au thème clair"
   },
   "factions": {
-    "pickLabel": "Faction",
-    "pickTitle": "Choisis ton pays",
-    "pickLead": "Trois pays issus de l’ancienne rivalité — identité sans bonus de combat. Un retake gratuit ensuite.",
+    "pickLabel": "Village",
+    "pickTitle": "Choisis ton village",
+    "pickLead": "Trois villages en guerre froide après un pacte trahi. Identité et camp — aucun bonus de combat. Un changement gratuit ensuite.",
     "names": {
       "midorihara": "Midorihara",
       "kareno": "Kareno",
       "oborohama": "Oborohama"
     },
     "tones": {
-      "midorihara": "Discipline et tradition.",
-      "kareno": "Endurance et pragmatisme.",
-      "oborohama": "Ombre et précision."
-    }
+      "midorihara": "Ordre et tradition — on dit qu’ils ont réécrit l’histoire du pacte.",
+      "kareno": "Pragmatisme des dunes — on dit qu’ils vendent l’alliance au plus offrant.",
+      "oborohama": "Brume et secrets — on dit qu’ils savaient… et n’ont rien dit."
+    },
+    "rumorHint": "Ce qu’on murmure"
   },
   "leaderboard": {
     "kicker": "Rivalité",

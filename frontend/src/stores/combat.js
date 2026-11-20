@@ -41,6 +41,17 @@ export const useCombatStore = defineStore('combat', () => {
     applyCombat(payload);
   }
 
+  async function fetchActive() {
+    try {
+      const res = await fetch(`${API_BASE}/api/combat/active`, { credentials: 'include' });
+      const { ok, body: data } = await parseApiResponse(res);
+      if (!ok) return null;
+      return data.combat || null;
+    } catch {
+      return null;
+    }
+  }
+
   async function startCombat(body = {}) {
     loading.value = true;
     error.value = null;
@@ -222,6 +233,7 @@ export const useCombatStore = defineStore('combat', () => {
     isOver,
     isPlayerTurn,
     startCombat,
+    fetchActive,
     fetchState,
     playCard,
     endTurn,

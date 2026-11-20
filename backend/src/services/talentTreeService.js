@@ -258,6 +258,12 @@ export async function unlockTalent(userId, nodeId) {
   } catch {
     // Les succès restent optionnels.
   }
+  try {
+    const { onOnboardingAction } = await import('./onboardingService.js');
+    await onOnboardingAction(userId, 'talent_spent');
+  } catch {
+    /* onboarding optionnel */
+  }
   return {
     unlocked: nodeId,
     rank: talents.nodeRanks[nodeId] || 1,
@@ -369,6 +375,12 @@ export async function commitTalentInvestments(userId, nodeIds) {
     await onAchievementAction(userId, 'talent_spent', talents.spentPoints);
   } catch {
     // Les succès restent optionnels.
+  }
+  try {
+    const { onOnboardingAction } = await import('./onboardingService.js');
+    await onOnboardingAction(userId, 'talent_spent');
+  } catch {
+    /* onboarding optionnel */
   }
   return { committed: nodeIds.length, talents, bonuses };
 }

@@ -31,6 +31,12 @@ export const BOOSTER_COSTS = Object.freeze({
 
 export const BOOSTER_CARD_COUNT = 5;
 
+/**
+ * Ryos accordés à la création de compte (register / guest).
+ * 300 ≈ 0 pack immédiat (standard 400) ; force un peu de farm D.
+ */
+export const STARTING_RYOS = 300;
+
 // ---------------------------------------------------------------------------
 // Combat / missions deck (récompenses de victoire)
 // ---------------------------------------------------------------------------
@@ -194,6 +200,13 @@ export function validateEconomyInvariants() {
     errors.push(`standard pack should cost 2–4 D wins (got ${dWins})`);
   }
 
+  if (!Number.isFinite(STARTING_RYOS) || STARTING_RYOS < 0) {
+    errors.push('STARTING_RYOS must be a non-negative number');
+  }
+  if (STARTING_RYOS > BOOSTER_COSTS.standard.ryos) {
+    errors.push('STARTING_RYOS should be ≤ 1 standard pack');
+  }
+
   // BP soft premium
   if (BATTLE_PASS.premiumXpMultiplier > BATTLE_PASS.maxPremiumXpMultiplier) {
     errors.push('premium XP multiplier too high (P2W)');
@@ -221,6 +234,7 @@ export function validateEconomyInvariants() {
 export default {
   BOOSTER_COSTS,
   BOOSTER_CARD_COUNT,
+  STARTING_RYOS,
   COMBAT_DEFAULT_REWARDS,
   COMBAT_REWARDS_BY_RANK,
   DISENCHANT_DUST,

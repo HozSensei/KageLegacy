@@ -1,3 +1,10 @@
+import {
+  CARD_BACKGROUND_IDS,
+  isKnownCardBackgroundId,
+} from '../../../shared/character/cardBackgrounds.js';
+
+export { CARD_BACKGROUND_IDS, isKnownCardBackgroundId };
+
 export const ASPIRANT_RANK = 'Aspirant ninja';
 export const DEFAULT_AVATAR_ID = 'aspirant-1-1';
 export const MAX_LEVEL = 80;
@@ -46,10 +53,6 @@ export const NICKNAME_CATALOG = Object.freeze(
   ),
 );
 
-/** Fonds illustrés disponibles pour la carte ninja du joueur. */
-export const CARD_BACKGROUND_IDS = Object.freeze(['joueur-1', 'joueur-2']);
-const cardBackgroundIds = new Set(CARD_BACKGROUND_IDS);
-
 export function rankForLevel(level) {
   return ranks.findLast(({ minLevel }) => Number(level) >= minLevel)?.rank ?? ASPIRANT_RANK;
 }
@@ -60,10 +63,6 @@ export function isKnownAvatarId(avatarId) {
 
 export function isAvatarAvailableToRank(avatarId, rank) {
   return avatarRankIndex.get(avatarId) <= rankIndex.get(rank);
-}
-
-export function isKnownCardBackgroundId(backgroundId) {
-  return cardBackgroundIds.has(backgroundId);
 }
 
 export function unlockedNicknameIdsFor(row) {

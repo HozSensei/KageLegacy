@@ -381,8 +381,17 @@ export async function createDeck(userId, { name, archetype = 'midrange', cards =
   const deckId = result.insertId;
   const deck =
     Array.isArray(cards) && cards.length > 0
-      ? await replaceDeckCards(userId, deckId, cards)
+      ? await replaceDeckCards(userId, deckId, cards, { skipOnboarding: true })
       : await getDeck(userId, deckId);
+
+  if (!isFirst) {
+    try {
+      const { onOnboardingAction } = await import('./onboardingService.js');
+      await onOnboardingAction(userId, 'deck_create');
+    } catch {
+      /* onboarding optionnel */
+    }
+  }
 
   return isFirst && deck.validation.valid ? setActiveDeck(userId, deckId) : deck;
 }
@@ -471,7 +480,7 @@ async function loadOwnedCollection(userId, collectionId) {
  * Remplace entièrement les cartes d’un deck.
  * cards: [{ collectionId, quantity }]
  */
-export async function replaceDeckCards(userId, deckId, cards) {
+export async function replaceDeckCards(userId, deckId, cards, { skipOnboarding = false } = {}) {
   await assertDeckOwner(deckId, userId);
 
   const normalized = [];
@@ -545,6 +554,14 @@ export async function replaceDeckCards(userId, deckId, cards) {
     await onAchievementAction(userId, 'deck_size', Number(deck?.size) || 0);
   } catch {
     /* exploits optionnels */
+  }
+  if (!skipOnboarding) {
+    try {
+      const { onOnboardingAction } = await import('./onboardingService.js');
+      await onOnboardingAction(userId, 'deck_edit');
+    } catch {
+      /* onboarding optionnel */
+    }
   }
   return deck;
 }
@@ -620,6 +637,12 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
     );
   }
 
+  try {
+    const { onOnboardingAction } = await import('./onboardingService.js');
+    await onOnboardingAction(userId, 'deck_edit');
+  } catch {
+    /* onboarding optionnel */
+  }
   return getDeck(userId, deckId);
 }
 
@@ -639,6 +662,12 @@ export async function removeCardFromDeck(userId, deckId, collectionId, quantity 
     await query('UPDATE user_deck_cards SET quantity = ? WHERE id = ?', [nextQty, existing[0].id]);
   }
 
+  try {
+    const { onOnboardingAction } = await import('./onboardingService.js');
+    await onOnboardingAction(userId, 'deck_edit');
+  } catch {
+    /* onboarding optionnel */
+  }
   return getDeck(userId, deckId);
 }
 

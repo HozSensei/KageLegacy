@@ -1,8 +1,7 @@
 const endpoint = '/api/deck-duels/village-rewards';
 const bell = '[data-testid="village-rewards-notification"]';
 const dot = '[data-testid="village-rewards-unread"]';
-const wallet = '[data-testid="header-wallet-trigger"]';
-const balances = '#header-wallet-balances';
+const balances = '[data-testid="header-wallet-balances"]';
 const heading = '#village-rewards-heading';
 const reward = {
   weekStart: '2026-11-16',
@@ -62,12 +61,9 @@ describe('Village rewards and header wallet', () => {
     cy.wait('@rewards');
     cy.get(dot).should('be.visible');
     cy.get(bell).should('have.attr', 'aria-label', 'Village rewards — 1 unread reward');
-    cy.get(balances).should('not.be.visible');
-    cy.get(wallet).focus().type('{enter}');
-    cy.get(wallet).should('have.attr', 'aria-expanded', 'true');
+    cy.get(balances).should('not.exist');
+    cy.openNavMenu();
     cy.get(balances).should('be.visible').and('contain', '400').and('contain', 'Card essence');
-    cy.get(wallet).trigger('keydown', { key: 'Escape' });
-    cy.get(wallet).should('be.focused').and('have.attr', 'aria-expanded', 'false');
     cy.get('[data-testid="nav-menu-button"]').should('be.visible');
     cy.get('[data-testid="profile-menu-button"]').should('be.visible');
     cy.document()
@@ -102,7 +98,7 @@ describe('Village rewards and header wallet', () => {
       .should(root => {
         expect(root.scrollWidth).to.equal(root.clientWidth);
       });
-    cy.get(wallet).click();
+    cy.openNavMenu();
     cy.get(balances).should('contain', '650');
   });
 
@@ -145,8 +141,9 @@ describe('Village rewards and header wallet', () => {
 
     cy.visit('/home');
     cy.wait('@rewards');
-    cy.get(wallet).should('not.be.visible');
+    cy.openNavMenu();
     cy.get(balances).should('be.visible');
+    cy.get('[data-testid="slide-panel-backdrop"]').click({ force: true });
     cy.get(bell).click();
     cy.get('#village-rewards [role="alert"]').should('contain', 'Impossible de charger');
     cy.get(dot).should('be.visible');

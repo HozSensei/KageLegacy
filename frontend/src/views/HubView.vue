@@ -8,6 +8,7 @@ import { useDecksStore } from '../stores/decks';
 import { useTalentTreeStore } from '../stores/talentTree';
 
 import { useAchievementsStore } from '../stores/achievements';
+import { useOnboardingStore } from '../stores/onboarding';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
@@ -17,27 +18,31 @@ import hubImage from '../assets/illustrations/hub-office.webp';
 
 defineOptions({ name: 'HubView' });
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const player = usePlayerStore();
 const collection = useCollectionStore();
 const decks = useDecksStore();
 const talents = useTalentTreeStore();
 
 const achievements = useAchievementsStore();
+const onboarding = useOnboardingStore();
 const ready = ref(false);
 const progressLoadError = ref(false);
+const claimMessage = ref(null);
 
 async function loadHub() {
   ready.value = false;
   progressLoadError.value = false;
-  const [, , , talentData, achievementData] = await Promise.all([
+  claimMessage.value = null;
+  const [, , , talentData, achievementData, onboardingData] = await Promise.all([
     player.fetchPlayer(),
     collection.fetchCollection(),
     decks.fetchDecks(),
     talents.fetchMe(),
     achievements.fetchRegistry(),
+    onboarding.fetchProgress(),
   ]);
-  progressLoadError.value = Boolean(decks.error || !talentData || !achievementData);
+  progressLoadError.value = Boolean(decks.error || !talentData || !achievementData || !onboardingData);
   ready.value = true;
 }
 
@@ -50,43 +55,53 @@ const cardCount = computed(() => collection.entries?.length || 0);
 
 const activeDeck = computed(() => (decks.decks || []).find(d => d.isActive));
 const talentPoints = computed(() => player.character?.talentPointsAvailable ?? 0);
-const unlockedTalents = computed(() => talents.unlockedNodeIds?.length ?? 0);
-const hasCompletedMission = computed(() =>
-  achievements.achievements.some(a => a.key === 'mission_runs' && a.progress > 0)
+
+function stepLabel(step) {
+  return locale.value?.startsWith('en') ? step.nameEn : step.nameFr;
+}
+
+function stepHint(step) {
+  return locale.value?.startsWith('en') ? step.hintEn : step.hintFr;
+}
+
+function rewardLabel(step) {
+  const parts = (step.rewards || []).map(r => {
+    if (r.type === 'ryos') return `+${r.amount} Ryos`;
+    if (r.type === 'xp') return `+${r.amount} XP`;
+    return `+${r.amount} ${r.type}`;
+  });
+  return parts.join(' · ');
+}
+
+const steps = computed(() =>
+  (onboarding.steps || []).map(step => ({
+    ...step,
+    done: Boolean(step.completed),
+    label: stepLabel(step),
+    hint: stepHint(step),
+    to: step.route || '/hub',
+    rewardText: rewardLabel(step),
+  })),
 );
 
-const steps = computed(() => [
-  {
-    key: 'character',
-    done: hasCharacter.value,
-    label: t('hub.stepCharacter'),
-    hint: t('hub.hintCharacter'),
-    to: '/character-creation',
-  },
-  {
-    key: 'deck',
-    done: Boolean(activeDeck.value?.validation?.valid),
-    label: t('hub.stepDeck'),
-    hint: t('hub.hintDeck'),
-    to: '/decks',
-  },
-  {
-    key: 'talents',
-    done: unlockedTalents.value > 0,
-    label: t('hub.stepTalents'),
-    hint: t('hub.hintTalents'),
-    to: '/talents',
-  },
-  {
-    key: 'mission',
-    done: hasCompletedMission.value,
-    label: t('hub.stepMission'),
-    hint: t('hub.hintMission'),
-    to: '/missions',
-  },
-]);
+const nextStep = computed(
+  () => steps.value.find(s => !s.done) || steps.value.find(s => s.claimable) || null,
+);
+const showOnboarding = computed(
+  () => hasCharacter.value && !onboarding.finished && steps.value.length > 0,
+);
 
-const nextStep = computed(() => steps.value.find(s => !s.done));
+async function claimStep(step) {
+  if (!step?.claimable || onboarding.actionLoading) return;
+  claimMessage.value = null;
+  const result = await onboarding.claimStep(step.key);
+  if (!result) {
+    claimMessage.value = onboarding.error || t('hub.onboardingClaimError');
+    return;
+  }
+  claimMessage.value = t('hub.onboardingClaimed', { reward: rewardLabel(result.step || step) });
+  await player.fetchPlayer();
+}
 
 const shortcuts = computed(() =>
   [
@@ -234,39 +249,70 @@ const shortcuts = computed(() =>
           <p>{{ t('hub.progressLoadError') }}</p>
           <button type="button" class="btn-ghost" @click="loadHub">{{ t('hub.retry') }}</button>
         </div>
-        <section v-else class="page-section" data-testid="hub-checklist">
+        <section
+          v-else-if="showOnboarding"
+          class="page-section"
+          data-testid="hub-checklist"
+        >
           <div class="section-head">
             <span class="section-head__index">02</span>
             <h2 class="section-head__title">{{ t('hub.nextSteps') }}</h2>
             <span class="section-head__rule" />
           </div>
           <p class="mt-3 text-ink-muted">{{ t('hub.nextStepsLead') }}</p>
+          <p class="mt-1 text-sm text-ink-muted">
+            {{
+              t('hub.onboardingProgress', {
+                done: onboarding.meta?.completed || 0,
+                total: onboarding.meta?.total || steps.length,
+              })
+            }}
+          </p>
+          <p v-if="claimMessage" class="alert alert--success mt-3" role="status">
+            {{ claimMessage }}
+          </p>
 
           <ol class="hub-steps rule-list stagger">
             <li
               v-for="(step, index) in steps"
               :key="step.key"
               class="hub-step"
-              :class="{ 'hub-step--done': step.done }"
+              :class="{
+                'hub-step--done': step.done && !step.claimable,
+                'hub-step--claimable': step.claimable,
+              }"
               :style="{ '--i': index }"
             >
               <span class="hub-step__index" aria-hidden="true">{{ index + 1 }}</span>
               <div class="min-w-0">
                 <p class="hub-step__label">{{ step.label }}</p>
-                <p v-if="!step.done" class="hub-step__hint">{{ step.hint }}</p>
+                <p v-if="!step.done || step.claimable" class="hub-step__hint">{{ step.hint }}</p>
+                <p v-if="step.rewardText" class="hub-step__reward">{{ step.rewardText }}</p>
               </div>
-              <RouterLink
-                v-if="!step.done"
-                :to="step.to"
-                class="btn-ghost btn-sm shrink-0"
-                :data-testid="`hub-step-${step.key}`"
-              >
-                {{ t('hub.go') }}
-              </RouterLink>
-              <span v-else class="hub-step__done">
-                <AppIcon name="check" size="1rem" :stroke-width="2.5" />
-                {{ t('hub.done') }}
-              </span>
+              <div class="hub-step__actions">
+                <RouterLink
+                  v-if="!step.done"
+                  :to="step.to"
+                  class="btn-ghost btn-sm shrink-0"
+                  :data-testid="`hub-step-${step.key}`"
+                >
+                  {{ t('hub.go') }}
+                </RouterLink>
+                <button
+                  v-else-if="step.claimable"
+                  type="button"
+                  class="btn-primary btn-sm shrink-0"
+                  :disabled="onboarding.actionLoading"
+                  :data-testid="`hub-claim-${step.key}`"
+                  @click="claimStep(step)"
+                >
+                  {{ t('hub.claimReward') }}
+                </button>
+                <span v-else class="hub-step__done">
+                  <AppIcon name="check" size="1rem" :stroke-width="2.5" />
+                  {{ t('hub.done') }}
+                </span>
+              </div>
             </li>
           </ol>
 
@@ -404,6 +450,25 @@ const shortcuts = computed(() =>
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--color-ink-muted);
+}
+
+.hub-step__reward {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-vermilion);
+}
+
+.hub-step__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.hub-step--claimable .hub-step__index {
+  color: var(--color-leaf);
 }
 
 .hub-step--done .hub-step__index {

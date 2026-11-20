@@ -25,9 +25,6 @@ const previewName = computed(() => name.value.trim());
 const previewProfile = computed(() => readNinjaAppearance({ avatarId: avatarId.value }));
 const previewStats = ninjaProfileStats();
 const canSubmit = computed(() => !player.loading && previewName.value.length >= 2);
-const previewFaction = computed(() =>
-  factionId.value ? t(`factions.names.${factionId.value}`) : ''
-);
 const previewFactionAccent = computed(
   () => lb.factions.find(f => f.id === factionId.value)?.accentColor || '#2d6a4f'
 );
@@ -71,15 +68,10 @@ async function submit() {
           :rank="t('player.ranks.aspirant')"
           :level="1"
           :profile="previewProfile"
+          :faction-id="factionId"
+          :faction-accent="previewFactionAccent"
           :stats="previewStats"
         />
-        <p
-          v-if="previewFaction"
-          class="creation__preview-faction"
-          :style="{ borderLeftColor: previewFactionAccent }"
-        >
-          {{ previewFaction }}
-        </p>
       </aside>
 
       <div class="creation__form">
@@ -239,13 +231,4 @@ async function submit() {
   min-width: 0;
 }
 
-.creation__preview-faction {
-  display: inline-block;
-  margin-top: 0.75rem;
-  padding: 0.35rem 0.65rem;
-  border-left: 3px solid;
-  background: var(--color-bg-soft);
-  font-size: 0.85rem;
-  font-weight: 600;
-}
 </style>

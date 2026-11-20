@@ -6,9 +6,11 @@ import VillageRewardsPanel from '../components/layout/VillageRewardsPanel.vue';
 import { friendGroups, maxSearchLength, useCommunity } from '../composables/useCommunity.js';
 import { useFactionStandings } from '../composables/useFactionStandings.js';
 import { sectionOf } from '../constants/sections.js';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 
 const { t, te, d, n } = useI18n();
 const section = sectionOf('village');
+useOnboardingVisit('visit_village');
 const query = ref('');
 const rewardsPanel = ref(null);
 const {

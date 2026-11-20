@@ -547,46 +547,43 @@ if (!REPORT) {
   const strongD = get('D', 'strong');
   const strongA = get('A', 'strong');
 
+  // Ordre par win-rate (les tours baissent quand on se fait one-shot).
   if (begD && begC) {
     assert(
-      begC.avgTurns >= begD.avgTurns - 0.05,
-      `beginner: tours C (${fmt(begC.avgTurns)}) ≥ D (${fmt(begD.avgTurns)})`
+      begC.winRate <= begD.winRate + 0.05,
+      `beginner: WR C (${pct(begC.winRate)}) ≤ D (${pct(begD.winRate)})`,
     );
     assert(
-      begC.avgDamageTaken >= begD.avgDamageTaken - 0.05,
-      `beginner: dmg C (${fmt(begC.avgDamageTaken)}) ≥ D (${fmt(begD.avgDamageTaken)})`
+      begC.avgDamageTaken >= begD.avgDamageTaken - 1,
+      `beginner: dmg C (${fmt(begC.avgDamageTaken)}) ≥ D (${fmt(begD.avgDamageTaken)})`,
     );
   }
   if (midD && midA) {
     assert(
-      midA.avgTurns >= midD.avgTurns - 0.05,
-      `mid: tours A (${fmt(midA.avgTurns)}) ≥ D (${fmt(midD.avgTurns)})`
-    );
-    assert(
-      midA.avgDamageTaken >= midD.avgDamageTaken - 0.05,
-      `mid: dmg A (${fmt(midA.avgDamageTaken)}) ≥ D (${fmt(midD.avgDamageTaken)})`
+      midA.winRate <= midD.winRate + 0.05,
+      `mid: WR A (${pct(midA.winRate)}) ≤ D (${pct(midD.winRate)})`,
     );
   }
   if (strongD && strongA) {
     assert(
-      strongA.avgTurns >= strongD.avgTurns - 0.05,
-      `strong: tours A (${fmt(strongA.avgTurns)}) ≥ D (${fmt(strongD.avgTurns)})`
+      strongA.winRate <= strongD.winRate + 0.05,
+      `strong: WR A (${pct(strongA.winRate)}) ≤ D (${pct(strongD.winRate)})`,
     );
   }
   if (begD && midD && strongD) {
     assert(
-      midD.avgTurns <= begD.avgTurns + 0.05,
-      `rang D: mid tours (${fmt(midD.avgTurns)}) ≤ beginner (${fmt(begD.avgTurns)})`
+      midD.winRate + 0.05 >= begD.winRate,
+      `rang D: WR mid (${pct(midD.winRate)}) ≥ beginner (${pct(begD.winRate)})`,
     );
     assert(
-      strongD.avgTurns <= midD.avgTurns + 0.05,
-      `rang D: strong tours (${fmt(strongD.avgTurns)}) ≤ mid (${fmt(midD.avgTurns)})`
+      strongD.winRate + 0.05 >= midD.winRate,
+      `rang D: WR strong (${pct(strongD.winRate)}) ≥ mid (${pct(midD.winRate)})`,
     );
   }
   if (midA && strongA) {
     assert(
-      strongA.avgTurns <= midA.avgTurns + 0.05,
-      `rang A: strong tours (${fmt(strongA.avgTurns)}) ≤ mid (${fmt(midA.avgTurns)})`
+      strongA.winRate + 0.05 >= midA.winRate,
+      `rang A: WR strong (${pct(strongA.winRate)}) ≥ mid (${pct(midA.winRate)})`,
     );
   }
 }

@@ -353,6 +353,12 @@ async function maybeProgressBattlePassCombatWin(session) {
   } catch {
     /* BP optionnel */
   }
+  try {
+    const { onOnboardingAction } = await import('./onboardingService.js');
+    await onOnboardingAction(session.userId, 'combat_win');
+  } catch {
+    /* onboarding optionnel */
+  }
 }
 
 async function maybeRecordCombatAchievements(session) {
@@ -637,6 +643,32 @@ export async function startCombat(userId, opts = {}) {
   };
 
   return publicState(session, startLogs);
+}
+
+/** Résumé du combat `in_progress` du joueur, s'il existe. */
+export async function getActiveCombat(userId) {
+  if (!userId || !(await tableExists('combat_sessions'))) return null;
+  const hasRunCol = await columnExists('combat_sessions', 'mission_run_id');
+  const rows = await query(
+    hasRunCol
+      ? `SELECT id, mission_run_id AS missionRunId
+         FROM combat_sessions
+         WHERE user_id = ? AND state = 'in_progress'
+         ORDER BY updated_at DESC
+         LIMIT 1`
+      : `SELECT id
+         FROM combat_sessions
+         WHERE user_id = ? AND state = 'in_progress'
+         ORDER BY updated_at DESC
+         LIMIT 1`,
+    [userId]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    id: row.id,
+    missionRunId: row.missionRunId || null,
+  };
 }
 
 export async function getCombatState(userId, combatId) {

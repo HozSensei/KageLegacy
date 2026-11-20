@@ -43,6 +43,21 @@ const missionTitle = computed(() => {
   return localizedName(m, locale.value, t('combat.runTitle'))
 })
 
+const missionLead = computed(() => {
+  const m = run.value?.mission
+  if (!m) return t('combat.runLead')
+  const brief = localizedField(m, 'brief', locale.value)
+  const chapter = localizedField(m, 'chapter', locale.value)
+  if (brief && chapter) return `${chapter} — ${brief}`
+  return brief || t('combat.runLead')
+})
+
+const missionEpilogue = computed(() => {
+  const m = run.value?.mission
+  if (!m || run.value?.state !== 'victory') return ''
+  return localizedField(m, 'epilogue', locale.value)
+})
+
 function nodeLabel(node) {
   if (node.type === 'combat') {
     if (node.boss) return t('combat.nodeBoss')
@@ -75,6 +90,10 @@ async function onEnter() {
     const result = await missions.enterNode(runId.value)
     if (result.combat?.id) {
       combat.hydrateFrom(result.combat)
+      missions.activeCombat = {
+        id: result.combat.id,
+        missionRunId: result.combat.missionRunId || runId.value,
+      }
       await router.push({ name: 'combat', params: { id: result.combat.id } })
       return
     }
@@ -117,7 +136,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
       :tone="run?.mission?.rank ? missionRankTone(run.mission.rank) : 'leaf'"
       :kicker="t('combat.runKicker')"
       :title="missionTitle"
-      :lead="t('combat.runLead')"
+      :lead="missionLead"
       :image="forestImage"
       image-position="40% 60%"
     >
@@ -154,6 +173,15 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
           {{ t('combat.runScrap', { n: player.scrap || 0 }) }}
         </p>
       </div>
+
+      <p
+        v-if="isOver && missionEpilogue"
+        class="run-epilogue mt-6 max-w-xl"
+        data-testid="run-epilogue"
+      >
+        <span class="run-epilogue__label">{{ t('combat.missionEpilogue') }}</span>
+        {{ missionEpilogue }}
+      </p>
 
       <VictoryRewards
         v-if="isOver"
@@ -254,6 +282,25 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 </template>
 
 <style scoped>
+.run-epilogue {
+  padding: 1rem 1.15rem;
+  border-left: 4px solid var(--color-vermilion);
+  background: color-mix(in srgb, var(--color-vermilion) 8%, var(--color-bg-card));
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--color-ink);
+}
+
+.run-epilogue__label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-vermilion);
+}
+
 .run-status {
   display: flex;
   flex-wrap: wrap;

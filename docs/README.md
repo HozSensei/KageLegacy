@@ -31,6 +31,6 @@ Les règles affichées aux joueurs sont conservées dans `frontend/src/content/r
 
 ## Périmètre actuel
 
-Actifs et exposés : collection, decks, talents, combats PvE, missions à nœuds, boutique, Battle Pass, succès, factions cosmétiques, classement, PvP et administration.
+Actifs et exposés : collection, decks, talents, combats PvE, missions à nœuds, boutique, Battle Pass, succès, factions cosmétiques, classement, PvP et administration. Lore intervillage : [LORE.md](LORE.md).
 
 Non actifs : gestion d'escouade, cycle asynchrone de 72 h, tactiques de cycle ou toute fonctionnalité ancienne uniquement retrouvée dans `specs/` ou dans des chaînes mortes.

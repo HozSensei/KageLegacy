@@ -69,6 +69,7 @@ describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () =>
     cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
 
+    cy.openNavMenu();
     pickTheme('amber');
 
     cy.visit('/collection');

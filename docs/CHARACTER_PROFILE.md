@@ -36,6 +36,8 @@ Importer `serializeCharacterAppearance` depuis `backend/src/services/characterAp
 
 Le schéma initial `backend/schema.sql` est à jour pour les nouvelles bases. Pour une base existante, `npm run db:migrate` applique automatiquement la mise à niveau du profil et les colonnes de compatibilité ; le conteneur de production l'exécute également dans son entrypoint, avant de démarrer l'API. Sauvegarder la base avant de déployer.
 
-La mise à niveau historique du profil (relançable) ajoute les colonnes d'avatar / surnom / plus haut niveau et étend l'ENUM du rang. Les bases déjà migrées reçoivent ensuite `character_background_id` via les colonnes de compatibilité. Les anciennes colonnes de couleur de bordure/fond, si présentes, ne sont plus lues par l'API.
+La mise à niveau historique du profil (relançable) ajoute les colonnes d'avatar / fond de carte / surnom / plus haut niveau et étend l'ENUM du rang. Les bases déjà migrées reçoivent `character_background_id` via les colonnes de compatibilité si besoin, puis `npm run db:migrate` retire les anciennes colonnes `character_border_color` / `character_background_color` lorsqu'elles existent encore. Le catalogue d'identifiants de fond est partagé dans `shared/character/cardBackgrounds.js`.
+
+En combat (PvE, coop, PvP, duels asynchrones), l'identité publique du combattant inclut `factionId` lorsqu'il est connu, afin d'afficher le village sur la fiche joueur.
 
 Tests : `npm run test:player-character --prefix backend` (tests purs, puis tests HTTP et d'intégration si une base de test est disponible).

@@ -4,7 +4,15 @@
 
 Ce guide décrit le jeu tel qu'il fonctionne aujourd'hui. Les chiffres donnés sont ceux appliqués par le jeu.
 
-_Dernière mise à jour : novembre 2026_
+_Dernière mise à jour : 20 novembre 2026_
+
+---
+
+## Le monde
+
+Trois villages — **Midorihara**, **Kareno**, **Oborohama** — se disputent le prestige et le titre de Kage. Un ancien **pacte** entre eux a été trahi : assassinat, vols, mensonges. Personne n’avoue. La paix officielle cache une **guerre froide**.
+
+Vous servez **votre village**. Les missions sont des opérations (routes, agents, preuves). Les duels entre villages alimentent un classement hebdomadaire de prestige. Le village ne donne **aucun bonus de combat**.
 
 ---
 
@@ -47,7 +55,7 @@ Le rang suit le niveau :
 
 ### Personnalisation du profil
 
-Dans votre profil, vous pouvez changer de **portrait**, personnaliser les **couleurs de bordure et de fond** et équiper un **surnom** débloqué. Les collections de portraits se débloquent au rang correspondant, de Ninja aspirant à ANBU. Les portraits des rangs précédents restent accessibles ; un Kage peut utiliser toutes les collections et n'a pas de collection dédiée.
+Dans votre profil, vous pouvez changer de **portrait**, choisir un **fond de carte** illustré et équiper un **surnom** débloqué. Les collections de portraits se débloquent au rang correspondant, de Ninja aspirant à ANBU. Les portraits des rangs précédents restent accessibles ; un Kage peut utiliser toutes les collections et n'a pas de collection dédiée.
 
 Chaque promotion, de Genin à Kage, débloque le surnom indiqué ci-dessus. Les surnoms gagnés restent disponibles même si votre niveau est réinitialisé. Les rangs et les éléments de personnalisation ne donnent aucun bonus de combat.
 
@@ -91,7 +99,43 @@ Chaque carte a deux rôles :
 | **Invocation** | Appelle un allié qui combat à vos côtés                    |
 | **Objet**      | Effet ponctuel ; la plupart s'épuisent après usage         |
 
-Une carte peut être liée à une **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) et à un **élément** (Katon, Suiton, Raiton, Doton, Futon).
+Une carte peut être liée à une **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) et à un **élément** (Katon, Suiton, Raiton, Doton, Futon). Les cartes sans voie (objets, invocations, certains héritages) sont **neutres** : elles ne comptent pas dans la répartition 25 % / 25 % du deck et **interrompent** une chaîne.
+
+### Effets actifs courants
+
+Chaque carte affiche **son propre texte** dans la collection et en combat. Voici les types d'effets que vous pouvez rencontrer :
+
+| Effet | Ce qu'il fait |
+| ----- | ------------- |
+| **Dégâts / Armure / Soins** | Figures principales, renforcées par la statistique de la voie (ou la meilleure voie pour une carte neutre) |
+| **Multicoup** | Plusieurs frappes ; un seul jet de critique pour toute la carte |
+| **Zone** | Multiplie les dégâts de la carte (×1,35), même contre un seul ennemi |
+| **Statut** | Applique un état (voir « Statuts ») |
+| **Pioche / Chakra** | Pioche des cartes ou rend du Chakra |
+| **Enchaînement** | Bonus si la carte précédente est de la voie indiquée |
+| **Prochaine carte −N Chakra** | Réduit le coût de la prochaine carte jouée avec succès |
+| **Esquive** | Chance d'annuler la prochaine attaque subie |
+| **Riposte** | Inflige des dégâts à l'attaquant après avoir été touché |
+| **Purification** | Retire des états négatifs |
+| **Exhaust** | Retire la carte du combat après usage |
+| **Bonus si…** | Dégâts supplémentaires si une condition est vraie (ex. ennemi Vulnérable, première carte du tour) |
+
+Les valeurs exactes sont toujours celles écrites sur la carte.
+
+### Héritages (effets « en main »)
+
+Certaines cartes légendaires de clan portent un **héritage** : un effet actif **tant que la carte est en main** (et en **réserve** en arène PvP). Jouer la carte ne lui applique pas son propre héritage.
+
+| Héritage | Effet |
+| -------- | ----- |
+| **Shizumori** | +15 % d'esquive |
+| **Benigiri** | +20 % de dégâts Ninjutsu |
+| **Kazamine** | +20 % de dégâts Taijutsu |
+| **Kumatani** | +6 d'armure au début de votre tour |
+| **Yukisawa** | +2 Chakra au début de votre tour |
+| **Nagihara** | +20 % de soins |
+
+Chakra et armure d'héritage sont accordés **une fois** au début de votre tour. Les bonus en pourcentage s'appliquent tant que la carte reste en main (ou en réserve). Deux références à la même copie ne comptent qu'une fois. L'esquive apportée par les héritages est plafonnée à **75 %**.
 
 ### Raretés
 
@@ -199,7 +243,26 @@ Certaines cartes affichent un rôle de combat. Ce libellé décrit la carte, san
 
 Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse est mélangée et redevient la pioche.
 
-Certaines cartes affichent un effet de chaîne, par exemple « Après Taijutsu : +2 dégâts » ou « Après Médecine : piochez 1 carte ». Cet effet s'active uniquement sur la carte qui le porte et uniquement si la carte jouée immédiatement avant est de la voie indiquée. Une carte `Common` interrompt cette condition. Les récompenses de chaîne peuvent être des dégâts, des soins, de l'Armure, une intensité d'effet, une pioche, du Chakra ou une réduction du coût suivant. Il n'existe aucun bonus automatique aux cartes sans effet de chaîne.
+### Enchaînements (effets de chaîne)
+
+Certaines cartes portent un texte du type « Enchaînement Taijutsu : +2 dégâts ». Ce n'est **pas** un bonus automatique selon l'ordre des voies : seule la carte qui l'écrit peut le déclencher.
+
+- On regarde **uniquement la carte jouée juste avant**, dans **le même tour**.
+- Cette carte précédente doit être d'une des quatre voies (Taijutsu, Ninjutsu, Genjutsu, Médecine).
+- Une carte **neutre** (objet, invocation, etc.) **casse** la chaîne.
+- En début de tour, la chaîne est **remise à zéro**.
+- Un jeu refusé (pas assez de Chakra, etc.) ne change pas la chaîne.
+
+Récompenses possibles selon la carte : dégâts, soins, Armure, intensité d'effet, pioche, Chakra, ou réduction du coût de la prochaine carte. Une carte sans texte d'enchaînement ne reçoit aucun bonus de chaîne.
+
+### Réduction du coût suivant
+
+Certaines cartes (ou certaines récompenses de chaîne) indiquent « Prochaine carte : −N Chakra ».
+
+- Les réductions **s'additionnent**.
+- Quand vous jouez une carte **avec succès**, son coût devient au minimum 0 après réduction, puis **toute** la réduction accumulée est consommée — même si la carte coûtait 0, même si vous n'avez pas tout utilisé.
+- Si vous ne jouez plus de carte, la réduction **reste disponible au tour suivant**.
+- Un jeu refusé ne consomme pas la réduction.
 
 ### Le tour de l'ennemi
 
@@ -215,10 +278,26 @@ L'ennemi exécute son intention actuelle, puis les intentions affichées sont mi
 
 ### Dégâts, armure et soins
 
-- **Dégâts d'une carte** : dégâts de base, augmentés de 1 % par point dans la statistique de sa voie.
+- **Dégâts d'une carte** : dégâts de base, augmentés de 1 % par point dans la statistique de sa voie (meilleure voie pour une carte neutre).
 - **Armure** : elle absorbe les dégâts avant vos PV. Elle vous protège pendant le tour de l'ennemi, puis disparaît au début de votre tour suivant. L'armure de l'ennemi disparaît de la même façon au début de son tour.
 - **Soins** : ils ne peuvent pas dépasser vos PV max.
-- **Coup critique** : certaines cartes ou leurs mots-clés donnent une chance de critique, plafonnée à 50 %. Un critique applique **×1,5** aux dégâts ; la Vitesse ne détermine pas cette chance.
+- **Coup critique** : certaines cartes ou leurs mots-clés donnent une chance de critique, plafonnée à 50 %. Un critique applique **×1,5** aux dégâts ; la Vitesse ne détermine pas cette chance. Sur une carte multicoup, un seul jet de critique s'applique à tous les coups.
+
+### Ordre de résolution des dégâts
+
+Quand une carte d'attaque se résout, le jeu applique dans cet ordre :
+
+1. dégâts de base et bonus plats de talents ;
+2. bonus conditionnels (« si… ») et bonus d'enchaînement ;
+3. scaling de la voie (+1 % par point) ;
+4. bonus d'héritage pour la voie, s'il est actif ;
+5. Force (ajoute sa valeur à chaque coup) ;
+6. avantage de voie, avantage élémentaire et malus sortants (ex. Faiblesse) ;
+7. multiplicateurs de talents ;
+8. modificateur de zone (×1,35), s'il est présent sur la carte ;
+9. critique (×1,5) ;
+10. Vulnérable sur la cible (+50 % de dégâts subis) ;
+11. absorption : allié avec Provocation, puis barrière, puis armure, puis PV.
 
 ### Avantages de voie et d'élément
 
@@ -244,18 +323,21 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 
 ### Statuts
 
-| Statut           | Effet                                        |
-| ---------------- | -------------------------------------------- |
-| **Force**        | Ajoute sa valeur aux dégâts de chaque coup   |
-| **Dextérité**    | Ajoute sa valeur à l'armure gagnée par carte |
-| **Régénération** | Rend sa valeur en PV au début du tour        |
-| **Poison**       | Retire sa valeur en PV au début du tour      |
-| **Brûlure**      | Retire sa valeur en PV à la fin du tour      |
-| **Faiblesse**    | Dégâts infligés réduits de 25 %              |
-| **Vulnérable**   | Dégâts subis augmentés de 50 %               |
-| **Intangible**   | Les attaques subies n'infligent que 1 dégât  |
+| Statut | Effet |
+| ------ | ----- |
+| **Force** | Ajoute sa valeur aux dégâts de chaque coup |
+| **Dextérité** | Ajoute sa valeur à l'armure gagnée par carte |
+| **Régénération** | Rend sa valeur en PV au début du tour |
+| **Poison** | Retire sa valeur en PV au début du tour |
+| **Brûlure** | Retire sa valeur en PV à la fin du tour |
+| **Faiblesse** | Dégâts infligés réduits de 25 % |
+| **Vulnérable** | Dégâts subis augmentés de 50 % |
+| **Intangible** | Les attaques subies n'infligent que 1 dégât |
+| **Esquive** | Chance d'annuler la prochaine attaque reçue ; l'esquive est ensuite consommée |
+| **Riposte** | Après avoir été touché, inflige sa valeur de dégâts à l'attaquant, puis disparaît |
+| **Bonus %** (dégâts, armure, soins, voies) | Multiplie la figure concernée tant que le statut dure |
 
-Un statut appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Les durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut ; certains effets peuvent être consommés plus tôt. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
+Un statut appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Les durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut. Esquive et Riposte sont en général **consommées** dès qu'elles s'appliquent. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
 
 ### Invocations
 
@@ -286,7 +368,15 @@ Les boss ferment les parcours de rang B, A et S. Ils ont des mécaniques propres
 
 ### Rangs
 
-Les missions sont classées en cinq rangs, du plus simple au plus difficile : **D**, **C**, **B**, **A**, **S**. Il y a 16 missions. Toutes sont accessibles dès le départ : à vous de juger si votre deck est prêt.
+Les missions sont classées en cinq rangs, du plus simple au plus difficile : **D**, **C**, **B**, **A**, **S**. Il y a 16 missions. L’accès dépend du **rang de votre personnage** (cumulatif) :
+
+| Rang perso | Missions ouvertes |
+| ---------- | ----------------- |
+| Aspirant ninja / Genin | **D** et **C** |
+| Chunin / Jonin | **D**, **C**, **B**, **A** |
+| ANBU / Kage | tous les rangs, dont **S** |
+
+Le rang **D** est exigeant avec le deck de départ. Le rang **C** est presque inaccessible sans quelques niveaux, talents et cartes gagnés en farmant le D.
 
 | Rang | Missions | Combats par parcours | Boss final |
 | ---- | -------- | -------------------- | ---------- |
@@ -437,4 +527,5 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 
 | Date       | Changement                                                                                                                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-20 | Paliers missions (accès par rang perso), D dur / C exigeant ; combat détaillé (héritages, chaînes, glossaire) |
 | 2026-11-14 | Réécriture complète pour la version actuelle : un seul ninja, deck de 20 à 30 cartes, arbre de talents, combat au tour par tour, parcours de mission, boutique, passe de saison, arène |

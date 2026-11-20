@@ -11,9 +11,13 @@
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
-import { createEmptyStats, getComputedStats } from './playerCharacterService.js';
+import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
 import { grantRunRewards } from './combatRewardService.js';
 import { getMission } from './combatMissionService.js';
+import {
+  canPlayMissionRank,
+  requiredCharacterRankForMission,
+} from './missionRankAccess.js';
 
 const EVENT_TYPES = [
   'rest',
@@ -326,6 +330,17 @@ export async function startRun(userId, missionId, deckId = null) {
   }
 
   const mission = await getMission(missionId);
+  const character = await getCharacter(userId);
+  if (!character) {
+    throw httpError(400, 'Créez un personnage avant de lancer une mission.');
+  }
+  if (!canPlayMissionRank(character.rank, mission.rank)) {
+    const required = requiredCharacterRankForMission(mission.rank);
+    throw httpError(
+      403,
+      `Rang ${required} requis pour les missions ${mission.rank}.`,
+    );
+  }
   const { getPlayableDeckForCombat } = await import('./deckService.js');
   const deck = await getPlayableDeckForCombat(userId, deckId);
   const [{ total: stats }, effectCodes] = await Promise.all([
@@ -372,15 +387,26 @@ export async function startRun(userId, missionId, deckId = null) {
 
   const row = await loadRunRow(id, userId);
   return serializeRun(row, {
-    mission: {
-      id: mission.id,
-      slug: mission.slug,
-      nameFr: mission.nameFr,
-      nameEn: mission.nameEn,
-      rank: mission.rank,
-      rewards: mission.rewards,
-    },
+    mission: pickMissionPublic(mission),
   });
+}
+
+function pickMissionPublic(mission) {
+  if (!mission) return null;
+  return {
+    id: mission.id,
+    slug: mission.slug,
+    nameFr: mission.nameFr,
+    nameEn: mission.nameEn,
+    rank: mission.rank,
+    rewards: mission.rewards,
+    chapterFr: mission.chapterFr || null,
+    chapterEn: mission.chapterEn || null,
+    briefFr: mission.briefFr || mission.descriptionFr || null,
+    briefEn: mission.briefEn || mission.descriptionEn || null,
+    epilogueFr: mission.epilogueFr || null,
+    epilogueEn: mission.epilogueEn || null,
+  };
 }
 
 export async function getRun(userId, runId) {
@@ -392,16 +418,7 @@ export async function getRun(userId, runId) {
     /* ignore */
   }
   return serializeRun(row, {
-    mission: mission
-      ? {
-          id: mission.id,
-          slug: mission.slug,
-          nameFr: mission.nameFr,
-          nameEn: mission.nameEn,
-          rank: mission.rank,
-          rewards: mission.rewards,
-        }
-      : null,
+    mission: pickMissionPublic(mission),
   });
 }
 

@@ -7,6 +7,7 @@ import {
   COMBAT_DEFAULT_REWARDS,
   COMBAT_REWARDS_BY_RANK,
   DISENCHANT_DUST,
+  STARTING_RYOS,
   UPGRADE_COSTS,
   resolveCombatRewards,
   validateEconomyInvariants,
@@ -35,6 +36,12 @@ if (!check.ok) {
   throw new Error(`economy invariants failed (${check.errors.length})`);
 }
 console.log('✓ validateEconomyInvariants');
+
+assert(
+  STARTING_RYOS >= 0 && STARTING_RYOS <= BOOSTER_COSTS.standard.ryos,
+  `STARTING_RYOS ${STARTING_RYOS} must be 0–1 standard pack`,
+);
+console.log(`✓ STARTING_RYOS=${STARTING_RYOS}`);
 
 // Boosters wired
 assert(

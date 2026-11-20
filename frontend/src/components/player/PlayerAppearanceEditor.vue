@@ -73,17 +73,11 @@ async function save() {
         :rank="ninjaRankLabel(character.rank, t, te)"
         :level="character.level"
         :profile="draft"
+        :faction-id="character.factionId"
+        :faction-accent="character.faction?.accentColor"
         :stats="cardStats"
         :arts="character.stats?.total"
       />
-      <p
-        v-if="character.factionId"
-        class="appearance__faction"
-        :style="{ borderLeftColor: character.faction?.accentColor || 'currentColor' }"
-        data-testid="profile-faction"
-      >
-        {{ t(`factions.names.${character.factionId}`) }}
-      </p>
     </div>
 
     <form
@@ -160,16 +154,6 @@ async function save() {
   width: 100%;
   max-width: 28rem;
   min-width: 0;
-}
-
-.appearance__faction {
-  display: inline-block;
-  margin-top: 0.75rem;
-  padding: 0.35rem 0.65rem;
-  border-left: 3px solid;
-  background: var(--color-bg-soft);
-  font-size: 0.85rem;
-  font-weight: 600;
 }
 
 .appearance__form,

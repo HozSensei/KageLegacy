@@ -6,6 +6,9 @@
  */
 import { query } from '../config/database.js';
 import { listEnemyTemplates } from './deckCombat/enemyTemplates.js';
+import { annotateMissionAccess } from './missionRankAccess.js';
+import { ASPIRANT_RANK } from './characterAppearance.js';
+import { attachMissionLore } from '../../scripts/data/missionLore.js';
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -26,7 +29,7 @@ function parseJson(value, fallback) {
 function serializeMission(row) {
   if (!row) return null;
   const encounters = parseJson(row.encounters_json, []);
-  return {
+  return attachMissionLore({
     id: row.id,
     slug: row.slug,
     nameFr: row.name_fr,
@@ -39,16 +42,16 @@ function serializeMission(row) {
     rewards: parseJson(row.rewards_json, {}),
     isActive: Boolean(row.is_active),
     sortOrder: row.sort_order,
-  };
+  });
 }
 
-export async function listMissions() {
+export async function listMissions(characterRank = ASPIRANT_RANK) {
   const rows = await query(
     `SELECT * FROM mission_definitions
      WHERE is_active = 1
      ORDER BY sort_order ASC, id ASC`,
   );
-  return rows.map(serializeMission);
+  return rows.map(row => annotateMissionAccess(serializeMission(row), characterRank));
 }
 
 export async function getMission(missionId) {

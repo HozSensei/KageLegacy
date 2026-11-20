@@ -11,6 +11,7 @@ import PageHeader from '../components/ui/PageHeader.vue';
 import marketImage from '../assets/illustrations/market-square.webp';
 import { useShopStore } from '../stores/shop';
 import { useAuthStore } from '../stores/auth';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 
 defineOptions({ name: 'ShopView' });
 
@@ -18,6 +19,7 @@ const { t, locale } = useI18n();
 const shop = useShopStore();
 const auth = useAuthStore();
 const route = useRoute();
+useOnboardingVisit('visit_shop');
 const router = useRouter();
 
 const isOpeningBooster = ref(false);

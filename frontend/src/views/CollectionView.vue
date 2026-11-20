@@ -12,12 +12,14 @@ import { cardActionError } from '../utils/cardActionErrors.js';
 import forestImage from '../assets/illustrations/forest-path.webp';
 import { useCollectionStore } from '../stores/collection';
 import { useShopStore } from '../stores/shop';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 
 defineOptions({ name: 'CollectionView' });
 
 const { t, locale } = useI18n();
 const route = useRoute();
 const collection = useCollectionStore();
+useOnboardingVisit('visit_collection');
 const shop = useShopStore();
 const selection = ref(null);
 const feedback = ref(null);

@@ -23,16 +23,89 @@ function httpError(statusCode, message) {
   return err;
 }
 
+/** HP croît moins vite que l’offense pour éviter les combats interminables. */
+export function difficultyHpMult(diff) {
+  return 1 + 0.4 * (diff - 1);
+}
+
+export function difficultyOffenseMult(diff) {
+  return diff;
+}
+
+function scaleNumericField(value, mult, { minOne = false } = {}) {
+  if (value == null || !Number.isFinite(Number(value))) return value;
+  const scaled = Math.round(Number(value) * mult);
+  if (minOne) return Math.max(1, scaled);
+  return Math.max(0, scaled);
+}
+
+/**
+ * Scale les champs offensifs / défensifs d’une intention (pas les buffs force).
+ */
+export function scaleIntentByDifficulty(intent, offenseMult) {
+  if (!intent || typeof intent !== 'object') return intent;
+  const next = { ...intent };
+  if (next.damage != null) next.damage = scaleNumericField(next.damage, offenseMult);
+  if (next.block != null) next.block = scaleNumericField(next.block, offenseMult);
+  if (next.barrier != null) next.barrier = scaleNumericField(next.barrier, offenseMult);
+  if (next.releaseDamage != null) {
+    next.releaseDamage = scaleNumericField(next.releaseDamage, offenseMult);
+  }
+  if (next.minion && typeof next.minion === 'object') {
+    next.minion = {
+      ...next.minion,
+      hp: scaleNumericField(next.minion.hp, offenseMult, { minOne: true }),
+      attack: scaleNumericField(next.minion.attack, offenseMult),
+    };
+  }
+  return next;
+}
+
+function scaleOnEnter(onEnter, offenseMult) {
+  if (!onEnter || typeof onEnter !== 'object') return onEnter;
+  const next = { ...onEnter };
+  if (next.barrier != null) next.barrier = scaleNumericField(next.barrier, offenseMult);
+  if (next.setBlock != null) next.setBlock = scaleNumericField(next.setBlock, offenseMult);
+  return next;
+}
+
 /**
  * @param {string} templateId
- * @param {number} [difficulty=1] — multiplie HP / dégâts
+ * @param {number} [difficulty=1] — multiplie HP (doux) et offense (linéaire)
  */
 export function generateEnemyFromTemplate(templateId, difficulty = 1) {
   const template = ENEMY_TEMPLATES[templateId];
   if (!template) throw httpError(400, `Template ennemi inconnu: ${templateId}`);
 
   const diff = Math.max(0.5, Number(difficulty) || 1);
-  const maxHp = Math.round(template.hp * diff);
+  const hpMult = difficultyHpMult(diff);
+  const offenseMult = difficultyOffenseMult(diff);
+  const maxHp = Math.max(1, Math.round(template.hp * hpMult));
+
+  const patterns = Array.isArray(template.patterns)
+    ? template.patterns.map(p => ({
+        ...p,
+        intent: scaleIntentByDifficulty(p.intent ? { ...p.intent } : p.intent, offenseMult),
+      }))
+    : null;
+  const pattern = Array.isArray(template.pattern)
+    ? template.pattern.map(intent => scaleIntentByDifficulty({ ...intent }, offenseMult))
+    : null;
+  const phases = Array.isArray(template.phases)
+    ? template.phases.map(p => ({
+        ...p,
+        onEnter: scaleOnEnter(p.onEnter ? { ...p.onEnter } : undefined, offenseMult),
+        pattern: Array.isArray(p.pattern)
+          ? p.pattern.map(intent => scaleIntentByDifficulty({ ...intent }, offenseMult))
+          : undefined,
+        patterns: Array.isArray(p.patterns)
+          ? p.patterns.map(x => ({
+              ...x,
+              intent: scaleIntentByDifficulty(x.intent ? { ...x.intent } : x.intent, offenseMult),
+            }))
+          : undefined,
+      }))
+    : null;
 
   const enemy = {
     templateId: template.id,
@@ -41,27 +114,19 @@ export function generateEnemyFromTemplate(templateId, difficulty = 1) {
     hp: maxHp,
     maxHp,
     block: 0,
-    barrier: Math.max(0, Number(template.barrier) || 0),
+    barrier: scaleNumericField(template.barrier || 0, offenseMult),
     statuses: [],
     posture: template.posture,
     elementAffinity: template.elementAffinity,
     ai: template.ai,
-    patterns: template.patterns || null,
-    pattern: template.pattern || null,
+    patterns,
+    pattern,
     patternIndex: 0,
     intent: null,
     boss: Boolean(template.boss),
     rank: template.rank || null,
-    phases: Array.isArray(template.phases)
-      ? template.phases.map(p => ({
-          ...p,
-          onEnter: p.onEnter ? { ...p.onEnter } : undefined,
-          pattern: Array.isArray(p.pattern) ? p.pattern.map(x => ({ ...x })) : undefined,
-          patterns: Array.isArray(p.patterns)
-            ? p.patterns.map(x => ({ ...x, intent: x.intent ? { ...x.intent } : x.intent }))
-            : undefined,
-        }))
-      : null,
+    difficulty: diff,
+    phases,
     phaseIndex: -1,
     phaseId: 'base',
     immunities: Array.isArray(template.immunities) ? [...template.immunities] : [],

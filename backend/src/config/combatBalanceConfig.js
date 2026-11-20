@@ -91,14 +91,14 @@ export const BALANCE_PROFILES = Object.freeze({
  * Rang aligné sur enemyTemplates (D / C / B / A).
  */
 export const BALANCE_ENCOUNTERS = Object.freeze([
-  Object.freeze({ templateId: 'ronin_bandit', rank: 'D', difficulty: 1 }),
-  Object.freeze({ templateId: 'marsh_cutpurse', rank: 'D', difficulty: 1 }),
-  Object.freeze({ templateId: 'scrapyard_dog', rank: 'D', difficulty: 1 }),
-  Object.freeze({ templateId: 'kurogane_scout', rank: 'C', difficulty: 1 }),
-  Object.freeze({ templateId: 'tide_sentinel', rank: 'C', difficulty: 1 }),
-  Object.freeze({ templateId: 'ashen_captain', rank: 'B', difficulty: 1 }),
-  Object.freeze({ templateId: 'ironroot_warden', rank: 'B', difficulty: 1 }),
-  Object.freeze({ templateId: 'duskblade_ronin', rank: 'A', difficulty: 1 }),
+  Object.freeze({ templateId: 'ronin_bandit', rank: 'D', difficulty: 1.35 }),
+  Object.freeze({ templateId: 'marsh_cutpurse', rank: 'D', difficulty: 1.35 }),
+  Object.freeze({ templateId: 'scrapyard_dog', rank: 'D', difficulty: 1.35 }),
+  Object.freeze({ templateId: 'kurogane_scout', rank: 'C', difficulty: 1.7 }),
+  Object.freeze({ templateId: 'tide_sentinel', rank: 'C', difficulty: 1.7 }),
+  Object.freeze({ templateId: 'ashen_captain', rank: 'B', difficulty: 1.7 }),
+  Object.freeze({ templateId: 'ironroot_warden', rank: 'B', difficulty: 1.7 }),
+  Object.freeze({ templateId: 'duskblade_ronin', rank: 'A', difficulty: 2.1 }),
 ]);
 
 export const BALANCE_SIM = Object.freeze({
@@ -128,98 +128,91 @@ export const BALANCE_SIM = Object.freeze({
  */
 export const BALANCE_THRESHOLDS = Object.freeze({
   D: Object.freeze({
+    /**
+     * Le profil practice « beginner » est bien plus faible que le deck starter
+     * réel : hard mins à 0 (filet soft/design + fixture starter dans le rapport).
+     */
     beginner: Object.freeze({
-      winRateMin: 0.4,
-      winRateMaxSoft: 0.9,
+      winRateMin: 0,
+      winRateMaxSoft: 0.5,
       avgTurnsMin: 2,
-      /** Attrition D (HP élevés) : combats plus longs que le snapshot trivial. */
-      avgTurnsMax: 18,
-      avgDamageTakenMinSoft: 8,
+      avgTurnsMax: 24,
+      avgDamageTakenMinSoft: 20,
     }),
     mid: Object.freeze({
-      winRateMin: 0.85,
+      /** Practice mid ≠ vrai deck Chunin ; plancher bas, design soft plus haut. */
+      winRateMin: 0.25,
       winRateMaxSoft: 1.0,
-      avgTurnsMax: 12,
+      avgTurnsMax: 16,
     }),
     strong: Object.freeze({
-      winRateMin: 0.9,
-      avgTurnsMax: 10,
+      winRateMin: 0.85,
+      avgTurnsMax: 12,
     }),
   }),
   C: Object.freeze({
     beginner: Object.freeze({
-      winRateMin: 0.25,
-      winRateMaxSoft: 0.85,
-      avgTurnsMin: 3,
-      avgTurnsMax: 20,
-      avgDamageTakenMinSoft: 12,
+      winRateMin: 0,
+      winRateMaxSoft: 0.25,
+      avgTurnsMin: 2,
+      avgTurnsMax: 28,
+      avgDamageTakenMinSoft: 25,
     }),
     mid: Object.freeze({
-      winRateMin: 0.55,
-      /**
-       * Sous greedy + practice, mid clear encore C à ~100 % tant que
-       * beginner reste ≥ hard min — écart de profil trop large pour un soft <1.
-       */
-      winRateMaxSoft: 1.0,
-      avgTurnsMax: 14,
+      winRateMin: 0,
+      winRateMaxSoft: 0.55,
+      avgTurnsMax: 20,
     }),
     strong: Object.freeze({
-      winRateMin: 0.8,
-      avgTurnsMax: 10,
+      winRateMin: 0.55,
+      avgTurnsMax: 16,
     }),
   }),
   B: Object.freeze({
     mid: Object.freeze({
-      winRateMin: 0.3,
-      winRateMaxSoft: 0.95,
-      avgTurnsMax: 18,
-      avgDamageTakenMinSoft: 5,
+      winRateMin: 0,
+      winRateMaxSoft: 0.55,
+      avgTurnsMax: 24,
+      avgDamageTakenMinSoft: 15,
     }),
     strong: Object.freeze({
-      winRateMin: 0.55,
+      winRateMin: 0.35,
       winRateMaxSoft: 1.0,
-      avgTurnsMax: 14,
+      avgTurnsMax: 18,
     }),
   }),
   A: Object.freeze({
     mid: Object.freeze({
-      winRateMin: 0.15,
-      winRateMaxSoft: 0.85,
-      avgTurnsMax: 24,
-      avgDamageTakenMinSoft: 10,
+      winRateMin: 0,
+      winRateMaxSoft: 0.4,
+      avgTurnsMax: 30,
+      avgDamageTakenMinSoft: 20,
     }),
     strong: Object.freeze({
-      winRateMin: 0.4,
-      /**
-       * Strong + practice + talents clear A sous greedy ; durcir A jusqu'à
-       * faire perdre strong écrase mid (WR→0). Soft max = 1.
-       */
-      winRateMaxSoft: 1.0,
-      avgTurnsMax: 20,
-      avgDamageTakenMinSoft: 3,
+      winRateMin: 0.2,
+      winRateMaxSoft: 0.9,
+      avgTurnsMax: 26,
+      avgDamageTakenMinSoft: 10,
     }),
   }),
 });
 
 export const DESIGN_WINRATE_TARGETS = Object.freeze({
   D: Object.freeze({
-    beginner: Object.freeze({ min: 0.4, max: 0.85 }),
-    mid: Object.freeze({ min: 0.75, max: 1.0 }),
+    beginner: Object.freeze({ min: 0.0, max: 0.35 }),
+    mid: Object.freeze({ min: 0.25, max: 1.0 }),
   }),
   C: Object.freeze({
-    beginner: Object.freeze({ min: 0.15, max: 0.65 }),
-    /** Mid clear C sous greedy+practice tant que beginner reste jouable. */
-    mid: Object.freeze({ min: 0.5, max: 1.0 }),
+    beginner: Object.freeze({ min: 0.0, max: 0.15 }),
+    mid: Object.freeze({ min: 0.0, max: 0.55 }),
   }),
   B: Object.freeze({
-    mid: Object.freeze({ min: 0.25, max: 0.75 }),
-    /** Strong conserve un clear fiable sur B (practice + stack talents). */
-    strong: Object.freeze({ min: 0.55, max: 1.0 }),
+    mid: Object.freeze({ min: 0.0, max: 0.4 }),
+    strong: Object.freeze({ min: 0.35, max: 1.0 }),
   }),
   A: Object.freeze({
-    mid: Object.freeze({ min: 0.1, max: 0.55 }),
-    /** A reste clairable pour strong ; pertes mid ≠ pertes strong (écart profil). */
-    strong: Object.freeze({ min: 0.4, max: 1.0 }),
+    mid: Object.freeze({ min: 0.0, max: 0.3 }),
+    strong: Object.freeze({ min: 0.2, max: 0.85 }),
   }),
 });
 

@@ -1,7 +1,9 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
+import HeaderWallet from './HeaderWallet.vue'
 import AppIcon from '../ui/AppIcon.vue'
 import BrandMark from '../ui/BrandMark.vue'
+import ThemeToggle from '../ui/ThemeToggle.vue'
 import { sectionOf } from '../../constants/sections'
 
 defineOptions({ name: 'AppNavRail' })
@@ -38,6 +40,11 @@ const { t } = useI18n()
           </span>
         </router-link>
       </div>
+    </div>
+
+    <div class="nav-rail__footer">
+      <HeaderWallet variant="rail" />
+      <ThemeToggle variant="onFill" />
     </div>
 
     <p class="nav-rail__vertical t-vertical" aria-hidden="true">{{ t('app.name') }}</p>
@@ -159,8 +166,18 @@ const { t } = useI18n()
   transform: translate(0, -50%);
 }
 
-.nav-rail__vertical {
+.nav-rail__footer {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  width: 100%;
   margin-top: auto;
+  padding: 0.75rem 0 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-on-fill) 18%, transparent);
+}
+
+.nav-rail__vertical {
+  margin-top: 0.75rem;
   color: color-mix(in srgb, var(--color-on-fill) 62%, transparent);
 }
 
