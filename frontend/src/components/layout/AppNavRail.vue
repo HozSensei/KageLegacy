@@ -62,7 +62,7 @@ const { t } = useI18n()
   align-items: center;
   width: var(--shell-rail);
   padding: 0.85rem 0 1.25rem;
-  overflow: hidden;
+  /* Pas d’overflow ici : le menu ThemeToggle s’ouvre hors du footer. */
   background: var(--color-indigo-deep);
   color: var(--color-on-fill);
 }
