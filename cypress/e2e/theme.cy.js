@@ -73,7 +73,7 @@ describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () =>
     cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
 
-    // Rail desktop : le menu s’ouvre vers le haut (onFill) pour rester dans le viewport.
+    // Rail desktop : footer (wallet + thème) ancré en bas ; menu onFill ouvert vers le haut.
     pickTheme('amber');
 
     cy.visit('/collection');
