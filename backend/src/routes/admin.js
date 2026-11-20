@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getConnection, query } from '../config/database.js';
 import { requireAdmin } from '../middleware/admin.js';
+import { ASPIRANT_RANK, DEFAULT_AVATAR_ID } from '../services/characterAppearance.js';
 
 const router = Router();
 const resourceFields = Object.freeze({
@@ -190,10 +191,12 @@ router.post('/players/:id/reset', async (req, res, next) => {
     if (selected.level) {
       await connection.execute(
         `UPDATE player_profiles
-         SET character_level = 1, character_xp = 0, character_rank = 'Genin',
+         SET character_highest_level = GREATEST(character_highest_level, character_level),
+             character_level = 1, character_xp = 0, character_rank = ?,
+             character_avatar_id = IF(character_avatar_id LIKE 'aspirant-%', character_avatar_id, ?),
              character_updated_at = UTC_TIMESTAMP()
          WHERE user_id = ? AND character_name IS NOT NULL`,
-        [userId],
+        [ASPIRANT_RANK, DEFAULT_AVATAR_ID, userId],
       );
     }
     if (selected.talents) {

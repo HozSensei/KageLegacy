@@ -11,6 +11,7 @@
 import { createSeededRng } from './seededRng.js';
 import { duelChecksum } from './checksum.js';
 import { applyCardPlay } from '../../backend/src/services/deckCombat/cardEffects.js';
+import { publicFighterIdentity } from '../../backend/src/services/deckCombat/fighterIdentity.js';
 import {
   applyHeldTurnStart,
   heldEffectMods,
@@ -177,7 +178,7 @@ export function publicDuelState(state, viewerSeat) {
       seat: fighter.seat,
       userId: fighter.userId,
       name: fighter.name,
-      level: fighter.level,
+      ...publicFighterIdentity(fighter),
       hp: fighter.hp,
       maxHp: fighter.maxHp,
       block: fighter.block || 0,
@@ -245,7 +246,8 @@ function hydrateFighter(raw, seat, rng) {
     seat,
     userId: raw.userId,
     name: raw.name || (seat === 'host' ? 'Host' : 'Guest'),
-    level: raw.level || 1,
+    level: 1,
+    ...publicFighterIdentity(raw),
     hp: raw.hp != null ? Number(raw.hp) : maxHp,
     maxHp,
     block: Number(raw.block) || 0,

@@ -97,6 +97,18 @@ const shortcuts = computed(() =>
       hint: t('hub.shortcutMissions'),
     },
     { name: 'coop', to: '/coop', label: t('coop.title'), hint: t('coop.lead') },
+    {
+      name: 'deck-duels',
+      to: '/deck-duels',
+      label: t('deckDuels.title'),
+      hint: t('deckDuels.lead'),
+    },
+    {
+      name: 'village',
+      to: '/village',
+      label: t('village.title'),
+      hint: t('village.pageLead'),
+    },
     { name: 'talents', to: '/talents', label: t('nav.talents'), hint: t('hub.shortcutTalents') },
     { name: 'decks', to: '/decks', label: t('nav.decks'), hint: t('hub.shortcutDecks') },
     {

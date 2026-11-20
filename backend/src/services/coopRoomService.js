@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { getPlayableDeckForCombat } from './deckService.js';
-import { getCharacter } from './playerCharacterService.js';
+import { loadCombatCharacter } from './combatCharacterService.js';
+
 import { computeTalentBonuses } from './talentTreeService.js';
 import { applyCoopAction, createCoopCombat, publicCoopCombat } from './deckCombat/coopCombat.js';
 
@@ -15,13 +16,16 @@ function fail(statusCode, message) {
 async function loadFighter(userId) {
   const [deck, character, talents] = await Promise.all([
     getPlayableDeckForCombat(userId),
-    getCharacter(userId),
+    loadCombatCharacter(userId),
     computeTalentBonuses(userId),
   ]);
   if (!character) fail(400, 'Un personnage est nécessaire pour jouer en duo.');
   return {
     id: userId,
     name: character.name,
+    rank: character.rank,
+    level: character.level,
+    profile: character.profile,
     deckEntries: deck.cards,
     stats: talents.stats,
     talentCodes: (talents.effects || []).map(effect => effect.effectCode).filter(Boolean),

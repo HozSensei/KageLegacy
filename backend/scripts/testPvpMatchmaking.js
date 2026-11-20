@@ -124,6 +124,8 @@ const bootstrap = {
       userId: 1,
       name: 'Akira',
       level: 10,
+      rank: 'Genin',
+      profile: { avatarId: 'genin-1-2', nicknameId: 'genin', unlockedNicknameIds: ['genin'] },
       hp: BASE_MAX_HP,
       maxHp: BASE_MAX_HP,
       chakra: BASE_CHAKRA,
@@ -175,6 +177,8 @@ const bootstrap = {
       userId: 2,
       name: 'Ren',
       level: 11,
+      rank: 'Genin',
+      profile: { avatarId: 'aspirant-2-8', borderColor: '#123abc' },
       hp: BASE_MAX_HP,
       maxHp: BASE_MAX_HP,
       chakra: BASE_CHAKRA,
@@ -241,6 +245,26 @@ assert(
 const pubGuest = publicDuelState(played.state, 'guest');
 assert(pubGuest.fighters.guest.hand != null, 'guest voit sa main');
 assert(pubGuest.fighters.host.hand === undefined, 'guest ne voit pas la main host');
+assert(pubGuest.fighters.host.stats === undefined, 'guest ne voit pas les stats privées du host');
+assert(
+  pubGuest.fighters.host.rank === 'Genin' && pubGuest.fighters.host.level === 10,
+  'rang et niveau du host visibles'
+);
+assert(
+  JSON.stringify(pubGuest.fighters.host.profile) ===
+    JSON.stringify({
+      avatarId: 'genin-1-2',
+      borderColor: null,
+      backgroundColor: null,
+      nicknameId: 'genin',
+    }),
+  'le profil public du host exclut les surnoms déverrouillés'
+);
+assert(
+  pubGuest.fighters.guest.profile.avatarId === 'aspirant-2-8' &&
+    pubGuest.fighters.guest.profile.borderColor === '#123ABC',
+  'le guest garde son propre profil'
+);
 
 const { checksum, summary } = duelChecksum(played.state);
 assert(typeof checksum === 'string' && checksum.length === 16, 'checksum hex 16');
@@ -292,6 +316,10 @@ assert(
 );
 assert(summoned.state.fighters.host.ally?.taunt === true, 'Taunt est lu depuis les capacités');
 const publicSummon = publicDuelState(summoned.state, 'guest');
+assert(
+  publicSummon.fighters.host.level === 1 && publicSummon.fighters.host.profile === undefined,
+  'un ancien bootstrap garde son niveau par défaut sans profil'
+);
 assert(publicSummon.fighters.host.ally?.hp === 10, 'l’invocation adverse est visible');
 const finishingState = structuredClone(summoned.state);
 finishingState.fighters.guest.hp = 3;

@@ -15,6 +15,8 @@ export const useDecksStore = defineStore('decks', () => {
     maxCopies: 3,
     maxClan: 1,
     maxLegendaryOrMythic: 3,
+    requiredArts: 2,
+    minArtShare: 25,
   });
   const loading = ref(false);
   const error = ref(null);
@@ -30,7 +32,7 @@ export const useDecksStore = defineStore('decks', () => {
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
       decks.value = body.decks || [];
-      if (body.constraints) constraints.value = body.constraints;
+      if (body.constraints) constraints.value = { ...constraints.value, ...body.constraints };
       activeDeck.value = decks.value.find(d => d.isActive) || null;
       return decks.value;
     } catch (e) {

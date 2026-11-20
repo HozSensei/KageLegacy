@@ -6,6 +6,8 @@ import { useAuthStore } from '../stores/auth';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
+import NinjaAvatarPicker from '../components/player/NinjaAvatarPicker.vue';
+import { DEFAULT_NINJA_AVATAR_ID, STARTING_NINJA_RANK } from '../constants/ninjaAvatars.js';
 import { writeStoredLocale } from '../utils/localeStorage.js';
 import gateImage from '../assets/illustrations/village-gate.webp';
 
@@ -21,6 +23,7 @@ const mode = ref(route.path.includes('register') ? 'register' : 'login');
 const email = ref('');
 const password = ref('');
 const characterName = ref('');
+const avatarId = ref(DEFAULT_NINJA_AVATAR_ID);
 const language = ref(locale.value === 'en' ? 'en' : 'fr');
 
 function onLocaleChange(lang) {
@@ -50,6 +53,7 @@ async function submit() {
           password: password.value,
           characterName: characterName.value.trim(),
           language: language.value,
+          avatarId: avatarId.value,
         });
   if (ok) {
     const lang = mode.value === 'login' ? auth.profile?.language || locale.value : language.value;
@@ -145,6 +149,12 @@ async function submit() {
               class="input-field"
             />
           </label>
+
+          <NinjaAvatarPicker
+            v-if="mode === 'register'"
+            v-model="avatarId"
+            :rank="STARTING_NINJA_RANK"
+          />
 
           <button
             type="submit"

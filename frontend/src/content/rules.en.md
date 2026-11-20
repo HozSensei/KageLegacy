@@ -10,7 +10,7 @@ _Last updated: November 2026_
 
 ## At a glance
 
-1. **Create your ninja**: a name, a lineage.
+1. **Create your ninja**: choose a name and an Aspirant portrait.
 2. **Receive your starter deck**: 22 cards, ready to play.
 3. **Start a mission**: a run of 3 to 5 fights with events in between.
 4. **Earn experience**: each level gives 1 talent point.
@@ -24,34 +24,32 @@ Nothing grows on its own: levelling up gives **no stats**, only a talent point t
 
 ### Creation
 
-Each account has **a single ninja**. At creation you choose:
+Each account or guest has **a single ninja**. When you sign up or start as a guest, choose a **name** (at least 2 characters) and an **Aspirant portrait**. If you don't change the portrait, the first Aspirant portrait is used. Your ninja is automatically assigned a village.
 
-- a **name** (at least 2 characters);
-- a **lineage**: Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani or Yukisawa.
-
-Lineage is part of your ninja's identity and is shown on the profile. It gives **no numeric bonus** in combat.
-
-When you sign up, you also pick a **land** (Midorihara, Kareno, Oborohama or Ishikura). It gives no combat bonus.
-
-Your ninja starts at **level 1**, at the rank of **Genin**, with **1 talent point** and a starter deck.
+Your ninja starts at **level 1**, at the rank of **Aspirant ninja**, with **1 talent point** and a starter deck.
 
 ### Level and rank
 
-Victories grant experience (XP). Going from level _N_ to the next one takes **100 × N** XP: 100 XP to reach level 2, 200 XP for level 3, and so on. The maximum level is **100**.
+Victories grant experience (XP). Going from level _N_ to the next one takes **100 × N** XP: 100 XP to reach level 2, 200 XP for level 3, and so on. The maximum level is **80**.
 
-Each level gained gives **1 talent point**. It gives nothing else.
+Each level gained gives **1 talent point** but no stats.
 
 Rank follows level:
 
-| Level     | Rank   |
-| --------- | ------ |
-| 1 to 19   | Genin  |
-| 20 to 39  | Chunin |
-| 40 to 59  | Jonin  |
-| 60 to 79  | ANBU   |
-| 80 to 100 | Kage   |
+| Level    | Rank           | Nickname unlocked |
+| -------- | -------------- | ----------------- |
+| 1 to 4   | Aspirant ninja | —                 |
+| 5 to 19  | Genin          | Rising Shinobi    |
+| 20 to 39 | Chunin         | Field Veteran     |
+| 40 to 59 | Jonin          | Shinobi Elite     |
+| 60 to 79 | ANBU           | Silent Blade      |
+| 80       | Kage           | Village Legend    |
 
-Rank is a title: it adds no stats.
+### Profile cosmetics
+
+In your profile, you can change your **portrait**, customize the **border and background colors**, and equip an unlocked **nickname**. Portrait collections unlock at their matching rank, from Aspirant through ANBU. You keep access to portraits from lower ranks; Kage can use all collections and has no separate portrait collection.
+
+Each promotion from Genin to Kage unlocks the nickname listed above. Earned nicknames stay available even if your level is reset. Ranks and cosmetics do not grant combat bonuses.
 
 ### Stats
 
@@ -139,6 +137,8 @@ An upgraded legendary card also returns 2 essence, an upgraded mythic card 5 ess
 ## The deck
 
 A playable deck holds **20 to 30 cards**, with **at most 3 copies** of the same card. You can only include copies you own. Two further limits apply: **3 legendary or mythic cards combined**, including **at most 1 clan card**. Legendary or mythic clan copies count toward both limits.
+
+The deck must contain **exactly two distinct primary arts**, each with **at least 25% of its non-neutral cards**, rounded up. Only each card's primary art counts. Neutral cards count toward the deck size but not the art split. For example, a 30-card deck with 10 neutrals needs at least 5 cards of each art.
 
 You can build several decks, but only one is **active**. The active deck is the one that:
 

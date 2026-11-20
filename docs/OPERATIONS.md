@@ -88,9 +88,10 @@ location /ws/ {
 Lorsqu'il est actif, il s'exécute une fois à minuit UTC pour :
 
 - purger les comptes invités expirés ;
-- rafraîchir les fenêtres de quêtes Battle Pass.
+- rafraîchir les fenêtres de quêtes Battle Pass ;
+- clôturer les semaines de village dues. Le versement est aussi vérifié au démarrage et rattrape les semaines manquées.
 
-Dans une architecture multi-instance, planifier une exécution unique ou ajouter un verrou distribué pour éviter les doublons.
+Les lots de village sont protégés par un verrou et un registre transactionnels en base. Pour les autres tâches, en multi-instance, conserver un seul scheduler actif sauf si elles disposent de leurs propres garde-fous.
 
 ## Déploiement DB
 
@@ -102,7 +103,9 @@ Le dépôt ne supporte que le schéma initial sur base vide. Pour un déploiemen
 4. testée sur copie de production ;
 5. appliquée avant de déployer le code qui dépend de la nouvelle colonne.
 
-Les changements récents incluent notamment `stat_type='common'` et `held_effect_json` dans `card_definitions`.
+Les changements récents incluent notamment `stat_type='common'` et `held_effect_json` dans `card_definitions`. Le migrateur comporte un rattrapage additif ciblé pour le [Duel de decks](ASYNC_DUELS.md) et ses lots de village ; il ne constitue pas un système général de migrations incrémentales.
+
+Pour une base existante, le [profil personnage](CHARACTER_PROFILE.md#mise-à-niveau-mysql) nécessite l'exécution du script SQL dédié avant le déploiement.
 
 ## Stripe
 

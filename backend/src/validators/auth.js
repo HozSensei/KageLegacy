@@ -1,9 +1,11 @@
 import { z } from 'zod';
+import { startingAvatarIdSchema } from './player.js';
 
 export const registerSchema = z.object({
   email: z.string().trim().email('Adresse e-mail invalide.').max(255),
   password: z.string().min(6, 'Minimum 6 caractères.').max(128),
   characterName: z.string().trim().min(2).max(100),
+  avatarId: startingAvatarIdSchema,
   language: z.enum(['fr', 'en']).optional(),
 });
 
@@ -14,6 +16,7 @@ export const loginSchema = z.object({
 
 export const guestRegisterSchema = z.object({
   characterName: z.string().trim().min(2).max(100),
+  avatarId: startingAvatarIdSchema,
   language: z.enum(['fr', 'en']).optional(),
 });
 

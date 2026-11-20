@@ -2,6 +2,7 @@
  * Appartenance faction du personnage stockée dans player_profiles.
  */
 import { query } from '../config/database.js';
+import { withVillageMembershipChange } from './asyncDuelWeeklyRewards.js';
 import {
   FACTION_IDS,
   assignFactionFromSeed,
@@ -45,24 +46,17 @@ export async function setFaction(userId, factionId) {
     throw httpError(400, 'Faction invalide.');
   }
 
-  const rows = await query(
-    `SELECT id, character_faction_id AS faction_id,
-            character_faction_retake_used AS faction_retake_used
-     FROM player_profiles
-     WHERE user_id = ? AND character_name IS NOT NULL
-     LIMIT 1`,
-    [userId],
-  );
-  if (!rows[0]) throw httpError(404, 'Personnage introuvable.');
+  await withVillageMembershipChange(userId, factionId, async connection => {
+    const character = await lockCharacterFaction(connection, userId);
+    if (character.faction_id) {
+      throw httpError(409, 'Faction déjà choisie. Utilisez le retake si disponible.');
+    }
 
-  if (rows[0].faction_id) {
-    throw httpError(409, 'Faction déjà choisie. Utilisez le retake si disponible.');
-  }
-
-  await query('UPDATE player_profiles SET character_faction_id = ? WHERE user_id = ?', [
-    factionId,
-    userId,
-  ]);
+    await connection.execute(
+      'UPDATE player_profiles SET character_faction_id = ? WHERE user_id = ?',
+      [factionId, userId],
+    );
+  });
 
   return getPlayerFaction(userId);
 }
@@ -75,31 +69,37 @@ export async function retakeFaction(userId, factionId) {
     throw httpError(400, 'Faction invalide.');
   }
 
-  const rows = await query(
-    `SELECT id, character_faction_id AS faction_id,
-            character_faction_retake_used AS faction_retake_used
-     FROM player_profiles
-     WHERE user_id = ? AND character_name IS NOT NULL
-     LIMIT 1`,
-    [userId],
-  );
-  if (!rows[0]) throw httpError(404, 'Personnage introuvable.');
-  if (!rows[0].faction_id) {
-    throw httpError(400, 'Aucune faction actuelle — choisissez-en une d’abord.');
-  }
-  if (rows[0].faction_retake_used) {
-    throw httpError(403, 'Changement de faction déjà utilisé.');
-  }
-  if (rows[0].faction_id === factionId) {
-    throw httpError(400, 'Vous êtes déjà dans cette faction.');
-  }
+  await withVillageMembershipChange(userId, factionId, async connection => {
+    const character = await lockCharacterFaction(connection, userId);
+    if (!character.faction_id) {
+      throw httpError(400, 'Aucune faction actuelle — choisissez-en une d’abord.');
+    }
+    if (character.faction_retake_used) {
+      throw httpError(403, 'Changement de faction déjà utilisé.');
+    }
+    if (character.faction_id === factionId) {
+      throw httpError(400, 'Vous êtes déjà dans cette faction.');
+    }
 
-  await query(
-    `UPDATE player_profiles
-     SET character_faction_id = ?, character_faction_retake_used = 1
-     WHERE user_id = ?`,
-    [factionId, userId],
-  );
+    await connection.execute(
+      `UPDATE player_profiles
+       SET character_faction_id = ?, character_faction_retake_used = 1
+       WHERE user_id = ?`,
+      [factionId, userId],
+    );
+  });
 
   return getPlayerFaction(userId);
+}
+
+async function lockCharacterFaction(connection, userId) {
+  const [[character]] = await connection.execute(
+    `SELECT character_faction_id AS faction_id,
+            character_faction_retake_used AS faction_retake_used
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL FOR UPDATE`,
+    [userId],
+  );
+  if (!character) throw httpError(404, 'Personnage introuvable.');
+  return character;
 }

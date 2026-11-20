@@ -45,9 +45,14 @@ onMounted(async () => {
     <p v-if="player.loading && !player.character" class="mt-8 text-ink-muted">
       {{ t('common.loading') }}
     </p>
-    <p v-else-if="player.error" class="alert alert--error mt-6" data-testid="profile-error">
+    <p v-if="player.error" class="alert alert--error mt-6" data-testid="profile-error">
       {{ player.error }}
     </p>
-    <PlayerProfile v-else-if="player.character" class="mt-8" :character="player.character" />
+    <PlayerProfile
+      v-if="player.character"
+      :key="player.character.id"
+      class="mt-8"
+      :character="player.character"
+    />
   </div>
 </template>

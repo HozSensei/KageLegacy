@@ -22,7 +22,16 @@ export const DECK_CONSTRAINTS = Object.freeze({
   maxCopies: MAX_COPIES_PER_CARD,
   maxClan: MAX_CLAN_CARDS,
   maxLegendaryOrMythic: MAX_LEGENDARY_OR_MYTHIC,
+  requiredArts: 2,
+  minArtShare: 25,
 });
+
+const ART_NAMES = {
+  taijutsu: { fr: 'Taijutsu', en: 'Taijutsu' },
+  ninjutsu: { fr: 'Ninjutsu', en: 'Ninjutsu' },
+  genjutsu: { fr: 'Genjutsu', en: 'Genjutsu' },
+  medicine: { fr: 'Médecine', en: 'Medicine' },
+};
 
 const STAT_KEYS = [
   'taijutsu',
@@ -110,6 +119,7 @@ function cardMeta(entry) {
   return {
     slug: nested?.slug ?? entry?.slug ?? '',
     rarity: nested?.rarity ?? entry?.rarity ?? '',
+    statType: nested?.statType ?? nested?.stat_type ?? entry?.statType ?? entry?.stat_type,
     clan: nested?.clan ?? entry?.clan,
     tags: nested?.tags ?? entry?.tags,
     nameFr: nested?.nameFr ?? entry?.nameFr,
@@ -149,7 +159,7 @@ export function countLegendaryOrMythic(cards) {
 }
 
 /**
- * Valide taille (20–30), copies, max 1 clan, max 3 légendaire/mythique.
+ * Valide la taille, les limites de copies/rareté et les deux voies principales.
  * @returns {{
  *   valid: boolean,
  *   errors: string[],
@@ -157,7 +167,10 @@ export function countLegendaryOrMythic(cards) {
  *   codes: string[],
  *   size: number,
  *   clanCount: number,
- *   legendaryOrMythicCount: number
+ *   legendaryOrMythicCount: number,
+ *   artCounts: Record<string, number>,
+ *   nonNeutralCount: number,
+ *   minArtCards: number
  * }}
  */
 export function validateDeck(cards) {
@@ -167,6 +180,8 @@ export function validateDeck(cards) {
   const size = countDeckSize(cards);
   const clanCount = countClanCards(cards);
   const legendaryOrMythicCount = countLegendaryOrMythic(cards);
+  const { requiredArts, minArtShare } = DECK_CONSTRAINTS;
+  const artCounts = Object.fromEntries(Object.keys(ART_NAMES).map(art => [art, 0]));
 
   if (size < DECK_MIN_SIZE) {
     codes.push('deck_too_small');
@@ -181,8 +196,9 @@ export function validateDeck(cards) {
 
   for (const card of cards) {
     const qty = Number(card.quantity) || 0;
+    const meta = cardMeta(card);
+    if (Object.hasOwn(artCounts, meta.statType)) artCounts[meta.statType] += qty;
     if (qty > MAX_COPIES_PER_CARD) {
-      const meta = cardMeta(card);
       const nameFr = meta.nameFr || card.cardDefinitionId || card.collectionId;
       const nameEn = meta.nameEn || meta.nameFr || card.cardDefinitionId || card.collectionId;
       codes.push('over_copies');
@@ -207,6 +223,34 @@ export function validateDeck(cards) {
     );
   }
 
+  const representedArts = Object.entries(artCounts).filter(([, count]) => count > 0);
+  const nonNeutralCount = Object.values(artCounts).reduce((sum, count) => sum + count, 0);
+  const minArtCards = Math.ceil((nonNeutralCount * minArtShare) / 100);
+
+  if (representedArts.length !== requiredArts) {
+    const describeCounts = locale =>
+      representedArts.map(([art, count]) => `${ART_NAMES[art][locale]} ${count}`).join(', ');
+    codes.push('invalid_art_count');
+    errors.push(
+      `Le deck doit contenir exactement ${requiredArts} voies distinctes parmi les cartes non neutres (${representedArts.length} : ${describeCounts('fr') || 'aucune'}).`,
+    );
+    errorsEn.push(
+      `The deck must contain exactly ${requiredArts} distinct arts among non-neutral cards (${representedArts.length}: ${describeCounts('en') || 'none'}).`,
+    );
+  } else {
+    for (const [art, count] of representedArts) {
+      if (count >= minArtCards) continue;
+      const { fr, en } = ART_NAMES[art];
+      codes.push('insufficient_art_cards');
+      errors.push(
+        `${fr} : ${count}/${minArtCards} cartes requises (${minArtShare} % des ${nonNeutralCount} cartes non neutres, arrondi au supérieur).`,
+      );
+      errorsEn.push(
+        `${en}: ${count}/${minArtCards} required cards (${minArtShare}% of ${nonNeutralCount} non-neutral cards, rounded up).`,
+      );
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors,
@@ -215,10 +259,13 @@ export function validateDeck(cards) {
     size,
     clanCount,
     legendaryOrMythicCount,
+    artCounts,
+    nonNeutralCount,
+    minArtCards,
   };
 }
 
-/** Hard build-time violations (size floor is activate-only). */
+/** The size floor and art composition only block activation and combat. */
 function hardBuildErrors(validation) {
   const blocked = new Set(['deck_too_big', 'over_copies', 'too_many_clan', 'too_many_legendary']);
   const fr = [];
@@ -328,15 +375,16 @@ export async function createDeck(userId, { name, archetype = 'midrange', cards =
 
   const result = await query(
     'INSERT INTO user_decks (user_id, name, is_active, archetype) VALUES (?, ?, ?, ?)',
-    [userId, trimmed, isFirst ? 1 : 0, archetype],
+    [userId, trimmed, 0, archetype],
   );
 
   const deckId = result.insertId;
-  if (Array.isArray(cards) && cards.length > 0) {
-    await replaceDeckCards(userId, deckId, cards);
-  }
+  const deck =
+    Array.isArray(cards) && cards.length > 0
+      ? await replaceDeckCards(userId, deckId, cards)
+      : await getDeck(userId, deckId);
 
-  return getDeck(userId, deckId);
+  return isFirst && deck.validation.valid ? setActiveDeck(userId, deckId) : deck;
 }
 
 export async function updateDeck(userId, deckId, { name, archetype } = {}) {
@@ -367,11 +415,14 @@ export async function deleteDeck(userId, deckId) {
 
   if (deck.is_active) {
     const others = await query(
-      'SELECT id FROM user_decks WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1',
+      'SELECT id FROM user_decks WHERE user_id = ? ORDER BY updated_at DESC',
       [userId],
     );
-    if (others[0]) {
-      await query('UPDATE user_decks SET is_active = 1 WHERE id = ?', [others[0].id]);
+    for (const other of others) {
+      if (validateDeck(await getDeckCards(other.id)).valid) {
+        await query('UPDATE user_decks SET is_active = 1 WHERE id = ?', [other.id]);
+        break;
+      }
     }
   }
 
@@ -406,7 +457,7 @@ export async function setActiveDeck(userId, deckId) {
 
 async function loadOwnedCollection(userId, collectionId) {
   const rows = await query(
-    `SELECT ucc.*, cd.rarity, cd.slug, cd.name_fr, cd.name_en
+    `SELECT ucc.*, cd.rarity, cd.stat_type, cd.slug, cd.name_fr, cd.name_en
      FROM user_card_collection ucc
      JOIN card_definitions cd ON cd.id = ucc.card_definition_id
      WHERE ucc.id = ? AND ucc.user_id = ?
@@ -439,6 +490,7 @@ export async function replaceDeckCards(userId, deckId, cards) {
       quantity,
       slug: owned.slug,
       rarity: owned.rarity,
+      statType: owned.stat_type,
       nameFr: owned.name_fr,
       nameEn: owned.name_en,
     });
@@ -453,6 +505,7 @@ export async function replaceDeckCards(userId, deckId, cards) {
     card: {
       slug: n.slug,
       rarity: n.rarity,
+      statType: n.statType,
       nameFr: n.nameFr || `#${n.collectionId}`,
       nameEn: n.nameEn || n.nameFr || `#${n.collectionId}`,
     },
@@ -544,6 +597,7 @@ export async function addCardToDeck(userId, deckId, collectionId, quantity = 1) 
       card: {
         slug: owned.slug,
         rarity: owned.rarity,
+        statType: owned.stat_type,
         nameFr: owned.name_fr,
         nameEn: owned.name_en,
       },

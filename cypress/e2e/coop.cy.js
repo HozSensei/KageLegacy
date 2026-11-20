@@ -28,17 +28,23 @@ function active({ revision = 2, activePlayerId = 1, hand = [], allyHp = 30 } = {
         currentTurn: 1,
         currentPhase: activePlayerId === 1 ? 'player_turn' : 'enemy_turn',
         activePlayerId,
+        stats: { taijutsu: 7, ninjutsu: 8, genjutsu: 9, medicine: 6 },
         player: {
           ...person(1, 'Scout'),
+          rank: 'Genin',
+          level: 5,
+          profile: { avatarId: 'genin-1-2', nicknameId: 'genin' },
           chakra: 1,
           maxChakra: 5,
           hand,
           drawCount: 2,
           discardsRemaining: 2,
           chakraDiscardAvailable: true,
+          previousCardStatType: 'taijutsu',
         },
         ally: {
           ...person(2, 'Medic'),
+          profile: { avatarId: 'aspirant-2-5' },
           hp: allyHp,
           block: 4,
           chakra: 2,
@@ -55,7 +61,9 @@ function active({ revision = 2, activePlayerId = 1, hand = [], allyHp = 30 } = {
   };
 }
 
-const get = id => cy.get(`[data-testid="${id}"]`);
+const byTestId = id => `[data-testid="${id}"]`;
+const get = id => cy.get(byTestId(id));
+const fighterCard = id => get(id).find(byTestId('ninja-profile-card'));
 
 describe('Co-op room (mocked HTTP)', () => {
   beforeEach(() => {
@@ -89,15 +97,43 @@ describe('Co-op room (mocked HTTP)', () => {
         snapshot = active();
       });
     cy.wait('@poll');
-    get('coop-ally').should('contain.text', 'Medic').and('contain.text', '2/5');
-    get('coop-ally').find('.armor-chip__value').should('have.text', '4');
-    get('coop-ally').find('.fighter__statuses').children().should('have.length', 1);
+    get('combat-arena').find(byTestId('ninja-profile-card')).should('have.length', 3);
+    fighterCard('player-status').within(() => {
+      cy.root().should('have.attr', 'data-variant', 'ninja');
+      cy.root().should('have.attr', 'data-avatar-id', 'genin-1-2');
+      get('ninja-card-nickname').should('have.text', 'Rising Shinobi');
+      get('ninja-card-arts')
+        .find(byTestId('ninja-card-art-taijutsu'))
+        .should('contain.text', 'Taijutsu')
+        .and('contain.text', '7');
+      get('combat-fighter-chain').should('be.visible');
+    });
+    fighterCard('enemy-display').within(() => {
+      cy.root().should('have.attr', 'data-variant', 'enemy');
+      get('ninja-card-hp').should('have.text', '30/30');
+      get('ninja-card-armor').should('have.text', '0');
+      for (const id of ['ninja-card-arts', 'ninja-card-nickname', 'ninja-card-chakra']) {
+        get(id).should('not.exist');
+      }
+      cy.get('.ninja-card__rank').should('not.exist');
+      get('enemy-intent').should('contain.text', 'Target: Scout');
+      get('enemy-next-intent').should('contain.text', 'Target: Medic');
+    });
+    fighterCard('coop-ally').within(() => {
+      cy.root().should('have.attr', 'data-variant', 'ninja');
+      cy.root().should('have.attr', 'data-avatar-id', 'aspirant-2-5');
+      cy.root().should('contain.text', 'Medic');
+      get('ninja-card-chakra').should('have.text', '2/5');
+      get('ninja-card-armor').should('have.text', '4');
+      get('combat-fighter-statuses')
+        .children()
+        .should('have.length', 1)
+        .and('contain.text', 'Burn');
+    });
     get('coop-ally').find('[data-testid^="hand-card-"]').should('not.exist');
     cy.get('#combat-header-tools').find('[data-testid="combat-header-log-trigger"]').click();
     get('combat-header-log-panel').should('be.visible').trigger('keydown', { key: 'Escape' });
     get('combat-header-log-panel').should('not.be.visible');
-    get('enemy-intent').should('contain.text', 'Target: Scout');
-    get('enemy-next-intent').should('contain.text', 'Target: Medic');
     get('end-turn-btn').click();
     cy.wait('@endTurn');
     get('end-turn-btn').should('be.disabled');
@@ -155,6 +191,6 @@ describe('Co-op room (mocked HTTP)', () => {
       confirmedFriendlyFire: true,
       revision: 2,
     });
-    get('coop-ally').should('contain.text', '25/30');
+    fighterCard('coop-ally').find(byTestId('ninja-card-hp')).should('have.text', '25/30');
   });
 });

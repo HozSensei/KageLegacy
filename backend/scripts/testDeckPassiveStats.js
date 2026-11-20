@@ -4,7 +4,12 @@ import pool from '../src/config/database.js';
 import { applyUpgradeBonuses } from '../src/services/cardService.js';
 import { startCombat } from '../src/services/combatEngineService.js';
 import { BASE_MAX_HP } from '../src/services/deckCombat/constants.js';
-import { getActiveDeck } from '../src/services/deckService.js';
+import {
+  addCardToDeck,
+  getActiveDeck,
+  replaceDeckCards,
+  setActiveDeck,
+} from '../src/services/deckService.js';
 import {
   createEmptyStats,
   getComputedStats,
@@ -38,7 +43,7 @@ const rows = [
   ...Array.from({ length: 6 }, (_, index) => ({
     slug: `carte-neutre-${index}`,
     type: 'skill',
-    stat_type: 'taijutsu',
+    stat_type: index === 0 ? 'taijutsu' : 'common',
     quantity: 3,
     upgrade_level: 0,
   })),
@@ -158,6 +163,62 @@ test('le PvE utilise les passifs du deck choisi même s’il est inactif', async
   assert.equal(combat.player.maxHp, BASE_MAX_HP + 2);
   assert.equal(combat.stats.taijutsu, 0);
   assert.deepEqual(snapshot(), combat.stats);
+});
+
+test('une carte de troisième voie reste ajoutable mais interdit l’activation et le combat', async t => {
+  const owned = {
+    id: 99,
+    card_definition_id: 99,
+    quantity: 1,
+    stat_type: 'genjutsu',
+    rarity: 'common',
+  };
+  const withThirdArt = [...rows, owned];
+  const collection = new Map(withThirdArt.map(row => [row.id, row]));
+  let saved = rows;
+  t.mock.method(pool, 'execute', async (sql, params) => {
+    if (sql.includes('information_schema.tables')) return [[{ ok: 1 }]];
+    if (sql.includes('FROM user_decks')) return [[deck]];
+    if (sql.includes('FROM user_card_collection ucc')) return [[collection.get(params[0])]];
+    if (sql.includes('FROM user_deck_cards udc')) return [saved];
+    if (sql.includes('FROM user_deck_cards WHERE')) return [[]];
+    if (sql.includes('INSERT INTO user_deck_cards')) {
+      saved = [...saved, owned];
+      return [{ affectedRows: 1 }];
+    }
+    if (sql.includes('FROM combat_sessions')) return [[]];
+    assert.fail(`Requête inattendue : ${sql}`);
+  });
+  const connect = t.mock.method(pool, 'getConnection', async () => ({
+    async beginTransaction() {},
+    async commit() {},
+    release() {},
+    async execute(sql, params) {
+      if (sql.includes('DELETE FROM user_deck_cards')) saved = [];
+      else if (sql.includes('INSERT INTO user_deck_cards')) {
+        saved.push({ ...collection.get(params[1]), quantity: params[3] });
+      } else assert.fail(`Requête inattendue : ${sql}`);
+    },
+  }));
+
+  assert.equal((await getActiveDeck(userId)).validation.valid, true);
+  const added = await addCardToDeck(userId, deck.id, owned.id);
+  assert.equal(added.size, 22);
+  assert.deepEqual(added.validation.codes, ['invalid_art_count']);
+  assert.equal(added.validation.artCounts.genjutsu, 1);
+  assert.equal(added.validation.minArtCards, 2);
+  const replaced = await replaceDeckCards(
+    userId,
+    deck.id,
+    withThirdArt.map(row => ({ collectionId: row.id, quantity: row.quantity }))
+  );
+  assert.equal(replaced.size, 22);
+  assert.deepEqual(replaced.validation.codes, ['invalid_art_count']);
+  const refused = { statusCode: 400, message: /2 voies distinctes.*2 distinct arts/ };
+  await assert.rejects(setActiveDeck(userId, deck.id), refused);
+  assert.equal(connect.mock.callCount(), 1, 'aucune transaction d’activation');
+  await assert.rejects(startCombat(userId), refused);
+  await assert.rejects(startCombat(userId, { deckId: deck.id }), refused);
 });
 
 test('le personnage garde des passifs vides si la table de collection est absente', async t => {

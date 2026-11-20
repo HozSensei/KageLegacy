@@ -39,6 +39,8 @@ import {
   maybeAdvanceBossPhase,
 } from './combatAIService.js';
 import { createEmptyStats, getComputedStats } from './playerCharacterService.js';
+import { loadCombatCharacter } from './combatCharacterService.js';
+import { publicFighterIdentity } from './deckCombat/fighterIdentity.js';
 import { grantVictoryRewards } from './combatRewardService.js';
 
 function httpError(statusCode, message) {
@@ -187,6 +189,7 @@ function publicState(session, extraLogs = []) {
 function sanitizePlayer(player) {
   return {
     name: player.name,
+    ...publicFighterIdentity(player),
     hp: player.hp,
     maxHp: player.maxHp,
     block: player.block || 0,
@@ -265,6 +268,8 @@ function sanitizeEnemy(enemy, turnPrototype) {
     maxHp: enemy.maxHp,
     block: enemy.block || 0,
     barrier: enemy.barrier || 0,
+    chakra: enemy.chakra,
+    maxChakra: enemy.maxChakra,
     statuses: enemy.statuses || [],
     posture: enemy.posture,
     elementAffinity: enemy.elementAffinity,
@@ -391,16 +396,12 @@ async function loadTalentEffectCodes(userId) {
   }
 }
 
-async function loadPlayerName(userId) {
-  try {
-    const rows = await query(
-      'SELECT character_name FROM player_profiles WHERE user_id = ? AND character_name IS NOT NULL LIMIT 1',
-      [userId]
-    );
-    return rows[0]?.character_name || 'Shinobi';
-  } catch {
-    return 'Shinobi';
-  }
+async function loadPlayerIdentity(userId) {
+  const character = await loadCombatCharacter(userId).catch(() => null);
+  return {
+    name: character?.name || 'Shinobi',
+    ...(character && publicFighterIdentity(character)),
+  };
 }
 
 /**
@@ -464,9 +465,9 @@ export async function startCombat(userId, opts = {}) {
   }
   if (!templateId) templateId = 'ronin_bandit';
 
-  const [effectCodes, playerName, deckInfo] = await Promise.all([
+  const [effectCodes, playerIdentity, deckInfo] = await Promise.all([
     loadTalentEffectCodes(userId),
-    loadPlayerName(userId),
+    loadPlayerIdentity(userId),
     resolveDeckCards(userId, opts.deckId),
   ]);
   const { total: stats } = await getComputedStats(userId, { deckPassives: deckInfo.deckPassives });
@@ -494,7 +495,7 @@ export async function startCombat(userId, opts = {}) {
 
   const { createCombatAchTrack } = await import('./achievementService.js');
   let player = {
-    name: playerName,
+    ...playerIdentity,
     hp: startHp,
     maxHp,
     block: Math.max(0, Number(stats.startingBlock) || 0),

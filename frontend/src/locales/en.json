@@ -722,6 +722,13 @@
   },
   "resources": {
     "balancesLabel": "Your resources",
+    "wallet": "Wallet",
+    "names": {
+      "ryos": "Ryos",
+      "kageCoins": "Kage Coins",
+      "dust": "Card dust",
+      "essence": "Card essence"
+    },
     "ryos": "Ryos: {n}",
     "kageCoins": "Kage Coins: {n}",
     "dust": "Card dust: {n}",
@@ -789,6 +796,24 @@
     "heal": "{n} heal",
     "selectOrCreateDeck": "Create or select a deck to get started.",
     "deckSize": "{size} cards ({min}–{max})",
+    "deckRules": {
+      "title": "Deck-building rules",
+      "size": "{min} to {max} cards total, including copies.",
+      "copies": "Up to {maxCopies} copies of the same card, limited by your collection.",
+      "clan": "Up to {maxClan} clan card. | Up to {maxClan} clan cards.",
+      "rarity": "Up to {maxLegendaryOrMythic} legendary or mythic cards total, including clan cards of those rarities.",
+      "arts": "Exactly {requiredArts} distinct arts, each with at least {minArtShare}% of the non-neutral cards (rounded up). Only each card’s primary art counts."
+    },
+    "deckArts": {
+      "title": "Art breakdown",
+      "summary": "Neutral cards: {neutral} · Non-neutral cards: {nonNeutral} · Minimum per art: {min}"
+    },
+    "deckValidity": {
+      "valid": "Valid deck",
+      "invalid": "Invalid deck",
+      "unknown": "Validity not verified",
+      "fix": "This deck cannot be used in combat. Fix the following issues:"
+    },
     "deckRarityLimits": "Clan {clanCount}/{maxClan} · Legendary/mythic {legendaryCount}/{maxLegendary}",
     "activeDeck": "Active",
     "activateDeck": "Activate this deck",
@@ -800,7 +825,7 @@
     "deckRecap": "Summary",
     "hideDeckRecap": "Hide summary",
     "deckRecapTitle": "Cards in deck",
-    "cardsInDeck": "{count} copies in deck",
+    "cardsInDeck": "No copies in deck | {count} copy in deck | {count} copies in deck",
     "addOneToDeck": "Add one copy of {name}",
     "removeOneFromDeck": "Remove one copy of {name}",
     "confirmDeleteDeck": "Are you sure you want to delete the deck “{name}”?",
@@ -1317,6 +1342,9 @@
     "chakraLabel": "Chakra",
     "intentLabel": "Current intent",
     "nextIntentLabel": "Following intent",
+    "chainLabel": "Chain",
+    "activeStatusLabel": "Active status",
+    "noStatus": "No effect",
     "handTitle": "Hand",
     "comboReady": "Combo ready",
     "handHint": "Select a card then \"Play\", or double-click it.",
@@ -1331,6 +1359,124 @@
     "insufficientChakra": "Not enough Chakra to play this card",
     "rankLabel": "Rank",
     "missionsListTitle": "Available runs"
+  },
+  "community": {
+    "villageRewards": {
+      "notification": "Village rewards",
+      "unreadNotification": "Village rewards — {count} unread reward | Village rewards — {count} unread rewards",
+      "title": "Your Village rewards",
+      "intro": "Confirmed rewards are already in your wallet.",
+      "empty": "You have no confirmed Village rewards yet.",
+      "loadFailed": "Could not load your Village rewards. Refresh to try again.",
+      "readFailed": "Could not mark your rewards as read. Refresh to try again.",
+      "period": "{start} – {end} (UTC)",
+      "amount": "+{n} ryos",
+      "settledAt": "Credited on {date} (UTC)"
+    },
+    "refresh": "Refresh",
+    "searchTitle": "Find players",
+    "searchLabel": "Player or character name",
+    "search": "Search",
+    "noResults": "No players found.",
+    "sendRequest": "Send request",
+    "sendRequestTo": "Send a friend request to {name}",
+    "accept": "Accept",
+    "acceptFrom": "Accept the request from {name}",
+    "groups": {
+      "friends": {
+        "title": "Friends",
+        "empty": "You don’t have any friends yet.",
+        "status": "Already friends",
+        "remove": "Remove",
+        "removeByName": "Remove {name} from your friends"
+      },
+      "incoming": {
+        "title": "Received requests",
+        "empty": "No pending received requests.",
+        "status": "Request received",
+        "remove": "Decline",
+        "removeByName": "Decline the request from {name}"
+      },
+      "outgoing": {
+        "title": "Sent requests",
+        "empty": "No pending sent requests.",
+        "status": "Request sent",
+        "remove": "Cancel",
+        "removeByName": "Cancel the request sent to {name}"
+      }
+    },
+    "loadFailed": "Could not load friends and requests. Select Refresh to try again.",
+    "searchFailed": "Search failed. Please try again.",
+    "updateFailed": "Could not confirm the change. Refresh the list before trying again.",
+    "updated": "Friends and requests updated."
+  },
+  "deckDuels": {
+    "title": "Deck duels",
+    "manageFriends": "Manage friends in the Village",
+    "viewVillageStandings": "See weekly standings in the Village",
+    "lead": "Challenge other players’ decks, controlled by AI. The other player does not play live.",
+    "refresh": "Refresh",
+    "modes": {
+      "friend": "Challenge a friend",
+      "random": "Random opponent",
+      "enemy_faction": "Enemy faction opponent"
+    },
+    "friendGroups": {
+      "friends": "Friends",
+      "incoming": "Received requests",
+      "outgoing": "Sent requests"
+    },
+    "emptyFriendGroups": {
+      "friends": "You don’t have any friends to challenge yet.",
+      "incoming": "No pending received requests.",
+      "outgoing": "No pending sent requests."
+    },
+    "friendStatuses": {
+      "friends": "Already friends",
+      "incoming": "Request received",
+      "outgoing": "Request sent"
+    },
+    "removeFriends": {
+      "friends": "Remove",
+      "incoming": "Decline",
+      "outgoing": "Cancel"
+    },
+    "removeFriendNames": {
+      "friends": "Remove {name} from your friends",
+      "incoming": "Decline the request from {name}",
+      "outgoing": "Cancel the request sent to {name}"
+    },
+    "searchLabel": "Find a player to add",
+    "search": "Search",
+    "emptyOpponents": "No players found.",
+    "requestFriend": "Send request",
+    "requestFriendName": "Send a friend request to {name}",
+    "acceptFriend": "Accept",
+    "acceptFriendName": "Accept the request from {name}",
+
+    "challenge": "Challenge",
+    "challengeName": "Challenge {name}",
+    "aiOpponent": "AI-controlled opponent",
+    "historyTitle": "Defense history",
+    "emptyHistory": "No completed defenses yet.",
+    "noReward": "No reward",
+    "defenseLost": "Defense lost",
+    "defenseWon": "Successful defense",
+    "challengerForfeited": "Opponent forfeited",
+    "unknownOutcome": "Duel finished",
+    "backToLobby": "Back to deck duels",
+    "loadFailed": "Could not load deck duels. Select Refresh to try again.",
+    "searchFailed": "Could not search for players. Please try again.",
+    "friendsLoadFailed": "Could not load friends and requests. Select Refresh to try again.",
+    "friendsUpdateFailed": "Could not confirm the change. Refresh the friends list before trying again.",
+
+    "startFailed": "Could not start the duel. Refresh before trying again.",
+    "startConflict": "The duel could not be started. Your duels have been refreshed.",
+    "opponentUnavailable": "No opponent is available for this duel. Check your active deck or try another option.",
+    "actionFailed": "Could not confirm the action. Refresh the duel before continuing.",
+    "actionConflict": "The duel had changed. The current state has been loaded; the action was not replayed.",
+    "invalidAction": "This action is not allowed in the current duel state.",
+    "duelUnavailable": "This duel is no longer available."
   },
   "coop": {
     "title": "Co-op combat",
@@ -1510,7 +1656,52 @@
     "createKicker": "New ninja",
     "actionsLabel": "Profile shortcuts",
     "previewLabel": "Preview",
-    "previewNamePlaceholder": "Your ninja"
+    "previewNamePlaceholder": "Your ninja",
+    "ranks": {
+      "aspirant": "Aspirant ninja",
+      "genin": "Genin",
+      "chunin": "Chunin",
+      "jonin": "Jonin",
+      "anbu": "ANBU",
+      "kage": "Kage"
+    },
+    "nicknames": {
+      "genin": "Rising Shinobi",
+      "chunin": "Field Veteran",
+      "jonin": "Shinobi Elite",
+      "anbu": "Silent Blade",
+      "kage": "Village Legend"
+    },
+    "avatarPicker": {
+      "label": "Portrait",
+      "hint": "Choose a portrait for your ninja. You can change it in your profile.",
+      "rankLabel": "Portrait ranks",
+      "setLabel": "Portrait sets",
+      "set": "Set {number}",
+      "locked": "Locked",
+      "unlockAt": "Unlocks at {rank} rank.",
+      "portrait": "{rank} portrait {number}",
+      "selected": "Selected: {portrait}",
+      "noSelection": "No portrait selected. Your initial is shown instead."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "lead": "Customize your ninja card. Its stats show your starting values for solo missions and can’t be edited here.",
+      "borderColor": "Border color",
+      "backgroundColor": "Background color",
+      "default": "Default",
+      "resetColor": "Restore default: {label}",
+      "nickname": "Nickname",
+      "noNickname": "No nickname",
+      "noUnlockedNicknames": "You haven’t earned any nicknames yet.",
+      "save": "Save appearance",
+      "saving": "Saving…",
+      "discard": "Discard changes",
+      "discarded": "Changes discarded.",
+      "unsaved": "Unsaved changes.",
+      "saved": "Appearance saved.",
+      "saveError": "Couldn’t save your appearance. Please try again."
+    }
   },
   "league": {
     "bot": "bot",
@@ -2203,6 +2394,24 @@
     "cause": "Cause {n}"
   },
   "village": {
+    "title": "Village",
+    "pageLead": "Find players, manage friends and requests, and see the weekly faction standings.",
+    "weeklyStandings": {
+      "title": "Weekly faction standings",
+      "loadFailed": "Could not load the faction standings. Select Refresh to try again.",
+      "currentWeek": "Current week",
+      "previousWeek": "Previous week",
+      "period": "{start} to {end} (UTC)",
+      "points": "{n} point | {n} points",
+      "winner": "Winning faction: {name}",
+      "noWinner": "No winning faction.",
+      "empty": "No factions in the standings.",
+      "reward": "Weekly reward: {n} ryos",
+      "upcomingReward": "Weekly reward of {n} ryos starting {date} (UTC)",
+      "rewardStart": "Weekly rewards start on {date} (UTC)",
+      "settled": "Results finalized.",
+      "pending": "Results are not yet finalized."
+    },
     "lead": "Four lands (Midorihara, Kareno, Oborohama, Ishikura) compete for server prestige. Your solo career feeds the faction score — with no combat bonus.",
     "yours": "Your land",
     "rivalryTitle": "Cycle rivalry",

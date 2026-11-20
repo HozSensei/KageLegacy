@@ -1,11 +1,13 @@
 /**
  * Smoke tests unitaires (sans DB) pour le système de cartes.
  */
+import { deepEqual } from 'node:assert/strict';
 import { applyUpgradeBonuses, serializeCardDefinition } from '../src/services/cardService.js';
 import {
   validateDeck,
   isClanCard,
   createEmptyPassiveStats,
+  DECK_CONSTRAINTS,
   DECK_MIN_SIZE,
   DECK_MAX_SIZE,
   MAX_CLAN_CARDS,
@@ -108,10 +110,70 @@ assert(!tooSmall.valid && tooSmall.size === 5, 'reject small deck');
 const okCards = Array.from({ length: DECK_MIN_SIZE }, (_, i) => ({
   quantity: 1,
   collectionId: i,
-  card: { nameFr: `C${i}` },
+  card: { nameFr: `C${i}`, statType: i % 2 === 0 ? 'taijutsu' : 'ninjutsu' },
 }));
 const ok = validateDeck(okCards);
 assert(ok.valid && ok.size === DECK_MIN_SIZE, 'accept min deck');
+assert(
+  DECK_CONSTRAINTS.requiredArts === 2 && DECK_CONSTRAINTS.minArtShare === 25,
+  'public art constraints',
+);
+
+function validateComposition({ taijutsu = 0, ninjutsu = 0, genjutsu = 0, medicine = 0, common }) {
+  const arts = { taijutsu, ninjutsu, genjutsu, medicine };
+  arts.common = common ?? DECK_MIN_SIZE - Object.values(arts).reduce((sum, qty) => sum + qty, 0);
+  return validateDeck(
+    Object.entries(arts).flatMap(([statType, count]) =>
+      Array.from({ length: Math.ceil(count / 3) }, (_, i) => ({
+        quantity: Math.min(3, count - i * 3),
+        ...(statType === 'ninjutsu'
+          ? { stat_type: statType, rarity: 'common' }
+          : {
+              card: { statType, rarity: 'common', statTypeSecondary: 'medicine' },
+            }),
+      })),
+    ),
+  );
+}
+
+const exactQuota = validateComposition({ taijutsu: 15, ninjutsu: 5, common: 10 });
+assert(exactQuota.valid && exactQuota.size === 30, '15/5 plus 10 neutrals is valid');
+deepEqual(exactQuota.artCounts, { taijutsu: 15, ninjutsu: 5, genjutsu: 0, medicine: 0 });
+assert(
+  exactQuota.nonNeutralCount === 20 && exactQuota.minArtCards === 5,
+  'count quantities, not rarity or secondary stat',
+);
+
+const thirdArt = validateComposition({ taijutsu: 14, ninjutsu: 5, genjutsu: 1 });
+assert(!thirdArt.valid && thirdArt.size === 20, '14/5/1 is invalid, even with only one Genjutsu');
+deepEqual(thirdArt.codes, ['invalid_art_count']);
+deepEqual(thirdArt.errors, [
+  'Le deck doit contenir exactement 2 voies distinctes parmi les cartes non neutres (3 : Taijutsu 14, Ninjutsu 5, Genjutsu 1).',
+]);
+deepEqual(thirdArt.errorsEn, [
+  'The deck must contain exactly 2 distinct arts among non-neutral cards (3: Taijutsu 14, Ninjutsu 5, Genjutsu 1).',
+]);
+
+const underQuota = validateComposition({ taijutsu: 7, ninjutsu: 2 });
+assert(!underQuota.valid && underQuota.minArtCards === 3, 'round quota up');
+deepEqual(underQuota.codes, ['insufficient_art_cards']);
+deepEqual(underQuota.errors, [
+  'Ninjutsu : 2/3 cartes requises (25 % des 9 cartes non neutres, arrondi au supérieur).',
+]);
+deepEqual(underQuota.errorsEn, [
+  'Ninjutsu: 2/3 required cards (25% of 9 non-neutral cards, rounded up).',
+]);
+
+for (const composition of [
+  { taijutsu: 10 },
+  { taijutsu: 5, ninjutsu: 4, genjutsu: 3 },
+  { taijutsu: 3, ninjutsu: 3, genjutsu: 3, medicine: 3 },
+  {},
+]) {
+  deepEqual(validateComposition(composition).codes, ['invalid_art_count']);
+}
+const mostlyNeutral = validateComposition({ taijutsu: 1, ninjutsu: 1 });
+assert(mostlyNeutral.valid && mostlyNeutral.nonNeutralCount === 2, 'no neutral cap');
 
 const tooBig = validateDeck(
   Array.from({ length: DECK_MAX_SIZE + 1 }, (_, i) => ({ quantity: 1, collectionId: i })),
@@ -129,7 +191,13 @@ assert(!isClanCard({ slug: 'nin-chidori', rarity: 'legendary' }), 'non-clan lege
 const baseCommons = Array.from({ length: DECK_MIN_SIZE - 2 }, (_, i) => ({
   quantity: 1,
   collectionId: i,
-  card: { slug: `common-${i}`, rarity: 'common', nameFr: `C${i}`, nameEn: `C${i}` },
+  card: {
+    slug: `common-${i}`,
+    rarity: 'common',
+    statType: i % 2 === 0 ? 'taijutsu' : 'ninjutsu',
+    nameFr: `C${i}`,
+    nameEn: `C${i}`,
+  },
 }));
 
 const twoClans = validateDeck([
@@ -157,11 +225,7 @@ assert(
 );
 
 const fourLegendaries = validateDeck([
-  ...Array.from({ length: DECK_MIN_SIZE - 4 }, (_, i) => ({
-    quantity: 1,
-    collectionId: i,
-    card: { slug: `common-${i}`, rarity: 'common' },
-  })),
+  ...baseCommons.slice(2),
   { quantity: 1, collectionId: 910, card: { slug: 'leg-1', rarity: 'legendary' } },
   { quantity: 1, collectionId: 911, card: { slug: 'leg-2', rarity: 'legendary' } },
   { quantity: 1, collectionId: 912, card: { slug: 'leg-3', rarity: 'mythic' } },
@@ -183,11 +247,7 @@ assert(
 );
 
 const oneClanTwoLegs = validateDeck([
-  ...Array.from({ length: DECK_MIN_SIZE - 3 }, (_, i) => ({
-    quantity: 1,
-    collectionId: i,
-    card: { slug: `common-${i}`, rarity: 'common' },
-  })),
+  ...baseCommons.slice(1),
   {
     quantity: 1,
     collectionId: 920,

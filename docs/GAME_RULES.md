@@ -12,7 +12,9 @@ La création de personnage demande :
 
 Le joueur reçoit 22 cartes starter et un deck initial. Le niveau maximal est 80. Chaque niveau demande `100 × niveau` XP et donne un point de talent ; il ne donne aucun bonus automatique de statistique.
 
-Rangs : Genin, Chunin à 20, Jonin à 40, ANBU à 60, Kage à 80.
+Rangs : Aspirant ninja au niveau 1, Genin à 5, Chunin à 20, Jonin à 40, ANBU à 60, Kage à 80.
+
+Le personnage peut personnaliser son [profil](CHARACTER_PROFILE.md). Chaque promotion débloque un surnom et, jusqu'au rang ANBU, de nouveaux portraits. Les portraits des rangs précédents restent sélectionnables.
 
 ## Decks
 
@@ -21,7 +23,10 @@ Un deck actif respecte :
 - 20 à 30 cartes ;
 - au maximum 3 copies d'une définition ;
 - au maximum 1 héritage de clan ;
-- au maximum 3 cartes légendaires ou mythiques, héritages inclus.
+- au maximum 3 cartes légendaires ou mythiques, héritages inclus ;
+- exactement deux voies principales distinctes parmi les cartes non neutres, avec au moins 25 % de ces cartes dans chacune (arrondi au supérieur). Seule la voie principale de chaque carte compte.
+
+Les cartes neutres de voie `common` comptent pour la taille du deck, pas pour le 25/75. Ce n’est pas la rareté Commune. Exemple : 30 cartes dont 10 neutres donnent 20 cartes de voie et un minimum de 5 dans chaque voie. Un deck non conforme reste éditable, mais ne peut pas être activé ni lancé en combat.
 
 Un seul deck est actif à la fois. Les passifs des cartes et améliorations du deck actif sont agrégés aux statistiques du personnage.
 
@@ -85,7 +90,7 @@ Le reset rembourse chaque rang investi. Il est gratuit une fois tous les 10 nive
 ## Succès, factions et classement
 
 - Les succès suivent les actions de combat, mission, collection, talent et PvP. Leurs récompenses se réclament par palier.
-- Les factions sont cosmétiques et n'accordent aucun bonus de combat.
+- Les villages n’accordent aucun bonus de combat. L’espace **Village** regroupe les amis et le classement hebdomadaire. Les membres du village vainqueur à l’ouverture de la semaine gagnent un lot, même s’ils n’ont joué aucun duel.
 - Le classement propose les classements par niveau et victoires PvP, avec vue par faction.
 
 ## Combat coop en ligne
@@ -96,7 +101,11 @@ La zone et le bouton **Allié** permettent de jouer certains soins, protections 
 
 Les salles de cette première version sont stockées en mémoire sur une seule instance du serveur et ne survivent pas à un redémarrage. Une invitation en attente expire après 30 minutes.
 
-## PvP
+## Duel de decks asynchrone
+
+Affrontez le deck actif d’un ami, d’un joueur de niveau proche ou d’un membre d’un village rival, même s’il est hors ligne. Le vainqueur peut gagner des ryos. Les duels automatiques entre villages alimentent le classement hebdomadaire avec lot collectif. La semaine court du lundi 00 h au lundi suivant 00 h, en UTC. Voir [les règles du Duel de decks](ASYNC_DUELS.md).
+
+## PvP temps réel
 
 Le duel PvP est masqué par défaut. Son code et son historique sont conservés ; le frontend peut être réactivé avec `VITE_PVP_ENABLED=true`.
 

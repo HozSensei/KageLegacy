@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -11,10 +11,13 @@ import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
 
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
 import AppNavRail from '../components/layout/AppNavRail.vue';
+import HeaderWallet from '../components/layout/HeaderWallet.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
+import { useVillageRewardsStore } from '../stores/villageRewards.js';
+import { villageRewardsHash } from '../composables/useVillageRewards.js';
 import { PVP_ENABLED } from '../constants/featureFlags';
 import { sectionOf } from '../constants/sections';
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue';
@@ -29,11 +32,19 @@ const isCombatLayout = computed(() => route.meta.combatLayout === true);
 const auth = useAuthStore();
 
 const shop = useShopStore();
+const villageRewards = useVillageRewardsStore();
 const showConvert = ref(false);
+const rewardsRoute = { name: 'village', hash: villageRewardsHash };
+const rewardsLabel = computed(() =>
+  villageRewards.unreadCount > 0
+    ? t('community.villageRewards.unreadNotification', villageRewards.unreadCount)
+    : t('community.villageRewards.notification')
+);
 
 const baseNavItems = [
   { name: 'hub', path: '/home', label: 'nav.home' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
+  { name: 'village', path: '/village', label: 'village.title' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },
   { name: 'decks', path: '/decks', label: 'nav.decks' },
   { name: 'talents', path: '/talents', label: 'nav.talents' },
@@ -44,6 +55,7 @@ const baseNavItems = [
   ...(PVP_ENABLED ? [{ name: 'pvp', path: '/pvp', label: 'nav.pvp' }] : []),
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
   { name: 'coop', path: '/coop', label: 'coop.title' },
+  { name: 'deck-duels', path: '/deck-duels', label: 'deckDuels.title' },
 ];
 
 const adminNavItem = {
@@ -107,15 +119,55 @@ async function logout() {
   router.push('/');
 }
 
+function refreshNotifications() {
+  if (!document.hidden && !isCombatLayout.value && route.name !== 'village') {
+    void villageRewards.refresh();
+  }
+}
+
+function revisitRewards(event) {
+  if (
+    route.name === 'village' &&
+    route.hash === villageRewardsHash &&
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.altKey &&
+    !event.ctrlKey &&
+    !event.shiftKey
+  ) {
+    villageRewards.revisitAnchor();
+  }
+}
+
+let balanceLoad = Promise.resolve();
+function refreshBalances() {
+  const userId = auth.user?.id;
+  balanceLoad = balanceLoad.then(() =>
+    userId != null && auth.user?.id === userId ? shop.fetchBalances() : null
+  );
+  return balanceLoad;
+}
+
+watch([() => auth.user?.id, () => route.path], refreshNotifications, { immediate: true });
+watch(
+  () => villageRewards.rewards?.[0]?.weekStart,
+  week => {
+    if (week) void refreshBalances();
+  }
+);
+
 onMounted(async () => {
+  document.addEventListener('visibilitychange', refreshNotifications);
   if (!auth.checked) await auth.fetchMe();
   if (auth.profile?.language && ['fr', 'en'].includes(auth.profile.language)) {
     locale.value = auth.profile.language;
     writeStoredLocale(auth.profile.language);
   }
 
-  if (auth.user) await shop.fetchBalances();
+  if (auth.user) await refreshBalances();
 });
+
+onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifications));
 </script>
 
 <template>
@@ -149,42 +201,25 @@ onMounted(async () => {
         </p>
 
         <div class="app-bar__tools">
-          <dl
-            v-if="auth.user && !isCombatLayout"
-            class="app-bar__balances"
-            :aria-label="t('resources.balancesLabel')"
-          >
-            <div
-              v-for="resource in [
-                { key: 'ryos', icon: 'ryos', tone: 'wood' },
-                { key: 'kageCoins', icon: 'coins', tone: 'gold' },
-                { key: 'dust', icon: 'dust', tone: 'indigo' },
-                { key: 'essence', icon: 'essence', tone: 'vermilion' },
-              ]"
-              :key="resource.key"
-              class="app-bar__balance"
-              :data-tone="resource.tone"
-              :title="
-                t(`resources.${resource.key}`, {
-                  n: (shop.balances[resource.key] || 0).toLocaleString(),
-                })
-              "
-            >
-              <dt class="sr-only">
-                {{
-                  t(`resources.${resource.key}`, {
-                    n: (shop.balances[resource.key] || 0).toLocaleString(),
-                  })
-                }}
-              </dt>
-              <dd>
-                <AppIcon :name="resource.icon" size="1rem" aria-hidden="true" />{{
-                  (shop.balances[resource.key] || 0).toLocaleString()
-                }}
-              </dd>
-            </div>
-          </dl>
           <template v-if="!isCombatLayout">
+            <HeaderWallet v-if="auth.user" />
+            <router-link
+              v-if="auth.user"
+              :to="rewardsRoute"
+              class="btn-icon app-bar__rewards"
+              :aria-label="rewardsLabel"
+              :title="rewardsLabel"
+              data-testid="village-rewards-notification"
+              @click="revisitRewards"
+            >
+              <AppIcon name="bell" aria-hidden="true" />
+              <span
+                v-if="villageRewards.unreadCount > 0"
+                class="app-bar__unread-dot"
+                data-testid="village-rewards-unread"
+                aria-hidden="true"
+              />
+            </router-link>
             <ThemeToggle />
 
             <ProfileMenu
@@ -322,37 +357,19 @@ onMounted(async () => {
   display: none;
 }
 
-.app-bar__balances {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  margin: 0 0.2rem 0 0;
+.app-bar__rewards {
+  position: relative;
 }
 
-.app-bar__balance dd {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0.3rem 0.4rem;
-  border: 1px solid var(--color-line);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--tone);
-}
-
-.app-bar__balance[data-tone='wood'] {
-  --tone: var(--color-wood);
-}
-.app-bar__balance[data-tone='gold'] {
-  --tone: var(--color-gold-fill);
-}
-.app-bar__balance[data-tone='indigo'] {
-  --tone: var(--color-indigo);
-}
-.app-bar__balance[data-tone='vermilion'] {
-  --tone: var(--color-vermilion);
+.app-bar__unread-dot {
+  position: absolute;
+  inset-block-start: 0.35rem;
+  inset-inline-end: 0.35rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 1px solid var(--color-bg);
+  border-radius: 50%;
+  background: var(--color-vermilion);
 }
 
 .guest-band {
@@ -400,17 +417,6 @@ onMounted(async () => {
   }
 }
 
-@media (max-width: 700px) {
-  .app-bar__balance dd {
-    gap: 0;
-    padding-inline: 0.3rem;
-  }
-
-  .app-bar__balance svg {
-    display: none;
-  }
-}
-
 @media (max-width: 540px) {
   .app-bar__inner:has(.app-bar__combat-tools > *) .app-bar__brand {
     flex-shrink: 1;
@@ -422,18 +428,10 @@ onMounted(async () => {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
-  .app-bar__tools:has(.app-bar__combat-tools > *) .app-bar__balance:nth-child(n + 3) {
-    display: none;
-  }
 }
 
 @media (max-width: 380px) {
   .app-bar__wordmark {
-    display: none;
-  }
-
-  .app-bar__balance:nth-child(n + 3) {
     display: none;
   }
 }

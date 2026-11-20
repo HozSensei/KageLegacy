@@ -1,7 +1,7 @@
 import { ALL_CARDS } from './seedCards.js';
 import { prototypeCard } from './data/cardBalancePrototype.js';
 import { applyUpgradeBonuses } from '../src/services/cardService.js';
-import { validateDeck } from '../src/services/deckService.js';
+import { DECK_CONSTRAINTS, validateDeck } from '../src/services/deckService.js';
 import { BASE_CHAKRA } from '../src/services/deckCombat/constants.js';
 import { applySoloCardBalance } from '../src/services/deckCombat/soloCardBalance.js';
 import { mergeStatBonuses } from '../src/services/playerCharacterService.js';
@@ -251,13 +251,13 @@ function deckSlots({ arts, split }, size) {
   if (arts.length === 1) return [...slots, [arts[0], artSlots]];
 
   // Arrondir le quart vers le haut pour ne jamais passer sous 25 %.
-  const quarter = Math.ceil(artSlots / 4);
+  const quarter = Math.ceil((artSlots * DECK_CONSTRAINTS.minArtShare) / 100);
   const first =
     split[0] === 25 ? quarter : split[0] === 75 ? artSlots - quarter : Math.ceil(artSlots / 2);
   return [...slots, [arts[0], first], [arts[1], artSlots - first]];
 }
 
-function sampleDeck(slots, seen, rng) {
+function sampleDeck(slots, seen, rng, { diagnosticMono = false } = {}) {
   const deck = [];
   let premium = 0;
   let clan = 0;
@@ -280,7 +280,13 @@ function sampleDeck(slots, seen, rng) {
     if (added !== count) throw new Error(`Pool insuffisant : ${art} (${added}/${count})`);
   }
   const validation = validateDeck(deck);
-  if (!validation.valid) throw new Error(validation.errors.join('; '));
+  // Les monos isolent une voie dans le simulateur, sans relâcher les autres règles.
+  const monoCompositionOnly =
+    diagnosticMono &&
+    Object.values(validation.artCounts).filter(count => count > 0).length === 1 &&
+    validation.codes.length === 1 &&
+    validation.codes[0] === 'invalid_art_count';
+  if (!validation.valid && !monoCompositionOnly) throw new Error(validation.errors.join('; '));
   for (const { card } of deck) seen.add(card.slug);
   return deck;
 }
@@ -401,7 +407,9 @@ function simulateDecks() {
       const { arts, split, kind } = spec;
       const composition = arts.join('+') + (kind === 'duo' ? `:${split.join('-')}` : '');
       const slots = deckSlots(spec, size);
-      const decks = Array.from({ length: 5 }, () => sampleDeck(slots, seen, rng));
+      const decks = Array.from({ length: 5 }, () =>
+        sampleDeck(slots, seen, rng, { diagnosticMono: kind === 'mono' })
+      );
       deckCount += decks.length;
       for (const level of [0, 2]) {
         for (const scenario of SCENARIOS) {

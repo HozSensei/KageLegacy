@@ -19,14 +19,19 @@ const { t, locale } = useI18n();
 const route = useRoute();
 const collection = useCollectionStore();
 const shop = useShopStore();
-/** Slot sélectionné : owned (entry) ou hole (card only). */
-const selectedSlot = ref(null);
-const message = ref(null);
+const selection = ref(null);
+const feedback = ref(null);
+const actionPending = ref(false);
 
 onMounted(() => {
   collection.fetchCollectionView();
 });
 
+const selectedSlot = computed(() => {
+  if (!selection.value) return null;
+  const slot = collection.catalogueSlots.find(s => Number(s.card.id) === selection.value.cardId);
+  return !slot || (collection.ownedOnly && slot.kind === 'hole') ? null : slot;
+});
 const selected = computed(() => selectedSlot.value?.entry || null);
 const selectedCard = computed(() => selectedSlot.value?.card || null);
 const selectedKey = computed(() => selectedSlot.value?.key || null);
@@ -49,6 +54,12 @@ const collectionSearch = computed(() => {
 const selectedVisual = computed(() => cardTypeVisual(selectedCard.value?.type));
 
 const busy = computed(() => collection.loading || collection.catalogueLoading);
+const actionsBusy = computed(() => busy.value || actionPending.value || collection.actionLoading);
+const feedbackText = computed(() => {
+  if (!feedback.value) return '';
+  const { key, error } = feedback.value;
+  return key ? t(key) : cardActionError(error, locale.value, t);
+});
 const upgradeCost = computed(() => selected.value?.actionPreview?.upgradeCost || null);
 const canUpgrade = computed(() => Boolean(upgradeCost.value));
 const upgradeUnavailableReason = computed(() => {
@@ -67,66 +78,40 @@ const showEmptyState = computed(() => {
 });
 
 function onSelect(slot) {
-  selectedSlot.value = slot;
-  message.value = null;
+  selection.value = { cardId: Number(slot.card.id) };
+  feedback.value = null;
 }
 
 function onOwnedOnlyUpdate(value) {
+  if (value && isHole.value) {
+    selection.value = null;
+    feedback.value = null;
+  }
   collection.setOwnedOnly(value);
-  if (value && selectedSlot.value?.kind === 'hole') {
-    selectedSlot.value = null;
-  }
 }
 
-function slotFromCatalogue(cardId, preferredCollectionId = null) {
-  const slots = collection.catalogueSlots;
-  if (preferredCollectionId != null) {
-    const owned = slots.find(
-      s => s.kind === 'owned' && Number(s.entry?.collectionId) === Number(preferredCollectionId)
-    );
-    if (owned) return owned;
-  }
-  const slot = slots.find(s => Number(s.card?.id) === Number(cardId)) || null;
-  return collection.ownedOnly && slot?.kind === 'hole' ? null : slot;
-}
-
-async function onUpgrade() {
-  if (!selected.value) return;
+async function onAction(action) {
+  if (!selected.value || actionsBusy.value || (action === 'upgrade' && !canUpgrade.value)) return;
+  // L'identité de la sélection distingue aussi A → B → A pendant la requête.
+  const source = selection.value;
+  const { collectionId } = selected.value;
+  feedback.value = null;
+  actionPending.value = true;
   try {
-    const collectionId = selected.value.collectionId;
-    const cardId = selectedCard.value?.id;
-    const result = await collection.upgrade(collectionId);
+    const result = await collection[action](collectionId);
     const balances = result.resources || (await shop.fetchBalances());
     if (result.resources) shop.balances = result.resources;
-    if (collection.error || !balances) {
-      selectedSlot.value = null;
-      message.value = { type: 'error', key: 'cards.refreshFailed' };
-    } else {
-      message.value = { type: 'success', key: 'cards.upgradeSuccess' };
-      selectedSlot.value = slotFromCatalogue(cardId, collectionId);
-    }
+    if (selection.value !== source) return;
+    if (!selectedSlot.value) selection.value = null;
+    feedback.value =
+      result.refreshFailed || !balances
+        ? { action, type: 'error', key: 'cards.refreshFailed' }
+        : { action, type: 'success', key: `cards.${action}Success` };
   } catch (error) {
-    message.value = { type: 'error', error: error.message };
-  }
-}
-
-async function onDisenchant() {
-  if (!selected.value) return;
-  try {
-    const id = selected.value.collectionId;
-    const cardId = selectedCard.value?.id;
-    const result = await collection.disenchant(id, 1);
-    const balances = result.resources || (await shop.fetchBalances());
-    if (result.resources) shop.balances = result.resources;
-    if (collection.error || !balances) {
-      selectedSlot.value = null;
-      message.value = { type: 'error', key: 'cards.refreshFailed' };
-    } else {
-      message.value = { type: 'success', key: 'cards.disenchantSuccess' };
-      selectedSlot.value = slotFromCatalogue(cardId, id);
-    }
-  } catch (error) {
-    message.value = { type: 'error', error: error.message };
+    if (selection.value === source)
+      feedback.value = { action, type: 'error', error: error.message };
+  } finally {
+    actionPending.value = false;
   }
 }
 </script>
@@ -154,15 +139,17 @@ async function onDisenchant() {
       </template>
     </PageHeader>
 
-    <div v-if="collection.error && !message" class="alert alert--error mt-6" role="alert">
+    <div
+      v-if="collection.error"
+      class="alert alert--error mt-6"
+      role="alert"
+      data-testid="collection-load-error"
+    >
       <p>{{ cardActionError(collection.error, locale, t) }}</p>
       <button type="button" class="btn-ghost" @click="collection.fetchCollectionView()">
         {{ t('hub.retry') }}
       </button>
     </div>
-    <p v-if="message" class="alert mt-6" :class="`alert--${message.type}`" role="status">
-      {{ message.key ? t(message.key) : cardActionError(message.error, locale, t) }}
-    </p>
 
     <EmptyState
       v-if="showEmptyState"
@@ -192,6 +179,7 @@ async function onDisenchant() {
 
       <aside
         class="collection-detail"
+        data-testid="collection-detail"
         :data-tone="selectedCard && !isHole ? selectedVisual.tone : 'neutral'"
       >
         <p class="collection-detail__kicker">
@@ -273,8 +261,9 @@ async function onDisenchant() {
                 <button
                   type="button"
                   class="btn-primary btn-block"
-                  :disabled="collection.actionLoading || !canUpgrade"
-                  @click="onUpgrade"
+                  data-testid="collection-upgrade"
+                  :disabled="actionsBusy || !canUpgrade"
+                  @click="onAction('upgrade')"
                 >
                   <span>{{ t('cards.upgrade') }}</span>
                   <span v-if="upgradeCost" class="collection-detail__action-cost">
@@ -313,14 +302,24 @@ async function onDisenchant() {
                   </span>
                   <span v-else class="sr-only">{{ t('cards.upgradeUnavailable') }}</span>
                 </button>
+                <p
+                  v-if="feedback?.action === 'upgrade'"
+                  class="alert"
+                  :class="`alert--${feedback.type}`"
+                  role="status"
+                  data-testid="collection-upgrade-feedback"
+                >
+                  {{ feedbackText }}
+                </p>
                 <p v-if="upgradeUnavailableReason" class="collection-detail__action-hint">
                   {{ upgradeUnavailableReason }}
                 </p>
                 <button
                   type="button"
                   class="btn-ghost btn-block"
-                  :disabled="collection.actionLoading"
-                  @click="onDisenchant"
+                  data-testid="collection-disenchant"
+                  :disabled="actionsBusy"
+                  @click="onAction('disenchant')"
                 >
                   <span>{{ t('cards.disenchant') }}</span>
                   <span class="collection-detail__action-cost" data-gain="true">
@@ -362,11 +361,29 @@ async function onDisenchant() {
                     >
                   </span>
                 </button>
+                <p
+                  v-if="feedback?.action === 'disenchant'"
+                  class="alert"
+                  :class="`alert--${feedback.type}`"
+                  role="status"
+                  data-testid="collection-disenchant-feedback"
+                >
+                  {{ feedbackText }}
+                </p>
               </div>
             </template>
           </div>
           <p v-else class="mt-4 text-ink-muted">{{ t('cards.selectCardHint') }}</p>
         </Transition>
+        <p
+          v-if="!selected && feedback"
+          class="alert mt-4"
+          :class="`alert--${feedback.type}`"
+          role="status"
+          :data-testid="`collection-${feedback.action}-feedback`"
+        >
+          {{ feedbackText }}
+        </p>
       </aside>
     </div>
   </div>

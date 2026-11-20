@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { mock } from 'node:test';
+import pool from '../src/config/database.js';
+import { loadCombatCharacter } from '../src/services/combatCharacterService.js';
 import { __test } from '../src/services/combatEngineService.js';
 import { drawCards } from '../src/services/deckCombat/deckRuntime.js';
 import { executeEnemyIntent, generateEnemyFromTemplate } from '../src/services/combatAIService.js';
@@ -42,6 +45,7 @@ const publicPlayer = publicState({ player: hydrated.player, enemy: {} }).player;
 assert.deepEqual(publicPlayer.reservedCard, card);
 assert.equal('reserveCard' in publicPlayer, false);
 assert.equal(publicState({ player: {}, enemy: {} }).player.reservedCard, null);
+assert.equal(publicPlayer.profile, undefined);
 assert.equal(chakraCarryover({}), 0);
 assert.equal(chakraCarryover({ chakra: -1 }), 0);
 assert.equal(chakraCarryover({ chakra: 0 }), 0);
@@ -121,7 +125,43 @@ assert.equal(refreshed.hand[0].instanceId, 'p0');
 assert.equal(publicState({ player: refreshed, enemy }).player.discardsRemaining, 2);
 assert.equal(publicState({ player: refreshed, enemy }).player.chakraDiscardAvailable, true);
 // A regular solo session persists its forecast and retains progression.
-const solo = { ...persistent, ruleset: 'persistent', turnPrototype: undefined, chakra: 5 };
+const readProfile = mock.method(pool, 'execute', async (_sql, params) => {
+  assert.deepEqual(params, [12]);
+  return [
+    [
+      {
+        character_name: 'Sora',
+        character_rank: 'Aspirant ninja',
+        character_level: 1,
+        character_highest_level: 20,
+        character_avatar_id: 'chunin-1-3',
+        character_border_color: '#aabbcc',
+        character_background_color: 'url(example)',
+        character_nickname_id: 'chunin',
+        character_faction_id: 'kareno',
+        character_xp: 100,
+      },
+    ],
+  ];
+});
+const character = await loadCombatCharacter(12);
+readProfile.mock.restore();
+const expectedProfile = {
+  avatarId: 'aspirant-1-1',
+  borderColor: '#AABBCC',
+  backgroundColor: null,
+  nicknameId: 'chunin',
+};
+assert.deepEqual(character.profile, expectedProfile);
+assert.equal(character.character_highest_level, undefined);
+const solo = {
+  ...persistent,
+  ...character,
+  profile: { ...character.profile, unlockedNicknameIds: ['chunin'] },
+  ruleset: 'persistent',
+  turnPrototype: undefined,
+  chakra: 5,
+};
 const weighted = generateEnemyFromTemplate('ronin_bandit', 1);
 const planned = __test.queueSoloIntent(
   { ...weighted, intent: { type: 'defend', block: 5 } },
@@ -136,6 +176,16 @@ assert.equal(soloSnapshot.ruleset, 'persistent');
 assert.equal(soloSnapshot.suppressRewards, false);
 assert.equal(soloSnapshot.player.discardsRemaining, 2);
 assert.deepEqual(soloSnapshot.enemy.nextIntent, { type: 'defend' });
+assert.equal(soloSnapshot.player.rank, 'Aspirant ninja');
+assert.equal(soloSnapshot.player.level, 1);
+assert.deepEqual(soloSnapshot.player.profile, expectedProfile);
+assert.equal(soloSnapshot.player.hp, 100);
+assert.equal(soloSnapshot.player.chakra, 5);
+assert.equal(soloSnapshot.player.factionId, undefined);
+assert.equal(soloSnapshot.enemy.chakra, undefined);
+assert.equal(soloSnapshot.enemy.maxChakra, undefined);
+const missionSnapshot = publicState({ ...soloSession, missionId: 3, missionRunId: 'run' });
+assert.deepEqual(missionSnapshot.player.profile, expectedProfile);
 assert.equal(attempt(solo, 'one').chakra, 6);
 assert.equal(chakraCarryover(solo), 0);
 const execute = current =>

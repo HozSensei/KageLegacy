@@ -21,6 +21,7 @@ const props = defineProps({
     }),
   },
   busy: { type: Boolean, default: false },
+  feedback: { type: Object, default: null },
 });
 
 const emit = defineEmits(['add', 'remove', 'activate']);
@@ -52,6 +53,21 @@ const filteredCollection = computed(() => {
 
 const size = computed(() => props.deck?.size ?? 0);
 const validation = computed(() => props.deck?.validation);
+const artSummary = computed(() => {
+  const result = validation.value;
+  if (!result?.artCounts || !Number.isInteger(result.nonNeutralCount)) return null;
+  return {
+    neutral: size.value - result.nonNeutralCount,
+    nonNeutral: result.nonNeutralCount,
+    min: result.minArtCards,
+    arts: Object.entries(result.artCounts).filter(([, count]) => count > 0),
+  };
+});
+const validity = computed(() => {
+  if (validation.value?.valid === true) return 'valid';
+  if (validation.value?.valid === false) return 'invalid';
+  return 'unknown';
+});
 const passiveBonuses = computed(() => props.deck?.passiveBonuses || {});
 
 const maxCopies = computed(() => Number(props.constraints.maxCopies) || 3);
@@ -166,6 +182,16 @@ const sizeValid = computed(
             </span>
           </p>
           <h2 class="deck-builder__name">{{ deck.name }}</h2>
+          <p
+            class="badge badge--solid mt-2"
+            :data-tone="
+              validity === 'valid' ? 'leaf' : validity === 'invalid' ? 'vermilion' : 'neutral'
+            "
+            data-testid="deck-validity"
+            role="status"
+          >
+            {{ t(`cards.deckValidity.${validity}`) }}
+          </p>
         </div>
 
         <div
@@ -193,24 +219,53 @@ const sizeValid = computed(
           </p>
         </div>
 
-        <button
-          v-if="!deck.isActive"
-          type="button"
-          class="btn-primary"
-          :disabled="busy || (validation && !validation.valid)"
-          @click="emit('activate', deck.id)"
-        >
-          {{ t('cards.activateDeck') }}
-        </button>
+        <div v-if="!deck.isActive || feedback?.target === 'activate'">
+          <button
+            v-if="!deck.isActive"
+            type="button"
+            class="btn-primary"
+            :disabled="busy || validity !== 'valid'"
+            @click="emit('activate', deck.id)"
+          >
+            {{ t('cards.activateDeck') }}
+          </button>
+          <p
+            v-if="feedback?.target === 'activate'"
+            class="alert mt-2"
+            :class="`alert--${feedback.type}`"
+            :role="feedback.type === 'error' ? 'alert' : 'status'"
+          >
+            {{ feedback.text }}
+          </p>
+        </div>
       </header>
 
-      <p
-        v-if="validationMessages.length"
+      <section v-if="artSummary" class="mt-4" data-testid="deck-art-summary">
+        <h3 class="t-kicker">{{ t('cards.deckArts.title') }}</h3>
+        <p class="text-ink-muted">{{ t('cards.deckArts.summary', artSummary) }}</p>
+        <ul v-if="artSummary.arts.length" class="chip-row mt-2">
+          <li
+            v-for="[art, count] in artSummary.arts"
+            :key="art"
+            class="badge"
+            :data-tone="count < artSummary.min ? 'vermilion' : 'neutral'"
+          >
+            {{ t(`cards.stats.${art}`) }} : {{ count }}
+          </li>
+        </ul>
+      </section>
+
+      <div
+        v-if="validity === 'invalid'"
         class="alert alert--error mt-4"
         data-testid="deck-validation"
+        aria-live="polite"
       >
-        {{ validationMessages.join(' ') }}
-      </p>
+        <p>{{ t('cards.deckValidity.fix') }}</p>
+        <ul v-if="validationMessages.length" class="deck-builder__issues">
+          <li v-for="reason in validationMessages" :key="reason">{{ reason }}</li>
+        </ul>
+      </div>
 
       <section v-if="passiveList.length" class="deck-builder__passives">
         <h3 class="t-kicker flex items-center gap-2">
@@ -297,7 +352,7 @@ const sizeValid = computed(
               </button>
               <span
                 class="deck-builder__quantity-value"
-                :aria-label="t('cards.cardsInDeck', { count: inDeckQty(entry.collectionId) })"
+                :aria-label="t('cards.cardsInDeck', inDeckQty(entry.collectionId))"
               >
                 {{ inDeckQty(entry.collectionId) }}
               </span>
@@ -311,6 +366,15 @@ const sizeValid = computed(
                 +
               </button>
             </div>
+            <p
+              v-if="feedback?.target === `card-${entry.collectionId}`"
+              class="alert deck-builder__card-feedback"
+              :class="`alert--${feedback.type}`"
+              :role="feedback.type === 'error' ? 'alert' : 'status'"
+              :data-testid="`deck-card-feedback-${entry.collectionId}`"
+            >
+              {{ feedback.text }}
+            </p>
           </div>
         </div>
       </section>
@@ -458,12 +522,21 @@ const sizeValid = computed(
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  opacity: 0.4;
-  transition: opacity var(--dur-base) ease;
 }
 
-.deck-builder__pool-item--in-deck {
-  opacity: 1;
+.deck-builder__pool-item:not(.deck-builder__pool-item--in-deck) > :first-child {
+  opacity: 0.55;
+}
+
+.deck-builder__issues {
+  margin: 0.4rem 0 0;
+  padding-inline-start: 1.25rem;
+  list-style: disc;
+}
+
+.deck-builder__card-feedback {
+  padding: 0.5rem;
+  overflow-wrap: anywhere;
 }
 
 .deck-builder__pool-item > :first-child {

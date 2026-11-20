@@ -9,8 +9,11 @@ export const usePlayerStore = defineStore('player', () => {
   const stats = ref(null);
   const loading = ref(false);
   const error = ref(null);
+  const savingProfile = ref(false);
+  const profileError = ref(null);
   const checked = ref(false);
   const characterState = ref('idle');
+  let profileSaveVersion = 0;
 
   const hasCharacter = computed(() => Boolean(character.value));
   const hasConfirmedCharacterAbsence = computed(() => characterState.value === 'absent');
@@ -66,7 +69,7 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
-  async function createCharacter({ name, factionId, avatarUrl }) {
+  async function createCharacter({ name, factionId, avatarId }) {
     loading.value = true;
     error.value = null;
     try {
@@ -77,13 +80,15 @@ export const usePlayerStore = defineStore('player', () => {
         body: JSON.stringify({
           name,
           factionId: factionId || null,
-          avatarUrl: avatarUrl || null,
+          avatarId,
         }),
       });
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
+      if (!body.character) throw new Error('Invalid player response');
       character.value = body.character;
-      stats.value = body.character?.stats ?? null;
+      stats.value = body.character.stats ?? null;
+      characterState.value = 'ready';
       checked.value = true;
       return character.value;
     } catch (e) {
@@ -94,10 +99,50 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  async function updateCharacterProfile(changes) {
+    if (!character.value || savingProfile.value) return null;
+    const version = ++profileSaveVersion;
+    const characterId = character.value.id;
+    savingProfile.value = true;
+    profileError.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/player/character/profile`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(changes),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      if (!body.character?.profile) throw new Error('Invalid player profile response');
+      if (
+        version !== profileSaveVersion ||
+        !character.value ||
+        character.value.id !== characterId
+      ) {
+        return null;
+      }
+      character.value = { ...character.value, ...body.character };
+      stats.value = character.value.stats ?? null;
+      characterState.value = 'ready';
+      return character.value.profile;
+    } catch (e) {
+      if (version === profileSaveVersion) {
+        profileError.value = e instanceof Error ? e.message : String(e);
+      }
+      return null;
+    } finally {
+      if (version === profileSaveVersion) savingProfile.value = false;
+    }
+  }
+
   function reset() {
+    profileSaveVersion += 1;
+    savingProfile.value = false;
     character.value = null;
     stats.value = null;
     error.value = null;
+    profileError.value = null;
     checked.value = false;
     characterState.value = 'idle';
   }
@@ -107,6 +152,8 @@ export const usePlayerStore = defineStore('player', () => {
     stats,
     loading,
     error,
+    savingProfile,
+    profileError,
     checked,
     characterState,
     hasCharacter,
@@ -116,6 +163,7 @@ export const usePlayerStore = defineStore('player', () => {
     fetchPlayer,
     fetchStats,
     createCharacter,
+    updateCharacterProfile,
     reset,
   };
 });

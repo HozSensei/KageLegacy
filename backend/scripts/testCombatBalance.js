@@ -28,7 +28,11 @@ import {
 } from '../src/services/deckCombat/combatBalanceSim.js';
 import { createEmptyPassiveStats, validateDeck } from '../src/services/deckService.js';
 import { serializeCardDefinition } from '../src/services/cardService.js';
-import { STARTER_CARD_SLUGS } from '../src/config/starterLoadout.js';
+import {
+  getStarterGrantQuantity,
+  selectStarterDeckEntries,
+  STARTER_CARD_SLUGS,
+} from '../src/config/starterLoadout.js';
 import { mergeStatBonuses, rankForLevel } from '../src/services/playerCharacterService.js';
 import { ALL_CARDS } from './seedCards.js';
 
@@ -187,12 +191,13 @@ function starterStats(entries) {
 }
 
 function buildStarterFixture() {
-  const entries = STARTER_CARD_SLUGS.map(slug => {
+  const collection = STARTER_CARD_SLUGS.map(slug => {
     const matches = ALL_CARDS.filter(card => card.slug === slug);
     if (matches.length !== 1)
       throw new Error(`Starter ${slug}: ${matches.length} définitions seed`);
-    return { quantity: 1, card: serializeSeedCard(matches[0]) };
+    return { quantity: getStarterGrantQuantity(slug), card: serializeSeedCard(matches[0]) };
   });
+  const entries = selectStarterDeckEntries(collection);
   return {
     entries,
     profile: {
@@ -262,19 +267,23 @@ const starter = buildStarterFixture();
     'starter : limites de rareté et clan respectées'
   );
   assert(
-    new Set(STARTER_CARD_SLUGS).size === 22 &&
-      starter.entries.every(entry => entry.quantity === 1 && entry.card.upgradeLevel === 0),
-    'starter : une copie possédée L0 par slug'
+    starter.entries.length === 18 &&
+      starter.entries.every(
+        entry =>
+          entry.quantity === getStarterGrantQuantity(entry.card.slug) &&
+          entry.card.upgradeLevel === 0
+      ),
+    'starter : exemplaires possédés au niveau L0'
   );
   assert(
     JSON.stringify(starter.profile.stats) ===
       JSON.stringify({
         // Remap Vit→art primaire / Int→secondaire|Gen (combatArts).
-        taijutsu: 17,
-        ninjutsu: 28,
-        genjutsu: 29,
-        medicine: 6,
-        maxHp: 12,
+        taijutsu: 23,
+        ninjutsu: 29,
+        genjutsu: 18,
+        medicine: 3,
+        maxHp: 14,
         maxChakra: 0,
         startingBlock: 0,
       }),
@@ -304,7 +313,10 @@ const starter = buildStarterFixture();
   const upgradedEntries = starter.entries.map(entry =>
     entry.card.slug === fistSeed.slug ? { ...entry, card: fist1 } : entry
   );
-  assert(starterStats(upgradedEntries).taijutsu === 18, 'bonus passif L1 ajouté aux stats du deck');
+  assert(
+    starterStats(upgradedEntries).taijutsu === starter.profile.stats.taijutsu + 2,
+    'bonus passif L1 ajouté pour les deux exemplaires du deck'
+  );
   const session = createSimSession({
     profileId: 'starter',
     profileOverride: starter.profile,
@@ -314,12 +326,12 @@ const starter = buildStarterFixture();
   const runtime = [...session.player.hand, ...session.player.drawPile];
   assert(
     session.profileLevel === 1 &&
-      session.profileRank === 'Genin' &&
+      session.profileRank === 'Aspirant ninja' &&
       session.talentEffects.applied.length === 0,
-    'starter : niveau 1, Genin, aucun talent'
+    'starter : niveau 1, Aspirant ninja, aucun talent'
   );
   assert(
-    session.player.maxHp === 112 && session.player.maxChakra === 3,
+    session.player.maxHp === 114 && session.player.maxChakra === 3,
     'starter : PV et chakra issus des passifs'
   );
   assert(

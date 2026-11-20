@@ -2,11 +2,26 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../config/database.js';
+import { UTC_WEEK_START } from '../services/asyncDuelWeeklyRewards.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASELINE_FILENAME = 'baseline.sql';
+const ASYNC_DUEL_TABLES = [
+  'async_duel_friendships',
+  'async_duels',
+  'async_duel_reward_ledger',
+  'async_duel_faction_points',
+  'async_duel_weekly_state',
+  'async_duel_village_membership',
+  'async_duel_weekly_settlements',
+  'async_duel_weekly_reward_ledger',
+];
 
 const COMPATIBILITY_COLUMNS = [
+  ['player_profiles', 'async_duel_enabled', 'TINYINT(1) NOT NULL DEFAULT 0', 'ryos'],
+  ['async_duels', 'mode', "ENUM('friend','random','enemy_faction') DEFAULT NULL", 'defender_name'],
+  ['async_duels', 'attacker_faction', 'VARCHAR(32) DEFAULT NULL', 'mode'],
+  ['async_duels', 'defender_faction', 'VARCHAR(32) DEFAULT NULL', 'attacker_faction'],
   ['card_definitions', 'held_effect_json', 'JSON NULL', 'effects_json'],
   [
     'talent_tree_nodes',
@@ -31,7 +46,7 @@ async function ensureCardStatType(connection) {
      WHERE table_schema = DATABASE()
        AND table_name = 'card_definitions'
        AND column_name = 'stat_type'
-     LIMIT 1`,
+     LIMIT 1`
   );
   if (rows.length === 0 || String(rows[0].column_type).includes("'common'")) return;
 
@@ -41,12 +56,12 @@ async function ensureCardStatType(connection) {
     `UPDATE card_definitions
      SET stat_type = NULL
      WHERE stat_type IS NOT NULL
-       AND stat_type NOT IN ('taijutsu','ninjutsu','genjutsu','medicine')`,
+       AND stat_type NOT IN ('taijutsu','ninjutsu','genjutsu','medicine')`
   );
   await connection.query(
     `ALTER TABLE card_definitions
      MODIFY COLUMN stat_type
-       ENUM('taijutsu','ninjutsu','genjutsu','medicine','common') DEFAULT NULL`,
+       ENUM('taijutsu','ninjutsu','genjutsu','medicine','common') DEFAULT NULL`
   );
   console.log('🔧 Enum étendu : card_definitions.stat_type accepte common');
 }
@@ -58,19 +73,19 @@ async function ensureCompatibilityColumns(connection) {
        FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
        LIMIT 1`,
-      [table, column],
+      [table, column]
     );
     if (rows.length > 0) continue;
 
     const [tables] = await connection.query(
       `SELECT 1 FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [table],
+      [table]
     );
     if (tables.length === 0) continue;
 
     await connection.query(
-      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition} AFTER \`${after}\``,
+      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition} AFTER \`${after}\``
     );
     console.log(`🔧 Colonne de compatibilité ajoutée : ${table}.${column}`);
   }
@@ -118,6 +133,95 @@ function splitSqlStatements(sql) {
   return statements;
 }
 
+async function ensureAsyncDuelTables(connection, statements) {
+  // Rejoue uniquement les DDL additives du duel, dans l'ordre des clés étrangères.
+  for (const table of ASYNC_DUEL_TABLES) {
+    const ddl = statements.find(sql => sql.startsWith(`CREATE TABLE IF NOT EXISTS \`${table}\` (`));
+    if (!ddl) throw new Error(`DDL de compatibilité introuvable : ${table}`);
+    await connection.query(ddl);
+  }
+
+  const [weeklyReadColumn] = await connection.query(
+    `SELECT 1 FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'async_duel_weekly_reward_ledger'
+       AND column_name = 'read_at'`,
+  );
+  if (weeklyReadColumn.length === 0) {
+    await connection.query(`ALTER TABLE async_duel_weekly_reward_ledger
+      ADD COLUMN read_at DATETIME(6) DEFAULT NULL AFTER ryos,
+      ADD KEY idx_async_duel_weekly_ledger_user_week (user_id, week_start)`);
+    console.log('🔧 État de lecture ajouté au registre des récompenses de village.');
+  }
+
+  const [legacyColumns] = await connection.query(
+    `SELECT 1 FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'async_duel_reward_ledger'
+       AND column_name = 'defender_slot'`
+  );
+  if (!legacyColumns.length) return;
+
+  const legacyIndexes = [
+    'uq_async_duel_reward_attacker_day',
+    'uq_async_duel_reward_pair_day',
+    'uq_async_duel_reward_defender_slot',
+  ];
+  const [indexes] = await connection.query(
+    `SELECT DISTINCT index_name AS name FROM information_schema.statistics
+     WHERE table_schema = DATABASE() AND table_name = 'async_duel_reward_ledger'
+       AND index_name IN (?, ?, ?)`,
+    legacyIndexes
+  );
+  const drops = indexes.map(({ name }) => `DROP INDEX \`${name}\`,`).join('\n');
+
+  // winner_side NULL identifie les anciens gains (tous pour le défenseur). L'index de paire
+  // autorise leurs éventuels doublons historiques, mais pas deux nouveaux crédits opposés.
+  await connection.query(`ALTER TABLE async_duel_reward_ledger
+    ADD KEY idx_async_duel_reward_attacker (attacker_id),
+    ADD KEY idx_async_duel_reward_defender (defender_id),
+    ${drops}
+    DROP CHECK ck_async_duel_reward_slot,
+    DROP CHECK ck_async_duel_reward_ryos,
+    RENAME COLUMN defender_slot TO beneficiary_slot,
+    ADD COLUMN winner_side ENUM('attacker','defender') DEFAULT NULL,
+    ADD COLUMN beneficiary_id INT UNSIGNED GENERATED ALWAYS AS (IF(winner_side = 'attacker', attacker_id, defender_id)) VIRTUAL,
+    ADD COLUMN pair_low_id INT UNSIGNED GENERATED ALWAYS AS (LEAST(attacker_id, defender_id)) VIRTUAL,
+    ADD COLUMN pair_high_id INT UNSIGNED GENERATED ALWAYS AS (GREATEST(attacker_id, defender_id)) VIRTUAL,
+    ADD COLUMN new_credit TINYINT GENERATED ALWAYS AS (IF(winner_side IS NULL, NULL, 1)) VIRTUAL,
+    ADD UNIQUE KEY uq_async_duel_reward_unordered_day (pair_low_id, pair_high_id, credited_on, new_credit),
+    ADD UNIQUE KEY uq_async_duel_reward_beneficiary_slot (beneficiary_id, credited_on, beneficiary_slot),
+    ADD CONSTRAINT ck_async_duel_reward_slot CHECK (beneficiary_slot BETWEEN 1 AND 3),
+    ADD CONSTRAINT ck_async_duel_reward_ryos CHECK (ryos > 0)`);
+  console.log('🔧 Registre des crédits de duel migré sans modifier les portefeuilles.');
+}
+
+async function installWeeklyVillageRewards(connection) {
+  // L'ancrage et la photo initiale sont atomiques et ne bougent pas aux relances.
+  const firstWeek = `DATE_ADD(${UTC_WEEK_START}, INTERVAL 7 DAY)`;
+  await connection.beginTransaction();
+  try {
+    try {
+      await connection.query(
+        `INSERT INTO async_duel_weekly_state (id, installed_at, first_week_start, next_week_start)
+         VALUES (1, UTC_TIMESTAMP(6), ${firstWeek}, ${firstWeek})`
+      );
+    } catch (error) {
+      if (error.code !== 'ER_DUP_ENTRY') throw error;
+      await connection.rollback();
+      return;
+    }
+    await connection.query(
+      `INSERT INTO async_duel_village_membership (user_id, effective_at, faction_id)
+       SELECT p.user_id, s.installed_at, p.character_faction_id
+       FROM player_profiles p CROSS JOIN async_duel_weekly_state s
+       WHERE s.id = 1 AND p.character_name IS NOT NULL AND p.character_faction_id IS NOT NULL`
+    );
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  }
+}
+
 async function migrate() {
   const schemaPath = path.join(__dirname, '../../schema.sql');
   const connection = await pool.getConnection();
@@ -133,11 +237,14 @@ async function migrate() {
 
     const [baselineRows] = await connection.query(
       'SELECT id FROM schema_migrations WHERE filename = ?',
-      [BASELINE_FILENAME],
+      [BASELINE_FILENAME]
     );
+    const statements = splitSqlStatements(await fs.readFile(schemaPath, 'utf8'));
     if (baselineRows.length > 0) {
       console.log('⏭  Schéma initial déjà appliqué.');
       await ensureCompatibilityColumns(connection);
+      await ensureAsyncDuelTables(connection, statements);
+      await installWeeklyVillageRewards(connection);
       return;
     }
 
@@ -145,7 +252,7 @@ async function migrate() {
     if (historyRows.length > 0) {
       throw new Error(
         'Cette base contient un historique de migrations legacy. ' +
-          'Le schéma initial exige une base vide.',
+          'Le schéma initial exige une base vide.'
       );
     }
 
@@ -153,16 +260,15 @@ async function migrate() {
       `SELECT COUNT(*) AS count
        FROM information_schema.tables
        WHERE table_schema = DATABASE()
-         AND table_name NOT IN ('schema_migrations', 'e2e_fixture_guard')`,
+         AND table_name NOT IN ('schema_migrations', 'e2e_fixture_guard')`
     );
     if (Number(tableRows[0].count) > 0) {
       throw new Error(
-        'Cette base contient déjà des tables. Le schéma initial exige une base vide.',
+        'Cette base contient déjà des tables. Le schéma initial exige une base vide.'
       );
     }
 
-    const sql = await fs.readFile(schemaPath, 'utf8');
-    for (const statement of splitSqlStatements(sql)) {
+    for (const statement of statements) {
       await connection.query(statement);
     }
 
@@ -170,6 +276,7 @@ async function migrate() {
       BASELINE_FILENAME,
     ]);
     await ensureCompatibilityColumns(connection);
+    await installWeeklyVillageRewards(connection);
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
     console.error('Erreur d’initialisation de la base :', error.message);

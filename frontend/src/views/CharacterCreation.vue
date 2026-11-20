@@ -5,6 +5,10 @@ import { useI18n } from 'vue-i18n';
 import { usePlayerStore } from '../stores/player';
 import { useLeaderboardStore } from '../stores/leaderboard';
 import AppIcon from '../components/ui/AppIcon.vue';
+import NinjaAvatarPicker from '../components/player/NinjaAvatarPicker.vue';
+import NinjaProfileCard from '../components/player/NinjaProfileCard.vue';
+import { DEFAULT_NINJA_AVATAR_ID, STARTING_NINJA_RANK } from '../constants/ninjaAvatars.js';
+import { ninjaProfileStats, readNinjaAppearance } from '../utils/ninjaProfile.js';
 
 defineOptions({ name: 'CharacterCreationView' });
 
@@ -15,9 +19,12 @@ const lb = useLeaderboardStore();
 
 const name = ref('');
 const factionId = ref('midorihara');
+const avatarId = ref(DEFAULT_NINJA_AVATAR_ID);
 
 const previewName = computed(() => name.value.trim());
-const previewInitial = computed(() => (previewName.value.charAt(0) || '?').toUpperCase());
+const previewProfile = computed(() => readNinjaAppearance({ avatarId: avatarId.value }));
+const previewStats = ninjaProfileStats();
+const canSubmit = computed(() => !player.loading && previewName.value.length >= 2);
 const previewFaction = computed(() =>
   factionId.value ? t(`factions.names.${factionId.value}`) : ''
 );
@@ -38,9 +45,11 @@ onMounted(async () => {
 });
 
 async function submit() {
+  if (!canSubmit.value) return;
   const created = await player.createCharacter({
-    name: name.value.trim(),
+    name: previewName.value,
     factionId: factionId.value || null,
+    avatarId: avatarId.value,
   });
   if (created) await router.push({ name: 'hub' });
 }
@@ -49,16 +58,36 @@ async function submit() {
 <template>
   <div class="page-shell" data-testid="character-creation">
     <div class="creation">
-      <div class="creation__form">
+      <header class="creation__intro">
         <p class="page-kicker">{{ t('player.createKicker') }}</p>
         <h1 class="page-title mt-3">{{ t('player.createTitle') }}</h1>
         <p class="page-lead mt-3">{{ t('player.createLead') }}</p>
+      </header>
 
-        <p v-if="player.error" class="alert alert--error mt-6" data-testid="create-error">
+      <aside class="creation__preview">
+        <p class="t-kicker mb-2">{{ t('player.previewLabel') }}</p>
+        <NinjaProfileCard
+          :name="previewName || t('player.previewNamePlaceholder')"
+          :rank="t('player.ranks.aspirant')"
+          :level="1"
+          :profile="previewProfile"
+          :stats="previewStats"
+        />
+        <p
+          v-if="previewFaction"
+          class="creation__preview-faction"
+          :style="{ borderLeftColor: previewFactionAccent }"
+        >
+          {{ previewFaction }}
+        </p>
+      </aside>
+
+      <div class="creation__form">
+        <p v-if="player.error" class="alert alert--error mb-6" data-testid="create-error">
           {{ player.error }}
         </p>
 
-        <form class="mt-8 space-y-7" @submit.prevent="submit">
+        <form class="space-y-7" @submit.prevent="submit">
           <label class="field">
             <span class="field__label">{{ t('player.nameLabel') }}</span>
             <input
@@ -91,6 +120,8 @@ async function submit() {
             </div>
           </fieldset>
 
+          <NinjaAvatarPicker v-model="avatarId" :rank="STARTING_NINJA_RANK" />
+
           <p class="creation__hint">
             {{ t('player.createHint') }}
           </p>
@@ -98,7 +129,7 @@ async function submit() {
           <button
             type="submit"
             class="btn-primary btn-lg"
-            :disabled="player.loading || name.trim().length < 2"
+            :disabled="!canSubmit"
             data-testid="create-submit"
           >
             {{ player.loading ? t('common.loading') : t('player.createSubmit') }}
@@ -106,30 +137,6 @@ async function submit() {
           </button>
         </form>
       </div>
-
-      <aside class="creation__preview" aria-hidden="true">
-        <p class="t-kicker">{{ t('player.previewLabel') }}</p>
-        <div class="creation__card">
-          <span class="creation__card-band" />
-          <span :key="previewInitial" class="creation__avatar">{{ previewInitial }}</span>
-          <p class="creation__name" :class="{ 'is-empty': !previewName }">
-            {{ previewName || t('player.previewNamePlaceholder') }}
-          </p>
-          <p class="creation__tags">
-            <span
-              v-if="previewFaction"
-              class="creation__tag"
-              :style="{ borderLeft: `3px solid ${previewFactionAccent}` }"
-            >
-              {{ previewFaction }}
-            </span>
-          </p>
-          <p class="creation__level">
-            <span>{{ t('player.levelWord') }}</span>
-            <strong>1</strong>
-          </p>
-        </div>
-      </aside>
     </div>
   </div>
 </template>
@@ -137,14 +144,25 @@ async function submit() {
 <style scoped>
 .creation {
   display: grid;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 
 @media (min-width: 960px) {
   .creation {
     grid-template-columns: minmax(0, 34rem) minmax(0, 1fr);
-    gap: 4rem;
+    column-gap: 4rem;
     align-items: start;
+  }
+
+  .creation__form {
+    grid-column: 1;
+  }
+
+  .creation__preview {
+    grid-area: 1 / 2 / span 2;
+    position: sticky;
+    top: 6rem;
+    justify-self: end;
   }
 }
 
@@ -216,105 +234,18 @@ async function submit() {
 }
 
 .creation__preview {
-  display: none;
+  width: 100%;
+  max-width: 28rem;
+  min-width: 0;
 }
 
-@media (min-width: 960px) {
-  .creation__preview {
-    position: sticky;
-    top: 6rem;
-    display: block;
-    max-width: 22rem;
-    justify-self: end;
-    width: 100%;
-  }
-}
-
-.creation__card {
-  position: relative;
-  overflow: hidden;
+.creation__preview-faction {
+  display: inline-block;
   margin-top: 0.75rem;
-  padding: 5.5rem 1.5rem 1.5rem;
-  background: var(--color-indigo-deep);
-  color: var(--color-on-fill);
-}
-
-.creation__card-band {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3.75rem;
-  background: var(--color-vermilion);
-}
-
-.creation__avatar {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  display: grid;
-  width: 4.5rem;
-  height: 4.5rem;
-  place-items: center;
-  background: var(--color-on-fill);
-  font-family: var(--font-display);
-  font-size: 2.75rem;
-  font-weight: 800;
-  font-stretch: 76%;
-  line-height: 1;
-  color: var(--color-indigo-deep);
-  animation: pop-in 320ms var(--ease-out-quint) both;
-}
-
-.creation__name {
-  margin-top: 1.25rem;
-  overflow-wrap: anywhere;
-  font-family: var(--font-display);
-  font-size: 2.25rem;
-  font-weight: 800;
-  font-stretch: 78%;
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-}
-
-.creation__name.is-empty {
-  color: color-mix(in srgb, var(--color-on-fill) 45%, transparent);
-}
-
-.creation__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.9rem;
-}
-
-.creation__tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.6rem;
-  background: color-mix(in srgb, var(--color-on-fill) 14%, transparent);
-  font-size: 0.8125rem;
+  padding: 0.35rem 0.65rem;
+  border-left: 3px solid;
+  background: var(--color-bg-soft);
+  font-size: 0.85rem;
   font-weight: 600;
-}
-
-.creation__level {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-top: 2rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid color-mix(in srgb, var(--color-on-fill) 22%, transparent);
-  font-size: var(--type-kicker);
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.creation__level strong {
-  font-family: var(--font-display);
-  font-size: 4rem;
-  font-weight: 800;
-  font-stretch: 76%;
-  line-height: 0.78;
-  letter-spacing: -0.03em;
 }
 </style>

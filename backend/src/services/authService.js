@@ -100,6 +100,7 @@ export async function registerUser({
   email,
   password,
   characterName,
+  avatarId,
   language = 'fr',
 }) {
   const normalizedEmail = email.trim().toLowerCase();
@@ -135,7 +136,7 @@ export async function registerUser({
        VALUES (?, ?, 10000, ?)`,
       [userId, characterName, language],
     );
-    await createCharacter(userId, { name: characterName });
+    await createCharacter(userId, { name: characterName, avatarId });
   } catch (error) {
     await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
     throw error;
@@ -144,7 +145,7 @@ export async function registerUser({
   return { user: await findUserById(userId) };
 }
 
-export async function registerGuestUser({ characterName, language = 'fr' }) {
+export async function registerGuestUser({ characterName, avatarId, language = 'fr' }) {
   let username = guestUsername();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const existing = await findUserByUsername(username);
@@ -168,7 +169,7 @@ export async function registerGuestUser({ characterName, language = 'fr' }) {
        VALUES (?, ?, 10000, ?)`,
       [userId, playerDisplayName, language],
     );
-    await createCharacter(userId, { name: playerDisplayName });
+    await createCharacter(userId, { name: playerDisplayName, avatarId });
   } catch (error) {
     await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
     throw error;

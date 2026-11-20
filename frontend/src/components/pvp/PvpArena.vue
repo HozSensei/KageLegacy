@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import CombatHand from '../combat/CombatHand.vue';
 import CombatHeaderLog from '../combat/CombatHeaderLog.vue';
 import CombatDropZones from '../combat/CombatDropZones.vue';
-import PlayerStatus from '../combat/PlayerStatus.vue';
+import CombatFighter from '../combat/CombatFighter.vue';
 
 defineOptions({ name: 'PvpArena' });
 
@@ -65,25 +65,6 @@ function onDropIntent(intent) {
 
 const isMyTurn = computed(() => props.view?.activeSeat === props.role);
 const turnNumber = computed(() => String(props.view?.turn ?? 0).padStart(2, '0'));
-
-const opponentPlayer = computed(() => ({
-  name: opponent.value?.name || t('pvp.opponent'),
-  hp: opponent.value?.hp,
-  maxHp: opponent.value?.maxHp,
-  block: opponent.value?.block,
-  chakra: opponent.value?.chakra,
-  maxChakra: opponent.value?.maxChakra,
-  statuses: opponent.value?.statuses || [],
-  ally: opponent.value?.ally || null,
-  hand: [],
-  drawCount: opponent.value?.drawCount,
-  discardCount: opponent.value?.discardCount,
-}));
-
-const selfPlayer = computed(() => ({
-  ...(self.value || {}),
-  name: self.value?.name || t('pvp.you'),
-}));
 
 /* Bandeau éphémère à chaque changement de main (affichage seul). */
 const banner = ref(false);
@@ -184,12 +165,11 @@ const outcomeKey = computed(() => {
 
     <div class="arena__duel">
       <section class="arena__seat">
-        <div class="pvp-seat">
-          <PlayerStatus :player="opponentPlayer" tone="vermilion" :role-label="t('pvp.opponent')" />
+        <CombatFighter :fighter="opponent || {}" :role-label="t('pvp.opponent')" show-piles>
           <p class="pvp-seat__hint">
             {{ t('pvp.hiddenHand', { n: opponent?.handCount ?? 0 }) }}
           </p>
-        </div>
+        </CombatFighter>
       </section>
 
       <span class="arena__vs" aria-hidden="true"
@@ -197,7 +177,12 @@ const outcomeKey = computed(() => {
       >
 
       <section class="arena__seat arena__seat--self">
-        <PlayerStatus :player="selfPlayer" />
+        <CombatFighter
+          :fighter="self || {}"
+          :role-label="t('pvp.you')"
+          :arts="self?.stats"
+          show-piles
+        />
       </section>
 
       <Transition name="turn-banner">
@@ -382,16 +367,6 @@ const outcomeKey = computed(() => {
 
 .peer--on .dot {
   color: var(--color-leaf-fill);
-}
-
-.pvp-seat {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-}
-
-.pvp-seat > :deep(.fighter) {
-  flex: 1;
 }
 
 .pvp-seat__hint {

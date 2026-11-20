@@ -5,8 +5,29 @@ import { createCoopRooms } from '../src/services/coopRoomService.js';
 const load = async id => ({
   id,
   name: `Player ${id}`,
+  rank: id === 1 ? 'Chunin' : 'Genin',
+  level: id === 1 ? 20 : 5,
+  profile: {
+    avatarId: id === 1 ? 'chunin-1-1' : 'genin-1-1',
+    borderColor: '#123abc',
+    backgroundColor: null,
+    nicknameId: id === 1 ? 'chunin' : null,
+    nicknameCatalog: ['private metadata'],
+  },
   stats: {},
-  deckEntries: [{ quantity: 6, card: { slug: `strike-${id}`, type: 'attack', statType: 'taijutsu', cost: 1, damage: 3, effects: [] } }],
+  deckEntries: [
+    {
+      quantity: 6,
+      card: {
+        slug: `strike-${id}`,
+        type: 'attack',
+        statType: 'taijutsu',
+        cost: 1,
+        damage: 3,
+        effects: [],
+      },
+    },
+  ],
 });
 
 async function paired() {
@@ -23,6 +44,19 @@ test('invitation, autorisation et états privés', async () => {
   assert.equal(guest.combat.currentPhase, 'enemy_turn');
   assert.equal(guest.combat.ally.id, 1);
   assert.equal('hand' in guest.combat.ally, false);
+  assert.equal('stats' in guest.combat.ally, false);
+  assert.equal(guest.combat.ally.rank, 'Chunin');
+  assert.equal(guest.combat.ally.level, 20);
+  assert.deepEqual(guest.combat.ally.profile, {
+    avatarId: 'chunin-1-1',
+    borderColor: '#123ABC',
+    backgroundColor: null,
+    nicknameId: 'chunin',
+  });
+  assert.equal(guest.combat.player.rank, 'Genin');
+  assert.equal(guest.combat.player.profile.avatarId, 'genin-1-1');
+  assert.deepEqual(rooms.get(id, 1).combat.player.profile, guest.combat.ally.profile);
+  assert.equal(guest.combat.enemy.chakra, undefined);
   assert.throws(() => rooms.get(id, 3), { statusCode: 404 });
   assert.throws(() => rooms.action(id, 3, { type: 'end_turn' }), { statusCode: 404 });
   assert.throws(() => rooms.action(id, 2, { type: 'end_turn' }), /votre tour/);
@@ -30,13 +64,20 @@ test('invitation, autorisation et états privés', async () => {
   const ended = rooms.action(id, 1, { type: 'end_turn', revision: guest.revision });
   assert.equal(ended.revision, guest.revision + 1);
   assert.equal(rooms.get(id, 2).combat.currentPhase, 'player_turn');
-  assert.throws(() => rooms.action(id, 2, { type: 'end_turn', revision: guest.revision }), { statusCode: 409 });
+  assert.throws(() => rooms.action(id, 2, { type: 'end_turn', revision: guest.revision }), {
+    statusCode: 409,
+  });
 });
 
 test('une frappe sur le partenaire ne dépense rien avant confirmation', async () => {
   const { rooms, id } = await paired();
   const before = rooms.get(id, 1);
-  const action = { type: 'play', instanceId: before.combat.player.hand[0].instanceId, target: 'ally', revision: before.revision };
+  const action = {
+    type: 'play',
+    instanceId: before.combat.player.hand[0].instanceId,
+    target: 'ally',
+    revision: before.revision,
+  };
   assert.throws(() => rooms.action(id, 1, action), { code: 'FRIENDLY_FIRE_CONFIRMATION' });
   assert.deepEqual(rooms.get(id, 1), before);
   const after = rooms.action(id, 1, { ...action, confirmedFriendlyFire: true });
@@ -58,7 +99,10 @@ test('annulation et expiration empêchent de rejoindre une invitation', async ()
 test('deux demandes concurrentes ne peuvent pas prendre la même place', async () => {
   const rooms = createCoopRooms({ load });
   const waiting = await rooms.create(1);
-  const requests = await Promise.allSettled([rooms.join(2, waiting.code), rooms.join(3, waiting.code)]);
+  const requests = await Promise.allSettled([
+    rooms.join(2, waiting.code),
+    rooms.join(3, waiting.code),
+  ]);
   assert.equal(requests.filter(result => result.status === 'fulfilled').length, 1);
   assert.equal(requests.find(result => result.status === 'rejected').reason.statusCode, 409);
 });

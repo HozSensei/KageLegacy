@@ -10,7 +10,7 @@ _Dernière mise à jour : novembre 2026_
 
 ## En bref
 
-1. **Créez votre ninja** : un nom, une lignée.
+1. **Créez votre ninja** : choisissez un nom et un portrait de ninja aspirant.
 2. **Recevez votre deck de départ** : 22 cartes, déjà prêtes à jouer.
 3. **Lancez une mission** : un parcours de 3 à 5 combats entrecoupés d'événements.
 4. **Gagnez de l'expérience** : chaque niveau donne 1 point de talent.
@@ -24,34 +24,32 @@ Rien n'augmente tout seul : monter de niveau ne donne **aucune statistique**, un
 
 ### Création
 
-Chaque compte possède **un seul ninja**. À la création, vous choisissez :
+Chaque compte ou invité possède **un seul ninja**. À l'inscription ou en démarrant en invité, choisissez un **nom** (2 caractères au minimum) et un **portrait de ninja aspirant**. Si vous ne changez pas le portrait, le premier portrait de ninja aspirant est utilisé. Un village est attribué automatiquement à votre ninja.
 
-- son **nom** (2 caractères au minimum) ;
-- sa **lignée** : Roturier, Shizumori, Benigiri, Kazamine, Nagihara, Kumatani ou Yukisawa.
-
-La lignée compose l'identité de votre ninja et s'affiche sur son profil. Elle ne donne **aucun bonus chiffré** en combat.
-
-À l'inscription, vous choisissez aussi un **pays** (Midorihara, Kareno, Oborohama ou Ishikura). Il n'apporte aucun bonus de combat.
-
-Votre ninja commence au **niveau 1**, au rang **Genin**, avec **1 point de talent** et un deck de départ.
+Votre ninja commence au **niveau 1**, au rang **Ninja aspirant**, avec **1 point de talent** et un deck de départ.
 
 ### Niveau et rang
 
-Les victoires rapportent de l'expérience (XP). Passer du niveau _N_ au niveau suivant demande **100 × N** XP : 100 XP pour atteindre le niveau 2, 200 XP pour le niveau 3, et ainsi de suite. Le niveau maximum est **100**.
+Les victoires rapportent de l'expérience (XP). Passer du niveau _N_ au niveau suivant demande **100 × N** XP : 100 XP pour atteindre le niveau 2, 200 XP pour le niveau 3, et ainsi de suite. Le niveau maximum est **80**.
 
-Chaque niveau gagné donne **1 point de talent**. Il ne donne rien d'autre.
+Chaque niveau gagné donne **1 point de talent**, mais aucune statistique.
 
 Le rang suit le niveau :
 
-| Niveau   | Rang   |
-| -------- | ------ |
-| 1 à 19   | Genin  |
-| 20 à 39  | Chunin |
-| 40 à 59  | Jonin  |
-| 60 à 79  | ANBU   |
-| 80 à 100 | Kage   |
+| Niveau  | Rang           | Surnom débloqué    |
+| ------- | -------------- | ------------------ |
+| 1 à 4   | Ninja aspirant | —                  |
+| 5 à 19  | Genin          | Shinobi en devenir |
+| 20 à 39 | Chunin         | Vétéran du terrain |
+| 40 à 59 | Jonin          | Élite shinobi      |
+| 60 à 79 | ANBU           | Lame silencieuse   |
+| 80      | Kage           | Légende du village |
 
-Le rang est un titre : il n'ajoute pas de statistiques.
+### Personnalisation du profil
+
+Dans votre profil, vous pouvez changer de **portrait**, personnaliser les **couleurs de bordure et de fond** et équiper un **surnom** débloqué. Les collections de portraits se débloquent au rang correspondant, de Ninja aspirant à ANBU. Les portraits des rangs précédents restent accessibles ; un Kage peut utiliser toutes les collections et n'a pas de collection dédiée.
+
+Chaque promotion, de Genin à Kage, débloque le surnom indiqué ci-dessus. Les surnoms gagnés restent disponibles même si votre niveau est réinitialisé. Les rangs et les éléments de personnalisation ne donnent aucun bonus de combat.
 
 ### Statistiques
 
@@ -139,6 +137,8 @@ Une carte légendaire améliorée rend en plus 2 essence, une carte mythique am�
 ## Le deck
 
 Un deck jouable contient **20 à 30 cartes**, avec **3 exemplaires au maximum** d'une même carte. Il ne peut contenir que des exemplaires que vous possédez. Parmi eux, il faut respecter deux limites supplémentaires : **3 cartes légendaires ou mythiques au total**, dont **1 carte de clan au maximum**. Les exemplaires de clan légendaires ou mythiques comptent dans les deux limites.
+
+Le deck doit contenir **exactement deux voies principales distinctes**, chacune avec **au moins 25 % des cartes non neutres**, arrondi au supérieur. Seule la voie principale de chaque carte compte. Les cartes de voie neutre comptent dans les 20 à 30 cartes, mais sont exclues de la répartition. Par exemple, avec 10 neutres dans un deck de 30 cartes, il faut au moins 5 cartes de chaque voie.
 
 Vous pouvez créer plusieurs decks, mais un seul est **actif**. C'est le deck actif qui :
 

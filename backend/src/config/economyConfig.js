@@ -35,6 +35,9 @@ export const BOOSTER_CARD_COUNT = 5;
 // Combat / missions deck (récompenses de victoire)
 // ---------------------------------------------------------------------------
 
+/** Montant provisoire par membre éligible du village vainqueur de la semaine. */
+export const ASYNC_DUEL_WEEKLY_VILLAGE_REWARD_RYOS = 50;
+
 /** Fallback si mission sans rewards_json. */
 export const COMBAT_DEFAULT_REWARDS = Object.freeze({
   xp: 40,

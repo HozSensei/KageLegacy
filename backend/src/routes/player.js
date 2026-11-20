@@ -6,6 +6,7 @@ import {
   getCharacter,
   getComputedStats,
   levelUp,
+  updateCharacterProfile,
 } from '../services/playerCharacterService.js';
 import { createCharacterSchema } from '../validators/player.js';
 
@@ -56,12 +57,25 @@ router.post('/create', async (req, res, next) => {
     const parsed = createCharacterSchema.parse(req.body);
     const character = await createCharacter(user.id, {
       name: parsed.name,
-
       elementAffinity: parsed.elementAffinity,
       factionId: parsed.factionId ?? null,
       avatarUrl: parsed.avatarUrl || null,
+      avatarId: parsed.avatarId,
     });
     res.status(201).json({ character });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** PATCH /api/player/character/profile — personnalisation du personnage courant */
+router.patch('/character/profile', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const character = await updateCharacterProfile(user.id, req.body);
+    res.json({ character });
   } catch (error) {
     next(error);
   }

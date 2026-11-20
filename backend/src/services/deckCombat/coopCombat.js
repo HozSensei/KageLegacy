@@ -2,6 +2,7 @@ import { executeEnemyIntent, getNextIntent, scaleIntent } from '../combatAIServi
 import { applyCardPlay, resolveAllyAttack } from './cardEffects.js';
 import { BASE_MAX_HP, DRAW_PER_TURN, STAT_KEYS } from './constants.js';
 import { buildRuntimeDeck, drawCards, moveCardFromHand, shuffle } from './deckRuntime.js';
+import { publicFighterIdentity } from './fighterIdentity.js';
 import { applyHeldTurnStart } from './heldEffects.js';
 import {
   PLAYER_DEBUFF_KEYS,
@@ -127,6 +128,7 @@ function createFighter(combat, fighter, index, rng) {
     {
       id,
       name,
+      ...publicFighterIdentity(fighter),
       stats,
       talentEffects,
       deckElementCount: countDeckElements(deck),
@@ -543,10 +545,12 @@ export function applyCoopAction(combat, userId, action) {
   return next;
 }
 
-function publicFighter({ id, name, hp, maxHp, block, chakra, maxChakra, statuses }) {
+function publicFighter(fighter) {
+  const { id, name, hp, maxHp, block, chakra, maxChakra, statuses } = fighter;
   return {
     id,
     name,
+    ...publicFighterIdentity(fighter),
     hp,
     maxHp,
     block,

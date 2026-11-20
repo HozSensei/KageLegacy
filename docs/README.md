@@ -11,7 +11,8 @@ Kage Legacy est un TCG shinobi jouable dans le navigateur, centré sur la collec
 - [Règles du jeu](GAME_RULES.md) : règles joueur et progression.
 - [Cartes et combat](CARDS_AND_COMBAT.md) : voies, effets, combos, héritages, tours et simulation.
 - [Économie et progression](PROGRESSION.md) : collection, decks, talents, monnaies, boutique, Battle Pass et récompenses.
-- [PvP](PVP.md) : matchmaking, architecture host-authoritative, WebSocket et limites.
+- [Duel de decks asynchrone](ASYNC_DUELS.md) : défense hors ligne, IA, récompenses et déploiement.
+- [PvP temps réel](PVP.md) : mode masqué, matchmaking, architecture host-authoritative et WebSocket.
 - [Tests et équilibrage](TESTING.md) : validations disponibles et commande d'audit du catalogue.
 - [Exploitation](OPERATIONS.md) : variables d'environnement, Docker, production, Stripe et scheduler.
 - [Décisions de conception](DESIGN.md) : choix de la refonte des voies, raretés, combos et héritages.

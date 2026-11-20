@@ -116,6 +116,18 @@ const router = createRouter({
           meta: { requiresCharacter: true },
         },
         {
+          path: 'deck-duels',
+          name: 'deck-duels',
+          component: () => import('../views/DeckDuelsView.vue'),
+          meta: { requiresCharacter: true },
+        },
+        {
+          path: 'village',
+          name: 'village',
+          component: () => import('../views/CommunityView.vue'),
+        },
+        { path: 'community', redirect: { name: 'village' } },
+        {
           path: 'shop',
           name: 'shop',
           component: ShopView,
@@ -195,8 +207,7 @@ router.beforeEach(async to => {
   }
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' };
 
-  // Hub + character creation are reachable without a character (empty-state / onboarding).
-  const allowWithoutCharacter = new Set(['hub', 'character-creation', 'admin']);
+  const allowWithoutCharacter = new Set(['hub', 'character-creation', 'village', 'admin']);
   if (!allowWithoutCharacter.has(to.name)) {
     const { usePlayerStore } = await import('../stores/player');
     const player = usePlayerStore();

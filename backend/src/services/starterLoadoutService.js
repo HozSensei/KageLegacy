@@ -1,11 +1,16 @@
 /**
  * Grant starter cards + starter deck for new (or empty) V2 characters.
- * Idempotent: no-op when collection / active deck already present.
+ * Idempotent: existing collections and decks are not rewritten.
  */
-import { STARTER_CARD_SLUGS, STARTER_DECK_NAME_FR } from '../config/starterLoadout.js';
+import {
+  getStarterGrantQuantity,
+  selectStarterDeckEntries,
+  STARTER_CARD_SLUGS,
+  STARTER_DECK_NAME_FR,
+} from '../config/starterLoadout.js';
 import { query } from '../config/database.js';
 import { getCardBySlug } from './cardService.js';
-import { addCard, getCollection, grantStarterCollection } from './collectionService.js';
+import { addCard, getCollection } from './collectionService.js';
 import { createDeck, listDecks } from './deckService.js';
 
 async function tableExists(tableName) {
@@ -23,15 +28,6 @@ async function tableExists(tableName) {
   }
 }
 
-async function resolveStarterDefinitionIds() {
-  const ids = [];
-  for (const slug of STARTER_CARD_SLUGS) {
-    const card = await getCardBySlug(slug);
-    if (card?.id) ids.push(card.id);
-  }
-  return ids;
-}
-
 /**
  * Accorde les cartes de base si la collection est vide.
  * @returns {{ granted: boolean, count: number }}
@@ -46,19 +42,16 @@ export async function ensureStarterCollection(userId) {
     return { granted: false, count: existing.length };
   }
 
-  const definitionIds = await resolveStarterDefinitionIds();
-  if (!definitionIds.length) {
-    return { granted: false, count: 0 };
+  const cards = await Promise.all(STARTER_CARD_SLUGS.map(getCardBySlug));
+  for (const { id, slug } of cards) {
+    await addCard(userId, id, { quantity: getStarterGrantQuantity(slug), source: 'starter' });
   }
-
-  await grantStarterCollection(userId, definitionIds);
-  return { granted: true, count: definitionIds.length };
+  return { granted: true, count: cards.length };
 }
 
 /**
- * Crée un deck actif rempli avec toute la collection si aucun deck n'existe.
- * Si la collection a moins de 20 cartes, crée quand même un deck partiel
- * (le joueur pourra le compléter) — on préfère un deck visible à rien.
+ * Crée le preset à deux voies uniquement si aucun deck n’existe.
+ * Si le lot possédé est incomplet, le preset partiel reste un brouillon.
  */
 export async function ensureStarterDeck(userId, { name = STARTER_DECK_NAME_FR } = {}) {
   if (!(await tableExists('user_decks'))) {
@@ -70,15 +63,10 @@ export async function ensureStarterDeck(userId, { name = STARTER_DECK_NAME_FR } 
     return { created: false, deck: decks.find(d => d.isActive) || decks[0] };
   }
 
-  const collection = await getCollection(userId);
-  if (!collection.length) {
-    return { created: false, deck: null };
-  }
-
-  const cards = collection.map(entry => ({
-    collectionId: entry.collectionId,
-    quantity: Math.min(3, Math.max(1, Number(entry.quantity) || 1)),
-  }));
+  const cards = selectStarterDeckEntries(await getCollection(userId)).map(
+    ({ collectionId, quantity }) => ({ collectionId, quantity }),
+  );
+  if (!cards.length) return { created: false, deck: null };
 
   const deck = await createDeck(userId, { name, cards });
   return { created: true, deck };

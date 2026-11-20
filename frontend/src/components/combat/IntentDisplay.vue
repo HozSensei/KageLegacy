@@ -60,7 +60,7 @@ const tone = computed(() => {
 <template>
   <div
     class="intent"
-    :class="`intent--${kind}`"
+    :class="[`intent--${kind}`, { 'intent--preview': preview }]"
     :data-tone="tone"
     :data-testid="preview ? 'enemy-next-intent' : 'enemy-intent'"
   >
@@ -87,14 +87,19 @@ const tone = computed(() => {
   display: inline-flex;
   align-items: stretch;
   max-width: 100%;
-  background: var(--color-bg-card);
-  color: var(--color-ink);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: var(--radius-md);
+  background: rgb(8 10 22 / 0.72);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  text-align: left;
 }
 
 .intent__glyph {
   display: grid;
   place-items: center;
-  width: 2.5rem;
+  width: 3rem;
   flex: none;
   background: var(--tone-fill);
   color: var(--tone-on);
@@ -109,7 +114,7 @@ const tone = computed(() => {
   flex-direction: column;
   justify-content: center;
   min-width: 0;
-  padding: 0.35rem 0.7rem;
+  padding: 0.45rem 0.75rem;
 }
 
 .intent__label {
@@ -117,27 +122,56 @@ const tone = computed(() => {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-ink-faint);
+  color: rgb(255 255 255 / 0.7);
 }
 
 .intent__text {
-  font-size: 0.8125rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 700;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .intent__amount {
   display: grid;
   place-items: center;
-  min-width: 2.75rem;
-  padding: 0 0.5rem;
+  min-width: 3rem;
+  padding: 0 0.6rem;
   font-family: var(--font-display);
-  font-size: 1.75rem;
+  font-size: 2.25rem;
   font-weight: 800;
   font-stretch: 76%;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: var(--tone);
+  color: #fff;
   animation: pop-in 320ms var(--ease-out-quint) both;
+}
+
+.intent--preview {
+  opacity: 0.88;
+}
+
+.intent--preview .intent__glyph {
+  width: 2rem;
+}
+
+.intent--preview .intent__body {
+  padding: 0.25rem 0.6rem;
+}
+
+.intent--preview .intent__text {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.intent--preview .intent__label {
+  font-size: 0.5625rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intent__glyph > *,
+  .intent__amount {
+    animation: none;
+  }
 }
 </style>

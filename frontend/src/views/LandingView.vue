@@ -6,6 +6,9 @@ import { useAuthStore } from '../stores/auth';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
+import NinjaAvatarPicker from '../components/player/NinjaAvatarPicker.vue';
+import NinjaPortrait from '../components/player/NinjaPortrait.vue';
+import { DEFAULT_NINJA_AVATAR_ID, STARTING_NINJA_RANK } from '../constants/ninjaAvatars.js';
 import gateImage from '../assets/illustrations/village-gate.webp';
 
 defineOptions({ name: 'LandingView' });
@@ -14,6 +17,7 @@ const { t, locale } = useI18n();
 const router = useRouter();
 const auth = useAuthStore();
 const characterName = ref('');
+const avatarId = ref(DEFAULT_NINJA_AVATAR_ID);
 
 const features = [
   { key: 'landing.features.character', tone: 'vermilion' },
@@ -33,6 +37,7 @@ async function playAsGuest() {
   const ok = await auth.loginAsGuest({
     characterName: characterName.value.trim(),
     language: locale.value === 'en' ? 'en' : 'fr',
+    avatarId: avatarId.value,
   });
   if (ok) router.push('/home');
 }
@@ -79,6 +84,13 @@ async function playAsGuest() {
                   class="input-field"
                 />
               </label>
+              <details class="landing__portrait" data-testid="landing-guest-portrait">
+                <summary class="landing__portrait-summary">
+                  <NinjaPortrait :avatar-id="avatarId" class="landing__portrait-preview" />
+                  {{ t('player.avatarPicker.label') }}
+                </summary>
+                <NinjaAvatarPicker v-model="avatarId" :rank="STARTING_NINJA_RANK" />
+              </details>
               <button
                 type="submit"
                 class="btn-primary btn-lg"
@@ -262,7 +274,29 @@ async function playAsGuest() {
   display: grid;
   flex: 1;
   gap: 0.6rem;
+  min-width: 0;
   max-width: 24rem;
+}
+
+.landing__portrait-summary {
+  width: fit-content;
+  padding-block: 0.25rem;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.landing__portrait[open] > .landing__portrait-summary {
+  margin-bottom: 0.6rem;
+}
+
+.landing__portrait-preview {
+  display: inline-grid;
+  width: 1.75rem;
+  margin-inline: 0.35rem;
+  border: 1px solid var(--color-line);
+  vertical-align: middle;
 }
 
 .landing__hint {
@@ -390,8 +424,12 @@ async function playAsGuest() {
 
 @media (min-width: 640px) {
   .landing__actions {
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: center;
+  }
+
+  .landing__guest-form {
+    flex-basis: 14rem;
   }
 
   .landing__feature-grid {

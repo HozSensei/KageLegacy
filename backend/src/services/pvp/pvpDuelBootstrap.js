@@ -3,7 +3,8 @@
  * La simu continue tourne côté Host — ce module ne fait que le bootstrap.
  */
 import { randomUUID } from 'node:crypto';
-import { query } from '../../config/database.js';
+import { loadCombatCharacter } from '../combatCharacterService.js';
+import { publicFighterIdentity } from '../deckCombat/fighterIdentity.js';
 import { getComputedStats } from '../playerCharacterService.js';
 import { BASE_CHAKRA, BASE_MAX_HP } from '../../../../shared/pvp/duelEngine.js';
 import { ANTI_CHEAT_MODE } from './config.js';
@@ -71,17 +72,9 @@ export function serializeRuntimeCards(deckCards) {
 }
 
 async function loadFighterProfile(userId) {
-  const rows = await query(
-    `SELECT user_id, character_name AS name, character_level AS level,
-            character_rank AS \`rank\`,
-            character_element_affinity AS element_affinity
-     FROM player_profiles
-     WHERE user_id = ? AND character_name IS NOT NULL
-     LIMIT 1`,
-    [userId]
-  );
-  if (!rows[0]) throw httpError(400, `Personnage requis pour le joueur #${userId}.`);
-  return rows[0];
+  const character = await loadCombatCharacter(userId);
+  if (!character) throw httpError(400, `Personnage requis pour le joueur #${userId}.`);
+  return character;
 }
 
 /**
@@ -98,7 +91,7 @@ async function loadTalentEffectCodes(userId) {
 }
 
 async function buildFighter(userId, deckId, seat) {
-  const [profile, statsResult, deckInfo, talentCodes] = await Promise.all([
+  const [character, statsResult, deckInfo, talentCodes] = await Promise.all([
     loadFighterProfile(userId),
     getComputedStats(userId),
     resolveDeckCards(userId, deckId),
@@ -112,10 +105,9 @@ async function buildFighter(userId, deckId, seat) {
   return {
     seat,
     userId,
-    name: profile.name,
-    level: Number(profile.level) || 1,
-    rank: profile.rank,
-    elementAffinity: profile.element_affinity,
+    name: character.name,
+    ...publicFighterIdentity(character),
+    elementAffinity: character.elementAffinity,
     hp: maxHp,
     maxHp,
     block: Math.max(0, Number(stats.startingBlock) || 0),

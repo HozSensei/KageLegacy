@@ -11,6 +11,7 @@ COPY frontend/ ./
 COPY shared/ /app/shared/
 # Le moteur PvP partagé réutilise les modules purs de combat PvE.
 COPY backend/src/services/deckCombat/ /app/backend/src/services/deckCombat/
+COPY backend/src/services/characterAppearance.js /app/backend/src/services/characterAppearance.js
 
 # Même origine : nginx proxy /api → API Node
 ENV VITE_API_URL=

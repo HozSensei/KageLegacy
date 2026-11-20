@@ -243,9 +243,14 @@ CREATE TABLE `player_profiles` (
   `display_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `character_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `character_avatar_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `character_avatar_id` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'aspirant-1-1',
+  `character_border_color` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `character_background_color` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `character_nickname_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_level` int unsigned NOT NULL DEFAULT '1',
+  `character_highest_level` int unsigned NOT NULL DEFAULT '1',
   `character_xp` int unsigned NOT NULL DEFAULT '0',
-  `character_rank` enum('Genin','Chunin','Jonin','ANBU','Kage') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Genin',
+  `character_rank` enum('Genin','Chunin','Jonin','ANBU','Kage','Aspirant ninja') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aspirant ninja',
   `character_talent_points_available` int unsigned NOT NULL DEFAULT '1',
   `character_element_affinity` enum('Katon','Suiton','Raiton','Doton','Futon') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Katon',
   `character_faction_id` enum('midorihara','kareno','oborohama') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -253,6 +258,7 @@ CREATE TABLE `player_profiles` (
   `character_created_at` timestamp NULL DEFAULT NULL,
   `character_updated_at` timestamp NULL DEFAULT NULL,
   `ryos` int NOT NULL DEFAULT '10000',
+  `async_duel_enabled` tinyint(1) NOT NULL DEFAULT '0',
   `language` enum('fr','en') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'fr',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `card_dust` int unsigned NOT NULL DEFAULT '0' COMMENT 'Poussière de carte (désenchantement)',
@@ -651,6 +657,127 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+CREATE TABLE IF NOT EXISTS `async_duel_friendships` (
+  `user_low_id` int unsigned NOT NULL,
+  `user_high_id` int unsigned NOT NULL,
+  `requested_by` int unsigned NOT NULL,
+  `status` enum('pending','accepted') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_low_id`, `user_high_id`),
+  CONSTRAINT `ck_async_duel_friendship_pair` CHECK (`user_low_id` < `user_high_id`),
+  CONSTRAINT `ck_async_duel_friendship_requester` CHECK (`requested_by` IN (`user_low_id`, `user_high_id`)),
+  CONSTRAINT `fk_async_duel_friendship_low` FOREIGN KEY (`user_low_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_async_duel_friendship_high` FOREIGN KEY (`user_high_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_async_duel_friendship_requester` FOREIGN KEY (`requested_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `async_duels` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `attacker_id` int unsigned NOT NULL,
+  `defender_id` int unsigned NOT NULL,
+  `attacker_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `defender_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mode` enum('friend','random','enemy_faction') DEFAULT NULL,
+  `attacker_faction` varchar(32) DEFAULT NULL,
+  `defender_faction` varchar(32) DEFAULT NULL,
+  `revision` int unsigned NOT NULL DEFAULT '0',
+  `state_json` json NOT NULL,
+  `outcome` enum('victory','defeat','forfeited') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `finished_at` datetime(3) DEFAULT NULL,
+  `active_attacker_id` int unsigned GENERATED ALWAYS AS (IF(`finished_at` IS NULL, `attacker_id`, NULL)) VIRTUAL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_async_duel_active_attacker` (`active_attacker_id`),
+  KEY `idx_async_duel_attacker` (`attacker_id`),
+  KEY `idx_async_duel_defenses` (`defender_id`, `finished_at` DESC, `id` DESC),
+  CONSTRAINT `ck_async_duel_finished` CHECK ((`finished_at` IS NULL) = (`outcome` IS NULL)),
+  CONSTRAINT `fk_async_duel_attacker` FOREIGN KEY (`attacker_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_async_duel_defender` FOREIGN KEY (`defender_id`) REFERENCES `player_profiles` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `async_duel_reward_ledger` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `duel_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `attacker_id` int unsigned DEFAULT NULL,
+  `defender_id` int unsigned DEFAULT NULL,
+  `credited_on` date NOT NULL,
+  `beneficiary_slot` tinyint unsigned NOT NULL,
+  `ryos` int unsigned NOT NULL,
+  `winner_side` enum('attacker','defender') DEFAULT NULL,
+  `beneficiary_id` int unsigned GENERATED ALWAYS AS (IF(`winner_side` = 'attacker', `attacker_id`, `defender_id`)) VIRTUAL,
+  `pair_low_id` int unsigned GENERATED ALWAYS AS (LEAST(`attacker_id`, `defender_id`)) VIRTUAL,
+  `pair_high_id` int unsigned GENERATED ALWAYS AS (GREATEST(`attacker_id`, `defender_id`)) VIRTUAL,
+  `new_credit` tinyint GENERATED ALWAYS AS (IF(`winner_side` IS NULL, NULL, 1)) VIRTUAL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_async_duel_reward_duel` (`duel_id`),
+  UNIQUE KEY `uq_async_duel_reward_unordered_day` (`pair_low_id`, `pair_high_id`, `credited_on`, `new_credit`),
+  UNIQUE KEY `uq_async_duel_reward_beneficiary_slot` (`beneficiary_id`, `credited_on`, `beneficiary_slot`),
+  KEY `idx_async_duel_reward_attacker` (`attacker_id`),
+  KEY `idx_async_duel_reward_defender` (`defender_id`),
+  CONSTRAINT `ck_async_duel_reward_slot` CHECK (`beneficiary_slot` BETWEEN 1 AND 3),
+  CONSTRAINT `ck_async_duel_reward_ryos` CHECK (`ryos` > 0),
+  CONSTRAINT `fk_async_duel_reward_duel` FOREIGN KEY (`duel_id`) REFERENCES `async_duels` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_async_duel_reward_attacker` FOREIGN KEY (`attacker_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_async_duel_reward_defender` FOREIGN KEY (`defender_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `async_duel_faction_points` (
+  `duel_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `week_start` date NOT NULL,
+  `pair_low_id` int unsigned NOT NULL,
+  `pair_high_id` int unsigned NOT NULL,
+  `winner_id` int unsigned NOT NULL,
+  `faction_id` varchar(32) NOT NULL,
+  `scored_on` date NOT NULL,
+  `winner_slot` tinyint unsigned NOT NULL,
+  PRIMARY KEY (`week_start`, `pair_low_id`, `pair_high_id`),
+  UNIQUE KEY `uq_async_duel_faction_duel` (`duel_id`),
+  UNIQUE KEY `uq_async_duel_faction_winner_slot` (`winner_id`, `scored_on`, `winner_slot`),
+  CONSTRAINT `ck_async_duel_faction_pair` CHECK (`pair_low_id` < `pair_high_id`),
+  CONSTRAINT `ck_async_duel_faction_winner` CHECK (`winner_id` IN (`pair_low_id`, `pair_high_id`)),
+  CONSTRAINT `ck_async_duel_faction_slot` CHECK (`winner_slot` BETWEEN 1 AND 3),
+  CONSTRAINT `fk_async_duel_faction_duel` FOREIGN KEY (`duel_id`) REFERENCES `async_duels` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `async_duel_weekly_state` (
+  `id` tinyint unsigned NOT NULL,
+  `installed_at` datetime(6) NOT NULL,
+  `first_week_start` date NOT NULL,
+  `next_week_start` date NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `ck_async_duel_weekly_state_singleton` CHECK (`id` = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `async_duel_village_membership` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `effective_at` datetime(6) NOT NULL,
+  `faction_id` varchar(32) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_async_duel_membership_opening` (`user_id`, `effective_at`, `id`),
+  CONSTRAINT `fk_async_duel_membership_profile` FOREIGN KEY (`user_id`) REFERENCES `player_profiles` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `async_duel_weekly_settlements` (
+  `week_start` date NOT NULL,
+  `winner_faction_id` varchar(32) DEFAULT NULL,
+  `reward_ryos` int unsigned NOT NULL,
+  `settled_at` datetime(6) NOT NULL,
+  PRIMARY KEY (`week_start`),
+  CONSTRAINT `ck_async_duel_weekly_settlement_reward` CHECK (
+    (`winner_faction_id` IS NULL AND `reward_ryos` = 0) OR
+    (`winner_faction_id` IS NOT NULL AND `reward_ryos` > 0)
+  )
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `async_duel_weekly_reward_ledger` (
+  `week_start` date NOT NULL,
+  `user_id` int unsigned NOT NULL,
+  `ryos` int unsigned NOT NULL,
+  `read_at` datetime(6) DEFAULT NULL,
+  PRIMARY KEY (`week_start`, `user_id`),
+  KEY `idx_async_duel_weekly_ledger_user_week` (`user_id`, `week_start`),
+  CONSTRAINT `ck_async_duel_weekly_ledger_ryos` CHECK (`ryos` > 0),
+  CONSTRAINT `fk_async_duel_weekly_ledger_week` FOREIGN KEY (`week_start`) REFERENCES `async_duel_weekly_settlements` (`week_start`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

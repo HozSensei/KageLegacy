@@ -1,8 +1,8 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import EnemyDisplay from './EnemyDisplay.vue';
-import PlayerStatus from './PlayerStatus.vue';
+import CombatFighter from './CombatFighter.vue';
+import IntentDisplay from './IntentDisplay.vue';
 import CombatHand from './CombatHand.vue';
 import CombatHeaderLog from './CombatHeaderLog.vue';
 import CombatDropZones from './CombatDropZones.vue';
@@ -17,6 +17,7 @@ const props = defineProps({
   busy: { type: Boolean, default: false },
   midRun: { type: Boolean, default: false },
   outcomeRewards: { type: Object, default: null },
+  allowReserve: { type: Boolean, default: true },
   // Null preserves the solo turn rules; coop supplies whether the viewer owns this turn.
   coopTurn: { type: Boolean, default: null },
 });
@@ -64,22 +65,16 @@ const reservedCard = computed(
   () => props.combat.player.reservedCard ?? props.combat.player.reserveCard
 );
 const ally = computed(() => (props.coopTurn !== null ? props.combat.ally : null));
-const allyStatus = computed(() => {
-  if (!ally.value) return null;
-  const { name, hp, maxHp, block, chakra, maxChakra, statuses } = ally.value;
-  return {
-    name: name || t('combat.allyLabel'),
-    hp: hp ?? 0,
-    maxHp: maxHp ?? 0,
-    block: block ?? 0,
-    chakra: chakra ?? 0,
-    maxChakra: maxChakra ?? 3,
-    statuses: Array.isArray(statuses) ? statuses : [],
-  };
-});
-const intentTargets = computed(() =>
-  props.coopTurn !== null ? [props.combat.player, ally.value] : null
-);
+function intentTargetLabel(intent) {
+  if (props.coopTurn === null || !intent) return '';
+  return (
+    intent.targetName ||
+    [props.combat.player, ally.value].find(
+      target => target?.id != null && String(target.id) === String(intent.targetId)
+    )?.name ||
+    ''
+  );
+}
 const selectedCard = computed(() =>
   props.combat.player.hand?.find(card => card.instanceId === props.selectedId)
 );
@@ -93,7 +88,7 @@ const dropActions = computed(() => [
   'play',
   ...(ally.value ? ['play-ally'] : []),
   'discard',
-  isPersistent.value ? 'discard-for-draw' : 'reserve',
+  ...(isPersistent.value ? ['discard-for-draw'] : props.allowReserve ? ['reserve'] : []),
 ]);
 
 function isDropDisabled(action) {
@@ -222,11 +217,26 @@ onBeforeUnmount(() => {
 
     <div class="arena__duel">
       <section class="arena__seat">
-        <EnemyDisplay
+        <CombatFighter
           :key="`enemy-${combat.id}`"
-          :enemy="combat.enemy"
-          :intent-targets="intentTargets"
-        />
+          :fighter="combat.enemy"
+          :role-label="t(combat.enemy.boss ? 'combat.bossLabel' : 'combat.enemyLabel')"
+          variant="enemy"
+          data-testid="enemy-display"
+        >
+          <template #aside>
+            <IntentDisplay
+              :intent="combat.enemy.intent"
+              :target-label="intentTargetLabel(combat.enemy.intent)"
+            />
+            <IntentDisplay
+              v-if="combat.enemy.nextIntent?.type"
+              :intent="combat.enemy.nextIntent"
+              :target-label="intentTargetLabel(combat.enemy.nextIntent)"
+              preview
+            />
+          </template>
+        </CombatFighter>
       </section>
 
       <span class="arena__vs" aria-hidden="true"
@@ -234,7 +244,14 @@ onBeforeUnmount(() => {
       >
 
       <section class="arena__seat arena__seat--self">
-        <PlayerStatus :key="`player-${combat.id}`" :player="combat.player" />
+        <CombatFighter
+          :key="`player-${combat.id}`"
+          :fighter="combat.player"
+          :role-label="t('combat.youLabel')"
+          :arts="combat.stats"
+          data-testid="player-status"
+          show-piles
+        />
       </section>
 
       <Transition name="turn-banner">
@@ -257,16 +274,13 @@ onBeforeUnmount(() => {
       />
     </div>
 
-    <PlayerStatus
-      v-if="allyStatus"
+    <CombatFighter
+      v-if="ally"
       :key="`ally-${combat.id}`"
-      :player="allyStatus"
+      :fighter="ally"
       :role-label="t('combat.allyLabel')"
       class="arena__teammate"
       data-testid="coop-ally"
-      tone="wood"
-      hide-piles
-      show-zero-block
     />
 
     <section class="arena__hand-wrap">
@@ -303,7 +317,7 @@ onBeforeUnmount(() => {
           {{ t('combat.persistentHand.discardsRemaining', { n: combat.player.discardsRemaining }) }}
         </p>
       </template>
-      <template v-else>
+      <template v-else-if="allowReserve">
         <p class="arena__hand-hint">{{ t('combat.reserveHint') }}</p>
         <p class="arena__hand-hint arena__reserve-status" role="status">
           <span v-if="reservedCard">{{ t('combat.cardReserved') }}</span>
@@ -330,7 +344,7 @@ onBeforeUnmount(() => {
           {{ t('combat.discardForDraw') }}
         </button>
         <button
-          v-else
+          v-else-if="allowReserve"
           type="button"
           class="btn-ghost"
           :disabled="!selectedId || isDropDisabled('reserve')"

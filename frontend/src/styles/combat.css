@@ -72,9 +72,7 @@
   .arena__duel {
     position: relative;
     display: grid;
-    grid-template-rows: repeat(2, minmax(15.75rem, auto));
-    gap: 0.75rem;
-    min-height: 32.25rem;
+    gap: 1rem;
   }
 
   .arena__vs {
@@ -85,10 +83,6 @@
     display: flex;
     min-width: 0;
     min-height: 0;
-  }
-
-  .arena__seat > .fighter {
-    flex: 1;
   }
 
   .arena__hand-head {
@@ -180,238 +174,6 @@
     opacity: 0;
   }
 
-  /* ——— Combattant ——— */
-
-  .fighter {
-    position: relative;
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 0.8rem;
-    width: 100%;
-    min-width: 0;
-    padding: clamp(0.9rem, 2.5vw, 1.4rem);
-    border: 1px solid color-mix(in srgb, var(--tone) 24%, transparent);
-    border-radius: var(--radius-md);
-    background: var(--tone-tint);
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--color-bg-card) 55%, transparent),
-      0 0.35rem 1rem color-mix(in srgb, var(--color-ink) 8%, transparent);
-  }
-
-  .fighter--hit {
-    animation: shake 380ms ease;
-  }
-
-  .fighter__head {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    min-width: 0;
-  }
-
-  .fighter__avatar {
-    display: grid;
-    place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    flex: none;
-    background: var(--tone-fill);
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    font-weight: 800;
-    font-stretch: 80%;
-    line-height: 1;
-    color: var(--tone-on);
-  }
-
-  .fighter__avatar--lozenge {
-    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
-    width: 3.75rem;
-    height: 3.75rem;
-    font-size: 1.5rem;
-  }
-
-  .fighter__role {
-    font-size: var(--type-kicker);
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--tone);
-  }
-
-  .fighter__name {
-    margin-top: 0.15rem;
-    font-family: var(--font-display);
-    font-size: clamp(1.25rem, 1rem + 1.2vw, 1.75rem);
-    font-weight: 700;
-    font-stretch: 88%;
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    overflow-wrap: anywhere;
-  }
-
-  .fighter__hp {
-    position: relative;
-  }
-
-  .fighter__hp-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.6rem;
-  }
-
-  .fighter__hp-value {
-    font-family: var(--font-display);
-    font-size: clamp(3rem, 2rem + 4.5vw, 5.25rem);
-    font-weight: 800;
-    font-stretch: 76%;
-    font-variant-numeric: tabular-nums lining-nums;
-    line-height: 0.82;
-    letter-spacing: -0.03em;
-    color: var(--color-ink);
-  }
-
-  .fighter__hp-max {
-    padding-bottom: 0.2rem;
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 700;
-    font-stretch: 80%;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-    color: var(--color-ink-muted);
-  }
-
-  .fighter__hp-unit {
-    margin-left: 0.3rem;
-    font-family: var(--font-sans);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .fighter__bar {
-    height: 0.9rem;
-    margin-top: 0.6rem;
-    background: color-mix(in srgb, var(--color-ink) 12%, transparent);
-  }
-
-  .fighter__bar-fill {
-    display: block;
-    height: 100%;
-    background: var(--tone-fill);
-    transition: width 520ms var(--ease-out-quint);
-  }
-
-  .fighter__row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem 1rem;
-    min-height: 2rem;
-  }
-
-  .fighter__meta {
-    font-size: 0.75rem;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-ink-muted);
-  }
-
-  /* Chiffres flottants : dégâts, soins */
-  .float-num {
-    position: absolute;
-    top: -0.25rem;
-    right: 0.25rem;
-    z-index: 2;
-    font-family: var(--font-display);
-    font-size: 2.25rem;
-    font-weight: 800;
-    font-stretch: 76%;
-    line-height: 1;
-    pointer-events: none;
-    animation: float-up 900ms ease-out both;
-  }
-
-  .float-num--loss {
-    color: var(--color-fire);
-  }
-
-  .float-num--gain {
-    color: var(--color-leaf);
-  }
-
-  /* Armure : carré plein */
-  .armor-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    height: 2rem;
-    padding: 0 0.6rem 0 0.45rem;
-    background: var(--color-ink);
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--color-on-ink);
-    animation: pop-in 320ms var(--ease-out-quint) both;
-  }
-
-  .armor-chip__value {
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 800;
-    font-stretch: 76%;
-    letter-spacing: 0;
-    line-height: 1;
-  }
-
-  /* Chakra : losanges */
-  .chakra {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .chakra__pips {
-    display: inline-flex;
-    gap: 0.4rem;
-    padding: 0 0.2rem;
-  }
-
-  .chakra__pip {
-    width: 0.95rem;
-    height: 0.95rem;
-    box-shadow: inset 0 0 0 2px var(--color-gold);
-    transform: rotate(45deg) scale(0.82);
-    transition:
-      background-color var(--dur-base) ease,
-      transform var(--dur-base) var(--ease-spring);
-  }
-
-  .chakra__pip--on {
-    background: var(--color-gold-fill);
-    box-shadow: none;
-    transform: rotate(45deg) scale(1);
-  }
-
-  .chakra__label {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-variant-numeric: tabular-nums;
-    color: var(--color-ink-muted);
-  }
-
-  .fighter__statuses {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
   @media (min-width: 640px) {
     .arena__actions {
       display: flex;
@@ -428,9 +190,7 @@
   @media (min-width: 768px) {
     .arena__duel {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-rows: minmax(21rem, auto);
-      gap: 1rem;
-      min-height: 21rem;
+      gap: 3rem;
     }
 
     .arena__duel > .arena__seat--self {

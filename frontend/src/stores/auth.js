@@ -63,11 +63,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register({ email, password, characterName, language }) {
+  async function register({ email, password, characterName, language, avatarId }) {
     loading.value = true;
     error.value = null;
     try {
-      const payload = { email, password, characterName, language };
+      const payload = { email, password, characterName, language, avatarId };
 
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
@@ -99,7 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
     checked.value = true;
   }
 
-  async function loginAsGuest({ characterName, language = 'fr' } = {}) {
+  async function loginAsGuest({ characterName, language = 'fr', avatarId } = {}) {
     loading.value = true;
     error.value = null;
     try {
@@ -108,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ characterName, language: lang }),
+        body: JSON.stringify({ characterName, language: lang, avatarId }),
       });
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));

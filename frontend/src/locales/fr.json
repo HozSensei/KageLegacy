@@ -722,6 +722,13 @@
   },
   "resources": {
     "balancesLabel": "Vos ressources",
+    "wallet": "Portefeuille",
+    "names": {
+      "ryos": "Ryos",
+      "kageCoins": "Kage Coins",
+      "dust": "Poussière de carte",
+      "essence": "Essence de carte"
+    },
     "ryos": "Ryos : {n}",
     "kageCoins": "Kage Coins : {n}",
     "dust": "Poussière de carte : {n}",
@@ -789,6 +796,24 @@
     "heal": "{n} soins",
     "selectOrCreateDeck": "Créez ou sélectionnez un deck pour commencer.",
     "deckSize": "{size} cartes ({min}–{max})",
+    "deckRules": {
+      "title": "Règles de création de deck",
+      "size": "De {min} à {max} cartes au total, copies comprises.",
+      "copies": "Maximum {maxCopies} exemplaires d’une même carte, dans la limite de ta collection.",
+      "clan": "Maximum {maxClan} carte de clan. | Maximum {maxClan} cartes de clan.",
+      "rarity": "Maximum {maxLegendaryOrMythic} cartes légendaires ou mythiques au total, cartes de clan de ces raretés comprises.",
+      "arts": "Exactement {requiredArts} voies distinctes, chacune avec au moins {minArtShare} % des cartes non neutres (arrondi au supérieur). Seule la voie principale de chaque carte compte."
+    },
+    "deckArts": {
+      "title": "Répartition des voies",
+      "summary": "Cartes neutres : {neutral} · Cartes de voie : {nonNeutral} · Minimum par voie : {min}"
+    },
+    "deckValidity": {
+      "valid": "Deck valide",
+      "invalid": "Deck non valide",
+      "unknown": "Validité non vérifiée",
+      "fix": "Ce deck ne peut pas être utilisé en combat. Corrige les points suivants :"
+    },
     "deckRarityLimits": "Clan {clanCount}/{maxClan} · Légendaires/mythiques {legendaryCount}/{maxLegendary}",
     "activeDeck": "Actif",
     "activateDeck": "Activer ce deck",
@@ -800,7 +825,7 @@
     "deckRecap": "Récapitulatif",
     "hideDeckRecap": "Masquer le récapitulatif",
     "deckRecapTitle": "Cartes du deck",
-    "cardsInDeck": "{count} exemplaires dans le deck",
+    "cardsInDeck": "Aucun exemplaire dans le deck | {count} exemplaire dans le deck | {count} exemplaires dans le deck",
     "addOneToDeck": "Ajouter un exemplaire de {name}",
     "removeOneFromDeck": "Retirer un exemplaire de {name}",
     "confirmDeleteDeck": "Êtes-vous sûr de vouloir supprimer le deck « {name} » ?",
@@ -1317,6 +1342,9 @@
     "chakraLabel": "Chakra",
     "intentLabel": "Intention actuelle",
     "nextIntentLabel": "Intention suivante",
+    "chainLabel": "Enchaînement",
+    "activeStatusLabel": "État actif",
+    "noStatus": "Aucun effet",
     "handTitle": "Main",
     "comboReady": "Combo prêt",
     "handHint": "Sélectionnez une carte puis « Jouer », ou double-cliquez dessus.",
@@ -1331,6 +1359,124 @@
     "insufficientChakra": "Chakra insuffisant pour jouer cette carte",
     "rankLabel": "Rang",
     "missionsListTitle": "Parcours disponibles"
+  },
+  "community": {
+    "villageRewards": {
+      "notification": "Gains du Village",
+      "unreadNotification": "Gains du Village — {count} gain non lu | Gains du Village — {count} gains non lus",
+      "title": "Vos gains du Village",
+      "intro": "Les gains confirmés sont déjà crédités dans votre portefeuille.",
+      "empty": "Vous n’avez pas encore de gains du Village confirmés.",
+      "loadFailed": "Impossible de charger vos gains du Village. Actualisez pour réessayer.",
+      "readFailed": "Impossible de marquer vos gains comme lus. Actualisez pour réessayer.",
+      "period": "{start} – {end} (UTC)",
+      "amount": "+{n} ryos",
+      "settledAt": "Crédité le {date} (UTC)"
+    },
+    "refresh": "Actualiser",
+    "searchTitle": "Trouver des joueurs",
+    "searchLabel": "Nom du joueur ou du personnage",
+    "search": "Rechercher",
+    "noResults": "Aucun joueur trouvé.",
+    "sendRequest": "Envoyer une demande",
+    "sendRequestTo": "Envoyer une demande d’amitié à {name}",
+    "accept": "Accepter",
+    "acceptFrom": "Accepter la demande de {name}",
+    "groups": {
+      "friends": {
+        "title": "Amis",
+        "empty": "Vous n’avez pas encore d’amis.",
+        "status": "Déjà ami",
+        "remove": "Retirer",
+        "removeByName": "Retirer {name} de vos amis"
+      },
+      "incoming": {
+        "title": "Demandes reçues",
+        "empty": "Aucune demande reçue en attente.",
+        "status": "Demande reçue",
+        "remove": "Refuser",
+        "removeByName": "Refuser la demande de {name}"
+      },
+      "outgoing": {
+        "title": "Demandes envoyées",
+        "empty": "Aucune demande envoyée en attente.",
+        "status": "Demande envoyée",
+        "remove": "Annuler",
+        "removeByName": "Annuler la demande envoyée à {name}"
+      }
+    },
+    "loadFailed": "Impossible de charger les amis et les demandes. Actualisez pour réessayer.",
+    "searchFailed": "La recherche a échoué. Réessayez.",
+    "updateFailed": "Impossible de confirmer la modification. Actualisez la liste avant de réessayer.",
+    "updated": "Liste d’amis et demandes mises à jour."
+  },
+  "deckDuels": {
+    "title": "Duel de decks",
+    "manageFriends": "Gérer mes amis au Village",
+    "viewVillageStandings": "Voir le classement hebdomadaire au Village",
+    "lead": "Affrontez les decks d’autres joueurs, pilotés par l’IA. L’autre joueur ne participe pas en direct.",
+    "refresh": "Actualiser",
+    "modes": {
+      "friend": "Défier un ami",
+      "random": "Adversaire aléatoire",
+      "enemy_faction": "Adversaire faction ennemie"
+    },
+    "friendGroups": {
+      "friends": "Amis",
+      "incoming": "Demandes reçues",
+      "outgoing": "Demandes envoyées"
+    },
+    "emptyFriendGroups": {
+      "friends": "Vous n’avez pas encore d’amis à défier.",
+      "incoming": "Aucune demande reçue en attente.",
+      "outgoing": "Aucune demande envoyée en attente."
+    },
+    "friendStatuses": {
+      "friends": "Déjà ami",
+      "incoming": "Demande reçue",
+      "outgoing": "Demande envoyée"
+    },
+    "removeFriends": {
+      "friends": "Retirer",
+      "incoming": "Refuser",
+      "outgoing": "Annuler"
+    },
+    "removeFriendNames": {
+      "friends": "Retirer {name} de vos amis",
+      "incoming": "Refuser la demande de {name}",
+      "outgoing": "Annuler la demande envoyée à {name}"
+    },
+    "searchLabel": "Trouver un joueur à ajouter",
+    "search": "Rechercher",
+    "emptyOpponents": "Aucun joueur trouvé.",
+    "requestFriend": "Envoyer une demande",
+    "requestFriendName": "Envoyer une demande d’ami à {name}",
+    "acceptFriend": "Accepter",
+    "acceptFriendName": "Accepter la demande de {name}",
+
+    "challenge": "Défier",
+    "challengeName": "Défier {name}",
+    "aiOpponent": "Adversaire piloté par l’IA",
+    "historyTitle": "Historique des défenses",
+    "emptyHistory": "Aucune défense terminée pour l’instant.",
+    "noReward": "Aucun gain",
+    "defenseLost": "Défense battue",
+    "defenseWon": "Défense réussie",
+    "challengerForfeited": "Abandon de l’adversaire",
+    "unknownOutcome": "Duel terminé",
+    "backToLobby": "Retour aux duels de decks",
+    "loadFailed": "Impossible de charger les duels de decks. Réessayez avec Actualiser.",
+    "searchFailed": "Impossible de rechercher des joueurs. Réessayez.",
+    "friendsLoadFailed": "Impossible de charger les amis et les demandes. Actualisez pour réessayer.",
+    "friendsUpdateFailed": "Impossible de confirmer la modification. Actualisez la liste des amis avant de réessayer.",
+
+    "startFailed": "Impossible de lancer le duel. Actualisez la page de duel avant de réessayer.",
+    "startConflict": "Le duel n’a pas pu être lancé. Vos duels ont été actualisés.",
+    "opponentUnavailable": "Aucun adversaire disponible pour ce duel. Vérifiez votre deck actif ou essayez une autre option.",
+    "actionFailed": "Impossible de confirmer l’action. Actualisez le duel avant de continuer.",
+    "actionConflict": "Le duel avait changé. L’état actuel a été chargé ; l’action n’a pas été rejouée.",
+    "invalidAction": "Cette action n’est pas autorisée dans l’état actuel du duel.",
+    "duelUnavailable": "Ce duel n’est plus disponible."
   },
   "coop": {
     "title": "Combat coopératif",
@@ -1442,7 +1588,52 @@
     "createKicker": "Nouveau ninja",
     "actionsLabel": "Raccourcis du profil",
     "previewLabel": "Aperçu",
-    "previewNamePlaceholder": "Votre ninja"
+    "previewNamePlaceholder": "Votre ninja",
+    "ranks": {
+      "aspirant": "Ninja aspirant",
+      "genin": "Genin",
+      "chunin": "Chunin",
+      "jonin": "Jonin",
+      "anbu": "ANBU",
+      "kage": "Kage"
+    },
+    "nicknames": {
+      "genin": "Shinobi en devenir",
+      "chunin": "Vétéran du terrain",
+      "jonin": "Élite shinobi",
+      "anbu": "Lame silencieuse",
+      "kage": "Légende du village"
+    },
+    "avatarPicker": {
+      "label": "Portrait",
+      "hint": "Choisissez un portrait pour votre ninja. Vous pourrez le changer dans votre profil.",
+      "rankLabel": "Grades des portraits",
+      "setLabel": "Séries de portraits",
+      "set": "Série {number}",
+      "locked": "Verrouillé",
+      "unlockAt": "Disponible au grade {rank}.",
+      "portrait": "Portrait {number} — {rank}",
+      "selected": "Sélection : {portrait}",
+      "noSelection": "Aucun portrait sélectionné. Votre initiale s’affiche à la place."
+    },
+    "appearance": {
+      "title": "Apparence",
+      "lead": "Personnalisez votre carte ninja. Les stats affichées sont celles du début d’une mission solo et ne sont pas modifiables ici.",
+      "borderColor": "Couleur de la bordure",
+      "backgroundColor": "Couleur du fond",
+      "default": "Par défaut",
+      "resetColor": "Rétablir la valeur par défaut : {label}",
+      "nickname": "Surnom",
+      "noNickname": "Aucun surnom",
+      "noUnlockedNicknames": "Vous n’avez pas encore gagné de surnom.",
+      "save": "Enregistrer l’apparence",
+      "saving": "Enregistrement…",
+      "discard": "Annuler les changements",
+      "discarded": "Changements annulés.",
+      "unsaved": "Changements non enregistrés.",
+      "saved": "Apparence enregistrée.",
+      "saveError": "Impossible d’enregistrer votre apparence. Veuillez réessayer."
+    }
   },
   "league": {
     "bot": "bot",
@@ -2135,6 +2326,24 @@
     "cause": "Cause {n}"
   },
   "village": {
+    "title": "Village",
+    "pageLead": "Cherchez des joueurs, gérez vos amis et vos demandes, et consultez le classement hebdomadaire des factions.",
+    "weeklyStandings": {
+      "title": "Classement hebdomadaire des factions",
+      "loadFailed": "Impossible de charger le classement des factions. Actualisez pour réessayer.",
+      "currentWeek": "Semaine en cours",
+      "previousWeek": "Semaine précédente",
+      "period": "Du {start} au {end} (UTC)",
+      "points": "{n} point | {n} points",
+      "winner": "Faction gagnante : {name}",
+      "noWinner": "Aucune faction gagnante.",
+      "empty": "Aucune faction au classement.",
+      "reward": "Récompense hebdomadaire : {n} ryos",
+      "upcomingReward": "Récompense hebdomadaire de {n} ryos à partir du {date} (UTC)",
+      "rewardStart": "Début des récompenses hebdomadaires le {date} (UTC)",
+      "settled": "Résultats définitifs.",
+      "pending": "Les résultats ne sont pas encore définitifs."
+    },
     "lead": "Quatre pays (Midorihara, Kareno, Oborohama, Ishikura) se disputent le prestige du serveur. Votre carrière solo alimente le score de faction — sans bonus de combat.",
     "yours": "Votre pays",
     "rivalryTitle": "Rivalité de cycle",

@@ -39,6 +39,8 @@
     "test:achievements": "node scripts/testAchievements.js",
     "test:player-character": "node scripts/testPlayerCharacter.js",
     "test:pvp-matchmaking": "node scripts/testPvpMatchmaking.js",
+    "test:async-duel-repository": "node --test scripts/testAsyncDuelRepository.js",
+    "test:weekly-village-payout": "node --test scripts/testWeeklyVillagePayout.js",
     "test:factions-leaderboard": "node scripts/testFactionsLeaderboard.js",
     "test:public-app-url": "node scripts/testPublicAppUrl.js",
     "e2e:preflight": "node scripts/e2ePreflight.js",

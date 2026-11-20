@@ -13,6 +13,7 @@ describe('Cartes — collection & decks V2', () => {
     cy.visit('/decks');
     cy.get('[data-testid="deck-builder-page"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="deck-builder"]').should('be.visible');
+    cy.get('[data-testid="deck-rules"]').find('li').should('have.length', 5);
 
     const deckName = `E2E Deck ${Date.now()}`;
     // Stage heroes are tall; scrollBehavior top would tuck the input under the sticky app bar.
@@ -23,6 +24,8 @@ describe('Cartes — collection & decks V2', () => {
     cy.get('[data-testid="deck-create-submit"]').click({ scrollBehavior: 'center' });
     cy.get('[data-testid="deck-list"]', { timeout: 15000 }).should('contain', deckName);
     cy.get('[data-testid="deck-builder"]').should('be.visible');
+    cy.get('[data-testid="deck-validity"]').should('have.attr', 'data-tone', 'vermilion');
+    cy.get('[data-testid="deck-validation"]').should('contain', '0/20');
   });
 
   it('ouvre la boutique de parchemins (boosters)', () => {
