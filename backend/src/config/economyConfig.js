@@ -21,8 +21,10 @@
  * (poids de tirage ≠ économie monétaire).
  */
 export const BOOSTER_COSTS = Object.freeze({
-  /** Pack F2P de base — ~3 victoires rang D. */
-  standard: Object.freeze({ ryos: 400, kageCoins: 0 }),
+  /** Pack F2P de base — ~2 victoires rang D. */
+  standard: Object.freeze({ ryos: 300, kageCoins: 0 }),
+  /** Pack ciblé par voie (Tai / Nin / Gen / Médecine). */
+  path: Object.freeze({ ryos: 550, kageCoins: 0 }),
   /** Pack ciblé élément — premium soft en Ryos. */
   elemental: Object.freeze({ ryos: 650, kageCoins: 0 }),
   /** Accélération payante — Kage Coins only (pas de Ryos). */
@@ -31,11 +33,18 @@ export const BOOSTER_COSTS = Object.freeze({
 
 export const BOOSTER_CARD_COUNT = 5;
 
+export const PATH_BOOSTER_STAT_TYPES = Object.freeze([
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medicine',
+]);
+
 /**
  * Ryos accordés à la création de compte (register / guest).
- * 300 ≈ 0 pack immédiat (standard 400) ; force un peu de farm D.
+ * 250 ≈ 0 pack immédiat (standard 300) ; force un peu de farm D.
  */
-export const STARTING_RYOS = 300;
+export const STARTING_RYOS = 250;
 
 // ---------------------------------------------------------------------------
 // Combat / missions deck (récompenses de victoire)
@@ -184,13 +193,20 @@ export function validateEconomyInvariants() {
 
   // Boosters
   if (BOOSTER_COSTS.standard.ryos <= 0) errors.push('standard booster must cost ryos');
-  if (BOOSTER_COSTS.elemental.ryos <= BOOSTER_COSTS.standard.ryos) {
-    errors.push('elemental must cost more ryos than standard');
+  if (BOOSTER_COSTS.path.ryos <= BOOSTER_COSTS.standard.ryos) {
+    errors.push('path must cost more ryos than standard');
+  }
+  if (BOOSTER_COSTS.elemental.ryos < BOOSTER_COSTS.path.ryos) {
+    errors.push('elemental must cost at least as much as path');
   }
   if (BOOSTER_COSTS.premium.ryos !== 0 || BOOSTER_COSTS.premium.kageCoins <= 0) {
     errors.push('premium booster must be kageCoins-only');
   }
-  if (BOOSTER_COSTS.standard.kageCoins !== 0 || BOOSTER_COSTS.elemental.kageCoins !== 0) {
+  if (
+    BOOSTER_COSTS.standard.kageCoins !== 0 ||
+    BOOSTER_COSTS.path.kageCoins !== 0 ||
+    BOOSTER_COSTS.elemental.kageCoins !== 0
+  ) {
     errors.push('F2P boosters must not require kageCoins');
   }
 
@@ -234,6 +250,7 @@ export function validateEconomyInvariants() {
 export default {
   BOOSTER_COSTS,
   BOOSTER_CARD_COUNT,
+  PATH_BOOSTER_STAT_TYPES,
   STARTING_RYOS,
   COMBAT_DEFAULT_REWARDS,
   COMBAT_REWARDS_BY_RANK,

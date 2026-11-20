@@ -45,7 +45,16 @@ async function onClaim({ level, track }) {
     const cardRewards = [...directCardEntries, ...boosterCardEntries];
 
     if (boosterReward && cardRewards.length) {
-      const type = ['standard', 'elemental', 'premium'].includes(boosterReward.boosterType)
+      const allowed = [
+        'standard',
+        'path-taijutsu',
+        'path-ninjutsu',
+        'path-genjutsu',
+        'path-medicine',
+        'elemental',
+        'premium',
+      ];
+      const type = allowed.includes(boosterReward.boosterType)
         ? boosterReward.boosterType
         : 'standard';
       rewardBooster.value = {

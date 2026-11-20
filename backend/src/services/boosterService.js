@@ -1,16 +1,22 @@
 /**
  * Boosters & Shop — Kage Legacy V2 Phase 5
  *
- * Coûts monétaires : `../config/economyConfig.js` (standard 400 Ryos / élém. 650 / premium 100 KC).
+ * Coûts monétaires : `../config/economyConfig.js`
+ * (standard 300 / path 550 / élém. 650 / premium 100 KC).
  * Probabilités documentées (poids relatifs, somme = 1000) :
  *   Standard   : common 700 / rare 230 / legendary 55 / mythic 15
+ *   Voie       : common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre stat_type)
  *   Élémentaire: common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre élément)
  *   Premium    : common 550 / rare 320 / legendary 100 / mythic 30 (+ 1 rare+ garantie)
  *
  * Tout le tirage et le débit monétaire sont serveur (anti-triche).
  */
 import { query, getConnection } from '../config/database.js';
-import { BOOSTER_CARD_COUNT, BOOSTER_COSTS } from '../config/economyConfig.js';
+import {
+  BOOSTER_CARD_COUNT,
+  BOOSTER_COSTS,
+  PATH_BOOSTER_STAT_TYPES,
+} from '../config/economyConfig.js';
 import { CARD_RARITIES, serializeCardDefinition } from './cardService.js';
 import { getCollectionEntry } from './collectionService.js';
 
@@ -21,6 +27,51 @@ function httpError(statusCode, message) {
 }
 
 const RARITY_RANK = { common: 0, rare: 1, legendary: 2, mythic: 3 };
+
+const PATH_PACK_META = {
+  taijutsu: {
+    nameFr: 'Parchemin Taijutsu',
+    nameEn: 'Taijutsu Scroll',
+    descriptionFr: '5 techniques de la voie Taijutsu.',
+    descriptionEn: '5 techniques from the Taijutsu path.',
+  },
+  ninjutsu: {
+    nameFr: 'Parchemin Ninjutsu',
+    nameEn: 'Ninjutsu Scroll',
+    descriptionFr: '5 techniques de la voie Ninjutsu.',
+    descriptionEn: '5 techniques from the Ninjutsu path.',
+  },
+  genjutsu: {
+    nameFr: 'Parchemin Genjutsu',
+    nameEn: 'Genjutsu Scroll',
+    descriptionFr: '5 techniques de la voie Genjutsu.',
+    descriptionEn: '5 techniques from the Genjutsu path.',
+  },
+  medicine: {
+    nameFr: 'Parchemin Médecine',
+    nameEn: 'Medicine Scroll',
+    descriptionFr: '5 techniques de la voie Médecine.',
+    descriptionEn: '5 techniques from the Medicine path.',
+  },
+};
+
+function buildPathBooster(statType) {
+  const meta = PATH_PACK_META[statType];
+  return {
+    type: `path-${statType}`,
+    nameFr: meta.nameFr,
+    nameEn: meta.nameEn,
+    descriptionFr: meta.descriptionFr,
+    descriptionEn: meta.descriptionEn,
+    cardCount: BOOSTER_CARD_COUNT,
+    cost: { ...BOOSTER_COSTS.path },
+    rarityWeights: { common: 650, rare: 260, legendary: 70, mythic: 20 },
+    guaranteedMinRarity: null,
+    elementalOnly: false,
+    pathOnly: true,
+    statType,
+  };
+}
 
 /** Catalogue public des parchemins (boosters). Coûts ← economyConfig. */
 export const BOOSTER_CATALOG = {
@@ -35,7 +86,12 @@ export const BOOSTER_CATALOG = {
     rarityWeights: { common: 700, rare: 230, legendary: 55, mythic: 15 },
     guaranteedMinRarity: null,
     elementalOnly: false,
+    pathOnly: false,
+    statType: null,
   },
+  ...Object.fromEntries(
+    PATH_BOOSTER_STAT_TYPES.map((statType) => [`path-${statType}`, buildPathBooster(statType)]),
+  ),
   elemental: {
     type: 'elemental',
     nameFr: 'Parchemin Élémentaire',
@@ -47,6 +103,8 @@ export const BOOSTER_CATALOG = {
     rarityWeights: { common: 650, rare: 260, legendary: 70, mythic: 20 },
     guaranteedMinRarity: null,
     elementalOnly: true,
+    pathOnly: false,
+    statType: null,
   },
   premium: {
     type: 'premium',
@@ -59,6 +117,8 @@ export const BOOSTER_CATALOG = {
     rarityWeights: { common: 550, rare: 320, legendary: 100, mythic: 30 },
     guaranteedMinRarity: 'rare',
     elementalOnly: false,
+    pathOnly: false,
+    statType: null,
   },
 };
 
@@ -84,7 +144,9 @@ export function serializeBooster(def) {
     rarityWeights: { ...def.rarityWeights },
     probabilities: weightsToProbabilities(def.rarityWeights),
     guaranteedMinRarity: def.guaranteedMinRarity,
-    elementalOnly: def.elementalOnly,
+    elementalOnly: Boolean(def.elementalOnly),
+    pathOnly: Boolean(def.pathOnly),
+    statType: def.statType || null,
   };
 }
 
@@ -186,7 +248,12 @@ export function selectCardsForRarities(rarities, poolsByRarity, rng = Math.rando
 /**
  * Charge le pool de cartes éligibles aux boosters (hors exclusives saison).
  */
-export async function loadBoosterPools({ elementalOnly = false, element = null } = {}) {
+export async function loadBoosterPools({
+  elementalOnly = false,
+  element = null,
+  pathOnly = false,
+  statType = null,
+} = {}) {
   const where = ['is_exclusive = 0'];
   const params = [];
 
@@ -198,6 +265,13 @@ export async function loadBoosterPools({ elementalOnly = false, element = null }
     if (!ELEMENTS.includes(element)) throw httpError(400, 'Élément invalide.');
     where.push('element = ?');
     params.push(element);
+  }
+  if (pathOnly || statType) {
+    if (!PATH_BOOSTER_STAT_TYPES.includes(statType)) {
+      throw httpError(400, 'Voie invalide.');
+    }
+    where.push('stat_type = ?');
+    params.push(statType);
   }
 
   const rows = await query(
@@ -285,11 +359,16 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
   if (def.elementalOnly && element && !ELEMENTS.includes(element)) {
     throw httpError(400, 'Élément invalide.');
   }
+  if (def.pathOnly && !PATH_BOOSTER_STAT_TYPES.includes(def.statType)) {
+    throw httpError(400, 'Voie invalide.');
+  }
 
   // Charger le pool avant la transaction (lecture seule)
   const { pools, total } = await loadBoosterPools({
     elementalOnly: def.elementalOnly,
     element: def.elementalOnly ? element : null,
+    pathOnly: Boolean(def.pathOnly),
+    statType: def.pathOnly ? def.statType : null,
   });
   if (total === 0) {
     throw httpError(503, 'Catalogue de cartes insuffisant pour ce booster.');

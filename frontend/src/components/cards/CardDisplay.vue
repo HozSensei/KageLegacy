@@ -40,6 +40,8 @@ const props = defineProps({
   pressed: { type: Boolean, default: null },
   keyshortcuts: { type: String, default: null },
   description: { type: String, default: null },
+  /** Art de la carte précédente du tour — active le highlight d’enchaînement. */
+  previousCardStatType: { type: String, default: null },
 });
 
 const emit = defineEmits(['select']);
@@ -86,7 +88,9 @@ const elementLabel = computed(() => {
 const elementToneName = computed(() => elementTone(elementKey.value));
 
 const effectParts = computed(() =>
-  cardEffectParts(props.card, props.stats, { t, te, locale: locale.value })
+  cardEffectParts(props.card, props.stats, { t, te, locale: locale.value }, {
+    previousCardStatType: props.previousCardStatType,
+  })
 );
 
 function artLabelForKey(key) {
@@ -290,7 +294,17 @@ watch(
                 class="card-display__effects"
                 :aria-label="effectParts.aria.join(', ')"
               >
-                <li v-for="(text, i) in effectParts.texts" :key="i">{{ text }}</li>
+                <li
+                  v-for="(entry, i) in effectParts.texts"
+                  :key="i"
+                  :class="{
+                    'card-display__effect--combo': entry.kind === 'combo',
+                    'card-display__effect--combo-active': entry.active,
+                    [`card-display__effect--art-${entry.art}`]: entry.active && entry.art,
+                  }"
+                >
+                  {{ entry.text }}
+                </li>
               </ul>
             </div>
 
@@ -721,12 +735,18 @@ watch(
   opacity: 0.9;
 }
 
-/* Gemme chakra — coin haut droit débordant */
+/* Gemme chakra — coin haut droit débordant (cyan / or) */
 .card-display__chakra {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
   filter: drop-shadow(3px 6px 3px #070b13a9);
+  --gem-light: #e8fbff;
+  --gem-highlight: #7ed7f2;
+  --gem-mid: #0e7490;
+  --gem-shadow: #0c4a6e;
+  --gem-border: #f5d78e;
+  --gem-glow: #cffafe;
 }
 
 .card-display__chakra-gem {
@@ -735,17 +755,17 @@ watch(
   transform: rotate(45deg);
   background: linear-gradient(
     135deg,
-    var(--gem-light, #fff3d6) 0%,
-    var(--gem-highlight, #b9d4e8) 24%,
-    var(--gem-mid, #3d648b) 50%,
-    var(--gem-shadow, #162d4d) 56%,
-    var(--gem-highlight, #a7d3ee) 81%,
-    var(--gem-light, #fff0c3) 100%
+    var(--gem-light, #e8fbff) 0%,
+    var(--gem-highlight, #7ed7f2) 24%,
+    var(--gem-mid, #0e7490) 50%,
+    var(--gem-shadow, #0c4a6e) 56%,
+    var(--gem-highlight, #7ed7f2) 81%,
+    var(--gem-light, #fff7d6) 100%
   );
-  border: 2px solid var(--gem-border, #f7dbab);
+  border: 2px solid var(--gem-border, #f5d78e);
   box-shadow:
-    inset 0 0 0 3px var(--gem-shadow, #1b314b),
-    inset 0 0 12px var(--gem-glow, #f4fcff);
+    inset 0 0 0 3px var(--gem-shadow, #0c4a6e),
+    inset 0 0 12px var(--gem-glow, #cffafe);
 }
 
 .card-display__chakra-gem::after {
@@ -777,30 +797,30 @@ watch(
 }
 
 .card-display__figure--damage {
-  --gem-light: #ff898d;
-  --gem-highlight: #ed313d;
-  --gem-mid: #c61525;
-  --gem-shadow: #730c1b;
-  --gem-border: #ff838c;
-  --gem-glow: #ff5664;
+  --gem-light: #fecaca;
+  --gem-highlight: #f87171;
+  --gem-mid: #dc2626;
+  --gem-shadow: #7f1d1d;
+  --gem-border: #fb7185;
+  --gem-glow: #fda4af;
 }
 
 .card-display__figure--block {
-  --gem-light: #a6a6a6;
-  --gem-highlight: #656565;
-  --gem-mid: #414141;
-  --gem-shadow: #232323;
-  --gem-border: #bdbdbd;
-  --gem-glow: #858585;
+  --gem-light: #fde68a;
+  --gem-highlight: #d97706;
+  --gem-mid: #92400e;
+  --gem-shadow: #451a03;
+  --gem-border: #fbbf24;
+  --gem-glow: #fcd34d;
 }
 
 .card-display__figure--heal {
-  --gem-light: #82ee92;
-  --gem-highlight: #26c44f;
-  --gem-mid: #148532;
-  --gem-shadow: #07511e;
-  --gem-border: #84ef98;
-  --gem-glow: #3ad361;
+  --gem-light: #bbf7d0;
+  --gem-highlight: #4ade80;
+  --gem-mid: #16a34a;
+  --gem-shadow: #14532d;
+  --gem-border: #86efac;
+  --gem-glow: #6ee7b7;
 }
 
 .card-display__chakra-number {
@@ -885,6 +905,26 @@ watch(
   font-weight: 700;
   line-height: 1.35;
   color: #27313b;
+}
+
+.card-display__effect--combo-active {
+  font-weight: 900;
+}
+
+.card-display__effect--art-taijutsu {
+  color: #b45309;
+}
+
+.card-display__effect--art-ninjutsu {
+  color: #1d4ed8;
+}
+
+.card-display__effect--art-genjutsu {
+  color: #7e22ce;
+}
+
+.card-display__effect--art-medicine {
+  color: #15803d;
 }
 
 /* Bonus passifs — icône de statistique + valeur */

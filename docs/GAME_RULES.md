@@ -75,7 +75,7 @@ Désenchanter donne de la poussière selon la rareté :
 
 ## Boutique
 
-Les boosters standard et élémentaires s'achètent en Ryos. Le booster premium utilise les Kage Coins. Chaque booster contient 5 cartes, avec au moins une rare pour le premium.
+Les boosters standard, de voie et élémentaires s'achètent en Ryos. Le booster premium utilise les Kage Coins. Chaque booster contient 5 cartes, avec au moins une rare pour le premium.
 
 Les packs de Kage Coins et le Battle Pass Premium sont achetés via Stripe en production.
 

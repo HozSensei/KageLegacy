@@ -432,10 +432,12 @@ Un parchemin contient **5 cartes**.
 
 | Parchemin       | Prix           | Commune | Rare | Légendaire | Mythique |
 | --------------- | -------------- | ------- | ---- | ---------- | -------- |
-| **Standard**    | 400 Ryos       | 70 %    | 23 % | 5,5 %      | 1,5 %    |
+| **Standard**    | 300 Ryos       | 70 %    | 23 % | 5,5 %      | 1,5 %    |
+| **Voie** (×4)   | 550 Ryos       | 65 %    | 26 % | 7 %        | 2 %      |
 | **Élémentaire** | 650 Ryos       | 65 %    | 26 % | 7 %        | 2 %      |
 | **Premium**     | 100 Kage Coins | 55 %    | 32 % | 10 %       | 3 %      |
 
+- Les parchemins de **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) ne tirent que des cartes de cette voie.
 - Le parchemin **Élémentaire** ne contient que des cartes liées à un élément. Vous pouvez choisir lequel.
 - Le parchemin **Premium** garantit au moins une carte rare ou meilleure.
 - Une carte déjà possédée s'ajoute en exemplaire supplémentaire.

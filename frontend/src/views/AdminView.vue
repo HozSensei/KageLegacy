@@ -36,6 +36,7 @@ const selectedResetLabels = computed(() =>
 const loading = ref(false);
 const saving = ref(false);
 const resetting = ref(false);
+const freshResetting = ref(false);
 const error = ref('');
 const notice = ref('');
 let searchTimer;
@@ -117,10 +118,6 @@ async function resetPlayer() {
     error.value = t('admin.players.resetSelectionRequired');
     return;
   }
-  if (selectedPlayer.value.is_admin) {
-    error.value = t('admin.players.adminCannotReset');
-    return;
-  }
   const confirmed = window.confirm(
     `${t('admin.players.resetConfirm', { name: playerName })}\n\n${selectedResetLabels.value.join('\n')}`
   );
@@ -140,6 +137,29 @@ async function resetPlayer() {
     error.value = cause.message;
   } finally {
     resetting.value = false;
+  }
+}
+
+async function freshResetPlayer() {
+  if (!selectedPlayer.value) return;
+  const playerName = selectedPlayer.value.username;
+  const confirmed = window.confirm(t('admin.players.freshResetConfirm', { name: playerName }));
+  if (!confirmed) return;
+
+  freshResetting.value = true;
+  error.value = '';
+  notice.value = '';
+  try {
+    await request(`/api/admin/players/${selectedPlayer.value.id}/reset`, {
+      method: 'POST',
+      body: JSON.stringify({ freshStart: true }),
+    });
+    await loadPlayers();
+    notice.value = t('admin.players.freshResetSuccess', { name: playerName });
+  } catch (cause) {
+    error.value = cause.message;
+  } finally {
+    freshResetting.value = false;
   }
 }
 </script>
@@ -244,13 +264,10 @@ async function resetPlayer() {
             <p>{{ t('admin.players.current') }}: {{ Number(resource.current).toLocaleString() }}</p>
           </article>
         </div>
-        <p v-if="selectedPlayer.is_admin" class="mt-4 text-sm text-ink-muted">
-          {{ t('admin.players.adminCannotReset') }}
-        </p>
         <button
           type="button"
           class="btn-primary mt-5"
-          :disabled="saving || resetting || selectedPlayer.is_admin"
+          :disabled="saving || resetting || freshResetting"
           @click="grantResources"
         >
           {{ saving ? t('admin.players.granting') : t('admin.players.grant') }}
@@ -265,7 +282,7 @@ async function resetPlayer() {
                 <input
                   v-model="resetSelection[option.key]"
                   type="checkbox"
-                  :disabled="selectedPlayer.is_admin || saving || resetting"
+                  :disabled="saving || resetting || freshResetting"
                 />
                 <span>{{ option.label }}</span>
               </label>
@@ -274,10 +291,30 @@ async function resetPlayer() {
           <button
             type="button"
             class="btn-danger"
-            :disabled="saving || resetting || selectedPlayer.is_admin"
+            :disabled="saving || resetting || freshResetting"
             @click="resetPlayer"
           >
             {{ resetting ? t('admin.players.resetting') : t('admin.players.reset') }}
+          </button>
+        </div>
+
+        <div class="admin-reset mt-8">
+          <div>
+            <h3 class="admin-title">{{ t('admin.players.freshResetTitle') }}</h3>
+            <p class="admin-lead">{{ t('admin.players.freshResetWarning') }}</p>
+          </div>
+          <button
+            type="button"
+            class="btn-danger"
+            :disabled="saving || resetting || freshResetting"
+            data-testid="admin-fresh-reset"
+            @click="freshResetPlayer"
+          >
+            {{
+              freshResetting
+                ? t('admin.players.freshResetting')
+                : t('admin.players.freshReset')
+            }}
           </button>
         </div>
       </template>

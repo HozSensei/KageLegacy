@@ -28,12 +28,20 @@ function seededRng(seed) {
 
 // --- Catalogue ---
 assert(BOOSTER_TYPES.includes('standard'), 'standard type');
+assert(BOOSTER_TYPES.includes('path-taijutsu'), 'path-taijutsu type');
+assert(BOOSTER_TYPES.includes('path-ninjutsu'), 'path-ninjutsu type');
+assert(BOOSTER_TYPES.includes('path-genjutsu'), 'path-genjutsu type');
+assert(BOOSTER_TYPES.includes('path-medicine'), 'path-medicine type');
 assert(BOOSTER_TYPES.includes('elemental'), 'elemental type');
 assert(BOOSTER_TYPES.includes('premium'), 'premium type');
 
 const standard = getBoosterDefinition('standard');
-assert(standard.cost.ryos === 400 && standard.cost.kageCoins === 0, 'standard cost');
+assert(standard.cost.ryos === 300 && standard.cost.kageCoins === 0, 'standard cost');
 assert(standard.cardCount === 5, 'standard card count');
+
+const pathTai = getBoosterDefinition('path-taijutsu');
+assert(pathTai.pathOnly === true && pathTai.statType === 'taijutsu', 'path taijutsu filter');
+assert(pathTai.cost.ryos === 550, 'path cost');
 
 const elemental = getBoosterDefinition('elemental');
 assert(elemental.elementalOnly === true, 'elemental filter');

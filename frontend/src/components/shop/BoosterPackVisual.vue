@@ -7,7 +7,7 @@ import { elementTone } from '../../utils/cardVisuals'
 defineOptions({ name: 'BoosterPackVisual' })
 
 const props = defineProps({
-  /** standard | elemental | premium */
+  /** standard | path-* | elemental | premium */
   type: { type: String, default: 'standard' },
   /** Teinte le pack élémentaire selon l’élément choisi. */
   element: { type: String, default: null },
@@ -34,10 +34,18 @@ const tearFilter = ref(null)
 let drag = null
 let suppressClick = false
 
+const PATH_TONES = {
+  'path-taijutsu': 'vermilion',
+  'path-ninjutsu': 'sky',
+  'path-genjutsu': 'indigo',
+  'path-medicine': 'leaf',
+}
+
 const tone = computed(() => {
   if (props.type === 'elemental' && props.element) return elementTone(props.element)
   if (props.type === 'premium') return 'gold'
   if (props.type === 'elemental') return 'sky'
+  if (PATH_TONES[props.type]) return PATH_TONES[props.type]
   return 'indigo'
 })
 
@@ -276,6 +284,66 @@ function onTearKeydown(e) {
   --pack-foil-3: #102818;
   --pack-foil-4: #60a068;
   --pack-foil-5: #0c1c10;
+  --pack-muted: #a8d090;
+  --pack-tear-0: #285838;
+  --pack-tear-1: #204828;
+  --pack-tear-2: #102818;
+}
+
+.booster-pack-visual--path-taijutsu {
+  --pack-edge: #e8a090;
+  --pack-foil-0: #3a1814;
+  --pack-foil-1: #a04838;
+  --pack-foil-2: #4a2018;
+  --pack-foil-3: #2a100c;
+  --pack-foil-4: #c06048;
+  --pack-foil-5: #1a0c08;
+  --pack-ink: #f8e8e4;
+  --pack-muted: #e8a090;
+  --pack-tear-0: #6a3028;
+  --pack-tear-1: #4a2018;
+  --pack-tear-2: #2a100c;
+}
+
+.booster-pack-visual--path-ninjutsu {
+  --pack-edge: #9ec8e8;
+  --pack-foil-0: #142838;
+  --pack-foil-1: #3a7098;
+  --pack-foil-2: #1a3850;
+  --pack-foil-3: #0e2030;
+  --pack-foil-4: #4a88b0;
+  --pack-foil-5: #0a1824;
+  --pack-ink: #e8f2f8;
+  --pack-muted: #9ec8e8;
+  --pack-tear-0: #284868;
+  --pack-tear-1: #1a3850;
+  --pack-tear-2: #0e2030;
+}
+
+.booster-pack-visual--path-genjutsu {
+  --pack-edge: #c4a8e0;
+  --pack-foil-0: #241838;
+  --pack-foil-1: #684898;
+  --pack-foil-2: #382850;
+  --pack-foil-3: #181028;
+  --pack-foil-4: #8860b0;
+  --pack-foil-5: #100c1c;
+  --pack-ink: #f0e8f8;
+  --pack-muted: #c4a8e0;
+  --pack-tear-0: #483068;
+  --pack-tear-1: #382850;
+  --pack-tear-2: #181028;
+}
+
+.booster-pack-visual--path-medicine {
+  --pack-edge: #a8d090;
+  --pack-foil-0: #183420;
+  --pack-foil-1: #488850;
+  --pack-foil-2: #204828;
+  --pack-foil-3: #102818;
+  --pack-foil-4: #60a068;
+  --pack-foil-5: #0c1c10;
+  --pack-ink: #e8f8ec;
   --pack-muted: #a8d090;
   --pack-tear-0: #285838;
   --pack-tear-1: #204828;

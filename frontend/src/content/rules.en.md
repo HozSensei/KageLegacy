@@ -432,10 +432,12 @@ A scroll contains **5 cards**.
 
 | Scroll        | Price          | Common | Rare | Legendary | Mythic |
 | ------------- | -------------- | ------ | ---- | --------- | ------ |
-| **Standard**  | 400 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
+| **Standard**  | 300 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
+| **Path** (×4) | 550 Ryos       | 65%    | 26%  | 7%        | 2%     |
 | **Elemental** | 650 Ryos       | 65%    | 26%  | 7%        | 2%     |
 | **Premium**   | 100 Kage Coins | 55%    | 32%  | 10%       | 3%     |
 
+- **Path** scrolls (Taijutsu, Ninjutsu, Genjutsu, Medicine) only roll cards from that path.
 - The **Elemental** scroll only contains cards tied to an element. You can choose which one.
 - The **Premium** scroll guarantees at least one rare-or-better card.
 - A card you already own is added as an extra copy.

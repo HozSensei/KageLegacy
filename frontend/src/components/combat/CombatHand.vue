@@ -231,6 +231,7 @@ const displayCards = computed(() =>
         :selected="selectedId === card.instanceId"
         compact
         :stats="stats"
+        :previous-card-stat-type="previousCardStatType"
         :upgrade-level="card.upgradeLevel || 0"
         :disabled="disabled"
         :pressed="selectedId === card.instanceId"
@@ -243,10 +244,6 @@ const displayCards = computed(() =>
         "
         keyshortcuts="Shift+Enter"
       />
-      <span v-if="comboPreviews[index]" class="hand-card__combo" aria-hidden="true">
-        <strong>{{ t('combat.comboReady') }}</strong>
-        <span>{{ comboPreviews[index] }}</span>
-      </span>
     </div>
   </TransitionGroup>
   <Teleport to="body">
@@ -309,28 +306,6 @@ const displayCards = computed(() =>
     opacity var(--dur-base) ease,
     box-shadow var(--dur-base) ease,
     outline-width var(--dur-fast) ease;
-}
-
-.hand-card__combo {
-  position: absolute;
-  inset: 0.15rem auto auto 0.15rem;
-  max-width: calc(100% - 0.3rem);
-  padding: 0.2rem 0.35rem;
-  border-radius: 0.35rem;
-  background: var(--color-ink);
-  color: var(--color-on-ink);
-  font-size: 0.7rem;
-  pointer-events: none;
-}
-
-.hand-card__combo span {
-  display: none;
-}
-
-.hand-card:hover .hand-card__combo span,
-.hand-card:focus-within .hand-card__combo span,
-.hand-card--selected .hand-card__combo span {
-  display: block;
 }
 
 .hand-card + .hand-card {
@@ -440,8 +415,8 @@ const displayCards = computed(() =>
 
 @media (max-width: 640px) {
   .hand {
-    --card-width: 8.5rem;
-    min-height: 16.75rem;
+    --card-width: 10.75rem;
+    min-height: 20.5rem;
   }
 }
 </style>

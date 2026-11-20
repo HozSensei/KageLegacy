@@ -6,6 +6,8 @@ import { activeComboLines, cardEffectParts, formatStructuredEffect } from './car
 
 const i18n = {
   t(key, args) {
+    if (key === 'cards.effectComboPreviousSame') return `same: ${args.reward}`;
+    if (key === 'cards.effectComboPreviousOther') return `${args.art}: ${args.reward}`;
     if (key === 'cards.effectComboPrevious') return `${args.art}: ${args.reward}`;
     if (key.startsWith('cards.stats.')) return args;
     return `${key}=${args.n}`;
@@ -26,7 +28,7 @@ test('previews only the branch matching the preceding art, without multiplying p
     'genjutsu: cards.effectComboDamage=2',
   ]);
   assert.deepEqual(activeComboLines(card, 'taijutsu', i18n), [
-    'taijutsu: cards.effectComboDamage=1',
+    'same: cards.effectComboDamage=1',
   ]);
   assert.deepEqual(activeComboLines(card, 'ninjutsu', i18n), []);
 });
@@ -116,9 +118,49 @@ for (const [locale, expected] of Object.entries({
       ],
     };
     const { texts, aria, figures } = cardEffectParts(balancedCard, null, translations(locale));
-    assert.deepEqual(texts, expected);
+    assert.deepEqual(
+      texts.map(entry => entry.text),
+      expected
+    );
     assert.deepEqual(aria.slice(1), expected);
     assert.equal(figures.length, 1);
     assert.equal(figures[0].base, balancedCard.damage);
   });
 }
+
+test('shortens combo copy when the required art matches the card art', () => {
+  const i18n = translations('fr');
+  const same = formatStructuredEffect(
+    { type: 'combo_previous', statType: 'genjutsu', damage: 2 },
+    { ...i18n, card: { statType: 'genjutsu' } }
+  );
+  const other = formatStructuredEffect(
+    { type: 'combo_previous', statType: 'genjutsu', damage: 2 },
+    { ...i18n, card: { statType: 'ninjutsu' } }
+  );
+  assert.equal(same, 'Enchaînement : 2 dégâts');
+  assert.equal(other, 'Après Genjutsu : 2 dégâts');
+});
+
+test('marks matching combo lines as active for combat highlighting', () => {
+  const i18n = translations('fr');
+  const { texts } = cardEffectParts(card, null, i18n, { previousCardStatType: 'genjutsu' });
+  const comboLines = texts.filter(entry => entry.kind === 'combo');
+  assert.equal(comboLines.length, 2);
+  assert.equal(comboLines.find(entry => entry.art === 'genjutsu')?.active, true);
+  assert.equal(comboLines.find(entry => entry.art === 'taijutsu')?.active, false);
+});
+
+test('surfaces summon creature stats on the card face', () => {
+  const i18n = translations('fr');
+  const summonCard = {
+    type: 'summon',
+    summon: { hp: 20, attack: 6, duration: 2, abilities: ['taunt'] },
+    effects: [],
+  };
+  const { texts } = cardEffectParts(summonCard, null, i18n);
+  assert.deepEqual(
+    texts.map(entry => entry.text),
+    ['20 PV', '6 ATK', '2 tours', 'Provocation']
+  );
+});
