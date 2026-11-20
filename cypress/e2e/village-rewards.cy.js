@@ -65,7 +65,11 @@ describe('Village rewards and header wallet', () => {
     cy.get(panelBalances).should('not.exist');
     cy.get(`${balances}:visible`).should('not.exist');
     cy.openNavMenu();
-    cy.get(panelBalances).should('be.visible').and('contain', '400').and('contain', 'Card essence');
+    cy.get(panelBalances)
+      .scrollIntoView()
+      .should('be.visible')
+      .and('contain', '400')
+      .and('contain', 'Card essence');
     cy.get('[data-testid="nav-menu-button"]').should('be.visible');
     cy.get('[data-testid="profile-menu-button"]').should('be.visible');
     cy.document()
@@ -101,7 +105,7 @@ describe('Village rewards and header wallet', () => {
         expect(root.scrollWidth).to.equal(root.clientWidth);
       });
     cy.openNavMenu();
-    cy.get(panelBalances).should('contain', '650');
+    cy.get(panelBalances).scrollIntoView().should('contain', '650');
   });
 
   it('keeps the dot until the confirmed row is in view on a direct Village visit', () => {
@@ -144,7 +148,7 @@ describe('Village rewards and header wallet', () => {
     cy.visit('/home');
     cy.wait('@rewards');
     cy.openNavMenu();
-    cy.get(panelBalances).should('be.visible');
+    cy.get(panelBalances).scrollIntoView().should('be.visible');
     cy.get('[data-testid="slide-panel-backdrop"]').click({ force: true });
     cy.get(bell).click();
     cy.get('#village-rewards [role="alert"]').should('contain', 'Impossible de charger');

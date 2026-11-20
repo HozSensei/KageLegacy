@@ -240,6 +240,7 @@ describe('Premiers pas, collection et decks', () => {
     cy.get('[data-testid="collection-upgrade-feedback"]').should('contain', 'Card upgraded');
     cy.openNavMenu();
     cy.get('[data-testid="nav-menu-panel"] [data-testid="header-wallet-balances"]')
+      .scrollIntoView()
       .should('be.visible')
       .invoke('text')
       .should(text => {

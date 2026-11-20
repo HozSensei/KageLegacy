@@ -15,11 +15,18 @@ const errorKeys = {
   'Carte absente du deck.': 'cardNotInDeck',
 };
 
+function localeCode(locale) {
+  if (typeof locale === 'string') return locale;
+  if (locale && typeof locale === 'object' && 'value' in locale) return String(locale.value || '');
+  return String(locale || '');
+}
+
 export function cardActionError(message, locale, t) {
   if (!message) return t('cards.requestFailed');
+  const lang = localeCode(locale);
   const key = errorKeys[message];
   if (key) return t(`cards.${key}`);
   const bilingual = message.split(' / ');
-  if (bilingual.length === 2) return locale === 'en' ? bilingual[1] : bilingual[0];
-  return locale === 'fr' ? message : t('cards.requestFailed');
+  if (bilingual.length === 2) return lang.startsWith('en') ? bilingual[1] : bilingual[0];
+  return lang.startsWith('fr') ? message : t('cards.requestFailed');
 }
