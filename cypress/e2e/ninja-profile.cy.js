@@ -3,8 +3,7 @@ const card = () => cy.get(byTestId('ninja-profile-card'));
 
 const initialProfile = {
   avatarId: 'aspirant-1-1',
-  borderColor: null,
-  backgroundColor: null,
+  backgroundId: null,
   nicknameId: null,
   unlockedNicknameIds: ['genin'],
 };
@@ -60,32 +59,22 @@ describe('Ninja identity card', () => {
     picker().contains('button', 'Genin').click();
     picker().find('input[value="genin-1-3"]').closest('label').click();
     cy.get(byTestId('profile-nickname')).select('Rising Shinobi');
-    cy.get(byTestId('profile-appearance-form'))
-      .find('input[type="color"]')
-      .eq(0)
-      .invoke('val', '#abcdef')
-      .trigger('input');
-    cy.get(byTestId('profile-appearance-form'))
-      .find('input[type="color"]')
-      .eq(1)
-      .invoke('val', '#123456')
-      .trigger('input');
+    cy.get(byTestId('ninja-card-background-joueur-1')).click();
 
     card().should('have.attr', 'data-avatar-id', 'genin-1-3');
+    card().should('have.attr', 'data-background-id', 'joueur-1');
     card().find(byTestId('ninja-card-nickname')).should('have.text', 'Rising Shinobi');
-    card().should('have.css', 'background-color', 'rgb(18, 52, 86)');
-    card().should('have.css', 'border-top-color', 'rgb(171, 205, 239)');
-    card().should('have.css', 'color', 'rgb(255, 255, 255)');
+    card().should('have.class', 'ninja-card--art');
     cy.get(byTestId('profile-save')).click();
     cy.wait('@saveProfile').its('request.body').should('deep.equal', {
       avatarId: 'genin-1-3',
-      borderColor: '#abcdef',
-      backgroundColor: '#123456',
+      backgroundId: 'joueur-1',
       nicknameId: 'genin',
     });
 
     cy.reload();
     card().should('have.attr', 'data-avatar-id', 'genin-1-3');
+    card().should('have.attr', 'data-background-id', 'joueur-1');
     card().find(byTestId('ninja-card-nickname')).should('have.text', 'Rising Shinobi');
     card().find(byTestId('ninja-card-hp')).should('have.text', '112/112');
     cy.get(byTestId('profile-save')).should('be.disabled');

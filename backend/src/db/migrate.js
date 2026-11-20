@@ -18,6 +18,12 @@ const ASYNC_DUEL_TABLES = [
 ];
 
 const COMPATIBILITY_COLUMNS = [
+  [
+    'player_profiles',
+    'character_background_id',
+    'varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
+    'character_avatar_id',
+  ],
   ['player_profiles', 'async_duel_enabled', 'TINYINT(1) NOT NULL DEFAULT 0', 'ryos'],
   ['async_duels', 'mode', "ENUM('friend','random','enemy_faction') DEFAULT NULL", 'defender_name'],
   ['async_duels', 'attacker_faction', 'VARCHAR(32) DEFAULT NULL', 'mode'],

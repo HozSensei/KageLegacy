@@ -16,8 +16,7 @@ async function fixture(t, { rewards } = {}) {
         rank: 'Genin',
         profile: {
           avatarId: `genin-1-${id}`,
-          borderColor: id === 2 ? '#aabbcc' : null,
-          backgroundColor: null,
+          backgroundId: id === 2 ? 'joueur-1' : null,
           nicknameId: id === 2 ? 'genin' : null,
           unlockedNicknameIds: ['genin'],
         },
@@ -148,8 +147,7 @@ test('HTTP : ami hors ligne, deck figé, reprise et écriture versionnée', asyn
   assert.equal(duel.player.profile.avatarId, 'genin-1-1');
   assert.deepEqual(duel.enemy.profile, {
     avatarId: 'genin-1-2',
-    borderColor: '#AABBCC',
-    backgroundColor: null,
+    backgroundId: 'joueur-1',
     nicknameId: 'genin',
   });
   assert.doesNotMatch(

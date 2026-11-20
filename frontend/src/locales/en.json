@@ -1687,10 +1687,10 @@
     "appearance": {
       "title": "Appearance",
       "lead": "Customize your ninja card. Its stats show your starting values for solo missions and can’t be edited here.",
-      "borderColor": "Border color",
-      "backgroundColor": "Background color",
+      "background": "Card background",
+      "backgroundHint": "Choose an illustration for your card background.",
+      "backgroundOption": "Background {number}",
       "default": "Default",
-      "resetColor": "Restore default: {label}",
       "nickname": "Nickname",
       "noNickname": "No nickname",
       "noUnlockedNicknames": "You haven’t earned any nicknames yet.",

@@ -46,6 +46,10 @@ export const NICKNAME_CATALOG = Object.freeze(
   ),
 );
 
+/** Fonds illustrés disponibles pour la carte ninja du joueur. */
+export const CARD_BACKGROUND_IDS = Object.freeze(['joueur-1', 'joueur-2']);
+const cardBackgroundIds = new Set(CARD_BACKGROUND_IDS);
+
 export function rankForLevel(level) {
   return ranks.findLast(({ minLevel }) => Number(level) >= minLevel)?.rank ?? ASPIRANT_RANK;
 }
@@ -58,8 +62,8 @@ export function isAvatarAvailableToRank(avatarId, rank) {
   return avatarRankIndex.get(avatarId) <= rankIndex.get(rank);
 }
 
-export function isProfileColor(color) {
-  return typeof color === 'string' && color.length === 7 && /^#[0-9a-f]{6}$/i.test(color);
+export function isKnownCardBackgroundId(backgroundId) {
+  return cardBackgroundIds.has(backgroundId);
 }
 
 export function unlockedNicknameIdsFor(row) {
@@ -76,13 +80,11 @@ export function unlockedNicknameIdsFor(row) {
 export function serializeCharacterAppearance(row) {
   const rank = row?.character_rank ?? row?.rank ?? rankForLevel(row?.character_level ?? row?.level);
   const avatarId = row?.character_avatar_id ?? row?.avatar_id;
-  const borderColor = row?.character_border_color ?? row?.border_color;
-  const backgroundColor = row?.character_background_color ?? row?.background_color;
+  const backgroundId = row?.character_background_id ?? row?.background_id;
   const nicknameId = row?.character_nickname_id ?? row?.nickname_id;
   return {
     avatarId: isAvatarAvailableToRank(avatarId, rank) ? avatarId : DEFAULT_AVATAR_ID,
-    borderColor: isProfileColor(borderColor) ? borderColor.toUpperCase() : null,
-    backgroundColor: isProfileColor(backgroundColor) ? backgroundColor.toUpperCase() : null,
+    backgroundId: isKnownCardBackgroundId(backgroundId) ? backgroundId : null,
     nicknameId: unlockedNicknameIdsFor(row).includes(nicknameId) ? nicknameId : null,
   };
 }

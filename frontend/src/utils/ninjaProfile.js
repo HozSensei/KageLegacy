@@ -1,4 +1,5 @@
 import { getNinjaRankKey } from '../constants/ninjaAvatars.js';
+import { getNinjaCardBackground } from '../constants/ninjaCardBackgrounds.js';
 
 export function ninjaRankLabel(rank, t, te) {
   const key = `player.ranks.${getNinjaRankKey(rank)}`;
@@ -11,17 +12,14 @@ export function ninjaNicknameLabel(id, t, te) {
   return id.replace(/[-_]+/g, ' ').replace(/^\S/, letter => letter.toUpperCase());
 }
 
-export function safeNinjaProfileColor(value) {
-  return typeof value === 'string' && value.length === 7 && /^#[0-9a-f]{6}$/i.test(value)
-    ? value.toLowerCase()
-    : null;
+export function safeNinjaCardBackgroundId(value) {
+  return getNinjaCardBackground(value) ? value : null;
 }
 
 export function readNinjaAppearance(profile) {
   return {
     avatarId: profile?.avatarId ?? null,
-    borderColor: safeNinjaProfileColor(profile?.borderColor),
-    backgroundColor: safeNinjaProfileColor(profile?.backgroundColor),
+    backgroundId: safeNinjaCardBackgroundId(profile?.backgroundId),
     nicknameId: profile?.nicknameId ?? null,
   };
 }

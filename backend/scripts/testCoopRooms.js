@@ -9,8 +9,7 @@ const load = async id => ({
   level: id === 1 ? 20 : 5,
   profile: {
     avatarId: id === 1 ? 'chunin-1-1' : 'genin-1-1',
-    borderColor: '#123abc',
-    backgroundColor: null,
+    backgroundId: 'joueur-1',
     nicknameId: id === 1 ? 'chunin' : null,
     nicknameCatalog: ['private metadata'],
   },
@@ -49,8 +48,7 @@ test('invitation, autorisation et états privés', async () => {
   assert.equal(guest.combat.ally.level, 20);
   assert.deepEqual(guest.combat.ally.profile, {
     avatarId: 'chunin-1-1',
-    borderColor: '#123ABC',
-    backgroundColor: null,
+    backgroundId: 'joueur-1',
     nicknameId: 'chunin',
   });
   assert.equal(guest.combat.player.rank, 'Genin');

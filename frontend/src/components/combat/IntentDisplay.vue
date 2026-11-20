@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import AppIcon from '../ui/AppIcon.vue';
 
 defineOptions({ name: 'IntentDisplay' });
 
@@ -18,26 +17,12 @@ const kind = computed(() => props.intent?.type || 'unknown');
 const text = computed(() => {
   const i = props.intent;
   if (!i) return t('combat.intent.unknown');
-  if (i.type === 'attack') {
-    if (props.preview) return t('combat.intent.attackType');
-    const dmg = i.displayDamage ?? i.damage ?? '?';
-    return t('combat.intent.attack', { n: dmg });
-  }
-  if (i.type === 'defend') {
-    if (props.preview) return t('combat.intent.defendType');
-    return t('combat.intent.defend', { n: i.block ?? '?' });
-  }
+  if (i.type === 'attack') return t('combat.intent.attackType');
+  if (i.type === 'defend') return t('combat.intent.defendType');
   if (i.type === 'buff') return t('combat.intent.buff');
   if (i.type === 'debuff') return t('combat.intent.debuff');
   if (i.type === 'sealed' || i.type === 'skip') return t('combat.intent.sealed');
   return t('combat.intent.special');
-});
-
-const glyph = computed(() => {
-  if (kind.value === 'sealed' || kind.value === 'skip') return 'debuff';
-  const known = ['attack', 'defend', 'buff', 'debuff', 'special'];
-  if (known.includes(kind.value)) return kind.value;
-  return props.intent ? 'special' : 'unknown';
 });
 
 /** Valeur chiffrée mise en avant (dégâts ou armure annoncés). */
@@ -64,9 +49,6 @@ const tone = computed(() => {
     :data-tone="tone"
     :data-testid="preview ? 'enemy-next-intent' : 'enemy-intent'"
   >
-    <span class="intent__glyph" aria-hidden="true">
-      <AppIcon :name="glyph" size="1.125rem" :stroke-width="2" />
-    </span>
     <span class="intent__body">
       <span class="intent__label">{{
         t(preview ? 'combat.nextIntentLabel' : 'combat.intentLabel')
@@ -94,19 +76,6 @@ const tone = computed(() => {
   backdrop-filter: blur(4px);
   color: #fff;
   text-align: left;
-}
-
-.intent__glyph {
-  display: grid;
-  place-items: center;
-  width: 3rem;
-  flex: none;
-  background: var(--tone-fill);
-  color: var(--tone-on);
-}
-
-.intent__glyph > * {
-  animation: nudge 2.4s ease-in-out infinite;
 }
 
 .intent__body {
@@ -151,10 +120,6 @@ const tone = computed(() => {
   opacity: 0.88;
 }
 
-.intent--preview .intent__glyph {
-  width: 2rem;
-}
-
 .intent--preview .intent__body {
   padding: 0.25rem 0.6rem;
 }
@@ -169,7 +134,6 @@ const tone = computed(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intent__glyph > *,
   .intent__amount {
     animation: none;
   }

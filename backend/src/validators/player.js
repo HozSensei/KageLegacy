@@ -4,7 +4,7 @@ import {
   ASPIRANT_RANK,
   isAvatarAvailableToRank,
   isKnownAvatarId,
-  isProfileColor,
+  isKnownCardBackgroundId,
 } from '../services/characterAppearance.js';
 
 export const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
@@ -14,7 +14,9 @@ const avatarIdSchema = z.string().refine(isKnownAvatarId, 'Portrait invalide.');
 export const startingAvatarIdSchema = avatarIdSchema
   .refine(id => isAvatarAvailableToRank(id, ASPIRANT_RANK), 'Portrait Aspirant ninja requis.')
   .nullish();
-const profileColorSchema = z.string().refine(isProfileColor, 'Couleur attendue au format #RRGGBB.');
+const backgroundIdSchema = z
+  .string()
+  .refine(isKnownCardBackgroundId, 'Fond de carte invalide.');
 
 export const createCharacterSchema = z.object({
   name: z.string().trim().min(2, 'Minimum 2 caractères.').max(100),
@@ -37,8 +39,7 @@ export const createCharacterSchema = z.object({
 export const characterProfilePatchSchema = z
   .object({
     avatarId: avatarIdSchema.optional(),
-    borderColor: profileColorSchema.nullable().optional(),
-    backgroundColor: profileColorSchema.nullable().optional(),
+    backgroundId: backgroundIdSchema.nullable().optional(),
     nicknameId: z.string().min(1).max(32).nullable().optional(),
   })
   .strict()

@@ -135,8 +135,7 @@ const readProfile = mock.method(pool, 'execute', async (_sql, params) => {
         character_level: 1,
         character_highest_level: 20,
         character_avatar_id: 'chunin-1-3',
-        character_border_color: '#aabbcc',
-        character_background_color: 'url(example)',
+        character_background_id: 'joueur-2',
         character_nickname_id: 'chunin',
         character_faction_id: 'kareno',
         character_xp: 100,
@@ -148,8 +147,7 @@ const character = await loadCombatCharacter(12);
 readProfile.mock.restore();
 const expectedProfile = {
   avatarId: 'aspirant-1-1',
-  borderColor: '#AABBCC',
-  backgroundColor: null,
+  backgroundId: 'joueur-2',
   nicknameId: 'chunin',
 };
 assert.deepEqual(character.profile, expectedProfile);

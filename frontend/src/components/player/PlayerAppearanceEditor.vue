@@ -10,8 +10,8 @@ import {
   readNinjaAppearance,
 } from '../../utils/ninjaProfile.js';
 import NinjaAvatarPicker from './NinjaAvatarPicker.vue';
+import NinjaCardBackgroundPicker from './NinjaCardBackgroundPicker.vue';
 import NinjaProfileCard from './NinjaProfileCard.vue';
-import NinjaProfileColorField from './NinjaProfileColorField.vue';
 
 const props = defineProps({
   character: { type: Object, required: true },
@@ -95,21 +95,7 @@ async function save() {
       <fieldset class="appearance__fields" :disabled="player.savingProfile">
         <legend class="sr-only">{{ t('player.appearance.title') }}</legend>
         <NinjaAvatarPicker v-model="draft.avatarId" :rank="character.rank" />
-
-        <div class="appearance__colors">
-          <NinjaProfileColorField
-            v-model="draft.borderColor"
-            :label="t('player.appearance.borderColor')"
-            default-swatch="#ad503a"
-            @update:model-value="clearFeedback"
-          />
-          <NinjaProfileColorField
-            v-model="draft.backgroundColor"
-            :label="t('player.appearance.backgroundColor')"
-            default-swatch="#202740"
-            @update:model-value="clearFeedback"
-          />
-        </div>
+        <NinjaCardBackgroundPicker v-model="draft.backgroundId" @update:model-value="clearFeedback" />
 
         <label class="field">
           <span class="field__label">{{ t('player.appearance.nickname') }}</span>
@@ -193,7 +179,6 @@ async function save() {
   gap: 0.85rem;
 }
 
-.appearance__colors,
 .appearance__actions {
   display: flex;
   flex-wrap: wrap;

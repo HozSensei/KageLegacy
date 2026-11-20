@@ -150,8 +150,8 @@ function testAppearance() {
   strictAssert(isAvatarAvailableToRank('anbu-2-16', 'Kage'));
   strictAssert(!isAvatarAvailableToRank('anbu-2-16', 'Jonin'));
   strictAssert(!createCharacterSchema.safeParse({ name: 'Hayato', avatarId: 'genin-1-1' }).success);
-  for (const color of ['red', '#abc', '#abc123\n', '#abc12300', 'url(x)', ' #abc123']) {
-    strictAssert(!characterProfilePatchSchema.safeParse({ borderColor: color }).success, color);
+  for (const id of ['joueur-3', 'bg-joueur', 'url(x)', '']) {
+    strictAssert(!characterProfilePatchSchema.safeParse({ backgroundId: id }).success, id);
   }
   strictAssert(!characterProfilePatchSchema.safeParse({}).success);
   strictAssert(!characterProfilePatchSchema.safeParse({ avatarId: null }).success);
@@ -161,11 +161,10 @@ function testAppearance() {
       character_rank: 'Chunin',
       character_level: 20,
       character_avatar_id: 'genin-2-16',
-      character_border_color: '#abc123',
-      character_background_color: 'url(x)',
+      character_background_id: 'joueur-1',
       character_nickname_id: 'chunin',
     }),
-    { avatarId: 'genin-2-16', borderColor: '#ABC123', backgroundColor: null, nicknameId: 'chunin' }
+    { avatarId: 'genin-2-16', backgroundId: 'joueur-1', nicknameId: 'chunin' }
   );
   strictAssert.deepEqual(
     serializeCharacterAppearance({
@@ -175,7 +174,7 @@ function testAppearance() {
       avatar_id: 'genin-1-1',
       nickname_id: 'genin',
     }),
-    { avatarId: DEFAULT_AVATAR_ID, borderColor: null, backgroundColor: null, nicknameId: 'genin' }
+    { avatarId: DEFAULT_AVATAR_ID, backgroundId: null, nicknameId: 'genin' }
   );
   strictAssert.equal(
     serializeCharacterAppearance({ level: 1, nickname_id: 'genin' }).nicknameId,
@@ -296,7 +295,7 @@ async function testProfileRoutes() {
   };
 
   try {
-    await request('PATCH', path, 401, { body: { borderColor: null } });
+    await request('PATCH', path, 401, { body: { backgroundId: null } });
     const { createSession } = await import('../src/services/authService.js');
     const oldUser = await query('INSERT INTO users (username) VALUES (?)', [
       `pc_old_${Date.now()}`,
@@ -308,7 +307,7 @@ async function testProfileRoutes() {
     ]);
     const { token } = await createSession(oldUser.insertId);
     const oldCookie = `kage_session=${token}`;
-    await request('PATCH', path, 404, { cookie: oldCookie, body: { borderColor: null } });
+    await request('PATCH', path, 404, { cookie: oldCookie, body: { backgroundId: null } });
     await request('POST', '/api/player/create', 400, {
       cookie: oldCookie,
       body: { name: 'Old Player', avatarId: 'genin-1-1' },
@@ -340,9 +339,9 @@ async function testProfileRoutes() {
     const save = (body, status = 200) => request('PATCH', path, status, { cookie, body });
     strictAssert.equal((await character()).profile.avatarId, 'aspirant-2-16');
     await save({ avatarId: 'genin-1-1' }, 400);
-    await save({ backgroundColor: 'url(x)' }, 400);
-    await save({ nicknameId: 'genin', borderColor: '#FFFFFF' }, 400);
-    strictAssert.equal((await character()).profile.borderColor, null);
+    await save({ backgroundId: 'joueur-9' }, 400);
+    await save({ nicknameId: 'genin', backgroundId: 'joueur-1' }, 400);
+    strictAssert.equal((await character()).profile.backgroundId, null);
 
     const progress = await addXP(guest.json.user.id, 600);
     strictAssert.equal(progress.character.level, 4);
@@ -362,17 +361,14 @@ async function testProfileRoutes() {
     });
     const saved = await save({
       avatarId: 'genin-2-16',
-      borderColor: '#aabbcc',
-      backgroundColor: '#123456',
+      backgroundId: 'joueur-2',
       nicknameId: 'genin',
     });
     strictAssert.deepEqual((await character()).profile, saved.json.character.profile);
-    strictAssert.equal(saved.json.character.profile.borderColor, '#AABBCC');
-    const cleared = (await save({ backgroundColor: null, nicknameId: null })).json.character
-      .profile;
-    strictAssert.equal(cleared.backgroundColor, null);
+    strictAssert.equal(saved.json.character.profile.backgroundId, 'joueur-2');
+    const cleared = (await save({ backgroundId: null, nicknameId: null })).json.character.profile;
+    strictAssert.equal(cleared.backgroundId, null);
     strictAssert.equal(cleared.nicknameId, null);
-    strictAssert.equal(cleared.borderColor, '#AABBCC');
     strictAssert.equal(cleared.avatarId, 'genin-2-16');
     await save({ nicknameId: 'genin' });
 

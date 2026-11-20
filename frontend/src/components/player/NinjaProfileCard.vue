@@ -2,7 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDeltaFeed } from '../../composables/useDeltaFeed.js';
-import { ninjaNicknameLabel, safeNinjaProfileColor } from '../../utils/ninjaProfile.js';
+import { ninjaCardBackgroundUrl } from '../../constants/ninjaCardBackgrounds.js';
+import { ninjaNicknameLabel } from '../../utils/ninjaProfile.js';
 import { statVisual } from '../../utils/statIcons.js';
 import NinjaPortrait from './NinjaPortrait.vue';
 
@@ -24,7 +25,7 @@ const props = defineProps({
   stats: { type: Object, required: true },
   /** Valeurs des quatre arts (`taijutsu`, `ninjutsu`, `genjutsu`, `medicine`). */
   arts: { type: Object, default: null },
-  /** Illustration de fond (adversaires). */
+  /** Illustration de fond explicite (adversaires PvE). Sinon le profil joueur fournit `backgroundId`. */
   background: { type: String, default: null },
 });
 
@@ -50,27 +51,13 @@ const diamonds = computed(() => {
   const current = Math.max(0, Number(props.stats.chakra) || 0);
   return Array.from({ length: max }, (_, index) => index < current);
 });
-
-const style = computed(() => {
-  const border = safeNinjaProfileColor(props.profile?.borderColor);
-  const background = safeNinjaProfileColor(props.profile?.backgroundColor);
-  return {
-    '--ninja-border': isNinja.value ? border || undefined : undefined,
-    '--ninja-background': isNinja.value ? background || undefined : undefined,
-    '--ninja-text': isNinja.value && background ? contrastingText(background) : undefined,
-    '--ninja-art': props.background ? `url("${props.background}")` : undefined,
-  };
-});
-
-function contrastingText(hex) {
-  const luminance = [0.2126, 0.7152, 0.0722].reduce((total, weight, index) => {
-    const start = 1 + index * 2;
-    const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
-    const linear = channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-    return total + weight * linear;
-  }, 0);
-  return luminance > 0.179 ? '#000' : '#fff';
-}
+const artUrl = computed(
+  () => props.background || (isNinja.value ? ninjaCardBackgroundUrl(props.profile?.backgroundId) : null)
+);
+const armorVisual = computed(() => statVisual('armor'));
+const style = computed(() => ({
+  '--ninja-art': artUrl.value ? `url("${artUrl.value}")` : undefined,
+}));
 
 const hpPercent = computed(() => {
   const { hp, maxHp } = props.stats;
@@ -82,17 +69,17 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 <template>
   <article
     class="ninja-card"
-    :class="[`ninja-card--${variant}`, { 'ninja-card--hit': hit, 'ninja-card--art': background }]"
+    :class="[`ninja-card--${variant}`, { 'ninja-card--hit': hit, 'ninja-card--art': artUrl }]"
     :style="style"
     :aria-label="name"
     data-testid="ninja-profile-card"
     :data-variant="variant"
     :data-avatar-id="isNinja ? profile?.avatarId || undefined : undefined"
+    :data-background-id="isNinja ? profile?.backgroundId || undefined : undefined"
   >
     <header class="ninja-card__head">
       <div v-if="isNinja" class="ninja-card__portrait">
         <span class="ninja-card__portrait-glow" aria-hidden="true" />
-        <span class="ninja-card__portrait-plate" aria-hidden="true" />
         <div class="ninja-card__portrait-frame">
           <NinjaPortrait :avatar-id="profile?.avatarId" :name="name" />
         </div>
@@ -139,8 +126,16 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
             >
             <span class="ninja-card__label">{{ t('combat.hpLabel') }}</span>
           </p>
-          <p class="ninja-card__armor">
-            <span class="ninja-card__label">{{ t('combat.blockLabel') }}</span>
+          <p class="ninja-card__armor" :title="t('combat.blockLabel')">
+            <img
+              class="ninja-card__armor-icon"
+              :src="armorVisual.icon"
+              alt=""
+              width="22"
+              height="22"
+              aria-hidden="true"
+            />
+            <span class="sr-only">{{ t('combat.blockLabel') }}</span>
             <span class="ninja-card__armor-value" data-testid="ninja-card-armor">{{
               stats.armor ?? 0
             }}</span>
@@ -222,6 +217,8 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 }
 
 .ninja-card--art {
+  --ninja-text: #fff;
+
   background-image:
     linear-gradient(
       to bottom,
@@ -233,6 +230,7 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
     var(--ninja-art);
   background-position: center;
   background-size: cover;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.75);
 }
 
 .ninja-card--hit {
@@ -256,21 +254,9 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   font-size: clamp(1.75rem, 10cqi, 3rem);
 }
 
-.ninja-card__portrait-plate,
 .ninja-card__portrait-glow {
   position: absolute;
   pointer-events: none;
-}
-
-/* Losange derrière le médaillon : ses pointes dépassent du cercle. */
-.ninja-card__portrait-plate {
-  inset: -4%;
-  border: 3px solid var(--ninja-background, #1d2238);
-  border-radius: 18%;
-  background: var(--ninja-border, #ad503a);
-  box-shadow: 0 0.4rem 0.9rem rgb(0 0 0 / 0.4);
-  transform: rotate(45deg) scale(0.98);
-  animation: portrait-plate 5s ease-in-out infinite alternate;
 }
 
 .ninja-card__portrait-glow {
@@ -310,16 +296,6 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   white-space: nowrap;
   transform: translateX(-50%);
   box-shadow: 0 0.2rem 0.5rem rgb(0 0 0 / 0.4);
-}
-
-@keyframes portrait-plate {
-  from {
-    transform: rotate(45deg) scale(0.98);
-  }
-
-  to {
-    transform: rotate(52deg) scale(1.04);
-  }
 }
 
 @keyframes portrait-glow {
@@ -488,13 +464,16 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 }
 
 .ninja-card__armor {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-  padding: 0.15rem 0.55rem;
-  border: 1px solid color-mix(in srgb, var(--color-sky) 70%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-sky) 22%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ninja-card__armor-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.45));
 }
 
 .ninja-card__armor-value {
@@ -502,6 +481,7 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   font-size: 1.25rem;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
+  line-height: 1;
 }
 
 .ninja-card__meter {
@@ -609,7 +589,6 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 @media (prefers-reduced-motion: reduce) {
   .ninja-card--hit,
   .ninja-card__delta,
-  .ninja-card__portrait-plate,
   .ninja-card__portrait-glow {
     animation: none;
   }

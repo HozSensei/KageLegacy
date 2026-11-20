@@ -1619,10 +1619,10 @@
     "appearance": {
       "title": "Apparence",
       "lead": "Personnalisez votre carte ninja. Les stats affichées sont celles du début d’une mission solo et ne sont pas modifiables ici.",
-      "borderColor": "Couleur de la bordure",
-      "backgroundColor": "Couleur du fond",
+      "background": "Fond de carte",
+      "backgroundHint": "Choisissez une illustration de fond pour votre carte.",
+      "backgroundOption": "Fond {number}",
       "default": "Par défaut",
-      "resetColor": "Rétablir la valeur par défaut : {label}",
       "nickname": "Surnom",
       "noNickname": "Aucun surnom",
       "noUnlockedNicknames": "Vous n’avez pas encore gagné de surnom.",

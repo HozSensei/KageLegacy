@@ -178,7 +178,7 @@ const bootstrap = {
       name: 'Ren',
       level: 11,
       rank: 'Genin',
-      profile: { avatarId: 'aspirant-2-8', borderColor: '#123abc' },
+      profile: { avatarId: 'aspirant-2-8', backgroundId: 'joueur-2' },
       hp: BASE_MAX_HP,
       maxHp: BASE_MAX_HP,
       chakra: BASE_CHAKRA,
@@ -254,15 +254,14 @@ assert(
   JSON.stringify(pubGuest.fighters.host.profile) ===
     JSON.stringify({
       avatarId: 'genin-1-2',
-      borderColor: null,
-      backgroundColor: null,
+      backgroundId: null,
       nicknameId: 'genin',
     }),
   'le profil public du host exclut les surnoms déverrouillés'
 );
 assert(
   pubGuest.fighters.guest.profile.avatarId === 'aspirant-2-8' &&
-    pubGuest.fighters.guest.profile.borderColor === '#123ABC',
+    pubGuest.fighters.guest.profile.backgroundId === 'joueur-2',
   'le guest garde son propre profil'
 );
 
