@@ -886,11 +886,21 @@
     "effectDraw": "Pioche {n}",
     "effectChakra": "+{n} Chakra",
     "effectComboPrevious": "Enchaînement {art} : {reward}",
+    "effectComboPreviousSame": "Enchaînement : {reward}",
+    "effectComboPreviousOther": "Après {art} : {reward}",
     "effectComboDamage": "{n} dégâts",
     "effectComboHeal": "{n} soins",
     "effectComboBlock": "{n} Armure",
     "effectComboChakra": "{n} Chakra",
     "effectComboStatus": "+{n} effet",
+    "summonHp": "{n} PV",
+    "summonAttack": "{n} ATK",
+    "summonDuration": "{n} tours",
+    "summonAbilities": {
+      "taunt": "Provocation",
+      "evade": "Esquive",
+      "regen": "Régénération"
+    },
     "effectHeldEvade": "En main ou réservé : +{pct} % esquive",
     "effectHeldArtDamage": "En main ou réservé : +{pct} % dégâts {art}",
     "effectHeldHeal": "En main ou réservé : +{pct} % soins",
@@ -973,6 +983,10 @@
     },
     "types": {
       "standard": "Standard",
+      "path-taijutsu": "Taijutsu",
+      "path-ninjutsu": "Ninjutsu",
+      "path-genjutsu": "Genjutsu",
+      "path-medicine": "Médecine",
       "elemental": "Élémentaire",
       "premium": "Premium"
     },
@@ -2253,7 +2267,13 @@
       "reset": "Réinitialiser la sélection",
       "resetting": "Réinitialisation…",
       "resetConfirm": "Confirmer la réinitialisation de {name} pour les éléments sélectionnés ?",
-      "resetSuccess": "Les éléments sélectionnés de {name} ont été réinitialisés."
+      "resetSuccess": "Les éléments sélectionnés de {name} ont été réinitialisés.",
+      "freshResetTitle": "Remettre à zéro (comme à l’inscription)",
+      "freshResetWarning": "Efface toute la progression, restaure les Ryos de départ et le loadout starter. Le compte, le nom, la faction et l’avatar sont conservés. Fonctionne aussi sur un compte administrateur.",
+      "freshReset": "Remettre à zéro",
+      "freshResetting": "Remise à zéro…",
+      "freshResetConfirm": "Remettre {name} à l’état d’un personnage fraîchement inscrit ? Cette action est irréversible.",
+      "freshResetSuccess": "{name} a été remis à l’état d’inscription."
     },
     "clock": {
       "title": "Horloge de jeu",

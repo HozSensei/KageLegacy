@@ -11,7 +11,7 @@ Le profil possède :
 
 Ryos, poussière et essence sont produits par le jeu. Les Kage Coins servent notamment aux boosters premium, aux niveaux premium et aux paiements de boutique.
 
-À la création de compte, le profil reçoit **300 Ryos** (`STARTING_RYOS` dans `economyConfig.js`) — moins d’un booster standard (400). Le farm des missions D finance les premiers packs.
+À la création de compte, le profil reçoit **250 Ryos** (`STARTING_RYOS` dans `economyConfig.js`) — moins d’un booster standard (300). Le farm des missions D finance les premiers packs.
 
 Le **guide du novice** (hub) propose 10 étapes one-shot (profil, decks, talent, collection, combat, règles, Battle Pass, village, boutique). Chaque étape terminée se **réclame** pour de petits gains Ryos/XP (≈ 460 Ryos et ≈ 240 XP au total). Distinct des succès et du Battle Pass.
 
@@ -21,11 +21,12 @@ Chaque booster contient 5 cartes.
 
 | Booster     |           Coût | Poids commun / rare / légendaire / mythique |
 | ----------- | -------------: | ------------------------------------------: |
-| Standard    |       400 Ryos |                         700 / 230 / 55 / 15 |
+| Standard    |       300 Ryos |                         700 / 230 / 55 / 15 |
+| Voie (×4)   |       550 Ryos |                         650 / 260 / 70 / 20 |
 | Élémentaire |       650 Ryos |                         650 / 260 / 70 / 20 |
 | Premium     | 100 Kage Coins |                        550 / 320 / 100 / 30 |
 
-Le booster premium garantit une rare ou mieux. Le booster élémentaire accepte un élément optionnel. Les cartes d'une autre saison marquées exclusives sont écartées du tirage.
+Le booster premium garantit une rare ou mieux. Les parchemins de voie filtrent par `stat_type` (Taijutsu, Ninjutsu, Genjutsu, Médecine). Le booster élémentaire accepte un élément optionnel. Les cartes d'une autre saison marquées exclusives sont écartées du tirage.
 
 Le serveur décide le tirage et prélève le coût. Les listes de cartes envoyées par le client ne sont pas utilisées.
 

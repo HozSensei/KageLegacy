@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getConnection, query } from '../config/database.js';
 import { requireAdmin } from '../middleware/admin.js';
 import { ASPIRANT_RANK, DEFAULT_AVATAR_ID } from '../services/characterAppearance.js';
+import { resetCharacterToFreshState } from '../services/characterFreshResetService.js';
 
 const router = Router();
 const resourceFields = Object.freeze({
@@ -24,6 +25,7 @@ const grantSchema = z
   });
 const resetSchema = z
   .object({
+    freshStart: z.boolean().optional(),
     collection: z.boolean().optional(),
     combats: z.boolean().optional(),
     missions: z.boolean().optional(),
@@ -34,9 +36,16 @@ const resetSchema = z
     talents: z.boolean().optional(),
   })
   .strict()
-  .refine(value => Object.values(value).some(Boolean), {
-    message: 'Sélectionnez au moins un élément à réinitialiser.',
-  });
+  .refine(
+    value =>
+      value.freshStart === true ||
+      Object.entries(value)
+        .filter(([key]) => key !== 'freshStart')
+        .some(([, selected]) => selected),
+    {
+      message: 'Sélectionnez au moins un élément à réinitialiser.',
+    },
+  );
 
 router.use(requireAdmin);
 
@@ -87,13 +96,13 @@ router.post('/players/:id/resources', async (req, res, next) => {
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
        JOIN player_profiles s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL AND u.is_admin = FALSE
+       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
     if (!players[0]) {
       await connection.rollback();
-      return res.status(404).json({ error: 'Joueur introuvable ou administrateur.' });
+      return res.status(404).json({ error: 'Joueur introuvable.' });
     }
 
     for (const [key, column] of Object.entries(resourceFields)) {
@@ -133,19 +142,28 @@ router.post('/players/:id/reset', async (req, res, next) => {
   }
 
   const selected = parsed.data;
+  if (selected.freshStart) {
+    try {
+      const result = await resetCharacterToFreshState(userId);
+      return res.json({ success: true, reset: { freshStart: true }, starter: result.starter });
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
        JOIN player_profiles s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL AND u.is_admin = FALSE
+       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
     if (!players[0]) {
       await connection.rollback();
-      return res.status(404).json({ error: 'Joueur introuvable ou administrateur.' });
+      return res.status(404).json({ error: 'Joueur introuvable.' });
     }
 
     if (selected.missions) {

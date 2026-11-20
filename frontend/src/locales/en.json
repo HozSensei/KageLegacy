@@ -886,11 +886,21 @@
     "effectDraw": "Draw {n}",
     "effectChakra": "+{n} Chakra",
     "effectComboPrevious": "Chain {art}: {reward}",
+    "effectComboPreviousSame": "Chain: {reward}",
+    "effectComboPreviousOther": "After {art}: {reward}",
     "effectComboDamage": "{n} damage",
     "effectComboHeal": "{n} healing",
     "effectComboBlock": "{n} Armor",
     "effectComboChakra": "{n} Chakra",
     "effectComboStatus": "+{n} effect",
+    "summonHp": "{n} HP",
+    "summonAttack": "{n} ATK",
+    "summonDuration": "{n} turns",
+    "summonAbilities": {
+      "taunt": "Taunt",
+      "evade": "Evade",
+      "regen": "Regen"
+    },
     "effectHeldEvade": "In hand or reserved: +{pct}% evade",
     "effectHeldArtDamage": "In hand or reserved: +{pct}% {art} damage",
     "effectHeldHeal": "In hand or reserved: +{pct}% healing",
@@ -973,6 +983,10 @@
     },
     "types": {
       "standard": "Standard",
+      "path-taijutsu": "Taijutsu",
+      "path-ninjutsu": "Ninjutsu",
+      "path-genjutsu": "Genjutsu",
+      "path-medicine": "Medicine",
       "elemental": "Elemental",
       "premium": "Premium"
     },
@@ -2321,7 +2335,13 @@
       "reset": "Reset selected items",
       "resetting": "Resetting…",
       "resetConfirm": "Reset the selected items for {name}?",
-      "resetSuccess": "The selected items for {name} have been reset."
+      "resetSuccess": "The selected items for {name} have been reset.",
+      "freshResetTitle": "Full reset (as after signup)",
+      "freshResetWarning": "Wipes all progression, restores starting Ryos and the starter loadout. Account, name, faction and avatar are kept. Works on administrator accounts too.",
+      "freshReset": "Full reset",
+      "freshResetting": "Resetting…",
+      "freshResetConfirm": "Reset {name} to a freshly registered character state? This cannot be undone.",
+      "freshResetSuccess": "{name} has been reset to signup state."
     },
     "clock": {
       "title": "Game clock",
