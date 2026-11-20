@@ -92,6 +92,58 @@ async function ensureCompatibilityColumns(connection) {
   await ensureCardStatType(connection);
 }
 
+async function ensureCharacterProfile(connection) {
+  // Équivalent idempotent de backend/etc/upgrade-character-profile.sql pour les bases existantes.
+  const [profileTable] = await connection.query(
+    `SELECT 1 FROM information_schema.tables
+     WHERE table_schema = DATABASE() AND table_name = 'player_profiles' LIMIT 1`
+  );
+  if (profileTable.length === 0) return;
+
+  const [upgraded] = await connection.query(
+    `SELECT 1 FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'player_profiles'
+       AND column_name = 'character_highest_level' LIMIT 1`
+  );
+  const needsSchemaUpgrade = upgraded.length === 0;
+
+  if (needsSchemaUpgrade) {
+    // Un seul ALTER : le DDL MySQL est atomique par instruction, donc la relance reste sûre.
+    // Le nouveau rang est ajouté en fin d'ENUM pour conserver les ordinaux existants.
+    await connection.query(
+      `ALTER TABLE \`player_profiles\`
+         ADD COLUMN \`character_avatar_id\` varchar(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'aspirant-1-1' AFTER \`character_avatar_url\`,
+         ADD COLUMN \`character_border_color\` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_avatar_id\`,
+         ADD COLUMN \`character_background_color\` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_border_color\`,
+         ADD COLUMN \`character_nickname_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_background_color\`,
+         ADD COLUMN \`character_highest_level\` int unsigned NOT NULL DEFAULT '1' AFTER \`character_level\`,
+         MODIFY COLUMN \`character_rank\` enum('Genin','Chunin','Jonin','ANBU','Kage','Aspirant ninja') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aspirant ninja'`
+    );
+  }
+
+  // Répéter ces mises à niveau de données est sans effet après leur première application.
+  await connection.beginTransaction();
+  try {
+    await connection.query(
+      `UPDATE player_profiles
+       SET character_highest_level = character_level
+       WHERE character_name IS NOT NULL AND character_highest_level < character_level`
+    );
+    await connection.query(
+      `UPDATE player_profiles
+       SET character_rank = 'Aspirant ninja'
+       WHERE character_rank = 'Genin' AND (character_level < 5 OR character_name IS NULL)`
+    );
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  }
+  if (needsSchemaUpgrade) {
+    console.log('🔧 Profil de personnage migré : portrait, couleurs, surnom, rang Aspirant ninja.');
+  }
+}
+
 function splitSqlStatements(sql) {
   const statements = [];
   let statement = '';
@@ -144,7 +196,7 @@ async function ensureAsyncDuelTables(connection, statements) {
   const [weeklyReadColumn] = await connection.query(
     `SELECT 1 FROM information_schema.columns
      WHERE table_schema = DATABASE() AND table_name = 'async_duel_weekly_reward_ledger'
-       AND column_name = 'read_at'`,
+       AND column_name = 'read_at'`
   );
   if (weeklyReadColumn.length === 0) {
     await connection.query(`ALTER TABLE async_duel_weekly_reward_ledger
@@ -243,6 +295,7 @@ async function migrate() {
     if (baselineRows.length > 0) {
       console.log('⏭  Schéma initial déjà appliqué.');
       await ensureCompatibilityColumns(connection);
+      await ensureCharacterProfile(connection);
       await ensureAsyncDuelTables(connection, statements);
       await installWeeklyVillageRewards(connection);
       return;
