@@ -93,7 +93,7 @@ function applyBalanceDeckUpgrade(card, upgradeLevel) {
       passive_bonus_json: card.passiveBonus || {},
       upgradeBonuses: balanceUpgradeBonuses(card),
     },
-    upgradeLevel
+    upgradeLevel,
   );
   // Ne pas écraser le reste de la carte avec un objet « computed » incomplet.
   return {
@@ -117,7 +117,7 @@ function buildProfileDeckEntries(profile) {
     ...entry,
     card: applyBalanceDeckUpgrade(
       entry.card,
-      profile.deckUpgradeSlugs?.includes(entry.card.slug) ? profile.deckUpgradeLevel || 0 : 0
+      profile.deckUpgradeSlugs?.includes(entry.card.slug) ? profile.deckUpgradeLevel || 0 : 0,
     ),
   }));
 }
@@ -305,7 +305,7 @@ function simPlayCard(session, instanceId, rng) {
   const moved = moveCardFromHand(
     nextPlayer,
     instanceId,
-    resolveCardPileDestination(card, session.talentEffects.applied)
+    resolveCardPileDestination(card, session.talentEffects.applied),
   );
 
   const next = {
@@ -554,7 +554,7 @@ export function createSimSession({
   const entries = deckEntries || buildProfileDeckEntries(profile);
   const runtimeCards = buildRuntimeDeck(
     entries,
-    (card, n) => `${card.slug || card.id}-${n}-s${seed}`
+    (card, n) => `${card.slug || card.id}-${n}-s${seed}`,
   );
   const shuffled = shuffle(runtimeCards, rng);
 
@@ -695,7 +695,7 @@ export function aggregateFights({
         maxTurns,
         profileOverride,
         deckEntries,
-      })
+      }),
     );
   }
 
@@ -715,7 +715,7 @@ export function aggregateFights({
     avgTurnsOnWin: avg(wins, 'turns'),
     avgTurnsOnLoss: avg(
       fights.filter(f => !f.won),
-      'turns'
+      'turns',
     ),
     avgHpRemainingOnWin: wins.length ? avg(wins, 'hpRemaining') : null,
     avgDamageTaken: avg(fights, 'damageTaken'),

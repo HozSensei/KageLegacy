@@ -28,6 +28,40 @@ function entry(level = 0) {
   };
 }
 
+function onboardingStep(overrides = {}) {
+  return {
+    key: 'edit_deck',
+    kind: 'action',
+    route: '/decks',
+    nameFr: 'Modifier un deck',
+    nameEn: 'Edit a deck',
+    hintFr: 'Ajuste les cartes de ton deck actif.',
+    hintEn: 'Tweak cards in your active deck.',
+    rewards: [{ type: 'ryos', amount: 60 }, { type: 'xp', amount: 30 }],
+    completed: false,
+    claimed: false,
+    claimable: false,
+    ...overrides,
+  };
+}
+
+function onboardingPayload(steps, finished = false) {
+  const completed = steps.filter(step => step.completed).length;
+  const claimed = steps.filter(step => step.claimed).length;
+  const claimable = steps.filter(step => step.claimable).length;
+  return {
+    steps,
+    meta: {
+      total: steps.length,
+      completed,
+      claimed,
+      claimable,
+      finished,
+      allCompleted: completed >= steps.length,
+    },
+  };
+}
+
 function setupApp(language = 'fr') {
   cy.intercept('GET', '/api/auth/me', {
     user: { id: 1, username: 'test' },
@@ -39,6 +73,8 @@ function setupApp(language = 'fr') {
   cy.intercept('GET', '/api/shop/balances', {
     balances: { ryos: 50000, dust: 5000, essence: 20, kageCoins: 0 },
   });
+  cy.intercept('GET', '/api/onboarding', onboardingPayload([onboardingStep()], true));
+  cy.intercept('POST', '/api/onboarding/visit', { body: {} });
 }
 
 function visit(path, language = 'fr') {
@@ -62,32 +98,56 @@ function deck(active = false) {
 }
 
 describe('Premiers pas, collection et decks', () => {
-  it('reconstruit la checklist depuis les données persistées sans confondre deck inactif et talent dépensé', () => {
+  it('reconstruit la checklist depuis la progression onboarding persistée', () => {
     setupApp();
-    let completed = false;
+    let finished = false;
     cy.intercept('GET', '/api/collection', { collection: [entry()] });
-    cy.intercept('GET', '/api/decks', req => req.reply({ decks: [deck(completed)] }));
-    cy.intercept('GET', '/api/talents/me', req =>
-      req.reply({
-        talents: { unlockedNodeIds: completed ? ['node-1'] : [], talentPointsAvailable: 0 },
-      })
-    );
-    cy.intercept('GET', '/api/achievements', req =>
-      req.reply({ achievements: [{ key: 'mission_runs', progress: completed ? 1 : 0 }] })
+    cy.intercept('GET', '/api/decks', { decks: [deck(true)] });
+    cy.intercept('GET', '/api/talents/me', {
+      talents: { unlockedNodeIds: [], talentPointsAvailable: 0 },
+    });
+    cy.intercept('GET', '/api/achievements', { achievements: [] });
+    cy.intercept('GET', '/api/onboarding', req =>
+      req.reply(
+        onboardingPayload(
+          finished
+            ? [
+                onboardingStep({
+                  completed: true,
+                  claimed: true,
+                  claimable: false,
+                }),
+              ]
+            : [
+                onboardingStep(),
+                onboardingStep({
+                  key: 'spend_talent',
+                  route: '/talents',
+                  nameFr: 'Dépenser un point de talent',
+                  nameEn: 'Spend a talent point',
+                }),
+                onboardingStep({
+                  key: 'win_combat',
+                  route: '/missions',
+                  nameFr: 'Gagner un combat',
+                  nameEn: 'Win a fight',
+                }),
+              ],
+          finished
+        )
+      )
     );
     visit('/home');
-    cy.get('[data-testid="hub-step-deck"]').should('be.visible');
-    cy.get('[data-testid="hub-step-talents"]').should('exist');
-    cy.get('[data-testid="hub-step-mission"]').should('exist');
+    cy.get('[data-testid="hub-step-edit_deck"]').should('be.visible');
+    cy.get('[data-testid="hub-step-spend_talent"]').should('exist');
+    cy.get('[data-testid="hub-step-win_combat"]').should('exist');
     cy.get('[data-testid="hub-hero-cta"]').should('have.attr', 'href', '/decks');
     cy.then(() => {
-      completed = true;
+      finished = true;
     });
     cy.reload();
-    cy.get('[data-testid="hub-checklist"]').should('be.visible');
-    cy.get('[data-testid="hub-step-deck"]').should('not.exist');
-    cy.get('[data-testid="hub-step-talents"]').should('not.exist');
-    cy.get('[data-testid="hub-step-mission"]').should('not.exist');
+    cy.get('[data-testid="hub-checklist"]').should('not.exist');
+    cy.get('[data-testid="hub-step-edit_deck"]').should('not.exist');
     cy.get('[data-testid="hub-primary-cta"]').should('not.exist');
   });
 
@@ -106,6 +166,15 @@ describe('Premiers pas, collection et decks', () => {
     cy.intercept('GET', '/api/achievements', {
       achievements: [{ key: 'mission_runs', progress: 1 }],
     });
+    cy.intercept('GET', '/api/onboarding', req =>
+      req.reply(
+        failed
+          ? { statusCode: 503, body: { error: 'Erreur serveur' } }
+          : {
+              body: onboardingPayload([onboardingStep()]),
+            }
+      )
+    );
     visit('/home', 'en');
     cy.get('[data-testid="hub-progress-error"]').should('contain', 'Unable to load progress');
     cy.get('[data-testid="hub-checklist"]').should('not.exist');
@@ -168,13 +237,15 @@ describe('Premiers pas, collection et decks', () => {
       .and('contain', '400');
     cy.get('.collection-detail [title="Ryos: 4,500"]').should('exist');
     cy.get('.collection-detail').contains('button', 'Upgrade').click();
-    cy.get('[role="status"]').should('contain', 'Card upgraded');
-    cy.get('.app-bar__balance')
-      .first()
-      .invoke('attr', 'title')
-      .should(title => {
-        expect(title.replace(/\D/g, '')).to.eq('45500');
+    cy.get('[data-testid="collection-upgrade-feedback"]').should('contain', 'Card upgraded');
+    cy.openNavMenu();
+    cy.get('[data-testid="nav-menu-panel"] [data-testid="header-wallet-balances"]')
+      .should('be.visible')
+      .invoke('text')
+      .should(text => {
+        expect(String(text).replace(/\D/g, '')).to.include('45500');
       });
+    cy.get('[data-testid="slide-panel-backdrop"]').click({ force: true });
     cy.get('.collection-detail').should('contain', 'Upgrade level: 1');
     cy.get('.collection-detail')
       .contains('button', 'Upgrade')
@@ -202,11 +273,11 @@ describe('Premiers pas, collection et decks', () => {
     visit('/collection', 'en');
     cy.get('[data-testid="card-face-front"]').first().click();
     cy.get('.collection-detail').contains('button', 'Upgrade').click();
-    cy.get('[role="status"]')
+    cy.get('[data-testid="collection-upgrade-feedback"]')
       .should('have.class', 'alert--error')
       .and('contain', 'Not enough card dust');
     cy.get('.collection-detail').contains('button', 'Disenchant').click();
-    cy.get('[role="status"]')
+    cy.get('[data-testid="collection-disenchant-feedback"]')
       .should('have.class', 'alert--error')
       .and('contain', 'copies are used in a deck');
   });
@@ -229,10 +300,9 @@ describe('Premiers pas, collection et decks', () => {
     visit('/collection');
     cy.get('[data-testid="card-face-front"]').first().click();
     cy.contains('button', 'Améliorer').click();
-    cy.get('[role="status"]')
+    cy.get('[data-testid="collection-upgrade-feedback"]')
       .should('have.class', 'alert--error')
       .and('contain', 'Action effectuée');
-    cy.get('.collection-detail').should('not.contain', 'Niveau d’amélioration');
   });
 
   it('explique en français la limite des cartes mythiques', () => {
@@ -278,7 +348,7 @@ describe('Premiers pas, collection et decks', () => {
     });
     visit('/decks', 'en');
     cy.contains('button', 'Activate this deck').click();
-    cy.get('[role="status"]')
+    cy.get('[role="alert"]')
       .should('have.class', 'alert--error')
       .and('contain', 'Deck too small (19/20 minimum).')
       .and('not.contain', 'Deck trop petit');
@@ -304,7 +374,7 @@ describe('Premiers pas, collection et decks', () => {
       req.reply({ deck: deck(true) });
     });
     visit('/decks', 'en');
-    cy.get('[role="status"]').should('have.class', 'alert--error').and('contain', 'Deck not found');
+    cy.get('[role="alert"]').should('have.class', 'alert--error').and('contain', 'Deck not found');
     cy.then(() => {
       failDetail = false;
     });

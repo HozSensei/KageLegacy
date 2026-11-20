@@ -147,7 +147,7 @@ export function applyDamageThroughBarrier(
   entity,
   rawDamage,
   opts = {},
-  damageFn = applyDamageThroughBlock
+  damageFn = applyDamageThroughBlock,
 ) {
   const incoming = Math.max(0, Math.floor(Number(rawDamage) || 0));
   let barrier = Math.max(0, Number(entity.barrier) || 0);

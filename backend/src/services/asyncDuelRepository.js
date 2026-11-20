@@ -59,7 +59,7 @@ export async function getDuelOverview(userId) {
      ) d ON TRUE
      LEFT JOIN async_duel_reward_ledger r ON r.duel_id = d.id AND r.beneficiary_id = me.user_id
      ORDER BY d.finished_at DESC, d.id DESC`,
-    [userId, userId]
+    [userId, userId],
   );
   return {
     activeDuelId: rows[0].activeDuelId,
@@ -97,7 +97,7 @@ export async function getFactionStandings() {
      FROM periods w
      LEFT JOIN totals p ON p.week_start = w.week_start
      LEFT JOIN async_duel_weekly_state s ON s.id = 1
-     LEFT JOIN async_duel_weekly_settlements x ON w.is_previous = 1 AND x.week_start = w.week_start`
+     LEFT JOIN async_duel_weekly_settlements x ON w.is_previous = 1 AND x.week_start = w.week_start`,
   );
 
   function standings(isPrevious) {
@@ -164,7 +164,7 @@ export async function insertAsyncDuel({
           attackerFaction,
           defenderFaction,
           json,
-        ]
+        ],
       );
     } catch (error) {
       if (error.code !== 'ER_DUP_ENTRY') throw error;
@@ -183,7 +183,7 @@ async function readDuel(connection, id, attackerId) {
      FROM async_duels d
      LEFT JOIN async_duel_reward_ledger r ON r.duel_id = d.id AND r.beneficiary_id = d.attacker_id
      WHERE d.id = ? AND d.attacker_id = ?`,
-    [id, attackerId]
+    [id, attackerId],
   );
   return duel ?? null;
 }
@@ -204,7 +204,7 @@ async function creditWinner(connection, duel, win) {
             EXISTS (SELECT 1 FROM async_duel_reward_ledger
                     WHERE pair_low_id = ? AND pair_high_id = ? AND credited_on = ?) AS pairAlreadyCredited
      FROM async_duel_reward_ledger WHERE beneficiary_id = ? AND credited_on = ?`,
-    [pairLow, pairHigh, day, winnerId, day]
+    [pairLow, pairHigh, day, winnerId, day],
   );
   if (slot > DAILY_REWARD_LIMIT || pairAlreadyCredited) return;
 
@@ -213,7 +213,7 @@ async function creditWinner(connection, duel, win) {
       `INSERT INTO async_duel_reward_ledger
          (duel_id, attacker_id, defender_id, credited_on, beneficiary_slot, ryos, winner_side)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [duel.id, duel.attackerId, duel.defenderId, day, slot, WIN_REWARD, winnerSide]
+      [duel.id, duel.attackerId, duel.defenderId, day, slot, WIN_REWARD, winnerSide],
     );
   } catch (error) {
     // Deux vainqueurs différents peuvent concourir pour la même paire : l'index tranche.
@@ -224,7 +224,7 @@ async function creditWinner(connection, duel, win) {
   const [result] = await connection.execute(
     `UPDATE player_profiles SET ryos = ryos + ?
      WHERE user_id = ? AND ryos <= 2147483647 - ?`,
-    [WIN_REWARD, winnerId, WIN_REWARD]
+    [WIN_REWARD, winnerId, WIN_REWARD],
   );
   if (result.affectedRows !== 1) {
     throw duelError('ASYNC_DUEL_REWARD_FAILED', `Crédit impossible pour le duel ${duel.id}.`);
@@ -246,7 +246,7 @@ async function scoreFaction(connection, duel, win) {
   const [[{ slot }]] = await connection.execute(
     `SELECT COALESCE(MAX(winner_slot), 0) + 1 AS slot
      FROM async_duel_faction_points WHERE winner_id = ? AND scored_on = ?`,
-    [winnerId, day]
+    [winnerId, day],
   );
   if (slot > DAILY_FACTION_LIMIT) return;
 
@@ -255,7 +255,7 @@ async function scoreFaction(connection, duel, win) {
       `INSERT INTO async_duel_faction_points
          (duel_id, week_start, pair_low_id, pair_high_id, winner_id, faction_id, scored_on, winner_slot)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [duel.id, week, pairLow, pairHigh, winnerId, faction, day, slot]
+      [duel.id, week, pairLow, pairHigh, winnerId, faction, day, slot],
     );
   } catch (error) {
     if (error.code !== 'ER_DUP_ENTRY') throw error;
@@ -273,7 +273,7 @@ export async function updateAsyncDuel({ id, attackerId, revision, state }) {
       `SELECT id, attacker_id AS attackerId, defender_id AS defenderId, mode,
               attacker_faction AS attackerFaction, defender_faction AS defenderFaction
        FROM async_duels WHERE ${match} FOR UPDATE`,
-      identity
+      identity,
     );
     if (!duel) return null;
 
@@ -292,14 +292,14 @@ export async function updateAsyncDuel({ id, attackerId, revision, state }) {
       `UPDATE async_duels
        SET revision = revision + 1, state_json = ?, outcome = ?, finished_at = IF(? IS NULL, NULL, UTC_TIMESTAMP(3))
        WHERE ${match}`,
-      [json, outcome, outcome, ...identity]
+      [json, outcome, outcome, ...identity],
     );
     if (winnerSide) {
       const [[{ day, week }]] = await connection.execute(
         `SELECT DATE_FORMAT(finished_at, '%Y-%m-%d') AS day,
                 DATE_FORMAT(DATE_SUB(DATE(finished_at), INTERVAL WEEKDAY(finished_at) DAY), '%Y-%m-%d') AS week
          FROM async_duels WHERE id = ?`,
-        [id]
+        [id],
       );
       const win = {
         winnerId,

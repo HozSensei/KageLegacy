@@ -44,7 +44,7 @@ export async function markVillageRewardsRead(userId, throughWeekStart) {
 export function rankVillagePoints(rows) {
   const totals = new Map(rows.map(({ id, points }) => [id, Number(points)]));
   return FACTION_IDS.map(id => ({ id, points: totals.get(id) ?? 0 })).sort(
-    (a, b) => b.points - a.points
+    (a, b) => b.points - a.points,
   );
 }
 
@@ -56,7 +56,7 @@ export function uniqueVillageWinner([first, second]) {
 // old-week writes to commit; newer writers cannot add points to the week being settled.
 export async function lockWeeklyVillageWrites(connection) {
   const [[state]] = await connection.execute(
-    'SELECT id FROM async_duel_weekly_state WHERE id = 1 FOR SHARE'
+    'SELECT id FROM async_duel_weekly_state WHERE id = 1 FOR SHARE',
   );
   if (!state) throw new Error('Weekly village rewards are not installed; run db:migrate.');
 }
@@ -68,7 +68,7 @@ export function withVillageMembershipChange(userId, factionId, change) {
     await connection.execute(
       `INSERT INTO async_duel_village_membership (user_id, effective_at, faction_id)
        VALUES (?, UTC_TIMESTAMP(6), ?)`,
-      [userId, factionId]
+      [userId, factionId],
     );
     return result;
   });
@@ -78,7 +78,7 @@ async function settleNextWeek() {
   return inTransaction(async connection => {
     const [[state]] = await connection.execute(
       `SELECT DATE_FORMAT(next_week_start, '%Y-%m-%d') AS weekStart
-       FROM async_duel_weekly_state WHERE id = 1 FOR UPDATE`
+       FROM async_duel_weekly_state WHERE id = 1 FOR UPDATE`,
     );
     if (!state) throw new Error('Weekly village rewards are not installed; run db:migrate.');
     const { weekStart } = state;
@@ -89,7 +89,7 @@ async function settleNextWeek() {
     const [points] = await connection.execute(
       `SELECT faction_id AS id, COUNT(*) AS points
        FROM async_duel_faction_points WHERE week_start = ? GROUP BY faction_id`,
-      [weekStart]
+      [weekStart],
     );
     const winner = uniqueVillageWinner(rankVillagePoints(points));
     const rewardRyos = winner ? ASYNC_DUEL_WEEKLY_VILLAGE_REWARD_RYOS : 0;
@@ -97,7 +97,7 @@ async function settleNextWeek() {
       `INSERT INTO async_duel_weekly_settlements
          (week_start, winner_faction_id, reward_ryos, settled_at)
        VALUES (?, ?, ?, UTC_TIMESTAMP(6))`,
-      [weekStart, winner, rewardRyos]
+      [weekStart, winner, rewardRyos],
     );
 
     if (winner) {
@@ -113,14 +113,14 @@ async function settleNextWeek() {
            ORDER BY m.effective_at DESC, m.id DESC LIMIT 1
          )
          WHERE h.faction_id = ?`,
-        [weekStart, rewardRyos, weekStart, winner]
+        [weekStart, rewardRyos, weekStart, winner],
       );
       const [wallets] = await connection.execute(
         `UPDATE player_profiles p
          JOIN async_duel_weekly_reward_ledger l ON l.user_id = p.user_id AND l.week_start = ?
          SET p.ryos = p.ryos + l.ryos
          WHERE p.ryos <= 2147483647 - l.ryos`,
-        [weekStart]
+        [weekStart],
       );
       if (wallets.affectedRows !== ledger.affectedRows) {
         throw new Error(`Could not credit every weekly village reward for ${weekStart}.`);
@@ -129,7 +129,7 @@ async function settleNextWeek() {
 
     await connection.execute(
       `UPDATE async_duel_weekly_state
-       SET next_week_start = DATE_ADD(next_week_start, INTERVAL 7 DAY) WHERE id = 1`
+       SET next_week_start = DATE_ADD(next_week_start, INTERVAL 7 DAY) WHERE id = 1`,
     );
     return true;
   });

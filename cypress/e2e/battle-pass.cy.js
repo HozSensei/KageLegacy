@@ -5,15 +5,12 @@ describe('Battle Pass', () => {
   let guestCreated = false;
 
   beforeEach(() => {
-    cy.request('POST', '/api/auth/guest', { displayName: 'Cypress Battle Pass' }).then(
-      ({ body }) => {
-        guestCreated = true;
-        expect(body.user.isGuest).to.equal(true);
-      }
-    );
-    cy.request('POST', '/api/player/create', {
-      name: 'Cypress Ninja',
-      elementAffinity: 'Katon',
+    cy.request('POST', '/api/auth/guest', {
+      characterName: 'Cypress Battle Pass',
+      avatarId: 'aspirant-1-1',
+    }).then(({ body }) => {
+      guestCreated = true;
+      expect(body.user.isGuest).to.equal(true);
     });
   });
 
