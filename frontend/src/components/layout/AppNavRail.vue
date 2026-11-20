@@ -44,7 +44,7 @@ const { t } = useI18n()
 
     <div class="nav-rail__footer">
       <HeaderWallet variant="rail" />
-      <ThemeToggle variant="onFill" />
+      <ThemeToggle variant="onFill" menu-placement="top" />
     </div>
 
     <p class="nav-rail__vertical t-vertical" aria-hidden="true">{{ t('app.name') }}</p>

@@ -9,6 +9,8 @@ defineOptions({ name: 'ThemeToggle' })
 defineProps({
   /** `onFill` : posé sur un aplat indigo (panneaux de la page d'accueil et de connexion). */
   variant: { type: String, default: 'default' },
+  /** `top` : menu au-dessus du bouton (pied de rail / drawer). */
+  menuPlacement: { type: String, default: 'bottom' },
 })
 
 const { t } = useI18n()
@@ -75,7 +77,10 @@ onBeforeUnmount(() => {
   <div
     ref="rootEl"
     class="theme-picker"
-    :class="{ 'theme-picker--on-fill': variant === 'onFill' }"
+    :class="{
+      'theme-picker--on-fill': variant === 'onFill',
+      'theme-picker--drop-up': menuPlacement === 'top',
+    }"
   >
     <button
       type="button"
@@ -174,6 +179,11 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-sm);
   background: var(--color-bg-card);
   box-shadow: 0 8px 24px color-mix(in srgb, var(--color-ink) 12%, transparent);
+}
+
+.theme-picker--drop-up .theme-picker__menu {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
 }
 
 .theme-picker__option {
