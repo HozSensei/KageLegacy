@@ -1,49 +1,39 @@
 /**
- * Réécrit encounters_json des missions dans schema.sql depuis missionEncounterDifficulties.
+ * Synchronise les 5 missions par rang dans schema.sql depuis missionPathConfig.
  * Usage: node scripts/patchMissionEncountersInSchema.js
+ *
+ * (Ancien script : patchait encounters_json des 16 missions fixes.)
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MISSION_ENCOUNTER_DIFFICULTIES } from '../src/config/missionEncounterDifficulties.js';
+import { RANK_MISSION_DEFINITIONS } from '../src/config/missionPathConfig.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const schemaPath = path.join(__dirname, '../schema.sql');
 let sql = fs.readFileSync(schemaPath, 'utf8');
 
-function mysqlEscapeJson(value) {
-  return JSON.stringify(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+function esc(s) {
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
-let patched = 0;
-for (const [slug, encounters] of Object.entries(MISSION_ENCOUNTER_DIFFICULTIES)) {
-  const slugLit = `'${slug}'`;
-  const slugIdx = sql.indexOf(slugLit);
-  if (slugIdx < 0) {
-    console.warn('slug manquant:', slug);
-    continue;
-  }
-  // Après le slug : name_fr, name_en, desc_fr, desc_en, rank, encounters_json
-  // Cherche le premier tableau JSON d’encounters après le slug dans ce tuple.
-  const slice = sql.slice(slugIdx, slugIdx + 8000);
-  const match = slice.match(/,'((?:\\.|[^'\\])*)'/g);
-  // Plus robuste : localiser `,'D','[{` ou C/B/A/S
-  const rankJson = slice.match(/,'([DCBAS])','(\[\{[\s\S]*?\}\])'/);
-  if (!rankJson) {
-    console.warn('encounters introuvables pour', slug);
-    continue;
-  }
-  const oldBlock = `,'${rankJson[1]}','${rankJson[2]}'`;
-  const newBlock = `,'${rankJson[1]}','${mysqlEscapeJson(encounters)}'`;
-  const absoluteOld = sql.slice(slugIdx, slugIdx + rankJson.index + oldBlock.length);
-  if (!absoluteOld.includes(oldBlock)) {
-    console.warn('bloc non aligné', slug);
-    continue;
-  }
-  sql =
-    sql.slice(0, slugIdx + rankJson.index) + newBlock + sql.slice(slugIdx + rankJson.index + oldBlock.length);
-  patched += 1;
+const created = '2026-11-20 00:00:00';
+const values = RANK_MISSION_DEFINITIONS.map((def, i) => {
+  const rewards = JSON.stringify(def.rewards).replace(/"/g, '\\"');
+  return `(${i + 1},'${def.slug}','${esc(def.nameFr)}','${esc(def.nameEn)}','${esc(def.descriptionFr)}','${esc(def.descriptionEn)}','${def.rank}','[]','${rewards}',1,${def.sortOrder},'${created}')`;
+}).join(',');
+
+const newInsert = `INSERT INTO \`mission_definitions\` VALUES ${values};`;
+
+const next = sql.replace(
+  /INSERT INTO `mission_definitions` VALUES [\s\S]*?;/,
+  newInsert,
+);
+
+if (next === sql || !next.includes('mission-rank-d')) {
+  console.error('patchMissionEncountersInSchema: échec de remplacement');
+  process.exit(1);
 }
 
-fs.writeFileSync(schemaPath, sql);
-console.log(`patchMissionEncountersInSchema: ${patched} missions`);
+fs.writeFileSync(schemaPath, next);
+console.log(`patchMissionEncountersInSchema: ${RANK_MISSION_DEFINITIONS.length} missions rang`);

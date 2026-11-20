@@ -20,7 +20,7 @@ You serve **your village**. Missions are operations (roads, agents, proof). Inte
 
 1. **Create your ninja**: choose a name and an Aspirant portrait.
 2. **Receive your starter deck**: 22 cards, ready to play.
-3. **Start a mission**: a run of 3 to 5 fights with events in between.
+3. **Start a mission**: a random run of 3 to 5 fights and “?” nodes.
 4. **Earn experience**: each level gives 1 talent point.
 5. **Grow stronger**: spend your points in the tree, open scrolls, upgrade your cards, tune your deck.
 
@@ -368,7 +368,7 @@ Bosses close the runs of rank B, A and S. They have mechanics of their own:
 
 ### Ranks
 
-Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**, **S**. There are 16 missions. Access depends on your **character rank** (cumulative):
+Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**, **S**. One active mission per rank; each launch rolls a different path. Access depends on your **character rank** (cumulative):
 
 | Character rank | Missions unlocked |
 | -------------- | ----------------- |
@@ -378,36 +378,34 @@ Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**
 
 Rank **D** is demanding with the starter deck. Rank **C** is nearly unreachable without some levels, talents, and cards earned by farming D.
 
-| Rank | Missions | Fights per run | Final boss |
-| ---- | -------- | -------------- | ---------- |
-| D    | 3        | 3              | No         |
-| C    | 3        | 3              | No         |
-| B    | 5        | 4              | Yes        |
-| A    | 4        | 5              | Yes        |
-| S    | 1        | 5              | Yes        |
+| Rank | Entries | Fights | “?” nodes | Final boss |
+| ---- | ------- | ------ | --------- | ---------- |
+| D    | 1       | 3      | 1–2       | No         |
+| C    | 1       | 3      | 1–2       | No         |
+| B    | 1       | 4      | 1–2       | Yes        |
+| A    | 1       | 5      | 1–2       | Yes        |
+| S    | 1       | 5      | 2         | Yes        |
 
 ### The run
 
-Starting a mission opens a **run**: a series of steps to clear in order. Fights alternate with **events**.
+Starting a mission opens a **generated run**: fights drawn from the rank pool, plus one or two **“?”** nodes. The immersive briefing appears at launch, not on the mission list.
 
-- Your **HP does not come back** between fights. Only events let you heal.
-- A **defeat** or a **forfeit** in a fight fails the whole run: you get no reward.
+- Your **HP does not come back** between fights.
+- A **defeat** or a **forfeit** fails the whole run: you get no completion reward.
 - You can only have **one run in progress**. You can leave it and resume it later, or abandon it.
 
-### Events and scrap
+### “?” nodes and scrap
 
-Each fight won during a run gives **2 scrap**. Scrap is only used during the current run: it is lost at the end.
+Each fight won gives **2 scrap** (usable only during this run).
 
-Between two fights, an event offers you a choice. For example:
+A **“?”** node reveals when you enter it:
 
-| Event               | Choice                                                   |
-| ------------------- | -------------------------------------------------------- |
-| **Moss Sanctuary**  | Meditate: +30% of your max HP                            |
-| **Scout Cache**     | Search: +12% of your max HP and 2 scrap                  |
-| **Shadow Peddler**  | Bandage: 3 scrap for +25% HP. Tonic: 5 scrap for +50% HP |
-| **Veil Crossroads** | Heal +25% HP, or 4 scrap                                 |
-
-The other events follow the same idea: a heal, free or paid for in scrap, or a scrap gain.
+| Outcome   | Typical effect                         |
+| --------- | -------------------------------------- |
+| **Heal**  | Rest (+30% max HP)                     |
+| **Loot**  | Scrap + light heal                     |
+| **Nothing** | Flavour only, the road continues     |
+| **Combat**| Surprise ambush                        |
 
 ### Rewards
 
@@ -519,7 +517,7 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 | **Kage Coins** | Shop purchase, season pass                                    | Premium scrolls, premium pass track                         |
 | **Card dust**  | Disenchanting, season pass                                    | Card upgrades                                               |
 | **Essence**    | Disenchanting upgraded legendary or mythic cards, season pass | Final upgrades of legendary and mythic cards                |
-| **Scrap**      | Fights and events during a run                                | Healing during that run only                                |
+| **Scrap**      | Fights and “?” nodes during a run                             | Healing during that run only                                |
 
 ---
 

@@ -2,13 +2,14 @@
  * Missions stub pour le combat deck-building (Phase 4+).
  * Ne remplace pas le missionService legacy (escouade / idle).
  *
- * startMission lance désormais un **parcours** (mission run), pas un combat one-shot.
+ * startMission lance un **parcours aléatoire** (une mission active par rang).
  */
 import { query } from '../config/database.js';
 import { listEnemyTemplates } from './deckCombat/enemyTemplates.js';
 import { annotateMissionAccess } from './missionRankAccess.js';
 import { ASPIRANT_RANK } from './characterAppearance.js';
 import { attachMissionLore } from '../../scripts/data/missionLore.js';
+import { getRankPathConfig } from '../config/missionPathConfig.js';
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -28,7 +29,9 @@ function parseJson(value, fallback) {
 
 function serializeMission(row) {
   if (!row) return null;
-  const encounters = parseJson(row.encounters_json, []);
+  const pathCfg = getRankPathConfig(row.rank);
+  const fightCount = pathCfg?.fightCount || parseJson(row.encounters_json, []).length || 0;
+  const mysteryRange = pathCfg?.mysteryCount || [0, 0];
   return attachMissionLore({
     id: row.id,
     slug: row.slug,
@@ -37,8 +40,11 @@ function serializeMission(row) {
     descriptionFr: row.description_fr,
     descriptionEn: row.description_en,
     rank: row.rank,
-    encounters,
-    encounterCount: encounters.length,
+    encounters: [],
+    encounterCount: fightCount,
+    mysteryCountMin: mysteryRange[0],
+    mysteryCountMax: mysteryRange[1],
+    randomPath: true,
     rewards: parseJson(row.rewards_json, {}),
     isActive: Boolean(row.is_active),
     sortOrder: row.sort_order,
@@ -73,7 +79,7 @@ export async function getMissionBySlug(slug) {
 }
 
 /**
- * Lance un parcours de mission (multi-combats + événements).
+ * Lance un parcours de mission (multi-combats + nœuds « ? »).
  */
 export async function startMission(userId, missionId, deckId = null) {
   const { startRun } = await import('./missionRunService.js');

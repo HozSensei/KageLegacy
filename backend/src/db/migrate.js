@@ -2,7 +2,10 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../config/database.js';
-import { MISSION_ENCOUNTER_DIFFICULTIES } from '../config/missionEncounterDifficulties.js';
+import {
+  RANK_MISSION_DEFINITIONS,
+  RANK_MISSION_SLUGS,
+} from '../config/missionPathConfig.js';
 import { ensureOnboardingTable } from '../services/onboardingService.js';
 import { UTC_WEEK_START } from '../services/asyncDuelWeeklyRewards.js';
 
@@ -300,7 +303,11 @@ async function installWeeklyVillageRewards(connection) {
   }
 }
 
-async function ensureMissionEncounterDifficulties(connection) {
+/**
+ * Une mission active par rang (D/C/B/A/S) ; désactive les anciens slugs dédoublés.
+ * Le path d’encounters est généré au lancement (encounters_json vide).
+ */
+async function ensureRankMissions(connection) {
   const [tables] = await connection.query(
     `SELECT 1 AS ok
      FROM information_schema.tables
@@ -309,19 +316,67 @@ async function ensureMissionEncounterDifficulties(connection) {
   );
   if (!tables.length) return;
 
-  let updated = 0;
-  for (const [slug, encounters] of Object.entries(MISSION_ENCOUNTER_DIFFICULTIES)) {
-    const [result] = await connection.query(
-      `UPDATE mission_definitions
-       SET encounters_json = CAST(? AS JSON)
-       WHERE slug = ?`,
-      [JSON.stringify(encounters), slug],
+  const placeholders = RANK_MISSION_SLUGS.map(() => '?').join(', ');
+  const [deactivated] = await connection.query(
+    `UPDATE mission_definitions
+     SET is_active = 0
+     WHERE slug NOT IN (${placeholders}) AND is_active = 1`,
+    [...RANK_MISSION_SLUGS],
+  );
+
+  let upserted = 0;
+  for (const def of RANK_MISSION_DEFINITIONS) {
+    const [existing] = await connection.query(
+      'SELECT id FROM mission_definitions WHERE slug = ? LIMIT 1',
+      [def.slug],
     );
-    if (result.affectedRows > 0) updated += 1;
+    const rewardsJson = JSON.stringify(def.rewards);
+    const encountersJson = JSON.stringify([]);
+    if (existing.length) {
+      await connection.query(
+        `UPDATE mission_definitions
+         SET name_fr = ?, name_en = ?, description_fr = ?, description_en = ?,
+             \`rank\` = ?, encounters_json = CAST(? AS JSON),
+             rewards_json = CAST(? AS JSON), is_active = 1, sort_order = ?
+         WHERE slug = ?`,
+        [
+          def.nameFr,
+          def.nameEn,
+          def.descriptionFr,
+          def.descriptionEn,
+          def.rank,
+          encountersJson,
+          rewardsJson,
+          def.sortOrder,
+          def.slug,
+        ],
+      );
+    } else {
+      await connection.query(
+        `INSERT INTO mission_definitions
+          (slug, name_fr, name_en, description_fr, description_en, \`rank\`,
+           encounters_json, rewards_json, is_active, sort_order)
+         VALUES (?, ?, ?, ?, ?, ?, CAST(? AS JSON), CAST(? AS JSON), 1, ?)`,
+        [
+          def.slug,
+          def.nameFr,
+          def.nameEn,
+          def.descriptionFr,
+          def.descriptionEn,
+          def.rank,
+          encountersJson,
+          rewardsJson,
+          def.sortOrder,
+        ],
+      );
+    }
+    upserted += 1;
   }
-  if (updated > 0) {
-    console.log(`✓ Difficultés missions mises à jour (${updated} slugs).`);
-  }
+
+  console.log(
+    `✓ Missions par rang synchronisées (${upserted} actives` +
+      `${deactivated.affectedRows ? `, ${deactivated.affectedRows} anciennes désactivées` : ''}).`,
+  );
 }
 
 async function migrate() {
@@ -348,7 +403,7 @@ async function migrate() {
       await ensureCharacterProfile(connection);
       await ensureAsyncDuelTables(connection, statements);
       await installWeeklyVillageRewards(connection);
-      await ensureMissionEncounterDifficulties(connection);
+      await ensureRankMissions(connection);
       await ensureOnboardingTable();
       return;
     }
@@ -382,7 +437,7 @@ async function migrate() {
     ]);
     await ensureCompatibilityColumns(connection);
     await installWeeklyVillageRewards(connection);
-    await ensureMissionEncounterDifficulties(connection);
+    await ensureRankMissions(connection);
     await ensureOnboardingTable();
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
