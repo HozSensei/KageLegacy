@@ -76,6 +76,11 @@ async function main() {
   if (!character) {
     character = await createCharacter(user.id, { name: 'Demo Genin', elementAffinity: 'Katon' });
   }
+  // Assez de Ryos pour les specs qui ouvrent plusieurs boosters (STARTING_RYOS < coût standard).
+  await query(
+    'UPDATE player_profiles SET ryos = GREATEST(COALESCE(ryos, 0), 5000) WHERE user_id = ?',
+    [user.id]
+  );
   await ensurePlayableFixtureDeck(user.id);
 
   console.log(

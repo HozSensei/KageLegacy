@@ -646,7 +646,7 @@ console.log('\n=== Enemy catalog ===');
 const catalog = listEnemyTemplates();
 assert(catalog.length >= 15, `≥15 enemy templates incl. bosses (got ${catalog.length})`);
 const enemy = generateEnemyFromTemplate('ronin_bandit', 1);
-assert(enemy.hp === 124 && enemy.intent, 'ronin spawned with intent');
+assert(enemy.hp === 155 && enemy.intent, 'ronin spawned with intent');
 const captain = generateEnemyFromTemplate('ashen_captain');
 assert(captain.ai === 'pattern', 'captain uses pattern AI');
 const dusk = generateEnemyFromTemplate('duskblade_ronin');

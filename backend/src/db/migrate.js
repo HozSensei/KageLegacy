@@ -54,7 +54,7 @@ async function ensureCardStatType(connection) {
      WHERE table_schema = DATABASE()
        AND table_name = 'card_definitions'
        AND column_name = 'stat_type'
-     LIMIT 1`
+     LIMIT 1`,
   );
   if (rows.length === 0 || String(rows[0].column_type).includes("'common'")) return;
 
@@ -64,12 +64,12 @@ async function ensureCardStatType(connection) {
     `UPDATE card_definitions
      SET stat_type = NULL
      WHERE stat_type IS NOT NULL
-       AND stat_type NOT IN ('taijutsu','ninjutsu','genjutsu','medicine')`
+       AND stat_type NOT IN ('taijutsu','ninjutsu','genjutsu','medicine')`,
   );
   await connection.query(
     `ALTER TABLE card_definitions
      MODIFY COLUMN stat_type
-       ENUM('taijutsu','ninjutsu','genjutsu','medicine','common') DEFAULT NULL`
+       ENUM('taijutsu','ninjutsu','genjutsu','medicine','common') DEFAULT NULL`,
   );
   console.log('🔧 Enum étendu : card_definitions.stat_type accepte common');
 }
@@ -81,19 +81,19 @@ async function ensureCompatibilityColumns(connection) {
        FROM information_schema.columns
        WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?
        LIMIT 1`,
-      [table, column]
+      [table, column],
     );
     if (rows.length > 0) continue;
 
     const [tables] = await connection.query(
       `SELECT 1 FROM information_schema.tables
        WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
-      [table]
+      [table],
     );
     if (tables.length === 0) continue;
 
     await connection.query(
-      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition} AFTER \`${after}\``
+      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition} AFTER \`${after}\``,
     );
     console.log(`🔧 Colonne de compatibilité ajoutée : ${table}.${column}`);
   }
@@ -104,14 +104,14 @@ async function ensureCharacterProfile(connection) {
   // Équivalent idempotent de backend/etc/upgrade-character-profile.sql pour les bases existantes.
   const [profileTable] = await connection.query(
     `SELECT 1 FROM information_schema.tables
-     WHERE table_schema = DATABASE() AND table_name = 'player_profiles' LIMIT 1`
+     WHERE table_schema = DATABASE() AND table_name = 'player_profiles' LIMIT 1`,
   );
   if (profileTable.length === 0) return;
 
   const [upgraded] = await connection.query(
     `SELECT 1 FROM information_schema.columns
      WHERE table_schema = DATABASE() AND table_name = 'player_profiles'
-       AND column_name = 'character_highest_level' LIMIT 1`
+       AND column_name = 'character_highest_level' LIMIT 1`,
   );
   const needsSchemaUpgrade = upgraded.length === 0;
 
@@ -124,7 +124,7 @@ async function ensureCharacterProfile(connection) {
          ADD COLUMN \`character_background_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_avatar_id\`,
          ADD COLUMN \`character_nickname_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL AFTER \`character_background_id\`,
          ADD COLUMN \`character_highest_level\` int unsigned NOT NULL DEFAULT '1' AFTER \`character_level\`,
-         MODIFY COLUMN \`character_rank\` enum('Genin','Chunin','Jonin','ANBU','Kage','Aspirant ninja') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aspirant ninja'`
+         MODIFY COLUMN \`character_rank\` enum('Genin','Chunin','Jonin','ANBU','Kage','Aspirant ninja') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Aspirant ninja'`,
     );
   }
 
@@ -136,12 +136,12 @@ async function ensureCharacterProfile(connection) {
     await connection.query(
       `UPDATE player_profiles
        SET character_highest_level = character_level
-       WHERE character_name IS NOT NULL AND character_highest_level < character_level`
+       WHERE character_name IS NOT NULL AND character_highest_level < character_level`,
     );
     await connection.query(
       `UPDATE player_profiles
        SET character_rank = 'Aspirant ninja'
-       WHERE character_rank = 'Genin' AND (character_level < 5 OR character_name IS NULL)`
+       WHERE character_rank = 'Genin' AND (character_level < 5 OR character_name IS NULL)`,
     );
     await connection.commit();
   } catch (error) {
@@ -162,7 +162,7 @@ async function dropLegacyProfileColorColumns(connection) {
          AND table_name = 'player_profiles'
          AND column_name = ?
        LIMIT 1`,
-      [column]
+      [column],
     );
     if (rows.length === 0) continue;
     await connection.query(`ALTER TABLE \`player_profiles\` DROP COLUMN \`${column}\``);
@@ -222,7 +222,7 @@ async function ensureAsyncDuelTables(connection, statements) {
   const [weeklyReadColumn] = await connection.query(
     `SELECT 1 FROM information_schema.columns
      WHERE table_schema = DATABASE() AND table_name = 'async_duel_weekly_reward_ledger'
-       AND column_name = 'read_at'`
+       AND column_name = 'read_at'`,
   );
   if (weeklyReadColumn.length === 0) {
     await connection.query(`ALTER TABLE async_duel_weekly_reward_ledger
@@ -234,7 +234,7 @@ async function ensureAsyncDuelTables(connection, statements) {
   const [legacyColumns] = await connection.query(
     `SELECT 1 FROM information_schema.columns
      WHERE table_schema = DATABASE() AND table_name = 'async_duel_reward_ledger'
-       AND column_name = 'defender_slot'`
+       AND column_name = 'defender_slot'`,
   );
   if (!legacyColumns.length) return;
 
@@ -247,7 +247,7 @@ async function ensureAsyncDuelTables(connection, statements) {
     `SELECT DISTINCT index_name AS name FROM information_schema.statistics
      WHERE table_schema = DATABASE() AND table_name = 'async_duel_reward_ledger'
        AND index_name IN (?, ?, ?)`,
-    legacyIndexes
+    legacyIndexes,
   );
   const drops = indexes.map(({ name }) => `DROP INDEX \`${name}\`,`).join('\n');
 
@@ -280,7 +280,7 @@ async function installWeeklyVillageRewards(connection) {
     try {
       await connection.query(
         `INSERT INTO async_duel_weekly_state (id, installed_at, first_week_start, next_week_start)
-         VALUES (1, UTC_TIMESTAMP(6), ${firstWeek}, ${firstWeek})`
+         VALUES (1, UTC_TIMESTAMP(6), ${firstWeek}, ${firstWeek})`,
       );
     } catch (error) {
       if (error.code !== 'ER_DUP_ENTRY') throw error;
@@ -291,7 +291,7 @@ async function installWeeklyVillageRewards(connection) {
       `INSERT INTO async_duel_village_membership (user_id, effective_at, faction_id)
        SELECT p.user_id, s.installed_at, p.character_faction_id
        FROM player_profiles p CROSS JOIN async_duel_weekly_state s
-       WHERE s.id = 1 AND p.character_name IS NOT NULL AND p.character_faction_id IS NOT NULL`
+       WHERE s.id = 1 AND p.character_name IS NOT NULL AND p.character_faction_id IS NOT NULL`,
     );
     await connection.commit();
   } catch (error) {
@@ -339,7 +339,7 @@ async function migrate() {
 
     const [baselineRows] = await connection.query(
       'SELECT id FROM schema_migrations WHERE filename = ?',
-      [BASELINE_FILENAME]
+      [BASELINE_FILENAME],
     );
     const statements = splitSqlStatements(await fs.readFile(schemaPath, 'utf8'));
     if (baselineRows.length > 0) {
@@ -357,7 +357,7 @@ async function migrate() {
     if (historyRows.length > 0) {
       throw new Error(
         'Cette base contient un historique de migrations legacy. ' +
-          'Le schéma initial exige une base vide.'
+          'Le schéma initial exige une base vide.',
       );
     }
 
@@ -365,11 +365,11 @@ async function migrate() {
       `SELECT COUNT(*) AS count
        FROM information_schema.tables
        WHERE table_schema = DATABASE()
-         AND table_name NOT IN ('schema_migrations', 'e2e_fixture_guard')`
+         AND table_name NOT IN ('schema_migrations', 'e2e_fixture_guard')`,
     );
     if (Number(tableRows[0].count) > 0) {
       throw new Error(
-        'Cette base contient déjà des tables. Le schéma initial exige une base vide.'
+        'Cette base contient déjà des tables. Le schéma initial exige une base vide.',
       );
     }
 

@@ -34,7 +34,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || true,
     credentials: true,
-  })
+  }),
 );
 
 // Stripe webhooks need the raw body for signature verification (before json parser).

@@ -8,15 +8,19 @@ function clearThemeOnLoad(win) {
   }
 }
 
+function visibleThemeToggle() {
+  return cy.get('[data-testid="theme-toggle"]:visible').first();
+}
+
 function expectTheme(theme) {
   cy.get('html').should('have.attr', 'data-theme', theme);
-  cy.get('[data-testid="theme-toggle"]').should('have.attr', 'data-theme-current', theme);
+  visibleThemeToggle().should('have.attr', 'data-theme-current', theme);
 }
 
 function pickTheme(theme) {
-  cy.get('[data-testid="theme-toggle"]').click();
-  cy.get('[data-testid="theme-picker-menu"]').should('be.visible');
-  cy.get(`[data-testid="theme-option-${theme}"]`).click();
+  visibleThemeToggle().click();
+  cy.get('[data-testid="theme-picker-menu"]:visible').should('be.visible');
+  cy.get(`[data-testid="theme-option-${theme}"]:visible`).click();
   expectTheme(theme);
 }
 
@@ -35,13 +39,13 @@ describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () =>
     cy.visit('/', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="landing-page"]').should('be.visible');
 
-    cy.get('[data-testid="theme-toggle"]').click();
-    cy.get('[data-testid="theme-picker-menu"]').should('be.visible');
-    cy.get('[data-testid="theme-option-light"]').should('exist');
-    cy.get('[data-testid="theme-option-dark"]').should('exist');
-    cy.get('[data-testid="theme-option-ink"]').should('exist');
-    cy.get('[data-testid="theme-option-amber"]').should('exist');
-    cy.get('[data-testid="theme-toggle"]').click();
+    visibleThemeToggle().click();
+    cy.get('[data-testid="theme-picker-menu"]:visible').should('be.visible');
+    cy.get('[data-testid="theme-option-light"]:visible').should('exist');
+    cy.get('[data-testid="theme-option-dark"]:visible').should('exist');
+    cy.get('[data-testid="theme-option-ink"]:visible').should('exist');
+    cy.get('[data-testid="theme-option-amber"]:visible').should('exist');
+    visibleThemeToggle().click();
 
     pickTheme('dark');
     cy.window().then((win) => expect(win.localStorage.getItem(STORAGE_KEY)).to.equal('dark'));
@@ -69,7 +73,15 @@ describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () =>
     cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
 
-    cy.openNavMenu();
+    // Sur desktop le rail expose déjà le sélecteur ; ouvrir le drawer le masque derrière le voile.
+    cy.get('body').then($body => {
+      if ($body.find('[data-testid="theme-toggle"]:visible').length === 0) {
+        cy.openNavMenu();
+        cy.get('[data-testid="nav-menu-panel"] [data-testid="theme-toggle"]')
+          .scrollIntoView()
+          .should('be.visible');
+      }
+    });
     pickTheme('amber');
 
     cy.visit('/collection');

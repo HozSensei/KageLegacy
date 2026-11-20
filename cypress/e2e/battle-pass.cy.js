@@ -1,27 +1,10 @@
 /**
  * Battle Pass — progression par quête et récompense de palier sur une saison seedée.
+ * Utilise demo_sensei (fixture e2e:prepare), crédité en Ryos pour ouvrir des boosters.
  */
 describe('Battle Pass', () => {
-  let guestCreated = false;
-
   beforeEach(() => {
-    cy.request('POST', '/api/auth/guest', { displayName: 'Cypress Battle Pass' }).then(
-      ({ body }) => {
-        guestCreated = true;
-        expect(body.user.isGuest).to.equal(true);
-      }
-    );
-    cy.request('POST', '/api/player/create', {
-      name: 'Cypress Ninja',
-      elementAffinity: 'Katon',
-    });
-  });
-
-  afterEach(() => {
-    if (guestCreated) {
-      cy.request('DELETE', '/api/auth/profile', { confirm: true });
-      guestCreated = false;
-    }
+    cy.loginDemo();
   });
 
   it('gagne de l’XP de quête et réclame un palier gratuit', () => {

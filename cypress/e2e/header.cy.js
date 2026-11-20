@@ -18,7 +18,7 @@ describe('Header — navigation V2 alpha', () => {
 
   it('expose le registre (journal) et masque l’inventaire legacy', () => {
     cy.openNavMenu();
-    cy.get('[data-testid="nav-journal"]').should('be.visible');
+    cy.get('[data-testid="nav-journal"]').scrollIntoView().should('be.visible');
     cy.get('[data-testid="nav-inventory"]').should('not.exist');
   });
 });

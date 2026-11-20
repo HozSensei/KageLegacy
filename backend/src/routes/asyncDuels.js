@@ -92,7 +92,7 @@ async function findCandidates(attacker, mode) {
       Math.max(1, attacker.level - LEVEL_WINDOW),
       attacker.level + LEVEL_WINDOW,
       ...(enemyOnly ? [attacker.factionId] : []),
-    ]
+    ],
   );
 }
 
@@ -175,20 +175,20 @@ export function createAsyncDuelRouter({
     '/',
     authenticated(async (_req, res, userId) => {
       res.json(await store.getDuelOverview(userId));
-    })
+    }),
   );
   router.get(
     '/opponents',
     authenticated(async (req, res, userId) => {
       const q = opponentSearch.parse(req.query.q);
       res.json({ opponents: await friends.searchDuelPlayers(userId, q) });
-    })
+    }),
   );
   router.get(
     '/friends',
     authenticated(async (_req, res, userId) => {
       res.json(await friends.getDuelFriends(userId));
-    })
+    }),
   );
   router.post(
     '/friends',
@@ -196,27 +196,27 @@ export function createAsyncDuelRouter({
       const input = friendRequest.parse(req.body);
       await friends.requestDuelFriend(userId, input.playerId);
       res.status(201).json(await friends.getDuelFriends(userId));
-    })
+    }),
   );
   router.post(
     '/friends/:id/accept',
     authenticated(async (req, res, userId) => {
       await friends.acceptDuelFriend(userId, playerPath.parse(req.params.id));
       res.json(await friends.getDuelFriends(userId));
-    })
+    }),
   );
   router.delete(
     '/friends/:id',
     authenticated(async (req, res, userId) => {
       await friends.removeDuelFriend(userId, playerPath.parse(req.params.id));
       res.json(await friends.getDuelFriends(userId));
-    })
+    }),
   );
   router.get(
     '/factions',
     authenticated(async (_req, res) => {
       res.json(await store.getFactionStandings());
-    })
+    }),
   );
   router.get(
     '/village-rewards',
@@ -259,7 +259,7 @@ export function createAsyncDuelRouter({
         state,
       });
       res.status(201).json({ duel: publicSnapshot(row) });
-    })
+    }),
   );
   router.get(
     '/:id',
@@ -267,7 +267,7 @@ export function createAsyncDuelRouter({
       const row = await store.loadAsyncDuel(idSchema.parse(req.params.id), attackerId);
       if (!row) fail(404, 'Duel introuvable.');
       res.json({ duel: publicSnapshot(row) });
-    })
+    }),
   );
   router.post(
     '/:id/action',
@@ -288,7 +288,7 @@ export function createAsyncDuelRouter({
       });
       if (!next) fail(409, 'Le duel a déjà avancé ou est terminé.');
       res.json({ duel: publicSnapshot(next) });
-    })
+    }),
   );
   return router;
 }

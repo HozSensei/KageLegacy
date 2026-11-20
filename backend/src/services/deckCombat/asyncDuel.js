@@ -95,13 +95,13 @@ function makeFighter(fighter, index, rng) {
         const value = Number(source?.[key]);
         return Number.isFinite(value) ? sum + value : sum;
       }, 0),
-    ])
+    ]),
   );
   const maxHp = Math.max(1, BASE_MAX_HP + totalStats.maxHp);
   const maxChakra = Math.max(0, BASE_CHAKRA + totalStats.maxChakra);
   const applied = [
     ...new Set(
-      talentCodes.filter(code => typeof code === 'string' && Object.hasOwn(TALENT_EFFECT_MVP, code))
+      talentCodes.filter(code => typeof code === 'string' && Object.hasOwn(TALENT_EFFECT_MVP, code)),
     ),
   ];
   return applyTalentCombatStart(
@@ -126,7 +126,7 @@ function makeFighter(fighter, index, rng) {
       discardedForChakra: false,
       voluntaryDiscards: 0,
     },
-    applied
+    applied,
   );
 }
 
@@ -182,7 +182,7 @@ function beginTurn(duel, index, rng) {
       elementalFusionDrawnThisTurn: false,
     },
     fighter.talentCodes,
-    { turn: duel.currentTurn }
+    { turn: duel.currentTurn },
   );
   const refill = Math.max(0, DRAW_PER_TURN - prepared.player.hand.length);
   const drawn = drawCards(prepared.player, refill, rng);
@@ -273,13 +273,13 @@ function play(player, opponent, card, talentMods, rng) {
   let target = afterHit(enemy, played.enemy);
   // Seals apply to scripted PvE intents, not to a fighter's hand or turn.
   const logs = played.logs.filter(
-    log => log.type !== 'intent_sealed' && !(evaded && log.type === 'attack_denied')
+    log => log.type !== 'intent_sealed' && !(evaded && log.type === 'attack_denied'),
   );
   const after = applyTalentAfterCardPlay(caster, card, player.talentCodes, { enemy: target });
   caster = moveCardFromHand(
     after.player,
     card.instanceId,
-    resolveCardPileDestination(card, player.talentCodes)
+    resolveCardPileDestination(card, player.talentCodes),
   ).player;
   logs.push(...after.logs);
   if (after.extraDraw > 0) {
@@ -372,7 +372,7 @@ function boardValue({ hp, block, statuses, ally }) {
   const effects = statuses.reduce(
     (sum, { key, value, duration }) =>
       Object.hasOwn(weights, key) ? sum + weights[key] * value * Math.min(2, duration ?? 1) : sum,
-    0
+    0,
   );
   return hp + Math.min(block, 24) * 0.4 + effects + (ally ? ally.attack * 1.6 + ally.hp * 0.2 : 0);
 }
@@ -411,7 +411,7 @@ function planAi(player, opponent, canDraw) {
           target,
           depth + 1,
           action,
-          adjustment
+          adjustment,
         );
       };
       const mods = cardMods(actor, enemy, card);
@@ -428,7 +428,7 @@ function planAi(player, opponent, canDraw) {
         consider(
           'discard_chakra',
           exchange(actor, { type: 'discard_chakra', instanceId }, noRoll),
-          -1
+          -1,
         );
       }
     }
@@ -448,7 +448,7 @@ function runAi(duel, rng) {
     const action = planAi(
       { ...actor, drawPile: [], discardPile: [], exhaustPile: [] },
       publicFighter(opponent),
-      hasReplacement(actor)
+      hasReplacement(actor),
     );
     if (!action) break;
     act(duel, 1, action, rng);

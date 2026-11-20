@@ -70,7 +70,7 @@ function appendLogs(combat, logs, playerId, targetId) {
       ...entry,
       ...(playerId != null && { playerId }),
       ...(targetId != null && { targetId }),
-    }))
+    })),
   );
 }
 
@@ -119,7 +119,7 @@ function createFighter(combat, fighter, index, rng) {
         const value = Number(source?.[key]);
         return Number.isFinite(value) ? sum + value : sum;
       }, 0),
-    ])
+    ]),
   );
   const maxHp = Math.max(1, BASE_MAX_HP + stats.maxHp);
   const maxChakra = Math.max(0, BASE_COOP_CHAKRA + stats.maxChakra);
@@ -146,7 +146,7 @@ function createFighter(combat, fighter, index, rng) {
       voluntaryDiscards: 0,
       discardedForChakra: false,
     },
-    talentEffects.applied
+    talentEffects.applied,
   );
   const drawn = drawCards(start.player, DRAW_PER_TURN, rng);
   appendLogs(combat, [...start.logs, { type: 'draw', count: drawn.drawn.length }], id);
@@ -173,7 +173,7 @@ function beginPlayerTurn(combat, index, rng) {
       elementalFusionDrawnThisTurn: false,
     },
     talentEffects.applied,
-    { turn: combat.currentTurn }
+    { turn: combat.currentTurn },
   );
   const refill = Math.max(0, DRAW_PER_TURN - prepared.player.hand.length);
   const drawn = drawCards(prepared.player, refill, rng);
@@ -272,8 +272,8 @@ export function createCoopCombat(fighters) {
         talentCodes: fighter.talentCodes ?? [],
       },
       index,
-      rng
-    )
+      rng,
+    ),
   );
   beginPlayerTurn(combat, 0, rng);
   refreshIntents(combat);
@@ -294,7 +294,7 @@ function exchangeCard(combat, index, { type, instanceId }, rng) {
     appendLogs(
       combat,
       [{ type: 'discard_for_chakra', instanceId, chakra: next.chakra + 1 }],
-      player.id
+      player.id,
     );
   } else {
     // La carte échangée ne peut pas être repiochée immédiatement.
@@ -310,7 +310,7 @@ function exchangeCard(combat, index, { type, instanceId }, rng) {
         { type: 'discard_for_draw', instanceId },
         { type: 'draw', count: 1 },
       ],
-      player.id
+      player.id,
     );
   }
 }
@@ -423,7 +423,7 @@ function playCard(combat, index, { instanceId, target = 'enemy', confirmedFriend
   const moved = moveCardFromHand(
     after.player,
     instanceId,
-    resolveCardPileDestination(card, talentCodes)
+    resolveCardPileDestination(card, talentCodes),
   );
   const logs = [...played.logs, ...after.logs];
   combat.players[index] = moved.player;
@@ -442,7 +442,7 @@ function enemyTurn(combat, rng) {
   combat.enemy = start.entity;
   appendLogs(
     combat,
-    start.logs.map(log => ({ ...log, side: 'enemy' }))
+    start.logs.map(log => ({ ...log, side: 'enemy' })),
   );
   if (checkOutcome(combat)) return;
 
@@ -456,7 +456,7 @@ function enemyTurn(combat, rng) {
     combat,
     act.logs.filter(log => log.type !== 'intent'),
     targetId,
-    targetId
+    targetId,
   );
   if (act.phantomStepDraw > 0) {
     const drawn = drawCards(recipient, act.phantomStepDraw, rng);
@@ -464,7 +464,7 @@ function enemyTurn(combat, rng) {
     appendLogs(
       combat,
       [{ type: 'draw', count: drawn.drawn.length, reason: 'phantom_step' }],
-      targetId
+      targetId,
     );
   }
   const after = applyTalentAfterDamageTaken(recipient, talentCodes, {
@@ -480,7 +480,7 @@ function enemyTurn(combat, rng) {
   combat.enemy = end.entity;
   appendLogs(
     combat,
-    end.logs.map(log => ({ ...log, side: 'enemy' }))
+    end.logs.map(log => ({ ...log, side: 'enemy' })),
   );
   if (checkOutcome(combat)) return;
 

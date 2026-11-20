@@ -192,7 +192,7 @@ export async function getAllCards(filters = {}) {
   const { clause, params } = buildFilters(filters);
   const rows = await query(
     `SELECT * FROM card_definitions ${clause} ORDER BY rarity, type, name_fr`,
-    params
+    params,
   );
   return rows.map(row => serializeCardDefinition(row));
 }
@@ -280,7 +280,7 @@ export async function upsertCardDefinition(card) {
         upgradable=?, upgrade_bonuses_json=?, image_url=?, artist=?,
         season_introduced=?, is_exclusive=?
        WHERE slug=?`,
-      payload
+      payload,
     );
     return getCardBySlug(card.slug);
   }
@@ -295,7 +295,7 @@ export async function upsertCardDefinition(card) {
       upgradable, upgrade_bonuses_json, image_url, artist,
       season_introduced, is_exclusive, slug
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    payload
+    payload,
   );
   return getCardBySlug(card.slug);
 }

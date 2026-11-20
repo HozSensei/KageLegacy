@@ -66,7 +66,7 @@ export function resolveSecondaryArt(slug, explicitSecondary = null) {
  */
 export function remapAbandonedPassives(
   passive = {},
-  { statType = null, secondaryStatType = null } = {}
+  { statType = null, secondaryStatType = null } = {},
 ) {
   const raw = passive && typeof passive === 'object' ? { ...passive } : {};
   const vit = Number(raw.vitesse) || 0;
@@ -88,7 +88,7 @@ export function remapAbandonedPassives(
       primary === COMMON_ART
         ? COMBAT_ARTS.reduce(
             (best, key) => ((Number(raw[key]) || 0) > (Number(raw[best]) || 0) ? key : best),
-            'taijutsu'
+            'taijutsu',
           )
         : primary;
     raw[legacySpeedTarget] = (Number(raw[legacySpeedTarget]) || 0) + vit;
