@@ -1,5 +1,4 @@
 <script setup>
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
@@ -7,18 +6,10 @@ import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
-import NinjaPortrait from '../components/player/NinjaPortrait.vue';
-import LandingCardCarousel from '../components/landing/LandingCardCarousel.vue';
+import LandingCardShowcase from '../components/landing/LandingCardShowcase.vue';
 import gateImage from '../assets/illustrations/village-gate.webp';
 import forestImage from '../assets/illustrations/forest-path.webp';
-import bridgeImage from '../assets/illustrations/stone-bridge.webp';
-import officeImage from '../assets/illustrations/hub-office.webp';
-import marketImage from '../assets/illustrations/market-square.webp';
-import cardAssaut from '../assets/cards/assaut-de-l-aube.webp';
-import cardColonne from '../assets/cards/colonne-de-feu.webp';
-import cardDome from '../assets/cards/dome-d-eau.webp';
-import cardFaucon from '../assets/cards/faucon-de-foudre.webp';
-import cardCitadelle from '../assets/cards/citadelle-de-pierre.webp';
+import { LANDING_HERO_CARDS } from '../constants/landingShowcaseCards.js';
 
 defineOptions({ name: 'LandingView' });
 
@@ -26,18 +17,20 @@ const { t, locale } = useI18n();
 const router = useRouter();
 const auth = useAuthStore();
 
-const openFeature = ref('deck');
-const features = ['deck', 'talents', 'missions'];
+const heroCards = LANDING_HERO_CARDS;
 
-const mosaic = [
-  { key: 'forge', image: cardAssaut, tall: true },
-  { key: 'paths', image: cardColonne, tall: false },
-  { key: 'clans', image: cardDome, tall: false },
-  { key: 'boosters', image: cardFaucon, tall: false },
-  { key: 'pass', image: cardCitadelle, tall: false },
+const features = [
+  { key: 'talents', tone: 'leaf' },
+  { key: 'missions', tone: 'gold' },
+  { key: 'season', tone: 'wood' },
 ];
 
-const portraits = ['aspirant-1-1', 'aspirant-1-5', 'aspirant-1-9', 'aspirant-2-3'];
+const timeline = [
+  'landing.timeline.create',
+  'landing.timeline.build',
+  'landing.timeline.grow',
+  'landing.timeline.fight',
+];
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest({
@@ -45,190 +38,158 @@ async function playAsGuest() {
   });
   if (ok) router.push('/home');
 }
-
-function toggleFeature(key) {
-  openFeature.value = openFeature.value === key ? null : key;
-}
 </script>
 
 <template>
   <div class="landing" data-testid="landing-page">
-    <!-- 1. Hero + carrousel déporté -->
-    <section class="landing__hero" data-testid="landing-hero">
-      <div class="landing__hero-media" aria-hidden="true">
-        <img class="landing__hero-image" :src="gateImage" alt="" decoding="async" />
-      </div>
-      <div class="landing__hero-veil" aria-hidden="true" />
+    <main>
+      <!-- Hero : atmosphère + marque + CTA ; cartes qui débordent sur la section suivante -->
+      <section class="landing__hero" data-testid="landing-hero">
+        <div class="landing__hero-backdrop" aria-hidden="true">
+          <div class="landing__hero-media">
+            <img class="landing__hero-image" :src="gateImage" alt="" decoding="async" />
+          </div>
+          <div class="landing__hero-veil" />
+        </div>
 
-      <header class="landing__bar">
-        <p class="landing__brand">
-          <BrandMark size="1.5rem" />
-          <span>{{ t('app.name') }}</span>
-        </p>
-        <nav class="landing__nav">
-          <LocaleSwitcher data-testid="landing-locale-switcher" />
-          <router-link to="/rules" class="landing__nav-link" data-testid="landing-rules-link">
-            {{ t('rules.link') }}
-          </router-link>
-          <router-link to="/login" class="landing__nav-link">{{ t('auth.login') }}</router-link>
-          <router-link to="/register" class="btn-secondary btn-sm landing__nav-register">
-            {{ t('auth.register') }}
-          </router-link>
-          <ThemeToggle />
-        </nav>
-      </header>
+        <header class="landing__bar">
+          <p class="landing__brand">
+            <BrandMark size="1.625rem" />
+            <span>{{ t('app.name') }}</span>
+          </p>
+          <nav class="landing__nav">
+            <LocaleSwitcher data-testid="landing-locale-switcher" />
+            <router-link to="/rules" class="landing__nav-link" data-testid="landing-rules-link">
+              {{ t('rules.link') }}
+            </router-link>
+            <router-link to="/login" class="landing__nav-link">{{ t('auth.login') }}</router-link>
+            <router-link to="/register" class="btn-secondary btn-sm landing__nav-register">{{
+              t('auth.register')
+            }}</router-link>
+            <ThemeToggle />
+          </nav>
+        </header>
 
-      <div class="landing__hero-main">
-        <div class="landing__hero-copy">
-          <h1 class="t-display landing__title anim-rise">{{ t('landing.title') }}</h1>
-          <p class="landing__lead anim-rise" style="--delay: 100ms">{{ t('landing.lead') }}</p>
-          <div class="landing__actions anim-rise" style="--delay: 180ms">
+        <div class="landing__hero-body">
+          <div class="landing__hero-copy">
+            <p class="landing__brand-hero anim-rise">
+              <BrandMark size="2.75rem" />
+              <span>{{ t('app.name') }}</span>
+            </p>
+            <h1 class="t-display landing__title anim-rise" style="--delay: 80ms">
+              {{ t('landing.title') }}
+            </h1>
+            <p class="landing__lead anim-rise" style="--delay: 160ms">{{ t('landing.lead') }}</p>
+            <div class="landing__actions anim-rise" style="--delay: 240ms">
+              <button
+                type="button"
+                class="btn-primary btn-lg"
+                data-testid="landing-guest"
+                :disabled="auth.loading"
+                @click="playAsGuest"
+              >
+                {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
+              </button>
+              <router-link to="/register" class="btn-ghost btn-lg landing__cta-ghost">
+                {{ t('landing.createAccount') }}
+              </router-link>
+            </div>
+            <p class="landing__hint anim-rise" style="--delay: 300ms">{{ t('landing.guestHint') }}</p>
+            <p v-if="auth.error" class="alert alert--error mt-4">{{ auth.error }}</p>
+          </div>
+
+          <div class="landing__hero-cards anim-rise" style="--delay: 200ms">
+            <LandingCardShowcase :cards="heroCards" tone="onFill" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Collection : image à gauche (remonte dans le hero) + texte à droite -->
+      <section class="landing__bridge">
+        <div class="landing__bridge-inner">
+          <figure class="landing__bridge-media" aria-hidden="true">
+            <img :src="forestImage" alt="" loading="lazy" decoding="async" />
+          </figure>
+          <header class="landing__bridge-copy">
+            <p class="landing__kicker">{{ t('landing.pillars.deck.kicker') }}</p>
+            <h2 class="page-title">{{ t('landing.pillars.deck.title') }}</h2>
+            <p class="landing__section-lead">{{ t('landing.pillars.deck.lead') }}</p>
+          </header>
+        </div>
+      </section>
+
+      <!-- Atouts : grille sans images plein écran -->
+      <section class="landing__features">
+        <div class="landing__features-inner">
+          <article
+            v-for="feature in features"
+            :key="feature.key"
+            class="landing__feature"
+            :data-tone="feature.tone"
+          >
+            <p class="landing__kicker">{{ t(`landing.pillars.${feature.key}.kicker`) }}</p>
+            <h2 class="t-heading">{{ t(`landing.pillars.${feature.key}.title`) }}</h2>
+            <p>{{ t(`landing.pillars.${feature.key}.lead`) }}</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Première session -->
+      <section class="landing__session">
+        <div class="landing__pitch">
+          <p class="landing__pitch-kicker">{{ t('landing.asideTitle') }}</p>
+          <p class="landing__pitch-body">{{ t('landing.asideBody') }}</p>
+        </div>
+
+        <div class="landing__timeline">
+          <div class="section-head">
+            <span class="section-head__index">01</span>
+            <h2 class="section-head__title">{{ t('landing.timelineTitle') }}</h2>
+            <span class="section-head__rule" />
+          </div>
+          <p class="mt-3 text-ink-muted">{{ t('landing.timelineRealtime') }}</p>
+          <ol class="landing__steps">
+            <li v-for="(key, index) in timeline" :key="key" class="landing__step">
+              <span class="landing__step-index" aria-hidden="true">{{ index + 1 }}</span>
+              <p>{{ t(key) }}</p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- CTA final -->
+      <section class="landing__close">
+        <div class="landing__close-inner">
+          <h2 class="t-display landing__close-title">{{ t('landing.closeTitle') }}</h2>
+          <p class="landing__close-lead">{{ t('landing.closeLead') }}</p>
+          <div class="landing__actions">
             <button
               type="button"
               class="btn-primary btn-lg"
-              data-testid="landing-guest"
               :disabled="auth.loading"
               @click="playAsGuest"
             >
               {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
             </button>
-            <router-link to="/register" class="btn-ghost btn-lg landing__ghost">
+            <router-link to="/register" class="btn-ghost btn-lg landing__cta-ghost">
               {{ t('landing.createAccount') }}
             </router-link>
           </div>
-          <p class="landing__hint">{{ t('landing.guestHint') }}</p>
-          <p v-if="auth.error" class="alert alert--error mt-4">{{ auth.error }}</p>
         </div>
-      </div>
-
-      <LandingCardCarousel class="landing__hero-carousel" />
-    </section>
-
-    <!-- 2. Bandeau immersif centré -->
-    <section class="landing__banner">
-      <div class="landing__banner-media" aria-hidden="true">
-        <img :src="bridgeImage" alt="" loading="lazy" decoding="async" />
-      </div>
-      <div class="landing__banner-veil" aria-hidden="true" />
-      <div class="landing__banner-copy">
-        <p class="landing__eyebrow">{{ t('landing.banner.eyebrow') }}</p>
-        <h2 class="t-display landing__banner-title">{{ t('landing.banner.title') }}</h2>
-        <p class="landing__banner-lead">{{ t('landing.banner.lead') }}</p>
-        <router-link to="/rules" class="btn-primary">{{ t('landing.banner.cta') }}</router-link>
-      </div>
-    </section>
-
-    <!-- 3. Accueil split : accordion + image -->
-    <section class="landing__welcome">
-      <div class="landing__welcome-copy">
-        <h2 class="page-title">{{ t('landing.welcome.title') }}</h2>
-        <p class="landing__section-lead">{{ t('landing.welcome.lead') }}</p>
-        <ul class="landing__accordion">
-          <li v-for="key in features" :key="key" class="landing__acc-item">
-            <button
-              type="button"
-              class="landing__acc-trigger"
-              :aria-expanded="openFeature === key"
-              @click="toggleFeature(key)"
-            >
-              <span>{{ t(`landing.welcome.features.${key}.title`) }}</span>
-              <span class="landing__acc-mark" aria-hidden="true">{{
-                openFeature === key ? '−' : '+'
-              }}</span>
-            </button>
-            <p v-if="openFeature === key" class="landing__acc-body">
-              {{ t(`landing.welcome.features.${key}.body`) }}
-            </p>
-          </li>
-        </ul>
-      </div>
-      <figure class="landing__welcome-frame">
-        <img :src="forestImage" alt="" loading="lazy" decoding="async" />
-        <ul class="landing__mini-portraits" aria-hidden="true">
-          <li v-for="id in portraits" :key="id">
-            <NinjaPortrait :avatar-id="id" />
-          </li>
-        </ul>
-      </figure>
-    </section>
-
-    <!-- 4. Grille asymétrique « mises à jour / piliers » -->
-    <section class="landing__mosaic">
-      <div class="landing__mosaic-head">
-        <h2 class="page-title">{{ t('landing.mosaic.title') }}</h2>
-        <router-link to="/register" class="btn-secondary btn-sm">
-          {{ t('landing.mosaic.cta') }}
-        </router-link>
-      </div>
-      <div class="landing__mosaic-grid">
-        <article
-          v-for="tile in mosaic"
-          :key="tile.key"
-          class="landing__tile"
-          :class="{ 'landing__tile--tall': tile.tall }"
-        >
-          <img :src="tile.image" alt="" loading="lazy" decoding="async" />
-          <div class="landing__tile-copy">
-            <p class="landing__tile-kicker">{{ t(`landing.mosaic.items.${tile.key}.kicker`) }}</p>
-            <h3 class="t-heading">{{ t(`landing.mosaic.items.${tile.key}.title`) }}</h3>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- 5. Bandeau saison / village -->
-    <section class="landing__season">
-      <div class="landing__season-media" aria-hidden="true">
-        <img :src="marketImage" alt="" loading="lazy" decoding="async" />
-      </div>
-      <div class="landing__season-veil" aria-hidden="true" />
-      <div class="landing__season-copy">
-        <p class="landing__eyebrow">{{ t('landing.season.eyebrow') }}</p>
-        <h2 class="t-display landing__season-title">{{ t('landing.season.title') }}</h2>
-        <p class="landing__season-lead">{{ t('landing.season.lead') }}</p>
-        <button
-          type="button"
-          class="btn-primary"
-          :disabled="auth.loading"
-          @click="playAsGuest"
-        >
-          {{ t('landing.season.cta') }}
-        </button>
-      </div>
-    </section>
-
-    <!-- 6. CTA final -->
-    <section class="landing__close">
-      <div class="landing__close-media" aria-hidden="true">
-        <img :src="officeImage" alt="" loading="lazy" decoding="async" />
-      </div>
-      <div class="landing__close-veil" aria-hidden="true" />
-      <div class="landing__close-copy">
-        <h2 class="t-display">{{ t('landing.closeTitle') }}</h2>
-        <p>{{ t('landing.closeLead') }}</p>
-        <div class="landing__actions">
-          <button
-            type="button"
-            class="btn-primary btn-lg"
-            :disabled="auth.loading"
-            @click="playAsGuest"
-          >
-            {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
-          </button>
-          <router-link to="/register" class="btn-ghost btn-lg landing__ghost">
-            {{ t('landing.createAccount') }}
-          </router-link>
-        </div>
-      </div>
-    </section>
-
+      </section>
+    </main>
     <SiteFooter />
   </div>
 </template>
 
 <style scoped>
 .landing {
-  overflow-x: clip;
+  /* Cartes hero → ~20 % sur le bloc suivant ; image du bloc → remonte dans le hero */
+  --landing-card-overhang: clamp(2.75rem, 5.5vw, 3.75rem);
+  --landing-media-overhang: clamp(2.25rem, 4.5vw, 3.25rem);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: visible;
   background: var(--color-bg);
   color: var(--color-ink);
 }
@@ -241,7 +202,8 @@ function toggleFeature(key) {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  width: min(76rem, 100%);
+  width: 100%;
+  max-width: 76rem;
   margin-inline: auto;
   padding: 1rem var(--space-gutter);
 }
@@ -249,29 +211,27 @@ function toggleFeature(key) {
 .landing__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.6rem;
   font-family: var(--font-display);
+  font-size: 1.25rem;
   font-weight: 800;
   font-stretch: 80%;
+  letter-spacing: -0.01em;
   color: var(--color-gold-fill);
-  font-size: 1.2rem;
 }
 
 .landing__nav {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-}
-
-.landing__nav-link,
-.landing__footer-nav a {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-decoration: none;
+  gap: 0.35rem 1.1rem;
 }
 
 .landing__nav-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--color-on-fill);
+  text-decoration: none;
+  transition: color var(--dur-fast) ease;
 }
 
 .landing__nav-link:hover {
@@ -284,403 +244,385 @@ function toggleFeature(key) {
   background: color-mix(in srgb, var(--color-on-fill) 10%, transparent);
 }
 
-.landing__ghost {
-  color: var(--color-on-fill);
-  border-color: color-mix(in srgb, var(--color-on-fill) 35%, transparent);
-}
-
-.landing__ghost:hover {
-  background: color-mix(in srgb, var(--color-on-fill) 12%, transparent);
-}
-
-/* ——— 1. Hero ——— */
+/* ——— Hero ——— */
 
 .landing__hero {
   position: relative;
+  z-index: 2;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  min-height: min(100dvh, 52rem);
-  padding-bottom: 4.5rem;
+  grid-template-rows: auto 1fr;
+  min-height: min(72dvh, 40rem);
+  margin-bottom: calc(var(--landing-card-overhang) * -1);
   overflow: visible;
   color: var(--color-on-fill);
+  background: var(--color-indigo-deep);
 }
 
-.landing__hero-media,
-.landing__hero-veil {
+.landing__hero-backdrop {
   position: absolute;
   inset: 0;
-  border-radius: 0 0 1.25rem 1.25rem;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .landing__hero-media {
-  z-index: 0;
+  position: absolute;
+  inset: 0;
 }
 
 .landing__hero-image {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 48% center;
-  filter: var(--image-filter);
-  transform: scale(1.05);
+  object-position: 38% 42%;
+  opacity: 0.42;
+  filter: var(--image-filter) saturate(0.92);
+  transform: scale(1.03);
   animation: landing-ken 18s var(--ease-out-quint) both;
 }
 
 .landing__hero-veil {
-  z-index: 1;
+  position: absolute;
+  inset: 0;
   background:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-indigo-deep) 55%, transparent),
-      color-mix(in srgb, var(--color-indigo-deep) 18%, transparent) 45%,
-      color-mix(in srgb, var(--color-indigo-deep) 88%, transparent)
+      color-mix(in srgb, var(--color-indigo-deep) 62%, transparent) 0%,
+      color-mix(in srgb, var(--color-indigo-deep) 38%, transparent) 42%,
+      color-mix(in srgb, var(--color-indigo-deep) 88%, transparent) 100%
     ),
     linear-gradient(
-      100deg,
-      color-mix(in srgb, var(--color-indigo-deep) 80%, transparent) 0%,
-      transparent 62%
+      90deg,
+      color-mix(in srgb, var(--color-indigo-deep) 82%, transparent) 0%,
+      color-mix(in srgb, var(--color-indigo-deep) 35%, transparent) 52%,
+      color-mix(in srgb, var(--color-indigo-deep) 55%, transparent) 100%
     );
 }
 
-.landing__hero-main {
+.landing__hero-body {
   position: relative;
   z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  width: min(76rem, 100%);
+  display: grid;
+  gap: 1.75rem;
+  align-items: end;
+  width: 100%;
+  max-width: 76rem;
   margin-inline: auto;
-  padding: 2rem var(--space-gutter) 1rem;
+  padding: clamp(1.5rem, 4vw, 2.75rem) var(--space-gutter) 0;
 }
 
 .landing__hero-copy {
-  width: min(34rem, 100%);
+  align-self: center;
+  width: min(36rem, 100%);
+  padding-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.landing__brand-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 1.1rem + 2vw, 2.35rem);
+  font-weight: 800;
+  font-stretch: 78%;
+  letter-spacing: -0.02em;
+  color: var(--color-gold-fill);
 }
 
 .landing__title {
-  max-width: 12ch;
+  margin-top: 0.85rem;
+  max-width: 14ch;
+  font-size: clamp(2rem, 1.35rem + 2.4vw, 3.15rem);
   color: var(--color-on-fill);
   text-wrap: balance;
 }
 
-.landing__lead,
-.landing__hint {
-  max-width: 32rem;
-  line-height: 1.55;
-}
-
 .landing__lead {
-  margin-top: 1rem;
-  color: color-mix(in srgb, var(--color-on-fill) 82%, transparent);
-}
-
-.landing__hint {
+  max-width: 34rem;
   margin-top: 0.9rem;
-  font-size: 0.8125rem;
-  color: color-mix(in srgb, var(--color-on-fill) 66%, transparent);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--color-on-fill) 82%, transparent);
 }
 
 .landing__actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-flow: row wrap;
+  align-items: center;
   gap: 0.65rem;
-  margin-top: 1.35rem;
+  margin-top: 1.5rem;
 }
 
-.landing__hero-carousel {
+.landing__cta-ghost {
+  color: var(--color-on-fill);
+  border-color: color-mix(in srgb, var(--color-on-fill) 35%, transparent);
+}
+
+.landing__cta-ghost:hover {
+  background: color-mix(in srgb, var(--color-on-fill) 12%, transparent);
+}
+
+.landing__hint {
+  max-width: 32rem;
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--color-on-fill) 68%, transparent);
+}
+
+.landing__hero-cards {
   position: relative;
   z-index: 4;
-  width: min(36rem, calc(100% - 2 * var(--space-gutter)));
-  margin: -2.5rem var(--space-gutter) 0 auto;
+  width: 100%;
+  max-width: 34rem;
+  justify-self: center;
+  padding-bottom: 0;
 }
 
-/* ——— Shared band helpers ——— */
+/* ——— Bridge collection (image ↔ hero) ——— */
 
-.landing__eyebrow {
+.landing__kicker {
   margin: 0;
   font-size: var(--type-kicker);
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.landing__section-lead {
+  max-width: 36rem;
+  margin-top: 0.85rem;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+}
+
+.landing__bridge {
+  position: relative;
+  z-index: 1;
+  background: var(--color-bg-soft);
+  padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.landing__bridge-inner {
+  display: grid;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: var(--space-gutter);
+}
+
+.landing__bridge-media {
+  position: relative;
+  z-index: 3;
+  margin: calc(var(--landing-media-overhang) * -1) 0 0;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  background: var(--color-bg-card);
+  box-shadow: 0 18px 40px color-mix(in srgb, var(--color-ink) 14%, transparent);
+}
+
+.landing__bridge-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  object-position: 50% 40%;
+  filter: var(--image-filter);
+}
+
+.landing__bridge-copy {
+  padding-top: calc(var(--landing-card-overhang) + 1rem);
+}
+
+/* ——— Features / session / close ——— */
+
+.landing__features {
+  background: var(--color-bg);
+  border-block: 1px solid var(--color-line);
+}
+
+.landing__features-inner {
+  display: grid;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding: clamp(2.25rem, 5vw, 3.75rem) var(--space-gutter);
+}
+
+.landing__feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1.35rem 1.25rem 1.45rem;
+  border-top: 4px solid var(--tone-fill);
+  background: var(--color-bg-soft);
+}
+
+.landing__feature p:last-child {
+  margin: 0;
+  max-width: 34rem;
+  line-height: 1.55;
+  color: var(--color-ink-muted);
+}
+
+.landing__session {
+  display: grid;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) var(--space-gutter);
+}
+
+.landing__pitch {
+  position: relative;
+  padding: clamp(1.5rem, 5vw, 2.75rem);
+  background: var(--color-indigo-deep);
+  color: var(--color-on-fill);
+}
+
+.landing__pitch-kicker {
+  font-size: var(--type-kicker);
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-gold-fill);
 }
 
-.landing__section-lead {
-  margin-top: 0.85rem;
-  max-width: 36rem;
-  line-height: 1.55;
-  color: var(--color-ink-muted);
+.landing__pitch-body {
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.05rem + 1.4vw, 2rem);
+  font-weight: 700;
+  font-stretch: 88%;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
 }
 
-/* ——— 2. Banner ——— */
+.landing__steps {
+  margin-top: 1.5rem;
+  list-style: none;
+  padding: 0;
+}
 
-.landing__banner,
-.landing__season,
-.landing__close {
-  position: relative;
+.landing__step {
   display: grid;
-  place-items: center;
-  min-height: clamp(22rem, 48vw, 28rem);
-  overflow: hidden;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: baseline;
+  padding-block: 0.9rem;
+  border-top: 1px solid var(--color-line);
+  line-height: 1.55;
+}
+
+.landing__step-index {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  line-height: 0.9;
+  color: var(--color-vermilion);
+}
+
+.landing__close {
+  background: var(--color-indigo-deep);
   color: var(--color-on-fill);
+}
+
+.landing__close-inner {
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
+  padding: clamp(2.75rem, 7vw, 4.5rem) var(--space-gutter);
   text-align: center;
 }
 
-.landing__banner-media,
-.landing__season-media,
-.landing__close-media,
-.landing__banner-veil,
-.landing__season-veil,
-.landing__close-veil {
-  position: absolute;
-  inset: 0;
-}
-
-.landing__banner-media img,
-.landing__season-media img,
-.landing__close-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: var(--image-filter);
-}
-
-.landing__banner-veil,
-.landing__season-veil,
-.landing__close-veil {
-  background: color-mix(in srgb, var(--color-indigo-deep) 72%, transparent);
-}
-
-.landing__banner-copy,
-.landing__season-copy,
-.landing__close-copy {
-  position: relative;
-  z-index: 1;
-  width: min(42rem, calc(100% - 2 * var(--space-gutter)));
-  padding-block: 3rem;
-}
-
-.landing__banner-title,
-.landing__season-title {
-  margin-top: 0.65rem;
+.landing__close-title {
+  max-width: 14ch;
+  margin-inline: auto;
+  font-size: clamp(1.85rem, 1.25rem + 2vw, 2.75rem);
   color: var(--color-on-fill);
   text-wrap: balance;
 }
 
-.landing__banner-lead,
-.landing__season-lead,
-.landing__close-copy p {
-  margin: 1rem auto 1.35rem;
+.landing__close-lead {
   max-width: 34rem;
+  margin: 1rem auto 0;
   line-height: 1.55;
-  color: color-mix(in srgb, var(--color-on-fill) 80%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 78%, transparent);
 }
 
-/* ——— 3. Welcome split ——— */
-
-.landing__welcome {
-  display: grid;
-  gap: 2rem;
-  width: min(76rem, 100%);
-  margin-inline: auto;
-  padding: clamp(2.5rem, 6vw, 4.5rem) var(--space-gutter);
-}
-
-.landing__accordion {
-  margin: 1.5rem 0 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--color-line);
-}
-
-.landing__acc-item {
-  border-bottom: 1px solid var(--color-line);
-}
-
-.landing__acc-trigger {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-ink);
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-}
-
-.landing__acc-mark {
-  color: var(--color-vermilion);
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.landing__acc-body {
-  margin: 0 0 1rem;
-  max-width: 34rem;
-  line-height: 1.55;
-  color: var(--color-ink-muted);
-}
-
-.landing__welcome-frame {
-  position: relative;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-vermilion) 55%, var(--color-line));
-  min-height: 16rem;
-}
-
-.landing__welcome-frame > img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: var(--image-filter);
-}
-
-.landing__mini-portraits {
-  position: absolute;
-  right: 0.75rem;
-  bottom: 0.75rem;
-  display: flex;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.landing__mini-portraits li {
-  width: 3.1rem;
-  overflow: hidden;
-  border: 1px solid var(--color-line-strong);
-  background: var(--color-bg-card);
-}
-
-/* ——— 4. Mosaic ——— */
-
-.landing__mosaic {
-  width: min(76rem, 100%);
-  margin-inline: auto;
-  padding: 0 var(--space-gutter) clamp(2.5rem, 6vw, 4.5rem);
-}
-
-.landing__mosaic-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.landing__mosaic-grid {
-  display: grid;
-  gap: 0.85rem;
-  grid-template-columns: 1fr;
-}
-
-.landing__tile {
-  position: relative;
-  min-height: 10.5rem;
-  overflow: hidden;
-  background: var(--color-bg-soft);
-}
-
-.landing__tile img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.95);
-}
-
-.landing__tile-copy {
-  position: absolute;
-  inset: auto 0 0;
-  padding: 1rem 1.1rem;
-  background: linear-gradient(180deg, transparent, color-mix(in srgb, #0b0d14 82%, transparent));
-  color: var(--color-on-fill);
-}
-
-.landing__tile-kicker {
-  margin: 0;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-gold-fill);
-}
-
-.landing__tile-copy .t-heading {
-  margin-top: 0.25rem;
-  color: var(--color-on-fill);
-}
-
-/* ——— 6. Close + footer ——— */
-
-.landing__close {
-  text-align: left;
-}
-
-.landing__close-copy {
-  width: min(40rem, calc(100% - 2 * var(--space-gutter)));
-  margin-right: auto;
-  margin-left: var(--space-gutter);
-  justify-self: start;
-}
-
-.landing__close-copy .t-display {
-  color: var(--color-on-fill);
+.landing__close .landing__actions {
+  justify-content: center;
 }
 
 @keyframes landing-ken {
   from {
-    transform: scale(1.08);
+    transform: scale(1.06);
   }
   to {
     transform: scale(1.02);
   }
 }
 
-@media (min-width: 768px) {
-  .landing__mosaic-grid {
-    grid-template-columns: 1.15fr 1fr 1fr;
-    grid-template-rows: 12rem 12rem;
-  }
-
-  .landing__tile--tall {
-    grid-row: span 2;
-    min-height: 100%;
+@media (max-width: 639px) {
+  .landing {
+    --landing-card-overhang: clamp(2.25rem, 12vw, 3rem);
+    --landing-media-overhang: clamp(1.75rem, 8vw, 2.5rem);
   }
 }
 
-@media (min-width: 960px) {
-  .landing__hero-main {
-    padding-bottom: 5.5rem;
+@media (min-width: 768px) {
+  .landing__hero-body {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 1fr);
+    gap: 2.5rem;
+    align-items: end;
   }
 
-  .landing__hero-carousel {
-    margin-top: -6.5rem;
-    margin-bottom: -1.5rem;
+  .landing__hero-copy {
+    align-self: center;
+    padding-bottom: clamp(2.5rem, 6vw, 4rem);
   }
 
-  .landing__welcome {
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-    align-items: center;
-    gap: 3rem;
+  .landing__hero-cards {
+    justify-self: end;
+    max-width: none;
   }
 
-  .landing__welcome-frame {
-    min-height: 26rem;
+  .landing__bridge-inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 2.75rem;
+    align-items: start;
+  }
+
+  .landing__bridge-copy {
+    padding-top: calc(var(--landing-card-overhang) + 2rem);
+  }
+
+  .landing__features-inner {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .landing__session {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 4rem;
+    align-items: start;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .landing__hero-image {
-    animation: none;
-    transform: none;
+    animation: none !important;
+    transform: none !important;
   }
 }
 </style>

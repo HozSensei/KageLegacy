@@ -179,3 +179,16 @@ export function pickLandingShowcaseCards(count = 8) {
   }
   return pool.slice(0, Math.min(count, pool.length));
 }
+
+/** Sets fixes (variété de types / éléments) pour hero et section deck. */
+export const LANDING_HERO_CARDS = [
+  LANDING_SHOWCASE_CARD_POOL[0],
+  LANDING_SHOWCASE_CARD_POOL[2],
+  LANDING_SHOWCASE_CARD_POOL[3],
+];
+
+export const LANDING_DECK_CARDS = [
+  LANDING_SHOWCASE_CARD_POOL[1],
+  LANDING_SHOWCASE_CARD_POOL[4],
+  LANDING_SHOWCASE_CARD_POOL[5],
+];

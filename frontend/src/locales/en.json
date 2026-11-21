@@ -228,11 +228,26 @@
       "title": "What forges your legend",
       "cta": "Create account",
       "items": {
-        "forge": { "kicker": "Creation", "title": "Name, village, portrait" },
-        "paths": { "kicker": "Paths", "title": "Taijutsu, ninjutsu, genjutsu…" },
-        "clans": { "kicker": "Clans", "title": "Legendary passives" },
-        "boosters": { "kicker": "Shop", "title": "Boosters & packs" },
-        "pass": { "kicker": "Season", "title": "Battle pass" }
+        "forge": {
+          "kicker": "Creation",
+          "title": "Name, village, portrait"
+        },
+        "paths": {
+          "kicker": "Paths",
+          "title": "Taijutsu, ninjutsu, genjutsu…"
+        },
+        "clans": {
+          "kicker": "Clans",
+          "title": "Legendary passives"
+        },
+        "boosters": {
+          "kicker": "Shop",
+          "title": "Boosters & packs"
+        },
+        "pass": {
+          "kicker": "Season",
+          "title": "Battle pass"
+        }
       }
     },
     "season": {
@@ -248,6 +263,37 @@
       "page": "Page {n}",
       "prev": "Previous cards",
       "next": "Next cards"
+    },
+    "showcase": {
+      "hint": "Hover for 3D relief · click to flip",
+      "flipHint": "Flip the card"
+    },
+    "pillars": {
+      "shinobi": {
+        "kicker": "Character",
+        "title": "Pick a face. Join a village.",
+        "lead": "Name, aspirant portrait, and faction: your shinobi is born in one step, then grows through talents — never free stats."
+      },
+      "deck": {
+        "kicker": "Collection",
+        "title": "Craft your arsenal.",
+        "lead": "Starter pack, growing collection, path synergies and clan passives: every card matters in combat."
+      },
+      "talents": {
+        "kicker": "Progression",
+        "title": "Every level, a choice.",
+        "lead": "A dense talent tree: one point per level, branches to commit to, zero automatic stat inflation."
+      },
+      "missions": {
+        "kicker": "Combat",
+        "title": "Runs, not waiting rooms.",
+        "lead": "Ranked missions, turn-based fights, rewards and boosters: play when you want, at your pace."
+      },
+      "season": {
+        "kicker": "Season",
+        "title": "Shop, pass, and villages.",
+        "lead": "Season pass, village shop, and faction rivalries to keep the chase alive past night one."
+      }
     }
   },
   "hero": {
