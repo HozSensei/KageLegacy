@@ -154,12 +154,10 @@ watch(index, () => {
 }
 
 .landing-slider__viewport {
-  /* 2 cartes pleines + demi carte à droite */
+  /* 2 cartes pleines + demi carte à droite (coupe nette, sans fondu) */
   width: calc(var(--card-w) * (2 + var(--peek)) + var(--gap) * 2);
   max-width: 100%;
   overflow: hidden;
-  mask-image: linear-gradient(90deg, #000 0%, #000 82%, transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 82%, transparent 100%);
 }
 
 .landing-slider__track {
