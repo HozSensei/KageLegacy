@@ -185,43 +185,43 @@
   },
   "landing": {
     "title": "Build your shinobi. Master the deck.",
-    "lead": "A solo deck-building roguelike: create your ninja, craft a 20–30 card deck, unlock talents, and clear combat missions.",
+    "lead": "From creation, pick your name and village. Build a 20–30 card deck, unlock talents, and clear solo missions. Then raise your faction's renown, challenge other players, or team up against formidable foes.",
     "playGuest": "Try as guest (7 days)",
     "createAccount": "Create account",
-    "guestHint": "No password required — you'll create your ninja right after, then can convert the trial into a permanent account.",
+    "guestHint": "No password required — you'll choose your name and village right after, then can convert the trial into a permanent account.",
     "asideTitle": "The pitch",
-    "asideBody": "Preparation over raw power: synergies between cards and talents decide the fight.",
+    "asideBody": "Preparation decides the fight: card synergies, talents, and village loyalty matter more than raw power. Solo, in a duo, or against a rival — your build does the talking.",
     "timelineTitle": "Your first session",
-    "timelineRealtime": "No waiting on a 72-hour cycle — jump in and play at your pace.",
+    "timelineRealtime": "In a few minutes you set the foundation: a character, a village, a deck, and your first mission.",
     "timeline": {
-      "create": "Create your character and claim the starter card pack.",
-      "build": "Review your starter deck, then tune it in the deck builder.",
-      "grow": "Spend your first talent point on the tree.",
-      "fight": "Launch a combat mission — earn XP, Ryos and new cards."
+      "create": "Create your character, choose your village, and claim your starter pack.",
+      "build": "Open your starter deck, then tune it in the deck builder.",
+      "grow": "Spend your first point on the talent tree.",
+      "fight": "Launch a mission, earn XP, Ryos, and cards — then come back to strengthen your village."
     },
-    "closeTitle": "Enter the village now",
-    "closeLead": "Guest trial in seconds, or create an account to keep your progress.",
+    "closeTitle": "Enter the village",
+    "closeLead": "Try as a guest in seconds, or create an account to keep your progress, collection, and faction renown.",
     "banner": {
       "eyebrow": "Combat",
-      "title": "Missions, not waiting rooms",
-      "lead": "Ranked runs, turn-based fights, loot and boosters — play whenever you want.",
+      "title": "Missions, duels, and co-op",
+      "lead": "Ranked runs, turn-based fights, loot and boosters — play whenever you want, alone or with others.",
       "cta": "Read the rules"
     },
     "welcome": {
       "title": "Welcome to Kage Legacy",
-      "lead": "A solo deck-building roguelike built for a clear session: forge, build, climb.",
+      "lead": "A shinobi card game built for a clear session: create your ninja, build your deck, rise with your village.",
       "features": {
         "deck": {
           "title": "Deck & synergies",
           "body": "Craft 20–30 cards, chain paths, and trigger legendary clan passives."
         },
         "talents": {
-          "title": "Talents without inflation",
-          "body": "Each level grants one point. No free stats — every branch is a choice."
+          "title": "Talents to shape",
+          "body": "Each level grants one point. Choose your branch and build your combat style."
         },
         "missions": {
           "title": "Missions on your schedule",
-          "body": "No 72-hour cycle. Launch a mission, earn XP, Ryos, and new cards."
+          "body": "Launch a mission, earn XP, Ryos, and new cards — then come back stronger."
         }
       }
     },
@@ -273,27 +273,27 @@
       "shinobi": {
         "kicker": "Character",
         "title": "Pick a face. Join a village.",
-        "lead": "Name, aspirant portrait, and faction: your shinobi is born in one step, then grows through talents — never free stats."
+        "lead": "Name, aspirant portrait, and faction: your shinobi is born at creation, then grows through talents and your collection."
       },
       "deck": {
         "kicker": "Collection",
-        "title": "Craft your arsenal.",
-        "lead": "Starter pack, growing collection, path synergies and clan passives: every card matters in combat."
+        "title": "Craft your arsenal",
+        "lead": "From the starter pack, grow your collection card by card. Combine paths, trigger clan passives, and build a deck ready for missions, duels, and team fights."
       },
       "talents": {
         "kicker": "Progression",
-        "title": "Every level, a choice.",
-        "lead": "A dense talent tree: one point per level, branches to commit to, zero automatic stat inflation."
+        "title": "Every level, a real choice",
+        "lead": "One talent point per level. Shape your ninja to your playstyle — and commit to each branch through combat."
       },
       "missions": {
         "kicker": "Combat",
-        "title": "Runs, not waiting rooms.",
-        "lead": "Ranked missions, turn-based fights, rewards and boosters: play when you want, at your pace."
+        "title": "Solo, duo, duel",
+        "lead": "Clear missions at your pace, invite an ally to take down powerful foes, or test yourself against other players when you want a tougher challenge."
       },
       "season": {
         "kicker": "Season",
-        "title": "Shop, pass, and villages.",
-        "lead": "Season pass, village shop, and faction rivalries to keep the chase alive past night one."
+        "title": "Stand for your village",
+        "lead": "Join a faction, raise its renown, progress the season pass, and visit the village shop to stay in the race."
       }
     }
   },
