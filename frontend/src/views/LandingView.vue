@@ -99,12 +99,12 @@ async function playAsGuest() {
           </div>
 
           <div class="landing__hero-cards anim-rise" style="--delay: 200ms">
-            <LandingCardShowcase :cards="heroCards" tone="onFill" />
+            <LandingCardShowcase :cards="heroCards" tone="onFill" :show-hint="false" />
           </div>
         </div>
       </section>
 
-      <!-- Collection : image à gauche (remonte dans le hero) + texte à droite -->
+      <!-- Collection : image ~40 % à gauche (déborde sur les atouts) + texte plus bas à droite -->
       <section class="landing__bridge">
         <div class="landing__bridge-inner">
           <figure class="landing__bridge-media" aria-hidden="true">
@@ -184,9 +184,9 @@ async function playAsGuest() {
 
 <style scoped>
 .landing {
-  /* Cartes hero → ~20 % sur le bloc suivant ; image du bloc → remonte dans le hero */
-  --landing-card-overhang: clamp(3.25rem, 6.5vw, 4.5rem);
-  --landing-media-overhang: clamp(3.5rem, 7vw, 5rem);
+  /* Cartes hero → empiètent fort sur Collection ; image Collection → déborde sur Atouts */
+  --landing-card-overhang: clamp(5rem, 9vw, 7rem);
+  --landing-media-overhang: clamp(2.75rem, 5.5vw, 4rem);
   min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
@@ -405,7 +405,10 @@ async function playAsGuest() {
   position: relative;
   z-index: 1;
   background: var(--color-bg-soft);
-  padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+  /* Place pour les cartes qui descendent + image qui descend vers Atouts */
+  padding-top: calc(var(--landing-card-overhang) + 1.25rem);
+  padding-bottom: calc(clamp(2rem, 5vw, 3.25rem) + var(--landing-media-overhang));
+  margin-bottom: calc(var(--landing-media-overhang) * -1);
 }
 
 .landing__bridge-inner {
@@ -415,34 +418,41 @@ async function playAsGuest() {
   max-width: 76rem;
   margin-inline: auto;
   padding-inline: var(--space-gutter);
+  align-items: end;
 }
 
 .landing__bridge-media {
   position: relative;
   z-index: 3;
-  margin: calc(var(--landing-media-overhang) * -1) 0 0;
+  width: min(100%, 22rem);
+  margin: 0 0 calc(var(--landing-media-overhang) * -1);
   overflow: hidden;
   border: 1px solid var(--color-line);
   background: var(--color-bg-card);
   box-shadow: 0 18px 40px color-mix(in srgb, var(--color-ink) 14%, transparent);
+  justify-self: start;
 }
 
 .landing__bridge-media img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
   object-position: 50% 40%;
   filter: var(--image-filter);
 }
 
 .landing__bridge-copy {
-  padding-top: calc(var(--landing-card-overhang) + 1rem);
+  /* Descend sous les cartes hero pour ne plus coller */
+  padding-top: clamp(1.5rem, 4vw, 2.75rem);
+  padding-bottom: 0.5rem;
 }
 
 /* ——— Features / session / close ——— */
 
 .landing__features {
+  position: relative;
+  z-index: 0;
   background: var(--color-bg);
   border-block: 1px solid var(--color-line);
 }
@@ -453,7 +463,8 @@ async function playAsGuest() {
   width: 100%;
   max-width: 76rem;
   margin-inline: auto;
-  padding: clamp(2.25rem, 5vw, 3.75rem) var(--space-gutter);
+  padding: calc(clamp(2.25rem, 5vw, 3.75rem) + var(--landing-media-overhang)) var(--space-gutter)
+    clamp(2.25rem, 5vw, 3.75rem);
 }
 
 .landing__feature {
@@ -575,8 +586,12 @@ async function playAsGuest() {
 
 @media (max-width: 639px) {
   .landing {
-    --landing-card-overhang: clamp(2.25rem, 12vw, 3rem);
-    --landing-media-overhang: clamp(1.75rem, 8vw, 2.5rem);
+    --landing-card-overhang: clamp(3.5rem, 14vw, 5rem);
+    --landing-media-overhang: clamp(2rem, 9vw, 3rem);
+  }
+
+  .landing__bridge-media {
+    width: min(100%, 18rem);
   }
 }
 
@@ -598,13 +613,18 @@ async function playAsGuest() {
   }
 
   .landing__bridge-inner {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    /* ~40 % image / ~60 % texte */
+    grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
     gap: 2.75rem;
-    align-items: start;
+    align-items: end;
+  }
+
+  .landing__bridge-media {
+    width: 100%;
   }
 
   .landing__bridge-copy {
-    padding-top: calc(var(--landing-card-overhang) + 2rem);
+    padding-top: clamp(2.5rem, 5vw, 4rem);
   }
 
   .landing__features-inner {

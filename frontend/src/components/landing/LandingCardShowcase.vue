@@ -19,7 +19,7 @@ defineProps({
   /** Affiche le hint de flip sous la rangée. */
   showHint: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 });
 
