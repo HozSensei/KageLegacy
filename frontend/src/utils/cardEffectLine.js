@@ -12,7 +12,7 @@ export function activeComboLines(card, previousCardStatType, i18n) {
   if (!COMBO_ARTS.has(previousCardStatType)) return [];
   return (card?.effects || [])
     .filter(effect => effect?.type === 'combo_previous' && effect.statType === previousCardStatType)
-    .map(effect => formatStructuredEffect(effect, { ...i18n, card }))
+    .map(effect => formatStructuredEffect(effect, i18n))
     .filter(Boolean);
 }
 
@@ -55,9 +55,9 @@ function comboRewardLabels(effect, t) {
 /**
  * Formate un effet structuré en courte phrase (ou null si non affichable / déjà couvert).
  * @param {object} effect
- * @param {{ t: Function, te?: Function, card?: object }} i18n
+ * @param {{ t: Function, te?: Function }} i18n
  */
-export function formatStructuredEffect(effect, { t, te, card }) {
+export function formatStructuredEffect(effect, { t, te }) {
   if (!effect?.type) return null;
   const type = effect.type;
   const n = Number(effect.value);
@@ -67,9 +67,7 @@ export function formatStructuredEffect(effect, { t, te, card }) {
     const rewards = comboRewardLabels(effect, t);
     if (!rewards.length) return null;
     const reward = rewards.join(' · ');
-    const sameArt = Boolean(card?.statType && effect.statType === card.statType);
-    if (sameArt) return t('cards.effectComboPreviousSame', { reward });
-    return t('cards.effectComboPreviousOther', { art, reward });
+    return t('cards.effectComboPrevious', { art, reward });
   }
 
   if (type === 'apply_status') {
@@ -165,37 +163,28 @@ function pushLine(texts, aria, text, extra = {}) {
 function summonEffectLines(card, { t, te }) {
   const summon = card?.summon;
   if (!summon || card?.type !== 'summon') return [];
-  const lines = [];
+  const parts = [];
   const hp = Number(summon.hp);
   if (Number.isFinite(hp) && hp > 0) {
-    lines.push({ text: t('cards.summonHp', { n: hp }), kind: 'summon', active: false, art: null });
+    parts.push(t('cards.summonHp', { n: hp }));
   }
   const attack = Number(summon.attack);
   if (Number.isFinite(attack) && attack > 0) {
-    lines.push({
-      text: t('cards.summonAttack', { n: attack }),
-      kind: 'summon',
-      active: false,
-      art: null,
-    });
+    parts.push(t('cards.summonAttack', { n: attack }));
   }
   const duration = Number(summon.duration);
   if (Number.isFinite(duration) && duration > 0) {
-    lines.push({
-      text: t('cards.summonDuration', { n: duration }),
-      kind: 'summon',
-      active: false,
-      art: null,
-    });
+    parts.push(t('cards.summonDuration', { n: duration }));
   }
   for (const ability of summon.abilities || []) {
     const key = String(ability || '').toLowerCase();
     if (!key) continue;
     const i18nKey = `cards.summonAbilities.${key}`;
-    const label = te(i18nKey) ? t(i18nKey) : key;
-    lines.push({ text: label, kind: 'summon', active: false, art: null });
+    parts.push(te(i18nKey) ? t(i18nKey) : key);
   }
-  return lines;
+  if (!parts.length) return [];
+  // Une seule ligne : les sauts multiplient la hauteur et masquent d’autres effets.
+  return [{ text: parts.join(' · '), kind: 'summon', active: false, art: null }];
 }
 
 /**
@@ -251,7 +240,7 @@ export function cardEffectParts(card, stats, { t, te }, options = {}) {
   }
 
   for (const effect of card?.effects || []) {
-    const line = formatStructuredEffect(effect, { t, te, card });
+    const line = formatStructuredEffect(effect, { t, te });
     if (!line) continue;
     const isCombo = effect.type === 'combo_previous';
     const art = isCombo && COMBO_ARTS.has(effect.statType) ? effect.statType : null;

@@ -112,7 +112,7 @@ Chaque carte affiche **son propre texte** dans la collection et en combat. Voici
 | **Zone** | Multiplie les dégâts de la carte (×1,35), même contre un seul ennemi |
 | **Statut** | Applique un état (voir « Statuts ») |
 | **Pioche / Chakra** | Pioche des cartes ou rend du Chakra |
-| **Enchaînement** | Bonus si la carte précédente est de la voie indiquée |
+| **Après [voie]** | Bonus si la carte précédente est de la voie indiquée |
 | **Prochaine carte −N Chakra** | Réduit le coût de la prochaine carte jouée avec succès |
 | **Esquive** | Chance d'annuler la prochaine attaque subie |
 | **Riposte** | Inflige des dégâts à l'attaquant après avoir été touché |
@@ -243,9 +243,9 @@ Certaines cartes affichent un rôle de combat. Ce libellé décrit la carte, san
 
 Votre main est limitée à **10 cartes**. Quand la pioche est vide, la défausse est mélangée et redevient la pioche.
 
-### Enchaînements (effets de chaîne)
+### Après [voie] (effets de chaîne)
 
-Certaines cartes portent un texte du type « Enchaînement Taijutsu : +2 dégâts ». Ce n'est **pas** un bonus automatique selon l'ordre des voies : seule la carte qui l'écrit peut le déclencher.
+Certaines cartes portent un texte du type « Après Taijutsu : +2 dégâts ». Ce n'est **pas** un bonus automatique selon l'ordre des voies : seule la carte qui l'écrit peut le déclencher.
 
 - On regarde **uniquement la carte jouée juste avant**, dans **le même tour**.
 - Cette carte précédente doit être d'une des quatre voies (Taijutsu, Ninjutsu, Genjutsu, Médecine).
@@ -253,7 +253,7 @@ Certaines cartes portent un texte du type « Enchaînement Taijutsu : +2 dégât
 - En début de tour, la chaîne est **remise à zéro**.
 - Un jeu refusé (pas assez de Chakra, etc.) ne change pas la chaîne.
 
-Récompenses possibles selon la carte : dégâts, soins, Armure, intensité d'effet, pioche, Chakra, ou réduction du coût de la prochaine carte. Une carte sans texte d'enchaînement ne reçoit aucun bonus de chaîne.
+Récompenses possibles selon la carte : dégâts, soins, Armure, intensité d'effet, pioche, Chakra, ou réduction du coût de la prochaine carte. Une carte sans texte « Après [voie] » ne reçoit aucun bonus de chaîne.
 
 ### Réduction du coût suivant
 
@@ -288,7 +288,7 @@ L'ennemi exécute son intention actuelle, puis les intentions affichées sont mi
 Quand une carte d'attaque se résout, le jeu applique dans cet ordre :
 
 1. dégâts de base et bonus plats de talents ;
-2. bonus conditionnels (« si… ») et bonus d'enchaînement ;
+2. bonus conditionnels (« si… ») et bonus « Après [voie] » ;
 3. scaling de la voie (+1 % par point) ;
 4. bonus d'héritage pour la voie, s'il est actif ;
 5. Force (ajoute sa valeur à chaque coup) ;
