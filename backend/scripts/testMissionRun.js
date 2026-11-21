@@ -171,7 +171,7 @@ const eventNodes = [
     outcome: { kind: 'heal' },
   },
 ];
-const restoredEvent = getCurrentEvent(eventRun, eventNodes, { hp: 40, maxHp: 100, scrap: 0 });
+const restoredEvent = getCurrentEvent(eventRun, eventNodes, { hp: 40, maxHp: 100, contraband: 0 });
 assert(restoredEvent?.eventType === 'mystery_heal', 'opened mystery heal restored');
 assert(restoredEvent?.choices?.[0]?.id === 'rest_here', 'heal choice exposed');
 
@@ -187,7 +187,7 @@ const merchantNodes = [
     outcome: { kind: 'merchant' },
   },
 ];
-const merchantEvent = getCurrentEvent(eventRun, merchantNodes, { hp: 40, maxHp: 100, scrap: 4 });
+const merchantEvent = getCurrentEvent(eventRun, merchantNodes, { hp: 40, maxHp: 100, contraband: 4 });
 assert(merchantEvent?.eventType === 'merchant', 'merchant event restored');
 assert(
   merchantEvent?.choices?.some(c => c.id === 'buy_bandage'),

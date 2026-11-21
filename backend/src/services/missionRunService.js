@@ -73,15 +73,15 @@ const EVENT_META = {
     id: 'merchant',
     nameFr: 'Colporteur d’Ombre',
     nameEn: 'Shadow Peddler',
-    descriptionFr: 'Un marchand ambulant troque bandages contre du ferraille de run.',
-    descriptionEn: 'A wandering peddler trades bandages for run scrap.',
+    descriptionFr: 'Un marchand ambulant troque bandages contre de l’argent de contrebande.',
+    descriptionEn: 'A wandering peddler trades bandages for contraband money.',
   },
   crossroads: {
     id: 'crossroads',
     nameFr: 'Carrefour du Voile',
     nameEn: 'Veil Crossroads',
-    descriptionFr: 'Deux sentiers. Choisissez : soins ou ferraille.',
-    descriptionEn: 'Two paths. Choose: healing or scrap.',
+    descriptionFr: 'Deux sentiers. Choisissez : soins ou argent de contrebande.',
+    descriptionEn: 'Two paths. Choose: healing or contraband money.',
   },
   whisper_grove: {
     id: 'whisper_grove',
@@ -96,8 +96,8 @@ const EVENT_META = {
     nameFr: 'Perchoir du Corbeau',
     nameEn: 'Crow Perch',
     descriptionFr:
-      'Un corbeau marqué d’encre observe. Offrez de la ferraille pour sa faveur, ou partez enrichi.',
-    descriptionEn: 'An ink-marked crow watches. Offer scrap for its favor, or leave richer.',
+      'Un corbeau marqué d’encre observe. Offrez de l’argent de contrebande pour sa faveur, ou partez enrichi.',
+    descriptionEn: 'An ink-marked crow watches. Offer contraband money for its favor, or leave richer.',
   },
   sealed_scroll: {
     id: 'sealed_scroll',
@@ -143,8 +143,8 @@ const EVENT_META = {
     id: 'mystery_loot',
     nameFr: 'Cache improvisée',
     nameEn: 'Improvised Stash',
-    descriptionFr: 'Quelqu’un a laissé de la ferraille utile sur le bord du sentier.',
-    descriptionEn: 'Someone left useful scrap by the path.',
+    descriptionFr: 'Quelqu’un a laissé de l’argent de contrebande sur le bord du sentier.',
+    descriptionEn: 'Someone left useful contraband money by the path.',
   },
   mystery_nothing: {
     id: 'mystery_nothing',
@@ -170,6 +170,13 @@ function parseJson(value, fallback) {
     return fallback;
   }
 }
+
+
+/** Compat runs en cours qui stockaient encore `scrap`. */
+function getContraband(player) {
+  return Number(player?.contraband ?? player?.scrap) || 0;
+}
+
 
 async function tableExists(tableName) {
   try {
@@ -401,7 +408,7 @@ export async function startRun(userId, missionId, deckId = null, opts = {}) {
   const player = {
     hp: maxHp,
     maxHp,
-    scrap: 0,
+    contraband: 0,
     combatsWon: 0,
     lore: vignette,
     hardMode,
@@ -600,7 +607,7 @@ function buildEventPayload(node, player) {
     nameEn: meta.nameEn,
     descriptionFr: meta.descriptionFr,
     descriptionEn: meta.descriptionEn,
-    scrap: player.scrap || 0,
+    contraband: getContraband(player),
     hp: player.hp,
     maxHp: player.maxHp,
   };
@@ -619,8 +626,8 @@ function buildEventPayload(node, player) {
       choices: [
         {
           id: 'take_scrap',
-          labelFr: 'Ramasser (+4 ferraille, +10 % PV)',
-          labelEn: 'Take it (+4 scrap, +10% HP)',
+          labelFr: 'Ramasser (+4 argent de contrebande, +10 % PV)',
+          labelEn: 'Take it (+4 contraband money, +10% HP)',
         },
       ],
     };
@@ -648,8 +655,8 @@ function buildEventPayload(node, player) {
       choices: [
         {
           id: 'search',
-          labelFr: 'Fouiller (soin léger + ferraille)',
-          labelEn: 'Search (light heal + scrap)',
+          labelFr: 'Fouiller (soin léger + argent de contrebande)',
+          labelEn: 'Search (light heal + contraband money)',
         },
       ],
     };
@@ -660,17 +667,17 @@ function buildEventPayload(node, player) {
       choices: [
         {
           id: 'buy_bandage',
-          labelFr: 'Bandage (2 ferraille → +25 % PV)',
-          labelEn: 'Bandage (2 scrap → +25% HP)',
+          labelFr: 'Bandage (2 argent de contrebande → +25 % PV)',
+          labelEn: 'Bandage (2 contraband money → +25% HP)',
           cost: 2,
-          disabled: (player.scrap || 0) < 2,
+          disabled: getContraband(player) < 2,
         },
         {
           id: 'buy_tonic',
-          labelFr: 'Tonique (5 ferraille → +50 % PV)',
-          labelEn: 'Tonic (5 scrap → +50% HP)',
+          labelFr: 'Tonique (5 argent de contrebande → +50 % PV)',
+          labelEn: 'Tonic (5 contraband money → +50% HP)',
           cost: 5,
-          disabled: (player.scrap || 0) < 5,
+          disabled: getContraband(player) < 5,
         },
         {
           id: 'leave',
@@ -689,7 +696,7 @@ function buildEventPayload(node, player) {
           labelFr: 'Sentier de soins (+25 % PV)',
           labelEn: 'Healing path (+25% HP)',
         },
-        { id: 'scrap_path', labelFr: 'Sentier de ferraille (+4)', labelEn: 'Scrap path (+4)' },
+        { id: 'scrap_path', labelFr: 'Sentier de contrebande (+4)', labelEn: 'Contraband path (+4)' },
       ],
     };
   }
@@ -704,8 +711,8 @@ function buildEventPayload(node, player) {
         },
         {
           id: 'gather',
-          labelFr: 'Cueillir des herbes (+3 ferraille)',
-          labelEn: 'Gather herbs (+3 scrap)',
+          labelFr: 'Cueillir des herbes (+3 argent de contrebande)',
+          labelEn: 'Gather herbs (+3 contraband money)',
         },
       ],
     };
@@ -716,15 +723,15 @@ function buildEventPayload(node, player) {
       choices: [
         {
           id: 'offer_scrap',
-          labelFr: 'Offrir 2 ferraille → +35 % PV',
-          labelEn: 'Offer 2 scrap → +35% HP',
+          labelFr: 'Offrir 2 argent de contrebande → +35 % PV',
+          labelEn: 'Offer 2 contraband money → +35% HP',
           cost: 2,
-          disabled: (player.scrap || 0) < 2,
+          disabled: getContraband(player) < 2,
         },
         {
           id: 'scare_away',
-          labelFr: 'Effrayer le corbeau (+2 ferraille)',
-          labelEn: 'Scare the crow (+2 scrap)',
+          labelFr: 'Effrayer le corbeau (+2 argent de contrebande)',
+          labelEn: 'Scare the crow (+2 contraband money)',
         },
       ],
     };
@@ -740,8 +747,8 @@ function buildEventPayload(node, player) {
         },
         {
           id: 'break_seal',
-          labelFr: 'Briser le sceau (+5 ferraille)',
-          labelEn: 'Break the seal (+5 scrap)',
+          labelFr: 'Briser le sceau (+5 argent de contrebande)',
+          labelEn: 'Break the seal (+5 contraband money)',
         },
       ],
     };
@@ -757,8 +764,8 @@ function buildEventPayload(node, player) {
         },
         {
           id: 'sprint_cross',
-          labelFr: 'Courir sur les planches (+3 ferraille, +8 % PV)',
-          labelEn: 'Sprint the planks (+3 scrap, +8% HP)',
+          labelFr: 'Courir sur les planches (+3 argent de contrebande, +8 % PV)',
+          labelEn: 'Sprint the planks (+3 contraband money, +8% HP)',
         },
       ],
     };
@@ -769,8 +776,8 @@ function buildEventPayload(node, player) {
       choices: [
         {
           id: 'light_lantern',
-          labelFr: 'Allumer la lanterne (+18 % PV, +1 ferraille)',
-          labelEn: 'Light the lantern (+18% HP, +1 scrap)',
+          labelFr: 'Allumer la lanterne (+18 % PV, +1 argent de contrebande)',
+          labelEn: 'Light the lantern (+18% HP, +1 contraband money)',
         },
         {
           id: 'leave_dark',
@@ -791,8 +798,8 @@ function buildEventPayload(node, player) {
         },
         {
           id: 'sift_ashes',
-          labelFr: 'Fouiller les cendres (+4 ferraille, +10 % PV)',
-          labelEn: 'Sift the ashes (+4 scrap, +10% HP)',
+          labelFr: 'Fouiller les cendres (+4 argent de contrebande, +10 % PV)',
+          labelEn: 'Sift the ashes (+4 contraband money, +10% HP)',
         },
       ],
     };
@@ -806,7 +813,7 @@ function buildEventPayload(node, player) {
         labelFr: 'Sentier de soins (+25 % PV)',
         labelEn: 'Healing path (+25% HP)',
       },
-      { id: 'scrap_path', labelFr: 'Sentier de ferraille (+4)', labelEn: 'Scrap path (+4)' },
+      { id: 'scrap_path', labelFr: 'Sentier de contrebande (+4)', labelEn: 'Contraband path (+4)' },
     ],
   };
 }
@@ -840,9 +847,9 @@ export async function resolveEvent(userId, runId, choiceId) {
     }
     case 'mystery_loot': {
       player = healPercent(player, 0.1);
-      player = { ...player, scrap: (player.scrap || 0) + 4 };
+      player = { ...player, contraband: getContraband(player) + 4 };
       log.heal = player.lastHeal;
-      log.scrapGained = 4;
+      log.contrabandGained = 4;
       break;
     }
     case 'mystery_nothing': {
@@ -856,22 +863,22 @@ export async function resolveEvent(userId, runId, choiceId) {
     }
     case 'cache': {
       player = healPercent(player, 0.12);
-      player = { ...player, scrap: (player.scrap || 0) + 2 };
+      player = { ...player, contraband: getContraband(player) + 2 };
       log.heal = player.lastHeal;
-      log.scrapGained = 2;
+      log.contrabandGained = 2;
       break;
     }
     case 'merchant': {
       if (choiceId === 'buy_bandage') {
-        if ((player.scrap || 0) < 2) throw httpError(400, 'Pas assez de ferraille.');
-        player = healPercent({ ...player, scrap: player.scrap - 2 }, 0.25);
+        if (getContraband(player) < 2) throw httpError(400, 'Pas assez d’argent de contrebande.');
+        player = healPercent({ ...player, contraband: getContraband(player) - 2 }, 0.25);
         log.heal = player.lastHeal;
-        log.scrapSpent = 2;
+        log.contrabandSpent = 2;
       } else if (choiceId === 'buy_tonic') {
-        if ((player.scrap || 0) < 5) throw httpError(400, 'Pas assez de ferraille.');
-        player = healPercent({ ...player, scrap: player.scrap - 5 }, 0.5);
+        if (getContraband(player) < 5) throw httpError(400, 'Pas assez d’argent de contrebande.');
+        player = healPercent({ ...player, contraband: getContraband(player) - 5 }, 0.5);
         log.heal = player.lastHeal;
-        log.scrapSpent = 5;
+        log.contrabandSpent = 5;
       } else if (choiceId === 'leave') {
         log.skipped = true;
       } else {
@@ -884,8 +891,8 @@ export async function resolveEvent(userId, runId, choiceId) {
         player = healPercent(player, 0.25);
         log.heal = player.lastHeal;
       } else if (choiceId === 'scrap_path') {
-        player = { ...player, scrap: (player.scrap || 0) + 4 };
-        log.scrapGained = 4;
+        player = { ...player, contraband: getContraband(player) + 4 };
+        log.contrabandGained = 4;
       } else {
         throw httpError(400, 'Choix de carrefour invalide.');
       }
@@ -896,8 +903,8 @@ export async function resolveEvent(userId, runId, choiceId) {
         player = healPercent(player, 0.28);
         log.heal = player.lastHeal;
       } else if (choiceId === 'gather') {
-        player = { ...player, scrap: (player.scrap || 0) + 3 };
-        log.scrapGained = 3;
+        player = { ...player, contraband: getContraband(player) + 3 };
+        log.contrabandGained = 3;
       } else {
         throw httpError(400, 'Choix du bosquet invalide.');
       }
@@ -905,13 +912,13 @@ export async function resolveEvent(userId, runId, choiceId) {
     }
     case 'crow_perch': {
       if (choiceId === 'offer_scrap') {
-        if ((player.scrap || 0) < 2) throw httpError(400, 'Pas assez de ferraille.');
-        player = healPercent({ ...player, scrap: player.scrap - 2 }, 0.35);
+        if (getContraband(player) < 2) throw httpError(400, 'Pas assez d’argent de contrebande.');
+        player = healPercent({ ...player, contraband: getContraband(player) - 2 }, 0.35);
         log.heal = player.lastHeal;
-        log.scrapSpent = 2;
+        log.contrabandSpent = 2;
       } else if (choiceId === 'scare_away') {
-        player = { ...player, scrap: (player.scrap || 0) + 2 };
-        log.scrapGained = 2;
+        player = { ...player, contraband: getContraband(player) + 2 };
+        log.contrabandGained = 2;
       } else {
         throw httpError(400, 'Choix du perchoir invalide.');
       }
@@ -922,8 +929,8 @@ export async function resolveEvent(userId, runId, choiceId) {
         player = healPercent(player, 0.22);
         log.heal = player.lastHeal;
       } else if (choiceId === 'break_seal') {
-        player = { ...player, scrap: (player.scrap || 0) + 5 };
-        log.scrapGained = 5;
+        player = { ...player, contraband: getContraband(player) + 5 };
+        log.contrabandGained = 5;
       } else {
         throw httpError(400, 'Choix du parchemin invalide.');
       }
@@ -935,9 +942,9 @@ export async function resolveEvent(userId, runId, choiceId) {
         log.heal = player.lastHeal;
       } else if (choiceId === 'sprint_cross') {
         player = healPercent(player, 0.08);
-        player = { ...player, scrap: (player.scrap || 0) + 3 };
+        player = { ...player, contraband: getContraband(player) + 3 };
         log.heal = player.lastHeal;
-        log.scrapGained = 3;
+        log.contrabandGained = 3;
       } else {
         throw httpError(400, 'Choix du pont invalide.');
       }
@@ -946,9 +953,9 @@ export async function resolveEvent(userId, runId, choiceId) {
     case 'spirit_lantern': {
       if (choiceId === 'light_lantern') {
         player = healPercent(player, 0.18);
-        player = { ...player, scrap: (player.scrap || 0) + 1 };
+        player = { ...player, contraband: getContraband(player) + 1 };
         log.heal = player.lastHeal;
-        log.scrapGained = 1;
+        log.contrabandGained = 1;
       } else if (choiceId === 'leave_dark') {
         log.skipped = true;
       } else {
@@ -962,9 +969,9 @@ export async function resolveEvent(userId, runId, choiceId) {
         log.heal = player.lastHeal;
       } else if (choiceId === 'sift_ashes') {
         player = healPercent(player, 0.1);
-        player = { ...player, scrap: (player.scrap || 0) + 4 };
+        player = { ...player, contraband: getContraband(player) + 4 };
         log.heal = player.lastHeal;
-        log.scrapGained = 4;
+        log.contrabandGained = 4;
       } else {
         throw httpError(400, 'Choix du campement invalide.');
       }
@@ -1066,7 +1073,7 @@ export async function onRunCombatFinished(session) {
       ...player,
       hp: clampHp(hp, maxHp),
       maxHp,
-      scrap: (player.scrap || 0) + 2,
+      contraband: getContraband(player) + 2,
       combatsWon: (player.combatsWon || 0) + 1,
     };
 

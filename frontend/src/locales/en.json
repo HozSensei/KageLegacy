@@ -1183,7 +1183,7 @@
     "runTitle": "Mission run",
     "runLead": "Advance node by node. Fights and “?” (heal, peddler, loot, nothing, or ambush) — HP does not regenerate on its own.",
     "runHp": "HP",
-    "runScrap": "Scrap: {n}",
+    "runContraband": "Contraband money: {n}",
     "enterNode": "Enter step",
     "abandonRun": "Abandon run",
     "backToRun": "Back to run",

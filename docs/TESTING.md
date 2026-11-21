@@ -69,7 +69,7 @@ C'est un outil de diagnostic, pas une preuve d'équilibrage du gameplay.
 
 Le profil standard utilise huit rencontres D à A, 24 combats par cellule en mode test, trois profils practice et un profil starter séparé. La politique greedy choisit la carte payable au score le plus élevé.
 
-Le même harness couvre aussi la **clearance de mission** (`aggregateMissionRuns` / mode rapport) : parcours aléatoire avec PV persistants, nœuds « ? » (soin, colporteur, butin, rien, embuscade) et seuils `MISSION_CLEARANCE_THRESHOLDS` (mode normal). Le mode difficile opt-in est mesuré en rapport seulement.
+Le même harness couvre aussi la **clearance de mission** (`aggregateMissionRuns` / mode rapport) : parcours aléatoire avec PV persistants, nœuds « ? » (soin, colporteur / argent de contrebande, butin, rien, embuscade) et seuils `MISSION_CLEARANCE_THRESHOLDS` (mode normal). Le mode difficile opt-in est mesuré en rapport seulement.
 
 Limites :
 

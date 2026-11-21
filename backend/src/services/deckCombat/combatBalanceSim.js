@@ -748,7 +748,7 @@ function healSimPlayer(player, pct) {
 }
 
 /**
- * Politique événement pour la sim de run : soigne si blessé, sinon ferraille.
+ * Politique événement pour la sim de run : soigne si blessé, sinon argent de contrebande.
  */
 function resolveSimMystery(player, outcome) {
   const kind = outcome?.kind || 'nothing';
@@ -758,16 +758,16 @@ function resolveSimMystery(player, outcome) {
   }
   if (kind === 'loot') {
     next = healSimPlayer(next, 0.1);
-    next.scrap = (next.scrap || 0) + 4;
+    next.contraband = (Number(next.contraband) || 0) + 4;
     return { player: next, kind };
   }
   if (kind === 'merchant') {
     const hpRatio = (Number(next.hp) || 0) / Math.max(1, Number(next.maxHp) || 1);
-    const scrap = Number(next.scrap) || 0;
-    if (scrap >= 5 && hpRatio < 0.7) {
-      next = healSimPlayer({ ...next, scrap: scrap - 5 }, 0.5);
-    } else if (scrap >= 2 && hpRatio < 0.85) {
-      next = healSimPlayer({ ...next, scrap: scrap - 2 }, 0.25);
+    const cash = Number(next.contraband) || 0;
+    if (cash >= 5 && hpRatio < 0.7) {
+      next = healSimPlayer({ ...next, contraband: cash - 5 }, 0.5);
+    } else if (cash >= 2 && hpRatio < 0.85) {
+      next = healSimPlayer({ ...next, contraband: cash - 2 }, 0.25);
     }
     return { player: next, kind };
   }
@@ -794,7 +794,7 @@ export function simulateMissionRun({
   const maxHp =
     BASE_MAX_HP + (Number((profileOverride || profile).stats?.maxHp) || 0);
   let hp = maxHp;
-  let scrap = 0;
+  let contraband = 0;
   let combatsWon = 0;
   let combatsAttempted = 0;
   let failReason = null;
@@ -804,11 +804,11 @@ export function simulateMissionRun({
     const node = nodes[i];
     if (node.type === 'mystery') {
       const resolved = resolveSimMystery(
-        { hp, maxHp, scrap },
+        { hp, maxHp, contraband },
         node.outcome || { kind: 'nothing' },
       );
       hp = resolved.player.hp;
-      scrap = resolved.player.scrap || 0;
+      contraband = resolved.player.contraband || 0;
 
       if (node.outcome?.kind === 'combat') {
         // Embuscade déjà convertie en nœud combat dans le path live ;
@@ -833,7 +833,7 @@ export function simulateMissionRun({
           break;
         }
         hp = Math.max(1, fight.hpRemaining);
-        scrap += 2;
+        contraband += 2;
         combatsWon += 1;
       }
       continue;
@@ -860,7 +860,7 @@ export function simulateMissionRun({
       break;
     }
     hp = Math.max(1, fight.hpRemaining);
-    scrap += 2;
+    contraband += 2;
     combatsWon += 1;
   }
 
@@ -876,7 +876,7 @@ export function simulateMissionRun({
     avgHpAtEnd: cleared ? hp : 0,
     hpRemaining: cleared ? hp : 0,
     maxHp,
-    scrap,
+    contraband,
     failReason,
     nodeCount: nodes.length,
     fights: fightLogs,

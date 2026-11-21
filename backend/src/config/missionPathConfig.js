@@ -80,7 +80,7 @@ export const RANK_PATH_CONFIG = Object.freeze({
   }),
 });
 
-/** Poids des issues d’un nœud « ? » (merchant = sink ferraille). */
+/** Poids des issues d’un nœud « ? » (merchant = sink argent de contrebande). */
 export const MYSTERY_OUTCOME_WEIGHTS = Object.freeze({
   heal: 30,
   merchant: 25,

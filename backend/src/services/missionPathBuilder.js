@@ -183,7 +183,7 @@ export function buildRandomRunPath(rank, { rng = Math.random, hardMode = false }
     });
 
     if (i < fights.length - 1 && mysteryGaps.has(i)) {
-      // Premier intervalle : soin garanti (après 1 fight la ferraille ne suffit pas au colporteur).
+      // Premier intervalle : soin garanti (après 1 fight, pas assez d’argent de contrebande pour le colporteur).
       const outcome = i === 0 ? { kind: 'heal' } : buildMysteryOutcome(rank, rng);
       nodes.push({
         id: `mystery-${mysterySlot}`,

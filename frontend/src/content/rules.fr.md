@@ -395,19 +395,19 @@ Lancer une mission ouvre un **parcours généré** : combats tirés dans le pool
 - Vous ne pouvez avoir qu'**un parcours en cours**. Vous pouvez le quitter et le reprendre plus tard, ou l'abandonner.
 - Avant de lancer, vous pouvez cocher **Difficulté augmentée** : ennemis plus durs (+20 %), récompenses de fin de parcours +20 %.
 
-### Nœuds « ? » et ferraille
+### Nœuds « ? » et argent de contrebande
 
-Chaque combat gagné rapporte **2 ferrailles** (utilisables seulement pendant ce parcours). Au moins un nœud de récupération (soin ou colporteur) est garanti sur le parcours.
+Chaque combat gagné rapporte **+2 argent de contrebande** (utilisable seulement pendant ce parcours). Au moins un nœud de récupération (soin ou colporteur) est garanti sur le parcours.
 
 Un nœud **« ? »** se révèle à l’entrée :
 
-| Issue          | Effet typique                                      |
-| -------------- | -------------------------------------------------- |
-| **Soin**       | Repos (+50 % PV max)                               |
-| **Colporteur** | Bandage (2 ferraille) ou tonique (5) contre PV     |
-| **Butin**      | Ferraille + léger soin                             |
-| **Rien**       | Flavour uniquement, la route continue              |
-| **Combat**     | Embuscade surprise                                 |
+| Issue          | Effet typique                                                    |
+| -------------- | ---------------------------------------------------------------- |
+| **Soin**       | Repos (+50 % PV max)                                             |
+| **Colporteur** | Bandage (2 argent de contrebande) ou tonique (5) contre PV       |
+| **Butin**      | Argent de contrebande + léger soin                               |
+| **Rien**       | Flavour uniquement, la route continue                            |
+| **Combat**     | Embuscade surprise                                               |
 
 ### Récompenses
 
@@ -521,7 +521,7 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 | **Kage Coins**         | Achat en boutique, passe de saison                                             | Parchemins Premium, piste premium du passe                                               |
 | **Poussière de carte** | Désenchantement, passe de saison                                               | Amélioration de cartes                                                                   |
 | **Essence**            | Désenchantement de cartes légendaires ou mythiques améliorées, passe de saison | Dernières améliorations des cartes légendaires et mythiques                              |
-| **Ferraille**          | Combats et nœuds « ? » d'un parcours                                           | Soins pendant ce parcours uniquement                                                     |
+| **Argent de contrebande** | Combats et nœuds « ? » d'un parcours                                         | Soins pendant ce parcours uniquement                                                     |
 
 ---
 
