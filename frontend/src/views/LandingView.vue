@@ -444,8 +444,8 @@ async function playAsGuest() {
 }
 
 .landing__bridge-copy {
-  /* Bien sous les cartes hero */
-  padding-top: clamp(2.75rem, 6vw, 5rem);
+  /* Bien sous les cartes hero — évite de coller aux CardDisplay */
+  padding-top: clamp(4.5rem, 9vw, 7.5rem);
   padding-bottom: 0.5rem;
 }
 
@@ -625,7 +625,7 @@ async function playAsGuest() {
   }
 
   .landing__bridge-copy {
-    padding-top: clamp(4rem, 8vw, 6.5rem);
+    padding-top: clamp(5.5rem, 10vw, 8.5rem);
   }
 
   .landing__features-inner {
