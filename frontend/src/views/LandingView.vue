@@ -184,6 +184,7 @@ async function playAsGuest() {
   /* Cartes hero → empiètent fort sur Collection ; image Collection → déborde sur Atouts */
   --landing-card-overhang: clamp(5rem, 9vw, 7rem);
   --landing-media-overhang: clamp(4.5rem, 8vw, 6.5rem);
+  --landing-slider-w: 45vw;
   min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
@@ -403,10 +404,7 @@ async function playAsGuest() {
   position: relative;
   z-index: 4;
   width: 100%;
-  max-width: min(42rem, 100%);
-  justify-self: end;
   padding-bottom: 0;
-  margin-inline-end: calc(-1 * var(--space-gutter));
 }
 
 /* ——— Bridge collection (image ↔ hero) ——— */
@@ -639,19 +637,28 @@ async function playAsGuest() {
 
 @media (min-width: 768px) {
   .landing__hero-body {
-    grid-template-columns: minmax(0, 1fr) minmax(20rem, 1fr);
-    gap: 2.5rem;
+    /* Slider = 45vw collé au bord droit du viewport */
+    max-width: none;
+    width: 100%;
+    padding-inline: 0;
+    grid-template-columns: minmax(0, 1fr) var(--landing-slider-w);
+    gap: 1.25rem;
     align-items: end;
   }
 
   .landing__hero-copy {
     align-self: center;
+    justify-self: end;
+    width: min(36rem, 100%);
+    padding-inline-start: var(--space-gutter);
     padding-bottom: clamp(2.5rem, 6vw, 4rem);
   }
 
   .landing__hero-cards {
-    justify-self: end;
-    max-width: min(44rem, 100%);
+    width: var(--landing-slider-w);
+    max-width: none;
+    justify-self: stretch;
+    margin: 0;
   }
 
   .landing__bridge-inner {

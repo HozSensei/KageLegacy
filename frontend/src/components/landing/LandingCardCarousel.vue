@@ -120,13 +120,21 @@ watch(index, () => {
 
 <style scoped>
 .landing-slider {
-  --card-w: min(14.5rem, 28vw);
+  --nav-w: 2.15rem;
+  --nav-gap: 0.65rem;
   --gap: 0.75rem;
   --peek: 0.5;
+  --visible: 2;
+  --slider-w: var(--landing-slider-w, 45vw);
+  /* Largeur carte pour remplir le rail (2 + demi) dans le 45vw */
+  --card-w: calc(
+    (var(--slider-w) - var(--nav-w) - var(--nav-gap) - var(--gap) * var(--visible)) /
+      (var(--visible) + var(--peek))
+  );
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.65rem;
+  gap: var(--nav-gap);
   width: 100%;
 }
 
@@ -134,12 +142,13 @@ watch(index, () => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  flex-shrink: 0;
+  flex: 0 0 var(--nav-w);
+  width: var(--nav-w);
 }
 
 .landing-slider__arrow {
-  width: 2.15rem;
-  height: 2.15rem;
+  width: var(--nav-w);
+  height: var(--nav-w);
   border: 1px solid color-mix(in srgb, var(--color-on-fill) 35%, transparent);
   background: color-mix(in srgb, var(--color-indigo-deep) 55%, transparent);
   color: var(--color-on-fill);
@@ -154,9 +163,10 @@ watch(index, () => {
 }
 
 .landing-slider__viewport {
-  /* 2 cartes pleines + demi carte à droite (coupe nette, sans fondu) */
-  width: calc(var(--card-w) * (2 + var(--peek)) + var(--gap) * 2);
-  max-width: 100%;
+  /* Remplit le reste → collé au bord droit, peek demi-carte */
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
   overflow: hidden;
 }
 
@@ -176,14 +186,13 @@ watch(index, () => {
   filter: drop-shadow(0 18px 32px color-mix(in srgb, #0b0d14 48%, transparent));
 }
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   .landing-slider {
-    --card-w: min(11.5rem, 42vw);
-    --peek: 0.35;
-  }
-
-  .landing-slider__viewport {
-    width: calc(var(--card-w) * (1 + var(--peek)) + var(--gap));
+    --slider-w: 100%;
+    --visible: 1;
+    --peek: 0.4;
+    /* Sur mobile, 100% du parent — on retombe sur une approx en vw */
+    --card-w: calc((92vw - var(--nav-w) - var(--nav-gap) - var(--gap)) / 1.4);
   }
 }
 
