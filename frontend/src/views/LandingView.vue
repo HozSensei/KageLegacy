@@ -1,11 +1,14 @@
 <script setup>
-import { useRouter } from 'vue-router';
+import { ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import BrandMark from '../components/ui/BrandMark.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
+import SlidePanel from '../components/layout/SlidePanel.vue';
 import LandingCardCarousel from '../components/landing/LandingCardCarousel.vue';
 import gateImage from '../assets/illustrations/village-gate.webp';
 import forestImage from '../assets/illustrations/forest-path.webp';
@@ -13,8 +16,10 @@ import forestImage from '../assets/illustrations/forest-path.webp';
 defineOptions({ name: 'LandingView' });
 
 const { t, locale } = useI18n();
+const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const menuOpen = ref(false);
 
 const features = [
   { key: 'talents', tone: 'leaf' },
@@ -28,6 +33,17 @@ const timeline = [
   'landing.timeline.grow',
   'landing.timeline.fight',
 ];
+
+watch(
+  () => route.path,
+  () => {
+    menuOpen.value = false;
+  }
+);
+
+function closeMenu() {
+  menuOpen.value = false;
+}
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest({
@@ -54,7 +70,7 @@ async function playAsGuest() {
             <BrandMark size="1.625rem" />
             <span>{{ t('app.name') }}</span>
           </p>
-          <nav class="landing__nav">
+          <nav class="landing__nav landing__nav--desktop" :aria-label="t('nav.menu')">
             <LocaleSwitcher data-testid="landing-locale-switcher" />
             <router-link to="/rules" class="landing__nav-link" data-testid="landing-rules-link">
               {{ t('rules.link') }}
@@ -65,7 +81,62 @@ async function playAsGuest() {
             }}</router-link>
             <ThemeToggle />
           </nav>
+          <div class="landing__nav-mobile">
+            <router-link to="/login" class="landing__nav-link" data-testid="landing-login-mobile">
+              {{ t('auth.login') }}
+            </router-link>
+            <button
+              type="button"
+              class="landing__menu-btn"
+              :aria-label="t('nav.menu')"
+              :aria-expanded="menuOpen"
+              data-testid="landing-menu-button"
+              @click="menuOpen = !menuOpen"
+            >
+              <AppIcon name="menu" size="1.375rem" :stroke-width="2" />
+            </button>
+          </div>
         </header>
+
+        <SlidePanel
+          v-model="menuOpen"
+          side="right"
+          tone="ink"
+          :aria-label="t('nav.menu')"
+          panel-test-id="landing-menu-panel"
+        >
+          <div class="landing-menu__head">
+            <BrandMark size="1.75rem" />
+            <p class="landing-menu__title">{{ t('nav.menu') }}</p>
+            <button
+              type="button"
+              class="landing-menu__close"
+              :aria-label="t('common.dismiss')"
+              data-testid="landing-menu-close"
+              @click="closeMenu"
+            >
+              <AppIcon name="close" size="1.25rem" :stroke-width="2" />
+            </button>
+          </div>
+          <nav class="landing-menu__nav" :aria-label="t('nav.menu')">
+            <LocaleSwitcher data-testid="landing-locale-switcher-mobile" />
+            <router-link
+              to="/rules"
+              class="landing-menu__link"
+              data-testid="landing-rules-link-mobile"
+              @click="closeMenu"
+            >
+              {{ t('rules.link') }}
+            </router-link>
+            <router-link to="/register" class="landing-menu__link" @click="closeMenu">
+              {{ t('auth.register') }}
+            </router-link>
+            <div class="landing-menu__theme">
+              <p class="landing-menu__label">{{ t('theme.choose') }}</p>
+              <ThemeToggle variant="onFill" />
+            </div>
+          </nav>
+        </SlidePanel>
 
         <div class="landing__hero-body">
           <div class="landing__hero-copy">
@@ -220,6 +291,35 @@ async function playAsGuest() {
   gap: 0.35rem 1.1rem;
 }
 
+.landing__nav-mobile {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.landing__menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-on-fill) 35%, transparent);
+  background: color-mix(in srgb, var(--color-on-fill) 10%, transparent);
+  color: var(--color-on-fill);
+  cursor: pointer;
+}
+
+.landing__menu-btn:hover {
+  background: color-mix(in srgb, var(--color-on-fill) 16%, transparent);
+}
+
+.landing__menu-btn:focus-visible {
+  outline: 2px solid var(--color-gold-fill);
+  outline-offset: 2px;
+}
+
 .landing__nav-link {
   font-size: 0.8125rem;
   font-weight: 600;
@@ -236,6 +336,70 @@ async function playAsGuest() {
   border-color: color-mix(in srgb, var(--color-on-fill) 40%, transparent);
   color: var(--color-on-fill);
   background: color-mix(in srgb, var(--color-on-fill) 10%, transparent);
+}
+
+.landing-menu__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.landing-menu__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-on-fill);
+}
+
+.landing-menu__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--color-on-fill) 30%, transparent);
+  background: transparent;
+  color: var(--color-on-fill);
+  cursor: pointer;
+}
+
+.landing-menu__nav {
+  display: grid;
+  gap: 1rem;
+}
+
+.landing-menu__link {
+  display: block;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-on-fill) 18%, transparent);
+  color: var(--color-on-fill);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.landing-menu__link:hover {
+  color: var(--color-gold-fill);
+}
+
+.landing-menu__theme {
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.35rem;
+}
+
+.landing-menu__label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-on-fill) 65%, transparent);
 }
 
 /* ——— Hero ——— */
@@ -614,15 +778,18 @@ async function playAsGuest() {
     overflow-x: clip;
   }
 
-  .landing__bar,
-  .landing__nav {
+  .landing__bar {
+    flex-wrap: nowrap;
     min-width: 0;
     max-width: 100%;
   }
 
-  .landing__nav {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+  .landing__nav--desktop {
+    display: none;
+  }
+
+  .landing__nav-mobile {
+    display: flex;
   }
 
   .landing__actions {
