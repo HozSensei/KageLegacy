@@ -198,34 +198,56 @@
       "grow": "Spend your first talent point on the tree.",
       "fight": "Launch a combat mission — earn XP, Ryos and new cards."
     },
-    "closeTitle": "Ready to enter the village?",
-    "closeLead": "Try as a guest in seconds, or create an account to keep your progress.",
-    "pillars": {
-      "shinobi": {
-        "kicker": "Character",
-        "title": "Pick a face. Join a village.",
-        "lead": "Name, aspirant portrait, and faction: your shinobi is born in one step, then grows through talents — never free stats."
-      },
-      "deck": {
-        "kicker": "Collection",
-        "title": "A deck forged for battle.",
-        "lead": "Starter pack, growing collection, path synergies, and legendary clan passives: every card matters in combat."
-      },
-      "talents": {
-        "kicker": "Progression",
-        "title": "Every level, a choice.",
-        "lead": "A dense talent tree: one point per level, branches to commit to, zero automatic stat inflation."
-      },
-      "missions": {
-        "kicker": "Combat",
-        "title": "Runs, not waiting rooms.",
-        "lead": "Ranked missions, turn-based fights, rewards and boosters: play when you want, at your pace."
-      },
-      "season": {
-        "kicker": "Season",
-        "title": "Shop, pass, and villages.",
-        "lead": "Season pass, village shop, and faction rivalries to keep the chase alive past night one."
+    "closeTitle": "Enter the village now",
+    "closeLead": "Guest trial in seconds, or create an account to keep your progress.",
+    "banner": {
+      "eyebrow": "Combat",
+      "title": "Missions, not waiting rooms",
+      "lead": "Ranked runs, turn-based fights, loot and boosters — play whenever you want.",
+      "cta": "Read the rules"
+    },
+    "welcome": {
+      "title": "Welcome to Kage Legacy",
+      "lead": "A solo deck-building roguelike built for a clear session: forge, build, climb.",
+      "features": {
+        "deck": {
+          "title": "Deck & synergies",
+          "body": "Craft 20–30 cards, chain paths, and trigger legendary clan passives."
+        },
+        "talents": {
+          "title": "Talents without inflation",
+          "body": "Each level grants one point. No free stats — every branch is a choice."
+        },
+        "missions": {
+          "title": "Missions on your schedule",
+          "body": "No 72-hour cycle. Launch a mission, earn XP, Ryos, and new cards."
+        }
       }
+    },
+    "mosaic": {
+      "title": "What forges your legend",
+      "cta": "Create account",
+      "items": {
+        "forge": { "kicker": "Creation", "title": "Name, village, portrait" },
+        "paths": { "kicker": "Paths", "title": "Taijutsu, ninjutsu, genjutsu…" },
+        "clans": { "kicker": "Clans", "title": "Legendary passives" },
+        "boosters": { "kicker": "Shop", "title": "Boosters & packs" },
+        "pass": { "kicker": "Season", "title": "Battle pass" }
+      }
+    },
+    "season": {
+      "eyebrow": "Village & season",
+      "title": "Rivalries, shop, pass",
+      "lead": "Factions clash, the shop turns, the season pass climbs — beyond night one.",
+      "cta": "Try as guest"
+    },
+    "carousel": {
+      "hint": "Hover for 3D tilt · click to flip the card",
+      "flipHint": "Flip the card",
+      "pages": "Carousel pages",
+      "page": "Page {n}",
+      "prev": "Previous cards",
+      "next": "Next cards"
     }
   },
   "hero": {

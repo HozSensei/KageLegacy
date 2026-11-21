@@ -198,34 +198,56 @@
       "grow": "Dépense ton premier point dans l'arbre de talents.",
       "fight": "Lance une mission de combat — gagne XP, Ryos et nouvelles cartes."
     },
-    "closeTitle": "Prêt à entrer dans le village ?",
-    "closeLead": "Essaye en invité en quelques secondes, ou crée un compte pour garder ta progression.",
-    "pillars": {
-      "shinobi": {
-        "kicker": "Personnage",
-        "title": "Choisis ton visage. Rejoins un village.",
-        "lead": "Nom, portrait aspirant et faction : ton shinobi naît en une étape, puis grandit par les talents — jamais par des stats gratuites."
-      },
-      "deck": {
-        "kicker": "Collection",
-        "title": "Un deck qui sent la forge.",
-        "lead": "Pack de départ, collection à enrichir, synergies de voies et passifs de clan légendaires : chaque carte compte dans le combat."
-      },
-      "talents": {
-        "kicker": "Progression",
-        "title": "Chaque niveau, un choix.",
-        "lead": "L'arbre de talents est dense : un point par niveau, des branches à assumer, zéro inflation de stats automatique."
-      },
-      "missions": {
-        "kicker": "Combat",
-        "title": "Des parcours, pas une file d'attente.",
-        "lead": "Missions par rang, combats au tour par tour, récompenses et boosters : tu joues quand tu veux, à ton rythme."
-      },
-      "season": {
-        "kicker": "Saison",
-        "title": "Boutique, passe et villages.",
-        "lead": "Passe de saison, boutique du village et rivalités de factions pour rester dans la course au-delà de la première soirée."
+    "closeTitle": "Entre dans le village maintenant",
+    "closeLead": "Essai invité en quelques secondes, ou compte pour garder ta progression.",
+    "banner": {
+      "eyebrow": "Combat",
+      "title": "Des missions, pas une salle d'attente",
+      "lead": "Parcours par rang, combats au tour par tour, butin et boosters — tu joues quand tu veux.",
+      "cta": "Voir les règles"
+    },
+    "welcome": {
+      "title": "Bienvenue dans Kage Legacy",
+      "lead": "Un roguelike solo de construction de deck, pensé pour une session claire : forge, build, monte.",
+      "features": {
+        "deck": {
+          "title": "Deck & synergies",
+          "body": "Compose 20–30 cartes, enchaîne les voies et active les passifs de clan légendaires."
+        },
+        "talents": {
+          "title": "Talents sans inflation",
+          "body": "Chaque niveau donne un point. Aucune stat gratuite : chaque branche est un choix."
+        },
+        "missions": {
+          "title": "Missions à ton rythme",
+          "body": "Pas de cycle de 72 h. Lance une mission, gagne XP, Ryos et nouvelles cartes."
+        }
       }
+    },
+    "mosaic": {
+      "title": "Ce qui forge ta légende",
+      "cta": "Créer un compte",
+      "items": {
+        "forge": { "kicker": "Création", "title": "Nom, village, portrait" },
+        "paths": { "kicker": "Voies", "title": "Taijutsu, ninjutsu, genjutsu…" },
+        "clans": { "kicker": "Clans", "title": "Passifs légendaires" },
+        "boosters": { "kicker": "Boutique", "title": "Boosters & packs" },
+        "pass": { "kicker": "Saison", "title": "Passe de combat" }
+      }
+    },
+    "season": {
+      "eyebrow": "Village & saison",
+      "title": "Rivalités, boutique, passe",
+      "lead": "Les factions s'affrontent, la boutique tourne, le passe de saison avance — au-delà de la première soirée.",
+      "cta": "Essayer en invité"
+    },
+    "carousel": {
+      "hint": "Survole pour le relief 3D · clique pour retourner la carte",
+      "flipHint": "Retourner la carte",
+      "pages": "Pages du carrousel",
+      "page": "Page {n}",
+      "prev": "Cartes précédentes",
+      "next": "Cartes suivantes"
     }
   },
   "hero": {
