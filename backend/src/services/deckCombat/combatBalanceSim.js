@@ -43,6 +43,7 @@ import {
 import { applyUpgradeBonuses } from '../cardService.js';
 import { createEmptyStats, rankForLevel } from '../playerCharacterService.js';
 import { BALANCE_PROFILES, PLAYER_POLICY } from '../../config/combatBalanceConfig.js';
+import { buildRandomRunPath } from '../missionPathBuilder.js';
 
 const MAX_VOLUNTARY_DISCARDS = 2;
 
@@ -539,6 +540,9 @@ export function createSimSession({
   deckEntries = null,
   profileOverride = null,
   persistentHand = false,
+  startingHp = null,
+  /** Base chakra avant bonus stats (live mission = 5). */
+  chakraBase = BASE_CHAKRA,
 } = {}) {
   const profile = profileOverride || BALANCE_PROFILES[profileId];
   if (!profile) throw new Error(`Profil inconnu: ${profileId}`);
@@ -550,6 +554,11 @@ export function createSimSession({
   const stats = mergeStats(profile.stats);
   const classified = classifyTalentEffects([...profile.talentCodes]);
   const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
+  const hp =
+    startingHp != null
+      ? Math.max(1, Math.min(maxHp, Math.floor(Number(startingHp))))
+      : maxHp;
+  const baseChakra = Math.max(1, Number(chakraBase) || BASE_CHAKRA);
 
   const entries = deckEntries || buildProfileDeckEntries(profile);
   const runtimeCards = buildRuntimeDeck(
@@ -560,11 +569,11 @@ export function createSimSession({
 
   let player = {
     name: profile.label,
-    hp: maxHp,
+    hp,
     maxHp,
     block: Math.max(0, Number(stats.startingBlock) || 0),
-    chakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
-    maxChakra: BASE_CHAKRA + (Number(stats.maxChakra) || 0),
+    chakra: baseChakra + (Number(stats.maxChakra) || 0),
+    maxChakra: baseChakra + (Number(stats.maxChakra) || 0),
     statuses: [],
     hand: [],
     drawPile: shuffled,
@@ -632,6 +641,9 @@ export function simulateCombat({
   maxTurns = 40,
   profileOverride = null,
   deckEntries = null,
+  startingHp = null,
+  persistentHand = false,
+  chakraBase = BASE_CHAKRA,
 } = {}) {
   let session = createSimSession({
     profileId,
@@ -640,6 +652,9 @@ export function simulateCombat({
     seed,
     profileOverride,
     deckEntries,
+    startingHp,
+    persistentHand,
+    chakraBase,
   });
   const rng = session.rng;
 
@@ -720,6 +735,202 @@ export function aggregateFights({
     avgHpRemainingOnWin: wins.length ? avg(wins, 'hpRemaining') : null,
     avgDamageTaken: avg(fights, 'damageTaken'),
     timeouts: fights.filter(f => f.timeout).length,
+  };
+}
+
+function healSimPlayer(player, pct) {
+  const maxHp = Number(player.maxHp) || BASE_MAX_HP;
+  const heal = Math.max(1, Math.floor(maxHp * pct));
+  return {
+    ...player,
+    hp: Math.min(maxHp, (Number(player.hp) || 0) + heal),
+  };
+}
+
+/**
+ * Politique événement pour la sim de run : soigne si blessé, sinon argent de contrebande.
+ */
+function resolveSimMystery(player, outcome) {
+  const kind = outcome?.kind || 'nothing';
+  let next = { ...player };
+  if (kind === 'heal') {
+    return { player: healSimPlayer(next, 0.5), kind };
+  }
+  if (kind === 'loot') {
+    next = healSimPlayer(next, 0.1);
+    next.contraband = (Number(next.contraband) || 0) + 4;
+    return { player: next, kind };
+  }
+  if (kind === 'merchant') {
+    const hpRatio = (Number(next.hp) || 0) / Math.max(1, Number(next.maxHp) || 1);
+    const cash = Number(next.contraband) || 0;
+    if (cash >= 5 && hpRatio < 0.7) {
+      next = healSimPlayer({ ...next, contraband: cash - 5 }, 0.5);
+    } else if (cash >= 2 && hpRatio < 0.85) {
+      next = healSimPlayer({ ...next, contraband: cash - 2 }, 0.25);
+    }
+    return { player: next, kind };
+  }
+  return { player: next, kind };
+}
+
+/**
+ * Simule un parcours mission complet (PV persistants entre combats).
+ */
+export function simulateMissionRun({
+  rank = 'D',
+  profileId = 'beginner',
+  seed = 1,
+  hardMode = false,
+  maxTurns = 40,
+  profileOverride = null,
+  deckEntries = null,
+} = {}) {
+  const pathRng = createSeededRng((seed ^ 0x9e3779b9) >>> 0);
+  const nodes = buildRandomRunPath(rank, { rng: pathRng, hardMode });
+  const profile = profileOverride || BALANCE_PROFILES[profileId];
+  if (!profile && !profileOverride) throw new Error(`Profil inconnu: ${profileId}`);
+
+  const maxHp =
+    BASE_MAX_HP + (Number((profileOverride || profile).stats?.maxHp) || 0);
+  let hp = maxHp;
+  let contraband = 0;
+  let combatsWon = 0;
+  let combatsAttempted = 0;
+  let failReason = null;
+  const fightLogs = [];
+
+  for (let i = 0; i < nodes.length; i += 1) {
+    const node = nodes[i];
+    if (node.type === 'mystery') {
+      const resolved = resolveSimMystery(
+        { hp, maxHp, contraband },
+        node.outcome || { kind: 'nothing' },
+      );
+      hp = resolved.player.hp;
+      contraband = resolved.player.contraband || 0;
+
+      if (node.outcome?.kind === 'combat') {
+        // Embuscade déjà convertie en nœud combat dans le path live ;
+        // ici l'outcome combat reste sur le mystery — le simuler comme fight.
+        combatsAttempted += 1;
+        const fight = simulateCombat({
+          profileId,
+          templateId: node.outcome.templateId || 'ronin_bandit',
+          difficulty: node.outcome.difficulty || 1,
+          seed: (seed + i * 7919 + combatsAttempted * 104729) >>> 0,
+          maxTurns,
+          profileOverride,
+          deckEntries,
+          startingHp: hp,
+          // Aligné live mission : 5 chakra + main persistante.
+          persistentHand: true,
+          chakraBase: 5,
+        });
+        fightLogs.push({ nodeId: node.id, fromMystery: true, ...fight });
+        if (!fight.won) {
+          failReason = `mystery_combat:${node.id}`;
+          break;
+        }
+        hp = Math.max(1, fight.hpRemaining);
+        contraband += 2;
+        combatsWon += 1;
+      }
+      continue;
+    }
+
+    if (node.type !== 'combat') continue;
+
+    combatsAttempted += 1;
+    const fight = simulateCombat({
+      profileId,
+      templateId: node.templateId,
+      difficulty: node.difficulty || 1,
+      seed: (seed + i * 7919 + combatsAttempted * 104729) >>> 0,
+      maxTurns,
+      profileOverride,
+      deckEntries,
+      startingHp: hp,
+      persistentHand: true,
+      chakraBase: 5,
+    });
+    fightLogs.push({ nodeId: node.id, fromMystery: false, ...fight });
+    if (!fight.won) {
+      failReason = `combat:${node.id}`;
+      break;
+    }
+    hp = Math.max(1, fight.hpRemaining);
+    contraband += 2;
+    combatsWon += 1;
+  }
+
+  const cleared = !failReason;
+  return {
+    rank,
+    profileId,
+    hardMode: Boolean(hardMode),
+    seed,
+    cleared,
+    combatsWon,
+    combatsAttempted,
+    avgHpAtEnd: cleared ? hp : 0,
+    hpRemaining: cleared ? hp : 0,
+    maxHp,
+    contraband,
+    failReason,
+    nodeCount: nodes.length,
+    fights: fightLogs,
+  };
+}
+
+/**
+ * Agrège N runs seedés pour une cellule (profil × rang).
+ */
+export function aggregateMissionRuns({
+  rank = 'D',
+  profileId = 'beginner',
+  baseSeed,
+  count,
+  hardMode = false,
+  maxTurns = 40,
+  profileOverride = null,
+  deckEntries = null,
+} = {}) {
+  const runs = [];
+  for (let i = 0; i < count; i += 1) {
+    runs.push(
+      simulateMissionRun({
+        rank,
+        profileId,
+        seed: (baseSeed + i * 9973) >>> 0,
+        hardMode,
+        maxTurns,
+        profileOverride,
+        deckEntries,
+      }),
+    );
+  }
+
+  const clears = runs.filter(r => r.cleared);
+  const n = runs.length || 1;
+  const avg = (arr, key) =>
+    arr.length ? arr.reduce((s, x) => s + (Number(x[key]) || 0), 0) / arr.length : 0;
+
+  return {
+    rank,
+    profileId,
+    hardMode: Boolean(hardMode),
+    runs: n,
+    clears: clears.length,
+    clearanceRate: clears.length / n,
+    avgCombatsCleared: avg(runs, 'combatsWon'),
+    avgCombatsAttempted: avg(runs, 'combatsAttempted'),
+    avgHpAtEnd: clears.length ? avg(clears, 'hpRemaining') : null,
+    failReasons: runs.reduce((acc, r) => {
+      if (!r.failReason) return acc;
+      acc[r.failReason] = (acc[r.failReason] || 0) + 1;
+      return acc;
+    }, {}),
   };
 }
 

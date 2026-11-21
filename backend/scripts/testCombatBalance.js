@@ -17,14 +17,17 @@ import {
   BALANCE_SIM,
   BALANCE_THRESHOLDS,
   DESIGN_WINRATE_TARGETS,
+  MISSION_CLEARANCE_THRESHOLDS,
   PLAYER_POLICY,
 } from '../src/config/combatBalanceConfig.js';
 import {
   aggregateFights,
+  aggregateMissionRuns,
   createSeededRng,
   createSimSession,
   simEndTurn,
   simulateCombat,
+  simulateMissionRun,
 } from '../src/services/deckCombat/combatBalanceSim.js';
 import { createEmptyPassiveStats, validateDeck } from '../src/services/deckService.js';
 import { serializeCardDefinition } from '../src/services/cardService.js';
@@ -621,6 +624,102 @@ for (const rank of ['D', 'C', 'B', 'A']) {
 console.log(
   `  Timeouts starter : ${starterRows.reduce((sum, row) => sum + row.timeouts, 0)} / ${starterRows.length * fightsPerCell} combats (hors répétition)`
 );
+
+// --- Clearance de mission (PV persistants) ---
+const missionRunsPerCell = REPORT
+  ? BALANCE_SIM.reportMissionRunsPerCell
+  : BALANCE_SIM.missionRunsPerCell;
+console.log(
+  `\n=== Mission runs — clearance (${missionRunsPerCell} runs/cellule, mode normal) ===`,
+);
+
+function checkMissionClearance(row, rank, profileId) {
+  const thresholds = MISSION_CLEARANCE_THRESHOLDS[rank]?.[profileId];
+  if (!thresholds) return;
+  const label = `${profileId}@mission-${rank}`;
+  if (thresholds.clearanceMin != null) {
+    assert(
+      row.clearanceRate + 1e-9 >= thresholds.clearanceMin,
+      `${label}: clearance ${pct(row.clearanceRate)} ≥ ${pct(thresholds.clearanceMin)} (hard)`,
+    );
+  }
+  if (thresholds.clearanceMaxSoft != null) {
+    softAssert(
+      row.clearanceRate - 1e-9 <= thresholds.clearanceMaxSoft,
+      `${label}: clearance ${pct(row.clearanceRate)} ≤ ${pct(thresholds.clearanceMaxSoft)} (soft/design)`,
+    );
+  }
+}
+
+{
+  const smoke = simulateMissionRun({
+    rank: 'D',
+    profileId: 'mid',
+    seed: 42,
+  });
+  const smoke2 = simulateMissionRun({
+    rank: 'D',
+    profileId: 'mid',
+    seed: 42,
+  });
+  assert(
+    smoke.cleared === smoke2.cleared &&
+      smoke.combatsWon === smoke2.combatsWon &&
+      smoke.hpRemaining === smoke2.hpRemaining,
+    'mission run : même seed → même résultat',
+  );
+
+  const missionCells = [
+    { rank: 'D', profileId: 'beginner' },
+    { rank: 'D', profileId: 'mid' },
+    { rank: 'D', profileId: 'strong' },
+    { rank: 'C', profileId: 'mid' },
+    { rank: 'C', profileId: 'strong' },
+    { rank: 'B', profileId: 'strong' },
+  ];
+
+  for (const cell of missionCells) {
+    const agg = aggregateMissionRuns({
+      rank: cell.rank,
+      profileId: cell.profileId,
+      baseSeed: BALANCE_SIM.baseSeed,
+      count: missionRunsPerCell,
+      maxTurns: BALANCE_SIM.maxTurns,
+    });
+    console.log(
+      `  ${cell.profileId.padEnd(8)} @${cell.rank}  clear=${pct(agg.clearanceRate)}  fights=${fmt(agg.avgCombatsCleared)}/${fmt(agg.avgCombatsAttempted)}  hp@end=${fmt(agg.avgHpAtEnd)}`,
+    );
+    if (!REPORT) checkMissionClearance(agg, cell.rank, cell.profileId);
+  }
+
+  const starterMission = aggregateMissionRuns({
+    rank: 'D',
+    profileId: 'starter',
+    profileOverride: starter.profile,
+    deckEntries: starter.entries,
+    baseSeed: BALANCE_SIM.baseSeed,
+    count: missionRunsPerCell,
+    maxTurns: BALANCE_SIM.maxTurns,
+  });
+  console.log(
+    `  starter  @D  clear=${pct(starterMission.clearanceRate)}  fights=${fmt(starterMission.avgCombatsCleared)}/${fmt(starterMission.avgCombatsAttempted)}  hp@end=${fmt(starterMission.avgHpAtEnd)}`,
+  );
+  if (!REPORT) checkMissionClearance(starterMission, 'D', 'starter');
+
+  if (REPORT) {
+    const hard = aggregateMissionRuns({
+      rank: 'D',
+      profileId: 'mid',
+      baseSeed: BALANCE_SIM.baseSeed,
+      count: missionRunsPerCell,
+      hardMode: true,
+      maxTurns: BALANCE_SIM.maxTurns,
+    });
+    console.log(
+      `  mid@D hardMode  clear=${pct(hard.clearanceRate)}  (rapport seulement)`,
+    );
+  }
+}
 
 if (REPORT) {
   printReportTable(rows);

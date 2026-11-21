@@ -22,6 +22,18 @@ const decks = useDecksStore();
 
 const startingId = ref(null);
 const localError = ref(null);
+const hardMode = ref(false);
+
+const HARD_MODE_REWARD_MULT = 1.2;
+
+function displayRewards(mission) {
+  const base = mission?.rewards || {};
+  const mult = hardMode.value ? HARD_MODE_REWARD_MULT : 1;
+  return {
+    xp: Math.round((base.xp || 0) * mult),
+    ryos: Math.round((base.ryos || 0) * mult),
+  };
+}
 
 onMounted(async () => {
   await Promise.all([missions.fetchMissions(), decks.fetchDecks()]);
@@ -67,7 +79,9 @@ async function startMission(mission) {
   localError.value = null;
   combat.error = null;
   try {
-    const run = await missions.startMission(mission.id);
+    const run = await missions.startMission(mission.id, null, {
+      hardMode: hardMode.value,
+    });
     if (run?.id) {
       await router.push({ name: 'mission-run', params: { id: run.id } });
     }
@@ -187,6 +201,20 @@ async function startQuick(templateId) {
         <span class="section-head__rule" aria-hidden="true" />
       </div>
 
+      <label
+        class="hard-mode-toggle"
+        data-testid="mission-hard-mode"
+        :class="{ 'hard-mode-toggle--disabled': launchBlocked }"
+      >
+        <input
+          v-model="hardMode"
+          type="checkbox"
+          :disabled="launchBlocked"
+        >
+        <span>{{ t('combat.hardModeLabel') }}</span>
+      </label>
+      <p class="hard-mode-toggle__hint">{{ t('combat.hardModeHint') }}</p>
+
       <div class="mission-grid stagger">
         <article
           v-for="mission in missions.missions"
@@ -219,10 +247,13 @@ async function startQuick(templateId) {
             <p v-if="mission.rewards" class="mission-card__rewards">
               {{
                 t('combat.rewards', {
-                  xp: mission.rewards.xp || 0,
-                  ryos: mission.rewards.ryos || 0,
+                  xp: displayRewards(mission).xp,
+                  ryos: displayRewards(mission).ryos,
                 })
               }}
+              <span v-if="hardMode" class="mission-card__hard-bonus">
+                {{ t('combat.hardModeRewardTag') }}
+              </span>
             </p>
             <p v-if="missionLocked(mission)" class="mission-card__lock">
               {{ missionLockLabel(mission) }}
@@ -347,6 +378,42 @@ async function startQuick(templateId) {
 
 .mission-card:hover {
   transform: translateY(-3px);
+}
+
+.hard-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.hard-mode-toggle input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-ink);
+}
+
+.hard-mode-toggle--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.hard-mode-toggle__hint {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-ink-muted);
+}
+
+.mission-card__hard-bonus {
+  margin-left: 0.35rem;
+  font-weight: 700;
+  color: var(--color-ink);
 }
 
 .mission-card--locked {

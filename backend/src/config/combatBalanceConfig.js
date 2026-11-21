@@ -106,6 +106,36 @@ export const BALANCE_SIM = Object.freeze({
   baseSeed: 0x4b414745, // 'KAGE'
   maxTurns: 40,
   reportFightsPerCell: 48,
+  /** Runs complets (PV persistants) pour le filet mission. */
+  missionRunsPerCell: 24,
+  reportMissionRunsPerCell: 40,
+});
+
+/**
+ * Seuils de clearance de mission (mode normal).
+ * hard : CI — run trop injouable ; soft : trop trivial (--strict).
+ *
+ * @type {Partial<Record<MissionRank, Partial<Record<BalanceProfileId | 'starter', {
+ *   clearanceMin?: number,
+ *   clearanceMaxSoft?: number,
+ * }>>>>}
+ */
+export const MISSION_CLEARANCE_THRESHOLDS = Object.freeze({
+  D: Object.freeze({
+    beginner: Object.freeze({ clearanceMin: 0, clearanceMaxSoft: 0.55 }),
+    mid: Object.freeze({ clearanceMin: 0.15, clearanceMaxSoft: 0.9 }),
+    strong: Object.freeze({ clearanceMin: 0.55 }),
+    starter: Object.freeze({ clearanceMin: 0.15, clearanceMaxSoft: 0.75 }),
+  }),
+  C: Object.freeze({
+    // Practice mid a WR≈0 en combat isolé C : pas de hard min, soft seulement.
+    mid: Object.freeze({ clearanceMaxSoft: 0.55 }),
+    strong: Object.freeze({ clearanceMin: 0.35 }),
+  }),
+  B: Object.freeze({
+    // Boss + attrition : filet bas pour détecter une régression totale.
+    strong: Object.freeze({ clearanceMin: 0.15, clearanceMaxSoft: 0.9 }),
+  }),
 });
 
 /**

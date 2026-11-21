@@ -177,8 +177,15 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             <div class="run-status__fill" :style="{ width: `${hpPct}%` }" />
           </div>
         </div>
-        <p class="run-status__scrap">
-          {{ t('combat.runScrap', { n: player.scrap || 0 }) }}
+        <p
+          v-if="run?.hardMode || player.hardMode"
+          class="run-status__hard"
+          data-testid="run-hard-mode"
+        >
+          {{ t('combat.hardModeActive') }}
+        </p>
+        <p class="run-status__contraband">
+          {{ t('combat.runContraband', { n: player.contraband ?? player.scrap ?? 0 }) }}
         </p>
       </div>
 
@@ -375,7 +382,15 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   transition: width var(--dur-slow) var(--ease-out-quint);
 }
 
-.run-status__scrap {
+.run-status__hard {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+}
+
+.run-status__contraband {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink);

@@ -58,9 +58,9 @@ Hors mission, un combat rapide peut être lancé contre un template avec une dif
 
 ## Missions
 
-Une mission active par rang (D, C, B, A, S). Chaque lancement génère un parcours aléatoire : combats tirés dans un pool du rang, plus un ou deux nœuds « ? » (soin, butin, rien ou embuscade). Le briefing immersif est révélé au départ, pas sur la liste.
+Une mission active par rang (D, C, B, A, S). Chaque lancement génère un parcours aléatoire : combats tirés dans un pool du rang, plus un ou deux nœuds « ? » (soin, colporteur, butin, rien ou embuscade). Au moins un nœud de récupération (soin ou colporteur) est garanti. Le briefing immersif est révélé au départ, pas sur la liste.
 
-Les PV persistent entre combats. Une défaite ou un abandon termine le run sans récompenses de complétion. Les récompenses sont versées à la fin du run, avec un multiplicateur selon les combats gagnés. Les rangs B+ peuvent terminer sur un boss.
+Les PV persistent entre combats. L’argent de contrebande gagné en combat s’échange chez le colporteur contre des soins. Une défaite ou un abandon termine le run sans récompenses de complétion. Les récompenses sont versées à la fin du run, avec un multiplicateur selon les combats gagnés. Avant le lancement, une case optionnelle active le **mode difficile** (ennemis ×1,2, récompenses de fin +20 %). Les rangs B+ peuvent terminer sur un boss.
 
 ## Collection et amélioration
 

@@ -390,22 +390,24 @@ Rank **D** is demanding with the starter deck. Rank **C** is nearly unreachable 
 
 Starting a mission opens a **generated run**: fights drawn from the rank pool, plus one or two **“?”** nodes. The immersive briefing appears at launch, not on the mission list.
 
-- Your **HP does not come back** between fights.
+- Your **HP does not come back** between fights (except recovery nodes).
 - A **defeat** or a **forfeit** fails the whole run: you get no completion reward.
 - You can only have **one run in progress**. You can leave it and resume it later, or abandon it.
+- Before launching, you can tick **Increased difficulty**: tougher enemies (+20%), end-of-run rewards +20%.
 
-### “?” nodes and scrap
+### “?” nodes and contraband money
 
-Each fight won gives **2 scrap** (usable only during this run).
+Each fight won gives **+2 contraband money** (usable only during this run). At least one recovery node (heal or peddler) is guaranteed on the path.
 
 A **“?”** node reveals when you enter it:
 
-| Outcome   | Typical effect                         |
-| --------- | -------------------------------------- |
-| **Heal**  | Rest (+30% max HP)                     |
-| **Loot**  | Scrap + light heal                     |
-| **Nothing** | Flavour only, the road continues     |
-| **Combat**| Surprise ambush                        |
+| Outcome    | Typical effect                                          |
+| ---------- | ------------------------------------------------------- |
+| **Heal**   | Rest (+50% max HP)                                      |
+| **Peddler**| Bandage (2 contraband money) or tonic (5) for HP        |
+| **Loot**   | Contraband money + light heal                           |
+| **Nothing**| Flavour only, the road continues                        |
+| **Combat** | Surprise ambush                                         |
 
 ### Rewards
 
@@ -519,7 +521,7 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 | **Kage Coins** | Shop purchase, season pass                                    | Premium scrolls, premium pass track                         |
 | **Card dust**  | Disenchanting, season pass                                    | Card upgrades                                               |
 | **Essence**    | Disenchanting upgraded legendary or mythic cards, season pass | Final upgrades of legendary and mythic cards                |
-| **Scrap**      | Fights and “?” nodes during a run                             | Healing during that run only                                |
+| **Contraband money** | Fights and “?” nodes during a run                        | Healing during that run only                                |
 
 ---
 
