@@ -185,8 +185,8 @@ async function playAsGuest() {
 <style scoped>
 .landing {
   /* Cartes hero → ~20 % sur le bloc suivant ; image du bloc → remonte dans le hero */
-  --landing-card-overhang: clamp(2.75rem, 5.5vw, 3.75rem);
-  --landing-media-overhang: clamp(2.25rem, 4.5vw, 3.25rem);
+  --landing-card-overhang: clamp(3.25rem, 6.5vw, 4.5rem);
+  --landing-media-overhang: clamp(3.5rem, 7vw, 5rem);
   min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
