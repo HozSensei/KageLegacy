@@ -3,6 +3,7 @@ import AppLayout from '../layouts/AppLayout.vue';
 import LandingView from '../views/LandingView.vue';
 import LoginView from '../views/LoginView.vue';
 import RulesView from '../views/RulesView.vue';
+import LegalView from '../views/LegalView.vue';
 
 import HubView from '../views/HubView.vue';
 import Profile from '../views/Profile.vue';
@@ -34,6 +35,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: LandingView },
     { path: '/rules', name: 'rules', component: RulesView },
+    { path: '/legal', name: 'legal', component: LegalView },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: LoginView },
     {
@@ -187,7 +189,7 @@ const router = createRouter({
   ],
 });
 
-const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules']);
+const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/rules', '/legal']);
 
 router.beforeEach(async to => {
   const auth = useAuthStore();

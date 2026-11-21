@@ -208,6 +208,15 @@ function handleConvert() {
         >
           {{ t('rules.link') }}
         </router-link>
+
+        <router-link
+          to="/legal"
+          class="btn-ghost btn-block"
+          data-testid="profile-legal-link"
+          @click="close"
+        >
+          {{ t('footer.legalShort') }}
+        </router-link>
       </div>
 
       <div class="profile-menu__rows">

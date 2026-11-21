@@ -350,6 +350,23 @@
     "backToGame": "Retour au Bureau",
     "backHome": "Accueil"
   },
+  "legal": {
+    "pageTitle": "Mentions légales",
+    "backToGame": "Retour au Bureau",
+    "backHome": "Accueil"
+  },
+  "footer": {
+    "tagline": "TCG shinobi dans le navigateur — collection, decks, missions et progression.",
+    "play": "Jouer",
+    "discover": "Découvrir",
+    "account": "Compte",
+    "accountNote": "Connectez-vous pour sauvegarder votre ninja, votre deck et votre progression.",
+    "tryGuest": "Essai invité",
+    "legal": "Mentions légales & confidentialité",
+    "legalShort": "Mentions légales",
+    "privacy": "Confidentialité",
+    "rights": "Tous droits réservés."
+  },
   "notifications": {
     "bell": "Notifications",
     "panelTitle": "Notifications",

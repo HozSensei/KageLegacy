@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
+import SiteFooter from '../components/layout/SiteFooter.vue';
 import NinjaPortrait from '../components/player/NinjaPortrait.vue';
 import LandingCardCarousel from '../components/landing/LandingCardCarousel.vue';
 import gateImage from '../assets/illustrations/village-gate.webp';
@@ -221,17 +222,7 @@ function toggleFeature(key) {
       </div>
     </section>
 
-    <footer class="landing__footer">
-      <p class="landing__footer-brand">
-        <BrandMark size="1.25rem" />
-        <span>{{ t('app.name') }}</span>
-      </p>
-      <nav class="landing__footer-nav">
-        <router-link to="/rules">{{ t('rules.link') }}</router-link>
-        <router-link to="/login">{{ t('auth.login') }}</router-link>
-        <router-link to="/register">{{ t('auth.register') }}</router-link>
-      </nav>
-    </footer>
+    <SiteFooter />
   </div>
 </template>
 
@@ -255,23 +246,18 @@ function toggleFeature(key) {
   padding: 1rem var(--space-gutter);
 }
 
-.landing__brand,
-.landing__footer-brand {
+.landing__brand {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
   font-family: var(--font-display);
   font-weight: 800;
   font-stretch: 80%;
-}
-
-.landing__brand {
   color: var(--color-gold-fill);
   font-size: 1.2rem;
 }
 
-.landing__nav,
-.landing__footer-nav {
+.landing__nav {
   display: flex;
   align-items: center;
   gap: 0.85rem;
@@ -647,25 +633,6 @@ function toggleFeature(key) {
 
 .landing__close-copy .t-display {
   color: var(--color-on-fill);
-}
-
-.landing__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.35rem var(--space-gutter);
-  background: var(--color-indigo-deep);
-  color: var(--color-on-fill);
-}
-
-.landing__footer-nav a {
-  color: color-mix(in srgb, var(--color-on-fill) 78%, transparent);
-}
-
-.landing__footer-nav a:hover {
-  color: var(--color-gold-fill);
 }
 
 @keyframes landing-ken {

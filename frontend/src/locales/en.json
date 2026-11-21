@@ -350,6 +350,23 @@
     "backToGame": "Back to Office",
     "backHome": "Home"
   },
+  "legal": {
+    "pageTitle": "Legal notice",
+    "backToGame": "Back to Office",
+    "backHome": "Home"
+  },
+  "footer": {
+    "tagline": "Browser shinobi TCG — collection, decks, missions, and progression.",
+    "play": "Play",
+    "discover": "Discover",
+    "account": "Account",
+    "accountNote": "Sign in to keep your ninja, deck, and progression.",
+    "tryGuest": "Guest trial",
+    "legal": "Legal notice & privacy",
+    "legalShort": "Legal notice",
+    "privacy": "Privacy",
+    "rights": "All rights reserved."
+  },
   "notifications": {
     "bell": "Notifications",
     "panelTitle": "Notifications",
