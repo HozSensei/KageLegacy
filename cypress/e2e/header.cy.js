@@ -11,6 +11,7 @@ describe('Header — navigation V2 alpha', () => {
     cy.get('[data-testid="nav-menu-button"]').should('be.visible').click();
     cy.get('[data-testid="nav-menu-panel"]').should('be.visible');
     cy.get('[data-testid="nav-profile"]').should('be.visible');
+    cy.get('[data-testid="nav-rules"]').should('be.visible');
     cy.get('[data-testid="nav-missions"]').should('be.visible');
     cy.get('[data-testid="nav-coop"]').should('be.visible');
     cy.get('[data-testid="nav-pvp"]').should('not.exist');

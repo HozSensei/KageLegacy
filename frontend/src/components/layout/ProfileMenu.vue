@@ -6,6 +6,7 @@ import { writeStoredLocale } from '../../utils/localeStorage.js';
 import SlidePanel from './SlidePanel.vue';
 
 import AppIcon from '../ui/AppIcon.vue';
+import ThemeToggle from '../ui/ThemeToggle.vue';
 
 defineOptions({ name: 'ProfileMenu' });
 
@@ -190,33 +191,9 @@ function handleConvert() {
         </div>
       </div>
 
-      <div class="profile-menu__section flex flex-col gap-2">
-        <router-link
-          to="/profil"
-          class="btn-ghost btn-block"
-          data-testid="profile-player-link"
-          @click="close"
-        >
-          {{ t('nav.profile') }}
-        </router-link>
-
-        <router-link
-          to="/rules"
-          class="btn-ghost btn-block"
-          data-testid="profile-rules-link"
-          @click="close"
-        >
-          {{ t('rules.link') }}
-        </router-link>
-
-        <router-link
-          to="/legal"
-          class="btn-ghost btn-block"
-          data-testid="profile-legal-link"
-          @click="close"
-        >
-          {{ t('footer.legalShort') }}
-        </router-link>
+      <div class="profile-menu__section profile-menu__theme">
+        <p class="t-kicker">{{ t('theme.choose') }}</p>
+        <ThemeToggle />
       </div>
 
       <div class="profile-menu__rows">
@@ -414,6 +391,14 @@ function handleConvert() {
 .profile-menu__section {
   padding: 1.1rem 1.25rem;
   border-bottom: 1px solid var(--color-line);
+}
+
+.profile-menu__theme {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .profile-menu__rows {

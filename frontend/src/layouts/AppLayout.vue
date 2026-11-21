@@ -43,6 +43,7 @@ const baseNavItems = [
   { name: 'hub', path: '/home', label: 'nav.home' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
   { name: 'village', path: '/village', label: 'village.title' },
+  { name: 'rules', path: '/rules', label: 'rules.link' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },
   { name: 'decks', path: '/decks', label: 'nav.decks' },
   { name: 'talents', path: '/talents', label: 'nav.talents' },
