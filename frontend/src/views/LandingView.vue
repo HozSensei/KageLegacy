@@ -405,20 +405,20 @@ async function playAsGuest() {
 .landing-menu__nav {
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 2rem;
   flex: 1 1 auto;
-  padding: 1.5rem 1.15rem 1.75rem;
+  padding: 1.65rem 1.25rem 2rem;
 }
 
 .landing-menu__group {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.85rem;
 }
 
 .landing-menu__link {
   display: block;
-  padding: 0.95rem 0.7rem;
+  padding: 1.05rem 0.85rem;
   border-radius: var(--radius-sm);
   color: var(--color-on-fill);
   font-size: 1.0625rem;
