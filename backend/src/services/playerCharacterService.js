@@ -171,7 +171,7 @@ function serializeCharacter(row, extras = {}) {
 async function fetchCharacterRow(userId, connection) {
   const sql = `SELECT id, user_id, character_name AS name,
             character_avatar_url AS avatar_url,
-            character_avatar_id, character_background_id,
+            character_avatar_id, character_background_id, character_background_color,
             character_nickname_id, character_highest_level,
             character_level AS level, character_xp AS xp,
             character_rank AS \`rank\`,
@@ -235,7 +235,7 @@ export async function createCharacter(
     await connection.execute(
       `UPDATE player_profiles
        SET display_name = ?, character_name = ?, character_avatar_url = ?, character_avatar_id = ?,
-           character_background_id = NULL,
+           character_background_id = NULL, character_background_color = NULL,
            character_nickname_id = NULL, character_level = 1, character_highest_level = 1,
            character_xp = 0, character_rank = ?,
            character_talent_points_available = 1, character_element_affinity = ?,
@@ -298,11 +298,15 @@ export async function updateCharacterProfile(userId, input) {
     await connection.execute(
       `UPDATE player_profiles
          SET character_avatar_id = ?, character_background_id = ?,
-             character_nickname_id = ?, character_updated_at = UTC_TIMESTAMP()
+             character_background_color = ?, character_nickname_id = ?,
+             character_updated_at = UTC_TIMESTAMP()
          WHERE id = ?`,
       [
         patch.avatarId ?? row.character_avatar_id,
         patch.backgroundId === undefined ? row.character_background_id : patch.backgroundId,
+        patch.backgroundColor === undefined
+          ? row.character_background_color
+          : (patch.backgroundColor?.toUpperCase() ?? null),
         patch.nicknameId === undefined ? row.character_nickname_id : patch.nicknameId,
         row.id,
       ],

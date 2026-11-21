@@ -255,6 +255,7 @@ assert(
     JSON.stringify({
       avatarId: 'genin-1-2',
       backgroundId: null,
+      backgroundColor: null,
       nicknameId: 'genin',
     }),
   'le profil public du host exclut les surnoms déverrouillés'

@@ -1,5 +1,6 @@
 import { getNinjaRankKey } from '../constants/ninjaAvatars.js';
 import { getNinjaCardBackground } from '../constants/ninjaCardBackgrounds.js';
+import { normalizeProfileColor } from '@shared/character/profileColors.js';
 
 export function ninjaRankLabel(rank, t, te) {
   const key = `player.ranks.${getNinjaRankKey(rank)}`;
@@ -20,10 +21,15 @@ export function safeNinjaCardBackgroundId(value) {
   return getNinjaCardBackground(value) ? value : null;
 }
 
+export function safeNinjaProfileColor(value) {
+  return normalizeProfileColor(value);
+}
+
 export function readNinjaAppearance(profile) {
   return {
     avatarId: profile?.avatarId ?? null,
     backgroundId: safeNinjaCardBackgroundId(profile?.backgroundId),
+    backgroundColor: safeNinjaProfileColor(profile?.backgroundColor),
     nicknameId: profile?.nicknameId ?? null,
   };
 }

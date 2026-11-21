@@ -49,6 +49,7 @@ test('invitation, autorisation et états privés', async () => {
   assert.deepEqual(guest.combat.ally.profile, {
     avatarId: 'chunin-1-1',
     backgroundId: 'joueur-1',
+    backgroundColor: null,
     nicknameId: 'chunin',
   });
   assert.equal(guest.combat.player.rank, 'Genin');

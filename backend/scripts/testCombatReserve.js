@@ -148,6 +148,7 @@ readProfile.mock.restore();
 const expectedProfile = {
   avatarId: 'aspirant-1-1',
   backgroundId: 'joueur-2',
+  backgroundColor: null,
   nicknameId: 'chunin',
 };
 assert.deepEqual(character.profile, expectedProfile);

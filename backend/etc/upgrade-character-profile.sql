@@ -36,19 +36,7 @@ EXECUTE drop_border_color_stmt;
 DEALLOCATE PREPARE drop_border_color_stmt;
 SET @drop_border_color_ddl = NULL;
 
-SET @drop_background_color_ddl = IF(
-  EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = DATABASE() AND table_name = 'player_profiles'
-      AND column_name = 'character_background_color'
-  ),
-  'ALTER TABLE `player_profiles` DROP COLUMN `character_background_color`',
-  'DO 0'
-);
-PREPARE drop_background_color_stmt FROM @drop_background_color_ddl;
-EXECUTE drop_background_color_stmt;
-DEALLOCATE PREPARE drop_background_color_stmt;
-SET @drop_background_color_ddl = NULL;
+-- character_background_color est conservé (teinte du fond uni / « par défaut »).
 
 START TRANSACTION;
 UPDATE `player_profiles`

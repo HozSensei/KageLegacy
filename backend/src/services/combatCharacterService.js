@@ -4,7 +4,7 @@ import { listGrantedNicknameIds } from './nicknameUnlockService.js';
 
 export async function loadCombatCharacter(userId) {
   const sql = `SELECT character_name, character_rank, character_level, character_highest_level,
-                      character_avatar_id, character_background_id,
+                      character_avatar_id, character_background_id, character_background_color,
                       character_nickname_id, character_element_affinity, character_faction_id
                FROM player_profiles
                WHERE user_id = ? AND character_name IS NOT NULL

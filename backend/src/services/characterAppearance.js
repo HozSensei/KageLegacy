@@ -2,8 +2,17 @@ import {
   CARD_BACKGROUND_IDS,
   isKnownCardBackgroundId,
 } from '../../../shared/character/cardBackgrounds.js';
+import {
+  isProfileColor,
+  normalizeProfileColor,
+} from '../../../shared/character/profileColors.js';
 
-export { CARD_BACKGROUND_IDS, isKnownCardBackgroundId };
+export {
+  CARD_BACKGROUND_IDS,
+  isKnownCardBackgroundId,
+  isProfileColor,
+  normalizeProfileColor,
+};
 
 export const ASPIRANT_RANK = 'Aspirant ninja';
 export const DEFAULT_AVATAR_ID = 'aspirant-1-1';
@@ -137,11 +146,13 @@ export function serializeCharacterAppearance(row, grantedNicknameIds = []) {
   const rank = row?.character_rank ?? row?.rank ?? rankForLevel(row?.character_level ?? row?.level);
   const avatarId = row?.character_avatar_id ?? row?.avatar_id;
   const backgroundId = row?.character_background_id ?? row?.background_id;
+  const backgroundColor = row?.character_background_color ?? row?.background_color;
   const nicknameId = row?.character_nickname_id ?? row?.nickname_id;
   const unlocked = unlockedNicknameIdsFor(row, grantedNicknameIds);
   return {
     avatarId: isAvatarAvailableToRank(avatarId, rank) ? avatarId : DEFAULT_AVATAR_ID,
     backgroundId: isKnownCardBackgroundId(backgroundId) ? backgroundId : null,
+    backgroundColor: normalizeProfileColor(backgroundColor),
     nicknameId: unlocked.includes(nicknameId) ? nicknameId : null,
   };
 }
