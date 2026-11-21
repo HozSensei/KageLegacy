@@ -6,18 +6,15 @@ import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
-import LandingCardShowcase from '../components/landing/LandingCardShowcase.vue';
+import LandingCardCarousel from '../components/landing/LandingCardCarousel.vue';
 import gateImage from '../assets/illustrations/village-gate.webp';
 import forestImage from '../assets/illustrations/forest-path.webp';
-import { LANDING_HERO_CARDS } from '../constants/landingShowcaseCards.js';
 
 defineOptions({ name: 'LandingView' });
 
 const { t, locale } = useI18n();
 const router = useRouter();
 const auth = useAuthStore();
-
-const heroCards = LANDING_HERO_CARDS;
 
 const features = [
   { key: 'talents', tone: 'leaf' },
@@ -99,7 +96,7 @@ async function playAsGuest() {
           </div>
 
           <div class="landing__hero-cards anim-rise" style="--delay: 200ms">
-            <LandingCardShowcase :cards="heroCards" tone="onFill" :show-hint="false" />
+            <LandingCardCarousel :visible="2" :pool-size="9" :autoplay-ms="0" />
           </div>
         </div>
       </section>
@@ -406,9 +403,10 @@ async function playAsGuest() {
   position: relative;
   z-index: 4;
   width: 100%;
-  max-width: 34rem;
-  justify-self: center;
+  max-width: min(42rem, 100%);
+  justify-self: end;
   padding-bottom: 0;
+  margin-inline-end: calc(-1 * var(--space-gutter));
 }
 
 /* ——— Bridge collection (image ↔ hero) ——— */
@@ -477,6 +475,19 @@ async function playAsGuest() {
   /* Bien sous les cartes hero — évite de coller aux CardDisplay */
   padding-top: clamp(4.5rem, 9vw, 7.5rem);
   padding-bottom: 0.5rem;
+}
+
+.landing__bridge-copy .page-title {
+  font-size: clamp(2.15rem, 1.45rem + 2.6vw, 3.35rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.landing__bridge-copy .landing__section-lead {
+  max-width: 34rem;
+  margin-top: 1rem;
+  font-size: clamp(1.08rem, 1rem + 0.35vw, 1.22rem);
+  line-height: 1.55;
 }
 
 /* ——— Features / session / close ——— */
@@ -640,7 +651,7 @@ async function playAsGuest() {
 
   .landing__hero-cards {
     justify-self: end;
-    max-width: none;
+    max-width: min(44rem, 100%);
   }
 
   .landing__bridge-inner {
