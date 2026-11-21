@@ -255,12 +255,14 @@ async function playAsGuest() {
   margin-bottom: calc(var(--landing-card-overhang) * -1);
   overflow: visible;
   color: var(--color-on-fill);
-  background: var(--color-indigo-deep);
+  /* Fond déjà teinté section 2 pour que le dégradé atterrisse sans coupure */
+  background: var(--color-bg-soft);
 }
 
 .landing__hero-backdrop {
   position: absolute;
   inset: 0;
+  bottom: calc(var(--landing-card-overhang) * -0.35);
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
@@ -277,27 +279,45 @@ async function playAsGuest() {
   height: 100%;
   object-fit: cover;
   object-position: 38% 42%;
-  opacity: 0.42;
+  opacity: 0.5;
   filter: var(--image-filter) saturate(0.92);
   transform: scale(1.03);
   animation: landing-ken 18s var(--ease-out-quint) both;
+  /* L’illustration s’efface vers le bas → section 2 */
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 48%,
+    rgba(0, 0, 0, 0.55) 72%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 48%,
+    rgba(0, 0, 0, 0.55) 72%,
+    transparent 100%
+  );
 }
 
 .landing__hero-veil {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-indigo-deep) 62%, transparent) 0%,
-      color-mix(in srgb, var(--color-indigo-deep) 38%, transparent) 42%,
-      color-mix(in srgb, var(--color-indigo-deep) 88%, transparent) 100%
-    ),
+    /* Lisibilité à gauche */
     linear-gradient(
       90deg,
-      color-mix(in srgb, var(--color-indigo-deep) 82%, transparent) 0%,
-      color-mix(in srgb, var(--color-indigo-deep) 35%, transparent) 52%,
-      color-mix(in srgb, var(--color-indigo-deep) 55%, transparent) 100%
+      color-mix(in srgb, var(--color-indigo-deep) 78%, transparent) 0%,
+      color-mix(in srgb, var(--color-indigo-deep) 28%, transparent) 48%,
+      transparent 78%
+    ),
+    /* Haut indigo → bas = couleur section 2 */
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-indigo-deep) 70%, transparent) 0%,
+      color-mix(in srgb, var(--color-indigo-deep) 32%, transparent) 38%,
+      color-mix(in srgb, var(--color-bg-soft) 45%, transparent) 68%,
+      var(--color-bg-soft) 100%
     );
 }
 
@@ -404,6 +424,7 @@ async function playAsGuest() {
 .landing__bridge {
   position: relative;
   z-index: 1;
+  /* Même fond que la fin du dégradé hero — enchaînement continu */
   background: var(--color-bg-soft);
   /* Place pour les cartes qui descendent + image qui descend vers Atouts */
   padding-top: calc(var(--landing-card-overhang) + 1.25rem);
