@@ -74,22 +74,24 @@ Stripe est monté avec le corps brut sur `/api/stripe/webhook` avant le parseur 
 
 Le workflow `Docker publish` ne s'exécute plus à chaque merge sur `main`. Il publie uniquement :
 
-- sur push d'un tag semver `vX.Y.Z` (ex. `v1.2.3`) ;
-- ou via déclenchement manuel (`workflow_dispatch`).
+- sur push d'un tag semver `vX.Y.Z` (ex. `v0.1.0`) ;
+- ou via déclenchement manuel (`workflow_dispatch`) avec un tag obligatoire (`v0.1.0` ou `0.1.0`).
 
-Tags poussés pour une release `v1.2.3` : `v1.2.3`, `1.2.3`, et `main` (pointeur prod).
-Le build injecte `VITE_APP_VERSION` (ex. `v1.2.3`) affiché dans le footer public.
+Tags poussés pour une release `v0.1.0` : `v0.1.0`, `0.1.0`, et `main` (pointeur prod).
+Le build injecte `VITE_APP_VERSION=0.1.0` (sans préfixe `v`) affiché dans le footer public.
 
 Exemple :
 
 ```bash
 git checkout main && git pull
-git tag v1.2.3
-git push origin v1.2.3
+git tag v0.1.0
+git push origin v0.1.0
 # Sur le NAS :
 docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
+
+En manuel : Actions → **Docker publish** → Run workflow → champ tag = `v0.1.0` (ou `0.1.0`).
 
 Pour purger d'anciennes versions GHCR :
 
