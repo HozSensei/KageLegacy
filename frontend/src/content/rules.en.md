@@ -112,7 +112,7 @@ Each card shows **its own text** in the collection and in combat. These are the 
 | **AoE** | Multiplies the card’s damage (×1.35), even against a single enemy |
 | **Status** | Applies a status (see “Statuses”) |
 | **Draw / Chakra** | Draws cards or restores Chakra |
-| **Chain** | Bonus if the previous card matches the listed path |
+| **After [path]** | Bonus if the previous card matches the listed path |
 | **Next card −N Chakra** | Reduces the cost of the next successfully played card |
 | **Evade** | Chance to cancel the next attack taken |
 | **Counter** | Deals damage to the attacker after you are hit |
@@ -243,9 +243,9 @@ Some cards display a combat role. This label describes the card without recommen
 
 Your hand is limited to **10 cards**. When the draw pile is empty, the discard pile is shuffled and becomes the draw pile again.
 
-### Chains
+### After [path] (chain effects)
 
-Some cards carry text like “Chain Taijutsu: +2 damage.” This is **not** an automatic bonus from path order: only the card that writes it can trigger it.
+Some cards carry text like “After Taijutsu: +2 damage.” This is **not** an automatic bonus from path order: only the card that writes it can trigger it.
 
 - Only the **immediately previous card** in the **same turn** is checked.
 - That previous card must belong to one of the four paths (Taijutsu, Ninjutsu, Genjutsu, Medicine).
@@ -253,7 +253,7 @@ Some cards carry text like “Chain Taijutsu: +2 damage.” This is **not** an a
 - At the start of your turn, the chain is **reset**.
 - A refused play (not enough Chakra, etc.) does not change the chain.
 
-Possible rewards, depending on the card: damage, healing, Armor, effect intensity, draw, Chakra, or next-card cost reduction. A card with no chain text receives no chain bonus.
+Possible rewards, depending on the card: damage, healing, Armor, effect intensity, draw, Chakra, or next-card cost reduction. A card without “After [path]” text receives no chain bonus.
 
 ### Next-card cost reduction
 
@@ -288,7 +288,7 @@ The enemy carries out its current intent, then the displayed intents are updated
 When an attack card resolves, the game applies modifiers in this order:
 
 1. base damage and flat talent bonuses;
-2. conditional (“if…”) bonuses and chain bonuses;
+2. conditional (“if…”) bonuses and “After [path]” bonuses;
 3. path scaling (+1% per point);
 4. active heritage bonus for that path, if any;
 5. Strength (adds its value to each hit);

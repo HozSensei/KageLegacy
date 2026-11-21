@@ -62,7 +62,7 @@ function rewardEn(reward) {
 function describeChainEffect(effect, locale, card) {
   const art = ART_LABELS[locale][effect.statType];
   const reward = rewardForLocale(effect, locale, card);
-  return locale === 'fr' ? `Enchaînement ${art} : ${reward}.` : `Chain ${art}: ${reward}.`;
+  return locale === 'fr' ? `Après ${art} : ${reward}.` : `After ${art}: ${reward}.`;
 }
 
 function rewardForLocale(effect, locale, card) {
@@ -113,8 +113,8 @@ function addChain(card, index) {
   return {
     ...card,
     effects: [...(card.effects || []), effect],
-    descriptionFr: `${card.descriptionFr} Enchaînement ${prefixFr}`,
-    descriptionEn: `${card.descriptionEn} Chain ${prefixEn}`,
+    descriptionFr: `${card.descriptionFr} Après ${prefixFr}`,
+    descriptionEn: `${card.descriptionEn} After ${prefixEn}`,
   };
 }
 

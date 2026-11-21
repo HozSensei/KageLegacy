@@ -6,8 +6,6 @@ import { activeComboLines, cardEffectParts, formatStructuredEffect } from './car
 
 const i18n = {
   t(key, args) {
-    if (key === 'cards.effectComboPreviousSame') return `same: ${args.reward}`;
-    if (key === 'cards.effectComboPreviousOther') return `${args.art}: ${args.reward}`;
     if (key === 'cards.effectComboPrevious') return `${args.art}: ${args.reward}`;
     if (key.startsWith('cards.stats.')) return args;
     return `${key}=${args.n}`;
@@ -28,7 +26,7 @@ test('previews only the branch matching the preceding art, without multiplying p
     'genjutsu: cards.effectComboDamage=2',
   ]);
   assert.deepEqual(activeComboLines(card, 'taijutsu', i18n), [
-    'same: cards.effectComboDamage=1',
+    'taijutsu: cards.effectComboDamage=1',
   ]);
   assert.deepEqual(activeComboLines(card, 'ninjutsu', i18n), []);
 });
@@ -128,7 +126,7 @@ for (const [locale, expected] of Object.entries({
   });
 }
 
-test('shortens combo copy when the required art matches the card art', () => {
+test('always names the required art in combo copy', () => {
   const i18n = translations('fr');
   const same = formatStructuredEffect(
     { type: 'combo_previous', statType: 'genjutsu', damage: 2 },
@@ -138,7 +136,7 @@ test('shortens combo copy when the required art matches the card art', () => {
     { type: 'combo_previous', statType: 'genjutsu', damage: 2 },
     { ...i18n, card: { statType: 'ninjutsu' } }
   );
-  assert.equal(same, 'Enchaînement : 2 dégâts');
+  assert.equal(same, 'Après Genjutsu : 2 dégâts');
   assert.equal(other, 'Après Genjutsu : 2 dégâts');
 });
 
@@ -159,8 +157,5 @@ test('surfaces summon creature stats on the card face', () => {
     effects: [],
   };
   const { texts } = cardEffectParts(summonCard, null, i18n);
-  assert.deepEqual(
-    texts.map(entry => entry.text),
-    ['20 PV', '6 ATK', '2 tours', 'Provocation']
-  );
+  assert.deepEqual(texts.map(entry => entry.text), ['20 PV · 6 ATK · 2 tours · Provocation']);
 });
