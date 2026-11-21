@@ -54,9 +54,11 @@ router.get('/players', async (req, res, next) => {
     const search = String(req.query.q || '')
       .trim()
       .slice(0, 80);
+    // Comptes inscrits = non-invités (mot de passe et/ou OAuth Google).
+    // Ne pas exiger password_hash : les comptes Google ont password_hash NULL.
     const rows = await query(
       `SELECT u.id, COALESCE(s.character_name, s.display_name, u.username) AS username,
-              u.is_admin, s.character_name,
+              u.email, u.is_admin, s.character_name,
               COALESCE(s.ryos, 0) AS ryos,
               COALESCE(s.kage_coins, 0) AS kage_coins,
               COALESCE(s.card_dust, 0) AS card_dust,
@@ -65,11 +67,11 @@ router.get('/players', async (req, res, next) => {
               (SELECT COUNT(*) FROM user_decks d WHERE d.user_id = u.id) AS deck_count
        FROM users u
        LEFT JOIN player_profiles s ON s.user_id = u.id
-       WHERE u.is_guest = FALSE AND u.password_hash IS NOT NULL
-         AND (? = '' OR u.username LIKE ? OR s.display_name LIKE ? OR s.character_name LIKE ?)
+       WHERE u.is_guest = FALSE
+         AND (? = '' OR u.username LIKE ? OR u.email LIKE ? OR s.display_name LIKE ? OR s.character_name LIKE ?)
        ORDER BY username
        LIMIT 100`,
-      [search, `%${search}%`, `%${search}%`, `%${search}%`],
+      [search, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`],
     );
     res.json({ players: rows });
   } catch (error) {
@@ -96,7 +98,7 @@ router.post('/players/:id/resources', async (req, res, next) => {
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
        JOIN player_profiles s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL
+       WHERE u.id = ? AND u.is_guest = FALSE
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
@@ -157,7 +159,7 @@ router.post('/players/:id/reset', async (req, res, next) => {
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
        JOIN player_profiles s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL
+       WHERE u.id = ? AND u.is_guest = FALSE
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
