@@ -69,15 +69,11 @@ async function playAsGuest() {
 
         <div class="landing__hero-body">
           <div class="landing__hero-copy">
-            <p class="landing__brand-hero anim-rise">
-              <BrandMark size="2.75rem" />
-              <span>{{ t('app.name') }}</span>
-            </p>
-            <h1 class="t-display landing__title anim-rise" style="--delay: 80ms">
+            <h1 class="t-display landing__title anim-rise">
               {{ t('landing.title') }}
             </h1>
-            <p class="landing__lead anim-rise" style="--delay: 160ms">{{ t('landing.lead') }}</p>
-            <div class="landing__actions anim-rise" style="--delay: 240ms">
+            <p class="landing__lead anim-rise" style="--delay: 80ms">{{ t('landing.lead') }}</p>
+            <div class="landing__actions anim-rise" style="--delay: 160ms">
               <button
                 type="button"
                 class="btn-primary btn-lg"
@@ -91,7 +87,7 @@ async function playAsGuest() {
                 {{ t('landing.createAccount') }}
               </router-link>
             </div>
-            <p class="landing__hint anim-rise" style="--delay: 300ms">{{ t('landing.guestHint') }}</p>
+            <p class="landing__hint anim-rise" style="--delay: 220ms">{{ t('landing.guestHint') }}</p>
             <p v-if="auth.error" class="alert alert--error mt-4">{{ auth.error }}</p>
           </div>
 
@@ -346,21 +342,8 @@ async function playAsGuest() {
   padding-bottom: clamp(2rem, 5vw, 3.5rem);
 }
 
-.landing__brand-hero {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.85rem;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.65rem, 1.1rem + 2vw, 2.35rem);
-  font-weight: 800;
-  font-stretch: 78%;
-  letter-spacing: -0.02em;
-  color: var(--color-gold-fill);
-}
-
 .landing__title {
-  margin-top: 0.85rem;
+  margin: 0;
   max-width: 14ch;
   font-size: clamp(2rem, 1.35rem + 2.4vw, 3.15rem);
   color: var(--color-on-fill);
@@ -624,14 +607,93 @@ async function playAsGuest() {
   }
 }
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   .landing {
     --landing-card-overhang: clamp(3.5rem, 14vw, 5rem);
     --landing-media-overhang: clamp(2rem, 9vw, 3rem);
+    overflow-x: clip;
+  }
+
+  .landing__bar,
+  .landing__nav {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .landing__nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .landing__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing__actions .btn-lg,
+  .landing__actions .landing__cta-ghost {
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .landing__hero {
+    overflow-x: clip;
+  }
+
+  .landing__hero-body {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    justify-self: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    /* Slider collé au bord droit ; copy garde une gouttière via son padding */
+    padding-inline: var(--space-gutter) 0;
+    overflow-x: clip;
+  }
+
+  .landing__hero-copy {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding-inline-end: var(--space-gutter);
+  }
+
+  .landing__hero-cards {
+    /* Écran − gouttière gauche déjà posée sur le body ; le carousel
+       réserve ensuite la place des contrôles. */
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .landing__bridge-inner {
+    padding-inline: 0;
+    gap: 1.5rem;
   }
 
   .landing__bridge-media {
-    width: min(100%, 18rem);
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    border-inline: 0;
+    border-radius: 0;
+    justify-self: stretch;
+  }
+
+  .landing__bridge-media img {
+    aspect-ratio: 16 / 10;
+  }
+
+  .landing__bridge-copy {
+    width: 90%;
+    margin-inline: auto;
+    padding-top: clamp(2.75rem, 8vw, 4rem);
   }
 }
 
