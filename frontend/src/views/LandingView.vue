@@ -283,19 +283,21 @@ async function playAsGuest() {
   filter: var(--image-filter) saturate(0.92);
   transform: scale(1.03);
   animation: landing-ken 18s var(--ease-out-quint) both;
-  /* L’illustration s’efface vers le bas → section 2 */
+  /* L’illustration s’efface progressivement vers la section 2 */
   -webkit-mask-image: linear-gradient(
     180deg,
     #000 0%,
-    #000 48%,
-    rgba(0, 0, 0, 0.55) 72%,
+    #000 36%,
+    rgba(0, 0, 0, 0.65) 58%,
+    rgba(0, 0, 0, 0.2) 78%,
     transparent 100%
   );
   mask-image: linear-gradient(
     180deg,
     #000 0%,
-    #000 48%,
-    rgba(0, 0, 0, 0.55) 72%,
+    #000 36%,
+    rgba(0, 0, 0, 0.65) 58%,
+    rgba(0, 0, 0, 0.2) 78%,
     transparent 100%
   );
 }
@@ -304,7 +306,13 @@ async function playAsGuest() {
   position: absolute;
   inset: 0;
   background:
-    /* Lisibilité à gauche */
+    /* Lisibilité à gauche (s’atténue aussi vers le bas) */
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 55%,
+      var(--color-bg-soft) 100%
+    ),
     linear-gradient(
       90deg,
       color-mix(in srgb, var(--color-indigo-deep) 78%, transparent) 0%,
@@ -314,9 +322,10 @@ async function playAsGuest() {
     /* Haut indigo → bas = couleur section 2 */
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-indigo-deep) 70%, transparent) 0%,
-      color-mix(in srgb, var(--color-indigo-deep) 32%, transparent) 38%,
-      color-mix(in srgb, var(--color-bg-soft) 45%, transparent) 68%,
+      color-mix(in srgb, var(--color-indigo-deep) 72%, transparent) 0%,
+      color-mix(in srgb, var(--color-indigo-deep) 28%, transparent) 32%,
+      color-mix(in srgb, var(--color-bg-soft) 35%, transparent) 55%,
+      color-mix(in srgb, var(--color-bg-soft) 82%, transparent) 78%,
       var(--color-bg-soft) 100%
     );
 }
