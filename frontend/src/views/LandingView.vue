@@ -418,14 +418,15 @@ async function playAsGuest() {
   max-width: 76rem;
   margin-inline: auto;
   padding-inline: var(--space-gutter);
-  align-items: end;
+  align-items: start;
 }
 
 .landing__bridge-media {
   position: relative;
   z-index: 3;
   width: min(100%, 22rem);
-  margin: 0 0 calc(var(--landing-media-overhang) * -1);
+  /* Sous les cartes, puis déborde vers le bas sur Atouts — pas vers le hero */
+  margin: clamp(1rem, 3vw, 2rem) 0 calc(var(--landing-media-overhang) * -1);
   overflow: hidden;
   border: 1px solid var(--color-line);
   background: var(--color-bg-card);
@@ -443,8 +444,8 @@ async function playAsGuest() {
 }
 
 .landing__bridge-copy {
-  /* Descend sous les cartes hero pour ne plus coller */
-  padding-top: clamp(1.5rem, 4vw, 2.75rem);
+  /* Bien sous les cartes hero */
+  padding-top: clamp(2.75rem, 6vw, 5rem);
   padding-bottom: 0.5rem;
 }
 
@@ -616,7 +617,7 @@ async function playAsGuest() {
     /* ~40 % image / ~60 % texte */
     grid-template-columns: minmax(0, 0.4fr) minmax(0, 0.6fr);
     gap: 2.75rem;
-    align-items: end;
+    align-items: start;
   }
 
   .landing__bridge-media {
@@ -624,7 +625,7 @@ async function playAsGuest() {
   }
 
   .landing__bridge-copy {
-    padding-top: clamp(2.5rem, 5vw, 4rem);
+    padding-top: clamp(4rem, 8vw, 6.5rem);
   }
 
   .landing__features-inner {
