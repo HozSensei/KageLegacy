@@ -411,7 +411,8 @@
     "legal": "Mentions légales & confidentialité",
     "legalShort": "Mentions légales",
     "privacy": "Confidentialité",
-    "rights": "Tous droits réservés."
+    "rights": "Tous droits réservés.",
+    "version": "Version {version}"
   },
   "notifications": {
     "bell": "Notifications",

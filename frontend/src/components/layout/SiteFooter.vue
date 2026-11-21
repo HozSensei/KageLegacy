@@ -16,6 +16,8 @@ defineProps({
 
 const { t, locale } = useI18n();
 const year = new Date().getFullYear();
+/** Injecté au build Docker (tag de release), vide en local. */
+const appVersion = (import.meta.env.VITE_APP_VERSION || '').trim();
 const privacyHash = computed(() =>
   locale.value === 'en' ? 'personal-data' : 'donnees-personnelles'
 );
@@ -54,6 +56,11 @@ const privacyHash = computed(() =>
     <div class="site-footer__bottom">
       <p class="site-footer__copy">
         © {{ year }} {{ t('app.name') }}. {{ t('footer.rights') }}
+        <span
+          v-if="appVersion"
+          class="site-footer__version"
+          data-testid="app-version"
+        >{{ t('footer.version', { version: appVersion }) }}</span>
       </p>
       <nav class="site-footer__legal-links" :aria-label="t('footer.legal')">
         <router-link to="/legal">{{ t('footer.legalShort') }}</router-link>
@@ -167,6 +174,12 @@ const privacyHash = computed(() =>
   margin: 0;
   font-size: 0.78rem;
   color: var(--sf-muted);
+}
+
+.site-footer__version {
+  margin-left: 0.35rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
 }
 
 .site-footer__legal-links {

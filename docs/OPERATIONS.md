@@ -78,6 +78,7 @@ Le workflow `Docker publish` ne s'exécute plus à chaque merge sur `main`. Il p
 - ou via déclenchement manuel (`workflow_dispatch`).
 
 Tags poussés pour une release `v1.2.3` : `v1.2.3`, `1.2.3`, et `main` (pointeur prod).
+Le build injecte `VITE_APP_VERSION` (ex. `v1.2.3`) affiché dans le footer public.
 
 Exemple :
 

@@ -45,6 +45,7 @@ jobs:
             VERSION=""
           fi
 
+          APP_VERSION=""
           if [ -n "$VERSION" ]; then
             case "$VERSION" in
               v*.*.*) ;;
@@ -55,24 +56,28 @@ jobs:
             esac
             # v1.2.3 + 1.2.3 + main (pointeur prod actuel)
             PLAIN="${VERSION#v}"
+            APP_VERSION="$VERSION"
             TAGS="${IMAGE}:${VERSION}"
             TAGS="${TAGS}"$'\n'"${IMAGE}:${PLAIN}"
             TAGS="${TAGS}"$'\n'"${IMAGE}:main"
           else
             # Dispatch manuel sans tag : SHA court + main uniquement
             SHORT="$(echo "$SHORT_SHA" | cut -c1-12)"
+            APP_VERSION="$SHORT"
             TAGS="${IMAGE}:${SHORT}"
             TAGS="${TAGS}"$'\n'"${IMAGE}:main"
           fi
 
           {
             echo "image=${IMAGE}"
+            echo "app_version=${APP_VERSION}"
             echo "tags<<EOF"
             echo "$TAGS"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
           echo "Tags à pousser:"
           echo "$TAGS"
+          echo "VITE_APP_VERSION=${APP_VERSION}"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -87,3 +92,5 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            VITE_APP_VERSION=${{ steps.meta.outputs.app_version }}
