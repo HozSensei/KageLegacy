@@ -190,7 +190,7 @@ export async function grantVictoryRewards(userId, missionId, { rng = Math.random
 export async function grantRunRewards(
   userId,
   missionId,
-  { combatsWon = 0, nodeCount = 0, rng = Math.random } = {},
+  { combatsWon = 0, nodeCount = 0, hardModeMult = 1, rng = Math.random } = {},
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
 
@@ -202,20 +202,24 @@ export async function grantRunRewards(
 
   // Bonus léger par combat remporté (au-delà du multiplicateur de base)
   const combatBonus = 1 + Math.max(0, combatsWon - 1) * 0.08;
-  const scale = mult * combatBonus;
+  const hardMult = Math.max(1, Number(hardModeMult) || 1);
+  const scale = mult * combatBonus * hardMult;
 
   const cfg = {
     xp: Math.round((base.xp || 0) * scale),
     ryos: Math.round((base.ryos || 0) * scale),
     cardChance: Math.min(
       85,
-      Math.round((base.cardChance || 12) * Math.min(1.4, 1 + combatsWon * 0.05)),
+      Math.round(
+        (base.cardChance || 12) * Math.min(1.4, 1 + combatsWon * 0.05) * Math.min(1.2, hardMult),
+      ),
     ),
     bpPoints: Math.round((base.bpPoints || 0) * scale),
   };
 
   const summary = await applyRewardConfig(userId, cfg, { rng, source: 'mission_run' });
   summary.runMult = Number(scale.toFixed(2));
+  summary.hardModeMult = hardMult;
   summary.combatsWon = combatsWon;
   summary.nodeCount = nodeCount;
   return summary;

@@ -13,9 +13,18 @@
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
 import {
-  getRankPathConfig,
-  MYSTERY_OUTCOME_WEIGHTS,
+  HARD_MODE_DIFFICULTY_MULT,
+  HARD_MODE_REWARD_MULT,
 } from '../config/missionPathConfig.js';
+import {
+  applyHardModeToNodes,
+  buildMysteryOutcome,
+  buildRandomRunPath,
+  buildRunNodes,
+  ensureRecoveryMystery,
+  isRecoveryOutcome,
+  pickEncountersForRank,
+} from './missionPathBuilder.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
 import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
 import { grantRunRewards } from './combatRewardService.js';
@@ -25,6 +34,8 @@ import {
   requiredCharacterRankForMission,
 } from './missionRankAccess.js';
 import { pickRankVignette } from '../../scripts/data/missionLore.js';
+
+export { applyHardModeToNodes, buildRandomRunPath, buildRunNodes } from './missionPathBuilder.js';
 
 /** Types d’événements legacy (runs déjà en cours). */
 const EVENT_TYPES = [
@@ -173,83 +184,10 @@ async function tableExists(tableName) {
   }
 }
 
-function pickWeighted(weights, rng = Math.random) {
-  const entries = Object.entries(weights);
-  const total = entries.reduce((sum, [, w]) => sum + Number(w), 0);
-  let roll = rng() * total;
-  for (const [key, weight] of entries) {
-    roll -= Number(weight);
-    if (roll <= 0) return key;
-  }
-  return entries[entries.length - 1]?.[0];
-}
-
-function shuffleCopy(list, rng = Math.random) {
-  const arr = [...list];
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(rng() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function pickMysteryCount(range, rng = Math.random) {
-  const [min, max] = range;
-  if (min === max) return min;
-  return min + Math.floor(rng() * (max - min + 1));
-}
-
-function pickEncountersForRank(rank, rng = Math.random) {
-  const cfg = getRankPathConfig(rank);
-  if (!cfg) {
-    return [{ templateId: 'ronin_bandit', difficulty: 1 }];
-  }
-
-  const count = cfg.fightCount;
-  const difficulties = cfg.difficulties;
-  const regularPool = shuffleCopy(cfg.pool, rng);
-  const fights = [];
-
-  for (let i = 0; i < count; i += 1) {
-    const isLast = i === count - 1;
-    const useBoss = Boolean(cfg.bossLast && isLast && cfg.bossPool?.length);
-    const pool = useBoss ? cfg.bossPool : regularPool;
-    const templateId = pool[i % pool.length] || pool[0] || 'ronin_bandit';
-    fights.push({
-      templateId,
-      difficulty: difficulties[i] ?? difficulties[difficulties.length - 1] ?? 1,
-      boss: useBoss,
-    });
-  }
-
-  return fights;
-}
-
-function buildMysteryOutcome(rank, rng = Math.random) {
-  const kind = pickWeighted(MYSTERY_OUTCOME_WEIGHTS, rng);
-  if (kind !== 'combat') {
-    return { kind };
-  }
-
-  const cfg = getRankPathConfig(rank);
-  const pool = cfg?.pool?.length ? cfg.pool : ['ronin_bandit'];
-  const templateId = pool[Math.floor(rng() * pool.length)] || pool[0];
-  const midDiff =
-    cfg?.difficulties?.[Math.floor((cfg.difficulties.length - 1) / 2)] ??
-    cfg?.difficulties?.[0] ??
-    1.3;
-
-  return {
-    kind: 'combat',
-    templateId,
-    difficulty: midDiff,
-    boss: false,
-  };
-}
-
 function mysteryEventType(kind) {
   if (kind === 'heal') return 'mystery_heal';
   if (kind === 'loot') return 'mystery_loot';
+  if (kind === 'merchant') return 'merchant';
   return 'mystery_nothing';
 }
 
@@ -274,96 +212,6 @@ export function sanitizeNodesForClient(nodes) {
     }
     return node;
   });
-}
-
-/**
- * Construit un parcours aléatoire pour un rang : combats + 1–2 nœuds « ? ».
- * Les issues des « ? » (soin / loot / rien / combat) sont tirées à la génération
- * mais masquées jusqu’à enterNode.
- *
- * @param {string} rank
- * @param {{ rng?: () => number }} [opts]
- */
-export function buildRandomRunPath(rank, { rng = Math.random } = {}) {
-  const cfg = getRankPathConfig(rank);
-  const fights = pickEncountersForRank(rank, rng);
-  const gaps = Math.max(0, fights.length - 1);
-  const mysteryWanted = cfg ? pickMysteryCount(cfg.mysteryCount, rng) : 1;
-  const mysteryCount = Math.min(gaps, mysteryWanted);
-
-  const gapIndexes = shuffleCopy(
-    Array.from({ length: gaps }, (_, i) => i),
-    rng,
-  ).slice(0, mysteryCount);
-  const mysteryGaps = new Set(gapIndexes);
-
-  const nodes = [];
-  let mysterySlot = 0;
-
-  for (let i = 0; i < fights.length; i += 1) {
-    const fight = fights[i];
-    nodes.push({
-      id: `combat-${i}`,
-      type: 'combat',
-      status: i === 0 ? 'available' : 'locked',
-      templateId: fight.templateId,
-      difficulty: fight.difficulty || 1,
-      boss: Boolean(fight.boss),
-    });
-
-    if (i < fights.length - 1 && mysteryGaps.has(i)) {
-      const outcome = buildMysteryOutcome(rank, rng);
-      nodes.push({
-        id: `mystery-${mysterySlot}`,
-        type: 'mystery',
-        status: 'locked',
-        revealed: false,
-        outcome,
-      });
-      mysterySlot += 1;
-    }
-  }
-
-  return nodes;
-}
-
-/**
- * @deprecated Prefer buildRandomRunPath(rank). Conservé pour tests / runs legacy.
- * Intercale des events nommés entre des encounters fournis.
- */
-export function buildRunNodes(encounters, { rng = Math.random } = {}) {
-  const fights =
-    Array.isArray(encounters) && encounters.length
-      ? encounters
-      : [{ templateId: 'ronin_bandit', difficulty: 1 }];
-
-  const nodes = [];
-  for (let i = 0; i < fights.length; i += 1) {
-    const fight = fights[i];
-    nodes.push({
-      id: `combat-${i}`,
-      type: 'combat',
-      status: i === 0 ? 'available' : 'locked',
-      templateId: fight.templateId,
-      difficulty: fight.difficulty || 1,
-      boss: Boolean(fight.boss) || (i === fights.length - 1 && fights.length >= 4),
-      nameFr: fight.nameFr || null,
-      nameEn: fight.nameEn || null,
-    });
-
-    if (i < fights.length - 1) {
-      const outcome = buildMysteryOutcome('D', rng);
-      nodes.push({
-        id: `mystery-${i}`,
-        type: 'mystery',
-        status: 'locked',
-        revealed: false,
-        outcome,
-      });
-    }
-  }
-
-  return nodes;
 }
 
 function findAvailableIndex(nodes) {
@@ -453,6 +301,7 @@ function serializeRun(row, extras = {}) {
     currentNodeIndex: row.current_node_index,
     nodes: sanitizeNodesForClient(nodes),
     player,
+    hardMode: Boolean(player.hardMode),
     currentEvent: getCurrentEvent(row, nodes, player),
     stats: parseJson(row.stats_snapshot_json, createEmptyStats()),
     talentEffects: parseJson(row.talent_effects_json, { codes: [], applied: [], stubbed: [] }),
@@ -496,11 +345,13 @@ async function persistRun(row) {
 /**
  * Démarre un nouveau parcours pour une mission.
  */
-export async function startRun(userId, missionId, deckId = null) {
+export async function startRun(userId, missionId, deckId = null, opts = {}) {
   if (!userId) throw httpError(400, 'userId requis.');
   if (!(await tableExists('mission_runs'))) {
     throw httpError(503, 'Tables mission_runs absentes — lancez les migrations (106).');
   }
+
+  const hardMode = Boolean(opts?.hardMode);
 
   const active = await query(
     "SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
@@ -544,7 +395,7 @@ export async function startRun(userId, missionId, deckId = null) {
 
   const resolvedDeckId = deck.id;
 
-  const nodes = buildRandomRunPath(mission.rank);
+  const nodes = buildRandomRunPath(mission.rank, { hardMode });
   const vignette = pickRankVignette(mission.rank);
   const id = randomUUID();
   const player = {
@@ -553,6 +404,8 @@ export async function startRun(userId, missionId, deckId = null) {
     scrap: 0,
     combatsWon: 0,
     lore: vignette,
+    hardMode,
+    ...(hardMode ? { rewardMult: HARD_MODE_REWARD_MULT } : {}),
   };
   const talentEffects = {
     codes: effectCodes,
@@ -756,7 +609,7 @@ function buildEventPayload(node, player) {
     return {
       ...base,
       choices: [
-        { id: 'rest_here', labelFr: 'Se reposer (+30 % PV max)', labelEn: 'Rest (+30% max HP)' },
+        { id: 'rest_here', labelFr: 'Se reposer (+50 % PV max)', labelEn: 'Rest (+50% max HP)' },
       ],
     };
   }
@@ -807,10 +660,10 @@ function buildEventPayload(node, player) {
       choices: [
         {
           id: 'buy_bandage',
-          labelFr: 'Bandage (3 ferraille → +25 % PV)',
-          labelEn: 'Bandage (3 scrap → +25% HP)',
-          cost: 3,
-          disabled: (player.scrap || 0) < 3,
+          labelFr: 'Bandage (2 ferraille → +25 % PV)',
+          labelEn: 'Bandage (2 scrap → +25% HP)',
+          cost: 2,
+          disabled: (player.scrap || 0) < 2,
         },
         {
           id: 'buy_tonic',
@@ -981,7 +834,7 @@ export async function resolveEvent(userId, runId, choiceId) {
 
   switch (eventType) {
     case 'mystery_heal': {
-      player = healPercent(player, 0.3);
+      player = healPercent(player, 0.5);
       log.heal = player.lastHeal;
       break;
     }
@@ -1010,10 +863,10 @@ export async function resolveEvent(userId, runId, choiceId) {
     }
     case 'merchant': {
       if (choiceId === 'buy_bandage') {
-        if ((player.scrap || 0) < 3) throw httpError(400, 'Pas assez de ferraille.');
-        player = healPercent({ ...player, scrap: player.scrap - 3 }, 0.25);
+        if ((player.scrap || 0) < 2) throw httpError(400, 'Pas assez de ferraille.');
+        player = healPercent({ ...player, scrap: player.scrap - 2 }, 0.25);
         log.heal = player.lastHeal;
-        log.scrapSpent = 3;
+        log.scrapSpent = 2;
       } else if (choiceId === 'buy_tonic') {
         if ((player.scrap || 0) < 5) throw httpError(400, 'Pas assez de ferraille.');
         player = healPercent({ ...player, scrap: player.scrap - 5 }, 0.5);
@@ -1146,9 +999,14 @@ async function completeRunVictory(row) {
   row.state = 'victory';
   row.current_combat_id = null;
   try {
+    const player = parseJson(row.player_run_state_json, {});
+    const hardModeMult = player.hardMode
+      ? Number(player.rewardMult) || HARD_MODE_REWARD_MULT
+      : 1;
     const rewards = await grantRunRewards(row.user_id, row.mission_id, {
-      combatsWon: parseJson(row.player_run_state_json, {}).combatsWon || 0,
+      combatsWon: player.combatsWon || 0,
       nodeCount: parseJson(row.nodes_json, []).length,
+      hardModeMult,
     });
     row.rewards_json = rewards;
   } catch (err) {
@@ -1281,4 +1139,9 @@ export const __test = {
   EVENT_META,
   pickEncountersForRank,
   buildMysteryOutcome,
+  ensureRecoveryMystery,
+  applyHardModeToNodes,
+  isRecoveryOutcome,
+  HARD_MODE_DIFFICULTY_MULT,
+  HARD_MODE_REWARD_MULT,
 };

@@ -23,21 +23,22 @@ export const RANK_PATH_CONFIG = Object.freeze({
     fightCount: 3,
     mysteryCount: Object.freeze([1, 2]),
     bossLast: false,
-    difficulties: Object.freeze([1.25, 1.35, 1.45]),
+    // Early adouci ; pic final inchangé — clearance run sans trivialiser le dernier fight.
+    difficulties: Object.freeze([0.95, 1.2, 1.4]),
     pool: Object.freeze(['ronin_bandit', 'marsh_cutpurse', 'scrapyard_dog']),
   }),
   C: Object.freeze({
     fightCount: 3,
     mysteryCount: Object.freeze([1, 2]),
     bossLast: false,
-    difficulties: Object.freeze([1.55, 1.7, 1.85]),
+    difficulties: Object.freeze([1.3, 1.55, 1.85]),
     pool: Object.freeze(['kurogane_scout', 'tide_sentinel', 'mirror_adept']),
   }),
   B: Object.freeze({
     fightCount: 4,
     mysteryCount: Object.freeze([1, 2]),
     bossLast: true,
-    difficulties: Object.freeze([1.6, 1.7, 1.85, 2.05]),
+    difficulties: Object.freeze([1.45, 1.55, 1.8, 2.05]),
     pool: Object.freeze([
       'kurogane_scout',
       'tide_sentinel',
@@ -52,7 +53,7 @@ export const RANK_PATH_CONFIG = Object.freeze({
     fightCount: 5,
     mysteryCount: Object.freeze([1, 2]),
     bossLast: true,
-    difficulties: Object.freeze([1.9, 2.0, 2.1, 2.2, 2.3]),
+    difficulties: Object.freeze([1.8, 1.9, 2.1, 2.2, 2.3]),
     pool: Object.freeze([
       'ashen_captain',
       'ironroot_warden',
@@ -67,7 +68,7 @@ export const RANK_PATH_CONFIG = Object.freeze({
     fightCount: 5,
     mysteryCount: Object.freeze([2, 2]),
     bossLast: true,
-    difficulties: Object.freeze([2.4, 2.5, 2.6, 2.7, 2.8]),
+    difficulties: Object.freeze([2.3, 2.4, 2.6, 2.7, 2.8]),
     pool: Object.freeze([
       'stormcaller_adept',
       'duskblade_ronin',
@@ -79,13 +80,18 @@ export const RANK_PATH_CONFIG = Object.freeze({
   }),
 });
 
-/** Poids des issues d’un nœud « ? » */
+/** Poids des issues d’un nœud « ? » (merchant = sink ferraille). */
 export const MYSTERY_OUTCOME_WEIGHTS = Object.freeze({
   heal: 30,
-  loot: 30,
-  nothing: 20,
-  combat: 20,
+  merchant: 25,
+  loot: 20,
+  nothing: 15,
+  combat: 10,
 });
+
+/** Mode difficile opt-in au lancement de mission. */
+export const HARD_MODE_DIFFICULTY_MULT = 1.2;
+export const HARD_MODE_REWARD_MULT = 1.2;
 
 /**
  * Définitions catalogue — une mission active par rang.

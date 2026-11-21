@@ -91,7 +91,7 @@ Les hooks actifs suivent notamment : victoires, bosses, séries, défis de comba
 
 5 missions (une par rang D–S) sont initialisées dans le schéma. Chaque lancement génère un parcours aléatoire (combats + nœuds « ? »).
 
-Accès cumulatif selon le rang du personnage : Aspirant/Genin → D+C ; Chunin/Jonin → +B+A ; ANBU/Kage → +S. Les difficultés d’encounter montent dans le run (voir `missionEncounterDifficulties.js`) ; D est dur au deck de départ, C exige une première progression.
+Accès cumulatif selon le rang du personnage : Aspirant/Genin → D+C ; Chunin/Jonin → +B+A ; ANBU/Kage → +S. Les difficultés d’encounter montent dans le run (voir `missionPathConfig.js`) ; early fights sont un peu adoucis pour la clearance, le pic final reste exigeant. Un nœud de récupération est garanti ; le mode difficile opt-in multiplie difficulté et récompenses de fin (+20 %).
 
 La récompense de rang part d'un plancher :
 

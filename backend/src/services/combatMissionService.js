@@ -81,9 +81,9 @@ export async function getMissionBySlug(slug) {
 /**
  * Lance un parcours de mission (multi-combats + nœuds « ? »).
  */
-export async function startMission(userId, missionId, deckId = null) {
+export async function startMission(userId, missionId, deckId = null, opts = {}) {
   const { startRun } = await import('./missionRunService.js');
-  return startRun(userId, missionId, deckId);
+  return startRun(userId, missionId, deckId, opts);
 }
 
 export function getEnemyCatalog() {

@@ -69,13 +69,15 @@ C'est un outil de diagnostic, pas une preuve d'équilibrage du gameplay.
 
 Le profil standard utilise huit rencontres D à A, 24 combats par cellule en mode test, trois profils practice et un profil starter séparé. La politique greedy choisit la carte payable au score le plus élevé.
 
+Le même harness couvre aussi la **clearance de mission** (`aggregateMissionRuns` / mode rapport) : parcours aléatoire avec PV persistants, nœuds « ? » (soin, colporteur, butin, rien, embuscade) et seuils `MISSION_CLEARANCE_THRESHOLDS` (mode normal). Le mode difficile opt-in est mesuré en rapport seulement.
+
 Limites :
 
-- ce n'est pas une simulation de run persistant ;
 - le bot n'est pas un joueur humain ;
-- les boss ne font pas partie du filet standard ;
+- les boss ne font pas partie du filet combat isolé (ils apparaissent dans les runs B+) ;
 - la simulation n'évalue pas automatiquement la totalité des interactions de talents ;
-- un résultat cible dépassé signale un écart mais ne donne pas seul la cause.
+- un résultat cible dépassé signale un écart mais ne donne pas seul la cause ;
+- la sim combat isolé reste en chakra 3 / main non persistante (référence relative), distincte du live mission.
 
 ## E2E
 

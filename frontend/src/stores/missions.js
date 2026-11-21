@@ -35,15 +35,18 @@ export const useMissionsStore = defineStore('missions', () => {
     }
   }
 
-  async function startMission(missionId, deckId = null) {
+  async function startMission(missionId, deckId = null, opts = {}) {
     actionLoading.value = true;
     error.value = null;
     try {
+      const payload = {};
+      if (deckId) payload.deckId = deckId;
+      if (opts?.hardMode) payload.hardMode = true;
       const res = await fetch(`${API_BASE}/api/missions/${missionId}/start`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(deckId ? { deckId } : {}),
+        body: JSON.stringify(payload),
       });
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));

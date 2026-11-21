@@ -26,6 +26,7 @@ const router = Router();
 
 const startSchema = z.object({
   deckId: z.number().int().positive().optional(),
+  hardMode: z.boolean().optional(),
 });
 
 const resolveEventSchema = z.object({
@@ -136,7 +137,9 @@ router.post('/:id/start', async (req, res, next) => {
       return res.status(400).json({ error: 'id invalide.' });
     }
     const body = startSchema.parse(req.body || {});
-    const run = await startMission(user.id, id, body.deckId ?? null);
+    const run = await startMission(user.id, id, body.deckId ?? null, {
+      hardMode: Boolean(body.hardMode),
+    });
     res.status(201).json({ run });
   } catch (error) {
     next(error);
