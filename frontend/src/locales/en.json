@@ -184,13 +184,7 @@
   },
   "landing": {
     "title": "Build your shinobi. Master the deck.",
-    "lead": "Kage Legacy is a solo deck-building roguelike: create your character, build a 20–30 card deck, unlock talents, and clear combat missions.",
-    "features": {
-      "character": "Create your shinobi — element and talent points from level one. Legendary clan cards grant deck passives.",
-      "deck": "A starter collection and deck so you can fight immediately, then refine your build.",
-      "talents": "A deep talent tree: every level grants a point, never free stats.",
-      "missions": "PvE mission runs with combat, rewards, shop boosters and a seasonal Battle Pass."
-    },
+    "lead": "A solo deck-building roguelike: create your ninja, craft a 20–30 card deck, unlock talents, and clear combat missions.",
     "playGuest": "Try as guest (7 days)",
     "createAccount": "Create account",
     "guestHint": "No password required — you'll create your ninja right after, then can convert the trial into a permanent account.",
@@ -204,8 +198,35 @@
       "grow": "Spend your first talent point on the tree.",
       "fight": "Launch a combat mission — earn XP, Ryos and new cards."
     },
-    "kicker": "Solo roguelike · Deck building",
-    "featuresTitle": "What awaits you"
+    "closeTitle": "Ready to enter the village?",
+    "closeLead": "Try as a guest in seconds, or create an account to keep your progress.",
+    "pillars": {
+      "shinobi": {
+        "kicker": "Character",
+        "title": "Pick a face. Join a village.",
+        "lead": "Name, aspirant portrait, and faction: your shinobi is born in one step, then grows through talents — never free stats."
+      },
+      "deck": {
+        "kicker": "Collection",
+        "title": "A deck forged for battle.",
+        "lead": "Starter pack, growing collection, path synergies, and legendary clan passives: every card matters in combat."
+      },
+      "talents": {
+        "kicker": "Progression",
+        "title": "Every level, a choice.",
+        "lead": "A dense talent tree: one point per level, branches to commit to, zero automatic stat inflation."
+      },
+      "missions": {
+        "kicker": "Combat",
+        "title": "Runs, not waiting rooms.",
+        "lead": "Ranked missions, turn-based fights, rewards and boosters: play when you want, at your pace."
+      },
+      "season": {
+        "kicker": "Season",
+        "title": "Shop, pass, and villages.",
+        "lead": "Season pass, village shop, and faction rivalries to keep the chase alive past night one."
+      }
+    }
   },
   "hero": {
     "imageLabel": "Page illustration"

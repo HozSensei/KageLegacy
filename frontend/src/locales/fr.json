@@ -184,16 +184,10 @@
   },
   "landing": {
     "title": "Forge ton shinobi. Domine le deck.",
-    "lead": "Kage Legacy est un roguelike solo de construction de deck : crée ton personnage, compose 20–30 cartes, débloque des talents et enchaîne les missions de combat.",
-    "features": {
-      "character": "Crée ton shinobi — élément et points de talent dès le niveau 1. Les cartes de clan légendaires donnent des passifs de deck.",
-      "deck": "Une collection et un deck de départ pour combattre tout de suite, puis affiner le build.",
-      "talents": "Un arbre dense : chaque niveau donne un point, jamais de stats gratuites.",
-      "missions": "Parcours PvE avec combats, récompenses, boosters boutique et Passe de saison."
-    },
+    "lead": "Un roguelike solo de construction de deck : crée ton ninja, compose 20–30 cartes, débloque des talents et enchaîne les missions.",
     "playGuest": "Essayer en invité (7 jours)",
     "createAccount": "Créer un compte",
-    "guestHint": "Aucun mot de passe requis — vous créerez votre ninja juste après, puis pourrez convertir l'essai en compte permanent.",
+    "guestHint": "Aucun mot de passe requis — tu crées ton ninja juste après, puis tu peux convertir l'essai en compte permanent.",
     "asideTitle": "Le pitch",
     "asideBody": "La préparation prime sur la puissance brute : synergies cartes + talents décident du combat.",
     "timelineTitle": "Ta première session",
@@ -204,8 +198,35 @@
       "grow": "Dépense ton premier point dans l'arbre de talents.",
       "fight": "Lance une mission de combat — gagne XP, Ryos et nouvelles cartes."
     },
-    "kicker": "Roguelike solo · Construction de deck",
-    "featuresTitle": "Ce qui t'attend"
+    "closeTitle": "Prêt à entrer dans le village ?",
+    "closeLead": "Essaye en invité en quelques secondes, ou crée un compte pour garder ta progression.",
+    "pillars": {
+      "shinobi": {
+        "kicker": "Personnage",
+        "title": "Choisis ton visage. Rejoins un village.",
+        "lead": "Nom, portrait aspirant et faction : ton shinobi naît en une étape, puis grandit par les talents — jamais par des stats gratuites."
+      },
+      "deck": {
+        "kicker": "Collection",
+        "title": "Un deck qui sent la forge.",
+        "lead": "Pack de départ, collection à enrichir, synergies de voies et passifs de clan légendaires : chaque carte compte dans le combat."
+      },
+      "talents": {
+        "kicker": "Progression",
+        "title": "Chaque niveau, un choix.",
+        "lead": "L'arbre de talents est dense : un point par niveau, des branches à assumer, zéro inflation de stats automatique."
+      },
+      "missions": {
+        "kicker": "Combat",
+        "title": "Des parcours, pas une file d'attente.",
+        "lead": "Missions par rang, combats au tour par tour, récompenses et boosters : tu joues quand tu veux, à ton rythme."
+      },
+      "season": {
+        "kicker": "Saison",
+        "title": "Boutique, passe et villages.",
+        "lead": "Passe de saison, boutique du village et rivalités de factions pour rester dans la course au-delà de la première soirée."
+      }
+    }
   },
   "hero": {
     "imageLabel": "Illustration de page"
