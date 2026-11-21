@@ -9,7 +9,7 @@
 | Champ                 | Contrat                                                                             |
 | --------------------- | ----------------------------------------------------------------------------------- |
 | `avatarId`            | Identifiant du portrait ; `aspirant-1-1` en repli                                   |
-| `backgroundId`        | Identifiant du fond illustré (`joueur-1`, `joueur-2`), ou `null`                    |
+| `backgroundId`        | Identifiant du fond illustré (`joueur-1` … `joueur-8`), ou `null`                   |
 | `nicknameId`          | Identifiant du surnom équipé, ou `null`                                             |
 | `unlockedNicknameIds` | Identifiants des surnoms gagnés, en ordre de progression                            |
 | `nicknameCatalog`     | Catalogue des surnoms, au format `{ id, name: { en, fr }, criteria: { minLevel } }` |

@@ -150,8 +150,11 @@ function testAppearance() {
   strictAssert(isAvatarAvailableToRank('anbu-2-16', 'Kage'));
   strictAssert(!isAvatarAvailableToRank('anbu-2-16', 'Jonin'));
   strictAssert(!createCharacterSchema.safeParse({ name: 'Hayato', avatarId: 'genin-1-1' }).success);
-  for (const id of ['joueur-3', 'bg-joueur', 'url(x)', '']) {
+  for (const id of ['joueur-9', 'bg-joueur', 'url(x)', '']) {
     strictAssert(!characterProfilePatchSchema.safeParse({ backgroundId: id }).success, id);
+  }
+  for (const id of ['joueur-3', 'joueur-8']) {
+    strictAssert(characterProfilePatchSchema.safeParse({ backgroundId: id }).success, id);
   }
   strictAssert(!characterProfilePatchSchema.safeParse({}).success);
   strictAssert(!characterProfilePatchSchema.safeParse({ avatarId: null }).success);
