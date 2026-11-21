@@ -228,11 +228,26 @@
       "title": "Ce qui forge ta légende",
       "cta": "Créer un compte",
       "items": {
-        "forge": { "kicker": "Création", "title": "Nom, village, portrait" },
-        "paths": { "kicker": "Voies", "title": "Taijutsu, ninjutsu, genjutsu…" },
-        "clans": { "kicker": "Clans", "title": "Passifs légendaires" },
-        "boosters": { "kicker": "Boutique", "title": "Boosters & packs" },
-        "pass": { "kicker": "Saison", "title": "Passe de combat" }
+        "forge": {
+          "kicker": "Création",
+          "title": "Nom, village, portrait"
+        },
+        "paths": {
+          "kicker": "Voies",
+          "title": "Taijutsu, ninjutsu, genjutsu…"
+        },
+        "clans": {
+          "kicker": "Clans",
+          "title": "Passifs légendaires"
+        },
+        "boosters": {
+          "kicker": "Boutique",
+          "title": "Boosters & packs"
+        },
+        "pass": {
+          "kicker": "Saison",
+          "title": "Passe de combat"
+        }
       }
     },
     "season": {
@@ -248,6 +263,37 @@
       "page": "Page {n}",
       "prev": "Cartes précédentes",
       "next": "Cartes suivantes"
+    },
+    "showcase": {
+      "hint": "Survole pour le relief 3D · clique pour retourner",
+      "flipHint": "Retourner la carte"
+    },
+    "pillars": {
+      "shinobi": {
+        "kicker": "Personnage",
+        "title": "Choisis ton visage. Rejoins un village.",
+        "lead": "Nom, portrait aspirant et faction : ton shinobi naît en une étape, puis grandit par les talents — jamais par des stats gratuites."
+      },
+      "deck": {
+        "kicker": "Collection",
+        "title": "Compose ton arsenal.",
+        "lead": "Pack de départ, collection à enrichir, synergies de voies et passifs de clan : chaque carte compte dans le combat."
+      },
+      "talents": {
+        "kicker": "Progression",
+        "title": "Chaque niveau, un choix.",
+        "lead": "L'arbre de talents est dense : un point par niveau, des branches à assumer, zéro inflation de stats automatique."
+      },
+      "missions": {
+        "kicker": "Combat",
+        "title": "Des parcours, pas une file d'attente.",
+        "lead": "Missions par rang, combats au tour par tour, récompenses et boosters : tu joues quand tu veux, à ton rythme."
+      },
+      "season": {
+        "kicker": "Saison",
+        "title": "Boutique, passe et villages.",
+        "lead": "Passe de saison, boutique du village et rivalités de factions pour rester dans la course au-delà de la première soirée."
+      }
     }
   },
   "hero": {
