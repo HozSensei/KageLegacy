@@ -43,7 +43,7 @@ for (const [index, { id }] of ranks.slice(0, -1).entries()) {
   }
 }
 
-export const NICKNAME_CATALOG = Object.freeze(
+export const RANK_NICKNAME_CATALOG = Object.freeze(
   ranks.slice(1).map(({ id, name, minLevel }) =>
     Object.freeze({
       id,
@@ -52,6 +52,73 @@ export const NICKNAME_CATALOG = Object.freeze(
     }),
   ),
 );
+
+/** Titre one-shot pack bienvenue (hors progression de rang). */
+export const WELCOME_NICKNAME = Object.freeze({
+  id: 'welcome',
+  name: Object.freeze({ en: 'Village Patron', fr: 'Mécène du Village' }),
+  criteria: Object.freeze({ source: 'welcome' }),
+});
+
+/** Catalogue de base exposé API (rangs + bienvenue). Les titres de saison sont fusionnés à la volée. */
+export const NICKNAME_CATALOG = Object.freeze([...RANK_NICKNAME_CATALOG, WELCOME_NICKNAME]);
+
+export function seasonNicknameId(seasonNumber) {
+  const n = Math.max(1, Number(seasonNumber) || 1);
+  return `season_${n}`;
+}
+
+export function buildSeasonNicknameEntry(seasonNumber) {
+  const n = Math.max(1, Number(seasonNumber) || 1);
+  return Object.freeze({
+    id: seasonNicknameId(n),
+    name: Object.freeze({
+      en: `Season ${n} Shadow`,
+      fr: `Ombre de la Saison ${n}`,
+    }),
+    criteria: Object.freeze({ source: 'season', seasonNumber: n }),
+  });
+}
+
+export function isKnownNicknameId(nicknameId, extraCatalog = []) {
+  if (!nicknameId) return false;
+  if (NICKNAME_CATALOG.some(entry => entry.id === nicknameId)) return true;
+  if (String(nicknameId).startsWith('season_')) return true;
+  return extraCatalog.some(entry => entry.id === nicknameId);
+}
+
+/**
+ * @param {object} row
+ * @param {string[]} [grantedIds] unlocks DB (welcome / saison)
+ */
+export function unlockedRankNicknameIdsFor(row) {
+  const highestLevel = Math.max(
+    Number(row?.character_highest_level ?? row?.highest_level) || 1,
+    Number(row?.character_level ?? row?.level) || 1,
+  );
+  return RANK_NICKNAME_CATALOG.filter(({ criteria }) => highestLevel >= criteria.minLevel).map(
+    ({ id }) => id,
+  );
+}
+
+/**
+ * @param {object} row
+ * @param {string[]} [grantedIds]
+ */
+export function unlockedNicknameIdsFor(row, grantedIds = []) {
+  const granted = Array.isArray(grantedIds)
+    ? grantedIds.filter(id => typeof id === 'string' && id.length > 0)
+    : [];
+  return [...new Set([...unlockedRankNicknameIdsFor(row), ...granted])];
+}
+
+export function mergeNicknameCatalog(extraEntries = []) {
+  const byId = new Map(NICKNAME_CATALOG.map(entry => [entry.id, entry]));
+  for (const entry of extraEntries) {
+    if (entry?.id && !byId.has(entry.id)) byId.set(entry.id, entry);
+  }
+  return [...byId.values()];
+}
 
 export function rankForLevel(level) {
   return ranks.findLast(({ minLevel }) => Number(level) >= minLevel)?.rank ?? ASPIRANT_RANK;
@@ -65,25 +132,16 @@ export function isAvatarAvailableToRank(avatarId, rank) {
   return avatarRankIndex.get(avatarId) <= rankIndex.get(rank);
 }
 
-export function unlockedNicknameIdsFor(row) {
-  const highestLevel = Math.max(
-    Number(row?.character_highest_level ?? row?.highest_level) || 1,
-    Number(row?.character_level ?? row?.level) || 1,
-  );
-  return NICKNAME_CATALOG.filter(({ criteria }) => highestLevel >= criteria.minLevel).map(
-    ({ id }) => id,
-  );
-}
-
 /** Serialize a raw player_profiles row (or its equivalent aliased projection). */
-export function serializeCharacterAppearance(row) {
+export function serializeCharacterAppearance(row, grantedNicknameIds = []) {
   const rank = row?.character_rank ?? row?.rank ?? rankForLevel(row?.character_level ?? row?.level);
   const avatarId = row?.character_avatar_id ?? row?.avatar_id;
   const backgroundId = row?.character_background_id ?? row?.background_id;
   const nicknameId = row?.character_nickname_id ?? row?.nickname_id;
+  const unlocked = unlockedNicknameIdsFor(row, grantedNicknameIds);
   return {
     avatarId: isAvatarAvailableToRank(avatarId, rank) ? avatarId : DEFAULT_AVATAR_ID,
     backgroundId: isKnownCardBackgroundId(backgroundId) ? backgroundId : null,
-    nicknameId: unlockedNicknameIdsFor(row).includes(nicknameId) ? nicknameId : null,
+    nicknameId: unlocked.includes(nicknameId) ? nicknameId : null,
   };
 }

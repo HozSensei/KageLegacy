@@ -388,6 +388,46 @@ LOCK TABLES `shop_coin_pack_purchases` WRITE;
 UNLOCK TABLES;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `shop_welcome_purchases` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `method` enum('stub','stripe') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'stub',
+  `stripe_session_id` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `payload_json` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_swp_user` (`user_id`),
+  UNIQUE KEY `uq_swp_stripe_session` (`stripe_session_id`),
+  CONSTRAINT `fk_swp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `shop_welcome_purchases` WRITE;
+/*!40000 ALTER TABLE `shop_welcome_purchases` DISABLE KEYS */;
+/*!40000 ALTER TABLE `shop_welcome_purchases` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `player_nickname_unlocks` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `nickname_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `source` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
+  `source_ref` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `unlocked_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pnu_user_nickname` (`user_id`,`nickname_id`),
+  KEY `idx_pnu_nickname` (`nickname_id`),
+  CONSTRAINT `fk_pnu_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `player_nickname_unlocks` WRITE;
+/*!40000 ALTER TABLE `player_nickname_unlocks` DISABLE KEYS */;
+/*!40000 ALTER TABLE `player_nickname_unlocks` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `talent_tree_nodes` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `node_id` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Ex: tai_5_a, nin_keystone_berserker',

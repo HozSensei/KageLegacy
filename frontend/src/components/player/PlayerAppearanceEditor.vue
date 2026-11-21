@@ -17,7 +17,7 @@ const props = defineProps({
   character: { type: Object, required: true },
 });
 
-const { t, te } = useI18n();
+const { t, te, locale } = useI18n();
 const player = usePlayerStore();
 const saved = computed(() => readNinjaAppearance(props.character.profile));
 const draft = ref({ ...saved.value });
@@ -100,10 +100,26 @@ async function save() {
               :value="draft.nicknameId"
               disabled
             >
-              {{ ninjaNicknameLabel(draft.nicknameId, t, te) }}
+              {{
+                ninjaNicknameLabel(
+                  draft.nicknameId,
+                  t,
+                  te,
+                  props.character.profile?.nicknameCatalog,
+                  locale
+                )
+              }}
             </option>
             <option v-for="id in nicknames" :key="id" :value="id">
-              {{ ninjaNicknameLabel(id, t, te) }}
+              {{
+                ninjaNicknameLabel(
+                  id,
+                  t,
+                  te,
+                  props.character.profile?.nicknameCatalog,
+                  locale
+                )
+              }}
             </option>
           </select>
         </label>

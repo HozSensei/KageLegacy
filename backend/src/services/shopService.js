@@ -39,10 +39,10 @@ export const COIN_PACK_CATALOG = {
     id: 'forge',
     nameFr: 'Forge des Ombres',
     nameEn: 'Shadow Forge',
-    descriptionFr: '1000 coins + 150 bonus pour votre réserve.',
-    descriptionEn: '1000 coins + 150 bonus for your stash.',
-    coins: 1000,
-    bonusCoins: 150,
+    descriptionFr: '1200 coins + 200 bonus pour votre réserve.',
+    descriptionEn: '1200 coins + 200 bonus for your stash.',
+    coins: 1200,
+    bonusCoins: 200,
     priceEur: 10,
     sortOrder: 3,
   },
@@ -50,10 +50,10 @@ export const COIN_PACK_CATALOG = {
     id: 'vault',
     nameFr: 'Coffre du Kage',
     nameEn: "Kage's Vault",
-    descriptionFr: '5000 coins + 1000 bonus — réserve de saison.',
-    descriptionEn: '5000 coins + 1000 bonus — season reserve.',
-    coins: 5000,
-    bonusCoins: 1000,
+    descriptionFr: '6000 coins + 1500 bonus — réserve de saison.',
+    descriptionEn: '6000 coins + 1500 bonus — season reserve.',
+    coins: 6000,
+    bonusCoins: 1500,
     priceEur: 50,
     sortOrder: 4,
   },
@@ -183,6 +183,9 @@ export async function getBattlePassShopOffer(userId) {
     await import('./shopStripeService.js');
   const payments = getShopPaymentMeta();
 
+  const { getWelcomePackOffer } = await import('./welcomePackService.js');
+  const welcomePack = await getWelcomePackOffer(userId);
+
   if (!state.season) {
     return {
       available: false,
@@ -192,6 +195,7 @@ export async function getBattlePassShopOffer(userId) {
       href: '/battle-pass',
       payments,
       balances,
+      welcomePack,
     };
   }
 
@@ -217,6 +221,7 @@ export async function getBattlePassShopOffer(userId) {
       ? `Paiement Stripe disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`
       : 'Stripe non configuré — unlock via Kage Coins ou stub admin/dev.',
     balances,
+    welcomePack,
   };
 }
 
@@ -237,15 +242,41 @@ export async function unlockBattlePassFromShop(
 
 export async function getShopOverview(userId) {
   const { getShopPaymentMeta } = await import('./shopStripeService.js');
-  const [balances, battlePass] = await Promise.all([
+  const { getWelcomePackOffer } = await import('./welcomePackService.js');
+  const [balances, battlePass, welcomePack] = await Promise.all([
     getPlayerBalances(userId),
     getBattlePassShopOffer(userId),
+    getWelcomePackOffer(userId),
   ]);
   return {
     balances,
     coinPacks: listCoinPacks(),
-
     battlePass,
+    welcomePack,
     payments: getShopPaymentMeta(),
   };
+}
+
+export async function purchaseWelcomePackFromShop(userId, { method = 'stripe', isAdmin = false } = {}) {
+  const mode = method === 'stripe' ? 'stripe' : 'stub';
+  if (mode === 'stripe') {
+    const {
+      isStripeConfigured,
+      createWelcomePackCheckoutSession,
+      isShopStripeDevFallbackAllowed,
+    } = await import('./shopStripeService.js');
+
+    if (isStripeConfigured()) {
+      return createWelcomePackCheckoutSession(userId);
+    }
+
+    const allowStubFallback =
+      isAdmin || process.env.SHOP_COIN_STUB === 'true' || isShopStripeDevFallbackAllowed();
+    if (!allowStubFallback) {
+      throw httpError(503, 'Paiement Stripe indisponible — STRIPE_SECRET_KEY non configuré.');
+    }
+  }
+
+  const { purchaseWelcomePack } = await import('./welcomePackService.js');
+  return purchaseWelcomePack(userId, { method: mode === 'stripe' ? 'stub' : mode, isAdmin });
 }

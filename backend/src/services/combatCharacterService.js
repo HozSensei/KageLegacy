@@ -1,5 +1,6 @@
 import { query } from '../config/database.js';
 import { rankForLevel, serializeCharacterAppearance } from './characterAppearance.js';
+import { listGrantedNicknameIds } from './nicknameUnlockService.js';
 
 export async function loadCombatCharacter(userId) {
   const sql = `SELECT character_name, character_rank, character_level, character_highest_level,
@@ -12,11 +13,12 @@ export async function loadCombatCharacter(userId) {
   if (!row) return null;
 
   const level = Number(row.character_level) || 1;
+  const grantedNicknameIds = await listGrantedNicknameIds(userId);
   return {
     name: row.character_name,
     rank: row.character_rank ?? rankForLevel(level),
     level,
-    profile: serializeCharacterAppearance(row),
+    profile: serializeCharacterAppearance(row, grantedNicknameIds),
     elementAffinity: row.character_element_affinity,
     factionId: row.character_faction_id ?? null,
   };

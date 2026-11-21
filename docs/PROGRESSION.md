@@ -36,10 +36,14 @@ Le serveur décide le tirage et prélève le coût. Les listes de cartes envoyé
 | ----------- | ----------: | -------: |
 | `spark`     |         100 |        1 |
 | `ember`     |         550 |        5 |
-| `forge`     |        1150 |       10 |
-| `vault`     |        6000 |       50 |
+| `forge`     |        1400 |       10 |
+| `vault`     |        7500 |       50 |
 
 Le paiement Stripe est documenté dans [Exploitation](OPERATIONS.md).
+
+## Pack de bienvenue
+
+Offre **one-shot** à 5 € (`welcome`) : Battle Pass Premium de la saison courante, titre de profil « Mécène du Village », et 1 booster standard (5 cartes). Si aucune saison n’est active au fulfillment, 500 Kage Coins remplacent le premium. Une seule fois par compte.
 
 ## Désenchantement et amélioration
 
@@ -64,17 +68,16 @@ Le seed convertit les investissements de l'ancien arbre vers les nouveaux nœuds
 
 ## Battle Pass
 
-Saison seedée actuelle : saison 1, « L'Éveil des Ombres », 50 niveaux.
+Les saisons durent **90 jours** et sont **générées automatiquement** (template + scheduler minuit UTC) : track free/premium 50 niveaux, quêtes daily/weekly/milestone, thème cyclique. Le premium **ne se reporte pas** d’une saison à l’autre.
 
 - XP de base : 1000 par niveau, avec une hausse de 50 par tranche de 10 niveaux ;
 - premium : 500 Kage Coins ou 5 EUR ;
 - bonus d'XP premium : `×1,2` ;
 - achat de niveau : 150 Kage Coins, disponible à partir du niveau 30, 20 niveaux maximum par opération ;
-- récompenses gratuites et premium réclamées séparément.
+- récompenses gratuites et premium réclamées séparément ;
+- titre de saison (`season_N`) sur la piste premium (niveaux 1 et 50) — permanent une fois débloqué.
 
-Les quêtes comprennent des cycles journaliers, hebdomadaires et des jalons. L'inventaire exact est seedé dans `backend/scripts/data/battlePassSeason1.js`.
-
-Les récompenses cosmétiques sont filtrées. Les récompenses de type booster du Battle Pass accordent aujourd'hui un lot fixe de cartes ; elles ne lancent pas le système complet de tirage de boosters.
+Les quêtes daily/weekly sont rafraîchies automatiquement. Les récompenses de type `nickname` débloquent un titre de profil. Les boosters BP accordent un lot fixe de cartes (pas le tirage boutique complet). Les anciens `cosmetic` restent filtrés à l’affichage.
 
 ## Succès
 

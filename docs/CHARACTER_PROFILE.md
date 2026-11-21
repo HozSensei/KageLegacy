@@ -18,15 +18,17 @@ Le `PATCH` accepte au moins un des trois champs modifiables : `avatarId`, `backg
 
 Les 32 portraits par collection sont numérotés `<collection>-<planche>-<case>` : planche `1` ou `2`, case `1` à `16` sur chaque grille 4×4 (de gauche à droite puis de haut en bas). Collections : `aspirant`, `genin`, `chunin`, `jonin`, `anbu`. Chaque collection est accessible à partir du rang correspondant ; Kage conserve l'accès à ANBU et aux collections précédentes.
 
-| ID du surnom | Français           | English        | Niveau atteint |
-| ------------ | ------------------ | -------------- | -------------: |
-| `genin`      | Shinobi en devenir | Rising Shinobi |              5 |
-| `chunin`     | Vétéran du terrain | Field Veteran  |             20 |
-| `jonin`      | Élite shinobi      | Shinobi Elite  |             40 |
-| `anbu`       | Lame silencieuse   | Silent Blade   |             60 |
-| `kage`       | Légende du village | Village Legend |             80 |
+| ID du surnom | Français           | English        | Critère |
+| ------------ | ------------------ | -------------- | ------- |
+| `genin`      | Shinobi en devenir | Rising Shinobi | Niveau 5 |
+| `chunin`     | Vétéran du terrain | Field Veteran  | Niveau 20 |
+| `jonin`      | Élite shinobi      | Shinobi Elite  | Niveau 40 |
+| `anbu`       | Lame silencieuse   | Silent Blade   | Niveau 60 |
+| `kage`       | Légende du village | Village Legend | Niveau 80 |
+| `welcome`    | Mécène du Village  | Village Patron  | Pack bienvenue (one-shot) |
+| `season_N`   | Ombre de la Saison N | Season N Shadow | Battle Pass premium (saison N) |
 
-Les surnoms gagnés restent disponibles après une réinitialisation administrative du niveau. Une telle réinitialisation remet le rang à Aspirant ninja et remplace le portrait équipé uniquement s'il n'appartient plus à un rang accessible.
+Les surnoms de rang restent disponibles après une réinitialisation administrative du niveau (via `character_highest_level`). Les titres `welcome` / `season_N` sont stockés dans `player_nickname_unlocks` et restent équipables une fois obtenus. Une réinitialisation admin remet le rang à Aspirant ninja et remplace le portrait équipé uniquement s'il n'appartient plus à un rang accessible.
 
 ## Réutilisation côté serveur
 

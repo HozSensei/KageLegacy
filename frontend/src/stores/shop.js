@@ -13,6 +13,7 @@ export const useShopStore = defineStore('shop', () => {
   const coinPacks = ref([]);
 
   const battlePassOffer = ref(null);
+  const welcomePack = ref(null);
   const coinMeta = ref(null);
   const payments = ref({
     stripeEnabled: false,
@@ -88,6 +89,7 @@ export const useShopStore = defineStore('shop', () => {
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
       coinPacks.value = body.packs || [];
+      welcomePack.value = body.welcomePack || null;
       applyBalances(body.balances);
       applyPayments(body.payments);
       coinMeta.value = body.meta || null;
@@ -108,6 +110,7 @@ export const useShopStore = defineStore('shop', () => {
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
       battlePassOffer.value = body;
+      welcomePack.value = body.welcomePack || null;
       applyBalances(body.balances);
       applyPayments(body.payments);
       return body;
@@ -184,6 +187,36 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  async function purchaseWelcomePack(method = 'stripe') {
+    purchasing.value = true;
+    error.value = null;
+    lastMessage.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/welcome-pack/purchase`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method }),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      if (body.mode === 'stripe_checkout' && body.url) {
+        window.location.href = body.url;
+        return body;
+      }
+      applyBalances(body.balances);
+      welcomePack.value = body.pack || { available: false };
+      lastMessage.value = body.note || null;
+      await loadTab(activeTab.value);
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      purchasing.value = false;
+    }
+  }
+
   async function unlockBattlePass(method = 'kage_coins') {
     purchasing.value = true;
     error.value = null;
@@ -229,11 +262,13 @@ export const useShopStore = defineStore('shop', () => {
       applyBalances(body.balances);
       if (body.fulfilled) {
         lastMessage.value =
-          body.product === 'battle_pass_premium'
-            ? 'Battle Pass Premium unlocked.'
-            : body.coinsGranted
-              ? `+${body.coinsGranted} Kage Coins credited.`
-              : 'Payment confirmed.';
+          body.product === 'welcome_pack'
+            ? 'Welcome pack unlocked.'
+            : body.product === 'battle_pass_premium'
+              ? 'Battle Pass Premium unlocked.'
+              : body.coinsGranted
+                ? `+${body.coinsGranted} Kage Coins credited.`
+                : 'Payment confirmed.';
       }
       await loadTab(activeTab.value);
       return body;
@@ -269,6 +304,7 @@ export const useShopStore = defineStore('shop', () => {
     coinPacks,
 
     battlePassOffer,
+    welcomePack,
     coinMeta,
     payments,
     loading,
@@ -287,7 +323,7 @@ export const useShopStore = defineStore('shop', () => {
     loadTab,
     openBooster,
     purchaseCoinPack,
-
+    purchaseWelcomePack,
     unlockBattlePass,
     confirmCheckout,
     clearResult,

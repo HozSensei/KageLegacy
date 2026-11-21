@@ -40,7 +40,7 @@ assert(buildBattlePassLineItems()[0].price_data?.unit_amount === 500, 'BP cents'
 const coinMeta = { metadata: { product: SHOP_PRODUCT.KAGE_COINS, pack_id: 'ember', user_id: '1' } };
 assert(resolveShopProductFromSession(coinMeta) === SHOP_PRODUCT.KAGE_COINS, 'resolve');
 assert(isShopCheckoutSession(coinMeta), 'is shop');
-assert(!isShopCheckoutSession({ metadata: { product: 'elite_season' } }), 'not elite');
+assert(!isShopCheckoutSession({ metadata: { product: 'unknown_product' } }), 'not shop product');
 assert(
   Object.values(COIN_PACK_CATALOG).every(p => p.priceEur > 0 && p.coins > 0),
   'catalog'

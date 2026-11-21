@@ -9,10 +9,12 @@ import {
   getShopOverview,
   listCoinPacks,
   purchaseCoinPack,
+  purchaseWelcomePackFromShop,
   unlockBattlePassFromShop,
   getPlayerBalances,
 } from '../services/shopService.js';
 import { confirmShopCheckoutSession, getShopPaymentMeta } from '../services/shopStripeService.js';
+import { getWelcomePackOffer } from '../services/welcomePackService.js';
 
 const router = Router();
 
@@ -108,18 +110,59 @@ router.get('/coin-packs', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
-    const balances = await getPlayerBalances(user.id);
+    const [balances, welcomePack] = await Promise.all([
+      getPlayerBalances(user.id),
+      getWelcomePackOffer(user.id),
+    ]);
     const payments = getShopPaymentMeta();
     res.json({
       packs: listCoinPacks(),
       balances,
       payments,
+      welcomePack,
       meta: {
         purchaseNote: payments.stripeEnabled
           ? 'Paiement Stripe Checkout disponible pour les packs Kage Coins.'
           : 'Stripe non configuré — achat stub admin/dev (SHOP_COIN_STUB=true).',
       },
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** GET /api/shop/welcome-pack */
+router.get('/welcome-pack', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const [welcomePack, balances] = await Promise.all([
+      getWelcomePackOffer(user.id),
+      getPlayerBalances(user.id),
+    ]);
+    res.json({ welcomePack, balances, payments: getShopPaymentMeta() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/shop/welcome-pack/purchase — body { method: 'stub'|'stripe' } */
+router.post('/welcome-pack/purchase', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
+    const parsed = coinPurchaseSchema.safeParse(req.body || {});
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Requête invalide.', details: parsed.error.flatten() });
+    }
+
+    const result = await purchaseWelcomePackFromShop(user.id, {
+      method: parsed.data.method,
+      isAdmin: isAdminUser(user),
+    });
+    const status = result.mode === 'stripe_checkout' ? 200 : 201;
+    res.status(status).json(result);
   } catch (error) {
     next(error);
   }

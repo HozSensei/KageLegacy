@@ -84,6 +84,18 @@ export function serializeUserPass(row) {
 }
 
 export async function getActiveSeason() {
+  // Préfère une saison calendaire (start <= now < end) encore marquée active.
+  const calendar = await query(
+    `SELECT * FROM battle_pass_seasons
+     WHERE is_active = TRUE
+       AND start_date <= CURRENT_TIMESTAMP
+       AND end_date > CURRENT_TIMESTAMP
+     ORDER BY season_number DESC
+     LIMIT 1`,
+  );
+  if (calendar[0]) return serializeSeason(calendar[0]);
+
+  // Fallback : flag actif (mid-season / seed sans rotation encore exécutée).
   const rows = await query(
     `SELECT * FROM battle_pass_seasons
      WHERE is_active = TRUE
@@ -367,6 +379,17 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
       return grantCardReward(userId, reward, connection);
     case 'booster':
       return grantBoosterStub(userId, reward, connection);
+    case 'nickname': {
+      const nicknameId = reward.nicknameId || reward.id;
+      if (!nicknameId) throw httpError(400, 'nicknameId requis.');
+      const { grantNicknameUnlock } = await import('./nicknameUnlockService.js');
+      const result = await grantNicknameUnlock(userId, nicknameId, {
+        source: reward.source || 'battle_pass',
+        sourceRef: reward.sourceRef || null,
+        connection,
+      });
+      return { type: 'nickname', nicknameId, ...result };
+    }
 
     default:
       throw httpError(400, `Type de récompense inconnu: ${type}`);

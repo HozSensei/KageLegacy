@@ -37,6 +37,7 @@ Pour le build Docker même origine, cette valeur reste vide et Nginx proxy `/api
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_ID_BATTLE_PASS`
+- `STRIPE_PRICE_ID_WELCOME` (optionnel — pack bienvenue 5 €)
 - `STRIPE_PRICE_ID_COIN_SPARK`
 - `STRIPE_PRICE_ID_COIN_EMBER`
 - `STRIPE_PRICE_ID_COIN_FORGE`
@@ -63,7 +64,7 @@ Stripe est monté avec le corps brut sur `/api/stripe/webhook` avant le parseur 
 
 `docker-compose.prod.yml` attend une base MySQL externe et publie `${KAGE_HOST_PORT:-3002}` sur le port 80 de l'image.
 
-Certaines variables historiques sont encore présentes dans Compose — Elite, cycle, anchors — mais ne sont pas consommées par le produit actuel. Ne pas les documenter comme fonctionnalités actives et les retirer lors de la prochaine révision de configuration.
+Certaines variables historiques (cycle, anchors) peuvent encore figurer dans d’anciens fichiers d’environnement ; elles ne sont pas consommées par le produit actuel.
 
 ## WebSocket en production
 

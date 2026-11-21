@@ -6,9 +6,13 @@ export function ninjaRankLabel(rank, t, te) {
   return te(key) ? t(key) : rank;
 }
 
-export function ninjaNicknameLabel(id, t, te) {
+export function ninjaNicknameLabel(id, t, te, catalog = [], locale = 'fr') {
   const key = `player.nicknames.${id}`;
   if (te(key)) return t(key);
+  const entry = Array.isArray(catalog) ? catalog.find(item => item?.id === id) : null;
+  const lang = String(locale || 'fr').startsWith('en') ? 'en' : 'fr';
+  if (entry?.name?.[lang]) return entry.name[lang];
+  if (entry?.name?.fr) return entry.name.fr;
   return id.replace(/[-_]+/g, ' ').replace(/^\S/, letter => letter.toUpperCase());
 }
 
