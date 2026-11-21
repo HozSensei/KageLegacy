@@ -63,6 +63,34 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithGoogle({ idToken, language, avatarId } = {}) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const payload = { idToken };
+      if (language) payload.language = language === 'en' ? 'en' : 'fr';
+      if (avatarId) payload.avatarId = avatarId;
+
+      const res = await fetch(`${API_BASE}/api/auth/google`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      user.value = body.user;
+      profile.value = body.profile;
+      return true;
+    } catch (e) {
+      error.value = e.message;
+      return false;
+    } finally {
+      loading.value = false;
+      checked.value = true;
+    }
+  }
+
   async function register({ email, password, characterName, language, avatarId }) {
     loading.value = true;
     error.value = null;
@@ -250,6 +278,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     fetchMe,
     login,
+    loginWithGoogle,
     register,
     loginAsGuest,
     convertGuest,

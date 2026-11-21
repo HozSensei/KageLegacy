@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../stores/auth';
+import GoogleSignInButton from './GoogleSignInButton.vue';
 
 defineOptions({ name: 'ConvertGuestModal' });
 
@@ -26,6 +27,19 @@ async function submit() {
     password: password.value,
     email: email.value.trim(),
   });
+  saving.value = false;
+  if (ok) {
+    emit('converted');
+    emit('close');
+  } else {
+    error.value = auth.error;
+  }
+}
+
+async function onGoogleCredential(idToken) {
+  saving.value = true;
+  error.value = null;
+  const ok = await auth.loginWithGoogle({ idToken });
   saving.value = false;
   if (ok) {
     emit('converted');
@@ -81,6 +95,24 @@ async function submit() {
           {{ saving ? t('auth.loading') : t('guest.convert') }}
         </button>
       </div>
+
+      <div class="guest-convert__google mt-5">
+        <p class="guest-convert__or">{{ t('auth.or') }}</p>
+        <GoogleSignInButton
+          :disabled="saving"
+          @credential="onGoogleCredential"
+          @error="msg => (error = msg)"
+        />
+      </div>
     </form>
   </div>
 </template>
+
+<style scoped>
+.guest-convert__or {
+  margin-bottom: 0.75rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-ink-muted);
+}
+</style>

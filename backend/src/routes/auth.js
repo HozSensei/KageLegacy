@@ -13,6 +13,10 @@ import {
   updatePlayerProfileLanguage,
   updateUserEmail,
 } from '../services/authService.js';
+import {
+  authenticateWithGoogle,
+  getGoogleAuthPublicConfig,
+} from '../services/googleAuthService.js';
 import { deleteUserAccount } from '../services/accountDeletionService.js';
 import { findPlayerProfileByUserId } from '../models/playerProfile.js';
 import { getSessionToken } from '../middleware/auth.js';
@@ -20,6 +24,7 @@ import {
   changePasswordSchema,
   convertGuestSchema,
   deleteAccountSchema,
+  googleLoginSchema,
   guestRegisterSchema,
   loginSchema,
   registerSchema,
@@ -38,6 +43,7 @@ function serializeUser(user) {
     isAdmin: Boolean(user.is_admin) && !user.is_guest,
     guestExpiresAt: user.guest_expires_at || null,
     email: user.email || null,
+    hasPassword: Boolean(user.has_password),
   };
 }
 
@@ -114,6 +120,32 @@ router.post('/login', async (req, res, next) => {
     const { token, expiresAt } = await createSession(user.id);
 
     res.setHeader('Set-Cookie', buildSessionCookie(token, expiresAt));
+    const profile = await findPlayerProfileByUserId(user.id);
+    res.json({
+      user: serializeUser(user),
+      profile: serializePlayerProfile(profile),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/providers', (_req, res) => {
+  res.json({
+    google: getGoogleAuthPublicConfig(),
+  });
+});
+
+router.post('/google', async (req, res, next) => {
+  try {
+    const parsed = googleLoginSchema.parse(req.body);
+    const token = getSessionToken(req);
+    const currentUser = token ? await getUserBySessionToken(token) : null;
+
+    const user = await authenticateWithGoogle(parsed, { currentUser });
+    const { token: sessionToken, expiresAt } = await createSession(user.id);
+
+    res.setHeader('Set-Cookie', buildSessionCookie(sessionToken, expiresAt));
     const profile = await findPlayerProfileByUserId(user.id);
     res.json({
       user: serializeUser(user),

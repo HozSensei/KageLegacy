@@ -26,6 +26,7 @@ services:
       STRIPE_PRICE_ID_WELCOME: ${STRIPE_PRICE_ID_WELCOME:-}
       ENABLE_SCHEDULER: ${ENABLE_SCHEDULER:-true}
       AUTH_DEMO_FALLBACK: ${AUTH_DEMO_FALLBACK:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       CYCLE_START_AT: ${CYCLE_START_AT:-}
       CYCLE_START_AT_APPLY: ${CYCLE_START_AT_APPLY:-false}
       # 1 = ne pas rejouer les seeds catalogues V2 au boot (défaut : seeds actifs)

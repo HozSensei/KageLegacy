@@ -45,7 +45,7 @@ function guestUsername() {
   return `invite_${randomBytes(4).toString('hex')}`;
 }
 
-function accountUsername() {
+export function accountUsername() {
   return `account_${randomBytes(10).toString('hex')}`;
 }
 
@@ -65,7 +65,7 @@ async function assertEmailAvailable(email, excludeUserId = null) {
   if (rows[0]) throw duplicateEmailError();
 }
 
-function mapUserRow(row) {
+export function mapUserRow(row) {
   if (!row) return null;
   return {
     id: row.id,
@@ -74,6 +74,10 @@ function mapUserRow(row) {
     is_guest: Boolean(row.is_guest),
     guest_expires_at: row.guest_expires_at,
     email: row.email || null,
+    has_password:
+      row.has_password !== undefined
+        ? Boolean(row.has_password)
+        : Boolean(row.password_hash),
     created_at: row.created_at,
   };
 }
@@ -89,7 +93,8 @@ export async function findDemoAccount() {
 
 export async function findUserById(userId) {
   const rows = await query(
-    `SELECT id, username, is_admin, is_guest, guest_expires_at, email, created_at
+    `SELECT id, username, is_admin, is_guest, guest_expires_at, email, created_at,
+            password_hash IS NOT NULL AS has_password
      FROM users WHERE id = ? LIMIT 1`,
     [userId],
   );
@@ -249,7 +254,8 @@ export async function getUserBySessionToken(token) {
   if (!token) return null;
   const tokenHash = sessionTokenHash(token);
   const rows = await query(
-    `SELECT u.id, u.username, u.is_admin, u.is_guest, u.guest_expires_at, u.email, u.created_at
+    `SELECT u.id, u.username, u.is_admin, u.is_guest, u.guest_expires_at, u.email, u.created_at,
+            u.password_hash IS NOT NULL AS has_password
      FROM user_sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > UTC_TIMESTAMP()

@@ -7,6 +7,7 @@ import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
 import NinjaAvatarPicker from '../components/player/NinjaAvatarPicker.vue';
+import GoogleSignInButton from '../components/auth/GoogleSignInButton.vue';
 import { DEFAULT_NINJA_AVATAR_ID, STARTING_NINJA_RANK } from '../constants/ninjaAvatars.js';
 import { writeStoredLocale } from '../utils/localeStorage.js';
 import gateImage from '../assets/illustrations/village-gate.webp';
@@ -44,6 +45,15 @@ function switchMode(next) {
   router.replace(next === 'register' ? '/register' : '/login');
 }
 
+function afterAuthSuccess(preferLanguage) {
+  const lang = preferLanguage || auth.profile?.language || locale.value;
+  if (lang === 'en' || lang === 'fr') {
+    locale.value = lang;
+    writeStoredLocale(lang);
+  }
+  router.push('/home');
+}
+
 async function submit() {
   const ok =
     mode.value === 'login'
@@ -56,13 +66,17 @@ async function submit() {
           avatarId: avatarId.value,
         });
   if (ok) {
-    const lang = mode.value === 'login' ? auth.profile?.language || locale.value : language.value;
-    if (lang === 'en' || lang === 'fr') {
-      locale.value = lang;
-      writeStoredLocale(lang);
-    }
-    router.push('/home');
+    afterAuthSuccess(mode.value === 'login' ? auth.profile?.language || locale.value : language.value);
   }
+}
+
+async function onGoogleCredential(idToken) {
+  const ok = await auth.loginWithGoogle({
+    idToken,
+    language: language.value,
+    avatarId: mode.value === 'register' ? avatarId.value : undefined,
+  });
+  if (ok) afterAuthSuccess(auth.profile?.language || language.value);
 }
 </script>
 
@@ -172,6 +186,16 @@ async function submit() {
           </button>
         </form>
 
+        <div class="auth__divider" role="separator">
+          <span>{{ t('auth.or') }}</span>
+        </div>
+
+        <GoogleSignInButton
+          :disabled="auth.loading"
+          @credential="onGoogleCredential"
+          @error="msg => (auth.error = msg)"
+        />
+
         <div class="auth__switch">
           <template v-if="mode === 'login'">
             <p>{{ t('auth.noAccount') }}</p>
@@ -247,6 +271,23 @@ async function submit() {
   flex-direction: column;
   gap: 1.1rem;
   margin-top: 2rem;
+}
+
+.auth__divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--color-ink-muted);
+  font-size: 0.8125rem;
+}
+
+.auth__divider::before,
+.auth__divider::after {
+  content: '';
+  height: 1px;
+  background: var(--color-line);
 }
 
 .auth__switch {

@@ -32,6 +32,12 @@ Pour le build Docker même origine, cette valeur reste vide et Nginx proxy `/api
 
 `AUTH_DEMO_FALLBACK` et les stubs ne doivent pas être activés sur une production utilisateur normale.
 
+### Google Sign-In
+
+- `GOOGLE_CLIENT_ID` — Client ID OAuth 2.0 (type *Web application*) créé dans Google Cloud Console. Le frontend lit la config via `GET /api/auth/providers` ; aucune variable `VITE_*` n’est requise. Sans `GOOGLE_CLIENT_ID`, le bouton Google reste masqué.
+- Dans la console Google : origines JavaScript autorisées = URL du frontend ; URI de redirection autorisés = même origine (GIS en mode popup).
+- Règle métier : même adresse e-mail Google = même compte (liaison OAuth si le compte existait déjà en email/mot de passe). Un invité sans conflit d’e-mail est converti via Google.
+
 ### Stripe
 
 - `STRIPE_SECRET_KEY`

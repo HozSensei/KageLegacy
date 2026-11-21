@@ -708,6 +708,19 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
+CREATE TABLE IF NOT EXISTS `oauth_accounts` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `provider` enum('google') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `provider_user_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_oauth_provider_user` (`provider`,`provider_user_id`),
+  UNIQUE KEY `uq_oauth_user_provider` (`user_id`,`provider`),
+  KEY `idx_oauth_email` (`email`),
+  CONSTRAINT `fk_oauth_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `async_duel_friendships` (
   `user_low_id` int unsigned NOT NULL,
   `user_high_id` int unsigned NOT NULL,

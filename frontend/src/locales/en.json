@@ -175,6 +175,9 @@
     "createAccount": "Create one",
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
+    "or": "or",
+    "googleContinue": "Continue with Google",
+    "googleError": "Google sign-in failed. Please try again.",
     "demoHint": "Local demo: demo_sensei / demo (after npm run db:seed)",
     "inviteLead": "League invite — you will join pool #{poolId} on registration.",
     "backHome": "Back to home"
