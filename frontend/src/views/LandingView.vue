@@ -186,7 +186,7 @@ async function playAsGuest() {
 .landing {
   /* Cartes hero → empiètent fort sur Collection ; image Collection → déborde sur Atouts */
   --landing-card-overhang: clamp(5rem, 9vw, 7rem);
-  --landing-media-overhang: clamp(2.75rem, 5.5vw, 4rem);
+  --landing-media-overhang: clamp(4.5rem, 8vw, 6.5rem);
   min-height: 100vh;
   min-height: 100dvh;
   overflow: visible;
