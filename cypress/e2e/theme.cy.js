@@ -80,7 +80,9 @@ describe('Thème — clair / sombre indigo / sombre encre / sombre ambre', () =>
     cy.visit('/home', { onBeforeLoad: clearThemeOnLoad });
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
 
-    // Rail desktop : footer (wallet + thème) ancré en bas ; menu onFill ouvert vers le haut.
+    // Menu compte : thème déplacé hors du rail / drawer de navigation.
+    cy.get('[data-testid="profile-menu-button"]').click();
+    cy.get('[data-testid="profile-menu-panel"]').should('be.visible');
     pickTheme('amber');
 
     cy.visit('/collection');

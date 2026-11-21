@@ -13,6 +13,7 @@ export const SECTIONS = {
   coop: { index: '13', icon: 'profile', tone: 'leaf' },
   'deck-duels': { index: '14', icon: 'pvp', tone: 'vermilion' },
   village: { index: '15', icon: 'profile', tone: 'sky' },
+  rules: { index: '16', icon: 'rules', tone: 'ink' },
   'battle-pass': { index: '08', icon: 'battle-pass', tone: 'gold' },
   journal: { index: '09', icon: 'journal', tone: 'indigo' },
   pvp: { index: '10', icon: 'pvp', tone: 'vermilion' },

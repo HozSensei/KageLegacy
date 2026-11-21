@@ -3,7 +3,6 @@ import { useI18n } from 'vue-i18n'
 import HeaderWallet from './HeaderWallet.vue'
 import AppIcon from '../ui/AppIcon.vue'
 import BrandMark from '../ui/BrandMark.vue'
-import ThemeToggle from '../ui/ThemeToggle.vue'
 import { sectionOf } from '../../constants/sections'
 
 defineOptions({ name: 'AppNavRail' })
@@ -44,7 +43,6 @@ const { t } = useI18n()
 
     <div class="nav-rail__footer">
       <HeaderWallet variant="rail" />
-      <ThemeToggle variant="onFill" />
     </div>
 
     <p class="nav-rail__vertical t-vertical" aria-hidden="true">{{ t('app.name') }}</p>
@@ -62,7 +60,6 @@ const { t } = useI18n()
   align-items: center;
   width: var(--shell-rail);
   padding: 0.85rem 0 1.25rem;
-  /* Pas d’overflow ici : le menu ThemeToggle s’ouvre hors du footer. */
   background: var(--color-indigo-deep);
   color: var(--color-on-fill);
 }

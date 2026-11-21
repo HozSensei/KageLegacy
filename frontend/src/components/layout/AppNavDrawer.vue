@@ -6,7 +6,6 @@ import SlidePanel from './SlidePanel.vue'
 import HeaderWallet from './HeaderWallet.vue'
 import AppIcon from '../ui/AppIcon.vue'
 import BrandMark from '../ui/BrandMark.vue'
-import ThemeToggle from '../ui/ThemeToggle.vue'
 import { sectionOf } from '../../constants/sections'
 import { useAuthStore } from '../../stores/auth'
 
@@ -87,10 +86,6 @@ function close() {
     <div v-if="auth.user" class="nav-drawer__footer">
       <p class="nav-drawer__group-label">{{ t('resources.wallet') }}</p>
       <HeaderWallet variant="panel" />
-      <div class="nav-drawer__theme">
-        <p class="nav-drawer__group-label">{{ t('theme.choose') }}</p>
-        <ThemeToggle variant="onFill" />
-      </div>
     </div>
   </SlidePanel>
 </template>
@@ -244,16 +239,4 @@ function close() {
   border-top: 1px solid color-mix(in srgb, var(--color-on-fill) 16%, transparent);
 }
 
-.nav-drawer__theme {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.35rem;
-}
-
-.nav-drawer__theme .nav-drawer__group-label {
-  padding: 0;
-}
 </style>
