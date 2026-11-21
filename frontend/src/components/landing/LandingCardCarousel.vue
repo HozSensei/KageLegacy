@@ -221,8 +221,9 @@ watch(index, () => {
 
 @media (max-width: 767px) {
   .landing-slider {
-    /* Une carte + peek dans le viewport restant après les contrôles. */
-    --card-w: min(11rem, 48%);
+    /* ~1,5 carte visible : une carte dominante + peek de la suivante. */
+    --card-w: min(15rem, 66%);
+    --gap: 0.65rem;
   }
 }
 
