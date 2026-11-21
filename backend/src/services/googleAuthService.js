@@ -1,12 +1,11 @@
 import { OAuth2Client } from 'google-auth-library';
 import { query } from '../config/database.js';
 import { STARTING_RYOS } from '../config/economyConfig.js';
-import { DEFAULT_AVATAR_ID } from './characterAppearance.js';
-import { createCharacter } from './playerCharacterService.js';
 import {
   accountUsername,
   findUserById,
   mapUserRow,
+  provisionalDisplayName,
 } from './authService.js';
 
 const PROVIDER = 'google';
@@ -29,20 +28,6 @@ function httpError(statusCode, message) {
   const err = new Error(message);
   err.statusCode = statusCode;
   return err;
-}
-
-function normalizeCharacterName(raw, email) {
-  const fromGoogle = String(raw || '')
-    .trim()
-    .replace(/\s+/g, ' ')
-    .slice(0, 100);
-  if (fromGoogle.length >= 2) return fromGoogle;
-  const local = String(email || '')
-    .split('@')[0]
-    .replace(/[^a-zA-Z0-9_-]/g, '')
-    .slice(0, 100);
-  if (local.length >= 2) return local;
-  return 'Shinobi';
 }
 
 async function findUserIdByOAuth(providerUserId) {
@@ -127,8 +112,8 @@ async function convertGuestWithGoogle(userId, { email, providerUserId }) {
   return findUserById(userId);
 }
 
-async function registerGoogleUser({ email, name, providerUserId, language, avatarId }) {
-  const characterName = normalizeCharacterName(name, email);
+async function registerGoogleUser({ email, providerUserId, language }) {
+  const lang = language === 'en' ? 'en' : 'fr';
   let username = accountUsername();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const rows = await query('SELECT id FROM users WHERE username = ? LIMIT 1', [username]);
@@ -154,12 +139,8 @@ async function registerGoogleUser({ email, name, providerUserId, language, avata
     await query(
       `INSERT INTO player_profiles (user_id, display_name, ryos, language)
        VALUES (?, ?, ?, ?)`,
-      [userId, characterName, STARTING_RYOS, language === 'en' ? 'en' : 'fr'],
+      [userId, provisionalDisplayName({ email, language: lang }), STARTING_RYOS, lang],
     );
-    await createCharacter(userId, {
-      name: characterName,
-      avatarId: avatarId || DEFAULT_AVATAR_ID,
-    });
     await linkOAuthAccount(userId, providerUserId, email);
   } catch (error) {
     await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
@@ -215,7 +196,7 @@ export async function verifyGoogleIdToken(idToken) {
  * Invité sans conflit d'e-mail → conversion de l'essai.
  */
 export async function authenticateWithGoogle(
-  { idToken, language = 'fr', avatarId = null },
+  { idToken, language = 'fr' },
   { currentUser = null } = {},
 ) {
   const google = await verifyGoogleIdToken(idToken);
@@ -242,9 +223,7 @@ export async function authenticateWithGoogle(
 
   return registerGoogleUser({
     email: google.email,
-    name: google.name,
     providerUserId: google.providerUserId,
     language,
-    avatarId,
   });
 }

@@ -234,7 +234,7 @@ export async function createCharacter(
 
     await connection.execute(
       `UPDATE player_profiles
-       SET character_name = ?, character_avatar_url = ?, character_avatar_id = ?,
+       SET display_name = ?, character_name = ?, character_avatar_url = ?, character_avatar_id = ?,
            character_background_id = NULL,
            character_nickname_id = NULL, character_level = 1, character_highest_level = 1,
            character_xp = 0, character_rank = ?,
@@ -243,6 +243,7 @@ export async function createCharacter(
            character_created_at = UTC_TIMESTAMP(), character_updated_at = UTC_TIMESTAMP()
        WHERE user_id = ?`,
       [
+        trimmedName,
         trimmedName,
         avatar,
         resolvedAvatarId,

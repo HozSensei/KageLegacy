@@ -1,14 +1,10 @@
 <script setup>
-import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
-import NinjaAvatarPicker from '../components/player/NinjaAvatarPicker.vue';
-import NinjaPortrait from '../components/player/NinjaPortrait.vue';
-import { DEFAULT_NINJA_AVATAR_ID, STARTING_NINJA_RANK } from '../constants/ninjaAvatars.js';
 import gateImage from '../assets/illustrations/village-gate.webp';
 
 defineOptions({ name: 'LandingView' });
@@ -16,8 +12,6 @@ defineOptions({ name: 'LandingView' });
 const { t, locale } = useI18n();
 const router = useRouter();
 const auth = useAuthStore();
-const characterName = ref('');
-const avatarId = ref(DEFAULT_NINJA_AVATAR_ID);
 
 const features = [
   { key: 'landing.features.character', tone: 'vermilion' },
@@ -35,9 +29,7 @@ const timeline = [
 
 async function playAsGuest() {
   const ok = await auth.loginAsGuest({
-    characterName: characterName.value.trim(),
     language: locale.value === 'en' ? 'en' : 'fr',
-    avatarId: avatarId.value,
   });
   if (ok) router.push('/home');
 }
@@ -71,35 +63,15 @@ async function playAsGuest() {
           <p class="landing__lead">{{ t('landing.lead') }}</p>
 
           <div class="landing__actions">
-            <form class="landing__guest-form" @submit.prevent="playAsGuest">
-              <label class="field">
-                <span class="field__label">{{ t('player.nameLabel') }}</span>
-                <input
-                  v-model="characterName"
-                  type="text"
-                  required
-                  minlength="2"
-                  maxlength="100"
-                  data-testid="landing-guest-name"
-                  class="input-field"
-                />
-              </label>
-              <details class="landing__portrait" data-testid="landing-guest-portrait">
-                <summary class="landing__portrait-summary">
-                  <NinjaPortrait :avatar-id="avatarId" class="landing__portrait-preview" />
-                  {{ t('player.avatarPicker.label') }}
-                </summary>
-                <NinjaAvatarPicker v-model="avatarId" :rank="STARTING_NINJA_RANK" />
-              </details>
-              <button
-                type="submit"
-                class="btn-primary btn-lg"
-                data-testid="landing-guest"
-                :disabled="auth.loading || characterName.trim().length < 2"
-              >
-                {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
-              </button>
-            </form>
+            <button
+              type="button"
+              class="btn-primary btn-lg"
+              data-testid="landing-guest"
+              :disabled="auth.loading"
+              @click="playAsGuest"
+            >
+              {{ auth.loading ? t('auth.loading') : t('landing.playGuest') }}
+            </button>
             <router-link to="/register" class="btn-ghost btn-lg">
               {{ t('landing.createAccount') }}
             </router-link>
@@ -270,35 +242,6 @@ async function playAsGuest() {
   animation: rise-in 620ms var(--ease-out-quint) 220ms both;
 }
 
-.landing__guest-form {
-  display: grid;
-  flex: 1;
-  gap: 0.6rem;
-  min-width: 0;
-  max-width: 24rem;
-}
-
-.landing__portrait-summary {
-  width: fit-content;
-  padding-block: 0.25rem;
-  color: var(--color-ink);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.landing__portrait[open] > .landing__portrait-summary {
-  margin-bottom: 0.6rem;
-}
-
-.landing__portrait-preview {
-  display: inline-grid;
-  width: 1.75rem;
-  margin-inline: 0.35rem;
-  border: 1px solid var(--color-line);
-  vertical-align: middle;
-}
-
 .landing__hint {
   max-width: 30rem;
   margin-top: 1rem;
@@ -426,10 +369,6 @@ async function playAsGuest() {
   .landing__actions {
     flex-flow: row wrap;
     align-items: center;
-  }
-
-  .landing__guest-form {
-    flex-basis: 14rem;
   }
 
   .landing__feature-grid {

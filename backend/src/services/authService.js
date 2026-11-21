@@ -1,7 +1,6 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { query } from '../config/database.js';
 import { STARTING_RYOS } from '../config/economyConfig.js';
-import { createCharacter } from './playerCharacterService.js';
 
 const SESSION_DAYS = 30;
 const GUEST_DAYS = 7;
@@ -47,6 +46,17 @@ function guestUsername() {
 
 export function accountUsername() {
   return `account_${randomBytes(10).toString('hex')}`;
+}
+
+/** Nom d'affichage provisoire tant que le wizard n'a pas créé le personnage. */
+export function provisionalDisplayName({ email, language = 'fr', isGuest = false } = {}) {
+  if (isGuest) return language === 'en' ? 'Guest' : 'Invité';
+  const local = String(email || '')
+    .split('@')[0]
+    .replace(/[^\p{L}\p{N}_.-]/gu, '')
+    .slice(0, 100);
+  if (local.length >= 2) return local;
+  return language === 'en' ? 'Player' : 'Joueur';
 }
 
 function duplicateEmailError() {
@@ -105,12 +115,11 @@ export async function registerUser({
   username: requestedUsername,
   email,
   password,
-  characterName,
-  avatarId,
   language = 'fr',
 }) {
   const normalizedEmail = email.trim().toLowerCase();
   await assertEmailAvailable(normalizedEmail);
+  const lang = language === 'en' ? 'en' : 'fr';
 
   let username = requestedUsername || accountUsername();
   if (requestedUsername && (await findUserByUsername(requestedUsername))) {
@@ -140,9 +149,13 @@ export async function registerUser({
     await query(
       `INSERT INTO player_profiles (user_id, display_name, ryos, language)
        VALUES (?, ?, ?, ?)`,
-      [userId, characterName, STARTING_RYOS, language],
+      [
+        userId,
+        provisionalDisplayName({ email: normalizedEmail, language: lang }),
+        STARTING_RYOS,
+        lang,
+      ],
     );
-    await createCharacter(userId, { name: characterName, avatarId });
   } catch (error) {
     await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
     throw error;
@@ -151,7 +164,7 @@ export async function registerUser({
   return { user: await findUserById(userId) };
 }
 
-export async function registerGuestUser({ characterName, avatarId, language = 'fr' }) {
+export async function registerGuestUser({ language = 'fr' } = {}) {
   let username = guestUsername();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const existing = await findUserByUsername(username);
@@ -160,7 +173,7 @@ export async function registerGuestUser({ characterName, avatarId, language = 'f
   }
 
   const expiresAt = guestExpiry();
-  const playerDisplayName = characterName.trim();
+  const lang = language === 'en' ? 'en' : 'fr';
 
   const userResult = await query(
     `INSERT INTO users (username, is_guest, guest_expires_at)
@@ -173,9 +186,8 @@ export async function registerGuestUser({ characterName, avatarId, language = 'f
     await query(
       `INSERT INTO player_profiles (user_id, display_name, ryos, language)
        VALUES (?, ?, ?, ?)`,
-      [userId, playerDisplayName, STARTING_RYOS, language],
+      [userId, provisionalDisplayName({ language: lang, isGuest: true }), STARTING_RYOS, lang],
     );
-    await createCharacter(userId, { name: playerDisplayName, avatarId });
   } catch (error) {
     await query('DELETE FROM users WHERE id = ?', [userId]).catch(() => {});
     throw error;

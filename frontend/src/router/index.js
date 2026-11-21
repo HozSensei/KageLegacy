@@ -207,7 +207,8 @@ router.beforeEach(async to => {
   }
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' };
 
-  const allowWithoutCharacter = new Set(['hub', 'character-creation', 'village', 'admin']);
+  // Sans personnage : uniquement le wizard de création (et l'admin).
+  const allowWithoutCharacter = new Set(['character-creation', 'admin']);
   if (!allowWithoutCharacter.has(to.name)) {
     const { usePlayerStore } = await import('../stores/player');
     const player = usePlayerStore();

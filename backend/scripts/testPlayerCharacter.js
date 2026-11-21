@@ -321,19 +321,27 @@ async function testProfileRoutes() {
 
     const signup = await request('POST', '/api/auth/register', 201, {
       body: {
-        characterName: 'Test Shinobi',
-        avatarId: 'aspirant-1-16',
         email: `pc_${Date.now()}@example.com`,
         password: 'fixture-only',
       },
     });
     const userId = signup.json.user.id;
     userIds.push(userId);
+    await request('GET', '/api/player', 404, { cookie: signup.cookie });
+    await request('POST', '/api/player/create', 201, {
+      cookie: signup.cookie,
+      body: { name: 'Test Shinobi', avatarId: 'aspirant-1-16' },
+    });
+
     const guest = await request('POST', '/api/auth/guest', 201, {
-      body: { characterName: 'Guest Shinobi', avatarId: 'aspirant-2-16' },
+      body: { language: 'en' },
     });
     userIds.push(guest.json.user.id);
     const cookie = guest.cookie;
+    await request('POST', '/api/player/create', 201, {
+      cookie,
+      body: { name: 'Guest Shinobi', avatarId: 'aspirant-2-16' },
+    });
     const character = async () =>
       (await request('GET', '/api/player', 200, { cookie })).json.character;
     const save = (body, status = 200) => request('PATCH', path, status, { cookie, body });
