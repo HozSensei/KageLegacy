@@ -105,37 +105,44 @@ async function playAsGuest() {
           :aria-label="t('nav.menu')"
           panel-test-id="landing-menu-panel"
         >
-          <div class="landing-menu__head">
-            <BrandMark size="1.75rem" />
-            <p class="landing-menu__title">{{ t('nav.menu') }}</p>
-            <button
-              type="button"
-              class="landing-menu__close"
-              :aria-label="t('common.dismiss')"
-              data-testid="landing-menu-close"
-              @click="closeMenu"
-            >
-              <AppIcon name="close" size="1.25rem" :stroke-width="2" />
-            </button>
-          </div>
-          <nav class="landing-menu__nav" :aria-label="t('nav.menu')">
-            <LocaleSwitcher data-testid="landing-locale-switcher-mobile" />
-            <router-link
-              to="/rules"
-              class="landing-menu__link"
-              data-testid="landing-rules-link-mobile"
-              @click="closeMenu"
-            >
-              {{ t('rules.link') }}
-            </router-link>
-            <router-link to="/register" class="landing-menu__link" @click="closeMenu">
-              {{ t('auth.register') }}
-            </router-link>
-            <div class="landing-menu__theme">
-              <p class="landing-menu__label">{{ t('theme.choose') }}</p>
-              <ThemeToggle variant="onFill" />
+          <div class="landing-menu">
+            <div class="landing-menu__head">
+              <BrandMark size="1.75rem" class="landing-menu__mark" />
+              <p class="landing-menu__title">{{ t('nav.menu') }}</p>
+              <button
+                type="button"
+                class="landing-menu__close"
+                :aria-label="t('common.dismiss')"
+                data-testid="landing-menu-close"
+                @click="closeMenu"
+              >
+                <AppIcon name="close" size="1.25rem" :stroke-width="2" />
+              </button>
             </div>
-          </nav>
+            <nav class="landing-menu__nav" :aria-label="t('nav.menu')">
+              <div class="landing-menu__group">
+                <p class="landing-menu__label">{{ t('locale.label') }}</p>
+                <LocaleSwitcher data-testid="landing-locale-switcher-mobile" />
+              </div>
+              <div class="landing-menu__group">
+                <router-link
+                  to="/rules"
+                  class="landing-menu__link"
+                  data-testid="landing-rules-link-mobile"
+                  @click="closeMenu"
+                >
+                  {{ t('rules.link') }}
+                </router-link>
+                <router-link to="/register" class="landing-menu__link" @click="closeMenu">
+                  {{ t('auth.register') }}
+                </router-link>
+              </div>
+              <div class="landing-menu__group landing-menu__theme">
+                <p class="landing-menu__label">{{ t('theme.choose') }}</p>
+                <ThemeToggle variant="onFill" />
+              </div>
+            </nav>
+          </div>
         </SlidePanel>
 
         <div class="landing__hero-body">
@@ -338,11 +345,23 @@ async function playAsGuest() {
   background: color-mix(in srgb, var(--color-on-fill) 10%, transparent);
 }
 
+.landing-menu {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .landing-menu__head {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 0.85rem;
+  padding: 1.35rem 1.25rem 1.2rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-on-fill) 16%, transparent);
+}
+
+.landing-menu__mark {
+  flex: none;
+  color: var(--color-gold-fill);
 }
 
 .landing-menu__title {
@@ -350,8 +369,10 @@ async function playAsGuest() {
   min-width: 0;
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
+  font-stretch: 80%;
+  line-height: 1.1;
   color: var(--color-on-fill);
 }
 
@@ -359,47 +380,76 @@ async function playAsGuest() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  margin-left: auto;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--color-on-fill) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-on-fill) 28%, transparent);
   background: transparent;
   color: var(--color-on-fill);
   cursor: pointer;
+  transition: background-color var(--dur-fast) ease;
+}
+
+.landing-menu__close:hover {
+  background: color-mix(in srgb, var(--color-on-fill) 12%, transparent);
+}
+
+.landing-menu__close:focus-visible,
+.landing-menu__link:focus-visible {
+  outline: 2px solid var(--color-gold-fill);
+  outline-offset: 2px;
 }
 
 .landing-menu__nav {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  flex: 1 1 auto;
+  padding: 1.65rem 1.25rem 2rem;
+}
+
+.landing-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .landing-menu__link {
   display: block;
-  padding: 0.7rem 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-on-fill) 18%, transparent);
+  padding: 1.05rem 0.85rem;
+  border-radius: var(--radius-sm);
   color: var(--color-on-fill);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 700;
+  line-height: 1.25;
   text-decoration: none;
+  transition:
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 
 .landing-menu__link:hover {
+  background: color-mix(in srgb, var(--color-on-fill) 10%, transparent);
   color: var(--color-gold-fill);
 }
 
 .landing-menu__theme {
-  display: grid;
-  gap: 0.55rem;
+  gap: 0.75rem;
   padding-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-on-fill) 16%, transparent);
+  margin-top: 0.15rem;
 }
 
 .landing-menu__label {
   margin: 0;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  padding: 0 0.15rem;
+  font-size: var(--type-kicker, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-on-fill) 65%, transparent);
+  color: color-mix(in srgb, var(--color-on-fill) 62%, transparent);
 }
 
 /* ——— Hero ——— */

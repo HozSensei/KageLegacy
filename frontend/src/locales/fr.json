@@ -92,6 +92,7 @@
     }
   },
   "locale": {
+    "label": "Langue",
     "fr": "Fr",
     "en": "En"
   },
@@ -184,43 +185,43 @@
   },
   "landing": {
     "title": "Forge ton shinobi. Domine le deck.",
-    "lead": "Un roguelike solo de construction de deck : crée ton ninja, compose 20–30 cartes, débloque des talents et enchaîne les missions.",
+    "lead": "Dès la création, choisis ton nom et ton village. Construis un deck de 20 à 30 cartes, débloque des talents et enchaîne les missions solo. Ensuite, fais grimper la renommée de ta faction, défie d'autres joueurs ou coopère contre des adversaires redoutables.",
     "playGuest": "Essayer en invité (7 jours)",
     "createAccount": "Créer un compte",
-    "guestHint": "Aucun mot de passe requis — tu crées ton ninja juste après, puis tu peux convertir l'essai en compte permanent.",
+    "guestHint": "Aucun mot de passe requis — tu choisis ton nom et ton village juste après, puis tu peux convertir l'essai en compte permanent.",
     "asideTitle": "Le pitch",
-    "asideBody": "La préparation prime sur la puissance brute : synergies cartes + talents décident du combat.",
+    "asideBody": "Ici, la préparation décide du combat : synergies de cartes, talents et loyauté de village pèsent plus que la force brute. Seul, à deux ou face à un rival, c'est ton build qui parle.",
     "timelineTitle": "Ta première session",
-    "timelineRealtime": "Pas d'attente sur un cycle de 72 h — joue à ton rythme.",
+    "timelineRealtime": "En quelques minutes, tu poses les bases : un personnage, un village, un deck et une première mission.",
     "timeline": {
-      "create": "Crée ton personnage et reçois le pack de cartes de départ.",
-      "build": "Consulte ton deck starter, puis ajuste-le dans le constructeur.",
+      "create": "Crée ton personnage, choisis ton village et récupère ton pack de départ.",
+      "build": "Ouvre ton deck starter, puis ajuste-le dans le constructeur.",
       "grow": "Dépense ton premier point dans l'arbre de talents.",
-      "fight": "Lance une mission de combat — gagne XP, Ryos et nouvelles cartes."
+      "fight": "Lance une mission, gagne XP, Ryos et cartes — puis reviens renforcer ton village."
     },
-    "closeTitle": "Entre dans le village maintenant",
-    "closeLead": "Essai invité en quelques secondes, ou compte pour garder ta progression.",
+    "closeTitle": "Entre dans le village",
+    "closeLead": "Essaie en invité en quelques secondes, ou crée un compte pour garder ta progression, ta collection et la renommée de ta faction.",
     "banner": {
       "eyebrow": "Combat",
-      "title": "Des missions, pas une salle d'attente",
-      "lead": "Parcours par rang, combats au tour par tour, butin et boosters — tu joues quand tu veux.",
+      "title": "Missions, duels et coop",
+      "lead": "Parcours par rang, combats au tour par tour, butin et boosters — joue quand tu veux, seul ou avec d'autres.",
       "cta": "Voir les règles"
     },
     "welcome": {
       "title": "Bienvenue dans Kage Legacy",
-      "lead": "Un roguelike solo de construction de deck, pensé pour une session claire : forge, build, monte.",
+      "lead": "Un jeu de cartes shinobi pensé pour une session claire : crée ton ninja, construis ton deck, monte avec ton village.",
       "features": {
         "deck": {
           "title": "Deck & synergies",
           "body": "Compose 20–30 cartes, enchaîne les voies et active les passifs de clan légendaires."
         },
         "talents": {
-          "title": "Talents sans inflation",
-          "body": "Chaque niveau donne un point. Aucune stat gratuite : chaque branche est un choix."
+          "title": "Talents à orienter",
+          "body": "Chaque niveau donne un point. Tu choisis ta branche et tu construis ton style de combat."
         },
         "missions": {
           "title": "Missions à ton rythme",
-          "body": "Pas de cycle de 72 h. Lance une mission, gagne XP, Ryos et nouvelles cartes."
+          "body": "Lance une mission, gagne XP, Ryos et nouvelles cartes — puis reviens plus fort."
         }
       }
     },
@@ -272,27 +273,27 @@
       "shinobi": {
         "kicker": "Personnage",
         "title": "Choisis ton visage. Rejoins un village.",
-        "lead": "Nom, portrait aspirant et faction : ton shinobi naît en une étape, puis grandit par les talents — jamais par des stats gratuites."
+        "lead": "Nom, portrait aspirant et faction : ton shinobi naît dès la création, puis grandit grâce aux talents et à ta collection."
       },
       "deck": {
         "kicker": "Collection",
-        "title": "Compose ton arsenal.",
-        "lead": "Pack de départ, collection à enrichir, synergies de voies et passifs de clan : chaque carte compte dans le combat."
+        "title": "Compose ton arsenal",
+        "lead": "À partir du pack de départ, enrichis ta collection carte après carte. Combine les voies, active les passifs de clan et prépare un deck capable d'affronter missions, duels et combats en équipe."
       },
       "talents": {
         "kicker": "Progression",
-        "title": "Chaque niveau, un choix.",
-        "lead": "L'arbre de talents est dense : un point par niveau, des branches à assumer, zéro inflation de stats automatique."
+        "title": "Chaque niveau, un vrai choix",
+        "lead": "Un point de talent par niveau. Tu orientes ton ninja selon ton style de jeu — et tu assumes chaque branche jusqu'au combat."
       },
       "missions": {
         "kicker": "Combat",
-        "title": "Des parcours, pas une file d'attente.",
-        "lead": "Missions par rang, combats au tour par tour, récompenses et boosters : tu joues quand tu veux, à ton rythme."
+        "title": "Solo, duo, duel",
+        "lead": "Parcours les missions à ton rythme, invite un allié pour abattre des ennemis puissants, ou mesure-toi à d'autres joueurs quand tu veux monter d'un cran."
       },
       "season": {
         "kicker": "Saison",
-        "title": "Boutique, passe et villages.",
-        "lead": "Passe de saison, boutique du village et rivalités de factions pour rester dans la course au-delà de la première soirée."
+        "title": "Engage-toi pour ton village",
+        "lead": "Rejoins une faction, fais grimper sa renommée, avance dans le passe de saison et passe à la boutique du village pour rester dans la course."
       }
     }
   },
