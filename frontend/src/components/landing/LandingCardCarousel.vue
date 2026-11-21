@@ -164,6 +164,9 @@ watch(index, () => {
   justify-content: flex-end;
   gap: var(--nav-gap);
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .landing-slider__nav {
@@ -172,6 +175,7 @@ watch(index, () => {
   gap: 0.4rem;
   flex: 0 0 var(--nav-w);
   width: var(--nav-w);
+  max-width: var(--nav-w);
 }
 
 .landing-slider__arrow {
@@ -191,10 +195,11 @@ watch(index, () => {
 }
 
 .landing-slider__viewport {
-  /* Remplit le bloc 45vw ; le peek vient du débordement naturel */
+  /* Remplit le reste après les contrôles ; jamais plus large que le parent. */
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
+  max-width: calc(100% - var(--nav-w) - var(--nav-gap));
   overflow: hidden;
 }
 
@@ -216,8 +221,8 @@ watch(index, () => {
 
 @media (max-width: 767px) {
   .landing-slider {
-    /* Proche de la grille collection 2 colonnes / deck 11rem */
-    --card-w: min(11rem, 42vw);
+    /* Une carte + peek dans le viewport restant après les contrôles. */
+    --card-w: min(11rem, 48%);
   }
 }
 
