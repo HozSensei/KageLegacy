@@ -1,0 +1,58 @@
+name: GHCR cleanup
+
+# Purge les versions du package container kage-legacy.
+# Actions → GHCR cleanup → Run workflow (confirm = delete-all).
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Taper delete-all pour confirmer la suppression'
+        required: true
+        type: string
+      min_versions_to_keep:
+        description: 'Nombre de versions les plus récentes à conserver (0 = tout supprimer)'
+        required: false
+        type: string
+        default: '0'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: ${{ inputs.confirm != 'delete-all' }}
+        run: |
+          echo "Confirmation invalide. Relancer avec confirm=delete-all."
+          exit 1
+
+      # ~189 versions historiques : plusieurs passes de 100
+      - name: Delete old package versions (pass 1)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: kage-legacy
+          package-type: container
+          min-versions-to-keep: ${{ inputs.min_versions_to_keep }}
+          num-old-versions-to-delete: 100
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old package versions (pass 2)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: kage-legacy
+          package-type: container
+          min-versions-to-keep: ${{ inputs.min_versions_to_keep }}
+          num-old-versions-to-delete: 100
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old package versions (pass 3)
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: kage-legacy
+          package-type: container
+          min-versions-to-keep: ${{ inputs.min_versions_to_keep }}
+          num-old-versions-to-delete: 100
+          token: ${{ secrets.GITHUB_TOKEN }}

@@ -411,7 +411,8 @@
     "legal": "Legal notice & privacy",
     "legalShort": "Legal notice",
     "privacy": "Privacy",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "version": "Version {version}"
   },
   "notifications": {
     "bell": "Notifications",

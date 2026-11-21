@@ -16,6 +16,9 @@ COPY backend/src/services/factionCatalog.js /app/backend/src/services/factionCat
 
 # Même origine : nginx proxy /api → API Node
 ENV VITE_API_URL=
+# Version affichée dans le footer (tag de release, ex. v1.2.3)
+ARG VITE_APP_VERSION=
+ENV VITE_APP_VERSION=$VITE_APP_VERSION
 RUN npm run build
 
 # --- Image de production ---

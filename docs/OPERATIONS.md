@@ -68,7 +68,30 @@ Stripe est monté avec le corps brut sur `/api/stripe/webhook` avant le parseur 
 5. proxy `/api/` vers Node sur le port 3000 ;
 6. lance l'entrypoint Docker.
 
-`docker-compose.prod.yml` attend une base MySQL externe et publie `${KAGE_HOST_PORT:-3002}` sur le port 80 de l'image.
+`docker-compose.prod.yml` attend une base MySQL externe et publie `${KAGE_HOST_PORT:-3002}` sur le port 80 de l'image. L'image tirée est `ghcr.io/hozsensei/kage-legacy:main`.
+
+### Release Docker (GHCR)
+
+Le workflow `Docker publish` ne s'exécute plus à chaque merge sur `main`. Il publie uniquement :
+
+- sur push d'un tag semver `vX.Y.Z` (ex. `v1.2.3`) ;
+- ou via déclenchement manuel (`workflow_dispatch`).
+
+Tags poussés pour une release `v1.2.3` : `v1.2.3`, `1.2.3`, et `main` (pointeur prod).
+Le build injecte `VITE_APP_VERSION` (ex. `v1.2.3`) affiché dans le footer public.
+
+Exemple :
+
+```bash
+git checkout main && git pull
+git tag v1.2.3
+git push origin v1.2.3
+# Sur le NAS :
+docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+Pour purger d'anciennes versions GHCR : Actions → **GHCR cleanup** → Run workflow avec `confirm=delete-all` (optionnel : `min_versions_to_keep`, `0` = tout supprimer).
 
 Certaines variables historiques (cycle, anchors) peuvent encore figurer dans d’anciens fichiers d’environnement ; elles ne sont pas consommées par le produit actuel.
 
