@@ -199,6 +199,7 @@ async function freshResetPlayer() {
           <option value="">{{ loading ? t('common.loading') : t('admin.players.choose') }}</option>
           <option v-for="player in players" :key="player.id" :value="String(player.id)">
             {{ player.username }}
+            <template v-if="player.email"> ({{ player.email }})</template>
             <template v-if="player.is_admin"> — {{ t('admin.players.adminRole') }}</template>
             <template v-else-if="player.character_name"> — {{ player.character_name }}</template>
           </option>
@@ -212,6 +213,9 @@ async function freshResetPlayer() {
         <div class="admin-player-summary mt-5">
           <div>
             <p class="admin-player-name">{{ selectedPlayer.username }}</p>
+            <p v-if="selectedPlayer.email" class="text-sm text-ink-muted">
+              {{ selectedPlayer.email }}
+            </p>
             <p class="text-sm text-ink-muted">
               {{ selectedPlayer.character_name || t('admin.players.noCharacter') }}
             </p>

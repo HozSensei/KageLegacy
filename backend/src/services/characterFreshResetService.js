@@ -28,7 +28,7 @@ export async function resetCharacterToFreshState(userId) {
     const [players] = await connection.execute(
       `SELECT u.id FROM users u
        JOIN player_profiles s ON s.user_id = u.id
-       WHERE u.id = ? AND u.is_guest = FALSE AND u.password_hash IS NOT NULL
+       WHERE u.id = ? AND u.is_guest = FALSE
        LIMIT 1 FOR UPDATE`,
       [userId],
     );
