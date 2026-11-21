@@ -14,7 +14,7 @@ import {
 const PREFIX = `test_guest_purge_${Date.now()}`;
 
 async function createExpiredGuest() {
-  const { user } = await registerGuestUser({ characterName: `${PREFIX}_sensei` });
+  const { user } = await registerGuestUser({ language: 'fr' });
   await query(
     'UPDATE users SET guest_expires_at = DATE_SUB(UTC_TIMESTAMP(), INTERVAL 1 DAY) WHERE id = ?',
     [user.id]
@@ -43,7 +43,7 @@ async function testPurgeRemovesExpiredGuest() {
 }
 
 async function testActiveGuestIsNotPurged() {
-  const { user } = await registerGuestUser({ characterName: `${PREFIX}_active` });
+  const { user } = await registerGuestUser({ language: 'fr' });
 
   const result = await purgeExpiredGuestAccounts();
   const stillThere = await query('SELECT id FROM users WHERE id = ?', [user.id]);

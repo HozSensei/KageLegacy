@@ -61,7 +61,6 @@ async function main() {
       username: 'demo_sensei',
       email: 'demo_sensei@kage.local',
       password: 'demo',
-      characterName: 'Renjiro',
       language: 'fr',
     }));
   }
@@ -74,7 +73,11 @@ async function main() {
 
   let character = await getCharacter(user.id);
   if (!character) {
-    character = await createCharacter(user.id, { name: 'Demo Genin', elementAffinity: 'Katon' });
+    character = await createCharacter(user.id, {
+      name: 'Renjiro',
+      elementAffinity: 'Katon',
+      avatarId: 'aspirant-1-1',
+    });
   }
   // Assez de Ryos pour les specs qui ouvrent plusieurs boosters (STARTING_RYOS < coût standard).
   await query(

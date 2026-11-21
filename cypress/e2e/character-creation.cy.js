@@ -1,5 +1,5 @@
 describe('Création perso V2', () => {
-  it('crée le compte et le ninja dans la même étape', () => {
+  it('inscrit le compte puis force le wizard nom / village / avatar', () => {
     const suffix = Date.now();
     const email = `e2e_create_${suffix}@example.test`;
     const characterName = `Genin ${suffix}`;
@@ -7,18 +7,25 @@ describe('Création perso V2', () => {
     Cypress.session.clearAllSavedSessions();
     cy.visit('/register');
     cy.get('[data-testid="login-username"]').clear().type(email);
-    cy.get('[data-testid="register-character-name"]').clear().type(characterName);
     cy.get('[data-testid="login-password"]').clear().type('testpass');
     cy.intercept('POST', '/api/auth/register').as('register');
     cy.get('[data-testid="login-submit"]').click();
 
     cy.wait('@register').then(({ request, response }) => {
       expect(request.body.email).to.equal(email);
-      expect(request.body.characterName).to.equal(characterName);
+      expect(request.body).not.to.have.property('characterName');
+      expect(request.body).not.to.have.property('avatarId');
       expect(request.body).not.to.have.property('username');
       expect(response.statusCode).to.equal(201);
-      expect(response.body.profile.displayName).to.equal(characterName);
     });
+
+    cy.get('[data-testid="character-creation"]', { timeout: 15000 }).should('be.visible');
+    cy.request('/api/player').its('status').should('eq', 404);
+
+    cy.get('[data-testid="create-name"]').clear().type(characterName);
+    cy.intercept('POST', '/api/player/create').as('createCharacter');
+    cy.get('[data-testid="create-submit"]').click();
+    cy.wait('@createCharacter').its('response.statusCode').should('eq', 201);
 
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
     cy.get('[data-testid="hub-welcome"]', { timeout: 15000 }).should('be.visible');
@@ -35,19 +42,24 @@ describe('Création perso V2', () => {
     cy.request('/api/player').its('body.character.name').should('equal', characterName);
   });
 
-  it('demande aussi un nom de ninja pour démarrer en invité', () => {
+  it('démarre en invité puis complète le wizard avant le hub', () => {
     const characterName = `Invité ${Date.now()}`;
     Cypress.session.clearAllSavedSessions();
     cy.visit('/');
-    cy.get('[data-testid="landing-guest-name"]').type(characterName);
     cy.intercept('POST', '/api/auth/guest').as('guest');
     cy.get('[data-testid="landing-guest"]').click();
 
     cy.wait('@guest').then(({ request, response }) => {
-      expect(request.body.characterName).to.equal(characterName);
+      expect(request.body).not.to.have.property('characterName');
+      expect(request.body).not.to.have.property('avatarId');
       expect(response.statusCode).to.equal(201);
-      expect(response.body.profile.displayName).to.equal(characterName);
     });
+
+    cy.get('[data-testid="character-creation"]', { timeout: 15000 }).should('be.visible');
+    cy.get('[data-testid="create-name"]').type(characterName);
+    cy.intercept('POST', '/api/player/create').as('createCharacter');
+    cy.get('[data-testid="create-submit"]').click();
+    cy.wait('@createCharacter').its('response.statusCode').should('eq', 201);
 
     cy.get('[data-testid="hub-page"]', { timeout: 15000 }).should('be.visible');
     cy.request('/api/player').its('body.character.name').should('equal', characterName);

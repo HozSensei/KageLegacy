@@ -6,9 +6,7 @@ import { useAuthStore } from '../stores/auth';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import LocaleSwitcher from '../components/layout/LocaleSwitcher.vue';
-import NinjaAvatarPicker from '../components/player/NinjaAvatarPicker.vue';
 import GoogleSignInButton from '../components/auth/GoogleSignInButton.vue';
-import { DEFAULT_NINJA_AVATAR_ID, STARTING_NINJA_RANK } from '../constants/ninjaAvatars.js';
 import { writeStoredLocale } from '../utils/localeStorage.js';
 import gateImage from '../assets/illustrations/village-gate.webp';
 
@@ -23,8 +21,6 @@ const mode = ref(route.path.includes('register') ? 'register' : 'login');
 
 const email = ref('');
 const password = ref('');
-const characterName = ref('');
-const avatarId = ref(DEFAULT_NINJA_AVATAR_ID);
 const language = ref(locale.value === 'en' ? 'en' : 'fr');
 
 function onLocaleChange(lang) {
@@ -61,9 +57,7 @@ async function submit() {
       : await auth.register({
           email: email.value.trim(),
           password: password.value,
-          characterName: characterName.value.trim(),
           language: language.value,
-          avatarId: avatarId.value,
         });
   if (ok) {
     afterAuthSuccess(mode.value === 'login' ? auth.profile?.language || locale.value : language.value);
@@ -74,7 +68,6 @@ async function onGoogleCredential(idToken) {
   const ok = await auth.loginWithGoogle({
     idToken,
     language: language.value,
-    avatarId: mode.value === 'register' ? avatarId.value : undefined,
   });
   if (ok) afterAuthSuccess(auth.profile?.language || language.value);
 }
@@ -125,19 +118,6 @@ async function onGoogleCredential(idToken) {
           </label>
 
           <label v-if="mode === 'register'" class="field">
-            <span class="field__label">{{ t('player.nameLabel') }}</span>
-            <input
-              v-model="characterName"
-              type="text"
-              required
-              minlength="2"
-              maxlength="100"
-              data-testid="register-character-name"
-              class="input-field"
-            />
-          </label>
-
-          <label v-if="mode === 'register'" class="field">
             <span class="field__label">{{ t('profile.language') }}</span>
             <select
               v-model="language"
@@ -163,12 +143,6 @@ async function onGoogleCredential(idToken) {
               class="input-field"
             />
           </label>
-
-          <NinjaAvatarPicker
-            v-if="mode === 'register'"
-            v-model="avatarId"
-            :rank="STARTING_NINJA_RANK"
-          />
 
           <button
             type="submit"
@@ -346,16 +320,13 @@ async function onGoogleCredential(idToken) {
   }
 
   .auth__slogan {
-    max-width: 12ch;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
+    max-width: 14ch;
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 1.5rem + 2.6vw, 4rem);
+    font-size: clamp(1.75rem, 2.4vw, 2.35rem);
     font-weight: 800;
-    font-stretch: 76%;
-    line-height: 0.92;
-    letter-spacing: -0.02em;
-    color: var(--color-on-fill);
-    animation: rise-in 620ms var(--ease-out-quint) 120ms both;
+    font-stretch: 80%;
+    line-height: 1.05;
   }
 }
 </style>

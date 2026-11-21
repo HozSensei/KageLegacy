@@ -2,7 +2,7 @@
 
 ## Contrat API
 
-`GET /api/player` et `PATCH /api/player/character/profile` renvoient `{ character }`. Le profil est disponible aux comptes et invités avec une session. `POST /api/player/create`, `POST /api/auth/register` et `POST /api/auth/guest` acceptent tous `avatarId` à la création ; seuls les portraits Aspirant ninja sont valides. Si le champ est absent ou `null`, le serveur utilise `aspirant-1-1`. `POST /api/player/create` accepte toujours l'ancien champ `avatarUrl`, que l'API conserve au niveau `character.avatarUrl` pour les anciens clients.
+`GET /api/player` et `PATCH /api/player/character/profile` renvoient `{ character }`. Le profil est disponible aux comptes et invités avec une session. L'inscription (`POST /api/auth/register`, `/guest`, `/google`) crée uniquement le compte : le personnage (nom, village/faction, avatar) se crée ensuite via `POST /api/player/create` (écran wizard obligatoire). Seuls les portraits Aspirant ninja sont valides à la création ; si `avatarId` est absent ou `null`, le serveur utilise `aspirant-1-1`. `POST /api/player/create` accepte toujours l'ancien champ `avatarUrl`, que l'API conserve au niveau `character.avatarUrl` pour les anciens clients.
 
 `character.profile` contient :
 

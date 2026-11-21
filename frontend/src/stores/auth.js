@@ -63,13 +63,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function loginWithGoogle({ idToken, language, avatarId } = {}) {
+  async function loginWithGoogle({ idToken, language } = {}) {
     loading.value = true;
     error.value = null;
     try {
       const payload = { idToken };
       if (language) payload.language = language === 'en' ? 'en' : 'fr';
-      if (avatarId) payload.avatarId = avatarId;
 
       const res = await fetch(`${API_BASE}/api/auth/google`, {
         method: 'POST',
@@ -91,11 +90,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register({ email, password, characterName, language, avatarId }) {
+  async function register({ email, password, language }) {
     loading.value = true;
     error.value = null;
     try {
-      const payload = { email, password, characterName, language, avatarId };
+      const payload = { email, password, language };
 
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
@@ -127,7 +126,7 @@ export const useAuthStore = defineStore('auth', () => {
     checked.value = true;
   }
 
-  async function loginAsGuest({ characterName, language = 'fr', avatarId } = {}) {
+  async function loginAsGuest({ language = 'fr' } = {}) {
     loading.value = true;
     error.value = null;
     try {
@@ -136,7 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ characterName, language: lang, avatarId }),
+        body: JSON.stringify({ language: lang }),
       });
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
