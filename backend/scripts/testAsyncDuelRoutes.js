@@ -148,6 +148,7 @@ test('HTTP : ami hors ligne, deck figé, reprise et écriture versionnée', asyn
   assert.deepEqual(duel.enemy.profile, {
     avatarId: 'genin-1-2',
     backgroundId: 'joueur-1',
+    backgroundColor: null,
     nicknameId: 'genin',
   });
   assert.equal(duel.player.factionId, 'midorihara');

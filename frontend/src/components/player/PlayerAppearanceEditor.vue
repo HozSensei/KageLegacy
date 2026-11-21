@@ -89,7 +89,12 @@ async function save() {
       <fieldset class="appearance__fields" :disabled="player.savingProfile">
         <legend class="sr-only">{{ t('player.appearance.title') }}</legend>
         <NinjaAvatarPicker v-model="draft.avatarId" :rank="character.rank" />
-        <NinjaCardBackgroundPicker v-model="draft.backgroundId" @update:model-value="clearFeedback" />
+        <NinjaCardBackgroundPicker
+          v-model="draft.backgroundId"
+          v-model:background-color="draft.backgroundColor"
+          @update:model-value="clearFeedback"
+          @update:background-color="clearFeedback"
+        />
 
         <label class="field">
           <span class="field__label">{{ t('player.appearance.nickname') }}</span>

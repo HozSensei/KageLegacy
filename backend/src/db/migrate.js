@@ -29,6 +29,12 @@ const COMPATIBILITY_COLUMNS = [
     'varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
     'character_avatar_id',
   ],
+  [
+    'player_profiles',
+    'character_background_color',
+    'varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
+    'character_background_id',
+  ],
   ['player_profiles', 'async_duel_enabled', 'TINYINT(1) NOT NULL DEFAULT 0', 'ryos'],
   ['async_duels', 'mode', "ENUM('friend','random','enemy_faction') DEFAULT NULL", 'defender_name'],
   ['async_duels', 'attacker_faction', 'VARCHAR(32) DEFAULT NULL', 'mode'],
@@ -224,20 +230,20 @@ async function ensureCharacterProfile(connection) {
 }
 
 async function dropLegacyProfileColorColumns(connection) {
-  for (const column of ['character_border_color', 'character_background_color']) {
-    const [rows] = await connection.query(
-      `SELECT 1
-       FROM information_schema.columns
-       WHERE table_schema = DATABASE()
-         AND table_name = 'player_profiles'
-         AND column_name = ?
-       LIMIT 1`,
-      [column],
-    );
-    if (rows.length === 0) continue;
-    await connection.query(`ALTER TABLE \`player_profiles\` DROP COLUMN \`${column}\``);
-    console.log(`🔧 Colonne legacy retirée : player_profiles.${column}`);
-  }
+  // La bordure libre a été retirée ; la teinte de fond uni (`character_background_color`) est conservée.
+  const column = 'character_border_color';
+  const [rows] = await connection.query(
+    `SELECT 1
+     FROM information_schema.columns
+     WHERE table_schema = DATABASE()
+       AND table_name = 'player_profiles'
+       AND column_name = ?
+     LIMIT 1`,
+    [column],
+  );
+  if (rows.length === 0) return;
+  await connection.query(`ALTER TABLE \`player_profiles\` DROP COLUMN \`${column}\``);
+  console.log(`🔧 Colonne legacy retirée : player_profiles.${column}`);
 }
 
 function splitSqlStatements(sql) {

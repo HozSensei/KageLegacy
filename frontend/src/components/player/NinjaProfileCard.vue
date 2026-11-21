@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useDeltaFeed } from '../../composables/useDeltaFeed.js';
 import { factionAccentColor } from '../../constants/factions.js';
 import { ninjaCardBackgroundUrl } from '../../constants/ninjaCardBackgrounds.js';
-import { ninjaNicknameLabel } from '../../utils/ninjaProfile.js';
+import { ninjaNicknameLabel, safeNinjaProfileColor } from '../../utils/ninjaProfile.js';
 import { statVisual } from '../../utils/statIcons.js';
 import NinjaPortrait from './NinjaPortrait.vue';
 
@@ -69,10 +69,26 @@ const diamonds = computed(() => {
 const artUrl = computed(
   () => props.background || (isNinja.value ? ninjaCardBackgroundUrl(props.profile?.backgroundId) : null)
 );
+const solidBackground = computed(() => {
+  if (!isNinja.value || artUrl.value) return null;
+  return safeNinjaProfileColor(props.profile?.backgroundColor);
+});
 const armorVisual = computed(() => statVisual('armor'));
 const style = computed(() => ({
   '--ninja-art': artUrl.value ? `url("${artUrl.value}")` : undefined,
+  '--ninja-background': solidBackground.value || undefined,
+  '--ninja-text': solidBackground.value ? contrastingText(solidBackground.value) : undefined,
 }));
+
+function contrastingText(hex) {
+  const luminance = [0.2126, 0.7152, 0.0722].reduce((total, weight, index) => {
+    const start = 1 + index * 2;
+    const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
+    const linear = channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+    return total + weight * linear;
+  }, 0);
+  return luminance > 0.179 ? '#000' : '#fff';
+}
 
 const hpPercent = computed(() => {
   const { hp, maxHp } = props.stats;
@@ -91,6 +107,7 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
     :data-variant="variant"
     :data-avatar-id="isNinja ? profile?.avatarId || undefined : undefined"
     :data-background-id="isNinja ? profile?.backgroundId || undefined : undefined"
+    :data-background-color="isNinja ? solidBackground || undefined : undefined"
   >
     <header class="ninja-card__head">
       <div v-if="isNinja" class="ninja-card__portrait">

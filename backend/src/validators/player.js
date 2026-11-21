@@ -5,6 +5,7 @@ import {
   isAvatarAvailableToRank,
   isKnownAvatarId,
   isKnownCardBackgroundId,
+  isProfileColor,
 } from '../services/characterAppearance.js';
 
 export const ELEMENTS = ['Katon', 'Suiton', 'Raiton', 'Doton', 'Futon'];
@@ -17,6 +18,7 @@ export const startingAvatarIdSchema = avatarIdSchema
 const backgroundIdSchema = z
   .string()
   .refine(isKnownCardBackgroundId, 'Fond de carte invalide.');
+const profileColorSchema = z.string().refine(isProfileColor, 'Couleur attendue au format #RRGGBB.');
 
 export const createCharacterSchema = z.object({
   name: z.string().trim().min(2, 'Minimum 2 caractères.').max(100),
@@ -40,6 +42,7 @@ export const characterProfilePatchSchema = z
   .object({
     avatarId: avatarIdSchema.optional(),
     backgroundId: backgroundIdSchema.nullable().optional(),
+    backgroundColor: profileColorSchema.nullable().optional(),
     nicknameId: z.string().min(1).max(32).nullable().optional(),
   })
   .strict()

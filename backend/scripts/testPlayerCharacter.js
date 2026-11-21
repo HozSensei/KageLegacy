@@ -150,8 +150,16 @@ function testAppearance() {
   strictAssert(isAvatarAvailableToRank('anbu-2-16', 'Kage'));
   strictAssert(!isAvatarAvailableToRank('anbu-2-16', 'Jonin'));
   strictAssert(!createCharacterSchema.safeParse({ name: 'Hayato', avatarId: 'genin-1-1' }).success);
-  for (const id of ['joueur-3', 'bg-joueur', 'url(x)', '']) {
+  for (const id of ['joueur-9', 'bg-joueur', 'url(x)', '']) {
     strictAssert(!characterProfilePatchSchema.safeParse({ backgroundId: id }).success, id);
+  }
+  for (const id of ['joueur-3', 'joueur-8']) {
+    strictAssert(characterProfilePatchSchema.safeParse({ backgroundId: id }).success, id);
+  }
+  strictAssert(characterProfilePatchSchema.safeParse({ backgroundColor: '#2a3348' }).success);
+  strictAssert(characterProfilePatchSchema.safeParse({ backgroundColor: null }).success);
+  for (const color of ['#2A33', 'red', '2a3348', '#GG0000']) {
+    strictAssert(!characterProfilePatchSchema.safeParse({ backgroundColor: color }).success, color);
   }
   strictAssert(!characterProfilePatchSchema.safeParse({}).success);
   strictAssert(!characterProfilePatchSchema.safeParse({ avatarId: null }).success);
@@ -162,9 +170,15 @@ function testAppearance() {
       character_level: 20,
       character_avatar_id: 'genin-2-16',
       character_background_id: 'joueur-1',
+      character_background_color: '#2a3348',
       character_nickname_id: 'chunin',
     }),
-    { avatarId: 'genin-2-16', backgroundId: 'joueur-1', nicknameId: 'chunin' }
+    {
+      avatarId: 'genin-2-16',
+      backgroundId: 'joueur-1',
+      backgroundColor: '#2A3348',
+      nicknameId: 'chunin',
+    }
   );
   strictAssert.deepEqual(
     serializeCharacterAppearance({
@@ -174,7 +188,12 @@ function testAppearance() {
       avatar_id: 'genin-1-1',
       nickname_id: 'genin',
     }),
-    { avatarId: DEFAULT_AVATAR_ID, backgroundId: null, nicknameId: 'genin' }
+    {
+      avatarId: DEFAULT_AVATAR_ID,
+      backgroundId: null,
+      backgroundColor: null,
+      nicknameId: 'genin',
+    }
   );
   strictAssert.equal(
     serializeCharacterAppearance({ level: 1, nickname_id: 'genin' }).nicknameId,
