@@ -91,7 +91,10 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod pull
 docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 ```
 
-Pour purger d'anciennes versions GHCR : Actions → **GHCR cleanup** → Run workflow avec `confirm=delete-all` (optionnel : `min_versions_to_keep`, `0` = tout supprimer).
+Pour purger d'anciennes versions GHCR :
+
+1. Sur le package [ghcr.io/hozsensei/kage-legacy](https://github.com/users/HozSensei/packages/container/package/kage-legacy) → **Package settings** → **Manage Actions access** → ajouter le dépôt `KageLegacy` avec le rôle **Admin** (requis pour que `GITHUB_TOKEN` puisse supprimer).
+2. Actions → **GHCR cleanup** → Run workflow avec `confirm=delete-all` (optionnel : `min_versions_to_keep`, `0` = tout supprimer ; max 100 versions par passe).
 
 Certaines variables historiques (cycle, anchors) peuvent encore figurer dans d’anciens fichiers d’environnement ; elles ne sont pas consommées par le produit actuel.
 

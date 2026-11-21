@@ -2,6 +2,9 @@ name: GHCR cleanup
 
 # Purge les versions du package container kage-legacy.
 # Actions → GHCR cleanup → Run workflow (confirm = delete-all).
+#
+# Prérequis : sur le package GHCR kage-legacy → Package settings →
+# Manage Actions access → donner le rôle Admin au dépôt KageLegacy.
 on:
   workflow_dispatch:
     inputs:
@@ -29,30 +32,33 @@ jobs:
           echo "Confirmation invalide. Relancer avec confirm=delete-all."
           exit 1
 
-      # ~189 versions historiques : plusieurs passes de 100
-      - name: Delete old package versions (pass 1)
+      # max 100 versions / run — plusieurs passes (min-versions-to-keep
+      # ne peut PAS être combiné avec num-old-versions-to-delete)
+      - name: Delete package versions (pass 1)
         uses: actions/delete-package-versions@v5
         with:
+          owner: ${{ github.repository_owner }}
           package-name: kage-legacy
           package-type: container
           min-versions-to-keep: ${{ inputs.min_versions_to_keep }}
-          num-old-versions-to-delete: 100
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete old package versions (pass 2)
+      - name: Delete package versions (pass 2)
+        continue-on-error: true
         uses: actions/delete-package-versions@v5
         with:
+          owner: ${{ github.repository_owner }}
           package-name: kage-legacy
           package-type: container
           min-versions-to-keep: ${{ inputs.min_versions_to_keep }}
-          num-old-versions-to-delete: 100
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete old package versions (pass 3)
+      - name: Delete package versions (pass 3)
+        continue-on-error: true
         uses: actions/delete-package-versions@v5
         with:
+          owner: ${{ github.repository_owner }}
           package-name: kage-legacy
           package-type: container
           min-versions-to-keep: ${{ inputs.min_versions_to_keep }}
-          num-old-versions-to-delete: 100
           token: ${{ secrets.GITHUB_TOKEN }}
