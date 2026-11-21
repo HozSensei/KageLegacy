@@ -27,6 +27,7 @@ const saving = ref(false);
 
 const displayName = computed(() => auth.profile?.displayName || auth.user?.email || '');
 const isGuest = computed(() => Boolean(auth.user?.isGuest));
+const hasPassword = computed(() => Boolean(auth.user?.hasPassword));
 
 watch(open, isOpen => {
   if (isOpen) {
@@ -108,7 +109,7 @@ async function submitDelete() {
   }
   saving.value = true;
   formError.value = null;
-  const ok = await auth.deleteAccount(isGuest.value ? undefined : deletePassword.value);
+  const ok = await auth.deleteAccount(hasPassword.value ? deletePassword.value : undefined);
   saving.value = false;
   if (ok) {
     close();
@@ -240,7 +241,7 @@ function handleConvert() {
         </form>
 
         <button
-          v-if="!isGuest"
+          v-if="hasPassword"
           type="button"
           class="profile-menu__row"
           data-testid="profile-change-password"
@@ -250,7 +251,7 @@ function handleConvert() {
         </button>
 
         <form
-          v-if="section === 'password' && !isGuest"
+          v-if="section === 'password' && hasPassword"
           class="profile-menu__form"
           @submit.prevent="submitPassword"
         >
@@ -306,7 +307,7 @@ function handleConvert() {
 
         <div v-if="section === 'delete'" class="profile-menu__form">
           <p class="text-sm leading-relaxed text-ink-muted">{{ t('profile.deleteWarning') }}</p>
-          <label v-if="!isGuest" class="field">
+          <label v-if="hasPassword" class="field">
             <span class="field__label">{{ t('profile.deletePassword') }}</span>
             <input
               v-model="deletePassword"

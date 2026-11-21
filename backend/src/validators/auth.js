@@ -42,3 +42,9 @@ export const deleteAccountSchema = z.object({
   password: z.string().min(1).optional(),
   confirm: z.literal(true, { errorMap: () => ({ message: 'Confirmation requise.' }) }),
 });
+
+export const googleLoginSchema = z.object({
+  idToken: z.string().trim().min(20, 'Jeton Google invalide.'),
+  language: z.enum(['fr', 'en']).optional(),
+  avatarId: startingAvatarIdSchema,
+});
