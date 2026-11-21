@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from '../cards/CardDisplay.vue';
 import { pickLandingShowcaseCards } from '../../constants/landingShowcaseCards.js';
@@ -7,8 +7,6 @@ import { pickLandingShowcaseCards } from '../../constants/landingShowcaseCards.j
 defineOptions({ name: 'LandingCardCarousel' });
 
 const props = defineProps({
-  /** Cartes pleinement visibles (le viewport en montre ~visible + 0.5). */
-  visible: { type: Number, default: 2 },
   /** Taille du pool tiré. */
   poolSize: { type: Number, default: 9 },
   /** Défilement auto (ms) ; 0 = off. */
@@ -20,9 +18,14 @@ const { t } = useI18n();
 const cards = ref(pickLandingShowcaseCards(props.poolSize));
 const index = ref(0);
 const faces = ref({});
+const viewportEl = ref(null);
+const trackEl = ref(null);
+/** Nombre de cartes entièrement visibles dans le viewport (mesure réelle). */
+const fullVisible = ref(2);
 let timer = null;
+let resizeObserver = null;
 
-const maxIndex = computed(() => Math.max(0, cards.value.length - props.visible));
+const maxIndex = computed(() => Math.max(0, cards.value.length - fullVisible.value));
 
 function faceFor(slug) {
   return faces.value[slug] || 'front';
@@ -34,6 +37,23 @@ function toggleFlip(card) {
     ...faces.value,
     [slug]: faceFor(slug) === 'front' ? 'back' : 'front',
   };
+}
+
+function measureVisible() {
+  const viewport = viewportEl.value;
+  const track = trackEl.value;
+  const slide = track?.querySelector('.landing-slider__slide');
+  if (!viewport || !slide) return;
+
+  const gapRaw = getComputedStyle(track).gap || getComputedStyle(track).columnGap || '0';
+  const gap = Number.parseFloat(gapRaw) || 0;
+  const step = slide.getBoundingClientRect().width + gap;
+  if (step <= 0) return;
+
+  fullVisible.value = Math.max(1, Math.floor((viewport.clientWidth + gap) / step));
+  if (index.value > maxIndex.value) {
+    index.value = maxIndex.value;
+  }
 }
 
 function goTo(page) {
@@ -64,8 +84,21 @@ function startAutoplay() {
   timer = setInterval(next, props.autoplayMs);
 }
 
-onMounted(startAutoplay);
-onBeforeUnmount(stopAutoplay);
+onMounted(async () => {
+  await nextTick();
+  measureVisible();
+  if (typeof ResizeObserver !== 'undefined' && viewportEl.value) {
+    resizeObserver = new ResizeObserver(() => measureVisible());
+    resizeObserver.observe(viewportEl.value);
+  }
+  startAutoplay();
+});
+
+onBeforeUnmount(() => {
+  stopAutoplay();
+  resizeObserver?.disconnect();
+  resizeObserver = null;
+});
 
 watch(index, () => {
   startAutoplay();
@@ -98,8 +131,9 @@ watch(index, () => {
       </button>
     </div>
 
-    <div class="landing-slider__viewport">
+    <div ref="viewportEl" class="landing-slider__viewport">
       <ul
+        ref="trackEl"
         class="landing-slider__track"
         role="list"
         :style="{ transform: `translateX(calc(-1 * ${index} * (var(--card-w) + var(--gap))))` }"
@@ -123,14 +157,8 @@ watch(index, () => {
   --nav-w: 2.15rem;
   --nav-gap: 0.65rem;
   --gap: 0.75rem;
-  --peek: 0.5;
-  --visible: 2;
-  --slider-w: var(--landing-slider-w, 45vw);
-  /* Largeur carte pour remplir le rail (2 + demi) dans le 45vw */
-  --card-w: calc(
-    (var(--slider-w) - var(--nav-w) - var(--nav-gap) - var(--gap) * var(--visible)) /
-      (var(--visible) + var(--peek))
-  );
+  /* Même emprise que CollectionGrid (minmax 12.5rem) — pas d’étirement forcé */
+  --card-w: 12.5rem;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -163,7 +191,7 @@ watch(index, () => {
 }
 
 .landing-slider__viewport {
-  /* Remplit le reste → collé au bord droit, peek demi-carte */
+  /* Remplit le bloc 45vw ; le peek vient du débordement naturel */
   flex: 1 1 auto;
   min-width: 0;
   width: auto;
@@ -188,11 +216,8 @@ watch(index, () => {
 
 @media (max-width: 767px) {
   .landing-slider {
-    --slider-w: 100%;
-    --visible: 1;
-    --peek: 0.4;
-    /* Sur mobile, 100% du parent — on retombe sur une approx en vw */
-    --card-w: calc((92vw - var(--nav-w) - var(--nav-gap) - var(--gap)) / 1.4);
+    /* Proche de la grille collection 2 colonnes / deck 11rem */
+    --card-w: min(11rem, 42vw);
   }
 }
 

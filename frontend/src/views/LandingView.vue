@@ -96,7 +96,7 @@ async function playAsGuest() {
           </div>
 
           <div class="landing__hero-cards anim-rise" style="--delay: 200ms">
-            <LandingCardCarousel :visible="2" :pool-size="9" :autoplay-ms="0" />
+            <LandingCardCarousel :pool-size="9" :autoplay-ms="0" />
           </div>
         </div>
       </section>
