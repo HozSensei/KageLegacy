@@ -20,7 +20,7 @@ describe('Création perso V2', () => {
     });
 
     cy.get('[data-testid="character-creation"]', { timeout: 15000 }).should('be.visible');
-    cy.request('/api/player').its('status').should('eq', 404);
+    cy.request({ url: '/api/player', failOnStatusCode: false }).its('status').should('eq', 404);
 
     cy.get('[data-testid="create-name"]').clear().type(characterName);
     cy.intercept('POST', '/api/player/create').as('createCharacter');

@@ -6,6 +6,7 @@ import { useAuthStore } from '../stores/auth';
 import AppIcon from '../components/ui/AppIcon.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
+import SiteFooter from '../components/layout/SiteFooter.vue';
 import { renderMarkdown } from '../utils/renderMarkdown.js';
 import { addHeadingAnchors, parseRulesNav } from '../utils/parseRulesDoc.js';
 import rulesFr from '../content/rules.fr.md?raw';
@@ -220,5 +221,7 @@ onUnmounted(() => observer?.disconnect());
         />
       </main>
     </div>
+
+    <SiteFooter tone="paper" />
   </div>
 </template>
