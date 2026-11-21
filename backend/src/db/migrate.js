@@ -77,6 +77,57 @@ async function ensureCardStatType(connection) {
   console.log('🔧 Enum étendu : card_definitions.stat_type accepte common');
 }
 
+async function ensureMonetizationTables(connection) {
+  const tables = [
+    [
+      'player_nickname_unlocks',
+      `CREATE TABLE IF NOT EXISTS \`player_nickname_unlocks\` (
+        \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+        \`user_id\` int unsigned NOT NULL,
+        \`nickname_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`source\` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
+        \`source_ref\` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+        \`unlocked_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uq_pnu_user_nickname\` (\`user_id\`,\`nickname_id\`),
+        KEY \`idx_pnu_nickname\` (\`nickname_id\`),
+        CONSTRAINT \`fk_pnu_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+    [
+      'shop_welcome_purchases',
+      `CREATE TABLE IF NOT EXISTS \`shop_welcome_purchases\` (
+        \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+        \`user_id\` int unsigned NOT NULL,
+        \`method\` enum('stub','stripe') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'stub',
+        \`stripe_session_id\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+        \`payload_json\` json DEFAULT NULL,
+        \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uq_swp_user\` (\`user_id\`),
+        UNIQUE KEY \`uq_swp_stripe_session\` (\`stripe_session_id\`),
+        CONSTRAINT \`fk_swp_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+  ];
+
+  for (const [table, ddl] of tables) {
+    const [rows] = await connection.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
+      [table],
+    );
+    if (rows.length > 0) continue;
+    const [users] = await connection.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = 'users' LIMIT 1`,
+    );
+    if (users.length === 0) continue;
+    await connection.query(ddl);
+    console.log(`🔧 Table ajoutée : ${table}`);
+  }
+}
+
 async function ensureCompatibilityColumns(connection) {
   for (const [table, column, definition, after] of COMPATIBILITY_COLUMNS) {
     const [rows] = await connection.query(
@@ -405,6 +456,7 @@ async function migrate() {
       await installWeeklyVillageRewards(connection);
       await ensureRankMissions(connection);
       await ensureOnboardingTable();
+      await ensureMonetizationTables(connection);
       return;
     }
 
@@ -439,6 +491,7 @@ async function migrate() {
     await installWeeklyVillageRewards(connection);
     await ensureRankMissions(connection);
     await ensureOnboardingTable();
+    await ensureMonetizationTables(connection);
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
     console.error('Erreur d’initialisation de la base :', error.message);

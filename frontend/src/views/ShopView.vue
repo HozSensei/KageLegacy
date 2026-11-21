@@ -7,6 +7,7 @@ import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue';
 
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue';
+import WelcomePackBanner from '../components/shop/WelcomePackBanner.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import marketImage from '../assets/illustrations/market-square.webp';
 import { useShopStore } from '../stores/shop';
@@ -134,6 +135,14 @@ async function onUnlockBp(method) {
     /* error in store */
   }
 }
+
+async function onBuyWelcome(method) {
+  try {
+    await shop.purchaseWelcomePack(method);
+  } catch {
+    /* error in store */
+  }
+}
 </script>
 
 <template>
@@ -204,6 +213,14 @@ async function onUnlockBp(method) {
     </div>
 
     <div v-show="shop.activeTab === 'currency'" class="mt-8">
+      <WelcomePackBanner
+        :offer="shop.welcomePack"
+        :purchasing="shop.purchasing"
+        :disabled="shop.loading"
+        :can-stub="canStubCoins"
+        :stripe-enabled="stripeEnabled"
+        @purchase="onBuyWelcome"
+      />
       <CoinPackCatalog
         :packs="shop.coinPacks"
         :balances="shop.balances"
@@ -217,6 +234,14 @@ async function onUnlockBp(method) {
     </div>
 
     <div v-show="shop.activeTab === 'battlePass'" class="mt-8">
+      <WelcomePackBanner
+        :offer="shop.welcomePack"
+        :purchasing="shop.purchasing"
+        :disabled="shop.loading"
+        :can-stub="canStubCoins"
+        :stripe-enabled="stripeEnabled"
+        @purchase="onBuyWelcome"
+      />
       <BattlePassOffer
         :offer="shop.battlePassOffer"
         :purchasing="shop.purchasing"

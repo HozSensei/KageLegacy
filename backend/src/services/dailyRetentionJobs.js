@@ -10,6 +10,16 @@ export async function processDailyRetentionTick() {
   }
 
   const guestCleanup = await purgeExpiredGuestAccounts();
+
+  let battlePassRotation = null;
+  try {
+    const { rotateBattlePassSeasons } = await import('./battlePassSeasonRotation.js');
+    battlePassRotation = await rotateBattlePassSeasons();
+  } catch (err) {
+    console.error('[DailyRetention] BP season rotation failed:', err?.message || err);
+    battlePassRotation = { error: err?.message || String(err) };
+  }
+
   let battlePassQuests = null;
   try {
     const { ensureFreshQuestWindows } = await import('./battlePassQuestService.js');
@@ -31,7 +41,7 @@ export async function processDailyRetentionTick() {
     );
   }
 
-  return { date: today, guestCleanup, battlePassQuests };
+  return { date: today, guestCleanup, battlePassRotation, battlePassQuests };
 }
 
 export function resetDailyRetentionCacheForTests() {

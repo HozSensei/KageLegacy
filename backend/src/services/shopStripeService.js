@@ -1,9 +1,9 @@
 /**
- * Stripe Checkout — packs Kage Coins + Battle Pass Premium.
- * Patterns alignés sur eliteStripeService (session metadata, idempotence, confirm client).
+ * Stripe Checkout — packs Kage Coins + Battle Pass Premium + pack bienvenue.
  */
 import Stripe from 'stripe';
 import { query, getConnection } from '../config/database.js';
+import { WELCOME_PACK } from '../config/economyConfig.js';
 import { findUserById } from './authService.js';
 import {
   COIN_PACK_CATALOG,
@@ -16,10 +16,12 @@ import {
   getOrCreateUserBattlePass,
   PREMIUM_COST_KAGE_COINS,
 } from './battlePassService.js';
+import { fulfillWelcomePackSession, hasPurchasedWelcomePack } from './welcomePackService.js';
 
 export const SHOP_PRODUCT = Object.freeze({
   KAGE_COINS: 'kage_coins',
   BATTLE_PASS_PREMIUM: 'battle_pass_premium',
+  WELCOME_PACK: 'welcome_pack',
 });
 
 /** Prix EUR direct premium BP (docs : 5€ / 500 KC). */
@@ -146,9 +148,38 @@ export function buildBattlePassLineItems() {
   ];
 }
 
+export function buildWelcomePackLineItems() {
+  const priceId = process.env.STRIPE_PRICE_ID_WELCOME;
+  if (priceId) {
+    return [{ price: priceId, quantity: 1 }];
+  }
+
+  const unitAmount = Math.round(Number(WELCOME_PACK.priceEur) * 100);
+  return [
+    {
+      price_data: {
+        currency: 'eur',
+        unit_amount: unitAmount,
+        product_data: {
+          name: 'Pack de bienvenue',
+          description: 'Battle Pass Premium + titre + booster standard',
+          metadata: {
+            product: SHOP_PRODUCT.WELCOME_PACK,
+          },
+        },
+      },
+      quantity: 1,
+    },
+  ];
+}
+
 export function resolveShopProductFromSession(session) {
   const product = String(session?.metadata?.product || '').trim();
-  if (product === SHOP_PRODUCT.KAGE_COINS || product === SHOP_PRODUCT.BATTLE_PASS_PREMIUM) {
+  if (
+    product === SHOP_PRODUCT.KAGE_COINS ||
+    product === SHOP_PRODUCT.BATTLE_PASS_PREMIUM ||
+    product === SHOP_PRODUCT.WELCOME_PACK
+  ) {
     return product;
   }
   return null;
@@ -240,6 +271,25 @@ export async function createBattlePassCheckoutSession(userId) {
       product: SHOP_PRODUCT.BATTLE_PASS_PREMIUM,
       season_id: String(season.id),
       season_number: String(season.seasonNumber),
+    },
+    successPath: '/shop?tab=battlePass&checkout=success&session_id={CHECKOUT_SESSION_ID}',
+    cancelPath: '/shop?tab=battlePass&checkout=canceled',
+  });
+}
+
+export async function createWelcomePackCheckoutSession(userId) {
+  const owned = await hasPurchasedWelcomePack(userId);
+  if (owned) {
+    throw httpError('Pack de bienvenue déjà acheté.', 409);
+  }
+
+  return createCheckoutSession({
+    userId,
+    lineItems: buildWelcomePackLineItems(),
+    metadata: {
+      user_id: String(userId),
+      product: SHOP_PRODUCT.WELCOME_PACK,
+      pack_id: WELCOME_PACK.id,
     },
     successPath: '/shop?tab=battlePass&checkout=success&session_id={CHECKOUT_SESSION_ID}',
     cancelPath: '/shop?tab=battlePass&checkout=canceled',
@@ -406,6 +456,9 @@ export async function fulfillShopCheckoutSession(session) {
   }
   if (product === SHOP_PRODUCT.BATTLE_PASS_PREMIUM) {
     return fulfillBattlePassSession(session);
+  }
+  if (product === SHOP_PRODUCT.WELCOME_PACK) {
+    return fulfillWelcomePackSession(session);
   }
   return { fulfilled: false, reason: 'unknown_product' };
 }

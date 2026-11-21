@@ -26,8 +26,15 @@ assert(
 const ember = getCoinPack('ember');
 assert(ember.coins === 500 && ember.bonusCoins === 50 && ember.priceEur === 5, 'ember amounts');
 
+const forge = getCoinPack('forge');
+assert(forge.coins === 1200 && forge.bonusCoins === 200 && forge.priceEur === 10, 'forge amounts');
+const vault = getCoinPack('vault');
+assert(vault.coins === 6000 && vault.bonusCoins === 1500 && vault.priceEur === 50, 'vault amounts');
+
 const ser = serializeCoinPack(ember);
 assert(ser.totalCoins === 550, 'serialize total');
+assert(serializeCoinPack(forge).totalCoins === 1400, 'forge total');
+assert(serializeCoinPack(vault).totalCoins === 7500, 'vault total');
 
 let threw = false;
 try {

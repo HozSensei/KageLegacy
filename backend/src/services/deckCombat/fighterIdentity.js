@@ -1,8 +1,8 @@
 import {
   DEFAULT_AVATAR_ID,
-  NICKNAME_CATALOG,
   isKnownAvatarId,
   isKnownCardBackgroundId,
+  isKnownNicknameId,
 } from '../characterAppearance.js';
 import { isValidFactionId } from '../factionCatalog.js';
 
@@ -17,9 +17,7 @@ export function publicFighterIdentity({ rank, level, profile, factionId }) {
       profile: {
         avatarId: isKnownAvatarId(profile.avatarId) ? profile.avatarId : DEFAULT_AVATAR_ID,
         backgroundId: isKnownCardBackgroundId(profile.backgroundId) ? profile.backgroundId : null,
-        nicknameId: NICKNAME_CATALOG.some(({ id }) => id === profile.nicknameId)
-          ? profile.nicknameId
-          : null,
+        nicknameId: isKnownNicknameId(profile.nicknameId) ? profile.nicknameId : null,
       },
     }),
   };

@@ -41,8 +41,8 @@ export async function ensureFreshQuestWindows(seasonId = null) {
   if (!needDaily && !needWeekly)
     return { skipped: true, reason: 'windows_fresh', seasonId: season.id };
 
-  const { buildSeason1QuestDefs } = await import('../../scripts/data/battlePassSeason1.js');
-  const defs = buildSeason1QuestDefs(
+  const { buildSeasonQuestDefs } = await import('./battlePassSeasonTemplate.js');
+  const defs = buildSeasonQuestDefs(
     new Date(season.startDate || Date.now()),
     new Date(season.endDate || Date.now() + 90 * 86400000),
   );

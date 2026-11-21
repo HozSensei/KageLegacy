@@ -77,11 +77,11 @@ Désenchanter donne de la poussière selon la rareté :
 
 Les boosters standard, de voie et élémentaires s'achètent en Ryos. Le booster premium utilise les Kage Coins. Chaque booster contient 5 cartes, avec au moins une rare pour le premium.
 
-Les packs de Kage Coins et le Battle Pass Premium sont achetés via Stripe en production.
+Les packs de Kage Coins, le Battle Pass Premium et le pack de bienvenue (une fois) sont achetés via Stripe en production. Le pack de bienvenue inclut le premium de la saison, un titre de profil et un petit booster.
 
 ## Battle Pass
 
-La saison active possède 50 niveaux avec une voie gratuite et une voie premium. Les paliers se réclament séparément. Premium multiplie l'XP gagnée par 1,2.
+La saison active (90 jours, rotation automatique) possède 50 niveaux avec une voie gratuite et une voie premium. Les paliers se réclament séparément. Premium multiplie l'XP gagnée par 1,2 et peut débloquer un titre de saison.
 
 À partir du niveau 30, il est possible d'acheter des niveaux à 150 Kage Coins chacun, jusqu'à 20 en une fois.
 

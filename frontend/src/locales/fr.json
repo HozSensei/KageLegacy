@@ -11,7 +11,6 @@
     "expandSection": "Développer"
   },
   "errors": {
-    "eliteRequired": "Pack Élite requis.",
     "wsDisconnected": "WebSocket non connecté."
   },
   "gameClock": {
@@ -286,7 +285,6 @@
     "collection": "Collection",
     "decks": "Decks",
     "shop": "Boutique",
-    "eliteTools": "Outils Élite",
     "admin": "Administration",
     "groups": {
       "hub": "Centre de commande",
@@ -1000,7 +998,6 @@
     "buyAnotherBooster": "Racheter un booster",
     "tabs": {
       "boosters": "Boosters",
-
       "currency": "Monnaie",
       "battlePass": "Battle Pass"
     },
@@ -1015,7 +1012,6 @@
       "buyStripe": "Payer {n} €",
       "stripeNote": "Paiement sécurisé via Stripe Checkout (mode test ou live selon les clés)."
     },
-
     "battlePass": {
       "kicker": "Saison",
       "title": "Passe de saison Premium",
@@ -1028,6 +1024,18 @@
       "unavailableTitle": "Aucune saison active",
       "unavailableLead": "Revenez quand une saison Battle Pass sera ouverte.",
       "unlockStripe": "Payer {n} € (Stripe)"
+    },
+    "welcome": {
+      "kicker": "Offre unique",
+      "title": "Pack de bienvenue",
+      "lead": "Un coup de pouce discret pour démarrer la saison — une seule fois par compte.",
+      "itemBp": "Passe de saison Premium",
+      "itemTitle": "Titre « Mécène du Village »",
+      "itemBooster": "1 booster standard (5 cartes)",
+      "once": "Disponible une seule fois.",
+      "buyStripe": "Payer {n} €",
+      "buyStub": "Créditer (stub)",
+      "buyLocked": "Paiement indisponible"
     },
     "checkoutCanceled": "Paiement annulé.",
     "ryos": "Ryos",
@@ -1288,7 +1296,6 @@
         "costReduction": "prochaine carte : -{n} Chakra",
         "statusValue": "+{n} à l'intensité de l'effet"
       },
-
       "nextCardCostReady": "La prochaine carte bénéficie de -{n} Chakra",
       "nextCardCostReduction": "Réduction consommée : -{n} Chakra, coût final {cost}",
       "heldGainChakra": "Héritage : +{n} Chakra",
@@ -1482,7 +1489,6 @@
     "requestFriendName": "Envoyer une demande d’ami à {name}",
     "acceptFriend": "Accepter",
     "acceptFriendName": "Accepter la demande de {name}",
-
     "challenge": "Défier",
     "challengeName": "Défier {name}",
     "aiOpponent": "Adversaire piloté par l’IA",
@@ -1498,7 +1504,6 @@
     "searchFailed": "Impossible de rechercher des joueurs. Réessayez.",
     "friendsLoadFailed": "Impossible de charger les amis et les demandes. Actualisez pour réessayer.",
     "friendsUpdateFailed": "Impossible de confirmer la modification. Actualisez la liste des amis avant de réessayer.",
-
     "startFailed": "Impossible de lancer le duel. Actualisez la page de duel avant de réessayer.",
     "startConflict": "Le duel n’a pas pu être lancé. Vos duels ont été actualisés.",
     "opponentUnavailable": "Aucun adversaire disponible pour ce duel. Vérifiez votre deck actif ou essayez une autre option.",
@@ -1591,7 +1596,6 @@
     "talentPoints": "{count} point de talent disponible | {count} points de talent disponibles",
     "openMissions": "Aller aux missions",
     "openDecks": "Ouvrir les decks",
-
     "levelUpTitle": "Niveau supérieur !",
     "levelUpTitleMulti": "+{count} niveaux !",
     "levelUpTalent": "+{count} point de talent | +{count} points de talent",
@@ -1603,7 +1607,6 @@
       "Doton": "Doton",
       "Futon": "Fûton"
     },
-
     "stats": {
       "taijutsu": "Taijutsu",
       "ninjutsu": "Ninjutsu",
@@ -1631,7 +1634,8 @@
       "chunin": "Vétéran du terrain",
       "jonin": "Élite shinobi",
       "anbu": "Lame silencieuse",
-      "kage": "Légende du village"
+      "kage": "Légende du village",
+      "welcome": "Mécène du Village"
     },
     "avatarPicker": {
       "label": "Portrait",
@@ -2071,142 +2075,6 @@
     "reconNotifResultBody": "{outcome} contre {opponent} — +{ryos} Ryos.",
     "reconNotifLink": "Voir Missions"
   },
-  "eliteIdentity": {
-    "grade": {
-      "jonin": "Jonin",
-      "joninElite": "Jonin Élite",
-      "bot": "Sensei automatisé",
-      "guest": "Essai invité"
-    },
-    "eliteBadge": "Pack Élite actif",
-    "eliteShort": "Élite"
-  },
-  "eliteShowcase": {
-    "title": "Pack Élite — identité",
-    "lead": "Maquette du composant SenseiIdentity : identité visible par les autres joueurs.",
-    "hint": "Les abonnés Pack Élite deviennent Jonin Élite — pseudo coloré, titre personnalisable et bannière animée.",
-    "editorTitle": "Éditeur d'identité (preview)",
-    "editorHint": "Simulation de ce que le joueur configurera dans son profil une fois le Pack Élite actif.",
-    "fieldTitle": "Titre affiché",
-    "fieldBanner": "Bannière de fond",
-    "fieldColor": "Couleur du pseudo",
-    "previewSubtitle": "Division III · Saison 3 · 42 réputation",
-    "variantsTitle": "Variantes d'affichage",
-    "specRef": "Spec technique :"
-  },
-  "elitePack": {
-    "title": "Pack Élite",
-    "inactiveLead": "Devenez Jonin Élite pour la saison en cours : identité visible partout et season pass avec quêtes exclusives.",
-    "perkIdentity": "Pseudo coloré, titre et bannière animée visibles en ligue",
-    "perkSeasonPass": "Quêtes saison pour débloquer titres et bannières rares",
-    "perkSeasonAlign": "Abonnement calé sur la saison de ligue (10 cycles)",
-    "activateCta": "Activer le Pack Élite",
-    "checkoutConfirming": "Confirmation du paiement en cours…",
-    "checkoutSuccess": "Pack Élite activé pour la saison en cours. Bienvenue, Jonin Élite !",
-    "checkoutThanks": "Merci pour votre soutien au projet — c'est grâce à vous que Kage Legacy peut continuer à évoluer.",
-    "checkoutCanceled": "Paiement annulé — aucun montant n'a été débité.",
-    "activeBadge": "Jonin Élite · Saison active",
-    "seasonLabel": "Saison {season} · Journée {cycle}/{max}",
-    "seasonPassTitle": "Season pass",
-    "questDone": "Terminé",
-    "openTools": "Ouvrir les outils d'analyse Élite",
-    "identityTitle": "Votre identité publique",
-    "identityHint": "Visible dans le classement, les matchs, le clan et le marché.",
-    "identityPreview": "Aperçu de votre profil public",
-    "noTitle": "Sans titre",
-    "saveIdentity": "Enregistrer l'identité",
-    "reward": {
-      "title": "Récompense : titre « {slug} »",
-      "banner": "Récompense : bannière « {slug} »"
-    }
-  },
-  "eliteReport": {
-    "title": "Rapport Élite",
-    "show": "Afficher",
-    "hide": "Masquer",
-    "possession": "Plis gagnés",
-    "plisWon": "Plis remportés",
-    "plisSplit": "Plis gagnés (dom. / ext.)",
-    "pliWonHome": "pli domicile",
-    "pliWonAway": "pli extérieur",
-    "endReason": "Fin de match",
-    "endReasons": {
-      "points": "Aux points",
-      "ko": "Par K.O."
-    },
-    "ko": "KO (dom. / ext.)",
-    "decisiveTitle": "Moments décisifs",
-    "techniqueTitle": "Répartition des dégâts",
-    "myDamage": "Vos dégâts",
-    "oppDamage": "Dégâts adverses",
-    "received": "Reçus :",
-    "timelineTitle": "Timeline tour par tour",
-    "tour": "Tour {n}",
-    "heatmapTitle": "Heatmap élémentaire",
-    "heatmapDealt": "Dégâts infligés par élément",
-    "heatmapTaken": "Dégâts reçus par élément",
-    "heatmapCircle": "Cercle élémentaire : {adv} avantages · {dis} désavantages",
-    "deckComparisonTitle": "Decks au match (snapshots H71)",
-    "myDeck": "Votre deck",
-    "oppDeck": "Deck adverse",
-    "deckElements": "{n}/5 éléments",
-    "relaisTitle": "Relais & plis élément",
-    "relaisLine": "Relais gagnés : {mineRelais} vs {oppRelais} · Plis élément gagnés : {mineElement} vs {oppElement}",
-    "domainPliTitle": "Plis remportés par domaine",
-    "myPlisWon": "Vos plis gagnés",
-    "oppPlisWon": "Plis adverses gagnés"
-  },
-  "eliteTools": {
-    "title": "Outils Élite",
-    "pageTitle": "Outils Élite",
-    "pageLead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
-    "subscribersOnly": "Cette page est réservée aux abonnés Pack Élite.",
-    "goProfile": "Voir mon profil et activer le Pack Élite",
-    "loadError": "Impossible de charger les outils Élite.",
-    "retry": "Réessayer",
-    "empty": "Aucune donnée disponible pour le moment.",
-    "lead": "Analyses privées pour affiner votre stratégie — sans avantage en match.",
-    "seasonTitle": "Saison en cours",
-    "ordersTitle": "Votre deck d'opération",
-    "challengesTitle": "Défis de préparation",
-    "challengesLead": "Checklist avant H71 — éléments, techniques et voies. Aucun bonus en match, uniquement de la lecture.",
-    "challengesSummary": "{done} validés · {pending} à faire · {warning} attention",
-    "trainingTitle": "ROI entraînement",
-    "atCap": "cap atteint",
-    "matchupTitle": "Simulateur de matchup",
-    "matchupHint": "100 combats fictifs avec votre deck d'opération réel contre un deck adverse que vous configurez (techniques par emplacement, éléments, niveau de puissance). Tendance indicative.",
-    "customDeckTitle": "Deck adverse à simuler",
-    "opponentSlot": "Emplacement adverse {n}",
-    "techniquesConfigured": "Techniques configurées",
-    "relaisSlotHint": "Sans techniques → relais de comblement à la place des cartes technique.",
-    "opponentElements": "Éléments de deck ({count} max)",
-    "techniquePickCount": "{n}/{max} techniques sélectionnées",
-    "levelHint": "Ajuste la puissance globale de l'adversaire (±7 à 15 % sur les stats) — utile pour tester un rival plus fort ou plus faible.",
-    "presetFill": "Raccourcis",
-    "fillFromScout": "Pré-remplir depuis le scout",
-    "scoutPrefillUnavailable": {
-      "no_recon": "Reconnaissance requise sur {opponent} (H0–H36) pour utiliser le scout.",
-      "before_h36": "Espionnage disponible à partir de H36.",
-      "before_h54": "Intel deck de {opponent} disponible à H54.",
-      "deck_pending": "Rapport deck adverse en cours de collecte.",
-      "no_match": "Aucun match de ligue ce cycle.",
-      "no_pool": "Pas de ligue active.",
-      "error": "Erreur lors du chargement du scout."
-    },
-    "opponentProfile": "Profil deck adverse",
-    "opponentStyle": "Profil deck adverse",
-    "opponentComp": "Profil deck adverse",
-    "opponentLevel": "Niveau adverse",
-    "simLevel": "Niveau {level}",
-    "runSim": "Lancer la simulation",
-    "simDuel": "{mine} vs {opp}",
-    "simResult": "Victoire {win}% · Nul {draw}% · Défaite {loss}%",
-    "simMeta": "{runs} combats simulés · {tours} tours en moyenne · {ko}% finissent par KO",
-    "simCardProcs": "{pct}% des matchs avec proc carte ({rate}/match)",
-    "whyTitle": "Pourquoi cette tendance",
-    "adviceTitle": "Conseils",
-    "rulesCompLink": "Deck d'opération (règles du jeu)"
-  },
   "senseiProfile": {
     "title": "Profil Sensei",
     "statsLine": "Division {division} · Saison {season} · {points} pts · {reputation} réputation",
@@ -2214,10 +2082,8 @@
     "draws": "Nuls",
     "losses": "Défaites",
     "lastMatch": "Dernier match",
-    "ownHint": "Personnalisez votre identité et gérez le Pack Élite ci-dessous.",
+    "ownHint": "Personnalisez votre identité.",
     "ownBadge": "Votre profil public",
-    "eliteSectionTitle": "Pack Élite",
-    "eliteSectionLead": "Identité personnalisée et récompenses du passe de saison.",
     "heritageSectionTitle": "Mur de l'héritage",
     "reconChallengeSent": "Défi de reconnaissance envoyé à {name} — en attente d'acceptation."
   },
@@ -2288,7 +2154,7 @@
     },
     "reset": {
       "title": "Reset global de saison",
-      "warning": "Opération destructive : efface la progression de jeu tout en conservant comptes, clans, rouleaux d'héritage et abonnements Élite.",
+      "warning": "Opération destructive : efface la progression de jeu tout en conservant comptes, clans et rouleaux d'héritage.",
       "season": "Saison",
       "anchor": "Ancre H0 (date et heure)",
       "anchorHint": "Optionnel. Laissez vide pour ancrer H0 à l'heure d'exécution du reset (UTC). Sinon, indiquez la date et l'heure de début du cycle.",
@@ -2298,7 +2164,6 @@
       "confirmCheckbox": "Je comprends, exécuter le reset",
       "execute": "Lancer le hard reset",
       "humanPlayers": "{count} joueurs humains",
-      "eliteSubs": "{count} abonnements Élite",
       "ninjas": "{count} ninjas à supprimer",
       "pools": "{count} pools à supprimer",
       "matches": "{count} matchs à supprimer",
@@ -2490,7 +2355,6 @@
       "premium": "premium",
       "legendary": "légendaire"
     },
-
     "levelLabel": "Niveau",
     "tracksLabel": "Pistes de récompenses",
     "questsTitle": "Quêtes"

@@ -129,6 +129,18 @@ export const BATTLE_PASS = Object.freeze({
   maxLevel: 50,
   /** Caps design (tests). */
   maxPremiumXpMultiplier: 1.25,
+  /** Durée d’une saison auto-générée (jours UTC). */
+  seasonDurationDays: 90,
+});
+
+/** Pack bienvenue one-shot (Stripe / stub). */
+export const WELCOME_PACK = Object.freeze({
+  id: 'welcome',
+  priceEur: 5,
+  /** Repli si aucune saison BP active au fulfillment. */
+  fallbackKageCoins: 500,
+  boosterType: 'standard',
+  nicknameId: 'welcome',
 });
 
 /** Quêtes BP — montants XP de référence (seeds / doc). */
@@ -258,6 +270,7 @@ export default {
   UPGRADE_COSTS,
   BATTLE_PASS,
   BATTLE_PASS_QUEST_XP,
+  WELCOME_PACK,
   winsForStandardBooster,
   resolveCombatRewards,
   validateEconomyInvariants,

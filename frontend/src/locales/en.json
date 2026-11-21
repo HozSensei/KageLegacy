@@ -11,7 +11,6 @@
     "expandSection": "Expand"
   },
   "errors": {
-    "eliteRequired": "Elite Pack required.",
     "wsDisconnected": "WebSocket not connected."
   },
   "gameClock": {
@@ -286,7 +285,6 @@
     "collection": "Collection",
     "decks": "Decks",
     "shop": "Shop",
-    "eliteTools": "Elite tools",
     "admin": "Administration",
     "groups": {
       "hub": "Command hub",
@@ -1000,7 +998,6 @@
     "buyAnotherBooster": "Buy another booster",
     "tabs": {
       "boosters": "Boosters",
-
       "currency": "Currency",
       "battlePass": "Battle Pass"
     },
@@ -1015,7 +1012,6 @@
       "buyStripe": "Pay €{n}",
       "stripeNote": "Secure payment via Stripe Checkout (test or live depending on keys)."
     },
-
     "battlePass": {
       "kicker": "Season",
       "title": "Premium season Pass",
@@ -1028,6 +1024,18 @@
       "unavailableTitle": "No active season",
       "unavailableLead": "Come back when a Battle Pass season is live.",
       "unlockStripe": "Pay €{n} (Stripe)"
+    },
+    "welcome": {
+      "kicker": "One-time offer",
+      "title": "Welcome pack",
+      "lead": "A quiet boost to start the season — once per account.",
+      "itemBp": "Premium Battle Pass",
+      "itemTitle": "“Village Patron” title",
+      "itemBooster": "1 standard booster (5 cards)",
+      "once": "Available only once.",
+      "buyStripe": "Pay €{n}",
+      "buyStub": "Credit (stub)",
+      "buyLocked": "Payment unavailable"
     },
     "checkoutCanceled": "Payment canceled.",
     "ryos": "Ryos",
@@ -1288,7 +1296,6 @@
         "costReduction": "next card: -{n} Chakra",
         "statusValue": "+{n} effect intensity"
       },
-
       "nextCardCostReady": "The next card costs {n} less Chakra",
       "nextCardCostReduction": "Discount consumed: -{n} Chakra, final cost {cost}",
       "heldGainChakra": "Heritage: +{n} Chakra",
@@ -1482,7 +1489,6 @@
     "requestFriendName": "Send a friend request to {name}",
     "acceptFriend": "Accept",
     "acceptFriendName": "Accept the request from {name}",
-
     "challenge": "Challenge",
     "challengeName": "Challenge {name}",
     "aiOpponent": "AI-controlled opponent",
@@ -1498,7 +1504,6 @@
     "searchFailed": "Could not search for players. Please try again.",
     "friendsLoadFailed": "Could not load friends and requests. Select Refresh to try again.",
     "friendsUpdateFailed": "Could not confirm the change. Refresh the friends list before trying again.",
-
     "startFailed": "Could not start the duel. Refresh before trying again.",
     "startConflict": "The duel could not be started. Your duels have been refreshed.",
     "opponentUnavailable": "No opponent is available for this duel. Check your active deck or try another option.",
@@ -1635,7 +1640,6 @@
       "premium": "premium",
       "legendary": "legendary"
     },
-
     "levelLabel": "Level",
     "tracksLabel": "Reward tracks",
     "questsTitle": "Quests"
@@ -1659,7 +1663,6 @@
     "talentPoints": "{count} talent point available | {count} talent points available",
     "openMissions": "Go to missions",
     "openDecks": "Open decks",
-
     "levelUpTitle": "Level up!",
     "levelUpTitleMulti": "+{count} levels!",
     "levelUpTalent": "+{count} talent point | +{count} talent points",
@@ -1671,7 +1674,6 @@
       "Doton": "Doton",
       "Futon": "Futon"
     },
-
     "stats": {
       "taijutsu": "Taijutsu",
       "ninjutsu": "Ninjutsu",
@@ -1699,7 +1701,8 @@
       "chunin": "Field Veteran",
       "jonin": "Shinobi Elite",
       "anbu": "Silent Blade",
-      "kage": "Village Legend"
+      "kage": "Village Legend",
+      "welcome": "Village Patron"
     },
     "avatarPicker": {
       "label": "Portrait",
@@ -2139,142 +2142,6 @@
     "reconNotifResultBody": "{outcome} vs {opponent} — +{ryos} Ryos.",
     "reconNotifLink": "View Missions"
   },
-  "eliteIdentity": {
-    "grade": {
-      "jonin": "Jonin",
-      "joninElite": "Elite Jonin",
-      "bot": "Automated sensei",
-      "guest": "Guest trial"
-    },
-    "eliteBadge": "Elite Pack active",
-    "eliteShort": "Elite"
-  },
-  "eliteShowcase": {
-    "title": "Elite Pack — identity",
-    "lead": "SenseiIdentity component mockup: identity visible to other players.",
-    "hint": "Elite Pack subscribers become Elite Jonin — colored name, customizable title, and animated banner.",
-    "editorTitle": "Identity editor (preview)",
-    "editorHint": "Preview of what players will configure in their profile once Elite Pack is active.",
-    "fieldTitle": "Displayed title",
-    "fieldBanner": "Background banner",
-    "fieldColor": "Name color",
-    "previewSubtitle": "Division III · Season 3 · 42 reputation",
-    "variantsTitle": "Display variants",
-    "specRef": "Technical spec:"
-  },
-  "elitePack": {
-    "title": "Elite Pack",
-    "inactiveLead": "Become an Elite Jonin for the current season: public identity everywhere and a season pass with exclusive quests.",
-    "perkIdentity": "Colored name, title and animated banner visible in league",
-    "perkSeasonPass": "Season quests to unlock rare titles and banners",
-    "perkSeasonAlign": "Subscription aligned with the league season (10 cycles)",
-    "activateCta": "Activate Elite Pack",
-    "checkoutConfirming": "Confirming payment…",
-    "checkoutSuccess": "Elite Pack activated for the current season. Welcome, Elite Jonin!",
-    "checkoutThanks": "Thank you for supporting the project — you're helping Kage Legacy keep growing.",
-    "checkoutCanceled": "Payment canceled — you were not charged.",
-    "activeBadge": "Elite Jonin · Active season",
-    "seasonLabel": "Season {season} · Matchday {cycle}/{max}",
-    "seasonPassTitle": "Season pass",
-    "questDone": "Done",
-    "openTools": "Open Elite analysis tools",
-    "identityTitle": "Your public identity",
-    "identityHint": "Visible in standings, matches, clan and market.",
-    "identityPreview": "Public profile preview",
-    "noTitle": "No title",
-    "saveIdentity": "Save identity",
-    "reward": {
-      "title": "Reward: title « {slug} »",
-      "banner": "Reward: banner « {slug} »"
-    }
-  },
-  "eliteReport": {
-    "title": "Elite Report",
-    "show": "Show",
-    "hide": "Hide",
-    "possession": "Plis won",
-    "plisWon": "Plis won",
-    "plisSplit": "Plis won (home / away)",
-    "pliWonHome": "home pli",
-    "pliWonAway": "away pli",
-    "endReason": "Match end",
-    "endReasons": {
-      "points": "On points",
-      "ko": "By K.O."
-    },
-    "ko": "KO (home / away)",
-    "decisiveTitle": "Decisive moments",
-    "techniqueTitle": "Damage breakdown",
-    "myDamage": "Your damage",
-    "oppDamage": "Opponent damage",
-    "received": "Received:",
-    "timelineTitle": "Turn-by-turn timeline",
-    "tour": "Turn {n}",
-    "heatmapTitle": "Elemental heatmap",
-    "heatmapDealt": "Damage dealt by element",
-    "heatmapTaken": "Damage taken by element",
-    "heatmapCircle": "Element circle: {adv} advantages · {dis} disadvantages",
-    "deckComparisonTitle": "Decks at match (H71 snapshots)",
-    "myDeck": "Your deck",
-    "oppDeck": "Opponent deck",
-    "deckElements": "{n}/5 elements",
-    "relaisTitle": "Relay & element plis",
-    "relaisLine": "Relay plis won: {mineRelais} vs {oppRelais} · Element plis won: {mineElement} vs {oppElement}",
-    "domainPliTitle": "Plis won by domain",
-    "myPlisWon": "Your plis won",
-    "oppPlisWon": "Opponent plis won"
-  },
-  "eliteTools": {
-    "title": "Elite Tools",
-    "pageTitle": "Elite Tools",
-    "pageLead": "Private analytics to refine your strategy — no in-match advantage.",
-    "subscribersOnly": "This page is for Elite Pack subscribers only.",
-    "goProfile": "View my profile and activate the Elite Pack",
-    "loadError": "Could not load Elite tools.",
-    "retry": "Retry",
-    "empty": "No data available right now.",
-    "lead": "Private analytics to refine your strategy — no in-match advantage.",
-    "seasonTitle": "Current season",
-    "ordersTitle": "Your operation deck",
-    "challengesTitle": "Preparation challenges",
-    "challengesLead": "Pre-H71 checklist — elements, techniques and arts. No in-match bonus, guidance only.",
-    "challengesSummary": "{done} done · {pending} pending · {warning} warnings",
-    "trainingTitle": "Training ROI",
-    "atCap": "at cap",
-    "matchupTitle": "Matchup simulator",
-    "matchupHint": "100 fictional fights using your real operation deck against an opponent deck you configure (per-slot techniques, elements, power level). Indicative trend only.",
-    "customDeckTitle": "Opponent deck to simulate",
-    "opponentSlot": "Opponent slot {n}",
-    "techniquesConfigured": "Techniques configured",
-    "relaisSlotHint": "No techniques → relay filler cards instead of technique cards.",
-    "opponentElements": "Deck elements ({count} max)",
-    "techniquePickCount": "{n}/{max} techniques selected",
-    "levelHint": "Scales opponent global power (±7 to 15% on stats) — useful to test a stronger or weaker rival.",
-    "presetFill": "Shortcuts",
-    "fillFromScout": "Fill from scout report",
-    "scoutPrefillUnavailable": {
-      "no_recon": "Recon mission required vs {opponent} (H0–H36) to use scout data.",
-      "before_h36": "Scouting unlocks at H36.",
-      "before_h54": "Deck intel on {opponent} unlocks at H54.",
-      "deck_pending": "Opponent deck report still pending.",
-      "no_match": "No league match this cycle.",
-      "no_pool": "No active league pool.",
-      "error": "Scout data could not be loaded."
-    },
-    "opponentProfile": "Opponent deck profile",
-    "opponentStyle": "Opponent deck profile",
-    "opponentComp": "Opponent deck profile",
-    "opponentLevel": "Opponent level",
-    "simLevel": "Level {level}",
-    "runSim": "Run simulation",
-    "simDuel": "{mine} vs {opp}",
-    "simResult": "Win {win}% · Draw {draw}% · Loss {loss}%",
-    "simMeta": "{runs} simulated fights · {tours} avg turns · {ko}% end by KO",
-    "simCardProcs": "{pct}% of matches with card proc ({rate}/match)",
-    "whyTitle": "Why this trend",
-    "adviceTitle": "Advice",
-    "rulesCompLink": "Operation deck (game rules)"
-  },
   "senseiProfile": {
     "title": "Sensei profile",
     "statsLine": "Division {division} · Season {season} · {points} pts · {reputation} reputation",
@@ -2282,10 +2149,8 @@
     "draws": "Draws",
     "losses": "Losses",
     "lastMatch": "Last match",
-    "ownHint": "Customize your identity and manage the Elite Pack below.",
+    "ownHint": "Customize your identity.",
     "ownBadge": "Your public profile",
-    "eliteSectionTitle": "Elite Pack",
-    "eliteSectionLead": "Custom identity and season pass rewards.",
     "heritageSectionTitle": "Heritage wall",
     "reconChallengeSent": "Reconnaissance challenge sent to {name} — awaiting acceptance."
   },
@@ -2356,7 +2221,6 @@
     },
     "reset": {
       "title": "Global season reset",
-      "warning": "Destructive operation: wipes gameplay while keeping accounts, clans, heritage scrolls, and Elite subscriptions.",
       "season": "Season",
       "anchor": "H0 anchor (date and time)",
       "anchorHint": "Optional. Leave empty to anchor H0 at reset execution time (UTC). Otherwise set the cycle start date and time.",
@@ -2366,7 +2230,6 @@
       "confirmCheckbox": "I understand, run the reset",
       "execute": "Run hard reset",
       "humanPlayers": "{count} human players",
-      "eliteSubs": "{count} Elite subscriptions",
       "ninjas": "{count} ninjas to delete",
       "pools": "{count} pools to delete",
       "matches": "{count} matches to delete",

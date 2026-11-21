@@ -12,12 +12,16 @@ import {
   ASPIRANT_RANK,
   DEFAULT_AVATAR_ID,
   MAX_LEVEL,
-  NICKNAME_CATALOG,
   isAvatarAvailableToRank,
+  mergeNicknameCatalog,
   rankForLevel,
   serializeCharacterAppearance,
   unlockedNicknameIdsFor,
 } from './characterAppearance.js';
+import {
+  catalogEntriesForGrantedIds,
+  listGrantedNicknameIds,
+} from './nicknameUnlockService.js';
 import { assignFactionFromSeed, getFaction, isValidFactionId } from './factionCatalog.js';
 
 export { MAX_LEVEL, rankForLevel };
@@ -135,15 +139,19 @@ export async function getComputedStats(userId, { deckPassives } = {}) {
 function serializeCharacter(row, extras = {}) {
   if (!row) return null;
   const factionId = row.faction_id ?? extras.factionId ?? null;
+  const grantedNicknameIds = extras.grantedNicknameIds || [];
+  const nicknameCatalog = mergeNicknameCatalog(catalogEntriesForGrantedIds(grantedNicknameIds));
+  const restExtras = { ...extras };
+  delete restExtras.grantedNicknameIds;
   return {
     id: row.id,
     userId: row.user_id,
     name: row.name,
     avatarUrl: row.avatar_url || null,
     profile: {
-      ...serializeCharacterAppearance(row),
-      unlockedNicknameIds: unlockedNicknameIdsFor(row),
-      nicknameCatalog: NICKNAME_CATALOG,
+      ...serializeCharacterAppearance(row, grantedNicknameIds),
+      unlockedNicknameIds: unlockedNicknameIdsFor(row, grantedNicknameIds),
+      nicknameCatalog,
     },
     level: row.level,
     xp: row.xp,
@@ -156,7 +164,7 @@ function serializeCharacter(row, extras = {}) {
     factionRetakeUsed: Boolean(row.faction_retake_used),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    ...extras,
+    ...restExtras,
   };
 }
 
@@ -261,8 +269,11 @@ export async function getCharacter(userId) {
   const row = await fetchCharacterRow(userId);
   if (!row) return null;
 
-  const stats = await getComputedStats(userId);
-  return serializeCharacter(row, { stats });
+  const [stats, grantedNicknameIds] = await Promise.all([
+    getComputedStats(userId),
+    listGrantedNicknameIds(userId),
+  ]);
+  return serializeCharacter(row, { stats, grantedNicknameIds });
 }
 
 export async function updateCharacterProfile(userId, input) {
@@ -275,7 +286,11 @@ export async function updateCharacterProfile(userId, input) {
     if (patch.avatarId !== undefined && !isAvatarAvailableToRank(patch.avatarId, row.rank)) {
       throw httpError(400, 'Portrait non disponible à ce rang.');
     }
-    if (patch.nicknameId != null && !unlockedNicknameIdsFor(row).includes(patch.nicknameId)) {
+    const grantedNicknameIds = await listGrantedNicknameIds(userId, connection);
+    if (
+      patch.nicknameId != null &&
+      !unlockedNicknameIdsFor(row, grantedNicknameIds).includes(patch.nicknameId)
+    ) {
       throw httpError(400, 'Surnom non débloqué.');
     }
 
