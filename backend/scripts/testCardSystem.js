@@ -333,7 +333,13 @@ for (const [slug, statType, damage, draw] of [
 const emberEdge = catalogBySlug.get('lame-de-braise');
 assert(
   emberEdge.baseDamage === 8 &&
-    emberEdge.effects.some(effect => effect.status === 'burn' && effect.value === 2),
+    emberEdge.effects.some(
+      effect =>
+        effect.type === 'apply_status' &&
+        effect.status === 'burn' &&
+        effect.duration === 2 &&
+        effect.value == null,
+    ),
   'ember edge burn tradeoff',
 );
 const sleepBlade = catalogBySlug.get('lame-du-sommeil');
