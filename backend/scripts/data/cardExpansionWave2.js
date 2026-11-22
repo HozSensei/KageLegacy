@@ -359,10 +359,13 @@ export const EXPANSION_WAVE2_CARDS = [
     effects: [
       { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
       { type: 'bonus_if', condition: 'enemy_vulnerable', value: 4 },
+      { type: 'apply_status', status: 'madness', duration: 1 },
     ],
     passive: { genjutsu: 2, intelligence: 1 },
-    descriptionFr: 'Inflige 7 dégâts. +4 si l’ennemi est Vulnérable. Faiblesse 1 (2 tours).',
-    descriptionEn: 'Deal 7 damage. +4 if the enemy is Vulnerable. Weak 1 (2 turns).',
+    descriptionFr:
+      'Inflige 7 dégâts. +4 si l’ennemi est Vulnérable. Faiblesse 1 (2 tours). Folie (1 tour).',
+    descriptionEn:
+      'Deal 7 damage. +4 if the enemy is Vulnerable. Weak 1 (2 turns). Madness (1 turn).',
     upgrades: {
       level_1: { damage: 3, passive: { genjutsu: 1 } },
       level_2: { damage: 5, passive: { genjutsu: 2, intelligence: 1 } },
@@ -760,11 +763,12 @@ export const EXPANSION_WAVE2_CARDS = [
     effects: [
       { type: 'apply_status', status: 'weak', value: 2, duration: 2 },
       { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'madness', duration: 2 },
       { type: 'draw', value: 1 },
     ],
     passive: { genjutsu: 5, intelligence: 3 },
-    descriptionFr: 'Inflige 14 dégâts. Faiblesse 2, Vulnérable, piochez 1.',
-    descriptionEn: 'Deal 14 damage. Weak 2, Vulnerable, draw 1.',
+    descriptionFr: 'Inflige 14 dégâts. Faiblesse 2, Vulnérable, Folie (2 tours). Piochez 1.',
+    descriptionEn: 'Deal 14 damage. Weak 2, Vulnerable, Madness (2 turns). Draw 1.',
     upgrades: {
       level_1: { damage: 4, passive: { genjutsu: 2 } },
       level_2: { damage: 7, cost: -1, passive: { genjutsu: 3, intelligence: 2 } },
@@ -1358,10 +1362,13 @@ export const EXPANSION_WAVE2_CARDS = [
     statType: 'genjutsu',
     rarity: 'common',
     cost: 1,
-    effects: [{ type: 'apply_status', status: 'weak', value: 1, duration: 2 }],
+    effects: [
+      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
+      { type: 'apply_status', status: 'madness', duration: 1 },
+    ],
     passive: { genjutsu: 2 },
-    descriptionFr: 'Applique Faiblesse 1 pendant 2 tours.',
-    descriptionEn: 'Apply Weak 1 for 2 turns.',
+    descriptionFr: 'Faiblesse 1 (2 tours). Folie (1 tour).',
+    descriptionEn: 'Weak 1 (2 turns). Madness (1 turn).',
     upgrades: {
       level_1: { passive: { genjutsu: 1 } },
       level_2: { passive: { genjutsu: 2, intelligence: 1 } },

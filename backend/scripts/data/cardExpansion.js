@@ -490,10 +490,13 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'common',
     cost: 2,
     damage: 9,
-    effects: [{ type: 'apply_status', status: 'vulnerable', value: 1 }],
+    effects: [
+      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'madness', duration: 2 },
+    ],
     passive: { genjutsu: 3, intelligence: 1 },
-    descriptionFr: 'Inflige 9 dégâts. Applique Vulnérable.',
-    descriptionEn: 'Deal 9 damage. Apply Vulnerable.',
+    descriptionFr: 'Inflige 9 dégâts. Vulnérable. Folie (2 tours).',
+    descriptionEn: 'Deal 9 damage. Vulnerable. Madness (2 turns).',
     upgrades: {
       level_1: { damage: 3, passive: { genjutsu: 1 } },
       level_2: { damage: 6, passive: { genjutsu: 2, intelligence: 1 } },
