@@ -117,6 +117,48 @@ assert(
   'short first combat available',
 );
 
+console.log('=== N-way branch + nested skip ===');
+const triple = [
+  { id: 'root', type: 'combat', status: 'cleared', nextNodeId: 'fork' },
+  {
+    id: 'fork',
+    type: 'branch',
+    status: 'available',
+    choices: [
+      { id: 'a', nextNodeId: 'a1', xpMult: 1 },
+      { id: 'b', nextNodeId: 'b1', xpMult: 1.2 },
+      { id: 'c', nextNodeId: 'c1', xpMult: 1.5 },
+    ],
+  },
+  { id: 'a1', type: 'combat', status: 'locked', nextNodeId: 'a2' },
+  { id: 'a2', type: 'combat', status: 'locked' },
+  { id: 'b1', type: 'rest', status: 'locked', nextNodeId: 'b-fork' },
+  {
+    id: 'b-fork',
+    type: 'branch',
+    status: 'locked',
+    choices: [
+      { id: 'b-x', nextNodeId: 'bx', xpMult: 1 },
+      { id: 'b-y', nextNodeId: 'by', xpMult: 1 },
+    ],
+  },
+  { id: 'bx', type: 'combat', status: 'locked' },
+  { id: 'by', type: 'combat', status: 'locked' },
+  { id: 'c1', type: 'shop', status: 'locked', nextNodeId: 'c2' },
+  { id: 'c2', type: 'combat', status: 'locked', boss: true },
+];
+const pickedB = applyBranchChoice(triple, 1, 'b');
+assert(pickedB.branchId === 'b', 'chose mid branch b');
+assert(
+  ['a1', 'a2', 'c1', 'c2'].every(id => pickedB.nodes.find(n => n.id === id)?.status === 'skipped'),
+  'rejected sibling subtrees skipped',
+);
+assert(
+  ['b1', 'b-fork', 'bx', 'by'].every(id => pickedB.nodes.find(n => n.id === id)?.status !== 'skipped'),
+  'chosen subtree kept (incl. nested fork)',
+);
+assert(pickedB.nodes.find(n => n.id === 'b1')?.status === 'available', 'b entry unlocked');
+
 const sanitized = sanitizeNodesForClient(
   buildRandomRunPath('D', { rng: () => 0.3 }).map(n =>
     n.type === 'shop' ? { ...n, status: 'locked' } : n,
