@@ -33,6 +33,8 @@ const COMBO_STAT_TYPES = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'
 export const SUMMON_DEFAULT_EVADE_CHANCE = 0.35;
 /** Brûlure appliquée à chaque frappe d'une invocation `burn`. */
 export const SUMMON_DEFAULT_BURN = { value: 2, duration: 2 };
+/** Multiplicateur d'ATK pour l'invocation `strike`. */
+export const SUMMON_STRIKE_ATK_MULT = 1.25;
 
 /**
  * Lit les capacités d'invocation depuis le bloc summon (flags, abilities[], description).
@@ -40,7 +42,7 @@ export const SUMMON_DEFAULT_BURN = { value: 2, duration: 2 };
  * - regen : soigne le joueur (allié utilitaire) au début de son tour
  * - evade : chance d'esquive pour le joueur tant que l'allié vit
  * - burn : applique Brûlure à chaque frappe de l'allié
- * - strike : non mécanisé pour l'instant (flavour / ATK déjà haute sur les cartes)
+ * - strike : +25 % ATK sur les frappes de l'allié
  */
 export function resolveSummonTraits(def = {}) {
   const abilities = Array.isArray(def.abilities)
@@ -96,6 +98,14 @@ export function allyEvadeChance(entity) {
   const ally = entity?.ally;
   if (!ally || (Number(ally.hp) || 0) <= 0) return 0;
   return Math.min(0.75, Math.max(0, Number(ally.evadeChance) || 0));
+}
+
+/** Dégâts d'attaque d'une invocation (strike = +25 % ATK). */
+export function allyAttackDamage(ally) {
+  const base = Math.max(0, Number(ally?.attack) || 0);
+  if (base <= 0) return 0;
+  if (!ally?.strike) return base;
+  return Math.max(1, Math.round(base * SUMMON_STRIKE_ATK_MULT));
 }
 
 export function buildAllyFromSummon(card) {
@@ -490,7 +500,7 @@ export function resolveAllyAttack(player, enemy) {
   if (!nextPlayer.ally || (nextPlayer.ally.hp || 0) <= 0) {
     return { player: nextPlayer, enemy: nextEnemy, logs };
   }
-  const atk = Number(nextPlayer.ally.attack) || 0;
+  const atk = allyAttackDamage(nextPlayer.ally);
   if (atk <= 0) return { player: nextPlayer, enemy: nextEnemy, logs };
 
   const hit = hitEnemy(
@@ -505,6 +515,7 @@ export function resolveAllyAttack(player, enemy) {
     name: nextPlayer.ally.nameFr || nextPlayer.ally.nameEn,
     amount: hit.damageDealt,
     enemyHp: nextEnemy.hp,
+    strike: Boolean(nextPlayer.ally.strike),
   });
   logs.push(
     ...hit.logs.filter(

@@ -162,7 +162,7 @@ Les immunités de boss s'appliquent aux états protégés. Un type d'effet incon
 
 ## Invocations
 
-Une seule invocation est active. En jouer une nouvelle remplace l'ancienne. L'invocation attaque au début du tour dans le moteur PvE. Capacités supportées : **Provocation** (`taunt`) redirige les dégâts vers l'allié ; **Régénération** (`regen`) soigne le joueur au début de son tour ; **Esquive** (`evade`) ajoute une chance d'esquive au joueur tant que l'allié vit ; **Brûlure** (`burn`) applique Brûlure à chaque frappe de l'allié. **Strike** reste flavour (non mécanisé). Les autres capacités textuelles ne sont actives que si le moteur possède leur implémentation.
+Une seule invocation est active. En jouer une nouvelle remplace l'ancienne. L'invocation attaque au début du tour dans le moteur PvE. Capacités supportées : **Provocation** (`taunt`) redirige les dégâts vers l'allié ; **Régénération** (`regen`) soigne le joueur au début de son tour ; **Esquive** (`evade`) ajoute une chance d'esquive au joueur tant que l'allié vit ; **Brûlure** (`burn`) applique Brûlure à chaque frappe de l'allié ; **Frappe** (`strike`) inflige +25 % ATK. Les autres capacités textuelles ne sont actives que si le moteur possède leur implémentation.
 
 ## Boss
 

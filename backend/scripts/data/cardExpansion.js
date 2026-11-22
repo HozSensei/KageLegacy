@@ -1519,7 +1519,7 @@ export const EXPANSION_WAVE1_CARDS = [
       attack: 10,
       duration: 2,
       abilities: ['evade', 'strike'],
-      description: 'Attaque rapide et esquive',
+      description: 'Frappe +25 % ATK et esquive',
     },
     passive: { ninjutsu: 4, vitesse: 3 },
     descriptionFr: 'Invoque un faucon de foudre (26 PV, 10 ATK, 2 tours en PvP).',

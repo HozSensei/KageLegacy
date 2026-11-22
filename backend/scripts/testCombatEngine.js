@@ -511,6 +511,31 @@ assert(
   'allié burn applique Brûlure',
 );
 
+const strikeCard = {
+  slug: 'test-falcon',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Faucon', hp: 20, attack: 8, abilities: ['strike'] },
+};
+const strikeSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: strikeCard,
+  stats: {},
+});
+assert(strikeSummoned.player.ally?.strike === true, 'strike lu depuis abilities');
+const strikeHit = resolveAllyAttack(strikeSummoned.player, {
+  hp: 40,
+  maxHp: 40,
+  block: 0,
+  statuses: [],
+});
+assert(strikeHit.enemy.hp === 30, 'strike inflige +25 % ATK (8 → 10)');
+assert(
+  strikeHit.logs.some(log => log.type === 'ally_attack' && log.amount === 10 && log.strike),
+  'log ally_attack avec strike',
+);
+
 console.log('\n=== Talent effects ===');
 const seededEffects = [...new Set(TALENT_NODE_DEFS.filter(n => n.effect).map(n => n.effect))];
 const classifiedAll = classifyTalentEffects(seededEffects);

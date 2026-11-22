@@ -350,6 +350,7 @@ A Summon card calls an **ally**. You can only have **one** at a time: a new summ
 - An ally with **Regeneration** heals you at the start of your turn (utility ally).
 - An ally with **Evade** increases your chance to dodge attacks while it is alive.
 - An ally with **Burn** applies Burn to the enemy on every strike.
+- An ally with **Strike** deals **+25%** attack damage.
 
 ### End of the fight
 
@@ -519,7 +520,7 @@ Once an opponent is found, the duel starts as soon as both players are ready.
 
 PvP does not use persistent hands. You start with 100 HP plus your max HP bonus and 3 base Chakra plus your max Chakra bonuses. You draw 5 cards each turn and automatically carry over up to 1 Chakra. Once per turn, you can either discard a card for 1 Chakra or reserve a card. Players take turns and can forfeit. Unplayed cards are discarded at the end of the turn; the reserved card returns before the next draw, subject to the 10-card hand limit.
 
-The duel uses some PvE calculations for cards, statuses, and talents, **without guaranteeing full parity**: only effects and data passed to and supported by PvP apply. Damage notably uses stats and path advantages; the opponent's dominant path acts as their stance. The opposing player's elemental affinity is currently not passed to the duel engine, so attacks remain neutral against that affinity. Summons have duel-specific handling: only one at a time, they attack at the start of their owner's turn and expire according to their duration. A summon with **Taunt** intercepts damage, with any excess reaching its owner; **Regeneration**, **Evade**, and **Burn** are also reproduced in duels. **Strike** remains flavor. Ordinary cards' exhaust flag is currently not passed to the duel, so they normally go to the discard pile after use, unlike summons.
+The duel uses some PvE calculations for cards, statuses, and talents, **without guaranteeing full parity**: only effects and data passed to and supported by PvP apply. Damage notably uses stats and path advantages; the opponent's dominant path acts as their stance. The opposing player's elemental affinity is currently not passed to the duel engine, so attacks remain neutral against that affinity. Summons have duel-specific handling: only one at a time, they attack at the start of their owner's turn and expire according to their duration. A summon with **Taunt** intercepts damage, with any excess reaching its owner; **Regeneration**, **Evade**, **Burn**, and **Strike** (+25% ATK) are also reproduced in duels. Ordinary cards' exhaust flag is currently not passed to the duel, so they normally go to the discard pile after use, unlike summons.
 
 **In PvP, remaining armor disappears at the end of its owner's turn**, unlike PvE where it protects during the enemy turn. Your hand and reserved card are hidden from your opponent.
 

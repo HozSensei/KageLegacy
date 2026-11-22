@@ -104,6 +104,7 @@ const chain = computed(() => {
           }}</span
         >
         <span v-if="fighter.ally.burn">· {{ t('combat.allyBurn') }}</span>
+        <span v-if="fighter.ally.strike">· {{ t('combat.allyStrike') }}</span>
         <span v-if="fighter.ally.remainingTurns != null">
           · {{ t('combat.allyTurns', { n: fighter.ally.remainingTurns }) }}
         </span>

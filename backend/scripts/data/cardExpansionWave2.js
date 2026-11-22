@@ -1938,7 +1938,7 @@ export const EXPANSION_WAVE2_CARDS = [
       attack: 11,
       duration: 2,
       abilities: ['strike', 'evade'],
-      description: 'Frappe puissante et esquive',
+      description: 'Frappe +25 % ATK et esquive',
     },
     passive: { ninjutsu: 4, vitesse: 3, intelligence: 1 },
     descriptionFr: 'Invoque un dragon de nuage (30 PV, 11 ATK, 2 tours en PvP).',

@@ -27,6 +27,7 @@ import {
   getStatusValue,
 } from '../../backend/src/services/deckCombat/formulas.js';
 import {
+  allyAttackDamage,
   allyEvadeChance,
   resolveSummonTraits,
   SUMMON_DEFAULT_BURN,
@@ -711,10 +712,11 @@ function resolveAllyAttack(attacker, target, seat) {
   let nextTarget = target;
   const logs = [...regenerated.logs];
   const ally = nextAttacker.ally;
-  if (!ally || ally.hp <= 0 || ally.attack <= 0) {
+  const atk = allyAttackDamage(ally);
+  if (!ally || ally.hp <= 0 || atk <= 0) {
     return { attacker: nextAttacker, target: nextTarget, logs };
   }
-  const result = applyIncomingDamage(nextTarget, ally.attack, seat);
+  const result = applyIncomingDamage(nextTarget, atk, seat);
   nextTarget = result.fighter;
   logs.push({
     type: 'ally_attack',
@@ -722,7 +724,8 @@ function resolveAllyAttack(attacker, target, seat) {
     name: ally.nameFr,
     nameFr: ally.nameFr,
     nameEn: ally.nameEn,
-    amount: ally.attack,
+    amount: atk,
+    strike: Boolean(ally.strike),
   });
   logs.push(...result.logs);
 
