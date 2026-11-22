@@ -244,19 +244,26 @@ function statusLabel(node) {
 }
 
 .path-tree__tabs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-  gap: 0.55rem;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
   margin: 0.85rem 0 0.35rem;
+  padding: 0.15rem 0.1rem 0.35rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .path-tree__tab {
   display: grid;
-  gap: 0.15rem;
+  gap: 0.12rem;
+  flex: 1 1 0;
+  min-width: 7.25rem;
   justify-items: start;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid var(--color-line);
-  background: var(--color-bg-card);
+  padding: 0.55rem 0.65rem;
+  border: 1.5px solid var(--color-line-strong);
+  background: color-mix(in srgb, var(--color-ink) 6%, var(--color-bg));
   color: var(--color-ink-muted);
   font: inherit;
   text-align: left;
@@ -264,31 +271,33 @@ function statusLabel(node) {
   transition:
     border-color var(--dur-base) ease,
     background var(--dur-base) ease,
-    color var(--dur-base) ease;
+    color var(--dur-base) ease,
+    box-shadow var(--dur-base) ease;
 }
 
 .path-tree__tab:hover {
-  border-color: var(--color-line-strong);
+  border-color: color-mix(in srgb, var(--color-sky-fill) 70%, var(--color-line-strong));
   color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-sky-fill) 14%, var(--color-bg));
 }
 
 .path-tree__tab--active {
-  border-color: var(--color-sky-fill, #3b82a8);
-  background: color-mix(in srgb, var(--color-sky-fill, #3b82a8) 14%, var(--color-bg-card));
+  border-color: var(--color-sky-fill);
+  background: color-mix(in srgb, var(--color-sky-fill) 22%, var(--color-sky-tint));
   color: var(--color-ink);
-  box-shadow: inset 0 -3px 0 var(--color-sky-fill, #3b82a8);
+  box-shadow: inset 0 -3px 0 var(--color-sky-fill);
 }
 
 .path-tree__tab-name {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 800;
   line-height: 1.15;
 }
 
 .path-tree__tab-meta,
 .path-tree__tab-count {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--color-ink-muted);
@@ -303,7 +312,7 @@ function statusLabel(node) {
   position: relative;
   margin-top: 0.35rem;
   padding: 0.35rem 0 0 0.85rem;
-  border-left: 3px solid color-mix(in srgb, var(--color-sky-fill, #3b82a8) 55%, var(--color-line));
+  border-left: 3px solid color-mix(in srgb, var(--color-sky-fill) 55%, var(--color-line));
 }
 
 .path-tree__fork-caption {
@@ -326,12 +335,17 @@ function statusLabel(node) {
 }
 
 @media (max-width: 479px) {
-  .path-tree__tabs {
-    grid-template-columns: 1fr;
-  }
-
   .path-tree__fork {
     padding-left: 0.55rem;
+  }
+
+  .path-tree__tab {
+    min-width: 6.75rem;
+    padding: 0.5rem 0.55rem;
+  }
+
+  .path-tree__tab-name {
+    font-size: 0.85rem;
   }
 }
 </style>
