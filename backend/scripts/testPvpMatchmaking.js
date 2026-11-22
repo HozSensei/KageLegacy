@@ -393,12 +393,12 @@ woundedRegen.fighters.host.ally.hp = 10;
 woundedRegen.fighters.host.hp = 80;
 const afterGuestEnd = applyDuelAction(woundedRegen, { kind: 'end_turn', seat: 'guest' });
 assert(
-  afterGuestEnd.state.fighters.host.ally?.hp === 14,
-  'régénération soigne l’invocation au début du tour'
+  afterGuestEnd.state.fighters.host.hp === 84,
+  'régénération soigne le joueur au début du tour en PvP'
 );
 assert(
-  afterGuestEnd.state.fighters.host.hp === 80,
-  'régénération d’invocation ne soigne pas le joueur en PvP'
+  afterGuestEnd.state.fighters.host.ally?.hp === 10,
+  'régénération d’invocation ne soigne pas l’allié en PvP'
 );
 assert(
   afterGuestEnd.logs.some(log => log.type === 'ally_regen' && log.value === 4),

@@ -347,7 +347,9 @@ Une carte Invocation appelle un **allié**. Vous ne pouvez en avoir qu'**un seul
 
 - Au début de chacun de vos tours, l'allié **attaque automatiquement** l'ennemi.
 - Un allié doté de **Provocation** encaisse les attaques ennemies à votre place tant qu'il lui reste des PV.
-- Un allié doté de **Régénération** récupère des PV **sur lui-même** au début de votre tour (pas sur vous).
+- Un allié doté de **Régénération** vous soigne au début de votre tour (allié utilitaire).
+- Un allié doté d'**Esquive** augmente votre chance d'esquiver les attaques tant qu'il est en vie.
+- Un allié doté de **Brûlure** applique Brûlure à l'ennemi à chaque frappe.
 
 ### Fin du combat
 
@@ -517,7 +519,7 @@ Quand un adversaire est trouvé, le duel commence dès que les deux joueurs sont
 
 Le PvP ne suit pas les règles de la main persistante. Vous commencez avec 100 PV plus votre bonus de PV max et 3 Chakra de base plus vos bonus de Chakra max. Vous piochez 5 cartes par tour, avec un report automatique d'au plus 1 Chakra. Une fois par tour, vous pouvez soit défausser une carte pour gagner 1 Chakra, soit en réserver une. Chaque joueur joue à son tour et peut abandonner. Les cartes non jouées sont défaussées en fin de tour ; la carte réservée revient avant la prochaine pioche, dans la limite de 10 cartes en main.
 
-Le duel utilise une partie des calculs PvE pour les cartes, les statuts et les talents, **sans garantir une parité complète** : seuls les effets et données transmis et pris en charge en PvP s'appliquent. Les dégâts utilisent notamment les statistiques et les avantages de voie ; la voie dominante de l'adversaire sert de posture. L'affinité élémentaire du joueur adverse n'est actuellement pas transmise au moteur du duel : les attaques restent donc neutres vis-à-vis de cette affinité. Les invocations ont cependant une gestion adaptée au duel : une seule à la fois, elles attaquent au début du tour de leur propriétaire et expirent selon leur durée. Une invocation avec **Provocation** intercepte les dégâts, l'éventuel surplus atteignant son propriétaire ; leurs autres capacités ne sont pas toutes reproduites. Le marqueur d'épuisement des cartes ordinaires n'est actuellement pas transmis au duel : elles vont donc normalement dans la défausse après usage, contrairement aux invocations.
+Le duel utilise une partie des calculs PvE pour les cartes, les statuts et les talents, **sans garantir une parité complète** : seuls les effets et données transmis et pris en charge en PvP s'appliquent. Les dégâts utilisent notamment les statistiques et les avantages de voie ; la voie dominante de l'adversaire sert de posture. L'affinité élémentaire du joueur adverse n'est actuellement pas transmise au moteur du duel : les attaques restent donc neutres vis-à-vis de cette affinité. Les invocations ont cependant une gestion adaptée au duel : une seule à la fois, elles attaquent au début du tour de leur propriétaire et expirent selon leur durée. Une invocation avec **Provocation** intercepte les dégâts, l'éventuel surplus atteignant son propriétaire ; **Régénération**, **Esquive** et **Brûlure** sont aussi reproduites en duel. **Strike** reste flavour. Le marqueur d'épuisement des cartes ordinaires n'est actuellement pas transmis au duel : elles vont donc normalement dans la défausse après usage, contrairement aux invocations.
 
 **Attention : en PvP, l'armure restante disparaît à la fin du tour de son propriétaire**, contrairement au PvE où elle protège pendant le tour ennemi. Les informations de la main et de la carte réservée sont cachées à l'adversaire.
 

@@ -1048,7 +1048,9 @@
     "summonAbilities": {
       "taunt": "Taunt",
       "evade": "Evade",
-      "regen": "Regen"
+      "regen": "Regen",
+      "burn": "Burn",
+      "strike": "Strike"
     },
     "effectHeldEvade": "In hand or reserved: +{pct}% evade",
     "effectHeldArtDamage": "In hand or reserved: +{pct}% {art} damage",
@@ -1551,9 +1553,9 @@
       "discardChakraOpponent": "Your opponent discards a card: +1 Chakra",
       "allyDamage": "Your summon takes {n} damage",
       "allyFallen": "Your summon falls in battle",
-      "allyRegen": "Your summon recovers {n} HP",
-      "pvpAllyRegenYou": "Your summon recovers {n} HP",
-      "pvpAllyRegenOpponent": "The opponent's summon recovers {n} HP",
+      "allyRegen": "Your summon heals you for {n} HP",
+      "pvpAllyRegenYou": "Your summon heals you for {n} HP",
+      "pvpAllyRegenOpponent": "The opponent's summon heals its owner for {n} HP",
       "enemySummon": "The enemy summons {name}",
       "minionAttack": "{name} deals {n} damage to you",
       "minionDamage": "The enemy minion takes {n} damage",
@@ -1618,6 +1620,9 @@
     "allyLabel": "Ally",
     "allyAttackStat": "ATK {n}",
     "allyTaunt": "Taunt",
+    "allyRegen": "Regen {n}",
+    "allyEvade": "Evade {pct}%",
+    "allyBurn": "Burn",
     "allyTurns": "{n} turns left",
     "costLabel": "Cost {n}",
     "insufficientChakra": "Not enough Chakra to play this card",

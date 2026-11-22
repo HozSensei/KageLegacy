@@ -475,7 +475,7 @@ const STARTER_CARDS = [
       duration: 2,
       abilities: ['evade', 'regen'],
       regen: 3,
-      description: 'Régénère 3 PV par tour',
+      description: 'Soigne le joueur de 3 PV par tour',
     },
     effects: [],
     passiveBonus: { genjutsu: 4, intelligence: 2 },

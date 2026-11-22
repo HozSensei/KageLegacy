@@ -14,6 +14,7 @@ import { applyTalentIncomingAttackMods } from './deckCombat/talentEffects.js';
 import { TALENT_EFFECT_MVP } from './deckCombat/constants.js';
 import { canApplyStatus, hitEnemy, maybeAdvanceBossPhase } from './deckCombat/bossPhases.js';
 import { getNextIntent, scaleIntent } from './deckCombat/enemyIntent.js';
+import { allyEvadeChance } from './deckCombat/cardEffects.js';
 import { heldEffectMods } from './deckCombat/heldEffects.js';
 
 export { getNextIntent, scaleIntent };
@@ -158,10 +159,12 @@ function resolveEnemyMinionAttack(enemy, player, rng, talentCodes) {
 
   const evadeChance = Math.min(
     1,
-    getStatusValue(nextPlayer.statuses, 'evade') + heldEffectMods(nextPlayer).evadeChance,
+    getStatusValue(nextPlayer.statuses, 'evade') +
+      heldEffectMods(nextPlayer).evadeChance +
+      allyEvadeChance(nextPlayer),
   );
   const evaded = evadeChance > 0 && rng() < evadeChance;
-  if (evadeChance > 0) {
+  if (getStatusValue(nextPlayer.statuses, 'evade') > 0) {
     nextPlayer.statuses = (nextPlayer.statuses || []).filter(s => s.key !== 'evade');
   }
   if (evaded) {
@@ -247,7 +250,8 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
       1,
       getStatusValue(nextPlayer.statuses, 'evade') +
         (Number(incomingMods.evadeBonus) || 0) +
-        heldEffectMods(nextPlayer).evadeChance,
+        heldEffectMods(nextPlayer).evadeChance +
+        allyEvadeChance(nextPlayer),
     );
     const evaded = evadeChance > 0 && rng() < evadeChance;
     if (getStatusValue(nextPlayer.statuses, 'evade') > 0) {

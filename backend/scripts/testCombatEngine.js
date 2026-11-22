@@ -428,13 +428,15 @@ const regenSummoned = applyCardPlay({
   stats: {},
 });
 assert(regenSummoned.player.ally?.regen === 3, 'regen lu depuis summon.regen');
-const woundedAlly = {
+const woundedPlayer = {
   ...regenSummoned.player,
+  hp: 40,
+  maxHp: 50,
   ally: { ...regenSummoned.player.ally, hp: 10 },
 };
-const regenTick = resolveAllyAttack(woundedAlly, { hp: 40, maxHp: 40, block: 0 });
-assert(regenTick.player.ally?.hp === 13, 'régénération soigne l’invocation');
-assert(regenTick.player.hp === 40, 'régénération d’invocation ne soigne pas le joueur');
+const regenTick = resolveAllyAttack(woundedPlayer, { hp: 40, maxHp: 40, block: 0 });
+assert(regenTick.player.hp === 43, 'régénération soigne le joueur');
+assert(regenTick.player.ally?.hp === 10, 'régénération ne soigne pas l’invocation');
 assert(
   regenTick.logs.some(log => log.type === 'ally_regen' && log.value === 3),
   'log ally_regen',
@@ -449,7 +451,7 @@ const descRegenCard = {
     hp: 20,
     attack: 0,
     abilities: ['regen'],
-    description: 'Régénère 3 PV par tour',
+    description: 'Soigne le joueur de 3 PV par tour',
   },
 };
 const descRegen = applyCardPlay({
@@ -459,6 +461,55 @@ const descRegen = applyCardPlay({
   stats: {},
 });
 assert(descRegen.player.ally?.regen === 3, 'regen déduit de la description catalogue');
+
+const evadeCard = {
+  slug: 'test-crow',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Corbeau', hp: 12, attack: 0, abilities: ['evade'] },
+};
+const evadeSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null, hp: 50, maxHp: 50, block: 0, statuses: [] },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: evadeCard,
+  stats: {},
+});
+assert(evadeSummoned.player.ally?.evadeChance === 0.35, 'evade d’invocation = 35 %');
+const evadeHit = executeEnemyIntent(
+  { hp: 40, maxHp: 40, block: 0, statuses: [], intent: { type: 'attack', damage: 9 } },
+  evadeSummoned.player,
+  () => 0.1,
+);
+assert(evadeHit.player.hp === 50, 'aura d’esquive d’invocation protège le joueur');
+assert(
+  evadeHit.logs.some(log => log.type === 'evade'),
+  'log evade via invocation',
+);
+
+const burnCard = {
+  slug: 'test-salamander',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Salamandre', hp: 18, attack: 5, abilities: ['burn'] },
+};
+const burnSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: burnCard,
+  stats: {},
+});
+assert(burnSummoned.player.ally?.burn?.value === 2, 'burn d’invocation configuré');
+const burnHit = resolveAllyAttack(burnSummoned.player, {
+  hp: 40,
+  maxHp: 40,
+  block: 0,
+  statuses: [],
+});
+assert(burnHit.enemy.hp === 35, 'allié burn inflige ses dégâts');
+assert(
+  burnHit.enemy.statuses.some(s => s.key === 'burn' && s.value === 2 && s.duration === 2),
+  'allié burn applique Brûlure',
+);
 
 console.log('\n=== Talent effects ===');
 const seededEffects = [...new Set(TALENT_NODE_DEFS.filter(n => n.effect).map(n => n.effect))];

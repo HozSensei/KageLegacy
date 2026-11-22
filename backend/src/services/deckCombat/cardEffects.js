@@ -29,32 +29,78 @@ export { PLAYER_DEBUFF_KEYS };
 
 const COMBO_STAT_TYPES = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
 
+/** Esquive d'invocation par défaut (« occasionnelle »). */
+export const SUMMON_DEFAULT_EVADE_CHANCE = 0.35;
+/** Brûlure appliquée à chaque frappe d'une invocation `burn`. */
+export const SUMMON_DEFAULT_BURN = { value: 2, duration: 2 };
+
 /**
- * Lit taunt / regen depuis le bloc summon (flag, abilities[], ou description catalogue).
- * La régénération soigne l'invocation, pas le joueur.
+ * Lit les capacités d'invocation depuis le bloc summon (flags, abilities[], description).
+ * - taunt : absorbe les dégâts à la place du joueur
+ * - regen : soigne le joueur (allié utilitaire) au début de son tour
+ * - evade : chance d'esquive pour le joueur tant que l'allié vit
+ * - burn : applique Brûlure à chaque frappe de l'allié
+ * - strike : non mécanisé pour l'instant (flavour / ATK déjà haute sur les cartes)
  */
 export function resolveSummonTraits(def = {}) {
   const abilities = Array.isArray(def.abilities)
     ? def.abilities.map(ability => String(ability).toLowerCase())
     : [];
   const abilityText = String(def.ability || '').toLowerCase();
-  const taunt = Boolean(
-    def.taunt ?? (abilities.includes('taunt') || abilityText.includes('taunt')),
-  );
+  const has = key => abilities.includes(key) || abilityText.includes(key);
+  const desc = String(def.description || '');
+
+  const taunt = Boolean(def.taunt ?? has('taunt'));
 
   let regen = Math.max(0, Math.floor(Number(def.regen) || 0));
-  if (!regen && (abilities.includes('regen') || abilityText.includes('regen'))) {
-    const desc = String(def.description || '');
-    const matched = desc.match(/(?:r[eé]g[eé]n[eè]?re?s?|regen(?:erates?)?)\s+(\d+)/i);
+  if (!regen && has('regen')) {
+    const matched = desc.match(
+      /(?:r[eé]g[eé]n[eè]?re?s?|regen(?:erates?)?|soigne(?:\s+le\s+joueur)?(?:\s+de)?|heals?(?:\s+you)?(?:\s+for)?)\s+(\d+)/i,
+    );
     regen = matched ? Math.max(1, Number(matched[1]) || 0) : 2;
   }
 
-  return { taunt, regen, abilities };
+  let evadeChance = Math.max(0, Number(def.evadeChance) || 0);
+  if (!evadeChance && has('evade')) {
+    evadeChance = SUMMON_DEFAULT_EVADE_CHANCE;
+  }
+  evadeChance = Math.min(0.75, evadeChance);
+
+  const burn = has('burn')
+    ? {
+        value: Math.max(
+          1,
+          Math.floor(Number(def.burnValue ?? def.burn?.value) || SUMMON_DEFAULT_BURN.value),
+        ),
+        duration: Math.max(
+          1,
+          Math.floor(
+            Number(def.burnDuration ?? def.burn?.duration) || SUMMON_DEFAULT_BURN.duration,
+          ),
+        ),
+      }
+    : null;
+
+  return {
+    taunt,
+    regen,
+    evadeChance,
+    burn,
+    strike: has('strike'),
+    abilities,
+  };
+}
+
+/** Bonus d'esquive fourni par une invocation vivante avec evade. */
+export function allyEvadeChance(entity) {
+  const ally = entity?.ally;
+  if (!ally || (Number(ally.hp) || 0) <= 0) return 0;
+  return Math.min(0.75, Math.max(0, Number(ally.evadeChance) || 0));
 }
 
 export function buildAllyFromSummon(card) {
   const def = card?.summon || {};
-  const { taunt, regen } = resolveSummonTraits(def);
+  const { taunt, regen, evadeChance, burn, strike } = resolveSummonTraits(def);
   const hp = Math.max(1, Number(def.hp) || 20);
   return {
     nameFr: def.nameFr || def.name || card?.nameFr || 'Allié',
@@ -64,6 +110,9 @@ export function buildAllyFromSummon(card) {
     attack: Math.max(0, Number(def.attack) || 6),
     taunt,
     regen,
+    evadeChance,
+    burn,
+    strike: Boolean(strike),
   };
 }
 
@@ -260,6 +309,8 @@ export function applyCardPlay({
       attack: nextPlayer.ally.attack,
       taunt: Boolean(nextPlayer.ally.taunt),
       regen: Number(nextPlayer.ally.regen) || 0,
+      evadeChance: Number(nextPlayer.ally.evadeChance) || 0,
+      burn: nextPlayer.ally.burn || null,
     });
   }
 
@@ -394,7 +445,7 @@ export function applyCardPlay({
 }
 
 /**
- * Régénération de l'invocation (soigne l'allié, jamais le joueur).
+ * Régénération d'invocation : soigne le joueur (allié utilitaire).
  */
 export function applyAllyRegen(player) {
   const logs = [];
@@ -405,20 +456,21 @@ export function applyAllyRegen(player) {
   const regen = Math.max(0, Math.floor(Number(ally.regen) || 0));
   if (regen <= 0) return { player, logs };
 
-  const maxHp = Math.max(Number(ally.maxHp) || 0, Number(ally.hp) || 0);
-  const before = Number(ally.hp) || 0;
+  const maxHp = Math.max(0, Number(player.maxHp) || 0);
+  const before = Number(player.hp) || 0;
+  if (maxHp <= 0 || before <= 0) return { player, logs };
   const hp = Math.min(maxHp, before + regen);
   const healed = hp - before;
   if (healed <= 0) return { player, logs };
 
   return {
-    player: { ...player, ally: { ...ally, hp, maxHp } },
+    player: { ...player, hp },
     logs: [
       {
         type: 'ally_regen',
         name: ally.nameFr || ally.nameEn,
         value: healed,
-        allyHp: hp,
+        playerHp: hp,
       },
     ],
   };
@@ -426,38 +478,64 @@ export function applyAllyRegen(player) {
 
 /**
  * Attaque automatique de l'allié invoqué (début de tour joueur).
- * Applique d'abord la régénération d'invocation si présente.
+ * Applique d'abord la régénération d'invocation (soin joueur) si présente.
  */
 export function resolveAllyAttack(player, enemy) {
   const logs = [];
   const regenerated = applyAllyRegen(player);
   const nextPlayer = regenerated.player;
+  let nextEnemy = enemy;
   logs.push(...regenerated.logs);
 
   if (!nextPlayer.ally || (nextPlayer.ally.hp || 0) <= 0) {
-    return { player: nextPlayer, enemy, logs };
+    return { player: nextPlayer, enemy: nextEnemy, logs };
   }
   const atk = Number(nextPlayer.ally.attack) || 0;
-  if (atk <= 0) return { player: nextPlayer, enemy, logs };
+  if (atk <= 0) return { player: nextPlayer, enemy: nextEnemy, logs };
 
   const hit = hitEnemy(
-    enemy,
+    nextEnemy,
     atk,
     { announceIntent: e => getNextIntent(e) },
     applyDamageThroughBlock,
   );
+  nextEnemy = hit.enemy;
   logs.push({
     type: 'ally_attack',
     name: nextPlayer.ally.nameFr || nextPlayer.ally.nameEn,
     amount: hit.damageDealt,
-    enemyHp: hit.enemy.hp,
+    enemyHp: nextEnemy.hp,
   });
   logs.push(
     ...hit.logs.filter(
       l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage',
     ),
   );
-  return { player: nextPlayer, enemy: hit.enemy, logs };
+
+  const burn = nextPlayer.ally.burn;
+  if (burn && (Number(nextEnemy.hp) || 0) > 0) {
+    const payload = {
+      key: 'burn',
+      value: Math.max(1, Math.floor(Number(burn.value) || SUMMON_DEFAULT_BURN.value)),
+      duration: Math.max(1, Math.floor(Number(burn.duration) || SUMMON_DEFAULT_BURN.duration)),
+    };
+    if (canApplyStatus(nextEnemy, payload.key)) {
+      nextEnemy = {
+        ...nextEnemy,
+        statuses: applyStatus(nextEnemy.statuses, payload),
+      };
+      logs.push({
+        type: 'apply_status',
+        target: 'enemy',
+        status: payload.key,
+        value: payload.value,
+        duration: payload.duration,
+        source: 'ally',
+      });
+    }
+  }
+
+  return { player: nextPlayer, enemy: nextEnemy, logs };
 }
 
 function applyExtraEffect(effect, ctx) {

@@ -1048,7 +1048,9 @@
     "summonAbilities": {
       "taunt": "Provocation",
       "evade": "Esquive",
-      "regen": "Régénération"
+      "regen": "Régénération",
+      "burn": "Brûlure",
+      "strike": "Frappe"
     },
     "effectHeldEvade": "En main ou réservé : +{pct} % esquive",
     "effectHeldArtDamage": "En main ou réservé : +{pct} % dégâts {art}",
@@ -1551,9 +1553,9 @@
       "discardChakraOpponent": "L'adversaire défausse une carte : +1 Chakra",
       "allyDamage": "Votre invocation encaisse {n} dégâts",
       "allyFallen": "Votre invocation tombe au combat",
-      "allyRegen": "Votre invocation récupère {n} PV",
-      "pvpAllyRegenYou": "Votre invocation récupère {n} PV",
-      "pvpAllyRegenOpponent": "L'invocation adverse récupère {n} PV",
+      "allyRegen": "Votre invocation vous soigne de {n} PV",
+      "pvpAllyRegenYou": "Votre invocation vous soigne de {n} PV",
+      "pvpAllyRegenOpponent": "L'invocation adverse soigne son maître de {n} PV",
       "enemySummon": "L'ennemi invoque {name}",
       "minionAttack": "{name} vous inflige {n} dégâts",
       "minionDamage": "Le sbire ennemi encaisse {n} dégâts",
@@ -1618,6 +1620,9 @@
     "allyLabel": "Allié",
     "allyAttackStat": "ATK {n}",
     "allyTaunt": "Provocation",
+    "allyRegen": "Régén. {n}",
+    "allyEvade": "Esquive {pct} %",
+    "allyBurn": "Brûlure",
     "allyTurns": "{n} tours restants",
     "costLabel": "Coût {n}",
     "insufficientChakra": "Chakra insuffisant pour jouer cette carte",
