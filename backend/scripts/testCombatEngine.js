@@ -47,6 +47,7 @@ import {
   applyTalentIncomingAttackMods,
   classifyTalentEffects,
   computeTalentDamageMods,
+  computeDotTalentFlat,
   applyIncomingTalentCap,
   resolveCardPileDestination,
   countDeckElements,
@@ -123,19 +124,44 @@ assert(pierce.hp === 43 && pierce.block === 0, 'overflow to HP');
 
 console.log('\n=== Statuses ===');
 let statuses = [];
-statuses = applyStatus(statuses, { key: 'poison', value: 5, duration: 3 });
+statuses = applyStatus(statuses, { key: 'poison', value: 5, duration: 2 });
 statuses = applyStatus(statuses, { key: 'poison', value: 3, duration: 2 });
-assert(statuses[0].value === 8 && statuses[0].duration === 3, 'poison stacks value, max duration');
+assert(
+  statuses[0].value === 5 && statuses[0].duration === 4,
+  'DoT: durée additionnée, intensité inchangée',
+);
 
-const entity = { hp: 40, maxHp: 40, block: 5, statuses };
+statuses = applyStatus(statuses, { key: 'bleed', value: 8, duration: 2 });
+statuses = applyStatus(statuses, { key: 'bleed', value: 99, duration: 2 });
+assert(
+  statuses.find(s => s.key === 'bleed').value === 8 &&
+    statuses.find(s => s.key === 'bleed').duration === 4,
+  'saignement: re-pose allonge sans changer l’intensité',
+);
+
+const entity = {
+  hp: 40,
+  maxHp: 40,
+  block: 5,
+  statuses: [
+    { key: 'poison', value: 5, duration: 2 },
+    { key: 'burn', value: 4, duration: 1 },
+  ],
+};
 const start = resolveStartOfTurnStatuses(entity);
-assert(start.entity.hp === 32, 'poison deals at start');
-const end = resolveEndOfTurnStatuses({
-  ...start.entity,
-  statuses: applyStatus(start.entity.statuses, { key: 'burn', value: 4, duration: 1 }),
-});
-assert(end.entity.hp === 28, 'burn deals at end');
+assert(start.entity.hp === 31, 'poison+burn tickent au début (5+4)');
+assert(
+  !start.entity.statuses.some(s => s.key === 'burn'),
+  'burn durée 1 consommée après le tick',
+);
+assert(start.entity.statuses.find(s => s.key === 'poison')?.duration === 1, 'poison durée −1');
+const end = resolveEndOfTurnStatuses(start.entity);
+assert(end.entity.hp === 31, 'plus de burn en fin de tour');
 assert(end.entity.block === 0, 'block fades end of turn');
+assert(
+  end.entity.statuses.find(s => s.key === 'poison')?.duration === 1,
+  'DoT non décrémenté en fin de tour',
+);
 const persist = resolveEndOfTurnStatuses(
   { hp: 40, maxHp: 40, block: 12, statuses: [] },
   { persistBlock: true },
@@ -498,17 +524,31 @@ const burnSummoned = applyCardPlay({
   card: burnCard,
   stats: {},
 });
-assert(burnSummoned.player.ally?.burn?.value === 2, 'burn d’invocation configuré');
-const burnHit = resolveAllyAttack(burnSummoned.player, {
-  hp: 40,
-  maxHp: 40,
-  block: 0,
-  statuses: [],
-});
+assert(burnSummoned.player.ally?.burn?.duration === 2, 'burn d’invocation : durée 2');
+assert(burnSummoned.player.ally?.burn?.value == null, 'burn d’invocation : pas de value carte');
+const burnHit = resolveAllyAttack(
+  burnSummoned.player,
+  {
+    hp: 40,
+    maxHp: 40,
+    block: 0,
+    statuses: [],
+  },
+  { stats: { ninjutsu: 0 } },
+);
 assert(burnHit.enemy.hp === 35, 'allié burn inflige ses dégâts');
 assert(
-  burnHit.enemy.statuses.some(s => s.key === 'burn' && s.value === 2 && s.duration === 2),
-  'allié burn applique Brûlure',
+  burnHit.enemy.statuses.some(s => s.key === 'burn' && s.value === 5 && s.duration === 2),
+  'allié burn applique Brûlure base moteur (5)',
+);
+const burnHitScaled = resolveAllyAttack(
+  burnSummoned.player,
+  { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  { stats: { ninjutsu: 40 } },
+);
+assert(
+  burnHitScaled.enemy.statuses.some(s => s.key === 'burn' && s.value === 9 && s.duration === 2),
+  'allié burn scale avec ninjutsu (5+round(40*0.09))',
 );
 
 const strikeCard = {
@@ -725,7 +765,8 @@ const focusMods = computeTalentDamageMods(
   { hp: 100, maxHp: 100, ninjutsuPlayedThisTurn: 0 },
   { statType: 'ninjutsu', cost: 1, damage: 5 },
 );
-assert(focusMods.damageFlat === 4, 'focus_burn solo nin');
+assert(focusMods.damageFlat === 0, 'focus_burn ne flat plus les dégâts carte');
+assert(computeDotTalentFlat('burn', ['focus_burn']) === 2, 'focus_burn +2 intensité brûlure');
 
 const dualMods = computeTalentDamageMods(
   ['dual_element'],

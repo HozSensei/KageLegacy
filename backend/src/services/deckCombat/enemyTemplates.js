@@ -40,7 +40,7 @@ export const ENEMY_TEMPLATES = {
       { weight: 20, intent: { type: 'debuff', status: 'weak', value: 1, duration: 2 } },
       {
         weight: 35,
-        intent: { type: 'attack', damage: 18, status: 'poison', statusValue: 4, statusDuration: 3 },
+        intent: { type: 'attack', damage: 18, status: 'poison', statusDuration: 2 },
       },
     ],
   },
@@ -71,7 +71,7 @@ export const ENEMY_TEMPLATES = {
       { weight: 40, intent: { type: 'attack', damage: 28 } },
       {
         weight: 30,
-        intent: { type: 'attack', damage: 20, status: 'burn', statusValue: 5, statusDuration: 2 },
+        intent: { type: 'attack', damage: 20, status: 'burn', statusDuration: 2 },
       },
       { weight: 15, intent: { type: 'defend', block: 12 } },
       { weight: 15, intent: { type: 'debuff', status: 'weak', value: 1, duration: 2 } },
@@ -146,7 +146,7 @@ export const ENEMY_TEMPLATES = {
     elementAffinity: 'raiton',
     ai: 'pattern',
     pattern: [
-      { type: 'attack', damage: 24, status: 'burn', statusValue: 4, statusDuration: 2 },
+      { type: 'attack', damage: 24, status: 'burn', statusDuration: 2 },
       { type: 'debuff', status: 'weak', value: 1, duration: 2 },
       { type: 'attack', damage: 30 },
       { type: 'defend', block: 8 },
@@ -250,7 +250,7 @@ export const ENEMY_TEMPLATES = {
     elementAffinity: 'katon',
     ai: 'pattern',
     pattern: [
-      { type: 'attack', damage: 18, status: 'burn', statusValue: 3, statusDuration: 2 },
+      { type: 'attack', damage: 18, status: 'burn', statusDuration: 2 },
       { type: 'charge', releaseDamage: 34 },
       { type: 'defend', block: 7 },
       { type: 'buff', status: 'force', value: 3, duration: 2 },
@@ -266,7 +266,7 @@ export const ENEMY_TEMPLATES = {
         ai: 'pattern',
         pattern: [
           { type: 'charge', releaseDamage: 42 },
-          { type: 'attack', damage: 24, status: 'burn', statusValue: 4, statusDuration: 2 },
+          { type: 'attack', damage: 24, status: 'burn', statusDuration: 2 },
           { type: 'debuff', status: 'weak', value: 1, duration: 2 },
           { type: 'attack', damage: 28 },
         ],
@@ -421,7 +421,7 @@ export const ENEMY_TEMPLATES = {
         ai: 'pattern',
         pattern: [
           { type: 'charge', releaseDamage: 48 },
-          { type: 'attack', damage: 32, status: 'burn', statusValue: 4, statusDuration: 2 },
+          { type: 'attack', damage: 32, status: 'burn', statusDuration: 2 },
           {
             type: 'summon',
             minion: { nameFr: 'Echo du Vide', nameEn: 'Void Echo', hp: 40, attack: 12 },

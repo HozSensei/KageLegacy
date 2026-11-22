@@ -419,13 +419,13 @@ const effectDuel = createDuelFromBootstrap({
       stats: { taijutsu: 0 },
       hand: [
         {
-          instanceId: 'poison-strike',
+          instanceId: 'bleed-strike',
           type: 'attack',
           cost: 0,
           damage: 4,
           statType: 'taijutsu',
           effects: [
-            { type: 'apply_status', target: 'enemy', status: 'poison', value: 2, duration: 2 },
+            { type: 'apply_status', target: 'enemy', status: 'bleed', duration: 2 },
             { type: 'draw', value: 1 },
           ],
           exhaust: true,
@@ -439,17 +439,21 @@ const effectDuel = createDuelFromBootstrap({
 const poisonPlayed = applyDuelAction(effectDuel, {
   kind: 'play_card',
   seat: 'host',
-  instanceId: 'poison-strike',
+  instanceId: 'bleed-strike',
 });
 assert(poisonPlayed.state.fighters.guest.hp === 96, 'dégâts de base résolus');
-assert(poisonPlayed.state.fighters.guest.statuses[0]?.key === 'poison', 'statut ennemi appliqué');
+assert(poisonPlayed.state.fighters.guest.statuses[0]?.key === 'bleed', 'statut ennemi appliqué');
+assert(
+  poisonPlayed.state.fighters.guest.statuses[0]?.value === 8,
+  'saignement intensité base moteur'
+);
 assert(poisonPlayed.state.fighters.host.exhaustPile.length === 1, 'carte Exhaust retirée du cycle');
 assert(
   poisonPlayed.state.fighters.host.hand[0]?.instanceId === 'drawn-card',
   'effet Pioche résolu'
 );
 const poisonTurn = applyDuelAction(poisonPlayed.state, { kind: 'end_turn', seat: 'host' });
-assert(poisonTurn.state.fighters.guest.hp === 94, 'Poison tick au début du tour adverse');
+assert(poisonTurn.state.fighters.guest.hp === 88, 'Saignement tick (8) au début du tour adverse');
 
 const reactionDuel = createDuelFromBootstrap({
   matchId: 'reaction-match',

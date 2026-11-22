@@ -5,8 +5,11 @@ import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
 import {
   absorbDamageWithTauntAlly,
   applyDamageThroughBlock,
+  clampDotDuration,
+  computeDotIntensity,
   getStatusValue,
   hasStatus,
+  isDotStatusKey,
   outgoingDamageMultiplier,
 } from './deckCombat/formulas.js';
 import { applyStatus } from './deckCombat/statuses.js';
@@ -323,13 +326,26 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
     });
     logs.push({ type: 'buff', source: 'enemy', status: intent.status, value: intent.value });
   } else if (intent.type === 'debuff') {
-    const statusKey = intent.status || 'weak';
-    nextPlayer.statuses = applyStatus(nextPlayer.statuses, {
-      key: statusKey,
-      value: Number(intent.value) || 1,
-      duration: Number(intent.duration) || 2,
+    const statusKey = String(intent.status || 'weak').toLowerCase();
+    const durationRaw = Number(intent.duration) || 2;
+    const payload = isDotStatusKey(statusKey)
+      ? {
+          key: statusKey,
+          value: computeDotIntensity(statusKey),
+          duration: clampDotDuration(durationRaw),
+        }
+      : {
+          key: statusKey,
+          value: Number(intent.value) || 1,
+          duration: durationRaw,
+        };
+    nextPlayer.statuses = applyStatus(nextPlayer.statuses, payload);
+    logs.push({
+      type: 'debuff',
+      source: 'enemy',
+      status: statusKey,
+      value: payload.value,
     });
-    logs.push({ type: 'debuff', source: 'enemy', status: statusKey, value: intent.value });
   } else if (intent.type === 'charge') {
     const releaseDamage = Number(intent.releaseDamage) || Number(intent.damage) || 20;
     forceChargedIntent = scaleIntent(
@@ -377,12 +393,21 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
   }
 
   if (intent.status && intent.type === 'attack') {
-    nextPlayer.statuses = applyStatus(nextPlayer.statuses, {
-      key: intent.status,
-      value: Number(intent.statusValue) || Number(intent.value) || 1,
-      duration: Number(intent.statusDuration) || Number(intent.duration) || 2,
-    });
-    logs.push({ type: 'apply_status', target: 'player', status: intent.status });
+    const statusKey = String(intent.status || '').toLowerCase();
+    const durationRaw = Number(intent.statusDuration) || Number(intent.duration) || 2;
+    const payload = isDotStatusKey(statusKey)
+      ? {
+          key: statusKey,
+          value: computeDotIntensity(statusKey),
+          duration: clampDotDuration(durationRaw),
+        }
+      : {
+          key: statusKey,
+          value: Number(intent.statusValue) || Number(intent.value) || 1,
+          duration: durationRaw,
+        };
+    nextPlayer.statuses = applyStatus(nextPlayer.statuses, payload);
+    logs.push({ type: 'apply_status', target: 'player', status: payload });
   }
 
   if (nextEnemy.ai === 'pattern') {

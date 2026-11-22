@@ -35,13 +35,15 @@ const ICON_MAP = {
   regen: 'regen',
   poison: 'poison',
   burn: 'burn',
+  bleed: 'bleed',
+  madness: 'madness',
   weak: 'weak',
   vulnerable: 'vulnerable',
   intangible: 'intangible',
   evade: 'evade',
   counter: 'counter',
 }
-const HARMFUL = ['poison', 'burn', 'weak', 'vulnerable']
+const HARMFUL = ['poison', 'burn', 'bleed', 'madness', 'weak', 'vulnerable']
 const HELPFUL = [
   'force',
   'dexterity',
@@ -56,9 +58,14 @@ const HELPFUL = [
 
 const icon = computed(() => ICON_MAP[props.status.key] || 'unknown')
 const isPct = computed(() => PCT_KEYS.has(props.status.key))
-const displayValue = computed(() =>
-  isPct.value ? `+${props.status.value}%` : props.status.value
+const isDot = computed(() =>
+  ['poison', 'burn', 'bleed', 'madness'].includes(props.status.key)
 )
+const displayValue = computed(() => {
+  if (isPct.value) return `+${props.status.value}%`
+  if (isDot.value) return `${props.status.value}/t`
+  return props.status.value
+})
 
 const tone = computed(() => {
   if (HARMFUL.includes(props.status.key)) return 'vermilion'
@@ -72,7 +79,11 @@ const tone = computed(() => {
     class="status-icon"
     :class="`status-icon--${status.key}`"
     :data-tone="tone"
-    :title="`${label} ${displayValue}${status.duration != null ? ` (${status.duration})` : ''}`"
+    :title="
+      isDot
+        ? `${label} ${status.value} PV/tour${status.duration != null ? ` · ${status.duration} t` : ''}`
+        : `${label} ${displayValue}${status.duration != null ? ` (${status.duration})` : ''}`
+    "
   >
     <AppIcon :name="icon" size="0.9rem" :stroke-width="2" class="status-icon__glyph" />
     <span class="status-icon__label">{{ label }}</span>

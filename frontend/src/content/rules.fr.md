@@ -328,8 +328,10 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 | **Force** | Ajoute sa valeur aux dégâts de chaque coup |
 | **Dextérité** | Ajoute sa valeur à l'armure gagnée par carte |
 | **Régénération** | Rend sa valeur en PV au début du tour |
-| **Poison** | Inflige sa **valeur** en PV au début du tour (ignore l'armure) |
-| **Brûlure** | Inflige sa **valeur** en PV à la fin du tour (ignore l'armure) |
+| **Saignement** | Taijutsu — inflige son intensité en PV au début du tour (ignore l'armure) |
+| **Brûlure** | Ninjutsu — inflige son intensité en PV au début du tour (ignore l'armure) |
+| **Poison** | Médecine — inflige son intensité en PV au début du tour (ignore l'armure) |
+| **Folie** | Genjutsu — inflige son intensité en PV au début du tour (ignore l'armure) |
 | **Faiblesse** | Dégâts infligés réduits de 25 % |
 | **Vulnérable** | Dégâts subis augmentés de 50 % |
 | **Intangible** | Les attaques subies n'infligent que 1 dégât |
@@ -337,9 +339,13 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 | **Riposte** | Après avoir été touché, inflige sa valeur de dégâts à l'attaquant, puis disparaît |
 | **Bonus %** (dégâts, armure, soins, voies) | Multiplie la figure concernée tant que le statut dure |
 
-**Comment se calcule la valeur d'un DoT (Poison, Brûlure) ?** Elle n'est **pas** dérivée des dégâts de la carte ni d'une statistique. C'est un **nombre fixe** indiqué sur la carte (ou sur l'intention ennemie). Exemple : une carte qui pose Poison 3 pendant 2 tours retire **3 PV** au début de chaque tour concerné, tant que le statut dure. Un effet « Après [voie] » ou un talent Genjutsu qui renforce les malus peut **ajouter** à cette base. Réappliquer le même DoT **cumule** les valeurs (Poison 3 + Poison 2 = Poison 5) et garde la **plus longue** des durées.
+**Comment se calcule l'intensité d'un DoT ?** La carte (ou l'invocation / l'intention) ne choisit **que la durée** (1 ou 2 tours). L'intensité vient du moteur :
 
-Un statut appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Les durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut. Esquive et Riposte sont en général **consommées** dès qu'elles s'appliquent. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
+`base + round(stat de la voie × 0,09) + talents`
+
+Bases : Saignement 8, Brûlure 5, Poison 4, Folie 4. Exemple : Brûlure avec 40 Ninjutsu → `5 + round(3,6) = 9` PV/tour. Une voie ne pose que son DoT (Taijutsu → saignement, etc.). Réappliquer le **même** DoT **ajoute** les durées et **ne change pas** l'intensité déjà posée. Les talents de chaque arbre peuvent ajouter +2 à l'intensité de leur DoT. La durée d'un DoT est le **nombre de ticks** restants : elle diminue après le tick de début de tour.
+
+Un statut non-DoT appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Leurs durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut. Esquive et Riposte sont en général **consommées** dès qu'elles s'appliquent. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
 
 ### Invocations
 
@@ -349,7 +355,7 @@ Une carte Invocation appelle un **allié**. Vous ne pouvez en avoir qu'**un seul
 - Un allié doté de **Provocation** encaisse les attaques ennemies à votre place tant qu'il lui reste des PV.
 - Un allié doté de **Régénération** vous soigne au début de votre tour (allié utilitaire).
 - Un allié doté d'**Esquive** augmente votre chance d'esquiver les attaques tant qu'il est en vie.
-- Un allié doté de **Brûlure** applique Brûlure à l'ennemi à chaque frappe.
+- Un allié doté de **Brûlure** applique Brûlure (intensité moteur, 2 tours) à l'ennemi à chaque frappe ; reposer le DoT allonge la durée.
 - Un allié doté de **Frappe** inflige **+25 %** de dégâts d'attaque.
 
 ### Fin du combat

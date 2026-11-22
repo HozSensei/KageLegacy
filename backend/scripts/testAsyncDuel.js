@@ -264,18 +264,18 @@ test('une esquive protège de la frappe mais pas du statut, qui diminue au tour 
     {
       deckEntries: [
         attack('dot', 30, 5, {
-          effects: [{ type: 'apply_status', status: 'burn', value: 4, duration: 2 }],
+          statType: 'ninjutsu',
+          effects: [{ type: 'apply_status', status: 'burn', duration: 2 }],
         }),
       ],
     }
   );
   const next = end(play(state, 'dodge'));
-  assert.equal(next.fighters[0].hp, 100);
-  assert.deepEqual(next.fighters[0].statuses, [{ key: 'burn', value: 4, duration: 2 }]);
-  const afterBurn = end(next);
-  assert.ok(
-    afterBurn.logs.some(log => log.type === 'burn' && log.side === 'player' && log.hp === 96)
-  );
+  // Esquive annule la frappe ; la brûlure est quand même posée puis tickée au début du tour joueur.
+  assert.equal(next.fighters[0].hp, 95);
+  assert.deepEqual(next.fighters[0].statuses, [{ key: 'burn', value: 5, duration: 1 }]);
+  assert.ok(next.logs.some(log => log.type === 'evade' && log.side === 'player'));
+  assert.ok(next.logs.some(log => log.type === 'burn' && log.side === 'player' && log.hp === 95));
 });
 
 test('la vue PvE ne divulgue pas de statistiques, main, RNG ni logs privés adverses', () => {
@@ -335,17 +335,16 @@ test('validation et issues : victoire, défaite par attaque ou poison, abandon',
   assert.throws(() => end(victory), error(400));
   const defeat = end(make(undefined, { deckEntries: [attack('lethal', 200, 5)] }));
   assert.equal(defeat.state, 'defeat');
-  const poison = make(undefined, {
+  const poisonSetup = make(undefined, {
     deckEntries: [
       card('poison', {
-        cost: 5,
-        effects: [
-          { type: 'apply_status', target: 'enemy', status: 'poison', value: 120, duration: 1 },
-        ],
+        cost: 0,
+        effects: [{ type: 'apply_status', target: 'enemy', status: 'poison', duration: 1 }],
       }),
     ],
   });
-  assert.equal(end(poison).state, 'defeat');
+  poisonSetup.fighters[0].hp = 3;
+  assert.equal(end(poisonSetup).state, 'defeat');
   const forfeited = applyAsyncDuelAction(start, { type: 'forfeit' });
   assert.equal(forfeited.state, 'forfeited');
   assert.deepEqual(forfeited.logs, [{ type: 'forfeited' }]);

@@ -3,7 +3,11 @@ const HARMFUL_STATUSES = new Set([
   'vulnerable',
   'poison',
   'burn',
+  'bleed',
+  'madness',
   'brûlure',
+  'saignement',
+  'folie',
   'faiblesse',
   'vulnérabilité',
 ]);
