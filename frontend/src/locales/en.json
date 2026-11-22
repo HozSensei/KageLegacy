@@ -311,7 +311,7 @@
     "badge": "Trial"
   },
   "profile": {
-    "menu": "My profile",
+    "menu": "Settings",
     "language": "Language",
     "changeEmail": "Change email",
     "changePassword": "Change password",

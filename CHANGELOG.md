@@ -11,7 +11,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 #### Added
 
-- Option **Normale / Grande** (desktop) en collection, deck builder et main de combat (PvE/PvP), mémorisée localement
+- Option **Normale / Grande** (desktop) dans le menu **Paramètres** (icône engrenage), appliquée en collection, deck builder et main de combat
 - Mode grande : grille / main plus large + typo relevée sur la carte, sans changer le mobile
 
 ### Fix CI balance après 4 arts (2026-11-17)

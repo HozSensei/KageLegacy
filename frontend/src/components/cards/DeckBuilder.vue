@@ -3,7 +3,6 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from './CardDisplay.vue';
 import CardFilters from './CardFilters.vue';
-import CardSizeControl from './CardSizeControl.vue';
 import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { cardMatchesArt } from '../../utils/cardBonusChips';
 
@@ -314,7 +313,6 @@ const sizeValid = computed(
           <span class="section-head__index">A</span>
           <h3 class="section-head__title">{{ t('cards.deckCardPool') }}</h3>
           <span class="section-head__rule" />
-          <CardSizeControl class="deck-builder__size" />
         </div>
         <CardFilters
           v-model:type-filter="typeFilter"
@@ -519,11 +517,6 @@ const sizeValid = computed(
 
 .deck-builder__collection {
   margin-top: var(--space-block);
-}
-
-.deck-builder__size {
-  align-self: center;
-  flex: none;
 }
 
 .deck-builder__pool {
