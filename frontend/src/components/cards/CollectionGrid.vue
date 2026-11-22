@@ -4,9 +4,13 @@ import { useI18n } from 'vue-i18n';
 import CardDisplay from './CardDisplay.vue';
 import CardHole from './CardHole.vue';
 import CardFilters from './CardFilters.vue';
+import CardSizeControl from './CardSizeControl.vue';
+import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { cardMatchesArt } from '../../utils/cardBonusChips';
 
 defineOptions({ name: 'CollectionGrid' });
+
+const { cardSize } = useCardSizePreference();
 
 const props = defineProps({
   /** Slots catalogue : { kind, key, card, entry } */
@@ -69,15 +73,18 @@ function onSelectSlot(slot) {
       <p class="collection-grid__count" data-testid="collection-count">
         {{ t('cards.collectionProgress', { owned: ownedCount, total: catalogueTotal }) }}
       </p>
-      <label class="collection-grid__owned-only">
-        <input
-          type="checkbox"
-          data-testid="collection-owned-only"
-          :checked="ownedOnly"
-          @change="onOwnedOnlyChange"
-        />
-        <span>{{ t('cards.showOwnedOnly') }}</span>
-      </label>
+      <div class="collection-grid__toolbar-actions">
+        <CardSizeControl />
+        <label class="collection-grid__owned-only">
+          <input
+            type="checkbox"
+            data-testid="collection-owned-only"
+            :checked="ownedOnly"
+            @change="onOwnedOnlyChange"
+          />
+          <span>{{ t('cards.showOwnedOnly') }}</span>
+        </label>
+      </div>
     </div>
 
     <CardFilters
@@ -95,7 +102,12 @@ function onSelectSlot(slot) {
       {{ ownedOnly ? t('cards.emptyOwnedFilter') : t('cards.emptyFilter') }}
     </p>
 
-    <div v-else class="collection-grid__list stagger">
+    <div
+      v-else
+      class="collection-grid__list stagger"
+      :class="{ 'collection-grid__list--large': cardSize === 'large' }"
+      :data-card-size="cardSize"
+    >
       <template v-for="slot in filtered" :key="slot.key">
         <CardDisplay
           v-if="slot.kind === 'owned'"
@@ -104,6 +116,7 @@ function onSelectSlot(slot) {
           :upgrade-level="slot.entry.upgradeLevel"
           :catalogue-number="slot.catalogueNumber"
           :selected="selectedKey === slot.key"
+          :size="cardSize"
           @select="onSelectSlot(slot)"
         />
         <CardHole
@@ -125,6 +138,14 @@ function onSelectSlot(slot) {
   justify-content: space-between;
   gap: 0.75rem 1.25rem;
   margin-bottom: 1.25rem;
+}
+
+.collection-grid__toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem 1.25rem;
 }
 
 .collection-grid__count {
@@ -170,6 +191,11 @@ function onSelectSlot(slot) {
   .collection-grid__list {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
     gap: 1.35rem 1.15rem;
+  }
+
+  .collection-grid__list--large {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 1.5rem 1.35rem;
   }
 }
 </style>

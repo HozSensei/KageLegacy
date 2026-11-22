@@ -7,6 +7,13 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : taille des cartes desktop (2026-11-22)
+
+#### Added
+
+- Option **Normale / Grande** (desktop) en collection et deck builder, mémorisée localement
+- Mode grande : grille plus large + typo relevée sur la carte, sans changer le mobile
+
 ### Fix CI balance après 4 arts (2026-11-17)
 
 #### Changed
