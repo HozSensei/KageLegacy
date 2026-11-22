@@ -116,9 +116,9 @@ export function resolveStartOfTurnStatuses(entity) {
  */
 export function resolveEndOfTurnStatuses(entity, { persistBlock = false } = {}) {
   const logs = [];
-  let hp = Number(entity.hp) || 0;
+  const hp = Number(entity.hp) || 0;
   let block = Number(entity.block) || 0;
-  let statuses = tickStatuses(entity.statuses || [], { skipKeys: DOT_STATUS_KEYS });
+  const statuses = tickStatuses(entity.statuses || [], { skipKeys: DOT_STATUS_KEYS });
 
   if (!persistBlock) {
     if (block > 0) logs.push({ type: 'block_fade', value: block });

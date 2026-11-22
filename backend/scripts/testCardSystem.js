@@ -260,9 +260,9 @@ assert(oneClanTwoLegs.valid, 'accept 1 clan + 2 other legendary/mythic');
 assert(oneClanTwoLegs.clanCount === 1, 'clan count 1');
 assert(oneClanTwoLegs.legendaryOrMythicCount === 3, 'legendary count includes clan');
 
-// Catalogue seed : palier 250 cartes
+// Catalogue seed : palier 282 cartes (250 + vague 4)
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);
-assert(ALL_CARDS.length === 250, `catalog target 250, got ${ALL_CARDS.length}`);
+assert(ALL_CARDS.length === 282, `catalog target 282, got ${ALL_CARDS.length}`);
 const chainCards = ALL_CARDS.filter(card =>
   (card.effects || []).some(effect => effect.type === 'combo_previous'),
 );
@@ -333,7 +333,10 @@ for (const [slug, statType, damage, draw] of [
 const emberEdge = catalogBySlug.get('lame-de-braise');
 assert(
   emberEdge.baseDamage === 8 &&
-    emberEdge.effects.some(effect => effect.status === 'burn' && effect.value === 2),
+    emberEdge.effects.some(
+      effect =>
+        effect.status === 'burn' && effect.duration === 2 && effect.value == null,
+    ),
   'ember edge burn tradeoff',
 );
 const sleepBlade = catalogBySlug.get('lame-du-sommeil');

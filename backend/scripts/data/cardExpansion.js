@@ -2,11 +2,13 @@
  * Expansion catalogue V2 — vague 1 (~78 cartes).
  * Vague 2 : ./cardExpansionWave2.js.
  * Vague 3 : ./cardExpansionWave3.js.
+ * Vague 4 : ./cardExpansionWave4.js.
  * Noms originaux — folklore ninja, pas de refs franchise.
  */
 import { defineCard } from '../lib/cardFactory.js';
 import { EXPANSION_WAVE2_CARDS } from './cardExpansionWave2.js';
 import { EXPANSION_WAVE3_CARDS } from './cardExpansionWave3.js';
+import { EXPANSION_WAVE4_CARDS } from './cardExpansionWave4.js';
 import { CLAN_LEGENDARY_CARDS } from './cardExpansionClans.js';
 
 const c = defineCard;
@@ -1599,7 +1601,13 @@ export const EXPANSION_CARDS = [
   ...EXPANSION_WAVE1_CARDS,
   ...EXPANSION_WAVE2_CARDS,
   ...EXPANSION_WAVE3_CARDS,
+  ...EXPANSION_WAVE4_CARDS,
   ...CLAN_LEGENDARY_CARDS,
 ];
 
-export { EXPANSION_WAVE2_CARDS, EXPANSION_WAVE3_CARDS, CLAN_LEGENDARY_CARDS };
+export {
+  EXPANSION_WAVE2_CARDS,
+  EXPANSION_WAVE3_CARDS,
+  EXPANSION_WAVE4_CARDS,
+  CLAN_LEGENDARY_CARDS,
+};

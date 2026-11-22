@@ -1,10 +1,11 @@
 /**
  * Illustrations locales des cartes (slug → asset Vite).
  * Préférence WebP ; fallback PNG pour les builds / previews hors Vite.
- * Full catalogue: 250 cards (STARTER + wave1 + wave2 + wave3 + clan legendaries).
+ * Full catalogue: STARTER + wave1–4 + clan legendaries.
  *
  * Wave 3 source grids in assets/ → card ranges:
  *   1-16.png #1–16 · 17-32.png #17–32 · 33-44.png #33–44
+ * Wave 4 : Taijutsu 15 + Toxine + Médecine 7 + Communes 9 (2 grilles 4×4).
  */
 import abysseDArgent from '../assets/cards/abysse-d-argent.webp';
 import abysseSilencieux from '../assets/cards/abysse-silencieux.webp';
@@ -256,9 +257,73 @@ import wave3Art41 from '../assets/cards/grimoire-de-poche.jpg';
 import wave3Art42 from '../assets/cards/molosse-de-cuivre.jpg';
 import wave3Art43 from '../assets/cards/cigale-de-brume.jpg';
 import wave3Art44 from '../assets/cards/sceau-du-compagnon-perdu.jpg';
+import wave4Art1 from '../assets/cards/coupe-tendon.jpg';
+import wave4Art2 from '../assets/cards/griffure-profonde.jpg';
+import wave4Art3 from '../assets/cards/lame-ouverte.jpg';
+import wave4Art4 from '../assets/cards/crochet-sanglant.jpg';
+import wave4Art5 from '../assets/cards/danse-des-entailles.jpg';
+import wave4Art6 from '../assets/cards/serre-du-faucon.jpg';
+import wave4Art7 from '../assets/cards/pas-du-tigre.jpg';
+import wave4Art8 from '../assets/cards/frappe-rotative.jpg';
+import wave4Art9 from '../assets/cards/balayage-circulaire.jpg';
+import wave4Art10 from '../assets/cards/uppercut-du-seuil.jpg';
+import wave4Art11 from '../assets/cards/rafale-de-coudes.jpg';
+import wave4Art12 from '../assets/cards/garde-du-sanglier.jpg';
+import wave4Art13 from '../assets/cards/carapace-du-poing.jpg';
+import wave4Art14 from '../assets/cards/elan-du-colosse.jpg';
+import wave4Art15 from '../assets/cards/serment-du-sang.jpg';
+import wave4Art16 from '../assets/cards/toxine-diluee.jpg';
+import wave4Art17 from '../assets/cards/seringue-noire.jpg';
+import wave4Art18 from '../assets/cards/venin-calibre.jpg';
+import wave4Art19 from '../assets/cards/piqure-mortelle.jpg';
+import wave4Art20 from '../assets/cards/nuage-de-spores.jpg';
+import wave4Art21 from '../assets/cards/compresses-actives.jpg';
+import wave4Art22 from '../assets/cards/garde-antiseptique.jpg';
+import wave4Art23 from '../assets/cards/elixir-nerveux.jpg';
+import wave4Art24 from '../assets/cards/ration-de-route.jpg';
+import wave4Art25 from '../assets/cards/grappin-de-route.jpg';
+import wave4Art26 from '../assets/cards/couteau-de-camp.jpg';
+import wave4Art27 from '../assets/cards/cape-de-voyage.jpg';
+import wave4Art28 from '../assets/cards/amadou-sec.jpg';
+import wave4Art29 from '../assets/cards/gourde-renforcee.jpg';
+import wave4Art30 from '../assets/cards/carnet-de-traces.jpg';
+import wave4Art31 from '../assets/cards/pierre-a-aiguiser.jpg';
+import wave4Art32 from '../assets/cards/sacoche-de-terrain.jpg';
 
 /** @type {Record<string, string>} */
 export const CARD_ART_BY_SLUG = {
+  'coupe-tendon': wave4Art1,
+  'griffure-profonde': wave4Art2,
+  'lame-ouverte': wave4Art3,
+  'crochet-sanglant': wave4Art4,
+  'danse-des-entailles': wave4Art5,
+  'serre-du-faucon': wave4Art6,
+  'pas-du-tigre': wave4Art7,
+  'frappe-rotative': wave4Art8,
+  'balayage-circulaire': wave4Art9,
+  'uppercut-du-seuil': wave4Art10,
+  'rafale-de-coudes': wave4Art11,
+  'garde-du-sanglier': wave4Art12,
+  'carapace-du-poing': wave4Art13,
+  'elan-du-colosse': wave4Art14,
+  'serment-du-sang': wave4Art15,
+  'toxine-diluee': wave4Art16,
+  'seringue-noire': wave4Art17,
+  'venin-calibre': wave4Art18,
+  'piqure-mortelle': wave4Art19,
+  'nuage-de-spores': wave4Art20,
+  'compresses-actives': wave4Art21,
+  'garde-antiseptique': wave4Art22,
+  'elixir-nerveux': wave4Art23,
+  'ration-de-route': wave4Art24,
+  'grappin-de-route': wave4Art25,
+  'couteau-de-camp': wave4Art26,
+  'cape-de-voyage': wave4Art27,
+  'amadou-sec': wave4Art28,
+  'gourde-renforcee': wave4Art29,
+  'carnet-de-traces': wave4Art30,
+  'pierre-a-aiguiser': wave4Art31,
+  'sacoche-de-terrain': wave4Art32,
   'gravure-des-phalanges': wave3Art1,
   'danse-du-genou-brise': wave3Art2,
   'rafale-de-l-epervier': wave3Art3,

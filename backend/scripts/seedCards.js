@@ -4,7 +4,7 @@
  *        node scripts/seedCards.js
  *
  * Idempotent : upsertCardDefinition met à jour si le slug existe déjà.
- * Cible ~200 cartes (scalable vers ~300 via vagues cardExpansion*).
+ * Cible ~280 cartes (scalable vers ~300 via vagues cardExpansion*).
  */
 import { upsertCardDefinition } from '../src/services/cardService.js';
 import { EXPANSION_CARDS } from './data/cardExpansion.js';
