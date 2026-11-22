@@ -1,14 +1,12 @@
 /**
- * Mission runs — parcours multi-combats type roguelike léger.
+ * Mission runs — parcours branché (bourse + inventaire + shop).
  *
  * Flux :
- *   startRun → path aléatoire (combats + nœuds « ? »)
- *   enterNode → combat, révélation « ? », ou détail événement legacy
- *   resolveEvent → applique effet, débloque le nœud suivant
- *   onRunCombatFinished (hook moteur) → PV persistants ; mort = échec run
- *   Fin de parcours → grantRunRewards (meilleures que single fight)
- *
- * À terme : embranchements (route courte sans surprise vs longue plus risquée).
+ *   startRun (purseStake) → path branché
+ *   enterNode → combat | shop | rest | branch
+ *   shopBuy / inventoryUse / inventoryDiscard / chooseBranch
+ *   onRunCombatFinished → PV + gains bourse ; mort = échec
+ *   Fin → crédit bourse + loot scellé
  */
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
@@ -16,6 +14,11 @@ import {
   HARD_MODE_DIFFICULTY_MULT,
   HARD_MODE_REWARD_MULT,
 } from '../config/missionPathConfig.js';
+import {
+  PURSE_STAKES,
+  isValidPurseStake,
+  getShopItem,
+} from '../config/missionRunEconomy.js';
 import {
   applyHardModeToNodes,
   buildMysteryOutcome,
@@ -25,6 +28,18 @@ import {
   isRecoveryOutcome,
   pickEncountersForRank,
 } from './missionPathBuilder.js';
+import {
+  createRunPlayerState,
+  getPurse,
+  grantCombatPurse,
+  grantNodePurse,
+  healPercent,
+  placeInventoryItem,
+  discardInventorySlot,
+  spendPurse,
+  useInventorySlot,
+  collectPendingCardsFromInventory,
+} from './missionRunInventory.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
 import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
 import { grantRunRewards } from './combatRewardService.js';
@@ -34,21 +49,15 @@ import {
   requiredCharacterRankForMission,
 } from './missionRankAccess.js';
 import { pickRankVignette } from '../../scripts/data/missionLore.js';
+import { addCard } from './collectionService.js';
 
 export { applyHardModeToNodes, buildRandomRunPath, buildRunNodes } from './missionPathBuilder.js';
 
-/** Types d’événements legacy (runs déjà en cours). */
 const EVENT_TYPES = [
   'rest',
-  'cache',
   'merchant',
-  'crossroads',
-  'whisper_grove',
-  'crow_perch',
-  'sealed_scroll',
-  'mist_bridge',
-  'spirit_lantern',
-  'ash_camp',
+  'shop',
+  'branch',
   'mystery_heal',
   'mystery_loot',
   'mystery_nothing',
@@ -57,80 +66,31 @@ const EVENT_TYPES = [
 const EVENT_META = {
   rest: {
     id: 'rest',
-    nameFr: 'Sanctuaire de Mousse',
-    nameEn: 'Moss Sanctuary',
-    descriptionFr: 'Un autel moussu. Reposez-vous pour récupérer des forces.',
-    descriptionEn: 'A mossy shrine. Rest to recover strength.',
+    nameFr: 'Halte de récupération',
+    nameEn: 'Recovery Halt',
+    descriptionFr: 'Un abri discret. Reposez-vous pour récupérer des forces.',
+    descriptionEn: 'A discreet shelter. Rest to recover strength.',
   },
-  cache: {
-    id: 'cache',
-    nameFr: 'Cache d’Éclaireur',
-    nameEn: 'Scout Cache',
-    descriptionFr: 'Une cache oubliée. Fouillez pour un butin modeste.',
-    descriptionEn: 'A forgotten stash. Search for a modest haul.',
+  shop: {
+    id: 'shop',
+    nameFr: 'Colporteur d’Ombre',
+    nameEn: 'Shadow Peddler',
+    descriptionFr: 'Achetez des soins, sceaux ou parchemins scellés avec votre bourse de mission.',
+    descriptionEn: 'Buy heals, seals, or sealed scrolls with your mission purse.',
   },
   merchant: {
     id: 'merchant',
     nameFr: 'Colporteur d’Ombre',
     nameEn: 'Shadow Peddler',
-    descriptionFr: 'Un marchand ambulant troque bandages contre de l’argent de contrebande.',
-    descriptionEn: 'A wandering peddler trades bandages for contraband money.',
+    descriptionFr: 'Achetez des soins, sceaux ou parchemins scellés avec votre bourse de mission.',
+    descriptionEn: 'Buy heals, seals, or sealed scrolls with your mission purse.',
   },
-  crossroads: {
-    id: 'crossroads',
+  branch: {
+    id: 'branch',
     nameFr: 'Carrefour du Voile',
     nameEn: 'Veil Crossroads',
-    descriptionFr: 'Deux sentiers. Choisissez : soins ou argent de contrebande.',
-    descriptionEn: 'Two paths. Choose: healing or contraband money.',
-  },
-  whisper_grove: {
-    id: 'whisper_grove',
-    nameFr: 'Bosquet des Murmures',
-    nameEn: 'Whisper Grove',
-    descriptionFr:
-      'Des feuilles chuchotent des noms oubliés. Écoutez pour soigner, ou cueillez pour la route.',
-    descriptionEn: 'Leaves whisper forgotten names. Listen to heal, or gather for the road.',
-  },
-  crow_perch: {
-    id: 'crow_perch',
-    nameFr: 'Perchoir du Corbeau',
-    nameEn: 'Crow Perch',
-    descriptionFr:
-      'Un corbeau marqué d’encre observe. Offrez de l’argent de contrebande pour sa faveur, ou partez enrichi.',
-    descriptionEn: 'An ink-marked crow watches. Offer contraband money for its favor, or leave richer.',
-  },
-  sealed_scroll: {
-    id: 'sealed_scroll',
-    nameFr: 'Parchemin Scellé',
-    nameEn: 'Sealed Scroll',
-    descriptionFr:
-      'Un sceau de cire noire pulse encore. Lisez-le pour calmer le chakra, ou brisez-le pour le butin.',
-    descriptionEn: 'Black wax still pulses. Read it to calm your chakra, or break it for loot.',
-  },
-  mist_bridge: {
-    id: 'mist_bridge',
-    nameFr: 'Pont de Brume',
-    nameEn: 'Mist Bridge',
-    descriptionFr:
-      'Des planches disparaissant dans le brouillard. Traversez avec soin, ou courez vers l’autre rive.',
-    descriptionEn: 'Planks vanishing into fog. Cross carefully, or sprint to the far bank.',
-  },
-  spirit_lantern: {
-    id: 'spirit_lantern',
-    nameFr: 'Lanterne d’Esprit',
-    nameEn: 'Spirit Lantern',
-    descriptionFr:
-      'Une lanterne sans flamme attend. Allumez-la pour un répit, ou laissez l’ombre garder son secret.',
-    descriptionEn:
-      'A flameless lantern waits. Light it for respite, or leave the shadow its secret.',
-  },
-  ash_camp: {
-    id: 'ash_camp',
-    nameFr: 'Campement de Cendre',
-    nameEn: 'Ash Camp',
-    descriptionFr:
-      'Des braises froides et des sacs abandonnés. Reposez-vous près du foyer, ou fouillez les cendres.',
-    descriptionEn: 'Cold embers and abandoned packs. Rest by the hearth, or sift the ashes.',
+    descriptionFr: 'Deux sentiers. Le long rapporte plus d’XP, le court est plus sûr.',
+    descriptionEn: 'Two paths. The long one pays more XP; the short one is safer.',
   },
   mystery_heal: {
     id: 'mystery_heal',
@@ -143,8 +103,8 @@ const EVENT_META = {
     id: 'mystery_loot',
     nameFr: 'Cache improvisée',
     nameEn: 'Improvised Stash',
-    descriptionFr: 'Quelqu’un a laissé de l’argent de contrebande sur le bord du sentier.',
-    descriptionEn: 'Someone left useful contraband money by the path.',
+    descriptionFr: 'Quelques Ryos de mission abandonnés sur le sentier.',
+    descriptionEn: 'Some mission purse coins left by the path.',
   },
   mystery_nothing: {
     id: 'mystery_nothing',
@@ -155,9 +115,10 @@ const EVENT_META = {
   },
 };
 
-function httpError(statusCode, message) {
+function httpError(statusCode, message, code = null) {
   const err = new Error(message);
   err.statusCode = statusCode;
+  if (code) err.code = code;
   return err;
 }
 
@@ -170,13 +131,6 @@ function parseJson(value, fallback) {
     return fallback;
   }
 }
-
-
-/** Compat runs en cours qui stockaient encore `scrap`. */
-function getContraband(player) {
-  return Number(player?.contraband ?? player?.scrap) || 0;
-}
-
 
 async function tableExists(tableName) {
   try {
@@ -191,31 +145,15 @@ async function tableExists(tableName) {
   }
 }
 
-function mysteryEventType(kind) {
-  if (kind === 'heal') return 'mystery_heal';
-  if (kind === 'loot') return 'mystery_loot';
-  if (kind === 'merchant') return 'merchant';
-  return 'mystery_nothing';
-}
-
-/**
- * Masque le contenu des « ? » non révélés pour le client.
- */
 export function sanitizeNodesForClient(nodes) {
   if (!Array.isArray(nodes)) return [];
   return nodes.map(node => {
-    if (node?.type === 'mystery' && !node.revealed) {
-      return {
-        id: node.id,
-        type: 'mystery',
-        status: node.status,
-        revealed: false,
-      };
+    if (node?.type === 'shop' && node.status === 'locked') {
+      const { offer, ...rest } = node;
+      return { ...rest, hasOffer: Boolean(offer?.length) };
     }
-    if (node?.type === 'mystery' && node.revealed) {
-      const rest = { ...node };
-      delete rest.outcome;
-      return rest;
+    if (node?.type === 'mystery' && !node.revealed) {
+      return { id: node.id, type: 'mystery', status: node.status, revealed: false };
     }
     return node;
   });
@@ -223,36 +161,59 @@ export function sanitizeNodesForClient(nodes) {
 
 function findAvailableIndex(nodes) {
   const idx = nodes.findIndex(n => n.status === 'available');
-  return idx >= 0 ? idx : nodes.findIndex(n => n.status === 'locked');
+  return idx >= 0 ? idx : -1;
 }
 
-function unlockNext(nodes, clearedIndex) {
-  const next = [...nodes];
-  next[clearedIndex] = {
-    ...next[clearedIndex],
-    status: 'cleared',
-  };
-  if (clearedIndex + 1 < next.length) {
-    next[clearedIndex + 1] = {
-      ...next[clearedIndex + 1],
-      status: 'available',
-    };
+function isTerminalStatus(status) {
+  return status === 'cleared' || status === 'skipped';
+}
+
+/**
+ * Débloque le nœud suivant via nextNodeId (ou index+1 en legacy).
+ */
+export function unlockNext(nodes, clearedIndex, { chosenNextId = null } = {}) {
+  const next = nodes.map(n => ({ ...n }));
+  next[clearedIndex] = { ...next[clearedIndex], status: 'cleared' };
+  const targetId = chosenNextId || next[clearedIndex].nextNodeId;
+  if (targetId) {
+    const targetIdx = next.findIndex(n => n.id === targetId);
+    if (targetIdx >= 0 && next[targetIdx].status === 'locked') {
+      next[targetIdx] = { ...next[targetIdx], status: 'available' };
+    }
+    return next;
+  }
+  if (clearedIndex + 1 < next.length && next[clearedIndex + 1].status === 'locked') {
+    next[clearedIndex + 1] = { ...next[clearedIndex + 1], status: 'available' };
   }
   return next;
 }
 
-function clampHp(hp, maxHp) {
-  return Math.max(1, Math.min(maxHp, Math.floor(hp)));
+function applyBranchChoice(nodes, branchIndex, choiceId) {
+  const next = nodes.map(n => ({ ...n }));
+  const branchNode = next[branchIndex];
+  const choice = (branchNode.choices || []).find(c => c.id === choiceId);
+  if (!choice) throw httpError(400, 'Choix de branche invalide.');
+
+  next[branchIndex] = { ...branchNode, status: 'cleared', chosen: choiceId };
+  const reject = choiceId === 'short' ? 'long' : 'short';
+  for (let i = 0; i < next.length; i += 1) {
+    if (next[i].branch === reject) {
+      next[i] = { ...next[i], status: 'skipped' };
+    }
+  }
+  const targetIdx = next.findIndex(n => n.id === choice.nextNodeId);
+  if (targetIdx >= 0) {
+    next[targetIdx] = { ...next[targetIdx], status: 'available' };
+  }
+  return {
+    nodes: next,
+    xpMult: Number(choice.xpMult) || 1,
+    branchId: choiceId,
+  };
 }
 
-function healPercent(player, pct) {
-  const maxHp = player.maxHp;
-  const heal = Math.max(1, Math.floor(maxHp * pct));
-  return {
-    ...player,
-    hp: Math.min(maxHp, player.hp + heal),
-    lastHeal: heal,
-  };
+function clampHp(hp, maxHp) {
+  return Math.max(1, Math.min(maxHp, Math.floor(hp)));
 }
 
 async function loadTalentEffectCodes(userId) {
@@ -265,19 +226,98 @@ async function loadTalentEffectCodes(userId) {
   }
 }
 
-function isOpenEventNode(node) {
+function isOpenPanelNode(node) {
   if (!node || node.status !== 'available' || !node.eventOpen) return false;
-  if (node.type === 'event') return true;
-  if (node.type === 'mystery' && node.revealed && node.outcome?.kind !== 'combat') return true;
-  return false;
+  return ['shop', 'rest', 'branch', 'mystery', 'event', 'merchant'].includes(node.type);
+}
+
+function buildEventPayload(node, player) {
+  const eventType =
+    node.eventType ||
+    (node.type === 'shop'
+      ? 'shop'
+      : node.type === 'rest'
+        ? 'rest'
+        : node.type === 'branch'
+          ? 'branch'
+          : node.type === 'merchant'
+            ? 'shop'
+            : 'rest');
+  const meta = EVENT_META[eventType] || EVENT_META.rest;
+  const base = {
+    eventType,
+    nameFr: meta.nameFr,
+    nameEn: meta.nameEn,
+    descriptionFr: meta.descriptionFr,
+    descriptionEn: meta.descriptionEn,
+    purse: getPurse(player),
+    contraband: getPurse(player), // compat UI legacy
+    hp: player.hp,
+    maxHp: player.maxHp,
+    inventory: player.inventory || [],
+  };
+
+  if (eventType === 'shop' || node.type === 'shop' || node.type === 'merchant') {
+    return {
+      ...base,
+      eventType: 'shop',
+      offer: node.offer || [],
+      choices: [
+        { id: 'leave', labelFr: 'Quitter la boutique', labelEn: 'Leave the shop' },
+      ],
+    };
+  }
+  if (eventType === 'rest' || node.type === 'rest') {
+    return {
+      ...base,
+      choices: [
+        { id: 'rest_here', labelFr: 'Se reposer (+40 % PV max)', labelEn: 'Rest (+40% max HP)' },
+      ],
+    };
+  }
+  if (eventType === 'branch' || node.type === 'branch') {
+    return {
+      ...base,
+      choices: (node.choices || []).map(c => ({
+        id: c.id,
+        labelFr: c.labelFr,
+        labelEn: c.labelEn,
+        lengthHint: c.lengthHint,
+        xpMult: c.xpMult,
+        fightCount: c.fightCount,
+      })),
+    };
+  }
+  if (eventType === 'mystery_heal') {
+    return {
+      ...base,
+      choices: [
+        { id: 'rest_here', labelFr: 'Se reposer (+50 % PV max)', labelEn: 'Rest (+50% max HP)' },
+      ],
+    };
+  }
+  if (eventType === 'mystery_loot') {
+    return {
+      ...base,
+      choices: [
+        {
+          id: 'take_scrap',
+          labelFr: 'Ramasser (+40 bourse, +10 % PV)',
+          labelEn: 'Take it (+40 purse, +10% HP)',
+        },
+      ],
+    };
+  }
+  return {
+    ...base,
+    choices: [{ id: 'continue', labelFr: 'Continuer', labelEn: 'Continue' }],
+  };
 }
 
 function getCurrentEvent(row, nodes, player) {
   if (row.state !== 'in_progress') return null;
-
   const node = nodes[Number(row.current_node_index)];
-  if (!isOpenEventNode(node)) return null;
-
+  if (!isOpenPanelNode(node)) return null;
   return buildEventPayload(node, player);
 }
 
@@ -307,7 +347,11 @@ function serializeRun(row, extras = {}) {
     state: row.state,
     currentNodeIndex: row.current_node_index,
     nodes: sanitizeNodesForClient(nodes),
-    player,
+    player: {
+      ...player,
+      purse: getPurse(player),
+      contraband: getPurse(player),
+    },
     hardMode: Boolean(player.hardMode),
     currentEvent: getCurrentEvent(row, nodes, player),
     stats: parseJson(row.stats_snapshot_json, createEmptyStats()),
@@ -349,98 +393,32 @@ async function persistRun(row) {
   );
 }
 
-/**
- * Démarre un nouveau parcours pour une mission.
- */
-export async function startRun(userId, missionId, deckId = null, opts = {}) {
-  if (!userId) throw httpError(400, 'userId requis.');
-  if (!(await tableExists('mission_runs'))) {
-    throw httpError(503, 'Tables mission_runs absentes — lancez les migrations (106).');
-  }
-
-  const hardMode = Boolean(opts?.hardMode);
-
-  const active = await query(
-    "SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId],
-  );
-  if (active[0]) {
-    throw httpError(409, `Parcours déjà en cours (${active[0].id}). Terminez-le ou abandonnez-le.`);
-  }
-
-  // Bloquer aussi un combat orphelin (duel rapide)
-  const activeCombat = await query(
-    "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
-    [userId],
-  );
-  if (activeCombat[0]) {
-    throw httpError(409, `Combat déjà en cours (${activeCombat[0].id}).`);
-  }
-
-  const mission = await getMission(missionId);
-  const character = await getCharacter(userId);
-  if (!character) {
-    throw httpError(400, 'Créez un personnage avant de lancer une mission.');
-  }
-  if (!canPlayMissionRank(character.rank, mission.rank)) {
-    const required = requiredCharacterRankForMission(mission.rank);
-    throw httpError(
-      403,
-      `Rang ${required} requis pour les missions ${mission.rank}.`,
-    );
-  }
-  const { getPlayableDeckForCombat } = await import('./deckService.js');
-  const deck = await getPlayableDeckForCombat(userId, deckId);
-  const [{ total: stats }, effectCodes] = await Promise.all([
-    getComputedStats(userId, { deckPassives: deck.passiveBonuses }),
-    loadTalentEffectCodes(userId),
+async function debitPurseStake(userId, stake) {
+  const amount = Number(stake) || 0;
+  if (amount <= 0) return;
+  const profile = await query('SELECT ryos FROM player_profiles WHERE user_id = ? LIMIT 1', [
+    userId,
   ]);
+  if (!profile[0]) throw httpError(400, 'Profil introuvable.');
+  if (Number(profile[0].ryos) < amount) {
+    throw httpError(400, `Ryos insuffisants (${profile[0].ryos}/${amount}).`, 'INSUFFICIENT_RYOS');
+  }
+  await query('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [amount, userId]);
+}
 
-  const { classifyTalentEffects } = await import('./deckCombat/talentEffects.js');
-  const classified = classifyTalentEffects(effectCodes);
-  const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
-
-  const resolvedDeckId = deck.id;
-
-  const nodes = buildRandomRunPath(mission.rank, { hardMode });
-  const vignette = pickRankVignette(mission.rank);
-  const id = randomUUID();
-  const player = {
-    hp: maxHp,
-    maxHp,
-    contraband: 0,
-    combatsWon: 0,
-    lore: vignette,
-    hardMode,
-    ...(hardMode ? { rewardMult: HARD_MODE_REWARD_MULT } : {}),
-  };
-  const talentEffects = {
-    codes: effectCodes,
-    applied: classified.applied,
-    stubbed: classified.stubbed,
-  };
-
-  await query(
-    `INSERT INTO mission_runs
-      (id, user_id, mission_id, deck_id, state, current_node_index, nodes_json,
-       player_run_state_json, stats_snapshot_json, talent_effects_json, current_combat_id, rewards_json)
-     VALUES (?, ?, ?, ?, 'in_progress', 0, ?, ?, ?, ?, NULL, NULL)`,
-    [
-      id,
-      userId,
-      mission.id,
-      resolvedDeckId,
-      JSON.stringify(nodes),
-      JSON.stringify(player),
-      JSON.stringify(stats),
-      JSON.stringify(talentEffects),
-    ],
+async function pickCardIdByRarity(rarity, rng = Math.random) {
+  const rows = await query(
+    'SELECT id FROM card_definitions WHERE rarity = ? ORDER BY RAND() LIMIT 30',
+    [rarity],
   );
-
-  const row = await loadRunRow(id, userId);
-  return serializeRun(row, {
-    mission: pickMissionPublic(mission),
-  });
+  if (!rows.length) {
+    const fallback = await query(
+      'SELECT id FROM card_definitions WHERE rarity = \'common\' ORDER BY RAND() LIMIT 20',
+    );
+    if (!fallback.length) return null;
+    return fallback[Math.floor(rng() * fallback.length)].id;
+  }
+  return rows[Math.floor(rng() * rows.length)].id;
 }
 
 function pickMissionPublic(mission) {
@@ -461,6 +439,87 @@ function pickMissionPublic(mission) {
   };
 }
 
+export async function startRun(userId, missionId, deckId = null, opts = {}) {
+  if (!userId) throw httpError(400, 'userId requis.');
+  if (!(await tableExists('mission_runs'))) {
+    throw httpError(503, 'Tables mission_runs absentes — lancez les migrations (106).');
+  }
+
+  const hardMode = Boolean(opts?.hardMode);
+  const purseStake = isValidPurseStake(opts?.purseStake) ? Number(opts.purseStake) : 0;
+
+  const active = await query(
+    "SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
+    [userId],
+  );
+  if (active[0]) {
+    throw httpError(409, `Parcours déjà en cours (${active[0].id}). Terminez-le ou abandonnez-le.`);
+  }
+
+  const activeCombat = await query(
+    "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
+    [userId],
+  );
+  if (activeCombat[0]) {
+    throw httpError(409, `Combat déjà en cours (${activeCombat[0].id}).`);
+  }
+
+  const mission = await getMission(missionId);
+  const character = await getCharacter(userId);
+  if (!character) throw httpError(400, 'Créez un personnage avant de lancer une mission.');
+  if (!canPlayMissionRank(character.rank, mission.rank)) {
+    const required = requiredCharacterRankForMission(mission.rank);
+    throw httpError(403, `Rang ${required} requis pour les missions ${mission.rank}.`);
+  }
+
+  await debitPurseStake(userId, purseStake);
+
+  const { getPlayableDeckForCombat } = await import('./deckService.js');
+  const deck = await getPlayableDeckForCombat(userId, deckId);
+  const [{ total: stats }, effectCodes] = await Promise.all([
+    getComputedStats(userId, { deckPassives: deck.passiveBonuses }),
+    loadTalentEffectCodes(userId),
+  ]);
+
+  const { classifyTalentEffects } = await import('./deckCombat/talentEffects.js');
+  const classified = classifyTalentEffects(effectCodes);
+  const maxHp = BASE_MAX_HP + (Number(stats.maxHp) || 0);
+  const nodes = buildRandomRunPath(mission.rank, { hardMode });
+  const vignette = pickRankVignette(mission.rank);
+  const id = randomUUID();
+  const player = createRunPlayerState({
+    maxHp,
+    purseStake,
+    hardMode,
+    rewardMult: HARD_MODE_REWARD_MULT,
+    lore: vignette,
+  });
+
+  await query(
+    `INSERT INTO mission_runs
+      (id, user_id, mission_id, deck_id, state, current_node_index, nodes_json,
+       player_run_state_json, stats_snapshot_json, talent_effects_json, current_combat_id, rewards_json)
+     VALUES (?, ?, ?, ?, 'in_progress', 0, ?, ?, ?, ?, NULL, NULL)`,
+    [
+      id,
+      userId,
+      mission.id,
+      deck.id,
+      JSON.stringify(nodes),
+      JSON.stringify(player),
+      JSON.stringify(stats),
+      JSON.stringify({
+        codes: effectCodes,
+        applied: classified.applied,
+        stubbed: classified.stubbed,
+      }),
+    ],
+  );
+
+  const row = await loadRunRow(id, userId);
+  return serializeRun(row, { mission: pickMissionPublic(mission) });
+}
+
 export async function getRun(userId, runId) {
   const row = await loadRunRow(runId, userId);
   let mission = null;
@@ -469,13 +528,10 @@ export async function getRun(userId, runId) {
   } catch {
     /* ignore */
   }
-  return serializeRun(row, {
-    mission: pickMissionPublic(mission),
-  });
+  return serializeRun(row, { mission: pickMissionPublic(mission) });
 }
 
 export async function getActiveRun(userId) {
-  if (!(await tableExists('mission_runs'))) return null;
   const rows = await query(
     "SELECT * FROM mission_runs WHERE user_id = ? AND state = 'in_progress' ORDER BY created_at DESC LIMIT 1",
     [userId],
@@ -484,9 +540,25 @@ export async function getActiveRun(userId) {
   return getRun(userId, rows[0].id);
 }
 
-/**
- * Entre dans le nœud disponible : lance un combat ou expose l'événement.
- */
+async function advanceAfterClear(row, nodes, player, clearedIndex) {
+  const nextNodes = unlockNext(nodes, clearedIndex);
+  const availableIdx = nextNodes.findIndex(n => n.status === 'available');
+  const allCleared = nextNodes.every(n => isTerminalStatus(n.status));
+
+  row.nodes_json = nextNodes;
+  row.player_run_state_json = player;
+  row.current_combat_id = null;
+
+  if (allCleared || availableIdx < 0) {
+    row.current_node_index = clearedIndex;
+    await completeRunVictory(row);
+  } else {
+    row.current_node_index = availableIdx;
+    await persistRun(row);
+  }
+  return serializeRun(row);
+}
+
 export async function enterNode(userId, runId) {
   const row = await loadRunRow(runId, userId);
   if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
@@ -497,50 +569,9 @@ export async function enterNode(userId, runId) {
 
   const node = nodes[idx];
   if (node.status !== 'available') throw httpError(400, 'Nœud verrouillé.');
-
   row.current_node_index = idx;
 
-  if (node.type === 'mystery' && !node.revealed) {
-    const outcome = node.outcome || { kind: 'nothing' };
-    if (outcome.kind === 'combat') {
-      nodes[idx] = {
-        id: node.id,
-        type: 'combat',
-        status: 'available',
-        templateId: outcome.templateId || 'ronin_bandit',
-        difficulty: outcome.difficulty || 1,
-        boss: Boolean(outcome.boss),
-        revealed: true,
-        fromMystery: true,
-      };
-    } else {
-      const eventType = mysteryEventType(outcome.kind);
-      const meta = EVENT_META[eventType];
-      nodes[idx] = {
-        ...node,
-        revealed: true,
-        eventOpen: true,
-        eventType,
-        nameFr: meta.nameFr,
-        nameEn: meta.nameEn,
-        descriptionFr: meta.descriptionFr,
-        descriptionEn: meta.descriptionEn,
-      };
-      row.nodes_json = nodes;
-      await persistRun(row);
-      const eventPayload = buildEventPayload(nodes[idx], parseJson(row.player_run_state_json, {}));
-      return {
-        run: serializeRun(row),
-        combat: null,
-        node: sanitizeNodesForClient([nodes[idx]])[0],
-        event: eventPayload,
-      };
-    }
-  }
-
-  const activeNode = nodes[idx];
-
-  if (activeNode.type === 'combat') {
+  if (node.type === 'combat') {
     if (row.current_combat_id) {
       const existing = await query(
         'SELECT id, state FROM combat_sessions WHERE id = ? AND user_id = ? LIMIT 1',
@@ -554,24 +585,33 @@ export async function enterNode(userId, runId) {
         return {
           run: serializeRun(row),
           combat,
-          node: sanitizeNodesForClient([activeNode])[0],
+          node: sanitizeNodesForClient([node])[0],
         };
       }
     }
 
     const player = parseJson(row.player_run_state_json, {});
+    const mods = player.nextCombatMods || {};
     const { startCombat } = await import('./combatEngineService.js');
     const combat = await startCombat(userId, {
       missionId: row.mission_id,
       deckId: row.deck_id,
-      templateId: activeNode.templateId,
-      difficulty: activeNode.difficulty || 1,
+      templateId: node.templateId,
+      difficulty: node.difficulty || 1,
       missionRunId: row.id,
       startingHp: player.hp,
       startingMaxHp: player.maxHp,
       suppressRewards: true,
+      runCombatMods: {
+        block: Number(mods.block) || 0,
+        chakra: Number(mods.chakra) || 0,
+        damagePct: (Number(mods.damagePct) || 0) + (Number(player.runMods?.damagePct) || 0),
+      },
     });
 
+    // Consommer les mods « prochain combat »
+    player.nextCombatMods = {};
+    row.player_run_state_json = player;
     row.current_combat_id = combat.id;
     row.nodes_json = nodes;
     await persistRun(row);
@@ -579,12 +619,29 @@ export async function enterNode(userId, runId) {
     return {
       run: serializeRun(row),
       combat,
-      node: sanitizeNodesForClient([activeNode])[0],
+      node: sanitizeNodesForClient([node])[0],
     };
   }
 
-  // Événement (legacy ou mystère déjà ouvert) : persister pour restauration après reload.
-  nodes[idx] = { ...activeNode, eventOpen: true };
+  // shop / rest / branch / mystery
+  const eventType =
+    node.type === 'shop'
+      ? 'shop'
+      : node.type === 'rest'
+        ? 'rest'
+        : node.type === 'branch'
+          ? 'branch'
+          : node.eventType || 'rest';
+  const meta = EVENT_META[eventType] || EVENT_META.rest;
+  nodes[idx] = {
+    ...node,
+    eventOpen: true,
+    eventType,
+    nameFr: meta.nameFr,
+    nameEn: meta.nameEn,
+    descriptionFr: meta.descriptionFr,
+    descriptionEn: meta.descriptionEn,
+  };
   const eventPayload = buildEventPayload(nodes[idx], parseJson(row.player_run_state_json, {}));
   row.nodes_json = nodes;
   await persistRun(row);
@@ -596,231 +653,108 @@ export async function enterNode(userId, runId) {
   };
 }
 
-function buildEventPayload(node, player) {
-  const eventType =
-    node.eventType ||
-    (node.type === 'mystery' ? mysteryEventType(node.outcome?.kind || 'nothing') : 'rest');
-  const meta = EVENT_META[eventType] || EVENT_META.rest;
-  const base = {
-    eventType,
-    nameFr: meta.nameFr,
-    nameEn: meta.nameEn,
-    descriptionFr: meta.descriptionFr,
-    descriptionEn: meta.descriptionEn,
-    contraband: getContraband(player),
-    hp: player.hp,
-    maxHp: player.maxHp,
-  };
+export async function shopBuy(userId, runId, itemId, { replaceSlot = null } = {}) {
+  const row = await loadRunRow(runId, userId);
+  if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
+  const nodes = parseJson(row.nodes_json, []);
+  const idx = Number(row.current_node_index) || 0;
+  const node = nodes[idx];
+  if (!node || node.status !== 'available' || (node.type !== 'shop' && node.type !== 'merchant')) {
+    throw httpError(400, 'Boutique non disponible.');
+  }
+  if (!node.eventOpen) throw httpError(400, 'Entrez d’abord dans la boutique.');
 
-  if (eventType === 'mystery_heal') {
-    return {
-      ...base,
-      choices: [
-        { id: 'rest_here', labelFr: 'Se reposer (+50 % PV max)', labelEn: 'Rest (+50% max HP)' },
-      ],
-    };
-  }
-  if (eventType === 'mystery_loot') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'take_scrap',
-          labelFr: 'Ramasser (+4 argent de contrebande, +10 % PV)',
-          labelEn: 'Take it (+4 contraband money, +10% HP)',
-        },
-      ],
-    };
-  }
-  if (eventType === 'mystery_nothing') {
-    return {
-      ...base,
-      choices: [
-        { id: 'continue', labelFr: 'Continuer la route', labelEn: 'Continue on the road' },
-      ],
-    };
-  }
+  const offer = Array.isArray(node.offer) ? [...node.offer] : [];
+  const offerIdx = offer.findIndex(item => item.id === itemId);
+  if (offerIdx < 0) throw httpError(404, 'Article introuvable.');
+  const offerItem = offer[offerIdx];
+  if ((offerItem.stock ?? 1) <= 0) throw httpError(400, 'Article épuisé.');
 
-  if (node.eventType === 'rest') {
-    return {
-      ...base,
-      choices: [
-        { id: 'meditate', labelFr: 'Méditer (+30 % PV max)', labelEn: 'Meditate (+30% max HP)' },
-      ],
-    };
-  }
-  if (node.eventType === 'cache') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'search',
-          labelFr: 'Fouiller (soin léger + argent de contrebande)',
-          labelEn: 'Search (light heal + contraband money)',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'merchant') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'buy_bandage',
-          labelFr: 'Bandage (2 argent de contrebande → +25 % PV)',
-          labelEn: 'Bandage (2 contraband money → +25% HP)',
-          cost: 2,
-          disabled: getContraband(player) < 2,
-        },
-        {
-          id: 'buy_tonic',
-          labelFr: 'Tonique (5 argent de contrebande → +50 % PV)',
-          labelEn: 'Tonic (5 contraband money → +50% HP)',
-          cost: 5,
-          disabled: getContraband(player) < 5,
-        },
-        {
-          id: 'leave',
-          labelFr: 'Partir sans acheter',
-          labelEn: 'Leave without buying',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'crossroads') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'heal_path',
-          labelFr: 'Sentier de soins (+25 % PV)',
-          labelEn: 'Healing path (+25% HP)',
-        },
-        { id: 'scrap_path', labelFr: 'Sentier de contrebande (+4)', labelEn: 'Contraband path (+4)' },
-      ],
-    };
-  }
-  if (node.eventType === 'whisper_grove') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'listen',
-          labelFr: 'Écouter les murmures (+28 % PV)',
-          labelEn: 'Listen to the whispers (+28% HP)',
-        },
-        {
-          id: 'gather',
-          labelFr: 'Cueillir des herbes (+3 argent de contrebande)',
-          labelEn: 'Gather herbs (+3 contraband money)',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'crow_perch') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'offer_scrap',
-          labelFr: 'Offrir 2 argent de contrebande → +35 % PV',
-          labelEn: 'Offer 2 contraband money → +35% HP',
-          cost: 2,
-          disabled: getContraband(player) < 2,
-        },
-        {
-          id: 'scare_away',
-          labelFr: 'Effrayer le corbeau (+2 argent de contrebande)',
-          labelEn: 'Scare the crow (+2 contraband money)',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'sealed_scroll') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'read_scroll',
-          labelFr: 'Lire le sceau (+22 % PV)',
-          labelEn: 'Read the seal (+22% HP)',
-        },
-        {
-          id: 'break_seal',
-          labelFr: 'Briser le sceau (+5 argent de contrebande)',
-          labelEn: 'Break the seal (+5 contraband money)',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'mist_bridge') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'careful_cross',
-          labelFr: 'Traverser avec soin (+20 % PV)',
-          labelEn: 'Cross carefully (+20% HP)',
-        },
-        {
-          id: 'sprint_cross',
-          labelFr: 'Courir sur les planches (+3 argent de contrebande, +8 % PV)',
-          labelEn: 'Sprint the planks (+3 contraband money, +8% HP)',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'spirit_lantern') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'light_lantern',
-          labelFr: 'Allumer la lanterne (+18 % PV, +1 argent de contrebande)',
-          labelEn: 'Light the lantern (+18% HP, +1 contraband money)',
-        },
-        {
-          id: 'leave_dark',
-          labelFr: 'Laisser l’ombre (rien)',
-          labelEn: 'Leave the shadow (nothing)',
-        },
-      ],
-    };
-  }
-  if (node.eventType === 'ash_camp') {
-    return {
-      ...base,
-      choices: [
-        {
-          id: 'rest_hearth',
-          labelFr: 'Se reposer au foyer (+32 % PV)',
-          labelEn: 'Rest by the hearth (+32% HP)',
-        },
-        {
-          id: 'sift_ashes',
-          labelFr: 'Fouiller les cendres (+4 argent de contrebande, +10 % PV)',
-          labelEn: 'Sift the ashes (+4 contraband money, +10% HP)',
-        },
-      ],
-    };
-  }
-  // fallback
-  return {
-    ...base,
-    choices: [
-      {
-        id: 'heal_path',
-        labelFr: 'Sentier de soins (+25 % PV)',
-        labelEn: 'Healing path (+25% HP)',
-      },
-      { id: 'scrap_path', labelFr: 'Sentier de contrebande (+4)', labelEn: 'Contraband path (+4)' },
-    ],
-  };
+  const def = getShopItem(itemId);
+  if (!def) throw httpError(404, 'Article inconnu.');
+
+  let player = parseJson(row.player_run_state_json, {});
+  const spent = spendPurse(player, def.price);
+  if (!spent.ok) throw httpError(400, 'Bourse insuffisante.', spent.code);
+  player = spent.player;
+
+  const placed = placeInventoryItem(player.inventory, def, {
+    replaceSlot: replaceSlot == null ? null : Number(replaceSlot),
+    meta: def.kind === 'pending_card' ? { rarity: def.rarity } : null,
+  });
+  if (!placed.ok) throw httpError(400, 'Inventaire plein — jetez ou remplacez un objet.', placed.code);
+  player.inventory = placed.inventory;
+
+  offer[offerIdx] = { ...offerItem, stock: 0 };
+  nodes[idx] = { ...node, offer };
+
+  row.nodes_json = nodes;
+  row.player_run_state_json = player;
+  await persistRun(row);
+  return serializeRun(row, {
+    lastPurchase: { itemId: def.id, price: def.price, slot: placed.slot },
+  });
 }
 
-/**
- * Résout un événement (choix joueur) et avance le parcours.
- */
+export async function inventoryUse(userId, runId, slotIndex) {
+  const row = await loadRunRow(runId, userId);
+  if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
+  if (row.current_combat_id) {
+    throw httpError(400, 'Impossible d’utiliser un objet pendant un combat.');
+  }
+  const player = parseJson(row.player_run_state_json, {});
+  const result = useInventorySlot(player, Number(slotIndex));
+  if (!result.ok) {
+    const messages = {
+      EMPTY_SLOT: 'Emplacement vide.',
+      SEALED_UNTIL_FINISH: 'Parchemin scellé — révélation à la fin du parcours.',
+      NOT_USABLE: 'Objet non utilisable.',
+    };
+    throw httpError(400, messages[result.code] || 'Utilisation impossible.', result.code);
+  }
+  row.player_run_state_json = result.player;
+  await persistRun(row);
+  return serializeRun(row, { lastUse: result.log });
+}
+
+export async function inventoryDiscard(userId, runId, slotIndex) {
+  const row = await loadRunRow(runId, userId);
+  if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
+  let player = parseJson(row.player_run_state_json, {});
+  const result = discardInventorySlot(player.inventory, Number(slotIndex));
+  if (!result.ok) throw httpError(400, 'Emplacement vide.', result.code);
+  player = { ...player, inventory: result.inventory };
+  row.player_run_state_json = player;
+  await persistRun(row);
+  return serializeRun(row);
+}
+
+export async function chooseBranch(userId, runId, choiceId) {
+  const row = await loadRunRow(runId, userId);
+  if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
+  const nodes = parseJson(row.nodes_json, []);
+  const idx = Number(row.current_node_index) || 0;
+  const node = nodes[idx];
+  if (!node || node.type !== 'branch' || node.status !== 'available') {
+    throw httpError(400, 'Bifurcation non disponible.');
+  }
+
+  let player = grantNodePurse(parseJson(row.player_run_state_json, {}));
+  const applied = applyBranchChoice(nodes, idx, choiceId);
+  player = {
+    ...player,
+    branchId: applied.branchId,
+    branchXpMult: applied.xpMult,
+  };
+
+  row.nodes_json = applied.nodes;
+  row.player_run_state_json = player;
+  const availableIdx = applied.nodes.findIndex(n => n.status === 'available');
+  row.current_node_index = availableIdx >= 0 ? availableIdx : idx;
+  await persistRun(row);
+  return serializeRun(row, { branchChosen: choiceId });
+}
+
 export async function resolveEvent(userId, runId, choiceId) {
   const row = await loadRunRow(runId, userId);
   if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
@@ -828,178 +762,37 @@ export async function resolveEvent(userId, runId, choiceId) {
   const nodes = parseJson(row.nodes_json, []);
   const idx = Number(row.current_node_index) || 0;
   const node = nodes[idx];
-  if (!isOpenEventNode(node)) {
-    throw httpError(400, 'Aucun événement à résoudre.');
+  if (!node || node.status !== 'available') throw httpError(400, 'Aucun événement ouvert.');
+
+  // Branch uses dedicated endpoint but accept choice here too.
+  if (node.type === 'branch') {
+    return chooseBranch(userId, runId, choiceId);
   }
-  if (!choiceId) throw httpError(400, 'choiceId requis.');
 
   let player = parseJson(row.player_run_state_json, {});
-  const eventType =
-    node.eventType ||
-    (node.type === 'mystery' ? mysteryEventType(node.outcome?.kind || 'nothing') : 'rest');
-  const log = { choiceId, eventType };
+  const log = { choiceId, eventType: node.eventType || node.type };
 
-  switch (eventType) {
-    case 'mystery_heal': {
-      player = healPercent(player, 0.5);
-      log.heal = player.lastHeal;
-      break;
+  if (node.type === 'shop' || node.type === 'merchant' || choiceId === 'leave') {
+    if (choiceId !== 'leave' && node.type === 'shop') {
+      throw httpError(400, 'Utilisez l’achat boutique, puis quittez.');
     }
-    case 'mystery_loot': {
-      player = healPercent(player, 0.1);
-      player = { ...player, contraband: getContraband(player) + 4 };
-      log.heal = player.lastHeal;
-      log.contrabandGained = 4;
-      break;
-    }
-    case 'mystery_nothing': {
-      log.skipped = true;
-      break;
-    }
-    case 'rest': {
-      player = healPercent(player, 0.3);
-      log.heal = player.lastHeal;
-      break;
-    }
-    case 'cache': {
-      player = healPercent(player, 0.12);
-      player = { ...player, contraband: getContraband(player) + 2 };
-      log.heal = player.lastHeal;
-      log.contrabandGained = 2;
-      break;
-    }
-    case 'merchant': {
-      if (choiceId === 'buy_bandage') {
-        if (getContraband(player) < 2) throw httpError(400, 'Pas assez d’argent de contrebande.');
-        player = healPercent({ ...player, contraband: getContraband(player) - 2 }, 0.25);
-        log.heal = player.lastHeal;
-        log.contrabandSpent = 2;
-      } else if (choiceId === 'buy_tonic') {
-        if (getContraband(player) < 5) throw httpError(400, 'Pas assez d’argent de contrebande.');
-        player = healPercent({ ...player, contraband: getContraband(player) - 5 }, 0.5);
-        log.heal = player.lastHeal;
-        log.contrabandSpent = 5;
-      } else if (choiceId === 'leave') {
-        log.skipped = true;
-      } else {
-        throw httpError(400, 'Choix marchand invalide.');
-      }
-      break;
-    }
-    case 'crossroads': {
-      if (choiceId === 'heal_path') {
-        player = healPercent(player, 0.25);
-        log.heal = player.lastHeal;
-      } else if (choiceId === 'scrap_path') {
-        player = { ...player, contraband: getContraband(player) + 4 };
-        log.contrabandGained = 4;
-      } else {
-        throw httpError(400, 'Choix de carrefour invalide.');
-      }
-      break;
-    }
-    case 'whisper_grove': {
-      if (choiceId === 'listen') {
-        player = healPercent(player, 0.28);
-        log.heal = player.lastHeal;
-      } else if (choiceId === 'gather') {
-        player = { ...player, contraband: getContraband(player) + 3 };
-        log.contrabandGained = 3;
-      } else {
-        throw httpError(400, 'Choix du bosquet invalide.');
-      }
-      break;
-    }
-    case 'crow_perch': {
-      if (choiceId === 'offer_scrap') {
-        if (getContraband(player) < 2) throw httpError(400, 'Pas assez d’argent de contrebande.');
-        player = healPercent({ ...player, contraband: getContraband(player) - 2 }, 0.35);
-        log.heal = player.lastHeal;
-        log.contrabandSpent = 2;
-      } else if (choiceId === 'scare_away') {
-        player = { ...player, contraband: getContraband(player) + 2 };
-        log.contrabandGained = 2;
-      } else {
-        throw httpError(400, 'Choix du perchoir invalide.');
-      }
-      break;
-    }
-    case 'sealed_scroll': {
-      if (choiceId === 'read_scroll') {
-        player = healPercent(player, 0.22);
-        log.heal = player.lastHeal;
-      } else if (choiceId === 'break_seal') {
-        player = { ...player, contraband: getContraband(player) + 5 };
-        log.contrabandGained = 5;
-      } else {
-        throw httpError(400, 'Choix du parchemin invalide.');
-      }
-      break;
-    }
-    case 'mist_bridge': {
-      if (choiceId === 'careful_cross') {
-        player = healPercent(player, 0.2);
-        log.heal = player.lastHeal;
-      } else if (choiceId === 'sprint_cross') {
-        player = healPercent(player, 0.08);
-        player = { ...player, contraband: getContraband(player) + 3 };
-        log.heal = player.lastHeal;
-        log.contrabandGained = 3;
-      } else {
-        throw httpError(400, 'Choix du pont invalide.');
-      }
-      break;
-    }
-    case 'spirit_lantern': {
-      if (choiceId === 'light_lantern') {
-        player = healPercent(player, 0.18);
-        player = { ...player, contraband: getContraband(player) + 1 };
-        log.heal = player.lastHeal;
-        log.contrabandGained = 1;
-      } else if (choiceId === 'leave_dark') {
-        log.skipped = true;
-      } else {
-        throw httpError(400, 'Choix de la lanterne invalide.');
-      }
-      break;
-    }
-    case 'ash_camp': {
-      if (choiceId === 'rest_hearth') {
-        player = healPercent(player, 0.32);
-        log.heal = player.lastHeal;
-      } else if (choiceId === 'sift_ashes') {
-        player = healPercent(player, 0.1);
-        player = { ...player, contraband: getContraband(player) + 4 };
-        log.heal = player.lastHeal;
-        log.contrabandGained = 4;
-      } else {
-        throw httpError(400, 'Choix du campement invalide.');
-      }
-      break;
-    }
-    default:
-      player = healPercent(player, 0.2);
-      log.heal = player.lastHeal;
+    player = grantNodePurse(player);
+    log.leftShop = true;
+  } else if (choiceId === 'rest_here') {
+    const pct = node.type === 'rest' ? 0.4 : 0.5;
+    player = healPercent(player, pct);
+    log.heal = player.lastHeal;
+    player = grantNodePurse(player);
+  } else if (choiceId === 'take_scrap') {
+    player = healPercent(player, 0.1);
+    player = { ...player, purse: getPurse(player) + 40 };
+    log.purseGained = 40;
+  } else {
+    player = grantNodePurse(player);
   }
 
   delete player.lastHeal;
-  nodes[idx] = { ...node, resolved: log };
-  const nextNodes = unlockNext(nodes, idx);
-  const availableIdx = nextNodes.findIndex(n => n.status === 'available');
-  const allCleared = nextNodes.every(n => n.status === 'cleared');
-
-  row.nodes_json = nextNodes;
-  row.player_run_state_json = player;
-  row.current_node_index = availableIdx >= 0 ? availableIdx : idx;
-  row.current_combat_id = null;
-
-  if (allCleared || availableIdx < 0) {
-    await completeRunVictory(row);
-  } else {
-    await persistRun(row);
-  }
-
-  return serializeRun(row, { lastEvent: log });
+  return advanceAfterClear(row, nodes, player, idx);
 }
 
 async function completeRunVictory(row) {
@@ -1010,18 +803,58 @@ async function completeRunVictory(row) {
     const hardModeMult = player.hardMode
       ? Number(player.rewardMult) || HARD_MODE_REWARD_MULT
       : 1;
+    const branchXpMult = Number(player.branchXpMult) || 1;
+    const purseReturn = getPurse(player);
+
     const rewards = await grantRunRewards(row.user_id, row.mission_id, {
       combatsWon: player.combatsWon || 0,
-      nodeCount: parseJson(row.nodes_json, []).length,
+      nodeCount: parseJson(row.nodes_json, []).filter(n => n.status === 'cleared').length,
       hardModeMult,
+      branchXpMult,
+      purseReturn,
     });
+
+    // Grant sealed cards from inventory
+    const pendingCards = collectPendingCardsFromInventory(player);
+    const grantedCards = [];
+    for (const entry of pendingCards) {
+      const cardId = await pickCardIdByRarity(entry.rarity || 'common');
+      if (!cardId) continue;
+      try {
+        const added = await addCard(row.user_id, cardId, {
+          quantity: 1,
+          source: 'mission_run_shop',
+        });
+        grantedCards.push({
+          cardId,
+          rarity: entry.rarity,
+          collectionId: added?.id || null,
+        });
+      } catch {
+        /* skip failed grant */
+      }
+    }
+    rewards.purseReturned = purseReturn;
+    rewards.shopCards = grantedCards;
+    rewards.branchXpMult = branchXpMult;
     row.rewards_json = rewards;
+
+    // Clear run inventory after commit
+    row.player_run_state_json = {
+      ...player,
+      purse: 0,
+      inventory: (player.inventory || []).map((slot, i) => ({
+        slot: i,
+        itemId: null,
+        qty: 0,
+        meta: null,
+      })),
+    };
   } catch (err) {
     row.rewards_json = { error: true, message: err.message };
   }
   await persistRun(row);
 
-  // Quêtes BP : parcours terminé (+ rang B+ si applicable)
   try {
     const { onBattlePassAction, isMissionRankBOrHigher } =
       await import('./battlePassQuestService.js');
@@ -1042,9 +875,6 @@ async function completeRunVictory(row) {
   }
 }
 
-/**
- * Hook appelé par le moteur de combat quand un combat lié à un run se termine.
- */
 export async function onRunCombatFinished(session) {
   if (!session?.missionRunId || !session.userId) return null;
 
@@ -1055,10 +885,7 @@ export async function onRunCombatFinished(session) {
     return null;
   }
   if (row.state !== 'in_progress') return serializeRun(row);
-
-  // Ne traiter qu'une fois
   if (row.current_combat_id && row.current_combat_id !== session.id) {
-    // Combat obsolète
     return serializeRun(row);
   }
 
@@ -1069,37 +896,26 @@ export async function onRunCombatFinished(session) {
   if (session.state === 'victory') {
     const hp = Math.max(1, Number(session.player?.hp) || 1);
     const maxHp = Number(session.player?.maxHp) || player.maxHp;
-    player = {
+    player = grantCombatPurse({
       ...player,
       hp: clampHp(hp, maxHp),
       maxHp,
-      contraband: getContraband(player) + 2,
       combatsWon: (player.combatsWon || 0) + 1,
-    };
-
-    const nextNodes = unlockNext(nodes, idx);
-    row.nodes_json = nextNodes;
-    row.player_run_state_json = player;
-    row.current_combat_id = null;
-
-    const availableIdx = nextNodes.findIndex(n => n.status === 'available');
-    const allCleared = nextNodes.every(n => n.status === 'cleared');
-
-    if (allCleared || availableIdx < 0) {
-      row.current_node_index = idx;
-      await completeRunVictory(row);
-    } else {
-      row.current_node_index = availableIdx;
-      await persistRun(row);
-    }
-    return serializeRun(row);
+    });
+    return advanceAfterClear(row, nodes, player, idx);
   }
 
-  // Défaite / abandon combat → échec du run
   if (session.state === 'defeat' || session.state === 'forfeited') {
     player = {
       ...player,
       hp: Math.max(0, Number(session.player?.hp) || 0),
+      purse: 0,
+      inventory: (player.inventory || []).map((slot, i) => ({
+        slot: i,
+        itemId: null,
+        qty: 0,
+        meta: null,
+      })),
     };
     row.player_run_state_json = player;
     row.state = 'defeat';
@@ -1129,6 +945,17 @@ export async function abandonRun(userId, runId) {
     }
   }
 
+  const player = parseJson(row.player_run_state_json, {});
+  row.player_run_state_json = {
+    ...player,
+    purse: 0,
+    inventory: (player.inventory || []).map((slot, i) => ({
+      slot: i,
+      itemId: null,
+      qty: 0,
+      meta: null,
+    })),
+  };
   row.state = 'abandoned';
   row.current_combat_id = null;
   await persistRun(row);
@@ -1151,4 +978,10 @@ export const __test = {
   isRecoveryOutcome,
   HARD_MODE_DIFFICULTY_MULT,
   HARD_MODE_REWARD_MULT,
+  applyBranchChoice,
+  PURSE_STAKES,
+  createRunPlayerState,
+  placeInventoryItem,
+  useInventorySlot,
+  getPurse,
 };

@@ -500,17 +500,26 @@ export async function startCombat(userId, opts = {}) {
   const shuffled = shuffle(runtimeCards);
 
   const { createCombatAchTrack } = await import('./achievementService.js');
+  const runCombatMods = opts.runCombatMods && typeof opts.runCombatMods === 'object'
+    ? opts.runCombatMods
+    : {};
+  const bonusBlock = Math.max(0, Number(runCombatMods.block) || 0);
+  const bonusChakra = Math.max(0, Number(runCombatMods.chakra) || 0);
+  const bonusDamagePct = Math.max(0, Number(runCombatMods.damagePct) || 0);
+
   let player = {
     ...playerIdentity,
     hp: startHp,
     maxHp,
-    block: Math.max(0, Number(stats.startingBlock) || 0),
-    chakra: 5 + (Number(stats.maxChakra) || 0),
-    maxChakra: 5 + (Number(stats.maxChakra) || 0),
+    block: Math.max(0, Number(stats.startingBlock) || 0) + bonusBlock,
+    chakra: 5 + (Number(stats.maxChakra) || 0) + bonusChakra,
+    maxChakra: 5 + (Number(stats.maxChakra) || 0) + bonusChakra,
     ruleset,
     voluntaryDiscards: 0,
     ...(turnPrototype && { turnPrototype }),
-    statuses: [],
+    statuses: bonusDamagePct
+      ? [{ key: 'damage_pct', value: bonusDamagePct, duration: 99 }]
+      : [],
     hand: [],
     drawPile: shuffled,
     discardPile: [],

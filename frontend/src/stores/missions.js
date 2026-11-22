@@ -42,6 +42,7 @@ export const useMissionsStore = defineStore('missions', () => {
       const payload = {};
       if (deckId) payload.deckId = deckId;
       if (opts?.hardMode) payload.hardMode = true;
+      if (opts?.purseStake != null) payload.purseStake = Number(opts.purseStake) || 0;
       const res = await fetch(`${API_BASE}/api/missions/${missionId}/start`, {
         method: 'POST',
         credentials: 'include',
@@ -149,6 +150,100 @@ export const useMissionsStore = defineStore('missions', () => {
     }
   }
 
+  async function shopBuy(runId, itemId, replaceSlot = null) {
+    actionLoading.value = true;
+    error.value = null;
+    try {
+      const payload = { itemId };
+      if (replaceSlot != null) payload.replaceSlot = replaceSlot;
+      const res = await fetch(`${API_BASE}/api/missions/runs/${runId}/shop/buy`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      currentRun.value = body.run;
+      currentEvent.value = body.run?.currentEvent || currentEvent.value;
+      return body.run;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
+  async function inventoryUse(runId, slot) {
+    actionLoading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/missions/runs/${runId}/inventory/use`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slot }),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      currentRun.value = body.run;
+      currentEvent.value = body.run?.currentEvent || null;
+      return body.run;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
+  async function inventoryDiscard(runId, slot) {
+    actionLoading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/missions/runs/${runId}/inventory/discard`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slot }),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      currentRun.value = body.run;
+      currentEvent.value = body.run?.currentEvent || null;
+      return body.run;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
+  async function chooseBranch(runId, choiceId) {
+    actionLoading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/missions/runs/${runId}/choose-branch`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choiceId }),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      currentRun.value = body.run;
+      currentEvent.value = null;
+      return body.run;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      actionLoading.value = false;
+    }
+  }
+
   function applyRunUpdate(run) {
     if (!run) return;
     currentRun.value = run;
@@ -181,6 +276,10 @@ export const useMissionsStore = defineStore('missions', () => {
     fetchRun,
     enterNode,
     resolveEvent,
+    shopBuy,
+    inventoryUse,
+    inventoryDiscard,
+    chooseBranch,
     abandonRun,
     applyRunUpdate,
     clearRun,

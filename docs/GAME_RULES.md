@@ -58,9 +58,9 @@ Hors mission, un combat rapide peut être lancé contre un template avec une dif
 
 ## Missions
 
-Une mission active par rang (D, C, B, A, S). Chaque lancement génère un parcours aléatoire : combats tirés dans un pool du rang, plus un ou deux nœuds « ? » (soin, colporteur, butin, rien ou embuscade). Au moins un nœud de récupération (soin ou colporteur) est garanti. Le briefing immersif est révélé au départ, pas sur la liste.
+Une mission active par rang (D, C, B, A, S). Chaque lancement génère un **parcours branché** : combat d’ouverture, boutique, carrefour (route courte ou longue, XP ×1 / ×1,35), puis finale. Combats tirés dans un pool du rang ; les rangs B+ peuvent terminer sur un boss. Le briefing immersif est révélé au départ, pas sur la liste.
 
-Les PV persistent entre combats. L’argent de contrebande gagné en combat s’échange chez le colporteur contre des soins. Une défaite ou un abandon termine le run sans récompenses de complétion. Les récompenses sont versées à la fin du run, avec un multiplicateur selon les combats gagnés. Avant le lancement, une case optionnelle active le **mode difficile** (ennemis ×1,2, récompenses de fin +20 %). Les rangs B+ peuvent terminer sur un boss.
+Avant le lancement, le joueur engage une **bourse** de **0 / 100 / 200 / 300 Ryos** (prélevée du compte). Les gains de route (+25 / nœud, +50 / combat) alimentent cette bourse. L’**inventaire de run** a 4 slots : achat ≠ usage ; soins hors combat uniquement ; parchemins scellés révélés au finish. Une halte soigne gratuitement. Une défaite ou un abandon **perd la bourse et l’inventaire** et ne verse aucune récompense de complétion. La victoire crédite la bourse restante + loot pending + récompenses (multiplicateur selon combats gagnés). Option **mode difficile** (ennemis ×1,2, récompenses de fin +20 %).
 
 ## Collection et amélioration
 

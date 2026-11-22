@@ -67,13 +67,20 @@ function nodeLabel(node) {
     if (node.fromMystery) return t('combat.nodeMysteryCombat')
     return t('combat.nodeCombat')
   }
+  if (node.type === 'shop' || node.type === 'merchant') return t('combat.nodeShop')
+  if (node.type === 'rest') return t('combat.nodeRest')
+  if (node.type === 'branch') return t('combat.nodeBranch')
   return localizedName(node, locale.value) || t('combat.nodeEvent')
 }
 
 function nodeHint(node) {
+  if (node.status === 'skipped') return t('combat.nodeSkippedHint')
   if (node.type === 'mystery' && !node.revealed) {
     return t('combat.nodeMysteryHint')
   }
+  if (node.type === 'shop' || node.type === 'merchant') return t('combat.nodeShopHint')
+  if (node.type === 'rest') return t('combat.nodeRestHint')
+  if (node.type === 'branch') return t('combat.nodeBranchHint')
   if (node.type === 'event' || (node.type === 'mystery' && node.revealed)) {
     return localizedDescription(node, locale.value)
   }
@@ -84,8 +91,36 @@ function nodeHint(node) {
 
 function nodeShape(node) {
   if (node.boss) return 'lozenge'
-  if (node.type === 'mystery' || node.type === 'event') return 'circle'
+  if (node.type === 'shop' || node.type === 'merchant') return 'hexagon'
+  if (node.type === 'branch') return 'diamond'
+  if (node.type === 'rest' || node.type === 'mystery' || node.type === 'event') return 'circle'
   return 'square'
+}
+
+const visibleNodes = computed(() =>
+  (nodes.value || []).filter((node) => node.status !== 'skipped')
+)
+
+const inventory = computed(() => {
+  const slots = player.value.inventory
+  if (Array.isArray(slots) && slots.length) return slots
+  return [0, 1, 2, 3].map((slot) => ({ slot, itemId: null, qty: 0 }))
+})
+const isShopEvent = computed(() => missions.currentEvent?.eventType === 'shop')
+const shopOffer = computed(() => missions.currentEvent?.offer || [])
+const replaceSlot = ref(null)
+
+function itemLabel(item) {
+  return localizedField(item, 'name', locale.value) || item.id
+}
+
+function itemDesc(item) {
+  return localizedField(item, 'description', locale.value) || ''
+}
+
+function slotLabel(slot) {
+  if (!slot?.itemId) return t('combat.inventoryEmpty')
+  return t(`combat.shopItems.${slot.itemId}`, slot.itemId)
 }
 
 const hpPct = computed(() =>
@@ -114,7 +149,38 @@ async function onEnter() {
 async function onChoice(choiceId) {
   localError.value = null
   try {
+    if (missions.currentEvent?.eventType === 'branch') {
+      await missions.chooseBranch(runId.value, choiceId)
+      return
+    }
     await missions.resolveEvent(runId.value, choiceId)
+  } catch (e) {
+    localError.value = e.message
+  }
+}
+
+async function onBuy(itemId) {
+  localError.value = null
+  try {
+    await missions.shopBuy(runId.value, itemId, replaceSlot.value)
+  } catch (e) {
+    localError.value = e.message
+  }
+}
+
+async function onUseSlot(slot) {
+  localError.value = null
+  try {
+    await missions.inventoryUse(runId.value, slot)
+  } catch (e) {
+    localError.value = e.message
+  }
+}
+
+async function onDiscardSlot(slot) {
+  localError.value = null
+  try {
+    await missions.inventoryDiscard(runId.value, slot)
   } catch (e) {
     localError.value = e.message
   }
@@ -184,10 +250,57 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         >
           {{ t('combat.hardModeActive') }}
         </p>
-        <p class="run-status__contraband">
-          {{ t('combat.runContraband', { n: player.contraband ?? player.scrap ?? 0 }) }}
+        <p class="run-status__purse" data-testid="run-purse">
+          {{ t('combat.runPurse', { n: player.purse ?? player.contraband ?? 0 }) }}
         </p>
       </div>
+
+      <section
+        v-if="!isOver"
+        class="run-inventory"
+        data-testid="run-inventory"
+      >
+        <h2 class="run-inventory__title">{{ t('combat.inventoryTitle') }}</h2>
+        <p class="run-inventory__hint">{{ t('combat.inventoryHint') }}</p>
+        <ul class="run-inventory__slots">
+          <li
+            v-for="slot in inventory"
+            :key="slot.slot"
+            class="run-inventory__slot"
+            :class="{ 'run-inventory__slot--filled': slot.itemId }"
+            :data-testid="`run-inv-slot-${slot.slot}`"
+          >
+            <p class="run-inventory__slot-label">{{ slotLabel(slot) }}</p>
+            <div v-if="slot.itemId" class="run-inventory__slot-actions">
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                :disabled="missions.actionLoading"
+                @click="onUseSlot(slot.slot)"
+              >
+                {{ t('combat.inventoryUse') }}
+              </button>
+              <button
+                type="button"
+                class="btn-ghost btn-sm"
+                :disabled="missions.actionLoading"
+                @click="onDiscardSlot(slot.slot)"
+              >
+                {{ t('combat.inventoryDiscard') }}
+              </button>
+              <label class="run-inventory__replace">
+                <input
+                  v-model="replaceSlot"
+                  type="radio"
+                  name="replace-slot"
+                  :value="slot.slot"
+                >
+                {{ t('combat.inventoryReplaceTarget') }}
+              </label>
+            </div>
+          </li>
+        </ul>
+      </section>
 
       <p
         v-if="isOver && missionEpilogue"
@@ -209,7 +322,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
       <ol v-else class="run-path" data-testid="run-path">
         <li
-          v-for="(node, i) in nodes"
+          v-for="(node, i) in visibleNodes"
           :key="node.id"
           class="run-node"
           :class="[
@@ -220,11 +333,13 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
           :data-tone="
             node.boss
               ? 'vermilion'
-              : node.type === 'event' || node.type === 'mystery'
-                ? 'sky'
-                : 'indigo'
+              : node.type === 'shop' || node.type === 'merchant'
+                ? 'gold'
+                : node.type === 'branch' || node.type === 'rest' || node.type === 'mystery'
+                  ? 'sky'
+                  : 'indigo'
           "
-          :data-testid="`run-node-${i}`"
+          :data-testid="`run-node-${node.id}`"
         >
           <div class="run-node__marker">
             <span class="run-node__index" :class="`run-node__index--${nodeShape(node)}`">
@@ -243,7 +358,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
           <span class="run-node__status">
             <AppIcon v-if="node.status === 'cleared'" name="check" size="0.95rem" :stroke-width="2.5" />
             <AppIcon v-else-if="node.status === 'locked'" name="lock" size="0.9rem" />
-            {{ t(`combat.nodeStatus.${node.status}`) }}
+            {{ t(`combat.nodeStatus.${node.status}`, node.status) }}
           </span>
         </li>
       </ol>
@@ -261,6 +376,38 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         <p class="run-event__desc">
           {{ localizedDescription(missions.currentEvent, locale) }}
         </p>
+
+        <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
+          <p class="run-shop__purse">
+            {{ t('combat.runPurse', { n: missions.currentEvent.purse ?? player.purse ?? 0 }) }}
+          </p>
+          <ul class="run-shop__offer">
+            <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
+              <div>
+                <p class="run-shop__name">{{ itemLabel(item) }}</p>
+                <p class="run-shop__desc">{{ itemDesc(item) }}</p>
+                <p class="run-shop__price">{{ t('combat.shopPrice', { n: item.price }) }}</p>
+              </div>
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                :disabled="
+                  missions.actionLoading ||
+                  (item.stock ?? 1) <= 0 ||
+                  (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
+                "
+                @click="onBuy(item.id)"
+              >
+                {{
+                  (item.stock ?? 1) <= 0
+                    ? t('combat.shopSoldOut')
+                    : t('combat.shopBuy')
+                }}
+              </button>
+            </li>
+          </ul>
+        </div>
+
         <div class="run-event__choices">
           <button
             v-for="choice in eventChoices"
@@ -271,6 +418,9 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             @click="onChoice(choice.id)"
           >
             {{ localizedField(choice, 'label', locale) }}
+            <span v-if="choice.xpMult" class="run-event__xp">
+              {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
+            </span>
           </button>
         </div>
       </section>
@@ -390,10 +540,114 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   color: var(--color-ink);
 }
 
-.run-status__contraband {
+.run-status__purse {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink);
+}
+
+.run-inventory {
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: var(--color-bg-card);
+  max-width: 44rem;
+}
+
+.run-inventory__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.run-inventory__hint {
+  margin: 0.35rem 0 0.85rem;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.run-inventory__slots {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run-inventory__slot {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px dashed var(--color-line);
+}
+
+.run-inventory__slot--filled {
+  border-style: solid;
+}
+
+.run-inventory__slot-label {
+  margin: 0;
+  font-weight: 700;
+}
+
+.run-inventory__slot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.run-inventory__replace {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.run-shop {
+  margin: 1rem 0;
+}
+
+.run-shop__purse {
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+}
+
+.run-shop__offer {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.run-shop__item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
+}
+
+.run-shop__name {
+  margin: 0;
+  font-weight: 800;
+}
+
+.run-shop__desc,
+.run-shop__price {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.run-event__xp {
+  margin-left: 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.85;
 }
 
 .run-path {

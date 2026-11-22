@@ -748,34 +748,36 @@ function healSimPlayer(player, pct) {
 }
 
 /**
- * Politique événement pour la sim de run : soigne si blessé, sinon argent de contrebande.
+ * Politique événement pour la sim de run (halte / shop / mystery legacy).
  */
-function resolveSimMystery(player, outcome) {
-  const kind = outcome?.kind || 'nothing';
+function resolveSimNonCombat(player, node) {
   let next = { ...player };
-  if (kind === 'heal') {
-    return { player: healSimPlayer(next, 0.5), kind };
-  }
-  if (kind === 'loot') {
-    next = healSimPlayer(next, 0.1);
-    next.contraband = (Number(next.contraband) || 0) + 4;
-    return { player: next, kind };
-  }
-  if (kind === 'merchant') {
-    const hpRatio = (Number(next.hp) || 0) / Math.max(1, Number(next.maxHp) || 1);
-    const cash = Number(next.contraband) || 0;
-    if (cash >= 5 && hpRatio < 0.7) {
-      next = healSimPlayer({ ...next, contraband: cash - 5 }, 0.5);
-    } else if (cash >= 2 && hpRatio < 0.85) {
-      next = healSimPlayer({ ...next, contraband: cash - 2 }, 0.25);
+  if (node.type === 'rest' || node.type === 'mystery') {
+    const kind = node.outcome?.kind || (node.type === 'rest' ? 'heal' : 'nothing');
+    if (kind === 'heal' || node.type === 'rest') {
+      return { player: healSimPlayer(next, 0.5), kind: 'heal' };
     }
-    return { player: next, kind };
+    if (kind === 'loot') {
+      next = healSimPlayer(next, 0.1);
+      next.purse = (Number(next.purse) || 0) + 25;
+      return { player: next, kind };
+    }
   }
-  return { player: next, kind };
+  if (node.type === 'shop' || node.type === 'merchant') {
+    const hpRatio = (Number(next.hp) || 0) / Math.max(1, Number(next.maxHp) || 1);
+    const cash = Number(next.purse) || 0;
+    if (cash >= 75 && hpRatio < 0.7) {
+      next = healSimPlayer({ ...next, purse: cash - 75 }, 0.5);
+    } else if (cash >= 40 && hpRatio < 0.85) {
+      next = healSimPlayer({ ...next, purse: cash - 40 }, 0.25);
+    }
+    return { player: next, kind: 'shop' };
+  }
+  return { player: next, kind: node.type };
 }
 
 /**
- * Simule un parcours mission complet (PV persistants entre combats).
+ * Simule un parcours mission branché (PV persistants ; une seule branche suivie).
  */
 export function simulateMissionRun({
   rank = 'D',
@@ -785,6 +787,7 @@ export function simulateMissionRun({
   maxTurns = 40,
   profileOverride = null,
   deckEntries = null,
+  preferBranch = null,
 } = {}) {
   const pathRng = createSeededRng((seed ^ 0x9e3779b9) >>> 0);
   const nodes = buildRandomRunPath(rank, { rng: pathRng, hardMode });
@@ -794,48 +797,29 @@ export function simulateMissionRun({
   const maxHp =
     BASE_MAX_HP + (Number((profileOverride || profile).stats?.maxHp) || 0);
   let hp = maxHp;
-  let contraband = 0;
+  let purse = 0;
   let combatsWon = 0;
   let combatsAttempted = 0;
   let failReason = null;
   const fightLogs = [];
 
+  const branchNode = nodes.find(n => n.type === 'branch');
+  const branchPick =
+    preferBranch ||
+    (pathRng() < 0.5 ? 'short' : 'long');
+  const chosen = branchNode?.choices?.find(c => c.id === branchPick) || branchNode?.choices?.[0];
+  const activeBranch = chosen?.id || null;
+
   for (let i = 0; i < nodes.length; i += 1) {
     const node = nodes[i];
-    if (node.type === 'mystery') {
-      const resolved = resolveSimMystery(
-        { hp, maxHp, contraband },
-        node.outcome || { kind: 'nothing' },
-      );
-      hp = resolved.player.hp;
-      contraband = resolved.player.contraband || 0;
+    if (node.type === 'branch') continue;
+    if (node.branch && activeBranch && node.branch !== activeBranch) continue;
 
-      if (node.outcome?.kind === 'combat') {
-        // Embuscade déjà convertie en nœud combat dans le path live ;
-        // ici l'outcome combat reste sur le mystery — le simuler comme fight.
-        combatsAttempted += 1;
-        const fight = simulateCombat({
-          profileId,
-          templateId: node.outcome.templateId || 'ronin_bandit',
-          difficulty: node.outcome.difficulty || 1,
-          seed: (seed + i * 7919 + combatsAttempted * 104729) >>> 0,
-          maxTurns,
-          profileOverride,
-          deckEntries,
-          startingHp: hp,
-          // Aligné live mission : 5 chakra + main persistante.
-          persistentHand: true,
-          chakraBase: 5,
-        });
-        fightLogs.push({ nodeId: node.id, fromMystery: true, ...fight });
-        if (!fight.won) {
-          failReason = `mystery_combat:${node.id}`;
-          break;
-        }
-        hp = Math.max(1, fight.hpRemaining);
-        contraband += 2;
-        combatsWon += 1;
-      }
+    if (node.type === 'rest' || node.type === 'shop' || node.type === 'merchant' || node.type === 'mystery') {
+      const resolved = resolveSimNonCombat({ hp, maxHp, purse }, node);
+      hp = resolved.player.hp;
+      purse = Number(resolved.player.purse) || 0;
+      purse += 25; // node gain
       continue;
     }
 
@@ -854,13 +838,13 @@ export function simulateMissionRun({
       persistentHand: true,
       chakraBase: 5,
     });
-    fightLogs.push({ nodeId: node.id, fromMystery: false, ...fight });
+    fightLogs.push({ nodeId: node.id, branch: activeBranch, ...fight });
     if (!fight.won) {
       failReason = `combat:${node.id}`;
       break;
     }
     hp = Math.max(1, fight.hpRemaining);
-    contraband += 2;
+    purse += 50;
     combatsWon += 1;
   }
 
@@ -870,13 +854,15 @@ export function simulateMissionRun({
     profileId,
     hardMode: Boolean(hardMode),
     seed,
+    branch: activeBranch,
     cleared,
     combatsWon,
     combatsAttempted,
     avgHpAtEnd: cleared ? hp : 0,
     hpRemaining: cleared ? hp : 0,
     maxHp,
-    contraband,
+    purse,
+    contraband: purse, // compat agrégats legacy
     failReason,
     nodeCount: nodes.length,
     fights: fightLogs,

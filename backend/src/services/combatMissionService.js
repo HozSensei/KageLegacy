@@ -31,7 +31,7 @@ function serializeMission(row) {
   if (!row) return null;
   const pathCfg = getRankPathConfig(row.rank);
   const fightCount = pathCfg?.fightCount || parseJson(row.encounters_json, []).length || 0;
-  const mysteryRange = pathCfg?.mysteryCount || [0, 0];
+  const shortFightCount = pathCfg?.shortFightCount || fightCount;
   return attachMissionLore({
     id: row.id,
     slug: row.slug,
@@ -42,8 +42,12 @@ function serializeMission(row) {
     rank: row.rank,
     encounters: [],
     encounterCount: fightCount,
-    mysteryCountMin: mysteryRange[0],
-    mysteryCountMax: mysteryRange[1],
+    shortFightCount,
+    longFightCount: fightCount,
+    shopNodes: 2,
+    branchedPath: true,
+    mysteryCountMin: 0,
+    mysteryCountMax: 0,
     randomPath: true,
     rewards: parseJson(row.rewards_json, {}),
     isActive: Boolean(row.is_active),

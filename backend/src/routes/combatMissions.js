@@ -13,11 +13,16 @@ import {
 } from '../services/combatMissionService.js';
 import {
   abandonRun,
+  chooseBranch,
   enterNode,
   getActiveRun,
   getRun,
+  inventoryDiscard,
+  inventoryUse,
   resolveEvent,
+  shopBuy,
 } from '../services/missionRunService.js';
+import { PURSE_STAKES } from '../config/missionRunEconomy.js';
 import { getActiveCombat } from '../services/combatEngineService.js';
 import { getCharacter } from '../services/playerCharacterService.js';
 import { ASPIRANT_RANK } from '../services/characterAppearance.js';
@@ -27,10 +32,28 @@ const router = Router();
 const startSchema = z.object({
   deckId: z.number().int().positive().optional(),
   hardMode: z.boolean().optional(),
+  purseStake: z
+    .number()
+    .int()
+    .refine(v => PURSE_STAKES.includes(v), 'Bourse invalide (0/100/200/300).')
+    .optional(),
 });
 
 const resolveEventSchema = z.object({
   choiceId: z.string().min(1).max(40),
+});
+
+const shopBuySchema = z.object({
+  itemId: z.string().min(1).max(64),
+  replaceSlot: z.number().int().min(0).max(3).nullable().optional(),
+});
+
+const inventorySlotSchema = z.object({
+  slot: z.number().int().min(0).max(3),
+});
+
+const branchSchema = z.object({
+  choiceId: z.enum(['short', 'long']),
 });
 
 /** GET /api/missions */
@@ -99,6 +122,60 @@ router.post('/runs/:runId/resolve-event', async (req, res, next) => {
   }
 });
 
+/** POST /api/missions/runs/:runId/shop/buy */
+router.post('/runs/:runId/shop/buy', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const body = shopBuySchema.parse(req.body || {});
+    const run = await shopBuy(user.id, req.params.runId, body.itemId, {
+      replaceSlot: body.replaceSlot ?? null,
+    });
+    res.json({ run });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/missions/runs/:runId/inventory/use */
+router.post('/runs/:runId/inventory/use', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const body = inventorySlotSchema.parse(req.body || {});
+    const run = await inventoryUse(user.id, req.params.runId, body.slot);
+    res.json({ run });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/missions/runs/:runId/inventory/discard */
+router.post('/runs/:runId/inventory/discard', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const body = inventorySlotSchema.parse(req.body || {});
+    const run = await inventoryDiscard(user.id, req.params.runId, body.slot);
+    res.json({ run });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/missions/runs/:runId/choose-branch */
+router.post('/runs/:runId/choose-branch', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const body = branchSchema.parse(req.body || {});
+    const run = await chooseBranch(user.id, req.params.runId, body.choiceId);
+    res.json({ run });
+  } catch (error) {
+    next(error);
+  }
+});
+
 /** POST /api/missions/runs/:runId/abandon */
 router.post('/runs/:runId/abandon', async (req, res, next) => {
   try {
@@ -139,6 +216,7 @@ router.post('/:id/start', async (req, res, next) => {
     const body = startSchema.parse(req.body || {});
     const run = await startMission(user.id, id, body.deckId ?? null, {
       hardMode: Boolean(body.hardMode),
+      purseStake: body.purseStake ?? 0,
     });
     res.status(201).json({ run });
   } catch (error) {

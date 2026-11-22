@@ -1286,12 +1286,47 @@
     "backToMissions": "Retour aux missions",
     "missionsKicker": "Opérations",
     "missionsTitle": "Missions de combat",
-    "missionsLead": "Une mission par rang. Chaque lancement tire un parcours : combats et nœuds « ? ». Le briefing s’ouvre au départ. La mort échoue le parcours.",
+    "missionsLead": "Une mission par rang. Chaque lancement tire un parcours branché : bourse engagée, boutique, inventaire. Le briefing s’ouvre au départ. La mort perd la bourse.",
     "missionChapter": "Chapitre",
     "missionBrief": "Briefing",
     "missionEpilogue": "Après l’opération",
-    "randomPathHint": "Parcours généré au lancement — briefing révélé au départ.",
+    "randomPathHint": "Parcours branché généré au lancement — boutique et bifur sur la route.",
     "randomPathMeta": "{fights} combats · jusqu’à {mystery} « ? »",
+    "branchedPathMeta": "Branche courte {short} combats · longue {long} combats",
+    "purseStakeLabel": "Bourse emportée",
+    "purseStakeHint": "Prélevée sur vos Ryos. Perdue en cas de défaite ou d’abandon. Gains de route ajoutés à la bourse ; le reste revient au finish.",
+    "purseStakeOption": "{n} Ryos",
+    "missionGuide": {
+      "kicker": "Missions",
+      "title": "Comment fonctionne un parcours",
+      "progress": "Étape {current} / {total}",
+      "next": "Suivant",
+      "back": "Précédent",
+      "skip": "Passer",
+      "done": "Compris",
+      "steps": {
+        "purse": {
+          "title": "1. Bourse engagée",
+          "body": "Avant de partir, choisissez 0, 100, 200 ou 300 Ryos. Cette somme quitte votre compte et devient votre bourse de mission. Si vous échouez, elle est perdue."
+        },
+        "path": {
+          "title": "2. Parcours et bifurcations",
+          "body": "Après l’ouverture et une boutique, un carrefour propose une route courte ou longue. La longue dure plus et rapporte plus d’XP à la fin."
+        },
+        "inventory": {
+          "title": "3. Inventaire (4 slots)",
+          "body": "Les achats vont dans l’inventaire. Vous pouvez utiliser un soin hors combat, jeter un objet, ou remplacer un slot si l’inventaire est plein."
+        },
+        "shop": {
+          "title": "4. Boutique de mission",
+          "body": "Achetez avec la bourse : soins, sceaux de combat, boosts de run, ou parchemins scellés (révélés seulement à la fin)."
+        },
+        "finish": {
+          "title": "5. Validation à la fin",
+          "body": "Rien n’est crédité avant la victoire : bourse restante, XP, Ryos de récompense et cartes scellées. Une défaite annule le loot de run."
+        }
+      }
+    },
     "activeDeck": "Deck actif",
     "practiceDeckHint": "Deck d’entraînement (aucune collection)",
     "noDeckTitle": "Aucun deck actif",
@@ -1328,9 +1363,20 @@
     "resumeCombat": "Reprendre le combat",
     "runKicker": "Parcours",
     "runTitle": "Parcours de mission",
-    "runLead": "Avancez nœud par nœud. Combats et « ? » (soin, colporteur, butin, rien ou embuscade) — vos PV ne se régénèrent pas seuls.",
+    "runLead": "Avancez nœud par nœud. Boutique, bifur et combats — vos PV ne se régénèrent pas seuls. La bourse et l’inventaire ne sont validés qu’à la victoire.",
     "runHp": "PV",
     "runContraband": "Argent de contrebande : {n}",
+    "runPurse": "Bourse de mission : {n}",
+    "inventoryTitle": "Inventaire de mission",
+    "inventoryHint": "4 emplacements. Utilisez les soins hors combat. Les parchemins scellés s’ouvrent à la fin.",
+    "inventoryEmpty": "Vide",
+    "inventoryUse": "Utiliser",
+    "inventoryDiscard": "Jeter",
+    "inventoryReplaceTarget": "Remplacer à l’achat",
+    "shopBuy": "Acheter",
+    "shopSoldOut": "Épuisé",
+    "shopPrice": "{n} bourse",
+    "branchXpTag": "XP ×{n}",
     "enterNode": "Entrer dans l’étape",
     "abandonRun": "Abandonner le parcours",
     "backToRun": "Retour au parcours",
@@ -1339,16 +1385,36 @@
     "stepClearedHint": "Les récompenses seront versées à la fin du parcours.",
     "nodeCombat": "Embuscade",
     "nodeBoss": "Confrontation finale",
+    "nodeShop": "Colporteur",
+    "nodeShopHint": "Achetez avec votre bourse de mission.",
+    "nodeRest": "Halte",
+    "nodeRestHint": "Repos gratuit hors inventaire.",
+    "nodeBranch": "Carrefour",
+    "nodeBranchHint": "Choisissez la route courte ou longue.",
+    "nodeSkippedHint": "Branche non prise.",
     "nodeMystery": "?",
     "nodeMysteryHint": "Inconnu — soin, butin, rien ou combat.",
     "nodeMysteryCombat": "Embuscade (surprise)",
     "nodeEvent": "Événement",
     "bossTag": "Boss",
+    "shopItems": {
+      "heal_bandage": "Bandage",
+      "heal_tonic": "Tonique",
+      "heal_elixir": "Élixir vital",
+      "card_mystery_common": "Parchemin scellé (commun)",
+      "card_mystery_rare": "Parchemin scellé (rare)",
+      "card_mystery_legendary": "Parchemin scellé (légendaire)",
+      "run_boost_damage": "Sceau de frappe",
+      "next_block": "Talisman d’armure",
+      "next_chakra": "Pilule de chakra",
+      "next_damage": "Encens de rage"
+    },
     "nodeStatus": {
       "locked": "Verrouillé",
       "available": "Disponible",
       "cleared": "Franchi",
-      "failed": "Échoué"
+      "failed": "Échoué",
+      "skipped": "Écarté"
     },
     "turn": "Tour {n}",
     "endTurn": "Fin du tour",
