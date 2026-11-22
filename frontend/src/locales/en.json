@@ -859,6 +859,7 @@
       "back": "Back",
       "skip": "Skip",
       "done": "Got it",
+      "dontShowAgain": "Don't show again",
       "rulesLink": "Open the effects docs (new tab)",
       "swatches": {
         "damage": "Red — damage dealt",
@@ -1304,6 +1305,7 @@
       "back": "Back",
       "skip": "Skip",
       "done": "Got it",
+      "dontShowAgain": "Don't show again",
       "steps": {
         "purse": {
           "title": "1. Staked purse",

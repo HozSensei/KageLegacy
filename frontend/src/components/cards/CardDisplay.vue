@@ -1381,21 +1381,32 @@ watch(
   border-radius: inherit;
 }
 
-/* Remonter le sous-arbre au-dessus du voile (z-index enfant seul ne suffit pas). */
+/*
+ * Remonter la zone ciblée au-dessus du voile sans casser le layout :
+ * figures / banners restent absolute ; info (flex) passe en relative.
+ */
 .card-display--guide-chakra .card-display__figures,
 .card-display--guide-figures .card-display__figures,
+.card-display--guide-identity .card-display__art-banners {
+  z-index: 20;
+}
+
 .card-display--guide-effects .card-display__info,
-.card-display--guide-identity .card-display__art-banners,
 .card-display--guide-identity .card-display__info {
   position: relative;
   z-index: 20;
 }
 
 .card-display--guide .card-display__guide-hot {
-  position: relative;
   z-index: 21;
   filter: drop-shadow(0 0 10px #f5d78ecc);
   animation: card-guide-pulse 1.4s ease-in-out infinite;
+}
+
+/* Éléments en flux (description / footer) : relative pour activer le z-index. */
+.card-display--guide .card-display__description.card-display__guide-hot,
+.card-display--guide .card-display__footer.card-display__guide-hot {
+  position: relative;
 }
 
 /* Pendant l’étape gemmes, laisser le coût sous le voile visuel. */
