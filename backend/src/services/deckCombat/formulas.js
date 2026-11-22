@@ -79,6 +79,40 @@ export function applyDamageThroughBlock(entity, rawDamage, opts = {}) {
   };
 }
 
+/**
+ * Un allié avec Provocation encaisse d'abord les dégâts ; le surplus reste pour le joueur.
+ * @returns {{ entity: object, remaining: number, logs: object[] }}
+ */
+export function absorbDamageWithTauntAlly(entity, rawDamage) {
+  const logs = [];
+  let remaining = Math.max(0, Math.floor(Number(rawDamage) || 0));
+  const ally = entity?.ally;
+  if (!ally?.taunt || (Number(ally.hp) || 0) <= 0 || remaining <= 0) {
+    return { entity, remaining, logs };
+  }
+
+  const allyHpBefore = Number(ally.hp) || 0;
+  const absorbed = Math.min(allyHpBefore, remaining);
+  const allyHp = allyHpBefore - absorbed;
+  remaining -= absorbed;
+
+  return {
+    entity: {
+      ...entity,
+      ally: allyHp > 0 ? { ...ally, hp: allyHp } : null,
+    },
+    remaining,
+    logs: [
+      {
+        type: 'ally_damage',
+        amount: absorbed,
+        allyHp: allyHp > 0 ? allyHp : 0,
+        fallen: allyHp <= 0,
+      },
+    ],
+  };
+}
+
 const TYPED_DAMAGE_PCT_KEYS = {
   taijutsu: 'taijutsu_pct',
   ninjutsu: 'ninjutsu_pct',

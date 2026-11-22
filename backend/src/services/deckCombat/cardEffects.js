@@ -29,6 +29,44 @@ export { PLAYER_DEBUFF_KEYS };
 
 const COMBO_STAT_TYPES = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
 
+/**
+ * Lit taunt / regen depuis le bloc summon (flag, abilities[], ou description catalogue).
+ * La régénération soigne l'invocation, pas le joueur.
+ */
+export function resolveSummonTraits(def = {}) {
+  const abilities = Array.isArray(def.abilities)
+    ? def.abilities.map(ability => String(ability).toLowerCase())
+    : [];
+  const abilityText = String(def.ability || '').toLowerCase();
+  const taunt = Boolean(
+    def.taunt ?? (abilities.includes('taunt') || abilityText.includes('taunt')),
+  );
+
+  let regen = Math.max(0, Math.floor(Number(def.regen) || 0));
+  if (!regen && (abilities.includes('regen') || abilityText.includes('regen'))) {
+    const desc = String(def.description || '');
+    const matched = desc.match(/(?:r[eé]g[eé]n[eè]?re?s?|regen(?:erates?)?)\s+(\d+)/i);
+    regen = matched ? Math.max(1, Number(matched[1]) || 0) : 2;
+  }
+
+  return { taunt, regen, abilities };
+}
+
+export function buildAllyFromSummon(card) {
+  const def = card?.summon || {};
+  const { taunt, regen } = resolveSummonTraits(def);
+  const hp = Math.max(1, Number(def.hp) || 20);
+  return {
+    nameFr: def.nameFr || def.name || card?.nameFr || 'Allié',
+    nameEn: def.nameEn || def.name || card?.nameEn || 'Ally',
+    hp,
+    maxHp: hp,
+    attack: Math.max(0, Number(def.attack) || 6),
+    taunt,
+    regen,
+  };
+}
+
 // Combo conditions always inspect the immediately preceding card in this turn.
 function matchesPreviousCard(effect, previousCardStatType) {
   return (
@@ -214,21 +252,14 @@ export function applyCardPlay({
 
   // Invocation (1 allié max)
   if (card.type === 'summon' || card.summon) {
-    const def = card.summon || {};
-    const hp = Math.max(1, Number(def.hp) || 20);
-    nextPlayer.ally = {
-      nameFr: def.nameFr || def.name || card.nameFr || 'Allié',
-      nameEn: def.nameEn || def.name || card.nameEn || 'Ally',
-      hp,
-      maxHp: hp,
-      attack: Math.max(0, Number(def.attack) || 6),
-      taunt: Boolean(def.taunt ?? def.ability?.toLowerCase?.().includes('taunt')),
-    };
+    nextPlayer.ally = buildAllyFromSummon(card);
     logs.push({
       type: 'summon',
       name: nextPlayer.ally.nameFr,
       hp: nextPlayer.ally.hp,
       attack: nextPlayer.ally.attack,
+      taunt: Boolean(nextPlayer.ally.taunt),
+      regen: Number(nextPlayer.ally.regen) || 0,
     });
   }
 
@@ -363,15 +394,51 @@ export function applyCardPlay({
 }
 
 /**
+ * Régénération de l'invocation (soigne l'allié, jamais le joueur).
+ */
+export function applyAllyRegen(player) {
+  const logs = [];
+  const ally = player?.ally;
+  if (!ally || (Number(ally.hp) || 0) <= 0) {
+    return { player, logs };
+  }
+  const regen = Math.max(0, Math.floor(Number(ally.regen) || 0));
+  if (regen <= 0) return { player, logs };
+
+  const maxHp = Math.max(Number(ally.maxHp) || 0, Number(ally.hp) || 0);
+  const before = Number(ally.hp) || 0;
+  const hp = Math.min(maxHp, before + regen);
+  const healed = hp - before;
+  if (healed <= 0) return { player, logs };
+
+  return {
+    player: { ...player, ally: { ...ally, hp, maxHp } },
+    logs: [
+      {
+        type: 'ally_regen',
+        name: ally.nameFr || ally.nameEn,
+        value: healed,
+        allyHp: hp,
+      },
+    ],
+  };
+}
+
+/**
  * Attaque automatique de l'allié invoqué (début de tour joueur).
+ * Applique d'abord la régénération d'invocation si présente.
  */
 export function resolveAllyAttack(player, enemy) {
   const logs = [];
-  if (!player.ally || (player.ally.hp || 0) <= 0) {
-    return { player, enemy, logs };
+  const regenerated = applyAllyRegen(player);
+  const nextPlayer = regenerated.player;
+  logs.push(...regenerated.logs);
+
+  if (!nextPlayer.ally || (nextPlayer.ally.hp || 0) <= 0) {
+    return { player: nextPlayer, enemy, logs };
   }
-  const atk = Number(player.ally.attack) || 0;
-  if (atk <= 0) return { player, enemy, logs };
+  const atk = Number(nextPlayer.ally.attack) || 0;
+  if (atk <= 0) return { player: nextPlayer, enemy, logs };
 
   const hit = hitEnemy(
     enemy,
@@ -381,7 +448,7 @@ export function resolveAllyAttack(player, enemy) {
   );
   logs.push({
     type: 'ally_attack',
-    name: player.ally.nameFr || player.ally.nameEn,
+    name: nextPlayer.ally.nameFr || nextPlayer.ally.nameEn,
     amount: hit.damageDealt,
     enemyHp: hit.enemy.hp,
   });
@@ -390,7 +457,7 @@ export function resolveAllyAttack(player, enemy) {
       l => l.type === 'boss_phase' || l.type === 'shield_break' || l.type === 'minion_damage',
     ),
   );
-  return { player, enemy: hit.enemy, logs };
+  return { player: nextPlayer, enemy: hit.enemy, logs };
 }
 
 function applyExtraEffect(effect, ctx) {

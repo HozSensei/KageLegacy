@@ -347,6 +347,7 @@ Une carte Invocation appelle un **allié**. Vous ne pouvez en avoir qu'**un seul
 
 - Au début de chacun de vos tours, l'allié **attaque automatiquement** l'ennemi.
 - Un allié doté de **Provocation** encaisse les attaques ennemies à votre place tant qu'il lui reste des PV.
+- Un allié doté de **Régénération** récupère des PV **sur lui-même** au début de votre tour (pas sur vous).
 
 ### Fin du combat
 

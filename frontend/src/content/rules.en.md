@@ -347,6 +347,7 @@ A Summon card calls an **ally**. You can only have **one** at a time: a new summ
 
 - At the start of each of your turns, the ally **attacks the enemy automatically**.
 - An ally with **Taunt** takes enemy attacks in your place for as long as it has HP left.
+- An ally with **Regeneration** recovers HP **on itself** at the start of your turn (not on you).
 
 ### End of the fight
 

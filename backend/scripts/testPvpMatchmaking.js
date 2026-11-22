@@ -340,6 +340,71 @@ assert(
   'l’invocation attaque au début du tour propriétaire'
 );
 
+console.log('\n=== Régénération d’invocation PvP ===');
+const regenDuel = createDuelFromBootstrap({
+  matchId: 'regen-summon-match',
+  seed: 'regen-summon-seed',
+  fighters: {
+    host: {
+      userId: 1,
+      name: 'Akira',
+      hp: 80,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [
+        {
+          instanceId: 'regen-summon',
+          cardType: 'summon',
+          cost: 1,
+          summon: {
+            nameFr: 'Serpent',
+            hp: 20,
+            attack: 0,
+            duration: 3,
+            abilities: ['regen'],
+            regen: 4,
+          },
+        },
+      ],
+      drawPile: [],
+    },
+    guest: {
+      userId: 2,
+      name: 'Ren',
+      hp: 100,
+      maxHp: 100,
+      chakra: 3,
+      stats: {},
+      hand: [],
+      drawPile: [],
+    },
+  },
+});
+const regenSummoned = applyDuelAction(regenDuel, {
+  kind: 'play_card',
+  seat: 'host',
+  instanceId: 'regen-summon',
+});
+assert(regenSummoned.state.fighters.host.ally?.regen === 4, 'PvP lit la régénération d’invocation');
+const afterHostEnd = applyDuelAction(regenSummoned.state, { kind: 'end_turn', seat: 'host' });
+const woundedRegen = structuredClone(afterHostEnd.state);
+woundedRegen.fighters.host.ally.hp = 10;
+woundedRegen.fighters.host.hp = 80;
+const afterGuestEnd = applyDuelAction(woundedRegen, { kind: 'end_turn', seat: 'guest' });
+assert(
+  afterGuestEnd.state.fighters.host.ally?.hp === 14,
+  'régénération soigne l’invocation au début du tour'
+);
+assert(
+  afterGuestEnd.state.fighters.host.hp === 80,
+  'régénération d’invocation ne soigne pas le joueur en PvP'
+);
+assert(
+  afterGuestEnd.logs.some(log => log.type === 'ally_regen' && log.value === 4),
+  'log ally_regen en PvP'
+);
+
 console.log('\n=== Effets de carte PvP alignés sur PvE ===');
 const effectDuel = createDuelFromBootstrap({
   matchId: 'effect-match',

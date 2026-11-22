@@ -474,6 +474,7 @@ const STARTER_CARDS = [
       attack: 8,
       duration: 2,
       abilities: ['evade', 'regen'],
+      regen: 3,
       description: 'Régénère 3 PV par tour',
     },
     effects: [],

@@ -251,6 +251,13 @@ function formatLog(log) {
         );
       }
       return log.fallen ? t('combat.log.allyFallen') : t('combat.log.allyDamage', { n });
+    case 'ally_regen':
+      if (isSeat(log.seat)) {
+        return t(isMine(log.seat) ? 'combat.log.pvpAllyRegenYou' : 'combat.log.pvpAllyRegenOpponent', {
+          n: log.value ?? n,
+        });
+      }
+      return t('combat.log.allyRegen', { n: log.value ?? n });
     case 'ally_expired':
       if (isSeat(log.seat))
         return t(

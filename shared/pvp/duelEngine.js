@@ -22,9 +22,11 @@ import {
 } from '../../backend/src/services/deckCombat/statuses.js';
 import { drawCards, moveCardFromHand } from '../../backend/src/services/deckCombat/deckRuntime.js';
 import {
+  absorbDamageWithTauntAlly,
   applyDamageThroughBlock,
   getStatusValue,
 } from '../../backend/src/services/deckCombat/formulas.js';
+import { resolveSummonTraits } from '../../backend/src/services/deckCombat/cardEffects.js';
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
@@ -624,10 +626,7 @@ function checkVictory(state) {
 function normalizeSummon(card) {
   if (card?.cardType !== 'summon' && !card?.summon) return null;
   const def = card.summon || {};
-  const abilities = Array.isArray(def.abilities)
-    ? def.abilities.map(ability => String(ability).toLowerCase())
-    : [];
-  const taunt = Boolean(def.taunt ?? abilities.includes('taunt'));
+  const { taunt, regen } = resolveSummonTraits(def);
   const hp = Math.max(1, Number(def.hp) || 20);
   const duration = Math.max(1, Math.floor(Number(def.duration) || (taunt ? 2 : 3)));
   return {
@@ -637,27 +636,23 @@ function normalizeSummon(card) {
     maxHp: hp,
     attack: Math.max(0, Number(def.attack) || 0),
     taunt,
+    regen,
     remainingTurns: duration,
   };
 }
 
 function applyIncomingDamage(target, damage, sourceSeat) {
   let fighter = { ...target };
-  let remaining = Math.max(0, Number(damage) || 0);
   const logs = [];
 
-  if (fighter.ally?.taunt && fighter.ally.hp > 0 && remaining > 0) {
-    const absorbed = Math.min(fighter.ally.hp, remaining);
-    const hp = fighter.ally.hp - absorbed;
-    remaining -= absorbed;
-    fighter.ally = hp > 0 ? { ...fighter.ally, hp } : null;
+  const tauntAbsorb = absorbDamageWithTauntAlly(fighter, damage);
+  fighter = tauntAbsorb.entity;
+  let remaining = tauntAbsorb.remaining;
+  for (const log of tauntAbsorb.logs) {
     logs.push({
-      type: 'ally_damage',
+      ...log,
       seat: fighter.seat,
       source: sourceSeat,
-      amount: absorbed,
-      allyHp: hp,
-      fallen: hp <= 0,
     });
   }
 
@@ -669,16 +664,48 @@ function applyIncomingDamage(target, damage, sourceSeat) {
   return { fighter, logs };
 }
 
+function applyAllyRegen(attacker, seat) {
+  const ally = attacker?.ally;
+  if (!ally || ally.hp <= 0) return { attacker, logs: [] };
+  const regen = Math.max(0, Math.floor(Number(ally.regen) || 0));
+  if (regen <= 0) return { attacker, logs: [] };
+
+  const maxHp = Math.max(Number(ally.maxHp) || 0, Number(ally.hp) || 0);
+  const before = Number(ally.hp) || 0;
+  const hp = Math.min(maxHp, before + regen);
+  const healed = hp - before;
+  if (healed <= 0) return { attacker, logs: [] };
+
+  return {
+    attacker: { ...attacker, ally: { ...ally, hp, maxHp } },
+    logs: [
+      {
+        type: 'ally_regen',
+        seat,
+        name: ally.nameFr || ally.nameEn,
+        nameFr: ally.nameFr,
+        nameEn: ally.nameEn,
+        value: healed,
+        allyHp: hp,
+      },
+    ],
+  };
+}
+
 function resolveAllyAttack(attacker, target, seat) {
-  const ally = attacker.ally;
+  const regenerated = applyAllyRegen(attacker, seat);
+  let nextAttacker = regenerated.attacker;
+  const logs = [...regenerated.logs];
+  const ally = nextAttacker.ally;
   if (!ally || ally.hp <= 0 || ally.attack <= 0) {
-    return { attacker, target, logs: [] };
+    return { attacker: nextAttacker, target, logs };
   }
   const result = applyIncomingDamage(target, ally.attack, seat);
   return {
-    attacker,
+    attacker: nextAttacker,
     target: result.fighter,
     logs: [
+      ...logs,
       {
         type: 'ally_attack',
         seat,
