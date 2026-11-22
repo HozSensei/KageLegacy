@@ -394,6 +394,9 @@
     "link": "Règles du jeu",
     "menu": "Sommaire",
     "sidebarLead": "Le jeu tel qu'il fonctionne aujourd'hui, section par section.",
+    "searchLabel": "Rechercher dans le sommaire",
+    "searchPlaceholder": "Rechercher une section…",
+    "searchEmpty": "Aucune section ne correspond.",
     "backToGame": "Retour au Bureau",
     "backHome": "Accueil"
   },

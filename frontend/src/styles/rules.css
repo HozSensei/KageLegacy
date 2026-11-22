@@ -76,16 +76,73 @@
   color: var(--color-ink-muted);
 }
 
+.rules-layout__search {
+  position: relative;
+  display: block;
+  margin-top: 1rem;
+}
+
+.rules-layout__search-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  color: var(--color-ink-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.rules-layout__search-input {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.15rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.35rem;
+  background: var(--color-bg-card);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-ink);
+}
+
+.rules-layout__search-input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+.rules-layout__search-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--color-vermilion) 55%, transparent);
+  outline-offset: 1px;
+  border-color: var(--color-vermilion);
+}
+
 .rules-layout__nav {
   display: flex;
   flex-direction: column;
-  margin-top: 1.25rem;
+  gap: 0.35rem;
+  margin-top: 1rem;
   padding-top: 0.75rem;
   border-top: 1px solid var(--color-line);
 }
 
+.rules-layout__nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.rules-layout__nav-children {
+  display: flex;
+  flex-direction: column;
+  margin-left: 0.65rem;
+  padding-left: 0.35rem;
+  border-left: 1px solid var(--color-line);
+}
+
+.rules-layout__nav-empty {
+  margin: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-ink-muted);
+}
+
 .rules-layout__nav-link {
-  padding: 0.5rem 0.75rem;
+  padding: 0.45rem 0.75rem;
   border-left: 4px solid transparent;
   font-size: 0.875rem;
   font-weight: 500;
@@ -98,6 +155,13 @@
     border-color var(--dur-fast) ease;
 }
 
+.rules-layout__nav-link--child {
+  padding: 0.3rem 0.65rem;
+  border-left-width: 3px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
 .rules-layout__nav-link:hover {
   background: var(--color-bg-card);
   color: var(--color-ink);
@@ -108,6 +172,10 @@
   background: var(--color-bg-card);
   font-weight: 700;
   color: var(--color-ink);
+}
+
+.rules-layout__nav-link--child.rules-layout__nav-link--active {
+  font-weight: 600;
 }
 
 .rules-layout__main {

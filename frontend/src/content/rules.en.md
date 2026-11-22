@@ -328,14 +328,16 @@ A card with no element, or an enemy with no affinity, stays neutral.
 | **Strength** | Adds its value to the damage of each hit |
 | **Dexterity** | Adds its value to the armor gained per card |
 | **Regeneration** | Restores its value in HP at the start of the turn |
-| **Poison** | Removes its value in HP at the start of the turn |
-| **Burn** | Removes its value in HP at the end of the turn |
+| **Poison** | Deals its **value** in HP at the start of the turn (ignores armor) |
+| **Burn** | Deals its **value** in HP at the end of the turn (ignores armor) |
 | **Weak** | Damage dealt reduced by 25% |
 | **Vulnerable** | Damage taken increased by 50% |
 | **Intangible** | Incoming attacks deal only 1 damage |
 | **Evade** | Chance to cancel the next attack taken; then evade is consumed |
 | **Counter** | After being hit, deals its damage value to the attacker, then disappears |
 | **% bonuses** (damage, armor, healing, paths) | Multiply the relevant figure while the status lasts |
+
+**How is a DoT value (Poison, Burn) calculated?** It is **not** derived from the card’s damage or from a stat. It is a **flat number** printed on the card (or on the enemy intent). Example: a card that applies Poison 3 for 2 turns removes **3 HP** at the start of each relevant turn while the status lasts. An “After [path]” effect or a Genjutsu talent that strengthens debuffs can **add** to that base. Reapplying the same DoT **stacks** the values (Poison 3 + Poison 2 = Poison 5) and keeps the **longer** duration.
 
 A status applied again **stacks** its value and keeps the longer duration. Limited durations drop by 1 at the end of the affected combatant's turn. Evade and Counter are usually **consumed** when they trigger. Weak and Vulnerable apply their multiplier once even when their values stack.
 

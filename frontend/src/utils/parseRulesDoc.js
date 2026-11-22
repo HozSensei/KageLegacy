@@ -10,22 +10,68 @@ export function slugifyHeading(text) {
     .replace(/^-+|-+$/g, '')
 }
 
+/**
+ * Build a nested TOC from markdown H2 / H3 headings.
+ * Update-history sections are omitted from navigation.
+ */
 export function parseRulesNav(markdown) {
   const sections = []
   const lines = markdown.split('\n')
 
   for (const line of lines) {
-    if (!line.startsWith('## ')) continue
-    const title = line.slice(3).trim()
-    if (title.toLowerCase().includes('historique des mises')) continue
-    if (title.toLowerCase().includes('update history')) continue
-    sections.push({
-      id: slugifyHeading(title),
-      title,
-    })
+    if (line.startsWith('## ')) {
+      const title = line.slice(3).trim()
+      if (title.toLowerCase().includes('historique des mises')) continue
+      if (title.toLowerCase().includes('update history')) continue
+      sections.push({
+        id: slugifyHeading(title),
+        title,
+        children: [],
+      })
+      continue
+    }
+
+    if (line.startsWith('### ') && sections.length) {
+      const title = line.slice(4).trim()
+      sections[sections.length - 1].children.push({
+        id: slugifyHeading(title),
+        title,
+      })
+    }
   }
 
   return sections
+}
+
+/**
+ * Filter a nested TOC by a free-text query (case / accent insensitive).
+ * A section is kept if its title or any child title matches.
+ */
+export function filterRulesNav(sections, query) {
+  const needle = normalizeSearch(query)
+  if (!needle) return sections
+
+  return sections
+    .map(section => {
+      const sectionMatch = normalizeSearch(section.title).includes(needle)
+      const children = (section.children || []).filter(child =>
+        normalizeSearch(child.title).includes(needle)
+      )
+      if (!sectionMatch && !children.length) return null
+      return {
+        ...section,
+        children: sectionMatch ? section.children || [] : children,
+      }
+    })
+    .filter(Boolean)
+}
+
+function normalizeSearch(text) {
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
 }
 
 function stripTags(html) {

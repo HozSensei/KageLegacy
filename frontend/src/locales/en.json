@@ -394,6 +394,9 @@
     "link": "Game rules",
     "menu": "Contents",
     "sidebarLead": "The game as it works today, section by section.",
+    "searchLabel": "Search the table of contents",
+    "searchPlaceholder": "Search a section…",
+    "searchEmpty": "No matching section.",
     "backToGame": "Back to Office",
     "backHome": "Home"
   },

@@ -328,14 +328,16 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 | **Force** | Ajoute sa valeur aux dégâts de chaque coup |
 | **Dextérité** | Ajoute sa valeur à l'armure gagnée par carte |
 | **Régénération** | Rend sa valeur en PV au début du tour |
-| **Poison** | Retire sa valeur en PV au début du tour |
-| **Brûlure** | Retire sa valeur en PV à la fin du tour |
+| **Poison** | Inflige sa **valeur** en PV au début du tour (ignore l'armure) |
+| **Brûlure** | Inflige sa **valeur** en PV à la fin du tour (ignore l'armure) |
 | **Faiblesse** | Dégâts infligés réduits de 25 % |
 | **Vulnérable** | Dégâts subis augmentés de 50 % |
 | **Intangible** | Les attaques subies n'infligent que 1 dégât |
 | **Esquive** | Chance d'annuler la prochaine attaque reçue ; l'esquive est ensuite consommée |
 | **Riposte** | Après avoir été touché, inflige sa valeur de dégâts à l'attaquant, puis disparaît |
 | **Bonus %** (dégâts, armure, soins, voies) | Multiplie la figure concernée tant que le statut dure |
+
+**Comment se calcule la valeur d'un DoT (Poison, Brûlure) ?** Elle n'est **pas** dérivée des dégâts de la carte ni d'une statistique. C'est un **nombre fixe** indiqué sur la carte (ou sur l'intention ennemie). Exemple : une carte qui pose Poison 3 pendant 2 tours retire **3 PV** au début de chaque tour concerné, tant que le statut dure. Un effet « Après [voie] » ou un talent Genjutsu qui renforce les malus peut **ajouter** à cette base. Réappliquer le même DoT **cumule** les valeurs (Poison 3 + Poison 2 = Poison 5) et garde la **plus longue** des durées.
 
 Un statut appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Les durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut. Esquive et Riposte sont en général **consommées** dès qu'elles s'appliquent. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
 
