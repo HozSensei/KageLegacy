@@ -1,12 +1,16 @@
 /**
- * Missions combat V2 — liste + démarrage run (ou reprise si run actif).
+ * Missions combat V2 — liste + bourse + démarrage run (ou reprise si run actif).
  */
 describe('Missions combat V2', () => {
   beforeEach(() => {
     cy.loginDemo();
+    // Guide première visite — ne bloque pas les interactions
+    cy.window().then((win) => {
+      win.localStorage.setItem('kage.missionGuide.v1', '1');
+    });
   });
 
-  it('affiche la liste et démarre ou reprend un run', function () {
+  it('affiche la liste, le sélecteur de bourse, et démarre ou reprend un run', function () {
     cy.visit('/missions');
     cy.get('[data-testid="missions-combat-page"]', { timeout: 15000 }).should('be.visible');
 
@@ -21,6 +25,9 @@ describe('Missions combat V2', () => {
         return;
       }
 
+      cy.get('[data-testid="mission-purse-stake"]').should('be.visible');
+      cy.get('[data-testid="mission-purse-stake"] input[value="0"]').check({ force: true });
+
       const mission = $body.find('article[data-testid^="mission-"]').first();
       if (!mission.length) {
         cy.log('SKIP: aucune mission listée (migrations combat manquantes)');
@@ -31,6 +38,8 @@ describe('Missions combat V2', () => {
 
     cy.url({ timeout: 15000 }).should('include', '/missions/run/');
     cy.get('[data-testid="mission-run-page"]', { timeout: 15000 }).should('be.visible');
+    cy.get('[data-testid="run-purse"]').should('be.visible');
+    cy.get('[data-testid="run-inventory"]').should('be.visible');
   });
 
   it('affiche la section duel rapide', () => {

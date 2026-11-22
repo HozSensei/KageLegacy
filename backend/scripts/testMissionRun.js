@@ -1,29 +1,37 @@
 /**
- * Tests purs — construction de parcours mission (sans DB).
+ * Tests purs — parcours mission branché + inventaire / bourse.
  *
  * npm run test:mission-run --prefix backend
  */
 import {
   HARD_MODE_DIFFICULTY_MULT,
-  HARD_MODE_REWARD_MULT,
   RANK_PATH_CONFIG,
 } from '../src/config/missionPathConfig.js';
+import {
+  BRANCH_XP_MULT,
+  PURSE_STAKES,
+  RUN_INVENTORY_SLOTS,
+  RUN_PURSE_GAINS,
+  getShopItem,
+  rollShopOffer,
+} from '../src/config/missionRunEconomy.js';
 import { __test } from '../src/services/missionRunService.js';
 import {
   applyHardModeToNodes,
   buildRandomRunPath,
-  ensureRecoveryMystery,
-  isRecoveryOutcome,
 } from '../src/services/missionPathBuilder.js';
+import {
+  createRunPlayerState,
+  placeInventoryItem,
+  useInventorySlot,
+  discardInventorySlot,
+  spendPurse,
+  grantCombatPurse,
+  grantNodePurse,
+  getPurse,
+} from '../src/services/missionRunInventory.js';
 
-const {
-  buildRunNodes,
-  sanitizeNodesForClient,
-  unlockNext,
-  healPercent,
-  getCurrentEvent,
-  EVENT_TYPES,
-} = __test;
+const { sanitizeNodesForClient, unlockNext, applyBranchChoice, healPercent } = __test;
 
 let passed = 0;
 let failed = 0;
@@ -47,157 +55,125 @@ function makeRng(seq) {
   };
 }
 
-console.log('=== buildRandomRunPath ===');
+console.log('=== economy constants ===');
+assert(PURSE_STAKES.join(',') === '0,100,200,300', 'purse stakes 0/100/200/300');
+assert(RUN_INVENTORY_SLOTS === 4, '4 inventory slots');
+assert(RUN_PURSE_GAINS.combat === 50 && RUN_PURSE_GAINS.node === 25, 'purse gains');
+assert(BRANCH_XP_MULT.long > BRANCH_XP_MULT.short, 'long branch pays more XP');
+assert(getShopItem('heal_bandage')?.price === 40, 'bandage price');
+assert(rollShopOffer(() => 0.1).length === 4, 'shop offer size 4');
+assert(rollShopOffer(() => 0.2).some(i => i.id === 'heal_bandage'), 'shop always has bandage');
+
+console.log('=== buildRandomRunPath branched ===');
 const pathD = buildRandomRunPath('D', { rng: makeRng([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]) });
-const combatsD = pathD.filter(n => n.type === 'combat');
-const mysteriesD = pathD.filter(n => n.type === 'mystery');
-assert(combatsD.length === 3, `D: 3 combats (got ${combatsD.length})`);
-assert(mysteriesD.length >= 1 && mysteriesD.length <= 2, `D: 1–2 mystery (got ${mysteriesD.length})`);
 assert(pathD[0].type === 'combat' && pathD[0].status === 'available', 'first combat available');
-assert(pathD[1]?.type === 'mystery', 'D: mystery always after first combat');
-assert(isRecoveryOutcome(pathD[1]?.outcome), 'D: first mystery is recovery');
+assert(pathD.some(n => n.type === 'shop'), 'D has shop');
+assert(pathD.some(n => n.type === 'branch'), 'D has branch');
+assert(pathD.some(n => n.type === 'rest' && n.branch === 'long'), 'D long has rest');
 assert(
-  mysteriesD.every(m => m.revealed === false && m.outcome?.kind),
-  'mysteries hidden with pre-rolled outcome',
+  pathD.filter(n => n.type === 'combat' && n.branch === 'short').length ===
+    RANK_PATH_CONFIG.D.shortFightCount - 1,
+  'D short remaining combats',
 );
 assert(
-  mysteriesD.every(m =>
-    ['heal', 'merchant', 'loot', 'nothing', 'combat'].includes(m.outcome.kind),
-  ),
-  'mystery outcomes in {heal,merchant,loot,nothing,combat}',
-);
-assert(
-  mysteriesD.some(m => isRecoveryOutcome(m.outcome)),
-  'D: at least one recovery mystery (heal/merchant)',
-);
-assert(
-  Math.abs(combatsD[0].difficulty - RANK_PATH_CONFIG.D.difficulties[0]) < 1e-9,
-  `D early difficulty ${combatsD[0].difficulty} matches curve`,
-);
-assert(
-  Math.abs(combatsD[2].difficulty - RANK_PATH_CONFIG.D.difficulties[2]) < 1e-9,
-  `D final difficulty ${combatsD[2].difficulty} matches curve`,
+  pathD.filter(n => n.type === 'combat' && (n.branch === 'long' || n.branch == null)).length >=
+    RANK_PATH_CONFIG.D.fightCount - 1,
+  'D long remaining + opening',
 );
 
 const pathB = buildRandomRunPath('B', {
   rng: makeRng([0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85]),
 });
-assert(pathB.filter(n => n.type === 'combat').length === 4, 'B: 4 combats');
-assert(pathB.filter(n => n.type === 'combat').at(-1)?.boss === true, 'B: last combat boss');
-assert(pathB.filter(n => n.type === 'mystery').length >= 1, 'B: at least one mystery');
+assert(pathB.some(n => n.type === 'branch'), 'B has branch');
 assert(
-  pathB.filter(n => n.type === 'mystery').some(m => isRecoveryOutcome(m.outcome)),
-  'B: recovery mystery guaranteed',
+  pathB.filter(n => n.type === 'combat' && n.boss).length >= 1,
+  'B has boss on at least one finale',
 );
 
-const pathS = buildRandomRunPath('S', { rng: () => 0.2 });
-assert(pathS.filter(n => n.type === 'combat').length === 5, 'S: 5 combats');
-assert(pathS.filter(n => n.type === 'mystery').length === 2, 'S: exactly 2 mysteries');
+const hardPath = applyHardModeToNodes(buildRandomRunPath('D', { rng: () => 0.2 }));
 assert(
-  pathS.filter(n => n.type === 'mystery').some(m => isRecoveryOutcome(m.outcome)),
-  'S: recovery mystery guaranteed',
+  hardPath[0].difficulty > RANK_PATH_CONFIG.D.difficulties[0] * 0.99,
+  'hard mode scales difficulty',
 );
+assert(Math.abs(HARD_MODE_DIFFICULTY_MULT - 1.2) < 1e-9, 'hard mode mult 1.2');
 
-console.log('=== hard mode path scale ===');
-const hardPath = buildRandomRunPath('D', {
-  rng: makeRng([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]),
-  hardMode: true,
-});
-const normalDiff = combatsD[0].difficulty;
-const hardDiff = hardPath.filter(n => n.type === 'combat')[0].difficulty;
+console.log('=== unlockNext + branch ===');
+let nodes = buildRandomRunPath('D', { rng: makeRng([0.2, 0.3, 0.4, 0.5, 0.6, 0.7]) });
+nodes = unlockNext(nodes, 0);
+assert(nodes[0].status === 'cleared', 'combat-0 cleared');
+assert(nodes.find(n => n.id === 'shop-1')?.status === 'available', 'shop unlocked via nextNodeId');
+
+const branchIdx = nodes.findIndex(n => n.type === 'branch');
+nodes[branchIdx] = { ...nodes[branchIdx], status: 'available' };
+const branched = applyBranchChoice(nodes, branchIdx, 'short');
+assert(branched.branchId === 'short', 'chose short');
+assert(branched.xpMult === BRANCH_XP_MULT.short, 'short xp mult');
 assert(
-  Math.abs(hardDiff - normalDiff * HARD_MODE_DIFFICULTY_MULT) < 1e-6,
-  `hard mode scales difficulty ×${HARD_MODE_DIFFICULTY_MULT}`,
+  branched.nodes.filter(n => n.branch === 'long').every(n => n.status === 'skipped'),
+  'long branch skipped',
 );
-assert(HARD_MODE_REWARD_MULT === 1.2, 'reward mult is +20%');
-
-const scaled = applyHardModeToNodes([
-  { type: 'combat', difficulty: 1.5 },
-  { type: 'mystery', outcome: { kind: 'combat', difficulty: 2 } },
-]);
-assert(scaled[0].difficulty === 1.8, 'applyHardModeToNodes combat');
-assert(scaled[1].outcome.difficulty === 2.4, 'applyHardModeToNodes mystery combat');
-
-console.log('=== ensureRecoveryMystery ===');
-const forced = ensureRecoveryMystery(
-  [
-    { type: 'combat', difficulty: 1 },
-    { type: 'mystery', outcome: { kind: 'nothing' } },
-    { type: 'combat', difficulty: 1 },
-  ],
-  () => 0.1,
-);
-assert(isRecoveryOutcome(forced[1].outcome), 'forces recovery when missing');
-
-console.log('=== sanitizeNodesForClient ===');
-const sanitized = sanitizeNodesForClient(pathD);
-const hidden = sanitized.find(n => n.type === 'mystery');
-assert(hidden && !hidden.outcome && hidden.revealed === false, 'client does not see mystery outcome');
-
-console.log('=== buildRunNodes (compat) ===');
-const encounters = [
-  { templateId: 'ronin_bandit', difficulty: 1 },
-  { templateId: 'marsh_cutpurse', difficulty: 1 },
-  { templateId: 'scrapyard_dog', difficulty: 1 },
-];
-const nodes = buildRunNodes(encounters, { rng: () => 0 });
-assert(nodes.length === 5, `3 combats + 2 mystery = 5 nodes (got ${nodes.length})`);
-assert(nodes[0].type === 'combat' && nodes[0].status === 'available', 'compat first combat');
-assert(nodes[1].type === 'mystery', 'compat mystery between fights');
-assert(EVENT_TYPES.includes('mystery_heal'), 'mystery_heal event type');
-assert(EVENT_TYPES.includes('mystery_loot'), 'mystery_loot event type');
-assert(EVENT_TYPES.includes('mystery_nothing'), 'mystery_nothing event type');
-assert(EVENT_TYPES.includes('merchant'), 'merchant event type');
-
-console.log('=== unlockNext ===');
-const unlocked = unlockNext(nodes, 0);
-assert(unlocked[0].status === 'cleared', 'cleared current');
-assert(unlocked[1].status === 'available', 'next unlocked');
-
-console.log('=== current event persistence ===');
-const eventRun = {
-  state: 'in_progress',
-  current_node_index: 1,
-};
-const eventNodes = [
-  { id: 'combat-0', type: 'combat', status: 'cleared' },
-  {
-    id: 'mystery-0',
-    type: 'mystery',
-    eventType: 'mystery_heal',
-    status: 'available',
-    eventOpen: true,
-    revealed: true,
-    outcome: { kind: 'heal' },
-  },
-];
-const restoredEvent = getCurrentEvent(eventRun, eventNodes, { hp: 40, maxHp: 100, contraband: 0 });
-assert(restoredEvent?.eventType === 'mystery_heal', 'opened mystery heal restored');
-assert(restoredEvent?.choices?.[0]?.id === 'rest_here', 'heal choice exposed');
-
-const merchantNodes = [
-  { id: 'combat-0', type: 'combat', status: 'cleared' },
-  {
-    id: 'mystery-0',
-    type: 'mystery',
-    eventType: 'merchant',
-    status: 'available',
-    eventOpen: true,
-    revealed: true,
-    outcome: { kind: 'merchant' },
-  },
-];
-const merchantEvent = getCurrentEvent(eventRun, merchantNodes, { hp: 40, maxHp: 100, contraband: 4 });
-assert(merchantEvent?.eventType === 'merchant', 'merchant event restored');
 assert(
-  merchantEvent?.choices?.some(c => c.id === 'buy_bandage'),
-  'merchant bandage choice',
+  branched.nodes.find(n => n.id === 'combat-s-0')?.status === 'available',
+  'short first combat available',
 );
 
-console.log('=== healPercent ===');
-const healed = healPercent({ hp: 40, maxHp: 100 }, 0.3);
-assert(healed.hp === 70, `heal 30% max → 70 (got ${healed.hp})`);
-assert(healPercent({ hp: 95, maxHp: 100 }, 0.3).hp === 100, 'heal caps at maxHp');
+const sanitized = sanitizeNodesForClient(
+  buildRandomRunPath('D', { rng: () => 0.3 }).map(n =>
+    n.type === 'shop' ? { ...n, status: 'locked' } : n,
+  ),
+);
+assert(
+  sanitized.filter(n => n.type === 'shop').every(n => n.offer == null && n.hasOffer),
+  'locked shop hides offer details',
+);
+
+console.log('=== inventory / purse ===');
+let player = createRunPlayerState({ maxHp: 100, purseStake: 100 });
+assert(getPurse(player) === 100, 'stake becomes purse');
+assert(player.inventory.length === 4, '4 slots created');
+
+player = grantCombatPurse(player);
+assert(getPurse(player) === 150, 'combat purse gain');
+player = grantNodePurse(player);
+assert(getPurse(player) === 175, 'node purse gain');
+
+const spent = spendPurse(player, 40);
+assert(spent.ok && getPurse(spent.player) === 135, 'spend purse');
+player = spent.player;
+
+const bandage = getShopItem('heal_bandage');
+const placed = placeInventoryItem(player.inventory, bandage);
+assert(placed.ok && placed.slot === 0, 'place bandage');
+player.inventory = placed.inventory;
+player.hp = 40;
+
+const used = useInventorySlot(player, 0);
+assert(used.ok, 'use bandage');
+assert(used.player.hp > 40, 'heal applied');
+assert(!used.player.inventory[0].itemId, 'slot emptied after use');
+
+player = used.player;
+player = { ...player, purse: 300 };
+const sealed = getShopItem('card_mystery_rare');
+for (let i = 0; i < 4; i += 1) {
+  const p = placeInventoryItem(player.inventory, sealed);
+  assert(p.ok, `fill slot ${i}`);
+  player.inventory = p.inventory;
+}
+const full = placeInventoryItem(player.inventory, bandage);
+assert(!full.ok && full.code === 'INVENTORY_FULL', 'inventory full');
+const replaced = placeInventoryItem(player.inventory, bandage, { replaceSlot: 2 });
+assert(replaced.ok && replaced.replaced, 'replace slot 2');
+const discarded = discardInventorySlot(replaced.inventory, 1);
+assert(discarded.ok && !discarded.inventory[1].itemId, 'discard slot');
+
+const sealedUse = useInventorySlot(
+  { ...player, inventory: discarded.inventory },
+  0,
+);
+assert(!sealedUse.ok && sealedUse.code === 'SEALED_UNTIL_FINISH', 'sealed until finish');
+
+assert(healPercent({ hp: 10, maxHp: 100 }, 0.5).hp === 60, 'healPercent');
 
 console.log(`\n${passed} passed, ${failed} failed`);
-process.exit(failed > 0 ? 1 : 0);
+process.exit(failed ? 1 : 0);

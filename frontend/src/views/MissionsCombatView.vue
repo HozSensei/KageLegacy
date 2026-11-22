@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import MissionGuideOverlay from '../components/missions/MissionGuideOverlay.vue';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import forestImage from '../assets/illustrations/forest-path.webp';
+import { useMissionGuide } from '../composables/useMissionGuide.js';
 import { missionRankTone } from '../utils/missionVisuals';
 import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
@@ -19,10 +21,13 @@ const router = useRouter();
 const missions = useMissionsStore();
 const combat = useCombatStore();
 const decks = useDecksStore();
+const { open: guideOpen, dismiss: dismissGuide } = useMissionGuide();
 
 const startingId = ref(null);
 const localError = ref(null);
 const hardMode = ref(false);
+const purseStake = ref(0);
+const PURSE_STAKES = [0, 100, 200, 300];
 
 const HARD_MODE_REWARD_MULT = 1.2;
 
@@ -56,6 +61,12 @@ function missionChapter(m) {
 }
 
 function missionPathMeta(m) {
+  if (m.branchedPath) {
+    return t('combat.branchedPathMeta', {
+      short: m.shortFightCount || m.encounterCount || 0,
+      long: m.longFightCount || m.encounterCount || 0,
+    });
+  }
   const fights = m.encounterCount || 0;
   const mysteryMax = m.mysteryCountMax ?? 0;
   if (mysteryMax > 0) {
@@ -81,6 +92,7 @@ async function startMission(mission) {
   try {
     const run = await missions.startMission(mission.id, null, {
       hardMode: hardMode.value,
+      purseStake: purseStake.value,
     });
     if (run?.id) {
       await router.push({ name: 'mission-run', params: { id: run.id } });
@@ -137,6 +149,7 @@ async function startQuick(templateId) {
 
 <template>
   <div class="page-shell" data-testid="missions-combat-page">
+    <MissionGuideOverlay :open="guideOpen" @dismiss="dismissGuide" />
     <PageHeader
       tone="leaf"
       :kicker="t('combat.missionsKicker')"
@@ -200,6 +213,22 @@ async function startQuick(templateId) {
         <h2 class="section-head__title">{{ t('combat.missionsListTitle') }}</h2>
         <span class="section-head__rule" aria-hidden="true" />
       </div>
+
+      <fieldset class="purse-stake" data-testid="mission-purse-stake" :disabled="launchBlocked">
+        <legend class="purse-stake__legend">{{ t('combat.purseStakeLabel') }}</legend>
+        <p class="purse-stake__hint">{{ t('combat.purseStakeHint') }}</p>
+        <div class="purse-stake__options">
+          <label
+            v-for="stake in PURSE_STAKES"
+            :key="stake"
+            class="purse-stake__option"
+            :class="{ 'purse-stake__option--active': purseStake === stake }"
+          >
+            <input v-model.number="purseStake" type="radio" name="purse-stake" :value="stake" >
+            <span>{{ t('combat.purseStakeOption', { n: stake }) }}</span>
+          </label>
+        </div>
+      </fieldset>
 
       <label
         class="hard-mode-toggle"
@@ -313,6 +342,52 @@ async function startQuick(templateId) {
 </template>
 
 <style scoped>
+.purse-stake {
+  margin: 1rem 0 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-bg-card);
+}
+
+.purse-stake__legend {
+  padding: 0 0.25rem;
+  font-size: var(--type-kicker);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.purse-stake__hint {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.purse-stake__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.purse-stake__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--color-line);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.purse-stake__option--active {
+  border-color: var(--color-vermilion);
+  background: color-mix(in srgb, var(--color-vermilion) 10%, transparent);
+}
+
+.purse-stake:disabled {
+  opacity: 0.55;
+}
+
 .missions-deck {
   display: flex;
   flex-wrap: wrap;

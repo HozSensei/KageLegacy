@@ -1,44 +1,48 @@
 /**
  * Missions TCG — une entrée par rang, parcours généré à chaque lancement.
  *
- * À terme : embranchements (route courte sans surprise vs route longue
- * avec plus de combats / ? / loot). Pour l’instant : ligne unique + 1–2 « ? ».
+ * Parcours branché : combat d’ouverture → shop → bifur (court / long) → finale.
  */
 
 /** @typedef {{ templateId: string, difficulty?: number, boss?: boolean }} EncounterSpec */
 
 /**
  * Pools d’ennemis + courbe de difficulté par rang.
+ * fightCount = combats sur la branche longue (inclut l’ouverture + finale).
+ * shortFightCount = combats totaux sur la branche courte.
  * @type {Record<string, {
  *   fightCount: number,
- *   mysteryCount: [number, number],
+ *   shortFightCount: number,
  *   bossLast: boolean,
  *   difficulties: number[],
+ *   shortDifficulties: number[],
  *   pool: string[],
  *   bossPool?: string[],
  * }>}
  */
 export const RANK_PATH_CONFIG = Object.freeze({
   D: Object.freeze({
-    fightCount: 3,
-    mysteryCount: Object.freeze([1, 2]),
+    fightCount: 4,
+    shortFightCount: 3,
     bossLast: false,
-    // Early adouci ; pic final inchangé — clearance run sans trivialiser le dernier fight.
-    difficulties: Object.freeze([0.95, 1.2, 1.4]),
+    difficulties: Object.freeze([0.9, 1.05, 1.2, 1.35]),
+    shortDifficulties: Object.freeze([0.9, 1.15, 1.35]),
     pool: Object.freeze(['ronin_bandit', 'marsh_cutpurse', 'scrapyard_dog']),
   }),
   C: Object.freeze({
-    fightCount: 3,
-    mysteryCount: Object.freeze([1, 2]),
+    fightCount: 4,
+    shortFightCount: 3,
     bossLast: false,
-    difficulties: Object.freeze([1.3, 1.55, 1.85]),
+    difficulties: Object.freeze([1.15, 1.35, 1.55, 1.75]),
+    shortDifficulties: Object.freeze([1.15, 1.45, 1.75]),
     pool: Object.freeze(['kurogane_scout', 'tide_sentinel', 'mirror_adept']),
   }),
   B: Object.freeze({
-    fightCount: 4,
-    mysteryCount: Object.freeze([1, 2]),
+    fightCount: 5,
+    shortFightCount: 4,
     bossLast: true,
-    difficulties: Object.freeze([1.45, 1.55, 1.8, 2.05]),
+    difficulties: Object.freeze([1.3, 1.45, 1.6, 1.8, 2.0]),
+    shortDifficulties: Object.freeze([1.3, 1.5, 1.75, 2.0]),
     pool: Object.freeze([
       'kurogane_scout',
       'tide_sentinel',
@@ -50,10 +54,11 @@ export const RANK_PATH_CONFIG = Object.freeze({
     bossPool: Object.freeze(['hollow_bell_warden', 'embercoil_matron']),
   }),
   A: Object.freeze({
-    fightCount: 5,
-    mysteryCount: Object.freeze([1, 2]),
+    fightCount: 6,
+    shortFightCount: 4,
     bossLast: true,
-    difficulties: Object.freeze([1.8, 1.9, 2.1, 2.2, 2.3]),
+    difficulties: Object.freeze([1.6, 1.75, 1.9, 2.05, 2.15, 2.25]),
+    shortDifficulties: Object.freeze([1.6, 1.85, 2.05, 2.25]),
     pool: Object.freeze([
       'ashen_captain',
       'ironroot_warden',
@@ -65,10 +70,11 @@ export const RANK_PATH_CONFIG = Object.freeze({
     bossPool: Object.freeze(['grave_orchid_seer', 'mirrorfracture_colossus']),
   }),
   S: Object.freeze({
-    fightCount: 5,
-    mysteryCount: Object.freeze([2, 2]),
+    fightCount: 6,
+    shortFightCount: 5,
     bossLast: true,
-    difficulties: Object.freeze([2.3, 2.4, 2.6, 2.7, 2.8]),
+    difficulties: Object.freeze([2.1, 2.25, 2.4, 2.55, 2.65, 2.75]),
+    shortDifficulties: Object.freeze([2.1, 2.3, 2.5, 2.65, 2.75]),
     pool: Object.freeze([
       'stormcaller_adept',
       'duskblade_ronin',
@@ -80,7 +86,7 @@ export const RANK_PATH_CONFIG = Object.freeze({
   }),
 });
 
-/** Poids des issues d’un nœud « ? » (merchant = sink argent de contrebande). */
+/** @deprecated mystery weights kept for legacy run helpers / tests. */
 export const MYSTERY_OUTCOME_WEIGHTS = Object.freeze({
   heal: 30,
   merchant: 25,
@@ -123,8 +129,7 @@ export const RANK_MISSION_DEFINITIONS = Object.freeze([
     nameEn: 'Mission — rank C',
     descriptionFr:
       'Opération d’avant-poste. Chemin aléatoire ; briefing révélé au lancement.',
-    descriptionEn:
-      'Outpost operation. Random path; briefing revealed on launch.',
+    descriptionEn: 'Outpost operation. Random path; briefing revealed on launch.',
     sortOrder: 20,
     rewards: Object.freeze({
       xp: 90,
@@ -139,10 +144,8 @@ export const RANK_MISSION_DEFINITIONS = Object.freeze([
     rank: 'B',
     nameFr: 'Mission — rang B',
     nameEn: 'Mission — rank B',
-    descriptionFr:
-      'Assaut d’élite. Parcours généré à la volée, finale boss possible.',
-    descriptionEn:
-      'Elite assault. Path generated on the fly, possible boss finale.',
+    descriptionFr: 'Assaut d’élite. Parcours généré à la volée, finale boss possible.',
+    descriptionEn: 'Elite assault. Path generated on the fly, possible boss finale.',
     sortOrder: 30,
     rewards: Object.freeze({
       xp: 360,
@@ -157,10 +160,8 @@ export const RANK_MISSION_DEFINITIONS = Object.freeze([
     rank: 'A',
     nameFr: 'Mission — rang A',
     nameEn: 'Mission — rank A',
-    descriptionFr:
-      'Raid critique. Long parcours aléatoire avec confrontations dures.',
-    descriptionEn:
-      'Critical raid. Long random path with hard confrontations.',
+    descriptionFr: 'Raid critique. Long parcours aléatoire avec confrontations dures.',
+    descriptionEn: 'Critical raid. Long random path with hard confrontations.',
     sortOrder: 40,
     rewards: Object.freeze({
       xp: 580,
@@ -177,8 +178,7 @@ export const RANK_MISSION_DEFINITIONS = Object.freeze([
     nameEn: 'Mission — rank S',
     descriptionFr:
       'Ombre du Kage. Le parcours le plus exigeant, régénéré à chaque départ.',
-    descriptionEn:
-      'Shadow of the Kage. The harshest path, regenerated each start.',
+    descriptionEn: 'Shadow of the Kage. The harshest path, regenerated each start.',
     sortOrder: 50,
     rewards: Object.freeze({
       xp: 900,
@@ -190,9 +190,7 @@ export const RANK_MISSION_DEFINITIONS = Object.freeze([
   }),
 ]);
 
-export const RANK_MISSION_SLUGS = Object.freeze(
-  RANK_MISSION_DEFINITIONS.map(m => m.slug),
-);
+export const RANK_MISSION_SLUGS = Object.freeze(RANK_MISSION_DEFINITIONS.map(m => m.slug));
 
 export function getRankPathConfig(rank) {
   return RANK_PATH_CONFIG[rank] || null;
@@ -200,7 +198,6 @@ export function getRankPathConfig(rank) {
 
 /**
  * @deprecated Conservé pour les scripts qui lisaient encore les listes fixes.
- * Mappe slug → pool plat (sans courbe) pour compat tests legacy.
  */
 export const MISSION_ENCOUNTER_DIFFICULTIES = Object.freeze(
   Object.fromEntries(

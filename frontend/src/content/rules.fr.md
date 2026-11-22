@@ -4,7 +4,7 @@
 
 Ce guide décrit le jeu tel qu'il fonctionne aujourd'hui. Les chiffres donnés sont ceux appliqués par le jeu.
 
-_Dernière mise à jour : 20 novembre 2026_
+_Dernière mise à jour : 22 novembre 2026_
 
 ---
 
@@ -20,7 +20,7 @@ Vous servez **votre village**. Les missions sont des opérations (routes, agents
 
 1. **Créez votre ninja** : choisissez un nom et un portrait de ninja aspirant.
 2. **Recevez votre deck de départ** : 22 cartes, déjà prêtes à jouer.
-3. **Lancez une mission** : un parcours aléatoire de 3 à 5 combats et de nœuds « ? ».
+3. **Lancez une mission** : engagez une bourse, puis avancez sur un parcours branché (boutique, bifur, combats).
 4. **Gagnez de l'expérience** : chaque niveau donne 1 point de talent.
 5. **Renforcez-vous** : dépensez vos points dans l'arbre, ouvrez des parchemins, améliorez vos cartes, ajustez votre deck.
 
@@ -378,45 +378,54 @@ Les missions sont classées en cinq rangs, du plus simple au plus difficile : **
 
 Le rang **D** est exigeant avec le deck de départ. Le rang **C** est presque inaccessible sans quelques niveaux, talents et cartes gagnés en farmant le D.
 
-| Rang | Entrées | Combats | Nœuds « ? » | Boss final |
-| ---- | ------- | ------- | ----------- | ---------- |
-| D    | 1       | 3       | 1–2         | Non        |
-| C    | 1       | 3       | 1–2         | Non        |
-| B    | 1       | 4       | 1–2         | Oui        |
-| A    | 1       | 5       | 1–2         | Oui        |
-| S    | 1       | 5       | 2           | Oui        |
+| Rang | Entrées | Combats (court / long) | Boutique | Bifur | Boss final |
+| ---- | ------- | ---------------------- | -------- | ----- | ---------- |
+| D    | 1       | 3 / 4                  | Oui      | Oui   | Non        |
+| C    | 1       | 3 / 4                  | Oui      | Oui   | Non        |
+| B    | 1       | 4 / 5                  | Oui      | Oui   | Oui        |
+| A    | 1       | 4 / 6                  | Oui      | Oui   | Oui        |
+| S    | 1       | 5 / 6                  | Oui      | Oui   | Oui        |
+
+### Bourse engagée
+
+Avant de lancer, vous choisissez une **bourse** de **0, 100, 200 ou 300 Ryos**. Cette somme est **prélevée** sur votre compte et devient la bourse du parcours.
+
+- Les **gains de route** (+25 par nœud franchi, +50 par combat gagné) s’ajoutent à cette bourse.
+- Vous dépensez la bourse chez le **colporteur** (soins, sceaux, parchemins scellés).
+- En **victoire**, la bourse restante revient en Ryos avec les récompenses de fin.
+- En **défaite** ou **abandon**, la bourse et l’inventaire de mission sont **perdus**.
 
 ### Le parcours
 
-Lancer une mission ouvre un **parcours généré** : combats tirés dans le pool du rang, plus un ou deux nœuds **« ? »**. Le briefing immersif s’affiche au lancement, pas sur la liste des missions.
+Lancer une mission ouvre un **parcours branché** : combat d’ouverture, boutique, carrefour (route courte ou longue), puis finale. Le briefing immersif s’affiche au lancement, pas sur la liste des missions.
 
-- Vos **PV ne remontent pas** entre deux combats (sauf nœuds de récupération).
-- Une **défaite** ou un **abandon** fait échouer tout le parcours : aucune récompense de complétion.
+- Vos **PV ne remontent pas** entre deux combats (sauf halte ou objets utilisés hors combat).
+- Au carrefour, la **route longue** rapporte **+35 % d’XP** à la fin ; la courte garde le multiplicateur ×1.
+- Une **défaite** ou un **abandon** fait échouer tout le parcours : aucune récompense de complétion, bourse perdue.
 - Vous ne pouvez avoir qu'**un parcours en cours**. Vous pouvez le quitter et le reprendre plus tard, ou l'abandonner.
 - Avant de lancer, vous pouvez cocher **Difficulté augmentée** : ennemis plus durs (+20 %), récompenses de fin de parcours +20 %.
 
-### Nœuds « ? » et argent de contrebande
+### Inventaire et boutique de mission
 
-Chaque combat gagné rapporte **+2 argent de contrebande** (utilisable seulement pendant ce parcours). Au moins un nœud de récupération (soin ou colporteur) est garanti sur le parcours.
+L’**inventaire de mission** a **4 emplacements**. Acheter n’utilise pas l’objet : vous devez l’utiliser hors combat (soins, boosts) ou le jeter pour libérer un slot.
 
-Un nœud **« ? »** se révèle à l’entrée :
+| Type d’achat | Effet |
+| ------------ | ----- |
+| **Soins** (bandage, tonique, élixir) | Soignent 25 % / 50 % / 75 % des PV max, hors combat uniquement |
+| **Sceau de run** | Bonus de dégâts pour le reste du parcours |
+| **Talismans de prochain combat** | Armure, chakra ou dégâts consommés au combat suivant |
+| **Parchemins scellés** | Carte (commune / rare / légendaire) révélée **seulement à la fin** |
 
-| Issue          | Effet typique                                                    |
-| -------------- | ---------------------------------------------------------------- |
-| **Soin**       | Repos (+50 % PV max)                                             |
-| **Colporteur** | Bandage (2 argent de contrebande) ou tonique (5) contre PV       |
-| **Butin**      | Argent de contrebande + léger soin                               |
-| **Rien**       | Flavour uniquement, la route continue                            |
-| **Combat**     | Embuscade surprise                                               |
+Une **halte** soigne gratuitement hors inventaire. Les objets restants non scellés ne sont pas reportés hors du parcours.
 
 ### Récompenses
 
 Les récompenses sont versées **à la fin du parcours**, une fois le dernier combat gagné :
 
-- de l'**XP** pour votre ninja ;
-- des **Ryos** ;
+- de l'**XP** pour votre ninja (×1 ou ×1,35 selon la branche) ;
+- des **Ryos** de récompense **plus** la bourse restante ;
 - de l'**XP de passe de saison** ;
-- une **chance d'obtenir une carte** commune ou rare.
+- une **chance d'obtenir une carte** commune ou rare, plus les **parchemins scellés** achetés en route.
 
 Chaque mission affiche ses récompenses de base. Elles sont multipliées par un **bonus de parcours**, de ×1,6 au rang D jusqu'à ×3 au rang S, auquel s'ajoutent 8 % par combat gagné au-delà du premier.
 
@@ -521,7 +530,7 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 | **Kage Coins**         | Achat en boutique, passe de saison                                             | Parchemins Premium, piste premium du passe                                               |
 | **Poussière de carte** | Désenchantement, passe de saison                                               | Amélioration de cartes                                                                   |
 | **Essence**            | Désenchantement de cartes légendaires ou mythiques améliorées, passe de saison | Dernières améliorations des cartes légendaires et mythiques                              |
-| **Argent de contrebande** | Combats et nœuds « ? » d'un parcours                                         | Soins pendant ce parcours uniquement                                                     |
+| **Bourse de mission**  | Mise au lancement (0–300 Ryos) + gains de nœuds/combats                        | Achats chez le colporteur ; le reste revient en Ryos à la victoire                       |
 
 ---
 
@@ -529,5 +538,6 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 
 | Date       | Changement                                                                                                                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-22 | Parcours branchés : bourse 0/100/200/300, inventaire 4 slots, boutique de run, bifurs XP, plus de contrebande |
 | 2026-11-20 | Paliers missions (accès par rang perso), D dur / C exigeant ; combat détaillé (héritages, chaînes, glossaire) |
 | 2026-11-14 | Réécriture complète pour la version actuelle : un seul ninja, deck de 20 à 30 cartes, arbre de talents, combat au tour par tour, parcours de mission, boutique, passe de saison, arène |

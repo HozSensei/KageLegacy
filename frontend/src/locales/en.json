@@ -1286,12 +1286,47 @@
     "backToMissions": "Back to missions",
     "missionsKicker": "Operations",
     "missionsTitle": "Combat missions",
-    "missionsLead": "One mission per rank. Each launch rolls a path: fights and “?” nodes. The briefing opens at start. Death fails the run.",
+    "missionsLead": "One mission per rank. Each launch rolls a branched path: stake purse, shop, inventory. The briefing opens at start. Death loses the purse.",
     "missionChapter": "Chapter",
     "missionBrief": "Briefing",
     "missionEpilogue": "After the operation",
-    "randomPathHint": "Path generated on launch — briefing revealed at start.",
+    "randomPathHint": "Branched path generated on launch — shop and fork on the road.",
     "randomPathMeta": "{fights} fights · up to {mystery} “?”",
+    "branchedPathMeta": "Short branch {short} fights · long {long} fights",
+    "purseStakeLabel": "Purse to bring",
+    "purseStakeHint": "Taken from your Ryos. Lost on defeat or abandon. Road gains add to the purse; the remainder returns on finish.",
+    "purseStakeOption": "{n} Ryos",
+    "missionGuide": {
+      "kicker": "Missions",
+      "title": "How a run works",
+      "progress": "Step {current} / {total}",
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip",
+      "done": "Got it",
+      "steps": {
+        "purse": {
+          "title": "1. Staked purse",
+          "body": "Before leaving, pick 0, 100, 200, or 300 Ryos. That amount leaves your account and becomes your mission purse. If you fail, it is lost."
+        },
+        "path": {
+          "title": "2. Path and forks",
+          "body": "After the opening and a shop, a crossroads offers a short or long route. The long one lasts longer and pays more XP at the end."
+        },
+        "inventory": {
+          "title": "3. Inventory (4 slots)",
+          "body": "Purchases go into inventory. Use heals out of combat, discard items, or replace a slot when full."
+        },
+        "shop": {
+          "title": "4. Mission shop",
+          "body": "Spend purse on heals, combat seals, run boosts, or sealed scrolls (revealed only at the end)."
+        },
+        "finish": {
+          "title": "5. Commit on finish",
+          "body": "Nothing credits until victory: remaining purse, XP, reward Ryos, and sealed cards. Defeat voids run loot."
+        }
+      }
+    },
     "activeDeck": "Active deck",
     "practiceDeckHint": "Training deck (no collection)",
     "noDeckTitle": "No active deck",
@@ -1328,9 +1363,20 @@
     "resumeCombat": "Resume fight",
     "runKicker": "Run",
     "runTitle": "Mission run",
-    "runLead": "Advance node by node. Fights and “?” (heal, peddler, loot, nothing, or ambush) — HP does not regenerate on its own.",
+    "runLead": "Advance node by node. Shop, fork, and fights — HP does not regenerate on its own. Purse and inventory only commit on victory.",
     "runHp": "HP",
     "runContraband": "Contraband money: {n}",
+    "runPurse": "Mission purse: {n}",
+    "inventoryTitle": "Mission inventory",
+    "inventoryHint": "4 slots. Use heals out of combat. Sealed scrolls open at the end.",
+    "inventoryEmpty": "Empty",
+    "inventoryUse": "Use",
+    "inventoryDiscard": "Discard",
+    "inventoryReplaceTarget": "Replace on buy",
+    "shopBuy": "Buy",
+    "shopSoldOut": "Sold out",
+    "shopPrice": "{n} purse",
+    "branchXpTag": "XP ×{n}",
     "enterNode": "Enter step",
     "abandonRun": "Abandon run",
     "backToRun": "Back to run",
@@ -1339,16 +1385,36 @@
     "stepClearedHint": "Rewards are paid when the run ends.",
     "nodeCombat": "Ambush",
     "nodeBoss": "Final confrontation",
+    "nodeShop": "Peddler",
+    "nodeShopHint": "Buy with your mission purse.",
+    "nodeRest": "Halt",
+    "nodeRestHint": "Free rest outside inventory.",
+    "nodeBranch": "Crossroads",
+    "nodeBranchHint": "Choose the short or long path.",
+    "nodeSkippedHint": "Path not taken.",
     "nodeMystery": "?",
     "nodeMysteryHint": "Unknown — heal, loot, nothing, or combat.",
     "nodeMysteryCombat": "Ambush (surprise)",
     "nodeEvent": "Event",
     "bossTag": "Boss",
+    "shopItems": {
+      "heal_bandage": "Bandage",
+      "heal_tonic": "Tonic",
+      "heal_elixir": "Vital Elixir",
+      "card_mystery_common": "Sealed scroll (common)",
+      "card_mystery_rare": "Sealed scroll (rare)",
+      "card_mystery_legendary": "Sealed scroll (legendary)",
+      "run_boost_damage": "Strike Seal",
+      "next_block": "Armor Talisman",
+      "next_chakra": "Chakra Pill",
+      "next_damage": "Rage Incense"
+    },
     "nodeStatus": {
       "locked": "Locked",
       "available": "Available",
       "cleared": "Cleared",
-      "failed": "Failed"
+      "failed": "Failed",
+      "skipped": "Skipped"
     },
     "turn": "Turn {n}",
     "endTurn": "End turn",

@@ -1,12 +1,17 @@
 /**
- * Construction pure de parcours mission (sans DB / HTTP).
- * Utilisé par missionRunService et le harness de clearance.
+ * Construction pure de parcours mission branchés (sans DB / HTTP).
+ *
+ * Structure typique :
+ *   combat-0 → shop-1 → branch-2
+ *     short → combats… → fin
+ *     long  → rest → combats… → shop → combat final
  */
 import {
   getRankPathConfig,
   MYSTERY_OUTCOME_WEIGHTS,
   HARD_MODE_DIFFICULTY_MULT,
 } from '../config/missionPathConfig.js';
+import { BRANCH_XP_MULT, rollShopOffer } from '../config/missionRunEconomy.js';
 
 function pickWeighted(weights, rng = Math.random) {
   const entries = Object.entries(weights);
@@ -28,44 +33,59 @@ function shuffleCopy(list, rng = Math.random) {
   return arr;
 }
 
-function pickMysteryCount(range, rng = Math.random) {
-  const [min, max] = range;
-  if (min === max) return min;
-  return min + Math.floor(rng() * (max - min + 1));
+function makeCombatNode(id, fight, status = 'locked') {
+  return {
+    id,
+    type: 'combat',
+    status,
+    templateId: fight.templateId,
+    difficulty: fight.difficulty || 1,
+    boss: Boolean(fight.boss),
+    branch: fight.branch || null,
+  };
 }
 
-export function pickEncountersForRank(rank, rng = Math.random) {
+function pickFights(rank, count, difficulties, { bossLast = false, rng = Math.random, branch = null } = {}) {
   const cfg = getRankPathConfig(rank);
   if (!cfg) {
-    return [{ templateId: 'ronin_bandit', difficulty: 1 }];
+    return Array.from({ length: count }, (_, i) => ({
+      templateId: 'ronin_bandit',
+      difficulty: difficulties[i] ?? 1,
+      boss: false,
+      branch,
+    }));
   }
-
-  const count = cfg.fightCount;
-  const difficulties = cfg.difficulties;
   const regularPool = shuffleCopy(cfg.pool, rng);
   const fights = [];
-
   for (let i = 0; i < count; i += 1) {
     const isLast = i === count - 1;
-    const useBoss = Boolean(cfg.bossLast && isLast && cfg.bossPool?.length);
+    const useBoss = Boolean(bossLast && isLast && cfg.bossPool?.length);
     const pool = useBoss ? cfg.bossPool : regularPool;
     const templateId = pool[i % pool.length] || pool[0] || 'ronin_bandit';
     fights.push({
       templateId,
       difficulty: difficulties[i] ?? difficulties[difficulties.length - 1] ?? 1,
       boss: useBoss,
+      branch,
     });
   }
-
   return fights;
 }
 
+/** @deprecated Compat tests / harness legacy. */
+export function pickEncountersForRank(rank, rng = Math.random) {
+  const cfg = getRankPathConfig(rank);
+  if (!cfg) return [{ templateId: 'ronin_bandit', difficulty: 1 }];
+  return pickFights(rank, cfg.fightCount, cfg.difficulties, {
+    bossLast: Boolean(cfg.bossLast),
+    rng,
+  });
+}
+
+/** @deprecated Compat mystery rolls. */
 export function buildMysteryOutcome(rank, rng = Math.random) {
   const kind = pickWeighted(MYSTERY_OUTCOME_WEIGHTS, rng);
-  if (kind !== 'combat') {
-    return { kind };
-  }
-
+  if (kind !== 'combat') return { kind };
   const cfg = getRankPathConfig(rank);
   const pool = cfg?.pool?.length ? cfg.pool : ['ronin_bandit'];
   const templateId = pool[Math.floor(rng() * pool.length)] || pool[0];
@@ -73,42 +93,19 @@ export function buildMysteryOutcome(rank, rng = Math.random) {
     cfg?.difficulties?.[Math.floor((cfg.difficulties.length - 1) / 2)] ??
     cfg?.difficulties?.[0] ??
     1.3;
-
-  return {
-    kind: 'combat',
-    templateId,
-    difficulty: midDiff,
-    boss: false,
-  };
+  return { kind: 'combat', templateId, difficulty: midDiff, boss: false };
 }
 
 export function isRecoveryOutcome(outcome) {
   const kind = outcome?.kind;
-  return kind === 'heal' || kind === 'merchant';
+  return kind === 'heal' || kind === 'merchant' || kind === 'rest' || kind === 'shop';
 }
 
-/**
- * Garantit au moins un nœud « ? » de récupération (soin ou colporteur) par run.
- */
-export function ensureRecoveryMystery(nodes, rng = Math.random) {
-  const mysteries = nodes.filter(n => n?.type === 'mystery');
-  if (!mysteries.length) return nodes;
-  if (mysteries.some(m => isRecoveryOutcome(m.outcome))) return nodes;
-
-  const idx = nodes.findIndex(n => n?.type === 'mystery');
-  if (idx < 0) return nodes;
-  const kind = rng() < 0.5 ? 'heal' : 'merchant';
-  const next = [...nodes];
-  next[idx] = {
-    ...next[idx],
-    outcome: { kind },
-  };
-  return next;
+/** @deprecated Guaranteed recovery — branched paths always include shop/rest. */
+export function ensureRecoveryMystery(nodes) {
+  return nodes;
 }
 
-/**
- * Applique le multiplicateur mode difficile sur les difficultés de combat du path.
- */
 export function applyHardModeToNodes(nodes, mult = HARD_MODE_DIFFICULTY_MULT) {
   const scale = Number(mult) || HARD_MODE_DIFFICULTY_MULT;
   return (Array.isArray(nodes) ? nodes : []).map(node => {
@@ -118,92 +115,137 @@ export function applyHardModeToNodes(nodes, mult = HARD_MODE_DIFFICULTY_MULT) {
         difficulty: Number(((Number(node.difficulty) || 1) * scale).toFixed(3)),
       };
     }
-    if (node?.type === 'mystery' && node.outcome?.kind === 'combat') {
-      return {
-        ...node,
-        outcome: {
-          ...node.outcome,
-          difficulty: Number(((Number(node.outcome.difficulty) || 1) * scale).toFixed(3)),
-        },
-      };
-    }
     return node;
   });
 }
 
 /**
- * Choisit les gaps qui reçoivent un « ? ».
- * Gap 0 (après le 1er combat) est toujours inclus pour la survie du run.
- * Si boss en finale et 2 mystères, le dernier gap est prioritaire.
- */
-function pickMysteryGapIndexes(gaps, mysteryCount, { bossLast = false, rng = Math.random } = {}) {
-  if (gaps <= 0 || mysteryCount <= 0) return [];
-  const chosen = new Set([0]);
-  if (mysteryCount >= 2 && gaps >= 2) {
-    if (bossLast) {
-      chosen.add(gaps - 1);
-    }
-    while (chosen.size < Math.min(mysteryCount, gaps)) {
-      const candidate = Math.floor(rng() * gaps);
-      chosen.add(candidate);
-    }
-  }
-  return [...chosen].sort((a, b) => a - b);
-}
-
-/**
- * Construit un parcours aléatoire pour un rang : combats + 1–2 nœuds « ? ».
- * Le premier intervalle a toujours un « ? » de récupération (soin / colporteur).
+ * Parcours branché :
+ * combat-0 → shop-1 → branch-2 → (short | long) → …
  */
 export function buildRandomRunPath(rank, { rng = Math.random, hardMode = false } = {}) {
-  const cfg = getRankPathConfig(rank);
-  const fights = pickEncountersForRank(rank, rng);
-  const gaps = Math.max(0, fights.length - 1);
-  const mysteryWanted = cfg ? pickMysteryCount(cfg.mysteryCount, rng) : 1;
-  const mysteryCount = Math.min(gaps, mysteryWanted);
-  const mysteryGaps = new Set(
-    pickMysteryGapIndexes(gaps, mysteryCount, {
-      bossLast: Boolean(cfg?.bossLast),
-      rng,
-    }),
-  );
+  const cfg = getRankPathConfig(rank) || {
+    fightCount: 4,
+    shortFightCount: 3,
+    bossLast: false,
+    difficulties: [1, 1.1, 1.2, 1.3],
+    shortDifficulties: [1, 1.15, 1.3],
+    pool: ['ronin_bandit'],
+  };
+
+  const longDiffs = [...cfg.difficulties];
+  const shortDiffs = [...(cfg.shortDifficulties || cfg.difficulties)];
+
+  // Opening combat shared (index 0 of both curves).
+  const opening = pickFights(rank, 1, [longDiffs[0] ?? 1], { rng, branch: null })[0];
+
+  const shortRemaining = Math.max(1, (cfg.shortFightCount || 3) - 1);
+  const longRemaining = Math.max(2, (cfg.fightCount || 4) - 1);
+
+  const shortFights = pickFights(rank, shortRemaining, shortDiffs.slice(1), {
+    bossLast: Boolean(cfg.bossLast),
+    rng,
+    branch: 'short',
+  });
+  const longFights = pickFights(rank, longRemaining, longDiffs.slice(1), {
+    bossLast: Boolean(cfg.bossLast),
+    rng,
+    branch: 'long',
+  });
 
   const nodes = [];
-  let mysterySlot = 0;
+  nodes.push(makeCombatNode('combat-0', opening, 'available'));
+  nodes.push({
+    id: 'shop-1',
+    type: 'shop',
+    status: 'locked',
+    offer: rollShopOffer(rng),
+  });
 
-  for (let i = 0; i < fights.length; i += 1) {
-    const fight = fights[i];
-    nodes.push({
-      id: `combat-${i}`,
-      type: 'combat',
-      status: i === 0 ? 'available' : 'locked',
-      templateId: fight.templateId,
-      difficulty: fight.difficulty || 1,
-      boss: Boolean(fight.boss),
-    });
+  const shortFirstId = 'combat-s-0';
+  const longFirstId = 'rest-l';
 
-    if (i < fights.length - 1 && mysteryGaps.has(i)) {
-      // Premier intervalle : soin garanti (après 1 fight, pas assez d’argent de contrebande pour le colporteur).
-      const outcome = i === 0 ? { kind: 'heal' } : buildMysteryOutcome(rank, rng);
-      nodes.push({
-        id: `mystery-${mysterySlot}`,
-        type: 'mystery',
-        status: 'locked',
-        revealed: false,
-        outcome,
-      });
-      mysterySlot += 1;
-    }
+  nodes.push({
+    id: 'branch-2',
+    type: 'branch',
+    status: 'locked',
+    choices: [
+      {
+        id: 'short',
+        nextNodeId: shortFirstId,
+        labelFr: 'Sentier court',
+        labelEn: 'Short path',
+        lengthHint: 'short',
+        xpMult: BRANCH_XP_MULT.short,
+        fightCount: 1 + shortRemaining,
+      },
+      {
+        id: 'long',
+        nextNodeId: longFirstId,
+        labelFr: 'Sentier long',
+        labelEn: 'Long path',
+        lengthHint: 'long',
+        xpMult: BRANCH_XP_MULT.long,
+        fightCount: 1 + longRemaining,
+      },
+    ],
+  });
+
+  // Short branch: remaining combats only.
+  shortFights.forEach((fight, i) => {
+    nodes.push(makeCombatNode(`combat-s-${i}`, fight));
+  });
+
+  // Long branch: rest → mid combats → shop → final combat(s).
+  nodes.push({
+    id: 'rest-l',
+    type: 'rest',
+    status: 'locked',
+    branch: 'long',
+  });
+
+  const longMid = longFights.slice(0, Math.max(0, longFights.length - 1));
+  const longFinal = longFights[longFights.length - 1];
+  longMid.forEach((fight, i) => {
+    nodes.push(makeCombatNode(`combat-l-${i}`, fight));
+  });
+  nodes.push({
+    id: 'shop-l',
+    type: 'shop',
+    status: 'locked',
+    branch: 'long',
+    offer: rollShopOffer(rng),
+  });
+  if (longFinal) {
+    nodes.push(makeCombatNode('combat-l-final', longFinal));
   }
 
-  const withRecovery = ensureRecoveryMystery(nodes, rng);
-  return hardMode ? applyHardModeToNodes(withRecovery) : withRecovery;
+  // Wire linear next pointers within each segment (for UI / unlock helpers).
+  const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+  const wireLinear = ids => {
+    for (let i = 0; i < ids.length - 1; i += 1) {
+      const cur = byId[ids[i]];
+      if (cur) cur.nextNodeId = ids[i + 1];
+    }
+  };
+
+  wireLinear(['combat-0', 'shop-1', 'branch-2']);
+  wireLinear(shortFights.map((_, i) => `combat-s-${i}`));
+  const longIds = [
+    'rest-l',
+    ...longMid.map((_, i) => `combat-l-${i}`),
+    'shop-l',
+    ...(longFinal ? ['combat-l-final'] : []),
+  ];
+  wireLinear(longIds);
+
+  return hardMode ? applyHardModeToNodes(nodes) : nodes;
 }
 
 /**
  * @deprecated Prefer buildRandomRunPath(rank). Conservé pour tests / runs legacy.
  */
-export function buildRunNodes(encounters, { rng = Math.random } = {}) {
+export function buildRunNodes(encounters) {
   const fights =
     Array.isArray(encounters) && encounters.length
       ? encounters
@@ -218,22 +260,9 @@ export function buildRunNodes(encounters, { rng = Math.random } = {}) {
       status: i === 0 ? 'available' : 'locked',
       templateId: fight.templateId,
       difficulty: fight.difficulty || 1,
-      boss: Boolean(fight.boss) || (i === fights.length - 1 && fights.length >= 4),
-      nameFr: fight.nameFr || null,
-      nameEn: fight.nameEn || null,
+      boss: Boolean(fight.boss),
+      ...(i < fights.length - 1 ? { nextNodeId: `combat-${i + 1}` } : {}),
     });
-
-    if (i < fights.length - 1) {
-      const outcome = buildMysteryOutcome('D', rng);
-      nodes.push({
-        id: `mystery-${i}`,
-        type: 'mystery',
-        status: 'locked',
-        revealed: false,
-        outcome,
-      });
-    }
   }
-
-  return ensureRecoveryMystery(nodes, rng);
+  return nodes;
 }

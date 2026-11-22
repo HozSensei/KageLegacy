@@ -4,7 +4,7 @@
 
 This guide describes the game as it works today. The numbers given are the ones the game applies.
 
-_Last updated: 20 November 2026_
+_Last updated: 22 November 2026_
 
 ---
 
@@ -20,7 +20,7 @@ You serve **your village**. Missions are operations (roads, agents, proof). Inte
 
 1. **Create your ninja**: choose a name and an Aspirant portrait.
 2. **Receive your starter deck**: 22 cards, ready to play.
-3. **Start a mission**: a random run of 3 to 5 fights and “?” nodes.
+3. **Start a mission**: stake a purse, then advance on a branched path (shop, fork, fights).
 4. **Earn experience**: each level gives 1 talent point.
 5. **Grow stronger**: spend your points in the tree, open scrolls, upgrade your cards, tune your deck.
 
@@ -378,45 +378,54 @@ Missions come in five ranks, from easiest to hardest: **D**, **C**, **B**, **A**
 
 Rank **D** is demanding with the starter deck. Rank **C** is nearly unreachable without some levels, talents, and cards earned by farming D.
 
-| Rank | Entries | Fights | “?” nodes | Final boss |
-| ---- | ------- | ------ | --------- | ---------- |
-| D    | 1       | 3      | 1–2       | No         |
-| C    | 1       | 3      | 1–2       | No         |
-| B    | 1       | 4      | 1–2       | Yes        |
-| A    | 1       | 5      | 1–2       | Yes        |
-| S    | 1       | 5      | 2         | Yes        |
+| Rank | Entries | Fights (short / long) | Shop | Fork | Final boss |
+| ---- | ------- | --------------------- | ---- | ---- | ---------- |
+| D    | 1       | 3 / 4                 | Yes  | Yes  | No         |
+| C    | 1       | 3 / 4                 | Yes  | Yes  | No         |
+| B    | 1       | 4 / 5                 | Yes  | Yes  | Yes        |
+| A    | 1       | 4 / 6                 | Yes  | Yes  | Yes        |
+| S    | 1       | 5 / 6                 | Yes  | Yes  | Yes        |
+
+### Staked purse
+
+Before launching, you choose a **purse** of **0, 100, 200, or 300 Ryos**. That amount is **taken** from your account and becomes the run purse.
+
+- **Road gains** (+25 per cleared node, +50 per fight won) add to this purse.
+- You spend the purse at the **peddler** (heals, seals, sealed scrolls).
+- On **victory**, the remaining purse returns as Ryos with end rewards.
+- On **defeat** or **abandon**, the purse and mission inventory are **lost**.
 
 ### The run
 
-Starting a mission opens a **generated run**: fights drawn from the rank pool, plus one or two **“?”** nodes. The immersive briefing appears at launch, not on the mission list.
+Starting a mission opens a **branched path**: opening fight, shop, crossroads (short or long route), then finale. The immersive briefing appears at launch, not on the mission list.
 
-- Your **HP does not come back** between fights (except recovery nodes).
-- A **defeat** or a **forfeit** fails the whole run: you get no completion reward.
+- Your **HP does not come back** between fights (except a halt or items used out of combat).
+- At the crossroads, the **long route** pays **+35% XP** at the end; the short one keeps ×1.
+- A **defeat** or a **forfeit** fails the whole run: no completion reward, purse lost.
 - You can only have **one run in progress**. You can leave it and resume it later, or abandon it.
 - Before launching, you can tick **Increased difficulty**: tougher enemies (+20%), end-of-run rewards +20%.
 
-### “?” nodes and contraband money
+### Inventory and mission shop
 
-Each fight won gives **+2 contraband money** (usable only during this run). At least one recovery node (heal or peddler) is guaranteed on the path.
+The **mission inventory** has **4 slots**. Buying does not use the item: you must use it out of combat (heals, boosts) or discard it to free a slot.
 
-A **“?”** node reveals when you enter it:
+| Purchase type | Effect |
+| ------------- | ------ |
+| **Heals** (bandage, tonic, elixir) | Heal 25% / 50% / 75% of max HP, out of combat only |
+| **Run seal** | Damage bonus for the rest of the run |
+| **Next-fight talismans** | Block, chakra, or damage consumed on the next fight |
+| **Sealed scrolls** | Card (common / rare / legendary) revealed **only at the end** |
 
-| Outcome    | Typical effect                                          |
-| ---------- | ------------------------------------------------------- |
-| **Heal**   | Rest (+50% max HP)                                      |
-| **Peddler**| Bandage (2 contraband money) or tonic (5) for HP        |
-| **Loot**   | Contraband money + light heal                           |
-| **Nothing**| Flavour only, the road continues                        |
-| **Combat** | Surprise ambush                                         |
+A **halt** heals for free outside inventory. Non-sealed leftover items do not carry outside the run.
 
 ### Rewards
 
 Rewards are paid out **at the end of the run**, once the last fight is won:
 
-- **XP** for your ninja;
-- **Ryos**;
+- **XP** for your ninja (×1 or ×1.35 depending on the branch);
+- reward **Ryos** **plus** the remaining purse;
 - **season pass XP**;
-- a **chance to get a card**, common or rare.
+- a **chance to get a card**, common or rare, plus any **sealed scrolls** bought along the way.
 
 Each mission shows its base rewards. They are multiplied by a **run bonus**, from ×1.6 at rank D up to ×3 at rank S, plus 8% per fight won beyond the first.
 
@@ -521,7 +530,7 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 | **Kage Coins** | Shop purchase, season pass                                    | Premium scrolls, premium pass track                         |
 | **Card dust**  | Disenchanting, season pass                                    | Card upgrades                                               |
 | **Essence**    | Disenchanting upgraded legendary or mythic cards, season pass | Final upgrades of legendary and mythic cards                |
-| **Contraband money** | Fights and “?” nodes during a run                        | Healing during that run only                                |
+| **Mission purse** | Stake at launch (0–300 Ryos) + node/fight gains               | Peddler purchases; remainder returns as Ryos on victory     |
 
 ---
 
@@ -529,5 +538,6 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 
 | Date       | Change                                                                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-22 | Branched runs: purse 0/100/200/300, 4-slot inventory, run shop, XP forks, no more contraband |
 | 2026-11-20 | Mission gates by character rank; D hard / C demanding; combat detail (heritages, chains, glossary) |
 | 2026-11-14 | Full rewrite for the current version: single ninja, 20–30 card deck, talent tree, turn-based combat, mission runs, shop, season pass, arena |
