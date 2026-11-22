@@ -50,9 +50,15 @@ function onKeydown(event) {
   }
 }
 
+function setBodyScrollLocked(locked) {
+  if (typeof document === 'undefined') return;
+  document.body.style.overflow = locked ? 'hidden' : '';
+}
+
 watch(
   () => props.open,
   async value => {
+    setBodyScrollLocked(Boolean(value));
     if (!value) return;
     stepIndex.value = 0;
     await nextTick();
@@ -67,6 +73,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeydown);
+  setBodyScrollLocked(false);
 });
 </script>
 
@@ -82,59 +89,61 @@ onUnmounted(() => {
       @click.self="emit('dismiss')"
     >
       <div class="modal-panel anatomy-overlay__panel">
-        <p class="page-kicker">{{ t('cards.anatomyGuide.kicker') }}</p>
-        <h2 id="card-anatomy-title" class="t-heading mt-2">
-          {{ t('cards.anatomyGuide.title') }}
-        </h2>
-        <p class="anatomy-overlay__progress" data-testid="card-anatomy-progress">
-          {{ t('cards.anatomyGuide.progress', { current: stepIndex + 1, total: stepCount }) }}
-        </p>
+        <div class="anatomy-overlay__scroll">
+          <p class="page-kicker">{{ t('cards.anatomyGuide.kicker') }}</p>
+          <h2 id="card-anatomy-title" class="t-heading mt-2">
+            {{ t('cards.anatomyGuide.title') }}
+          </h2>
+          <p class="anatomy-overlay__progress" data-testid="card-anatomy-progress">
+            {{ t('cards.anatomyGuide.progress', { current: stepIndex + 1, total: stepCount }) }}
+          </p>
 
-        <div class="anatomy-overlay__layout">
-          <div class="anatomy-overlay__card" data-testid="card-anatomy-demo">
-            <CardDisplay
-              :card="CARD_ANATOMY_DEMO"
-              size="large"
-              disabled
-              :highlight-region="stepId"
-            />
-          </div>
+          <div class="anatomy-overlay__layout">
+            <div class="anatomy-overlay__card" data-testid="card-anatomy-demo">
+              <CardDisplay
+                :card="CARD_ANATOMY_DEMO"
+                size="large"
+                disabled
+                :highlight-region="stepId"
+              />
+            </div>
 
-          <div class="anatomy-overlay__copy">
-            <h3 class="anatomy-overlay__step-title" data-testid="card-anatomy-step-title">
-              {{ title }}
-            </h3>
-            <p class="anatomy-overlay__step-body">{{ body }}</p>
+            <div class="anatomy-overlay__copy">
+              <h3 class="anatomy-overlay__step-title" data-testid="card-anatomy-step-title">
+                {{ title }}
+              </h3>
+              <p class="anatomy-overlay__step-body">{{ body }}</p>
 
-            <ul
-              v-if="stepId === 'figures'"
-              class="anatomy-overlay__swatches"
-              data-testid="card-anatomy-swatches"
-            >
-              <li class="anatomy-overlay__swatch anatomy-overlay__swatch--damage">
-                <span class="anatomy-overlay__swatch-gem" aria-hidden="true" />
-                {{ t('cards.anatomyGuide.swatches.damage') }}
-              </li>
-              <li class="anatomy-overlay__swatch anatomy-overlay__swatch--block">
-                <span class="anatomy-overlay__swatch-gem" aria-hidden="true" />
-                {{ t('cards.anatomyGuide.swatches.block') }}
-              </li>
-              <li class="anatomy-overlay__swatch anatomy-overlay__swatch--heal">
-                <span class="anatomy-overlay__swatch-gem" aria-hidden="true" />
-                {{ t('cards.anatomyGuide.swatches.heal') }}
-              </li>
-            </ul>
-
-            <p v-if="stepId === 'effects'" class="anatomy-overlay__rules-link">
-              <a
-                href="/rules#cards"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid="card-anatomy-rules-link"
+              <ul
+                v-if="stepId === 'figures'"
+                class="anatomy-overlay__swatches"
+                data-testid="card-anatomy-swatches"
               >
-                {{ t('cards.anatomyGuide.rulesLink') }}
-              </a>
-            </p>
+                <li class="anatomy-overlay__swatch anatomy-overlay__swatch--damage">
+                  <span class="anatomy-overlay__swatch-gem" aria-hidden="true" />
+                  {{ t('cards.anatomyGuide.swatches.damage') }}
+                </li>
+                <li class="anatomy-overlay__swatch anatomy-overlay__swatch--block">
+                  <span class="anatomy-overlay__swatch-gem" aria-hidden="true" />
+                  {{ t('cards.anatomyGuide.swatches.block') }}
+                </li>
+                <li class="anatomy-overlay__swatch anatomy-overlay__swatch--heal">
+                  <span class="anatomy-overlay__swatch-gem" aria-hidden="true" />
+                  {{ t('cards.anatomyGuide.swatches.heal') }}
+                </li>
+              </ul>
+
+              <p v-if="stepId === 'effects'" class="anatomy-overlay__rules-link">
+                <a
+                  href="/rules#cards"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="card-anatomy-rules-link"
+                >
+                  {{ t('cards.anatomyGuide.rulesLink') }}
+                </a>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -169,8 +178,32 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.anatomy-overlay {
+  align-items: end;
+  padding:
+    max(0.75rem, env(safe-area-inset-top, 0px))
+    max(0.75rem, env(safe-area-inset-right, 0px))
+    max(0.75rem, env(safe-area-inset-bottom, 0px))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
 .anatomy-overlay__panel {
+  display: flex;
+  flex-direction: column;
   width: min(52rem, 100%);
+  max-height: min(40rem, calc(100dvh - 1.5rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.anatomy-overlay__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(1rem, 3.5vw, 1.75rem) clamp(1rem, 3.5vw, 2rem) 1rem;
 }
 
 .anatomy-overlay__progress {
@@ -256,11 +289,16 @@ onUnmounted(() => {
 }
 
 .anatomy-overlay__actions {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  padding:
+    0.85rem clamp(1rem, 3.5vw, 2rem)
+    max(0.85rem, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-line);
+  background: var(--color-bg-card);
 }
 
 .anatomy-overlay__nav {
@@ -270,13 +308,50 @@ onUnmounted(() => {
   margin-left: auto;
 }
 
+@media (min-width: 641px) {
+  .anatomy-overlay {
+    align-items: center;
+    padding: 1.25rem;
+  }
+}
+
 @media (max-width: 640px) {
   .anatomy-overlay__layout {
     grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.85rem;
+    margin-top: 0.85rem;
   }
 
   .anatomy-overlay__card {
-    width: min(100%, 13.5rem);
+    width: min(100%, 10.75rem);
+  }
+
+  .anatomy-overlay__copy {
+    width: 100%;
+  }
+
+  .anatomy-overlay__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .anatomy-overlay__nav {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .anatomy-overlay__nav .btn-primary,
+  .anatomy-overlay__actions > .btn-ghost {
+    width: 100%;
+  }
+}
+
+@media (max-height: 720px) and (max-width: 640px) {
+  .anatomy-overlay__card {
+    width: min(100%, 9.25rem);
   }
 }
 </style>
