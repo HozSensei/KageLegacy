@@ -335,7 +335,10 @@ assert(
   emberEdge.baseDamage === 8 &&
     emberEdge.effects.some(
       effect =>
-        effect.status === 'burn' && effect.duration === 2 && effect.value == null,
+        effect.type === 'apply_status' &&
+        effect.status === 'burn' &&
+        effect.duration === 2 &&
+        effect.value == null,
     ),
   'ember edge burn tradeoff',
 );
