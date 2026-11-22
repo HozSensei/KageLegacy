@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
+import BoosterOpening from '../shop/BoosterOpening.vue';
 import { localizedName } from '../../utils/localeContent.js';
 
 defineOptions({ name: 'VictoryRewards' });
@@ -19,6 +20,16 @@ const emit = defineEmits(['dismiss']);
 
 const { t, locale } = useI18n();
 
+/** summary | opening */
+const phase = ref('summary');
+
+watch(
+  () => [props.rewards, props.midRun, props.state],
+  () => {
+    phase.value = 'summary';
+  }
+);
+
 const isVictory = computed(() => props.state === 'victory');
 
 const title = computed(() => {
@@ -28,9 +39,43 @@ const title = computed(() => {
   return t('combat.defeat');
 });
 
-const ctaLabel = computed(
-  () => props.continueLabel || (props.midRun ? t('combat.continueRun') : t('combat.backToMissions'))
-);
+const lootCards = computed(() => {
+  const r = props.rewards;
+  if (!r || r.error || props.midRun || !isVictory.value) return [];
+  // Payload mission (completeRunVictory) — pas les duels hors parcours.
+  if (Array.isArray(r.lootCards)) {
+    return r.lootCards.filter(entry => entry?.card);
+  }
+  const shop = Array.isArray(r.shopCards) ? r.shopCards.filter(entry => entry?.card) : [];
+  if (!shop.length) return [];
+  const out = [];
+  if (r.card?.card) {
+    out.push({
+      collectionId: r.card.collectionId ?? null,
+      isNew: Boolean(r.card.isNew),
+      rarity: r.card.card.rarity || r.card.rarity || 'common',
+      card: r.card.card,
+    });
+  }
+  for (const entry of shop) {
+    out.push({
+      collectionId: entry.collectionId ?? null,
+      isNew: Boolean(entry.isNew),
+      rarity: entry.card.rarity || entry.rarity || 'common',
+      card: entry.card,
+    });
+  }
+  return out;
+});
+
+const hasLootReveal = computed(() => lootCards.value.length > 0);
+
+const ctaLabel = computed(() => {
+  if (hasLootReveal.value && phase.value === 'summary') {
+    return t('combat.revealLoot');
+  }
+  return props.continueLabel || (props.midRun ? t('combat.continueRun') : t('combat.backToMissions'));
+});
 
 const lines = computed(() => {
   const r = props.rewards;
@@ -47,7 +92,12 @@ const lines = computed(() => {
       }),
     });
   }
-  if (r.card) {
+  if (hasLootReveal.value) {
+    out.push({
+      key: 'loot',
+      label: t('combat.revealLootHint', { n: lootCards.value.length }),
+    });
+  } else if (r.card) {
     const name = localizedName(r.card, locale.value, '…');
     out.push({
       key: 'card',
@@ -62,6 +112,19 @@ const lines = computed(() => {
   }
   return out;
 });
+
+function onCta() {
+  if (hasLootReveal.value && phase.value === 'summary') {
+    phase.value = 'opening';
+    return;
+  }
+  emit('dismiss');
+}
+
+function onRevealDone() {
+  phase.value = 'summary';
+  emit('dismiss');
+}
 </script>
 
 <template>
@@ -99,10 +162,40 @@ const lines = computed(() => {
       </p>
     </div>
 
-    <button type="button" class="btn-primary btn-lg victory__cta" @click="emit('dismiss')">
+    <button type="button" class="btn-primary btn-lg victory__cta" @click="onCta">
       {{ ctaLabel }}
     </button>
   </div>
+
+  <Teleport to="body">
+    <div
+      v-if="phase === 'opening' && hasLootReveal"
+      class="modal-backdrop loot-reveal"
+      data-testid="mission-loot-reveal"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="t('combat.lootRevealTitle')"
+    >
+      <div class="modal-panel loot-reveal__panel">
+        <header class="loot-reveal__header">
+          <p class="loot-reveal__kicker">{{ t('combat.lootRevealKicker') }}</p>
+          <h2 class="loot-reveal__title">{{ t('combat.lootRevealTitle') }}</h2>
+          <p class="loot-reveal__lead">{{ t('combat.lootRevealLead') }}</p>
+        </header>
+        <BoosterOpening
+          :cards="lootCards"
+          :active="phase === 'opening'"
+          booster-type="standard"
+          :booster-name="t('shop.sealedScroll')"
+          :card-count="lootCards.length"
+          :show-collection-status="true"
+          :done-label="continueLabel || t('combat.backToMissions')"
+          :done-status="t('combat.lootRevealDone')"
+          @done="onRevealDone"
+        />
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -191,6 +284,46 @@ const lines = computed(() => {
 .victory__cta {
   position: relative;
   justify-self: start;
+}
+
+.loot-reveal {
+  z-index: 140;
+}
+
+.loot-reveal__panel {
+  width: min(42rem, 100%);
+  border-top-color: var(--color-gold-fill, var(--color-vermilion));
+}
+
+.loot-reveal__header {
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.loot-reveal__kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-wood);
+}
+
+.loot-reveal__title {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-ink);
+}
+
+.loot-reveal__lead {
+  margin: 0.65rem auto 0;
+  max-width: 28rem;
+  color: var(--color-ink-muted);
+  font-size: 0.9375rem;
+  line-height: 1.45;
 }
 
 @media (min-width: 768px) {

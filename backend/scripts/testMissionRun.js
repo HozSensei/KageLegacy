@@ -31,7 +31,8 @@ import {
   getPurse,
 } from '../src/services/missionRunInventory.js';
 
-const { sanitizeNodesForClient, unlockNext, applyBranchChoice, healPercent } = __test;
+const { sanitizeNodesForClient, unlockNext, applyBranchChoice, healPercent, buildLootCards } =
+  __test;
 
 let passed = 0;
 let failed = 0;
@@ -216,6 +217,31 @@ const sealedUse = useInventorySlot(
 assert(!sealedUse.ok && sealedUse.code === 'SEALED_UNTIL_FINISH', 'sealed until finish');
 
 assert(healPercent({ hp: 10, maxHp: 100 }, 0.5).hp === 60, 'healPercent');
+
+console.log('=== loot reveal payload ===');
+const fakeCard = { id: 7, nameFr: 'Kunai', rarity: 'rare' };
+const loot = buildLootCards(
+  {
+    collectionId: 11,
+    isNew: true,
+    rarity: 'rare',
+    card: fakeCard,
+  },
+  [
+    {
+      collectionId: 12,
+      isNew: false,
+      rarity: 'common',
+      card: { id: 8, nameFr: 'Shuriken', rarity: 'common' },
+      source: 'sealed_scroll',
+    },
+    { collectionId: 13, rarity: 'legendary' },
+  ],
+);
+assert(loot.length === 2, 'lootCards skips entries without card art payload');
+assert(loot[0].source === 'mission_reward' && loot[0].card.id === 7, 'chance card first');
+assert(loot[1].source === 'sealed_scroll' && loot[1].isNew === false, 'sealed scroll second');
+assert(buildLootCards(null, []).length === 0, 'empty loot when no cards');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

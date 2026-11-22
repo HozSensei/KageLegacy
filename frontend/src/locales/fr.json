@@ -1357,6 +1357,12 @@
     "rewardError": "Récompenses indisponibles",
     "rewardPending": "Calcul des récompenses…",
     "rewardRunBonus": "Bonus de parcours ×{n}",
+    "revealLoot": "Révéler le butin",
+    "revealLootHint": "{n} carte(s) scellée(s) à révéler",
+    "lootRevealKicker": "Butin de mission",
+    "lootRevealTitle": "Parchemins scellés",
+    "lootRevealLead": "Ouvre tes trouvailles une par une — carte de récompense et parchemins achetés en mission.",
+    "lootRevealDone": "Butin révélé — tes cartes ont rejoint ta collection.",
     "quickFight": "Duel rapide",
     "quickFightLead": "Lancez un ennemi directement, sans parcours (récompenses immédiates si mission liée).",
     "persistentHand": {
