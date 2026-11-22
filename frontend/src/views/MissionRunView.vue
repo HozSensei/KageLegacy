@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMissionsStore } from '../stores/missions'
 import { useCombatStore } from '../stores/combat'
 import VictoryRewards from '../components/combat/VictoryRewards.vue'
+import MissionPathTree from '../components/missions/MissionPathTree.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
 import { missionRankTone } from '../utils/missionVisuals'
@@ -97,9 +98,15 @@ function nodeShape(node) {
   return 'square'
 }
 
-const visibleNodes = computed(() =>
-  (nodes.value || []).filter((node) => node.status !== 'skipped')
-)
+function nodeTone(node) {
+  if (node.boss) return 'vermilion'
+  if (node.type === 'shop' || node.type === 'merchant') return 'gold'
+  if (node.type === 'branch' || node.type === 'rest' || node.type === 'mystery') return 'sky'
+  return 'indigo'
+}
+
+/** Aperçu synchronisé avec le survol des boutons de choix d’événement. */
+const focusChoiceId = ref(null)
 
 const inventory = computed(() => {
   const slots = player.value.inventory
@@ -320,48 +327,16 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         @dismiss="backToMissions"
       />
 
-      <ol v-else class="run-path" data-testid="run-path">
-        <li
-          v-for="(node, i) in visibleNodes"
-          :key="node.id"
-          class="run-node"
-          :class="[
-            `run-node--${node.status}`,
-            `run-node--${node.type}`,
-            { 'run-node--boss': node.boss, 'run-node--mystery': node.type === 'mystery' && !node.revealed },
-          ]"
-          :data-tone="
-            node.boss
-              ? 'vermilion'
-              : node.type === 'shop' || node.type === 'merchant'
-                ? 'gold'
-                : node.type === 'branch' || node.type === 'rest' || node.type === 'mystery'
-                  ? 'sky'
-                  : 'indigo'
-          "
-          :data-testid="`run-node-${node.id}`"
-        >
-          <div class="run-node__marker">
-            <span class="run-node__index" :class="`run-node__index--${nodeShape(node)}`">
-              <span>{{ node.type === 'mystery' && !node.revealed ? '?' : i + 1 }}</span>
-            </span>
-          </div>
-          <div class="run-node__body">
-            <p class="run-node__title">
-              {{ nodeLabel(node) }}
-              <span v-if="node.boss" class="badge badge--solid run-node__boss" data-tone="vermilion">
-                {{ t('combat.bossTag') }}
-              </span>
-            </p>
-            <p class="run-node__hint">{{ nodeHint(node) }}</p>
-          </div>
-          <span class="run-node__status">
-            <AppIcon v-if="node.status === 'cleared'" name="check" size="0.95rem" :stroke-width="2.5" />
-            <AppIcon v-else-if="node.status === 'locked'" name="lock" size="0.9rem" />
-            {{ t(`combat.nodeStatus.${node.status}`, node.status) }}
-          </span>
-        </li>
-      </ol>
+      <MissionPathTree
+        v-else
+        class="mt-8"
+        :nodes="nodes"
+        :node-label="nodeLabel"
+        :node-hint="nodeHint"
+        :node-shape="nodeShape"
+        :node-tone="nodeTone"
+        :focus-choice-id="focusChoiceId"
+      />
 
       <section
         v-if="!isOver && missions.currentEvent"
@@ -414,7 +389,17 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             :key="choice.id"
             type="button"
             class="btn-secondary"
+            :class="{
+              'run-event__choice--preview':
+                missions.currentEvent?.eventType === 'branch' && focusChoiceId === choice.id,
+            }"
             :disabled="missions.actionLoading || choice.disabled"
+            @mouseenter="
+              missions.currentEvent?.eventType === 'branch' && (focusChoiceId = choice.id)
+            "
+            @focus="
+              missions.currentEvent?.eventType === 'branch' && (focusChoiceId = choice.id)
+            "
             @click="onChoice(choice.id)"
           >
             {{ localizedField(choice, 'label', locale) }}
@@ -650,157 +635,6 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   opacity: 0.85;
 }
 
-.run-path {
-  display: flex;
-  flex-direction: column;
-  max-width: 44rem;
-  margin: 2rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.run-node {
-  display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
-  gap: 0.9rem;
-  align-items: center;
-  min-height: 4.5rem;
-  padding: 0.5rem 1rem 0.5rem 0;
-  transition:
-    background var(--dur-base) ease,
-    transform var(--dur-base) var(--ease-out-quint);
-}
-
-.run-node__marker {
-  position: relative;
-  display: grid;
-  align-self: stretch;
-  place-items: center;
-}
-
-.run-node__marker::before {
-  content: '';
-  position: absolute;
-  top: -0.5rem;
-  bottom: -0.5rem;
-  left: 50%;
-  width: 4px;
-  background: var(--color-line);
-  transform: translateX(-50%);
-}
-
-.run-node:first-child .run-node__marker::before {
-  top: 50%;
-}
-
-.run-node:last-child .run-node__marker::before {
-  bottom: 50%;
-}
-
-.run-node--cleared .run-node__marker::before {
-  background: var(--color-leaf-fill);
-}
-
-.run-node__index {
-  position: relative;
-  display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
-  place-items: center;
-  background: var(--color-bg);
-  box-shadow: inset 0 0 0 2px var(--color-line-strong);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-faint);
-}
-
-.run-node__index--circle {
-  border-radius: 999px;
-}
-
-.run-node__index--lozenge {
-  width: 2.1rem;
-  height: 2.1rem;
-  transform: rotate(45deg);
-}
-
-.run-node__index--lozenge > span {
-  transform: rotate(-45deg);
-}
-
-.run-node--available {
-  background: var(--color-bg-card);
-  transform: translateX(6px);
-}
-
-.run-node--available .run-node__index {
-  background: var(--tone-fill);
-  box-shadow: none;
-  color: var(--tone-on);
-  animation: pulse-ring 1.8s ease-out infinite;
-}
-
-.run-node--cleared .run-node__index {
-  background: var(--color-leaf-fill);
-  box-shadow: none;
-  color: var(--color-on-leaf);
-}
-
-.run-node--failed .run-node__index {
-  background: var(--color-ink);
-  box-shadow: none;
-  color: var(--color-on-ink);
-}
-
-.run-node__title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  font-stretch: 80%;
-  line-height: 1.1;
-  color: var(--color-ink);
-}
-
-.run-node--locked .run-node__title {
-  color: var(--color-ink-muted);
-}
-
-.run-node__hint {
-  margin-top: 0.2rem;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color: var(--color-ink-muted);
-}
-
-.run-node__status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
-}
-
-.run-node--available .run-node__status {
-  color: var(--tone);
-}
-
-.run-node--cleared .run-node__status {
-  color: var(--color-leaf);
-}
-
-.run-node--failed .run-node__status {
-  color: var(--color-vermilion);
-}
-
 .run-event {
   position: relative;
   max-width: 44rem;
@@ -847,6 +681,10 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   margin-top: 1.1rem;
 }
 
+.run-event__choice--preview {
+  box-shadow: inset 0 0 0 2px var(--color-sky-fill, #3b82a8);
+}
+
 .run-actions {
   display: flex;
   flex-wrap: wrap;
@@ -855,14 +693,4 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   margin-top: 2rem;
 }
 
-@media (max-width: 479px) {
-  .run-node {
-    grid-template-columns: 3.25rem minmax(0, 1fr);
-  }
-
-  .run-node__status {
-    grid-column: 2;
-    margin-top: -0.3rem;
-  }
-}
 </style>

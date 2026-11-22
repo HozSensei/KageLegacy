@@ -188,6 +188,32 @@ export function unlockNext(nodes, clearedIndex, { chosenNextId = null } = {}) {
   return next;
 }
 
+/** Ids atteignables depuis startId via nextNodeId et choices (toutes branches). */
+function collectSubtreeIds(nodesById, startId) {
+  const ids = new Set();
+  if (!startId) return ids;
+  const stack = [startId];
+  while (stack.length) {
+    const id = stack.pop();
+    if (!id || ids.has(id)) continue;
+    const node = nodesById[id];
+    if (!node) continue;
+    ids.add(id);
+    if (node.type === 'branch') {
+      for (const c of node.choices || []) {
+        if (c?.nextNodeId) stack.push(c.nextNodeId);
+      }
+    } else if (node.nextNodeId) {
+      stack.push(node.nextNodeId);
+    }
+  }
+  return ids;
+}
+
+/**
+ * Applique un choix de carrefour : saute les sous-arbres des autres choix
+ * (N branches, y compris sous-carrefours imbriqués).
+ */
 function applyBranchChoice(nodes, branchIndex, choiceId) {
   const next = nodes.map(n => ({ ...n }));
   const branchNode = next[branchIndex];
@@ -195,12 +221,20 @@ function applyBranchChoice(nodes, branchIndex, choiceId) {
   if (!choice) throw httpError(400, 'Choix de branche invalide.');
 
   next[branchIndex] = { ...branchNode, status: 'cleared', chosen: choiceId };
-  const reject = choiceId === 'short' ? 'long' : 'short';
-  for (let i = 0; i < next.length; i += 1) {
-    if (next[i].branch === reject) {
-      next[i] = { ...next[i], status: 'skipped' };
+  const byId = Object.fromEntries(next.map(n => [n.id, n]));
+  const keep = collectSubtreeIds(byId, choice.nextNodeId);
+
+  for (const other of branchNode.choices || []) {
+    if (other.id === choiceId) continue;
+    for (const id of collectSubtreeIds(byId, other.nextNodeId)) {
+      if (keep.has(id)) continue;
+      const idx = next.findIndex(n => n.id === id);
+      if (idx >= 0 && next[idx].status !== 'cleared') {
+        next[idx] = { ...next[idx], status: 'skipped' };
+      }
     }
   }
+
   const targetIdx = next.findIndex(n => n.id === choice.nextNodeId);
   if (targetIdx >= 0) {
     next[targetIdx] = { ...next[targetIdx], status: 'available' };
