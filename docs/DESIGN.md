@@ -75,7 +75,7 @@ Premier recalibrage livré :
 - premiers combos de burst Ninjutsu ;
 - budgets passifs appliqués automatiquement ;
 - six effets d'héritage actifs ;
-- une vague de 44 nouvelles cartes intégrée, portant le catalogue à 250 cartes sans illustration obligatoire au démarrage.
+- vagues d’expansion empilées (dont vague 4 : +32 Taijutsu / Médecine / Commun), catalogue à 282 cartes avec illustrations par slug.
 
 La vague ajoute 10 Taijutsu, 6 Ninjutsu, 12 Genjutsu, 10 Médecine et 6 cartes `common`. Elle vise les manques de spécialisation plutôt qu'une inflation uniforme : contrôle/esquive Genjutsu, support Médecine et chaînes Taijutsu.
 

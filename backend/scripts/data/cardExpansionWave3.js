@@ -574,10 +574,13 @@ export const EXPANSION_WAVE3_CARDS = [
     effects: [
       { type: 'bonus_if', condition: 'enemy_vulnerable', value: 5 },
       { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
+      { type: 'apply_status', status: 'madness', duration: 1 },
     ],
     passive: { genjutsu: 5 },
-    descriptionFr: 'Inflige 8 dégâts. +5 si l’ennemi est Vulnérable. Faiblesse 1 (2 tours).',
-    descriptionEn: 'Deal 8 damage. +5 if the enemy is Vulnerable. Weak 1 (2 turns).',
+    descriptionFr:
+      'Inflige 8 dégâts. +5 si l’ennemi est Vulnérable. Faiblesse 1 (2 tours). Folie (1 tour).',
+    descriptionEn:
+      'Deal 8 damage. +5 if the enemy is Vulnerable. Weak 1 (2 turns). Madness (1 turn).',
     loreFr: 'Une obscurité sans haut ni bas, où seul le coup du shinobi trouve sa cible.',
     loreEn: 'A darkness without up or down, where only the shinobi’s blow finds its mark.',
     upgrades: {

@@ -1,10 +1,9 @@
 /**
  * Illustrations locales des cartes (slug → asset Vite).
- * Préférence WebP ; fallback PNG pour les builds / previews hors Vite.
- * Full catalogue: 250 cards (STARTER + wave1 + wave2 + wave3 + clan legendaries).
+ * Format unique WebP (illustrations catalogue).
+ * Full catalogue: STARTER + wave1–4 + clan legendaries.
  *
- * Wave 3 source grids in assets/ → card ranges:
- *   1-16.png #1–16 · 17-32.png #17–32 · 33-44.png #33–44
+ * Waves 3–4 : sources grilles 4×4 découpées puis converties en WebP.
  */
 import abysseDArgent from '../assets/cards/abysse-d-argent.webp';
 import abysseSilencieux from '../assets/cards/abysse-silencieux.webp';
@@ -212,53 +211,117 @@ import voileDeBrise from '../assets/cards/voile-de-brise.webp';
 import voileDeMensonge from '../assets/cards/voile-de-mensonge.webp';
 import voileDePoussiere from '../assets/cards/voile-de-poussiere.webp';
 import voileSpectral from '../assets/cards/voile-spectral.webp';
-import wave3Art1 from '../assets/cards/gravure-des-phalanges.jpg';
-import wave3Art2 from '../assets/cards/danse-du-genou-brise.jpg';
-import wave3Art3 from '../assets/cards/rafale-de-l-epervier.jpg';
-import wave3Art4 from '../assets/cards/pas-du-silex.jpg';
-import wave3Art5 from '../assets/cards/chasse-nerfs.jpg';
-import wave3Art6 from '../assets/cards/frappe-en-cascade.jpg';
-import wave3Art7 from '../assets/cards/serment-des-cent-coups.jpg';
-import wave3Art8 from '../assets/cards/elan-sans-retour.jpg';
-import wave3Art9 from '../assets/cards/poing-du-sol-rouge.jpg';
-import wave3Art10 from '../assets/cards/derniere-enjambee.jpg';
-import wave3Art11 from '../assets/cards/orbe-du-tonnerre-blanc.jpg';
-import wave3Art12 from '../assets/cards/brasier-suspendu.jpg';
-import wave3Art13 from '../assets/cards/lance-des-marees.jpg';
-import wave3Art14 from '../assets/cards/avalanche-interieure.jpg';
-import wave3Art15 from '../assets/cards/jugement-des-quatre-vents.jpg';
-import wave3Art16 from '../assets/cards/detonation-du-voile.jpg';
-import wave3Art17 from '../assets/cards/murmure-des-doubles.jpg';
-import wave3Art18 from '../assets/cards/prison-du-reflet.jpg';
-import wave3Art19 from '../assets/cards/brouillard-de-souvenance.jpg';
-import wave3Art20 from '../assets/cards/oeil-du-crepuscule.jpg';
-import wave3Art21 from '../assets/cards/labyrinthe-immobile.jpg';
-import wave3Art22 from '../assets/cards/echo-de-l-absence.jpg';
-import wave3Art23 from '../assets/cards/voile-des-faux-pas.jpg';
-import wave3Art24 from '../assets/cards/presage-inverse.jpg';
-import wave3Art25 from '../assets/cards/nuit-sans-horizon.jpg';
-import wave3Art26 from '../assets/cards/mirages-croises.jpg';
-import wave3Art27 from '../assets/cards/pacte-des-ombres-fines.jpg';
-import wave3Art28 from '../assets/cards/silence-du-temoin.jpg';
-import wave3Art29 from '../assets/cards/souffle-de-sauge.jpg';
-import wave3Art30 from '../assets/cards/suture-du-lotus.jpg';
-import wave3Art31 from '../assets/cards/elixir-de-l-aube.jpg';
-import wave3Art32 from '../assets/cards/compresse-des-sources.jpg';
-import wave3Art33 from '../assets/cards/baume-de-cendre.jpg';
-import wave3Art34 from '../assets/cards/rituel-du-pouls-calme.jpg';
-import wave3Art35 from '../assets/cards/infusion-des-trois-racines.jpg';
-import wave3Art36 from '../assets/cards/remede-du-dernier-souffle.jpg';
-import wave3Art37 from '../assets/cards/pont-de-regeneration.jpg';
-import wave3Art38 from '../assets/cards/vigilance-du-guerisseur.jpg';
-import wave3Art39 from '../assets/cards/lanternes-de-secours.jpg';
-import wave3Art40 from '../assets/cards/corde-a-eclairs.jpg';
-import wave3Art41 from '../assets/cards/grimoire-de-poche.jpg';
-import wave3Art42 from '../assets/cards/molosse-de-cuivre.jpg';
-import wave3Art43 from '../assets/cards/cigale-de-brume.jpg';
-import wave3Art44 from '../assets/cards/sceau-du-compagnon-perdu.jpg';
+import wave3Art1 from '../assets/cards/gravure-des-phalanges.webp';
+import wave3Art2 from '../assets/cards/danse-du-genou-brise.webp';
+import wave3Art3 from '../assets/cards/rafale-de-l-epervier.webp';
+import wave3Art4 from '../assets/cards/pas-du-silex.webp';
+import wave3Art5 from '../assets/cards/chasse-nerfs.webp';
+import wave3Art6 from '../assets/cards/frappe-en-cascade.webp';
+import wave3Art7 from '../assets/cards/serment-des-cent-coups.webp';
+import wave3Art8 from '../assets/cards/elan-sans-retour.webp';
+import wave3Art9 from '../assets/cards/poing-du-sol-rouge.webp';
+import wave3Art10 from '../assets/cards/derniere-enjambee.webp';
+import wave3Art11 from '../assets/cards/orbe-du-tonnerre-blanc.webp';
+import wave3Art12 from '../assets/cards/brasier-suspendu.webp';
+import wave3Art13 from '../assets/cards/lance-des-marees.webp';
+import wave3Art14 from '../assets/cards/avalanche-interieure.webp';
+import wave3Art15 from '../assets/cards/jugement-des-quatre-vents.webp';
+import wave3Art16 from '../assets/cards/detonation-du-voile.webp';
+import wave3Art17 from '../assets/cards/murmure-des-doubles.webp';
+import wave3Art18 from '../assets/cards/prison-du-reflet.webp';
+import wave3Art19 from '../assets/cards/brouillard-de-souvenance.webp';
+import wave3Art20 from '../assets/cards/oeil-du-crepuscule.webp';
+import wave3Art21 from '../assets/cards/labyrinthe-immobile.webp';
+import wave3Art22 from '../assets/cards/echo-de-l-absence.webp';
+import wave3Art23 from '../assets/cards/voile-des-faux-pas.webp';
+import wave3Art24 from '../assets/cards/presage-inverse.webp';
+import wave3Art25 from '../assets/cards/nuit-sans-horizon.webp';
+import wave3Art26 from '../assets/cards/mirages-croises.webp';
+import wave3Art27 from '../assets/cards/pacte-des-ombres-fines.webp';
+import wave3Art28 from '../assets/cards/silence-du-temoin.webp';
+import wave3Art29 from '../assets/cards/souffle-de-sauge.webp';
+import wave3Art30 from '../assets/cards/suture-du-lotus.webp';
+import wave3Art31 from '../assets/cards/elixir-de-l-aube.webp';
+import wave3Art32 from '../assets/cards/compresse-des-sources.webp';
+import wave3Art33 from '../assets/cards/baume-de-cendre.webp';
+import wave3Art34 from '../assets/cards/rituel-du-pouls-calme.webp';
+import wave3Art35 from '../assets/cards/infusion-des-trois-racines.webp';
+import wave3Art36 from '../assets/cards/remede-du-dernier-souffle.webp';
+import wave3Art37 from '../assets/cards/pont-de-regeneration.webp';
+import wave3Art38 from '../assets/cards/vigilance-du-guerisseur.webp';
+import wave3Art39 from '../assets/cards/lanternes-de-secours.webp';
+import wave3Art40 from '../assets/cards/corde-a-eclairs.webp';
+import wave3Art41 from '../assets/cards/grimoire-de-poche.webp';
+import wave3Art42 from '../assets/cards/molosse-de-cuivre.webp';
+import wave3Art43 from '../assets/cards/cigale-de-brume.webp';
+import wave3Art44 from '../assets/cards/sceau-du-compagnon-perdu.webp';
+import wave4Art1 from '../assets/cards/coupe-tendon.webp';
+import wave4Art2 from '../assets/cards/griffure-profonde.webp';
+import wave4Art3 from '../assets/cards/lame-ouverte.webp';
+import wave4Art4 from '../assets/cards/crochet-sanglant.webp';
+import wave4Art5 from '../assets/cards/danse-des-entailles.webp';
+import wave4Art6 from '../assets/cards/serre-du-faucon.webp';
+import wave4Art7 from '../assets/cards/pas-du-tigre.webp';
+import wave4Art8 from '../assets/cards/frappe-rotative.webp';
+import wave4Art9 from '../assets/cards/balayage-circulaire.webp';
+import wave4Art10 from '../assets/cards/uppercut-du-seuil.webp';
+import wave4Art11 from '../assets/cards/rafale-de-coudes.webp';
+import wave4Art12 from '../assets/cards/garde-du-sanglier.webp';
+import wave4Art13 from '../assets/cards/carapace-du-poing.webp';
+import wave4Art14 from '../assets/cards/elan-du-colosse.webp';
+import wave4Art15 from '../assets/cards/serment-du-sang.webp';
+import wave4Art16 from '../assets/cards/toxine-diluee.webp';
+import wave4Art17 from '../assets/cards/seringue-noire.webp';
+import wave4Art18 from '../assets/cards/venin-calibre.webp';
+import wave4Art19 from '../assets/cards/piqure-mortelle.webp';
+import wave4Art20 from '../assets/cards/nuage-de-spores.webp';
+import wave4Art21 from '../assets/cards/compresses-actives.webp';
+import wave4Art22 from '../assets/cards/garde-antiseptique.webp';
+import wave4Art23 from '../assets/cards/elixir-nerveux.webp';
+import wave4Art24 from '../assets/cards/ration-de-route.webp';
+import wave4Art25 from '../assets/cards/grappin-de-route.webp';
+import wave4Art26 from '../assets/cards/couteau-de-camp.webp';
+import wave4Art27 from '../assets/cards/cape-de-voyage.webp';
+import wave4Art28 from '../assets/cards/amadou-sec.webp';
+import wave4Art29 from '../assets/cards/gourde-renforcee.webp';
+import wave4Art30 from '../assets/cards/carnet-de-traces.webp';
+import wave4Art31 from '../assets/cards/pierre-a-aiguiser.webp';
+import wave4Art32 from '../assets/cards/sacoche-de-terrain.webp';
 
 /** @type {Record<string, string>} */
 export const CARD_ART_BY_SLUG = {
+  'coupe-tendon': wave4Art1,
+  'griffure-profonde': wave4Art2,
+  'lame-ouverte': wave4Art3,
+  'crochet-sanglant': wave4Art4,
+  'danse-des-entailles': wave4Art5,
+  'serre-du-faucon': wave4Art6,
+  'pas-du-tigre': wave4Art7,
+  'frappe-rotative': wave4Art8,
+  'balayage-circulaire': wave4Art9,
+  'uppercut-du-seuil': wave4Art10,
+  'rafale-de-coudes': wave4Art11,
+  'garde-du-sanglier': wave4Art12,
+  'carapace-du-poing': wave4Art13,
+  'elan-du-colosse': wave4Art14,
+  'serment-du-sang': wave4Art15,
+  'toxine-diluee': wave4Art16,
+  'seringue-noire': wave4Art17,
+  'venin-calibre': wave4Art18,
+  'piqure-mortelle': wave4Art19,
+  'nuage-de-spores': wave4Art20,
+  'compresses-actives': wave4Art21,
+  'garde-antiseptique': wave4Art22,
+  'elixir-nerveux': wave4Art23,
+  'ration-de-route': wave4Art24,
+  'grappin-de-route': wave4Art25,
+  'couteau-de-camp': wave4Art26,
+  'cape-de-voyage': wave4Art27,
+  'amadou-sec': wave4Art28,
+  'gourde-renforcee': wave4Art29,
+  'carnet-de-traces': wave4Art30,
+  'pierre-a-aiguiser': wave4Art31,
+  'sacoche-de-terrain': wave4Art32,
   'gravure-des-phalanges': wave3Art1,
   'danse-du-genou-brise': wave3Art2,
   'rafale-de-l-epervier': wave3Art3,

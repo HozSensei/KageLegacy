@@ -2,11 +2,13 @@
  * Expansion catalogue V2 — vague 1 (~78 cartes).
  * Vague 2 : ./cardExpansionWave2.js.
  * Vague 3 : ./cardExpansionWave3.js.
+ * Vague 4 : ./cardExpansionWave4.js.
  * Noms originaux — folklore ninja, pas de refs franchise.
  */
 import { defineCard } from '../lib/cardFactory.js';
 import { EXPANSION_WAVE2_CARDS } from './cardExpansionWave2.js';
 import { EXPANSION_WAVE3_CARDS } from './cardExpansionWave3.js';
+import { EXPANSION_WAVE4_CARDS } from './cardExpansionWave4.js';
 import { CLAN_LEGENDARY_CARDS } from './cardExpansionClans.js';
 
 const c = defineCard;
@@ -488,10 +490,13 @@ export const EXPANSION_WAVE1_CARDS = [
     rarity: 'common',
     cost: 2,
     damage: 9,
-    effects: [{ type: 'apply_status', status: 'vulnerable', value: 1 }],
+    effects: [
+      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'madness', duration: 2 },
+    ],
     passive: { genjutsu: 3, intelligence: 1 },
-    descriptionFr: 'Inflige 9 dégâts. Applique Vulnérable.',
-    descriptionEn: 'Deal 9 damage. Apply Vulnerable.',
+    descriptionFr: 'Inflige 9 dégâts. Vulnérable. Folie (2 tours).',
+    descriptionEn: 'Deal 9 damage. Vulnerable. Madness (2 turns).',
     upgrades: {
       level_1: { damage: 3, passive: { genjutsu: 1 } },
       level_2: { damage: 6, passive: { genjutsu: 2, intelligence: 1 } },
@@ -1599,7 +1604,13 @@ export const EXPANSION_CARDS = [
   ...EXPANSION_WAVE1_CARDS,
   ...EXPANSION_WAVE2_CARDS,
   ...EXPANSION_WAVE3_CARDS,
+  ...EXPANSION_WAVE4_CARDS,
   ...CLAN_LEGENDARY_CARDS,
 ];
 
-export { EXPANSION_WAVE2_CARDS, EXPANSION_WAVE3_CARDS, CLAN_LEGENDARY_CARDS };
+export {
+  EXPANSION_WAVE2_CARDS,
+  EXPANSION_WAVE3_CARDS,
+  EXPANSION_WAVE4_CARDS,
+  CLAN_LEGENDARY_CARDS,
+};
