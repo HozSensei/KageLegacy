@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import CardDisplay from './CardDisplay.vue';
 import CardHole from './CardHole.vue';
 import CardFilters from './CardFilters.vue';
-import CardSizeControl from './CardSizeControl.vue';
 import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { cardMatchesArt } from '../../utils/cardBonusChips';
 
@@ -73,18 +72,15 @@ function onSelectSlot(slot) {
       <p class="collection-grid__count" data-testid="collection-count">
         {{ t('cards.collectionProgress', { owned: ownedCount, total: catalogueTotal }) }}
       </p>
-      <div class="collection-grid__toolbar-actions">
-        <CardSizeControl />
-        <label class="collection-grid__owned-only">
-          <input
-            type="checkbox"
-            data-testid="collection-owned-only"
-            :checked="ownedOnly"
-            @change="onOwnedOnlyChange"
-          />
-          <span>{{ t('cards.showOwnedOnly') }}</span>
-        </label>
-      </div>
+      <label class="collection-grid__owned-only">
+        <input
+          type="checkbox"
+          data-testid="collection-owned-only"
+          :checked="ownedOnly"
+          @change="onOwnedOnlyChange"
+        />
+        <span>{{ t('cards.showOwnedOnly') }}</span>
+      </label>
     </div>
 
     <CardFilters
@@ -138,14 +134,6 @@ function onSelectSlot(slot) {
   justify-content: space-between;
   gap: 0.75rem 1.25rem;
   margin-bottom: 1.25rem;
-}
-
-.collection-grid__toolbar-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem 1.25rem;
 }
 
 .collection-grid__count {

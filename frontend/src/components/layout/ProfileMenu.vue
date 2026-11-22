@@ -7,6 +7,7 @@ import SlidePanel from './SlidePanel.vue';
 
 import AppIcon from '../ui/AppIcon.vue';
 import ThemeToggle from '../ui/ThemeToggle.vue';
+import CardSizeControl from '../cards/CardSizeControl.vue';
 
 defineOptions({ name: 'ProfileMenu' });
 
@@ -141,7 +142,7 @@ function handleConvert() {
       data-testid="profile-menu-button"
       @click="toggle"
     >
-      <AppIcon name="profile" size="1.25rem" />
+      <AppIcon name="settings" size="1.25rem" />
     </button>
 
     <SlidePanel
@@ -194,6 +195,10 @@ function handleConvert() {
       <div class="profile-menu__section profile-menu__theme">
         <p class="t-kicker">{{ t('theme.choose') }}</p>
         <ThemeToggle />
+      </div>
+
+      <div class="profile-menu__section profile-menu__card-size">
+        <CardSizeControl />
       </div>
 
       <div class="profile-menu__rows">
@@ -399,6 +404,12 @@ function handleConvert() {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.profile-menu__card-size :deep(.card-size-control) {
+  display: inline-flex;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .profile-menu__rows {

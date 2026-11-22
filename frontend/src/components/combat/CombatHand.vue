@@ -2,7 +2,6 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from '../cards/CardDisplay.vue';
-import CardSizeControl from '../cards/CardSizeControl.vue';
 import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { activeComboLines } from '../../utils/cardEffectLine.js';
 
@@ -197,7 +196,6 @@ const displayCards = computed(() =>
 </script>
 
 <template>
-  <CardSizeControl class="hand-size-control" />
   <TransitionGroup
     tag="div"
     name="hand"
@@ -267,12 +265,6 @@ const displayCards = computed(() =>
 </template>
 
 <style scoped>
-.hand-size-control {
-  justify-content: flex-end;
-  width: 100%;
-  margin-bottom: 0.35rem;
-}
-
 .hand {
   --card-width: clamp(11rem, 20vw, 15rem);
   --hand-card-width: min(var(--card-width), 100cqi);
