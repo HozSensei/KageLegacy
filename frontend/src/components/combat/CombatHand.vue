@@ -2,9 +2,13 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from '../cards/CardDisplay.vue';
+import CardSizeControl from '../cards/CardSizeControl.vue';
+import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { activeComboLines } from '../../utils/cardEffectLine.js';
 
 defineOptions({ name: 'CombatHand' });
+
+const { cardSize } = useCardSizePreference();
 
 const props = defineProps({
   cards: { type: Array, default: () => [] },
@@ -193,11 +197,14 @@ const displayCards = computed(() =>
 </script>
 
 <template>
+  <CardSizeControl class="hand-size-control" />
   <TransitionGroup
     tag="div"
     name="hand"
     class="hand"
+    :class="{ 'hand--large': cardSize === 'large' }"
     :style="fanStyle"
+    :data-card-size="cardSize"
     data-testid="combat-hand"
     @before-leave="pinLeaving"
   >
@@ -229,6 +236,7 @@ const displayCards = computed(() =>
       <CardDisplay
         :card="displayCards[index]"
         :selected="selectedId === card.instanceId"
+        :size="cardSize"
         compact
         :stats="stats"
         :previous-card-stat-type="previousCardStatType"
@@ -259,6 +267,12 @@ const displayCards = computed(() =>
 </template>
 
 <style scoped>
+.hand-size-control {
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: 0.35rem;
+}
+
 .hand {
   --card-width: clamp(11rem, 20vw, 15rem);
   --hand-card-width: min(var(--card-width), 100cqi);
@@ -272,6 +286,13 @@ const displayCards = computed(() =>
   margin-inline: calc(var(--space-gutter) * -1);
   padding: 2rem var(--space-gutter);
   isolation: isolate;
+}
+
+@media (min-width: 640px) {
+  .hand--large {
+    --card-width: clamp(13.5rem, 24vw, 18rem);
+    min-height: calc(clamp(20rem, 36vw, 27rem) + 4rem);
+  }
 }
 
 .hand-card {

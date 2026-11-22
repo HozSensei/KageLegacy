@@ -889,6 +889,11 @@
     "emptyDeckNoCardsLead": "Your collection is empty — buy a booster or finish a mission to get cards.",
     "collectionProgress": "{owned} / {total} owned",
     "showOwnedOnly": "Show owned cards only",
+    "cardSizeLabel": "Card size",
+    "cardSize": {
+      "normal": "Normal",
+      "large": "Large"
+    },
     "missingBadge": "Missing",
     "missingHint": "Not in your collection yet.",
     "missingDetail": "Missing from your collection",

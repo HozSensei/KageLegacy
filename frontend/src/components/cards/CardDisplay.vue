@@ -23,6 +23,15 @@ const props = defineProps({
   catalogueNumber: { type: Number, default: null },
   selected: { type: Boolean, default: false },
   compact: { type: Boolean, default: false },
+  /**
+   * Emprise visuelle desktop (collection / deck).
+   * `large` relève les plafonds de typo pour améliorer la lisibilité.
+   */
+  size: {
+    type: String,
+    default: 'normal',
+    validator: v => v === 'normal' || v === 'large',
+  },
   /** Stats du ninja : si fournies, les figures affichent la valeur effective. */
   stats: { type: Object, default: null },
   /**
@@ -164,6 +173,7 @@ watch(
       {
         'card-display--selected': selected,
         'card-display--compact': compact,
+        'card-display--large': size === 'large',
         'card-display--foil': rarity.foil,
         'card-display--no-art': !artUrl,
         'card-display--flipped': isFlipped,
@@ -1277,6 +1287,57 @@ watch(
 .card-display--compact .card-display__back-title {
   margin-top: 12px;
   font-size: 0.85rem;
+}
+
+/* Large (desktop) — mêmes proportions, plafonds de typo relevés pour la lisibilité */
+.card-display--large .card-display__name {
+  font-size: clamp(0.95rem, 8.4cqi, 1.75rem);
+}
+
+.card-display--large .card-display__effects {
+  font-size: clamp(0.68rem, 4.4cqi, 0.92rem);
+  gap: 0.32rem;
+}
+
+.card-display--large .card-display__kind {
+  font-size: clamp(0.55rem, 3.8cqi, 0.72rem);
+}
+
+.card-display--large .card-display__category {
+  font-size: clamp(0.7rem, 4.6cqi, 0.9rem);
+}
+
+.card-display--large .card-display__category--secondary {
+  font-size: clamp(0.55rem, 3.8cqi, 0.75rem);
+}
+
+.card-display--large .card-display__element {
+  font-size: clamp(0.48rem, 3.4cqi, 0.65rem);
+}
+
+.card-display--large .card-display__bonus {
+  font-size: clamp(0.58rem, 3.6cqi, 0.78rem);
+}
+
+.card-display--large .card-display__rarity-name,
+.card-display--large .card-display__serial {
+  font-size: 0.7rem;
+}
+
+.card-display--large .card-display__combat-role {
+  font-size: 0.7rem;
+}
+
+.card-display--large.card-display--compact .card-display__name {
+  font-size: clamp(0.8rem, 7.4cqi, 1.25rem);
+}
+
+.card-display--large.card-display--compact .card-display__effects {
+  font-size: clamp(0.65rem, 4.2cqi, 0.82rem);
+}
+
+.card-display--large.card-display--compact .card-display__bonus {
+  font-size: 0.62rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

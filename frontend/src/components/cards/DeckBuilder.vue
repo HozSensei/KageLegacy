@@ -3,9 +3,13 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from './CardDisplay.vue';
 import CardFilters from './CardFilters.vue';
+import CardSizeControl from './CardSizeControl.vue';
+import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { cardMatchesArt } from '../../utils/cardBonusChips';
 
 defineOptions({ name: 'DeckBuilder' });
+
+const { cardSize } = useCardSizePreference();
 
 const props = defineProps({
   deck: { type: Object, default: null },
@@ -310,6 +314,7 @@ const sizeValid = computed(
           <span class="section-head__index">A</span>
           <h3 class="section-head__title">{{ t('cards.deckCardPool') }}</h3>
           <span class="section-head__rule" />
+          <CardSizeControl class="deck-builder__size" />
         </div>
         <CardFilters
           v-model:type-filter="typeFilter"
@@ -321,7 +326,11 @@ const sizeValid = computed(
           search-test-id="deck-search"
         />
         <p v-if="!filteredCollection.length" class="alert">{{ t('cards.emptyFilter') }}</p>
-        <div class="deck-builder__pool">
+        <div
+          class="deck-builder__pool"
+          :class="{ 'deck-builder__pool--large': cardSize === 'large' }"
+          :data-card-size="cardSize"
+        >
           <div
             v-for="entry in filteredCollection"
             :key="entry.collectionId"
@@ -334,6 +343,7 @@ const sizeValid = computed(
               :quantity="entry.quantity"
               :upgrade-level="entry.upgradeLevel"
               :selected="inDeckQty(entry.collectionId) > 0"
+              :size="cardSize"
               compact
               @select="addEntry(entry)"
             />
@@ -511,11 +521,23 @@ const sizeValid = computed(
   margin-top: var(--space-block);
 }
 
+.deck-builder__size {
+  align-self: center;
+  flex: none;
+}
+
 .deck-builder__pool {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
   gap: 1rem 0.85rem;
   margin-top: 1.1rem;
+}
+
+@media (min-width: 640px) {
+  .deck-builder__pool--large {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: 1.15rem 1rem;
+  }
 }
 
 .deck-builder__pool-item {
