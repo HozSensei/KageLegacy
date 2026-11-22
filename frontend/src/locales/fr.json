@@ -859,6 +859,7 @@
       "back": "Précédent",
       "skip": "Passer",
       "done": "Compris",
+      "dontShowAgain": "Ne plus montrer",
       "rulesLink": "Ouvrir la doc des effets (nouvel onglet)",
       "swatches": {
         "damage": "Rouge — dégâts infligés",
@@ -1304,6 +1305,7 @@
       "back": "Précédent",
       "skip": "Passer",
       "done": "Compris",
+      "dontShowAgain": "Ne plus montrer",
       "steps": {
         "purse": {
           "title": "1. Bourse engagée",

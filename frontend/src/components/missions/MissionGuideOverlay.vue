@@ -13,6 +13,7 @@ const emit = defineEmits(['dismiss']);
 
 const { t } = useI18n();
 const stepIndex = ref(0);
+const dontShowAgain = ref(true);
 const primaryBtn = ref(null);
 
 const stepId = computed(() => MISSION_GUIDE_STEPS[stepIndex.value] || MISSION_GUIDE_STEPS[0]);
@@ -21,9 +22,13 @@ const isLast = computed(() => stepIndex.value >= stepCount - 1);
 const title = computed(() => t(`combat.missionGuide.steps.${stepId.value}.title`));
 const body = computed(() => t(`combat.missionGuide.steps.${stepId.value}.body`));
 
+function finish() {
+  emit('dismiss', { dontShowAgain: dontShowAgain.value });
+}
+
 function goNext() {
   if (isLast.value) {
-    emit('dismiss');
+    finish();
     return;
   }
   stepIndex.value += 1;
@@ -36,9 +41,10 @@ function goBack() {
 function onKeydown(event) {
   if (!props.open) return;
   if (event.key === 'Escape') {
+    // Overlay non dismissible hors navigation / fin du guide.
     event.preventDefault();
-    emit('dismiss');
   } else if (event.key === 'ArrowRight' || event.key === 'Enter') {
+    if (event.target?.closest?.('input, label')) return;
     event.preventDefault();
     goNext();
   } else if (event.key === 'ArrowLeft') {
@@ -58,6 +64,7 @@ watch(
     setBodyScrollLocked(Boolean(value));
     if (!value) return;
     stepIndex.value = 0;
+    dontShowAgain.value = true;
     await nextTick();
     primaryBtn.value?.focus?.();
   },
@@ -80,7 +87,6 @@ onUnmounted(() => {
       aria-modal="true"
       aria-labelledby="mission-guide-title"
       data-testid="mission-guide-overlay"
-      @click.self="emit('dismiss')"
     >
       <div class="modal-panel mission-guide__panel">
         <div class="mission-guide__scroll">
@@ -95,9 +101,14 @@ onUnmounted(() => {
           <p class="mission-guide__step-body">{{ body }}</p>
         </div>
         <div class="mission-guide__actions">
-          <button type="button" class="btn-ghost" data-testid="mission-guide-skip" @click="emit('dismiss')">
-            {{ t('combat.missionGuide.skip') }}
-          </button>
+          <label class="mission-guide__persist">
+            <input
+              v-model="dontShowAgain"
+              type="checkbox"
+              data-testid="mission-guide-dont-show"
+            />
+            <span>{{ t('combat.missionGuide.dontShowAgain') }}</span>
+          </label>
           <div class="mission-guide__nav">
             <button
               type="button"
@@ -173,9 +184,28 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.85rem clamp(1rem, 3.5vw, 1.75rem) max(0.85rem, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--color-line);
+}
+
+.mission-guide__persist {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+.mission-guide__persist input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--color-vermilion, #c43c2c);
+  cursor: pointer;
 }
 
 .mission-guide__nav {
@@ -193,7 +223,7 @@ onUnmounted(() => {
 
 @media (max-width: 640px) {
   .mission-guide__actions {
-    flex-direction: column-reverse;
+    flex-direction: column;
     align-items: stretch;
   }
 

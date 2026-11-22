@@ -28,8 +28,8 @@ export function useMissionGuide({ autoOpen = true } = {}) {
     writeSeen();
   }
 
-  function dismiss() {
-    markSeen();
+  function dismiss({ dontShowAgain = true } = {}) {
+    if (dontShowAgain) markSeen();
     open.value = false;
   }
 

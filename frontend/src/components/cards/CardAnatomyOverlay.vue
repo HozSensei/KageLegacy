@@ -14,6 +14,7 @@ const emit = defineEmits(['dismiss']);
 
 const { t } = useI18n();
 const stepIndex = ref(0);
+const dontShowAgain = ref(true);
 const primaryBtn = ref(null);
 
 const stepId = computed(() => CARD_ANATOMY_STEPS[stepIndex.value] || CARD_ANATOMY_STEPS[0]);
@@ -23,9 +24,13 @@ const isLast = computed(() => stepIndex.value >= stepCount - 1);
 const title = computed(() => t(`cards.anatomyGuide.steps.${stepId.value}.title`));
 const body = computed(() => t(`cards.anatomyGuide.steps.${stepId.value}.body`));
 
+function finish() {
+  emit('dismiss', { dontShowAgain: dontShowAgain.value });
+}
+
 function goNext() {
   if (isLast.value) {
-    emit('dismiss');
+    finish();
     return;
   }
   stepIndex.value += 1;
@@ -38,10 +43,10 @@ function goBack() {
 function onKeydown(event) {
   if (!props.open) return;
   if (event.key === 'Escape') {
+    // Overlay non dismissible hors navigation / fin du guide.
     event.preventDefault();
-    emit('dismiss');
   } else if (event.key === 'ArrowRight' || event.key === 'Enter') {
-    if (event.target?.closest?.('a')) return;
+    if (event.target?.closest?.('a, input, label')) return;
     event.preventDefault();
     goNext();
   } else if (event.key === 'ArrowLeft') {
@@ -61,6 +66,7 @@ watch(
     setBodyScrollLocked(Boolean(value));
     if (!value) return;
     stepIndex.value = 0;
+    dontShowAgain.value = true;
     await nextTick();
     primaryBtn.value?.focus?.();
   },
@@ -86,7 +92,6 @@ onUnmounted(() => {
       aria-modal="true"
       :aria-labelledby="'card-anatomy-title'"
       data-testid="card-anatomy-overlay"
-      @click.self="emit('dismiss')"
     >
       <div class="modal-panel anatomy-overlay__panel">
         <div class="anatomy-overlay__scroll">
@@ -148,9 +153,14 @@ onUnmounted(() => {
         </div>
 
         <div class="anatomy-overlay__actions">
-          <button type="button" class="btn-ghost" data-testid="card-anatomy-skip" @click="emit('dismiss')">
-            {{ t('cards.anatomyGuide.skip') }}
-          </button>
+          <label class="anatomy-overlay__persist">
+            <input
+              v-model="dontShowAgain"
+              type="checkbox"
+              data-testid="card-anatomy-dont-show"
+            />
+            <span>{{ t('cards.anatomyGuide.dontShowAgain') }}</span>
+          </label>
           <div class="anatomy-overlay__nav">
             <button
               type="button"
@@ -221,9 +231,12 @@ onUnmounted(() => {
 }
 
 .anatomy-overlay__card {
+  /* Marge pour les gemmes qui débordent (haut / droite). */
   width: min(100%, 16rem);
   margin-inline: auto;
+  padding: 0.85rem 0.9rem 0.35rem 0.35rem;
   pointer-events: none;
+  overflow: visible;
 }
 
 .anatomy-overlay__step-title {
@@ -293,12 +306,31 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
   gap: 0.75rem;
   padding:
     0.85rem clamp(1rem, 3.5vw, 2rem)
     max(0.85rem, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--color-line);
   background: var(--color-bg-card);
+}
+
+.anatomy-overlay__persist {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+.anatomy-overlay__persist input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--color-vermilion, #c43c2c);
+  cursor: pointer;
 }
 
 .anatomy-overlay__nav {
@@ -332,7 +364,7 @@ onUnmounted(() => {
   }
 
   .anatomy-overlay__actions {
-    flex-direction: column-reverse;
+    flex-direction: column;
     align-items: stretch;
   }
 
@@ -343,8 +375,7 @@ onUnmounted(() => {
     margin-left: 0;
   }
 
-  .anatomy-overlay__nav .btn-primary,
-  .anatomy-overlay__actions > .btn-ghost {
+  .anatomy-overlay__nav .btn-primary {
     width: 100%;
   }
 }

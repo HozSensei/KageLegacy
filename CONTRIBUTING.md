@@ -288,23 +288,12 @@ Après un échec partiel, recréer la base vide avant de relancer la commande. N
 **Tests unitaires** : Services isolés
 
 ```bash
-npm run test:unit --prefix backend
-```
-
-**Tests E2E** : Parcours complets
-
-```bash
-npm run test:e2e
+npm run test:unit
 ```
 
 ### Frontend
 
-**Tests Cypress** :
-
-```bash
-npm run test:e2e:open   # Mode interactif
-npm run test:e2e        # Headless
-```
+Lint et build via `npm run lint --prefix frontend` / `npm run build --prefix frontend`. Pas de suite Cypress pour l’instant (gameplay trop instable).
 
 ---
 

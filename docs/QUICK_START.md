@@ -64,16 +64,9 @@ npm run audit:card-balance --prefix backend
 npm run test:held-effects --prefix backend
 ```
 
-## Tests E2E
+## Base de test dédiée
 
-Les tests E2E exigent une base dédiée et les garde-fous décrits dans `backend/scripts/e2ePreflight.js`.
-
-```sh
-npm run e2e:prepare
-npm run test:e2e
-```
-
-`e2e:prepare` vérifie d'abord l'environnement, applique le schéma, seed les cartes/talents et prépare les données TCG dédiées. Ne pas exécuter cette commande contre une base de production.
+Certains tests backend (personnage, talents, Battle Pass, Stripe) s’appuient sur `npm run e2e:prepare` : base dédiée `*_e2e`, schéma, seeds cartes/talents/Battle Pass. Les garde-fous sont dans `backend/scripts/e2ePreflight.js`. Ne pas exécuter cette commande contre une base de production. Il n’y a plus de suite Cypress : le gameplay évolue trop vite pour la maintenir.
 
 ## Développement séparé
 
