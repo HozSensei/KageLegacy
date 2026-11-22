@@ -79,14 +79,13 @@ Limites :
 - un résultat cible dépassé signale un écart mais ne donne pas seul la cause ;
 - la sim combat isolé reste en chakra 3 / main non persistante (référence relative), distincte du live mission.
 
-## E2E
+## Base dédiée (anciennement E2E)
 
 ```sh
 npm run e2e:prepare
-npm run test:e2e
 ```
 
-Les E2E exigent une base dédiée. Le preflight empêche une exécution accidentelle hors garde-fous. Voir [Démarrage local](QUICK_START.md).
+Prépare une base `*_e2e` pour certains tests backend. Le preflight empêche une exécution accidentelle hors garde-fous. Voir [Démarrage local](QUICK_START.md). La suite Cypress a été retirée : trop de churn gameplay pour la justifier.
 
 ## Validation recommandée après un changement
 
@@ -102,8 +101,7 @@ Les E2E exigent une base dédiée. Le preflight empêche une exécution accident
 
 1. tests du moteur partagé ;
 2. tests matchmaking ;
-3. vérification du transport WebSocket ;
-4. test E2E à deux clients si l'infrastructure le permet.
+3. vérification du transport WebSocket.
 
 ### Schéma ou seed
 

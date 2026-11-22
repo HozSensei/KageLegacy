@@ -35,6 +35,6 @@ Commandes usuelles (voir les manifestes `package.json` pour la liste complète) 
 - `npm run db:up` / `npm run db:down` : démarrer/arrêter MySQL.
 - `npm run db:migrate` : installer le schéma initial depuis `backend/schema.sql` (base vide requise ; aucune mise à niveau d'une base existante).
 - `npm run db:seed` : initialiser les cartes, talents et données Battle Pass.
-- `npm run test:combat-engine`, `npm run test:combat-balance`, `npm run test:e2e` : tests ciblés. Les tests E2E exigent une base dédiée : voir [Démarrage rapide](docs/QUICK_START.md).
+- `npm run test:combat-engine`, `npm run test:combat-balance` : tests ciblés backend. Voir [Démarrage rapide](docs/QUICK_START.md) et [Tests](docs/TESTING.md).
 
 Ne jamais committer de secrets. Utiliser les fichiers `.env*.example` comme modèles et conserver les valeurs réelles dans des fichiers locaux ignorés.

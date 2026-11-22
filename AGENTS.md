@@ -30,11 +30,11 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 
 ### Configuration et documentation
 
-- Racine : `package.json` (commandes agrégées), `.env.example` et `.env.prod.example` (gabarits d'environnement), `docker-compose*.yml`, `Dockerfile`, `cypress.config.mjs`.
+- Racine : `package.json` (commandes agrégées), `.env.example` et `.env.prod.example` (gabarits d'environnement), `docker-compose*.yml`, `Dockerfile`.
 - `backend/package.json`, `frontend/package.json` : scripts et dépendances propres à chaque application.
 - `.github/workflows/` : CI et publication d'image.
 - `docs/` : documentation fonctionnelle et technique; `specs/` : spécifications et jalons de conception (pas nécessairement état livré).
-- `cypress/` : tests end-to-end; `shared/` : ressources partagées; `docker/` : ressources Docker; `scripts/` : utilitaires racine.
+- `shared/` : ressources partagées; `docker/` : ressources Docker; `scripts/` : utilitaires racine.
 
 ## Configuration importante
 
@@ -51,4 +51,4 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 - `npm run lint` : lint backend puis frontend.
 - `npm run db:up`, `npm run db:migrate`, `npm run db:seed` : installer le schéma initial sur une base vide puis initialiser les données TCG. `db:seed` utilise le catalogue TCG (cartes, talents et Battle Pass).
 - `npm run test:combat-engine`, `npm run test:combat-balance`, `npm run test:card-system --prefix backend` : tests ciblés disponibles (voir `backend/package.json`).
-- `npm run e2e:prepare` puis `npm run test:e2e` : tests Cypress dans une base vide dédiée, sous réserve des garde-fous et variables décrits dans `docs/QUICK_START.md`.
+- `npm run e2e:prepare` : prépare une base dédiée `*_e2e` pour certains tests backend (pas de suite Cypress ; le gameplay bouge trop vite pour la maintenir).
