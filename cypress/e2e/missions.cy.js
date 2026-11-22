@@ -4,10 +4,6 @@
 describe('Missions combat V2', () => {
   beforeEach(() => {
     cy.loginDemo();
-    // Guide première visite — ne bloque pas les interactions
-    cy.window().then((win) => {
-      win.localStorage.setItem('kage.missionGuide.v1', '1');
-    });
   });
 
   it('affiche la liste, le sélecteur de bourse, et démarre ou reprend un run', function () {
