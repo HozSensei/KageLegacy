@@ -72,9 +72,6 @@ defineProps({
   align-items: center;
   min-height: 4.5rem;
   padding: 0.5rem 1rem 0.5rem 0;
-  transition:
-    background var(--dur-base) ease,
-    transform var(--dur-base) var(--ease-out-quint);
 }
 
 .run-node__marker {
@@ -82,17 +79,26 @@ defineProps({
   display: grid;
   align-self: stretch;
   place-items: center;
+  z-index: 1;
 }
 
+/*
+ * Rail vertical par puce, chevauché entre voisins pour une ligne continue.
+ * Couleur assez visible (pas --color-line trop pâle) pour éviter les « coupures »
+ * sur mobile / entre franchi et route active.
+ */
 .run-node__marker::before {
   content: '';
   position: absolute;
+  z-index: 0;
+  /* Chevauche le padding du nœud (±0.5rem) pour coller au rail voisin. */
   top: -0.5rem;
   bottom: -0.5rem;
   left: 50%;
-  width: 4px;
-  background: var(--color-line);
+  width: 3px;
+  background: color-mix(in srgb, var(--color-ink-faint) 70%, transparent);
   transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .run-node--first .run-node__marker::before {
@@ -107,8 +113,24 @@ defineProps({
   background: var(--color-leaf-fill);
 }
 
+/* Continuité du rail franchi jusqu’à la puce active. */
+.run-node--available .run-node__marker::before {
+  background: var(--color-leaf-fill);
+}
+
+.run-node--available:not(.run-node--last):not(.run-node--first) .run-node__marker::before {
+  background: linear-gradient(
+    to bottom,
+    var(--color-leaf-fill) 0,
+    var(--color-leaf-fill) 50%,
+    color-mix(in srgb, var(--color-ink-faint) 70%, transparent) 50%,
+    color-mix(in srgb, var(--color-ink-faint) 70%, transparent) 100%
+  );
+}
+
 .run-node__index {
   position: relative;
+  z-index: 1;
   display: grid;
   width: 2.25rem;
   height: 2.25rem;
@@ -150,16 +172,16 @@ defineProps({
   clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%);
 }
 
-.run-node--available {
-  background: var(--color-bg-card);
-  transform: translateX(6px);
-}
-
+/* Actif = puce pleine teinte uniquement (pas de fond de ligne, pas de halo). */
 .run-node--available .run-node__index {
   background: var(--tone-fill);
   box-shadow: none;
   color: var(--tone-on);
-  animation: pulse-ring 1.8s ease-out infinite;
+}
+
+.run-node--available .run-node__index--diamond,
+.run-node--available .run-node__index--lozenge {
+  transform: rotate(45deg) scale(1.08);
 }
 
 .run-node--cleared .run-node__index {
@@ -225,6 +247,12 @@ defineProps({
 @media (max-width: 479px) {
   .run-node {
     grid-template-columns: 3.25rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  /* Le marqueur (et son rail) couvre toute la hauteur du nœud, y compris le statut. */
+  .run-node__marker {
+    grid-row: 1 / span 2;
   }
 
   .run-node__status {

@@ -163,7 +163,7 @@ function statusLabel(node) {
         :shape="nodeShape(branchNode)"
         :tone="nodeTone(branchNode)"
         :is-first="linearBeforeBranch.length === 0"
-        :is-last="!forkStartId && !showTabs"
+        :is-last="true"
       />
     </ol>
 
@@ -241,6 +241,7 @@ function statusLabel(node) {
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow: visible;
 }
 
 .path-tree__tabs {
