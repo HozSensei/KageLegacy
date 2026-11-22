@@ -455,6 +455,31 @@ async function pickCardIdByRarity(rarity, rng = Math.random) {
   return rows[Math.floor(rng() * rows.length)].id;
 }
 
+/** Entrées compatibles BoosterOpening (carte chance + parchemins scellés). */
+function buildLootCards(chanceCard, shopCards = []) {
+  const out = [];
+  if (chanceCard?.card) {
+    out.push({
+      collectionId: chanceCard.collectionId ?? null,
+      isNew: Boolean(chanceCard.isNew),
+      rarity: chanceCard.card.rarity || chanceCard.rarity || 'common',
+      card: chanceCard.card,
+      source: 'mission_reward',
+    });
+  }
+  for (const entry of shopCards) {
+    if (!entry?.card) continue;
+    out.push({
+      collectionId: entry.collectionId ?? null,
+      isNew: Boolean(entry.isNew),
+      rarity: entry.card.rarity || entry.rarity || 'common',
+      card: entry.card,
+      source: entry.source || 'sealed_scroll',
+    });
+  }
+  return out;
+}
+
 function pickMissionPublic(mission) {
   if (!mission) return null;
   return {
@@ -848,7 +873,7 @@ async function completeRunVictory(row) {
       purseReturn,
     });
 
-    // Grant sealed cards from inventory
+    // Grant sealed cards from inventory (révélés à l'UI de fin de run)
     const pendingCards = collectPendingCardsFromInventory(player);
     const grantedCards = [];
     for (const entry of pendingCards) {
@@ -859,10 +884,14 @@ async function completeRunVictory(row) {
           quantity: 1,
           source: 'mission_run_shop',
         });
+        if (!added?.card) continue;
         grantedCards.push({
           cardId,
-          rarity: entry.rarity,
-          collectionId: added?.id || null,
+          rarity: added.card.rarity || entry.rarity || 'common',
+          collectionId: added.collectionId ?? null,
+          isNew: Number(added.quantity) === 1,
+          card: added.card,
+          source: 'sealed_scroll',
         });
       } catch {
         /* skip failed grant */
@@ -870,6 +899,7 @@ async function completeRunVictory(row) {
     }
     rewards.purseReturned = purseReturn;
     rewards.shopCards = grantedCards;
+    rewards.lootCards = buildLootCards(rewards.card, grantedCards);
     rewards.branchXpMult = branchXpMult;
     row.rewards_json = rewards;
 
@@ -1018,4 +1048,5 @@ export const __test = {
   placeInventoryItem,
   useInventorySlot,
   getPurse,
+  buildLootCards,
 };

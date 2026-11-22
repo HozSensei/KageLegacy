@@ -161,6 +161,8 @@ async function applyRewardConfig(userId, cfg, { rng = Math.random, source = 'mis
             nameFr: entry?.card?.nameFr ?? null,
             nameEn: entry?.card?.nameEn ?? null,
             rarity: entry?.card?.rarity ?? null,
+            isNew: Number(entry?.quantity) === 1,
+            card: entry?.card ?? null,
           };
         }
       }

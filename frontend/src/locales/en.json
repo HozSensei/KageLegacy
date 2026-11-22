@@ -1357,6 +1357,12 @@
     "rewardError": "Rewards unavailable",
     "rewardPending": "Calculating rewards…",
     "rewardRunBonus": "Run bonus ×{n}",
+    "revealLoot": "Reveal loot",
+    "revealLootHint": "{n} sealed card(s) ready to reveal",
+    "lootRevealKicker": "Mission loot",
+    "lootRevealTitle": "Sealed scrolls",
+    "lootRevealLead": "Open your finds one by one — reward cards and scrolls bought during the run.",
+    "lootRevealDone": "Loot revealed — your cards joined the collection.",
     "quickFight": "Quick duel",
     "quickFightLead": "Fight an enemy directly, no run (immediate rewards if mission-linked).",
     "persistentHand": {

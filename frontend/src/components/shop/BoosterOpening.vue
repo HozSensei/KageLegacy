@@ -18,6 +18,10 @@ const props = defineProps({
   showCollectionStatus: { type: Boolean, default: true },
   canRepurchase: { type: Boolean, default: false },
   repurchasing: { type: Boolean, default: false },
+  /** Libellé du bouton de clôture (sinon shop.closeResults). */
+  doneLabel: { type: String, default: null },
+  /** Texte de statut en phase done (sinon shop.revealDone). */
+  doneStatus: { type: String, default: null },
 });
 
 const emit = defineEmits(['done', 'repurchase']);
@@ -62,14 +66,14 @@ const statusText = computed(() => {
       name: cardName(entry),
     });
   }
-  if (phase.value === 'done') return t('shop.revealDone');
+  if (phase.value === 'done') return props.doneStatus || t('shop.revealDone');
   return '';
 });
 
 const actionLabel = computed(() => {
   if (phase.value === 'sealed') return t('shop.tearAction');
   if (phase.value === 'hidden') return t('shop.revealCard');
-  if (phase.value === 'done') return t('shop.closeResults');
+  if (phase.value === 'done') return props.doneLabel || t('shop.closeResults');
   return t('shop.revealCard');
 });
 
