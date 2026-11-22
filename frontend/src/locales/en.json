@@ -851,6 +851,39 @@
     "collectionKicker": "Catalogue",
     "collectionTitle": "Collection",
     "collectionLead": "Owned scrolls and holes in the catalogue.",
+    "anatomyGuide": {
+      "kicker": "Getting started",
+      "title": "How to read a card",
+      "progress": "Step {current} / {total}",
+      "next": "Next",
+      "back": "Back",
+      "skip": "Skip",
+      "done": "Got it",
+      "rulesLink": "Open the effects docs (new tab)",
+      "swatches": {
+        "damage": "Red — damage dealt",
+        "block": "Amber — armor gained",
+        "heal": "Green — healing received"
+      },
+      "steps": {
+        "chakra": {
+          "title": "1. Chakra cost",
+          "body": "The cyan gem at the top right is how much Chakra this card costs to play. Without enough Chakra, you cannot play it."
+        },
+        "figures": {
+          "title": "2. Damage, armor, and healing",
+          "body": "Below the cost, the colored gems show the card’s main impact. A card only shows the values it actually has."
+        },
+        "effects": {
+          "title": "3. Effect text",
+          "body": "Under the name, each line is an active effect: draw, statuses, “After [art]” for chains, cost reduction, and more. The exact values are always the ones written here."
+        },
+        "identity": {
+          "title": "4. Art, element, and rarity",
+          "body": "The banner shows the art path (Taijutsu, Ninjutsu, Genjutsu, Medicine). The element can grant type advantage. The diamonds at the bottom mark rarity (common → mythic)."
+        }
+      }
+    },
     "deckKicker": "Building",
     "deckBuilderTitle": "Deck builder",
     "deckBuilderLead": "Build a 20–30 card deck (max 1 clan, max 3 legendary/mythic). Passive bonuses from the active deck feed your stats.",

@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
+import CardAnatomyOverlay from '../components/cards/CardAnatomyOverlay.vue';
 import DeckBuilder from '../components/cards/DeckBuilder.vue';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import bridgeImage from '../assets/illustrations/stone-bridge.webp';
+import { useCardAnatomyGuide } from '../composables/useCardAnatomyGuide.js';
 import { useCollectionStore } from '../stores/collection';
 import { useDecksStore } from '../stores/decks';
 import { cardActionError } from '../utils/cardActionErrors.js';
@@ -15,6 +17,7 @@ defineOptions({ name: 'DeckBuilderView' });
 const { t, locale } = useI18n();
 const collection = useCollectionStore();
 const decks = useDecksStore();
+const { open: anatomyOpen, dismiss: dismissAnatomy } = useCardAnatomyGuide();
 const newName = ref('');
 const loadError = ref(null);
 const message = ref(null);
@@ -103,6 +106,7 @@ function onActivate(deckId) {
 
 <template>
   <div class="page-shell" data-testid="deck-builder-page">
+    <CardAnatomyOverlay :open="anatomyOpen" @dismiss="dismissAnatomy" />
     <PageHeader
       tone="sky"
       :kicker="t('cards.deckKicker')"

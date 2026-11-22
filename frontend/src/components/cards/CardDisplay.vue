@@ -51,6 +51,16 @@ const props = defineProps({
   description: { type: String, default: null },
   /** Art de la carte précédente du tour — active le highlight d’enchaînement. */
   previousCardStatType: { type: String, default: null },
+  /**
+   * Zone mise en avant pour le guide d’anatomie :
+   * `chakra` | `figures` | `effects` | `identity` | null.
+   */
+  highlightRegion: {
+    type: String,
+    default: null,
+    validator: v =>
+      v == null || ['chakra', 'figures', 'effects', 'identity'].includes(v),
+  },
 });
 
 const emit = defineEmits(['select']);
@@ -178,6 +188,8 @@ watch(
         'card-display--no-art': !artUrl,
         'card-display--flipped': isFlipped,
         'card-display--flip': enableFlip,
+        'card-display--guide': Boolean(highlightRegion),
+        [`card-display--guide-${highlightRegion}`]: Boolean(highlightRegion),
       },
     ]"
     :data-tone="typeVisual.tone"
@@ -229,7 +241,11 @@ watch(
           </span>
         </div>
 
-        <div class="card-display__art-banners" data-testid="card-scale-hint">
+        <div
+          class="card-display__art-banners"
+          :class="{ 'card-display__guide-hot': highlightRegion === 'identity' }"
+          data-testid="card-scale-hint"
+        >
           <div v-if="quantity != null || upgradeLevel > 0" class="card-display__top-left">
             <span
               v-if="quantity != null"
@@ -276,7 +292,12 @@ watch(
         </div>
 
         <div class="card-display__figures">
-          <div class="card-display__chakra" :title="t('cards.costLabel')" data-testid="card-cost">
+          <div
+            class="card-display__chakra"
+            :class="{ 'card-display__guide-hot': highlightRegion === 'chakra' }"
+            :title="t('cards.costLabel')"
+            data-testid="card-cost"
+          >
             <span class="card-display__chakra-gem" aria-hidden="true" />
             <span class="card-display__chakra-number">{{ cost }}</span>
           </div>
@@ -284,7 +305,10 @@ watch(
             v-for="figure in effectParts.figures"
             :key="figure.key"
             class="card-display__figure"
-            :class="`card-display__figure--${figure.key}`"
+            :class="[
+              `card-display__figure--${figure.key}`,
+              { 'card-display__guide-hot': highlightRegion === 'figures' },
+            ]"
             :title="`${t(`cards.${figure.key}`, { n: stats ? figure.effective : figure.base })}${figure.scaled && stats ? ` · ${t('cards.baseValue', { n: figure.base })}` : ''}`"
           >
             <span class="card-display__chakra-gem" aria-hidden="true" />
@@ -296,7 +320,10 @@ watch(
 
         <section class="card-display__info">
           <div class="card-display__info-columns">
-            <div class="card-display__description">
+            <div
+              class="card-display__description"
+              :class="{ 'card-display__guide-hot': highlightRegion === 'effects' }"
+            >
               <h3 class="card-display__name">{{ name }}</h3>
               <div class="card-display__rule" aria-hidden="true" />
               <ul
@@ -336,7 +363,10 @@ watch(
             </div>
           </div>
 
-          <footer class="card-display__footer">
+          <footer
+            class="card-display__footer"
+            :class="{ 'card-display__guide-hot': highlightRegion === 'identity' }"
+          >
             <span
               v-if="catalogueNumber != null || !combatRoleLabel"
               class="card-display__serial"
@@ -1340,11 +1370,69 @@ watch(
   font-size: 0.62rem;
 }
 
+/* Guide d’anatomie — voile + pulse de la zone ciblée (évite opacity parent). */
+.card-display--guide .card-display__face--front::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 18;
+  pointer-events: none;
+  background: rgb(7 11 19 / 0.52);
+  border-radius: inherit;
+}
+
+/* Remonter le sous-arbre au-dessus du voile (z-index enfant seul ne suffit pas). */
+.card-display--guide-chakra .card-display__figures,
+.card-display--guide-figures .card-display__figures,
+.card-display--guide-effects .card-display__info,
+.card-display--guide-identity .card-display__art-banners,
+.card-display--guide-identity .card-display__info {
+  position: relative;
+  z-index: 20;
+}
+
+.card-display--guide .card-display__guide-hot {
+  position: relative;
+  z-index: 21;
+  filter: drop-shadow(0 0 10px #f5d78ecc);
+  animation: card-guide-pulse 1.4s ease-in-out infinite;
+}
+
+/* Pendant l’étape gemmes, laisser le coût sous le voile visuel. */
+.card-display--guide-figures .card-display__chakra:not(.card-display__guide-hot) {
+  opacity: 0.35;
+}
+
+.card-display--guide-chakra .card-display__figure:not(.card-display__guide-hot) {
+  opacity: 0.35;
+}
+
+.card-display--guide-effects .card-display__bonuses,
+.card-display--guide-effects .card-display__footer,
+.card-display--guide-identity .card-display__description,
+.card-display--guide-identity .card-display__bonuses {
+  opacity: 0.35;
+}
+
+@keyframes card-guide-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px #f5d78e99);
+  }
+  50% {
+    filter: drop-shadow(0 0 14px #f5d78e);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-display,
   .card-display--flip .card-display__flipper,
   .card-display__sheen {
     transition: none !important;
+  }
+
+  .card-display--guide .card-display__guide-hot {
+    animation: none;
   }
 }
 </style>
