@@ -215,6 +215,10 @@ function sanitizePlayer(player) {
           maxHp: player.ally.maxHp,
           attack: player.ally.attack,
           taunt: Boolean(player.ally.taunt),
+          regen: Math.max(0, Number(player.ally.regen) || 0),
+          evadeChance: Math.max(0, Number(player.ally.evadeChance) || 0),
+          burn: player.ally.burn || null,
+          strike: Boolean(player.ally.strike),
         }
       : null,
   };

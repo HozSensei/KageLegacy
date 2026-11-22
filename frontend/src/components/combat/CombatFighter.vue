@@ -96,6 +96,15 @@ const chain = computed(() => {
         <strong>{{ fighter.ally.hp }}</strong>/{{ fighter.ally.maxHp }} {{ t('combat.hpLabel') }} ·
         {{ t('combat.allyAttackStat', { n: fighter.ally.attack }) }}
         <span v-if="fighter.ally.taunt">· {{ t('combat.allyTaunt') }}</span>
+        <span v-if="fighter.ally.regen">· {{ t('combat.allyRegen', { n: fighter.ally.regen }) }}</span>
+        <span v-if="fighter.ally.evadeChance"
+          >·
+          {{
+            t('combat.allyEvade', { pct: Math.round(Number(fighter.ally.evadeChance) * 100) })
+          }}</span
+        >
+        <span v-if="fighter.ally.burn">· {{ t('combat.allyBurn') }}</span>
+        <span v-if="fighter.ally.strike">· {{ t('combat.allyStrike') }}</span>
         <span v-if="fighter.ally.remainingTurns != null">
           · {{ t('combat.allyTurns', { n: fighter.ally.remainingTurns }) }}
         </span>

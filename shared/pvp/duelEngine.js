@@ -22,9 +22,18 @@ import {
 } from '../../backend/src/services/deckCombat/statuses.js';
 import { drawCards, moveCardFromHand } from '../../backend/src/services/deckCombat/deckRuntime.js';
 import {
+  absorbDamageWithTauntAlly,
   applyDamageThroughBlock,
   getStatusValue,
 } from '../../backend/src/services/deckCombat/formulas.js';
+import {
+  allyAttackDamage,
+  allyEvadeChance,
+  resolveSummonTraits,
+  SUMMON_DEFAULT_BURN,
+} from '../../backend/src/services/deckCombat/cardEffects.js';
+import { applyStatus } from '../../backend/src/services/deckCombat/statuses.js';
+import { canApplyStatus } from '../../backend/src/services/deckCombat/bossPhases.js';
 import {
   applyTalentAfterCardPlay,
   applyTalentAfterDamageTaken,
@@ -291,9 +300,12 @@ function playCard(state, seat, instanceId, rng) {
     (Number(normalizedCard.damage) || 0) > 0 ||
     (normalizedCard.effects || []).some(effect => effect.type === 'multi_strike');
   const incomingMods = applyTalentIncomingAttackMods(0, opponent, fighter, defenderTalentCodes);
-  const evadeChance = getStatusValue(opponent.statuses, 'evade') + incomingMods.evadeBonus;
-  const heldEvade = heldEffectMods(opponent).evadeChance;
-  const evaded = attackIntent && evadeChance + heldEvade > 0 && rng() < evadeChance + heldEvade;
+  const evadeChance =
+    getStatusValue(opponent.statuses, 'evade') +
+    incomingMods.evadeBonus +
+    heldEffectMods(opponent).evadeChance +
+    allyEvadeChance(opponent);
+  const evaded = attackIntent && evadeChance > 0 && rng() < evadeChance;
   const deckElementCount = countDeckElements([
     ...(fighter.hand || []),
     ...(fighter.drawPile || []),
@@ -624,10 +636,7 @@ function checkVictory(state) {
 function normalizeSummon(card) {
   if (card?.cardType !== 'summon' && !card?.summon) return null;
   const def = card.summon || {};
-  const abilities = Array.isArray(def.abilities)
-    ? def.abilities.map(ability => String(ability).toLowerCase())
-    : [];
-  const taunt = Boolean(def.taunt ?? abilities.includes('taunt'));
+  const { taunt, regen, evadeChance, burn, strike } = resolveSummonTraits(def);
   const hp = Math.max(1, Number(def.hp) || 20);
   const duration = Math.max(1, Math.floor(Number(def.duration) || (taunt ? 2 : 3)));
   return {
@@ -637,27 +646,26 @@ function normalizeSummon(card) {
     maxHp: hp,
     attack: Math.max(0, Number(def.attack) || 0),
     taunt,
+    regen,
+    evadeChance,
+    burn,
+    strike: Boolean(strike),
     remainingTurns: duration,
   };
 }
 
 function applyIncomingDamage(target, damage, sourceSeat) {
   let fighter = { ...target };
-  let remaining = Math.max(0, Number(damage) || 0);
   const logs = [];
 
-  if (fighter.ally?.taunt && fighter.ally.hp > 0 && remaining > 0) {
-    const absorbed = Math.min(fighter.ally.hp, remaining);
-    const hp = fighter.ally.hp - absorbed;
-    remaining -= absorbed;
-    fighter.ally = hp > 0 ? { ...fighter.ally, hp } : null;
+  const tauntAbsorb = absorbDamageWithTauntAlly(fighter, damage);
+  fighter = tauntAbsorb.entity;
+  let remaining = tauntAbsorb.remaining;
+  for (const log of tauntAbsorb.logs) {
     logs.push({
-      type: 'ally_damage',
+      ...log,
       seat: fighter.seat,
       source: sourceSeat,
-      amount: absorbed,
-      allyHp: hp,
-      fallen: hp <= 0,
     });
   }
 
@@ -669,27 +677,84 @@ function applyIncomingDamage(target, damage, sourceSeat) {
   return { fighter, logs };
 }
 
-function resolveAllyAttack(attacker, target, seat) {
-  const ally = attacker.ally;
-  if (!ally || ally.hp <= 0 || ally.attack <= 0) {
-    return { attacker, target, logs: [] };
-  }
-  const result = applyIncomingDamage(target, ally.attack, seat);
+function applyAllyRegen(attacker, seat) {
+  const ally = attacker?.ally;
+  if (!ally || ally.hp <= 0) return { attacker, logs: [] };
+  const regen = Math.max(0, Math.floor(Number(ally.regen) || 0));
+  if (regen <= 0) return { attacker, logs: [] };
+
+  const maxHp = Math.max(0, Number(attacker.maxHp) || 0);
+  const before = Number(attacker.hp) || 0;
+  if (maxHp <= 0 || before <= 0) return { attacker, logs: [] };
+  const hp = Math.min(maxHp, before + regen);
+  const healed = hp - before;
+  if (healed <= 0) return { attacker, logs: [] };
+
   return {
-    attacker,
-    target: result.fighter,
+    attacker: { ...attacker, hp },
     logs: [
       {
-        type: 'ally_attack',
+        type: 'ally_regen',
         seat,
-        name: ally.nameFr,
+        name: ally.nameFr || ally.nameEn,
         nameFr: ally.nameFr,
         nameEn: ally.nameEn,
-        amount: ally.attack,
+        value: healed,
+        playerHp: hp,
       },
-      ...result.logs,
     ],
   };
+}
+
+function resolveAllyAttack(attacker, target, seat) {
+  const regenerated = applyAllyRegen(attacker, seat);
+  let nextAttacker = regenerated.attacker;
+  let nextTarget = target;
+  const logs = [...regenerated.logs];
+  const ally = nextAttacker.ally;
+  const atk = allyAttackDamage(ally);
+  if (!ally || ally.hp <= 0 || atk <= 0) {
+    return { attacker: nextAttacker, target: nextTarget, logs };
+  }
+  const result = applyIncomingDamage(nextTarget, atk, seat);
+  nextTarget = result.fighter;
+  logs.push({
+    type: 'ally_attack',
+    seat,
+    name: ally.nameFr,
+    nameFr: ally.nameFr,
+    nameEn: ally.nameEn,
+    amount: atk,
+    strike: Boolean(ally.strike),
+  });
+  logs.push(...result.logs);
+
+  const burn = ally.burn;
+  if (burn && (Number(nextTarget.hp) || 0) > 0) {
+    const payload = {
+      key: 'burn',
+      value: Math.max(1, Math.floor(Number(burn.value) || SUMMON_DEFAULT_BURN.value)),
+      duration: Math.max(1, Math.floor(Number(burn.duration) || SUMMON_DEFAULT_BURN.duration)),
+    };
+    if (canApplyStatus(nextTarget, payload.key)) {
+      nextTarget = {
+        ...nextTarget,
+        statuses: applyStatus(nextTarget.statuses, payload),
+      };
+      logs.push({
+        type: 'apply_status',
+        seat,
+        target: 'enemy',
+        targetSeat: nextTarget.seat,
+        status: payload.key,
+        value: payload.value,
+        duration: payload.duration,
+        source: 'ally',
+      });
+    }
+  }
+
+  return { attacker: nextAttacker, target: nextTarget, logs };
 }
 
 function dominantCombatArt(stats = {}) {

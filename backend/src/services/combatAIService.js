@@ -3,6 +3,7 @@
  */
 import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
 import {
+  absorbDamageWithTauntAlly,
   applyDamageThroughBlock,
   getStatusValue,
   hasStatus,
@@ -13,6 +14,7 @@ import { applyTalentIncomingAttackMods } from './deckCombat/talentEffects.js';
 import { TALENT_EFFECT_MVP } from './deckCombat/constants.js';
 import { canApplyStatus, hitEnemy, maybeAdvanceBossPhase } from './deckCombat/bossPhases.js';
 import { getNextIntent, scaleIntent } from './deckCombat/enemyIntent.js';
+import { allyEvadeChance } from './deckCombat/cardEffects.js';
 import { heldEffectMods } from './deckCombat/heldEffects.js';
 
 export { getNextIntent, scaleIntent };
@@ -157,10 +159,12 @@ function resolveEnemyMinionAttack(enemy, player, rng, talentCodes) {
 
   const evadeChance = Math.min(
     1,
-    getStatusValue(nextPlayer.statuses, 'evade') + heldEffectMods(nextPlayer).evadeChance,
+    getStatusValue(nextPlayer.statuses, 'evade') +
+      heldEffectMods(nextPlayer).evadeChance +
+      allyEvadeChance(nextPlayer),
   );
   const evaded = evadeChance > 0 && rng() < evadeChance;
-  if (evadeChance > 0) {
+  if (getStatusValue(nextPlayer.statuses, 'evade') > 0) {
     nextPlayer.statuses = (nextPlayer.statuses || []).filter(s => s.key !== 'evade');
   }
   if (evaded) {
@@ -168,19 +172,37 @@ function resolveEnemyMinionAttack(enemy, player, rng, talentCodes) {
     return { enemy, player: nextPlayer, logs, damageTakenByPlayer: 0 };
   }
 
-  const result = applyDamageThroughBlock(nextPlayer, damage);
-  nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
-  logs.push({
-    type: 'minion_attack',
-    name: enemy.minion.nameFr || enemy.minion.nameEn,
-    amount: result.damageDealt,
-    playerHp: nextPlayer.hp,
-  });
+  const tauntAbsorb = absorbDamageWithTauntAlly(nextPlayer, damage);
+  nextPlayer = tauntAbsorb.entity;
+  logs.push(...tauntAbsorb.logs);
+  damage = tauntAbsorb.remaining;
+
+  let damageTakenByPlayer = 0;
+  if (damage > 0) {
+    const result = applyDamageThroughBlock(nextPlayer, damage);
+    nextPlayer = { ...nextPlayer, hp: result.hp, block: result.block };
+    damageTakenByPlayer = result.hpAbsorbed || 0;
+    logs.push({
+      type: 'minion_attack',
+      name: enemy.minion.nameFr || enemy.minion.nameEn,
+      amount: result.damageDealt,
+      playerHp: nextPlayer.hp,
+    });
+  } else if (tauntAbsorb.logs.length) {
+    logs.push({
+      type: 'minion_attack',
+      name: enemy.minion.nameFr || enemy.minion.nameEn,
+      amount: 0,
+      playerHp: nextPlayer.hp,
+      absorbedByAlly: true,
+    });
+  }
+
   return {
     enemy,
     player: nextPlayer,
     logs,
-    damageTakenByPlayer: result.hpAbsorbed || 0,
+    damageTakenByPlayer,
   };
 }
 
@@ -228,7 +250,8 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
       1,
       getStatusValue(nextPlayer.statuses, 'evade') +
         (Number(incomingMods.evadeBonus) || 0) +
-        heldEffectMods(nextPlayer).evadeChance,
+        heldEffectMods(nextPlayer).evadeChance +
+        allyEvadeChance(nextPlayer),
     );
     const evaded = evadeChance > 0 && rng() < evadeChance;
     if (getStatusValue(nextPlayer.statuses, 'evade') > 0) {
@@ -247,21 +270,10 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
         damage = 1;
       }
 
-      if (nextPlayer.ally && nextPlayer.ally.taunt && (nextPlayer.ally.hp || 0) > 0) {
-        const allyHp = Math.max(0, (Number(nextPlayer.ally.hp) || 0) - damage);
-        const overflow = Math.max(0, damage - (Number(nextPlayer.ally.hp) || 0));
-        nextPlayer = {
-          ...nextPlayer,
-          ally: allyHp > 0 ? { ...nextPlayer.ally, hp: allyHp } : null,
-        };
-        logs.push({
-          type: 'ally_damage',
-          amount: damage - overflow,
-          allyHp: allyHp > 0 ? allyHp : 0,
-          fallen: allyHp <= 0,
-        });
-        damage = overflow;
-      }
+      const tauntAbsorb = absorbDamageWithTauntAlly(nextPlayer, damage);
+      nextPlayer = tauntAbsorb.entity;
+      logs.push(...tauntAbsorb.logs);
+      damage = tauntAbsorb.remaining;
 
       if (damage > 0) {
         const result = applyDamageThroughBlock(nextPlayer, damage);

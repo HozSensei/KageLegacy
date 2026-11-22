@@ -361,6 +361,181 @@ assert(summoned.player.ally?.hp === 20 && summoned.player.ally.attack === 6, 'al
 const allyHit = resolveAllyAttack(summoned.player, { hp: 40, maxHp: 40, block: 0 });
 assert(allyHit.enemy.hp === 34, 'ally auto-attacks for 6');
 
+const abilityTauntCard = {
+  slug: 'test-clone-abilities',
+  type: 'summon',
+  cost: 2,
+  summon: {
+    nameFr: 'Clone',
+    nameEn: 'Clone',
+    hp: 12,
+    attack: 4,
+    abilities: ['taunt'],
+  },
+};
+const abilitySummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null, hp: 50, maxHp: 50, block: 0, statuses: [] },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: abilityTauntCard,
+  stats: {},
+});
+assert(abilitySummoned.player.ally?.taunt === true, 'abilities: taunt active la provocation');
+const tauntHit = executeEnemyIntent(
+  { hp: 40, maxHp: 40, block: 0, statuses: [], intent: { type: 'attack', damage: 8 } },
+  abilitySummoned.player,
+  () => 0.99,
+);
+assert(tauntHit.player.ally?.hp === 4, 'provocation encaisse les dégâts ennemis');
+assert(tauntHit.player.hp === 50, 'le joueur ne perd pas de PV sous provocation');
+assert(
+  tauntHit.logs.some(log => log.type === 'ally_damage' && log.amount === 8),
+  'log ally_damage quand l’invocation tank',
+);
+
+const minionVsTaunt = executeEnemyIntent(
+  {
+    hp: 40,
+    maxHp: 40,
+    block: 0,
+    statuses: [],
+    intent: { type: 'defend', block: 1 },
+    minion: { nameFr: 'Sbire', nameEn: 'Minion', hp: 10, attack: 5, taunt: true },
+  },
+  abilitySummoned.player,
+  () => 0.99,
+);
+assert(minionVsTaunt.player.ally?.hp === 7, 'provocation bloque aussi les sbires');
+assert(minionVsTaunt.player.hp === 50, 'les sbires n’atteignent pas le joueur sous provocation');
+
+const regenCard = {
+  slug: 'test-serpent',
+  type: 'summon',
+  cost: 2,
+  summon: {
+    nameFr: 'Serpent',
+    nameEn: 'Serpent',
+    hp: 22,
+    attack: 0,
+    abilities: ['regen'],
+    regen: 3,
+    description: 'Régénère 3 PV par tour',
+  },
+};
+const regenSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null, hp: 40, maxHp: 50, statuses: [] },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: regenCard,
+  stats: {},
+});
+assert(regenSummoned.player.ally?.regen === 3, 'regen lu depuis summon.regen');
+const woundedPlayer = {
+  ...regenSummoned.player,
+  hp: 40,
+  maxHp: 50,
+  ally: { ...regenSummoned.player.ally, hp: 10 },
+};
+const regenTick = resolveAllyAttack(woundedPlayer, { hp: 40, maxHp: 40, block: 0 });
+assert(regenTick.player.hp === 43, 'régénération soigne le joueur');
+assert(regenTick.player.ally?.hp === 10, 'régénération ne soigne pas l’invocation');
+assert(
+  regenTick.logs.some(log => log.type === 'ally_regen' && log.value === 3),
+  'log ally_regen',
+);
+
+const descRegenCard = {
+  slug: 'test-fox',
+  type: 'summon',
+  cost: 2,
+  summon: {
+    nameFr: 'Renard',
+    hp: 20,
+    attack: 0,
+    abilities: ['regen'],
+    description: 'Soigne le joueur de 3 PV par tour',
+  },
+};
+const descRegen = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: descRegenCard,
+  stats: {},
+});
+assert(descRegen.player.ally?.regen === 3, 'regen déduit de la description catalogue');
+
+const evadeCard = {
+  slug: 'test-crow',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Corbeau', hp: 12, attack: 0, abilities: ['evade'] },
+};
+const evadeSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null, hp: 50, maxHp: 50, block: 0, statuses: [] },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: evadeCard,
+  stats: {},
+});
+assert(evadeSummoned.player.ally?.evadeChance === 0.35, 'evade d’invocation = 35 %');
+const evadeHit = executeEnemyIntent(
+  { hp: 40, maxHp: 40, block: 0, statuses: [], intent: { type: 'attack', damage: 9 } },
+  evadeSummoned.player,
+  () => 0.1,
+);
+assert(evadeHit.player.hp === 50, 'aura d’esquive d’invocation protège le joueur');
+assert(
+  evadeHit.logs.some(log => log.type === 'evade'),
+  'log evade via invocation',
+);
+
+const burnCard = {
+  slug: 'test-salamander',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Salamandre', hp: 18, attack: 5, abilities: ['burn'] },
+};
+const burnSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: burnCard,
+  stats: {},
+});
+assert(burnSummoned.player.ally?.burn?.value === 2, 'burn d’invocation configuré');
+const burnHit = resolveAllyAttack(burnSummoned.player, {
+  hp: 40,
+  maxHp: 40,
+  block: 0,
+  statuses: [],
+});
+assert(burnHit.enemy.hp === 35, 'allié burn inflige ses dégâts');
+assert(
+  burnHit.enemy.statuses.some(s => s.key === 'burn' && s.value === 2 && s.duration === 2),
+  'allié burn applique Brûlure',
+);
+
+const strikeCard = {
+  slug: 'test-falcon',
+  type: 'summon',
+  cost: 2,
+  summon: { nameFr: 'Faucon', hp: 20, attack: 8, abilities: ['strike'] },
+};
+const strikeSummoned = applyCardPlay({
+  player: { ...p, chakra: 3, ally: null },
+  enemy: { hp: 40, maxHp: 40, block: 0, statuses: [] },
+  card: strikeCard,
+  stats: {},
+});
+assert(strikeSummoned.player.ally?.strike === true, 'strike lu depuis abilities');
+const strikeHit = resolveAllyAttack(strikeSummoned.player, {
+  hp: 40,
+  maxHp: 40,
+  block: 0,
+  statuses: [],
+});
+assert(strikeHit.enemy.hp === 30, 'strike inflige +25 % ATK (8 → 10)');
+assert(
+  strikeHit.logs.some(log => log.type === 'ally_attack' && log.amount === 10 && log.strike),
+  'log ally_attack avec strike',
+);
+
 console.log('\n=== Talent effects ===');
 const seededEffects = [...new Set(TALENT_NODE_DEFS.filter(n => n.effect).map(n => n.effect))];
 const classifiedAll = classifyTalentEffects(seededEffects);

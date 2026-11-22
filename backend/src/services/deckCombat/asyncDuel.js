@@ -1,4 +1,9 @@
-import { applyCardPlay, effectiveCardCost, resolveAllyAttack } from './cardEffects.js';
+import {
+  allyEvadeChance,
+  applyCardPlay,
+  effectiveCardCost,
+  resolveAllyAttack,
+} from './cardEffects.js';
 import { publicFighterIdentity } from './fighterIdentity.js';
 import { BASE_MAX_HP, DRAW_PER_TURN, STAT_KEYS, TALENT_EFFECT_MVP } from './constants.js';
 import { buildRuntimeDeck, drawCards, moveCardFromHand, shuffle } from './deckRuntime.js';
@@ -254,7 +259,10 @@ function play(player, opponent, card, talentMods, rng) {
   const incoming = damage => applyTalentIncomingAttackMods(damage, enemy, player, codes);
   const evade = attacks ? getStatusValue(enemy.statuses, 'evade') : 0;
   const chance = attacks
-    ? Math.min(1, evade + heldEffectMods(enemy).evadeChance + incoming(0).evadeBonus)
+    ? Math.min(
+        1,
+        evade + heldEffectMods(enemy).evadeChance + incoming(0).evadeBonus + allyEvadeChance(enemy),
+      )
     : 0;
   const evaded = chance > 0 && rng() < chance;
   if (evade > 0) enemy = { ...enemy, statuses: enemy.statuses.filter(s => s.key !== 'evade') };
