@@ -851,6 +851,39 @@
     "collectionKicker": "Catalogue",
     "collectionTitle": "Collection",
     "collectionLead": "Parchemins détenus et trous du catalogue.",
+    "anatomyGuide": {
+      "kicker": "Premiers pas",
+      "title": "Lire une carte",
+      "progress": "Étape {current} / {total}",
+      "next": "Suivant",
+      "back": "Précédent",
+      "skip": "Passer",
+      "done": "Compris",
+      "rulesLink": "Ouvrir la doc des effets (nouvel onglet)",
+      "swatches": {
+        "damage": "Rouge — dégâts infligés",
+        "block": "Ambre — armure gagnée",
+        "heal": "Vert — soins reçus"
+      },
+      "steps": {
+        "chakra": {
+          "title": "1. Coût en Chakra",
+          "body": "La gemme cyan en haut à droite indique combien de Chakra cette carte coûte à jouer. Sans assez de Chakra, vous ne pouvez pas la jouer."
+        },
+        "figures": {
+          "title": "2. Dégâts, armure et soins",
+          "body": "Sous le coût, les gemmes colorées montrent l’impact principal de la carte. Une carte n’affiche que les valeurs qu’elle possède."
+        },
+        "effects": {
+          "title": "3. Texte d’effets",
+          "body": "Sous le nom, chaque ligne décrit un effet actif : pioche, statuts, « Après [voie] » pour les enchaînements, réduction de coût, etc. Les valeurs exactes sont toujours celles écrites ici."
+        },
+        "identity": {
+          "title": "4. Voie, élément et rareté",
+          "body": "La bannière indique la voie (Taijutsu, Ninjutsu, Genjutsu, Médecine). L’élément peut donner un avantage de type. Les diamants du bas marquent la rareté (commune → mythique)."
+        }
+      }
+    },
     "deckKicker": "Construction",
     "deckBuilderTitle": "Constructeur de deck",
     "deckBuilderLead": "Composez 20 à 30 cartes (max 1 clan, max 3 légendaires/mythiques). Les bonus passifs du deck actif alimentent vos stats.",
