@@ -8,7 +8,7 @@ import BrandMark from '../components/ui/BrandMark.vue';
 import ThemeToggle from '../components/ui/ThemeToggle.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
 import { renderMarkdown } from '../utils/renderMarkdown.js';
-import { addHeadingAnchors, parseRulesNav } from '../utils/parseRulesDoc.js';
+import { addHeadingAnchors, filterRulesNav, parseRulesNav } from '../utils/parseRulesDoc.js';
 import rulesFr from '../content/rules.fr.md?raw';
 import rulesEn from '../content/rules.en.md?raw';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
@@ -23,6 +23,7 @@ useOnboardingVisit('visit_rules');
 
 const sidebarOpen = ref(false);
 const activeSectionId = ref('');
+const navQuery = ref('');
 const contentRef = ref(null);
 let observer = null;
 
@@ -52,7 +53,27 @@ const navSections = computed(() =>
   parseRulesNav(markdown.value).map(section => ({
     ...section,
     id: canonicalId(section.id),
+    children: (section.children || []).map(child => ({
+      ...child,
+      id: canonicalId(child.id),
+    })),
   }))
+);
+
+const filteredNavSections = computed(() => filterRulesNav(navSections.value, navQuery.value));
+
+const parentByChildId = computed(() => {
+  const map = new Map();
+  for (const section of navSections.value) {
+    for (const child of section.children || []) {
+      map.set(child.id, section.id);
+    }
+  }
+  return map;
+});
+
+const activeParentId = computed(
+  () => parentByChildId.value.get(activeSectionId.value) || activeSectionId.value
 );
 
 const html = computed(() =>
@@ -102,7 +123,7 @@ function setupObserver() {
   const root = contentRef.value;
   if (!root) return;
 
-  const headings = root.querySelectorAll('h2[id]');
+  const headings = root.querySelectorAll('h2[id], h3[id]');
   if (!headings.length) return;
 
   observer = new IntersectionObserver(
@@ -128,7 +149,7 @@ function applyRouteHash() {
     const el = document.getElementById(id);
     if (!el || !contentRef.value?.contains(el)) return;
     el.scrollIntoView({ block: 'start' });
-    activeSectionId.value = el.closest('h2')?.id || id;
+    activeSectionId.value = id;
   });
 }
 
@@ -142,6 +163,10 @@ watch(
 );
 
 watch(() => route.hash, applyRouteHash);
+
+watch(locale, () => {
+  navQuery.value = '';
+});
 
 onMounted(() => {
   setupObserver();
@@ -189,18 +214,60 @@ onUnmounted(() => observer?.disconnect());
           <p class="rules-layout__sidebar-title">{{ t('rules.pageTitle') }}</p>
           <p class="rules-layout__sidebar-lead">{{ t('rules.sidebarLead') }}</p>
 
+          <label class="rules-layout__search">
+            <span class="sr-only">{{ t('rules.searchLabel') }}</span>
+            <AppIcon name="search" size="0.95rem" class="rules-layout__search-icon" />
+            <input
+              v-model="navQuery"
+              type="search"
+              class="rules-layout__search-input"
+              :placeholder="t('rules.searchPlaceholder')"
+              data-testid="rules-nav-search"
+              autocomplete="off"
+            />
+          </label>
+
           <nav class="rules-layout__nav" :aria-label="t('rules.pageTitle')">
-            <button
-              v-for="section in navSections"
-              :key="section.id"
-              type="button"
-              class="rules-layout__nav-link"
-              :class="{ 'rules-layout__nav-link--active': activeSectionId === section.id }"
-              :data-testid="`rules-nav-${section.id}`"
-              @click="scrollToSection(section.id)"
+            <p
+              v-if="!filteredNavSections.length"
+              class="rules-layout__nav-empty"
+              data-testid="rules-nav-empty"
             >
-              {{ section.title.replace(/^\d+\.\s*/, '') }}
-            </button>
+              {{ t('rules.searchEmpty') }}
+            </p>
+
+            <div
+              v-for="section in filteredNavSections"
+              :key="section.id"
+              class="rules-layout__nav-group"
+            >
+              <button
+                type="button"
+                class="rules-layout__nav-link"
+                :class="{
+                  'rules-layout__nav-link--active':
+                    activeSectionId === section.id || activeParentId === section.id,
+                }"
+                :data-testid="`rules-nav-${section.id}`"
+                @click="scrollToSection(section.id)"
+              >
+                {{ section.title.replace(/^\d+\.\s*/, '') }}
+              </button>
+
+              <div v-if="section.children?.length" class="rules-layout__nav-children">
+                <button
+                  v-for="child in section.children"
+                  :key="child.id"
+                  type="button"
+                  class="rules-layout__nav-link rules-layout__nav-link--child"
+                  :class="{ 'rules-layout__nav-link--active': activeSectionId === child.id }"
+                  :data-testid="`rules-nav-${child.id}`"
+                  @click="scrollToSection(child.id)"
+                >
+                  {{ child.title.replace(/^\d+\.\s*/, '') }}
+                </button>
+              </div>
+            </div>
           </nav>
         </div>
       </aside>
