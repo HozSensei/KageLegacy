@@ -124,7 +124,7 @@ const STARTER_CARDS = [
     rarity: 'rare',
     baseCost: 2,
     baseDamage: 10,
-    effects: [{ type: 'apply_status', status: 'burn', value: 2 }],
+    effects: [{ type: 'apply_status', status: 'burn', duration: 2 }],
     passiveBonus: { ninjutsu: 3 },
     passiveDescriptionFr: 'Bonus passif : +3 Ninjutsu',
     passiveDescriptionEn: 'Passive: +3 Ninjutsu',

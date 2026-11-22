@@ -27,6 +27,19 @@ export function isGenjutsuDebuffKey(key) {
   return GENJUTSU_DEBUFF_KEYS.has(String(key || '').toLowerCase());
 }
 
+/** Flat intensité DoT provenant des talents (bleed_focus, focus_burn, …). */
+export function computeDotTalentFlat(statusKey, effectCodes = []) {
+  const key = String(statusKey || '').toLowerCase();
+  const codes = new Set(effectCodes || []);
+  let flat = 0;
+  for (const code of codes) {
+    const cfg = TALENT_EFFECT_MVP[code];
+    if (!cfg || cfg.kind !== 'dot_intensity') continue;
+    if (cfg.status === key) flat += Number(cfg.flat) || 0;
+  }
+  return flat;
+}
+
 /**
  * Mods de dégâts / coût / soin dérivés des talents pour une carte donnée.
  * @param {string[]} effectCodes
@@ -190,12 +203,6 @@ export function computeTalentDamageMods(effectCodes, player, card = null, ctx = 
 
   if (card && codes.has('storm_weave') && card.statType === 'ninjutsu' && player.stormWeaveReady) {
     mods.costDelta += TALENT_EFFECT_MVP.storm_weave.costDelta;
-  }
-
-  if (card && codes.has('focus_burn') && card.statType === 'ninjutsu') {
-    if (!(player.ninjutsuPlayedThisTurn > 0)) {
-      mods.damageFlat += TALENT_EFFECT_MVP.focus_burn.flat;
-    }
   }
 
   if (

@@ -1048,7 +1048,10 @@ export async function endTurn(userId, combatId) {
   }
 
   // Allié attaque automatiquement
-  const allyAct = resolveAllyAttack(session.player, session.enemy);
+  const allyAct = resolveAllyAttack(session.player, session.enemy, {
+    stats: session.stats,
+    talentCodes: session.talentEffects?.applied,
+  });
   session.player = allyAct.player;
   session.enemy = allyAct.enemy;
   logs.push(...allyAct.logs);

@@ -24,6 +24,8 @@ import { drawCards, moveCardFromHand } from '../../backend/src/services/deckComb
 import {
   absorbDamageWithTauntAlly,
   applyDamageThroughBlock,
+  clampDotDuration,
+  computeDotIntensity,
   getStatusValue,
 } from '../../backend/src/services/deckCombat/formulas.js';
 import {
@@ -42,6 +44,7 @@ import {
   applyTalentIncomingAttackMods,
   applyTalentStartOfTurn,
   applyIncomingTalentCap,
+  computeDotTalentFlat,
   computeTalentDamageMods,
   countDeckElements,
   resolveCardPileDestination,
@@ -731,10 +734,14 @@ function resolveAllyAttack(attacker, target, seat) {
 
   const burn = ally.burn;
   if (burn && (Number(nextTarget.hp) || 0) > 0) {
+    const talentCodes = nextAttacker.talentEffects?.applied || nextAttacker.talentCodes || [];
     const payload = {
       key: 'burn',
-      value: Math.max(1, Math.floor(Number(burn.value) || SUMMON_DEFAULT_BURN.value)),
-      duration: Math.max(1, Math.floor(Number(burn.duration) || SUMMON_DEFAULT_BURN.duration)),
+      value: computeDotIntensity('burn', {
+        stats: nextAttacker.stats || null,
+        talentFlat: computeDotTalentFlat('burn', talentCodes),
+      }),
+      duration: clampDotDuration(burn.duration ?? SUMMON_DEFAULT_BURN.duration),
     };
     if (canApplyStatus(nextTarget, payload.key)) {
       nextTarget = {

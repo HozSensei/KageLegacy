@@ -328,8 +328,10 @@ A card with no element, or an enemy with no affinity, stays neutral.
 | **Strength** | Adds its value to the damage of each hit |
 | **Dexterity** | Adds its value to the armor gained per card |
 | **Regeneration** | Restores its value in HP at the start of the turn |
-| **Poison** | Deals its **value** in HP at the start of the turn (ignores armor) |
-| **Burn** | Deals its **value** in HP at the end of the turn (ignores armor) |
+| **Bleed** | Taijutsu — deals its intensity in HP at the start of the turn (ignores armor) |
+| **Burn** | Ninjutsu — deals its intensity in HP at the start of the turn (ignores armor) |
+| **Poison** | Medicine — deals its intensity in HP at the start of the turn (ignores armor) |
+| **Madness** | Genjutsu — deals its intensity in HP at the start of the turn (ignores armor) |
 | **Weak** | Damage dealt reduced by 25% |
 | **Vulnerable** | Damage taken increased by 50% |
 | **Intangible** | Incoming attacks deal only 1 damage |
@@ -337,9 +339,13 @@ A card with no element, or an enemy with no affinity, stays neutral.
 | **Counter** | After being hit, deals its damage value to the attacker, then disappears |
 | **% bonuses** (damage, armor, healing, paths) | Multiply the relevant figure while the status lasts |
 
-**How is a DoT value (Poison, Burn) calculated?** It is **not** derived from the card’s damage or from a stat. It is a **flat number** printed on the card (or on the enemy intent). Example: a card that applies Poison 3 for 2 turns removes **3 HP** at the start of each relevant turn while the status lasts. An “After [path]” effect or a Genjutsu talent that strengthens debuffs can **add** to that base. Reapplying the same DoT **stacks** the values (Poison 3 + Poison 2 = Poison 5) and keeps the **longer** duration.
+**How is DoT intensity calculated?** The card (or summon / intent) only chooses **duration** (1 or 2 turns). Intensity comes from the engine:
 
-A status applied again **stacks** its value and keeps the longer duration. Limited durations drop by 1 at the end of the affected combatant's turn. Evade and Counter are usually **consumed** when they trigger. Weak and Vulnerable apply their multiplier once even when their values stack.
+`base + round(path_stat × 0.09) + talents`
+
+Bases: Bleed 8, Burn 5, Poison 4, Madness 4. Example: Burn with 40 Ninjutsu → `5 + round(3.6) = 9` HP/turn. A path only applies its own DoT (Taijutsu → bleed, etc.). Reapplying the **same** DoT **adds** durations and **does not** change the intensity already applied. Each talent tree can add +2 to its DoT intensity. A DoT’s duration is the **number of ticks** left: it drops after the start-of-turn tick.
+
+Non-DoT statuses applied again **stack** their value and keep the longer duration. Their limited durations drop by 1 at the end of the affected combatant's turn. Evade and Counter are usually **consumed** when they trigger. Weak and Vulnerable apply their multiplier once even when their values stack.
 
 ### Summons
 
@@ -349,7 +355,7 @@ A Summon card calls an **ally**. You can only have **one** at a time: a new summ
 - An ally with **Taunt** takes enemy attacks in your place for as long as it has HP left.
 - An ally with **Regeneration** heals you at the start of your turn (utility ally).
 - An ally with **Evade** increases your chance to dodge attacks while it is alive.
-- An ally with **Burn** applies Burn to the enemy on every strike.
+- An ally with **Burn** applies Burn (engine intensity, 2 turns) to the enemy on every strike; reapplying extends duration.
 - An ally with **Strike** deals **+25%** attack damage.
 
 ### End of the fight

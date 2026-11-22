@@ -49,13 +49,42 @@ export const STATUS_KEYS = {
   regen: 'regen',
   poison: 'poison',
   burn: 'burn',
+  bleed: 'bleed',
+  madness: 'madness',
   weak: 'weak',
   vulnerable: 'vulnerable',
   intangible: 'intangible',
 };
 
+/**
+ * DoT liés aux voies — intensité moteur (pas un value de carte).
+ * intensité = base + round(statVoie × DOT_STAT_FACTOR) + talents
+ */
+export const DOT_STAT_FACTOR = 0.09;
+export const DOT_BASES = Object.freeze({
+  bleed: 8,
+  burn: 5,
+  poison: 4,
+  madness: 4,
+});
+export const DOT_BY_ART = Object.freeze({
+  taijutsu: 'bleed',
+  ninjutsu: 'burn',
+  medicine: 'poison',
+  genjutsu: 'madness',
+});
+export const DOT_ART_BY_KEY = Object.freeze({
+  bleed: 'taijutsu',
+  burn: 'ninjutsu',
+  poison: 'medicine',
+  madness: 'genjutsu',
+});
+export const DOT_STATUS_KEYS = new Set(['bleed', 'burn', 'poison', 'madness']);
+export const DOT_DURATION_MIN = 1;
+export const DOT_DURATION_MAX = 2;
+
 /** Débuffs typiquement appliqués par Genjutsu sur l’ennemi. */
-export const GENJUTSU_DEBUFF_KEYS = new Set(['weak', 'vulnerable', 'poison', 'burn']);
+export const GENJUTSU_DEBUFF_KEYS = new Set(['weak', 'vulnerable', 'madness']);
 
 /**
  * effect_code talents appliqués en combat.
@@ -84,6 +113,7 @@ export const TALENT_EFFECT_MVP = {
   absolute_guard: { kind: 'block_mult_tai_cost', blockMult: 2, offensiveTaiCostDelta: 1 },
   adrenaline_rush: { kind: 'low_hp_tai_flat', threshold: 0.5, flat: 3 },
   crushing_grip: { kind: 'heavy_tai_armor_ignore', minCost: 3, armorIgnore: 2 },
+  bleed_focus: { kind: 'dot_intensity', status: 'bleed', flat: 2 },
 
   // ── Ninjutsu ──
   chakra_surge: { kind: 'combat_start_chakra', chakra: 1 },
@@ -92,7 +122,8 @@ export const TALENT_EFFECT_MVP = {
   elemental_cycle: { kind: 'alt_element_flat', flat: 2 },
   void_channel: { kind: 'nin_discount_hp', costDelta: -1, maxHpMult: 0.8 },
   overcharge_spark: { kind: 'zero_chakra_nin_flat', flat: 3 },
-  focus_burn: { kind: 'solo_nin_flat', flat: 4 },
+  /** Intensité brûlure DoT (+2). */
+  focus_burn: { kind: 'dot_intensity', status: 'burn', flat: 2 },
   dual_element: { kind: 'deck_elements_nin', minElements: 2, mult: 1.1 },
   mana_well: { kind: 'chakra_every_n_turns', turns: 3, chakra: 1 },
 
@@ -106,6 +137,7 @@ export const TALENT_EFFECT_MVP = {
   phantom_sovereign: { kind: 'gen_debuff_intensity_no_block', valueDelta: 1 },
   mirage_armor: { kind: 'combat_start_mirage_block', block: 2 },
   silent_cut: { kind: 'first_card_gen_flat', flat: 2 },
+  madness_focus: { kind: 'dot_intensity', status: 'madness', flat: 2 },
 
   // ── Médecine ──
   triage_focus: { kind: 'first_heal_flat', flat: 5 },
@@ -120,6 +152,7 @@ export const TALENT_EFFECT_MVP = {
   },
   last_stand_heal: { kind: 'low_hp_heal_double', threshold: 0.2, healMult: 2 },
   vital_overflow: { kind: 'overheal_to_block', ratio: 0.5, maxBlock: 3 },
+  virulent_toxin: { kind: 'dot_intensity', status: 'poison', flat: 2 },
 
   // ── Genjutsu (précédemment reporté) ──
   confusion_tax: { kind: 'gen_debuff_incoming_cut', cut: 2 },

@@ -177,6 +177,10 @@ function formatLog(log) {
       return t(isOpponentSide(log) ? 'combat.log.poisonEnemy' : 'combat.log.poisonYou', { n });
     case 'burn':
       return t(isOpponentSide(log) ? 'combat.log.burnEnemy' : 'combat.log.burnYou', { n });
+    case 'bleed':
+      return t(isOpponentSide(log) ? 'combat.log.bleedEnemy' : 'combat.log.bleedYou', { n });
+    case 'madness':
+      return t(isOpponentSide(log) ? 'combat.log.madnessEnemy' : 'combat.log.madnessYou', { n });
     case 'regen':
       return t(isOpponentSide(log) ? 'combat.log.regenEnemy' : 'combat.log.regenYou', { n });
     case 'apply_status':

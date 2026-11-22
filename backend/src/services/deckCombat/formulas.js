@@ -4,7 +4,16 @@
  *
  * Triade / éléments : voir `typeAdvantage.js` (réexportés ici pour compat).
  */
-import { CRIT_DAMAGE_MULT, MAX_CRIT_CHANCE } from './constants.js';
+import {
+  CRIT_DAMAGE_MULT,
+  DOT_ART_BY_KEY,
+  DOT_BASES,
+  DOT_DURATION_MAX,
+  DOT_DURATION_MIN,
+  DOT_STAT_FACTOR,
+  DOT_STATUS_KEYS,
+  MAX_CRIT_CHANCE,
+} from './constants.js';
 export {
   elementMultiplier,
   getElementAdvantage,
@@ -17,6 +26,39 @@ export function scaleByStat(base, stat) {
   const b = Math.max(0, Number(base) || 0);
   const s = Number(stat) || 0;
   return Math.round(b * (1 + s / 100));
+}
+
+/** Intensité DoT = base + round(stat × 0.09) — distinct du scaling attaque. */
+export function scaleDotIntensity(base, artStat) {
+  const b = Math.max(0, Number(base) || 0);
+  const s = Math.max(0, Number(artStat) || 0);
+  return b + Math.round(s * DOT_STAT_FACTOR);
+}
+
+export function isDotStatusKey(key) {
+  return DOT_STATUS_KEYS.has(String(key || '').toLowerCase());
+}
+
+export function clampDotDuration(duration) {
+  const d = Math.floor(Number(duration) || DOT_DURATION_MIN);
+  return Math.min(DOT_DURATION_MAX, Math.max(DOT_DURATION_MIN, d));
+}
+
+/**
+ * Intensité DoT à la pose.
+ * @param {string} statusKey
+ * @param {object} [opts]
+ * @param {object} [opts.stats] — stats du poseur (joueur) ; absent → base pure (ennemis)
+ * @param {number} [opts.talentFlat]
+ */
+export function computeDotIntensity(statusKey, { stats = null, talentFlat = 0 } = {}) {
+  const key = String(statusKey || '').toLowerCase();
+  const base = DOT_BASES[key];
+  if (base == null) return 0;
+  const art = DOT_ART_BY_KEY[key];
+  const artStat = stats && art ? Number(stats[art]) || 0 : 0;
+  const scaled = stats ? scaleDotIntensity(base, artStat) : base;
+  return Math.max(0, scaled + (Number(talentFlat) || 0));
 }
 
 export function scaleDamage(baseDamage, attackStat) {

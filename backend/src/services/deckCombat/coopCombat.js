@@ -36,6 +36,8 @@ const SHARED_PLAYER_LOGS = new Set([
   'apply_status',
   'poison',
   'burn',
+  'bleed',
+  'madness',
   'regen',
   'block_fade',
   'summon',
@@ -246,7 +248,7 @@ export function createCoopCombat(fighters) {
     pattern: [
       { type: 'attack', damage: 22 },
       { type: 'attack', damage: 26 },
-      { type: 'debuff', status: 'poison', value: 3, duration: 2 },
+      { type: 'debuff', status: 'poison', duration: 2 },
     ],
   };
   enemy.intent = getNextIntent(enemy);

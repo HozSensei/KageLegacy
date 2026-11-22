@@ -481,10 +481,13 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
 
   const hpBeforePlayerStart = Number(s.player.hp) || 0;
   const playerStart = resolveStartOfTurnStatuses(s.player);
-  const poison = playerStart.logs.find(log => log.type === 'poison');
-  if (poison) {
+  const dotLoss = playerStart.logs
+    .filter(log => ['poison', 'burn', 'bleed', 'madness'].includes(log.type))
+    .reduce((sum, log) => sum + Math.max(0, Number(log.value) || 0), 0);
+  if (dotLoss > 0) {
+    // Compte les DoT bruts (avant regen), plafonnés aux PV avant tick.
     s.damageTakenTotal =
-      (Number(s.damageTakenTotal) || 0) + Math.max(0, hpBeforePlayerStart - poison.hp);
+      (Number(s.damageTakenTotal) || 0) + Math.min(dotLoss, hpBeforePlayerStart);
   }
   s.player = {
     ...playerStart.entity,
@@ -499,7 +502,10 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
   });
   s.player = s.persistentHand ? talentStart.player : applyHeldTurnStart(talentStart.player).player;
 
-  const allyAct = resolveAllyAttack(s.player, s.enemy);
+  const allyAct = resolveAllyAttack(s.player, s.enemy, {
+    stats: s.stats,
+    talentCodes: s.talentEffects?.applied,
+  });
   s.player = allyAct.player;
   s.enemy = allyAct.enemy;
 

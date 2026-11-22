@@ -154,15 +154,15 @@ La même copie référencée deux fois n'est comptée qu'une fois. La contributi
 
 ## Statuts importants
 
-Faiblesse réduit les dégâts sortants de 25 %. Vulnérable augmente les dégâts reçus de 50 %. Les autres états comprennent notamment Poison, Brûlure, Régénération, esquive, contre, Armure, Soins et bonus par voie.
+Faiblesse réduit les dégâts sortants de 25 %. Vulnérable augmente les dégâts reçus de 50 %. Les autres états comprennent notamment Saignement, Brûlure, Poison, Folie, Régénération, esquive, contre, Armure, Soins et bonus par voie.
 
-Poison et régénération se résolvent au début du tour ; Brûlure se résout en fin de tour. La valeur d'un statut peut s'accumuler ; la durée retenue est la plus longue.
+Les quatre DoT (saignement/taijutsu, brûlure/ninjutsu, poison/médecine, folie/genjutsu) se résolvent au **début** du tour, comme la régénération. Intensité = `base + round(statVoie × 0,09) + talents` (bases 8 / 5 / 4 / 4). La carte ne pose que la durée (1–2). Recumul du même DoT : durée additionnée, intensité inchangée. Les autres statuts cumulent encore la valeur et gardent la durée max.
 
 Les immunités de boss s'appliquent aux états protégés. Un type d'effet inconnu est actuellement enregistré comme `stub_effect` et ne produit aucun effet.
 
 ## Invocations
 
-Une seule invocation est active. En jouer une nouvelle remplace l'ancienne. L'invocation attaque au début du tour dans le moteur PvE. Capacités supportées : **Provocation** (`taunt`) redirige les dégâts vers l'allié ; **Régénération** (`regen`) soigne le joueur au début de son tour ; **Esquive** (`evade`) ajoute une chance d'esquive au joueur tant que l'allié vit ; **Brûlure** (`burn`) applique Brûlure à chaque frappe de l'allié ; **Frappe** (`strike`) inflige +25 % ATK. Les autres capacités textuelles ne sont actives que si le moteur possède leur implémentation.
+Une seule invocation est active. En jouer une nouvelle remplace l'ancienne. L'invocation attaque au début du tour dans le moteur PvE. Capacités supportées : **Provocation** (`taunt`) redirige les dégâts vers l'allié ; **Régénération** (`regen`) soigne le joueur au début de son tour ; **Esquive** (`evade`) ajoute une chance d'esquive au joueur tant que l'allié vit ; **Brûlure** (`burn`) applique Brûlure (intensité moteur + ninjutsu du poseur, durée 2) à chaque frappe ; **Frappe** (`strike`) inflige +25 % ATK. Les autres capacités textuelles ne sont actives que si le moteur possède leur implémentation.
 
 ## Boss
 

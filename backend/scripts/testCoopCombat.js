@@ -204,10 +204,11 @@ test('le support redirige soin, bloc et purification sans les appliquer au lance
 
 test('tir allié : exige le booléen true, passe par le bloc et applique les dégâts/statuts une seule fois', () => {
   const strike = card('secret-strike', {
+    statType: 'ninjutsu',
     damage: 6,
     effects: [
       { type: 'multi_strike', hits: 2 },
-      { type: 'apply_status', target: 'enemy', status: 'burn', value: 2 },
+      { type: 'apply_status', target: 'enemy', status: 'burn', duration: 2 },
     ],
   });
   const roster = fighters([strike]);
@@ -226,8 +227,8 @@ test('tir allié : exige le booléen true, passe par le bloc et applique les dé
   assert.equal(view(result).ally.block, 0);
   assert.equal(view(result).player.chakra, 4);
   assert.equal(view(result).player.hand.length, 0);
-  assert.deepEqual(view(result, 'b').player.statuses, [{ key: 'burn', value: 2, duration: 2 }]);
-  assert.deepEqual(view(result).ally.statuses, [{ key: 'burn', value: 2, duration: 2 }]);
+  assert.deepEqual(view(result, 'b').player.statuses, [{ key: 'burn', value: 5, duration: 2 }]);
+  assert.deepEqual(view(result).ally.statuses, [{ key: 'burn', value: 5, duration: 2 }]);
   assert.equal(view(result, 'b').ally.chakra, 4);
   assert.equal('hand' in view(result, 'b').ally, false);
   assert.deepEqual(result.enemy, start.enemy);
@@ -239,7 +240,10 @@ test('tir allié : exige le booléen true, passe par le bloc et applique les dé
 });
 
 test('un malus sans dégâts de base exige aussi confirmation ; les combinaisons ambiguës sont refusées', () => {
-  const hex = card('hex', { effects: [{ type: 'apply_status', status: 'brûlure', value: 3 }] });
+  const hex = card('hex', {
+    statType: 'ninjutsu',
+    effects: [{ type: 'apply_status', status: 'brûlure', duration: 2 }],
+  });
   const mixed = card('mixed', { damage: 4, heal: 4 });
   const seal = card('seal', { effects: [{ type: 'seal_intent' }] });
   const unexplained = card('unknown', { heal: 2, effects: [{ type: 'damage', value: 10 }] });
@@ -247,7 +251,7 @@ test('un malus sans dégâts de base exige aussi confirmation ; les combinaisons
   assert.throws(() => play(start, 'a', 'hex', 'ally'), /Tir allié à confirmer/);
   const combat = play(start, 'a', 'hex', 'ally', true);
   assert.equal(view(combat).ally.hp, 100);
-  assert.deepEqual(view(combat, 'b').player.statuses, [{ key: 'burn', value: 3, duration: 3 }]);
+  assert.deepEqual(view(combat, 'b').player.statuses, [{ key: 'burn', value: 5, duration: 2 }]);
   for (const slug of ['mixed', 'seal', 'unknown']) {
     assert.throws(() => play(start, 'a', slug, 'ally', true), /Combinaison non prise en charge/);
   }

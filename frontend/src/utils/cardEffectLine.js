@@ -3,7 +3,7 @@
  * Sépare les figures damage/block/heal des mots-clés secondaires.
  */
 
-import { previewCardFigures } from './cardScaling.js';
+import { isDotStatusKey, previewCardFigures, previewDotIntensity } from './cardScaling.js';
 
 const COMBO_ARTS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
 
@@ -74,6 +74,12 @@ export function formatStructuredEffect(effect, { t, te }) {
     const status = String(effect.status || '').toLowerCase();
     if (!status) return null;
     const label = statusLabel(t, te, status);
+    if (isDotStatusKey(status)) {
+      const preview = previewDotIntensity(status, effect._previewStats || null, effect.duration);
+      const dmg = preview?.effective ?? preview?.base ?? 0;
+      const turns = preview?.duration ?? 1;
+      return t('cards.effectDot', { status: label, n: dmg, turns });
+    }
     const amount = Number.isFinite(n) && n !== 0 ? n : 1;
     const signed = amount > 0 ? `+${amount}` : String(amount);
     const isPct = PCT_STATUS_KEYS.has(status);
@@ -240,7 +246,10 @@ export function cardEffectParts(card, stats, { t, te }, options = {}) {
   }
 
   for (const effect of card?.effects || []) {
-    const line = formatStructuredEffect(effect, { t, te });
+    const line = formatStructuredEffect(
+      isDotStatusKey(effect?.status) ? { ...effect, _previewStats: stats } : effect,
+      { t, te }
+    );
     if (!line) continue;
     const isCombo = effect.type === 'combo_previous';
     const art = isCombo && COMBO_ARTS.has(effect.statType) ? effect.statType : null;

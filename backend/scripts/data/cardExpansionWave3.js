@@ -276,10 +276,10 @@ export const EXPANSION_WAVE3_CARDS = [
     rarity: 'common',
     cost: 2,
     damage: 7,
-    effects: [{ type: 'aoe' }, { type: 'apply_status', status: 'burn', value: 1 }],
+    effects: [{ type: 'aoe' }, { type: 'apply_status', status: 'burn', duration: 1 }],
     passive: { ninjutsu: 3 },
-    descriptionFr: 'Inflige 7 dégâts massifs (zone). Brûlure 1.',
-    descriptionEn: 'Deal 7 massive (AoE) damage. Burn 1.',
+    descriptionFr: 'Inflige 7 dégâts massifs (zone). Brûlure (1 tour).',
+    descriptionEn: 'Deal 7 massive (AoE) damage. Burn (1 turn).',
     loreFr: 'Des braises retenues en l’air jusqu’à ce que le shinobi referme le poing.',
     loreEn: 'Embers held in the air until the shinobi closes a fist.',
     upgrades: {

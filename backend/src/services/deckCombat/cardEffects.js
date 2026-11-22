@@ -2,8 +2,11 @@
  * Résolution des effets de cartes — module pur.
  */
 import {
+  clampDotDuration,
+  computeDotIntensity,
   getStatusValue,
   hasStatus,
+  isDotStatusKey,
   outgoingBlockMultiplier,
   outgoingDamageMultiplier,
   outgoingHealMultiplier,
@@ -13,10 +16,15 @@ import {
   scaleHeal,
   applyDamageThroughBlock,
 } from './formulas.js';
+import { DOT_ART_BY_KEY, DOT_BY_ART, DOT_DURATION_MIN } from './constants.js';
 import { elementMultiplier, typeAdvantageMultiplier } from './typeAdvantage.js';
 import { applyStatus, PLAYER_DEBUFF_KEYS } from './statuses.js';
 import { drawCards } from './deckRuntime.js';
-import { applyTalentAfterHeal, applyTalentToStatusPayload } from './talentEffects.js';
+import {
+  applyTalentAfterHeal,
+  applyTalentToStatusPayload,
+  computeDotTalentFlat,
+} from './talentEffects.js';
 import { canApplyStatus, hitEnemy } from './bossPhases.js';
 import { getNextIntent } from './enemyIntent.js';
 import { resolveCardCritChance, resolveScalingStat } from './combatArts.js';
@@ -31,8 +39,11 @@ const COMBO_STAT_TYPES = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'
 
 /** Esquive d'invocation par défaut (« occasionnelle »). */
 export const SUMMON_DEFAULT_EVADE_CHANCE = 0.35;
-/** Brûlure appliquée à chaque frappe d'une invocation `burn`. */
-export const SUMMON_DEFAULT_BURN = { value: 2, duration: 2 };
+/**
+ * Brûlure d'invocation `burn` : durée seule.
+ * Intensité = base moteur (DOT_BASES.burn) + scaling ninjutsu du poseur.
+ */
+export const SUMMON_DEFAULT_BURN = { duration: 2 };
 /** Multiplicateur d'ATK pour l'invocation `strike`. */
 export const SUMMON_STRIKE_ATK_MULT = 1.25;
 
@@ -70,15 +81,8 @@ export function resolveSummonTraits(def = {}) {
 
   const burn = has('burn')
     ? {
-        value: Math.max(
-          1,
-          Math.floor(Number(def.burnValue ?? def.burn?.value) || SUMMON_DEFAULT_BURN.value),
-        ),
-        duration: Math.max(
-          1,
-          Math.floor(
-            Number(def.burnDuration ?? def.burn?.duration) || SUMMON_DEFAULT_BURN.duration,
-          ),
+        duration: clampDotDuration(
+          Number(def.burnDuration ?? def.burn?.duration) || SUMMON_DEFAULT_BURN.duration,
         ),
       }
     : null;
@@ -489,8 +493,11 @@ export function applyAllyRegen(player) {
 /**
  * Attaque automatique de l'allié invoqué (début de tour joueur).
  * Applique d'abord la régénération d'invocation (soin joueur) si présente.
+ * @param {object} [opts]
+ * @param {object} [opts.stats]
+ * @param {string[]} [opts.talentCodes]
  */
-export function resolveAllyAttack(player, enemy) {
+export function resolveAllyAttack(player, enemy, opts = {}) {
   const logs = [];
   const regenerated = applyAllyRegen(player);
   const nextPlayer = regenerated.player;
@@ -525,10 +532,14 @@ export function resolveAllyAttack(player, enemy) {
 
   const burn = nextPlayer.ally.burn;
   if (burn && (Number(nextEnemy.hp) || 0) > 0) {
+    const talentFlat = computeDotTalentFlat('burn', opts.talentCodes || []);
     const payload = {
       key: 'burn',
-      value: Math.max(1, Math.floor(Number(burn.value) || SUMMON_DEFAULT_BURN.value)),
-      duration: Math.max(1, Math.floor(Number(burn.duration) || SUMMON_DEFAULT_BURN.duration)),
+      value: computeDotIntensity('burn', {
+        stats: opts.stats || null,
+        talentFlat,
+      }),
+      duration: clampDotDuration(burn.duration ?? SUMMON_DEFAULT_BURN.duration),
     };
     if (canApplyStatus(nextEnemy, payload.key)) {
       nextEnemy = {
@@ -648,15 +659,48 @@ function applyExtraEffect(effect, ctx) {
           ? 'enemy'
           : guessStatusTarget(effect.status);
     const statusKey = normalizeStatusKey(effect.status);
-    let payload = {
-      key: statusKey,
-      value:
-        (Number(effect.value) || 1) +
-        (effect === (ctx.card?.effects || []).find(item => item.type === 'apply_status')
-          ? comboValue(ctx.card, player.previousCardStatType, 'statusValue')
-          : 0),
-      duration: effect.duration != null ? Number(effect.duration) : Number(effect.value) || 1,
-    };
+    if (isDotStatusKey(statusKey)) {
+      const art = ctx.card?.statType;
+      const expected = art ? DOT_BY_ART[art] : null;
+      if (expected && expected !== statusKey) {
+        logs.push({
+          type: 'status_art_mismatch',
+          status: statusKey,
+          art,
+          expected,
+        });
+        return { player, enemy, logs };
+      }
+      const requiredArt = DOT_ART_BY_KEY[statusKey];
+      if (requiredArt && art && art !== requiredArt && art !== 'common') {
+        logs.push({
+          type: 'status_art_mismatch',
+          status: statusKey,
+          art,
+          expected: requiredArt,
+        });
+        return { player, enemy, logs };
+      }
+    }
+    let payload;
+    if (isDotStatusKey(statusKey)) {
+      const talentFlat = computeDotTalentFlat(statusKey, talentCodes);
+      payload = {
+        key: statusKey,
+        value: computeDotIntensity(statusKey, { stats: ctx.stats, talentFlat }),
+        duration: clampDotDuration(effect.duration != null ? effect.duration : DOT_DURATION_MIN),
+      };
+    } else {
+      payload = {
+        key: statusKey,
+        value:
+          (Number(effect.value) || 1) +
+          (effect === (ctx.card?.effects || []).find(item => item.type === 'apply_status')
+            ? comboValue(ctx.card, player.previousCardStatType, 'statusValue')
+            : 0),
+        duration: effect.duration != null ? Number(effect.duration) : Number(effect.value) || 1,
+      };
+    }
     const talentStatus = applyTalentToStatusPayload({
       payload,
       card: ctx.card,
@@ -771,6 +815,10 @@ function normalizeStatusKey(status) {
     burn: 'burn',
     brûlure: 'burn',
     poison: 'poison',
+    bleed: 'bleed',
+    saignement: 'bleed',
+    madness: 'madness',
+    folie: 'madness',
     weak: 'weak',
     faiblesse: 'weak',
     vulnerable: 'vulnerable',

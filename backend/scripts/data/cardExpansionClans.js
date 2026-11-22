@@ -43,14 +43,14 @@ export const CLAN_LEGENDARY_CARDS = [
     cost: 3,
     damage: 12,
     effects: [
-      { type: 'apply_status', status: 'burn', value: 2 },
+      { type: 'apply_status', status: 'burn', duration: 2 },
       { type: 'draw', value: 1 },
     ],
     heldEffect: { type: 'art_damage_percent', statType: 'ninjutsu', value: 20 },
     passive: { ninjutsu: 8, genjutsu: 5, intelligence: 3 },
     descriptionFr:
-      'Inflige 12 dégâts, Brûlure 2. Piochez 1. En main ou réservé : +20 % dégâts Ninjutsu.',
-    descriptionEn: 'Deal 12 damage, Burn 2. Draw 1. In hand or reserved: +20% Ninjutsu damage.',
+      'Inflige 12 dégâts, Brûlure (2 tours). Piochez 1. En main ou réservé : +20 % dégâts Ninjutsu.',
+    descriptionEn: 'Deal 12 damage, Burn (2 turns). Draw 1. In hand or reserved: +20% Ninjutsu damage.',
     loreFr: 'Le sang écarlate du clan Benigiri scelle le feu dans chaque technique.',
     loreEn: 'Benigiri crimson blood seals fire into every technique.',
     upgrades: {
