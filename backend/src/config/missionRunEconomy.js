@@ -69,7 +69,7 @@ export const RUN_SHOP_CATALOG = Object.freeze([
     nameFr: 'Parchemin scellé (commun)',
     nameEn: 'Sealed scroll (common)',
     descriptionFr: 'Carte normale révélée à la fin du parcours.',
-    descriptionEn: 'Common card revealed at the end of the run.',
+    descriptionEn: 'Normal card revealed at the end of the run.',
   }),
   Object.freeze({
     id: 'card_mystery_rare',
