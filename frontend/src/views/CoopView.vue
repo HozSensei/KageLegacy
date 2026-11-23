@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import PageHeader from '../components/ui/PageHeader.vue';
+import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 import { useCoopApi } from '../composables/useCoopApi.js';
 import { useMissionsStore } from '../stores/missions.js';
 import { localizedName } from '../utils/localeContent.js';
@@ -129,18 +131,22 @@ function leaveLobby() {
 
 <template>
   <div class="page-shell coop" data-testid="coop-page">
-    <header class="page-header">
-      <h1 class="t-heading">{{ t('coop.title') }}</h1>
-      <p class="text-ink-muted">{{ t('coop.lead') }}</p>
-    </header>
+    <PageHeader
+      tone="leaf"
+      :kicker="t('coop.kicker')"
+      :title="t('coop.title')"
+      :lead="t('coop.lead')"
+      :image="bridgeImage"
+      image-position="50% 45%"
+    />
 
     <p v-if="pollFailed" class="alert alert--info" role="status">{{ t('coop.pollError') }}</p>
-    <p v-if="error" class="alert alert--danger" role="alert">{{ error }}</p>
+    <p v-if="error" class="alert alert--error" role="alert">{{ error }}</p>
 
     <section v-if="!room" class="panel coop__lobby">
       <button
         type="button"
-        class="btn btn--primary"
+        class="btn-primary"
         data-testid="coop-create"
         :disabled="busy"
         @click="onCreate"
@@ -152,13 +158,20 @@ function leaveLobby() {
           <span class="field__label">{{ t('coop.codeLabel') }}</span>
           <input
             v-model="code"
-            class="field__input"
+            class="input-field"
             maxlength="10"
             autocomplete="off"
+            spellcheck="false"
+            :placeholder="t('coop.codePlaceholder')"
             data-testid="coop-code-input"
           />
         </label>
-        <button type="submit" class="btn" data-testid="coop-join" :disabled="busy || !code">
+        <button
+          type="submit"
+          class="btn-secondary"
+          data-testid="coop-join"
+          :disabled="busy || !code"
+        >
           {{ t('coop.join') }}
         </button>
       </form>
@@ -176,7 +189,7 @@ function leaveLobby() {
       <div v-if="isHost" class="coop__setup">
         <label class="field">
           <span class="field__label">{{ t('coop.missionLabel') }}</span>
-          <select v-model="selectedMissionId" class="field__input" data-testid="coop-mission">
+          <select v-model="selectedMissionId" class="input-field" data-testid="coop-mission">
             <option :value="null" disabled>{{ t('coop.pickMission') }}</option>
             <option v-for="m in catalog" :key="m.id" :value="m.id">
               {{ localizedName(m, locale) }} ({{ m.rank }})
@@ -187,16 +200,17 @@ function leaveLobby() {
           <input v-model="hardMode" type="checkbox" />
           {{ t('coop.hardMode') }}
         </label>
-        <button type="button" class="btn" :disabled="busy || !selectedMissionId" @click="onSetup">
+        <button
+          type="button"
+          class="btn-secondary"
+          :disabled="busy || !selectedMissionId"
+          @click="onSetup"
+        >
           {{ t('coop.saveSetup') }}
         </button>
       </div>
       <p v-else class="text-ink-muted">
-        {{
-          room.missionId
-            ? t('coop.missionChosen')
-            : t('coop.waitingHostSetup')
-        }}
+        {{ room.missionId ? t('coop.missionChosen') : t('coop.waitingHostSetup') }}
       </p>
 
       <div class="coop__stake">
@@ -207,7 +221,7 @@ function leaveLobby() {
             {{ s }}
           </label>
         </div>
-        <button type="button" class="btn" :disabled="busy" @click="onStake">
+        <button type="button" class="btn-secondary" :disabled="busy" @click="onStake">
           {{ t('coop.saveStake') }}
         </button>
         <p class="text-ink-muted">
@@ -218,7 +232,7 @@ function leaveLobby() {
       <div v-if="isGuest" class="coop__ready">
         <button
           type="button"
-          class="btn btn--primary"
+          class="btn-primary"
           :disabled="busy || !room.missionId"
           data-testid="coop-ready"
           @click="onReady(!room.guestReady)"
@@ -234,17 +248,17 @@ function leaveLobby() {
         <button
           v-if="isHost"
           type="button"
-          class="btn btn--primary"
+          class="btn-primary"
           data-testid="coop-start"
           :disabled="busy || room.status !== 'ready'"
           @click="onStart"
         >
           {{ t('coop.startMission') }}
         </button>
-        <button type="button" class="btn btn--ghost" :disabled="busy" @click="onClose">
+        <button type="button" class="btn-ghost" :disabled="busy" @click="onClose">
           {{ t('coop.closeRoom') }}
         </button>
-        <button type="button" class="btn btn--ghost" @click="leaveLobby">
+        <button type="button" class="btn-ghost" @click="leaveLobby">
           {{ t('coop.backToLobby') }}
         </button>
       </div>
@@ -257,6 +271,7 @@ function leaveLobby() {
   display: grid;
   gap: 1rem;
   max-width: 36rem;
+  margin-top: 1.5rem;
 }
 .coop__join,
 .coop__setup,
