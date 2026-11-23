@@ -111,6 +111,7 @@ function clearSessionStores() {
   auth.profile = null;
   auth.checked = true;
   player.reset();
+  onboarding.reset();
   villageRewards.reset?.();
   notifications.reset?.();
   claimablesHydrated = false;

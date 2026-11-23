@@ -14,6 +14,10 @@ export function useOnboardingVisit(stepKey) {
   const toast = useToast();
   const { t, locale } = useI18n();
 
+  // Dès le setup (pas seulement après paint) : un aller-retour rapide
+  // hub → collection (overlay anatomie, etc.) ne doit pas rater le POST.
+  if (stepKey) void onboarding.recordVisit(stepKey);
+
   onMounted(async () => {
     if (!stepKey) return;
     const dedupeKey = `onboarding:${stepKey}`;
