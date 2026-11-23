@@ -65,6 +65,8 @@ export const COMBAT_DEFAULT_REWARDS = Object.freeze({
 /** Multiplicateur de fin de parcours (mission runs) — hors structure des nœuds. */
 export const COMBAT_RUN_BONUS_MULT_DEFAULT = 1.8;
 
+/** Missions coop : multiplicateur de récompenses = COOP_REWARD_MULT (coopMissionConfig). */
+
 /**
  * Cibles par rang (utilisées comme plancher runtime + seeds).
  * bpPoints calés sur docs/PROGRESSION.md (100–500 selon rang).

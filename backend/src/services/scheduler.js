@@ -1,10 +1,12 @@
 import { settleWeeklyVillageRewards } from './asyncDuelWeeklyRewards.js';
 import { processDailyRetentionTick } from './dailyRetentionJobs.js';
 import { msUntilNextUtcMidnight, nextUtcMidnightDate } from './dailyUtc.js';
+import { COOP_SCHEDULER_TICK_MS } from '../config/coopMissionConfig.js';
 
 const PAYOUT_RETRY_MS = 60_000;
 let midnightTimeoutId = null;
 let payoutTimeoutId = null;
+let coopTimeoutId = null;
 let schedulerGeneration = 0;
 let running = false;
 
@@ -23,8 +25,40 @@ export function startScheduler() {
   schedulerGeneration += 1;
   scheduleUtcMidnightRetention(schedulerGeneration);
   scheduleVillagePayout(schedulerGeneration, 0);
+  scheduleCoopMissionMaintenance(schedulerGeneration, 0);
 
-  console.log('⏱  Scheduler rétention, purge invités et récompenses village démarré (minuit UTC)');
+  console.log(
+    '⏱  Scheduler rétention, purge invités, récompenses village et missions coop démarré',
+  );
+}
+
+async function tickCoopMissionMaintenance() {
+  const { autoEndExpiredTurns } = await import('./coopCombatSessionService.js');
+  const { abandonInactiveCoopRuns, syncCoopCombatOutcome } = await import(
+    './coopMissionRunService.js'
+  );
+  const ended = await autoEndExpiredTurns();
+  for (const entry of ended) {
+    if (entry?.combatId && entry.state && entry.state !== 'in_progress') {
+      await syncCoopCombatOutcome(entry.combatId);
+    }
+  }
+  await abandonInactiveCoopRuns();
+  return { autoEnded: ended.length };
+}
+
+function scheduleCoopMissionMaintenance(generation, delay) {
+  coopTimeoutId = setTimeout(async () => {
+    try {
+      await tickCoopMissionMaintenance();
+    } catch (error) {
+      console.error('[scheduler] Erreur maintenance missions coop:', error);
+    } finally {
+      if (running && generation === schedulerGeneration) {
+        scheduleCoopMissionMaintenance(generation, COOP_SCHEDULER_TICK_MS);
+      }
+    }
+  }, delay);
 }
 
 function scheduleUtcMidnightRetention(generation) {
@@ -77,6 +111,10 @@ export function stopScheduler() {
   if (payoutTimeoutId) {
     clearTimeout(payoutTimeoutId);
     payoutTimeoutId = null;
+  }
+  if (coopTimeoutId) {
+    clearTimeout(coopTimeoutId);
+    coopTimeoutId = null;
   }
   console.log('⏱  Scheduler arrêté');
 }

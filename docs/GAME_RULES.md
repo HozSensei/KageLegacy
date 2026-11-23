@@ -97,13 +97,13 @@ Le reset rembourse chaque rang investi. Il est gratuit une fois tous les 10 nive
 - Les villages n’accordent aucun bonus de combat. L’espace **Village** regroupe les amis et le classement hebdomadaire. Les membres du village vainqueur à l’ouverture de la semaine gagnent un lot, même s’ils n’ont joué aucun duel.
 - Le classement propose les classements par niveau et victoires PvP, avec vue par faction.
 
-## Combat coop en ligne
+## Missions coopératives
 
-Dans **Co-op**, créer une salle et partager son code avec un autre joueur. Chacun apporte son deck actif valide. Les deux jouent à tour de rôle, puis l’ennemi agit. Les deux intentions indiquent qui est visé. Chaque joueur conserve sa main et son chakra séparément.
+Dans **Missions coopératives**, le chef crée une salle et partage son code. Il choisit le rang (et le mode difficile). Chaque joueur engage sa propre bourse (0 / 100 / 200 / 300 Ryos). L’invité se déclare prêt, puis le chef lance le parcours — le même modèle branché que les missions solo.
 
-La zone et le bouton **Allié** permettent de jouer certains soins, protections et purifications sur le partenaire. Un effet offensif compatible exige une confirmation explicite. Les cartes au ciblage ambigu sont refusées sans être dépensées. Le combat ne donne pas de récompense et n’a pas de matchmaking.
+Le chef démarre chaque étape. Les combats sont des duos asynchrones : chacun joue son tour quand il est disponible (état persisté) ; l’ennemi agit après les deux joueurs. Les boutiques sont communes (stocks partagés) mais bourses et inventaires restent personnels. Sur boutique / halte / carrefour / événement, l’invité doit passer **prêt** avant que le chef puisse avancer.
 
-Les salles de cette première version sont stockées en mémoire sur une seule instance du serveur et ne survivent pas à un redémarrage. Une invitation en attente expire après 30 minutes.
+Une seule mission d’équipe (ou solo) active à la fois. Un tour non joué trop longtemps est terminé automatiquement ; une inactivité prolongée du parcours compte comme une défaite. Abandon ou défaite : les deux perdent leur bourse. Victoire : chacun reçoit un loot plein, boosté par rapport au solo (combats plus durs).
 
 ## Duel de decks asynchrone
 

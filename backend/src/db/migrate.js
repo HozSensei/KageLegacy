@@ -22,6 +22,12 @@ const ASYNC_DUEL_TABLES = [
   'async_duel_weekly_reward_ledger',
 ];
 
+const COOP_MISSION_TABLES = [
+  'coop_mission_rooms',
+  'coop_mission_runs',
+  'coop_combat_sessions',
+];
+
 const COMPATIBILITY_COLUMNS = [
   [
     'player_profiles',
@@ -348,6 +354,15 @@ async function ensureAsyncDuelTables(connection, statements) {
   console.log('🔧 Registre des crédits de duel migré sans modifier les portefeuilles.');
 }
 
+async function ensureCoopMissionTables(connection, statements) {
+  // DDL additives des missions coopératives, dans l'ordre des clés étrangères.
+  for (const table of COOP_MISSION_TABLES) {
+    const ddl = statements.find(sql => sql.startsWith(`CREATE TABLE IF NOT EXISTS \`${table}\` (`));
+    if (!ddl) throw new Error(`DDL de compatibilité introuvable : ${table}`);
+    await connection.query(ddl);
+  }
+}
+
 async function installWeeklyVillageRewards(connection) {
   // L'ancrage et la photo initiale sont atomiques et ne bougent pas aux relances.
   const firstWeek = `DATE_ADD(${UTC_WEEK_START}, INTERVAL 7 DAY)`;
@@ -475,6 +490,7 @@ async function migrate() {
       await ensureCompatibilityColumns(connection);
       await ensureCharacterProfile(connection);
       await ensureAsyncDuelTables(connection, statements);
+      await ensureCoopMissionTables(connection, statements);
       await installWeeklyVillageRewards(connection);
       await ensureRankMissions(connection);
       await ensureOnboardingTable();
@@ -510,6 +526,8 @@ async function migrate() {
       BASELINE_FILENAME,
     ]);
     await ensureCompatibilityColumns(connection);
+    await ensureAsyncDuelTables(connection, statements);
+    await ensureCoopMissionTables(connection, statements);
     await installWeeklyVillageRewards(connection);
     await ensureRankMissions(connection);
     await ensureOnboardingTable();

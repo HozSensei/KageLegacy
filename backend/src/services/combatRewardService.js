@@ -198,6 +198,7 @@ export async function grantRunRewards(
     hardModeMult = 1,
     branchXpMult = 1,
     purseReturn = 0,
+    coopMult = 1,
     rng = Math.random,
   } = {},
 ) {
@@ -213,7 +214,8 @@ export async function grantRunRewards(
   const combatBonus = 1 + Math.max(0, combatsWon - 1) * 0.08;
   const hardMult = Math.max(1, Number(hardModeMult) || 1);
   const branchMult = Math.max(0.5, Number(branchXpMult) || 1);
-  const scale = mult * combatBonus * hardMult;
+  const coopScale = Math.max(1, Number(coopMult) || 1);
+  const scale = mult * combatBonus * hardMult * coopScale;
   const xpScale = scale * branchMult;
   const purseBonus = Math.max(0, Math.floor(Number(purseReturn) || 0));
 
@@ -223,16 +225,23 @@ export async function grantRunRewards(
     cardChance: Math.min(
       85,
       Math.round(
-        (base.cardChance || 12) * Math.min(1.4, 1 + combatsWon * 0.05) * Math.min(1.2, hardMult),
+        (base.cardChance || 12) *
+          Math.min(1.4, 1 + combatsWon * 0.05) *
+          Math.min(1.2, hardMult) *
+          Math.min(1.25, coopScale),
       ),
     ),
     bpPoints: Math.round((base.bpPoints || 0) * scale),
   };
 
-  const summary = await applyRewardConfig(userId, cfg, { rng, source: 'mission_run' });
+  const summary = await applyRewardConfig(userId, cfg, {
+    rng,
+    source: coopScale > 1 ? 'coop_mission_run' : 'mission_run',
+  });
   summary.runMult = Number(scale.toFixed(2));
   summary.hardModeMult = hardMult;
   summary.branchXpMult = branchMult;
+  summary.coopMult = coopScale;
   summary.purseReturned = purseBonus;
   summary.combatsWon = combatsWon;
   summary.nodeCount = nodeCount;

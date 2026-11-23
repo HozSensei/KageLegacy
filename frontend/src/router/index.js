@@ -15,6 +15,7 @@ import MissionsCombatView from '../views/MissionsCombatView.vue';
 import MissionRunView from '../views/MissionRunView.vue';
 import CombatView from '../views/CombatView.vue';
 import CoopView from '../views/CoopView.vue';
+import CoopMissionRunView from '../views/CoopMissionRunView.vue';
 import { PVP_ENABLED } from '../constants/featureFlags';
 import ShopView from '../views/ShopView.vue';
 import BattlePassView from '../views/BattlePassView.vue';
@@ -115,6 +116,12 @@ const router = createRouter({
           path: 'coop',
           name: 'coop',
           component: CoopView,
+          meta: { requiresCharacter: true },
+        },
+        {
+          path: 'coop/run/:id',
+          name: 'coop-run',
+          component: CoopMissionRunView,
           meta: { requiresCharacter: true },
         },
         {

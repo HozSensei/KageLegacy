@@ -37,6 +37,8 @@
     "test:type-advantage": "node scripts/testTypeAdvantage.js",
     "test:mission-run": "node scripts/testMissionRun.js",
     "test:mission-rank-access": "node scripts/testMissionRankAccess.js",
+    "test:coop-mission": "node --test scripts/testCoopMissionFlow.js scripts/testCoopMissionReadyGate.js scripts/testCoopCombat.js",
+    "test:coop-rooms": "node --test scripts/testCoopRooms.js",
     "test:enemy-difficulty-scale": "node scripts/testEnemyDifficultyScale.js",
     "test:onboarding": "node scripts/testOnboarding.js",
     "test:battle-pass": "node scripts/testBattlePass.js",
