@@ -1,13 +1,13 @@
 /**
- * Pack bienvenue one-shot — BP premium + titre + booster standard.
+ * Pack bienvenue one-shot — BP premium + titre + boosters standard (tirage réel).
  */
 import { query, getConnection } from '../config/database.js';
 import { WELCOME_PACK } from '../config/economyConfig.js';
 import {
   getActiveSeason,
   getOrCreateUserBattlePass,
-  grantBattlePassReward,
 } from './battlePassService.js';
+import { grantFreeBooster } from './boosterService.js';
 import { grantNicknameUnlock, WELCOME_NICKNAME } from './nicknameUnlockService.js';
 import { getPlayerBalances } from './shopService.js';
 
@@ -30,6 +30,10 @@ async function tableExists(tableName) {
   }
 }
 
+function welcomeBoosterCount() {
+  return Math.max(1, Math.floor(Number(WELCOME_PACK.boosterCount) || 1));
+}
+
 export function serializeWelcomePackOffer({ available, purchasedAt = null } = {}) {
   return {
     id: WELCOME_PACK.id,
@@ -40,9 +44,20 @@ export function serializeWelcomePackOffer({ available, purchasedAt = null } = {}
       battlePassPremium: true,
       nicknameId: WELCOME_NICKNAME.id,
       boosterType: WELCOME_PACK.boosterType,
+      boosterCount: welcomeBoosterCount(),
       fallbackKageCoins: WELCOME_PACK.fallbackKageCoins,
     },
   };
+}
+
+function parseStoredGranted(payloadJson) {
+  if (!payloadJson) return null;
+  try {
+    const parsed = typeof payloadJson === 'string' ? JSON.parse(payloadJson) : payloadJson;
+    return parsed?.granted || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function hasPurchasedWelcomePack(userId, connection = null) {
@@ -54,7 +69,7 @@ export async function hasPurchasedWelcomePack(userId, connection = null) {
       }
     : query;
   const rows = await run(
-    'SELECT id, created_at FROM shop_welcome_purchases WHERE user_id = ? LIMIT 1',
+    'SELECT id, created_at, payload_json FROM shop_welcome_purchases WHERE user_id = ? LIMIT 1',
     [userId],
   );
   return rows[0] || null;
@@ -77,6 +92,7 @@ export async function grantWelcomePackContents(userId, connection) {
     kageCoinsFallback: 0,
     nickname: null,
     booster: null,
+    boosters: [],
   };
 
   const season = await getActiveSeason();
@@ -105,11 +121,13 @@ export async function grantWelcomePackContents(userId, connection) {
     connection,
   });
 
-  granted.booster = await grantBattlePassReward(
-    userId,
-    { type: 'booster', boosterType: WELCOME_PACK.boosterType },
-    connection,
-  );
+  const count = welcomeBoosterCount();
+  for (let i = 0; i < count; i += 1) {
+    const pack = await grantFreeBooster(userId, WELCOME_PACK.boosterType, { connection });
+    delete pack._grantedMeta;
+    granted.boosters.push(pack);
+  }
+  granted.booster = granted.boosters[0] || null;
 
   return granted;
 }
@@ -194,7 +212,7 @@ export async function fulfillWelcomePackSession(session) {
   }
 
   const bySession = await query(
-    'SELECT id, user_id FROM shop_welcome_purchases WHERE stripe_session_id = ? LIMIT 1',
+    'SELECT id, user_id, payload_json FROM shop_welcome_purchases WHERE stripe_session_id = ? LIMIT 1',
     [session.id],
   );
   if (bySession[0]) {
@@ -203,6 +221,7 @@ export async function fulfillWelcomePackSession(session) {
       reason: 'already_fulfilled',
       product: 'welcome_pack',
       userId,
+      granted: parseStoredGranted(bySession[0].payload_json),
     };
   }
 
@@ -213,6 +232,7 @@ export async function fulfillWelcomePackSession(session) {
       reason: 'already_owned',
       product: 'welcome_pack',
       userId,
+      granted: parseStoredGranted(byUser.payload_json),
     };
   }
 
@@ -229,11 +249,16 @@ export async function fulfillWelcomePackSession(session) {
     } catch (error) {
       if (error?.code === 'ER_DUP_ENTRY') {
         await connection.rollback();
+        const again = await query(
+          'SELECT payload_json FROM shop_welcome_purchases WHERE user_id = ? OR stripe_session_id = ? LIMIT 1',
+          [userId, session.id],
+        );
         return {
           fulfilled: true,
           reason: 'already_fulfilled',
           product: 'welcome_pack',
           userId,
+          granted: parseStoredGranted(again[0]?.payload_json),
         };
       }
       throw error;

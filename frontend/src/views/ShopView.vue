@@ -24,6 +24,9 @@ useOnboardingVisit('visit_shop');
 const router = useRouter();
 
 const isOpeningBooster = ref(false);
+const canRepurchaseOpening = ref(true);
+/** File d’ouvertures restantes (pack bienvenue = 2 parchemins). */
+const openingQueue = ref([]);
 /** Élément figé au moment de l’achat (pour le pack d’ouverture). */
 const openedElement = ref(null);
 
@@ -54,6 +57,67 @@ const canStubBp = computed(
 );
 const stripeEnabled = computed(() => Boolean(shop.payments?.stripeEnabled));
 
+function normalizeOpeningCards(cards) {
+  if (!Array.isArray(cards) || !cards.length) return [];
+  // Forme boutique : { card, collectionId, isNew, rarity }
+  if (cards[0]?.card) {
+    return cards.map(entry => ({
+      ...entry,
+      rarity: entry.rarity || entry.card?.rarity,
+    }));
+  }
+  // Forme BP stub imbriquée : { entries: [...] }
+  return cards.flatMap(reward =>
+    (reward.entries || []).map(entry => ({
+      ...entry,
+      rarity: entry.rarity || entry.card?.rarity,
+    }))
+  );
+}
+
+function packsFromWelcomeGranted(granted) {
+  const list = [];
+  if (Array.isArray(granted?.boosters) && granted.boosters.length) {
+    for (const pack of granted.boosters) {
+      const cards = normalizeOpeningCards(pack?.cards || []);
+      if (cards.length) {
+        list.push({
+          boosterType: pack.boosterType || 'standard',
+          cards,
+        });
+      }
+    }
+    return list;
+  }
+  if (granted?.booster) {
+    const cards = normalizeOpeningCards(granted.booster.cards || []);
+    if (cards.length) {
+      list.push({
+        boosterType: granted.booster.boosterType || 'standard',
+        cards,
+      });
+    }
+  }
+  return list;
+}
+
+async function startRewardOpenings(packs) {
+  if (!packs.length) return;
+  const [first, ...rest] = packs;
+  openingQueue.value = rest;
+  canRepurchaseOpening.value = false;
+  openedElement.value = null;
+  shop.lastResult = {
+    boosterType: first.boosterType,
+    cards: first.cards,
+  };
+  shop.setActiveTab('boosters');
+  if (!shop.boosters.length) {
+    await shop.fetchBoosters();
+  }
+  isOpeningBooster.value = true;
+}
+
 onMounted(async () => {
   const tab = String(route.query.tab || shop.activeTab || 'boosters');
   shop.setActiveTab(tabs.some(item => item.id === tab) ? tab : 'boosters');
@@ -63,7 +127,10 @@ onMounted(async () => {
   const sessionId = String(route.query.session_id || '');
   if (checkout === 'success' && sessionId) {
     try {
-      await shop.confirmCheckout(sessionId);
+      const body = await shop.confirmCheckout(sessionId);
+      if (body?.product === 'welcome_pack' && body?.granted) {
+        await startRewardOpenings(packsFromWelcomeGranted(body.granted));
+      }
     } catch {
       /* error in store */
     }
@@ -85,6 +152,8 @@ watch(
   tab => {
     if (tab !== 'boosters') {
       isOpeningBooster.value = false;
+      openingQueue.value = [];
+      canRepurchaseOpening.value = true;
       shop.clearResult();
     }
   }
@@ -99,6 +168,8 @@ async function onSelectTab(tab) {
 async function onOpen(type) {
   const element = type === 'elemental' ? shop.selectedElement : null;
   openedElement.value = element;
+  canRepurchaseOpening.value = true;
+  openingQueue.value = [];
   try {
     await shop.openBooster(type, { element });
     isOpeningBooster.value = true;
@@ -109,13 +180,22 @@ async function onOpen(type) {
 
 async function onRepurchase() {
   const type = shop.lastResult?.boosterType;
-  if (!type) return;
+  if (!type || !canRepurchaseOpening.value) return;
   await onOpen(type);
 }
 
 function onRevealDone() {
+  if (openingQueue.value.length) {
+    const next = openingQueue.value.shift();
+    shop.lastResult = {
+      boosterType: next.boosterType,
+      cards: next.cards,
+    };
+    return;
+  }
   isOpeningBooster.value = false;
   openedElement.value = null;
+  canRepurchaseOpening.value = true;
   shop.clearResult();
   shop.fetchBoosters();
 }
@@ -138,7 +218,10 @@ async function onUnlockBp(method) {
 
 async function onBuyWelcome(method) {
   try {
-    await shop.purchaseWelcomePack(method);
+    const body = await shop.purchaseWelcomePack(method);
+    if (body?.granted) {
+      await startRewardOpenings(packsFromWelcomeGranted(body.granted));
+    }
   } catch {
     /* error in store */
   }
@@ -204,7 +287,7 @@ async function onBuyWelcome(method) {
           :booster-name="openedBoosterName"
           :element="openedElement"
           :card-count="openedBooster?.cardCount || shop.lastResult.cards?.length || 5"
-          :can-repurchase="true"
+          :can-repurchase="canRepurchaseOpening"
           :repurchasing="shop.opening"
           @done="onRevealDone"
           @repurchase="onRepurchase"

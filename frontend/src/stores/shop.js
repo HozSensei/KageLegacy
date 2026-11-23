@@ -207,7 +207,9 @@ export const useShopStore = defineStore('shop', () => {
       applyBalances(body.balances);
       welcomePack.value = body.pack || { available: false };
       lastMessage.value = body.note || null;
-      await loadTab(activeTab.value);
+      if (!body.granted?.boosters?.length && !body.granted?.booster) {
+        await loadTab(activeTab.value);
+      }
       return body;
     } catch (e) {
       error.value = e.message;
@@ -270,7 +272,14 @@ export const useShopStore = defineStore('shop', () => {
                 ? `+${body.coinsGranted} Kage Coins credited.`
                 : 'Payment confirmed.';
       }
-      await loadTab(activeTab.value);
+      const hasWelcomeOpenings =
+        body.product === 'welcome_pack' &&
+        (body.granted?.boosters?.length || body.granted?.booster);
+      if (!hasWelcomeOpenings) {
+        await loadTab(activeTab.value);
+      } else if (body.product === 'welcome_pack') {
+        welcomePack.value = { available: false };
+      }
       return body;
     } catch (e) {
       error.value = e.message;

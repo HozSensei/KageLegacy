@@ -1183,7 +1183,9 @@
       "path-genjutsu": "Genjutsu",
       "path-medicine": "Medicine",
       "elemental": "Elemental",
-      "premium": "Premium"
+      "premium": "Premium",
+      "elite": "Elite",
+      "ascendant": "Ascendant"
     },
     "sealedScroll": "Scroll",
     "revealing": "Revealing {n}/{total}",
@@ -1228,7 +1230,7 @@
       "lead": "A quiet boost to start the season — once per account.",
       "itemBp": "Premium Battle Pass",
       "itemTitle": "“Village Patron” title",
-      "itemBooster": "1 standard booster (5 cards)",
+      "itemBooster": "2 standard boosters (5 cards each)",
       "once": "Available only once.",
       "buyStripe": "Pay €{n}",
       "buyStub": "Credit (stub)",

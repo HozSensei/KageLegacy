@@ -19,16 +19,18 @@ Les quêtes Battle Pass (journalières, hebdomadaires et jalons) terminées mais
 
 ## Boosters
 
-Chaque booster contient 5 cartes.
+Chaque booster contient 5 cartes, sauf l’Élite (7) et l’Ascendant (10).
 
-| Booster     |           Coût | Poids commun / rare / légendaire / mythique |
-| ----------- | -------------: | ------------------------------------------: |
-| Standard    |       300 Ryos |                         700 / 230 / 55 / 15 |
-| Voie (×4)   |       550 Ryos |                         650 / 260 / 70 / 20 |
-| Élémentaire |       650 Ryos |                         650 / 260 / 70 / 20 |
-| Premium     | 100 Kage Coins |                        550 / 320 / 100 / 30 |
+| Booster     |           Coût | Cartes | Poids commun / rare / légendaire / mythique |
+| ----------- | -------------: | -----: | ------------------------------------------: |
+| Standard    |       300 Ryos |      5 |                         700 / 230 / 55 / 15 |
+| Voie (×4)   |       550 Ryos |      5 |                         650 / 260 / 70 / 20 |
+| Élémentaire |       650 Ryos |      5 |                         650 / 260 / 70 / 20 |
+| Premium     | 100 Kage Coins |      5 |                        550 / 320 / 100 / 30 |
+| Élite       | 250 Kage Coins |  7 (+2) |                        400 / 350 / 180 / 70 |
+| Ascendant   | 500 Kage Coins | 10 (+5) |                       250 / 350 / 280 / 120 |
 
-Le booster premium garantit une rare ou mieux. Les parchemins de voie filtrent par `stat_type` (Taijutsu, Ninjutsu, Genjutsu, Médecine). Le booster élémentaire accepte un élément optionnel. Les cartes d'une autre saison marquées exclusives sont écartées du tirage.
+Le booster premium garantit une rare ou mieux ; les parchemins Élite et Ascendant garantissent une légendaire ou mieux. Les parchemins de voie filtrent par `stat_type` (Taijutsu, Ninjutsu, Genjutsu, Médecine). Le booster élémentaire accepte un élément optionnel. Les cartes d'une autre saison marquées exclusives sont écartées du tirage. L’étalage boutique affiche **9** offres en grille de 3 colonnes sur grand écran.
 
 Le serveur décide le tirage et prélève le coût. Les listes de cartes envoyées par le client ne sont pas utilisées.
 
@@ -45,7 +47,7 @@ Le paiement Stripe est documenté dans [Exploitation](OPERATIONS.md).
 
 ## Pack de bienvenue
 
-Offre **one-shot** à 5 € (`welcome`) : Battle Pass Premium de la saison courante, titre de profil « Mécène du Village », et 1 booster standard (5 cartes). Si aucune saison n’est active au fulfillment, 500 Kage Coins remplacent le premium. Une seule fois par compte.
+Offre **one-shot** à 5 € (`welcome`) : Battle Pass Premium de la saison courante, titre de profil « Mécène du Village », et **2 boosters standard** (tirage boutique réel, cérémonie d’ouverture enchaînée). Si aucune saison n’est active au fulfillment, 500 Kage Coins remplacent le premium. Une seule fois par compte.
 
 ## Désenchantement et amélioration
 

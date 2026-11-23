@@ -1183,7 +1183,9 @@
       "path-genjutsu": "Genjutsu",
       "path-medicine": "Médecine",
       "elemental": "Élémentaire",
-      "premium": "Premium"
+      "premium": "Premium",
+      "elite": "Élite",
+      "ascendant": "Ascendant"
     },
     "sealedScroll": "Parchemin",
     "revealing": "Révélation {n}/{total}",
@@ -1228,7 +1230,7 @@
       "lead": "Un coup de pouce discret pour démarrer la saison — une seule fois par compte.",
       "itemBp": "Passe de saison Premium",
       "itemTitle": "Titre « Mécène du Village »",
-      "itemBooster": "1 booster standard (5 cartes)",
+      "itemBooster": "2 boosters standard (5 cartes chacun)",
       "once": "Disponible une seule fois.",
       "buyStripe": "Payer {n} €",
       "buyStub": "Créditer (stub)",

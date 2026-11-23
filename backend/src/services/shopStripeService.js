@@ -162,7 +162,7 @@ export function buildWelcomePackLineItems() {
         unit_amount: unitAmount,
         product_data: {
           name: 'Pack de bienvenue',
-          description: 'Battle Pass Premium + titre + booster standard',
+          description: 'Battle Pass Premium + titre + 2 boosters standard',
           metadata: {
             product: SHOP_PRODUCT.WELCOME_PACK,
           },
@@ -495,5 +495,6 @@ export async function confirmShopCheckoutSession(userId, sessionId) {
     balances,
     pack: result.pack || null,
     coinsGranted: result.coinsGranted ?? null,
+    granted: result.granted || null,
   };
 }

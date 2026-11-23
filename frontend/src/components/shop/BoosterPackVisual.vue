@@ -7,7 +7,7 @@ import { elementTone } from '../../utils/cardVisuals'
 defineOptions({ name: 'BoosterPackVisual' })
 
 const props = defineProps({
-  /** standard | path-* | elemental | premium */
+  /** standard | path-* | elemental | premium | elite | ascendant */
   type: { type: String, default: 'standard' },
   /** Teinte le pack élémentaire selon l’élément choisi. */
   element: { type: String, default: null },
@@ -43,7 +43,7 @@ const PATH_TONES = {
 
 const tone = computed(() => {
   if (props.type === 'elemental' && props.element) return elementTone(props.element)
-  if (props.type === 'premium') return 'gold'
+  if (props.type === 'premium' || props.type === 'elite' || props.type === 'ascendant') return 'gold'
   if (props.type === 'elemental') return 'sky'
   if (PATH_TONES[props.type]) return PATH_TONES[props.type]
   return 'indigo'
@@ -363,6 +363,36 @@ function onTearKeydown(e) {
   --pack-tear-0: #6a5020;
   --pack-tear-1: #4a3814;
   --pack-tear-2: #241808;
+}
+
+.booster-pack-visual--elite {
+  --pack-edge: #f0d090;
+  --pack-foil-0: #3a2810;
+  --pack-foil-1: #b88838;
+  --pack-foil-2: #5a4018;
+  --pack-foil-3: #2c1c08;
+  --pack-foil-4: #d0a048;
+  --pack-foil-5: #1c1404;
+  --pack-ink: #fff4d8;
+  --pack-muted: #f0d090;
+  --pack-tear-0: #7a5820;
+  --pack-tear-1: #5a4018;
+  --pack-tear-2: #2c1c08;
+}
+
+.booster-pack-visual--ascendant {
+  --pack-edge: #f8e0a0;
+  --pack-foil-0: #402810;
+  --pack-foil-1: #c89840;
+  --pack-foil-2: #684818;
+  --pack-foil-3: #301c08;
+  --pack-foil-4: #e0b050;
+  --pack-foil-5: #201404;
+  --pack-ink: #fff8e0;
+  --pack-muted: #f8e0a0;
+  --pack-tear-0: #8a6424;
+  --pack-tear-1: #684818;
+  --pack-tear-2: #301c08;
 }
 
 .booster-pack-visual__zone {

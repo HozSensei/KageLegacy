@@ -29,9 +29,25 @@ export const BOOSTER_COSTS = Object.freeze({
   elemental: Object.freeze({ ryos: 650, kageCoins: 0 }),
   /** Accélération payante — Kage Coins only (pas de Ryos). */
   premium: Object.freeze({ ryos: 0, kageCoins: 100 }),
+  /** Tier KC intermédiaire — 1 légendaire+ garantie, +2 cartes. */
+  elite: Object.freeze({ ryos: 0, kageCoins: 250 }),
+  /** Tier KC haut — 1 légendaire+ garantie, +5 cartes. */
+  ascendant: Object.freeze({ ryos: 0, kageCoins: 500 }),
 });
 
 export const BOOSTER_CARD_COUNT = 5;
+
+/** Cartes par type (base 5 ; elite/ascendant plus généreux). */
+export const BOOSTER_CARD_COUNTS = Object.freeze({
+  standard: BOOSTER_CARD_COUNT,
+  path: BOOSTER_CARD_COUNT,
+  elemental: BOOSTER_CARD_COUNT,
+  premium: BOOSTER_CARD_COUNT,
+  /** 5 + 2 cartes supplémentaires. */
+  elite: BOOSTER_CARD_COUNT + 2,
+  /** 5 + 5 cartes supplémentaires. */
+  ascendant: BOOSTER_CARD_COUNT + 5,
+});
 
 export const PATH_BOOSTER_STAT_TYPES = Object.freeze([
   'taijutsu',
@@ -142,6 +158,8 @@ export const WELCOME_PACK = Object.freeze({
   /** Repli si aucune saison BP active au fulfillment. */
   fallbackKageCoins: 500,
   boosterType: 'standard',
+  /** Deux parchemins : ~valeur d’un pack KC 1 € ×2 en plus du BP. */
+  boosterCount: 2,
   nicknameId: 'welcome',
 });
 
@@ -216,12 +234,30 @@ export function validateEconomyInvariants() {
   if (BOOSTER_COSTS.premium.ryos !== 0 || BOOSTER_COSTS.premium.kageCoins <= 0) {
     errors.push('premium booster must be kageCoins-only');
   }
+  if (BOOSTER_COSTS.elite.ryos !== 0 || BOOSTER_COSTS.elite.kageCoins <= BOOSTER_COSTS.premium.kageCoins) {
+    errors.push('elite booster must be kageCoins-only and cost more than premium');
+  }
+  if (
+    BOOSTER_COSTS.ascendant.ryos !== 0 ||
+    BOOSTER_COSTS.ascendant.kageCoins <= BOOSTER_COSTS.elite.kageCoins
+  ) {
+    errors.push('ascendant booster must be kageCoins-only and cost more than elite');
+  }
+  if (BOOSTER_CARD_COUNTS.elite !== BOOSTER_CARD_COUNT + 2) {
+    errors.push('elite pack should grant 2 extra cards');
+  }
+  if (BOOSTER_CARD_COUNTS.ascendant !== BOOSTER_CARD_COUNT + 5) {
+    errors.push('ascendant pack should grant 5 extra cards');
+  }
   if (
     BOOSTER_COSTS.standard.kageCoins !== 0 ||
     BOOSTER_COSTS.path.kageCoins !== 0 ||
     BOOSTER_COSTS.elemental.kageCoins !== 0
   ) {
     errors.push('F2P boosters must not require kageCoins');
+  }
+  if (!Number.isFinite(WELCOME_PACK.boosterCount) || WELCOME_PACK.boosterCount < 1) {
+    errors.push('welcome pack must grant at least 1 booster');
   }
 
   // ~3 wins D pour 1 pack standard
@@ -266,6 +302,7 @@ export function validateEconomyInvariants() {
 export default {
   BOOSTER_COSTS,
   BOOSTER_CARD_COUNT,
+  BOOSTER_CARD_COUNTS,
   PATH_BOOSTER_STAT_TYPES,
   STARTING_RYOS,
   COMBAT_DEFAULT_REWARDS,

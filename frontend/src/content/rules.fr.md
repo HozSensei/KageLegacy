@@ -455,18 +455,21 @@ Dans **Duels PvP**, vous affrontez le **deck actif d’un autre joueur**, figé 
 
 ### Parchemins
 
-Un parchemin contient **5 cartes**.
+Un parchemin contient **5 cartes** par défaut (7 pour l’Élite, 10 pour l’Ascendant).
 
-| Parchemin       | Prix           | Normale | Rare | Légendaire | Mythique |
-| --------------- | -------------- | ------- | ---- | ---------- | -------- |
-| **Standard**    | 300 Ryos       | 70 %    | 23 % | 5,5 %      | 1,5 %    |
-| **Voie** (×4)   | 550 Ryos       | 65 %    | 26 % | 7 %        | 2 %      |
-| **Élémentaire** | 650 Ryos       | 65 %    | 26 % | 7 %        | 2 %      |
-| **Premium**     | 100 Kage Coins | 55 %    | 32 % | 10 %       | 3 %      |
+| Parchemin       | Prix           | Cartes | Normale | Rare | Légendaire | Mythique |
+| --------------- | -------------- | ------ | ------- | ---- | ---------- | -------- |
+| **Standard**    | 300 Ryos       | 5      | 70 %    | 23 % | 5,5 %      | 1,5 %    |
+| **Voie** (×4)   | 550 Ryos       | 5      | 65 %    | 26 % | 7 %        | 2 %      |
+| **Élémentaire** | 650 Ryos       | 5      | 65 %    | 26 % | 7 %        | 2 %      |
+| **Premium**     | 100 Kage Coins | 5      | 55 %    | 32 % | 10 %       | 3 %      |
+| **Élite**       | 250 Kage Coins | 7 (+2) | 40 %    | 35 % | 18 %       | 7 %      |
+| **Ascendant**   | 500 Kage Coins | 10 (+5)| 25 %    | 35 % | 28 %       | 12 %     |
 
 - Les parchemins de **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) ne tirent que des cartes de cette voie.
 - Le parchemin **Élémentaire** ne contient que des cartes liées à un élément. Vous pouvez choisir lequel.
 - Le parchemin **Premium** garantit au moins une carte rare ou meilleure.
+- Les parchemins **Élite** et **Ascendant** garantissent au moins une carte légendaire ou meilleure.
 - Une carte déjà possédée s'ajoute en exemplaire supplémentaire.
 
 Les cartes exclusives d'une saison ne sortent pas des parchemins.
@@ -482,7 +485,7 @@ Les Kage Coins s'achètent avec de l'argent réel, par paiement sécurisé :
 | Forge des Ombres  | 1 000 + 150 offerts   | 10 € |
 | Coffre du Kage    | 5 000 + 1 000 offerts | 50 € |
 
-Les Kage Coins servent à ouvrir des parchemins Premium et à débloquer la piste premium du passe de saison. Tout le contenu de jeu reste accessible sans en acheter.
+Les Kage Coins servent à ouvrir des parchemins Premium, Élite et Ascendant, et à débloquer la piste premium du passe de saison. Tout le contenu de jeu reste accessible sans en acheter.
 
 ---
 

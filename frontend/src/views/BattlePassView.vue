@@ -62,6 +62,8 @@ async function onClaim({ level, track }) {
         'path-medicine',
         'elemental',
         'premium',
+        'elite',
+        'ascendant',
       ];
       const type = allowed.includes(boosterReward.boosterType)
         ? boosterReward.boosterType

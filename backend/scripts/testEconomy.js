@@ -58,6 +58,14 @@ assert(
   BOOSTER_CATALOG.premium.cost.kageCoins === BOOSTER_COSTS.premium.kageCoins,
   'booster premium wired'
 );
+assert(
+  BOOSTER_CATALOG.elite.cost.kageCoins === BOOSTER_COSTS.elite.kageCoins,
+  'booster elite wired'
+);
+assert(
+  BOOSTER_CATALOG.ascendant.cost.kageCoins === BOOSTER_COSTS.ascendant.kageCoins,
+  'booster ascendant wired'
+);
 console.log('✓ boosterService ← economyConfig');
 
 // Card dust/upgrade wired
@@ -106,6 +114,10 @@ console.log('✓ resolveCombatRewards rank floors');
 assert(BATTLE_PASS.premiumXpMultiplier <= 1.25, 'premium XP ≤ 1.25');
 assert(BATTLE_PASS.premiumXpMultiplier >= 1.1, 'premium XP gives a real but soft boost');
 assert(BOOSTER_COSTS.premium.ryos === 0, 'premium pack not buyable with soft currency');
+assert(BOOSTER_COSTS.elite.ryos === 0, 'elite pack not buyable with soft currency');
+assert(BOOSTER_COSTS.ascendant.ryos === 0, 'ascendant pack not buyable with soft currency');
+assert(BOOSTER_COSTS.elite.kageCoins > BOOSTER_COSTS.premium.kageCoins, 'elite > premium KC');
+assert(BOOSTER_COSTS.ascendant.kageCoins > BOOSTER_COSTS.elite.kageCoins, 'ascendant > elite KC');
 console.log('✓ soft premium (no extreme P2W)');
 
 // Early upgrade softer than 500/20
