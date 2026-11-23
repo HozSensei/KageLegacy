@@ -28,7 +28,7 @@ Un deck actif respecte :
 - au maximum 3 copies d'une définition ;
 - au maximum 1 héritage de clan ;
 - au maximum 3 cartes légendaires ou mythiques, héritages inclus ;
-- exactement deux voies principales distinctes parmi les cartes non neutres, avec au moins 25 % de ces cartes dans chacune (arrondi au supérieur). Seule la voie principale de chaque carte compte.
+- au moins 15 cartes d’une même voie et 5 cartes d’une deuxième voie ; le reste est libre (3ᵉ/4ᵉ voie, neutres). Seule la voie principale de chaque carte compte ; les neutres ne remplissent pas les seuils.
 
 Les cartes neutres de voie `common` comptent pour la taille du deck, pas pour le 25/75. Ce n’est pas la rareté Commune. Exemple : 30 cartes dont 10 neutres donnent 20 cartes de voie et un minimum de 5 dans chaque voie. Un deck non conforme reste éditable, mais ne peut pas être activé ni lancé en combat.
 

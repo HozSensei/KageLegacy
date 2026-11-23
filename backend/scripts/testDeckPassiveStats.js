@@ -35,15 +35,24 @@ const rows = [
   {
     slug: 'objet-de-test',
     type: 'item',
-    stat_type: 'taijutsu',
+    stat_type: 'common',
     passive_bonus_json: { vitesse: 1, medecine: 3 },
     quantity: 1,
     upgrade_level: 0,
   },
-  ...Array.from({ length: 6 }, (_, index) => ({
-    slug: `carte-neutre-${index}`,
+  ...Array.from({ length: 3 }, (_, index) => ({
+    slug: `nin-filler-${index}`,
     type: 'skill',
-    stat_type: index === 0 ? 'taijutsu' : 'common',
+    stat_type: 'ninjutsu',
+    passive_bonus_json: {},
+    quantity: 1,
+    upgrade_level: 0,
+  })),
+  ...Array.from({ length: 5 }, (_, index) => ({
+    slug: `tai-filler-${index}`,
+    type: 'skill',
+    stat_type: 'taijutsu',
+    passive_bonus_json: {},
     quantity: 3,
     upgrade_level: 0,
   })),
@@ -165,7 +174,7 @@ test('le PvE utilise les passifs du deck choisi même s’il est inactif', async
   assert.deepEqual(snapshot(), combat.stats);
 });
 
-test('une carte de troisième voie reste ajoutable mais interdit l’activation et le combat', async t => {
+test('une carte de troisième voie (splash) reste jouable', async t => {
   const owned = {
     id: 99,
     card_definition_id: 99,
@@ -189,7 +198,7 @@ test('une carte de troisième voie reste ajoutable mais interdit l’activation 
     if (sql.includes('FROM combat_sessions')) return [[]];
     assert.fail(`Requête inattendue : ${sql}`);
   });
-  const connect = t.mock.method(pool, 'getConnection', async () => ({
+  t.mock.method(pool, 'getConnection', async () => ({
     async beginTransaction() {},
     async commit() {},
     release() {},
@@ -197,6 +206,8 @@ test('une carte de troisième voie reste ajoutable mais interdit l’activation 
       if (sql.includes('DELETE FROM user_deck_cards')) saved = [];
       else if (sql.includes('INSERT INTO user_deck_cards')) {
         saved.push({ ...collection.get(params[1]), quantity: params[3] });
+      } else if (sql.includes('UPDATE user_decks SET is_active')) {
+        /* activation */
       } else assert.fail(`Requête inattendue : ${sql}`);
     },
   }));
@@ -204,19 +215,66 @@ test('une carte de troisième voie reste ajoutable mais interdit l’activation 
   assert.equal((await getActiveDeck(userId)).validation.valid, true);
   const added = await addCardToDeck(userId, deck.id, owned.id);
   assert.equal(added.size, 22);
-  assert.deepEqual(added.validation.codes, ['invalid_art_count']);
+  assert.equal(added.validation.valid, true);
   assert.equal(added.validation.artCounts.genjutsu, 1);
-  assert.equal(added.validation.minArtCards, 2);
+  assert.equal(added.validation.primaryCount, 15);
+  assert.equal(added.validation.secondaryCount, 5);
   const replaced = await replaceDeckCards(
     userId,
     deck.id,
-    withThirdArt.map(row => ({ collectionId: row.id, quantity: row.quantity }))
+    withThirdArt.map(row => ({ collectionId: row.id, quantity: row.quantity })),
   );
   assert.equal(replaced.size, 22);
-  assert.deepEqual(replaced.validation.codes, ['invalid_art_count']);
-  const refused = { statusCode: 400, message: /2 voies distinctes.*2 distinct arts/ };
+  assert.equal(replaced.validation.valid, true);
+  await setActiveDeck(userId, deck.id);
+});
+
+test('un deck sous le seuil 15+5 refuse l’activation et le combat', async t => {
+  const weakRows = [
+    {
+      id: 1,
+      card_definition_id: 1,
+      slug: 'faible-tai',
+      type: 'skill',
+      stat_type: 'taijutsu',
+      rarity: 'common',
+      quantity: 10,
+      upgrade_level: 0,
+      passive_bonus_json: {},
+    },
+    {
+      id: 2,
+      card_definition_id: 2,
+      slug: 'faible-nin',
+      type: 'skill',
+      stat_type: 'ninjutsu',
+      rarity: 'common',
+      quantity: 10,
+      upgrade_level: 0,
+      passive_bonus_json: {},
+    },
+  ];
+  t.mock.method(pool, 'execute', async sql => {
+    if (sql.includes('information_schema.tables')) return [[{ ok: 1 }]];
+    if (sql.includes('FROM user_decks')) return [[deck]];
+    if (sql.includes('FROM user_deck_cards udc')) return [weakRows];
+    if (sql.includes('FROM combat_sessions')) return [[]];
+    assert.fail(`Requête inattendue : ${sql}`);
+  });
+  t.mock.method(pool, 'getConnection', async () => ({
+    async beginTransaction() {},
+    async commit() {},
+    release() {},
+    async execute() {
+      assert.fail('aucune écriture attendue');
+    },
+  }));
+
+  const active = await getActiveDeck(userId);
+  assert.equal(active.validation.valid, false);
+  assert.ok(active.validation.codes.includes('insufficient_primary_art'));
+  const refused = { statusCode: 400, message: /Voie principale insuffisante|Primary path too low/ };
   await assert.rejects(setActiveDeck(userId, deck.id), refused);
-  assert.equal(connect.mock.callCount(), 1, 'aucune transaction d’activation');
   await assert.rejects(startCombat(userId), refused);
   await assert.rejects(startCombat(userId, { deckId: deck.id }), refused);
 });

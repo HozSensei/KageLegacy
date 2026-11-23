@@ -107,15 +107,22 @@ const tooSmall = validateDeck(
 );
 assert(!tooSmall.valid && tooSmall.size === 5, 'reject small deck');
 
-const okCards = Array.from({ length: DECK_MIN_SIZE }, (_, i) => ({
-  quantity: 1,
-  collectionId: i,
-  card: { nameFr: `C${i}`, statType: i % 2 === 0 ? 'taijutsu' : 'ninjutsu' },
-}));
+const okCards = [
+  ...Array.from({ length: 15 }, (_, i) => ({
+    quantity: 1,
+    collectionId: i,
+    card: { nameFr: `T${i}`, statType: 'taijutsu' },
+  })),
+  ...Array.from({ length: 5 }, (_, i) => ({
+    quantity: 1,
+    collectionId: 15 + i,
+    card: { nameFr: `N${i}`, statType: 'ninjutsu' },
+  })),
+];
 const ok = validateDeck(okCards);
 assert(ok.valid && ok.size === DECK_MIN_SIZE, 'accept min deck');
 assert(
-  DECK_CONSTRAINTS.requiredArts === 2 && DECK_CONSTRAINTS.minArtShare === 25,
+  DECK_CONSTRAINTS.minPrimaryArtCards === 15 && DECK_CONSTRAINTS.minSecondaryArtCards === 5,
   'public art constraints',
 );
 
@@ -140,28 +147,34 @@ const exactQuota = validateComposition({ taijutsu: 15, ninjutsu: 5, common: 10 }
 assert(exactQuota.valid && exactQuota.size === 30, '15/5 plus 10 neutrals is valid');
 deepEqual(exactQuota.artCounts, { taijutsu: 15, ninjutsu: 5, genjutsu: 0, medicine: 0 });
 assert(
-  exactQuota.nonNeutralCount === 20 && exactQuota.minArtCards === 5,
+  exactQuota.nonNeutralCount === 20 &&
+    exactQuota.minPrimaryArtCards === 15 &&
+    exactQuota.minSecondaryArtCards === 5 &&
+    exactQuota.primaryArt === 'taijutsu' &&
+    exactQuota.secondaryArt === 'ninjutsu',
   'count quantities, not rarity or secondary stat',
 );
 
-const thirdArt = validateComposition({ taijutsu: 14, ninjutsu: 5, genjutsu: 1 });
-assert(!thirdArt.valid && thirdArt.size === 20, '14/5/1 is invalid, even with only one Genjutsu');
-deepEqual(thirdArt.codes, ['invalid_art_count']);
-deepEqual(thirdArt.errors, [
-  'Le deck doit contenir exactement 2 voies distinctes parmi les cartes non neutres (3 : Taijutsu 14, Ninjutsu 5, Genjutsu 1).',
-]);
-deepEqual(thirdArt.errorsEn, [
-  'The deck must contain exactly 2 distinct arts among non-neutral cards (3: Taijutsu 14, Ninjutsu 5, Genjutsu 1).',
-]);
+const thirdArt = validateComposition({ taijutsu: 15, ninjutsu: 5, genjutsu: 1, common: 0 });
+assert(thirdArt.valid && thirdArt.size === 21, '15/5/1 splash is valid');
+deepEqual(thirdArt.codes, []);
 
-const underQuota = validateComposition({ taijutsu: 7, ninjutsu: 2 });
-assert(!underQuota.valid && underQuota.minArtCards === 3, 'round quota up');
-deepEqual(underQuota.codes, ['insufficient_art_cards']);
-deepEqual(underQuota.errors, [
-  'Ninjutsu : 2/3 cartes requises (25 % des 9 cartes non neutres, arrondi au supérieur).',
+const underPrimary = validateComposition({ taijutsu: 14, ninjutsu: 5, genjutsu: 1 });
+assert(!underPrimary.valid && underPrimary.size === 20, '14/5/1 fails the primary floor');
+deepEqual(underPrimary.codes, ['insufficient_primary_art']);
+assert(
+  underPrimary.errors[0].includes('14/15'),
+  `primary error mentions 14/15: ${underPrimary.errors[0]}`,
+);
+
+const underSecondary = validateComposition({ taijutsu: 16, ninjutsu: 4 });
+assert(!underSecondary.valid, '16/4 fails the secondary floor');
+deepEqual(underSecondary.codes, ['insufficient_secondary_art']);
+deepEqual(underSecondary.errors, [
+  'Deuxième voie insuffisante : Ninjutsu 4/5 (il faut au moins 5 cartes d\'une autre voie).',
 ]);
-deepEqual(underQuota.errorsEn, [
-  'Ninjutsu: 2/3 required cards (25% of 9 non-neutral cards, rounded up).',
+deepEqual(underSecondary.errorsEn, [
+  'Secondary path too low: Ninjutsu 4/5 (need at least 5 cards of a second path).',
 ]);
 
 for (const composition of [
@@ -170,10 +183,17 @@ for (const composition of [
   { taijutsu: 3, ninjutsu: 3, genjutsu: 3, medicine: 3 },
   {},
 ]) {
-  deepEqual(validateComposition(composition).codes, ['invalid_art_count']);
+  const codes = validateComposition(composition).codes;
+  assert(
+    codes.includes('insufficient_primary_art') || codes.includes('insufficient_secondary_art'),
+    `rejects weak spread: ${JSON.stringify(composition)} → ${codes}`,
+  );
 }
 const mostlyNeutral = validateComposition({ taijutsu: 1, ninjutsu: 1 });
-assert(mostlyNeutral.valid && mostlyNeutral.nonNeutralCount === 2, 'no neutral cap');
+assert(
+  !mostlyNeutral.valid && mostlyNeutral.nonNeutralCount === 2,
+  'mostly-neutral decks fail the 15+5 floors',
+);
 
 const tooBig = validateDeck(
   Array.from({ length: DECK_MAX_SIZE + 1 }, (_, i) => ({ quantity: 1, collectionId: i })),
@@ -188,29 +208,55 @@ assert(isClanCard({ card: { slug: 'clan-benigiri' } }), 'nested clan slug detect
 assert(isClanCard({ tags: ['clan'], rarity: 'legendary' }), 'clan tag detected');
 assert(!isClanCard({ slug: 'nin-chidori', rarity: 'legendary' }), 'non-clan legendary');
 
-const baseCommons = Array.from({ length: DECK_MIN_SIZE - 2 }, (_, i) => ({
-  quantity: 1,
-  collectionId: i,
-  card: {
-    slug: `common-${i}`,
-    rarity: 'common',
-    statType: i % 2 === 0 ? 'taijutsu' : 'ninjutsu',
-    nameFr: `C${i}`,
-    nameEn: `C${i}`,
-  },
-}));
+// 15 Tai + 3 Nin = 18 ; les tests rareté y ajoutent 2 cartes (total 20).
+const baseCommons = [
+  ...Array.from({ length: 15 }, (_, i) => ({
+    quantity: 1,
+    collectionId: i,
+    card: {
+      slug: `tai-${i}`,
+      rarity: 'common',
+      statType: 'taijutsu',
+      nameFr: `T${i}`,
+      nameEn: `T${i}`,
+    },
+  })),
+  ...Array.from({ length: 3 }, (_, i) => ({
+    quantity: 1,
+    collectionId: 100 + i,
+    card: {
+      slug: `nin-${i}`,
+      rarity: 'common',
+      statType: 'ninjutsu',
+      nameFr: `N${i}`,
+      nameEn: `N${i}`,
+    },
+  })),
+];
 
 const twoClans = validateDeck([
   ...baseCommons,
   {
     quantity: 1,
     collectionId: 900,
-    card: { slug: 'clan-shizumori', rarity: 'legendary', nameFr: 'A', nameEn: 'A' },
+    card: {
+      slug: 'clan-shizumori',
+      rarity: 'legendary',
+      statType: 'ninjutsu',
+      nameFr: 'A',
+      nameEn: 'A',
+    },
   },
   {
     quantity: 1,
     collectionId: 901,
-    card: { slug: 'clan-benigiri', rarity: 'legendary', nameFr: 'B', nameEn: 'B' },
+    card: {
+      slug: 'clan-benigiri',
+      rarity: 'legendary',
+      statType: 'ninjutsu',
+      nameFr: 'B',
+      nameEn: 'B',
+    },
   },
 ]);
 assert(!twoClans.valid, 'reject two clan cards');
@@ -225,11 +271,11 @@ assert(
 );
 
 const fourLegendaries = validateDeck([
-  ...baseCommons.slice(2),
-  { quantity: 1, collectionId: 910, card: { slug: 'leg-1', rarity: 'legendary' } },
-  { quantity: 1, collectionId: 911, card: { slug: 'leg-2', rarity: 'legendary' } },
-  { quantity: 1, collectionId: 912, card: { slug: 'leg-3', rarity: 'mythic' } },
-  { quantity: 1, collectionId: 913, card: { slug: 'leg-4', rarity: 'legendary' } },
+  ...baseCommons.slice(0, 16), // 15 tai + 1 nin
+  { quantity: 1, collectionId: 910, card: { slug: 'leg-1', rarity: 'legendary', statType: 'ninjutsu' } },
+  { quantity: 1, collectionId: 911, card: { slug: 'leg-2', rarity: 'legendary', statType: 'ninjutsu' } },
+  { quantity: 1, collectionId: 912, card: { slug: 'leg-3', rarity: 'mythic', statType: 'ninjutsu' } },
+  { quantity: 1, collectionId: 913, card: { slug: 'leg-4', rarity: 'legendary', statType: 'ninjutsu' } },
 ]);
 assert(!fourLegendaries.valid, 'reject 4 legendary/mythic');
 assert(fourLegendaries.codes.includes('too_many_legendary'), 'legendary code');
@@ -247,18 +293,31 @@ assert(
 );
 
 const oneClanTwoLegs = validateDeck([
-  ...baseCommons.slice(1),
+  ...baseCommons, // 15 tai + 3 nin
   {
     quantity: 1,
     collectionId: 920,
-    card: { slug: 'clan-kazamine', rarity: 'legendary' },
+    card: { slug: 'clan-kazamine', rarity: 'legendary' }, // neutre
   },
-  { quantity: 1, collectionId: 921, card: { slug: 'leg-a', rarity: 'legendary' } },
-  { quantity: 1, collectionId: 922, card: { slug: 'myth-a', rarity: 'mythic' } },
+  {
+    quantity: 1,
+    collectionId: 921,
+    card: { slug: 'leg-a', rarity: 'legendary', statType: 'ninjutsu' },
+  },
+  {
+    quantity: 1,
+    collectionId: 922,
+    card: { slug: 'myth-a', rarity: 'mythic', statType: 'ninjutsu' },
+  },
 ]);
 assert(oneClanTwoLegs.valid, 'accept 1 clan + 2 other legendary/mythic');
 assert(oneClanTwoLegs.clanCount === 1, 'clan count 1');
 assert(oneClanTwoLegs.legendaryOrMythicCount === 3, 'legendary count includes clan');
+assert(oneClanTwoLegs.size === 21, 'clan+legs deck size 21');
+assert(
+  oneClanTwoLegs.primaryCount === 15 && oneClanTwoLegs.secondaryCount === 5,
+  'clan+legs still meets 15+5',
+);
 
 // Catalogue seed : palier 282 cartes (250 + vague 4)
 assert(STARTER_CARDS.length === 22, `starters should be 22, got ${STARTER_CARDS.length}`);

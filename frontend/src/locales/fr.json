@@ -195,7 +195,7 @@
     "timelineRealtime": "En quelques minutes, tu poses les bases : un personnage, un village, un deck et une première mission.",
     "timeline": {
       "create": "Crée ton personnage, choisis ton village et récupère ton pack de départ.",
-      "build": "Ouvre ton deck starter, puis ajuste-le dans le constructeur.",
+      "build": "Ouvre un de tes decks starter (Taijutsu ou Ninjutsu), puis ajuste-le dans le constructeur.",
       "grow": "Dépense ton premier point dans l'arbre de talents.",
       "fight": "Lance une mission, gagne XP, Ryos et cartes — puis reviens renforcer ton village."
     },
@@ -921,7 +921,7 @@
     "emptyCollectionShop": "Aller à la boutique",
     "emptyCollectionMissions": "Aller aux missions",
     "emptyDecksTitle": "Aucun deck",
-    "emptyDecksLead": "Crée un deck ci-dessus, ou attends que le loadout de départ finisse d'accorder les cartes.",
+    "emptyDecksLead": "Deux decks starter (Taijutsu et Ninjutsu) sont créés automatiquement. Sinon, crée un deck ci-dessus.",
     "emptyDeckNoCardsTitle": "Pas de cartes pour construire",
     "emptyDeckNoCardsLead": "Ta collection est vide — achète un booster ou termine une mission pour obtenir des cartes.",
     "collectionProgress": "{owned} / {total} possédées",
@@ -957,11 +957,11 @@
       "copies": "Maximum {maxCopies} exemplaires d’une même carte, dans la limite de ta collection.",
       "clan": "Maximum {maxClan} carte de clan. | Maximum {maxClan} cartes de clan.",
       "rarity": "Maximum {maxLegendaryOrMythic} cartes légendaires ou mythiques au total, cartes de clan de ces raretés comprises.",
-      "arts": "Exactement {requiredArts} voies distinctes, chacune avec au moins {minArtShare} % des cartes non neutres (arrondi au supérieur). Seule la voie principale de chaque carte compte."
+      "arts": "Au moins {minPrimaryArtCards} cartes d’une voie et {minSecondaryArtCards} d’une deuxième. Le reste est libre (3ᵉ/4ᵉ voie, neutres…). Seule la voie principale de chaque carte compte."
     },
     "deckArts": {
       "title": "Répartition des voies",
-      "summary": "Cartes neutres : {neutral} · Cartes de voie : {nonNeutral} · Minimum par voie : {min}"
+      "summary": "Objectif {minPrimary}+{minSecondary} · Principale : {primaryLabel} {primaryCount}/{minPrimary} · Secondaire : {secondaryLabel} {secondaryCount}/{minSecondary} · Neutres : {neutral}"
     },
     "deckValidity": {
       "valid": "Deck valide",
@@ -1338,7 +1338,7 @@
     "activeDeck": "Deck actif",
     "practiceDeckHint": "Deck d’entraînement (aucune collection)",
     "noDeckTitle": "Aucun deck actif",
-    "noDeckLead": "Active un deck avant de lancer une mission. Les nouveaux personnages reçoivent un deck de départ automatiquement.",
+    "noDeckLead": "Active un deck avant de lancer une mission. Les nouveaux personnages reçoivent deux decks de départ (Taijutsu et Ninjutsu).",
     "openDecks": "Ouvrir le constructeur",
     "startMission": "Lancer le parcours",
     "hardModeLabel": "Difficulté augmentée (+20 % récompenses)",

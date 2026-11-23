@@ -99,7 +99,7 @@ Chaque carte a deux rôles :
 | **Invocation** | Appelle un allié qui combat à vos côtés                    |
 | **Objet**      | Effet ponctuel ; la plupart s'épuisent après usage         |
 
-Une carte peut être liée à une **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) et à un **élément** (Katon, Suiton, Raiton, Doton, Futon). Les cartes sans voie (objets, invocations, certains héritages) sont **neutres** : elles ne comptent pas dans la répartition 25 % / 25 % du deck et **interrompent** une chaîne.
+Une carte peut être liée à une **voie** (Taijutsu, Ninjutsu, Genjutsu, Médecine) et à un **élément** (Katon, Suiton, Raiton, Doton, Futon). Les cartes sans voie (objets, invocations, certains héritages) sont **neutres** : elles ne comptent pas dans les seuils de voies du deck (15 + 5) et **interrompent** une chaîne.
 
 ### Effets actifs courants
 
@@ -182,7 +182,7 @@ Une carte légendaire améliorée rend en plus 2 essence, une carte mythique am�
 
 Un deck jouable contient **20 à 30 cartes**, avec **3 exemplaires au maximum** d'une même carte. Il ne peut contenir que des exemplaires que vous possédez. Parmi eux, il faut respecter deux limites supplémentaires : **3 cartes légendaires ou mythiques au total**, dont **1 carte de clan au maximum**. Les exemplaires de clan légendaires ou mythiques comptent dans les deux limites.
 
-Le deck doit contenir **exactement deux voies principales distinctes**, chacune avec **au moins 25 % des cartes non neutres**, arrondi au supérieur. Seule la voie principale de chaque carte compte. Les cartes de voie neutre comptent dans les 20 à 30 cartes, mais sont exclues de la répartition. Par exemple, avec 10 neutres dans un deck de 30 cartes, il faut au moins 5 cartes de chaque voie.
+Le deck doit contenir **au moins 15 cartes d'une même voie** et **au moins 5 cartes d'une deuxième voie**. Le reste est libre : 3ᵉ ou 4ᵉ voie, cartes neutres, etc. Seule la voie principale de chaque carte compte ; les neutres ne remplissent pas les seuils 15 et 5. À la création, deux decks de départ sont proposés (Taijutsu et Ninjutsu).
 
 Vous pouvez créer plusieurs decks, mais un seul est **actif**. C'est le deck actif qui :
 
@@ -550,6 +550,7 @@ Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Ent
 
 | Date       | Changement                                                                                                                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-23 | Composition de deck : 15 + 5 (splash libre), deux decks starter Taijutsu / Ninjutsu |
 | 2026-11-22 | Parcours branchés : bourse 0/100/200/300, inventaire 4 slots, boutique de run, bifurs XP, plus de contrebande |
 | 2026-11-20 | Paliers missions (accès par rang perso), D dur / C exigeant ; combat détaillé (héritages, chaînes, glossaire) |
 | 2026-11-14 | Réécriture complète pour la version actuelle : un seul ninja, deck de 20 à 30 cartes, arbre de talents, combat au tour par tour, parcours de mission, boutique, passe de saison, arène |

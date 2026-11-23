@@ -7,6 +7,7 @@ import {
   getStarterGrantQuantity,
   selectStarterDeckEntries,
   STARTER_CARD_SLUGS,
+  STARTER_DECK_PRESETS,
 } from '../src/config/starterLoadout.js';
 import { getCardBySlug } from '../src/services/cardService.js';
 import { addCard, getCollection } from '../src/services/collectionService.js';
@@ -27,7 +28,8 @@ async function ensurePlayableFixtureDeck(userId) {
       STARTER_CARD_SLUGS.map(slug => collection.get(slug)?.card ?? getCardBySlug(slug))
     );
     const preset = selectStarterDeckEntries(
-      definitions.map(card => ({ card, quantity: getStarterGrantQuantity(card.slug) }))
+      definitions.map(card => ({ card, quantity: getStarterGrantQuantity(card.slug) })),
+      STARTER_DECK_PRESETS[0],
     );
     const validation = validateDeck(preset);
     if (!validation.valid)

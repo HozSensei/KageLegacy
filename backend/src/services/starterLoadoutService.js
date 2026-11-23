@@ -1,12 +1,12 @@
 /**
- * Grant starter cards + starter deck for new (or empty) V2 characters.
- * Idempotent: existing collections and decks are not rewritten.
+ * Grant starter cards + two starter decks (Taijutsu / Ninjutsu) for new characters.
+ * Idempotent for normal login: existing decks are left alone unless empty.
  */
 import {
   getStarterGrantQuantity,
   selectStarterDeckEntries,
   STARTER_CARD_SLUGS,
-  STARTER_DECK_NAME_FR,
+  STARTER_DECK_PRESETS,
 } from '../config/starterLoadout.js';
 import { query } from '../config/database.js';
 import { getCardBySlug } from './cardService.js';
@@ -29,72 +29,116 @@ async function tableExists(tableName) {
 }
 
 /**
- * Accorde les cartes de base si la collection est vide.
- * @returns {{ granted: boolean, count: number }}
+ * Accorde les cartes de base manquantes (collection vide ou top-up des quantités).
+ * @returns {{ granted: boolean, toppedUp: boolean, count: number }}
  */
-export async function ensureStarterCollection(userId) {
+export async function ensureStarterCollection(userId, { topUp = false } = {}) {
   if (!(await tableExists('user_card_collection')) || !(await tableExists('card_definitions'))) {
-    return { granted: false, count: 0 };
+    return { granted: false, toppedUp: false, count: 0 };
   }
 
   const existing = await getCollection(userId);
-  if (existing.length > 0) {
-    return { granted: false, count: existing.length };
+  const bySlug = new Map(existing.map(entry => [entry.card.slug, entry]));
+
+  if (existing.length === 0) {
+    const cards = await Promise.all(STARTER_CARD_SLUGS.map(getCardBySlug));
+    for (const { id, slug } of cards) {
+      await addCard(userId, id, { quantity: getStarterGrantQuantity(slug), source: 'starter' });
+    }
+    return { granted: true, toppedUp: false, count: cards.length };
   }
 
-  const cards = await Promise.all(STARTER_CARD_SLUGS.map(getCardBySlug));
-  for (const { id, slug } of cards) {
-    await addCard(userId, id, { quantity: getStarterGrantQuantity(slug), source: 'starter' });
+  if (!topUp) {
+    return { granted: false, toppedUp: false, count: existing.length };
   }
-  return { granted: true, count: cards.length };
+
+  let topped = 0;
+  for (const slug of STARTER_CARD_SLUGS) {
+    const want = getStarterGrantQuantity(slug);
+    const owned = bySlug.get(slug);
+    const have = Number(owned?.quantity) || 0;
+    if (have >= want) continue;
+    const card = owned?.card || (await getCardBySlug(slug));
+    await addCard(userId, card.id, { quantity: want - have, source: 'starter' });
+    topped += 1;
+  }
+  return {
+    granted: false,
+    toppedUp: topped > 0,
+    count: (await getCollection(userId)).length,
+  };
 }
 
 /**
- * Crée le preset à deux voies uniquement si aucun deck n’existe.
- * Si le lot possédé est incomplet, le preset partiel reste un brouillon.
+ * Crée les deux presets starter uniquement si aucun deck n’existe.
+ * @returns {{ created: boolean, decks: object[] }}
  */
-export async function ensureStarterDeck(userId, { name = STARTER_DECK_NAME_FR } = {}) {
+export async function ensureStarterDecks(userId) {
   if (!(await tableExists('user_decks'))) {
-    return { created: false, deck: null };
+    return { created: false, decks: [] };
   }
 
-  const decks = await listDecks(userId);
-  if (decks.length > 0) {
-    return { created: false, deck: decks.find(d => d.isActive) || decks[0] };
+  const existing = await listDecks(userId);
+  if (existing.length > 0) {
+    return { created: false, decks: existing };
   }
 
-  const cards = selectStarterDeckEntries(await getCollection(userId)).map(
-    ({ collectionId, quantity }) => ({ collectionId, quantity }),
-  );
-  if (!cards.length) return { created: false, deck: null };
+  const collection = await getCollection(userId);
+  const createdDecks = [];
+  for (const preset of STARTER_DECK_PRESETS) {
+    const cards = selectStarterDeckEntries(collection, preset).map(({ collectionId, quantity }) => ({
+      collectionId,
+      quantity,
+    }));
+    if (!cards.length) continue;
+    const deck = await createDeck(userId, {
+      name: preset.nameFr,
+      archetype: preset.archetype,
+      cards,
+    });
+    createdDecks.push(deck);
+  }
+  return { created: createdDecks.length > 0, decks: createdDecks };
+}
 
-  const deck = await createDeck(userId, { name, cards });
-  return { created: true, deck };
+/** @deprecated Prefer ensureStarterDecks */
+export async function ensureStarterDeck(userId, options = {}) {
+  const result = await ensureStarterDecks(userId);
+  return {
+    created: result.created,
+    deck: result.decks.find(d => d.isActive) || result.decks[0] || null,
+    ...options,
+  };
 }
 
 /**
- * Pipeline complet : collection vide → grant starters → deck starter.
+ * Pipeline complet : collection → deux decks starter.
  */
-export async function ensureStarterLoadout(userId) {
+export async function ensureStarterLoadout(userId, { topUpCollection = false } = {}) {
   const resetRows = await query('SELECT starter_loadout_reset_at FROM users WHERE id = ? LIMIT 1', [
     userId,
   ]);
   if (resetRows[0]?.starter_loadout_reset_at) {
     return {
       collectionGranted: false,
+      collectionToppedUp: false,
       collectionCount: (await getCollection(userId)).length,
       deckCreated: false,
+      decks: [],
       deck: null,
     };
   }
 
-  const collectionResult = await ensureStarterCollection(userId);
-  const deckResult = await ensureStarterDeck(userId);
+  const collectionResult = await ensureStarterCollection(userId, { topUp: topUpCollection });
+  const deckResult = await ensureStarterDecks(userId);
+  const decks = deckResult.decks;
   return {
     collectionGranted: collectionResult.granted,
+    collectionToppedUp: Boolean(collectionResult.toppedUp),
     collectionCount: collectionResult.count || (await getCollection(userId)).length,
     deckCreated: deckResult.created,
-    deck: deckResult.deck,
+    decks,
+    deck: decks.find(d => d.isActive) || decks[0] || null,
   };
 }
 
@@ -107,8 +151,10 @@ export async function grantStarterLoadoutOnCreate(userId) {
     console.warn('[starterLoadout] grant on create skipped:', error.message);
     return {
       collectionGranted: false,
+      collectionToppedUp: false,
       collectionCount: 0,
       deckCreated: false,
+      decks: [],
       deck: null,
       error: error.message,
     };
