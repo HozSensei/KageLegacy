@@ -212,8 +212,33 @@ function validDeckEntry(entry) {
   );
 }
 
-/** Stats de personnage hors passifs du deck ; cartes sérialisées au format PvE. */
-export function createCoopCombat(fighters) {
+function defaultCoopEnemy() {
+  const enemy = {
+    templateId: 'coop_sentinel',
+    nameFr: 'Sentinelle du duo',
+    nameEn: 'Duo Sentinel',
+    hp: 180,
+    maxHp: 180,
+    block: 0,
+    statuses: [],
+    ai: 'pattern',
+    patternIndex: 0,
+    pattern: [
+      { type: 'attack', damage: 22 },
+      { type: 'attack', damage: 26 },
+      { type: 'debuff', status: 'poison', duration: 2 },
+    ],
+  };
+  enemy.intent = getNextIntent(enemy);
+  return enemy;
+}
+
+/**
+ * Stats de personnage hors passifs du deck ; cartes sérialisées au format PvE.
+ * @param {object[]} fighters
+ * @param {{ enemy?: object }} [options] — ennemi déjà scalé (missions coop) ; sinon sentinelle.
+ */
+export function createCoopCombat(fighters, options = {}) {
   if (!Array.isArray(fighters) || fighters.length !== 2) fail(400, 'Deux combattants sont requis.');
   for (const fighter of fighters) {
     const { id, name, stats, deckEntries, talentCodes } = fighter || {};
@@ -235,23 +260,10 @@ export function createCoopCombat(fighters) {
   }
   if (fighters[0].id === fighters[1].id) fail(400, 'Les combattants doivent être distincts.');
 
-  const enemy = {
-    templateId: 'coop_sentinel',
-    nameFr: 'Sentinelle du duo',
-    nameEn: 'Duo Sentinel',
-    hp: 180,
-    maxHp: 180,
-    block: 0,
-    statuses: [],
-    ai: 'pattern',
-    patternIndex: 0,
-    pattern: [
-      { type: 'attack', damage: 22 },
-      { type: 'attack', damage: 26 },
-      { type: 'debuff', status: 'poison', duration: 2 },
-    ],
-  };
-  enemy.intent = getNextIntent(enemy);
+  const enemy =
+    options.enemy && typeof options.enemy === 'object' ? options.enemy : defaultCoopEnemy();
+  if (!enemy.intent) enemy.intent = getNextIntent(enemy);
+
   const combat = {
     state: 'in_progress',
     ruleset: 'persistent',

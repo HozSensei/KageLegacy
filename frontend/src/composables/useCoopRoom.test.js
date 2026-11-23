@@ -1,74 +1,76 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { effectScope } from 'vue';
-import { useCoopRoom } from './useCoopRoom.js';
+import { useCoopApi } from './useCoopApi.js';
 
-const room = (revision, status = 'active') => ({ id: 'room-a', revision, status });
+const room = (revision, status = 'waiting') => ({
+  id: 'room-a',
+  revision,
+  status,
+  role: 'host',
+});
 
-function harness(t) {
+function harness(t, { interval = 2000 } = {}) {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   const scope = effectScope();
   t.after(() => scope.stop());
   const calls = [];
   const api = scope.run(() =>
-    useCoopRoom({
-      request: (path, options) => new Promise(resolve => calls.push({ path, ...options, resolve })),
+    useCoopApi({
+      interval,
+      request: (path, options) =>
+        new Promise(resolve => calls.push({ path, ...options, resolve })),
     })
   );
   return { api, calls, scope };
 }
 
-test('actions invalidate in-flight polling and prevent concurrent writes', async t => {
+test('create puis poll room ; une écriture annule le poll', async t => {
   const { api, calls } = harness(t);
-  const opening = api.create();
+  const opening = api.createRoom();
+  assert.equal(calls[0].path, '/');
   assert.deepEqual(calls[0].payload, {});
-  calls[0].resolve(room(1, 'waiting'));
+  calls[0].resolve({ room: room(1, 'waiting') });
   await opening;
 
-  t.mock.timers.tick(1500);
+  t.mock.timers.tick(2000);
   const poll = calls[1];
-  assert.equal(poll.path, '/room-a');
-  const ending = api.action({ type: 'end_turn', target: 'enemy' });
+  assert.equal(poll.path, '/rooms/room-a');
+  const setup = api.setupRoom('room-a', { missionId: 1 });
   assert.equal(poll.signal.aborted, true);
-  assert.equal(await api.action({ type: 'end_turn' }), false);
-  assert.equal(calls[2].path, '/room-a/action');
-  calls[2].resolve(room(3));
-  await ending;
-  poll.resolve(room(2));
-  await Promise.resolve();
-  assert.equal(api.room.value.revision, 3);
-
-  t.mock.timers.tick(1500);
-  calls[3].resolve(room(2));
+  assert.equal(calls[2].path, '/rooms/room-a/setup');
+  calls[2].resolve({ room: room(3, 'waiting') });
+  await setup;
+  poll.resolve({ room: room(2, 'waiting') });
   await Promise.resolve();
   assert.equal(api.room.value.revision, 3);
 });
 
 test('unmount aborts an ongoing read and stops scheduling polls', async t => {
   const { api, calls, scope } = harness(t);
-  const opening = api.join('ABCD');
+  const opening = api.joinRoom('ABCD');
   assert.deepEqual(calls[0].payload, { code: 'ABCD' });
-  calls[0].resolve(room(1));
+  calls[0].resolve({ room: room(1) });
   await opening;
-  t.mock.timers.tick(1500);
+  t.mock.timers.tick(2000);
   scope.stop();
   assert.equal(calls[1].signal.aborted, true);
-  calls[1].resolve(room(2));
+  calls[1].resolve({ room: room(2) });
   await Promise.resolve();
   t.mock.timers.tick(6000);
   assert.equal(calls.length, 2);
   assert.equal(api.room.value.revision, 1);
 });
 
-test('a finished room stops polling', async t => {
+test('a closed room without run stops polling', async t => {
   const { api, calls } = harness(t);
-  const opening = api.create();
-  calls[0].resolve(room(1));
+  const opening = api.createRoom();
+  calls[0].resolve({ room: room(1) });
   await opening;
-  t.mock.timers.tick(1500);
-  calls[1].resolve(room(2, 'finished'));
+  t.mock.timers.tick(2000);
+  calls[1].resolve({ room: room(2, 'closed') });
   await Promise.resolve();
   t.mock.timers.tick(6000);
   assert.equal(calls.length, 2);
-  assert.equal(api.room.value.status, 'finished');
+  assert.equal(api.room.value.status, 'closed');
 });

@@ -1,0 +1,439 @@
+<script setup>
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import CombatArena from '../components/combat/CombatArena.vue';
+import MissionPathTree from '../components/missions/MissionPathTree.vue';
+import VictoryRewards from '../components/combat/VictoryRewards.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
+import { useCoopApi } from '../composables/useCoopApi.js';
+import { useAuthStore } from '../stores/auth.js';
+import { needsFriendlyFireConfirmation } from '../utils/coopCards.js';
+import {
+  localizedDescription,
+  localizedField,
+  localizedName,
+} from '../utils/localeContent.js';
+import { missionRankTone } from '../utils/missionVisuals';
+
+defineOptions({ name: 'CoopMissionRunView' });
+
+const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
+const auth = useAuthStore();
+const api = useCoopApi();
+
+const error = ref('');
+const selectedId = ref(null);
+const confirmation = ref(null);
+const confirmDialog = ref(null);
+const replaceSlot = ref(null);
+
+const runId = computed(() => route.params.id);
+const run = computed(() => api.run.value);
+const combat = computed(() => run.value?.combat || null);
+const player = computed(() => run.value?.player || {});
+const nodes = computed(() => run.value?.nodes || []);
+const isHost = computed(() => run.value?.role === 'host');
+const isGuest = computed(() => run.value?.role === 'guest');
+const isOver = computed(() =>
+  ['victory', 'defeat', 'abandoned'].includes(run.value?.state)
+);
+const event = computed(() => run.value?.currentEvent || null);
+const isShop = computed(() => event.value?.eventType === 'shop');
+
+const isMyTurn = computed(() => {
+  const playerId = combat.value?.player?.id ?? auth.user?.id;
+  const activeId = combat.value?.activePlayerId;
+  return playerId != null && activeId != null && String(activeId) === String(playerId);
+});
+const canAct = computed(
+  () =>
+    combat.value?.state === 'in_progress' &&
+    combat.value.currentPhase === 'player_turn' &&
+    isMyTurn.value
+);
+
+const missionTitle = computed(() => {
+  const m = run.value?.mission;
+  if (!m) return t('coop.runTitle');
+  return localizedName(m, locale.value, t('coop.runTitle'));
+});
+
+onMounted(async () => {
+  api.run.value = { id: runId.value, state: 'in_progress' };
+  try {
+    await api.refresh();
+  } catch (err) {
+    error.value = err.message || t('coop.requestError');
+  }
+});
+
+watch(combat, () => {
+  if (!canAct.value || !findCard(selectedId.value)) selectedId.value = null;
+});
+
+watch(
+  confirmation,
+  pending => {
+    const dialog = confirmDialog.value;
+    if (pending && !dialog?.open) dialog?.showModal();
+    else if (!pending && dialog?.open) dialog.close();
+  },
+  { flush: 'post' }
+);
+
+function findCard(id) {
+  return combat.value?.player?.hand?.find(card => card.instanceId === id);
+}
+
+async function wrap(fn) {
+  if (api.busy.value) return;
+  error.value = '';
+  try {
+    await fn();
+  } catch (err) {
+    error.value = err.message || t('coop.requestError');
+  }
+}
+
+function nodeLabel(node) {
+  if (node.type === 'combat') return node.boss ? t('combat.nodeBoss') : t('combat.nodeCombat');
+  if (node.type === 'shop' || node.type === 'merchant') return t('combat.nodeShop');
+  if (node.type === 'rest') return t('combat.nodeRest');
+  if (node.type === 'branch') return t('combat.nodeBranch');
+  return localizedName(node, locale.value) || t('combat.nodeEvent');
+}
+
+function nodeHint(node) {
+  if (node.type === 'shop' || node.type === 'merchant') return t('combat.nodeShopHint');
+  if (node.type === 'rest') return t('combat.nodeRestHint');
+  if (node.type === 'branch') return t('combat.nodeBranchHint');
+  return localizedDescription(node, locale.value) || node.templateId || '';
+}
+
+function nodeShape(node) {
+  if (node.boss) return 'lozenge';
+  if (node.type === 'shop' || node.type === 'merchant') return 'hexagon';
+  if (node.type === 'branch') return 'diamond';
+  if (node.type === 'rest' || node.type === 'mystery' || node.type === 'event') return 'circle';
+  return 'square';
+}
+
+function nodeTone(node) {
+  if (node.boss) return 'vermilion';
+  if (node.type === 'shop' || node.type === 'merchant') return 'gold';
+  if (node.type === 'branch' || node.type === 'rest' || node.type === 'mystery') return 'sky';
+  return 'indigo';
+}
+
+const inventory = computed(() => {
+  const slots = player.value.inventory;
+  if (Array.isArray(slots) && slots.length) return slots;
+  return [0, 1, 2, 3].map(slot => ({ slot, itemId: null, qty: 0 }));
+});
+
+function itemLabel(item) {
+  if (!item) return '';
+  return localizedName(item, locale.value) || item.id;
+}
+
+async function onEnter() {
+  await wrap(() => api.enterNode(runId.value));
+}
+
+async function onNodeReady(ready = true) {
+  await wrap(() => api.setNodeReady(runId.value, ready));
+}
+
+async function onBuy(itemId) {
+  await wrap(() => api.shopBuy(runId.value, itemId, replaceSlot.value));
+}
+
+async function onUse(slot) {
+  await wrap(() => api.inventoryUse(runId.value, slot));
+}
+
+async function onDiscard(slot) {
+  await wrap(() => api.inventoryDiscard(runId.value, slot));
+}
+
+async function onResolve(choiceId) {
+  await wrap(() => api.resolveEvent(runId.value, choiceId));
+}
+
+async function onAbandon() {
+  if (!confirm(t('coop.confirmAbandon'))) return;
+  await wrap(async () => {
+    await api.abandon(runId.value);
+    router.push({ name: 'coop' });
+  });
+}
+
+function cardInstanceId(cardOrId) {
+  if (cardOrId == null) return null;
+  if (typeof cardOrId === 'string') return cardOrId;
+  return cardOrId.instanceId || null;
+}
+
+async function sendAction(type, cardOrId, target = 'enemy', confirmedFriendlyFire = false) {
+  if (api.busy.value || confirmation.value) return;
+  if (type !== 'forfeit' && !canAct.value) return;
+  const instanceId = cardInstanceId(cardOrId) || selectedId.value;
+  error.value = '';
+  if (
+    type === 'play' &&
+    target === 'ally' &&
+    needsFriendlyFireConfirmation(findCard(instanceId) || cardOrId) &&
+    !confirmedFriendlyFire
+  ) {
+    confirmation.value = {
+      instanceId,
+      allyId: combat.value.ally?.id,
+      turn: combat.value.currentTurn,
+      cardName: localizedName(findCard(instanceId) || cardOrId, locale.value),
+      allyName: combat.value.ally?.name || '',
+    };
+    return;
+  }
+  try {
+    await api.combatAction(runId.value, {
+      type,
+      ...(instanceId ? { instanceId } : {}),
+      ...(type === 'play' ? { target, confirmedFriendlyFire } : {}),
+    });
+    confirmation.value = null;
+    selectedId.value = null;
+  } catch (err) {
+    if (err.code === 'FRIENDLY_FIRE_CONFIRMATION') {
+      confirmation.value = {
+        instanceId,
+        allyId: combat.value.ally?.id,
+        turn: combat.value.currentTurn,
+        cardName: localizedName(findCard(instanceId) || cardOrId, locale.value),
+        allyName: combat.value.ally?.name || '',
+      };
+      return;
+    }
+    error.value = err.message || t('coop.requestError');
+  }
+}
+
+function confirmFriendlyFire() {
+  const pending = confirmation.value;
+  if (!pending) return;
+  sendAction('play', pending.instanceId, 'ally', true);
+}
+
+function cancelConfirm() {
+  confirmation.value = null;
+}
+</script>
+
+<template>
+  <div class="page-shell coop-run" data-testid="coop-run-page">
+    <PageHeader :title="missionTitle" :tone="missionRankTone(run?.mission?.rank)" />
+
+    <p v-if="api.pollFailed.value" class="alert alert--info" role="status">
+      {{ t('coop.pollError') }}
+    </p>
+    <p v-if="error" class="alert alert--danger" role="alert">{{ error }}</p>
+
+    <template v-if="run && !combat">
+      <p class="text-ink-muted">
+        {{ isHost ? t('coop.hostHint') : t('coop.guestHint') }}
+        —
+        {{ t('coop.purse', { n: player.purse || 0 }) }}
+        /
+        {{ t('coop.allyHp', { hp: run.ally?.hp, max: run.ally?.maxHp }) }}
+      </p>
+
+      <MissionPathTree
+        :nodes="nodes"
+        :node-label="nodeLabel"
+        :node-hint="nodeHint"
+        :node-shape="nodeShape"
+        :node-tone="nodeTone"
+      />
+
+      <div v-if="!isOver && !event" class="coop-run__actions">
+        <button
+          v-if="isHost"
+          type="button"
+          class="btn btn--primary"
+          :disabled="api.busy.value"
+          data-testid="coop-enter-node"
+          @click="onEnter"
+        >
+          {{ t('coop.enterNode') }}
+        </button>
+        <p v-else class="text-ink-muted">{{ t('coop.waitingHostEnter') }}</p>
+      </div>
+
+      <section v-if="event" class="panel coop-run__event" data-testid="coop-event">
+        <h2 class="t-subheading">{{ localizedName(event, locale) }}</h2>
+        <p>{{ localizedField(event, 'description', locale) || localizedDescription(event, locale) }}</p>
+
+        <p v-if="isGuest" class="text-ink-muted">
+          {{ run.guestNodeReady ? t('coop.youAreNodeReady') : t('coop.markNodeReady') }}
+        </p>
+        <p v-else class="text-ink-muted">
+          {{
+            run.guestNodeReady ? t('coop.guestNodeReady') : t('coop.waitingGuestNodeReady')
+          }}
+        </p>
+
+        <div v-if="isShop" class="coop-run__shop">
+          <button
+            v-for="item in event.offer || []"
+            :key="item.id"
+            type="button"
+            class="btn"
+            :disabled="api.busy.value || (item.stock ?? 1) <= 0"
+            @click="onBuy(item.id)"
+          >
+            {{ itemLabel(item) }} — {{ item.price }}
+          </button>
+        </div>
+
+        <div class="coop-run__inventory">
+          <h3>{{ t('coop.inventory') }}</h3>
+          <div v-for="slot in inventory" :key="slot.slot" class="coop-run__slot">
+            <span>{{ slot.itemId || '—' }}</span>
+            <button
+              v-if="slot.itemId"
+              type="button"
+              class="btn btn--ghost"
+              @click="onUse(slot.slot)"
+            >
+              {{ t('coop.useItem') }}
+            </button>
+            <button
+              v-if="slot.itemId"
+              type="button"
+              class="btn btn--ghost"
+              @click="onDiscard(slot.slot)"
+            >
+              {{ t('coop.discardItem') }}
+            </button>
+          </div>
+        </div>
+
+        <div class="coop-run__actions">
+          <button
+            v-if="isGuest"
+            type="button"
+            class="btn btn--primary"
+            data-testid="coop-node-ready"
+            :disabled="api.busy.value"
+            @click="onNodeReady(!run.guestNodeReady)"
+          >
+            {{ run.guestNodeReady ? t('coop.unready') : t('coop.ready') }}
+          </button>
+          <template v-if="isHost">
+            <button
+              v-for="choice in event.choices || []"
+              :key="choice.id"
+              type="button"
+              class="btn btn--primary"
+              :disabled="api.busy.value || !run.guestNodeReady"
+              @click="onResolve(choice.id)"
+            >
+              {{ localizedField(choice, 'label', locale) || choice.id }}
+            </button>
+          </template>
+        </div>
+      </section>
+
+      <section v-if="isOver" class="panel">
+        <VictoryRewards
+          v-if="run.state === 'victory' && run.rewards"
+          :rewards="run.rewards"
+          :continue-label="t('coop.backToLobby')"
+          @dismiss="router.push({ name: 'coop' })"
+        />
+        <p v-else role="status">{{ t(`coop.run_${run.state}`) }}</p>
+        <button type="button" class="btn" @click="router.push({ name: 'coop' })">
+          {{ t('coop.backToLobby') }}
+        </button>
+      </section>
+
+      <button
+        v-if="!isOver"
+        type="button"
+        class="btn btn--ghost"
+        :disabled="api.busy.value"
+        @click="onAbandon"
+      >
+        {{ t('coop.abandon') }}
+      </button>
+    </template>
+
+    <template v-else-if="combat">
+      <p v-if="!isMyTurn && combat.state === 'in_progress'" class="alert alert--info" role="status">
+        {{ t('coop.asyncWaitingTurn') }}
+      </p>
+      <CombatArena
+        :combat="combat"
+        :logs="combat.logs || []"
+        :selected-id="selectedId"
+        :busy="api.busy.value"
+        :coop-turn="isMyTurn"
+        @select-card="selectedId = $event.instanceId"
+        @play-card="sendAction('play', $event, 'enemy')"
+        @play-on-ally="sendAction('play', $event, 'ally')"
+        @discard-chakra="sendAction('discard_chakra', $event)"
+        @discard-draw="sendAction('discard_draw', $event)"
+        @end-turn="sendAction('end_turn')"
+        @forfeit="sendAction('forfeit')"
+        @dismiss-outcome="api.refresh()"
+      />
+      <dialog ref="confirmDialog" class="confirm-dialog" @cancel.prevent="cancelConfirm">
+        <h2>{{ t('coop.confirmTitle') }}</h2>
+        <p v-if="confirmation">
+          {{
+            t('coop.confirmMessage', {
+              card: confirmation.cardName,
+              ally: confirmation.allyName,
+            })
+          }}
+        </p>
+        <div class="confirm-dialog__actions">
+          <button type="button" class="btn" @click="cancelConfirm">{{ t('coop.cancel') }}</button>
+          <button type="button" class="btn btn--primary" @click="confirmFriendlyFire">
+            {{ t('coop.confirmAction') }}
+          </button>
+        </div>
+      </dialog>
+    </template>
+  </div>
+</template>
+
+<style scoped>
+.coop-run__actions,
+.coop-run__shop,
+.coop-run__inventory,
+.coop-run__event {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.coop-run__slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.confirm-dialog {
+  border: 1px solid var(--border, #444);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-width: 24rem;
+}
+.confirm-dialog__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+</style>

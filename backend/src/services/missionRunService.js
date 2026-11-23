@@ -515,6 +515,22 @@ export async function startRun(userId, missionId, deckId = null, opts = {}) {
     throw httpError(409, `Parcours déjà en cours (${active[0].id}). Terminez-le ou abandonnez-le.`);
   }
 
+  if (await tableExists('coop_mission_runs')) {
+    const coopActive = await query(
+      `SELECT id FROM coop_mission_runs
+       WHERE state = 'in_progress' AND (host_id = ? OR guest_id = ?)
+       LIMIT 1`,
+      [userId, userId],
+    );
+    if (coopActive[0]) {
+      throw httpError(
+        409,
+        `Mission d’équipe déjà en cours (${coopActive[0].id}). Terminez-la d’abord.`,
+        'COOP_RUN_ACTIVE',
+      );
+    }
+  }
+
   const activeCombat = await query(
     "SELECT id FROM combat_sessions WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
     [userId],
