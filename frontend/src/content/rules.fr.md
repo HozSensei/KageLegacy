@@ -445,6 +445,10 @@ Chaque mission affiche ses récompenses de base. Elles sont multipliées par un 
 
 Le duel rapide lance un combat unique contre l'ennemi de votre choix, hors parcours. La victoire verse tout de suite une récompense fixe : 40 XP, 100 Ryos, 12 % de chance de carte et 50 XP de passe de saison.
 
+### Duels PvP (deck figé)
+
+Dans **Duels PvP**, vous affrontez le **deck actif d’un autre joueur**, figé au lancement et **piloté par le serveur**. L’autre joueur n’a pas besoin d’être connecté : ce n’est pas un combat en temps réel. Modes : défier un ami, adversaire aléatoire, ou faction ennemie. Les duels entre villages alimentent le classement hebdomadaire du Village.
+
 ---
 
 ## La boutique

@@ -114,8 +114,8 @@ const shortcuts = computed(() =>
     {
       name: 'deck-duels',
       to: '/deck-duels',
-      label: t('deckDuels.title'),
-      hint: t('deckDuels.lead'),
+      label: t('nav.deckDuels'),
+      hint: t('hub.shortcutPvp'),
     },
     {
       name: 'village',

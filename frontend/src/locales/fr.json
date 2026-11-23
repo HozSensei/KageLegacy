@@ -386,7 +386,8 @@
       "economy": "Économie",
       "extra": "Compte & outils"
     },
-    "battlePass": "Passe de saison"
+    "battlePass": "Passe de saison",
+    "deckDuels": "Duels PvP"
   },
   "rules": {
     "pageTitle": "Règles du jeu",
@@ -834,7 +835,8 @@
     "statTalentPoints": "Points de talent",
     "noDeck": "Aucun",
     "shortcutsTitle": "Tout le jeu",
-    "shortcutJournal": "Exploits permanents & paliers"
+    "shortcutJournal": "Exploits permanents & paliers",
+    "shortcutPvp": "Défier un deck adverse (serveur)"
   },
   "resources": {
     "balancesLabel": "Vos ressources",
@@ -1694,10 +1696,11 @@
     "updated": "Liste d’amis et demandes mises à jour."
   },
   "deckDuels": {
-    "title": "Duel de decks",
+    "title": "Duels PvP",
+    "kicker": "PvP asynchrone",
     "manageFriends": "Gérer mes amis au Village",
     "viewVillageStandings": "Voir le classement hebdomadaire au Village",
-    "lead": "Affrontez les decks d’autres joueurs, pilotés par l’IA. L’autre joueur ne participe pas en direct.",
+    "lead": "Affrontez le deck figé d’un autre joueur, piloté par le serveur. Pas de combat en temps réel entre deux clients.",
     "refresh": "Actualiser",
     "modes": {
       "friend": "Défier un ami",

@@ -54,7 +54,7 @@ const baseNavItems = [
   { name: 'journal', path: '/journal', label: 'nav.journal' },
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
   { name: 'coop', path: '/coop', label: 'coop.title' },
-  { name: 'deck-duels', path: '/deck-duels', label: 'deckDuels.title' },
+  { name: 'deck-duels', path: '/deck-duels', label: 'nav.deckDuels' },
 ];
 
 const adminNavItem = {
