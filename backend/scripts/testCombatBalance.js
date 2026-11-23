@@ -35,6 +35,7 @@ import {
   getStarterGrantQuantity,
   selectStarterDeckEntries,
   STARTER_CARD_SLUGS,
+  STARTER_DECK_PRESETS,
 } from '../src/config/starterLoadout.js';
 import { mergeStatBonuses, rankForLevel } from '../src/services/playerCharacterService.js';
 import { ALL_CARDS } from './seedCards.js';
@@ -200,7 +201,7 @@ function buildStarterFixture() {
       throw new Error(`Starter ${slug}: ${matches.length} définitions seed`);
     return { quantity: getStarterGrantQuantity(slug), card: serializeSeedCard(matches[0]) };
   });
-  const entries = selectStarterDeckEntries(collection);
+  const entries = selectStarterDeckEntries(collection, STARTER_DECK_PRESETS[0]);
   return {
     entries,
     profile: {
@@ -264,43 +265,42 @@ console.log('\n=== Fixture starter niveau 1 ===');
 const starter = buildStarterFixture();
 {
   const validation = validateDeck(starter.entries);
-  assert(validation.valid && validation.size === 22, 'starter : deck valide de 22 cartes');
+  assert(validation.valid && validation.size === 20, 'starter : deck valide de 20 cartes');
   assert(
-    validation.legendaryOrMythicCount === 2 && validation.clanCount === 0,
-    'starter : limites de rareté et clan respectées'
+    validation.legendaryOrMythicCount === 0 && validation.clanCount === 0,
+    'starter Taijutsu : limites de rareté et clan respectées'
   );
   assert(
-    starter.entries.length === 18 &&
-      starter.entries.every(
-        entry =>
-          entry.quantity === getStarterGrantQuantity(entry.card.slug) &&
-          entry.card.upgradeLevel === 0
-      ),
-    'starter : exemplaires possédés au niveau L0'
+    starter.entries.every(entry => entry.card.upgradeLevel === 0),
+    'starter : exemplaires au niveau L0'
+  );
+  assert(
+    validation.primaryCount >= 15 && validation.secondaryCount >= 5,
+    'starter Taijutsu : règle 15+5'
   );
   assert(
     JSON.stringify(starter.profile.stats) ===
       JSON.stringify({
         // Remap Vit→art primaire / Int→secondaire|Gen (combatArts).
-        taijutsu: 23,
-        ninjutsu: 29,
-        genjutsu: 18,
-        medicine: 3,
-        maxHp: 14,
+        taijutsu: 30,
+        ninjutsu: 10,
+        genjutsu: 3,
+        medicine: 0,
+        maxHp: 6,
         maxChakra: 0,
         startingBlock: 0,
       }),
     'starter : passifs filtrés et agrégés comme getComputedStats'
   );
-  const bySlug = slug => starter.entries.find(entry => entry.card.slug === slug).card;
+  const bySlug = slug => starter.entries.find(entry => entry.card.slug === slug)?.card;
   assert(
-    bySlug('barrage-de-lames').effects[0]?.hits === 3,
+    bySlug('barrage-de-lames')?.effects[0]?.hits === 3,
     'starter : effet multi-strike conservé'
   );
-  assert(bySlug('clone-de-combat').summon?.hp === 20, 'starter : invocation du seed conservée');
+  assert(bySlug('poing-du-dragon')?.damage === 12, 'starter : rare Taijutsu du seed conservée');
   assert(
-    bySlug('kunai-de-fer').exhaust && bySlug('ampoule-de-chakra').cost === 0,
-    'starter : exhaust et coût conservés'
+    bySlug('vague-brumeuse')?.effects?.some(effect => effect.type === 'draw'),
+    'starter : secondaire Ninjutsu conserve son effet'
   );
   const fistSeed = ALL_CARDS.find(card => card.slug === 'poing-rapide');
   const fist1 = serializeSeedCard(fistSeed, 1);
@@ -317,8 +317,8 @@ const starter = buildStarterFixture();
     entry.card.slug === fistSeed.slug ? { ...entry, card: fist1 } : entry
   );
   assert(
-    starterStats(upgradedEntries).taijutsu === starter.profile.stats.taijutsu + 2,
-    'bonus passif L1 ajouté pour les deux exemplaires du deck'
+    starterStats(upgradedEntries).taijutsu === starter.profile.stats.taijutsu + 3,
+    'bonus passif L1 ajouté pour les trois exemplaires du deck'
   );
   const session = createSimSession({
     profileId: 'starter',
@@ -334,11 +334,11 @@ const starter = buildStarterFixture();
     'starter : niveau 1, Aspirant ninja, aucun talent'
   );
   assert(
-    session.player.maxHp === 114 && session.player.maxChakra === 3,
+    session.player.maxHp === 106 && session.player.maxChakra === 3,
     'starter : PV et chakra issus des passifs'
   );
   assert(
-    runtime.length === 22 &&
+    runtime.length === 20 &&
       starter.entries.every(entry => {
         const card = runtime.find(c => c.slug === entry.card.slug);
         return (

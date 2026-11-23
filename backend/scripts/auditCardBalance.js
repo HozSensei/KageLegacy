@@ -245,16 +245,30 @@ for (const definition of ALL_CARDS) {
 }
 
 function deckSlots({ arts, split }, size) {
-  const neutrals = 2;
-  const artSlots = size - neutrals;
-  const slots = [['common', neutrals]];
-  if (arts.length === 1) return [...slots, [arts[0], artSlots]];
+  const { minPrimaryArtCards, minSecondaryArtCards } = DECK_CONSTRAINTS;
+  if (arts.length === 1) {
+    const neutrals = Math.max(0, size - minPrimaryArtCards);
+    return [
+      ['common', neutrals],
+      [arts[0], size - neutrals],
+    ];
+  }
 
-  // Arrondir le quart vers le haut pour ne jamais passer sous 25 %.
-  const quarter = Math.ceil((artSlots * DECK_CONSTRAINTS.minArtShare) / 100);
-  const first =
-    split[0] === 25 ? quarter : split[0] === 75 ? artSlots - quarter : Math.ceil(artSlots / 2);
-  return [...slots, [arts[0], first], [arts[1], artSlots - first]];
+  const primary =
+    split[0] >= 75
+      ? Math.max(minPrimaryArtCards, Math.ceil((size * 3) / 4))
+      : split[0] <= 25
+        ? minPrimaryArtCards
+        : Math.max(minPrimaryArtCards, Math.ceil(size / 2));
+  const secondary = Math.max(minSecondaryArtCards, size - primary);
+  // Si primary + secondary dépasse size (ex. 20), on serre la secondaire au reste.
+  const secondaryFitted = Math.min(secondary, Math.max(minSecondaryArtCards, size - primary));
+  const used = primary + secondaryFitted;
+  const neutrals = Math.max(0, size - used);
+  const slots = [];
+  if (neutrals > 0) slots.push(['common', neutrals]);
+  slots.push([arts[0], primary], [arts[1], secondaryFitted]);
+  return slots;
 }
 
 function sampleDeck(slots, seen, rng, { diagnosticMono = false } = {}) {
@@ -284,8 +298,9 @@ function sampleDeck(slots, seen, rng, { diagnosticMono = false } = {}) {
   const monoCompositionOnly =
     diagnosticMono &&
     Object.values(validation.artCounts).filter(count => count > 0).length === 1 &&
-    validation.codes.length === 1 &&
-    validation.codes[0] === 'invalid_art_count';
+    validation.codes.every(code =>
+      ['insufficient_primary_art', 'insufficient_secondary_art'].includes(code),
+    );
   if (!validation.valid && !monoCompositionOnly) throw new Error(validation.errors.join('; '));
   for (const { card } of deck) seen.add(card.slug);
   return deck;

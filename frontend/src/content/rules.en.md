@@ -99,7 +99,7 @@ Every card plays two roles:
 | **Summon**  | Calls an ally who fights at your side                 |
 | **Item**    | One-off effect; most are exhausted after use          |
 
-A card can be tied to a **path** (Taijutsu, Ninjutsu, Genjutsu, Medicine) and to an **element** (Katon, Suiton, Raiton, Doton, Futon). Cards with no path (items, summons, some heritages) are **neutral**: they do not count toward the deck’s 25% / 25% split and **break** a chain.
+A card can be tied to a **path** (Taijutsu, Ninjutsu, Genjutsu, Medicine) and to an **element** (Katon, Suiton, Raiton, Doton, Futon). Cards with no path (items, summons, some heritages) are **neutral**: they do not count toward the deck’s path floors (15 + 5) and **break** a chain.
 
 ### Common active effects
 
@@ -182,7 +182,7 @@ An upgraded legendary card also returns 2 essence, an upgraded mythic card 5 ess
 
 A playable deck holds **20 to 30 cards**, with **at most 3 copies** of the same card. You can only include copies you own. Two further limits apply: **3 legendary or mythic cards combined**, including **at most 1 clan card**. Legendary or mythic clan copies count toward both limits.
 
-The deck must contain **exactly two distinct primary arts**, each with **at least 25% of its non-neutral cards**, rounded up. Only each card's primary art counts. Neutral cards count toward the deck size but not the art split. For example, a 30-card deck with 10 neutrals needs at least 5 cards of each art.
+The deck must contain **at least 15 cards of one path** and **at least 5 cards of a second path**. The rest is free: 3rd or 4th path, neutrals, and so on. Only each card's primary art counts; neutrals do not fill the 15 and 5 floors. On creation, two starter decks are offered (Taijutsu and Ninjutsu).
 
 You can build several decks, but only one is **active**. The active deck is the one that:
 
@@ -550,6 +550,7 @@ For now there is **no ranking and no reward** specific to the arena. Entering th
 
 | Date       | Change                                                                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-23 | Deck composition: 15 + 5 (free splash), two starter decks Taijutsu / Ninjutsu |
 | 2026-11-22 | Branched runs: purse 0/100/200/300, 4-slot inventory, run shop, XP forks, no more contraband |
 | 2026-11-20 | Mission gates by character rank; D hard / C demanding; combat detail (heritages, chains, glossary) |
 | 2026-11-14 | Full rewrite for the current version: single ninja, 20–30 card deck, talent tree, turn-based combat, mission runs, shop, season pass, arena |

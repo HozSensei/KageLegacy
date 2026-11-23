@@ -15,8 +15,8 @@ export const useDecksStore = defineStore('decks', () => {
     maxCopies: 3,
     maxClan: 1,
     maxLegendaryOrMythic: 3,
-    requiredArts: 2,
-    minArtShare: 25,
+    minPrimaryArtCards: 15,
+    minSecondaryArtCards: 5,
   });
   const loading = ref(false);
   const error = ref(null);

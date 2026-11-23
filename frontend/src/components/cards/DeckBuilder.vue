@@ -21,6 +21,8 @@ const props = defineProps({
       maxCopies: 3,
       maxClan: 1,
       maxLegendaryOrMythic: 3,
+      minPrimaryArtCards: 15,
+      minSecondaryArtCards: 5,
     }),
   },
   busy: { type: Boolean, default: false },
@@ -59,13 +61,43 @@ const validation = computed(() => props.deck?.validation);
 const artSummary = computed(() => {
   const result = validation.value;
   if (!result?.artCounts || !Number.isInteger(result.nonNeutralCount)) return null;
+  const minPrimary =
+    result.minPrimaryArtCards ?? props.constraints.minPrimaryArtCards ?? 15;
+  const minSecondary =
+    result.minSecondaryArtCards ?? props.constraints.minSecondaryArtCards ?? 5;
+  const primaryArt = result.primaryArt;
+  const secondaryArt = result.secondaryArt;
+  const primaryLabel = primaryArt ? t(`cards.stats.${primaryArt}`) : '—';
+  const secondaryLabel = secondaryArt ? t(`cards.stats.${secondaryArt}`) : '—';
   return {
     neutral: size.value - result.nonNeutralCount,
     nonNeutral: result.nonNeutralCount,
-    min: result.minArtCards,
+    minPrimary,
+    minSecondary,
+    primaryArt,
+    secondaryArt,
+    primaryCount: result.primaryCount ?? 0,
+    secondaryCount: result.secondaryCount ?? 0,
+    primaryLabel,
+    secondaryLabel,
     arts: Object.entries(result.artCounts).filter(([, count]) => count > 0),
   };
 });
+
+function artBadgeTone(art, count) {
+  const summary = artSummary.value;
+  if (!summary) return 'neutral';
+  if (art === summary.primaryArt && count < summary.minPrimary) return 'vermilion';
+  if (art === summary.secondaryArt && count < summary.minSecondary) return 'vermilion';
+  if (
+    summary.primaryCount < summary.minPrimary &&
+    art !== summary.primaryArt &&
+    art !== summary.secondaryArt
+  ) {
+    return 'neutral';
+  }
+  return 'neutral';
+}
 const validity = computed(() => {
   if (validation.value?.valid === true) return 'valid';
   if (validation.value?.valid === false) return 'invalid';
@@ -251,9 +283,14 @@ const sizeValid = computed(
             v-for="[art, count] in artSummary.arts"
             :key="art"
             class="badge"
-            :data-tone="count < artSummary.min ? 'vermilion' : 'neutral'"
+            :data-tone="artBadgeTone(art, count)"
           >
-            {{ t(`cards.stats.${art}`) }} : {{ count }}
+            {{ t(`cards.stats.${art}`) }} : {{ count
+            }}<template v-if="art === artSummary.primaryArt">
+              /{{ artSummary.minPrimary }}</template
+            ><template v-else-if="art === artSummary.secondaryArt">
+              /{{ artSummary.minSecondary }}</template
+            >
           </li>
         </ul>
       </section>

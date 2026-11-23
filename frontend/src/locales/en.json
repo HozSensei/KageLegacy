@@ -195,7 +195,7 @@
     "timelineRealtime": "In a few minutes you set the foundation: a character, a village, a deck, and your first mission.",
     "timeline": {
       "create": "Create your character, choose your village, and claim your starter pack.",
-      "build": "Open your starter deck, then tune it in the deck builder.",
+      "build": "Open one of your starter decks (Taijutsu or Ninjutsu), then tune it in the deck builder.",
       "grow": "Spend your first point on the talent tree.",
       "fight": "Launch a mission, earn XP, Ryos, and cards — then come back to strengthen your village."
     },
@@ -921,7 +921,7 @@
     "emptyCollectionShop": "Visit the shop",
     "emptyCollectionMissions": "Go to missions",
     "emptyDecksTitle": "No deck yet",
-    "emptyDecksLead": "Create a deck above, or wait for the starter loadout to finish granting cards.",
+    "emptyDecksLead": "Two starter decks (Taijutsu and Ninjutsu) are created automatically. Otherwise, create a deck above.",
     "emptyDeckNoCardsTitle": "No cards to build with",
     "emptyDeckNoCardsLead": "Your collection is empty — buy a booster or finish a mission to get cards.",
     "collectionProgress": "{owned} / {total} owned",
@@ -957,11 +957,11 @@
       "copies": "Up to {maxCopies} copies of the same card, limited by your collection.",
       "clan": "Up to {maxClan} clan card. | Up to {maxClan} clan cards.",
       "rarity": "Up to {maxLegendaryOrMythic} legendary or mythic cards total, including clan cards of those rarities.",
-      "arts": "Exactly {requiredArts} distinct arts, each with at least {minArtShare}% of the non-neutral cards (rounded up). Only each card’s primary art counts."
+      "arts": "At least {minPrimaryArtCards} cards of one path and {minSecondaryArtCards} of a second. The rest is free (3rd/4th path, neutrals…). Only each card’s primary art counts."
     },
     "deckArts": {
       "title": "Art breakdown",
-      "summary": "Neutral cards: {neutral} · Non-neutral cards: {nonNeutral} · Minimum per art: {min}"
+      "summary": "Goal {minPrimary}+{minSecondary} · Primary: {primaryLabel} {primaryCount}/{minPrimary} · Secondary: {secondaryLabel} {secondaryCount}/{minSecondary} · Neutrals: {neutral}"
     },
     "deckValidity": {
       "valid": "Valid deck",
@@ -1338,7 +1338,7 @@
     "activeDeck": "Active deck",
     "practiceDeckHint": "Training deck (no collection)",
     "noDeckTitle": "No active deck",
-    "noDeckLead": "Activate a deck before launching a mission. New characters receive a starter deck automatically.",
+    "noDeckLead": "Activate a deck before launching a mission. New characters receive two starter decks (Taijutsu and Ninjutsu).",
     "openDecks": "Open deck builder",
     "startMission": "Start the run",
     "hardModeLabel": "Increased difficulty (+20% rewards)",

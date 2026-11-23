@@ -14,6 +14,7 @@
     "db:seed-talents": "node scripts/seedTalentTree.js",
     "db:seed-battle-pass": "node scripts/seedBattlePass.js",
     "db:seed-v2": "npm run db:seed-cards && npm run db:seed-talents && npm run db:seed-battle-pass",
+    "db:reset-starter-decks": "node scripts/resetStarterDecks.js",
     "test:scheduler": "node scripts/testScheduler.js",
     "test:e2e-guard": "node scripts/testE2eGuard.js",
     "test:guest-cleanup": "node scripts/testGuestCleanup.js",

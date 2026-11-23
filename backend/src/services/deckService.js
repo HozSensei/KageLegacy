@@ -22,8 +22,9 @@ export const DECK_CONSTRAINTS = Object.freeze({
   maxCopies: MAX_COPIES_PER_CARD,
   maxClan: MAX_CLAN_CARDS,
   maxLegendaryOrMythic: MAX_LEGENDARY_OR_MYTHIC,
-  requiredArts: 2,
-  minArtShare: 25,
+  /** Absolute floors on path cards (neutrals ignored). Splash arts are free. */
+  minPrimaryArtCards: 15,
+  minSecondaryArtCards: 5,
 });
 
 const ART_NAMES = {
@@ -159,7 +160,7 @@ export function countLegendaryOrMythic(cards) {
 }
 
 /**
- * Valide la taille, les limites de copies/rareté et les deux voies principales.
+ * Valide la taille, les limites de copies/rareté et la composition de voies (15 + 5).
  * @returns {{
  *   valid: boolean,
  *   errors: string[],
@@ -170,7 +171,12 @@ export function countLegendaryOrMythic(cards) {
  *   legendaryOrMythicCount: number,
  *   artCounts: Record<string, number>,
  *   nonNeutralCount: number,
- *   minArtCards: number
+ *   minPrimaryArtCards: number,
+ *   minSecondaryArtCards: number,
+ *   primaryArt: string | null,
+ *   secondaryArt: string | null,
+ *   primaryCount: number,
+ *   secondaryCount: number
  * }}
  */
 export function validateDeck(cards) {
@@ -180,7 +186,7 @@ export function validateDeck(cards) {
   const size = countDeckSize(cards);
   const clanCount = countClanCards(cards);
   const legendaryOrMythicCount = countLegendaryOrMythic(cards);
-  const { requiredArts, minArtShare } = DECK_CONSTRAINTS;
+  const { minPrimaryArtCards, minSecondaryArtCards } = DECK_CONSTRAINTS;
   const artCounts = Object.fromEntries(Object.keys(ART_NAMES).map(art => [art, 0]));
 
   if (size < DECK_MIN_SIZE) {
@@ -223,32 +229,31 @@ export function validateDeck(cards) {
     );
   }
 
-  const representedArts = Object.entries(artCounts).filter(([, count]) => count > 0);
-  const nonNeutralCount = Object.values(artCounts).reduce((sum, count) => sum + count, 0);
-  const minArtCards = Math.ceil((nonNeutralCount * minArtShare) / 100);
+  const rankedArts = Object.entries(artCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const nonNeutralCount = rankedArts.reduce((sum, [, count]) => sum + count, 0);
+  const [primaryArt, primaryCount] = rankedArts[0] || [null, 0];
+  const [secondaryArt, secondaryCount] = rankedArts[1] || [null, 0];
 
-  if (representedArts.length !== requiredArts) {
-    const describeCounts = locale =>
-      representedArts.map(([art, count]) => `${ART_NAMES[art][locale]} ${count}`).join(', ');
-    codes.push('invalid_art_count');
+  if (primaryCount < minPrimaryArtCards) {
+    const label = primaryArt ? ART_NAMES[primaryArt] : null;
+    codes.push('insufficient_primary_art');
     errors.push(
-      `Le deck doit contenir exactement ${requiredArts} voies distinctes parmi les cartes non neutres (${representedArts.length} : ${describeCounts('fr') || 'aucune'}).`,
+      `Voie principale insuffisante : ${label?.fr || 'aucune'} ${primaryCount}/${minPrimaryArtCards} (il faut au moins ${minPrimaryArtCards} cartes d'une même voie).`,
     );
     errorsEn.push(
-      `The deck must contain exactly ${requiredArts} distinct arts among non-neutral cards (${representedArts.length}: ${describeCounts('en') || 'none'}).`,
+      `Primary path too low: ${label?.en || 'none'} ${primaryCount}/${minPrimaryArtCards} (need at least ${minPrimaryArtCards} cards of one path).`,
     );
-  } else {
-    for (const [art, count] of representedArts) {
-      if (count >= minArtCards) continue;
-      const { fr, en } = ART_NAMES[art];
-      codes.push('insufficient_art_cards');
-      errors.push(
-        `${fr} : ${count}/${minArtCards} cartes requises (${minArtShare} % des ${nonNeutralCount} cartes non neutres, arrondi au supérieur).`,
-      );
-      errorsEn.push(
-        `${en}: ${count}/${minArtCards} required cards (${minArtShare}% of ${nonNeutralCount} non-neutral cards, rounded up).`,
-      );
-    }
+  }
+
+  if (secondaryCount < minSecondaryArtCards) {
+    const label = secondaryArt ? ART_NAMES[secondaryArt] : null;
+    codes.push('insufficient_secondary_art');
+    errors.push(
+      `Deuxième voie insuffisante : ${label?.fr || 'aucune'} ${secondaryCount}/${minSecondaryArtCards} (il faut au moins ${minSecondaryArtCards} cartes d'une autre voie).`,
+    );
+    errorsEn.push(
+      `Secondary path too low: ${label?.en || 'none'} ${secondaryCount}/${minSecondaryArtCards} (need at least ${minSecondaryArtCards} cards of a second path).`,
+    );
   }
 
   return {
@@ -261,7 +266,12 @@ export function validateDeck(cards) {
     legendaryOrMythicCount,
     artCounts,
     nonNeutralCount,
-    minArtCards,
+    minPrimaryArtCards,
+    minSecondaryArtCards,
+    primaryArt,
+    secondaryArt,
+    primaryCount,
+    secondaryCount,
   };
 }
 
