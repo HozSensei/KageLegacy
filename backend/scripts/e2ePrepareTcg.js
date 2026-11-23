@@ -81,7 +81,7 @@ async function main() {
       avatarId: 'aspirant-1-1',
     });
   }
-  // Assez de Ryos pour les specs qui ouvrent plusieurs boosters (STARTING_RYOS < coût standard).
+  // Assez de Ryos pour les specs qui ouvrent plusieurs boosters (STARTING_RYOS couvre ~2 packs).
   await query(
     'UPDATE player_profiles SET ryos = GREATEST(COALESCE(ryos, 0), 5000) WHERE user_id = ?',
     [user.id]

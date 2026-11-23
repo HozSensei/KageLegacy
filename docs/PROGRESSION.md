@@ -11,7 +11,7 @@ Le profil possède :
 
 Ryos, poussière et essence sont produits par le jeu. Les Kage Coins servent notamment aux boosters premium, aux niveaux premium et aux paiements de boutique.
 
-À la création de compte, le profil reçoit **250 Ryos** (`STARTING_RYOS` dans `economyConfig.js`) — moins d’un booster standard (300). Le farm des missions D finance les premiers packs.
+À la création de compte, le profil reçoit **1400 Ryos** (`STARTING_RYOS` dans `economyConfig.js`) — de quoi ouvrir environ **2 boosters** (voie 550) et compléter un starter en rareté Normale.
 
 Le **guide du novice** (hub) propose 10 étapes one-shot (profil, decks, talent, collection, combat, règles, Battle Pass, village, boutique). Chaque étape terminée se **réclame** pour de petits gains Ryos/XP (≈ 460 Ryos et ≈ 240 XP au total). Distinct des succès et du Battle Pass.
 
