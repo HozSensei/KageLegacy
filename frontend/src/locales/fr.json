@@ -1759,10 +1759,12 @@
   },
   "coop": {
     "title": "Missions coopératives",
+    "kicker": "Équipe",
     "lead": "Lancez une mission à deux : même parcours, tours asynchrones, boutiques communes et inventaires personnels.",
     "create": "Créer une salle",
     "join": "Rejoindre la salle",
     "codeLabel": "Code de la salle",
+    "codePlaceholder": "Ex. AB12CD",
     "waiting": "En attente d’un allié. Partagez ce code pour commencer.",
     "waitingTeam": "Salle ouverte. Code :",
     "finished": "Le combat est terminé.",

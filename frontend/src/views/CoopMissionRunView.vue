@@ -261,7 +261,7 @@ function cancelConfirm() {
         <button
           v-if="isHost"
           type="button"
-          class="btn btn--primary"
+          class="btn-primary"
           :disabled="api.busy.value"
           data-testid="coop-enter-node"
           @click="onEnter"
@@ -289,7 +289,7 @@ function cancelConfirm() {
             v-for="item in event.offer || []"
             :key="item.id"
             type="button"
-            class="btn"
+            class="btn-secondary"
             :disabled="api.busy.value || (item.stock ?? 1) <= 0"
             @click="onBuy(item.id)"
           >
@@ -304,7 +304,7 @@ function cancelConfirm() {
             <button
               v-if="slot.itemId"
               type="button"
-              class="btn btn--ghost"
+              class="btn-ghost"
               @click="onUse(slot.slot)"
             >
               {{ t('coop.useItem') }}
@@ -312,7 +312,7 @@ function cancelConfirm() {
             <button
               v-if="slot.itemId"
               type="button"
-              class="btn btn--ghost"
+              class="btn-ghost"
               @click="onDiscard(slot.slot)"
             >
               {{ t('coop.discardItem') }}
@@ -324,7 +324,7 @@ function cancelConfirm() {
           <button
             v-if="isGuest"
             type="button"
-            class="btn btn--primary"
+            class="btn-primary"
             data-testid="coop-node-ready"
             :disabled="api.busy.value"
             @click="onNodeReady(!run.guestNodeReady)"
@@ -336,7 +336,7 @@ function cancelConfirm() {
               v-for="choice in event.choices || []"
               :key="choice.id"
               type="button"
-              class="btn btn--primary"
+              class="btn-primary"
               :disabled="api.busy.value || !run.guestNodeReady"
               @click="onResolve(choice.id)"
             >
@@ -354,7 +354,7 @@ function cancelConfirm() {
           @dismiss="router.push({ name: 'coop' })"
         />
         <p v-else role="status">{{ t(`coop.run_${run.state}`) }}</p>
-        <button type="button" class="btn" @click="router.push({ name: 'coop' })">
+        <button type="button" class="btn-secondary" @click="router.push({ name: 'coop' })">
           {{ t('coop.backToLobby') }}
         </button>
       </section>
@@ -362,7 +362,7 @@ function cancelConfirm() {
       <button
         v-if="!isOver"
         type="button"
-        class="btn btn--ghost"
+        class="btn-ghost"
         :disabled="api.busy.value"
         @click="onAbandon"
       >
@@ -400,8 +400,8 @@ function cancelConfirm() {
           }}
         </p>
         <div class="confirm-dialog__actions">
-          <button type="button" class="btn" @click="cancelConfirm">{{ t('coop.cancel') }}</button>
-          <button type="button" class="btn btn--primary" @click="confirmFriendlyFire">
+          <button type="button" class="btn-secondary" @click="cancelConfirm">{{ t('coop.cancel') }}</button>
+          <button type="button" class="btn-primary" @click="confirmFriendlyFire">
             {{ t('coop.confirmAction') }}
           </button>
         </div>

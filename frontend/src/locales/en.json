@@ -1759,10 +1759,12 @@
   },
   "coop": {
     "title": "Co-op missions",
+    "kicker": "Squad",
     "lead": "Run a mission as a duo: shared path, async turns, common shops, personal inventories.",
     "create": "Create a room",
     "join": "Join room",
     "codeLabel": "Room code",
+    "codePlaceholder": "e.g. AB12CD",
     "waiting": "Waiting for an ally. Share this code to start.",
     "waitingTeam": "Room open. Code:",
     "finished": "The fight has ended.",
