@@ -13,13 +13,18 @@ import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
-import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
 import { useVillageRewardsStore } from '../stores/villageRewards.js';
-import { villageRewardsHash } from '../composables/useVillageRewards.js';
+import { useBattlePassStore } from '../stores/battlePass.js';
+import { useOnboardingStore } from '../stores/onboarding.js';
+import { useNotificationsStore } from '../stores/notifications.js';
+import { useRewardNotifications } from '../composables/useRewardNotifications.js';
 import { sectionOf } from '../constants/sections';
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue';
+import NotificationBell from '../components/notifications/NotificationBell.vue';
+import ToastContainer from '../components/notifications/ToastContainer.vue';
 import { writeStoredLocale } from '../utils/localeStorage.js';
+import { localizedName } from '../utils/localeContent.js';
 defineOptions({ name: 'AppLayout' });
 
 const { t, locale } = useI18n();
@@ -32,13 +37,11 @@ const player = usePlayerStore();
 
 const shop = useShopStore();
 const villageRewards = useVillageRewardsStore();
+const battlePass = useBattlePassStore();
+const onboarding = useOnboardingStore();
+const notifications = useNotificationsStore();
+const rewardNotifications = useRewardNotifications();
 const showConvert = ref(false);
-const rewardsRoute = { name: 'village', hash: villageRewardsHash };
-const rewardsLabel = computed(() =>
-  villageRewards.unreadCount > 0
-    ? t('community.villageRewards.unreadNotification', villageRewards.unreadCount)
-    : t('community.villageRewards.notification')
-);
 
 const baseNavItems = [
   { name: 'hub', path: '/home', label: 'nav.home' },
@@ -107,6 +110,8 @@ function clearSessionStores() {
   auth.checked = true;
   player.reset();
   villageRewards.reset?.();
+  notifications.reset?.();
+  claimablesHydrated = false;
 }
 
 async function onAccountDeleted() {
@@ -124,24 +129,37 @@ async function logout() {
   router.push('/');
 }
 
-function refreshNotifications() {
-  if (!document.hidden && !isCombatLayout.value && route.name !== 'village') {
-    void villageRewards.refresh();
-  }
+let claimableSync = Promise.resolve();
+let claimablesHydrated = false;
+
+function syncClaimableNotifications() {
+  if (!auth.user || document.hidden || isCombatLayout.value) return claimableSync;
+  const userId = auth.user.id;
+  claimableSync = claimableSync.then(async () => {
+    if (auth.user?.id !== userId) return;
+    const [quests] = await Promise.all([
+      battlePass.fetchQuests(),
+      onboarding.steps?.length ? Promise.resolve(onboarding.steps) : onboarding.fetchProgress(),
+    ]);
+    if (auth.user?.id !== userId) return;
+    // Premier passage : remplir l’inbox sans toaster le stock déjà claimable.
+    const toastNew = claimablesHydrated;
+    rewardNotifications.syncQuests(quests || battlePass.quests, { toastNew });
+    rewardNotifications.syncOnboarding(onboarding.steps || [], {
+      labelOf: step => localizedName(step, locale.value, step.key),
+      toastNew,
+    });
+    claimablesHydrated = true;
+  });
+  return claimableSync;
 }
 
-function revisitRewards(event) {
-  if (
-    route.name === 'village' &&
-    route.hash === villageRewardsHash &&
-    event.button === 0 &&
-    !event.metaKey &&
-    !event.altKey &&
-    !event.ctrlKey &&
-    !event.shiftKey
-  ) {
-    villageRewards.revisitAnchor();
+function refreshNotifications() {
+  if (!auth.user || document.hidden || isCombatLayout.value) return;
+  if (route.name !== 'village') {
+    void villageRewards.refresh();
   }
+  void syncClaimableNotifications();
 }
 
 let balanceLoad = Promise.resolve();
@@ -199,23 +217,7 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
 
         <div class="app-bar__tools">
           <template v-if="!isCombatLayout">
-            <router-link
-              v-if="auth.user"
-              :to="rewardsRoute"
-              class="btn-icon app-bar__rewards"
-              :aria-label="rewardsLabel"
-              :title="rewardsLabel"
-              data-testid="village-rewards-notification"
-              @click="revisitRewards"
-            >
-              <AppIcon name="bell" aria-hidden="true" />
-              <span
-                v-if="villageRewards.unreadCount > 0"
-                class="app-bar__unread-dot"
-                data-testid="village-rewards-unread"
-                aria-hidden="true"
-              />
-            </router-link>
+            <NotificationBell v-if="auth.user" />
 
             <ProfileMenu
               v-if="auth.user"
@@ -257,6 +259,7 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
     <SiteFooter v-if="!isCombatLayout" tone="paper" />
 
     <ConvertGuestModal v-if="!isCombatLayout" :open="showConvert" @close="showConvert = false" />
+    <ToastContainer v-if="auth.user" />
   </div>
 </template>
 

@@ -4,10 +4,12 @@ import { useI18n } from 'vue-i18n'
 import PageHeader from '../components/ui/PageHeader.vue'
 import AchievementList from '../components/achievements/AchievementList.vue'
 import { useAchievementsStore } from '../stores/achievements'
+import { useRewardNotifications } from '../composables/useRewardNotifications.js'
 import forestImage from '../assets/illustrations/forest-path.webp'
 defineOptions({ name: 'JournalView' })
 const { t, locale } = useI18n()
 const store = useAchievementsStore()
+const rewardNotifications = useRewardNotifications()
 const message = ref(null)
 const filter = ref('all')
 const categories = ['all', 'combat', 'missions', 'collection', 'mastery', 'progression']
@@ -17,6 +19,13 @@ async function onClaim({ key, tier }) {
   message.value = null
   const result = await store.claimTier(key, tier)
   message.value = result ? t('achievements.claimSuccess') : store.error
+  if (result?.rewards?.length) {
+    rewardNotifications.notifyGrants({
+      source: 'achievement',
+      grants: result.rewards,
+      href: { name: 'journal' },
+    })
+  }
 }
 </script>
 <template>

@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 import CombatArena from '../components/combat/CombatArena.vue';
 import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
+import { useRewardNotifications } from '../composables/useRewardNotifications.js';
 
 defineOptions({ name: 'CombatView' });
 
@@ -13,6 +14,7 @@ const route = useRoute();
 const router = useRouter();
 const combat = useCombatStore();
 const missions = useMissionsStore();
+const rewardNotifications = useRewardNotifications();
 
 const combatId = computed(() => route.params.id);
 const isMidRunFight = computed(() => Boolean(combat.combat?.missionRunId));
@@ -54,6 +56,16 @@ watch(
   state => {
     if (['victory', 'defeat', 'forfeited'].includes(state)) {
       missions.clearActiveCombat();
+      const current = combat.combat;
+      const rewards = current?.rewards || current?.run?.rewards || null;
+      if (state === 'victory' && rewards && !current?.missionRunId && current?.id != null) {
+        rewardNotifications.notifyCombatRecap({
+          source: 'combat',
+          rewards,
+          dedupeKey: `combat-recap:${current.id}`,
+          href: { name: 'missions' },
+        });
+      }
     } else {
       syncActiveCombat();
     }

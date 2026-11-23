@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useMissionsStore } from '../stores/missions'
@@ -15,6 +15,7 @@ import {
   localizedField,
   localizedName,
 } from '../utils/localeContent.js'
+import { useRewardNotifications } from '../composables/useRewardNotifications.js'
 
 defineOptions({ name: 'MissionRunView' })
 
@@ -23,6 +24,7 @@ const route = useRoute()
 const router = useRouter()
 const missions = useMissionsStore()
 const combat = useCombatStore()
+const rewardNotifications = useRewardNotifications()
 
 const localError = ref(null)
 
@@ -37,6 +39,20 @@ const player = computed(() => run.value?.player || {})
 const nodes = computed(() => run.value?.nodes || [])
 const isOver = computed(() =>
   ['victory', 'defeat', 'abandoned'].includes(run.value?.state)
+)
+
+watch(
+  () => [run.value?.state, run.value?.rewards, run.value?.id],
+  ([state, rewards, id]) => {
+    if (state === 'victory' && rewards && id != null) {
+      rewardNotifications.notifyCombatRecap({
+        source: 'mission',
+        rewards,
+        dedupeKey: `mission-recap:${id}`,
+        href: { name: 'missions' },
+      })
+    }
+  }
 )
 const missionTitle = computed(() => {
   const m = run.value?.mission

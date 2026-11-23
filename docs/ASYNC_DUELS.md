@@ -27,7 +27,7 @@ Un duel **aléatoire** ou **faction ennemie** terminé entre deux villages diff�
 
 Le classement se consulte dans **Village**. Une semaine commence le lundi à **00 h 00 UTC** et se clôt le dimanche à minuit, soit au lundi suivant à 00 h 00 UTC (borne exclusive). Le village seul en tête avec au moins un point remporte la semaine. Chaque joueur qui appartenait à ce village à l’ouverture reçoit automatiquement **50 ryos provisoires**, même s’il n’a joué aucun duel. Une affiliation ou un changement de village en cours de semaine ne modifie pas cette éligibilité. Une égalité en tête ou une semaine sans point ne donne aucun lot.
 
-La page **Village** affiche les versements personnels confirmés. La cloche du header signale les gains non lus et ouvre leur section ; les ryos sont déjà crédités, sans action de réclamation. Sur mobile, les soldes sont accessibles via le bouton **Portefeuille**.
+La page **Village** affiche les versements personnels confirmés. La cloche du header ouvre l’inbox de notifications (gains de mission/duel, quêtes à réclamer, guide du novice, etc.) et y inclut les gains du Village non lus ; un lien mène à leur section. Les ryos villageois sont déjà crédités, sans action de réclamation. Sur mobile, les soldes sont accessibles via le bouton **Portefeuille**.
 
 Le premier lot concerne la première semaine complète après l’installation ; les semaines d’observation ne sont pas payées rétroactivement. Le scheduler contrôle la clôture à minuit UTC et rattrape les semaines dues au démarrage. Chaque versement est enregistré et crédité une seule fois, dans la même transaction que la clôture. Le montant se règle dans `backend/src/config/economyConfig.js`.
 
