@@ -410,6 +410,8 @@
     "discover": "Découvrir",
     "account": "Compte",
     "accountNote": "Connectez-vous pour sauvegarder votre ninja, votre deck et votre progression.",
+    "accountNoteGuest": "Créez un compte pour conserver durablement votre ninja, votre deck et votre progression.",
+    "accountNoteSignedIn": "Votre progression, votre deck et votre collection sont synchronisés avec ce compte.",
     "tryGuest": "Essai invité",
     "legal": "Mentions légales & confidentialité",
     "legalShort": "Mentions légales",

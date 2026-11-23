@@ -410,6 +410,8 @@
     "discover": "Discover",
     "account": "Account",
     "accountNote": "Sign in to keep your ninja, deck, and progression.",
+    "accountNoteGuest": "Create an account to permanently keep your ninja, deck, and progression.",
+    "accountNoteSignedIn": "Your progression, deck, and collection are synced with this account.",
     "tryGuest": "Guest trial",
     "legal": "Legal notice & privacy",
     "legalShort": "Legal notice",
