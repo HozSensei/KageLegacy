@@ -19,7 +19,7 @@ import {
 const userId = 41;
 const deck = { id: 8, user_id: userId, name: 'Passifs', is_active: 1 };
 const dual = {
-  slug: 'dragon-de-nuage', // Ninjutsu primaire, Taijutsu secondaire via le slug.
+  slug: 'dragon-de-nuage',
   type: 'attack',
   stat_type: 'ninjutsu',
   base_cost: 1,
@@ -105,9 +105,9 @@ function mockActiveDeck(t, { selectedDeck = deck, selectedRows = rows } = {}) {
 }
 
 const cards = {
-  taijutsu: 6,
+  taijutsu: 0,
   ninjutsu: 2,
-  genjutsu: 0,
+  genjutsu: 6,
   medicine: 4,
   maxHp: 14,
   maxChakra: 2,
@@ -117,18 +117,18 @@ const total = { ...cards, ninjutsu: 6, maxHp: 16 };
 
 test('passifs de carte : chaque amélioration est relative à la base', () => {
   assert.deepEqual(applyUpgradeBonuses(dual, 0).passiveBonus, {
-    taijutsu: 2,
+    genjutsu: 2,
     ninjutsu: 1,
     maxHp: 3,
   });
   assert.deepEqual(applyUpgradeBonuses(dual, 1).passiveBonus, {
-    taijutsu: 2,
+    genjutsu: 2,
     ninjutsu: 2,
     maxHp: 5,
     startingBlock: 1,
   });
   assert.deepEqual(applyUpgradeBonuses(dual, 2).passiveBonus, {
-    taijutsu: 3,
+    genjutsu: 3,
     ninjutsu: 1,
     maxHp: 7,
     maxChakra: 1,

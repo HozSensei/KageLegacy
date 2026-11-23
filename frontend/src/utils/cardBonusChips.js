@@ -57,14 +57,5 @@ export function cardFamilyKey(cardOrStat) {
 export function cardMatchesArt(card, art) {
   if (!art) return true;
   const primary = String(card?.statType || '').toLowerCase();
-  return (primary === 'medecine' ? 'medicine' : primary) === art || cardSecondaryArt(card) === art;
-}
-
-/** Art secondaire (cartes double type). */
-export function cardSecondaryArt(card) {
-  const raw = String(card?.statTypeSecondary || '').toLowerCase();
-  if (!raw) return null;
-  if (raw === 'ninjutsu' || raw === 'genjutsu' || raw === 'taijutsu') return raw;
-  if (raw === 'medicine' || raw === 'medecine') return 'medicine';
-  return null;
+  return (primary === 'medecine' ? 'medicine' : primary) === art;
 }

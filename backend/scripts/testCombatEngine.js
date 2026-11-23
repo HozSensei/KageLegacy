@@ -103,7 +103,7 @@ assert(
 
 const remapped = remapAbandonedPassives(
   { vitesse: 2, intelligence: 3, ninjutsu: 1, dexterity: 2 },
-  { statType: 'ninjutsu', secondaryStatType: 'genjutsu' },
+  { statType: 'ninjutsu' },
 );
 assert(
   remapped.ninjutsu === 3 &&

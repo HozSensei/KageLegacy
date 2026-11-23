@@ -24,7 +24,6 @@ function normalizeStarterCard(raw) {
     nameEn: raw.nameEn,
     type: raw.type,
     statType: raw.statType,
-    statTypeSecondary: raw.statTypeSecondary,
     element: raw.element ?? null,
     rarity: raw.rarity,
     cost: raw.baseCost ?? raw.cost ?? 0,

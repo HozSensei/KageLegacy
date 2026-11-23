@@ -11,32 +11,6 @@ export const COMBAT_ART_SET = new Set(COMBAT_ARTS);
 /** Bonus hors arts ; le Chakra max doit rester très rare dans le catalogue. */
 export const EXTRA_PASSIVE_KEYS = Object.freeze(['maxHp', 'maxChakra', 'startingBlock']);
 
-/**
- * Cartes double type (primaire = statType, secondaire ici).
- * ~volume faible pour pousser les decks 2-couleurs.
- */
-export const DUAL_TYPE_SECONDARY = Object.freeze({
-  'harmonie-des-cinq-vents': 'genjutsu',
-  'eclipse-du-seuil': 'genjutsu',
-  'luciole-guide': 'medicine',
-  'dragon-de-nuage': 'taijutsu',
-  'renard-aux-neuf-vents': 'ninjutsu',
-  'clan-shizumori': 'ninjutsu',
-  'aegis-ancestral': 'genjutsu',
-  'voile-d-ombre': 'genjutsu',
-  'frappe-opportuniste': 'genjutsu',
-  'barrage-de-lames': 'ninjutsu',
-  'mains-de-lumiere': 'genjutsu',
-  'pilier-de-flammes': 'taijutsu',
-  concentration: 'genjutsu',
-  'vent-porteur': 'medicine',
-  'serpente-d-eau': 'medicine',
-  'serpent-d-eau': 'medicine',
-  'corbeau-spectre': 'ninjutsu',
-  'garde-du-sanctuaire': 'medicine',
-  'gardien-du-sanctuaire': 'medicine',
-});
-
 export function normalizeArtKey(value) {
   if (value == null || value === '') return null;
   const key = String(value).trim().toLowerCase();
@@ -52,22 +26,12 @@ export function resolveScalingStat(statType, stats = {}) {
   return Number(stats?.[statType]) || 0;
 }
 
-export function resolveSecondaryArt(slug, explicitSecondary = null) {
-  const fromExplicit = normalizeArtKey(explicitSecondary);
-  if (fromExplicit) return fromExplicit;
-  if (!slug) return null;
-  return normalizeArtKey(DUAL_TYPE_SECONDARY[slug]) || null;
-}
-
 /**
  * Remap vitesse / intelligence vers les arts et ignore la Dextérité héritée.
  * - vitesse → art primaire (tempo physique / même école)
- * - intelligence → secondaire si dual, sinon genjutsu (esprit), ou medicine si primaire médical
+ * - intelligence → genjutsu (esprit), ou medicine si primaire médical
  */
-export function remapAbandonedPassives(
-  passive = {},
-  { statType = null, secondaryStatType = null } = {},
-) {
+export function remapAbandonedPassives(passive = {}, { statType = null } = {}) {
   const raw = passive && typeof passive === 'object' ? { ...passive } : {};
   const vit = Number(raw.vitesse) || 0;
   const intel = Number(raw.intelligence) || 0;
@@ -81,7 +45,6 @@ export function remapAbandonedPassives(
   }
 
   const primary = normalizeArtKey(statType) || 'taijutsu';
-  const secondary = primary === COMMON_ART ? null : normalizeArtKey(secondaryStatType);
 
   if (vit > 0) {
     const legacySpeedTarget =
@@ -94,12 +57,7 @@ export function remapAbandonedPassives(
     raw[legacySpeedTarget] = (Number(raw[legacySpeedTarget]) || 0) + vit;
   }
   if (intel > 0) {
-    let target = secondary;
-    if (!target) {
-      if (primary === 'medicine') target = 'medicine';
-      else if (primary === 'genjutsu') target = 'genjutsu';
-      else target = 'genjutsu';
-    }
+    const target = primary === 'medicine' ? 'medicine' : 'genjutsu';
     raw[target] = (Number(raw[target]) || 0) + intel;
   }
 
