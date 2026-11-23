@@ -176,7 +176,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 8px 24px color-mix(in srgb, var(--color-ink) 12%, transparent);
 }
 
-/* Rail / drawer (bord gauche) : ouvrir vers le haut et vers la droite (dans le viewport). */
+/* Surfaces on-fill (landing / overlays) : ouvrir vers le haut et vers la droite. */
 .theme-picker--on-fill .theme-picker__menu {
   top: auto;
   right: auto;

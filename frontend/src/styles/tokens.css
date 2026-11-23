@@ -115,8 +115,6 @@
   --dur-base: 240ms;
   --dur-slow: 480ms;
 
-  --shell-rail: 0px;
-
   /* Traitement des illustrations (scènes de plein jour) : neutre en clair. */
   --image-filter: none;
   --image-veil: transparent;
@@ -302,12 +300,6 @@
   --mix-quiet: 72%;
 
   color-scheme: dark;
-}
-
-@media (min-width: 1024px) {
-  :root {
-    --shell-rail: 4.5rem;
-  }
 }
 
 /* Teinte courante : un bloc pose `data-tone` et ses enfants lisent --tone / --tone-fill / --tone-tint. */
