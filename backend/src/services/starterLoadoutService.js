@@ -95,6 +95,7 @@ export async function ensureStarterDecks(userId) {
       name: preset.nameFr,
       archetype: preset.archetype,
       cards,
+      skipOnboarding: true,
     });
     createdDecks.push(deck);
   }

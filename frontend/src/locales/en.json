@@ -884,7 +884,7 @@
         },
         "identity": {
           "title": "4. Art, element, and rarity",
-          "body": "The banner shows the art path (Taijutsu, Ninjutsu, Genjutsu, Medicine). The element can grant type advantage. The diamonds at the bottom mark rarity (common → mythic)."
+          "body": "The banner shows the art path (Taijutsu, Ninjutsu, Genjutsu, Medicine). The element can grant type advantage. The diamonds at the bottom mark rarity (normal → mythic)."
         }
       }
     },
@@ -1003,7 +1003,7 @@
       "item": "Item"
     },
     "rarities": {
-      "common": "Common",
+      "common": "Normal",
       "rare": "Rare",
       "legendary": "Legendary",
       "mythic": "Mythic"
@@ -1013,7 +1013,7 @@
       "ninjutsu": "Ninjutsu",
       "genjutsu": "Genjutsu",
       "medicine": "Medicine",
-      "common": "Common",
+      "common": "Neutral",
       "vitesse": "Speed",
       "intelligence": "Intelligence",
       "maxHp": "Max HP",
@@ -1872,7 +1872,7 @@
       "booster": "{type} booster"
     },
     "rarity": {
-      "common": "common",
+      "common": "normal",
       "rare": "rare",
       "legendary": "legendary",
       "mythic": "mythic"
@@ -2212,7 +2212,7 @@
     "cardCharges": "{count} charge(s)",
     "cardBonusRolled": "Bonus {bonus}",
     "cardRarity": {
-      "common": "Common",
+      "common": "Normal",
       "rare": "Rare",
       "legendary": "Legendary"
     },

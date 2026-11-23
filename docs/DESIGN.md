@@ -17,7 +17,7 @@ Objets, invocations et héritages utilisent `common`. Leur scaling emploie la pl
 
 Bornes inclusives :
 
-- commune : 0–5 ;
+- normale : 0–5 ;
 - rare : 5–10 ;
 - légendaire : 10–15 ;
 - mythique : 15–20.

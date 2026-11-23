@@ -37,8 +37,8 @@ export const ONBOARDING_STEPS = Object.freeze([
     sortOrder: 30,
     nameFr: 'Créer un deck',
     nameEn: 'Create a deck',
-    hintFr: 'Crée une variante (20–30 cartes) pour tester une autre voie.',
-    hintEn: 'Create a variant (20–30 cards) to try another path.',
+    hintFr: 'Crée toi-même un nouveau deck (20–30 cartes) — les decks de départ ne comptent pas.',
+    hintEn: 'Create a new deck yourself (20–30 cards) — starter decks do not count.',
     rewards: Object.freeze([R('ryos', 70), R('xp', 35)]),
   }),
   Object.freeze({
