@@ -131,6 +131,7 @@ const router = createRouter({
           path: 'village',
           name: 'village',
           component: () => import('../views/CommunityView.vue'),
+          meta: { requiresCharacter: true },
         },
         { path: 'community', redirect: { name: 'village' } },
         {
@@ -198,9 +199,13 @@ router.beforeEach(async to => {
   if (!allowWithoutCharacter.has(to.name)) {
     const { usePlayerStore } = await import('../stores/player');
     const player = usePlayerStore();
-    if (!player.checked) await player.fetchPlayer();
-    if (player.hasConfirmedCharacterAbsence && to.meta.requiresCharacter !== false) {
-      return { name: 'character-creation' };
+    // Revalider si pas encore chargé, ou si l'absence est mémorisée (perso créé dans un
+    // autre onglet / après un wizard) — sinon le garde bloque à tort la nav SPA.
+    if (!player.checked || player.hasConfirmedCharacterAbsence) {
+      await player.fetchPlayer();
+    }
+    if (player.hasConfirmedCharacterAbsence) {
+      return { name: 'character-creation', replace: true };
     }
   }
 

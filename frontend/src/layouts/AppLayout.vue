@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { useAuthStore } from '../stores/auth';
+import { usePlayerStore } from '../stores/player';
 
 import { useNavStructure } from '../composables/useNavStructure';
 
@@ -27,6 +28,7 @@ const router = useRouter();
 const isCombatLayout = computed(() => route.meta.combatLayout === true);
 
 const auth = useAuthStore();
+const player = usePlayerStore();
 
 const shop = useShopStore();
 const villageRewards = useVillageRewardsStore();
@@ -99,10 +101,16 @@ const currentSection = computed(() => {
   return active ? sectionOf(active.name) : null;
 });
 
-async function onAccountDeleted() {
+function clearSessionStores() {
   auth.user = null;
   auth.profile = null;
   auth.checked = true;
+  player.reset();
+  villageRewards.reset?.();
+}
+
+async function onAccountDeleted() {
+  clearSessionStores();
 
   await router.replace({ name: 'home' });
   if (router.currentRoute.value.name !== 'home') {
@@ -112,7 +120,7 @@ async function onAccountDeleted() {
 
 async function logout() {
   await auth.logout();
-
+  clearSessionStores();
   router.push('/');
 }
 
@@ -241,7 +249,7 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
     <main class="app-main" :class="{ 'app-main--combat': isCombatLayout }">
       <router-view v-slot="{ Component }">
         <Transition name="page" mode="out-in">
-          <component :is="Component" />
+          <component :is="Component" :key="route.name" />
         </Transition>
       </router-view>
     </main>

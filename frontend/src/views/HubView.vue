@@ -78,7 +78,7 @@ const steps = computed(() =>
     done: Boolean(step.completed),
     label: stepLabel(step),
     hint: stepHint(step),
-    to: step.route || '/hub',
+    to: step.route || { name: 'hub' },
     rewardText: rewardLabel(step),
   })),
 );
@@ -119,7 +119,7 @@ const shortcuts = computed(() =>
     },
     {
       name: 'village',
-      to: '/village',
+      to: { name: 'village' },
       label: t('village.title'),
       hint: t('village.pageLead'),
     },
@@ -333,7 +333,7 @@ const shortcuts = computed(() =>
           <nav class="hub-shortcuts stagger" data-testid="hub-shortcuts">
             <RouterLink
               v-for="(link, index) in shortcuts"
-              :key="link.to"
+              :key="link.name"
               :to="link.to"
               class="hub-tile"
               :data-tone="link.section.tone"

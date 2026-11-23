@@ -70,11 +70,10 @@ function close() {
         <router-link
           v-for="item in group.items"
           :key="item.name"
-          :to="item.path"
+          :to="{ name: item.name }"
           class="nav-drawer__link"
           :class="{ 'nav-drawer__link--active': isActive(item.path) }"
           :data-testid="`nav-${item.name}`"
-          @click="close"
         >
           <span class="nav-drawer__index" aria-hidden="true">{{ sectionOf(item.name).index }}</span>
           <span class="nav-drawer__label">{{ t(item.label) }}</span>

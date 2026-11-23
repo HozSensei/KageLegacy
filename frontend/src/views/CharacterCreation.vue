@@ -30,9 +30,11 @@ const previewFactionAccent = computed(
 );
 
 onMounted(async () => {
-  if (!player.checked) await player.fetchPlayer();
+  // Toujours recharger : un perso a pu être créé dans un autre onglet pendant que
+  // le store local croyait encore à une absence confirmée.
+  await player.fetchPlayer();
   if (player.character) {
-    await router.replace({ name: 'profile' });
+    await router.replace({ name: 'hub' });
     return;
   }
   await lb.fetchFactions();
