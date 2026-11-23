@@ -10,6 +10,7 @@ import { useNavStructure } from '../composables/useNavStructure';
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
 
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
+import SiteFooter from '../components/layout/SiteFooter.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
@@ -167,12 +168,7 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
 </script>
 
 <template>
-  <div
-    class="app-shell"
-    :class="{
-      'app-shell--combat': isCombatLayout,
-    }"
-  >
+  <div class="app-shell" :data-combat-layout="isCombatLayout || undefined">
     <header class="app-bar">
       <div class="app-bar__inner">
         <AppNavDrawer v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
@@ -250,20 +246,19 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
       </router-view>
     </main>
 
+    <SiteFooter v-if="!isCombatLayout" tone="paper" />
+
     <ConvertGuestModal v-if="!isCombatLayout" :open="showConvert" @close="showConvert = false" />
   </div>
 </template>
 
 <style scoped>
 .app-shell {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--color-bg);
-}
-
-.app-shell--combat {
-  display: flex;
-  flex-direction: column;
 }
 
 .app-bar {
@@ -390,11 +385,11 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
 
 .app-main {
   position: relative;
+  flex: 1 0 auto;
   padding-bottom: 3rem;
 }
 
 .app-main--combat {
-  flex: 1 0 auto;
   padding-bottom: 0;
 }
 

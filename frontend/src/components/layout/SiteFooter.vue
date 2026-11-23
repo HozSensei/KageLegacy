@@ -2,11 +2,12 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import BrandMark from '../ui/BrandMark.vue';
+import { useAuthStore } from '../../stores/auth';
 
 defineOptions({ name: 'SiteFooter' });
 
 defineProps({
-  /** Variante sombre (landing) ou claire (pages docs). */
+  /** Variante sombre (landing) ou claire (pages docs / app). */
   tone: {
     type: String,
     default: 'ink',
@@ -15,19 +16,27 @@ defineProps({
 });
 
 const { t, locale } = useI18n();
+const auth = useAuthStore();
 const year = new Date().getFullYear();
 /** Injecté au build Docker (tag de release), vide en local. */
 const appVersion = (import.meta.env.VITE_APP_VERSION || '').trim();
+const signedIn = computed(() => Boolean(auth.user));
+const homeTo = computed(() => (signedIn.value ? '/home' : '/'));
 const privacyHash = computed(() =>
   locale.value === 'en' ? 'personal-data' : 'donnees-personnelles'
 );
+const accountNote = computed(() => {
+  if (!signedIn.value) return t('footer.accountNote');
+  if (auth.user?.isGuest) return t('footer.accountNoteGuest');
+  return t('footer.accountNoteSignedIn');
+});
 </script>
 
 <template>
   <footer class="site-footer" :data-tone="tone" data-testid="site-footer">
     <div class="site-footer__inner">
       <div class="site-footer__brand-block">
-        <router-link to="/" class="site-footer__brand" :aria-label="t('app.name')">
+        <router-link :to="homeTo" class="site-footer__brand" :aria-label="t('app.name')">
           <BrandMark size="1.75rem" />
           <span>{{ t('app.name') }}</span>
         </router-link>
@@ -37,9 +46,17 @@ const privacyHash = computed(() =>
       <div class="site-footer__cols">
         <div class="site-footer__col">
           <p class="site-footer__heading">{{ t('footer.play') }}</p>
-          <router-link to="/register">{{ t('auth.register') }}</router-link>
-          <router-link to="/login">{{ t('auth.login') }}</router-link>
-          <router-link to="/">{{ t('footer.tryGuest') }}</router-link>
+          <template v-if="signedIn">
+            <router-link to="/home">{{ t('nav.home') }}</router-link>
+            <router-link to="/missions">{{ t('nav.missions') }}</router-link>
+            <router-link to="/collection">{{ t('nav.collection') }}</router-link>
+            <router-link to="/decks">{{ t('nav.decks') }}</router-link>
+          </template>
+          <template v-else>
+            <router-link to="/register">{{ t('auth.register') }}</router-link>
+            <router-link to="/login">{{ t('auth.login') }}</router-link>
+            <router-link to="/">{{ t('footer.tryGuest') }}</router-link>
+          </template>
         </div>
         <div class="site-footer__col">
           <p class="site-footer__heading">{{ t('footer.discover') }}</p>
@@ -48,7 +65,8 @@ const privacyHash = computed(() =>
         </div>
         <div class="site-footer__col">
           <p class="site-footer__heading">{{ t('footer.account') }}</p>
-          <p class="site-footer__note">{{ t('footer.accountNote') }}</p>
+          <router-link v-if="signedIn" to="/profil">{{ t('nav.profile') }}</router-link>
+          <p class="site-footer__note">{{ accountNote }}</p>
         </div>
       </div>
     </div>
