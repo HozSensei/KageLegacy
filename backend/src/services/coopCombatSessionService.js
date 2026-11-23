@@ -140,14 +140,15 @@ export async function applyCombatAction(combatId, userId, action) {
 
 /** Auto fin de tour si deadline dépassée (anti-blocage async). */
 export async function autoEndExpiredTurns({ limit = 20 } = {}) {
+  // mysql2 execute() refuse LIMIT ? (ER_WRONG_ARGUMENTS) — inline borné comme ailleurs.
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
   const rows = await query(
     `SELECT * FROM coop_combat_sessions
      WHERE state = 'in_progress'
        AND turn_deadline_at IS NOT NULL
        AND turn_deadline_at < UTC_TIMESTAMP(6)
      ORDER BY turn_deadline_at ASC
-     LIMIT ?`,
-    [limit],
+     LIMIT ${safeLimit}`,
   );
 
   const results = [];

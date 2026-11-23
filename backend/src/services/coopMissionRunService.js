@@ -1115,13 +1115,15 @@ export async function abandonCoopRun(userId, runId) {
 }
 
 export async function abandonInactiveCoopRuns({ limit = 20 } = {}) {
+  // mysql2 execute() refuse LIMIT ? (ER_WRONG_ARGUMENTS) — inline borné comme ailleurs.
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
+  const inactivityUs = Math.max(1, Math.trunc(Number(COOP_RUN_INACTIVITY_MS) * 1000) || 1);
   const rows = await query(
     `SELECT * FROM coop_mission_runs
      WHERE state = 'in_progress'
-       AND last_action_at < DATE_SUB(UTC_TIMESTAMP(6), INTERVAL ? MICROSECOND)
+       AND last_action_at < DATE_SUB(UTC_TIMESTAMP(6), INTERVAL ${inactivityUs} MICROSECOND)
      ORDER BY last_action_at ASC
-     LIMIT ?`,
-    [COOP_RUN_INACTIVITY_MS * 1000, limit],
+     LIMIT ${safeLimit}`,
   );
 
   const out = [];
