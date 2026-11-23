@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import BrandMark from '../ui/BrandMark.vue';
 import { resolveCardArt } from '../../utils/cardArt';
 import { cardEffectParts } from '../../utils/cardEffectLine';
-import { cardBonusChips, cardFamilyKey, cardSecondaryArt } from '../../utils/cardBonusChips';
+import { cardBonusChips, cardFamilyKey } from '../../utils/cardBonusChips';
 import {
   cardTypeVisual,
   elementLabelKey,
@@ -121,14 +121,6 @@ function artLabelForKey(key) {
 
 const familyKey = computed(() => cardFamilyKey(props.card));
 const familyLabel = computed(() => artLabelForKey(familyKey.value));
-
-const secondaryArt = computed(() => cardSecondaryArt(props.card));
-const secondaryFamilyKey = computed(() =>
-  secondaryArt.value ? cardFamilyKey(secondaryArt.value) : null
-);
-const secondaryArtLabel = computed(() =>
-  secondaryArt.value ? artLabelForKey(secondaryFamilyKey.value || secondaryArt.value) : ''
-);
 
 const bonusChips = computed(() => cardBonusChips(props.card));
 
@@ -272,15 +264,6 @@ watch(
           >
             <span class="card-display__element-dot" aria-hidden="true" />
             {{ elementLabel }}
-          </div>
-          <div
-            v-if="secondaryArtLabel"
-            class="card-display__category card-display__category--secondary"
-            :class="`card-display__category--${secondaryFamilyKey}`"
-            :title="secondaryArtLabel"
-            data-testid="card-secondary-art"
-          >
-            {{ secondaryArtLabel }}
           </div>
           <div
             class="card-display__category"
@@ -665,7 +648,7 @@ watch(
   pointer-events: none;
 }
 
-/* Coin haut gauche : qty → élément → art secondaire → art primaire
+/* Coin haut gauche : qty → élément → art primaire
  * (pile haute pour laisser le bas de l’illustration libre) */
 .card-display__art-banners {
   position: absolute;
@@ -700,14 +683,6 @@ watch(
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.card-display__category--secondary {
-  padding: 0.22rem 0.55rem;
-  font-size: clamp(0.5rem, 3.6cqi, 0.68rem);
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  opacity: 0.95;
 }
 
 .card-display__category--common {
@@ -1293,11 +1268,6 @@ watch(
   font-size: clamp(0.48rem, 3.8cqi, 0.62rem);
 }
 
-.card-display--compact .card-display__category--secondary {
-  padding: 0.15rem 0.38rem;
-  font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
-}
-
 .card-display--compact .card-display__element {
   padding: 0.12rem 0.38rem 0.12rem 0.28rem;
   font-size: clamp(0.4rem, 3.2cqi, 0.52rem);
@@ -1335,10 +1305,6 @@ watch(
 
 .card-display--large .card-display__category {
   font-size: clamp(0.7rem, 4.6cqi, 0.9rem);
-}
-
-.card-display--large .card-display__category--secondary {
-  font-size: clamp(0.55rem, 3.8cqi, 0.75rem);
 }
 
 .card-display--large .card-display__element {

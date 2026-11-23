@@ -136,7 +136,7 @@ function validateComposition({ taijutsu = 0, ninjutsu = 0, genjutsu = 0, medicin
         ...(statType === 'ninjutsu'
           ? { stat_type: statType, rarity: 'common' }
           : {
-              card: { statType, rarity: 'common', statTypeSecondary: 'medicine' },
+              card: { statType, rarity: 'common' },
             }),
       })),
     ),
@@ -152,7 +152,7 @@ assert(
     exactQuota.minSecondaryArtCards === 5 &&
     exactQuota.primaryArt === 'taijutsu' &&
     exactQuota.secondaryArt === 'ninjutsu',
-  'count quantities, not rarity or secondary stat',
+  'count quantities by primary art only',
 );
 
 const thirdArt = validateComposition({ taijutsu: 15, ninjutsu: 5, genjutsu: 1, common: 0 });
@@ -433,11 +433,12 @@ for (const card of CLAN_LEGENDARY_CARDS) {
   );
 }
 
-const dual = ALL_CARDS.find(c => c.slug === 'harmonie-des-cinq-vents');
-assert(dual?.statTypeSecondary === 'genjutsu', 'harmonie is nin/gen dual');
-assert(!Object.keys(dual.passiveBonus || {}).includes('vitesse'), 'harmonie no vitesse passive');
+const harmoni = ALL_CARDS.find(c => c.slug === 'harmonie-des-cinq-vents');
+assert(harmoni?.statType === 'ninjutsu', 'harmonie primary is ninjutsu');
+assert(harmoni?.statTypeSecondary == null, 'harmonie has no secondary art');
+assert(!Object.keys(harmoni.passiveBonus || {}).includes('vitesse'), 'harmonie no vitesse passive');
 assert(
-  !Object.keys(dual.passiveBonus || {}).includes('intelligence'),
+  !Object.keys(harmoni.passiveBonus || {}).includes('intelligence'),
   'harmonie no intelligence passive',
 );
 

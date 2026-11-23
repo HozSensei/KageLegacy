@@ -10,7 +10,6 @@ import {
   deriveCritChance,
   normalizeArtKey,
   remapAbandonedPassives,
-  resolveSecondaryArt,
 } from './deckCombat/combatArts.js';
 
 export const CARD_TYPES = ['attack', 'defense', 'skill', 'summon', 'item'];
@@ -48,7 +47,6 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
   const level = Math.max(0, Math.min(2, Number(upgradeLevel) || 0));
   const upgrades = parseJsonSafe(cardDef.upgrade_bonuses_json ?? cardDef.upgradeBonuses, {}) || {};
   const passiveBase = parseJsonSafe(cardDef.passive_bonus_json ?? cardDef.passiveBonus, {}) || {};
-  const slug = cardDef.slug || null;
   const rawStat = cardDef.stat_type ?? cardDef.statType ?? 'taijutsu';
   const requiresCommon =
     cardDef.type === 'item' ||
@@ -57,10 +55,6 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
   const primary = requiresCommon
     ? 'common'
     : normalizeArtKey(rawStat) || String(rawStat).toLowerCase();
-  const secondary =
-    primary === 'common'
-      ? null
-      : resolveSecondaryArt(slug, cardDef.statTypeSecondary ?? cardDef.stat_type_secondary);
 
   let cost = Number(cardDef.base_cost ?? cardDef.baseCost ?? 0);
   let damage = Number(cardDef.base_damage ?? cardDef.baseDamage ?? 0);
@@ -94,10 +88,8 @@ export function applyUpgradeBonuses(cardDef, upgradeLevel = 0) {
     block: Math.max(0, block),
     heal: Math.max(0, heal),
     critChance,
-    statTypeSecondary: secondary,
     passiveBonus: remapAbandonedPassives(passiveMerged, {
       statType: primary,
-      secondaryStatType: secondary,
     }),
   };
 }
@@ -122,7 +114,6 @@ export function serializeCardDefinition(row, { upgradeLevel = 0 } = {}) {
       row.type === 'item' || row.type === 'summon' || String(row.slug || '').startsWith('clan-')
         ? 'common'
         : normalizeArtKey(row.stat_type) || row.stat_type,
-    statTypeSecondary: computed.statTypeSecondary,
     element: row.element,
     rarity: row.rarity,
     baseCost: row.base_cost,

@@ -6,7 +6,6 @@ import {
   deriveCritChance,
   normalizeArtKey,
   remapAbandonedPassives,
-  resolveSecondaryArt,
 } from '../../src/services/deckCombat/combatArts.js';
 
 const STAT_LABELS_FR = {
@@ -106,7 +105,7 @@ function normalizePassiveBudgets(passive, upgrades, { rarity, statType }) {
   return { passive: safeBase, upgrades: normalizedUpgrades, base };
 }
 
-function remapUpgradePassives(upgrades, { statType, secondaryStatType }) {
+function remapUpgradePassives(upgrades, { statType }) {
   const out = {};
   for (const [levelKey, bonus] of Object.entries(upgrades || {})) {
     if (!bonus || typeof bonus !== 'object') {
@@ -115,7 +114,7 @@ function remapUpgradePassives(upgrades, { statType, secondaryStatType }) {
     }
     const next = { ...bonus };
     if (bonus.passive && typeof bonus.passive === 'object') {
-      next.passive = remapAbandonedPassives(bonus.passive, { statType, secondaryStatType });
+      next.passive = remapAbandonedPassives(bonus.passive, { statType });
     }
     out[levelKey] = next;
   }
@@ -131,7 +130,6 @@ export function defineCard({
   nameEn,
   type,
   statType,
-  statTypeSecondary = null,
   element = null,
   rarity = 'common',
   cost = 0,
@@ -161,7 +159,6 @@ export function defineCard({
   const isCommonCard = type === 'item' || type === 'summon' || slug.startsWith('clan-');
   const requestedPrimary = normalizeArtKey(statType) || String(statType).toLowerCase();
   const primary = isCommonCard ? 'common' : requestedPrimary;
-  const secondary = isCommonCard ? null : resolveSecondaryArt(slug, statTypeSecondary);
   const passiveBefore = { ...(passive || {}) };
   const resolvedCrit = deriveCritChance({
     critChance,
@@ -171,11 +168,9 @@ export function defineCard({
   });
   const remappedPassive = remapAbandonedPassives(passiveBefore, {
     statType: primary,
-    secondaryStatType: secondary,
   });
   const remappedUpgrades = remapUpgradePassives(upgrades, {
     statType: primary,
-    secondaryStatType: secondary,
   });
   const normalized = normalizePassiveBudgets(remappedPassive, remappedUpgrades, {
     rarity,
@@ -188,7 +183,6 @@ export function defineCard({
     nameEn,
     type,
     statType: primary,
-    statTypeSecondary: secondary,
     element,
     rarity,
     baseCost: cost,

@@ -85,7 +85,6 @@ function applyBalanceDeckUpgrade(card, upgradeLevel) {
       slug: card.slug,
       type: card.type,
       stat_type: card.statType,
-      stat_type_secondary: card.statTypeSecondary,
       crit_chance: card.critChance,
       base_cost: card.cost,
       base_damage: card.damage,
@@ -104,7 +103,6 @@ function applyBalanceDeckUpgrade(card, upgradeLevel) {
     block: computed.block,
     heal: computed.heal,
     critChance: computed.critChance || 0,
-    statTypeSecondary: computed.statTypeSecondary ?? card.statTypeSecondary ?? null,
     passiveBonus: computed.passiveBonus,
     upgradeLevel,
   };

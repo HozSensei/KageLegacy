@@ -46,7 +46,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - Stats combat TCG limitées à **Taijutsu / Ninjutsu / Genjutsu / Médecine** (+ dexterity/maxHp)
 - Passifs `vitesse` / `intelligence` remappés vers les arts ; critique = `critChance` sur carte
 - Triade : désavantage ×0.9 (en plus de l’avantage ×1.2)
-- Cartes **double type** (`statTypeSecondary`) pour ponts 2-couleurs
+- ~~Cartes double type (`statTypeSecondary`)~~ — retiré (une seule voie par carte)
 
 #### Removed
 
@@ -89,7 +89,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 - Art collé au bas de la zone illustration (`object-position: bottom`, plus de fondu bas)
 - Type de carte (bandeau derrière le chakra) : fond **noir**, `padding-right` élargi pour ne plus masquer le texte
-- Pile coin haut gauche : exemplaires → élément (petit) → art secondaire → art primaire
+- Pile coin haut gauche : exemplaires → élément (petit) → art primaire
 - Bas de l’illustration laissé libre pour coller l’art
 
 ### UI : carte — type, banners, bonus carrés (2026-11-16)
@@ -97,7 +97,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 #### Changed
 
 - **Type** de carte en bandeau compact collé au bord supérieur (aplat teinté)
-- **Bannière d’art** : rectangle simple (plus de clip-path) ; art secondaire sous le primaire
+- **Bannière d’art** : rectangle simple (plus de clip-path) ; une seule voie affichée
 - **Bonus passifs** : carrés à plat (plus d’hex) — plus d’espace pour le texte d’effet
 
 ### Thème : sombre encre par défaut (2026-11-16)

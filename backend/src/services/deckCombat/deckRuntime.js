@@ -98,7 +98,6 @@ export function buildRuntimeDeck(serializedCards, makeId) {
         statType: card.statType,
         element: card.element,
         rarity: card.rarity,
-        statTypeSecondary: card.statTypeSecondary,
         passiveBonus: card.passiveBonus,
         imageUrl: card.imageUrl,
         passiveDescriptionFr: card.passiveDescriptionFr,
