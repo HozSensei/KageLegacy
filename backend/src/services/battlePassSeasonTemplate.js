@@ -190,14 +190,6 @@ export function buildSeasonQuestDefs(seasonStart, seasonEnd) {
       goal_value: 1,
       xp_reward: dailyXp,
     },
-    {
-      quest_type: 'daily',
-      quest_key: 'join_pvp_queue',
-      description_fr: 'Rejoindre la file d’honneur PvP',
-      description_en: 'Join the PvP honor queue',
-      goal_value: 1,
-      xp_reward: dailyXp,
-    },
   ].map(q => ({
     ...q,
     available_from: dayStart,
@@ -255,14 +247,6 @@ export function buildSeasonQuestDefs(seasonStart, seasonEnd) {
       goal_value: 5,
       xp_reward: weeklyXp,
       bonus_reward_json: JSON.stringify({ type: 'essence', amount: 2 }),
-    },
-    {
-      quest_type: 'weekly',
-      quest_key: 'join_pvp_queue_5',
-      description_fr: 'Entrer 5 fois dans la file PvP',
-      description_en: 'Enter the PvP queue 5 times',
-      goal_value: 5,
-      xp_reward: weeklyXp,
     },
   ].map(q => ({
     ...q,

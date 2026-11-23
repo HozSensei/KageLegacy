@@ -194,10 +194,6 @@ async function integration() {
     'daily booster quest seeded'
   );
   assert(
-    quests.some(q => q.questKey === 'join_pvp_queue'),
-    'daily PvP queue quest seeded'
-  );
-  assert(
     quests.some(q => q.questKey === 'complete_1_run'),
     'daily run quest seeded'
   );

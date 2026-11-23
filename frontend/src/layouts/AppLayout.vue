@@ -15,7 +15,6 @@ import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
 import { useVillageRewardsStore } from '../stores/villageRewards.js';
 import { villageRewardsHash } from '../composables/useVillageRewards.js';
-import { PVP_ENABLED } from '../constants/featureFlags';
 import { sectionOf } from '../constants/sections';
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue';
 import { writeStoredLocale } from '../utils/localeStorage.js';
@@ -50,7 +49,6 @@ const baseNavItems = [
   { name: 'shop', path: '/shop', label: 'nav.shop' },
   { name: 'battle-pass', path: '/battle-pass', label: 'nav.battlePass' },
   { name: 'journal', path: '/journal', label: 'nav.journal' },
-  ...(PVP_ENABLED ? [{ name: 'pvp', path: '/pvp', label: 'nav.pvp' }] : []),
   { name: 'leaderboard', path: '/classement', label: 'nav.leaderboard' },
   { name: 'coop', path: '/coop', label: 'coop.title' },
   { name: 'deck-duels', path: '/deck-duels', label: 'deckDuels.title' },

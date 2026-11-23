@@ -40,7 +40,7 @@ function testCatalog() {
   assert(assignFactionFromSeed(0) === 'midorihara', 'seed 0 → midorihara');
   assert(assignFactionFromSeed(1) === 'kareno', 'seed 1 → kareno');
   assert(assignFactionFromSeed(2) === 'oborohama', 'seed 2 → oborohama');
-  assert(LEADERBOARD_BOARDS.includes('level') && LEADERBOARD_BOARDS.includes('pvp'), 'boards');
+  assert(LEADERBOARD_BOARDS.includes('level') && LEADERBOARD_BOARDS.length === 1, 'boards');
 }
 
 async function testDb() {
@@ -137,9 +137,6 @@ async function testDb() {
   assert(board.entries.length >= 1, 'leaderboard level non vide');
   assert(board.me?.userId === users[0], 'me présent sur board level');
   assert(board.entries[0].rank === 1, 'rang 1 en tête');
-
-  const pvpBoard = await getLeaderboard({ board: 'pvp', page: 1, limit: 5 });
-  assert(Array.isArray(pvpBoard.entries), 'board pvp renvoie entries');
 
   const standings = await getFactionStandings({ board: 'level' });
   assert(standings.standings.length === 3, '3 lignes faction');
