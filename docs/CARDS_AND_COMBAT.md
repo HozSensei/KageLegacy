@@ -21,7 +21,7 @@ Le scénario `prototype` conserve les coûts Taijutsu. Côté Ninjutsu, les amor
 
 Au niveau 0, le duo Taijutsu/Ninjutsu 50/50 passe de 22,47 à 25,41 dégâts immédiats par tour par rapport au `+2` uniforme, contre 28,04 à 5 chakras sans retarifage. C’est un compromis de départ, pas une validation de la méta : l’IA joue carte par carte contre deux adversaires PvE. Il reste à tester des séquences planifiées et des combats où contrôle et survie peuvent changer l’issue.
 
-En combat, l’aperçu « Combo prêt » indique qu’une carte jouable peut déclencher un enchaînement existant après la voie précédente. Il ne prédit pas les dégâts finaux. Il est disponible en PvE et pour l’hôte PvP ; l’invité ne reçoit pas actuellement la voie précédente dans son état public.
+En combat, l’aperçu « Combo prêt » indique qu’une carte jouable peut déclencher un enchaînement existant après la voie précédente. Il ne prédit pas les dégâts finaux. Il est disponible en PvE.
 
 ## Règles actives du solo : main persistante et intentions
 
@@ -29,7 +29,7 @@ Les nouveaux combats de mission et les duels rapides utilisent **5 chakras de ba
 
 Le serveur mémorise la prochaine intention même si l’ennemi utilise un tirage pondéré. L’interface n’en révèle que le type, sans recommander d’action. Les charges et les changements de phase suivent leurs propres règles et peuvent remplacer le plan prévu. Les ennemis, la progression et les récompenses de chaque combat sont conservés.
 
-Après résolution des améliorations, chaque carte de combat reçoit un rôle et les ajustements solo de `soloCardBalance.js`. Le Ninjutsu reprend ses paliers d’amorce, d’attaque directe et de burst. Le Taijutsu conserve ses coûts et reçoit quelques renforts sur les chaînes et ripostes ; le Genjutsu et la Médecine reçoivent des retouches de contrôle et de purification ciblées. Le coût, les valeurs et les conditions visibles dans la main sont celles du combat ; la collection et le PvP conservent les données catalogue. Aucune migration n’est nécessaire et les combats déjà ouverts gardent leurs règles.
+Après résolution des améliorations, chaque carte de combat reçoit un rôle et les ajustements solo de `soloCardBalance.js`. Le Ninjutsu reprend ses paliers d’amorce, d’attaque directe et de burst. Le Taijutsu conserve ses coûts et reçoit quelques renforts sur les chaînes et ripostes ; le Genjutsu et la Médecine reçoivent des retouches de contrôle et de purification ciblées. Le coût, les valeurs et les conditions visibles dans la main sont celles du combat ; la collection conserve les données catalogue. Aucune migration n’est nécessaire et les combats déjà ouverts gardent leurs règles.
 
 ## Voie `common`
 

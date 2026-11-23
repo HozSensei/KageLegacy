@@ -20,8 +20,7 @@ npm run dev
 Adresses par défaut :
 
 - frontend : `http://localhost:5173` ;
-- API : `http://localhost:3000` ;
-- WebSocket PvP : `ws://localhost:3000/ws/pvp`.
+- API : `http://localhost:3000`.
 
 ## Installation manuelle
 
@@ -75,7 +74,7 @@ npm run dev:api
 npm run dev:web
 ```
 
-En développement, Vite proxifie `/api` vers l'API, mais pas `/ws`. Pour le PvP local, `VITE_API_URL` doit pointer vers l'origine de l'API afin que le client construise aussi l'URL WebSocket correcte.
+En développement, Vite proxifie `/api` vers l'API.
 
 ## Secrets
 

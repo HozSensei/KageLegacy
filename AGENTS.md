@@ -9,8 +9,8 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 ### Backend (`backend/`)
 
 - `src/index.js`, `src/app.js` : démarrage serveur, middleware et montage API.
-- `src/routes/` : endpoints HTTP. Les routes du combat PvE à cartes, collection, decks, talents, missions, Battle Pass, shop et PvP sont montées dans `app.js`. Certaines routes et services de gestion d'escouade/cycle peuvent subsister du legacy : leur présence seule ne signifie pas qu'ils appartiennent au produit actuel.
-- `src/services/` : logique métier. `deckCombat/`, `pvp/`, `combatEngineService.js`, `missionRunService.js`, `collectionService.js`, `deckService.js` et les services Battle Pass/shop portent les domaines TCG. `combat/`, `tacticCards/` et `narrative/` peuvent contenir des systèmes hérités.
+- `src/routes/` : endpoints HTTP. Les routes du combat PvE à cartes, collection, decks, talents, missions, Battle Pass et shop sont montées dans `app.js`. Certaines routes et services de gestion d'escouade/cycle peuvent subsister du legacy : leur présence seule ne signifie pas qu'ils appartiennent au produit actuel.
+- `src/services/` : logique métier. `deckCombat/`, `combatEngineService.js`, `missionRunService.js`, `collectionService.js`, `deckService.js` et les services Battle Pass/shop portent les domaines TCG. `combat/`, `tacticCards/` et `narrative/` peuvent contenir des systèmes hérités.
 - `src/models/` : modèles d'accès aux données; certains modèles shinobi/escouade sont hérités.
 - `src/validators/` : validation des entrées.
 - `src/config/` : paramètres transversaux, notamment `combatBalanceConfig.js`, `economyConfig.js`, `starterLoadout.js` et `database.js`.
@@ -21,8 +21,8 @@ TCG shinobi jouable dans le navigateur, centré sur la collection, l'améliorati
 
 - `src/main.js`, `src/App.vue` : bootstrap Vue.
 - `src/router/` : routes et navigation.
-- `src/views/` : écrans du TCG, dont hub, profil/création personnage, collection, deck builder, combat, missions, PvP, talents, boutique et Battle Pass.
-- `src/components/` : composants partagés, regroupés par domaines (cards, combat, talents, shop, joueur, PvP, etc.).
+- `src/views/` : écrans du TCG, dont hub, profil/création personnage, collection, deck builder, combat, missions, talents, boutique et Battle Pass.
+- `src/components/` : composants partagés, regroupés par domaines (cards, combat, talents, shop, joueur, etc.).
 - `src/stores/` : état Pinia et appels API par domaine.
 - `src/locales/`, `src/i18n.js` : textes d'interface FR/EN.
 - `src/content/rules.fr.md` et `rules.en.md` : règles affichées dans l'application.

@@ -84,7 +84,7 @@ Les valeurs ultérieures doivent rester guidées par les simulations, la jouabil
 ## Garde-fous
 
 - aucune nouvelle carte pendant le recalibrage du socle ;
-- parité PvE/PvP pour les effets nouveaux ;
+- cohérence des effets nouveaux entre les modes de combat actifs (PvE, coop, duels asynchrones) ;
 - descriptions FR/EN alignées avec les données ;
 - contrôles catalogue reproductibles ;
 - décisions chiffrées motivées par des rapports, pas par l'ajustement d'un test isolé ;

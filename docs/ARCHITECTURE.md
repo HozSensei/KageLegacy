@@ -5,9 +5,7 @@
 ```mermaid
 graph TD
   Browser[Vue 3 / Vite] -->|HTTP JSON| API[Express]
-  Browser -->|WebSocket /ws/pvp| WS[PvP WebSocket]
   API --> DB[(MySQL 8)]
-  WS --> API
   API --> Stripe[Stripe optionnel]
 ```
 
@@ -17,7 +15,6 @@ Point d'entrée : `backend/src/index.js`.
 
 - charge les fichiers `.env` ;
 - démarre Express ;
-- attache `/ws/pvp` ;
 - lance le scheduler si activé ;
 - gère l'arrêt propre.
 
@@ -32,7 +29,6 @@ Domaines exposés :
 - combat et missions ;
 - Battle Pass et succès ;
 - boutique et Stripe ;
-- PvP ;
 - factions, classement et administration.
 
 ### Organisation
@@ -42,11 +38,9 @@ Domaines exposés :
 | `backend/src/routes/` | Endpoints HTTP et validation minimale |
 | `backend/src/services/` | Logique métier et orchestration |
 | `backend/src/services/deckCombat/` | Moteur de combat PvE, cartes, statuts, boss et simulation |
-| `backend/src/services/pvp/` | Matchmaking, bootstrap, matchmaking, résultats et sessions host |
 | `backend/src/config/` | DB, économie, combat, catalogue starter |
 | `backend/src/validators/` | Validation Zod des entrées |
 | `backend/scripts/` | Seeds, tests, audits et simulations |
-| `shared/pvp/` | Moteur de duel et utilitaires partagés frontend/backend |
 | `backend/schema.sql` | Schéma initial et données de missions |
 
 Les données de catalogue sont définies dans `backend/scripts/seedCards.js`, `backend/scripts/data/` et `backend/src/config/`. La base reçoit ces données par seed ; le schéma seul ne représente pas tout le catalogue runtime.
@@ -63,13 +57,13 @@ Point d'entrée : `frontend/src/main.js`.
 - écrans dans `frontend/src/views/` ;
 - règles affichées dans `frontend/src/content/`.
 
-Écrans principaux : hub, création/profil, collection, deck builder, talents, missions, combat, boutique, Battle Pass, journal, PvP, classement et administration.
+Écrans principaux : hub, création/profil, collection, deck builder, talents, missions, combat, boutique, Battle Pass, journal, classement et administration.
 
 ## Données et règles
 
 Les cartes sont sérialisées depuis les définitions DB, puis converties en cartes runtime lors de la construction du deck. Le runtime conserve notamment : coût, chiffres, effets, `heldEffect`, améliorations, passifs et identité de voie.
 
-Le moteur PvE résout les cartes côté serveur. Le PvP est différent : le serveur gère le match, mais le client Host exécute `shared/pvp/duelEngine.js`. Voir [PvP](PVP.md).
+Le moteur PvE résout les cartes côté serveur.
 
 ## Authentification
 

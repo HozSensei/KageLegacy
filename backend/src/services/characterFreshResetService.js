@@ -47,14 +47,6 @@ export async function resetCharacterToFreshState(userId) {
     await connection.execute('DELETE FROM user_onboarding WHERE user_id = ?', [userId]);
     await connection.execute('DELETE FROM user_achievements WHERE user_id = ?', [userId]);
 
-    await connection.execute('DELETE FROM pvp_queue WHERE user_id = ?', [userId]);
-    await connection.execute('DELETE FROM pvp_invites WHERE user_id = ?', [userId]);
-    await connection.execute(
-      `DELETE FROM pvp_matches
-       WHERE host_user_id = ? OR guest_user_id = ?`,
-      [userId, userId],
-    );
-
     await connection.execute(
       `UPDATE player_profiles
        SET ryos = ?,

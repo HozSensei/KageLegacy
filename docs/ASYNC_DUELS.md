@@ -1,6 +1,6 @@
 # Duel de decks asynchrone
 
-Dans **Duel de decks**, un joueur affronte le deck actif d’un autre joueur, piloté par l’IA. Le propriétaire peut être déconnecté : il n’y a ni publication de deck ni autorisation de défense. Le PvP temps réel reste masqué et la coop ne change pas.
+Dans **Duel de decks**, un joueur affronte le deck actif d’un autre joueur, piloté par l’IA. Le propriétaire peut être déconnecté : il n’y a ni publication de deck ni autorisation de défense. Le PvP temps réel a été retiré et la coop ne change pas.
 
 ## Choisir un adversaire
 

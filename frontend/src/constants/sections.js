@@ -22,10 +22,9 @@ export const SECTIONS = {
   'deck-duels': { index: '11', icon: 'pvp', tone: 'vermilion' },
   'battle-pass': { index: '12', icon: 'battle-pass', tone: 'gold' },
   journal: { index: '13', icon: 'journal', tone: 'indigo' },
-  pvp: { index: '14', icon: 'pvp', tone: 'vermilion' },
-  leaderboard: { index: '15', icon: 'leaderboard', tone: 'indigo' },
+  leaderboard: { index: '14', icon: 'leaderboard', tone: 'indigo' },
   // Groupe extra
-  admin: { index: '16', icon: 'admin', tone: 'ink' },
+  admin: { index: '15', icon: 'admin', tone: 'ink' },
 };
 
 export function sectionOf(name) {

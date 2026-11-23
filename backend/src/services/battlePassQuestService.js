@@ -115,7 +115,6 @@ export const BATTLE_PASS_QUEST_ACTIONS = Object.freeze({
   deal_damage: ['deal_500_damage'],
   booster_open: ['open_1_booster', 'open_5_boosters', 'season_open_25_boosters'],
   card_upgrade: ['upgrade_1_card', 'upgrade_5_cards', 'season_upgrade_20_cards'],
-  pvp_queue: ['join_pvp_queue', 'join_pvp_queue_5'],
   mission_run: ['complete_1_run', 'complete_3_runs', 'season_complete_50_missions'],
   mission_rank_b: ['complete_5_missions_b'],
   card_collect: ['collect_10_cards', 'season_collect_50_cards'],

@@ -119,10 +119,6 @@ jobs:
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: npm run test:mission-run --prefix backend
 
-      - name: PvP matchmaking
-        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
-        run: npm run test:pvp-matchmaking --prefix backend
-
       - name: Prepare TCG database
         id: prepare
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}

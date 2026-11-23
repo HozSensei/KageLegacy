@@ -124,7 +124,7 @@ Les valeurs exactes sont toujours celles écrites sur la carte.
 
 ### Héritages (effets « en main »)
 
-Certaines cartes légendaires de clan portent un **héritage** : un effet actif **tant que la carte est en main** (et en **réserve** en arène PvP). Jouer la carte ne lui applique pas son propre héritage.
+Certaines cartes légendaires de clan portent un **héritage** : un effet actif **tant que la carte est en main**. Jouer la carte ne lui applique pas son propre héritage.
 
 | Héritage | Effet |
 | -------- | ----- |
@@ -219,7 +219,7 @@ Vous pouvez réinitialiser tout l'arbre : tous les points dépensés vous sont r
 
 ## Le combat
 
-En PvE, un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier. La **main persistante** est la règle par défaut en mission et en duel rapide. Pour les différences en arène, voir « Le PvP en arène ».
+En PvE, un combat oppose votre ninja à un ennemi, au tour par tour. Vous jouez toujours en premier. La **main persistante** est la règle par défaut en mission et en duel rapide.
 
 ### Au départ
 
@@ -509,28 +509,6 @@ Chaque niveau demande 1 000 XP de passe pour les niveaux 1 à 10, puis 50 XP de 
 ### Récompenses
 
 Chaque niveau atteint ouvre une récompense sur chaque piste : Ryos, poussière de carte, essence, Kage Coins, cartes ou parchemins. Une récompense doit être **réclamée** sur la page du passe. Celles de la piste premium demandent d'avoir débloqué le premium.
-
----
-
-## Le PvP en arène
-
-L'arène vous oppose à un autre joueur, en duel au tour par tour.
-
-### File d'attente
-
-Vous entrez dans la file avec votre **deck actif**. Le jeu cherche un adversaire de **niveau proche** : 3 niveaux d'écart au plus par défaut, ou 5 si vous élargissez la recherche. Entre plusieurs candidats, il choisit le plus proche en niveau, puis celui qui attend depuis le plus longtemps.
-
-Quand un adversaire est trouvé, le duel commence dès que les deux joueurs sont prêts.
-
-### Le duel
-
-Le PvP ne suit pas les règles de la main persistante. Vous commencez avec 100 PV plus votre bonus de PV max et 3 Chakra de base plus vos bonus de Chakra max. Vous piochez 5 cartes par tour, avec un report automatique d'au plus 1 Chakra. Une fois par tour, vous pouvez soit défausser une carte pour gagner 1 Chakra, soit en réserver une. Chaque joueur joue à son tour et peut abandonner. Les cartes non jouées sont défaussées en fin de tour ; la carte réservée revient avant la prochaine pioche, dans la limite de 10 cartes en main.
-
-Le duel utilise une partie des calculs PvE pour les cartes, les statuts et les talents, **sans garantir une parité complète** : seuls les effets et données transmis et pris en charge en PvP s'appliquent. Les dégâts utilisent notamment les statistiques et les avantages de voie ; la voie dominante de l'adversaire sert de posture. L'affinité élémentaire du joueur adverse n'est actuellement pas transmise au moteur du duel : les attaques restent donc neutres vis-à-vis de cette affinité. Les invocations ont cependant une gestion adaptée au duel : une seule à la fois, elles attaquent au début du tour de leur propriétaire et expirent selon leur durée. Une invocation avec **Provocation** intercepte les dégâts, l'éventuel surplus atteignant son propriétaire ; **Régénération**, **Esquive**, **Brûlure** et **Frappe** (+25 % ATK) sont aussi reproduites en duel. Le marqueur d'épuisement des cartes ordinaires n'est actuellement pas transmis au duel : elles vont donc normalement dans la défausse après usage, contrairement aux invocations.
-
-**Attention : en PvP, l'armure restante disparaît à la fin du tour de son propriétaire**, contrairement au PvE où elle protège pendant le tour ennemi. Les informations de la main et de la carte réservée sont cachées à l'adversaire.
-
-Il n'y a pour l'instant **ni classement ni récompense** propre à l'arène. Entrer dans la file compte pour certaines quêtes du passe de saison.
 
 ---
 

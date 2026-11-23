@@ -10,7 +10,7 @@ const { t, locale } = useI18n()
 const store = useAchievementsStore()
 const message = ref(null)
 const filter = ref('all')
-const categories = ['all','combat','missions','collection','pvp','mastery','progression']
+const categories = ['all', 'combat', 'missions', 'collection', 'mastery', 'progression']
 const filtered = computed(() => filter.value === 'all' ? store.achievements : store.achievements.filter((a) => a.category === filter.value))
 onMounted(() => store.fetchRegistry())
 async function onClaim({ key, tier }) {

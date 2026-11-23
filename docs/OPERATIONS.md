@@ -18,7 +18,7 @@ Variables principales :
 
 - `VITE_API_URL`
 
-Pour le build Docker même origine, cette valeur reste vide et Nginx proxy `/api`. Pour le développement PvP, elle doit viser l'API afin que l'URL WebSocket soit construite vers le bon host.
+Pour le build Docker même origine, cette valeur reste vide et Nginx proxy `/api`.
 
 ### Runtime
 
@@ -63,7 +63,7 @@ Stripe est monté avec le corps brut sur `/api/stripe/webhook` avant le parseur 
 
 1. compile Vue/Vite ;
 2. installe les dépendances backend de production ;
-3. copie l'API et les modules PvP partagés ;
+3. copie l'API et les modules partagés ;
 4. sert le frontend avec Nginx ;
 5. proxy `/api/` vers Node sur le port 3000 ;
 6. lance l'entrypoint Docker.
@@ -99,22 +99,6 @@ Pour purger d'anciennes versions GHCR :
 2. Actions → **GHCR cleanup** → Run workflow avec `confirm=delete-all` (optionnel : `min_versions_to_keep`, `0` = tout supprimer ; max 100 versions par passe).
 
 Certaines variables historiques (cycle, anchors) peuvent encore figurer dans d’anciens fichiers d’environnement ; elles ne sont pas consommées par le produit actuel.
-
-## WebSocket en production
-
-Nginx actuel ne proxy pas `/ws/pvp`. Une location dédiée avec `Upgrade` et `Connection` est nécessaire pour activer le PvP dans l'image. Le serveur expose déjà le WebSocket sur le même processus Node.
-
-Exemple conceptuel à adapter :
-
-```nginx
-location /ws/ {
-  proxy_pass http://127.0.0.1:3000;
-  proxy_http_version 1.1;
-  proxy_set_header Upgrade $http_upgrade;
-  proxy_set_header Connection "upgrade";
-  proxy_set_header Host $host;
-}
-```
 
 ## Scheduler
 

@@ -44,7 +44,6 @@
     "test:battle-pass": "node scripts/testBattlePass.js",
     "test:achievements": "node scripts/testAchievements.js",
     "test:player-character": "node scripts/testPlayerCharacter.js",
-    "test:pvp-matchmaking": "node scripts/testPvpMatchmaking.js",
     "test:async-duel-repository": "node --test scripts/testAsyncDuelRepository.js",
     "test:weekly-village-payout": "node --test scripts/testWeeklyVillagePayout.js",
     "test:factions-leaderboard": "node scripts/testFactionsLeaderboard.js",
@@ -65,7 +64,6 @@
     "google-auth-library": "^9.15.1",
     "mysql2": "^3.12.0",
     "stripe": "^17.7.0",
-    "ws": "^8.23.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

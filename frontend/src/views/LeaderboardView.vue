@@ -17,14 +17,9 @@ const factionFilter = ref('')
 const joining = ref(false)
 const localError = ref(null)
 
-const boards = [
-  { id: 'level', labelKey: 'leaderboard.boardLevel' },
-  { id: 'pvp', labelKey: 'leaderboard.boardPvp' },
-]
+const boards = [{ id: 'level', labelKey: 'leaderboard.boardLevel' }]
 
-const scoreLabel = computed(() =>
-  board.value === 'pvp' ? t('leaderboard.colPvpWins') : t('leaderboard.colLevel'),
-)
+const scoreLabel = computed(() => t('leaderboard.colLevel'))
 
 onMounted(async () => {
   if (!player.checked) await player.fetchPlayer()

@@ -23,15 +23,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'missions',
         labelKey: 'nav.groups.missions',
-        items: pick(
-          'missions',
-          'coop',
-          'deck-duels',
-          'battle-pass',
-          'journal',
-          'pvp',
-          'leaderboard'
-        ),
+        items: pick('missions', 'coop', 'deck-duels', 'battle-pass', 'journal', 'leaderboard'),
       },
       {
         id: 'extra',

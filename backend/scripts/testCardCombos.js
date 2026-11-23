@@ -4,7 +4,6 @@ import {
   applyTalentAfterCardPlay,
   applyTalentStartOfTurn,
 } from '../src/services/deckCombat/talentEffects.js';
-import { applyDuelAction, createDuelFromBootstrap } from '../../shared/pvp/duelEngine.js';
 
 const rng = () => 0.99;
 const enemy = { hp: 100, maxHp: 100, block: 0, statuses: [] };
@@ -53,7 +52,7 @@ for (const statType of ['taijutsu', 'ninjutsu', 'genjutsu']) {
   assert.equal(play(reset, card).enemy.hp, 90);
 }
 
-// The PvE and PvP play paths resolve the card before calling the after-play hook.
+// Le chemin PvE résout la carte avant le hook after-play.
 for (const statType of ['taijutsu', 'ninjutsu', 'genjutsu']) {
   const comboEffect = { type: 'combo_previous', statType, damage: 3, draw: 1, chakra: 2 };
   const card = { type: 'attack', statType: 'taijutsu', damage: 10, effects: [comboEffect] };
@@ -160,50 +159,6 @@ const damage = computeCardDamage(
   { previousCardStatType: 'taijutsu', rng }
 );
 assert.equal(damage.total, 30);
-
-const duel = createDuelFromBootstrap({
-  matchId: 'combo-test',
-  seed: 'combo',
-  fighters: {
-    host: {
-      userId: 1,
-      hp: 100,
-      maxHp: 100,
-      chakra: 3,
-      stats: {},
-      hand: [
-        { instanceId: 'setup', type: 'skill', cost: 0, statType: 'genjutsu' },
-        {
-          instanceId: 'combo',
-          type: 'attack',
-          cost: 0,
-          statType: 'taijutsu',
-          damage: 10,
-          effects: [
-            { type: 'combo_previous', statType: 'genjutsu', damage: 5, draw: 1, chakra: 2 },
-          ],
-        },
-      ],
-      drawPile: [{ instanceId: 'pvp-draw', type: 'skill', cost: 0 }],
-    },
-    guest: { userId: 2, hp: 100, maxHp: 100, chakra: 3, stats: {} },
-  },
-});
-const action = (state, kind, seat, instanceId) => {
-  const result = applyDuelAction(state, { kind, seat, instanceId });
-  assert.equal(result.error, undefined);
-  return result.state;
-};
-let state = action(duel, 'play_card', 'host', 'setup');
-assert.equal(state.fighters.host.previousCardStatType, 'genjutsu');
-assert.equal(state.fighters.guest.previousCardStatType, null);
-state = action(state, 'play_card', 'host', 'combo');
-assert.equal(state.fighters.guest.hp, 85);
-assert.equal(state.fighters.host.chakra, 5);
-assert.ok(state.fighters.host.hand.some(card => card.instanceId === 'pvp-draw'));
-state = action(state, 'end_turn', 'host');
-state = action(state, 'end_turn', 'guest');
-assert.equal(state.fighters.host.previousCardStatType, null);
 
 const commonStats = { taijutsu: 20, ninjutsu: 80, genjutsu: 40, medicine: 10 };
 assert.equal(

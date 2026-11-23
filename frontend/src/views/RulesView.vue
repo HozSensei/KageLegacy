@@ -38,7 +38,6 @@ const sectionIds = [
   ['missions', 'missions-et-parcours', 'missions-and-runs'],
   ['shop', 'la-boutique', 'the-shop'],
   ['season-pass', 'le-passe-de-saison', 'the-season-pass'],
-  ['pvp', 'le-pvp-en-arene', 'the-pvp-arena'],
   ['resources', 'monnaies-et-ressources', 'currencies-and-resources'],
   ['update-history', 'historique-des-mises-a-jour', 'update-history'],
 ];

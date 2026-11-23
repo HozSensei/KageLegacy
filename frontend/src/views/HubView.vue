@@ -12,7 +12,6 @@ import { useOnboardingStore } from '../stores/onboarding';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
-import { PVP_ENABLED } from '../constants/featureFlags';
 import { sectionOf } from '../constants/sections';
 import hubImage from '../assets/illustrations/hub-office.webp';
 
@@ -140,9 +139,6 @@ const shortcuts = computed(() =>
       hint: t('hub.shortcutBp'),
     },
     { name: 'journal', to: '/journal', label: t('nav.journal'), hint: t('hub.shortcutJournal') },
-    ...(PVP_ENABLED
-      ? [{ name: 'pvp', to: '/pvp', label: t('nav.pvp'), hint: t('hub.shortcutPvp') }]
-      : []),
     {
       name: 'leaderboard',
       to: '/classement',

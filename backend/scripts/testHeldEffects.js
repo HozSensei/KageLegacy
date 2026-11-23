@@ -12,7 +12,6 @@ import {
   moveCardFromHand,
 } from '../src/services/deckCombat/deckRuntime.js';
 import { applySoloCardBalance } from '../src/services/deckCombat/soloCardBalance.js';
-import { createDuelFromBootstrap } from '../../shared/pvp/duelEngine.js';
 
 const player = { hp: 50, maxHp: 100, chakra: 5, maxChakra: 5, block: 0, hand: [] };
 const enemy = { hp: 100, maxHp: 100, block: 0, intent: { type: 'attack', damage: 10 } };
@@ -229,16 +228,10 @@ test('playing a heritage at the hand cap frees one slot for its own draw', () =>
   assert.equal(hand.length, MAX_HAND_SIZE);
 });
 
-test('shared PvP smoke test: only the starting fighter gets held Chakra', () => {
+test('held Chakra applies at turn start via applyHeldTurnStart', () => {
   const [chakra] = heritage('yukisawa');
-  const duel = createDuelFromBootstrap({
-    matchId: 'held',
-    seed: 'held',
-    fighters: {
-      host: { ...player, stats: {}, userId: 1, hand: [chakra] },
-      guest: { ...player, stats: {}, userId: 2 },
-    },
-  });
-  assert.equal(duel.fighters.host.chakra, 7);
-  assert.equal(duel.fighters.guest.chakra, 5);
+  const withHeld = applyHeldTurnStart({ ...player, reserveCard: chakra, chakra: 5 });
+  const without = applyHeldTurnStart({ ...player, chakra: 5 });
+  assert.equal(withHeld.player.chakra, 7);
+  assert.equal(without.player.chakra, 5);
 });

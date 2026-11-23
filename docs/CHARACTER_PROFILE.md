@@ -41,6 +41,6 @@ Le schéma initial `backend/schema.sql` est à jour pour les nouvelles bases. Po
 
 La mise à niveau historique du profil (relançable) ajoute les colonnes d'avatar / fond de carte / surnom / plus haut niveau et étend l'ENUM du rang. Les bases déjà migrées reçoivent `character_background_id` et `character_background_color` via les colonnes de compatibilité si besoin ; `npm run db:migrate` retire encore l'ancienne colonne `character_border_color` si elle existe. Le catalogue d'identifiants de fond est partagé dans `shared/character/cardBackgrounds.js` ; la validation des teintes dans `shared/character/profileColors.js`.
 
-En combat (PvE, coop, PvP, duels asynchrones), l'identité publique du combattant inclut `factionId` lorsqu'il est connu, afin d'afficher le village sur la fiche joueur.
+En combat (PvE, coop, duels asynchrones), l'identité publique du combattant inclut `factionId` lorsqu'il est connu, afin d'afficher le village sur la fiche joueur.
 
 Tests : `npm run test:player-character --prefix backend` (tests purs, puis tests HTTP et d'intégration si une base de test est disponible).

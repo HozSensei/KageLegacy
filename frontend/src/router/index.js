@@ -16,12 +16,9 @@ import MissionRunView from '../views/MissionRunView.vue';
 import CombatView from '../views/CombatView.vue';
 import CoopView from '../views/CoopView.vue';
 import CoopMissionRunView from '../views/CoopMissionRunView.vue';
-import { PVP_ENABLED } from '../constants/featureFlags';
 import ShopView from '../views/ShopView.vue';
 import BattlePassView from '../views/BattlePassView.vue';
 import JournalView from '../views/JournalView.vue';
-import PvpQueueView from '../views/PvpQueueView.vue';
-import PvpDuelView from '../views/PvpDuelView.vue';
 import LeaderboardView from '../views/LeaderboardView.vue';
 import AdminView from '../views/AdminView.vue';
 import { useAuthStore } from '../stores/auth';
@@ -161,23 +158,6 @@ const router = createRouter({
           },
         },
         {
-          path: 'pvp',
-          name: 'pvp',
-          component: PvpQueueView,
-          meta: {
-            requiresCharacter: true,
-          },
-        },
-        {
-          path: 'pvp/duel/:id',
-          name: 'pvp-duel',
-          component: PvpDuelView,
-          meta: {
-            requiresCharacter: true,
-            combatLayout: true,
-          },
-        },
-        {
           path: 'classement',
           name: 'leaderboard',
           component: LeaderboardView,
@@ -211,9 +191,6 @@ router.beforeEach(async to => {
 
   if (!auth.checked) await auth.fetchMe();
   if (!auth.user) return { path: '/' };
-  if (!PVP_ENABLED && (to.name === 'pvp' || to.name === 'pvp-duel')) {
-    return { name: 'coop', replace: true };
-  }
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' };
 
   // Sans personnage : uniquement le wizard de création (et l'admin).
