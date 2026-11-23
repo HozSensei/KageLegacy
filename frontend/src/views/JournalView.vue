@@ -14,17 +14,24 @@ const message = ref(null)
 const filter = ref('all')
 const categories = ['all', 'combat', 'missions', 'collection', 'mastery', 'progression']
 const filtered = computed(() => filter.value === 'all' ? store.achievements : store.achievements.filter((a) => a.category === filter.value))
-onMounted(() => store.fetchRegistry())
+onMounted(async () => {
+  await store.fetchRegistry()
+  rewardNotifications.syncAchievements(store.achievements || [], { toastNew: false })
+})
 async function onClaim({ key, tier }) {
   message.value = null
   const result = await store.claimTier(key, tier)
   message.value = result ? t('achievements.claimSuccess') : store.error
-  if (result?.rewards?.length) {
-    rewardNotifications.notifyGrants({
-      source: 'achievement',
-      grants: result.rewards,
-      href: { name: 'journal' },
-    })
+  if (result) {
+    rewardNotifications.clearDedupe(`achievement:${key}:${tier}`)
+    rewardNotifications.syncAchievements(store.achievements || [], { toastNew: false })
+    if (result.rewards?.length) {
+      rewardNotifications.notifyGrants({
+        source: 'achievement',
+        grants: result.rewards,
+        href: { name: 'journal' },
+      })
+    }
   }
 }
 </script>

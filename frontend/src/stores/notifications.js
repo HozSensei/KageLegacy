@@ -129,6 +129,39 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
   }
 
+  /**
+   * Aligne les rappels « succès / défi réclamable » (paliers du journal).
+   * @param {Array} achievements
+   * @param {(entry: { achievement: object, tier: object }) => object} buildEntry
+   */
+  function syncAchievementReady(achievements, buildEntry) {
+    const ready = [];
+    for (const achievement of achievements || []) {
+      if (!achievement?.key) continue;
+      for (const tier of achievement.tiers || []) {
+        if (tier?.claimable) ready.push({ achievement, tier });
+      }
+    }
+    const keys = new Set(ready.map(({ achievement, tier }) => `achievement:${achievement.key}:${tier.tier}`));
+    items.value = items.value.filter(
+      n => n.kind !== 'achievement_ready' || (n.dedupeKey && keys.has(n.dedupeKey))
+    );
+    for (const entry of ready) {
+      const built = buildEntry?.(entry) || {};
+      push({
+        kind: 'achievement_ready',
+        dedupeKey: `achievement:${entry.achievement.key}:${entry.tier.tier}`,
+        sticky: true,
+        payload:
+          built.payload || {
+            achievementKey: entry.achievement.key,
+            tier: entry.tier.tier,
+          },
+        href: built.href ?? { name: 'journal' },
+      });
+    }
+  }
+
   function reset() {
     items.value = [];
   }
@@ -144,6 +177,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     markAllRead,
     syncQuestReady,
     syncOnboardingReady,
+    syncAchievementReady,
     reset,
   };
 });

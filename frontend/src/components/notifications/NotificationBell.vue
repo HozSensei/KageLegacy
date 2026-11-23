@@ -91,7 +91,12 @@ function followLink(note, event) {
   if (!path) return;
   router.push(path);
   close();
-  if (note.kind !== 'village_ready' && note.kind !== 'quest_ready' && note.kind !== 'onboarding_ready') {
+  if (
+    note.kind !== 'village_ready' &&
+    note.kind !== 'quest_ready' &&
+    note.kind !== 'achievement_ready' &&
+    note.kind !== 'onboarding_ready'
+  ) {
     store.dismiss(note.id);
   }
 }

@@ -15,7 +15,7 @@ Ryos, poussière et essence sont produits par le jeu. Les Kage Coins servent not
 
 Le **guide du novice** (hub) propose 10 étapes one-shot (profil, decks, talent, collection, combat, règles, Battle Pass, village, boutique). Chaque étape terminée se **réclame** pour de petits gains Ryos/XP (≈ 460 Ryos et ≈ 240 XP au total). Distinct des succès et du Battle Pass. Une étape réclamable et une réclamation réussie alimentent la **cloche de notifications** (rappel + récap des gains).
 
-Les quêtes Battle Pass terminées mais non réclamées, les récaps de mission / combat / duel / coop, et les gains du Village non lus apparaissent dans la même inbox (toasts à l’arrivée).
+Les quêtes Battle Pass (journalières, hebdomadaires et jalons) terminées mais non réclamées, les défis/succès du journal à réclamer, les récaps de mission / combat / duel / coop, et les gains du Village non lus apparaissent dans la même inbox (toasts à l’arrivée).
 
 ## Boosters
 

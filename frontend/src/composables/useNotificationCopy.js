@@ -7,8 +7,15 @@ export function useNotificationCopy() {
 
   function title(note) {
     switch (note.kind) {
-      case 'quest_ready':
+      case 'quest_ready': {
+        const questType = note.payload?.questType;
+        if (questType === 'daily') return t('notifications.questReadyTitleDaily');
+        if (questType === 'weekly') return t('notifications.questReadyTitleWeekly');
+        if (questType === 'milestone') return t('notifications.questReadyTitleMilestone');
         return t('notifications.questReadyTitle');
+      }
+      case 'achievement_ready':
+        return t('notifications.achievementReadyTitle');
       case 'onboarding_ready':
         return t('notifications.onboardingReadyTitle');
       case 'village_ready':
@@ -40,6 +47,13 @@ export function useNotificationCopy() {
           '—';
         return t('notifications.questReadyBody', { description });
       }
+      case 'achievement_ready': {
+        const en = String(locale.value || '').startsWith('en');
+        const name = (en ? p.nameEn : p.name) || p.name || p.achievementKey || '—';
+        const description =
+          (en ? p.descriptionEn : p.description) || p.description || name;
+        return t('notifications.achievementReadyBody', { name, description });
+      }
       case 'onboarding_ready': {
         const stepLabel =
           (String(locale.value || '').startsWith('en') ? p.labelEn : p.label) ||
@@ -60,6 +74,7 @@ export function useNotificationCopy() {
   function linkPath(note) {
     if (note.href) return note.href;
     if (note.kind === 'quest_ready') return { name: 'battle-pass' };
+    if (note.kind === 'achievement_ready') return { name: 'journal' };
     if (note.kind === 'onboarding_ready') return { name: 'hub' };
     if (note.kind === 'village_ready') return { name: 'village', hash: villageRewardsHash };
     return null;
@@ -69,6 +84,8 @@ export function useNotificationCopy() {
     switch (note.kind) {
       case 'quest_ready':
         return t('notifications.questReadyLink');
+      case 'achievement_ready':
+        return t('notifications.achievementReadyLink');
       case 'onboarding_ready':
         return t('notifications.onboardingReadyLink');
       case 'village_ready':

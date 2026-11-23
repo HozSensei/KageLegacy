@@ -17,6 +17,7 @@ import { useShopStore } from '../stores/shop';
 import { useVillageRewardsStore } from '../stores/villageRewards.js';
 import { useBattlePassStore } from '../stores/battlePass.js';
 import { useOnboardingStore } from '../stores/onboarding.js';
+import { useAchievementsStore } from '../stores/achievements.js';
 import { useNotificationsStore } from '../stores/notifications.js';
 import { useRewardNotifications } from '../composables/useRewardNotifications.js';
 import { sectionOf } from '../constants/sections';
@@ -39,6 +40,7 @@ const shop = useShopStore();
 const villageRewards = useVillageRewardsStore();
 const battlePass = useBattlePassStore();
 const onboarding = useOnboardingStore();
+const achievements = useAchievementsStore();
 const notifications = useNotificationsStore();
 const rewardNotifications = useRewardNotifications();
 const showConvert = ref(false);
@@ -140,6 +142,9 @@ function syncClaimableNotifications() {
     const [quests] = await Promise.all([
       battlePass.fetchQuests(),
       onboarding.steps?.length ? Promise.resolve(onboarding.steps) : onboarding.fetchProgress(),
+      achievements.achievements?.length
+        ? Promise.resolve(achievements.achievements)
+        : achievements.fetchRegistry(),
     ]);
     if (auth.user?.id !== userId) return;
     // Premier passage : remplir l’inbox sans toaster le stock déjà claimable.
@@ -149,6 +154,7 @@ function syncClaimableNotifications() {
       labelOf: step => localizedName(step, locale.value, step.key),
       toastNew,
     });
+    rewardNotifications.syncAchievements(achievements.achievements || [], { toastNew });
     claimablesHydrated = true;
   });
   return claimableSync;

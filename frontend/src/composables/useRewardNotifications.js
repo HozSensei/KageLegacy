@@ -6,8 +6,15 @@ import {
   formatGrants,
   normalizeDuelReward,
 } from '../utils/formatRewardLines.js';
-import { localizedDescription } from '../utils/localeContent.js';
+import { localizedDescription, localizedName } from '../utils/localeContent.js';
 import { useToast } from './useToast.js';
+
+function questTypeLabel(questType, t) {
+  if (questType === 'daily') return t('battlePass.dailyQuests');
+  if (questType === 'weekly') return t('battlePass.weeklyQuests');
+  if (questType === 'milestone') return t('battlePass.milestoneQuests');
+  return t('battlePass.questsTitle');
+}
 
 /**
  * Helpers pour alimenter l’inbox + toasts à partir des gains TCG.
@@ -125,6 +132,7 @@ export function useRewardNotifications() {
         payload: {
           questId: quest.id,
           questKey: quest.questKey,
+          questType: quest.questType || null,
           description,
           descriptionEn: localizedDescription(quest, 'en') || description,
           xpReward: quest.xpReward || 0,
@@ -135,9 +143,50 @@ export function useRewardNotifications() {
     if (!toastNew) return;
     for (const note of notifications.items.filter(n => n.kind === 'quest_ready')) {
       if (before.has(note.dedupeKey)) continue;
+      const typeLabel = questTypeLabel(note.payload?.questType, t);
       toastFromNote(
-        t('notifications.questReadyTitle'),
+        t('notifications.questReadyTitleTyped', { type: typeLabel }),
         t('notifications.questReadyBody', {
+          description: note.payload?.description || '—',
+        }),
+        'event'
+      );
+    }
+  }
+
+  function syncAchievements(achievements, { toastNew = true } = {}) {
+    const before = new Set(
+      notifications.items.filter(n => n.kind === 'achievement_ready').map(n => n.dedupeKey)
+    );
+    notifications.syncAchievementReady(achievements, ({ achievement, tier }) => {
+      const name = localizedName(achievement, locale.value, achievement.key);
+      const nameEn = localizedName(achievement, 'en', achievement.key);
+      const description =
+        localizedDescription(tier, locale.value) ||
+        localizedDescription(achievement, locale.value) ||
+        name;
+      return {
+        payload: {
+          achievementKey: achievement.key,
+          tier: tier.tier,
+          name,
+          nameEn,
+          description,
+          descriptionEn:
+            localizedDescription(tier, 'en') ||
+            localizedDescription(achievement, 'en') ||
+            nameEn,
+        },
+        href: { name: 'journal' },
+      };
+    });
+    if (!toastNew) return;
+    for (const note of notifications.items.filter(n => n.kind === 'achievement_ready')) {
+      if (before.has(note.dedupeKey)) continue;
+      toastFromNote(
+        t('notifications.achievementReadyTitle'),
+        t('notifications.achievementReadyBody', {
+          name: note.payload?.name || '—',
           description: note.payload?.description || '—',
         }),
         'event'
@@ -176,6 +225,7 @@ export function useRewardNotifications() {
     notifyDuelRecap,
     syncQuests,
     syncOnboarding,
+    syncAchievements,
     dismiss: notifications.dismiss,
     clearDedupe: notifications.clearDedupe,
   };

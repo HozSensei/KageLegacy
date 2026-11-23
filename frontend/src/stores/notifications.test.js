@@ -63,6 +63,36 @@ test('syncQuestReady keeps only currently claimable quests', () => {
   assert.equal(store.items.length, 0);
 });
 
+test('syncAchievementReady tracks claimable journal tiers', () => {
+  setActivePinia(createPinia());
+  const store = useNotificationsStore();
+
+  store.syncAchievementReady(
+    [
+      {
+        key: 'win_fights',
+        tiers: [
+          { tier: 1, claimable: true },
+          { tier: 2, claimable: false },
+        ],
+      },
+      {
+        key: 'open_boosters',
+        tiers: [{ tier: 1, claimable: false }],
+      },
+    ],
+    ({ achievement, tier }) => ({
+      payload: { achievementKey: achievement.key, tier: tier.tier },
+      href: { name: 'journal' },
+    })
+  );
+  assert.equal(store.items.length, 1);
+  assert.equal(store.items[0].dedupeKey, 'achievement:win_fights:1');
+
+  store.syncAchievementReady([], () => ({}));
+  assert.equal(store.items.length, 0);
+});
+
 test('dismiss removes sticky notes and marks gains as read', () => {
   setActivePinia(createPinia());
   const store = useNotificationsStore();
