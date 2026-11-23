@@ -9,7 +9,6 @@ RUN npm ci
 COPY frontend/ ./
 # Vite alias @shared → ../shared (shared modules used by frontend build)
 COPY shared/ /app/shared/
-# Le moteur PvP partagé réutilise les modules purs de combat PvE.
 COPY backend/src/services/deckCombat/ /app/backend/src/services/deckCombat/
 COPY backend/src/services/characterAppearance.js /app/backend/src/services/characterAppearance.js
 COPY backend/src/services/factionCatalog.js /app/backend/src/services/factionCatalog.js
@@ -32,7 +31,7 @@ COPY backend/package.json backend/package-lock.json ./backend/
 RUN npm ci --omit=dev --prefix backend
 
 COPY backend/ ./backend/
-# Backend imports ../../../../shared from src/services/pvp → /app/shared
+# Backend/frontend share character helpers under /app/shared
 COPY shared/ ./shared/
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 

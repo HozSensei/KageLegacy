@@ -93,9 +93,9 @@ Le reset rembourse chaque rang investi. Il est gratuit une fois tous les 10 nive
 
 ## Succès, factions et classement
 
-- Les succès suivent les actions de combat, mission, collection, talent et PvP. Leurs récompenses se réclament par palier.
+- Les succès suivent les actions de combat, mission, collection et talent. Leurs récompenses se réclament par palier.
 - Les villages n’accordent aucun bonus de combat. L’espace **Village** regroupe les amis et le classement hebdomadaire. Les membres du village vainqueur à l’ouverture de la semaine gagnent un lot, même s’ils n’ont joué aucun duel.
-- Le classement propose les classements par niveau et victoires PvP, avec vue par faction.
+- Le classement propose le classement par niveau, avec vue par faction.
 
 ## Missions coopératives
 
@@ -108,9 +108,5 @@ Une seule mission d’équipe (ou solo) active à la fois. Un tour non joué tro
 ## Duel de decks asynchrone
 
 Affrontez le deck actif d’un ami, d’un joueur de niveau proche ou d’un membre d’un village rival, même s’il est hors ligne. Le vainqueur peut gagner des ryos. Les duels automatiques entre villages alimentent le classement hebdomadaire avec lot collectif. La semaine court du lundi 00 h au lundi suivant 00 h, en UTC. Voir [les règles du Duel de decks](ASYNC_DUELS.md).
-
-## PvP temps réel
-
-Le duel PvP est masqué par défaut. Son code et son historique sont conservés ; le frontend peut être réactivé avec `VITE_PVP_ENABLED=true`.
 
 Les comptes invités expirent après 7 jours et peuvent être convertis en comptes complets.

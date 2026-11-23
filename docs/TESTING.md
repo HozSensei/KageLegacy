@@ -34,14 +34,7 @@ npm run test:mission-run
 npm run test:battle-pass
 npm run test:achievements
 npm run test:talent-tree
-npm run test:pvp-matchmaking
 npm run test:factions-leaderboard
-```
-
-Le moteur PvP partagé dispose aussi de :
-
-```sh
-node --test shared/pvp/duelEngine.test.js
 ```
 
 ## Audit cartes
@@ -96,12 +89,6 @@ Prépare une base `*_e2e` pour certains tests backend. Le preflight empêche une
 3. tests moteur combat ;
 4. simulation d'équilibrage ;
 5. lint backend et frontend.
-
-### PvP
-
-1. tests du moteur partagé ;
-2. tests matchmaking ;
-3. vérification du transport WebSocket.
 
 ### Schéma ou seed
 

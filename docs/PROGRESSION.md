@@ -81,11 +81,11 @@ Les quêtes daily/weekly sont rafraîchies automatiquement. Les récompenses de 
 
 ## Succès
 
-15 succès existent dans six catégories : combat, missions, collection, PvP, maîtrise et progression. Chaque succès possède plusieurs paliers et ses récompenses sont réclamées manuellement.
+15 succès existent dans cinq catégories : combat, missions, collection, maîtrise et progression. Chaque succès possède plusieurs paliers et ses récompenses sont réclamées manuellement.
 
 Récompenses possibles : Ryos, poussière, essence ou XP.
 
-Les hooks actifs suivent notamment : victoires, bosses, séries, défis de combat, runs terminés, collection, taille de deck, talents dépensés et matchs PvP.
+Les hooks actifs suivent notamment : victoires, bosses, séries, défis de combat, runs terminés, collection, taille de deck et talents dépensés.
 
 ## Missions et récompenses
 
@@ -114,5 +114,4 @@ Les factions sont cosmétiques et donnent seulement une identité visuelle. L'af
 Classements :
 
 - niveau puis XP ;
-- victoires PvP de matchs terminés ;
 - vue agrégée par faction.

@@ -124,7 +124,7 @@ Exact numbers are always those written on the card.
 
 ### Heritages (held effects)
 
-Some clan legendary cards carry a **heritage**: an effect that applies **while the card is in hand** (and in **reserve** in the PvP arena). Playing the card does not grant its own heritage to itself.
+Some clan legendary cards carry a **heritage**: an effect that applies **while the card is in hand**. Playing the card does not grant its own heritage to itself.
 
 | Heritage | Effect |
 | -------- | ------ |
@@ -219,7 +219,7 @@ You can reset the whole tree: every point spent is returned to you. You get **on
 
 ## Combat
 
-In PvE, a fight pits your ninja against one enemy, turn by turn. You always play first. **Persistent hands** are the default in missions and quick duels. For arena differences, see “The PvP arena”.
+In PvE, a fight pits your ninja against one enemy, turn by turn. You always play first. **Persistent hands** are the default in missions and quick duels.
 
 ### Setup
 
@@ -509,28 +509,6 @@ Each level takes 1,000 pass XP for levels 1 to 10, then 50 more XP per block of 
 ### Rewards
 
 Each level reached opens a reward on each track: Ryos, card dust, essence, Kage Coins, cards or scrolls. A reward must be **claimed** on the pass page. Premium track rewards require the premium unlock.
-
----
-
-## The PvP arena
-
-The arena pits you against another player in a turn-based duel.
-
-### Queue
-
-You enter the queue with your **active deck**. The game looks for an opponent of **similar level**: at most 3 levels apart by default, or 5 if you widen the search. Among several candidates, it picks the closest in level, then the one who has been waiting the longest.
-
-Once an opponent is found, the duel starts as soon as both players are ready.
-
-### The duel
-
-PvP does not use persistent hands. You start with 100 HP plus your max HP bonus and 3 base Chakra plus your max Chakra bonuses. You draw 5 cards each turn and automatically carry over up to 1 Chakra. Once per turn, you can either discard a card for 1 Chakra or reserve a card. Players take turns and can forfeit. Unplayed cards are discarded at the end of the turn; the reserved card returns before the next draw, subject to the 10-card hand limit.
-
-The duel uses some PvE calculations for cards, statuses, and talents, **without guaranteeing full parity**: only effects and data passed to and supported by PvP apply. Damage notably uses stats and path advantages; the opponent's dominant path acts as their stance. The opposing player's elemental affinity is currently not passed to the duel engine, so attacks remain neutral against that affinity. Summons have duel-specific handling: only one at a time, they attack at the start of their owner's turn and expire according to their duration. A summon with **Taunt** intercepts damage, with any excess reaching its owner; **Regeneration**, **Evade**, **Burn**, and **Strike** (+25% ATK) are also reproduced in duels. Ordinary cards' exhaust flag is currently not passed to the duel, so they normally go to the discard pile after use, unlike summons.
-
-**In PvP, remaining armor disappears at the end of its owner's turn**, unlike PvE where it protects during the enemy turn. Your hand and reserved card are hidden from your opponent.
-
-For now there is **no ranking and no reward** specific to the arena. Entering the queue counts towards some season pass quests.
 
 ---
 
