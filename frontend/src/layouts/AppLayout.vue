@@ -10,7 +10,6 @@ import { useNavStructure } from '../composables/useNavStructure';
 import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
 
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
-import AppNavRail from '../components/layout/AppNavRail.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
@@ -173,12 +172,9 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
   <div
     class="app-shell"
     :class="{
-      'app-shell--rail': auth.user && !isCombatLayout,
       'app-shell--combat': isCombatLayout,
     }"
   >
-    <AppNavRail v-if="auth.user && !isCombatLayout" :nav-groups="navGroups" :is-active="isActive" />
-
     <header class="app-bar">
       <div class="app-bar__inner">
         <AppNavDrawer v-if="auth.user" :nav-groups="navGroups" :is-active="isActive" />
@@ -265,10 +261,6 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--color-bg);
-}
-
-.app-shell--rail {
-  padding-left: var(--shell-rail);
 }
 
 .app-shell--combat {

@@ -85,7 +85,7 @@ function close() {
 
     <div v-if="auth.user" class="nav-drawer__footer">
       <p class="nav-drawer__group-label">{{ t('resources.wallet') }}</p>
-      <HeaderWallet variant="panel" />
+      <HeaderWallet />
     </div>
   </SlidePanel>
 </template>
