@@ -88,16 +88,18 @@ function onTearPointerUp(e) {
     /* ignore */
   }
   clearTearDrag()
-  if (distance >= 90) requestOpen()
+  // Seuil un peu bas pour le swipe doigt (mobile)
+  if (distance >= 56) requestOpen()
 }
 
-function onTearClick(e) {
+function onTearClick() {
   if (!props.interactive) return
   if (suppressClick) {
     suppressClick = false
     return
   }
-  if (e.detail === 0) requestOpen()
+  // Clic, tap mobile ou activation clavier
+  requestOpen()
 }
 
 function onTearKeydown(e) {

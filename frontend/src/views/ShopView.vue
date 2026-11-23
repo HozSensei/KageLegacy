@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import BoosterSelection from '../components/shop/BoosterSelection.vue';
@@ -24,6 +24,8 @@ useOnboardingVisit('visit_shop');
 const router = useRouter();
 
 const isOpeningBooster = ref(false);
+/** Ouverture hors onglet (pack bienvenue / Stripe) — modal plein écran. */
+const isRewardCeremony = ref(false);
 const canRepurchaseOpening = ref(true);
 /** File d’ouvertures restantes (pack bienvenue = 2 parchemins). */
 const openingQueue = ref([]);
@@ -41,6 +43,8 @@ const openedBoosterName = computed(() => {
   if (!booster) return '';
   return locale.value === 'en' ? booster.nameEn : booster.nameFr;
 });
+
+const showOpeningOverlay = computed(() => isOpeningBooster.value && Boolean(shop.lastResult));
 
 const tabs = [
   { id: 'boosters', labelKey: 'shop.tabs.boosters' },
@@ -106,16 +110,18 @@ async function startRewardOpenings(packs) {
   const [first, ...rest] = packs;
   openingQueue.value = rest;
   canRepurchaseOpening.value = false;
+  isRewardCeremony.value = true;
   openedElement.value = null;
   shop.lastResult = {
     boosterType: first.boosterType,
     cards: first.cards,
   };
-  shop.setActiveTab('boosters');
   if (!shop.boosters.length) {
     await shop.fetchBoosters();
   }
   isOpeningBooster.value = true;
+  await nextTick();
+  document.getElementById('shop-booster-opening')?.focus?.();
 }
 
 onMounted(async () => {
@@ -149,13 +155,12 @@ onMounted(async () => {
 
 watch(
   () => shop.activeTab,
-  tab => {
-    if (tab !== 'boosters') {
-      isOpeningBooster.value = false;
-      openingQueue.value = [];
-      canRepurchaseOpening.value = true;
-      shop.clearResult();
-    }
+  () => {
+    if (isRewardCeremony.value) return;
+    isOpeningBooster.value = false;
+    openingQueue.value = [];
+    canRepurchaseOpening.value = true;
+    shop.clearResult();
   }
 );
 
@@ -169,10 +174,13 @@ async function onOpen(type) {
   const element = type === 'elemental' ? shop.selectedElement : null;
   openedElement.value = element;
   canRepurchaseOpening.value = true;
+  isRewardCeremony.value = false;
   openingQueue.value = [];
   try {
     await shop.openBooster(type, { element });
     isOpeningBooster.value = true;
+    await nextTick();
+    document.getElementById('shop-booster-opening')?.focus?.();
   } catch {
     openedElement.value = null;
   }
@@ -194,6 +202,7 @@ function onRevealDone() {
     return;
   }
   isOpeningBooster.value = false;
+  isRewardCeremony.value = false;
   openedElement.value = null;
   canRepurchaseOpening.value = true;
   shop.clearResult();
@@ -265,34 +274,16 @@ async function onBuyWelcome(method) {
     </p>
 
     <div v-show="shop.activeTab === 'boosters'" class="mt-8">
-      <div v-show="!isOpeningBooster">
-        <BoosterSelection
-          :boosters="shop.boosters"
-          :balances="shop.balances"
-          :elements="shop.elements"
-          :selected-element="shop.selectedElement"
-          :opening="shop.opening"
-          :disabled="shop.loading"
-          @open="onOpen"
-          @select-element="shop.setSelectedElement"
-        />
-      </div>
-
-      <div v-if="isOpeningBooster" class="mt-2">
-        <BoosterOpening
-          v-if="shop.lastResult"
-          :cards="shop.lastResult.cards"
-          :active="isOpeningBooster"
-          :booster-type="shop.lastResult.boosterType || 'standard'"
-          :booster-name="openedBoosterName"
-          :element="openedElement"
-          :card-count="openedBooster?.cardCount || shop.lastResult.cards?.length || 5"
-          :can-repurchase="canRepurchaseOpening"
-          :repurchasing="shop.opening"
-          @done="onRevealDone"
-          @repurchase="onRepurchase"
-        />
-      </div>
+      <BoosterSelection
+        :boosters="shop.boosters"
+        :balances="shop.balances"
+        :elements="shop.elements"
+        :selected-element="shop.selectedElement"
+        :opening="shop.opening"
+        :disabled="shop.loading || isOpeningBooster"
+        @open="onOpen"
+        @select-element="shop.setSelectedElement"
+      />
     </div>
 
     <div v-show="shop.activeTab === 'currency'" class="mt-8">
@@ -334,5 +325,47 @@ async function onBuyWelcome(method) {
         @unlock="onUnlockBp"
       />
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="showOpeningOverlay"
+        id="shop-booster-opening"
+        class="modal-backdrop shop-opening"
+        data-testid="shop-booster-opening"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="t('shop.openingStage')"
+        tabindex="-1"
+      >
+        <div class="modal-panel shop-opening__panel">
+          <BoosterOpening
+            :cards="shop.lastResult.cards"
+            :active="isOpeningBooster"
+            :booster-type="shop.lastResult.boosterType || 'standard'"
+            :booster-name="openedBoosterName"
+            :element="openedElement"
+            :card-count="openedBooster?.cardCount || shop.lastResult.cards?.length || 5"
+            :can-repurchase="canRepurchaseOpening"
+            :repurchasing="shop.opening"
+            @done="onRevealDone"
+            @repurchase="onRepurchase"
+          />
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
+
+<style scoped>
+.shop-opening {
+  z-index: 140;
+}
+
+.shop-opening__panel {
+  width: min(42rem, 100%);
+  max-height: min(92dvh, 100%);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  border-top-color: var(--color-gold-fill, var(--color-gold));
+}
+</style>
