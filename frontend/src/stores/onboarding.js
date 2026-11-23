@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { parseApiResponse, readApiError } from '../utils/http.js';
 import { mergeOnboardingSteps, metaFromSteps } from './onboardingProgress.js';
+import { useNotificationsStore } from './notifications.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -109,6 +110,11 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       if (!ok) throw new Error(await readApiError(res, body));
       lastClaim.value = body;
       if (body.progress) applyProgress(body.progress);
+      try {
+        useNotificationsStore().clearDedupe(`onboarding:${stepKey}`);
+      } catch {
+        /* ignore */
+      }
       return body;
     } catch (e) {
       error.value = e.message;

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { parseApiResponse, readApiError } from '../utils/http.js';
+import { useNotificationsStore } from './notifications.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -135,6 +136,11 @@ export const useBattlePassStore = defineStore('battlePass', () => {
       });
       const { ok, body } = await parseApiResponse(res);
       if (!ok) throw new Error(await readApiError(res, body));
+      try {
+        useNotificationsStore().clearDedupe(`quest:${questId}`);
+      } catch {
+        /* ignore */
+      }
       await Promise.all([fetchBattlePass(), fetchQuests()]);
       return body;
     } catch (e) {

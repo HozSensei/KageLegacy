@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CombatArena from '../components/combat/CombatArena.vue';
 import { useDeckDuels } from '../composables/useDeckDuels.js';
+import { useRewardNotifications } from '../composables/useRewardNotifications.js';
 
 const { t, te, n, d } = useI18n();
 const {
@@ -22,6 +23,7 @@ const {
   act,
   returnToLobby,
 } = useDeckDuels();
+const rewardNotifications = useRewardNotifications();
 const showFriends = ref(false);
 const pageHeading = ref(null);
 const duelHeading = ref(null);
@@ -39,7 +41,16 @@ const history = computed(() =>
 onMounted(refresh);
 watch(
   () => duel.value?.state,
-  state => (state ? duelHeading.value : pageHeading.value)?.focus(),
+  state => {
+    (state ? duelHeading.value : pageHeading.value)?.focus();
+    if (['victory', 'defeat', 'forfeited'].includes(state) && duel.value?.id != null) {
+      rewardNotifications.notifyDuelRecap({
+        reward: duel.value.reward,
+        state,
+        duelId: duel.value.id,
+      });
+    }
+  },
   { flush: 'post' }
 );
 

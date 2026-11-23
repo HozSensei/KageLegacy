@@ -13,6 +13,7 @@ import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { sectionOf } from '../constants/sections';
+import { useRewardNotifications } from '../composables/useRewardNotifications.js';
 import hubImage from '../assets/illustrations/hub-office.webp';
 
 defineOptions({ name: 'HubView' });
@@ -25,6 +26,7 @@ const talents = useTalentTreeStore();
 
 const achievements = useAchievementsStore();
 const onboarding = useOnboardingStore();
+const rewardNotifications = useRewardNotifications();
 const ready = ref(false);
 const progressLoadError = ref(false);
 const claimMessage = ref(null);
@@ -42,6 +44,10 @@ async function loadHub() {
     onboarding.fetchProgress(),
   ]);
   progressLoadError.value = Boolean(decks.error || !talentData || !achievementData || !onboardingData);
+  rewardNotifications.syncOnboarding(onboarding.steps || [], {
+    labelOf: step => stepLabel(step),
+    toastNew: false,
+  });
   ready.value = true;
 }
 
@@ -98,7 +104,14 @@ async function claimStep(step) {
     claimMessage.value = onboarding.error || t('hub.onboardingClaimError');
     return;
   }
-  claimMessage.value = t('hub.onboardingClaimed', { reward: rewardLabel(result.step || step) });
+  const claimed = result.step || step;
+  claimMessage.value = t('hub.onboardingClaimed', { reward: rewardLabel(claimed) });
+  rewardNotifications.notifyGrants({
+    source: 'onboarding',
+    grants: result.rewards || claimed.rewards || [],
+    label: stepLabel(claimed),
+    href: { name: 'hub' },
+  });
   await player.fetchPlayer();
 }
 
