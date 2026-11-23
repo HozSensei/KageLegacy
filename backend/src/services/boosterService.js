@@ -8,14 +8,15 @@
  *   Voie       : common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre stat_type)
  *   Élémentaire: common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre élément)
  *   Premium    : common 550 / rare 320 / legendary 100 / mythic 30 (+ 1 rare+ garantie)
- *   Elite      : common 400 / rare 350 / legendary 180 / mythic 70 (+ 1 légendaire+ garantie)
- *   Ascendant  : common 250 / rare 350 / legendary 280 / mythic 120 (+ 1 légendaire+ garantie)
+ *   Elite      : 7 cartes — common 400 / rare 350 / legendary 180 / mythic 70 (+ 1 légendaire+)
+ *   Ascendant  : 10 cartes — common 250 / rare 350 / legendary 280 / mythic 120 (+ 1 légendaire+)
  *
  * Tout le tirage et le débit monétaire sont serveur (anti-triche).
  */
 import { query, getConnection } from '../config/database.js';
 import {
   BOOSTER_CARD_COUNT,
+  BOOSTER_CARD_COUNTS,
   BOOSTER_COSTS,
   PATH_BOOSTER_STAT_TYPES,
 } from '../config/economyConfig.js';
@@ -125,9 +126,9 @@ export const BOOSTER_CATALOG = {
     type: 'elite',
     nameFr: 'Parchemin d’Élite',
     nameEn: 'Elite Scroll',
-    descriptionFr: '5 techniques à taux renforcés avec 1 légendaire (ou mieux) garantie.',
-    descriptionEn: '5 techniques with stronger rates and 1 legendary-or-better guaranteed.',
-    cardCount: BOOSTER_CARD_COUNT,
+    descriptionFr: '7 techniques à taux renforcés avec 1 légendaire (ou mieux) garantie.',
+    descriptionEn: '7 techniques with stronger rates and 1 legendary-or-better guaranteed.',
+    cardCount: BOOSTER_CARD_COUNTS.elite,
     cost: { ...BOOSTER_COSTS.elite },
     rarityWeights: { common: 400, rare: 350, legendary: 180, mythic: 70 },
     guaranteedMinRarity: 'legendary',
@@ -139,9 +140,9 @@ export const BOOSTER_CATALOG = {
     type: 'ascendant',
     nameFr: 'Parchemin Ascendant',
     nameEn: 'Ascendant Scroll',
-    descriptionFr: '5 techniques au plus haut taux, avec 1 légendaire (ou mieux) garantie.',
-    descriptionEn: '5 techniques at the highest rates, with 1 legendary-or-better guaranteed.',
-    cardCount: BOOSTER_CARD_COUNT,
+    descriptionFr: '10 techniques au plus haut taux, avec 1 légendaire (ou mieux) garantie.',
+    descriptionEn: '10 techniques at the highest rates, with 1 legendary-or-better guaranteed.',
+    cardCount: BOOSTER_CARD_COUNTS.ascendant,
     cost: { ...BOOSTER_COSTS.ascendant },
     rarityWeights: { common: 250, rare: 350, legendary: 280, mythic: 120 },
     guaranteedMinRarity: 'legendary',

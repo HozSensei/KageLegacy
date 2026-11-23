@@ -455,16 +455,16 @@ In **PvP duels**, you face another player’s **active deck**, frozen at launch 
 
 ### Scrolls
 
-A scroll contains **5 cards**.
+A scroll contains **5 cards** by default (7 for Elite, 10 for Ascendant).
 
-| Scroll         | Price          | Normal | Rare | Legendary | Mythic |
-| -------------- | -------------- | ------ | ---- | --------- | ------ |
-| **Standard**   | 300 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
-| **Path** (×4)  | 550 Ryos       | 65%    | 26%  | 7%        | 2%     |
-| **Elemental**  | 650 Ryos       | 65%    | 26%  | 7%        | 2%     |
-| **Premium**    | 100 Kage Coins | 55%    | 32%  | 10%       | 3%     |
-| **Elite**      | 250 Kage Coins | 40%    | 35%  | 18%       | 7%     |
-| **Ascendant**  | 500 Kage Coins | 25%    | 35%  | 28%       | 12%    |
+| Scroll         | Price          | Cards  | Normal | Rare | Legendary | Mythic |
+| -------------- | -------------- | ------ | ------ | ---- | --------- | ------ |
+| **Standard**   | 300 Ryos       | 5      | 70%    | 23%  | 5.5%      | 1.5%   |
+| **Path** (×4)  | 550 Ryos       | 5      | 65%    | 26%  | 7%        | 2%     |
+| **Elemental**  | 650 Ryos       | 5      | 65%    | 26%  | 7%        | 2%     |
+| **Premium**    | 100 Kage Coins | 5      | 55%    | 32%  | 10%       | 3%     |
+| **Elite**      | 250 Kage Coins | 7 (+2) | 40%    | 35%  | 18%       | 7%     |
+| **Ascendant**  | 500 Kage Coins | 10 (+5)| 25%    | 35%  | 28%       | 12%    |
 
 - **Path** scrolls (Taijutsu, Ninjutsu, Genjutsu, Medicine) only roll cards from that path.
 - The **Elemental** scroll only contains cards tied to an element. You can choose which one.

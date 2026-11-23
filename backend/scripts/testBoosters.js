@@ -57,10 +57,12 @@ assert(premium.guaranteedMinRarity === 'rare', 'premium guarantee');
 const elite = getBoosterDefinition('elite');
 assert(elite.cost.kageCoins === 250 && elite.cost.ryos === 0, 'elite cost');
 assert(elite.guaranteedMinRarity === 'legendary', 'elite guarantee');
+assert(elite.cardCount === 7, 'elite +2 cards');
 
 const ascendant = getBoosterDefinition('ascendant');
 assert(ascendant.cost.kageCoins === 500 && ascendant.cost.ryos === 0, 'ascendant cost');
 assert(ascendant.guaranteedMinRarity === 'legendary', 'ascendant guarantee');
+assert(ascendant.cardCount === 10, 'ascendant +5 cards');
 
 let threw = false;
 try {
@@ -151,11 +153,18 @@ assert(Math.abs(Object.values(serialized.probabilities).reduce((a, b) => a + b, 
 }
 
 {
+  const eliteSlots = planBoosterRarities(elite, seededRng(60));
+  assert(eliteSlots.length === 7, 'elite plans 7 slots');
+  const ascSlots = planBoosterRarities(ascendant, seededRng(63));
+  assert(ascSlots.length === 10, 'ascendant plans 10 slots');
+
   const eliteSim = simulateBoosterOpenings('elite', 1500, seededRng(61));
   assert(eliteSim.guaranteedRate === 1, `elite guarantee rate ${eliteSim.guaranteedRate}`);
+  assert(eliteSim.totalCards === 1500 * 7, 'elite sim card count');
   const ascSim = simulateBoosterOpenings('ascendant', 1500, seededRng(62));
   assert(ascSim.guaranteedRate === 1, `ascendant guarantee rate ${ascSim.guaranteedRate}`);
-  console.log('✓ elite/ascendant always have legendary+ guarantee');
+  assert(ascSim.totalCards === 1500 * 10, 'ascendant sim card count');
+  console.log('✓ elite/ascendant card counts + legendary+ guarantee');
 }
 
 // --- anti-triche : catalogue costs must be server-side constants ---
