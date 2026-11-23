@@ -2,6 +2,7 @@
 /** Tests du scheduler sans base de données : node scripts/testScheduler.js */
 import assert from 'node:assert/strict';
 import pool from '../src/config/database.js';
+import { COOP_SCHEDULER_TICK_MS } from '../src/config/coopMissionConfig.js';
 import { resetDailyRetentionCacheForTests } from '../src/services/dailyRetentionJobs.js';
 import { msUntilNextUtcMidnight } from '../src/services/dailyUtc.js';
 import { isSchedulerEnabled, startScheduler, stopScheduler } from '../src/services/scheduler.js';
@@ -22,6 +23,9 @@ let payoutChecks = 0;
 function atMidnight(timer, upperBound) {
   assert.ok(timer.delay <= upperBound && timer.delay >= msUntilNextUtcMidnight());
 }
+
+/** retention + village payout + coop maintenance */
+const TIMER_COUNT = 3;
 
 globalThis.setTimeout = (callback, delay) => {
   const timer = { callback, delay, cleared: false };
@@ -61,20 +65,32 @@ try {
   const delayBeforeStart = msUntilNextUtcMidnight();
   startScheduler();
   startScheduler();
-  assert.equal(timers.length, 2, 'un seul timer par traitement après deux démarrages');
-  const [retention, payout] = timers.splice(0);
+  assert.equal(
+    timers.length,
+    TIMER_COUNT,
+    'un seul timer par traitement après deux démarrages',
+  );
+  const [retention, payout, coop] = timers.splice(0);
   atMidnight(retention, delayBeforeStart);
   assert.equal(payout.delay, 0, 'rattrapage au démarrage');
+  assert.equal(coop.delay, 0, 'maintenance coop au démarrage');
   await retention.callback();
   await payout.callback();
+  await coop.callback();
   assert.ok(retentionQueries >= 1, 'la rétention est exécutée');
   assert.equal(payoutChecks, 1, 'le rattrapage est exécuté');
-  assert.equal(timers.length, 2, 'les deux traitements sont replanifiés');
-  atMidnight(timers[1], delayBeforeStart);
+  assert.equal(timers.length, TIMER_COUNT, 'les traitements sont replanifiés');
+  const rescheduledCoop = timers.find(timer => timer.delay === COOP_SCHEDULER_TICK_MS);
+  assert.ok(rescheduledCoop, 'la maintenance coop est replanifiée');
+  atMidnight(
+    timers.find(timer => timer.delay !== COOP_SCHEDULER_TICK_MS && timer.delay !== 60_000) ||
+      timers[0],
+    delayBeforeStart,
+  );
   stopScheduler();
   assert.ok(
     timers.splice(0).every(timer => timer.cleared),
-    'arrêt des deux timers'
+    'arrêt de tous les timers',
   );
 
   resetDailyRetentionCacheForTests();
@@ -88,12 +104,17 @@ try {
     errors += 1;
   };
   startScheduler();
-  const [failedRetention, failedPayout] = timers.splice(0);
+  const [failedRetention, failedPayout, failedCoop] = timers.splice(0);
   await failedRetention.callback();
   await failedPayout.callback();
-  assert.equal(errors, 2, 'les erreurs sont signalées');
-  assert.equal(timers.length, 2, 'replanification après erreur');
-  assert.equal(timers[1].delay, 60_000, 'le paiement est rapidement retenté');
+  await failedCoop.callback();
+  assert.equal(errors, 3, 'les erreurs sont signalées');
+  assert.equal(timers.length, TIMER_COUNT, 'replanification après erreur');
+  assert.equal(
+    timers.find(timer => timer.delay === 60_000)?.delay,
+    60_000,
+    'le paiement est rapidement retenté',
+  );
   stopScheduler();
   timers.splice(0);
 
@@ -113,15 +134,23 @@ try {
       finishPayoutConnection = resolve;
     });
   startScheduler();
-  const [pendingRetention, pendingPayout] = timers.splice(0);
-  const pending = Promise.all([pendingRetention.callback(), pendingPayout.callback()]);
+  const [pendingRetention, pendingPayout, pendingCoop] = timers.splice(0);
+  const pending = Promise.all([
+    pendingRetention.callback(),
+    pendingPayout.callback(),
+    pendingCoop.callback(),
+  ]);
   stopScheduler();
   startScheduler();
-  assert.equal(timers.length, 2, 'un nouveau timer par traitement après redémarrage');
+  assert.equal(timers.length, TIMER_COUNT, 'un nouveau timer par traitement après redémarrage');
   finishRetentionQuery([[], []]);
   finishPayoutConnection(await workingGetConnection());
   await pending;
-  assert.equal(timers.length, 2, 'un ancien traitement ne replanifie pas après redémarrage');
+  assert.equal(
+    timers.length,
+    TIMER_COUNT,
+    'un ancien traitement ne replanifie pas après redémarrage',
+  );
   stopScheduler();
   assert.ok(timers.every(timer => timer.cleared));
   console.log('testScheduler: OK');
