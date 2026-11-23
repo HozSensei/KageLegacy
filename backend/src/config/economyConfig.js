@@ -42,9 +42,9 @@ export const PATH_BOOSTER_STAT_TYPES = Object.freeze([
 
 /**
  * Ryos accordés à la création de compte (register / guest).
- * 250 ≈ 0 pack immédiat (standard 300) ; force un peu de farm D.
+ * 1400 ≈ 2 packs voie (550) + marge — compense un starter Normal-only.
  */
-export const STARTING_RYOS = 250;
+export const STARTING_RYOS = 1400;
 
 // ---------------------------------------------------------------------------
 // Combat / missions deck (récompenses de victoire)
@@ -233,8 +233,10 @@ export function validateEconomyInvariants() {
   if (!Number.isFinite(STARTING_RYOS) || STARTING_RYOS < 0) {
     errors.push('STARTING_RYOS must be a non-negative number');
   }
-  if (STARTING_RYOS > BOOSTER_COSTS.standard.ryos) {
-    errors.push('STARTING_RYOS should be ≤ 1 standard pack');
+  // Budget départ : ~2 packs voie (+ marge d’un standard).
+  const startingPackBudget = BOOSTER_COSTS.path.ryos * 2 + BOOSTER_COSTS.standard.ryos;
+  if (STARTING_RYOS > startingPackBudget) {
+    errors.push(`STARTING_RYOS should be ≤ 2 path packs + 1 standard (${startingPackBudget})`);
   }
 
   // BP soft premium

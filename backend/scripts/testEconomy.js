@@ -38,9 +38,11 @@ if (!check.ok) {
 console.log('✓ validateEconomyInvariants');
 
 assert(
-  STARTING_RYOS >= 0 && STARTING_RYOS <= BOOSTER_COSTS.standard.ryos,
-  `STARTING_RYOS ${STARTING_RYOS} must be 0–1 standard pack`,
-);
+  STARTING_RYOS >= 0 &&
+    STARTING_RYOS <= BOOSTER_COSTS.path.ryos * 2 + BOOSTER_COSTS.standard.ryos,
+  `STARTING_RYOS ${STARTING_RYOS} must be within 2 path packs + 1 standard`,
+  );
+assert(STARTING_RYOS === 1400, 'STARTING_RYOS is 1400 (~2 boosters)');
 console.log(`✓ STARTING_RYOS=${STARTING_RYOS}`);
 
 // Boosters wired
