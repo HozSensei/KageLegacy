@@ -59,7 +59,7 @@ Le budget inclusif des statistiques passives est contrôlé aux niveaux 0, 1 et 
 
 | Rareté     | Points de voies |
 | ---------- | --------------: |
-| Commune    |           0 à 5 |
+| Normale    |           0 à 5 |
 | Rare       |          5 à 10 |
 | Légendaire |         10 à 15 |
 | Mythique   |         15 à 20 |

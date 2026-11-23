@@ -31,7 +31,9 @@ assert(STARTER_DECK_PRESETS.length === 2, 'two starter deck presets');
 
 const bySlug = new Map(ALL_CARDS.map(card => [card.slug, card]));
 for (const slug of STARTER_CARD_SLUGS) {
-  assert(bySlug.has(slug), `slug ${slug} present in catalogue`);
+  const card = bySlug.get(slug);
+  assert(Boolean(card), `slug ${slug} present in catalogue`);
+  assert(card?.rarity === 'common', `starter ${slug} is normal rarity (got ${card?.rarity})`);
   assert(
     getStarterGrantQuantity(slug) >= 1 && getStarterGrantQuantity(slug) <= 3,
     `grant qty for ${slug} in 1..3`,
@@ -51,6 +53,10 @@ assert(
   ),
   'fresh collection still grants all arts and neutral cards',
 );
+assert(
+  collection.every(entry => entry.card.rarity === 'common'),
+  'fresh collection is normal-rarity only',
+);
 
 for (const preset of STARTER_DECK_PRESETS) {
   const deck = selectStarterDeckEntries(collection, preset);
@@ -64,9 +70,14 @@ for (const preset of STARTER_DECK_PRESETS) {
       validation.secondaryCount >= DECK_CONSTRAINTS.minSecondaryArtCards,
     `${preset.id}: meets 15+5 (${validation.primaryArt} ${validation.primaryCount}, ${validation.secondaryArt} ${validation.secondaryCount})`,
   );
+  assert(
+    validation.legendaryOrMythicCount === 0,
+    `${preset.id}: no legendary/mythic cards`,
+  );
   for (const [slug, want] of Object.entries(preset.cards)) {
     const entry = deck.find(row => row.card.slug === slug);
     assert(entry?.quantity === want, `${preset.id} includes ${slug} x${want}`);
+    assert(entry?.card.rarity === 'common', `${preset.id} ${slug} is normal rarity`);
   }
 }
 

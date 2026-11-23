@@ -30,7 +30,7 @@ Un deck actif respecte :
 - au maximum 3 cartes légendaires ou mythiques, héritages inclus ;
 - au moins 15 cartes d’une même voie et 5 cartes d’une deuxième voie ; le reste est libre (3ᵉ/4ᵉ voie, neutres). Seule la voie principale de chaque carte compte ; les neutres ne remplissent pas les seuils.
 
-Les cartes neutres de voie `common` comptent pour la taille du deck, pas pour le 25/75. Ce n’est pas la rareté Commune. Exemple : 30 cartes dont 10 neutres donnent 20 cartes de voie et un minimum de 5 dans chaque voie. Un deck non conforme reste éditable, mais ne peut pas être activé ni lancé en combat.
+Les cartes neutres de voie `common` (affichées Neutre) comptent pour la taille du deck, pas pour les seuils 15+5. Ce n’est pas la rareté Normale (`rarity: common`). Un deck non conforme reste éditable, mais ne peut pas être activé ni lancé en combat.
 
 Un seul deck est actif à la fois. Les passifs des cartes et améliorations du deck actif sont agrégés aux statistiques du personnage.
 
@@ -68,7 +68,7 @@ Une carte peut être améliorée jusqu'au niveau 2, sauf cas plus restrictifs pr
 
 Désenchanter donne de la poussière selon la rareté :
 
-- commune : 10 ;
+- normale : 10 ;
 - rare : 40 ;
 - légendaire : 200 ;
 - mythique : 1000.

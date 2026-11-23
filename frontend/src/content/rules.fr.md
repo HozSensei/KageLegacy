@@ -139,7 +139,7 @@ Chakra et armure d'héritage sont accordés **une fois** au début de votre tour
 
 ### Raretés
 
-Quatre raretés : **Commune**, **Rare**, **Légendaire**, **Mythique**.
+Quatre raretés : **Normale**, **Rare**, **Légendaire**, **Mythique**. (La rareté Normale n’a aucun lien avec les cartes de voie neutre.)
 
 ### Coût et épuisement
 
@@ -151,7 +151,7 @@ Depuis la Collection, une carte peut être améliorée deux fois : niveau **+**,
 
 | Rareté     | Niveau +                                 | Niveau ++                                |
 | ---------- | ---------------------------------------- | ---------------------------------------- |
-| Commune    | 300 Ryos, 15 poussière                   | 1 500 Ryos, 80 poussière                 |
+| Normale    | 300 Ryos, 15 poussière                   | 1 500 Ryos, 80 poussière                 |
 | Rare       | 1 200 Ryos, 80 poussière                 | 5 000 Ryos, 400 poussière                |
 | Légendaire | 4 500 Ryos, 400 poussière                | 18 000 Ryos, 1 800 poussière, 10 essence |
 | Mythique   | 18 000 Ryos, 1 800 poussière, 20 essence | —                                        |
@@ -162,7 +162,7 @@ Vous pouvez détruire un exemplaire d'une carte pour obtenir de la **poussière 
 
 | Rareté     | Poussière obtenue |
 | ---------- | ----------------- |
-| Commune    | 10                |
+| Normale    | 10                |
 | Rare       | 40                |
 | Légendaire | 200               |
 | Mythique   | 1 000             |
@@ -426,7 +426,7 @@ L’**inventaire de mission** a **4 emplacements**. Acheter n’utilise pas l’
 | **Soins** (bandage, tonique, élixir) | Soignent 25 % / 50 % / 75 % des PV max, hors combat uniquement |
 | **Sceau de run** | Bonus de dégâts pour le reste du parcours |
 | **Talismans de prochain combat** | Armure, chakra ou dégâts consommés au combat suivant |
-| **Parchemins scellés** | Carte (commune / rare / légendaire) révélée **seulement à la fin** |
+| **Parchemins scellés** | Carte (normale / rare / légendaire) révélée **seulement à la fin** |
 
 Une **halte** soigne gratuitement hors inventaire. Les objets restants non scellés ne sont pas reportés hors du parcours.
 
@@ -437,7 +437,7 @@ Les récompenses sont versées **à la fin du parcours**, une fois le dernier co
 - de l'**XP** pour votre ninja (×1 ou ×1,35 selon la branche) ;
 - des **Ryos** de récompense **plus** la bourse restante ;
 - de l'**XP de passe de saison** ;
-- une **chance d'obtenir une carte** commune ou rare, plus les **parchemins scellés** achetés en route.
+- une **chance d'obtenir une carte** normale ou rare, plus les **parchemins scellés** achetés en route.
 
 Chaque mission affiche ses récompenses de base. Elles sont multipliées par un **bonus de parcours**, de ×1,6 au rang D jusqu'à ×3 au rang S, auquel s'ajoutent 8 % par combat gagné au-delà du premier.
 
@@ -453,7 +453,7 @@ Le duel rapide lance un combat unique contre l'ennemi de votre choix, hors parco
 
 Un parchemin contient **5 cartes**.
 
-| Parchemin       | Prix           | Commune | Rare | Légendaire | Mythique |
+| Parchemin       | Prix           | Normale | Rare | Légendaire | Mythique |
 | --------------- | -------------- | ------- | ---- | ---------- | -------- |
 | **Standard**    | 300 Ryos       | 70 %    | 23 % | 5,5 %      | 1,5 %    |
 | **Voie** (×4)   | 550 Ryos       | 65 %    | 26 % | 7 %        | 2 %      |
@@ -528,6 +528,7 @@ Chaque niveau atteint ouvre une récompense sur chaque piste : Ryos, poussière 
 
 | Date       | Changement                                                                                                                                                                             |
 | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-23 | Starter Normal-only ; rareté Commune renommée Normale ; onboarding « créer un deck » |
 | 2026-11-23 | Composition de deck : 15 + 5 (splash libre), deux decks starter Taijutsu / Ninjutsu |
 | 2026-11-22 | Parcours branchés : bourse 0/100/200/300, inventaire 4 slots, boutique de run, bifurs XP, plus de contrebande |
 | 2026-11-20 | Paliers missions (accès par rang perso), D dur / C exigeant ; combat détaillé (héritages, chaînes, glossaire) |

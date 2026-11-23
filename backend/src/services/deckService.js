@@ -374,7 +374,10 @@ export async function getPlayableDeckForCombat(userId, deckId = null) {
   return deck;
 }
 
-export async function createDeck(userId, { name, archetype = 'midrange', cards = [] } = {}) {
+export async function createDeck(
+  userId,
+  { name, archetype = 'midrange', cards = [], skipOnboarding = false } = {},
+) {
   const trimmed = String(name || '').trim();
   if (trimmed.length < 1) throw httpError(400, 'Nom du deck requis.');
 
@@ -394,7 +397,8 @@ export async function createDeck(userId, { name, archetype = 'midrange', cards =
       ? await replaceDeckCards(userId, deckId, cards, { skipOnboarding: true })
       : await getDeck(userId, deckId);
 
-  if (!isFirst) {
+  // Les decks starter (skipOnboarding) ne doivent pas valider l’objectif « Créer un deck ».
+  if (!isFirst && !skipOnboarding) {
     try {
       const { onOnboardingAction } = await import('./onboardingService.js');
       await onOnboardingAction(userId, 'deck_create');

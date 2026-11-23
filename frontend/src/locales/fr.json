@@ -884,7 +884,7 @@
         },
         "identity": {
           "title": "4. Voie, élément et rareté",
-          "body": "La bannière indique la voie (Taijutsu, Ninjutsu, Genjutsu, Médecine). L’élément peut donner un avantage de type. Les diamants du bas marquent la rareté (commune → mythique)."
+          "body": "La bannière indique la voie (Taijutsu, Ninjutsu, Genjutsu, Médecine). L’élément peut donner un avantage de type. Les diamants du bas marquent la rareté (normale → mythique)."
         }
       }
     },
@@ -1003,7 +1003,7 @@
       "item": "Objet"
     },
     "rarities": {
-      "common": "Commune",
+      "common": "Normale",
       "rare": "Rare",
       "legendary": "Légendaire",
       "mythic": "Mythique"
@@ -1013,7 +1013,7 @@
       "ninjutsu": "Ninjutsu",
       "genjutsu": "Genjutsu",
       "medicine": "Médecine",
-      "common": "Commun",
+      "common": "Neutre",
       "vitesse": "Vitesse",
       "intelligence": "Intelligence",
       "maxHp": "PV max",
@@ -2145,7 +2145,7 @@
     "cardCharges": "{count} charge(s)",
     "cardBonusRolled": "Bonus {bonus}",
     "cardRarity": {
-      "common": "Commune",
+      "common": "Normale",
       "rare": "Rare",
       "legendary": "Légendaire"
     },
@@ -2589,7 +2589,7 @@
       "booster": "Booster {type}"
     },
     "rarity": {
-      "common": "commune",
+      "common": "normale",
       "rare": "rare",
       "legendary": "légendaire",
       "mythic": "mythique"

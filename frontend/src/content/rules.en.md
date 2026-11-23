@@ -139,7 +139,7 @@ Heritage Chakra and armor are granted **once** at the start of your turn. Percen
 
 ### Rarities
 
-Four rarities: **Common**, **Rare**, **Legendary**, **Mythic**.
+Four rarities: **Normal**, **Rare**, **Legendary**, **Mythic**. (Normal rarity is unrelated to neutral-path cards.)
 
 ### Cost and exhaust
 
@@ -151,7 +151,7 @@ From the Collection, a card can be upgraded twice: level **+**, then level **++*
 
 | Rarity    | Level +                             | Level ++                            |
 | --------- | ----------------------------------- | ----------------------------------- |
-| Common    | 300 Ryos, 15 dust                   | 1,500 Ryos, 80 dust                 |
+| Normal    | 300 Ryos, 15 dust                   | 1,500 Ryos, 80 dust                 |
 | Rare      | 1,200 Ryos, 80 dust                 | 5,000 Ryos, 400 dust                |
 | Legendary | 4,500 Ryos, 400 dust                | 18,000 Ryos, 1,800 dust, 10 essence |
 | Mythic    | 18,000 Ryos, 1,800 dust, 20 essence | —                                   |
@@ -162,7 +162,7 @@ You can destroy one copy of a card to get **card dust**:
 
 | Rarity    | Dust gained |
 | --------- | ----------- |
-| Common    | 10          |
+| Normal    | 10          |
 | Rare      | 40          |
 | Legendary | 200         |
 | Mythic    | 1,000       |
@@ -453,7 +453,7 @@ A quick duel starts a single fight against the enemy of your choice, outside any
 
 A scroll contains **5 cards**.
 
-| Scroll        | Price          | Common | Rare | Legendary | Mythic |
+| Scroll        | Price          | Normal | Rare | Legendary | Mythic |
 | ------------- | -------------- | ------ | ---- | --------- | ------ |
 | **Standard**  | 300 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
 | **Path** (×4) | 550 Ryos       | 65%    | 26%  | 7%        | 2%     |
@@ -528,6 +528,7 @@ Each level reached opens a reward on each track: Ryos, card dust, essence, Kage 
 
 | Date       | Change                                                                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-23 | Normal-only starter; Common rarity renamed Normal; onboarding “create a deck” |
 | 2026-11-23 | Deck composition: 15 + 5 (free splash), two starter decks Taijutsu / Ninjutsu |
 | 2026-11-22 | Branched runs: purse 0/100/200/300, 4-slot inventory, run shop, XP forks, no more contraband |
 | 2026-11-20 | Mission gates by character rank; D hard / C demanding; combat detail (heritages, chains, glossary) |

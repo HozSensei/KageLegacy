@@ -1,35 +1,33 @@
 /**
  * Cartes de base accordées à la création (slugs alignés sur seedCards + vagues).
- * La collection couvre les quatre voies et des neutres ; deux decks starter
- * (Taijutsu / Ninjutsu) respectent la règle 15 + 5.
+ * Uniquement rareté « common » (affichée Normal) — pas de rare / légendaire / mythique.
+ * Deux decks starter (Taijutsu / Ninjutsu) respectent la règle 15 + 5.
  */
 
 /** Quantités accordées à la collection (plafond 3 = MAX_COPIES_PER_CARD). */
 export const STARTER_GRANT_QUANTITIES = Object.freeze({
+  // Taijutsu
   'poing-rapide': 3,
-  'poing-du-dragon': 2,
   'barrage-de-lames': 3,
   'garde-haute': 3,
   'contre-tranchant': 3,
-  'frappe-opportuniste': 1,
-  'souffle-ardent': 3,
-  'lance-de-foudre': 1,
+  'lame-crespusculaire': 3,
+  'serres-de-fer': 2,
+  'coup-de-talon': 2,
+  // Ninjutsu
   'vague-brumeuse': 3,
-  'mur-de-pierre': 3,
   'vent-porteur': 3,
-  'etincelle-seche': 2,
-  'goutte-perforante': 1,
-  'voile-d-ombre': 1,
-  concentration: 1,
-  'mirage-persistant': 1,
-  'paume-apaisante': 1,
+  'etincelle-seche': 3,
+  'goutte-perforante': 3,
+  'lame-de-braise': 2,
+  'cendre-spiralee': 2,
+  // Autres voies / neutres (collection, hors decks starter)
+  concentration: 2,
+  'paume-apaisante': 2,
+  'kunai-de-fer': 2,
   'pilule-du-soldat': 2,
-  'parchemin-de-scellement': 1,
-  'ampoule-de-chakra': 1,
-  'clone-de-combat': 1,
-  'esprit-du-renard': 1,
-  'kunai-de-fer': 1,
-  'bande-de-soie': 1,
+  'ampoule-de-chakra': 2,
+  'bande-de-soie': 2,
 });
 
 export const STARTER_CARD_SLUGS = Object.freeze(Object.keys(STARTER_GRANT_QUANTITIES));
@@ -40,7 +38,7 @@ export function getStarterGrantQuantity(slug) {
 
 /**
  * Presets des deux decks de départ (quantités ≤ exemplaires offerts).
- * Chacun : 15 voie principale + 5 voie secondaire, taille 20.
+ * Chacun : 15 voie principale + 5 voie secondaire, taille 20, rareté normale uniquement.
  */
 export const STARTER_DECK_PRESETS = Object.freeze([
   Object.freeze({
@@ -53,11 +51,9 @@ export const STARTER_DECK_PRESETS = Object.freeze([
       'barrage-de-lames': 3,
       'garde-haute': 3,
       'contre-tranchant': 3,
-      'poing-du-dragon': 2,
-      'frappe-opportuniste': 1,
+      'lame-crespusculaire': 3,
       'vague-brumeuse': 3,
-      'souffle-ardent': 1,
-      'vent-porteur': 1,
+      'vent-porteur': 2,
     }),
   }),
   Object.freeze({
@@ -67,11 +63,11 @@ export const STARTER_DECK_PRESETS = Object.freeze([
     archetype: 'midrange',
     cards: Object.freeze({
       'vague-brumeuse': 3,
-      'souffle-ardent': 3,
-      'mur-de-pierre': 3,
       'vent-porteur': 3,
-      'etincelle-seche': 2,
-      'goutte-perforante': 1,
+      'etincelle-seche': 3,
+      'goutte-perforante': 3,
+      'lame-de-braise': 2,
+      'cendre-spiralee': 1,
       'poing-rapide': 3,
       'garde-haute': 2,
     }),

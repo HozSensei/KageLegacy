@@ -282,8 +282,8 @@ const starter = buildStarterFixture();
     JSON.stringify(starter.profile.stats) ===
       JSON.stringify({
         // Remap Vit→art primaire / Int→secondaire|Gen (combatArts).
-        taijutsu: 30,
-        ninjutsu: 10,
+        taijutsu: 21,
+        ninjutsu: 7,
         genjutsu: 3,
         medicine: 0,
         maxHp: 6,
@@ -297,7 +297,10 @@ const starter = buildStarterFixture();
     bySlug('barrage-de-lames')?.effects[0]?.hits === 3,
     'starter : effet multi-strike conservé'
   );
-  assert(bySlug('poing-du-dragon')?.damage === 12, 'starter : rare Taijutsu du seed conservée');
+  assert(
+    bySlug('lame-crespusculaire')?.rarity === 'common',
+    'starter : cartes de rareté normale uniquement',
+  );
   assert(
     bySlug('vague-brumeuse')?.effects?.some(effect => effect.type === 'draw'),
     'starter : secondaire Ninjutsu conserve son effet'
@@ -335,7 +338,7 @@ const starter = buildStarterFixture();
   );
   assert(
     session.player.maxHp === 106 && session.player.maxChakra === 3,
-    'starter : PV et chakra issus des passifs'
+    'starter : PV et chakra issus des passifs',
   );
   assert(
     runtime.length === 20 &&

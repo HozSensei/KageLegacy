@@ -49,7 +49,7 @@ Offre **one-shot** à 5 € (`welcome`) : Battle Pass Premium de la saison coura
 
 Désenchantement :
 
-- commune : 10 poussière ;
+- normale : 10 poussière ;
 - rare : 40 poussière ;
 - légendaire : 200 poussière ;
 - mythique : 1000 poussière.
