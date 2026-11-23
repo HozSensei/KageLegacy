@@ -843,6 +843,83 @@ CREATE TABLE IF NOT EXISTS `async_duel_weekly_reward_ledger` (
   CONSTRAINT `ck_async_duel_weekly_ledger_ryos` CHECK (`ryos` > 0),
   CONSTRAINT `fk_async_duel_weekly_ledger_week` FOREIGN KEY (`week_start`) REFERENCES `async_duel_weekly_settlements` (`week_start`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `coop_mission_rooms` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code` char(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `host_id` int unsigned NOT NULL,
+  `guest_id` int unsigned DEFAULT NULL,
+  `status` enum('waiting','ready','starting','closed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'waiting',
+  `mission_id` int unsigned DEFAULT NULL,
+  `hard_mode` tinyint(1) NOT NULL DEFAULT '0',
+  `host_stake` int unsigned NOT NULL DEFAULT '0',
+  `guest_stake` int unsigned NOT NULL DEFAULT '0',
+  `guest_ready` tinyint(1) NOT NULL DEFAULT '0',
+  `revision` int unsigned NOT NULL DEFAULT '0',
+  `expires_at` datetime(6) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_coop_mission_rooms_code` (`code`),
+  KEY `idx_coop_mission_rooms_host` (`host_id`),
+  KEY `idx_coop_mission_rooms_guest` (`guest_id`),
+  KEY `idx_coop_mission_rooms_status` (`status`),
+  CONSTRAINT `fk_coop_mission_rooms_host` FOREIGN KEY (`host_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_coop_mission_rooms_guest` FOREIGN KEY (`guest_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_coop_mission_rooms_mission` FOREIGN KEY (`mission_id`) REFERENCES `mission_definitions` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `coop_mission_runs` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `room_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `host_id` int unsigned NOT NULL,
+  `guest_id` int unsigned NOT NULL,
+  `mission_id` int unsigned NOT NULL,
+  `host_deck_id` int unsigned DEFAULT NULL,
+  `guest_deck_id` int unsigned DEFAULT NULL,
+  `state` enum('in_progress','victory','defeat','abandoned') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'in_progress',
+  `current_node_index` int unsigned NOT NULL DEFAULT '0',
+  `nodes_json` json NOT NULL,
+  `host_player_json` json NOT NULL,
+  `guest_player_json` json NOT NULL,
+  `host_stats_json` json DEFAULT NULL,
+  `guest_stats_json` json DEFAULT NULL,
+  `host_talents_json` json DEFAULT NULL,
+  `guest_talents_json` json DEFAULT NULL,
+  `current_combat_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `guest_node_ready` tinyint(1) NOT NULL DEFAULT '0',
+  `revision` int unsigned NOT NULL DEFAULT '0',
+  `last_action_at` datetime(6) NOT NULL,
+  `rewards_host_json` json DEFAULT NULL,
+  `rewards_guest_json` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_coop_runs_host_state` (`host_id`, `state`),
+  KEY `idx_coop_runs_guest_state` (`guest_id`, `state`),
+  KEY `idx_coop_runs_room` (`room_id`),
+  KEY `idx_coop_runs_mission` (`mission_id`),
+  CONSTRAINT `fk_coop_runs_room` FOREIGN KEY (`room_id`) REFERENCES `coop_mission_rooms` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_coop_runs_host` FOREIGN KEY (`host_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_coop_runs_guest` FOREIGN KEY (`guest_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_coop_runs_mission` FOREIGN KEY (`mission_id`) REFERENCES `mission_definitions` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `coop_combat_sessions` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `coop_run_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `state` enum('in_progress','victory','defeat','forfeited') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'in_progress',
+  `combat_state_json` json NOT NULL,
+  `active_player_id` int unsigned DEFAULT NULL,
+  `turn_deadline_at` datetime(6) DEFAULT NULL,
+  `revision` int unsigned NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_coop_combat_run` (`coop_run_id`),
+  KEY `idx_coop_combat_state` (`state`),
+  CONSTRAINT `fk_coop_combat_run` FOREIGN KEY (`coop_run_id`) REFERENCES `coop_mission_runs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

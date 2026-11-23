@@ -2,6 +2,9 @@
  * Économie de parcours mission — bourse engagée, inventaire, catalogue shop.
  */
 
+/** Multiplicateur de récompenses missions coop — source : coopMissionConfig. */
+export { COOP_REWARD_MULT } from './coopMissionConfig.js';
+
 export const RUN_ECONOMY_VERSION = 2;
 
 /** Bourses engagées au lancement (prélevées sur le compte). */
