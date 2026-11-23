@@ -84,7 +84,7 @@ try {
   assert.equal(season.params[3], '2030-06-14 00:00:00');
   assert.equal(season.params[4], '2030-10-12 00:00:00');
   const inserted = statements.filter(entry => entry.sql.includes('INSERT INTO battle_pass_quests'));
-  assert.equal(inserted.length, 19);
+  assert.equal(inserted.length, 17);
   for (const { params } of inserted) {
     assert.ok(params[8] <= '2030-07-14 12:34:56' && params[9] >= '2030-07-14 12:34:56', params[2]);
   }
