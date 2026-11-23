@@ -34,6 +34,9 @@ assert(BOOSTER_TYPES.includes('path-genjutsu'), 'path-genjutsu type');
 assert(BOOSTER_TYPES.includes('path-medicine'), 'path-medicine type');
 assert(BOOSTER_TYPES.includes('elemental'), 'elemental type');
 assert(BOOSTER_TYPES.includes('premium'), 'premium type');
+assert(BOOSTER_TYPES.includes('elite'), 'elite type');
+assert(BOOSTER_TYPES.includes('ascendant'), 'ascendant type');
+assert(BOOSTER_TYPES.length === 9, '9 booster offers');
 
 const standard = getBoosterDefinition('standard');
 assert(standard.cost.ryos === 300 && standard.cost.kageCoins === 0, 'standard cost');
@@ -50,6 +53,14 @@ assert(elemental.cost.ryos === 650, 'elemental cost');
 const premium = getBoosterDefinition('premium');
 assert(premium.cost.kageCoins === 100 && premium.cost.ryos === 0, 'premium cost');
 assert(premium.guaranteedMinRarity === 'rare', 'premium guarantee');
+
+const elite = getBoosterDefinition('elite');
+assert(elite.cost.kageCoins === 250 && elite.cost.ryos === 0, 'elite cost');
+assert(elite.guaranteedMinRarity === 'legendary', 'elite guarantee');
+
+const ascendant = getBoosterDefinition('ascendant');
+assert(ascendant.cost.kageCoins === 500 && ascendant.cost.ryos === 0, 'ascendant cost');
+assert(ascendant.guaranteedMinRarity === 'legendary', 'ascendant guarantee');
 
 let threw = false;
 try {
@@ -137,6 +148,14 @@ assert(Math.abs(Object.values(serialized.probabilities).reduce((a, b) => a + b, 
   // Avec 1 slot forcé rare+, le taux "common" global doit être < expected free-slot rate
   assert(sim.rates.common < sim.expected.common, 'premium lowers overall common share');
   console.log('✓ premium always has rare+ guarantee');
+}
+
+{
+  const eliteSim = simulateBoosterOpenings('elite', 1500, seededRng(61));
+  assert(eliteSim.guaranteedRate === 1, `elite guarantee rate ${eliteSim.guaranteedRate}`);
+  const ascSim = simulateBoosterOpenings('ascendant', 1500, seededRng(62));
+  assert(ascSim.guaranteedRate === 1, `ascendant guarantee rate ${ascSim.guaranteedRate}`);
+  console.log('✓ elite/ascendant always have legendary+ guarantee');
 }
 
 // --- anti-triche : catalogue costs must be server-side constants ---

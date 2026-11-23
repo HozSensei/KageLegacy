@@ -457,16 +457,19 @@ In **PvP duels**, you face another player’s **active deck**, frozen at launch 
 
 A scroll contains **5 cards**.
 
-| Scroll        | Price          | Normal | Rare | Legendary | Mythic |
-| ------------- | -------------- | ------ | ---- | --------- | ------ |
-| **Standard**  | 300 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
-| **Path** (×4) | 550 Ryos       | 65%    | 26%  | 7%        | 2%     |
-| **Elemental** | 650 Ryos       | 65%    | 26%  | 7%        | 2%     |
-| **Premium**   | 100 Kage Coins | 55%    | 32%  | 10%       | 3%     |
+| Scroll         | Price          | Normal | Rare | Legendary | Mythic |
+| -------------- | -------------- | ------ | ---- | --------- | ------ |
+| **Standard**   | 300 Ryos       | 70%    | 23%  | 5.5%      | 1.5%   |
+| **Path** (×4)  | 550 Ryos       | 65%    | 26%  | 7%        | 2%     |
+| **Elemental**  | 650 Ryos       | 65%    | 26%  | 7%        | 2%     |
+| **Premium**    | 100 Kage Coins | 55%    | 32%  | 10%       | 3%     |
+| **Elite**      | 250 Kage Coins | 40%    | 35%  | 18%       | 7%     |
+| **Ascendant**  | 500 Kage Coins | 25%    | 35%  | 28%       | 12%    |
 
 - **Path** scrolls (Taijutsu, Ninjutsu, Genjutsu, Medicine) only roll cards from that path.
 - The **Elemental** scroll only contains cards tied to an element. You can choose which one.
 - The **Premium** scroll guarantees at least one rare-or-better card.
+- The **Elite** and **Ascendant** scrolls guarantee at least one legendary-or-better card.
 - A card you already own is added as an extra copy.
 
 Season-exclusive cards do not come out of scrolls.
@@ -482,7 +485,7 @@ Kage Coins are bought with real money, through secure payment:
 | Shadow Forge  | 1,000 + 150 bonus   | €10   |
 | Kage's Vault  | 5,000 + 1,000 bonus | €50   |
 
-Kage Coins are used to open Premium scrolls and unlock the premium track of the season pass. All game content remains available without buying any.
+Kage Coins are used to open Premium, Elite and Ascendant scrolls and unlock the premium track of the season pass. All game content remains available without buying any.
 
 ---
 

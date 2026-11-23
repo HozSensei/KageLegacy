@@ -32,6 +32,7 @@ assert(eco.ok, `economy invariants: ${eco.errors.join('; ')}`);
 assert(BATTLE_PASS.seasonDurationDays === 90, 'season 90 days');
 assert(WELCOME_PACK.priceEur === 5, 'welcome 5€');
 assert(WELCOME_PACK.boosterType === 'standard', 'welcome standard booster');
+assert(WELCOME_PACK.boosterCount === 2, 'welcome grants 2 boosters');
 
 const rewards = buildSeasonRewards({ seasonNumber: 2 });
 assert(Object.keys(rewards.free).length === 50, 'free 50 levels');
@@ -71,5 +72,6 @@ assert(serializeCoinPack(COIN_PACK_CATALOG.vault).totalCoins === 7500, 'vault 75
 
 const offer = serializeWelcomePackOffer({ available: true });
 assert(offer.available && offer.contents.boosterType === 'standard', 'welcome offer shape');
+assert(offer.contents.boosterCount === 2, 'welcome offer boosterCount');
 
 console.log('testMonetizationSoft: OK');

@@ -2,12 +2,14 @@
  * Boosters & Shop — Kage Legacy V2 Phase 5
  *
  * Coûts monétaires : `../config/economyConfig.js`
- * (standard 300 / path 550 / élém. 650 / premium 100 KC).
+ * (standard 300 / path 550 / élém. 650 / premium 100 / elite 250 / ascendant 500 KC).
  * Probabilités documentées (poids relatifs, somme = 1000) :
  *   Standard   : common 700 / rare 230 / legendary 55 / mythic 15
  *   Voie       : common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre stat_type)
  *   Élémentaire: common 650 / rare 260 / legendary 70 / mythic 20  (+ filtre élément)
  *   Premium    : common 550 / rare 320 / legendary 100 / mythic 30 (+ 1 rare+ garantie)
+ *   Elite      : common 400 / rare 350 / legendary 180 / mythic 70 (+ 1 légendaire+ garantie)
+ *   Ascendant  : common 250 / rare 350 / legendary 280 / mythic 120 (+ 1 légendaire+ garantie)
  *
  * Tout le tirage et le débit monétaire sont serveur (anti-triche).
  */
@@ -18,7 +20,6 @@ import {
   PATH_BOOSTER_STAT_TYPES,
 } from '../config/economyConfig.js';
 import { CARD_RARITIES, serializeCardDefinition } from './cardService.js';
-import { getCollectionEntry } from './collectionService.js';
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -116,6 +117,34 @@ export const BOOSTER_CATALOG = {
     cost: { ...BOOSTER_COSTS.premium },
     rarityWeights: { common: 550, rare: 320, legendary: 100, mythic: 30 },
     guaranteedMinRarity: 'rare',
+    elementalOnly: false,
+    pathOnly: false,
+    statType: null,
+  },
+  elite: {
+    type: 'elite',
+    nameFr: 'Parchemin d’Élite',
+    nameEn: 'Elite Scroll',
+    descriptionFr: '5 techniques à taux renforcés avec 1 légendaire (ou mieux) garantie.',
+    descriptionEn: '5 techniques with stronger rates and 1 legendary-or-better guaranteed.',
+    cardCount: BOOSTER_CARD_COUNT,
+    cost: { ...BOOSTER_COSTS.elite },
+    rarityWeights: { common: 400, rare: 350, legendary: 180, mythic: 70 },
+    guaranteedMinRarity: 'legendary',
+    elementalOnly: false,
+    pathOnly: false,
+    statType: null,
+  },
+  ascendant: {
+    type: 'ascendant',
+    nameFr: 'Parchemin Ascendant',
+    nameEn: 'Ascendant Scroll',
+    descriptionFr: '5 techniques au plus haut taux, avec 1 légendaire (ou mieux) garantie.',
+    descriptionEn: '5 techniques at the highest rates, with 1 legendary-or-better guaranteed.',
+    cardCount: BOOSTER_CARD_COUNT,
+    cost: { ...BOOSTER_COSTS.ascendant },
+    rarityWeights: { common: 250, rare: 350, legendary: 280, mythic: 120 },
+    guaranteedMinRarity: 'legendary',
     elementalOnly: false,
     pathOnly: false,
     statType: null,
@@ -349,21 +378,16 @@ export async function listBoosters(userId) {
   };
 }
 
-/**
- * Ouvre un booster : débit monétaire + tirage serveur + grant collection.
- * Le client ne peut PAS spécifier les cartes obtenues.
- */
-export async function openBooster(userId, boosterType, { element = null, rng = Math.random } = {}) {
-  const def = getBoosterDefinition(boosterType);
-
+function assertBoosterOpenArgs(def, element) {
   if (def.elementalOnly && element && !ELEMENTS.includes(element)) {
     throw httpError(400, 'Élément invalide.');
   }
   if (def.pathOnly && !PATH_BOOSTER_STAT_TYPES.includes(def.statType)) {
     throw httpError(400, 'Voie invalide.');
   }
+}
 
-  // Charger le pool avant la transaction (lecture seule)
+async function rollBoosterRows(def, { element = null, rng = Math.random } = {}) {
   const { pools, total } = await loadBoosterPools({
     elementalOnly: def.elementalOnly,
     element: def.elementalOnly ? element : null,
@@ -373,9 +397,99 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
   if (total === 0) {
     throw httpError(503, 'Catalogue de cartes insuffisant pour ce booster.');
   }
-
   const rarities = planBoosterRarities(def, rng);
-  const rolledRows = selectCardsForRarities(rarities, pools, rng);
+  return selectCardsForRarities(rarities, pools, rng);
+}
+
+async function grantRolledCardsInTx(connection, userId, rolledRows) {
+  const grantedMeta = [];
+  for (const row of rolledRows) {
+    const meta = await grantCardInTx(connection, userId, row.id);
+    grantedMeta.push({ ...meta, row });
+  }
+
+  const cards = [];
+  for (const meta of grantedMeta) {
+    const [qtyRows] = await connection.execute(
+      'SELECT quantity FROM user_card_collection WHERE id = ? LIMIT 1',
+      [meta.collectionId],
+    );
+    cards.push({
+      card: serializeCardDefinition(meta.row),
+      collectionId: meta.collectionId,
+      isNew: meta.isNew,
+      quantity: Number(qtyRows[0]?.quantity) || 1,
+      rarity: meta.row.rarity,
+    });
+  }
+  return { cards, grantedMeta };
+}
+
+async function notifyBoosterQuestProgress(userId, grantedMeta) {
+  try {
+    const { onBattlePassAction } = await import('./battlePassQuestService.js');
+    await onBattlePassAction(userId, 'booster_open', 1);
+    const newCount = grantedMeta.filter((m) => m.isNew).length;
+    if (newCount > 0) {
+      await onBattlePassAction(userId, 'card_collect', newCount);
+    }
+  } catch {
+    /* BP optionnel */
+  }
+}
+
+/**
+ * Tirage + grant sans débit monétaire (récompenses / pack bienvenue).
+ * Si `connection` est fourni, l’appelant gère la transaction.
+ */
+export async function grantFreeBooster(
+  userId,
+  boosterType,
+  { element = null, rng = Math.random, connection = null } = {},
+) {
+  const def = getBoosterDefinition(boosterType);
+  assertBoosterOpenArgs(def, element);
+  const rolledRows = await rollBoosterRows(def, { element, rng });
+
+  const run = async (conn) => {
+    const { cards, grantedMeta } = await grantRolledCardsInTx(conn, userId, rolledRows);
+    return {
+      type: 'booster',
+      boosterType: def.type,
+      cards,
+      raritySummary: summarizeRarities(cards.map((c) => c.rarity)),
+      _grantedMeta: grantedMeta,
+    };
+  };
+
+  if (connection) {
+    return run(connection);
+  }
+
+  const own = await getConnection();
+  try {
+    await own.beginTransaction();
+    const result = await run(own);
+    await own.commit();
+    await notifyBoosterQuestProgress(userId, result._grantedMeta);
+    delete result._grantedMeta;
+    return result;
+  } catch (error) {
+    await own.rollback();
+    throw error;
+  } finally {
+    own.release();
+  }
+}
+
+/**
+ * Ouvre un booster : débit monétaire + tirage serveur + grant collection.
+ * Le client ne peut PAS spécifier les cartes obtenues.
+ */
+export async function openBooster(userId, boosterType, { element = null, rng = Math.random } = {}) {
+  const def = getBoosterDefinition(boosterType);
+  assertBoosterOpenArgs(def, element);
+  const rolledRows = await rollBoosterRows(def, { element, rng });
 
   const connection = await getConnection();
   try {
@@ -402,38 +516,12 @@ export async function openBooster(userId, boosterType, { element = null, rng = M
       );
     }
 
-    const grantedMeta = [];
-    for (const row of rolledRows) {
-      const meta = await grantCardInTx(connection, userId, row.id);
-      grantedMeta.push({ ...meta, row });
-    }
+    const { cards, grantedMeta } = await grantRolledCardsInTx(connection, userId, rolledRows);
 
     await connection.commit();
 
-    const cards = [];
-    for (const meta of grantedMeta) {
-      const entry = await getCollectionEntry(userId, meta.collectionId);
-      cards.push({
-        card: serializeCardDefinition(meta.row),
-        collectionId: meta.collectionId,
-        isNew: meta.isNew,
-        quantity: entry.quantity,
-        rarity: meta.row.rarity,
-      });
-    }
-
     const balances = await getPlayerBalances(userId);
-
-    try {
-      const { onBattlePassAction } = await import('./battlePassQuestService.js');
-      await onBattlePassAction(userId, 'booster_open', 1);
-      const newCount = grantedMeta.filter((m) => m.isNew).length;
-      if (newCount > 0) {
-        await onBattlePassAction(userId, 'card_collect', newCount);
-      }
-    } catch {
-      /* BP optionnel */
-    }
+    await notifyBoosterQuestProgress(userId, grantedMeta);
 
     return {
       boosterType: def.type,

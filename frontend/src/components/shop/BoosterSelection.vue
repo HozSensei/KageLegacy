@@ -49,7 +49,7 @@ const rarityOrder = ['common', 'rare', 'legendary', 'mythic'];
 
 const elementalBooster = computed(() => props.boosters.find(b => b.elementalOnly));
 
-/** Étalage stable : standard → voies → élémentaire → premium. */
+/** Étalage stable : standard → voies → élémentaire → premium → elite → ascendant. */
 const orderedBoosters = computed(() => {
   const rank = {
     standard: 0,
@@ -59,6 +59,8 @@ const orderedBoosters = computed(() => {
     'path-medicine': 4,
     elemental: 5,
     premium: 6,
+    elite: 7,
+    ascendant: 8,
   };
   return [...props.boosters].sort((a, b) => (rank[a.type] ?? 99) - (rank[b.type] ?? 99));
 });
@@ -189,12 +191,6 @@ const orderedBoosters = computed(() => {
 @media (min-width: 1100px) {
   .booster-offer-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1400px) {
-  .booster-offer-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
