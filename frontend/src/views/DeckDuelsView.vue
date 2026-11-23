@@ -87,6 +87,7 @@ function rewardLabels(reward) {
   <div class="page-shell deck-duels" data-testid="deck-duels-page">
     <header class="deck-duels__row">
       <div>
+        <p class="t-kicker">{{ t('deckDuels.kicker') }}</p>
         <h1 ref="pageHeading" class="t-heading" tabindex="-1">{{ t('deckDuels.title') }}</h1>
         <p class="text-ink-muted">{{ t('deckDuels.lead') }}</p>
       </div>

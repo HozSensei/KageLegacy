@@ -445,6 +445,10 @@ Each mission shows its base rewards. They are multiplied by a **run bonus**, fro
 
 A quick duel starts a single fight against the enemy of your choice, outside any run. Victory immediately pays a fixed reward: 40 XP, 100 Ryos, a 12% card chance and 50 season pass XP.
 
+### PvP duels (frozen deck)
+
+In **PvP duels**, you face another player’s **active deck**, frozen at launch and **driven by the server**. The other player does not need to be online: this is not a real-time match. Modes: challenge a friend, random opponent, or enemy faction. Inter-village duels feed the Village weekly standings.
+
 ---
 
 ## The shop

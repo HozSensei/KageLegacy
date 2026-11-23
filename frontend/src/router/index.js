@@ -127,6 +127,9 @@ const router = createRouter({
           component: () => import('../views/DeckDuelsView.vue'),
           meta: { requiresCharacter: true },
         },
+        // Ancienne arène temps réel → duels de decks (PvP async, deck figé côté serveur).
+        { path: 'pvp', redirect: { name: 'deck-duels' } },
+        { path: 'pvp/duel/:id', redirect: { name: 'deck-duels' } },
         {
           path: 'village',
           name: 'village',

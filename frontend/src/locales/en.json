@@ -386,7 +386,8 @@
       "economy": "Economy",
       "extra": "Account & tools"
     },
-    "battlePass": "Battle Pass"
+    "battlePass": "Battle Pass",
+    "deckDuels": "PvP duels"
   },
   "rules": {
     "pageTitle": "Game rules",
@@ -834,7 +835,8 @@
     "statTalentPoints": "Talent points",
     "noDeck": "None",
     "shortcutsTitle": "The whole game",
-    "shortcutJournal": "Permanent achievements & tiers"
+    "shortcutJournal": "Permanent achievements & tiers",
+    "shortcutPvp": "Challenge an enemy deck (server)"
   },
   "resources": {
     "balancesLabel": "Your resources",
@@ -1694,10 +1696,11 @@
     "updated": "Friends and requests updated."
   },
   "deckDuels": {
-    "title": "Deck duels",
+    "title": "PvP duels",
+    "kicker": "Async PvP",
     "manageFriends": "Manage friends in the Village",
     "viewVillageStandings": "See weekly standings in the Village",
-    "lead": "Challenge other players’ decks, controlled by AI. The other player does not play live.",
+    "lead": "Fight another player’s frozen deck, driven by the server. No real-time match between two clients.",
     "refresh": "Refresh",
     "modes": {
       "friend": "Challenge a friend",
