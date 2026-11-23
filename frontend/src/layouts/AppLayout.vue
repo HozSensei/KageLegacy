@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useAuthStore } from '../stores/auth';
 import { usePlayerStore } from '../stores/player';
+import { useOnboardingStore } from '../stores/onboarding';
 
 import { useNavStructure } from '../composables/useNavStructure';
 
@@ -29,6 +30,7 @@ const isCombatLayout = computed(() => route.meta.combatLayout === true);
 
 const auth = useAuthStore();
 const player = usePlayerStore();
+const onboarding = useOnboardingStore();
 
 const shop = useShopStore();
 const villageRewards = useVillageRewardsStore();
@@ -106,6 +108,7 @@ function clearSessionStores() {
   auth.profile = null;
   auth.checked = true;
   player.reset();
+  onboarding.reset();
   villageRewards.reset?.();
 }
 

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { parseApiResponse, readApiError } from '../utils/http.js';
+import { mergeOnboardingSteps, metaFromSteps } from './onboardingProgress.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -11,7 +12,10 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const actionLoading = ref(false);
   const error = ref(null);
   const lastClaim = ref(null);
+  /** Étapes confirmées complétées côté client (évite les POST répétés). */
   const visitedKeys = new Set();
+  /** Déduplique les POST /visit en cours pour une même clé. */
+  const inFlightVisits = new Map();
 
   const claimableCount = computed(() => meta.value?.claimable ?? 0);
   const finished = computed(() => Boolean(meta.value?.finished));
@@ -19,8 +23,25 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   function applyProgress(body) {
     if (!body) return;
-    steps.value = body.steps || [];
-    meta.value = body.meta || null;
+    const incoming = Array.isArray(body.steps) ? body.steps : null;
+    if (incoming) {
+      steps.value = mergeOnboardingSteps(steps.value, incoming);
+      meta.value = metaFromSteps(steps.value);
+      return;
+    }
+    if (body.meta) meta.value = body.meta;
+  }
+
+  function applySingleStep(step) {
+    if (!step?.key) return;
+    const idx = steps.value.findIndex(s => s.key === step.key);
+    if (idx >= 0) {
+      steps.value[idx] = mergeOnboardingSteps([steps.value[idx]], [step])[0];
+    } else if (step.completed) {
+      // Visite avant le premier GET : on garde au moins l’étape validée.
+      steps.value = mergeOnboardingSteps(steps.value, [step]);
+    }
+    meta.value = metaFromSteps(steps.value);
   }
 
   async function fetchProgress() {
@@ -41,35 +62,37 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   }
 
   async function recordVisit(stepKey) {
-    if (!stepKey || visitedKeys.has(stepKey)) return null;
+    if (!stepKey) return null;
     const existing = steps.value.find(s => s.key === stepKey);
-    if (existing?.completed) {
+    if (existing?.completed || visitedKeys.has(stepKey)) {
       visitedKeys.add(stepKey);
       return null;
     }
-    visitedKeys.add(stepKey);
-    try {
-      const res = await fetch(`${API_BASE}/api/onboarding/visit`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stepKey }),
-      });
-      const { ok, body } = await parseApiResponse(res);
-      if (!ok) {
-        visitedKeys.delete(stepKey);
+    if (inFlightVisits.has(stepKey)) return inFlightVisits.get(stepKey);
+
+    const run = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/onboarding/visit`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stepKey }),
+        });
+        const { ok, body } = await parseApiResponse(res);
+        if (!ok) return null;
+        visitedKeys.add(stepKey);
+        if (body.progress) applyProgress(body.progress);
+        else if (body.step) applySingleStep(body.step);
+        return body;
+      } catch {
         return null;
+      } finally {
+        inFlightVisits.delete(stepKey);
       }
-      if (body.progress) applyProgress(body.progress);
-      else if (body.step) {
-        const idx = steps.value.findIndex(s => s.key === stepKey);
-        if (idx >= 0) steps.value[idx] = body.step;
-      }
-      return body;
-    } catch {
-      visitedKeys.delete(stepKey);
-      return null;
-    }
+    })();
+
+    inFlightVisits.set(stepKey, run);
+    return run;
   }
 
   async function claimStep(stepKey) {
@@ -95,6 +118,17 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   }
 
+  function reset() {
+    steps.value = [];
+    meta.value = null;
+    loading.value = false;
+    actionLoading.value = false;
+    error.value = null;
+    lastClaim.value = null;
+    visitedKeys.clear();
+    inFlightVisits.clear();
+  }
+
   return {
     steps,
     meta,
@@ -108,5 +142,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     fetchProgress,
     recordVisit,
     claimStep,
+    reset,
   };
 });
