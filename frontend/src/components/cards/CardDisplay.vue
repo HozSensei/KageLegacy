@@ -476,26 +476,25 @@ watch(
 
 /*
  * Safari / iOS : les gemmes (filter + overflow hors carte) percent le dos
- * malgré backface-visibility. On masque la face avant à mi-flip.
+ * malgré backface-visibility. On masque la face avant à mi-flip vers le dos.
+ * À la révélation, réafficher sans délai : le délai symétrique laissait un
+ * trou noir (ease-out du flip passe le milieu avant 0.35s).
  */
-.card-display--flip .card-display__face--front {
-  transition:
-    opacity 0s linear 0.35s,
-    visibility 0s linear 0.35s;
-}
-
 .card-display--flipped .card-display__face--front {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  transition:
+    opacity 0s linear 0.28s,
+    visibility 0s linear 0.28s;
 }
 
 .card-display--flip:not(.card-display--flipped) .card-display__face--front {
   opacity: 1;
   visibility: visible;
   transition:
-    opacity 0s linear 0.35s,
-    visibility 0s linear 0.35s;
+    opacity 0s linear 0s,
+    visibility 0s linear 0s;
 }
 
 .card-display__face {
@@ -1447,7 +1446,7 @@ watch(
 @media (prefers-reduced-motion: reduce) {
   .card-display,
   .card-display--flip .card-display__flipper,
-  .card-display--flip .card-display__face--front,
+  .card-display--flipped .card-display__face--front,
   .card-display--flip:not(.card-display--flipped) .card-display__face--front,
   .card-display__sheen {
     transition: none !important;
