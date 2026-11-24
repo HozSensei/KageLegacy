@@ -46,6 +46,7 @@ const showConvert = ref(false);
 const baseNavItems = [
   { name: 'hub', path: '/home', label: 'nav.home' },
   { name: 'profile', path: '/profil', label: 'nav.profile' },
+  { name: 'inventory', path: '/inventaire', label: 'nav.inventory' },
   { name: 'village', path: '/village', label: 'village.title' },
   { name: 'rules', path: '/rules', label: 'rules.link' },
   { name: 'collection', path: '/collection', label: 'nav.collection' },

@@ -13,7 +13,7 @@ export function useNavStructure({ navItems, isActive, t }) {
       {
         id: 'hub',
         labelKey: 'nav.groups.hub',
-        items: pick('hub', 'profile', 'talents', 'village', 'rules'),
+        items: pick('hub', 'profile', 'inventory', 'talents', 'village', 'rules'),
       },
       {
         id: 'cards',

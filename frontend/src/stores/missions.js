@@ -42,7 +42,6 @@ export const useMissionsStore = defineStore('missions', () => {
       const payload = {};
       if (deckId) payload.deckId = deckId;
       if (opts?.hardMode) payload.hardMode = true;
-      if (opts?.purseStake != null) payload.purseStake = Number(opts.purseStake) || 0;
       const res = await fetch(`${API_BASE}/api/missions/${missionId}/start`, {
         method: 'POST',
         credentials: 'include',
@@ -54,14 +53,12 @@ export const useMissionsStore = defineStore('missions', () => {
       currentRun.value = body.run;
       activeRun.value = body.run;
       currentEvent.value = null;
-      // Mise engagée prélevée sur le compte — synchroniser le portefeuille.
-      if (Number(opts?.purseStake) > 0) {
-        try {
-          const { useShopStore } = await import('./shop.js');
-          await useShopStore().fetchBalances();
-        } catch {
-          /* soldes optionnels */
-        }
+      // Poche consommée au lancement — synchroniser soldes / inventaire.
+      try {
+        const { useShopStore } = await import('./shop.js');
+        await useShopStore().fetchBalances();
+      } catch {
+        /* soldes optionnels */
       }
       return body.run;
     } catch (e) {

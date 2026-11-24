@@ -15,8 +15,16 @@ import {
 } from '../services/shopService.js';
 import { confirmShopCheckoutSession, getShopPaymentMeta } from '../services/shopStripeService.js';
 import { getWelcomePackOffer } from '../services/welcomePackService.js';
+import {
+  getDailyItemOffers,
+  buyDailyItem,
+} from '../services/playerInventoryService.js';
 
 const router = Router();
+
+const buyItemSchema = z.object({
+  itemId: z.string().min(1).max(64).optional(),
+});
 
 const openSchema = z.object({
   element: z.enum(ELEMENTS).optional().nullable(),
@@ -52,6 +60,35 @@ router.get('/balances', async (req, res, next) => {
     const user = await requireUser(req, res);
     if (!user) return;
     res.json({ balances: await getPlayerBalances(user.id) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** GET /api/shop/items — offre journalière d’objets (→ coffre) */
+router.get('/items', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const payload = await getDailyItemOffers(user.id);
+    res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/shop/items/:itemId/buy — achat objet du jour → coffre */
+router.post('/items/:itemId/buy', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const itemId = String(req.params.itemId || req.body?.itemId || '').trim();
+    const parsed = buyItemSchema.safeParse({ itemId });
+    if (!itemId || !parsed.success) {
+      return res.status(400).json({ error: 'itemId invalide.' });
+    }
+    const result = await buyDailyItem(user.id, itemId);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }

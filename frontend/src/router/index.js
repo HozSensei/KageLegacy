@@ -17,6 +17,7 @@ import CombatView from '../views/CombatView.vue';
 import CoopView from '../views/CoopView.vue';
 import CoopMissionRunView from '../views/CoopMissionRunView.vue';
 import ShopView from '../views/ShopView.vue';
+import InventoryView from '../views/InventoryView.vue';
 import BattlePassView from '../views/BattlePassView.vue';
 import JournalView from '../views/JournalView.vue';
 import LeaderboardView from '../views/LeaderboardView.vue';
@@ -142,6 +143,14 @@ const router = createRouter({
           path: 'shop',
           name: 'shop',
           component: ShopView,
+          meta: {
+            requiresCharacter: true,
+          },
+        },
+        {
+          path: 'inventaire',
+          name: 'inventory',
+          component: InventoryView,
           meta: {
             requiresCharacter: true,
           },

@@ -34,8 +34,15 @@ import {
   collectPendingCardsFromInventory,
 } from '../src/services/missionRunInventory.js';
 
-const { sanitizeNodesForClient, unlockNext, applyBranchChoice, healPercent, buildLootCards } =
-  __test;
+const {
+  sanitizeNodesForClient,
+  unlockNext,
+  applyBranchChoice,
+  healPercent,
+  buildLootCards,
+  applyPouchLoadout,
+  collectRunInventoryDeposits,
+} = __test;
 
 let passed = 0;
 let failed = 0;
@@ -249,30 +256,39 @@ assert(
   'fallback inventory sealed',
 );
 
-console.log('=== loot reveal payload ===');
+console.log('=== loot reveal payload (chance only — scellés → poche) ===');
 const fakeCard = { id: 7, nameFr: 'Kunai', rarity: 'rare' };
-const loot = buildLootCards(
-  {
-    collectionId: 11,
-    isNew: true,
-    rarity: 'rare',
-    card: fakeCard,
-  },
-  [
-    {
-      collectionId: 12,
-      isNew: false,
-      rarity: 'common',
-      card: { id: 8, nameFr: 'Shuriken', rarity: 'common' },
-      source: 'sealed_scroll',
-    },
-    { collectionId: 13, rarity: 'legendary' },
-  ],
+const loot = buildLootCards({
+  collectionId: 11,
+  isNew: true,
+  rarity: 'rare',
+  card: fakeCard,
+});
+assert(loot.length === 1, 'lootCards = carte chance seule');
+assert(loot[0].source === 'mission_reward' && loot[0].card.id === 7, 'chance card');
+assert(buildLootCards(null).length === 0, 'empty loot when no cards');
+
+console.log('=== poche → run + dépôts fin ===');
+let pouchPlayer = createRunPlayerState({ maxHp: 100, purseStake: 100 });
+pouchPlayer = applyPouchLoadout(pouchPlayer, [
+  { itemKey: 'card_mystery_rare', quantity: 1 },
+  { itemKey: 'heal_bandage', quantity: 1 },
+]);
+assert(
+  pouchPlayer.inventory.filter(s => s.itemId).length === 2,
+  'pouch loadout place 2 items',
 );
-assert(loot.length === 2, 'lootCards skips entries without card art payload');
-assert(loot[0].source === 'mission_reward' && loot[0].card.id === 7, 'chance card first');
-assert(loot[1].source === 'sealed_scroll' && loot[1].isNew === false, 'sealed scroll second');
-assert(buildLootCards(null, []).length === 0, 'empty loot when no cards');
+assert(
+  (pouchPlayer.pendingLoot?.cards || []).some(c => c.itemId === 'card_mystery_rare'),
+  'sealed tracked from pouch',
+);
+const deposits = collectRunInventoryDeposits(pouchPlayer);
+assert(deposits.some(d => d.itemKey === 'card_mystery_rare'), 'deposit includes sealed');
+assert(deposits.some(d => d.itemKey === 'heal_bandage'), 'deposit includes leftover consumable');
+
+console.log('=== shop price ×2 ===');
+assert(getShopItem('heal_bandage')?.priceShop === 80, 'bandage shop price 80');
+assert(getShopItem('card_mystery_legendary')?.priceShop === 420, 'legendary shop ×2');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
