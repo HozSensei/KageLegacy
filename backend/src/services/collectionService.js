@@ -166,15 +166,20 @@ export async function addCard(
     }
   }
 
-  try {
-    const ownedRows = await query(
-      'SELECT COUNT(*) AS c FROM user_card_collection WHERE user_id = ?',
-      [userId],
-    );
-    const { onAchievementAction } = await import('./achievementService.js');
-    await onAchievementAction(userId, 'collection_owned', Number(ownedRows[0]?.c || 0));
-  } catch {
-    /* exploits optionnels */
+  // Exploits collection — hors pack de départ / grants debug (sinon le loadout
+  // valide immédiatement le palier « 10 cartes distinctes »).
+  if (!['starter', 'grant'].includes(String(source || ''))) {
+    try {
+      const ownedRows = await query(
+        `SELECT COUNT(*) AS c FROM user_card_collection
+         WHERE user_id = ? AND obtained_source NOT IN ('starter', 'grant')`,
+        [userId],
+      );
+      const { onAchievementAction } = await import('./achievementService.js');
+      await onAchievementAction(userId, 'collection_owned', Number(ownedRows[0]?.c || 0));
+    } catch {
+      /* exploits optionnels */
+    }
   }
 
   return entry;
