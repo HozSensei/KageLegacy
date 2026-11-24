@@ -61,7 +61,9 @@ const isPct = computed(() => PCT_KEYS.has(props.status.key))
 const isDot = computed(() =>
   ['poison', 'burn', 'bleed', 'madness'].includes(props.status.key)
 )
+const isFlag = computed(() => ['weak', 'vulnerable'].includes(props.status.key))
 const displayValue = computed(() => {
+  if (isFlag.value) return null
   if (isPct.value) return `+${props.status.value}%`
   if (isDot.value) return `${props.status.value}/t`
   return props.status.value
@@ -82,12 +84,14 @@ const tone = computed(() => {
     :title="
       isDot
         ? `${label} ${status.value} PV/tour${status.duration != null ? ` · ${status.duration} t` : ''}`
-        : `${label} ${displayValue}${status.duration != null ? ` (${status.duration})` : ''}`
+        : isFlag
+          ? `${label}${status.duration != null ? ` (${status.duration} t)` : ''}`
+          : `${label} ${displayValue}${status.duration != null ? ` (${status.duration})` : ''}`
     "
   >
     <AppIcon :name="icon" size="0.9rem" :stroke-width="2" class="status-icon__glyph" />
     <span class="status-icon__label">{{ label }}</span>
-    <span class="status-icon__value">{{ displayValue }}</span>
+    <span v-if="displayValue != null" class="status-icon__value">{{ displayValue }}</span>
     <span v-if="status.duration != null" class="status-icon__dur">{{ status.duration }}</span>
   </span>
 </template>

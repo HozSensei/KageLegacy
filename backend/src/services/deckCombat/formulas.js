@@ -12,6 +12,7 @@ import {
   DOT_DURATION_MIN,
   DOT_STAT_FACTOR,
   DOT_STATUS_KEYS,
+  DURATION_STACK_STATUS_KEYS,
   MAX_CRIT_CHANCE,
 } from './constants.js';
 export {
@@ -37,6 +38,11 @@ export function scaleDotIntensity(base, artStat) {
 
 export function isDotStatusKey(key) {
   return DOT_STATUS_KEYS.has(String(key || '').toLowerCase());
+}
+
+/** Faiblesse / Vulnérable : flag durée, sans intensité. */
+export function isDurationStackStatusKey(key) {
+  return DURATION_STACK_STATUS_KEYS.has(String(key || '').toLowerCase());
 }
 
 export function clampDotDuration(duration) {

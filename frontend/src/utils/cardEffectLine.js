@@ -3,7 +3,12 @@
  * Sépare les figures damage/block/heal des mots-clés secondaires.
  */
 
-import { isDotStatusKey, previewCardFigures, previewDotIntensity } from './cardScaling.js';
+import {
+  isDotStatusKey,
+  isDurationStackStatusKey,
+  previewCardFigures,
+  previewDotIntensity,
+} from './cardScaling.js';
 
 const COMBO_ARTS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
 
@@ -79,6 +84,15 @@ export function formatStructuredEffect(effect, { t, te }) {
       const dmg = preview?.effective ?? preview?.base ?? 0;
       const turns = preview?.duration ?? 1;
       return t('cards.effectDot', { status: label, n: dmg, turns });
+    }
+    if (isDurationStackStatusKey(status)) {
+      const turns =
+        effect.duration != null && Number(effect.duration) > 0
+          ? Number(effect.duration)
+          : Number.isFinite(n) && n > 0
+            ? n
+            : 1;
+      return t('cards.effectStatusFlagTimed', { status: label, turns });
     }
     const amount = Number.isFinite(n) && n !== 0 ? n : 1;
     const signed = amount > 0 ? `+${amount}` : String(amount);

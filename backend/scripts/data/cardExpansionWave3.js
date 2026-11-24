@@ -43,12 +43,12 @@ export const EXPANSION_WAVE3_CARDS = [
     cost: 1,
     damage: 4,
     effects: [
-      { type: 'apply_status', status: 'weak', value: 1, duration: 1 },
+      { type: 'apply_status', status: 'weak', duration: 1 },
       { type: 'combo_previous', statType: 'taijutsu', damage: 2 },
     ],
     passive: { taijutsu: 2 },
-    descriptionFr: 'Inflige 4 dégâts. Faiblesse 1 (1 tour). Après Taijutsu : +2 dégâts.',
-    descriptionEn: 'Deal 4 damage. Weak 1 (1 turn). After Taijutsu: +2 damage.',
+    descriptionFr: 'Inflige 4 dégâts. Faiblesse (1 tour). Après Taijutsu : +2 dégâts.',
+    descriptionEn: 'Deal 4 damage. Weak (1 turn). After Taijutsu: +2 damage.',
     loreFr: 'Une feinte de pas boiteux qui attire l’adversaire dans un faux rythme.',
     loreEn: 'A limping feint that lures the opponent into a false rhythm.',
     upgrades: {
@@ -107,11 +107,11 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 4,
     effects: [
       { type: 'bonus_if', condition: 'enemy_weak', value: 3 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 1 },
+      { type: 'apply_status', status: 'weak', duration: 1 },
     ],
     passive: { taijutsu: 2 },
-    descriptionFr: 'Inflige 4 dégâts. +3 si l’ennemi est Faible. Faiblesse 1 (1 tour).',
-    descriptionEn: 'Deal 4 damage. +3 if the enemy is Weak. Weak 1 (1 turn).',
+    descriptionFr: 'Inflige 4 dégâts. +3 si l’ennemi est Faible. Faiblesse (1 tour).',
+    descriptionEn: 'Deal 4 damage. +3 if the enemy is Weak. Weak (1 turn).',
     loreFr: 'Frapper les points de pression jusqu’à ce que le bras ne réponde plus.',
     loreEn: 'Strike the pressure points until the arm no longer answers.',
     upgrades: {
@@ -201,7 +201,7 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 6,
     effects: [
       { type: 'multi_strike', hits: 3 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'combo_previous', statType: 'taijutsu', damage: 2 },
     ],
     passive: { taijutsu: 8, ninjutsu: 2 },
@@ -227,7 +227,7 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 7,
     effects: [
       { type: 'multi_strike', hits: 4 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'combo_previous', statType: 'taijutsu', damage: 2 },
       { type: 'draw', value: 1 },
     ],
@@ -298,12 +298,12 @@ export const EXPANSION_WAVE3_CARDS = [
     cost: 2,
     damage: 12,
     effects: [
-      { type: 'apply_status', status: 'weak', value: 1, duration: 1 },
+      { type: 'apply_status', status: 'weak', duration: 1 },
       { type: 'combo_previous', statType: 'ninjutsu', damage: 3 },
     ],
     passive: { ninjutsu: 6 },
-    descriptionFr: 'Inflige 12 dégâts. Faiblesse 1 (1 tour). Après Ninjutsu : +3 dégâts.',
-    descriptionEn: 'Deal 12 damage. Weak 1 (1 turn). After Ninjutsu: +3 damage.',
+    descriptionFr: 'Inflige 12 dégâts. Faiblesse (1 tour). Après Ninjutsu : +3 dégâts.',
+    descriptionEn: 'Deal 12 damage. Weak (1 turn). After Ninjutsu: +3 damage.',
     loreFr: 'L’eau d’une marée montante, tendue en un trait que rien ne détourne.',
     loreEn: 'The water of a rising tide, drawn into a line nothing can turn aside.',
     upgrades: {
@@ -368,7 +368,7 @@ export const EXPANSION_WAVE3_CARDS = [
     cost: 4,
     damage: 20,
     effects: [
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'combo_previous', statType: 'ninjutsu', damage: 5 },
       { type: 'draw', value: 1 },
     ],
@@ -393,12 +393,12 @@ export const EXPANSION_WAVE3_CARDS = [
     rarity: 'common',
     cost: 1,
     effects: [
-      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
       { type: 'draw', value: 1 },
     ],
     passive: { genjutsu: 2 },
-    descriptionFr: 'Faiblesse 1 (2 tours). Piochez 1 carte.',
-    descriptionEn: 'Weak 1 (2 turns). Draw 1 card.',
+    descriptionFr: 'Faiblesse (2 tours). Piochez 1 carte.',
+    descriptionEn: 'Weak (2 turns). Draw 1 card.',
     loreFr: 'Deux voix qui se répondent dans l’ombre : l’ennemi ne sait plus laquelle écouter.',
     loreEn: 'Two voices answering each other in the dark: the enemy cannot tell which to heed.',
     upgrades: {
@@ -415,7 +415,7 @@ export const EXPANSION_WAVE3_CARDS = [
     rarity: 'common',
     cost: 1,
     effects: [
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'gain_block', value: 4 },
     ],
     passive: { genjutsu: 2 },
@@ -439,11 +439,11 @@ export const EXPANSION_WAVE3_CARDS = [
     block: 4,
     effects: [
       { type: 'evade_next', chance: 0.35 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 1 },
+      { type: 'apply_status', status: 'weak', duration: 1 },
     ],
     passive: { genjutsu: 2 },
-    descriptionFr: 'Gagne 4 d’armure. 35% d’esquive. Faiblesse 1 (1 tour).',
-    descriptionEn: 'Gain 4 block. 35% evade. Weak 1 (1 turn).',
+    descriptionFr: 'Gagne 4 d’armure. 35% d’esquive. Faiblesse (1 tour).',
+    descriptionEn: 'Gain 4 block. 35% evade. Weak (1 turn).',
     loreFr: 'Une brume de vieux souvenirs : l’adversaire se perd dans son propre passé.',
     loreEn: 'A mist of old memories: the opponent loses himself in his own past.',
     upgrades: {
@@ -462,7 +462,7 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 3,
     effects: [
       { type: 'bonus_if', condition: 'enemy_weak', value: 3 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
     ],
     passive: { genjutsu: 2 },
     descriptionFr: 'Inflige 3 dégâts. +3 si l’ennemi est Faible. Applique Vulnérable.',
@@ -485,11 +485,11 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 3,
     effects: [
       { type: 'multi_strike', hits: 2 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 1 },
+      { type: 'apply_status', status: 'weak', duration: 1 },
     ],
     passive: { genjutsu: 2 },
-    descriptionFr: 'Inflige 3 dégâts, deux fois. Faiblesse 1 (1 tour).',
-    descriptionEn: 'Deal 3 damage, twice. Weak 1 (1 turn).',
+    descriptionFr: 'Inflige 3 dégâts, deux fois. Faiblesse (1 tour).',
+    descriptionEn: 'Deal 3 damage, twice. Weak (1 turn).',
     loreFr: 'On marche sans bouger : les murs se déplacent à la place du voyageur.',
     loreEn: 'You walk without moving: the walls shift in the traveler’s stead.',
     upgrades: {
@@ -506,12 +506,12 @@ export const EXPANSION_WAVE3_CARDS = [
     rarity: 'common',
     cost: 0,
     effects: [
-      { type: 'apply_status', status: 'weak', value: 1, duration: 1 },
+      { type: 'apply_status', status: 'weak', duration: 1 },
       { type: 'combo_previous', statType: 'genjutsu', damage: 0, draw: 1, chakra: 0 },
     ],
     passive: { genjutsu: 2 },
-    descriptionFr: 'Faiblesse 1 (1 tour). Après Genjutsu : piochez 1 carte.',
-    descriptionEn: 'Weak 1 (1 turn). After Genjutsu: draw 1 card.',
+    descriptionFr: 'Faiblesse (1 tour). Après Genjutsu : piochez 1 carte.',
+    descriptionEn: 'Weak (1 turn). After Genjutsu: draw 1 card.',
     loreFr: 'Un bruit de pas là où personne ne marche, qui ronge la confiance.',
     loreEn: 'The sound of footsteps where no one walks, gnawing at confidence.',
     upgrades: {
@@ -548,13 +548,13 @@ export const EXPANSION_WAVE3_CARDS = [
     rarity: 'rare',
     cost: 2,
     effects: [
-      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'draw', value: 1 },
     ],
     passive: { genjutsu: 6 },
-    descriptionFr: 'Faiblesse 1 (2 tours). Vulnérable. Piochez 1 carte.',
-    descriptionEn: 'Weak 1 (2 turns). Apply Vulnerable. Draw 1 card.',
+    descriptionFr: 'Faiblesse (2 tours). Vulnérable. Piochez 1 carte.',
+    descriptionEn: 'Weak (2 turns). Apply Vulnerable. Draw 1 card.',
     loreFr: 'Ce qui annonçait la victoire de l’ennemi annonce soudain sa chute.',
     loreEn: 'What foretold the enemy’s victory suddenly foretells his fall.',
     upgrades: {
@@ -573,14 +573,14 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 8,
     effects: [
       { type: 'bonus_if', condition: 'enemy_vulnerable', value: 5 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
       { type: 'apply_status', status: 'madness', duration: 1 },
     ],
     passive: { genjutsu: 5 },
     descriptionFr:
-      'Inflige 8 dégâts. +5 si l’ennemi est Vulnérable. Faiblesse 1 (2 tours). Folie (1 tour).',
+      'Inflige 8 dégâts. +5 si l’ennemi est Vulnérable. Faiblesse (2 tours). Folie (1 tour).',
     descriptionEn:
-      'Deal 8 damage. +5 if the enemy is Vulnerable. Weak 1 (2 turns). Madness (1 turn).',
+      'Deal 8 damage. +5 if the enemy is Vulnerable. Weak (2 turns). Madness (1 turn).',
     loreFr: 'Une obscurité sans haut ni bas, où seul le coup du shinobi trouve sa cible.',
     loreEn: 'A darkness without up or down, where only the shinobi’s blow finds its mark.',
     upgrades: {
@@ -599,15 +599,15 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 5,
     effects: [
       { type: 'multi_strike', hits: 3 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'combo_previous', statType: 'genjutsu', damage: 2 },
     ],
     passive: { genjutsu: 10 },
     descriptionFr:
-      'Inflige 5 dégâts, trois fois. Faiblesse 1 (2 tours). Vulnérable. Après Genjutsu : +2 dégâts par frappe.',
+      'Inflige 5 dégâts, trois fois. Faiblesse (2 tours). Vulnérable. Après Genjutsu : +2 dégâts par frappe.',
     descriptionEn:
-      'Deal 5 damage, three times. Weak 1 (2 turns). Apply Vulnerable. After Genjutsu: +2 damage per hit.',
+      'Deal 5 damage, three times. Weak (2 turns). Apply Vulnerable. After Genjutsu: +2 damage per hit.',
     loreFr: 'Deux illusions qui se croisent s’annulent… sauf pour celui qui les regarde.',
     loreEn: 'Two illusions crossing cancel each other out… except for the one watching.',
     upgrades: {
@@ -626,12 +626,12 @@ export const EXPANSION_WAVE3_CARDS = [
     block: 12,
     effects: [
       { type: 'evade_next', chance: 0.5 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
       { type: 'draw', value: 1 },
     ],
     passive: { genjutsu: 8, medicine: 2 },
-    descriptionFr: 'Gagne 12 d’armure. 50% d’esquive. Faiblesse 1 (2 tours). Piochez 1.',
-    descriptionEn: 'Gain 12 block. 50% evade. Weak 1 (2 turns). Draw 1.',
+    descriptionFr: 'Gagne 12 d’armure. 50% d’esquive. Faiblesse (2 tours). Piochez 1.',
+    descriptionEn: 'Gain 12 block. 50% evade. Weak (2 turns). Draw 1.',
     loreFr: 'Un serment murmuré aux ombres les plus minces, celles qui se glissent partout.',
     loreEn: 'An oath whispered to the thinnest shadows, the ones that slip everywhere.',
     upgrades: {
@@ -649,14 +649,14 @@ export const EXPANSION_WAVE3_CARDS = [
     cost: 3,
     effects: [
       { type: 'seal_intent' },
-      { type: 'apply_status', status: 'weak', value: 2, duration: 2 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'draw', value: 1 },
     ],
     passive: { genjutsu: 13, ninjutsu: 2 },
     descriptionFr:
-      'Scelle l’intention ennemie. Faiblesse 2 (2 tours). Vulnérable. Piochez 1 carte.',
-    descriptionEn: 'Seal the enemy intent. Weak 2 (2 turns). Apply Vulnerable. Draw 1 card.',
+      'Scelle l’intention ennemie. Faiblesse (2 tours). Vulnérable. Piochez 1 carte.',
+    descriptionEn: 'Seal the enemy intent. Weak (2 turns). Apply Vulnerable. Draw 1 card.',
     loreFr: 'Celui qui a tout vu ne dit rien, et son silence pèse plus que mille cris.',
     loreEn: 'He who has seen everything says nothing, and his silence outweighs a thousand cries.',
     upgrades: {
@@ -912,10 +912,10 @@ export const EXPANSION_WAVE3_CARDS = [
     cost: 0,
     damage: 4,
     exhaust: true,
-    effects: [{ type: 'apply_status', status: 'weak', value: 1, duration: 1 }],
+    effects: [{ type: 'apply_status', status: 'weak', duration: 1 }],
     passive: { taijutsu: 1, ninjutsu: 1 },
-    descriptionFr: 'Inflige 4 dégâts. Faiblesse 1 (1 tour). Exhaust.',
-    descriptionEn: 'Deal 4 damage. Weak 1 (1 turn). Exhaust.',
+    descriptionFr: 'Inflige 4 dégâts. Faiblesse (1 tour). Exhaust.',
+    descriptionEn: 'Deal 4 damage. Weak (1 turn). Exhaust.',
     loreFr: 'Une corde tressée de fils de cuivre qui crépite au contact de la peau.',
     loreEn: 'A rope braided with copper threads that crackles against the skin.',
     upgrades: {

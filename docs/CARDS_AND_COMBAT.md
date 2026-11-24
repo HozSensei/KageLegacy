@@ -158,9 +158,9 @@ La même copie référencée deux fois n'est comptée qu'une fois. La contributi
 
 ## Statuts importants
 
-Faiblesse réduit les dégâts sortants de 25 %. Vulnérable augmente les dégâts reçus de 50 %. Les autres états comprennent notamment Saignement, Brûlure, Poison, Folie, Régénération, esquive, contre, Armure, Soins et bonus par voie.
+Faiblesse réduit les dégâts sortants de 25 %. Vulnérable augmente les dégâts reçus de 50 %. Ces deux statuts sont des **flags** : pas d’intensité, seule la durée compte ; les réappliquer additionne les durées. Les autres états comprennent notamment Saignement, Brûlure, Poison, Folie, Régénération, esquive, contre, Armure, Soins et bonus par voie.
 
-Les quatre DoT (saignement/taijutsu, brûlure/ninjutsu, poison/médecine, folie/genjutsu) se résolvent au **début** du tour, comme la régénération. Intensité = `base + round(statVoie × 0,09) + talents` (bases 8 / 5 / 4 / 4). La carte ne pose que la durée (1–2). Recumul du même DoT : durée additionnée, intensité inchangée. Les autres statuts cumulent encore la valeur et gardent la durée max.
+Les quatre DoT (saignement/taijutsu, brûlure/ninjutsu, poison/médecine, folie/genjutsu) se résolvent au **début** du tour, comme la régénération. Intensité = `base + round(statVoie × 0,09) + talents` (bases 8 / 5 / 4 / 4). La carte ne pose que la durée (1–2). Recumul du même DoT : durée additionnée, intensité inchangée. Les autres statuts (hors Faiblesse / Vulnérable) cumulent encore la valeur et gardent la durée max.
 
 Les immunités de boss s'appliquent aux états protégés. Un type d'effet inconnu est actuellement enregistré comme `stub_effect` et ne produit aucun effet.
 

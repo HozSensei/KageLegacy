@@ -19,12 +19,12 @@ export const CLAN_LEGENDARY_CARDS = [
     cost: 2,
     effects: [
       { type: 'draw', value: 2 },
-      { type: 'apply_status', status: 'weak', value: 1, duration: 2 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
     ],
     heldEffect: { type: 'evade_percent', value: 15 },
     passive: { intelligence: 8, genjutsu: 6, vitesse: 2 },
-    descriptionFr: 'Piochez 2. Applique Faiblesse 1 (2 tours). En main ou réservé : +15 % esquive.',
-    descriptionEn: 'Draw 2. Apply Weak 1 (2 turns). In hand or reserved: +15% evade.',
+    descriptionFr: 'Piochez 2. Applique Faiblesse (2 tours). En main ou réservé : +15 % esquive.',
+    descriptionEn: 'Draw 2. Apply Weak (2 turns). In hand or reserved: +15% evade.',
     loreFr: 'Sceau de lignée des stratèges de l’ombre — l’esprit guide chaque pli du deck.',
     loreEn: 'Lineage seal of the shadow strategists — the mind guides every fold of the deck.',
     upgrades: {
@@ -69,7 +69,7 @@ export const CLAN_LEGENDARY_CARDS = [
     damage: 10,
     effects: [
       { type: 'multi_strike', hits: 2 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
     ],
     heldEffect: { type: 'art_damage_percent', statType: 'taijutsu', value: 20 },
     passive: { taijutsu: 7, vitesse: 7 },
@@ -117,16 +117,16 @@ export const CLAN_LEGENDARY_CARDS = [
     rarity: 'legendary',
     cost: 2,
     effects: [
-      { type: 'apply_status', status: 'weak', value: 2, duration: 2 },
-      { type: 'apply_status', status: 'vulnerable', value: 1 },
+      { type: 'apply_status', status: 'weak', duration: 2 },
+      { type: 'apply_status', status: 'vulnerable', duration: 1 },
       { type: 'draw', value: 1 },
     ],
     heldEffect: { type: 'gain_chakra', value: 2 },
     passive: { genjutsu: 8, intelligence: 7 },
     descriptionFr:
-      'Faiblesse 2 (2 tours), Vulnérable. Piochez 1. En main ou réservé : +2 Chakra au début du tour.',
+      'Faiblesse (2 tours), Vulnérable. Piochez 1. En main ou réservé : +2 Chakra au début du tour.',
     descriptionEn:
-      'Weak 2 (2 turns), Vulnerable. Draw 1. In hand or reserved: +2 Chakra at turn start.',
+      'Weak (2 turns), Vulnerable. Draw 1. In hand or reserved: +2 Chakra at turn start.',
     loreFr: 'Murmures de neige — le clan Yukisawa lit les pensées avant qu’elles naissent.',
     loreEn: 'Snow whispers — Clan Yukisawa reads thoughts before they form.',
     upgrades: {

@@ -1,7 +1,7 @@
 /**
  * Gestion des statuts (buffs / debuffs) — module pur.
  */
-import { DOT_STATUS_KEYS } from './constants.js';
+import { DOT_STATUS_KEYS, DURATION_STACK_STATUS_KEYS } from './constants.js';
 import { getStatusValue, hasStatus } from './formulas.js';
 
 /** Malus purifiables (cartes cleanse_self + talent purify). */
@@ -17,12 +17,14 @@ export const PLAYER_DEBUFF_KEYS = new Set([
 /**
  * Empile un statut.
  * DoT : durée additionnée, intensité inchangée si déjà présent.
+ * Faiblesse / Vulnérable : durée additionnée, valeur forcée à 1 (multiplicateur binaire).
  * Autres : valeur cumulée, durée = max des durées.
  */
 export function applyStatus(statuses, { key, value = 0, duration = 1 }) {
   const list = Array.isArray(statuses) ? [...statuses] : [];
   const idx = list.findIndex(s => s.key === key);
-  const v = Number(value) || 0;
+  const isDurationStack = DURATION_STACK_STATUS_KEYS.has(key);
+  const v = isDurationStack ? 1 : Number(value) || 0;
   const d = duration == null ? null : Number(duration);
   const isDot = DOT_STATUS_KEYS.has(key);
 
@@ -33,14 +35,14 @@ export function applyStatus(statuses, { key, value = 0, duration = 1 }) {
 
   const existing = list[idx];
 
-  if (isDot) {
+  if (isDot || isDurationStack) {
     const nextDuration =
       existing.duration == null || d == null
         ? (existing.duration ?? d)
         : (Number(existing.duration) || 0) + (Number(d) || 0);
     list[idx] = {
       key,
-      value: Number(existing.value) || 0,
+      value: isDurationStack ? 1 : Number(existing.value) || 0,
       duration: nextDuration,
     };
     return list;

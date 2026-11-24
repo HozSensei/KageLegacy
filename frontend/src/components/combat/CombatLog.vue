@@ -63,9 +63,15 @@ const PCT_STATUS_KEYS = new Set([
   'genjutsu_pct',
 ]);
 
+const FLAG_STATUS_KEYS = new Set(['weak', 'vulnerable']);
+
 function statusWithValue(status, value) {
   const key = typeof status === 'string' ? status : status?.key;
   const label = statusLabel(status);
+  if (FLAG_STATUS_KEYS.has(key)) {
+    const turns = Number(typeof status === 'object' ? status?.duration : 0) || 0;
+    return turns > 0 ? t('combat.log.statusFlagTimed', { status: label, turns }) : label;
+  }
   const n = Number(value ?? (typeof status === 'object' ? status?.value : 0)) || 0;
   if (n === 0) return label;
   if (PCT_STATUS_KEYS.has(key)) {

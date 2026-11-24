@@ -7,6 +7,7 @@ import {
   getStatusValue,
   hasStatus,
   isDotStatusKey,
+  isDurationStackStatusKey,
   outgoingBlockMultiplier,
   outgoingDamageMultiplier,
   outgoingHealMultiplier,
@@ -683,21 +684,31 @@ function applyExtraEffect(effect, ctx) {
       }
     }
     let payload;
+    const isPrimaryStatus =
+      effect === (ctx.card?.effects || []).find(item => item.type === 'apply_status');
+    const comboStatusBonus = isPrimaryStatus
+      ? comboValue(ctx.card, player.previousCardStatType, 'statusValue')
+      : 0;
     if (isDotStatusKey(statusKey)) {
       const talentFlat = computeDotTalentFlat(statusKey, talentCodes);
       payload = {
         key: statusKey,
-        value: computeDotIntensity(statusKey, { stats: ctx.stats, talentFlat }),
+        value: computeDotIntensity(statusKey, { stats: ctx.stats, talentFlat }) + comboStatusBonus,
         duration: clampDotDuration(effect.duration != null ? effect.duration : DOT_DURATION_MIN),
+      };
+    } else if (isDurationStackStatusKey(statusKey)) {
+      // Faiblesse / Vulnérable : durée seule. value legacy sert de durée si duration absente.
+      const baseDuration =
+        effect.duration != null ? Number(effect.duration) : Number(effect.value) || 1;
+      payload = {
+        key: statusKey,
+        value: 1,
+        duration: Math.max(1, baseDuration + comboStatusBonus),
       };
     } else {
       payload = {
         key: statusKey,
-        value:
-          (Number(effect.value) || 1) +
-          (effect === (ctx.card?.effects || []).find(item => item.type === 'apply_status')
-            ? comboValue(ctx.card, player.previousCardStatType, 'statusValue')
-            : 0),
+        value: (Number(effect.value) || 1) + comboStatusBonus,
         duration: effect.duration != null ? Number(effect.duration) : Number(effect.value) || 1,
       };
     }
