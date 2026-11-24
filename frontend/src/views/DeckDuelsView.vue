@@ -49,6 +49,15 @@ const history = computed(() =>
   defenses.value.map(defense => ({ ...defense, date: new Date(defense.finishedAt) }))
 );
 
+const duelOpponentName = computed(() => {
+  const enemy = duel.value?.enemy;
+  if (!enemy) return null;
+  return enemy.nameFr || enemy.nameEn || enemy.name || null;
+});
+const duelIsPlayerOpponent = computed(
+  () => Boolean(duel.value?.enemy?.profile) && !duel.value?.enemy?.boss
+);
+
 onMounted(refresh);
 watch(
   () => duel.value?.state,
@@ -119,7 +128,15 @@ function rewardLabels(reward) {
 
     <section v-if="duel?.state === 'in_progress'" aria-labelledby="deck-duel-ai">
       <h2 id="deck-duel-ai" ref="duelHeading" class="t-kicker mb-3" tabindex="-1">
-        {{ t('deckDuels.aiOpponent') }}<template v-if="duelMode"> · {{ duelMode }}</template>
+        <template v-if="duelIsPlayerOpponent">
+          {{
+            duelOpponentName
+              ? t('deckDuels.vsOpponent', { name: duelOpponentName })
+              : t('combat.enemyLabel')
+          }}
+        </template>
+        <template v-else>{{ t('deckDuels.aiOpponent') }}</template>
+        <template v-if="duelMode"> · {{ duelMode }}</template>
       </h2>
       <CombatArena
         :key="duel.id"
@@ -220,8 +237,14 @@ function rewardLabels(reward) {
         <p v-if="!history.length" class="text-ink-muted">{{ t('deckDuels.emptyHistory') }}</p>
         <ul v-else class="deck-duels__list">
           <li v-for="defense in history" :key="defense.id" class="deck-duels__row">
-            <div>
-              <strong>{{ defense.opponentName }}</strong>
+            <div class="deck-duels__history-main">
+              <PlayerIdentityChip
+                :user-id="defense.opponentId"
+                :name="defense.opponentName || defense.name || t('community.unknownPlayer')"
+                :profile="defense.profile"
+                :level="defense.level"
+                @open="showProfile"
+              />
               <p>{{ defenseOutcomeLabel(defense.outcome) }} · {{ rewardLabels(defense.reward) }}</p>
             </div>
             <time
@@ -255,6 +278,12 @@ function rewardLabels(reward) {
 
 .deck-duels__panel > button {
   justify-self: start;
+}
+
+.deck-duels__history-main {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
 .deck-duels__row,

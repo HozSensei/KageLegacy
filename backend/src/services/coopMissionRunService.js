@@ -318,6 +318,7 @@ function serializeRun(row, userId, extras = {}) {
       purse: getPurse(myPlayer),
     },
     ally: {
+      userId: role === 'host' ? row.guest_id : row.host_id,
       hp: allyPlayer.hp,
       maxHp: allyPlayer.maxHp,
       purse: getPurse(allyPlayer),
@@ -617,6 +618,29 @@ async function advanceAfterClear(row, nodes, clearedIndex) {
   return row;
 }
 
+async function withAllyPublicProfile(serialized) {
+  const allyId = serialized?.ally?.userId;
+  if (!allyId) return serialized;
+  try {
+    const { getPublicPlayer } = await import('./publicPlayerService.js');
+    const snapshot = await getPublicPlayer(allyId);
+    if (!snapshot) return serialized;
+    return {
+      ...serialized,
+      ally: {
+        ...serialized.ally,
+        name: snapshot.name,
+        level: snapshot.level,
+        rank: snapshot.rank,
+        factionId: snapshot.factionId,
+        profile: snapshot.profile,
+      },
+    };
+  } catch {
+    return serialized;
+  }
+}
+
 export async function getActiveCoopRun(userId) {
   const rows = await query(
     `SELECT * FROM coop_mission_runs
@@ -625,7 +649,7 @@ export async function getActiveCoopRun(userId) {
     [userId, userId],
   );
   if (!rows[0]) return null;
-  return serializeRun(rows[0], userId);
+  return withAllyPublicProfile(serializeRun(rows[0], userId));
 }
 
 export async function getCoopRun(userId, runId) {
@@ -644,18 +668,20 @@ export async function getCoopRun(userId, runId) {
       combat = null;
     }
   }
-  return serializeRun(row, userId, {
-    mission: mission
-      ? {
-          id: mission.id,
-          slug: mission.slug,
-          nameFr: mission.nameFr,
-          nameEn: mission.nameEn,
-          rank: mission.rank,
-        }
-      : null,
-    combat,
-  });
+  return withAllyPublicProfile(
+    serializeRun(row, userId, {
+      mission: mission
+        ? {
+            id: mission.id,
+            slug: mission.slug,
+            nameFr: mission.nameFr,
+            nameEn: mission.nameEn,
+            rank: mission.rank,
+          }
+        : null,
+      combat,
+    }),
+  );
 }
 
 export async function startCoopMissionFromRoom(userId, roomId) {

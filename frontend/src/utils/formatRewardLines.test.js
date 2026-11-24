@@ -16,6 +16,8 @@ const t = (key, args = {}) => {
   if (key === 'notifications.rewardPurse') return `purse +${args.n}`;
   if (key === 'notifications.rewardCard') return 'card';
   if (key === 'notifications.rewardBooster') return `booster ${args.kind}`;
+  if (key === 'notifications.rewardNickname') return 'title unlocked';
+  if (key === 'notifications.rewardFrame') return 'frame unlocked';
   if (key === 'achievements.reward.dust') return `+${args.n} dust`;
   return key;
 };
@@ -25,6 +27,8 @@ test('formatGrant maps known reward types', () => {
   assert.equal(formatGrant({ type: 'xp', amount: 15 }, t), '+15 XP');
   assert.equal(formatGrant({ type: 'dust', amount: 3 }, t), '+3 dust');
   assert.equal(formatGrant({ type: 'booster', boosterType: 'premium' }, t), 'booster premium');
+  assert.equal(formatGrant({ type: 'nickname' }, t), 'title unlocked');
+  assert.equal(formatGrant({ type: 'frame' }, t), 'frame unlocked');
   assert.equal(formatGrant({ type: 'ryos', amount: 0 }, t), null);
   assert.equal(formatGrant({ type: 'ryos', amount: 5, skipped: true }, t), null);
 });

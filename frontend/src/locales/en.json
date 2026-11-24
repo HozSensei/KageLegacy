@@ -492,6 +492,7 @@
     "rewardBooster": "{kind} booster",
     "rewardCard": "Card obtained",
     "rewardNickname": "Title unlocked",
+    "rewardFrame": "Frame unlocked",
     "rewardPurse": "Purse returned: +{n} Ryos",
     "viewBattlePass": "View Battle Pass",
     "viewHome": "View Home",
@@ -1851,6 +1852,7 @@
     "challenge": "Challenge",
     "challengeName": "Challenge {name}",
     "aiOpponent": "AI-controlled opponent",
+    "vsOpponent": "Versus {name}",
     "historyTitle": "Defense history",
     "emptyHistory": "No completed defenses yet.",
     "noReward": "No reward",
@@ -1982,7 +1984,9 @@
       "essence": "{n} Essence",
       "kageCoins": "{n} Kage Coins",
       "card": "{n}× {rarity} card",
-      "booster": "{type} booster"
+      "booster": "{type} booster",
+      "nickname": "Title: {name}",
+      "frame": "Frame: {name}"
     },
     "rarity": {
       "common": "normal",
@@ -2062,7 +2066,9 @@
       "ach_missions": "Pathfinder",
       "ach_collection": "Clan Archivist",
       "ach_mastery": "Art Master",
-      "ach_progression": "Ascending Path"
+      "ach_progression": "Ascending Path",
+      "season": "Season {n} Shadow",
+      "season_free": "Season {n} Scout"
     },
     "avatarPicker": {
       "label": "Portrait",

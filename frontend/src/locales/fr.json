@@ -493,6 +493,7 @@
     "rewardBooster": "Booster {kind}",
     "rewardCard": "Carte obtenue",
     "rewardNickname": "Titre débloqué",
+    "rewardFrame": "Cadre débloqué",
     "rewardPurse": "Bourse récupérée : +{n} Ryos",
     "viewBattlePass": "Voir le Battle Pass",
     "viewHome": "Voir l’accueil",
@@ -1851,6 +1852,7 @@
     "challenge": "Défier",
     "challengeName": "Défier {name}",
     "aiOpponent": "Adversaire piloté par l’IA",
+    "vsOpponent": "Contre {name}",
     "historyTitle": "Historique des défenses",
     "emptyHistory": "Aucune défense terminée pour l’instant.",
     "noReward": "Aucun gain",
@@ -1995,7 +1997,9 @@
       "ach_missions": "Éclaireur des sentiers",
       "ach_collection": "Archiviste du clan",
       "ach_mastery": "Maître des arts",
-      "ach_progression": "Voie ascendante"
+      "ach_progression": "Voie ascendante",
+      "season": "Ombre de la Saison {n}",
+      "season_free": "Éclaireur de la Saison {n}"
     },
     "avatarPicker": {
       "label": "Portrait",
@@ -2776,7 +2780,9 @@
       "essence": "{n} Essence",
       "kageCoins": "{n} Kage Coins",
       "card": "{n}× carte {rarity}",
-      "booster": "Booster {type}"
+      "booster": "Booster {type}",
+      "nickname": "Titre : {name}",
+      "frame": "Cadre : {name}"
     },
     "rarity": {
       "common": "normale",
