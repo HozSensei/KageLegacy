@@ -7,7 +7,10 @@ const fr = {
     const map = {
       'combat.inventoryEmpty': 'Vide',
       'combat.shopItems.heal_bandage': 'Bandage',
+      'combat.shopItems.run_purse_charm': 'Charme du colporteur',
       'combat.shopItemEffects.heal_bandage': 'Soigne 25 % des PV max (hors combat).',
+      'combat.shopItemEffects.run_purse_charm':
+        '+25 % gains de bourse de mission (nœuds et combats).',
     };
     return map[key] ?? fallback ?? key;
   },
@@ -21,6 +24,7 @@ test('shopItemName préfère nameFr puis i18n', () => {
     shopItemName({ id: 'heal_bandage', nameFr: 'Bandage custom' }, fr),
     'Bandage custom'
   );
+  assert.equal(shopItemName({ itemId: 'run_purse_charm' }, fr), 'Charme du colporteur');
 });
 
 test('shopItemEffect préfère descriptionFr puis i18n', () => {
@@ -34,6 +38,10 @@ test('shopItemEffect préfère descriptionFr puis i18n', () => {
     'Soigne bien.'
   );
   assert.equal(shopItemEffect({ itemId: 'heal_bandage' }, fr), 'Soigne 25 % des PV max (hors combat).');
+  assert.equal(
+    shopItemEffect({ itemId: 'run_purse_charm' }, fr),
+    '+25 % gains de bourse de mission (nœuds et combats).'
+  );
 });
 
 test('isSealedScroll detects pending_card / catalog ids', () => {

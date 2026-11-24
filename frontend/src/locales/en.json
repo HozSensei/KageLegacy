@@ -1531,7 +1531,13 @@
       "run_boost_damage": "Strike Seal",
       "next_block": "Armor Talisman",
       "next_chakra": "Chakra Pill",
-      "next_damage": "Rage Incense"
+      "next_damage": "Rage Incense",
+      "run_xp_scroll": "Study Scroll",
+      "run_purse_charm": "Peddler Charm",
+      "run_card_omen": "Loot Omen",
+      "run_second_wind": "Second Wind",
+      "next_draw": "Memory Threads",
+      "run_armor_oil": "Armor Oil"
     },
     "shopItemEffects": {
       "heal_bandage": "Heals 25% of max HP (out of combat).",
@@ -1543,7 +1549,13 @@
       "run_boost_damage": "+10% damage for the rest of the run.",
       "next_block": "+8 armor at the start of the next fight.",
       "next_chakra": "+1 Chakra at the start of the next fight.",
-      "next_damage": "+15% damage during the next fight."
+      "next_damage": "+15% damage during the next fight.",
+      "run_xp_scroll": "×1.25 XP at the end of the run.",
+      "run_purse_charm": "+25% mission purse gains (nodes and fights).",
+      "run_card_omen": "+15 percentage points bonus card chance at run end.",
+      "run_second_wind": "Once: revive at 30% max HP if you fall (not the final fight).",
+      "next_draw": "Hand size +1 for the next combat.",
+      "run_armor_oil": "+20 armor at the start of every fight in the run."
     },
     "nodeStatus": {
       "locked": "Locked",

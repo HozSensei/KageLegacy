@@ -1531,7 +1531,13 @@
       "run_boost_damage": "Sceau de frappe",
       "next_block": "Talisman d’armure",
       "next_chakra": "Pilule de chakra",
-      "next_damage": "Encens de rage"
+      "next_damage": "Encens de rage",
+      "run_xp_scroll": "Parchemin d’étude",
+      "run_purse_charm": "Charme du colporteur",
+      "run_card_omen": "Augure de butin",
+      "run_second_wind": "Second souffle",
+      "next_draw": "Fils de mémoire",
+      "run_armor_oil": "Huile d’armure"
     },
     "shopItemEffects": {
       "heal_bandage": "Soigne 25 % des PV max (hors combat).",
@@ -1543,7 +1549,13 @@
       "run_boost_damage": "+10 % dégâts pour le reste du parcours.",
       "next_block": "+8 armure au prochain combat.",
       "next_chakra": "+1 Chakra au début du prochain combat.",
-      "next_damage": "+15 % dégâts pendant le prochain combat."
+      "next_damage": "+15 % dégâts pendant le prochain combat.",
+      "run_xp_scroll": "×1.25 XP à la fin du parcours.",
+      "run_purse_charm": "+25 % gains de bourse de mission (nœuds et combats).",
+      "run_card_omen": "+15 % de chance de carte bonus à la fin du parcours.",
+      "run_second_wind": "Une fois : revive à 30 % PV max si vous tombez (hors dernier combat).",
+      "next_draw": "Total de cartes en main +1 pour le prochain combat.",
+      "run_armor_oil": "+20 armure au début de chaque combat du parcours."
     },
     "nodeStatus": {
       "locked": "Verrouillé",
