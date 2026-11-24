@@ -121,7 +121,27 @@ async function markCompleted(userId, stepKey) {
     [userId, stepKey],
   );
   const row = await getStepRow(userId, stepKey);
-  return serializeStep(def, row);
+  const step = serializeStep(def, row);
+  if (step?.completed && !step?.claimed) {
+    try {
+      const { ensureUserNotification, NOTIFICATION_KIND } = await import(
+        './userNotificationService.js'
+      );
+      await ensureUserNotification(userId, {
+        kind: NOTIFICATION_KIND.ONBOARDING_READY,
+        dedupeKey: `onboarding:${stepKey}`,
+        href: '/home',
+        payload: {
+          stepKey,
+          label: def.nameFr || stepKey,
+          labelEn: def.nameEn || def.nameFr || stepKey,
+        },
+      });
+    } catch {
+      /* notifications optionnelles */
+    }
+  }
+  return step;
 }
 
 /**
@@ -196,6 +216,21 @@ export async function claimOnboardingStep(userId, stepKey) {
     [userId, stepKey],
   );
   const refreshed = await getStepRow(userId, stepKey);
+  try {
+    const { deleteNotificationByDedupe, notifyGain } = await import(
+      './userNotificationService.js'
+    );
+    await deleteNotificationByDedupe(userId, `onboarding:${stepKey}`);
+    await notifyGain(userId, {
+      source: 'onboarding',
+      grants: granted,
+      label: def.nameFr || stepKey,
+      labelEn: def.nameEn || def.nameFr || stepKey,
+      href: '/home',
+    });
+  } catch {
+    /* notifications optionnelles */
+  }
   return {
     step: serializeStep(def, refreshed),
     rewards: granted,

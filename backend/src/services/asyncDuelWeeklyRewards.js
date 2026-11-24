@@ -125,6 +125,34 @@ async function settleNextWeek() {
       if (wallets.affectedRows !== ledger.affectedRows) {
         throw new Error(`Could not credit every weekly village reward for ${weekStart}.`);
       }
+
+      const [recipients] = await connection.execute(
+        'SELECT user_id, ryos FROM async_duel_weekly_reward_ledger WHERE week_start = ?',
+        [weekStart],
+      );
+      try {
+        const { createUserNotification, NOTIFICATION_KIND } = await import(
+          './userNotificationService.js'
+        );
+        for (const row of recipients) {
+          await createUserNotification(
+            row.user_id,
+            {
+              kind: NOTIFICATION_KIND.VILLAGE_REWARD,
+              dedupeKey: `village:${weekStart}`,
+              href: '/village#village-rewards',
+              payload: {
+                weekStart,
+                ryos: Number(row.ryos) || 0,
+                factionId: winner,
+              },
+            },
+            connection,
+          );
+        }
+      } catch {
+        /* notifications optionnelles */
+      }
     }
 
     await connection.execute(

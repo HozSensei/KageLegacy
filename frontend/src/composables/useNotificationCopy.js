@@ -29,6 +29,7 @@ export function useNotificationCopy() {
       case 'onboarding_ready':
         return t('notifications.onboardingReadyTitle');
       case 'village_ready':
+      case 'village_reward':
         return t('notifications.villageReadyTitle');
       case 'bug_report_new':
         return t('notifications.bugReportNewTitle');
@@ -78,6 +79,8 @@ export function useNotificationCopy() {
       }
       case 'village_ready':
         return t('notifications.villageReadyBody', p.count || 1);
+      case 'village_reward':
+        return t('notifications.villageRewardBody', { n: p.ryos || 0 });
       case 'bug_report_new':
         return t('notifications.bugReportNewBody', {
           location: bugLocationLabel(p),
@@ -85,8 +88,32 @@ export function useNotificationCopy() {
         });
       case 'bug_report_reward':
         return t('notifications.bugReportRewardBody', { n: p.ryos || 100 });
-      case 'gain':
-        return p.body || t('notifications.noRewards');
+      case 'gain': {
+        if (p.body) return p.body;
+        const grants = Array.isArray(p.grants) ? p.grants : [];
+        const lines = grants
+          .map(g => {
+            if (g.type === 'ryos' && g.amount > 0) return t('combat.rewardRyos', { n: g.amount });
+            if (g.type === 'xp' && g.amount > 0) return t('combat.rewardXp', { n: g.amount });
+            if (g.type === 'dust' && g.amount > 0) return t('achievements.reward.dust', { n: g.amount });
+            if (g.type === 'essence' && g.amount > 0) return t('achievements.reward.essence', { n: g.amount });
+            if (g.type === 'kage_coins' && g.amount > 0) return t('notifications.rewardKageCoins', { n: g.amount });
+            if (g.type === 'card') return t('notifications.rewardCard');
+            if (g.type === 'booster') return t('notifications.rewardBooster', { kind: g.boosterType || 'standard' });
+            return null;
+          })
+          .filter(Boolean);
+        const rewards = lines.join(' · ') || t('notifications.noRewards');
+        const en = String(locale.value || '').startsWith('en');
+        const label = (en ? p.labelEn : p.label) || p.label || null;
+        if (p.source === 'onboarding' && label) {
+          return t('notifications.gainOnboardingBody', { step: label, rewards });
+        }
+        if (p.source === 'battle_pass' && label) {
+          return t('notifications.gainBattlePassBody', { level: label, rewards });
+        }
+        return rewards;
+      }
       default:
         return t('notifications.genericBody');
     }
@@ -97,7 +124,9 @@ export function useNotificationCopy() {
     if (note.kind === 'quest_ready') return { name: 'battle-pass' };
     if (note.kind === 'achievement_ready') return { name: 'journal' };
     if (note.kind === 'onboarding_ready') return { name: 'hub' };
-    if (note.kind === 'village_ready') return { name: 'village', hash: villageRewardsHash };
+    if (note.kind === 'village_ready' || note.kind === 'village_reward') {
+      return { name: 'village', hash: villageRewardsHash };
+    }
     if (note.kind === 'bug_report_new') return { name: 'admin', query: { tab: 'reports' } };
     if (note.kind === 'bug_report_reward') return { name: 'shop' };
     return null;
@@ -112,6 +141,7 @@ export function useNotificationCopy() {
       case 'onboarding_ready':
         return t('notifications.onboardingReadyLink');
       case 'village_ready':
+      case 'village_reward':
         return t('notifications.villageReadyLink');
       case 'bug_report_new':
         return t('notifications.bugReportNewLink');

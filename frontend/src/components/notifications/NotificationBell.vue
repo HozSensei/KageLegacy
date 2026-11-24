@@ -4,9 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { useNotificationCopy } from '../../composables/useNotificationCopy.js';
-import { villageRewardsHash } from '../../composables/useVillageRewards.js';
 import { useNotificationsStore } from '../../stores/notifications.js';
-import { useVillageRewardsStore } from '../../stores/villageRewards.js';
 import AppIcon from '../ui/AppIcon.vue';
 
 defineOptions({ name: 'NotificationBell' });
@@ -14,36 +12,21 @@ defineOptions({ name: 'NotificationBell' });
 const { t } = useI18n();
 const router = useRouter();
 const store = useNotificationsStore();
-const villageRewards = useVillageRewardsStore();
 const { title, body, linkPath, linkLabel } = useNotificationCopy();
 
 const open = ref(false);
 const root = ref(null);
 const panel = ref(null);
 
-const villageEntry = computed(() => {
-  const count = villageRewards.unreadCount || 0;
-  if (count <= 0) return null;
-  return {
-    id: 'village-ready',
-    kind: 'village_ready',
-    read: false,
-    sticky: true,
-    payload: { count },
-    href: { name: 'village', hash: villageRewardsHash },
-    createdAt: Date.parse(villageRewards.rewards?.[0]?.settledAt || '') || Date.now(),
-  };
-});
-
 const feed = computed(() => {
   const list = [...(store.items || [])];
-  if (villageEntry.value) list.unshift(villageEntry.value);
-  return list;
+  return list.sort((a, b) => {
+    if (a.read !== b.read) return a.read ? 1 : -1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
 });
 
-const unreadCount = computed(
-  () => (store.unreadCount || 0) + (villageRewards.unreadCount || 0)
-);
+const unreadCount = computed(() => store.unreadCount || 0);
 
 const bellLabel = computed(() =>
   unreadCount.value > 0
@@ -70,35 +53,24 @@ function onKeydown(event) {
   if (event.key === 'Escape' && open.value) close();
 }
 
-async function dismiss(note, event) {
+async function markRead(note, event) {
   event?.stopPropagation();
-  if (note.kind === 'village_ready') {
-    const snapshot = {
-      unreadCount: villageRewards.unreadCount,
-      throughWeekStart: villageRewards.rewards?.[0]?.weekStart,
-    };
-    if (snapshot.unreadCount && snapshot.throughWeekStart) {
-      await villageRewards.markSeen(snapshot);
-    }
-    return;
-  }
-  store.dismiss(note.id);
+  if (note.read) return;
+  await store.markRead(note.id);
 }
 
-function followLink(note, event) {
+async function remove(note, event) {
+  event?.stopPropagation();
+  await store.remove(note.id);
+}
+
+async function followLink(note, event) {
   event?.stopPropagation();
   const path = linkPath(note);
   if (!path) return;
+  if (!note.read) await store.markRead(note.id);
   router.push(path);
   close();
-  if (
-    note.kind !== 'village_ready' &&
-    note.kind !== 'quest_ready' &&
-    note.kind !== 'achievement_ready' &&
-    note.kind !== 'onboarding_ready'
-  ) {
-    store.dismiss(note.id);
-  }
 }
 
 watch(open, value => {
@@ -130,7 +102,7 @@ onUnmounted(() => {
       <span
         v-if="unreadCount > 0"
         class="app-bar__unread-dot"
-        data-testid="village-rewards-unread"
+        data-testid="notification-unread"
         aria-hidden="true"
       />
     </button>
@@ -147,6 +119,15 @@ onUnmounted(() => {
       >
         <div class="notification-panel__header">
           <p class="notification-panel__title">{{ t('notifications.panelTitle') }}</p>
+          <button
+            v-if="unreadCount > 0"
+            type="button"
+            class="btn-ghost btn-sm"
+            data-testid="notification-read-all"
+            @click="store.markAllRead()"
+          >
+            {{ t('notifications.markAllRead') }}
+          </button>
         </div>
 
         <div v-if="!feed.length" class="notification-panel__empty">
@@ -154,7 +135,12 @@ onUnmounted(() => {
         </div>
 
         <ul v-else class="notification-panel__list">
-          <li v-for="note in feed" :key="note.id" class="notification-panel__item">
+          <li
+            v-for="note in feed"
+            :key="note.id"
+            class="notification-panel__item"
+            :class="{ 'notification-panel__item--read': note.read }"
+          >
             <p class="notification-panel__kind">{{ title(note) }}</p>
             <p class="notification-panel__body">{{ body(note) }}</p>
             <div class="notification-panel__actions">
@@ -168,12 +154,21 @@ onUnmounted(() => {
                 {{ linkLabel(note) }}
               </button>
               <button
+                v-if="!note.read"
                 type="button"
                 class="btn-ghost btn-sm"
                 data-testid="notification-dismiss"
-                @click="dismiss(note, $event)"
+                @click="markRead(note, $event)"
               >
                 {{ t('notifications.dismiss') }}
+              </button>
+              <button
+                type="button"
+                class="btn-ghost btn-sm"
+                data-testid="notification-delete"
+                @click="remove(note, $event)"
+              >
+                {{ t('notifications.delete') }}
               </button>
             </div>
           </li>
@@ -218,6 +213,10 @@ onUnmounted(() => {
 }
 
 .notification-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--color-line);
 }
@@ -248,6 +247,10 @@ onUnmounted(() => {
 
 .notification-panel__item:last-child {
   border-bottom: 0;
+}
+
+.notification-panel__item--read {
+  opacity: 0.62;
 }
 
 .notification-panel__kind {

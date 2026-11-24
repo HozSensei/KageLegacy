@@ -172,6 +172,31 @@ async function applyRewardConfig(userId, cfg, { rng = Math.random, source = 'mis
   }
 
   summary.battlePass = await tryGrantBattlePassPoints(userId, cfg.bpPoints);
+
+  try {
+    const grants = [];
+    if (summary.xp > 0) grants.push({ type: 'xp', amount: summary.xp });
+    if (summary.ryos > 0) grants.push({ type: 'ryos', amount: summary.ryos });
+    if (summary.card) grants.push({ type: 'card', amount: 1 });
+    if (grants.length) {
+      const { notifyGain } = await import('./userNotificationService.js');
+      const href =
+        source === 'coop_mission_run' ? '/coop' : source === 'combat' ? '/missions' : '/missions';
+      await notifyGain(userId, {
+        source: source === 'coop_mission_run' ? 'coop' : source === 'mission_run' ? 'mission' : 'combat',
+        grants,
+        href,
+        extra: {
+          leveledUp: summary.leveledUp || false,
+          levelsGained: summary.levelsGained || 0,
+          talentPointsGained: summary.talentPointsGained || 0,
+        },
+      });
+    }
+  } catch {
+    /* notifications optionnelles */
+  }
+
   return summary;
 }
 

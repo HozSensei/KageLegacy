@@ -303,6 +303,7 @@ export async function progressQuest(userId, questKey, value = 1) {
 
     const next = Math.min(quest.goal_value, Number(progress.current_progress) + amount);
     const completed = next >= quest.goal_value;
+    const newlyCompleted = completed && !progress.is_completed;
     await query(
       `UPDATE user_battle_pass_quests
        SET current_progress = ?,
@@ -314,6 +315,28 @@ export async function progressQuest(userId, questKey, value = 1) {
     const refreshed = await query('SELECT * FROM user_battle_pass_quests WHERE id = ? LIMIT 1', [
       progress.id,
     ]);
+    if (newlyCompleted) {
+      try {
+        const { ensureUserNotification, NOTIFICATION_KIND } = await import(
+          './userNotificationService.js'
+        );
+        await ensureUserNotification(userId, {
+          kind: NOTIFICATION_KIND.QUEST_READY,
+          dedupeKey: `quest:${quest.id}`,
+          href: '/battle-pass',
+          payload: {
+            questId: quest.id,
+            questKey: quest.quest_key,
+            questType: quest.quest_type,
+            description: quest.description_fr || quest.quest_key,
+            descriptionEn: quest.description_en || quest.description_fr || quest.quest_key,
+            xpReward: quest.xp_reward || 0,
+          },
+        });
+      } catch {
+        /* notifications optionnelles */
+      }
+    }
     updated.push(serializeQuest(quest, refreshed[0]));
   }
 
@@ -350,6 +373,25 @@ export async function claimQuestReward(userId, questId) {
   }
 
   await query('UPDATE user_battle_pass_quests SET is_claimed = TRUE WHERE id = ?', [progress.id]);
+
+  try {
+    const { deleteNotificationByDedupe, notifyGain } = await import(
+      './userNotificationService.js'
+    );
+    await deleteNotificationByDedupe(userId, `quest:${quest.id}`);
+    const grants = [
+      ...(quest.xp_reward > 0 ? [{ type: 'xp', amount: quest.xp_reward }] : []),
+      ...bonusGranted,
+    ];
+    await notifyGain(userId, {
+      source: 'quest',
+      grants,
+      href: '/battle-pass',
+      extra: { questKey: quest.quest_key, questType: quest.quest_type },
+    });
+  } catch {
+    /* notifications optionnelles */
+  }
 
   // Stats saison (missions_completed si clé missions)
   if (quest.quest_key.includes('mission')) {
