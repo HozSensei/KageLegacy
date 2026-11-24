@@ -448,6 +448,7 @@
     "empty": "No notifications yet.",
     "historyEmpty": "No recently read notifications.",
     "dismiss": "Mark as read",
+    "markUnread": "Mark as unread",
     "delete": "Delete",
     "markAllRead": "Mark all as read",
     "unreadCount": "{n} unread notification | {n} unread notifications",
