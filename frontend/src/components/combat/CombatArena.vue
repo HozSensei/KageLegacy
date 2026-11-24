@@ -65,8 +65,10 @@ const reservedCard = computed(
   () => props.combat.player.reservedCard ?? props.combat.player.reserveCard
 );
 const ally = computed(() => (props.coopTurn !== null ? props.combat.ally : null));
+/** Défense / buff / sceau : l’ennemi s’auto-cible — pas de libellé « Cible : joueur ». */
 function intentTargetLabel(intent) {
   if (props.coopTurn === null || !intent) return '';
+  if (intent.type !== 'attack' && intent.type !== 'debuff') return '';
   return (
     intent.targetName ||
     [props.combat.player, ally.value].find(

@@ -88,6 +88,44 @@ test('ouvre deux mains privées, applique les bonus par copie et attend le tour 
   assert.doesNotMatch(JSON.stringify(view(second)), /secret-b|held_gain_chakra/);
 });
 
+test('n’annonce une cible joueur que pour attaque / débuff (pas défense ni buff)', () => {
+  const enemy = {
+    templateId: 'coop_defend_test',
+    nameFr: 'Gardien',
+    nameEn: 'Guardian',
+    hp: 80,
+    maxHp: 80,
+    block: 0,
+    statuses: [],
+    ai: 'pattern',
+    patternIndex: 0,
+    pattern: [
+      { type: 'defend', block: 8 },
+      { type: 'buff', status: 'force', value: 1, duration: 2 },
+      { type: 'attack', damage: 12 },
+      { type: 'debuff', status: 'weak', duration: 2 },
+    ],
+  };
+  enemy.intent = { type: 'defend', block: 8 };
+  let combat = createCoopCombat(fighters(), { enemy });
+  const opening = view(combat).enemy;
+  assert.equal(opening.intent.type, 'defend');
+  assert.equal(opening.intent.targetId, undefined);
+  assert.equal(opening.intent.targetName, undefined);
+  assert.equal(opening.nextIntent.type, 'buff');
+  assert.equal(opening.nextIntent.targetId, undefined);
+  combat = end(end(combat));
+  assert.equal(view(combat).enemy.block, 8);
+  assert.equal(view(combat).enemy.intent.type, 'buff');
+  assert.equal(view(combat).enemy.intent.targetId, undefined);
+  combat = end(end(combat));
+  const afterBuff = view(combat).enemy;
+  assert.equal(afterBuff.intent.type, 'attack');
+  assert.deepEqual([afterBuff.intent.targetId, afterBuff.intent.targetName], ['a', 'Akari']);
+  assert.equal(afterBuff.nextIntent.type, 'debuff');
+  assert.deepEqual([afterBuff.nextIntent.targetId, afterBuff.nextIntent.targetName], ['b', 'Bunta']);
+});
+
 test('enchaîne J1 → J2 → ennemi avec les intentions ciblées et protège même avant le tour du bénéficiaire', () => {
   const guard = card('guard', { block: 10 });
   let combat = createCoopCombat(fighters([guard], [guard]));
@@ -260,7 +298,7 @@ test('un malus sans dégâts de base exige aussi confirmation ; les combinaisons
   assert.equal(view(start).player.hand.length, 4);
   const sealed = play(start, 'a', 'seal');
   assert.equal(view(sealed).enemy.intent.type, 'sealed');
-  assert.equal(view(sealed).enemy.intent.targetId, 'a');
+  assert.equal(view(sealed).enemy.intent.targetId, undefined);
   assert.equal(view(end(end(sealed))).player.hp, 100);
 });
 

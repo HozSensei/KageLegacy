@@ -89,9 +89,24 @@ function checkOutcome(combat) {
   return combat.state !== 'in_progress';
 }
 
+/** Intentions qui frappent / affectent un joueur — les autres (défense, buff…) sont sur l’ennemi. */
+const PLAYER_TARGETED_INTENTS = new Set(['attack', 'debuff']);
+
+function pickLivingPlayer(combat, round) {
+  const preferred = combat.players[(Math.max(1, Number(round) || 1) - 1) % 2];
+  if (preferred?.hp > 0) return preferred;
+  return combat.players.find(player => player.hp > 0) || null;
+}
+
 function withTarget(combat, intent, round) {
-  const preferred = combat.players[(round - 1) % 2];
-  const target = preferred.hp > 0 ? preferred : combat.players.find(player => player.hp > 0);
+  if (!intent) return intent;
+  if (!PLAYER_TARGETED_INTENTS.has(intent.type)) {
+    const cleaned = { ...intent };
+    delete cleaned.targetId;
+    delete cleaned.targetName;
+    return cleaned;
+  }
+  const target = pickLivingPlayer(combat, round);
   return { ...intent, targetId: target?.id ?? null, targetName: target?.name ?? null };
 }
 
@@ -460,9 +475,16 @@ function enemyTurn(combat, rng) {
   );
   if (checkOutcome(combat)) return;
 
-  const targetId = combat.enemy.intent.targetId;
+  // Attaque / débuff : cible annoncée. Défense / buff : pas de cible joueur affichée,
+  // mais executeEnemyIntent a encore besoin d’un joueur (ex. minions).
+  const announcedId = combat.enemy.intent?.targetId;
+  const target =
+    (announcedId != null
+      ? combat.players.find(player => player.id === announcedId && player.hp > 0)
+      : null) || pickLivingPlayer(combat, combat.currentTurn);
+  if (!target) return;
+  const targetId = target.id;
   const index = fighterIndex(combat, targetId);
-  const target = combat.players[index];
   const talentCodes = target.talentEffects.applied;
   const act = executeEnemyIntent(combat.enemy, target, rng, { talentCodes });
   let recipient = act.player;
