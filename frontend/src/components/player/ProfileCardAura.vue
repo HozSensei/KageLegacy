@@ -10,9 +10,22 @@ const props = defineProps({
 
 const effect = computed(() => getProfileCardEffect(props.cardEffectId)?.effect || null);
 const isSheen = computed(() => typeof effect.value === 'string' && effect.value.startsWith('sheen_'));
+const isLeaves = computed(() => typeof effect.value === 'string' && effect.value.startsWith('leaves_'));
 
-/** Feuilles style CodePen uurrnn/WNLVdN (forme organique + 3 trajectoires). */
-const leafCount = 15;
+/**
+ * Material Symbols fill (viewBox 0 -960 960 960) — Eco pour le vert, Cannabis sinon.
+ * Pas de skew : uniquement taille + rotation à la chute.
+ */
+const ECO_FILL_PATH =
+  'M450-80q-33 0-66.5-7.5T315-109q12-121 70-226t149-185q-110 56-190.5 148T231-162q-4-3-7.5-6.5L216-176q-47-47-71.5-105T120-402q0-68 27-130t75-110q81-81 210-105.5t362-4.5q18 239-6 364.5T684-182q-49 49-109.5 75.5T450-80Z';
+const CANNABIS_FILL_PATH =
+  'M440-80v-167q-42 27-86.5 47T260-180q-63 0-118.5-28.5T40-280q37-34 79.5-59.5T211-375q-68-55-100-136T79-680q72 1 139 23t122 65v-8q0-91 40.5-171T480-920q58 69 99 149t41 171q0 2-.5 4t-.5 4q56-43 123-64.5T881-680q0 88-32.5 169T748-375q49 10 91.5 35.5T919-280q-46 43-101 71.5T700-180q-50 0-94.5-20T520-247v167h-80Z';
+
+const leafPath = computed(() =>
+  effect.value === 'leaves_green' ? ECO_FILL_PATH : CANNABIS_FILL_PATH
+);
+
+const leafCount = 14;
 
 /**
  * Pluie style CodePen arickle/XKjMZY — gouttes pré-générées (pas de jQuery).
@@ -46,11 +59,20 @@ const rainDrops = computed(() => {
       <span class="card-aura__sheen-sweep" />
     </template>
 
-    <!-- Feuilles mortes — forme feuille (skew + pétiole) + chute en dérive -->
-    <template v-else-if="effect === 'leaves'">
-      <span class="card-aura__weather card-aura__weather--autumn" />
+    <!-- Feuilles Google fill : Eco (vert) / Cannabis (orange, rose) -->
+    <template v-else-if="isLeaves">
+      <span class="card-aura__weather card-aura__weather--leaves" />
       <span class="card-aura__leaves">
-        <i v-for="n in leafCount" :key="`leaf-${n}`" />
+        <svg
+          v-for="n in leafCount"
+          :key="`leaf-${n}`"
+          class="card-aura__leaf"
+          :class="`card-aura__leaf--${n}`"
+          viewBox="0 -960 960 960"
+          aria-hidden="true"
+        >
+          <path :d="leafPath" />
+        </svg>
       </span>
     </template>
 
@@ -167,13 +189,31 @@ const rainDrops = computed(() => {
   border-radius: inherit;
 }
 
-.card-aura__weather--autumn {
+.card-aura__weather--leaves {
   background: linear-gradient(
     180deg,
-    rgb(180 90 30 / 0.14) 0%,
-    transparent 40%,
-    rgb(100 40 15 / 0.12) 100%
+    color-mix(in srgb, var(--leaf-tint, #6fbf73) 18%, transparent) 0%,
+    transparent 45%,
+    color-mix(in srgb, var(--leaf-tint, #6fbf73) 10%, transparent) 100%
   );
+}
+
+.card-aura--leaves_green {
+  --leaf-fill: #5aaa5e;
+  --leaf-fill-alt: #8fd68f;
+  --leaf-tint: #6fbf73;
+}
+
+.card-aura--leaves_orange {
+  --leaf-fill: #e07a2f;
+  --leaf-fill-alt: #f0b429;
+  --leaf-tint: #c45c26;
+}
+
+.card-aura--leaves_pink {
+  --leaf-fill: #e85a8c;
+  --leaf-fill-alt: #ff9cc0;
+  --leaf-tint: #d9487a;
 }
 
 .card-aura__weather--rain {
@@ -185,193 +225,133 @@ const rainDrops = computed(() => {
 }
 
 /* =========================================================
-   Feuilles — adapté de https://codepen.io/uurrnn/pen/WNLVdN
-   (couleurs automne, échelle fiche)
+   Feuilles — glyphe cannabis Google (taille + rotation seulement)
    ========================================================= */
 .card-aura__leaves {
   position: absolute;
   inset: 0;
-  text-align: right;
 }
 
-.card-aura__leaves i {
+.card-aura__leaf {
   position: absolute;
-  top: -8%;
-  display: inline-block;
-  width: 1.4rem;
-  height: 1.05rem;
-  background: linear-gradient(to bottom right, #c45c26, #7a2e0c);
-  transform: skew(20deg) rotate(180deg);
-  border-radius: 5% 40% 70%;
-  box-shadow: inset 0 0 1px rgb(40 20 10 / 0.6);
-  opacity: 0.85;
-  animation: leaf-fall-a 5.2s ease-in-out infinite;
+  top: -10%;
+  width: 1.55rem;
+  height: 1.55rem;
+  fill: var(--leaf-fill, #5aaa5e);
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.25));
+  opacity: 0.92;
+  animation: leaf-fall-a 5.4s ease-in-out infinite;
+  transform-origin: 50% 50%;
 }
 
-.card-aura__leaves i::before {
-  position: absolute;
-  content: '';
-  top: 0.78rem;
-  right: 0.12rem;
-  height: 0.28rem;
-  width: 0.35rem;
-  transform: rotate(49deg);
-  border-radius: 0% 15% 15% 0%;
-  border: 1px solid rgb(60 30 10 / 0.45);
-  border-left: 0;
-  background: linear-gradient(to right, #9a3b12, #5c2208);
-}
-
-.card-aura__leaves i::after {
-  content: '';
-  position: absolute;
-  left: 0.55rem;
-  top: 0;
-  height: 0.9rem;
-  width: 0.12rem;
-  background: linear-gradient(to right, rgb(0 0 0 / 0.22), transparent);
-  transform: rotate(125deg);
-  border-radius: 50%;
-}
-
-.card-aura__leaves i:nth-of-type(2n) {
+.card-aura__leaf:nth-child(2n) {
+  fill: var(--leaf-fill-alt, #8fd68f);
   animation-name: leaf-fall-b;
-  background: linear-gradient(to bottom right, #d4a017, #8a5a10);
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
-.card-aura__leaves i:nth-of-type(3n) {
+.card-aura__leaf:nth-child(3n) {
   animation-name: leaf-fall-c;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
-.card-aura__leaves i:nth-of-type(2n+1) {
-  width: 0.85rem;
-  height: 0.65rem;
-  opacity: 0.7;
+.card-aura__leaf--1 {
+  left: 6%;
+  animation-delay: 0.15s;
 }
-
-.card-aura__leaves i:nth-of-type(2n+1)::before {
-  width: 0.22rem;
-  height: 0.16rem;
-  top: 0.45rem;
-  right: 0;
+.card-aura__leaf--2 {
+  left: 16%;
+  animation-delay: 1.05s;
 }
-
-.card-aura__leaves i:nth-of-type(2n+1)::after {
-  width: 0.08rem;
-  height: 0.45rem;
-  left: 0.32rem;
+.card-aura__leaf--3 {
+  left: 26%;
+  animation-delay: 0.55s;
 }
-
-.card-aura__leaves i:nth-of-type(3n+2) {
-  width: 1.1rem;
-  height: 0.85rem;
-  background: linear-gradient(to bottom right, #e07a2f, #6b2a0c);
-  opacity: 0.9;
+.card-aura__leaf--4 {
+  left: 36%;
+  animation-delay: 2.1s;
 }
-
-.card-aura__leaves i:nth-of-type(4n+1) {
-  background: linear-gradient(to bottom right, #b8860b, #564500);
+.card-aura__leaf--5 {
+  left: 46%;
+  animation-delay: 1.4s;
 }
-
-.card-aura__leaves i:nth-of-type(1) {
-  left: 8%;
-  animation-delay: 0.2s;
+.card-aura__leaf--6 {
+  left: 56%;
+  animation-delay: 0.85s;
 }
-.card-aura__leaves i:nth-of-type(2) {
-  left: 18%;
-  animation-delay: 1.1s;
+.card-aura__leaf--7 {
+  left: 66%;
+  animation-delay: 2.7s;
 }
-.card-aura__leaves i:nth-of-type(3) {
-  left: 28%;
-  animation-delay: 0.6s;
+.card-aura__leaf--8 {
+  left: 76%;
+  animation-delay: 1.75s;
 }
-.card-aura__leaves i:nth-of-type(4) {
-  left: 38%;
-  animation-delay: 2.2s;
+.card-aura__leaf--9 {
+  left: 86%;
+  animation-delay: 0.35s;
 }
-.card-aura__leaves i:nth-of-type(5) {
-  left: 48%;
-  animation-delay: 1.5s;
-}
-.card-aura__leaves i:nth-of-type(6) {
-  left: 58%;
-  animation-delay: 0.9s;
-}
-.card-aura__leaves i:nth-of-type(7) {
-  left: 68%;
-  animation-delay: 2.8s;
-}
-.card-aura__leaves i:nth-of-type(8) {
-  left: 78%;
-  animation-delay: 1.8s;
-}
-.card-aura__leaves i:nth-of-type(9) {
-  left: 88%;
-  animation-delay: 0.4s;
-}
-.card-aura__leaves i:nth-of-type(10) {
+.card-aura__leaf--10 {
   left: 12%;
-  animation-delay: 3.1s;
+  animation-delay: 3s;
 }
-.card-aura__leaves i:nth-of-type(11) {
+.card-aura__leaf--11 {
   left: 32%;
-  animation-delay: 2.4s;
+  animation-delay: 2.35s;
 }
-.card-aura__leaves i:nth-of-type(12) {
+.card-aura__leaf--12 {
   left: 52%;
-  animation-delay: 3.6s;
+  animation-delay: 3.5s;
 }
-.card-aura__leaves i:nth-of-type(13) {
+.card-aura__leaf--13 {
   left: 72%;
-  animation-delay: 1.3s;
+  animation-delay: 1.2s;
 }
-.card-aura__leaves i:nth-of-type(14) {
+.card-aura__leaf--14 {
   left: 42%;
-  animation-delay: 4s;
-}
-.card-aura__leaves i:nth-of-type(15) {
-  left: 62%;
-  animation-delay: 2s;
+  animation-delay: 3.9s;
 }
 
 @keyframes leaf-fall-a {
   0% {
-    transform: skew(20deg) translate3d(0, 0, 0) rotate(180deg);
+    transform: translate3d(0, 0, 0) rotate(0deg);
     opacity: 0;
   }
   8% {
-    opacity: 0.9;
+    opacity: 0.95;
   }
   100% {
-    transform: skew(20deg) translate3d(-4.5rem, 28rem, 0) rotate(270deg);
+    transform: translate3d(-3.5rem, 28rem, 0) rotate(320deg);
     opacity: 0;
   }
 }
 
 @keyframes leaf-fall-b {
   0% {
-    transform: skew(20deg) translate3d(0, 0, 0) rotate(90deg);
+    transform: translate3d(0, 0, 0) rotate(40deg);
     opacity: 0;
   }
   8% {
-    opacity: 0.85;
+    opacity: 0.9;
   }
   100% {
-    transform: skew(20deg) translate3d(-5.5rem, 27rem, 0) rotate(0deg);
+    transform: translate3d(3rem, 27rem, 0) rotate(-280deg);
     opacity: 0;
   }
 }
 
 @keyframes leaf-fall-c {
   0% {
-    transform: skew(20deg) translate3d(0, 0, 0) rotate(-20deg);
+    transform: translate3d(0, 0, 0) rotate(-30deg);
     opacity: 0;
   }
   8% {
-    opacity: 0.8;
+    opacity: 0.92;
   }
   100% {
-    transform: skew(20deg) translate3d(-3rem, 26rem, 0) rotate(-70deg);
+    transform: translate3d(-2rem, 26rem, 0) rotate(200deg);
     opacity: 0;
   }
 }
@@ -573,7 +553,7 @@ const rainDrops = computed(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .card-aura__sheen-sweep,
-  .card-aura__leaves i,
+  .card-aura__leaf,
   .card-aura__drop,
   .card-aura__stem,
   .card-aura__splat,
@@ -582,12 +562,19 @@ const rainDrops = computed(() => {
     animation: none !important;
   }
 
-  .card-aura__leaves i {
-    opacity: 0.55;
-    top: 25%;
+  .card-aura__leaf {
+    opacity: 0.6;
+    top: 22%;
   }
 
-  .card-aura__leaves i:nth-of-type(n + 6) {
+  .card-aura__leaf--7,
+  .card-aura__leaf--8,
+  .card-aura__leaf--9,
+  .card-aura__leaf--10,
+  .card-aura__leaf--11,
+  .card-aura__leaf--12,
+  .card-aura__leaf--13,
+  .card-aura__leaf--14 {
     display: none;
   }
 
