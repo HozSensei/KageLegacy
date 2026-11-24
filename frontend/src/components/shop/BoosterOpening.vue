@@ -48,6 +48,13 @@ let reduceMotion = false;
 
 const total = computed(() => props.cards.length);
 const packCardCount = computed(() => props.cardCount || total.value || 5);
+/** Classe de grille résultats : 1 carte bornée, 5 → 3+2 desktop. */
+const collectionGridClass = computed(() => {
+  const n = total.value;
+  if (n <= 1) return 'booster-opening__collection-grid--count-1';
+  if (n === 5) return 'booster-opening__collection-grid--count-5';
+  return null;
+});
 
 const currentEntry = computed(() => props.cards[index.value] || null);
 
@@ -381,7 +388,11 @@ onBeforeUnmount(() => {
         {{ t('shop.obtainedTitle') }}
         <span>{{ collectedCount }} / {{ total }}</span>
       </h3>
-      <ul class="booster-opening__collection-grid">
+      <ul
+        class="booster-opening__collection-grid"
+        :class="collectionGridClass"
+        :data-count="total"
+      >
         <li
           v-for="(entry, i) in cards"
           :key="`result-${entry.collectionId || entry.card?.slug || i}-${i}`"
@@ -643,7 +654,8 @@ onBeforeUnmount(() => {
 
 .booster-opening__collection-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 12.5rem));
+  justify-content: center;
   gap: 1.15rem 0.85rem;
   margin: 0;
   /* Marge pour les gemmes chakra / dégâts qui débordent */
@@ -651,9 +663,17 @@ onBeforeUnmount(() => {
   list-style: none;
 }
 
+/* Une seule carte : ne pas étirer sur toute la largeur. */
+.booster-opening__collection-grid--count-1 {
+  grid-template-columns: minmax(0, 16rem);
+}
+
 .booster-opening__result-card {
   position: relative;
   min-width: 0;
+  max-width: 16rem;
+  width: 100%;
+  justify-self: center;
   animation: booster-result-in 320ms var(--ease-out-quint) both;
 }
 
@@ -741,14 +761,32 @@ onBeforeUnmount(() => {
 }
 
 @media (min-width: 640px) {
+  /* Colonnes à largeur plafonnée (pas de 1fr) pour éviter l’étirement. */
   .booster-opening__collection-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14.5rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 14.5rem));
+  }
+
+  .booster-opening__collection-grid--count-1 {
+    grid-template-columns: minmax(0, 16rem);
+  }
+}
+
+@media (min-width: 900px) {
+  /* 5 cartes : 3 + 2 au lieu de 4 + 1. */
+  .booster-opening__collection-grid--count-5 {
+    grid-template-columns: repeat(3, minmax(0, 14.5rem));
   }
 }
 
 @media (min-width: 960px) {
-  .booster-opening__collection-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  .booster-opening__collection-grid:not(.booster-opening__collection-grid--count-1):not(
+      .booster-opening__collection-grid--count-5
+    ) {
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 15.5rem));
+  }
+
+  .booster-opening__collection-grid--count-5 {
+    grid-template-columns: repeat(3, minmax(0, 15.5rem));
   }
 }
 
