@@ -152,6 +152,9 @@ export async function notifyGain(
       type: g.type,
       amount: g.amount ?? null,
       boosterType: g.boosterType || g.kind || null,
+      itemKey: g.itemKey || null,
+      nameFr: g.nameFr || null,
+      nameEn: g.nameEn || null,
     }));
   return createUserNotification(
     userId,

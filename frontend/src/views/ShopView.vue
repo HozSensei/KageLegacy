@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import BoosterSelection from '../components/shop/BoosterSelection.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue';
@@ -13,13 +13,20 @@ import PageHeader from '../components/ui/PageHeader.vue';
 import marketImage from '../assets/illustrations/market-square.webp';
 import { useShopStore } from '../stores/shop';
 import { useAuthStore } from '../stores/auth';
+import { useNotificationsStore } from '../stores/notifications';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
+import { useNotificationCopy } from '../composables/useNotificationCopy.js';
+import { useToast } from '../composables/useToast.js';
+import { localizedDescription, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'ShopView' });
 
 const { t, locale } = useI18n();
 const shop = useShopStore();
 const auth = useAuthStore();
+const notifications = useNotificationsStore();
+const notificationCopy = useNotificationCopy();
+const toast = useToast();
 const route = useRoute();
 useOnboardingVisit('visit_shop');
 const router = useRouter();
@@ -60,6 +67,7 @@ const canAffordRepurchase = computed(() => {
 
 const tabs = [
   { id: 'boosters', labelKey: 'shop.tabs.boosters' },
+  { id: 'items', labelKey: 'shop.tabs.items' },
   { id: 'cosmetics', labelKey: 'shop.tabs.cosmetics' },
   { id: 'currency', labelKey: 'shop.tabs.currency' },
   { id: 'battlePass', labelKey: 'shop.tabs.battlePass' },
@@ -256,6 +264,23 @@ async function onBuyWelcome(method) {
     /* error in store */
   }
 }
+
+async function onBuyItem(itemId) {
+  try {
+    await shop.buyDailyItem(itemId);
+    // Rafraîchir l’inbox tout de suite (sinon seulement au changement de route).
+    const { fresh } = await notifications.fetchNotifications();
+    for (const note of fresh || []) {
+      toast.push({
+        title: notificationCopy.title(note),
+        body: notificationCopy.body(note),
+        kind: 'event',
+      });
+    }
+  } catch {
+    /* error in store */
+  }
+}
 </script>
 
 <template>
@@ -305,6 +330,39 @@ async function onBuyWelcome(method) {
         @open="onOpen"
         @select-element="shop.setSelectedElement"
       />
+    </div>
+
+    <div v-show="shop.activeTab === 'items'" class="mt-8" data-testid="shop-items">
+      <p class="shop-items__lead">{{ t('shop.itemsLead') }}</p>
+      <p v-if="shop.dailyItemsRenewsAt" class="shop-items__renew text-ink-muted">
+        {{ t('shop.itemsRenews') }}
+      </p>
+      <ul v-if="shop.dailyItems.length" class="shop-items__list">
+        <li v-for="offer in shop.dailyItems" :key="offer.id" class="shop-items__row">
+          <div>
+            <strong>{{ localizedName(offer, locale) || offer.id }}</strong>
+            <p class="shop-items__desc">
+              {{ localizedDescription(offer, locale) }}
+            </p>
+            <p class="shop-items__meta">
+              {{ t('shop.itemsPrice', { n: offer.priceShop ?? offer.price }) }}
+              · {{ t('shop.itemsStock', { n: offer.stock }) }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn-primary btn-sm"
+            :disabled="shop.purchasing || shop.loading || offer.stock <= 0"
+            @click="onBuyItem(offer.id)"
+          >
+            {{ offer.stock <= 0 ? t('shop.itemsSoldOut') : t('shop.itemsBuy') }}
+          </button>
+        </li>
+      </ul>
+      <p v-else-if="!shop.loading" class="text-ink-muted">{{ t('shop.itemsEmpty') }}</p>
+      <RouterLink to="/inventaire" class="btn-ghost btn-sm mt-4">
+        {{ t('shop.itemsOpenInventory') }}
+      </RouterLink>
     </div>
 
     <div v-show="shop.activeTab === 'cosmetics'" class="mt-8">
@@ -387,6 +445,47 @@ async function onBuyWelcome(method) {
 </template>
 
 <style scoped>
+.shop-items__lead {
+  margin: 0 0 0.5rem;
+  max-width: 36rem;
+}
+
+.shop-items__renew {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+}
+
+.shop-items__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.shop-items__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
+}
+
+.shop-items__desc {
+  margin: 0.25rem 0 0;
+  color: var(--color-ink-muted);
+  font-size: 0.875rem;
+}
+
+.shop-items__meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
 /* Cérémonie plein écran — pas de panneau « boîte ». */
 .shop-opening {
   position: fixed;

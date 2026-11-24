@@ -259,6 +259,7 @@ CREATE TABLE `player_profiles` (
   `character_created_at` timestamp NULL DEFAULT NULL,
   `character_updated_at` timestamp NULL DEFAULT NULL,
   `ryos` int NOT NULL DEFAULT '300',
+  `pouch_ryos` int unsigned NOT NULL DEFAULT '0' COMMENT 'Bourse préparée dans la poche ninja',
   `async_duel_enabled` tinyint(1) NOT NULL DEFAULT '0',
   `language` enum('fr','en') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'fr',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -537,6 +538,44 @@ LOCK TABLES `user_card_collection` WRITE;
 /*!40000 ALTER TABLE `user_card_collection` DISABLE KEYS */;
 /*!40000 ALTER TABLE `user_card_collection` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_inventory_items` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `item_key` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `location` enum('chest','pouch') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'chest',
+  `quantity` int unsigned NOT NULL DEFAULT '1',
+  `meta_json` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_inv_item_loc` (`user_id`,`item_key`,`location`),
+  KEY `idx_user_inv_user_loc` (`user_id`,`location`),
+  CONSTRAINT `fk_user_inv_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_user_inv_qty` CHECK ((`quantity` >= 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `shop_daily_offers` (
+  `day_key` char(10) CHARACTER SET ascii COLLATE ascii_bin NOT NULL COMMENT 'YYYY-MM-DD UTC',
+  `offers_json` json NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`day_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `shop_daily_purchases` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `day_key` char(10) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `item_key` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `qty` int unsigned NOT NULL DEFAULT '0',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_shop_daily_user_item` (`user_id`,`day_key`,`item_key`),
+  KEY `idx_shop_daily_day` (`day_key`),
+  CONSTRAINT `fk_shop_daily_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user_deck_cards` (

@@ -85,16 +85,13 @@ function onDeleteDeck(deck) {
 
 function onAdd(collectionId) {
   if (!decks.editingDeck) return;
-  return runDeckAction(`card-${collectionId}`, 'cards.cardAddedToDeck', () =>
-    decks.addCard(decks.editingDeck.id, collectionId)
-  );
+  /* Pas de bandeau succès sous la carte : ça décale la grille. Erreurs → feedback page. */
+  return runDeckAction('list', null, () => decks.addCard(decks.editingDeck.id, collectionId));
 }
 
 function onRemove(collectionId) {
   if (!decks.editingDeck) return;
-  return runDeckAction(`card-${collectionId}`, 'cards.cardRemovedFromDeck', () =>
-    decks.removeCard(decks.editingDeck.id, collectionId)
-  );
+  return runDeckAction('list', null, () => decks.removeCard(decks.editingDeck.id, collectionId));
 }
 
 function onActivate(deckId) {

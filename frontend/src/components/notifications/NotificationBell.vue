@@ -229,6 +229,12 @@ onUnmounted(() => {
   background: var(--color-vermilion);
 }
 
+/* Hover inversion du btn-icon : garder le point rouge lisible sur le fond encre. */
+.app-bar__rewards:hover .app-bar__unread-dot,
+.app-bar__rewards:focus-visible .app-bar__unread-dot {
+  border-color: var(--color-ink);
+}
+
 .notification-panel {
   position: fixed;
   top: 3.75rem;

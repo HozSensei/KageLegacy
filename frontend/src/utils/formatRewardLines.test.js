@@ -13,11 +13,13 @@ const t = (key, args = {}) => {
   if (key === 'combat.rewardLevel') return `level +${args.n}`;
   if (key === 'combat.revealLootHint') return `${args.n} cards`;
   if (key === 'combat.rewardRunBonus') return `×${args.n}`;
+  if (key === 'combat.rewardInventoryDeposit') return `pouch ${args.n}`;
   if (key === 'notifications.rewardPurse') return `purse +${args.n}`;
   if (key === 'notifications.rewardCard') return 'card';
   if (key === 'notifications.rewardBooster') return `booster ${args.kind}`;
   if (key === 'notifications.rewardNickname') return 'title unlocked';
   if (key === 'notifications.rewardFrame') return 'frame unlocked';
+  if (key === 'notifications.rewardInventoryItem') return `inv ${args.item} x${args.n}`;
   if (key === 'achievements.reward.dust') return `+${args.n} dust`;
   return key;
 };
@@ -29,6 +31,24 @@ test('formatGrant maps known reward types', () => {
   assert.equal(formatGrant({ type: 'booster', boosterType: 'premium' }, t), 'booster premium');
   assert.equal(formatGrant({ type: 'nickname' }, t), 'title unlocked');
   assert.equal(formatGrant({ type: 'frame' }, t), 'frame unlocked');
+  assert.equal(
+    formatGrant({ type: 'inventory_item', itemKey: 'booster_standard', amount: 1 }, t),
+    'inv booster_standard x1'
+  );
+  assert.equal(
+    formatGrant(
+      {
+        type: 'inventory_item',
+        itemKey: 'heal_bandage',
+        amount: 1,
+        nameFr: 'Bandage',
+        nameEn: 'Bandage',
+      },
+      t,
+      'fr'
+    ),
+    'inv Bandage x1'
+  );
   assert.equal(formatGrant({ type: 'ryos', amount: 0 }, t), null);
   assert.equal(formatGrant({ type: 'ryos', amount: 5, skipped: true }, t), null);
 });
@@ -57,12 +77,13 @@ test('formatCombatSummary mirrors victory lines', () => {
         levelsGained: 1,
         talentPointsGained: 1,
         lootCards: [{ card: { id: 1 } }],
+        inventoryDeposits: [{ itemKey: 'card_mystery_rare', quantity: 1 }],
         runMult: 1.2,
         purseReturned: 50,
       },
       t
     ),
-    '+40 XP · +50 Ryos · purse +50 · level +1 · 1 cards · ×1.2'
+    '+40 XP · +50 Ryos · purse +50 · level +1 · pouch 1 · 1 cards · ×1.2'
   );
   assert.equal(formatCombatSummary({ error: true, xp: 10 }, t), '');
 });

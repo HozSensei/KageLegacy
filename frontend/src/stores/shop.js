@@ -5,9 +5,11 @@ import { readApiError, parseApiResponse } from '../utils/http.js';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const useShopStore = defineStore('shop', () => {
-  const activeTab = ref('boosters'); // boosters | currency | battlePass | cosmetics
+  const activeTab = ref('boosters'); // boosters | items | cosmetics | currency | battlePass
 
   const boosters = ref([]);
+  const dailyItems = ref([]);
+  const dailyItemsRenewsAt = ref(null);
   const balances = ref({ ryos: 0, dust: 0, essence: 0, kageCoins: 0 });
   const elements = ref([]);
   const coinPacks = ref([]);
@@ -125,6 +127,25 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  async function fetchDailyItems() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/items`, { credentials: 'include' });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      dailyItems.value = body.offers || [];
+      dailyItemsRenewsAt.value = body.renewsAt || null;
+      await fetchBalances();
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function fetchFrames() {
     loading.value = true;
     error.value = null;
@@ -140,6 +161,33 @@ export const useShopStore = defineStore('shop', () => {
       return null;
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function buyDailyItem(itemId) {
+    purchasing.value = true;
+    error.value = null;
+    lastMessage.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/items/${encodeURIComponent(itemId)}/buy`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      if (body.offers?.offers) dailyItems.value = body.offers.offers;
+      else if (Array.isArray(body.offers)) dailyItems.value = body.offers;
+      if (body.offers?.renewsAt) dailyItemsRenewsAt.value = body.offers.renewsAt;
+      applyBalances(body.balances);
+      lastMessage.value = null;
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      throw e;
+    } finally {
+      purchasing.value = false;
     }
   }
 
@@ -174,7 +222,7 @@ export const useShopStore = defineStore('shop', () => {
   async function loadTab(tab = activeTab.value) {
     activeTab.value = tab;
     if (tab === 'boosters') return fetchBoosters();
-
+    if (tab === 'items') return fetchDailyItems();
     if (tab === 'currency') return fetchCoinPacks();
     if (tab === 'battlePass') return fetchBattlePassOffer();
     if (tab === 'cosmetics') return fetchFrames();
@@ -358,6 +406,8 @@ export const useShopStore = defineStore('shop', () => {
   return {
     activeTab,
     boosters,
+    dailyItems,
+    dailyItemsRenewsAt,
     balances,
     elements,
     coinPacks,
@@ -377,6 +427,8 @@ export const useShopStore = defineStore('shop', () => {
     canAfford,
     fetchBalances,
     fetchBoosters,
+    fetchDailyItems,
+    buyDailyItem,
     fetchCoinPacks,
     fetchFrames,
     purchaseFrame,

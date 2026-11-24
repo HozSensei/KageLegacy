@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
 import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
 import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
@@ -9,6 +9,7 @@ import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 import { useCoopApi } from '../composables/useCoopApi.js';
 import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
 import { useMissionsStore } from '../stores/missions.js';
+import { useInventoryStore } from '../stores/inventory.js';
 import { localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'CoopView' });
@@ -16,6 +17,7 @@ defineOptions({ name: 'CoopView' });
 const { t, locale } = useI18n();
 const router = useRouter();
 const missions = useMissionsStore();
+const inventory = useInventoryStore();
 const {
   open: profileOpen,
   loading: profileLoading,
@@ -33,7 +35,6 @@ const {
   createRoom,
   joinRoom,
   setupRoom,
-  setStake,
   setReady,
   startMission,
   closeRoom,
@@ -44,8 +45,12 @@ const code = ref('');
 const error = ref('');
 const selectedMissionId = ref(null);
 const hardMode = ref(false);
-const myStake = ref(0);
-const stakes = [0, 100, 200, 300];
+
+const pouchSummary = computed(() => {
+  const items = inventory.pouch || [];
+  const count = items.reduce((sum, e) => sum + (Number(e.quantity) || 0), 0);
+  return { ryos: inventory.pouchRyos || 0, itemCount: count };
+});
 
 const isHost = computed(() => room.value?.role === 'host');
 const isGuest = computed(() => room.value?.role === 'guest');
@@ -71,12 +76,9 @@ watch(
 onMounted(async () => {
   error.value = '';
   try {
-    await missions.fetchMissions();
+    await Promise.all([missions.fetchMissions(), inventory.fetchInventory()]);
     await loadMe();
     if (room.value?.missionId) selectedMissionId.value = room.value.missionId;
-    if (room.value) {
-      myStake.value = isHost.value ? room.value.hostStake : room.value.guestStake;
-    }
   } catch (err) {
     error.value = err.message || t('coop.requestError');
   }
@@ -108,11 +110,6 @@ async function onSetup() {
       hardMode: hardMode.value,
     })
   );
-}
-
-async function onStake() {
-  if (!room.value) return;
-  await wrap(() => setStake(room.value.id, myStake.value));
 }
 
 async function onReady(ready = true) {
@@ -242,21 +239,26 @@ function leaveLobby() {
         {{ room.missionId ? t('coop.missionChosen') : t('coop.waitingHostSetup') }}
       </p>
 
-      <div class="coop__stake">
-        <span class="field__label">{{ t('coop.stakeLabel') }}</span>
-        <div class="coop__stake-options">
-          <label v-for="s in stakes" :key="s" class="coop__radio">
-            <input v-model.number="myStake" type="radio" :value="s" />
-            {{ s }}
-          </label>
-        </div>
-        <button type="button" class="btn-secondary" :disabled="busy" @click="onStake">
-          {{ t('coop.saveStake') }}
-        </button>
-        <p class="text-ink-muted">
-          {{ t('coop.stakesSummary', { host: room.hostStake, guest: room.guestStake }) }}
+      <aside class="coop__pouch" data-testid="coop-pouch-panel">
+        <span class="field__label">{{ t('combat.pouchPanelTitle') }}</span>
+        <p>
+          {{ t('combat.pouchPanelSummary', {
+            ryos: pouchSummary.ryos,
+            items: pouchSummary.itemCount,
+          }) }}
         </p>
-      </div>
+        <p v-if="inventory.pouchLocked" class="coop__pouch-warn">
+          {{
+            inventory.pouchLock?.kind === 'coop'
+              ? t('inventory.pouchLockedCoop')
+              : t('inventory.pouchLockedMission')
+          }}
+        </p>
+        <p v-else class="coop__pouch-warn">{{ t('combat.pouchLossWarning') }}</p>
+        <RouterLink to="/inventaire" class="btn-secondary btn-sm">
+          {{ inventory.pouchLocked ? t('nav.inventory') : t('combat.preparePouch') }}
+        </RouterLink>
+      </aside>
 
       <div v-if="isGuest" class="coop__ready">
         <button
@@ -317,7 +319,7 @@ function leaveLobby() {
 }
 .coop__join,
 .coop__setup,
-.coop__stake,
+.coop__pouch,
 .coop__actions,
 .coop__ready {
   display: grid;
@@ -327,10 +329,11 @@ function leaveLobby() {
   letter-spacing: 0.08em;
   font-family: ui-monospace, monospace;
 }
-.coop__stake-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+.coop__pouch-warn {
+  margin: 0;
+  color: var(--color-vermilion);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 .coop__radio,
 .coop__check {

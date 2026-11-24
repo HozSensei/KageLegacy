@@ -2,11 +2,11 @@
  * Mission runs — parcours branché (bourse + inventaire + shop).
  *
  * Flux :
- *   startRun (purseStake) → path branché
+ *   startRun (poche → bourse + inventaire run) → path branché
  *   enterNode → combat | shop | rest | branch
  *   shopBuy / inventoryUse / inventoryDiscard / chooseBranch
- *   onRunCombatFinished → PV + gains bourse ; mort = échec
- *   Fin → crédit bourse + loot scellé
+ *   onRunCombatFinished → PV + gains bourse ; mort = échec (poche perdue)
+ *   Fin → crédit bourse + dépôt poche (scellés / objets restants)
  */
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
@@ -16,7 +16,6 @@ import {
 } from '../config/missionPathConfig.js';
 import {
   PURSE_STAKES,
-  isValidPurseStake,
   getShopItem,
 } from '../config/missionRunEconomy.js';
 import {
@@ -38,7 +37,6 @@ import {
   discardInventorySlot,
   spendPurse,
   useInventorySlot,
-  collectPendingCardsFromInventory,
   trackPendingCard,
   untrackPendingCard,
 } from './missionRunInventory.js';
@@ -51,7 +49,11 @@ import {
   requiredCharacterRankForMission,
 } from './missionRankAccess.js';
 import { pickRankVignette } from '../../scripts/data/missionLore.js';
-import { addCard } from './collectionService.js';
+import {
+  consumePouchForRun,
+  clearPouch,
+  depositRunLootToPouch,
+} from './playerInventoryService.js';
 
 export { applyHardModeToNodes, buildRandomRunPath, buildRunNodes } from './missionPathBuilder.js';
 
@@ -429,36 +431,52 @@ async function persistRun(row) {
   );
 }
 
-async function debitPurseStake(userId, stake) {
-  const amount = Number(stake) || 0;
-  if (amount <= 0) return;
-  const profile = await query('SELECT ryos FROM player_profiles WHERE user_id = ? LIMIT 1', [
-    userId,
-  ]);
-  if (!profile[0]) throw httpError(400, 'Profil introuvable.');
-  if (Number(profile[0].ryos) < amount) {
-    throw httpError(400, `Ryos insuffisants (${profile[0].ryos}/${amount}).`, 'INSUFFICIENT_RYOS');
+/** Charge la poche (ryos + objets) dans l’état joueur de run. */
+export function applyPouchLoadout(player, items = []) {
+  let next = { ...player };
+  for (const entry of items) {
+    const key = entry.itemKey || entry.itemId || entry.id;
+    const def = getShopItem(key);
+    if (!def) continue;
+    const qty = Math.max(1, Number(entry.quantity) || 1);
+    for (let i = 0; i < qty; i += 1) {
+      const placed = placeInventoryItem(next.inventory, def, {
+        meta: entry.meta || (def.kind === 'pending_card' ? { rarity: def.rarity } : null),
+      });
+      if (!placed.ok) break;
+      next = { ...next, inventory: placed.inventory };
+      if (def.kind === 'pending_card') {
+        next = trackPendingCard(next, def, entry.meta);
+      }
+    }
   }
-  await query('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [amount, userId]);
+  return next;
 }
 
-async function pickCardIdByRarity(rarity, rng = Math.random) {
-  const rows = await query(
-    'SELECT id FROM card_definitions WHERE rarity = ? ORDER BY RAND() LIMIT 30',
-    [rarity],
-  );
-  if (!rows.length) {
-    const fallback = await query(
-      'SELECT id FROM card_definitions WHERE rarity = \'common\' ORDER BY RAND() LIMIT 20',
-    );
-    if (!fallback.length) return null;
-    return fallback[Math.floor(rng() * fallback.length)].id;
+/** Objets restants en inventaire de run → dépôts poche. */
+export function collectRunInventoryDeposits(player) {
+  const deposits = [];
+  const fromInv = new Map();
+  for (const slot of player?.inventory || []) {
+    if (!slot?.itemId) continue;
+    const prev = fromInv.get(slot.itemId) || { itemKey: slot.itemId, quantity: 0, meta: slot.meta };
+    prev.quantity += Math.max(1, Number(slot.qty) || 1);
+    fromInv.set(slot.itemId, prev);
   }
-  return rows[Math.floor(rng() * rows.length)].id;
+  if (fromInv.size) return [...fromInv.values()];
+  for (const entry of player?.pendingLoot?.cards || []) {
+    if (!entry?.itemId) continue;
+    deposits.push({
+      itemKey: entry.itemId,
+      quantity: 1,
+      meta: entry.meta || null,
+    });
+  }
+  return deposits;
 }
 
-/** Entrées compatibles BoosterOpening (carte chance + parchemins scellés). */
-function buildLootCards(chanceCard, shopCards = []) {
+/** Entrées compatibles BoosterOpening (carte chance seule — scellés → inventaire). */
+function buildLootCards(chanceCard) {
   const out = [];
   if (chanceCard?.card) {
     out.push({
@@ -467,16 +485,6 @@ function buildLootCards(chanceCard, shopCards = []) {
       rarity: chanceCard.card.rarity || chanceCard.rarity || 'common',
       card: chanceCard.card,
       source: 'mission_reward',
-    });
-  }
-  for (const entry of shopCards) {
-    if (!entry?.card) continue;
-    out.push({
-      collectionId: entry.collectionId ?? null,
-      isNew: Boolean(entry.isNew),
-      rarity: entry.card.rarity || entry.rarity || 'common',
-      card: entry.card,
-      source: entry.source || 'sealed_scroll',
     });
   }
   return out;
@@ -507,7 +515,6 @@ export async function startRun(userId, missionId, deckId = null, opts = {}) {
   }
 
   const hardMode = Boolean(opts?.hardMode);
-  const purseStake = isValidPurseStake(opts?.purseStake) ? Number(opts.purseStake) : 0;
 
   const active = await query(
     "SELECT id FROM mission_runs WHERE user_id = ? AND state = 'in_progress' LIMIT 1",
@@ -549,7 +556,8 @@ export async function startRun(userId, missionId, deckId = null, opts = {}) {
     throw httpError(403, `Rang ${required} requis pour les missions ${mission.rank}.`);
   }
 
-  await debitPurseStake(userId, purseStake);
+  const pouch = await consumePouchForRun(userId);
+  const purseStake = pouch.purseStake;
 
   const { getPlayableDeckForCombat } = await import('./deckService.js');
   const deck = await getPlayableDeckForCombat(userId, deckId);
@@ -564,13 +572,14 @@ export async function startRun(userId, missionId, deckId = null, opts = {}) {
   const nodes = buildRandomRunPath(mission.rank, { hardMode });
   const vignette = pickRankVignette(mission.rank);
   const id = randomUUID();
-  const player = createRunPlayerState({
+  let player = createRunPlayerState({
     maxHp,
     purseStake,
     hardMode,
     rewardMult: HARD_MODE_REWARD_MULT,
     lore: vignette,
   });
+  player = applyPouchLoadout(player, pouch.items);
 
   await query(
     `INSERT INTO mission_runs
@@ -907,43 +916,17 @@ async function completeRunVictory(row) {
       purseReturn,
     });
 
-    // Grant sealed cards from inventory / pendingLoot (révélés à l'UI de fin de run)
-    const pendingCards = collectPendingCardsFromInventory(player);
-    const grantedCards = [];
-    let sealedGrantFailures = 0;
-    for (const entry of pendingCards) {
-      const cardId = await pickCardIdByRarity(entry.rarity || 'common');
-      if (!cardId) {
-        sealedGrantFailures += 1;
-        continue;
-      }
-      try {
-        const added = await addCard(row.user_id, cardId, {
-          quantity: 1,
-          source: 'mission_run_shop',
-        });
-        if (!added?.card) {
-          sealedGrantFailures += 1;
-          continue;
-        }
-        grantedCards.push({
-          cardId,
-          rarity: added.card.rarity || entry.rarity || 'common',
-          collectionId: added.collectionId ?? null,
-          isNew: Number(added.quantity) === 1,
-          card: added.card,
-          source: 'sealed_scroll',
-        });
-      } catch {
-        sealedGrantFailures += 1;
-      }
-    }
+    // Scellés / objets restants → poche (révélation différée dans l’inventaire)
+    const deposits = collectRunInventoryDeposits(player);
+    const inventoryDeposits = await depositRunLootToPouch(row.user_id, deposits);
     rewards.purseReturned = purseReturn;
-    rewards.shopCards = grantedCards;
-    rewards.lootCards = buildLootCards(rewards.card, grantedCards);
-    rewards.sealedPending = pendingCards.length;
-    rewards.sealedGranted = grantedCards.length;
-    rewards.sealedGrantFailures = sealedGrantFailures;
+    rewards.shopCards = [];
+    rewards.lootCards = buildLootCards(rewards.card);
+    rewards.inventoryDeposits = inventoryDeposits;
+    rewards.sealedPending = deposits.filter(d => getShopItem(d.itemKey)?.kind === 'pending_card')
+      .length;
+    rewards.sealedGranted = 0;
+    rewards.sealedGrantFailures = 0;
     rewards.branchXpMult = branchXpMult;
     row.rewards_json = rewards;
 
@@ -1034,6 +1017,7 @@ export async function onRunCombatFinished(session) {
       ...player,
       hp: Math.max(0, Number(session.player?.hp) || 0),
       purse: 0,
+      pendingLoot: { cards: [] },
       inventory: (player.inventory || []).map((slot, i) => ({
         slot: i,
         itemId: null,
@@ -1058,6 +1042,11 @@ export async function onRunCombatFinished(session) {
     } catch {
       /* mur optionnel */
     }
+    try {
+      await clearPouch(session.userId);
+    } catch {
+      /* poche déjà vide au start */
+    }
     return serializeRun(row);
   }
 
@@ -1081,6 +1070,7 @@ export async function abandonRun(userId, runId) {
   row.player_run_state_json = {
     ...player,
     purse: 0,
+    pendingLoot: { cards: [] },
     inventory: (player.inventory || []).map((slot, i) => ({
       slot: i,
       itemId: null,
@@ -1091,6 +1081,11 @@ export async function abandonRun(userId, runId) {
   row.state = 'abandoned';
   row.current_combat_id = null;
   await persistRun(row);
+  try {
+    await clearPouch(userId);
+  } catch {
+    /* poche déjà vide au start */
+  }
   return serializeRun(row);
 }
 
@@ -1117,4 +1112,6 @@ export const __test = {
   useInventorySlot,
   getPurse,
   buildLootCards,
+  applyPouchLoadout,
+  collectRunInventoryDeposits,
 };

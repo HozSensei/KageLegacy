@@ -337,7 +337,7 @@
     width: 100%;
   }
 
-  /* Bouton rond pour icône seule — fond transparent, hover primaire */
+  /* Bouton rond pour icône seule — hover = inversion encre / fond */
   .btn-icon {
     display: inline-flex;
     align-items: center;
@@ -355,8 +355,8 @@
 
   .btn-icon:hover,
   .btn-icon:focus-visible {
-    background: var(--color-vermilion);
-    color: var(--color-on-fill);
+    background: var(--color-ink);
+    color: var(--color-bg);
     outline: none;
   }
 

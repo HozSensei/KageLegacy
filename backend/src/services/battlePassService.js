@@ -303,30 +303,25 @@ async function grantCardReward(userId, reward, connection = null) {
   return { type: 'card', cardDefinitionId: cardId, count, entries: granted };
 }
 
-async function grantBoosterStub(userId, reward, connection = null) {
-  // Shop/boosters géré ailleurs — MVP : 5 cartes (rareté selon type) ou dust.
+async function grantBoosterStub(userId, reward, _connection = null) {
+  // Dépôt coffre — ouverture différée depuis l’inventaire.
   const boosterType = reward.boosterType || reward.booster || 'standard';
-  const rolls =
-    boosterType === 'legendary'
-      ? [
-          { rarity: 'legendary', count: 1 },
-          { rarity: 'rare', count: 2 },
-        ]
-      : boosterType === 'premium'
-        ? [
-            { rarity: 'rare', count: 1 },
-            { rarity: 'common', count: 4 },
-          ]
-        : [{ rarity: 'common', count: 5 }];
-
-  const cards = [];
-  for (const roll of rolls) {
-    for (let i = 0; i < roll.count; i += 1) {
-      const result = await grantCardReward(userId, { rarity: roll.rarity, count: 1 }, connection);
-      cards.push(result);
-    }
-  }
-  return { type: 'booster', boosterType, cards };
+  const { grantBoosterToChest } = await import('./playerInventoryService.js');
+  const { boosterItemKey, getItem } = await import('../config/itemCatalog.js');
+  const itemKey = boosterItemKey(boosterType);
+  const def = getItem(itemKey);
+  await grantBoosterToChest(userId, boosterType, {
+    notify: false,
+    source: 'battle_pass',
+  });
+  return {
+    type: 'inventory_item',
+    itemKey,
+    boosterType,
+    amount: 1,
+    nameFr: def?.nameFr || itemKey,
+    nameEn: def?.nameEn || itemKey,
+  };
 }
 
 /**
@@ -474,11 +469,12 @@ export async function claimReward(userId, level, trackType = 'free') {
   const progress = await getOrCreateUserBattlePass(userId, season.id);
   try {
     const { notifyGain } = await import('./userNotificationService.js');
+    const hasInventory = granted.some(g => g?.type === 'inventory_item');
     await notifyGain(userId, {
       source: 'battle_pass',
       grants: granted,
       label: String(targetLevel),
-      href: '/battle-pass',
+      href: hasInventory ? '/inventaire' : '/battle-pass',
       extra: { track, level: targetLevel },
     });
   } catch {
