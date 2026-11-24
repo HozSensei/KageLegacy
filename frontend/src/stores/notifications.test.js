@@ -68,7 +68,7 @@ test('fetchNotifications replaces the inbox and reports fresh unread ids', async
   }
 });
 
-test('markRead and remove update local state then call the API', async () => {
+test('markRead, markUnread and remove update local state then call the API', async () => {
   setActivePinia(createPinia());
   const store = useNotificationsStore();
   store.items = [
@@ -89,10 +89,15 @@ test('markRead and remove update local state then call the API', async () => {
     assert.equal(calls[0].method, 'POST');
     assert.match(calls[0].url, /\/api\/notifications\/10\/read$/);
 
+    await store.markUnread(10);
+    assert.equal(store.items.find(n => n.id === 10)?.read, false);
+    assert.equal(calls[1].method, 'POST');
+    assert.match(calls[1].url, /\/api\/notifications\/10\/unread$/);
+
     await store.remove(11);
     assert.equal(store.items.some(n => n.id === 11), false);
-    assert.equal(calls[1].method, 'DELETE');
-    assert.match(calls[1].url, /\/api\/notifications\/11$/);
+    assert.equal(calls[2].method, 'DELETE');
+    assert.match(calls[2].url, /\/api\/notifications\/11$/);
   } finally {
     globalThis.fetch = originalFetch;
   }

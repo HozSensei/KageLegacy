@@ -232,6 +232,23 @@ export async function markNotificationRead(userId, notificationId) {
   return { ok: true, id };
 }
 
+export async function markNotificationUnread(userId, notificationId) {
+  const id = Number(notificationId);
+  if (!Number.isSafeInteger(id) || id < 1) {
+    throw httpError('Identifiant de notification invalide.');
+  }
+  const result = await query(
+    `UPDATE user_notifications
+     SET read_at = NULL
+     WHERE id = ? AND user_id = ?`,
+    [id, userId],
+  );
+  if (!result.affectedRows) {
+    throw httpError('Notification introuvable.', 404);
+  }
+  return { ok: true, id };
+}
+
 export async function markAllNotificationsRead(userId) {
   const villageRows = await query(
     `SELECT payload_json FROM user_notifications

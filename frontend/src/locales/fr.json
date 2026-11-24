@@ -448,6 +448,7 @@
     "empty": "Aucune notification pour le moment.",
     "historyEmpty": "Aucune notification lue récemment.",
     "dismiss": "Marquer comme lu",
+    "markUnread": "Marquer comme non lu",
     "delete": "Supprimer",
     "markAllRead": "Tout marquer comme lu",
     "unreadCount": "{n} notification non lue | {n} notifications non lues",

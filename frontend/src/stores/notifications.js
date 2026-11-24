@@ -77,6 +77,25 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
   }
 
+  async function markUnread(id) {
+    const numericId = Number(id);
+    if (!Number.isFinite(numericId)) return null;
+    items.value = items.value.map(n => (n.id === numericId ? { ...n, read: false } : n));
+    try {
+      const res = await fetch(`${API_BASE}/api/notifications/${numericId}/unread`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      await fetchNotifications();
+      return null;
+    }
+  }
+
   async function remove(id) {
     const numericId = Number(id);
     if (!Number.isFinite(numericId)) return null;
@@ -130,6 +149,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     unreadItems,
     fetchNotifications,
     markRead,
+    markUnread,
     remove,
     markAllRead,
     reset,

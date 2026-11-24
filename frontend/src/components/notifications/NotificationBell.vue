@@ -34,6 +34,17 @@ const bellLabel = computed(() =>
     : t('notifications.bell')
 );
 
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+/** Timestamp compact : JJ/MM/AAAA, HH:mm */
+function formatTimestamp(ms) {
+  const d = new Date(Number(ms) || Date.now());
+  if (Number.isNaN(d.getTime())) return '';
+  return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}, ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
 function toggle() {
   open.value = !open.value;
 }
@@ -53,10 +64,13 @@ function onKeydown(event) {
   if (event.key === 'Escape' && open.value) close();
 }
 
-async function markRead(note, event) {
+async function toggleRead(note, event) {
   event?.stopPropagation();
-  if (note.read) return;
-  await store.markRead(note.id);
+  if (note.read) {
+    await store.markUnread(note.id);
+  } else {
+    await store.markRead(note.id);
+  }
 }
 
 async function remove(note, event) {
@@ -143,33 +157,50 @@ onUnmounted(() => {
           >
             <p class="notification-panel__kind">{{ title(note) }}</p>
             <p class="notification-panel__body">{{ body(note) }}</p>
-            <div class="notification-panel__actions">
-              <button
-                v-if="linkPath(note)"
-                type="button"
-                class="btn-ghost btn-sm"
-                data-testid="notification-follow"
-                @click="followLink(note, $event)"
+            <div class="notification-panel__footer">
+              <time
+                class="notification-panel__time"
+                :datetime="new Date(note.createdAt).toISOString()"
               >
-                {{ linkLabel(note) }}
-              </button>
-              <button
-                v-if="!note.read"
-                type="button"
-                class="btn-ghost btn-sm"
-                data-testid="notification-dismiss"
-                @click="markRead(note, $event)"
-              >
-                {{ t('notifications.dismiss') }}
-              </button>
-              <button
-                type="button"
-                class="btn-ghost btn-sm"
-                data-testid="notification-delete"
-                @click="remove(note, $event)"
-              >
-                {{ t('notifications.delete') }}
-              </button>
+                {{ formatTimestamp(note.createdAt) }}
+              </time>
+              <div class="notification-panel__actions">
+                <button
+                  v-if="linkPath(note)"
+                  type="button"
+                  class="notification-panel__icon-btn"
+                  :aria-label="linkLabel(note)"
+                  :title="linkLabel(note)"
+                  data-testid="notification-follow"
+                  @click="followLink(note, $event)"
+                >
+                  <AppIcon name="open_in_new" size="1rem" :stroke-width="0" />
+                </button>
+                <button
+                  type="button"
+                  class="notification-panel__icon-btn"
+                  :aria-label="note.read ? t('notifications.markUnread') : t('notifications.dismiss')"
+                  :title="note.read ? t('notifications.markUnread') : t('notifications.dismiss')"
+                  data-testid="notification-dismiss"
+                  @click="toggleRead(note, $event)"
+                >
+                  <AppIcon
+                    :name="note.read ? 'visibility_off' : 'visibility'"
+                    size="1rem"
+                    :stroke-width="0"
+                  />
+                </button>
+                <button
+                  type="button"
+                  class="notification-panel__icon-btn"
+                  :aria-label="t('notifications.delete')"
+                  :title="t('notifications.delete')"
+                  data-testid="notification-delete"
+                  @click="remove(note, $event)"
+                >
+                  <AppIcon name="delete" size="1rem" :stroke-width="0" />
+                </button>
+              </div>
             </div>
           </li>
         </ul>
@@ -241,7 +272,7 @@ onUnmounted(() => {
 }
 
 .notification-panel__item {
-  padding: 0.9rem 1rem;
+  padding: 0.9rem 1rem 0.55rem;
   border-bottom: 1px solid color-mix(in srgb, var(--color-line) 70%, transparent);
 }
 
@@ -269,10 +300,51 @@ onUnmounted(() => {
   overflow-wrap: anywhere;
 }
 
+.notification-panel__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-line) 80%, transparent);
+}
+
+.notification-panel__time {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--color-ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .notification-panel__actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.65rem;
+  align-items: center;
+  gap: 0.1rem;
+  flex: none;
+}
+
+.notification-panel__icon-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.notification-panel__icon-btn:hover,
+.notification-panel__icon-btn:focus-visible {
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  outline: none;
 }
 </style>
