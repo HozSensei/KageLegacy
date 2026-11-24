@@ -474,6 +474,30 @@ watch(
   transform: rotateY(180deg);
 }
 
+/*
+ * Safari / iOS : les gemmes (filter + overflow hors carte) percent le dos
+ * malgré backface-visibility. On masque la face avant à mi-flip.
+ */
+.card-display--flip .card-display__face--front {
+  transition:
+    opacity 0s linear 0.35s,
+    visibility 0s linear 0.35s;
+}
+
+.card-display--flipped .card-display__face--front {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card-display--flip:not(.card-display--flipped) .card-display__face--front {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0s linear 0.35s,
+    visibility 0s linear 0.35s;
+}
+
 .card-display__face {
   position: absolute;
   inset: 0;
@@ -490,6 +514,8 @@ watch(
     0 0 17px var(--halo);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
   overflow: visible;
   cursor: pointer;
   text-align: left;
@@ -526,7 +552,8 @@ watch(
 .card-display__face--back {
   display: grid;
   place-items: center;
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(0);
+  -webkit-transform: rotateY(180deg) translateZ(0);
   overflow: hidden;
   background: radial-gradient(ellipse at 50% 45%, #303d4a, #171c24 65%, #0e1319);
   border-color: #aab3bc;
@@ -566,9 +593,16 @@ watch(
   background: #4e6578;
 }
 
+/* Cartes moyennes (grille booster) : un peu moins d’art, plus de parchemin. */
+@container (max-width: 16rem) {
+  .card-display__art {
+    height: 46%;
+  }
+}
+
 @container (max-width: 11.5rem) {
   .card-display__art {
-    height: 44%;
+    height: 42%;
   }
 
   .card-display__info {
@@ -802,6 +836,9 @@ watch(
   gap: 2px;
   width: clamp(2.6rem, 24.7%, 4.5625rem);
   pointer-events: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .card-display__figure {
@@ -885,6 +922,9 @@ watch(
 .card-display__description {
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-display__name {
@@ -912,10 +952,13 @@ watch(
 .card-display__effects {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   gap: 0.28rem;
+  min-height: 0;
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow: hidden;
   font-size: clamp(0.6rem, 3.8cqi, 0.72rem);
   font-weight: 700;
   line-height: 1.35;
@@ -1404,6 +1447,8 @@ watch(
 @media (prefers-reduced-motion: reduce) {
   .card-display,
   .card-display--flip .card-display__flipper,
+  .card-display--flip .card-display__face--front,
+  .card-display--flip:not(.card-display--flipped) .card-display__face--front,
   .card-display__sheen {
     transition: none !important;
   }

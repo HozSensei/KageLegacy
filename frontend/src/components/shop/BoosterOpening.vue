@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardDisplay from '../cards/CardDisplay.vue';
 import BoosterPackVisual from './BoosterPackVisual.vue';
@@ -17,6 +17,8 @@ const props = defineProps({
   cardCount: { type: Number, default: 0 },
   showCollectionStatus: { type: Boolean, default: true },
   canRepurchase: { type: Boolean, default: false },
+  /** Solde suffisant pour racheter le même booster (Ryos / Kage Coins). */
+  canAffordRepurchase: { type: Boolean, default: true },
   repurchasing: { type: Boolean, default: false },
   /** Libellé du bouton de clôture (sinon shop.closeResults). */
   doneLabel: { type: String, default: null },
@@ -39,6 +41,7 @@ const stackVisible = ref(false);
 const burstShow = ref(false);
 const gone = ref([]);
 const revealedSet = ref(new Set());
+const collectionEl = ref(null);
 
 let openingToken = 0;
 let reduceMotion = false;
@@ -81,6 +84,10 @@ const nextLabel = computed(() => {
   if (index.value >= total.value - 1) return t('shop.seeResults');
   return t('shop.nextCard');
 });
+
+const repurchaseLabel = computed(() =>
+  props.canAffordRepurchase ? t('shop.buyAnotherBooster') : t('shop.insufficientFunds')
+);
 
 const showNewBadge = computed(
   () =>
@@ -166,6 +173,14 @@ async function reveal() {
   busy.value = false;
 }
 
+async function finishCeremony() {
+  phase.value = 'done';
+  stackVisible.value = false;
+  busy.value = false;
+  await nextTick();
+  collectionEl.value?.scrollIntoView?.({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+}
+
 async function next() {
   if (phase.value !== 'revealed' || busy.value) return;
   busy.value = true;
@@ -173,9 +188,7 @@ async function next() {
   await wait(420);
   index.value += 1;
   if (index.value >= props.cards.length) {
-    phase.value = 'done';
-    stackVisible.value = false;
-    busy.value = false;
+    await finishCeremony();
     return;
   }
   phase.value = 'hidden';
@@ -189,11 +202,10 @@ function onStageActivate() {
   else if (phase.value === 'revealed') next();
 }
 
-function revealAll() {
+async function revealAll() {
   if (busy.value || !['hidden', 'revealed'].includes(phase.value)) return;
   revealedSet.value = new Set(props.cards.map((_, i) => i));
-  phase.value = 'done';
-  stackVisible.value = false;
+  await finishCeremony();
 }
 
 function onAction() {
@@ -238,8 +250,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="booster-opening" data-testid="booster-opening" aria-live="polite">
-    <section class="booster-opening__stage" :aria-label="t('shop.openingStage')">
+  <div
+    class="booster-opening"
+    :class="{ 'booster-opening--done': phase === 'done' }"
+    data-testid="booster-opening"
+    aria-live="polite"
+  >
+    <section
+      v-show="phase !== 'done'"
+      class="booster-opening__stage"
+      :aria-label="t('shop.openingStage')"
+    >
       <div class="booster-opening__glow" aria-hidden="true" />
       <div
         class="booster-opening__burst"
@@ -284,7 +305,7 @@ onBeforeUnmount(() => {
           }"
           :style="{ zIndex: cards.length - i }"
         >
-          <CardDisplay :card="entry.card" :face="cardFace(i)" :compact="true" />
+          <CardDisplay :card="entry.card" :face="cardFace(i)" :compact="true" size="large" />
         </div>
 
         <button
@@ -344,14 +365,18 @@ onBeforeUnmount(() => {
         type="button"
         class="btn-primary"
         data-testid="booster-repurchase"
-        :disabled="repurchasing"
+        :disabled="repurchasing || !canAffordRepurchase"
         @click="emit('repurchase')"
       >
-        {{ t('shop.buyAnotherBooster') }}
+        {{ repurchaseLabel }}
       </button>
     </div>
 
-    <section class="booster-opening__collection" :aria-label="t('shop.obtainedTitle')">
+    <section
+      ref="collectionEl"
+      class="booster-opening__collection"
+      :aria-label="t('shop.obtainedTitle')"
+    >
       <h3 class="booster-opening__collection-title">
         {{ t('shop.obtainedTitle') }}
         <span>{{ collectedCount }} / {{ total }}</span>
@@ -363,7 +388,7 @@ onBeforeUnmount(() => {
           class="booster-opening__result-card"
         >
           <template v-if="isCollected(i)">
-            <CardDisplay :card="entry.card" />
+            <CardDisplay :card="entry.card" size="large" />
             <span
               v-if="showCollectionStatus"
               class="booster-opening__result-badge"
@@ -387,7 +412,13 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .booster-opening {
-  margin-top: 0.5rem;
+  width: min(72rem, 100%);
+  margin: 0 auto;
+}
+
+.booster-opening--done .booster-opening__captions {
+  min-height: 0;
+  margin-top: 0;
 }
 
 .booster-opening__pack-host {
@@ -402,8 +433,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 24rem;
-  padding: 1rem 0 1.5rem;
+  min-height: min(28rem, 58dvh);
+  padding: 1.25rem 0 1.5rem;
   overflow: visible;
   margin: 0;
   border: 0;
@@ -439,7 +470,7 @@ onBeforeUnmount(() => {
 .booster-opening__stack {
   position: relative;
   z-index: 2;
-  width: min(13.5rem, 76vw);
+  width: min(17rem, 78vw);
   aspect-ratio: 2.5 / 3.5;
   margin: 0 auto;
   opacity: 0;
@@ -586,6 +617,11 @@ onBeforeUnmount(() => {
 
 .booster-opening__collection {
   margin-top: 1.75rem;
+  scroll-margin-top: 1rem;
+}
+
+.booster-opening--done .booster-opening__collection {
+  margin-top: 0.85rem;
 }
 
 .booster-opening__collection-title {
@@ -608,9 +644,10 @@ onBeforeUnmount(() => {
 .booster-opening__collection-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem 0.75rem;
+  gap: 1.15rem 0.85rem;
   margin: 0;
-  padding: 0.35rem;
+  /* Marge pour les gemmes chakra / dégâts qui débordent */
+  padding: 0.85rem 0.85rem 0.35rem 0.35rem;
   list-style: none;
 }
 
@@ -691,17 +728,27 @@ onBeforeUnmount(() => {
 
 @media (max-width: 650px) {
   .booster-opening__stage {
-    min-height: 24rem;
+    min-height: min(26rem, 56dvh);
+  }
+
+  .booster-opening__stack {
+    width: min(15.5rem, 82vw);
   }
 
   .booster-opening__collection-grid {
-    gap: 0.65rem;
+    gap: 0.85rem 0.65rem;
   }
 }
 
 @media (min-width: 640px) {
   .booster-opening__collection-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14.5rem), 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .booster-opening__collection-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   }
 }
 
