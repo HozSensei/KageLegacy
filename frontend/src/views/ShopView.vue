@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import BoosterSelection from '../components/shop/BoosterSelection.vue';
@@ -26,6 +26,11 @@ const router = useRouter();
 const isOpeningBooster = ref(false);
 /** Ouverture hors onglet (pack bienvenue / Stripe) — modal plein écran. */
 const isRewardCeremony = ref(false);
+
+function setBodyScrollLocked(locked) {
+  if (typeof document === 'undefined') return;
+  document.body.style.overflow = locked ? 'hidden' : '';
+}
 const canRepurchaseOpening = ref(true);
 /** File d’ouvertures restantes (pack bienvenue = 2 parchemins). */
 const openingQueue = ref([]);
@@ -45,6 +50,12 @@ const openedBoosterName = computed(() => {
 });
 
 const showOpeningOverlay = computed(() => isOpeningBooster.value && Boolean(shop.lastResult));
+
+const canAffordRepurchase = computed(() => {
+  const booster = openedBooster.value;
+  if (!booster) return false;
+  return shop.canAfford(booster);
+});
 
 const tabs = [
   { id: 'boosters', labelKey: 'shop.tabs.boosters' },
@@ -165,6 +176,14 @@ watch(
   }
 );
 
+watch(
+  showOpeningOverlay,
+  locked => setBodyScrollLocked(Boolean(locked)),
+  { immediate: true }
+);
+
+onBeforeUnmount(() => setBodyScrollLocked(false));
+
 async function onSelectTab(tab) {
   shop.clearMessage();
   shop.error = null;
@@ -189,7 +208,7 @@ async function onOpen(type) {
 
 async function onRepurchase() {
   const type = shop.lastResult?.boosterType;
-  if (!type || !canRepurchaseOpening.value) return;
+  if (!type || !canRepurchaseOpening.value || !canAffordRepurchase.value) return;
   await onOpen(type);
 }
 
@@ -335,14 +354,14 @@ async function onBuyWelcome(method) {
       <div
         v-if="showOpeningOverlay"
         id="shop-booster-opening"
-        class="modal-backdrop shop-opening"
+        class="shop-opening"
         data-testid="shop-booster-opening"
         role="dialog"
         aria-modal="true"
         :aria-label="t('shop.openingStage')"
         tabindex="-1"
       >
-        <div class="modal-panel shop-opening__panel">
+        <div class="shop-opening__scroll">
           <BoosterOpening
             :cards="shop.lastResult.cards"
             :active="isOpeningBooster"
@@ -351,6 +370,7 @@ async function onBuyWelcome(method) {
             :element="openedElement"
             :card-count="openedBooster?.cardCount || shop.lastResult.cards?.length || 5"
             :can-repurchase="canRepurchaseOpening"
+            :can-afford-repurchase="canAffordRepurchase"
             :repurchasing="shop.opening"
             @done="onRevealDone"
             @repurchase="onRepurchase"
@@ -362,15 +382,30 @@ async function onBuyWelcome(method) {
 </template>
 
 <style scoped>
+/* Cérémonie plein écran — pas de panneau « boîte ». */
 .shop-opening {
+  position: fixed;
+  inset: 0;
   z-index: 140;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+  overscroll-behavior: none;
+  animation: fade-in var(--dur-base) ease both;
 }
 
-.shop-opening__panel {
-  width: min(42rem, 100%);
-  max-height: min(92dvh, 100%);
-  overflow: auto;
+.shop-opening__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  border-top-color: var(--color-gold-fill, var(--color-gold));
+  padding: clamp(0.75rem, 2.5vw, 1.5rem) clamp(0.85rem, 3vw, 2rem)
+    clamp(1.25rem, 4vw, 2.25rem);
 }
 </style>

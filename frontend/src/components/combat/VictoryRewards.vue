@@ -170,13 +170,13 @@ function onRevealDone() {
   <Teleport to="body">
     <div
       v-if="phase === 'opening' && hasLootReveal"
-      class="modal-backdrop loot-reveal"
+      class="loot-reveal"
       data-testid="mission-loot-reveal"
       role="dialog"
       aria-modal="true"
       :aria-label="t('combat.lootRevealTitle')"
     >
-      <div class="modal-panel loot-reveal__panel">
+      <div class="loot-reveal__scroll">
         <header class="loot-reveal__header">
           <p class="loot-reveal__kicker">{{ t('combat.lootRevealKicker') }}</p>
           <h2 class="loot-reveal__title">{{ t('combat.lootRevealTitle') }}</h2>
@@ -287,12 +287,29 @@ function onRevealDone() {
 }
 
 .loot-reveal {
+  position: fixed;
+  inset: 0;
   z-index: 140;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+  overscroll-behavior: none;
+  animation: fade-in var(--dur-base) ease both;
 }
 
-.loot-reveal__panel {
-  width: min(42rem, 100%);
-  border-top-color: var(--color-gold-fill, var(--color-vermilion));
+.loot-reveal__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(0.75rem, 2.5vw, 1.5rem) clamp(0.85rem, 3vw, 2rem)
+    clamp(1.25rem, 4vw, 2.25rem);
 }
 
 .loot-reveal__header {
