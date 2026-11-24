@@ -88,6 +88,44 @@ test('ouvre deux mains privées, applique les bonus par copie et attend le tour 
   assert.doesNotMatch(JSON.stringify(view(second)), /secret-b|held_gain_chakra/);
 });
 
+test('n’annonce une cible joueur que pour attaque / débuff (pas défense ni buff)', () => {
+  const enemy = {
+    templateId: 'coop_defend_test',
+    nameFr: 'Gardien',
+    nameEn: 'Guardian',
+    hp: 80,
+    maxHp: 80,
+    block: 0,
+    statuses: [],
+    ai: 'pattern',
+    patternIndex: 0,
+    pattern: [
+      { type: 'defend', block: 8 },
+      { type: 'buff', status: 'force', value: 1, duration: 2 },
+      { type: 'attack', damage: 12 },
+      { type: 'debuff', status: 'weak', duration: 2 },
+    ],
+  };
+  enemy.intent = { type: 'defend', block: 8 };
+  let combat = createCoopCombat(fighters(), { enemy });
+  const opening = view(combat).enemy;
+  assert.equal(opening.intent.type, 'defend');
+  assert.equal(opening.intent.targetId, undefined);
+  assert.equal(opening.intent.targetName, undefined);
+  assert.equal(opening.nextIntent.type, 'buff');
+  assert.equal(opening.nextIntent.targetId, undefined);
+  combat = end(end(combat));
+  assert.equal(view(combat).enemy.block, 8);
+  assert.equal(view(combat).enemy.intent.type, 'buff');
+  assert.equal(view(combat).enemy.intent.targetId, undefined);
+  combat = end(end(combat));
+  const afterBuff = view(combat).enemy;
+  assert.equal(afterBuff.intent.type, 'attack');
+  assert.deepEqual([afterBuff.intent.targetId, afterBuff.intent.targetName], ['a', 'Akari']);
+  assert.equal(afterBuff.nextIntent.type, 'debuff');
+  assert.deepEqual([afterBuff.nextIntent.targetId, afterBuff.nextIntent.targetName], ['b', 'Bunta']);
+});
+
 test('enchaîne J1 → J2 → ennemi avec les intentions ciblées et protège même avant le tour du bénéficiaire', () => {
   const guard = card('guard', { block: 10 });
   let combat = createCoopCombat(fighters([guard], [guard]));
@@ -159,6 +197,33 @@ test('refuse un échange sans autre carte et ne réduit pas une main au-dessus d
   assert.equal(hand.length, 6);
   combat = end(end(combat));
   assert.deepEqual(view(combat).player.hand, hand);
+});
+
+test('contre / evade en support : armure + statut sur l’allié, sans alerte tir allié', () => {
+  const counterCard = card('contre-tranchant', {
+    block: 10,
+    effects: [{ type: 'counter', damage: 6 }],
+  });
+  const evadeCard = card('voile', {
+    block: 5,
+    effects: [{ type: 'evade_next', chance: 0.5 }],
+  });
+  let combat = createCoopCombat(fighters([counterCard], [evadeCard]));
+  combat = play(combat, 'a', 'contre-tranchant', 'ally');
+  assert.equal(view(combat).ally.block, 10);
+  assert.equal(view(combat).player.block, 0);
+  assert.deepEqual(view(combat).ally.statuses, [{ key: 'counter', value: 6, duration: null }]);
+  assert.deepEqual(view(combat).player.statuses, []);
+  combat = end(combat);
+  combat = play(combat, 'b', 'voile', 'ally');
+  assert.equal(view(combat, 'b').ally.block, 5);
+  // B conserve le counter reçu ; A reçoit l’evade.
+  assert.deepEqual(view(combat, 'b').player.statuses, [
+    { key: 'counter', value: 6, duration: null },
+  ]);
+  assert.deepEqual(view(combat, 'b').ally.statuses, [
+    { key: 'evade', value: 0.5, duration: null },
+  ]);
 });
 
 test('le support redirige soin, bloc et purification sans les appliquer au lanceur ni à l’ennemi', () => {
@@ -260,7 +325,7 @@ test('un malus sans dégâts de base exige aussi confirmation ; les combinaisons
   assert.equal(view(start).player.hand.length, 4);
   const sealed = play(start, 'a', 'seal');
   assert.equal(view(sealed).enemy.intent.type, 'sealed');
-  assert.equal(view(sealed).enemy.intent.targetId, 'a');
+  assert.equal(view(sealed).enemy.intent.targetId, undefined);
   assert.equal(view(end(end(sealed))).player.hp, 100);
 });
 

@@ -148,7 +148,21 @@ const inventory = computed(() => {
 
 function itemLabel(item) {
   if (!item) return '';
-  return localizedName(item, locale.value) || item.id;
+  return localizedName(item, locale.value) || t(`combat.shopItems.${item.id}`, item.id);
+}
+
+function itemDesc(item) {
+  if (!item) return '';
+  return localizedDescription(item, locale.value) || '';
+}
+
+function slotLabel(slot) {
+  if (!slot?.itemId) return t('combat.inventoryEmpty');
+  return t(`combat.shopItems.${slot.itemId}`, slot.itemId);
+}
+
+function itemStock(item) {
+  return item?.stock ?? 1;
 }
 
 async function onEnter() {
@@ -244,8 +258,16 @@ function cancelConfirm() {
 </script>
 
 <template>
-  <div class="page-shell coop-run" data-testid="coop-run-page">
-    <PageHeader :title="missionTitle" :tone="missionRankTone(run?.mission?.rank)" />
+  <div
+    class="page-shell coop-run"
+    :class="{ 'coop-run--combat': Boolean(combat) }"
+    data-testid="coop-run-page"
+  >
+    <PageHeader
+      v-if="!combat"
+      :title="missionTitle"
+      :tone="missionRankTone(run?.mission?.rank)"
+    />
 
     <p v-if="api.pollFailed.value" class="alert alert--info" role="status">
       {{ t('coop.pollError') }}
@@ -256,10 +278,57 @@ function cancelConfirm() {
       <p class="text-ink-muted">
         {{ isHost ? t('coop.hostHint') : t('coop.guestHint') }}
         —
+        {{ t('coop.hp', { hp: player.hp ?? 0, max: player.maxHp ?? 0 }) }}
+        /
         {{ t('coop.purse', { n: player.purse || 0 }) }}
         /
         {{ t('coop.allyHp', { hp: run.ally?.hp, max: run.ally?.maxHp }) }}
       </p>
+
+      <!-- Inventaire hors combat (comme en solo) : utilisable entre les étapes, pas seulement en boutique. -->
+      <section
+        v-if="!isOver"
+        class="coop-run__inventory"
+        data-testid="coop-inventory"
+      >
+        <h3>{{ t('coop.inventory') }}</h3>
+        <p class="coop-run__inventory-hint">{{ t('combat.inventoryHint') }}</p>
+        <div
+          v-for="slot in inventory"
+          :key="slot.slot"
+          class="coop-run__slot"
+          :class="{ 'coop-run__slot--filled': slot.itemId }"
+        >
+          <span class="coop-run__slot-label">{{ slotLabel(slot) }}</span>
+          <button
+            v-if="slot.itemId"
+            type="button"
+            class="btn-ghost btn-sm"
+            :disabled="api.busy.value"
+            @click="onUse(slot.slot)"
+          >
+            {{ t('coop.useItem') }}
+          </button>
+          <button
+            v-if="slot.itemId"
+            type="button"
+            class="btn-ghost btn-sm"
+            :disabled="api.busy.value"
+            @click="onDiscard(slot.slot)"
+          >
+            {{ t('coop.discardItem') }}
+          </button>
+          <label v-if="slot.itemId && isShop" class="coop-run__replace">
+            <input
+              v-model="replaceSlot"
+              type="radio"
+              name="coop-replace-slot"
+              :value="slot.slot"
+            >
+            {{ t('combat.inventoryReplaceTarget') }}
+          </label>
+        </div>
+      </section>
 
       <MissionPathTree
         :nodes="nodes"
@@ -296,40 +365,42 @@ function cancelConfirm() {
           }}
         </p>
 
-        <div v-if="isShop" class="coop-run__shop">
-          <button
-            v-for="item in event.offer || []"
-            :key="item.id"
-            type="button"
-            class="btn-secondary"
-            :disabled="api.busy.value || (item.stock ?? 1) <= 0"
-            @click="onBuy(item.id)"
-          >
-            {{ itemLabel(item) }} — {{ item.price }}
-          </button>
-        </div>
-
-        <div class="coop-run__inventory">
-          <h3>{{ t('coop.inventory') }}</h3>
-          <div v-for="slot in inventory" :key="slot.slot" class="coop-run__slot">
-            <span>{{ slot.itemId || '—' }}</span>
-            <button
-              v-if="slot.itemId"
-              type="button"
-              class="btn-ghost"
-              @click="onUse(slot.slot)"
-            >
-              {{ t('coop.useItem') }}
-            </button>
-            <button
-              v-if="slot.itemId"
-              type="button"
-              class="btn-ghost"
-              @click="onDiscard(slot.slot)"
-            >
-              {{ t('coop.discardItem') }}
-            </button>
-          </div>
+        <div v-if="isShop" class="coop-run__shop" data-testid="coop-shop">
+          <p class="coop-run__shop-purse">
+            {{ t('combat.runPurse', { n: event.purse ?? player.purse ?? 0 }) }}
+          </p>
+          <p class="coop-run__shop-hint">{{ t('combat.shopSharedStockHint') }}</p>
+          <ul class="coop-run__shop-offer">
+            <li v-for="item in event.offer || []" :key="item.id" class="coop-run__shop-item">
+              <div>
+                <p class="coop-run__shop-name">{{ itemLabel(item) }}</p>
+                <p v-if="itemDesc(item)" class="coop-run__shop-desc">{{ itemDesc(item) }}</p>
+                <p class="coop-run__shop-meta">
+                  {{ t('combat.shopPrice', { n: item.price }) }}
+                  ·
+                  {{
+                    itemStock(item) <= 0
+                      ? t('combat.shopSoldOut')
+                      : t('combat.shopStock', { n: itemStock(item) })
+                  }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                :disabled="
+                  api.busy.value ||
+                  itemStock(item) <= 0 ||
+                  (event.purse ?? player.purse ?? 0) < item.price
+                "
+                @click="onBuy(item.id)"
+              >
+                {{
+                  itemStock(item) <= 0 ? t('combat.shopSoldOut') : t('combat.shopBuy')
+                }}
+              </button>
+            </li>
+          </ul>
         </div>
 
         <div class="coop-run__actions">
@@ -358,18 +429,14 @@ function cancelConfirm() {
         </div>
       </section>
 
-      <section v-if="isOver" class="panel">
-        <VictoryRewards
-          v-if="run.state === 'victory' && run.rewards"
-          :rewards="run.rewards"
-          :continue-label="t('coop.backToLobby')"
-          @dismiss="router.push({ name: 'coop' })"
-        />
-        <p v-else role="status">{{ t(`coop.run_${run.state}`) }}</p>
-        <button type="button" class="btn-secondary" @click="router.push({ name: 'coop' })">
-          {{ t('coop.backToLobby') }}
-        </button>
-      </section>
+      <VictoryRewards
+        v-if="isOver"
+        class="mt-8 max-w-xl"
+        :state="run.state === 'victory' ? 'victory' : run.state === 'abandoned' ? 'forfeited' : 'defeat'"
+        :rewards="run.rewards"
+        :continue-label="t('coop.backToLobby')"
+        @dismiss="router.push({ name: 'coop' })"
+      />
 
       <button
         v-if="!isOver"
@@ -383,6 +450,7 @@ function cancelConfirm() {
     </template>
 
     <template v-else-if="combat">
+      <h1 class="sr-only">{{ missionTitle }}</h1>
       <p v-if="!isMyTurn && combat.state === 'in_progress'" class="alert alert--info" role="status">
         {{ t('coop.asyncWaitingTurn') }}
       </p>
@@ -423,26 +491,108 @@ function cancelConfirm() {
 </template>
 
 <style scoped>
+.coop-run--combat {
+  /* Écarte le bandeau TOUR de la bordure basse de l’app-bar (comme combat-shell). */
+  padding-top: 1.25rem;
+}
+
 .coop-run__actions,
 .coop-run__shop,
-.coop-run__inventory,
 .coop-run__event {
   display: grid;
   gap: 0.75rem;
   margin-top: 1rem;
 }
+
+.coop-run__inventory {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: var(--color-bg-card);
+  max-width: 44rem;
+}
+
+.coop-run__shop-purse {
+  margin: 0;
+  font-weight: 700;
+}
+
+.coop-run__shop-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.coop-run__shop-offer {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coop-run__shop-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
+}
+
+.coop-run__shop-name {
+  margin: 0;
+  font-weight: 800;
+}
+
+.coop-run__shop-desc,
+.coop-run__shop-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.coop-run__inventory-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
 .coop-run__slot {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
+  padding: 0.65rem 0.75rem;
+  border: 1px dashed var(--color-line);
 }
+
+.coop-run__slot--filled {
+  border-style: solid;
+}
+
+.coop-run__slot-label {
+  flex: 1 1 8rem;
+  font-weight: 700;
+}
+
+.coop-run__replace {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
 .confirm-dialog {
   border: 1px solid var(--border, #444);
   border-radius: 0.5rem;
   padding: 1rem;
   max-width: 24rem;
 }
+
 .confirm-dialog__actions {
   display: flex;
   gap: 0.5rem;

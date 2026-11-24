@@ -45,6 +45,10 @@ const drag = ref(null);
 let suppressClick = false;
 let clickTimer;
 let dragZone = null;
+/** Double-tap / double-clic (mobile + desktop) — `dblclick` est peu fiable au tactile. */
+const DOUBLE_TAP_MS = 350;
+let lastTapId = null;
+let lastTapAt = 0;
 
 function setDragZone(zone) {
   if (zone === dragZone) return;
@@ -139,6 +143,15 @@ function mountDragPreview(container) {
 
 function selectCard(event, card) {
   if (props.disabled || (suppressClick && event.detail !== 0)) return;
+  const now = Date.now();
+  const sameCard = lastTapId === card.instanceId;
+  const withinWindow = now - lastTapAt < DOUBLE_TAP_MS;
+  lastTapId = card.instanceId;
+  lastTapAt = now;
+  if (sameCard && withinWindow && canAfford(card)) {
+    emit('play', card);
+    return;
+  }
   emit('select', card);
 }
 
@@ -228,7 +241,6 @@ const displayCards = computed(() =>
       @pointercancel="endDrag($event, true)"
       @lostpointercapture="endDrag($event, true)"
       @click="selectCard($event, card)"
-      @dblclick="!disabled && !suppressClick && canAfford(card) && emit('play', card)"
       @keydown.enter.shift.prevent="!disabled && canAfford(card) && emit('play', card)"
     >
       <CardDisplay

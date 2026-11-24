@@ -191,6 +191,7 @@ function goToRunOrMissions() {
 
 <style scoped>
 .combat-shell {
-  padding-top: 0.75rem;
+  /* Écarte le bandeau TOUR de la bordure basse de l’app-bar. */
+  padding-top: 1.25rem;
 }
 </style>
