@@ -111,3 +111,72 @@ test('dismiss removes sticky notes and marks gains as read', () => {
   store.dismiss(store.items.find(i => i.kind === 'onboarding_ready').id);
   assert.equal(store.items.some(i => i.kind === 'onboarding_ready'), false);
 });
+
+test('dismissed sticky claimables stay gone across resync until claimed', () => {
+  setActivePinia(createPinia());
+  const store = useNotificationsStore();
+  const steps = [{ key: 'visit_profile', claimable: true, nameFr: 'Visiter ton profil' }];
+
+  store.syncOnboardingReady(steps, step => ({
+    payload: { stepKey: step.key, label: step.nameFr },
+    href: { name: 'hub' },
+  }));
+  assert.equal(store.items.length, 1);
+  assert.equal(store.items[0].dedupeKey, 'onboarding:visit_profile');
+
+  store.dismiss(store.items[0].id);
+  assert.equal(store.items.length, 0);
+
+  // Changement de page → sync à nouveau : ne doit pas réapparaître.
+  store.syncOnboardingReady(steps, step => ({
+    payload: { stepKey: step.key, label: step.nameFr },
+    href: { name: 'hub' },
+  }));
+  assert.equal(store.items.length, 0);
+
+  // Après réclamation (plus claimable), le snooze est levé ; une future
+  // claimabilité pourrait re-notifier (ex. reset admin).
+  store.syncOnboardingReady([{ key: 'visit_profile', claimable: false }], () => ({}));
+  store.syncOnboardingReady(steps, step => ({
+    payload: { stepKey: step.key },
+    href: { name: 'hub' },
+  }));
+  assert.equal(store.items.length, 1);
+  assert.equal(store.items[0].dedupeKey, 'onboarding:visit_profile');
+});
+
+test('push preserves read flag when refreshing an existing dedupeKey', () => {
+  setActivePinia(createPinia());
+  const store = useNotificationsStore();
+  store.push({
+    kind: 'quest_ready',
+    dedupeKey: 'quest:7',
+    sticky: true,
+    payload: { description: 'old' },
+  });
+  const quest = store.items.find(i => i.dedupeKey === 'quest:7');
+  quest.read = true;
+  store.push({
+    kind: 'quest_ready',
+    dedupeKey: 'quest:7',
+    sticky: true,
+    payload: { description: 'new' },
+  });
+  const refreshed = store.items.find(i => i.dedupeKey === 'quest:7');
+  assert.equal(refreshed?.read, true);
+  assert.equal(refreshed?.payload.description, 'new');
+});
+
+test('clearDedupe after claim allows a future ready notification', () => {
+  setActivePinia(createPinia());
+  const store = useNotificationsStore();
+  store.syncOnboardingReady([{ key: 'visit_profile', claimable: true }], step => ({
+    payload: { stepKey: step.key },
+  }));
+  store.dismiss(store.items[0].id);
+  store.clearDedupe('onboarding:visit_profile');
+  store.syncOnboardingReady([{ key: 'visit_profile', claimable: true }], step => ({
+    payload: { stepKey: step.key },
+  }));
+  assert.equal(store.items.length, 1);
+});
