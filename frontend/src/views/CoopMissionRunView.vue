@@ -15,6 +15,7 @@ import {
   localizedField,
   localizedName,
 } from '../utils/localeContent.js';
+import { shopItemEffect, shopItemName } from '../utils/missionShopItems.js';
 import { missionRankTone } from '../utils/missionVisuals';
 
 defineOptions({ name: 'CoopMissionRunView' });
@@ -147,18 +148,20 @@ const inventory = computed(() => {
 });
 
 function itemLabel(item) {
-  if (!item) return '';
-  return localizedName(item, locale.value) || t(`combat.shopItems.${item.id}`, item.id);
+  return shopItemName(item, { t, locale: locale.value });
 }
 
 function itemDesc(item) {
-  if (!item) return '';
-  return localizedDescription(item, locale.value) || '';
+  return shopItemEffect(item, { t, locale: locale.value });
 }
 
 function slotLabel(slot) {
-  if (!slot?.itemId) return t('combat.inventoryEmpty');
-  return t(`combat.shopItems.${slot.itemId}`, slot.itemId);
+  return shopItemName(slot?.itemId ? slot : null, { t, locale: locale.value });
+}
+
+function slotEffect(slot) {
+  if (!slot?.itemId) return '';
+  return shopItemEffect(slot, { t, locale: locale.value });
 }
 
 function itemStock(item) {
@@ -299,7 +302,12 @@ function cancelConfirm() {
           class="coop-run__slot"
           :class="{ 'coop-run__slot--filled': slot.itemId }"
         >
-          <span class="coop-run__slot-label">{{ slotLabel(slot) }}</span>
+          <div class="coop-run__slot-copy">
+            <span class="coop-run__slot-label">{{ slotLabel(slot) }}</span>
+            <span v-if="slotEffect(slot)" class="coop-run__slot-effect">
+              {{ slotEffect(slot) }}
+            </span>
+          </div>
           <button
             v-if="slot.itemId"
             type="button"
@@ -573,9 +581,20 @@ function cancelConfirm() {
   border-style: solid;
 }
 
+.coop-run__slot-copy {
+  flex: 1 1 10rem;
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .coop-run__slot-label {
-  flex: 1 1 8rem;
   font-weight: 700;
+}
+
+.coop-run__slot-effect {
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
 }
 
 .coop-run__replace {
