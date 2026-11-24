@@ -455,7 +455,7 @@ function playCard(combat, index, { instanceId, target = 'enemy', confirmedFriend
     for (const status of caster.statuses || []) {
       if (!SUPPORT_STATUS_KEYS.has(status.key)) continue;
       const wasPrior = prior.some(
-        s => s.key === status.key && s.value === status.value && s.duration === status.duration
+        s => s.key === status.key && s.value === status.value && s.duration === status.duration,
       );
       if (wasPrior) continue;
       statuses = applyStatus(statuses, {
