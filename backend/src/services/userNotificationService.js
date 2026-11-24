@@ -65,7 +65,8 @@ export async function pruneUserNotifications(
   connection = null,
 ) {
   const exec = runExec(connection);
-  const limit = Math.max(1, Math.min(100, Number(keep) || MAX_NOTIFICATIONS_PER_USER));
+  // mysql2 execute() refuse LIMIT ? (ER_WRONG_ARGUMENTS) — inline borné comme ailleurs.
+  const safeLimit = Math.max(1, Math.min(100, Number(keep) || MAX_NOTIFICATIONS_PER_USER));
   await exec(
     `DELETE FROM user_notifications
      WHERE user_id = ?
@@ -74,10 +75,10 @@ export async function pruneUserNotifications(
            SELECT id FROM user_notifications
            WHERE user_id = ?
            ORDER BY created_at DESC, id DESC
-           LIMIT ?
+           LIMIT ${safeLimit}
          ) AS recent
        )`,
-    [userId, userId, limit],
+    [userId, userId],
   );
 }
 
@@ -180,17 +181,18 @@ export async function deleteNotificationByDedupe(userId, dedupeKey, connection =
 }
 
 export async function listUserNotifications(userId, { limit = MAX_NOTIFICATIONS_PER_USER } = {}) {
-  const capped = Math.min(
-    Math.max(Number(limit) || MAX_NOTIFICATIONS_PER_USER, 1),
-    MAX_NOTIFICATIONS_PER_USER,
+  // mysql2 execute() refuse LIMIT ? (ER_WRONG_ARGUMENTS) — inline borné comme ailleurs.
+  const safeLimit = Math.max(
+    1,
+    Math.min(Number(limit) || MAX_NOTIFICATIONS_PER_USER, MAX_NOTIFICATIONS_PER_USER),
   );
   const rows = await query(
     `SELECT id, kind, payload_json, href, dedupe_key, read_at, created_at
      FROM user_notifications
      WHERE user_id = ?
      ORDER BY created_at DESC, id DESC
-     LIMIT ?`,
-    [userId, capped],
+     LIMIT ${safeLimit}`,
+    [userId],
   );
   return rows.map(serializeNotification);
 }
