@@ -146,6 +146,7 @@ async function buy(entry) {
   /* Emprise visuelle ≈ carte à 58 % */
   height: 13.5rem;
   overflow: hidden;
+  isolation: isolate;
   display: grid;
   place-items: start center;
   pointer-events: none;

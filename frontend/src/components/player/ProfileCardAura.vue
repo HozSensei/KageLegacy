@@ -28,33 +28,16 @@ const leafPath = computed(() =>
 const leafCount = 14;
 
 /**
- * Pluie — même logique que https://codepen.io/arickle/pen/XKjMZY
- * (incrément + randoHundo / randoFiver), sans jQuery, déterministe.
+ * Pluie — gouttes simples (approche freefrontend / pure CSS) :
+ * animation de `top` en % du conteneur (fiable, sans vh/cqh/rem).
  */
-function buildRainRow(seedOffset = 0) {
-  const drops = [];
-  let increment = 0;
-  let i = 0;
-  while (increment < 100) {
-    const randoHundo = 1 + ((i * 37 + seedOffset * 13) % 98);
-    const randoFiver = 2 + ((i * 3 + seedOffset) % 4);
-    increment += randoFiver;
-    drops.push({
-      id: `${seedOffset}-${i}`,
-      left: increment,
-      /* CodePen : bottom = randoFiver + randoFiver - 1 + 100 */
-      bottom: randoFiver + randoFiver - 1 + 100,
-      /* string concat CodePen → 0.5XX s */
-      delay: randoHundo / 100,
-      duration: Number(`0.5${String(randoHundo).padStart(2, '0')}`),
-    });
-    i += 1;
-  }
-  return drops;
-}
-
-const rainFront = computed(() => buildRainRow(0));
-const rainBack = computed(() => buildRainRow(1));
+const rainDrops = Array.from({ length: 28 }, (_, i) => {
+  const col = 3 + ((i * 7) % 94);
+  const height = 10 + ((i * 5) % 16);
+  const duration = 0.7 + ((i * 13) % 70) / 100;
+  const delay = ((i * 29) % 100) / 100;
+  return { id: i, left: col, height, duration, delay };
+});
 </script>
 
 <template>
@@ -81,64 +64,23 @@ const rainBack = computed(() => buildRainRow(1));
       </span>
     </template>
 
-    <!-- Pluie — front + back row, stem + splat (arickle/XKjMZY) -->
+    <!-- Pluie — sheets CSS + gouttes (freefrontend.com/css-rain) -->
     <template v-else-if="effect === 'rain'">
       <span class="card-aura__weather card-aura__weather--rain" />
-      <span class="card-aura__rain card-aura__rain--back">
+      <span class="card-aura__rain-sheet card-aura__rain-sheet--a" />
+      <span class="card-aura__rain-sheet card-aura__rain-sheet--b" />
+      <span class="card-aura__rain">
         <span
-          v-for="drop in rainBack"
-          :key="`rain-b-${drop.id}`"
+          v-for="drop in rainDrops"
+          :key="`rain-${drop.id}`"
           class="card-aura__drop"
           :style="{
             left: `${drop.left}%`,
-            bottom: `${drop.bottom}%`,
+            height: `${drop.height}px`,
             animationDelay: `${drop.delay}s`,
             animationDuration: `${drop.duration}s`,
           }"
-        >
-          <span
-            class="card-aura__stem"
-            :style="{
-              animationDelay: `${drop.delay}s`,
-              animationDuration: `${drop.duration}s`,
-            }"
-          />
-          <span
-            class="card-aura__splat"
-            :style="{
-              animationDelay: `${drop.delay}s`,
-              animationDuration: `${drop.duration}s`,
-            }"
-          />
-        </span>
-      </span>
-      <span class="card-aura__rain card-aura__rain--front">
-        <span
-          v-for="drop in rainFront"
-          :key="`rain-f-${drop.id}`"
-          class="card-aura__drop"
-          :style="{
-            left: `${drop.left}%`,
-            bottom: `${drop.bottom}%`,
-            animationDelay: `${drop.delay}s`,
-            animationDuration: `${drop.duration}s`,
-          }"
-        >
-          <span
-            class="card-aura__stem"
-            :style="{
-              animationDelay: `${drop.delay}s`,
-              animationDuration: `${drop.duration}s`,
-            }"
-          />
-          <span
-            class="card-aura__splat"
-            :style="{
-              animationDelay: `${drop.delay}s`,
-              animationDuration: `${drop.duration}s`,
-            }"
-          />
-        </span>
+        />
       </span>
     </template>
 
@@ -162,12 +104,11 @@ const rainBack = computed(() => buildRainRow(1));
 .card-aura {
   position: absolute;
   inset: 0;
-  z-index: 8;
+  /* Sous le contenu / avatar (head z-index 6) — les FX ne passent plus devant le portrait */
+  z-index: 3;
   overflow: hidden;
   border-radius: inherit;
   pointer-events: none;
-  /* Hauteur de référence pour la chute des gouttes (remplace vh du CodePen) */
-  container-type: size;
 }
 
 /*
@@ -273,8 +214,8 @@ const rainBack = computed(() => buildRainRow(1));
 }
 
 .card-aura__weather--rain {
-  /* Fond sombre comme le CodePen : sans ça les gouttes blanches disparaissent sur paysage clair */
-  background: linear-gradient(180deg, rgb(12 18 32 / 0.55) 0%, rgb(8 12 22 / 0.35) 100%);
+  /* Assombrit le paysage pour que les traits blancs restent lisibles */
+  background: linear-gradient(180deg, rgb(10 16 30 / 0.5) 0%, rgb(6 10 20 / 0.28) 100%);
 }
 
 .card-aura__weather--snow {
@@ -414,110 +355,85 @@ const rainBack = computed(() => buildRainRow(1));
 }
 
 /* =========================================================
-   Pluie — https://codepen.io/arickle/pen/XKjMZY
-   (bottom:100%+ + translateY en cqh à la place de vh)
+   Pluie — freefrontend.com/css-rain
+   Sheets en repeating-linear-gradient + gouttes animées en top %
    ========================================================= */
+.card-aura__rain-sheet {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: -60%;
+  height: 160%;
+  pointer-events: none;
+  will-change: transform;
+  background-image: repeating-linear-gradient(
+    100deg,
+    transparent 0,
+    transparent 8px,
+    rgb(220 235 255 / 0.22) 8px,
+    rgb(220 235 255 / 0.22) 9px,
+    transparent 9px,
+    transparent 22px
+  );
+  animation: rain-sheet 0.55s linear infinite;
+}
+
+.card-aura__rain-sheet--b {
+  opacity: 0.65;
+  background-image: repeating-linear-gradient(
+    105deg,
+    transparent 0,
+    transparent 14px,
+    rgb(255 255 255 / 0.28) 14px,
+    rgb(255 255 255 / 0.28) 15px,
+    transparent 15px,
+    transparent 34px
+  );
+  animation-duration: 0.4s;
+  animation-direction: reverse;
+}
+
 .card-aura__rain {
   position: absolute;
   inset: 0;
-  z-index: 2;
-}
-
-.card-aura__rain--back {
-  z-index: 1;
-  bottom: 12%;
-  opacity: 0.55;
 }
 
 .card-aura__drop {
   position: absolute;
-  bottom: 100%;
-  width: 15px;
-  height: 120px;
-  pointer-events: none;
-  animation-name: rain-drop;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.card-aura__stem {
-  width: 1.5px;
-  height: 60%;
-  margin-left: 7px;
-  background: linear-gradient(to bottom, rgb(255 255 255 / 0), rgb(255 255 255 / 0.55));
-  animation-name: rain-stem;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.card-aura__rain--front .card-aura__stem {
+  top: -8%;
   width: 2px;
-  background: linear-gradient(to bottom, rgb(255 255 255 / 0), rgb(255 255 255 / 0.85));
-}
-
-.card-aura__splat {
-  width: 15px;
-  height: 10px;
-  border-top: 2px dotted rgb(255 255 255 / 0.65);
-  border-radius: 50%;
-  opacity: 1;
-  transform: scale(0);
-  animation-name: rain-splat;
+  border-radius: 1px;
+  background: linear-gradient(180deg, transparent 0%, rgb(200 220 255 / 0.35) 30%, rgb(255 255 255 / 0.95) 100%);
+  box-shadow: 0 0 2px rgb(180 210 255 / 0.45);
+  animation-name: rain-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
 
-@keyframes rain-drop {
+@keyframes rain-sheet {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* 37.5% de 160% ≈ une période de motif visible */
+    transform: translate3d(0, 37.5%, 0);
+  }
+}
+
+@keyframes rain-fall {
   0% {
-    transform: translateY(0);
-  }
-  75% {
-    /* Fallback si cqh indisponible : hauteur typique d’une fiche */
-    transform: translateY(28rem);
-  }
-  100% {
-    transform: translateY(28rem);
-  }
-}
-
-@supports (height: 1cqh) {
-  @keyframes rain-drop {
-    0% {
-      transform: translateY(0);
-    }
-    75% {
-      transform: translateY(100cqh);
-    }
-    100% {
-      transform: translateY(100cqh);
-    }
-  }
-}
-
-@keyframes rain-stem {
-  0%,
-  65% {
-    opacity: 1;
-  }
-  75%,
-  100% {
+    top: -8%;
     opacity: 0;
   }
-}
-
-@keyframes rain-splat {
-  0%,
-  80% {
+  8% {
     opacity: 1;
-    transform: scale(0);
   }
   90% {
-    opacity: 0.5;
-    transform: scale(1);
+    opacity: 0.85;
   }
   100% {
+    top: 108%;
     opacity: 0;
-    transform: scale(1.5);
   }
 }
 
@@ -704,11 +620,14 @@ const rainBack = computed(() => buildRainRow(1));
   .card-aura__sheen-flash,
   .card-aura__leaf,
   .card-aura__drop,
-  .card-aura__stem,
-  .card-aura__splat,
+  .card-aura__rain-sheet,
   .card-aura__snow,
   .card-aura__haze {
     animation: none !important;
+  }
+
+  .card-aura__rain-sheet {
+    opacity: 0.35;
   }
 
   .card-aura__sheen-flash {

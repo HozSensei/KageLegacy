@@ -291,7 +291,9 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 
 .ninja-card__head {
   position: relative;
-  z-index: 5;
+  /* Au-dessus de ProfileCardAura (z-index 3) — le stacking context du head
+     piégeait le portrait même avec z-index local plus haut. */
+  z-index: 6;
   display: flex;
   align-items: center;
   gap: clamp(0.7rem, 2.4vw, 1.1rem);
@@ -306,8 +308,7 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 
 .ninja-card__portrait {
   position: relative;
-  /* Au-dessus de ProfileCardAura (z-index 8) : avatar toujours devant les FX. */
-  z-index: 12;
+  z-index: 2;
   flex: none;
   width: clamp(5rem, 28cqi, 8rem);
   aspect-ratio: 1;
