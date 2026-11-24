@@ -16,4 +16,13 @@ test('support effects and purely self-targeted statuses do not need confirmation
     false
   );
   assert.equal(needsConfirmation({ effects: [{ type: 'apply_status', status: 'force' }] }), false);
+  // Contre tranchant : damage sur l’effet counter = renvoi, pas un tir allié.
+  assert.equal(
+    needsConfirmation({ block: 10, effects: [{ type: 'counter', damage: 6 }] }),
+    false
+  );
+  assert.equal(
+    needsConfirmation({ block: 5, effects: [{ type: 'evade_next', chance: 0.5 }] }),
+    false
+  );
 });

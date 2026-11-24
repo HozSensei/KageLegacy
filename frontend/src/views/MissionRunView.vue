@@ -372,7 +372,15 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
               <div>
                 <p class="run-shop__name">{{ itemLabel(item) }}</p>
                 <p class="run-shop__desc">{{ itemDesc(item) }}</p>
-                <p class="run-shop__price">{{ t('combat.shopPrice', { n: item.price }) }}</p>
+                <p class="run-shop__price">
+                  {{ t('combat.shopPrice', { n: item.price }) }}
+                  ·
+                  {{
+                    (item.stock ?? 1) <= 0
+                      ? t('combat.shopSoldOut')
+                      : t('combat.shopStock', { n: item.stock ?? 1 })
+                  }}
+                </p>
               </div>
               <button
                 type="button"

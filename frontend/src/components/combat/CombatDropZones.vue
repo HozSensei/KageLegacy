@@ -25,6 +25,7 @@ const zones = {
 };
 
 function zoneLabel(action) {
+  // En coop, distinguer la cible (ennemi / allié) ; sinon « Jouer la carte ».
   return action === 'play' && props.actions.includes('play-ally')
     ? 'coop.playOnEnemy'
     : zones[action].label;

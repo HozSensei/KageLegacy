@@ -7,6 +7,7 @@ import { applyHeldTurnStart } from './heldEffects.js';
 import {
   PLAYER_DEBUFF_KEYS,
   applyBlockFade,
+  applyStatus,
   resolveEndOfTurnStatuses,
   resolveStartOfTurnStatuses,
 } from './statuses.js';
@@ -25,7 +26,17 @@ import {
 const BASE_COOP_CHAKRA = 5;
 const MAX_EXCHANGES = 2;
 const STAT_BONUSES = [...STAT_KEYS, 'startingBlock'];
-const SUPPORT_EFFECTS = new Set(['heal', 'heal_self', 'gain_block', 'cleanse_self']);
+const SUPPORT_EFFECTS = new Set([
+  'heal',
+  'heal_self',
+  'gain_block',
+  'cleanse_self',
+  // Défenses actives : s’appliquent au destinataire (armure alliée), pas au lanceur.
+  'counter',
+  'evade_next',
+]);
+/** Statuts posés sur le destinataire pendant un support (à transférer à l’allié). */
+const SUPPORT_STATUS_KEYS = new Set(['counter', 'evade']);
 const CASTER_EFFECTS = new Set(['draw', 'gain_chakra', 'gain_energy', 'reduce_next_card_cost']);
 const ATTACK_EFFECTS = new Set(['multi_strike', 'aoe', 'bonus_if', 'innate_crit', 'crit']);
 const HARMFUL_STATUSES = new Set([...PLAYER_DEBUFF_KEYS, 'brûlure', 'faiblesse', 'vulnérabilité']);
@@ -90,9 +101,24 @@ function checkOutcome(combat) {
   return combat.state !== 'in_progress';
 }
 
+/** Intentions qui frappent / affectent un joueur — les autres (défense, buff…) sont sur l’ennemi. */
+const PLAYER_TARGETED_INTENTS = new Set(['attack', 'debuff']);
+
+function pickLivingPlayer(combat, round) {
+  const preferred = combat.players[(Math.max(1, Number(round) || 1) - 1) % 2];
+  if (preferred?.hp > 0) return preferred;
+  return combat.players.find(player => player.hp > 0) || null;
+}
+
 function withTarget(combat, intent, round) {
-  const preferred = combat.players[(round - 1) % 2];
-  const target = preferred.hp > 0 ? preferred : combat.players.find(player => player.hp > 0);
+  if (!intent) return intent;
+  if (!PLAYER_TARGETED_INTENTS.has(intent.type)) {
+    const cleaned = { ...intent };
+    delete cleaned.targetId;
+    delete cleaned.targetName;
+    return cleaned;
+  }
+  const target = pickLivingPlayer(combat, round);
   return { ...intent, targetId: target?.id ?? null, targetName: target?.name ?? null };
 }
 
@@ -425,8 +451,28 @@ function playCard(combat, index, { instanceId, target = 'enemy', confirmedFriend
       if (removed) statuses = statuses.filter(status => status !== removed);
       played.logs.push({ type: 'cleanse', removed: removed?.key ?? null });
     }
+    // Counter / evade posés sur le joueur temporaire doivent suivre l’allié.
+    const prior = player.statuses || [];
+    for (const status of caster.statuses || []) {
+      if (!SUPPORT_STATUS_KEYS.has(status.key)) continue;
+      const wasPrior = prior.some(
+        s => s.key === status.key && s.value === status.value && s.duration === status.duration
+      );
+      if (wasPrior) continue;
+      statuses = applyStatus(statuses, {
+        key: status.key,
+        value: status.value,
+        duration: status.duration,
+      });
+    }
     combat.players[1 - index] = { ...ally, hp: caster.hp, block: caster.block, statuses };
-    caster = { ...caster, hp: player.hp, maxHp: player.maxHp, block: player.block };
+    caster = {
+      ...caster,
+      hp: player.hp,
+      maxHp: player.maxHp,
+      block: player.block,
+      statuses: player.statuses,
+    };
   } else if (mode === 'harm') {
     const { hp, block, statuses } = played.enemy;
     combat.players[1 - index] = { ...ally, hp, block, statuses };
@@ -462,9 +508,16 @@ function enemyTurn(combat, rng) {
   ]);
   if (checkOutcome(combat)) return;
 
-  const targetId = combat.enemy.intent.targetId;
+  // Attaque / débuff : cible annoncée. Défense / buff : pas de cible joueur affichée,
+  // mais executeEnemyIntent a encore besoin d’un joueur (ex. minions).
+  const announcedId = combat.enemy.intent?.targetId;
+  const target =
+    (announcedId != null
+      ? combat.players.find(player => player.id === announcedId && player.hp > 0)
+      : null) || pickLivingPlayer(combat, combat.currentTurn);
+  if (!target) return;
+  const targetId = target.id;
   const index = fighterIndex(combat, targetId);
-  const target = combat.players[index];
   const talentCodes = target.talentEffects.applied;
   const act = executeEnemyIntent(combat.enemy, target, rng, { talentCodes });
   let recipient = act.player;
