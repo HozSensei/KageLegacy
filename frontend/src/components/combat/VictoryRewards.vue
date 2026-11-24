@@ -114,9 +114,15 @@ const lines = computed(() => {
       label: t('combat.rewardCard', { name }),
       to: name === '…' ? null : { name: 'collection', query: { search: name } },
     });
-  } else if (Number(r.sealedGrantFailures) > 0 || Number(r.sealedPending) > Number(r.sealedGranted)) {
+  } else if (Number(r.sealedGrantFailures) > 0 || Number(r.sealedPending) > Number(r.sealedGranted || 0)) {
+    // Parchemin acheté au colporteur : distinct du tirage bonus de fin.
     out.push({ key: 'sealed-miss', label: t('combat.rewardSealedMissed') });
-  } else if (r.cardRolled === false && (r.xp > 0 || totalRyos > 0)) {
+  } else if (
+    r.cardRolled === false &&
+    (r.xp > 0 || totalRyos > 0) &&
+    !(Number(r.sealedGranted) > 0 || Number(r.sealedPending) > 0)
+  ) {
+    // Uniquement le drop aléatoire de fin — pas les parchemins scellés achetés.
     out.push({ key: 'no-card', label: t('combat.rewardNoCard') });
   }
   if (r.runMult) {
