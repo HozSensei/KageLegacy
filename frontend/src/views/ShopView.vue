@@ -12,7 +12,10 @@ import PageHeader from '../components/ui/PageHeader.vue';
 import marketImage from '../assets/illustrations/market-square.webp';
 import { useShopStore } from '../stores/shop';
 import { useAuthStore } from '../stores/auth';
+import { useNotificationsStore } from '../stores/notifications';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
+import { useNotificationCopy } from '../composables/useNotificationCopy.js';
+import { useToast } from '../composables/useToast.js';
 import { localizedDescription, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'ShopView' });
@@ -20,6 +23,9 @@ defineOptions({ name: 'ShopView' });
 const { t, locale } = useI18n();
 const shop = useShopStore();
 const auth = useAuthStore();
+const notifications = useNotificationsStore();
+const notificationCopy = useNotificationCopy();
+const toast = useToast();
 const route = useRoute();
 useOnboardingVisit('visit_shop');
 const router = useRouter();
@@ -260,6 +266,15 @@ async function onBuyWelcome(method) {
 async function onBuyItem(itemId) {
   try {
     await shop.buyDailyItem(itemId);
+    // Rafraîchir l’inbox tout de suite (sinon seulement au changement de route).
+    const { fresh } = await notifications.fetchNotifications();
+    for (const note of fresh || []) {
+      toast.push({
+        title: notificationCopy.title(note),
+        body: notificationCopy.body(note),
+        kind: 'event',
+      });
+    }
   } catch {
     /* error in store */
   }

@@ -2,9 +2,10 @@
  * Formate les gains (grants API ou résumé combat/mission) pour l’UI et les notifications.
  */
 
-export function formatGrant(grant, t) {
+export function formatGrant(grant, t, locale = 'fr') {
   if (!grant || grant.skipped) return null;
   const n = Number(grant.amount) || 0;
+  const en = String(locale || '').startsWith('en');
   switch (grant.type) {
     case 'ryos':
       return n > 0 ? t('combat.rewardRyos', { n }) : null;
@@ -20,11 +21,15 @@ export function formatGrant(grant, t) {
       return t('notifications.rewardBooster', {
         kind: grant.boosterType || grant.kind || 'standard',
       });
-    case 'inventory_item':
-      return t('notifications.rewardInventoryItem', {
-        item: grant.itemKey || 'item',
-        n: n || 1,
-      });
+    case 'inventory_item': {
+      const item =
+        (en ? grant.nameEn : grant.nameFr) ||
+        grant.nameFr ||
+        grant.nameEn ||
+        grant.itemKey ||
+        'item';
+      return t('notifications.rewardInventoryItem', { item, n: n || 1 });
+    }
     case 'card':
       return t('notifications.rewardCard');
     case 'nickname':
@@ -34,9 +39,9 @@ export function formatGrant(grant, t) {
   }
 }
 
-export function formatGrants(grants, t) {
+export function formatGrants(grants, t, locale = 'fr') {
   if (!Array.isArray(grants) || !grants.length) return '';
-  return grants.map(g => formatGrant(g, t)).filter(Boolean).join(' · ');
+  return grants.map(g => formatGrant(g, t, locale)).filter(Boolean).join(' · ');
 }
 
 /** Aligné sur les lignes de VictoryRewards (sans le loot reveal). */

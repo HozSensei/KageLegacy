@@ -307,8 +307,9 @@ async function grantBoosterStub(userId, reward, _connection = null) {
   // Dépôt coffre — ouverture différée depuis l’inventaire.
   const boosterType = reward.boosterType || reward.booster || 'standard';
   const { grantBoosterToChest } = await import('./playerInventoryService.js');
-  const { boosterItemKey } = await import('../config/itemCatalog.js');
+  const { boosterItemKey, getItem } = await import('../config/itemCatalog.js');
   const itemKey = boosterItemKey(boosterType);
+  const def = getItem(itemKey);
   await grantBoosterToChest(userId, boosterType, {
     notify: false,
     source: 'battle_pass',
@@ -318,6 +319,8 @@ async function grantBoosterStub(userId, reward, _connection = null) {
     itemKey,
     boosterType,
     amount: 1,
+    nameFr: def?.nameFr || itemKey,
+    nameEn: def?.nameEn || itemKey,
   };
 }
 

@@ -1,5 +1,6 @@
 import { useI18n } from 'vue-i18n';
 import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
+import { formatGrants } from '../utils/formatRewardLines.js';
 import { villageRewardsHash } from './useVillageRewards.js';
 
 /** Libellés d’affichage pour l’inbox TCG (+ entrée Village). */
@@ -45,6 +46,7 @@ export function useNotificationCopy() {
         if (source === 'coop') return t('notifications.gainCoopTitle');
         if (source === 'combat') return t('notifications.gainCombatTitle');
         if (source === 'duel') return t('notifications.gainDuelTitle');
+        if (source === 'shop') return t('notifications.gainShopTitle');
         return t('notifications.gainTitle');
       }
       default:
@@ -91,19 +93,8 @@ export function useNotificationCopy() {
       case 'gain': {
         if (p.body) return p.body;
         const grants = Array.isArray(p.grants) ? p.grants : [];
-        const lines = grants
-          .map(g => {
-            if (g.type === 'ryos' && g.amount > 0) return t('combat.rewardRyos', { n: g.amount });
-            if (g.type === 'xp' && g.amount > 0) return t('combat.rewardXp', { n: g.amount });
-            if (g.type === 'dust' && g.amount > 0) return t('achievements.reward.dust', { n: g.amount });
-            if (g.type === 'essence' && g.amount > 0) return t('achievements.reward.essence', { n: g.amount });
-            if (g.type === 'kage_coins' && g.amount > 0) return t('notifications.rewardKageCoins', { n: g.amount });
-            if (g.type === 'card') return t('notifications.rewardCard');
-            if (g.type === 'booster') return t('notifications.rewardBooster', { kind: g.boosterType || 'standard' });
-            return null;
-          })
-          .filter(Boolean);
-        const rewards = lines.join(' · ') || t('notifications.noRewards');
+        const rewards =
+          formatGrants(grants, t, locale.value) || t('notifications.noRewards');
         const en = String(locale.value || '').startsWith('en');
         const label = (en ? p.labelEn : p.label) || p.label || null;
         if (p.source === 'onboarding' && label) {
@@ -155,6 +146,9 @@ export function useNotificationCopy() {
         if (source === 'mission' || source === 'combat') return t('notifications.viewMissions');
         if (source === 'duel') return t('notifications.viewDuels');
         if (source === 'coop') return t('notifications.viewCoop');
+        if (source === 'shop' || note.href === '/inventaire') {
+          return t('notifications.viewInventory');
+        }
         return null;
       }
       default:

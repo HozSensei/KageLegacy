@@ -536,7 +536,9 @@
     "rivalryBody": "{name} is your nemesis ({count} losses in a row).",
     "cycleObjectiveTitle": "Cycle objective complete",
     "cycleObjectiveBody": "Objective complete — +{ryos} Ryos credited.",
-    "rewardInventoryItem": "Inventory: {item} ×{n}"
+    "rewardInventoryItem": "Inventory: {item} ×{n}",
+    "gainShopTitle": "Shop purchase",
+    "viewInventory": "View inventory"
   },
   "clan": {
     "lead": "Co-op hub: share recruits and fill the Chakra Well — no combat bonuses.",
