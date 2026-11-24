@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDeltaFeed } from '../../composables/useDeltaFeed.js';
 import { factionAccentColor } from '../../constants/factions.js';
@@ -76,33 +76,12 @@ const solidBackground = computed(() => {
   return safeNinjaProfileColor(props.profile?.backgroundColor);
 });
 const armorVisual = computed(() => statVisual('armor'));
-const auraPointer = ref({ x: 50, y: 40, active: false });
 
 const style = computed(() => ({
   '--ninja-art': artUrl.value ? `url("${artUrl.value}")` : undefined,
   '--ninja-background': solidBackground.value || undefined,
   '--ninja-text': solidBackground.value ? contrastingText(solidBackground.value) : undefined,
-  '--aura-x': `${auraPointer.value.x}%`,
-  '--aura-y': `${auraPointer.value.y}%`,
-  '--aura-active': auraPointer.value.active ? 1 : 0,
 }));
-
-function onAuraMove(event) {
-  if (!isNinja.value || !props.profile?.cardEffectId) return;
-  if (event.pointerType === 'touch') return;
-  const el = event.currentTarget;
-  const rect = el.getBoundingClientRect();
-  if (!rect.width || !rect.height) return;
-  auraPointer.value = {
-    x: ((event.clientX - rect.left) / rect.width) * 100,
-    y: ((event.clientY - rect.top) / rect.height) * 100,
-    active: true,
-  };
-}
-
-function onAuraLeave() {
-  auraPointer.value = { ...auraPointer.value, active: false };
-}
 
 function contrastingText(hex) {
   const luminance = [0.2126, 0.7152, 0.0722].reduce((total, weight, index) => {
@@ -139,8 +118,6 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
     :data-avatar-id="isNinja ? profile?.avatarId || undefined : undefined"
     :data-background-id="isNinja ? profile?.backgroundId || undefined : undefined"
     :data-background-color="isNinja ? solidBackground || undefined : undefined"
-    @pointermove="onAuraMove"
-    @pointerleave="onAuraLeave"
   >
     <ProfileCardAura v-if="isNinja" :card-effect-id="profile?.cardEffectId" />
     <header class="ninja-card__head">
