@@ -383,10 +383,11 @@ export async function claimQuestReward(userId, questId) {
       ...(quest.xp_reward > 0 ? [{ type: 'xp', amount: quest.xp_reward }] : []),
       ...bonusGranted,
     ];
+    const hasInventory = grants.some(g => g?.type === 'inventory_item');
     await notifyGain(userId, {
       source: 'quest',
       grants,
-      href: '/battle-pass',
+      href: hasInventory ? '/inventaire' : '/battle-pass',
       extra: { questKey: quest.quest_key, questType: quest.quest_type },
     });
   } catch {

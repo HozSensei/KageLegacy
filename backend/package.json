@@ -37,6 +37,7 @@
     "test:tcg-balance:report": "node scripts/testCombatBalance.js --report",
     "test:type-advantage": "node scripts/testTypeAdvantage.js",
     "test:mission-run": "node scripts/testMissionRun.js",
+    "test:player-inventory": "node scripts/testPlayerInventory.js",
     "test:mission-rank-access": "node scripts/testMissionRankAccess.js",
     "test:coop-mission": "node --test scripts/testCoopMissionFlow.js scripts/testCoopMissionReadyGate.js scripts/testCoopCombat.js",
     "test:coop-rooms": "node --test scripts/testCoopRooms.js",

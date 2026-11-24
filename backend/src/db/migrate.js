@@ -42,6 +42,12 @@ const COMPATIBILITY_COLUMNS = [
     'character_background_id',
   ],
   ['player_profiles', 'async_duel_enabled', 'TINYINT(1) NOT NULL DEFAULT 0', 'ryos'],
+  [
+    'player_profiles',
+    'pouch_ryos',
+    "INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Bourse préparée dans la poche ninja'",
+    'ryos',
+  ],
   ['async_duels', 'mode', "ENUM('friend','random','enemy_faction') DEFAULT NULL", 'defender_name'],
   ['async_duels', 'attacker_faction', 'VARCHAR(32) DEFAULT NULL', 'mode'],
   ['async_duels', 'defender_faction', 'VARCHAR(32) DEFAULT NULL', 'attacker_faction'],
@@ -87,6 +93,64 @@ async function ensureCardStatType(connection) {
        ENUM('taijutsu','ninjutsu','genjutsu','medicine','common') DEFAULT NULL`,
   );
   console.log('🔧 Enum étendu : card_definitions.stat_type accepte common');
+}
+
+async function ensureInventoryTables(connection) {
+  const tables = [
+    [
+      'user_inventory_items',
+      `CREATE TABLE IF NOT EXISTS \`user_inventory_items\` (
+        \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+        \`user_id\` int unsigned NOT NULL,
+        \`item_key\` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`location\` enum('chest','pouch') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'chest',
+        \`quantity\` int unsigned NOT NULL DEFAULT '1',
+        \`meta_json\` json DEFAULT NULL,
+        \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uq_user_inv_item_loc\` (\`user_id\`,\`item_key\`,\`location\`),
+        KEY \`idx_user_inv_user_loc\` (\`user_id\`,\`location\`),
+        CONSTRAINT \`fk_user_inv_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE,
+        CONSTRAINT \`chk_user_inv_qty\` CHECK ((\`quantity\` >= 1))
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+    [
+      'shop_daily_offers',
+      `CREATE TABLE IF NOT EXISTS \`shop_daily_offers\` (
+        \`day_key\` char(10) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`offers_json\` json NOT NULL,
+        \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`day_key\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+    [
+      'shop_daily_purchases',
+      `CREATE TABLE IF NOT EXISTS \`shop_daily_purchases\` (
+        \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+        \`user_id\` int unsigned NOT NULL,
+        \`day_key\` char(10) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`item_key\` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`qty\` int unsigned NOT NULL DEFAULT '0',
+        \`updated_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uq_shop_daily_user_item\` (\`user_id\`,\`day_key\`,\`item_key\`),
+        KEY \`idx_shop_daily_day\` (\`day_key\`),
+        CONSTRAINT \`fk_shop_daily_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+  ];
+
+  for (const [table, ddl] of tables) {
+    const [rows] = await connection.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
+      [table],
+    );
+    if (rows.length > 0) continue;
+    await connection.query(ddl);
+    console.log(`🔧 Table ajoutée : ${table}`);
+  }
 }
 
 async function ensureBugReportTables(connection) {
@@ -592,6 +656,7 @@ async function migrate() {
       await ensureOnboardingTable();
       await ensureMonetizationTables(connection);
       await ensureBugReportTables(connection);
+      await ensureInventoryTables(connection);
       return;
     }
 
@@ -630,6 +695,7 @@ async function migrate() {
     await ensureOnboardingTable();
     await ensureMonetizationTables(connection);
     await ensureBugReportTables(connection);
+    await ensureInventoryTables(connection);
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
     console.error('Erreur d’initialisation de la base :', error.message);

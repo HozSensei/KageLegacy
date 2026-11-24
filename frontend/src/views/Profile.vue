@@ -35,7 +35,10 @@ onMounted(async () => {
       image-position="50% 35%"
     >
       <template v-if="player.character" #actions>
-        <RouterLink to="/talents" class="btn-primary" data-testid="profile-header-talents">
+        <RouterLink to="/inventaire" class="btn-primary" data-testid="profile-header-inventory">
+          {{ t('nav.inventory') }}
+        </RouterLink>
+        <RouterLink to="/talents" class="btn-ghost" data-testid="profile-header-talents">
           {{ t('talents.openFromProfile') }}
         </RouterLink>
         <RouterLink to="/decks" class="btn-ghost">

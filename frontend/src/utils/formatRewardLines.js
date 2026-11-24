@@ -20,6 +20,11 @@ export function formatGrant(grant, t) {
       return t('notifications.rewardBooster', {
         kind: grant.boosterType || grant.kind || 'standard',
       });
+    case 'inventory_item':
+      return t('notifications.rewardInventoryItem', {
+        item: grant.itemKey || 'item',
+        n: n || 1,
+      });
     case 'card':
       return t('notifications.rewardCard');
     case 'nickname':
@@ -56,6 +61,11 @@ export function formatCombatSummary(rewards, t) {
         talent: rewards.talentPointsGained || 0,
       })
     );
+  }
+  const deposits = Array.isArray(rewards.inventoryDeposits) ? rewards.inventoryDeposits : [];
+  if (deposits.length > 0) {
+    const qty = deposits.reduce((sum, d) => sum + (Number(d.quantity) || 1), 0);
+    out.push(t('combat.rewardInventoryDeposit', { n: qty }));
   }
   const lootCount = Array.isArray(rewards.lootCards)
     ? rewards.lootCards.filter(e => e?.card).length

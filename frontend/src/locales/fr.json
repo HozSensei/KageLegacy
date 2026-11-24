@@ -535,7 +535,8 @@
     "rivalryTitle": "Rivalité némésis",
     "rivalryBody": "{name} est votre némésis ({count} défaites d'affilée).",
     "cycleObjectiveTitle": "Objectif de cycle réussi",
-    "cycleObjectiveBody": "Objectif accompli — +{ryos} Ryos crédités."
+    "cycleObjectiveBody": "Objectif accompli — +{ryos} Ryos crédités.",
+    "rewardInventoryItem": "Inventaire : {item} ×{n}"
   },
   "clan": {
     "lead": "Hub coopératif : partagez des recrues et remplissez le Puits de Chakra — sans bonus de combat.",
@@ -1229,7 +1230,8 @@
     "tabs": {
       "boosters": "Boosters",
       "currency": "Monnaie",
-      "battlePass": "Battle Pass"
+      "battlePass": "Battle Pass",
+      "items": "Objets"
     },
     "comingSoon": "Coming soon",
     "paymentsComingSoonNote": "Les paiements arrivent bientôt — packs et offres restent visibles.",
@@ -1289,7 +1291,15 @@
     "revealMythic": "✦ MYTHIQUE — Une découverte unique !",
     "nextCard": "Carte suivante →",
     "seeResults": "Voir le résultat →",
-    "obtainedTitle": "Cartes obtenues"
+    "obtainedTitle": "Cartes obtenues",
+    "itemsLead": "Offre du jour — stock limité. Les achats rejoignent votre coffre.",
+    "itemsRenews": "Renouvellement à minuit UTC.",
+    "itemsPrice": "{n} Ryos",
+    "itemsStock": "Stock : {n}",
+    "itemsBuy": "Acheter",
+    "itemsSoldOut": "Épuisé",
+    "itemsEmpty": "Aucune offre aujourd’hui.",
+    "itemsOpenInventory": "Ouvrir l’inventaire"
   },
   "talents": {
     "kicker": "Progression",
@@ -1461,12 +1471,12 @@
     "runContraband": "Argent de contrebande : {n}",
     "runPurse": "Bourse de mission : {n}",
     "inventoryTitle": "Inventaire de mission",
-    "inventoryHint": "4 emplacements. Utilisez les soins hors combat. Les parchemins scellés s’ouvrent à la fin.",
+    "inventoryHint": "4 emplacements. Utilisez les soins hors combat. Les parchemins scellés rejoignent la poche à la victoire.",
     "inventoryEmpty": "Vide",
     "inventoryUse": "Utiliser",
     "inventoryDiscard": "Jeter",
-    "inventorySealedBadge": "Scellé — fin de parcours",
-    "inventorySealedHint": "Parchemin scellé : révélation automatique à la fin du parcours.",
+    "inventorySealedBadge": "Scellé — poche",
+    "inventorySealedHint": "Parchemin scellé : déposé en poche à la victoire, à révéler dans l’inventaire.",
     "inventoryDiscardSealedConfirm": "Jeter ce parchemin scellé ? La carte ne sera pas obtenue.",
     "inventoryReplaceTarget": "Remplacer à l’achat",
     "shopBuy": "Acheter",
@@ -1738,7 +1748,12 @@
     "costLabel": "Coût {n}",
     "insufficientChakra": "Chakra insuffisant pour jouer cette carte",
     "rankLabel": "Rang",
-    "missionsListTitle": "Parcours disponibles"
+    "missionsListTitle": "Parcours disponibles",
+    "pouchPanelTitle": "Poche de mission",
+    "pouchPanelSummary": "Bourse : {ryos} Ryos · objets : {items}",
+    "pouchLossWarning": "La poche est perdue en cas d’échec ou d’abandon.",
+    "preparePouch": "Préparer dans l’inventaire",
+    "rewardInventoryDeposit": "Dépôt en poche : {n} objet(s) — révéler dans l’inventaire"
   },
   "community": {
     "villageRewards": {
@@ -2188,75 +2203,25 @@
     }
   },
   "inventory": {
-    "kicker": "Équipement",
-    "lead": "Consommables ninja (utiliser sur un ninja) et cartes technique (3 par ninja actif en Escouade).",
+    "kicker": "Ninja",
+    "title": "Inventaire",
+    "lead": "Coffre sûr et poche risquée. Préparez votre bourse et vos objets avant une mission ; révélez les scellés depuis le coffre.",
     "loading": "Chargement…",
-    "items": "Objets",
-    "tacticCards": "Cartes technique",
-    "ninjas": "Effectif",
-    "selectNinja": "Sélectionnez un ninja pour utiliser l'objet.",
-    "cardDeckHint": "Assignez chaque carte technique à un ninja actif depuis Escouade → deck d'opération (prérequis d'élément affiché sur la carte).",
-    "openSquadDeck": "Configurer en Escouade →",
-    "equippedOn": "Équipé sur {name}",
-    "equippedBadge": "Équipé · {name}",
-    "unequipped": "Non assigné",
-    "deckPoolHint": "Pool cartes — assignez-les par ninja en Escouade.",
-    "emptyFilter": "Aucun objet ne correspond à ces filtres.",
-    "filterCategory": {
-      "all": "Tous",
-      "bureau": "Consommables ninja"
-    },
-    "filterStatus": {
-      "all": "Tous",
-      "available": "Disponibles",
-      "listed": "En vente"
-    },
-    "empty": "Aucun objet — passez au magasin du village.",
-    "emptyCards": "Aucune carte — missions, sceaux chakra ou magasin du village.",
-    "equip": "Équiper",
-    "equipCard": "Équiper la carte",
-    "use": "Utiliser",
-    "useSuccess": "Objet utilisé.",
-    "useFormeResult": "Forme mise à jour : {from} → {to}.",
-    "usePvHealResult": "PV restaurés : +{amount}.",
-    "useTrainingBoostResult": "Bonus d'entraînement +20 % appliqué sur le prochain entraînement.",
-    "medLock": "surveillance médicale prolongée",
-    "noEligibleNinja": "Aucun ninja éligible pour cet objet — consultez les raisons ci-contre.",
-    "useBlocked": {
-      "noCycle": "Cycle introuvable.",
-      "scoutAlreadyConfirmed": "Secteur déjà confirmé ce cycle.",
-      "hospitalClosed": "Soins indisponibles pendant l'opération (H71+).",
-      "notLamentable": "Ce ninja n'est pas en forme Lamentable.",
-      "graveInjuryLock": "Blessure grave : surveillance médicale prolongée.",
-      "formeMax": "Forme déjà au maximum.",
-      "pvFull": "PV déjà au maximum.",
-      "moralMax": "Moral déjà au maximum.",
-      "statsMax": "Stats déjà au plafond de grade.",
-      "trainingBuffActive": "Bonus d'entraînement déjà actif sur ce ninja.",
-      "useBureauPanel": "À utiliser depuis le Bureau.",
-      "unsupportedItem": "Objet non utilisable ici.",
-      "itemListed": "Retirez l'objet de la vente avant utilisation."
-    },
-    "active": "Actif",
-    "bench": "Banc",
-    "slotMatch": "Consommable match",
-    "slotCard": "Carte tactique",
-    "cardCharges": "{count} charge(s)",
-    "cardBonusRolled": "Bonus {bonus}",
-    "cardRarity": {
-      "common": "Normale",
-      "rare": "Rare",
-      "legendary": "Légendaire"
-    },
-    "sell": "Mettre en vente",
-    "sellTitle": "Annonce sur le marché",
-    "sellHint": "Prix entre {floor} et {ceiling} Ryos (50–200 % du catalogue)",
-    "sellPrice": "Prix (Ryos)",
-    "sellCancel": "Annuler",
-    "sellConfirm": "Publier",
-    "selling": "Publication…",
-    "listed": "En vente sur le marché",
-    "nonVendable": "Non revendable"
+    "goMissions": "Vers les missions",
+    "chestTitle": "Coffre",
+    "chestHint": "Stockage sûr. Révélez les parchemins scellés et ouvrez les boosters ici.",
+    "chestEmpty": "Coffre vide.",
+    "pouchTitle": "Poche",
+    "pouchHint": "Emportée en mission. Perdue en cas d’échec ou d’abandon.",
+    "pouchEmpty": "Poche vide.",
+    "pouchRyos": "Bourse préparée : {n} Ryos",
+    "pouchStakeOption": "{n} Ryos",
+    "pouchLossWarning": "Tout le contenu de la poche est perdu si vous échouez ou abandonnez.",
+    "toPouch": "Emporter",
+    "toChest": "Déposer",
+    "reveal": "Révéler",
+    "open": "Ouvrir",
+    "revealDone": "Continuer"
   },
   "techniqueRefinement": {
     "title": "Atelier de perfectionnement",

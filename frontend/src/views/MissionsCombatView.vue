@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import MissionGuideOverlay from '../components/missions/MissionGuideOverlay.vue';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -12,6 +12,7 @@ import { missionRankTone } from '../utils/missionVisuals';
 import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
 import { useDecksStore } from '../stores/decks';
+import { useInventoryStore } from '../stores/inventory';
 import { localizedField, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'MissionsCombatView' });
@@ -21,13 +22,12 @@ const router = useRouter();
 const missions = useMissionsStore();
 const combat = useCombatStore();
 const decks = useDecksStore();
+const inventory = useInventoryStore();
 const { open: guideOpen, dismiss: dismissGuide } = useMissionGuide();
 
 const startingId = ref(null);
 const localError = ref(null);
 const hardMode = ref(false);
-const purseStake = ref(0);
-const PURSE_STAKES = [0, 100, 200, 300];
 
 const HARD_MODE_REWARD_MULT = 1.2;
 
@@ -41,7 +41,16 @@ function displayRewards(mission) {
 }
 
 onMounted(async () => {
-  await Promise.all([missions.fetchMissions(), decks.fetchDecks()]);
+  await Promise.all([missions.fetchMissions(), decks.fetchDecks(), inventory.fetchInventory()]);
+});
+
+const pouchSummary = computed(() => {
+  const items = inventory.pouch || [];
+  const count = items.reduce((sum, e) => sum + (Number(e.quantity) || 0), 0);
+  return {
+    ryos: inventory.pouchRyos || 0,
+    itemCount: count,
+  };
 });
 
 const hasActiveDeck = computed(() => Boolean((decks.decks || []).find(d => d.isActive)));
@@ -92,8 +101,8 @@ async function startMission(mission) {
   try {
     const run = await missions.startMission(mission.id, null, {
       hardMode: hardMode.value,
-      purseStake: purseStake.value,
     });
+    inventory.fetchInventory().catch(() => {});
     if (run?.id) {
       await router.push({ name: 'mission-run', params: { id: run.id } });
     }
@@ -214,21 +223,23 @@ async function startQuick(templateId) {
         <span class="section-head__rule" aria-hidden="true" />
       </div>
 
-      <fieldset class="purse-stake" data-testid="mission-purse-stake" :disabled="launchBlocked">
-        <legend class="purse-stake__legend">{{ t('combat.purseStakeLabel') }}</legend>
-        <p class="purse-stake__hint">{{ t('combat.purseStakeHint') }}</p>
-        <div class="purse-stake__options">
-          <label
-            v-for="stake in PURSE_STAKES"
-            :key="stake"
-            class="purse-stake__option"
-            :class="{ 'purse-stake__option--active': purseStake === stake }"
-          >
-            <input v-model.number="purseStake" type="radio" name="purse-stake" :value="stake" >
-            <span>{{ t('combat.purseStakeOption', { n: stake }) }}</span>
-          </label>
-        </div>
-      </fieldset>
+      <aside class="pouch-panel" data-testid="mission-pouch-panel">
+        <h3 class="pouch-panel__title">{{ t('combat.pouchPanelTitle') }}</h3>
+        <p class="pouch-panel__summary">
+          {{ t('combat.pouchPanelSummary', {
+            ryos: pouchSummary.ryos,
+            items: pouchSummary.itemCount,
+          }) }}
+        </p>
+        <p class="pouch-panel__warn">{{ t('combat.pouchLossWarning') }}</p>
+        <RouterLink
+          to="/inventaire"
+          class="btn-secondary btn-sm"
+          data-testid="mission-prepare-inventory"
+        >
+          {{ t('combat.preparePouch') }}
+        </RouterLink>
+      </aside>
 
       <label
         class="hard-mode-toggle"
@@ -342,50 +353,30 @@ async function startQuick(templateId) {
 </template>
 
 <style scoped>
-.purse-stake {
+.pouch-panel {
   margin: 1rem 0 0.75rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid var(--color-line);
-  background: var(--color-bg-card);
+  padding: 0.85rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
 }
 
-.purse-stake__legend {
-  padding: 0 0.25rem;
-  font-size: var(--type-kicker);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.pouch-panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
-.purse-stake__hint {
-  margin: 0.35rem 0 0.75rem;
-  font-size: 0.875rem;
-  color: var(--color-ink-muted);
-}
-
-.purse-stake__options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.purse-stake__option {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.75rem;
-  border: 1px solid var(--color-line);
-  cursor: pointer;
+.pouch-panel__summary {
+  margin: 0.35rem 0 0;
   font-weight: 600;
 }
 
-.purse-stake__option--active {
-  border-color: var(--color-vermilion);
-  background: color-mix(in srgb, var(--color-vermilion) 10%, transparent);
-}
-
-.purse-stake:disabled {
-  opacity: 0.55;
+.pouch-panel__warn {
+  margin: 0.4rem 0 0.75rem;
+  color: var(--color-vermilion);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .missions-deck {

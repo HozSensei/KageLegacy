@@ -12,7 +12,6 @@ import { getShopItem } from '../config/missionRunEconomy.js';
 import { pickRankVignette } from '../../scripts/data/missionLore.js';
 import { getMission } from './combatMissionService.js';
 import { grantRunRewards } from './combatRewardService.js';
-import { addCard } from './collectionService.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
 import { classifyTalentEffects } from './deckCombat/talentEffects.js';
 import {
@@ -21,7 +20,6 @@ import {
 } from './missionRankAccess.js';
 import { buildRandomRunPath } from './missionPathBuilder.js';
 import {
-  collectPendingCardsFromInventory,
   createRunPlayerState,
   discardInventorySlot,
   getPurse,
@@ -37,7 +35,15 @@ import {
 import {
   sanitizeNodesForClient,
   unlockNext,
+  applyPouchLoadout,
+  collectRunInventoryDeposits,
 } from './missionRunService.js';
+import {
+  consumePouchForRun,
+  clearPouch,
+  depositRunLootToPouch,
+  grantToPouch,
+} from './playerInventoryService.js';
 import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
 import {
   markRoomClosed,
@@ -372,18 +378,6 @@ async function persistRun(row) {
   return loadRunRow(row.id);
 }
 
-async function debitPurseStake(userId, stake) {
-  const amount = Number(stake) || 0;
-  if (amount <= 0) return;
-  const profile = await query('SELECT ryos FROM player_profiles WHERE user_id = ? LIMIT 1', [
-    userId,
-  ]);
-  if (!profile[0]) throw httpError(400, 'Profil introuvable.');
-  if (Number(profile[0].ryos) < amount) {
-    throw httpError(400, `Ryos insuffisants (${profile[0].ryos}/${amount}).`, 'INSUFFICIENT_RYOS');
-  }
-  await query('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [amount, userId]);
-}
 
 async function loadFighterBundle(userId) {
   const { getPlayableDeckForCombat } = await import('./deckService.js');
@@ -419,22 +413,7 @@ async function loadFighterBundle(userId) {
   };
 }
 
-async function pickCardIdByRarity(rarity) {
-  const rows = await query(
-    'SELECT id FROM card_definitions WHERE rarity = ? ORDER BY RAND() LIMIT 30',
-    [rarity],
-  );
-  if (!rows.length) {
-    const fallback = await query(
-      "SELECT id FROM card_definitions WHERE rarity = 'common' ORDER BY RAND() LIMIT 20",
-    );
-    if (!fallback.length) return null;
-    return fallback[Math.floor(Math.random() * fallback.length)].id;
-  }
-  return rows[Math.floor(Math.random() * rows.length)].id;
-}
-
-function buildLootCards(chanceCard, shopCards = []) {
+function buildLootCards(chanceCard) {
   const out = [];
   if (chanceCard?.card) {
     out.push({
@@ -445,56 +424,7 @@ function buildLootCards(chanceCard, shopCards = []) {
       source: 'mission_reward',
     });
   }
-  for (const entry of shopCards) {
-    if (!entry?.card) continue;
-    out.push({
-      collectionId: entry.collectionId ?? null,
-      isNew: Boolean(entry.isNew),
-      rarity: entry.card.rarity || entry.rarity || 'common',
-      card: entry.card,
-      source: entry.source || 'sealed_scroll',
-    });
-  }
   return out;
-}
-
-async function grantSealedCards(userId, player) {
-  const pendingCards = collectPendingCardsFromInventory(player);
-  const grantedCards = [];
-  let sealedGrantFailures = 0;
-  for (const entry of pendingCards) {
-    const cardId = await pickCardIdByRarity(entry.rarity || 'common');
-    if (!cardId) {
-      sealedGrantFailures += 1;
-      continue;
-    }
-    try {
-      const added = await addCard(userId, cardId, {
-        quantity: 1,
-        source: 'mission_run_shop',
-      });
-      if (!added?.card) {
-        sealedGrantFailures += 1;
-        continue;
-      }
-      grantedCards.push({
-        cardId,
-        rarity: added.card.rarity || entry.rarity || 'common',
-        collectionId: added.collectionId ?? null,
-        isNew: Number(added.quantity) === 1,
-        card: added.card,
-        source: 'sealed_scroll',
-      });
-    } catch {
-      sealedGrantFailures += 1;
-    }
-  }
-  return {
-    grantedCards,
-    sealedPending: pendingCards.length,
-    sealedGranted: grantedCards.length,
-    sealedGrantFailures,
-  };
 }
 
 async function completeRunVictory(row) {
@@ -520,13 +450,16 @@ async function completeRunVictory(row) {
         purseReturn,
         coopMult: COOP_REWARD_MULT,
       });
-      const sealed = await grantSealedCards(userId, player);
+      const deposits = collectRunInventoryDeposits(player);
+      const inventoryDeposits = await depositRunLootToPouch(userId, deposits);
       rewards.purseReturned = purseReturn;
-      rewards.shopCards = sealed.grantedCards;
-      rewards.lootCards = buildLootCards(rewards.card, sealed.grantedCards);
-      rewards.sealedPending = sealed.sealedPending;
-      rewards.sealedGranted = sealed.sealedGranted;
-      rewards.sealedGrantFailures = sealed.sealedGrantFailures;
+      rewards.shopCards = [];
+      rewards.lootCards = buildLootCards(rewards.card);
+      rewards.inventoryDeposits = inventoryDeposits;
+      rewards.sealedPending = deposits.filter(d => getShopItem(d.itemKey)?.kind === 'pending_card')
+        .length;
+      rewards.sealedGranted = 0;
+      rewards.sealedGrantFailures = 0;
       rewards.coopMult = COOP_REWARD_MULT;
       if (role === 'host') row.rewards_host_json = rewards;
       else row.rewards_guest_json = rewards;
@@ -673,15 +606,28 @@ export async function startCoopMissionFromRoom(userId, roomId) {
     loadFighterBundle(room.guest_id),
   ]);
 
-  await debitPurseStake(room.host_id, room.host_stake);
+  const hostPouch = await consumePouchForRun(room.host_id);
+  let guestPouch;
   try {
-    await debitPurseStake(room.guest_id, room.guest_stake);
+    guestPouch = await consumePouchForRun(room.guest_id);
   } catch (error) {
-    if (Number(room.host_stake) > 0) {
-      await query('UPDATE player_profiles SET ryos = ryos + ? WHERE user_id = ?', [
-        Number(room.host_stake),
+    // Restaure la poche hôte si l’invité échoue (ré-injecte ryos + items)
+    if (hostPouch.purseStake > 0) {
+      await query('UPDATE player_profiles SET pouch_ryos = ? WHERE user_id = ?', [
+        hostPouch.purseStake,
         room.host_id,
       ]);
+    }
+    for (const entry of hostPouch.items || []) {
+      try {
+        await grantToPouch(room.host_id, entry.itemKey, {
+          quantity: entry.quantity || 1,
+          meta: entry.meta,
+          notify: false,
+        });
+      } catch {
+        /* best effort */
+      }
     }
     throw error;
   }
@@ -694,20 +640,22 @@ export async function startCoopMissionFromRoom(userId, roomId) {
   const hostMaxHp = BASE_MAX_HP + (Number(hostBundle.stats.maxHp) || 0);
   const guestMaxHp = BASE_MAX_HP + (Number(guestBundle.stats.maxHp) || 0);
 
-  const hostPlayer = createRunPlayerState({
+  let hostPlayer = createRunPlayerState({
     maxHp: hostMaxHp,
-    purseStake: room.host_stake,
+    purseStake: hostPouch.purseStake,
     hardMode,
     rewardMult: HARD_MODE_REWARD_MULT,
     lore: vignette,
   });
-  const guestPlayer = createRunPlayerState({
+  hostPlayer = applyPouchLoadout(hostPlayer, hostPouch.items);
+  let guestPlayer = createRunPlayerState({
     maxHp: guestMaxHp,
-    purseStake: room.guest_stake,
+    purseStake: guestPouch.purseStake,
     hardMode,
     rewardMult: HARD_MODE_REWARD_MULT,
     lore: vignette,
   });
+  guestPlayer = applyPouchLoadout(guestPlayer, guestPouch.items);
 
   const id = randomUUID();
   await query(
@@ -1099,7 +1047,7 @@ async function onCoopCombatFinished(row, combat, sessionRow) {
     return advanceAfterClear(row, nodes, idx);
   }
 
-  // Defeat / forfeit
+  // Defeat / forfeit — poche déjà consommée au start ; clear de sécurité
   setPlayerState(row, 'host', clearPlayerOnDefeat(getPlayerState(row, 'host')));
   setPlayerState(row, 'guest', clearPlayerOnDefeat(getPlayerState(row, 'guest')));
   row.state = 'defeat';
@@ -1110,7 +1058,14 @@ async function onCoopCombatFinished(row, combat, sessionRow) {
     nodes[idx] = { ...nodes[idx], status: 'failed' };
     row.nodes_json = nodes;
   }
-  return persistRun(row);
+  const persisted = await persistRun(row);
+  try {
+    await clearPouch(row.host_id);
+    await clearPouch(row.guest_id);
+  } catch {
+    /* optionnel */
+  }
+  return persisted;
 }
 
 /** Hook appelé après auto-end_turn du scheduler. */
@@ -1143,6 +1098,12 @@ export async function abandonCoopRun(userId, runId) {
   row.rewards_host_json = null;
   row.rewards_guest_json = null;
   row = await persistRun(row);
+  try {
+    await clearPouch(row.host_id);
+    await clearPouch(row.guest_id);
+  } catch {
+    /* optionnel */
+  }
   return serializeRun(row, userId);
 }
 
