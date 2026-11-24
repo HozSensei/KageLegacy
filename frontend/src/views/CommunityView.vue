@@ -54,6 +54,7 @@ const {
   loading: profileLoading,
   error: profileError,
   player: profilePlayer,
+  anchor: profileAnchor,
   show: showProfile,
   close: closeProfile,
 } = usePublicPlayerModal();
@@ -117,8 +118,8 @@ function selectFaction(id) {
   selectedFactionId.value = id;
 }
 
-function openProfile(userId) {
-  showProfile(userId);
+function openProfile(userId, event) {
+  showProfile(userId, event);
 }
 
 onMounted(async () => {
@@ -233,7 +234,7 @@ onMounted(async () => {
             <button
               type="button"
               class="btn-ghost btn-sm"
-              @click="openProfile(honorEntry.player.userId)"
+              @click="openProfile(honorEntry.player.userId, $event)"
             >
               {{ t('community.openProfile', { name: honorEntry.player.name }) }}
             </button>
@@ -360,6 +361,7 @@ onMounted(async () => {
       :loading="profileLoading"
       :error="profileError"
       :player="profilePlayer"
+      :anchor="profileAnchor"
       @close="closeProfile"
     />
   </div>

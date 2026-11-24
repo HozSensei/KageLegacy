@@ -24,9 +24,9 @@ const title = computed(() => {
   return id ? ninjaNicknameLabel(id, t, te, [], locale.value) : '';
 });
 
-function onActivate() {
+function onActivate(event) {
   if (!props.clickable || props.userId == null) return;
-  emit('open', Number(props.userId));
+  emit('open', Number(props.userId), event);
 }
 </script>
 

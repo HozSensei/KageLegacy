@@ -23,13 +23,27 @@ export async function fetchPublicPlayer(userId, { signal, force = false } = {}) 
   return player;
 }
 
+function resolveAnchor(anchorOrEvent) {
+  if (!anchorOrEvent) return null;
+  if (typeof anchorOrEvent.getBoundingClientRect === 'function') return anchorOrEvent;
+  const fromCurrent = anchorOrEvent.currentTarget;
+  if (fromCurrent && typeof fromCurrent.getBoundingClientRect === 'function') return fromCurrent;
+  const target = anchorOrEvent.target;
+  if (target && typeof target.closest === 'function') {
+    return target.closest('.identity-chip') || target;
+  }
+  return null;
+}
+
 export function usePublicPlayerModal() {
   const open = ref(false);
   const loading = ref(false);
   const error = ref(null);
   const player = ref(null);
+  const anchor = ref(null);
 
-  async function show(userId) {
+  async function show(userId, anchorOrEvent) {
+    anchor.value = resolveAnchor(anchorOrEvent);
     open.value = true;
     loading.value = true;
     error.value = null;
@@ -45,7 +59,8 @@ export function usePublicPlayerModal() {
 
   function close() {
     open.value = false;
+    anchor.value = null;
   }
 
-  return { open, loading, error, player, show, close };
+  return { open, loading, error, player, anchor, show, close };
 }

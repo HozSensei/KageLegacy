@@ -108,7 +108,7 @@ defineExpose({ refresh });
           :name="event.player?.name || t('community.unknownPlayer')"
           :profile="event.player?.profile"
           :level="event.player?.level"
-          @open="emit('open-profile', $event)"
+          @open="(userId, event) => emit('open-profile', userId, event)"
         />
         <div class="activity-wall__meta">
           <span>{{ kindLabel(event.kind) }}</span>

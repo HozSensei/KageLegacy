@@ -23,6 +23,7 @@ const {
   loading: profileLoading,
   error: profileError,
   player: profilePlayer,
+  anchor: profileAnchor,
   show: showProfile,
   close: closeProfile,
 } = usePublicPlayerModal();
@@ -300,6 +301,7 @@ function leaveLobby() {
       :loading="profileLoading"
       :error="profileError"
       :player="profilePlayer"
+      :anchor="profileAnchor"
       @close="closeProfile"
     />
   </div>
