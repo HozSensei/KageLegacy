@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { requireUser } from '../middleware/auth.js';
 import {
+  deleteUserNotification,
   listUserNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -14,7 +15,8 @@ router.get('/', async (req, res, next) => {
     const user = await requireUser(req, res);
     if (!user) return;
     const notifications = await listUserNotifications(user.id);
-    res.json({ notifications });
+    const unreadCount = notifications.filter(n => !n.read).length;
+    res.json({ notifications, unreadCount });
   } catch (error) {
     next(error);
   }
@@ -36,6 +38,17 @@ router.post('/:id/read', async (req, res, next) => {
     if (!user) return;
     const id = z.coerce.number().int().positive().parse(req.params.id);
     res.json(await markNotificationRead(user.id, id));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/:id', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    res.json(await deleteUserNotification(user.id, id));
   } catch (error) {
     next(error);
   }

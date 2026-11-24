@@ -206,7 +206,7 @@ async function creditWinner(connection, duel, win) {
      FROM async_duel_reward_ledger WHERE beneficiary_id = ? AND credited_on = ?`,
     [pairLow, pairHigh, day, winnerId, day],
   );
-  if (slot > DAILY_REWARD_LIMIT || pairAlreadyCredited) return;
+  if (slot > DAILY_REWARD_LIMIT || pairAlreadyCredited) return 0;
 
   try {
     await connection.execute(
@@ -217,7 +217,7 @@ async function creditWinner(connection, duel, win) {
     );
   } catch (error) {
     // Deux vainqueurs différents peuvent concourir pour la même paire : l'index tranche.
-    if (error.code === 'ER_DUP_ENTRY') return;
+    if (error.code === 'ER_DUP_ENTRY') return 0;
     throw error;
   }
 
@@ -229,6 +229,7 @@ async function creditWinner(connection, duel, win) {
   if (result.affectedRows !== 1) {
     throw duelError('ASYNC_DUEL_REWARD_FAILED', `Crédit impossible pour le duel ${duel.id}.`);
   }
+  return WIN_REWARD;
 }
 
 function canScoreFaction(duel) {
@@ -309,8 +310,25 @@ export async function updateAsyncDuel({ id, attackerId, revision, state }) {
         pairLow: Math.min(duel.attackerId, duel.defenderId),
         pairHigh: Math.max(duel.attackerId, duel.defenderId),
       };
-      await creditWinner(connection, duel, win);
+      const creditedRyos = await creditWinner(connection, duel, win);
       if (scoresFaction) await scoreFaction(connection, duel, win);
+      if (creditedRyos > 0) {
+        try {
+          const { notifyGain } = await import('./userNotificationService.js');
+          await notifyGain(
+            winnerId,
+            {
+              source: 'duel',
+              grants: [{ type: 'ryos', amount: creditedRyos }],
+              href: '/deck-duels',
+              extra: { duelId: id, outcome },
+            },
+            connection,
+          );
+        } catch {
+          /* notifications optionnelles */
+        }
+      }
     }
     return readDuel(connection, id, attackerId);
   });

@@ -10,14 +10,14 @@ import marketImage from '../assets/illustrations/market-square.webp';
 import { useBattlePassStore } from '../stores/battlePass';
 import { useAuthStore } from '../stores/auth';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
-import { useRewardNotifications } from '../composables/useRewardNotifications.js';
+import { useNotificationsStore } from '../stores/notifications.js';
 
 defineOptions({ name: 'BattlePassView' });
 
 const { t, locale } = useI18n();
 const store = useBattlePassStore();
 const auth = useAuthStore();
-const rewardNotifications = useRewardNotifications();
+const notifications = useNotificationsStore();
 useOnboardingVisit('visit_battle_pass');
 const message = ref(null);
 const claimedCards = ref([]);
@@ -29,7 +29,6 @@ const canStubUnlock = computed(() => Boolean(auth.user?.isAdmin));
 
 onMounted(async () => {
   await store.loadAll();
-  rewardNotifications.syncQuests(store.quests, { toastNew: false });
 });
 
 async function onClaim({ level, track }) {
@@ -40,12 +39,7 @@ async function onClaim({ level, track }) {
   if (result) {
     message.value = t('battlePass.claimSuccess', { level, track: t(`battlePass.track.${track}`) });
     const rewards = result.rewards || [];
-    rewardNotifications.notifyGrants({
-      source: 'battle_pass',
-      grants: rewards,
-      label: String(level),
-      href: { name: 'battle-pass' },
-    });
+    void notifications.fetchNotifications();
     const boosterReward = rewards.find(reward => reward.type === 'booster');
     const directCardEntries = rewards
       .filter(reward => reward.type === 'card')
@@ -102,15 +96,7 @@ async function onClaimQuest(questId) {
   if (result) {
     const xpGained = result.xp?.xpGained || 0;
     message.value = t('battlePass.questClaimSuccess', { xp: xpGained });
-    const grants = [
-      ...(xpGained > 0 ? [{ type: 'xp', amount: xpGained }] : []),
-      ...(result.bonusRewards || []),
-    ];
-    rewardNotifications.notifyGrants({
-      source: 'quest',
-      grants,
-      href: { name: 'battle-pass' },
-    });
+    void notifications.fetchNotifications();
   } else if (store.error) {
     message.value = store.error;
   }

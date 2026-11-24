@@ -3,180 +3,97 @@ import test from 'node:test';
 import { createPinia, setActivePinia } from 'pinia';
 import { useNotificationsStore } from './notifications.js';
 
-test('pushOnce dedupes by key while push replaces sticky entries', () => {
+test('fetchNotifications replaces the inbox and reports fresh unread ids', async () => {
   setActivePinia(createPinia());
   const store = useNotificationsStore();
 
-  const first = store.pushOnce({
-    kind: 'gain',
-    dedupeKey: 'mission-recap:1',
-    payload: { body: 'a' },
-  });
-  const second = store.pushOnce({
-    kind: 'gain',
-    dedupeKey: 'mission-recap:1',
-    payload: { body: 'b' },
-  });
-  assert.ok(first);
-  assert.equal(second, null);
-  assert.equal(store.items.length, 1);
-  assert.equal(store.items[0].payload.body, 'a');
-
-  store.push({
-    kind: 'quest_ready',
-    dedupeKey: 'quest:9',
-    sticky: true,
-    payload: { description: 'old' },
-  });
-  store.push({
-    kind: 'quest_ready',
-    dedupeKey: 'quest:9',
-    sticky: true,
-    payload: { description: 'new' },
-  });
-  assert.equal(store.items.filter(i => i.kind === 'quest_ready').length, 1);
-  assert.equal(store.items[0].payload.description, 'new');
-  assert.equal(store.unreadCount, 2);
-});
-
-test('syncQuestReady keeps only currently claimable quests', () => {
-  setActivePinia(createPinia());
-  const store = useNotificationsStore();
-
-  store.syncQuestReady(
-    [
-      {
-        id: 1,
-        progress: { isCompleted: true, isClaimed: false },
-      },
-      {
-        id: 2,
-        progress: { isCompleted: true, isClaimed: true },
-      },
-    ],
-    quest => ({ payload: { questId: quest.id }, href: { name: 'battle-pass' } })
-  );
-  assert.equal(store.items.length, 1);
-  assert.equal(store.items[0].dedupeKey, 'quest:1');
-
-  store.syncQuestReady([], () => ({}));
-  assert.equal(store.items.length, 0);
-});
-
-test('syncAchievementReady tracks claimable journal tiers', () => {
-  setActivePinia(createPinia());
-  const store = useNotificationsStore();
-
-  store.syncAchievementReady(
-    [
-      {
-        key: 'win_fights',
-        tiers: [
-          { tier: 1, claimable: true },
-          { tier: 2, claimable: false },
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        notifications: [
+          {
+            id: 1,
+            kind: 'gain',
+            payload: { source: 'onboarding', grants: [{ type: 'ryos', amount: 30 }] },
+            read: false,
+            createdAt: Date.now(),
+          },
         ],
+        unreadCount: 1,
+      };
+    },
+  });
+
+  try {
+    const first = await store.fetchNotifications();
+    assert.equal(store.items.length, 1);
+    assert.equal(first.fresh.length, 0);
+    assert.equal(store.unreadCount, 1);
+
+    globalThis.fetch = async () => ({
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          notifications: [
+            {
+              id: 2,
+              kind: 'quest_ready',
+              payload: { description: 'Win 1 fight' },
+              read: false,
+              createdAt: Date.now(),
+            },
+            {
+              id: 1,
+              kind: 'gain',
+              payload: { source: 'onboarding', grants: [{ type: 'ryos', amount: 30 }] },
+              read: true,
+              createdAt: Date.now() - 1000,
+            },
+          ],
+        };
       },
-      {
-        key: 'open_boosters',
-        tiers: [{ tier: 1, claimable: false }],
-      },
-    ],
-    ({ achievement, tier }) => ({
-      payload: { achievementKey: achievement.key, tier: tier.tier },
-      href: { name: 'journal' },
-    })
-  );
-  assert.equal(store.items.length, 1);
-  assert.equal(store.items[0].dedupeKey, 'achievement:win_fights:1');
+    });
 
-  store.syncAchievementReady([], () => ({}));
-  assert.equal(store.items.length, 0);
+    const second = await store.fetchNotifications();
+    assert.equal(store.items.length, 2);
+    assert.equal(second.fresh.length, 1);
+    assert.equal(second.fresh[0].id, 2);
+    assert.equal(store.unreadCount, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
-test('dismiss removes sticky notes and marks gains as read', () => {
+test('markRead and remove update local state then call the API', async () => {
   setActivePinia(createPinia());
   const store = useNotificationsStore();
-  const gainId = store.push({ kind: 'gain', payload: { body: 'loot' } });
-  store.push({
-    kind: 'onboarding_ready',
-    dedupeKey: 'onboarding:visit_shop',
-    sticky: true,
-    payload: { stepKey: 'visit_shop' },
-  });
+  store.items = [
+    { id: 10, kind: 'gain', payload: {}, read: false, createdAt: 1 },
+    { id: 11, kind: 'gain', payload: {}, read: false, createdAt: 2 },
+  ];
 
-  store.dismiss(gainId);
-  assert.equal(store.items.find(i => i.id === gainId)?.read, true);
-  assert.equal(store.unreadCount, 1);
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), method: init.method || 'GET' });
+    return { ok: true, status: 200, async json() { return { ok: true }; } };
+  };
 
-  store.dismiss(store.items.find(i => i.kind === 'onboarding_ready').id);
-  assert.equal(store.items.some(i => i.kind === 'onboarding_ready'), false);
-});
+  try {
+    await store.markRead(10);
+    assert.equal(store.items.find(n => n.id === 10)?.read, true);
+    assert.equal(calls[0].method, 'POST');
+    assert.match(calls[0].url, /\/api\/notifications\/10\/read$/);
 
-test('dismissed sticky claimables stay gone across resync until claimed', () => {
-  setActivePinia(createPinia());
-  const store = useNotificationsStore();
-  const steps = [{ key: 'visit_profile', claimable: true, nameFr: 'Visiter ton profil' }];
-
-  store.syncOnboardingReady(steps, step => ({
-    payload: { stepKey: step.key, label: step.nameFr },
-    href: { name: 'hub' },
-  }));
-  assert.equal(store.items.length, 1);
-  assert.equal(store.items[0].dedupeKey, 'onboarding:visit_profile');
-
-  store.dismiss(store.items[0].id);
-  assert.equal(store.items.length, 0);
-
-  // Changement de page → sync à nouveau : ne doit pas réapparaître.
-  store.syncOnboardingReady(steps, step => ({
-    payload: { stepKey: step.key, label: step.nameFr },
-    href: { name: 'hub' },
-  }));
-  assert.equal(store.items.length, 0);
-
-  // Après réclamation (plus claimable), le snooze est levé ; une future
-  // claimabilité pourrait re-notifier (ex. reset admin).
-  store.syncOnboardingReady([{ key: 'visit_profile', claimable: false }], () => ({}));
-  store.syncOnboardingReady(steps, step => ({
-    payload: { stepKey: step.key },
-    href: { name: 'hub' },
-  }));
-  assert.equal(store.items.length, 1);
-  assert.equal(store.items[0].dedupeKey, 'onboarding:visit_profile');
-});
-
-test('push preserves read flag when refreshing an existing dedupeKey', () => {
-  setActivePinia(createPinia());
-  const store = useNotificationsStore();
-  store.push({
-    kind: 'quest_ready',
-    dedupeKey: 'quest:7',
-    sticky: true,
-    payload: { description: 'old' },
-  });
-  const quest = store.items.find(i => i.dedupeKey === 'quest:7');
-  quest.read = true;
-  store.push({
-    kind: 'quest_ready',
-    dedupeKey: 'quest:7',
-    sticky: true,
-    payload: { description: 'new' },
-  });
-  const refreshed = store.items.find(i => i.dedupeKey === 'quest:7');
-  assert.equal(refreshed?.read, true);
-  assert.equal(refreshed?.payload.description, 'new');
-});
-
-test('clearDedupe after claim allows a future ready notification', () => {
-  setActivePinia(createPinia());
-  const store = useNotificationsStore();
-  store.syncOnboardingReady([{ key: 'visit_profile', claimable: true }], step => ({
-    payload: { stepKey: step.key },
-  }));
-  store.dismiss(store.items[0].id);
-  store.clearDedupe('onboarding:visit_profile');
-  store.syncOnboardingReady([{ key: 'visit_profile', claimable: true }], step => ({
-    payload: { stepKey: step.key },
-  }));
-  assert.equal(store.items.length, 1);
+    await store.remove(11);
+    assert.equal(store.items.some(n => n.id === 11), false);
+    assert.equal(calls[1].method, 'DELETE');
+    assert.match(calls[1].url, /\/api\/notifications\/11$/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

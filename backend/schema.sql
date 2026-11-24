@@ -860,9 +860,11 @@ CREATE TABLE IF NOT EXISTS `user_notifications` (
   `kind` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `payload_json` json DEFAULT NULL,
   `href` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dedupe_key` varchar(128) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `read_at` datetime(6) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_user_notifications_user_dedupe` (`user_id`,`dedupe_key`),
   KEY `idx_user_notifications_user_read_created` (`user_id`,`read_at`,`created_at`),
   KEY `idx_user_notifications_kind` (`kind`),
   CONSTRAINT `fk_user_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE

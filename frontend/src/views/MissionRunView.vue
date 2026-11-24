@@ -15,7 +15,7 @@ import {
   localizedField,
   localizedName,
 } from '../utils/localeContent.js'
-import { useRewardNotifications } from '../composables/useRewardNotifications.js'
+import { useNotificationsStore } from '../stores/notifications.js'
 
 defineOptions({ name: 'MissionRunView' })
 
@@ -24,7 +24,7 @@ const route = useRoute()
 const router = useRouter()
 const missions = useMissionsStore()
 const combat = useCombatStore()
-const rewardNotifications = useRewardNotifications()
+const notifications = useNotificationsStore()
 
 const localError = ref(null)
 
@@ -45,12 +45,7 @@ watch(
   () => [run.value?.state, run.value?.rewards, run.value?.id],
   ([state, rewards, id]) => {
     if (state === 'victory' && rewards && id != null) {
-      rewardNotifications.notifyCombatRecap({
-        source: 'mission',
-        rewards,
-        dedupeKey: `mission-recap:${id}`,
-        href: { name: 'missions' },
-      })
+      void notifications.fetchNotifications()
     }
   }
 )
