@@ -36,7 +36,9 @@ const villageEntry = computed(() => {
 });
 
 const feed = computed(() => {
-  const list = [...(store.items || [])];
+  // Uniquement les non lues : les gains marqués lus sont retirés du store,
+  // et on ignore toute entrée résiduelle déjà lue.
+  const list = (store.items || []).filter(n => !n.read);
   if (villageEntry.value) list.unshift(villageEntry.value);
   return list;
 });

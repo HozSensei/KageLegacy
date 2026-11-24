@@ -90,11 +90,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
     if (serverId != null) {
       void markServerNotificationRead(serverId);
     }
-    if (item.sticky || item.dedupeKey) {
-      items.value = items.value.filter(n => n.id !== id);
-      return;
-    }
-    items.value = items.value.map(n => (n.id === id ? { ...n, read: true } : n));
+    // Toujours retirer de l’inbox : le panneau n’a pas d’historique « lu »
+    // distinct, donc laisser l’entrée (même avec read:true) donne l’impression
+    // que « Marquer comme lu » ne fait rien (ex. récap Guide du novice).
+    items.value = items.value.filter(n => n.id !== id);
   }
 
   async function markServerNotificationRead(serverId) {
@@ -160,10 +159,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function markAllRead() {
     for (const n of items.value) {
       rememberDismiss(n.dedupeKey);
+      const serverId = n.payload?.serverId;
+      if (serverId != null) void markServerNotificationRead(serverId);
     }
-    items.value = items.value
-      .filter(n => !n.sticky)
-      .map(n => ({ ...n, read: true }));
+    items.value = [];
   }
 
   /**

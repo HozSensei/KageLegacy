@@ -93,7 +93,7 @@ test('syncAchievementReady tracks claimable journal tiers', () => {
   assert.equal(store.items.length, 0);
 });
 
-test('dismiss removes sticky notes and marks gains as read', () => {
+test('dismiss removes gains and sticky notes from the inbox', () => {
   setActivePinia(createPinia());
   const store = useNotificationsStore();
   const gainId = store.push({ kind: 'gain', payload: { body: 'loot' } });
@@ -105,11 +105,12 @@ test('dismiss removes sticky notes and marks gains as read', () => {
   });
 
   store.dismiss(gainId);
-  assert.equal(store.items.find(i => i.id === gainId)?.read, true);
+  assert.equal(store.items.some(i => i.id === gainId), false);
   assert.equal(store.unreadCount, 1);
 
   store.dismiss(store.items.find(i => i.kind === 'onboarding_ready').id);
   assert.equal(store.items.some(i => i.kind === 'onboarding_ready'), false);
+  assert.equal(store.unreadCount, 0);
 });
 
 test('dismissed sticky claimables stay gone across resync until claimed', () => {
