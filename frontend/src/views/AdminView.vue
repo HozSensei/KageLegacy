@@ -1,11 +1,16 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
+import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
 import { parseApiResponse, readApiError } from '../utils/http.js';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const API_BASE = import.meta.env.VITE_API_URL || '';
+const activeTab = ref(route.query.tab === 'reports' ? 'reports' : 'players');
 const players = ref([]);
 const selectedId = ref('');
 const search = ref('');
@@ -41,15 +46,82 @@ const error = ref('');
 const notice = ref('');
 let searchTimer;
 
+const reports = ref([]);
+const reportFilter = ref('');
+const reportsLoading = ref(false);
+const reportSavingId = ref(null);
+const reportRewardingId = ref(null);
+const reportDrafts = ref({});
+
 const selectedPlayer = computed(
   () => players.value.find(player => Number(player.id) === Number(selectedId.value)) || null
 );
 
-onMounted(() => loadPlayers());
+function setTab(tab) {
+  activeTab.value = tab;
+  const query = { ...route.query };
+  if (tab === 'reports') query.tab = 'reports';
+  else delete query.tab;
+  router.replace({ query });
+  if (tab === 'reports') void loadReports();
+  else void loadPlayers();
+}
+
+function locationLabel(report) {
+  const option = BUG_REPORT_LOCATION_OPTIONS.find(item => item.value === report.location);
+  const base = option ? t(option.labelKey) : report.location;
+  if (report.location === 'other' && report.locationOther) {
+    return `${base}${t('admin.reports.otherSuffix', { detail: report.locationOther })}`;
+  }
+  return base;
+}
+
+function statusLabel(status) {
+  if (status === 'in_progress') return t('admin.reports.statusInProgress');
+  if (status === 'fixed') return t('admin.reports.statusFixed');
+  return t('admin.reports.statusOpen');
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Intl.DateTimeFormat(locale.value === 'en' ? 'en-GB' : 'fr-FR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+function ensureDraft(report) {
+  if (!reportDrafts.value[report.id]) {
+    reportDrafts.value[report.id] = {
+      status: report.status,
+      adminComment: report.adminComment || '',
+    };
+  }
+  return reportDrafts.value[report.id];
+}
+
+onMounted(() => {
+  if (activeTab.value === 'reports') loadReports();
+  else loadPlayers();
+});
 watch(search, () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(loadPlayers, 250);
 });
+watch(
+  () => route.query.tab,
+  tab => {
+    const next = tab === 'reports' ? 'reports' : 'players';
+    if (next !== activeTab.value) {
+      activeTab.value = next;
+      if (next === 'reports') void loadReports();
+    }
+  }
+);
 
 async function request(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, {
@@ -162,6 +234,72 @@ async function freshResetPlayer() {
     freshResetting.value = false;
   }
 }
+
+async function loadReports() {
+  reportsLoading.value = true;
+  error.value = '';
+  try {
+    const query = new URLSearchParams();
+    if (reportFilter.value) query.set('status', reportFilter.value);
+    const result = await request(`/api/admin/bug-reports?${query}`);
+    reports.value = result.reports || [];
+    reportDrafts.value = {};
+    for (const report of reports.value) ensureDraft(report);
+  } catch (cause) {
+    error.value = cause.message;
+  } finally {
+    reportsLoading.value = false;
+  }
+}
+
+async function saveReport(report) {
+  const draft = ensureDraft(report);
+  reportSavingId.value = report.id;
+  error.value = '';
+  notice.value = '';
+  try {
+    const result = await request(`/api/admin/bug-reports/${report.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        status: draft.status,
+        adminComment: draft.adminComment || null,
+      }),
+    });
+    const updated = result.report;
+    reports.value = reports.value.map(item => (item.id === updated.id ? updated : item));
+    reportDrafts.value[updated.id] = {
+      status: updated.status,
+      adminComment: updated.adminComment || '',
+    };
+    notice.value = t('admin.reports.updateSuccess');
+  } catch (cause) {
+    error.value = cause.message;
+  } finally {
+    reportSavingId.value = null;
+  }
+}
+
+async function rewardReport(report) {
+  if (report.rewardedAt) return;
+  const confirmed = window.confirm(
+    t('admin.reports.rewardConfirm', { name: report.authorName || report.username || '' })
+  );
+  if (!confirmed) return;
+  reportRewardingId.value = report.id;
+  error.value = '';
+  notice.value = '';
+  try {
+    await request(`/api/admin/bug-reports/${report.id}/reward`, { method: 'POST' });
+    await loadReports();
+    notice.value = t('admin.reports.rewardSuccess', {
+      name: report.authorName || report.username || '',
+    });
+  } catch (cause) {
+    error.value = cause.message;
+  } finally {
+    reportRewardingId.value = null;
+  }
+}
 </script>
 
 <template>
@@ -171,7 +309,34 @@ async function freshResetPlayer() {
     <p v-if="error" class="alert alert--error mt-6" role="alert">{{ error }}</p>
     <p v-if="notice" class="alert alert--success mt-6" role="status">{{ notice }}</p>
 
-    <section class="panel mt-8" aria-labelledby="admin-player-title">
+    <div class="tabs mt-8" role="tablist" :aria-label="t('admin.title')">
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        :aria-selected="activeTab === 'players'"
+        data-testid="admin-tab-players"
+        @click="setTab('players')"
+      >
+        {{ t('admin.tabs.players') }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        :aria-selected="activeTab === 'reports'"
+        data-testid="admin-tab-reports"
+        @click="setTab('reports')"
+      >
+        {{ t('admin.tabs.reports') }}
+      </button>
+    </div>
+
+    <section
+      v-show="activeTab === 'players'"
+      class="panel mt-6"
+      aria-labelledby="admin-player-title"
+    >
       <div class="admin-section-heading">
         <div>
           <h2 id="admin-player-title" class="admin-title">{{ t('admin.players.title') }}</h2>
@@ -323,6 +488,110 @@ async function freshResetPlayer() {
         </div>
       </template>
     </section>
+
+    <section
+      v-show="activeTab === 'reports'"
+      class="panel mt-6"
+      aria-labelledby="admin-reports-title"
+      data-testid="admin-reports-panel"
+    >
+      <div class="admin-section-heading">
+        <div>
+          <h2 id="admin-reports-title" class="admin-title">{{ t('admin.reports.title') }}</h2>
+          <p class="admin-lead">{{ t('admin.reports.lead') }}</p>
+        </div>
+        <button type="button" class="btn-ghost" :disabled="reportsLoading" @click="loadReports">
+          {{ t('admin.reports.refresh') }}
+        </button>
+      </div>
+
+      <label class="admin-field mt-5">
+        <span>{{ t('admin.reports.filter') }}</span>
+        <select
+          v-model="reportFilter"
+          class="input-field"
+          data-testid="admin-reports-filter"
+          @change="loadReports"
+        >
+          <option value="">{{ t('admin.reports.filterAll') }}</option>
+          <option value="open">{{ t('admin.reports.statusOpen') }}</option>
+          <option value="in_progress">{{ t('admin.reports.statusInProgress') }}</option>
+          <option value="fixed">{{ t('admin.reports.statusFixed') }}</option>
+        </select>
+      </label>
+
+      <p v-if="reportsLoading" class="mt-4 text-sm text-ink-muted">{{ t('common.loading') }}</p>
+      <p v-else-if="!reports.length" class="mt-4 text-sm text-ink-muted">
+        {{ t('admin.reports.empty') }}
+      </p>
+
+      <div v-else class="admin-reports-list mt-5">
+        <article
+          v-for="report in reports"
+          :key="report.id"
+          class="admin-report"
+          :data-testid="`admin-report-${report.id}`"
+        >
+          <header class="admin-report__head">
+            <div>
+              <p class="admin-report__meta">
+                {{ formatDate(report.createdAt) }} · {{ report.authorName }}
+              </p>
+              <p class="admin-report__location">{{ locationLabel(report) }}</p>
+            </div>
+            <span class="admin-role-badge">{{ statusLabel(report.status) }}</span>
+          </header>
+          <p class="admin-report__desc">{{ report.description }}</p>
+          <div class="admin-report__actions">
+            <label class="admin-field">
+              <span>{{ t('admin.reports.colStatus') }}</span>
+              <select v-model="reportDrafts[report.id].status" class="input-field">
+                <option value="open">{{ t('admin.reports.statusOpen') }}</option>
+                <option value="in_progress">{{ t('admin.reports.statusInProgress') }}</option>
+                <option value="fixed">{{ t('admin.reports.statusFixed') }}</option>
+              </select>
+            </label>
+            <label class="admin-field admin-field--wide">
+              <span>{{ t('admin.reports.comment') }}</span>
+              <textarea
+                v-model="reportDrafts[report.id].adminComment"
+                class="input-field"
+                rows="2"
+                :placeholder="t('admin.reports.commentPlaceholder')"
+              />
+            </label>
+            <div class="admin-report__buttons">
+              <button
+                type="button"
+                class="btn-secondary"
+                :disabled="reportSavingId === report.id"
+                @click="saveReport(report)"
+              >
+                {{
+                  reportSavingId === report.id
+                    ? t('admin.reports.saving')
+                    : t('admin.reports.save')
+                }}
+              </button>
+              <button
+                type="button"
+                class="btn-primary"
+                :disabled="Boolean(report.rewardedAt) || reportRewardingId === report.id"
+                @click="rewardReport(report)"
+              >
+                {{
+                  report.rewardedAt
+                    ? t('admin.reports.rewarded')
+                    : reportRewardingId === report.id
+                      ? t('admin.reports.rewarding')
+                      : t('admin.reports.reward')
+                }}
+              </button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -437,6 +706,55 @@ async function freshResetPlayer() {
 .btn-danger:disabled {
   opacity: 0.6;
   cursor: wait;
+}
+
+.admin-reports-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-report {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-line);
+}
+
+.admin-report__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-report__meta {
+  color: var(--color-ink-muted);
+  font-size: 0.85rem;
+}
+
+.admin-report__location {
+  margin-top: 0.2rem;
+  font-weight: 600;
+}
+
+.admin-report__desc {
+  margin-top: 0.75rem;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+
+.admin-report__actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-field--wide {
+  max-width: none;
+}
+
+.admin-report__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 @media (max-width: 640px) {

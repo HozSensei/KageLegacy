@@ -4,6 +4,12 @@ import { getConnection, query } from '../config/database.js';
 import { requireAdmin } from '../middleware/admin.js';
 import { ASPIRANT_RANK, DEFAULT_AVATAR_ID } from '../services/characterAppearance.js';
 import { resetCharacterToFreshState } from '../services/characterFreshResetService.js';
+import {
+  BUG_REPORT_STATUSES,
+  listBugReports,
+  rewardBugReportAuthor,
+  updateBugReport,
+} from '../services/bugReportService.js';
 
 const router = Router();
 const resourceFields = Object.freeze({
@@ -240,6 +246,51 @@ router.post('/players/:id/reset', async (req, res, next) => {
     next(error);
   } finally {
     connection.release();
+  }
+});
+
+const bugReportPatchSchema = z
+  .object({
+    status: z.enum(BUG_REPORT_STATUSES).optional(),
+    adminComment: z.string().trim().max(2000).nullable().optional(),
+  })
+  .strict()
+  .refine(value => value.status != null || value.adminComment !== undefined, {
+    message: 'Indiquez un statut et/ou un commentaire.',
+  });
+
+router.get('/bug-reports', async (req, res, next) => {
+  try {
+    const statusRaw = String(req.query.status || '').trim();
+    const status = statusRaw || null;
+    const reports = await listBugReports({ status });
+    res.json({ reports });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch('/bug-reports/:id', async (req, res, next) => {
+  try {
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    const parsed = bugReportPatchSchema.parse(req.body || {});
+    const report = await updateBugReport(id, {
+      status: parsed.status,
+      adminComment: parsed.adminComment,
+    });
+    res.json({ report });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/bug-reports/:id/reward', async (req, res, next) => {
+  try {
+    const id = z.coerce.number().int().positive().parse(req.params.id);
+    const result = await rewardBugReportAuthor(id, req.user.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
   }
 });
 

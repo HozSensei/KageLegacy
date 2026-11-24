@@ -834,6 +834,39 @@ CREATE TABLE IF NOT EXISTS `coop_combat_sessions` (
   KEY `idx_coop_combat_state` (`state`),
   CONSTRAINT `fk_coop_combat_run` FOREIGN KEY (`coop_run_id`) REFERENCES `coop_mission_runs` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `bug_reports` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `location` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `location_other` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('open','in_progress','fixed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'open',
+  `admin_comment` text COLLATE utf8mb4_unicode_ci,
+  `rewarded_at` datetime(6) DEFAULT NULL,
+  `rewarded_by` int unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_bug_reports_status_created` (`status`,`created_at`),
+  KEY `idx_bug_reports_user` (`user_id`),
+  CONSTRAINT `fk_bug_reports_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bug_reports_rewarded_by` FOREIGN KEY (`rewarded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `user_notifications` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `kind` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `payload_json` json DEFAULT NULL,
+  `href` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `read_at` datetime(6) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_notifications_user_read_created` (`user_id`,`read_at`,`created_at`),
+  KEY `idx_user_notifications_kind` (`kind`),
+  CONSTRAINT `fk_user_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
