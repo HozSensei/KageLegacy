@@ -306,7 +306,8 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 
 .ninja-card__portrait {
   position: relative;
-  z-index: 5;
+  /* Au-dessus de ProfileCardAura (z-index 8) : avatar toujours devant les FX. */
+  z-index: 12;
   flex: none;
   width: clamp(5rem, 28cqi, 8rem);
   aspect-ratio: 1;
