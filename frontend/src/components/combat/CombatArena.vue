@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
           data-testid="play-card-btn"
           @click="emit('play-card')"
         >
-          {{ t(coopTurn === null ? 'combat.playCard' : 'coop.playOnEnemy') }}
+          {{ t('combat.playCard') }}
         </button>
         <button
           v-if="ally"
