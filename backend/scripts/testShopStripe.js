@@ -9,7 +9,10 @@ import {
   buildCoinPackLineItems,
   coinPackPriceEnvKey,
   fulfillShopCheckoutSession,
+  getShopPaymentMeta,
+  isPaymentsEnabled,
   isShopCheckoutSession,
+  isStripeCheckoutAvailable,
   resolveShopProductFromSession,
 } from '../src/services/shopStripeService.js';
 import { COIN_PACK_CATALOG, getCoinPack } from '../src/services/shopService.js';
@@ -18,6 +21,24 @@ import { query } from '../src/config/database.js';
 function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
+
+const prevPaiement = process.env.PAIEMENT_ENABLE;
+const prevStripeKey = process.env.STRIPE_SECRET_KEY;
+delete process.env.PAIEMENT_ENABLE;
+assert(isPaymentsEnabled() === true, 'PAIEMENT_ENABLE absent → activé');
+process.env.PAIEMENT_ENABLE = 'false';
+assert(isPaymentsEnabled() === false, 'PAIEMENT_ENABLE=false');
+process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
+assert(isStripeCheckoutAvailable() === false, 'checkout off si kill-switch');
+assert(getShopPaymentMeta().paymentsEnabled === false, 'meta paymentsEnabled');
+assert(getShopPaymentMeta().stripeEnabled === false, 'meta stripeEnabled off');
+process.env.PAIEMENT_ENABLE = 'true';
+assert(isStripeCheckoutAvailable() === true, 'checkout on si clés + flag');
+if (prevPaiement === undefined) delete process.env.PAIEMENT_ENABLE;
+else process.env.PAIEMENT_ENABLE = prevPaiement;
+if (prevStripeKey === undefined) delete process.env.STRIPE_SECRET_KEY;
+else process.env.STRIPE_SECRET_KEY = prevStripeKey;
+console.log('testShopStripe PAIEMENT_ENABLE: OK');
 
 assert(coinPackPriceEnvKey('ember') === 'STRIPE_PRICE_ID_COIN_EMBER', 'env key ember');
 const ember = getCoinPack('ember');

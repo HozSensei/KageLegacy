@@ -484,8 +484,16 @@ export async function unlockPremium(userId, { method = 'stub', isAdmin = false }
   else if (method === 'stripe') mode = 'stripe';
 
   if (mode === 'stripe') {
-    const { isStripeConfigured, createBattlePassCheckoutSession, isShopStripeDevFallbackAllowed } =
-      await import('./shopStripeService.js');
+    const {
+      isPaymentsEnabled,
+      isStripeConfigured,
+      createBattlePassCheckoutSession,
+      isShopStripeDevFallbackAllowed,
+    } = await import('./shopStripeService.js');
+
+    if (!isPaymentsEnabled()) {
+      throw httpError(503, 'Paiements désactivés (PAIEMENT_ENABLE=false).');
+    }
 
     if (isStripeConfigured()) {
       return createBattlePassCheckoutSession(userId);

@@ -9,6 +9,7 @@ defineProps({
   disabled: { type: Boolean, default: false },
   canStub: { type: Boolean, default: false },
   stripeEnabled: { type: Boolean, default: false },
+  paymentsEnabled: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(['purchase']);
@@ -32,7 +33,16 @@ const { t } = useI18n();
     <p class="welcome-pack__meta">{{ t('shop.welcome.once') }}</p>
     <div class="welcome-pack__actions">
       <button
-        v-if="stripeEnabled"
+        v-if="!paymentsEnabled"
+        type="button"
+        class="btn-primary"
+        disabled
+        data-testid="welcome-pack-coming-soon-btn"
+      >
+        {{ t('shop.comingSoon') }}
+      </button>
+      <button
+        v-else-if="stripeEnabled"
         type="button"
         class="btn-primary"
         :disabled="disabled || purchasing"
@@ -56,7 +66,7 @@ const { t } = useI18n();
         {{ purchasing ? t('shop.purchasing') : t('shop.welcome.buyStub') }}
       </button>
       <button
-        v-if="!stripeEnabled && !canStub"
+        v-if="paymentsEnabled && !stripeEnabled && !canStub"
         type="button"
         class="btn-primary"
         disabled

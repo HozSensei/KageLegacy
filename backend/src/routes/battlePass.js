@@ -35,9 +35,11 @@ router.get('/', async (req, res, next) => {
         premiumPriceEur: BATTLE_PASS_PREMIUM_PRICE_EUR,
         levelCostKageCoins: LEVEL_COST_KAGE_COINS,
         payments,
-        stripeNote: payments.stripeEnabled
-          ? `Stripe Checkout disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) — ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`
-          : 'Stripe non configuré — unlock-premium via kage_coins ou stub admin/dev.',
+        stripeNote: !payments.paymentsEnabled
+          ? 'Paiements bientôt disponibles — unlock via Kage Coins en attendant.'
+          : payments.stripeEnabled
+            ? `Stripe Checkout disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) — ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`
+            : 'Stripe non configuré — unlock-premium via kage_coins ou stub admin/dev.',
       },
     });
   } catch (error) {
