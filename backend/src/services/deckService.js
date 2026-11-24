@@ -394,7 +394,11 @@ export async function createDeck(
   const deckId = result.insertId;
   const deck =
     Array.isArray(cards) && cards.length > 0
-      ? await replaceDeckCards(userId, deckId, cards, { skipOnboarding: true })
+      ? await replaceDeckCards(userId, deckId, cards, {
+          skipOnboarding: true,
+          // Decks starter : ne pas valider l’exploit « Arsenal complet ».
+          skipAchievements: skipOnboarding,
+        })
       : await getDeck(userId, deckId);
 
   // Les decks starter (skipOnboarding) ne doivent pas valider l’objectif « Créer un deck ».
@@ -494,7 +498,12 @@ async function loadOwnedCollection(userId, collectionId) {
  * Remplace entièrement les cartes d’un deck.
  * cards: [{ collectionId, quantity }]
  */
-export async function replaceDeckCards(userId, deckId, cards, { skipOnboarding = false } = {}) {
+export async function replaceDeckCards(
+  userId,
+  deckId,
+  cards,
+  { skipOnboarding = false, skipAchievements = false } = {},
+) {
   await assertDeckOwner(deckId, userId);
 
   const normalized = [];
@@ -563,11 +572,13 @@ export async function replaceDeckCards(userId, deckId, cards, { skipOnboarding =
   }
 
   const deck = await getDeck(userId, deckId);
-  try {
-    const { onAchievementAction } = await import('./achievementService.js');
-    await onAchievementAction(userId, 'deck_size', Number(deck?.size) || 0);
-  } catch {
-    /* exploits optionnels */
+  if (!skipAchievements) {
+    try {
+      const { onAchievementAction } = await import('./achievementService.js');
+      await onAchievementAction(userId, 'deck_size', Number(deck?.size) || 0);
+    } catch {
+      /* exploits optionnels */
+    }
   }
   if (!skipOnboarding) {
     try {

@@ -85,11 +85,11 @@ Les quêtes daily/weekly sont rafraîchies automatiquement. Les récompenses de 
 
 ## Succès
 
-15 succès existent dans cinq catégories : combat, missions, collection, maîtrise et progression. Chaque succès possède plusieurs paliers et ses récompenses sont réclamées manuellement.
+13 succès existent dans cinq catégories : combat, missions, collection, maîtrise et progression. Chaque succès possède plusieurs paliers et ses récompenses sont réclamées manuellement.
 
 Récompenses possibles : Ryos, poussière, essence ou XP.
 
-Les hooks actifs suivent notamment : victoires, bosses, séries, défis de combat, runs terminés, collection, taille de deck et talents dépensés.
+Les hooks actifs suivent notamment : victoires, bosses, séries, défis de combat, runs terminés, collection, taille de deck et talents dépensés. Le pack de départ (cartes `starter` / `grant` et decks créés via le loadout) ne valide pas les paliers « cartes distinctes » ni « taille de deck » — il faut obtenir des cartes ou constituer un deck soi-même.
 
 ## Missions et récompenses
 

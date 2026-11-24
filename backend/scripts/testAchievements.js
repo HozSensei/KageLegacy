@@ -28,10 +28,24 @@ const assert = (c, m) => {
   }
 };
 console.log('=== Achievements unit ===');
-assert(ACHIEVEMENT_DEFS.length >= 15, 'size>=15');
+assert(ACHIEVEMENT_DEFS.length >= 13, 'size>=13');
 assert(
   ACHIEVEMENT_DEFS.every(d => d.tiers?.length && d.key && d.action),
   'defs ok'
+);
+const collectionDef = ACHIEVEMENT_DEFS.find(d => d.key === 'collection_owned');
+const deckDef = ACHIEVEMENT_DEFS.find(d => d.key === 'deck_size');
+assert(
+  /hors pack de départ|beyond the starter/i.test(
+    `${collectionDef?.descriptionFr || ''} ${collectionDef?.descriptionEn || ''}`
+  ),
+  'collection_owned clarifies starter exclusion'
+);
+assert(
+  /hors decks de départ|starter decks do not count/i.test(
+    `${deckDef?.descriptionFr || ''} ${deckDef?.descriptionEn || ''}`
+  ),
+  'deck_size clarifies starter exclusion'
 );
 async function main() {
   try {
@@ -94,6 +108,40 @@ async function main() {
       'dailies active'
     );
   }
+
+  // Starter loadout ne doit pas valider collection_owned / deck_size.
+  try {
+    const { ensureStarterLoadout } = await import('../src/services/starterLoadoutService.js');
+    const starterPrefix = `ach_st_${Date.now()}`;
+    const starterUser = await query('INSERT INTO users (username) VALUES (?)', [starterPrefix]);
+    const starterId = starterUser.insertId;
+    await query(
+      "INSERT INTO player_profiles (user_id, display_name, ryos, language, kage_coins, card_dust, card_essence) VALUES (?, ?, 5000, 'fr', 0, 0, 0)",
+      [starterId, starterPrefix]
+    );
+    const loadout = await ensureStarterLoadout(starterId);
+    assert(loadout.collectionCount >= 10, 'starter grants a collection');
+    assert(loadout.deckCreated === true || (loadout.decks || []).length > 0, 'starter creates decks');
+    const afterStarter = await getAchievementRegistry(starterId);
+    const owned = afterStarter.achievements.find(a => a.key === 'collection_owned');
+    const deckSize = afterStarter.achievements.find(a => a.key === 'deck_size');
+    assert((owned?.progress || 0) === 0, 'starter does not progress collection_owned');
+    assert(owned?.unlocked !== true, 'starter does not unlock collection_owned');
+    assert((deckSize?.progress || 0) === 0, 'starter does not progress deck_size');
+    assert(deckSize?.unlocked !== true, 'starter does not unlock deck_size');
+    const deckIds = await query('SELECT id FROM user_decks WHERE user_id = ?', [starterId]);
+    for (const deck of deckIds) {
+      await query('DELETE FROM user_deck_cards WHERE deck_id = ?', [deck.id]);
+    }
+    await query('DELETE FROM user_decks WHERE user_id=?', [starterId]);
+    await query('DELETE FROM user_card_collection WHERE user_id=?', [starterId]);
+    await query('DELETE FROM user_achievements WHERE user_id=?', [starterId]);
+    await query('DELETE FROM player_profiles WHERE user_id=?', [starterId]);
+    await query('DELETE FROM users WHERE id=?', [starterId]);
+  } catch (starterErr) {
+    console.warn(`  (starter achievement check skipped: ${starterErr.message})`);
+  }
+
   await query('DELETE FROM user_achievements WHERE user_id=?', [userId]);
   await query('DELETE FROM player_profiles WHERE user_id=?', [userId]);
   await query('DELETE FROM users WHERE id=?', [userId]);

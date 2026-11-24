@@ -93,7 +93,7 @@ Le reset rembourse chaque rang investi. Il est gratuit une fois tous les 10 nive
 
 ## Succès, factions et classement
 
-- Les succès suivent les actions de combat, mission, collection et talent. Leurs récompenses se réclament par palier.
+- Les succès suivent les actions de combat, mission, collection et talent. Leurs récompenses se réclament par palier. Le pack de départ ne compte pas pour les paliers collection / taille de deck.
 - Les villages n’accordent aucun bonus de combat. L’espace **Village** regroupe les amis et le classement hebdomadaire. Les membres du village vainqueur à l’ouverture de la semaine gagnent un lot, même s’ils n’ont joué aucun duel.
 - Le classement propose le classement par niveau, avec vue par faction.
 
