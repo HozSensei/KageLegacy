@@ -33,17 +33,19 @@ const leafCount = 14;
  */
 const rainDrops = computed(() => {
   const drops = [];
-  let x = 2;
+  let x = 1;
   let i = 0;
-  while (x < 98 && i < 26) {
-    const step = 2 + ((i * 7) % 4);
-    const delay = ((i * 37) % 90) / 100;
-    const duration = 0.55 + ((i * 13) % 45) / 100;
+  while (x < 99 && i < 42) {
+    const step = 1.5 + ((i * 5) % 3);
+    const delay = ((i * 29) % 95) / 100;
+    const duration = 0.45 + ((i * 11) % 40) / 100;
+    const layer = i % 3; // 0 front / 1 mid / 2 back
     drops.push({
       id: i,
       left: x,
       delay,
       duration,
+      layer,
     });
     x += step;
     i += 1;
@@ -56,7 +58,7 @@ const rainDrops = computed(() => {
   <span v-if="effect" class="card-aura" :class="`card-aura--${effect}`" aria-hidden="true">
     <template v-if="isSheen">
       <span class="card-aura__sheen-base" />
-      <span class="card-aura__sheen-sweep" />
+      <span class="card-aura__sheen-flash" />
     </template>
 
     <!-- Feuilles Google fill : Eco (vert) / Cannabis (orange, rose) -->
@@ -76,7 +78,7 @@ const rainDrops = computed(() => {
       </span>
     </template>
 
-    <!-- Pluie — stem + splat (arickle) -->
+    <!-- Pluie — stem + splat (arickle), densifiée pour lisibilité sur fiche -->
     <template v-else-if="effect === 'rain'">
       <span class="card-aura__weather card-aura__weather--rain" />
       <span class="card-aura__rain">
@@ -84,6 +86,7 @@ const rainDrops = computed(() => {
           v-for="drop in rainDrops"
           :key="`rain-${drop.id}`"
           class="card-aura__drop"
+          :class="`card-aura__drop--l${drop.layer}`"
           :style="{
             left: `${drop.left}%`,
             animationDelay: `${drop.delay}s`,
@@ -116,9 +119,11 @@ const rainDrops = computed(() => {
     </template>
 
     <template v-else-if="effect === 'mist_fade'">
+      <span class="card-aura__haze-veil" />
       <span class="card-aura__haze card-aura__haze--a" />
       <span class="card-aura__haze card-aura__haze--b" />
       <span class="card-aura__haze card-aura__haze--c" />
+      <span class="card-aura__haze card-aura__haze--d" />
     </template>
   </span>
 </template>
@@ -133,39 +138,58 @@ const rainDrops = computed(() => {
   pointer-events: none;
 }
 
-/* —— Reflets —— */
+/*
+ * Reflets : le « gros rectangle » venait d’un color-mix(…, transparent)
+ * qui interpolait vers du noir (srgb) — le fondu aux extrémités n’effaçait
+ * pas la bande. On varie uniquement l’alpha via rgb(from … / a).
+ */
 .card-aura__sheen-base {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   background: linear-gradient(
     118deg,
-    transparent 18%,
-    color-mix(in srgb, var(--aura-sheen-a) 22%, transparent) 38%,
-    color-mix(in srgb, var(--aura-sheen-b) 38%, transparent) 48%,
-    color-mix(in srgb, var(--aura-sheen-a) 18%, transparent) 58%,
-    transparent 78%
+    rgb(from var(--aura-sheen-a) r g b / 0) 12%,
+    rgb(from var(--aura-sheen-a) r g b / 0.2) 36%,
+    rgb(from var(--aura-sheen-b) r g b / 0.32) 48%,
+    rgb(from var(--aura-sheen-a) r g b / 0.16) 60%,
+    rgb(from var(--aura-sheen-a) r g b / 0) 82%
   );
-  opacity: 0.55;
   mix-blend-mode: soft-light;
 }
 
-.card-aura__sheen-sweep {
+.card-aura__sheen-flash {
   position: absolute;
-  top: -10%;
-  bottom: -10%;
-  left: -35%;
-  width: 42%;
+  top: -35%;
+  left: -40%;
+  width: 48%;
+  height: 170%;
   background: linear-gradient(
     100deg,
+    rgb(from var(--aura-sheen-b) r g b / 0) 0%,
+    rgb(from var(--aura-sheen-b) r g b / 0) 18%,
+    rgb(from var(--aura-sheen-b) r g b / 0.12) 34%,
+    rgb(from var(--aura-sheen-b) r g b / 0.38) 44%,
+    rgb(from #ffffff r g b / 0.55) 50%,
+    rgb(from var(--aura-sheen-b) r g b / 0.38) 56%,
+    rgb(from var(--aura-sheen-b) r g b / 0.12) 66%,
+    rgb(from var(--aura-sheen-b) r g b / 0) 82%,
+    rgb(from var(--aura-sheen-b) r g b / 0) 100%
+  );
+  transform: rotate(18deg);
+  transform-origin: center;
+  opacity: 0;
+  mix-blend-mode: screen;
+  filter: blur(0.6px);
+  animation: sheen-flash 4.2s ease-in-out infinite;
+  /* Double filet de sécurité : masque qui force l’effacement L/R */
+  mask-image: linear-gradient(
+    90deg,
     transparent 0%,
-    color-mix(in srgb, var(--aura-sheen-b) 70%, transparent) 45%,
+    #000 22%,
+    #000 78%,
     transparent 100%
   );
-  opacity: 0.65;
-  mix-blend-mode: screen;
-  filter: blur(0.5px);
-  animation: sheen-sweep 3.8s ease-in-out infinite;
 }
 
 .card-aura--sheen_gold {
@@ -217,7 +241,7 @@ const rainDrops = computed(() => {
 }
 
 .card-aura__weather--rain {
-  background: linear-gradient(180deg, rgb(30 50 80 / 0.28) 0%, rgb(15 25 45 / 0.14) 100%);
+  background: linear-gradient(180deg, rgb(20 35 60 / 0.42) 0%, rgb(12 20 38 / 0.22) 100%);
 }
 
 .card-aura__weather--snow {
@@ -358,6 +382,7 @@ const rainDrops = computed(() => {
 
 /* =========================================================
    Pluie — adapté de https://codepen.io/arickle/pen/XKjMZY
+   (traits plus épais / blancs pour rester lisibles sur une fiche)
    ========================================================= */
 .card-aura__rain {
   position: absolute;
@@ -366,29 +391,57 @@ const rainDrops = computed(() => {
 
 .card-aura__drop {
   position: absolute;
-  top: -12%;
-  width: 0.7rem;
-  height: 3.25rem;
+  top: -18%;
+  width: 0.85rem;
+  height: 4.5rem;
   pointer-events: none;
   animation-name: rain-drop;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  transform: rotate(12deg);
+}
+
+.card-aura__drop--l1 {
+  opacity: 0.72;
+  height: 3.6rem;
+}
+
+.card-aura__drop--l2 {
+  opacity: 0.48;
+  height: 2.8rem;
 }
 
 .card-aura__stem {
-  width: 1.5px;
-  height: 60%;
-  margin-left: 0.32rem;
-  background: linear-gradient(to bottom, transparent, rgb(220 235 255 / 0.85));
+  width: 2.5px;
+  height: 70%;
+  margin-left: 0.35rem;
+  border-radius: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgb(255 255 255 / 0.55) 35%,
+    rgb(230 245 255 / 0.95) 100%
+  );
+  box-shadow: 0 0 3px rgb(180 210 255 / 0.55);
   animation-name: rain-stem;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
 
+.card-aura__drop--l1 .card-aura__stem {
+  width: 2px;
+}
+
+.card-aura__drop--l2 .card-aura__stem {
+  width: 1.5px;
+  box-shadow: none;
+}
+
 .card-aura__splat {
-  width: 0.7rem;
-  height: 0.4rem;
-  border-top: 2px dotted rgb(220 235 255 / 0.65);
+  width: 0.9rem;
+  height: 0.45rem;
+  margin-left: -0.05rem;
+  border-top: 2px dotted rgb(255 255 255 / 0.85);
   border-radius: 50%;
   opacity: 1;
   transform: scale(0);
@@ -399,23 +452,22 @@ const rainDrops = computed(() => {
 
 @keyframes rain-drop {
   0% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0) rotate(12deg);
   }
-  75% {
-    /* Distance en rem : % serait relatif à la goutte, pas à la fiche */
-    transform: translateY(26rem);
+  72% {
+    transform: translate3d(0.6rem, 32rem, 0) rotate(12deg);
   }
   100% {
-    transform: translateY(26rem);
+    transform: translate3d(0.6rem, 32rem, 0) rotate(12deg);
   }
 }
 
 @keyframes rain-stem {
   0%,
-  65% {
+  62% {
     opacity: 1;
   }
-  75%,
+  74%,
   100% {
     opacity: 0;
   }
@@ -423,17 +475,17 @@ const rainDrops = computed(() => {
 
 @keyframes rain-splat {
   0%,
-  80% {
+  72% {
     opacity: 1;
     transform: scale(0);
   }
-  90% {
-    opacity: 0.55;
+  82% {
+    opacity: 0.75;
     transform: scale(1);
   }
   100% {
     opacity: 0;
-    transform: scale(1.5);
+    transform: scale(1.6);
   }
 }
 
@@ -491,68 +543,102 @@ const rainDrops = computed(() => {
   }
 }
 
-/* —— Brume —— */
+/* —— Brume : voile permanent + volutes plus opaques —— */
+.card-aura__haze-veil {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    165deg,
+    rgb(230 238 248 / 0.38) 0%,
+    rgb(255 255 255 / 0.18) 45%,
+    rgb(210 222 238 / 0.32) 100%
+  );
+  mix-blend-mode: soft-light;
+}
+
 .card-aura__haze {
   position: absolute;
-  width: 75%;
-  height: 50%;
+  width: 85%;
+  height: 58%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(255 255 255 / 0.42) 0%, transparent 72%);
-  filter: blur(14px);
-  animation: mist-fade 6.5s ease-in-out infinite;
+  background: radial-gradient(
+    ellipse at center,
+    rgb(255 255 255 / 0.78) 0%,
+    rgb(230 238 250 / 0.45) 42%,
+    transparent 74%
+  );
+  filter: blur(18px);
+  animation: mist-fade 5.8s ease-in-out infinite;
 }
 
 .card-aura__haze--a {
-  left: -14%;
-  top: 10%;
+  left: -18%;
+  top: 4%;
 }
 
 .card-aura__haze--b {
-  right: -16%;
-  bottom: 4%;
-  animation-delay: 2s;
+  right: -20%;
+  bottom: -2%;
+  animation-delay: 1.6s;
 }
 
 .card-aura__haze--c {
-  left: 18%;
-  top: 38%;
-  width: 60%;
-  height: 40%;
-  animation-delay: 3.5s;
+  left: 12%;
+  top: 32%;
+  width: 70%;
+  height: 48%;
+  animation-delay: 3s;
 }
 
-@keyframes sheen-sweep {
+.card-aura__haze--d {
+  left: 28%;
+  bottom: 8%;
+  width: 55%;
+  height: 36%;
+  animation-delay: 4.2s;
+  animation-duration: 7s;
+}
+
+@keyframes sheen-flash {
   0% {
-    transform: translateX(0);
-    opacity: 0.12;
+    transform: translateX(0) rotate(18deg);
+    opacity: 0;
   }
-  30% {
-    opacity: 0.75;
+  10% {
+    opacity: 0.9;
+  }
+  35% {
+    opacity: 0.55;
+  }
+  55% {
+    transform: translateX(260%) rotate(18deg);
+    opacity: 0;
   }
   100% {
-    transform: translateX(280%);
-    opacity: 0.08;
+    transform: translateX(260%) rotate(18deg);
+    opacity: 0;
   }
 }
 
 @keyframes mist-fade {
   0%,
   100% {
-    transform: translateX(0) scale(1);
-    opacity: 0.2;
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
   }
-  40% {
-    transform: translateX(10%) scale(1.1);
-    opacity: 0.85;
+  35% {
+    transform: translate3d(8%, -4%, 0) scale(1.12);
+    opacity: 0.95;
   }
-  70% {
-    transform: translateX(16%) scale(1.04);
-    opacity: 0.3;
+  65% {
+    transform: translate3d(14%, 2%, 0) scale(1.06);
+    opacity: 0.7;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card-aura__sheen-sweep,
+  .card-aura__sheen-flash,
   .card-aura__leaf,
   .card-aura__drop,
   .card-aura__stem,
@@ -560,6 +646,16 @@ const rainDrops = computed(() => {
   .card-aura__snow,
   .card-aura__haze {
     animation: none !important;
+  }
+
+  .card-aura__sheen-flash {
+    opacity: 0.35;
+    left: 35%;
+  }
+
+  .card-aura__haze,
+  .card-aura__haze-veil {
+    opacity: 0.7;
   }
 
   .card-aura__leaf {
