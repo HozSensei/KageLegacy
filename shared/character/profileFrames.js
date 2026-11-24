@@ -5,7 +5,6 @@ export const PROFILE_FRAME_IDS = Object.freeze([
   'frame_volt',
   'frame_mist',
   'frame_shadow',
-  'frame_leaf',
 ]);
 
 const known = new Set(PROFILE_FRAME_IDS);
@@ -20,8 +19,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_ember',
     name: Object.freeze({ fr: 'Braise', en: 'Ember' }),
     description: Object.freeze({
-      fr: 'Flammes et braises autour du portrait, reflet chaud sur la carte.',
-      en: 'Flames and embers around the portrait, warm sheen on the card.',
+      fr: 'Auréole de braise tournoyante autour du portrait.',
+      en: 'Swirling ember aura around the portrait.',
     }),
     effect: 'ember',
     ryos: 800,
@@ -30,8 +29,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_volt',
     name: Object.freeze({ fr: 'Volt', en: 'Volt' }),
     description: Object.freeze({
-      fr: 'Éclairs en zigzag sur le cadre, paillettes au survol.',
-      en: 'Zigzag lightning on the frame, glitter on hover.',
+      fr: 'Auréole électrique tournoyante autour du portrait.',
+      en: 'Swirling electric aura around the portrait.',
     }),
     effect: 'volt',
     ryos: 1200,
@@ -40,8 +39,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_mist',
     name: Object.freeze({ fr: 'Brume', en: 'Mist' }),
     description: Object.freeze({
-      fr: 'Voile de brume animé sur le portrait et la carte.',
-      en: 'Animated mist veil over the portrait and card.',
+      fr: 'Voile de brume animé autour du portrait.',
+      en: 'Animated mist veil around the portrait.',
     }),
     effect: 'mist',
     ryos: 900,
@@ -50,21 +49,11 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_shadow',
     name: Object.freeze({ fr: 'Ombre', en: 'Shadow' }),
     description: Object.freeze({
-      fr: 'Auréole d’ombre tournoyante et reflet violet.',
-      en: 'Swirling shadow aura with a violet sheen.',
+      fr: 'Auréole d’ombre tournoyante autour du portrait.',
+      en: 'Swirling shadow aura around the portrait.',
     }),
     effect: 'shadow',
     ryos: 1500,
-  }),
-  Object.freeze({
-    id: 'frame_leaf',
-    name: Object.freeze({ fr: 'Feuille', en: 'Leaf' }),
-    description: Object.freeze({
-      fr: 'Feuilles autour du cadre, chute de feuilles sur la carte.',
-      en: 'Leaves around the frame, falling leaves across the card.',
-    }),
-    effect: 'leaf',
-    ryos: 700,
   }),
 ]);
 

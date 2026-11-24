@@ -7,6 +7,7 @@ import { isValidFactionId } from './factionCatalog.js';
 import { buildPublicPlayerSnapshot } from './publicPlayerService.js';
 import { listGrantedNicknameIds } from './nicknameUnlockService.js';
 import { listGrantedFrameIds } from './frameUnlockService.js';
+import { listGrantedCardEffectIds } from './cardEffectUnlockService.js';
 
 const KINDS = new Set([
   'mission_victory',
@@ -135,6 +136,7 @@ export async function listActivityFeed({
             p.character_background_color,
             p.character_nickname_id,
             p.character_frame_id,
+            p.character_card_effect_id,
             p.character_highest_level,
             p.character_level AS level,
             p.character_rank AS \`rank\`,
@@ -151,9 +153,10 @@ export async function listActivityFeed({
   const hasMore = rows.length > capped;
   const events = [];
   for (const row of page) {
-    const [grantedNicknameIds, grantedFrameIds] = await Promise.all([
+    const [grantedNicknameIds, grantedFrameIds, grantedCardEffectIds] = await Promise.all([
       listGrantedNicknameIds(row.user_id),
       listGrantedFrameIds(row.user_id),
+      listGrantedCardEffectIds(row.user_id),
     ]);
     const snapshotRow = {
       ...row,
@@ -164,7 +167,11 @@ export async function listActivityFeed({
       kind: row.kind,
       missionKey: row.mission_key,
       createdAt: row.created_at,
-      player: buildPublicPlayerSnapshot(snapshotRow, { grantedNicknameIds, grantedFrameIds }),
+      player: buildPublicPlayerSnapshot(snapshotRow, {
+        grantedNicknameIds,
+        grantedFrameIds,
+        grantedCardEffectIds,
+      }),
     });
   }
 

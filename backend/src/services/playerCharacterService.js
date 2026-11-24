@@ -27,6 +27,11 @@ import {
   listGrantedFrameIds,
   isKnownProfileFrameId,
 } from './frameUnlockService.js';
+import {
+  catalogEntriesForGrantedCardEffectIds,
+  listGrantedCardEffectIds,
+  isKnownProfileCardEffectId,
+} from './cardEffectUnlockService.js';
 import { assignFactionFromSeed, getFaction, isValidFactionId } from './factionCatalog.js';
 
 export { MAX_LEVEL, rankForLevel };
@@ -146,22 +151,32 @@ function serializeCharacter(row, extras = {}) {
   const factionId = row.faction_id ?? extras.factionId ?? null;
   const grantedNicknameIds = extras.grantedNicknameIds || [];
   const grantedFrameIds = extras.grantedFrameIds || [];
+  const grantedCardEffectIds = extras.grantedCardEffectIds || [];
   const nicknameCatalog = mergeNicknameCatalog(catalogEntriesForGrantedIds(grantedNicknameIds));
   const frameCatalog = catalogEntriesForGrantedFrameIds(grantedFrameIds);
+  const cardEffectCatalog = catalogEntriesForGrantedCardEffectIds(grantedCardEffectIds);
   const restExtras = { ...extras };
   delete restExtras.grantedNicknameIds;
   delete restExtras.grantedFrameIds;
+  delete restExtras.grantedCardEffectIds;
   return {
     id: row.id,
     userId: row.user_id,
     name: row.name,
     avatarUrl: row.avatar_url || null,
     profile: {
-      ...serializeCharacterAppearance(row, grantedNicknameIds, grantedFrameIds),
+      ...serializeCharacterAppearance(
+        row,
+        grantedNicknameIds,
+        grantedFrameIds,
+        grantedCardEffectIds,
+      ),
       unlockedNicknameIds: unlockedNicknameIdsFor(row, grantedNicknameIds),
       nicknameCatalog,
       unlockedFrameIds: grantedFrameIds.filter(id => isKnownProfileFrameId(id)),
       frameCatalog,
+      unlockedCardEffectIds: grantedCardEffectIds.filter(id => isKnownProfileCardEffectId(id)),
+      cardEffectCatalog,
     },
     level: row.level,
     xp: row.xp,
@@ -182,7 +197,8 @@ async function fetchCharacterRow(userId, connection) {
   const sql = `SELECT id, user_id, character_name AS name,
             character_avatar_url AS avatar_url,
             character_avatar_id, character_background_id, character_background_color,
-            character_nickname_id, character_frame_id, character_highest_level,
+            character_nickname_id, character_frame_id, character_card_effect_id,
+            character_highest_level,
             character_level AS level, character_xp AS xp,
             character_rank AS \`rank\`,
             character_talent_points_available AS talent_points_available,
@@ -204,7 +220,8 @@ async function fetchCharacterRow(userId, connection) {
     const legacy = `SELECT id, user_id, character_name AS name,
             character_avatar_url AS avatar_url,
             character_avatar_id, character_background_id, character_background_color,
-            character_nickname_id, NULL AS character_frame_id, character_highest_level,
+            character_nickname_id, NULL AS character_frame_id,
+            NULL AS character_card_effect_id, character_highest_level,
             character_level AS level, character_xp AS xp,
             character_rank AS \`rank\`,
             character_talent_points_available AS talent_points_available,
@@ -303,12 +320,18 @@ export async function getCharacter(userId) {
   const row = await fetchCharacterRow(userId);
   if (!row) return null;
 
-  const [stats, grantedNicknameIds, grantedFrameIds] = await Promise.all([
+  const [stats, grantedNicknameIds, grantedFrameIds, grantedCardEffectIds] = await Promise.all([
     getComputedStats(userId),
     listGrantedNicknameIds(userId),
     listGrantedFrameIds(userId),
+    listGrantedCardEffectIds(userId),
   ]);
-  return serializeCharacter(row, { stats, grantedNicknameIds, grantedFrameIds });
+  return serializeCharacter(row, {
+    stats,
+    grantedNicknameIds,
+    grantedFrameIds,
+    grantedCardEffectIds,
+  });
 }
 
 export async function updateCharacterProfile(userId, input) {
@@ -332,16 +355,22 @@ export async function updateCharacterProfile(userId, input) {
     if (patch.frameId != null && !grantedFrameIds.includes(patch.frameId)) {
       throw httpError(400, 'Cadre non débloqué.');
     }
+    const grantedCardEffectIds = await listGrantedCardEffectIds(userId, connection);
+    if (patch.cardEffectId != null && !grantedCardEffectIds.includes(patch.cardEffectId)) {
+      throw httpError(400, 'Effet de fiche non débloqué.');
+    }
 
     const nextFrameId =
       patch.frameId === undefined ? row.character_frame_id : patch.frameId;
+    const nextCardEffectId =
+      patch.cardEffectId === undefined ? row.character_card_effect_id : patch.cardEffectId;
 
     try {
       await connection.execute(
         `UPDATE player_profiles
            SET character_avatar_id = ?, character_background_id = ?,
                character_background_color = ?, character_nickname_id = ?,
-               character_frame_id = ?,
+               character_frame_id = ?, character_card_effect_id = ?,
                character_updated_at = UTC_TIMESTAMP()
            WHERE id = ?`,
         [
@@ -352,6 +381,7 @@ export async function updateCharacterProfile(userId, input) {
             : (patch.backgroundColor?.toUpperCase() ?? null),
           patch.nicknameId === undefined ? row.character_nickname_id : patch.nicknameId,
           nextFrameId,
+          nextCardEffectId,
           row.id,
         ],
       );

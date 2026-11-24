@@ -30,7 +30,12 @@ function resolveAnchor(anchorOrEvent) {
   if (fromCurrent && typeof fromCurrent.getBoundingClientRect === 'function') return fromCurrent;
   const target = anchorOrEvent.target;
   if (target && typeof target.closest === 'function') {
-    return target.closest('.identity-chip') || target;
+    return (
+      target.closest('.identity-chip') ||
+      target.closest('.lb-player') ||
+      target.closest('[data-testid="leaderboard-player-cell"]') ||
+      target
+    );
   }
   return null;
 }

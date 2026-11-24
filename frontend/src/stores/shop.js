@@ -14,6 +14,7 @@ export const useShopStore = defineStore('shop', () => {
   const elements = ref([]);
   const coinPacks = ref([]);
   const frames = ref([]);
+  const cardEffects = ref([]);
 
   const battlePassOffer = ref(null);
   const welcomePack = ref(null);
@@ -164,6 +165,48 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  async function fetchCardEffects() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/card-effects`, { credentials: 'include' });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      cardEffects.value = body.cardEffects || [];
+      applyBalances(body.balances);
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function fetchCosmetics() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const [framesRes, effectsRes] = await Promise.all([
+        fetch(`${API_BASE}/api/shop/frames`, { credentials: 'include' }),
+        fetch(`${API_BASE}/api/shop/card-effects`, { credentials: 'include' }),
+      ]);
+      const framesParsed = await parseApiResponse(framesRes);
+      const effectsParsed = await parseApiResponse(effectsRes);
+      if (!framesParsed.ok) throw new Error(await readApiError(framesRes, framesParsed.body));
+      if (!effectsParsed.ok) throw new Error(await readApiError(effectsRes, effectsParsed.body));
+      frames.value = framesParsed.body.frames || [];
+      cardEffects.value = effectsParsed.body.cardEffects || [];
+      applyBalances(effectsParsed.body.balances || framesParsed.body.balances);
+      return { frames: frames.value, cardEffects: cardEffects.value };
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function buyDailyItem(itemId) {
     purchasing.value = true;
     error.value = null;
@@ -219,13 +262,41 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  async function purchaseCardEffect(effectId) {
+    purchasing.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/shop/card-effects/${encodeURIComponent(effectId)}/purchase`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        },
+      );
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      applyBalances(body.balances);
+      cardEffects.value = cardEffects.value.map(effect =>
+        effect.id === effectId ? { ...effect, owned: true } : effect,
+      );
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      purchasing.value = false;
+    }
+  }
+
   async function loadTab(tab = activeTab.value) {
     activeTab.value = tab;
     if (tab === 'boosters') return fetchBoosters();
     if (tab === 'items') return fetchDailyItems();
     if (tab === 'currency') return fetchCoinPacks();
     if (tab === 'battlePass') return fetchBattlePassOffer();
-    if (tab === 'cosmetics') return fetchFrames();
+    if (tab === 'cosmetics') return fetchCosmetics();
     return null;
   }
 
@@ -412,6 +483,7 @@ export const useShopStore = defineStore('shop', () => {
     elements,
     coinPacks,
     frames,
+    cardEffects,
 
     battlePassOffer,
     welcomePack,
@@ -432,6 +504,9 @@ export const useShopStore = defineStore('shop', () => {
     fetchCoinPacks,
     fetchFrames,
     purchaseFrame,
+    fetchCardEffects,
+    fetchCosmetics,
+    purchaseCardEffect,
 
     fetchBattlePassOffer,
     loadTab,

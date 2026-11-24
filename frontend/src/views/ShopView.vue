@@ -6,6 +6,7 @@ import BoosterSelection from '../components/shop/BoosterSelection.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue';
 import FrameCatalog from '../components/shop/FrameCatalog.vue';
+import CardEffectCatalog from '../components/shop/CardEffectCatalog.vue';
 
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue';
 import WelcomePackBanner from '../components/shop/WelcomePackBanner.vue';
@@ -365,8 +366,9 @@ async function onBuyItem(itemId) {
       </RouterLink>
     </div>
 
-    <div v-show="shop.activeTab === 'cosmetics'" class="mt-8">
+    <div v-show="shop.activeTab === 'cosmetics'" class="mt-8 shop-cosmetics">
       <FrameCatalog />
+      <CardEffectCatalog />
     </div>
 
     <div v-show="shop.activeTab === 'currency'" class="mt-8">
@@ -484,6 +486,11 @@ async function onBuyItem(itemId) {
   margin: 0.35rem 0 0;
   font-size: 0.8125rem;
   font-weight: 600;
+}
+
+.shop-cosmetics {
+  display: grid;
+  gap: 2rem;
 }
 
 /* Cérémonie plein écran — pas de panneau « boîte ». */

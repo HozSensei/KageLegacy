@@ -1306,12 +1306,21 @@
     "itemsOpenInventory": "Ouvrir l’inventaire",
     "cosmetics": {
       "title": "Cadres animés",
-      "lead": "Achetez des effets de profil avec des ryos.",
+      "lead": "Auréoles animées autour du portrait, achetables en ryos.",
       "owned": "Possédé",
       "buy": "Acheter ({n} ryos)",
       "buying": "Achat…",
       "buyFailed": "Impossible d'acheter ce cadre.",
       "buyOk": "Cadre débloqué !"
+    },
+    "cardEffects": {
+      "title": "Reflets & atmosphère",
+      "lead": "Effets sur toute la fiche : reflets colorés, feuilles, pluie, neige ou brume.",
+      "owned": "Possédé",
+      "buy": "Acheter ({n} ryos)",
+      "buying": "Achat…",
+      "buyFailed": "Impossible d'acheter cet effet.",
+      "buyOk": "Effet débloqué !"
     }
   },
   "talents": {
@@ -2065,17 +2074,30 @@
       "unsaved": "Changements non enregistrés.",
       "saved": "Apparence enregistrée.",
       "saveError": "Impossible d’enregistrer votre apparence. Veuillez réessayer.",
-      "frame": "Cadre animé"
+      "frame": "Cadre animé",
+      "cardEffect": "Reflet / atmosphère"
     },
     "frames": {
       "title": "Cadre de profil",
       "none": "Aucun cadre",
-      "lead": "Effets animés équipables sur votre fiche.",
+      "lead": "Achetez des cadres dans la boutique cosmétiques.",
       "frame_ember": "Braise",
       "frame_volt": "Volt",
       "frame_mist": "Brume",
       "frame_shadow": "Ombre",
-      "frame_leaf": "Feuille",
+      "locked": "Non débloqué"
+    },
+    "cardEffects": {
+      "title": "Effet de fiche",
+      "none": "Aucun effet",
+      "lead": "Achetez des reflets et atmosphères dans la boutique cosmétiques.",
+      "fx_sheen_gold": "Reflet ambre",
+      "fx_sheen_aurora": "Reflet aurore",
+      "fx_sheen_ruby": "Reflet rubis",
+      "fx_leaves": "Feuilles mortes",
+      "fx_rain": "Pluie",
+      "fx_snow": "Neige",
+      "fx_mist_fade": "Brume dissipée",
       "locked": "Non débloqué"
     }
   },

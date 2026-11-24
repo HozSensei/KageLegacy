@@ -88,7 +88,7 @@ const style = computed(() => ({
 }));
 
 function onAuraMove(event) {
-  if (!isNinja.value || !props.profile?.frameId) return;
+  if (!isNinja.value || !props.profile?.cardEffectId) return;
   if (event.pointerType === 'touch') return;
   const el = event.currentTarget;
   const rect = el.getBoundingClientRect();
@@ -142,7 +142,7 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
     @pointermove="onAuraMove"
     @pointerleave="onAuraLeave"
   >
-    <ProfileCardAura v-if="isNinja" :frame-id="profile?.frameId" />
+    <ProfileCardAura v-if="isNinja" :card-effect-id="profile?.cardEffectId" />
     <header class="ninja-card__head">
       <div v-if="isNinja" class="ninja-card__portrait">
         <span class="ninja-card__portrait-glow" aria-hidden="true" />

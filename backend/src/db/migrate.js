@@ -47,6 +47,12 @@ const COMPATIBILITY_COLUMNS = [
     'varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
     'character_nickname_id',
   ],
+  [
+    'player_profiles',
+    'character_card_effect_id',
+    'varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
+    'character_frame_id',
+  ],
   ['player_profiles', 'async_duel_enabled', 'TINYINT(1) NOT NULL DEFAULT 0', 'ryos'],
   [
     'player_profiles',
@@ -543,6 +549,19 @@ async function ensureCommunityTables(connection) {
     CONSTRAINT \`fk_pfu_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
+  await connection.query(`CREATE TABLE IF NOT EXISTS \`player_card_effect_unlocks\` (
+    \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+    \`user_id\` int unsigned NOT NULL,
+    \`effect_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    \`source\` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
+    \`source_ref\` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    \`unlocked_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (\`id\`),
+    UNIQUE KEY \`uq_pceu_user_effect\` (\`user_id\`,\`effect_id\`),
+    KEY \`idx_pceu_effect\` (\`effect_id\`),
+    CONSTRAINT \`fk_pceu_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
   await connection.query(`CREATE TABLE IF NOT EXISTS \`village_daily_honor_points\` (
     \`user_id\` int unsigned NOT NULL,
     \`scored_on\` date NOT NULL COMMENT 'Jour UTC',
@@ -613,8 +632,13 @@ async function ensureActiveBattlePassCommunityRewards(connection) {
   }
 
   const free10 = Array.isArray(rewards.free['10']) ? [...rewards.free['10']] : [];
-  if (!free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_leaf')) {
-    rewards.free['10'] = [...free10, { type: 'frame', frameId: 'frame_leaf', source: 'battle_pass' }];
+  const free10HasLeaf = free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_leaf');
+  const free10HasEmber = free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_ember');
+  if (free10HasLeaf || !free10HasEmber) {
+    const withoutLeaf = free10.filter(r => !(r?.type === 'frame' && r?.frameId === 'frame_leaf'));
+    rewards.free['10'] = free10HasEmber
+      ? withoutLeaf
+      : [...withoutLeaf, { type: 'frame', frameId: 'frame_ember', source: 'battle_pass' }];
     changed = true;
   }
 

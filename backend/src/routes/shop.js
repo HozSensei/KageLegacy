@@ -10,6 +10,8 @@ import {
   listCoinPacks,
   listCosmeticFrames,
   purchaseCosmeticFrame,
+  listCosmeticCardEffects,
+  purchaseCosmeticCardEffect,
   purchaseCoinPack,
   purchaseWelcomePackFromShop,
   unlockBattlePassFromShop,
@@ -166,6 +168,34 @@ router.post('/frames/:frameId/purchase', async (req, res, next) => {
     if (!user) return;
     const frameId = String(req.params.frameId || '');
     const result = await purchaseCosmeticFrame(user.id, frameId);
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** GET /api/shop/card-effects — effets atmosphériques de fiche (ryos) */
+router.get('/card-effects', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const [cardEffects, balances] = await Promise.all([
+      listCosmeticCardEffects(user.id),
+      getPlayerBalances(user.id),
+    ]);
+    res.json({ cardEffects, balances });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/shop/card-effects/:effectId/purchase — achat en ryos */
+router.post('/card-effects/:effectId/purchase', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const effectId = String(req.params.effectId || '');
+    const result = await purchaseCosmeticCardEffect(user.id, effectId);
     res.status(201).json(result);
   } catch (error) {
     next(error);

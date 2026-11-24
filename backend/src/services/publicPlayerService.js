@@ -8,6 +8,7 @@ import {
   isKnownAvatarId,
   isKnownCardBackgroundId,
   isKnownNicknameId,
+  isKnownProfileCardEffectId,
   isKnownProfileFrameId,
   normalizeProfileColor,
   serializeCharacterAppearance,
@@ -15,6 +16,7 @@ import {
 import { getFaction, isValidFactionId } from './factionCatalog.js';
 import { listGrantedNicknameIds } from './nicknameUnlockService.js';
 import { listGrantedFrameIds } from './frameUnlockService.js';
+import { listGrantedCardEffectIds } from './cardEffectUnlockService.js';
 
 function httpError(statusCode, message) {
   const err = new Error(message);
@@ -30,6 +32,7 @@ function sanitizeProfile(profile) {
       backgroundColor: null,
       nicknameId: null,
       frameId: null,
+      cardEffectId: null,
     };
   }
   return {
@@ -38,6 +41,7 @@ function sanitizeProfile(profile) {
     backgroundColor: normalizeProfileColor(profile.backgroundColor),
     nicknameId: isKnownNicknameId(profile.nicknameId) ? profile.nicknameId : null,
     frameId: isKnownProfileFrameId(profile.frameId) ? profile.frameId : null,
+    cardEffectId: isKnownProfileCardEffectId(profile.cardEffectId) ? profile.cardEffectId : null,
   };
 }
 
@@ -51,7 +55,13 @@ export function buildPublicPlayerSnapshot(row, extras = {}) {
 
   const grantedNicknameIds = extras.grantedNicknameIds || [];
   const grantedFrameIds = extras.grantedFrameIds || [];
-  const appearance = serializeCharacterAppearance(row, grantedNicknameIds, grantedFrameIds);
+  const grantedCardEffectIds = extras.grantedCardEffectIds || [];
+  const appearance = serializeCharacterAppearance(
+    row,
+    grantedNicknameIds,
+    grantedFrameIds,
+    grantedCardEffectIds,
+  );
   const factionId = row.faction_id ?? row.character_faction_id ?? extras.factionId ?? null;
   const name =
     row.name ||
@@ -80,6 +90,23 @@ const PUBLIC_SELECT = `SELECT p.user_id,
             p.character_background_color,
             p.character_nickname_id,
             p.character_frame_id,
+            p.character_card_effect_id,
+            p.character_highest_level,
+            p.character_level AS level,
+            p.character_rank AS \`rank\`,
+            p.character_faction_id AS faction_id
+     FROM player_profiles p
+     WHERE p.user_id = ? AND p.character_name IS NOT NULL
+     LIMIT 1`;
+
+const PUBLIC_SELECT_LEGACY = `SELECT p.user_id,
+            p.character_name AS name,
+            p.character_avatar_id,
+            p.character_background_id,
+            p.character_background_color,
+            p.character_nickname_id,
+            NULL AS character_frame_id,
+            NULL AS character_card_effect_id,
             p.character_highest_level,
             p.character_level AS level,
             p.character_rank AS \`rank\`,
@@ -92,15 +119,26 @@ export async function getPublicPlayer(userId) {
   const id = Number(userId);
   if (!Number.isSafeInteger(id) || id <= 0) throw httpError(400, 'Identifiant invalide.');
 
-  const rows = await query(PUBLIC_SELECT, [id]);
+  let rows;
+  try {
+    rows = await query(PUBLIC_SELECT, [id]);
+  } catch (err) {
+    if (err?.code !== 'ER_BAD_FIELD_ERROR') throw err;
+    rows = await query(PUBLIC_SELECT_LEGACY, [id]);
+  }
   const row = rows[0];
   if (!row) throw httpError(404, 'Joueur introuvable.');
 
-  const [grantedNicknameIds, grantedFrameIds] = await Promise.all([
+  const [grantedNicknameIds, grantedFrameIds, grantedCardEffectIds] = await Promise.all([
     listGrantedNicknameIds(id),
     listGrantedFrameIds(id),
+    listGrantedCardEffectIds(id),
   ]);
-  return buildPublicPlayerSnapshot(row, { grantedNicknameIds, grantedFrameIds });
+  return buildPublicPlayerSnapshot(row, {
+    grantedNicknameIds,
+    grantedFrameIds,
+    grantedCardEffectIds,
+  });
 }
 
 /**
@@ -128,6 +166,7 @@ export async function getPublicPlayersMap(userIds = []) {
               p.character_background_color,
               p.character_nickname_id,
               p.character_frame_id,
+              p.character_card_effect_id,
               p.character_highest_level,
               p.character_level AS level,
               p.character_rank AS \`rank\`,
@@ -137,7 +176,7 @@ export async function getPublicPlayersMap(userIds = []) {
       ids,
     );
   } catch (err) {
-    // Bases pas encore migrées : colonnes frame absentes.
+    // Bases pas encore migrées : colonnes frame / card effect absentes.
     if (err?.code === 'ER_BAD_FIELD_ERROR') {
       rows = await query(
         `SELECT p.user_id,
@@ -147,6 +186,7 @@ export async function getPublicPlayersMap(userIds = []) {
                 p.character_background_color,
                 p.character_nickname_id,
                 NULL AS character_frame_id,
+                NULL AS character_card_effect_id,
                 p.character_highest_level,
                 p.character_level AS level,
                 p.character_rank AS \`rank\`,
@@ -163,13 +203,18 @@ export async function getPublicPlayersMap(userIds = []) {
   const map = new Map();
   await Promise.all(
     rows.map(async row => {
-      const [grantedNicknameIds, grantedFrameIds] = await Promise.all([
+      const [grantedNicknameIds, grantedFrameIds, grantedCardEffectIds] = await Promise.all([
         listGrantedNicknameIds(row.user_id),
         listGrantedFrameIds(row.user_id),
+        listGrantedCardEffectIds(row.user_id),
       ]);
       map.set(
         row.user_id,
-        buildPublicPlayerSnapshot(row, { grantedNicknameIds, grantedFrameIds }),
+        buildPublicPlayerSnapshot(row, {
+          grantedNicknameIds,
+          grantedFrameIds,
+          grantedCardEffectIds,
+        }),
       );
     }),
   );
