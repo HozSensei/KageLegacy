@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AppIcon from '../ui/AppIcon.vue';
+import { profileFrameLabel } from '../../constants/profileFrames.js';
+import { ninjaNicknameLabel } from '../../utils/ninjaProfile.js';
 
 defineOptions({ name: 'BattlePassTrack' });
 
@@ -14,7 +16,7 @@ const props = defineProps({
 
 const emit = defineEmits(['claim']);
 
-const { t } = useI18n();
+const { t, te, locale } = useI18n();
 
 const isPremiumTrack = computed(() => props.trackType === 'premium');
 
@@ -38,7 +40,18 @@ function rewardLabel(reward) {
       return t('battlePass.reward.booster', {
         type: t(`battlePass.booster.${reward.boosterType || 'standard'}`),
       });
-
+    case 'nickname': {
+      const nicknameId = reward.nicknameId || reward.id;
+      return t('battlePass.reward.nickname', {
+        name: ninjaNicknameLabel(nicknameId, t, te, [], locale.value),
+      });
+    }
+    case 'frame': {
+      const frameId = reward.frameId || reward.id;
+      return t('battlePass.reward.frame', {
+        name: profileFrameLabel(frameId, t, te, locale.value),
+      });
+    }
     default:
       return reward.type;
   }

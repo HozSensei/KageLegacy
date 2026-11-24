@@ -254,19 +254,46 @@ export async function unlockBattlePassFromShop(
   return { ...result, offer };
 }
 
+export async function listCosmeticFrames(userId) {
+  const {
+    PROFILE_FRAME_CATALOG,
+    listGrantedFrameIds,
+  } = await import('./frameUnlockService.js');
+  const owned = new Set(await listGrantedFrameIds(userId));
+  return PROFILE_FRAME_CATALOG.map(frame => ({
+    id: frame.id,
+    nameFr: frame.name.fr,
+    nameEn: frame.name.en,
+    descriptionFr: frame.description.fr,
+    descriptionEn: frame.description.en,
+    effect: frame.effect,
+    ryos: frame.ryos,
+    owned: owned.has(frame.id),
+  }));
+}
+
+export async function purchaseCosmeticFrame(userId, frameId) {
+  const { purchaseFrameWithRyos } = await import('./frameUnlockService.js');
+  const result = await purchaseFrameWithRyos(userId, frameId);
+  const balances = await getPlayerBalances(userId);
+  return { ...result, balances };
+}
+
 export async function getShopOverview(userId) {
   const { getShopPaymentMeta } = await import('./shopStripeService.js');
   const { getWelcomePackOffer } = await import('./welcomePackService.js');
-  const [balances, battlePass, welcomePack] = await Promise.all([
+  const [balances, battlePass, welcomePack, frames] = await Promise.all([
     getPlayerBalances(userId),
     getBattlePassShopOffer(userId),
     getWelcomePackOffer(userId),
+    listCosmeticFrames(userId),
   ]);
   return {
     balances,
     coinPacks: listCoinPacks(),
     battlePass,
     welcomePack,
+    frames,
     payments: getShopPaymentMeta(),
   };
 }

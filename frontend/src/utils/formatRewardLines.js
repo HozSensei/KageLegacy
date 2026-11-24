@@ -34,6 +34,8 @@ export function formatGrant(grant, t, locale = 'fr') {
       return t('notifications.rewardCard');
     case 'nickname':
       return t('notifications.rewardNickname');
+    case 'frame':
+      return t('notifications.rewardFrame');
     default:
       return grant.type && n > 0 ? `+${n} ${grant.type}` : null;
   }

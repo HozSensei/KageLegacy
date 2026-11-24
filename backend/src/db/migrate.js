@@ -41,6 +41,12 @@ const COMPATIBILITY_COLUMNS = [
     'varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
     'character_background_id',
   ],
+  [
+    'player_profiles',
+    'character_frame_id',
+    'varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL',
+    'character_nickname_id',
+  ],
   ['player_profiles', 'async_duel_enabled', 'TINYINT(1) NOT NULL DEFAULT 0', 'ryos'],
   [
     'player_profiles',
@@ -523,6 +529,112 @@ async function ensureCoopMissionTables(connection, statements) {
   }
 }
 
+async function ensureCommunityTables(connection) {
+  await connection.query(`CREATE TABLE IF NOT EXISTS \`player_frame_unlocks\` (
+    \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+    \`user_id\` int unsigned NOT NULL,
+    \`frame_id\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    \`source\` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
+    \`source_ref\` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    \`unlocked_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (\`id\`),
+    UNIQUE KEY \`uq_pfu_user_frame\` (\`user_id\`,\`frame_id\`),
+    KEY \`idx_pfu_frame\` (\`frame_id\`),
+    CONSTRAINT \`fk_pfu_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  await connection.query(`CREATE TABLE IF NOT EXISTS \`village_daily_honor_points\` (
+    \`user_id\` int unsigned NOT NULL,
+    \`scored_on\` date NOT NULL COMMENT 'Jour UTC',
+    \`faction_id\` enum('midorihara','kareno','oborohama') COLLATE utf8mb4_unicode_ci NOT NULL,
+    \`points\` int unsigned NOT NULL DEFAULT '0',
+    \`first_reached_at\` datetime(6) NOT NULL,
+    \`updated_at\` datetime(6) NOT NULL,
+    PRIMARY KEY (\`user_id\`,\`scored_on\`),
+    KEY \`idx_vdhp_day_faction_points\` (\`scored_on\`,\`faction_id\`,\`points\` DESC,\`first_reached_at\`),
+    CONSTRAINT \`fk_vdhp_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  await connection.query(`CREATE TABLE IF NOT EXISTS \`community_activity_events\` (
+    \`id\` bigint unsigned NOT NULL AUTO_INCREMENT,
+    \`user_id\` int unsigned NOT NULL,
+    \`faction_id\` enum('midorihara','kareno','oborohama') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    \`kind\` enum('mission_victory','mission_defeat','coop_victory','coop_defeat') COLLATE utf8mb4_unicode_ci NOT NULL,
+    \`mission_key\` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+    \`created_at\` datetime(6) NOT NULL,
+    PRIMARY KEY (\`id\`),
+    KEY \`idx_cae_created\` (\`created_at\`),
+    KEY \`idx_cae_user_created\` (\`user_id\`,\`created_at\`),
+    CONSTRAINT \`fk_cae_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  console.log('✓ Tables communauté / cadres / honneur vérifiées.');
+}
+
+/** Patch idempotent : titre gratuit niv.4 + cadres BP sur la saison active. */
+async function ensureActiveBattlePassCommunityRewards(connection) {
+  const [tables] = await connection.query(
+    `SELECT 1 FROM information_schema.tables
+     WHERE table_schema = DATABASE() AND table_name = 'battle_pass_seasons' LIMIT 1`,
+  );
+  if (!tables.length) return;
+
+  const [seasons] = await connection.query(
+    `SELECT id, season_number, rewards_json
+     FROM battle_pass_seasons
+     WHERE is_active = 1
+     ORDER BY id DESC LIMIT 1`,
+  );
+  if (!seasons.length) return;
+
+  const season = seasons[0];
+  let rewards;
+  try {
+    rewards =
+      typeof season.rewards_json === 'string'
+        ? JSON.parse(season.rewards_json)
+        : season.rewards_json;
+  } catch {
+    return;
+  }
+  if (!rewards?.free || !rewards?.premium) return;
+
+  const seasonNumber = Number(season.season_number) || 1;
+  const freeNickId = `season_${seasonNumber}_free`;
+  let changed = false;
+
+  const free4 = Array.isArray(rewards.free['4']) ? [...rewards.free['4']] : [];
+  if (!free4.some(r => r?.type === 'nickname' && r?.nicknameId === freeNickId)) {
+    rewards.free['4'] = [
+      ...free4.filter(r => r?.type !== 'nickname'),
+      { type: 'nickname', nicknameId: freeNickId, source: 'battle_pass' },
+    ];
+    changed = true;
+  }
+
+  const free10 = Array.isArray(rewards.free['10']) ? [...rewards.free['10']] : [];
+  if (!free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_leaf')) {
+    rewards.free['10'] = [...free10, { type: 'frame', frameId: 'frame_leaf', source: 'battle_pass' }];
+    changed = true;
+  }
+
+  const prem15 = Array.isArray(rewards.premium['15']) ? [...rewards.premium['15']] : [];
+  if (!prem15.some(r => r?.type === 'frame' && r?.frameId === 'frame_volt')) {
+    rewards.premium['15'] = [
+      ...prem15,
+      { type: 'frame', frameId: 'frame_volt', source: 'battle_pass' },
+    ];
+    changed = true;
+  }
+
+  if (!changed) return;
+  await connection.query('UPDATE battle_pass_seasons SET rewards_json = CAST(? AS JSON) WHERE id = ?', [
+    JSON.stringify(rewards),
+    season.id,
+  ]);
+  console.log(`✓ Récompenses communauté injectées dans la saison BP #${season.id}.`);
+}
+
 async function installWeeklyVillageRewards(connection) {
   // L'ancrage et la photo initiale sont atomiques et ne bougent pas aux relances.
   const firstWeek = `DATE_ADD(${UTC_WEEK_START}, INTERVAL 7 DAY)`;
@@ -651,6 +763,8 @@ async function migrate() {
       await ensureCharacterProfile(connection);
       await ensureAsyncDuelTables(connection, statements);
       await ensureCoopMissionTables(connection, statements);
+      await ensureCommunityTables(connection);
+      await ensureActiveBattlePassCommunityRewards(connection);
       await installWeeklyVillageRewards(connection);
       await ensureRankMissions(connection);
       await ensureOnboardingTable();
@@ -690,6 +804,8 @@ async function migrate() {
     await ensureCompatibilityColumns(connection);
     await ensureAsyncDuelTables(connection, statements);
     await ensureCoopMissionTables(connection, statements);
+    await ensureCommunityTables(connection);
+    await ensureActiveBattlePassCommunityRewards(connection);
     await installWeeklyVillageRewards(connection);
     await ensureRankMissions(connection);
     await ensureOnboardingTable();

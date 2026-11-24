@@ -28,6 +28,15 @@ export async function processDailyRetentionTick() {
     console.error('[DailyRetention] refresh BP quests failed:', err?.message || err);
     battlePassQuests = { error: err?.message || String(err) };
   }
+
+  let activityPurge = null;
+  try {
+    const { purgeOldActivityEvents } = await import('./communityActivityService.js');
+    activityPurge = await purgeOldActivityEvents();
+  } catch (err) {
+    console.error('[DailyRetention] activity purge failed:', err?.message || err);
+    activityPurge = { error: err?.message || String(err) };
+  }
   lastDailyRetentionDate = today;
 
   console.log(
@@ -41,7 +50,7 @@ export async function processDailyRetentionTick() {
     );
   }
 
-  return { date: today, guestCleanup, battlePassRotation, battlePassQuests };
+  return { date: today, guestCleanup, battlePassRotation, battlePassQuests, activityPurge };
 }
 
 export function resetDailyRetentionCacheForTests() {

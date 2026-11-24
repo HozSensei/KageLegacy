@@ -492,6 +492,7 @@
     "rewardBooster": "{kind} booster",
     "rewardCard": "Card obtained",
     "rewardNickname": "Title unlocked",
+    "rewardFrame": "Frame unlocked",
     "rewardPurse": "Purse returned: +{n} Ryos",
     "viewBattlePass": "View Battle Pass",
     "viewHome": "View Home",
@@ -1231,9 +1232,10 @@
     "buyAnotherBooster": "Buy another booster",
     "tabs": {
       "boosters": "Boosters",
+      "items": "Items",
+      "cosmetics": "Cosmetics",
       "currency": "Currency",
-      "battlePass": "Battle Pass",
-      "items": "Items"
+      "battlePass": "Battle Pass"
     },
     "comingSoon": "Coming soon",
     "paymentsComingSoonNote": "Payments are coming soon — packs and offers stay visible.",
@@ -1301,7 +1303,16 @@
     "itemsBuy": "Buy",
     "itemsSoldOut": "Sold out",
     "itemsEmpty": "No offers today.",
-    "itemsOpenInventory": "Open inventory"
+    "itemsOpenInventory": "Open inventory",
+    "cosmetics": {
+      "title": "Animated frames",
+      "lead": "Buy profile effects with ryos.",
+      "owned": "Owned",
+      "buy": "Buy ({n} ryos)",
+      "buying": "Buying…",
+      "buyFailed": "Could not buy this frame.",
+      "buyOk": "Frame unlocked!"
+    }
   },
   "talents": {
     "kicker": "Progression",
@@ -1809,7 +1820,11 @@
     "loadFailed": "Could not load friends and requests. Select Refresh to try again.",
     "searchFailed": "Search failed. Please try again.",
     "updateFailed": "Could not confirm the change. Refresh the list before trying again.",
-    "updated": "Friends and requests updated."
+    "updated": "Friends and requests updated.",
+    "openProfile": "View {name}’s profile",
+    "profileModalTitle": "Ninja profile",
+    "profileLoadFailed": "Could not load this profile.",
+    "unknownPlayer": "Unknown ninja"
   },
   "deckDuels": {
     "title": "PvP duels",
@@ -1858,6 +1873,7 @@
     "challenge": "Challenge",
     "challengeName": "Challenge {name}",
     "aiOpponent": "AI-controlled opponent",
+    "vsOpponent": "Versus {name}",
     "historyTitle": "Defense history",
     "emptyHistory": "No completed defenses yet.",
     "noReward": "No reward",
@@ -1989,7 +2005,9 @@
       "essence": "{n} Essence",
       "kageCoins": "{n} Kage Coins",
       "card": "{n}× {rarity} card",
-      "booster": "{type} booster"
+      "booster": "{type} booster",
+      "nickname": "Title: {name}",
+      "frame": "Frame: {name}"
     },
     "rarity": {
       "common": "normal",
@@ -2064,7 +2082,14 @@
       "jonin": "Shinobi Elite",
       "anbu": "Silent Blade",
       "kage": "Village Legend",
-      "welcome": "Village Patron"
+      "welcome": "Village Patron",
+      "ach_combat": "Proven Blade",
+      "ach_missions": "Pathfinder",
+      "ach_collection": "Clan Archivist",
+      "ach_mastery": "Art Master",
+      "ach_progression": "Ascending Path",
+      "season": "Season {n} Shadow",
+      "season_free": "Season {n} Scout"
     },
     "avatarPicker": {
       "label": "Portrait",
@@ -2096,7 +2121,19 @@
       "discarded": "Changes discarded.",
       "unsaved": "Unsaved changes.",
       "saved": "Appearance saved.",
-      "saveError": "Couldn’t save your appearance. Please try again."
+      "saveError": "Couldn’t save your appearance. Please try again.",
+      "frame": "Animated frame"
+    },
+    "frames": {
+      "title": "Profile frame",
+      "none": "No frame",
+      "lead": "Animated effects for your profile card.",
+      "frame_ember": "Ember",
+      "frame_volt": "Volt",
+      "frame_mist": "Mist",
+      "frame_shadow": "Shadow",
+      "frame_leaf": "Leaf",
+      "locked": "Locked"
     }
   },
   "league": {
@@ -2705,6 +2742,33 @@
       "league_participate": "League match (loss / draw)",
       "chunin_success": "Chunin exam success",
       "bird_flight_success": "Bird Flight success"
+    },
+    "honor": {
+      "title": "Ninja of honor",
+      "forVillage": "Village: {name}",
+      "pickVillage": "Select a village in the standings.",
+      "empty": "No honor points today for this village.",
+      "points": "{n} point today | {n} points today"
+    },
+    "activity": {
+      "title": "Activity wall",
+      "lead": "Recently completed or failed solo and coop missions.",
+      "filterVillage": "Village",
+      "filterOutcome": "Outcome",
+      "allVillages": "All villages",
+      "allOutcomes": "Wins and losses",
+      "successOnly": "Wins only",
+      "failureOnly": "Losses only",
+      "loadFailed": "Could not load the activity wall.",
+      "empty": "No recent activity.",
+      "loadingMore": "Loading…",
+      "end": "End of feed.",
+      "kinds": {
+        "mission_victory": "completed a mission",
+        "mission_defeat": "failed a mission",
+        "coop_victory": "completed a team mission",
+        "coop_defeat": "failed a team mission"
+      }
     }
   },
   "theme": {

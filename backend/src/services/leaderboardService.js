@@ -52,6 +52,7 @@ function serializeEntry(row, rank) {
     factionId,
     faction: factionId ? getFaction(factionId) : null,
     score: Number(row.level) || 1,
+    profile: row.profile || null,
   };
 }
 
@@ -110,13 +111,34 @@ export async function getLeaderboard({
     factionId,
   });
 
-  const entries = rows.map((row, index) =>
-    serializeEntry(row, pagination.offset + index + 1),
-  );
+  let profileMap = new Map();
+  try {
+    const { getPublicPlayersMap } = await import('./publicPlayerService.js');
+    profileMap = await getPublicPlayersMap(rows.map(row => row.user_id));
+  } catch {
+    profileMap = new Map();
+  }
+
+  const entries = rows.map((row, index) => {
+    const snapshot = profileMap.get(row.user_id);
+    return serializeEntry(
+      { ...row, profile: snapshot?.profile || null },
+      pagination.offset + index + 1,
+    );
+  });
 
   let me = null;
   if (viewerUserId) {
     me = await getViewerRank({ userId: viewerUserId, factionId });
+    if (me) {
+      try {
+        const { getPublicPlayer } = await import('./publicPlayerService.js');
+        const snapshot = await getPublicPlayer(viewerUserId);
+        me.profile = snapshot?.profile || null;
+      } catch {
+        me.profile = null;
+      }
+    }
   }
 
   return {

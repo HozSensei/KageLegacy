@@ -22,6 +22,11 @@ import {
   catalogEntriesForGrantedIds,
   listGrantedNicknameIds,
 } from './nicknameUnlockService.js';
+import {
+  catalogEntriesForGrantedFrameIds,
+  listGrantedFrameIds,
+  isKnownProfileFrameId,
+} from './frameUnlockService.js';
 import { assignFactionFromSeed, getFaction, isValidFactionId } from './factionCatalog.js';
 
 export { MAX_LEVEL, rankForLevel };
@@ -140,18 +145,23 @@ function serializeCharacter(row, extras = {}) {
   if (!row) return null;
   const factionId = row.faction_id ?? extras.factionId ?? null;
   const grantedNicknameIds = extras.grantedNicknameIds || [];
+  const grantedFrameIds = extras.grantedFrameIds || [];
   const nicknameCatalog = mergeNicknameCatalog(catalogEntriesForGrantedIds(grantedNicknameIds));
+  const frameCatalog = catalogEntriesForGrantedFrameIds(grantedFrameIds);
   const restExtras = { ...extras };
   delete restExtras.grantedNicknameIds;
+  delete restExtras.grantedFrameIds;
   return {
     id: row.id,
     userId: row.user_id,
     name: row.name,
     avatarUrl: row.avatar_url || null,
     profile: {
-      ...serializeCharacterAppearance(row, grantedNicknameIds),
+      ...serializeCharacterAppearance(row, grantedNicknameIds, grantedFrameIds),
       unlockedNicknameIds: unlockedNicknameIdsFor(row, grantedNicknameIds),
       nicknameCatalog,
+      unlockedFrameIds: grantedFrameIds.filter(id => isKnownProfileFrameId(id)),
+      frameCatalog,
     },
     level: row.level,
     xp: row.xp,
@@ -172,7 +182,7 @@ async function fetchCharacterRow(userId, connection) {
   const sql = `SELECT id, user_id, character_name AS name,
             character_avatar_url AS avatar_url,
             character_avatar_id, character_background_id, character_background_color,
-            character_nickname_id, character_highest_level,
+            character_nickname_id, character_frame_id, character_highest_level,
             character_level AS level, character_xp AS xp,
             character_rank AS \`rank\`,
             character_talent_points_available AS talent_points_available,
@@ -184,10 +194,33 @@ async function fetchCharacterRow(userId, connection) {
      FROM player_profiles
      WHERE user_id = ? AND character_name IS NOT NULL
      LIMIT 1`;
-  const rows = connection
-    ? (await connection.execute(`${sql} FOR UPDATE`, [userId]))[0]
-    : await query(sql, [userId]);
-  return rows[0] || null;
+  try {
+    const rows = connection
+      ? (await connection.execute(`${sql} FOR UPDATE`, [userId]))[0]
+      : await query(sql, [userId]);
+    return rows[0] || null;
+  } catch (err) {
+    if (err?.code !== 'ER_BAD_FIELD_ERROR') throw err;
+    const legacy = `SELECT id, user_id, character_name AS name,
+            character_avatar_url AS avatar_url,
+            character_avatar_id, character_background_id, character_background_color,
+            character_nickname_id, NULL AS character_frame_id, character_highest_level,
+            character_level AS level, character_xp AS xp,
+            character_rank AS \`rank\`,
+            character_talent_points_available AS talent_points_available,
+            character_element_affinity AS element_affinity,
+            character_faction_id AS faction_id,
+            character_faction_retake_used AS faction_retake_used,
+            character_created_at AS created_at,
+            character_updated_at AS updated_at
+     FROM player_profiles
+     WHERE user_id = ? AND character_name IS NOT NULL
+     LIMIT 1`;
+    const rows = connection
+      ? (await connection.execute(`${legacy} FOR UPDATE`, [userId]))[0]
+      : await query(legacy, [userId]);
+    return rows[0] || null;
+  }
 }
 
 /**
@@ -270,11 +303,12 @@ export async function getCharacter(userId) {
   const row = await fetchCharacterRow(userId);
   if (!row) return null;
 
-  const [stats, grantedNicknameIds] = await Promise.all([
+  const [stats, grantedNicknameIds, grantedFrameIds] = await Promise.all([
     getComputedStats(userId),
     listGrantedNicknameIds(userId),
+    listGrantedFrameIds(userId),
   ]);
-  return serializeCharacter(row, { stats, grantedNicknameIds });
+  return serializeCharacter(row, { stats, grantedNicknameIds, grantedFrameIds });
 }
 
 export async function updateCharacterProfile(userId, input) {
@@ -294,23 +328,52 @@ export async function updateCharacterProfile(userId, input) {
     ) {
       throw httpError(400, 'Surnom non débloqué.');
     }
+    const grantedFrameIds = await listGrantedFrameIds(userId, connection);
+    if (patch.frameId != null && !grantedFrameIds.includes(patch.frameId)) {
+      throw httpError(400, 'Cadre non débloqué.');
+    }
 
-    await connection.execute(
-      `UPDATE player_profiles
-         SET character_avatar_id = ?, character_background_id = ?,
-             character_background_color = ?, character_nickname_id = ?,
-             character_updated_at = UTC_TIMESTAMP()
-         WHERE id = ?`,
-      [
-        patch.avatarId ?? row.character_avatar_id,
-        patch.backgroundId === undefined ? row.character_background_id : patch.backgroundId,
-        patch.backgroundColor === undefined
-          ? row.character_background_color
-          : (patch.backgroundColor?.toUpperCase() ?? null),
-        patch.nicknameId === undefined ? row.character_nickname_id : patch.nicknameId,
-        row.id,
-      ],
-    );
+    const nextFrameId =
+      patch.frameId === undefined ? row.character_frame_id : patch.frameId;
+
+    try {
+      await connection.execute(
+        `UPDATE player_profiles
+           SET character_avatar_id = ?, character_background_id = ?,
+               character_background_color = ?, character_nickname_id = ?,
+               character_frame_id = ?,
+               character_updated_at = UTC_TIMESTAMP()
+           WHERE id = ?`,
+        [
+          patch.avatarId ?? row.character_avatar_id,
+          patch.backgroundId === undefined ? row.character_background_id : patch.backgroundId,
+          patch.backgroundColor === undefined
+            ? row.character_background_color
+            : (patch.backgroundColor?.toUpperCase() ?? null),
+          patch.nicknameId === undefined ? row.character_nickname_id : patch.nicknameId,
+          nextFrameId,
+          row.id,
+        ],
+      );
+    } catch (err) {
+      if (err?.code !== 'ER_BAD_FIELD_ERROR') throw err;
+      await connection.execute(
+        `UPDATE player_profiles
+           SET character_avatar_id = ?, character_background_id = ?,
+               character_background_color = ?, character_nickname_id = ?,
+               character_updated_at = UTC_TIMESTAMP()
+           WHERE id = ?`,
+        [
+          patch.avatarId ?? row.character_avatar_id,
+          patch.backgroundId === undefined ? row.character_background_id : patch.backgroundId,
+          patch.backgroundColor === undefined
+            ? row.character_background_color
+            : (patch.backgroundColor?.toUpperCase() ?? null),
+          patch.nicknameId === undefined ? row.character_nickname_id : patch.nicknameId,
+          row.id,
+        ],
+      );
+    }
   });
 
   return getCharacter(userId);

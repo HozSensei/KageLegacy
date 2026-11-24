@@ -6,7 +6,10 @@ import CombatArena from '../components/combat/CombatArena.vue';
 import MissionPathTree from '../components/missions/MissionPathTree.vue';
 import VictoryRewards from '../components/combat/VictoryRewards.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
+import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
+import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
 import { useCoopApi } from '../composables/useCoopApi.js';
+import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
 import { useAuthStore } from '../stores/auth.js';
 import { useNotificationsStore } from '../stores/notifications.js';
 import { needsFriendlyFireConfirmation } from '../utils/coopCards.js';
@@ -28,6 +31,14 @@ const auth = useAuthStore();
 const api = useCoopApi();
 const notifications = useNotificationsStore();
 const shop = useShopStore();
+const {
+  open: profileOpen,
+  loading: profileLoading,
+  error: profileError,
+  player: profilePlayer,
+  show: showProfile,
+  close: closeProfile,
+} = usePublicPlayerModal();
 
 const error = ref('');
 const selectedId = ref(null);
@@ -292,15 +303,27 @@ function cancelConfirm() {
     <p v-if="error" class="alert alert--danger" role="alert">{{ error }}</p>
 
     <template v-if="run && !combat">
-      <p class="text-ink-muted">
-        {{ isHost ? t('coop.hostHint') : t('coop.guestHint') }}
-        —
-        {{ t('coop.hp', { hp: player.hp ?? 0, max: player.maxHp ?? 0 }) }}
-        /
-        {{ t('coop.purse', { n: player.purse || 0 }) }}
-        /
-        {{ t('coop.allyHp', { hp: run.ally?.hp, max: run.ally?.maxHp }) }}
-      </p>
+      <div class="coop-run__status">
+        <p class="text-ink-muted">
+          {{ isHost ? t('coop.hostHint') : t('coop.guestHint') }}
+          —
+          {{ t('coop.hp', { hp: player.hp ?? 0, max: player.maxHp ?? 0 }) }}
+          /
+          {{ t('coop.purse', { n: player.purse || 0 }) }}
+        </p>
+        <div v-if="run.ally" class="coop-run__ally">
+          <PlayerIdentityChip
+            :user-id="run.ally.userId"
+            :name="run.ally.name || t('combat.allyLabel')"
+            :profile="run.ally.profile"
+            :level="run.ally.level"
+            @open="showProfile"
+          />
+          <span class="text-ink-muted">
+            {{ t('coop.allyHp', { hp: run.ally.hp, max: run.ally.maxHp }) }}
+          </span>
+        </div>
+      </div>
 
       <!-- Inventaire hors combat (comme en solo) : utilisable entre les étapes, pas seulement en boutique. -->
       <section
@@ -512,6 +535,14 @@ function cancelConfirm() {
         </div>
       </dialog>
     </template>
+
+    <PlayerProfileModal
+      :open="profileOpen"
+      :loading="profileLoading"
+      :error="profileError"
+      :player="profilePlayer"
+      @close="closeProfile"
+    />
   </div>
 </template>
 
@@ -519,6 +550,18 @@ function cancelConfirm() {
 .coop-run--combat {
   /* Écarte le bandeau TOUR de la bordure basse de l’app-bar (comme combat-shell). */
   padding-top: 1.25rem;
+}
+
+.coop-run__status {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.coop-run__ally {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
 }
 
 .coop-run__actions,

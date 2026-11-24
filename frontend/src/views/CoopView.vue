@@ -3,8 +3,11 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink, useRouter } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
+import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
+import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
 import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 import { useCoopApi } from '../composables/useCoopApi.js';
+import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
 import { useMissionsStore } from '../stores/missions.js';
 import { useInventoryStore } from '../stores/inventory.js';
 import { localizedName } from '../utils/localeContent.js';
@@ -15,6 +18,14 @@ const { t, locale } = useI18n();
 const router = useRouter();
 const missions = useMissionsStore();
 const inventory = useInventoryStore();
+const {
+  open: profileOpen,
+  loading: profileLoading,
+  error: profileError,
+  player: profilePlayer,
+  show: showProfile,
+  close: closeProfile,
+} = usePublicPlayerModal();
 const {
   room,
   run,
@@ -182,6 +193,24 @@ function leaveLobby() {
       <p class="text-ink-muted">
         {{ isHost ? t('coop.youAreHost') : t('coop.youAreGuest') }}
       </p>
+      <div class="coop__mates">
+        <PlayerIdentityChip
+          v-if="room.host"
+          :user-id="room.host.userId"
+          :name="room.host.name"
+          :profile="room.host.profile"
+          :level="room.host.level"
+          @open="showProfile"
+        />
+        <PlayerIdentityChip
+          v-if="room.guest"
+          :user-id="room.guest.userId"
+          :name="room.guest.name"
+          :profile="room.guest.profile"
+          :level="room.guest.level"
+          @open="showProfile"
+        />
+      </div>
 
       <div v-if="isHost" class="coop__setup">
         <label class="field">
@@ -265,6 +294,14 @@ function leaveLobby() {
         </button>
       </div>
     </section>
+
+    <PlayerProfileModal
+      :open="profileOpen"
+      :loading="profileLoading"
+      :error="profileError"
+      :player="profilePlayer"
+      @close="closeProfile"
+    />
   </div>
 </template>
 
@@ -274,6 +311,11 @@ function leaveLobby() {
   gap: 1rem;
   max-width: 36rem;
   margin-top: 1.5rem;
+}
+.coop__mates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
 }
 .coop__join,
 .coop__setup,

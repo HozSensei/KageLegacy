@@ -8,6 +8,8 @@ import {
   getBattlePassShopOffer,
   getShopOverview,
   listCoinPacks,
+  listCosmeticFrames,
+  purchaseCosmeticFrame,
   purchaseCoinPack,
   purchaseWelcomePackFromShop,
   unlockBattlePassFromShop,
@@ -136,6 +138,34 @@ router.post('/boosters/:type/open', async (req, res, next) => {
     const result = await openBooster(user.id, type, {
       element: parsed.data.element || null,
     });
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** GET /api/shop/frames — cadres cosmétiques (ryos) */
+router.get('/frames', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const [frames, balances] = await Promise.all([
+      listCosmeticFrames(user.id),
+      getPlayerBalances(user.id),
+    ]);
+    res.json({ frames, balances });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** POST /api/shop/frames/:frameId/purchase — achat en ryos */
+router.post('/frames/:frameId/purchase', async (req, res, next) => {
+  try {
+    const user = await requireUser(req, res);
+    if (!user) return;
+    const frameId = String(req.params.frameId || '');
+    const result = await purchaseCosmeticFrame(user.id, frameId);
     res.status(201).json(result);
   } catch (error) {
     next(error);

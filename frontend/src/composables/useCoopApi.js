@@ -72,8 +72,21 @@ export function useCoopApi({ interval = 2000, request = defaultRequest } = {}) {
       if (current !== controller) return null;
       if (body.room) room.value = body.room;
       if (body.run) {
+        const prevAlly = run.value?.ally;
+        const nextAlly = body.run.ally;
+        const ally =
+          nextAlly && prevAlly
+            ? {
+                ...nextAlly,
+                userId: nextAlly.userId ?? prevAlly.userId ?? null,
+                name: nextAlly.name || prevAlly.name || null,
+                level: nextAlly.level ?? prevAlly.level ?? null,
+                profile: nextAlly.profile || prevAlly.profile || null,
+              }
+            : nextAlly;
         run.value = {
           ...body.run,
+          ally,
           combat:
             body.combat !== undefined
               ? body.combat

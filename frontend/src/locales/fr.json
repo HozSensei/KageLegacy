@@ -493,6 +493,7 @@
     "rewardBooster": "Booster {kind}",
     "rewardCard": "Carte obtenue",
     "rewardNickname": "Titre débloqué",
+    "rewardFrame": "Cadre débloqué",
     "rewardPurse": "Bourse récupérée : +{n} Ryos",
     "viewBattlePass": "Voir le Battle Pass",
     "viewHome": "Voir l’accueil",
@@ -1231,9 +1232,10 @@
     "buyAnotherBooster": "Racheter un booster",
     "tabs": {
       "boosters": "Boosters",
+      "items": "Objets",
+      "cosmetics": "Cosmétiques",
       "currency": "Monnaie",
-      "battlePass": "Battle Pass",
-      "items": "Objets"
+      "battlePass": "Battle Pass"
     },
     "comingSoon": "Coming soon",
     "paymentsComingSoonNote": "Les paiements arrivent bientôt — packs et offres restent visibles.",
@@ -1301,7 +1303,16 @@
     "itemsBuy": "Acheter",
     "itemsSoldOut": "Épuisé",
     "itemsEmpty": "Aucune offre aujourd’hui.",
-    "itemsOpenInventory": "Ouvrir l’inventaire"
+    "itemsOpenInventory": "Ouvrir l’inventaire",
+    "cosmetics": {
+      "title": "Cadres animés",
+      "lead": "Achetez des effets de profil avec des ryos.",
+      "owned": "Possédé",
+      "buy": "Acheter ({n} ryos)",
+      "buying": "Achat…",
+      "buyFailed": "Impossible d'acheter ce cadre.",
+      "buyOk": "Cadre débloqué !"
+    }
   },
   "talents": {
     "kicker": "Progression",
@@ -1809,7 +1820,11 @@
     "loadFailed": "Impossible de charger les amis et les demandes. Actualisez pour réessayer.",
     "searchFailed": "La recherche a échoué. Réessayez.",
     "updateFailed": "Impossible de confirmer la modification. Actualisez la liste avant de réessayer.",
-    "updated": "Liste d’amis et demandes mises à jour."
+    "updated": "Liste d’amis et demandes mises à jour.",
+    "openProfile": "Voir le profil de {name}",
+    "profileModalTitle": "Fiche ninja",
+    "profileLoadFailed": "Impossible de charger ce profil.",
+    "unknownPlayer": "Ninja inconnu"
   },
   "deckDuels": {
     "title": "Duels PvP",
@@ -1858,6 +1873,7 @@
     "challenge": "Défier",
     "challengeName": "Défier {name}",
     "aiOpponent": "Adversaire piloté par l’IA",
+    "vsOpponent": "Contre {name}",
     "historyTitle": "Historique des défenses",
     "emptyHistory": "Aucune défense terminée pour l’instant.",
     "noReward": "Aucun gain",
@@ -1997,7 +2013,14 @@
       "jonin": "Élite shinobi",
       "anbu": "Lame silencieuse",
       "kage": "Légende du village",
-      "welcome": "Mécène du Village"
+      "welcome": "Mécène du Village",
+      "ach_combat": "Lame éprouvée",
+      "ach_missions": "Éclaireur des sentiers",
+      "ach_collection": "Archiviste du clan",
+      "ach_mastery": "Maître des arts",
+      "ach_progression": "Voie ascendante",
+      "season": "Ombre de la Saison {n}",
+      "season_free": "Éclaireur de la Saison {n}"
     },
     "avatarPicker": {
       "label": "Portrait",
@@ -2029,7 +2052,19 @@
       "discarded": "Changements annulés.",
       "unsaved": "Changements non enregistrés.",
       "saved": "Apparence enregistrée.",
-      "saveError": "Impossible d’enregistrer votre apparence. Veuillez réessayer."
+      "saveError": "Impossible d’enregistrer votre apparence. Veuillez réessayer.",
+      "frame": "Cadre animé"
+    },
+    "frames": {
+      "title": "Cadre de profil",
+      "none": "Aucun cadre",
+      "lead": "Effets animés équipables sur votre fiche.",
+      "frame_ember": "Braise",
+      "frame_volt": "Volt",
+      "frame_mist": "Brume",
+      "frame_shadow": "Ombre",
+      "frame_leaf": "Feuille",
+      "locked": "Non débloqué"
     }
   },
   "league": {
@@ -2639,6 +2674,33 @@
       "league_participate": "Match de ligue (défaite / nul)",
       "chunin_success": "Examen Chunin réussi",
       "bird_flight_success": "Vol d'Oiseau réussi"
+    },
+    "honor": {
+      "title": "Ninja à l'honneur",
+      "forVillage": "Village : {name}",
+      "pickVillage": "Sélectionnez un village dans le classement.",
+      "empty": "Aucun point d'honneur aujourd'hui pour ce village.",
+      "points": "{n} point du jour | {n} points du jour"
+    },
+    "activity": {
+      "title": "Mur d'activité",
+      "lead": "Missions solo et coop récemment réussies ou échouées.",
+      "filterVillage": "Village",
+      "filterOutcome": "Résultat",
+      "allVillages": "Tous les villages",
+      "allOutcomes": "Succès et échecs",
+      "successOnly": "Succès seulement",
+      "failureOnly": "Échecs seulement",
+      "loadFailed": "Impossible de charger le mur.",
+      "empty": "Aucune activité récente.",
+      "loadingMore": "Chargement…",
+      "end": "Fin du fil.",
+      "kinds": {
+        "mission_victory": "a réussi une mission",
+        "mission_defeat": "a échoué une mission",
+        "coop_victory": "a réussi une mission d'équipe",
+        "coop_defeat": "a échoué une mission d'équipe"
+      }
     }
   },
   "battlePass": {
@@ -2691,7 +2753,9 @@
       "essence": "{n} Essence",
       "kageCoins": "{n} Kage Coins",
       "card": "{n}× carte {rarity}",
-      "booster": "Booster {type}"
+      "booster": "Booster {type}",
+      "nickname": "Titre : {name}",
+      "frame": "Cadre : {name}"
     },
     "rarity": {
       "common": "normale",

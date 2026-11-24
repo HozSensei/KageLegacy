@@ -12,10 +12,24 @@
 | `backgroundId`        | Identifiant du fond illustré (`joueur-1` … `joueur-8`), ou `null`                   |
 | `backgroundColor`     | Teinte du fond uni `#RRGGBB` (majuscules), ou `null` ; ignorée si un fond illustré est équipé |
 | `nicknameId`          | Identifiant du surnom équipé, ou `null`                                             |
+| `frameId`             | Identifiant du cadre animé (`frame_ember`, `frame_volt`, …), ou `null`              |
 | `unlockedNicknameIds` | Identifiants des surnoms gagnés, en ordre de progression                            |
 | `nicknameCatalog`     | Catalogue des surnoms, au format `{ id, name: { en, fr }, criteria: { minLevel } }` |
+| `unlockedFrameIds`    | Identifiants des cadres débloqués                                                   |
+| `frameCatalog`        | Entrées de cadres possédés                                                          |
 
-Le `PATCH` accepte au moins un des champs modifiables : `avatarId`, `backgroundId`, `backgroundColor`, `nicknameId`. Les champs omis restent inchangés. Le fond illustré, la teinte et le surnom acceptent `null` pour revenir au thème par défaut ou déséquiper le surnom. Pour revenir au portrait par défaut, envoyer `"avatarId": "aspirant-1-1"`. Les identifiants inconnus, portraits de rang supérieur, couleurs non conformes et surnoms non gagnés sont refusés (`400`). Sans session : `401` (sous réserve du fallback démo existant) ; sans personnage : `404`.
+Le `PATCH` accepte au moins un des champs modifiables : `avatarId`, `backgroundId`, `backgroundColor`, `nicknameId`, `frameId`. Les champs omis restent inchangés. Le fond illustré, la teinte, le surnom et le cadre acceptent `null` pour revenir au thème par défaut ou déséquiper. Pour revenir au portrait par défaut, envoyer `"avatarId": "aspirant-1-1"`. Les identifiants inconnus, portraits de rang supérieur, couleurs non conformes, surnoms / cadres non gagnés sont refusés (`400`). Sans session : `401` (sous réserve du fallback démo existant) ; sans personnage : `404`.
+
+## Profil public
+
+`GET /api/players/:userId/public` (session requise) renvoie `{ player }` avec `userId`, `name`, `level`, `rank`, `factionId`, `faction`, `profile` (apparence publique uniquement — pas de monnaies ni d’inventaire).
+
+Surfaces UI : classement, duels, coop, village (amis + mur + ninja à l’honneur).
+
+## Honneur du jour & mur
+
+- Points d’honneur UTC : +1 par victoire mission solo, mission coop ou duel de decks. Le ninja à l’honneur d’un village = meilleur score du jour (égalité : premier à l’atteindre). Exposé via `GET /api/deck-duels/factions` (`honorByFaction`) et `GET /api/community/honor`.
+- Mur d’activité : `GET /api/community/activity?limit=&cursor=&factionId=&outcome=success|failure` — feed paginé (scroll infini) des succès/échecs de missions.
 
 Les 32 portraits par collection sont numérotés `<collection>-<planche>-<case>` : planche `1` ou `2`, case `1` à `16` sur chaque grille 4×4 (de gauche à droite puis de haut en bas). Collections : `aspirant`, `genin`, `chunin`, `jonin`, `anbu`. Chaque collection est accessible à partir du rang correspondant ; Kage conserve l'accès à ANBU et aux collections précédentes.
 
@@ -28,6 +42,8 @@ Les 32 portraits par collection sont numérotés `<collection>-<planche>-<case>`
 | `kage`       | Légende du village | Village Legend | Niveau 80 |
 | `welcome`    | Mécène du Village  | Village Patron  | Pack bienvenue (one-shot) |
 | `season_N`   | Ombre de la Saison N | Season N Shadow | Battle Pass premium (saison N) |
+| `season_N_free` | Éclaireur de la Saison N | Season N Scout | Battle Pass gratuit niveau 4 |
+| `ach_combat` / `ach_missions` / `ach_collection` / `ach_mastery` / `ach_progression` | Titres de familles du registre | Achievement family titles | Tous les paliers d’une catégorie claimés |
 
 Les surnoms de rang restent disponibles après une réinitialisation administrative du niveau (via `character_highest_level`). Les titres `welcome` / `season_N` sont stockés dans `player_nickname_unlocks` et restent équipables une fois obtenus. Une réinitialisation admin remet le rang à Aspirant ninja et remplace le portrait équipé uniquement s'il n'appartient plus à un rang accessible.
 

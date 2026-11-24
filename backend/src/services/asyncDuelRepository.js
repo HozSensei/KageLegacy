@@ -46,12 +46,13 @@ function encodeState(state) {
 export async function getDuelOverview(userId) {
   const rows = await query(
     `SELECT active.id AS activeDuelId,
-            d.id, d.attacker_name AS opponentName, COALESCE(r.ryos, 0) AS reward,
+            d.id, d.attacker_id AS opponentId, d.attacker_name AS opponentName,
+            COALESCE(r.ryos, 0) AS reward,
             ${UTC_FINISHED_AT} AS finishedAt, d.outcome
      FROM (SELECT ? AS user_id) me
      LEFT JOIN async_duels active ON active.active_attacker_id = me.user_id
      LEFT JOIN (
-       SELECT id, attacker_name, finished_at, outcome
+       SELECT id, attacker_id, attacker_name, finished_at, outcome
        FROM async_duels
        WHERE defender_id = ? AND finished_at IS NOT NULL
        ORDER BY finished_at DESC, id DESC
@@ -61,17 +62,34 @@ export async function getDuelOverview(userId) {
      ORDER BY d.finished_at DESC, d.id DESC`,
     [userId, userId],
   );
+  const defenses = rows
+    .filter(({ id }) => id !== null)
+    .map(({ id, opponentId, opponentName, reward, finishedAt, outcome }) => ({
+      id,
+      opponentId,
+      opponentName,
+      reward,
+      finishedAt,
+      outcome,
+    }));
+
+  try {
+    const { getPublicPlayersMap, attachPublicSnapshot } = await import('./publicPlayerService.js');
+    const map = await getPublicPlayersMap(defenses.map(d => d.opponentId).filter(Boolean));
+    for (const defense of defenses) {
+      const snapshot = map.get(defense.opponentId);
+      if (snapshot) {
+        Object.assign(defense, attachPublicSnapshot(defense, snapshot));
+        defense.opponentName = snapshot.name || defense.opponentName;
+      }
+    }
+  } catch {
+    /* profils optionnels */
+  }
+
   return {
     activeDuelId: rows[0].activeDuelId,
-    defenses: rows
-      .filter(({ id }) => id !== null)
-      .map(({ id, opponentName, reward, finishedAt, outcome }) => ({
-        id,
-        opponentName,
-        reward,
-        finishedAt,
-        outcome,
-      })),
+    defenses,
   };
 }
 
@@ -122,6 +140,15 @@ export async function getFactionStandings() {
       settled: Boolean(settled),
       rewardRyos: settledReward ?? 0,
     };
+  }
+  try {
+    const { getHonorByFaction } = await import('./villageHonorService.js');
+    const { utcDateString } = await import('./dailyUtc.js');
+    current.honorByFaction = await getHonorByFaction(utcDateString());
+    current.honorScoredOn = utcDateString();
+  } catch {
+    current.honorByFaction = null;
+    current.honorScoredOn = null;
   }
   return current;
 }
@@ -312,6 +339,12 @@ export async function updateAsyncDuel({ id, attackerId, revision, state }) {
       };
       const creditedRyos = await creditWinner(connection, duel, win);
       if (scoresFaction) await scoreFaction(connection, duel, win);
+      try {
+        const { addHonorPoint } = await import('./villageHonorService.js');
+        await addHonorPoint(winnerId, { connection });
+      } catch {
+        /* honneur optionnel */
+      }
       if (creditedRyos > 0) {
         try {
           const { notifyGain } = await import('./userNotificationService.js');

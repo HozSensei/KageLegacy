@@ -385,6 +385,17 @@ export async function grantBattlePassReward(userId, reward, connection = null) {
       });
       return { type: 'nickname', nicknameId, ...result };
     }
+    case 'frame': {
+      const frameId = reward.frameId || reward.id;
+      if (!frameId) throw httpError(400, 'frameId requis.');
+      const { grantFrameUnlock } = await import('./frameUnlockService.js');
+      const result = await grantFrameUnlock(userId, frameId, {
+        source: reward.source || 'battle_pass',
+        sourceRef: reward.sourceRef || null,
+        connection,
+      });
+      return { type: 'frame', frameId, ...result };
+    }
 
     default:
       throw httpError(400, `Type de récompense inconnu: ${type}`);

@@ -178,6 +178,7 @@ function testAppearance() {
       backgroundId: 'joueur-1',
       backgroundColor: '#2A3348',
       nicknameId: 'chunin',
+      frameId: null,
     }
   );
   strictAssert.deepEqual(
@@ -193,6 +194,7 @@ function testAppearance() {
       backgroundId: null,
       backgroundColor: null,
       nicknameId: 'genin',
+      frameId: null,
     }
   );
   strictAssert.equal(

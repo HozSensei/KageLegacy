@@ -200,7 +200,47 @@ export async function claimAchievementTier(userId, achievementKey, tierIndex) {
   } catch {
     /* notifications optionnelles */
   }
-  return { achievement: serializeAchievement(def, refreshed[0]), tier, rewards: granted };
+
+  let familyTitle = null;
+  try {
+    familyTitle = await maybeGrantAchievementFamilyTitle(userId, def.category);
+    if (familyTitle?.granted) granted.push(familyTitle);
+  } catch {
+    /* titres famille optionnels */
+  }
+
+  return { achievement: serializeAchievement(def, refreshed[0]), tier, rewards: granted, familyTitle };
+}
+
+/** Débloque le titre de famille si tous les paliers de la catégorie sont claimés. */
+async function maybeGrantAchievementFamilyTitle(userId, category) {
+  const {
+    achievementFamilyNicknameForCategory,
+  } = await import('./characterAppearance.js');
+  const nick = achievementFamilyNicknameForCategory(category);
+  if (!nick) return null;
+
+  const defs = ACHIEVEMENT_DEFS.filter(d => d.category === category);
+  if (!defs.length) return null;
+
+  for (const familyDef of defs) {
+    const progressRows = await query(
+      'SELECT * FROM user_achievements WHERE user_id = ? AND achievement_key = ? LIMIT 1',
+      [userId, familyDef.key],
+    );
+    const claimed = claimedTiersOf(progressRows[0]);
+    if (claimed.length < familyDef.tiers.length) return null;
+    for (let i = 1; i <= familyDef.tiers.length; i += 1) {
+      if (!claimed.includes(i)) return null;
+    }
+  }
+
+  const { grantNicknameUnlock } = await import('./nicknameUnlockService.js');
+  const result = await grantNicknameUnlock(userId, nick.id, {
+    source: 'achievement_family',
+    sourceRef: category,
+  });
+  return { type: 'nickname', nicknameId: nick.id, ...result };
 }
 
 export async function onAchievementAction(userId, action, value = 1, meta = {}) {

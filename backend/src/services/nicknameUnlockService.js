@@ -1,9 +1,11 @@
 /**
- * Déblocages de titres (surnoms) hors progression de rang — welcome / Battle Pass.
+ * Déblocages de titres (surnoms) hors progression de rang — welcome / Battle Pass / familles.
  */
 import { query } from '../config/database.js';
 import {
+  ACHIEVEMENT_FAMILY_NICKNAMES,
   WELCOME_NICKNAME,
+  buildSeasonFreeNicknameEntry,
   buildSeasonNicknameEntry,
   isKnownNicknameId,
   seasonNicknameId,
@@ -51,7 +53,7 @@ export async function listGrantedNicknameIds(userId, connection = null) {
 }
 
 /**
- * Catalogue d’entrées saison dérivées des unlocks (pour l’UI).
+ * Catalogue d’entrées dérivées des unlocks (pour l’UI).
  * @param {string[]} grantedIds
  */
 export function catalogEntriesForGrantedIds(grantedIds = []) {
@@ -61,8 +63,18 @@ export function catalogEntriesForGrantedIds(grantedIds = []) {
       entries.push(WELCOME_NICKNAME);
       continue;
     }
+    const freeMatch = /^season_(\d+)_free$/.exec(String(id));
+    if (freeMatch) {
+      entries.push(buildSeasonFreeNicknameEntry(Number(freeMatch[1])));
+      continue;
+    }
     const match = /^season_(\d+)$/.exec(String(id));
-    if (match) entries.push(buildSeasonNicknameEntry(Number(match[1])));
+    if (match) {
+      entries.push(buildSeasonNicknameEntry(Number(match[1])));
+      continue;
+    }
+    const family = ACHIEVEMENT_FAMILY_NICKNAMES.find(entry => entry.id === id);
+    if (family) entries.push(family);
   }
   return entries;
 }
@@ -92,7 +104,12 @@ export async function grantNicknameUnlock(
     await executor.execute(
       `INSERT INTO player_nickname_unlocks (user_id, nickname_id, source, source_ref)
        VALUES (?, ?, ?, ?)`,
-      [userId, nicknameId, String(source).slice(0, 32), sourceRef != null ? String(sourceRef).slice(0, 64) : null],
+      [
+        userId,
+        nicknameId,
+        String(source).slice(0, 32),
+        sourceRef != null ? String(sourceRef).slice(0, 64) : null,
+      ],
     );
     return { nicknameId, granted: true, source };
   } catch (err) {

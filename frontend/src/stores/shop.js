@@ -5,7 +5,7 @@ import { readApiError, parseApiResponse } from '../utils/http.js';
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const useShopStore = defineStore('shop', () => {
-  const activeTab = ref('boosters'); // boosters | items | currency | battlePass
+  const activeTab = ref('boosters'); // boosters | items | cosmetics | currency | battlePass
 
   const boosters = ref([]);
   const dailyItems = ref([]);
@@ -13,6 +13,7 @@ export const useShopStore = defineStore('shop', () => {
   const balances = ref({ ryos: 0, dust: 0, essence: 0, kageCoins: 0 });
   const elements = ref([]);
   const coinPacks = ref([]);
+  const frames = ref([]);
 
   const battlePassOffer = ref(null);
   const welcomePack = ref(null);
@@ -145,6 +146,24 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  async function fetchFrames() {
+    loading.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/frames`, { credentials: 'include' });
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      frames.value = body.frames || [];
+      applyBalances(body.balances);
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   async function buyDailyItem(itemId) {
     purchasing.value = true;
     error.value = null;
@@ -172,12 +191,41 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
+  async function purchaseFrame(frameId) {
+    purchasing.value = true;
+    error.value = null;
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/shop/frames/${encodeURIComponent(frameId)}/purchase`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        },
+      );
+      const { ok, body } = await parseApiResponse(res);
+      if (!ok) throw new Error(await readApiError(res, body));
+      applyBalances(body.balances);
+      frames.value = frames.value.map(frame =>
+        frame.id === frameId ? { ...frame, owned: true } : frame,
+      );
+      return body;
+    } catch (e) {
+      error.value = e.message;
+      return null;
+    } finally {
+      purchasing.value = false;
+    }
+  }
+
   async function loadTab(tab = activeTab.value) {
     activeTab.value = tab;
     if (tab === 'boosters') return fetchBoosters();
     if (tab === 'items') return fetchDailyItems();
     if (tab === 'currency') return fetchCoinPacks();
     if (tab === 'battlePass') return fetchBattlePassOffer();
+    if (tab === 'cosmetics') return fetchFrames();
     return null;
   }
 
@@ -363,6 +411,7 @@ export const useShopStore = defineStore('shop', () => {
     balances,
     elements,
     coinPacks,
+    frames,
 
     battlePassOffer,
     welcomePack,
@@ -381,6 +430,8 @@ export const useShopStore = defineStore('shop', () => {
     fetchDailyItems,
     buyDailyItem,
     fetchCoinPacks,
+    fetchFrames,
+    purchaseFrame,
 
     fetchBattlePassOffer,
     loadTab,

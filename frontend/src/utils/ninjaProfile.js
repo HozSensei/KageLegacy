@@ -8,12 +8,29 @@ export function ninjaRankLabel(rank, t, te) {
 }
 
 export function ninjaNicknameLabel(id, t, te, catalog = [], locale = 'fr') {
+  if (!id) return '';
   const key = `player.nicknames.${id}`;
   if (te(key)) return t(key);
   const entry = Array.isArray(catalog) ? catalog.find(item => item?.id === id) : null;
   const lang = String(locale || 'fr').startsWith('en') ? 'en' : 'fr';
   if (entry?.name?.[lang]) return entry.name[lang];
   if (entry?.name?.fr) return entry.name.fr;
+  const seasonMatch = String(id).match(/^season_(\d+)(_free)?$/);
+  if (seasonMatch) {
+    const n = Number(seasonMatch[1]);
+    if (seasonMatch[2]) {
+      return te('player.nicknames.season_free')
+        ? t('player.nicknames.season_free', { n })
+        : lang === 'en'
+          ? `Season ${n} Scout`
+          : `Éclaireur de la Saison ${n}`;
+    }
+    return te('player.nicknames.season')
+      ? t('player.nicknames.season', { n })
+      : lang === 'en'
+        ? `Season ${n} Shadow`
+        : `Ombre de la Saison ${n}`;
+  }
   return id.replace(/[-_]+/g, ' ').replace(/^\S/, letter => letter.toUpperCase());
 }
 
@@ -31,6 +48,7 @@ export function readNinjaAppearance(profile) {
     backgroundId: safeNinjaCardBackgroundId(profile?.backgroundId),
     backgroundColor: safeNinjaProfileColor(profile?.backgroundColor),
     nicknameId: profile?.nicknameId ?? null,
+    frameId: profile?.frameId ?? null,
   };
 }
 

@@ -36,6 +36,16 @@ const emit = defineEmits([
 
 const { t, locale } = useI18n();
 
+/** Adversaire joueur (duel async) : fiche ninja plutôt que carte PvE. */
+const enemyIsPlayer = computed(
+  () => Boolean(props.combat?.enemy?.profile) && !props.combat?.enemy?.boss
+);
+const enemyVariant = computed(() => (enemyIsPlayer.value ? 'ninja' : 'enemy'));
+const enemyRoleLabel = computed(() => {
+  if (enemyIsPlayer.value) return t('combat.enemyLabel');
+  return t(props.combat.enemy.boss ? 'combat.bossLabel' : 'combat.enemyLabel');
+});
+
 function confirmEndTurn() {
   if (!canAct.value || props.busy) return;
   const chakra = Number(props.combat.player.chakra) || 0;
@@ -222,8 +232,8 @@ onBeforeUnmount(() => {
         <CombatFighter
           :key="`enemy-${combat.id}`"
           :fighter="combat.enemy"
-          :role-label="t(combat.enemy.boss ? 'combat.bossLabel' : 'combat.enemyLabel')"
-          variant="enemy"
+          :role-label="enemyRoleLabel"
+          :variant="enemyVariant"
           data-testid="enemy-display"
         >
           <template #aside>
