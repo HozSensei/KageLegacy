@@ -429,18 +429,14 @@ function cancelConfirm() {
         </div>
       </section>
 
-      <section v-if="isOver" class="panel">
-        <VictoryRewards
-          v-if="run.state === 'victory' && run.rewards"
-          :rewards="run.rewards"
-          :continue-label="t('coop.backToLobby')"
-          @dismiss="router.push({ name: 'coop' })"
-        />
-        <p v-else role="status">{{ t(`coop.run_${run.state}`) }}</p>
-        <button type="button" class="btn-secondary" @click="router.push({ name: 'coop' })">
-          {{ t('coop.backToLobby') }}
-        </button>
-      </section>
+      <VictoryRewards
+        v-if="isOver"
+        class="mt-8 max-w-xl"
+        :state="run.state === 'victory' ? 'victory' : run.state === 'abandoned' ? 'forfeited' : 'defeat'"
+        :rewards="run.rewards"
+        :continue-label="t('coop.backToLobby')"
+        @dismiss="router.push({ name: 'coop' })"
+      />
 
       <button
         v-if="!isOver"
