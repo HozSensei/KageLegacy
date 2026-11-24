@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDeltaFeed } from '../../composables/useDeltaFeed.js';
 import { factionAccentColor } from '../../constants/factions.js';
@@ -7,6 +7,7 @@ import { ninjaCardBackgroundUrl } from '../../constants/ninjaCardBackgrounds.js'
 import { ninjaNicknameLabel, safeNinjaProfileColor } from '../../utils/ninjaProfile.js';
 import { statVisual } from '../../utils/statIcons.js';
 import NinjaPortrait from './NinjaPortrait.vue';
+import ProfileCardAura from './ProfileCardAura.vue';
 import ProfileFrameOverlay from './ProfileFrameOverlay.vue';
 
 defineOptions({ name: 'NinjaProfileCard' });
@@ -75,11 +76,33 @@ const solidBackground = computed(() => {
   return safeNinjaProfileColor(props.profile?.backgroundColor);
 });
 const armorVisual = computed(() => statVisual('armor'));
+const auraPointer = ref({ x: 50, y: 40, active: false });
+
 const style = computed(() => ({
   '--ninja-art': artUrl.value ? `url("${artUrl.value}")` : undefined,
   '--ninja-background': solidBackground.value || undefined,
   '--ninja-text': solidBackground.value ? contrastingText(solidBackground.value) : undefined,
+  '--aura-x': `${auraPointer.value.x}%`,
+  '--aura-y': `${auraPointer.value.y}%`,
+  '--aura-active': auraPointer.value.active ? 1 : 0,
 }));
+
+function onAuraMove(event) {
+  if (!isNinja.value || !props.profile?.frameId) return;
+  if (event.pointerType === 'touch') return;
+  const el = event.currentTarget;
+  const rect = el.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  auraPointer.value = {
+    x: ((event.clientX - rect.left) / rect.width) * 100,
+    y: ((event.clientY - rect.top) / rect.height) * 100,
+    active: true,
+  };
+}
+
+function onAuraLeave() {
+  auraPointer.value = { ...auraPointer.value, active: false };
+}
 
 function contrastingText(hex) {
   const luminance = [0.2126, 0.7152, 0.0722].reduce((total, weight, index) => {
@@ -101,7 +124,14 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 <template>
   <article
     class="ninja-card"
-    :class="[`ninja-card--${variant}`, { 'ninja-card--hit': hit, 'ninja-card--art': artUrl }]"
+    :class="[
+      `ninja-card--${variant}`,
+      {
+        'ninja-card--hit': hit,
+        'ninja-card--art': artUrl,
+        'ninja-card--framed': isNinja && profile?.frameId,
+      },
+    ]"
     :style="style"
     :aria-label="name"
     data-testid="ninja-profile-card"
@@ -109,7 +139,10 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
     :data-avatar-id="isNinja ? profile?.avatarId || undefined : undefined"
     :data-background-id="isNinja ? profile?.backgroundId || undefined : undefined"
     :data-background-color="isNinja ? solidBackground || undefined : undefined"
+    @pointermove="onAuraMove"
+    @pointerleave="onAuraLeave"
   >
+    <ProfileCardAura v-if="isNinja" :frame-id="profile?.frameId" />
     <header class="ninja-card__head">
       <div v-if="isNinja" class="ninja-card__portrait">
         <span class="ninja-card__portrait-glow" aria-hidden="true" />
@@ -117,7 +150,6 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
           <NinjaPortrait :avatar-id="profile?.avatarId" :name="name" />
           <ProfileFrameOverlay :frame-id="profile?.frameId" variant="avatar" />
         </div>
-        <ProfileFrameOverlay :frame-id="profile?.frameId" variant="card" class="ninja-card__frame" />
         <span v-if="level != null" class="ninja-card__portrait-level">{{
           t('player.levelLabel', { level })
         }}</span>
@@ -281,14 +313,23 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 }
 
 .ninja-card__head {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: clamp(0.7rem, 2.4vw, 1.1rem);
 }
 
+.ninja-card__vitals,
+.ninja-card__arts,
+.ninja-card__foot {
+  position: relative;
+  z-index: 5;
+}
+
 .ninja-card__portrait {
   position: relative;
-  z-index: 2;
+  z-index: 5;
   flex: none;
   width: clamp(5rem, 28cqi, 8rem);
   aspect-ratio: 1;

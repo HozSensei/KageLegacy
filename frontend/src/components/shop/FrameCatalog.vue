@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ProfileFrameOverlay from '../player/ProfileFrameOverlay.vue';
 import NinjaPortrait from '../player/NinjaPortrait.vue';
@@ -16,6 +16,14 @@ const message = ref(null);
 const error = ref(null);
 
 const frames = computed(() => shop.frames || []);
+const previewAvatarId = computed(() => player.character?.profile?.avatarId || null);
+const previewName = computed(() => player.character?.name || 'N');
+
+onMounted(() => {
+  if (!player.character) {
+    void player.fetchPlayer().catch(() => {});
+  }
+});
 
 function frameName(frame) {
   return locale.value === 'en' ? frame.nameEn : frame.nameFr;
@@ -58,7 +66,7 @@ async function buy(frame) {
     <ul class="frame-catalog__list">
       <li v-for="frame in frames" :key="frame.id" class="frame-catalog__item panel">
         <div class="frame-catalog__preview">
-          <NinjaPortrait avatar-id="aspirant-1-1" name="N" />
+          <NinjaPortrait :avatar-id="previewAvatarId" :name="previewName" />
           <ProfileFrameOverlay :frame-id="frame.id" variant="avatar" />
         </div>
         <div class="frame-catalog__body">
@@ -110,6 +118,8 @@ async function buy(frame) {
 .frame-catalog__preview {
   position: relative;
   width: 5.5rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
 }
 
 .frame-catalog__preview :deep(.ninja-portrait) {
