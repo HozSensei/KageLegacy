@@ -1881,6 +1881,7 @@
     "hostHint": "Chef : démarrez chaque étape",
     "guestHint": "Invité : jouez vos tours et passez ready sur les événements",
     "purse": "Bourse {n}",
+    "hp": "PV {hp}/{max}",
     "allyHp": "Allié {hp}/{max} PV",
     "enterNode": "Démarrer l’étape",
     "waitingHostEnter": "En attente que le chef démarre l’étape…",

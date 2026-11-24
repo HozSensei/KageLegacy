@@ -1881,6 +1881,7 @@
     "hostHint": "Host: start each stage",
     "guestHint": "Guest: play your turns and ready up on events",
     "purse": "Purse {n}",
+    "hp": "HP {hp}/{max}",
     "allyHp": "Ally {hp}/{max} HP",
     "enterNode": "Start stage",
     "waitingHostEnter": "Waiting for the host to start the stage…",

@@ -278,10 +278,57 @@ function cancelConfirm() {
       <p class="text-ink-muted">
         {{ isHost ? t('coop.hostHint') : t('coop.guestHint') }}
         —
+        {{ t('coop.hp', { hp: player.hp ?? 0, max: player.maxHp ?? 0 }) }}
+        /
         {{ t('coop.purse', { n: player.purse || 0 }) }}
         /
         {{ t('coop.allyHp', { hp: run.ally?.hp, max: run.ally?.maxHp }) }}
       </p>
+
+      <!-- Inventaire hors combat (comme en solo) : utilisable entre les étapes, pas seulement en boutique. -->
+      <section
+        v-if="!isOver"
+        class="coop-run__inventory"
+        data-testid="coop-inventory"
+      >
+        <h3>{{ t('coop.inventory') }}</h3>
+        <p class="coop-run__inventory-hint">{{ t('combat.inventoryHint') }}</p>
+        <div
+          v-for="slot in inventory"
+          :key="slot.slot"
+          class="coop-run__slot"
+          :class="{ 'coop-run__slot--filled': slot.itemId }"
+        >
+          <span class="coop-run__slot-label">{{ slotLabel(slot) }}</span>
+          <button
+            v-if="slot.itemId"
+            type="button"
+            class="btn-ghost btn-sm"
+            :disabled="api.busy.value"
+            @click="onUse(slot.slot)"
+          >
+            {{ t('coop.useItem') }}
+          </button>
+          <button
+            v-if="slot.itemId"
+            type="button"
+            class="btn-ghost btn-sm"
+            :disabled="api.busy.value"
+            @click="onDiscard(slot.slot)"
+          >
+            {{ t('coop.discardItem') }}
+          </button>
+          <label v-if="slot.itemId && isShop" class="coop-run__replace">
+            <input
+              v-model="replaceSlot"
+              type="radio"
+              name="coop-replace-slot"
+              :value="slot.slot"
+            >
+            {{ t('combat.inventoryReplaceTarget') }}
+          </label>
+        </div>
+      </section>
 
       <MissionPathTree
         :nodes="nodes"
@@ -354,44 +401,6 @@ function cancelConfirm() {
               </button>
             </li>
           </ul>
-        </div>
-
-        <div class="coop-run__inventory" data-testid="coop-inventory">
-          <h3>{{ t('coop.inventory') }}</h3>
-          <p class="coop-run__inventory-hint">{{ t('combat.inventoryHint') }}</p>
-          <div
-            v-for="slot in inventory"
-            :key="slot.slot"
-            class="coop-run__slot"
-            :class="{ 'coop-run__slot--filled': slot.itemId }"
-          >
-            <span class="coop-run__slot-label">{{ slotLabel(slot) }}</span>
-            <button
-              v-if="slot.itemId"
-              type="button"
-              class="btn-ghost btn-sm"
-              @click="onUse(slot.slot)"
-            >
-              {{ t('coop.useItem') }}
-            </button>
-            <button
-              v-if="slot.itemId"
-              type="button"
-              class="btn-ghost btn-sm"
-              @click="onDiscard(slot.slot)"
-            >
-              {{ t('coop.discardItem') }}
-            </button>
-            <label v-if="slot.itemId" class="coop-run__replace">
-              <input
-                v-model="replaceSlot"
-                type="radio"
-                name="coop-replace-slot"
-                :value="slot.slot"
-              >
-              {{ t('combat.inventoryReplaceTarget') }}
-            </label>
-          </div>
         </div>
 
         <div class="coop-run__actions">
@@ -493,11 +502,19 @@ function cancelConfirm() {
 
 .coop-run__actions,
 .coop-run__shop,
-.coop-run__inventory,
 .coop-run__event {
   display: grid;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+.coop-run__inventory {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  background: var(--color-bg-card);
+  max-width: 44rem;
 }
 
 .coop-run__shop-purse {
