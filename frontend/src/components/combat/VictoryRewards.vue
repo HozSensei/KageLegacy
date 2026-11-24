@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { RouterLink, useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 import BoosterOpening from '../shop/BoosterOpening.vue';
 import { localizedName } from '../../utils/localeContent.js';
 
@@ -16,10 +16,10 @@ const props = defineProps({
   showPendingRewards: { type: Boolean, default: true },
 });
 
+/** @param {{ to?: { name: string } } | undefined} payload */
 const emit = defineEmits(['dismiss']);
 
 const { t, locale } = useI18n();
-const router = useRouter();
 
 /** summary | opening */
 const phase = ref('summary');
@@ -161,8 +161,9 @@ function onCta() {
     return;
   }
   if (showInventoryInvite.value) {
-    router.push({ name: 'inventory' });
-    emit('dismiss');
+    // Laisser le parent nettoyer puis naviguer — un push local + dismiss
+    // écrasait la cible (ex. retour parcours / missions).
+    emit('dismiss', { to: { name: 'inventory' } });
     return;
   }
   emit('dismiss');
@@ -171,7 +172,8 @@ function onCta() {
 function onRevealDone() {
   phase.value = 'summary';
   if (showInventoryInvite.value) {
-    router.push({ name: 'inventory' });
+    emit('dismiss', { to: { name: 'inventory' } });
+    return;
   }
   emit('dismiss');
 }

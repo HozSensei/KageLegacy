@@ -139,6 +139,11 @@ function announceIntent(combat) {
 
 function createFighter(combat, fighter, index, rng) {
   const { id, name, deckEntries, talentCodes } = fighter;
+  const runMods = fighter._runMods && typeof fighter._runMods === 'object' ? fighter._runMods : {};
+  const bonusBlock = Math.max(0, Number(runMods.block) || 0);
+  const bonusChakra = Math.max(0, Number(runMods.chakra) || 0);
+  const bonusDamagePct = Math.max(0, Number(runMods.damagePct) || 0);
+  const bonusDraw = Math.max(0, Number(runMods.draw) || 0);
   const deck = buildRuntimeDeck(structuredClone(deckEntries), (_card, n) => `p${index + 1}-${n}`);
   const bonuses = [fighter.stats, ...deck.map(card => card.passiveBonus)];
   const stats = Object.fromEntries(
@@ -150,8 +155,10 @@ function createFighter(combat, fighter, index, rng) {
       }, 0),
     ]),
   );
-  const maxHp = Math.max(1, BASE_MAX_HP + stats.maxHp);
-  const maxChakra = Math.max(0, BASE_COOP_CHAKRA + stats.maxChakra);
+  const baseMaxHp = Math.max(1, BASE_MAX_HP + stats.maxHp);
+  const maxHp = Math.max(1, Number(fighter.startingMaxHp) || baseMaxHp);
+  const startHp = Math.max(1, Math.min(maxHp, Number(fighter.startingHp) || maxHp));
+  const maxChakra = Math.max(0, BASE_COOP_CHAKRA + stats.maxChakra) + bonusChakra;
   const talentEffects = { codes: [...talentCodes], ...classifyTalentEffects(talentCodes) };
   const start = applyTalentCombatStart(
     {
@@ -161,23 +168,25 @@ function createFighter(combat, fighter, index, rng) {
       stats,
       talentEffects,
       deckElementCount: countDeckElements(deck),
-      hp: maxHp,
+      hp: startHp,
       maxHp,
-      block: Math.max(0, stats.startingBlock),
+      block: Math.max(0, stats.startingBlock) + bonusBlock,
       chakra: maxChakra,
       maxChakra,
       hand: [],
       drawPile: shuffle(deck, rng),
       discardPile: [],
       exhaustPile: [],
-      statuses: [],
+      statuses: bonusDamagePct
+        ? [{ key: 'damage_pct', value: bonusDamagePct, duration: 99 }]
+        : [],
       ally: null,
       voluntaryDiscards: 0,
       discardedForChakra: false,
     },
     talentEffects.applied,
   );
-  const drawn = drawCards(start.player, DRAW_PER_TURN, rng);
+  const drawn = drawCards(start.player, DRAW_PER_TURN + bonusDraw, rng);
   appendLogs(combat, [...start.logs, { type: 'draw', count: drawn.drawn.length }], id);
   return drawn.player;
 }

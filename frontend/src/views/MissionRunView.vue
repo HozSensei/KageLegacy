@@ -230,10 +230,10 @@ async function onAbandon() {
   }
 }
 
-function backToMissions() {
+function backToMissions(payload) {
   missions.clearRun()
   combat.clear()
-  router.push({ name: 'missions' })
+  router.push(payload?.to || { name: 'missions' })
 }
 
 const eventChoices = computed(() => missions.currentEvent?.choices || [])

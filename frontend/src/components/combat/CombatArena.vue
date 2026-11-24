@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
           :mid-run="midRun"
           :continue-label="coopTurn === null ? null : t('coop.backToLobby')"
           :show-pending-rewards="coopTurn === null"
-          @dismiss="emit('dismiss-outcome')"
+          @dismiss="payload => emit('dismiss-outcome', payload)"
         />
       </div>
     </Teleport>

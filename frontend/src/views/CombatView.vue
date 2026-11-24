@@ -143,10 +143,14 @@ async function onForfeit() {
   }
 }
 
-function goToRunOrMissions() {
+function goToRunOrMissions(payload) {
   const runId = combat.combat?.missionRunId;
   missions.clearActiveCombat();
   combat.clear();
+  if (payload?.to) {
+    router.push(payload.to);
+    return;
+  }
   if (runId) {
     router.push({ name: 'mission-run', params: { id: runId } });
     return;
