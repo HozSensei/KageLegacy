@@ -21,7 +21,11 @@ import {
   effectiveCardCost,
   resolveAllyAttack,
 } from './cardEffects.js';
-import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './statuses.js';
+import {
+  applyBlockFade,
+  resolveEndOfTurnStatuses,
+  resolveStartOfTurnStatuses,
+} from './statuses.js';
 import { applyHeldTurnStart } from './heldEffects.js';
 import {
   applyTalentAfterCardPlay,
@@ -396,9 +400,7 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
 
   s.currentPhase = 'enemy_turn';
 
-  if ((s.enemy.block || 0) > 0) {
-    s.enemy = { ...s.enemy, block: 0 };
-  }
+  s.enemy = applyBlockFade(s.enemy).entity;
   const enemyStart = resolveStartOfTurnStatuses(s.enemy);
   s.enemy = enemyStart.entity;
 
@@ -473,9 +475,7 @@ export function simEndTurn(session, rng, maxTurns = Infinity) {
   s.currentTurn += 1;
   s.currentPhase = 'player_turn';
 
-  if ((s.player.block || 0) > 0) {
-    s.player = { ...s.player, block: 0 };
-  }
+  s.player = applyBlockFade(s.player).entity;
 
   const hpBeforePlayerStart = Number(s.player.hp) || 0;
   const playerStart = resolveStartOfTurnStatuses(s.player);

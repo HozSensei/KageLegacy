@@ -145,13 +145,18 @@ test('enchaîne J1 → J2 → ennemi avec les intentions ciblées et protège m�
   assert.equal(combat.currentTurn, 2);
   assert.equal(combat.activePlayerId, 'a');
   assert.equal(view(combat).player.hp, 100 - (opening.intent.displayDamage - 10));
-  assert.equal(view(combat, 'b').player.block, 0);
+  // B n'a pas été touché : 10 armure → fade ÷2 → 5
+  assert.equal(view(combat, 'b').player.block, 5);
   assert.deepEqual(view(combat).enemy.intent, opening.nextIntent);
   assert.ok(
     view(combat).logs.some(l => l.type === 'damage' && l.source === 'enemy' && l.targetId === 'a')
   );
   const secondRound = end(end(combat));
-  assert.equal(view(secondRound, 'b').player.hp, 100 - opening.nextIntent.displayDamage);
+  // B gardait 5 d'armure du tour précédent → absorbe 5 des dégâts ennemis
+  assert.equal(
+    view(secondRound, 'b').player.hp,
+    100 - (opening.nextIntent.displayDamage - 5),
+  );
 });
 
 test('garde les cartes non jouées, échange deux fois par joueur et remet quota/chakra à zéro à son tour', () => {

@@ -157,7 +157,8 @@ assert(
 assert(start.entity.statuses.find(s => s.key === 'poison')?.duration === 1, 'poison durée −1');
 const end = resolveEndOfTurnStatuses(start.entity);
 assert(end.entity.hp === 31, 'plus de burn en fin de tour');
-assert(end.entity.block === 0, 'block fades end of turn');
+assert(end.entity.block === 2, 'block halves end of turn (5 → 2)');
+assert(end.logs.some(l => l.type === 'block_fade' && l.value === 3), 'block_fade logs lost amount');
 assert(
   end.entity.statuses.find(s => s.key === 'poison')?.duration === 1,
   'DoT non décrémenté en fin de tour',
@@ -166,7 +167,9 @@ const persist = resolveEndOfTurnStatuses(
   { hp: 40, maxHp: 40, block: 12, statuses: [] },
   { persistBlock: true },
 );
-assert(persist.entity.block === 12, 'persistBlock keeps armor (StS-style)');
+assert(persist.entity.block === 12, 'persistBlock keeps armor for turn-boundary fade elsewhere');
+const lastPoint = resolveEndOfTurnStatuses({ hp: 40, maxHp: 40, block: 1, statuses: [] });
+assert(lastPoint.entity.block === 0, 'single leftover armor point fades');
 assert(tickStatuses([{ key: 'force', value: 2, duration: 1 }]).length === 0, 'duration 1 expires');
 
 console.log('\n=== Deck runtime ===');

@@ -88,7 +88,8 @@ test('talents, passifs par copie, chakra de base 5 et ouverture persistante', ()
   assert.equal(enemy.level, undefined);
   const next = publicAsyncDuel(end(copy(state)));
   assert.equal(next.player.chakra, 9);
-  assert.equal(next.player.block, 3);
+  // 8 armure non consommée → fade ÷2 (4) + iron_guard (3)
+  assert.equal(next.player.block, 7);
   assert.deepEqual(next.player.hand, player.hand);
 });
 
@@ -149,7 +150,7 @@ test('la pioche d’une carte peut dépasser cinq, et la main et l’épuisement
   assert.deepEqual(publicAsyncDuel(end(played)).player.hand, player.hand);
 });
 
-test('le bloc protège pendant le tour adverse puis expire à son propre tour', () => {
+test('le bloc protège pendant le tour adverse puis se réduit de moitié au tour suivant', () => {
   const state = make(
     { deckEntries: [card('guard', { block: 16 })] },
     {
@@ -159,10 +160,11 @@ test('le bloc protège pendant le tour adverse puis expire à son propre tour', 
   const next = end(play(state, 'guard'));
   const { player, enemy } = publicAsyncDuel(next);
   assert.equal(player.hp, 100);
-  assert.equal(player.block, 0);
+  // 16 armure − 10 dégâts = 6, puis fade ÷2 → 3 restants
+  assert.equal(player.block, 3);
   assert.equal(enemy.block, 8);
   assert.ok(
-    next.logs.some(log => log.type === 'block_fade' && log.side === 'player' && log.value === 6)
+    next.logs.some(log => log.type === 'block_fade' && log.side === 'player' && log.value === 3)
   );
 });
 
