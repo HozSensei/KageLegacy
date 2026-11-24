@@ -1753,7 +1753,11 @@
     "pouchPanelSummary": "Bourse : {ryos} Ryos · objets : {items}",
     "pouchLossWarning": "La poche est perdue en cas d’échec ou d’abandon.",
     "preparePouch": "Préparer dans l’inventaire",
-    "rewardInventoryDeposit": "Dépôt en poche : {n} objet(s) — révéler dans l’inventaire"
+    "rewardInventoryDeposit": "Dépôt en poche : {n} objet(s) — révéler dans l’inventaire",
+    "victoryInventoryInviteDeposit": "Déposez les objets de votre poche dans le coffre, puis préparez la bourse pour la prochaine mission.",
+    "victoryInventoryInvitePrepare": "Préparez votre poche (bourse et objets) dans l’inventaire avant la prochaine mission.",
+    "victoryPrepareInventory": "Ouvrir l’inventaire",
+    "victoryPrepareNext": "Préparer la prochaine mission"
   },
   "community": {
     "villageRewards": {
@@ -2221,7 +2225,9 @@
     "toChest": "Déposer",
     "reveal": "Révéler",
     "open": "Ouvrir",
-    "revealDone": "Continuer"
+    "revealDone": "Continuer",
+    "pouchLockedMission": "Poche verrouillée — mission en cours. Revenez après la fin du parcours.",
+    "pouchLockedCoop": "Poche verrouillée — mission d’équipe en cours. Revenez après la fin du parcours."
   },
   "techniqueRefinement": {
     "title": "Atelier de perfectionnement",

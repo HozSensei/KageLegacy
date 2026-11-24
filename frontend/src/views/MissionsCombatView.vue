@@ -231,13 +231,20 @@ async function startQuick(templateId) {
             items: pouchSummary.itemCount,
           }) }}
         </p>
-        <p class="pouch-panel__warn">{{ t('combat.pouchLossWarning') }}</p>
+        <p v-if="inventory.pouchLocked" class="pouch-panel__warn">
+          {{
+            inventory.pouchLock?.kind === 'coop'
+              ? t('inventory.pouchLockedCoop')
+              : t('inventory.pouchLockedMission')
+          }}
+        </p>
+        <p v-else class="pouch-panel__warn">{{ t('combat.pouchLossWarning') }}</p>
         <RouterLink
           to="/inventaire"
           class="btn-secondary btn-sm"
           data-testid="mission-prepare-inventory"
         >
-          {{ t('combat.preparePouch') }}
+          {{ inventory.pouchLocked ? t('nav.inventory') : t('combat.preparePouch') }}
         </RouterLink>
       </aside>
 

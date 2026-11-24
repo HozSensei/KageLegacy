@@ -1753,7 +1753,11 @@
     "pouchPanelSummary": "Purse: {ryos} Ryos · items: {items}",
     "pouchLossWarning": "The pouch is lost on defeat or abandon.",
     "preparePouch": "Prepare in inventory",
-    "rewardInventoryDeposit": "Stashed in pouch: {n} item(s) — reveal in inventory"
+    "rewardInventoryDeposit": "Stashed in pouch: {n} item(s) — reveal in inventory",
+    "victoryInventoryInviteDeposit": "Move items from your pouch into the chest, then prepare your purse for the next mission.",
+    "victoryInventoryInvitePrepare": "Prepare your pouch (purse and items) in the inventory before the next mission.",
+    "victoryPrepareInventory": "Open inventory",
+    "victoryPrepareNext": "Prepare next mission"
   },
   "community": {
     "villageRewards": {
@@ -2288,7 +2292,9 @@
     "toChest": "Stash",
     "reveal": "Reveal",
     "open": "Open",
-    "revealDone": "Continue"
+    "revealDone": "Continue",
+    "pouchLockedMission": "Pouch locked — mission in progress. Come back after the run ends.",
+    "pouchLockedCoop": "Pouch locked — co-op mission in progress. Come back after the run ends."
   },
   "techniqueRefinement": {
     "title": "Technique refinement hall",

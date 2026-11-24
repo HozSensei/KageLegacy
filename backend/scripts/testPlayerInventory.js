@@ -11,7 +11,11 @@ import {
   utcDayKey,
 } from '../src/config/itemCatalog.js';
 import { PURSE_STAKES, isValidPurseStake } from '../src/config/missionRunEconomy.js';
-import { __test as invTest } from '../src/services/playerInventoryService.js';
+import {
+  getPouchLockStatus,
+  assertPouchEditable,
+  __test as invTest,
+} from '../src/services/playerInventoryService.js';
 
 let passed = 0;
 let failed = 0;
@@ -57,6 +61,10 @@ assert(
   a.offers.every(o => o.priceShop === o.price),
   'price = priceShop',
 );
+
+console.log('=== exports verrouillage poche ===');
+assert(typeof getPouchLockStatus === 'function', 'getPouchLockStatus exporté');
+assert(typeof assertPouchEditable === 'function', 'assertPouchEditable exporté');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

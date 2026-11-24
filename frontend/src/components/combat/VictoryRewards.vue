@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { RouterLink } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import BoosterOpening from '../shop/BoosterOpening.vue';
 import { localizedName } from '../../utils/localeContent.js';
 
@@ -19,6 +19,7 @@ const props = defineProps({
 const emit = defineEmits(['dismiss']);
 
 const { t, locale } = useI18n();
+const router = useRouter();
 
 /** summary | opening */
 const phase = ref('summary');
@@ -70,9 +71,29 @@ const lootCards = computed(() => {
 
 const hasLootReveal = computed(() => lootCards.value.length > 0);
 
+const inventoryDeposits = computed(() => {
+  const r = props.rewards;
+  if (!r || r.error || props.midRun || !isVictory.value) return [];
+  return Array.isArray(r.inventoryDeposits) ? r.inventoryDeposits : [];
+});
+
+const depositCount = computed(() =>
+  inventoryDeposits.value.reduce((sum, d) => sum + (Number(d.quantity) || 1), 0)
+);
+
+/** Fin de parcours : inviter à déposer / préparer via l’inventaire. */
+const showInventoryInvite = computed(
+  () => isVictory.value && !props.midRun && Boolean(props.rewards) && !props.rewards?.error
+);
+
 const ctaLabel = computed(() => {
   if (hasLootReveal.value && phase.value === 'summary') {
     return t('combat.revealLoot');
+  }
+  if (showInventoryInvite.value) {
+    return depositCount.value > 0
+      ? t('combat.victoryPrepareInventory')
+      : t('combat.victoryPrepareNext');
   }
   return props.continueLabel || (props.midRun ? t('combat.continueRun') : t('combat.backToMissions'));
 });
@@ -102,12 +123,10 @@ const lines = computed(() => {
       }),
     });
   }
-  const deposits = Array.isArray(r.inventoryDeposits) ? r.inventoryDeposits : [];
-  if (deposits.length > 0) {
-    const qty = deposits.reduce((sum, d) => sum + (Number(d.quantity) || 1), 0);
+  if (depositCount.value > 0) {
     out.push({
       key: 'inventory',
-      label: t('combat.rewardInventoryDeposit', { n: qty }),
+      label: t('combat.rewardInventoryDeposit', { n: depositCount.value }),
       to: { name: 'inventory' },
     });
   }
@@ -126,9 +145,8 @@ const lines = computed(() => {
   } else if (
     r.cardRolled === false &&
     (r.xp > 0 || totalRyos > 0) &&
-    deposits.length === 0
+    depositCount.value === 0
   ) {
-    // Drop aléatoire de fin manqué — les scellés vont désormais en poche.
     out.push({ key: 'no-card', label: t('combat.rewardNoCard') });
   }
   if (r.runMult) {
@@ -142,11 +160,19 @@ function onCta() {
     phase.value = 'opening';
     return;
   }
+  if (showInventoryInvite.value) {
+    router.push({ name: 'inventory' });
+    emit('dismiss');
+    return;
+  }
   emit('dismiss');
 }
 
 function onRevealDone() {
   phase.value = 'summary';
+  if (showInventoryInvite.value) {
+    router.push({ name: 'inventory' });
+  }
   emit('dismiss');
 }
 </script>
@@ -184,11 +210,34 @@ function onRevealDone() {
       <p v-else-if="isVictory && !rewards && !midRun && showPendingRewards" class="victory__muted">
         {{ t('combat.rewardPending') }}
       </p>
+
+      <p
+        v-if="showInventoryInvite && phase === 'summary'"
+        class="victory__invite"
+        data-testid="victory-inventory-invite"
+      >
+        {{
+          depositCount > 0
+            ? t('combat.victoryInventoryInviteDeposit')
+            : t('combat.victoryInventoryInvitePrepare')
+        }}
+      </p>
     </div>
 
-    <button type="button" class="btn-primary btn-lg victory__cta" @click="onCta">
-      {{ ctaLabel }}
-    </button>
+    <div class="victory__actions">
+      <button type="button" class="btn-primary btn-lg victory__cta" @click="onCta">
+        {{ ctaLabel }}
+      </button>
+      <button
+        v-if="showInventoryInvite && !(hasLootReveal && phase === 'summary')"
+        type="button"
+        class="btn-ghost"
+        data-testid="victory-dismiss"
+        @click="emit('dismiss')"
+      >
+        {{ continueLabel || t('combat.backToMissions') }}
+      </button>
+    </div>
   </div>
 
   <Teleport to="body">
@@ -213,7 +262,11 @@ function onRevealDone() {
           :booster-name="t('shop.sealedScroll')"
           :card-count="lootCards.length"
           :show-collection-status="true"
-          :done-label="continueLabel || t('combat.backToMissions')"
+          :done-label="
+            showInventoryInvite
+              ? t('combat.victoryPrepareInventory')
+              : continueLabel || t('combat.backToMissions')
+          "
           :done-status="t('combat.lootRevealDone')"
           @done="onRevealDone"
         />
@@ -305,8 +358,23 @@ function onRevealDone() {
   color: var(--color-ink-muted);
 }
 
-.victory__cta {
+.victory__invite {
+  margin: 1rem 0 0;
+  max-width: 28rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--color-ink-muted);
+}
+
+.victory__actions {
   position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.victory__cta {
   justify-self: start;
 }
 
@@ -373,9 +441,11 @@ function onRevealDone() {
     gap: 2rem;
   }
 
-  .victory__cta {
+  .victory__actions {
     align-self: end;
     justify-self: end;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

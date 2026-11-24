@@ -218,9 +218,16 @@ function leaveLobby() {
             items: pouchSummary.itemCount,
           }) }}
         </p>
-        <p class="coop__pouch-warn">{{ t('combat.pouchLossWarning') }}</p>
+        <p v-if="inventory.pouchLocked" class="coop__pouch-warn">
+          {{
+            inventory.pouchLock?.kind === 'coop'
+              ? t('inventory.pouchLockedCoop')
+              : t('inventory.pouchLockedMission')
+          }}
+        </p>
+        <p v-else class="coop__pouch-warn">{{ t('combat.pouchLossWarning') }}</p>
         <RouterLink to="/inventaire" class="btn-secondary btn-sm">
-          {{ t('combat.preparePouch') }}
+          {{ inventory.pouchLocked ? t('nav.inventory') : t('combat.preparePouch') }}
         </RouterLink>
       </aside>
 

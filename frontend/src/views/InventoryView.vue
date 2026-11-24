@@ -119,7 +119,7 @@ function onRevealDone() {
               <button
                 type="button"
                 class="btn-secondary btn-sm"
-                :disabled="inventory.actionLoading"
+                :disabled="inventory.actionLoading || inventory.pouchLocked"
                 @click="onMove(entry, 'chest', 'pouch')"
               >
                 {{ t('inventory.toPouch') }}
@@ -130,10 +130,25 @@ function onRevealDone() {
         <p v-else class="inv-empty">{{ t('inventory.chestEmpty') }}</p>
       </section>
 
-      <section class="inv-panel" data-testid="inventory-pouch">
+      <section
+        class="inv-panel"
+        :class="{ 'inv-panel--locked': inventory.pouchLocked }"
+        data-testid="inventory-pouch"
+      >
         <header class="inv-panel__head">
           <h2>{{ t('inventory.pouchTitle') }}</h2>
           <p>{{ t('inventory.pouchHint') }}</p>
+          <p
+            v-if="inventory.pouchLocked"
+            class="inv-panel__locked"
+            data-testid="inventory-pouch-locked"
+          >
+            {{
+              inventory.pouchLock?.kind === 'coop'
+                ? t('inventory.pouchLockedCoop')
+                : t('inventory.pouchLockedMission')
+            }}
+          </p>
         </header>
 
         <div class="inv-ryos" data-testid="inventory-pouch-ryos">
@@ -147,7 +162,7 @@ function onRevealDone() {
               type="button"
               class="btn-ghost btn-sm"
               :class="{ 'inv-ryos__active': inventory.pouchRyos === stake }"
-              :disabled="inventory.actionLoading"
+              :disabled="inventory.actionLoading || inventory.pouchLocked"
               @click="onSetRyos(stake)"
             >
               {{ t('inventory.pouchStakeOption', { n: stake }) }}
@@ -166,7 +181,7 @@ function onRevealDone() {
               <button
                 type="button"
                 class="btn-secondary btn-sm"
-                :disabled="inventory.actionLoading"
+                :disabled="inventory.actionLoading || inventory.pouchLocked"
                 @click="onMove(entry, 'pouch', 'chest')"
               >
                 {{ t('inventory.toChest') }}
@@ -236,6 +251,15 @@ function onRevealDone() {
   margin: 0.35rem 0 0;
   color: var(--color-ink-muted);
   font-size: 0.9375rem;
+}
+
+.inv-panel__locked {
+  color: var(--color-vermilion) !important;
+  font-weight: 600;
+}
+
+.inv-panel--locked {
+  opacity: 0.92;
 }
 
 .inv-list {

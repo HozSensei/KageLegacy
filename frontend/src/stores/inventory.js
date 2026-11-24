@@ -8,6 +8,8 @@ export const useInventoryStore = defineStore('inventory', () => {
   const chest = ref([]);
   const pouch = ref([]);
   const pouchRyos = ref(0);
+  const pouchLocked = ref(false);
+  const pouchLock = ref(null);
   const stakes = ref([0, 100, 200, 300]);
   const loading = ref(false);
   const actionLoading = ref(false);
@@ -19,6 +21,8 @@ export const useInventoryStore = defineStore('inventory', () => {
     chest.value = body.chest || [];
     pouch.value = body.pouch || [];
     pouchRyos.value = Number(body.pouchRyos) || 0;
+    pouchLocked.value = Boolean(body.pouchLocked);
+    pouchLock.value = body.pouchLock || null;
     if (Array.isArray(body.stakes) && body.stakes.length) {
       stakes.value = body.stakes;
     }
@@ -154,6 +158,8 @@ export const useInventoryStore = defineStore('inventory', () => {
     chest,
     pouch,
     pouchRyos,
+    pouchLocked,
+    pouchLock,
     stakes,
     loading,
     actionLoading,

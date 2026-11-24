@@ -60,6 +60,50 @@ async function tableExists(name) {
   return rows.length > 0;
 }
 
+/**
+ * La poche est verrouillée tant qu’une run solo/coop (ou autre consommateur) est active.
+ * Les grants de fin de run (depositRunLootToPouch) ne passent pas par assertPouchEditable.
+ */
+export async function getPouchLockStatus(userId) {
+  if (!userId) return { locked: false, reason: null, runId: null, kind: null };
+
+  if (await tableExists('mission_runs')) {
+    const solo = await query(
+      `SELECT id FROM mission_runs
+       WHERE user_id = ? AND state = 'in_progress'
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId],
+    );
+    if (solo[0]) {
+      return { locked: true, reason: 'mission_run', runId: solo[0].id, kind: 'mission' };
+    }
+  }
+
+  if (await tableExists('coop_mission_runs')) {
+    const coop = await query(
+      `SELECT id FROM coop_mission_runs
+       WHERE state = 'in_progress' AND (host_id = ? OR guest_id = ?)
+       ORDER BY created_at DESC LIMIT 1`,
+      [userId, userId],
+    );
+    if (coop[0]) {
+      return { locked: true, reason: 'coop_run', runId: coop[0].id, kind: 'coop' };
+    }
+  }
+
+  return { locked: false, reason: null, runId: null, kind: null };
+}
+
+export async function assertPouchEditable(userId) {
+  const status = await getPouchLockStatus(userId);
+  if (!status.locked) return status;
+  const msg =
+    status.kind === 'coop'
+      ? 'Poche verrouillée : mission d’équipe en cours.'
+      : 'Poche verrouillée : mission en cours.';
+  throw httpError(409, msg, 'POUCH_LOCKED');
+}
+
 export async function getPouchRyos(userId) {
   const rows = await query(
     'SELECT pouch_ryos FROM player_profiles WHERE user_id = ? LIMIT 1',
@@ -70,8 +114,15 @@ export async function getPouchRyos(userId) {
 }
 
 export async function getInventory(userId) {
+  const pouchLock = await getPouchLockStatus(userId);
   if (!(await tableExists('user_inventory_items'))) {
-    return { chest: [], pouch: [], pouchRyos: await getPouchRyos(userId).catch(() => 0) };
+    return {
+      chest: [],
+      pouch: [],
+      pouchRyos: await getPouchRyos(userId).catch(() => 0),
+      pouchLocked: pouchLock.locked,
+      pouchLock,
+    };
   }
   const rows = await query(
     `SELECT id, item_key, location, quantity, meta_json
@@ -86,7 +137,13 @@ export async function getInventory(userId) {
     if (row.location === 'pouch') pouch.push(entry);
     else chest.push(entry);
   }
-  return { chest, pouch, pouchRyos: await getPouchRyos(userId) };
+  return {
+    chest,
+    pouch,
+    pouchRyos: await getPouchRyos(userId),
+    pouchLocked: pouchLock.locked,
+    pouchLock,
+  };
 }
 
 async function upsertStack(userId, itemKey, location, qty, meta = null, connection = null) {
@@ -193,6 +250,9 @@ export async function moveItem(userId, itemKey, { from, to, quantity = 1 } = {})
     throw httpError(400, 'Emplacement invalide.');
   }
   if (from === to) return getInventory(userId);
+  if (from === 'pouch' || to === 'pouch') {
+    await assertPouchEditable(userId);
+  }
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
@@ -213,6 +273,7 @@ export async function setPouchRyos(userId, targetStake) {
   if (!isValidPurseStake(targetStake)) {
     throw httpError(400, 'Montant de bourse invalide (0/100/200/300).');
   }
+  await assertPouchEditable(userId);
   const target = Number(targetStake) || 0;
   const connection = await getConnection();
   try {
