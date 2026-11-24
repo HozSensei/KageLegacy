@@ -15,6 +15,7 @@ import {
   localizedField,
   localizedName,
 } from '../utils/localeContent.js'
+import { shopItemEffect, shopItemName } from '../utils/missionShopItems.js'
 import { useNotificationsStore } from '../stores/notifications.js'
 
 defineOptions({ name: 'MissionRunView' })
@@ -129,16 +130,20 @@ const shopOffer = computed(() => missions.currentEvent?.offer || [])
 const replaceSlot = ref(null)
 
 function itemLabel(item) {
-  return localizedField(item, 'name', locale.value) || item.id
+  return shopItemName(item, { t, locale: locale.value })
 }
 
 function itemDesc(item) {
-  return localizedField(item, 'description', locale.value) || ''
+  return shopItemEffect(item, { t, locale: locale.value })
 }
 
 function slotLabel(slot) {
-  if (!slot?.itemId) return t('combat.inventoryEmpty')
-  return t(`combat.shopItems.${slot.itemId}`, slot.itemId)
+  return shopItemName(slot?.itemId ? slot : null, { t, locale: locale.value })
+}
+
+function slotEffect(slot) {
+  if (!slot?.itemId) return ''
+  return shopItemEffect(slot, { t, locale: locale.value })
 }
 
 const hpPct = computed(() =>
@@ -288,7 +293,12 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             :class="{ 'run-inventory__slot--filled': slot.itemId }"
             :data-testid="`run-inv-slot-${slot.slot}`"
           >
-            <p class="run-inventory__slot-label">{{ slotLabel(slot) }}</p>
+            <div class="run-inventory__slot-copy">
+              <p class="run-inventory__slot-label">{{ slotLabel(slot) }}</p>
+              <p v-if="slotEffect(slot)" class="run-inventory__slot-effect">
+                {{ slotEffect(slot) }}
+              </p>
+            </div>
             <div v-if="slot.itemId" class="run-inventory__slot-actions">
               <button
                 type="button"
@@ -371,7 +381,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
               <div>
                 <p class="run-shop__name">{{ itemLabel(item) }}</p>
-                <p class="run-shop__desc">{{ itemDesc(item) }}</p>
+                <p v-if="itemDesc(item)" class="run-shop__desc">{{ itemDesc(item) }}</p>
                 <p class="run-shop__price">
                   {{ t('combat.shopPrice', { n: item.price }) }}
                   ·
@@ -589,9 +599,20 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   border-style: solid;
 }
 
+.run-inventory__slot-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .run-inventory__slot-label {
   margin: 0;
   font-weight: 700;
+}
+
+.run-inventory__slot-effect {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
 }
 
 .run-inventory__slot-actions {

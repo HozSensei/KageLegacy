@@ -1504,6 +1504,18 @@
       "next_chakra": "Pilule de chakra",
       "next_damage": "Encens de rage"
     },
+    "shopItemEffects": {
+      "heal_bandage": "Soigne 25 % des PV max (hors combat).",
+      "heal_tonic": "Soigne 50 % des PV max (hors combat).",
+      "heal_elixir": "Soigne 75 % des PV max (hors combat).",
+      "card_mystery_common": "Carte normale révélée à la fin du parcours.",
+      "card_mystery_rare": "Carte rare révélée à la fin du parcours.",
+      "card_mystery_legendary": "Carte légendaire révélée à la fin du parcours.",
+      "run_boost_damage": "+10 % dégâts pour le reste du parcours.",
+      "next_block": "+8 armure au prochain combat.",
+      "next_chakra": "+1 Chakra au début du prochain combat.",
+      "next_damage": "+15 % dégâts pendant le prochain combat."
+    },
     "nodeStatus": {
       "locked": "Verrouillé",
       "available": "Disponible",

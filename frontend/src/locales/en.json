@@ -1504,6 +1504,18 @@
       "next_chakra": "Chakra Pill",
       "next_damage": "Rage Incense"
     },
+    "shopItemEffects": {
+      "heal_bandage": "Heals 25% of max HP (out of combat).",
+      "heal_tonic": "Heals 50% of max HP (out of combat).",
+      "heal_elixir": "Heals 75% of max HP (out of combat).",
+      "card_mystery_common": "Normal card revealed at the end of the run.",
+      "card_mystery_rare": "Rare card revealed at the end of the run.",
+      "card_mystery_legendary": "Legendary card revealed at the end of the run.",
+      "run_boost_damage": "+10% damage for the rest of the run.",
+      "next_block": "+8 armor at the start of the next fight.",
+      "next_chakra": "+1 Chakra at the start of the next fight.",
+      "next_damage": "+15% damage during the next fight."
+    },
     "nodeStatus": {
       "locked": "Locked",
       "available": "Available",
