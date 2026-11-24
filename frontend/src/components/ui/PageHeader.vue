@@ -45,6 +45,9 @@ defineProps({
         {{ title }}
       </h1>
       <p v-if="lead" class="page-header__lead">{{ lead }}</p>
+      <div v-if="$slots.meta" class="page-header__meta">
+        <slot name="meta" />
+      </div>
       <div v-if="$slots.actions" class="page-header__actions">
         <slot name="actions" />
       </div>
@@ -122,6 +125,11 @@ defineProps({
   animation: rise-in 520ms var(--ease-out-quint) 70ms both;
 }
 
+.page-header__meta {
+  margin-top: 1.1rem;
+  animation: rise-in 520ms var(--ease-out-quint) 100ms both;
+}
+
 .page-header__actions {
   display: flex;
   flex-wrap: wrap;
@@ -186,6 +194,7 @@ defineProps({
   .page-header__kicker,
   .page-header__title,
   .page-header__lead,
+  .page-header__meta,
   .page-header__actions {
     animation: none !important;
   }

@@ -361,9 +361,8 @@ async function startQuick(templateId) {
 
 <style scoped>
 .pouch-panel {
-  margin: 1rem 0 0.75rem;
-  padding: 0.85rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+  margin: 0.75rem 0;
+  padding: 0;
 }
 
 .pouch-panel__title {

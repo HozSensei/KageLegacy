@@ -5,7 +5,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem 2rem;
-    margin-bottom: 1.75rem;
+    margin: 0 0 1.75rem;
+  }
+
+  .shop-balances--compact {
+    gap: 0.65rem 1.35rem;
+    margin: 0;
   }
 
   .shop-balances__item {
@@ -24,8 +29,13 @@
     color: var(--tone-on);
   }
 
-  .shop-balances__item:first-child .shop-balances__mark {
+  .shop-balances__item[data-tone='wood'] .shop-balances__mark {
     border-radius: 999px;
+  }
+
+  .shop-balances--compact .shop-balances__mark {
+    width: 1.85rem;
+    height: 1.85rem;
   }
 
   .shop-balances__value {
@@ -39,6 +49,10 @@
     color: var(--color-ink);
   }
 
+  .shop-balances--compact .shop-balances__value {
+    font-size: 1.35rem;
+  }
+
   .shop-balances__label {
     display: block;
     font-size: var(--type-kicker);
@@ -46,6 +60,10 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-ink-muted);
+  }
+
+  .shop-balances--compact .shop-balances__label {
+    font-size: 0.65rem;
   }
 
   .shop-note {

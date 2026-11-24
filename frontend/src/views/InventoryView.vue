@@ -4,18 +4,22 @@ import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
+import ShopBalances from '../components/shop/ShopBalances.vue';
 import forestImage from '../assets/illustrations/forest-path.webp';
 import { useInventoryStore } from '../stores/inventory';
+import { useShopStore } from '../stores/shop';
 import { localizedDescription, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'InventoryView' });
 
 const { t, locale } = useI18n();
 const inventory = useInventoryStore();
+const shop = useShopStore();
 const opening = ref(false);
 
 onMounted(() => {
   inventory.fetchInventory();
+  shop.fetchBalances();
 });
 
 const revealCards = computed(() => inventory.lastReveal?.cards || []);
@@ -83,6 +87,9 @@ function onRevealDone() {
       :image="forestImage"
       image-position="50% 40%"
     >
+      <template #meta>
+        <ShopBalances compact :balances="shop.balances" />
+      </template>
       <template #actions>
         <RouterLink to="/missions" class="btn-ghost">
           {{ t('inventory.goMissions') }}
@@ -235,8 +242,7 @@ function onRevealDone() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.25rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--color-ink) 12%, transparent);
+  padding: 0;
 }
 
 .inv-panel__head h2 {
