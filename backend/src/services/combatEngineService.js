@@ -6,7 +6,7 @@
  *
  * Formules : docs/CARDS_AND_COMBAT.md
  *   Dégâts = Base × (1 + Stat/100)
- *   Chakra 3/tour, pioche 5, armure fade en fin de tour joueur
+ *   Chakra 3/tour, pioche 5, armure restante ÷2 au début du tour du porteur
  */
 import { randomUUID } from 'node:crypto';
 import { query } from '../config/database.js';
@@ -19,7 +19,11 @@ import {
 } from './deckCombat/deckRuntime.js';
 import { applyCardPlay, resolveAllyAttack } from './deckCombat/cardEffects.js';
 import { applySoloCardBalance } from './deckCombat/soloCardBalance.js';
-import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './deckCombat/statuses.js';
+import {
+  applyBlockFade,
+  resolveEndOfTurnStatuses,
+  resolveStartOfTurnStatuses,
+} from './deckCombat/statuses.js';
 import { applyHeldTurnStart } from './deckCombat/heldEffects.js';
 import {
   applyTalentAfterCardPlay,
@@ -922,9 +926,10 @@ export async function endTurn(userId, combatId) {
   const carriedChakra = chakraCarryover(session.player);
   session.currentPhase = 'enemy_turn';
 
-  if ((session.enemy.block || 0) > 0) {
-    logs.push({ type: 'block_fade', side: 'enemy', value: session.enemy.block });
-    session.enemy = { ...session.enemy, block: 0 };
+  {
+    const enemyFade = applyBlockFade(session.enemy, { side: 'enemy' });
+    session.enemy = enemyFade.entity;
+    logs.push(...enemyFade.logs);
   }
   const enemyStart = resolveStartOfTurnStatuses(session.enemy);
   session.enemy = enemyStart.entity;
@@ -1012,9 +1017,10 @@ export async function endTurn(userId, combatId) {
   session.currentTurn += 1;
   session.currentPhase = 'player_turn';
 
-  if ((session.player.block || 0) > 0) {
-    logs.push({ type: 'block_fade', side: 'player', value: session.player.block });
-    session.player = { ...session.player, block: 0 };
+  {
+    const playerFade = applyBlockFade(session.player, { side: 'player' });
+    session.player = playerFade.entity;
+    logs.push(...playerFade.logs);
   }
 
   const playerStart = resolveStartOfTurnStatuses(session.player);

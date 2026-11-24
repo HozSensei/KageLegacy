@@ -279,7 +279,7 @@ The enemy carries out its current intent, then the displayed intents are updated
 ### Damage, armor and healing
 
 - **Card damage**: base damage, increased by 1% per point in the stat of its path (best path for a neutral card).
-- **Armor**: it absorbs damage before your HP. It protects you during the enemy's turn, then disappears at the start of your next turn. The enemy's armor disappears the same way at the start of its turn.
+- **Armor**: it absorbs damage before your HP. It protects you during the enemy's turn. At the start of your next turn, leftover armor is halved (rounded down); a single remaining point fades away. The enemy's armor decays the same way at the start of its turn.
 - **Healing**: it cannot exceed your max HP.
 - **Critical hit**: some cards or their keywords grant a critical chance, capped at 50%. A critical hit applies **×1.5** to damage; Speed does not determine this chance. On a multi-hit card, one critical roll applies to every hit.
 

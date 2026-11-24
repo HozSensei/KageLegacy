@@ -279,7 +279,7 @@ L'ennemi exécute son intention actuelle, puis les intentions affichées sont mi
 ### Dégâts, armure et soins
 
 - **Dégâts d'une carte** : dégâts de base, augmentés de 1 % par point dans la statistique de sa voie (meilleure voie pour une carte neutre).
-- **Armure** : elle absorbe les dégâts avant vos PV. Elle vous protège pendant le tour de l'ennemi, puis disparaît au début de votre tour suivant. L'armure de l'ennemi disparaît de la même façon au début de son tour.
+- **Armure** : elle absorbe les dégâts avant vos PV. Elle vous protège pendant le tour de l'ennemi. Au début de votre tour suivant, l'armure non consommée est réduite de moitié (arrondi vers le bas) ; une unité restante disparaît. L'armure de l'ennemi diminue de la même façon au début de son tour.
 - **Soins** : ils ne peuvent pas dépasser vos PV max.
 - **Coup critique** : certaines cartes ou leurs mots-clés donnent une chance de critique, plafonnée à 50 %. Un critique applique **×1,5** aux dégâts ; la Vitesse ne détermine pas cette chance. Sur une carte multicoup, un seul jet de critique s'applique à tous les coups.
 

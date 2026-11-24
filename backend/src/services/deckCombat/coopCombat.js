@@ -6,6 +6,7 @@ import { publicFighterIdentity } from './fighterIdentity.js';
 import { applyHeldTurnStart } from './heldEffects.js';
 import {
   PLAYER_DEBUFF_KEYS,
+  applyBlockFade,
   resolveEndOfTurnStatuses,
   resolveStartOfTurnStatuses,
 } from './statuses.js';
@@ -452,12 +453,13 @@ function playCard(combat, index, { instanceId, target = 'enemy', confirmedFriend
 
 function enemyTurn(combat, rng) {
   refreshIntents(combat);
-  const start = resolveStartOfTurnStatuses({ ...combat.enemy, block: 0 });
+  const enemyFade = applyBlockFade(combat.enemy, { side: 'enemy' });
+  const start = resolveStartOfTurnStatuses(enemyFade.entity);
   combat.enemy = start.entity;
-  appendLogs(
-    combat,
-    start.logs.map(log => ({ ...log, side: 'enemy' })),
-  );
+  appendLogs(combat, [
+    ...enemyFade.logs,
+    ...start.logs.map(log => ({ ...log, side: 'enemy' })),
+  ]);
   if (checkOutcome(combat)) return;
 
   const targetId = combat.enemy.intent.targetId;
@@ -499,9 +501,9 @@ function enemyTurn(combat, rng) {
   if (checkOutcome(combat)) return;
 
   combat.players = combat.players.map(player => {
-    if (player.block > 0)
-      appendLogs(combat, [{ type: 'block_fade', value: player.block }], player.id);
-    return { ...player, block: 0 };
+    const faded = applyBlockFade(player);
+    appendLogs(combat, faded.logs, player.id);
+    return faded.entity;
   });
   combat.currentTurn += 1;
   refreshIntents(combat);

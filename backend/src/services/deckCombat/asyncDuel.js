@@ -9,7 +9,11 @@ import { BASE_MAX_HP, DRAW_PER_TURN, STAT_KEYS, TALENT_EFFECT_MVP } from './cons
 import { buildRuntimeDeck, drawCards, moveCardFromHand, shuffle } from './deckRuntime.js';
 import { applyDamageThroughBlock, getStatusValue } from './formulas.js';
 import { applyHeldTurnStart, heldEffectMods } from './heldEffects.js';
-import { resolveEndOfTurnStatuses, resolveStartOfTurnStatuses } from './statuses.js';
+import {
+  applyBlockFade,
+  resolveEndOfTurnStatuses,
+  resolveStartOfTurnStatuses,
+} from './statuses.js';
 import {
   applyIncomingTalentCap,
   applyTalentAfterCardPlay,
@@ -171,9 +175,13 @@ function afterHit(fighter, { hp, block, statuses, minion }) {
 function beginTurn(duel, index, rng) {
   const fighter = duel.fighters[index];
   const first = duel.currentTurn === 1;
-  if (!first && fighter.block > 0)
-    appendLogs(duel, index, [{ type: 'block_fade', value: fighter.block }]);
-  const start = resolveStartOfTurnStatuses({ ...fighter, block: first ? fighter.block : 0 });
+  let ready = fighter;
+  if (!first) {
+    const faded = applyBlockFade(fighter);
+    ready = faded.entity;
+    appendLogs(duel, index, faded.logs);
+  }
+  const start = resolveStartOfTurnStatuses(ready);
   duel.fighters[index] = start.entity;
   appendLogs(duel, index, start.logs);
   if (checkOutcome(duel)) return;

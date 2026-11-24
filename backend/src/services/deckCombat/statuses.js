@@ -112,7 +112,30 @@ export function resolveStartOfTurnStatuses(entity) {
 }
 
 /**
- * Fin de tour : tick durées (hors DoT), reset armure (sauf flag persistBlock).
+ * Armure non consommée : conserve la moitié (arrondi vers le bas) à chaque tour.
+ * Ex. 10 → 5 → 2 → 1 → 0. Une unité restante disparaît au tour suivant.
+ * @returns {{ block: number, faded: number }}
+ */
+export function fadeRemainingBlock(block) {
+  const current = Math.max(0, Math.floor(Number(block) || 0));
+  if (current <= 0) return { block: 0, faded: 0 };
+  const next = Math.floor(current / 2);
+  return { block: next, faded: current - next };
+}
+
+/**
+ * Applique le fade progressif d'armure et produit un log `block_fade` si besoin.
+ * @param {object} [logExtra] — champs additionnels du log (ex. side)
+ * @returns {{ entity: object, logs: object[] }}
+ */
+export function applyBlockFade(entity, logExtra = {}) {
+  const { block, faded } = fadeRemainingBlock(entity?.block);
+  const logs = faded > 0 ? [{ type: 'block_fade', value: faded, ...logExtra }] : [];
+  return { entity: { ...entity, block }, logs };
+}
+
+/**
+ * Fin de tour : tick durées (hors DoT), fade progressif d'armure (sauf flag persistBlock).
  */
 export function resolveEndOfTurnStatuses(entity, { persistBlock = false } = {}) {
   const logs = [];
@@ -121,8 +144,9 @@ export function resolveEndOfTurnStatuses(entity, { persistBlock = false } = {}) 
   const statuses = tickStatuses(entity.statuses || [], { skipKeys: DOT_STATUS_KEYS });
 
   if (!persistBlock) {
-    if (block > 0) logs.push({ type: 'block_fade', value: block });
-    block = 0;
+    const faded = fadeRemainingBlock(block);
+    if (faded.faded > 0) logs.push({ type: 'block_fade', value: faded.faded });
+    block = faded.block;
   }
 
   return { entity: { ...entity, hp, block, statuses }, logs };

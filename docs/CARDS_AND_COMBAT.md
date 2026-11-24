@@ -96,6 +96,10 @@ Dans le moteur actuel, une attaque est résolue ainsi :
 
 Un critique est tiré une fois par carte : tous les coups d'une carte multicoup bénéficient du même résultat.
 
+## Armure
+
+L'armure absorbe les dégâts avant les PV. Au début du tour du porteur, l'armure non consommée est réduite de moitié (arrondi vers le bas) ; une unité restante disparaît. Elle ne tombe donc plus à zéro d'office d'un tour à l'autre.
+
 ## Triade et éléments
 
 Triade :
