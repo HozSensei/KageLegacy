@@ -28,7 +28,10 @@ export function useOnboardingVisit(stepKey) {
       toastNew: false,
     });
     const step = (onboarding.steps || []).find(s => s.key === stepKey);
-    if (step?.claimable && !alreadyReady) {
+    // Si l’utilisateur a déjà « marqué comme lu », le sync ne recrée pas l’entrée :
+    // pas de toast parasite à chaque visite.
+    const nowInInbox = notifications.items.some(n => n.dedupeKey === dedupeKey);
+    if (step?.claimable && !alreadyReady && nowInInbox) {
       const label = localizedName(step, locale.value, step.key);
       toast.push({
         title: t('notifications.onboardingReadyTitle'),

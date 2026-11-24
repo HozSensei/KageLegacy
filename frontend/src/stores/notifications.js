@@ -13,13 +13,34 @@ function newId() {
  */
 export const useNotificationsStore = defineStore('notifications', () => {
   const items = ref([]);
+  /** Clés snoozées via « Marquer comme lu » — le sync ne les recrée pas tant qu’elles restent claimables. */
+  const dismissedKeys = new Set();
 
   const unreadCount = computed(() => items.value.filter(item => !item.read).length);
   const unreadItems = computed(() => items.value.filter(item => !item.read));
 
+  function rememberDismiss(dedupeKey) {
+    if (dedupeKey) dismissedKeys.add(dedupeKey);
+  }
+
+  function forgetDismiss(dedupeKey) {
+    if (dedupeKey) dismissedKeys.delete(dedupeKey);
+  }
+
+  /** Retire du snooze les clés d’un préfixe qui ne sont plus claimables. */
+  function pruneDismissed(prefix, activeKeys) {
+    for (const key of [...dismissedKeys]) {
+      if (key.startsWith(prefix) && !activeKeys.has(key)) dismissedKeys.delete(key);
+    }
+  }
+
   function push(entry) {
     if (!entry?.kind) return null;
     const dedupeKey = entry.dedupeKey || null;
+
+    if (dedupeKey && dismissedKeys.has(dedupeKey)) {
+      return null;
+    }
 
     if (dedupeKey) {
       const idx = items.value.findIndex(item => item.dedupeKey === dedupeKey);
@@ -32,7 +53,8 @@ export const useNotificationsStore = defineStore('notifications', () => {
           id: prev.id,
           dedupeKey,
           createdAt: prev.createdAt,
-          read: entry.read ?? false,
+          // Conserver « lu » sauf si l’appelant force explicitement.
+          read: entry.read != null ? Boolean(entry.read) : Boolean(prev.read),
         };
         const copy = items.value.slice();
         copy.splice(idx, 1);
@@ -63,6 +85,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function dismiss(id) {
     const item = items.value.find(n => n.id === id);
     if (!item) return;
+    rememberDismiss(item.dedupeKey);
     if (item.sticky || item.dedupeKey) {
       items.value = items.value.filter(n => n.id !== id);
       return;
@@ -72,10 +95,14 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   function clearDedupe(dedupeKey) {
     if (!dedupeKey) return;
+    forgetDismiss(dedupeKey);
     items.value = items.value.filter(n => n.dedupeKey !== dedupeKey);
   }
 
   function markAllRead() {
+    for (const n of items.value) {
+      rememberDismiss(n.dedupeKey);
+    }
     items.value = items.value
       .filter(n => !n.sticky)
       .map(n => ({ ...n, read: true }));
@@ -91,14 +118,19 @@ export const useNotificationsStore = defineStore('notifications', () => {
       q => q?.progress?.isCompleted && !q?.progress?.isClaimed && q.id != null
     );
     const keys = new Set(ready.map(q => `quest:${q.id}`));
+    pruneDismissed('quest:', keys);
     items.value = items.value.filter(
-      n => n.kind !== 'quest_ready' || (n.dedupeKey && keys.has(n.dedupeKey))
+      n =>
+        n.kind !== 'quest_ready' ||
+        (n.dedupeKey && keys.has(n.dedupeKey) && !dismissedKeys.has(n.dedupeKey))
     );
     for (const quest of ready) {
+      const dedupeKey = `quest:${quest.id}`;
+      if (dismissedKeys.has(dedupeKey)) continue;
       const built = buildEntry?.(quest) || {};
       push({
         kind: 'quest_ready',
-        dedupeKey: `quest:${quest.id}`,
+        dedupeKey,
         sticky: true,
         payload: built.payload || { questId: quest.id },
         href: built.href ?? { name: 'battle-pass' },
@@ -114,14 +146,19 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function syncOnboardingReady(steps, buildEntry) {
     const ready = (steps || []).filter(s => s?.claimable && s.key);
     const keys = new Set(ready.map(s => `onboarding:${s.key}`));
+    pruneDismissed('onboarding:', keys);
     items.value = items.value.filter(
-      n => n.kind !== 'onboarding_ready' || (n.dedupeKey && keys.has(n.dedupeKey))
+      n =>
+        n.kind !== 'onboarding_ready' ||
+        (n.dedupeKey && keys.has(n.dedupeKey) && !dismissedKeys.has(n.dedupeKey))
     );
     for (const step of ready) {
+      const dedupeKey = `onboarding:${step.key}`;
+      if (dismissedKeys.has(dedupeKey)) continue;
       const built = buildEntry?.(step) || {};
       push({
         kind: 'onboarding_ready',
-        dedupeKey: `onboarding:${step.key}`,
+        dedupeKey,
         sticky: true,
         payload: built.payload || { stepKey: step.key },
         href: built.href ?? { name: 'hub' },
@@ -142,15 +179,22 @@ export const useNotificationsStore = defineStore('notifications', () => {
         if (tier?.claimable) ready.push({ achievement, tier });
       }
     }
-    const keys = new Set(ready.map(({ achievement, tier }) => `achievement:${achievement.key}:${tier.tier}`));
+    const keys = new Set(
+      ready.map(({ achievement, tier }) => `achievement:${achievement.key}:${tier.tier}`)
+    );
+    pruneDismissed('achievement:', keys);
     items.value = items.value.filter(
-      n => n.kind !== 'achievement_ready' || (n.dedupeKey && keys.has(n.dedupeKey))
+      n =>
+        n.kind !== 'achievement_ready' ||
+        (n.dedupeKey && keys.has(n.dedupeKey) && !dismissedKeys.has(n.dedupeKey))
     );
     for (const entry of ready) {
+      const dedupeKey = `achievement:${entry.achievement.key}:${entry.tier.tier}`;
+      if (dismissedKeys.has(dedupeKey)) continue;
       const built = buildEntry?.(entry) || {};
       push({
         kind: 'achievement_ready',
-        dedupeKey: `achievement:${entry.achievement.key}:${entry.tier.tier}`,
+        dedupeKey,
         sticky: true,
         payload:
           built.payload || {
@@ -164,6 +208,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   function reset() {
     items.value = [];
+    dismissedKeys.clear();
   }
 
   return {
