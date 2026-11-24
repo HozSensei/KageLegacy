@@ -1342,6 +1342,8 @@ watch(
 }
 
 .card-display--large .card-display__kind {
+  /* Gemme chakra plus large en format Grande — laisser le libellé hors du losange */
+  padding: 0.22rem 3.65rem 0.22rem 0.55rem;
   font-size: clamp(0.55rem, 3.8cqi, 0.72rem);
 }
 

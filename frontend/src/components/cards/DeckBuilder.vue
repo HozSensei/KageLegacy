@@ -411,15 +411,6 @@ const sizeValid = computed(
                 +
               </button>
             </div>
-            <p
-              v-if="feedback?.target === `card-${entry.collectionId}`"
-              class="alert deck-builder__card-feedback"
-              :class="`alert--${feedback.type}`"
-              :role="feedback.type === 'error' ? 'alert' : 'status'"
-              :data-testid="`deck-card-feedback-${entry.collectionId}`"
-            >
-              {{ feedback.text }}
-            </p>
           </div>
         </div>
       </section>
@@ -584,11 +575,6 @@ const sizeValid = computed(
   margin: 0.4rem 0 0;
   padding-inline-start: 1.25rem;
   list-style: disc;
-}
-
-.deck-builder__card-feedback {
-  padding: 0.5rem;
-  overflow-wrap: anywhere;
 }
 
 .deck-builder__pool-item > :first-child {
