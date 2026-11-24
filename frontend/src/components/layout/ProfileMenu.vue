@@ -136,7 +136,7 @@ function handleConvert() {
   <div>
     <button
       type="button"
-      class="btn-icon profile-trigger"
+      class="btn-icon"
       :aria-label="t('profile.menu')"
       :aria-expanded="open"
       data-testid="profile-menu-button"
@@ -350,16 +350,6 @@ function handleConvert() {
 </template>
 
 <style scoped>
-.profile-trigger {
-  border-radius: 50%;
-  background: var(--color-indigo-fill);
-  color: var(--color-on-fill);
-}
-
-.profile-trigger:hover {
-  background: var(--color-vermilion);
-}
-
 .profile-menu__head {
   display: flex;
   align-items: center;

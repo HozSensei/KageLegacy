@@ -337,7 +337,7 @@
     width: 100%;
   }
 
-  /* Bouton carré pour icône seule */
+  /* Bouton rond pour icône seule — fond transparent, hover primaire */
   .btn-icon {
     display: inline-flex;
     align-items: center;
@@ -345,16 +345,19 @@
     width: 2.5rem;
     height: 2.5rem;
     flex: none;
-    border-radius: var(--radius-sm);
+    border-radius: 50%;
+    background: transparent;
     color: var(--color-ink);
     transition:
       background-color var(--dur-fast) ease,
       color var(--dur-fast) ease;
   }
 
-  .btn-icon:hover {
-    background: var(--color-ink);
-    color: var(--color-on-ink);
+  .btn-icon:hover,
+  .btn-icon:focus-visible {
+    background: var(--color-vermilion);
+    color: var(--color-on-fill);
+    outline: none;
   }
 
   /* Lien texte avec flèche */
