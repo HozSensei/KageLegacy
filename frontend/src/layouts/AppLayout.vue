@@ -16,17 +16,15 @@ import BrandMark from '../components/ui/BrandMark.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
 import { useVillageRewardsStore } from '../stores/villageRewards.js';
-import { useBattlePassStore } from '../stores/battlePass.js';
 import { useOnboardingStore } from '../stores/onboarding.js';
-import { useAchievementsStore } from '../stores/achievements.js';
 import { useNotificationsStore } from '../stores/notifications.js';
-import { useRewardNotifications } from '../composables/useRewardNotifications.js';
+import { useNotificationCopy } from '../composables/useNotificationCopy.js';
+import { useToast } from '../composables/useToast.js';
 import { sectionOf } from '../constants/sections';
 import ConvertGuestModal from '../components/auth/ConvertGuestModal.vue';
 import NotificationBell from '../components/notifications/NotificationBell.vue';
 import ToastContainer from '../components/notifications/ToastContainer.vue';
 import { writeStoredLocale } from '../utils/localeStorage.js';
-import { localizedName } from '../utils/localeContent.js';
 defineOptions({ name: 'AppLayout' });
 
 const { t, locale } = useI18n();
@@ -39,11 +37,10 @@ const player = usePlayerStore();
 
 const shop = useShopStore();
 const villageRewards = useVillageRewardsStore();
-const battlePass = useBattlePassStore();
 const onboarding = useOnboardingStore();
-const achievements = useAchievementsStore();
 const notifications = useNotificationsStore();
-const rewardNotifications = useRewardNotifications();
+const toast = useToast();
+const notificationCopy = useNotificationCopy();
 const showConvert = ref(false);
 
 const baseNavItems = [
@@ -115,7 +112,6 @@ function clearSessionStores() {
   onboarding.reset();
   villageRewards.reset?.();
   notifications.reset?.();
-  claimablesHydrated = false;
 }
 
 async function onAccountDeleted() {
@@ -133,55 +129,25 @@ async function logout() {
   router.push('/');
 }
 
-let claimableSync = Promise.resolve();
-let claimablesHydrated = false;
-
-async function fetchServerNotifications() {
-  const API_BASE = import.meta.env.VITE_API_URL || '';
-  try {
-    const res = await fetch(`${API_BASE}/api/notifications`, { credentials: 'include' });
-    if (!res.ok) return [];
-    const body = await res.json();
-    return body.notifications || [];
-  } catch {
-    return [];
-  }
-}
-
-function syncClaimableNotifications() {
-  if (!auth.user || document.hidden || isCombatLayout.value) return claimableSync;
-  const userId = auth.user.id;
-  claimableSync = claimableSync.then(async () => {
-    if (auth.user?.id !== userId) return;
-    const [quests, serverNotes] = await Promise.all([
-      battlePass.fetchQuests(),
-      fetchServerNotifications(),
-      onboarding.steps?.length ? Promise.resolve(onboarding.steps) : onboarding.fetchProgress(),
-      achievements.achievements?.length
-        ? Promise.resolve(achievements.achievements)
-        : achievements.fetchRegistry(),
-    ]);
-    if (auth.user?.id !== userId) return;
-    // Premier passage : remplir l’inbox sans toaster le stock déjà claimable.
-    const toastNew = claimablesHydrated;
-    rewardNotifications.syncQuests(quests || battlePass.quests, { toastNew });
-    rewardNotifications.syncOnboarding(onboarding.steps || [], {
-      labelOf: step => localizedName(step, locale.value, step.key),
-      toastNew,
-    });
-    rewardNotifications.syncAchievements(achievements.achievements || [], { toastNew });
-    notifications.syncServerNotifications?.(serverNotes || []);
-    claimablesHydrated = true;
-  });
-  return claimableSync;
-}
+let notificationSync = Promise.resolve();
 
 function refreshNotifications() {
   if (!auth.user || document.hidden || isCombatLayout.value) return;
   if (route.name !== 'village') {
     void villageRewards.refresh();
   }
-  void syncClaimableNotifications();
+  const userId = auth.user.id;
+  notificationSync = notificationSync.then(async () => {
+    if (auth.user?.id !== userId) return;
+    const { fresh } = await notifications.fetchNotifications();
+    for (const note of fresh || []) {
+      toast.push({
+        title: notificationCopy.title(note),
+        body: notificationCopy.body(note),
+        kind: 'event',
+      });
+    }
+  });
 }
 
 let balanceLoad = Promise.resolve();

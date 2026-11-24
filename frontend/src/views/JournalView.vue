@@ -4,34 +4,25 @@ import { useI18n } from 'vue-i18n'
 import PageHeader from '../components/ui/PageHeader.vue'
 import AchievementList from '../components/achievements/AchievementList.vue'
 import { useAchievementsStore } from '../stores/achievements'
-import { useRewardNotifications } from '../composables/useRewardNotifications.js'
+import { useNotificationsStore } from '../stores/notifications.js'
 import forestImage from '../assets/illustrations/forest-path.webp'
 defineOptions({ name: 'JournalView' })
 const { t, locale } = useI18n()
 const store = useAchievementsStore()
-const rewardNotifications = useRewardNotifications()
+const notifications = useNotificationsStore()
 const message = ref(null)
 const filter = ref('all')
 const categories = ['all', 'combat', 'missions', 'collection', 'mastery', 'progression']
 const filtered = computed(() => filter.value === 'all' ? store.achievements : store.achievements.filter((a) => a.category === filter.value))
 onMounted(async () => {
   await store.fetchRegistry()
-  rewardNotifications.syncAchievements(store.achievements || [], { toastNew: false })
 })
 async function onClaim({ key, tier }) {
   message.value = null
   const result = await store.claimTier(key, tier)
   message.value = result ? t('achievements.claimSuccess') : store.error
   if (result) {
-    rewardNotifications.clearDedupe(`achievement:${key}:${tier}`)
-    rewardNotifications.syncAchievements(store.achievements || [], { toastNew: false })
-    if (result.rewards?.length) {
-      rewardNotifications.notifyGrants({
-        source: 'achievement',
-        grants: result.rewards,
-        href: { name: 'journal' },
-      })
-    }
+    void notifications.fetchNotifications()
   }
 }
 </script>

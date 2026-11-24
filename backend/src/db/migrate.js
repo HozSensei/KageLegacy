@@ -120,9 +120,11 @@ async function ensureBugReportTables(connection) {
         \`kind\` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
         \`payload_json\` json DEFAULT NULL,
         \`href\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+        \`dedupe_key\` varchar(128) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
         \`read_at\` datetime(6) DEFAULT NULL,
         \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (\`id\`),
+        UNIQUE KEY \`uq_user_notifications_user_dedupe\` (\`user_id\`,\`dedupe_key\`),
         KEY \`idx_user_notifications_user_read_created\` (\`user_id\`,\`read_at\`,\`created_at\`),
         KEY \`idx_user_notifications_kind\` (\`kind\`),
         CONSTRAINT \`fk_user_notifications_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
@@ -144,6 +146,42 @@ async function ensureBugReportTables(connection) {
     if (users.length === 0) continue;
     await connection.query(ddl);
     console.log(`🔧 Table ajoutée : ${table}`);
+  }
+  await ensureUserNotificationDedupe(connection);
+}
+
+async function ensureUserNotificationDedupe(connection) {
+  const [tables] = await connection.query(
+    `SELECT 1 FROM information_schema.tables
+     WHERE table_schema = DATABASE() AND table_name = 'user_notifications' LIMIT 1`,
+  );
+  if (tables.length === 0) return;
+
+  const [cols] = await connection.query(
+    `SELECT 1 FROM information_schema.columns
+     WHERE table_schema = DATABASE() AND table_name = 'user_notifications'
+       AND column_name = 'dedupe_key' LIMIT 1`,
+  );
+  if (cols.length === 0) {
+    await connection.query(
+      `ALTER TABLE \`user_notifications\`
+       ADD COLUMN \`dedupe_key\` varchar(128) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL
+       AFTER \`href\``,
+    );
+    console.log('🔧 Colonne ajoutée : user_notifications.dedupe_key');
+  }
+
+  const [indexes] = await connection.query(
+    `SELECT 1 FROM information_schema.statistics
+     WHERE table_schema = DATABASE() AND table_name = 'user_notifications'
+       AND index_name = 'uq_user_notifications_user_dedupe' LIMIT 1`,
+  );
+  if (indexes.length === 0) {
+    await connection.query(
+      `ALTER TABLE \`user_notifications\`
+       ADD UNIQUE KEY \`uq_user_notifications_user_dedupe\` (\`user_id\`,\`dedupe_key\`)`,
+    );
+    console.log('🔧 Index ajouté : uq_user_notifications_user_dedupe');
   }
 }
 

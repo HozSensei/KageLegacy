@@ -461,6 +461,18 @@ export async function claimReward(userId, level, trackType = 'free') {
   }
 
   const progress = await getOrCreateUserBattlePass(userId, season.id);
+  try {
+    const { notifyGain } = await import('./userNotificationService.js');
+    await notifyGain(userId, {
+      source: 'battle_pass',
+      grants: granted,
+      label: String(targetLevel),
+      href: '/battle-pass',
+      extra: { track, level: targetLevel },
+    });
+  } catch {
+    /* notifications optionnelles */
+  }
   return { level: targetLevel, track, rewards: granted, progress };
 }
 

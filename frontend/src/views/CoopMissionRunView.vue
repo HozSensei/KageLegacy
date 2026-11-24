@@ -8,7 +8,7 @@ import VictoryRewards from '../components/combat/VictoryRewards.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import { useCoopApi } from '../composables/useCoopApi.js';
 import { useAuthStore } from '../stores/auth.js';
-import { useRewardNotifications } from '../composables/useRewardNotifications.js';
+import { useNotificationsStore } from '../stores/notifications.js';
 import { needsFriendlyFireConfirmation } from '../utils/coopCards.js';
 import {
   localizedDescription,
@@ -24,7 +24,7 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 const api = useCoopApi();
-const rewardNotifications = useRewardNotifications();
+const notifications = useNotificationsStore();
 
 const error = ref('');
 const selectedId = ref(null);
@@ -47,12 +47,7 @@ watch(
   () => [run.value?.state, run.value?.rewards, run.value?.id],
   ([state, rewards, id]) => {
     if (state === 'victory' && rewards && id != null) {
-      rewardNotifications.notifyCombatRecap({
-        source: 'coop',
-        rewards,
-        dedupeKey: `coop-recap:${id}`,
-        href: { name: 'coop' },
-      });
+      void notifications.fetchNotifications();
     }
   }
 );

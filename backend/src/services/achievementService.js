@@ -184,6 +184,22 @@ export async function claimAchievementTier(userId, achievementKey, tierIndex) {
     [JSON.stringify(claimed), row.id],
   );
   const refreshed = await query('SELECT * FROM user_achievements WHERE id = ? LIMIT 1', [row.id]);
+  try {
+    const { deleteNotificationByDedupe, notifyGain } = await import(
+      './userNotificationService.js'
+    );
+    await deleteNotificationByDedupe(userId, `achievement:${def.key}:${tier}`);
+    await notifyGain(userId, {
+      source: 'achievement',
+      grants: granted,
+      label: def.nameFr || def.key,
+      labelEn: def.nameEn || def.nameFr || def.key,
+      href: '/journal',
+      extra: { achievementKey: def.key, tier },
+    });
+  } catch {
+    /* notifications optionnelles */
+  }
   return { achievement: serializeAchievement(def, refreshed[0]), tier, rewards: granted };
 }
 
@@ -234,7 +250,33 @@ async function progressAchievement(userId, def, amount, meta = {}) {
     [next, Math.max(prevHighest, highest), JSON.stringify(nextMeta), unlockNow, row.id],
   );
   const refreshed = await query('SELECT * FROM user_achievements WHERE id = ? LIMIT 1', [row.id]);
-  return serializeAchievement(def, refreshed[0]);
+  const serialized = serializeAchievement(def, refreshed[0]);
+  if (highest > prevHighest) {
+    try {
+      const { ensureUserNotification, NOTIFICATION_KIND } = await import(
+        './userNotificationService.js'
+      );
+      for (const tier of serialized.tiers || []) {
+        if (!tier.claimable || tier.tier <= prevHighest) continue;
+        await ensureUserNotification(userId, {
+          kind: NOTIFICATION_KIND.ACHIEVEMENT_READY,
+          dedupeKey: `achievement:${def.key}:${tier.tier}`,
+          href: '/journal',
+          payload: {
+            achievementKey: def.key,
+            tier: tier.tier,
+            name: def.nameFr || def.key,
+            nameEn: def.nameEn || def.nameFr || def.key,
+            description: tier.descriptionFr || def.descriptionFr || def.nameFr,
+            descriptionEn: tier.descriptionEn || def.descriptionEn || def.nameEn,
+          },
+        });
+      }
+    } catch {
+      /* notifications optionnelles */
+    }
+  }
+  return serialized;
 }
 
 export async function recordCombatAchievements(userId, session, outcome) {
