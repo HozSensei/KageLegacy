@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import PageHeader from '../components/ui/PageHeader.vue';
 import VillageRewardsPanel from '../components/layout/VillageRewardsPanel.vue';
 import ActivityWall from '../components/community/ActivityWall.vue';
-import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
+import LeaderboardPlayerCell from '../components/player/LeaderboardPlayerCell.vue';
 import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
 import NinjaProfileCard from '../components/player/NinjaProfileCard.vue';
 import { friendGroups, maxSearchLength, useCommunity } from '../composables/useCommunity.js';
@@ -273,21 +273,25 @@ onMounted(async () => {
           {{ t('community.searchFailed') }}
         </p>
         <ul v-if="players?.length" class="community-list">
-          <li v-for="player in players" :key="player.id" class="community-row">
-            <PlayerIdentityChip
+          <li v-for="player in players" :key="player.id" class="community-player-row">
+            <LeaderboardPlayerCell
               :user-id="player.id"
               :name="player.name"
               :profile="player.profile"
               :level="player.level"
+              :rank-title="player.rank"
               @open="openProfile"
             />
-            <span v-if="friendStatuses.has(String(player.id))" class="text-ink-muted">
+            <span
+              v-if="friendStatuses.has(String(player.id))"
+              class="text-ink-muted community-player-row__aside"
+            >
               {{ t(`community.groups.${friendStatuses.get(String(player.id))}.status`) }}
             </span>
             <button
               v-else
               type="button"
-              class="btn-ghost btn-sm"
+              class="btn-ghost btn-sm community-player-row__aside"
               :disabled="!canMutate"
               :aria-label="t('community.sendRequestTo', { name: player.name })"
               @click="requestFriend(player.id)"
@@ -320,15 +324,16 @@ onMounted(async () => {
               {{ t(`community.groups.${group}.empty`) }}
             </p>
             <ul v-else class="community-list">
-              <li v-for="player in friendships[group]" :key="player.id" class="community-row">
-                <PlayerIdentityChip
+              <li v-for="player in friendships[group]" :key="player.id" class="community-player-row">
+                <LeaderboardPlayerCell
                   :user-id="player.id"
                   :name="player.name"
                   :profile="player.profile"
                   :level="player.level"
+                  :rank-title="player.rank"
                   @open="openProfile"
                 />
-                <div class="community-actions">
+                <div class="community-actions community-player-row__aside">
                   <button
                     v-if="group === 'incoming'"
                     type="button"
@@ -421,6 +426,30 @@ onMounted(async () => {
   padding: 0.55rem 0;
   border-top: 1px solid var(--color-line);
   overflow-wrap: anywhere;
+}
+
+.community-player-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--color-line);
+  overflow-wrap: anywhere;
+}
+
+.community-player-row__aside {
+  justify-self: end;
+}
+
+@media (max-width: 560px) {
+  .community-player-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .community-player-row__aside {
+    justify-self: start;
+  }
 }
 
 .village-faction-btn {
