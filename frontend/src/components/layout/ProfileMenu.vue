@@ -142,7 +142,7 @@ function handleConvert() {
       data-testid="profile-menu-button"
       @click="toggle"
     >
-      <AppIcon name="settings" size="1.25rem" />
+      <AppIcon name="settings" size="1.25rem" :stroke-width="0" />
     </button>
 
     <SlidePanel
