@@ -6,6 +6,7 @@ import { publicFighterIdentity } from './fighterIdentity.js';
 import { applyHeldTurnStart } from './heldEffects.js';
 import {
   PLAYER_DEBUFF_KEYS,
+  applyStatus,
   resolveEndOfTurnStatuses,
   resolveStartOfTurnStatuses,
 } from './statuses.js';
@@ -24,7 +25,17 @@ import {
 const BASE_COOP_CHAKRA = 5;
 const MAX_EXCHANGES = 2;
 const STAT_BONUSES = [...STAT_KEYS, 'startingBlock'];
-const SUPPORT_EFFECTS = new Set(['heal', 'heal_self', 'gain_block', 'cleanse_self']);
+const SUPPORT_EFFECTS = new Set([
+  'heal',
+  'heal_self',
+  'gain_block',
+  'cleanse_self',
+  // Défenses actives : s’appliquent au destinataire (armure alliée), pas au lanceur.
+  'counter',
+  'evade_next',
+]);
+/** Statuts posés sur le destinataire pendant un support (à transférer à l’allié). */
+const SUPPORT_STATUS_KEYS = new Set(['counter', 'evade']);
 const CASTER_EFFECTS = new Set(['draw', 'gain_chakra', 'gain_energy', 'reduce_next_card_cost']);
 const ATTACK_EFFECTS = new Set(['multi_strike', 'aoe', 'bonus_if', 'innate_crit', 'crit']);
 const HARMFUL_STATUSES = new Set([...PLAYER_DEBUFF_KEYS, 'brûlure', 'faiblesse', 'vulnérabilité']);
@@ -439,8 +450,28 @@ function playCard(combat, index, { instanceId, target = 'enemy', confirmedFriend
       if (removed) statuses = statuses.filter(status => status !== removed);
       played.logs.push({ type: 'cleanse', removed: removed?.key ?? null });
     }
+    // Counter / evade posés sur le joueur temporaire doivent suivre l’allié.
+    const prior = player.statuses || [];
+    for (const status of caster.statuses || []) {
+      if (!SUPPORT_STATUS_KEYS.has(status.key)) continue;
+      const wasPrior = prior.some(
+        s => s.key === status.key && s.value === status.value && s.duration === status.duration
+      );
+      if (wasPrior) continue;
+      statuses = applyStatus(statuses, {
+        key: status.key,
+        value: status.value,
+        duration: status.duration,
+      });
+    }
     combat.players[1 - index] = { ...ally, hp: caster.hp, block: caster.block, statuses };
-    caster = { ...caster, hp: player.hp, maxHp: player.maxHp, block: player.block };
+    caster = {
+      ...caster,
+      hp: player.hp,
+      maxHp: player.maxHp,
+      block: player.block,
+      statuses: player.statuses,
+    };
   } else if (mode === 'harm') {
     const { hp, block, statuses } = played.enemy;
     combat.players[1 - index] = { ...ally, hp, block, statuses };

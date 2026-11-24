@@ -199,6 +199,33 @@ test('refuse un échange sans autre carte et ne réduit pas une main au-dessus d
   assert.deepEqual(view(combat).player.hand, hand);
 });
 
+test('contre / evade en support : armure + statut sur l’allié, sans alerte tir allié', () => {
+  const counterCard = card('contre-tranchant', {
+    block: 10,
+    effects: [{ type: 'counter', damage: 6 }],
+  });
+  const evadeCard = card('voile', {
+    block: 5,
+    effects: [{ type: 'evade_next', chance: 0.5 }],
+  });
+  let combat = createCoopCombat(fighters([counterCard], [evadeCard]));
+  combat = play(combat, 'a', 'contre-tranchant', 'ally');
+  assert.equal(view(combat).ally.block, 10);
+  assert.equal(view(combat).player.block, 0);
+  assert.deepEqual(view(combat).ally.statuses, [{ key: 'counter', value: 6, duration: null }]);
+  assert.deepEqual(view(combat).player.statuses, []);
+  combat = end(combat);
+  combat = play(combat, 'b', 'voile', 'ally');
+  assert.equal(view(combat, 'b').ally.block, 5);
+  // B conserve le counter reçu ; A reçoit l’evade.
+  assert.deepEqual(view(combat, 'b').player.statuses, [
+    { key: 'counter', value: 6, duration: null },
+  ]);
+  assert.deepEqual(view(combat, 'b').ally.statuses, [
+    { key: 'evade', value: 0.5, duration: null },
+  ]);
+});
+
 test('le support redirige soin, bloc et purification sans les appliquer au lanceur ni à l’ennemi', () => {
   const salve = card('salve', {
     heal: 4,
