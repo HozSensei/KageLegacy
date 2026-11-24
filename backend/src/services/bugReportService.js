@@ -128,7 +128,8 @@ export async function createBugReport(userId, { location, locationOther, descrip
 }
 
 export async function listBugReports({ status = null, limit = 100 } = {}) {
-  const capped = Math.min(Math.max(Number(limit) || 100, 1), 200);
+  // mysql2 execute() refuse LIMIT ? (ER_WRONG_ARGUMENTS) — inline borné comme ailleurs.
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 100, 200));
   const params = [];
   let where = '';
   if (status) {
@@ -138,7 +139,6 @@ export async function listBugReports({ status = null, limit = 100 } = {}) {
     where = 'WHERE r.status = ?';
     params.push(status);
   }
-  params.push(capped);
   const rows = await query(
     `SELECT r.*, u.username, s.display_name, s.character_name,
             COALESCE(s.character_name, s.display_name, u.username) AS author_name
@@ -147,7 +147,7 @@ export async function listBugReports({ status = null, limit = 100 } = {}) {
      LEFT JOIN player_profiles s ON s.user_id = r.user_id
      ${where}
      ORDER BY r.created_at DESC
-     LIMIT ?`,
+     LIMIT ${safeLimit}`,
     params,
   );
   return rows.map(serializeReport);

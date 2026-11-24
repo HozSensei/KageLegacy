@@ -81,14 +81,15 @@ export async function createNotificationsForAdmins(
 }
 
 export async function listUserNotifications(userId, { limit = 40 } = {}) {
-  const capped = Math.min(Math.max(Number(limit) || 40, 1), 100);
+  // mysql2 execute() refuse LIMIT ? (ER_WRONG_ARGUMENTS) — inline borné comme ailleurs.
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 40, 100));
   const rows = await query(
     `SELECT id, kind, payload_json, href, read_at, created_at
      FROM user_notifications
      WHERE user_id = ?
      ORDER BY created_at DESC
-     LIMIT ?`,
-    [userId, capped],
+     LIMIT ${safeLimit}`,
+    [userId],
   );
   return rows.map(serializeNotification);
 }
