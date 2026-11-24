@@ -37,10 +37,13 @@ assert.equal(isKnownProfileFrameId('nope'), false);
 
 assert.ok(PROFILE_CARD_EFFECT_CATALOG.length >= 7);
 assert.ok(isKnownProfileCardEffectId('fx_sheen_gold'));
-assert.ok(isKnownProfileCardEffectId('fx_leaves'));
+assert.ok(isKnownProfileCardEffectId('fx_leaves_green'));
+assert.ok(isKnownProfileCardEffectId('fx_leaves_orange'));
+assert.ok(isKnownProfileCardEffectId('fx_leaves_pink'));
 assert.ok(isKnownProfileCardEffectId('fx_rain'));
 assert.ok(isKnownProfileCardEffectId('fx_snow'));
 assert.ok(isKnownProfileCardEffectId('fx_mist_fade'));
+assert.equal(isKnownProfileCardEffectId('fx_leaves'), false);
 assert.equal(isKnownProfileCardEffectId('nope'), false);
 
 const appearance = serializeCharacterAppearance(
@@ -51,14 +54,14 @@ const appearance = serializeCharacterAppearance(
     character_avatar_id: 'genin-1-1',
     character_nickname_id: 'genin',
     character_frame_id: 'frame_ember',
-    character_card_effect_id: 'fx_leaves',
+    character_card_effect_id: 'fx_leaves_orange',
   },
   ['genin'],
   ['frame_ember'],
-  ['fx_leaves'],
+  ['fx_leaves_orange'],
 );
 assert.equal(appearance.frameId, 'frame_ember');
-assert.equal(appearance.cardEffectId, 'fx_leaves');
+assert.equal(appearance.cardEffectId, 'fx_leaves_orange');
 assert.equal(appearance.nicknameId, 'genin');
 
 const lockedFrame = serializeCharacterAppearance(
