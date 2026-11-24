@@ -27,8 +27,6 @@ const props = defineProps({
   nodeHint: { type: Function, required: true },
   nodeShape: { type: Function, required: true },
   nodeTone: { type: Function, required: true },
-  /** Synchronise l’aperçu avec un choix d’événement (id de choix). */
-  focusChoiceId: { type: String, default: null },
 });
 
 const emit = defineEmits(['preview-choice']);
@@ -94,16 +92,6 @@ watch(
     }
   },
   { immediate: true }
-);
-
-watch(
-  () => props.focusChoiceId,
-  id => {
-    const branch = branchNode.value;
-    if (!branch || !id) return;
-    if (!choiceById(branch, id)) return;
-    previewByBranch.value = { ...previewByBranch.value, [branch.id]: id };
-  }
 );
 
 function selectChoice(choiceId) {
