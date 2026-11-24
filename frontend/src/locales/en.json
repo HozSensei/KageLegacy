@@ -2280,7 +2280,7 @@
     "loading": "Loading…",
     "goMissions": "To missions",
     "chestTitle": "Chest",
-    "chestHint": "Safe storage. Reveal sealed scrolls and open boosters here.",
+    "chestHint": "Safe storage. Only sealed scrolls and boosters open here — consumables are used during missions.",
     "chestEmpty": "Chest is empty.",
     "pouchTitle": "Pouch",
     "pouchHint": "Carried into missions. Lost on defeat or abandon.",
