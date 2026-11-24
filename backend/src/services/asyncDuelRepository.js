@@ -123,6 +123,15 @@ export async function getFactionStandings() {
       rewardRyos: settledReward ?? 0,
     };
   }
+  try {
+    const { getHonorByFaction } = await import('./villageHonorService.js');
+    const { utcDateString } = await import('./dailyUtc.js');
+    current.honorByFaction = await getHonorByFaction(utcDateString());
+    current.honorScoredOn = utcDateString();
+  } catch {
+    current.honorByFaction = null;
+    current.honorScoredOn = null;
+  }
   return current;
 }
 
@@ -312,6 +321,12 @@ export async function updateAsyncDuel({ id, attackerId, revision, state }) {
       };
       const creditedRyos = await creditWinner(connection, duel, win);
       if (scoresFaction) await scoreFaction(connection, duel, win);
+      try {
+        const { addHonorPoint } = await import('./villageHonorService.js');
+        await addHonorPoint(winnerId, { connection });
+      } catch {
+        /* honneur optionnel */
+      }
       if (creditedRyos > 0) {
         try {
           const { notifyGain } = await import('./userNotificationService.js');

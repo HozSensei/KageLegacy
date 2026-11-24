@@ -247,6 +247,7 @@ CREATE TABLE `player_profiles` (
   `character_background_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_background_color` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_nickname_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `character_frame_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_level` int unsigned NOT NULL DEFAULT '1',
   `character_highest_level` int unsigned NOT NULL DEFAULT '1',
   `character_xp` int unsigned NOT NULL DEFAULT '0',
@@ -341,6 +342,46 @@ LOCK TABLES `player_nickname_unlocks` WRITE;
 /*!40000 ALTER TABLE `player_nickname_unlocks` DISABLE KEYS */;
 /*!40000 ALTER TABLE `player_nickname_unlocks` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `player_frame_unlocks` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `frame_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `source` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
+  `source_ref` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `unlocked_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pfu_user_frame` (`user_id`,`frame_id`),
+  KEY `idx_pfu_frame` (`frame_id`),
+  CONSTRAINT `fk_pfu_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `village_daily_honor_points` (
+  `user_id` int unsigned NOT NULL,
+  `scored_on` date NOT NULL COMMENT 'Jour UTC',
+  `faction_id` enum('midorihara','kareno','oborohama') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `points` int unsigned NOT NULL DEFAULT '0',
+  `first_reached_at` datetime(6) NOT NULL,
+  `updated_at` datetime(6) NOT NULL,
+  PRIMARY KEY (`user_id`,`scored_on`),
+  KEY `idx_vdhp_day_faction_points` (`scored_on`,`faction_id`,`points` DESC,`first_reached_at`),
+  CONSTRAINT `fk_vdhp_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `community_activity_events` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `faction_id` enum('midorihara','kareno','oborohama') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `kind` enum('mission_victory','mission_defeat','coop_victory','coop_defeat') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mission_key` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_cae_created` (`created_at`),
+  KEY `idx_cae_user_created` (`user_id`,`created_at`),
+  CONSTRAINT `fk_cae_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `talent_tree_nodes` (

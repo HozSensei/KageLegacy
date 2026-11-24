@@ -2,7 +2,7 @@
  * Template de saison Battle Pass — rewards + quêtes générés sans seed artisanal.
  */
 import { BATTLE_PASS, BATTLE_PASS_QUEST_XP } from '../config/economyConfig.js';
-import { seasonNicknameId } from './characterAppearance.js';
+import { seasonFreeNicknameId, seasonNicknameId } from './characterAppearance.js';
 
 export const SEASON_THEMES = Object.freeze([
   Object.freeze({
@@ -31,9 +31,21 @@ function tier(level, rewards) {
   return [level, rewards];
 }
 
-function softFreeReward(level) {
+function softFreeReward(level, seasonFreeNicknameIdValue) {
+  if (level === 4) {
+    return [
+      { type: 'ryos', amount: 200 + level * 8 },
+      { type: 'nickname', nicknameId: seasonFreeNicknameIdValue, source: 'battle_pass' },
+    ];
+  }
+  if (level === 10) {
+    return [
+      { type: 'card', rarity: 'legendary', count: 1 },
+      { type: 'frame', frameId: 'frame_leaf', source: 'battle_pass' },
+    ];
+  }
   if (level % 10 === 0) {
-    if (level === 10 || level === 40) return [{ type: 'card', rarity: 'legendary', count: 1 }];
+    if (level === 40) return [{ type: 'card', rarity: 'legendary', count: 1 }];
     if (level === 20 || level === 30) return [{ type: 'card', rarity: 'rare', count: 1 }];
     return [{ type: 'card', rarity: 'legendary', count: 1 }];
   }
@@ -51,6 +63,12 @@ function softPremiumReward(level, seasonNicknameIdValue) {
     return [
       { type: 'card', rarity: 'rare', count: 2 },
       { type: 'nickname', nicknameId: seasonNicknameIdValue, source: 'battle_pass' },
+    ];
+  }
+  if (level === 15) {
+    return [
+      { type: 'dust', amount: 70 + level },
+      { type: 'frame', frameId: 'frame_volt', source: 'battle_pass' },
     ];
   }
   if (level === 50) {
@@ -85,6 +103,7 @@ function softPremiumReward(level, seasonNicknameIdValue) {
 export function buildSeasonRewards({ seasonNumber, theme: _theme } = {}) {
   const n = Math.max(1, Number(seasonNumber) || 1);
   const nickId = seasonNicknameId(n);
+  const freeNickId = seasonFreeNicknameId(n);
   const max = BATTLE_PASS.maxLevel;
   const freeTrack = {};
   const premiumTrack = {};
@@ -93,7 +112,7 @@ export function buildSeasonRewards({ seasonNumber, theme: _theme } = {}) {
     freeTrack[String(level)] =
       level === 50
         ? [{ type: 'card', rarity: 'legendary', count: 1 }, { type: 'ryos', amount: 1500 }]
-        : softFreeReward(level);
+        : softFreeReward(level, freeNickId);
     premiumTrack[String(level)] = softPremiumReward(level, nickId);
   }
 

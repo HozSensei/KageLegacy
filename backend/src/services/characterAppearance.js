@@ -6,12 +6,22 @@ import {
   isProfileColor,
   normalizeProfileColor,
 } from '../../../shared/character/profileColors.js';
+import {
+  PROFILE_FRAME_CATALOG,
+  PROFILE_FRAME_IDS,
+  getProfileFrame,
+  isKnownProfileFrameId,
+} from '../../../shared/character/profileFrames.js';
 
 export {
   CARD_BACKGROUND_IDS,
   isKnownCardBackgroundId,
   isProfileColor,
   normalizeProfileColor,
+  PROFILE_FRAME_CATALOG,
+  PROFILE_FRAME_IDS,
+  getProfileFrame,
+  isKnownProfileFrameId,
 };
 
 export const ASPIRANT_RANK = 'Aspirant ninja';
@@ -69,12 +79,55 @@ export const WELCOME_NICKNAME = Object.freeze({
   criteria: Object.freeze({ source: 'welcome' }),
 });
 
-/** Catalogue de base exposé API (rangs + bienvenue). Les titres de saison sont fusionnés à la volée. */
-export const NICKNAME_CATALOG = Object.freeze([...RANK_NICKNAME_CATALOG, WELCOME_NICKNAME]);
+/** Titres débloqués en complétant une famille (catégorie) du registre des exploits. */
+export const ACHIEVEMENT_FAMILY_NICKNAMES = Object.freeze([
+  Object.freeze({
+    id: 'ach_combat',
+    category: 'combat',
+    name: Object.freeze({ en: 'Proven Blade', fr: 'Lame éprouvée' }),
+    criteria: Object.freeze({ source: 'achievement_family', category: 'combat' }),
+  }),
+  Object.freeze({
+    id: 'ach_missions',
+    category: 'missions',
+    name: Object.freeze({ en: 'Pathfinder', fr: 'Éclaireur des sentiers' }),
+    criteria: Object.freeze({ source: 'achievement_family', category: 'missions' }),
+  }),
+  Object.freeze({
+    id: 'ach_collection',
+    category: 'collection',
+    name: Object.freeze({ en: 'Archivist', fr: 'Archiviste du clan' }),
+    criteria: Object.freeze({ source: 'achievement_family', category: 'collection' }),
+  }),
+  Object.freeze({
+    id: 'ach_mastery',
+    category: 'mastery',
+    name: Object.freeze({ en: 'Art Master', fr: 'Maître des arts' }),
+    criteria: Object.freeze({ source: 'achievement_family', category: 'mastery' }),
+  }),
+  Object.freeze({
+    id: 'ach_progression',
+    category: 'progression',
+    name: Object.freeze({ en: 'Ascending Path', fr: 'Voie ascendante' }),
+    criteria: Object.freeze({ source: 'achievement_family', category: 'progression' }),
+  }),
+]);
+
+/** Catalogue de base exposé API (rangs + bienvenue + familles). Les titres de saison sont fusionnés à la volée. */
+export const NICKNAME_CATALOG = Object.freeze([
+  ...RANK_NICKNAME_CATALOG,
+  WELCOME_NICKNAME,
+  ...ACHIEVEMENT_FAMILY_NICKNAMES,
+]);
 
 export function seasonNicknameId(seasonNumber) {
   const n = Math.max(1, Number(seasonNumber) || 1);
   return `season_${n}`;
+}
+
+export function seasonFreeNicknameId(seasonNumber) {
+  const n = Math.max(1, Number(seasonNumber) || 1);
+  return `season_${n}_free`;
 }
 
 export function buildSeasonNicknameEntry(seasonNumber) {
@@ -89,10 +142,27 @@ export function buildSeasonNicknameEntry(seasonNumber) {
   });
 }
 
+export function buildSeasonFreeNicknameEntry(seasonNumber) {
+  const n = Math.max(1, Number(seasonNumber) || 1);
+  return Object.freeze({
+    id: seasonFreeNicknameId(n),
+    name: Object.freeze({
+      en: `Season ${n} Scout`,
+      fr: `Éclaireur de la Saison ${n}`,
+    }),
+    criteria: Object.freeze({ source: 'season_free', seasonNumber: n }),
+  });
+}
+
+export function achievementFamilyNicknameForCategory(category) {
+  return ACHIEVEMENT_FAMILY_NICKNAMES.find(entry => entry.category === category) || null;
+}
+
 export function isKnownNicknameId(nicknameId, extraCatalog = []) {
   if (!nicknameId) return false;
   if (NICKNAME_CATALOG.some(entry => entry.id === nicknameId)) return true;
-  if (String(nicknameId).startsWith('season_')) return true;
+  if (/^season_\d+(_free)?$/.test(String(nicknameId))) return true;
+  if (String(nicknameId).startsWith('ach_')) return true;
   return extraCatalog.some(entry => entry.id === nicknameId);
 }
 
@@ -141,18 +211,34 @@ export function isAvatarAvailableToRank(avatarId, rank) {
   return avatarRankIndex.get(avatarId) <= rankIndex.get(rank);
 }
 
-/** Serialize a raw player_profiles row (or its equivalent aliased projection). */
-export function serializeCharacterAppearance(row, grantedNicknameIds = []) {
+/**
+ * Serialize a raw player_profiles row (or its equivalent aliased projection).
+ * @param {object} row
+ * @param {string[]} [grantedNicknameIds]
+ * @param {string[]} [grantedFrameIds]
+ */
+export function serializeCharacterAppearance(row, grantedNicknameIds = [], grantedFrameIds = []) {
   const rank = row?.character_rank ?? row?.rank ?? rankForLevel(row?.character_level ?? row?.level);
   const avatarId = row?.character_avatar_id ?? row?.avatar_id;
   const backgroundId = row?.character_background_id ?? row?.background_id;
   const backgroundColor = row?.character_background_color ?? row?.background_color;
   const nicknameId = row?.character_nickname_id ?? row?.nickname_id;
+  const frameId = row?.character_frame_id ?? row?.frame_id;
   const unlocked = unlockedNicknameIdsFor(row, grantedNicknameIds);
+  const unlockedFrames = Array.isArray(grantedFrameIds)
+    ? grantedFrameIds.filter(id => isKnownProfileFrameId(id))
+    : null;
+  const resolvedFrameId =
+    typeof frameId === 'string' && isKnownProfileFrameId(frameId)
+      ? unlockedFrames == null || unlockedFrames.includes(frameId)
+        ? frameId
+        : null
+      : null;
   return {
     avatarId: isAvatarAvailableToRank(avatarId, rank) ? avatarId : DEFAULT_AVATAR_ID,
     backgroundId: isKnownCardBackgroundId(backgroundId) ? backgroundId : null,
     backgroundColor: normalizeProfileColor(backgroundColor),
     nicknameId: unlocked.includes(nicknameId) ? nicknameId : null,
+    frameId: resolvedFrameId,
   };
 }

@@ -18,6 +18,17 @@ function distinctPair(userId, otherId) {
   return pair;
 }
 
+async function withPublicProfiles(entries) {
+  if (!entries.length) return entries;
+  try {
+    const { getPublicPlayersMap, attachPublicSnapshot } = await import('./publicPlayerService.js');
+    const map = await getPublicPlayersMap(entries.map(e => e.id));
+    return entries.map(entry => attachPublicSnapshot(entry, map.get(entry.id) || null));
+  } catch {
+    return entries;
+  }
+}
+
 export async function getDuelFriends(userId) {
   const rows = await query(
     `SELECT u.id, ${PLAYER_NAME} AS name, f.status, f.requested_by = ? AS isOutgoing
@@ -33,13 +44,16 @@ export async function getDuelFriends(userId) {
     const group = status === 'accepted' ? 'friends' : isOutgoing ? 'outgoing' : 'incoming';
     result[group].push({ id, name });
   }
+  result.friends = await withPublicProfiles(result.friends);
+  result.incoming = await withPublicProfiles(result.incoming);
+  result.outgoing = await withPublicProfiles(result.outgoing);
   return result;
 }
 
 export async function searchDuelPlayers(userId, q = '') {
   const search = q.trim().replace(/[!%_]/g, '!$&');
   if (!search) return [];
-  return query(
+  const rows = await query(
     `SELECT u.id, ${PLAYER_NAME} AS name
      FROM users u
      LEFT JOIN player_profiles p ON p.user_id = u.id
@@ -48,6 +62,7 @@ export async function searchDuelPlayers(userId, q = '') {
      LIMIT ${SEARCH_LIMIT}`,
     [userId, `%${search}%`],
   );
+  return withPublicProfiles(rows);
 }
 
 export async function requestDuelFriend(userId, otherId) {

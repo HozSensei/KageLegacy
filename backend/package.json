@@ -45,6 +45,7 @@
     "test:battle-pass": "node scripts/testBattlePass.js",
     "test:achievements": "node scripts/testAchievements.js",
     "test:player-character": "node scripts/testPlayerCharacter.js",
+    "test:community": "node scripts/testCommunityFeatures.js",
     "test:async-duel-repository": "node --test scripts/testAsyncDuelRepository.js",
     "test:weekly-village-payout": "node --test scripts/testWeeklyVillagePayout.js",
     "test:factions-leaderboard": "node scripts/testFactionsLeaderboard.js",

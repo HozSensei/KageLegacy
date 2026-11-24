@@ -31,6 +31,7 @@ export function readNinjaAppearance(profile) {
     backgroundId: safeNinjaCardBackgroundId(profile?.backgroundId),
     backgroundColor: safeNinjaProfileColor(profile?.backgroundColor),
     nicknameId: profile?.nicknameId ?? null,
+    frameId: profile?.frameId ?? null,
   };
 }
 

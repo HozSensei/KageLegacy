@@ -70,8 +70,24 @@ export function serializeRoom(row, userId, extras = {}) {
     guestReady: Boolean(row.guest_ready),
     expiresAt: toIso(row.expires_at),
     runId: extras.runId ?? row.run_id ?? null,
+    host: extras.host ?? null,
+    guest: extras.guest ?? null,
     ...extras,
   };
+}
+
+async function withRoomPlayers(row, userId, extras = {}) {
+  try {
+    const { getPublicPlayersMap } = await import('./publicPlayerService.js');
+    const map = await getPublicPlayersMap([row.host_id, row.guest_id].filter(Boolean));
+    return serializeRoom(row, userId, {
+      ...extras,
+      host: map.get(row.host_id) || null,
+      guest: row.guest_id ? map.get(row.guest_id) || null : null,
+    });
+  } catch {
+    return serializeRoom(row, userId, extras);
+  }
 }
 
 async function loadRoomRow(roomId) {
@@ -134,7 +150,7 @@ function generateCode() {
 export async function createRoom(userId) {
   await pruneExpiredRooms();
   const existing = await findOpenRoomForUser(userId);
-  if (existing) return serializeRoom(existing, userId);
+  if (existing) return withRoomPlayers(existing, userId);
 
   const activeRun = await findActiveCoopRunForUser(userId);
   if (activeRun) {
@@ -168,7 +184,7 @@ export async function createRoom(userId) {
     [id, code, userId, COOP_ROOM_WAIT_MS * 1000],
   );
   const row = await loadRoomRow(id);
-  return serializeRoom(row, userId);
+  return withRoomPlayers(row, userId);
 }
 
 export async function joinRoom(userId, rawCode) {
@@ -180,7 +196,7 @@ export async function joinRoom(userId, rawCode) {
   if (!row || !['waiting', 'ready'].includes(row.status)) {
     throw httpError(404, 'Salle introuvable ou expirée.');
   }
-  if (isMember(row, userId)) return serializeRoom(row, userId);
+  if (isMember(row, userId)) return withRoomPlayers(row, userId);
   if (row.guest_id) throw httpError(409, 'Cette salle est déjà complète.');
 
   await assertNoBlockingActivity(userId);
@@ -197,7 +213,7 @@ export async function joinRoom(userId, rawCode) {
   );
   if (!result.affectedRows) throw httpError(409, 'Impossible de rejoindre cette salle.');
 
-  return serializeRoom(await loadRoomRow(row.id), userId);
+  return withRoomPlayers(await loadRoomRow(row.id), userId);
 }
 
 export async function getRoom(userId, roomId) {
@@ -214,7 +230,7 @@ export async function getRoom(userId, roomId) {
     );
     runId = runs[0]?.id || null;
   }
-  return serializeRoom(row, userId, { runId });
+  return withRoomPlayers(row, userId, { runId });
 }
 
 export async function setupRoom(userId, roomId, { missionId, hardMode = false } = {}) {
@@ -242,7 +258,7 @@ export async function setupRoom(userId, roomId, { missionId, hardMode = false } 
      WHERE id = ?`,
     [mission.id, hardMode ? 1 : 0, roomId],
   );
-  return serializeRoom(await loadRoomRow(roomId), userId);
+  return withRoomPlayers(await loadRoomRow(roomId), userId);
 }
 
 export async function setStake(userId, roomId, stake) {
@@ -271,7 +287,7 @@ export async function setStake(userId, roomId, stake) {
       [amount, roomId],
     );
   }
-  return serializeRoom(await loadRoomRow(roomId), userId);
+  return withRoomPlayers(await loadRoomRow(roomId), userId);
 }
 
 export async function setGuestReady(userId, roomId, ready = true) {
@@ -292,7 +308,7 @@ export async function setGuestReady(userId, roomId, ready = true) {
      WHERE id = ?`,
     [nextReady, nextReady ? 'ready' : 'waiting', roomId],
   );
-  return serializeRoom(await loadRoomRow(roomId), userId);
+  return withRoomPlayers(await loadRoomRow(roomId), userId);
 }
 
 export async function closeRoom(userId, roomId) {
@@ -307,7 +323,7 @@ export async function closeRoom(userId, roomId) {
      WHERE id = ?`,
     [roomId],
   );
-  return serializeRoom(await loadRoomRow(roomId), userId);
+  return withRoomPlayers(await loadRoomRow(roomId), userId);
 }
 
 export async function markRoomStarting(roomId) {

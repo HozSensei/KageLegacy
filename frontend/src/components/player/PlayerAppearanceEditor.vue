@@ -27,6 +27,7 @@ const status = ref(null);
 const saveError = ref(null);
 const cardStats = computed(() => ninjaProfileStats(props.character.stats));
 const nicknames = computed(() => props.character.profile?.unlockedNicknameIds ?? []);
+const frames = computed(() => props.character.profile?.unlockedFrameIds ?? []);
 
 watch(saved, (next, previous) => {
   draft.value = { ...next, ...ninjaAppearanceChanges(previous, draft.value) };
@@ -131,6 +132,17 @@ async function save() {
         <p v-if="!nicknames.length" class="appearance__hint">
           {{ t('player.appearance.noUnlockedNicknames') }}
         </p>
+
+        <label class="field">
+          <span class="field__label">{{ t('player.appearance.frame') }}</span>
+          <select v-model="draft.frameId" class="input-field" data-testid="profile-frame">
+            <option :value="null">{{ t('player.frames.none') }}</option>
+            <option v-for="id in frames" :key="id" :value="id">
+              {{ t(`player.frames.${id}`) }}
+            </option>
+          </select>
+        </label>
+        <p v-if="!frames.length" class="appearance__hint">{{ t('player.frames.lead') }}</p>
       </fieldset>
 
       <div class="appearance__actions">

@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 import BoosterSelection from '../components/shop/BoosterSelection.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import CoinPackCatalog from '../components/shop/CoinPackCatalog.vue';
+import FrameCatalog from '../components/shop/FrameCatalog.vue';
 
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue';
 import WelcomePackBanner from '../components/shop/WelcomePackBanner.vue';
@@ -59,7 +60,7 @@ const canAffordRepurchase = computed(() => {
 
 const tabs = [
   { id: 'boosters', labelKey: 'shop.tabs.boosters' },
-
+  { id: 'cosmetics', labelKey: 'shop.tabs.cosmetics' },
   { id: 'currency', labelKey: 'shop.tabs.currency' },
   { id: 'battlePass', labelKey: 'shop.tabs.battlePass' },
 ];
@@ -304,6 +305,10 @@ async function onBuyWelcome(method) {
         @open="onOpen"
         @select-element="shop.setSelectedElement"
       />
+    </div>
+
+    <div v-show="shop.activeTab === 'cosmetics'" class="mt-8">
+      <FrameCatalog />
     </div>
 
     <div v-show="shop.activeTab === 'currency'" class="mt-8">

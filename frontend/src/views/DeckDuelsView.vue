@@ -2,10 +2,21 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CombatArena from '../components/combat/CombatArena.vue';
+import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
+import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
 import { useDeckDuels } from '../composables/useDeckDuels.js';
+import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
 import { useNotificationsStore } from '../stores/notifications.js';
 
 const { t, te, n, d } = useI18n();
+const {
+  open: profileOpen,
+  loading: profileLoading,
+  error: profileError,
+  player: profilePlayer,
+  show: showProfile,
+  close: closeProfile,
+} = usePublicPlayerModal();
 const {
   lobbyLoaded,
   defenses,
@@ -179,7 +190,13 @@ function rewardLabels(reward) {
         </p>
         <ul v-else class="deck-duels__list">
           <li v-for="friend in friends" :key="friend.id" class="deck-duels__row">
-            <strong>{{ friend.name }}</strong>
+            <PlayerIdentityChip
+              :user-id="friend.id"
+              :name="friend.name"
+              :profile="friend.profile"
+              :level="friend.level"
+              @open="showProfile"
+            />
             <button
               type="button"
               class="btn-primary btn-sm"
@@ -218,6 +235,14 @@ function rewardLabels(reward) {
         </ul>
       </section>
     </template>
+
+    <PlayerProfileModal
+      :open="profileOpen"
+      :loading="profileLoading"
+      :error="profileError"
+      :player="profilePlayer"
+      @close="closeProfile"
+    />
   </div>
 </template>
 

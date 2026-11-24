@@ -21,6 +21,8 @@ function normalizeWeek(week) {
 
 export function useFactionStandings({ request = requestDeckDuels } = {}) {
   const standings = shallowRef(null);
+  const honorByFaction = shallowRef({});
+  const honorScoredOn = ref(null);
   const loading = ref(false);
   const loadFailed = ref(false);
   let operation;
@@ -44,6 +46,9 @@ export function useFactionStandings({ request = requestDeckDuels } = {}) {
             : null,
         previousWeek: data.previousWeek == null ? null : normalizeWeek(data.previousWeek),
       };
+      honorByFaction.value =
+        data.honorByFaction && typeof data.honorByFaction === 'object' ? data.honorByFaction : {};
+      honorScoredOn.value = data.honorScoredOn || null;
     } catch {
       if (!controller.signal.aborted) loadFailed.value = true;
     } finally {
@@ -54,5 +59,12 @@ export function useFactionStandings({ request = requestDeckDuels } = {}) {
 
   onScopeDispose(() => operation?.abort());
 
-  return { standings, loading, loadFailed, refresh };
+  return {
+    standings,
+    honorByFaction,
+    honorScoredOn,
+    loading,
+    loadFailed,
+    refresh,
+  };
 }

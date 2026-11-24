@@ -982,6 +982,21 @@ async function completeRunVictory(row) {
   } catch {
     /* exploits optionnels */
   }
+
+  try {
+    const { addHonorPoint } = await import('./villageHonorService.js');
+    await addHonorPoint(row.user_id);
+  } catch {
+    /* honneur optionnel */
+  }
+  try {
+    const { recordActivityEvent } = await import('./communityActivityService.js');
+    await recordActivityEvent(row.user_id, 'mission_victory', {
+      missionKey: String(row.mission_id || ''),
+    });
+  } catch {
+    /* mur optionnel */
+  }
 }
 
 export async function onRunCombatFinished(session) {
@@ -1035,6 +1050,14 @@ export async function onRunCombatFinished(session) {
       row.nodes_json = nodes;
     }
     await persistRun(row);
+    try {
+      const { recordActivityEvent } = await import('./communityActivityService.js');
+      await recordActivityEvent(row.user_id, 'mission_defeat', {
+        missionKey: String(row.mission_id || ''),
+      });
+    } catch {
+      /* mur optionnel */
+    }
     return serializeRun(row);
   }
 

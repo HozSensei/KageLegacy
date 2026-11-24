@@ -7,6 +7,7 @@ import { ninjaCardBackgroundUrl } from '../../constants/ninjaCardBackgrounds.js'
 import { ninjaNicknameLabel, safeNinjaProfileColor } from '../../utils/ninjaProfile.js';
 import { statVisual } from '../../utils/statIcons.js';
 import NinjaPortrait from './NinjaPortrait.vue';
+import ProfileFrameOverlay from './ProfileFrameOverlay.vue';
 
 defineOptions({ name: 'NinjaProfileCard' });
 
@@ -114,7 +115,9 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
         <span class="ninja-card__portrait-glow" aria-hidden="true" />
         <div class="ninja-card__portrait-frame">
           <NinjaPortrait :avatar-id="profile?.avatarId" :name="name" />
+          <ProfileFrameOverlay :frame-id="profile?.frameId" variant="avatar" />
         </div>
+        <ProfileFrameOverlay :frame-id="profile?.frameId" variant="card" class="ninja-card__frame" />
         <span v-if="level != null" class="ninja-card__portrait-level">{{
           t('player.levelLabel', { level })
         }}</span>
@@ -313,12 +316,21 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 .ninja-card__portrait-frame {
   position: relative;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   border: 4px solid var(--ninja-background, #1d2238);
   border-radius: 50%;
   box-shadow:
     0 0 0 3px var(--ninja-border, #ad503a),
     0 0.5rem 1rem rgb(0 0 0 / 0.45);
+}
+
+.ninja-card__portrait-frame :deep(.ninja-portrait) {
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.ninja-card__frame {
+  z-index: 1;
 }
 
 .ninja-card__portrait-level {

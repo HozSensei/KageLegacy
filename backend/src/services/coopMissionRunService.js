@@ -568,6 +568,20 @@ async function completeRunVictory(row) {
     } catch {
       /* optional */
     }
+    try {
+      const { addHonorPoint } = await import('./villageHonorService.js');
+      await addHonorPoint(userId);
+    } catch {
+      /* optional */
+    }
+    try {
+      const { recordActivityEvent } = await import('./communityActivityService.js');
+      await recordActivityEvent(userId, 'coop_victory', {
+        missionKey: String(row.mission_id || ''),
+      });
+    } catch {
+      /* optional */
+    }
   }
 }
 
@@ -1110,7 +1124,18 @@ async function onCoopCombatFinished(row, combat, sessionRow) {
     nodes[idx] = { ...nodes[idx], status: 'failed' };
     row.nodes_json = nodes;
   }
-  return persistRun(row);
+  const persisted = await persistRun(row);
+  for (const userId of [row.host_id, row.guest_id]) {
+    try {
+      const { recordActivityEvent } = await import('./communityActivityService.js');
+      await recordActivityEvent(userId, 'coop_defeat', {
+        missionKey: String(row.mission_id || ''),
+      });
+    } catch {
+      /* optional */
+    }
+  }
+  return persisted;
 }
 
 /** Hook appelé après auto-end_turn du scheduler. */

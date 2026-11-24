@@ -44,6 +44,7 @@ const spriteStyle = computed(() => {
 
 <style scoped>
 .ninja-portrait {
+  position: relative;
   display: grid;
   width: 100%;
   aspect-ratio: 1;

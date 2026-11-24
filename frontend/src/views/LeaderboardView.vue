@@ -4,6 +4,9 @@ import { useI18n } from 'vue-i18n'
 import { useLeaderboardStore } from '../stores/leaderboard'
 import { usePlayerStore } from '../stores/player'
 import PageHeader from '../components/ui/PageHeader.vue'
+import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue'
+import PlayerProfileModal from '../components/player/PlayerProfileModal.vue'
+import { usePublicPlayerModal } from '../composables/usePublicPlayer.js'
 import bridgeImage from '../assets/illustrations/stone-bridge.webp'
 
 defineOptions({ name: 'LeaderboardView' })
@@ -11,6 +14,14 @@ defineOptions({ name: 'LeaderboardView' })
 const { t } = useI18n()
 const lb = useLeaderboardStore()
 const player = usePlayerStore()
+const {
+  open: profileOpen,
+  loading: profileLoading,
+  error: profileError,
+  player: profilePlayer,
+  show: showProfile,
+  close: closeProfile,
+} = usePublicPlayerModal()
 
 const board = ref('level')
 const factionFilter = ref('')
@@ -193,7 +204,13 @@ function factionTone(id) {
             >
               <td>{{ row.rank }}</td>
               <td>
-                <span class="lb-name">{{ row.characterName }}</span>
+                <PlayerIdentityChip
+                  :user-id="row.userId"
+                  :name="row.characterName"
+                  :profile="row.profile"
+                  :level="row.level"
+                  @open="showProfile"
+                />
                 <span v-if="row.rankTitle" class="lb-rank-title">{{ row.rankTitle }}</span>
               </td>
               <td>
@@ -236,6 +253,14 @@ function factionTone(id) {
         </button>
       </div>
     </section>
+
+    <PlayerProfileModal
+      :open="profileOpen"
+      :loading="profileLoading"
+      :error="profileError"
+      :player="profilePlayer"
+      @close="closeProfile"
+    />
   </div>
 </template>
 

@@ -1,4 +1,6 @@
 /** Accents cosmétique des villages — alignés sur `backend/src/services/factionCatalog.js`. */
+export const FACTION_IDS = Object.freeze(['midorihara', 'kareno', 'oborohama']);
+
 export const FACTION_ACCENTS = Object.freeze({
   midorihara: '#2d6a4f',
   kareno: '#b5651d',
