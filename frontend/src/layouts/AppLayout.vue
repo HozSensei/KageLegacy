@@ -13,6 +13,7 @@ import AppNavDrawer from '../components/layout/AppNavDrawer.vue';
 import ProfileMenu from '../components/layout/ProfileMenu.vue';
 import SiteFooter from '../components/layout/SiteFooter.vue';
 import BrandMark from '../components/ui/BrandMark.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
 import { useShopStore } from '../stores/shop';
 import { useVillageRewardsStore } from '../stores/villageRewards.js';
 import { useBattlePassStore } from '../stores/battlePass.js';
@@ -135,13 +136,26 @@ async function logout() {
 let claimableSync = Promise.resolve();
 let claimablesHydrated = false;
 
+async function fetchServerNotifications() {
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+  try {
+    const res = await fetch(`${API_BASE}/api/notifications`, { credentials: 'include' });
+    if (!res.ok) return [];
+    const body = await res.json();
+    return body.notifications || [];
+  } catch {
+    return [];
+  }
+}
+
 function syncClaimableNotifications() {
   if (!auth.user || document.hidden || isCombatLayout.value) return claimableSync;
   const userId = auth.user.id;
   claimableSync = claimableSync.then(async () => {
     if (auth.user?.id !== userId) return;
-    const [quests] = await Promise.all([
+    const [quests, serverNotes] = await Promise.all([
       battlePass.fetchQuests(),
+      fetchServerNotifications(),
       onboarding.steps?.length ? Promise.resolve(onboarding.steps) : onboarding.fetchProgress(),
       achievements.achievements?.length
         ? Promise.resolve(achievements.achievements)
@@ -156,6 +170,7 @@ function syncClaimableNotifications() {
       toastNew,
     });
     rewardNotifications.syncAchievements(achievements.achievements || [], { toastNew });
+    notifications.syncServerNotifications?.(serverNotes || []);
     claimablesHydrated = true;
   });
   return claimableSync;
@@ -267,6 +282,17 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
 
     <ConvertGuestModal v-if="!isCombatLayout" :open="showConvert" @close="showConvert = false" />
     <ToastContainer v-if="auth.user" />
+
+    <router-link
+      v-if="auth.user && !isCombatLayout && route.name !== 'bug-report'"
+      to="/bug-report"
+      class="bug-fab"
+      data-testid="bug-report-fab"
+      :aria-label="t('bugReport.fabLabel')"
+      :title="t('bugReport.fabLabel')"
+    >
+      <AppIcon name="bug" size="1.35rem" :stroke-width="0" />
+    </router-link>
   </div>
 </template>
 
@@ -277,6 +303,27 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--color-bg);
+}
+
+.bug-fab {
+  position: fixed;
+  right: 1rem;
+  bottom: 1.5rem;
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface, var(--color-bg));
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.bug-fab:hover {
+  border-color: var(--color-ink);
 }
 
 .app-bar {

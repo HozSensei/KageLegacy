@@ -21,6 +21,7 @@ import BattlePassView from '../views/BattlePassView.vue';
 import JournalView from '../views/JournalView.vue';
 import LeaderboardView from '../views/LeaderboardView.vue';
 import AdminView from '../views/AdminView.vue';
+import BugReportView from '../views/BugReportView.vue';
 import { useAuthStore } from '../stores/auth';
 
 const router = createRouter({
@@ -175,6 +176,11 @@ const router = createRouter({
           component: AdminView,
           meta: { requiresAdmin: true },
         },
+        {
+          path: 'bug-report',
+          name: 'bug-report',
+          component: BugReportView,
+        },
       ],
     },
   ],
@@ -198,7 +204,7 @@ router.beforeEach(async to => {
   if (to.meta.requiresAdmin && !auth.user.isAdmin) return { path: '/home' };
 
   // Sans personnage : uniquement le wizard de création (et l'admin).
-  const allowWithoutCharacter = new Set(['character-creation', 'admin']);
+  const allowWithoutCharacter = new Set(['character-creation', 'admin', 'bug-report']);
   if (!allowWithoutCharacter.has(to.name)) {
     const { usePlayerStore } = await import('../stores/player');
     const player = usePlayerStore();

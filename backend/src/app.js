@@ -21,6 +21,8 @@ import stripeRouter from './routes/stripe.js';
 import factionsRouter from './routes/factions.js';
 import leaderboardRouter from './routes/leaderboard.js';
 import adminRouter from './routes/admin.js';
+import bugReportsRouter from './routes/bugReports.js';
+import notificationsRouter from './routes/notifications.js';
 import { attachUser } from './middleware/auth.js';
 
 const app = express();
@@ -61,6 +63,8 @@ app.use('/api/shop', shopRouter);
 app.use('/api/factions', factionsRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/bug-reports', bugReportsRouter);
+app.use('/api/notifications', notificationsRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

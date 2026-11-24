@@ -1,9 +1,19 @@
 import { useI18n } from 'vue-i18n';
+import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
 import { villageRewardsHash } from './useVillageRewards.js';
 
 /** Libellés d’affichage pour l’inbox TCG (+ entrée Village). */
 export function useNotificationCopy() {
   const { t, locale } = useI18n();
+
+  function bugLocationLabel(payload = {}) {
+    const option = BUG_REPORT_LOCATION_OPTIONS.find(item => item.value === payload.location);
+    let label = option ? t(option.labelKey) : payload.location || '—';
+    if (payload.location === 'other' && payload.locationOther) {
+      label = `${label} (${payload.locationOther})`;
+    }
+    return label;
+  }
 
   function title(note) {
     switch (note.kind) {
@@ -20,6 +30,10 @@ export function useNotificationCopy() {
         return t('notifications.onboardingReadyTitle');
       case 'village_ready':
         return t('notifications.villageReadyTitle');
+      case 'bug_report_new':
+        return t('notifications.bugReportNewTitle');
+      case 'bug_report_reward':
+        return t('notifications.bugReportRewardTitle');
       case 'gain': {
         const source = note.payload?.source;
         if (source === 'onboarding') return t('notifications.gainOnboardingTitle');
@@ -64,6 +78,13 @@ export function useNotificationCopy() {
       }
       case 'village_ready':
         return t('notifications.villageReadyBody', p.count || 1);
+      case 'bug_report_new':
+        return t('notifications.bugReportNewBody', {
+          location: bugLocationLabel(p),
+          preview: p.preview || '—',
+        });
+      case 'bug_report_reward':
+        return t('notifications.bugReportRewardBody', { n: p.ryos || 100 });
       case 'gain':
         return p.body || t('notifications.noRewards');
       default:
@@ -77,6 +98,8 @@ export function useNotificationCopy() {
     if (note.kind === 'achievement_ready') return { name: 'journal' };
     if (note.kind === 'onboarding_ready') return { name: 'hub' };
     if (note.kind === 'village_ready') return { name: 'village', hash: villageRewardsHash };
+    if (note.kind === 'bug_report_new') return { name: 'admin', query: { tab: 'reports' } };
+    if (note.kind === 'bug_report_reward') return { name: 'shop' };
     return null;
   }
 
@@ -90,6 +113,10 @@ export function useNotificationCopy() {
         return t('notifications.onboardingReadyLink');
       case 'village_ready':
         return t('notifications.villageReadyLink');
+      case 'bug_report_new':
+        return t('notifications.bugReportNewLink');
+      case 'bug_report_reward':
+        return t('notifications.bugReportRewardLink');
       case 'gain': {
         const source = note.payload?.source;
         if (source === 'quest' || source === 'battle_pass') return t('notifications.viewBattlePass');

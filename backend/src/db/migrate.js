@@ -89,6 +89,64 @@ async function ensureCardStatType(connection) {
   console.log('🔧 Enum étendu : card_definitions.stat_type accepte common');
 }
 
+async function ensureBugReportTables(connection) {
+  const tables = [
+    [
+      'bug_reports',
+      `CREATE TABLE IF NOT EXISTS \`bug_reports\` (
+        \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+        \`user_id\` int unsigned NOT NULL,
+        \`location\` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`location_other\` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+        \`description\` text COLLATE utf8mb4_unicode_ci NOT NULL,
+        \`status\` enum('open','in_progress','fixed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'open',
+        \`admin_comment\` text COLLATE utf8mb4_unicode_ci,
+        \`rewarded_at\` datetime(6) DEFAULT NULL,
+        \`rewarded_by\` int unsigned DEFAULT NULL,
+        \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        \`updated_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        KEY \`idx_bug_reports_status_created\` (\`status\`,\`created_at\`),
+        KEY \`idx_bug_reports_user\` (\`user_id\`),
+        CONSTRAINT \`fk_bug_reports_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE,
+        CONSTRAINT \`fk_bug_reports_rewarded_by\` FOREIGN KEY (\`rewarded_by\`) REFERENCES \`users\` (\`id\`) ON DELETE SET NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+    [
+      'user_notifications',
+      `CREATE TABLE IF NOT EXISTS \`user_notifications\` (
+        \`id\` int unsigned NOT NULL AUTO_INCREMENT,
+        \`user_id\` int unsigned NOT NULL,
+        \`kind\` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        \`payload_json\` json DEFAULT NULL,
+        \`href\` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+        \`read_at\` datetime(6) DEFAULT NULL,
+        \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (\`id\`),
+        KEY \`idx_user_notifications_user_read_created\` (\`user_id\`,\`read_at\`,\`created_at\`),
+        KEY \`idx_user_notifications_kind\` (\`kind\`),
+        CONSTRAINT \`fk_user_notifications_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
+    ],
+  ];
+
+  for (const [table, ddl] of tables) {
+    const [rows] = await connection.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = ? LIMIT 1`,
+      [table],
+    );
+    if (rows.length > 0) continue;
+    const [users] = await connection.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = 'users' LIMIT 1`,
+    );
+    if (users.length === 0) continue;
+    await connection.query(ddl);
+    console.log(`🔧 Table ajoutée : ${table}`);
+  }
+}
+
 async function ensureMonetizationTables(connection) {
   const tables = [
     [
@@ -495,6 +553,7 @@ async function migrate() {
       await ensureRankMissions(connection);
       await ensureOnboardingTable();
       await ensureMonetizationTables(connection);
+      await ensureBugReportTables(connection);
       return;
     }
 
@@ -532,6 +591,7 @@ async function migrate() {
     await ensureRankMissions(connection);
     await ensureOnboardingTable();
     await ensureMonetizationTables(connection);
+    await ensureBugReportTables(connection);
     console.log('✅ Schéma initial appliqué.');
   } catch (error) {
     console.error('Erreur d’initialisation de la base :', error.message);

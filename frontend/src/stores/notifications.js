@@ -86,11 +86,69 @@ export const useNotificationsStore = defineStore('notifications', () => {
     const item = items.value.find(n => n.id === id);
     if (!item) return;
     rememberDismiss(item.dedupeKey);
+    const serverId = item.payload?.serverId;
+    if (serverId != null) {
+      void markServerNotificationRead(serverId);
+    }
     if (item.sticky || item.dedupeKey) {
       items.value = items.value.filter(n => n.id !== id);
       return;
     }
     items.value = items.value.map(n => (n.id === id ? { ...n, read: true } : n));
+  }
+
+  async function markServerNotificationRead(serverId) {
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+    try {
+      await fetch(`${API_BASE}/api/notifications/${encodeURIComponent(serverId)}/read`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch {
+      // best-effort : l’inbox locale a déjà été mise à jour
+    }
+  }
+
+  function serverDedupeKey(note) {
+    if (note.kind === 'bug_report_new') return `bug-report-new:${note.id}`;
+    if (note.kind === 'bug_report_reward') return `bug-report-reward:${note.id}`;
+    return `server:${note.id}`;
+  }
+
+  /**
+   * Aligne les notifications persistées (rapports de bug, etc.).
+   * @param {Array} notifications — payload GET /api/notifications
+   */
+  function syncServerNotifications(notifications) {
+    const unread = (notifications || []).filter(n => n && !n.read && n.id != null);
+    const keys = new Set(unread.map(n => serverDedupeKey(n)));
+    pruneDismissed('bug-report-', keys);
+    pruneDismissed('server:', keys);
+    items.value = items.value.filter(n => {
+      if (n.kind !== 'bug_report_new' && n.kind !== 'bug_report_reward') return true;
+      return n.dedupeKey && keys.has(n.dedupeKey) && !dismissedKeys.has(n.dedupeKey);
+    });
+    for (const note of unread) {
+      const dedupeKey = serverDedupeKey(note);
+      if (dismissedKeys.has(dedupeKey)) continue;
+      let href = note.href || null;
+      if (typeof href === 'string' && href.startsWith('/')) {
+        // garder le chemin serveur tel quel (ex. /admin?tab=reports)
+      } else if (note.kind === 'bug_report_new') {
+        href = { name: 'admin', query: { tab: 'reports' } };
+      } else if (note.kind === 'bug_report_reward') {
+        href = { name: 'shop' };
+      }
+      push({
+        id: `server-${note.id}`,
+        kind: note.kind,
+        dedupeKey,
+        sticky: true,
+        payload: { ...(note.payload || {}), serverId: note.id },
+        href,
+        createdAt: note.createdAt || Date.now(),
+      });
+    }
   }
 
   function clearDedupe(dedupeKey) {
@@ -223,6 +281,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     syncQuestReady,
     syncOnboardingReady,
     syncAchievementReady,
+    syncServerNotifications,
     reset,
   };
 });
