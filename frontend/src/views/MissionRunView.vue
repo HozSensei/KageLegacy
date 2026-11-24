@@ -121,9 +121,6 @@ function nodeTone(node) {
   return 'indigo'
 }
 
-/** Aperçu synchronisé avec le survol des boutons de choix d’événement. */
-const focusChoiceId = ref(null)
-
 const inventory = computed(() => {
   const slots = player.value.inventory
   if (Array.isArray(slots) && slots.length) return slots
@@ -367,96 +364,86 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         />
       </div>
 
-      <MissionPathTree
-        v-else
-        class="mt-8"
-        :nodes="nodes"
-        :node-label="nodeLabel"
-        :node-hint="nodeHint"
-        :node-shape="nodeShape"
-        :node-tone="nodeTone"
-        :focus-choice-id="focusChoiceId"
-      />
+      <div v-else class="run-stage" data-testid="run-stage">
+        <MissionPathTree
+          class="run-stage__path"
+          :nodes="nodes"
+          :node-label="nodeLabel"
+          :node-hint="nodeHint"
+          :node-shape="nodeShape"
+          :node-tone="nodeTone"
+        />
 
-      <section
-        v-if="!isOver && missions.currentEvent"
-        class="run-event"
-        data-tone="sky"
-        data-testid="run-event"
-      >
-        <span class="run-event__shape" aria-hidden="true" />
-        <h2 class="run-event__title">
-          {{ localizedName(missions.currentEvent, locale) }}
-        </h2>
-        <p class="run-event__desc">
-          {{ localizedDescription(missions.currentEvent, locale) }}
-        </p>
-
-        <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
-          <p class="run-shop__purse">
-            {{ t('combat.runPurse', { n: missions.currentEvent.purse ?? player.purse ?? 0 }) }}
+        <section
+          v-if="missions.currentEvent"
+          class="run-event run-stage__event"
+          data-tone="sky"
+          data-testid="run-event"
+        >
+          <span class="run-event__shape" aria-hidden="true" />
+          <h2 class="run-event__title">
+            {{ localizedName(missions.currentEvent, locale) }}
+          </h2>
+          <p class="run-event__desc">
+            {{ localizedDescription(missions.currentEvent, locale) }}
           </p>
-          <ul class="run-shop__offer">
-            <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
-              <div>
-                <p class="run-shop__name">{{ itemLabel(item) }}</p>
-                <p v-if="itemDesc(item)" class="run-shop__desc">{{ itemDesc(item) }}</p>
-                <p class="run-shop__price">
-                  {{ t('combat.shopPrice', { n: item.price }) }}
-                  ·
+
+          <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
+            <p class="run-shop__purse">
+              {{ t('combat.runPurse', { n: missions.currentEvent.purse ?? player.purse ?? 0 }) }}
+            </p>
+            <ul class="run-shop__offer">
+              <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
+                <div>
+                  <p class="run-shop__name">{{ itemLabel(item) }}</p>
+                  <p v-if="itemDesc(item)" class="run-shop__desc">{{ itemDesc(item) }}</p>
+                  <p class="run-shop__price">
+                    {{ t('combat.shopPrice', { n: item.price }) }}
+                    ·
+                    {{
+                      (item.stock ?? 1) <= 0
+                        ? t('combat.shopSoldOut')
+                        : t('combat.shopStock', { n: item.stock ?? 1 })
+                    }}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="btn-secondary btn-sm"
+                  :disabled="
+                    missions.actionLoading ||
+                    (item.stock ?? 1) <= 0 ||
+                    (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
+                  "
+                  @click="onBuy(item.id)"
+                >
                   {{
                     (item.stock ?? 1) <= 0
                       ? t('combat.shopSoldOut')
-                      : t('combat.shopStock', { n: item.stock ?? 1 })
+                      : t('combat.shopBuy')
                   }}
-                </p>
-              </div>
-              <button
-                type="button"
-                class="btn-secondary btn-sm"
-                :disabled="
-                  missions.actionLoading ||
-                  (item.stock ?? 1) <= 0 ||
-                  (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
-                "
-                @click="onBuy(item.id)"
-              >
-                {{
-                  (item.stock ?? 1) <= 0
-                    ? t('combat.shopSoldOut')
-                    : t('combat.shopBuy')
-                }}
-              </button>
-            </li>
-          </ul>
-        </div>
+                </button>
+              </li>
+            </ul>
+          </div>
 
-        <div class="run-event__choices">
-          <button
-            v-for="choice in eventChoices"
-            :key="choice.id"
-            type="button"
-            class="btn-secondary"
-            :class="{
-              'run-event__choice--preview':
-                missions.currentEvent?.eventType === 'branch' && focusChoiceId === choice.id,
-            }"
-            :disabled="missions.actionLoading || choice.disabled"
-            @mouseenter="
-              missions.currentEvent?.eventType === 'branch' && (focusChoiceId = choice.id)
-            "
-            @focus="
-              missions.currentEvent?.eventType === 'branch' && (focusChoiceId = choice.id)
-            "
-            @click="onChoice(choice.id)"
-          >
-            {{ localizedField(choice, 'label', locale) }}
-            <span v-if="choice.xpMult" class="run-event__xp">
-              {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
-            </span>
-          </button>
-        </div>
-      </section>
+          <div class="run-event__choices">
+            <button
+              v-for="choice in eventChoices"
+              :key="choice.id"
+              type="button"
+              class="btn-secondary"
+              :disabled="missions.actionLoading || choice.disabled"
+              @click="onChoice(choice.id)"
+            >
+              {{ localizedField(choice, 'label', locale) }}
+              <span v-if="choice.xpMult" class="run-event__xp">
+                {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
+              </span>
+            </button>
+          </div>
+        </section>
+      </div>
 
       <div v-if="!isOver" class="run-actions">
         <button
@@ -703,6 +690,17 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   color: var(--color-ink-muted);
 }
 
+.run-stage {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.run-stage__path {
+  min-width: 0;
+}
+
 .run-event__xp {
   margin-left: 0.35rem;
   font-size: 0.8rem;
@@ -713,11 +711,33 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   position: relative;
   max-width: 44rem;
   overflow: hidden;
-  margin-top: 2rem;
   padding: 1.5rem 1.5rem 1.5rem 1.75rem;
   border-left: 6px solid var(--tone-fill);
   background: var(--tone-tint);
   animation: rise-in 420ms var(--ease-out-quint) both;
+}
+
+@media (min-width: 960px) {
+  .run-stage {
+    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 24rem);
+    align-items: start;
+    gap: 1.75rem 2rem;
+  }
+
+  .run-stage :deep(.path-tree) {
+    max-width: none;
+  }
+
+  .run-stage__event {
+    max-width: none;
+    position: sticky;
+    top: 1rem;
+  }
+
+  .run-event__choices {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .run-event__shape {
@@ -753,10 +773,6 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 1.1rem;
-}
-
-.run-event__choice--preview {
-  box-shadow: inset 0 0 0 2px var(--color-sky-fill, #3b82a8);
 }
 
 .run-actions {
