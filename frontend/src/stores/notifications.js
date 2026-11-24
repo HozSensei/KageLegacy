@@ -4,6 +4,15 @@ import { parseApiResponse, readApiError } from '../utils/http.js';
 
 const API_BASE = import.meta.env?.VITE_API_URL || '';
 
+function noteAffectsBalances(note) {
+  if (!note || note.kind !== 'gain') return false;
+  const grants = Array.isArray(note.payload?.grants) ? note.payload.grants : [];
+  return grants.some(g => {
+    if (!g || g.skipped) return false;
+    return ['ryos', 'dust', 'essence', 'kage_coins'].includes(g.type) && Number(g.amount) > 0;
+  });
+}
+
 /**
  * Inbox alimentée par GET /api/notifications (persistée en DB, max 30).
  */
@@ -49,6 +58,16 @@ export const useNotificationsStore = defineStore('notifications', () => {
       items.value = list;
       knownIds.value = nextKnown;
       hydrated.value = true;
+      // Les gains (mission, succès, BP…) créditent le compte sans passer par /shop :
+      // rafraîchir le portefeuille dès qu’une notif de ressources arrive.
+      if (fresh.some(noteAffectsBalances)) {
+        try {
+          const { useShopStore } = await import('./shop.js');
+          await useShopStore().fetchBalances();
+        } catch {
+          /* soldes optionnels */
+        }
+      }
       return { notifications: list, fresh };
     } catch (e) {
       error.value = e.message;

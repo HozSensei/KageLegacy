@@ -193,19 +193,48 @@ export function useInventorySlot(player, slotIndex) {
   };
 }
 
+export function pendingCardEntryFromItem(item, meta = null) {
+  if (!item || item.kind !== 'pending_card') return null;
+  return {
+    itemId: item.id,
+    rarity: item.rarity || 'common',
+    meta: meta || { rarity: item.rarity || 'common' },
+  };
+}
+
+/** Enregistre un parchemin scellé pour le grant de fin (survit à un inventaire corrompu). */
+export function trackPendingCard(player, item, meta = null) {
+  const entry = pendingCardEntryFromItem(item, meta);
+  if (!entry) return player;
+  const cards = [...(player.pendingLoot?.cards || []), entry];
+  return { ...player, pendingLoot: { ...(player.pendingLoot || {}), cards } };
+}
+
+/** Retire une occurrence de parchemin scellé (jet / remplacement). */
+export function untrackPendingCard(player, itemId) {
+  if (!itemId) return player;
+  const cards = [...(player.pendingLoot?.cards || [])];
+  const idx = cards.findIndex(c => c?.itemId === itemId);
+  if (idx < 0) return player;
+  cards.splice(idx, 1);
+  return { ...player, pendingLoot: { ...(player.pendingLoot || {}), cards } };
+}
+
 export function collectPendingCardsFromInventory(player) {
-  const cards = [];
+  const fromLoot = [...(player.pendingLoot?.cards || [])];
+  const fromInv = [];
   for (const slot of player.inventory || []) {
     if (!slot?.itemId) continue;
     const def = getShopItem(slot.itemId);
     if (def?.kind === 'pending_card') {
-      cards.push({
+      fromInv.push({
         itemId: def.id,
-        rarity: def.rarity || 'common',
+        rarity: def.rarity || slot.meta?.rarity || 'common',
         meta: slot.meta || null,
       });
     }
   }
-  const existing = player.pendingLoot?.cards || [];
-  return [...existing, ...cards];
+  // Dedup : pendingLoot est la source de vérité ; l’inventaire complète les anciens runs.
+  if (fromLoot.length) return fromLoot;
+  return fromInv;
 }

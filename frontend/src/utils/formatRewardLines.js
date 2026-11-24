@@ -39,7 +39,16 @@ export function formatCombatSummary(rewards, t) {
   if (!rewards || rewards.error) return '';
   const out = [];
   if (rewards.xp > 0) out.push(t('combat.rewardXp', { n: rewards.xp }));
-  if (rewards.ryos > 0) out.push(t('combat.rewardRyos', { n: rewards.ryos }));
+  const totalRyos = Number(rewards.ryos) || 0;
+  const purseReturned = Math.max(0, Number(rewards.purseReturned) || 0);
+  const missionRyos = Math.max(0, totalRyos - purseReturned);
+  // `ryos` inclut déjà la bourse rendue — ne pas double-compter.
+  if (missionRyos > 0) out.push(t('combat.rewardRyos', { n: missionRyos }));
+  if (purseReturned > 0) {
+    out.push(t('notifications.rewardPurse', { n: purseReturned }));
+  } else if (totalRyos > 0 && missionRyos <= 0) {
+    out.push(t('combat.rewardRyos', { n: totalRyos }));
+  }
   if (rewards.leveledUp) {
     out.push(
       t('combat.rewardLevel', {
@@ -58,9 +67,6 @@ export function formatCombatSummary(rewards, t) {
   }
   if (rewards.runMult) {
     out.push(t('combat.rewardRunBonus', { n: rewards.runMult }));
-  }
-  if (rewards.purseReturned > 0) {
-    out.push(t('notifications.rewardPurse', { n: rewards.purseReturned }));
   }
   return out.join(' · ');
 }

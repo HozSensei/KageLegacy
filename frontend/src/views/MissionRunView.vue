@@ -15,8 +15,9 @@ import {
   localizedField,
   localizedName,
 } from '../utils/localeContent.js'
-import { shopItemEffect, shopItemName } from '../utils/missionShopItems.js'
+import { isSealedScroll, shopItemEffect, shopItemName } from '../utils/missionShopItems.js'
 import { useNotificationsStore } from '../stores/notifications.js'
+import { useShopStore } from '../stores/shop.js'
 
 defineOptions({ name: 'MissionRunView' })
 
@@ -26,6 +27,7 @@ const router = useRouter()
 const missions = useMissionsStore()
 const combat = useCombatStore()
 const notifications = useNotificationsStore()
+const shop = useShopStore()
 
 const localError = ref(null)
 
@@ -47,6 +49,8 @@ watch(
   ([state, rewards, id]) => {
     if (state === 'victory' && rewards && id != null) {
       void notifications.fetchNotifications()
+      // Filet si la notif de gain n’est pas encore visible / déjà connue.
+      if (Number(rewards.ryos) > 0) void shop.fetchBalances()
     }
   }
 )
@@ -186,6 +190,7 @@ async function onBuy(itemId) {
   localError.value = null
   try {
     await missions.shopBuy(runId.value, itemId, replaceSlot.value)
+    replaceSlot.value = null
   } catch (e) {
     localError.value = e.message
   }
@@ -193,6 +198,11 @@ async function onBuy(itemId) {
 
 async function onUseSlot(slot) {
   localError.value = null
+  const item = inventory.value.find((s) => s.slot === slot)
+  if (isSealedScroll(item)) {
+    localError.value = t('combat.inventorySealedHint')
+    return
+  }
   try {
     await missions.inventoryUse(runId.value, slot)
   } catch (e) {
@@ -202,6 +212,11 @@ async function onUseSlot(slot) {
 
 async function onDiscardSlot(slot) {
   localError.value = null
+  const item = inventory.value.find((s) => s.slot === slot)
+  if (isSealedScroll(item)) {
+    const ok = window.confirm(t('combat.inventoryDiscardSealedConfirm'))
+    if (!ok) return
+  }
   try {
     await missions.inventoryDiscard(runId.value, slot)
   } catch (e) {
@@ -301,6 +316,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             </div>
             <div v-if="slot.itemId" class="run-inventory__slot-actions">
               <button
+                v-if="!isSealedScroll(slot)"
                 type="button"
                 class="btn-secondary btn-sm"
                 :disabled="missions.actionLoading"
@@ -308,6 +324,9 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
               >
                 {{ t('combat.inventoryUse') }}
               </button>
+              <p v-else class="run-inventory__sealed">
+                {{ t('combat.inventorySealedBadge') }}
+              </p>
               <button
                 type="button"
                 class="btn-ghost btn-sm"
@@ -628,6 +647,13 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   flex-wrap: wrap;
   gap: 0.45rem;
   align-items: center;
+}
+
+.run-inventory__sealed {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-wood);
 }
 
 .run-inventory__replace {

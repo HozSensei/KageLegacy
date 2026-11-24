@@ -4,10 +4,26 @@
  */
 import { localizedDescription, localizedName } from './localeContent.js';
 
+const SEALED_SCROLL_IDS = new Set([
+  'card_mystery_common',
+  'card_mystery_rare',
+  'card_mystery_legendary',
+]);
+
 function itemId(itemOrId) {
   if (itemOrId == null) return null;
   if (typeof itemOrId === 'string') return itemOrId;
   return itemOrId.id || itemOrId.itemId || null;
+}
+
+/** Parchemin scellé : non utilisable, révélé en fin de parcours. */
+export function isSealedScroll(itemOrId) {
+  const id = itemId(itemOrId);
+  if (!id) return false;
+  if (itemOrId && typeof itemOrId === 'object' && itemOrId.kind === 'pending_card') {
+    return true;
+  }
+  return SEALED_SCROLL_IDS.has(id);
 }
 
 /**

@@ -82,7 +82,17 @@ const lines = computed(() => {
   if (!r || r.error) return [];
   const out = [];
   if (r.xp > 0) out.push({ key: 'xp', label: t('combat.rewardXp', { n: r.xp }) });
-  if (r.ryos > 0) out.push({ key: 'ryos', label: t('combat.rewardRyos', { n: r.ryos }) });
+  const totalRyos = Number(r.ryos) || 0;
+  const purseReturned = Math.max(0, Number(r.purseReturned) || 0);
+  const missionRyos = Math.max(0, totalRyos - purseReturned);
+  if (missionRyos > 0) {
+    out.push({ key: 'ryos', label: t('combat.rewardRyos', { n: missionRyos }) });
+  }
+  if (purseReturned > 0) {
+    out.push({ key: 'purse', label: t('notifications.rewardPurse', { n: purseReturned }) });
+  } else if (totalRyos > 0 && missionRyos <= 0) {
+    out.push({ key: 'ryos', label: t('combat.rewardRyos', { n: totalRyos }) });
+  }
   if (r.leveledUp) {
     out.push({
       key: 'level',
@@ -104,7 +114,9 @@ const lines = computed(() => {
       label: t('combat.rewardCard', { name }),
       to: name === '…' ? null : { name: 'collection', query: { search: name } },
     });
-  } else if (r.cardRolled === false && (r.xp > 0 || r.ryos > 0)) {
+  } else if (Number(r.sealedGrantFailures) > 0 || Number(r.sealedPending) > Number(r.sealedGranted)) {
+    out.push({ key: 'sealed-miss', label: t('combat.rewardSealedMissed') });
+  } else if (r.cardRolled === false && (r.xp > 0 || totalRyos > 0)) {
     out.push({ key: 'no-card', label: t('combat.rewardNoCard') });
   }
   if (r.runMult) {

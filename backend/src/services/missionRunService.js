@@ -39,6 +39,8 @@ import {
   spendPurse,
   useInventorySlot,
   collectPendingCardsFromInventory,
+  trackPendingCard,
+  untrackPendingCard,
 } from './missionRunInventory.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
 import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
@@ -753,12 +755,25 @@ export async function shopBuy(userId, runId, itemId, { replaceSlot = null } = {}
   if (!spent.ok) throw httpError(400, 'Bourse insuffisante.', spent.code);
   player = spent.player;
 
+  const meta = def.kind === 'pending_card' ? { rarity: def.rarity } : null;
+  const replacedSlot =
+    replaceSlot == null ? null : Number(replaceSlot);
+  const previousItemId =
+    replacedSlot != null && player.inventory?.[replacedSlot]?.itemId
+      ? player.inventory[replacedSlot].itemId
+      : null;
   const placed = placeInventoryItem(player.inventory, def, {
-    replaceSlot: replaceSlot == null ? null : Number(replaceSlot),
-    meta: def.kind === 'pending_card' ? { rarity: def.rarity } : null,
+    replaceSlot: replacedSlot,
+    meta,
   });
   if (!placed.ok) throw httpError(400, 'Inventaire plein — jetez ou remplacez un objet.', placed.code);
   player.inventory = placed.inventory;
+  if (placed.replaced && previousItemId) {
+    player = untrackPendingCard(player, previousItemId);
+  }
+  if (def.kind === 'pending_card') {
+    player = trackPendingCard(player, def, meta);
+  }
 
   offer[offerIdx] = { ...offerItem, stock: 0 };
   nodes[idx] = { ...node, offer };
@@ -796,9 +811,12 @@ export async function inventoryDiscard(userId, runId, slotIndex) {
   const row = await loadRunRow(runId, userId);
   if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
   let player = parseJson(row.player_run_state_json, {});
+  const slot = player.inventory?.[Number(slotIndex)];
+  const discardedItemId = slot?.itemId || null;
   const result = discardInventorySlot(player.inventory, Number(slotIndex));
   if (!result.ok) throw httpError(400, 'Emplacement vide.', result.code);
   player = { ...player, inventory: result.inventory };
+  if (discardedItemId) player = untrackPendingCard(player, discardedItemId);
   row.player_run_state_json = player;
   await persistRun(row);
   return serializeRun(row);
@@ -889,18 +907,25 @@ async function completeRunVictory(row) {
       purseReturn,
     });
 
-    // Grant sealed cards from inventory (révélés à l'UI de fin de run)
+    // Grant sealed cards from inventory / pendingLoot (révélés à l'UI de fin de run)
     const pendingCards = collectPendingCardsFromInventory(player);
     const grantedCards = [];
+    let sealedGrantFailures = 0;
     for (const entry of pendingCards) {
       const cardId = await pickCardIdByRarity(entry.rarity || 'common');
-      if (!cardId) continue;
+      if (!cardId) {
+        sealedGrantFailures += 1;
+        continue;
+      }
       try {
         const added = await addCard(row.user_id, cardId, {
           quantity: 1,
           source: 'mission_run_shop',
         });
-        if (!added?.card) continue;
+        if (!added?.card) {
+          sealedGrantFailures += 1;
+          continue;
+        }
         grantedCards.push({
           cardId,
           rarity: added.card.rarity || entry.rarity || 'common',
@@ -910,12 +935,15 @@ async function completeRunVictory(row) {
           source: 'sealed_scroll',
         });
       } catch {
-        /* skip failed grant */
+        sealedGrantFailures += 1;
       }
     }
     rewards.purseReturned = purseReturn;
     rewards.shopCards = grantedCards;
     rewards.lootCards = buildLootCards(rewards.card, grantedCards);
+    rewards.sealedPending = pendingCards.length;
+    rewards.sealedGranted = grantedCards.length;
+    rewards.sealedGrantFailures = sealedGrantFailures;
     rewards.branchXpMult = branchXpMult;
     row.rewards_json = rewards;
 
@@ -923,6 +951,7 @@ async function completeRunVictory(row) {
     row.player_run_state_json = {
       ...player,
       purse: 0,
+      pendingLoot: { cards: [] },
       inventory: (player.inventory || []).map((slot, i) => ({
         slot: i,
         itemId: null,

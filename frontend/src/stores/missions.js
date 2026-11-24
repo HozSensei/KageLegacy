@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { parseApiResponse, readApiError } from '../utils/http.js';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env?.VITE_API_URL || '';
 
 export const useMissionsStore = defineStore('missions', () => {
   const missions = ref([]);
@@ -54,6 +54,15 @@ export const useMissionsStore = defineStore('missions', () => {
       currentRun.value = body.run;
       activeRun.value = body.run;
       currentEvent.value = null;
+      // Mise engagée prélevée sur le compte — synchroniser le portefeuille.
+      if (Number(opts?.purseStake) > 0) {
+        try {
+          const { useShopStore } = await import('./shop.js');
+          await useShopStore().fetchBalances();
+        } catch {
+          /* soldes optionnels */
+        }
+      }
       return body.run;
     } catch (e) {
       error.value = e.message;
