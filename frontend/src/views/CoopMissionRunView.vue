@@ -484,7 +484,7 @@ function cancelConfirm() {
         :state="run.state === 'victory' ? 'victory' : run.state === 'abandoned' ? 'forfeited' : 'defeat'"
         :rewards="run.rewards"
         :continue-label="t('coop.backToLobby')"
-        @dismiss="router.push({ name: 'coop' })"
+        @dismiss="payload => router.push(payload?.to || { name: 'coop' })"
       />
 
       <button

@@ -28,6 +28,7 @@ import {
   pickEncountersForRank,
 } from './missionPathBuilder.js';
 import {
+  buildRunCombatMods,
   createRunPlayerState,
   getPurse,
   grantCombatPurse,
@@ -35,6 +36,7 @@ import {
   healPercent,
   placeInventoryItem,
   discardInventorySlot,
+  scaledPurseGain,
   spendPurse,
   useInventorySlot,
   trackPendingCard,
@@ -677,7 +679,6 @@ export async function enterNode(userId, runId) {
     }
 
     const player = parseJson(row.player_run_state_json, {});
-    const mods = player.nextCombatMods || {};
     const { startCombat } = await import('./combatEngineService.js');
     const combat = await startCombat(userId, {
       missionId: row.mission_id,
@@ -688,14 +689,10 @@ export async function enterNode(userId, runId) {
       startingHp: player.hp,
       startingMaxHp: player.maxHp,
       suppressRewards: true,
-      runCombatMods: {
-        block: Number(mods.block) || 0,
-        chakra: Number(mods.chakra) || 0,
-        damagePct: (Number(mods.damagePct) || 0) + (Number(player.runMods?.damagePct) || 0),
-      },
+      runCombatMods: buildRunCombatMods(player),
     });
 
-    // Consommer les mods « prochain combat »
+    // Consommer les mods « prochain combat » (les runMods persistent)
     player.nextCombatMods = {};
     row.player_run_state_json = player;
     row.current_combat_id = combat.id;
@@ -887,8 +884,9 @@ export async function resolveEvent(userId, runId, choiceId) {
     player = grantNodePurse(player);
   } else if (choiceId === 'take_scrap') {
     player = healPercent(player, 0.1);
-    player = { ...player, purse: getPurse(player) + 40 };
-    log.purseGained = 40;
+    const scrapGain = scaledPurseGain(player, 40);
+    player = { ...player, purse: getPurse(player) + scrapGain };
+    log.purseGained = scrapGain;
   } else {
     player = grantNodePurse(player);
   }
@@ -906,6 +904,8 @@ async function completeRunVictory(row) {
       ? Number(player.rewardMult) || HARD_MODE_REWARD_MULT
       : 1;
     const branchXpMult = Number(player.branchXpMult) || 1;
+    const itemXpMult = Number(player.runMods?.xpMult) || 1;
+    const cardChanceBonus = Number(player.runMods?.cardChanceBonus) || 0;
     const purseReturn = getPurse(player);
 
     const rewards = await grantRunRewards(row.user_id, row.mission_id, {
@@ -913,6 +913,8 @@ async function completeRunVictory(row) {
       nodeCount: parseJson(row.nodes_json, []).filter(n => n.status === 'cleared').length,
       hardModeMult,
       branchXpMult,
+      itemXpMult,
+      cardChanceBonus,
       purseReturn,
     });
 
@@ -1013,6 +1015,25 @@ export async function onRunCombatFinished(session) {
   }
 
   if (session.state === 'defeat' || session.state === 'forfeited') {
+    const node = nodes[idx];
+    const secondWind = Number(player.runMods?.secondWind) || 0;
+    const canSecondWind =
+      session.state === 'defeat' && secondWind > 0 && !node?.boss;
+    if (canSecondWind) {
+      const maxHp = Number(player.maxHp) || Number(session.player?.maxHp) || 1;
+      const revivedHp = Math.max(1, Math.floor(maxHp * secondWind));
+      const runMods = { ...(player.runMods || {}), secondWind: 0 };
+      row.player_run_state_json = {
+        ...player,
+        hp: clampHp(revivedHp, maxHp),
+        maxHp,
+        runMods,
+      };
+      row.current_combat_id = null;
+      await persistRun(row);
+      return serializeRun(row, { secondWindUsed: true });
+    }
+
     player = {
       ...player,
       hp: Math.max(0, Number(session.player?.hp) || 0),

@@ -514,6 +514,7 @@ export async function startCombat(userId, opts = {}) {
   const bonusBlock = Math.max(0, Number(runCombatMods.block) || 0);
   const bonusChakra = Math.max(0, Number(runCombatMods.chakra) || 0);
   const bonusDamagePct = Math.max(0, Number(runCombatMods.damagePct) || 0);
+  const bonusDraw = Math.max(0, Number(runCombatMods.draw) || 0);
 
   let player = {
     ...playerIdentity,
@@ -549,7 +550,7 @@ export async function startCombat(userId, opts = {}) {
   const combatStart = applyTalentCombatStart(player, classified.applied);
   player = combatStart.player;
 
-  const drawn = drawCards(player, DRAW_PER_TURN);
+  const drawn = drawCards(player, DRAW_PER_TURN + bonusDraw);
   player = drawn.player;
 
   const talentStart = applyTalentStartOfTurn(player, classified.applied, { turn: 1 });

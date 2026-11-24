@@ -222,6 +222,8 @@ export async function grantRunRewards(
     nodeCount = 0,
     hardModeMult = 1,
     branchXpMult = 1,
+    itemXpMult = 1,
+    cardChanceBonus = 0,
     purseReturn = 0,
     coopMult = 1,
     rng = Math.random,
@@ -239,9 +241,11 @@ export async function grantRunRewards(
   const combatBonus = 1 + Math.max(0, combatsWon - 1) * 0.08;
   const hardMult = Math.max(1, Number(hardModeMult) || 1);
   const branchMult = Math.max(0.5, Number(branchXpMult) || 1);
+  const itemMult = Math.max(1, Number(itemXpMult) || 1);
+  const chanceBonus = Math.max(0, Number(cardChanceBonus) || 0);
   const coopScale = Math.max(1, Number(coopMult) || 1);
   const scale = mult * combatBonus * hardMult * coopScale;
-  const xpScale = scale * branchMult;
+  const xpScale = scale * branchMult * itemMult;
   const purseBonus = Math.max(0, Math.floor(Number(purseReturn) || 0));
 
   const cfg = {
@@ -253,7 +257,8 @@ export async function grantRunRewards(
         (base.cardChance || 12) *
           Math.min(1.4, 1 + combatsWon * 0.05) *
           Math.min(1.2, hardMult) *
-          Math.min(1.25, coopScale),
+          Math.min(1.25, coopScale) +
+          chanceBonus,
       ),
     ),
     bpPoints: Math.round((base.bpPoints || 0) * scale),
@@ -266,6 +271,8 @@ export async function grantRunRewards(
   summary.runMult = Number(scale.toFixed(2));
   summary.hardModeMult = hardMult;
   summary.branchXpMult = branchMult;
+  summary.itemXpMult = itemMult;
+  summary.cardChanceBonus = chanceBonus;
   summary.coopMult = coopScale;
   summary.purseReturned = purseBonus;
   summary.combatsWon = combatsWon;

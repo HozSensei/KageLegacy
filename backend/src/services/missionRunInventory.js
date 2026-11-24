@@ -104,12 +104,37 @@ export function addPurse(player, amount) {
   return { ...player, purse: getPurse(player) + gain };
 }
 
+/** Multiplicateur de gains de bourse (objets run_purse_charm, etc.). */
+export function getPurseGainMult(player) {
+  const mult = Number(player?.runMods?.purseMult);
+  return Number.isFinite(mult) && mult > 0 ? mult : 1;
+}
+
+export function scaledPurseGain(player, base) {
+  return Math.round(Math.max(0, Number(base) || 0) * getPurseGainMult(player));
+}
+
 export function grantNodePurse(player) {
-  return addPurse(player, RUN_PURSE_GAINS.node);
+  return addPurse(player, scaledPurseGain(player, RUN_PURSE_GAINS.node));
 }
 
 export function grantCombatPurse(player) {
-  return addPurse(player, RUN_PURSE_GAINS.combat);
+  return addPurse(player, scaledPurseGain(player, RUN_PURSE_GAINS.combat));
+}
+
+/**
+ * Mods de combat dérivés de l’état run (prochain combat + run-long).
+ * @returns {{ block: number, chakra: number, damagePct: number, draw: number }}
+ */
+export function buildRunCombatMods(player) {
+  const mods = player?.nextCombatMods || {};
+  const runMods = player?.runMods || {};
+  return {
+    block: (Number(mods.block) || 0) + (Number(runMods.startBlock) || 0),
+    chakra: Number(mods.chakra) || 0,
+    damagePct: (Number(mods.damagePct) || 0) + (Number(runMods.damagePct) || 0),
+    draw: Number(mods.draw) || 0,
+  };
 }
 
 export function spendPurse(player, cost) {
@@ -146,6 +171,43 @@ export function applyConsumableEffect(player, effect) {
     next.runMods = runMods;
     return { ok: true, player: next, log: { runDamagePct: effect.value } };
   }
+  if (effect.type === 'run_xp_mult') {
+    const runMods = { ...(next.runMods || {}) };
+    const current = Number(runMods.xpMult);
+    const base = Number.isFinite(current) && current > 0 ? current : 1;
+    runMods.xpMult = base * (Number(effect.value) || 1);
+    next.runMods = runMods;
+    return { ok: true, player: next, log: { runXpMult: runMods.xpMult } };
+  }
+  if (effect.type === 'run_purse_mult') {
+    const runMods = { ...(next.runMods || {}) };
+    const current = Number(runMods.purseMult);
+    const base = Number.isFinite(current) && current > 0 ? current : 1;
+    runMods.purseMult = base * (Number(effect.value) || 1);
+    next.runMods = runMods;
+    return { ok: true, player: next, log: { runPurseMult: runMods.purseMult } };
+  }
+  if (effect.type === 'run_card_chance') {
+    const runMods = { ...(next.runMods || {}) };
+    runMods.cardChanceBonus =
+      (Number(runMods.cardChanceBonus) || 0) + (Number(effect.value) || 0);
+    next.runMods = runMods;
+    return { ok: true, player: next, log: { runCardChanceBonus: runMods.cardChanceBonus } };
+  }
+  if (effect.type === 'run_second_wind') {
+    const runMods = { ...(next.runMods || {}) };
+    // Une seule charge : on garde le meilleur ratio si déjà présent.
+    const incoming = Math.max(0, Number(effect.value) || 0);
+    runMods.secondWind = Math.max(Number(runMods.secondWind) || 0, incoming);
+    next.runMods = runMods;
+    return { ok: true, player: next, log: { runSecondWind: runMods.secondWind } };
+  }
+  if (effect.type === 'run_start_block') {
+    const runMods = { ...(next.runMods || {}) };
+    runMods.startBlock = (Number(runMods.startBlock) || 0) + (Number(effect.value) || 0);
+    next.runMods = runMods;
+    return { ok: true, player: next, log: { runStartBlock: runMods.startBlock } };
+  }
   if (effect.type === 'next_combat_block') {
     const mods = { ...(next.nextCombatMods || {}) };
     mods.block = (Number(mods.block) || 0) + (Number(effect.value) || 0);
@@ -163,6 +225,12 @@ export function applyConsumableEffect(player, effect) {
     mods.damagePct = (Number(mods.damagePct) || 0) + (Number(effect.value) || 0);
     next.nextCombatMods = mods;
     return { ok: true, player: next, log: { nextDamagePct: effect.value } };
+  }
+  if (effect.type === 'next_combat_draw') {
+    const mods = { ...(next.nextCombatMods || {}) };
+    mods.draw = (Number(mods.draw) || 0) + (Number(effect.value) || 0);
+    next.nextCombatMods = mods;
+    return { ok: true, player: next, log: { nextDraw: effect.value } };
   }
   return { ok: false, code: 'UNKNOWN_EFFECT' };
 }

@@ -21,6 +21,7 @@ import {
   buildRandomRunPath,
 } from '../src/services/missionPathBuilder.js';
 import {
+  buildRunCombatMods,
   createRunPlayerState,
   placeInventoryItem,
   useInventorySlot,
@@ -227,6 +228,36 @@ const sealedUse = useInventorySlot(
 assert(!sealedUse.ok && sealedUse.code === 'SEALED_UNTIL_FINISH', 'sealed until finish');
 
 assert(healPercent({ hp: 10, maxHp: 100 }, 0.5).hp === 60, 'healPercent');
+
+console.log('=== run consumable effects ===');
+let boosted = createRunPlayerState({ maxHp: 100, purseStake: 100 });
+for (const itemId of [
+  'run_purse_charm',
+  'run_xp_scroll',
+  'run_card_omen',
+  'run_second_wind',
+  'run_armor_oil',
+  'next_draw',
+]) {
+  const item = getShopItem(itemId);
+  const placedItem = placeInventoryItem(boosted.inventory, item);
+  assert(placedItem.ok, `place ${itemId}`);
+  boosted = { ...boosted, inventory: placedItem.inventory };
+  const usedItem = useInventorySlot(boosted, placedItem.slot);
+  assert(usedItem.ok, `use ${itemId} (no UNKNOWN_EFFECT)`);
+  boosted = usedItem.player;
+}
+assert(boosted.runMods.purseMult === 1.25, 'purse mult stored');
+assert(boosted.runMods.xpMult === 1.25, 'xp mult stored');
+assert(boosted.runMods.cardChanceBonus === 15, 'card chance bonus stored');
+assert(boosted.runMods.secondWind === 0.3, 'second wind stored');
+assert(boosted.runMods.startBlock === 20, 'start block stored');
+assert(boosted.nextCombatMods.draw === 1, 'next draw stored');
+const beforePurse = getPurse(boosted);
+boosted = grantCombatPurse(boosted);
+assert(getPurse(boosted) - beforePurse === 63, 'combat purse ×1.25 → 63');
+const combatMods = buildRunCombatMods(boosted);
+assert(combatMods.block === 20 && combatMods.draw === 1, 'buildRunCombatMods merges run+next');
 
 console.log('=== pendingLoot tracking ===');
 let tracked = createRunPlayerState({ maxHp: 100, purseStake: 0 });

@@ -20,6 +20,7 @@ import {
 } from './missionRankAccess.js';
 import { buildRandomRunPath } from './missionPathBuilder.js';
 import {
+  buildRunCombatMods,
   createRunPlayerState,
   discardInventorySlot,
   getPurse,
@@ -441,6 +442,8 @@ async function completeRunVictory(row) {
       ? Number(player.rewardMult) || HARD_MODE_REWARD_MULT
       : 1;
     const branchXpMult = Number(player.branchXpMult) || 1;
+    const itemXpMult = Number(player.runMods?.xpMult) || 1;
+    const cardChanceBonus = Number(player.runMods?.cardChanceBonus) || 0;
     const purseReturn = getPurse(player);
     try {
       const rewards = await grantRunRewards(userId, row.mission_id, {
@@ -448,6 +451,8 @@ async function completeRunVictory(row) {
         nodeCount,
         hardModeMult,
         branchXpMult,
+        itemXpMult,
+        cardChanceBonus,
         purseReturn,
         coopMult: COOP_REWARD_MULT,
       });
@@ -768,20 +773,12 @@ export async function enterCoopNode(userId, runId) {
       loadFighterBundle(row.guest_id),
     ]);
 
-    const applyMods = (fighter, player) => {
-      const mods = player.nextCombatMods || {};
-      return {
-        ...fighter,
-        startingHp: player.hp,
-        startingMaxHp: player.maxHp,
-        // Chakra/block mods handled at fighter create via optional fields later if needed
-        _runMods: {
-          block: Number(mods.block) || 0,
-          chakra: Number(mods.chakra) || 0,
-          damagePct: (Number(mods.damagePct) || 0) + (Number(player.runMods?.damagePct) || 0),
-        },
-      };
-    };
+    const applyMods = (fighter, player) => ({
+      ...fighter,
+      startingHp: player.hp,
+      startingMaxHp: player.maxHp,
+      _runMods: buildRunCombatMods(player),
+    });
 
     const session = await startCoopCombatSession({
       coopRunId: row.id,
