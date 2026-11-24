@@ -51,6 +51,17 @@ function serializeItemRow(row) {
   };
 }
 
+function inventoryGrant(itemKey, amount = 1) {
+  const def = getItem(itemKey);
+  return {
+    type: 'inventory_item',
+    itemKey,
+    amount: Math.max(1, Number(amount) || 1),
+    nameFr: def?.nameFr || itemKey,
+    nameEn: def?.nameEn || itemKey,
+  };
+}
+
 async function tableExists(name) {
   const rows = await query(
     `SELECT 1 AS ok FROM information_schema.tables
@@ -219,7 +230,7 @@ export async function grantToLocation(
     try {
       await notifyGain(userId, {
         source,
-        grants: [{ type: 'inventory_item', itemKey, amount: quantity }],
+        grants: [inventoryGrant(itemKey, quantity)],
         href: '/inventaire',
       });
     } catch {
@@ -372,11 +383,7 @@ export async function depositRunLootToPouch(userId, entries = []) {
     try {
       await notifyGain(userId, {
         source: 'mission',
-        grants: deposited.map(d => ({
-          type: 'inventory_item',
-          itemKey: d.itemKey,
-          amount: d.quantity,
-        })),
+        grants: deposited.map(d => inventoryGrant(d.itemKey, d.quantity)),
         href: '/inventaire',
       });
     } catch {
@@ -523,7 +530,7 @@ export async function buyDailyItem(userId, itemId) {
   try {
     await notifyGain(userId, {
       source: 'shop',
-      grants: [{ type: 'inventory_item', itemKey: itemId, amount: 1 }],
+      grants: [inventoryGrant(itemId, 1)],
       href: '/inventaire',
     });
   } catch {

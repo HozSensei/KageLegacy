@@ -31,6 +31,20 @@ test('formatGrant maps known reward types', () => {
     formatGrant({ type: 'inventory_item', itemKey: 'booster_standard', amount: 1 }, t),
     'inv booster_standard x1'
   );
+  assert.equal(
+    formatGrant(
+      {
+        type: 'inventory_item',
+        itemKey: 'heal_bandage',
+        amount: 1,
+        nameFr: 'Bandage',
+        nameEn: 'Bandage',
+      },
+      t,
+      'fr'
+    ),
+    'inv Bandage x1'
+  );
   assert.equal(formatGrant({ type: 'ryos', amount: 0 }, t), null);
   assert.equal(formatGrant({ type: 'ryos', amount: 5, skipped: true }, t), null);
 });

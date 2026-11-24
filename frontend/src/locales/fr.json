@@ -536,7 +536,9 @@
     "rivalryBody": "{name} est votre némésis ({count} défaites d'affilée).",
     "cycleObjectiveTitle": "Objectif de cycle réussi",
     "cycleObjectiveBody": "Objectif accompli — +{ryos} Ryos crédités.",
-    "rewardInventoryItem": "Inventaire : {item} ×{n}"
+    "rewardInventoryItem": "Inventaire : {item} ×{n}",
+    "gainShopTitle": "Achat boutique",
+    "viewInventory": "Voir l’inventaire"
   },
   "clan": {
     "lead": "Hub coopératif : partagez des recrues et remplissez le Puits de Chakra — sans bonus de combat.",
