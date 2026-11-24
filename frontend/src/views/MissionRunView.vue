@@ -330,23 +330,23 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         </ul>
       </section>
 
-      <p
-        v-if="isOver && missionEpilogue"
-        class="run-epilogue mt-6 max-w-xl"
-        data-testid="run-epilogue"
-      >
-        <span class="run-epilogue__label">{{ t('combat.missionEpilogue') }}</span>
-        {{ missionEpilogue }}
-      </p>
+      <div v-if="isOver" class="run-ending">
+        <p
+          v-if="missionEpilogue"
+          class="run-epilogue"
+          data-testid="run-epilogue"
+        >
+          <span class="run-epilogue__label">{{ t('combat.missionEpilogue') }}</span>
+          {{ missionEpilogue }}
+        </p>
 
-      <VictoryRewards
-        v-if="isOver"
-        class="mt-8 max-w-xl"
-        :state="run.state === 'victory' ? 'victory' : run.state === 'abandoned' ? 'forfeited' : 'defeat'"
-        :rewards="run.rewards"
-        :continue-label="t('combat.backToMissions')"
-        @dismiss="backToMissions"
-      />
+        <VictoryRewards
+          :state="run.state === 'victory' ? 'victory' : run.state === 'abandoned' ? 'forfeited' : 'defeat'"
+          :rewards="run.rewards"
+          :continue-label="t('combat.backToMissions')"
+          @dismiss="backToMissions"
+        />
+      </div>
 
       <MissionPathTree
         v-else
@@ -467,7 +467,15 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 </template>
 
 <style scoped>
+.run-ending {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.75rem;
+  width: 100%;
+}
+
 .run-epilogue {
+  margin: 0;
   padding: 1rem 1.15rem;
   border-left: 4px solid var(--color-vermilion);
   background: color-mix(in srgb, var(--color-vermilion) 8%, var(--color-bg-card));

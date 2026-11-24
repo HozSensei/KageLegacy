@@ -83,6 +83,12 @@ export const DOT_STATUS_KEYS = new Set(['bleed', 'burn', 'poison', 'madness']);
 export const DOT_DURATION_MIN = 1;
 export const DOT_DURATION_MAX = 2;
 
+/**
+ * Multiplicateurs binaires (présence seule) : pas d’intensité utile.
+ * Réapplication = durées additionnées, valeur forcée à 1.
+ */
+export const DURATION_STACK_STATUS_KEYS = new Set(['weak', 'vulnerable']);
+
 /** Débuffs typiquement appliqués par Genjutsu sur l’ennemi. */
 export const GENJUTSU_DEBUFF_KEYS = new Set(['weak', 'vulnerable', 'madness']);
 

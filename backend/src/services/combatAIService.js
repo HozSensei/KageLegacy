@@ -10,6 +10,7 @@ import {
   getStatusValue,
   hasStatus,
   isDotStatusKey,
+  isDurationStackStatusKey,
   outgoingDamageMultiplier,
 } from './deckCombat/formulas.js';
 import { applyStatus } from './deckCombat/statuses.js';
@@ -327,18 +328,24 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
     logs.push({ type: 'buff', source: 'enemy', status: intent.status, value: intent.value });
   } else if (intent.type === 'debuff') {
     const statusKey = String(intent.status || 'weak').toLowerCase();
-    const durationRaw = Number(intent.duration) || 2;
+    const durationRaw = Number(intent.duration) || Number(intent.value) || 2;
     const payload = isDotStatusKey(statusKey)
       ? {
           key: statusKey,
           value: computeDotIntensity(statusKey),
           duration: clampDotDuration(durationRaw),
         }
-      : {
-          key: statusKey,
-          value: Number(intent.value) || 1,
-          duration: durationRaw,
-        };
+      : isDurationStackStatusKey(statusKey)
+        ? {
+            key: statusKey,
+            value: 1,
+            duration: durationRaw,
+          }
+        : {
+            key: statusKey,
+            value: Number(intent.value) || 1,
+            duration: durationRaw,
+          };
     nextPlayer.statuses = applyStatus(nextPlayer.statuses, payload);
     logs.push({
       type: 'debuff',
@@ -401,11 +408,17 @@ export function executeEnemyIntent(enemy, player, rng = Math.random, opts = {}) 
           value: computeDotIntensity(statusKey),
           duration: clampDotDuration(durationRaw),
         }
-      : {
-          key: statusKey,
-          value: Number(intent.statusValue) || Number(intent.value) || 1,
-          duration: durationRaw,
-        };
+      : isDurationStackStatusKey(statusKey)
+        ? {
+            key: statusKey,
+            value: 1,
+            duration: durationRaw,
+          }
+        : {
+            key: statusKey,
+            value: Number(intent.statusValue) || Number(intent.value) || 1,
+            duration: durationRaw,
+          };
     nextPlayer.statuses = applyStatus(nextPlayer.statuses, payload);
     logs.push({ type: 'apply_status', target: 'player', status: payload });
   }

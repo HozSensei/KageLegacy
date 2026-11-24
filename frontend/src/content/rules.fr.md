@@ -345,7 +345,7 @@ Une carte sans élément, ou un ennemi sans affinité, reste neutre.
 
 Bases : Saignement 8, Brûlure 5, Poison 4, Folie 4. Exemple : Brûlure avec 40 Ninjutsu → `5 + round(3,6) = 9` PV/tour. Une voie ne pose que son DoT (Taijutsu → saignement, etc.). Réappliquer le **même** DoT **ajoute** les durées et **ne change pas** l'intensité déjà posée. Les talents de chaque arbre peuvent ajouter +2 à l'intensité de leur DoT. La durée d'un DoT est le **nombre de ticks** restants : elle diminue après le tick de début de tour.
 
-Un statut non-DoT appliqué de nouveau **cumule** sa valeur et conserve la plus longue des durées. Leurs durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut. Esquive et Riposte sont en général **consommées** dès qu'elles s'appliquent. Faiblesse et Vulnérable appliquent leur multiplicateur une fois, même si leur valeur se cumule.
+**Faiblesse** et **Vulnérable** n'ont pas d'intensité : seule la durée compte. Les réappliquer **ajoute** les durées (comme un DoT) ; le multiplicateur reste unique (−25 % / +50 %). Les autres statuts non-DoT appliqués de nouveau **cumulent** leur valeur et conservent la plus longue des durées. Leurs durées limitées diminuent de 1 à la fin du tour de celui qui porte le statut. Esquive et Riposte sont en général **consommées** dès qu'elles s'appliquent.
 
 ### Invocations
 

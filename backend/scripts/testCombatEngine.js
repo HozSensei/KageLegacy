@@ -139,6 +139,19 @@ assert(
   'saignement: re-pose allonge sans changer l’intensité',
 );
 
+statuses = applyStatus([], { key: 'weak', value: 3, duration: 2 });
+statuses = applyStatus(statuses, { key: 'weak', value: 9, duration: 1 });
+assert(
+  statuses[0].value === 1 && statuses[0].duration === 3,
+  'Faiblesse: durée additionnée, intensité forcée à 1',
+);
+statuses = applyStatus([], { key: 'vulnerable', value: 2, duration: 2 });
+statuses = applyStatus(statuses, { key: 'vulnerable', value: 5, duration: 2 });
+assert(
+  statuses[0].value === 1 && statuses[0].duration === 4,
+  'Vulnérable: durée additionnée, intensité forcée à 1',
+);
+
 const entity = {
   hp: 40,
   maxHp: 40,
@@ -368,8 +381,9 @@ const chainStatus = applyCardPlay({
   rng: () => 0.99,
 });
 assert(
-  chainStatus.enemy.statuses.find(status => status.key === 'weak')?.value === 2,
-  'card-defined status chain increases effect intensity',
+  chainStatus.enemy.statuses.find(status => status.key === 'weak')?.value === 1 &&
+    chainStatus.enemy.statuses.find(status => status.key === 'weak')?.duration === 2,
+  'card-defined status chain extends Faiblesse duration (no intensity)',
 );
 
 console.log('\n=== Summon ===');

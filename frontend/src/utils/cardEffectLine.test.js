@@ -99,8 +99,8 @@ test('ignores unsupported conditions and missing, zero or invalid conditional da
 });
 
 for (const [locale, expected] of Object.entries({
-  fr: ['+3 dégâts si la cible est vulnérable', 'Riposte 8', '+1 Faiblesse (2 t)', 'Frappe ×3'],
-  en: ['+3 damage if the target is Vulnerable', 'Counter 8', '+1 Weak (2t)', 'Strike ×3'],
+  fr: ['+3 dégâts si la cible est vulnérable', 'Riposte 8', 'Faiblesse (2 t)', 'Frappe ×3'],
+  en: ['+3 damage if the target is Vulnerable', 'Counter 8', 'Weak (2t)', 'Strike ×3'],
 })) {
   test(`uses resolved, structured effects even without descriptions in ${locale}`, () => {
     const balancedCard = {

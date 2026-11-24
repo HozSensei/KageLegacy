@@ -345,7 +345,7 @@ A card with no element, or an enemy with no affinity, stays neutral.
 
 Bases: Bleed 8, Burn 5, Poison 4, Madness 4. Example: Burn with 40 Ninjutsu → `5 + round(3.6) = 9` HP/turn. A path only applies its own DoT (Taijutsu → bleed, etc.). Reapplying the **same** DoT **adds** durations and **does not** change the intensity already applied. Each talent tree can add +2 to its DoT intensity. A DoT’s duration is the **number of ticks** left: it drops after the start-of-turn tick.
 
-Non-DoT statuses applied again **stack** their value and keep the longer duration. Their limited durations drop by 1 at the end of the affected combatant's turn. Evade and Counter are usually **consumed** when they trigger. Weak and Vulnerable apply their multiplier once even when their values stack.
+**Weak** and **Vulnerable** have no intensity: only duration matters. Reapplying them **adds** durations (like a DoT); the multiplier stays unique (−25% / +50%). Other non-DoT statuses applied again **stack** their value and keep the longer duration. Their limited durations drop by 1 at the end of the affected combatant's turn. Evade and Counter are usually **consumed** when they trigger.
 
 ### Summons
 

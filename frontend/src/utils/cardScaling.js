@@ -21,6 +21,9 @@ export const DOT_ART_BY_KEY = Object.freeze({
 });
 export const DOT_STATUS_KEYS = new Set(['bleed', 'burn', 'poison', 'madness']);
 
+/** Aligné sur backend DURATION_STACK_STATUS_KEYS — multiplicateurs binaires. */
+export const DURATION_STACK_STATUS_KEYS = new Set(['weak', 'vulnerable']);
+
 export function scaleByStat(base, stat) {
   const b = Math.max(0, Number(base) || 0);
   const s = Number(stat) || 0;
@@ -36,6 +39,10 @@ export function scaleDotIntensity(base, artStat) {
 
 export function isDotStatusKey(key) {
   return DOT_STATUS_KEYS.has(String(key || '').toLowerCase());
+}
+
+export function isDurationStackStatusKey(key) {
+  return DURATION_STACK_STATUS_KEYS.has(String(key || '').toLowerCase());
 }
 
 /**
