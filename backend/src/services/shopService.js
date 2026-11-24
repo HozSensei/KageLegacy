@@ -279,14 +279,40 @@ export async function purchaseCosmeticFrame(userId, frameId) {
   return { ...result, balances };
 }
 
+export async function listCosmeticCardEffects(userId) {
+  const {
+    PROFILE_CARD_EFFECT_CATALOG,
+    listGrantedCardEffectIds,
+  } = await import('./cardEffectUnlockService.js');
+  const owned = new Set(await listGrantedCardEffectIds(userId));
+  return PROFILE_CARD_EFFECT_CATALOG.map(effect => ({
+    id: effect.id,
+    nameFr: effect.name.fr,
+    nameEn: effect.name.en,
+    descriptionFr: effect.description.fr,
+    descriptionEn: effect.description.en,
+    effect: effect.effect,
+    ryos: effect.ryos,
+    owned: owned.has(effect.id),
+  }));
+}
+
+export async function purchaseCosmeticCardEffect(userId, effectId) {
+  const { purchaseCardEffectWithRyos } = await import('./cardEffectUnlockService.js');
+  const result = await purchaseCardEffectWithRyos(userId, effectId);
+  const balances = await getPlayerBalances(userId);
+  return { ...result, balances };
+}
+
 export async function getShopOverview(userId) {
   const { getShopPaymentMeta } = await import('./shopStripeService.js');
   const { getWelcomePackOffer } = await import('./welcomePackService.js');
-  const [balances, battlePass, welcomePack, frames] = await Promise.all([
+  const [balances, battlePass, welcomePack, frames, cardEffects] = await Promise.all([
     getPlayerBalances(userId),
     getBattlePassShopOffer(userId),
     getWelcomePackOffer(userId),
     listCosmeticFrames(userId),
+    listCosmeticCardEffects(userId),
   ]);
   return {
     balances,
@@ -294,6 +320,7 @@ export async function getShopOverview(userId) {
     battlePass,
     welcomePack,
     frames,
+    cardEffects,
     payments: getShopPaymentMeta(),
   };
 }

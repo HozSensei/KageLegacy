@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ninjaNicknameLabel, ninjaProfileStats, ninjaRankLabel } from '../../utils/ninjaProfile.js';
+import { ninjaProfileStats, ninjaRankLabel } from '../../utils/ninjaProfile.js';
 import NinjaProfileCard from './NinjaProfileCard.vue';
 
 defineOptions({ name: 'PlayerProfileModal' });
@@ -11,7 +11,7 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   error: { type: String, default: null },
   player: { type: Object, default: null },
-  /** Élément ancre (chip / nom) — popover sans overlay, comme les notifications. */
+  /** Élément ancre (chip / nom) — popover sans overlay. */
   anchor: { type: Object, default: null },
 });
 
@@ -25,10 +25,6 @@ const cardStats = computed(() => ninjaProfileStats({ total: {} }));
 const rankLabel = computed(() =>
   props.player?.rank ? ninjaRankLabel(props.player.rank, t, te) : null
 );
-const nickname = computed(() => {
-  const id = props.player?.profile?.nicknameId;
-  return id ? ninjaNicknameLabel(id, t, te) : '';
-});
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -48,7 +44,7 @@ function positionPanel() {
   if (anchor && typeof anchor.getBoundingClientRect === 'function') {
     const rect = anchor.getBoundingClientRect();
     left = rect.left + rect.width / 2 - width / 2;
-    // Préférer au-dessus du nom ; sinon en dessous.
+    // Préférer au-dessus du déclencheur ; sinon en dessous.
     const above = rect.top - panelHeight - margin;
     top = above >= margin ? above : rect.bottom + margin;
   } else {
@@ -115,7 +111,7 @@ onUnmounted(() => {
     <div
       v-if="open"
       ref="panel"
-      class="profile-popover panel"
+      class="profile-popover"
       role="dialog"
       :aria-modal="false"
       :aria-label="t('community.profileModalTitle')"
@@ -123,29 +119,20 @@ onUnmounted(() => {
       :style="panelStyle"
       @click.stop
     >
-      <header class="profile-popover__header">
-        <h2 class="t-heading">{{ t('community.profileModalTitle') }}</h2>
-        <button type="button" class="btn-ghost btn-sm" @click="emit('close')">
-          {{ t('common.dismiss') }}
-        </button>
-      </header>
-
-      <p v-if="loading" role="status">{{ t('common.loading') }}</p>
-      <p v-else-if="error" class="alert alert--error" role="alert">
+      <p v-if="loading" class="profile-popover__status" role="status">{{ t('common.loading') }}</p>
+      <p v-else-if="error" class="profile-popover__status alert alert--error" role="alert">
         {{ t('community.profileLoadFailed') }}
       </p>
-      <div v-else-if="player" class="profile-popover__body">
-        <NinjaProfileCard
-          :name="player.name"
-          :rank="rankLabel"
-          :level="player.level"
-          :profile="player.profile"
-          :faction-id="player.factionId"
-          :faction-accent="player.faction?.accentColor"
-          :stats="cardStats"
-        />
-        <p v-if="nickname" class="text-ink-muted">{{ nickname }}</p>
-      </div>
+      <NinjaProfileCard
+        v-else-if="player"
+        :name="player.name"
+        :rank="rankLabel"
+        :level="player.level"
+        :profile="player.profile"
+        :faction-id="player.factionId"
+        :faction-accent="player.faction?.accentColor"
+        :stats="cardStats"
+      />
     </div>
   </Teleport>
 </template>
@@ -154,26 +141,22 @@ onUnmounted(() => {
 .profile-popover {
   position: fixed;
   z-index: 70;
-  display: grid;
-  gap: 0.75rem;
   max-width: calc(100vw - 1rem);
   max-height: min(36rem, calc(100dvh - 1rem));
-  overflow: auto;
-  padding: 0.85rem;
+  overflow: visible;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  filter: drop-shadow(0 0.65rem 1.25rem rgb(8 10 24 / 0.35));
+}
+
+.profile-popover__status {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--color-surface, #1a1d2e);
   border: 1px solid var(--color-line);
-  box-shadow: 0 0.75rem 1.75rem rgb(8 10 24 / 0.28);
-}
-
-.profile-popover__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.profile-popover__body {
-  display: grid;
-  gap: 0.65rem;
-  justify-items: stretch;
 }
 </style>

@@ -248,6 +248,7 @@ CREATE TABLE `player_profiles` (
   `character_background_color` varchar(7) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_nickname_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_frame_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
+  `character_card_effect_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin DEFAULT NULL,
   `character_level` int unsigned NOT NULL DEFAULT '1',
   `character_highest_level` int unsigned NOT NULL DEFAULT '1',
   `character_xp` int unsigned NOT NULL DEFAULT '0',
@@ -356,6 +357,19 @@ CREATE TABLE `player_frame_unlocks` (
   UNIQUE KEY `uq_pfu_user_frame` (`user_id`,`frame_id`),
   KEY `idx_pfu_frame` (`frame_id`),
   CONSTRAINT `fk_pfu_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `player_card_effect_unlocks` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int unsigned NOT NULL,
+  `effect_id` varchar(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `source` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
+  `source_ref` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `unlocked_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_pceu_user_effect` (`user_id`,`effect_id`),
+  KEY `idx_pceu_effect` (`effect_id`),
+  CONSTRAINT `fk_pceu_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `village_daily_honor_points` (

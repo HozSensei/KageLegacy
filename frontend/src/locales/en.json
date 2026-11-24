@@ -1306,12 +1306,21 @@
     "itemsOpenInventory": "Open inventory",
     "cosmetics": {
       "title": "Animated frames",
-      "lead": "Buy profile effects with ryos.",
+      "lead": "Animated auras around the portrait, bought with ryos.",
       "owned": "Owned",
       "buy": "Buy ({n} ryos)",
       "buying": "Buying…",
       "buyFailed": "Could not buy this frame.",
       "buyOk": "Frame unlocked!"
+    },
+    "cardEffects": {
+      "title": "Sheens & atmosphere",
+      "lead": "Full-card effects: colored sheens, leaves, rain, snow, or mist.",
+      "owned": "Owned",
+      "buy": "Buy ({n} ryos)",
+      "buying": "Buying…",
+      "buyFailed": "Could not buy this effect.",
+      "buyOk": "Effect unlocked!"
     }
   },
   "talents": {
@@ -2134,16 +2143,30 @@
       "unsaved": "Unsaved changes.",
       "saved": "Appearance saved.",
       "saveError": "Couldn’t save your appearance. Please try again.",
-      "frame": "Animated frame"
+      "frame": "Animated frame",
+      "cardEffect": "Sheen / atmosphere"
     },
     "frames": {
       "title": "Profile frame",
       "none": "No frame",
-      "lead": "Animated effects for your profile card.",
+      "lead": "Buy frames in the cosmetics shop.",
       "frame_ember": "Ember",
       "frame_volt": "Volt",
       "frame_mist": "Mist",
       "frame_shadow": "Shadow",
+      "locked": "Locked"
+    },
+    "cardEffects": {
+      "title": "Card effect",
+      "none": "No effect",
+      "lead": "Buy sheens and atmospheres in the cosmetics shop.",
+      "fx_sheen_gold": "Amber sheen",
+      "fx_sheen_aurora": "Aurora sheen",
+      "fx_sheen_ruby": "Ruby sheen",
+      "fx_leaves": "Falling leaves",
+      "fx_rain": "Rain",
+      "fx_snow": "Snow",
+      "fx_mist_fade": "Fading mist",
       "locked": "Locked"
     }
   },

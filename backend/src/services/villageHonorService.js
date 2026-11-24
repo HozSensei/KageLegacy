@@ -8,6 +8,7 @@ import { FACTION_IDS, isValidFactionId } from './factionCatalog.js';
 import { buildPublicPlayerSnapshot } from './publicPlayerService.js';
 import { listGrantedNicknameIds } from './nicknameUnlockService.js';
 import { listGrantedFrameIds } from './frameUnlockService.js';
+import { listGrantedCardEffectIds } from './cardEffectUnlockService.js';
 
 const HONOR_POINT = 1;
 
@@ -83,6 +84,7 @@ export async function getHonorByFaction(scoredOn = utcDateString()) {
             p.character_background_color,
             p.character_nickname_id,
             p.character_frame_id,
+            p.character_card_effect_id,
             p.character_highest_level,
             p.character_level AS level,
             p.character_rank AS \`rank\`,
@@ -98,13 +100,18 @@ export async function getHonorByFaction(scoredOn = utcDateString()) {
   for (const row of rows) {
     const factionId = row.faction_id;
     if (!isValidFactionId(factionId) || best[factionId]) continue;
-    const [grantedNicknameIds, grantedFrameIds] = await Promise.all([
+    const [grantedNicknameIds, grantedFrameIds, grantedCardEffectIds] = await Promise.all([
       listGrantedNicknameIds(row.user_id),
       listGrantedFrameIds(row.user_id),
+      listGrantedCardEffectIds(row.user_id),
     ]);
     best[factionId] = {
       points: Number(row.points) || 0,
-      player: buildPublicPlayerSnapshot(row, { grantedNicknameIds, grantedFrameIds }),
+      player: buildPublicPlayerSnapshot(row, {
+        grantedNicknameIds,
+        grantedFrameIds,
+        grantedCardEffectIds,
+      }),
     };
   }
   return best;

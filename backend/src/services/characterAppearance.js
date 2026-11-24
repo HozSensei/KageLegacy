@@ -12,6 +12,12 @@ import {
   getProfileFrame,
   isKnownProfileFrameId,
 } from '../../../shared/character/profileFrames.js';
+import {
+  PROFILE_CARD_EFFECT_CATALOG,
+  PROFILE_CARD_EFFECT_IDS,
+  getProfileCardEffect,
+  isKnownProfileCardEffectId,
+} from '../../../shared/character/profileCardEffects.js';
 
 export {
   CARD_BACKGROUND_IDS,
@@ -22,6 +28,10 @@ export {
   PROFILE_FRAME_IDS,
   getProfileFrame,
   isKnownProfileFrameId,
+  PROFILE_CARD_EFFECT_CATALOG,
+  PROFILE_CARD_EFFECT_IDS,
+  getProfileCardEffect,
+  isKnownProfileCardEffectId,
 };
 
 export const ASPIRANT_RANK = 'Aspirant ninja';
@@ -216,22 +226,38 @@ export function isAvatarAvailableToRank(avatarId, rank) {
  * @param {object} row
  * @param {string[]} [grantedNicknameIds]
  * @param {string[]} [grantedFrameIds]
+ * @param {string[]} [grantedCardEffectIds]
  */
-export function serializeCharacterAppearance(row, grantedNicknameIds = [], grantedFrameIds = []) {
+export function serializeCharacterAppearance(
+  row,
+  grantedNicknameIds = [],
+  grantedFrameIds = [],
+  grantedCardEffectIds = [],
+) {
   const rank = row?.character_rank ?? row?.rank ?? rankForLevel(row?.character_level ?? row?.level);
   const avatarId = row?.character_avatar_id ?? row?.avatar_id;
   const backgroundId = row?.character_background_id ?? row?.background_id;
   const backgroundColor = row?.character_background_color ?? row?.background_color;
   const nicknameId = row?.character_nickname_id ?? row?.nickname_id;
   const frameId = row?.character_frame_id ?? row?.frame_id;
+  const cardEffectId = row?.character_card_effect_id ?? row?.card_effect_id;
   const unlocked = unlockedNicknameIdsFor(row, grantedNicknameIds);
   const unlockedFrames = Array.isArray(grantedFrameIds)
     ? grantedFrameIds.filter(id => isKnownProfileFrameId(id))
+    : null;
+  const unlockedCardEffects = Array.isArray(grantedCardEffectIds)
+    ? grantedCardEffectIds.filter(id => isKnownProfileCardEffectId(id))
     : null;
   const resolvedFrameId =
     typeof frameId === 'string' && isKnownProfileFrameId(frameId)
       ? unlockedFrames == null || unlockedFrames.includes(frameId)
         ? frameId
+        : null
+      : null;
+  const resolvedCardEffectId =
+    typeof cardEffectId === 'string' && isKnownProfileCardEffectId(cardEffectId)
+      ? unlockedCardEffects == null || unlockedCardEffects.includes(cardEffectId)
+        ? cardEffectId
         : null
       : null;
   return {
@@ -240,5 +266,6 @@ export function serializeCharacterAppearance(row, grantedNicknameIds = [], grant
     backgroundColor: normalizeProfileColor(backgroundColor),
     nicknameId: unlocked.includes(nicknameId) ? nicknameId : null,
     frameId: resolvedFrameId,
+    cardEffectId: resolvedCardEffectId,
   };
 }

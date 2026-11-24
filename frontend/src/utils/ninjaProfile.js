@@ -49,6 +49,7 @@ export function readNinjaAppearance(profile) {
     backgroundColor: safeNinjaProfileColor(profile?.backgroundColor),
     nicknameId: profile?.nicknameId ?? null,
     frameId: profile?.frameId ?? null,
+    cardEffectId: profile?.cardEffectId ?? null,
   };
 }
 

@@ -3,6 +3,7 @@ import {
   isKnownAvatarId,
   isKnownCardBackgroundId,
   isKnownNicknameId,
+  isKnownProfileCardEffectId,
   isKnownProfileFrameId,
   normalizeProfileColor,
 } from '../characterAppearance.js';
@@ -22,6 +23,9 @@ export function publicFighterIdentity({ rank, level, profile, factionId }) {
         backgroundColor: normalizeProfileColor(profile.backgroundColor),
         nicknameId: isKnownNicknameId(profile.nicknameId) ? profile.nicknameId : null,
         frameId: isKnownProfileFrameId(profile.frameId) ? profile.frameId : null,
+        cardEffectId: isKnownProfileCardEffectId(profile.cardEffectId)
+          ? profile.cardEffectId
+          : null,
       },
     }),
   };

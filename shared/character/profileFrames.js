@@ -19,8 +19,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_ember',
     name: Object.freeze({ fr: 'Braise', en: 'Ember' }),
     description: Object.freeze({
-      fr: 'Auréole de braise tournoyante et reflet chaud sur la carte.',
-      en: 'Swirling ember aura and a warm sheen on the card.',
+      fr: 'Auréole de braise tournoyante autour du portrait.',
+      en: 'Swirling ember aura around the portrait.',
     }),
     effect: 'ember',
     ryos: 800,
@@ -29,8 +29,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_volt',
     name: Object.freeze({ fr: 'Volt', en: 'Volt' }),
     description: Object.freeze({
-      fr: 'Auréole électrique tournoyante et reflet cyan sur la carte.',
-      en: 'Swirling electric aura and a cyan sheen on the card.',
+      fr: 'Auréole électrique tournoyante autour du portrait.',
+      en: 'Swirling electric aura around the portrait.',
     }),
     effect: 'volt',
     ryos: 1200,
@@ -39,8 +39,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_mist',
     name: Object.freeze({ fr: 'Brume', en: 'Mist' }),
     description: Object.freeze({
-      fr: 'Voile de brume animé sur le portrait et la carte.',
-      en: 'Animated mist veil over the portrait and card.',
+      fr: 'Voile de brume animé autour du portrait.',
+      en: 'Animated mist veil around the portrait.',
     }),
     effect: 'mist',
     ryos: 900,
@@ -49,8 +49,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
     id: 'frame_shadow',
     name: Object.freeze({ fr: 'Ombre', en: 'Shadow' }),
     description: Object.freeze({
-      fr: 'Auréole d’ombre tournoyante et reflet violet sur la carte.',
-      en: 'Swirling shadow aura and a violet sheen on the card.',
+      fr: 'Auréole d’ombre tournoyante autour du portrait.',
+      en: 'Swirling shadow aura around the portrait.',
     }),
     effect: 'shadow',
     ryos: 1500,
