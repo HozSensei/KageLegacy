@@ -2807,6 +2807,7 @@
     "filterFaction": "Filter by faction",
     "allFactions": "All factions",
     "yourRank": "Your rank: #{rank} · score {score}",
+    "playerLevel": "lvl.{level}",
     "colRank": "Rank",
     "colName": "Shinobi",
     "colFaction": "Faction",

@@ -1,19 +1,19 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useLeaderboardStore } from '../stores/leaderboard'
-import { usePlayerStore } from '../stores/player'
-import PageHeader from '../components/ui/PageHeader.vue'
-import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue'
-import PlayerProfileModal from '../components/player/PlayerProfileModal.vue'
-import { usePublicPlayerModal } from '../composables/usePublicPlayer.js'
-import bridgeImage from '../assets/illustrations/stone-bridge.webp'
+import { onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useLeaderboardStore } from '../stores/leaderboard';
+import { usePlayerStore } from '../stores/player';
+import PageHeader from '../components/ui/PageHeader.vue';
+import LeaderboardPlayerCell from '../components/player/LeaderboardPlayerCell.vue';
+import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
+import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
+import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 
-defineOptions({ name: 'LeaderboardView' })
+defineOptions({ name: 'LeaderboardView' });
 
-const { t } = useI18n()
-const lb = useLeaderboardStore()
-const player = usePlayerStore()
+const { t } = useI18n();
+const lb = useLeaderboardStore();
+const player = usePlayerStore();
 const {
   open: profileOpen,
   loading: profileLoading,
@@ -22,70 +22,66 @@ const {
   anchor: profileAnchor,
   show: showProfile,
   close: closeProfile,
-} = usePublicPlayerModal()
+} = usePublicPlayerModal();
 
-const board = ref('level')
-const factionFilter = ref('')
-const joining = ref(false)
-const localError = ref(null)
-
-const boards = [{ id: 'level', labelKey: 'leaderboard.boardLevel' }]
-
-const scoreLabel = computed(() => t('leaderboard.colLevel'))
+const board = 'level';
+const factionFilter = ref('');
+const joining = ref(false);
+const localError = ref(null);
 
 onMounted(async () => {
-  if (!player.checked) await player.fetchPlayer()
-  await lb.fetchFactions()
-  await refresh()
-})
+  if (!player.checked) await player.fetchPlayer();
+  await lb.fetchFactions();
+  await refresh();
+});
 
-watch([board, factionFilter], () => {
-  refresh({ page: 1 })
-})
+watch(factionFilter, () => {
+  refresh({ page: 1 });
+});
 
 async function refresh({ page = lb.page } = {}) {
-  localError.value = null
+  localError.value = null;
   await Promise.all([
     lb.fetchBoard({
-      nextBoard: board.value,
+      nextBoard: board,
       nextPage: page,
       nextFactionId: factionFilter.value || null,
     }),
-    lb.fetchFactionStandings(board.value),
-  ])
-  if (lb.error) localError.value = lb.error
+    lb.fetchFactionStandings(board),
+  ]);
+  if (lb.error) localError.value = lb.error;
 }
 
 async function goPage(delta) {
-  const next = Math.min(lb.totalPages, Math.max(1, lb.page + delta))
-  if (next === lb.page) return
-  await refresh({ page: next })
+  const next = Math.min(lb.totalPages, Math.max(1, lb.page + delta));
+  if (next === lb.page) return;
+  await refresh({ page: next });
 }
 
 async function pickFaction(factionId) {
-  joining.value = true
-  localError.value = null
+  joining.value = true;
+  localError.value = null;
   try {
     if (player.character?.factionId) {
-      await lb.retakeFaction(factionId)
+      await lb.retakeFaction(factionId);
     } else {
-      await lb.joinFaction(factionId)
+      await lb.joinFaction(factionId);
     }
-    await player.fetchPlayer()
-    await refresh()
+    await player.fetchPlayer();
+    await refresh();
   } catch (e) {
-    localError.value = e.message
+    localError.value = e.message;
   } finally {
-    joining.value = false
+    joining.value = false;
   }
 }
 
 function factionName(id) {
-  return id ? t(`factions.names.${id}`) : '—'
+  return id ? t(`factions.names.${id}`) : '—';
 }
 
 function factionTone(id) {
-  return t(`factions.tones.${id}`)
+  return t(`factions.tones.${id}`);
 }
 </script>
 
@@ -150,22 +146,11 @@ function factionTone(id) {
     </section>
 
     <section class="lb-board mt-12" data-testid="player-standings">
-      <div class="lb-toolbar">
-        <div class="lb-tabs" role="tablist">
-          <button
-            v-for="b in boards"
-            :key="b.id"
-            type="button"
-            role="tab"
-            class="lb-tab"
-            :class="{ 'is-active': board === b.id }"
-            :aria-selected="board === b.id"
-            :data-testid="`board-${b.id}`"
-            @click="board = b.id"
-          >
-            {{ t(b.labelKey) }}
-          </button>
-        </div>
+      <div class="lb-me-bar">
+        <p v-if="lb.me" class="lb-me" data-testid="leaderboard-me">
+          {{ t('leaderboard.yourRank', { rank: lb.me.rank ?? '—', score: lb.me.score }) }}
+        </p>
+        <p v-else class="lb-me lb-me--spacer" aria-hidden="true" />
         <label class="lb-filter">
           <span class="sr-only">{{ t('leaderboard.filterFaction') }}</span>
           <select v-model="factionFilter" data-testid="faction-filter" class="input-field">
@@ -177,42 +162,37 @@ function factionTone(id) {
         </label>
       </div>
 
-      <p v-if="lb.me" class="lb-me mt-4" data-testid="leaderboard-me">
-        {{ t('leaderboard.yourRank', { rank: lb.me.rank ?? '—', score: lb.me.score }) }}
-      </p>
-
       <div class="lb-table-wrap mt-4">
         <table class="lb-table" data-testid="leaderboard-table">
           <thead>
             <tr>
-              <th>{{ t('leaderboard.colRank') }}</th>
+              <th class="lb-col-rank">{{ t('leaderboard.colRank') }}</th>
               <th>{{ t('leaderboard.colName') }}</th>
               <th>{{ t('leaderboard.colFaction') }}</th>
-              <th>{{ scoreLabel }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="lb.loading">
-              <td colspan="4">{{ t('common.loading') }}</td>
+              <td colspan="3">{{ t('common.loading') }}</td>
             </tr>
             <tr v-else-if="!lb.entries.length">
-              <td colspan="4">{{ t('leaderboard.empty') }}</td>
+              <td colspan="3">{{ t('leaderboard.empty') }}</td>
             </tr>
             <tr
               v-for="row in lb.entries"
               :key="`${row.userId}-${row.rank}`"
               :class="{ 'is-me': lb.me && row.userId === lb.me.userId }"
             >
-              <td>{{ row.rank }}</td>
-              <td>
-                <PlayerIdentityChip
+              <td class="lb-col-rank">{{ row.rank }}</td>
+              <td class="lb-col-player">
+                <LeaderboardPlayerCell
                   :user-id="row.userId"
                   :name="row.characterName"
-                  :profile="row.profile"
                   :level="row.level"
+                  :rank-title="row.rankTitle"
+                  :profile="row.profile"
                   @open="showProfile"
                 />
-                <span v-if="row.rankTitle" class="lb-rank-title">{{ row.rankTitle }}</span>
               </td>
               <td>
                 <span
@@ -224,7 +204,6 @@ function factionTone(id) {
                 </span>
                 <span v-else>—</span>
               </td>
-              <td class="lb-score">{{ row.score }}</td>
             </tr>
           </tbody>
         </table>
@@ -376,39 +355,26 @@ function factionTone(id) {
   font-weight: 600;
 }
 
-.lb-toolbar {
+.lb-me-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1rem;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem 1rem;
 }
 
-.lb-tabs {
-  display: flex;
-  gap: 0.35rem;
+.lb-me {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.95rem;
 }
 
-.lb-tab {
-  padding: 0.45rem 0.9rem;
-  border: 1px solid var(--color-line);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
-.lb-tab.is-active {
-  border-color: var(--color-indigo);
-  background: color-mix(in srgb, var(--color-indigo) 12%, transparent);
+.lb-me--spacer {
+  min-height: 1.25rem;
 }
 
 .lb-filter {
   min-width: 10rem;
-}
-
-.lb-me {
-  color: var(--color-ink-muted);
-  font-size: 0.95rem;
 }
 
 .lb-table-wrap {
@@ -417,18 +383,20 @@ function factionTone(id) {
 
 .lb-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 0.4rem;
   font-size: 0.95rem;
 }
 
 .lb-table th,
 .lb-table td {
-  padding: 0.65rem 0.75rem;
+  padding: 0.35rem 0.5rem;
   text-align: left;
-  border-bottom: 1px solid var(--color-line);
+  vertical-align: middle;
 }
 
 .lb-table th {
+  padding-bottom: 0.55rem;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -436,18 +404,27 @@ function factionTone(id) {
   font-weight: 600;
 }
 
-.lb-table tr.is-me {
+.lb-col-rank {
+  width: 3rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.lb-col-player {
+  padding-left: 0 !important;
+  padding-right: 0.35rem !important;
+}
+
+.lb-table tbody tr.is-me td {
   background: color-mix(in srgb, var(--color-indigo) 10%, transparent);
 }
 
-.lb-name {
-  font-weight: 600;
+.lb-table tbody tr.is-me td:first-child {
+  border-radius: 0.5rem 0 0 0.5rem;
 }
 
-.lb-rank-title {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--color-ink-muted);
+.lb-table tbody tr.is-me td:last-child {
+  border-radius: 0 0.5rem 0.5rem 0;
 }
 
 .lb-faction-chip {
@@ -455,11 +432,6 @@ function factionTone(id) {
   padding: 0.15rem 0.45rem;
   border-left: 3px solid var(--faction-accent);
   font-size: 0.85rem;
-}
-
-.lb-score {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
 }
 
 .lb-pager {
