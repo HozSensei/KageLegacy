@@ -15,8 +15,9 @@ import {
   localizedField,
   localizedName,
 } from '../utils/localeContent.js';
-import { shopItemEffect, shopItemName } from '../utils/missionShopItems.js';
+import { isSealedScroll, shopItemEffect, shopItemName } from '../utils/missionShopItems.js';
 import { missionRankTone } from '../utils/missionVisuals';
+import { useShopStore } from '../stores/shop.js';
 
 defineOptions({ name: 'CoopMissionRunView' });
 
@@ -26,6 +27,7 @@ const router = useRouter();
 const auth = useAuthStore();
 const api = useCoopApi();
 const notifications = useNotificationsStore();
+const shop = useShopStore();
 
 const error = ref('');
 const selectedId = ref(null);
@@ -49,6 +51,7 @@ watch(
   ([state, rewards, id]) => {
     if (state === 'victory' && rewards && id != null) {
       void notifications.fetchNotifications();
+      if (Number(rewards.ryos) > 0) void shop.fetchBalances();
     }
   }
 );
@@ -178,13 +181,24 @@ async function onNodeReady(ready = true) {
 
 async function onBuy(itemId) {
   await wrap(() => api.shopBuy(runId.value, itemId, replaceSlot.value));
+  replaceSlot.value = null;
 }
 
 async function onUse(slot) {
+  const item = inventory.value.find(s => s.slot === slot);
+  if (isSealedScroll(item)) {
+    error.value = t('combat.inventorySealedHint');
+    return;
+  }
   await wrap(() => api.inventoryUse(runId.value, slot));
 }
 
 async function onDiscard(slot) {
+  const item = inventory.value.find(s => s.slot === slot);
+  if (isSealedScroll(item)) {
+    const ok = window.confirm(t('combat.inventoryDiscardSealedConfirm'));
+    if (!ok) return;
+  }
   await wrap(() => api.inventoryDiscard(runId.value, slot));
 }
 
@@ -309,7 +323,7 @@ function cancelConfirm() {
             </span>
           </div>
           <button
-            v-if="slot.itemId"
+            v-if="slot.itemId && !isSealedScroll(slot)"
             type="button"
             class="btn-ghost btn-sm"
             :disabled="api.busy.value"
@@ -317,6 +331,9 @@ function cancelConfirm() {
           >
             {{ t('coop.useItem') }}
           </button>
+          <span v-else-if="slot.itemId" class="coop-run__sealed">
+            {{ t('combat.inventorySealedBadge') }}
+          </span>
           <button
             v-if="slot.itemId"
             type="button"
@@ -560,6 +577,12 @@ function cancelConfirm() {
   margin: 0.25rem 0 0;
   font-size: 0.875rem;
   color: var(--color-ink-muted);
+}
+
+.coop-run__sealed {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-wood);
 }
 
 .coop-run__inventory-hint {

@@ -58,7 +58,7 @@ test('formatCombatSummary mirrors victory lines', () => {
       },
       t
     ),
-    '+40 XP · +100 Ryos · level +1 · 1 cards · ×1.2 · purse +50'
+    '+40 XP · +50 Ryos · purse +50 · level +1 · 1 cards · ×1.2'
   );
   assert.equal(formatCombatSummary({ error: true, xp: 10 }, t), '');
 });

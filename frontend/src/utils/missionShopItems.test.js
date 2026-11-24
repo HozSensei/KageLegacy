@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { shopItemEffect, shopItemName } from './missionShopItems.js';
+import { isSealedScroll, shopItemEffect, shopItemName } from './missionShopItems.js';
 
 const fr = {
   t: (key, fallback) => {
@@ -34,4 +34,12 @@ test('shopItemEffect préfère descriptionFr puis i18n', () => {
     'Soigne bien.'
   );
   assert.equal(shopItemEffect({ itemId: 'heal_bandage' }, fr), 'Soigne 25 % des PV max (hors combat).');
+});
+
+test('isSealedScroll detects pending_card / catalog ids', () => {
+  assert.equal(isSealedScroll('card_mystery_legendary'), true);
+  assert.equal(isSealedScroll({ itemId: 'card_mystery_rare' }), true);
+  assert.equal(isSealedScroll({ kind: 'pending_card', id: 'x' }), true);
+  assert.equal(isSealedScroll('heal_bandage'), false);
+  assert.equal(isSealedScroll(null), false);
 });

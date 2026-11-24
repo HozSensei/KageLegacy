@@ -30,6 +30,8 @@ import {
   healPercent,
   placeInventoryItem,
   spendPurse,
+  trackPendingCard,
+  untrackPendingCard,
   useInventorySlot,
 } from './missionRunInventory.js';
 import {
@@ -459,15 +461,22 @@ function buildLootCards(chanceCard, shopCards = []) {
 async function grantSealedCards(userId, player) {
   const pendingCards = collectPendingCardsFromInventory(player);
   const grantedCards = [];
+  let sealedGrantFailures = 0;
   for (const entry of pendingCards) {
     const cardId = await pickCardIdByRarity(entry.rarity || 'common');
-    if (!cardId) continue;
+    if (!cardId) {
+      sealedGrantFailures += 1;
+      continue;
+    }
     try {
       const added = await addCard(userId, cardId, {
         quantity: 1,
         source: 'mission_run_shop',
       });
-      if (!added?.card) continue;
+      if (!added?.card) {
+        sealedGrantFailures += 1;
+        continue;
+      }
       grantedCards.push({
         cardId,
         rarity: added.card.rarity || entry.rarity || 'common',
@@ -477,10 +486,15 @@ async function grantSealedCards(userId, player) {
         source: 'sealed_scroll',
       });
     } catch {
-      /* skip */
+      sealedGrantFailures += 1;
     }
   }
-  return grantedCards;
+  return {
+    grantedCards,
+    sealedPending: pendingCards.length,
+    sealedGranted: grantedCards.length,
+    sealedGrantFailures,
+  };
 }
 
 async function completeRunVictory(row) {
@@ -506,10 +520,13 @@ async function completeRunVictory(row) {
         purseReturn,
         coopMult: COOP_REWARD_MULT,
       });
-      const grantedCards = await grantSealedCards(userId, player);
+      const sealed = await grantSealedCards(userId, player);
       rewards.purseReturned = purseReturn;
-      rewards.shopCards = grantedCards;
-      rewards.lootCards = buildLootCards(rewards.card, grantedCards);
+      rewards.shopCards = sealed.grantedCards;
+      rewards.lootCards = buildLootCards(rewards.card, sealed.grantedCards);
+      rewards.sealedPending = sealed.sealedPending;
+      rewards.sealedGranted = sealed.sealedGranted;
+      rewards.sealedGrantFailures = sealed.sealedGrantFailures;
       rewards.coopMult = COOP_REWARD_MULT;
       if (role === 'host') row.rewards_host_json = rewards;
       else row.rewards_guest_json = rewards;
@@ -521,6 +538,7 @@ async function completeRunVictory(row) {
     setPlayerState(row, role, {
       ...player,
       purse: 0,
+      pendingLoot: { cards: [] },
       inventory: (player.inventory || []).map((slot, i) => ({
         slot: i,
         itemId: null,
@@ -879,14 +897,26 @@ export async function shopBuy(userId, runId, itemId, { replaceSlot = null } = {}
   if (!spent.ok) throw httpError(400, 'Bourse insuffisante.', spent.code);
   player = spent.player;
 
+  const meta = def.kind === 'pending_card' ? { rarity: def.rarity } : null;
+  const replacedSlot = replaceSlot == null ? null : Number(replaceSlot);
+  const previousItemId =
+    replacedSlot != null && player.inventory?.[replacedSlot]?.itemId
+      ? player.inventory[replacedSlot].itemId
+      : null;
   const placed = placeInventoryItem(player.inventory, def, {
-    replaceSlot: replaceSlot == null ? null : Number(replaceSlot),
-    meta: def.kind === 'pending_card' ? { rarity: def.rarity } : null,
+    replaceSlot: replacedSlot,
+    meta,
   });
   if (!placed.ok) {
     throw httpError(400, 'Inventaire plein — jetez ou remplacez un objet.', placed.code);
   }
   player.inventory = placed.inventory;
+  if (placed.replaced && previousItemId) {
+    player = untrackPendingCard(player, previousItemId);
+  }
+  if (def.kind === 'pending_card') {
+    player = trackPendingCard(player, def, meta);
+  }
   setPlayerState(row, role, player);
 
   offer[offerIdx] = { ...offerItem, stock: 0 };
@@ -928,9 +958,11 @@ export async function inventoryDiscard(userId, runId, slotIndex) {
   if (row.state !== 'in_progress') throw httpError(400, 'Parcours terminé.');
   const role = roleOf(row, userId);
   let player = getPlayerState(row, role);
+  const discardedItemId = player.inventory?.[Number(slotIndex)]?.itemId || null;
   const result = discardInventorySlot(player.inventory, Number(slotIndex));
   if (!result.ok) throw httpError(400, 'Emplacement vide.', result.code);
   player = { ...player, inventory: result.inventory };
+  if (discardedItemId) player = untrackPendingCard(player, discardedItemId);
   setPlayerState(row, role, player);
   row = await persistRun(row);
   return serializeRun(row, userId);

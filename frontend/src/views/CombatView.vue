@@ -6,6 +6,7 @@ import CombatArena from '../components/combat/CombatArena.vue';
 import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
 import { useNotificationsStore } from '../stores/notifications.js';
+import { useShopStore } from '../stores/shop.js';
 
 defineOptions({ name: 'CombatView' });
 
@@ -15,6 +16,7 @@ const router = useRouter();
 const combat = useCombatStore();
 const missions = useMissionsStore();
 const notifications = useNotificationsStore();
+const shop = useShopStore();
 
 const combatId = computed(() => route.params.id);
 const isMidRunFight = computed(() => Boolean(combat.combat?.missionRunId));
@@ -58,8 +60,9 @@ watch(
       missions.clearActiveCombat();
       const current = combat.combat;
       const rewards = current?.rewards || current?.run?.rewards || null;
-      if (state === 'victory' && rewards && !current?.missionRunId && current?.id != null) {
+      if (state === 'victory' && rewards && current?.id != null) {
         void notifications.fetchNotifications();
+        if (Number(rewards.ryos) > 0) void shop.fetchBalances();
       }
     } else {
       syncActiveCombat();

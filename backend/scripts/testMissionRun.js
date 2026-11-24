@@ -29,6 +29,9 @@ import {
   grantCombatPurse,
   grantNodePurse,
   getPurse,
+  trackPendingCard,
+  untrackPendingCard,
+  collectPendingCardsFromInventory,
 } from '../src/services/missionRunInventory.js';
 
 const { sanitizeNodesForClient, unlockNext, applyBranchChoice, healPercent, buildLootCards } =
@@ -217,6 +220,34 @@ const sealedUse = useInventorySlot(
 assert(!sealedUse.ok && sealedUse.code === 'SEALED_UNTIL_FINISH', 'sealed until finish');
 
 assert(healPercent({ hp: 10, maxHp: 100 }, 0.5).hp === 60, 'healPercent');
+
+console.log('=== pendingLoot tracking ===');
+let tracked = createRunPlayerState({ maxHp: 100, purseStake: 0 });
+const legendary = getShopItem('card_mystery_legendary');
+tracked = trackPendingCard(tracked, legendary);
+tracked = trackPendingCard(tracked, getShopItem('card_mystery_rare'));
+assert(collectPendingCardsFromInventory(tracked).length === 2, 'pendingLoot collects 2');
+tracked = untrackPendingCard(tracked, 'card_mystery_legendary');
+assert(
+  collectPendingCardsFromInventory(tracked).length === 1 &&
+    collectPendingCardsFromInventory(tracked)[0].itemId === 'card_mystery_rare',
+  'untrack removes one sealed',
+);
+// Inventaire seul (anciens runs sans pendingLoot)
+const invOnly = {
+  ...createRunPlayerState({ maxHp: 100 }),
+  pendingLoot: { cards: [] },
+  inventory: [
+    { slot: 0, itemId: 'card_mystery_legendary', qty: 1, meta: { rarity: 'legendary' } },
+    { slot: 1, itemId: null, qty: 0, meta: null },
+    { slot: 2, itemId: null, qty: 0, meta: null },
+    { slot: 3, itemId: null, qty: 0, meta: null },
+  ],
+};
+assert(
+  collectPendingCardsFromInventory(invOnly)[0]?.rarity === 'legendary',
+  'fallback inventory sealed',
+);
 
 console.log('=== loot reveal payload ===');
 const fakeCard = { id: 7, nameFr: 'Kunai', rarity: 'rare' };
