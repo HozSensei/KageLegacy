@@ -199,17 +199,21 @@ const orderedBoosters = computed(() => {
   flex-direction: column;
   gap: 1.1rem;
   align-items: stretch;
+  height: 100%;
 }
 
 .booster-offer__meta {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 0.65rem;
   min-width: 0;
 }
 
 .booster-offer__desc {
+  /* Réserve 2 lignes pour éviter l’escalier entre offres. */
   margin: 0;
+  min-height: calc(1.45em * 2);
   font-size: 0.875rem;
   line-height: 1.45;
   color: var(--color-ink-muted);
@@ -278,7 +282,9 @@ const orderedBoosters = computed(() => {
 }
 
 .booster-offer__cost {
-  margin: 0.15rem 0 0;
+  /* Colle prix + bouton Ouvrir en bas de la carte, même hauteur entre colonnes. */
+  margin: auto 0 0;
+  padding-top: 0.15rem;
   font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 800;
