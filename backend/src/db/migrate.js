@@ -613,8 +613,13 @@ async function ensureActiveBattlePassCommunityRewards(connection) {
   }
 
   const free10 = Array.isArray(rewards.free['10']) ? [...rewards.free['10']] : [];
-  if (!free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_leaf')) {
-    rewards.free['10'] = [...free10, { type: 'frame', frameId: 'frame_leaf', source: 'battle_pass' }];
+  const free10HasLeaf = free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_leaf');
+  const free10HasEmber = free10.some(r => r?.type === 'frame' && r?.frameId === 'frame_ember');
+  if (free10HasLeaf || !free10HasEmber) {
+    const withoutLeaf = free10.filter(r => !(r?.type === 'frame' && r?.frameId === 'frame_leaf'));
+    rewards.free['10'] = free10HasEmber
+      ? withoutLeaf
+      : [...withoutLeaf, { type: 'frame', frameId: 'frame_ember', source: 'battle_pass' }];
     changed = true;
   }
 

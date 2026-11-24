@@ -41,7 +41,7 @@ function softFreeReward(level, seasonFreeNicknameIdValue) {
   if (level === 10) {
     return [
       { type: 'card', rarity: 'legendary', count: 1 },
-      { type: 'frame', frameId: 'frame_leaf', source: 'battle_pass' },
+      { type: 'frame', frameId: 'frame_ember', source: 'battle_pass' },
     ];
   }
   if (level % 10 === 0) {

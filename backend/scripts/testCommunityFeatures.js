@@ -25,11 +25,12 @@ assert.ok(freeEntry.name.fr);
 
 const rewards = buildSeasonRewards({ seasonNumber: 1 });
 assert.ok(rewards.free['4'].some(r => r.type === 'nickname' && r.nicknameId === 'season_1_free'));
-assert.ok(rewards.free['10'].some(r => r.type === 'frame' && r.frameId === 'frame_leaf'));
+assert.ok(rewards.free['10'].some(r => r.type === 'frame' && r.frameId === 'frame_ember'));
 assert.ok(rewards.premium['15'].some(r => r.type === 'frame' && r.frameId === 'frame_volt'));
 
-assert.ok(PROFILE_FRAME_CATALOG.length >= 5);
+assert.ok(PROFILE_FRAME_CATALOG.length >= 4);
 assert.ok(isKnownProfileFrameId('frame_ember'));
+assert.equal(isKnownProfileFrameId('frame_leaf'), false);
 assert.equal(isKnownProfileFrameId('nope'), false);
 
 const appearance = serializeCharacterAppearance(

@@ -2144,7 +2144,6 @@
       "frame_volt": "Volt",
       "frame_mist": "Mist",
       "frame_shadow": "Shadow",
-      "frame_leaf": "Leaf",
       "locked": "Locked"
     }
   },
