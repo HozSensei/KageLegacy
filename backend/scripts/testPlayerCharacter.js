@@ -179,6 +179,7 @@ function testAppearance() {
       backgroundColor: '#2A3348',
       nicknameId: 'chunin',
       frameId: null,
+      cardEffectId: null,
     }
   );
   strictAssert.deepEqual(
@@ -195,6 +196,7 @@ function testAppearance() {
       backgroundColor: null,
       nicknameId: 'genin',
       frameId: null,
+      cardEffectId: null,
     }
   );
   strictAssert.equal(
