@@ -1200,6 +1200,8 @@
       "currency": "Monnaie",
       "battlePass": "Battle Pass"
     },
+    "comingSoon": "Coming soon",
+    "paymentsComingSoonNote": "Les paiements arrivent bientôt — packs et offres restent visibles.",
     "currency": {
       "packKicker": "Pack Kage Coins",
       "totalCoins": "{n} Kage Coins",

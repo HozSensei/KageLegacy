@@ -9,6 +9,7 @@ defineProps({
   disabled: { type: Boolean, default: false },
   canStub: { type: Boolean, default: false },
   stripeEnabled: { type: Boolean, default: false },
+  paymentsEnabled: { type: Boolean, default: true },
 })
 const emit = defineEmits(['unlock'])
 const { t } = useI18n()
@@ -42,7 +43,16 @@ function goToBattlePass(href) { router.push(href || '/battle-pass') }
       <p v-if="offer.stripeNote" class="shop-tile__meta">{{ offer.stripeNote }}</p>
       <div class="bp-offer__actions">
         <button
-          v-if="!offer.isPremium && stripeEnabled"
+          v-if="!offer.isPremium && !paymentsEnabled"
+          type="button"
+          class="btn-primary"
+          disabled
+          data-testid="shop-bp-coming-soon"
+        >
+          {{ t('shop.comingSoon') }}
+        </button>
+        <button
+          v-else-if="!offer.isPremium && stripeEnabled"
           type="button"
           class="btn-primary"
           :disabled="disabled || purchasing"
@@ -54,7 +64,7 @@ function goToBattlePass(href) { router.push(href || '/battle-pass') }
         <button
           v-if="!offer.isPremium"
           type="button"
-          :class="stripeEnabled ? 'btn-secondary' : 'btn-primary'"
+          :class="stripeEnabled || !paymentsEnabled ? 'btn-secondary' : 'btn-primary'"
           :disabled="disabled || purchasing"
           data-testid="shop-bp-unlock-coins"
           @click="emit('unlock', 'kage_coins')"

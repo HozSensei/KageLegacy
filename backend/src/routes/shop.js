@@ -121,9 +121,11 @@ router.get('/coin-packs', async (req, res, next) => {
       payments,
       welcomePack,
       meta: {
-        purchaseNote: payments.stripeEnabled
-          ? 'Paiement Stripe Checkout disponible pour les packs Kage Coins.'
-          : 'Stripe non configuré — achat stub admin/dev (SHOP_COIN_STUB=true).',
+        purchaseNote: !payments.paymentsEnabled
+          ? 'Paiements bientôt disponibles.'
+          : payments.stripeEnabled
+            ? 'Paiement Stripe Checkout disponible pour les packs Kage Coins.'
+            : 'Stripe non configuré — achat stub admin/dev (SHOP_COIN_STUB=true).',
       },
     });
   } catch (error) {

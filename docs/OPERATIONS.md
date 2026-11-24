@@ -48,10 +48,11 @@ Pour le build Docker même origine, cette valeur reste vide et Nginx proxy `/api
 - `STRIPE_PRICE_ID_COIN_EMBER`
 - `STRIPE_PRICE_ID_COIN_FORGE`
 - `STRIPE_PRICE_ID_COIN_VAULT`
+- `PAIEMENT_ENABLE` — kill-switch monétisation (`false` pour une beta : boutons Stripe grisés « Coming soon », l’API refuse les nouveaux checkouts ; défaut activé si absent)
 - `SHOP_COIN_STUB`
 - `BATTLE_PASS_STUB_UNLOCK`
 
-Stripe est monté avec le corps brut sur `/api/stripe/webhook` avant le parseur JSON.
+Stripe est monté avec le corps brut sur `/api/stripe/webhook` avant le parseur JSON. Les webhooks de sessions déjà créées restent honorés pour l’idempotence.
 
 ## Docker local
 

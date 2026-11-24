@@ -68,13 +68,27 @@ export function isStripeConfigured() {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
+/**
+ * Kill-switch paiements réels (Stripe Checkout).
+ * Défaut : activé. Mettre PAIEMENT_ENABLE=false pour une beta sans monétisation.
+ */
+export function isPaymentsEnabled() {
+  return process.env.PAIEMENT_ENABLE !== 'false';
+}
+
+/** Checkout Stripe utilisable (clés présentes + kill-switch ouvert). */
+export function isStripeCheckoutAvailable() {
+  return isPaymentsEnabled() && isStripeConfigured();
+}
+
 export function isShopStripeDevFallbackAllowed() {
   return process.env.NODE_ENV !== 'production' || process.env.ENABLE_DEV_TOOLS === 'true';
 }
 
 export function getShopPaymentMeta() {
   return {
-    stripeEnabled: isStripeConfigured(),
+    paymentsEnabled: isPaymentsEnabled(),
+    stripeEnabled: isStripeCheckoutAvailable(),
     coinStubEnabled: process.env.SHOP_COIN_STUB === 'true',
     battlePassStubEnabled: process.env.BATTLE_PASS_STUB_UNLOCK === 'true',
   };
@@ -195,6 +209,10 @@ function sessionPaid(session) {
 }
 
 async function createCheckoutSession({ userId, lineItems, metadata, successPath, cancelPath }) {
+  if (!isPaymentsEnabled()) {
+    throw httpError('Paiements désactivés (PAIEMENT_ENABLE=false).', 503);
+  }
+
   const stripe = getStripeClient();
   if (!stripe) {
     throw httpError('Stripe non configuré (STRIPE_SECRET_KEY).', 503);

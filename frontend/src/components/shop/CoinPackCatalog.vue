@@ -12,6 +12,7 @@ defineProps({
   metaNote: { type: String, default: null },
   canStub: { type: Boolean, default: false },
   stripeEnabled: { type: Boolean, default: false },
+  paymentsEnabled: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['purchase'])
@@ -25,7 +26,9 @@ function descOf(pack) { return locale.value === 'en' ? pack.descriptionEn : pack
     <ShopBalances :balances="balances" />
     <p v-if="metaNote" class="shop-note">{{ metaNote }}</p>
     <p v-else class="shop-note">
-      {{ stripeEnabled ? t('shop.currency.stripeNote') : t('shop.currency.stubNote') }}
+      <template v-if="!paymentsEnabled">{{ t('shop.paymentsComingSoonNote') }}</template>
+      <template v-else-if="stripeEnabled">{{ t('shop.currency.stripeNote') }}</template>
+      <template v-else>{{ t('shop.currency.stubNote') }}</template>
     </p>
     <ul class="shop-grid stagger">
       <li
@@ -46,7 +49,16 @@ function descOf(pack) { return locale.value === 'en' ? pack.descriptionEn : pack
         <p class="shop-tile__meta">{{ t('shop.currency.priceEur', { n: pack.priceEur }) }}</p>
         <div class="shop-tile__actions">
           <button
-            v-if="stripeEnabled"
+            v-if="!paymentsEnabled"
+            type="button"
+            class="btn-primary btn-block"
+            disabled
+            data-testid="coin-pack-coming-soon-btn"
+          >
+            {{ t('shop.comingSoon') }}
+          </button>
+          <button
+            v-else-if="stripeEnabled"
             type="button"
             class="btn-primary btn-block"
             :disabled="disabled || purchasing"
@@ -66,7 +78,7 @@ function descOf(pack) { return locale.value === 'en' ? pack.descriptionEn : pack
             {{ purchasing ? t('shop.purchasing') : t('shop.currency.buyStub') }}
           </button>
           <button
-            v-if="!stripeEnabled && !canStub"
+            v-if="paymentsEnabled && !stripeEnabled && !canStub"
             type="button"
             class="btn-primary btn-block"
             disabled

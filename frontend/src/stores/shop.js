@@ -16,6 +16,7 @@ export const useShopStore = defineStore('shop', () => {
   const welcomePack = ref(null);
   const coinMeta = ref(null);
   const payments = ref({
+    paymentsEnabled: true,
     stripeEnabled: false,
     coinStubEnabled: false,
     battlePassStubEnabled: false,
@@ -43,6 +44,7 @@ export const useShopStore = defineStore('shop', () => {
   function applyPayments(next) {
     if (!next || typeof next !== 'object') return;
     payments.value = {
+      paymentsEnabled: next.paymentsEnabled !== false,
       stripeEnabled: Boolean(next.stripeEnabled),
       coinStubEnabled: Boolean(next.coinStubEnabled),
       battlePassStubEnabled: Boolean(next.battlePassStubEnabled),

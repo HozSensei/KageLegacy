@@ -60,6 +60,7 @@ const canStubBp = computed(
   () => Boolean(auth.user?.isAdmin) || Boolean(shop.payments?.battlePassStubEnabled)
 );
 const stripeEnabled = computed(() => Boolean(shop.payments?.stripeEnabled));
+const paymentsEnabled = computed(() => shop.payments?.paymentsEnabled !== false);
 
 function normalizeOpeningCards(cards) {
   if (!Array.isArray(cards) || !cards.length) return [];
@@ -293,6 +294,7 @@ async function onBuyWelcome(method) {
         :disabled="shop.loading"
         :can-stub="canStubCoins"
         :stripe-enabled="stripeEnabled"
+        :payments-enabled="paymentsEnabled"
         @purchase="onBuyWelcome"
       />
       <CoinPackCatalog
@@ -303,6 +305,7 @@ async function onBuyWelcome(method) {
         :meta-note="shop.coinMeta?.purchaseNote"
         :can-stub="canStubCoins"
         :stripe-enabled="stripeEnabled"
+        :payments-enabled="paymentsEnabled"
         @purchase="onBuyPack"
       />
     </div>
@@ -314,6 +317,7 @@ async function onBuyWelcome(method) {
         :disabled="shop.loading"
         :can-stub="canStubCoins"
         :stripe-enabled="stripeEnabled"
+        :payments-enabled="paymentsEnabled"
         @purchase="onBuyWelcome"
       />
       <BattlePassOffer
@@ -322,6 +326,7 @@ async function onBuyWelcome(method) {
         :disabled="shop.loading"
         :can-stub="canStubBp"
         :stripe-enabled="stripeEnabled"
+        :payments-enabled="paymentsEnabled"
         @unlock="onUnlockBp"
       />
     </div>

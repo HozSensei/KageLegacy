@@ -121,8 +121,16 @@ export async function purchaseCoinPack(userId, packId, { method = 'stub', isAdmi
   const totalCoins = pack.coins + pack.bonusCoins;
 
   if (mode === 'stripe') {
-    const { isStripeConfigured, createCoinPackCheckoutSession, isShopStripeDevFallbackAllowed } =
-      await import('./shopStripeService.js');
+    const {
+      isPaymentsEnabled,
+      isStripeConfigured,
+      createCoinPackCheckoutSession,
+      isShopStripeDevFallbackAllowed,
+    } = await import('./shopStripeService.js');
+
+    if (!isPaymentsEnabled()) {
+      throw httpError(503, 'Paiements désactivés (PAIEMENT_ENABLE=false).');
+    }
 
     if (isStripeConfigured()) {
       return createCoinPackCheckoutSession(userId, packId);
@@ -203,6 +211,14 @@ export async function getBattlePassShopOffer(userId) {
   const unlockMethods = ['kage_coins', 'stub'];
   if (payments.stripeEnabled) unlockMethods.push('stripe');
 
+  let stripeNote =
+    'Stripe non configuré — unlock via Kage Coins ou stub admin/dev.';
+  if (!payments.paymentsEnabled) {
+    stripeNote = 'Paiements bientôt disponibles — unlock via Kage Coins en attendant.';
+  } else if (payments.stripeEnabled) {
+    stripeNote = `Paiement Stripe disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`;
+  }
+
   return {
     available: true,
     isPremium: Boolean(state.progress?.isPremium),
@@ -217,9 +233,7 @@ export async function getBattlePassShopOffer(userId) {
     href: '/battle-pass',
     unlockMethods,
     payments,
-    stripeNote: payments.stripeEnabled
-      ? `Paiement Stripe disponible (${BATTLE_PASS_PREMIUM_PRICE_EUR} €) ou ${PREMIUM_COST_KAGE_COINS} Kage Coins.`
-      : 'Stripe non configuré — unlock via Kage Coins ou stub admin/dev.',
+    stripeNote,
     balances,
     welcomePack,
   };
@@ -261,10 +275,15 @@ export async function purchaseWelcomePackFromShop(userId, { method = 'stripe', i
   const mode = method === 'stripe' ? 'stripe' : 'stub';
   if (mode === 'stripe') {
     const {
+      isPaymentsEnabled,
       isStripeConfigured,
       createWelcomePackCheckoutSession,
       isShopStripeDevFallbackAllowed,
     } = await import('./shopStripeService.js');
+
+    if (!isPaymentsEnabled()) {
+      throw httpError(503, 'Paiements désactivés (PAIEMENT_ENABLE=false).');
+    }
 
     if (isStripeConfigured()) {
       return createWelcomePackCheckoutSession(userId);
