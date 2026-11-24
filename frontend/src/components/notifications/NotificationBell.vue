@@ -237,10 +237,9 @@ onUnmounted(() => {
   width: min(22rem, calc(100vw - 1.5rem));
   max-height: min(28rem, calc(100dvh - 5rem));
   overflow: auto;
-  border-top: 4px solid var(--color-indigo);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
   background: var(--color-bg-card, var(--color-bg));
-  outline: 1px solid var(--color-line);
-  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-ink) 12%, transparent);
 }
 
 .notification-panel__header {
