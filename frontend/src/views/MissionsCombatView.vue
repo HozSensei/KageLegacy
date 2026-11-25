@@ -30,6 +30,12 @@ useOnboardingVisit('visit_missions');
 const startingId = ref(null);
 const localError = ref(null);
 const hardMode = ref(false);
+const activeTab = ref('missions');
+
+const tabs = [
+  { id: 'missions', labelKey: 'combat.tabs.missions' },
+  { id: 'direct', labelKey: 'combat.tabs.directCombat' },
+];
 
 const HARD_MODE_REWARD_MULT = 1.2;
 
@@ -218,13 +224,31 @@ async function startQuick(templateId) {
 
     <p v-if="missions.loading" class="mt-8 text-ink-muted">{{ t('combat.loading') }}</p>
 
-    <section class="page-section">
-      <div class="section-head">
-        <span class="section-head__index">01</span>
-        <h2 class="section-head__title">{{ t('combat.missionsListTitle') }}</h2>
-        <span class="section-head__rule" aria-hidden="true" />
-      </div>
+    <div class="tabs mt-8" role="tablist" data-testid="missions-tabs">
+      <button
+        v-for="tab in tabs"
+        :id="`missions-tab-${tab.id}`"
+        :key="tab.id"
+        type="button"
+        role="tab"
+        class="tab"
+        :aria-selected="activeTab === tab.id"
+        :aria-controls="`missions-panel-${tab.id}`"
+        :data-testid="`missions-tab-${tab.id}`"
+        @click="activeTab = tab.id"
+      >
+        {{ t(tab.labelKey) }}
+      </button>
+    </div>
 
+    <section
+      v-show="activeTab === 'missions'"
+      id="missions-panel-missions"
+      class="mt-6"
+      role="tabpanel"
+      aria-labelledby="missions-tab-missions"
+      data-testid="missions-panel"
+    >
       <aside class="pouch-panel" data-testid="mission-pouch-panel">
         <h3 class="pouch-panel__title">{{ t('combat.pouchPanelTitle') }}</h3>
         <p class="pouch-panel__summary">
@@ -327,13 +351,15 @@ async function startQuick(templateId) {
       </div>
     </section>
 
-    <section class="page-section" data-testid="quick-fight-section">
-      <div class="section-head">
-        <span class="section-head__index">02</span>
-        <h2 class="section-head__title">{{ t('combat.quickFight') }}</h2>
-        <span class="section-head__rule" aria-hidden="true" />
-      </div>
-      <p class="mt-2 max-w-xl text-ink-muted">{{ t('combat.quickFightLead') }}</p>
+    <section
+      v-show="activeTab === 'direct'"
+      id="missions-panel-direct"
+      class="mt-6"
+      role="tabpanel"
+      aria-labelledby="missions-tab-direct"
+      data-testid="quick-fight-section"
+    >
+      <p class="max-w-xl text-ink-muted">{{ t('combat.quickFightLead') }}</p>
 
       <div class="quick-grid">
         <button
