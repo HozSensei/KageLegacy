@@ -2914,6 +2914,7 @@
     "colName": "Shinobi",
     "colFaction": "Faction",
     "colLevel": "Level",
+    "colPoints": "Points",
     "empty": "No entries yet.",
     "prev": "Previous",
     "next": "Next",
