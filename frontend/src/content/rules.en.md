@@ -135,7 +135,7 @@ Some clan legendary cards carry a **heritage**: an effect that applies **while t
 | **Yukisawa** | +2 Chakra at the start of your turn |
 | **Nagihara** | +20% healing |
 
-Heritage Chakra and armor are granted **once** at the start of your turn. Percentage bonuses apply while the card stays in hand (or reserve). The same copy counted twice still contributes only once. Heritage evade is capped at **75%**.
+Heritage Chakra and armor are granted **once** at the start of your turn. Percentage bonuses apply while the card stays in hand. The same copy counted twice still contributes only once. Heritage evade is capped at **75%**.
 
 ### Rarities
 

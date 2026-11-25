@@ -141,7 +141,7 @@ Selon la carte, la condition peut fournir : dégâts, soins, Armure, intensité 
 
 ## Héritages
 
-Les six héritages ont un `heldEffect` actif en main ou en réserve :
+Les six héritages ont un `heldEffect` actif en main :
 
 | Héritage  | Effet                      |
 | --------- | -------------------------- |
@@ -152,7 +152,7 @@ Les six héritages ont un `heldEffect` actif en main ou en réserve :
 | Yukisawa  | +2 Chakra au début du tour |
 | Nagihara  | +20 % soins                |
 
-Chakra et armure sont accordés une fois au début du tour du porteur. Les bonus en pourcentage sont dynamiques et cessent si la carte quitte la main ou la réserve. Une carte jouée ne s'applique pas son propre effet.
+Chakra et armure sont accordés une fois au début du tour du porteur. Les bonus en pourcentage sont dynamiques et cessent si la carte quitte la main. Une carte jouée ne s'applique pas son propre effet.
 
 La même copie référencée deux fois n'est comptée qu'une fois. La contribution d'esquive tenue par héritage est plafonnée à 75 %.
 

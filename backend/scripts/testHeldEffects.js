@@ -90,8 +90,8 @@ test('all catalogue held effects and their FR/EN descriptions reach the solo run
     );
     assert.deepEqual(card.heldEffect, effect, slug);
     assert.equal(card.statType, 'common', slug);
-    assert.ok(card.descriptionFr.endsWith(`En main ou réservé : ${fr}`), slug);
-    assert.ok(card.descriptionEn.endsWith(`In hand or reserved: ${en}`), slug);
+    assert.ok(card.descriptionFr.endsWith(`En main : ${fr}`), slug);
+    assert.ok(card.descriptionEn.endsWith(`In hand: ${en}`), slug);
   }
   const ordinary = serializeCardDefinition({
     ...catalogueRow(catalogue['clan-nagihara']),
@@ -100,14 +100,16 @@ test('all catalogue held effects and their FR/EN descriptions reach the solo run
   assert.equal(buildRuntimeDeck([ordinary])[0].heldEffect, null);
 });
 
-test('turn-start Chakra and block: opening draw, reserve, and distinct instances', () => {
+test('turn-start Chakra and block: opening draw, hand only, and distinct instances', () => {
   const [chakra, secondCopy] = heritage('yukisawa', 2);
   const [block] = heritage('kumatani');
   const opening = drawCards({ ...player, drawPile: [chakra] }, 1, rng).player;
   const state = {
     ...opening,
-    reserveCard: block,
-    reservedCard: { ...block },
+    hand: [...(opening.hand || []), block],
+    // Legacy reserve fields must not grant held effects.
+    reserveCard: { ...block, instanceId: 'legacy-reserve' },
+    reservedCard: { ...block, instanceId: 'legacy-reserved' },
     discardPile: [secondCopy],
     exhaustPile: [secondCopy],
   };
@@ -123,23 +125,26 @@ test('turn-start Chakra and block: opening draw, reserve, and distinct instances
   assert.equal(applyHeldTurnStart({ ...state, hand: [chakra, secondCopy] }).player.chakra, 9);
   const discarded = moveCardFromHand(state, chakra.instanceId).player;
   assert.equal(applyHeldTurnStart(discarded).player.chakra, 5);
+  assert.equal(applyHeldTurnStart({ ...player, reserveCard: chakra }).player.chakra, 5);
 });
 
-test('held evade affects both the solo enemy and its minion, but not from a pile', () => {
+test('held evade affects both the solo enemy and its minion, but not from a pile or reserve', () => {
   const [shizumori] = heritage('shizumori');
   const attacker = { ...enemy, minion: { hp: 20, attack: 3 } };
-  for (const state of [{ hand: [shizumori] }, { reserveCard: shizumori }]) {
-    const holder = { ...player, ...state };
-    const dodged = executeEnemyIntent(attacker, holder, () => 0.149);
-    assert.equal(dodged.player.hp, 50);
-    assert.deepEqual(
-      dodged.logs.filter(log => log.type === 'evade').map(log => log.reason),
-      ['minion', undefined]
-    );
-    assert.equal(executeEnemyIntent(attacker, holder, () => 0.15).player.hp, 37);
-  }
+  const holder = { ...player, hand: [shizumori] };
+  const dodged = executeEnemyIntent(attacker, holder, () => 0.149);
+  assert.equal(dodged.player.hp, 50);
+  assert.deepEqual(
+    dodged.logs.filter(log => log.type === 'evade').map(log => log.reason),
+    ['minion', undefined]
+  );
+  assert.equal(executeEnemyIntent(attacker, holder, () => 0.15).player.hp, 37);
   assert.equal(
     executeEnemyIntent(attacker, { ...player, drawPile: [shizumori] }, () => 0).player.hp,
+    37
+  );
+  assert.equal(
+    executeEnemyIntent(attacker, { ...player, reserveCard: shizumori }, () => 0).player.hp,
     37
   );
   assert.equal(heldEffectMods({ hand: heritage('shizumori', 6) }).evadeChance, 0.75);
@@ -148,7 +153,7 @@ test('held evade affects both the solo enemy and its minion, but not from a pile
 test('art damage only boosts matching attacks and applies per hit', () => {
   const [nin] = heritage('benigiri');
   const [tai] = heritage('kazamine');
-  const state = { hand: [nin], reservedCard: tai };
+  const state = { hand: [nin, tai] };
   for (const [statType, expected] of [
     ['ninjutsu', 24],
     ['taijutsu', 24],
@@ -158,12 +163,19 @@ test('art damage only boosts matching attacks and applies per hit', () => {
     const card = { statType, damage: 10, effects: [{ type: 'multi_strike', hits: 2 }] };
     assert.equal(play(card, state).enemy.hp, enemy.hp - expected, statType);
   }
+  assert.equal(
+    play(
+      { statType: 'taijutsu', damage: 10, effects: [{ type: 'multi_strike', hits: 2 }] },
+      { hand: [nin], reservedCard: tai }
+    ).enemy.hp,
+    enemy.hp - 20
+  );
 });
 
-test('the instance being played cannot boost itself, even when referenced by a reserve alias', () => {
+test('the instance being played cannot boost itself', () => {
   const [first, second] = heritage('nagihara', 2);
   const card = { ...first, heal: 10 };
-  const state = { hand: [first], reserveCard: { ...first }, reservedCard: first };
+  const state = { hand: [first] };
   assert.equal(play(card, state).player.hp, 60);
   assert.equal(play(card, { ...state, hand: [first, second] }).player.hp, 62);
 
@@ -198,7 +210,7 @@ test('healing reads the current hand, including heritage drawn by an earlier eff
 
 test('held healing boosts the same amount for direct and effect heals, including flat healing', () => {
   const [nagihara] = heritage('nagihara');
-  const state = { reserveCard: nagihara };
+  const state = { hand: [nagihara] };
   const options = { talentMods: { healFlat: 5 } };
   assert.equal(play({ heal: 10 }, state, options).player.hp, 68);
   assert.equal(play({ effects: [{ type: 'heal_self', value: 10 }] }, state, options).player.hp, 68);
@@ -208,6 +220,7 @@ test('held healing boosts the same amount for direct and effect heals, including
   const capped = play({ heal: 10 }, { ...state, hp: 95 });
   assert.equal(capped.player.hp, 100);
   assert.equal(capped.logs.find(log => log.type === 'heal').amount, 5);
+  assert.equal(play({ heal: 10 }, { reserveCard: nagihara }, options).player.hp, 65);
 });
 
 test('playing a heritage at the hand cap frees one slot for its own draw', () => {
@@ -230,7 +243,7 @@ test('playing a heritage at the hand cap frees one slot for its own draw', () =>
 
 test('held Chakra applies at turn start via applyHeldTurnStart', () => {
   const [chakra] = heritage('yukisawa');
-  const withHeld = applyHeldTurnStart({ ...player, reserveCard: chakra, chakra: 5 });
+  const withHeld = applyHeldTurnStart({ ...player, hand: [chakra], chakra: 5 });
   const without = applyHeldTurnStart({ ...player, chakra: 5 });
   assert.equal(withHeld.player.chakra, 7);
   assert.equal(without.player.chakra, 5);
