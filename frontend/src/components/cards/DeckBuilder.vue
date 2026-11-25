@@ -549,15 +549,35 @@ const sizeValid = computed(
 
 .deck-builder__pool {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
-  gap: 1rem 0.85rem;
+  /* Mobile: 2 colonnes, comme la Collection */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 0.75rem;
   margin-top: 1.1rem;
+  align-items: start;
 }
 
 @media (min-width: 640px) {
+  .deck-builder__pool {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.35rem 1.15rem;
+  }
+
   .deck-builder__pool--large {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-    gap: 1.15rem 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1.35rem;
+  }
+}
+
+/* Aligne la Collection : 4 colonnes desktop (3 en taille large) */
+@media (min-width: 1024px) {
+  .deck-builder__pool {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 1.25rem;
+  }
+
+  .deck-builder__pool--large {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.6rem 1.35rem;
   }
 }
 
