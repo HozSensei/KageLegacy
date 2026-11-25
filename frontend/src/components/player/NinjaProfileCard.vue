@@ -251,13 +251,11 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   margin-top: 1.6rem;
   padding: clamp(0.8rem, 2.2vw, 1.15rem);
   container-type: inline-size;
-  border: 3px solid var(--ninja-border, #ad503a);
+  border: 0;
   border-radius: var(--radius-lg);
   background-color: var(--ninja-background, #1d2238);
   color: var(--ninja-text, #fff);
-  box-shadow:
-    inset 0 0 0 1px rgb(0 0 0 / 0.28),
-    0 0.6rem 1.4rem rgb(8 10 24 / 0.22);
+  box-shadow: 0 0.55rem 1.35rem rgb(8 10 24 / 0.28);
 }
 
 .ninja-card--enemy {
@@ -271,13 +269,16 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 .ninja-card--art {
   --ninja-text: #fff;
 
+  /* Haut plus sombre pour faire ressortir pseudo / rang / village,
+     bas sombre pour PV / chakra, milieu plus ouvert sur l’illustration. */
   background-image:
     linear-gradient(
       to bottom,
-      rgb(8 10 22 / 0.35) 0%,
-      rgb(8 10 22 / 0.1) 32%,
-      rgb(8 10 22 / 0.72) 68%,
-      rgb(8 10 22 / 0.92) 100%
+      rgb(8 10 22 / 0.78) 0%,
+      rgb(8 10 22 / 0.42) 24%,
+      rgb(8 10 22 / 0.18) 46%,
+      rgb(8 10 22 / 0.58) 72%,
+      rgb(8 10 22 / 0.9) 100%
     ),
     var(--ninja-art);
   background-position: center;
@@ -337,11 +338,9 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   position: relative;
   height: 100%;
   overflow: visible;
-  border: 4px solid var(--ninja-background, #1d2238);
+  border: 0;
   border-radius: 50%;
-  box-shadow:
-    0 0 0 3px var(--ninja-border, #ad503a),
-    0 0.5rem 1rem rgb(0 0 0 / 0.45);
+  box-shadow: none;
 }
 
 .ninja-card__portrait-frame :deep(.ninja-portrait) {
@@ -478,7 +477,8 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
   border: 1px solid var(--card-line);
   border-top: 3px solid var(--art-fill, currentColor);
   border-radius: var(--radius-md);
-  background: var(--card-soft);
+  /* Même densité que le bloc PV pour rester lisible sur illustration. */
+  background: rgb(0 0 0 / 0.28);
   text-align: center;
 }
 
