@@ -18,8 +18,6 @@ const props = defineProps({
   selectedKey: { type: String, default: null },
   loading: { type: Boolean, default: false },
   ownershipFilter: { type: String, default: '' },
-  ownedCount: { type: Number, default: 0 },
-  catalogueTotal: { type: Number, default: 0 },
   initialSearch: { type: String, default: '' },
   /** cardDefinitionId présents dans le deck actif */
   activeDeckCardIds: { type: Object, default: () => new Set() },
@@ -35,6 +33,8 @@ const typeFilter = ref('');
 const rarityFilter = ref('');
 const artFilter = ref('');
 const search = ref(props.initialSearch);
+/** @type {Map<string, HTMLElement>} */
+const cellEls = new Map();
 
 watch(
   () => props.initialSearch,
@@ -71,17 +71,18 @@ const filtered = computed(() => {
   });
 });
 
+function setCellRef(key, el) {
+  if (el) cellEls.set(key, el);
+  else cellEls.delete(key);
+}
+
 function onSelectSlot(slot) {
-  emit('select', slot);
+  emit('select', { slot, anchorEl: cellEls.get(slot.key) || null });
 }
 </script>
 
 <template>
   <div class="collection-grid" data-testid="collection-grid">
-    <p class="collection-grid__count" data-testid="collection-count">
-      {{ t('cards.collectionProgress', { owned: ownedCount, total: catalogueTotal }) }}
-    </p>
-
     <CardFilters
       v-model:type-filter="typeFilter"
       v-model:rarity-filter="rarityFilter"
@@ -106,7 +107,12 @@ function onSelectSlot(slot) {
       :class="{ 'collection-grid__list--large': cardSize === 'large' }"
       :data-card-size="cardSize"
     >
-      <template v-for="slot in filtered" :key="slot.key">
+      <div
+        v-for="slot in filtered"
+        :key="slot.key"
+        :ref="el => setCellRef(slot.key, el)"
+        class="collection-grid__cell"
+      >
         <CardDisplay
           v-if="slot.kind === 'owned'"
           :card="slot.card"
@@ -123,23 +129,12 @@ function onSelectSlot(slot) {
           :selected="selectedKey === slot.key"
           @select="onSelectSlot(slot)"
         />
-      </template>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.collection-grid__count {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 800;
-  font-stretch: 80%;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  color: var(--color-ink);
-}
-
 .collection-grid__list {
   display: grid;
   /* Mobile: force 2 columns like the deck builder pool */
@@ -152,13 +147,26 @@ function onSelectSlot(slot) {
 
 @media (min-width: 640px) {
   .collection-grid__list {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12.5rem), 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.35rem 1.15rem;
   }
 
   .collection-grid__list--large {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem 1.35rem;
+  }
+}
+
+/* Pleine largeur (plus de rail détail) → 4 colonnes desktop */
+@media (min-width: 1024px) {
+  .collection-grid__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 1.25rem;
+  }
+
+  .collection-grid__list--large {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.6rem 1.35rem;
   }
 }
 </style>

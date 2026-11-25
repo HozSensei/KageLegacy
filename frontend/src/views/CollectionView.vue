@@ -1,11 +1,11 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink, useRoute } from 'vue-router';
+import CollectionDetailPanel from '../components/cards/CollectionDetailPanel.vue';
 import CollectionGrid from '../components/cards/CollectionGrid.vue';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
-import AppIcon from '../components/ui/AppIcon.vue';
 import { cardTypeVisual } from '../utils/cardVisuals';
 import { localizedDescription, localizedName } from '../utils/localeContent.js';
 import { cardActionError } from '../utils/cardActionErrors.js';
@@ -23,6 +23,9 @@ import {
 
 defineOptions({ name: 'CollectionView' });
 
+/** Desktop : popover ancré près de la carte ; en dessous : bottom sheet. */
+const ANCHOR_MIN_WIDTH = 768;
+
 const { t, locale } = useI18n();
 const route = useRoute();
 const collection = useCollectionStore();
@@ -31,12 +34,29 @@ useOnboardingVisit('visit_collection');
 const { open: anatomyOpen, dismiss: dismissAnatomy } = useCardAnatomyGuide();
 const shop = useShopStore();
 const selection = ref(null);
+const selectionAnchor = ref(null);
+const detailOpen = ref(false);
 const feedback = ref(null);
 const actionPending = ref(false);
+const detailShell = ref(null);
+const panelStyle = ref({});
+const useAnchored = ref(false);
 
 onMounted(() => {
   collection.fetchCollectionView();
   decks.fetchDecks();
+  updateLayoutMode();
+  document.addEventListener('pointerdown', onDocumentPointer, true);
+  document.addEventListener('keydown', onKeydown);
+  window.addEventListener('resize', onViewportChange);
+  window.addEventListener('scroll', onViewportChange, true);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onDocumentPointer, true);
+  document.removeEventListener('keydown', onKeydown);
+  window.removeEventListener('resize', onViewportChange);
+  window.removeEventListener('scroll', onViewportChange, true);
 });
 
 const activeDeckCardIds = computed(() =>
@@ -96,15 +116,108 @@ const upgradeUnavailableReason = computed(() => {
   if (selected.value.upgradeLevel >= 2) return t('cards.upgradeMaxLevel');
   return t('cards.upgradeUnavailable');
 });
+
+const detailMode = computed(() => {
+  if (isHole.value && selectedSlot.value) return 'hole';
+  if (selectedCard.value) return 'card';
+  return 'empty';
+});
+
+const detailKicker = computed(() => {
+  if (isHole.value) return t('cards.missingBadge');
+  if (selectedCard.value) return t(`cards.types.${selectedCard.value.type}`, selectedCard.value.type);
+  return t('cards.detailTitle');
+});
+
 /** Garder les filtres accessibles tant que le catalogue contient des cartes. */
 const showEmptyState = computed(() => {
   if (busy.value || collection.error) return false;
   return !collection.catalogueTotal && !collection.entries.length;
 });
 
-function onSelect(slot) {
-  selection.value = { cardId: Number(slot.card.id) };
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function updateLayoutMode() {
+  useAnchored.value = typeof window !== 'undefined' && window.innerWidth >= ANCHOR_MIN_WIDTH;
+}
+
+function positionPanel() {
+  if (!detailOpen.value || !useAnchored.value) {
+    panelStyle.value = {};
+    return;
+  }
+  const el = detailShell.value;
+  if (!el) return;
+
+  const margin = 12;
+  const width = Math.min(22 * 16, window.innerWidth - margin * 2);
+  const panelHeight = el.offsetHeight || 360;
+  const anchor = selectionAnchor.value;
+  let left = margin;
+  let top = margin;
+
+  if (anchor && typeof anchor.getBoundingClientRect === 'function') {
+    const rect = anchor.getBoundingClientRect();
+    // Préférer à droite de la carte ; sinon à gauche ; sinon centré sous la carte.
+    const right = rect.right + margin;
+    const leftOf = rect.left - width - margin;
+    if (right + width <= window.innerWidth - margin) {
+      left = right;
+      top = rect.top;
+    } else if (leftOf >= margin) {
+      left = leftOf;
+      top = rect.top;
+    } else {
+      left = rect.left + rect.width / 2 - width / 2;
+      const below = rect.bottom + margin;
+      const above = rect.top - panelHeight - margin;
+      top = below + panelHeight <= window.innerHeight - margin ? below : above;
+    }
+  } else {
+    left = (window.innerWidth - width) / 2;
+    top = Math.max(margin, window.innerHeight * 0.1);
+  }
+
+  left = clamp(left, margin, window.innerWidth - width - margin);
+  top = clamp(top, margin, Math.max(margin, window.innerHeight - panelHeight - margin));
+
+  panelStyle.value = {
+    width: `${width}px`,
+    left: `${Math.round(left)}px`,
+    top: `${Math.round(top)}px`,
+  };
+}
+
+async function refreshPanelPosition() {
+  if (!detailOpen.value) return;
+  await nextTick();
+  positionPanel();
+  await nextTick();
+  positionPanel();
+}
+
+function closeDetail() {
+  detailOpen.value = false;
+  selection.value = null;
+  selectionAnchor.value = null;
+  panelStyle.value = {};
+}
+
+function onSelect(payload) {
+  const slot = payload?.slot ?? payload;
+  const anchorEl = payload?.anchorEl ?? null;
+  const cardId = Number(slot.card.id);
+  if (detailOpen.value && selection.value?.cardId === cardId) {
+    closeDetail();
+    return;
+  }
+  selection.value = { cardId };
+  selectionAnchor.value = anchorEl;
+  detailOpen.value = true;
   feedback.value = null;
+  refreshPanelPosition();
 }
 
 function onOwnershipFilterUpdate(value) {
@@ -118,14 +231,61 @@ function onOwnershipFilterUpdate(value) {
       anyDeckCardIds.value
     )
   ) {
-    selection.value = null;
+    closeDetail();
     feedback.value = null;
   }
 }
 
+function onDocumentPointer(event) {
+  if (!detailOpen.value) return;
+  const target = event.target;
+  if (detailShell.value?.contains(target)) return;
+  if (
+    selectionAnchor.value &&
+    typeof selectionAnchor.value.contains === 'function' &&
+    selectionAnchor.value.contains(target)
+  ) {
+    return;
+  }
+  // La sélection de carte gère le toggle ; ignorer les clics sur d’autres cellules
+  // serait trop agressif — fermer sur extérieur hors grille sélectionnée.
+  const inGridCell = target?.closest?.('.collection-grid__cell');
+  if (inGridCell) return;
+  closeDetail();
+}
+
+function onKeydown(event) {
+  if (event.key === 'Escape' && detailOpen.value) {
+    event.preventDefault();
+    closeDetail();
+  }
+}
+
+function onViewportChange() {
+  updateLayoutMode();
+  if (detailOpen.value) positionPanel();
+}
+
+watch(
+  () => [detailOpen.value, selectedKey.value, useAnchored.value],
+  () => {
+    if (detailOpen.value) refreshPanelPosition();
+  }
+);
+
+watch(selectedSlot, slot => {
+  if (detailOpen.value && !slot) {
+    // Carte filtrée / désenchantée jusqu’à disparition : fermer le panneau.
+    if (!selection.value) return;
+    const stillExists = collection.catalogueSlots.some(
+      s => Number(s.card.id) === selection.value.cardId
+    );
+    if (!stillExists) closeDetail();
+  }
+});
+
 async function onAction(action) {
   if (!selected.value || actionsBusy.value || (action === 'upgrade' && !canUpgrade.value)) return;
-  // L'identité de la sélection distingue aussi A → B → A pendant la requête.
   const source = selection.value;
   const { collectionId } = selected.value;
   feedback.value = null;
@@ -135,17 +295,24 @@ async function onAction(action) {
     const balances = result.resources || (await shop.fetchBalances());
     if (result.resources) shop.balances = result.resources;
     if (selection.value !== source) return;
-    if (!selectedSlot.value) selection.value = null;
+    if (!selectedSlot.value) {
+      closeDetail();
+    }
     feedback.value =
       result.refreshFailed || !balances
         ? { action, type: 'error', key: 'cards.refreshFailed' }
         : { action, type: 'success', key: `cards.${action}Success` };
+    refreshPanelPosition();
   } catch (error) {
     if (selection.value === source)
       feedback.value = { action, type: 'error', error: error.message };
   } finally {
     actionPending.value = false;
   }
+}
+
+function resourceLabel(kind, amount) {
+  return t(`resources.${kind}`, { n: Number(amount).toLocaleString(locale.value) });
 }
 </script>
 
@@ -197,231 +364,92 @@ async function onAction(action) {
     />
 
     <div v-else class="collection-layout">
-      <div class="min-w-0">
-        <CollectionGrid
-          :slots="collection.catalogueSlots"
-          :selected-key="selectedKey"
-          :loading="busy"
-          :ownership-filter="collection.ownershipFilter"
-          :owned-count="collection.ownedUniqueCount"
-          :catalogue-total="collection.catalogueTotal"
-          :initial-search="collectionSearch"
-          :active-deck-card-ids="activeDeckCardIds"
-          :any-deck-card-ids="anyDeckCardIds"
-          @select="onSelect"
-          @update:ownership-filter="onOwnershipFilterUpdate"
-        />
-      </div>
-
-      <aside
-        class="collection-detail"
-        data-testid="collection-detail"
-        :data-tone="selectedCard && !isHole ? selectedVisual.tone : 'neutral'"
-      >
-        <p class="collection-detail__kicker">
-          <span
-            class="shape"
-            :class="`shape--${selectedCard && !isHole ? selectedVisual.shape : 'lozenge'}`"
-            aria-hidden="true"
-          />
-          {{
-            isHole
-              ? t('cards.missingBadge')
-              : selectedCard
-                ? t(`cards.types.${selectedCard.type}`, selectedCard.type)
-                : t('cards.detailTitle')
-          }}
-        </p>
-        <h2 class="sr-only">{{ t('cards.detailTitle') }}</h2>
-
-        <Transition name="rise" mode="out-in">
-          <div
-            v-if="isHole && selectedSlot"
-            :key="`hole-${selectedKey}`"
-            class="collection-detail__body"
-          >
-            <p class="collection-detail__name">
-              {{ t('cards.missingCardTitle', { n: selectedSlot.catalogueNumber }) }}
-            </p>
-            <p class="collection-detail__missing">{{ t('cards.missingDetail') }}</p>
-            <p class="mt-3 leading-relaxed text-ink-muted">{{ t('cards.missingHint') }}</p>
-            <p class="mt-6">
-              <RouterLink to="/shop" class="btn-primary btn-block">{{
-                t('cards.emptyCollectionShop')
-              }}</RouterLink>
-            </p>
-          </div>
-          <div
-            v-else-if="selectedCard"
-            :key="`card-${selectedKey}`"
-            class="collection-detail__body"
-          >
-            <p class="collection-detail__name">{{ selectedName }}</p>
-            <p v-if="selectedSlot?.catalogueNumber != null" class="collection-detail__catalogue-n">
-              {{ t('cards.catalogueNumberLabel', { n: selectedSlot.catalogueNumber }) }}
-            </p>
-            <p class="mt-3 leading-relaxed text-ink">{{ selectedDescription }}</p>
-
-            <div v-if="selectedCard.passiveBonus" class="collection-detail__passive">
-              <p class="t-kicker">{{ t('cards.passiveBonus') }}</p>
-              <ul class="collection-detail__passive-list">
-                <li v-for="(value, key) in selectedCard.passiveBonus" :key="key">
-                  <span class="figure figure--sm">+{{ value }}</span>
-                  {{ t(`cards.stats.${key}`, key) }}
-                </li>
-              </ul>
-            </div>
-
-            <template v-if="selected">
-              <dl class="collection-detail__figures">
-                <div>
-                  <dt class="t-kicker">{{ t('cards.quantityLabel') }}</dt>
-                  <dd class="figure figure--md">×{{ selected.quantity }}</dd>
-                </div>
-                <div>
-                  <dt class="t-small">
-                    {{ t('cards.upgradeLevel', { level: selected.upgradeLevel }) }}
-                  </dt>
-                  <dd class="collection-detail__levels" aria-hidden="true">
-                    <span
-                      v-for="n in 2"
-                      :key="n"
-                      class="lozenge"
-                      :class="{ 'lozenge--hollow': n > selected.upgradeLevel }"
-                    />
-                  </dd>
-                </div>
-              </dl>
-
-              <div class="mt-6 flex flex-col gap-2">
-                <button
-                  type="button"
-                  class="btn-primary btn-block"
-                  data-testid="collection-upgrade"
-                  :disabled="actionsBusy || !canUpgrade"
-                  @click="onAction('upgrade')"
-                >
-                  <span>{{ t('cards.upgrade') }}</span>
-                  <span v-if="upgradeCost" class="collection-detail__action-cost">
-                    <span
-                      v-if="upgradeCost.ryos"
-                      :title="t('resources.ryos', { n: upgradeCost.ryos.toLocaleString(locale) })"
-                      ><AppIcon name="ryos" size="0.9rem" /><span class="sr-only">{{
-                        t('resources.ryos', { n: upgradeCost.ryos.toLocaleString(locale) })
-                      }}</span
-                      ><span aria-hidden="true">{{
-                        upgradeCost.ryos.toLocaleString(locale)
-                      }}</span></span
-                    >
-                    <span
-                      v-if="upgradeCost.dust"
-                      :title="t('resources.dust', { n: upgradeCost.dust.toLocaleString(locale) })"
-                      ><AppIcon name="dust" size="0.9rem" /><span class="sr-only">{{
-                        t('resources.dust', { n: upgradeCost.dust.toLocaleString(locale) })
-                      }}</span
-                      ><span aria-hidden="true">{{
-                        upgradeCost.dust.toLocaleString(locale)
-                      }}</span></span
-                    >
-                    <span
-                      v-if="upgradeCost.essence"
-                      :title="
-                        t('resources.essence', { n: upgradeCost.essence.toLocaleString(locale) })
-                      "
-                      ><AppIcon name="essence" size="0.9rem" /><span class="sr-only">{{
-                        t('resources.essence', { n: upgradeCost.essence.toLocaleString(locale) })
-                      }}</span
-                      ><span aria-hidden="true">{{
-                        upgradeCost.essence.toLocaleString(locale)
-                      }}</span></span
-                    >
-                  </span>
-                  <span v-else class="sr-only">{{ t('cards.upgradeUnavailable') }}</span>
-                </button>
-                <p
-                  v-if="feedback?.action === 'upgrade'"
-                  class="alert"
-                  :class="`alert--${feedback.type}`"
-                  role="status"
-                  data-testid="collection-upgrade-feedback"
-                >
-                  {{ feedbackText }}
-                </p>
-                <p v-if="upgradeUnavailableReason" class="collection-detail__action-hint">
-                  {{ upgradeUnavailableReason }}
-                </p>
-                <button
-                  type="button"
-                  class="btn-ghost btn-block"
-                  data-testid="collection-disenchant"
-                  :disabled="actionsBusy"
-                  @click="onAction('disenchant')"
-                >
-                  <span>{{ t('cards.disenchant') }}</span>
-                  <span class="collection-detail__action-cost" data-gain="true">
-                    <span
-                      v-if="selected.actionPreview?.disenchantGain?.dust"
-                      :title="
-                        t('resources.dust', {
-                          n: selected.actionPreview.disenchantGain.dust.toLocaleString(locale),
-                        })
-                      "
-                      ><AppIcon name="dust" size="0.9rem" /><span class="sr-only">{{
-                        t('resources.dust', {
-                          n: selected.actionPreview.disenchantGain.dust.toLocaleString(locale),
-                        })
-                      }}</span
-                      ><span aria-hidden="true"
-                        >+{{
-                          selected.actionPreview.disenchantGain.dust.toLocaleString(locale)
-                        }}</span
-                      ></span
-                    >
-                    <span
-                      v-if="selected.actionPreview?.disenchantGain?.essence"
-                      :title="
-                        t('resources.essence', {
-                          n: selected.actionPreview.disenchantGain.essence.toLocaleString(locale),
-                        })
-                      "
-                      ><AppIcon name="essence" size="0.9rem" /><span class="sr-only">{{
-                        t('resources.essence', {
-                          n: selected.actionPreview.disenchantGain.essence.toLocaleString(locale),
-                        })
-                      }}</span
-                      ><span aria-hidden="true"
-                        >+{{
-                          selected.actionPreview.disenchantGain.essence.toLocaleString(locale)
-                        }}</span
-                      ></span
-                    >
-                  </span>
-                </button>
-                <p
-                  v-if="feedback?.action === 'disenchant'"
-                  class="alert"
-                  :class="`alert--${feedback.type}`"
-                  role="status"
-                  data-testid="collection-disenchant-feedback"
-                >
-                  {{ feedbackText }}
-                </p>
-              </div>
-            </template>
-          </div>
-          <p v-else class="mt-4 text-ink-muted">{{ t('cards.selectCardHint') }}</p>
-        </Transition>
-        <p
-          v-if="!selected && feedback"
-          class="alert mt-4"
-          :class="`alert--${feedback.type}`"
-          role="status"
-          :data-testid="`collection-${feedback.action}-feedback`"
-        >
-          {{ feedbackText }}
-        </p>
-      </aside>
+      <CollectionGrid
+        :slots="collection.catalogueSlots"
+        :selected-key="selectedKey"
+        :loading="busy"
+        :ownership-filter="collection.ownershipFilter"
+        :initial-search="collectionSearch"
+        :active-deck-card-ids="activeDeckCardIds"
+        :any-deck-card-ids="anyDeckCardIds"
+        @select="onSelect"
+        @update:ownership-filter="onOwnershipFilterUpdate"
+      />
     </div>
+
+    <Teleport to="body">
+      <Transition name="collection-detail-backdrop">
+        <div
+          v-if="detailOpen && !useAnchored"
+          class="collection-detail-backdrop"
+          data-testid="collection-detail-backdrop"
+          @click="closeDetail"
+        />
+      </Transition>
+
+      <Transition :name="useAnchored ? 'collection-detail-pop' : 'collection-detail-sheet'">
+        <div
+          v-if="detailOpen"
+          ref="detailShell"
+          class="collection-detail-shell"
+          :class="
+            useAnchored ? 'collection-detail-shell--anchored' : 'collection-detail-shell--sheet'
+          "
+          role="dialog"
+          :aria-modal="useAnchored ? 'false' : 'true'"
+          :aria-label="t('cards.detailTitle')"
+          data-testid="collection-detail-shell"
+          :style="useAnchored ? panelStyle : undefined"
+          @click.stop
+        >
+          <CollectionDetailPanel
+            :mode="detailMode"
+            :kicker="detailKicker"
+            :tone="selectedCard && !isHole ? selectedVisual.tone : 'neutral'"
+            :shape="selectedCard && !isHole ? selectedVisual.shape : 'lozenge'"
+            :name="
+              isHole
+                ? t('cards.missingCardTitle', { n: selectedSlot?.catalogueNumber })
+                : selectedName
+            "
+            :catalogue-label="
+              selectedSlot?.catalogueNumber != null && !isHole
+                ? t('cards.catalogueNumberLabel', { n: selectedSlot.catalogueNumber })
+                : ''
+            "
+            :description="selectedDescription"
+            :missing-detail="t('cards.missingDetail')"
+            :missing-hint="t('cards.missingHint')"
+            :shop-label="t('cards.emptyCollectionShop')"
+            :passive-bonus="selectedCard?.passiveBonus || null"
+            :passive-bonus-label="t('cards.passiveBonus')"
+            :stat-label="key => t(`cards.stats.${key}`, key)"
+            :quantity-label="t('cards.quantityLabel')"
+            :quantity="selected?.quantity ?? null"
+            :upgrade-level-label="
+              selected ? t('cards.upgradeLevel', { level: selected.upgradeLevel }) : ''
+            "
+            :upgrade-level="selected?.upgradeLevel ?? 0"
+            :upgrade-label="t('cards.upgrade')"
+            :upgrade-cost="upgradeCost"
+            :can-upgrade="canUpgrade"
+            :upgrade-unavailable-reason="upgradeUnavailableReason"
+            :disenchant-label="t('cards.disenchant')"
+            :disenchant-gain="selected?.actionPreview?.disenchantGain || null"
+            :actions-busy="actionsBusy"
+            :feedback="feedback"
+            :feedback-text="feedbackText"
+            :empty-hint="t('cards.selectCardHint')"
+            :close-label="t('common.dismiss')"
+            :locale="locale"
+            :resource-label="resourceLabel"
+            @close="closeDetail"
+            @upgrade="onAction('upgrade')"
+            @disenchant="onAction('disenchant')"
+          />
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -439,137 +467,79 @@ async function onAction(action) {
 }
 
 .collection-layout {
-  display: grid;
-  gap: 2rem;
   margin-top: var(--space-block);
 }
 
-.collection-detail {
-  align-self: start;
-  padding: 1.25rem 1.25rem 1.5rem;
-  border-top: 6px solid var(--tone-fill);
-  background: var(--color-bg-card);
-  transition: border-color var(--dur-base) ease;
+.collection-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: var(--color-scrim);
 }
 
-.collection-detail__kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: var(--type-kicker);
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--tone);
+.collection-detail-shell {
+  z-index: 60;
 }
 
-.collection-detail__name {
-  margin-top: 0.85rem;
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
-  font-weight: 800;
-  font-stretch: 80%;
-  line-height: 0.98;
-  letter-spacing: -0.02em;
-  overflow-wrap: anywhere;
+.collection-detail-shell--anchored {
+  position: fixed;
+  max-width: calc(100vw - 1.5rem);
+  max-height: min(40rem, calc(100dvh - 1.5rem));
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 0.85rem 2rem rgb(8 10 24 / 0.38);
 }
 
-.collection-detail__missing {
-  margin-top: 0.55rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-ink-faint);
+.collection-detail-shell--sheet {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  max-height: min(88dvh, 40rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  box-shadow: 0 -0.5rem 1.75rem rgb(8 10 24 / 0.4);
 }
 
-.collection-detail__catalogue-n {
-  margin-top: 0.35rem;
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  font-stretch: 85%;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-faint);
+.collection-detail-backdrop-enter-active,
+.collection-detail-backdrop-leave-active {
+  transition: opacity 200ms ease;
 }
 
-.collection-detail__passive {
-  margin-top: 1.25rem;
-  padding: 0.85rem 1rem;
-  background: var(--color-bg-soft);
+.collection-detail-backdrop-enter-from,
+.collection-detail-backdrop-leave-to {
+  opacity: 0;
 }
 
-.collection-detail__passive-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  margin: 0.6rem 0 0;
-  padding: 0;
-  list-style: none;
-  font-weight: 500;
+.collection-detail-pop-enter-active {
+  transition:
+    opacity 180ms ease,
+    transform 220ms var(--ease-out-quint);
 }
 
-.collection-detail__passive-list .figure {
-  display: inline-block;
-  min-width: 2.25rem;
-  color: var(--color-indigo);
+.collection-detail-pop-leave-active {
+  transition:
+    opacity 120ms ease,
+    transform 140ms ease-in;
 }
 
-.collection-detail__figures {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 1.25rem;
+.collection-detail-pop-enter-from,
+.collection-detail-pop-leave-to {
+  opacity: 0;
+  transform: translateY(0.35rem) scale(0.98);
 }
 
-.collection-detail__figures dd {
-  margin-top: 0.5rem;
+.collection-detail-sheet-enter-active {
+  transition: transform 280ms var(--ease-out-quint);
 }
 
-.collection-detail__action-hint {
-  margin: -0.2rem 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  color: var(--color-ink-muted);
+.collection-detail-sheet-leave-active {
+  transition: transform 170ms ease-in;
 }
 
-.collection-detail__action-cost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.collection-detail__action-cost span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.collection-detail__action-cost[data-gain='true'] {
-  color: var(--color-leaf);
-}
-
-.collection-detail__levels {
-  display: flex;
-  gap: 0.45rem;
-  padding-top: 0.35rem;
-  font-size: 1.5rem;
-  color: var(--color-vermilion);
-}
-
-@media (min-width: 1024px) {
-  .collection-layout {
-    grid-template-columns: minmax(0, 1fr) 19rem;
-    gap: 2.5rem;
-  }
-
-  .collection-detail {
-    position: sticky;
-    top: 5rem;
-  }
+.collection-detail-sheet-enter-from,
+.collection-detail-sheet-leave-to {
+  transform: translateY(100%);
 }
 </style>
