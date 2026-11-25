@@ -302,9 +302,8 @@ function buildEventPayload(node, player) {
       ...base,
       eventType: 'shop',
       offer: node.offer || [],
-      choices: [
-        { id: 'leave', labelFr: 'Quitter la boutique', labelEn: 'Leave the shop' },
-      ],
+      // Avance = CTA « étape suivante » côté UI (pas un bouton « quitter »).
+      choices: [{ id: 'leave', labelFr: 'Étape suivante', labelEn: 'Next step' }],
     };
   }
   if (eventType === 'rest' || node.type === 'rest') {

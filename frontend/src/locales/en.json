@@ -1552,6 +1552,7 @@
     "shopSharedStockHint": "Shared shop — stock is shared with your ally.",
     "branchXpTag": "XP ×{n}",
     "enterNode": "Enter step",
+    "nextStep": "Next step",
     "abandonRun": "Abandon run",
     "backToRun": "Back to run",
     "continueRun": "Continue run",

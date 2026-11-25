@@ -1552,6 +1552,7 @@
     "shopSharedStockHint": "Boutique commune — le stock est partagé avec votre allié.",
     "branchXpTag": "XP ×{n}",
     "enterNode": "Entrer dans l’étape",
+    "nextStep": "Étape suivante",
     "abandonRun": "Abandonner le parcours",
     "backToRun": "Retour au parcours",
     "continueRun": "Continuer le parcours",

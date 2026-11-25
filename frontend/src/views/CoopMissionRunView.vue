@@ -89,6 +89,20 @@ watch(
 
 const event = computed(() => run.value?.currentEvent || null);
 const isShop = computed(() => event.value?.eventType === 'shop');
+/** Leave shop is the primary next-step CTA, not a panel choice. */
+const eventChoices = computed(() =>
+  (event.value?.choices || []).filter(c => c.id !== 'leave')
+);
+const eventTone = computed(() => {
+  const type = event.value?.eventType;
+  if (type === 'shop') return 'gold';
+  if (type === 'rest' || type === 'mystery_heal') return 'leaf';
+  return 'sky';
+});
+const showEnterCta = computed(() => isHost.value && (!event.value || isShop.value));
+const enterCtaLabel = computed(() =>
+  isShop.value ? t('combat.nextStep') : t('coop.enterNode')
+);
 
 const isMyTurn = computed(() => {
   const playerId = combat.value?.player?.id ?? auth.user?.id;
@@ -210,8 +224,19 @@ function onReplaceToggle(slot, checked) {
   if (replaceSlot.value === slot) replaceSlot.value = null;
 }
 
-async function onEnter() {
+async function enterAvailableNode() {
+  if (isOver.value || run.value?.state !== 'in_progress') return;
+  if (event.value) return;
+  if (combat.value) return;
   await wrap(() => api.enterNode(runId.value));
+}
+
+async function onEnter() {
+  // Boutique ouverte : le chef avance (leave) puis enchaîne sur le nœud suivant.
+  if (isShop.value) {
+    await wrap(() => api.resolveEvent(runId.value, 'leave'));
+  }
+  await enterAvailableNode();
 }
 
 async function onNodeReady(ready = true) {
@@ -243,6 +268,8 @@ async function onDiscard(slot) {
 
 async function onResolve(choiceId) {
   await wrap(() => api.resolveEvent(runId.value, choiceId));
+  // Évite le double clic après carrefour / halte / mystère.
+  await enterAvailableNode();
 }
 
 async function onAbandon() {
@@ -391,20 +418,20 @@ function cancelConfirm() {
             </div>
 
             <div class="run-status__actions" data-testid="coop-run-actions">
-              <template v-if="!event">
-                <button
-                  v-if="isHost"
-                  type="button"
-                  class="btn-primary"
-                  :disabled="api.busy.value"
-                  data-testid="coop-enter-node"
-                  @click="onEnter"
-                >
-                  {{ t('coop.enterNode') }}
-                  <AppIcon name="arrow-right" size="1.1rem" />
-                </button>
-                <p v-else class="run-status__waiting">{{ t('coop.waitingHostEnter') }}</p>
-              </template>
+              <button
+                v-if="showEnterCta"
+                type="button"
+                class="btn-primary"
+                :disabled="api.busy.value || (isShop && !run.guestNodeReady)"
+                data-testid="coop-enter-node"
+                @click="onEnter"
+              >
+                {{ enterCtaLabel }}
+                <AppIcon name="arrow-right" size="1.1rem" />
+              </button>
+              <p v-else-if="isGuest && !event" class="run-status__waiting">
+                {{ t('coop.waitingHostEnter') }}
+              </p>
               <button
                 type="button"
                 class="btn-ghost"
@@ -484,7 +511,7 @@ function cancelConfirm() {
           <section
             v-if="event"
             class="run-event"
-            data-tone="sky"
+            :data-tone="eventTone"
             data-testid="coop-event"
           >
             <span class="run-event__shape" aria-hidden="true" />
@@ -535,7 +562,10 @@ function cancelConfirm() {
               </ul>
             </div>
 
-            <div class="run-event__choices">
+            <div
+              v-if="isGuest || eventChoices.length"
+              class="run-event__choices"
+            >
               <button
                 v-if="isGuest"
                 type="button"
@@ -548,7 +578,7 @@ function cancelConfirm() {
               </button>
               <template v-if="isHost">
                 <button
-                  v-for="choice in event.choices || []"
+                  v-for="choice in eventChoices"
                   :key="choice.id"
                   type="button"
                   class="btn-primary"
@@ -895,7 +925,10 @@ function cancelConfirm() {
   overflow: hidden;
   padding: 1.25rem 1.25rem 1.25rem 1.5rem;
   border-left: 6px solid var(--tone-fill);
-  background: var(--tone-tint);
+  /* Fond soft distinct des ItemBlock (--tone-tint) et de l’inventaire (--color-bg-card). */
+  background: var(--color-bg-soft);
+  outline: 1px solid color-mix(in srgb, var(--tone-fill) 28%, var(--color-line));
+  outline-offset: -1px;
   animation: rise-in 420ms var(--ease-out-quint) both;
 }
 
