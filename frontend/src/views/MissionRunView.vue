@@ -216,17 +216,30 @@ async function onEnter() {
 async function onChoice(choiceId) {
   localError.value = null
   try {
-    if (missions.currentEvent?.eventType === 'branch') {
+    const isBranch = missions.currentEvent?.eventType === 'branch'
+    if (isBranch) {
       await missions.chooseBranch(runId.value, choiceId)
-    } else {
-      await missions.resolveEvent(runId.value, choiceId)
+      // Carrefour : le joueur choisit le sentier, puis clique « Entrer » pour avancer.
+      return
     }
-    // Évite le double clic « choix puis étape suivante » (carrefour, halte, mystère…).
+    await missions.resolveEvent(runId.value, choiceId)
+    // Halte / mystère : un clic résout et entre dans le nœud suivant.
     await enterAvailableNode()
   } catch (e) {
     localError.value = e.message
   }
 }
+
+/** Id de l’étape disponible qui accueille le panneau événement. */
+const eventHostNodeId = computed(() => {
+  if (!missions.currentEvent) return null
+  const host = nodes.value.find(
+    (n) =>
+      n.status === 'available' &&
+      ['shop', 'merchant', 'rest', 'branch', 'mystery', 'event'].includes(n.type)
+  )
+  return host?.id || null
+})
 
 async function onBuy(itemId) {
   localError.value = null
@@ -406,6 +419,7 @@ function backToMissions(payload) {
               >
                 <ItemBlock
                   compact
+                  effect-popover
                   :empty="!slot.itemId"
                   :item="slot.itemId ? slot : null"
                   :name="slotLabel(slot)"
@@ -447,81 +461,84 @@ function backToMissions(payload) {
               </li>
             </ul>
           </section>
-
-          <section
-            v-if="missions.currentEvent"
-            class="run-event"
-            :data-tone="eventTone"
-            data-testid="run-event"
-          >
-            <span class="run-event__shape" aria-hidden="true" />
-            <h2 class="run-event__title">
-              {{ localizedName(missions.currentEvent, locale) }}
-            </h2>
-            <p class="run-event__desc">
-              {{ localizedDescription(missions.currentEvent, locale) }}
-            </p>
-
-            <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
-              <ul class="run-shop__offer">
-                <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
-                  <ItemBlock
-                    compact
-                    :item="item"
-                    :name="itemLabel(item)"
-                    :description="itemDesc(item)"
-                    :quantity="item.stock ?? 1"
-                    :meta="t('combat.shopPrice', { n: item.price })"
-                  >
-                    <template #actions>
-                      <button
-                        type="button"
-                        class="btn-secondary btn-sm"
-                        :disabled="
-                          missions.actionLoading ||
-                          (item.stock ?? 1) <= 0 ||
-                          (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
-                        "
-                        @click="onBuy(item.id)"
-                      >
-                        {{
-                          (item.stock ?? 1) <= 0
-                            ? t('combat.shopSoldOut')
-                            : t('combat.shopBuy')
-                        }}
-                      </button>
-                    </template>
-                  </ItemBlock>
-                </li>
-              </ul>
-            </div>
-
-            <div v-if="eventChoices.length" class="run-event__choices">
-              <button
-                v-for="choice in eventChoices"
-                :key="choice.id"
-                type="button"
-                class="btn-secondary"
-                :disabled="missions.actionLoading || choice.disabled"
-                @click="onChoice(choice.id)"
-              >
-                {{ localizedField(choice, 'label', locale) }}
-                <span v-if="choice.xpMult" class="run-event__xp">
-                  {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
-                </span>
-              </button>
-            </div>
-          </section>
         </aside>
 
         <div class="run-path" data-testid="run-stage">
           <MissionPathTree
             :nodes="nodes"
+            :detail-node-id="eventHostNodeId"
             :node-label="nodeLabel"
             :node-hint="nodeHint"
             :node-shape="nodeShape"
             :node-tone="nodeTone"
-          />
+          >
+            <template #node-detail>
+              <section
+                class="run-event"
+                :data-tone="eventTone"
+                data-testid="run-event"
+              >
+                <span class="run-event__shape" aria-hidden="true" />
+                <h2 class="run-event__title">
+                  {{ localizedName(missions.currentEvent, locale) }}
+                </h2>
+                <p class="run-event__desc">
+                  {{ localizedDescription(missions.currentEvent, locale) }}
+                </p>
+
+                <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
+                  <ul class="run-shop__offer">
+                    <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
+                      <ItemBlock
+                        compact
+                        effect-popover
+                        :item="item"
+                        :name="itemLabel(item)"
+                        :description="itemDesc(item)"
+                        :quantity="item.stock ?? 1"
+                        :meta="t('combat.shopPrice', { n: item.price })"
+                      >
+                        <template #actions>
+                          <button
+                            type="button"
+                            class="btn-secondary btn-sm"
+                            :disabled="
+                              missions.actionLoading ||
+                              (item.stock ?? 1) <= 0 ||
+                              (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
+                            "
+                            @click="onBuy(item.id)"
+                          >
+                            {{
+                              (item.stock ?? 1) <= 0
+                                ? t('combat.shopSoldOut')
+                                : t('combat.shopBuy')
+                            }}
+                          </button>
+                        </template>
+                      </ItemBlock>
+                    </li>
+                  </ul>
+                </div>
+
+                <div v-if="eventChoices.length" class="run-event__choices">
+                  <button
+                    v-for="choice in eventChoices"
+                    :key="choice.id"
+                    type="button"
+                    class="btn-secondary"
+                    :disabled="missions.actionLoading || choice.disabled"
+                    @click="onChoice(choice.id)"
+                  >
+                    {{ localizedField(choice, 'label', locale) }}
+                    <span v-if="choice.xpMult" class="run-event__xp">
+                      {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
+                    </span>
+                  </button>
+                </div>
+              </section>
+            </template>
+          </MissionPathTree>
         </div>
       </div>
     </template>
@@ -556,7 +573,7 @@ function backToMissions(payload) {
   color: var(--color-vermilion);
 }
 
-/* Mobile : PV → inventaire → étape active → parcours */
+/* Mobile : PV → inventaire → parcours (événement sous l’étape concernée) */
 .run-layout {
   display: grid;
   gap: 1.25rem;

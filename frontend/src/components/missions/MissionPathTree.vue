@@ -23,6 +23,8 @@ const props = defineProps({
   baseIndex: { type: Number, default: 1 },
   /** Profondeur visuelle (0 = tronc). */
   depth: { type: Number, default: 0 },
+  /** Id du nœud qui accueille le panneau événement (slot node-detail). */
+  detailNodeId: { type: String, default: null },
   nodeLabel: { type: Function, required: true },
   nodeHint: { type: Function, required: true },
   nodeShape: { type: Function, required: true },
@@ -140,7 +142,9 @@ function statusLabel(node) {
         :boss-tag="t('combat.bossTag')"
         :is-first="i === 0"
         :is-last="!branchNode && i === linearBeforeBranch.length - 1"
-      />
+      >
+        <slot v-if="detailNodeId === node.id" name="node-detail" :node="node" />
+      </MissionPathNode>
       <MissionPathNode
         v-if="branchNode"
         :node="branchNode"
@@ -152,7 +156,13 @@ function statusLabel(node) {
         :tone="nodeTone(branchNode)"
         :is-first="linearBeforeBranch.length === 0"
         :is-last="true"
-      />
+      >
+        <slot
+          v-if="detailNodeId === branchNode.id"
+          name="node-detail"
+          :node="branchNode"
+        />
+      </MissionPathNode>
     </ol>
 
     <div
@@ -204,12 +214,17 @@ function statusLabel(node) {
         :start-id="forkStartId"
         :base-index="nextBaseIndex"
         :depth="depth + 1"
+        :detail-node-id="detailNodeId"
         :node-label="nodeLabel"
         :node-hint="nodeHint"
         :node-shape="nodeShape"
         :node-tone="nodeTone"
         @preview-choice="emit('preview-choice', $event)"
-      />
+      >
+        <template #node-detail="slotProps">
+          <slot name="node-detail" v-bind="slotProps" />
+        </template>
+      </MissionPathTree>
     </div>
   </div>
 </template>

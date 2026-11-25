@@ -267,10 +267,24 @@ async function onDiscard(slot) {
 }
 
 async function onResolve(choiceId) {
+  const wasBranch = event.value?.eventType === 'branch';
   await wrap(() => api.resolveEvent(runId.value, choiceId));
-  // Évite le double clic après carrefour / halte / mystère.
+  // Carrefour : le chef choisit le sentier, puis clique « Entrer » pour avancer.
+  if (wasBranch) return;
+  // Halte / mystère : un clic résout et entre dans le nœud suivant.
   await enterAvailableNode();
 }
+
+/** Id de l’étape disponible qui accueille le panneau événement. */
+const eventHostNodeId = computed(() => {
+  if (!event.value) return null;
+  const host = nodes.value.find(
+    n =>
+      n.status === 'available' &&
+      ['shop', 'merchant', 'rest', 'branch', 'mystery', 'event'].includes(n.type)
+  );
+  return host?.id || null;
+});
 
 async function onAbandon() {
   if (!confirm(t('coop.confirmAbandon'))) return;
@@ -466,6 +480,7 @@ function cancelConfirm() {
               >
                 <ItemBlock
                   compact
+                  effect-popover
                   :empty="!slot.itemId"
                   :item="slot.itemId ? slot : null"
                   :name="slotLabel(slot)"
@@ -507,99 +522,109 @@ function cancelConfirm() {
               </li>
             </ul>
           </section>
-
-          <section
-            v-if="event"
-            class="run-event"
-            :data-tone="eventTone"
-            data-testid="coop-event"
-          >
-            <span class="run-event__shape" aria-hidden="true" />
-            <h2 class="run-event__title">{{ localizedName(event, locale) }}</h2>
-            <p class="run-event__desc">
-              {{ localizedField(event, 'description', locale) || localizedDescription(event, locale) }}
-            </p>
-
-            <p v-if="isGuest" class="run-event__ready-hint">
-              {{ run.guestNodeReady ? t('coop.youAreNodeReady') : t('coop.markNodeReady') }}
-            </p>
-            <p v-else class="run-event__ready-hint">
-              {{
-                run.guestNodeReady ? t('coop.guestNodeReady') : t('coop.waitingGuestNodeReady')
-              }}
-            </p>
-
-            <div v-if="isShop" class="run-shop" data-testid="coop-shop">
-              <p class="run-shop__hint">{{ t('combat.shopSharedStockHint') }}</p>
-              <ul class="run-shop__offer">
-                <li v-for="item in event.offer || []" :key="item.id" class="run-shop__item">
-                  <ItemBlock
-                    compact
-                    :item="item"
-                    :name="itemLabel(item)"
-                    :description="itemDesc(item)"
-                    :quantity="itemStock(item)"
-                    :meta="t('combat.shopPrice', { n: item.price })"
-                  >
-                    <template #actions>
-                      <button
-                        type="button"
-                        class="btn-secondary btn-sm"
-                        :disabled="
-                          api.busy.value ||
-                          itemStock(item) <= 0 ||
-                          (event.purse ?? player.purse ?? 0) < item.price
-                        "
-                        @click="onBuy(item.id)"
-                      >
-                        {{
-                          itemStock(item) <= 0 ? t('combat.shopSoldOut') : t('combat.shopBuy')
-                        }}
-                      </button>
-                    </template>
-                  </ItemBlock>
-                </li>
-              </ul>
-            </div>
-
-            <div
-              v-if="isGuest || eventChoices.length"
-              class="run-event__choices"
-            >
-              <button
-                v-if="isGuest"
-                type="button"
-                class="btn-primary"
-                data-testid="coop-node-ready"
-                :disabled="api.busy.value"
-                @click="onNodeReady(!run.guestNodeReady)"
-              >
-                {{ run.guestNodeReady ? t('coop.unready') : t('coop.ready') }}
-              </button>
-              <template v-if="isHost">
-                <button
-                  v-for="choice in eventChoices"
-                  :key="choice.id"
-                  type="button"
-                  class="btn-primary"
-                  :disabled="api.busy.value || !run.guestNodeReady"
-                  @click="onResolve(choice.id)"
-                >
-                  {{ localizedField(choice, 'label', locale) || choice.id }}
-                </button>
-              </template>
-            </div>
-          </section>
         </aside>
 
         <div class="run-path" data-testid="coop-run-stage">
           <MissionPathTree
             :nodes="nodes"
+            :detail-node-id="eventHostNodeId"
             :node-label="nodeLabel"
             :node-hint="nodeHint"
             :node-shape="nodeShape"
             :node-tone="nodeTone"
-          />
+          >
+            <template #node-detail>
+              <section
+                class="run-event"
+                :data-tone="eventTone"
+                data-testid="coop-event"
+              >
+                <span class="run-event__shape" aria-hidden="true" />
+                <h2 class="run-event__title">{{ localizedName(event, locale) }}</h2>
+                <p class="run-event__desc">
+                  {{
+                    localizedField(event, 'description', locale) ||
+                    localizedDescription(event, locale)
+                  }}
+                </p>
+
+                <p v-if="isGuest" class="run-event__ready-hint">
+                  {{ run.guestNodeReady ? t('coop.youAreNodeReady') : t('coop.markNodeReady') }}
+                </p>
+                <p v-else class="run-event__ready-hint">
+                  {{
+                    run.guestNodeReady
+                      ? t('coop.guestNodeReady')
+                      : t('coop.waitingGuestNodeReady')
+                  }}
+                </p>
+
+                <div v-if="isShop" class="run-shop" data-testid="coop-shop">
+                  <p class="run-shop__hint">{{ t('combat.shopSharedStockHint') }}</p>
+                  <ul class="run-shop__offer">
+                    <li v-for="item in event.offer || []" :key="item.id" class="run-shop__item">
+                      <ItemBlock
+                        compact
+                        effect-popover
+                        :item="item"
+                        :name="itemLabel(item)"
+                        :description="itemDesc(item)"
+                        :quantity="itemStock(item)"
+                        :meta="t('combat.shopPrice', { n: item.price })"
+                      >
+                        <template #actions>
+                          <button
+                            type="button"
+                            class="btn-secondary btn-sm"
+                            :disabled="
+                              api.busy.value ||
+                              itemStock(item) <= 0 ||
+                              (event.purse ?? player.purse ?? 0) < item.price
+                            "
+                            @click="onBuy(item.id)"
+                          >
+                            {{
+                              itemStock(item) <= 0
+                                ? t('combat.shopSoldOut')
+                                : t('combat.shopBuy')
+                            }}
+                          </button>
+                        </template>
+                      </ItemBlock>
+                    </li>
+                  </ul>
+                </div>
+
+                <div
+                  v-if="isGuest || eventChoices.length"
+                  class="run-event__choices"
+                >
+                  <button
+                    v-if="isGuest"
+                    type="button"
+                    class="btn-primary"
+                    data-testid="coop-node-ready"
+                    :disabled="api.busy.value"
+                    @click="onNodeReady(!run.guestNodeReady)"
+                  >
+                    {{ run.guestNodeReady ? t('coop.unready') : t('coop.ready') }}
+                  </button>
+                  <template v-if="isHost">
+                    <button
+                      v-for="choice in eventChoices"
+                      :key="choice.id"
+                      type="button"
+                      class="btn-primary"
+                      :disabled="api.busy.value || !run.guestNodeReady"
+                      @click="onResolve(choice.id)"
+                    >
+                      {{ localizedField(choice, 'label', locale) || choice.id }}
+                    </button>
+                  </template>
+                </div>
+              </section>
+            </template>
+          </MissionPathTree>
         </div>
       </div>
     </template>

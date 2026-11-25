@@ -28,6 +28,7 @@ defineProps({
         'run-node--mystery': node.type === 'mystery' && !node.revealed,
         'run-node--first': isFirst,
         'run-node--last': isLast,
+        'run-node--has-extra': $slots.default,
       },
     ]"
     :data-tone="tone"
@@ -38,47 +39,71 @@ defineProps({
         <span>{{ indexLabel }}</span>
       </span>
     </div>
-    <div class="run-node__body">
-      <p class="run-node__title">
-        {{ title }}
-        <span
-          v-if="node.boss && bossTag"
-          class="badge badge--solid run-node__boss"
-          data-tone="vermilion"
-        >
-          {{ bossTag }}
-        </span>
-      </p>
-      <p v-if="hint" class="run-node__hint">{{ hint }}</p>
+    <div class="run-node__header">
+      <div class="run-node__body">
+        <p class="run-node__title">
+          {{ title }}
+          <span
+            v-if="node.boss && bossTag"
+            class="badge badge--solid run-node__boss"
+            data-tone="vermilion"
+          >
+            {{ bossTag }}
+          </span>
+        </p>
+        <p v-if="hint" class="run-node__hint">{{ hint }}</p>
+      </div>
+      <span class="run-node__status">
+        <AppIcon
+          v-if="node.status === 'cleared'"
+          name="check"
+          size="0.95rem"
+          :stroke-width="2.5"
+        />
+        <AppIcon v-else-if="node.status === 'locked'" name="lock" size="0.9rem" />
+        {{ statusLabel }}
+      </span>
     </div>
-    <span class="run-node__status">
-      <AppIcon
-        v-if="node.status === 'cleared'"
-        name="check"
-        size="0.95rem"
-        :stroke-width="2.5"
-      />
-      <AppIcon v-else-if="node.status === 'locked'" name="lock" size="0.9rem" />
-      {{ statusLabel }}
-    </span>
+    <div v-if="$slots.default" class="run-node__extra">
+      <slot />
+    </div>
   </li>
 </template>
 
 <style scoped>
 .run-node {
   display: grid;
-  grid-template-columns: 3.25rem minmax(0, 1fr) auto;
-  gap: 0.9rem;
-  align-items: center;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 0.9rem;
+  row-gap: 0.75rem;
+  align-items: start;
   min-height: 4.5rem;
   padding: 0.5rem 1rem 0.5rem 0;
+}
+
+.run-node__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+  min-height: 3.4rem;
+  padding: 0.35rem 0;
+}
+
+.run-node__extra {
+  grid-column: 2;
+  min-width: 0;
 }
 
 .run-node__marker {
   position: relative;
   display: grid;
+  grid-row: 1 / -1;
   align-self: stretch;
-  place-items: center;
+  /* Aligne la puce sur l’en-tête, même si un panneau événement allonge le nœud. */
+  place-items: start center;
+  padding-top: calc(0.35rem + (3.4rem - 2.25rem) / 2);
   z-index: 1;
 }
 
@@ -118,12 +143,16 @@ defineProps({
   background: var(--color-leaf-fill);
 }
 
+/*
+ * Transition franchi → futur au centre de la puce (pas au milieu du panneau
+ * événement éventuel). padding-top marqueur + demi-puce ≈ 2.05rem.
+ */
 .run-node--available:not(.run-node--last):not(.run-node--first) .run-node__marker::before {
   background: linear-gradient(
     to bottom,
     var(--color-leaf-fill) 0,
-    var(--color-leaf-fill) 50%,
-    color-mix(in srgb, var(--color-ink-faint) 70%, transparent) 50%,
+    var(--color-leaf-fill) 2.05rem,
+    color-mix(in srgb, var(--color-ink-faint) 70%, transparent) 2.05rem,
     color-mix(in srgb, var(--color-ink-faint) 70%, transparent) 100%
   );
 }
@@ -245,19 +274,19 @@ defineProps({
 }
 
 @media (max-width: 479px) {
-  .run-node {
-    grid-template-columns: 3.25rem minmax(0, 1fr);
+  .run-node__header {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto;
-  }
-
-  /* Le marqueur (et son rail) couvre toute la hauteur du nœud, y compris le statut. */
-  .run-node__marker {
-    grid-row: 1 / span 2;
+    gap: 0.25rem;
   }
 
   .run-node__status {
-    grid-column: 2;
-    margin-top: -0.3rem;
+    margin-top: -0.1rem;
+  }
+
+  .run-node--has-extra .run-node__marker,
+  .run-node__marker {
+    padding-top: calc(0.35rem + 0.55rem);
   }
 }
 </style>
