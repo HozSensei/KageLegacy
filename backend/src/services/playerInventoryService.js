@@ -276,6 +276,14 @@ export async function moveItem(userId, itemKey, { from, to, quantity = 1 } = {})
   } finally {
     connection.release();
   }
+  if (to === 'pouch') {
+    try {
+      const { onOnboardingAction } = await import('./onboardingService.js');
+      await onOnboardingAction(userId, 'pouch_item');
+    } catch {
+      /* optionnel */
+    }
+  }
   return getInventory(userId);
 }
 
@@ -305,6 +313,14 @@ export async function setPouchRyos(userId, targetStake) {
       [delta, target, userId],
     );
     await connection.commit();
+    if (target > 0) {
+      try {
+        const { onOnboardingAction } = await import('./onboardingService.js');
+        await onOnboardingAction(userId, 'pouch_ryos');
+      } catch {
+        /* optionnel */
+      }
+    }
     return { pouchRyos: target, ryos: account - delta, stakes: PURSE_STAKES };
   } catch (err) {
     await connection.rollback();

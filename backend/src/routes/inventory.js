@@ -10,6 +10,7 @@ import {
   revealSealedFromChest,
   openBoosterFromChest,
 } from '../services/playerInventoryService.js';
+import { ensureStarterInventory } from '../services/starterLoadoutService.js';
 
 const router = Router();
 
@@ -35,6 +36,11 @@ router.get('/', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
+    try {
+      await ensureStarterInventory(user.id);
+    } catch {
+      /* best-effort : bandage starter pour le tuto */
+    }
     const inventory = await getInventory(user.id);
     res.json({ ...inventory, stakes: PURSE_STAKES });
   } catch (error) {
