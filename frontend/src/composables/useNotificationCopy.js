@@ -1,6 +1,10 @@
 import { useI18n } from 'vue-i18n';
 import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
 import { formatGrants } from '../utils/formatRewardLines.js';
+import {
+  gainTitleKeyFromGrants,
+  notificationCategory,
+} from '../utils/notificationCategories.js';
 import { villageRewardsHash } from './useVillageRewards.js';
 
 /** Libellés d’affichage pour l’inbox TCG (+ entrée Village). */
@@ -40,10 +44,16 @@ export function useNotificationCopy() {
         return t('notifications.bugReportRewardTitle');
       case 'gain': {
         const source = note.payload?.source;
+        // Sources déjà sémantiques (pas « mission terminée » générique).
         if (source === 'onboarding') return t('notifications.gainOnboardingTitle');
         if (source === 'battle_pass') return t('notifications.gainBattlePassTitle');
         if (source === 'quest') return t('notifications.gainQuestTitle');
         if (source === 'achievement') return t('notifications.gainAchievementTitle');
+
+        // Différencier par type de grant (objet, XP, Ryos, …).
+        const grantKey = gainTitleKeyFromGrants(note.payload?.grants);
+        if (grantKey) return t(grantKey);
+
         if (source === 'mission') return t('notifications.gainMissionTitle');
         if (source === 'coop') return t('notifications.gainCoopTitle');
         if (source === 'combat') return t('notifications.gainCombatTitle');
@@ -54,6 +64,10 @@ export function useNotificationCopy() {
       default:
         return t('notifications.genericTitle');
     }
+  }
+
+  function category(note) {
+    return notificationCategory(note);
   }
 
   function body(note) {
@@ -184,5 +198,5 @@ export function useNotificationCopy() {
     }
   }
 
-  return { title, body, linkPath, linkLabel };
+  return { title, body, category, linkPath, linkLabel };
 }
