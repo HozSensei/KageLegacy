@@ -23,8 +23,8 @@ export const CLAN_LEGENDARY_CARDS = [
     ],
     heldEffect: { type: 'evade_percent', value: 15 },
     passive: { intelligence: 8, genjutsu: 6, vitesse: 2 },
-    descriptionFr: 'Piochez 2. Applique Faiblesse (2 tours). En main ou réservé : +15 % esquive.',
-    descriptionEn: 'Draw 2. Apply Weak (2 turns). In hand or reserved: +15% evade.',
+    descriptionFr: 'Piochez 2. Applique Faiblesse (2 tours). En main : +15 % esquive.',
+    descriptionEn: 'Draw 2. Apply Weak (2 turns). In hand: +15% evade.',
     loreFr: 'Sceau de lignée des stratèges de l’ombre — l’esprit guide chaque pli du deck.',
     loreEn: 'Lineage seal of the shadow strategists — the mind guides every fold of the deck.',
     upgrades: {
@@ -49,8 +49,8 @@ export const CLAN_LEGENDARY_CARDS = [
     heldEffect: { type: 'art_damage_percent', statType: 'ninjutsu', value: 20 },
     passive: { ninjutsu: 8, genjutsu: 5, intelligence: 3 },
     descriptionFr:
-      'Inflige 12 dégâts, Brûlure (2 tours). Piochez 1. En main ou réservé : +20 % dégâts Ninjutsu.',
-    descriptionEn: 'Deal 12 damage, Burn (2 turns). Draw 1. In hand or reserved: +20% Ninjutsu damage.',
+      'Inflige 12 dégâts, Brûlure (2 tours). Piochez 1. En main : +20 % dégâts Ninjutsu.',
+    descriptionEn: 'Deal 12 damage, Burn (2 turns). Draw 1. In hand: +20% Ninjutsu damage.',
     loreFr: 'Le sang écarlate du clan Benigiri scelle le feu dans chaque technique.',
     loreEn: 'Benigiri crimson blood seals fire into every technique.',
     upgrades: {
@@ -74,8 +74,8 @@ export const CLAN_LEGENDARY_CARDS = [
     heldEffect: { type: 'art_damage_percent', statType: 'taijutsu', value: 20 },
     passive: { taijutsu: 7, vitesse: 7 },
     descriptionFr:
-      'Inflige 10 dégâts deux fois. Vulnérable. En main ou réservé : +20 % dégâts Taijutsu.',
-    descriptionEn: 'Deal 10 damage twice. Vulnerable. In hand or reserved: +20% Taijutsu damage.',
+      'Inflige 10 dégâts deux fois. Vulnérable. En main : +20 % dégâts Taijutsu.',
+    descriptionEn: 'Deal 10 damage twice. Vulnerable. In hand: +20% Taijutsu damage.',
     loreFr: 'Vue perçante et pas légers — la lignée Kazamine frappe avant l’ombre.',
     loreEn: 'Keen sight and light steps — the Kazamine line strikes before the shadow.',
     upgrades: {
@@ -98,9 +98,9 @@ export const CLAN_LEGENDARY_CARDS = [
     heldEffect: { type: 'starting_block', value: 6 },
     passive: { taijutsu: 6, maxHp: 14, medicine: 3 },
     descriptionFr:
-      'Gagne 14 d’armure. +15 % dégâts Taijutsu (2 tours). En main ou réservé : +6 armure au début du tour.',
+      'Gagne 14 d’armure. +15 % dégâts Taijutsu (2 tours). En main : +6 armure au début du tour.',
     descriptionEn:
-      'Gain 14 block. +15% Taijutsu damage (2 turns). In hand or reserved: +6 block at turn start.',
+      'Gain 14 block. +15% Taijutsu damage (2 turns). In hand: +6 block at turn start.',
     loreFr: 'Corps massifs et appétit de fer — le clan Kumatani ancre le front.',
     loreEn: 'Massive frames and iron appetite — Clan Kumatani anchors the front line.',
     upgrades: {
@@ -124,9 +124,9 @@ export const CLAN_LEGENDARY_CARDS = [
     heldEffect: { type: 'gain_chakra', value: 2 },
     passive: { genjutsu: 8, intelligence: 7 },
     descriptionFr:
-      'Faiblesse (2 tours), Vulnérable. Piochez 1. En main ou réservé : +2 Chakra au début du tour.',
+      'Faiblesse (2 tours), Vulnérable. Piochez 1. En main : +2 Chakra au début du tour.',
     descriptionEn:
-      'Weak (2 turns), Vulnerable. Draw 1. In hand or reserved: +2 Chakra at turn start.',
+      'Weak (2 turns), Vulnerable. Draw 1. In hand: +2 Chakra at turn start.',
     loreFr: 'Murmures de neige — le clan Yukisawa lit les pensées avant qu’elles naissent.',
     loreEn: 'Snow whispers — Clan Yukisawa reads thoughts before they form.',
     upgrades: {
@@ -146,8 +146,8 @@ export const CLAN_LEGENDARY_CARDS = [
     effects: [{ type: 'draw', value: 1 }],
     heldEffect: { type: 'heal_percent', value: 20 },
     passive: { ninjutsu: 4, taijutsu: 4, genjutsu: 4, medicine: 4 },
-    descriptionFr: 'Restaure 6 PV. Piochez 1. En main ou réservé : +20 % soins.',
-    descriptionEn: 'Restore 6 HP. Draw 1. In hand or reserved: +20% healing.',
+    descriptionFr: 'Restaure 6 PV. Piochez 1. En main : +20 % soins.',
+    descriptionEn: 'Restore 6 HP. Draw 1. In hand: +20% healing.',
     loreFr: 'Maîtres polyvalents — la lignée Nagihara forme chaque voie avec la même exigence.',
     loreEn: 'Versatile masters — the Nagihara line trains every path with the same rigor.',
     upgrades: {

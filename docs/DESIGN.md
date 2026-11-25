@@ -49,7 +49,7 @@ Effet interne : `reduce_next_card_cost`.
 - consommé par la prochaine carte jouée avec succès ;
 - utilisable comme effet direct ou conditionnel.
 
-## Héritages en main ou réserve
+## Héritages en main
 
 Un héritage porte un `heldEffect` :
 
@@ -62,7 +62,7 @@ Un héritage porte un `heldEffect` :
 | Yukisawa  | +2 Chakra au début du tour |
 | Nagihara  | +20 % soins                |
 
-La solution évite une cinquième voie active et redonne aux lignées une identité de carte conservée. Une carte réservée compte, une carte jouée ou défaussée ne fournit plus son bonus après résolution.
+La solution évite une cinquième voie active et redonne aux lignées une identité de carte conservée. Seule une carte en main compte ; une carte jouée ou défaussée ne fournit plus son bonus après résolution.
 
 ## État du chantier catalogue
 

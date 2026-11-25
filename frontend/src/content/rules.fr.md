@@ -135,7 +135,7 @@ Certaines cartes légendaires de clan portent un **héritage** : un effet actif 
 | **Yukisawa** | +2 Chakra au début de votre tour |
 | **Nagihara** | +20 % de soins |
 
-Chakra et armure d'héritage sont accordés **une fois** au début de votre tour. Les bonus en pourcentage s'appliquent tant que la carte reste en main (ou en réserve). Deux références à la même copie ne comptent qu'une fois. L'esquive apportée par les héritages est plafonnée à **75 %**.
+Chakra et armure d'héritage sont accordés **une fois** au début de votre tour. Les bonus en pourcentage s'appliquent tant que la carte reste en main. Deux références à la même copie ne comptent qu'une fois. L'esquive apportée par les héritages est plafonnée à **75 %**.
 
 ### Raretés
 

@@ -212,10 +212,5 @@ assert.equal(
   ).total,
   12
 );
-const reservedEvade = {
-  ...player,
-  reserveCard: { instanceId: 'held-genjutsu', heldEffect: { type: 'evade_percent', value: 15 } },
-};
-assert.equal(reservedEvade.reserveCard.heldEffect.value, 15);
 assert.throws(() => play({ ...player, chakra: 0, nextCardCostReduction: 2 }, { cost: 3 }));
 console.log('Card combo tests passed');

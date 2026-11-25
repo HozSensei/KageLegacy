@@ -2,8 +2,6 @@ const ART_KEYS = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
 
 function heldCards(player, playedCard = null) {
   const cards = [...(player.hand || [])];
-  if (player.reserveCard) cards.push(player.reserveCard);
-  if (player.reservedCard) cards.push(player.reservedCard);
   const unique = new Map();
   for (const card of cards) {
     if (!card?.heldEffect) continue;
