@@ -168,6 +168,7 @@ function nodeLabel(node) {
 }
 
 function nodeHint(node) {
+  if (node.status === 'skipped') return t('combat.nodeSkippedHint');
   if (node.type === 'shop' || node.type === 'merchant') return t('combat.nodeShopHint');
   if (node.type === 'rest') return t('combat.nodeRestHint');
   if (node.type === 'branch') return t('combat.nodeBranchHint');

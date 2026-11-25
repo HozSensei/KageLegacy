@@ -61,6 +61,11 @@ defineProps({
           :stroke-width="2.5"
         />
         <AppIcon v-else-if="node.status === 'locked'" name="lock" size="0.9rem" />
+        <AppIcon
+          v-else-if="node.status === 'skipped'"
+          name="lock"
+          size="0.9rem"
+        />
         {{ statusLabel }}
       </span>
     </div>
@@ -225,6 +230,16 @@ defineProps({
   color: var(--color-on-ink);
 }
 
+.run-node--skipped .run-node__index {
+  background: color-mix(in srgb, var(--color-ink-faint) 28%, var(--color-bg));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--color-ink-faint) 55%, transparent);
+  color: var(--color-ink-faint);
+}
+
+.run-node--skipped .run-node__marker::before {
+  background: color-mix(in srgb, var(--color-ink-faint) 45%, transparent);
+}
+
 .run-node__title {
   display: flex;
   flex-wrap: wrap;
@@ -241,6 +256,14 @@ defineProps({
 
 .run-node--locked .run-node__title {
   color: var(--color-ink-muted);
+}
+
+.run-node--skipped .run-node__title {
+  color: var(--color-ink-faint);
+}
+
+.run-node--skipped .run-node__hint {
+  color: var(--color-ink-faint);
 }
 
 .run-node__hint {
@@ -271,6 +294,10 @@ defineProps({
 
 .run-node--failed .run-node__status {
   color: var(--color-vermilion);
+}
+
+.run-node--skipped .run-node__status {
+  color: var(--color-ink-faint);
 }
 
 @media (max-width: 479px) {

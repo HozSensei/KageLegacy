@@ -32,15 +32,16 @@ export function collectSubtreeIds(nodesById, startId, { includeSkipped = false }
 
 /**
  * Segment linéaire depuis startId jusqu’à un carrefour (inclus) ou la fin.
+ * `includeSkipped` : parcourir aussi les nœuds écartés (chemin non pris, affiché grisé).
  */
-export function walkSegment(nodesById, startId) {
+export function walkSegment(nodesById, startId, { includeSkipped = false } = {}) {
   const segment = [];
   let id = startId;
   const seen = new Set();
   while (id && nodesById[id] && !seen.has(id)) {
     seen.add(id);
     const node = nodesById[id];
-    if (node.status === 'skipped') break;
+    if (!includeSkipped && node.status === 'skipped') break;
     segment.push(node);
     if (node.type === 'branch') break;
     id = node.nextNodeId || null;
@@ -89,18 +90,21 @@ export function resolvePreviewChoiceId(branchNode, nodesById, previewMap = {}) {
   return branchNode.choices?.[0]?.id || null;
 }
 
-/** Choix encore prévisualisables (sous-arbre non entièrement skipped). */
+/**
+ * Choix visibles sur la timeline.
+ * Avant choix : sous-arbres encore vivants (aperçu).
+ * Après choix : tous les chemins (pris + écartés), pour les garder affichés.
+ */
 export function visibleBranchChoices(branchNode, nodesById) {
   if (!branchNode || branchNode.type !== 'branch') return [];
   const choices = branchNode.choices || [];
   if (branchNode.chosen) {
-    const chosen = choiceById(branchNode, branchNode.chosen);
-    return chosen ? [chosen] : choices;
+    return choices;
   }
   const alive = choices.filter(c => collectSubtreeIds(nodesById, c.nextNodeId).size > 0);
   return alive.length ? alive : choices;
 }
 
-export function countSubtreeSteps(nodesById, startId) {
-  return collectSubtreeIds(nodesById, startId).size;
+export function countSubtreeSteps(nodesById, startId, opts) {
+  return collectSubtreeIds(nodesById, startId, opts).size;
 }
