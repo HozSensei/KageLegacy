@@ -124,11 +124,13 @@ function onOpen(event) {
   content: '';
   position: absolute;
   inset: 0;
+  /* Voile sombre à gauche pour lisibilité du nom / lvl / rang sur fonds clairs. */
   background: linear-gradient(
     to right,
-    rgb(0 0 0 / 0.28) 0%,
-    rgb(0 0 0 / 0.12) 40%,
-    transparent 78%
+    rgb(0 0 0 / 0.72) 0%,
+    rgb(0 0 0 / 0.52) 32%,
+    rgb(0 0 0 / 0.22) 58%,
+    transparent 82%
   );
 }
 
@@ -170,6 +172,7 @@ function onOpen(event) {
   font-size: 1.05rem;
   font-weight: 800;
   overflow-wrap: anywhere;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.55);
 }
 
 .lb-player__level,
