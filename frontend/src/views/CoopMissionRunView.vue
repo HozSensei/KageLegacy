@@ -172,7 +172,11 @@ function nodeHint(node) {
   if (node.type === 'shop' || node.type === 'merchant') return t('combat.nodeShopHint');
   if (node.type === 'rest') return t('combat.nodeRestHint');
   if (node.type === 'branch') return t('combat.nodeBranchHint');
-  return localizedDescription(node, locale.value) || node.templateId || '';
+  if (node.type === 'combat') {
+    // Nom localisé enrichi côté API — jamais le slug templateId.
+    return localizedName(node, locale.value) || '';
+  }
+  return localizedDescription(node, locale.value) || '';
 }
 
 function nodeShape(node) {
@@ -624,7 +628,14 @@ function cancelConfirm() {
                       :disabled="api.busy.value || !run.guestNodeReady"
                       @click="onResolve(choice.id)"
                     >
-                      {{ localizedField(choice, 'label', locale) || choice.id }}
+                      {{
+                        localizedField(choice, 'label', locale) ||
+                        (choice.lengthHint === 'short'
+                          ? t('combat.pathShort')
+                          : choice.lengthHint === 'long'
+                            ? t('combat.pathLong')
+                            : t('combat.pathChoiceFallback'))
+                      }}
                     </button>
                   </template>
                 </div>

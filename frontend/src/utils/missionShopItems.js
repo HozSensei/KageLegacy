@@ -37,7 +37,10 @@ export function shopItemName(itemOrId, { t, locale }) {
     const fromApi = localizedName(itemOrId, locale);
     if (fromApi) return fromApi;
   }
-  return t(`combat.shopItems.${id}`, id);
+  const key = `combat.shopItems.${id}`;
+  const label = t(key);
+  // Ne pas renvoyer le slug / la clé i18n brute.
+  return label === key ? t('combat.shopItemFallback') : label;
 }
 
 /**

@@ -12,6 +12,7 @@ import {
   HARD_MODE_DIFFICULTY_MULT,
 } from '../config/missionPathConfig.js';
 import { BRANCH_XP_MULT, rollShopOffer } from '../config/missionRunEconomy.js';
+import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
 
 function pickWeighted(weights, rng = Math.random) {
   const entries = Object.entries(weights);
@@ -33,12 +34,21 @@ function shuffleCopy(list, rng = Math.random) {
   return arr;
 }
 
+function enemyNames(templateId) {
+  const tpl = ENEMY_TEMPLATES[templateId];
+  if (!tpl) return { nameFr: null, nameEn: null };
+  return { nameFr: tpl.nameFr || null, nameEn: tpl.nameEn || null };
+}
+
 function makeCombatNode(id, fight, status = 'locked') {
+  const names = enemyNames(fight.templateId);
   return {
     id,
     type: 'combat',
     status,
     templateId: fight.templateId,
+    nameFr: names.nameFr,
+    nameEn: names.nameEn,
     difficulty: fight.difficulty || 1,
     boss: Boolean(fight.boss),
     branch: fight.branch || null,
