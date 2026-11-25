@@ -922,6 +922,7 @@ async function completeRunVictory(row) {
     const deposits = collectRunInventoryDeposits(player);
     const inventoryDeposits = await depositRunLootToPouch(row.user_id, deposits);
     rewards.purseReturned = purseReturn;
+    rewards.inventoryRejected = inventoryDeposits.rejected || [];
     rewards.shopCards = [];
     rewards.lootCards = buildLootCards(rewards.card);
     rewards.inventoryDeposits = inventoryDeposits;

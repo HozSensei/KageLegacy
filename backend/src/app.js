@@ -77,9 +77,9 @@ app.use((err, _req, res, _next) => {
   const status = err.statusCode || (err.name === 'ZodError' ? 400 : 500);
   const message =
     err.name === 'ZodError' ? formatZodError(err) : err.message || 'Erreur interne du serveur';
-  res.status(status).json({
-    error: message,
-  });
+  const payload = { error: message };
+  if (err.code) payload.code = err.code;
+  res.status(status).json(payload);
 });
 
 export default app;

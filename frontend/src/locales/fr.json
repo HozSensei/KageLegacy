@@ -2320,6 +2320,7 @@
     "chestHint": "Stockage sûr. Seuls les parchemins scellés et boosters s’ouvrent ici — les consommables s’utilisent en mission.",
     "chestEmpty": "Coffre vide.",
     "chestFull": "Coffre plein — plus d’emplacement libre.",
+    "chestFullClaim": "Coffre plein — libérez de la place (ouvrez un booster ou déplacez des objets) avant de réclamer cette récompense.",
     "pouchTitle": "Poche",
     "pouchHint": "Emportée en mission. Perdue en cas d’échec ou d’abandon.",
     "pouchEmpty": "Poche vide.",

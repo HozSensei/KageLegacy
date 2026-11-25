@@ -201,7 +201,10 @@ async function claimQuest(questId) {
   claimMessage.value = null;
   const result = await battlePass.claimQuest(questId);
   if (!result) {
-    claimMessage.value = battlePass.error || t('hub.questClaimError');
+    claimMessage.value =
+      battlePass.errorCode === 'INVENTORY_FULL'
+        ? t('inventory.chestFullClaim')
+        : battlePass.error || t('hub.questClaimError');
     return;
   }
   const xpGained = result.xp?.xpGained || 0;

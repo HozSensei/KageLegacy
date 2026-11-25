@@ -26,8 +26,10 @@ const opening = ref(false);
 /** Pages coffre débloquées — extensible plus tard (rachat de page). */
 const chestPages = ref(1);
 
-const chestCapacity = computed(() => getChestCapacity({ pages: chestPages.value }));
-const pouchCapacity = computed(() => POUCH_CAPACITY);
+const chestCapacity = computed(
+  () => Number(inventory.chestCapacity) || getChestCapacity({ pages: chestPages.value })
+);
+const pouchCapacity = computed(() => Number(inventory.pouchCapacity) || POUCH_CAPACITY);
 
 const chestEmptySlots = computed(() =>
   emptySlotCount(inventory.chest.length, chestCapacity.value)
@@ -62,27 +64,19 @@ function itemDesc(entry) {
   return localizedDescription(entry, locale.value) || '';
 }
 
-/** Déjà présent dans la destination → pile, pas de nouveau slot. */
-function wouldOccupyNewSlot(entry, destination) {
-  const list = destination === 'pouch' ? inventory.pouch : inventory.chest;
-  return !list.some((e) => e.itemKey === entry.itemKey);
-}
-
-function canMoveToPouch(entry) {
+function canMoveToPouch() {
   if (inventory.pouchLocked || inventory.actionLoading) return false;
-  if (!wouldOccupyNewSlot(entry, 'pouch')) return true;
   return !pouchFull.value;
 }
 
-function canMoveToChest(entry) {
+function canMoveToChest() {
   if (inventory.pouchLocked || inventory.actionLoading) return false;
-  if (!wouldOccupyNewSlot(entry, 'chest')) return true;
   return !chestFull.value;
 }
 
 async function onMove(entry, from, to) {
-  if (to === 'pouch' && !canMoveToPouch(entry)) return;
-  if (to === 'chest' && !canMoveToChest(entry)) return;
+  if (to === 'pouch' && !canMoveToPouch()) return;
+  if (to === 'chest' && !canMoveToChest()) return;
   try {
     await inventory.moveItem(entry.itemKey, { from, to, quantity: 1 });
   } catch {
@@ -165,7 +159,6 @@ function onRevealDone() {
             :item="entry"
             :name="itemName(entry)"
             :description="itemDesc(entry)"
-            :quantity="entry.quantity"
             data-testid="inventory-chest-item"
           >
             <template #actions>
@@ -181,12 +174,8 @@ function onRevealDone() {
               <button
                 type="button"
                 class="btn-secondary btn-sm"
-                :disabled="!canMoveToPouch(entry)"
-                :title="
-                  pouchFull && wouldOccupyNewSlot(entry, 'pouch')
-                    ? t('inventory.pouchFull')
-                    : undefined
-                "
+                :disabled="!canMoveToPouch()"
+                :title="pouchFull ? t('inventory.pouchFull') : undefined"
                 @click="onMove(entry, 'chest', 'pouch')"
               >
                 {{ t('inventory.toPouch') }}
@@ -242,19 +231,14 @@ function onRevealDone() {
             :item="entry"
             :name="itemName(entry)"
             :description="itemDesc(entry)"
-            :quantity="entry.quantity"
             data-testid="inventory-pouch-item"
           >
             <template #actions>
               <button
                 type="button"
                 class="btn-secondary btn-sm"
-                :disabled="!canMoveToChest(entry)"
-                :title="
-                  chestFull && wouldOccupyNewSlot(entry, 'chest')
-                    ? t('inventory.chestFull')
-                    : undefined
-                "
+                :disabled="!canMoveToChest()"
+                :title="chestFull ? t('inventory.chestFull') : undefined"
                 @click="onMove(entry, 'pouch', 'chest')"
               >
                 {{ t('inventory.toChest') }}

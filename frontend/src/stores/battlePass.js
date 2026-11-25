@@ -14,6 +14,7 @@ export const useBattlePassStore = defineStore('battlePass', () => {
   const loading = ref(false);
   const actionLoading = ref(false);
   const error = ref(null);
+  const errorCode = ref(null);
   const lastClaim = ref(null);
 
   const currentLevel = computed(() => progress.value?.currentLevel ?? 0);
@@ -92,6 +93,7 @@ export const useBattlePassStore = defineStore('battlePass', () => {
   async function claimReward(level, track = 'free') {
     actionLoading.value = true;
     error.value = null;
+    errorCode.value = null;
     lastClaim.value = null;
     try {
       const res = await fetch(`${API_BASE}/api/battle-pass/claim/${level}`, {
@@ -101,12 +103,17 @@ export const useBattlePassStore = defineStore('battlePass', () => {
         body: JSON.stringify({ track }),
       });
       const { ok, body } = await parseApiResponse(res);
-      if (!ok) throw new Error(await readApiError(res, body));
+      if (!ok) {
+        const err = new Error(await readApiError(res, body));
+        err.code = body?.code || null;
+        throw err;
+      }
       lastClaim.value = body;
       await fetchBattlePass();
       return body;
     } catch (e) {
       error.value = e.message;
+      errorCode.value = e.code || null;
       return null;
     } finally {
       actionLoading.value = false;
@@ -138,17 +145,23 @@ export const useBattlePassStore = defineStore('battlePass', () => {
   async function claimQuest(questId) {
     actionLoading.value = true;
     error.value = null;
+    errorCode.value = null;
     try {
       const res = await fetch(`${API_BASE}/api/battle-pass/quests/${questId}/claim`, {
         method: 'POST',
         credentials: 'include',
       });
       const { ok, body } = await parseApiResponse(res);
-      if (!ok) throw new Error(await readApiError(res, body));
+      if (!ok) {
+        const err = new Error(await readApiError(res, body));
+        err.code = body?.code || null;
+        throw err;
+      }
       await Promise.all([fetchBattlePass(), fetchQuests()]);
       return body;
     } catch (e) {
       error.value = e.message;
+      errorCode.value = e.code || null;
       return null;
     } finally {
       actionLoading.value = false;
@@ -165,6 +178,7 @@ export const useBattlePassStore = defineStore('battlePass', () => {
     loading,
     actionLoading,
     error,
+    errorCode,
     lastClaim,
     currentLevel,
     currentXp,

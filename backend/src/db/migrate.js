@@ -121,8 +121,8 @@ async function ensureInventoryTables(connection) {
         \`created_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
         \`updated_at\` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (\`id\`),
-        UNIQUE KEY \`uq_user_inv_item_loc\` (\`user_id\`,\`item_key\`,\`location\`),
         KEY \`idx_user_inv_user_loc\` (\`user_id\`,\`location\`),
+        KEY \`idx_user_inv_user_item_loc\` (\`user_id\`,\`item_key\`,\`location\`),
         CONSTRAINT \`fk_user_inv_user\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE,
         CONSTRAINT \`chk_user_inv_qty\` CHECK ((\`quantity\` >= 1))
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`,
@@ -162,6 +162,61 @@ async function ensureInventoryTables(connection) {
     if (rows.length > 0) continue;
     await connection.query(ddl);
     console.log(`🔧 Table ajoutée : ${table}`);
+  }
+
+  await ensureInventoryUnstacked(connection);
+}
+
+/**
+ * 1 objet = 1 slot : éclate les piles qty>1 et retire l’UNIQUE (user, item, location).
+ */
+async function ensureInventoryUnstacked(connection) {
+  const [tables] = await connection.query(
+    `SELECT 1 FROM information_schema.tables
+     WHERE table_schema = DATABASE() AND table_name = 'user_inventory_items' LIMIT 1`,
+  );
+  if (tables.length === 0) return;
+
+  // Retirer l’UNIQUE avant d’insérer plusieurs lignes du même item_key.
+  const [uniq] = await connection.query(
+    `SELECT 1 FROM information_schema.statistics
+     WHERE table_schema = DATABASE() AND table_name = 'user_inventory_items'
+       AND index_name = 'uq_user_inv_item_loc' LIMIT 1`,
+  );
+  if (uniq.length) {
+    await connection.query('ALTER TABLE `user_inventory_items` DROP INDEX `uq_user_inv_item_loc`');
+    console.log('🔧 Index retiré : uq_user_inv_item_loc (1 objet = 1 slot)');
+  }
+
+  const [stacked] = await connection.query(
+    `SELECT id, user_id, item_key, location, quantity, meta_json
+     FROM user_inventory_items WHERE quantity > 1`,
+  );
+  for (const row of stacked) {
+    const qty = Math.max(1, Number(row.quantity) || 1);
+    for (let i = 1; i < qty; i += 1) {
+      await connection.query(
+        `INSERT INTO user_inventory_items (user_id, item_key, location, quantity, meta_json)
+         VALUES (?, ?, ?, 1, ?)`,
+        [row.user_id, row.item_key, row.location, row.meta_json],
+      );
+    }
+    await connection.query('UPDATE user_inventory_items SET quantity = 1 WHERE id = ?', [row.id]);
+  }
+  if (stacked.length) {
+    console.log(`🔧 Inventaire : ${stacked.length} pile(s) éclatée(s) en slots unitaires`);
+  }
+
+  const [itemIdx] = await connection.query(
+    `SELECT 1 FROM information_schema.statistics
+     WHERE table_schema = DATABASE() AND table_name = 'user_inventory_items'
+       AND index_name = 'idx_user_inv_user_item_loc' LIMIT 1`,
+  );
+  if (itemIdx.length === 0) {
+    await connection.query(
+      'ALTER TABLE `user_inventory_items` ADD KEY `idx_user_inv_user_item_loc` (`user_id`,`item_key`,`location`)',
+    );
+    console.log('🔧 Index ajouté : idx_user_inv_user_item_loc');
   }
 }
 

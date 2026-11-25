@@ -363,15 +363,17 @@ export async function claimQuestReward(userId, questId) {
   if (!progress.is_completed) throw httpError(400, 'Quête non complétée.');
   if (progress.is_claimed) throw httpError(409, 'Récompense déjà réclamée.');
 
+  const bonus = nonCosmeticBonus(quest.bonus_reward_json);
+  const bonusList = bonus ? (Array.isArray(bonus) ? bonus : [bonus]) : [];
+  // Pré-check coffre avant tout grant (XP inclus) — pas de claim partiel.
+  const { assertChestCanAcceptRewards } = await import('./playerInventoryService.js');
+  await assertChestCanAcceptRewards(userId, bonusList);
+
   const xpResult = await addBattlePassXP(userId, quest.xp_reward, `quest:${quest.quest_key}`);
 
   const bonusGranted = [];
-  const bonus = nonCosmeticBonus(quest.bonus_reward_json);
-  if (bonus) {
-    const list = Array.isArray(bonus) ? bonus : [bonus];
-    for (const reward of list) {
-      bonusGranted.push(await grantBattlePassReward(userId, reward));
-    }
+  for (const reward of bonusList) {
+    bonusGranted.push(await grantBattlePassReward(userId, reward));
   }
 
   await query('UPDATE user_battle_pass_quests SET is_claimed = TRUE WHERE id = ?', [progress.id]);
