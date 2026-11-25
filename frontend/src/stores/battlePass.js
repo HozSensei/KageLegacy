@@ -37,10 +37,20 @@ export const useBattlePassStore = defineStore('battlePass', () => {
   const claimablePremium = computed(
     () => (tracks.value?.premium || []).filter(t => t.claimable).length
   );
+  const claimableTiers = computed(() => claimableFree.value + claimablePremium.value);
 
   const dailyQuests = computed(() => quests.value.filter(q => q.questType === 'daily'));
   const weeklyQuests = computed(() => quests.value.filter(q => q.questType === 'weekly'));
   const milestoneQuests = computed(() => quests.value.filter(q => q.questType === 'milestone'));
+  const claimableQuests = computed(
+    () =>
+      quests.value.filter(
+        q =>
+          (q.questType === 'daily' || q.questType === 'weekly') &&
+          q.progress?.isCompleted &&
+          !q.progress?.isClaimed,
+      ).length,
+  );
 
   async function fetchBattlePass() {
     loading.value = true;
@@ -164,9 +174,11 @@ export const useBattlePassStore = defineStore('battlePass', () => {
     xpProgressPct,
     claimableFree,
     claimablePremium,
+    claimableTiers,
     dailyQuests,
     weeklyQuests,
     milestoneQuests,
+    claimableQuests,
     fetchBattlePass,
     fetchQuests,
 

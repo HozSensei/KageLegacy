@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useMissionsStore } from '../stores/missions'
 import { useCombatStore } from '../stores/combat'
 import VictoryRewards from '../components/combat/VictoryRewards.vue'
+import ItemBlock from '../components/inventory/ItemBlock.vue'
 import MissionPathTree from '../components/missions/MissionPathTree.vue'
 import PageHeader from '../components/ui/PageHeader.vue'
 import AppIcon from '../components/ui/AppIcon.vue'
@@ -302,46 +303,48 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             v-for="slot in inventory"
             :key="slot.slot"
             class="run-inventory__slot"
-            :class="{ 'run-inventory__slot--filled': slot.itemId }"
             :data-testid="`run-inv-slot-${slot.slot}`"
           >
-            <div class="run-inventory__slot-copy">
-              <p class="run-inventory__slot-label">{{ slotLabel(slot) }}</p>
-              <p v-if="slotEffect(slot)" class="run-inventory__slot-effect">
-                {{ slotEffect(slot) }}
-              </p>
-            </div>
-            <div v-if="slot.itemId" class="run-inventory__slot-actions">
-              <button
-                v-if="!isSealedScroll(slot)"
-                type="button"
-                class="btn-secondary btn-sm"
-                :disabled="missions.actionLoading"
-                @click="onUseSlot(slot.slot)"
-              >
-                {{ t('combat.inventoryUse') }}
-              </button>
-              <p v-else class="run-inventory__sealed">
-                {{ t('combat.inventorySealedBadge') }}
-              </p>
-              <button
-                type="button"
-                class="btn-ghost btn-sm"
-                :disabled="missions.actionLoading"
-                @click="onDiscardSlot(slot.slot)"
-              >
-                {{ t('combat.inventoryDiscard') }}
-              </button>
-              <label class="run-inventory__replace">
-                <input
-                  v-model="replaceSlot"
-                  type="radio"
-                  name="replace-slot"
-                  :value="slot.slot"
+            <ItemBlock
+              compact
+              :empty="!slot.itemId"
+              :item="slot.itemId ? slot : null"
+              :name="slotLabel(slot)"
+              :description="slotEffect(slot)"
+              :quantity="slot.itemId ? slot.qty || 1 : null"
+            >
+              <template v-if="slot.itemId" #actions>
+                <button
+                  v-if="!isSealedScroll(slot)"
+                  type="button"
+                  class="btn-secondary btn-sm"
+                  :disabled="missions.actionLoading"
+                  @click="onUseSlot(slot.slot)"
                 >
-                {{ t('combat.inventoryReplaceTarget') }}
-              </label>
-            </div>
+                  {{ t('combat.inventoryUse') }}
+                </button>
+                <p v-else class="run-inventory__sealed">
+                  {{ t('combat.inventorySealedBadge') }}
+                </p>
+                <button
+                  type="button"
+                  class="btn-ghost btn-sm"
+                  :disabled="missions.actionLoading"
+                  @click="onDiscardSlot(slot.slot)"
+                >
+                  {{ t('combat.inventoryDiscard') }}
+                </button>
+                <label class="run-inventory__replace">
+                  <input
+                    v-model="replaceSlot"
+                    type="radio"
+                    name="replace-slot"
+                    :value="slot.slot"
+                  >
+                  {{ t('combat.inventoryReplaceTarget') }}
+                </label>
+              </template>
+            </ItemBlock>
           </li>
         </ul>
       </section>
@@ -394,35 +397,33 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
             </p>
             <ul class="run-shop__offer">
               <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
-                <div>
-                  <p class="run-shop__name">{{ itemLabel(item) }}</p>
-                  <p v-if="itemDesc(item)" class="run-shop__desc">{{ itemDesc(item) }}</p>
-                  <p class="run-shop__price">
-                    {{ t('combat.shopPrice', { n: item.price }) }}
-                    ·
-                    {{
-                      (item.stock ?? 1) <= 0
-                        ? t('combat.shopSoldOut')
-                        : t('combat.shopStock', { n: item.stock ?? 1 })
-                    }}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  :disabled="
-                    missions.actionLoading ||
-                    (item.stock ?? 1) <= 0 ||
-                    (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
-                  "
-                  @click="onBuy(item.id)"
+                <ItemBlock
+                  compact
+                  :item="item"
+                  :name="itemLabel(item)"
+                  :description="itemDesc(item)"
+                  :quantity="item.stock ?? 1"
+                  :meta="t('combat.shopPrice', { n: item.price })"
                 >
-                  {{
-                    (item.stock ?? 1) <= 0
-                      ? t('combat.shopSoldOut')
-                      : t('combat.shopBuy')
-                  }}
-                </button>
+                  <template #actions>
+                    <button
+                      type="button"
+                      class="btn-secondary btn-sm"
+                      :disabled="
+                        missions.actionLoading ||
+                        (item.stock ?? 1) <= 0 ||
+                        (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
+                      "
+                      @click="onBuy(item.id)"
+                    >
+                      {{
+                        (item.stock ?? 1) <= 0
+                          ? t('combat.shopSoldOut')
+                          : t('combat.shopBuy')
+                      }}
+                    </button>
+                  </template>
+                </ItemBlock>
               </li>
             </ul>
           </div>
@@ -578,7 +579,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   margin-top: 1.25rem;
   padding: 1rem 1.15rem;
   background: var(--color-bg-card);
-  max-width: 44rem;
+  max-width: 52rem;
 }
 
 .run-inventory__title {
@@ -596,44 +597,22 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
 .run-inventory__slots {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+@media (min-width: 640px) {
+  .run-inventory__slots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .run-inventory__slot {
-  display: grid;
-  gap: 0.45rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px dashed var(--color-line);
-}
-
-.run-inventory__slot--filled {
-  border-style: solid;
-}
-
-.run-inventory__slot-copy {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.run-inventory__slot-label {
-  margin: 0;
-  font-weight: 700;
-}
-
-.run-inventory__slot-effect {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-ink-muted);
-}
-
-.run-inventory__slot-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  align-items: center;
+  min-width: 0;
+  list-style: none;
 }
 
 .run-inventory__sealed {
@@ -662,6 +641,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
 .run-shop__offer {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
   gap: 0.65rem;
   margin: 0 0 1rem;
   padding: 0;
@@ -669,25 +649,8 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 }
 
 .run-shop__item {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid var(--color-line);
-  background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
-}
-
-.run-shop__name {
-  margin: 0;
-  font-weight: 800;
-}
-
-.run-shop__desc,
-.run-shop__price {
-  margin: 0.25rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-ink-muted);
+  min-width: 0;
+  list-style: none;
 }
 
 .run-stage {

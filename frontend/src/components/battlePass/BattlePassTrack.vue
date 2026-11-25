@@ -144,10 +144,8 @@ function statusClass(tier) {
 <style scoped>
 .bp-track__list {
   display: grid;
-  max-height: 30rem;
   margin: 1.25rem 0 0;
-  padding: 0 0.5rem 0 0;
-  overflow-y: auto;
+  padding: 0;
   list-style: none;
 }
 
@@ -157,8 +155,7 @@ function statusClass(tier) {
   grid-template-columns: 3rem minmax(0, 1fr) auto;
   gap: 0.9rem;
   align-items: center;
-  min-height: 4rem;
-  padding: 0.5rem 0.75rem 0.5rem 0;
+  padding: 0.65rem 0.75rem 0.65rem 0;
   transition: background var(--dur-base) ease;
 }
 

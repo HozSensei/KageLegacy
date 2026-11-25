@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
 import VillageRewardsPanel from '../components/layout/VillageRewardsPanel.vue';
 import ActivityWall from '../components/community/ActivityWall.vue';
@@ -12,13 +13,19 @@ import { useFactionStandings } from '../composables/useFactionStandings.js';
 import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
 import { sectionOf } from '../constants/sections.js';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
+import { useNotificationsStore } from '../stores/notifications.js';
 import { usePlayerStore } from '../stores/player.js';
 import { ninjaProfileStats, ninjaRankLabel } from '../utils/ninjaProfile.js';
 
+const VILLAGE_TABS = ['standings', 'activity', 'friends'];
+
 const { t, te, d, n } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const section = sectionOf('village');
 useOnboardingVisit('visit_village');
 const playerStore = usePlayerStore();
+const notifications = useNotificationsStore();
 const query = ref('');
 const rewardsPanel = ref(null);
 const activityWall = ref(null);
@@ -41,6 +48,16 @@ const {
   search,
 } = useCommunity();
 
+async function onAcceptFriend(playerId) {
+  await acceptFriend(playerId);
+  void notifications.fetchNotifications();
+}
+
+async function onRemoveFriend(playerId) {
+  await removeFriend(playerId);
+  void notifications.fetchNotifications();
+}
+
 const {
   standings,
   honorByFaction,
@@ -58,6 +75,21 @@ const {
   show: showProfile,
   close: closeProfile,
 } = usePublicPlayerModal();
+
+const tabs = [
+  { id: 'standings', labelKey: 'village.tabs.standings' },
+  { id: 'activity', labelKey: 'village.tabs.activity' },
+  { id: 'friends', labelKey: 'village.tabs.friends' },
+];
+
+function tabFromRoute(value = route.query.tab) {
+  const tab = String(value || 'standings');
+  return VILLAGE_TABS.includes(tab) ? tab : 'standings';
+}
+
+const activeTab = ref(tabFromRoute());
+
+const incomingCount = computed(() => friendships.value?.incoming?.length || 0);
 
 const factionWeeks = computed(() => {
   if (!standings.value) return [];
@@ -78,6 +110,13 @@ watch(
   { immediate: true },
 );
 
+watch(
+  () => route.query.tab,
+  value => {
+    activeTab.value = tabFromRoute(value);
+  },
+);
+
 const honorEntry = computed(() => {
   const id = selectedFactionId.value;
   if (!id || !honorByFaction.value) return null;
@@ -85,6 +124,15 @@ const honorEntry = computed(() => {
 });
 
 const honorCardStats = computed(() => ninjaProfileStats({ total: {} }));
+
+function selectTab(tab) {
+  const next = tabFromRoute(tab);
+  activeTab.value = next;
+  const queryNext = { ...route.query };
+  if (next === 'standings') delete queryNext.tab;
+  else queryNext.tab = next;
+  router.replace({ query: queryNext });
+}
 
 function refresh() {
   return Promise.all([
@@ -151,7 +199,35 @@ onMounted(async () => {
 
     <VillageRewardsPanel ref="rewardsPanel" />
 
-    <section class="page-section panel community-panel" aria-labelledby="village-standings">
+    <div class="tabs mt-8" role="tablist" :aria-label="t('village.tabsLabel')" data-testid="village-tabs">
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        type="button"
+        role="tab"
+        class="tab"
+        :aria-selected="activeTab === tab.id"
+        :data-testid="`village-tab-${tab.id}`"
+        @click="selectTab(tab.id)"
+      >
+        {{ t(tab.labelKey) }}
+        <span
+          v-if="tab.id === 'friends' && incomingCount > 0"
+          class="tab__count"
+          data-testid="village-friends-badge"
+        >
+          {{ incomingCount }}
+        </span>
+      </button>
+    </div>
+
+    <section
+      v-show="activeTab === 'standings'"
+      class="page-section panel community-panel"
+      role="tabpanel"
+      aria-labelledby="village-standings"
+      data-testid="village-panel-standings"
+    >
       <h2 id="village-standings" class="t-heading">{{ t(`${standingsKey}.title`) }}</h2>
       <p v-if="standingsLoadFailed" class="alert alert--error" role="alert">
         {{ t(`${standingsKey}.loadFailed`) }}
@@ -243,9 +319,20 @@ onMounted(async () => {
       </div>
     </section>
 
-    <ActivityWall ref="activityWall" @open-profile="openProfile" />
+    <div
+      v-show="activeTab === 'activity'"
+      role="tabpanel"
+      data-testid="village-panel-activity"
+    >
+      <ActivityWall ref="activityWall" @open-profile="openProfile" />
+    </div>
 
-    <div class="page-section community-grid">
+    <div
+      v-show="activeTab === 'friends'"
+      class="page-section community-grid"
+      role="tabpanel"
+      data-testid="village-panel-friends"
+    >
       <section class="panel community-panel" aria-labelledby="community-search-heading">
         <h2 id="community-search-heading" class="t-heading">{{ t('community.searchTitle') }}</h2>
         <form class="community-search" role="search" @submit.prevent="search(query)">
@@ -340,7 +427,7 @@ onMounted(async () => {
                     class="btn-primary btn-sm"
                     :disabled="!canMutate"
                     :aria-label="t('community.acceptFrom', { name: player.name })"
-                    @click="acceptFriend(player.id)"
+                    @click="onAcceptFriend(player.id)"
                   >
                     {{ t('community.accept') }}
                   </button>
@@ -349,7 +436,7 @@ onMounted(async () => {
                     class="btn-ghost btn-sm"
                     :disabled="!canMutate"
                     :aria-label="t(`community.groups.${group}.removeByName`, { name: player.name })"
-                    @click="removeFriend(player.id)"
+                    @click="onRemoveFriend(player.id)"
                   >
                     {{ t(`community.groups.${group}.remove`) }}
                   </button>

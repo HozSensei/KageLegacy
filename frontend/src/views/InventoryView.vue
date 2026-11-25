@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
+import ItemBlock from '../components/inventory/ItemBlock.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import ShopBalances from '../components/shop/ShopBalances.vue';
 import forestImage from '../assets/illustrations/forest-path.webp';
@@ -106,14 +107,17 @@ function onRevealDone() {
           <h2>{{ t('inventory.chestTitle') }}</h2>
           <p>{{ t('inventory.chestHint') }}</p>
         </header>
-        <ul v-if="inventory.chest.length" class="inv-list">
-          <li v-for="entry in inventory.chest" :key="`chest-${entry.id || entry.itemKey}`" class="inv-row">
-            <div class="inv-row__meta">
-              <strong>{{ itemName(entry) }}</strong>
-              <span class="inv-row__qty">×{{ entry.quantity }}</span>
-              <p v-if="itemDesc(entry)" class="inv-row__desc">{{ itemDesc(entry) }}</p>
-            </div>
-            <div class="inv-row__actions">
+        <div v-if="inventory.chest.length" class="inv-blocks">
+          <ItemBlock
+            v-for="entry in inventory.chest"
+            :key="`chest-${entry.id || entry.itemKey}`"
+            :item="entry"
+            :name="itemName(entry)"
+            :description="itemDesc(entry)"
+            :quantity="entry.quantity"
+            data-testid="inventory-chest-item"
+          >
+            <template #actions>
               <button
                 v-if="entry.kind === 'pending_card' || entry.kind === 'booster'"
                 type="button"
@@ -131,9 +135,9 @@ function onRevealDone() {
               >
                 {{ t('inventory.toPouch') }}
               </button>
-            </div>
-          </li>
-        </ul>
+            </template>
+          </ItemBlock>
+        </div>
         <p v-else class="inv-empty">{{ t('inventory.chestEmpty') }}</p>
       </section>
 
@@ -178,13 +182,17 @@ function onRevealDone() {
           <p class="inv-ryos__warn">{{ t('inventory.pouchLossWarning') }}</p>
         </div>
 
-        <ul v-if="inventory.pouch.length" class="inv-list">
-          <li v-for="entry in inventory.pouch" :key="`pouch-${entry.id || entry.itemKey}`" class="inv-row">
-            <div class="inv-row__meta">
-              <strong>{{ itemName(entry) }}</strong>
-              <span class="inv-row__qty">×{{ entry.quantity }}</span>
-            </div>
-            <div class="inv-row__actions">
+        <div v-if="inventory.pouch.length" class="inv-blocks">
+          <ItemBlock
+            v-for="entry in inventory.pouch"
+            :key="`pouch-${entry.id || entry.itemKey}`"
+            :item="entry"
+            :name="itemName(entry)"
+            :description="itemDesc(entry)"
+            :quantity="entry.quantity"
+            data-testid="inventory-pouch-item"
+          >
+            <template #actions>
               <button
                 type="button"
                 class="btn-secondary btn-sm"
@@ -193,9 +201,9 @@ function onRevealDone() {
               >
                 {{ t('inventory.toChest') }}
               </button>
-            </div>
-          </li>
-        </ul>
+            </template>
+          </ItemBlock>
+        </div>
         <p v-else class="inv-empty">{{ t('inventory.pouchEmpty') }}</p>
       </section>
     </div>
@@ -268,48 +276,10 @@ function onRevealDone() {
   opacity: 0.92;
 }
 
-.inv-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.inv-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.inv-row__meta {
-  min-width: 0;
-  flex: 1 1 12rem;
-}
-
-.inv-row__meta strong {
-  font-size: 1rem;
-}
-
-.inv-row__qty {
-  margin-left: 0.35rem;
-  color: var(--color-ink-muted);
-  font-weight: 600;
-}
-
-.inv-row__desc {
-  margin: 0.25rem 0 0;
-  color: var(--color-ink-muted);
-  font-size: 0.875rem;
-}
-
-.inv-row__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+.inv-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.65rem;
 }
 
 .inv-empty {

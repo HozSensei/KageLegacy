@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import CombatArena from '../components/combat/CombatArena.vue';
+import ItemBlock from '../components/inventory/ItemBlock.vue';
 import MissionPathTree from '../components/missions/MissionPathTree.vue';
 import VictoryRewards from '../components/combat/VictoryRewards.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
@@ -334,48 +335,49 @@ function cancelConfirm() {
       >
         <h3>{{ t('coop.inventory') }}</h3>
         <p class="coop-run__inventory-hint">{{ t('combat.inventoryHint') }}</p>
-        <div
-          v-for="slot in inventory"
-          :key="slot.slot"
-          class="coop-run__slot"
-          :class="{ 'coop-run__slot--filled': slot.itemId }"
-        >
-          <div class="coop-run__slot-copy">
-            <span class="coop-run__slot-label">{{ slotLabel(slot) }}</span>
-            <span v-if="slotEffect(slot)" class="coop-run__slot-effect">
-              {{ slotEffect(slot) }}
-            </span>
-          </div>
-          <button
-            v-if="slot.itemId && !isSealedScroll(slot)"
-            type="button"
-            class="btn-ghost btn-sm"
-            :disabled="api.busy.value"
-            @click="onUse(slot.slot)"
+        <div class="coop-run__slots">
+          <ItemBlock
+            v-for="slot in inventory"
+            :key="slot.slot"
+            compact
+            :empty="!slot.itemId"
+            :item="slot.itemId ? slot : null"
+            :name="slotLabel(slot)"
+            :description="slotEffect(slot)"
+            :quantity="slot.itemId ? slot.qty || 1 : null"
           >
-            {{ t('coop.useItem') }}
-          </button>
-          <span v-else-if="slot.itemId" class="coop-run__sealed">
-            {{ t('combat.inventorySealedBadge') }}
-          </span>
-          <button
-            v-if="slot.itemId"
-            type="button"
-            class="btn-ghost btn-sm"
-            :disabled="api.busy.value"
-            @click="onDiscard(slot.slot)"
-          >
-            {{ t('coop.discardItem') }}
-          </button>
-          <label v-if="slot.itemId && isShop" class="coop-run__replace">
-            <input
-              v-model="replaceSlot"
-              type="radio"
-              name="coop-replace-slot"
-              :value="slot.slot"
-            >
-            {{ t('combat.inventoryReplaceTarget') }}
-          </label>
+            <template v-if="slot.itemId" #actions>
+              <button
+                v-if="!isSealedScroll(slot)"
+                type="button"
+                class="btn-ghost btn-sm"
+                :disabled="api.busy.value"
+                @click="onUse(slot.slot)"
+              >
+                {{ t('coop.useItem') }}
+              </button>
+              <span v-else class="coop-run__sealed">
+                {{ t('combat.inventorySealedBadge') }}
+              </span>
+              <button
+                type="button"
+                class="btn-ghost btn-sm"
+                :disabled="api.busy.value"
+                @click="onDiscard(slot.slot)"
+              >
+                {{ t('coop.discardItem') }}
+              </button>
+              <label v-if="isShop" class="coop-run__replace">
+                <input
+                  v-model="replaceSlot"
+                  type="radio"
+                  name="coop-replace-slot"
+                  :value="slot.slot"
+                >
+                {{ t('combat.inventoryReplaceTarget') }}
+              </label>
+            </template>
+          </ItemBlock>
         </div>
       </section>
 
@@ -421,33 +423,31 @@ function cancelConfirm() {
           <p class="coop-run__shop-hint">{{ t('combat.shopSharedStockHint') }}</p>
           <ul class="coop-run__shop-offer">
             <li v-for="item in event.offer || []" :key="item.id" class="coop-run__shop-item">
-              <div>
-                <p class="coop-run__shop-name">{{ itemLabel(item) }}</p>
-                <p v-if="itemDesc(item)" class="coop-run__shop-desc">{{ itemDesc(item) }}</p>
-                <p class="coop-run__shop-meta">
-                  {{ t('combat.shopPrice', { n: item.price }) }}
-                  ·
-                  {{
-                    itemStock(item) <= 0
-                      ? t('combat.shopSoldOut')
-                      : t('combat.shopStock', { n: itemStock(item) })
-                  }}
-                </p>
-              </div>
-              <button
-                type="button"
-                class="btn-secondary btn-sm"
-                :disabled="
-                  api.busy.value ||
-                  itemStock(item) <= 0 ||
-                  (event.purse ?? player.purse ?? 0) < item.price
-                "
-                @click="onBuy(item.id)"
+              <ItemBlock
+                compact
+                :item="item"
+                :name="itemLabel(item)"
+                :description="itemDesc(item)"
+                :quantity="itemStock(item)"
+                :meta="t('combat.shopPrice', { n: item.price })"
               >
-                {{
-                  itemStock(item) <= 0 ? t('combat.shopSoldOut') : t('combat.shopBuy')
-                }}
-              </button>
+                <template #actions>
+                  <button
+                    type="button"
+                    class="btn-secondary btn-sm"
+                    :disabled="
+                      api.busy.value ||
+                      itemStock(item) <= 0 ||
+                      (event.purse ?? player.purse ?? 0) < item.price
+                    "
+                    @click="onBuy(item.id)"
+                  >
+                    {{
+                      itemStock(item) <= 0 ? t('combat.shopSoldOut') : t('combat.shopBuy')
+                    }}
+                  </button>
+                </template>
+              </ItemBlock>
             </li>
           </ul>
         </div>
@@ -580,7 +580,19 @@ function cancelConfirm() {
   margin-top: 1.25rem;
   padding: 1rem 1.15rem;
   background: var(--color-bg-card);
-  max-width: 44rem;
+  max-width: 52rem;
+}
+
+.coop-run__slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .coop-run__slots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .coop-run__shop-purse {
@@ -596,6 +608,7 @@ function cancelConfirm() {
 
 .coop-run__shop-offer {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
   gap: 0.65rem;
   margin: 0;
   padding: 0;
@@ -603,25 +616,8 @@ function cancelConfirm() {
 }
 
 .coop-run__shop-item {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid var(--color-line);
-  background: color-mix(in srgb, var(--color-bg-card) 80%, transparent);
-}
-
-.coop-run__shop-name {
-  margin: 0;
-  font-weight: 800;
-}
-
-.coop-run__shop-desc,
-.coop-run__shop-meta {
-  margin: 0.25rem 0 0;
-  font-size: 0.875rem;
-  color: var(--color-ink-muted);
+  min-width: 0;
+  list-style: none;
 }
 
 .coop-run__sealed {
@@ -632,35 +628,6 @@ function cancelConfirm() {
 
 .coop-run__inventory-hint {
   margin: 0;
-  font-size: 0.875rem;
-  color: var(--color-ink-muted);
-}
-
-.coop-run__slot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  padding: 0.65rem 0.75rem;
-  border: 1px dashed var(--color-line);
-}
-
-.coop-run__slot--filled {
-  border-style: solid;
-}
-
-.coop-run__slot-copy {
-  flex: 1 1 10rem;
-  display: grid;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.coop-run__slot-label {
-  font-weight: 700;
-}
-
-.coop-run__slot-effect {
   font-size: 0.875rem;
   color: var(--color-ink-muted);
 }
