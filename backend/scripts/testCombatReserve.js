@@ -125,7 +125,23 @@ assert.equal(refreshed.hand[0].instanceId, 'p0');
 assert.equal(publicState({ player: refreshed, enemy }).player.discardsRemaining, 2);
 assert.equal(publicState({ player: refreshed, enemy }).player.chakraDiscardAvailable, true);
 // A regular solo session persists its forecast and retains progression.
-const readProfile = mock.method(pool, 'execute', async (_sql, params) => {
+const readProfile = mock.method(pool, 'execute', async (sql, params) => {
+  const text = String(sql);
+  if (text.includes('information_schema.tables')) {
+    return [[{ ok: 1 }]];
+  }
+  if (text.includes('player_nickname_unlocks')) {
+    assert.deepEqual(params, [12]);
+    return [[{ nickname_id: 'chunin' }]];
+  }
+  if (text.includes('player_frame_unlocks')) {
+    assert.deepEqual(params, [12]);
+    return [[{ frame_id: 'frame_ember' }]];
+  }
+  if (text.includes('player_card_effect_unlocks')) {
+    assert.deepEqual(params, [12]);
+    return [[{ effect_id: 'fx_leaves_orange' }]];
+  }
   assert.deepEqual(params, [12]);
   return [
     [
@@ -137,6 +153,8 @@ const readProfile = mock.method(pool, 'execute', async (_sql, params) => {
         character_avatar_id: 'chunin-1-3',
         character_background_id: 'joueur-2',
         character_nickname_id: 'chunin',
+        character_frame_id: 'frame_ember',
+        character_card_effect_id: 'fx_leaves_orange',
         character_faction_id: 'kareno',
         character_xp: 100,
       },
@@ -150,6 +168,8 @@ const expectedProfile = {
   backgroundId: 'joueur-2',
   backgroundColor: null,
   nicknameId: 'chunin',
+  frameId: 'frame_ember',
+  cardEffectId: 'fx_leaves_orange',
 };
 assert.deepEqual(character.profile, expectedProfile);
 assert.equal(character.character_highest_level, undefined);
