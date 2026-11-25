@@ -169,14 +169,15 @@ function factionTone(id) {
               <th class="lb-col-rank">{{ t('leaderboard.colRank') }}</th>
               <th>{{ t('leaderboard.colName') }}</th>
               <th>{{ t('leaderboard.colFaction') }}</th>
+              <th class="lb-col-score">{{ t('leaderboard.colPoints') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-if="lb.loading">
-              <td colspan="3">{{ t('common.loading') }}</td>
+              <td colspan="4">{{ t('common.loading') }}</td>
             </tr>
             <tr v-else-if="!lb.entries.length">
-              <td colspan="3">{{ t('leaderboard.empty') }}</td>
+              <td colspan="4">{{ t('leaderboard.empty') }}</td>
             </tr>
             <tr
               v-for="row in lb.entries"
@@ -204,6 +205,7 @@ function factionTone(id) {
                 </span>
                 <span v-else>—</span>
               </td>
+              <td class="lb-col-score">{{ row.score }}</td>
             </tr>
           </tbody>
         </table>
@@ -408,6 +410,13 @@ function factionTone(id) {
   width: 3rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+}
+
+.lb-col-score {
+  width: 5.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
 }
 
 .lb-col-player {
