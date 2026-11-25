@@ -437,6 +437,12 @@ async function notifyBoosterQuestProgress(userId, grantedMeta) {
   } catch {
     /* BP optionnel */
   }
+  try {
+    const { onOnboardingAction } = await import('./onboardingService.js');
+    await onOnboardingAction(userId, 'booster_open');
+  } catch {
+    /* guide novice optionnel */
+  }
 }
 
 /**

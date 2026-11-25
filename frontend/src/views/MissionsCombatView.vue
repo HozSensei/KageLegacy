@@ -13,6 +13,7 @@ import { useCombatStore } from '../stores/combat';
 import { useMissionsStore } from '../stores/missions';
 import { useDecksStore } from '../stores/decks';
 import { useInventoryStore } from '../stores/inventory';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 import { localizedField, localizedName } from '../utils/localeContent.js';
 
 defineOptions({ name: 'MissionsCombatView' });
@@ -24,6 +25,7 @@ const combat = useCombatStore();
 const decks = useDecksStore();
 const inventory = useInventoryStore();
 const { open: guideOpen, dismiss: dismissGuide } = useMissionGuide();
+useOnboardingVisit('visit_missions');
 
 const startingId = ref(null);
 const localError = ref(null);

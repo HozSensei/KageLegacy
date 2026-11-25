@@ -5,11 +5,13 @@ import PageHeader from '../components/ui/PageHeader.vue'
 import AchievementList from '../components/achievements/AchievementList.vue'
 import { useAchievementsStore } from '../stores/achievements'
 import { useNotificationsStore } from '../stores/notifications.js'
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js'
 import forestImage from '../assets/illustrations/forest-path.webp'
 defineOptions({ name: 'JournalView' })
 const { t, locale } = useI18n()
 const store = useAchievementsStore()
 const notifications = useNotificationsStore()
+useOnboardingVisit('visit_journal')
 const message = ref(null)
 const filter = ref('all')
 const categories = ['all', 'combat', 'missions', 'collection', 'mastery', 'progression']

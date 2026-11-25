@@ -6,6 +6,7 @@ import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
 import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
 import { useDeckDuels } from '../composables/useDeckDuels.js';
 import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 import { useNotificationsStore } from '../stores/notifications.js';
 
 const { t, te, n, d } = useI18n();
@@ -36,6 +37,7 @@ const {
   returnToLobby,
 } = useDeckDuels();
 const notifications = useNotificationsStore();
+useOnboardingVisit('visit_deck_duels');
 const showFriends = ref(false);
 const pageHeading = ref(null);
 const duelHeading = ref(null);
