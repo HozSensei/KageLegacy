@@ -6,6 +6,7 @@ import CardHole from './CardHole.vue';
 import CardFilters from './CardFilters.vue';
 import { useCardSizePreference } from '../../composables/useCardSizePreference.js';
 import { cardMatchesArt } from '../../utils/cardBonusChips';
+import { slotMatchesOwnershipFilter } from '../../utils/cardOwnershipFilter.js';
 
 defineOptions({ name: 'CollectionGrid' });
 
@@ -16,13 +17,17 @@ const props = defineProps({
   slots: { type: Array, default: () => [] },
   selectedKey: { type: String, default: null },
   loading: { type: Boolean, default: false },
-  ownedOnly: { type: Boolean, default: false },
+  ownershipFilter: { type: String, default: '' },
   ownedCount: { type: Number, default: 0 },
   catalogueTotal: { type: Number, default: 0 },
   initialSearch: { type: String, default: '' },
+  /** cardDefinitionId présents dans le deck actif */
+  activeDeckCardIds: { type: Object, default: () => new Set() },
+  /** cardDefinitionId présents dans au moins un deck */
+  anyDeckCardIds: { type: Object, default: () => new Set() },
 });
 
-const emit = defineEmits(['select', 'update:ownedOnly']);
+const emit = defineEmits(['select', 'update:ownershipFilter']);
 
 const { t } = useI18n();
 
@@ -41,7 +46,16 @@ watch(
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase();
   return props.slots.filter(slot => {
-    if (props.ownedOnly && slot.kind !== 'owned') return false;
+    if (
+      !slotMatchesOwnershipFilter(
+        slot,
+        props.ownershipFilter,
+        props.activeDeckCardIds,
+        props.anyDeckCardIds
+      )
+    ) {
+      return false;
+    }
     const card = slot.card;
     if (!card) return false;
     if (typeFilter.value && card.type !== typeFilter.value) return false;
@@ -57,10 +71,6 @@ const filtered = computed(() => {
   });
 });
 
-function onOwnedOnlyChange(event) {
-  emit('update:ownedOnly', event.target.checked);
-}
-
 function onSelectSlot(slot) {
   emit('select', slot);
 }
@@ -68,34 +78,26 @@ function onSelectSlot(slot) {
 
 <template>
   <div class="collection-grid" data-testid="collection-grid">
-    <div class="collection-grid__toolbar">
-      <p class="collection-grid__count" data-testid="collection-count">
-        {{ t('cards.collectionProgress', { owned: ownedCount, total: catalogueTotal }) }}
-      </p>
-      <label class="collection-grid__owned-only">
-        <input
-          type="checkbox"
-          data-testid="collection-owned-only"
-          :checked="ownedOnly"
-          @change="onOwnedOnlyChange"
-        />
-        <span>{{ t('cards.showOwnedOnly') }}</span>
-      </label>
-    </div>
+    <p class="collection-grid__count" data-testid="collection-count">
+      {{ t('cards.collectionProgress', { owned: ownedCount, total: catalogueTotal }) }}
+    </p>
 
     <CardFilters
       v-model:type-filter="typeFilter"
       v-model:rarity-filter="rarityFilter"
       v-model:art-filter="artFilter"
       v-model:search="search"
+      :ownership-filter="ownershipFilter"
+      show-ownership-filter
       :result-count="filtered.length"
       :total-count="slots.length"
       search-test-id="collection-search"
+      @update:ownership-filter="emit('update:ownershipFilter', $event)"
     />
 
     <p v-if="loading" class="text-ink-muted">{{ t('common.loading') }}</p>
     <p v-else-if="!filtered.length" class="alert" data-testid="collection-empty-filter">
-      {{ ownedOnly ? t('cards.emptyOwnedFilter') : t('cards.emptyFilter') }}
+      {{ ownershipFilter ? t('cards.emptyOwnedFilter') : t('cards.emptyFilter') }}
     </p>
 
     <div
@@ -127,17 +129,8 @@ function onSelectSlot(slot) {
 </template>
 
 <style scoped>
-.collection-grid__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem 1.25rem;
-  margin-bottom: 1.25rem;
-}
-
 .collection-grid__count {
-  margin: 0;
+  margin: 0 0 0.5rem;
   font-family: var(--font-display);
   font-size: 1.125rem;
   font-weight: 800;
@@ -145,24 +138,6 @@ function onSelectSlot(slot) {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
   color: var(--color-ink);
-}
-
-.collection-grid__owned-only {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-ink);
-  cursor: pointer;
-  user-select: none;
-}
-
-.collection-grid__owned-only input {
-  width: 1.05rem;
-  height: 1.05rem;
-  accent-color: var(--color-vermilion);
-  cursor: pointer;
 }
 
 .collection-grid__list {
