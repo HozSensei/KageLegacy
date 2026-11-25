@@ -101,4 +101,15 @@ assert.equal(identity.profile.frameId, 'frame_volt');
 assert.equal(identity.profile.cardEffectId, 'fx_sheen_aurora');
 assert.equal(identity.factionId, 'midorihara');
 
+// Combat public state must keep equipped cosmetics (cadre + aura de fiche).
+const combatFacing = publicFighterIdentity({
+  rank: 'Genin',
+  level: 10,
+  factionId: 'kareno',
+  profile: appearance,
+});
+assert.equal(combatFacing.profile.frameId, 'frame_ember');
+assert.equal(combatFacing.profile.cardEffectId, 'fx_leaves_orange');
+assert.equal(combatFacing.profile.nicknameId, 'genin');
+
 console.log('✓ testCommunityFeatures OK');
