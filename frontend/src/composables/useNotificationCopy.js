@@ -32,6 +32,8 @@ export function useNotificationCopy() {
       case 'village_ready':
       case 'village_reward':
         return t('notifications.villageReadyTitle');
+      case 'friend_request':
+        return t('notifications.friendRequestTitle');
       case 'bug_report_new':
         return t('notifications.bugReportNewTitle');
       case 'bug_report_reward':
@@ -83,6 +85,10 @@ export function useNotificationCopy() {
         return t('notifications.villageReadyBody', p.count || 1);
       case 'village_reward':
         return t('notifications.villageRewardBody', { n: p.ryos || 0 });
+      case 'friend_request':
+        return t('notifications.friendRequestBody', {
+          name: p.fromName || t('community.unknownPlayer'),
+        });
       case 'bug_report_new':
         return t('notifications.bugReportNewBody', {
           location: bugLocationLabel(p),
@@ -130,6 +136,7 @@ export function useNotificationCopy() {
     if (note.kind === 'village_ready' || note.kind === 'village_reward') {
       return { name: 'village', hash: villageRewardsHash };
     }
+    if (note.kind === 'friend_request') return { name: 'village', query: { tab: 'friends' } };
     if (note.kind === 'bug_report_new') return { name: 'admin', query: { tab: 'reports' } };
     if (note.kind === 'bug_report_reward') return { name: 'shop' };
     return null;
@@ -148,6 +155,8 @@ export function useNotificationCopy() {
       case 'village_ready':
       case 'village_reward':
         return t('notifications.villageReadyLink');
+      case 'friend_request':
+        return t('notifications.friendRequestLink');
       case 'bug_report_new':
         return t('notifications.bugReportNewLink');
       case 'bug_report_reward':

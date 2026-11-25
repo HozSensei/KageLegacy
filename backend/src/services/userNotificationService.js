@@ -14,6 +14,7 @@ export const NOTIFICATION_KIND = Object.freeze({
   ONBOARDING_READY: 'onboarding_ready',
   ACHIEVEMENT_READY: 'achievement_ready',
   VILLAGE_REWARD: 'village_reward',
+  FRIEND_REQUEST: 'friend_request',
 });
 
 function httpError(message, statusCode = 400) {

@@ -18,6 +18,51 @@ function distinctPair(userId, otherId) {
   return pair;
 }
 
+function friendRequestDedupeKey(fromUserId) {
+  return `friend_request:${Number(fromUserId)}`;
+}
+
+async function resolvePlayerLabel(userId) {
+  const rows = await query(
+    `SELECT ${PLAYER_NAME} AS name
+     FROM users u
+     LEFT JOIN player_profiles p ON p.user_id = u.id
+     WHERE u.id = ?
+     LIMIT 1`,
+    [userId],
+  );
+  return rows[0]?.name || null;
+}
+
+async function notifyFriendRequest(fromUserId, toUserId) {
+  try {
+    const { createUserNotification, NOTIFICATION_KIND } = await import(
+      './userNotificationService.js'
+    );
+    const fromName = await resolvePlayerLabel(fromUserId);
+    await createUserNotification(toUserId, {
+      kind: NOTIFICATION_KIND.FRIEND_REQUEST,
+      href: '/village?tab=friends',
+      dedupeKey: friendRequestDedupeKey(fromUserId),
+      payload: {
+        fromUserId: Number(fromUserId),
+        fromName,
+      },
+    });
+  } catch {
+    /* notifications optionnelles */
+  }
+}
+
+async function clearFriendRequestNotification(fromUserId, toUserId) {
+  try {
+    const { deleteNotificationByDedupe } = await import('./userNotificationService.js');
+    await deleteNotificationByDedupe(toUserId, friendRequestDedupeKey(fromUserId));
+  } catch {
+    /* notifications optionnelles */
+  }
+}
+
 async function withPublicProfiles(entries) {
   if (!entries.length) return entries;
   try {
@@ -78,6 +123,7 @@ export async function requestDuelFriend(userId, otherId) {
     if (error.code === 'ER_NO_REFERENCED_ROW_2') fail(404, 'Joueur introuvable.');
     throw error;
   }
+  await notifyFriendRequest(userId, otherId);
 }
 
 export async function acceptDuelFriend(userId, otherId) {
@@ -106,15 +152,26 @@ export async function acceptDuelFriend(userId, otherId) {
   } finally {
     connection.release();
   }
+  await clearFriendRequestNotification(otherId, userId);
 }
 
 export async function removeDuelFriend(userId, otherId) {
   const pair = distinctPair(userId, otherId);
+  const rows = await query(
+    `SELECT status, requested_by FROM async_duel_friendships WHERE ${MATCH_PAIR}`,
+    pair,
+  );
   const { affectedRows } = await query(
     `DELETE FROM async_duel_friendships WHERE ${MATCH_PAIR}`,
     pair,
   );
   if (!affectedRows) fail(404, 'Relation d’amitié introuvable.');
+  const friendship = rows[0];
+  if (friendship?.status === 'pending' && friendship.requested_by != null) {
+    const senderId = Number(friendship.requested_by);
+    const recipientId = senderId === Number(pair[0]) ? Number(pair[1]) : Number(pair[0]);
+    await clearFriendRequestNotification(senderId, recipientId);
+  }
 }
 
 export async function areDuelFriends(userId, otherId) {

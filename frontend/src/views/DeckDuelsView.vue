@@ -189,7 +189,7 @@ function rewardLabels(reward) {
         >
           {{ t(`deckDuels.modes.${mode}`) }}
         </button>
-        <RouterLink :to="{ name: 'village' }" class="btn-ghost btn-sm">
+        <RouterLink :to="{ name: 'village', query: { tab: 'standings' } }" class="btn-ghost btn-sm">
           {{ t('deckDuels.viewVillageStandings') }}
         </RouterLink>
       </div>
@@ -229,7 +229,7 @@ function rewardLabels(reward) {
           </li>
         </ul>
         <div>
-          <RouterLink :to="{ name: 'village' }" class="btn-ghost btn-sm">
+          <RouterLink :to="{ name: 'village', query: { tab: 'friends' } }" class="btn-ghost btn-sm">
             {{ t('deckDuels.manageFriends') }}
           </RouterLink>
         </div>
