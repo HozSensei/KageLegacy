@@ -8,7 +8,9 @@ import {
   STARTER_CARD_SLUGS,
   STARTER_DECK_PRESETS,
   STARTER_GRANT_QUANTITIES,
+  STARTER_INVENTORY_ITEMS,
 } from '../src/config/starterLoadout.js';
+import { getItem } from '../src/config/itemCatalog.js';
 import { ALL_CARDS } from './seedCards.js';
 import { validateDeck, DECK_CONSTRAINTS } from '../src/services/deckService.js';
 
@@ -28,6 +30,14 @@ assert(
   'slug list matches grant map',
 );
 assert(STARTER_DECK_PRESETS.length === 2, 'two starter deck presets');
+assert(STARTER_INVENTORY_ITEMS.length >= 1, 'starter inventory has at least one item');
+assert(
+  STARTER_INVENTORY_ITEMS.some(e => e.itemKey === 'heal_bandage' && e.quantity >= 1),
+  'starter gets a basic heal bandage',
+);
+for (const entry of STARTER_INVENTORY_ITEMS) {
+  assert(Boolean(getItem(entry.itemKey)), `starter item ${entry.itemKey} exists in catalog`);
+}
 
 const bySlug = new Map(ALL_CARDS.map(card => [card.slug, card]));
 for (const slug of STARTER_CARD_SLUGS) {

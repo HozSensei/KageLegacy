@@ -7,11 +7,13 @@ import {
   selectStarterDeckEntries,
   STARTER_CARD_SLUGS,
   STARTER_DECK_PRESETS,
+  STARTER_INVENTORY_ITEMS,
 } from '../config/starterLoadout.js';
 import { query } from '../config/database.js';
 import { getCardBySlug } from './cardService.js';
 import { addCard, getCollection } from './collectionService.js';
 import { createDeck, listDecks } from './deckService.js';
+import { grantToChest } from './playerInventoryService.js';
 
 async function tableExists(tableName) {
   try {
@@ -113,7 +115,39 @@ export async function ensureStarterDeck(userId, options = {}) {
 }
 
 /**
- * Pipeline complet : collection → deux decks starter.
+ * Accorde les objets starter manquants (ex. bandage) dans le coffre.
+ * Idempotent : ne regive pas si l’objet est déjà en coffre ou poche.
+ */
+export async function ensureStarterInventory(userId) {
+  if (!(await tableExists('user_inventory_items'))) {
+    return { granted: false, items: [] };
+  }
+  const granted = [];
+  for (const entry of STARTER_INVENTORY_ITEMS) {
+    const rows = await query(
+      `SELECT COALESCE(SUM(quantity), 0) AS qty
+       FROM user_inventory_items
+       WHERE user_id = ? AND item_key = ?`,
+      [userId, entry.itemKey],
+    );
+    const have = Number(rows[0]?.qty) || 0;
+    if (have > 0) continue;
+    try {
+      await grantToChest(userId, entry.itemKey, {
+        quantity: entry.quantity,
+        source: 'starter',
+        notify: false,
+      });
+      granted.push(entry.itemKey);
+    } catch (err) {
+      console.warn(`[starterLoadout] inventory grant ${entry.itemKey}:`, err.message);
+    }
+  }
+  return { granted: granted.length > 0, items: granted };
+}
+
+/**
+ * Pipeline complet : collection → deux decks starter → objets inventaire.
  */
 export async function ensureStarterLoadout(userId, { topUpCollection = false } = {}) {
   const resetRows = await query('SELECT starter_loadout_reset_at FROM users WHERE id = ? LIMIT 1', [
@@ -127,11 +161,14 @@ export async function ensureStarterLoadout(userId, { topUpCollection = false } =
       deckCreated: false,
       decks: [],
       deck: null,
+      inventoryGranted: false,
+      inventoryItems: [],
     };
   }
 
   const collectionResult = await ensureStarterCollection(userId, { topUp: topUpCollection });
   const deckResult = await ensureStarterDecks(userId);
+  const inventoryResult = await ensureStarterInventory(userId);
   const decks = deckResult.decks;
   return {
     collectionGranted: collectionResult.granted,
@@ -140,6 +177,8 @@ export async function ensureStarterLoadout(userId, { topUpCollection = false } =
     deckCreated: deckResult.created,
     decks,
     deck: decks.find(d => d.isActive) || decks[0] || null,
+    inventoryGranted: inventoryResult.granted,
+    inventoryItems: inventoryResult.items,
   };
 }
 
@@ -157,6 +196,8 @@ export async function grantStarterLoadoutOnCreate(userId) {
       deckCreated: false,
       decks: [],
       deck: null,
+      inventoryGranted: false,
+      inventoryItems: [],
       error: error.message,
     };
   }

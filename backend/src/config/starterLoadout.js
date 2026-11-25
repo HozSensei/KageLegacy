@@ -36,6 +36,11 @@ export function getStarterGrantQuantity(slug) {
   return STARTER_GRANT_QUANTITIES[slug] || 1;
 }
 
+/** Objets inventaire offerts au starter (coffre) — soin basique pour le tuto / premières runs. */
+export const STARTER_INVENTORY_ITEMS = Object.freeze([
+  Object.freeze({ itemKey: 'heal_bandage', quantity: 1 }),
+]);
+
 /**
  * Presets des deux decks de départ (quantités ≤ exemplaires offerts).
  * Chacun : 15 voie principale + 5 voie secondaire, taille 20, rareté normale uniquement.

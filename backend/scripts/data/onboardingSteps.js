@@ -1,6 +1,6 @@
 /**
  * Guide du novice — étapes one-shot (distinct des succès / Battle Pass).
- * kind: visit = POST /visit ; action = hook jeu (deck, talent, combat).
+ * kind: visit = POST /visit ; action = hook jeu (deck, talent, inventaire, combat).
  */
 
 const R = (type, amount) => Object.freeze({ type, amount });
@@ -63,6 +63,30 @@ export const ONBOARDING_STEPS = Object.freeze([
     hintFr: 'Vois tes cartes, passifs et améliorations.',
     hintEn: 'See your cards, passives, and upgrades.',
     rewards: Object.freeze([R('ryos', 25), R('xp', 15)]),
+  }),
+  Object.freeze({
+    key: 'pouch_item',
+    kind: 'action',
+    action: 'pouch_item',
+    route: '/inventaire',
+    sortOrder: 55,
+    nameFr: 'Emporter un objet',
+    nameEn: 'Pack an item',
+    hintFr: 'Depuis l’inventaire, déplace un objet du coffre vers la poche.',
+    hintEn: 'From the inventory, move an item from the chest to the pouch.',
+    rewards: Object.freeze([R('ryos', 40), R('xp', 20)]),
+  }),
+  Object.freeze({
+    key: 'pouch_ryos',
+    kind: 'action',
+    action: 'pouch_ryos',
+    route: '/inventaire',
+    sortOrder: 58,
+    nameFr: 'Choisir les ryos à emporter',
+    nameEn: 'Choose ryos to take',
+    hintFr: 'Sélectionne un palier de bourse (100 / 200 / 300) dans la poche.',
+    hintEn: 'Pick a purse stake (100 / 200 / 300) for your pouch.',
+    rewards: Object.freeze([R('ryos', 40), R('xp', 20)]),
   }),
   Object.freeze({
     key: 'win_combat',
