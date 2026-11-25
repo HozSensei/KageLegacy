@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import BattlePassTrack from '../components/battlePass/BattlePassTrack.vue';
 import QuestList from '../components/battlePass/QuestList.vue';
@@ -292,24 +293,17 @@ async function onClaimQuest(questId) {
           />
         </div>
 
-        <div class="mt-14 grid gap-x-12 gap-y-10 lg:grid-cols-2">
-          <QuestList
-            :title="t('battlePass.dailyQuests')"
-            :quests="store.dailyQuests"
-            :locale="locale"
-            :busy="store.actionLoading"
-            @claim="onClaimQuest"
-          />
-          <QuestList
-            :title="t('battlePass.weeklyQuests')"
-            :quests="store.weeklyQuests"
-            :locale="locale"
-            :busy="store.actionLoading"
-            @claim="onClaimQuest"
-          />
-        </div>
-
-        <div class="mt-10">
+        <div class="mt-14">
+          <div class="bp-hub-quests mb-8">
+            <p class="text-ink-muted">{{ t('battlePass.hubQuestsHint') }}</p>
+            <RouterLink
+              :to="{ name: 'hub', query: { tab: 'quests' } }"
+              class="btn-ghost btn-sm"
+              data-testid="bp-hub-quests-link"
+            >
+              {{ t('battlePass.hubQuestsLink') }}
+            </RouterLink>
+          </div>
           <QuestList
             :title="t('battlePass.milestoneQuests')"
             :quests="store.milestoneQuests"
@@ -441,6 +435,13 @@ async function onClaimQuest(questId) {
   min-width: 0;
   flex: 1;
   border-bottom: 0;
+}
+
+.bp-hub-quests {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
 }
 
 .bp-reward-modal {

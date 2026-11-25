@@ -40,6 +40,7 @@ const ready = ref(false);
 const progressLoadError = ref(false);
 const claimMessage = ref(null);
 const hubTab = ref('guide');
+const questPeriodTab = ref('daily');
 
 const HUB_STAT_KEYS = [
   'taijutsu',
@@ -66,6 +67,7 @@ async function loadHub() {
     shop.fetchBalances(),
   ]);
   progressLoadError.value = Boolean(decks.error || !talentData || !achievementData || !onboardingData);
+  pickDefaultQuestPeriodTab();
   pickDefaultHubTab();
   ready.value = true;
 }
@@ -182,6 +184,29 @@ const showOnboarding = computed(
 const showProgressPanel = computed(() => hasCharacter.value && !progressLoadError.value);
 const claimableGuideCount = computed(() => steps.value.filter(s => s.claimable).length);
 const claimableTierCount = computed(() => battlePass.claimableTiers || 0);
+
+function isQuestClaimable(quest) {
+  return Boolean(quest?.progress?.isCompleted && !quest?.progress?.isClaimed);
+}
+
+const claimableDailyCount = computed(
+  () => (battlePass.dailyQuests || []).filter(isQuestClaimable).length,
+);
+const claimableWeeklyCount = computed(
+  () => (battlePass.weeklyQuests || []).filter(isQuestClaimable).length,
+);
+
+function pickDefaultQuestPeriodTab() {
+  if (claimableDailyCount.value > 0) {
+    questPeriodTab.value = 'daily';
+    return;
+  }
+  if (claimableWeeklyCount.value > 0) {
+    questPeriodTab.value = 'weekly';
+    return;
+  }
+  questPeriodTab.value = 'daily';
+}
 
 async function claimStep(step) {
   if (!step?.claimable || onboarding.actionLoading) return;
@@ -539,20 +564,64 @@ const shortcuts = computed(() =>
             </div>
 
             <div class="hub-quests mt-8">
-              <QuestList
-                :title="t('battlePass.dailyQuests')"
-                :quests="battlePass.dailyQuests"
-                :locale="locale"
-                :busy="battlePass.actionLoading"
-                @claim="claimQuest"
-              />
-              <QuestList
-                :title="t('battlePass.weeklyQuests')"
-                :quests="battlePass.weeklyQuests"
-                :locale="locale"
-                :busy="battlePass.actionLoading"
-                @claim="claimQuest"
-              />
+              <div
+                class="tabs"
+                role="tablist"
+                :aria-label="t('hub.questPeriodTabsLabel')"
+                data-testid="hub-quest-period-tabs"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  class="tab"
+                  :aria-selected="questPeriodTab === 'daily'"
+                  data-testid="hub-quest-tab-daily"
+                  @click="questPeriodTab = 'daily'"
+                >
+                  {{ t('battlePass.dailyQuests') }}
+                  <span v-if="claimableDailyCount" class="tab__count">{{ claimableDailyCount }}</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  class="tab"
+                  :aria-selected="questPeriodTab === 'weekly'"
+                  data-testid="hub-quest-tab-weekly"
+                  @click="questPeriodTab = 'weekly'"
+                >
+                  {{ t('battlePass.weeklyQuests') }}
+                  <span v-if="claimableWeeklyCount" class="tab__count">{{
+                    claimableWeeklyCount
+                  }}</span>
+                </button>
+              </div>
+
+              <div
+                v-show="questPeriodTab === 'daily'"
+                role="tabpanel"
+                class="mt-5"
+                data-testid="hub-quests-daily"
+              >
+                <QuestList
+                  :quests="battlePass.dailyQuests"
+                  :locale="locale"
+                  :busy="battlePass.actionLoading"
+                  @claim="claimQuest"
+                />
+              </div>
+              <div
+                v-show="questPeriodTab === 'weekly'"
+                role="tabpanel"
+                class="mt-5"
+                data-testid="hub-quests-weekly"
+              >
+                <QuestList
+                  :quests="battlePass.weeklyQuests"
+                  :locale="locale"
+                  :busy="battlePass.actionLoading"
+                  @claim="claimQuest"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -752,7 +821,7 @@ const shortcuts = computed(() =>
 
 .hub-quests {
   display: grid;
-  gap: 2.5rem;
+  gap: 0;
 }
 
 .hub-steps {
