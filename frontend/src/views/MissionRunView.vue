@@ -134,6 +134,21 @@ const inventory = computed(() => {
 const isShopEvent = computed(() => missions.currentEvent?.eventType === 'shop')
 const shopOffer = computed(() => missions.currentEvent?.offer || [])
 const replaceSlot = ref(null)
+/** Leave shop is the primary next-step CTA, not a panel choice. */
+const eventChoices = computed(() =>
+  (missions.currentEvent?.choices || []).filter((c) => c.id !== 'leave')
+)
+const eventTone = computed(() => {
+  const type = missions.currentEvent?.eventType
+  if (type === 'shop') return 'gold'
+  if (type === 'rest' || type === 'mystery_heal') return 'leaf'
+  return 'sky'
+})
+const showEnterCta = computed(() => !missions.currentEvent || isShopEvent.value)
+const enterCtaLabel = computed(() => {
+  if (missions.actionLoading) return t('combat.starting')
+  return isShopEvent.value ? t('combat.nextStep') : t('combat.enterNode')
+})
 
 const activeEffects = computed(() =>
   buildActiveRunEffects(player.value, {
@@ -171,20 +186,28 @@ const hpPct = computed(() =>
   Math.max(0, Math.min(100, Math.round((player.value.hp / (player.value.maxHp || 1)) * 100)))
 )
 
+async function enterAvailableNode() {
+  if (isOver.value || run.value?.state !== 'in_progress') return
+  if (missions.currentEvent) return
+  const result = await missions.enterNode(runId.value)
+  if (result.combat?.id) {
+    combat.hydrateFrom(result.combat)
+    missions.activeCombat = {
+      id: result.combat.id,
+      missionRunId: result.combat.missionRunId || runId.value,
+    }
+    await router.push({ name: 'combat', params: { id: result.combat.id } })
+  }
+}
+
 async function onEnter() {
   localError.value = null
   try {
-    const result = await missions.enterNode(runId.value)
-    if (result.combat?.id) {
-      combat.hydrateFrom(result.combat)
-      missions.activeCombat = {
-        id: result.combat.id,
-        missionRunId: result.combat.missionRunId || runId.value,
-      }
-      await router.push({ name: 'combat', params: { id: result.combat.id } })
-      return
+    // Boutique ouverte : la CTA principale quitte et enchaîne sur le nœud suivant.
+    if (isShopEvent.value) {
+      await missions.resolveEvent(runId.value, 'leave')
     }
-    // event exposed via store.currentEvent
+    await enterAvailableNode()
   } catch (e) {
     localError.value = e.message
   }
@@ -195,9 +218,11 @@ async function onChoice(choiceId) {
   try {
     if (missions.currentEvent?.eventType === 'branch') {
       await missions.chooseBranch(runId.value, choiceId)
-      return
+    } else {
+      await missions.resolveEvent(runId.value, choiceId)
     }
-    await missions.resolveEvent(runId.value, choiceId)
+    // Évite le double clic « choix puis étape suivante » (carrefour, halte, mystère…).
+    await enterAvailableNode()
   } catch (e) {
     localError.value = e.message
   }
@@ -255,8 +280,6 @@ function backToMissions(payload) {
   combat.clear()
   router.push(payload?.to || { name: 'missions' })
 }
-
-const eventChoices = computed(() => missions.currentEvent?.choices || [])
 </script>
 
 <template>
@@ -339,16 +362,14 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
             <div class="run-status__actions" data-testid="run-actions">
               <button
-                v-if="!missions.currentEvent"
+                v-if="showEnterCta"
                 type="button"
                 class="btn-primary"
                 data-testid="run-enter-btn"
                 :disabled="missions.actionLoading"
                 @click="onEnter"
               >
-                {{
-                  missions.actionLoading ? t('combat.starting') : t('combat.enterNode')
-                }}
+                {{ enterCtaLabel }}
                 <AppIcon name="arrow-right" size="1.1rem" />
               </button>
               <button
@@ -430,7 +451,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
           <section
             v-if="missions.currentEvent"
             class="run-event"
-            data-tone="sky"
+            :data-tone="eventTone"
             data-testid="run-event"
           >
             <span class="run-event__shape" aria-hidden="true" />
@@ -475,7 +496,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
               </ul>
             </div>
 
-            <div class="run-event__choices">
+            <div v-if="eventChoices.length" class="run-event__choices">
               <button
                 v-for="choice in eventChoices"
                 :key="choice.id"
@@ -777,7 +798,10 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   overflow: hidden;
   padding: 1.25rem 1.25rem 1.25rem 1.5rem;
   border-left: 6px solid var(--tone-fill);
-  background: var(--tone-tint);
+  /* Fond soft distinct des ItemBlock (--tone-tint) et de l’inventaire (--color-bg-card). */
+  background: var(--color-bg-soft);
+  outline: 1px solid color-mix(in srgb, var(--tone-fill) 28%, var(--color-line));
+  outline-offset: -1px;
   animation: rise-in 420ms var(--ease-out-quint) both;
 }
 
