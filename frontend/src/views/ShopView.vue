@@ -10,6 +10,7 @@ import CardEffectCatalog from '../components/shop/CardEffectCatalog.vue';
 
 import BattlePassOffer from '../components/shop/BattlePassOffer.vue';
 import WelcomePackBanner from '../components/shop/WelcomePackBanner.vue';
+import ItemBlock from '../components/inventory/ItemBlock.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import marketImage from '../assets/illustrations/market-square.webp';
 import { useShopStore } from '../stores/shop';
@@ -340,24 +341,24 @@ async function onBuyItem(itemId) {
       </p>
       <ul v-if="shop.dailyItems.length" class="shop-items__list">
         <li v-for="offer in shop.dailyItems" :key="offer.id" class="shop-items__row">
-          <div>
-            <strong>{{ localizedName(offer, locale) || offer.id }}</strong>
-            <p class="shop-items__desc">
-              {{ localizedDescription(offer, locale) }}
-            </p>
-            <p class="shop-items__meta">
-              {{ t('shop.itemsPrice', { n: offer.priceShop ?? offer.price }) }}
-              · {{ t('shop.itemsStock', { n: offer.stock }) }}
-            </p>
-          </div>
-          <button
-            type="button"
-            class="btn-primary btn-sm"
-            :disabled="shop.purchasing || shop.loading || offer.stock <= 0"
-            @click="onBuyItem(offer.id)"
+          <ItemBlock
+            :item="offer"
+            :name="localizedName(offer, locale) || offer.id"
+            :description="localizedDescription(offer, locale)"
+            :quantity="offer.stock"
+            :meta="t('shop.itemsPrice', { n: offer.priceShop ?? offer.price })"
           >
-            {{ offer.stock <= 0 ? t('shop.itemsSoldOut') : t('shop.itemsBuy') }}
-          </button>
+            <template #actions>
+              <button
+                type="button"
+                class="btn-primary btn-sm"
+                :disabled="shop.purchasing || shop.loading || offer.stock <= 0"
+                @click="onBuyItem(offer.id)"
+              >
+                {{ offer.stock <= 0 ? t('shop.itemsSoldOut') : t('shop.itemsBuy') }}
+              </button>
+            </template>
+          </ItemBlock>
         </li>
       </ul>
       <p v-else-if="!shop.loading" class="text-ink-muted">{{ t('shop.itemsEmpty') }}</p>
@@ -461,31 +462,14 @@ async function onBuyItem(itemId) {
   margin: 0;
   padding: 0;
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.75rem;
 }
 
 .shop-items__row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
-}
-
-.shop-items__desc {
-  margin: 0.25rem 0 0;
-  color: var(--color-ink-muted);
-  font-size: 0.875rem;
-}
-
-.shop-items__meta {
-  margin: 0.35rem 0 0;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  min-width: 0;
+  list-style: none;
 }
 
 .shop-cosmetics {
