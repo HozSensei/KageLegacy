@@ -1,6 +1,6 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, onMounted, ref, watch } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { usePlayerStore } from '../stores/player';
 import { useCollectionStore } from '../stores/collection';
@@ -24,6 +24,8 @@ import hubImage from '../assets/illustrations/hub-office.webp';
 defineOptions({ name: 'HubView' });
 
 const { t, locale, n } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const player = usePlayerStore();
 const collection = useCollectionStore();
 const decks = useDecksStore();
@@ -69,6 +71,10 @@ async function loadHub() {
 }
 
 function pickDefaultHubTab() {
+  if (String(route.query.tab || '') === 'quests') {
+    hubTab.value = 'quests';
+    return;
+  }
   const guideOpen = Boolean(
     player.character && !onboarding.finished && (onboarding.steps || []).length,
   );
@@ -85,6 +91,24 @@ function pickDefaultHubTab() {
 }
 
 onMounted(loadHub);
+
+function setHubTab(tab) {
+  hubTab.value = tab;
+  const nextQuery = { ...route.query };
+  if (tab === 'quests') nextQuery.tab = 'quests';
+  else delete nextQuery.tab;
+  const same =
+    String(route.query.tab || '') === String(nextQuery.tab || '');
+  if (!same) router.replace({ query: nextQuery });
+}
+
+watch(
+  () => route.query.tab,
+  tab => {
+    if (String(tab || '') === 'quests') hubTab.value = 'quests';
+    else if (hubTab.value === 'quests' && showOnboarding.value) hubTab.value = 'guide';
+  },
+);
 
 const hasCharacter = computed(() => Boolean(player.character));
 const hasConfirmedCharacterAbsence = computed(() => player.hasConfirmedCharacterAbsence);
@@ -394,7 +418,7 @@ const shortcuts = computed(() =>
                 class="tab"
                 :aria-selected="hubTab === 'guide'"
                 data-testid="hub-tab-guide"
-                @click="hubTab = 'guide'"
+                @click="setHubTab('guide')"
               >
                 {{ t('hub.tabGuide') }}
                 <span v-if="claimableGuideCount" class="tab__count">{{ claimableGuideCount }}</span>
@@ -405,7 +429,7 @@ const shortcuts = computed(() =>
                 class="tab"
                 :aria-selected="hubTab === 'quests'"
                 data-testid="hub-tab-quests"
-                @click="hubTab = 'quests'"
+                @click="setHubTab('quests')"
               >
                 {{ t('hub.tabQuests') }}
                 <span v-if="battlePass.claimableQuests" class="tab__count">{{
