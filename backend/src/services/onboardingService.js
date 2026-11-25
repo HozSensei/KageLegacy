@@ -156,7 +156,8 @@ export async function completeOnboardingVisit(userId, stepKey) {
 }
 
 /**
- * Hook jeu : deck_edit, deck_create, talent_spent, pouch_item, pouch_ryos, combat_win.
+ * Hook jeu : deck_edit, deck_create, talent_spent, pouch_item, pouch_ryos,
+ * combat_win, booster_open.
  */
 export async function onOnboardingAction(userId, action) {
   if (!userId || !action) return { skipped: true, reason: 'bad_args' };

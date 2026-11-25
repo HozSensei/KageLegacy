@@ -8,6 +8,7 @@ import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
 import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 import { useCoopApi } from '../composables/useCoopApi.js';
 import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
+import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 import { useMissionsStore } from '../stores/missions.js';
 import { useInventoryStore } from '../stores/inventory.js';
 import { localizedName } from '../utils/localeContent.js';
@@ -18,6 +19,7 @@ const { t, locale } = useI18n();
 const router = useRouter();
 const missions = useMissionsStore();
 const inventory = useInventoryStore();
+useOnboardingVisit('visit_coop');
 const {
   open: profileOpen,
   loading: profileLoading,
