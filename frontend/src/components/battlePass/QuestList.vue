@@ -6,7 +6,7 @@ import { localizedDescription } from '../../utils/localeContent.js';
 defineOptions({ name: 'QuestList' });
 
 defineProps({
-  title: { type: String, required: true },
+  title: { type: String, default: '' },
   quests: { type: Array, default: () => [] },
   locale: { type: String, default: 'fr' },
   busy: { type: Boolean, default: false },
@@ -27,12 +27,12 @@ function pct(quest) {
 </script>
 
 <template>
-  <section class="bp-quests" data-testid="quest-list">
-    <div class="section-head">
+  <section class="bp-quests" data-testid="quest-list" :class="{ 'bp-quests--untitled': !title }">
+    <div v-if="title" class="section-head">
       <h2 class="section-head__title">{{ title }}</h2>
       <span class="section-head__rule" aria-hidden="true" />
     </div>
-    <p v-if="!quests.length" class="mt-3 text-ink-muted">{{ t('battlePass.noQuests') }}</p>
+    <p v-if="!quests.length" class="bp-quests__empty text-ink-muted">{{ t('battlePass.noQuests') }}</p>
 
     <ul class="bp-quests__list">
       <li
@@ -87,12 +87,24 @@ function pct(quest) {
 </template>
 
 <style scoped>
+.bp-quests__empty {
+  margin-top: 0.75rem;
+}
+
+.bp-quests--untitled .bp-quests__empty {
+  margin-top: 0;
+}
+
 .bp-quests__list {
   display: flex;
   flex-direction: column;
   margin: 0.75rem 0 0;
   padding: 0;
   list-style: none;
+}
+
+.bp-quests--untitled .bp-quests__list {
+  margin-top: 0;
 }
 
 .bp-quest {
