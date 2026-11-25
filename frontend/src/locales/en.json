@@ -1569,6 +1569,8 @@
     "pathTabsLabel": "Branch preview",
     "pathTabSteps": "{n} steps",
     "pathForkCaption": "Ahead — {path}",
+    "pathForkTaken": "Taken",
+    "pathForkSkipped": "Not taken",
     "nodeSkippedHint": "Path not taken.",
     "nodeMystery": "?",
     "nodeMysteryHint": "Unknown — heal, loot, nothing, or combat.",

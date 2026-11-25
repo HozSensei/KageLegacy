@@ -1569,6 +1569,8 @@
     "pathTabsLabel": "Aperçu des branches",
     "pathTabSteps": "{n} étapes",
     "pathForkCaption": "Suite — {path}",
+    "pathForkTaken": "Pris",
+    "pathForkSkipped": "Non pris",
     "nodeSkippedHint": "Branche non prise.",
     "nodeMystery": "?",
     "nodeMysteryHint": "Inconnu — soin, butin, rien ou combat.",

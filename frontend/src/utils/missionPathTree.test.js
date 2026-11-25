@@ -90,7 +90,7 @@ test('resolvePreviewChoiceId prefers chosen then preview map', () => {
   assert.equal(resolvePreviewChoiceId(byId.fork, byId, {}), 'left');
 });
 
-test('skipped subtrees drop from visible choices', () => {
+test('skipped subtrees drop from visible choices before pick', () => {
   const nodes = sampleTree().map(n =>
     n.branch === 'left' || n.id === 'l1' || n.id === 'l2'
       ? { ...n, status: 'skipped' }
@@ -105,5 +105,25 @@ test('skipped subtrees drop from visible choices', () => {
   assert.deepEqual(
     choices.map(c => c.id),
     ['mid', 'right']
+  );
+});
+
+test('visibleBranchChoices keeps all paths after choice', () => {
+  const patched = sampleTree().map(n => {
+    if (n.id === 'fork') return { ...n, status: 'cleared', chosen: 'right' };
+    if (n.branch === 'left' || n.branch === 'mid') return { ...n, status: 'skipped' };
+    return n;
+  });
+  const byId = indexNodes(patched);
+  const choices = visibleBranchChoices(byId.fork, byId);
+  assert.deepEqual(
+    choices.map(c => c.id),
+    ['left', 'mid', 'right']
+  );
+  assert.equal(countSubtreeSteps(byId, 'l1'), 0);
+  assert.equal(countSubtreeSteps(byId, 'l1', { includeSkipped: true }), 2);
+  assert.deepEqual(
+    walkSegment(byId, 'l1', { includeSkipped: true }).map(n => n.id),
+    ['l1', 'l2']
   );
 });
