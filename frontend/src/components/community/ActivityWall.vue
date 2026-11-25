@@ -3,7 +3,7 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { FACTION_IDS } from '../../constants/factions.js';
 import { useCommunityActivity } from '../../composables/useCommunityActivity.js';
-import PlayerIdentityChip from '../player/PlayerIdentityChip.vue';
+import LeaderboardPlayerCell from '../player/LeaderboardPlayerCell.vue';
 
 defineOptions({ name: 'ActivityWall' });
 
@@ -103,12 +103,13 @@ defineExpose({ refresh });
 
     <ul v-if="events.length" class="activity-wall__list">
       <li v-for="event in events" :key="event.id" class="activity-wall__row">
-        <PlayerIdentityChip
+        <LeaderboardPlayerCell
           :user-id="event.player?.userId"
           :name="event.player?.name || t('community.unknownPlayer')"
           :profile="event.player?.profile"
           :level="event.player?.level"
-          @open="(userId, event) => emit('open-profile', userId, event)"
+          :rank-title="event.player?.rank"
+          @open="(userId, clickEvent) => emit('open-profile', userId, clickEvent)"
         />
         <div class="activity-wall__meta">
           <span>{{ kindLabel(event.kind) }}</span>
@@ -153,23 +154,34 @@ defineExpose({ refresh });
 }
 
 .activity-wall__row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.65rem 0;
+  gap: 0.5rem 0.65rem;
+  padding: 0.35rem 0;
   border-top: 1px solid var(--color-line);
 }
 
 .activity-wall__meta {
   display: grid;
   gap: 0.15rem;
+  justify-items: end;
   text-align: right;
   font-size: 0.9rem;
 }
 
 .activity-wall__sentinel {
   height: 1px;
+}
+
+@media (max-width: 560px) {
+  .activity-wall__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .activity-wall__meta {
+    justify-items: start;
+    text-align: left;
+  }
 }
 </style>
