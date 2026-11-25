@@ -10,6 +10,7 @@ import {
   requestDuelFriend,
   searchDuelPlayers,
 } from '../src/services/asyncDuelFriends.js';
+import { NOTIFICATION_KIND } from '../src/services/userNotificationService.js';
 
 const prefix = `test_duel_friends_${randomUUID()}`;
 const ids = [];
@@ -27,6 +28,16 @@ async function player(suffix, { displayName, characterName = null } = {}) {
   return { id, name: characterName ?? displayName ?? username };
 }
 
+async function friendRequestNotes(userId) {
+  return query(
+    `SELECT kind, dedupe_key, href, payload_json
+     FROM user_notifications
+     WHERE user_id = ? AND kind = ?
+     ORDER BY id`,
+    [userId, NOTIFICATION_KIND.FRIEND_REQUEST],
+  );
+}
+
 after(async () => {
   try {
     if (!ids.length) return;
@@ -36,6 +47,7 @@ after(async () => {
        WHERE user_low_id IN (${placeholders}) OR user_high_id IN (${placeholders})`,
       [...ids, ...ids],
     );
+    await query(`DELETE FROM user_notifications WHERE user_id IN (${placeholders})`, ids);
     await query(`DELETE FROM users WHERE id IN (${placeholders})`, ids);
   } finally {
     await pool.end();
@@ -63,12 +75,30 @@ test('liste les relations par état et réserve l’acceptation au destinataire'
   await requestDuelFriend(me.id, recipient.id);
   await requestDuelFriend(friend.id, me.id);
   assert.equal(await areDuelFriends(me.id, friend.id), false);
+
+  const myIncomingNotes = await friendRequestNotes(me.id);
+  assert.equal(myIncomingNotes.length, 2);
+  assert.ok(
+    myIncomingNotes.every(
+      note =>
+        note.href === '/village?tab=friends' &&
+        String(note.dedupe_key).startsWith('friend_request:'),
+    ),
+  );
+  const recipientNotes = await friendRequestNotes(recipient.id);
+  assert.equal(recipientNotes.length, 1);
+  assert.equal(recipientNotes[0].dedupe_key, `friend_request:${me.id}`);
+
   await assert.rejects(acceptDuelFriend(me.id, recipient.id), { statusCode: 403 });
   await assert.rejects(acceptDuelFriend(sender.id, recipient.id), { statusCode: 404 });
   await assert.rejects(removeDuelFriend(sender.id, recipient.id), { statusCode: 404 });
   await acceptDuelFriend(me.id, friend.id);
   assert.equal(await areDuelFriends(me.id, friend.id), true);
   assert.equal(await areDuelFriends(friend.id, me.id), true);
+  assert.equal(
+    (await friendRequestNotes(me.id)).some(n => n.dedupe_key === `friend_request:${friend.id}`),
+    false,
+  );
   assert.deepEqual(await getDuelFriends(me.id), {
     friends: [friend],
     incoming: [sender],
@@ -79,7 +109,9 @@ test('liste les relations par état et réserve l’acceptation au destinataire'
   await assert.rejects(requestDuelFriend(me.id, friend.id), { statusCode: 409 });
 
   await removeDuelFriend(me.id, sender.id); // Refus
+  assert.equal((await friendRequestNotes(me.id)).length, 0);
   await removeDuelFriend(me.id, recipient.id); // Annulation
+  assert.equal((await friendRequestNotes(recipient.id)).length, 0);
   await removeDuelFriend(friend.id, me.id); // Suppression par l’autre ami
   assert.deepEqual(await getDuelFriends(me.id), empty);
   assert.equal(await areDuelFriends(me.id, friend.id), false);

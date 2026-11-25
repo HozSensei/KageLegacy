@@ -481,6 +481,9 @@
     "villageReadyBody": "{n} gain confirmé non lu | {n} gains confirmés non lus",
     "villageRewardBody": "+{n} Ryos confirmés pour votre village.",
     "villageReadyLink": "Voir les gains",
+    "friendRequestTitle": "Demande d’ami",
+    "friendRequestBody": "{name} souhaite vous ajouter en ami.",
+    "friendRequestLink": "Voir les demandes",
     "bugReportNewTitle": "Nouveau rapport de bug",
     "bugReportNewBody": "{location} — {preview}",
     "bugReportNewLink": "Ouvrir les rapports",
@@ -2663,7 +2666,13 @@
   },
   "village": {
     "title": "Village",
-    "pageLead": "Amis, demandes, et la guerre de prestige entre Midorihara, Kareno et Oborohama — classement hebdomadaire des villages.",
+    "pageLead": "Gains du village, classements, mur d’activité et amis — la rivalité entre Midorihara, Kareno et Oborohama.",
+    "tabsLabel": "Sections du Village",
+    "tabs": {
+      "standings": "Classements",
+      "activity": "Mur d’activité",
+      "friends": "Amis"
+    },
     "weeklyStandings": {
       "title": "Classement hebdomadaire des factions",
       "loadFailed": "Impossible de charger le classement des factions. Actualisez pour réessayer.",
