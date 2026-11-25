@@ -91,11 +91,11 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
       <span class="card-aura__snow card-aura__snow--near" />
     </template>
 
-    <!-- Brume : deux bancs qui se rejoignent puis s’écartent (carte lisible) -->
+    <!-- Brume légère qui flotte (pas d’écartement opaque) -->
     <template v-else-if="effect === 'mist_fade'">
-      <span class="card-aura__haze card-aura__haze--left" />
-      <span class="card-aura__haze card-aura__haze--right" />
-      <span class="card-aura__haze card-aura__haze--low" />
+      <span class="card-aura__haze card-aura__haze--a" />
+      <span class="card-aura__haze card-aura__haze--b" />
+      <span class="card-aura__haze card-aura__haze--c" />
     </template>
   </span>
 </template>
@@ -491,53 +491,48 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
   }
 }
 
-/*
- * Brume dissipée : bancs gauches/droits qui se rejoignent puis s’écartent.
- * Phase « écartée » ~ claire pour laisser lire la fiche (plus de voile figé).
- */
+/* Brume légère : volutes douces qui dérivent (carte toujours lisible) */
 .card-aura__haze {
   position: absolute;
-  top: -5%;
-  height: 110%;
-  width: 78%;
-  border-radius: 45% 55% 50% 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgb(245 248 255 / 0.92) 0%,
-    rgb(220 230 245 / 0.55) 48%,
-    rgb(220 230 245 / 0) 72%
-  );
-  filter: blur(16px);
-  will-change: transform, opacity;
-}
-
-.card-aura__haze--left {
-  left: -8%;
-  animation: mist-part-left 9s ease-in-out infinite;
-}
-
-.card-aura__haze--right {
-  right: -8%;
-  left: auto;
-  border-radius: 55% 45% 50% 50%;
-  animation: mist-part-right 9s ease-in-out infinite;
-}
-
-.card-aura__haze--low {
-  left: 10%;
-  right: 10%;
-  top: auto;
-  bottom: -18%;
-  width: auto;
-  height: 55%;
+  width: 70%;
+  height: 48%;
   border-radius: 50%;
   background: radial-gradient(
     ellipse at center,
-    rgb(235 242 255 / 0.7) 0%,
-    rgb(220 230 245 / 0) 70%
+    rgb(255 255 255 / 0.28) 0%,
+    rgb(230 238 250 / 0.12) 45%,
+    transparent 72%
   );
-  filter: blur(20px);
-  animation: mist-part-low 9s ease-in-out infinite;
+  filter: blur(18px);
+  opacity: 0.55;
+  will-change: transform, opacity;
+  animation: mist-drift 11s ease-in-out infinite;
+}
+
+.card-aura__haze--a {
+  left: -12%;
+  top: 8%;
+}
+
+.card-aura__haze--b {
+  right: -14%;
+  left: auto;
+  bottom: 6%;
+  width: 65%;
+  height: 42%;
+  animation-name: mist-drift-alt;
+  animation-duration: 14s;
+  animation-delay: -3s;
+}
+
+.card-aura__haze--c {
+  left: 18%;
+  top: 36%;
+  width: 55%;
+  height: 36%;
+  opacity: 0.4;
+  animation-duration: 16s;
+  animation-delay: -7s;
 }
 
 @keyframes sheen-flash {
@@ -561,58 +556,27 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
   }
 }
 
-/* Couverture → écartement (carte lisible) → retour */
-@keyframes mist-part-left {
+@keyframes mist-drift {
   0%,
-  12% {
-    transform: translate3d(28%, 0, 0) scale(1.05);
-    opacity: 0.95;
-  }
-  38%,
-  62% {
-    transform: translate3d(-72%, -4%, 0) scale(1.15);
-    opacity: 0.12;
-  }
-  88%,
   100% {
-    transform: translate3d(28%, 0, 0) scale(1.05);
-    opacity: 0.95;
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate3d(8%, -5%, 0) scale(1.08);
+    opacity: 0.65;
   }
 }
 
-@keyframes mist-part-right {
+@keyframes mist-drift-alt {
   0%,
-  12% {
-    transform: translate3d(-28%, 0, 0) scale(1.05);
-    opacity: 0.95;
-  }
-  38%,
-  62% {
-    transform: translate3d(72%, 3%, 0) scale(1.15);
-    opacity: 0.12;
-  }
-  88%,
   100% {
-    transform: translate3d(-28%, 0, 0) scale(1.05);
-    opacity: 0.95;
+    transform: translate3d(0, 0, 0) scale(1.02);
+    opacity: 0.35;
   }
-}
-
-@keyframes mist-part-low {
-  0%,
-  12% {
-    transform: translate3d(0, -18%, 0) scale(1.1);
-    opacity: 0.75;
-  }
-  38%,
-  62% {
-    transform: translate3d(0, 55%, 0) scale(1.2);
-    opacity: 0.05;
-  }
-  88%,
-  100% {
-    transform: translate3d(0, -18%, 0) scale(1.1);
-    opacity: 0.75;
+  50% {
+    transform: translate3d(-10%, 4%, 0) scale(1.1);
+    opacity: 0.6;
   }
 }
 
@@ -635,20 +599,8 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
     left: 35%;
   }
 
-  /* Figé mais écarté : la fiche reste lisible */
-  .card-aura__haze--left {
-    transform: translate3d(-55%, 0, 0);
-    opacity: 0.25;
-  }
-
-  .card-aura__haze--right {
-    transform: translate3d(55%, 0, 0);
-    opacity: 0.25;
-  }
-
-  .card-aura__haze--low {
-    transform: translate3d(0, 40%, 0);
-    opacity: 0.15;
+  .card-aura__haze {
+    opacity: 0.4;
   }
 
   .card-aura__leaf {
