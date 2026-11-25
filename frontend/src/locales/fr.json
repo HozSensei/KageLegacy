@@ -2926,6 +2926,7 @@
     "locked": "Verrouillé",
     "claimSuccess": "Récompense d’exploit récupérée.",
     "progress": "{current} / {goal}",
+    "filterCategory": "Catégorie",
     "categories": {
       "all": "Tous",
       "combat": "Combat",
