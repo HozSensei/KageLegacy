@@ -38,8 +38,25 @@ async function onClaim({ key, tier }) {
     <p v-if="message" class="ach-message" role="status">{{ message }}</p>
     <p v-if="store.loading" class="mt-8 text-ink-muted">{{ t('common.loading') }}</p>
     <template v-else>
-      <div class="ach-filters" role="tablist">
-        <button v-for="cat in categories" :key="cat" type="button" class="ach-filters__btn" :class="{ 'ach-filters__btn--active': filter === cat }" :data-testid="`ach-filter-${cat}`" @click="filter = cat">{{ t(`achievements.categories.${cat}`) }}</button>
+      <div
+        class="ach-filters"
+        role="group"
+        :aria-label="t('achievements.filterCategory')"
+      >
+        <span class="t-kicker">{{ t('achievements.filterCategory') }}</span>
+        <div class="chip-row">
+          <button
+            v-for="cat in categories"
+            :key="cat"
+            type="button"
+            class="chip"
+            :aria-pressed="filter === cat"
+            :data-testid="`ach-filter-${cat}`"
+            @click="filter = cat"
+          >
+            {{ t(`achievements.categories.${cat}`) }}
+          </button>
+        </div>
       </div>
       <AchievementList :achievements="filtered" :locale="locale" :busy="store.actionLoading" @claim="onClaim" />
     </template>
@@ -51,7 +68,10 @@ async function onClaim({ key, tier }) {
 .ach-summary__value{font-family:var(--font-display);font-size:1.75rem;line-height:1.1}
 .ach-summary__claimable{margin:0;color:var(--tone-leaf,#3d6b4f);font-weight:600}
 .ach-message{margin-top:1rem;color:var(--tone-leaf,#3d6b4f)}
-.ach-filters{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.5rem 0 .75rem}
-.ach-filters__btn{appearance:none;border:1px solid color-mix(in srgb,var(--ink) 16%,transparent);background:transparent;color:var(--ink-muted);padding:.35rem .75rem;font-size:.8125rem;cursor:pointer}
-.ach-filters__btn--active{color:var(--ink);border-color:var(--ink);background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.ach-filters{
+  display:flex;
+  flex-direction:column;
+  gap:0.5rem;
+  margin:1.5rem 0 0.75rem;
+}
 </style>

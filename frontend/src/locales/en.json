@@ -2922,6 +2922,7 @@
     "locked": "Locked",
     "claimSuccess": "Achievement reward claimed.",
     "progress": "{current} / {goal}",
+    "filterCategory": "Category",
     "categories": {
       "all": "All",
       "combat": "Combat",
