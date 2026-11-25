@@ -1799,6 +1799,10 @@
     "insufficientChakra": "Not enough Chakra to play this card",
     "rankLabel": "Rank",
     "missionsListTitle": "Available runs",
+    "tabs": {
+      "missions": "Missions",
+      "directCombat": "Direct combat"
+    },
     "pouchPanelTitle": "Mission pouch",
     "pouchPanelSummary": "Purse: {ryos} Ryos · items: {items}",
     "pouchLossWarning": "The pouch is lost on defeat or abandon.",

@@ -1799,6 +1799,10 @@
     "insufficientChakra": "Chakra insuffisant pour jouer cette carte",
     "rankLabel": "Rang",
     "missionsListTitle": "Parcours disponibles",
+    "tabs": {
+      "missions": "Missions",
+      "directCombat": "Combat direct"
+    },
     "pouchPanelTitle": "Poche de mission",
     "pouchPanelSummary": "Bourse : {ryos} Ryos · objets : {items}",
     "pouchLossWarning": "La poche est perdue en cas d’échec ou d’abandon.",
