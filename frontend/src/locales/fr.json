@@ -1306,18 +1306,22 @@
     "itemsOpenInventory": "Ouvrir l’inventaire",
     "cosmetics": {
       "title": "Cadres animés",
-      "lead": "Auréoles animées autour du portrait, achetables en ryos.",
+      "lead": "Auréoles animées autour du portrait — ryos ou Kage Coins.",
       "owned": "Possédé",
       "buy": "Acheter ({n} ryos)",
+      "buyRyos": "Acheter ({n} ryos)",
+      "buyKageCoins": "Acheter ({n} KC)",
       "buying": "Achat…",
       "buyFailed": "Impossible d'acheter ce cadre.",
       "buyOk": "Cadre débloqué !"
     },
     "cardEffects": {
       "title": "Reflets & atmosphère",
-      "lead": "Aperçu sur votre fiche : reflets foil, feuilles, pluie, neige ou brume.",
+      "lead": "Aperçu sur votre fiche : reflets foil, feuilles, pluie, neige ou brume — ryos ou Kage Coins.",
       "owned": "Possédé",
       "buy": "Acheter ({n} ryos)",
+      "buyRyos": "Acheter ({n} ryos)",
+      "buyKageCoins": "Acheter ({n} KC)",
       "buying": "Achat…",
       "buyFailed": "Impossible d'acheter cet effet.",
       "buyOk": "Effet débloqué !"

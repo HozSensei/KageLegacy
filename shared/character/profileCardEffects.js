@@ -18,7 +18,7 @@ export function isKnownProfileCardEffectId(effectId) {
   return known.has(effectId);
 }
 
-/** Métadonnées catalogue (prix ryo, libellés, type d’effet CSS). */
+/** Métadonnées catalogue (prix ryo / kage coins, libellés, type d’effet CSS). */
 export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
   Object.freeze({
     id: 'fx_sheen_gold',
@@ -28,7 +28,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Golden sweep across the card, like a rare foil.',
     }),
     effect: 'sheen_gold',
-    ryos: 700,
+    ryos: 2100,
+    kageCoins: 80,
   }),
   Object.freeze({
     id: 'fx_sheen_aurora',
@@ -38,7 +39,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Multicolor sheen that drifts across the card.',
     }),
     effect: 'sheen_aurora',
-    ryos: 1100,
+    ryos: 3300,
+    kageCoins: 130,
   }),
   Object.freeze({
     id: 'fx_sheen_ruby',
@@ -48,7 +50,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Crimson glow across the profile card.',
     }),
     effect: 'sheen_ruby',
-    ryos: 900,
+    ryos: 2700,
+    kageCoins: 110,
   }),
   Object.freeze({
     id: 'fx_leaves_green',
@@ -58,7 +61,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Green Eco (Google icon) leaves falling on the card.',
     }),
     effect: 'leaves_green',
-    ryos: 850,
+    ryos: 2550,
+    kageCoins: 100,
   }),
   Object.freeze({
     id: 'fx_leaves_orange',
@@ -68,7 +72,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Orange Cannabis (Google icon) leaves falling on the card.',
     }),
     effect: 'leaves_orange',
-    ryos: 850,
+    ryos: 2550,
+    kageCoins: 100,
   }),
   Object.freeze({
     id: 'fx_leaves_pink',
@@ -78,7 +83,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Pink Cannabis (Google icon) leaves falling on the card.',
     }),
     effect: 'leaves_pink',
-    ryos: 850,
+    ryos: 2550,
+    kageCoins: 100,
   }),
   Object.freeze({
     id: 'fx_rain',
@@ -88,7 +94,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Light rain falling across the card.',
     }),
     effect: 'rain',
-    ryos: 800,
+    ryos: 2400,
+    kageCoins: 100,
   }),
   Object.freeze({
     id: 'fx_snow',
@@ -98,7 +105,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'Soft snowfall over the card.',
     }),
     effect: 'snow',
-    ryos: 950,
+    ryos: 2850,
+    kageCoins: 110,
   }),
   Object.freeze({
     id: 'fx_mist_fade',
@@ -108,7 +116,8 @@ export const PROFILE_CARD_EFFECT_CATALOG = Object.freeze([
       en: 'A mist veil that forms and fades away.',
     }),
     effect: 'mist_fade',
-    ryos: 750,
+    ryos: 2250,
+    kageCoins: 90,
   }),
 ]);
 

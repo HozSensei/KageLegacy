@@ -161,13 +161,14 @@ router.get('/frames', async (req, res, next) => {
   }
 });
 
-/** POST /api/shop/frames/:frameId/purchase — achat en ryos */
+/** POST /api/shop/frames/:frameId/purchase — body { currency?: 'ryos'|'kage_coins' } */
 router.post('/frames/:frameId/purchase', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
     const frameId = String(req.params.frameId || '');
-    const result = await purchaseCosmeticFrame(user.id, frameId);
+    const currency = req.body?.currency === 'kage_coins' ? 'kage_coins' : 'ryos';
+    const result = await purchaseCosmeticFrame(user.id, frameId, { currency });
     res.status(201).json(result);
   } catch (error) {
     next(error);
@@ -189,13 +190,14 @@ router.get('/card-effects', async (req, res, next) => {
   }
 });
 
-/** POST /api/shop/card-effects/:effectId/purchase — achat en ryos */
+/** POST /api/shop/card-effects/:effectId/purchase — body { currency?: 'ryos'|'kage_coins' } */
 router.post('/card-effects/:effectId/purchase', async (req, res, next) => {
   try {
     const user = await requireUser(req, res);
     if (!user) return;
     const effectId = String(req.params.effectId || '');
-    const result = await purchaseCosmeticCardEffect(user.id, effectId);
+    const currency = req.body?.currency === 'kage_coins' ? 'kage_coins' : 'ryos';
+    const result = await purchaseCosmeticCardEffect(user.id, effectId, { currency });
     res.status(201).json(result);
   } catch (error) {
     next(error);
