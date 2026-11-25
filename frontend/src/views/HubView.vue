@@ -15,7 +15,6 @@ import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import QuestList from '../components/battlePass/QuestList.vue';
-import ShopBalances from '../components/shop/ShopBalances.vue';
 import { sectionOf } from '../constants/sections';
 import { useNotificationsStore } from '../stores/notifications.js';
 import { ninjaProfileStats } from '../utils/ninjaProfile.js';
@@ -24,7 +23,7 @@ import hubImage from '../assets/illustrations/hub-office.webp';
 
 defineOptions({ name: 'HubView' });
 
-const { t, locale } = useI18n();
+const { t, locale, n } = useI18n();
 const player = usePlayerStore();
 const collection = useCollectionStore();
 const decks = useDecksStore();
@@ -110,6 +109,17 @@ const hubStats = computed(() => {
     };
   });
 });
+const hubResources = computed(() =>
+  [
+    { key: 'ryos', icon: 'ryos', tone: 'wood' },
+    { key: 'kageCoins', icon: 'coins', tone: 'gold' },
+    { key: 'dust', icon: 'dust', tone: 'indigo' },
+    { key: 'essence', icon: 'essence', tone: 'vermilion' },
+  ].map(resource => ({
+    ...resource,
+    value: Number(shop.balances?.[resource.key]) || 0,
+  })),
+);
 
 function stepLabel(step) {
   return locale.value?.startsWith('en') ? step.nameEn : step.nameFr;
@@ -293,24 +303,43 @@ const shortcuts = computed(() =>
               data-testid="hub-welcome-stats"
               :aria-label="t('player.statsTitle')"
             >
-              <li v-for="row in hubStats" :key="row.key" class="hub-stat">
+              <li
+                v-for="row in hubStats"
+                :key="row.key"
+                class="hub-chip"
+                :title="t(`player.stats.${row.key}`)"
+              >
                 <span
-                  class="hub-stat__icon"
+                  class="hub-chip__icon"
                   aria-hidden="true"
                   :style="{ '--stat-fill': row.visual.fill }"
                 >
                   <i :style="{ maskImage: `url(${row.visual.icon})` }" />
                 </span>
-                <span class="hub-stat__value">{{ row.value }}</span>
-                <span class="hub-stat__label">{{ t(`player.stats.${row.key}`) }}</span>
+                <span class="sr-only">{{ t(`player.stats.${row.key}`) }}</span>
+                <span class="hub-chip__value">{{ row.value }}</span>
               </li>
             </ul>
 
-            <ShopBalances
+            <dl
               class="hub-welcome__wallet"
-              :balances="shop.balances"
-              compact
-            />
+              :aria-label="t('resources.balancesLabel')"
+              data-testid="hub-welcome-wallet"
+            >
+              <div
+                v-for="resource in hubResources"
+                :key="resource.key"
+                class="hub-chip hub-chip--wallet"
+                :data-tone="resource.tone"
+                :title="t(`resources.${resource.key}`, { n: resource.value })"
+              >
+                <dt class="sr-only">{{ t(`resources.names.${resource.key}`) }}</dt>
+                <dd>
+                  <AppIcon :name="resource.icon" size="0.9rem" aria-hidden="true" />
+                  <span class="hub-chip__value">{{ n(resource.value) }}</span>
+                </dd>
+              </div>
+            </dl>
           </div>
 
           <dl class="hub-welcome__figures stagger" aria-hidden="true">
@@ -558,63 +587,69 @@ const shortcuts = computed(() =>
   letter-spacing: -0.025em;
 }
 
-.hub-welcome__stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem 1rem;
-  margin: 1.25rem 0 0;
+.hub-welcome__stats,
+.hub-welcome__wallet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.7rem 0 0;
   padding: 0;
   list-style: none;
 }
 
-.hub-stat {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
+.hub-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 0.35rem 0.45rem;
-  min-width: 0;
+  gap: 0.3rem;
+  min-height: 1.55rem;
+  padding: 0.15rem 0.45rem 0.15rem 0.3rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card);
 }
 
-.hub-stat__icon {
+.hub-chip__icon {
   display: grid;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.95rem;
+  height: 0.95rem;
   place-items: center;
   color: var(--stat-fill);
 }
 
-.hub-stat__icon i {
-  width: 1.1rem;
-  height: 1.1rem;
+.hub-chip__icon i {
+  width: 0.9rem;
+  height: 0.9rem;
   background: var(--stat-fill);
   mask-position: center;
   mask-repeat: no-repeat;
   mask-size: contain;
 }
 
-.hub-stat__value {
+.hub-chip__value {
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 800;
-  font-stretch: 76%;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-stretch: 82%;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
 }
 
-.hub-stat__label {
-  overflow: hidden;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--color-ink-muted);
+.hub-chip--wallet {
+  border-color: color-mix(in srgb, var(--tone-fill) 55%, var(--color-line));
 }
 
-.hub-welcome__wallet {
-  margin-top: 1.15rem;
+.hub-chip--wallet dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  color: var(--tone);
+}
+
+.hub-chip--wallet .hub-chip__value {
+  color: var(--color-ink);
 }
 
 .hub-welcome__figures {
