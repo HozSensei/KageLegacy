@@ -32,8 +32,13 @@ export function formatGrant(grant, t, locale = 'fr') {
     }
     case 'card':
       return t('notifications.rewardCard');
-    case 'nickname':
-      return t('notifications.rewardNickname');
+    case 'nickname': {
+      const name =
+        (en ? grant.nameEn : grant.nameFr) || grant.nameFr || grant.nameEn || null;
+      return name
+        ? t('battlePass.reward.nickname', { name })
+        : t('notifications.rewardNickname');
+    }
     case 'frame':
       return t('notifications.rewardFrame');
     default:

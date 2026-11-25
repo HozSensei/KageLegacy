@@ -89,6 +89,13 @@ export const WELCOME_NICKNAME = Object.freeze({
   criteria: Object.freeze({ source: 'welcome' }),
 });
 
+/** Titre one-shot — guide du novice entièrement réclamé. */
+export const ONBOARDING_NICKNAME = Object.freeze({
+  id: 'novice',
+  name: Object.freeze({ en: 'Village Initiate', fr: 'Initié du Village' }),
+  criteria: Object.freeze({ source: 'onboarding' }),
+});
+
 /** Titres débloqués en complétant une famille (catégorie) du registre des exploits. */
 export const ACHIEVEMENT_FAMILY_NICKNAMES = Object.freeze([
   Object.freeze({
@@ -123,10 +130,11 @@ export const ACHIEVEMENT_FAMILY_NICKNAMES = Object.freeze([
   }),
 ]);
 
-/** Catalogue de base exposé API (rangs + bienvenue + familles). Les titres de saison sont fusionnés à la volée. */
+/** Catalogue de base exposé API (rangs + bienvenue + guide + familles). Les titres de saison sont fusionnés à la volée. */
 export const NICKNAME_CATALOG = Object.freeze([
   ...RANK_NICKNAME_CATALOG,
   WELCOME_NICKNAME,
+  ONBOARDING_NICKNAME,
   ...ACHIEVEMENT_FAMILY_NICKNAMES,
 ]);
 

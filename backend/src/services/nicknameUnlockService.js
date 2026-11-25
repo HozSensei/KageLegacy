@@ -1,9 +1,10 @@
 /**
- * Déblocages de titres (surnoms) hors progression de rang — welcome / Battle Pass / familles.
+ * Déblocages de titres (surnoms) hors progression de rang — welcome / guide / Battle Pass / familles.
  */
 import { query } from '../config/database.js';
 import {
   ACHIEVEMENT_FAMILY_NICKNAMES,
+  ONBOARDING_NICKNAME,
   WELCOME_NICKNAME,
   buildSeasonFreeNicknameEntry,
   buildSeasonNicknameEntry,
@@ -63,6 +64,10 @@ export function catalogEntriesForGrantedIds(grantedIds = []) {
       entries.push(WELCOME_NICKNAME);
       continue;
     }
+    if (id === ONBOARDING_NICKNAME.id) {
+      entries.push(ONBOARDING_NICKNAME);
+      continue;
+    }
     const freeMatch = /^season_(\d+)_free$/.exec(String(id));
     if (freeMatch) {
       entries.push(buildSeasonFreeNicknameEntry(Number(freeMatch[1])));
@@ -120,4 +125,4 @@ export async function grantNicknameUnlock(
   }
 }
 
-export { seasonNicknameId, WELCOME_NICKNAME };
+export { seasonNicknameId, WELCOME_NICKNAME, ONBOARDING_NICKNAME };

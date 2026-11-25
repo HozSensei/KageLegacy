@@ -217,6 +217,12 @@ export async function claimOnboardingStep(userId, stepKey) {
     [userId, stepKey],
   );
   const refreshed = await getStepRow(userId, stepKey);
+  const progress = await getOnboardingProgress(userId);
+  let finishTitle = null;
+  if (progress.meta.finished) {
+    finishTitle = await maybeGrantOnboardingNickname(userId);
+    if (finishTitle?.granted) granted.push(finishTitle);
+  }
   try {
     const { deleteNotificationByDedupe, notifyGain } = await import(
       './userNotificationService.js'
@@ -227,7 +233,7 @@ export async function claimOnboardingStep(userId, stepKey) {
       grants: granted,
       label: def.nameFr || stepKey,
       labelEn: def.nameEn || def.nameFr || stepKey,
-      href: '/home',
+      href: finishTitle?.granted ? '/profil' : '/home',
     });
   } catch {
     /* notifications optionnelles */
@@ -235,6 +241,29 @@ export async function claimOnboardingStep(userId, stepKey) {
   return {
     step: serializeStep(def, refreshed),
     rewards: granted,
-    progress: await getOnboardingProgress(userId),
+    finishTitle,
+    progress,
   };
+}
+
+/** Titre « Initié du Village » une fois toutes les étapes du guide réclamées. */
+async function maybeGrantOnboardingNickname(userId) {
+  try {
+    const { grantNicknameUnlock, ONBOARDING_NICKNAME } = await import(
+      './nicknameUnlockService.js'
+    );
+    const result = await grantNicknameUnlock(userId, ONBOARDING_NICKNAME.id, {
+      source: 'onboarding',
+      sourceRef: 'guide',
+    });
+    return {
+      type: 'nickname',
+      nicknameId: ONBOARDING_NICKNAME.id,
+      nameFr: ONBOARDING_NICKNAME.name.fr,
+      nameEn: ONBOARDING_NICKNAME.name.en,
+      ...result,
+    };
+  } catch {
+    return null;
+  }
 }
