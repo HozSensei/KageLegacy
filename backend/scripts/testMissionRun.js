@@ -317,6 +317,24 @@ const deposits = collectRunInventoryDeposits(pouchPlayer);
 assert(deposits.some(d => d.itemKey === 'card_mystery_rare'), 'deposit includes sealed');
 assert(deposits.some(d => d.itemKey === 'heal_bandage'), 'deposit includes leftover consumable');
 
+// Scellé seulement dans pendingLoot (slot perdu) + conso en inventaire → les deux survivent
+let ghostPlayer = createRunPlayerState({ maxHp: 100, purseStake: 0 });
+const ghostBandage = getShopItem('heal_bandage');
+const placedGhostBandage = placeInventoryItem(ghostPlayer.inventory, ghostBandage);
+ghostPlayer = { ...ghostPlayer, inventory: placedGhostBandage.inventory };
+ghostPlayer = trackPendingCard(ghostPlayer, getShopItem('card_mystery_rare'), {
+  rarity: 'rare',
+});
+const ghostDeposits = collectRunInventoryDeposits(ghostPlayer);
+assert(
+  ghostDeposits.some(d => d.itemKey === 'heal_bandage'),
+  'ghost: consumable from inv',
+);
+assert(
+  ghostDeposits.some(d => d.itemKey === 'card_mystery_rare'),
+  'ghost: sealed from pendingLoot even if missing from slots',
+);
+
 console.log('=== shop price ×2 ===');
 assert(getShopItem('heal_bandage')?.priceShop === 80, 'bandage shop price 80');
 assert(getShopItem('card_mystery_legendary')?.priceShop === 420, 'legendary shop ×2');

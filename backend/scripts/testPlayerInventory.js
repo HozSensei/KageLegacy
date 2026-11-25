@@ -80,6 +80,16 @@ assert(
   chestSlotsNeededForRewards([{ type: 'booster' }, { type: 'inventory_item', amount: 2 }]) === 3,
   'booster+2 items → 3',
 );
+assert(invTest.countsTowardPouchCapacity({ kind: 'pending_card' }) === false, 'scellé hors cap');
+assert(invTest.countsTowardPouchCapacity({ kind: 'consumable' }) === true, 'conso dans cap');
+assert(
+  invTest.pouchCapacityUsed([
+    { kind: 'pending_card' },
+    { kind: 'consumable' },
+    { kind: 'consumable' },
+  ]) === 2,
+  'pouchCapacityUsed ignore scellés',
+);
 
 console.log('=== expandRowToSlots ===');
 const expanded = invTest.expandRowToSlots({

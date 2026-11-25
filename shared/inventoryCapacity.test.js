@@ -7,8 +7,10 @@ import {
   POUCH_CAPACITY,
   capacityFor,
   chestSlotsNeededForRewards,
+  countsTowardPouchCapacity,
   emptySlotCount,
   getChestCapacity,
+  pouchCapacityUsed,
 } from './inventoryCapacity.js';
 
 test('poche : 4 slots (1 objet = 1 slot)', () => {
@@ -47,5 +49,21 @@ test('chestSlotsNeededForRewards : booster/objet vs carte/monnaie', () => {
       { type: 'inventory_item', amount: 2 },
     ]),
     3,
+  );
+});
+
+test('scellés hors capacité poche', () => {
+  assert.equal(countsTowardPouchCapacity('pending_card'), false);
+  assert.equal(countsTowardPouchCapacity({ kind: 'pending_card' }), false);
+  assert.equal(countsTowardPouchCapacity({ kind: 'consumable' }), true);
+  assert.equal(countsTowardPouchCapacity({ kind: 'booster' }), true);
+  assert.equal(
+    pouchCapacityUsed([
+      { kind: 'pending_card' },
+      { kind: 'pending_card' },
+      { kind: 'consumable' },
+      { kind: 'consumable' },
+    ]),
+    2,
   );
 });

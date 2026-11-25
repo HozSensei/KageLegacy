@@ -18,6 +18,8 @@ import {
   POUCH_CAPACITY,
   capacityFor,
   chestSlotsNeededForRewards,
+  countsTowardPouchCapacity,
+  pouchCapacityUsed,
 } from '../../../shared/inventoryCapacity.js';
 import { addCard } from './collectionService.js';
 import { notifyGain } from './userNotificationService.js';
@@ -140,9 +142,26 @@ function runner(connection = null) {
     : query;
 }
 
-/** Occupancy = nombre de slots (1 ligne = 1 objet ; qty legacy >1 compte comme N). */
+/**
+ * Occupancy = nombre de slots (1 ligne = 1 objet ; qty legacy >1 compte comme N).
+ * Poche : les `pending_card` sont exclus (hors POUCH_CAPACITY).
+ */
 export async function countOccupiedSlots(userId, location, connection = null) {
   const run = runner(connection);
+  if (location === 'pouch') {
+    const rows = await run(
+      `SELECT item_key, quantity FROM user_inventory_items
+       WHERE user_id = ? AND location = 'pouch'`,
+      [userId],
+    );
+    let occupied = 0;
+    for (const row of rows) {
+      const def = getItem(row.item_key);
+      if (!countsTowardPouchCapacity(def)) continue;
+      occupied += Math.max(1, Number(row.quantity) || 1);
+    }
+    return occupied;
+  }
   const rows = await run(
     `SELECT COALESCE(SUM(quantity), 0) AS occupied
      FROM user_inventory_items
@@ -152,8 +171,17 @@ export async function countOccupiedSlots(userId, location, connection = null) {
   return Math.max(0, Number(rows[0]?.occupied) || 0);
 }
 
-async function assertFreeSlots(userId, location, need, connection = null) {
+async function assertFreeSlots(userId, location, need, connection = null, { itemKey = null } = {}) {
   const amount = Math.max(1, Number(need) || 1);
+  // Scellés en poche : jamais bloqués par la capacité soft.
+  if (location === 'pouch' && itemKey) {
+    const def = getItem(itemKey);
+    if (def && !countsTowardPouchCapacity(def)) {
+      const cap = capacityFor(location);
+      const used = await countOccupiedSlots(userId, location, connection);
+      return { capacity: cap, used, free: Math.max(0, cap - used), bypass: true };
+    }
+  }
   const cap = capacityFor(location);
   const used = await countOccupiedSlots(userId, location, connection);
   if (used + amount > cap) {
@@ -196,6 +224,8 @@ export async function getInventory(userId) {
     pouchCapacity: POUCH_CAPACITY,
     chestUsed: 0,
     pouchUsed: 0,
+    pouchCapacityUsed: 0,
+    pouchOverflow: 0,
   };
   if (!(await tableExists('user_inventory_items'))) {
     return {
@@ -220,6 +250,7 @@ export async function getInventory(userId) {
     if (row.location === 'pouch') pouch.push(...slots);
     else chest.push(...slots);
   }
+  const pouchCapUsed = pouchCapacityUsed(pouch);
   return {
     chest,
     pouch,
@@ -229,18 +260,34 @@ export async function getInventory(userId) {
     chestCapacity: CHEST_CAPACITY,
     pouchCapacity: POUCH_CAPACITY,
     chestUsed: chest.length,
+    /** Total d’objets en poche (scellés inclus). */
     pouchUsed: pouch.length,
+    /** Emplacements poche qui comptent pour la capacité soft 4. */
+    pouchCapacityUsed: pouchCapUsed,
+    pouchOverflow: Math.max(0, pouchCapUsed - POUCH_CAPACITY),
   };
 }
 
 /**
- * Insère N slots distincts (quantity=1 chacun). Refuse si capacité dépassée.
+ * Insère N slots distincts (quantity=1 chacun).
+ * @param {object} [opts]
+ * @param {boolean} [opts.allowOverflow] — ignore la capacité (loot fin de run).
  * @returns {number[]} ids insérés
  */
-async function insertSlots(userId, itemKey, location, qty, meta = null, connection = null) {
+async function insertSlots(
+  userId,
+  itemKey,
+  location,
+  qty,
+  meta = null,
+  connection = null,
+  { allowOverflow = false } = {},
+) {
   const amount = Math.max(1, Number(qty) || 1);
   const run = runner(connection);
-  await assertFreeSlots(userId, location, amount, connection);
+  if (!allowOverflow) {
+    await assertFreeSlots(userId, location, amount, connection, { itemKey });
+  }
   const metaJson = meta != null ? JSON.stringify(meta) : null;
   const ids = [];
   for (let i = 0; i < amount; i += 1) {
@@ -300,6 +347,7 @@ export async function grantToLocation(
     notify = false,
     source = 'grant',
     connection = null,
+    allowOverflow = false,
   } = {},
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
@@ -309,7 +357,7 @@ export async function grantToLocation(
     throw httpError(503, 'Tables inventaire absentes — lancez les migrations.');
   }
   const amount = Math.max(1, Number(quantity) || 1);
-  await insertSlots(userId, itemKey, location, amount, meta, connection);
+  await insertSlots(userId, itemKey, location, amount, meta, connection, { allowOverflow });
   if (notify) {
     try {
       await notifyGain(userId, {
@@ -362,7 +410,7 @@ export async function moveItem(userId, itemKey, { from, to, quantity = 1 } = {})
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    await assertFreeSlots(userId, to, amount, connection);
+    await assertFreeSlots(userId, to, amount, connection, { itemKey });
     await consumeSlots(userId, itemKey, from, amount, connection);
     await insertSlots(userId, itemKey, to, amount, null, connection);
     await connection.commit();
@@ -483,34 +531,68 @@ export async function clearPouch(userId) {
 
 /**
  * Dépose une liste d’items (scellés / restes de run) dans la poche.
- * 1 objet = 1 slot : refuse toute unité qui dépasse POUCH_CAPACITY (pas d’overflow).
+ * Règle produit : **jamais perdre** un loot de fin de run pour poche pleine.
+ * - `pending_card` : hors POUCH_CAPACITY
+ * - autres objets : overflow forcé au-delà de 4 si besoin
+ * Ne remonte que les unités réellement insérées (pas de dépôt fantôme).
  */
 export async function depositRunLootToPouch(userId, entries = []) {
   const deposited = [];
-  const rejected = [];
+  const skipped = [];
+  let overflowForced = 0;
+
+  if (!(await tableExists('user_inventory_items'))) {
+    const empty = [];
+    empty.rejected = [];
+    empty.skipped = [{ code: 'NO_INVENTORY_TABLE' }];
+    empty.overflowForced = 0;
+    return empty;
+  }
+
   for (const entry of entries) {
     const key = entry.itemKey || entry.itemId || entry.id;
-    if (!key || !getItem(key)) continue;
+    if (!key) {
+      skipped.push({ itemKey: null, code: 'MISSING_KEY' });
+      continue;
+    }
+    const def = getItem(key);
+    if (!def) {
+      skipped.push({ itemKey: key, code: 'UNKNOWN_ITEM' });
+      continue;
+    }
     const qty = Math.max(1, Number(entry.quantity) || 1);
+    const counts = countsTowardPouchCapacity(def);
+
     for (let i = 0; i < qty; i += 1) {
-      try {
-        await grantToPouch(userId, key, {
-          quantity: 1,
-          meta: entry.meta || null,
-          notify: false,
-        });
-        const prev = deposited.find(d => d.itemKey === key);
-        if (prev) prev.quantity += 1;
-        else deposited.push({ itemKey: key, quantity: 1 });
-      } catch (err) {
-        if (err?.code === 'INVENTORY_FULL') {
-          rejected.push({ itemKey: key, quantity: 1, code: 'INVENTORY_FULL' });
-          continue;
+      let forced = false;
+      if (counts) {
+        const used = await countOccupiedSlots(userId, 'pouch');
+        if (used >= POUCH_CAPACITY) {
+          forced = true;
+          overflowForced += 1;
         }
-        throw err;
+      }
+      await grantToPouch(userId, key, {
+        quantity: 1,
+        meta: entry.meta || null,
+        notify: false,
+        allowOverflow: true,
+      });
+      const prev = deposited.find(d => d.itemKey === key);
+      if (prev) {
+        prev.quantity += 1;
+        if (forced) prev.overflow = (Number(prev.overflow) || 0) + 1;
+      } else {
+        deposited.push({
+          itemKey: key,
+          quantity: 1,
+          kind: def.kind || null,
+          ...(forced ? { overflow: 1 } : {}),
+        });
       }
     }
   }
+
   if (deposited.length) {
     try {
       await notifyGain(userId, {
@@ -522,8 +604,11 @@ export async function depositRunLootToPouch(userId, entries = []) {
       /* optionnel */
     }
   }
-  // Rétrocompat : tableau des dépôts ; métadonnées d’éventuels refus (poche pleine).
-  deposited.rejected = rejected;
+
+  // Rétrocompat : tableau indexé + métadonnées (rejected toujours vide — overflow forcé).
+  deposited.rejected = [];
+  deposited.skipped = skipped;
+  deposited.overflowForced = overflowForced;
   return deposited;
 }
 
@@ -542,18 +627,39 @@ async function pickCardIdByRarity(rarity, rng = Math.random) {
   return rows[Math.floor(rng() * rows.length)].id;
 }
 
-/** Révèle un parchemin scellé depuis le coffre. */
-export async function revealSealedFromChest(userId, itemKey) {
+/**
+ * Révèle un parchemin scellé depuis le coffre **ou** la poche.
+ * (Les scellés de fin de run atterrissent en poche ; évite le dépôt « fantôme »
+ * où le joueur ouvre l’inventaire et ne voit rien à révéler dans le coffre.)
+ */
+export async function revealSealedFromChest(userId, itemKey, { location = null } = {}) {
   const def = getItem(itemKey);
   if (!def || def.kind !== 'pending_card') {
     throw httpError(400, 'Cet objet n’est pas un parchemin scellé.');
   }
-  await consumeSlots(userId, itemKey, 'chest', 1);
+  const preferred = location === 'pouch' || location === 'chest' ? location : null;
+  const order = preferred
+    ? [preferred, preferred === 'chest' ? 'pouch' : 'chest']
+    : ['chest', 'pouch'];
+  let consumedFrom = null;
+  for (const loc of order) {
+    try {
+      await consumeSlots(userId, itemKey, loc, 1);
+      consumedFrom = loc;
+      break;
+    } catch (err) {
+      if (err?.code !== 'INSUFFICIENT_ITEM') throw err;
+    }
+  }
+  if (!consumedFrom) {
+    throw httpError(400, 'Parchemin scellé introuvable dans l’inventaire.', 'INSUFFICIENT_ITEM');
+  }
   const cardId = await pickCardIdByRarity(def.rarity || 'common');
   if (!cardId) throw httpError(500, 'Aucune carte disponible.');
   const added = await addCard(userId, cardId, { quantity: 1, source: 'mission' });
   return {
     inventory: await getInventory(userId),
+    revealedFrom: consumedFrom,
     card: {
       collectionId: added.collectionId ?? null,
       isNew: Number(added.quantity) === 1,
@@ -684,5 +790,7 @@ export async function buyDailyItem(userId, itemId) {
 export const __test = {
   serializeItemRow,
   expandRowToSlots,
+  countsTowardPouchCapacity,
+  pouchCapacityUsed,
   shopPriceFromRun: (n) => Math.round((Number(n) || 0) * 2 / 5) * 5,
 };

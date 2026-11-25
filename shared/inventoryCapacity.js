@@ -2,12 +2,33 @@
  * Capacités inventaire (coffre + poche) — source partagée FE/BE.
  *
  * Modèle : **1 objet = 1 slot** (pas de pile qty sur un emplacement).
- * - Poche : alignée sur RUN_INVENTORY_SLOTS (mission) = 4.
+ * - Poche : alignée sur RUN_INVENTORY_SLOTS (mission) = 4 pour le matos
+ *   (consommables / boosters). Les **parchemins scellés** (`pending_card`)
+ *   n’occupent pas cette capacité.
+ * - Fin de run : tout loot (scellés + objets) est déposé ; les objets au-delà
+ *   de 4 forcent un overflow temporaire jusqu’à ce que le joueur libère.
  * - Coffre : pages de slots ; rachat de page non branché (pages = 1).
+ *   Les scellés comptent bien dans le coffre.
  */
 
-/** Emplacements poche. */
+/** Emplacements poche (hors scellés). */
 export const POUCH_CAPACITY = 4;
+
+/**
+ * Un objet compte-t-il dans la capacité poche (soft 4) ?
+ * Les scellés (`pending_card`) sont hors compteur.
+ * @param {{ kind?: string }|string|null|undefined} itemOrKind
+ * @returns {boolean}
+ */
+export function countsTowardPouchCapacity(itemOrKind) {
+  const kind =
+    typeof itemOrKind === 'string'
+      ? itemOrKind
+      : itemOrKind && typeof itemOrKind === 'object'
+        ? itemOrKind.kind
+        : null;
+  return kind !== 'pending_card';
+}
 
 /** Taille d’une page de coffre. */
 export const CHEST_PAGE_SIZE = 12;
@@ -74,4 +95,14 @@ export function chestSlotsNeededForRewards(rewards = []) {
     }
   }
   return need;
+}
+
+/**
+ * Nombre d’objets poche qui comptent pour la capacité soft.
+ * @param {Array<{ kind?: string }>} pouchItems
+ * @returns {number}
+ */
+export function pouchCapacityUsed(pouchItems = []) {
+  const list = Array.isArray(pouchItems) ? pouchItems : [];
+  return list.reduce((n, item) => n + (countsTowardPouchCapacity(item) ? 1 : 0), 0);
 }

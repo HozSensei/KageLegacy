@@ -4,13 +4,16 @@ import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 import PageHeader from '../components/ui/PageHeader.vue';
 import ItemBlock from '../components/inventory/ItemBlock.vue';
+import AppIcon from '../components/ui/AppIcon.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import ShopBalances from '../components/shop/ShopBalances.vue';
 import forestImage from '../assets/illustrations/forest-path.webp';
 import {
   POUCH_CAPACITY,
+  countsTowardPouchCapacity,
   emptySlotCount,
   getChestCapacity,
+  pouchCapacityUsed,
 } from '../constants/inventoryCapacity.js';
 import { useInventoryStore } from '../stores/inventory';
 import { useShopStore } from '../stores/shop';
@@ -31,14 +34,24 @@ const chestCapacity = computed(
 );
 const pouchCapacity = computed(() => Number(inventory.pouchCapacity) || POUCH_CAPACITY);
 
+/** Capacité soft poche : hors scellés. */
+const pouchCapUsed = computed(() => {
+  if (inventory.pouchCapacityUsed != null) return Number(inventory.pouchCapacityUsed) || 0;
+  return pouchCapacityUsed(inventory.pouch || []);
+});
+
+const pouchOverflow = computed(() =>
+  Math.max(0, Number(inventory.pouchOverflow) || pouchCapUsed.value - pouchCapacity.value)
+);
+
 const chestEmptySlots = computed(() =>
   emptySlotCount(inventory.chest.length, chestCapacity.value)
 );
 const pouchEmptySlots = computed(() =>
-  emptySlotCount(inventory.pouch.length, pouchCapacity.value)
+  emptySlotCount(pouchCapUsed.value, pouchCapacity.value)
 );
 
-const pouchFull = computed(() => inventory.pouch.length >= pouchCapacity.value);
+const pouchFull = computed(() => pouchCapUsed.value >= pouchCapacity.value);
 const chestFull = computed(() => inventory.chest.length >= chestCapacity.value);
 
 onMounted(() => {
@@ -64,8 +77,19 @@ function itemDesc(entry) {
   return localizedDescription(entry, locale.value) || '';
 }
 
-function canMoveToPouch() {
+function isOverflowEntry(entry, index) {
+  if (!countsTowardPouchCapacity(entry)) return false;
+  // Rang parmi les objets qui comptent pour la capacité.
+  let rank = 0;
+  for (let i = 0; i <= index; i += 1) {
+    if (countsTowardPouchCapacity(inventory.pouch[i])) rank += 1;
+  }
+  return rank > pouchCapacity.value;
+}
+
+function canMoveToPouch(entry) {
   if (inventory.pouchLocked || inventory.actionLoading) return false;
+  if (entry && !countsTowardPouchCapacity(entry)) return true;
   return !pouchFull.value;
 }
 
@@ -75,7 +99,7 @@ function canMoveToChest() {
 }
 
 async function onMove(entry, from, to) {
-  if (to === 'pouch' && !canMoveToPouch()) return;
+  if (to === 'pouch' && !canMoveToPouch(entry)) return;
   if (to === 'chest' && !canMoveToChest()) return;
   try {
     await inventory.moveItem(entry.itemKey, { from, to, quantity: 1 });
@@ -162,24 +186,36 @@ function onRevealDone() {
             data-testid="inventory-chest-item"
           >
             <template #actions>
-              <button
-                v-if="entry.kind === 'pending_card' || entry.kind === 'booster'"
-                type="button"
-                class="btn-primary btn-sm"
-                :disabled="inventory.actionLoading"
-                @click="onReveal(entry)"
-              >
-                {{ entry.kind === 'booster' ? t('inventory.open') : t('inventory.reveal') }}
-              </button>
-              <button
-                type="button"
-                class="btn-secondary btn-sm"
-                :disabled="!canMoveToPouch()"
-                :title="pouchFull ? t('inventory.pouchFull') : undefined"
-                @click="onMove(entry, 'chest', 'pouch')"
-              >
-                {{ t('inventory.toPouch') }}
-              </button>
+              <div class="inv-actions">
+                <button
+                  type="button"
+                  class="inv-actions__arrow"
+                  :disabled="!canMoveToPouch(entry)"
+                  :title="pouchFull && countsTowardPouchCapacity(entry) ? t('inventory.pouchFull') : t('inventory.toPouch')"
+                  :aria-label="t('inventory.toPouchAria')"
+                  data-testid="inventory-to-pouch"
+                  @click="onMove(entry, 'chest', 'pouch')"
+                >
+                  <AppIcon name="arrow-right" size="1.1rem" />
+                </button>
+                <!-- Slot réservé « Utiliser » hors mission (soins) — scellés/boosters déjà clairs. -->
+                <button
+                  v-if="entry.kind === 'pending_card' || entry.kind === 'booster'"
+                  type="button"
+                  class="btn-primary btn-sm inv-actions__use"
+                  :disabled="inventory.actionLoading"
+                  data-testid="inventory-use"
+                  @click="onReveal(entry)"
+                >
+                  {{ entry.kind === 'booster' ? t('inventory.open') : t('inventory.reveal') }}
+                </button>
+                <span
+                  v-else
+                  class="inv-actions__use-slot"
+                  aria-hidden="true"
+                  data-testid="inventory-use-slot"
+                />
+              </div>
             </template>
           </ItemBlock>
           <ItemBlock
@@ -204,10 +240,17 @@ function onRevealDone() {
           <p class="inv-panel__cap" data-testid="inventory-pouch-capacity">
             {{
               t('inventory.capacityLabel', {
-                used: inventory.pouch.length,
+                used: pouchCapUsed,
                 max: pouchCapacity,
               })
             }}
+          </p>
+          <p
+            v-if="pouchOverflow > 0"
+            class="inv-panel__overflow"
+            data-testid="inventory-pouch-overflow"
+          >
+            {{ t('inventory.pouchOverflowHint', { n: pouchOverflow }) }}
           </p>
           <p
             v-if="inventory.pouchLocked"
@@ -224,25 +267,47 @@ function onRevealDone() {
 
         <div class="inv-blocks" data-testid="inventory-pouch-grid">
           <ItemBlock
-            v-for="entry in inventory.pouch"
+            v-for="(entry, index) in inventory.pouch"
             :key="`pouch-${entry.id || entry.itemKey}`"
             uniform
             effect-popover
             :item="entry"
             :name="itemName(entry)"
             :description="itemDesc(entry)"
+            :class="{ 'inv-item--overflow': isOverflowEntry(entry, index) }"
+            :data-overflow="isOverflowEntry(entry, index) ? 'true' : undefined"
             data-testid="inventory-pouch-item"
           >
             <template #actions>
-              <button
-                type="button"
-                class="btn-secondary btn-sm"
-                :disabled="!canMoveToChest()"
-                :title="chestFull ? t('inventory.chestFull') : undefined"
-                @click="onMove(entry, 'pouch', 'chest')"
-              >
-                {{ t('inventory.toChest') }}
-              </button>
+              <div class="inv-actions">
+                <button
+                  type="button"
+                  class="inv-actions__arrow"
+                  :disabled="!canMoveToChest()"
+                  :title="chestFull ? t('inventory.chestFull') : t('inventory.toChest')"
+                  :aria-label="t('inventory.toChestAria')"
+                  data-testid="inventory-to-chest"
+                  @click="onMove(entry, 'pouch', 'chest')"
+                >
+                  <AppIcon name="arrow-left" size="1.1rem" />
+                </button>
+                <button
+                  v-if="entry.kind === 'pending_card'"
+                  type="button"
+                  class="btn-primary btn-sm inv-actions__use"
+                  :disabled="inventory.actionLoading || inventory.pouchLocked"
+                  data-testid="inventory-use"
+                  @click="onReveal(entry)"
+                >
+                  {{ t('inventory.reveal') }}
+                </button>
+                <span
+                  v-else
+                  class="inv-actions__use-slot"
+                  aria-hidden="true"
+                  data-testid="inventory-use-slot"
+                />
+              </div>
             </template>
           </ItemBlock>
           <ItemBlock
@@ -343,6 +408,12 @@ function onRevealDone() {
   color: color-mix(in srgb, var(--color-ink-muted) 88%, var(--color-ink)) !important;
 }
 
+.inv-panel__overflow {
+  color: var(--color-vermilion) !important;
+  font-weight: 600;
+  font-size: 0.8125rem !important;
+}
+
 .inv-panel__locked {
   color: var(--color-vermilion) !important;
   font-weight: 600;
@@ -356,6 +427,61 @@ function onRevealDone() {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
   gap: 0.65rem;
+}
+
+.inv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.inv-actions__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--tone-fill) 35%, transparent);
+  border-radius: var(--radius-sm, 0.35rem);
+  background: color-mix(in srgb, var(--tone-tint) 55%, var(--color-bg));
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast, 120ms) ease,
+    border-color var(--dur-fast, 120ms) ease,
+    opacity var(--dur-fast, 120ms) ease;
+}
+
+.inv-actions__arrow:hover:not(:disabled),
+.inv-actions__arrow:focus-visible:not(:disabled) {
+  background: color-mix(in srgb, var(--tone-fill) 18%, transparent);
+  border-color: var(--tone-fill);
+  outline: none;
+}
+
+.inv-actions__arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.inv-actions__use {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Réserve la place d’un futur « Utiliser » hors mission sur les consommables. */
+.inv-actions__use-slot {
+  flex: 1 1 auto;
+  min-width: 3.5rem;
+  min-height: 2.1rem;
+}
+
+:deep(.inv-item--overflow) {
+  outline: 1px dashed color-mix(in srgb, var(--color-vermilion, #b33) 55%, transparent);
+  outline-offset: -2px;
 }
 
 .inv-ryos {
