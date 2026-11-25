@@ -488,26 +488,31 @@ function cancelConfirm() {
                   :quantity="slot.itemId ? slot.qty || 1 : null"
                 >
                   <template v-if="slot.itemId" #actions>
-                    <button
-                      v-if="!isSealedScroll(slot)"
-                      type="button"
-                      class="btn-secondary btn-sm"
-                      :disabled="api.busy.value"
-                      @click="onUse(slot.slot)"
-                    >
-                      {{ t('coop.useItem') }}
-                    </button>
-                    <span v-else class="run-inventory__sealed">
-                      {{ t('combat.inventorySealedBadge') }}
-                    </span>
-                    <button
-                      type="button"
-                      class="btn-ghost btn-sm"
-                      :disabled="api.busy.value"
-                      @click="onDiscard(slot.slot)"
-                    >
-                      {{ t('coop.discardItem') }}
-                    </button>
+                    <div class="run-inventory__row">
+                      <button
+                        v-if="!isSealedScroll(slot)"
+                        type="button"
+                        class="btn-secondary btn-sm"
+                        :disabled="api.busy.value"
+                        @click="onUse(slot.slot)"
+                      >
+                        {{ t('coop.useItem') }}
+                      </button>
+                      <span v-else class="run-inventory__sealed">
+                        {{ t('combat.inventorySealedBadge') }}
+                      </span>
+                      <button
+                        type="button"
+                        class="run-inventory__discard"
+                        :aria-label="t('coop.discardItem')"
+                        :title="t('coop.discardItem')"
+                        :disabled="api.busy.value"
+                        data-testid="coop-inv-discard"
+                        @click="onDiscard(slot.slot)"
+                      >
+                        <AppIcon name="delete" size="1rem" :stroke-width="0" />
+                      </button>
+                    </div>
                     <label class="run-inventory__replace">
                       <input
                         type="checkbox"
@@ -911,6 +916,46 @@ function cancelConfirm() {
 .run-inventory__slot {
   min-width: 0;
   list-style: none;
+}
+
+.run-inventory__row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.run-inventory__discard {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast, 120ms) ease,
+    background-color var(--dur-fast, 120ms) ease;
+}
+
+.run-inventory__discard:hover:not(:disabled),
+.run-inventory__discard:focus-visible {
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  outline: none;
+}
+
+.run-inventory__discard:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .run-inventory__sealed {
