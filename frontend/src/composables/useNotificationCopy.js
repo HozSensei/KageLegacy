@@ -110,9 +110,21 @@ export function useNotificationCopy() {
     }
   }
 
+  function questClaimOnHome(note) {
+    const questType = note.payload?.questType;
+    return questType === 'daily' || questType === 'weekly' || !questType;
+  }
+
   function linkPath(note) {
+    if (note.kind === 'quest_ready') {
+      if (questClaimOnHome(note)) return { name: 'hub', query: { tab: 'quests' } };
+      return note.href || { name: 'battle-pass' };
+    }
+    if (note.kind === 'gain' && note.payload?.source === 'quest' && questClaimOnHome(note)) {
+      if (note.href === '/inventaire') return note.href;
+      return { name: 'hub', query: { tab: 'quests' } };
+    }
     if (note.href) return note.href;
-    if (note.kind === 'quest_ready') return { name: 'battle-pass' };
     if (note.kind === 'achievement_ready') return { name: 'journal' };
     if (note.kind === 'onboarding_ready') return { name: 'hub' };
     if (note.kind === 'village_ready' || note.kind === 'village_reward') {
@@ -126,7 +138,9 @@ export function useNotificationCopy() {
   function linkLabel(note) {
     switch (note.kind) {
       case 'quest_ready':
-        return t('notifications.questReadyLink');
+        return questClaimOnHome(note)
+          ? t('notifications.questReadyLink')
+          : t('notifications.viewBattlePass');
       case 'achievement_ready':
         return t('notifications.achievementReadyLink');
       case 'onboarding_ready':
@@ -140,7 +154,12 @@ export function useNotificationCopy() {
         return t('notifications.bugReportRewardLink');
       case 'gain': {
         const source = note.payload?.source;
-        if (source === 'quest' || source === 'battle_pass') return t('notifications.viewBattlePass');
+        if (source === 'quest') {
+          return questClaimOnHome(note)
+            ? t('notifications.viewHome')
+            : t('notifications.viewBattlePass');
+        }
+        if (source === 'battle_pass') return t('notifications.viewBattlePass');
         if (source === 'onboarding') return t('notifications.viewHome');
         if (source === 'achievement') return t('notifications.viewJournal');
         if (source === 'mission' || source === 'combat') return t('notifications.viewMissions');

@@ -13,7 +13,7 @@ Ryos, poussière et essence sont produits par le jeu. Les Kage Coins servent not
 
 À la création de compte, le profil reçoit **1400 Ryos** (`STARTING_RYOS` dans `economyConfig.js`) — de quoi ouvrir environ **2 boosters** (voie 550) et compléter un starter en rareté Normale.
 
-Le **guide du novice** (hub) propose 10 étapes one-shot (profil, decks, talent, collection, combat, règles, Battle Pass, village, boutique). Chaque étape terminée se **réclame** pour de petits gains Ryos/XP (≈ 460 Ryos et ≈ 240 XP au total). Distinct des succès et du Battle Pass. Une étape réclamable et une réclamation réussie alimentent la **cloche de notifications** (rappel + récap des gains).
+Le **hub** regroupe la progression sous des onglets **Guide** / **Quêtes** (même motif que les pistes free/premium du Battle Pass). Le **guide du novice** propose des étapes one-shot (profil, decks, talent, collection, combat, règles, Battle Pass, village, boutique…). Chaque étape terminée se **réclame** pour de petits gains Ryos/XP. L’onglet **Quêtes** affiche les quêtes journalières et hebdomadaires, plus un raccourci vers le Battle Pass avec le nombre de paliers réclamables. Distinct des succès. Une étape/quête réclamable et une réclamation réussie alimentent la **cloche de notifications**.
 
 Les quêtes Battle Pass (journalières, hebdomadaires et jalons) terminées mais non réclamées, les défis/succès du journal à réclamer, les récaps de mission / combat / duel / coop, et les gains du Village non lus apparaissent dans la même inbox (toasts à l’arrivée).
 

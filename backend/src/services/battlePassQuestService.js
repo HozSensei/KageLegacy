@@ -320,14 +320,16 @@ export async function progressQuest(userId, questKey, value = 1) {
         const { ensureUserNotification, NOTIFICATION_KIND } = await import(
           './userNotificationService.js'
         );
+        const questType = quest.quest_type;
+        const claimOnHome = questType === 'daily' || questType === 'weekly';
         await ensureUserNotification(userId, {
           kind: NOTIFICATION_KIND.QUEST_READY,
           dedupeKey: `quest:${quest.id}`,
-          href: '/battle-pass',
+          href: claimOnHome ? '/home?tab=quests' : '/battle-pass',
           payload: {
             questId: quest.id,
             questKey: quest.quest_key,
-            questType: quest.quest_type,
+            questType,
             description: quest.description_fr || quest.quest_key,
             descriptionEn: quest.description_en || quest.description_fr || quest.quest_key,
             xpReward: quest.xp_reward || 0,
@@ -384,10 +386,11 @@ export async function claimQuestReward(userId, questId) {
       ...bonusGranted,
     ];
     const hasInventory = grants.some(g => g?.type === 'inventory_item');
+    const claimOnHome = quest.quest_type === 'daily' || quest.quest_type === 'weekly';
     await notifyGain(userId, {
       source: 'quest',
       grants,
-      href: hasInventory ? '/inventaire' : '/battle-pass',
+      href: hasInventory ? '/inventaire' : claimOnHome ? '/home?tab=quests' : '/battle-pass',
       extra: { questKey: quest.quest_key, questType: quest.quest_type },
     });
   } catch {
