@@ -52,6 +52,12 @@ export const useBattlePassStore = defineStore('battlePass', () => {
           !q.progress?.isClaimed,
       ).length,
   );
+  const claimableMilestones = computed(
+    () =>
+      milestoneQuests.value.filter(
+        q => q.progress?.isCompleted && !q.progress?.isClaimed,
+      ).length,
+  );
 
   async function fetchBattlePass() {
     loading.value = true;
@@ -193,6 +199,7 @@ export const useBattlePassStore = defineStore('battlePass', () => {
     weeklyQuests,
     milestoneQuests,
     claimableQuests,
+    claimableMilestones,
     fetchBattlePass,
     fetchQuests,
 
