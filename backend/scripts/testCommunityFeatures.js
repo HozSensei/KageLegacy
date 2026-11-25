@@ -6,6 +6,7 @@ import {
   PROFILE_CARD_EFFECT_CATALOG,
   PROFILE_FRAME_CATALOG,
   buildSeasonFreeNicknameEntry,
+  ONBOARDING_NICKNAME,
   isKnownNicknameId,
   isKnownProfileCardEffectId,
   isKnownProfileFrameId,
@@ -13,13 +14,18 @@ import {
   serializeCharacterAppearance,
   achievementFamilyNicknameForCategory,
 } from '../src/services/characterAppearance.js';
+import { catalogEntriesForGrantedIds } from '../src/services/nicknameUnlockService.js';
 import { buildSeasonRewards } from '../src/services/battlePassSeasonTemplate.js';
 import { publicFighterIdentity } from '../src/services/deckCombat/fighterIdentity.js';
 
 assert.equal(seasonFreeNicknameId(3), 'season_3_free');
 assert.ok(isKnownNicknameId('season_3_free'));
 assert.ok(isKnownNicknameId('ach_combat'));
+assert.ok(isKnownNicknameId(ONBOARDING_NICKNAME.id));
+assert.equal(ONBOARDING_NICKNAME.id, 'novice');
+assert.equal(ONBOARDING_NICKNAME.name.fr, 'Initié du Village');
 assert.equal(achievementFamilyNicknameForCategory('missions')?.id, 'ach_missions');
+assert.equal(catalogEntriesForGrantedIds(['novice'])[0]?.id, 'novice');
 
 const freeEntry = buildSeasonFreeNicknameEntry(2);
 assert.equal(freeEntry.id, 'season_2_free');

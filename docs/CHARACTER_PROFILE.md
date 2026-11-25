@@ -41,11 +41,12 @@ Les 32 portraits par collection sont numérotés `<collection>-<planche>-<case>`
 | `anbu`       | Lame silencieuse   | Silent Blade   | Niveau 60 |
 | `kage`       | Légende du village | Village Legend | Niveau 80 |
 | `welcome`    | Mécène du Village  | Village Patron  | Pack bienvenue (one-shot) |
+| `novice`     | Initié du Village  | Village Initiate | Guide du novice entièrement réclamé |
 | `season_N`   | Ombre de la Saison N | Season N Shadow | Battle Pass premium (saison N) |
 | `season_N_free` | Éclaireur de la Saison N | Season N Scout | Battle Pass gratuit niveau 4 |
 | `ach_combat` / `ach_missions` / `ach_collection` / `ach_mastery` / `ach_progression` | Titres de familles du registre | Achievement family titles | Tous les paliers d’une catégorie claimés |
 
-Les surnoms de rang restent disponibles après une réinitialisation administrative du niveau (via `character_highest_level`). Les titres `welcome` / `season_N` sont stockés dans `player_nickname_unlocks` et restent équipables une fois obtenus. Une réinitialisation admin remet le rang à Aspirant ninja et remplace le portrait équipé uniquement s'il n'appartient plus à un rang accessible.
+Les surnoms de rang restent disponibles après une réinitialisation administrative du niveau (via `character_highest_level`). Les titres `welcome` / `novice` / `season_N` sont stockés dans `player_nickname_unlocks` et restent équipables une fois obtenus. Une réinitialisation admin remet le rang à Aspirant ninja et remplace le portrait équipé uniquement s'il n'appartient plus à un rang accessible.
 
 ## Réutilisation côté serveur
 

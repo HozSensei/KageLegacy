@@ -13,6 +13,7 @@ import {
 } from '../src/services/battlePassSeasonTemplate.js';
 import {
   NICKNAME_CATALOG,
+  ONBOARDING_NICKNAME,
   WELCOME_NICKNAME,
   buildSeasonNicknameEntry,
   seasonNicknameId,
@@ -58,14 +59,23 @@ assert(quests.some(q => q.quest_type === 'weekly'), 'weekly quests');
 assert(quests.some(q => q.quest_type === 'milestone'), 'milestones');
 
 assert(WELCOME_NICKNAME.id === 'welcome', 'welcome nick');
+assert(ONBOARDING_NICKNAME.id === 'novice', 'onboarding nick');
 assert(NICKNAME_CATALOG.some(n => n.id === 'welcome'), 'catalog includes welcome');
+assert(NICKNAME_CATALOG.some(n => n.id === 'novice'), 'catalog includes novice');
 assert(buildSeasonNicknameEntry(3).id === 'season_3', 'season nick entry');
 
 const unlocked = unlockedNicknameIdsFor({ character_level: 5, character_highest_level: 5 }, [
   'welcome',
+  'novice',
   'season_1',
 ]);
-assert(unlocked.includes('genin') && unlocked.includes('welcome') && unlocked.includes('season_1'), 'union');
+assert(
+  unlocked.includes('genin') &&
+    unlocked.includes('welcome') &&
+    unlocked.includes('novice') &&
+    unlocked.includes('season_1'),
+  'union',
+);
 
 assert(serializeCoinPack(COIN_PACK_CATALOG.forge).totalCoins === 1400, 'forge 1400');
 assert(serializeCoinPack(COIN_PACK_CATALOG.vault).totalCoins === 7500, 'vault 7500');
