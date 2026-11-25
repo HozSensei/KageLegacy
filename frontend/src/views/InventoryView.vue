@@ -7,6 +7,11 @@ import ItemBlock from '../components/inventory/ItemBlock.vue';
 import BoosterOpening from '../components/shop/BoosterOpening.vue';
 import ShopBalances from '../components/shop/ShopBalances.vue';
 import forestImage from '../assets/illustrations/forest-path.webp';
+import {
+  POUCH_CAPACITY,
+  emptySlotCount,
+  getChestCapacity,
+} from '../constants/inventoryCapacity.js';
 import { useInventoryStore } from '../stores/inventory';
 import { useShopStore } from '../stores/shop';
 import { localizedDescription, localizedName } from '../utils/localeContent.js';
@@ -17,6 +22,22 @@ const { t, locale } = useI18n();
 const inventory = useInventoryStore();
 const shop = useShopStore();
 const opening = ref(false);
+
+/** Pages coffre débloquées — extensible plus tard (rachat de page). */
+const chestPages = ref(1);
+
+const chestCapacity = computed(() => getChestCapacity({ pages: chestPages.value }));
+const pouchCapacity = computed(() => POUCH_CAPACITY);
+
+const chestEmptySlots = computed(() =>
+  emptySlotCount(inventory.chest.length, chestCapacity.value)
+);
+const pouchEmptySlots = computed(() =>
+  emptySlotCount(inventory.pouch.length, pouchCapacity.value)
+);
+
+const pouchFull = computed(() => inventory.pouch.length >= pouchCapacity.value);
+const chestFull = computed(() => inventory.chest.length >= chestCapacity.value);
 
 onMounted(() => {
   inventory.fetchInventory();
@@ -41,7 +62,27 @@ function itemDesc(entry) {
   return localizedDescription(entry, locale.value) || '';
 }
 
+/** Déjà présent dans la destination → pile, pas de nouveau slot. */
+function wouldOccupyNewSlot(entry, destination) {
+  const list = destination === 'pouch' ? inventory.pouch : inventory.chest;
+  return !list.some((e) => e.itemKey === entry.itemKey);
+}
+
+function canMoveToPouch(entry) {
+  if (inventory.pouchLocked || inventory.actionLoading) return false;
+  if (!wouldOccupyNewSlot(entry, 'pouch')) return true;
+  return !pouchFull.value;
+}
+
+function canMoveToChest(entry) {
+  if (inventory.pouchLocked || inventory.actionLoading) return false;
+  if (!wouldOccupyNewSlot(entry, 'chest')) return true;
+  return !chestFull.value;
+}
+
 async function onMove(entry, from, to) {
+  if (to === 'pouch' && !canMoveToPouch(entry)) return;
+  if (to === 'chest' && !canMoveToChest(entry)) return;
   try {
     await inventory.moveItem(entry.itemKey, { from, to, quantity: 1 });
   } catch {
@@ -106,11 +147,21 @@ function onRevealDone() {
         <header class="inv-panel__head">
           <h2>{{ t('inventory.chestTitle') }}</h2>
           <p>{{ t('inventory.chestHint') }}</p>
+          <p class="inv-panel__cap" data-testid="inventory-chest-capacity">
+            {{
+              t('inventory.capacityLabel', {
+                used: inventory.chest.length,
+                max: chestCapacity,
+              })
+            }}
+          </p>
         </header>
-        <div v-if="inventory.chest.length" class="inv-blocks">
+        <div class="inv-blocks" data-testid="inventory-chest-grid">
           <ItemBlock
             v-for="entry in inventory.chest"
             :key="`chest-${entry.id || entry.itemKey}`"
+            uniform
+            effect-popover
             :item="entry"
             :name="itemName(entry)"
             :description="itemDesc(entry)"
@@ -130,15 +181,27 @@ function onRevealDone() {
               <button
                 type="button"
                 class="btn-secondary btn-sm"
-                :disabled="inventory.actionLoading || inventory.pouchLocked"
+                :disabled="!canMoveToPouch(entry)"
+                :title="
+                  pouchFull && wouldOccupyNewSlot(entry, 'pouch')
+                    ? t('inventory.pouchFull')
+                    : undefined
+                "
                 @click="onMove(entry, 'chest', 'pouch')"
               >
                 {{ t('inventory.toPouch') }}
               </button>
             </template>
           </ItemBlock>
+          <ItemBlock
+            v-for="n in chestEmptySlots"
+            :key="`chest-empty-${n}`"
+            empty
+            uniform
+            :name="t('inventory.slotEmpty')"
+            data-testid="inventory-chest-empty"
+          />
         </div>
-        <p v-else class="inv-empty">{{ t('inventory.chestEmpty') }}</p>
       </section>
 
       <section
@@ -149,6 +212,14 @@ function onRevealDone() {
         <header class="inv-panel__head">
           <h2>{{ t('inventory.pouchTitle') }}</h2>
           <p>{{ t('inventory.pouchHint') }}</p>
+          <p class="inv-panel__cap" data-testid="inventory-pouch-capacity">
+            {{
+              t('inventory.capacityLabel', {
+                used: inventory.pouch.length,
+                max: pouchCapacity,
+              })
+            }}
+          </p>
           <p
             v-if="inventory.pouchLocked"
             class="inv-panel__locked"
@@ -161,6 +232,44 @@ function onRevealDone() {
             }}
           </p>
         </header>
+
+        <div class="inv-blocks" data-testid="inventory-pouch-grid">
+          <ItemBlock
+            v-for="entry in inventory.pouch"
+            :key="`pouch-${entry.id || entry.itemKey}`"
+            uniform
+            effect-popover
+            :item="entry"
+            :name="itemName(entry)"
+            :description="itemDesc(entry)"
+            :quantity="entry.quantity"
+            data-testid="inventory-pouch-item"
+          >
+            <template #actions>
+              <button
+                type="button"
+                class="btn-secondary btn-sm"
+                :disabled="!canMoveToChest(entry)"
+                :title="
+                  chestFull && wouldOccupyNewSlot(entry, 'chest')
+                    ? t('inventory.chestFull')
+                    : undefined
+                "
+                @click="onMove(entry, 'pouch', 'chest')"
+              >
+                {{ t('inventory.toChest') }}
+              </button>
+            </template>
+          </ItemBlock>
+          <ItemBlock
+            v-for="n in pouchEmptySlots"
+            :key="`pouch-empty-${n}`"
+            empty
+            uniform
+            :name="t('inventory.slotEmpty')"
+            data-testid="inventory-pouch-empty"
+          />
+        </div>
 
         <div class="inv-ryos" data-testid="inventory-pouch-ryos">
           <p class="inv-ryos__label">
@@ -181,30 +290,6 @@ function onRevealDone() {
           </div>
           <p class="inv-ryos__warn">{{ t('inventory.pouchLossWarning') }}</p>
         </div>
-
-        <div v-if="inventory.pouch.length" class="inv-blocks">
-          <ItemBlock
-            v-for="entry in inventory.pouch"
-            :key="`pouch-${entry.id || entry.itemKey}`"
-            :item="entry"
-            :name="itemName(entry)"
-            :description="itemDesc(entry)"
-            :quantity="entry.quantity"
-            data-testid="inventory-pouch-item"
-          >
-            <template #actions>
-              <button
-                type="button"
-                class="btn-secondary btn-sm"
-                :disabled="inventory.actionLoading || inventory.pouchLocked"
-                @click="onMove(entry, 'pouch', 'chest')"
-              >
-                {{ t('inventory.toChest') }}
-              </button>
-            </template>
-          </ItemBlock>
-        </div>
-        <p v-else class="inv-empty">{{ t('inventory.pouchEmpty') }}</p>
       </section>
     </div>
 
@@ -243,6 +328,7 @@ function onRevealDone() {
   .inv-grid {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
+    align-items: start;
   }
 }
 
@@ -267,6 +353,12 @@ function onRevealDone() {
   font-size: 0.9375rem;
 }
 
+.inv-panel__cap {
+  font-size: 0.8125rem !important;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--color-ink-muted) 88%, var(--color-ink)) !important;
+}
+
 .inv-panel__locked {
   color: var(--color-vermilion) !important;
   font-weight: 600;
@@ -282,9 +374,8 @@ function onRevealDone() {
   gap: 0.65rem;
 }
 
-.inv-empty {
-  margin: 0;
-  color: var(--color-ink-muted);
+.inv-ryos {
+  margin-top: 0.25rem;
 }
 
 .inv-ryos__label {
