@@ -1,6 +1,6 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, onMounted, ref, watch } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import BattlePassTrack from '../components/battlePass/BattlePassTrack.vue';
 import QuestList from '../components/battlePass/QuestList.vue';
@@ -15,7 +15,11 @@ import { useNotificationsStore } from '../stores/notifications.js';
 
 defineOptions({ name: 'BattlePassView' });
 
+const BP_TABS = new Set(['free', 'premium', 'milestones']);
+
 const { t, locale } = useI18n();
+const route = useRoute();
+const router = useRouter();
 const store = useBattlePassStore();
 const auth = useAuthStore();
 const notifications = useNotificationsStore();
@@ -24,9 +28,34 @@ const message = ref(null);
 const claimedCards = ref([]);
 const isOpeningRewardBooster = ref(false);
 const rewardBooster = ref({ type: 'standard', cards: [] });
-const activeTab = ref('free');
+const activeTab = ref(tabFromRoute());
 
 const canStubUnlock = computed(() => Boolean(auth.user?.isAdmin));
+
+function tabFromRoute(query = route.query) {
+  const tab = String(query.tab || '');
+  return BP_TABS.has(tab) ? tab : 'free';
+}
+
+function setActiveTab(tab) {
+  if (!BP_TABS.has(tab) || activeTab.value === tab) return;
+  activeTab.value = tab;
+  const nextQuery = { ...route.query };
+  if (tab === 'free') delete nextQuery.tab;
+  else nextQuery.tab = tab;
+  const same =
+    String(route.query.tab || '') === String(nextQuery.tab || '');
+  if (!same) {
+    router.replace({ query: nextQuery });
+  }
+}
+
+watch(
+  () => route.query.tab,
+  () => {
+    activeTab.value = tabFromRoute();
+  },
+);
 
 onMounted(async () => {
   await store.loadAll();
@@ -248,13 +277,19 @@ async function onClaimQuest(questId) {
         </div>
 
         <div class="bp-tabs">
-          <div class="tabs" role="tablist" :aria-label="t('battlePass.tracksLabel')">
+          <div
+            class="tabs"
+            role="tablist"
+            :aria-label="t('battlePass.tracksLabel')"
+            data-testid="bp-content-tabs"
+          >
             <button
               type="button"
               role="tab"
               class="tab"
               :aria-selected="activeTab === 'free'"
-              @click="activeTab = 'free'"
+              data-testid="bp-tab-free"
+              @click="setActiveTab('free')"
             >
               {{ t('battlePass.freeTrack') }}
               <span v-if="store.claimableFree" class="tab__count">{{ store.claimableFree }}</span>
@@ -264,53 +299,71 @@ async function onClaimQuest(questId) {
               role="tab"
               class="tab"
               :aria-selected="activeTab === 'premium'"
-              @click="activeTab = 'premium'"
+              data-testid="bp-tab-premium"
+              @click="setActiveTab('premium')"
             >
               {{ t('battlePass.premiumTrack') }}
               <span v-if="store.claimablePremium" class="tab__count">{{
                 store.claimablePremium
               }}</span>
             </button>
+            <button
+              type="button"
+              role="tab"
+              class="tab"
+              :aria-selected="activeTab === 'milestones'"
+              data-testid="bp-tab-milestones"
+              @click="setActiveTab('milestones')"
+            >
+              {{ t('battlePass.milestoneQuests') }}
+              <span v-if="store.claimableMilestones" class="tab__count">{{
+                store.claimableMilestones
+              }}</span>
+            </button>
           </div>
         </div>
 
         <div class="mt-6">
-          <BattlePassTrack
-            v-if="activeTab === 'free'"
-            track-type="free"
-            :track="store.tracks?.free || []"
-            :current-level="store.currentLevel"
-            :busy="store.actionLoading"
-            @claim="onClaim"
-          />
-          <BattlePassTrack
-            v-else
-            track-type="premium"
-            :track="store.tracks?.premium || []"
-            :current-level="store.currentLevel"
-            :busy="store.actionLoading"
-            @claim="onClaim"
-          />
-        </div>
-
-        <div class="mt-14">
-          <div class="bp-hub-quests mb-8">
-            <p class="text-ink-muted">{{ t('battlePass.hubQuestsHint') }}</p>
-            <RouterLink
-              :to="{ name: 'hub', query: { tab: 'quests' } }"
-              class="btn-ghost btn-sm"
-              data-testid="bp-hub-quests-link"
-            >
-              {{ t('battlePass.hubQuestsLink') }}
-            </RouterLink>
+          <div v-show="activeTab === 'free'" role="tabpanel" data-testid="bp-panel-free">
+            <BattlePassTrack
+              track-type="free"
+              :track="store.tracks?.free || []"
+              :current-level="store.currentLevel"
+              :busy="store.actionLoading"
+              @claim="onClaim"
+            />
           </div>
-          <QuestList
-            :title="t('battlePass.milestoneQuests')"
-            :quests="store.milestoneQuests"
-            :locale="locale"
-            :busy="store.actionLoading"
-            @claim="onClaimQuest"
-          />
+          <div v-show="activeTab === 'premium'" role="tabpanel" data-testid="bp-panel-premium">
+            <BattlePassTrack
+              track-type="premium"
+              :track="store.tracks?.premium || []"
+              :current-level="store.currentLevel"
+              :busy="store.actionLoading"
+              @claim="onClaim"
+            />
+          </div>
+          <div
+            v-show="activeTab === 'milestones'"
+            role="tabpanel"
+            data-testid="bp-panel-milestones"
+          >
+            <div class="bp-hub-quests mb-6">
+              <p class="text-ink-muted">{{ t('battlePass.hubQuestsHint') }}</p>
+              <RouterLink
+                :to="{ name: 'hub', query: { tab: 'quests' } }"
+                class="btn-ghost btn-sm"
+                data-testid="bp-hub-quests-link"
+              >
+                {{ t('battlePass.hubQuestsLink') }}
+              </RouterLink>
+            </div>
+            <QuestList
+              :quests="store.milestoneQuests"
+              :locale="locale"
+              :busy="store.actionLoading"
+              @claim="onClaimQuest"
+            />
+          </div>
         </div>
       </div>
     </template>
