@@ -9,9 +9,11 @@ import { useTalentTreeStore } from '../stores/talentTree';
 
 import { useAchievementsStore } from '../stores/achievements';
 import { useOnboardingStore } from '../stores/onboarding';
+import { useBattlePassStore } from '../stores/battlePass';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
+import QuestList from '../components/battlePass/QuestList.vue';
 import { sectionOf } from '../constants/sections';
 import { useNotificationsStore } from '../stores/notifications.js';
 import hubImage from '../assets/illustrations/hub-office.webp';
@@ -26,10 +28,12 @@ const talents = useTalentTreeStore();
 
 const achievements = useAchievementsStore();
 const onboarding = useOnboardingStore();
+const battlePass = useBattlePassStore();
 const notifications = useNotificationsStore();
 const ready = ref(false);
 const progressLoadError = ref(false);
 const claimMessage = ref(null);
+const hubTab = ref('guide');
 
 async function loadHub() {
   ready.value = false;
@@ -42,9 +46,27 @@ async function loadHub() {
     talents.fetchMe(),
     achievements.fetchRegistry(),
     onboarding.fetchProgress(),
+    battlePass.loadAll(),
   ]);
   progressLoadError.value = Boolean(decks.error || !talentData || !achievementData || !onboardingData);
+  pickDefaultHubTab();
   ready.value = true;
+}
+
+function pickDefaultHubTab() {
+  const guideOpen = Boolean(
+    player.character && !onboarding.finished && (onboarding.steps || []).length,
+  );
+  const claimableGuide = (onboarding.steps || []).some(s => s.claimable);
+  if (guideOpen && claimableGuide) {
+    hubTab.value = 'guide';
+    return;
+  }
+  if (battlePass.claimableQuests > 0) {
+    hubTab.value = 'quests';
+    return;
+  }
+  hubTab.value = guideOpen ? 'guide' : 'quests';
 }
 
 onMounted(loadHub);
@@ -91,6 +113,9 @@ const nextStep = computed(
 const showOnboarding = computed(
   () => hasCharacter.value && !onboarding.finished && steps.value.length > 0,
 );
+const showProgressPanel = computed(() => hasCharacter.value && !progressLoadError.value);
+const claimableGuideCount = computed(() => steps.value.filter(s => s.claimable).length);
+const claimableTierCount = computed(() => battlePass.claimableTiers || 0);
 
 async function claimStep(step) {
   if (!step?.claimable || onboarding.actionLoading) return;
@@ -103,6 +128,19 @@ async function claimStep(step) {
   const claimed = result.step || step;
   claimMessage.value = t('hub.onboardingClaimed', { reward: rewardLabel(claimed) });
   await Promise.all([player.fetchPlayer(), notifications.fetchNotifications()]);
+}
+
+async function claimQuest(questId) {
+  if (!questId || battlePass.actionLoading) return;
+  claimMessage.value = null;
+  const result = await battlePass.claimQuest(questId);
+  if (!result) {
+    claimMessage.value = battlePass.error || t('hub.questClaimError');
+    return;
+  }
+  const xpGained = result.xp?.xpGained || 0;
+  claimMessage.value = t('hub.questClaimed', { xp: xpGained });
+  await notifications.fetchNotifications();
 }
 
 const shortcuts = computed(() =>
@@ -249,81 +287,162 @@ const shortcuts = computed(() =>
           <button type="button" class="btn-ghost" @click="loadHub">{{ t('hub.retry') }}</button>
         </div>
         <section
-          v-else-if="showOnboarding"
+          v-else-if="showProgressPanel"
           class="page-section"
-          data-testid="hub-checklist"
+          data-testid="hub-progress"
         >
           <div class="section-head">
             <span class="section-head__index">02</span>
-            <h2 class="section-head__title">{{ t('hub.nextSteps') }}</h2>
+            <h2 class="section-head__title">{{ t('hub.progressTitle') }}</h2>
             <span class="section-head__rule" />
           </div>
-          <p class="mt-3 text-ink-muted">{{ t('hub.nextStepsLead') }}</p>
-          <p class="mt-1 text-sm text-ink-muted">
-            {{
-              t('hub.onboardingProgress', {
-                done: onboarding.meta?.completed || 0,
-                total: onboarding.meta?.total || steps.length,
-              })
-            }}
-          </p>
+          <p class="mt-3 text-ink-muted">{{ t('hub.progressLead') }}</p>
           <p v-if="claimMessage" class="alert alert--success mt-3" role="status">
             {{ claimMessage }}
           </p>
 
-          <ol class="hub-steps rule-list stagger">
-            <li
-              v-for="(step, index) in steps"
-              :key="step.key"
-              class="hub-step"
-              :class="{
-                'hub-step--done': step.done && !step.claimable,
-                'hub-step--claimable': step.claimable,
-              }"
-              :style="{ '--i': index }"
-            >
-              <span class="hub-step__index" aria-hidden="true">{{ index + 1 }}</span>
-              <div class="min-w-0">
-                <p class="hub-step__label">{{ step.label }}</p>
-                <p v-if="!step.done || step.claimable" class="hub-step__hint">{{ step.hint }}</p>
-                <p v-if="step.rewardText" class="hub-step__reward">{{ step.rewardText }}</p>
-              </div>
-              <div class="hub-step__actions">
-                <RouterLink
-                  v-if="!step.done"
-                  :to="step.to"
-                  class="btn-ghost btn-sm shrink-0"
-                  :data-testid="`hub-step-${step.key}`"
-                >
-                  {{ t('hub.go') }}
-                </RouterLink>
-                <button
-                  v-else-if="step.claimable"
-                  type="button"
-                  class="btn-primary btn-sm shrink-0"
-                  :disabled="onboarding.actionLoading"
-                  :data-testid="`hub-claim-${step.key}`"
-                  @click="claimStep(step)"
-                >
-                  {{ t('hub.claimReward') }}
-                </button>
-                <span v-else class="hub-step__done">
-                  <AppIcon name="check" size="1rem" :stroke-width="2.5" />
-                  {{ t('hub.done') }}
-                </span>
-              </div>
-            </li>
-          </ol>
+          <div v-if="showOnboarding" class="hub-tabs mt-5">
+            <div class="tabs" role="tablist" :aria-label="t('hub.progressTitle')">
+              <button
+                type="button"
+                role="tab"
+                class="tab"
+                :aria-selected="hubTab === 'guide'"
+                data-testid="hub-tab-guide"
+                @click="hubTab = 'guide'"
+              >
+                {{ t('hub.tabGuide') }}
+                <span v-if="claimableGuideCount" class="tab__count">{{ claimableGuideCount }}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                class="tab"
+                :aria-selected="hubTab === 'quests'"
+                data-testid="hub-tab-quests"
+                @click="hubTab = 'quests'"
+              >
+                {{ t('hub.tabQuests') }}
+                <span v-if="battlePass.claimableQuests" class="tab__count">{{
+                  battlePass.claimableQuests
+                }}</span>
+              </button>
+            </div>
+          </div>
 
-          <RouterLink
-            v-if="nextStep"
-            :to="nextStep.to"
-            class="btn-primary btn-lg mt-6"
-            data-testid="hub-primary-cta"
+          <div
+            v-show="showOnboarding && hubTab === 'guide'"
+            class="mt-5"
+            role="tabpanel"
+            data-testid="hub-checklist"
           >
-            {{ t('hub.continueCta', { step: nextStep.label }) }}
-            <AppIcon name="arrow-right" size="1.125rem" :stroke-width="2" />
-          </RouterLink>
+            <p class="text-ink-muted">{{ t('hub.nextStepsLead') }}</p>
+            <p class="mt-1 text-sm text-ink-muted">
+              {{
+                t('hub.onboardingProgress', {
+                  done: onboarding.meta?.completed || 0,
+                  total: onboarding.meta?.total || steps.length,
+                })
+              }}
+            </p>
+
+            <ol class="hub-steps rule-list stagger">
+              <li
+                v-for="(step, index) in steps"
+                :key="step.key"
+                class="hub-step"
+                :class="{
+                  'hub-step--done': step.done && !step.claimable,
+                  'hub-step--claimable': step.claimable,
+                }"
+                :style="{ '--i': index }"
+              >
+                <span class="hub-step__index" aria-hidden="true">{{ index + 1 }}</span>
+                <div class="min-w-0">
+                  <p class="hub-step__label">{{ step.label }}</p>
+                  <p v-if="!step.done || step.claimable" class="hub-step__hint">{{ step.hint }}</p>
+                  <p v-if="step.rewardText" class="hub-step__reward">{{ step.rewardText }}</p>
+                </div>
+                <div class="hub-step__actions">
+                  <RouterLink
+                    v-if="!step.done"
+                    :to="step.to"
+                    class="btn-ghost btn-sm shrink-0"
+                    :data-testid="`hub-step-${step.key}`"
+                  >
+                    {{ t('hub.go') }}
+                  </RouterLink>
+                  <button
+                    v-else-if="step.claimable"
+                    type="button"
+                    class="btn-primary btn-sm shrink-0"
+                    :disabled="onboarding.actionLoading"
+                    :data-testid="`hub-claim-${step.key}`"
+                    @click="claimStep(step)"
+                  >
+                    {{ t('hub.claimReward') }}
+                  </button>
+                  <span v-else class="hub-step__done">
+                    <AppIcon name="check" size="1rem" :stroke-width="2.5" />
+                    {{ t('hub.done') }}
+                  </span>
+                </div>
+              </li>
+            </ol>
+
+            <RouterLink
+              v-if="nextStep"
+              :to="nextStep.to"
+              class="btn-primary btn-lg mt-6"
+              data-testid="hub-primary-cta"
+            >
+              {{ t('hub.continueCta', { step: nextStep.label }) }}
+              <AppIcon name="arrow-right" size="1.125rem" :stroke-width="2" />
+            </RouterLink>
+          </div>
+
+          <div
+            v-show="!showOnboarding || hubTab === 'quests'"
+            class="mt-5"
+            role="tabpanel"
+            data-testid="hub-quests"
+          >
+            <p class="text-ink-muted">{{ t('hub.questsLead') }}</p>
+
+            <div class="hub-bp-cta mt-4">
+              <RouterLink
+                to="/battle-pass"
+                class="btn-primary"
+                data-testid="hub-battle-pass-cta"
+              >
+                {{ t('hub.openBattlePass') }}
+                <span v-if="claimableTierCount" class="hub-bp-cta__count">{{
+                  claimableTierCount
+                }}</span>
+                <AppIcon name="arrow-right" size="1.125rem" :stroke-width="2" />
+              </RouterLink>
+              <p v-if="claimableTierCount" class="hub-bp-cta__hint">
+                {{ t('hub.claimableTiers', { n: claimableTierCount }) }}
+              </p>
+            </div>
+
+            <div class="hub-quests mt-8">
+              <QuestList
+                :title="t('battlePass.dailyQuests')"
+                :quests="battlePass.dailyQuests"
+                :locale="locale"
+                :busy="battlePass.actionLoading"
+                @claim="claimQuest"
+              />
+              <QuestList
+                :title="t('battlePass.weeklyQuests')"
+                :quests="battlePass.weeklyQuests"
+                :locale="locale"
+                :busy="battlePass.actionLoading"
+                @claim="claimQuest"
+              />
+            </div>
+          </div>
         </section>
 
         <section class="page-section">
@@ -414,6 +533,47 @@ const shortcuts = computed(() =>
   font-weight: 700;
   font-stretch: 88%;
   line-height: 1.1;
+}
+
+.hub-tabs {
+  margin-top: 1.25rem;
+}
+
+.hub-bp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.hub-bp-cta .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hub-bp-cta__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-on-fill) 22%, transparent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hub-bp-cta__hint {
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+}
+
+.hub-quests {
+  display: grid;
+  gap: 2.5rem;
 }
 
 .hub-steps {
