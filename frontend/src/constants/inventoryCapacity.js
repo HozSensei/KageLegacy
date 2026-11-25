@@ -9,6 +9,8 @@ export {
   POUCH_CAPACITY,
   capacityFor,
   chestSlotsNeededForRewards,
+  countsTowardPouchCapacity,
   emptySlotCount,
   getChestCapacity,
+  pouchCapacityUsed,
 } from '@shared/inventoryCapacity.js';

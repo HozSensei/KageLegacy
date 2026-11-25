@@ -454,26 +454,48 @@ export function applyPouchLoadout(player, items = []) {
   return next;
 }
 
-/** Objets restants en inventaire de run → dépôts poche. */
+/**
+ * Objets restants en inventaire de run → dépôts poche.
+ * Fusionne inventaire + pendingLoot (scellés trackés) sans perdre les
+ * parchemins absents des slots (bug dépôt fantôme / compteur sans item).
+ */
 export function collectRunInventoryDeposits(player) {
-  const deposits = [];
   const fromInv = new Map();
   for (const slot of player?.inventory || []) {
     if (!slot?.itemId) continue;
-    const prev = fromInv.get(slot.itemId) || { itemKey: slot.itemId, quantity: 0, meta: slot.meta };
+    const prev = fromInv.get(slot.itemId) || {
+      itemKey: slot.itemId,
+      quantity: 0,
+      meta: slot.meta || null,
+    };
     prev.quantity += Math.max(1, Number(slot.qty) || 1);
+    if (!prev.meta && slot.meta) prev.meta = slot.meta;
     fromInv.set(slot.itemId, prev);
   }
-  if (fromInv.size) return [...fromInv.values()];
+
+  // pendingLoot complète les scellés manquants dans les slots (source de vérité
+  // historique). On ne double pas un scellé déjà présent dans l’inventaire :
+  // on aligne la quantité au max(inv, pending count).
+  const pendingCounts = new Map();
   for (const entry of player?.pendingLoot?.cards || []) {
     if (!entry?.itemId) continue;
-    deposits.push({
-      itemKey: entry.itemId,
-      quantity: 1,
-      meta: entry.meta || null,
+    pendingCounts.set(entry.itemId, (pendingCounts.get(entry.itemId) || 0) + 1);
+  }
+  for (const [itemId, pendingQty] of pendingCounts) {
+    const existing = fromInv.get(itemId);
+    if (existing) {
+      if (existing.quantity < pendingQty) existing.quantity = pendingQty;
+      continue;
+    }
+    const def = getShopItem(itemId);
+    fromInv.set(itemId, {
+      itemKey: itemId,
+      quantity: pendingQty,
+      meta: def?.kind === 'pending_card' ? { rarity: def.rarity } : null,
     });
   }
-  return deposits;
+
+  return [...fromInv.values()];
 }
 
 /** Entrées compatibles BoosterOpening (carte chance seule — scellés → inventaire). */
