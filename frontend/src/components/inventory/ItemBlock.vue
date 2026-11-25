@@ -165,7 +165,7 @@ onUnmounted(() => {
           @keydown.enter.prevent="toggleInfo"
           @keydown.space.prevent="toggleInfo"
         >
-          <AppIcon name="info" size="1.05rem" />
+          <AppIcon name="info" size="1.05rem" :stroke-width="0" />
         </button>
         <AppIcon :name="visual.icon" size="1.25rem" class="item-block__icon" />
       </div>
