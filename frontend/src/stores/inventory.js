@@ -10,10 +10,13 @@ export const useInventoryStore = defineStore('inventory', () => {
   const pouchRyos = ref(0);
   const pouchLocked = ref(false);
   const pouchLock = ref(null);
+  const chestCapacity = ref(null);
+  const pouchCapacity = ref(null);
   const stakes = ref([0, 100, 200, 300]);
   const loading = ref(false);
   const actionLoading = ref(false);
   const error = ref(null);
+  const errorCode = ref(null);
   const lastReveal = ref(null);
 
   function applyPayload(body) {
@@ -23,6 +26,8 @@ export const useInventoryStore = defineStore('inventory', () => {
     pouchRyos.value = Number(body.pouchRyos) || 0;
     pouchLocked.value = Boolean(body.pouchLocked);
     pouchLock.value = body.pouchLock || null;
+    if (body.chestCapacity != null) chestCapacity.value = Number(body.chestCapacity) || null;
+    if (body.pouchCapacity != null) pouchCapacity.value = Number(body.pouchCapacity) || null;
     if (Array.isArray(body.stakes) && body.stakes.length) {
       stakes.value = body.stakes;
     }
@@ -39,6 +44,7 @@ export const useInventoryStore = defineStore('inventory', () => {
       return body;
     } catch (e) {
       error.value = e.message;
+      errorCode.value = e.code || null;
       return null;
     } finally {
       loading.value = false;
@@ -48,6 +54,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   async function moveItem(itemKey, { from, to, quantity = 1 } = {}) {
     actionLoading.value = true;
     error.value = null;
+    errorCode.value = null;
     try {
       const res = await fetch(`${API_BASE}/api/inventory/move`, {
         method: 'POST',
@@ -56,11 +63,16 @@ export const useInventoryStore = defineStore('inventory', () => {
         body: JSON.stringify({ itemKey, from, to, quantity }),
       });
       const { ok, body } = await parseApiResponse(res);
-      if (!ok) throw new Error(await readApiError(res, body));
+      if (!ok) {
+        const err = new Error(await readApiError(res, body));
+        err.code = body?.code || null;
+        throw err;
+      }
       applyPayload(body);
       return body;
     } catch (e) {
       error.value = e.message;
+      errorCode.value = e.code || null;
       throw e;
     } finally {
       actionLoading.value = false;
@@ -160,10 +172,13 @@ export const useInventoryStore = defineStore('inventory', () => {
     pouchRyos,
     pouchLocked,
     pouchLock,
+    chestCapacity,
+    pouchCapacity,
     stakes,
     loading,
     actionLoading,
     error,
+    errorCode,
     lastReveal,
     fetchInventory,
     moveItem,

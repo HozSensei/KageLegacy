@@ -303,8 +303,8 @@ async function grantCardReward(userId, reward, connection = null) {
   return { type: 'card', cardDefinitionId: cardId, count, entries: granted };
 }
 
-async function grantBoosterStub(userId, reward, _connection = null) {
-  // Dépôt coffre — ouverture différée depuis l’inventaire.
+async function grantBoosterStub(userId, reward, connection = null) {
+  // Dépôt coffre — ouverture différée depuis l’inventaire (1 booster = 1 slot).
   const boosterType = reward.boosterType || reward.booster || 'standard';
   const { grantBoosterToChest } = await import('./playerInventoryService.js');
   const { boosterItemKey, getItem } = await import('../config/itemCatalog.js');
@@ -313,6 +313,7 @@ async function grantBoosterStub(userId, reward, _connection = null) {
   await grantBoosterToChest(userId, boosterType, {
     notify: false,
     source: 'battle_pass',
+    connection,
   });
   return {
     type: 'inventory_item',
@@ -447,6 +448,11 @@ export async function claimReward(userId, level, trackType = 'free') {
     if (!rewards.length) {
       throw httpError(404, 'Aucune récompense à ce niveau.');
     }
+
+    // Pas de claim partiel : refuse tout le palier si le coffre ne peut pas accueillir
+    // les boosters / objets inventaire (les cartes collection n’utilisent pas le coffre).
+    const { assertChestCanAcceptRewards } = await import('./playerInventoryService.js');
+    await assertChestCanAcceptRewards(userId, rewards, connection);
 
     granted = [];
     for (const reward of rewards) {

@@ -312,7 +312,9 @@ async function onBuyItem(itemId) {
     </div>
 
     <p v-if="shop.error" class="alert alert--error mt-4" data-testid="shop-error">
-      {{ shop.error }}
+      {{
+        shop.errorCode === 'INVENTORY_FULL' ? t('inventory.chestFullClaim') : shop.error
+      }}
     </p>
     <p v-if="shop.lastMessage" class="alert alert--success mt-4" data-testid="shop-message">
       {{ shop.lastMessage }}

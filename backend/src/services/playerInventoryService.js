@@ -1,5 +1,6 @@
 /**
  * Inventaire ninja — coffre (sûr) + poche (risquée en mission).
+ * Modèle : **1 objet = 1 slot** (pas de pile qty sur un emplacement).
  */
 import { query, getConnection } from '../config/database.js';
 import {
@@ -12,6 +13,12 @@ import {
   rollAccountDailyOffer,
   utcDayKey,
 } from '../config/itemCatalog.js';
+import {
+  CHEST_CAPACITY,
+  POUCH_CAPACITY,
+  capacityFor,
+  chestSlotsNeededForRewards,
+} from '../../../shared/inventoryCapacity.js';
 import { addCard } from './collectionService.js';
 import { notifyGain } from './userNotificationService.js';
 
@@ -124,8 +131,72 @@ export async function getPouchRyos(userId) {
   return Math.max(0, Number(rows[0].pouch_ryos) || 0);
 }
 
+function runner(connection = null) {
+  return connection
+    ? async (sql, params) => {
+        const [rows] = await connection.execute(sql, params);
+        return rows;
+      }
+    : query;
+}
+
+/** Occupancy = nombre de slots (1 ligne = 1 objet ; qty legacy >1 compte comme N). */
+export async function countOccupiedSlots(userId, location, connection = null) {
+  const run = runner(connection);
+  const rows = await run(
+    `SELECT COALESCE(SUM(quantity), 0) AS occupied
+     FROM user_inventory_items
+     WHERE user_id = ? AND location = ?`,
+    [userId, location],
+  );
+  return Math.max(0, Number(rows[0]?.occupied) || 0);
+}
+
+async function assertFreeSlots(userId, location, need, connection = null) {
+  const amount = Math.max(1, Number(need) || 1);
+  const cap = capacityFor(location);
+  const used = await countOccupiedSlots(userId, location, connection);
+  if (used + amount > cap) {
+    const label = location === 'pouch' ? 'Poche' : 'Coffre';
+    throw httpError(
+      400,
+      `${label} plein (${used}/${cap}) — pas assez d’emplacements libres.`,
+      'INVENTORY_FULL',
+    );
+  }
+  return { capacity: cap, used, free: cap - used };
+}
+
+/**
+ * Éclate une ligne qty>1 en N entrées API (1 objet = 1 slot affiché).
+ * Les ids secondaires utilisent un suffixe pour rester stables côté UI.
+ */
+function expandRowToSlots(row) {
+  const base = serializeItemRow(row);
+  const qty = Math.max(1, Number(row.quantity) || 1);
+  if (qty === 1) {
+    return [{ ...base, quantity: 1 }];
+  }
+  const slots = [];
+  for (let i = 0; i < qty; i += 1) {
+    slots.push({
+      ...base,
+      id: `${row.id}:${i}`,
+      stackId: row.id,
+      quantity: 1,
+    });
+  }
+  return slots;
+}
+
 export async function getInventory(userId) {
   const pouchLock = await getPouchLockStatus(userId);
+  const emptyCaps = {
+    chestCapacity: CHEST_CAPACITY,
+    pouchCapacity: POUCH_CAPACITY,
+    chestUsed: 0,
+    pouchUsed: 0,
+  };
   if (!(await tableExists('user_inventory_items'))) {
     return {
       chest: [],
@@ -133,20 +204,21 @@ export async function getInventory(userId) {
       pouchRyos: await getPouchRyos(userId).catch(() => 0),
       pouchLocked: pouchLock.locked,
       pouchLock,
+      ...emptyCaps,
     };
   }
   const rows = await query(
     `SELECT id, item_key, location, quantity, meta_json
      FROM user_inventory_items WHERE user_id = ?
-     ORDER BY location, item_key`,
+     ORDER BY location, item_key, id`,
     [userId],
   );
   const chest = [];
   const pouch = [];
   for (const row of rows) {
-    const entry = serializeItemRow(row);
-    if (row.location === 'pouch') pouch.push(entry);
-    else chest.push(entry);
+    const slots = expandRowToSlots(row);
+    if (row.location === 'pouch') pouch.push(...slots);
+    else chest.push(...slots);
   }
   return {
     chest,
@@ -154,62 +226,66 @@ export async function getInventory(userId) {
     pouchRyos: await getPouchRyos(userId),
     pouchLocked: pouchLock.locked,
     pouchLock,
+    chestCapacity: CHEST_CAPACITY,
+    pouchCapacity: POUCH_CAPACITY,
+    chestUsed: chest.length,
+    pouchUsed: pouch.length,
   };
 }
 
-async function upsertStack(userId, itemKey, location, qty, meta = null, connection = null) {
+/**
+ * Insère N slots distincts (quantity=1 chacun). Refuse si capacité dépassée.
+ * @returns {number[]} ids insérés
+ */
+async function insertSlots(userId, itemKey, location, qty, meta = null, connection = null) {
   const amount = Math.max(1, Number(qty) || 1);
-  const run = connection
-    ? async (sql, params) => {
-        const [rows] = await connection.execute(sql, params);
-        return rows;
-      }
-    : query;
-
-  const existing = await run(
-    `SELECT id, quantity FROM user_inventory_items
-     WHERE user_id = ? AND item_key = ? AND location = ? LIMIT 1`,
-    [userId, itemKey, location],
-  );
-  if (existing[0]) {
-    await run('UPDATE user_inventory_items SET quantity = quantity + ? WHERE id = ?', [
-      amount,
-      existing[0].id,
-    ]);
-    return existing[0].id;
+  const run = runner(connection);
+  await assertFreeSlots(userId, location, amount, connection);
+  const metaJson = meta != null ? JSON.stringify(meta) : null;
+  const ids = [];
+  for (let i = 0; i < amount; i += 1) {
+    const result = await run(
+      `INSERT INTO user_inventory_items (user_id, item_key, location, quantity, meta_json)
+       VALUES (?, ?, ?, 1, ?)`,
+      [userId, itemKey, location, metaJson],
+    );
+    ids.push(result.insertId);
   }
-  const result = await run(
-    `INSERT INTO user_inventory_items (user_id, item_key, location, quantity, meta_json)
-     VALUES (?, ?, ?, ?, ?)`,
-    [userId, itemKey, location, amount, meta != null ? JSON.stringify(meta) : null],
-  );
-  return result.insertId;
+  return ids;
 }
 
-async function consumeStack(userId, itemKey, location, qty = 1, connection = null) {
-  const amount = Math.max(1, Number(qty) || 1);
-  const run = connection
-    ? async (sql, params) => {
-        const [rows] = await connection.execute(sql, params);
-        return rows;
-      }
-    : query;
-
+/**
+ * Consomme N unités d’un itemKey dans un emplacement.
+ * Préfère supprimer des lignes qty=1 ; gère encore les piles legacy qty>1.
+ */
+async function consumeSlots(userId, itemKey, location, qty = 1, connection = null) {
+  let remaining = Math.max(1, Number(qty) || 1);
+  const run = runner(connection);
   const lockSql = connection
     ? `SELECT id, quantity FROM user_inventory_items
-       WHERE user_id = ? AND item_key = ? AND location = ? LIMIT 1 FOR UPDATE`
+       WHERE user_id = ? AND item_key = ? AND location = ?
+       ORDER BY id ASC FOR UPDATE`
     : `SELECT id, quantity FROM user_inventory_items
-       WHERE user_id = ? AND item_key = ? AND location = ? LIMIT 1`;
-  const rows = await run(lockSql, [userId, itemKey, location]);
-  const found = rows[0];
-  if (!found || Number(found.quantity) < amount) {
-    throw httpError(400, 'Quantité insuffisante.', 'INSUFFICIENT_ITEM');
-  }
-  const next = Number(found.quantity) - amount;
-  if (next <= 0) {
-    await run('DELETE FROM user_inventory_items WHERE id = ?', [found.id]);
-  } else {
-    await run('UPDATE user_inventory_items SET quantity = ? WHERE id = ?', [next, found.id]);
+       WHERE user_id = ? AND item_key = ? AND location = ?
+       ORDER BY id ASC`;
+
+  while (remaining > 0) {
+    const rows = await run(lockSql, [userId, itemKey, location]);
+    if (!rows.length) {
+      throw httpError(400, 'Quantité insuffisante.', 'INSUFFICIENT_ITEM');
+    }
+    const found = rows[0];
+    const have = Math.max(1, Number(found.quantity) || 1);
+    if (have <= remaining) {
+      await run('DELETE FROM user_inventory_items WHERE id = ?', [found.id]);
+      remaining -= have;
+    } else {
+      await run('UPDATE user_inventory_items SET quantity = ? WHERE id = ?', [
+        have - remaining,
+        found.id,
+      ]);
+      remaining = 0;
+    }
   }
   return true;
 }
@@ -217,7 +293,14 @@ async function consumeStack(userId, itemKey, location, qty = 1, connection = nul
 export async function grantToLocation(
   userId,
   itemKey,
-  { quantity = 1, location = 'chest', meta = null, notify = false, source = 'grant' } = {},
+  {
+    quantity = 1,
+    location = 'chest',
+    meta = null,
+    notify = false,
+    source = 'grant',
+    connection = null,
+  } = {},
 ) {
   if (!userId) throw httpError(400, 'userId requis.');
   const def = getItem(itemKey);
@@ -225,19 +308,20 @@ export async function grantToLocation(
   if (!(await tableExists('user_inventory_items'))) {
     throw httpError(503, 'Tables inventaire absentes — lancez les migrations.');
   }
-  await upsertStack(userId, itemKey, location, quantity, meta);
+  const amount = Math.max(1, Number(quantity) || 1);
+  await insertSlots(userId, itemKey, location, amount, meta, connection);
   if (notify) {
     try {
       await notifyGain(userId, {
         source,
-        grants: [inventoryGrant(itemKey, quantity)],
+        grants: [inventoryGrant(itemKey, amount)],
         href: '/inventaire',
       });
     } catch {
       /* optionnel */
     }
   }
-  return getInventory(userId);
+  return connection ? null : getInventory(userId);
 }
 
 export async function grantToChest(userId, itemKey, opts = {}) {
@@ -256,6 +340,16 @@ export async function grantBoosterToChest(userId, boosterType, opts = {}) {
   });
 }
 
+/**
+ * Refuse le claim si le coffre n’a pas assez de slots pour les rewards inventaire.
+ * Les cartes collection / monnaies / cosmétiques n’occupent pas le coffre.
+ */
+export async function assertChestCanAcceptRewards(userId, rewards, connection = null) {
+  const need = chestSlotsNeededForRewards(rewards);
+  if (need <= 0) return { need: 0, used: 0, capacity: CHEST_CAPACITY };
+  return assertFreeSlots(userId, 'chest', need, connection);
+}
+
 export async function moveItem(userId, itemKey, { from, to, quantity = 1 } = {}) {
   if (!['chest', 'pouch'].includes(from) || !['chest', 'pouch'].includes(to)) {
     throw httpError(400, 'Emplacement invalide.');
@@ -264,11 +358,13 @@ export async function moveItem(userId, itemKey, { from, to, quantity = 1 } = {})
   if (from === 'pouch' || to === 'pouch') {
     await assertPouchEditable(userId);
   }
+  const amount = Math.max(1, Number(quantity) || 1);
   const connection = await getConnection();
   try {
     await connection.beginTransaction();
-    await consumeStack(userId, itemKey, from, quantity, connection);
-    await upsertStack(userId, itemKey, to, quantity, null, connection);
+    await assertFreeSlots(userId, to, amount, connection);
+    await consumeSlots(userId, itemKey, from, amount, connection);
+    await insertSlots(userId, itemKey, to, amount, null, connection);
     await connection.commit();
   } catch (err) {
     await connection.rollback();
@@ -385,15 +481,35 @@ export async function clearPouch(userId) {
   await query('UPDATE player_profiles SET pouch_ryos = 0 WHERE user_id = ?', [userId]);
 }
 
-/** Dépose une liste d’items (scellés / restes de run) dans la poche. */
+/**
+ * Dépose une liste d’items (scellés / restes de run) dans la poche.
+ * 1 objet = 1 slot : refuse toute unité qui dépasse POUCH_CAPACITY (pas d’overflow).
+ */
 export async function depositRunLootToPouch(userId, entries = []) {
   const deposited = [];
+  const rejected = [];
   for (const entry of entries) {
     const key = entry.itemKey || entry.itemId || entry.id;
     if (!key || !getItem(key)) continue;
     const qty = Math.max(1, Number(entry.quantity) || 1);
-    await grantToPouch(userId, key, { quantity: qty, meta: entry.meta || null, notify: false });
-    deposited.push({ itemKey: key, quantity: qty });
+    for (let i = 0; i < qty; i += 1) {
+      try {
+        await grantToPouch(userId, key, {
+          quantity: 1,
+          meta: entry.meta || null,
+          notify: false,
+        });
+        const prev = deposited.find(d => d.itemKey === key);
+        if (prev) prev.quantity += 1;
+        else deposited.push({ itemKey: key, quantity: 1 });
+      } catch (err) {
+        if (err?.code === 'INVENTORY_FULL') {
+          rejected.push({ itemKey: key, quantity: 1, code: 'INVENTORY_FULL' });
+          continue;
+        }
+        throw err;
+      }
+    }
   }
   if (deposited.length) {
     try {
@@ -406,6 +522,8 @@ export async function depositRunLootToPouch(userId, entries = []) {
       /* optionnel */
     }
   }
+  // Rétrocompat : tableau des dépôts ; métadonnées d’éventuels refus (poche pleine).
+  deposited.rejected = rejected;
   return deposited;
 }
 
@@ -430,7 +548,7 @@ export async function revealSealedFromChest(userId, itemKey) {
   if (!def || def.kind !== 'pending_card') {
     throw httpError(400, 'Cet objet n’est pas un parchemin scellé.');
   }
-  await consumeStack(userId, itemKey, 'chest', 1);
+  await consumeSlots(userId, itemKey, 'chest', 1);
   const cardId = await pickCardIdByRarity(def.rarity || 'common');
   if (!cardId) throw httpError(500, 'Aucune carte disponible.');
   const added = await addCard(userId, cardId, { quantity: 1, source: 'mission' });
@@ -452,7 +570,7 @@ export async function openBoosterFromChest(userId, itemKey) {
   if (!def || def.kind !== 'booster') {
     throw httpError(400, 'Cet objet n’est pas un booster.');
   }
-  await consumeStack(userId, itemKey, 'chest', 1);
+  await consumeSlots(userId, itemKey, 'chest', 1);
   const { grantFreeBooster } = await import('./boosterService.js');
   const opened = await grantFreeBooster(userId, def.boosterType || 'standard');
   return {
@@ -534,7 +652,7 @@ export async function buyDailyItem(userId, itemId) {
        ON DUPLICATE KEY UPDATE qty = qty + 1`,
       [userId, day.dayKey, itemId],
     );
-    await upsertStack(userId, itemId, 'chest', 1, null, connection);
+    await insertSlots(userId, itemId, 'chest', 1, null, connection);
     await connection.commit();
   } catch (err) {
     await connection.rollback();
@@ -565,5 +683,6 @@ export async function buyDailyItem(userId, itemId) {
 
 export const __test = {
   serializeItemRow,
+  expandRowToSlots,
   shopPriceFromRun: (n) => Math.round((Number(n) || 0) * 2 / 5) * 5,
 };

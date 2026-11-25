@@ -559,13 +559,13 @@ CREATE TABLE `user_inventory_items` (
   `user_id` int unsigned NOT NULL,
   `item_key` varchar(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   `location` enum('chest','pouch') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'chest',
-  `quantity` int unsigned NOT NULL DEFAULT '1',
+  `quantity` int unsigned NOT NULL DEFAULT '1' COMMENT 'Toujours 1 (1 objet = 1 slot) ; legacy qty>1 éclatée à la migrate',
   `meta_json` json DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_user_inv_item_loc` (`user_id`,`item_key`,`location`),
   KEY `idx_user_inv_user_loc` (`user_id`,`location`),
+  KEY `idx_user_inv_user_item_loc` (`user_id`,`item_key`,`location`),
   CONSTRAINT `fk_user_inv_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chk_user_inv_qty` CHECK ((`quantity` >= 1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -30,6 +30,7 @@ export const useShopStore = defineStore('shop', () => {
   const opening = ref(false);
   const purchasing = ref(false);
   const error = ref(null);
+  const errorCode = ref(null);
   const lastResult = ref(null);
   const lastMessage = ref(null);
   const selectedElement = ref(null);
@@ -210,6 +211,7 @@ export const useShopStore = defineStore('shop', () => {
   async function buyDailyItem(itemId) {
     purchasing.value = true;
     error.value = null;
+    errorCode.value = null;
     lastMessage.value = null;
     try {
       const res = await fetch(`${API_BASE}/api/shop/items/${encodeURIComponent(itemId)}/buy`, {
@@ -219,7 +221,11 @@ export const useShopStore = defineStore('shop', () => {
         body: JSON.stringify({}),
       });
       const { ok, body } = await parseApiResponse(res);
-      if (!ok) throw new Error(await readApiError(res, body));
+      if (!ok) {
+        const err = new Error(await readApiError(res, body));
+        err.code = body?.code || null;
+        throw err;
+      }
       if (body.offers?.offers) dailyItems.value = body.offers.offers;
       else if (Array.isArray(body.offers)) dailyItems.value = body.offers;
       if (body.offers?.renewsAt) dailyItemsRenewsAt.value = body.offers.renewsAt;
@@ -228,6 +234,7 @@ export const useShopStore = defineStore('shop', () => {
       return body;
     } catch (e) {
       error.value = e.message;
+      errorCode.value = e.code || null;
       throw e;
     } finally {
       purchasing.value = false;
@@ -493,6 +500,7 @@ export const useShopStore = defineStore('shop', () => {
     opening,
     purchasing,
     error,
+    errorCode,
     lastResult,
     lastMessage,
     selectedElement,

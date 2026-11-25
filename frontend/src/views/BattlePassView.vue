@@ -71,7 +71,8 @@ async function onClaim({ level, track }) {
       claimedCards.value = cardRewards;
     }
   } else if (store.error) {
-    message.value = store.error;
+    message.value =
+      store.errorCode === 'INVENTORY_FULL' ? t('inventory.chestFullClaim') : store.error;
   }
 }
 
@@ -98,7 +99,8 @@ async function onClaimQuest(questId) {
     message.value = t('battlePass.questClaimSuccess', { xp: xpGained });
     void notifications.fetchNotifications();
   } else if (store.error) {
-    message.value = store.error;
+    message.value =
+      store.errorCode === 'INVENTORY_FULL' ? t('inventory.chestFullClaim') : store.error;
   }
 }
 </script>

@@ -12,6 +12,11 @@ import {
 } from '../src/config/itemCatalog.js';
 import { PURSE_STAKES, isValidPurseStake } from '../src/config/missionRunEconomy.js';
 import {
+  CHEST_CAPACITY,
+  POUCH_CAPACITY,
+  chestSlotsNeededForRewards,
+} from '../../shared/inventoryCapacity.js';
+import {
   getPouchLockStatus,
   assertPouchEditable,
   __test as invTest,
@@ -65,6 +70,27 @@ assert(
 console.log('=== exports verrouillage poche ===');
 assert(typeof getPouchLockStatus === 'function', 'getPouchLockStatus exporté');
 assert(typeof assertPouchEditable === 'function', 'assertPouchEditable exporté');
+
+console.log('=== capacité 1 objet = 1 slot ===');
+assert(POUCH_CAPACITY === 4, 'poche 4');
+assert(CHEST_CAPACITY === 12, 'coffre 12');
+assert(chestSlotsNeededForRewards([{ type: 'card' }]) === 0, 'carte → 0 slot coffre');
+assert(chestSlotsNeededForRewards([{ type: 'booster' }]) === 1, 'booster → 1 slot');
+assert(
+  chestSlotsNeededForRewards([{ type: 'booster' }, { type: 'inventory_item', amount: 2 }]) === 3,
+  'booster+2 items → 3',
+);
+
+console.log('=== expandRowToSlots ===');
+const expanded = invTest.expandRowToSlots({
+  id: 9,
+  item_key: 'heal_bandage',
+  location: 'chest',
+  quantity: 3,
+  meta_json: null,
+});
+assert(expanded.length === 3, 'qty 3 → 3 slots');
+assert(expanded.every(e => e.quantity === 1), 'chaque slot qty 1');
 
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);
