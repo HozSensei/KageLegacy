@@ -64,11 +64,9 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
       </span>
     </template>
 
-    <!-- Pluie — sheets CSS + gouttes (freefrontend.com/css-rain) -->
+    <!-- Pluie — gouttes seules (pas de nappes diagonales) -->
     <template v-else-if="effect === 'rain'">
       <span class="card-aura__weather card-aura__weather--rain" />
-      <span class="card-aura__rain-sheet card-aura__rain-sheet--a" />
-      <span class="card-aura__rain-sheet card-aura__rain-sheet--b" />
       <span class="card-aura__rain">
         <span
           v-for="drop in rainDrops"
@@ -355,44 +353,8 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
 }
 
 /* =========================================================
-   Pluie — freefrontend.com/css-rain
-   Sheets en repeating-linear-gradient + gouttes animées en top %
+   Pluie — gouttes individuelles uniquement
    ========================================================= */
-.card-aura__rain-sheet {
-  position: absolute;
-  left: -10%;
-  right: -10%;
-  top: -60%;
-  height: 160%;
-  pointer-events: none;
-  will-change: transform;
-  background-image: repeating-linear-gradient(
-    100deg,
-    transparent 0,
-    transparent 8px,
-    rgb(220 235 255 / 0.22) 8px,
-    rgb(220 235 255 / 0.22) 9px,
-    transparent 9px,
-    transparent 22px
-  );
-  animation: rain-sheet 0.55s linear infinite;
-}
-
-.card-aura__rain-sheet--b {
-  opacity: 0.65;
-  background-image: repeating-linear-gradient(
-    105deg,
-    transparent 0,
-    transparent 14px,
-    rgb(255 255 255 / 0.28) 14px,
-    rgb(255 255 255 / 0.28) 15px,
-    transparent 15px,
-    transparent 34px
-  );
-  animation-duration: 0.4s;
-  animation-direction: reverse;
-}
-
 .card-aura__rain {
   position: absolute;
   inset: 0;
@@ -408,16 +370,6 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
   animation-name: rain-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-}
-
-@keyframes rain-sheet {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    /* 37.5% de 160% ≈ une période de motif visible */
-    transform: translate3d(0, 37.5%, 0);
-  }
 }
 
 @keyframes rain-fall {
@@ -584,14 +536,9 @@ const rainDrops = Array.from({ length: 28 }, (_, i) => {
   .card-aura__sheen-flash,
   .card-aura__leaf,
   .card-aura__drop,
-  .card-aura__rain-sheet,
   .card-aura__snow,
   .card-aura__haze {
     animation: none !important;
-  }
-
-  .card-aura__rain-sheet {
-    opacity: 0.35;
   }
 
   .card-aura__sheen-flash {

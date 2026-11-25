@@ -13,7 +13,7 @@ export function isKnownProfileFrameId(frameId) {
   return known.has(frameId);
 }
 
-/** Métadonnées catalogue (prix ryo, libellés). */
+/** Métadonnées catalogue (prix ryo / kage coins, libellés). */
 export const PROFILE_FRAME_CATALOG = Object.freeze([
   Object.freeze({
     id: 'frame_ember',
@@ -23,7 +23,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
       en: 'Swirling ember aura around the portrait.',
     }),
     effect: 'ember',
-    ryos: 800,
+    ryos: 2400,
+    kageCoins: 100,
   }),
   Object.freeze({
     id: 'frame_volt',
@@ -33,7 +34,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
       en: 'Swirling electric aura around the portrait.',
     }),
     effect: 'volt',
-    ryos: 1200,
+    ryos: 3600,
+    kageCoins: 140,
   }),
   Object.freeze({
     id: 'frame_mist',
@@ -43,7 +45,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
       en: 'Animated mist veil around the portrait.',
     }),
     effect: 'mist',
-    ryos: 900,
+    ryos: 2700,
+    kageCoins: 110,
   }),
   Object.freeze({
     id: 'frame_shadow',
@@ -53,7 +56,8 @@ export const PROFILE_FRAME_CATALOG = Object.freeze([
       en: 'Swirling shadow aura around the portrait.',
     }),
     effect: 'shadow',
-    ryos: 1500,
+    ryos: 4500,
+    kageCoins: 180,
   }),
 ]);
 

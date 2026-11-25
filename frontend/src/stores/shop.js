@@ -234,7 +234,7 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
-  async function purchaseFrame(frameId) {
+  async function purchaseFrame(frameId, { currency = 'ryos' } = {}) {
     purchasing.value = true;
     error.value = null;
     try {
@@ -244,7 +244,7 @@ export const useShopStore = defineStore('shop', () => {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ currency }),
         },
       );
       const { ok, body } = await parseApiResponse(res);
@@ -262,7 +262,7 @@ export const useShopStore = defineStore('shop', () => {
     }
   }
 
-  async function purchaseCardEffect(effectId) {
+  async function purchaseCardEffect(effectId, { currency = 'ryos' } = {}) {
     purchasing.value = true;
     error.value = null;
     try {
@@ -272,7 +272,7 @@ export const useShopStore = defineStore('shop', () => {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
+          body: JSON.stringify({ currency }),
         },
       );
       const { ok, body } = await parseApiResponse(res);

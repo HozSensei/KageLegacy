@@ -91,12 +91,26 @@ export async function grantCardEffectUnlock(
   }
 }
 
-export async function purchaseCardEffectWithRyos(userId, effectId) {
+/**
+ * Achat d’un effet de fiche contre des ryos ou des Kage Coins.
+ * @param {'ryos'|'kage_coins'} [currency='ryos']
+ */
+export async function purchaseCardEffectWithCurrency(
+  userId,
+  effectId,
+  { currency = 'ryos' } = {},
+) {
   if (!userId) throw httpError(400, 'userId requis.');
   const effect = getProfileCardEffect(effectId);
   if (!effect) throw httpError(404, 'Effet introuvable.');
-  const cost = Number(effect.ryos) || 0;
-  if (cost <= 0) throw httpError(400, 'Cet effet n’est pas achetable en ryos.');
+  const useKc = currency === 'kage_coins';
+  const cost = Number(useKc ? effect.kageCoins : effect.ryos) || 0;
+  if (cost <= 0) {
+    throw httpError(
+      400,
+      useKc ? 'Cet effet n’est pas achetable en Kage Coins.' : 'Cet effet n’est pas achetable en ryos.',
+    );
+  }
 
   if (!(await tableExists('player_card_effect_unlocks'))) {
     throw httpError(503, 'Table player_card_effect_unlocks absente — migrer la base.');
@@ -112,27 +126,38 @@ export async function purchaseCardEffectWithRyos(userId, effectId) {
     }
 
     const [profiles] = await connection.execute(
-      'SELECT ryos FROM player_profiles WHERE user_id = ? FOR UPDATE',
+      'SELECT ryos, kage_coins FROM player_profiles WHERE user_id = ? FOR UPDATE',
       [userId],
     );
     if (!profiles[0]) throw httpError(404, 'Profil joueur introuvable.');
     const ryos = Number(profiles[0].ryos) || 0;
-    if (ryos < cost) throw httpError(400, 'Ryos insuffisants.');
-
-    await connection.execute('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [
-      cost,
-      userId,
-    ]);
+    const kageCoins = Number(profiles[0].kage_coins) || 0;
+    if (useKc) {
+      if (kageCoins < cost) throw httpError(400, 'Kage Coins insuffisants.');
+      await connection.execute(
+        'UPDATE player_profiles SET kage_coins = kage_coins - ? WHERE user_id = ?',
+        [cost, userId],
+      );
+    } else {
+      if (ryos < cost) throw httpError(400, 'Ryos insuffisants.');
+      await connection.execute('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [
+        cost,
+        userId,
+      ]);
+    }
     const result = await grantCardEffectUnlock(userId, effectId, {
       source: 'shop',
-      sourceRef: `ryos:${cost}`,
+      sourceRef: `${useKc ? 'kage_coins' : 'ryos'}:${cost}`,
       connection,
     });
     await connection.commit();
     return {
       ...result,
-      ryosSpent: cost,
-      ryosRemaining: ryos - cost,
+      currency: useKc ? 'kage_coins' : 'ryos',
+      ryosSpent: useKc ? 0 : cost,
+      kageCoinsSpent: useKc ? cost : 0,
+      ryosRemaining: useKc ? ryos : ryos - cost,
+      kageCoinsRemaining: useKc ? kageCoins - cost : kageCoins,
       effect,
     };
   } catch (err) {
@@ -141,6 +166,11 @@ export async function purchaseCardEffectWithRyos(userId, effectId) {
   } finally {
     connection.release();
   }
+}
+
+/** @deprecated Prefer purchaseCardEffectWithCurrency */
+export async function purchaseCardEffectWithRyos(userId, effectId) {
+  return purchaseCardEffectWithCurrency(userId, effectId, { currency: 'ryos' });
 }
 
 export {

@@ -268,13 +268,14 @@ export async function listCosmeticFrames(userId) {
     descriptionEn: frame.description.en,
     effect: frame.effect,
     ryos: frame.ryos,
+    kageCoins: frame.kageCoins || 0,
     owned: owned.has(frame.id),
   }));
 }
 
-export async function purchaseCosmeticFrame(userId, frameId) {
-  const { purchaseFrameWithRyos } = await import('./frameUnlockService.js');
-  const result = await purchaseFrameWithRyos(userId, frameId);
+export async function purchaseCosmeticFrame(userId, frameId, { currency = 'ryos' } = {}) {
+  const { purchaseFrameWithCurrency } = await import('./frameUnlockService.js');
+  const result = await purchaseFrameWithCurrency(userId, frameId, { currency });
   const balances = await getPlayerBalances(userId);
   return { ...result, balances };
 }
@@ -293,13 +294,14 @@ export async function listCosmeticCardEffects(userId) {
     descriptionEn: effect.description.en,
     effect: effect.effect,
     ryos: effect.ryos,
+    kageCoins: effect.kageCoins || 0,
     owned: owned.has(effect.id),
   }));
 }
 
-export async function purchaseCosmeticCardEffect(userId, effectId) {
-  const { purchaseCardEffectWithRyos } = await import('./cardEffectUnlockService.js');
-  const result = await purchaseCardEffectWithRyos(userId, effectId);
+export async function purchaseCosmeticCardEffect(userId, effectId, { currency = 'ryos' } = {}) {
+  const { purchaseCardEffectWithCurrency } = await import('./cardEffectUnlockService.js');
+  const result = await purchaseCardEffectWithCurrency(userId, effectId, { currency });
   const balances = await getPlayerBalances(userId);
   return { ...result, balances };
 }

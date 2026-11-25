@@ -48,12 +48,12 @@ function effectDesc(entry) {
   return locale.value === 'en' ? entry.descriptionEn : entry.descriptionFr;
 }
 
-async function buy(entry) {
+async function buy(entry, currency = 'ryos') {
   if (!entry || entry.owned || busyId.value) return;
-  busyId.value = entry.id;
+  busyId.value = `${entry.id}:${currency}`;
   message.value = null;
   error.value = null;
-  const result = await shop.purchaseCardEffect(entry.id);
+  const result = await shop.purchaseCardEffect(entry.id, { currency });
   busyId.value = null;
   if (!result) {
     error.value = shop.error || t('shop.cardEffects.buyFailed');
@@ -98,19 +98,33 @@ async function buy(entry) {
           <strong>{{ effectName(entry) }}</strong>
           <p class="text-ink-muted">{{ effectDesc(entry) }}</p>
           <p v-if="entry.owned" class="fx-catalog__owned">{{ t('shop.cardEffects.owned') }}</p>
-          <button
-            v-else
-            type="button"
-            class="btn-primary btn-sm"
-            :disabled="Boolean(busyId) || (shop.balances?.ryos || 0) < entry.ryos"
-            @click="buy(entry)"
-          >
-            {{
-              busyId === entry.id
-                ? t('shop.cardEffects.buying')
-                : t('shop.cardEffects.buy', { n: n(entry.ryos) })
-            }}
-          </button>
+          <div v-else class="fx-catalog__buys">
+            <button
+              type="button"
+              class="btn-primary btn-sm"
+              :disabled="Boolean(busyId) || (shop.balances?.ryos || 0) < entry.ryos"
+              @click="buy(entry, 'ryos')"
+            >
+              {{
+                busyId === `${entry.id}:ryos`
+                  ? t('shop.cardEffects.buying')
+                  : t('shop.cardEffects.buyRyos', { n: n(entry.ryos) })
+              }}
+            </button>
+            <button
+              v-if="entry.kageCoins > 0"
+              type="button"
+              class="btn-secondary btn-sm"
+              :disabled="Boolean(busyId) || (shop.balances?.kageCoins || 0) < entry.kageCoins"
+              @click="buy(entry, 'kage_coins')"
+            >
+              {{
+                busyId === `${entry.id}:kage_coins`
+                  ? t('shop.cardEffects.buying')
+                  : t('shop.cardEffects.buyKageCoins', { n: n(entry.kageCoins) })
+              }}
+            </button>
+          </div>
         </div>
       </li>
     </ul>
@@ -168,6 +182,13 @@ async function buy(entry) {
 .fx-catalog__owned {
   color: var(--color-ink-muted);
   font-size: 0.85rem;
+}
+
+.fx-catalog__buys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
 }
 
 @media (max-width: 420px) {

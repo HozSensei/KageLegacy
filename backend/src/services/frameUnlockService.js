@@ -91,14 +91,18 @@ export async function grantFrameUnlock(
 }
 
 /**
- * Achat d’un cadre contre des ryos.
+ * Achat d’un cadre contre des ryos ou des Kage Coins.
+ * @param {'ryos'|'kage_coins'} [currency='ryos']
  */
-export async function purchaseFrameWithRyos(userId, frameId) {
+export async function purchaseFrameWithCurrency(userId, frameId, { currency = 'ryos' } = {}) {
   if (!userId) throw httpError(400, 'userId requis.');
   const frame = getProfileFrame(frameId);
   if (!frame) throw httpError(404, 'Cadre introuvable.');
-  const cost = Number(frame.ryos) || 0;
-  if (cost <= 0) throw httpError(400, 'Ce cadre n’est pas achetable en ryos.');
+  const useKc = currency === 'kage_coins';
+  const cost = Number(useKc ? frame.kageCoins : frame.ryos) || 0;
+  if (cost <= 0) {
+    throw httpError(400, useKc ? 'Ce cadre n’est pas achetable en Kage Coins.' : 'Ce cadre n’est pas achetable en ryos.');
+  }
 
   if (!(await tableExists('player_frame_unlocks'))) {
     throw httpError(503, 'Table player_frame_unlocks absente — migrer la base.');
@@ -114,27 +118,38 @@ export async function purchaseFrameWithRyos(userId, frameId) {
     }
 
     const [profiles] = await connection.execute(
-      'SELECT ryos FROM player_profiles WHERE user_id = ? FOR UPDATE',
+      'SELECT ryos, kage_coins FROM player_profiles WHERE user_id = ? FOR UPDATE',
       [userId],
     );
     if (!profiles[0]) throw httpError(404, 'Profil joueur introuvable.');
     const ryos = Number(profiles[0].ryos) || 0;
-    if (ryos < cost) throw httpError(400, 'Ryos insuffisants.');
-
-    await connection.execute('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [
-      cost,
-      userId,
-    ]);
+    const kageCoins = Number(profiles[0].kage_coins) || 0;
+    if (useKc) {
+      if (kageCoins < cost) throw httpError(400, 'Kage Coins insuffisants.');
+      await connection.execute(
+        'UPDATE player_profiles SET kage_coins = kage_coins - ? WHERE user_id = ?',
+        [cost, userId],
+      );
+    } else {
+      if (ryos < cost) throw httpError(400, 'Ryos insuffisants.');
+      await connection.execute('UPDATE player_profiles SET ryos = ryos - ? WHERE user_id = ?', [
+        cost,
+        userId,
+      ]);
+    }
     const result = await grantFrameUnlock(userId, frameId, {
       source: 'shop',
-      sourceRef: `ryos:${cost}`,
+      sourceRef: `${useKc ? 'kage_coins' : 'ryos'}:${cost}`,
       connection,
     });
     await connection.commit();
     return {
       ...result,
-      ryosSpent: cost,
-      ryosRemaining: ryos - cost,
+      currency: useKc ? 'kage_coins' : 'ryos',
+      ryosSpent: useKc ? 0 : cost,
+      kageCoinsSpent: useKc ? cost : 0,
+      ryosRemaining: useKc ? ryos : ryos - cost,
+      kageCoinsRemaining: useKc ? kageCoins - cost : kageCoins,
       frame,
     };
   } catch (err) {
@@ -143,6 +158,11 @@ export async function purchaseFrameWithRyos(userId, frameId) {
   } finally {
     connection.release();
   }
+}
+
+/** @deprecated Prefer purchaseFrameWithCurrency */
+export async function purchaseFrameWithRyos(userId, frameId) {
+  return purchaseFrameWithCurrency(userId, frameId, { currency: 'ryos' });
 }
 
 export { PROFILE_FRAME_CATALOG, getProfileFrame, isKnownProfileFrameId };

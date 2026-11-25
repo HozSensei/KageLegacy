@@ -1306,18 +1306,22 @@
     "itemsOpenInventory": "Open inventory",
     "cosmetics": {
       "title": "Animated frames",
-      "lead": "Animated auras around the portrait, bought with ryos.",
+      "lead": "Animated auras around the portrait — ryos or Kage Coins.",
       "owned": "Owned",
       "buy": "Buy ({n} ryos)",
+      "buyRyos": "Buy ({n} ryos)",
+      "buyKageCoins": "Buy ({n} KC)",
       "buying": "Buying…",
       "buyFailed": "Could not buy this frame.",
       "buyOk": "Frame unlocked!"
     },
     "cardEffects": {
       "title": "Sheens & atmosphere",
-      "lead": "Previewed on your card: foil sheens, leaves, rain, snow, or mist.",
+      "lead": "Previewed on your card: foil sheens, leaves, rain, snow, or mist — ryos or Kage Coins.",
       "owned": "Owned",
       "buy": "Buy ({n} ryos)",
+      "buyRyos": "Buy ({n} ryos)",
+      "buyKageCoins": "Buy ({n} KC)",
       "buying": "Buying…",
       "buyFailed": "Could not buy this effect.",
       "buyOk": "Effect unlocked!"

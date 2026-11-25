@@ -33,12 +33,12 @@ function frameDesc(frame) {
   return locale.value === 'en' ? frame.descriptionEn : frame.descriptionFr;
 }
 
-async function buy(frame) {
+async function buy(frame, currency = 'ryos') {
   if (!frame || frame.owned || busyId.value) return;
-  busyId.value = frame.id;
+  busyId.value = `${frame.id}:${currency}`;
   message.value = null;
   error.value = null;
-  const result = await shop.purchaseFrame(frame.id);
+  const result = await shop.purchaseFrame(frame.id, { currency });
   busyId.value = null;
   if (!result) {
     error.value = shop.error || t('shop.cosmetics.buyFailed');
@@ -73,19 +73,33 @@ async function buy(frame) {
           <strong>{{ frameName(frame) }}</strong>
           <p class="text-ink-muted">{{ frameDesc(frame) }}</p>
           <p v-if="frame.owned" class="frame-catalog__owned">{{ t('shop.cosmetics.owned') }}</p>
-          <button
-            v-else
-            type="button"
-            class="btn-primary btn-sm"
-            :disabled="Boolean(busyId) || (shop.balances?.ryos || 0) < frame.ryos"
-            @click="buy(frame)"
-          >
-            {{
-              busyId === frame.id
-                ? t('shop.cosmetics.buying')
-                : t('shop.cosmetics.buy', { n: n(frame.ryos) })
-            }}
-          </button>
+          <div v-else class="frame-catalog__buys">
+            <button
+              type="button"
+              class="btn-primary btn-sm"
+              :disabled="Boolean(busyId) || (shop.balances?.ryos || 0) < frame.ryos"
+              @click="buy(frame, 'ryos')"
+            >
+              {{
+                busyId === `${frame.id}:ryos`
+                  ? t('shop.cosmetics.buying')
+                  : t('shop.cosmetics.buyRyos', { n: n(frame.ryos) })
+              }}
+            </button>
+            <button
+              v-if="frame.kageCoins > 0"
+              type="button"
+              class="btn-secondary btn-sm"
+              :disabled="Boolean(busyId) || (shop.balances?.kageCoins || 0) < frame.kageCoins"
+              @click="buy(frame, 'kage_coins')"
+            >
+              {{
+                busyId === `${frame.id}:kage_coins`
+                  ? t('shop.cosmetics.buying')
+                  : t('shop.cosmetics.buyKageCoins', { n: n(frame.kageCoins) })
+              }}
+            </button>
+          </div>
         </div>
       </li>
     </ul>
@@ -135,5 +149,12 @@ async function buy(frame) {
 .frame-catalog__owned {
   color: var(--color-ink-muted);
   font-size: 0.85rem;
+}
+
+.frame-catalog__buys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
 }
 </style>
