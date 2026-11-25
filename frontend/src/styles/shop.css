@@ -9,6 +9,8 @@
   }
 
   .shop-balances--compact {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
     gap: 0.65rem 1.35rem;
     margin: 0;
   }
