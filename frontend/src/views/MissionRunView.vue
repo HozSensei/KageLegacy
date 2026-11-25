@@ -427,26 +427,31 @@ function backToMissions(payload) {
                   :quantity="slot.itemId ? slot.qty || 1 : null"
                 >
                   <template v-if="slot.itemId" #actions>
-                    <button
-                      v-if="!isSealedScroll(slot)"
-                      type="button"
-                      class="btn-secondary btn-sm"
-                      :disabled="missions.actionLoading"
-                      @click="onUseSlot(slot.slot)"
-                    >
-                      {{ t('combat.inventoryUse') }}
-                    </button>
-                    <p v-else class="run-inventory__sealed">
-                      {{ t('combat.inventorySealedBadge') }}
-                    </p>
-                    <button
-                      type="button"
-                      class="btn-ghost btn-sm"
-                      :disabled="missions.actionLoading"
-                      @click="onDiscardSlot(slot.slot)"
-                    >
-                      {{ t('combat.inventoryDiscard') }}
-                    </button>
+                    <div class="run-inventory__row">
+                      <button
+                        v-if="!isSealedScroll(slot)"
+                        type="button"
+                        class="btn-secondary btn-sm"
+                        :disabled="missions.actionLoading"
+                        @click="onUseSlot(slot.slot)"
+                      >
+                        {{ t('combat.inventoryUse') }}
+                      </button>
+                      <p v-else class="run-inventory__sealed">
+                        {{ t('combat.inventorySealedBadge') }}
+                      </p>
+                      <button
+                        type="button"
+                        class="run-inventory__discard"
+                        :aria-label="t('combat.inventoryDiscard')"
+                        :title="t('combat.inventoryDiscard')"
+                        :disabled="missions.actionLoading"
+                        data-testid="run-inv-discard"
+                        @click="onDiscardSlot(slot.slot)"
+                      >
+                        <AppIcon name="delete" size="1rem" :stroke-width="0" />
+                      </button>
+                    </div>
                     <label class="run-inventory__replace">
                       <input
                         type="checkbox"
@@ -775,6 +780,46 @@ function backToMissions(payload) {
 .run-inventory__slot {
   min-width: 0;
   list-style: none;
+}
+
+.run-inventory__row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.run-inventory__discard {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur-fast, 120ms) ease,
+    background-color var(--dur-fast, 120ms) ease;
+}
+
+.run-inventory__discard:hover:not(:disabled),
+.run-inventory__discard:focus-visible {
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-ink) 8%, transparent);
+  outline: none;
+}
+
+.run-inventory__discard:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .run-inventory__sealed {
