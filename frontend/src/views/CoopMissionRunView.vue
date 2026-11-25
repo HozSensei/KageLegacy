@@ -800,9 +800,14 @@ function cancelConfirm() {
 
 .run-status__actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.65rem;
+}
+
+.run-status__actions .btn-primary,
+.run-status__actions .btn-ghost {
+  width: 100%;
 }
 
 .run-status__waiting {
@@ -818,36 +823,38 @@ function cancelConfirm() {
 
 .run-inventory__head {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem 1rem;
+  gap: 0.5rem 0.75rem;
 }
 
 .run-inventory__title {
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .run-ryos {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 0.45rem;
-  min-width: 7.5rem;
-  padding: 0.4rem 0.55rem;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
   background: color-mix(in srgb, var(--color-ink) 6%, var(--color-bg-card));
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--color-ink);
+  white-space: nowrap;
 }
 
 .run-ryos__label {
-  flex: 1;
-  min-width: 0;
   opacity: 0.92;
 }
 
