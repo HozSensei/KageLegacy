@@ -17,12 +17,13 @@ import {
   localizedName,
 } from '../utils/localeContent.js'
 import { isSealedScroll, shopItemEffect, shopItemName } from '../utils/missionShopItems.js'
+import { buildActiveRunEffects } from '../utils/missionRunEffects.js'
 import { useNotificationsStore } from '../stores/notifications.js'
 import { useShopStore } from '../stores/shop.js'
 
 defineOptions({ name: 'MissionRunView' })
 
-const { t, locale } = useI18n()
+const { t, locale, n } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const missions = useMissionsStore()
@@ -43,6 +44,9 @@ const player = computed(() => run.value?.player || {})
 const nodes = computed(() => run.value?.nodes || [])
 const isOver = computed(() =>
   ['victory', 'defeat', 'abandoned'].includes(run.value?.state)
+)
+const purseAmount = computed(
+  () => Number(player.value.purse ?? player.value.contraband ?? 0) || 0
 )
 
 watch(
@@ -130,6 +134,21 @@ const inventory = computed(() => {
 const isShopEvent = computed(() => missions.currentEvent?.eventType === 'shop')
 const shopOffer = computed(() => missions.currentEvent?.offer || [])
 const replaceSlot = ref(null)
+
+const activeEffects = computed(() =>
+  buildActiveRunEffects(player.value, {
+    hardMode: Boolean(run.value?.hardMode),
+    t,
+  })
+)
+
+function onReplaceToggle(slot, checked) {
+  if (checked) {
+    replaceSlot.value = slot
+    return
+  }
+  if (replaceSlot.value === slot) replaceSlot.value = null
+}
 
 function itemLabel(item) {
   return shopItemName(item, { t, locale: locale.value })
@@ -267,88 +286,6 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
     </p>
 
     <template v-if="run">
-      <div class="run-status" data-testid="run-status">
-        <div class="run-status__hp">
-          <div class="run-status__hp-row">
-            <span class="run-status__label">{{ t('combat.runHp') }}</span>
-            <span class="run-status__num">
-              <strong>{{ player.hp }}</strong> / {{ player.maxHp }}
-            </span>
-          </div>
-          <div class="run-status__bar">
-            <div class="run-status__fill" :style="{ width: `${hpPct}%` }" />
-          </div>
-        </div>
-        <p
-          v-if="run?.hardMode || player.hardMode"
-          class="run-status__hard"
-          data-testid="run-hard-mode"
-        >
-          {{ t('combat.hardModeActive') }}
-        </p>
-        <p class="run-status__purse" data-testid="run-purse">
-          {{ t('combat.runPurse', { n: player.purse ?? player.contraband ?? 0 }) }}
-        </p>
-      </div>
-
-      <section
-        v-if="!isOver"
-        class="run-inventory"
-        data-testid="run-inventory"
-      >
-        <h2 class="run-inventory__title">{{ t('combat.inventoryTitle') }}</h2>
-        <p class="run-inventory__hint">{{ t('combat.inventoryHint') }}</p>
-        <ul class="run-inventory__slots">
-          <li
-            v-for="slot in inventory"
-            :key="slot.slot"
-            class="run-inventory__slot"
-            :data-testid="`run-inv-slot-${slot.slot}`"
-          >
-            <ItemBlock
-              compact
-              :empty="!slot.itemId"
-              :item="slot.itemId ? slot : null"
-              :name="slotLabel(slot)"
-              :description="slotEffect(slot)"
-              :quantity="slot.itemId ? slot.qty || 1 : null"
-            >
-              <template v-if="slot.itemId" #actions>
-                <button
-                  v-if="!isSealedScroll(slot)"
-                  type="button"
-                  class="btn-secondary btn-sm"
-                  :disabled="missions.actionLoading"
-                  @click="onUseSlot(slot.slot)"
-                >
-                  {{ t('combat.inventoryUse') }}
-                </button>
-                <p v-else class="run-inventory__sealed">
-                  {{ t('combat.inventorySealedBadge') }}
-                </p>
-                <button
-                  type="button"
-                  class="btn-ghost btn-sm"
-                  :disabled="missions.actionLoading"
-                  @click="onDiscardSlot(slot.slot)"
-                >
-                  {{ t('combat.inventoryDiscard') }}
-                </button>
-                <label class="run-inventory__replace">
-                  <input
-                    v-model="replaceSlot"
-                    type="radio"
-                    name="replace-slot"
-                    :value="slot.slot"
-                  >
-                  {{ t('combat.inventoryReplaceTarget') }}
-                </label>
-              </template>
-            </ItemBlock>
-          </li>
-        </ul>
-      </section>
-
       <div v-if="isOver" class="run-ending">
         <p
           v-if="missionEpilogue"
@@ -367,107 +304,204 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
         />
       </div>
 
-      <div v-else class="run-stage" data-testid="run-stage">
-        <MissionPathTree
-          class="run-stage__path"
-          :nodes="nodes"
-          :node-label="nodeLabel"
-          :node-hint="nodeHint"
-          :node-shape="nodeShape"
-          :node-tone="nodeTone"
-        />
+      <div v-else class="run-layout" data-testid="run-layout">
+        <aside class="run-sidebar" data-testid="run-sidebar">
+          <div class="run-status" data-testid="run-status">
+            <div class="run-status__hp">
+              <div class="run-status__hp-row">
+                <span class="run-status__label">{{ t('combat.runHp') }}</span>
+                <span class="run-status__num">
+                  <strong>{{ player.hp }}</strong> / {{ player.maxHp }}
+                </span>
+              </div>
+              <div class="run-status__bar">
+                <div class="run-status__fill" :style="{ width: `${hpPct}%` }" />
+              </div>
+            </div>
 
-        <section
-          v-if="missions.currentEvent"
-          class="run-event run-stage__event"
-          data-tone="sky"
-          data-testid="run-event"
-        >
-          <span class="run-event__shape" aria-hidden="true" />
-          <h2 class="run-event__title">
-            {{ localizedName(missions.currentEvent, locale) }}
-          </h2>
-          <p class="run-event__desc">
-            {{ localizedDescription(missions.currentEvent, locale) }}
-          </p>
+            <div
+              v-if="activeEffects.length"
+              class="run-status__effects"
+              data-testid="run-effects"
+            >
+              <p class="run-status__effects-label">{{ t('combat.runEffectsTitle') }}</p>
+              <ul class="run-status__effects-list">
+                <li
+                  v-for="effect in activeEffects"
+                  :key="effect.key"
+                  class="run-status__effect"
+                  :data-testid="effect.key === 'hardMode' ? 'run-hard-mode' : undefined"
+                >
+                  {{ effect.label }}
+                </li>
+              </ul>
+            </div>
 
-          <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
-            <p class="run-shop__purse">
-              {{ t('combat.runPurse', { n: missions.currentEvent.purse ?? player.purse ?? 0 }) }}
-            </p>
-            <ul class="run-shop__offer">
-              <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
+            <div class="run-status__actions" data-testid="run-actions">
+              <button
+                v-if="!missions.currentEvent"
+                type="button"
+                class="btn-primary"
+                data-testid="run-enter-btn"
+                :disabled="missions.actionLoading"
+                @click="onEnter"
+              >
+                {{
+                  missions.actionLoading ? t('combat.starting') : t('combat.enterNode')
+                }}
+                <AppIcon name="arrow-right" size="1.1rem" />
+              </button>
+              <button
+                type="button"
+                class="btn-ghost"
+                :disabled="missions.actionLoading"
+                @click="onAbandon"
+              >
+                {{ t('combat.abandonRun') }}
+              </button>
+            </div>
+          </div>
+
+          <section class="run-inventory" data-testid="run-inventory">
+            <div class="run-inventory__head">
+              <h2 class="run-inventory__title">{{ t('combat.inventoryTitle') }}</h2>
+              <div
+                class="run-ryos"
+                data-testid="run-purse"
+                :title="t('resources.ryos', { n: n(purseAmount) })"
+              >
+                <AppIcon name="ryos" size="1rem" aria-hidden="true" />
+                <span class="run-ryos__label">{{ t('resources.names.ryos') }}</span>
+                <span class="run-ryos__amount">{{ n(purseAmount) }}</span>
+              </div>
+            </div>
+            <p class="run-inventory__hint">{{ t('combat.inventoryHint') }}</p>
+            <ul class="run-inventory__slots">
+              <li
+                v-for="slot in inventory"
+                :key="slot.slot"
+                class="run-inventory__slot"
+                :data-testid="`run-inv-slot-${slot.slot}`"
+              >
                 <ItemBlock
                   compact
-                  :item="item"
-                  :name="itemLabel(item)"
-                  :description="itemDesc(item)"
-                  :quantity="item.stock ?? 1"
-                  :meta="t('combat.shopPrice', { n: item.price })"
+                  :empty="!slot.itemId"
+                  :item="slot.itemId ? slot : null"
+                  :name="slotLabel(slot)"
+                  :description="slotEffect(slot)"
+                  :quantity="slot.itemId ? slot.qty || 1 : null"
                 >
-                  <template #actions>
+                  <template v-if="slot.itemId" #actions>
                     <button
+                      v-if="!isSealedScroll(slot)"
                       type="button"
                       class="btn-secondary btn-sm"
-                      :disabled="
-                        missions.actionLoading ||
-                        (item.stock ?? 1) <= 0 ||
-                        (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
-                      "
-                      @click="onBuy(item.id)"
+                      :disabled="missions.actionLoading"
+                      @click="onUseSlot(slot.slot)"
                     >
-                      {{
-                        (item.stock ?? 1) <= 0
-                          ? t('combat.shopSoldOut')
-                          : t('combat.shopBuy')
-                      }}
+                      {{ t('combat.inventoryUse') }}
                     </button>
+                    <p v-else class="run-inventory__sealed">
+                      {{ t('combat.inventorySealedBadge') }}
+                    </p>
+                    <button
+                      type="button"
+                      class="btn-ghost btn-sm"
+                      :disabled="missions.actionLoading"
+                      @click="onDiscardSlot(slot.slot)"
+                    >
+                      {{ t('combat.inventoryDiscard') }}
+                    </button>
+                    <label class="run-inventory__replace">
+                      <input
+                        type="checkbox"
+                        name="replace-slot"
+                        :checked="replaceSlot === slot.slot"
+                        @change="onReplaceToggle(slot.slot, $event.target.checked)"
+                      >
+                      {{ t('combat.inventoryReplaceTarget') }}
+                    </label>
                   </template>
                 </ItemBlock>
               </li>
             </ul>
-          </div>
+          </section>
 
-          <div class="run-event__choices">
-            <button
-              v-for="choice in eventChoices"
-              :key="choice.id"
-              type="button"
-              class="btn-secondary"
-              :disabled="missions.actionLoading || choice.disabled"
-              @click="onChoice(choice.id)"
-            >
-              {{ localizedField(choice, 'label', locale) }}
-              <span v-if="choice.xpMult" class="run-event__xp">
-                {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
-              </span>
-            </button>
-          </div>
-        </section>
-      </div>
+          <section
+            v-if="missions.currentEvent"
+            class="run-event"
+            data-tone="sky"
+            data-testid="run-event"
+          >
+            <span class="run-event__shape" aria-hidden="true" />
+            <h2 class="run-event__title">
+              {{ localizedName(missions.currentEvent, locale) }}
+            </h2>
+            <p class="run-event__desc">
+              {{ localizedDescription(missions.currentEvent, locale) }}
+            </p>
 
-      <div v-if="!isOver" class="run-actions">
-        <button
-          v-if="!missions.currentEvent"
-          type="button"
-          class="btn-primary btn-lg"
-          data-testid="run-enter-btn"
-          :disabled="missions.actionLoading"
-          @click="onEnter"
-        >
-          {{
-            missions.actionLoading ? t('combat.starting') : t('combat.enterNode')
-          }}
-          <AppIcon name="arrow-right" size="1.1rem" />
-        </button>
-        <button
-          type="button"
-          class="btn-ghost"
-          :disabled="missions.actionLoading"
-          @click="onAbandon"
-        >
-          {{ t('combat.abandonRun') }}
-        </button>
+            <div v-if="isShopEvent" class="run-shop" data-testid="run-shop">
+              <ul class="run-shop__offer">
+                <li v-for="item in shopOffer" :key="item.id" class="run-shop__item">
+                  <ItemBlock
+                    compact
+                    :item="item"
+                    :name="itemLabel(item)"
+                    :description="itemDesc(item)"
+                    :quantity="item.stock ?? 1"
+                    :meta="t('combat.shopPrice', { n: item.price })"
+                  >
+                    <template #actions>
+                      <button
+                        type="button"
+                        class="btn-secondary btn-sm"
+                        :disabled="
+                          missions.actionLoading ||
+                          (item.stock ?? 1) <= 0 ||
+                          (missions.currentEvent.purse ?? player.purse ?? 0) < item.price
+                        "
+                        @click="onBuy(item.id)"
+                      >
+                        {{
+                          (item.stock ?? 1) <= 0
+                            ? t('combat.shopSoldOut')
+                            : t('combat.shopBuy')
+                        }}
+                      </button>
+                    </template>
+                  </ItemBlock>
+                </li>
+              </ul>
+            </div>
+
+            <div class="run-event__choices">
+              <button
+                v-for="choice in eventChoices"
+                :key="choice.id"
+                type="button"
+                class="btn-secondary"
+                :disabled="missions.actionLoading || choice.disabled"
+                @click="onChoice(choice.id)"
+              >
+                {{ localizedField(choice, 'label', locale) }}
+                <span v-if="choice.xpMult" class="run-event__xp">
+                  {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
+                </span>
+              </button>
+            </div>
+          </section>
+        </aside>
+
+        <div class="run-path" data-testid="run-stage">
+          <MissionPathTree
+            :nodes="nodes"
+            :node-label="nodeLabel"
+            :node-hint="nodeHint"
+            :node-shape="nodeShape"
+            :node-tone="nodeTone"
+          />
+        </div>
       </div>
     </template>
   </div>
@@ -501,20 +535,46 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   color: var(--color-vermilion);
 }
 
-.run-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 1rem 2.5rem;
+/* Mobile : PV → inventaire → étape active → parcours */
+.run-layout {
+  display: grid;
+  gap: 1.25rem;
   margin-top: 1.75rem;
-  padding: 1rem 1.25rem;
-  background: var(--color-bg-card);
+  width: 100%;
 }
 
-.run-status__hp {
-  min-width: 14rem;
-  max-width: 28rem;
-  flex: 1;
+.run-sidebar {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.run-path {
+  min-width: 0;
+}
+
+.run-path :deep(.path-tree) {
+  max-width: none;
+}
+
+@media (min-width: 960px) {
+  .run-layout {
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem 2rem;
+  }
+
+  .run-sidebar {
+    position: sticky;
+    top: 1rem;
+  }
+}
+
+.run-status {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  background: var(--color-bg-card);
 }
 
 .run-status__hp-row {
@@ -561,25 +621,58 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   transition: width var(--dur-slow) var(--ease-out-quint);
 }
 
-.run-status__hard {
+.run-status__effects {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.run-status__effects-label {
   margin: 0;
-  font-size: 0.8125rem;
+  font-size: var(--type-kicker);
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.run-status__effects-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run-status__effect {
+  margin: 0;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 14%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 4%, transparent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--color-ink);
 }
 
-.run-status__purse {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink);
+.run-status__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
 }
 
 .run-inventory {
-  margin-top: 1.25rem;
   padding: 1rem 1.15rem;
   background: var(--color-bg-card);
-  max-width: 52rem;
+}
+
+.run-inventory__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
 }
 
 .run-inventory__title {
@@ -589,8 +682,32 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   font-weight: 800;
 }
 
+.run-ryos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 7.5rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--color-ink) 18%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 6%, var(--color-bg-card));
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.run-ryos__label {
+  flex: 1;
+  min-width: 0;
+  opacity: 0.92;
+}
+
+.run-ryos__amount {
+  font-variant-numeric: tabular-nums;
+}
+
 .run-inventory__hint {
-  margin: 0.35rem 0 0.85rem;
+  margin: 0.45rem 0 0.85rem;
   font-size: 0.875rem;
   color: var(--color-ink-muted);
 }
@@ -604,7 +721,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   list-style: none;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 640px) and (max-width: 959px) {
   .run-inventory__slots {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -628,15 +745,11 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   gap: 0.3rem;
   font-size: 0.8rem;
   color: var(--color-ink-muted);
+  cursor: pointer;
 }
 
 .run-shop {
-  margin: 1rem 0;
-}
-
-.run-shop__purse {
-  margin: 0 0 0.75rem;
-  font-weight: 700;
+  margin: 1rem 0 0;
 }
 
 .run-shop__offer {
@@ -653,17 +766,6 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
   list-style: none;
 }
 
-.run-stage {
-  display: grid;
-  gap: 1.5rem;
-  margin-top: 2rem;
-  width: 100%;
-}
-
-.run-stage__path {
-  min-width: 0;
-}
-
 .run-event__xp {
   margin-left: 0.35rem;
   font-size: 0.8rem;
@@ -672,35 +774,11 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
 .run-event {
   position: relative;
-  max-width: 44rem;
   overflow: hidden;
-  padding: 1.5rem 1.5rem 1.5rem 1.75rem;
+  padding: 1.25rem 1.25rem 1.25rem 1.5rem;
   border-left: 6px solid var(--tone-fill);
   background: var(--tone-tint);
   animation: rise-in 420ms var(--ease-out-quint) both;
-}
-
-@media (min-width: 960px) {
-  .run-stage {
-    grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 24rem);
-    align-items: start;
-    gap: 1.75rem 2rem;
-  }
-
-  .run-stage :deep(.path-tree) {
-    max-width: none;
-  }
-
-  .run-stage__event {
-    max-width: none;
-    position: sticky;
-    top: 1rem;
-  }
-
-  .run-event__choices {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 .run-event__shape {
@@ -716,7 +794,7 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 .run-event__title {
   position: relative;
   font-family: var(--font-display);
-  font-size: 1.625rem;
+  font-size: 1.4rem;
   font-weight: 800;
   font-stretch: 80%;
   line-height: 1.05;
@@ -724,7 +802,6 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 
 .run-event__desc {
   position: relative;
-  max-width: 36rem;
   margin-top: 0.6rem;
   line-height: 1.5;
   color: var(--color-ink);
@@ -733,17 +810,10 @@ const eventChoices = computed(() => missions.currentEvent?.choices || [])
 .run-event__choices {
   position: relative;
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 1.1rem;
 }
-
-.run-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-  margin-top: 2rem;
-}
-
 </style>
