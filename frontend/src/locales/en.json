@@ -2132,8 +2132,6 @@
       "label": "Portrait",
       "hint": "Choose a portrait for your ninja. You can change it in your profile.",
       "rankLabel": "Portrait ranks",
-      "setLabel": "Portrait sets",
-      "set": "Set {number}",
       "locked": "Locked",
       "unlockAt": "Unlocks at {rank} rank.",
       "portrait": "{rank} portrait {number}",

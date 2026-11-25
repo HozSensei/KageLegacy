@@ -2063,8 +2063,6 @@
       "label": "Portrait",
       "hint": "Choisissez un portrait pour votre ninja. Vous pourrez le changer dans votre profil.",
       "rankLabel": "Grades des portraits",
-      "setLabel": "Séries de portraits",
-      "set": "Série {number}",
       "locked": "Verrouillé",
       "unlockAt": "Disponible au grade {rank}.",
       "portrait": "Portrait {number} — {rank}",

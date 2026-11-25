@@ -20,8 +20,8 @@ const avatarId = defineModel({ type: String, default: null });
 const { t } = useI18n();
 const groupName = useId();
 const rankIndex = ref(0);
-const sheetIndex = ref(0);
 const group = computed(() => NINJA_AVATAR_GROUPS[rankIndex.value]);
+const portraits = computed(() => group.value.sheets.flat());
 const locked = computed(() => !canUseNinjaAvatarRank(group.value.rank, props.rank));
 const selected = computed(() => {
   const [rank, sheet, portrait] = avatarId.value?.split('-') ?? [];
@@ -34,13 +34,17 @@ const selected = computed(() => {
   ) {
     return null;
   }
-  return { rank, index, sheetNumber, portraitIndex };
+  return {
+    rank,
+    index,
+    flatIndex: sheetNumber * NINJA_AVATAR_GRID_SIZE ** 2 + portraitIndex,
+  };
 });
 
-function portraitLabel(rank, sheet, index) {
+function portraitLabel(rank, flatIndex) {
   return t('player.avatarPicker.portrait', {
     rank: t(`player.ranks.${rank}`),
-    number: sheet * NINJA_AVATAR_GRID_SIZE ** 2 + index + 1,
+    number: flatIndex + 1,
   });
 }
 
@@ -49,7 +53,6 @@ watch(
   value => {
     if (!value) return;
     rankIndex.value = value.index;
-    sheetIndex.value = value.sheetNumber;
   },
   { immediate: true }
 );
@@ -57,7 +60,6 @@ watch(
 function showRank(index) {
   if (index === rankIndex.value) return;
   rankIndex.value = index;
-  sheetIndex.value = selected.value?.index === index ? selected.value.sheetNumber : 0;
 }
 </script>
 
@@ -81,30 +83,16 @@ function showRank(index) {
         </template>
       </button>
     </div>
-    <div class="avatar-picker__toolbar">
-      <div class="avatar-picker__sets" role="group" :aria-label="t('player.avatarPicker.setLabel')">
-        <button
-          v-for="(_, index) in group.sheets"
-          :key="index"
-          type="button"
-          class="avatar-picker__toggle"
-          :aria-pressed="sheetIndex === index"
-          @click="sheetIndex = index"
-        >
-          {{ t('player.avatarPicker.set', { number: index + 1 }) }}
-        </button>
-      </div>
-      <p v-if="locked" class="avatar-picker__hint">
-        {{ t('player.avatarPicker.unlockAt', { rank: t(`player.ranks.${group.rank}`) }) }}
-      </p>
-    </div>
-    <div class="avatar-picker__grid" :class="{ 'is-locked': locked }">
+    <p v-if="locked" class="avatar-picker__hint avatar-picker__locked">
+      {{ t('player.avatarPicker.unlockAt', { rank: t(`player.ranks.${group.rank}`) }) }}
+    </p>
+    <div class="avatar-picker__rail" :class="{ 'is-locked': locked }">
       <label
-        v-for="(id, index) in group.sheets[sheetIndex]"
+        v-for="(id, index) in portraits"
         :key="id"
         class="avatar-picker__tile"
         :class="{ 'is-selected': id === avatarId }"
-        :title="portraitLabel(group.rank, sheetIndex, index)"
+        :title="portraitLabel(group.rank, index)"
       >
         <input
           v-model="avatarId"
@@ -114,7 +102,7 @@ function showRank(index) {
           :value="id"
           :disabled="locked"
         />
-        <span class="sr-only">{{ portraitLabel(group.rank, sheetIndex, index) }}</span>
+        <span class="sr-only">{{ portraitLabel(group.rank, index) }}</span>
         <NinjaPortrait :avatar-id="id" />
         <span v-if="locked || id === avatarId" class="avatar-picker__badge" aria-hidden="true">
           <AppIcon :name="locked ? 'lock' : 'check'" size="0.95rem" />
@@ -125,7 +113,7 @@ function showRank(index) {
       {{
         selected
           ? t('player.avatarPicker.selected', {
-              portrait: portraitLabel(selected.rank, selected.sheetNumber, selected.portraitIndex),
+              portrait: portraitLabel(selected.rank, selected.flatIndex),
             })
           : t('player.avatarPicker.noSelection')
       }}
@@ -143,22 +131,15 @@ function showRank(index) {
   font-size: 0.85rem;
 }
 
-.avatar-picker__ranks,
-.avatar-picker__sets,
-.avatar-picker__toolbar {
+.avatar-picker__ranks {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-}
-
-.avatar-picker__ranks,
-.avatar-picker__toolbar {
   margin-top: 0.75rem;
 }
 
-.avatar-picker__toolbar {
-  align-items: center;
-  gap: 0.5rem 0.75rem;
+.avatar-picker__locked {
+  margin-top: 0.55rem;
 }
 
 .avatar-picker__toggle {
@@ -180,24 +161,30 @@ function showRank(index) {
   box-shadow: inset 0 -2px var(--color-vermilion);
 }
 
-.avatar-picker__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.avatar-picker__rail {
+  display: flex;
   gap: 0.4rem;
-  max-width: 26rem;
   margin-top: 0.65rem;
+  padding: 0.15rem 0.1rem 0.45rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
 }
 
 .avatar-picker__tile {
   position: relative;
-  min-width: 0;
+  flex: 0 0 4.25rem;
+  width: 4.25rem;
   padding: 2px;
   border: 2px solid var(--color-line);
   cursor: pointer;
+  scroll-snap-align: start;
 }
 
 .avatar-picker__tile.is-selected,
-.avatar-picker__grid:not(.is-locked) .avatar-picker__tile:hover {
+.avatar-picker__rail:not(.is-locked) .avatar-picker__tile:hover {
   border-color: var(--color-vermilion);
 }
 

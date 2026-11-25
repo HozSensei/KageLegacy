@@ -26,8 +26,6 @@ const xpProgress = computed(() => {
 
 <template>
   <div class="profile" data-testid="player-profile">
-    <PlayerAppearanceEditor :character="character" />
-
     <section class="profile-progress">
       <div class="profile-progress__xp">
         <div class="profile-progress__row">
@@ -69,6 +67,8 @@ const xpProgress = computed(() => {
     </section>
 
     <PlayerStats :stats="character.stats" />
+
+    <PlayerAppearanceEditor :character="character" />
   </div>
 </template>
 
