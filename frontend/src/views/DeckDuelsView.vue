@@ -4,10 +4,12 @@ import { useI18n } from 'vue-i18n';
 import CombatArena from '../components/combat/CombatArena.vue';
 import PlayerIdentityChip from '../components/player/PlayerIdentityChip.vue';
 import PlayerProfileModal from '../components/player/PlayerProfileModal.vue';
+import PageHeader from '../components/ui/PageHeader.vue';
 import { useDeckDuels } from '../composables/useDeckDuels.js';
 import { usePublicPlayerModal } from '../composables/usePublicPlayer.js';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 import { useNotificationsStore } from '../stores/notifications.js';
+import bridgeImage from '../assets/illustrations/stone-bridge.webp';
 
 const { t, te, n, d } = useI18n();
 const {
@@ -39,8 +41,8 @@ const {
 const notifications = useNotificationsStore();
 useOnboardingVisit('visit_deck_duels');
 const showFriends = ref(false);
-const pageHeading = ref(null);
 const duelHeading = ref(null);
+const PAGE_TITLE_ID = 'deck-duels-title';
 const matchmakingModes = ['random', 'enemy_faction'];
 const showLobby = computed(() => lobbyLoaded.value && !duel.value);
 const duelMode = computed(() => {
@@ -65,7 +67,10 @@ onMounted(refresh);
 watch(
   () => duel.value?.state,
   state => {
-    (state ? duelHeading.value : pageHeading.value)?.focus();
+    const target = state
+      ? duelHeading.value
+      : document.getElementById(PAGE_TITLE_ID);
+    target?.focus?.();
     if (['victory', 'defeat', 'forfeited'].includes(state) && duel.value?.id != null) {
       void notifications.fetchNotifications();
     }
@@ -115,16 +120,21 @@ function rewardLabels(reward) {
 
 <template>
   <div class="page-shell deck-duels" data-testid="deck-duels-page">
-    <header class="deck-duels__row">
-      <div>
-        <p class="t-kicker">{{ t('deckDuels.kicker') }}</p>
-        <h1 ref="pageHeading" class="t-heading" tabindex="-1">{{ t('deckDuels.title') }}</h1>
-        <p class="text-ink-muted">{{ t('deckDuels.lead') }}</p>
-      </div>
-      <button type="button" class="btn-ghost btn-sm" :disabled="busy" @click="refresh">
-        {{ t('deckDuels.refresh') }}
-      </button>
-    </header>
+    <PageHeader
+      tone="vermilion"
+      :kicker="t('deckDuels.kicker')"
+      :title="t('deckDuels.title')"
+      :lead="t('deckDuels.lead')"
+      :image="bridgeImage"
+      image-position="50% 45%"
+      :title-id="PAGE_TITLE_ID"
+    >
+      <template #actions>
+        <button type="button" class="btn-ghost btn-sm" :disabled="busy" @click="refresh">
+          {{ t('deckDuels.refresh') }}
+        </button>
+      </template>
+    </PageHeader>
 
     <p v-if="busy && needsSync" role="status">{{ t('common.loading') }}</p>
     <p v-if="feedback" class="alert alert--info" role="alert">{{ t(`deckDuels.${feedback}`) }}</p>

@@ -21,6 +21,7 @@ import {
 import { isSealedScroll, shopItemEffect, shopItemName } from '../utils/missionShopItems.js';
 import { missionRankTone } from '../utils/missionVisuals';
 import { useShopStore } from '../stores/shop.js';
+import forestImage from '../assets/illustrations/forest-path.webp';
 
 defineOptions({ name: 'CoopMissionRunView' });
 
@@ -296,6 +297,8 @@ function cancelConfirm() {
       v-if="!combat"
       :title="missionTitle"
       :tone="missionRankTone(run?.mission?.rank)"
+      :image="forestImage"
+      image-position="40% 60%"
     />
 
     <p v-if="api.pollFailed.value" class="alert alert--info" role="status">

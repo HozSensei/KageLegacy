@@ -7,6 +7,14 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ## [Unreleased]
 
+### UI : heroes pages style landing (2026-11-25)
+
+#### Changed
+
+- `PageHeader` repensé en hero plein cadre atmosphérique (illustration + voile), aligné sur l’accueil non connecté, **sans** slider de cartes
+- Top bar `AppLayout` conservée telle quelle au-dessus du hero
+- Duels de decks, village et run coop alignés sur le même header
+
 ### UI : taille des cartes desktop (2026-11-22)
 
 #### Added

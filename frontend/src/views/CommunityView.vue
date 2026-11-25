@@ -14,6 +14,7 @@ import { sectionOf } from '../constants/sections.js';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
 import { usePlayerStore } from '../stores/player.js';
 import { ninjaProfileStats, ninjaRankLabel } from '../utils/ninjaProfile.js';
+import gateImage from '../assets/illustrations/village-gate.webp';
 
 const { t, te, d, n } = useI18n();
 const section = sectionOf('village');
@@ -136,7 +137,13 @@ onMounted(async () => {
 
 <template>
   <div class="page-shell" data-testid="community-page">
-    <PageHeader :title="t('village.title')" :lead="t('village.pageLead')" :tone="section.tone">
+    <PageHeader
+      :title="t('village.title')"
+      :lead="t('village.pageLead')"
+      :tone="section.tone"
+      :image="gateImage"
+      image-position="38% 42%"
+    >
       <template #actions>
         <button
           type="button"
