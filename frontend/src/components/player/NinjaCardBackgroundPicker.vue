@@ -25,7 +25,7 @@ function resetDefaultColor() {
   <fieldset class="bg-picker" data-testid="ninja-card-background-picker">
     <legend class="field__label">{{ t('player.appearance.background') }}</legend>
     <p class="bg-picker__hint">{{ t('player.appearance.backgroundHint') }}</p>
-    <div class="bg-picker__grid" role="radiogroup" :aria-label="t('player.appearance.background')">
+    <div class="bg-picker__rail" role="radiogroup" :aria-label="t('player.appearance.background')">
       <label
         class="bg-picker__option"
         :class="{ 'is-selected': backgroundId == null }"
@@ -125,17 +125,25 @@ function resetDefaultColor() {
   font-size: 0.85rem;
 }
 
-.bg-picker__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+.bg-picker__rail {
+  display: flex;
   gap: 0.65rem;
+  padding: 0.15rem 0.1rem 0.45rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
 }
 
 .bg-picker__option {
   display: grid;
   gap: 0.35rem;
+  flex: 0 0 7.5rem;
+  width: 7.5rem;
   min-width: 0;
   cursor: pointer;
+  scroll-snap-align: start;
 }
 
 .bg-picker__swatch {
