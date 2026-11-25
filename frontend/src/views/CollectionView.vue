@@ -12,15 +12,21 @@ import { cardActionError } from '../utils/cardActionErrors.js';
 import forestImage from '../assets/illustrations/forest-path.webp';
 import CardAnatomyOverlay from '../components/cards/CardAnatomyOverlay.vue';
 import { useCollectionStore } from '../stores/collection';
+import { useDecksStore } from '../stores/decks';
 import { useShopStore } from '../stores/shop';
 import { useCardAnatomyGuide } from '../composables/useCardAnatomyGuide.js';
 import { useOnboardingVisit } from '../composables/useOnboardingVisit.js';
+import {
+  cardDefinitionIdsFromDecks,
+  slotMatchesOwnershipFilter,
+} from '../utils/cardOwnershipFilter.js';
 
 defineOptions({ name: 'CollectionView' });
 
 const { t, locale } = useI18n();
 const route = useRoute();
 const collection = useCollectionStore();
+const decks = useDecksStore();
 useOnboardingVisit('visit_collection');
 const { open: anatomyOpen, dismiss: dismissAnatomy } = useCardAnatomyGuide();
 const shop = useShopStore();
@@ -30,12 +36,26 @@ const actionPending = ref(false);
 
 onMounted(() => {
   collection.fetchCollectionView();
+  decks.fetchDecks();
 });
+
+const activeDeckCardIds = computed(() =>
+  cardDefinitionIdsFromDecks(decks.decks, { activeOnly: true })
+);
+const anyDeckCardIds = computed(() => cardDefinitionIdsFromDecks(decks.decks));
 
 const selectedSlot = computed(() => {
   if (!selection.value) return null;
   const slot = collection.catalogueSlots.find(s => Number(s.card.id) === selection.value.cardId);
-  return !slot || (collection.ownedOnly && slot.kind === 'hole') ? null : slot;
+  if (!slot) return null;
+  return slotMatchesOwnershipFilter(
+    slot,
+    collection.ownershipFilter,
+    activeDeckCardIds.value,
+    anyDeckCardIds.value
+  )
+    ? slot
+    : null;
 });
 const selected = computed(() => selectedSlot.value?.entry || null);
 const selectedCard = computed(() => selectedSlot.value?.card || null);
@@ -87,12 +107,20 @@ function onSelect(slot) {
   feedback.value = null;
 }
 
-function onOwnedOnlyUpdate(value) {
-  if (value && isHole.value) {
+function onOwnershipFilterUpdate(value) {
+  collection.setOwnershipFilter(value);
+  if (
+    selection.value &&
+    !slotMatchesOwnershipFilter(
+      collection.catalogueSlots.find(s => Number(s.card.id) === selection.value.cardId),
+      value,
+      activeDeckCardIds.value,
+      anyDeckCardIds.value
+    )
+  ) {
     selection.value = null;
     feedback.value = null;
   }
-  collection.setOwnedOnly(value);
 }
 
 async function onAction(action) {
@@ -174,12 +202,14 @@ async function onAction(action) {
           :slots="collection.catalogueSlots"
           :selected-key="selectedKey"
           :loading="busy"
-          :owned-only="collection.ownedOnly"
+          :ownership-filter="collection.ownershipFilter"
           :owned-count="collection.ownedUniqueCount"
           :catalogue-total="collection.catalogueTotal"
           :initial-search="collectionSearch"
+          :active-deck-card-ids="activeDeckCardIds"
+          :any-deck-card-ids="anyDeckCardIds"
           @select="onSelect"
-          @update:owned-only="onOwnedOnlyUpdate"
+          @update:ownership-filter="onOwnershipFilterUpdate"
         />
       </div>
 

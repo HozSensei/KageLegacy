@@ -1,21 +1,30 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { readApiError, parseApiResponse } from '../utils/http.js';
+import { OWNERSHIP_FILTER_SET } from '../utils/cardOwnershipFilter.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 export const COLLECTION_OWNED_ONLY_KEY = 'kage-legacy-collection-owned-only';
+export const COLLECTION_OWNERSHIP_FILTER_KEY = 'kage-legacy-collection-ownership-filter';
 
-function readOwnedOnlyPreference() {
+function readOwnershipFilterPreference() {
   try {
-    return window.localStorage.getItem(COLLECTION_OWNED_ONLY_KEY) === '1';
+    const stored = window.localStorage.getItem(COLLECTION_OWNERSHIP_FILTER_KEY);
+    if (stored !== null) {
+      return OWNERSHIP_FILTER_SET.has(stored) ? stored : '';
+    }
+    // Migration depuis l’ancien booléen « possédées uniquement ».
+    if (window.localStorage.getItem(COLLECTION_OWNED_ONLY_KEY) === '1') return 'owned';
+    return '';
   } catch {
-    return false;
+    return '';
   }
 }
 
-function writeOwnedOnlyPreference(value) {
+function writeOwnershipFilterPreference(value) {
   try {
-    window.localStorage.setItem(COLLECTION_OWNED_ONLY_KEY, value ? '1' : '0');
+    window.localStorage.setItem(COLLECTION_OWNERSHIP_FILTER_KEY, value || '');
+    window.localStorage.setItem(COLLECTION_OWNED_ONLY_KEY, value === 'owned' ? '1' : '0');
   } catch {
     // Stockage indisponible : le choix vaut pour la session.
   }
@@ -29,11 +38,16 @@ export const useCollectionStore = defineStore('collection', () => {
   const catalogueLoading = ref(false);
   const error = ref(null);
   const actionLoading = ref(false);
-  const ownedOnly = ref(typeof window !== 'undefined' ? readOwnedOnlyPreference() : false);
+  const ownershipFilter = ref(
+    typeof window !== 'undefined' ? readOwnershipFilterPreference() : ''
+  );
 
-  watch(ownedOnly, value => {
-    writeOwnedOnlyPreference(value);
+  watch(ownershipFilter, value => {
+    writeOwnershipFilterPreference(value);
   });
+
+  /** @deprecated Prefer ownershipFilter — conservé pour compat lectures legacy. */
+  const ownedOnly = computed(() => ownershipFilter.value === 'owned');
 
   const byType = computed(() => {
     const map = {};
@@ -162,8 +176,13 @@ export const useCollectionStore = defineStore('collection', () => {
     return entries.value.find(e => e.collectionId === Number(id)) || null;
   }
 
+  function setOwnershipFilter(value) {
+    ownershipFilter.value = OWNERSHIP_FILTER_SET.has(value) ? value : '';
+  }
+
+  /** @deprecated Prefer setOwnershipFilter */
   function setOwnedOnly(value) {
-    ownedOnly.value = Boolean(value);
+    setOwnershipFilter(value ? 'owned' : '');
   }
 
   return {
@@ -173,6 +192,7 @@ export const useCollectionStore = defineStore('collection', () => {
     catalogueLoading,
     error,
     actionLoading,
+    ownershipFilter,
     ownedOnly,
     byType,
     totalCards,
@@ -185,6 +205,7 @@ export const useCollectionStore = defineStore('collection', () => {
     upgrade,
     disenchant,
     findByCollectionId,
+    setOwnershipFilter,
     setOwnedOnly,
   };
 });
