@@ -12,7 +12,7 @@ defineOptions({ name: 'NotificationBell' });
 const { t } = useI18n();
 const router = useRouter();
 const store = useNotificationsStore();
-const { title, body, linkPath, linkLabel } = useNotificationCopy();
+const { title, body, category, linkPath, linkLabel } = useNotificationCopy();
 
 const open = ref(false);
 const root = ref(null);
@@ -153,7 +153,10 @@ onUnmounted(() => {
             v-for="note in feed"
             :key="note.id"
             class="notification-panel__item"
-            :class="{ 'notification-panel__item--read': note.read }"
+            :class="{
+              'notification-panel__item--read': note.read,
+              [`notification-panel__item--${category(note)}`]: true,
+            }"
           >
             <p class="notification-panel__kind">{{ title(note) }}</p>
             <p class="notification-panel__body">{{ body(note) }}</p>
@@ -295,7 +298,40 @@ onUnmounted(() => {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-accent, var(--color-indigo));
+  color: var(--notif-kind, var(--color-accent, var(--color-indigo)));
+}
+
+.notification-panel__item--item {
+  --notif-kind: var(--color-leaf);
+}
+
+.notification-panel__item--loot {
+  --notif-kind: var(--color-leaf-fill, var(--color-leaf));
+}
+
+.notification-panel__item--xp {
+  --notif-kind: var(--color-sky);
+}
+
+.notification-panel__item--ryos,
+.notification-panel__item--currency {
+  --notif-kind: var(--color-gold);
+}
+
+.notification-panel__item--quest {
+  --notif-kind: var(--color-accent, var(--color-vermilion));
+}
+
+.notification-panel__item--reward {
+  --notif-kind: var(--color-wood);
+}
+
+.notification-panel__item--social {
+  --notif-kind: var(--color-indigo-soft, var(--color-indigo));
+}
+
+.notification-panel__item--alert {
+  --notif-kind: var(--color-vermilion);
 }
 
 .notification-panel__body {
