@@ -10,12 +10,16 @@ import { useTalentTreeStore } from '../stores/talentTree';
 import { useAchievementsStore } from '../stores/achievements';
 import { useOnboardingStore } from '../stores/onboarding';
 import { useBattlePassStore } from '../stores/battlePass';
+import { useShopStore } from '../stores/shop';
 import EmptyState from '../components/ui/EmptyState.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import AppIcon from '../components/ui/AppIcon.vue';
 import QuestList from '../components/battlePass/QuestList.vue';
+import ShopBalances from '../components/shop/ShopBalances.vue';
 import { sectionOf } from '../constants/sections';
 import { useNotificationsStore } from '../stores/notifications.js';
+import { ninjaProfileStats } from '../utils/ninjaProfile.js';
+import { statVisual } from '../utils/statIcons.js';
 import hubImage from '../assets/illustrations/hub-office.webp';
 
 defineOptions({ name: 'HubView' });
@@ -29,11 +33,22 @@ const talents = useTalentTreeStore();
 const achievements = useAchievementsStore();
 const onboarding = useOnboardingStore();
 const battlePass = useBattlePassStore();
+const shop = useShopStore();
 const notifications = useNotificationsStore();
 const ready = ref(false);
 const progressLoadError = ref(false);
 const claimMessage = ref(null);
 const hubTab = ref('guide');
+
+const HUB_STAT_KEYS = [
+  'taijutsu',
+  'ninjutsu',
+  'genjutsu',
+  'medicine',
+  'maxHp',
+  'maxChakra',
+  'armor',
+];
 
 async function loadHub() {
   ready.value = false;
@@ -47,6 +62,7 @@ async function loadHub() {
     achievements.fetchRegistry(),
     onboarding.fetchProgress(),
     battlePass.loadAll(),
+    shop.fetchBalances(),
   ]);
   progressLoadError.value = Boolean(decks.error || !talentData || !achievementData || !onboardingData);
   pickDefaultHubTab();
@@ -78,6 +94,22 @@ const cardCount = computed(() => collection.entries?.length || 0);
 
 const activeDeck = computed(() => (decks.decks || []).find(d => d.isActive));
 const talentPoints = computed(() => player.character?.talentPointsAvailable ?? 0);
+const combatPreview = computed(() => ninjaProfileStats(player.character?.stats));
+const hubStats = computed(() => {
+  const total = player.character?.stats?.total || player.character?.stats || {};
+  const preview = combatPreview.value;
+  return HUB_STAT_KEYS.map(key => {
+    let value = Number(total[key]) || 0;
+    if (key === 'maxHp') value = preview.maxHp;
+    else if (key === 'maxChakra') value = preview.maxChakra;
+    else if (key === 'armor') value = preview.armor;
+    return {
+      key,
+      value,
+      visual: statVisual(key),
+    };
+  });
+});
 
 function stepLabel(step) {
   return locale.value?.startsWith('en') ? step.nameEn : step.nameFr;
@@ -255,6 +287,30 @@ const shortcuts = computed(() =>
                 · {{ t('hub.activeDeck', { name: activeDeck.name }) }}</template
               >
             </p>
+
+            <ul
+              class="hub-welcome__stats"
+              data-testid="hub-welcome-stats"
+              :aria-label="t('player.statsTitle')"
+            >
+              <li v-for="row in hubStats" :key="row.key" class="hub-stat">
+                <span
+                  class="hub-stat__icon"
+                  aria-hidden="true"
+                  :style="{ '--stat-fill': row.visual.fill }"
+                >
+                  <i :style="{ maskImage: `url(${row.visual.icon})` }" />
+                </span>
+                <span class="hub-stat__value">{{ row.value }}</span>
+                <span class="hub-stat__label">{{ t(`player.stats.${row.key}`) }}</span>
+              </li>
+            </ul>
+
+            <ShopBalances
+              class="hub-welcome__wallet"
+              :balances="shop.balances"
+              compact
+            />
           </div>
 
           <dl class="hub-welcome__figures stagger" aria-hidden="true">
@@ -502,10 +558,70 @@ const shortcuts = computed(() =>
   letter-spacing: -0.025em;
 }
 
+.hub-welcome__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hub-stat {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+  min-width: 0;
+}
+
+.hub-stat__icon {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  color: var(--stat-fill);
+}
+
+.hub-stat__icon i {
+  width: 1.1rem;
+  height: 1.1rem;
+  background: var(--stat-fill);
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.hub-stat__value {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-stretch: 76%;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.hub-stat__label {
+  overflow: hidden;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink-muted);
+}
+
+.hub-welcome__wallet {
+  margin-top: 1.15rem;
+}
+
 .hub-welcome__figures {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.5rem 1.25rem;
+  align-content: start;
 }
 
 .hub-figure {
@@ -519,6 +635,7 @@ const shortcuts = computed(() =>
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--color-ink-faint);
 }
 
@@ -724,13 +841,13 @@ const shortcuts = computed(() =>
 
 @media (min-width: 768px) {
   .hub-welcome {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
     gap: 3rem;
-    align-items: end;
+    align-items: start;
   }
 
-  .hub-welcome__figures {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .hub-welcome__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hub-shortcuts {
