@@ -69,19 +69,23 @@ const backdropSrc = computed(() => {
     </div>
 
     <div class="page-header__body">
-      <div class="page-header__copy">
-        <p v-if="kicker" class="page-header__kicker">{{ kicker }}</p>
-        <h1
-          :id="titleId || undefined"
-          class="page-header__title"
-          :class="size === 'display' ? 't-display' : 'page-title'"
-          :tabindex="titleId ? -1 : undefined"
-        >
-          {{ title }}
-        </h1>
-        <p v-if="lead" class="page-header__lead">{{ lead }}</p>
-        <div v-if="$slots.meta" class="page-header__meta">
-          <slot name="meta" />
+      <div class="page-header__copy" :class="{ 'page-header__copy--with-meta': $slots.meta }">
+        <div class="page-header__intro">
+          <div class="page-header__text">
+            <p v-if="kicker" class="page-header__kicker">{{ kicker }}</p>
+            <h1
+              :id="titleId || undefined"
+              class="page-header__title"
+              :class="size === 'display' ? 't-display' : 'page-title'"
+              :tabindex="titleId ? -1 : undefined"
+            >
+              {{ title }}
+            </h1>
+            <p v-if="lead" class="page-header__lead">{{ lead }}</p>
+          </div>
+          <div v-if="$slots.meta" class="page-header__meta">
+            <slot name="meta" />
+          </div>
         </div>
         <div v-if="$slots.actions" class="page-header__actions">
           <slot name="actions" />
@@ -196,6 +200,22 @@ const backdropSrc = computed(() => {
   min-width: 0;
 }
 
+.page-header__copy--with-meta {
+  width: min(56rem, 100%);
+}
+
+.page-header__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.page-header__text {
+  min-width: 0;
+  max-width: 38rem;
+}
+
 .page-header__kicker {
   margin: 0;
   font-size: var(--type-kicker);
@@ -239,7 +259,7 @@ const backdropSrc = computed(() => {
 }
 
 .page-header__meta {
-  margin-top: 1.1rem;
+  flex-shrink: 0;
   animation: rise-in 520ms var(--ease-out-quint) 100ms both;
 }
 
@@ -250,6 +270,19 @@ const backdropSrc = computed(() => {
   gap: 0.65rem;
   margin-top: 1.35rem;
   animation: rise-in 520ms var(--ease-out-quint) 130ms both;
+}
+
+@media (min-width: 768px) {
+  .page-header__intro:has(.page-header__meta) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.75rem 2.5rem;
+  }
+
+  .page-header__meta {
+    margin-top: 0.7rem;
+  }
 }
 
 /* Ghost / texte sur fond illustration */
