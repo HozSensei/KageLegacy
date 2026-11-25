@@ -800,9 +800,14 @@ function cancelConfirm() {
 
 .run-status__actions {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.65rem;
+}
+
+.run-status__actions .btn-primary,
+.run-status__actions .btn-ghost {
+  width: 100%;
 }
 
 .run-status__waiting {
