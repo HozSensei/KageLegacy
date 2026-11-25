@@ -355,6 +355,9 @@ const { deltas, hit } = useDeltaFeed(() => props.stats.hp);
 
 .ninja-card__portrait-level {
   position: absolute;
+  /* Au-dessus de ProfileFrameOverlay (z-index 2) — l’anneau du cadre
+     déborde et recouvrait sinon le badge « Niveau ». */
+  z-index: 3;
   bottom: -0.45rem;
   left: 50%;
   padding: 0.1rem 0.6rem;
