@@ -269,6 +269,7 @@ onUnmounted(() => document.removeEventListener('visibilitychange', refreshNotifi
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
+  overflow-x: clip;
   background: var(--color-bg);
 }
 
