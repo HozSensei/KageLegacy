@@ -24,7 +24,12 @@ function verdict(rate) {
 const assessmentLabel = computed(() => {
   const a = assessment.value;
   if (!a) return '';
-  return t(`admin.balance.assess.${a.code}`, a.detail || {});
+  try {
+    return t(`admin.balance.assess.${a.code}`, a.detail || {});
+  } catch {
+    // Ne pas faire planter tout le panneau si une clé i18n est invalide.
+    return a.code;
+  }
 });
 </script>
 

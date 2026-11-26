@@ -73,11 +73,16 @@ const artBreakdownText = computed(() => {
     .join(' · ');
 });
 
-const assessmentLabel = computed(() => {
-  const a = assessment.value;
+function translateAssess(a) {
   if (!a) return '';
-  return t(`admin.balance.assess.${a.code}`, a.detail || {});
-});
+  try {
+    return t(`admin.balance.assess.${a.code}`, a.detail || {});
+  } catch {
+    return a.code;
+  }
+}
+
+const assessmentLabel = computed(() => translateAssess(assessment.value));
 
 const rankOptions = ['D', 'C', 'B', 'A'];
 const strengthOptions = ['faible', 'moyen', 'haut'];
@@ -196,9 +201,7 @@ function formatResultForClipboard(payload) {
   );
   const assess = assessment.value || assessBalanceRows(rows);
   if (assess) {
-    lines.push(
-      `Constat auto: ${t(`admin.balance.assess.${assess.code}`, assess.detail || {})}`
-    );
+    lines.push(`Constat auto: ${translateAssess(assess)}`);
   }
   lines.push('');
   lines.push('## Résultats (clearance = runs terminés / total)');

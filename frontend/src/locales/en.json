@@ -2699,7 +2699,7 @@
       "colRank": "Rank",
       "colClearance": "Clearance",
       "colFights": "Fights",
-      "colHp": "HP@end",
+      "colHp": "HP end",
       "colVerdict": "Verdict",
       "verdictEasy": "often clearable",
       "verdictMixed": "mixed",
