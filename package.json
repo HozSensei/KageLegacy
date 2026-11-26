@@ -20,6 +20,7 @@
     "test:combat-engine": "npm run test:combat-engine --prefix backend",
     "test:combat-balance": "npm run test:combat-balance --prefix backend",
     "test:combat-balance:report": "npm run test:combat-balance:report --prefix backend",
+    "sim:real-mission-balance": "npm run sim:real-mission-balance --prefix backend",
     "test:type-advantage": "npm run test:type-advantage --prefix backend",
     "e2e:prepare": "npm run e2e:preflight --prefix backend && npm run db:migrate && npm run db:seed-cards --prefix backend && npm run db:seed-talents --prefix backend && npm run e2e:seed-battle-pass --prefix backend && npm run e2e:prepare-tcg --prefix backend",
     "setup": "npm install && npm install --prefix backend && npm install --prefix frontend && npm run db:up && sleep 8 && npm run db:migrate && npm run db:seed"

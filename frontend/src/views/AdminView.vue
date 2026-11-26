@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import AdminBalanceSim from '../components/admin/AdminBalanceSim.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
 import { parseApiResponse, readApiError } from '../utils/http.js';
@@ -10,7 +11,13 @@ const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const API_BASE = import.meta.env.VITE_API_URL || '';
-const activeTab = ref(route.query.tab === 'reports' ? 'reports' : 'players');
+const initialTab =
+  route.query.tab === 'reports'
+    ? 'reports'
+    : route.query.tab === 'balance'
+      ? 'balance'
+      : 'players';
+const activeTab = ref(initialTab);
 const players = ref([]);
 const selectedId = ref('');
 const search = ref('');
@@ -42,6 +49,7 @@ const loading = ref(false);
 const saving = ref(false);
 const resetting = ref(false);
 const freshResetting = ref(false);
+const exportingDeck = ref(false);
 const error = ref('');
 const notice = ref('');
 let searchTimer;
@@ -60,11 +68,22 @@ const selectedPlayer = computed(
 function setTab(tab) {
   activeTab.value = tab;
   const query = { ...route.query };
-  if (tab === 'reports') query.tab = 'reports';
+  if (tab === 'reports' || tab === 'balance') query.tab = tab;
   else delete query.tab;
   router.replace({ query });
   if (tab === 'reports') void loadReports();
   else void loadPlayers();
+}
+
+function onBalanceNotice(message) {
+  if (!message) return;
+  notice.value = message;
+  error.value = '';
+}
+
+function onBalanceError(message) {
+  error.value = message || '';
+  if (message) notice.value = '';
 }
 
 function locationLabel(report) {
@@ -235,6 +254,41 @@ async function freshResetPlayer() {
   }
 }
 
+async function exportActiveDeck() {
+  if (!selectedPlayer.value) return;
+  exportingDeck.value = true;
+  error.value = '';
+  notice.value = '';
+  try {
+    const payload = await request(
+      `/api/admin/players/${selectedPlayer.value.id}/active-deck-export`
+    );
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const safeUser = String(selectedPlayer.value.username || selectedPlayer.value.id).replace(
+      /[^\w-]+/g,
+      '_'
+    );
+    const safeDeck = String(payload.deck?.name || 'deck')
+      .replace(/[^\w-]+/g, '_')
+      .slice(0, 40);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deck-${safeUser}-${safeDeck}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    notice.value = t('admin.players.exportDeckSuccess', {
+      name: selectedPlayer.value.username,
+      deck: payload.deck?.name || '',
+      count: payload.deck?.size ?? 0,
+    });
+  } catch (cause) {
+    error.value = cause.message;
+  } finally {
+    exportingDeck.value = false;
+  }
+}
+
 async function loadReports() {
   reportsLoading.value = true;
   error.value = '';
@@ -324,6 +378,16 @@ async function rewardReport(report) {
         type="button"
         role="tab"
         class="tab"
+        :aria-selected="activeTab === 'balance'"
+        data-testid="admin-tab-balance"
+        @click="setTab('balance')"
+      >
+        {{ t('admin.tabs.balance') }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tab"
         :aria-selected="activeTab === 'reports'"
         data-testid="admin-tab-reports"
         @click="setTab('reports')"
@@ -331,6 +395,16 @@ async function rewardReport(report) {
         {{ t('admin.tabs.reports') }}
       </button>
     </div>
+
+    <section v-show="activeTab === 'balance'" class="panel mt-6">
+      <AdminBalanceSim
+        :players="players"
+        :players-loading="loading"
+        @refresh-players="loadPlayers"
+        @notice="onBalanceNotice"
+        @error="onBalanceError"
+      />
+    </section>
 
     <section
       v-show="activeTab === 'players'"
@@ -394,6 +468,24 @@ async function rewardReport(report) {
             }}</span>
             <span>{{ t('admin.players.deckCount', { count: selectedPlayer.deck_count }) }}</span>
           </div>
+        </div>
+
+        <div class="admin-export mt-6">
+          <h3 class="admin-title">{{ t('admin.players.exportDeckTitle') }}</h3>
+          <p class="admin-lead">{{ t('admin.players.exportDeckLead') }}</p>
+          <button
+            type="button"
+            class="btn btn-secondary mt-3"
+            data-testid="admin-export-active-deck"
+            :disabled="exportingDeck"
+            @click="exportActiveDeck"
+          >
+            {{
+              exportingDeck
+                ? t('admin.players.exportDeckBusy')
+                : t('admin.players.exportDeck')
+            }}
+          </button>
         </div>
 
         <div class="admin-resources mt-6">
@@ -597,6 +689,7 @@ async function rewardReport(report) {
 
 <style scoped>
 .admin-section-heading,
+.admin-export,
 .admin-reset,
 .admin-player-summary {
   display: flex;
@@ -759,6 +852,7 @@ async function rewardReport(report) {
 
 @media (max-width: 640px) {
   .admin-section-heading,
+  .admin-export,
   .admin-reset,
   .admin-player-summary {
     align-items: stretch;
