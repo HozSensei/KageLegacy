@@ -159,3 +159,12 @@ test('surfaces summon creature stats on the card face', () => {
   const { texts } = cardEffectParts(summonCard, null, i18n);
   assert.deepEqual(texts.map(entry => entry.text), ['20 PV · 6 ATK · 2 tours · Provocation']);
 });
+
+for (const [locale, expected] of Object.entries({
+  fr: 'Zone ×1,35',
+  en: 'AoE ×1.35',
+})) {
+  test(`labels aoe as documented zone multiplier in ${locale}`, () => {
+    assert.equal(formatStructuredEffect({ type: 'aoe' }, translations(locale)), expected);
+  });
+}

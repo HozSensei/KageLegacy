@@ -185,8 +185,8 @@ export const EXPANSION_WAVE1_CARDS = [
     damage: 9,
     effects: [{ type: 'aoe' }, { type: 'apply_status', status: 'burn', duration: 2 }],
     passive: { ninjutsu: 3 },
-    descriptionFr: 'Inflige 9 dégâts massifs (zone). Brûlure (2 tours).',
-    descriptionEn: 'Deal 9 massive (AoE) damage. Burn (2 turns).',
+    descriptionFr: 'Inflige 9 dégâts de zone. Brûlure (2 tours).',
+    descriptionEn: 'Deal 9 AoE damage. Burn (2 turns).',
     upgrades: {
       level_1: { damage: 3, passive: { ninjutsu: 1 } },
       level_2: { damage: 6, passive: { ninjutsu: 3 } },
@@ -332,8 +332,8 @@ export const EXPANSION_WAVE1_CARDS = [
       { type: 'combo_previous', statType: 'medicine', chakra: 2 },
     ],
     passive: { ninjutsu: 6, vitesse: 3 },
-    descriptionFr: 'Inflige 24 dégâts massifs (zone). Vulnérable (2 tours). Après Médecine : +2 Chakra.',
-    descriptionEn: 'Deal 24 massive (AoE) damage. Vulnerable (2 turns). After Medicine: +2 Chakra.',
+    descriptionFr: 'Inflige 24 dégâts de zone. Vulnérable (2 tours). Après Médecine : +2 Chakra.',
+    descriptionEn: 'Deal 24 AoE damage. Vulnerable (2 turns). After Medicine: +2 Chakra.',
     loreFr: 'On dit que le ciel lui-même obéit à ce sceau.',
     loreEn: 'They say the sky itself obeys this seal.',
     upgrades: {
@@ -453,8 +453,8 @@ export const EXPANSION_WAVE1_CARDS = [
       { type: 'apply_status', target: 'self', status: 'block_pct', value: 20, duration: 2 },
     ],
     passive: { ninjutsu: 4, vitesse: 3 },
-    descriptionFr: 'Inflige 15 dégâts massifs (zone). +20 % armure (2 tours).',
-    descriptionEn: 'Deal 15 massive (AoE) damage. +20% block (2 turns).',
+    descriptionFr: 'Inflige 15 dégâts de zone. +20 % armure (2 tours).',
+    descriptionEn: 'Deal 15 AoE damage. +20% block (2 turns).',
     upgrades: {
       level_1: { damage: 5, passive: { vitesse: 1 } },
       level_2: { damage: 8, cost: -1, passive: { ninjutsu: 2, vitesse: 2 } },

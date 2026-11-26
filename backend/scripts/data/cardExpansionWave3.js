@@ -278,8 +278,8 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 7,
     effects: [{ type: 'aoe' }, { type: 'apply_status', status: 'burn', duration: 1 }],
     passive: { ninjutsu: 3 },
-    descriptionFr: 'Inflige 7 dégâts massifs (zone). Brûlure (1 tour).',
-    descriptionEn: 'Deal 7 massive (AoE) damage. Burn (1 turn).',
+    descriptionFr: 'Inflige 7 dégâts de zone. Brûlure (1 tour).',
+    descriptionEn: 'Deal 7 AoE damage. Burn (1 turn).',
     loreFr: 'Des braises retenues en l’air jusqu’à ce que le shinobi referme le poing.',
     loreEn: 'Embers held in the air until the shinobi closes a fist.',
     upgrades: {
@@ -323,8 +323,8 @@ export const EXPANSION_WAVE3_CARDS = [
     damage: 14,
     effects: [{ type: 'aoe' }, { type: 'gain_block', value: 5 }],
     passive: { ninjutsu: 5, medicine: 1 },
-    descriptionFr: 'Inflige 14 dégâts massifs (zone). Gagne 5 d’armure.',
-    descriptionEn: 'Deal 14 massive (AoE) damage. Gain 5 block.',
+    descriptionFr: 'Inflige 14 dégâts de zone. Gagne 5 d’armure.',
+    descriptionEn: 'Deal 14 AoE damage. Gain 5 block.',
     loreFr: 'Libérer la roche qui dort en soi, en s’abritant derrière l’éboulis.',
     loreEn: 'Release the rock that sleeps within, sheltering behind the rubble.',
     upgrades: {
@@ -348,8 +348,8 @@ export const EXPANSION_WAVE3_CARDS = [
       { type: 'draw', value: 1 },
     ],
     passive: { ninjutsu: 8, genjutsu: 2 },
-    descriptionFr: 'Inflige 5 dégâts massifs (zone), quatre fois. Piochez 1.',
-    descriptionEn: 'Deal 5 massive (AoE) damage, four times. Draw 1.',
+    descriptionFr: 'Inflige 5 dégâts de zone, quatre fois. Piochez 1.',
+    descriptionEn: 'Deal 5 AoE damage, four times. Draw 1.',
     loreFr: 'Chaque vent prononce sa sentence ; le dernier la répète.',
     loreEn: 'Each wind pronounces its sentence; the last one repeats it.',
     upgrades: {
