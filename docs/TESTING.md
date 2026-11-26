@@ -67,18 +67,22 @@ Le même harness couvre aussi la **clearance de mission** (`aggregateMissionRuns
 
 ### Decks joueurs réels (export admin + sim missions)
 
-1. **Export admin** : panneau Admin → joueur → « Exporter le deck actif (JSON) », ou `GET /api/admin/players/:id/active-deck-export` (session admin). Format `kage-deck-export` v1 (`deckExportService.js`) : slugs, quantités, `upgradeLevel`.
+1. **Admin UI** : onglet **Simulation / équilibrage** — choisir joueur, deck (actif par défaut), voie (auto depuis dominante du deck ou override), force, rangs ; lancer ; **Copier le résultat (chat IA)**.
 
-2. **Sim missions** (sans DB, catalogue seed) :
+2. **Export JSON** : panneau Admin → joueur → « Exporter le deck actif (JSON) », ou `GET /api/admin/players/:id/active-deck-export`. Format `kage-deck-export` v1.
+
+3. **API** : `GET /api/admin/players/:id/decks`, `GET /api/admin/balance/profiles`, `POST /api/admin/balance/mission-sim`.
+
+4. **CLI** (sans DB, catalogue seed) :
 
 ```sh
 npm run sim:real-mission-balance --prefix backend -- --deck ./mon-deck.json
-npm run sim:real-mission-balance --prefix backend -- --deck ./mon-deck.json --profile faible,moyen --rank D,C --report
+npm run sim:real-mission-balance --prefix backend -- --deck ./mon-deck.json --branch ninjutsu --profile moyen --rank D,C --report
 ```
 
-Profils talents types (`realMissionBalanceProfiles.js`) : `faible` (lvl 5, 5 pts taijutsu), `moyen` (lvl 15), `haut` (lvl 30). Fixture d’exemple : `backend/scripts/data/samplePlayerDeck.taijutsu.json`.
+Profils : voie × force (`realMissionBalanceProfiles.js`). Fixture : `backend/scripts/data/samplePlayerDeck.taijutsu.json`.
 
-Pistes design documentées dans ce config (non appliquées live) : +5 cartes max deck par rang gagné ; +PV à chaque montée de niveau.
+Pistes design documentées (non live) : +5 cartes max deck par rang gagné ; +PV à chaque montée de niveau.
 
 Limites :
 

@@ -1,17 +1,13 @@
 /**
- * Simule des missions réelles (parcours branchés, PV persistants) avec un deck
- * JSON exporté depuis l’admin, croisé avec des profils talents types.
+ * Simule des missions réelles avec un deck JSON exporté.
  *
  *   npm run sim:real-mission-balance --prefix backend -- --deck ./path/to/deck.json
- *   npm run sim:real-mission-balance --prefix backend -- --deck deck.json --profile moyen --rank D,C
+ *   npm run sim:real-mission-balance --prefix backend -- --deck deck.json --branch ninjutsu --profile moyen
  *   npm run sim:real-mission-balance --prefix backend -- --deck deck.json --report --runs 40
  *
- * Réutilise combatBalanceSim.aggregateMissionRuns (même politique greedy que
- * test:combat-balance). Sans DB : les cartes sont résolues via le catalogue seed.
+ * Admin UI : onglet « Simulation / équilibrage » (même moteur).
  *
- * Pistes design (non live) — voir aussi realMissionBalanceProfiles.js :
- * - +5 cartes max deck par rang gagné
- * - +PV à chaque montée de niveau (aujourd’hui aucune stat auto au level-up)
+ * Pistes design (non live) : +5 max deck/rang ; +PV/niveau.
  *
  * @see docs/TESTING.md
  */
@@ -19,15 +15,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
-  REAL_MISSION_PROFILES,
+  REAL_MISSION_BRANCHES,
   REAL_MISSION_RANKS,
   REAL_MISSION_SIM,
+  REAL_MISSION_STRENGTHS,
 } from '../src/config/realMissionBalanceProfiles.js';
 import { parseDeckExport } from '../src/services/deckExportService.js';
-import { aggregateMissionRuns } from '../src/services/deckCombat/combatBalanceSim.js';
-import { createEmptyPassiveStats, validateDeck } from '../src/services/deckService.js';
+import { runRealMissionBalanceSim } from '../src/services/realMissionBalanceService.js';
 import { serializeCardDefinition } from '../src/services/cardService.js';
-import { mergeStatBonuses } from '../src/services/playerCharacterService.js';
 import { ALL_CARDS } from './seedCards.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,13 +33,14 @@ function usage(exitCode = 1) {
 
 Options:
   --deck <path>       Export JSON admin (schema kage-deck-export v1) — requis
+  --branch <voie>     taijutsu|ninjutsu|genjutsu|medicine (défaut: auto depuis deck)
   --profile <ids>     faible,moyen,haut (défaut: tous)
   --rank <ranks>      D,C,B,A (défaut: tous)
   --runs <n>          Runs par cellule (défaut: ${REAL_MISSION_SIM.runsPerCell})
   --seed <n>          Seed de base (défaut: ${REAL_MISSION_SIM.baseSeed})
   --hard              Mode difficile
-  --report            Plus de runs (${REAL_MISSION_SIM.reportRunsPerCell}) + tableau détaillé
-  --json              Sortie JSON brute en plus du tableau
+  --report            Plus de runs (${REAL_MISSION_SIM.reportRunsPerCell})
+  --json              Sortie JSON brute
   --help              Aide
 `);
   process.exit(exitCode);
@@ -53,7 +49,8 @@ Options:
 function parseArgs(argv) {
   const out = {
     deckPath: null,
-    profiles: Object.keys(REAL_MISSION_PROFILES),
+    branch: null,
+    strengths: [...REAL_MISSION_STRENGTHS],
     ranks: [...REAL_MISSION_RANKS],
     runs: null,
     seed: REAL_MISSION_SIM.baseSeed,
@@ -65,8 +62,9 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === '--help' || a === '-h') usage(0);
     else if (a === '--deck') out.deckPath = argv[++i];
+    else if (a === '--branch') out.branch = String(argv[++i] || '').trim().toLowerCase();
     else if (a === '--profile' || a === '--profiles') {
-      out.profiles = String(argv[++i] || '')
+      out.strengths = String(argv[++i] || '')
         .split(',')
         .map(s => s.trim())
         .filter(Boolean);
@@ -120,19 +118,11 @@ function serializeSeedCard(seed, upgradeLevel = 0) {
   );
 }
 
-function cardsBySlug() {
-  const map = new Map();
-  for (const seed of ALL_CARDS) {
-    if (!map.has(seed.slug)) map.set(seed.slug, seed);
-  }
-  return map;
-}
-
-/**
- * Transforme l’export JSON en entrées deck pour combatBalanceSim + passifs.
- */
 function resolveDeckEntries(parsed) {
-  const catalog = cardsBySlug();
+  const catalog = new Map();
+  for (const seed of ALL_CARDS) {
+    if (!catalog.has(seed.slug)) catalog.set(seed.slug, seed);
+  }
   const entries = [];
   const missing = [];
   for (const row of parsed.cards) {
@@ -152,51 +142,12 @@ function resolveDeckEntries(parsed) {
   return entries;
 }
 
-function deckPassiveStats(entries) {
-  const deckKeys = Object.keys(createEmptyPassiveStats());
-  const bonuses = entries.flatMap(entry =>
-    Array.from({ length: entry.quantity }, () =>
-      Object.fromEntries(deckKeys.map(key => [key, entry.card.passiveBonus?.[key] || 0])),
-    ),
-  );
-  return mergeStatBonuses(...bonuses);
-}
-
-function buildSimProfile(profileId, deckPassives) {
-  const base = REAL_MISSION_PROFILES[profileId];
-  if (!base) throw new Error(`Profil inconnu: ${profileId}`);
-  return {
-    id: base.id,
-    label: base.label,
-    level: base.level,
-    stats: mergeStatBonuses(base.stats, deckPassives),
-    talentCodes: [...base.talentCodes],
-    deck: 'exported',
-    deckUpgradeLevel: 0,
-  };
-}
-
 function pct(rate) {
   return `${(rate * 100).toFixed(1)}%`;
 }
 
 function fmt(n, digits = 1) {
   return Number.isFinite(n) ? n.toFixed(digits) : '—';
-}
-
-function printTable(rows) {
-  console.log(
-    '\n┌──────────┬──────┬───────────┬──────────┬───────────┬──────────┐',
-  );
-  console.log('│ Profile  │ Rank │ Clearance │ Combats  │ HP@end    │ Hard?    │');
-  console.log('├──────────┼──────┼───────────┼──────────┼───────────┼──────────┤');
-  for (const r of rows) {
-    const fights = `${fmt(r.avgCombatsCleared)}/${fmt(r.avgCombatsAttempted)}`;
-    console.log(
-      `│ ${r.profileId.padEnd(8).slice(0, 8)} │ ${String(r.rank).padEnd(4)} │ ${pct(r.clearanceRate).padStart(9)} │ ${fights.padStart(8)} │ ${fmt(r.avgHpAtEnd).padStart(9)} │ ${r.hardMode ? 'yes' : 'no '}      │`,
-    );
-  }
-  console.log('└──────────┴──────┴───────────┴──────────┴───────────┴──────────┘');
 }
 
 function verdict(clearanceRate) {
@@ -211,16 +162,13 @@ if (!args.deckPath) {
   console.error('Erreur: --deck <fichier.json> est requis.');
   usage(1);
 }
-
-for (const id of args.profiles) {
-  if (!REAL_MISSION_PROFILES[id]) {
-    console.error(`Profil inconnu: ${id}. Valides: ${Object.keys(REAL_MISSION_PROFILES).join(', ')}`);
-    process.exit(1);
-  }
+if (args.branch && !REAL_MISSION_BRANCHES.includes(args.branch)) {
+  console.error(`Voie inconnue: ${args.branch}. Valides: ${REAL_MISSION_BRANCHES.join(', ')}`);
+  process.exit(1);
 }
-for (const rank of args.ranks) {
-  if (!REAL_MISSION_RANKS.includes(rank)) {
-    console.error(`Rang inconnu: ${rank}. Valides: ${REAL_MISSION_RANKS.join(', ')}`);
+for (const id of args.strengths) {
+  if (!REAL_MISSION_STRENGTHS.includes(id)) {
+    console.error(`Profil inconnu: ${id}. Valides: ${REAL_MISSION_STRENGTHS.join(', ')}`);
     process.exit(1);
   }
 }
@@ -231,77 +179,62 @@ const absDeck = path.isAbsolute(args.deckPath)
 const raw = fs.readFileSync(absDeck, 'utf8');
 const parsed = parseDeckExport(raw);
 const entries = resolveDeckEntries(parsed);
-const validation = validateDeck(entries);
-const deckPassives = deckPassiveStats(entries);
 const runsPerCell =
   args.runs ??
   (args.report ? REAL_MISSION_SIM.reportRunsPerCell : REAL_MISSION_SIM.runsPerCell);
+
+const result = runRealMissionBalanceSim({
+  deckEntries: entries,
+  branch: args.branch,
+  strengths: args.strengths,
+  ranks: args.ranks,
+  runs: runsPerCell,
+  hardMode: args.hardMode,
+  seed: args.seed,
+});
 
 console.log('=== Sim missions réelles × deck exporté ===');
 console.log(`Deck: ${absDeck}`);
 if (parsed.meta?.player?.username || parsed.meta?.deck?.name) {
   console.log(
-    `  joueur=${parsed.meta.player?.username || '—'}  deck=${parsed.meta.deck?.name || '—'}  size=${entries.reduce((s, e) => s + e.quantity, 0)}`,
+    `  joueur=${parsed.meta.player?.username || '—'}  deck=${parsed.meta.deck?.name || '—'}  size=${result.deck.size}`,
   );
 }
 console.log(
-  `  validation: ${validation.valid ? 'OK' : 'INVALIDE'} (${validation.errors?.join('; ') || 'aucune erreur'})`,
+  `  validation: ${result.deck.validation.valid ? 'OK' : 'INVALIDE'} (${result.deck.validation.errors?.join('; ') || 'aucune erreur'})`,
 );
-if (!validation.valid) {
-  console.warn(
-    '  ⚠ Deck hors contraintes live (20–30, copies, arts…) — la sim tourne quand même pour le diagnostic.',
-  );
-}
 console.log(
-  `Profils: ${args.profiles.join(', ')}  |  Rangs: ${args.ranks.join(', ')}  |  runs/cellule: ${runsPerCell}${args.hardMode ? '  |  HARD' : ''}`,
+  `Voie: ${result.branch}${result.branchAuto ? ' (auto)' : ''}  arts=${JSON.stringify(result.inferred.counts)}`,
+);
+console.log(
+  `Profils: ${args.strengths.join(', ')}  |  Rangs: ${args.ranks.join(', ')}  |  runs/cellule: ${runsPerCell}${args.hardMode ? '  |  HARD' : ''}`,
 );
 console.log(
   'Note: bot greedy ≠ joueur humain. Pistes design non live: +5 max deck/rang ; +PV/niveau.',
 );
 
-const rows = [];
-for (const profileId of args.profiles) {
-  const profile = buildSimProfile(profileId, deckPassives);
+for (const row of result.rows) {
   console.log(
-    `\n── ${profile.label}  talents=[${profile.talentCodes.join(', ') || 'aucun'}]  stats.tai=${profile.stats.taijutsu} maxHp+=${profile.stats.maxHp}`,
+    `  ${row.strength}@${row.rank}  clear=${pct(row.clearanceRate)}  → ${verdict(row.clearanceRate)}  fights=${fmt(row.avgCombatsCleared)}/${fmt(row.avgCombatsAttempted)}  hp@end=${fmt(row.avgHpAtEnd)}`,
   );
-  for (const rank of args.ranks) {
-    const agg = aggregateMissionRuns({
-      rank,
-      profileId,
-      baseSeed: (args.seed ^ (profileId.charCodeAt(0) << 8) ^ rank.charCodeAt(0)) >>> 0,
-      count: runsPerCell,
-      hardMode: args.hardMode,
-      maxTurns: REAL_MISSION_SIM.maxTurns,
-      profileOverride: profile,
-      deckEntries: entries,
-    });
-    const row = { ...agg, label: profile.label };
-    rows.push(row);
-    console.log(
-      `  @${rank}  clear=${pct(agg.clearanceRate)}  → ${verdict(agg.clearanceRate)}  fights=${fmt(agg.avgCombatsCleared)}/${fmt(agg.avgCombatsAttempted)}  hp@end=${fmt(agg.avgHpAtEnd)}`,
-    );
-  }
 }
 
-printTable(rows);
+console.log(
+  '\n┌──────────────┬──────┬───────────┬──────────┬───────────┐',
+);
+console.log('│ Profile      │ Rank │ Clearance │ Combats  │ HP@end    │');
+console.log('├──────────────┼──────┼───────────┼──────────┼───────────┤');
+for (const r of result.rows) {
+  const label = `${r.strength}`.padEnd(12).slice(0, 12);
+  const fights = `${fmt(r.avgCombatsCleared)}/${fmt(r.avgCombatsAttempted)}`;
+  console.log(
+    `│ ${label} │ ${String(r.rank).padEnd(4)} │ ${pct(r.clearanceRate).padStart(9)} │ ${fights.padStart(8)} │ ${fmt(r.avgHpAtEnd).padStart(9)} │`,
+  );
+}
+console.log('└──────────────┴──────┴───────────┴──────────┴───────────┘');
 
 if (args.json) {
-  console.log(
-    '\n' +
-      JSON.stringify(
-        {
-          deck: absDeck,
-          meta: parsed.meta,
-          validation,
-          runsPerCell,
-          hardMode: args.hardMode,
-          rows,
-        },
-        null,
-        2,
-      ),
-  );
+  console.log('\n' + JSON.stringify({ deck: absDeck, meta: parsed.meta, ...result }, null, 2));
 }
 
-console.log(`\n✅ ${rows.length} cellules simulées (${__dirname.includes('scripts') ? 'simRealMissionBalance' : 'ok'}).`);
+console.log(`\n✅ ${result.rows.length} cellules simulées (simRealMissionBalance / ${__dirname}).`);

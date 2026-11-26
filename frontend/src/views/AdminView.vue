@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import AdminBalanceSim from '../components/admin/AdminBalanceSim.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
 import { parseApiResponse, readApiError } from '../utils/http.js';
@@ -10,7 +11,13 @@ const { t, locale } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const API_BASE = import.meta.env.VITE_API_URL || '';
-const activeTab = ref(route.query.tab === 'reports' ? 'reports' : 'players');
+const initialTab =
+  route.query.tab === 'reports'
+    ? 'reports'
+    : route.query.tab === 'balance'
+      ? 'balance'
+      : 'players';
+const activeTab = ref(initialTab);
 const players = ref([]);
 const selectedId = ref('');
 const search = ref('');
@@ -61,11 +68,22 @@ const selectedPlayer = computed(
 function setTab(tab) {
   activeTab.value = tab;
   const query = { ...route.query };
-  if (tab === 'reports') query.tab = 'reports';
+  if (tab === 'reports' || tab === 'balance') query.tab = tab;
   else delete query.tab;
   router.replace({ query });
   if (tab === 'reports') void loadReports();
   else void loadPlayers();
+}
+
+function onBalanceNotice(message) {
+  if (!message) return;
+  notice.value = message;
+  error.value = '';
+}
+
+function onBalanceError(message) {
+  error.value = message || '';
+  if (message) notice.value = '';
 }
 
 function locationLabel(report) {
@@ -360,6 +378,16 @@ async function rewardReport(report) {
         type="button"
         role="tab"
         class="tab"
+        :aria-selected="activeTab === 'balance'"
+        data-testid="admin-tab-balance"
+        @click="setTab('balance')"
+      >
+        {{ t('admin.tabs.balance') }}
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="tab"
         :aria-selected="activeTab === 'reports'"
         data-testid="admin-tab-reports"
         @click="setTab('reports')"
@@ -367,6 +395,16 @@ async function rewardReport(report) {
         {{ t('admin.tabs.reports') }}
       </button>
     </div>
+
+    <section v-show="activeTab === 'balance'" class="panel mt-6">
+      <AdminBalanceSim
+        :players="players"
+        :players-loading="loading"
+        @refresh-players="loadPlayers"
+        @notice="onBalanceNotice"
+        @error="onBalanceError"
+      />
+    </section>
 
     <section
       v-show="activeTab === 'players'"

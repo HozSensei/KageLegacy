@@ -1,5 +1,5 @@
 /**
- * Tests purs — format export deck + profils missions réelles.
+ * Tests purs — format export deck + profils missions réelles + inférence art.
  *
  * npm run test:deck-export --prefix backend
  */
@@ -9,7 +9,17 @@ import {
   parseDeckExport,
   serializeDeckExport,
 } from '../src/services/deckExportService.js';
-import { REAL_MISSION_PROFILES } from '../src/config/realMissionBalanceProfiles.js';
+import {
+  REAL_MISSION_BRANCHES,
+  REAL_MISSION_STRENGTHS,
+  getRealMissionProfile,
+} from '../src/config/realMissionBalanceProfiles.js';
+import {
+  inferDeckArtBreakdown,
+  runRealMissionBalanceSim,
+} from '../src/services/realMissionBalanceService.js';
+import { serializeCardDefinition } from '../src/services/cardService.js';
+import { ALL_CARDS } from './seedCards.js';
 
 let passed = 0;
 let failed = 0;
@@ -76,23 +86,62 @@ console.log('=== deck export serialize / parse ===');
   assert(threw, 'refuse schéma inconnu');
 }
 
-console.log('\n=== real mission profiles ===');
+console.log('\n=== real mission profiles (voie × force) ===');
 {
-  for (const [id, profile] of Object.entries(REAL_MISSION_PROFILES)) {
-    const spent = profile.investment.reduce((s, n) => s + n.ranks, 0);
-    assert(spent === profile.talentPoints, `${id}: investment = ${profile.talentPoints} pts`);
-    assert(profile.level === profile.talentPoints, `${id}: level = talent points`);
-    assert(Array.isArray(profile.talentCodes), `${id}: talentCodes`);
-    assert(typeof profile.stats.taijutsu === 'number', `${id}: stats.taijutsu`);
+  for (const branch of REAL_MISSION_BRANCHES) {
+    for (const strength of REAL_MISSION_STRENGTHS) {
+      const profile = getRealMissionProfile(branch, strength);
+      const spent = profile.investment.reduce((s, n) => s + n.ranks, 0);
+      assert(spent === profile.talentPoints, `${branch}/${strength}: investment = ${profile.talentPoints} pts`);
+      assert(profile.branch === branch, `${branch}/${strength}: branch`);
+      assert(Array.isArray(profile.talentCodes), `${branch}/${strength}: talentCodes`);
+    }
   }
-  assert(
-    REAL_MISSION_PROFILES.faible.talentCodes.includes('relentless_press'),
-    'faible a relentless_press',
+  const alias = getRealMissionProfile('moyen');
+  assert(alias.branch === 'taijutsu' && alias.strength === 'moyen', 'alias CLI force → taijutsu');
+}
+
+console.log('\n=== infer art + sim smoke ===');
+{
+  const art = inferDeckArtBreakdown([
+    { quantity: 15, card: { statType: 'taijutsu' } },
+    { quantity: 5, card: { statType: 'ninjutsu' } },
+  ]);
+  assert(art.dominant === 'taijutsu' && art.secondary === 'ninjutsu', 'dominante taijutsu');
+
+  const seed = ALL_CARDS.find(c => c.slug === 'poing-rapide');
+  const card = serializeCardDefinition(
+    {
+      id: seed.slug,
+      slug: seed.slug,
+      name_fr: seed.name_fr,
+      name_en: seed.name_en,
+      type: seed.type,
+      stat_type: seed.stat_type,
+      rarity: seed.rarity,
+      base_cost: seed.base_cost,
+      base_damage: seed.base_damage,
+      base_block: seed.base_block ?? 0,
+      base_heal: seed.base_heal ?? 0,
+      effects_json: seed.effects_json ?? seed.effects ?? [],
+      exhaust: seed.exhaust ? 1 : 0,
+      passive_bonus_json: seed.passive_bonus_json ?? {},
+      upgrade_bonuses_json: seed.upgrade_bonuses_json ?? {},
+    },
+    { upgradeLevel: 0 },
   );
-  assert(
-    REAL_MISSION_PROFILES.haut.talentCodes.includes('combo_master'),
-    'haut a combo_master',
-  );
+  // Mini-deck artificiel pour smoke (pas une contrainte live) — 20 copies.
+  const entries = [{ quantity: 20, card }];
+  const result = runRealMissionBalanceSim({
+    deckEntries: entries,
+    branch: null,
+    strengths: 'faible',
+    ranks: ['D'],
+    runs: 2,
+  });
+  assert(result.branch === 'taijutsu' && result.branchAuto, 'sim auto-branche taijutsu');
+  assert(result.rows.length === 1 && result.rows[0].rank === 'D', 'sim 1 cellule D');
+  assert(typeof result.rows[0].clearanceRate === 'number', 'clearance numérique');
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

@@ -11,8 +11,35 @@ import {
   updateBugReport,
 } from '../services/bugReportService.js';
 import { exportActiveDeckForUser } from '../services/deckExportService.js';
+import {
+  REAL_MISSION_BRANCHES,
+  REAL_MISSION_RANKS,
+  REAL_MISSION_STRENGTHS,
+} from '../config/realMissionBalanceProfiles.js';
+import {
+  inferDeckArtBreakdown,
+  listAvailableProfiles,
+  runRealMissionBalanceSim,
+} from '../services/realMissionBalanceService.js';
 
 const router = Router();
+const branchEnum = /** @type {[string, ...string[]]} */ ([...REAL_MISSION_BRANCHES]);
+const strengthEnum = /** @type {[string, ...string[]]} */ ([...REAL_MISSION_STRENGTHS]);
+const rankEnum = /** @type {[string, ...string[]]} */ ([...REAL_MISSION_RANKS]);
+const missionSimSchema = z
+  .object({
+    userId: z.number().int().positive(),
+    deckId: z.number().int().positive().nullable().optional(),
+    branch: z.enum(branchEnum).nullable().optional(),
+    strengths: z
+      .union([z.enum(strengthEnum), z.array(z.enum(strengthEnum)).min(1).max(3)])
+      .optional(),
+    ranks: z.array(z.enum(rankEnum)).min(1).max(4).optional(),
+    runs: z.number().int().min(1).max(80).optional(),
+    hardMode: z.boolean().optional(),
+    seed: z.number().int().optional(),
+  })
+  .strict();
 const resourceFields = Object.freeze({
   ryos: 'ryos',
   kageCoins: 'kage_coins',
@@ -103,6 +130,123 @@ router.get('/players/:id/active-deck-export', async (req, res, next) => {
     const filename = `deck-${payload.player?.username || userId}-${safeName}.json`;
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.json(payload);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Liste les decks d’un joueur (résumé + dominante d’art pour préremplir la sim).
+ * GET /api/admin/players/:id/decks
+ */
+router.get('/players/:id/decks', async (req, res, next) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isSafeInteger(userId) || userId < 1) {
+      return res.status(400).json({ error: 'Identifiant joueur invalide.' });
+    }
+    const players = await query(
+      'SELECT u.id FROM users u WHERE u.id = ? AND u.is_guest = FALSE LIMIT 1',
+      [userId],
+    );
+    if (!players[0]) return res.status(404).json({ error: 'Joueur introuvable.' });
+
+    const { listDecks } = await import('../services/deckService.js');
+    const decks = await listDecks(userId);
+    res.json({
+      decks: decks.map(deck => {
+        const art = inferDeckArtBreakdown(deck.cards || []);
+        return {
+          id: deck.id,
+          name: deck.name,
+          isActive: Boolean(deck.isActive),
+          archetype: deck.archetype,
+          size: deck.size,
+          validation: deck.validation,
+          art,
+        };
+      }),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Métadonnées profils / rangs pour l’UI admin. */
+router.get('/balance/profiles', async (_req, res, next) => {
+  try {
+    res.json(listAvailableProfiles());
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Lance les sims de missions réelles (deck joueur × profil × rangs).
+ * POST /api/admin/balance/mission-sim
+ */
+router.post('/balance/mission-sim', async (req, res, next) => {
+  try {
+    const parsed = missionSimSchema.safeParse(req.body || {});
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ error: parsed.error.issues[0]?.message || 'Paramètres de sim invalides.' });
+    }
+    const {
+      userId,
+      deckId = null,
+      branch = null,
+      strengths = 'moyen',
+      ranks = [...REAL_MISSION_RANKS],
+      runs,
+      hardMode = false,
+      seed,
+    } = parsed.data;
+
+    const players = await query(
+      `SELECT u.id, u.username, s.character_name
+       FROM users u
+       LEFT JOIN player_profiles s ON s.user_id = u.id
+       WHERE u.id = ? AND u.is_guest = FALSE
+       LIMIT 1`,
+      [userId],
+    );
+    if (!players[0]) return res.status(404).json({ error: 'Joueur introuvable.' });
+
+    const { getDeck, getActiveDeck } = await import('../services/deckService.js');
+    const deck =
+      deckId != null ? await getDeck(userId, deckId) : await getActiveDeck(userId);
+    if (!deck) {
+      return res.status(404).json({ error: 'Aucun deck à simuler (actif ou id fourni).' });
+    }
+
+    const result = runRealMissionBalanceSim({
+      deckEntries: deck.cards || [],
+      branch: branch || null,
+      strengths,
+      ranks,
+      runs,
+      hardMode,
+      seed,
+    });
+
+    res.json({
+      player: {
+        userId: players[0].id,
+        username: players[0].username,
+        characterName: players[0].character_name || null,
+      },
+      deck: {
+        id: deck.id,
+        name: deck.name,
+        isActive: Boolean(deck.isActive),
+        archetype: deck.archetype,
+        size: result.deck.size,
+        validation: result.deck.validation,
+      },
+      ...result,
+    });
   } catch (error) {
     next(error);
   }
