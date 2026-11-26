@@ -1,17 +1,31 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import {
+  assessBalanceRows,
+  useAdminBalanceResults,
+} from '../../composables/useAdminBalanceResults.js';
 import { parseApiResponse, readApiError } from '../../utils/http.js';
+import AdminBalanceResults from './AdminBalanceResults.vue';
 
 const props = defineProps({
   players: { type: Array, default: () => [] },
   playersLoading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['refresh-players', 'notice', 'error', 'results']);
+const emit = defineEmits(['refresh-players', 'notice', 'error']);
 
 const { t } = useI18n();
 const API_BASE = import.meta.env.VITE_API_URL || '';
+
+const {
+  payload: result,
+  rows: resultRows,
+  hasResults,
+  assessment,
+  setPayload,
+  clear: clearResults,
+} = useAdminBalanceResults();
 
 const search = ref('');
 const selectedId = ref('');
@@ -25,12 +39,11 @@ const ranks = ref(['D', 'C', 'B', 'A']);
 const runs = ref(24);
 const hardMode = ref(false);
 const running = ref(false);
-/** Snapshot figé après sim — jamais cleared par les watchers joueur/deck. */
-const result = ref(null);
 const copying = ref(false);
 const copyDone = ref(false);
 const exportingJson = ref(false);
 const meta = ref(null);
+const resultsAnchor = ref(null);
 
 const selectedDeck = computed(
   () => decks.value.find(d => Number(d.id) === Number(selectedDeckId.value)) || null
@@ -51,17 +64,6 @@ const filteredPlayers = computed(() => {
   });
 });
 
-const resultRows = computed(() => {
-  const payload = result.value;
-  if (!payload) return [];
-  if (Array.isArray(payload.rows)) return payload.rows;
-  if (Array.isArray(payload.body?.rows)) return payload.body.rows;
-  if (Array.isArray(payload.data?.rows)) return payload.data.rows;
-  return [];
-});
-
-const hasResults = computed(() => resultRows.value.length > 0);
-
 const artBreakdownText = computed(() => {
   const counts = selectedDeck.value?.art?.counts;
   if (!counts || typeof counts !== 'object') return '';
@@ -69,6 +71,12 @@ const artBreakdownText = computed(() => {
     .filter(([, n]) => Number(n) > 0)
     .map(([k, n]) => `${k}:${n}`)
     .join(' · ');
+});
+
+const assessmentLabel = computed(() => {
+  const a = assessment.value;
+  if (!a) return '';
+  return t(`admin.balance.assess.${a.code}`, a.detail || {});
 });
 
 const rankOptions = ['D', 'C', 'B', 'A'];
@@ -84,19 +92,6 @@ async function request(path, options = {}) {
   const { ok, body } = await parseApiResponse(response);
   if (!ok) throw new Error(await readApiError(response, body));
   return body;
-}
-
-function normalizeSimPayload(payload) {
-  if (!payload || typeof payload !== 'object') return null;
-  if (Array.isArray(payload.rows)) return payload;
-  if (Array.isArray(payload.body?.rows)) return { ...payload.body };
-  if (Array.isArray(payload.data?.rows)) return { ...payload.data };
-  return payload;
-}
-
-function publishResult(payload) {
-  result.value = payload;
-  emit('results', payload);
 }
 
 async function loadMeta() {
@@ -116,11 +111,10 @@ async function loadDecks() {
   }
   decksLoading.value = true;
   try {
-    const payload = await request(`/api/admin/players/${selectedId.value}/decks`);
-    decks.value = payload.decks || [];
+    const body = await request(`/api/admin/players/${selectedId.value}/decks`);
+    decks.value = body.decks || [];
     const active = decks.value.find(d => d.isActive) || decks.value[0];
     const nextId = active ? String(active.id) : '';
-    // Évite un reset select → watch inutile si déjà sélectionné.
     if (selectedDeckId.value !== nextId) {
       selectedDeckId.value = nextId;
     }
@@ -136,9 +130,7 @@ async function loadDecks() {
   }
 }
 
-// Ne PAS clear `result` ici : le toast parent lit le payload local, et un
-// reset select mobile / re-fetch decks après coup laissait le panneau vide
-// alors que « N cellules calculées » restait affiché.
+// Intentionnellement : ne JAMAIS clear les résultats ici.
 watch(selectedId, () => {
   copyDone.value = false;
   void loadDecks();
@@ -202,6 +194,12 @@ function formatResultForClipboard(payload) {
   lines.push(
     `Validation deck: ${payload.deck?.validation?.valid ? 'OK' : 'INVALIDE'} ${(payload.deck?.validation?.errors || []).join('; ')}`
   );
+  const assess = assessment.value || assessBalanceRows(rows);
+  if (assess) {
+    lines.push(
+      `Constat auto: ${t(`admin.balance.assess.${assess.code}`, assess.detail || {})}`
+    );
+  }
   lines.push('');
   lines.push('## Résultats (clearance = runs terminés / total)');
   lines.push('| Force | Rang | Clearance | Combats clear/tentés | HP@fin | Verdict |');
@@ -232,6 +230,11 @@ function formatResultForClipboard(payload) {
   return lines.join('\n');
 }
 
+async function revealResults() {
+  await nextTick();
+  resultsAnchor.value?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+}
+
 async function runSim() {
   if (!selectedId.value || !selectedDeckId.value) {
     emit('error', t('admin.balance.needPlayerDeck'));
@@ -243,8 +246,7 @@ async function runSim() {
   }
   running.value = true;
   copyDone.value = false;
-  // Clear seulement au lancement d'une nouvelle sim (pas via watchers).
-  publishResult(null);
+  clearResults();
   emit('error', '');
   try {
     const raw = await request('/api/admin/balance/mission-sim', {
@@ -259,19 +261,15 @@ async function runSim() {
         hardMode: hardMode.value,
       }),
     });
-    const payload = normalizeSimPayload(raw);
-    const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-    if (!payload || !rows.length) {
-      publishResult(null);
+    const stored = setPayload(raw);
+    if (!stored) {
       emit('error', t('admin.balance.emptyResult'));
       return;
     }
-    // Publier d'abord le payload (parent affiche au-dessus du formulaire),
-    // puis le toast — le toast ne doit plus être le seul signal visible.
-    publishResult(payload);
-    emit('notice', t('admin.balance.runSuccess', { count: rows.length }));
+    emit('notice', t('admin.balance.runSuccess', { count: resultRows.value.length }));
+    await revealResults();
   } catch (cause) {
-    publishResult(null);
+    clearResults();
     emit('error', cause.message);
   } finally {
     running.value = false;
@@ -312,11 +310,20 @@ function exportJson() {
   if (!result.value || !hasResults.value) return;
   exportingJson.value = true;
   try {
-    const payload = {
+    const assess = assessment.value;
+    const body = {
       ...result.value,
+      assessment: assess
+        ? {
+            code: assess.code,
+            tone: assess.tone,
+            label: assessmentLabel.value,
+            detail: assess.detail || null,
+          }
+        : null,
       exportedAt: new Date().toISOString(),
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(body, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const safeUser = String(result.value.player?.username || selectedId.value || 'player').replace(
       /[^\w-]+/g,
@@ -525,6 +532,11 @@ onMounted(() => {
     <p v-if="artBreakdownText" class="admin-hint mt-3">
       {{ t('admin.balance.artBreakdown', { counts: artBreakdownText }) }}
     </p>
+
+    <!-- Résultats juste sous les actions : visibles sans remonter au-dessus du formulaire. -->
+    <div ref="resultsAnchor" data-testid="admin-balance-results-anchor">
+      <AdminBalanceResults />
+    </div>
   </section>
 </template>
 

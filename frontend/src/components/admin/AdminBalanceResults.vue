@@ -1,23 +1,10 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-const props = defineProps({
-  payload: { type: Object, default: null },
-});
+import { useAdminBalanceResults } from '../../composables/useAdminBalanceResults.js';
 
 const { t } = useI18n();
-
-const RANK_ORDER = Object.freeze({ D: 0, C: 1, B: 2, A: 3 });
-
-const rows = computed(() => {
-  const payload = props.payload;
-  if (!payload) return [];
-  if (Array.isArray(payload.rows)) return payload.rows;
-  if (Array.isArray(payload.body?.rows)) return payload.body.rows;
-  if (Array.isArray(payload.data?.rows)) return payload.data.rows;
-  return [];
-});
+const { payload, rows, hasResults, assessment } = useAdminBalanceResults();
 
 function pct(rate) {
   return `${((Number(rate) || 0) * 100).toFixed(1)}%`;
@@ -34,77 +21,6 @@ function verdict(rate) {
   return t('admin.balance.verdictBrutal');
 }
 
-const assessment = computed(() => {
-  const list = rows.value;
-  if (!list.length) return null;
-
-  const ordered = [...list].sort(
-    (a, b) => (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99)
-  );
-  const rates = ordered.map(r => Number(r.clearanceRate) || 0);
-  const min = Math.min(...rates);
-  const max = Math.max(...rates);
-  const rateOf = rank => {
-    const row = ordered.find(r => r.rank === rank);
-    return row == null ? null : Number(row.clearanceRate) || 0;
-  };
-  const dRate = rateOf('D');
-  const aRate = rateOf('A');
-
-  let drops = 0;
-  let rises = 0;
-  for (let i = 1; i < rates.length; i += 1) {
-    const delta = rates[i] - rates[i - 1];
-    if (delta < -0.05) drops += 1;
-    else if (delta > 0.05) rises += 1;
-  }
-
-  if (max < 0.1) return { code: 'tooHard', tone: 'bad', detail: { max: pct(max) } };
-  if (min >= 0.7) return { code: 'tooEasy', tone: 'warn', detail: { min: pct(min) } };
-  if (rises > drops && rises > 0) return { code: 'inverted', tone: 'bad' };
-
-  for (let i = 1; i < rates.length; i += 1) {
-    if (rates[i - 1] >= 0.35 && rates[i] < 0.05) {
-      return {
-        code: 'cliff',
-        tone: 'warn',
-        detail: {
-          from: ordered[i - 1].rank,
-          to: ordered[i].rank,
-          fromRate: pct(rates[i - 1]),
-          toRate: pct(rates[i]),
-        },
-      };
-    }
-  }
-
-  if (rates.length > 1 && max - min < 0.12) {
-    return { code: 'flat', tone: 'warn', detail: { spread: pct(max - min) } };
-  }
-
-  const dOk = dRate == null || dRate >= 0.35;
-  const aChallenging = aRate == null || aRate <= 0.55;
-  if (drops >= rises && dOk && aChallenging) {
-    return {
-      code: 'balanced',
-      tone: 'ok',
-      detail: {
-        d: dRate == null ? '—' : pct(dRate),
-        a: aRate == null ? '—' : pct(aRate),
-      },
-    };
-  }
-
-  if (dRate != null && dRate < 0.2) {
-    return { code: 'entryTooHard', tone: 'bad', detail: { d: pct(dRate) } };
-  }
-  if (aRate != null && aRate >= 0.7) {
-    return { code: 'endTooEasy', tone: 'warn', detail: { a: pct(aRate) } };
-  }
-
-  return { code: 'mixed', tone: 'mixed' };
-});
-
 const assessmentLabel = computed(() => {
   const a = assessment.value;
   if (!a) return '';
@@ -113,12 +29,19 @@ const assessmentLabel = computed(() => {
 </script>
 
 <template>
-  <div
-    v-if="rows.length"
+  <section
+    v-if="hasResults"
     class="admin-balance-results"
     data-testid="admin-balance-results"
+    aria-live="polite"
   >
-    <h3 class="admin-balance-results__title">{{ t('admin.balance.resultsTitle') }}</h3>
+    <header class="admin-balance-results__head">
+      <h3 class="admin-balance-results__title">{{ t('admin.balance.resultsTitle') }}</h3>
+      <p class="admin-balance-results__count" data-testid="admin-balance-results-count">
+        {{ t('admin.balance.runSuccess', { count: rows.length }) }}
+      </p>
+    </header>
+
     <p v-if="payload" class="admin-balance-results__lead">
       {{
         t('admin.balance.resultsLead', {
@@ -136,13 +59,15 @@ const assessmentLabel = computed(() => {
       class="admin-balance-results__assess"
       :data-tone="assessment.tone"
       data-testid="admin-balance-assess"
-      role="status"
     >
       <span class="admin-balance-results__assess-label">{{ t('admin.balance.assessLabel') }}</span>
       {{ assessmentLabel }}
     </p>
 
-    <!-- Liste toujours visible (pas de display:none selon viewport). -->
+    <!--
+      Cartes TOUJOURS peintes (jamais display:none).
+      Sur desktop la table s’ajoute en plus — on ne masque plus le seul canal mobile.
+    -->
     <ul class="admin-balance-results__list" data-testid="admin-balance-cards">
       <li v-for="(row, idx) in rows" :key="`${row.strength}-${row.rank}-${idx}`">
         <p class="admin-balance-results__row-title">
@@ -169,7 +94,7 @@ const assessmentLabel = computed(() => {
       </li>
     </ul>
 
-    <div class="admin-balance-results__table-wrap">
+    <div class="admin-balance-results__table-wrap" data-testid="admin-balance-table">
       <table class="admin-balance-results__table">
         <thead>
           <tr>
@@ -195,7 +120,7 @@ const assessmentLabel = computed(() => {
     </div>
 
     <p class="admin-balance-results__hint">{{ t('admin.balance.copyHint') }}</p>
-  </div>
+  </section>
 </template>
 
 <style scoped>
@@ -203,9 +128,18 @@ const assessmentLabel = computed(() => {
   width: 100%;
   min-width: 0;
   margin-top: 1.25rem;
-  padding: 1rem 0 0;
-  border-top: 1px solid var(--color-line);
+  padding: 1rem 0.85rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-ink) 3%, var(--color-bg-card, transparent));
   color: var(--color-ink);
+}
+
+.admin-balance-results__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
 }
 
 .admin-balance-results__title {
@@ -213,6 +147,13 @@ const assessmentLabel = computed(() => {
   font-family: var(--font-display);
   font-size: 1.25rem;
   color: var(--color-ink);
+}
+
+.admin-balance-results__count {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .admin-balance-results__lead {
@@ -273,7 +214,7 @@ const assessmentLabel = computed(() => {
 .admin-balance-results__list > li {
   padding: 0.85rem 0.9rem;
   border: 1px solid var(--color-line);
-  background: color-mix(in srgb, var(--color-ink) 3%, transparent);
+  background: color-mix(in srgb, var(--color-ink) 2%, transparent);
 }
 
 .admin-balance-results__row-title {
@@ -343,11 +284,8 @@ const assessmentLabel = computed(() => {
   font-size: 0.85rem;
 }
 
+/* Desktop : table en plus des cartes (cartes restent visibles). */
 @media (min-width: 720px) {
-  .admin-balance-results__list {
-    display: none;
-  }
-
   .admin-balance-results__table-wrap {
     display: block;
   }
