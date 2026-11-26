@@ -159,3 +159,8 @@ test('surfaces summon creature stats on the card face', () => {
   const { texts } = cardEffectParts(summonCard, null, i18n);
   assert.deepEqual(texts.map(entry => entry.text), ['20 PV · 6 ATK · 2 tours · Provocation']);
 });
+
+test('ignores removed aoe effect type (damage folded into base stats)', () => {
+  assert.equal(formatStructuredEffect({ type: 'aoe' }, translations('fr')), null);
+  assert.equal(formatStructuredEffect({ type: 'aoe' }, translations('en')), null);
+});

@@ -38,7 +38,7 @@ const SUPPORT_EFFECTS = new Set([
 /** Statuts posés sur le destinataire pendant un support (à transférer à l’allié). */
 const SUPPORT_STATUS_KEYS = new Set(['counter', 'evade']);
 const CASTER_EFFECTS = new Set(['draw', 'gain_chakra', 'gain_energy', 'reduce_next_card_cost']);
-const ATTACK_EFFECTS = new Set(['multi_strike', 'aoe', 'bonus_if', 'innate_crit', 'crit']);
+const ATTACK_EFFECTS = new Set(['multi_strike', 'bonus_if', 'innate_crit', 'crit']);
 const HARMFUL_STATUSES = new Set([...PLAYER_DEBUFF_KEYS, 'brûlure', 'faiblesse', 'vulnérabilité']);
 const SHARED_PLAYER_LOGS = new Set([
   'damage',

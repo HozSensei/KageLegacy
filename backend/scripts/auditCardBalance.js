@@ -40,7 +40,6 @@ function activeProfile(card) {
 }
 
 const EFFECT_ROLES = {
-  aoe: 'damage',
   multi_strike: 'damage',
   counter: 'defense',
   gain_block: 'defense',

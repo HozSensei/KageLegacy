@@ -1111,7 +1111,7 @@ assert(
   'intent_sealed log',
 );
 
-const aoePlay = applyCardPlay({
+const foldedAoePlay = applyCardPlay({
   player: {
     hp: 80,
     maxHp: 100,
@@ -1123,20 +1123,23 @@ const aoePlay = applyCardPlay({
     discardPile: [],
     exhaustPile: [],
   },
-  enemy: { hp: 100, maxHp: 100, block: 0, statuses: [], posture: 'genjutsu' },
+  enemy: { hp: 100, maxHp: 100, block: 0, statuses: [], posture: 'ninjutsu' },
   card: {
     slug: 'pilier-de-flammes',
     type: 'attack',
     statType: 'ninjutsu',
     cost: 2,
-    damage: 9,
-    effects: [{ type: 'aoe' }],
+    damage: 12,
+    effects: [{ type: 'apply_status', status: 'burn', duration: 2 }],
   },
   stats: { ninjutsu: 0 },
   rng: () => 0.99,
 });
-const aoeDmg = aoePlay.logs.find(l => l.type === 'damage' && l.source === 'player');
-assert(aoeDmg && aoeDmg.amount > 9, `aoe mult applied (got ${aoeDmg?.amount})`);
+const foldedAoeDmg = foldedAoePlay.logs.find(l => l.type === 'damage' && l.source === 'player');
+assert(
+  foldedAoeDmg && foldedAoeDmg.amount === 12,
+  `aoe folded into base damage (got ${foldedAoeDmg?.amount})`,
+);
 
 console.log(`\n=== Result: ${passed} passed, ${failed} failed ===`);
 if (failed > 0) process.exit(1);

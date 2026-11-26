@@ -144,10 +144,6 @@ export function formatStructuredEffect(effect, { t, te }) {
     return t('cards.effectCleanse');
   }
 
-  if (type === 'aoe') {
-    return t('cards.effectAoe');
-  }
-
   if (type === 'exile_enemy_card') {
     return t('cards.effectExile');
   }

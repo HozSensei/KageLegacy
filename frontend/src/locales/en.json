@@ -1178,7 +1178,6 @@
     "effectEvade": "{pct}% evade",
     "effectCounter": "Counter {n}",
     "effectCleanse": "Cleanse a debuff",
-    "effectAoe": "Massive damage",
     "effectMultiStrike": "Strike ×{n}",
     "effectBonusIf": {
       "enemyVulnerable": "{n} damage if the target is Vulnerable",

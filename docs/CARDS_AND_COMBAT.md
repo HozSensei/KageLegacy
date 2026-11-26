@@ -89,10 +89,9 @@ Dans le moteur actuel, une attaque est résolue ainsi :
 5. Force plate ;
 6. avantage de voie, avantage élémentaire et statuts sortants ;
 7. multiplicateurs de talents ;
-8. modificateur de zone (`×1,35`, même dans un combat mono-cible) ;
-9. critique ;
-10. Vulnérable adverse ;
-11. absorption par allié, barrière, armure puis PV.
+8. critique ;
+9. Vulnérable adverse ;
+10. absorption par allié, barrière, armure puis PV.
 
 Un critique est tiré une fois par carte : tous les coups d'une carte multicoup bénéficient du même résultat.
 

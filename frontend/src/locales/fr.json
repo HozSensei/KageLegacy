@@ -1178,7 +1178,6 @@
     "effectEvade": "Esquive {pct} %",
     "effectCounter": "Riposte {n}",
     "effectCleanse": "Purge un malus",
-    "effectAoe": "Dégâts massifs",
     "effectMultiStrike": "Frappe ×{n}",
     "effectBonusIf": {
       "enemyVulnerable": "{n} dégâts si la cible est vulnérable",

@@ -31,9 +31,6 @@ import { getNextIntent } from './enemyIntent.js';
 import { resolveCardCritChance, resolveScalingStat } from './combatArts.js';
 import { heldEffectMods } from './heldEffects.js';
 
-/** Multiplicateur « zone » → gros dégâts mono-cible (PvE 1 ennemi). */
-export const AOE_DAMAGE_MULT = 1.35;
-
 export { PLAYER_DEBUFF_KEYS };
 
 const COMBO_STAT_TYPES = new Set(['taijutsu', 'ninjutsu', 'genjutsu', 'medicine']);
@@ -216,12 +213,6 @@ export function computeCardDamage(card, ctx) {
 
   if (talentMods.damageMult) {
     perHit = Math.round(perHit * talentMods.damageMult);
-  }
-
-  const aoeEffect = (card.effects || []).find(e => e.type === 'aoe');
-  if (aoeEffect) {
-    const mult = Number(aoeEffect.mult) > 0 ? Number(aoeEffect.mult) : AOE_DAMAGE_MULT;
-    perHit = Math.round(perHit * mult);
   }
 
   const crit = rollCrit(resolveCardCritChance(card), rng);
@@ -753,8 +744,8 @@ function applyExtraEffect(effect, ctx) {
       }),
     };
     logs.push({ type: 'counter_ready', damage: Number(effect.damage) || 0 });
-  } else if (type === 'multi_strike' || type === 'bonus_if' || type === 'aoe') {
-    // multi_strike / bonus_if / aoe : déjà traités dans computeCardDamage
+  } else if (type === 'multi_strike' || type === 'bonus_if') {
+    // multi_strike / bonus_if : déjà traités dans computeCardDamage
   } else if (type === 'heal_self' || type === 'heal') {
     const healAmt = computeCardHeal(
       { statType: ctx.card.statType, heal: effect.value },
