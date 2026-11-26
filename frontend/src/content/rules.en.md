@@ -109,7 +109,6 @@ Each card shows **its own text** in the collection and in combat. These are the 
 | ------ | ------------ |
 | **Damage / Armor / Healing** | Main figures, boosted by the path stat (or the best path for a neutral card) |
 | **Multi-hit** | Several strikes; one critical roll for the whole card |
-| **AoE** | Multiplies the card’s damage (×1.35), even against a single enemy |
 | **Status** | Applies a status (see “Statuses”) |
 | **Draw / Chakra** | Draws cards or restores Chakra |
 | **After [path]** | Bonus if the previous card matches the listed path |
@@ -294,10 +293,9 @@ When an attack card resolves, the game applies modifiers in this order:
 5. Strength (adds its value to each hit);
 6. path advantage, elemental advantage, and outgoing status penalties (e.g. Weak);
 7. talent multipliers;
-8. AoE modifier (×1.35), if present on the card;
-9. critical hit (×1.5);
-10. Vulnerable on the target (+50% damage taken);
-11. absorption: Taunt ally, then barrier, then armor, then HP.
+8. critical hit (×1.5);
+9. Vulnerable on the target (+50% damage taken);
+10. absorption: Taunt ally, then barrier, then armor, then HP.
 
 ### Path and element advantages
 

@@ -18,7 +18,6 @@ const PVE_EFFECTS = new Set([
   'counter',
   'multi_strike',
   'bonus_if',
-  'aoe',
   'heal_self',
   'heal',
   'cleanse_self',

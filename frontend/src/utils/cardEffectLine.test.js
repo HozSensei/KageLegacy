@@ -160,11 +160,7 @@ test('surfaces summon creature stats on the card face', () => {
   assert.deepEqual(texts.map(entry => entry.text), ['20 PV · 6 ATK · 2 tours · Provocation']);
 });
 
-for (const [locale, expected] of Object.entries({
-  fr: 'Zone ×1,35',
-  en: 'AoE ×1.35',
-})) {
-  test(`labels aoe as documented zone multiplier in ${locale}`, () => {
-    assert.equal(formatStructuredEffect({ type: 'aoe' }, translations(locale)), expected);
-  });
-}
+test('ignores removed aoe effect type (damage folded into base stats)', () => {
+  assert.equal(formatStructuredEffect({ type: 'aoe' }, translations('fr')), null);
+  assert.equal(formatStructuredEffect({ type: 'aoe' }, translations('en')), null);
+});

@@ -109,7 +109,6 @@ Chaque carte affiche **son propre texte** dans la collection et en combat. Voici
 | ----- | ------------- |
 | **Dégâts / Armure / Soins** | Figures principales, renforcées par la statistique de la voie (ou la meilleure voie pour une carte neutre) |
 | **Multicoup** | Plusieurs frappes ; un seul jet de critique pour toute la carte |
-| **Zone** | Multiplie les dégâts de la carte (×1,35), même contre un seul ennemi |
 | **Statut** | Applique un état (voir « Statuts ») |
 | **Pioche / Chakra** | Pioche des cartes ou rend du Chakra |
 | **Après [voie]** | Bonus si la carte précédente est de la voie indiquée |
@@ -294,10 +293,9 @@ Quand une carte d'attaque se résout, le jeu applique dans cet ordre :
 5. Force (ajoute sa valeur à chaque coup) ;
 6. avantage de voie, avantage élémentaire et malus sortants (ex. Faiblesse) ;
 7. multiplicateurs de talents ;
-8. modificateur de zone (×1,35), s'il est présent sur la carte ;
-9. critique (×1,5) ;
-10. Vulnérable sur la cible (+50 % de dégâts subis) ;
-11. absorption : allié avec Provocation, puis barrière, puis armure, puis PV.
+8. critique (×1,5) ;
+9. Vulnérable sur la cible (+50 % de dégâts subis) ;
+10. absorption : allié avec Provocation, puis barrière, puis armure, puis PV.
 
 ### Avantages de voie et d'élément
 
