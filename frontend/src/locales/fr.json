@@ -2570,6 +2570,7 @@
       "player": "Joueur",
       "deck": "Deck",
       "chooseDeck": "Choisir un deck",
+      "noDecks": "Aucun deck pour ce joueur",
       "activeDeck": "actif",
       "branch": "Voie de talents",
       "branchAuto": "Auto (dominante deck : {branch})",

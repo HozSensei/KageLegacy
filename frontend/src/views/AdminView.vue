@@ -134,10 +134,12 @@ watch(search, () => {
 watch(
   () => route.query.tab,
   tab => {
-    const next = tab === 'reports' ? 'reports' : 'players';
+    const next =
+      tab === 'reports' ? 'reports' : tab === 'balance' ? 'balance' : 'players';
     if (next !== activeTab.value) {
       activeTab.value = next;
       if (next === 'reports') void loadReports();
+      else void loadPlayers();
     }
   }
 );
