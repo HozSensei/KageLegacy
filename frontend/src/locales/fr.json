@@ -2636,7 +2636,12 @@
       "freshReset": "Remettre à zéro",
       "freshResetting": "Remise à zéro…",
       "freshResetConfirm": "Remettre {name} à l’état d’un personnage fraîchement inscrit ? Cette action est irréversible.",
-      "freshResetSuccess": "{name} a été remis à l’état d’inscription."
+      "freshResetSuccess": "{name} a été remis à l’état d’inscription.",
+      "exportDeckTitle": "Export deck actif",
+      "exportDeckLead": "Télécharge le deck actif en JSON (slugs, quantités, niveaux d’amélioration) pour les scripts d’équilibrage de missions.",
+      "exportDeck": "Exporter le deck actif (JSON)",
+      "exportDeckBusy": "Export…",
+      "exportDeckSuccess": "Deck « {deck} » de {name} exporté ({count} cartes)."
     },
     "clock": {
       "title": "Horloge de jeu",

@@ -10,6 +10,7 @@ import {
   rewardBugReportAuthor,
   updateBugReport,
 } from '../services/bugReportService.js';
+import { exportActiveDeckForUser } from '../services/deckExportService.js';
 
 const router = Router();
 const resourceFields = Object.freeze({
@@ -80,6 +81,28 @@ router.get('/players', async (req, res, next) => {
       [search, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`],
     );
     res.json({ players: rows });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Export JSON du deck actif d’un joueur (format stable pour scripts d’équilibrage).
+ * GET /api/admin/players/:id/active-deck-export
+ */
+router.get('/players/:id/active-deck-export', async (req, res, next) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isSafeInteger(userId) || userId < 1) {
+      return res.status(400).json({ error: 'Identifiant joueur invalide.' });
+    }
+    const payload = await exportActiveDeckForUser(userId);
+    const safeName = String(payload.deck?.name || 'deck')
+      .replace(/[^\w-]+/g, '_')
+      .slice(0, 40);
+    const filename = `deck-${payload.player?.username || userId}-${safeName}.json`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.json(payload);
   } catch (error) {
     next(error);
   }

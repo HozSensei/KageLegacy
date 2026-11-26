@@ -1,0 +1,25 @@
+{
+  "schema": "kage-deck-export",
+  "schemaVersion": 1,
+  "exportedAt": "2026-11-26T00:00:00.000Z",
+  "player": {
+    "userId": null,
+    "username": "sample",
+    "characterName": "Fixture starter Taijutsu"
+  },
+  "deck": {
+    "id": null,
+    "name": "Deck Taijutsu (fixture)",
+    "archetype": "aggro",
+    "size": 20,
+    "cards": [
+      { "slug": "poing-rapide", "quantity": 3, "upgradeLevel": 0 },
+      { "slug": "barrage-de-lames", "quantity": 3, "upgradeLevel": 0 },
+      { "slug": "garde-haute", "quantity": 3, "upgradeLevel": 0 },
+      { "slug": "contre-tranchant", "quantity": 3, "upgradeLevel": 0 },
+      { "slug": "lame-crespusculaire", "quantity": 3, "upgradeLevel": 0 },
+      { "slug": "vague-brumeuse", "quantity": 3, "upgradeLevel": 0 },
+      { "slug": "vent-porteur", "quantity": 2, "upgradeLevel": 0 }
+    ]
+  }
+}

@@ -15,6 +15,7 @@ npm run test:unit
 npm run test:combat-engine
 npm run test:combat-balance
 npm run test:combat-balance:report
+npm run sim:real-mission-balance -- --deck backend/scripts/data/samplePlayerDeck.taijutsu.json
 npm run test:type-advantage
 ```
 
@@ -63,6 +64,21 @@ C'est un outil de diagnostic, pas une preuve d'équilibrage du gameplay.
 Le profil standard utilise huit rencontres D à A, 24 combats par cellule en mode test, trois profils practice et un profil starter séparé. La politique greedy choisit la carte payable au score le plus élevé.
 
 Le même harness couvre aussi la **clearance de mission** (`aggregateMissionRuns` / mode rapport) : parcours aléatoire avec PV persistants, nœuds « ? » (soin, colporteur / argent de contrebande, butin, rien, embuscade) et seuils `MISSION_CLEARANCE_THRESHOLDS` (mode normal). Le mode difficile opt-in est mesuré en rapport seulement.
+
+### Decks joueurs réels (export admin + sim missions)
+
+1. **Export admin** : panneau Admin → joueur → « Exporter le deck actif (JSON) », ou `GET /api/admin/players/:id/active-deck-export` (session admin). Format `kage-deck-export` v1 (`deckExportService.js`) : slugs, quantités, `upgradeLevel`.
+
+2. **Sim missions** (sans DB, catalogue seed) :
+
+```sh
+npm run sim:real-mission-balance --prefix backend -- --deck ./mon-deck.json
+npm run sim:real-mission-balance --prefix backend -- --deck ./mon-deck.json --profile faible,moyen --rank D,C --report
+```
+
+Profils talents types (`realMissionBalanceProfiles.js`) : `faible` (lvl 5, 5 pts taijutsu), `moyen` (lvl 15), `haut` (lvl 30). Fixture d’exemple : `backend/scripts/data/samplePlayerDeck.taijutsu.json`.
+
+Pistes design documentées dans ce config (non appliquées live) : +5 cartes max deck par rang gagné ; +PV à chaque montée de niveau.
 
 Limites :
 

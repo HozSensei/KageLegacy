@@ -33,6 +33,8 @@
     "test:boss-phases": "node scripts/testBossPhases.js",
     "test:combat-balance": "node scripts/testCombatBalance.js",
     "test:combat-balance:report": "node scripts/testCombatBalance.js --report",
+    "sim:real-mission-balance": "node scripts/simRealMissionBalance.js",
+    "test:deck-export": "node scripts/testDeckExport.js",
     "test:tcg-balance": "node scripts/testCombatBalance.js",
     "test:tcg-balance:report": "node scripts/testCombatBalance.js --report",
     "test:type-advantage": "node scripts/testTypeAdvantage.js",

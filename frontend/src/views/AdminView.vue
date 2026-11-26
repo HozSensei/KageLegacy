@@ -42,6 +42,7 @@ const loading = ref(false);
 const saving = ref(false);
 const resetting = ref(false);
 const freshResetting = ref(false);
+const exportingDeck = ref(false);
 const error = ref('');
 const notice = ref('');
 let searchTimer;
@@ -235,6 +236,41 @@ async function freshResetPlayer() {
   }
 }
 
+async function exportActiveDeck() {
+  if (!selectedPlayer.value) return;
+  exportingDeck.value = true;
+  error.value = '';
+  notice.value = '';
+  try {
+    const payload = await request(
+      `/api/admin/players/${selectedPlayer.value.id}/active-deck-export`
+    );
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const safeUser = String(selectedPlayer.value.username || selectedPlayer.value.id).replace(
+      /[^\w-]+/g,
+      '_'
+    );
+    const safeDeck = String(payload.deck?.name || 'deck')
+      .replace(/[^\w-]+/g, '_')
+      .slice(0, 40);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `deck-${safeUser}-${safeDeck}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    notice.value = t('admin.players.exportDeckSuccess', {
+      name: selectedPlayer.value.username,
+      deck: payload.deck?.name || '',
+      count: payload.deck?.size ?? 0,
+    });
+  } catch (cause) {
+    error.value = cause.message;
+  } finally {
+    exportingDeck.value = false;
+  }
+}
+
 async function loadReports() {
   reportsLoading.value = true;
   error.value = '';
@@ -394,6 +430,24 @@ async function rewardReport(report) {
             }}</span>
             <span>{{ t('admin.players.deckCount', { count: selectedPlayer.deck_count }) }}</span>
           </div>
+        </div>
+
+        <div class="admin-export mt-6">
+          <h3 class="admin-title">{{ t('admin.players.exportDeckTitle') }}</h3>
+          <p class="admin-lead">{{ t('admin.players.exportDeckLead') }}</p>
+          <button
+            type="button"
+            class="btn btn-secondary mt-3"
+            data-testid="admin-export-active-deck"
+            :disabled="exportingDeck"
+            @click="exportActiveDeck"
+          >
+            {{
+              exportingDeck
+                ? t('admin.players.exportDeckBusy')
+                : t('admin.players.exportDeck')
+            }}
+          </button>
         </div>
 
         <div class="admin-resources mt-6">
@@ -597,6 +651,7 @@ async function rewardReport(report) {
 
 <style scoped>
 .admin-section-heading,
+.admin-export,
 .admin-reset,
 .admin-player-summary {
   display: flex;
@@ -759,6 +814,7 @@ async function rewardReport(report) {
 
 @media (max-width: 640px) {
   .admin-section-heading,
+  .admin-export,
   .admin-reset,
   .admin-player-summary {
     align-items: stretch;

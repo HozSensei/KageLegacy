@@ -2707,7 +2707,12 @@
       "freshReset": "Full reset",
       "freshResetting": "Resetting…",
       "freshResetConfirm": "Reset {name} to a freshly registered character state? This cannot be undone.",
-      "freshResetSuccess": "{name} has been reset to signup state."
+      "freshResetSuccess": "{name} has been reset to signup state.",
+      "exportDeckTitle": "Export active deck",
+      "exportDeckLead": "Download the player’s active deck as JSON (slugs, quantities, upgrade levels) for mission balance scripts.",
+      "exportDeck": "Export active deck (JSON)",
+      "exportDeckBusy": "Exporting…",
+      "exportDeckSuccess": "Deck “{deck}” for {name} exported ({count} cards)."
     },
     "clock": {
       "title": "Game clock",
