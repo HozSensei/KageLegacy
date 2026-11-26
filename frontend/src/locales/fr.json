@@ -2628,7 +2628,7 @@
       "colRank": "Rang",
       "colClearance": "Clearance",
       "colFights": "Combats",
-      "colHp": "HP@end",
+      "colHp": "PV fin",
       "colVerdict": "Verdict",
       "verdictEasy": "souvent réussissable",
       "verdictMixed": "mitigé",
