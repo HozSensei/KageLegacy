@@ -36,6 +36,14 @@ const localError = ref(null)
 const runId = computed(() => route.params.id)
 
 onMounted(async () => {
+  // Catalogue ennemis pour les hints de combat (évite d’afficher le slug templateId).
+  if (!missions.enemies?.length) {
+    try {
+      await missions.fetchMissions()
+    } catch {
+      /* optionnel */
+    }
+  }
   if (runId.value) await missions.fetchRun(runId.value)
 })
 
@@ -106,9 +114,12 @@ function nodeHint(node) {
   if (node.type === 'event' || (node.type === 'mystery' && node.revealed)) {
     return localizedDescription(node, locale.value)
   }
+  // Combat : nom localisé (nœud enrichi ou catalogue) — jamais le slug templateId.
+  const fromNode = localizedName(node, locale.value)
+  if (fromNode) return fromNode
   const enemy = (missions.enemies || []).find((e) => e.id === node.templateId)
   if (enemy) return localizedName(enemy, locale.value)
-  return node.templateId || ''
+  return ''
 }
 
 function nodeShape(node) {
@@ -535,7 +546,14 @@ function backToMissions(payload) {
                     :disabled="missions.actionLoading || choice.disabled"
                     @click="onChoice(choice.id)"
                   >
-                    {{ localizedField(choice, 'label', locale) }}
+                    {{
+                      localizedField(choice, 'label', locale) ||
+                      (choice.lengthHint === 'short'
+                        ? t('combat.pathShort')
+                        : choice.lengthHint === 'long'
+                          ? t('combat.pathLong')
+                          : t('combat.pathChoiceFallback'))
+                    }}
                     <span v-if="choice.xpMult" class="run-event__xp">
                       {{ t('combat.branchXpTag', { n: choice.xpMult }) }}
                     </span>

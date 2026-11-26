@@ -43,6 +43,7 @@ import {
   untrackPendingCard,
 } from './missionRunInventory.js';
 import { BASE_MAX_HP } from './deckCombat/constants.js';
+import { ENEMY_TEMPLATES } from './deckCombat/enemyTemplates.js';
 import { createEmptyStats, getCharacter, getComputedStats } from './playerCharacterService.js';
 import { grantRunRewards } from './combatRewardService.js';
 import { getMission } from './combatMissionService.js';
@@ -160,6 +161,17 @@ export function sanitizeNodesForClient(nodes) {
     }
     if (node?.type === 'mystery' && !node.revealed) {
       return { id: node.id, type: 'mystery', status: node.status, revealed: false };
+    }
+    // Enrichir les combats (runs anciens sans nameFr) — jamais de slug côté UI.
+    if (node?.type === 'combat' && node.templateId && (!node.nameFr || !node.nameEn)) {
+      const tpl = ENEMY_TEMPLATES[node.templateId];
+      if (tpl) {
+        return {
+          ...node,
+          nameFr: node.nameFr || tpl.nameFr || null,
+          nameEn: node.nameEn || tpl.nameEn || null,
+        };
+      }
     }
     return node;
   });

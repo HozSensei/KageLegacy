@@ -27,6 +27,8 @@ const props = defineProps({
   detailNodeId: { type: String, default: null },
   /** Inclure les nœuds écartés (chemin non pris, grisé). */
   includeSkipped: { type: Boolean, default: false },
+  /** Suite d’un carrefour : le rail vertical continue (pas de coupure is-first). */
+  continuesFromParent: { type: Boolean, default: false },
   nodeLabel: { type: Function, required: true },
   nodeHint: { type: Function, required: true },
   nodeShape: { type: Function, required: true },
@@ -66,10 +68,10 @@ const choices = computed(() =>
   visibleBranchChoices(branchNode.value, nodesById.value)
 );
 
-/** Après choix : les deux (N) chemins restent visibles ; avant : onglets d’aperçu. */
+/** Après choix : onglets restent (non-choisi grisé) ; seule la branche prise continue la timeline. */
 const branchResolved = computed(() => Boolean(branchNode.value?.chosen));
 
-const showTabs = computed(() => !branchResolved.value && choices.value.length > 1);
+const showTabs = computed(() => choices.value.length > 1);
 
 const activeChoiceId = computed(() =>
   resolvePreviewChoiceId(branchNode.value, nodesById.value, previewByBranch.value)
@@ -79,20 +81,18 @@ const activeChoice = computed(() =>
   choiceById(branchNode.value, activeChoiceId.value)
 );
 
-const previewForks = computed(() => {
-  if (!branchNode.value || branchResolved.value) return [];
+/** Une seule fourche sous les tabs : aperçu actif, ou chemin pris après résolution. */
+const displayedForks = computed(() => {
+  if (!branchNode.value) return [];
+  if (branchResolved.value) {
+    const chosen = choiceById(branchNode.value, branchNode.value.chosen);
+    return chosen?.nextNodeId ? [chosen] : [];
+  }
   const choice = activeChoice.value;
   return choice?.nextNodeId ? [choice] : [];
 });
 
-const resolvedForks = computed(() => {
-  if (!branchResolved.value) return [];
-  return choices.value.filter(c => c?.nextNodeId);
-});
-
-const displayedForks = computed(() =>
-  branchResolved.value ? resolvedForks.value : previewForks.value
-);
+const hasContinuingFork = computed(() => displayedForks.value.length > 0);
 
 const nextBaseIndex = computed(
   () => props.baseIndex + segment.value.length
@@ -120,7 +120,16 @@ function selectChoice(choiceId) {
 }
 
 function choiceLabel(choice) {
-  return localizedField(choice, 'label', locale.value) || choice.id;
+  const labeled = localizedField(choice, 'label', locale.value);
+  if (labeled) return labeled;
+  if (choice?.lengthHint === 'short') return t('combat.pathShort');
+  if (choice?.lengthHint === 'long') return t('combat.pathLong');
+  return t('combat.pathChoiceFallback');
+}
+
+function isTabActive(choice) {
+  if (branchResolved.value) return isChosenFork(choice);
+  return activeChoiceId.value === choice.id;
 }
 
 function isChosenFork(choice) {
@@ -170,7 +179,7 @@ function statusLabel(node) {
         :shape="nodeShape(node)"
         :tone="nodeTone(node)"
         :boss-tag="t('combat.bossTag')"
-        :is-first="i === 0"
+        :is-first="i === 0 && !continuesFromParent"
         :is-last="!branchNode && i === linearBeforeBranch.length - 1"
       >
         <slot v-if="detailNodeId === node.id" name="node-detail" :node="node" />
@@ -184,8 +193,8 @@ function statusLabel(node) {
         :status-label="statusLabel(branchNode)"
         :shape="nodeShape(branchNode)"
         :tone="nodeTone(branchNode)"
-        :is-first="linearBeforeBranch.length === 0"
-        :is-last="true"
+        :is-first="linearBeforeBranch.length === 0 && !continuesFromParent"
+        :is-last="!hasContinuingFork"
       >
         <slot
           v-if="detailNodeId === branchNode.id"
@@ -198,6 +207,7 @@ function statusLabel(node) {
     <div
       v-if="showTabs"
       class="path-tree__tabs"
+      :class="{ 'path-tree__tabs--resolved': branchResolved }"
       role="tablist"
       :aria-label="t('combat.pathTabsLabel')"
       data-testid="run-path-tabs"
@@ -208,8 +218,13 @@ function statusLabel(node) {
         type="button"
         role="tab"
         class="path-tree__tab"
-        :class="{ 'path-tree__tab--active': activeChoiceId === choice.id }"
-        :aria-selected="activeChoiceId === choice.id"
+        :class="{
+          'path-tree__tab--active': isTabActive(choice),
+          'path-tree__tab--skipped': isSkippedFork(choice),
+        }"
+        :aria-selected="isTabActive(choice)"
+        :aria-disabled="branchResolved ? 'true' : undefined"
+        :disabled="branchResolved"
         :data-testid="`run-path-tab-${choice.id}`"
         @click="selectChoice(choice.id)"
       >
@@ -227,42 +242,18 @@ function statusLabel(node) {
       v-for="choice in displayedForks"
       :key="choice.id"
       class="path-tree__fork"
-      :class="{
-        'path-tree__fork--taken': branchResolved && isChosenFork(choice),
-        'path-tree__fork--skipped': isSkippedFork(choice),
-      }"
+      :class="{ 'path-tree__fork--continues': true }"
       :data-branch="choice.id"
-      :data-testid="isSkippedFork(choice) ? `run-path-fork-skipped-${choice.id}` : 'run-path-fork'"
-      :aria-disabled="isSkippedFork(choice) ? 'true' : undefined"
+      data-testid="run-path-fork"
     >
-      <p
-        v-if="showTabs || branchResolved"
-        class="path-tree__fork-caption"
-      >
-        {{ t('combat.pathForkCaption', { path: choiceLabel(choice) }) }}
-        <span
-          v-if="branchResolved && isChosenFork(choice)"
-          class="path-tree__fork-badge"
-        >
-          · {{ t('combat.pathForkTaken') }}
-        </span>
-        <span
-          v-else-if="isSkippedFork(choice)"
-          class="path-tree__fork-badge"
-        >
-          · {{ t('combat.pathForkSkipped') }}
-        </span>
-        <span v-if="choiceStepCount(choice)" class="path-tree__fork-meta">
-          · {{ t('combat.pathTabSteps', { n: choiceStepCount(choice) }) }}
-        </span>
-      </p>
       <MissionPathTree
         :nodes="nodes"
         :start-id="choice.nextNodeId"
         :base-index="nextBaseIndex"
         :depth="depth + 1"
-        :detail-node-id="isSkippedFork(choice) ? null : detailNodeId"
-        :include-skipped="isSkippedFork(choice) || includeSkipped"
+        :detail-node-id="detailNodeId"
+        :include-skipped="includeSkipped"
+        :continues-from-parent="true"
         :node-label="nodeLabel"
         :node-hint="nodeHint"
         :node-shape="nodeShape"
@@ -296,15 +287,30 @@ function statusLabel(node) {
 }
 
 .path-tree__tabs {
+  position: relative;
   display: flex;
   flex-wrap: nowrap;
   gap: 0.45rem;
-  margin: 0.85rem 0 0.35rem;
-  padding: 0.15rem 0.1rem 0.35rem;
+  /* Aligné sous la colonne des puces pour prolonger le rail. */
+  margin: 0.15rem 0 0.15rem;
+  padding: 0.45rem 0.1rem 0.45rem 3.25rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+}
+
+/* Segment de rail derrière les onglets (continuité timeline). */
+.path-tree__tabs::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(3.25rem / 2);
+  width: 3px;
+  background: var(--color-leaf-fill);
+  transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .path-tree__tab {
@@ -324,10 +330,11 @@ function statusLabel(node) {
     border-color var(--dur-base) ease,
     background var(--dur-base) ease,
     color var(--dur-base) ease,
-    box-shadow var(--dur-base) ease;
+    box-shadow var(--dur-base) ease,
+    opacity var(--dur-base) ease;
 }
 
-.path-tree__tab:hover {
+.path-tree__tab:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--color-sky-fill) 70%, var(--color-line-strong));
   color: var(--color-ink);
   background: color-mix(in srgb, var(--color-sky-fill) 14%, var(--color-bg));
@@ -338,6 +345,19 @@ function statusLabel(node) {
   background: color-mix(in srgb, var(--color-sky-fill) 22%, var(--color-sky-tint));
   color: var(--color-ink);
   box-shadow: inset 0 -3px 0 var(--color-sky-fill);
+}
+
+.path-tree__tab--skipped {
+  opacity: 0.45;
+  cursor: default;
+  border-color: color-mix(in srgb, var(--color-ink-faint) 55%, var(--color-line));
+  background: color-mix(in srgb, var(--color-ink) 4%, var(--color-bg));
+  color: var(--color-ink-faint);
+  box-shadow: none;
+}
+
+.path-tree__tab:disabled {
+  cursor: default;
 }
 
 .path-tree__tab-name {
@@ -360,51 +380,22 @@ function statusLabel(node) {
   color: var(--color-ink);
 }
 
-.path-tree__fork {
-  position: relative;
-  margin-top: 0.35rem;
-  padding: 0.35rem 0 0 0.85rem;
-  border-left: 3px solid color-mix(in srgb, var(--color-sky-fill) 55%, var(--color-line));
-}
-
-.path-tree__fork + .path-tree__fork {
-  margin-top: 0.75rem;
-}
-
-.path-tree__fork--skipped {
-  opacity: 0.48;
-  border-left-color: color-mix(in srgb, var(--color-ink-faint) 65%, var(--color-line));
-  pointer-events: none;
-  user-select: none;
-}
-
-.path-tree__fork-caption {
-  margin: 0 0 0.35rem 0.35rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-}
-
-.path-tree__fork-meta,
-.path-tree__fork-badge {
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.path-tree__fork--skipped .path-tree__fork-caption {
+.path-tree__tab--skipped .path-tree__tab-meta,
+.path-tree__tab--skipped .path-tree__tab-count {
   color: var(--color-ink-faint);
 }
 
-.path-tree--nested .path-tree__fork {
-  margin-left: 0.15rem;
+/* Suite du chemin choisi : pas de filet bleu / caption — continuité du tronc. */
+.path-tree__fork--continues {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 @media (max-width: 479px) {
-  .path-tree__fork {
-    padding-left: 0.55rem;
+  .path-tree__tabs {
+    padding-left: 3.25rem;
   }
 
   .path-tree__tab {

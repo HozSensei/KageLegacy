@@ -108,7 +108,7 @@ test('skipped subtrees drop from visible choices before pick', () => {
   );
 });
 
-test('visibleBranchChoices keeps all paths after choice', () => {
+test('visibleBranchChoices keeps all paths after choice (tabs stay)', () => {
   const patched = sampleTree().map(n => {
     if (n.id === 'fork') return { ...n, status: 'cleared', chosen: 'right' };
     if (n.branch === 'left' || n.branch === 'mid') return { ...n, status: 'skipped' };
@@ -116,6 +116,7 @@ test('visibleBranchChoices keeps all paths after choice', () => {
   });
   const byId = indexNodes(patched);
   const choices = visibleBranchChoices(byId.fork, byId);
+  // Les onglets listent encore tous les chemins ; seul le choisi continue sous la timeline.
   assert.deepEqual(
     choices.map(c => c.id),
     ['left', 'mid', 'right']
@@ -126,4 +127,5 @@ test('visibleBranchChoices keeps all paths after choice', () => {
     walkSegment(byId, 'l1', { includeSkipped: true }).map(n => n.id),
     ['l1', 'l2']
   );
+  assert.equal(countSubtreeSteps(byId, 'r1'), 2);
 });
