@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { parseApiResponse, readApiError } from '../../utils/http.js';
 
@@ -28,7 +28,11 @@ const running = ref(false);
 const result = ref(null);
 const copying = ref(false);
 const copyDone = ref(false);
+const exportingJson = ref(false);
 const meta = ref(null);
+const resultsEl = ref(null);
+
+const RANK_ORDER = Object.freeze({ D: 0, C: 1, B: 2, A: 3 });
 
 const selectedDeck = computed(
   () => decks.value.find(d => Number(d.id) === Number(selectedDeckId.value)) || null
@@ -49,6 +53,106 @@ const filteredPlayers = computed(() => {
   });
 });
 
+/** Rows always as an array for template binding (API / legacy wrappers). */
+const resultRows = computed(() => {
+  const payload = result.value;
+  if (!payload) return [];
+  if (Array.isArray(payload.rows)) return payload.rows;
+  if (Array.isArray(payload.body?.rows)) return payload.body.rows;
+  if (Array.isArray(payload.data?.rows)) return payload.data.rows;
+  return [];
+});
+
+const hasResults = computed(() => resultRows.value.length > 0);
+
+/**
+ * Heuristique d’équilibrage à partir des clearances par rang.
+ * @returns {{ code: string, tone: 'ok'|'warn'|'bad'|'mixed', detail?: Record<string, string|number> }}
+ */
+const assessment = computed(() => {
+  const rows = resultRows.value;
+  if (!rows.length) return null;
+
+  const ordered = [...rows].sort(
+    (a, b) => (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99)
+  );
+  const rates = ordered.map(r => Number(r.clearanceRate) || 0);
+  const min = Math.min(...rates);
+  const max = Math.max(...rates);
+  const rateOf = rank => {
+    const row = ordered.find(r => r.rank === rank);
+    return row == null ? null : Number(row.clearanceRate) || 0;
+  };
+  const dRate = rateOf('D');
+  const aRate = rateOf('A');
+
+  let drops = 0;
+  let rises = 0;
+  for (let i = 1; i < rates.length; i += 1) {
+    const delta = rates[i] - rates[i - 1];
+    if (delta < -0.05) drops += 1;
+    else if (delta > 0.05) rises += 1;
+  }
+
+  if (max < 0.1) {
+    return { code: 'tooHard', tone: 'bad', detail: { max: pct(max) } };
+  }
+  if (min >= 0.7) {
+    return { code: 'tooEasy', tone: 'warn', detail: { min: pct(min) } };
+  }
+  if (rises > drops && rises > 0) {
+    return { code: 'inverted', tone: 'bad' };
+  }
+
+  for (let i = 1; i < rates.length; i += 1) {
+    if (rates[i - 1] >= 0.35 && rates[i] < 0.05) {
+      return {
+        code: 'cliff',
+        tone: 'warn',
+        detail: {
+          from: ordered[i - 1].rank,
+          to: ordered[i].rank,
+          fromRate: pct(rates[i - 1]),
+          toRate: pct(rates[i]),
+        },
+      };
+    }
+  }
+
+  if (rates.length > 1 && max - min < 0.12) {
+    return { code: 'flat', tone: 'warn', detail: { spread: pct(max - min) } };
+  }
+
+  const dOk = dRate == null || dRate >= 0.35;
+  const aChallenging = aRate == null || aRate <= 0.55;
+  const progressive = drops >= rises;
+  if (progressive && dOk && aChallenging) {
+    return {
+      code: 'balanced',
+      tone: 'ok',
+      detail: {
+        d: dRate == null ? '—' : pct(dRate),
+        a: aRate == null ? '—' : pct(aRate),
+      },
+    };
+  }
+
+  if (dRate != null && dRate < 0.2) {
+    return { code: 'entryTooHard', tone: 'bad', detail: { d: pct(dRate) } };
+  }
+  if (aRate != null && aRate >= 0.7) {
+    return { code: 'endTooEasy', tone: 'warn', detail: { a: pct(aRate) } };
+  }
+
+  return { code: 'mixed', tone: 'mixed' };
+});
+
+const assessmentLabel = computed(() => {
+  const a = assessment.value;
+  if (!a) return '';
+  return t(`admin.balance.assess.${a.code}`, a.detail || {});
+});
+
 const rankOptions = ['D', 'C', 'B', 'A'];
 const strengthOptions = ['faible', 'moyen', 'haut'];
 const branchOptions = ['taijutsu', 'ninjutsu', 'genjutsu', 'medicine'];
@@ -62,6 +166,15 @@ async function request(path, options = {}) {
   const { ok, body } = await parseApiResponse(response);
   if (!ok) throw new Error(await readApiError(response, body));
   return body;
+}
+
+/** Normalise le payload sim (rows au premier niveau). */
+function normalizeSimPayload(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  if (Array.isArray(payload.rows)) return payload;
+  if (Array.isArray(payload.body?.rows)) return { ...payload.body };
+  if (Array.isArray(payload.data?.rows)) return { ...payload.data };
+  return payload;
 }
 
 async function loadMeta() {
@@ -103,7 +216,8 @@ watch(selectedId, () => {
   void loadDecks();
 });
 
-watch(selectedDeckId, deckId => {
+watch(selectedDeckId, (deckId, prev) => {
+  if (String(deckId) === String(prev)) return;
   const deck = decks.value.find(d => Number(d.id) === Number(deckId));
   if (deck?.art?.dominant && branchMode.value === 'auto') {
     branchManual.value = deck.art.dominant;
@@ -138,6 +252,7 @@ function verdict(rate) {
 
 function formatResultForClipboard(payload) {
   if (!payload) return '';
+  const rows = Array.isArray(payload.rows) ? payload.rows : resultRows.value;
   const lines = [];
   lines.push('# Kage Legacy — sim missions réelles (équilibrage)');
   lines.push('');
@@ -158,17 +273,20 @@ function formatResultForClipboard(payload) {
   lines.push(
     `Validation deck: ${payload.deck?.validation?.valid ? 'OK' : 'INVALIDE'} ${(payload.deck?.validation?.errors || []).join('; ')}`
   );
+  if (assessment.value) {
+    lines.push(`Constat auto: ${assessmentLabel.value}`);
+  }
   lines.push('');
   lines.push('## Résultats (clearance = runs terminés / total)');
   lines.push('| Force | Rang | Clearance | Combats clear/tentés | HP@fin | Verdict |');
   lines.push('| --- | --- | --- | --- | --- | --- |');
-  for (const row of payload.rows || []) {
+  for (const row of rows) {
     lines.push(
       `| ${row.strength} | ${row.rank} | ${pct(row.clearanceRate)} | ${fmt(row.avgCombatsCleared)}/${fmt(row.avgCombatsAttempted)} | ${fmt(row.avgHpAtEnd)} | ${verdict(row.clearanceRate)} |`
     );
   }
   lines.push('');
-  const sample = (payload.rows || [])[0];
+  const sample = rows[0];
   if (sample) {
     lines.push(`## Profil exemple (${sample.label || sample.strength})`);
     lines.push(`Niveau profil: ${sample.profileLevel ?? '—'}`);
@@ -188,6 +306,11 @@ function formatResultForClipboard(payload) {
   return lines.join('\n');
 }
 
+async function revealResults() {
+  await nextTick();
+  resultsEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
+}
+
 async function runSim() {
   if (!selectedId.value || !selectedDeckId.value) {
     emit('error', t('admin.balance.needPlayerDeck'));
@@ -201,7 +324,7 @@ async function runSim() {
   copyDone.value = false;
   emit('error', '');
   try {
-    const payload = await request('/api/admin/balance/mission-sim', {
+    const raw = await request('/api/admin/balance/mission-sim', {
       method: 'POST',
       body: JSON.stringify({
         userId: Number(selectedId.value),
@@ -213,8 +336,11 @@ async function runSim() {
         hardMode: hardMode.value,
       }),
     });
+    const payload = normalizeSimPayload(raw);
     result.value = payload;
-    emit('notice', t('admin.balance.runSuccess', { count: payload.rows?.length || 0 }));
+    const count = Array.isArray(payload?.rows) ? payload.rows.length : 0;
+    emit('notice', t('admin.balance.runSuccess', { count }));
+    await revealResults();
   } catch (cause) {
     result.value = null;
     emit('error', cause.message);
@@ -233,7 +359,6 @@ async function copyResult() {
     copyDone.value = true;
     emit('notice', t('admin.balance.copySuccess'));
   } catch {
-    // Fallback for older browsers / insecure context
     try {
       const ta = document.createElement('textarea');
       ta.value = text;
@@ -251,6 +376,44 @@ async function copyResult() {
     }
   } finally {
     copying.value = false;
+  }
+}
+
+function exportJson() {
+  if (!result.value || !hasResults.value) return;
+  exportingJson.value = true;
+  try {
+    const payload = {
+      ...result.value,
+      assessment: assessment.value
+        ? {
+            code: assessment.value.code,
+            tone: assessment.value.tone,
+            label: assessmentLabel.value,
+            detail: assessment.value.detail || null,
+          }
+        : null,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const safeUser = String(result.value.player?.username || selectedId.value || 'player').replace(
+      /[^\w-]+/g,
+      '_'
+    );
+    const safeDeck = String(result.value.deck?.name || selectedDeckId.value || 'deck')
+      .replace(/[^\w-]+/g, '_')
+      .slice(0, 40);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `balance-sim-${safeUser}-${safeDeck}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    emit('notice', t('admin.balance.exportJsonSuccess'));
+  } catch (cause) {
+    emit('error', cause.message || t('admin.balance.exportJsonFailed'));
+  } finally {
+    exportingJson.value = false;
   }
 }
 
@@ -416,7 +579,7 @@ onMounted(() => {
         type="button"
         class="btn-secondary"
         data-testid="admin-balance-copy"
-        :disabled="!result || copying"
+        :disabled="!hasResults || copying"
         @click="copyResult"
       >
         {{
@@ -426,6 +589,15 @@ onMounted(() => {
               ? t('admin.balance.copied')
               : t('admin.balance.copy')
         }}
+      </button>
+      <button
+        type="button"
+        class="btn-secondary"
+        data-testid="admin-balance-export-json"
+        :disabled="!hasResults || exportingJson"
+        @click="exportJson"
+      >
+        {{ exportingJson ? t('admin.balance.exportingJson') : t('admin.balance.exportJson') }}
       </button>
     </div>
 
@@ -440,7 +612,12 @@ onMounted(() => {
       }}
     </p>
 
-    <div v-if="result" class="admin-balance__results mt-6" data-testid="admin-balance-results">
+    <div
+      v-if="hasResults"
+      ref="resultsEl"
+      class="admin-balance__results mt-6"
+      data-testid="admin-balance-results"
+    >
       <h3 class="admin-title">{{ t('admin.balance.resultsTitle') }}</h3>
       <p class="admin-lead">
         {{
@@ -452,6 +629,17 @@ onMounted(() => {
             runs: result.runsPerCell,
           })
         }}
+      </p>
+
+      <p
+        v-if="assessment"
+        class="admin-balance__assess"
+        :data-tone="assessment.tone"
+        data-testid="admin-balance-assess"
+        role="status"
+      >
+        <span class="admin-balance__assess-label">{{ t('admin.balance.assessLabel') }}</span>
+        {{ assessmentLabel }}
       </p>
 
       <div class="admin-balance__table-wrap mt-4">
@@ -467,7 +655,7 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, idx) in result.rows" :key="`${row.strength}-${row.rank}-${idx}`">
+            <tr v-for="(row, idx) in resultRows" :key="`${row.strength}-${row.rank}-${idx}`">
               <td>{{ row.strength }}</td>
               <td>{{ row.rank }}</td>
               <td>{{ pct(row.clearanceRate) }}</td>
@@ -478,6 +666,32 @@ onMounted(() => {
           </tbody>
         </table>
       </div>
+
+      <ul class="admin-balance__cards mt-4" data-testid="admin-balance-cards">
+        <li v-for="(row, idx) in resultRows" :key="`card-${row.strength}-${row.rank}-${idx}`">
+          <p class="admin-balance__card-title">
+            {{ row.strength }} · {{ t('admin.balance.colRank') }} {{ row.rank }}
+          </p>
+          <dl class="admin-balance__card-stats">
+            <div>
+              <dt>{{ t('admin.balance.colClearance') }}</dt>
+              <dd>{{ pct(row.clearanceRate) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('admin.balance.colFights') }}</dt>
+              <dd>{{ fmt(row.avgCombatsCleared) }}/{{ fmt(row.avgCombatsAttempted) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('admin.balance.colHp') }}</dt>
+              <dd>{{ fmt(row.avgHpAtEnd) }}</dd>
+            </div>
+            <div>
+              <dt>{{ t('admin.balance.colVerdict') }}</dt>
+              <dd>{{ verdict(row.clearanceRate) }}</dd>
+            </div>
+          </dl>
+        </li>
+      </ul>
 
       <p class="admin-hint mt-3">{{ t('admin.balance.copyHint') }}</p>
     </div>
@@ -560,13 +774,61 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
+.admin-balance__results {
+  min-width: 0;
+  width: 100%;
+}
+
+.admin-balance__assess {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--color-line);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.admin-balance__assess-label {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--color-ink-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-balance__assess[data-tone='ok'] {
+  border-color: color-mix(in srgb, #15803d 45%, var(--color-line));
+  background: color-mix(in srgb, #15803d 10%, transparent);
+}
+
+.admin-balance__assess[data-tone='warn'] {
+  border-color: color-mix(in srgb, #a16207 45%, var(--color-line));
+  background: color-mix(in srgb, #a16207 10%, transparent);
+}
+
+.admin-balance__assess[data-tone='bad'] {
+  border-color: color-mix(in srgb, #b91c1c 45%, var(--color-line));
+  background: color-mix(in srgb, #b91c1c 10%, transparent);
+}
+
+.admin-balance__assess[data-tone='mixed'] {
+  border-color: color-mix(in srgb, var(--color-ink) 25%, var(--color-line));
+  background: color-mix(in srgb, var(--color-ink) 4%, transparent);
+}
+
 .admin-balance__table-wrap {
+  width: 100%;
+  min-width: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--color-line);
 }
 
 .admin-balance__table {
   width: 100%;
+  min-width: 32rem;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
@@ -584,6 +846,47 @@ onMounted(() => {
   font-weight: 700;
 }
 
+.admin-balance__cards {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 0.75rem;
+}
+
+.admin-balance__cards > li {
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--color-line);
+}
+
+.admin-balance__card-title {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.admin-balance__card-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.75rem;
+  margin: 0;
+}
+
+.admin-balance__card-stats dt {
+  color: var(--color-ink-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-balance__card-stats dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 @media (max-width: 900px) {
   .admin-balance__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -597,6 +900,14 @@ onMounted(() => {
 
   .admin-balance__grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-balance__table-wrap {
+    display: none;
+  }
+
+  .admin-balance__cards {
+    display: grid;
   }
 }
 </style>

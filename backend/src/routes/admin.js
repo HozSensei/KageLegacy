@@ -231,6 +231,9 @@ router.post('/balance/mission-sim', async (req, res, next) => {
       seed,
     });
 
+    // `result` contains its own `deck: { size, validation }` — merge explicitly
+    // so player deck metadata is not overwritten by the spread.
+    const { deck: simDeck, ...simRest } = result;
     res.json({
       player: {
         userId: players[0].id,
@@ -242,10 +245,10 @@ router.post('/balance/mission-sim', async (req, res, next) => {
         name: deck.name,
         isActive: Boolean(deck.isActive),
         archetype: deck.archetype,
-        size: result.deck.size,
-        validation: result.deck.validation,
+        size: simDeck?.size ?? result.deck?.size,
+        validation: simDeck?.validation ?? result.deck?.validation,
       },
-      ...result,
+      ...simRest,
     });
   } catch (error) {
     next(error);
