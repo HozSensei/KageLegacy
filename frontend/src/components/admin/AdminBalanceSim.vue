@@ -59,9 +59,9 @@ async function request(path, options = {}) {
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
   });
-  const payload = await parseApiResponse(response);
-  if (!response.ok) throw new Error(readApiError(payload) || t('common.error'));
-  return payload;
+  const { ok, body } = await parseApiResponse(response);
+  if (!ok) throw new Error(await readApiError(response, body));
+  return body;
 }
 
 async function loadMeta() {
@@ -316,7 +316,15 @@ onMounted(() => {
           :disabled="!selectedId || decksLoading"
         >
           <option value="">
-            {{ decksLoading ? t('common.loading') : t('admin.balance.chooseDeck') }}
+            {{
+              decksLoading
+                ? t('common.loading')
+                : decks.length
+                  ? t('admin.balance.chooseDeck')
+                  : selectedId
+                    ? t('admin.balance.noDecks')
+                    : t('admin.balance.chooseDeck')
+            }}
           </option>
           <option v-for="deck in decks" :key="deck.id" :value="String(deck.id)">
             {{ deck.name }} ({{ deck.size }})
@@ -326,7 +334,7 @@ onMounted(() => {
         </select>
       </label>
 
-      <div class="admin-field">
+      <div class="admin-field admin-balance__branch-field">
         <span>{{ t('admin.balance.branch') }}</span>
         <div class="admin-balance__branch">
           <label class="admin-check">
@@ -339,7 +347,7 @@ onMounted(() => {
           </label>
           <select
             v-model="branchManual"
-            class="input-field"
+            class="input-field admin-balance__branch-select"
             :disabled="branchMode !== 'manual'"
             data-testid="admin-balance-branch"
           >
@@ -521,7 +529,12 @@ onMounted(() => {
 .admin-balance__grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.admin-balance__branch-field {
+  grid-column: 1 / -1;
 }
 
 .admin-balance__branch,
@@ -530,6 +543,10 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 0.65rem 1rem;
   align-items: center;
+}
+
+.admin-balance__branch-select {
+  max-width: 14rem;
 }
 
 .admin-balance__hard {
@@ -567,9 +584,19 @@ onMounted(() => {
   font-weight: 700;
 }
 
+@media (max-width: 900px) {
+  .admin-balance__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
   .admin-section-heading {
     flex-direction: column;
+  }
+
+  .admin-balance__grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>
