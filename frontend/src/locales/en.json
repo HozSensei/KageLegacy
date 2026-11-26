@@ -2665,6 +2665,7 @@
       "run": "Run simulation",
       "running": "Simulating…",
       "runSuccess": "{count} cells computed.",
+      "emptyResult": "Simulation finished with no result rows.",
       "needPlayerDeck": "Pick a player and a deck.",
       "needRanks": "Select at least one rank.",
       "copy": "Copy result (AI chat)",

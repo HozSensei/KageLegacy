@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { parseApiResponse, readApiError } from '../../utils/http.js';
 
@@ -8,7 +8,7 @@ const props = defineProps({
   playersLoading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['refresh-players', 'notice', 'error']);
+const emit = defineEmits(['refresh-players', 'notice', 'error', 'results']);
 
 const { t } = useI18n();
 const API_BASE = import.meta.env.VITE_API_URL || '';
@@ -25,14 +25,12 @@ const ranks = ref(['D', 'C', 'B', 'A']);
 const runs = ref(24);
 const hardMode = ref(false);
 const running = ref(false);
+/** Snapshot figé après sim — jamais cleared par les watchers joueur/deck. */
 const result = ref(null);
 const copying = ref(false);
 const copyDone = ref(false);
 const exportingJson = ref(false);
 const meta = ref(null);
-const resultsEl = ref(null);
-
-const RANK_ORDER = Object.freeze({ D: 0, C: 1, B: 2, A: 3 });
 
 const selectedDeck = computed(
   () => decks.value.find(d => Number(d.id) === Number(selectedDeckId.value)) || null
@@ -53,7 +51,6 @@ const filteredPlayers = computed(() => {
   });
 });
 
-/** Rows always as an array for template binding (API / legacy wrappers). */
 const resultRows = computed(() => {
   const payload = result.value;
   if (!payload) return [];
@@ -65,92 +62,13 @@ const resultRows = computed(() => {
 
 const hasResults = computed(() => resultRows.value.length > 0);
 
-/**
- * Heuristique d’équilibrage à partir des clearances par rang.
- * @returns {{ code: string, tone: 'ok'|'warn'|'bad'|'mixed', detail?: Record<string, string|number> }}
- */
-const assessment = computed(() => {
-  const rows = resultRows.value;
-  if (!rows.length) return null;
-
-  const ordered = [...rows].sort(
-    (a, b) => (RANK_ORDER[a.rank] ?? 99) - (RANK_ORDER[b.rank] ?? 99)
-  );
-  const rates = ordered.map(r => Number(r.clearanceRate) || 0);
-  const min = Math.min(...rates);
-  const max = Math.max(...rates);
-  const rateOf = rank => {
-    const row = ordered.find(r => r.rank === rank);
-    return row == null ? null : Number(row.clearanceRate) || 0;
-  };
-  const dRate = rateOf('D');
-  const aRate = rateOf('A');
-
-  let drops = 0;
-  let rises = 0;
-  for (let i = 1; i < rates.length; i += 1) {
-    const delta = rates[i] - rates[i - 1];
-    if (delta < -0.05) drops += 1;
-    else if (delta > 0.05) rises += 1;
-  }
-
-  if (max < 0.1) {
-    return { code: 'tooHard', tone: 'bad', detail: { max: pct(max) } };
-  }
-  if (min >= 0.7) {
-    return { code: 'tooEasy', tone: 'warn', detail: { min: pct(min) } };
-  }
-  if (rises > drops && rises > 0) {
-    return { code: 'inverted', tone: 'bad' };
-  }
-
-  for (let i = 1; i < rates.length; i += 1) {
-    if (rates[i - 1] >= 0.35 && rates[i] < 0.05) {
-      return {
-        code: 'cliff',
-        tone: 'warn',
-        detail: {
-          from: ordered[i - 1].rank,
-          to: ordered[i].rank,
-          fromRate: pct(rates[i - 1]),
-          toRate: pct(rates[i]),
-        },
-      };
-    }
-  }
-
-  if (rates.length > 1 && max - min < 0.12) {
-    return { code: 'flat', tone: 'warn', detail: { spread: pct(max - min) } };
-  }
-
-  const dOk = dRate == null || dRate >= 0.35;
-  const aChallenging = aRate == null || aRate <= 0.55;
-  const progressive = drops >= rises;
-  if (progressive && dOk && aChallenging) {
-    return {
-      code: 'balanced',
-      tone: 'ok',
-      detail: {
-        d: dRate == null ? '—' : pct(dRate),
-        a: aRate == null ? '—' : pct(aRate),
-      },
-    };
-  }
-
-  if (dRate != null && dRate < 0.2) {
-    return { code: 'entryTooHard', tone: 'bad', detail: { d: pct(dRate) } };
-  }
-  if (aRate != null && aRate >= 0.7) {
-    return { code: 'endTooEasy', tone: 'warn', detail: { a: pct(aRate) } };
-  }
-
-  return { code: 'mixed', tone: 'mixed' };
-});
-
-const assessmentLabel = computed(() => {
-  const a = assessment.value;
-  if (!a) return '';
-  return t(`admin.balance.assess.${a.code}`, a.detail || {});
+const artBreakdownText = computed(() => {
+  const counts = selectedDeck.value?.art?.counts;
+  if (!counts || typeof counts !== 'object') return '';
+  return Object.entries(counts)
+    .filter(([, n]) => Number(n) > 0)
+    .map(([k, n]) => `${k}:${n}`)
+    .join(' · ');
 });
 
 const rankOptions = ['D', 'C', 'B', 'A'];
@@ -168,13 +86,17 @@ async function request(path, options = {}) {
   return body;
 }
 
-/** Normalise le payload sim (rows au premier niveau). */
 function normalizeSimPayload(payload) {
   if (!payload || typeof payload !== 'object') return null;
   if (Array.isArray(payload.rows)) return payload;
   if (Array.isArray(payload.body?.rows)) return { ...payload.body };
   if (Array.isArray(payload.data?.rows)) return { ...payload.data };
   return payload;
+}
+
+function publishResult(payload) {
+  result.value = payload;
+  emit('results', payload);
 }
 
 async function loadMeta() {
@@ -197,7 +119,11 @@ async function loadDecks() {
     const payload = await request(`/api/admin/players/${selectedId.value}/decks`);
     decks.value = payload.decks || [];
     const active = decks.value.find(d => d.isActive) || decks.value[0];
-    selectedDeckId.value = active ? String(active.id) : '';
+    const nextId = active ? String(active.id) : '';
+    // Évite un reset select → watch inutile si déjà sélectionné.
+    if (selectedDeckId.value !== nextId) {
+      selectedDeckId.value = nextId;
+    }
     if (active?.art?.dominant) {
       branchManual.value = active.art.dominant;
     }
@@ -210,19 +136,20 @@ async function loadDecks() {
   }
 }
 
+// Ne PAS clear `result` ici : le toast parent lit le payload local, et un
+// reset select mobile / re-fetch decks après coup laissait le panneau vide
+// alors que « N cellules calculées » restait affiché.
 watch(selectedId, () => {
-  result.value = null;
   copyDone.value = false;
   void loadDecks();
 });
 
 watch(selectedDeckId, (deckId, prev) => {
-  if (String(deckId) === String(prev)) return;
+  if (String(deckId) === String(prev ?? '')) return;
   const deck = decks.value.find(d => Number(d.id) === Number(deckId));
   if (deck?.art?.dominant && branchMode.value === 'auto') {
     branchManual.value = deck.art.dominant;
   }
-  result.value = null;
   copyDone.value = false;
 });
 
@@ -256,7 +183,9 @@ function formatResultForClipboard(payload) {
   const lines = [];
   lines.push('# Kage Legacy — sim missions réelles (équilibrage)');
   lines.push('');
-  lines.push(`Joueur: ${payload.player?.username || '—'} (${payload.player?.characterName || 'sans perso'})`);
+  lines.push(
+    `Joueur: ${payload.player?.username || '—'} (${payload.player?.characterName || 'sans perso'})`
+  );
   lines.push(
     `Deck: ${payload.deck?.name || '—'} (#${payload.deck?.id ?? '—'}, ${payload.deck?.size ?? 0} cartes, actif=${payload.deck?.isActive ? 'oui' : 'non'})`
   );
@@ -273,9 +202,6 @@ function formatResultForClipboard(payload) {
   lines.push(
     `Validation deck: ${payload.deck?.validation?.valid ? 'OK' : 'INVALIDE'} ${(payload.deck?.validation?.errors || []).join('; ')}`
   );
-  if (assessment.value) {
-    lines.push(`Constat auto: ${assessmentLabel.value}`);
-  }
   lines.push('');
   lines.push('## Résultats (clearance = runs terminés / total)');
   lines.push('| Force | Rang | Clearance | Combats clear/tentés | HP@fin | Verdict |');
@@ -295,20 +221,15 @@ function formatResultForClipboard(payload) {
   }
   lines.push('');
   lines.push('## Contexte pour analyse');
-  lines.push(
-    '- Politique bot: greedy_damage_then_block (≠ joueur humain).'
-  );
+  lines.push('- Politique bot: greedy_damage_then_block (≠ joueur humain).');
   lines.push('- Missions: parcours branchés, PV persistants, chakra base 5, main persistante.');
   lines.push(
     '- Pistes design NON live: +5 cartes max deck par rang gagné ; +PV à chaque montée de niveau.'
   );
-  lines.push('- Demande: dire si les missions sont réussissables selon profil+deck, et où caler la difficulté.');
+  lines.push(
+    '- Demande: dire si les missions sont réussissables selon profil+deck, et où caler la difficulté.'
+  );
   return lines.join('\n');
-}
-
-async function revealResults() {
-  await nextTick();
-  resultsEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
 }
 
 async function runSim() {
@@ -322,6 +243,8 @@ async function runSim() {
   }
   running.value = true;
   copyDone.value = false;
+  // Clear seulement au lancement d'une nouvelle sim (pas via watchers).
+  publishResult(null);
   emit('error', '');
   try {
     const raw = await request('/api/admin/balance/mission-sim', {
@@ -337,12 +260,18 @@ async function runSim() {
       }),
     });
     const payload = normalizeSimPayload(raw);
-    result.value = payload;
-    const count = Array.isArray(payload?.rows) ? payload.rows.length : 0;
-    emit('notice', t('admin.balance.runSuccess', { count }));
-    await revealResults();
+    const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+    if (!payload || !rows.length) {
+      publishResult(null);
+      emit('error', t('admin.balance.emptyResult'));
+      return;
+    }
+    // Publier d'abord le payload (parent affiche au-dessus du formulaire),
+    // puis le toast — le toast ne doit plus être le seul signal visible.
+    publishResult(payload);
+    emit('notice', t('admin.balance.runSuccess', { count: rows.length }));
   } catch (cause) {
-    result.value = null;
+    publishResult(null);
     emit('error', cause.message);
   } finally {
     running.value = false;
@@ -385,14 +314,6 @@ function exportJson() {
   try {
     const payload = {
       ...result.value,
-      assessment: assessment.value
-        ? {
-            code: assessment.value.code,
-            tone: assessment.value.tone,
-            label: assessmentLabel.value,
-            detail: assessment.value.detail || null,
-          }
-        : null,
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -601,100 +522,9 @@ onMounted(() => {
       </button>
     </div>
 
-    <p v-if="selectedDeck?.art" class="admin-hint mt-3">
-      {{
-        t('admin.balance.artBreakdown', {
-          counts: Object.entries(selectedDeck.art.counts)
-            .filter(([, n]) => n > 0)
-            .map(([k, n]) => `${k}:${n}`)
-            .join(' · '),
-        })
-      }}
+    <p v-if="artBreakdownText" class="admin-hint mt-3">
+      {{ t('admin.balance.artBreakdown', { counts: artBreakdownText }) }}
     </p>
-
-    <div
-      v-if="hasResults"
-      ref="resultsEl"
-      class="admin-balance__results mt-6"
-      data-testid="admin-balance-results"
-    >
-      <h3 class="admin-title">{{ t('admin.balance.resultsTitle') }}</h3>
-      <p class="admin-lead">
-        {{
-          t('admin.balance.resultsLead', {
-            branch: result.branch,
-            auto: result.branchAuto
-              ? t('admin.balance.autoSuffix')
-              : t('admin.balance.manualSuffix'),
-            runs: result.runsPerCell,
-          })
-        }}
-      </p>
-
-      <p
-        v-if="assessment"
-        class="admin-balance__assess"
-        :data-tone="assessment.tone"
-        data-testid="admin-balance-assess"
-        role="status"
-      >
-        <span class="admin-balance__assess-label">{{ t('admin.balance.assessLabel') }}</span>
-        {{ assessmentLabel }}
-      </p>
-
-      <div class="admin-balance__table-wrap mt-4">
-        <table class="admin-balance__table">
-          <thead>
-            <tr>
-              <th>{{ t('admin.balance.colStrength') }}</th>
-              <th>{{ t('admin.balance.colRank') }}</th>
-              <th>{{ t('admin.balance.colClearance') }}</th>
-              <th>{{ t('admin.balance.colFights') }}</th>
-              <th>{{ t('admin.balance.colHp') }}</th>
-              <th>{{ t('admin.balance.colVerdict') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, idx) in resultRows" :key="`${row.strength}-${row.rank}-${idx}`">
-              <td>{{ row.strength }}</td>
-              <td>{{ row.rank }}</td>
-              <td>{{ pct(row.clearanceRate) }}</td>
-              <td>{{ fmt(row.avgCombatsCleared) }}/{{ fmt(row.avgCombatsAttempted) }}</td>
-              <td>{{ fmt(row.avgHpAtEnd) }}</td>
-              <td>{{ verdict(row.clearanceRate) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <ul class="admin-balance__cards mt-4" data-testid="admin-balance-cards">
-        <li v-for="(row, idx) in resultRows" :key="`card-${row.strength}-${row.rank}-${idx}`">
-          <p class="admin-balance__card-title">
-            {{ row.strength }} · {{ t('admin.balance.colRank') }} {{ row.rank }}
-          </p>
-          <dl class="admin-balance__card-stats">
-            <div>
-              <dt>{{ t('admin.balance.colClearance') }}</dt>
-              <dd>{{ pct(row.clearanceRate) }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('admin.balance.colFights') }}</dt>
-              <dd>{{ fmt(row.avgCombatsCleared) }}/{{ fmt(row.avgCombatsAttempted) }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('admin.balance.colHp') }}</dt>
-              <dd>{{ fmt(row.avgHpAtEnd) }}</dd>
-            </div>
-            <div>
-              <dt>{{ t('admin.balance.colVerdict') }}</dt>
-              <dd>{{ verdict(row.clearanceRate) }}</dd>
-            </div>
-          </dl>
-        </li>
-      </ul>
-
-      <p class="admin-hint mt-3">{{ t('admin.balance.copyHint') }}</p>
-    </div>
   </section>
 </template>
 
@@ -774,119 +604,6 @@ onMounted(() => {
   gap: 0.75rem;
 }
 
-.admin-balance__results {
-  min-width: 0;
-  width: 100%;
-}
-
-.admin-balance__assess {
-  margin: 1rem 0 0;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid var(--color-line);
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.admin-balance__assess-label {
-  display: block;
-  margin-bottom: 0.2rem;
-  color: var(--color-ink-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.admin-balance__assess[data-tone='ok'] {
-  border-color: color-mix(in srgb, #15803d 45%, var(--color-line));
-  background: color-mix(in srgb, #15803d 10%, transparent);
-}
-
-.admin-balance__assess[data-tone='warn'] {
-  border-color: color-mix(in srgb, #a16207 45%, var(--color-line));
-  background: color-mix(in srgb, #a16207 10%, transparent);
-}
-
-.admin-balance__assess[data-tone='bad'] {
-  border-color: color-mix(in srgb, #b91c1c 45%, var(--color-line));
-  background: color-mix(in srgb, #b91c1c 10%, transparent);
-}
-
-.admin-balance__assess[data-tone='mixed'] {
-  border-color: color-mix(in srgb, var(--color-ink) 25%, var(--color-line));
-  background: color-mix(in srgb, var(--color-ink) 4%, transparent);
-}
-
-.admin-balance__table-wrap {
-  width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--color-line);
-}
-
-.admin-balance__table {
-  width: 100%;
-  min-width: 32rem;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.admin-balance__table th,
-.admin-balance__table td {
-  padding: 0.55rem 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid var(--color-line);
-  white-space: nowrap;
-}
-
-.admin-balance__table th {
-  background: color-mix(in srgb, var(--color-ink) 4%, transparent);
-  font-weight: 700;
-}
-
-.admin-balance__cards {
-  display: none;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  gap: 0.75rem;
-}
-
-.admin-balance__cards > li {
-  padding: 0.85rem 0.9rem;
-  border: 1px solid var(--color-line);
-}
-
-.admin-balance__card-title {
-  margin: 0 0 0.55rem;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.admin-balance__card-stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem 0.75rem;
-  margin: 0;
-}
-
-.admin-balance__card-stats dt {
-  color: var(--color-ink-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.admin-balance__card-stats dd {
-  margin: 0.15rem 0 0;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
 @media (max-width: 900px) {
   .admin-balance__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -900,14 +617,6 @@ onMounted(() => {
 
   .admin-balance__grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .admin-balance__table-wrap {
-    display: none;
-  }
-
-  .admin-balance__cards {
-    display: grid;
   }
 }
 </style>

@@ -2594,6 +2594,7 @@
       "run": "Lancer la simulation",
       "running": "Simulation…",
       "runSuccess": "{count} cellules calculées.",
+      "emptyResult": "Simulation terminée sans ligne de résultat.",
       "needPlayerDeck": "Choisissez un joueur et un deck.",
       "needRanks": "Cochez au moins un rang.",
       "copy": "Copier le résultat (chat IA)",

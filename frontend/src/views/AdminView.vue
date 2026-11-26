@@ -1,7 +1,8 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import AdminBalanceResults from '../components/admin/AdminBalanceResults.vue';
 import AdminBalanceSim from '../components/admin/AdminBalanceSim.vue';
 import PageHeader from '../components/ui/PageHeader.vue';
 import { BUG_REPORT_LOCATION_OPTIONS } from '../constants/bugReportLocations.js';
@@ -52,6 +53,9 @@ const freshResetting = ref(false);
 const exportingDeck = ref(false);
 const error = ref('');
 const notice = ref('');
+/** Résultat sim porté par la vue (survivit aux resets select/watchers du panneau). */
+const balanceResult = ref(null);
+const balanceResultsTopEl = ref(null);
 let searchTimer;
 
 const reports = ref([]);
@@ -71,6 +75,7 @@ function setTab(tab) {
   if (tab === 'reports' || tab === 'balance') query.tab = tab;
   else delete query.tab;
   router.replace({ query });
+  if (tab !== 'balance') balanceResult.value = null;
   if (tab === 'reports') void loadReports();
   else void loadPlayers();
 }
@@ -84,6 +89,15 @@ function onBalanceNotice(message) {
 function onBalanceError(message) {
   error.value = message || '';
   if (message) notice.value = '';
+}
+
+async function onBalanceResults(payload) {
+  balanceResult.value =
+    payload && Array.isArray(payload.rows) && payload.rows.length ? payload : null;
+  if (!balanceResult.value) return;
+  await nextTick();
+  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  balanceResultsTopEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
 }
 
 function locationLabel(report) {
@@ -138,6 +152,7 @@ watch(
       tab === 'reports' ? 'reports' : tab === 'balance' ? 'balance' : 'players';
     if (next !== activeTab.value) {
       activeTab.value = next;
+      if (next !== 'balance') balanceResult.value = null;
       if (next === 'reports') void loadReports();
       else void loadPlayers();
     }
@@ -399,12 +414,21 @@ async function rewardReport(report) {
     </div>
 
     <section v-show="activeTab === 'balance'" class="panel mt-6">
+      <!--
+        Affichage porté par AdminView (au-dessus du formulaire) :
+        le toast « N cellules » ne dépend plus d’un état enfant fragile,
+        et le résultat est visible sans scroller sous le long formulaire.
+      -->
+      <div ref="balanceResultsTopEl" data-testid="admin-balance-results-top">
+        <AdminBalanceResults :payload="balanceResult" />
+      </div>
       <AdminBalanceSim
         :players="players"
         :players-loading="loading"
         @refresh-players="loadPlayers"
         @notice="onBalanceNotice"
         @error="onBalanceError"
+        @results="onBalanceResults"
       />
     </section>
 
