@@ -1,6 +1,6 @@
-# Kage Legacy — Game rules
+# Kagekuni — Game rules
 
-**Kage Legacy** is a solo deck-building game set in a ninja world. You play **a single ninja**. Their power comes from two sources only: the **cards in your deck** and your **talent tree**. You fight enemies in **turn-based** combat, mission after mission, and you can challenge other players in the arena.
+**Kagekuni** is a solo deck-building game set in a ninja world. You play **a single ninja**. Their power comes from two sources only: the **cards in your deck** and your **talent tree**. You fight enemies in **turn-based** combat, mission after mission, and you can challenge other players in the arena.
 
 This guide describes the game as it works today. The numbers given are the ones the game applies.
 

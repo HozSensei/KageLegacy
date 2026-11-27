@@ -1,10 +1,10 @@
 # Legal notice & privacy
 
-Information about the service operator, hosting, terms of use, and personal data processing for **Kage Legacy**.
+Information about the service operator, hosting, terms of use, and personal data processing for **Kagekuni**.
 
 ## 1. Publisher
 
-Kage Legacy is an independently published online game.
+Kagekuni is an independently published online game.
 
 For questions about the service (account, data deletion, reports), contact the operator through the production site, or via the contact email published there.
 
@@ -14,7 +14,7 @@ The application and related data are hosted on the infrastructure used for produ
 
 ## 3. Service purpose
 
-Kage Legacy is a browser TCG: character creation, collection, decks, missions, progression, and related features (shop, season pass, etc.).
+Kagekuni is a browser TCG: character creation, collection, decks, missions, progression, and related features (shop, season pass, etc.).
 
 Some features require an account (email / password) or a third-party identity provider (e.g. Google). A time-limited guest mode may be offered.
 
@@ -74,7 +74,7 @@ These are required for operation or convenience. No third-party ad network is in
 
 ## 7. Payments
 
-If in-app purchases are offered (e.g. packs, pass), payment may be handled by a payment provider (e.g. Stripe). Card data are then processed by that provider and not stored by Kage Legacy.
+If in-app purchases are offered (e.g. packs, pass), payment may be handled by a payment provider (e.g. Stripe). Card data are then processed by that provider and not stored by Kagekuni.
 
 ## 8. Liability
 

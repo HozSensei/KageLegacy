@@ -1,4 +1,4 @@
--- MySQL 8.0 operational upgrade. Select the existing KageLegacy database first.
+-- MySQL 8.0 operational upgrade. Select the existing Kagekuni database first.
 -- Stop application writers and take a backup before running this file.
 -- Keep existing ENUM ordinals by appending the new value, not prepending it.
 -- All schema changes are in one atomic DDL statement; the column check permits a retry.

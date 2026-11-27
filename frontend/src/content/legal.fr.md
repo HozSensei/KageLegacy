@@ -1,10 +1,10 @@
 # Mentions légales & confidentialité
 
-Informations relatives à l’éditeur du service, à l’hébergement, aux conditions d’utilisation et au traitement des données personnelles pour **Kage Legacy**.
+Informations relatives à l’éditeur du service, à l’hébergement, aux conditions d’utilisation et au traitement des données personnelles pour **Kagekuni**.
 
 ## 1. Éditeur
 
-Kage Legacy est un jeu en ligne édité à titre indépendant.
+Kagekuni est un jeu en ligne édité à titre indépendant.
 
 Pour toute question relative au service (compte, suppression de données, signalement) : contactez l’opérateur via le site de déploiement en production, ou l’adresse e-mail de contact communiquée sur ce site.
 
@@ -14,7 +14,7 @@ Le service applicatif et les données associées sont hébergés sur l’infrast
 
 ## 3. Objet du service
 
-Kage Legacy propose un jeu de cartes (TCG) jouable dans le navigateur : création de personnage, collection, decks, missions, progression et fonctionnalités associées (boutique, passe de saison, etc.).
+Kagekuni propose un jeu de cartes (TCG) jouable dans le navigateur : création de personnage, collection, decks, missions, progression et fonctionnalités associées (boutique, passe de saison, etc.).
 
 Certaines fonctionnalités peuvent nécessiter un compte (e-mail / mot de passe) ou une connexion via un fournisseur d’identité tiers (ex. Google). Un mode invité limité dans le temps peut être proposé.
 
@@ -74,7 +74,7 @@ Ces éléments sont nécessaires au fonctionnement ou à votre confort d’utili
 
 ## 7. Paiements
 
-Si des achats intégrés sont proposés (ex. packs, passe), le paiement peut être traité par un prestataire de paiement (ex. Stripe). Dans ce cas, les données de carte bancaire sont collectées et traitées par le prestataire, pas stockées par Kage Legacy.
+Si des achats intégrés sont proposés (ex. packs, passe), le paiement peut être traité par un prestataire de paiement (ex. Stripe). Dans ce cas, les données de carte bancaire sont collectées et traitées par le prestataire, pas stockées par Kagekuni.
 
 ## 8. Responsabilité
 

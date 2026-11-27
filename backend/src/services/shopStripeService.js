@@ -222,7 +222,7 @@ async function createCheckoutSession({ userId, lineItems, metadata, successPath,
   const baseUrl = getPublicAppUrl();
   if (!/^https?:\/\//i.test(baseUrl)) {
     throw httpError(
-      'APP_PUBLIC_URL invalide — utilisez une URL complète (ex. https://kagelegacy.example.com).',
+      'APP_PUBLIC_URL invalide — utilisez une URL complète (ex. https://kagekuni.com).',
       503,
     );
   }

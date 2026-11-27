@@ -1,9 +1,9 @@
 {
-  "name": "kage-legacy",
+  "name": "kagekuni",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Kage Legacy — TCG shinobi dans le navigateur",
+  "description": "Kagekuni — A ninja TCG",
   "scripts": {
     "dev": "concurrently -n api,web -c blue,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "dev:api": "npm run dev --prefix backend",

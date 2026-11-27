@@ -1,5 +1,5 @@
 /**
- * Card definitions catalogue — Kage Legacy V2 Phase 2
+ * Card definitions catalogue — Kagekuni V2 Phase 2
  */
 import { query } from '../config/database.js';
 import {

@@ -18,8 +18,8 @@ function normalizePublicUrl(raw) {
 }
 
 const cases = [
-  ['https://kagelegacy.jeromedessy.be', 'https://kagelegacy.jeromedessy.be'],
-  ['kagelegacy.jeromedessy.be', 'https://kagelegacy.jeromedessy.be'],
+  ['https://kagekuni.com', 'https://kagekuni.com'],
+  ['kagekuni.com', 'https://kagekuni.com'],
   ['http://localhost:5173', 'http://localhost:5173'],
   ['localhost:5173', 'http://localhost:5173'],
 ];

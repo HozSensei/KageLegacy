@@ -1,6 +1,6 @@
 # 📜 Milestone 1 : Spécifications des Ninjas et des Compétences
 
-Ce document définit la structure de données, la logique des caractéristiques, l'utilité exacte des compétences et l'impact des traits de caractère pour la V1 de **Kage Legacy**.
+Ce document définit la structure de données, la logique des caractéristiques, l'utilité exacte des compétences et l'impact des traits de caractère pour la V1 de **Kagekuni**.
 
 ---
 

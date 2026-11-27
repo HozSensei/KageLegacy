@@ -178,7 +178,7 @@ function formatResultForClipboard(payload) {
   if (!payload) return '';
   const rows = Array.isArray(payload.rows) ? payload.rows : resultRows.value;
   const lines = [];
-  lines.push('# Kage Legacy — sim missions réelles (équilibrage)');
+  lines.push('# Kagekuni — sim missions réelles (équilibrage)');
   lines.push('');
   lines.push(
     `Joueur: ${payload.player?.username || '—'} (${payload.player?.characterName || 'sans perso'})`

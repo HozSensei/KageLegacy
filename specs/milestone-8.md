@@ -24,7 +24,7 @@ Lorsqu'un utilisateur crée un compte sans lien d'invitation :
 
 Pour permettre à des amis de s'affronter directement sans attendre les mécanismes de montée/descente de division, le jeu intègre un système d'injection ciblée via un paramètre `pool_id`.
 
-* **Génération du lien :** Depuis son Bureau (Vue 3), un joueur peut générer un lien d'invitation unique contenant l'ID de sa Pool actuelle (ex: `kagelegacy.com/register?invitePoolId=42`).
+* **Génération du lien :** Depuis son Bureau (Vue 3), un joueur peut générer un lien d'invitation unique contenant l'ID de sa Pool actuelle (ex: `kagekuni.com/register?invitePoolId=42`).
 * **Logique d'inscription ciblée :** Lorsque l'invité valide son inscription :
   * Le serveur vérifie la Pool demandée. **S'il reste au moins une équipe `is_bot: true` dans cette Pool spécifique**, le serveur supprime ce bot et injecte l'invité à sa place. Les deux amis sont désormais dans la même ligue.
   * **Si la Pool est déjà 100% humaine :** L'inscription bascule sur l'algorithme standard (`join_or_create_pool`). Un message s'affiche sur l'interface de l'invité : *« La ligue de votre ami est déjà complète ! Vous avez été placé dans la ligue active la plus proche. À vous de grimper pour le rejoindre ! »*

@@ -1,5 +1,5 @@
 /**
- * Économie centrale — Kage Legacy V2
+ * Économie centrale — Kagekuni V2
  *
  * Source unique des constantes tunables (boosters, combat, dust, Battle Pass).
  * Les services doivent importer ici plutôt que hardcoder des montants.
