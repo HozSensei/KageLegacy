@@ -11,7 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 const PORT = Number(process.env.PORT || 3000);
 
 const server = app.listen(PORT, () => {
-  console.log(`🦅 Kage Legacy API — http://localhost:${PORT}`);
+  console.log(`🦅 Kagekuni API — http://localhost:${PORT}`);
   if (isSchedulerEnabled()) {
     startScheduler();
   }

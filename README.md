@@ -1,6 +1,6 @@
-# Kage Legacy
+# Kagekuni
 
-TCG shinobi jouable dans le navigateur, centré sur la collection, l'amélioration et la construction de decks de cartes. Le jeu propose notamment des combats PvE à cartes, des missions, une progression de personnage, des talents, un Battle Pass et du PvP.
+**A ninja TCG** — TCG shinobi jouable dans le navigateur, centré sur la collection, l'amélioration et la construction de decks de cartes. Le jeu propose notamment des combats PvE à cartes, des missions, une progression de personnage, des talents, un Battle Pass et du PvP.
 
 > Les systèmes de gestion d'escouade et de cycle asynchrone de 72 h appartiennent à l'ancien jeu. Le code ou les documents qui les mentionnent encore sont hérités et ne décrivent pas le produit actuel.
 

@@ -1,4 +1,4 @@
-# Lore — Kage Legacy
+# Lore — Kagekuni
 
 Histoire de fond du TCG actuel. Courte, jouable, sans cutscenes.
 

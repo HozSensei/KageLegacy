@@ -1,8 +1,8 @@
-# Guide agent — Kage Legacy
+# Guide agent — Kagekuni
 
 ## État du projet
 
-TCG shinobi jouable dans le navigateur, centré sur la collection, l'amélioration et la construction de decks de cartes, avec combats PvE, missions, **duels PvP asynchrones** (deck adverse figé, piloté serveur — pas de matchmaking temps réel), progression et fonctionnalités associées. La gestion d'escouade et les cycles asynchrones de 72 h appartiennent à l'ancien jeu (legacy), pas au produit actuel. Le dépôt peut encore contenir du code ou des documents hérités : ne présenter une fonctionnalité comme active qu'après vérification de son implémentation et de son exposition dans l'application.
+**Kagekuni** (*A ninja TCG*) — TCG shinobi jouable dans le navigateur, centré sur la collection, l'amélioration et la construction de decks de cartes, avec combats PvE, missions, **duels PvP asynchrones** (deck adverse figé, piloté serveur — pas de matchmaking temps réel), progression et fonctionnalités associées. La gestion d'escouade et les cycles asynchrones de 72 h appartiennent à l'ancien jeu (legacy), pas au produit actuel. Le dépôt peut encore contenir du code ou des documents hérités : ne présenter une fonctionnalité comme active qu'après vérification de son implémentation et de son exposition dans l'application.
 
 ## Cartographie
 

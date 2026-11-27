@@ -1,6 +1,6 @@
 # Changelog
 
-Toutes les modifications notables du projet Kage Legacy sont documentées dans ce fichier.
+Toutes les modifications notables du projet Kagekuni sont documentées dans ce fichier.
 
 Le format est basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/),
 et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
@@ -392,7 +392,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 - **Auth register/guest** : plus de provision d’escouade / cartes tactiques (différé V2)
 - **Navigation** : hub recentré sur Bureau + Profil (autres sections en placeholder)
 
-### Phase 0 - Préparation de Kage Legacy V2 (2026-11-14)
+### Phase 0 - Préparation de Kagekuni V2 (2026-11-14)
 
 #### Added
 
@@ -428,7 +428,7 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ### Description
 
-Version originale de Kage Legacy : système de gestion d'escouade asynchrone de ninjas.
+Version originale de Kagekuni : système de gestion d'escouade asynchrone de ninjas.
 
 ### Features principales
 

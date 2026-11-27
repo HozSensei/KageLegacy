@@ -1,8 +1,8 @@
-# Documentation Kage Legacy
+# Documentation Kagekuni
 
 Cette documentation décrit le produit actuellement implémenté. Elle remplace les anciens audits, spécifications V2/V3 et rapports ponctuels.
 
-Kage Legacy est un TCG shinobi jouable dans le navigateur, centré sur la collection, les améliorations, la construction de decks, les combats PvE, les missions, les duels asynchrones et la progression.
+Kagekuni (*A ninja TCG*) est un TCG shinobi jouable dans le navigateur, centré sur la collection, les améliorations, la construction de decks, les combats PvE, les missions, les duels asynchrones et la progression.
 
 ## Index
 

@@ -1,5 +1,5 @@
 /**
- * Boosters & Shop — Kage Legacy V2 Phase 5
+ * Boosters & Shop — Kagekuni V2 Phase 5
  *
  * Coûts monétaires : `../config/economyConfig.js`
  * (standard 300 / path 550 / élém. 650 / premium 100 / elite 250 / ascendant 500 KC).

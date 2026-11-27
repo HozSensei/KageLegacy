@@ -1,5 +1,5 @@
 /**
- * Player Character Service — Kage Legacy V2 Phase 1
+ * Player Character Service — Kagekuni V2 Phase 1
  *
  * Stats finales = talents débloqués + bonus passifs des cartes du deck actif.
  * ⚠️ Aucune stat automatique au level-up : uniquement +1 talent_points_available.

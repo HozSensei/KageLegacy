@@ -1,6 +1,6 @@
 # Guide de Contribution
 
-Merci de contribuer à **Kage Legacy V2** ! Ce document décrit les conventions et bonnes pratiques du projet.
+Merci de contribuer à **Kagekuni V2** ! Ce document décrit les conventions et bonnes pratiques du projet.
 
 ## 📋 Table des matières
 
@@ -330,4 +330,4 @@ export async function getComputedStats(userId) {
 
 Pour toute question ou clarification, contactez l'équipe ou ouvrez une issue sur GitHub.
 
-**Merci de contribuer à Kage Legacy V2 !** 🥷✨
+**Merci de contribuer à Kagekuni V2 !** 🥷✨

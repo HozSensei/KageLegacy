@@ -201,7 +201,7 @@ Points soulevés en session — **ne pas implémenter sans arbitrage** :
 
 **Référence [Hattrick](https://wiki.hattrick.org/wiki/Bankruptcy) :** pas de frais d'entraînement direct par joueur — le coût est **indirect** via les **salaires** qui montent avec le niveau. Déficit autorisé jusqu'à une **ligne de crédit** (~500 k€), **intérêts hebdomadaires** (~3,33 % sur la dette), **restrictions** avant faillite (achats joueurs / staff gelés), **avertissement** puis **faillite** (perte de l'équipe) si non résorbé en 2 semaines. Page **Finances** très détaillée (revenus / dépenses ligne par ligne).
 
-**Pistes Kage Legacy** (moins brutal qu'une faillite — cycle 72 h, club plus petit) :
+**Pistes Kagekuni** (moins brutal qu'une faillite — cycle 72 h, club plus petit) :
 
 | Niveau | Piste | Effet gameplay |
 | :--- | :--- | :--- |

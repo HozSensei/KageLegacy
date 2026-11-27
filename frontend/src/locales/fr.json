@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Kage Legacy"
+    "name": "Kagekuni"
   },
   "common": {
     "loading": "Chargement…",
@@ -228,7 +228,7 @@
       "cta": "Voir les règles"
     },
     "welcome": {
-      "title": "Bienvenue dans Kage Legacy",
+      "title": "Bienvenue dans Kagekuni",
       "lead": "Un jeu de cartes shinobi pensé pour une session claire : crée ton ninja, construis ton deck, monte avec ton village.",
       "features": {
         "deck": {
@@ -426,7 +426,7 @@
     "backHome": "Accueil"
   },
   "footer": {
-    "tagline": "TCG shinobi dans le navigateur — collection, decks, missions et progression.",
+    "tagline": "Un TCG ninja",
     "play": "Jouer",
     "discover": "Découvrir",
     "account": "Compte",
@@ -1189,8 +1189,8 @@
     "effectExhaust": "Épuisement",
     "upgraded": "Amélioration +{level}",
     "quantityLabel": "Exemplaires",
-    "serialNumber": "N° {n} · KAGE LEGACY",
-    "serialBrand": "KAGE LEGACY",
+    "serialNumber": "N° {n} · KAGEKUNI",
+    "serialBrand": "KAGEKUNI",
     "combatRoleLabel": "Rôle en combat : {role}",
     "combatRoles": {
       "opener": "Ouverture",
@@ -1215,7 +1215,7 @@
       "setup": "Préparation",
       "utility": "Soutien"
     },
-    "backSubtitle": "SHINOBI CHRONICLES",
+    "backSubtitle": "UN TCG NINJA",
     "flipToBack": "Retourner la carte (dos)",
     "flipToFront": "Retourner la carte (face)",
     "flipBackShort": "Dos",
@@ -2248,7 +2248,7 @@
     "challengeSent": "Défi envoyé",
     "humans": "Humains",
     "inviteRoster": "{humans} / {capacity} Sensei humains · {bots} bot(s) restant(s)",
-    "inviteShareText": "Rejoins ma ligue (Division {division}) sur Kage Legacy",
+    "inviteShareText": "Rejoins ma ligue (Division {division}) sur Kagekuni",
     "otherLeaguesTitle": "Défier hors ligue",
     "otherLeaguesLead": "Sensei humains d'une division proche — le défenseur doit accepter. Combat à H36.",
     "otherLeagueDivision": "Division {division}"
