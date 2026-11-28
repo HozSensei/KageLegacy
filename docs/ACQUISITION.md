@@ -17,7 +17,7 @@ La monétisation est temporairement indisponible ; conserver la possibilité d'u
 ## Demandes et roadmap
 
 ### ACQ-001 — Audit SEO et conversion
-Statut : VALIDÉ — analyse uniquement, aucune modification applicative avant validation du plan.
+Statut : AUDIT RÉALISÉ — rapport soumis à revue, plan d’implémentation en attente de validation.
 Analyser les pages publiques, landing actuelle, router Vue, i18n, URLs, HTML indexable, Vite, Docker, Nginx, title/description, canonical, hreflang, Open Graph, robots.txt, sitemap, données structurées, performances et accessibilité mobile, parcours invité/inscription, instrumentation existante. Comparer prérendu statique et SSR en privilégiant une solution légère compatible avec l'architecture existante.
 Livrable : état réel, lacunes, plan priorisé, fichiers concernés, risques, tests et critères d'acceptation. Distinguer ce qui est vérifié dans le code de ce qui nécessite une vérification en production. Ne pas modifier le code avant accord.
 
@@ -42,4 +42,7 @@ Respecter AGENTS.md, design actuel, composants et assets existants, FR/EN, mobil
 
 ## Suivi
 - Initialisation : ACQ-001 prête pour audit ; ACQ-002 à ACQ-005 non validées. Aucun changement applicatif effectué.
-- Codex : ajouter ici les résultats d'audit ou un lien vers leur document/PR, puis les résultats d'implémentation et tests pour chaque demande validée.
+- 28 novembre 2026 — **ACQ-001, audit réalisé.** [Rapport et plan priorisé](ACQ-001-AUDIT.md). La landing publique est `/`. En production, le HTML brut ne contient aucun contenu de page et les URL robots/sitemap renvoient le shell SPA. Le rapport recommande le prérendu statique des pages publiques FR/EN.
+- **Tests ACQ-001** — Build Vite réussi, sondages HTTP en production, vérification Chromium sur mobile émulé et desktop, contrôle axe sur la landing FR et parcours invité jusqu’au wizard avec API simulée.
+- **Vérifications restantes** — Création effective de compte et suite de l’onboarding sur environnement isolé, mesures de terrain, données de conversion et état d’indexation dans Search Console. Le plan dépend de la validation du propriétaire.
+- **Fichiers** — `docs/ACQUISITION.md` et `docs/ACQ-001-AUDIT.md`. ACQ-002 à ACQ-005 restent au stade de proposition.
